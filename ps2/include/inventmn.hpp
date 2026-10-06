@@ -148,7 +148,9 @@ class CDC2AlbumData {
 public:
     char              photo_work[50][0x2000]; /**< Pixels of the album's photos. */
     USER_PICTURE_INFO photo[50];              /**< Photos of the album. */
-    u8                unk_644b0[0x800];
+    int               check_digit;      /**< Checksum of the album photo records. */
+    int               check_digit_copy; /**< Second checksum of the album photo records. */
+    u8                unk_644b8[0x7F8];
 
     /**
      *

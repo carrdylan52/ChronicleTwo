@@ -75,6 +75,11 @@ Ctor just calls `Initialize(NULL)`.
 
 ## Matched functions
 
+The draft compile has 43 exact functions, one differing draft (`CheckOmakeFile`),
+and five functions without drafts. The build report has 42 perfect functions
+and seven assembly functions. `CheckOmakeFile` uses named bonus flag members in
+its draft; the assembly fallback preserves the retail instruction sequence.
+
 - `InitSaveFileInfoTable` clears all 17 `MC_DIR_ENTRY` records, then explicitly clears the first
   byte of each name. Its two loop variables are a record count and a byte offset; keeping both
   preserves the retail loop and register allocation. The latter is used only while clearing this
@@ -145,4 +150,10 @@ writes item numbers and a -1 terminator. The struct name COSBIT_INFO is not reta
 
 ## Return types chosen
 Mangling does not carry them: Step int (bool-like), CheckMaxUniqueCounter u_long, CheckOmake u32,
-CheckDebugCode s16, GetCosInfo COSBIT_INFO*, CopyMCBrowserName char* (strcpy result), FinishForMC int (1).
+CheckDebugCode s16, GetCosInfo COSBIT_INFO*, CopyMCBrowserName char* (strcpy result), FinishForMC int (sceMcEnd result).
+
+## Album checksums
+`CDC2AlbumData::check_digit` and `check_digit_copy` occupy +0x644B0 and
++0x644B4. `SaveAlbum` stores `MakeCheckDigit(0, photo, sizeof(photo))` into
+both; `LoadAlbum` tests the first when either is nonzero. The remaining
+reserved bytes begin at +0x644B8; the album size remains 0x64CB0.
