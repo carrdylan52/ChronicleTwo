@@ -1,12 +1,7 @@
 # wavetable: reverse-engineering notes
 
 ## C++ draft status
-All five functions have typed C++ drafts in `ps2/src/wavetable.cpp`. Each draft
-compiles with MWCC. The destructor's isolated object code matches the retail
-function, but promotion cannot link while its vtable is supplied as assembly
-data. The other four drafts differ from retail, so all five retain the
-`INCLUDE_ASM` fallback in the matching build. Each received one promotion
-attempt, recorded in `scripts/re/promotion_attempts.tsv`.
+All five functions have typed C++ bodies in `ps2/src/wavetable.cpp` and compile with drafts enabled. The constructor, destructor, and `GetEffect` match and are active C++; `CreateTexture` and `Effect` differ and remain guarded with assembly fallbacks. Their isolated sizes are 0x410 versus 0x420 and 0x208 versus 0x510 respectively. The normal build has three perfect functions and two assembly functions and verifies all eleven sections, including the assembly vtable and compiler-generated local counter storage.
 
 ## CWaveTable (size 0x1208)
 No counterpart in the first game's headers.

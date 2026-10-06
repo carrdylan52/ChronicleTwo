@@ -1,9 +1,5 @@
 #include "common.h"
 #include "wavetable.hpp"
-#include <cstdlib>
-
-extern int cnt_302;
-extern signed char init_303;
 
 #include <cstdlib>
 #include <libvu0.h>
@@ -26,8 +22,8 @@ CWaveTable::CWaveTable() {
 
     current = 0;
 }
-CWaveTable::~CWaveTable() {
-}
+
+CWaveTable::~CWaveTable() {}
 
 #ifdef NONMATCHING
 void CWaveTable::CreateTexture(mgCTexture *output_texture) {
@@ -147,6 +143,3 @@ INCLUDE_RODATA("ps2/asm/pal/nonmatchings/wavetable", at_256__DATA);
 
 // Virtual tables (.vtables)
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/wavetable", __vt__10CWaveTable__DATA);
-
-INCLUDE_BSS(cnt_302, 0x4);
-INCLUDE_BSS(init_303, 0x4);
