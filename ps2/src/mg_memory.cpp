@@ -34,7 +34,7 @@ void mgCMemory::Init() {
 void mgCMemory::SetHeapMem(u_long128 *buffer, int size) {
     heap = buffer;
     heap_size = size;
-    if (buffer == 0 || heap_size < 0x10) {
+    if (buffer == NULL || heap_size < 16) {
         Init();
         return;
     }
@@ -42,12 +42,12 @@ void mgCMemory::SetHeapMem(u_long128 *buffer, int size) {
     // The first header owns no contents; the last quadword of the buffer
     // is the terminating header.
     heap_top = (mgMEMORY_BLOCK *)buffer;
-    heap_top->data = 0;
+    heap_top->data = NULL;
     heap_top->size = 1;
-    heap_top->next = (mgMEMORY_BLOCK *)(heap_size + heap) - 1;
-    heap_top->next->data = 0;
+    heap_top->next = (mgMEMORY_BLOCK *)&heap[heap_size] - 1;
+    heap_top->next->data = NULL;
     heap_top->next->size = 0;
-    heap_top->next->next = 0;
+    heap_top->next->next = NULL;
 }
 
 void mgCMemory::ClearHeapMem() {
@@ -87,59 +87,61 @@ void mgCMemory::Free(u_long128 *data) {
 }
 
 u_long128 *mgCMemory::StartStackMode(int mode, int size) {
-    stack_block = 0;
+    stack_block = NULL;
     mgMEMORY_BLOCK *block = heap_top;
-    if (block == 0) {
-        return 0;
-    }
-    mgMEMORY_BLOCK *chosen = 0;
-    mgMEMORY_BLOCK *chosen_previous = 0;
-    int spare = 0;
-    u_int best_count = 0;
-    mgMEMORY_BLOCK *gap;
-    u_int count;
-    mgMEMORY_BLOCK *next;
-    for (; (next = block->next) != 0; block = next) {
-        gap = block + block->size;
-        // Taken from the last gap examined, not necessarily the chosen one.
-        count = next - gap;
-        spare = count - 1;
-        if (mode == 1 && count > 1) {
-            chosen = gap;
-            chosen_previous = block;
-            break;
-        }
-        if (mode == 2 && best_count < count) {
-            chosen = gap;
-            chosen_previous = block;
-            best_count = count;
-        }
-        if (mode == 3 && (u_int)(size + 1) < count) {
-            chosen = gap;
-            chosen_previous = block;
-            break;
-        }
-    }
-    if (chosen != 0) {
-    stack_block = chosen;
-        stack_block->next = chosen_previous->next;
-        chosen_previous->next = stack_block;
-    stack_block->size = 1;
-        stack_block->data = (u_long128 *)(stack_block + 1);
-    stack = stack_block->data;
-        stack_size = spare;
-    return stack_block->data;
-    }
-    return 0;
+    if (block == NULL) {
+        return NULL;
     }
 
-void mgCMemory::EndStackMode(void) {
+    mgMEMORY_BLOCK *chosen = NULL;
+    mgMEMORY_BLOCK *chosen_prev = NULL;
+    int free_size = 0;
+    u_int largest = 0;
+    mgMEMORY_BLOCK *gap_start;
+    u_int gap_size;
+    for (; block->next != NULL; block = block->next) {
+        gap_start = &block[block->size];
+        gap_size = block->next - gap_start;
+        // Taken from the last gap examined, not necessarily the chosen one.
+        free_size = gap_size - 1;
+
+        if (mode == MG_STACK_MODE_FIRST && gap_size > 1) {
+            chosen = gap_start;
+            chosen_prev = block;
+            break;
+        }
+        if (mode == MG_STACK_MODE_LARGEST && largest < gap_size) {
+            chosen = gap_start;
+            chosen_prev = block;
+            largest = gap_size;
+        }
+        if (mode == MG_STACK_MODE_FIT && gap_size > (u_int)(size + 1)) {
+            chosen = gap_start;
+            chosen_prev = block;
+            break;
+        }
+    }
+
+    if (chosen != NULL) {
+        stack_block = chosen;
+        stack_block->next = chosen_prev->next;
+        chosen_prev->next = stack_block;
+        stack_block->size = 1;
+        stack_block->data = (u_long128 *)&stack_block[1];
+        stack = stack_block->data;
+        stack_size = free_size;
+        return stack_block->data;
+    }
+    return NULL;
+}
+
+void mgCMemory::EndStackMode() {
     mgMEMORY_BLOCK *block = stack_block;
-    if (block != 0) {
-        u_int count = stack_used;
-        block->size += count;
-        stack_block = 0;
-        stack = 0;
+    if (block != NULL) {
+        u_int used = stack_used;
+        block->size += used;
+        stack_block = NULL;
+        stack = NULL;
         stack_size = 0;
         stack_used = 0;
     }
@@ -162,40 +164,44 @@ u_long128 *mgCMemory::stAllocTest(int size) {
 }
 
 u_long128 *mgCMemory::stAlloc(int size) {
-    if (lock != 0) {
-        return 0;
+    int used;
+    u_long128 *data;
+
+    if (lock) {
+        return NULL;
     }
     if (size <= 0) {
-        return 0;
-    }
-    int old_used = stack_used;
-    int old_capacity = stack_size;
-    int new_used = old_used + size;
-    if (new_used >= old_capacity) {
-        printf("stack over %d/%d at %s\n", new_used, old_capacity, this);
-        return 0;
-    }
-    u_long128 *data = &stack[old_used];
-    stack_used = new_used;
-    return data;
+        return NULL;
     }
 
+    used = stack_used;
+    if (used + size >= stack_size) {
+        printf("stack over %d/%d at %s\n", used + size, stack_size, name);
+        return NULL;
+    }
+    data = &stack[used];
+    stack_used = used + size;
+    return data;
+}
+
 u_long128 *mgCMemory::Alloc(int size) {
-    if (lock != 0) {
-        return 0;
+    int used;
+    u_long128 *data;
+
+    if (lock) {
+        return NULL;
     }
     if (size <= 0) {
-        return 0;
+        return NULL;
     }
-    int old_used = stack_used;
-    int old_capacity = stack_size;
-    int new_used = old_used + size;
-    if (new_used >= old_capacity) {
-        printf("stack over %d/%d at %s\n", new_used, old_capacity, this);
-        return 0;
+
+    used = stack_used;
+    if (used + size >= stack_size) {
+        printf("stack over %d/%d at %s\n", used + size, stack_size, name);
+        return NULL;
     }
-    u_long128 *data = &stack[old_used];
-    stack_used = new_used;
+    data = &stack[used];
+    stack_used = used + size;
     return data;
 }
 
@@ -237,17 +243,23 @@ void mgCMemory::stSetBuffer(u_long128 *buffer, int size) {
     stack_size = size;
 }
 
-char *mgCopyString(char *source, mgCMemory *memory) {
-    if (source == NULL || memory == NULL) {
+char *mgCopyString(char *text, mgCMemory *memory) {
+    u_int length;
+    u_int quadwords;
+    char *copy;
+
+    if (text == NULL || memory == NULL) {
         return NULL;
     }
-    u_int size = strlen(source) + 1;
-    u_int quadwords = (size & 0xF) ? (size >> 4) + 1 : size >> 4;
-    char *copy = (char *)memory->Alloc(quadwords);
+
+    length = strlen(text) + 1;
+    quadwords = (length & 0xF) ? (length >> 4) + 1 : length >> 4;
+
+    copy = (char *)memory->Alloc(quadwords);
     if (copy == NULL) {
         return NULL;
     }
-    strcpy(copy, source);
+    strcpy(copy, text);
     return copy;
 }
 
