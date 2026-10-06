@@ -66,7 +66,7 @@ Slot order is the base's: `IsCreateObject`, `IsMakeObject`, `IsAskExtend`, `Item
 - Unresolved: 0x1BC..0x1CC (five words, zeroed in ctor).
 
 ### MENU_BGREAD_INFO2
-- `InitMenuBGReadInfo2` clears 0x0, 0x20, 0x70 (u8) and 0x74 (pointer). 0x70 is tested as the
+- `InitMenuBGReadInfo2` clears 0x0, 0x20, 0x70 (s8) and 0x74 (pointer). 0x70 is tested as the
   "reading" flag in `MenuLoadFileCheck` and loop code; 0x74 holds a `CActionChara*`
   (`MenuItemCharaDataLoadEndCheck`). Allocated with `Alloc(stack, 8)` (8 x 16 bytes), which only
   bounds the size to <= 0x80; natural size is 0x78. No size assert is given.
@@ -117,3 +117,45 @@ Note: `MenuActionChara` is 0x1C in main.symbols.txt (BSS slot 0x20 with padding)
 - `ConvertCharaLoadDataPhase` returns an s16 from `tbl_992[chara*5 + part]`.
 - `get_gajji_id_from_monster_progress_table` returns s16 (row's first column) or -1.
 - `MenuCharaSoundLoad`, `MenuItemChrLoad` return u32 sizes.
+
+## C++ draft status
+
+The unit has 88 retail functions. The normal image has 55 perfect functions and 33 assembly
+entries. Four clean bodies remain guarded: `MenuCharaChangeInit`, `MenuNPCLoadCheck`,
+`CMenuCostumeSel::LoadMenuData`, and `CMosBookMenu::KeyStep`.
+
+`mgRect<short>::Set` is defined in C++ in this unit and supplies its retail bytes; the object
+checker lists its template spelling as an assembly entry. The C++ definitions of the memory
+managers generate the retail static initializer. The draft compile has 56 MATCH functions,
+four DIFF functions, and 28 entries without a draft.
+
+`MonsterEffectEnter` takes a scene, a read buffer, and a texture block. Its retail callers pass
+three arguments. `MOS_HENGE_PARAM` holds the transformation script's file name at 0x8
+(`GetMonsterModelFile` formats it with `"%s.stb"`) and four effect names at 0xC. The menus use
+those members when reading and entering transformation effects.
+
+## Party change initialization and monster book states
+
+`MenuCharaChangePosDataCfgBuffer` is a retail data symbol, LOCAL, at 0x0037E230,
+size 4 in `.sbss`. The ELF symbol has type OBJECT. The function-binding helper
+does not include data symbols. `MenuCharaChangeInit` clears the item with
+`sw $0, -0x64C0($gp)` at 0x002B926C, using retail `_gp = 0x003846F0`.
+
+The party-change constructor clears `clut` (0x1A80..0x1E80) and `unk_1E80`
+(0x1E80..0x1F80) separately. These cover the same 0x500 bytes retail clears in
+one call. The first `set_cursor = 1` has no intervening reader or call before
+`set_cursor = 0`; the constructor retains the final zero store.
+
+`MenuCharaChangeInit` constructs `CRepairManager` with placement new. Its implicit
+header constructor initializes the eight `mgCMemory` members at 0x24 with stride
+0x30 and the model stack at 0x1B4, as retail does. The seven scene characters are
+assigned to `MenuActionChara[0..6]` in order. The clean draft remains different
+from retail, including allocation null-check scheduling, the separate buffer
+clears, and register assignment. The draft comparison is 262 of 316 instructions
+different; the linked image still uses retail assembly for this function.
+
+`MOS_BOOK_MODE` describes the book's browsing, opening fade and closing fade
+states (0, 1 and 2). `MOS_BOOK_MEMO_NUM` is the 0x119 entries scanned by `InitEnd`
+and the debug completion command. The model read delay and show-counter cap are
+both 20; book commands are 0xA to close and 0x64 to change the entry. These values
+are unchanged in `KeyStep`.

@@ -890,8 +890,8 @@ struct MOS_HENGE_PARAM {
     s16 attack;     /**< Base attack. */
     s16 defence;    /**< Base defence. */
     s16   unk_6;
-    char *unk_8;
-    char *unk_c[4];
+    char *sound_bank;     /**< Base name of the transformation sound bank. */
+    char *effect_name[4]; /**< Transformation effects loaded for the monster. */
 };
 STATIC_ASSERT(sizeof(MOS_HENGE_PARAM) == 0x1C);
 

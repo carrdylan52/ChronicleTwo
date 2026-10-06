@@ -110,12 +110,16 @@ public:
     mgRect(short new_left, short new_top, short new_right, short new_bottom) {
         Set(new_left, new_top, new_right, new_bottom);
     }
-    void Set(short new_left, short new_top, short new_right, short new_bottom) {
-        left = new_left;
-        top = new_top;
-        right = new_right;
-        bottom = new_bottom;
-    }
+
+    /**
+     *
+     * Sets all four edges of the rectangle.
+     *
+     * @mangled Set__9mgRect_s_Fssss
+     * @address 0x2C4240
+     * @size 0x20
+     */
+    void Set(short new_left, short new_top, short new_right, short new_bottom);
 };
 
 template <class T>

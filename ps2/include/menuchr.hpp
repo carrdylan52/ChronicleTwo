@@ -46,8 +46,20 @@ enum {
     MOS_SELECT_LEVEL_MAX = 16,       /**< Forms a badge can grow into, as listed by get_monster_tbl_bajjilevel. */
     COSTUME_LIST_NUM = 3,            /**< Costume lists of the costume screen. */
     COSTUME_LIST_MAX = 8,            /**< Costumes one list of the costume screen holds. */
+    MOS_BOOK_MEMO_NUM = 0x119,       /**< Monster numbers scanned for entries in the monster book. */
     MOS_BOOK_LIST_MAX = 0x180,       /**< Monster numbers the monster book can list. */
     MOS_BOOK_DROP_ITEM_NUM = 3,      /**< Dropped items the monster book shows for one monster. */
+};
+
+/**
+ *
+ * States of the monster book, as CMosBookMenu::mode holds them.
+ *
+ */
+enum MOS_BOOK_MODE {
+    MOS_BOOK_MODE_BROWSING = 0,   /**< The book takes keys to browse its entries. */
+    MOS_BOOK_MODE_FADING_IN = 1,  /**< The book waits for its opening fade. */
+    MOS_BOOK_MODE_FADING_OUT = 2, /**< The book waits for its closing fade. */
 };
 
 /**
@@ -118,6 +130,11 @@ STATIC_ASSERT(sizeof(CHR_CNG_STAR) == 0x18);
  */
 class CMenuChrCngMenu : public CBaseMenuClass {
 public:
+    /**
+     * Initializes the party change menu.
+     */
+    CMenuChrCngMenu();
+
     int select;                                  /**< Character the cursor is on: 0 to 3 for the party, 4 for the townsperson. */
     int last_select;                             /**< Character the cursor was last moved to. */
     s32 unk_118;
@@ -340,7 +357,7 @@ public:
     int pick_monster;                            /**< Monster picked to show. */
     int load_monster;                            /**< Monster whose model is loaded, or -1 for none. */
     int level_max;                               /**< Non-zero when the badge is at its highest form. */
-    s8 skip_draw;                                /**< Toggled each frame to step the shown model every other frame. */
+    u8 skip_draw;                                /**< Toggled each frame to step the shown model every other frame. */
     CMenuPosDataForm *badge_form;                /**< Form of the badges. */
     CMenuPosDataForm *info_form;                 /**< Form of the badge description. */
     CMenuPosDataForm *model_form;                /**< Form that shows the monster's model. */
@@ -508,6 +525,34 @@ STATIC_ASSERT(sizeof(CMenuCostumeSel) == 0x2D0);
  */
 class CMosBookMenu : public CBaseMenuClass {
 public:
+    /**
+     * Initializes the monster book menu.
+     */
+    CMosBookMenu() : camera(8.0f) {
+        int i;
+
+        bg_scroll = 0.0f;
+        monster = NULL;
+        unk_1BC = 0;
+        unk_1C0 = 0;
+        unk_1C4 = 0;
+        unk_1C8 = 0;
+        unk_1CC = 0;
+        load_phase = 0;
+        show_wait = 0;
+        load_wait = 0;
+        monster_info = NULL;
+        select = 0;
+        skip_draw = 0;
+        list_num = 0;
+        for (i = 0; i < MOS_BOOK_LIST_MAX; i++) {
+            list[i] = -1;
+        }
+        InitMonsterInfo();
+        camera.SetPos(0.0f, 0.0f, 100.0f);
+        camera.SetRef(0.0f, 0.0f, 0.0f);
+    }
+
     mgCCamera camera;                            /**< Camera that looks at the monster. */
     float bg_scroll;                             /**< Scroll of the background, from 0 to 256. */
     mgCMemory stack;                             /**< Memory the monster's model is read and built in. */
@@ -521,7 +566,7 @@ public:
     int load_phase;                              /**< Step of loading the monster's model. */
     int load_wait;                               /**< Frames counted before the monster's model is loaded. */
     int show_wait;                               /**< Frames the monster's model has been built, up to 20. */
-    s8 skip_draw;                                /**< Toggled each frame to step the model every other frame. */
+    u8 skip_draw;                                /**< Toggled each frame to step the model every other frame. */
     int select;                                  /**< Entry of list the cursor is on. */
     BASE_MONSTER_TBL *monster_info;              /**< Definition of the monster shown. */
     int list[MOS_BOOK_LIST_MAX];                 /**< Monster numbers of the monsters defeated, then -1. */
@@ -596,7 +641,7 @@ STATIC_ASSERT(sizeof(mgRect<short>) == 0x8);
  * Monster forms of each badge: a badge number, then the monster of each of its four forms.
  *
  */
-extern s16 monster_progress_tbl[MONSTER_PROGRESS_NUM * (1 + MONSTER_PROGRESS_LEVEL_NUM)];
+extern s16 monster_progress_tbl[MONSTER_PROGRESS_NUM][1 + MONSTER_PROGRESS_LEVEL_NUM];
 
 /**
  *
@@ -604,6 +649,29 @@ extern s16 monster_progress_tbl[MONSTER_PROGRESS_NUM * (1 + MONSTER_PROGRESS_LEV
  *
  */
 extern mgCMemory *MorattaStack;
+
+/**
+ *
+ * State of character model loading while a menu is open.
+ *
+ */
+struct MENU_LOAD_INFO {
+    s8 mode;     /**< Character menu currently loading models. */
+    s8 unk_1;
+    s8 unk_2;
+    s8 unk_3;
+    s8 unk_4;
+    s8 unk_5;
+    s8 unk_6[2];
+};
+STATIC_ASSERT(sizeof(MENU_LOAD_INFO) == 8);
+
+/**
+ *
+ * State of the menus' background model loading.
+ *
+ */
+extern MENU_LOAD_INFO MenuLoadInfo;
 
 /**
  *
@@ -893,7 +961,7 @@ int MonsterEffectRead(mgCMemory *stack, int monster_no, int background);
  * @address 0x2BA8F0
  * @size 0x120
  */
-int MonsterEffectEnter(CScene *scene, u_long128 *buffer);
+int MonsterEffectEnter(CScene *scene, u_long128 *buffer, int tex_block);
 
 /**
  *
@@ -1196,20 +1264,3 @@ int MonsterBookKey();
  * @size 0xA0
  */
 void MonsterBookDraw();
-
-struct MENU_LOAD_INFO {
-    signed char mode;
-    signed char unk_1;
-    signed char unk_2;
-    signed char unk_3;
-    signed char unk_4;
-    signed char unk_5;
-    signed char unk_6[2];
-};
-STATIC_ASSERT(sizeof(MENU_LOAD_INFO) == 8);
-/**
- *
- * State of the menus' background model loading.
- *
- */
-extern MENU_LOAD_INFO MenuLoadInfo;
