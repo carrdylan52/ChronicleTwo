@@ -93,7 +93,7 @@ struct SV_CONFIG_OPTION {
     u8  unk_18[4];
     s32 enemy_hp;      /**< How the dungeon shows the enemies' life gauges. */
     s32 damage_off;    /**< Non-zero to hide the damage numbers in battle. */
-    u8  unk_24[4];
+    s32 unk_24;
     s32 monster_name;  /**< How the dungeon shows the enemies' names. */
     s32 anger_counter; /**< How the dungeon shows the enemies' anger counters. */
     s32 dof_off;       /**< Non-zero to turn off the depth of field blur. */
