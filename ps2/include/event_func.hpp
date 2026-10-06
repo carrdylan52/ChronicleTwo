@@ -1032,15 +1032,6 @@ extern _SEN_OBJ_SEQ obj_seq_tbl[0x100];
 extern CScreenEffect EventScreenEffect;
 
 /**
- * Multiplies a vector by the upper 3x3 of a matrix, giving a vector with w = 1.
- *
- * @mangled VectMatMul__FPfPfPA4_f
- * @address 0x260A70
- * @size 0xB0
- */
-void VectMatMul(float *out, float *in, float (*matrix)[4]);
-
-/**
  * Converts a position from the event's world coordinate into the map's.
  *
  * @mangled CalcPosWorldCoord__FPf

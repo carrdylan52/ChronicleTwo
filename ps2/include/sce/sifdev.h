@@ -33,7 +33,7 @@ int sceOpen(const char *name, int flags, ...);
 int sceClose(int fd);
 int sceLseek(int fd, int offset, int whence);
 int sceRead(int fd, void *buffer, int size);
-int sceWrite(int fd, void *buffer, int size);
+int sceWrite(int fd, const void *buffer, int size);
 int sceIoctl(int fd, int request, void *argument);
 int sceGetstat(const char *name, struct sce_stat *stat);
 }

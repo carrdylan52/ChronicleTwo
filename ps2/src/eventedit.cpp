@@ -1,130 +1,72 @@
 #include "common.h"
 #include "eventedit.hpp"
+#include "character.hpp"
+#include "dataread.hpp"
+#include "dbg_font.hpp"
 #include "event.hpp"
 #include "event_func.hpp"
-#include "scenesnd.hpp"
-#include "mg_memory.hpp"
+#include "gamepad.hpp"
+#include "mainloop.hpp"
 #include "mg_camera.hpp"
-#include "mg_math.hpp"
 #include "mg_drawprim.hpp"
+#include "mg_math.hpp"
+#include "mg_memory.hpp"
 #include "mg_texture.hpp"
 #include "mglib.hpp"
 #include "sceneseq.hpp"
-#include "mainloop.hpp"
-#include "dataread.hpp"
-#include "menucommon.hpp"
-#include "savedata.hpp"
-#include "nd_meswin.hpp"
-#include "sound.hpp"
-#include "snd_mngr.hpp"
-#include "dbg_font.hpp"
-#include "character.hpp"
-#include "gamepad.hpp"
 #include <cstdio>
 #include <cstring>
 #include <cmath>
 #include <libvu0.h>
 #include <sifdev.h>
-extern CRunScript EventScript;
-extern EventEditInfo g_info;
-extern CCameraPas g_cmr_pas;
-extern CCharaPas g_chara_pas;
-extern int g_cp_mode;
-extern int g_cp_cursor;
-extern int g_cp_selno;
-extern int g_chara_pas_mode;
-extern int g_chara_pas_cursor;
-extern int g_chara_pas_selno;
-extern char at_1208[];
-extern char at_1226__2[];
-extern char at_1242__2[];
-extern char at_809__2[];
-extern char at_810__2[];
-extern char at_811__2[];
-extern char at_812__2[];
-extern char at_813__2[];
-extern char at_814__2[];
-extern char at_815__2[];
-extern char at_816__4[];
-extern char at_817__3[];
-extern char at_818__3[];
-extern char at_819__5[];
-extern char at_820__5[];
-extern char at_821__4[];
-extern char at_822__4[];
-extern char at_823__4[];
-extern char at_824__4[];
-extern char at_825__4[];
-extern char at_826__4[];
-extern char at_827__4[];
-extern char at_828__5[];
-extern char at_829__5[];
-extern char at_830__6[];
-extern char at_831__5[];
-extern char at_832__5[];
-extern char at_889__2[];
-extern char at_890__2[];
-extern char at_891__2[];
-extern char at_979__4[];
-extern char at_1204__2[];
-extern char at_1205__2[];
-extern char at_1206[];
-extern char at_1207[];
-extern char at_1222__2[];
-extern char at_1223__2[];
-extern char at_1224__2[];
-extern char at_1225__2[];
-extern char at_1382[];
-extern char at_1383[];
-extern char at_1384[];
-extern char at_1385__3[];
-extern char at_1386__2[];
-extern char at_1387__3[];
-extern char at_1388__3[];
-extern char at_1389__2[];
-extern char at_1390[];
-extern char at_1391[];
-extern char at_1392[];
-extern char at_1393[];
-extern char at_1394__2[];
-extern char at_1395__3[];
-extern char at_1396__2[];
-extern char at_1397__2[];
-extern char at_1398__3[];
-extern char at_1399__2[];
-extern char at_1400__3[];
-extern char at_1401__2[];
-extern char at_1402__2[];
-extern char at_1403__2[];
-extern char D_0037B040[];
-void DrawBox(float (*corners)[4], int r, int g, int b);
-void MoveChara(CCharacter2 *chara, mgCCamera *camera, mgCMemory *memory);
+
+static EventEditInfo g_info;
+static CCameraPas g_cmr_pas;
+static CCharaPas g_chara_pas;
+static int g_cp_mode;
+static int g_cp_cursor;
+static int g_cp_selno;
+static int g_chara_pas_mode;
+static int g_chara_pas_cursor;
+static int g_chara_pas_selno;
+
+/**
+ * Draws the edges of a box after transforming its corners to the screen.
+ */
+static void DrawBox(float (*corners)[4], int r, int g, int b);
+/**
+ * Moves an event character with the pad.
+ */
+static void MoveChara(CCharacter2 *chara, mgCCamera *camera, mgCMemory *memory);
 
 // Code (.text)
-void OutPutFile(void) {
+/**
+ * Writes the current character and camera settings as event script commands.
+ */
+static void OutPutFile() {
     char text[0x100];
-    float chara_pos[4];
-    float chara_rot[4];
-    float eye_pos[4];
-    float look_pos[4];
-    float view_dir[4];
-    float flat_dir[4];
+    sceVu0FVECTOR chara_pos;
+    sceVu0FVECTOR chara_rot;
+    sceVu0FVECTOR eye_pos;
+    sceVu0FVECTOR look_pos;
+    sceVu0FVECTOR view_dir;
+    sceVu0FVECTOR flat_dir;
     float angle;
     int i;
     int file;
     CCharacter2 *chara;
     mgCCamera *camera;
 
-    file = sceOpen(at_809__2, 0x602);
+    file = sceOpen("host0:debug.txt", SCE_WRONLY | SCE_CREAT | SCE_TRUNC);
     if (file < 0) {
         return;
     }
-    sprintf(text, at_810__2);
+    sprintf(text, "character\r\n");
     sceWrite(file, text, strlen(text));
     chara = GetCharacter(g_info.chara_no);
-    sprintf(text, at_811__2, g_info.chara_no);
+    sprintf(text, "select_chara %d \n", g_info.chara_no);
     sceWrite(file, text, strlen(text));
-    sprintf(text, at_812__2, g_info.collision);
+    sprintf(text, "collision %d\n", g_info.collision);
     sceWrite(file, text, strlen(text));
     chara->GetPosition(chara_pos);
     chara->GetRotation(chara_rot);
@@ -132,11 +74,11 @@ void OutPutFile(void) {
     chara_rot[0] -= EdEventInfo.world_coord_rot[0];
     chara_rot[1] -= EdEventInfo.world_coord_rot[1];
     chara_rot[2] -= EdEventInfo.world_coord_rot[2];
-    sprintf(text, at_813__2, (double)chara_pos[0], (double)chara_pos[1], (double)chara_pos[2]);
+    sprintf(text, "pos = %1.2f, %1.2f, %1.2f\n", chara_pos[0], chara_pos[1], chara_pos[2]);
     sceWrite(file, text, strlen(text));
-    sprintf(text, at_814__2, (double)chara_rot[0], (double)chara_rot[1], (double)chara_rot[2]);
+    sprintf(text, "rot = %1.2f, %1.2f, %1.2f\n", chara_rot[0], chara_rot[1], chara_rot[2]);
     sceWrite(file, text, strlen(text));
-    sprintf(text, at_815__2);
+    sprintf(text, "\ncamera\n");
     sceWrite(file, text, strlen(text));
     camera = GetActiveCamera();
     camera->GetPos(eye_pos);
@@ -150,9 +92,9 @@ void OutPutFile(void) {
     angle = atan2f(-flat_dir[0], -flat_dir[2]);
     CalcPosWorldCoordGyaku(eye_pos);
     CalcPosWorldCoordGyaku(look_pos);
-    sprintf(text, at_816__4, (double)eye_pos[0], (double)eye_pos[1], (double)eye_pos[2]);
+    sprintf(text, "CMRS_SET_POS\t%1.2f, %1.2f, %1.2f;\n", eye_pos[0], eye_pos[1], eye_pos[2]);
     sceWrite(file, text, strlen(text));
-    sprintf(text, at_817__3, (double)look_pos[0], (double)look_pos[1], (double)look_pos[2]);
+    sprintf(text, "CMRS_SET_REF\t%1.2f, %1.2f, %1.2f;\n", look_pos[0], look_pos[1], look_pos[2]);
     sceWrite(file, text, strlen(text));
     angle -= EdEventInfo.world_coord_rot[1];
     if (angle > 3.1415927f) {
@@ -160,52 +102,56 @@ void OutPutFile(void) {
     } else if (angle <= -3.1415927f) {
         angle += 6.2831855f;
     }
-    sprintf(text, at_818__3, (double)angle);
+    sprintf(text, "angle = %1.2f\n", angle);
     sceWrite(file, text, strlen(text));
-    sprintf(text, at_819__5, (double)(eye_pos[1] - look_pos[1]));
+    sprintf(text, "height = %1.2f\n", (eye_pos[1] - look_pos[1]));
     sceWrite(file, text, strlen(text));
     eye_pos[1] = 0.0f;
     look_pos[1] = 0.0f;
-    sprintf(text, at_820__5, (double)mgDistVector(eye_pos, look_pos));
+    sprintf(text, "distance = %1.2f\n", mgDistVector(eye_pos, look_pos));
     sceWrite(file, text, strlen(text));
-    sprintf(text, at_821__4, (double)EdEventInfo.projection);
+    sprintf(text, "projection = %1.1f\n", EdEventInfo.projection);
     sceWrite(file, text, strlen(text));
-    sprintf(text, at_822__4);
+    sprintf(text, "\ncamera pas\n");
     sceWrite(file, text, strlen(text));
-    sprintf(text, at_823__4, g_cmr_pas.pas_num);
+    sprintf(text, "pointnum = %d\n", g_cmr_pas.pas_num);
     sceWrite(file, text, strlen(text));
-    sceWrite(file, at_824__4, strlen(at_824__4));
-    sprintf(text, at_825__4, g_cmr_pas.GetFrame());
+    sceWrite(file, "CMRS_INIT_PAS;\n", strlen("CMRS_INIT_PAS;\n"));
+    sprintf(text, "CMRS_SET_PAS_FRM\t%d;\n", g_cmr_pas.GetFrame());
     sceWrite(file, text, strlen(text));
     for (i = 0; i < g_cmr_pas.pas_num; i++) {
         g_cmr_pas.GetCameraPas(i, eye_pos, look_pos);
         CalcPosWorldCoordGyaku(eye_pos);
         CalcPosWorldCoordGyaku(look_pos);
-        sprintf(text, at_826__4, (double)eye_pos[0], (double)eye_pos[1], (double)eye_pos[2],
-                (double)look_pos[0], (double)look_pos[1], (double)look_pos[2]);
+        sprintf(text, "CMRS_ADD_PAS\t%1.2f,%1.2f,%1.2f,\t%1.2f,%1.2f,%1.2f;\n", eye_pos[0], eye_pos[1], eye_pos[2],
+                look_pos[0], look_pos[1], look_pos[2]);
         sceWrite(file, text, strlen(text));
     }
-    sceWrite(file, at_827__4, strlen(at_827__4));
-    sprintf(text, at_828__5);
+    sceWrite(file, "CMRS_START_PAS;\n", strlen("CMRS_START_PAS;\n"));
+    sprintf(text, "\nchara pas\n");
     sceWrite(file, text, strlen(text));
-    sprintf(text, at_823__4, g_chara_pas.pas_num);
+    sprintf(text, "pointnum = %d\n", g_chara_pas.pas_num);
     sceWrite(file, text, strlen(text));
-    sceWrite(file, at_829__5, strlen(at_829__5));
-    sprintf(text, at_830__6, g_chara_pas.GetFrame());
+    sceWrite(file, "OBJS_INIT_PAS\t\tid;\n", strlen("OBJS_INIT_PAS\t\tid;\n"));
+    sprintf(text, "OBJS_SET_PAS_FRM\tid, %d;\n", g_chara_pas.GetFrame());
     sceWrite(file, text, strlen(text));
     for (i = 0; i < g_chara_pas.pas_num; i++) {
         g_chara_pas.GetCharaPas(i, chara_pos);
         CalcPosWorldCoordGyaku(chara_pos);
-        sprintf(text, at_831__5, (double)chara_pos[0], (double)chara_pos[1], (double)chara_pos[2]);
+        sprintf(text, "OBJS_ADD_PAS\t\tid, %1.2f, %1.2f, %1.2f;\n", chara_pos[0], chara_pos[1], chara_pos[2]);
         sceWrite(file, text, strlen(text));
     }
-    sceWrite(file, at_832__5, strlen(at_832__5));
+    sceWrite(file, "OBJS_START_PAS\t\tid;\n", strlen("OBJS_START_PAS\t\tid;\n"));
     sceClose(file);
 }
-void DrawBox(float *max, float *min, int r, int g, int b) {
+
+/**
+ * Draws the edges of a box in world coordinates.
+ */
+static void DrawBox(float *max, float *min, int r, int g, int b) {
     float corners[8][4];
-    float lo[4];
-    float hi[4];
+    sceVu0FVECTOR lo;
+    sceVu0FVECTOR hi;
 
     *(u_long128 *)lo = *(u_long128 *)min;
     *(u_long128 *)hi = *(u_long128 *)max;
@@ -243,7 +189,11 @@ void DrawBox(float *max, float *min, int r, int g, int b) {
     corners[7][3] = 1.0f;
     DrawBox(corners, r, g, b);
 }
-void DrawBox(float (*corners)[4], int r, int g, int b) {
+
+/**
+ * Draws the edges of a box in world coordinates.
+ */
+static void DrawBox(float (*corners)[4], int r, int g, int b) {
     mgCDrawPrim prim;
     int vertex[8][4];
     int i;
@@ -256,7 +206,7 @@ void DrawBox(float (*corners)[4], int r, int g, int b) {
     prim.AlphaBlendEnable(1);
     prim.TextureMapEnable(0);
     prim.Coord(1);
-    prim.Begin(1);
+    prim.Begin(MG_PRIM_LINE);
     prim.Color(r, g, b, 0x80);
     visible = 1;
     for (i = 0; i < 8; i++) {
@@ -291,8 +241,12 @@ void DrawBox(float (*corners)[4], int r, int g, int b) {
     }
     prim.End();
 }
-extern "C" void VectMatMul__FPfPfPA4_f(float *out, float *vec, float (*mat)[4]) {
-    float result[4];
+
+/**
+ * Multiplies a vector by the upper three rows of a matrix.
+ */
+static void VectMatMul(float *out, float *vec, float (*mat)[4]) {
+    sceVu0FVECTOR result;
 
     result[0] = vec[0] * mat[0][0] + vec[1] * mat[1][0] + vec[2] * mat[2][0];
     result[1] = vec[0] * mat[0][1] + vec[1] * mat[1][1] + vec[2] * mat[2][1];
@@ -300,7 +254,11 @@ extern "C" void VectMatMul__FPfPfPA4_f(float *out, float *vec, float (*mat)[4]) 
     result[3] = 1.0f;
     sceVu0CopyVector(out, result);
 }
-void evLoadDebugFont(int texture_id, mgCMemory *memory) {
+
+/**
+ * Loads the event editor font into its texture bank.
+ */
+static void evLoadDebugFont(int texture_id, mgCMemory *memory) {
 
     mgCTextureManager *texManager = &mgTexManager;
     int file_size;
@@ -308,18 +266,22 @@ void evLoadDebugFont(int texture_id, mgCMemory *memory) {
 
     memory->Align64();
     buffer = (u8 *)memory->stAllocTest(1);
-    if (LoadFile2(at_889__2, buffer, &file_size, 0) != 0) {
+    if (LoadFile2("img/font3.tm2", buffer, &file_size, 0) != 0) {
         memory->Alloc(file_size / 16 + 1);
-        texManager->EnterTexture(texture_id, at_890__2, (TM2_head *)buffer, 0, 0);
+        texManager->EnterTexture(texture_id, "font3", (TM2_head *)buffer, 0, 0);
     }
     JisFont.Initialize();
-    JisFont.InitTexture(-1, at_891__2, -1, at_891__2, texture_id, at_890__2);
+    JisFont.InitTexture(-1, "", -1, "", texture_id, "font3");
     JisFont.Clear();
     JisFont.shadow_enable = 1;
 }
-void MoveCamera(float *pos, float *ref) {
-    float dir[4];
-    float move[4];
+
+/**
+ * Moves the camera with the pad, optionally moving its reference point too.
+ */
+static void MoveCamera(float *pos, float *ref) {
+    sceVu0FVECTOR dir;
+    sceVu0FVECTOR move;
     float dist;
     float angle;
     float right;
@@ -330,10 +292,10 @@ void MoveCamera(float *pos, float *ref) {
     dist = sqrtf(dir[0] * dir[0] + dir[2] * dir[2]);
     angle = atan2f(dir[0], dir[2]);
     right = -GamePad__2.GetLXf();
-    if (GamePad__2.On(8) != 0) {
+    if (GamePad__2.On(PAD_R1) != 0) {
         right = 0.04f * dist;
     }
-    if (GamePad__2.On(4) != 0) {
+    if (GamePad__2.On(PAD_L1) != 0) {
         right = 0.04f * -dist;
     }
     up = -GamePad__2.GetRYf();
@@ -341,17 +303,21 @@ void MoveCamera(float *pos, float *ref) {
     move[0] = right * cosf(angle) + forward * sinf(angle);
     move[1] = up;
     move[2] = forward * cosf(angle) - right * sinf(angle);
-    if (GamePad__2.On(0x40) != 0) {
+    if (GamePad__2.On(PAD_CROSS) != 0) {
         sceVu0ScaleVector(move, move, 6.0f);
     }
     sceVu0AddVector(pos, pos, move);
-    if (GamePad__2.On(0x80) != 0 && GamePad__2.On(0xC) == 0) {
+    if (GamePad__2.On(PAD_SQUARE) != 0 && GamePad__2.On(PAD_L1 | PAD_R1) == 0) {
         sceVu0AddVector(ref, ref, move);
     }
 }
-void MoveCameraRef(float *pos, float *ref) {
-    float dir[4];
-    float move[4];
+
+/**
+ * Moves the camera reference point with the pad.
+ */
+static void MoveCameraRef(float *pos, float *ref) {
+    sceVu0FVECTOR dir;
+    sceVu0FVECTOR move;
     float dist;
     float angle;
     float right;
@@ -362,10 +328,10 @@ void MoveCameraRef(float *pos, float *ref) {
     dist = sqrtf(dir[0] * dir[0] + dir[2] * dir[2]);
     angle = atan2f(dir[0], dir[2]);
     right = -GamePad__2.GetLXf();
-    if (GamePad__2.On(8) != 0) {
+    if (GamePad__2.On(PAD_R1) != 0) {
         right = 0.04f * -dist;
     }
-    if (GamePad__2.On(4) != 0) {
+    if (GamePad__2.On(PAD_L1) != 0) {
         right = 0.04f * dist;
     }
     up = GamePad__2.GetRYf();
@@ -373,25 +339,27 @@ void MoveCameraRef(float *pos, float *ref) {
     move[0] = right * cosf(angle) + forward * sinf(angle);
     move[1] = up;
     move[2] = forward * cosf(angle) - right * sinf(angle);
-    if (GamePad__2.On(0x40) != 0) {
+    if (GamePad__2.On(PAD_CROSS) != 0) {
         sceVu0ScaleVector(move, move, 6.0f);
     }
     sceVu0AddVector(ref, ref, move);
-    if (GamePad__2.On(0x80) != 0 && GamePad__2.On(0xC) == 0) {
+    if (GamePad__2.On(PAD_SQUARE) != 0 && GamePad__2.On(PAD_L1 | PAD_R1) == 0) {
         sceVu0AddVector(pos, pos, move);
     }
 }
+
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/eventedit", MoveChara__FP11CCharacter2P9mgCCameraP9mgCMemory);
-void InitEventEdit(int font_id, mgCMemory *memory) {
+void InitEventEdit(int texb, mgCMemory *memory) {
     g_info.memory = memory;
-    g_info.texb = font_id;
+    g_info.texb = texb;
     g_info.disp = 1;
     g_info.active = 0;
-    g_info.mode = 0;
+    g_info.mode = EVENT_EDIT_MODE_CAMERA_MOVE;
     g_info.chara_no = 0;
     g_info.collision = 0;
 }
-int ChkEventEditStart(void) {
+
+int ChkEventEditStart() {
     mgCCamera *camera;
 
     if (DebugFlag != 1) {
@@ -399,7 +367,7 @@ int ChkEventEditStart(void) {
     }
     camera = GetActiveCamera();
 
-    if (GamePad__2.Down(0x200) != 0) {
+    if (GamePad__2.Down(PAD_L3) != 0) {
         g_info.active = 1;
         EdEventInfo.projection = mgGetProjection();
         mgCCamera::StopCamera = 1;
@@ -408,29 +376,30 @@ int ChkEventEditStart(void) {
         evLoadDebugFont(g_info.texb, g_info.memory);
         g_cmr_pas.Initialize();
         g_cmr_pas.SetFrame(200);
-        g_cp_cursor = 0;
-        g_cp_mode = 0;
+        g_cp_cursor = EVENT_EDIT_PAS_ITEM_EDIT_MODE;
+        g_cp_mode = EVENT_EDIT_PAS_OP_ADDITION;
         g_cp_selno = 0;
         g_chara_pas.Initialize();
         g_chara_pas.SetFrame(200);
-        g_chara_pas_cursor = 0;
-        g_chara_pas_mode = 0;
+        g_chara_pas_cursor = EVENT_EDIT_PAS_ITEM_EDIT_MODE;
+        g_chara_pas_mode = EVENT_EDIT_PAS_OP_ADDITION;
         g_chara_pas_selno = 0;
         GamePad__2.MenuModeOff();
         return 1;
     }
     return 0;
 }
+
 int EventEdit(mgCMemory *memory) {
-    float cam_pos[4];
-    float cam_ref[4];
-    float focus_pos[4];
-    float path_eye[4];
-    float path_look[4];
-    float chara_pos[4];
-    float chara_rot[4];
-    float add_pos[4];
-    float set_pos[4];
+    sceVu0FVECTOR cam_pos;
+    sceVu0FVECTOR cam_ref;
+    sceVu0FVECTOR focus_pos;
+    sceVu0FVECTOR path_eye;
+    sceVu0FVECTOR path_look;
+    sceVu0FVECTOR chara_pos;
+    sceVu0FVECTOR chara_rot;
+    sceVu0FVECTOR add_pos;
+    sceVu0FVECTOR set_pos;
     mgCCamera *camera;
     CCharacter2 *chara;
     mgCMemory *memoryHeap;
@@ -441,7 +410,7 @@ int EventEdit(mgCMemory *memory) {
         return 0;
     }
     camera = GetActiveCamera();
-    if (GamePad__2.Down(0x200) != 0) {
+    if (GamePad__2.Down(PAD_L3) != 0) {
         g_info.active = 0;
         camera->SetPos(g_info.camera_pos);
         camera->SetRef(g_info.camera_ref);
@@ -459,18 +428,18 @@ int EventEdit(mgCMemory *memory) {
     camera->GetPos(cam_pos);
     camera->GetRef(cam_ref);
     switch (g_info.mode) {
-        case 0:
-            if (GamePad__2.On(1) != 0) {
+        case EVENT_EDIT_MODE_CAMERA_MOVE:
+            if (GamePad__2.On(PAD_L2) != 0) {
                 MoveCameraRef(cam_pos, cam_ref);
             } else {
                 MoveCamera(cam_pos, cam_ref);
             }
             camera->SetPos(cam_pos);
             camera->SetRef(cam_ref);
-            if (GamePad__2.On(0x2000) != 0) {
+            if (GamePad__2.On(PAD_RIGHT) != 0) {
                 EdEventInfo.projection += 1.0f;
             }
-            if (GamePad__2.On(0x8000) != 0) {
+            if (GamePad__2.On(PAD_LEFT) != 0) {
                 EdEventInfo.projection -= 1.0f;
             }
             if (EdEventInfo.projection < 100.0f) {
@@ -480,10 +449,10 @@ int EventEdit(mgCMemory *memory) {
                 EdEventInfo.projection = 2000.0f;
             }
             break;
-        case 1:
-            if (GamePad__2.On(2) == 0) {
+        case EVENT_EDIT_MODE_CHARACTER:
+            if (GamePad__2.On(PAD_R2) == 0) {
                 chara = GetCharacter(g_info.chara_no);
-                if (GamePad__2.Down(0x2000) != 0) {
+                if (GamePad__2.Down(PAD_RIGHT) != 0) {
                     chara = NULL;
                     for (index = g_info.chara_no + 1; index < 0x80; index++) {
                         chara = GetCharacter(index);
@@ -497,7 +466,7 @@ int EventEdit(mgCMemory *memory) {
                         g_info.chara_no = index;
                     }
                 }
-                if (GamePad__2.Down(0x8000) != 0) {
+                if (GamePad__2.Down(PAD_LEFT) != 0) {
                     chara = NULL;
                     for (index = g_info.chara_no - 1; index >= 0; index--) {
                         chara = GetCharacter(index);
@@ -511,10 +480,10 @@ int EventEdit(mgCMemory *memory) {
                         g_info.chara_no = index;
                     }
                 }
-                if (GamePad__2.Down(0x80) != 0) {
+                if (GamePad__2.Down(PAD_SQUARE) != 0) {
                     g_info.collision = !(bool)g_info.collision;
                 }
-                if (GamePad__2.Down(0x10) != 0) {
+                if (GamePad__2.Down(PAD_TRIANGLE) != 0) {
                     chara->GetPosition(focus_pos);
                     sceVu0CopyVector(cam_ref, focus_pos);
                     cam_ref[1] += 0.7f * chara->body_height;
@@ -522,7 +491,7 @@ int EventEdit(mgCMemory *memory) {
                 }
                 MoveChara(chara, camera, memory);
             } else {
-                if (GamePad__2.On(1) != 0) {
+                if (GamePad__2.On(PAD_L2) != 0) {
                     MoveCameraRef(cam_pos, cam_ref);
                 } else {
                     MoveCamera(cam_pos, cam_ref);
@@ -531,8 +500,8 @@ int EventEdit(mgCMemory *memory) {
                 camera->SetRef(cam_ref);
             }
             break;
-        case 2:
-            if (GamePad__2.On(1) != 0) {
+        case EVENT_EDIT_MODE_CAMERA_PAS:
+            if (GamePad__2.On(PAD_L2) != 0) {
                 MoveCameraRef(cam_pos, cam_ref);
             } else {
                 MoveCamera(cam_pos, cam_ref);
@@ -540,75 +509,75 @@ int EventEdit(mgCMemory *memory) {
             camera->SetPos(cam_pos);
             camera->SetRef(cam_ref);
             switch (g_cp_cursor) {
-                case 0:
-                    if (GamePad__2.Down(0x8000) != 0) {
+                case EVENT_EDIT_PAS_ITEM_EDIT_MODE:
+                    if (GamePad__2.Down(PAD_LEFT) != 0) {
                         g_cp_mode -= 1;
-                        if ((int)g_cp_mode < 0) {
-                            g_cp_mode = 0;
+                        if (g_cp_mode < 0) {
+                            g_cp_mode = EVENT_EDIT_PAS_OP_ADDITION;
                         }
-                    } else if (GamePad__2.Down(0x2000) != 0) {
+                    } else if (GamePad__2.Down(PAD_RIGHT) != 0) {
                         g_cp_mode += 1;
-                        if ((int)g_cp_mode >= 4) {
-                            g_cp_mode = 3;
+                        if (g_cp_mode >= EVENT_EDIT_PAS_OP_COUNT) {
+                            g_cp_mode = EVENT_EDIT_PAS_OP_DELETE;
                         }
                     }
                     break;
-                case 1:
-                    if (GamePad__2.Down(0x8000) != 0) {
+                case EVENT_EDIT_PAS_ITEM_SELECT_NO:
+                    if (GamePad__2.Down(PAD_LEFT) != 0) {
                         g_cp_selno -= 1;
-                        if ((int)g_cp_selno < 0) {
+                        if (g_cp_selno < 0) {
                             g_cp_selno = 0;
                         }
-                    } else if (GamePad__2.Down(0x2000) != 0) {
+                    } else if (GamePad__2.Down(PAD_RIGHT) != 0) {
                         g_cp_selno += 1;
-                        if ((int)g_cp_selno >= 0x10) {
+                        if (g_cp_selno >= 0x10) {
                             g_cp_selno = 0xF;
                         }
                     }
                     break;
-                case 2:
+                case EVENT_EDIT_PAS_ITEM_FRAME:
                     frame = g_cmr_pas.GetFrame();
-                    if (GamePad__2.On(0x8000) != 0) {
+                    if (GamePad__2.On(PAD_LEFT) != 0) {
                         frame -= 1;
                         if (frame < 0) {
                             frame = 0;
                         }
-                    } else if (GamePad__2.On(0x2000) != 0) {
+                    } else if (GamePad__2.On(PAD_RIGHT) != 0) {
                         frame += 1;
                     }
                     g_cmr_pas.SetFrame(frame);
                     break;
             }
-            if (GamePad__2.Down(0x1000) != 0) {
+            if (GamePad__2.Down(PAD_UP) != 0) {
                 g_cp_cursor -= 1;
-                if ((int)g_cp_cursor < 0) {
-                    g_cp_cursor = 0;
+                if (g_cp_cursor < 0) {
+                    g_cp_cursor = EVENT_EDIT_PAS_ITEM_EDIT_MODE;
                 }
-            } else if (GamePad__2.Down(0x4000) != 0) {
+            } else if (GamePad__2.Down(PAD_DOWN) != 0) {
                 g_cp_cursor += 1;
-                if ((int)g_cp_cursor >= 3) {
-                    g_cp_cursor = 2;
+                if (g_cp_cursor >= EVENT_EDIT_PAS_ITEM_COUNT) {
+                    g_cp_cursor = EVENT_EDIT_PAS_ITEM_FRAME;
                 }
             }
-            if (GamePad__2.Down(2) != 0 && (int)g_cp_selno < g_cmr_pas.pas_num) {
+            if (GamePad__2.Down(PAD_R2) != 0 && g_cp_selno < g_cmr_pas.pas_num) {
                 g_cmr_pas.GetCameraPas(g_cp_selno, path_eye, path_look);
                 camera->SetPos(path_eye);
                 camera->SetRef(path_look);
             }
-            if (GamePad__2.Down(0x20) != 0) {
+            if (GamePad__2.Down(PAD_CIRCLE) != 0) {
                 camera->GetPos(cam_pos);
                 camera->GetRef(cam_ref);
                 switch (g_cp_mode) {
-                    case 0:
+                    case EVENT_EDIT_PAS_OP_ADDITION:
                         g_cmr_pas.AddCameraPas(cam_pos, cam_ref);
                         break;
-                    case 1:
+                    case EVENT_EDIT_PAS_OP_INSERT:
                         g_cmr_pas.InsCameraPas(g_cp_selno, cam_pos, cam_ref);
                         break;
-                    case 2:
+                    case EVENT_EDIT_PAS_OP_OVERWRITE:
                         g_cmr_pas.SetCameraPas(g_cp_selno, cam_pos, cam_ref);
                         break;
-                    case 3:
+                    case EVENT_EDIT_PAS_OP_DELETE:
                         g_cmr_pas.DelCameraPas(g_cp_selno);
                         break;
                 }
@@ -618,13 +587,13 @@ int EventEdit(mgCMemory *memory) {
                 camera->SetPos(cam_pos);
                 camera->SetRef(cam_ref);
             }
-            if (GamePad__2.Down(0x10) != 0) {
+            if (GamePad__2.Down(PAD_TRIANGLE) != 0) {
                 g_cmr_pas.Setup();
                 g_cmr_pas.Run();
             }
             break;
-        case 3:
-            if (GamePad__2.Down(0x10) != 0) {
+        case EVENT_EDIT_MODE_CHARA_PAS:
+            if (GamePad__2.Down(PAD_TRIANGLE) != 0) {
                 g_chara_pas.Setup();
                 g_chara_pas.Run();
             }
@@ -636,10 +605,10 @@ int EventEdit(mgCMemory *memory) {
                 chara->SetPosition(chara_pos);
                 chara->SetRotation(chara_rot);
             } else {
-                if (GamePad__2.On(2) == 0) {
+                if (GamePad__2.On(PAD_R2) == 0) {
                     MoveChara(GetCharacter(g_info.chara_no), camera, memory);
                 } else {
-                    if (GamePad__2.On(1) != 0) {
+                    if (GamePad__2.On(PAD_L2) != 0) {
                         MoveCameraRef(cam_pos, cam_ref);
                     } else {
                         MoveCamera(cam_pos, cam_ref);
@@ -647,77 +616,77 @@ int EventEdit(mgCMemory *memory) {
                     camera->SetPos(cam_pos);
                     camera->SetRef(cam_ref);
                 }
-                if (GamePad__2.Down(0x1000) != 0) {
+                if (GamePad__2.Down(PAD_UP) != 0) {
                     g_chara_pas_cursor -= 1;
-                    if ((int)g_chara_pas_cursor < 0) {
-                        g_chara_pas_cursor = 0;
+                    if (g_chara_pas_cursor < 0) {
+                        g_chara_pas_cursor = EVENT_EDIT_PAS_ITEM_EDIT_MODE;
                     }
-                } else if (GamePad__2.Down(0x4000) != 0) {
+                } else if (GamePad__2.Down(PAD_DOWN) != 0) {
                     g_chara_pas_cursor += 1;
-                    if ((int)g_chara_pas_cursor >= 3) {
-                        g_chara_pas_cursor = 2;
+                    if (g_chara_pas_cursor >= EVENT_EDIT_PAS_ITEM_COUNT) {
+                        g_chara_pas_cursor = EVENT_EDIT_PAS_ITEM_FRAME;
                     }
                 }
                 switch (g_chara_pas_cursor) {
-                    case 0:
-                        if (GamePad__2.Down(0x8000) != 0) {
+                    case EVENT_EDIT_PAS_ITEM_EDIT_MODE:
+                        if (GamePad__2.Down(PAD_LEFT) != 0) {
                             g_chara_pas_mode -= 1;
-                            if ((int)g_chara_pas_mode < 0) {
-                                g_chara_pas_mode = 0;
+                            if (g_chara_pas_mode < 0) {
+                                g_chara_pas_mode = EVENT_EDIT_PAS_OP_ADDITION;
                             }
-                        } else if (GamePad__2.Down(0x2000) != 0) {
+                        } else if (GamePad__2.Down(PAD_RIGHT) != 0) {
                             g_chara_pas_mode += 1;
-                            if ((int)g_chara_pas_mode >= 4) {
-                                g_chara_pas_mode = 3;
+                            if (g_chara_pas_mode >= EVENT_EDIT_PAS_OP_COUNT) {
+                                g_chara_pas_mode = EVENT_EDIT_PAS_OP_DELETE;
                             }
                         }
                         break;
-                    case 1:
-                        if (GamePad__2.Down(0x8000) != 0) {
+                    case EVENT_EDIT_PAS_ITEM_SELECT_NO:
+                        if (GamePad__2.Down(PAD_LEFT) != 0) {
                             g_chara_pas_selno -= 1;
-                            if ((int)g_chara_pas_selno < 0) {
+                            if (g_chara_pas_selno < 0) {
                                 g_chara_pas_selno = 0;
                             }
-                        } else if (GamePad__2.Down(0x2000) != 0) {
+                        } else if (GamePad__2.Down(PAD_RIGHT) != 0) {
                             g_chara_pas_selno += 1;
-                            if ((int)g_chara_pas_selno >= 0x10) {
+                            if (g_chara_pas_selno >= 0x10) {
                                 g_chara_pas_selno = 0xF;
                             }
                         }
                         break;
-                    case 2:
+                    case EVENT_EDIT_PAS_ITEM_FRAME:
                         frame = g_chara_pas.GetFrame();
-                        if (GamePad__2.On(0x8000) != 0) {
+                        if (GamePad__2.On(PAD_LEFT) != 0) {
                             frame -= 1;
                             if (frame < 0) {
                                 frame = 0;
                             }
-                        } else if (GamePad__2.On(0x2000) != 0) {
+                        } else if (GamePad__2.On(PAD_RIGHT) != 0) {
                             frame += 1;
                         }
                         g_chara_pas.SetFrame(frame);
                         break;
                 }
-                if (GamePad__2.Down(0x20) != 0) {
+                if (GamePad__2.Down(PAD_CIRCLE) != 0) {
                     chara = GetCharacter(g_info.chara_no);
                     chara->GetPosition(add_pos);
                     switch (g_chara_pas_mode) {
-                        case 0:
+                        case EVENT_EDIT_PAS_OP_ADDITION:
                             g_chara_pas.AddCharaPas(add_pos);
                             break;
-                        case 1:
+                        case EVENT_EDIT_PAS_OP_INSERT:
                             g_chara_pas.InsCharaPas(g_chara_pas_selno, add_pos);
                             break;
-                        case 2:
+                        case EVENT_EDIT_PAS_OP_OVERWRITE:
                             g_chara_pas.SetCharaPas(g_chara_pas_selno, add_pos);
                             break;
-                        case 3:
+                        case EVENT_EDIT_PAS_OP_DELETE:
                             g_chara_pas.DelCharaPas(g_chara_pas_selno);
                             break;
                     }
                 }
-                if (GamePad__2.Down(0x80) != 0 &&
-                    (int)g_chara_pas_selno < g_chara_pas.pas_num) {
+                if (GamePad__2.Down(PAD_SQUARE) != 0 &&
+                    g_chara_pas_selno < g_chara_pas.pas_num) {
                     g_chara_pas.GetCharaPas(g_chara_pas_selno, set_pos);
                     chara = GetCharacter(g_info.chara_no);
                     chara->SetPosition(set_pos);
@@ -725,24 +694,24 @@ int EventEdit(mgCMemory *memory) {
             }
             break;
     }
-    if (GamePad__2.Down(0x100) != 0) {
+    if (GamePad__2.Down(PAD_SELECT) != 0) {
         g_info.mode += 1;
-        if (g_info.mode > 3) {
-            g_info.mode = 0;
+        if (g_info.mode > EVENT_EDIT_MODE_CHARA_PAS) {
+            g_info.mode = EVENT_EDIT_MODE_CAMERA_MOVE;
         }
     }
-    if (GamePad__2.Down2(0x200) != 0) {
-        g_info.disp = !(bool)g_info.disp;
+    if (GamePad__2.Down2(PAD_L3) != 0) {
+        g_info.disp = !g_info.disp;
     }
-    if (GamePad__2.Down(0x800) != 0) {
+    if (GamePad__2.Down(PAD_START) != 0) {
         OutPutFile();
     }
     return 1;
 }
+
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/eventedit", DrawEventEdit__Fv);
 
 // Static initialiser (.init)
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/eventedit", __sinit_eventedit_cpp);
 
 // Initialised data (.data)
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/eventedit", at_1208__DATA);
@@ -810,7 +779,6 @@ INCLUDE_RODATA("ps2/asm/pal/nonmatchings/eventedit", at_1402__2__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/eventedit", at_1403__2__DATA);
 
 // Static initialiser table (.ctor)
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/eventedit", D_0037B040__DATA);
 
 // Small uninitialised data (.sbss)
 INCLUDE_BSS(g_cp_mode, 0x4);
