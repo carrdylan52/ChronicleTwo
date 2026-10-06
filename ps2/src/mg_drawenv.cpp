@@ -11,11 +11,11 @@ mgCDrawEnv::mgCDrawEnv() {
     Initialize(0);
 }
 
-mgCDrawEnv &mgCDrawEnv::operator=(mgCDrawEnv &source) {
-    ((u_long128 *)this)[0] = ((u_long128 *)&source)[0];
-    ((u_long128 *)this)[1] = ((u_long128 *)&source)[1];
-    ((u_long128 *)this)[2] = ((u_long128 *)&source)[2];
-    ((u_long128 *)this)[3] = ((u_long128 *)&source)[3];
+mgCDrawEnv &mgCDrawEnv::operator=(mgCDrawEnv &other) {
+    *(u_long128 *)&giftag = *(u_long128 *)&other.giftag;
+    *(u_long128 *)&test = *(u_long128 *)&other.test;
+    *(u_long128 *)&zbuf = *(u_long128 *)&other.zbuf;
+    *(u_long128 *)&alpha = *(u_long128 *)&other.alpha;
     return *this;
 }
 
@@ -38,42 +38,42 @@ void mgCDrawEnv::Initialize(int context) {
     }
 }
 
-void mgCDrawEnv::SetAlpha(int macro) {
-    switch (macro) {
-        case 0:
+void mgCDrawEnv::SetAlpha(int mode) {
+    switch (mode) {
+    case MG_ALPHA_MACRO_NONE:
         break;
-        case 1:
-            alpha.value = 0x44;
+    case MG_ALPHA_MACRO_BLEND:
+        alpha.value = SCE_GS_SET_ALPHA(SCE_GS_ALPHA_CS, SCE_GS_ALPHA_CD, SCE_GS_ALPHA_AS, SCE_GS_ALPHA_CD, 0);
         break;
-        case 2:
-            alpha.value = 0x48;
+    case MG_ALPHA_MACRO_ADD:
+        alpha.value = SCE_GS_SET_ALPHA(SCE_GS_ALPHA_CS, SCE_GS_ALPHA_ZERO, SCE_GS_ALPHA_AS, SCE_GS_ALPHA_CD, 0);
         break;
-        case 3:
-            alpha.value = 0x42;
+    case MG_ALPHA_MACRO_SUB:
+        alpha.value = SCE_GS_SET_ALPHA(SCE_GS_ALPHA_ZERO, SCE_GS_ALPHA_CS, SCE_GS_ALPHA_AS, SCE_GS_ALPHA_CD, 0);
         break;
-        case 4:
-            alpha.value = 0x800000002A;
-            break;
-        case 5:
-            alpha.value = 0x8000000068;
+    case MG_ALPHA_MACRO_OPAQUE:
+        alpha.value = SCE_GS_SET_ALPHA(SCE_GS_ALPHA_ZERO, SCE_GS_ALPHA_ZERO, SCE_GS_ALPHA_FIX, SCE_GS_ALPHA_CS, 0x80);
+        break;
+    case MG_ALPHA_MACRO_ADD_FIX:
+        alpha.value = SCE_GS_SET_ALPHA(SCE_GS_ALPHA_CS, SCE_GS_ALPHA_ZERO, SCE_GS_ALPHA_FIX, SCE_GS_ALPHA_CD, 0x80);
         break;
     }
 }
 
-int mgCDrawEnv::GetAlphaMacroID(void) {
-    if (alpha.value == 0x48) {
-        return 2;
+int mgCDrawEnv::GetAlphaMacroID() {
+    if (alpha.value == SCE_GS_SET_ALPHA(SCE_GS_ALPHA_CS, SCE_GS_ALPHA_ZERO, SCE_GS_ALPHA_AS, SCE_GS_ALPHA_CD, 0)) {
+        return MG_ALPHA_MACRO_ADD;
     }
-    if (alpha.value == 0x42) {
-        return 3;
-}
-    if (alpha.value == 0x44) {
-        return 1;
+    if (alpha.value == SCE_GS_SET_ALPHA(SCE_GS_ALPHA_ZERO, SCE_GS_ALPHA_CS, SCE_GS_ALPHA_AS, SCE_GS_ALPHA_CD, 0)) {
+        return MG_ALPHA_MACRO_SUB;
     }
-    if (alpha.value == 0x800000002A) {
-        return 4;
+    if (alpha.value == SCE_GS_SET_ALPHA(SCE_GS_ALPHA_CS, SCE_GS_ALPHA_CD, SCE_GS_ALPHA_AS, SCE_GS_ALPHA_CD, 0)) {
+        return MG_ALPHA_MACRO_BLEND;
     }
-    return 0;
+    if (alpha.value == SCE_GS_SET_ALPHA(SCE_GS_ALPHA_ZERO, SCE_GS_ALPHA_ZERO, SCE_GS_ALPHA_FIX, SCE_GS_ALPHA_CS, 0x80)) {
+        return MG_ALPHA_MACRO_OPAQUE;
+    }
+    return MG_ALPHA_MACRO_NONE;
 }
 
 void mgCDrawEnv::SetZBuf(int mode) {
@@ -313,20 +313,20 @@ void mgRENDER_INFO::GetLight(float (*light_dir)[4], float (*light_color)[4]) {
     sceVu0CopyMatrix(light_color, info->light_color);
 }
 
-void mgRENDER_INFO::SetLight(int index, float *direction, float *color) {
+void mgRENDER_INFO::SetLight(int index, float *dir, float *color) {
     light_changed = 1;
     if (index < 0 || index >= 4) {
         return;
     }
-    mgLIGHT_INFO *slot = GetpLightInfo();
-    slot->light_dir[0][index] = direction[0];
-    slot->light_dir[1][index] = direction[1];
-    slot->light_dir[2][index] = direction[2];
-    slot->light_dir[3][index] = 0;
-    slot->light_color[index][0] = color[0];
-    slot->light_color[index][1] = color[1];
-    slot->light_color[index][2] = color[2];
-    slot->light_color[index][3] = 0;
+    mgLIGHT_INFO *info = GetpLightInfo();
+    info->light_dir[0][index] = dir[0];
+    info->light_dir[1][index] = dir[1];
+    info->light_dir[2][index] = dir[2];
+    info->light_dir[3][index] = 0.0f;
+    info->light_color[index][0] = color[0];
+    info->light_color[index][1] = color[1];
+    info->light_color[index][2] = color[2];
+    info->light_color[index][3] = 0.0f;
 }
 
 void mgRENDER_INFO::SetAmbient(float *color) {
@@ -346,44 +346,50 @@ void mgRENDER_INFO::SetPlight(int index, float *pos, float *color, float power, 
     SetPlight(index, &light);
 }
 
+#ifdef NONMATCHING
 void mgRENDER_INFO::SetPlight(int index, mgPOINT_LIGHT *light) {
     if (index < 0 || index >= 4) {
         return;
     }
-    mgLIGHT_INFO *slot = GetpLightInfo();
+    mgLIGHT_INFO *info = GetpLightInfo();
     if (light == NULL) {
-        slot->point_light[index].power = 0;
+        info->point_light[index].power = 0.0f;
         return;
     }
+
     // Without a range of its own, the light reaches as far as its brightest colour component allows.
     float range = light->range;
-    if (range <= 0) {
-        float red = light->color[0];
-        float green = light->color[1];
-        float brightest = red > green ? (red > light->color[2] ? red : light->color[2])
-                                    : (green > light->color[2] ? green : light->color[2]);
+    if (range <= 0.0f) {
+        float brightest;
+        if (light->color[0] > light->color[1]) {
+            brightest = light->color[0] > light->color[2] ? light->color[0] : light->color[2];
+        } else {
+            brightest = light->color[1] > light->color[2] ? light->color[1] : light->color[2];
+        }
         range = light->power * sqrtf(brightest);
     }
 
-    slot->point_light[index].pos_copy = light->pos_copy;
-    slot->point_light[index].color_copy = light->color_copy;
-    slot->point_light[index].power = light->power;
-    slot->point_light[index].range = light->range;
-    slot->point_light[index].pos[3] = 1.0f;
-    slot->point_light[index].range = range;
+    mgPOINT_LIGHT *dest = &info->point_light[index];
+    *dest = *light;
+    dest->pos[3] = 1.0f;
+    dest->range = range;
 }
+#else
+INCLUDE_ASM("ps2/asm/pal/nonmatchings/mg_drawenv", SetPlight__13mgRENDER_INFOFiP13mgPOINT_LIGHT);
+#endif
 
-void mgRENDER_INFO::GetPlight(int index, mgPOINT_LIGHT *out) {
-    if (index < 0 || index >= 4 || out == NULL) {
-        return;
-    }
-
-    mgPOINT_LIGHT *light = (mgPOINT_LIGHT *)(index * 0x30 + (int)GetpLightInfo() + 0x90);
-    out->pos_copy = light->pos_copy;
-    out->color_copy = light->color_copy;
-    out->power = light->power;
-    out->range = light->range;
+#ifdef NONMATCHING
+void mgRENDER_INFO::GetPlight(int index, mgPOINT_LIGHT *light) {
+    if (index >= 0 && index < 4) {
+        if (light == NULL) {
+            return;
         }
+        *light = GetpLightInfo()->point_light[index];
+    }
+}
+#else
+INCLUDE_ASM("ps2/asm/pal/nonmatchings/mg_drawenv", GetPlight__13mgRENDER_INFOFiP13mgPOINT_LIGHT);
+#endif
 
 void mgRENDER_INFO::FogEnable(int enable) {
     fog_enable = enable;
@@ -401,30 +407,30 @@ int mgRENDER_INFO::GetPlightEnable() {
     return plight_enable;
 }
 
-void mgRENDER_INFO::SetFogParam(float near, float far, u_char red, u_char green, u_char blue, float depth_max,
-                                float depth_min) {
-    float depth_range = depth_max - depth_min;
-    float distance = far - near;
-    fog.near_dist = near;
-    fog.far_dist = far;
-    fog.values[0] = (depth_max + depth_min + ((depth_range * (far + near)) / distance)) / 2.0f;
-    fog.values[1] = depth_max;
-    fog.values[2] = depth_min;
-    float scaled = -far * near;
-    scaled *= depth_range;
-    fog.values[3] = scaled / distance;
-    fog.coef[0] = fog.values[0];
-    fog.coef[1] = fog.values[1];
-    fog.coef[2] = fog.values[2];
-    fog.coef[3] = fog.values[3];
-    fog.r = red;
-    fog.g = green;
-    fog.b = blue;
+void mgRENDER_INFO::SetFogParam(float near_dist, float far_dist, u_char r, u_char g, u_char b,
+                                float far_value, float near_value) {
+    float value_range = far_value - near_value;
+    float dist_range = far_dist - near_dist;
+    fog.near_dist = near_dist;
+    fog.far_dist = far_dist;
+    fog.offset = (far_value + near_value + (value_range * (far_dist + near_dist)) / dist_range) / 2.0f;
+    fog.far_value = far_value;
+    fog.near_value = near_value;
+    float scale = -far_dist * near_dist;
+    scale *= value_range;
+    fog.scale = scale / dist_range;
+    fog.coef[0] = fog.offset;
+    fog.coef[1] = fog.far_value;
+    fog.coef[2] = fog.near_value;
+    fog.coef[3] = fog.scale;
+    fog.r = r;
+    fog.g = g;
+    fog.b = b;
 }
 
-mgVu0FBOX &mgVu0FBOX::operator=(mgVu0FBOX &source) {
-    *(u_long128 *)max = *(u_long128 *)source.max;
-    *(u_long128 *)min = *(u_long128 *)source.min;
+mgVu0FBOX &mgVu0FBOX::operator=(mgVu0FBOX &other) {
+    *(u_long128 *)max = *(u_long128 *)other.max;
+    *(u_long128 *)min = *(u_long128 *)other.min;
     return *this;
 }
 

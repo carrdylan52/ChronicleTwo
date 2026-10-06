@@ -54,18 +54,16 @@ struct mgVu0FBOX {
      * @address 0x139F00
      * @size 0x20
      */
-    /**
-     * Copies every register setting of another packet into this one.
-     *
-     * @mangled __as__10mgCDrawEnvFR10mgCDrawEnv
-     * @address 0x138F10
-     * @size 0x30
-     */
     mgVu0FBOX &operator=(mgVu0FBOX &other);
 };
 STATIC_ASSERT(sizeof(mgVu0FBOX) == 0x20);
 
-struct mgVec4 { float v[4]; };
+/**
+ * Four scalar vector components.
+ */
+struct mgVec4 {
+    float v[4]; /**< Vector components. */
+};
 
 /**
  *
@@ -73,8 +71,8 @@ struct mgVec4 { float v[4]; };
  *
  */
 struct mgPOINT_LIGHT {
-    union { sceVu0FVECTOR pos; mgVec4 pos_copy; }; /**< World position of the light; the stored copy has w = 1. */
-    union { sceVu0FVECTOR color; /**< Colour of the light. */ mgVec4 color_copy; };
+    sceVu0FVECTOR pos;   /**< World position of the light; the stored copy has w = 1. */
+    sceVu0FVECTOR color; /**< Colour of the light. */
     float power;         /**< Strength of the light; zero or less switches the light off. */
     float range;         /**< Distance the light reaches; zero or less derives it from the power and colour. */
 };
@@ -93,7 +91,6 @@ struct mgLIGHT_INFO {
 };
 STATIC_ASSERT(sizeof(mgLIGHT_INFO) == 0x150);
 
-#pragma cpp_extensions on
 /**
  *
  * Distance fog: the colour it fades to and the coefficients that give the fog value from depth.
@@ -106,18 +103,12 @@ struct mgFOG_PARAM {
     u_char g;           /**< Green component of the fog colour. */
     u_char b;           /**< Blue component of the fog colour. */
     u_char unk_b;
-    union {
-        struct {
     float offset;       /**< Constant term of the fog value as a function of the reciprocal of depth. */
     float far_value;    /**< Fog value at the far distance. */
     float near_value;   /**< Fog value at the near distance. */
     float scale;        /**< Coefficient of the reciprocal of depth in the fog value. */
-        };
-        float values[4];
-    };
     sceVu0FVECTOR coef; /**< Copy of offset, far_value, near_value and scale, sent to VU1 as one quadword. */
 };
-#pragma cpp_extensions reset
 STATIC_ASSERT(sizeof(mgFOG_PARAM) == 0x30);
 
 /**
@@ -147,6 +138,13 @@ public:
     mgCDrawEnv();
 #endif
 
+    /**
+     * Copies every register setting of another packet into this one.
+     *
+     * @mangled __as__10mgCDrawEnvFR10mgCDrawEnv
+     * @address 0x138F10
+     * @size 0x30
+     */
     mgCDrawEnv &operator=(mgCDrawEnv &other);
 
     /**
