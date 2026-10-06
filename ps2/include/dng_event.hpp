@@ -2,11 +2,6 @@
 
 #include "common.h"
 
-union DngEventVector {
-    float f[4];
-    u_long128 qw;
-};
-
 #include <libvu0.h>
 
 #include "character.hpp"
@@ -855,15 +850,3 @@ void LoadMonsterFile();
  * @size 0x130
  */
 void LoadMonsterFile(int monster_no, int reset);
-
-void StatusWarningSnd();
-
-void BattleAreaBGMCtrl();
-
-void PickupRandomItemCheckMax(TRESURE_BOX_FLOOR_INFO *table, int floor_index);
-
-TRESURE_BOX_ITEM *PickupRandomItem(TRESURE_BOX_FLOOR_INFO *table, int floor_index, int rank);
-
-int CheckObjectPutArea(float *pos);
-
-void CreatMonsterFloorInfo(char *script, int size);

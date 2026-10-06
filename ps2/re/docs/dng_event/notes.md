@@ -53,8 +53,8 @@ Initialize writes the six slots unrolled (message, priority, time, slot, next); 
 when > 0). 0x88..0x8F alignment padding (class 16-aligned). Vtable `__vt__13CRedMarkModel`
 (dng_event): CObjectFrame layout with slot Initialize overridden, then two NEW slots Draw, Step
 after Copy(CObjectFrame&). CObjectFrame::Draw returns int, so `virtual void Draw()` does not
-override it (same as CLockOnModel in dng_hud). Initialize is inline (emitted in dng_main
-0x1CF560): stores 0x80, 0x84, 0x70 (frame) in that order, no base call. Global RedMarkModel
+override it (same as CLockOnModel in dng_hud). Initialize is defined in dng_main
+0x1CF560: stores 0x80, 0x84, 0x70 (frame) in that order, no base call. Global RedMarkModel
 (pointer) is in dng_main; frame set from "mgLoadMDSFile" there.
 
 ## CGeoStone : CCharacter2 (0x670 = global GeoStone size; CCharacter2 0x660)
@@ -117,3 +117,10 @@ TRESURE_BOX_GROUP / TRESURE_BOX_ITEM / TRESURE_BOX_FLOOR / MESSAGE_TASK are not 
 ## First game
 No counterpart class in Dark Cloud 1; its CDungeonMap (dungeonmap.hpp) held treasure boxes as
 TREASURE_BOX structs and trap circles as MAP_TRAP_CIRCLE, a different layout.
+
+## C++ draft status
+
+66 functions match; Switch has a guarded C++ draft; nine functions remain assembly-only.
+The 12 compiled retail-local helpers are static; FLS and FL remain assembly-backed.
+The raw C++ object gives all 12 local binding. The processed normal object gives global binding
+to the GROUP_START, GROUP, ITEM, FLOOR_START, FLOOR and FLE handlers, as well as FLS and FL.
