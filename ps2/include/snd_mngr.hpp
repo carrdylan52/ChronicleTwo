@@ -307,29 +307,7 @@ public:
      * @address 0x191C30
      * @size 0x1C0
      */
-    sndPortInfo() {
-        int i;
-
-        port = -1;
-        sq_port = -1;
-        bank_num = 0;
-        sq_no = -1;
-        sq_state = SND_SQ_STATE_STOP;
-        sq_vol = 0;
-        sq_se_no = -1;
-        for (i = 0; i < 16; i++) {
-            seseq[i].seseq_no = -1;
-        }
-        for (i = 0; i < 16; i++) {
-            bank[i].unk_0 = 0;
-            bank[i].se_num = 0;
-            bank[i].se = NULL;
-            bank[i].sq_num = 0;
-            bank[i].sq_name = NULL;
-            bank[i].seseq_num = 0;
-            bank[i].seseq = NULL;
-        }
-    }
+    sndPortInfo();
 
     /**
      * Builds a bank's sound effect table from its text file, allocating it
