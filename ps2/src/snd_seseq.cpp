@@ -1,8 +1,6 @@
 #include "common.h"
 #include "snd_seseq.hpp"
 
-extern "C" int fptosi(float value);
-
 #include <cstdio>
 #include <cstring>
 
@@ -187,14 +185,12 @@ void sndCSeSeq::SetSeID(int id) {
 }
 
 void sndCSeSeq::Count(float frames) {
-    int ticks;
-    sndCSeSeqData *seqData;
+    int elapsed;
 
-    seqData = data;
-    if (seqData != NULL) {
-        ticks = (int)(fptosi(((float)seqData->tick_rate * frames) / 60.0f));
-        tick += ticks;
-        wait += ticks;
+    if (data != NULL) {
+        elapsed = data->tick_rate * frames / 60.0f;
+        tick += elapsed;
+        wait += elapsed;
     }
 }
 
@@ -426,24 +422,24 @@ sndSeSeqVoice *sndTrack::GetEmptyVoice() {
     return NULL;
 }
 
-int sndTrack::NoteOn(int note, int velocity) {
-    sndSeSeqVoice *voice;
+int sndTrack::NoteOn(int key, int velocity) {
+    sndSeSeqVoice *note;
 
-    if (SaerchVoice((int)prog, note) != 0) {
+    if (SaerchVoice(prog, key) != NULL) {
         return 1;
     }
-    voice = GetEmptyVoice();
-    if (voice == NULL) {
+    note = GetEmptyVoice();
+    if (note == NULL) {
         return 0;
     }
-    voice->active = 1;
-    voice->key = (s8)note;
-    voice->prog = prog;
-    voice->se_id = se_id;
+    note->active = 1;
+    note->key = key;
+    note->prog = prog;
+    note->se_id = se_id;
     return 1;
 }
 
-int sndTrack::NoteOff(int key, int velocity) {
+s32 sndTrack::NoteOff(s32 key, s32 velocity) {
     sndSeSeqVoice *note = SaerchVoice(prog, key);
     if (note == NULL) {
         return 0;
@@ -470,11 +466,11 @@ int sndTrack::CtrlChg(int ctrl, int value) {
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/snd_seseq", CtrlChg__8sndTrackFii);
 #endif
 
-int sndTrack::ProgChg(int program) {
+s32 sndTrack::ProgChg(s32 program) {
     prog = program;
     return 0;
 }
-int sndTrack::PitchBend(int msb, int lsb) {
+s32 sndTrack::PitchBend(s32 msb, s32 lsb) {
     bend_lsb = lsb;
     bend_msb = msb;
     return 1;

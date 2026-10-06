@@ -27,7 +27,7 @@ Size: snd_mngr `sndLoadSound` indexes an array of them with stride 0x10; `sndSeP
 | 0x4 | `int tick_rate` | Initialize = 1; LoadSMF = `division * 225 / 60` (division = s16 at SMF+0xC); `Count` adds `tick_rate * frames / 60.0f` |
 | 0x8 | `int event_num` | LoadSMF counts events, then recomputes `(end - event + 6) / 6` (includes terminator) |
 | 0xC | `sndSeSeqEvent *event` | LoadSMF: `memory->stAllocTest(1)` gives the write address, events written in place, then `memory->Alloc(qwords)` commits `ceil(event_num*6/16)` |
-Ctor (snd_mngr 0x18F4B0) only calls `Initialize()`: declared inline in the class.
+Ctor (snd_mngr 0x18F4B0) only calls `Initialize()`: declared in the class and defined out of line in `snd_mngr.cpp`. An inline definition emits no constructor for the assembly call in the normal build; removing the out-of-line definition leaves that constructor undefined.
 LoadSMF: requires "MThd", format (s16 at +8) == 0, "MTrk" at `smf + hdrlen + 8`, track length at
 `+hdrlen+0xC`; events start at `+hdrlen+0x10`. Running status supported (status byte reused when
 bit 7 clear). Meta 0xFF: 0x2F ends the loop, others skipped by `p[1] + 2`. Data byte counts:
