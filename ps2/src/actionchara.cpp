@@ -1,77 +1,53 @@
 #include "common.h"
-#include "automap.hpp"
-#include "mainloop.hpp"
-#include "padcontrol.hpp"
-#include "gamedata.hpp"
-#include "mglib.hpp"
-#include "dataread.hpp"
-#include "swordeffect.hpp"
-#include "snd_mngr.hpp"
-#include "dng_event.hpp"
-#include "effscript.hpp"
-#include "colprim.hpp"
-#include "mg_math.hpp"
-#include "mg_camera.hpp"
-#include "sceneload.hpp"
-#include "scene.hpp"
-#include "sound.hpp"
-#include "dng_main.hpp"
-#include "dng_status.hpp"
-#include "savedata.hpp"
-#include "actscript.hpp"
-#include "scriptinterpreter.hpp"
-#include <cstring>
-#include <cstdio>
+#include "actionchara.hpp"
+
 #include <cmath>
+#include <cstdio>
+#include <cstring>
+#include <libvu0.h>
+
+#include "actscript.hpp"
+#include "automap.hpp"
 #include "cameracontrol.hpp"
 #include "character.hpp"
+#include "colprim.hpp"
+#include "dataread.hpp"
 #include "dng_effect.hpp"
+#include "dng_event.hpp"
+#include "dng_main.hpp"
+#include "dng_status.hpp"
+#include "effect.hpp"
+#include "effscript.hpp"
+#include "gamedata.hpp"
+#include "gameutil.hpp"
+#include "mainloop.hpp"
+#include "maintex.hpp"
 #include "map.hpp"
 #include "mapparts.hpp"
 #include "mdslist.hpp"
-#include "mg_frame.hpp"
-#include "mg_memory.hpp"
-#include "monster.hpp"
-#include "runscript.hpp"
-#include "scenesnd.hpp"
-#include "userdata.hpp"
-#include "actionchara.hpp"
-#include "sphida.hpp"
-#include <libvu0.h>
-#include "effect.hpp"
-#include "gameutil.hpp"
-#include "maintex.hpp"
 #include "menucommon.hpp"
+#include "mg_camera.hpp"
+#include "mg_frame.hpp"
+#include "mg_math.hpp"
+#include "mg_memory.hpp"
+#include "mglib.hpp"
+#include "monster.hpp"
+#include "padcontrol.hpp"
+#include "runscript.hpp"
+#include "savedata.hpp"
+#include "scene.hpp"
+#include "sceneload.hpp"
+#include "scenesnd.hpp"
+#include "scriptinterpreter.hpp"
+#include "snd_mngr.hpp"
+#include "sound.hpp"
+#include "sphida.hpp"
+#include "swordeffect.hpp"
+#include "userdata.hpp"
 
-extern "C" void SethitEffect__15CHitEffectImageFPfPfffffii(CHitEffectImage *, float *, float *, float, float, float, float, int, int);
-extern char at_1325[];
-extern char at_1357[];
-extern char at_1358[];
-extern char at_1394[];
-extern char at_1427[];
-extern char at_1428[];
-extern CScene *nowScene__2;
-union ActionVector { float f[4]; int i[4]; u_long128 qw; };
-struct ThrowItemTable { int item_no[19]; };
-extern ThrowItemTable at_1398;
-extern CMonsterMan *ActiveMonster;
-extern float at_3289[4];
-extern float at_3291[4];
-extern char at_2423[];
-extern char at_3389[];
-extern char at_2333[];
-extern char at_2334[];
-extern char at_2210[];
-extern float old_angle;
-extern float ang_3371;
-extern s8 init_3372;
-extern char at_2846[];
-int RockOn_TargetSel(CScene *scene, int index);
-int DistCheck_Action2(CScene *scene, float unused, float range, float *out_dist, int rank, int *out_rank);
-int Check_LockOn(CScene *scene, float range, int index);
-void HitEffectSet(CScene *scene, float *point);
-int CheckAmuletAvoid(int item_no);
-int CheckEquipSetItem(int item_no);
+#ifdef NONMATCHING
+static float old_angle; /**< Previous stick direction used by the movement acceleration ramp. */
+#endif
 
 // Code (.text)
 void CActionChara::ResetAccele(void) {
@@ -81,50 +57,48 @@ void CActionChara::ResetAccele(void) {
     accele.speed = 0;
 }
 void CActionChara::ResetAction() {
-    int i;
+    int index;
 
     AllDeleteDamage();
-    i = 0;
-    do {
-        if (sword_effect[i] != NULL) {
-            sword_effect[i]->Clear();
+    for (index = 0; index < 3; index++) {
+        if (sword_effect[index] != NULL) {
+            sword_effect[index]->Clear();
         }
-        i++;
-    } while (i < 3);
-    hold_type = 0;
+    }
+    hold_type = ACTION_HOLD_NONE;
     add_speed = 0.0f;
     add_time = 0;
     blow_speed = 0.0f;
     blow_time = 0;
-    accume.frame = 0;
+    accume.frame = NULL;
     action_info.chara = this;
     action_info.env = NULL;
-    if (this->script.check_program(0x96) != 0) {
-        this->script.run(0x96);
+    if (script.check_program(ACTION_PROG_RESET) != 0) {
+        script.run(ACTION_PROG_RESET);
     }
-    prog_no = 0xC8;
+    prog_no = ACTION_PROG_MAIN;
 }
+
 void CActionChara::ResetScript() {
-    int i;
     int j;
-    int k;
+    int index;
     int l;
     int m;
 
-    for (i = 0; i < 8; i++) {
-        object[i].frame = 0;
+    for (index = 0; index < 8; index++) {
+        object[index].frame = NULL;
     }
     for (j = 0; j < 16; j++) {
         body_col[j].type = 0;
         body_col[j].unk_20 = -1;
     }
-    for (k = 0; k < 11; k++) {
-        damage[k].use = 0;
-        damage[k].chara = NULL;
-        damage[k].frame0 = NULL;
-        damage[k].frame1 = NULL;
-        damage[k].damage = NULL;
-        damage[k].prim = NULL;
+    for (index = 0; index < 11; index++) {
+        damage[index].use = 0;
+        damage[index].chara = NULL;
+        damage[index].frame0 = NULL;
+        damage[index].frame1 = NULL;
+        damage[index].damage = NULL;
+        damage[index].prim = NULL;
     }
     damage_num = 0;
     for (l = 0; l < 10; l++) {
@@ -135,13 +109,14 @@ void CActionChara::ResetScript() {
             sword_effect[m]->Clear();
         }
     }
-    hold_type = 0;
+    hold_type = ACTION_HOLD_NONE;
     add_speed = 0.0f;
     add_time = 0;
     blow_speed = 0.0f;
     blow_time = 0;
-    accume.frame = 0;
+    accume.frame = NULL;
 }
+
 s32 CActionChara::CheckRunEvent(void) {
     s32 can_run = menu_flag;
     if (hold_type != 0) {
@@ -149,43 +124,44 @@ s32 CActionChara::CheckRunEvent(void) {
     }
     return can_run;
 }
-void CActionChara::SetMaskFlag(int flag, int set) {
-    if (set != 0)
-        mask_flag = mask_flag | flag;
-    else
-        mask_flag = mask_flag & ~flag;
+void CActionChara::SetMaskFlag(int flag, int on) {
+    if (on != 0) {
+        mask_flag |= flag;
+    } else {
+        mask_flag &= ~flag;
+    }
 }
-ACTION_OBJECT *CActionChara::EntryObject(char *name, int index) {
-    mgCFrame *object;
-    ACTION_OBJECT *slot;
-    int i;
 
-    object = SearchObject(name);
-    if (object == NULL) {
-        return 0;
-    }
-    i = 0;
-    if (index != -1) {
+ACTION_OBJECT *CActionChara::EntryObject(char *name, int no) {
+    mgCFrame      *entry_frame;
+    ACTION_OBJECT *entry;
+    int            index;
 
-        slot = (ACTION_OBJECT *)((index << 5) + (int)this + 0xC00);
-        slot->frame = object;
-        slot->pos[2] = 0.0f;
-        slot->pos[1] = 0.0f;
-        slot->pos[0] = 0.0f;
-        return slot;
+    entry_frame = SearchObject(name);
+    if (entry_frame == NULL) {
+        return NULL;
     }
-    for (; i < 8; i++) {
-        if (this->object[i].frame == 0) {
-            slot = (ACTION_OBJECT *)((i << 5) + (int)this + 0xC00);
-            slot->frame = object;
-            slot->pos[2] = 0.0f;
-            slot->pos[1] = 0.0f;
-            slot->pos[0] = 0.0f;
-            return slot;
+    index = 0;
+    if (no != -1) {
+
+        object[no].frame = entry_frame;
+        object[no].pos[2] = 0.0f;
+        object[no].pos[1] = 0.0f;
+        object[no].pos[0] = 0.0f;
+        return &object[no];
+    }
+    for (index = 0 ; index < 8; index++) {
+        if (object[index].frame == NULL) {
+            object[index].frame = entry_frame;
+            object[index].pos[2] = 0.0f;
+            object[index].pos[1] = 0.0f;
+            object[index].pos[0] = 0.0f;
+            return &object[index];
         }
     }
-    return 0;
+    return NULL;
 }
+
 void CActionChara::CalcCollision(void) {
     ACTION_OBJECT *entry = object;
     s32 index = 0;
@@ -198,29 +174,30 @@ void CActionChara::CalcCollision(void) {
         entry += 1;
     } while (index < 8);
 }
-ACTION_BODY_COL *CActionChara::EntryBodyCol(int index, float value) {
-    int i;
+ACTION_BODY_COL *CActionChara::EntryBodyCol(int object_no, float value) {
+    int index;
 
-    if (index < 0 || index >= 8) {
+    if (object_no < 0 || object_no >= 8) {
         return NULL;
     }
-    if (object[index].frame == 0) {
+    if (object[object_no].frame == NULL) {
         return NULL;
     }
-    for (i = 0; i < 16; i++) {
-        if (body_col[i].type == 0) {
-            body_col[i].type = 2;
-            body_col[i].object = index;
-            body_col[i].radius = value;
-            return &body_col[i];
+    for (index = 0; index < 16; index++) {
+        if (body_col[index].type == 0) {
+            body_col[index].type = 2;
+            body_col[index].object = object_no;
+            body_col[index].radius = value;
+            return &body_col[index];
         }
     }
     return NULL;
 }
-ACTION_DAMAGE *CActionChara::EntryDamage2(char *frame_name_a, char *frame_name_b, char *hit_name, float power,
-                                 char *motion, float start_ratio, float end_ratio, char *chara_name) {
-    mgCFrame *frame_a;
-    mgCFrame *frame_b;
+
+ACTION_DAMAGE *CActionChara::EntryDamage2(char *frame_name_a, char *frame_name_b, char *damage_name, float power,
+                                 char *motion, float start, float end, char *chara_name) {
+    mgCFrame *first_frame;
+    mgCFrame *second_frame;
     int i;
     float start_frame;
     float end_frame;
@@ -228,25 +205,25 @@ ACTION_DAMAGE *CActionChara::EntryDamage2(char *frame_name_a, char *frame_name_b
     if (damage_num >= 11) {
         return NULL;
     }
-    frame_a = NULL;
-    frame_b = NULL;
+    first_frame = NULL;
+    second_frame = NULL;
     if (frame_name_a != NULL) {
-        frame_a = SearchObject(frame_name_a);
+        first_frame = SearchObject(frame_name_a);
     }
     if (frame_name_b != NULL) {
-        frame_b = SearchObject(frame_name_b);
+        second_frame = SearchObject(frame_name_b);
     }
     for (i = 0; i < 11; i++) {
         if (damage[i].use == 0) {
-            start_frame = GetWaitToFrame(motion, start_ratio, chara_name);
-            end_frame = GetWaitToFrame(motion, end_ratio, chara_name);
+            start_frame = GetWaitToFrame(motion, start, chara_name);
+            end_frame = GetWaitToFrame(motion, end, chara_name);
             if (start_frame == 0.0f && end_frame == 0.0f) {
                 return NULL;
             }
             damage[i].use = 1;
-            damage[i].frame0 = frame_a;
-            damage[i].frame1 = frame_b;
-            damage[i].damage = hit_name;
+            damage[i].frame0 = first_frame;
+            damage[i].frame1 = second_frame;
+            damage[i].damage = damage_name;
             damage[i].start_frame = start_frame;
             damage[i].end_frame = end_frame;
             damage[i].chara = chara_name;
@@ -258,8 +235,9 @@ ACTION_DAMAGE *CActionChara::EntryDamage2(char *frame_name_a, char *frame_name_b
     }
     return NULL;
 }
-ACTION_DAMAGE *CActionChara::EntryDamage2(mgCFrame *frame_a, mgCFrame *frame_b, char *hit_name, float power,
-                                 char *motion, float start_ratio, float end_ratio, char *chara_name) {
+
+ACTION_DAMAGE *CActionChara::EntryDamage2(mgCFrame *frame_a, mgCFrame *frame_b, char *damage_name, float power,
+                                 char *motion, float start, float end, char *chara_name) {
     int i;
     float start_frame;
     float end_frame;
@@ -269,15 +247,15 @@ ACTION_DAMAGE *CActionChara::EntryDamage2(mgCFrame *frame_a, mgCFrame *frame_b, 
     }
     for (i = 0; i < 11; i++) {
         if (damage[i].use == 0) {
-            start_frame = GetWaitToFrame(motion, start_ratio, chara_name);
-            end_frame = GetWaitToFrame(motion, end_ratio, chara_name);
+            start_frame = GetWaitToFrame(motion, start, chara_name);
+            end_frame = GetWaitToFrame(motion, end, chara_name);
             if (start_frame == 0.0f && end_frame == 0.0f) {
                 return NULL;
             }
             damage[i].use = 1;
             damage[i].frame0 = frame_a;
             damage[i].frame1 = frame_b;
-            damage[i].damage = hit_name;
+            damage[i].damage = damage_name;
             damage[i].start_frame = start_frame;
             damage[i].end_frame = end_frame;
             damage[i].chara = chara_name;
@@ -289,135 +267,125 @@ ACTION_DAMAGE *CActionChara::EntryDamage2(mgCFrame *frame_a, mgCFrame *frame_b, 
     }
     return NULL;
 }
-void CActionChara::AllDeleteDamage() {
-    int i;
 
-    for (i = 0; i < damage_num; i++) {
-        if (damage[i].use != 0) {
-            if (damage[i].prim != NULL) {
-                damage[i].prim->Delete(-1);
-            }
+void CActionChara::AllDeleteDamage() {
+    int index;
+
+    for (index = 0; index < damage_num; index++) {
+        if (damage[index].use != 0 && damage[index].prim != NULL) {
+            damage[index].prim->Delete(-1);
         }
     }
 }
-ACTION_SW_EFFECT *CActionChara::GetSwEffectPtr() {
-    ACTION_SW_EFFECT *slot;
-    int i;
 
-    slot = sw_effect;
-    i = 0;
-    do {
-        if (slot->motion == 0) {
-            return slot;
+ACTION_SW_EFFECT *CActionChara::GetSwEffectPtr() {
+    ACTION_SW_EFFECT *entry;
+    int               index;
+
+    entry = sw_effect;
+    for (index = 0; index < 9; index++, entry++) {
+        if (entry->motion == NULL) {
+            return entry;
         }
-        i += 1;
-        slot += 1;
-    } while (i < 9);
+    }
     return NULL;
 }
+
 void CActionChara::SetSoundInfoCopy() {
-    CActionChara *chara;
-    u8 *info;
+    CActionChara *part;
+    u32 *info;
 
-    chara = next;
-    info = (u8 *)&foot_se_bank;
-    if (chara != NULL) {
-        do {
-            memcpy(&chara->foot_se_bank, info, 0x28);
-            chara = chara->next;
-        } while (chara != NULL);
+    info = &foot_se_bank;
+    for (part = next; part != NULL; part = part->next) {
+        memcpy(&part->foot_se_bank, info, 0x28);
     }
 }
+
 void CActionChara::SetFadeFlag(int flag) {
-    CActionChara *chara = this;
-    if (chara != NULL) {
-        do {
-            ((CCharacter2 *)chara)->fade = flag;
-            chara = chara->next;
-        } while (chara != NULL);
-    }
-}
-void CActionChara::SetFarDist(float dist) {
-    CActionChara *chara = this;
-    if (chara != NULL) {
-        do {
-            ((CObject *)chara)->far_dist = dist;
-            chara = chara->next;
-        } while (chara != NULL);
-    }
-}
-void CActionChara::SetNearDist(float dist) {
-    CActionChara *chara = this;
-    if (chara != NULL) {
-        do {
-            ((CObject *)chara)->near_dist = dist;
-            chara = chara->next;
-        } while (chara != NULL);
-    }
-}
-float CActionChara::GetCameraDist() {
-    CActionChara *target;
+    CActionChara *part;
 
-    target = parent;
-    if (target != NULL) {
-        return target->CCharacter2::GetCameraDist();
+    for (part = this; part != NULL; part = part->next) {
+        part->fade = flag;
+    }
+}
+
+void CActionChara::SetFarDist(float dist) {
+    CActionChara *part;
+
+    for (part = this; part != NULL; part = part->next) {
+        part->far_dist = dist;
+    }
+}
+
+void CActionChara::SetNearDist(float dist) {
+    CActionChara *part;
+
+    for (part = this; part != NULL; part = part->next) {
+        part->near_dist = dist;
+    }
+}
+
+float CActionChara::GetCameraDist() {
+    if (parent != NULL) {
+        return parent->CCharacter2::GetCameraDist();
     }
     return CCharacter2::GetCameraDist();
 }
-void CActionChara::Show(int show, int chain) {
-    CActionChara *chara = this;
-    if (chain == 0) {
-        ((CObject *)chara)->show = show;
+
+void CActionChara::Show(int visible, int all) {
+    CActionChara *part;
+
+    if (all == 0) {
+        show = visible;
         return;
     }
-    if (chara != NULL) {
-        do {
-            ((CObject *)chara)->show = show;
-            chara = chara->next;
-        } while (chara != NULL);
+    for (part = this; part != NULL; part = part->next) {
+        part->show = visible;
     }
 }
-int CActionChara::GetShow(char *name) {
-    CActionChara *current;
+
+int CActionChara::GetShow(char *chara) {
+    CActionChara *part;
     int show;
 
     show = 0;
-    current = this;
-    if (name != NULL) {
+    part = this;
+    if (chara != NULL) {
         if (this != NULL) {
             do {
-                if (strcmp(current->name, name) == 0) {
-                    return ((CObject *)current)->show;
+                if (strcmp(part->name, chara) == 0) {
+                    return ((CObject *)part)->show;
                 }
-                current = current->next;
-            } while (current != NULL);
+                part = part->next;
+            } while (part != NULL);
         }
     } else {
         show = ((CObject *)this)->show;
     }
     return show;
 }
-int CActionChara::CheckKeri(char *name, int flag) {
-    mgCFrame *object;
-    CMapParts *stone;
-    CMapPiece *piece;
-    float pos[4];
-    float radius;
 
-    object = SearchObject(name);
-    if (object == NULL) {
+int CActionChara::CheckKeri(char *name, int kick) {
+    sceVu0FVECTOR position;
+    mgCFrame     *frame;
+    CMapParts    *stone;
+    CMapPiece    *piece;
+    float         radius;
+
+    frame = SearchObject(name);
+    if (frame == NULL) {
         return 0;
     }
-    object->GetWorldPosition0(pos);
-    pos[3] = 1.0f;
+    frame->GetWorldPosition0(position);
+    position[3] = 1.0f;
     radius = 30.0f;
-    if (flag != 0) {
+    if (kick != 0) {
         radius = 40.0f;
     }
-    stone = (CMapParts *)AutoMapGen.SearchRandomStone(pos, radius);
+    stone = AutoMapGen.SearchRandomStone(position, radius);
     if (stone != NULL) {
-        if (flag != 0) {
-            piece = stone->SearchPiece(at_1325);
+        if (kick != 0) {
+            piece = stone->SearchPiece("rnd_obj01-a");
             if (piece != NULL) {
                 piece->Show(0);
             }
@@ -428,122 +396,127 @@ int CActionChara::CheckKeri(char *name, int flag) {
     }
     return 0;
 }
+
 int CActionChara::CheckEnemyCatch(char *name) {
-    mgCFrame *object;
+    mgCFrame *frame;
     CMapParts *stone;
     CMapPiece *piece;
-    CActionChara *other;
-    CBattleCharaInfo *battle_info;
-    float pos[4];
+    CActionChara *part;
+    CBattleCharaInfo *battle;
+    float position[4];
     float one;
 
     one = 1.0f;
-    object = SearchObject(name);
-    if (object == NULL) {
+    frame = SearchObject(name);
+    if (frame == NULL) {
         return 0;
     }
-    if (hold_type != 0) {
+    if (hold_type != ACTION_HOLD_NONE) {
         return 0;
     }
-    if (ActiveMonster->CheckThrowTarget(object) != NULL) {
-        hold_type = 3;
+    if (ActiveMonster->CheckThrowTarget(frame) != NULL) {
+        hold_type = ACTION_HOLD_ENEMY;
         release_timing = 1;
-        other = SearchChara(at_1357);
-        if (other != NULL) {
-            other->Show(0, 0);
+        part = SearchChara("sword");
+        if (part != NULL) {
+            part->Show(0, 0);
         }
-        battle_info = GetBattleCharaInfo();
-        if (battle_info->chr_no == 0) {
-            other = SearchChara(at_1358);
-            if (other != NULL) {
-                other->Show(0, 0);
+        battle = GetBattleCharaInfo();
+        if (battle->chr_no == USER_CHARA_MAX) {
+            part = SearchChara("shot");
+            if (part != NULL) {
+                part->Show(0, 0);
             }
         }
-        battle_info->AddHp_Rate(-0.05f, 3, one);
+        battle->AddHp_Rate(-0.05f, 3, 1.0f);
         return 1;
     }
-    object->GetWorldPosition0(pos);
-    pos[3] = 1.0f;
-    stone = (CMapParts *)AutoMapGen.SearchRandomStone(pos, 30.0f);
+    frame->GetWorldPosition0(position);
+    position[3] = 1.0f;
+    stone = AutoMapGen.SearchRandomStone(position, 30.0f);
     if (stone != NULL) {
-        piece = stone->SearchPiece(at_1325);
+        piece = stone->SearchPiece("rnd_obj01-a");
         if (piece != NULL) {
             piece->Show(0);
         }
         release_timing = 1;
-        hold_frame = object;
+        hold_frame = frame;
         hold_parts = stone;
-        hold_type = 4;
-        other = SearchChara(at_1357);
-        if (other != NULL) {
-            other->Show(0, 0);
+        hold_type = ACTION_HOLD_STONE;
+        part = SearchChara("sword");
+        if (part != NULL) {
+            part->Show(0, 0);
         }
-        if ((GetBattleCharaInfo())->chr_no == 0) {
-            other = SearchChara(at_1358);
-            if (other != NULL) {
-                other->Show(0, 0);
+        if ((GetBattleCharaInfo())->chr_no == USER_CHARA_MAX) {
+            part = SearchChara("shot");
+            if (part != NULL) {
+                part->Show(0, 0);
             }
         }
         return 1;
     }
     return 0;
 }
-void CActionChara::ThrowItemObject() {
-    float target[4];
-    float position[4];
-    u8 *item;
 
-    if (hold_type != 0) {
+void CActionChara::ThrowItemObject() {
+    sceVu0FVECTOR target;
+    sceVu0FVECTOR position;
+    CGameDataUsed *item;
+    int index;
+
+    if (hold_type != ACTION_HOLD_NONE) {
         if (throw_effect >= 0) {
-            effect_man->SetScriptProgNo(0x12C, 0, throw_effect);
+            effect_man->SetScriptProgNo(300, 0, throw_effect);
             sceVu0CopyVector(target, front_vec);
             GetPosition(position);
             sceVu0ScaleVector(target, target, 120.0f);
             sceVu0AddVector(target, target, position);
             effect_man->SetScriptVect1(target, 0, throw_effect);
-            hold_type = 0;
+            hold_type = ACTION_HOLD_NONE;
 
-            item = (u8 *)GetBattleCharaInfo()->GetActiveItemInfo(0);
-            item += DngStatus.active_item * sizeof(CGameDataUsed);
-            ((CGameDataUsed *)item)->DeleteNum(1);
+            item = GetBattleCharaInfo()->GetActiveItemInfo(0);
+            index = DngStatus.active_item;
+            item = &item[index];
+            item->DeleteNum(1);
         }
     }
 }
-int CActionChara::UsedItemAction() {
-    CBattleCharaInfo *battle_info;
-    CGameDataUsed *item;
-    s16 item_no;
-    CDataItem *info;
-    int healing;
 
-    battle_info = GetBattleCharaInfo();
-    item = (CGameDataUsed *)battle_info->GetActiveItemInfo(0) + DngStatus.active_item;
+int CActionChara::UsedItemAction() {
+    CBattleCharaInfo *battle;
+    CGameDataUsed    *item;
+    CDataItem        *info;
+    int              item_no;
+    int              effect_type;
+
+    battle = GetBattleCharaInfo();
+    item = &battle->GetActiveItemInfo(0)[DngStatus.active_item];
     if (DngStatus.active_item == 3) {
         return 3;
     }
     item_no = item->item_no;
     info = GetItemInfoData(item_no);
     if (info != NULL) {
-        if (info->status_flags & 6) {
+        if (info->status_flags & 0x6) {
             EntryThrowItem();
             return 2;
         }
         if (info->status_flags & 0x19) {
-            if (battle_info->UseActiveItem(item) != 0) {
+            if (battle->UseActiveItem(item) != 0) {
                 if (info->status_flags & 0x18) {
-                    healing = 0;
-                    if (item_no == 0x112) {
-                        healing = 1;
+                    effect_type = 0;
+                    if (item_no == 274) {
+                        effect_type = 1;
                     }
-                    if (healing == 0) {
-                        pallet[0].SetAnim(0x60, 0xB4, 0xFF, 1, 0x2D, 0);
+                    if (effect_type == 0) {
+                        pallet[0].SetAnim(96, 180, 255, 1, 45, 0);
                     }
-                    if (healing == 1) {
-                        pallet[0].SetAnim(0xFF, 0xDC, 0x40, 1, 0x2D, 0);
+                    if (effect_type == 1) {
+                        pallet[0].SetAnim(255, 220, 64, 1, 45, 0);
                     }
-                    effect_man->CreateEffSpt(at_1394, 0, 0);
+                    effect_man->CreateEffSpt("\x92\xCA\x8F\xED\x89\xF1\x95\x9C", 0, 0);
                     effect_man->SetScriptTargetId(0, -1, -1);
-                    effect_man->SetValue(0, healing, 0, -1);
+                    effect_man->SetValue(0, effect_type, 0, -1);
                 }
             }
             return 1;
@@ -551,113 +524,107 @@ int CActionChara::UsedItemAction() {
     }
     return 0;
 }
-void CActionChara::EntryThrowItem() {
-    ThrowItemTable table;
-    CGameDataUsed *item;
-    int index;
-    int item_no;
-    CBattleCharaInfo *battle_info;
 
-    battle_info = GetBattleCharaInfo();
-    item = (CGameDataUsed *)battle_info->GetActiveItemInfo(0) + DngStatus.active_item;
+void CActionChara::EntryThrowItem() {
+    CGameDataUsed *item;
+    int i;
+    int item_no;
+
+    item = &GetBattleCharaInfo()->GetActiveItemInfo(0)[DngStatus.active_item];
     item_no = item->item_no;
-    table = at_1398;
-    index = 0;
-    while (table.item_no[index] != -1) {
-        if (item_no == table.item_no[index]) {
+    int item_numbers[] = {
+        276, 280, 281, 282, 283, 284, 285, 286, 287, 288,
+        289, 290, 291, 292, 304, 390, 391, 307, -1
+    };
+    i = 0;
+    while (item_numbers[i] != -1) {
+        if (item_no == item_numbers[i]) {
             break;
         }
-        index++;
+        i++;
     }
-    if (table.item_no[index] == -1) {
-        index = 0;
+    if (item_numbers[i] == -1) {
+        i = 0;
     }
-    throw_effect = effect_man->CreateEffSpt(at_1427, 0, 1);
+    throw_effect = effect_man->CreateEffSpt("\x8E\xE8\x93\x8A\x82\xB0\x94\x9A\x92\x65", 0, 1);
     if (throw_effect < 0) {
-        printf(at_1428);
+        printf("effect entry err\n");
     } else {
         effect_man->SetValue(0, 1, 0, throw_effect);
         effect_man->SetValue(1, item_no, 0, throw_effect);
         if (action_info.env != NULL) {
             effect_man->SetCharacter(
-                (CCharacter2 *)(action_info.env->item_chara + index), 0, throw_effect);
+                &action_info.env->item_chara[i], 0, throw_effect);
             effect_man->SetTexb(action_info.env->texb, 0, throw_effect);
-            index = 0;
-            if (item_no == 0x130) {
-                do {
-                    effect_man->SetValue(index + 2, item->GetGiftBoxItemNo(index), 0,
-                                           throw_effect);
-                    index++;
-                } while (index < 3);
+            i = 0;
+            if (item_no == 304) {
+                for (i = 0; i < 3; i++) {
+                    effect_man->SetValue(i + 2, item->GetGiftBoxItemNo(i), 0, throw_effect);
+                }
             }
         }
     }
-    hold_type = 1;
+    hold_type = ACTION_HOLD_ITEM;
 }
-void CActionChara::RemoveThrowItem() {
-    s8 effect_no;
 
-    if (hold_type != 0) {
+void CActionChara::RemoveThrowItem() {
+    if (hold_type != ACTION_HOLD_NONE) {
         GetBattleCharaInfo();
-        if (hold_type == 1) {
-            effect_no = throw_effect;
-            if (effect_no >= 0) {
-                effect_man->DeleteEffSpt(0, effect_no);
+        if (hold_type == ACTION_HOLD_ITEM) {
+            if (throw_effect >= 0) {
+                effect_man->DeleteEffSpt(0, throw_effect);
             }
-            hold_type = 0;
+            hold_type = ACTION_HOLD_NONE;
         }
     }
 }
-float CActionChara::GetNowFrameWait(char *name) {
-    CActionChara *current;
+
+float CActionChara::GetNowFrameWait(char *chara) {
+    CActionChara *part;
     float wait;
 
     wait = 0.0f;
-    current = this;
-    if (name != NULL) {
-        if (this != NULL) {
-            do {
-                if (strcmp(current->name, name) == 0) {
-                    return ((CCharacter2 *)current)->frame_ratio;
-                }
-                current = current->next;
-            } while (current != NULL);
+    part = this;
+    if (chara != NULL) {
+        for (part = this; part != NULL; part = part->next) {
+            if (strcmp(part->name, chara) == 0) {
+                return part->frame_ratio;
+            }
         }
     } else {
         wait = CCharacter2::frame_ratio;
     }
     return wait;
 }
-float CActionChara::GetNowFrame(char *name) {
-    CActionChara *current;
+
+float CActionChara::GetNowFrame(char *chara) {
+    CActionChara *part;
     float frame;
 
     frame = 0.0f;
-    current = this;
-    if (name != NULL) {
-        if (this != NULL) {
-            do {
-                if (strcmp(current->name, name) == 0) {
-                    return ((CCharacter2 *)current)->frame;
-                }
-                current = current->next;
-            } while (current != NULL);
+    part = this;
+    if (chara != NULL) {
+        for (part = this; part != NULL; part = part->next) {
+            if (strcmp(part->name, chara) == 0) {
+                return part->CCharacter2::frame;
+            }
         }
     } else {
         frame = CCharacter2::frame;
     }
     return frame;
 }
-int CActionChara::CheckMotionEnd(char *name) {
-    CActionChara *chara;
+
+int CActionChara::CheckMotionEnd(char *chara) {
+    CActionChara *part;
     int result;
 
     result = 0;
-    chara = this;
-    if (name != NULL) {
-        for (; chara != NULL; chara = chara->next) {
-            if (strcmp(chara->name, name) == 0) {
-                return chara->CCharacter2::CheckMotionEnd();
+    part = this;
+    if (chara != NULL) {
+        for (; part != NULL; part = part->next) {
+            if (strcmp(part->name, chara) == 0) {
+                return part->CCharacter2::CheckMotionEnd();
             }
         }
     } else {
@@ -665,227 +632,211 @@ int CActionChara::CheckMotionEnd(char *name) {
     }
     return result;
 }
-int CActionChara::GetMotionStatus(char *name) {
-    CActionChara *current;
+
+int CActionChara::GetMotionStatus(char *chara) {
+    CActionChara *part;
     int status;
 
     status = 0;
-    current = this;
-    if (name != NULL) {
+    part = this;
+    if (chara != NULL) {
         if (this != NULL) {
             do {
-                if (strcmp(current->name, name) == 0) {
-                    return ((CCharacter2 *)current)->motion_status;
+                if (strcmp(part->name, chara) == 0) {
+                    return part->motion_status;
                 }
-                current = current->next;
-            } while (current != NULL);
+                part = part->next;
+            } while (part != NULL);
         }
     } else {
         status = CCharacter2::motion_status;
     }
     return status;
 }
-float CActionChara::GetWaitToFrame(char *motion, float ratio, char *chara_name) {
-    CActionChara *chara;
-    CHRINFO_KEY_SET *keys;
-    float frame;
 
-    chara = this;
-    frame = 0.0f;
-    if (chara_name != NULL) {
-        for (; chara != NULL; chara = chara->next) {
-            if (strcmp(chara->name, chara_name) == 0) {
-                keys = ((CCharacter2 *)chara)->GetKeyListPtr(motion, NULL);
-                if (keys != NULL) {
-                    return (float)keys->start_frame +
-                           ratio * ((float)keys->end_frame - (float)keys->start_frame);
+float CActionChara::GetWaitToFrame(char *motion, float rate, char *chara) {
+    CActionChara *part;
+    CHRINFO_KEY_SET *key;
+    float start;
+
+    part = this;
+    start = 0.0f;
+    if (chara != NULL) {
+        for (; part != NULL; part = part->next) {
+            if (strcmp(part->name, chara) == 0) {
+                key = part->GetKeyListPtr(motion, NULL);
+                if (key != NULL) {
+                    return (float)key->start_frame +
+                           rate * ((float)key->end_frame - (float)key->start_frame);
                 }
             }
         }
     } else {
-        keys = CCharacter2::GetKeyListPtr(motion, NULL);
-        if (keys != NULL) {
-            frame = (float)keys->start_frame + ratio * ((float)keys->end_frame - (float)keys->start_frame);
+        key = CCharacter2::GetKeyListPtr(motion, NULL);
+        if (key != NULL) {
+            start = key->start_frame + rate * (key->end_frame - (float)key->start_frame);
         }
     }
-    return frame;
+    return start;
 }
-void CActionChara::SetMotion(int motion_no, int param) {
-    CActionChara *current;
 
-    current = this;
-    if (this != NULL) {
-        do {
-            current->CCharacter2::SetMotion(motion_no, param);
-            current = current->next;
-        } while (current != NULL);
+void CActionChara::SetMotion(int no, int flags) {
+    CActionChara *part;
+
+    for (part = this; part != NULL; part = part->next) {
+        part->CCharacter2::SetMotion(no, flags);
     }
 }
-void CActionChara::SetMotion(char *name, int param, int chain) {
+
+void CActionChara::SetMotion(char *motion, int flags, int all) {
     CActionChara *current;
 
     current = this;
-    if (chain == 0) {
-        CCharacter2::SetMotion(name, param);
+    if (all == 0) {
+        CCharacter2::SetMotion(motion, flags);
         return;
     }
     if (this != NULL) {
         do {
-            current->CCharacter2::SetMotion(name, param);
+            current->CCharacter2::SetMotion(motion, flags);
             current = current->next;
         } while (current != NULL);
     }
 }
+
 void CActionChara::ResetMotion() {
-    CActionChara *current;
+    CActionChara *part;
 
-    current = this;
-    if (this != NULL) {
-        do {
-            current->CCharacter2::ResetMotion();
-            current = current->next;
-        } while (current != NULL);
+    for (part = this; part != NULL; part = part->next) {
+        part->CCharacter2::ResetMotion();
     }
 }
-int CActionChara::Draw() {
-    float draw_pos[4];
-    float saved_pos[4];
-    float ambient[4];
-    int result;
-    CActionChara *chara;
 
-    chara = this;
-    GetPosition(draw_pos);
-    GetPosition(saved_pos);
+int CActionChara::Draw() {
+    sceVu0FVECTOR position;
+    sceVu0FVECTOR old_position;
+    sceVu0FVECTOR ambient;
+    int result;
+    CActionChara *part;
+
+    part = this;
+    GetPosition(position);
+    GetPosition(old_position);
     if (damage_time > 6) {
-        draw_pos[1] += 2.5f * mgRnd();
+        position[1] += 2.5f * mgRnd();
     }
-    SetPosition(draw_pos);
+    SetPosition(position);
     mgGetAmbient(ambient);
     if (this != NULL) {
         do {
-            result = chara->CCharacter2::Draw();
-            chara->CalcCollision();
-            chara = chara->next;
-        } while (chara != NULL);
+            result = part->CCharacter2::Draw();
+            part->CalcCollision();
+            part = part->next;
+        } while (part != NULL);
     }
-    SetPosition(saved_pos);
+    SetPosition(old_position);
     mgSetAmbient(ambient);
     return result;
 }
+
 int CActionChara::DrawDirect() {
-    float draw_pos[4];
-    float saved_pos[4];
-    float ambient[4];
-    float pallet_color[4];
+    sceVu0FVECTOR position;
+    sceVu0FVECTOR old_position;
+    sceVu0FVECTOR ambient;
+    sceVu0FVECTOR flash;
     int result;
-    CActionChara *chara;
+    CActionChara *part;
     int i;
 
-    chara = this;
-    GetPosition(draw_pos);
-    GetPosition(saved_pos);
+    part = this;
+    GetPosition(position);
+    GetPosition(old_position);
     if (shake.time > 0) {
-        draw_pos[1] += shake.offset;
+        position[1] += shake.offset;
     }
-    SetPosition(draw_pos);
+    SetPosition(position);
     mgGetAmbient(ambient);
     i = 0;
     do {
-        if (pallet[i].CreatPallet(pallet_color, ambient) != 0) {
-            mgSetAmbient(pallet_color);
+        if (pallet[i].CreatPallet(flash, ambient) != 0) {
+            mgSetAmbient(flash);
             break;
         }
         i++;
     } while (i < 3);
     if (this != NULL) {
         do {
-            result = chara->CCharacter2::DrawDirect();
-            chara->CalcCollision();
-            chara = chara->next;
-        } while (chara != NULL);
+            result = part->CCharacter2::DrawDirect();
+            part->CalcCollision();
+            part = part->next;
+        } while (part != NULL);
     }
-    SetPosition(saved_pos);
+    SetPosition(old_position);
     mgSetAmbient(ambient);
     return result;
 }
-int CActionChara::DrawShadowDirect() {
-    CActionChara *current;
 
-    current = this;
-    if (this != NULL) {
-        do {
-            current->CCharacter2::DrawShadowDirect();
-            current = current->next;
-        } while (current != NULL);
+int CActionChara::DrawShadowDirect() {
+    CActionChara *part;
+
+    for (part = this; part != NULL; part = part->next) {
+        part->CCharacter2::DrawShadowDirect();
     }
 }
 
 void CActionChara::DrawEffect() {
-    CEffectScriptMan *effect_man;
-
     CCharacter2::DrawEffect();
-    effect_man = this->effect_man;
     if (effect_man != NULL) {
         effect_man->Draw();
     }
 }
+
 void CActionChara::StepEffect() {
-    ACTION_SW_EFFECT *slot;
-    CActionChara *watched;
-    mgCFrame *start_frame;
-    mgCFrame *end_frame;
-    float frame;
-    int i;
-    int offset;
+    ACTION_SW_EFFECT *effect;
+    CActionChara     *part;
+    mgCFrame         *first_frame;
+    mgCFrame         *second_frame;
+    float             motion_frame;
+    int               i;
 
-    i = 0;
-    offset = 0;
-    for (; i < sw_effect_num; i++) {
-
-        slot = (ACTION_SW_EFFECT *)((u8 *)this + 0x7E4 + offset);
-        if (slot->motion != NULL) {
-            if (slot->wait > 0) {
-                slot->wait--;
+    for (i = 0; i < sw_effect_num; i++) {
+        effect = &sw_effect[i];
+        if (effect->motion != NULL) {
+            if (effect->wait > 0) {
+                effect->wait--;
             } else {
-                watched = this;
-                if (slot->chara != NULL) {
-                    watched = SearchChara(slot->chara);
+                part = this;
+                if (effect->chara != NULL) {
+                    part = SearchChara(effect->chara);
                 }
-                if (watched != NULL && watched->GetNowMotionName() != NULL &&
-                    strcmp(watched->GetNowMotionName(), slot->motion) == 0) {
-                    frame = watched->GetNowFrameWait(NULL);
-                    if (!(frame < slot->start) && frame < slot->end) {
-                        start_frame = watched->SearchObject(slot->frame0);
-                        end_frame = watched->SearchObject(slot->frame1);
-                        if (start_frame != NULL && end_frame != NULL) {
-                            sword_effect[slot->sword_no]->StartEffect(
-                                start_frame, end_frame, slot->unk_1c, slot->fade_time,
-                                slot->unk_1d);
-                            slot->wait = 5;
+                if (part != NULL && part->GetNowMotionName() != NULL && strcmp(part->GetNowMotionName(), effect->motion) == 0) {
+                    motion_frame = part->GetNowFrameWait(NULL);
+                    if (motion_frame >= effect->start && motion_frame < effect->end) {
+                        first_frame = part->SearchObject(effect->frame0);
+                        second_frame = part->SearchObject(effect->frame1);
+                        if (first_frame != NULL && second_frame != NULL) {
+                            sword_effect[effect->sword_no]->StartEffect(first_frame, second_frame, effect->unk_1c, effect->fade_time, effect->unk_1d);
+                            effect->wait = 5;
                         }
                     }
                 }
             }
         }
-        offset += 0x20;
     }
     CCharacter2::StepEffect();
 }
-CActionChara *CActionChara::SearchChara(char *name) {
-    CActionChara *current;
 
-    current = this;
-    if (this != NULL) {
-        do {
-            if (strcmp(current->name, name) == 0) {
-                return current;
-            }
-            current = current->next;
-        } while (current != NULL);
+CActionChara *CActionChara::SearchChara(char *chara) {
+    CActionChara *part;
+
+    for (part = this; part != NULL; part = part->next) {
+        if (strcmp(part->name, chara) == 0) {
+            return part;
+        }
     }
     return NULL;
 }
+
 mgCFrame *CActionChara::SearchObject(char *name) {
     CActionChara *current;
     mgCFrame *frame;
@@ -908,40 +859,38 @@ mgCFrame *CActionChara::SearchObject(char *name) {
     }
     return NULL;
 }
-void CActionChara::ResetParent() {
-    mgCFrame *frame;
 
+void CActionChara::ResetParent() {
     next = NULL;
-    frame = this->CObjectFrame::frame;
-    if (frame != NULL) {
-        frame->DeleteReference();
+    if (CObjectFrame::frame != NULL) {
+        CObjectFrame::frame->DeleteReference();
     }
 }
-int CActionChara::SetRef(CActionChara *other, char *name) {
-    mgCFrame *object;
-    mgCFrame *other_frame;
+
+int CActionChara::SetRef(CActionChara *part, char *name) {
+    mgCFrame *reference;
+    mgCFrame *part_frame;
     CActionChara *tail;
     CActionChara *following;
 
-    if (other == NULL) {
+    if (part == NULL) {
         return 0;
     }
-    other_frame = other->CObjectFrame::frame;
-    if (other_frame == NULL) {
+    part_frame = part->CObjectFrame::frame;
+    if (part_frame == NULL) {
         return 0;
     }
-    object = SearchObject(name);
-    if (object == NULL) {
+    reference = SearchObject(name);
+    if (reference == NULL) {
         return 0;
     }
-    other_frame->DeleteReference();
-    other_frame->SetReference(object);
-    tail = this;
-    other->chara_kind = 1;
-    for (;;) {
+    part_frame->DeleteReference();
+    part_frame->SetReference(reference);
+    part->chara_kind = ACTION_KIND_PART;
+    for (tail = this ;;) {
         following = tail->next;
         if (following == NULL) {
-            tail->next = other;
+            tail->next = part;
             tail->next->parent = this;
             break;
         }
@@ -949,181 +898,194 @@ int CActionChara::SetRef(CActionChara *other, char *name) {
     }
     return 1;
 }
-float CActionChara::GetTargetDist(CScene *scene) {
-    float my_pos[4];
-    float target_pos[4];
-    s16 id;
-    CActionChara *target;
 
-    id = target_no;
-    if (id != -1) {
-        target = (CActionChara *)scene->GetCharacter(id);
+float CActionChara::GetTargetDist(CScene *scene) {
+    CCharacter2   *target;
+    sceVu0FVECTOR  position;
+    sceVu0FVECTOR  target_position;
+
+    if (target_no != -1) {
+        target = scene->GetCharacter(target_no);
         if (target != NULL) {
-            GetPosition(my_pos);
-            target->GetPosition(target_pos);
-            return mgDistVector(my_pos, target_pos);
+            GetPosition(position);
+            target->GetPosition(target_position);
+            return mgDistVector(position, target_position);
         }
     }
     return -1.0f;
 }
-int RockOn_TargetSel(CScene *scene, int index) {
-    CActionChara *target;
-    int tries;
 
-    if (index != -1) {
-        index -= 1;
-        for (tries = 0; tries < MONSTER_ACTIVE_MAX; tries++) {
-            index += 1;
-            if (index >= MONSTER_ACTIVE_MAX * 2) {
-                index = MONSTER_ACTIVE_MAX;
+/**
+ * Finds a living monster that can be selected as a lock-on target.
+ */
+static int RockOn_TargetSel(CScene *scene, int target_no) {
+    CActiveMonster *monster;
+    int             count;
+
+    if (target_no != -1) {
+        target_no--;
+        for (count = 0; count < 24; count++) {
+            target_no++;
+            if (target_no >= 48) {
+                target_no = 24;
             }
-            target = (CActionChara *)scene->GetCharacter(index);
-            if (target != NULL && target->chara_kind == 2 && ((CActiveMonster *)target)->state == 1 &&
-                ((CActiveMonster *)target)->catch_state != 1 &&
-                !(((CActiveMonster *)target)->attrib & 1)) {
-                return index;
+            monster = (CActiveMonster *)scene->GetCharacter(target_no);
+            if (monster != NULL && monster->chara_kind == ACTION_KIND_SCRIPT &&
+                monster->state == ACTIVE_MONSTER_LIVE && monster->catch_state != 1 &&
+                (monster->attrib & MONSTER_ATTRIB_NO_LOCK_ON) == 0) {
+                return target_no;
             }
         }
         return -1;
     }
-    for (tries = 0; tries < MONSTER_ACTIVE_MAX; tries++) {
-        target = (CActionChara *)scene->GetCharacter(tries + MONSTER_ACTIVE_MAX);
-        if (target != NULL && target->chara_kind == 2 && ((CActiveMonster *)target)->state == 1 &&
-            ((CActiveMonster *)target)->catch_state != 1 &&
-            !(((CActiveMonster *)target)->attrib & 1)) {
-            return tries + MONSTER_ACTIVE_MAX;
+
+    for (count = 0; count < 24; count++) {
+        monster = (CActiveMonster *)scene->GetCharacter(count + 24);
+        if (monster != NULL && monster->chara_kind == ACTION_KIND_SCRIPT &&
+            monster->state == ACTIVE_MONSTER_LIVE && monster->catch_state != 1 &&
+            (monster->attrib & MONSTER_ATTRIB_NO_LOCK_ON) == 0) {
+            return count + 24;
         }
     }
     return -1;
 }
-int DistCheck_Action2(CScene *scene, float unused, float range, float *out_dist, int rank, int *out_rank) {
-    float direction[4];
-    float own_pos[4];
-    float own_rot[4];
-    float entry_pos[4];
-    float front_vec[4];
-    float dists[MONSTER_ACTIVE_MAX];
-    int ids[MONSTER_ACTIVE_MAX];
+
+/**
+ * Selects a monster in range, optionally by its rank among the nearest targets.
+ */
+static int DistCheck_Action2(CScene *scene, float facing_limit, float max_distance, float *out_distance, int rank, int *out_rank) {
+    sceVu0FVECTOR direction;
+    sceVu0FVECTOR player_position;
+    sceVu0FVECTOR player_rotation;
+    sceVu0FVECTOR monster_position;
+    sceVu0FVECTOR front;
+    float distances[MONSTER_ACTIVE_MAX];
+    int targets[MONSTER_ACTIVE_MAX];
     CActionChara *player;
     int count;
-    int i;
-    CActionChara *target;
-    int best;
-    float best_dist;
-    float dist;
-    int a;
+    int index;
+    CActionChara *monster;
+    int nearest;
+    float nearest_distance;
+    float distance;
+    int row;
     int min;
-    int b;
-    float key;
-    int tmp_id;
-    float tmp_dist;
+    int column;
+    float best;
+    int saved_index;
+    float saved_distance;
 
     player = (CActionChara *)scene->GetCharacter(0);
     direction[3] = 1.0f;
-    best_dist = range;
-    player->GetPosition(own_pos);
-    player->GetRotation(own_rot);
-    sceVu0CopyVector(front_vec, player->front_vec);
+    nearest_distance = max_distance;
+    player->GetPosition(player_position);
+    player->GetRotation(player_rotation);
+    sceVu0CopyVector(front, player->front_vec);
     count = 0;
-    best = -1;
-    i = 0;
+    nearest = -1;
+    index = 0;
     do {
-        target = (CActionChara *)scene->GetCharacter(i + MONSTER_ACTIVE_MAX);
-        if (target != NULL && target->chara_kind == 2 && ((CActiveMonster *)target)->state == 1 &&
-            ((CActiveMonster *)target)->catch_state != 1 &&
-            !(((CActiveMonster *)target)->attrib & 1)) {
-            ((CCharacter2 *)target)->GetEntryObjectPos(0, 0, entry_pos);
-            dist = ((CActiveMonster *)target)->target_dist;
-            if (dist < range || ((CActiveMonster *)target)->tbl->boss != 0) {
-                if (!(best_dist <= dist) || ((CActiveMonster *)target)->tbl->boss != 0) {
-                    best = i;
-                    best_dist = dist;
+        monster = (CActiveMonster *)scene->GetCharacter(index + MONSTER_ACTIVE_MAX);
+        if (monster != NULL && monster->chara_kind == ACTION_KIND_SCRIPT && ((CActiveMonster *)monster)->state == 1 &&
+            ((CActiveMonster *)monster)->catch_state != 1 &&
+            !(((CActiveMonster *)monster)->attrib & MONSTER_ATTRIB_NO_LOCK_ON)) {
+            monster->GetEntryObjectPos(0, 0, monster_position);
+            distance = ((CActiveMonster *)monster)->target_dist;
+            if (distance < max_distance || ((CActiveMonster *)monster)->tbl->boss != 0) {
+                if (nearest_distance > distance || ((CActiveMonster *)monster)->tbl->boss != 0) {
+                    nearest = index;
+                    nearest_distance = distance;
                 }
-                direction[0] = entry_pos[0] - own_pos[0];
-                direction[1] = entry_pos[1] - own_pos[1];
-                direction[2] = entry_pos[2] - own_pos[2];
+                direction[0] = monster_position[0] - player_position[0];
+                direction[1] = monster_position[1] - player_position[1];
+                direction[2] = monster_position[2] - player_position[2];
                 sceVu0Normalize(direction, direction);
-                sceVu0InnerProduct(front_vec, direction);
-                dists[count] = dist;
-                ids[count] = i;
+                sceVu0InnerProduct(front, direction);
+                distances[count] = distance;
+                targets[count] = index;
                 count++;
             }
         }
-        i++;
-    } while (i < MONSTER_ACTIVE_MAX);
+        index++;
+    } while (index < MONSTER_ACTIVE_MAX);
     if (rank == 0 || count < 2) {
-        if (best == -1) {
+        if (nearest == -1) {
             return -1;
         }
-        *out_dist = best_dist;
-        return best + MONSTER_ACTIVE_MAX;
+        *out_distance = nearest_distance;
+        return nearest + 24;
     }
-    for (a = 0; a < count; a++) {
-        min = a;
-        for (b = a; b < count; b++) {
-            if (b != a) {
-                key = dists[b];
-                if (!(key < 0.0f) && !(dists[min] <= key)) {
-                    min = b;
+    for (row = 0; row < count; row++) {
+        min = row;
+        for (column = row; column < count; column++) {
+            if (column != row) {
+                best = distances[column];
+                if (best >= 0.0f && distances[min] > best) {
+                    min = column;
                 }
             }
         }
-        if (a != min) {
-            tmp_dist = dists[a];
-            tmp_id = ids[a];
-            dists[a] = dists[min];
-            ids[a] = ids[min];
-            dists[min] = tmp_dist;
-            ids[min] = tmp_id;
+        if (row != min) {
+            saved_distance = distances[row];
+            saved_index = targets[row];
+            distances[row] = distances[min];
+            targets[row] = targets[min];
+            distances[min] = saved_distance;
+            targets[min] = saved_index;
         }
     }
     if (rank >= count) {
         rank = 0;
     }
-    *out_dist = dists[rank];
+    *out_distance = distances[rank];
     if (out_rank != NULL) {
         *out_rank = rank;
     }
-    return ids[rank] + MONSTER_ACTIVE_MAX;
+    return targets[rank] + 24;
 }
-int Check_LockOn(CScene *scene, float range, int index) {
-    float own_pos[4];
-    float target_pos[4];
-    CActionChara *player;
-    CActionChara *target;
+
+/**
+ * Checks whether the current lock-on target is still alive and within range.
+ */
+static int Check_LockOn(CScene *scene, float max_distance, int target_no) {
+    sceVu0FVECTOR  player_position;
+    sceVu0FVECTOR  monster_position;
+    CCharacter2   *player;
+    CActiveMonster *monster;
     int farther;
 
-    player = (CActionChara *)scene->GetCharacter(0);
-    player->GetPosition(own_pos);
-    target = (CActionChara *)scene->GetCharacter(index);
-    if (target == NULL) {
+    player = scene->GetCharacter(0);
+    player->GetPosition(player_position);
+    monster = (CActiveMonster *)scene->GetCharacter(target_no);
+    if (monster == NULL) {
         return 0;
     }
-    if (target->chara_kind != 2) {
+    if (monster->chara_kind != ACTION_KIND_SCRIPT) {
         return 0;
     }
-    if (((CActiveMonster *)target)->state != 1) {
+    if (monster->state != ACTIVE_MONSTER_LIVE) {
         return 0;
     }
-    if (((CActiveMonster *)target)->attrib & 1) {
+    if ((monster->attrib & MONSTER_ATTRIB_NO_LOCK_ON) != 0) {
         return 0;
     }
-    if (((CActiveMonster *)target)->catch_state == 1) {
+    if (monster->catch_state == 1) {
         return 0;
     }
-    if (((CActiveMonster *)target)->tbl->boss != 0) {
+    if (monster->tbl->boss != 0) {
         return 1;
     }
-    ((CCharacter2 *)target)->GetEntryObjectPos(0, 0, target_pos);
-    own_pos[3] = 1.0f;
-    target_pos[3] = 1.0f;
+    monster->GetEntryObjectPos(0, 0, monster_position);
+    player_position[3] = 1.0f;
+    monster_position[3] = 1.0f;
     farther = 1;
-    if (((CActiveMonster *)target)->target_dist <= range) {
+    if (((CActiveMonster *)monster)->target_dist <= max_distance) {
         farther = 0;
     }
 
     return farther = farther ^ 1;
 }
+
 #ifdef NONMATCHING
 void CActionChara::CollisionCheck(float *pos, float *velocity, float *out_velocity) {
     sceVu0FVECTOR      next_position;
@@ -1185,27 +1147,27 @@ void CActionChara::CollisionCheck(float *pos, float *velocity, float *out_veloci
 #else
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/actionchara", CollisionCheck__12CActionCharaFPfPfPf);
 #endif
+
 void CActionChara::RockOn() {
-    float own_pos[4];
-    float target_pos[4];
-    float to_target[4];
-    float front_vec[4];
-    int priority_index;
-    u8 *scene_input;
-    CCharacter2 *target;
+    sceVu0FVECTOR  position;
+    sceVu0FVECTOR  target_position;
+    sceVu0FVECTOR  target_direction;
+    sceVu0FVECTOR  move_direction;
+    DNG_BATTLE_AREA *battle_area;
+    CActiveMonster *monster;
+    int            next_target;
 
-    GetPosition(own_pos);
-
-    scene_input = (u8 *)nowScene__2 + 0x2F90;
+    GetPosition(position);
+    battle_area = &nowScene__2->battle_area;
     target_dot = 0.0f;
     if (lock_on != 0) {
-        target = nowScene__2->GetCharacter(target_no);
-        if (target != NULL) {
-            target->GetEntryObjectPos(0, 0, target_pos);
-            sceVu0SubVector(to_target, target_pos, own_pos);
-            sceVu0Normalize(to_target, to_target);
-            sceVu0Normalize(front_vec, velocity);
-            target_dot = sceVu0InnerProduct(to_target, front_vec);
+        monster = (CActiveMonster *)nowScene__2->GetCharacter(target_no);
+        if (monster != NULL) {
+            monster->GetEntryObjectPos(0, 0, target_position);
+            sceVu0SubVector(target_direction, target_position, position);
+            sceVu0Normalize(target_direction, target_direction);
+            sceVu0Normalize(move_direction, velocity);
+            target_dot = sceVu0InnerProduct(target_direction, move_direction);
         }
     }
     if (PadCtrl.Btn(0x34) != 0) {
@@ -1215,28 +1177,26 @@ void CActionChara::RockOn() {
                 lock_on = 0;
                 return;
             }
-
-            if (*(s16 *)(scene_input + 0x9E) == 2) {
+            if (battle_area->unk_9e == 2) {
                 if (target_no < 0) {
-                    target_no = MONSTER_ACTIVE_MAX;
+                    target_no = 24;
                 } else {
-                    target_no = target_no + 1;
+                    target_no++;
                 }
-                if (target_no >= MONSTER_ACTIVE_MAX * 2) {
-                    target_no = MONSTER_ACTIVE_MAX;
+                if (target_no >= 48) {
+                    target_no = 24;
                 }
                 target_no = RockOn_TargetSel(nowScene__2, target_no);
                 return;
             }
-            target = nowScene__2->GetCharacter(target_no);
-            if (target != NULL) {
-                if (ActiveMonster->GetPriorityLevelIndex(
-                        ((CActiveMonster *)target)->priority + 1, &priority_index) != NULL) {
+            monster = (CActiveMonster *)nowScene__2->GetCharacter(target_no);
+            if (monster != NULL) {
+                if (ActiveMonster->GetPriorityLevelIndex(monster->priority + 1, &next_target) != NULL) {
                     sndSePlay(SystemSND_ID, 0x1A, 0);
-                    target_no = priority_index;
+                    target_no = next_target;
                     return;
                 }
-                target_no = MONSTER_ACTIVE_MAX;
+                target_no = 24;
             }
         } else if (target_no != -1) {
             sndSePlay(SystemSND_ID, 0x1A, 0);
@@ -1244,6 +1204,7 @@ void CActionChara::RockOn() {
         }
     }
 }
+
 #ifdef NONMATCHING
 int CActionChara::HumanMoveIF() {
     sceVu0FVECTOR position;
@@ -1467,6 +1428,7 @@ int CActionChara::HumanMoveIF() {
 #else
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/actionchara", HumanMoveIF__12CActionCharaFv);
 #endif
+
 #ifdef NONMATCHING
 int CActionChara::HumanShrowMoveIF() {
     sceVu0FVECTOR position;
@@ -1536,36 +1498,37 @@ int CActionChara::HumanShrowMoveIF() {
 #else
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/actionchara", HumanShrowMoveIF__12CActionCharaFv);
 #endif
+
 int CActionChara::HumanTameMoveIF() {
-    float position[4];
-    float movement[4];
-    float camera_angle;
-    float stick_x;
-    float stick_y;
-    float world_x;
-    float world_z;
+    sceVu0FVECTOR position;
+    sceVu0FVECTOR move_velocity;
+    float         camera_angle;
+    float         stick_x;
+    float         stick_y;
+    float         move_x;
+    float         move_z;
 
     GetPosition(position);
-    sceVu0CopyVector(movement, velocity);
+    sceVu0CopyVector(move_velocity, velocity);
     camera_angle = action_info.camera->GetAngle();
     stick_x = GamePad__2.GetLXf();
     stick_y = GamePad__2.GetLYf();
-    world_x = stick_x * cosf(camera_angle) + stick_y * sinf(camera_angle);
-    world_z = -stick_x * sinf(camera_angle) + stick_y * cosf(camera_angle);
-    world_x *= 0.4f;
-    world_z *= 0.4f;
-    movement[0] = 2.0f * world_x * (float)mgFrameRate;
-    movement[2] = 2.0f * world_z * (float)mgFrameRate;
-    if (world_x != 0.0f || world_z != 0.0f) {
+    move_x = stick_x * cosf(camera_angle) + stick_y * sinf(camera_angle);
+    move_z = -stick_x * sinf(camera_angle) + stick_y * cosf(camera_angle);
+    move_x *= 0.4f;
+    move_z *= 0.4f;
+    move_velocity[0] = 2.0f * move_x * (float)mgFrameRate;
+    move_velocity[2] = 2.0f * move_z * (float)mgFrameRate;
+    if (move_x != 0.0f || move_z != 0.0f) {
         stand_flag = 0;
     } else {
         stand_flag = 1;
     }
-    SetMotion(at_2333, 0, 1);
-    if (world_x != 0.0f || world_z != 0.0f) {
-        SetMotion(at_2334, 0, 1);
+    SetMotion("\x82\xBD\x82\xDF\x83\x8B\x81[\x83v", 0, 1);
+    if (move_x != 0.0f || move_z != 0.0f) {
+        SetMotion("\x82\xBD\x82\xDF\x88\xDA\x93\xAE", 0, 1);
     }
-    sceVu0CopyVector(velocity, movement);
+    sceVu0CopyVector(velocity, move_velocity);
     RockOn();
     return 1;
 }
@@ -1619,6 +1582,7 @@ int CActionChara::HumanGunMoveIF(char *stand_motion, char *move_motion) {
 #else
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/actionchara", HumanGunMoveIF__12CActionCharaFPcPc);
 #endif
+
 #ifdef NONMATCHING
 int CActionChara::RoboWalkMoveIF(int mode) {
     sceVu0FVECTOR position;
@@ -1714,6 +1678,7 @@ int CActionChara::RoboWalkMoveIF(int mode) {
 #else
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/actionchara", RoboWalkMoveIF__12CActionCharaFi);
 #endif
+
 #ifdef NONMATCHING
 int CActionChara::RoboTankMoveIF(int mode) {
     sceVu0FVECTOR position;
@@ -1857,6 +1822,7 @@ int CActionChara::RoboTankMoveIF(int mode) {
 #else
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/actionchara", RoboTankMoveIF__12CActionCharaFi);
 #endif
+
 #ifdef NONMATCHING
 int CActionChara::RoboBikeMoveIF(int mode) {
     sceVu0FVECTOR position;
@@ -2046,6 +2012,7 @@ int CActionChara::RoboBikeMoveIF(int mode) {
 #else
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/actionchara", RoboBikeMoveIF__12CActionCharaFi);
 #endif
+
 #ifdef NONMATCHING
 int CActionChara::RoboAirMoveIF(int unk, int mode) {
     sceVu0FVECTOR position;
@@ -2189,6 +2156,7 @@ int CActionChara::RoboAirMoveIF(int unk, int mode) {
 #else
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/actionchara", RoboAirMoveIF__12CActionCharaFii);
 #endif
+
 #ifdef NONMATCHING
 int CActionChara::MonsterMoveIF() {
     sceVu0FVECTOR position;
@@ -2331,28 +2299,28 @@ int CActionChara::MonsterMoveIF() {
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/actionchara", MonsterMoveIF__12CActionCharaFv);
 #endif
 
-void HitEffectSet(CScene *scene, float *point) {
-    float pos[4];
+/**
+ * Places the sparks, flash and script effect of a guarded hit in front of the camera.
+ */
+#ifdef NONMATCHING
+static void GuardEffectSet(CScene *scene, float *point) {
     float to_camera[4];
-    float origin[4];
-    float dir[4];
-    ActionVector rect;
-    CCameraControl *camera;
+    float position[4];
+    mgCCamera *camera;
     CHitEffectImage *hit;
     CFlushEffect *flush;
-    float speed = 50.0f;
 
-    camera = (CCameraControl *)scene->GetCamera(scene->active_camera);
+    camera = scene->GetCamera(scene->active_camera);
     if (camera == NULL) {
         return;
     }
-    sceVu0CopyVector(origin, point);
+    sceVu0CopyVector(position, point);
     camera->GetPos(to_camera);
-    sceVu0SubVector(to_camera, to_camera, origin);
+    sceVu0SubVector(to_camera, to_camera, position);
     sceVu0Normalize(to_camera, to_camera);
     sceVu0ScaleVector(to_camera, to_camera, 20.0f);
-    sceVu0AddVector(pos, origin, to_camera);
-    *(ActionVector *)dir = *(ActionVector *)at_2846;
+    sceVu0AddVector(position, position, to_camera);
+    sceVu0FVECTOR spark_direction = { 0.0f, 1.0f, 0.0f, 1.0f };
     if (BattleFX.hit == NULL) {
         hit = NULL;
     } else {
@@ -2362,10 +2330,10 @@ void HitEffectSet(CScene *scene, float *point) {
             BattleFX.hit_next = 0;
         }
     }
-    if (hit != NULL) {
-        SethitEffect__15CHitEffectImageFPfPfffffii(hit, pos, dir, 30.0f, speed, 0.4f, 0.1f, 30, 32);
-        hit->kind = 0;
-    }
+    float spread = 50.0f;
+    float zero = 0.0f;
+    hit->SethitEffect(position, spark_direction, spread, 30.0f, zero, 0.1f, 30, 32);
+    hit->kind = HIT_EFFECT_SPARK_SHORT;
     if (BattleFX.flush == NULL) {
         flush = NULL;
     } else {
@@ -2376,50 +2344,113 @@ void HitEffectSet(CScene *scene, float *point) {
         }
     }
     if (flush != NULL) {
-        sceVu0CopyVector(flush->pos, origin);
-        flush->fade_speed = 20.0f;
+        sceVu0CopyVector(flush->pos, position);
+        flush->fade_speed = 16.0f;
         flush->alpha = 160;
         flush->active = 1;
         flush->size = 10.0f;
-        flush->grow = 2.0f;
-        flush->tex_u = 64;
-        flush->tex_v = 192;
-        flush->tex_size = 64;
+        flush->grow = 3.0f;
+        flush->tex_u = 65;
+        flush->tex_v = 193;
+        flush->tex_size = 62;
         flush->follow = NULL;
     }
-    if (BattleFX.hit == NULL) {
-        hit = NULL;
-    } else {
-        hit = BattleFX.hit + BattleFX.hit_next;
-        BattleFX.hit_next++;
-        if (BattleFX.hit_next >= BattleFX.hit_num) {
-            BattleFX.hit_next = 0;
-        }
-    }
-    if (hit != NULL) {
-        SethitEffect__15CHitEffectImageFPfPfffffii(hit, pos, dir, 40.0f, 40.0f, 0.0f, 0.05f, 32,
-                                                   32);
-        hit->kind = 0;
-        ((mgRect<int> *)&rect)->Set(0, 80, 16, 16);
-        ActionVector copy = rect;
-        hit->tex_rect.left = copy.i[0];
-        hit->tex_rect.top = copy.i[1];
-        hit->tex_rect.right = copy.i[2];
-        hit->tex_rect.bottom = copy.i[3];
-        hit->sprite_size = 2.0f;
+    if (FxScriptMan != NULL) {
+        FxScriptMan->CreateEffSpt("\x83\x4B\x81\x5B\x83\x68\x83\x47\x83\x74\x83\x46\x83\x4E\x83\x67\x82\x60", 0, 0);
+        FxScriptMan->SetScriptVect1(position, 0, -1);
     }
 }
-int CheckAmuletAvoid(int item_no) {
-    CBattleCharaInfo *info;
-    CGameDataUsed *item;
-    int i;
+#else
+INCLUDE_ASM("ps2/asm/pal/nonmatchings/actionchara", GuardEffectSet__FP6CScenePf);
+#endif
 
-    info = GetBattleCharaInfo();
-    switch (info->chr_no) {
+/**
+ * Places the sparks and flash of a damaging hit in front of the camera.
+ */
+#ifdef NONMATCHING
+static void HitEffectSet(CScene *scene, float *pos) {
+    sceVu0FVECTOR    effect_position;
+    sceVu0FVECTOR    camera_direction;
+    sceVu0FVECTOR    hit_position;
+    sceVu0FVECTOR    spark_direction = { 0.0f, 1.0f, 0.0f, 1.0f };
+    mgCCamera      *camera;
+    CHitEffectImage *hit;
+    CFlushEffect   *flush;
+
+    camera = scene->GetCamera(scene->active_camera);
+    if (camera != NULL) {
+        sceVu0CopyVector(hit_position, pos);
+        camera->GetPos(camera_direction);
+        sceVu0SubVector(camera_direction, camera_direction, hit_position);
+        sceVu0Normalize(camera_direction, camera_direction);
+        sceVu0ScaleVector(camera_direction, camera_direction, 20.0f);
+        sceVu0AddVector(effect_position, hit_position, camera_direction);
+        if (BattleFX.hit == NULL) {
+            hit = NULL;
+        } else {
+            hit = &BattleFX.hit[BattleFX.hit_next++];
+            if (BattleFX.hit_next >= BattleFX.hit_num) {
+                BattleFX.hit_next = 0;
+            }
+        }
+        if (hit != NULL) {
+            hit->SethitEffect(effect_position, spark_direction, 30.0f, 50.0f, 0.4f, 0.1f, 30, 32);
+            hit->kind = HIT_EFFECT_BOARD;
+        }
+        if (BattleFX.flush == NULL) {
+            flush = NULL;
+        } else {
+            flush = &BattleFX.flush[BattleFX.flush_next++];
+            if (BattleFX.flush_next >= BattleFX.flush_num) {
+                BattleFX.flush_next = 0;
+            }
+        }
+        if (flush != NULL) {
+            sceVu0CopyVector(flush->pos, hit_position);
+            flush->fade_speed = 20.0f;
+            flush->alpha = 160;
+            flush->active = 1;
+            flush->size = 10.0f;
+            flush->grow = 2.0f;
+            flush->tex_u = 64;
+            flush->tex_v = 192;
+            flush->tex_size = 64;
+            flush->follow = NULL;
+        }
+        if (BattleFX.hit == NULL) {
+            hit = NULL;
+        } else {
+            hit = &BattleFX.hit[BattleFX.hit_next++];
+            if (BattleFX.hit_next >= BattleFX.hit_num) {
+                BattleFX.hit_next = 0;
+            }
+        }
+        if (hit != NULL) {
+            hit->SethitEffect(effect_position, spark_direction, 40.0f, 40.0f, 0.0f, 0.05f, 32, 32);
+            hit->kind = HIT_EFFECT_BOARD;
+            hit->tex_rect = mgRect<int>(0, 80, 16, 16);
+            hit->sprite_size = 2.0f;
+        }
+    }
+}
+#else
+INCLUDE_ASM("ps2/asm/pal/nonmatchings/actionchara", HitEffectSet__FP6CScenePf);
+#endif
+
+/**
+ * Checks an equipped amulet, using one up on a third of the hits it prevents.
+ */
+static int CheckAmuletAvoid(int item_no) {
+    CBattleCharaInfo *battle;
+    CGameDataUsed *item;
+    int index;
+
+    battle = GetBattleCharaInfo();
+    switch (battle->chr_no) {
         case 1:
         case 0:
-            item = (CGameDataUsed *)info->GetActiveItemInfo(0);
-            i = 0;
+            item = battle->GetActiveItemInfo(0);
+            index = 0;
             do {
                 if (item_no == item->item_no) {
                     if (iRand(100) % 3 == 0) {
@@ -2427,38 +2458,43 @@ int CheckAmuletAvoid(int item_no) {
                     }
                     return 1;
                 }
-                i++;
-                item = (CGameDataUsed *)((u8 *)item + sizeof(CGameDataUsed));
-            } while (i < 3);
+                index++;
+                item++;
+            } while (index < 3);
             return 0;
         default:
             return 1;
     }
 }
-int CheckEquipSetItem(int item_no) {
-    CBattleCharaInfo *info;
-    CGameDataUsed *item;
-    int i;
 
-    info = GetBattleCharaInfo();
-    switch (info->chr_no) {
+/**
+ * Uses one active item of the given kind when Max or Monica has it equipped.
+ */
+static int CheckEquipSetItem(int item_no) {
+    CBattleCharaInfo *battle;
+    CGameDataUsed *item;
+    int index;
+
+    battle = GetBattleCharaInfo();
+    switch (battle->chr_no) {
         case 1:
         case 0:
-            item = (CGameDataUsed *)info->GetActiveItemInfo(0);
-            i = 0;
+            item = battle->GetActiveItemInfo(0);
+            index = 0;
             do {
                 if (item_no == item->item_no) {
                     item->DeleteNum(1);
                     return 1;
                 }
-                i++;
-                item = (CGameDataUsed *)((u8 *)item + sizeof(CGameDataUsed));
-            } while (i < 3);
+                index++;
+                item++;
+            } while (index < 3);
             return 0;
         default:
             return 0;
     }
 }
+
 #ifdef NONMATCHING
 int CActionChara::CheckDamage() {
     sceVu0FVECTOR    position;
@@ -2688,30 +2724,34 @@ int CActionChara::CheckDamage() {
 #else
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/actionchara", CheckDamage__12CActionCharaFv);
 #endif
-int CActionChara::LoadActionFile(char *script, int size, mgCMemory *memory) {
+
+int CActionChara::LoadActionFile(char *data, int size, mgCMemory *memory) {
     SetActionExtendTable();
-    chara_kind = 2;
+    chara_kind = ACTION_KIND_SCRIPT;
     script_buf = (char *)memory->stAlloc64(size / 16 + 1);
-    memcpy(script_buf, script, size);
-    SetActionScript(&this->script, script_buf, memory);
+    memcpy(script_buf, data, size);
+    SetActionScript(&script, script_buf, memory);
     return 1;
 }
+
 void CActionChara::InitScript() {
     ResetScript();
     action_info.chara = this;
-    if (this->script.check_program(ACTION_PROG_INIT) != 0) {
-        this->script.run(ACTION_PROG_INIT);
+    if (script.check_program(ACTION_PROG_INIT) != 0) {
+        script.run(ACTION_PROG_INIT);
     }
-    prog_no = 0xC8;
+    prog_no = ACTION_PROG_MAIN;
 }
+
 void CActionChara::SetHold() {
-    if (this->script.check_program(ACTION_PROG_HOLD) != 0) {
-        this->script.run(ACTION_PROG_HOLD);
+    if (script.check_program(ACTION_PROG_HOLD) != 0) {
+        script.run(ACTION_PROG_HOLD);
         AllDeleteDamage();
-        damage_req = 0;
-        prog_no = -1;
+        damage_req = ACTION_DAMAGE_REQ_NONE;
+        prog_no = ACTION_PROG_RUNNING;
     }
 }
+
 #ifdef NONMATCHING
 void CActionChara::RunScript(CScene *scene, RUN_SCRIPT_ENV *env) {
     sceVu0FVECTOR     adjusted_velocity = { 0.0f, 0.0f, 0.0f, 0.0f };
@@ -2901,64 +2941,67 @@ void CActionChara::RunScript(CScene *scene, RUN_SCRIPT_ENV *env) {
 #else
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/actionchara", RunScript__12CActionCharaFP6CSceneP14RUN_SCRIPT_ENV);
 #endif
-int CActionChara::CheckReleaseTimming(int id) {
-    if (id == -1) {
+
+int CActionChara::CheckReleaseTimming(int type) {
+    if (type == -1) {
         return release_timing;
     }
-    if (id == hold_type) {
+    if (type == hold_type) {
         return release_timing;
     }
     return 0;
 }
-void CActionChara::StepParam() {
-    float move_copy[4];
-    float self_rot[4];
-    float target_rot[4];
-    float forward[4];
-    float matrix[4][4];
-    float self_rot2[4];
-    float forward2[4];
-    float matrix2[4][4];
-    float knock[4];
-    float push[4];
-    CActionChara *target;
-    int i;
 
-    sceVu0CopyVector(move_copy, velocity);
-    move_copy[0] = 0.0f;
-    move_copy[2] = 0.0f;
-    sceVu0CopyVector(velocity, move_copy);
-    if (chara_type == 2) {
-        target = SearchChara(at_2423);
-        if (target != NULL) {
-            GetRotation(self_rot);
-            target->GetRotation(target_rot);
-            self_rot[1] += target_rot[1];
-            if (!(self_rot[1] <= 3.1415927f)) {
-                self_rot[1] -= 6.2831855f;
+void CActionChara::StepParam() {
+    sceVu0FVECTOR   movement;
+    sceVu0FVECTOR   rotation;
+    sceVu0FVECTOR   arm_rotation;
+    sceVu0FVECTOR   forward;
+    sceVu0FVECTOR   added_movement;
+    sceVu0FVECTOR   knockback;
+    sceVu0FMATRIX   facing_matrix;
+    CActionChara   *arm;
+    int             i;
+
+    sceVu0CopyVector(movement, velocity);
+    movement[0] = 0.0f;
+    movement[2] = 0.0f;
+    sceVu0CopyVector(velocity, movement);
+    if (chara_type == ACTION_CHARA_ROBO) {
+        arm = SearchChara("arm");
+        if (arm != NULL) {
+            GetRotation(rotation);
+            arm->GetRotation(arm_rotation);
+            rotation[1] += arm_rotation[1];
+            if (rotation[1] > 3.1415927f) {
+                rotation[1] -= 6.2831855f;
             }
-            if (self_rot[1] < -3.1415927f) {
-                self_rot[1] += 6.2831855f;
+            if (rotation[1] < -3.1415927f) {
+                rotation[1] += 6.2831855f;
             }
-            *(ActionVector *)forward = *(ActionVector *)at_3289;
-            sceVu0UnitMatrix(matrix);
-            sceVu0RotMatrixY(matrix, matrix, self_rot[1]);
-            sceVu0ApplyMatrix(front_vec, matrix, forward);
+            sceVu0FVECTOR forward = { 0.0f, 0.0f, 1.0f, 1.0f };
+            sceVu0FMATRIX facing_matrix;
+            sceVu0UnitMatrix(facing_matrix);
+            sceVu0RotMatrixY(facing_matrix, facing_matrix, rotation[1]);
+            sceVu0ApplyMatrix(front_vec, facing_matrix, forward);
         }
     } else {
+        sceVu0FVECTOR self_rot2;
         GetRotation(self_rot2);
-        *(ActionVector *)forward2 = *(ActionVector *)at_3291;
+        sceVu0FVECTOR forward2 = { 0.0f, 0.0f, 1.0f, 1.0f };
+        sceVu0FMATRIX matrix2;
         sceVu0UnitMatrix(matrix2);
         sceVu0RotMatrixY(matrix2, matrix2, self_rot2[1]);
         sceVu0ApplyMatrix(front_vec, matrix2, forward2);
     }
     add_vec[1] = 0.0f;
-    if (!(add_speed <= 0.0f) && add_time != 0) {
-        sceVu0ScaleVectorXYZ(knock, add_vec, add_speed);
-        sceVu0AddVector(velocity, velocity, knock);
+    if (add_speed > 0.0f && add_time != 0) {
+        sceVu0FVECTOR added_movement;
+        sceVu0ScaleVectorXYZ(added_movement, add_vec, add_speed);
+        sceVu0AddVector(velocity, velocity, added_movement);
         if (add_time > 0) {
-            if (!(add_speed <= 0.0f)) {
-                add_speed = add_speed - add_decel;
+            if (add_speed > 0.0f) {
+                add_speed -= add_decel;
             }
             add_time--;
             if (add_time <= 0) {
@@ -2966,12 +3009,13 @@ void CActionChara::StepParam() {
             }
         }
     }
-    if (!(blow_speed <= 0.0f) && blow_time != 0) {
-        sceVu0ScaleVectorXYZ(push, blow_vec, blow_speed);
-        sceVu0AddVector(velocity, velocity, push);
+    if (blow_speed > 0.0f && blow_time != 0) {
+        sceVu0FVECTOR knockback;
+        sceVu0ScaleVectorXYZ(knockback, blow_vec, blow_speed);
+        sceVu0AddVector(velocity, velocity, knockback);
         if (blow_time > 0) {
-            if (!(blow_speed <= 0.0f)) {
-                blow_speed = blow_speed - blow_decel;
+            if (blow_speed > 0.0f) {
+                blow_speed -= blow_decel;
             }
             blow_time--;
             if (blow_time <= 0) {
@@ -2985,11 +3029,11 @@ void CActionChara::StepParam() {
     }
     if (unk_75e != 0) {
         unk_760 += 0.016666668f;
-        if (!(unk_760 < 1.0f)) {
+        if (unk_760 >= 1.0f) {
             unk_760 = 1.0f;
         }
     } else {
-        unk_760 = unk_760 - 0.016666668f;
+        unk_760 -= 0.016666668f;
         if (unk_760 <= 0.0f) {
             unk_760 = 0.0f;
         }
@@ -3018,7 +3062,6 @@ void CActionChara::StepParam() {
     if (no_hit_time > 0) {
         no_hit_time--;
     }
-    i = 0;
     if (shake.time > 0) {
         shake.offset = 2.5f * mgRnd();
         shake.time--;
@@ -3028,78 +3071,75 @@ void CActionChara::StepParam() {
     }
     release_timing = 0;
 }
+
 void CActionChara::Step() {
-    float held_pos[4];
-    float rotation[4];
-    float gun_pos[4];
-    float target_pos[4];
-    float matrix[4][4];
-    float pitch_matrix[4][4];
+    sceVu0FVECTOR position;
+    sceVu0FVECTOR rotation;
+    sceVu0FVECTOR arm_position;
+    sceVu0FVECTOR target_position;
+    sceVu0FMATRIX arm_matrix;
+    sceVu0FMATRIX aim_matrix;
     CActionChara *link;
-    CCharacter2 *chained;
-    CCharacter2 *self = (CCharacter2 *)this;
-    mgCFrame *gun;
+    CCharacter2 *part;
+    mgCFrame *arm;
 
     StepParam();
-    if (self->se_positional != 2) {
-        self->se_positional = 1;
+    if (se_positional != 2) {
+        se_positional = 1;
     }
-    self->CCharacter2::Step();
+    CCharacter2::Step();
     link = next;
     if (link != NULL) {
         do {
-            chained = (CCharacter2 *)link;
-            if (chained->se_positional != 2) {
-                chained->se_positional = 0;
+            part = link;
+            if (part->se_positional != 2) {
+                part->se_positional = 0;
             }
-            chained->CCharacter2::Step();
+            part->CCharacter2::Step();
             link = link->next;
         } while (link != NULL);
     }
-    if (hold_type == 4 && hold_parts != 0 && hold_frame != 0) {
+    if (hold_type == ACTION_HOLD_STONE && hold_parts != NULL && hold_frame != NULL) {
         GetRotation(rotation);
-        ((mgCFrame *)hold_frame)->GetWorldPosition0(held_pos);
-        held_pos[3] = 1.0f;
-        held_pos[1] -= 1.0f;
-        ((CActionChara *)hold_parts)->SetPosition(held_pos);
-        ((CActionChara *)hold_parts)->SetRotation(rotation);
+        hold_frame->GetWorldPosition0(position);
+        position[3] = 1.0f;
+        position[1] -= 1.0f;
+        hold_parts->SetPosition(position);
+        hold_parts->SetRotation(rotation);
     }
-    gun = SearchObject(at_3389);
-    if (gun != NULL) {
-        if (init_3372 == 0) {
-            ang_3371 = 0.0f;
-            init_3372 = 1;
-        }
-        gun->GetWorldPosition0(gun_pos);
-        if (lock_on != 0 && (s8)dir_gun != 0) {
+    arm = SearchObject("L_arm");
+    if (arm != NULL) {
+        static float ang = 0.0f;
 
-            (*(CCharacter2 **)(((target_no - 24) << 2) + (int)ActiveMonster + 0x484))->GetEntryObjectPos(0, target_pos);
-            sceVu0SubVector(gun_pos, target_pos, gun_pos);
-            sceVu0CopyVector(target_pos, gun_pos);
-            target_pos[3] = 1.0f;
-            target_pos[1] = 0.0f;
-            ang_3371 = -atan2f(gun_pos[1], mgDistVector(target_pos));
+        arm->GetWorldPosition0(arm_position);
+        if (lock_on != 0 && dir_gun != 0) {
+
+            int monster_index = target_no - MONSTER_ACTIVE_MAX;
+            ActiveMonster->active[monster_index]->GetEntryObjectPos(0, target_position);
+            sceVu0SubVector(arm_position, target_position, arm_position);
+            sceVu0CopyVector(target_position, arm_position);
+            target_position[3] = 1.0f;
+            target_position[1] = 0.0f;
+            ang = -atan2f(arm_position[1], mgDistVector(target_position));
         } else {
-            ang_3371 = 0.0f;
+            ang = 0.0f;
         }
-        sceVu0CopyMatrix(matrix, gun->trans_matrix);
-        sceVu0UnitMatrix(pitch_matrix);
-        sceVu0RotMatrixZ(pitch_matrix, pitch_matrix, ang_3371);
-        sceVu0MulMatrix(matrix, matrix, pitch_matrix);
-        gun->SetTransMatrix(matrix);
+        sceVu0CopyMatrix(arm_matrix, arm->trans_matrix);
+        sceVu0UnitMatrix(aim_matrix);
+        sceVu0RotMatrixZ(aim_matrix, aim_matrix, ang);
+        sceVu0MulMatrix(arm_matrix, arm_matrix, aim_matrix);
+        arm->SetTransMatrix(arm_matrix);
     }
 }
-void CActionChara::ShadowStep() {
-    CActionChara *current;
 
-    current = this;
-    if (this != NULL) {
-        do {
-            current->CCharacter2::ShadowStep();
-            current = current->next;
-        } while (current != NULL);
+void CActionChara::ShadowStep() {
+    CActionChara *part;
+
+    for (part = this; part != NULL; part = part->next) {
+        part->CCharacter2::ShadowStep();
     }
 }
+
 void CActionChara::Initialize(mgCMemory *memory) {
     int i;
     int j;
@@ -3110,19 +3150,19 @@ void CActionChara::Initialize(mgCMemory *memory) {
     old_pos[1] = 0.0f;
     old_pos[0] = 0.0f;
     old_pos[3] = 1.0f;
-    chara_kind = 0;
+    chara_kind = ACTION_KIND_NONE;
     script_buf = NULL;
     max_speed = 4.0f;
     prog = 0;
     pad_history = 0;
     parent = NULL;
     next = NULL;
-    accele.speed = 0;
+    accele.speed = 0.0f;
     accele.move_speed = 3.0f;
-    *(int *)&accele.accele[0] = 0;
-    *(int *)&accele.accele[1] = 0;
-    *(int *)&accele.accele[2] = 0;
-    *(int *)&accele.accele[3] = 0;
+    accele.accele[0] = 0.0f;
+    accele.accele[1] = 0.0f;
+    accele.accele[2] = 0.0f;
+    accele.accele[3] = 0.0f;
     acumu_pad = 0;
     now_status = 0;
     unk_bec = 0;
@@ -3131,13 +3171,13 @@ void CActionChara::Initialize(mgCMemory *memory) {
     muteki_time = 0;
     guard_flag = 0;
     menu_flag = 0;
-    *(int *)&add_speed = 0;
+    add_speed = 0.0f;
     add_time = 0;
     blow_vec[2] = 0.0f;
     blow_vec[1] = 0.0f;
     blow_vec[0] = 0.0f;
     blow_vec[3] = 1.0f;
-    *(int *)&blow_speed = 0;
+    blow_speed = 0.0f;
     blow_time = 0;
     unk_be4 = 0;
     damage_time = 0;
@@ -3145,20 +3185,20 @@ void CActionChara::Initialize(mgCMemory *memory) {
     stagger_time = 0;
     mask_flag = 0;
     dir_gun = 0;
-    default_motion = at_2210;
+    default_motion = "\x97\xA7\x82\xBF";
     shot_wait = 0;
     murderous = 0;
     murderous_time = 0;
     target_no = -1;
     lock_on = 0;
-    damage_req = 0;
+    damage_req = ACTION_DAMAGE_REQ_NONE;
     catch_frame = NULL;
     catch_state = 0;
     no_hit_time = 0;
     release_timing = 0;
-    hold_parts = 0;
-    hold_frame = 0;
-    hold_type = 0;
+    hold_parts = NULL;
+    hold_frame = NULL;
+    hold_type = ACTION_HOLD_NONE;
     unk_72a = -1;
     for (i = 0; i < 9; i++) {
         sw_effect[i].sword_no = 0;
@@ -3176,6 +3216,7 @@ void CActionChara::Initialize(mgCMemory *memory) {
     }
     ResetScript();
 }
+
 #ifdef NONMATCHING
 void CActionChara::Copy(CActionChara &dest, mgCMemory *memory) {
     dest = *this;
@@ -3186,72 +3227,11 @@ void CActionChara::Copy(CActionChara &dest, mgCMemory *memory) {
 #else
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/actionchara", Copy__12CActionCharaFR12CActionCharaP9mgCMemory);
 #endif
-#ifndef NONMATCHING
+
+#ifdef NONMATCHING
+#else
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/actionchara", __as__11CCharacter2FRC11CCharacter2);
 #endif
-
-extern char at_2818[];
-extern char at_2840[];
-
-void GuardEffectSet(CScene *scene, float *point) {
-    float to_camera[4];
-    float position[4];
-    ActionVector direction;
-    CCameraControl *camera;
-    CHitEffectImage *hit;
-    CFlushEffect *flush;
-
-    camera = (CCameraControl *)scene->GetCamera(scene->active_camera);
-    if (camera == NULL) {
-        return;
-    }
-    sceVu0CopyVector(position, point);
-    camera->GetPos(to_camera);
-    sceVu0SubVector(to_camera, to_camera, position);
-    sceVu0Normalize(to_camera, to_camera);
-    sceVu0ScaleVector(to_camera, to_camera, 20.0f);
-    sceVu0AddVector(position, position, to_camera);
-    direction = *(ActionVector *)at_2818;
-    if (BattleFX.hit == NULL) {
-        hit = NULL;
-    } else {
-        hit = BattleFX.hit + BattleFX.hit_next;
-        BattleFX.hit_next++;
-        if (BattleFX.hit_next >= BattleFX.hit_num) {
-            BattleFX.hit_next = 0;
-        }
-    }
-    float spread = 50.0f;
-    SethitEffect__15CHitEffectImageFPfPfffffii(hit, position, direction.f,
-                                          spread, 30.0f, 0.0f, 0.1f, 30, 32);
-    hit->kind = 1;
-    if (BattleFX.flush == NULL) {
-        flush = NULL;
-    } else {
-        flush = BattleFX.flush + BattleFX.flush_next;
-        BattleFX.flush_next++;
-        if (BattleFX.flush_next >= BattleFX.flush_num) {
-            BattleFX.flush_next = 0;
-        }
-    }
-    if (flush != NULL) {
-        sceVu0CopyVector(flush->pos, position);
-        flush->fade_speed = 16.0f;
-        flush->alpha = 160;
-        flush->active = 1;
-        flush->size = 10.0f;
-        flush->grow = 3.0f;
-        flush->tex_u = 65;
-        flush->tex_v = 193;
-        flush->tex_size = 62;
-        flush->follow = NULL;
-    }
-    if (FxScriptMan != NULL) {
-        FxScriptMan->CreateEffSpt(at_2840, 0, 0);
-        FxScriptMan->SetScriptVect1(position, 0, -1);
-    }
-}
-
 
 
 // Initialised data (.data)

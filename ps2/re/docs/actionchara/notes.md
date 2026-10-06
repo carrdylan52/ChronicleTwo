@@ -1,11 +1,10 @@
 # actionchara: reverse-engineering notes
 
 ## C++ draft status
-All 73 functions have C++ in `ps2/src/actionchara.cpp`. 27 are exact and
-compiled by the matching build. 3 more compile to retail's bytes in isolation
-but stay under `NONMATCHING`. 43 differ from retail and keep the `INCLUDE_ASM`
-fallback. Each function tried has its one promotion attempt recorded in
-`scripts/re/promotion_attempts.tsv`.
+The draft check covers all 73 functions: 60 match retail and 13 differ.
+The matching build compiles 58 functions and retains 15 assembly fallbacks.
+The guarded Copy draft also matches retail. The compiler-generated
+CCharacter2 assignment differs from retail's 0x5E0-byte implementation.
 
 Header: `ps2/include/actionchara.hpp`. Owns `CActionChara` (derives `CCharacter2`, unit `character`),
 plus the parameter/table types `RUN_SCRIPT_ENV`, `ACTION_SW_EFFECT`, `ACTION_DAMAGE`, `ACTION_OBJECT`,
