@@ -5,12 +5,9 @@ CScriptInterpreter with two tags. Called from MainLoop and LanguageChange. No fi
 counterpart. The unit owns no class.
 
 ## Functions
-- `LoadNPCCfg`, `GetPartyCharaMessage`, `GetNPCModelName`, `GetNPCName`, and
-  `GetPartyNPCData` compile and match the linked retail game. The `LoadNPCCfg` stack buffer
-  has 2048 quadwords; a larger buffer changes only the frame offsets.
-- `_NPC_NUM`, `_NPC_INFO`, and `GetPartyCharaModelName` have named compiling drafts behind
-  `NONMATCHING`. The two local callbacks could not link the assembly `npc_spitag` reference
-  during their single promotion attempts. The model-path draft differed in code generation.
+- All eight functions compile and match the linked retail game. `_NPC_NUM` and `_NPC_INFO`
+  are file-local C++ functions referenced by the typed `npc_spitag` table. There are no guarded
+  drafts or assembly function fallbacks. The `LoadNPCCfg` stack buffer has 2048 quadwords.
 | Symbol | Binding | Notes |
 |---|---|---|
 | `_NPC_NUM(SPI_STACK*, int)` | LOCAL -> static in .cpp | `NpcBaseDataTotalNum = spiGetStackInt(stack)`; returns 1 |
@@ -47,11 +44,11 @@ Size 0x36 (2-byte aligned by the s16). Script arg N is `SPI_STACK` entry N (stri
 - `NpcBaseData` NPC_BASE_DATA[180].
 - `npc_spitag` .data 0x18 = SPI_TAG_PARAM[3]: {"NPC_NUM", _NPC_NUM}, {"NPC_INFO", _NPC_INFO}, {0,0}.
   (The asm file shows 0x20 bytes; the last 8 are padding before typetbl.)
-- `typetbl_853` .data 0x10: function-local `static char` table in GetPartyCharaMessage (loaded
+- `typetbl_853` .data 0x10: function-local `static signed char message_offsets[16]` table in GetPartyCharaMessage (loaded
   with lb): 0, 10, 20, 30, 2, 40, 45, 50, 55, 0, 90, 60, 0, 21, 25, 0. Types seen at call sites:
   0, 1, 3, 4, 5, 7, 8, 10, 11 (0x0B), 12 (0x0C, special-cased). No enum: meanings not established.
-- `path_885` .bss 0x40: function-local `static char[0x40]` in GetPartyCharaModelName.
-- `infocfg_886` .data 9: function-local `static char[] = "info.cfg"` in GetPartyCharaModelName
+- `path_885` .bss 0x40: function-local `static char path[0x40]` in GetPartyCharaModelName.
+- `infocfg_886` .data 9: function-local `static char info_cfg[] = "info.cfg"` in GetPartyCharaModelName
   (returned directly for type 1).
 - Strings: "chara/", ".chr", "event/train/t%s.chr", "menu/npc/t%s.chr", "npc%d.cfg".
 
