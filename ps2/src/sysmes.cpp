@@ -1,44 +1,15 @@
-#include "sound.hpp"
-#include "dataread.hpp"
-#include "prespr.hpp"
-#include "mg_drawprim.hpp"
-#include <cstdio>
-#include <cstring>
-#include "font.hpp"
-#include "scenesnd.hpp"
-#include "savedata.hpp"
-#include "userdata.hpp"
-#include "gamedata.hpp"
-#include "scriptinterpreter.hpp"
-#include "mg_math.hpp"
-#include "mg_texture.hpp"
-#include "mglib.hpp"
-#include "mainloop.hpp"
-#include "menucls1.hpp"
-#include "menucommon.hpp"
-#include "menudraw.hpp"
-#include "menusys.hpp"
-#include "menumain.hpp"
 #include "common.h"
 #include "sysmes.hpp"
-
-extern "C" int CreateSystemMes__Fii(int, int);
-
-extern ClsMes SystemMessage;
-extern ClsMes SystemMessage2;
-extern ClsMes SystemMessage3;
-extern short SystemMesBuffer[];
-extern short SysMesBuffer[];
 #include "dataread.hpp"
 #include "mainloop.hpp"
 #include "nd_meswin.hpp"
 
-// Data supplied by the assembly fallbacks until the unit's data is migrated.
-extern short SystemMesBuffer[];
-extern short SysMesBuffer[];
-extern ClsMes SystemMessage;
-extern ClsMes SystemMessage2;
-extern ClsMes SystemMessage3;
+mgCMemory    SystemMesStack;              /**< Working memory for system messages. */
+static short SystemMesBuffer[0x6800];       /**< Text inserted into system message windows. */
+static short SysMesBuffer[0x9C40];          /**< Message text loaded from the sysmes file. */
+static ClsMes SystemMessage;               /**< First system message window. */
+static ClsMes SystemMessage2;              /**< Second system message window. */
+static ClsMes SystemMessage3;              /**< Third system message window. */
 
 // Code (.text)
 ClsMes *GetSystemMessage() {
@@ -100,6 +71,7 @@ short *GetSystemMesBuffer() {
 short *GetSysMesBuffer() {
     return SysMesBuffer;
 }
+
 void CreateSystemMes(void) {
     CreateSystemMes(0, 0);
     CreateSystemMes(1, 0);
@@ -118,18 +90,6 @@ void CreateSystemMes(int index, int unused) {
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/sysmes", CreateSystemMes__Fii);
 #endif
 
-// Static initialiser (.init)
-#ifdef NONMATCHING
-extern "C" void __sinit_sysmes_cpp() {
-    SystemMesStack.Init();
-    new ((u_long128 *)&SystemMessage) ClsMes;
-    new ((u_long128 *)&SystemMessage2) ClsMes;
-    new ((u_long128 *)&SystemMessage3) ClsMes;
-}
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/sysmes", __sinit_sysmes_cpp);
-#endif
-
 // Constants (.rodata)
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/sysmes", at_482__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/sysmes", at_483__DATA);
@@ -144,9 +104,6 @@ INCLUDE_RODATA("ps2/asm/pal/nonmatchings/sysmes", at_491__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/sysmes", at_492__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/sysmes", at_493__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/sysmes", at_494__DATA);
-
-// Static initialiser table (.ctor)
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/sysmes", D_0037B000__DATA);
 
 // Uninitialised data (.bss)
 INCLUDE_BSS(SystemMesStack, 0x30);
