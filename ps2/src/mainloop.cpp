@@ -1744,9 +1744,11 @@ static int gcACTIVE_CHARA(SPI_STACK *stack, int argc) {
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/mainloop", __ct__16CUserDataManagerFv);
 #endif
 
-CEditData::CEditData() {
-    Initialize();
-}
+#ifdef NONMATCHING
+// Inline constructor defined in editdata.hpp.
+#else
+INCLUDE_ASM("ps2/asm/pal/nonmatchings/mainloop", __ct__9CEditDataFv);
+#endif
 
 // Static initialiser (.init)
 #ifdef NONMATCHING
