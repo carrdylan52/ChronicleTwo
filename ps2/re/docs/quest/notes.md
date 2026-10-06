@@ -14,7 +14,7 @@ No first-game counterpart (Dark Cloud has no quest/request memo or monster book 
 - `spi_queststack` (0x37EA2C): `mgCMemory *` heap passed to LoadCfg.
 - `spi_quest_info` (0x37EA30): `QUEST_INFO *` cursor; quest_NUM sets it to `info`, quest_END advances it by one (0x3D0).
 - `quest_cmd_tag` (.rodata 0x363040, symbol size 0x28): `SPI_TAG_PARAM[5]` =
-  {"NUM",quest_NUM}, {"NEW",quest_NEW}, {"COMMENT",quest_COMMENT}, {"END",quest_END}, {0,0}.
+  {"NUM",quest_NUM}, {"NEW",quest_NEW}, {"COMENT",quest_COMMENT}, {"END",quest_END}, {0,0}.
   Strings are at_878..at_881 (.rodata 0x379108..).
 
 ## Names
@@ -70,16 +70,7 @@ mode 1 -> QuestRequestClear(id, v). QuestRequestClear ignores its second argumen
 
 ## C++ draft and promotion status
 
-The C++ drafts in `quest.cpp` use the types and fields documented above. A single
-grouped promotion attempt was made for the quest data operations. These matched
-exactly and remain enabled: `GetQuestData`, `CQuestManager::GetQuestInfo`,
-`CQuestData::Initialize`, `QuestRequestSetFlag`, `QuestRequestClear`, and
-`GetQuestRequestStatus`. `CQuestManager::Initialize` already matched.
-
-The same attempt produced nonzero object differences for
-`CQuestData::SetQuestFlag`, `CQuestData::QuestClear`,
-`CQuestData::GetPlayQuestData`, and `CMonsterBook::CountKill`; their C++ drafts
-remain behind `NONMATCHING`. The script parser drafts (`quest_NUM`, `quest_NEW`,
-`quest_COMMENT`, `quest_END`, and `CQuestManager::LoadCfg`) compiled in their
-single grouped attempt but failed to link: the assembly-owned tag table still
-references the original handler symbols. They also remain behind `NONMATCHING`.
+All 16 functions are matched C++ definitions. No guarded drafts or assembly
+functions remain. The four script handlers and `GetQuestData` are static.
+The script tag table and its three parser-state pointers are defined in C++.
+The comment command is spelled `COMENT`, as stored in the retail tag table.
