@@ -2,7 +2,11 @@
 
 The migrated form helpers write the form's character, movement and named part data through
 their existing members. `CMenuEffect::type` is a signed byte: its initializer stores -1, and
-using an unsigned field changes MWCC's immediate instruction. `CRepairManager::IsRun` checks
+using an unsigned field changes MWCC's immediate instruction.
+`CMenuPosDataForm::mtype` is an unsigned byte: `Initialize` stores 0xFF.
+`MENU_PARTS_EFFECT_STRUCT1::type` is unsigned; the random-parameter helper tests it with
+`lhu`. `MenuCursorReverseFlag` has a byte load in drawing code and a word store in
+`CMenuChrCngMenu::MenuLocalLoop`. `CRepairManager::IsRun` checks
 all eight effect pointers and the model pointer even after finding an active entry.
 
 Header: `ps2/include/menudraw.hpp`. Every field offset below was checked with compile-time
@@ -99,11 +103,12 @@ editmenu/inventmn, then the board width at +0x10.
 - `CLevelUpEffect` 0x30 / `CLevelUpEffectManager` 0x190 (`MenuLevelUpMan` symbol size). Effects
   start at manager+0x10, so the effect is 16-aligned: pos at 0x10 is `sceVu0FVECTOR` (filled by
   a CCharacter2 vfunc +0x18). Manager 0x0 = label texture (menusys `EnterDataMenu`), 0x4 = spark
-  texture; 0x8..0xF padding. `IsRun` returns the byte at 0 (declared u8).
+  texture; 0x8..0xF padding. `IsRun` loads the byte at 0 and returns it as int; the
+  manager callers consume the extended return without a second byte conversion.
   Spark state is in the local arrays `l_levelup_pos/vec/counter/generate_counter` (32 sparks,
   shared by all effects).
 - `CStarDust` 0xC: inventmn `__construct_new_array(..., __ct__9CStarDustFv, 0, 0xC, n)`; ctor
-  (inline, emitted in inventmn) clears byte 0xA.
+  (declared in menudraw.hpp, defined in inventmn.cpp) clears byte 0xA.
 - `CEffVerticalLine` 0x40: `__nwa(n << 6)`; `mgTransWorldPrim3DSprite(..., this, w, h)` so
   pos is a 4-float vector at 0; 0x34..0x3F unseen.
 - `CMenuEffect` 0x38: `__nw(0x38)` in inventmn/menusys. Effect type byte 0x9 values seen:
@@ -121,8 +126,9 @@ byte flags (symbol size 0x9C), `Pos_ItemInGiftBox` s16[3][2], `GiftBoxWindowPutP
 dynamically initialised in source; same for local `MenuMainFrame_PutRect`,
 `MenuMainIMG_PutRect`, `star_light`, `MenuItemBrdKomaRect`, `ItemBoardScrlBar1..3`,
 `ItemBoardCursor`). `NowGiftBoxPtr` holds `SearchNowPosItemExist` results (declared
-`CGameDataUsed*`; it reads s16 at 0 and +0x10). `MenuCursorReverseFlag`,
-`MenuItemBrdCalcManner`, `GiftBoxViewFlag` are 1 byte.
+`CGameDataUsed*`; it reads s16 at 0 and +0x10). `MenuCursorReverseFlag` is declared
+int for the word store in `CMenuChrCngMenu::MenuLocalLoop`; drawing code tests its
+low byte. `MenuItemBrdCalcManner` and `GiftBoxViewFlag` are byte flags.
 
 ## Other
 - File-local functions (static, not in the header): ConvMGIRECTtoINTtbl, ConvMGFRECTtoFLOATtbl,
@@ -139,3 +145,15 @@ dynamically initialised in source; same for local `MenuMainFrame_PutRect`,
   parameters were not traced.
 - No first-game counterpart: the first game has no menudraw/CPosDataManage equivalent in
   `/home/adubbz/development/chronicle/ps2/include`.
+
+## Compiled coverage
+
+The object report records 137 perfect functions and 61 entries without a source-side
+score. The normal C++ object has 150 retail-matching functions: 13, including
+`PrimQuad<float>` and the other rectangle-typed helpers, have no source-side progress
+score. The remaining 48 functions use assembly fallbacks.
+`CLevelUpEffect::Step` has a typed-array draft; its loop differs in 13 of 140 instruction
+words and uses retail assembly in the linked tree. `PrimQuad<float>` is explicitly
+instantiated without a draft guard or assembly fallback. The source initializers
+for the rectangles match
+`__sinit_menudraw_cpp`.

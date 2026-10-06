@@ -899,7 +899,7 @@ char * GetItemMessage(int item_no) {
     return NULL;
 }
 
-s16 GetItemIconNo(s32 item_no) {
+int GetItemIconNo(int item_no) {
     CDataCommon *common = GameItemDataManage.GetCommonData(item_no);
     if (common != NULL) {
         return common->icon_no;

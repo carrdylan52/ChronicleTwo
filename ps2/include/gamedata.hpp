@@ -575,7 +575,7 @@ char *GetItemMessage(int item_no);
  * @address 0x1974B0
  * @size 0x38
  */
-s16 GetItemIconNo(int item_no);
+int GetItemIconNo(int item_no);
 
 /**
  * Sets the attachment parameter that spectrumising an item raises, scaled by the item count.
