@@ -1,4 +1,5 @@
 #include "common.h"
+#include "title.hpp"
 #include "savedata.hpp"
 #include "mg_memory.hpp"
 #include "nd_meswin.hpp"
@@ -8,30 +9,36 @@
 #include "mainloop.hpp"
 #include "snd_mngr.hpp"
 #include "sound.hpp"
-#include "title.hpp"
 #include "dataread.hpp"
 #include "hddinstall.hpp"
 #include <cstdio>
 #include <cstdlib>
 
-extern s16 TitleOmakeFlag;
+static s16 TitleOmakeFlag;
+static ClsMes *TitleMCCheckMes;
+static mgCTexture *lang_tex;
+static s32 title_lang_cursor_cnt;
+static int title_lang_fadealpha;
+static int title_lang_phase;
+static int title_lang_select;
+static float title_lang_curxy[2];
 
-extern char at_1267[];
-extern ClsMes *TitleMCCheckMes;
-extern mgCTexture *lang_tex;
-extern u32 title_lang_cursor_cnt;
-extern int title_lang_fadealpha;
-extern int title_lang_phase;
-extern int title_lang_select;
-extern char at_2723[];
-extern char at_2724[];
-extern float title_lang_curxy[2];
+/**
+ * Seeds the random number generator from the vertical sync count.
+ */
+static void title_init_rand();
+
+/**
+ * Applies the saved audio mode to the sound manager.
+ */
+static void SetSoundMode();
 
 // Code (.text)
-void title_init_rand() {
+static void title_init_rand() {
     srand(mgGetVSyncCount());
 }
-void SetSoundMode() {
+
+static void SetSoundMode() {
     CSaveData *save = GetSaveData();
     if (save != NULL) {
         SV_CONFIG_OPTION *config = &save->config;
@@ -45,30 +52,41 @@ void SetSoundMode() {
     }
 }
 
-void InitTitleOmakeFlag(void) {
+/**
+ * Resets the title and main-loop extras flags.
+ */
+static void InitTitleOmakeFlag() {
     TitleOmakeFlag = 0;
     OmakeFlag = 0;
 }
-void TitleOmakeOn(void) {
+
+/**
+ * Records that a title extra has started.
+ */
+static void TitleOmakeOn() {
     TitleOmakeFlag = 1;
 }
-int CheckOmakeFlag(void) {
+
+int CheckOmakeFlag() {
     return TitleOmakeFlag;
 }
+
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/title", InitOmakeEnv__FiP13INIT_LOOP_ARGPi);
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/title", TitleInit__F13INIT_LOOP_ARG);
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/title", TitleBootInit__Fv);
+
 void TitleExit() {
     if (CheckOmakeFlag() != 0) {
         OmakeFlag = 1;
     }
-    printf(at_1267, OmakeFlag);
+    printf("OMAKE : %d\n", OmakeFlag);
     sndSeAllStop(-1);
-    GamePad__2.AutoRepeatOff();
-    GamePad__2.MenuModeOff();
+    GamePad.AutoRepeatOff();
+    GamePad.MenuModeOff();
     mgFrameRate = 2;
     mgCloseFont();
 }
+
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/title", TitleLoop__Fv);
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/title", TitleDraw__Fv);
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/title", InitRushMovie__Fi);
@@ -81,16 +99,25 @@ INCLUDE_ASM("ps2/asm/pal/nonmatchings/title", TitleMapDraw__Fv);
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/title", CalcPushAlpha__FiPf);
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/title", TitleMCCheckInit__Fi);
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/title", TitleMCCheckKey__Fv);
-void TitleMCCheckDraw(void) {
+
+/**
+ * Updates and draws the memory-card check message.
+ */
+static void TitleMCCheckDraw() {
     if (TitleMCCheckMes != NULL) {
         mgTexManager.ReloadTexture(0x46, (sceVif1Packet *)NULL);
         TitleMCCheckMes->Step();
         TitleMCCheckMes->DrawMesWin();
     }
 }
-s32 DCTitleStep(s32 phase) {
+
+/**
+ * Returns the inactive title-step result.
+ */
+static s32 DCTitleStep(s32 phase) {
     return 0;
 }
+
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/title", TitleCopyRightInit__Fv);
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/title", TitleCopyRightStep__Fv);
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/title", TitleCopyRightDraw__Fv);
@@ -98,46 +125,53 @@ INCLUDE_ASM("ps2/asm/pal/nonmatchings/title", TitleHDDInstallInit__Fv);
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/title", TitleHDDInstallKey__Fv);
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/title", DrawMenuDl__Fiiiif);
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/title", TitleHDDInstallDraw__Fv);
-int CheckAppInstallForTitle(void) {
-    if (GetMainFileDev() == 3) {
+
+/**
+ * Checks whether the title is using an installed copy.
+ */
+static int CheckAppInstallForTitle() {
+    if (GetMainFileDev() == FILE_DEV_HDD) {
         return 1;
     }
     return CheckAppInstall();
 }
+
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/title", CheckHDDInstall__Fv);
-void TitleLangSelInit(mgCMemory *memory) {
+
+void TitleLangSelInit(mgCMemory *stack) {
     int file_size;
     u8 *buffer;
 
-    GamePad__2.SetAutoRepeat(0x5000, 0xF, 4);
-    GamePad__2.MenuModeOn(0x78);
+    GamePad.SetAutoRepeat(PAD_UP | PAD_DOWN, 15, 4);
+    GamePad.MenuModeOn(0x78);
     title_lang_select = 0;
     mgFrameRate = 1;
-    buffer = (u8 *)(memory->stack + memory->stack_used);
-    LoadFile2(at_2723, buffer, &file_size, 0);
-    memory->Alloc(file_size / 16 + 1);
+    buffer = (u8 *)stack->stGetTop();
+    LoadFile2("title/lang_select.img", buffer, &file_size, 0);
+    stack->Alloc(file_size / 16 + 1);
     mgTexManager.EnterIMGFile(buffer, 1, NULL, NULL);
-    lang_tex = mgTexManager.GetTexture(at_2724, -1);
+    lang_tex = mgTexManager.GetTexture("lang_select", -1);
     title_lang_phase = 0;
     title_lang_curxy[0] = 100.0f;
     title_lang_fadealpha = 0x80;
     title_lang_curxy[1] = 100.0f;
     title_lang_cursor_cnt = 0;
 }
-int TitleLangSelKey(void) {
+
+int TitleLangSelKey() {
     switch (title_lang_phase) {
-        case 0:
+        case TITLE_LANG_FADE_IN:
             title_lang_fadealpha -= 6;
             if (title_lang_fadealpha <= 0) {
                 title_lang_fadealpha = 0;
                 title_lang_phase += 1;
             }
             break;
-        case 1:
-            if (GamePad__2.Down(PAD_UP) != 0) {
+        case TITLE_LANG_SELECT:
+            if (GamePad.Down(PAD_UP) != 0) {
                 title_lang_select -= 1;
             }
-            if (GamePad__2.Down(PAD_DOWN) != 0) {
+            if (GamePad.Down(PAD_DOWN) != 0) {
                 title_lang_select += 1;
             }
             if (title_lang_select < 0) {
@@ -146,28 +180,33 @@ int TitleLangSelKey(void) {
             if (title_lang_select > 4) {
                 title_lang_select = 0;
             }
-            if (GamePad__2.Down(0x40) != 0) {
+            if (GamePad.Down(PAD_CROSS) != 0) {
                 title_lang_phase += 1;
             }
             break;
-        case 2:
+        case TITLE_LANG_FADE_OUT:
             title_lang_fadealpha += 6;
             if (title_lang_fadealpha >= 0x80) {
                 title_lang_fadealpha = 0x80;
                 mgTexManager.DeleteBlock(0);
                 mgFrameRate = 2;
-                lang_tex = 0;
-                GamePad__2.AutoRepeatOff();
-                GamePad__2.MenuModeOff();
+                lang_tex = NULL;
+                GamePad.AutoRepeatOff();
+                GamePad.MenuModeOff();
                 return title_lang_select + 1;
             }
             break;
     }
     return 0;
 }
-int GetSelectLanguageNo(void) {
+
+/**
+ * Returns the selected language number.
+ */
+static int GetSelectLanguageNo() {
     return title_lang_select + 1;
 }
+
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/title", TitleLangSelDraw__Fv);
 
 // Static initialiser (.init)
