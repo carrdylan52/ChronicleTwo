@@ -6,8 +6,7 @@
 #include <cmath>
 #include <cstdlib>
 
-
-int Check_Point_Poly3(float x, float y, float x0, float y0, float x1, float y1, float x2, float y2);
+static int Check_Point_Poly3(float x, float y, float x0, float y0, float x1, float y1, float x2, float y2);
 
 // Code (.text)
 void mgFotI4(int *out, float *in) {
@@ -278,37 +277,43 @@ float mgDistPlanePoint(float *normal, float *on_plane, float *point) {
     sceVu0SubVector(offset, point, on_plane);
     return sceVu0InnerProduct(normal, offset);
 }
+
 float mgDistLinePoint(float *point, float *start, float *end, float *nearest) {
-    float to_start[4];
-    float to_end[4];
-    float offset[4];
-    float foot[4];
-    float along[4];
-    float line_length;
+    sceVu0FVECTOR to_start;
+    sceVu0FVECTOR to_end;
+    sceVu0FVECTOR along;
+    sceVu0FVECTOR segment;
+    float         length;
     float         t;
-    float dist_start;
-    float dist_end;
+    float         start_distance;
+    float         end_distance;
+
     sceVu0SubVector(to_start, start, point);
     sceVu0SubVector(to_end, end, point);
-    sceVu0SubVector(along, to_end, to_start);
-    line_length = mgDistVector(along);
-    line_length = line_length * line_length;
-    t = -sceVu0InnerProduct(to_start, along) / line_length;
+    sceVu0SubVector(segment, to_end, to_start);
+    length = mgDistVector(segment);
+    length = length * length;
+    t = -sceVu0InnerProduct(to_start, segment) / length;
+
     if (t < 0.0f || !(t <= 1.0f)) {
-        dist_start = mgDistVector(point, start);
-        dist_end = mgDistVector(point, end);
-        if (dist_start < dist_end) {
+        start_distance = mgDistVector(point, start);
+        end_distance = mgDistVector(point, end);
+
+        if (start_distance < end_distance) {
             sceVu0CopyVector(nearest, start);
-            return dist_start;
+            return start_distance;
         }
+
         sceVu0CopyVector(nearest, end);
-        return dist_end;
+        return end_distance;
     }
-    sceVu0ScaleVector(foot, along, t);
-    sceVu0AddVector(foot, to_start, foot);
-    sceVu0AddVector(nearest, foot, point);
-    return mgDistVector(foot);
+
+    sceVu0ScaleVector(along, segment, t);
+    sceVu0AddVector(along, to_start, along);
+    sceVu0AddVector(nearest, along, point);
+    return mgDistVector(along);
 }
+
 float mgReflectionPlane(float *normal, float *on_plane, float *point, float *reflection) {
     sceVu0FVECTOR step;
     float         distance;
@@ -319,49 +324,55 @@ float mgReflectionPlane(float *normal, float *on_plane, float *point, float *ref
     sceVu0SubVector(reflection, reflection, step);
     return distance;
 }
+
 int mgIntersectionSphereLine0(float radius, float *from, float *to, float (*hits)[4]) {
-    float delta[4];
-    float scaled[4];
+    sceVu0FVECTOR line;
+    sceVu0FVECTOR offset;
     float         a;
     float         b;
-    float c;
+    float         c;
     float         discriminant;
     float         root;
-    float t1;
-    float t2;
+    float         near_t;
+    float         far_t;
     int           count;
 
     // Solves |from + line * t|^2 = radius^2 for t within the segment.
-    sceVu0SubVector(delta, to, from);
-    a = mgDistVector2(delta);
-    b = sceVu0InnerProduct(delta, from);
+    sceVu0SubVector(line, to, from);
+    a = mgDistVector2(line);
+    b = sceVu0InnerProduct(line, from);
     c = mgDistVector2(from) - radius * radius;
     discriminant = b * b - a * c;
+
     if (discriminant < 0.0f) {
         return 0;
     }
+
     root = sqrtf(discriminant);
     count = 0;
-    t1 = (-b - root) / a;
-    t2 = (-b + root) / a;
-    if (!(t1 < 0.0f) && t1 <= 1.0f) {
-        sceVu0ScaleVector(scaled, delta, t1);
-        sceVu0AddVector(hits[0], from, scaled);
+    near_t = (-b - root) / a;
+    far_t = (-b + root) / a;
+
+    if (!(near_t < 0.0f) && near_t <= 1.0f) {
+        sceVu0ScaleVector(offset, line, near_t);
+        sceVu0AddVector(hits[0], from, offset);
         count++;
     }
+
     // A grazing line touches the sphere once.
     if (discriminant == 0.0f) {
         return 1;
     }
-    if (!(t2 < 0.0f)) {
-        if (t2 <= 1.0f) {
-            sceVu0ScaleVector(scaled, delta, t2);
-            sceVu0AddVector(hits[count], from, scaled);
+
+    if (!(far_t < 0.0f) && far_t <= 1.0f) {
+        sceVu0ScaleVector(offset, line, far_t);
+        sceVu0AddVector(hits[count], from, offset);
         count++;
     }
-    }
+
     return count;
 }
+
 int mgIntersectionSphereLine(float *sphere, float *from, float *to, float (*hits)[4]) {
     sceVu0FVECTOR local_from;
     sceVu0FVECTOR local_to;
@@ -446,7 +457,7 @@ int mgCheckPointPoly3_XZ(float *point, float *v0, float *v1, float *v2) {
 /**
  * Returns where a 2D point lies relative to a 2D triangle, as an mgPointPoly3Result.
  */
-int Check_Point_Poly3(float x, float y, float x0, float y0, float x1, float y1, float x2, float y2) {
+s32 Check_Point_Poly3(float x, float y, float x0, float y0, float x1, float y1, float x2, float y2) {
     float edge_20;
     float edge_12;
     float edge_01;
@@ -495,7 +506,6 @@ int Check_Point_Poly3(float x, float y, float x0, float y0, float x1, float y1, 
     }
     return MG_POINT_POLY3_OUTSIDE;
 }
-
 float mgDistVector(float *vector) {
     asm {
         lqc2 $vf4, 0x0($4)
@@ -797,12 +807,14 @@ void mgRotMatrixXYZ(float (*matrix)[4], float *rotation) {
     mgRotMatrixZ(matrix, rotation[2]);
     MulMatrix3(matrix, rotate_y, rotate_x);
 }
+
 void mgCreateMatrixPY(float (*matrix)[4], float *position, float angle_y) {
     mgUnitMatrix(matrix);
     sceVu0RotMatrixY(matrix, matrix, angle_y);
     *(u_long128 *)matrix[3] = *(u_long128 *)position;
     matrix[3][3] = 1.0f;
 }
+
 void mgLookAtMatrixZ(float (*matrix)[4], float *direction) {
     sceVu0FMATRIX pitch;
     sceVu0FMATRIX yaw;
@@ -837,65 +849,67 @@ void mgLookAtMatrixZ(float (*matrix)[4], float *direction) {
     pitch[1][2] = -unit[1];
     mgMulMatrix(matrix, yaw, pitch);
 }
-#pragma optimization_level 3
+
 void mgShadowMatrix(float (*matrix)[4], float *light_direction, float *on_plane, float *plane_normal) {
-    float light_dir[4];
-    float plane_point[4];
-    float normal_copy[4];
-    float dot;
-    float facing;
+    sceVu0FVECTOR light;
+    sceVu0FVECTOR point;
+    sceVu0FVECTOR normal;
+    float         height;
+    float         along;
     float         nx;
-    float inv_dot;
-    float ly;
-    float         ny;
-    float lx;
-    float lz;
     float         scale;
+    float         ly;
+    float         ny;
+    float         lx;
+    float         lz;
+    float         factor;
     float         nz;
-    light_dir[0] = light_direction[0];
-    light_dir[1] = light_direction[1];
-    light_dir[2] = light_direction[2];
-    light_dir[3] = 0.0f;
-    sceVu0CopyVector(plane_point, on_plane);
-    sceVu0CopyVector(normal_copy, plane_normal);
-    dot = sceVu0InnerProduct(normal_copy, plane_point);
+
+    light[0] = light_direction[0];
+    light[1] = light_direction[1];
+    light[2] = light_direction[2];
+    light[3] = 0.0f;
+    sceVu0CopyVector(point, on_plane);
+    sceVu0CopyVector(normal, plane_normal);
+    height = sceVu0InnerProduct(normal, point);
+
     // A plane through the origin cannot be scaled to n.x = 1, so it is moved slightly first.
-    if (dot == 0.0f) {
-        plane_point[0] -= 0.1f * normal_copy[0];
-        plane_point[1] -= 0.1f * normal_copy[1];
-        plane_point[2] -= 0.1f * normal_copy[2];
-        dot = sceVu0InnerProduct(normal_copy, plane_point);
+    if (height == 0.0f) {
+        point[0] = point[0] - 0.1f * normal[0];
+        point[1] -= 0.1f * normal[1];
+        point[2] -= 0.1f * normal[2];
+        height = sceVu0InnerProduct(normal, point);
     }
-    inv_dot = 1.0f / dot;
-    nx = normal_copy[0] * inv_dot;
-    ny = normal_copy[1] * inv_dot;
-    nz = normal_copy[2] * inv_dot;
-    sceVu0Normalize(light_dir, light_dir);
-    lx = light_dir[0];
-    ly = light_dir[1];
-    lz = light_dir[2];
-    facing = nx * lx + ny * ly + nz * lz;
-    scale = -1.0f / facing;
-    matrix[0][0] = scale * (nx * lx - facing);
-    matrix[1][0] = scale * (ny * lx);
-    matrix[2][0] = scale * (nz * lx);
-    matrix[3][0] = scale * -lx;
-    matrix[0][1] = scale * (nx * ly);
-    matrix[1][1] = scale * (ny * ly - facing);
-    matrix[2][1] = scale * (nz * ly);
-    matrix[3][1] = scale * -ly;
-    matrix[0][2] = scale * (nx * lz);
-    matrix[1][2] = scale * (ny * lz);
-    matrix[2][2] = scale * (nz * lz - facing);
-    matrix[3][2] = scale * -lz;
+
+    scale = 1.0f / height;
+    nx = normal[0] * scale;
+    ny = normal[1] * scale;
+    nz = normal[2] * scale;
+    sceVu0Normalize(light, light);
+    lx = light[0];
+    ly = light[1];
+    lz = light[2];
+    along = nx * lx + ny * ly + nz * lz;
+    factor = -1.0f / along;
+
+    matrix[0][0] = factor * (nx * lx - along);
+    matrix[1][0] = factor * (ny * lx);
+    matrix[2][0] = factor * (nz * lx);
+    matrix[3][0] = factor * -lx;
+    matrix[0][1] = factor * (nx * ly);
+    matrix[1][1] = factor * (ny * ly - along);
+    matrix[2][1] = factor * (nz * ly);
+    matrix[3][1] = factor * -ly;
+    matrix[0][2] = factor * (nx * lz);
+    matrix[1][2] = factor * (ny * lz);
+    matrix[2][2] = factor * (nz * lz - along);
+    matrix[3][2] = factor * -lz;
     matrix[0][3] = 0.0f;
     matrix[1][3] = 0.0f;
     matrix[2][3] = 0.0f;
-    matrix[3][3] = scale * -facing;
+    matrix[3][3] = factor * -along;
 }
-#pragma optimization_level reset
-#pragma schedule off
-#pragma global_optimizer off
+
 void mgApplyMatrixN(float (*out)[4], float (*matrix)[4], float (*in)[4], int count) {
     // The next input is loaded ahead of each store, so one vector past the run is read.
     asm {
@@ -922,9 +936,7 @@ void mgApplyMatrixN(float (*out)[4], float (*matrix)[4], float (*in)[4], int cou
         .set reorder
     }
 }
-#pragma global_optimizer reset
-#pragma schedule reset
-#pragma global_optimizer off
+
 void mgApplyMatrixN_MaxMin(float (*out)[4], float (*matrix)[4], float (*in)[4], int count, float *max,
                            float *min) {
     // The first vector seeds both bounds; the next input is loaded ahead of each store.
@@ -966,10 +978,9 @@ void mgApplyMatrixN_MaxMin(float (*out)[4], float (*matrix)[4], float (*in)[4], 
         sqc2 vf21, 0(min)
     }
 }
-#pragma global_optimizer reset
-#pragma global_optimizer off
+
 void mgVectorMinMaxN(float *max, float *min, float (*vectors)[4], int count) {
-    // The first vector seeds both bounds and the count following it are folded in.
+    // The second vector is folded twice; the final preload does not enter the bounds.
     asm {
         .set noreorder
         addi count, count, -1
@@ -997,7 +1008,7 @@ void mgVectorMinMaxN(float *max, float *min, float (*vectors)[4], int count) {
         sqc2 vf11, 0(min)
     }
 }
-#pragma global_optimizer reset
+
 void mgApplyMatrix(float *max, float *min, float (*matrix)[4], float *box_max, float *box_min) {
     sceVu0FVECTOR corners[8];
 

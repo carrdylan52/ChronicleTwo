@@ -7,7 +7,7 @@ helpers in `chronicle/ps2/include/mathutil.hpp` / `src/mathutil.cpp` (`VectorMax
 `vmax`/`vmini`, `ctc2`/`cfc2` on the status flag) rather than C.
 
 ## Types used
-- `mgVu0FBOX` is owned by `mg_drawenv` (header not written yet); forward-declared here. Layout seen
+- `mgVu0FBOX` is owned by `mg_drawenv` (declared in `mg_drawenv.hpp`); forward-declared here. Layout seen
   from this unit and its callers: two quadwords, **max corner at 0x00, min corner at 0x10**
   (mgBoxMaxMin stores vmax to +0, vmini to +0x10; mgApplyMatrix callers in mapparts pass
   `box, box+0x10` as `max, min`; mgInsideScreen passes `box, box+0x10` to mgCreateBox8(max, min)).
@@ -25,8 +25,8 @@ helpers in `chronicle/ps2/include/mathutil.hpp` / `src/mathutil.cpp` (`VectorMax
 - `sin_table_unit_1` (.sdata 0x37C704, float): set to 0x4322F983 = 162.97466 = 1024 / (2*pi);
   mgSinf multiplies the angle by it.
 - `SinTable` (.bss 0x395EC0, 0x1000 = float[1024]): sin(2*pi*i/1024).
-- First game had all three as file `static`; ELF binding for this game is not available in the
-  tree, so they are declared `extern` per the brief. If retail turns out local, drop the externs.
+- The header declares `sin_table_num`, `sin_table_unit_1` and `SinTable` as extern. Their
+  reconstructed names are absent from the retail symbol-binding table.
 
 ## Function details (for the body writer)
 - Sizes in the header are retail symbol sizes (main.symbols.txt), not the padded manifest sizes.
@@ -63,8 +63,9 @@ helpers in `chronicle/ps2/include/mathutil.hpp` / `src/mathutil.cpp` (`VectorMax
 - mgShadowMatrix(m, light_dir, on_plane, normal): light_dir xyz with w=0, normalised; if
   normal . on_plane == 0, on_plane -= normal*0.1 first; builds planar projection along light.
 - mgApplyMatrixN(out, m, in, n): n vectors. mgApplyMatrixN_MaxMin: same plus vmax/vmini bounds.
-- mgVectorMinMaxN(max, min, v, n): seeds with v[0] and loops n times comparing v[1]..v[n] (reads
-  n+1 vectors); callers in mg_visual/visualmotion should be checked for the count they pass.
+- mgVectorMinMaxN(max, min, v, n): for n >= 2, bounds include v[0] through v[n-1], with v[1]
+  folded twice. The final preload reads v[n] without folding it. Counts <= 1 still execute the
+  loop and access v[1]; callers require a readable preload beyond the bounded vectors.
 - mgApplyMatrix(max, min, m, box_max, box_min) = CreateBox8 + ApplyMatrixN_MaxMin(.., 8, ..)
   in a 0x80-byte stack buffer.
 - mgAngleCmp(a, b, tol): d = a-b wrapped to (-pi, pi]; 0 if d == 0; 1 if d > tol; -1 if d < -tol.
@@ -74,30 +75,23 @@ helpers in `chronicle/ps2/include/mathutil.hpp` / `src/mathutil.cpp` (`VectorMax
   mgCosf: mgSinf(a + pi/2) (tail call).
 
 ## Unresolved
-- Retail ELF binding (global vs local) of MulMatrix3, Check_Point_Poly3, mgDistPlanePoint,
-  mgIntersectionSphereLine0, mgRotMatrixX/Z, mgApplyMatrixN_MaxMin (only called within this unit)
-  could not be checked; all are declared in the header.
 - Clip functions could return `bool` instead of `int`; codegen (sltiu) is the same either way.
 
 ## Job mg_math.1 (first 50 functions)
 - Binding (local_symbols.tsv): `MulMatrix3` and `Check_Point_Poly3` are file-local -> `static` in
   the .cpp, removed from the header (Check_Point_Poly3 has a static prototype at the top because
   mgCheckPointPoly3_XZ precedes it). `sin_table_num`, `sin_table_unit_1`, `SinTable` are not
-  listed, so they are global: the header's externs are right.
-- Correction: mgVectorMinMaxN reads only `count` vectors. It seeds with v[0], preloads v[1], but the
-  loop advances the pointer before reloading, so v[1] is folded twice and the last folded is
-  v[count-1].
+  found under those reconstructed names in the retail binding table; the header declares them extern.
+- mgVectorMinMaxN seeds bounds with v[0], preloads v[1] and folds v[1] twice. For count >= 2,
+  the last folded vector is v[count-1]; the final unused preload reads v[count].
 - VU0 functions are written as `asm { }` blocks on the raw argument registers ($4..$9), in the
   style of the first game's chararead/bound; they match byte-for-byte and are promoted. Float ones
   return through `mtc1 $2, $f0` with no C return (MWCC warns "return value expected").
   Clip functions read the status into a `register int` and return
   `(status & MG_VU0_STATUS_SIGN_STICKY) == 0` (new enum `mgVu0Status`); this matches.
-- Loop asm (mgApplyMatrixN, _MaxMin, mgVectorMinMaxN; retail marks them "handwritten"): the
-  asm block assembler fills the `bgez` delay slot itself (moves the `lqc2` into it), so the
-  drafts differ; they need the delay-slot instruction kept explicitly (noreorder-style).
-- Remaining DIFFs are logic-faithful: mgDistLinePoint, mgIntersectionSphereLine0, Check_Point_Poly3
-  (scheduling / comparison form); mgCreateMatrixPY copies the position as one quadword in retail
-  (`lq`/`sq`) then sets w = 1; mgShadowMatrix (expression order).
+- Three pipelined VU loops (`mgApplyMatrixN`, `mgApplyMatrixN_MaxMin`, `mgVectorMinMaxN`)
+  use their retail instruction sequences in asm blocks. Together with the 30 existing VU blocks,
+  all 60 functions compile and match. No optimization or scheduling pragma is present.
 - mgShadowMatrix: the plane normal is scaled by 1 / (normal . point) so the plane is n.x = 1;
   with l the normalised light and d = n.l, m[i][j] = -(n_i l_j - [i==j] d) / d, row 3 = l / d,
   m[3][3] = 1, column 3 rows 0-2 = 0.
@@ -112,8 +106,10 @@ helpers in `chronicle/ps2/include/mathutil.hpp` / `src/mathutil.cpp` (`VectorMax
   version truncated twice.
 - mgCosf is `mgSinf(1.5707964f + angle)` (tail jump). `sin_table_unit_1 = 162.97466f` gives
   retail's 0x4322F983.
-- Job mg_math.1 result corrected: its 30 VU0 `asm { }` functions are recorded as `asm`.
+- The 30 original VU0 `asm { }` function bodies are compiled source and recorded as perfect.
 
-## Current guarded drafts
+## Current source coverage
 
-The seven remaining `INCLUDE_ASM` functions all have C++ drafts behind `NONMATCHING`. `mgApplyMatrixN`, `mgApplyMatrixN_MaxMin`, and `mgVectorMinMaxN` now use typed C++ loops instead of inline assembly in their guarded branches. The loops apply matrices to each vector and update four-component bounds; the default build continues to use retail assembly. Prior isolated promotion attempts for all seven functions are recorded in `scripts/re/promotion_attempts.tsv`, so a later source refinement does not create a second promotion attempt under the one-attempt rule.
+All 60 functions have compiled source bodies and match retail. Thirty asm blocks have the same
+instructions and text as upstream; three pipelined-loop blocks have no upstream block.
+`Check_Point_Poly3` uses upstream's already matched normal definition and has static linkage.
