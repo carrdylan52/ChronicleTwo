@@ -2,12 +2,13 @@
 
 Unit range `0x252CF0`-`0x2576F0`, 129 functions. `class_units.tsv` lists **no class owned by this
 unit**. The header (`ps2/include/menucommon.hpp`) holds the 37 global functions, two structs, one
-enum and the three global data symbols. The other 92 functions are LOCAL in retail
-(`build/re/local_symbols.tsv`) and must be `static` in `menucommon.cpp`.
+enum and the three global data symbols. 92 functions are LOCAL in retail; 88 have compiled static definitions and four
+remain assembly. The keyword-value lookup helper is GLOBAL in retail and is also
+called by `dngfloor`.
 
 ## Local (static) functions
 `ReCalcBox`, `CompGameData`, `SeitonItemBoardSub`, every `_MENU_*`, `_ETCINFO*`, `_CLIP_WH`,
-`menu_texdata_to_formpart_copy`, `menu_spi_analyze_func_strcut1`, `menu_dtype_init`,
+`menu_texdata_to_formpart_copy`, `menu_dtype_init`,
 `MakePartsName`. All `_X(SPI_STACK *stack, int argc)` are `SPI_TAG_FUNCTION`s (scriptinterpreter.hpp)
 returning `int` (1 = handled; a few return 0 on failure, e.g. `_MENU_FORM_SET`, `_MENU_TEXDATA`).
 `ReCalcBox(mgVu0FBOX *out, mgVu0FBOX box)`: out = box re-centred on its own centre; w of both
@@ -43,10 +44,10 @@ corners set to 1.0.
   >=4 -> v-2; null -> -1.
 - `MenuCalcBufAlignment`: same as the first game's (u_long128* rounded up to 64). Retail mangles
   `u_long128*` as `P1`.
-- `LoadFileMenu(char*, u_long128*, int mode)`: path = `at_1173` + `langdirpathTable_1161[LanguageCode]`
+- `LoadFileMenu(char*, u_long128*, int mode)`: path = `"menu/"` + `language_dirs[LanguageCode]`
   + name; mode 0 -> `LoadFileBG(path, buf, &size)`, 1 -> `LoadFile2(path, buf, &size, 0)`; returns
   size, -1 for null args. Callers pass only 0 or 1 (enum `MenuFileLoadMode`).
-  `langdirpathTable_1161` = { "0/","1/","2/","3/","4/","5/","1/",NULL } (function-local static).
+  `language_dirs` = { "0/","1/","2/","3/","4/","5/","1/",NULL } (function-local static).
 - `MenuCommonReadData(stack, names, mode)`: `StartReadBG`; for each name until NULL loads into
   `stack->buffer + stack->pos*16` (+0x20/+0x24 of mgCMemory), `Alloc((size+15)/16)`, `Align64`.
   Returns total bytes. `mode` is passed on to LoadFileMenu in $a2.
@@ -74,7 +75,8 @@ corners set to 1.0.
 - `MENU_SPI_ANALYZE_STRUCT1` (retail name, from the mangled `menu_spi_analyze_func_strcut1`): 8 bytes
   `{char *name; int value;}`, from `menu_spi_analyze_func_strcut1` (stride 8, name at +0, value at
   +4, NULL-name terminator). Tables: `tbl_1728`, `tbl_1994`, `tbl_2060`, `tbl_2074`, `tbl_2090`,
-  `tbl_2144`, `tbl_2369`, `tbl_2422`, `tbl_2516` (function-local statics).
+  `tbl_2144`, `tbl_2369`, `tbl_2422`, `tbl_2516`. Every table used by compiled
+  handlers is a function-local array; `tbl_2090` belongs to the assembly fill-box handler.
 - `MENU_COMMAND_ANALYZE_INFO` (**not a retail name**; retail gives only the variable name). Size
   0x68 from the symbol size. +0x00 char[0x48] command name (strcpy/strcmp in MenuCommandAnalyze /
   `_MENU_EXE_COMMAND_NAME`); +0x48 short*[4] (`_MENU_EXE_MSGSETSYSTEMBUFF` indexes it, falls back to
@@ -90,8 +92,10 @@ CAquarium::Initialize, cleared in MenuMainInit, tested in MenuMainExit), `MenuSp
 Local (keep static in .cpp):
 - `sort_table` char[0x24] (kind -> sort order; [0] = 0x24), `sort_top_type` s16 (.sdata).
 - `SndPortVol_Ob/_Base/_Event/_Env` float, `SndPortCheck_EventPort` int.
-- `MenuTexPosNo`, `MenuTexPosNo_local`, `menu_analyze_texblock`, `Menu_Target_No`,
-  `Menu_Target_No_local`, `menu_analyze_formno`, `menu_analyze_formno_offset`: 16-bit (symbol size 2).
+- `MenuTexPosNo` and `MenuTexPosNo_local` are unsigned 16-bit values.
+  `Menu_Target_No`, `Menu_Target_No_local`, `menu_analyze_texblock`, `menu_analyze_formno`
+  and `menu_analyze_formno_offset` are signed 16-bit values; integer-information indexing
+  uses signed halfword loads.
 - `menu_formPt` CMenuPosDataForm*; `menu_form_part` MENUFORMPARTS_TYPE*; `menu_parts_effect_ptr`
   (stride 0x24, probably MENU_PARTS_EFFECT_STRUCT1*); `menu_form_partsno` int;
   `menu_spi_form_action_info` pointer (alloc'd from MenuSpiStack, stored at CMenuPosDataForm+0x64,
@@ -117,3 +121,12 @@ Local (keep static in .cpp):
 No direct counterpart unit. `MenuCalcBufAlignment` matches the first game's
 (`menu_draw.hpp`), and `LoadFileMenu` replaces the first game's `LoadFileBGMenuData`/
 `LoadFileMenuData` pair with one function taking a mode.
+
+## Compiled coverage
+
+121 of the 129 functions are objdiff-perfect, with eight supplied by assembly.
+The layout and execution tag arrays contain 60 and 32 entries, including their
+terminators, and retain the retail row order. Keyword arrays use the retail strings
+and values through their first null-name entry. All 88 compiled retail-local
+functions have static linkage. The source uses the declared texture-block array,
+form-part array, keyword records and scene fade member.

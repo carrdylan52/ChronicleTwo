@@ -43,6 +43,13 @@ struct MENU_SPI_ANALYZE_STRUCT1 {
 
 STATIC_ASSERT(sizeof(MENU_SPI_ANALYZE_STRUCT1) == 0x8);
 
+/**
+ * Gives the value associated with a keyword, or -1 when it is absent.
+ *
+ * @mangled menu_spi_analyze_func_strcut1__FP24MENU_SPI_ANALYZE_STRUCT1Pc
+ * @address 0x254C20
+ * @size 0x80
+ */
 int menu_spi_analyze_func_strcut1(MENU_SPI_ANALYZE_STRUCT1 *table, char *name);
 
 /**
