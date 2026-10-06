@@ -63,13 +63,11 @@ names (frame_basic, effect00, beffect_00, potbeam, water_ref, fire, bteffe_4ex .
   (u,v) = (0x40,0) for 0, (0,0) for 1, (0,0x20) otherwise. SetupMainUnit passes 0, 1, 2.
 
 ## Unresolved
-- Meaning of `battle_info->[0]` values 0..3 (active character / mode), of `type` in
-  calcWeaponParam2 and AddExpWeaponParam, and of the col_prim byte at `[+8]+0x18`; enums left for
-  the body pass once userdata/colprim headers name them.
+- The active character field uses `USER_CHARA_MAX`, `USER_CHARA_MONICA`, `USER_CHARA_ROBO`, and `USER_CHARA_MONSTER`. The weapon-kind values in `AddExpWeaponParam` and `calcWeaponParam2`, and the collision byte at `[+8]+0x18`, have no shared enum here.
 
 ## C++ draft pass
 
-All seven remaining functions have typed C++ drafts under `NONMATCHING`. The
+All seven functions have exact, compiled C++ bodies. The
 texture loader follows the m2c call order and uses the existing `mgCMemory`,
 `mgCTextureManager`, `CScene`, and `CFadeInOut` interfaces. The wear and damage
 functions use the typed `CBattleCharaInfo`, `CActiveMonster`, and `CColPrim`
@@ -78,7 +76,4 @@ resolve its nine-entry switch table; table entries 1, 2, 3, 4, and 8 are the
 only non-default entries. The sword trail object is stored in
 `CCharacter2::sword_effect[0]`.
 
-`GetTextureInfo` matched byte for byte and passed isolated whole-image
-promotion. The other six drafts compiled but differed on their first
-promotion attempts and remain behind `NONMATCHING`. The default linked image
-remained byte-identical after the promotion.
+The draft comparison prints seven matches and no differences. The normal linked image equals retail in all eleven loaded sections.
