@@ -1,3 +1,5 @@
+#include "common.h"
+#include "menumain.hpp"
 #include "charasetup.hpp"
 #include "dynamicanime.hpp"
 #include "sound.hpp"
@@ -29,130 +31,173 @@
 #include "menucommon.hpp"
 #include "menudraw.hpp"
 #include "menusys.hpp"
-#include "common.h"
-#include "menumain.hpp"
+#include "inventmn.hpp"
+#include "menuaqua.hpp"
+#include "menumap.hpp"
+#include "menucapt.hpp"
+#include "nameregi.hpp"
+#include "nowload.hpp"
+#include "event_func.hpp"
+#include "sce/libvu0.h"
 
-extern "C" int
-EnterIMGFile__17mgCTextureManagerFPUciP9mgCMemoryP15mgCEnterIMGInfo(mgCTextureManager *, u8 *, int,
-                                                                    mgCMemory *, mgCEnterIMGInfo *);
+static void MenuWorldTrans();
+static void MenuPolygonSetEnv();
+static void MenuPolygonEnvReset();
+static void MenuDebugModeDraw();
+static short CheckEventDay(int *day);
+static void MakeMenuTopic();
+static int MenuInternSelectKey();
+static void MenuInternSelectDraw();
 
-extern "C" void *__ct__9CMenuFontFv(void *font);
-extern "C" void DrawDirect__5CFontFPcii(void *font, char *text, int x, int y);
-extern int MenuEtcSpecialCode;
-extern signed char MenuLoopType;
-extern mgCDrawPrim *MenuPrim;
-extern int CommonMenuModeID2[8];
-extern int (*menu_keyfunctbl[])(void);
-extern void (*menu_drawfunctbl[])(void);
-extern char workchr_1622[0x60];
-extern "C" void sceVu0UnitMatrix(float (*matrix)[4]);
-extern "C" void sceVu0MulMatrix(float (*out)[4], float (*left)[4], float (*right)[4]);
-extern "C" void GetPos__9mgCCameraFPf(mgCCamera *camera, float *pos);
-extern "C" void SetSpeed__9mgCCameraFff(mgCCamera *camera, float speed, float rate);
-extern "C" void SetNextRef__9mgCCameraFPf(mgCCamera *camera, float *ref);
-extern "C" void SetNextPos__9mgCCameraFPf(mgCCamera *camera, float *pos);
-extern "C" int GetStrWidth__6ClsMesFPc(CDC2Mes *mes, char *text);
-extern "C" int
-EnterIMGFile__17mgCTextureManagerFPUciP9mgCMemoryP15mgCEnterIMGInfo(mgCTextureManager *, u8 *, int,
-                                                                    mgCMemory *, mgCEnterIMGInfo *);
-int CheckItemTable(int itemNo, int *photos);
-void GetPhotoNameStr(int photoNo, char *name);
-void MenuPolygonSetEnv(void);
-void MenuPolygonEnvReset(void);
-int PauseEnable(int enable);
-void SetupUnitMan(CScene *scene, CUserDataManager *userData, int unit, ROBO_INFO_DATA *robo);
-void EdEventMenuExit(void);
-void MenuInventInit(mgCMemory *memory, int *args, int page);
-void MenuAquaInit(mgCMemory *memory, int *args, int page);
-void WorldMoveInit(mgCMemory *memory, int *args, int page);
-short CheckEventDay(int *day);
-void MenuWorldTrans(void);
-void MenuDebugModeDraw(void);
+static mgCMemory MenuMainStack;
 
-struct MenuKeyPageTable {
-    int next[2];
+static mgCMemory MenuMainStack_Next;
+
+static mgCDrawPrim MenuPrimFix;
+
+mgCMemory MenuMainTextureReadBuf;
+
+mgCMemory MenuSoundBuffer;
+
+static CMenuFont TopicFont;
+
+static int MenuEtcSpecialCode;
+
+static s8 MenuLoopType;
+
+static mgCDrawPrim *MenuPrim = &MenuPrimFix;
+
+static int CommonMenuModeID2[8];
+
+static CMenuInter *CMenuInterPt;
+
+static u8 MenuDoubleDrawCheck;
+
+static s16 MenuTopicAlphaCalc;
+
+static int old_light_menu;
+
+static float SndPortVol_Enemy;
+
+static sceVu0FVECTOR menu_old_chara_position;
+
+static sceVu0FVECTOR menu_old_chara_rotation;
+
+static int MenuBGMVolume_Save;
+
+static CMenuPosDataForm *MenuAreaBrdForm;
+
+static CMenuPosDataForm *MenuTimeBrdForm;
+
+static char *MenuAreaName;
+
+static s16 MenuTopicType;
+
+static int MenuTopicAlpha = 0x80;
+
+static s16 MenuTopicLength;
+
+static int TopicFontX;
+
+static int (*menu_keyfunctbl[30])() = {
+    MenuInternSelectKey,
+    MenuInternSelectKey,
+    MenuItemKey,
+    MenuGeoramaKey,
+    MenuCharaChangeKey,
+    MenuInventKey,
+    WorldMoveKey,
+    MenuOptionKey,
+    MenuManualKey,
+    NULL,
+    MenuMonsterBoxKey,
+    DngTreeMapKey,
+    MenuShopKey,
+    MenuSaveKey,
+    MenuSaveKey,
+    MenuItemSelectKey,
+    MenuInventKey,
+    MenuChapterKey,
+    MenuAquaKey,
+    MenuRemovalKey,
+    NameRegistKey,
+    MenuGyoraceFishSelKey,
+    MenuNPCQuestViewKey,
+    MenuCostumeKey,
+    KeyMainCharaBG,
+    GyoraceMenuKey,
+    SphidaMenuKey,
+    MonsterBookKey,
+    SubGameSaveKey,
+    SphidaScoreViewKey
 };
-struct AreaNameItems {
-    char *name[2];
+
+static void (*menu_drawfunctbl[30])() = {
+    MenuInternSelectDraw,
+    MenuInternSelectDraw,
+    MenuItemDraw,
+    MenuGeoramaDraw,
+    MenuCharaChangeDraw,
+    MenuInventDraw,
+    WorldMoveDraw,
+    MenuOptionDraw,
+    MenuManualDraw,
+    NULL,
+    MenuMonsterBoxDraw,
+    DngTreeMapDraw,
+    MenuShopDraw,
+    MenuSaveDraw,
+    MenuSaveDraw,
+    MenuItemSelectDraw,
+    MenuInventDraw,
+    MenuChapterDraw,
+    MenuAquaDraw,
+    MenuRemovalDraw,
+    NameRegistDraw,
+    MenuGyoraceFishSelDraw,
+    MenuNPCQuestViewDraw,
+    MenuCostumeDraw,
+    DrawMainCharaBG,
+    GyoraceMenuDraw,
+    SphidaMenuDraw,
+    MonsterBookDraw,
+    SubGameSaveDraw,
+    SphidaScoreViewDraw
 };
-struct BoardPosition {
-    int value[2];
+
+static sceVu0FVECTOR menu_basedgRef = {0.0f, 0.0f, -100.0f, 1.0f};
+
+static sceVu0FVECTOR menu_basedgCamPos = {0.0f, 0.0f, 100.0f, 1.0f};
+
+static int CommonMenuModeID[2][8] = {
+    2, 4, 5, 6, 7, 8, -1, 0, 2, 4, 5, 11, 7, 8, -1, 0
 };
-struct LanguageWidths {
-    int value[9];
-};
+
 struct MonsterTableEntry {
-    short nameNo;
-    short messageNo;
+    s16 name_no;    /**< Monster whose name the bookshelf shows. */
+    s16 message_no; /**< Item message shown with that monster. */
 };
 
-extern CMenuInter *CMenuInterPt;
-extern u8 MenuDoubleDrawCheck;
-extern short MenuTopicAlphaCalc;
-extern char at_1028__4[];
-extern char at_1630__3[12];
-extern char at_1635__2[12];
-extern char at_1640[12];
-extern int old_light_menu;
-extern mgCDrawPrim MenuPrimFix;
-extern float SndPortVol_Enemy;
-extern float menu_old_chara_position[4];
-extern float menu_old_chara_rotation[4];
-extern int MenuBGMVolume_Save;
-extern mgCMemory MenuMainStack;
-extern int (*menu_keyfunctbl[])(void);
-extern MenuKeyPageTable at_1514__4;
-extern signed char refresh_cnt_1523;
-extern signed char init_1524;
-extern char at_1598__2[];
-extern char at_1599__2[];
-extern u8 menu_basedgRef[16];
-extern u8 menu_basedgCamPos[16];
-extern char at_1624__3[9];
-extern char at_1625__3[0x15];
-extern char *menu_main_cfgname_1620[2];
-extern int CommonMenuModeID[2][8];
-extern char *acttbl_1682[2];
-extern CMenuPosDataForm *MenuAreaBrdForm;
-extern CMenuPosDataForm *MenuTimeBrdForm;
-extern AreaNameItems at_1697__2;
-extern BoardPosition at_1698__2;
-extern LanguageWidths at_1699__2;
-extern char *MenuAreaName;
-extern char at_1736__2[];
-extern char at_1737[];
-extern char at_1738[];
-extern char at_1739[];
-extern char at_1740[];
-extern char at_1741[];
-extern char at_1742[];
-extern short MenuTopicType;
-extern int MenuTopicAlpha;
-extern short MenuTopicLength;
-extern int TopicFontX;
-extern char *topic_tbl_1777[7][3];
-extern "C" char *GetMapName__6CSceneFi(CScene *scene, int index);
-extern CFont TopicFont;
-extern CGamePad GamePad__2;
-extern CDC2Mes *MenuDCMsg[9];
-extern MonsterTableEntry monster_table[];
-extern mgCMemory MenuMainStack_Next;
-extern char at_1956[];
-extern char at_1957[];
-extern char at_1958[];
-extern char at_2344[];
-extern char at_2345[];
-extern char at_2450[];
-extern char *filetbl_2141[];
-int ReadBGSync(void);
+static MonsterTableEntry monster_table[10] = {
+    {0, 269},
+    {220, 280},
+    {8, 318},
+    {0, 0},
+    {164, 211},
+    {72, 225},
+    {124, 234},
+    {44, 289},
+    {176, 276},
+    {236, 189}
+};
 
 // Code (.text)
-void MenuScreenBlackBeltSet(int enable) {
+void MenuScreenBlackBeltSet(s32 enable) {
 }
-int GetMenuLoopType(void) {
+int GetMenuLoopType() {
     return MenuLoopType;
 }
-int CheckTrushMenu(void) {
+int CheckTrushMenu() {
     short mode = MenuCommonInfo->open_type;
     if (mode == 0x10 || mode == 0x11) {
         return 1;
@@ -160,11 +205,11 @@ int CheckTrushMenu(void) {
     return 0;
 }
 CSaveDataDungeon *menu_GetSaveDataDungeon(void) {
-    CSaveData *saveData;
+    CSaveData *save_data;
 
-    saveData = GetSaveData();
-    if (saveData != NULL) {
-        return &saveData->save_dungeon;
+    save_data = GetSaveData();
+    if (save_data != NULL) {
+        return &save_data->save_dungeon;
     }
     return NULL;
 }
@@ -178,81 +223,81 @@ void *menu_GetBattleAreaScene(void) {
     return NULL;
 }
 CMenuSystemData *GetMenuSysData(void) {
-    CSaveData *saveData;
+    CSaveData *save_data;
 
-    saveData = GetSaveData();
-    if (saveData != NULL) {
-        return &saveData->menu_system_data;
+    save_data = GetSaveData();
+    if (save_data != NULL) {
+        return &save_data->menu_system_data;
     }
     return NULL;
 }
-int CheckBitFlagMenu(int flag) {
-    CSaveData *saveData;
+int CheckBitFlagMenu(int flag_no) {
+    CSaveData *save_data;
 
-    saveData = GetSaveData();
-    if (saveData != NULL) {
-        return saveData->GetBitFlag(flag);
+    save_data = GetSaveData();
+    if (save_data != NULL) {
+        return save_data->GetBitFlag(flag_no);
     }
     return 0;
 }
-int CheckShortFlagMenu(int flag) {
-    CSaveData *saveData;
+int CheckShortFlagMenu(int flag_no) {
+    CSaveData *save_data;
 
-    saveData = GetSaveData();
-    if (saveData != NULL) {
-        return saveData->GetShortFlag(flag);
+    save_data = GetSaveData();
+    if (save_data != NULL) {
+        return save_data->GetShortFlag(flag_no);
     }
     return 0;
 }
-int CheckStartChapter8(CSaveData *saveData) {
-    if (saveData == NULL) {
+int CheckStartChapter8(CSaveData *save) {
+    if (save == NULL) {
         return 0;
     }
-    if (saveData->GetBitFlag(0x2E0) == 1) {
-        if (!saveData->GetBitFlag(0x320)) {
+    if (save->GetBitFlag(0x2E0) == 1) {
+        if (!save->GetBitFlag(0x320)) {
             return 1;
         }
     }
     return 0;
 }
-void InitMenuEtcSpecialFlag(void) {
+void InitMenuEtcSpecialFlag() {
     MenuEtcSpecialCode = 0;
 }
-int SetMenuEtcFlag(int flags) {
-    MenuEtcSpecialCode |= flags;
+int SetMenuEtcFlag(int flag) {
+    MenuEtcSpecialCode |= flag;
     return MenuEtcSpecialCode;
 }
-int GetMenuEtcFlag(void) {
+int GetMenuEtcFlag() {
     return MenuEtcSpecialCode;
 }
 mgCDrawPrim *GetMenuPrim(void) {
     return MenuPrim;
 }
-void MenuMainImageDataEnter(int block) {
+void MenuMainImageDataEnter(int tex_block) {
     u8 *image;
 
     image = (u8*)GetMenuMainIMGPtr();
     if (image != NULL) {
-        EnterIMGFile__17mgCTextureManagerFPUciP9mgCMemoryP15mgCEnterIMGInfo(&mgTexManager, image,
-                                                                            block, NULL, NULL);
-        MenuPosData->ResetTextureBlockNo(at_1028__4, block);
+        mgTexManager.EnterIMGFile(image, tex_block, NULL, NULL);
+        MenuPosData->ResetTextureBlockNo("mnmain", tex_block);
     }
 }
-void SetMenuFrameRate(int value) {
-    mgFrameRate = value;
+void SetMenuFrameRate(int rate) {
+    mgFrameRate = rate;
 }
-void SetMenuKeyCtrlEnv(int layout) {
-    GamePad__2.AutoRepeatOff();
-    GamePad__2.MenuModeOff();
-    if (layout == 0) {
-        GamePad__2.SetAutoRepeat(0xF000, 15, 4);
-        GamePad__2.MenuModeOn(120);
-    } else if (layout != 1 && layout == 2) {
-        GamePad__2.SetAutoRepeat(0xF00C, 15, 4);
-        GamePad__2.MenuModeOn(120);
+void SetMenuKeyCtrlEnv(int env) {
+    GamePad.AutoRepeatOff();
+    GamePad.MenuModeOff();
+    if (env == 0) {
+        GamePad.SetAutoRepeat(0xF000, 15, 4);
+        GamePad.MenuModeOn(120);
+    } else if (env != 1 && env == 2) {
+        GamePad.SetAutoRepeat(0xF00C, 15, 4);
+        GamePad.MenuModeOn(120);
     }
 }
-void DisablePadReset(int disable) {
+/** Enables or disables the pad reset gesture while a dungeon menu is open. */
+static void DisablePadReset(int disable) {
     DNG_BATTLE_AREA *scene;
 
     if (GetNowLoopNo() == 2) {
@@ -267,17 +312,17 @@ void DisablePadReset(int disable) {
     }
 }
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/menumain", MenuMainInit__FP13MENU_INIT_ARG);
-int MenuMainExit(void) {
+int MenuMainExit() {
     CCharacter2 *chara;
     int i;
-    int activeChara;
-    int isFishingMenu;
+    int active_chara;
+    int is_fishing_menu;
     CScene *scene;
-    CScene *camera;
-    float viewMatrix[4][4];
-    float pos[4];
-    float worldMatrix[4][4];
-    float identity[4][4];
+    mgCCamera *camera;
+    sceVu0FMATRIX view_matrix;
+    sceVu0FVECTOR pos;
+    sceVu0FMATRIX world_matrix;
+    sceVu0FMATRIX identity;
 
     mgActiveLighting(old_light_menu, 0);
     MenuDeleteTextureBlock(MenuCommonInfo->tex_block);
@@ -290,13 +335,13 @@ int MenuMainExit(void) {
         sndInitPort(8);
     }
     sndSetPortVol(5, SndPortVol_Enemy);
-    activeChara = MenuUserDataManPtr->active_chr_no;
+    active_chara = MenuUserDataManPtr->active_chr_no;
     GetBattleCharaInfo();
     if (MenuArg.end_code == 1) {
-        activeChara = MenuArg.result[0];
+        active_chara = MenuArg.result[0];
         SetMenuEtcFlag(1);
     }
-    (*(CUserDataManager **)((u8 *)MenuCommonInfo + 0xA0))->SetActiveChrNo(activeChara);
+    MenuCommonInfo->user_data->SetActiveChrNo(active_chara);
     if (MenuMainScene != NULL) {
         chara = (CCharacter2 *)MenuMainScene->GetCharacter(0);
         if (chara != NULL) {
@@ -312,14 +357,14 @@ int MenuMainExit(void) {
                     i++;
                 }
             }
-            (&MenuMainScene->fade)->FadeOut(-1, 0.0f, 0.0f, 0.0f);
+            MenuMainScene->fade.FadeOut(-1, 0.0f, 0.0f, 0.0f);
         }
         MenuMainScene->SetVolBGM(MenuBGMVolume_Save);
     }
-    isFishingMenu = (MenuArg.end_code == 5) | (MenuArg.end_code == 6);
-    if (activeChara == 0) {
+    is_fishing_menu = (MenuArg.end_code == 5) | (MenuArg.end_code == 6);
+    if (active_chara == 0) {
         if (MenuUserParam.chara[0]->equip[0].IsFishingRod() != 0) {
-            if (isFishingMenu == 0) {
+            if (is_fishing_menu == 0) {
                 MenuArg.end_code = 11;
                 MenuArg.result[0] = MenuUserDataManPtr->GetFishingRodNo();
                 MenuArg.result[1] = MenuUserDataManPtr->GetFishBait();
@@ -329,7 +374,7 @@ int MenuMainExit(void) {
                         chara->DeleteImage();
                         ((CActionChara *)chara)->Initialize(NULL);
                     }
-                    SetupUnitMan(MenuMainScene, MenuUserDataManPtr, activeChara, NULL);
+                    SetupUnitMan(MenuMainScene, MenuUserDataManPtr, active_chara, NULL);
                 }
             } else {
                 ReEquipFishingGameWeapon();
@@ -348,27 +393,29 @@ int MenuMainExit(void) {
     menu_debug_flag = 0;
     EdEventMenuExit();
     mgSetProjection(MenuDrawEnv->old_projection);
-    scene = (CScene *)GetMainScene();
-    camera = (CScene *)scene->GetCamera(scene->active_camera);
+    scene = GetMainScene();
+    camera = scene->GetCamera(scene->active_camera);
     if (camera != NULL) {
-        ((mgCCamera *)camera)->GetCameraMatrix(viewMatrix);
-        GetPos__9mgCCameraFPf((mgCCamera *)camera, pos);
+        camera->GetCameraMatrix(view_matrix);
+        camera->GetPos(pos);
         sceVu0UnitMatrix(identity);
-        sceVu0MulMatrix(worldMatrix, identity, viewMatrix);
-        mgSetViewMatrix(worldMatrix, pos);
+        sceVu0MulMatrix(world_matrix, identity, view_matrix);
+        mgSetViewMatrix(world_matrix, pos);
     }
     return 1;
 }
-int MenuMainLoop(void) {
-    int next_mode = MenuMainKey();
+s32 MenuMainLoop(void) {
+    s32 next_mode = MenuMainKey();
     MenuMainDraw();
     return next_mode;
 }
-int MenuMainKey(void) {
+int MenuMainKey() {
+    static s8 refresh_cnt;
+    static s8 init;
     int result;
     short page;
     int menu;
-    MenuKeyPageTable pageTable;
+
 
     MenuWorldTrans();
     MenuPolygonSetEnv();
@@ -376,7 +423,7 @@ int MenuMainKey(void) {
     MenuCommonInfo->SelDataInit();
     MenuMainFrameStep();
     MenuAreaBoardNameStep();
-    if (DebugFlag != 0 && GamePad__2.Down(0x400) != 0) {
+    if (DebugFlag != 0 && GamePad.Down(0x400) != 0) {
         menu_debug_flag ^= 1;
     }
     result = menu_keyfunctbl[MenuCommonInfo->now_mode]();
@@ -388,8 +435,8 @@ int MenuMainKey(void) {
                 case 1: {
                     menu = MenuCommonInfo->now_mode;
                     if (menu >= 2 && menu < 12) {
-                        pageTable = at_1514__4;
-                        MenuCommonInfo->now_mode = pageTable.next[page];
+                        int page_table[2] = {0, 1};
+                        MenuCommonInfo->now_mode = page_table[page];
                         MenuCommonInfo->key_enable = 1;
                         if (MenuCommonInfo->cursor_form != NULL) {
                             MenuCommonInfo->cursor_form->draw_flag = 1;
@@ -402,9 +449,9 @@ int MenuMainKey(void) {
                         result = 0;
                         CMenuInterPt->step = 0;
                         CMenuInterPt->help_update = 1;
-                        (&MenuCommonInfo->cursor)[0] = CMenuInterPt->select_no;
+                        MenuCommonInfo->cursor = CMenuInterPt->select_no;
                         if (menu == 11 || menu == 6) {
-                            (&MenuMainScene->fade)->FadeIn(40);
+                            MenuMainScene->fade.FadeIn(40);
                             ReturnMenuIntern(0);
                         }
                         MenuTopicAlphaCalc = 0;
@@ -414,7 +461,7 @@ int MenuMainKey(void) {
             break;
         case 2:
             if (MenuCommonInfo->now_mode == 4) {
-                (&MenuMainScene->fade)->FadeIn(40);
+                MenuMainScene->fade.FadeIn(40);
             }
             break;
     }
@@ -425,24 +472,24 @@ int MenuMainKey(void) {
     MenuCommonInfo->unk_0 ^= 1;
     MenuCommonInfo->StepMenuBGM();
     MenuDrawParamStep();
-    if (init_1524 == 0) {
-        refresh_cnt_1523 = 0;
-        init_1524 = 1;
+    if (init == 0) {
+        refresh_cnt = 0;
+        init = 1;
     }
-    refresh_cnt_1523++;
-    if (refresh_cnt_1523 >= 25) {
-        refresh_cnt_1523 = 0;
+    refresh_cnt++;
+    if (refresh_cnt >= 25) {
+        refresh_cnt = 0;
         UserDataRefresh();
     }
     MenuDoubleDrawCheck = 0;
     return result;
 }
-void MenuMainDraw(void) {
+void MenuMainDraw() {
     mgCDrawPrim *prim;
-    int nextPage;
+    int next_page;
 
     if (MenuDoubleDrawCheck == 0) {
-        prim = (mgCDrawPrim *)GetMenuPrim();
+        prim = GetMenuPrim();
         prim->offset_x = 0;
         prim->offset_y = 0;
         DrawMenuFillBox(0x80, 0, 0, 0);
@@ -453,135 +500,143 @@ void MenuMainDraw(void) {
             MenuDebugModeDraw();
         }
         MenuPolygonEnvReset();
-        (&MenuMainScene->fade)->Draw();
-        nextPage = MenuCommonInfo->next_mode;
-        if (nextPage >= 0) {
-            if (MenuCommonInfo->now_mode != nextPage) {
-                MenuCommonInfo->now_mode = nextPage;
+        MenuMainScene->fade.Draw();
+        next_page = MenuCommonInfo->next_mode;
+        if (next_page >= 0) {
+            if (MenuCommonInfo->now_mode != next_page) {
+                MenuCommonInfo->now_mode = next_page;
                 MenuCommonInfo->next_mode = -1;
             }
         }
         MenuDoubleDrawCheck = 1;
     }
 }
-int NextMenuInit(int menu, mgCMemory *memory, int *args) {
+int NextMenuInit(int mode, mgCMemory *stack, int *tex_blocks) {
     int page;
     int known;
-    int dungeonMode;
-    char *mapName;
+    int dungeon_mode;
+    char *map_name;
 
     page = MenuCommonInfo->open_type;
     known = 1;
-    switch (menu) {
+    switch (mode) {
         case 2:
-            MenuItemInit(memory, args, page);
+            MenuItemInit(stack, tex_blocks, page);
             break;
         case 4:
-            MenuCharaChangeInit(memory, args, page);
+            MenuCharaChangeInit(stack, tex_blocks, page);
             break;
         case 5:
         case 16:
-            MenuInventInit(memory, args, page);
+            MenuInventInit(stack, tex_blocks, page);
             break;
         case 11:
-            dungeonMode = 0;
+            dungeon_mode = 0;
             if (MenuMainScene != NULL) {
-                dungeonMode = MenuSaveDataDungeonPtr->stage_id;
+                dungeon_mode = MenuSaveDataDungeonPtr->stage_id;
             }
             if (TreeMapCallDungeonSubMap != 0) {
-                mapName = GetMapName__6CSceneFi(MenuMainScene, MenuMainScene->active_map);
-                if (strcmp(mapName, at_1598__2) == 0) {
-                    dungeonMode = 1;
+                map_name = MenuMainScene->GetMapName(MenuMainScene->active_map);
+                if (strcmp(map_name, "s05") == 0) {
+                    dungeon_mode = 1;
                 }
-                if (strcmp(mapName, at_1599__2) == 0) {
-                    dungeonMode = 3;
+                if (strcmp(map_name, "d04b01") == 0) {
+                    dungeon_mode = 3;
                 }
             }
-            DngTreeMapInit(memory, args, page, dungeonMode);
+            DngTreeMapInit(stack, tex_blocks, page, dungeon_mode);
             break;
         case 18:
-            MenuAquaInit(memory, args, page);
+            MenuAquaInit(stack, tex_blocks, page);
             break;
         case 6:
-            WorldMoveInit(memory, args, page);
+            WorldMoveInit(stack, tex_blocks, page);
             break;
         case 8:
-            MenuManualInit(memory, args, page);
+            MenuManualInit(stack, tex_blocks, page);
             break;
         case 7:
-            MenuOptionInit(memory, args, page);
+            MenuOptionInit(stack, tex_blocks, page);
             break;
         default:
             known = 0;
             break;
     }
     if (known != 0) {
-        MenuCommonInfo->next_mode = menu;
+        MenuCommonInfo->next_mode = mode;
     } else {
         MenuCommonInfo->next_mode = -1;
     }
     return known;
 }
-void MenuCamInit(float roll) {
+void MenuCamInit(float speed) {
     *(u_long128 *)MenuDrawEnv->ref = *(u_long128 *)menu_basedgRef;
     *(u_long128 *)MenuDrawEnv->pos = *(u_long128 *)menu_basedgCamPos;
-    MenuDrawEnv->speed = roll;
+    MenuDrawEnv->speed = speed;
     MenuDrawEnv->camera.Resume();
 }
-void MenuWorldTrans(void) {
+/** Sets the menu camera and installs its view matrix. */
+static void MenuWorldTrans(void) {
     mgCCamera *camera;
-    float viewMatrix[4][4];
-    float pos[4];
-    float worldMatrix[4][4];
-    float identity[4][4];
+    sceVu0FMATRIX view_matrix;
+    sceVu0FVECTOR pos;
+    sceVu0FMATRIX world_matrix;
+    sceVu0FMATRIX identity;
 
     mgSetProjection(MenuDrawEnv->projection);
     camera = &MenuDrawEnv->camera;
-    MenuDrawEnv->camera.GetCameraMatrix(viewMatrix);
-    GetPos__9mgCCameraFPf(camera, pos);
+    MenuDrawEnv->camera.GetCameraMatrix(view_matrix);
+    camera->GetPos(pos);
+    MENU_DRAW_ENV *env = MenuDrawEnv;
     float rate = -1.0f;
-    SetSpeed__9mgCCameraFff(camera, MenuDrawEnv->speed, rate);
-    SetNextRef__9mgCCameraFPf(camera, MenuDrawEnv->ref);
-    SetNextPos__9mgCCameraFPf(camera, MenuDrawEnv->pos);
+    camera->SetSpeed(env->speed, rate);
+    camera->SetNextRef(MenuDrawEnv->ref);
+    camera->SetNextPos(MenuDrawEnv->pos);
     camera->Step(1);
     sceVu0UnitMatrix(identity);
-    sceVu0MulMatrix(worldMatrix, identity, viewMatrix);
-    mgSetViewMatrix(worldMatrix, pos);
+    sceVu0MulMatrix(world_matrix, identity, view_matrix);
+    mgSetViewMatrix(world_matrix, pos);
 }
-void MenuPolygonSetEnv(void) {
+/** Installs the ambient light used by the menu models. */
+static void MenuPolygonSetEnv(void) {
     mgGetAmbient(MenuDrawEnv->old_ambient);
     mgSetAmbient(MenuDrawEnv->ambient);
 }
-void MenuPolygonEnvReset(void) {
+/** Restores the scene ambient light after drawing the menu. */
+static void MenuPolygonEnvReset(void) {
     mgSetAmbient(MenuDrawEnv->old_ambient);
 }
-char *GetMenuCfgFileName(int index, int unused) {
+char *GetMenuCfgFileName(int cfg_no, int unused) {
+    static char *menu_main_cfgname[2] = {
+        "men0.pac",
+        "men0.pac"
+    };
+    static char workchr[0x60];
     int local;
 
-    sprintf(workchr_1622, at_1624__3, LanguageCode);
-    strcat(workchr_1622, menu_main_cfgname_1620[index]);
-    printf(at_1625__3, &local);
-    return workchr_1622;
+    sprintf(workchr, "menu/%d/", LanguageCode);
+    strcat(workchr, menu_main_cfgname[cfg_no]);
+    printf("menu_stack ptr : %p\n", &local);
+    return workchr;
 }
 short *GetMenuMainMessageBuffer(void) {
     int size;
 
-    return (short *)GetPackFile(MenuArg.pack, at_1630__3, &size);
+    return (short *)GetPackFile(MenuArg.pack, "allmenu.mes", &size);
 }
 u_int *GetMenuMainIMGPtr(void) {
-    return GetPackFile(MenuArg.pack, at_1635__2, 0);
+    return GetPackFile(MenuArg.pack, "frametex.img", 0);
 }
 u_int *GetMenuMainPosCfgBuffer(int *size) {
-    return GetPackFile(MenuArg.pack, at_1640, size);
+    return GetPackFile(MenuArg.pack, "menu0.cfg", size);
 }
-extern "C" int GetBitCtrl__9CSaveDataFv(CSaveData *);
-void SetCommonMenuModeID(void) {
+void SetCommonMenuModeID() {
     int table;
-    int bitCtrl;
+    int bit_ctrl;
     int i;
 
     table = MenuCommonInfo->open_type;
-    bitCtrl = GetBitCtrl__9CSaveDataFv(GetSaveData());
+    bit_ctrl = GetSaveData()->GetBitCtrl();
     if (table == 0x10) {
         table = 0;
     }
@@ -591,7 +646,7 @@ void SetCommonMenuModeID(void) {
     if ((unsigned int)table < 2) {
         for (i = 0; i < 8; i++) {
             CommonMenuModeID2[i] = CommonMenuModeID[table][i];
-            if (CommonMenuModeID2[i] == 6 && (bitCtrl & 0x10)) {
+            if (CommonMenuModeID2[i] == 6 && (bit_ctrl & 0x10)) {
                 CommonMenuModeID2[i] = 11;
                 TreeMapCallDungeonSubMap = 1;
             }
@@ -601,15 +656,21 @@ void SetCommonMenuModeID(void) {
 int *GetCommonMenuModeID(void) {
     return CommonMenuModeID2;
 }
-u8 CursorSaveOptionState(void) {
-    CSaveData *saveData = GetSaveData();
-    u8 r = 0;
-    if (saveData != NULL)
-        r = !*(int *)&saveData->config;
-    return r;
+bool CursorSaveOptionState() {
+    CSaveData *save_data = GetSaveData();
+    bool remember_cursor = false;
+    if (save_data != NULL) {
+        SV_CONFIG_OPTION *config = save_data->GetConfig();
+        remember_cursor = !config->cursor_save;
+    }
+    return remember_cursor;
 }
-void ReturnMenuIntern(int index) {
-    char *action = acttbl_1682[index];
+void ReturnMenuIntern(int out) {
+    static char *acttbl[2] = {
+        "\222\206\202\326",
+        "\212O\202\326"
+    };
+    char *action = acttbl[out];
 
     if (MenuAreaBrdForm != NULL) {
         MenuAreaBrdForm->SetAction(action);
@@ -618,27 +679,24 @@ void ReturnMenuIntern(int index) {
         MenuTimeBrdForm->SetAction(action);
     }
 }
-void MenuAreaBoardNameStep(void) {
-    AreaNameItems names;
-    BoardPosition position;
-    LanguageWidths widths;
+void MenuAreaBoardNameStep() {
     CDC2Mes *message;
     float hours;
     float minutes;
     int day;
 
     if (MenuAreaBrdForm != NULL) {
-        names = at_1697__2;
-        names.name[0] = MenuAreaName;
+        char *names[2] = {NULL, NULL};
+        names[0] = MenuAreaName;
         message = MenuDCMsg[1];
         message->MakeMsg(0x32);
-        message->SetMsgItemNo(names.name, 1);
-        GetStrWidth__6ClsMesFPc(message, names.name[0]);
-        position = at_1698__2;
-        MenuAreaBrdForm->GetNextMovePos(position.value);
-        widths = at_1699__2;
-        message->SetMovePosCenteringGyou(0, position.value[0] + widths.value[LanguageCode],
-                                         position.value[1] + 7);
+        message->SetMsgItemNo(names, 1);
+        message->GetStrWidth(names[0]);
+        int position[2] = {0, 0};
+        MenuAreaBrdForm->GetNextMovePos(position);
+        int widths[9] = {98, 122, 122, 122, 122, 122, 122, 122, 122};
+        message->SetMovePosCenteringGyou(0, position[0] + widths[LanguageCode],
+                                         position[1] + 7);
         if (MenuTimeBrdForm != NULL) {
             hours = (int)MenuNowTime;
             minutes = (int)(60.0f * (MenuNowTime - hours));
@@ -652,37 +710,61 @@ void MenuAreaBoardNameStep(void) {
             if (day > 9999) {
                 day = 9999;
             }
-            MenuTimeBrdForm->SetNumber(at_1736__2, day);
+            MenuTimeBrdForm->SetNumber("\223\372\212\324", day);
             if (MenuNowMapType == 5 || MenuNowMapType == 6) {
-                MenuTimeBrdForm->SetPartDrawFlag(at_1737, false);
-                MenuTimeBrdForm->SetPartDrawFlag(at_1738, false);
-                MenuTimeBrdForm->SetPartDrawFlag(at_1739, false);
-                MenuTimeBrdForm->SetPartDrawFlag(at_1740, false);
-                MenuTimeBrdForm->SetPartDrawFlag(at_1741, false);
+                MenuTimeBrdForm->SetPartDrawFlag("AM", false);
+                MenuTimeBrdForm->SetPartDrawFlag("PM", false);
+                MenuTimeBrdForm->SetPartDrawFlag("\216\236", false);
+                MenuTimeBrdForm->SetPartDrawFlag("\225\252", false);
+                MenuTimeBrdForm->SetPartDrawFlag(";", false);
             } else {
-                MenuTimeBrdForm->SetPartDrawFlag(at_1742, false);
+                MenuTimeBrdForm->SetPartDrawFlag("\226\242\227\210", false);
                 if (LanguageCode == 3) {
-                    MenuTimeBrdForm->SetPartDrawFlag(at_1737, false);
-                    MenuTimeBrdForm->SetPartDrawFlag(at_1738, false);
+                    MenuTimeBrdForm->SetPartDrawFlag("AM", false);
+                    MenuTimeBrdForm->SetPartDrawFlag("PM", false);
                 } else if (12.0f <= hours) {
-                    MenuTimeBrdForm->SetPartDrawFlag(at_1737, false);
-                    MenuTimeBrdForm->SetPartDrawFlag(at_1738, true);
+                    MenuTimeBrdForm->SetPartDrawFlag("AM", false);
+                    MenuTimeBrdForm->SetPartDrawFlag("PM", true);
                     hours -= 12.0f;
                 } else {
-                    MenuTimeBrdForm->SetPartDrawFlag(at_1737, true);
-                    MenuTimeBrdForm->SetPartDrawFlag(at_1738, false);
+                    MenuTimeBrdForm->SetPartDrawFlag("AM", true);
+                    MenuTimeBrdForm->SetPartDrawFlag("PM", false);
                 }
             }
             if (LanguageCode != 3 && LanguageCode > 0 && hours == 0.0f) {
                 hours = 12.0f;
             }
-            MenuTimeBrdForm->SetNumber(at_1739, (int)hours);
-            MenuTimeBrdForm->SetNumber(at_1740, (int)minutes);
+            MenuTimeBrdForm->SetNumber("\216\236", (int)hours);
+            MenuTimeBrdForm->SetNumber("\225\252", (int)minutes);
         }
     }
 }
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/menumain", CheckEventDay__FPi);
-void MakeMenuTopic(void) {
+/** Prepares the localized topic for the current event day. */
+static void MakeMenuTopic(void) {
+    static char *topic_tbl[7][3] = {
+        "",
+        " ",
+        " ",
+        "",
+        "Fishing Contest: %d hr(s). to go",
+        "Finny Frenzy: %d hr(s). to go",
+        "",
+        "Tournoi de p[UNI00ea]che : encore %d h(s)",
+        "Meill. nageoires : encore %d h(s)",
+        "",
+        "Angelturnier: Noch %d Std.",
+        "Fl.-Fieber: Noch %d Std.",
+        "",
+        "Torneo di Pesca: ancora %d ora/e",
+        "Pinna Sprint: ancora %d ora/e",
+        "",
+        "Concurso Pesca: %d h. para salir",
+        "Finny Frenzy: %d h. para salir",
+        "",
+        "Concurso Pesca: %d h. para salir",
+        "Finny Frenzy: %d h. para salir"
+    };
     char text[0x80];
     int day;
     int height;
@@ -693,16 +775,15 @@ void MakeMenuTopic(void) {
     MenuTopicAlphaCalc = 0;
     day = 0;
     MenuTopicType = CheckEventDay(&day);
-    sprintf(text, topic_tbl_1777[LanguageCode][MenuTopicType], day);
+    sprintf(text, topic_tbl[LanguageCode][MenuTopicType], day);
     TopicFont.SetStr(text);
-    char *topicText = (char *)&TopicFont;
-    ((CFont *)topicText)->CalcDrawWH(topicText, &width, &height);
+    TopicFont.CalcDrawWH(TopicFont.str, &width, &height);
     MenuTopicLength = width;
     TopicFontX = 30;
 }
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/menumain", DrawMenuTopic__Fv);
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/menumain", MenuInternInit__FP9mgCMemoryii);
-void CMenuInter::Initialize(int unused) {
+void CMenuInter::Initialize(s32 unused) {
     step = 1;
     select_no = 0;
     select_num = 6;
@@ -713,20 +794,20 @@ void CMenuInter::Initialize(int unused) {
     next_mode = -1;
     help_update = 0;
 }
-void MenuCommonBaseDataEnter(mgCMemory *palletMemory, unsigned int *pack, int packSize, int block) {
+void MenuCommonBaseDataEnter(mgCMemory *stack, u_int *pack, int pack_size, int tex_block) {
     mgCTextureManager *tex = &mgTexManager;
     int size;
-    MenuMainTextureReadBuf.stSetBuffer((u_long128 *)pack, packSize / 16);
-    mgTexManager.EnterIMGFile((u8*)GetPackFile(pack, at_1956, 0), block, 0, 0);
-    mgTexManager.EnterIMGFile((u8*)GetPackFile(pack, at_1957, &size), block, 0, 0);
-    u8 *image = (u8*)GetPackFile(pack, at_1958, 0);
+    MenuMainTextureReadBuf.stSetBuffer((u_long128 *)pack, pack_size / 16);
+    mgTexManager.EnterIMGFile((u8*)GetPackFile(pack, "edmenu.img", 0), tex_block, 0, 0);
+    mgTexManager.EnterIMGFile((u8*)GetPackFile(pack, "allitem.img", &size), tex_block, 0, 0);
+    u8 *image = (u8*)GetPackFile(pack, "spectre.img", 0);
     if (image) {
-        tex->EnterIMGFile(image, block, 0, 0);
+        tex->EnterIMGFile(image, tex_block, 0, 0);
     }
-    ((CMenuPosDataManage *)MenuPosData)->AttachCommonTexInfo();
-    MenuItemIconTextureBlock = block;
-    ((CMenuPosDataManage *)MenuPosData)->MallocPallet(palletMemory);
-    ((CMenuPosDataManage *)MenuPosData)->SearchTransPalletNo();
+    MenuPosData->AttachCommonTexInfo();
+    MenuItemIconTextureBlock = tex_block;
+    MenuPosData->MallocPallet(stack);
+    MenuPosData->SearchTransPalletNo();
     MenuPosData->ResetTextureInfoAll();
 }
 void MenuBaseTextureReEnter() {
@@ -736,18 +817,37 @@ void MenuBaseTextureReEnter() {
     MenuMainImageDataEnter(block);
     unsigned int *pack = (unsigned int *)MenuMainTextureReadBuf.stack;
     int size;
-    tex->EnterIMGFile((u8*)GetPackFile(pack, at_1956, 0), block, 0, 0);
-    tex->EnterIMGFile((u8*)GetPackFile(pack, at_1957, &size), block, 0, 0);
-    u8 *image = (u8*)GetPackFile(pack, at_1958, 0);
+    tex->EnterIMGFile((u8*)GetPackFile(pack, "edmenu.img", 0), block, 0, 0);
+    tex->EnterIMGFile((u8*)GetPackFile(pack, "allitem.img", &size), block, 0, 0);
+    u8 *image = (u8*)GetPackFile(pack, "spectre.img", 0);
     if (image) {
         tex->EnterIMGFile(image, block, 0, 0);
     }
-    ((CMenuPosDataManage *)MenuPosData)->AttachCommonTexInfo();
+    MenuPosData->AttachCommonTexInfo();
     MenuPosData->ResetTextureInfoAll();
 }
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/menumain", InitEnd__10CMenuInterFv);
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/menumain", PushOk__10CMenuInterFv);
-int CMenuInter::ReadBGTexture(int bgNo, int restart) {
+int CMenuInter::ReadBGTexture(int mode, int restart) {
+    static char *filetbl[17] = {
+        "itemmn0.pac",
+        "",
+        "chrchg0.pac",
+        "inv2_bg.pac",
+        "",
+        "op1.pac",
+        "manual1.pac",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        ""
+    };
     char name[0x80];
     char **entry;
     if (restart != 0) {
@@ -762,7 +862,7 @@ int CMenuInter::ReadBGTexture(int bgNo, int restart) {
         StartReadBG();
         MenuMainStack_Next.stack_used = 0;
         MenuMainStack_Next.lock = 0;
-        entry = &filetbl_2141[bgNo - 2];
+        entry = &filetbl[mode - 2];
         if (strlen(*entry) != 0) {
             unsigned int size;
             strcpy(name, *entry);
@@ -785,86 +885,78 @@ int CMenuInter::ReadBGTexture(int bgNo, int restart) {
 }
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/menumain", MenuInternSelectKey__Fv);
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/menumain", MenuInternSelectDraw__Fv);
-void CopyActiveItemAndWeapon(int slot, int weaponSlot) {
+void CopyActiveItemAndWeapon(int chara_no, int unused) {
     mgCTexture *textures[2];
 
     mgCTextureManager *manager = &mgTexManager;
-    textures[0] = manager->GetTexture(at_2344, -1);
-    textures[1] = manager->GetTexture(at_2345, -1);
+    textures[0] = manager->GetTexture("icon_dmy1", -1);
+    textures[1] = manager->GetTexture("icon_dmy2", -1);
     if (textures[0] == NULL || textures[1] == NULL) {
         return;
     }
-    CopyActiveIconTexture(textures, slot, 0);
-    manager->ReloadTexture(-1, (sceVif1Packet *)0);
+    CopyActiveIconTexture(textures, chara_no, 0);
+    manager->ReloadTexture(-1, (sceVif1Packet *)NULL);
 }
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/menumain", CopyActiveIconTexture__FPP10mgCTextureiPUi);
-void MenuDebugModeDraw() {
-
+/** Draws the debug indicator over the menu. */
+static void MenuDebugModeDraw() {
     float margin = 6.0f, width = 110.0f, height = 24.0f;
-    struct {
-        u8 prefix[0x94];
-        int x;
-        int y;
-        u8 tail[0x1C];
-    } menuFont;
-    mgTexManager.ReloadTexture(MenuArg.mes_tex_block, (sceVif1Packet *)0);
+    mgTexManager.ReloadTexture(MenuArg.mes_tex_block, (sceVif1Packet *)NULL);
     DrawMenuFillBox(margin, margin, width, height, 0x5C, 0, 0, 0);
-    __ct__9CMenuFontFv(&menuFont);
-    ((CFont *)&menuFont)->SetStr(at_2450);
-    ((CFont *)&menuFont)->SetPos(6, 6);
-    DrawDirect__5CFontFPcii(&menuFont, (char *)&menuFont, menuFont.x, menuFont.y);
+    CMenuFont menu_font;
+    menu_font.SetStr("MenuDebugMode");
+    menu_font.SetPos(6, 6);
+    menu_font.DrawDirect(menu_font.str, menu_font.pos_x, menu_font.pos_y);
 }
-void BookshelfMessageMake(ClsMes *message, int baseWindow, int itemNo, int monsterNo) {
-
+void BookshelfMessageMake(ClsMes *mes, int mes_offset, int item_no, int monster_no) {
     int photos[5];
     char name[0x80];
-    int windowNo;
+    int window_no;
     short chara;
-    if (message != NULL) {
-        windowNo = 0;
+    if (mes != NULL) {
+        window_no = 0;
         chara = GetUserDataMan()->active_chr_no;
         if (chara == 0) {
-            windowNo = 0xBBB;
-            if (0 < itemNo) {
-                CheckItemTable(itemNo, photos);
+            window_no = 0xBBB;
+            if (0 < item_no) {
+                CheckItemTable(item_no, photos);
                 GetPhotoNameStr(photos[0], name);
-                strcpy(message->name[0], name);
+                strcpy(mes->name[0], name);
                 GetPhotoNameStr(photos[1], name);
-                strcpy(message->name[1], name);
+                strcpy(mes->name[1], name);
                 GetPhotoNameStr(photos[2], name);
-                strcpy(message->name[2], name);
-                windowNo = baseWindow + 0xBB8;
+                strcpy(mes->name[2], name);
+                window_no = mes_offset + 0xBB8;
             }
         }
         if (chara == 1) {
-            windowNo = baseWindow + 0xBC5;
-            if (0 <= monsterNo) {
-                char *monsterName;
-                char *monsterText;
-                if (monsterNo > 9) {
-                    monsterNo = 0;
+            window_no = mes_offset + 0xBC5;
+            if (0 <= monster_no) {
+                char *monster_name;
+                char *monster_text;
+                if (monster_no > 9) {
+                    monster_no = 0;
                 }
-                int messageNo = monster_table[monsterNo].messageNo;
-                monsterName = GetMonsterName(monster_table[monsterNo].nameNo);
-                monsterText = GetItemMessage(messageNo);
-                if (monsterName != NULL) {
-                    strcpy(message->name[0], monsterName);
+                int message_no = monster_table[monster_no].message_no;
+                monster_name = GetMonsterName(monster_table[monster_no].name_no);
+                monster_text = GetItemMessage(message_no);
+                if (monster_name != NULL) {
+                    strcpy(mes->name[0], monster_name);
                 }
-                if (monsterText != NULL) {
-                    strcpy(message->name[1], monsterText);
+                if (monster_text != NULL) {
+                    strcpy(mes->name[1], monster_text);
                 }
-                windowNo = baseWindow + 0xBC2;
-                if (monsterNo == 8 || monsterNo == 1) {
-                    windowNo += 10;
+                window_no = mes_offset + 0xBC2;
+                if (monster_no == 8 || monster_no == 1) {
+                    window_no += 10;
                 }
             }
         }
-        message->MakeMesWin(windowNo);
+        mes->MakeMesWin(window_no);
     }
 }
 
 // Static initialiser (.init)
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/menumain", __sinit_menumain_cpp);
 
 // Initialised data (.data)
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menumain", light_1062__DATA);
@@ -947,7 +1039,6 @@ INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menumain", at_2440__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menumain", at_2450__DATA);
 
 // Static initialiser table (.ctor)
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menumain", D_0037B030__DATA);
 
 // Small initialised data (.sdata)
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menumain", MenuPrim__DATA);

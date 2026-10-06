@@ -41,7 +41,7 @@ No vtable, no ctor (the static instance is not constructed in `__sinit_menumain_
 | 0x13 | s8 | bg_read_wait | lb/sb; 30 on restart, decremented |
 | 0x14 | s8 | cursor_jump | lb; set when cursor moves >1 icon; triggers MenuSetPos |
 | 0x15 | u8 | help_update | lbu; when set, MakeMsg(MenuDCMsg, mode+10 or 30 if disabled) |
-0x16-0x17 padding. MenuMainKey writes these through an int* (`CMenuInterPt+4` = 0x10 etc).
+0x16-0x17 padding. MenuMainKey accesses these as typed members.
 `ReadBGTexture` returns `bg_read_step == 2` via xori/sltiu (declared int; bool is also possible).
 
 ## MENU_INIT_ARG (size 0x98; `MenuArg` symbol size 0x98)
@@ -116,7 +116,7 @@ Name not retail. Only written: +0 = MenuArg.mes_tex_block, +4 = GetTexture("mnma
   mgCMemory (Init in __sinit). MenuArg MENU_INIT_ARG.
 
 ## Function notes
-- Return types: CheckShortFlagMenu sign-extends 16 bits after the call -> short.
+- Return types: CheckShortFlagMenu sign-extends 16 bits after the call and returns int; declaring the wrapper short removes the retail extension instructions.
   CursorSaveOptionState ends `andi 0xFF` -> bool. GetMenuLoopType returns `lb MenuLoopType`.
   SetMenuEtcFlag reloads and returns the global. MenuMainInit returns `lh MenuCommonInfo+0x50`.
   GetMenuMain*Buffer/IMGPtr return GetPackFile's u_int* (MessageBuffer used as short*).
@@ -129,3 +129,7 @@ Name not retail. Only written: +0 = MenuArg.mes_tex_block, +4 = GetTexture("mnma
   ClsMes reset (the large block of stores) runs; that is an inlined ClsMes/CDC2Mes method, not
   menumain code.
 - MenuWorldTrans/MenuMainExit call camera vtable slot +0x18 (get view matrix) and slot +0x8.
+
+## Compiled bodies
+
+The draft check finds 53 functions: 44 match and 9 have no draft. All 43 previous C++ bodies remain matched; the automatic static initializer also matches. CursorSaveOptionState uses the bool declaration and GetConfig(). MenuMainExit uses the scene camera and user_data members. MenuDebugModeDraw constructs a CMenuFont.
