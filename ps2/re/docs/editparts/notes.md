@@ -1,21 +1,17 @@
 # editparts: reverse-engineering notes
 
 ## C++ draft status
-All 28 functions have C++ in `ps2/src/editparts.cpp`. 21 are exact and compiled
-by the matching build. 2 more compile to retail's bytes in isolation but stay
-under `NONMATCHING`. 5 differ from retail and keep the `INCLUDE_ASM` fallback.
-Each function tried has its one promotion attempt recorded in
-`scripts/re/promotion_attempts.tsv`.
+All 28 functions have C++ in `ps2/src/editparts.cpp`. 27 match and are
+perfect in the matching build. `CEditParts::GetWallPlane` retains its
+upstream guarded draft and assembly fallback.
 
 Header: `ps2/include/editparts.hpp` (included by `ps2/src/editparts.cpp`). Classes owned: `CEditPartsInfo`,
 `CEditHouse`, `CEditParts` (+ nested `CEditParts::WallInfo`). Extra types: `EditPartsMaterial`,
 enums `EditPartsAtr`, `EditPartsType`, `EditPartsState`. No first-game counterpart: the first game's
 editor (`editpartsinfo.hpp`, `editpartsdata.hpp`) is a different, grid-based design.
 
-Build state: `mapparts.hpp` (base of `CEditParts`) includes `funcpoint.hpp`, which does not exist yet, so
-`draft.sh --header ps2/include/editparts.hpp` and `draft.sh editparts` currently fail inside mapparts.hpp.
-With a stub `funcpoint.hpp` (`CFuncPointMngr` 0x40 bytes, `CFuncPointCheck` 8 bytes) the header compiles and
-every size/offset assert below holds (checked with offsetof asserts).
+Build state: `mapparts.hpp` includes the existing `funcpoint.hpp`.
+The source compiles with drafts enabled; all class size assertions hold.
 
 ## CEditPartsInfo (size 0x280, no vtable)
 - `GetPartsType` checks the 0x40 attribute first (returning type 1), then the river attribute

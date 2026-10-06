@@ -1,36 +1,21 @@
 #include "common.h"
-#include "mg_math.hpp"
-#include "mg_memory.hpp"
 #include "editparts.hpp"
+
+#include <libvu0.h>
+
 #include "mdslist.hpp"
-
-extern "C" int fptosi(float value);
-
-const int kPartsInfoWallValueOffset = 0x1A4;
-const int kFenceEndAOffset = 0xA0;
-const int kFenceEndBOffset = 0xB0;
-const int kFenceFlagOffset = 0x230;
-const int kTerritoryCenterOffset = 0x260;
-const int kTerritoryRadiusOffset = 0x270;
-const int kTerritoryHeightOffset = 0x274;
-const int kNoTerritoryFlags = 0xAC2;
-
-union EditPartsPosition {
-    float f[4];
-    u_long128 qw;
-};
-extern EditPartsPosition at_418;
+#include "mg_math.hpp"
 
 // Code (.text)
 void CEditPartsInfo::Initialize() {
     id = -999;
     attr = 0;
-    edit_name = 0;
-    comment = 0;
-    parts_name = 0;
-    parts = 0;
+    edit_name = NULL;
+    comment = NULL;
+    parts_name = NULL;
+    parts = NULL;
     place_anime = 0;
-    bury_depth = 0;
+    bury_depth = 0.0f;
     col_area1.Initialize();
     col_floor.Initialize();
     col_wall.Initialize();
@@ -56,9 +41,10 @@ void CEditPartsInfo::Initialize() {
     polyn[0] = 0;
     polyn[1] = 0;
     polyn[2] = 0;
-    place_eps = 0;
+    place_eps = 0.0f;
 }
-int CEditPartsInfo::GetPartsType(void) {
+
+s32 CEditPartsInfo::GetPartsType(void) {
     if (attr & EDIT_PARTS_ATR_TYPE_ONE) {
         return 1;
     }
@@ -67,179 +53,200 @@ int CEditPartsInfo::GetPartsType(void) {
     }
     return parts_type;
 }
+
 void CEditPartsInfo::CreateBox() {
-    float corner0[4];
-    float corner1[4];
-    *(u_long128 *)box.max = *(u_long128 *)corner0;
+    mgVu0FBOX extent;
+
+    *(u_long128 *)box.max = *(u_long128 *)extent.max;
     box.max[3] = 1.0f;
-    *(u_long128 *)box.min = *(u_long128 *)corner1;
+    *(u_long128 *)box.min = *(u_long128 *)extent.min;
     box.min[3] = 1.0f;
 }
+
 float CEditPartsInfo::GetPartsHeight() {
     return box.max[1] - box.min[1];
 }
+
 float CEditPartsInfo::GetPartsMaxWidth() {
-    float num_x = box.max[0] - box.min[0];
-    float num_z = box.max[1] - box.min[1];
-    float depth = box.max[2] - box.min[2];
-    if (num_x > num_z) {
-        if (num_x > depth) {
-            return num_x;
+    float width;
+    float height;
+    float depth;
+
+    width = box.max[0] - box.min[0];
+    height = box.max[1] - box.min[1];
+    depth = box.max[2] - box.min[2];
+    if (width > height) {
+        if (width > depth) {
+            return width;
         }
         return depth;
     }
-    if (num_z > depth) {
-        return num_z;
+    if (height > depth) {
+        return height;
     }
     return depth;
 }
-EditPartsMaterial *CEditPartsInfo::GetMaterial(int index) {
-    if (index < 0 || index >= 4) {
-        return 0;
-    }
-    return &material[index];
-}
-int CEditPartsInfo::GetDefColor(int index, float *color) {
-    CMapParts *parts;
 
-    parts = this->parts;
+EditPartsMaterial *CEditPartsInfo::GetMaterial(int no) {
+    if (no < 0 || no >= EDIT_PARTS_MATERIAL_MAX) {
+        return NULL;
+    }
+    return &material[no];
+}
+
+int CEditPartsInfo::GetDefColor(int no, float *out_rgba) {
     if (parts == NULL) {
         return 0;
     }
-    return parts->GetDefColor(index, color);
+    return parts->GetDefColor(no, out_rgba);
 }
-int CEditHouse::LiveChara() {
-    int i;
 
-    for (i = 0; i < 3; i++) {
-        if (npc_no[i] > 0) {
+int CEditHouse::LiveChara() {
+    int npc;
+
+    for (npc = 0; npc < EDIT_HOUSE_NPC_MAX; npc++) {
+        if (npc_no[npc] > 0) {
             return 1;
         }
     }
     return 0;
 }
+
 void CEditParts::Initialize() {
-    piece_list = 0;
-    anime_list = 0;
-    info = 0;
-    state = 0;
-    house = 0;
-    ground = 0;
+    piece_list = NULL;
+    anime_list = NULL;
+    info = NULL;
+    state = EDIT_PARTS_STATE_NONE;
+    house = NULL;
+    ground = NULL;
     max_material_num = 0;
     CMapParts::Initialize();
 }
-float StandardPos(float pos) {
+
+/**
+ * Snaps a height to a whole unit with an allowance away from zero.
+ */
+static float StandardPos(float pos) {
     if (pos > 0.0f) {
-        return (float)fptosi(0.001f + pos);
+        return (float)(int)(0.001f + pos);
     }
-    return (float)fptosi(pos - 0.001f);
+    return (float)(int)(pos - 0.001f);
 }
-void CEditParts::SetPosition(float *pos) {
-    if (ground == 0) {
-        mgCObject::SetPosition(pos);
-    } else {
-        float offset[4];
-        float local[4];
-        ground->GetPosition(offset);
-        *(u_long128 *)local = *(u_long128 *)pos;
-        local[1] -= StandardPos(offset[1]);
-        mgCObject::SetPosition(local);
+
+void CEditParts::SetPosition(float *position) {
+    sceVu0FVECTOR ground_position;
+    sceVu0FVECTOR local_position;
+
+    if (ground == NULL) {
+        mgCObject::SetPosition(position);
+        return;
     }
+    ground->GetPosition(ground_position);
+    *(u_long128 *)local_position = *(u_long128 *)position;
+    local_position[1] -= StandardPos(ground_position[1]);
+    mgCObject::SetPosition(local_position);
 }
+
 void CEditParts::SetPosition(float x, float y, float z) {
-    float pos[4];
-    *(EditPartsPosition *)pos = at_418;
-    pos[0] = x;
-    pos[1] = y;
-    pos[2] = z;
-    ((mgCObject *)this)->SetPosition(pos);
+    sceVu0FVECTOR position = { 0.0f, 0.0f, 0.0f, 1.0f };
+
+    position[0] = x;
+    position[1] = y;
+    position[2] = z;
+    SetPosition(position);
 }
-void CEditParts::GetPosition(float *pos) {
-    GetLocalPos(pos);
-    if (ground != 0) {
-        float offset[4];
-        ground->GetPosition(offset);
-        pos[1] += StandardPos(offset[1]);
+
+void CEditParts::GetPosition(float *out_position) {
+    sceVu0FVECTOR ground_position;
+
+    GetLocalPos(out_position);
+    if (ground != NULL) {
+        ground->GetPosition(ground_position);
+        out_position[1] += StandardPos(ground_position[1]);
     }
 }
-void CEditParts::GetLocalPos(float *pos) {
-    mgCObject::GetPosition(pos);
+
+void CEditParts::GetLocalPos(float *out_position) {
+    mgCObject::GetPosition(out_position);
 }
+
 void CEditParts::UpDatePosition() {
-    float pos[4];
-    float offset[4];
-    if (changed != 0 || ground != 0) {
-        GetLocalPos(pos);
-        if (ground != 0) {
-            ground->GetPosition(offset);
-            pos[1] += offset[1];
+    sceVu0FVECTOR world_position;
+    sceVu0FVECTOR ground_position;
+
+    if (changed || ground != NULL) {
+        GetLocalPos(world_position);
+        if (ground != NULL) {
+            ground->GetPosition(ground_position);
+            world_position[1] += ground_position[1];
         }
-        frame.SetPosition(pos);
+        frame.SetPosition(world_position);
         frame.SetRotation(rotation);
         frame.SetScale(scale);
         changed = 0;
     }
 }
-int CEditParts::GetInfoID() {
-    CEditPartsInfo *river_info;
 
-    river_info = info;
-    if (river_info != NULL) {
-        return river_info->id;
+int CEditParts::GetInfoID() {
+    if (info != NULL) {
+        return info->id;
     }
     return -1;
 }
-int CEditParts::GetLiveNPC(void) {
+
+s32 CEditParts::GetLiveNPC(void) {
     CEditHouse *part_house = house;
     if (part_house != NULL) {
         return part_house->npc_no[0];
     }
     return -1;
 }
+
 int CEditParts::IsWallParts() {
-    if (info == 0) {
+    if (info == NULL) {
         return 0;
     }
-
-    return ((info->col_wall.poly_count <= 0) ^ 1);
-}
-int CEditParts::IsFence() {
-    CEditPartsInfo *river_info;
-
-    river_info = info;
-    if (river_info == NULL) {
+    if (info->col_wall.poly_count <= 0) {
         return 0;
     }
-    return (river_info->attr & 0x130) == 0x130;
-}
-int CEditParts::IsBurn() {
-    CEditPartsInfo *river_info;
-
-    river_info = info;
-    if (river_info == NULL) {
-        return 0;
-    }
-    return (river_info->attr & 0x1000) != 0;
-}
-int CEditParts::GetFenceSide(float *end_a, float *end_b) {
-    float matrix[4][4];
-    float point_a[4];
-    float point_b[4];
-    if (bound_valid == 0) {
-        return 0;
-    }
-    if (info == 0) {
-        return 0;
-    }
-    ((CMapParts *)this)->GetLWMatrix(matrix);
-    *(u_long128 *)point_a = *(u_long128 *)info->area3_box.max;
-    *(u_long128 *)point_b = *(u_long128 *)info->area3_box.min;
-    point_b[3] = 1.0f;
-    point_a[3] = 1.0f;
-    sceVu0ApplyMatrix(end_a, matrix, point_a);
-    sceVu0ApplyMatrix(end_b, matrix, point_b);
     return 1;
 }
+
+int CEditParts::IsFence() {
+    if (info == NULL) {
+        return 0;
+    }
+    return (info->attr & EDIT_PARTS_ATR_FENCE) == EDIT_PARTS_ATR_FENCE;
+}
+
+int CEditParts::IsBurn() {
+    if (info == NULL) {
+        return 0;
+    }
+    return (info->attr & EDIT_PARTS_ATR_BURN) != 0;
+}
+
+int CEditParts::GetFenceSide(float *out_side0, float *out_side1) {
+    sceVu0FMATRIX matrix;
+    sceVu0FVECTOR side0;
+    sceVu0FVECTOR side1;
+
+    if (!bound_valid) {
+        return 0;
+    }
+    if (info == NULL) {
+        return 0;
+    }
+    GetLWMatrix(matrix);
+    *(u_long128 *)side0 = *(u_long128 *)info->area3_box.max;
+    *(u_long128 *)side1 = *(u_long128 *)info->area3_box.min;
+    side1[3] = 1.0f;
+    side0[3] = 1.0f;
+    sceVu0ApplyMatrix(out_side0, matrix, side0);
+    sceVu0ApplyMatrix(out_side1, matrix, side1);
+    return 1;
+}
+
 #ifdef NONMATCHING
 int CEditParts::GetWallPlane(int wall_no, WallInfo *out_info) {
     sceVu0FVECTOR sum;
@@ -290,80 +297,82 @@ int CEditParts::GetWallPlane(int wall_no, WallInfo *out_info) {
     out_info->center[3] = 1.0f;
     return found;
 }
+
 #else
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/editparts", GetWallPlane__10CEditPartsFiPQ210CEditParts8WallInfo);
 #endif
-int CEditParts::GetWallGroupNum() {
-    CEditPartsInfo *river_info;
 
-    river_info = info;
-    if (river_info != NULL) {
-        return river_info->wall_group_num;
+int CEditParts::GetWallGroupNum() {
+    if (info != NULL) {
+        return info->wall_group_num;
     }
     return 0;
 }
-int CEditParts::GetPartsType(void) {
+
+s32 CEditParts::GetPartsType(void) {
     CEditPartsInfo *part_info = info;
     if (part_info != NULL) {
         return part_info->GetPartsType();
     }
     return -1;
 }
-void CEditParts::Copy(CMapParts &source, mgCMemory *memory) {
-    CMapParts::Copy(source, memory);
-}
-int CEditParts::CheckTerritory(CEditParts *other) {
-    float center[4];
-    float other_center[4];
-    float matrix[4][4];
-    float other_matrix[4][4];
-    float radius_sum;
-    float height_limit;
-    float height_diff;
 
-    if (info == 0 || other == 0 || other->info == 0) {
+void CEditParts::Copy(CMapParts &dest, mgCMemory *memory) {
+    CMapParts::Copy(dest, memory);
+}
+
+int CEditParts::CheckTerritory(CEditParts *other) {
+    sceVu0FVECTOR center;
+    sceVu0FVECTOR other_center;
+    sceVu0FMATRIX matrix;
+    sceVu0FMATRIX other_matrix;
+    float         radius;
+    float         height_limit;
+    float         height_difference;
+
+    if (info == NULL || other == NULL || other->info == NULL) {
         return 0;
     }
-    if (other->info->attr & kNoTerritoryFlags) {
+    if (other->info->attr & 0xAC2) {
         return 0;
     }
-    ((CMapParts *)this)->GetLWMatrix(matrix);
-    ((CMapParts *)other)->GetLWMatrix(other_matrix);
+    GetLWMatrix(matrix);
+    other->GetLWMatrix(other_matrix);
     sceVu0ApplyMatrix(center, matrix, info->territory_center);
-    sceVu0ApplyMatrix(other_center, other_matrix,
-                      other->info->territory_center);
-    radius_sum = info->territory_radius +
-                other->info->territory_radius;
-    if (!(mgDistVectorXZ(center, other_center) <= radius_sum)) {
+    sceVu0ApplyMatrix(other_center, other_matrix, other->info->territory_center);
+    radius = info->territory_radius + other->info->territory_radius;
+    if (mgDistVectorXZ(center, other_center) > radius) {
         return 0;
     }
-    height_limit = info->territory_height +
-                  other->info->territory_height;
-    height_diff = other_center[1] - center[1];
-    if (height_diff < 0.0f) {
-        height_diff = -height_diff;
+    height_limit = info->territory_height + other->info->territory_height;
+    height_difference = other_center[1] - center[1];
+    if (height_difference < 0.0f) {
+        height_difference = -height_difference;
     }
-    if (!(height_diff <= height_limit)) {
+    if (height_difference > height_limit) {
         return 0;
     }
     return 1;
 }
+
 void CEditParts::CheckColorUpdate() {
-    CList<CMapPiece> *node = piece_list;
+    CList<CMapPiece> *piece;
+    int              material_count;
+
+    piece = piece_list;
     max_material_num = 0;
-    if (node != 0) {
-        do {
-            int count = node->data.material_num;
-            if (count > 0) {
-                int cur = max_material_num;
-                max_material_num = (count < cur) ? cur : count;
-            }
-            node = node->next;
-        } while (node != 0);
+    for (; piece != NULL; piece = piece->next) {
+        material_count = piece->data.material_num;
+        if (material_count > 0) {
+            max_material_num = material_count < max_material_num ? max_material_num : material_count;
+        }
     }
 }
-int EditPartsCmpColor(float *a, float *b) {
-    if (mgDistVector(a, b) < 0.02f) {
+
+int EditPartsCmpColor(float *color0, float *color1) {
+    int same;
+
+    if (mgDistVector(color0, color1) < 0.02f) {
         return 1;
     }
     return 0;
