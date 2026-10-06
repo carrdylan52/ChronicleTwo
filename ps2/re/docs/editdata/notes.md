@@ -1,5 +1,11 @@
 # editdata: reverse-engineering notes
 
+## C++ draft status
+34 of 39 functions match; 5 remain assembly-only. The matching build has
+34 perfect functions, including the generated array initializer. The script
+interpreter uses its declared C++ class and all twelve defined local helpers
+retain file-local linkage. `CEditData::Analyze` returns `s8`.
+
 Saved Georama town layout (`CEditData`, five of them in `CSaveData` at +0x1C24, stride
 0x5510) and the town analysis (requests/conditions) read from `geo%d.cfg`.
 No first-game counterpart (the first game's `edit.hpp` has no CEditData / analysis classes).
