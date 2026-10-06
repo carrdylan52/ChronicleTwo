@@ -61,23 +61,14 @@ owned (`class_units.tsv` lists none for this unit). No first-game counterpart (D
 0x6C between the three active item entries), `SubGameRunning()`, `CScene::GetCharacter`,
 `CActionChara::CheckRunEvent`.
 
-## C++ draft pass
-
-All seven remaining functions have typed C++ drafts under `NONMATCHING`.
-`PrintV` uses a stack digit array, `CPreSprite`, and the glyph rectangle by
-value. Both durability and absorption getters write a pair of current and
-maximum values into adjacent integers. The board drafts use typed
-`CBattleCharaInfo`, `DNG_STATUS`, `CWarningGage2`, and `CUserDataManager`
-fields. The main board's magic sword and ailment icon tables have been
-transcribed as typed local arrays in the draft, with the exact values shown
-by the retail data declarations.
-
-`DrawStatusBord` matched byte for byte and passed isolated whole-image
-promotion. All six other drafts compile with `NONMATCHING` but differ from
-retail. The first isolated attempts for the three large board functions were
-stopped at compilation because their shared draft-only gauge macro was not
-visible when only one draft was enabled; the macro is now visible outside the
-draft guards. `PrintV` was stopped by `mwccgap` source lookup of the mangled
-template argument `mgRect<int>`. The other two first attempts reached the
-whole-image comparison and differed. The default linked image remains
-byte-identical.
+## C++ draft status
+Six of the seven functions have compiled C++ implementations and match in the draft checker.
+`DrawMainUnitStatusBord` remains an upstream NONMATCHING draft with INCLUDE_ASM selected by
+default; it differs in 1137 of 1192 words (0x1204 bytes against retail's 0x12A0).
+The progress report records five perfect functions and two assembly entries: its PrintV
+template spelling does not pair with the linked symbol, so that entry has no match percentage.
+The linked image is byte-identical across all 11 checked sections.
+`PrintV` and the robot and monster boards use `CPreSprite sprite[2]`.
+The robot board retains a one-element HP-rate array and color self-assignment; the monster
+board retains duplicated color stores. Variable integer division retains the retail
+division-by-zero trap.
