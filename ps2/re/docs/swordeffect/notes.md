@@ -84,12 +84,8 @@ Retail symbol size 0x384 (manifest 0x390 includes padding).
 None besides the compiler literal `at_356` ("start !!\n").
 
 ## Draft and promotion status
-All ten remaining functions have named, typed C++ drafts. The draft comparison
-reports four exact functions including the preexisting `Clear`, seven functions
-with differences, and no missing drafts. One isolated promotion trial was made
-for every guarded function. `AddPoint` and the four-integer `SetTexture`
-overload linked byte-identically and now compile in the normal build. The
-other functions retain their assembly fallback. `Step` matches in the grouped
-draft build, but its isolated trial could not compile because `mgCFrame` is
-complete only under the draft include guard. The larger curve and draw
-routines still differ substantially from retail code generation.
+Seven of the eleven functions match and compile in the normal build: `CreatPointList`,
+both `SetTexture` overloads, `StartEffect`, `AddPoint`, `Step` and `Clear`. `CreatPointList`
+keeps its empty point loop in a `goto` form: written as a `for` or `while` loop the compiler
+unrolls it. `CreatSmoothPassSW`, `Draw`, `Initialize` and `Copy` remain named, typed C++
+drafts with differences, with their assembly fallback.
