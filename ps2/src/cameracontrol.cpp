@@ -1,25 +1,12 @@
 #include "common.h"
-#include "mg_memory.hpp"
-#include "mg_drawprim.hpp"
-#include "mg_texture.hpp"
-#include "mg_frame.hpp"
-#include "mg_drawenv.hpp"
-#include "mg_math.hpp"
-#include "mglib.hpp"
-#include "padcontrol.hpp"
 #include "cameracontrol.hpp"
 #include "collision.hpp"
 #include "gameutil.hpp"
+#include "mg_math.hpp"
+#include "mglib.hpp"
+#include "padcontrol.hpp"
 
 #include <cmath>
-
-union camera_control_vector {
-    float values[4];
-    u_long128 quadword;
-};
-
-extern "C" camera_control_vector at_373__3;
-extern "C" u_char at_396__3[];
 
 // Code (.text)
 void CameraCtrlParam::SetFixHeight(float height) {
@@ -30,30 +17,37 @@ void CameraCtrlParam::SetFixHeight(float height) {
     rest_max_height = height;
     rest_min_height = height;
 }
+
 void CameraCtrlParam::SetFixDist(float distance) {
     max_dist = distance;
     min_dist = distance;
 }
+
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/cameracontrol", __ct__14CCameraControlFv);
-CameraCtrlParam *CCameraControl::GetActiveParam(void) {
+CameraCtrlParam *CCameraControl::GetActiveParam() {
     return &param[active_param];
 }
-void CCameraControl::SetRotCameraCancel(int mask) {
+
+void CCameraControl::SetRotCameraCancel(s32 mask) {
     rot_cancel = mask;
 }
-void CCameraControl::BitSetRotCameraCancel(int mask) {
+
+void CCameraControl::BitSetRotCameraCancel(s32 mask) {
     rot_cancel |= mask;
 }
-void CCameraControl::BitResetRotCameraCancel(int mask) {
+
+void CCameraControl::BitResetRotCameraCancel(s32 mask) {
     rot_cancel &= ~mask;
 }
-void CCameraControl::InitStatus(void) {
+
+void CCameraControl::InitStatus() {
     rot_cancel = 0;
     rot_back = 0;
     rot_back_angle = 0.0f;
     mgZeroVector(dir_offset);
 }
-void CCameraControl::ControlOn(void) {
+
+void CCameraControl::ControlOn() {
     CameraCtrlParam *p;
 
     if (control_on == 0) {
@@ -70,29 +64,32 @@ void CCameraControl::ControlOn(void) {
     }
     control_on = 1;
 }
-void CCameraControl::ControlOff(void) {
+
+void CCameraControl::ControlOff() {
     control_on = 0;
 }
-void CCameraControl::Stay(void) {
+
+void CCameraControl::Stay() {
     if (control_on == 0) {
         mgCCameraFollow::Stay();
     } else {
         mgCCamera::Stay();
     }
 }
-void CCameraControl::Step(int frames) {
-    float offset[4];
+
+void CCameraControl::Step(int steps) {
+    sceVu0FVECTOR offset;
 
     if (control_on == 0) {
-        mgCCameraFollow::Step(frames);
+        mgCCameraFollow::Step(steps);
         return;
     }
-    if (frames < 0) {
+    if (steps < 0) {
         if (rot_back != 0) {
             SetRotate(rot_back_angle);
         }
     }
-    mgCCamera::Step(frames);
+    mgCCamera::Step(steps);
     sceVu0SubVector(offset, next_ref, next_pos);
     distance = mgDistVector(offset);
     height = -offset[1];
@@ -100,7 +97,8 @@ void CCameraControl::Step(int frames) {
     sceVu0SubVector(offset, ref, pos);
     angle = atan2f(-offset[0], -offset[2]);
 }
-void CCameraControl::MoveCamera(CPadControl *pad, float *target, CCPoly *polys, int poly_count) {
+
+void CCameraControl::MoveCamera(CPadControl *pad, float *rot, CCPoly *polys, int poly_count) {
     Control control;
 
     control.height = 0.0f;
@@ -109,10 +107,10 @@ void CCameraControl::MoveCamera(CPadControl *pad, float *target, CCPoly *polys, 
     if (pad != NULL) {
         float turn = 0.0f;
 
-        if (!(rot_cancel & 2)) {
+        if (!(rot_cancel & CAMERA_ROT_CANCEL_ANALOG)) {
             turn = 0.05f * -pad->Analog(6);
         }
-        if (!(rot_cancel & 1)) {
+        if (!(rot_cancel & CAMERA_ROT_CANCEL_BUTTON)) {
             if (pad->Btn(3) != 0) {
                 turn = 0.05f;
             }
@@ -125,21 +123,22 @@ void CCameraControl::MoveCamera(CPadControl *pad, float *target, CCPoly *polys, 
         }
         control.rot = turn;
         control.height = 2.0f * -pad->Analog(7);
-        int fast = pad->Btn(4) != 0;
-        if (fast == 0) {
-            fast = pad->Btn(1) != 0;
+        bool rot_back_requested = pad->Btn(4) != 0;
+        if (rot_back_requested == 0) {
+            rot_back_requested = pad->Btn(1) != 0;
         }
-        control.rot_back = fast & 0xFF;
+        control.rot_back = rot_back_requested;
     }
-    MoveCamera(&control, target, polys, poly_count);
+    MoveCamera(&control, rot, polys, poly_count);
 }
-void CCameraControl::MoveCamera(Control *control, float *target, CCPoly *polys, int poly_count) {
+
+void CCameraControl::MoveCamera(Control *control, float *rot, CCPoly *polys, int poly_count) {
     CameraCtrlParam *param;
-    float follow[4];
-    float follow_offset[4];
-    float to_target[4];
-    float direction[4];
-    float correction[4];
+    sceVu0FVECTOR follow;
+    sceVu0FVECTOR follow_offset;
+    sceVu0FVECTOR to_target;
+    sceVu0FVECTOR direction;
+    sceVu0FVECTOR correction;
     float distance;
     float turn;
     float zoom;
@@ -205,8 +204,8 @@ void CCameraControl::MoveCamera(Control *control, float *target, CCPoly *polys, 
     }
     next_pos[1] = next_ref[1] + param->height;
     mgAddVector(next_pos, correction);
-    if (control->rot_back != 0 && !(rot_cancel & 0x40)) {
-        RotBack(target[1] - 3.1415927f);
+    if (control->rot_back != 0 && !(rot_cancel & CAMERA_ROT_CANCEL_ROT_BACK)) {
+        RotBack(rot[1] - 3.1415927f);
     }
     if (rot_back != 0) {
         float angle = mgAngleInterpolate(GetAngle(), rot_back_angle, 1.0f, 0);
@@ -217,7 +216,7 @@ void CCameraControl::MoveCamera(Control *control, float *target, CCPoly *polys, 
     }
     if (param->no_check == 0) {
         CheckGround(polys, poly_count);
-        if (turn != 0.0f || (rot_cancel & 0x80)) {
+        if (turn != 0.0f || (rot_cancel & CAMERA_ROT_CANCEL_AUTO_MOVE)) {
             CheckCollision(polys, poly_count);
             return;
         }
@@ -225,9 +224,10 @@ void CCameraControl::MoveCamera(Control *control, float *target, CCPoly *polys, 
         AutoMove(polys, poly_count);
     }
 }
+
 void CCameraControl::Rotate(float angle) {
-    float offset[4];
-    float matrix[4][4];
+    sceVu0FVECTOR offset;
+    sceVu0FMATRIX matrix;
 
     sceVu0SubVector(offset, next_pos, next_ref);
     offset[3] = 0.0f;
@@ -236,17 +236,19 @@ void CCameraControl::Rotate(float angle) {
     sceVu0ApplyMatrix(offset, matrix, offset);
     sceVu0AddVector(next_pos, next_ref, offset);
 }
+
+#ifdef NONMATCHING
 void CCameraControl::SetRotate(float angle) {
-    camera_control_vector vector;
-    float *offset = vector.values;
-    float matrix[4][4];
+    static sceVu0FVECTOR base;
+    sceVu0FVECTOR offset;
+    sceVu0FMATRIX matrix;
     float distance;
     float height;
 
     distance = mgDistVectorXZ(next_ref, next_pos);
 
     height = next_pos[1] - next_ref[1];
-    vector = at_373__3;
+    sceVu0CopyVector(offset, base);
     offset[1] = height;
     offset[2] = distance;
     mgUnitMatrix(matrix);
@@ -254,6 +256,10 @@ void CCameraControl::SetRotate(float angle) {
     sceVu0ApplyMatrix(offset, matrix, offset);
     sceVu0AddVector(next_pos, next_ref, offset);
 }
+#else
+INCLUDE_ASM("ps2/asm/pal/nonmatchings/cameracontrol", SetRotate__14CCameraControlFf);
+#endif
+
 void CCameraControl::SetHeight(float height) {
     CameraCtrlParam *p;
 
@@ -265,37 +271,41 @@ void CCameraControl::SetHeight(float height) {
     next_pos[1] = next_ref[1] + height;
     p->height = height;
 }
+
 void CCameraControl::RotBack(float angle) {
     rot_back = 1;
     rot_back_angle = angle;
 }
-void CCameraControl::CancelRotBack(void) {
+
+void CCameraControl::CancelRotBack() {
     rot_back = 0;
 }
+
 void CCameraControl::SetCheckRef(float *ref) {
     check_ref_on = 1;
     *(u_long128 *)check_ref = *(u_long128 *)ref;
 }
-void CCameraControl::SetCheckRef(float x, float y, float z) {
-    float ref[4];
 
-    *(u_long128 *)ref = *(u_long128 *)at_396__3;
+void CCameraControl::SetCheckRef(float x, float y, float z) {
+    sceVu0FVECTOR ref = {0.0f, 0.0f, 0.0f, 1.0f};
+
     ref[0] = x;
     ref[1] = y;
     ref[2] = z;
     SetCheckRef(ref);
 }
+
 void CCameraControl::CheckCollision(CCPoly *polys, int poly_count) {
-    float to_camera[4];
-    float side_dir[4];
-    float view_dir[4];
-    float hit[4];
-    float unused_hit[4];
-    float view_end[4];
-    float side_end[4];
-    float target[4];
-    float margin[4];
-    float push[4];
+    sceVu0FVECTOR to_camera;
+    sceVu0FVECTOR side_dir;
+    sceVu0FVECTOR view_dir;
+    sceVu0FVECTOR hit;
+    sceVu0FVECTOR unused_hit;
+    sceVu0FVECTOR view_end;
+    sceVu0FVECTOR side_end;
+    sceVu0FVECTOR target;
+    sceVu0FVECTOR margin;
+    sceVu0FVECTOR push;
     int hit_index;
     int slid;
     float old_dist;
@@ -338,26 +348,27 @@ void CCameraControl::CheckCollision(CCPoly *polys, int poly_count) {
         }
         *(u_long128 *)next_pos = *(u_long128 *)hit;
         old_dist = mgDistVector(target, next_pos);
-        if (!(old_dist - mgDistVector(target, hit) <= 5.0f)) {
+        if (old_dist - mgDistVector(target, hit) > 5.0f) {
             *(u_long128 *)pos = *(u_long128 *)hit;
         }
     }
 }
+
 int CCameraControl::AutoMove(CCPoly *polys, int poly_count) {
-    float target[4];
-    float to_target[4];
-    float plane[4];
-    float to_pos[4];
-    float start_pos[4];
-    float dir_copy[4];
-    float ray_end[4];
-    float rot_a[4];
-    float rot_b[4];
-    float ray_start[4];
-    float candidate[4];
-    float turn_a[4][4];
-    float turn_b[4][4];
-    float probe[4];
+    sceVu0FVECTOR target;
+    sceVu0FVECTOR to_target;
+    sceVu0FVECTOR plane;
+    sceVu0FVECTOR to_pos;
+    sceVu0FVECTOR start_pos;
+    sceVu0FVECTOR dir_copy;
+    sceVu0FVECTOR ray_end;
+    sceVu0FVECTOR rot_a;
+    sceVu0FVECTOR rot_b;
+    sceVu0FVECTOR ray_start;
+    sceVu0FVECTOR candidate;
+    sceVu0FMATRIX turn_a;
+    sceVu0FMATRIX turn_b;
+    sceVu0FVECTOR probe;
     int hit_count;
     int found;
     int step;
@@ -399,8 +410,7 @@ int CCameraControl::AutoMove(CCPoly *polys, int poly_count) {
     sceVu0RotMatrixY(turn_b, turn_b, -0.01636246219277382f);
     found = 0;
     *(u_long128 *)candidate = *(u_long128 *)start_pos;
-    step = 0;
-    do {
+    for (step = 0; step < 0x20; step++) {
         sceVu0ApplyMatrix(rot_a, turn_a, rot_a);
         sceVu0SubVector(candidate, ray_end, rot_a);
         sceVu0ScaleVector(probe, rot_a, margin);
@@ -419,8 +429,7 @@ int CCameraControl::AutoMove(CCPoly *polys, int poly_count) {
             found = 1;
             break;
         }
-        step++;
-    } while (step < 0x20);
+    }
     result = 0;
     if (found != 0) {
         result = 1;
@@ -428,17 +437,18 @@ int CCameraControl::AutoMove(CCPoly *polys, int poly_count) {
     }
     return result;
 }
+
 void CCameraControl::CheckGround(CCPoly *polys, int poly_count) {
     int ceiling_index;
-    float target[4];
+    sceVu0FVECTOR target;
     int indices[0x20];
-    float from[4];
-    float line_high[4];
-    float line_low[4];
-    float hits[0x20][4];
-    float hit_info[4];
-    float floor_normal[4];
-    float ceiling_normal[4];
+    sceVu0FVECTOR from;
+    sceVu0FVECTOR line_high;
+    sceVu0FVECTOR line_low;
+    sceVu0FVECTOR hits[0x20];
+    sceVu0FVECTOR hit_info;
+    sceVu0FVECTOR floor_normal;
+    sceVu0FVECTOR ceiling_normal;
     CameraCtrlParam *param;
     float top;
     float bottom;
@@ -483,7 +493,7 @@ void CCameraControl::CheckGround(CCPoly *polys, int poly_count) {
         }
     }
     for (count--; count >= 0; count--) {
-        if (!(hits[count][1] < bottom - 1.0f)) {
+        if (hits[count][1] >= bottom - 1.0f) {
             sceVu0Normalize(ceiling_normal, polys[indices[count]].normal);
             if (hits[count][1] - next_pos[1] < 20.0f) {
                 if (ceiling_normal[1] < -0.5f) {
@@ -505,9 +515,10 @@ void CCameraControl::CheckGround(CCPoly *polys, int poly_count) {
         }
     }
 }
+
 void CCameraControl::GetCameraMatrix(float (*matrix)[4]) {
-    float dir[4];
-    float up[4];
+    sceVu0FVECTOR dir;
+    sceVu0FVECTOR up;
     sceVu0SubVector(dir, ref, pos);
     mgAddVector(dir, dir_offset);
     dir[0] = dir[0];
@@ -521,6 +532,7 @@ void CCameraControl::GetCameraMatrix(float (*matrix)[4]) {
     sceVu0Normalize(dir, dir);
     sceVu0CameraMatrix(matrix, pos, dir, up);
 }
+
 void CCameraControl::CopyParam(CCameraControl &dest) {
     CameraCtrlParam *src = GetActiveParam();
     CameraCtrlParam *dst = dest.GetActiveParam();
@@ -537,9 +549,6 @@ void CCameraControl::CopyParam(CCameraControl &dest) {
     dst->no_check = src->no_check;
     dest.rot_cancel = rot_cancel;
     *(u_long128 *)dest.follow_offset = *(u_long128 *)follow_offset;
-}
-int CCameraControl::Iam(void) {
-    return 1000;
 }
 
 // Initialised data (.data)

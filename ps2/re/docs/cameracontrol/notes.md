@@ -89,7 +89,7 @@ agent must decide (an explicit declaration needs a definition there).
 - `at_396__3` (.data, 0x3613A0): {0,0,0,1.0f} vec4 literal (used as SetCheckRef(fff)'s w).
   Compiler-generated, not declared.
 - `at_373__3` (.bss, 0x10): function-local static vec4 used in SetRotate as the base of the
-  offset vector (x/w read from it); compiler-generated, not declared.
+  offset vector (x/w read from it). The guarded C++ draft declares it as a static SDK vector.
 - No named globals in this unit. `MainCamera`/`EventCamera__2` are dng_main's.
 
 ## Other details
@@ -100,3 +100,10 @@ agent must decide (an explicit declaration needs a definition there).
   using CheckHitsPipe (radius 4.0 in w); returns 1 if clear (or already clear), else 0.
 - CheckCollision pulls next_pos to 5 units in front of the wall hit; snaps pos too when the
   pull exceeds 5 units.
+
+## Matching state
+The draft build has 27 functions: 25 instruction matches, one SetRotate
+difference, and no constructor draft. The normal linked build uses C++ for
+25 functions and assembly for the constructor and SetRotate and verifies all
+image sections. Iam is defined inline in the class and emitted with the vtable.
+SetCheckRef(x, y, z) initializes an SDK vector with {0, 0, 0, 1}.
