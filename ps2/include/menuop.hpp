@@ -6,13 +6,6 @@
 #include "mg_memory.hpp"
 #include "savedata.hpp"
 #include "scenesnd.hpp"
-#include "memcard.hpp"
-
-struct SaveIconSet {
-    MC_ICON_DATA file[3];
-};
-
-STATIC_ASSERT(sizeof(SaveIconSet) == 0x78);
 
 /**
  * @file
@@ -48,8 +41,8 @@ enum ManualMenuStep {
     MANUAL_STEP_CLOSE    = 3, /**< The movie or pictures fade out. */
     MANUAL_STEP_END      = 4, /**< The menu's own data is put back and the list returns. */
 };
-
 // clang-format on
+
 /**
  *
  * What the save menu was opened to do, as CSaveMenuClass::mode holds it.
@@ -61,8 +54,8 @@ enum SaveMenuMode {
     SAVE_MENU_MODE_LOAD         = 1, /**< Load a game from the title screen. */
     SAVE_MENU_MODE_GYORACE_LOAD = 2, /**< Load the fish of a saved game for the fish race. */
 };
-
 // clang-format on
+
 /**
  *
  * Pages of the save menu, as CSaveMenuClass::page holds them.
@@ -78,8 +71,8 @@ enum SaveMenuPage {
     SAVE_MENU_PAGE_UNK_5       = 5,
     SAVE_MENU_PAGE_ERROR       = 6, /**< A card error or lack of space is reported. */
 };
-
 // clang-format on
+
 /**
  *
  * The manual menu: a list of explanations that each play a movie, or show a
@@ -206,6 +199,40 @@ STATIC_ASSERT(sizeof(CMenuOption) == 0x384);
  */
 class CSaveMenuClass : public CBaseMenuClass {
 public:
+    /**
+     * Initializes the file selection and clears the save menu forms.
+     */
+    CSaveMenuClass() {
+        first_step = 1;
+        slot = 0;
+        list_jump = 0;
+        top = 0;
+        select = 0;
+        mode = 0;
+        dl_base = 0;
+        save_kind = 1;
+        need_kb = 0;
+        save_kb = 0;
+        check_kb = 0;
+        chapter8_start = 0;
+        save_count = 0;
+        unk_154 = 0;
+        dl_tex = NULL;
+        title_form = NULL;
+        slot_form[0] = NULL;
+        slot_form[1] = NULL;
+        cursor_form = NULL;
+        list_form = NULL;
+        scrlbar_form = NULL;
+        scrlbar_parts[0] = NULL;
+        scrlbar_parts[1] = NULL;
+        scrlbar_parts[2] = NULL;
+        scrlbar_pos[0] = 0;
+        scrlbar_pos[1] = 9;
+        card_ok = 0;
+        card_changed = 0;
+    }
+
     u8                  first_step;        /**< Non-zero until the menu's first frame has opened the slot choice. */
     s32                 select;            /**< File the cursor is on. */
     s32                 top;               /**< First file shown in the list. */
