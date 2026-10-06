@@ -19,7 +19,7 @@ Returns of global functions (from the code): `StartEditMode`, `StartEditModeFrom
 `PaintEditParts` always 1; `PlaceRiverStep`, `RemoveMtnStep` always 0; `PlaceEditParts` 0 when
 `GetePartsInfoAtID(PartsInfoID)` is NULL, else 1; `RemoveEditParts` 0/1; `DeleteKanketuParts`
 returns `CEditMap::RemoveEditParts`'s result; `NowPlaceRiver` = `PlaceRiverCnt > 0`;
-`CheckWalkToEdit`/`CheckEditToWalk` 0/1. `EndEditMode`'s `float*` is unused.
+`CheckWalkToEdit`/`CheckEditToWalk` 0/1. `EndEditMode` copies its `float*` position and adds 0.01f to Y for the player.
 
 ## UNDO_DATA (0x30)
 Size from `UndoData` symbol (0x30, .bss) and the 0x30 stack local built in `PlaceEditParts`.
@@ -40,7 +40,7 @@ Everything else is LOCAL in retail (`local_symbols.tsv`) and belongs in the .cpp
   sound at 40, place at 30), `RemoveMtnCnt` (18 at start; removal at 3), `eDirCurLen` (float),
   `NowSelectWallParts`, `SelectWallGroup`, `PreMenuCount`, `PreMenuMaxCount`, `CtrlLockFlag`
   (lock counter, clamped at 0), `eCameraDist` (float, 600.0f in `InitEditFlag`), `eCurRot`
-  (float), `eSysTexture` (`mgCTexture*`), `PaintCursor`, `PaintCursor2` (+0xF4 -> material with
+  (int), `eSysTexture` (`mgCTexture*`), `PaintCursor`, `PaintCursor2` (+0xF4 -> material with
   colour floats at +0x70..0x78), `PaintCurChr`, `RemoveCursor`, `ShovelCursor`, `ShovelCurChr`,
   `RemoveCurChr`, `UnitCursor` (models/characters; virtual calls at +0x18, +0xB0, +0xB4),
   `EditHelpMesNo` (EditHelpMes), `EditHelpMesParam`, `EditHelpMesParam2`, `SysMesCnt`,
