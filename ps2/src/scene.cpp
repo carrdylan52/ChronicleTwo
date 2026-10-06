@@ -1,54 +1,38 @@
 #include "common.h"
-#include "character.hpp"
-#include "effscript.hpp"
-#include "map.hpp"
-#include "mapsky.hpp"
-#include "mg_camera.hpp"
-#include "mg_drawprim.hpp"
-#include "mg_frame.hpp"
-#include "mg_memory.hpp"
-#include "nd_meswin.hpp"
-#include "savedata.hpp"
-#include "scenesnd.hpp"
 #include "scene.hpp"
+
+#include <cmath>
 #include <cstdlib>
 #include <cstring>
-#include <cmath>
-#include "mainloop.hpp"
-#include "font.hpp"
-#include "mg_math.hpp"
-#include "mg_tanime.hpp"
-#include "mglib.hpp"
-#include "mg_drawenv.hpp"
 
-extern "C" void __ct__11mgCDrawPrimFv(void *);
-extern "C" int fptosi(float value);
-extern char at_1503__3[];
-extern char at_1504__3[];
-extern char at_853__3[];
-extern char at_1117[];
-extern char at_1171[];
-extern char noname_1188[8];
-extern char noname_1242[8];
-extern char noname_1294[8];
-extern char noname_1381[8];
-extern char noname_1692[8];
-extern char noname_1709[8];
+#include "effscript.hpp"
+#include "font.hpp"
+#include "mainloop.hpp"
+#include "map.hpp"
+#include "mg_drawprim.hpp"
+#include "mg_memory.hpp"
+#include "mglib.hpp"
+#include "savedata.hpp"
+#include "scenesnd.hpp"
 
 // Code (.text)
 float f_rand(float min_value, float max_value) {
     return min_value + (((max_value - min_value) * (float) rand()) / 2147483648.0f);
 }
+
 int i_rand(int min, int max) {
-    return fptosi(f_rand((float)min, (float)max));
+    return (int)f_rand(min, max);
 }
-void InitVector(float *vector) {
-    vector[0] = 0.0f;
-    vector[1] = 0.0f;
-    vector[2] = 0.0f;
-    vector[3] = 1.0f;
+
+void InitVector(float *vec) {
+    vec[0] = 0.0f;
+    vec[1] = 0.0f;
+    vec[2] = 0.0f;
+    vec[3] = 1.0f;
 }
+
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/scene", RandXYinViewArea__FfffPfPf);
+
 int CRipple::Birth(float *position) {
     if (active != 0) {
         return 0;
@@ -61,7 +45,8 @@ int CRipple::Birth(float *position) {
     count = 0;
     return life = i_rand(20, 40);
 }
-int CRipple::Step(void) {
+
+s32 CRipple::Step(void) {
     if (active == 0) {
         return 0;
     }
@@ -72,42 +57,39 @@ int CRipple::Step(void) {
     }
     return 1;
 }
+
 void CRipple::Draw(void) {
-    struct { u_long128 data[18]; } prim_storage;
+    float ripple_size = size * count / life;
+    float alpha = (float)((life - count) * 40) / life;
+    mgCDrawPrim prim;
     float corner[4][4];
     int vertex[4][4];
     RECT rect_a;
     RECT rect_b;
     int tex_no;
-    float size;
-    float alpha;
     float half;
     int u;
     int v;
     int w;
     int h;
 
-    size = this->size * (float)count / (float)life;
-    alpha = (float)((life - count) * 40) / (float)life;
-
-    __ct__11mgCDrawPrimFv(&prim_storage);
-    ((mgCDrawPrim *)&prim_storage)->Initialize(0, 0);
-    ((mgCDrawPrim *)&prim_storage)->AlphaBlendEnable(1);
-    ((mgCDrawPrim *)&prim_storage)->AlphaBlend(1);
-    ((mgCDrawPrim *)&prim_storage)->AlphaTestEnable(1);
-    ((mgCDrawPrim *)&prim_storage)->AlphaTest(1, 0);
-    ((mgCDrawPrim *)&prim_storage)->DepthTestEnable(0);
-    ((mgCDrawPrim *)&prim_storage)->ZMask(-1);
-    ((mgCDrawPrim *)&prim_storage)->Bilinear(0);
-    ((mgCDrawPrim *)&prim_storage)->TextureMapEnable(1);
-    ((mgCDrawPrim *)&prim_storage)->DepthTestEnable(1);
-    ((mgCDrawPrim *)&prim_storage)->DepthTest(1);
-    ((mgCDrawPrim *)&prim_storage)->Bilinear(1);
-    ((mgCDrawPrim *)&prim_storage)->Coord(1);
-    ((mgCDrawPrim *)&prim_storage)->AlphaBlend(2);
-    ((mgCDrawPrim *)&prim_storage)->AlphaTestEnable(1);
-    ((mgCDrawPrim *)&prim_storage)->AntiAliasing(1);
-    half = size / 2.0f;
+    prim.Initialize(NULL, NULL);
+    prim.AlphaBlendEnable(1);
+    prim.AlphaBlend(1);
+    prim.AlphaTestEnable(1);
+    prim.AlphaTest(1, 0);
+    prim.DepthTestEnable(0);
+    prim.ZMask(-1);
+    prim.Bilinear(0);
+    prim.TextureMapEnable(1);
+    prim.DepthTestEnable(1);
+    prim.DepthTest(1);
+    prim.Bilinear(1);
+    prim.Coord(1);
+    prim.AlphaBlend(2);
+    prim.AlphaTestEnable(1);
+    prim.AntiAliasing(1);
+    half = ripple_size / 2.0f;
     corner[0][0] = pos[0] - half;
     corner[0][1] = pos[1];
     corner[0][2] = pos[2] - half;
@@ -128,9 +110,9 @@ void CRipple::Draw(void) {
         mgTransWorldPrim(vertex[1], corner[1]) != 0 &&
         mgTransWorldPrim(vertex[2], corner[2]) != 0 &&
         mgTransWorldPrim(vertex[3], corner[3]) != 0) {
-        ((mgCDrawPrim *)&prim_storage)->Begin(3);
+        prim.Begin(3);
         if (LanguageCode == 0 || LanguageCode == 1) {
-            rect_a = GetRectFontTex(GetFontNo(at_853__3), &tex_no);
+            rect_a = GetRectFontTex(GetFontNo("\x81\x9B"), &tex_no);
             u = rect_a.x;
             v = rect_a.y;
             w = rect_a.width;
@@ -142,23 +124,24 @@ void CRipple::Draw(void) {
             w = rect_b.width;
             h = rect_b.height;
         }
-        MySetTex(tex_no, (mgCDrawPrim *)&prim_storage);
-        ((mgCDrawPrim *)&prim_storage)->Color(0x80, 0x80, 0x80, fptosi(alpha));
-        ((mgCDrawPrim *)&prim_storage)->TextureCrd(u, v);
-        ((mgCDrawPrim *)&prim_storage)->Vertex4(vertex[0]);
-        ((mgCDrawPrim *)&prim_storage)->TextureCrd(u, v + h);
-        ((mgCDrawPrim *)&prim_storage)->Vertex4(vertex[1]);
-        ((mgCDrawPrim *)&prim_storage)->TextureCrd(u + w, v);
-        ((mgCDrawPrim *)&prim_storage)->Vertex4(vertex[2]);
-        ((mgCDrawPrim *)&prim_storage)->TextureCrd(u, v + h);
-        ((mgCDrawPrim *)&prim_storage)->Vertex4(vertex[1]);
-        ((mgCDrawPrim *)&prim_storage)->TextureCrd(u + w, v);
-        ((mgCDrawPrim *)&prim_storage)->Vertex4(vertex[2]);
-        ((mgCDrawPrim *)&prim_storage)->TextureCrd(u + w, v + h);
-        ((mgCDrawPrim *)&prim_storage)->Vertex4(vertex[3]);
-        ((mgCDrawPrim *)&prim_storage)->End();
+        MySetTex(tex_no, &prim);
+        prim.Color(0x80, 0x80, 0x80, (int)alpha);
+        prim.TextureCrd(u, v);
+        prim.Vertex4(vertex[0]);
+        prim.TextureCrd(u, v + h);
+        prim.Vertex4(vertex[1]);
+        prim.TextureCrd(u + w, v);
+        prim.Vertex4(vertex[2]);
+        prim.TextureCrd(u, v + h);
+        prim.Vertex4(vertex[1]);
+        prim.TextureCrd(u + w, v);
+        prim.Vertex4(vertex[2]);
+        prim.TextureCrd(u + w, v + h);
+        prim.Vertex4(vertex[3]);
+        prim.End();
     }
 }
+
 void CRipple::Init(void) {
     active = 0;
     InitVector(pos);
@@ -166,6 +149,7 @@ void CRipple::Init(void) {
     count = 0;
     life = 0;
 }
+
 int CParticle::Birth(float *position, float *velocity) {
     if (active != 0) {
         return 0;
@@ -186,6 +170,7 @@ int CParticle::Birth(float *position, float *velocity) {
     base_y = position[1];
     return 1;
 }
+
 int CParticle::Step(void) {
     if (active == 0) {
         return 0;
@@ -202,7 +187,9 @@ int CParticle::Step(void) {
     pos[2] += speed[2];
     return 1;
 }
+
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/scene", Draw__9CParticleFv);
+
 void CParticle::Init(void) {
     active = 0;
     InitVector(pos);
@@ -210,6 +197,7 @@ void CParticle::Init(void) {
     InitVector(accel);
     base_y = 0;
 }
+
 void CRainDrop::Birth(int drop_type) {
     float view_angle = 0.7853982f;
     int i;
@@ -226,7 +214,7 @@ void CRainDrop::Birth(int drop_type) {
         pos[0][1] = RandXYinViewArea(110.0f, 600.0f, view_angle, pos[0], &pos[0][2]);
     }
     pos[0][3] = 1.0f;
-    for (i = 1; i < 8; i++) {
+    for (i = 1; i < RAIN_DROP_TRAIL_NUM; i++) {
         sceVu0CopyVector(pos[i], pos[i - 1]);
     }
     speed[0] = f_rand(-2.0f, 2.0f);
@@ -245,13 +233,14 @@ void CRainDrop::Birth(int drop_type) {
         color[3] = 32;
     }
 }
+
 int CRainDrop::Step(void) {
     int i;
 
     if (active == 0) {
         return 0;
     }
-    for (i = 7; i > 0; i--) {
+    for (i = RAIN_DROP_TRAIL_NUM - 1; i > 0; i--) {
         sceVu0CopyVector(pos[i], pos[i - 1]);
     }
     sceVu0AddVector(pos[0], pos[0], speed);
@@ -264,6 +253,7 @@ int CRainDrop::Step(void) {
     }
     return 1;
 }
+
 void CRainDrop::Draw(void) {
     mgCDrawPrim prim;
     int vertex_a[4];
@@ -286,7 +276,7 @@ void CRainDrop::Draw(void) {
     prim.AlphaBlend(2);
     prim.AntiAliasing(1);
     prim.Begin(1);
-    for (i = 7; i > 0; i -= 2) {
+    for (i = RAIN_DROP_TRAIL_NUM - 1; i > 0; i -= 2) {
         if (mgTransWorldPrim(vertex_a, pos[i]) != 0 &&
             mgTransWorldPrim(vertex_b, pos[i - 1]) != 0) {
             prim.Color(color[0], color[1], color[2], 8);
@@ -297,12 +287,13 @@ void CRainDrop::Draw(void) {
     }
     prim.End();
 }
+
 void CRainDrop::Init(void) {
     int i;
 
     active = 0;
     type = 0;
-    for (i = 0; i < 8; i++) {
+    for (i = 0; i < RAIN_DROP_TRAIL_NUM; i++) {
         InitVector(pos[i]);
     }
     InitVector(speed);
@@ -311,40 +302,50 @@ void CRainDrop::Init(void) {
     color[2] = 0x80;
     color[3] = 0x80;
 }
+
 void CRain::SetCharNo(int chara_no) {
+    int i;
+
     this->chara_no = chara_no;
     if (chara_no == -1) {
-        for (int i = 0; i < 100; i++) {
+        for (i = 0; i < RAIN_PARTICLE_NUM; i++) {
             particle[i].Init();
         }
     }
 }
+
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/scene", ParticleBirth__5CRainFPfi);
+
 void CRain::Stop(void) {
     active = 0;
 }
+
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/scene", Start__5CRainFv);
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/scene", Step__5CRainFv);
+
 void CRain::Init(void) {
     int i;
+
     active = 0;
     chara_no = 0;
-    for (i = 0; i < 100; i++) {
+    for (i = 0; i < RAIN_DROP_NUM; i++) {
         drop[i].Init();
     }
-    for (i = 0; i < 50; i++) {
+    for (i = 0; i < RAIN_FAR_DROP_NUM; i++) {
         far_drop[i].Init();
     }
-    for (i = 0; i < 100; i++) {
+    for (i = 0; i < RAIN_PARTICLE_NUM; i++) {
         particle[i].Init();
     }
-    for (i = 0; i < 200; i++) {
+    for (i = 0; i < RAIN_RIPPLE_NUM; i++) {
         ripple[i].Init();
     }
 }
+
 void DrawScreenRain(void) {
     mgCDrawPrim prim;
     int i;
+
     prim.Initialize(NULL, NULL);
     prim.AlphaBlendEnable(1);
     prim.AlphaBlend(1);
@@ -362,9 +363,9 @@ void DrawScreenRain(void) {
         float angle = f_rand(-0.0490873866f, 0.0490873866f);
         int x = i_rand(0, mgScreenWidth);
         int y = i_rand(0, mgScreenHeight);
-        int end_x = fptosi(length * sinf(angle));
+        int end_x = (int)(length * sinf(angle));
         end_x += x;
-        int end_y = fptosi(length * cosf(angle));
+        int end_y = (int)(length * cosf(angle));
         end_y += y;
         prim.Color(128, 128, 128, 0);
         prim.Vertex(x, y, 0);
@@ -373,16 +374,17 @@ void DrawScreenRain(void) {
     }
     prim.End();
 }
+
 void CRain::Draw(void) {
     int i;
-    if (active) {
-        for (i = 0; i < 50; i++) {
+    if (active != 0) {
+        for (i = 0; i < RAIN_FAR_DROP_NUM; i++) {
             far_drop[i].Draw();
         }
-        for (i = 0; i < 100; i++) {
+        for (i = 0; i < RAIN_DROP_NUM; i++) {
             drop[i].Draw();
         }
-        for (i = 0; i < 100; i++) {
+        for (i = 0; i < RAIN_PARTICLE_NUM; i++) {
             particle[i].Draw();
         }
         for (i = 0; i < 100; i++) {
@@ -391,6 +393,7 @@ void CRain::Draw(void) {
         DrawScreenRain();
     }
 }
+
 void CSceneData::Initialize(void) {
     status = 0;
     name[0] = 0;
@@ -399,8 +402,9 @@ void CSceneData::Initialize(void) {
     tex_block_num = 0;
     type = 0;
 }
+
 int CSceneCharacter::AssignData(CCharacter2 *character_data, char *character_name) {
-    if ((character_name == NULL) || (character_data == NULL)) {
+    if (character_name == NULL || character_data == NULL) {
         return 0;
     }
     status = 0;
@@ -409,18 +413,21 @@ int CSceneCharacter::AssignData(CCharacter2 *character_data, char *character_nam
     status |= SCENE_DATA_ASSIGNED;
     return 1;
 }
+
 void CSceneCharacter::Initialize(void) {
-    chara = 0;
+    chara = NULL;
     texb = -1;
     chara_no = -1;
     CSceneData::Initialize();
 }
+
 void CSceneMap::Initialize(void) {
-    map = 0;
+    map = NULL;
     CSceneData::Initialize();
 }
+
 int CSceneMap::AssignData(CMap *map_data, char *map_name) {
-    if ((map_name == NULL) || (map_data == NULL)) {
+    if (map_name == NULL || map_data == NULL) {
         return 0;
     }
     Initialize();
@@ -430,10 +437,12 @@ int CSceneMap::AssignData(CMap *map_data, char *map_name) {
     status |= SCENE_DATA_ASSIGNED;
     return 1;
 }
+
 void CSceneMessage::Initialize(void) {
-    mes = 0;
+    mes = NULL;
     CSceneData::Initialize();
 }
+
 int CSceneMessage::AssignData(ClsMes *message_data, char *message_name) {
     if (message_data == NULL) {
         return 0;
@@ -449,6 +458,7 @@ int CSceneMessage::AssignData(ClsMes *message_data, char *message_name) {
     status |= SCENE_DATA_ASSIGNED;
     return 1;
 }
+
 int CSceneCamera::AssignData(mgCCamera *camera_data, char *camera_name) {
     if (camera_data == NULL) {
         return 0;
@@ -464,10 +474,12 @@ int CSceneCamera::AssignData(mgCCamera *camera_data, char *camera_name) {
     status |= SCENE_DATA_ASSIGNED;
     return 1;
 }
+
 void CSceneCamera::Initialize(void) {
-    camera = 0;
+    camera = NULL;
     CSceneData::Initialize();
 }
+
 int CSceneSky::AssignData(CMapSky *sky_data, char *sky_name) {
     if (sky_data == NULL) {
         return 0;
@@ -483,17 +495,21 @@ int CSceneSky::AssignData(CMapSky *sky_data, char *sky_name) {
     status |= SCENE_DATA_ASSIGNED;
     return 1;
 }
+
 void CSceneSky::Initialize(void) {
-    sky = 0;
+    sky = NULL;
     CSceneData::Initialize();
 }
+
 void CSceneGameObj::Initialize(void) {
     CSceneCharacter::Initialize();
 }
+
 void CSceneEffect::Initialize(void) {
-    effect = 0;
+    effect = NULL;
     CSceneData::Initialize();
 }
+
 int CSceneEffect::AssignData(CEffectScriptMan *effect_data, char *effect_name) {
     if (effect_data == NULL) {
         return 0;
@@ -509,6 +525,7 @@ int CSceneEffect::AssignData(CEffectScriptMan *effect_data, char *effect_name) {
     status |= SCENE_DATA_ASSIGNED;
     return 1;
 }
+
 void CScene::InitAllData() {
     Initialize();
     time = 0.0f;
@@ -521,104 +538,121 @@ void CScene::InitAllData() {
     skip_load_villager = 0;
     skip_load_sub_villager = 0;
 }
+
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/scene", Initialize__6CSceneFv);
-void CScene::SetStack(int index, mgCMemory *stack) {
-    if (index < 0 || index >= stack_num) {
+
+void CScene::SetStack(int no, mgCMemory *stack) {
+    if (no < 0 || no >= stack_num) {
         return;
     }
-    this->stack[index] = stack;
+    this->stack[no] = stack;
 }
-mgCMemory *CScene::GetStack(int index) {
-    if (index < 0 || index >= stack_num) {
+
+mgCMemory *CScene::GetStack(int no) {
+    if (no < 0 || no >= stack_num) {
         return NULL;
     }
-    return stack[index];
+    return stack[no];
 }
-void CScene::ClearStack(int index) {
+
+#ifdef NONMATCHING
+void CScene::ClearStack(int no) {
     int i;
 
-    int offset = index * 4;
-    for (i = index; i < stack_num; i++) {
-        mgCMemory **slot = (mgCMemory **)((u8 *)this + offset + 8);
-        mgCMemory *stack = *slot;
-        if (stack != NULL) {
-            stack->stack_used = 0;
-            stack->lock = 0;
-            if (index < i) {
-                (*slot)->stSetBuffer(NULL, 0);
+    for (i = no; i < stack_num; i++) {
+        mgCMemory *memory = stack[i];
+        if (memory != NULL) {
+            memory->stack_used = 0;
+            memory->lock = 0;
+            if (no < i) {
+                stack[i]->stSetBuffer(NULL, 0);
             }
         }
-        offset += 4;
     }
 }
+#else
+INCLUDE_ASM("ps2/asm/pal/nonmatchings/scene", ClearStack__6CSceneFi);
+#endif
+
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/scene", AssignStack__6CSceneFi);
-CSceneCharacter *CScene::GetSceneCharacter(int index) {
-    if (index < 0 || index >= chara_num) {
+
+CSceneCharacter *CScene::GetSceneCharacter(int no) {
+    if (no < 0 || no >= chara_num) {
         return NULL;
     }
-    return &chara[index];
+    return &chara[no];
 }
-CSceneMap *CScene::GetSceneMap(int index) {
-    if (index < 0 || index >= map_num) {
+
+CSceneMap *CScene::GetSceneMap(int no) {
+    if (no < 0 || no >= map_num) {
         return NULL;
     }
-    return &map[index];
+    return &map[no];
 }
-CSceneMessage *CScene::GetSceneMessage(int index) {
-    if (index < 0 || index >= message_num) {
+
+CSceneMessage *CScene::GetSceneMessage(int no) {
+    if (no < 0 || no >= message_num) {
         return NULL;
     }
-    return &message[index];
+    return &message[no];
 }
-CSceneCamera *CScene::GetSceneCamera(int index) {
-    if (index < 0 || index >= camera_num) {
+
+CSceneCamera *CScene::GetSceneCamera(int no) {
+    if (no < 0 || no >= camera_num) {
         return NULL;
     }
-    return &camera[index];
+    return &camera[no];
 }
-CSceneSky *CScene::GetSceneSky(int index) {
-    if (index < 0 || index >= sky_num) {
+
+CSceneSky *CScene::GetSceneSky(int no) {
+    if (no < 0 || no >= sky_num) {
         return NULL;
     }
-    return &sky[index];
+    return &sky[no];
 }
-CSceneGameObj *CScene::GetSceneGameObj(int index) {
-    if (index < 0 || index >= gameobj_num) {
+
+CSceneGameObj *CScene::GetSceneGameObj(int no) {
+    if (no < 0 || no >= gameobj_num) {
         return NULL;
     }
-    return &gameobj[index];
+    return &gameobj[no];
 }
-CSceneEffect *CScene::GetSceneEffect(int index) {
-    if (index < 0 || index >= effect_num) {
+
+CSceneEffect *CScene::GetSceneEffect(int no) {
+    if (no < 0 || no >= effect_num) {
         return NULL;
     }
-    return &effect[index];
+    return &effect[no];
 }
+
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/scene", CheckIMGName__6CSceneFiPc);
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/scene", CheckMDSName__6CSceneFiPc);
-CSceneData *CScene::GetData(int kind, int index) {
+
+CSceneData *CScene::GetData(int kind, int no) {
     switch (kind) {
-        case 1:
-            return GetSceneCharacter(index);
-        case 2:
-            return GetSceneMap(index);
-        case 3:
-            return GetSceneMessage(index);
-        case 4:
-            return GetSceneCamera(index);
-        case 6:
-            return GetSceneGameObj(index);
-        case 7:
-            return GetSceneGameObj(index);
-        default:
-            return NULL;
+    case SCENE_DATA_CHARA:
+        return GetSceneCharacter(no);
+    case SCENE_DATA_MAP:
+        return GetSceneMap(no);
+    case SCENE_DATA_MESSAGE:
+        return GetSceneMessage(no);
+    case SCENE_DATA_CAMERA:
+        return GetSceneCamera(no);
+    case SCENE_DATA_GAMEOBJ:
+        return GetSceneGameObj(no);
+    case SCENE_DATA_EFFECT:
+        return GetSceneGameObj(no);
+    default:
+        return NULL;
     }
 }
-int CScene::AssignCamera(int index, mgCCamera *camera, char *camera_name) {
+
+int CScene::AssignCamera(int no, mgCCamera *camera, char *name) {
+    static char noname[] = "no_name";
     CSceneCamera *slot;
     int i;
 
-    if (index < 0) {
+    if (no < 0) {
         for (i = 0; i < camera_num; i++) {
             slot = GetSceneCamera(i);
             if (slot == NULL) {
@@ -631,29 +665,30 @@ int CScene::AssignCamera(int index, mgCCamera *camera, char *camera_name) {
         }
         return -1;
     }
-    slot = GetSceneCamera(index);
+    slot = GetSceneCamera(no);
     if (slot == NULL) {
         return -1;
     }
-    if (camera_name == NULL) {
-        camera_name = noname_1188;
+    if (name == NULL) {
+        name = noname;
     }
     if (active_camera < 0) {
-        active_camera = index;
+        active_camera = no;
     }
-    if (slot->AssignData(camera, camera_name) != 0) {
-        return index;
+    if (slot->AssignData(camera, name) != 0) {
+        return no;
     }
     return -1;
 }
-int CScene::GetCameraID(char *camera_name) {
-    int index;
 
-    if (camera_name == NULL) {
+int CScene::GetCameraID(char *name) {
+    int no;
+
+    if (name == NULL) {
         return -1;
     }
-    for (index = 0; index < camera_num; index++) {
-        CSceneCamera *slot = GetSceneCamera(index);
+    for (no = 0; no < camera_num; no++) {
+        CSceneCamera *slot = GetSceneCamera(no);
         if (slot == NULL) {
             continue;
         }
@@ -661,14 +696,15 @@ int CScene::GetCameraID(char *camera_name) {
         if (empty) {
             continue;
         }
-        if (strcmp(camera_name, slot->name) == 0) {
-            return index;
+        if (strcmp(name, slot->name) == 0) {
+            return no;
         }
     }
     return -1;
 }
-mgCCamera *CScene::GetCamera(int index) {
-    CSceneCamera *slot = GetSceneCamera(index);
+
+mgCCamera *CScene::GetCamera(int no) {
+    CSceneCamera *slot = GetSceneCamera(no);
     if (slot == NULL) {
         return NULL;
     }
@@ -678,11 +714,13 @@ mgCCamera *CScene::GetCamera(int index) {
     }
     return slot->camera;
 }
-int CScene::AssignMessage(int index, ClsMes *message_data, char *message_name) {
+
+int CScene::AssignMessage(int no, ClsMes *message, char *name) {
+    static char noname[] = "no_name";
     CSceneMessage *slot;
     int i;
 
-    if (index < 0) {
+    if (no < 0) {
         for (i = 0; i < message_num; i++) {
             slot = GetSceneMessage(i);
             if (slot == NULL) {
@@ -695,20 +733,21 @@ int CScene::AssignMessage(int index, ClsMes *message_data, char *message_name) {
         }
         return -1;
     }
-    slot = GetSceneMessage(index);
+    slot = GetSceneMessage(no);
     if (slot == NULL) {
         return -1;
     }
-    if (message_name == NULL) {
-        message_name = noname_1242;
+    if (name == NULL) {
+        name = noname;
     }
-    if (slot->AssignData(message_data, message_name) != 0) {
-        return index;
+    if (slot->AssignData(message, name) != 0) {
+        return no;
     }
     return -1;
 }
-ClsMes *CScene::GetMessage(int index) {
-    CSceneMessage *slot = GetSceneMessage(index);
+
+ClsMes *CScene::GetMessage(int no) {
+    CSceneMessage *slot = GetSceneMessage(no);
     if (slot == NULL) {
         return NULL;
     }
@@ -718,11 +757,13 @@ ClsMes *CScene::GetMessage(int index) {
     }
     return slot->mes;
 }
-int CScene::AssignChara(int index, CCharacter2 *character_data, char *character_name) {
+
+int CScene::AssignChara(int no, CCharacter2 *chara, char *name) {
+    static char noname[] = "no_name";
     CSceneCharacter *slot;
     int i;
 
-    if (index < 0) {
+    if (no < 0) {
         for (i = 0; i < chara_num; i++) {
             slot = GetSceneCharacter(i);
             if (slot == NULL) {
@@ -735,34 +776,38 @@ int CScene::AssignChara(int index, CCharacter2 *character_data, char *character_
         }
         return -1;
     }
-    slot = GetSceneCharacter(index);
+    slot = GetSceneCharacter(no);
     if (slot == NULL) {
         return -1;
     }
-    if (character_name == NULL) {
-        character_name = noname_1294;
+    if (name == NULL) {
+        name = noname;
     }
-    if (slot->AssignData(character_data, character_name) != 0) {
-        return index;
+    if (slot->AssignData(chara, name) != 0) {
+        return no;
     }
     return -1;
 }
-void CScene::SetCharaNo(int index, int value) {
-    CSceneCharacter *chara = GetSceneCharacter(index);
-    if (chara != 0)
-        chara->chara_no = value;
+
+void CScene::SetCharaNo(int no, int chara_no) {
+    CSceneCharacter *chara = GetSceneCharacter(no);
+    if (chara != NULL) {
+        chara->chara_no = chara_no;
+    }
 }
-int CScene::GetCharaNo(int index) {
+
+int CScene::GetCharaNo(int no) {
     CSceneCharacter *chara;
 
-    chara = GetSceneCharacter(index);
+    chara = GetSceneCharacter(no);
     if (chara != NULL) {
         return chara->chara_no;
     }
     return -1;
 }
-CCharacter2 *CScene::GetCharacter(int index) {
-    CSceneCharacter *slot = GetSceneCharacter(index);
+
+CCharacter2 *CScene::GetCharacter(int no) {
+    CSceneCharacter *slot = GetSceneCharacter(no);
     if (slot == NULL) {
         return NULL;
     }
@@ -772,11 +817,13 @@ CCharacter2 *CScene::GetCharacter(int index) {
     }
     return slot->chara;
 }
-int CScene::AssignMap(int index, CMap *map_data, char *map_name) {
+
+int CScene::AssignMap(int no, CMap *map, char *name) {
+    static char noname[] = "no_name";
     CSceneMap *slot;
     int i;
 
-    if (index < 0) {
+    if (no < 0) {
         for (i = 0; i < map_num; i++) {
             slot = GetSceneMap(i);
             if (slot == NULL) {
@@ -789,38 +836,40 @@ int CScene::AssignMap(int index, CMap *map_data, char *map_name) {
         }
         return -1;
     }
-    slot = GetSceneMap(index);
+    slot = GetSceneMap(no);
     if (slot == NULL) {
         return -1;
     }
-    if (map_name == NULL) {
-        map_name = noname_1381;
+    if (name == NULL) {
+        name = noname;
     }
     if (active_map < 0) {
-        active_map = index;
+        active_map = no;
     }
-    if (slot->AssignData(map_data, map_name) != 0) {
-        return index;
+    if (slot->AssignData(map, name) != 0) {
+        return no;
     }
     return -1;
 }
-char *CScene::GetMapName(int index) {
+
+char *CScene::GetMapName(int no) {
     CSceneMap *slot;
 
-    slot = GetSceneMap(index);
-    if (slot != 0) {
+    slot = GetSceneMap(no);
+    if (slot != NULL) {
         return slot->name;
     }
-    return 0;
+    return NULL;
 }
-int CScene::GetMapID(char *map_name) {
-    int index;
 
-    if (map_name == NULL) {
+int CScene::GetMapID(char *name) {
+    int no;
+
+    if (name == NULL) {
         return -1;
     }
-    for (index = 0; index < map_num; index++) {
-        CSceneMap *slot = GetSceneMap(index);
+    for (no = 0; no < map_num; no++) {
+        CSceneMap *slot = GetSceneMap(no);
         if (slot == NULL) {
             continue;
         }
@@ -828,14 +877,15 @@ int CScene::GetMapID(char *map_name) {
         if (empty) {
             continue;
         }
-        if (strcmp(map_name, slot->name) == 0) {
-            return index;
+        if (strcmp(name, slot->name) == 0) {
+            return no;
         }
     }
     return -1;
 }
-CMap *CScene::GetMap(int index) {
-    CSceneMap *slot = GetSceneMap(index);
+
+CMap *CScene::GetMap(int no) {
+    CSceneMap *slot = GetSceneMap(no);
     if (slot == NULL) {
         return NULL;
     }
@@ -845,8 +895,9 @@ CMap *CScene::GetMap(int index) {
     }
     return slot->map;
 }
-CMapSky *CScene::GetSky(int index) {
-    CSceneSky *slot = GetSceneSky(index);
+
+CMapSky *CScene::GetSky(int no) {
+    CSceneSky *slot = GetSceneSky(no);
     if (slot == NULL) {
         return NULL;
     }
@@ -856,26 +907,34 @@ CMapSky *CScene::GetSky(int index) {
     }
     return slot->sky;
 }
+
 int CScene::GetMainMapNo() {
     if (active_map == 0) {
         return now_map_no;
     }
     return now_sub_map_no;
 }
+
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/scene", InScreenFunc__6CSceneFP16InScreenFuncInfo);
+
 void CScene::DrawScreenFunc(mgCFrame *frame) {
-    for (int i = 0; i < map_num; i++) {
-        CMap *map = GetMap(i);
-        if (IsActive(2, i) != 0 && map != NULL) {
+    int i;
+    CMap *map;
+
+    for (i = 0; i < map_num; i++) {
+        map = GetMap(i);
+        if (IsActive(SCENE_DATA_MAP, i) != 0 && map != NULL) {
             map->DrawScreenFunc(frame);
         }
     }
 }
-int CScene::AssignSky(int index, CMapSky *sky_data, char *sky_name) {
+
+int CScene::AssignSky(int no, CMapSky *sky, char *name) {
+    static char noname[] = "no_name";
     CSceneSky *slot;
     int i;
 
-    if (index < 0) {
+    if (no < 0) {
         for (i = 0; i < sky_num; i++) {
             slot = GetSceneSky(i);
             if (slot == NULL) {
@@ -888,165 +947,185 @@ int CScene::AssignSky(int index, CMapSky *sky_data, char *sky_name) {
         }
         return -1;
     }
-    slot = GetSceneSky(index);
+    slot = GetSceneSky(no);
     if (slot == NULL) {
         return -1;
     }
-    if (sky_name == NULL) {
-        sky_name = noname_1692;
+    if (name == NULL) {
+        name = noname;
     }
-    if (slot->AssignData(sky_data, sky_name) != 0) {
-        return index;
+    if (slot->AssignData(sky, name) != 0) {
+        return no;
     }
     return -1;
 }
-int CScene::DeleteSky(int index) {
+
+int CScene::DeleteSky(int no) {
     CSceneSky *slot;
 
-    slot = GetSceneSky(index);
+    slot = GetSceneSky(no);
     if (slot == NULL) {
         return 0;
     }
     slot->Initialize();
     return 1;
 }
-int CScene::AssignEffect(int index, CEffectScriptMan *effect, char *effect_name) {
-    CSceneEffect *slot = GetSceneEffect(index);
+
+int CScene::AssignEffect(int no, CEffectScriptMan *effect, char *name) {
+    static char noname[] = "no_name";
+    CSceneEffect *slot = GetSceneEffect(no);
     if (slot == NULL) {
         return -1;
     }
-    if (effect_name == NULL) {
-        effect_name = noname_1709;
+    if (name == NULL) {
+        name = noname;
     }
-    if (slot->AssignData(effect, effect_name) != 0) {
-        return index;
+    if (slot->AssignData(effect, name) != 0) {
+        return no;
     }
     return -1;
 }
-void CScene::DeleteEffect(int index) {
+
+void CScene::DeleteEffect(int no) {
     CSceneEffect *slot;
 
-    slot = GetSceneEffect(index);
+    slot = GetSceneEffect(no);
     if (slot != NULL) {
         slot->Initialize();
     }
 }
-CEffectScriptMan *CScene::GetEffect(int index) {
-    CSceneEffect *slot = GetSceneEffect(index);
-    if (slot != 0)
+
+CEffectScriptMan *CScene::GetEffect(int no) {
+    CSceneEffect *slot = GetSceneEffect(no);
+    if (slot != NULL) {
         return slot->effect;
-    return 0;
+    }
+    return NULL;
 }
-void CScene::StepEffectScript(int index) {
-    if (index < 0) {
+
+void CScene::StepEffectScript(int no) {
+    if (no < 0) {
         for (int i = 0; i < effect_num; i++) {
-            CEffectScriptMan *effect = (CEffectScriptMan *)GetEffect(i);
+            CEffectScriptMan *effect = GetEffect(i);
             if (effect != NULL) {
                 effect->Step();
             }
         }
     } else {
-        CEffectScriptMan *effect = (CEffectScriptMan *)GetEffect(index);
+        CEffectScriptMan *effect = GetEffect(no);
         if (effect != NULL) {
             effect->Step();
         }
     }
 }
-void CScene::DrawEffectScript(int index) {
-    if (index < 0) {
+
+void CScene::DrawEffectScript(int no) {
+    if (no < 0) {
         for (int i = 0; i < effect_num; i++) {
-            CEffectScriptMan *effect = (CEffectScriptMan *)GetEffect(i);
+            CEffectScriptMan *effect = GetEffect(i);
             if (effect != NULL) {
                 effect->Draw();
             }
         }
     } else {
-        CEffectScriptMan *effect = (CEffectScriptMan *)GetEffect(index);
+        CEffectScriptMan *effect = GetEffect(no);
         if (effect != NULL) {
             effect->Draw();
         }
     }
 }
-int CScene::IsActive(int kind, int index) {
+
+int CScene::IsActive(int kind, int no) {
     CSceneData *data;
 
-    data = GetData(kind, index);
+    data = GetData(kind, no);
     if (data != NULL) {
         return (data->status & (SCENE_DATA_ACTIVE | SCENE_DATA_ASSIGNED)) ==
                (SCENE_DATA_ACTIVE | SCENE_DATA_ASSIGNED);
     }
     return 0;
 }
-void CScene::SetActive(int kind, int index) {
+
+void CScene::SetActive(int kind, int no) {
     CSceneData *data;
 
-    data = GetData(kind, index);
+    data = GetData(kind, no);
     if (data != NULL) {
         data->status |= SCENE_DATA_ACTIVE;
     }
 }
-void CScene::ResetActive(int kind, int index) {
+
+void CScene::ResetActive(int kind, int no) {
     CSceneData *data;
 
-    data = GetData(kind, index);
+    data = GetData(kind, no);
     if (data != NULL) {
         data->status &= ~SCENE_DATA_ACTIVE;
     }
 }
-void CScene::SetStatus(int kind, int index, int bits) {
+
+void CScene::SetStatus(int kind, int no, int flag) {
     CSceneData *data;
 
-    data = GetData(kind, index);
+    data = GetData(kind, no);
     if (data != NULL) {
-        data->status |= bits;
+        data->status |= flag;
     }
 }
-void CScene::ResetStatus(int kind, int index, int bits) {
+
+void CScene::ResetStatus(int kind, int no, int flag) {
     CSceneData *data;
 
-    data = GetData(kind, index);
+    data = GetData(kind, no);
     if (data != NULL) {
-        data->status &= ~bits;
+        data->status &= ~flag;
     }
 }
-int CScene::GetStatus(int kind, int index) {
+
+int CScene::GetStatus(int kind, int no) {
     CSceneData *data;
 
-    data = GetData(kind, index);
+    data = GetData(kind, no);
     if (data != NULL) {
         return data->status;
     }
     return 0;
 }
-void CScene::SetType(int kind, int index, int type) {
-    CSceneData *data = GetData(kind, index);
-    if (data != 0)
+
+void CScene::SetType(int kind, int no, int type) {
+    CSceneData *data = GetData(kind, no);
+    if (data != NULL) {
         data->type = type;
+    }
 }
-int CScene::GetType(int kind, int index) {
-    CSceneData *data = GetData(kind, index);
-    if (data != 0)
+
+int CScene::GetType(int kind, int no) {
+    CSceneData *data = GetData(kind, no);
+    if (data != NULL) {
         return data->type;
+    }
     return 0;
 }
-int CScene::GetActiveMap(CMap **map, int max_count) {
+
+int CScene::GetActiveMap(CMap **maps, int max) {
     int i;
     int count = 0;
     for (i = 0; i < map_num; i++) {
-        if (count >= max_count) {
+        if (count >= max) {
             break;
         }
-        if (IsActive(2, i) != 0) {
-            map[count++] = GetMap(i);
+        if (IsActive(SCENE_DATA_MAP, i) != 0) {
+            maps[count++] = GetMap(i);
         }
     }
     return count;
 }
-int CScene::GetCharaTexb(int index) {
+
+int CScene::GetCharaTexb(int no) {
     int texb;
     CSceneCharacter *chara;
 
-    chara = GetSceneCharacter(index);
+    chara = GetSceneCharacter(no);
     if (chara == NULL) {
         return -1;
     }
@@ -1054,19 +1133,22 @@ int CScene::GetCharaTexb(int index) {
     if (texb >= 0) {
         return texb;
     }
-    if (index < 8) {
+    if (no < 8) {
         return chara_texb;
     }
-    if ((index - 8) >= villager_texb_num) {
+    if (no - 8 >= villager_texb_num) {
         return -1;
     }
-    return (villager_texb + index) - 8;
+    return villager_texb + no - 8;
 }
-void CScene::SetCharaTexb(int index, int texb) {
-    CSceneCharacter *chara = GetSceneCharacter(index);
-    if (chara != 0)
+
+void CScene::SetCharaTexb(int no, int texb) {
+    CSceneCharacter *chara = GetSceneCharacter(no);
+    if (chara != NULL) {
         chara->texb = texb;
+    }
 }
+
 void CScene::SetTime(float hours) {
     hours -= 24.0f * (int)(hours / 24.0f);
     if (hours < 0.0f) {
@@ -1077,52 +1159,57 @@ void CScene::SetTime(float hours) {
         save_data->now_time = time;
     }
 }
+
 void CScene::AddTime(float hours) {
     SetTime(hours + time);
 }
+
 void CScene::TimeStep(float frame_scale) {
-    CSaveData *save_data;
     float previous_time;
     float step;
 
     if (time_step != 0) {
-        previous_time = (float)(time);
-        step = (float)(time_speed * frame_scale);
+        previous_time = time;
+        step = time_speed * frame_scale;
         AddTime(step);
-        if (!(previous_time <= ((24.0f - step) - 0.1f)) && (time < (0.1f + step))) {
-            day += 1;
+        if (previous_time > 24.0f - step - 0.1f && time < 0.1f + step) {
+            day++;
         }
-        save_data = this->save_data;
         if (save_data != NULL) {
             save_data->day = day;
-            this->save_data->CheckTourBoot(day);
+            save_data->CheckTourBoot(day);
         }
     }
 }
-void CScene::SetWind(float strength, float *direction) {
-    wind_power = strength;
-    sceVu0Normalize(wind_dir, direction);
+
+void CScene::SetWind(float power, float *dir) {
+    wind_power = power;
+    sceVu0Normalize(wind_dir, dir);
 }
+
 void CScene::ResetWind() {
-    *(int *)&wind_power = 0;
+    wind_power = 0.0f;
 }
-float CScene::GetWind(float *direction) {
-    *(u_long128 *)direction = *(u_long128 *)wind_dir;
+
+float CScene::GetWind(float *dir) {
+    *(u_long128 *)dir = *(u_long128 *)wind_dir;
     return wind_power;
 }
-void CScene::SetNowMapNo(int now_map_no) {
-    int old = this->now_map_no;
-    if (old != now_map_no) {
+
+void CScene::SetNowMapNo(int map_no) {
+    int old = now_map_no;
+    if (old != map_no) {
         old_map_no = old;
     }
-    this->now_map_no = now_map_no;
+    now_map_no = map_no;
 }
-void CScene::SetNowSubMapNo(int now_sub_map_no) {
-    int old = this->now_sub_map_no;
-    if (old != now_sub_map_no) {
+
+void CScene::SetNowSubMapNo(int map_no) {
+    int old = now_sub_map_no;
+    if (old != map_no) {
         old_sub_map_no = old;
     }
-    this->now_sub_map_no = now_sub_map_no;
+    now_sub_map_no = map_no;
 }
 
 // Initialised data (.data)

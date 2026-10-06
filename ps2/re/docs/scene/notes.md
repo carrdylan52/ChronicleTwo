@@ -23,9 +23,8 @@ Size: stride 0x30 in CRain loops and `__sinit_event_func_cpp`. Layout from Init/
 0x0 active, 0x10 pos (sceVu0FVECTOR, aligned 16 so 0x4..0xF unused), 0x20 size (float,
 f_rand(8,12)), 0x24 count (int, frames), 0x28 life (int, i_rand(20,40)), 0x2c unused.
 Birth sets pos.y = 5.0 (0x14) and w = 1.0 (0x1c) after copying pos.
-`Birth` returns int: early path returns 0; success path has no explicit return in the asm (it
-falls out with i_rand's result still in $v0) -- write it as an int function whose success path
-falls off the end without `return`. Step: 0 inactive, 1 alive, -1 on expiry (also clears active).
+`Birth` returns int: 0 on the early path; on success the lifetime i_rand gave, which it also
+stores in `life`. Step: 0 inactive, 1 alive, -1 on expiry (also clears active).
 Draw: quad side `size*count/life`, alpha `(life-count)*40/life`; texture is a font glyph:
 `GetFontNo("\x81\x9b")` (Shift-JIS circle, at_853__3) when `LanguageCode` is 0 or 1, else
 `GetHalfFontNo('O')`; `GetRectFontTex`, `MySetTex`.
