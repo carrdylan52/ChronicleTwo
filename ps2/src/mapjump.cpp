@@ -1,85 +1,62 @@
-#include <cstdio>
-#include "vlgr_info.hpp"
-#include "scene.hpp"
-#include "mglib.hpp"
-#include "mg_math.hpp"
-#include "mapselect.hpp"
-#include "mainloop.hpp"
-#include "event.hpp"
-#include "dataread.hpp"
 #include "common.h"
-#include "editmap.hpp"
-#include "mg_memory.hpp"
-#include "savedata.hpp"
-#include "sceneload.hpp"
-#include "scenesnd.hpp"
 #include "mapjump.hpp"
+
+#include <cstdio>
 #include <cstring>
 
-struct ScriptPathBuffer { char text[0x80]; };
-extern int NowMainMapNo;
-extern int NowSubMapNo;
-extern int NowInteriorMapNo;
-extern int OldInteriorMapNo;
-extern mgCMemory * ScriptBuffer;
-extern int InteriorFlag;
-extern MapJumpMapInfo MainMapInfo__2;
-extern MapJumpMapInfo SubMapInfo;
-extern ScriptPathBuffer at_912__4;
-extern char now_script_file[0x40];
-extern char old_mapname[0x40];
-extern char PrevInterior[0x40];
-extern char NowInterior[0x40];
-extern char at_1047__2[];
-extern char at_863__3[];
-extern char at_890__4[];
-extern char at_891__3[];
-extern char at_892__2[];
-extern char at_893__2[];
-extern char at_894__2[];
-extern char at_914__4[];
-extern char at_950__4[];
-int GetMainMapNo(void);
-int GetSubMapNo(void);
-void ClearSubMapNo(void);
-void SetMainMapInfo(MapJumpMapInfo *info);
-void SetSubMapInfo(MapJumpMapInfo *info);
-void SetScriptBuffer(mgCMemory *buffer);
-void PreLoadSync(void);
-int MapJump(CScene *scene, SCN_LOADMAP_INFO2 *info, int mapIndex);
-int GetLoadMapInfo(SCN_LOADMAP_INFO2 *info, int mapNo);
-int LoadSubMap(CScene *scene, int subMapNo, int flag);
-void LoadMapScript(char *mapName);
-void ReloadMapScript(void);
-void LoadScript(char *path);
-int GetOldInteriorMapNo(void);
-void InitInterior(void);
-int InInterior(void);
-void GotoInterior(CScene *scene, int interiorNo);
-void DeleteInterior(CScene *scene);
-int InteriorMapJump(CScene *scene, int interiorNo);
+#include "dataread.hpp"
+#include "editmap.hpp"
+#include "event.hpp"
+#include "mainloop.hpp"
+#include "mapselect.hpp"
+#include "mg_math.hpp"
+#include "mg_memory.hpp"
+#include "mglib.hpp"
+#include "savedata.hpp"
+#include "scene.hpp"
+#include "sceneload.hpp"
+#include "scenesnd.hpp"
+#include "vlgr_info.hpp"
+
+static int NowMainMapNo;
+static int NowSubMapNo;
+static int NowInteriorMapNo;
+static int OldInteriorMapNo;
+static mgCMemory * ScriptBuffer;
+static int InteriorFlag;
+static MapJumpMapInfo MainMapInfo;
+static MapJumpMapInfo SubMapInfo;
+static char now_script_file[0x40];
+static char old_mapname[0x40];
+static char PrevInterior[0x40];
+static char NowInterior[0x40];
 
 // Code (.text)
 int GetMainMapNo(void) {
     return NowMainMapNo;
 }
+
 int GetSubMapNo(void) {
     return NowSubMapNo;
 }
+
 void ClearSubMapNo(void) {
     NowSubMapNo = -1;
 }
+
 MapJumpMapInfo::MapJumpMapInfo() {
-    memset(this, 0, 0x18);
+    memset(this, 0, sizeof(*this));
 }
+
 void SetMainMapInfo(MapJumpMapInfo *info) {
-    MainMapInfo__2.map_no = info->map_no;
-    MainMapInfo__2.tex_block = info->tex_block;
-    MainMapInfo__2.stack_no = info->stack_no;
-    MainMapInfo__2.efp_tex_block = info->efp_tex_block;
-    MainMapInfo__2.sky_tex_block = info->sky_tex_block;
-    MainMapInfo__2.load_buf = info->load_buf;
+    MainMapInfo.map_no = info->map_no;
+    MainMapInfo.tex_block = info->tex_block;
+    MainMapInfo.stack_no = info->stack_no;
+    MainMapInfo.efp_tex_block = info->efp_tex_block;
+    MainMapInfo.sky_tex_block = info->sky_tex_block;
+    MainMapInfo.load_buf = info->load_buf;
 }
+
 void SetSubMapInfo(MapJumpMapInfo *info) {
     SubMapInfo.map_no = info->map_no;
     SubMapInfo.tex_block = info->tex_block;
@@ -88,129 +65,138 @@ void SetSubMapInfo(MapJumpMapInfo *info) {
     SubMapInfo.sky_tex_block = info->sky_tex_block;
     SubMapInfo.load_buf = info->load_buf;
 }
+
 void SetScriptBuffer(mgCMemory *buffer) {
     ScriptBuffer = buffer;
 }
+
 void PreLoadSync(void) {
     ReadBG();
     ReadBGSync();
 }
-int MapJump(CScene *scene, SCN_LOADMAP_INFO2 *info, int mapIndex) {
-    char *mapName = GetMapName(mapIndex, NULL);
-    if (mapName == NULL) {
-        printf(at_863__3, mapIndex);
+
+#ifdef NONMATCHING
+int MapJump(CScene *scene, SCN_LOADMAP_INFO2 *info, int map_no) {
+    char *map_name = GetMapName(map_no, NULL);
+    if (map_name == NULL) {
+        printf("not found map %d\n", map_no);
         return 0;
     }
     scene->StopSeSrc();
     sndSeAllStop(1);
-    int charaIndex;
+    int chara_index;
 
-    CSaveData *saveData = GetSaveData();
-    s16 *mapNos = (&saveData->map_no);
-    (&saveData->map_no)[2] = (s16)NowMainMapNo;
+    CSaveData *save_data = GetSaveData();
+    save_data->prev_map_no = NowMainMapNo;
     mgWaitFrame();
     mgInitLighting();
     scene->DeleteMap(SubMapInfo.map_no, 1);
-    scene->DeleteMap(MainMapInfo__2.map_no, 1);
+    scene->DeleteMap(MainMapInfo.map_no, 1);
     NowMainMapNo = -1;
     NowSubMapNo = -1;
-    for (charaIndex = 0; charaIndex < 0x38; charaIndex++) {
-        scene->DeleteChara(charaIndex + 8);
+    for (chara_index = 0; chara_index < 0x38; chara_index++) {
+        scene->DeleteChara(chara_index + 8);
     }
     scene->ClearStack(1);
-    NowMainMapNo = SearchMapNo(mapName);
+    NowMainMapNo = SearchMapNo(map_name);
     scene->SetNowMapNo(NowMainMapNo);
-    mapNos[0] = (s16)NowMainMapNo;
-    mapNos[3] = -1;
-    mapNos[1] = -1;
-    int areaNo = GetMapAreaNo(NowMainMapNo);
-    if (areaNo > 0) {
-        *(int *)(mapNos + 4) = areaNo;
+    save_data->map_no = NowMainMapNo;
+    save_data->prev_sub_map_no = -1;
+    save_data->sub_map_no = -1;
+    int area_no = GetMapAreaNo(NowMainMapNo);
+    if (area_no > 0) {
+        save_data->area_no = area_no;
     }
     info->load_sky = 1;
-    if (scene->LoadMap(MainMapInfo__2.map_no, info, 0) < 0) {
+    if (scene->LoadMap(MainMapInfo.map_no, info, 0) < 0) {
         return 0;
     }
-    scene->SetActive(2, MainMapInfo__2.map_no);
-    scene->active_map = MainMapInfo__2.map_no;
+    scene->SetActive(2, MainMapInfo.map_no);
+    scene->active_map = MainMapInfo.map_no;
     CEditMap *map = (CEditMap *)scene->GetMap(scene->active_map);
     if (map != NULL) {
         map->now_time = scene->time;
     }
-    LoadMapScript(mapName);
+    LoadMapScript(map_name);
     InitInterior();
     NowInteriorMapNo = -1;
     OldInteriorMapNo = -1;
     GetSaveData()->ResetBitCtrl(1);
     return 1;
 }
-int GetLoadMapInfo(SCN_LOADMAP_INFO2 *info, int mapNo) {
-    char mapPath[0x40];
-    char fileName[0x20];
-    char addPath[0x80];
-    char addDirectory[0x40];
-    char *mapName = GetMapName(mapNo, NULL);
-    if (mapName == NULL) {
-        printf(at_863__3, mapNo);
+#else
+INCLUDE_ASM("ps2/asm/pal/nonmatchings/mapjump", MapJump__FP6CSceneP17SCN_LOADMAP_INFO2i);
+#endif
+
+int GetLoadMapInfo(SCN_LOADMAP_INFO2 *info, int map_no) {
+    char map_path[64];
+    char file_name[32];
+    char add_path[128];
+    char add_directory[64];
+    char *map_name = GetMapName(map_no, NULL);
+    if (map_name == NULL) {
+        printf("not found map %d\n", map_no);
         return 0;
     }
-    info->tex_block = MainMapInfo__2.tex_block;
-    info->stack_no = MainMapInfo__2.stack_no;
-    info->load_buf = MainMapInfo__2.load_buf;
-    info->efp_tex_block = MainMapInfo__2.efp_tex_block;
-    info->sky_tex_block = MainMapInfo__2.sky_tex_block;
+    info->tex_block = MainMapInfo.tex_block;
+    info->stack_no = MainMapInfo.stack_no;
+    info->load_buf = MainMapInfo.load_buf;
+    info->efp_tex_block = MainMapInfo.efp_tex_block;
+    info->sky_tex_block = MainMapInfo.sky_tex_block;
     if (info->place_parts_max <= 0) {
         info->place_parts_max = 0x140;
     }
     GAME_PROGRESS_INFO *progress = GetGameProgressInfo(GetSaveData()->game_progress);
-    GetMapPath(mapPath, mapName);
-    DivPathName(mapPath, info->files[0].dir, fileName);
+    GetMapPath(map_path, map_name);
+    DivPathName(map_path, info->files[0].dir, file_name);
     info->files[0].enable = 1;
-    strcpy(info->files[0].map_name, fileName);
-    strcpy(info->files[0].cfg_name, fileName);
-    strcpy(info->files[0].mpk_name, fileName);
-    strcpy(info->files[0].ipk_name, fileName);
-    strcpy(info->files[0].efp_name, fileName);
-    strcpy(info->files[0].sky_name, fileName);
-    strcpy(info->files[0].def_sky_name, at_890__4);
+    strcpy(info->files[0].map_name, file_name);
+    strcpy(info->files[0].cfg_name, file_name);
+    strcpy(info->files[0].mpk_name, file_name);
+    strcpy(info->files[0].ipk_name, file_name);
+    strcpy(info->files[0].efp_name, file_name);
+    strcpy(info->files[0].sky_name, file_name);
+    strcpy(info->files[0].def_sky_name, "def");
     if (progress != NULL) {
         s16 chapter = progress->chapter;
         if (chapter >= 8 && chapter < 10) {
-            strcat(info->files[0].sky_name, at_891__3);
-            strcat(info->files[0].def_sky_name, at_891__3);
+            strcat(info->files[0].sky_name, "b");
+            strcat(info->files[0].def_sky_name, "b");
         }
     }
-    strcpy(info->name, fileName);
-    char *addMapPath = GetAddMapPath(mapNo);
-    if (addMapPath != NULL && *addMapPath != 0) {
-        strcpy(addPath, (char *)addMapPath);
+    strcpy(info->name, file_name);
+    char *add_map_path = GetAddMapPath(map_no);
+    if (add_map_path != NULL && *add_map_path != 0) {
+        strcpy(add_path, add_map_path);
         info->files[1].enable = 1;
         if (progress != NULL) {
             s16 chapter = progress->chapter;
             if (chapter >= 6) {
-                if (chapter < 8 && strcmp(addPath, at_892__2) == 0) {
-                    strcpy(addPath, at_893__2);
+                if (chapter < 8 && strcmp(add_path, "trn/train") == 0) {
+                    strcpy(add_path, "trn2/s36");
                 }
             }
         }
-        DivPathName(addPath, addDirectory, fileName);
-        strcpy(info->files[1].dir, at_894__2);
-        strcat(info->files[1].dir, addDirectory);
-        strcpy(info->files[1].map_name, fileName);
-        strcpy(info->files[1].cfg_name, fileName);
-        strcpy(info->files[1].mpk_name, fileName);
-        strcpy(info->files[1].ipk_name, fileName);
-        strcpy(info->files[1].efp_name, fileName);
+        DivPathName(add_path, add_directory, file_name);
+        strcpy(info->files[1].dir, "map/cmn/");
+        strcat(info->files[1].dir, add_directory);
+        strcpy(info->files[1].map_name, file_name);
+        strcpy(info->files[1].cfg_name, file_name);
+        strcpy(info->files[1].mpk_name, file_name);
+        strcpy(info->files[1].ipk_name, file_name);
+        strcpy(info->files[1].efp_name, file_name);
     }
     return 1;
 }
-int LoadSubMap(CScene *scene, int subMapNo, int flag) {
+
+#ifdef NONMATCHING
+int LoadSubMap(CScene *scene, int map_no, int background) {
     SCN_LOADMAP_INFO2 info;
-    char mapPath[0x40];
-    char fileName[0x20];
-    char *mapName = GetMapName(subMapNo, NULL);
-    if (mapName == NULL) {
-        printf(at_863__3, subMapNo);
+    char map_path[64];
+    char file_name[32];
+    char *map_name = GetMapName(map_no, NULL);
+    if (map_name == NULL) {
+        printf("not found map %d\n", map_no);
         return 0;
     }
     mgWaitFrame();
@@ -221,80 +207,85 @@ int LoadSubMap(CScene *scene, int subMapNo, int flag) {
     info.stack_no = SubMapInfo.stack_no;
     info.load_buf = SubMapInfo.load_buf;
     info.efp_tex_block = SubMapInfo.efp_tex_block;
-    strcpy(info.name, mapName);
+    strcpy(info.name, map_name);
     if (info.place_parts_max <= 0) {
         info.place_parts_max = 0x140;
     }
-    GetMapPath(mapPath, mapName);
-    DivPathName(mapPath, info.files[0].dir, fileName);
+    GetMapPath(map_path, map_name);
+    DivPathName(map_path, info.files[0].dir, file_name);
     info.files[0].enable = 1;
-    strcpy(info.files[0].map_name, fileName);
-    strcpy(info.files[0].cfg_name, fileName);
-    strcpy(info.files[0].mpk_name, fileName);
-    strcpy(info.files[0].ipk_name, fileName);
-    strcpy(info.files[0].efp_name, fileName);
-    strcpy(info.name, fileName);
-    if (scene->LoadMap(SubMapInfo.map_no, &info, flag) < 0) {
+    strcpy(info.files[0].map_name, file_name);
+    strcpy(info.files[0].cfg_name, file_name);
+    strcpy(info.files[0].mpk_name, file_name);
+    strcpy(info.files[0].ipk_name, file_name);
+    strcpy(info.files[0].efp_name, file_name);
+    strcpy(info.name, file_name);
+    if (scene->LoadMap(SubMapInfo.map_no, &info, background) < 0) {
         return 0;
     }
-    CSaveData *saveData = GetSaveData();
+    CSaveData *save_data = GetSaveData();
 
-    s16 *subMapNos = (&saveData->map_no);
-    subMapNos[3] = NowSubMapNo;
-    scene->SetNowSubMapNo(subMapNo);
-    NowSubMapNo = subMapNo;
-    subMapNos[1] = subMapNo;
+    save_data->prev_sub_map_no = NowSubMapNo;
+    scene->SetNowSubMapNo(map_no);
+    NowSubMapNo = map_no;
+    save_data->sub_map_no = map_no;
     return 1;
 }
-void LoadMapScript(char *mapName) {
-    char mapPath[0x80];
-    ScriptPathBuffer script = at_912__4;
-    GetMapPath(mapPath, mapName);
-    strcat(script.text, mapPath);
-    strcat(script.text, at_914__4);
-    LoadScript(script.text);
-    strcpy((char *)now_script_file, script.text);
+#else
+INCLUDE_ASM("ps2/asm/pal/nonmatchings/mapjump", LoadSubMap__FP6CSceneii);
+#endif
+
+void LoadMapScript(char *map_name) {
+    char map_path[0x80];
+    char script[0x80] = "";
+    GetMapPath(map_path, map_name);
+    strcat(script, map_path);
+    strcat(script, ".stb");
+    LoadScript(script);
+    strcpy(now_script_file, script);
 }
+
 void ReloadMapScript(void) {
-    if (now_script_file[0] != 0)
-        LoadScript((char *)now_script_file);
+    if (now_script_file[0] != '\0') {
+        LoadScript(now_script_file);
+    }
 }
-void LoadScript(char *path) {
-    char localizedPath[0x100];
-    char languageSuffix[0x1C];
-    int fileSize;
+
+void LoadScript(char *file_name) {
+    char localized_path[0x100];
+    char language_suffix[0x1C];
+    int file_size;
 
     {
         mgCMemory *memory = ScriptBuffer;
-        memory->stack_used = 0;
-        memory->lock = 0;
+        memory->stReset();
     }
     ScriptBuffer->Align64();
-    u8 *buffer = (u8 *)(ScriptBuffer->stack + ScriptBuffer->stack_used);
-    int length = strlen(path);
+    u8 *buffer = (u8 *)ScriptBuffer->stGetTop();
+    int length = strlen(file_name);
     if (length >= 5) {
-        strncpy(localizedPath, path, length - 4);
-        localizedPath[length - 4] = 0;
-        sprintf(languageSuffix, at_950__4, LanguageCode);
-        strcat(localizedPath, languageSuffix);
-        if (LoadFile2(localizedPath, buffer, &fileSize, 0) != 0) {
+        strncpy(localized_path, file_name, length - 4);
+        localized_path[length - 4] = 0;
+        sprintf(language_suffix, "_%d.stb", LanguageCode);
+        strcat(localized_path, language_suffix);
+        if (LoadFile2(localized_path, buffer, &file_size, 0) != 0) {
             u32 blocks;
-            if (fileSize & 0xF) {
-                blocks = ((u32)fileSize >> 4) + 1;
+            if (file_size & 0xF) {
+                blocks = ((u32)file_size >> 4) + 1;
             } else {
-                blocks = (u32)fileSize >> 4;
+                blocks = (u32)file_size >> 4;
             }
             ScriptBuffer->Alloc(blocks);
             SetEventScript((char *)buffer, NULL, ScriptBuffer);
             return;
         }
 
-        if (LoadFile2(path, buffer, &fileSize, 0) != 0) {
+        if (LoadFile2(file_name, buffer, &file_size, 0) != 0) {
             u32 blocks;
-            if (fileSize & 0xF) {
-                blocks = ((u32)fileSize >> 4) + 1;
+            if (file_size & 0xF) {
+                blocks = ((u32)file_size >> 4) + 1;
             } else {
-                blocks = (u32)fileSize >> 4;
+                blocks = (u32)file_size >> 4;
             }
             ScriptBuffer->Alloc(blocks);
             SetEventScript((char *)buffer, NULL, ScriptBuffer);
@@ -303,38 +294,41 @@ void LoadScript(char *path) {
         SetEventScript(NULL, NULL, NULL);
     }
 }
+
 int GetOldInteriorMapNo(void) {
     if (InInterior() != 0) {
         return -1;
     }
     return OldInteriorMapNo;
 }
+
 void InitInterior(void) {
     old_mapname[0] = 0;
     InteriorFlag = 0;
     PrevInterior[0] = 0;
     NowInterior[0] = 0;
 }
+
 int InInterior(void) {
     return InteriorFlag;
 }
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/mapjump", SaveBeforeInterior__FP6CScene);
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/mapjump", SetInteriorDoorPos__FP6CScene);
-void GotoInterior(CScene *scene, int interiorNo) {
-    char *mapName = GetMapName(interiorNo, NULL);
-    if (mapName != NULL && InInterior() == 0) {
+void GotoInterior(CScene *scene, int map_no) {
+    char *map_name = GetMapName(map_no, NULL);
+    if (map_name != NULL && InInterior() == 0) {
         mgWaitFrame();
         SaveBeforeInterior(scene);
-        if (LoadSubMap(scene, interiorNo, 0) != 0) {
+        if (LoadSubMap(scene, map_no, 0) != 0) {
             scene->SetActive(2, SubMapInfo.map_no);
-            scene->ResetActive(2, MainMapInfo__2.map_no);
+            scene->ResetActive(2, MainMapInfo.map_no);
             scene->active_map = SubMapInfo.map_no;
             SetInteriorDoorPos(scene);
         }
-        if (GetMapType(interiorNo) == 2) {
-            LoadMapScript(at_1047__2);
+        if (GetMapType(map_no) == 2) {
+            LoadMapScript("g00");
         } else {
-            LoadMapScript(mapName);
+            LoadMapScript(map_name);
         }
         scene->SetNowMapNo(-1);
         scene->SetNowMapNo(NowMainMapNo);
@@ -344,45 +338,43 @@ void GotoInterior(CScene *scene, int interiorNo) {
         if (map != NULL) {
             map->now_time = scene->time;
         }
-        strcpy(NowInterior, mapName);
+        strcpy(NowInterior, map_name);
         PrevInterior[0] = 0;
         InteriorFlag = 1;
     }
 }
+
 void DeleteInterior(CScene *scene) {
     if (InInterior() != 0) {
         mgWaitFrame();
         scene->DeleteMap(SubMapInfo.map_no, 1);
         scene->DeleteSubVillager();
         NowSubMapNo = -1;
-        s16 *p = &(&GetSaveData()->map_no)[1];
-        *p = -1;
+        s16 *sub_map_no = &GetSaveData()->sub_map_no;
+        *sub_map_no = -1;
     }
 }
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/mapjump", ExitInterior__FP6CScenePi);
-int InteriorMapJump(CScene *scene, int interiorNo) {
-    if (LoadSubMap(scene, interiorNo, 0) != 0) {
+int InteriorMapJump(CScene *scene, int map_no) {
+    if (LoadSubMap(scene, map_no, 0) != 0) {
         scene->SetActive(2, SubMapInfo.map_no);
-        scene->ResetActive(2, MainMapInfo__2.map_no);
+        scene->ResetActive(2, MainMapInfo.map_no);
         scene->active_map = SubMapInfo.map_no;
-        char *mapName = GetMapName(interiorNo, NULL);
+        char *map_name = GetMapName(map_no, NULL);
         strcpy(PrevInterior, NowInterior);
-        if (mapName != NULL) {
-            strcpy(NowInterior, mapName);
+        if (map_name != NULL) {
+            strcpy(NowInterior, map_name);
         } else {
             NowInterior[0] = 0;
         }
         SetInteriorDoorPos(scene);
-        LoadMapScript(mapName);
+        LoadMapScript(map_name);
         OldInteriorMapNo = NowInteriorMapNo;
-        NowInteriorMapNo = interiorNo;
+        NowInteriorMapNo = map_no;
         return 1;
     }
     return 0;
 }
-
-// Static initialiser (.init)
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/mapjump", __sinit_mapjump_cpp);
 
 // Initialised data (.data)
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mapjump", at_997__4__DATA);
@@ -398,9 +390,6 @@ INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mapjump", at_914__4__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mapjump", at_950__4__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mapjump", at_1047__2__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mapjump", at_1091__2__DATA);
-
-// Static initialiser table (.ctor)
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mapjump", D_0037B06C__DATA);
 
 // Small uninitialised data (.sbss)
 INCLUDE_BSS(NowMainMapNo, 0x4);
