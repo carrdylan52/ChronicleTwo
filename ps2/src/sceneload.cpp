@@ -1,36 +1,44 @@
 #include "common.h"
-#include "scene.hpp"
-#include "scenesnd.hpp"
 #include "sceneload.hpp"
+
 #include <cstring>
+
 #include "dataread.hpp"
 #include "map.hpp"
+#include "mg_memory.hpp"
 #include "mg_texture.hpp"
 #include "mglib.hpp"
+#include "scene.hpp"
+#include "scenesnd.hpp"
 
-int LoadMapData(SCN_LOADMAP_INFO2 &info, int deferred);
+static int LoadMapData(SCN_LOADMAP_INFO2 &info, int background);
 
 // Code (.text)
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/sceneload", LoadMapData__FR17SCN_LOADMAP_INFO2i);
+
 void SCN_LOADMAP_INFO2::Initialize(void) {
     memset(this, 0, sizeof(*this));
 }
+
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/sceneload", LoadChara__6CSceneFiPUiPcP9mgCMemoryP9mgCMemoryP9mgCMemoryii);
-void CScene::DeleteChara(int index) {
+
+void CScene::DeleteChara(int no) {
     CSceneCharacter *chara;
 
-    chara = GetSceneCharacter(index);
+    chara = GetSceneCharacter(no);
     if (chara != NULL) {
         chara->Initialize();
     }
 }
+
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/sceneload", CopyChara__6CSceneFiiP9mgCMemory);
-int CScene::LoadMapFromMemory(int map_no, SCN_LOADMAP_INFO2 *info) {
+
+int CScene::LoadMapFromMemory(int no, SCN_LOADMAP_INFO2 *info) {
     int step = 0;
     int next;
 
-    while (1) {
-        next = LoadMapFromMemory(map_no, step, info);
+    for (;;) {
+        next = LoadMapFromMemory(no, step, info);
         if (next < 0) {
             return -1;
         }
@@ -39,14 +47,18 @@ int CScene::LoadMapFromMemory(int map_no, SCN_LOADMAP_INFO2 *info) {
         }
         step = next;
     }
-    return map_no;
+    return no;
 }
+
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/sceneload", LoadMapFromMemory__6CSceneFiiP17SCN_LOADMAP_INFO2);
+
 template <>
 void mgCObjectStack<CList<EMAP_MESSAGE> >::Initialize() {
     unk_8 = 0;
 }
+
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/sceneload", __ct__4CMapFv);
+
 int CScene::LoadMapBGStep(SCN_LOADMAP_INFO2 *info) {
     int step;
     int result;
@@ -72,13 +84,14 @@ int CScene::LoadMapBGStep(SCN_LOADMAP_INFO2 *info) {
     }
     return 1;
 }
-int CScene::LoadMap(int map_no, SCN_LOADMAP_INFO2 *info, int deferred) {
+
+int CScene::LoadMap(int no, SCN_LOADMAP_INFO2 *info, int background) {
     ClearStack(info->stack_no);
     AssignStack(info->stack_no);
     info->stack = GetStack(info->stack_no);
     info->data_ready = 1;
-    info->map_no = map_no;
-    if (deferred != 0) {
+    info->map_no = no;
+    if (background != 0) {
         if (LoadMapData(*info, 1) != 0) {
             bg_load_info = *info;
             bg_load_step = 1;
@@ -86,13 +99,15 @@ int CScene::LoadMap(int map_no, SCN_LOADMAP_INFO2 *info, int deferred) {
         }
     } else {
         if (LoadMapData(*info, 0) != 0) {
-            return LoadMapFromMemory(map_no, info);
+            return LoadMapFromMemory(no, info);
         }
     }
     return -1;
 }
+
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/sceneload", __as__17SCN_LOADMAP_INFO2FRC17SCN_LOADMAP_INFO2);
-int CScene::DeleteMap(int map_index, int clear_stack) {
+
+int CScene::DeleteMap(int no, int clear_stack) {
     mgCTextureManager *textures = &mgTexManager;
     CSceneMap *slot;
     int texture_count;
@@ -101,11 +116,12 @@ int CScene::DeleteMap(int map_index, int clear_stack) {
     mgCMemory *memory;
     int texture_block;
     char *file_name;
-    slot = GetSceneMap(map_index);
+
+    slot = GetSceneMap(no);
     if (slot == NULL) {
         return 0;
     }
-    loaded_map = GetMap(map_index);
+    loaded_map = GetMap(no);
     if (loaded_map == NULL) {
         return 0;
     }
@@ -127,7 +143,7 @@ int CScene::DeleteMap(int map_index, int clear_stack) {
         if (file_name == NULL) {
             break;
         }
-        if (CheckIMGName(map_index, file_name) == 0) {
+        if (CheckIMGName(no, file_name) == 0) {
             mds_list_set.DeleteIMG(file_name);
         }
     }
@@ -136,7 +152,7 @@ int CScene::DeleteMap(int map_index, int clear_stack) {
         if (file_name == NULL) {
             break;
         }
-        if (CheckMDSName(map_index, file_name) == 0) {
+        if (CheckMDSName(no, file_name) == 0) {
             mds_list_set.DeleteMdsList(file_name);
         }
     }

@@ -60,8 +60,8 @@ stops changing. Enum names are ours.
 
 ## mgCObjectStack<T> (0x14)
 Only instance `mgCObjectStack<CList<EMAP_MESSAGE>>` = `CEditMap::message` at +0xF6C; size 0x14
-from the gap to `area_no` at +0xF80 (editmap notes). `Initialize` (inline in the template;
-emitted only here because only the inlined CEditMap ctor uses it) only zeroes +0x8; nothing
+from the gap to `area_no` at +0xF80 (editmap notes). `Initialize` (declared in the template and
+defined for this instance in sceneload.cpp; the inlined CEditMap ctor calls it) only zeroes +0x8; nothing
 else in any unit reads +0xF6C..+0xF7F, so fields stay `unk_`. +0x8 is plausibly the element
 count, unconfirmed. No vtable symbol exists. `EMAP_MESSAGE` stays forward-declared: no code
 reads it.

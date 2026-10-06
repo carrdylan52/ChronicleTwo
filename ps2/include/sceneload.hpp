@@ -129,13 +129,4 @@ public:
      */
     void Initialize();
 };
-
-template <typename T>
-void mgCObjectStack<T>::Initialize() {
-    unk_8 = 0;
-}
-
-template <>
-void mgCObjectStack<CList<EMAP_MESSAGE> >::Initialize();
-
 STATIC_ASSERT(sizeof(mgCObjectStack<CList<EMAP_MESSAGE> >) == 0x14);
