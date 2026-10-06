@@ -131,6 +131,7 @@ float CObject::GetAlpha() {
 
     return 0.0f;
 }
+
 int CObject::PreDraw() {
     if (show == 0 || draw_off != 0) {
         return 0;
@@ -188,10 +189,12 @@ int CObjectFrame::PreDraw() {
 
     return draw;
 }
+
 int CObjectFrame::Draw() {
-    if (CObjectFrame::PreDraw() == 0) {
+    if (!CObjectFrame::PreDraw()) {
         return 0;
     }
+
     mgDraw(frame);
     return 0;
 }
