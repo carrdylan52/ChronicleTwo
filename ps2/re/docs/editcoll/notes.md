@@ -1,13 +1,12 @@
 # editcoll: reverse-engineering notes
 
 ## Draft status
-All ten functions have named, typed C++ drafts that compile with MWCC. Each had
-one isolated promotion attempt; every candidate differed from retail and remains
-behind `NONMATCHING`, with `INCLUDE_ASM` selected by the matching build. Of the
-six later drafts, `Copy` retained the retail section layout but differed by 0x114
-bytes in `.text`. The other five changed the linked layout, so their whole-image
-checks reported widespread differences; the per-function draft comparison also
-reports differences for each of them.
+All ten functions have named, typed C++ bodies that compile with MWCC.
+Five bodies match retail and are selected by the matching build: `ClipBoxXZ`,
+`AreaXZ`, `OverlapPoly3XZ(triangle, area, box)`, `OverlapXZ`, and `ApplyMatrix`.
+The other five remain guarded drafts: `OverlapPoly3AreaXZ`, `Copy`,
+`OverlapPoly3XZ(triangle, matrix, area)`, `DeleteVerticalPoly`, and
+`PickupVerticalPoly`.
 
 Header: `ps2/include/editcoll.hpp`. No first-game counterpart (`CEditCollision` does not exist in
 `/home/adubbz/development/chronicle`); the base classes `CCollision`/`CCollisionMDT`/`CCPoly` are in
@@ -33,13 +32,13 @@ Header: `ps2/include/editcoll.hpp`. No first-game counterpart (`CEditCollision` 
 - `ClipBoxXZ(max_a, min_a, max_b, min_b)`: VU0 inline asm; clears status, `vsub.xz max_a-min_b`,
   `vsub.xz max_b-min_a`, returns `(status & 0x80 /*sticky sign*/) == 0` -> nonzero when the boxes
   overlap in X and Z. Callers pass outputs of `mgVectorMaxMin(max, min, ...)` and `bbox.max/min`.
-  Global (not in local_symbols.tsv); called only from editcoll.
+  LOCAL in the retail ELF symbol table; called only from editcoll.
 - `OverlapPoly3AreaXZ(clipped, clipper, box)`: Sutherland-Hodgman clip of triangle `clipped` (Y
   zeroed) against the 3 edges of `clipper` in XZ, two ping-pong buffers of 7 float4 each
   (0x70 stride); returns shoelace area * 0.5 (signed; callers take fabs), 0 if < 3 vertices. If
   `box` is non-null, each output vertex gets Y from the plane of `clipper` (normal =
-  (v1-v0)x(v2-v1), d = -n.v0) and box max/min are accumulated (first vertex assigns both). Global
-  (not in local_symbols.tsv); called only from the two `OverlapPoly3XZ` overloads.
+  (v1-v0)x(v2-v1), d = -n.v0) and box max/min are accumulated (first vertex assigns both). LOCAL
+  in the retail ELF symbol table; called only from the two `OverlapPoly3XZ` overloads.
 - `Copy(dest, area_kind, memory)`: counts polys with `CCPoly+0x44` (`area_kind` in collision.hpp)
   == `area_kind`; if none or `memory == NULL`, `dest.poly = 0; dest.poly_count = 0`. Else
   `dest.poly_count = n; dest.poly = new (memory->Alloc(n * 5 + 2)) CCPoly[n]`-like

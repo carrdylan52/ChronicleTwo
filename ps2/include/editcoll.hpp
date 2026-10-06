@@ -117,14 +117,3 @@ STATIC_ASSERT(sizeof(CEditCollision) == 0x50);
  * @size 0x50
  */
 int ClipBoxXZ(float *max_a, float *min_a, float *max_b, float *min_b);
-
-/**
- * Returns the area of the region of the XZ plane covered by both of two
- * triangles, and when a box is given writes the bounds of that region
- * lifted onto the second triangle's plane.
- *
- * @mangled OverlapPoly3AreaXZ__FPA4_fPA4_fP9mgVu0FBOX
- * @address 0x1A40A0
- * @size 0x5E0
- */
-float OverlapPoly3AreaXZ(float (*clipped)[4], float (*clipper)[4], mgVu0FBOX *box);
