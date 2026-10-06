@@ -29,15 +29,14 @@ exactly 0x00..0xCF into `CScene+0x2E90`, and the next CScene field is at `+0x2F6
 | 0xC8 | `s32 gameobj_no` | `GetGameObjectEvent`: index of the position within the `GameObjInfo` entry (for slot 0x7A objects). `_GET_EVENT_DATA` case 15. |
 | 0xCC | `s32 unk_cc` | Only copied (and `LoadIntNPC` touches `CScene+0x2F5C`; not analysed). |
 
-### Copy codegen (for the body-writing agent)
-- `RunEvent` copies the struct with `lwc1/swc1` for 0x00..0x27 and 0x30..0x5F, `lq/sq` for
-  0x60..0xBF, `lw/sw` for 0xC0..0xCF: a per-member copy (assignment of the whole struct,
-  `this->event_data = *data`, is the first thing to try).
-- `GetMapEvent` copies differently: `lw` for event +0x00..0x14, a byte loop for the 16-byte
-  array, `ld/lw` for the three vectors, and for `MapEventInfo` only +0x60, +0x64, the matrix
-  (8-step loop of word pairs) and +0xB0, +0xB4 -- it skips +0x68/+0x6C. That suggests
-  `MapEventInfo`'s `unk_8`/`unk_c` may really be alignment padding before the matrix, or that the
-  source assigns members individually. Unresolved.
+### Copy codegen
+- `RunEvent` copies the struct by assignment, `event_data = *data`, which the compiler emits as
+  `lwc1/swc1` for 0x00..0x27 and 0x30..0x5F, `lq/sq` for 0x60..0xBF and `lw/sw` for 0xC0..0xCF.
+- `GetMapEvent` assigns `data->event = point->event` and `data->map_event = event_info`. The
+  compiler copies the event with `lw` for +0x00..0x14 and a byte loop for the 16-byte array, and
+  the map event with only +0x60, +0x64, the matrix (8-step loop of word pairs) and +0xB0, +0xB4;
+  it skips +0x68/+0x6C, so `MapEventInfo`'s `unk_8`/`unk_c` may be alignment padding before the
+  matrix. The three vectors are copied before both, each by a `u_long128` assignment.
 
 ## CScene fields used by this unit (for scenesnd.hpp)
 `+0x24F0` CFireRaster (EffectStep/DrawEffect), `+0x2E50` player character slot (InitLadder),
@@ -63,20 +62,16 @@ exactly 0x00..0xCF into `CScene+0x2E90`, and the next CScene field is at `+0x2F6
 
 ## Draft and matching status (2026-10-06)
 
-All 14 functions have named, typed C++ bodies. One isolated promotion attempt was made for each.
-The following six were promoted into the default game build after a byte-identical linked
-comparison: `RunEvent`, `FixCameraPartsOnOff`, `EyeViewDrawOnOff`, `GetSunPosition`,
-`GetMoonPosition`, and `EffectStep`.
-
-`UpDateMapInfo`, `GetColPoly`, `GetCameraPoly`, `GetMapEvent`, `GetFixCameraPos`,
-`DrawSky`, `DrawLensFlare`, and `DrawEffect` remain guarded with their retail assembly
-fallbacks. The two polygon gatherers differ by 0xE bytes each near their final
-capacity test. The drafts of `UpDateMapInfo`, `GetMapEvent`, `DrawSky`, and
-`DrawLensFlare` still differ in ordering or logic. `DrawLensFlare` also creates a
-local datum that differs from retail. The `DrawEffect` trial did not link because
-the currently declared `mgSetPkMoveImage` overload resolves to a different
-symbol spelling from the retail object. These are matching gaps; the default
-build retains assembly for all eight functions.
-
-The guarded draft compiles, and the full default PAL build verifies every section
-byte-identical with 0 unmatched functions.
+All 14 functions are matched C++ in the default game build; none is guarded or left as assembly.
+What the matched bodies show beyond the behaviour above:
+- `UpDateMapInfo` reads the map lighting through a pointer to its local `CMapLightingInfo`.
+- `GetColPoly` and `GetCameraPoly` advance the polygon pointer before they lower the capacity.
+- `GetMapEvent` copies the event point's position, rotation and scale before its settings and
+  map event, and for a game object writes 300 or 400 to `event.point_no` without testing `data`.
+- `GetFixCameraPos` copies the query vector by a `u_long128` assignment.
+- `DrawSky` stores the camera's horizontal angle in w of the camera position it passes on, and
+  its locals take retail's stack order: camera position, sun, moon, the two eight-float ratio
+  arrays, the lighting, and the two sky colours.
+- `DrawLensFlare` starts from (0, 0, 0, 78), adds the function-local colours `col` (`col_1003`)
+  weighted by the four flare ratios, and sets w of the sun position to 1.
+- `DrawEffect` loads the fire texture under the name `fire_work`.
