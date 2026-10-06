@@ -9,7 +9,7 @@ members are already declared (vtable slots: `DrawFireEffect` at `__vt__8CEditMap
 ## Data
 - `at_358__2` = `"fire_wrk"`, `at_359` = `"lightling"`: texture names passed to
   `mgCTextureManager::GetTexture(char*, int)` in `DrawFireEffect` (literals, inline them).
-- `attr_378` (0x90, .bss) / `init_379` (4, .sbss): function-local `static mgCFrameAttr attr;`
+- `attr_378` (0x90, .bss) / `init_379` (4, .sbss): function-local `static mgCFrameAttr effect_attr;`
   in `DrawEffect` with its guard. After construction, every call sets (offsets in
   `mgCFrameAttr`, `mg_frame.hpp`): `+0x18 draw = 3` (VISIBLE|SKIP_CHILDREN),
   `+0x30 fog = 2`, `+0x48 no_cull = 1`, `+0x8C depth_bias = 1.015f` (`0x3F81EB85`).
@@ -42,16 +42,11 @@ members are already declared (vtable slots: `DrawFireEffect` at `__vt__8CEditMap
   `balance_base_pos[i][1]` (Y only) a quarter of the way toward `balance_pos[i][1]`, and set `balance_moved = 1` when all are within 0.1.
 
 ## Unresolved
-- Meaning of func_point_mngr flag bit 1 (`&2`), and the exact field at part `+0x2F0`.
+- The flag is `FUNC_POINT_MNGR_BURN`; part `+0x2F0` is `anime_list`, a `CList<CObjAnime> *`.
 
 ## Build state
-`editmapeffect.hpp` itself is trivial; it fails to compile only because `editmap.hpp`
-(another unit, in progress) does not compile on its own yet.
-
-All four functions now have named, typed C++ drafts in `editmapeffect.cpp`.
-The grouped draft compilation succeeded. Each received one isolated promotion
-attempt; all remain under `NONMATCHING` with retail assembly selected by the
-normal build. `AnimeStep` differed by one instruction byte in the linked
-image. `DrawEffect` could not link because the C++ draft emitted a duplicate
-`mgCFrame::SetVisual` definition. The two fire drawing drafts differed in
-object size and changed the linked image.
+All four C++ definitions compile, match retail, and are selected by the
+normal build. `editmapeffect.hpp` includes `editmap.hpp`, which owns their
+declarations. `DrawEffect` uses the function-local static `effect_attr` and
+the documented `mgCFrameAttr` fields above. `AnimeStep` stores one in
+`balance_moved` when all four balances are within 0.1.

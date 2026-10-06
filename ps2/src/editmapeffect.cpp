@@ -21,7 +21,7 @@ void CEditMap::DrawFireEffect(int tex_block) {
     mgDrawDirectStart();
     for (int index = 0; index < edit_parts_max; ++index, ++part) {
         if (part->func_point_mngr.flag & FUNC_POINT_MNGR_BURN) {
-            int unnamed = part->name[0] == 0;
+            int unnamed = part->name[0] == '\0';
             if (unnamed == 0 && part->state != 0) {
                 part->GetLWMatrix(matrix);
                 ::DrawFireEffect(matrix, &part->func_point_mngr, &check, 1.0f, fire_texture, light_texture);
@@ -30,6 +30,7 @@ void CEditMap::DrawFireEffect(int tex_block) {
     }
     mgDrawDirectEnd();
 }
+
 void CEditMap::DrawFireRaster() {
     CMap::DrawFireRaster();
     CFuncPointCheck check;
@@ -38,27 +39,28 @@ void CEditMap::DrawFireRaster() {
     mgUnitMatrix(matrix);
     CEditParts *part = edit_parts;
     for (int index = 0; index < edit_parts_max; ++index, ++part) {
-        int unnamed = part->name[0] == 0;
+        int unnamed = part->name[0] == '\0';
         if (unnamed == 0 && part->state != 0) {
             part->GetLWMatrix(matrix);
             ::DrawFireRaster(matrix, &part->func_point_mngr, &check, fire_raster);
         }
     }
 }
+
 void CEditMap::DrawEffect() {
     GetNowTime();
     CMap::DrawEffect();
     CFuncPointCheck check;
     CreateFuncCheck(&check);
-    static mgCFrameAttr attr;
-    attr.no_cull = 1;
-    attr.draw = 3;
-    attr.depth_bias = 1.015f;
-    attr.fog = 2;
+    static mgCFrameAttr effect_attr;
+    effect_attr.no_cull = 1;
+    effect_attr.draw = 3;
+    effect_attr.depth_bias = 1.015f;
+    effect_attr.fog = 2;
 
     CEditParts *part = edit_parts;
     for (int index = 0; index < edit_parts_max; ++index, ++part) {
-        int unnamed = part->name[0] == 0;
+        int unnamed = part->name[0] == '\0';
         if (unnamed != 0 || part->state == 0) {
             continue;
         }
@@ -68,13 +70,14 @@ void CEditMap::DrawEffect() {
             if (point->Check(&check) != 0) {
                 point->frame.SetReference(&part->frame);
                 point->frame.SetVisual(effect_list.GetEffectVisual(point->effect.index));
-                point->frame.attr = &attr;
+                point->frame.attr = &effect_attr;
                 mgDrawDirect(&point->frame);
                 point->frame.DeleteReference();
             }
         }
     }
 }
+
 void CEditMap::AnimeStep(CObjAnimeEnv *env) {
     CMap::AnimeStep(env);
     CFuncPointCheck check;
@@ -89,7 +92,7 @@ void CEditMap::AnimeStep(CObjAnimeEnv *env) {
         }
     }
     if (balance_moved != 0) {
-        int settled = 1;
+        int settled = true;
         for (int index = 0; index < EDIT_MAP_BALANCE_MAX; ++index) {
             float difference = balance_pos[index][1] - balance_base_pos[index][1];
             balance_base_pos[index][1] += difference / 4.0f;
@@ -97,7 +100,7 @@ void CEditMap::AnimeStep(CObjAnimeEnv *env) {
                 difference = -difference;
             }
             if (difference > 0.1f) {
-                settled = 0;
+                settled = false;
             }
         }
         if (settled) {
