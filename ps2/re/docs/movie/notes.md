@@ -33,8 +33,7 @@ No first-game counterpart (Dark Cloud 1 headers have no movie player).
 | at_344 / at_349 | 0x1F35B40/60 | 0x18 | compiler-generated, referenced by Load |
 | at_468 | .sdata | 4 | the 4-byte MPEG end code 0x000001B7 used by videoDecFlush (ghidra shows it as a float) |
 | at_1276 / at_1287 | .data | 0x10 each | GIF tags (u_long128) copied in setImageTag |
-Only `videoDec` and the sbss objects appear in `movie.cpp`'s INCLUDE_BSS list; audioDec, voBuf,
-infile, _0_buf lie after videoDec in .bss but are not listed in the .cpp.
+The source defines the typed movie data locally and retains placeholders for every retail data block.
 External data used: `DmaCH2` (mglib.hpp, `sceDmaChan *`), `iop_bd_addr` (sound.hpp, `void *`),
 `mgTexManager`.
 
@@ -62,7 +61,7 @@ No vtable, no constructor emitted. Offsets (Load/Play/Term):
   0x50050, MpegWork `w*h*9/2 + 0x1768`, TagProg `((w/16*h/16)*6 + 0x6E)*4` rounded up to 64,
   then *4 (`>>6<<8`).
 - EndCheck returns 1 if writerest <= 4 or state == VIDEO_DEC_STATE_END; returned as int.
-- IsStarted: `lbu isStarted` -> bool.
+- IsStarted returns the byte loaded by `lbu isStarted` as an int.
 
 ## Structs
 - **TimeStamp** 0x18: pts(long,0) dts(long,8) pos(0x10) len(0x14) (viBufReset/PutTs/ModifyPts;
@@ -86,7 +85,7 @@ No vtable, no constructor emitted. Offsets (Load/Play/Term):
   used by IncCount/GetTag), write 0xC, count 0x10 (volatile: videoDecMain spins reloading it),
   size 0x14. GetTag returns `ring_tag[(size + write - count) % size]`.
 - **StrFile** 0x34: fp sceCdlFILE 0 (sceCdSearchFile(file), sceCdStStart(fp.lsn), size = fp.size),
-  0x20 unused, fd 0x24, is_on_cd 0x28, size 0x2C, iop_buf 0x30 (= iop_bd_addr, rounded to 16
+  fp.flag at 0x20, fd 0x24, is_on_cd 0x28, size 0x2C, iop_buf 0x30 (= iop_bd_addr, rounded to 16
   for sceCdStInit(0x50, 5, ...)). strFileOpen always forces is_on_cd = 1 and builds
   `\MOVIE\<name>;1`.
 - **ReadBuf**: data[0x50000], put 0x50000, count 0x50004, size 0x50008 (readBufCreate sets
@@ -109,12 +108,21 @@ No vtable, no constructor emitted. Offsets (Load/Play/Term):
 ## SDK headers added
 `ps2/include/sce/libmpeg.h` (sceMpeg, callback data types, the libmpeg functions this unit
 calls) and `ps2/include/sce/libipu.h` (sceIpuDmaEnv, sceIpuRGB32), needed by value in VideoDec /
-ViBuf. Not yet declared for the bodies: thread/sema/intc kernel calls (CreateThread, StartThread,
+ViBuf. The owning SDK headers declare thread/sema/intc kernel calls (CreateThread, StartThread,
 CreateSema, WaitSema, AddIntcHandler, AddDmacHandler, DIntr/EIntr, ...), sceCdSt*, sceOpen/
 sceRead/sceLseek/sceClose, sceSifAllocIopHeap, sceGsSyncV, sceDmaSend, sndSetMasterVol.
 
 ## Open points
 - Field name/meaning of CMovie 0x0, 0x24-0x40, 0xD0-0x100, 0x23910-0x23940; VideoDec 0xAC;
-  StrFile 0x20; VoTag 0x4-0x40.
+  VoTag 0x4-0x40.
 - Return types of the static helpers are mostly int 1/0; voBufIsFull/IsEmpty/audioDecIsPreset
   compute a boolean (`sltiu`/`xori`), isAudioOK returns it.
+
+## C++ function status
+
+The draft compile has 89 functions: 73 match, four differ, and 12 have no draft.
+`CMovie::Play` differs only in isolated relocations. `stepMain`, `vblankHandler`,
+and `handler_endimage` have clean guarded C++ bodies with retail assembly in the
+normal build. `stepMain` uses ordinary pointer locals; the two interrupt handlers
+call `EIntr` without inline assembly. The normal build has 74 perfect functions
+and 15 assembly functions, and all eleven sections equal retail.

@@ -32,4 +32,33 @@ int sceCdRead(u_int lsn, u_int sectors, void *buffer, sceCdRMode *mode);
 int sceCdSync(int mode);
 int sceCdGetError(void);
 int sceCdBreak(void);
+/**
+ * Waits for the disc drive to become ready.
+ */
+int sceCdDiskReady(int mode);
+
+/**
+ * Initializes the CD streaming ring in IOP memory.
+ */
+int sceCdStInit(int sectors, int banks, void *buffer);
+
+/**
+ * Starts streaming at a logical sector.
+ */
+int sceCdStStart(u_int sector, sceCdRMode *mode);
+
+/**
+ * Seeks the CD stream to a logical sector.
+ */
+int sceCdStSeekF(u_int sector);
+
+/**
+ * Stops CD streaming.
+ */
+int sceCdStStop(void);
+
+/**
+ * Reads sectors from the CD streaming ring.
+ */
+int sceCdStRead(u_int sectors, void *buffer, u_int mode, u_int *error);
 }

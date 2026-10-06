@@ -115,6 +115,51 @@ void Exit(int status);
  */
 void Exit__2(int status);
 
+/**
+ * Disables interrupts and returns the previous interrupt state.
+ */
+int DIntr(void);
+
+/**
+ * Enables interrupts.
+ */
+int EIntr(void);
+
+/**
+ * Installs an interrupt-controller handler.
+ */
+int AddIntcHandler(int cause, int (*handler)(int), int next);
+
+/**
+ * Removes an interrupt-controller handler.
+ */
+int RemoveIntcHandler(int cause, int handler);
+
+/**
+ * Enables an interrupt-controller cause.
+ */
+int EnableIntc(int cause);
+
+/**
+ * Installs a DMA-channel interrupt handler.
+ */
+int AddDmacHandler(int channel, int (*handler)(int), int next);
+
+/**
+ * Removes a DMA-channel interrupt handler.
+ */
+int RemoveDmacHandler(int channel, int handler);
+
+/**
+ * Enables a DMA-channel interrupt.
+ */
+int EnableDmac(int channel);
+
+/**
+ * Disables a DMA-channel interrupt.
+ */
+int DisableDmac(int channel);
+
 #ifdef __cplusplus
 }
 #endif
