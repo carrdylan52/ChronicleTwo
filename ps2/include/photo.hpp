@@ -42,16 +42,6 @@ enum PhotoMessage {
 // clang-format on
 
 /**
- * Gives a camera-mode message in the current language, or an empty
- * string when the message or language is out of range.
- *
- * @mangled GetMesTxt__Fi
- * @address 0x313880
- * @size 0x60
- */
-char *GetMesTxt(int message);
-
-/**
  * Gives the projection offset the camera zoom adds while camera mode is
  * active, or zero outside it.
  *
