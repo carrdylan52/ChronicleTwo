@@ -65,7 +65,7 @@ whose first name byte is 0, which is the 8 bytes of zero padding after the table
 | Off | Field | Evidence |
 |---|---|---|
 | 0x00 | `name[16]` | `strcmp` in `SetDamage`; Shift-JIS names, longest 14 bytes + NUL |
-| 0x10 | `shape` u32 | `IsHit` tests byte `& 1`, `& 2`, `& 4`. Values 0,1,2,5,6 |
+| 0x10 | `shape` s8 | `IsHit` loads with `lb` and tests `& 1`, `& 2`, `& 4`. Values 0,1,2,5,6; bytes 0x11..0x13 are padding |
 | 0x14 | `target` u32 | -> prim 0x80. Values 1 (by owner) or 6 (both sides: bombs, explosions) |
 | 0x18 | `kind` s8 | `lb`/char reads in monster CheckDamage (react_tbl, vs_attk_index, sound), calcWeaponParamWhp (0,4,0xB,0xC = weapon wear) |
 | 0x1C | `damage` s32 | -> prim 0x88; also percent for status 0x1000 in monster CheckDamage |
@@ -110,9 +110,8 @@ and previous positions according to `DamageShape`, then checks enabled character
 entry objects; on a hit it records hit position and direction, marks the character
 unless the parameter allows multiple hits, and increments `hit_num`.
 
-Each of the 18 drafts received one isolated promotion attempt. Thirteen matched
-the linked retail image and are now compiled by default: the four `SetCoord`
-overloads, `GetReversVec`, and all eight `CColPrimMan` methods. `SetDamage`,
-`IsHit`, `IsReversVec`, `Step`, and `Delete` remain under `NONMATCHING` with
-their original `INCLUDE_ASM` fallbacks. The default full build verifies every
+All 20 functions are compiled by default and match retail, including
+`SetDamage`, `IsHit`, `IsReversVec`, `Step`, and `Delete`. `IsHit` uses eight-vector
+work arrays and a 32-bit shifted mask, which the retail instructions sign-extend
+when testing or updating the 64-bit `hit_mask`. The full build verifies every
 section as byte-identical to SCES_511.90.
