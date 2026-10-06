@@ -9,64 +9,26 @@
 #include <cstdio>
 #include <cstring>
 
-extern char at_183[];
-extern char at_190[];
-extern char at_369__2[];
-extern char at_370[];
-extern char at_438[];
-extern char at_439[];
-extern char at_440[];
-extern char at_441[];
-extern char at_530[];
-extern char at_531[];
-extern char at_532[];
-extern char at_533[];
-extern char at_534[];
-extern char at_564[];
-extern char at_571[];
-extern char at_659[];
-extern char at_660[];
-extern char at_713[];
-extern char at_714[];
+// Trap on division by zero for variable integer divisors.
+#pragma divbyzerocheck on
 
-extern "C" void Exit__2(int);
-union dataread_path {
-    u_long128 quadwords[16];
-    char text[256];
-};
-struct dataread_prefix {
-    u_long128 quadword[1];
-};
-union dataread_prefix_text {
-    dataread_prefix init;
-    char text[16];
-};
-extern dataread_path at_259;
-extern dataread_path at_845;
-extern dataread_path at_583;
-extern dataread_prefix at_554;
-
-// Initialised data (.data)
 static char TopDir[256] = "";
-static char CurrentDir__2[256] = "";
-// Small initialised data (.sdata)
+static char CurrentDir[256] = "";
 static int  DefaultFileDev = FILE_DEV_CDROM;
 
-// Small uninitialised data (.sbss)
 static int header_num;
 static int data_sector;
 static int (*error_cb)(int);
 static int old_vsync;
 static int start_vsync;
 
-// Uninitialised data (.bss)
-u_char header_buff[0x50000];
+static u_char       header_buff[0x50000];
 static BG_READ_INFO bg_read_info[32];
 static FILE_CACHE   FileCache[16];
 
 static u_int     *packfile_buff;
 static u_long128 *CacheAddress;
-static int NowCacheAddress;
+static u_long128 *NowCacheAddress;
 static int        FileCacheType;
 
 static DATA_HEADER *SearchFile(char *name);
@@ -110,8 +72,8 @@ int ChangeHddFile() {
     }
 
     DefaultFileDev = FILE_DEV_HDD;
-    strcpy(TopDir, at_183);
-    strcpy(CurrentDir__2, at_183);
+    strcpy(TopDir, "/");
+    strcpy(CurrentDir, "/");
     return 1;
 }
 
@@ -122,8 +84,8 @@ int ChangeDefaultFile() {
 
     UmountHDDFileSystem();
     DefaultFileDev = FILE_DEV_CDROM;
-    strcpy(TopDir, at_190);
-    strcpy(CurrentDir__2, at_190);
+    strcpy(TopDir, "");
+    strcpy(CurrentDir, "");
     return 1;
 }
 
@@ -137,26 +99,26 @@ void SetCurrentDir(char *dir) {
             dir++;
         }
 
-        strcpy(CurrentDir__2, dir);
+        strcpy(CurrentDir, dir);
         return;
     }
 
-    strcpy(CurrentDir__2, TopDir);
+    strcpy(CurrentDir, TopDir);
 }
 
 void GetCurrentDir(char *out_dir) {
-    strcpy(out_dir, CurrentDir__2);
+    strcpy(out_dir, CurrentDir);
 }
 
 void ChangeDir(char *dir) {
-    strcpy(CurrentDir__2, TopDir);
+    strcpy(CurrentDir, TopDir);
 
     if (dir) {
         if (*dir == '/') {
             dir++;
         }
 
-        strcat(CurrentDir__2, dir);
+        strcat(CurrentDir, dir);
     }
 }
 
@@ -180,127 +142,157 @@ static DATA_HEADER *SearchFile(char *name) {
 }
 
 void InitReadBG() {
-    for (int i = 0; i < 32; i++) {
-        bg_read_info[i].busy = 0;
+    int i;
+
+    for (i = 0; i < 32; i++) {
+        bg_read_info[i].busy = false;
     }
+
     start_vsync = 0;
     old_vsync = -1;
 }
 
 int LoadFileBG(char *name, u_long128 *buffer, int *out_size) {
-    dataread_path fullPath;
-    char rest[256];
-    int loadedSize;
-    int device;
-    int i;
+    int           size;
+    int           dev;
+    int           i;
     BG_READ_INFO *info;
-    int *words;
-    DATA_HEADER *file;
-    if (out_size != 0) {
-        *(int *)out_size = 0;
+    DATA_HEADER  *header;
+
+    if (out_size) {
+        *out_size = 0;
     }
-    if (name == NULL) {
+
+    if (!name) {
         return 0;
     }
-    if (*(s8 *)name == 0) {
+
+    if (*name == 0) {
         return 0;
     }
-    fullPath = at_259;
-    strcpy(fullPath.text, CurrentDir__2);
-    strcat(fullPath.text, name);
-    device = GetDevType(name, rest);
-    if (device == -1) {
-        device = DefaultFileDev;
+
+    char path[256] = "";
+    char file_name[256];
+
+    strcpy(path, CurrentDir);
+    strcat(path, name);
+    dev = GetDevType(name, file_name);
+
+    if (dev == FILE_DEV_DEFAULT) {
+        dev = DefaultFileDev;
     }
-    i = 0;
+
     info = bg_read_info;
-search:
-    if (info->busy != 0) {
-        i++;
-        info++;
-        if (i < 32) {
-            goto search;
+
+    for (i = 0; i < 32; i++, info++) {
+        if (!info->busy) {
+            break;
         }
     }
+
     if (i == 32) {
         return 0;
     }
-    words = (int *)info;
-    if (device == 1) {
-        file = SearchFile(fullPath.text);
-        if (file == NULL) {
+
+    if (dev == FILE_DEV_CDROM) {
+        header = SearchFile(path);
+
+        if (!header) {
             return 0;
         }
-        strcpy(info->name, fullPath.text);
-        info->busy = 1;
-        info->dev = 1;
+
+        strcpy(info->name, path);
+        info->busy = true;
+        info->dev = FILE_DEV_CDROM;
         info->issued = 0;
         info->done = 0;
-        words[0x44] = (int)buffer;
-        words[0x45] = file->size;
-        if (out_size != 0) {
-            *(int *)out_size = file->size;
+        info->buffer = buffer;
+        info->size = header->size;
+
+        if (out_size) {
+            *out_size = header->size;
         }
-        info->fd = file->sector + data_sector;
-        words[0x47] = size_to_sector(file->size);
+
+        info->sector = header->sector + data_sector;
+        info->sectors = size_to_sector(header->size);
         return 1;
     }
-    strcpy(info->name, fullPath.text);
-    info->busy = 1;
-    info->dev = device;
+
+    strcpy(info->name, path);
+    info->busy = true;
+    info->dev = dev;
     info->issued = 0;
     info->done = 0;
-    words[0x44] = (int)buffer;
-    if (SearchFileCache(name, &loadedSize) != 0) {
-        info->fd = LoadFile2(name, buffer, &loadedSize, 0);
-        words[0x45] = loadedSize;
-        if (info->fd == 0) {
-            info->busy = 0;
+    info->buffer = buffer;
+
+    // A cached file is copied at once, so its read is queued as already finished.
+    if (SearchFileCache(name, &size)) {
+        info->fd = LoadFile2(name, buffer, &size, LOAD_FILE_READ);
+        info->size = size;
+
+        if (!info->fd) {
+            info->busy = false;
             return 0;
         }
+
         info->issued = 1;
         info->done = 1;
-        if (out_size != 0) {
-            *(int *)out_size = loadedSize;
+
+        if (out_size) {
+            *out_size = size;
         }
+
         return 1;
     }
-    if (device == 2) {
-        info->fd = LoadFile2(name, buffer, &loadedSize, 0);
-        words[0x45] = loadedSize;
-        info->busy = 1;
+
+    // The network socket has no asynchronous read, so the file is read at once.
+    if (dev == FILE_DEV_NET) {
+        info->fd = LoadFile2(name, buffer, &size, LOAD_FILE_READ);
+        info->size = size;
+        info->busy = true;
         info->issued = 1;
         info->done = 1;
-        if (out_size != 0) {
-            *(int *)out_size = loadedSize;
+
+        if (out_size) {
+            *out_size = size;
         }
+
         return 1;
     }
-    info->fd = LoadFile2(name, buffer, &loadedSize, 2);
-    words[0x45] = loadedSize;
+
+    info->fd = LoadFile2(name, buffer, &size, LOAD_FILE_OPEN);
+    info->size = size;
+
     if (info->fd < 0) {
-        info->busy = 0;
+        info->busy = false;
         info->issued = 0;
         info->done = 0;
         return 0;
     }
+
     info->issued = 0;
     info->done = 0;
-    if (out_size != 0) {
-        *(int *)out_size = loadedSize;
+
+    if (out_size) {
+        *out_size = size;
     }
+
     return 1;
 }
 
 BG_READ_INFO *GetReadBGFile(char *name) {
-    int i;
-    BG_READ_INFO *info = bg_read_info;
+    int           i;
+    BG_READ_INFO *info;
+
+    info = bg_read_info;
+
     for (i = 0; i < 32; i++, info++) {
-        if (info->busy != 0 && strcasecmp(name, info->name) == 0) {
+        if (info->busy && strcasecmp(name, info->name) == 0) {
             return info;
         }
     }
-    return NULL;
+
+    return 0;
 }
 
 BG_READ_INFO *GetReadBGFile(int index) {
@@ -387,17 +379,29 @@ void ReadBG() {
 }
 
 int ReadBGSync() {
+    int           i;
+    BG_READ_INFO *info;
+
     ReadBG();
-    int i = 0;
-    BG_READ_INFO *info = bg_read_info;
-    do {
-        if (info->busy != 0 && (info->issued == 0 || info->done == 0)) {
-            break;
+    info = bg_read_info;
+
+    for (i = 0; i < 32; i++, info++) {
+        if (info->busy) {
+            if (info->issued == 0) {
+                break;
+            }
+
+            if (info->done == 0) {
+                break;
+            }
         }
-        i++;
-        info++;
-    } while (i < 32);
-    return (i == 32) ^ 1;
+    }
+
+    if (i == 32) {
+        return 0;
+    }
+
+    return 1;
 }
 
 void BreakReadBG() {
@@ -422,49 +426,46 @@ void BreakReadBG() {
 }
 
 void InitCDFile() {
-    int file[9];
-    int fd;
-    int headerSize;
-    int base;
-    int i;
-    int offset;
-    s8 *name;
-    s8 c;
+    sceCdlFILE   file;
+    int          fd;
+    int          size;
+    DATA_HEADER *records;
+    int          i;
+    char        *cursor;
+    char         ch;
+
     packfile_buff = 0;
     do {
-        if (sceCdSearchFile((sceCdlFILE *)file, at_438) == 0) {
-            while (sceCdSearchFile((sceCdlFILE *)file, at_438) == 0) {
+        if (sceCdSearchFile(&file, "\\DATA.DAT;1") == 0) {
+            while (sceCdSearchFile(&file, "\\DATA.DAT;1") == 0) {
             }
         }
         sceCdSync(0);
     } while (sceCdGetError() != 0);
-    data_sector = file[0];
-    fd = sceOpen(at_439, 1);
+    data_sector = file.lsn;
+    fd = sceOpen("cdrom0:\\DATA.HD4;1", SCE_RDONLY);
     if (fd < 0) {
-        printf(at_440);
-        Exit__2(0);
+        printf("File open error \"\"\n \n \n");
+        Exit(0);
     }
-    headerSize = sceLseek(fd, 0, 2);
-    sceLseek(fd, 0, 0);
-    sceRead(fd, header_buff, headerSize);
+    size = sceLseek(fd, 0, SCE_SEEK_END);
+    sceLseek(fd, 0, SCE_SEEK_SET);
+    sceRead(fd, header_buff, size);
     sceClose(fd);
-    printf(at_441, headerSize, 0x50000);
-    base = (int)header_buff;
-    i = 0;
-    offset = 0;
-    header_num = *(u32 *)base / 12;
-    while (i < header_num) {
-        DATA_HEADER *entry = (DATA_HEADER *)(base + offset);
-        entry->name += base;
-        name = (s8 *)entry->name;
-        while ((c = *name) != 0) {
-            if (c == '\\') {
-                *name = '/';
+    printf("head size = %d/%d\n", size, sizeof(header_buff));
+    records = (DATA_HEADER *)header_buff;
+    // The names follow the last record, so the first name's offset counts the records.
+    header_num = records->name_offset / sizeof(DATA_HEADER);
+    for (i = 0; i < header_num; i++) {
+        DATA_HEADER *record = &records[i];
+        record->name = (char *)(record->name_offset + (u_int)records);
+        cursor = record->name;
+        while ((ch = *cursor) != 0) {
+            if (ch == '\\') {
+                *cursor = '/';
             }
-            name++;
+            cursor++;
         }
-        offset += 12;
-        i++;
     }
 }
 
@@ -473,44 +474,61 @@ void InitCDFile() {
  * without the prefix; a single-letter drive is left to the default device.
  */
 static int GetDevType(char *path, char *out_name) {
-    char device[0x40];
-    s8 *scan;
-    char *out;
-    if (*(s8 *)(path + 1) == ':') {
+    char *cursor;
+    char *device_end;
+    char  device[64];
+
+    if (path[1] == ':') {
         strcpy(out_name, path);
-        return -1;
+        return FILE_DEV_DEFAULT;
     }
-    scan = (s8 *)path;
-    out = device;
+
+    cursor = path;
+    device_end = device;
+
     for (;;) {
-        if (*scan == 0) {
+        if (*cursor == 0) {
             break;
         }
-        *out++ = *scan;
-        if (*scan == ':') {
+        *device_end = *cursor;
+        device_end++;
+
+        if (*cursor == ':') {
             break;
         }
-        scan++;
+
+        cursor++;
     }
-    *out = 0;
-    if (*scan != 0) {
-        strcpy(out_name, (char *)scan + 1);
+
+    *device_end = 0;
+
+    if (*cursor != 0) {
+        strcpy(out_name, cursor + 1);
     } else {
         strcpy(out_name, path);
     }
-    if (strcmp(device, at_530) == 0) {
-        return 0;
+
+    if (strcmp(device, "host:") == 0) {
+        return FILE_DEV_HOST;
     }
-    if (strcmp(device, at_531) == 0) {
-        return 0;
+
+    if (strcmp(device, "host0:") == 0) {
+        return FILE_DEV_HOST;
     }
-    if (strcmp(device, at_532) == 0) {
-        return 1;
+
+    if (strcmp(device, "cdrom:") == 0) {
+        return FILE_DEV_CDROM;
     }
-    if (strcmp(device, at_533) == 0) {
-        return 2;
+
+    if (strcmp(device, "net:") == 0) {
+        return FILE_DEV_NET;
     }
-    return strcmp(device, at_534) == 0 ? 3 : -1;
+
+    if (strcmp(device, "psf0:") == 0) {
+        return FILE_DEV_HDD;
+    }
+
+    return FILE_DEV_DEFAULT;
 }
 
 /**
@@ -534,37 +552,48 @@ static void ConvStr(char *text) {
  * prefix and the current directory; returns the device.
  */
 static int GetFullPath(char *path, char *out_path) {
-    char rest[256];
-    dataread_prefix_text prefix;
-    int device = GetDevType(path, rest);
-    int hasDevice = 0;
-    if (device == -1) {
-        device = DefaultFileDev;
+    int  dev;
+    int  has_device;
+    char name[256];
+
+    dev = GetDevType(path, name);
+    has_device = false;
+
+    if (dev == FILE_DEV_DEFAULT) {
+        dev = DefaultFileDev;
     } else {
-        hasDevice = 1;
+        has_device = true;
     }
-    prefix.init = at_554;
-    if (device == 0) {
-        strcpy(prefix.text, at_530);
+
+    char prefix[16] = "";
+
+    if (dev == FILE_DEV_HOST) {
+        strcpy(prefix, "host:");
     }
-    if (device == 3) {
-        strcpy(prefix.text, at_564);
+
+    if (dev == FILE_DEV_HDD) {
+        strcpy(prefix, "pfs0:");
     }
-    strcpy(out_path, prefix.text);
-    if (hasDevice == 0) {
-        strcat(out_path, CurrentDir__2);
+
+    strcpy(out_path, prefix);
+
+    if (!has_device) {
+        strcat(out_path, CurrentDir);
     }
-    strcat(out_path, rest);
-    if (device == 3) {
+
+    strcat(out_path, name);
+
+    if (dev == FILE_DEV_HDD) {
         ConvStr(out_path);
     }
-    return device;
+
+    return dev;
 }
 
 int LoadFile(char *path, void *buffer, int *out_size) {
     if (!LoadFile2(path, buffer, out_size, LOAD_FILE_READ)) {
-        printf(at_571, path);
-        Exit__2(0);
+        printf("File open error \"%s\"\n \n \n", path);
+        Exit(0);
     }
 
     return 1;
@@ -576,8 +605,6 @@ int LoadFile2(char *path, void *buffer, int *out_size, int mode) {
     int             dev;
     int             size;
     int             result;
-    dataread_path full_path;
-    struct sce_stat stat;
 
     if (out_size) {
         *out_size = 0;
@@ -595,21 +622,21 @@ int LoadFile2(char *path, void *buffer, int *out_size, int mode) {
             *out_size = cache->size;
         }
 
-        printf(at_659, path);
+        printf("file cache %s\n", path);
         return 1;
     }
 
-    full_path = at_583;
-
-    dev = GetFullPath(path, full_path.text);
+    char full_path[256] = "";
+    struct sce_stat stat;
+    dev = GetFullPath(path, full_path);
 
     if (dev == FILE_DEV_DEFAULT) {
         dev = DefaultFileDev;
     }
 
     if (dev == FILE_DEV_NET) {
-        printf(at_660, full_path.text);
-        size = LoadFileSocket(full_path.text, (u_int *) buffer);
+        printf("load %s\n", full_path);
+        size = LoadFileSocket(full_path, (u_int *) buffer);
 
         if (out_size) {
             *out_size = size;
@@ -624,7 +651,7 @@ int LoadFile2(char *path, void *buffer, int *out_size, int mode) {
 
     if (dev == FILE_DEV_CDROM) {
         if (mode == LOAD_FILE_SIZE) {
-            header = SearchFile(full_path.text);
+            header = SearchFile(full_path);
 
             if (!header) {
                 return 0;
@@ -637,14 +664,14 @@ int LoadFile2(char *path, void *buffer, int *out_size, int mode) {
             return 1;
         }
 
-        return CDRead(full_path.text, (u_int *) buffer, out_size);
+        return CDRead(full_path, (u_int *) buffer, out_size);
     }
 
-    printf(at_660, full_path.text);
+    printf("load %s\n", full_path);
 
     // Every failing hard-disk operation is reported to the error callback.
     if (dev == FILE_DEV_HDD) {
-        result = sceGetstat(full_path.text, &stat);
+        result = sceGetstat(full_path, &stat);
 
         if (result < 0 && error_cb) {
             error_cb(result);
@@ -659,7 +686,7 @@ int LoadFile2(char *path, void *buffer, int *out_size, int mode) {
         }
 
         if (mode == LOAD_FILE_OPEN) {
-            dev = sceOpen(full_path.text, SCE_RDONLY | SCE_NOWAIT, 0x1FF);
+            dev = sceOpen(full_path, SCE_RDONLY | SCE_NOWAIT, 0x1FF);
 
             if (dev < 0 && error_cb) {
                 error_cb(dev);
@@ -668,7 +695,7 @@ int LoadFile2(char *path, void *buffer, int *out_size, int mode) {
             return dev;
         }
 
-        dev = sceOpen(full_path.text, SCE_RDONLY, 0x1FF);
+        dev = sceOpen(full_path, SCE_RDONLY, 0x1FF);
 
         if (dev < 0) {
             if (error_cb) {
@@ -706,7 +733,7 @@ int LoadFile2(char *path, void *buffer, int *out_size, int mode) {
         return 1;
     }
 
-    result = sceOpen(full_path.text, SCE_RDONLY);
+    result = sceOpen(full_path, SCE_RDONLY);
 
     if (result < 0) {
         return mode == LOAD_FILE_OPEN ? -1 : 0;
@@ -724,7 +751,7 @@ int LoadFile2(char *path, void *buffer, int *out_size, int mode) {
         // The size is learnt through a blocking descriptor; the read itself is left to ReadBG.
         if (mode == LOAD_FILE_OPEN) {
             sceClose(result);
-            return sceOpen(full_path.text, SCE_RDONLY | SCE_NOWAIT);
+            return sceOpen(full_path, SCE_RDONLY | SCE_NOWAIT);
         }
 
         sceRead(result, buffer, size);
@@ -739,25 +766,35 @@ int LoadFile2(char *path, void *buffer, int *out_size, int mode) {
  * until the read succeeds; reports whether the file exists.
  */
 static int CDRead(char *path, u_int *buffer, int *out_size) {
-    int *entry;
-    sceCdRMode mode;
-    printf(at_713, path);
-    entry = (int *)SearchFile(path);
-    if (entry == NULL) {
+    DATA_HEADER *header;
+    sceCdRMode   mode;
+
+    printf("Load %s\n", path);
+    header = SearchFile(path);
+
+    if (!header) {
         return 0;
     }
-    printf(at_714, entry[0], entry[2], size_to_sector(entry[1]));
+
+    printf("%s %d %d\n", header->name, header->sector, size_to_sector(header->size));
     mode.trycount = 0;
     mode.spindlctrl = 1;
     mode.datapattern = 0;
-    do {
-        while (sceCdRead(entry[2] + data_sector, size_to_sector(entry[1]), buffer, &mode) == 0) {
+
+    while (1) {
+        if (sceCdRead(header->sector + data_sector, size_to_sector(header->size), buffer, &mode)) {
+            sceCdSync(0);
+
+            if (sceCdGetError() == 0) {
+                break;
+            }
         }
-        sceCdSync(0);
-    } while (sceCdGetError() != 0);
-    if (out_size != NULL) {
-        *out_size = entry[1];
     }
+
+    if (out_size) {
+        *out_size = header->size;
+    }
+
     return 1;
 }
 
@@ -765,16 +802,13 @@ static int CDRead(char *path, u_int *buffer, int *out_size) {
  * Rounds a size up to the next
  * multiple of an alignment.
  */
-#pragma divbyzerocheck on
 static u_int align_size(u_int size, u_int alignment) {
-    u32 rest = size % alignment;
-    if (rest != 0) {
-        size += alignment - rest;
+    if (size % alignment) {
+        size += alignment - size % alignment;
     }
+
     return size;
 }
-
-#pragma divbyzerocheck reset
 
 /**
  * Gives a free file cache entry,
@@ -803,10 +837,10 @@ void InitFileCache(u_long128 *address, int type) {
 
     if (type == FILE_CACHE_DOWN || type == FILE_CACHE_UP) {
         CacheAddress = (u_long128 *) align_size((u_int) address, 64);
-        NowCacheAddress = (int)CacheAddress;
+        NowCacheAddress = CacheAddress;
 
         if (type == FILE_CACHE_DOWN) {
-            NowCacheAddress -= 64;
+            NowCacheAddress -= 64 / sizeof(u_long128);
         }
 
         FileCacheType = type;
@@ -839,37 +873,38 @@ static int EntryFileCache(char *path, u_long128 *address, int size) {
 
 int LoadFileCacheBG(char *path) {
     int size;
-    int aligned;
-    int buffer;
+    int aligned_size;
+    u_long128 *buffer;
     FILE_CACHE *entry;
-    if (path == NULL || *(s8 *)path == 0) {
+
+    if (path == NULL || *path == 0) {
         return 0;
     }
-    if (CacheAddress == 0) {
+    if (CacheAddress == NULL) {
         return 0;
     }
-    entry = (FILE_CACHE *)SearchFileCache(path);
+    entry = SearchFileCache(path);
     if (entry != NULL) {
         entry->ref_count += 1;
         return 1;
     }
     size = 0;
-    if (LoadFile2(path, NULL, &size, 1) == 0) {
+    if (LoadFile2(path, NULL, &size, LOAD_FILE_SIZE) == 0) {
         return 0;
     }
-    aligned = align_size(size, 0x800);
+    aligned_size = align_size(size, 2048);
     buffer = NowCacheAddress;
-    if (FileCacheType == 1) {
-        NowCacheAddress -= aligned / 16 * 16;
+    if (FileCacheType == FILE_CACHE_DOWN) {
+        NowCacheAddress -= aligned_size / 16;
         buffer = NowCacheAddress;
     }
-    if (FileCacheType == 2) {
-        NowCacheAddress += aligned / 16 * 16;
+    if (FileCacheType == FILE_CACHE_UP) {
+        NowCacheAddress += aligned_size / 16;
     }
-    if (LoadFileBG(path, (u_long128 *)buffer, NULL) == 0) {
+    if (LoadFileBG(path, buffer, NULL) == 0) {
         return 0;
     }
-    return EntryFileCache(path, (u_long128 *)buffer, size);
+    return EntryFileCache(path, buffer, size);
 }
 
 /**
@@ -877,17 +912,21 @@ int LoadFileCacheBG(char *path) {
  * or null when the file is not cached.
  */
 static FILE_CACHE *SearchFileCache(char *path) {
-    int i;
+    int         i;
     FILE_CACHE *entry;
-    if (CacheAddress == 0) {
+
+    if (!CacheAddress) {
         return 0;
     }
+
     entry = FileCache;
+
     for (i = 0; i < 16; i++, entry++) {
-        if (entry->address != 0 && strcasecmp((char *)entry + 0x10, path) == 0) {
+        if (entry->address && strcasecmp(entry->name, path) == 0) {
             return entry;
         }
     }
+
     return 0;
 }
 
@@ -912,71 +951,89 @@ u_long128 *SearchFileCache(char *path, int *out_size) {
 }
 
 int WriteFile(char *path, void *buffer, int size) {
-    dataread_path fullPath = at_845;
     int fd;
-    if (GetFullPath(path, fullPath.text) == 2) {
-        printf(at_660, fullPath.text);
-        WriteFileSocket(fullPath.text, (u32 *)buffer, size);
+
+    char full_path[256] = "";
+
+    if (GetFullPath(path, full_path) == FILE_DEV_NET) {
+        printf("load %s\n", full_path);
+        WriteFileSocket(full_path, (u_int *) buffer, size);
         return 1;
     }
-    fd = sceOpen(path, 0x602);
+
+    fd = sceOpen(path, SCE_WRONLY | SCE_CREAT | SCE_TRUNC);
+
     if (fd < 0) {
         return 0;
     }
+
     sceWrite(fd, buffer, size);
     sceClose(fd);
     return 1;
 }
 
 u_int *GetPackFile(u_int *pack, char *name, int *out_size) {
-    s8 *base;
-    u8 *entry;
-    s8 *scan;
-    s8 c;
-    if (pack == NULL) {
+    char       *base_name;
+    PACK_ENTRY *entry;
+    u_int      *data;
+    char        ch;
+
+    if (!pack) {
         return 0;
     }
-    if (name == NULL) {
+
+    if (!name) {
         return 0;
     }
-    if (*(s8 *)name == 0) {
+
+    if (*name == 0) {
         return 0;
     }
-    base = (s8 *)name;
-    scan = (s8 *)name;
-    while ((c = *scan) != 0) {
-        if (c == '/') {
-            base = scan + 1;
+
+    base_name = name;
+
+    while ((ch = *name) != 0) {
+        if (ch == '/') {
+            base_name = name + 1;
         }
-        scan++;
+
+        name++;
     }
-    for (entry = (u8 *)pack; *(s8 *)entry != 0; entry += *(int *)(entry + 0x48)) {
-        if (strcasecmp((char *)entry, (char *)base) == 0) {
-            int data = (int)(entry + *(int *)(entry + 0x40));
-            if (out_size != NULL) {
-                *out_size = *(int *)(entry + 0x44);
+
+    entry = (PACK_ENTRY *) pack;
+
+    while (entry->name[0]) {
+        if (strcasecmp(entry->name, base_name) == 0) {
+            data = (u_int *) ((char *) entry + entry->offset);
+
+            if (out_size) {
+                *out_size = entry->size;
             }
-            return (u_int *)data;
+
+            return data;
         }
+
+        entry = (PACK_ENTRY *) ((char *) entry + entry->next);
     }
+
     return 0;
 }
 
 u_int *GetPackFile(u_int *pack, int index, char **out_name, int *out_size) {
     int i;
-    u8 *entry = (u8 *)pack;
+    PACK_ENTRY *entry = (PACK_ENTRY *)pack;
+
     if (entry == NULL) {
         return 0;
     }
-    i = 0;
-    for (; *(s8 *)entry != 0; i++, entry += *(int *)(entry + 0x48)) {
+    for (i = 0; entry->name[0] != 0; i++, entry = (PACK_ENTRY *)((char *)entry + entry->next)) {
         if (index == i) {
-            int data = (int)(entry + *(int *)(entry + 0x40));
+            u_int *data = (u_int *)((char *)entry + entry->offset);
             if (out_size != NULL) {
-                *out_size = *(int *)(entry + 0x44);
+                *out_size = entry->size;
             }
-            *out_name = (char *)entry;
-            return (u_int *)data;
+            *out_name = entry->name;
+            return data;
         }
     }
     return 0;
@@ -1039,58 +1096,65 @@ int GetPackFileExt(u_int *pack, char *extension, u_int **files, int max_files, i
 int GetPackFileNum(u_int *pack) {
     int size;
     char *name;
-    int index;
+    int count;
 
-
-    index = 0;
-loop:
-    if (GetPackFile(pack, index, &name, &size) != 0) {
-        index += 1;
-        goto loop;
+    count = 0;
+    for (;;) {
+        if (GetPackFile(pack, count, &name, &size) == 0) {
+            break;
+        }
+        count++;
     }
-    return index;
+    return count;
 }
 
 void DivPathName(char *path, char *out_dir, char *out_name) {
-    int last = strlen(path) - 1;
-    s8 *out = (s8 *)out_dir;
-    s8 *in;
+    int slash;
+    char *out = out_dir;
+    char *in;
     int i;
-    if (last >= 0) {
-        do {
-            if (((s8 *)path)[last] == '/') {
-                break;
-            }
-            last--;
-        } while (last >= 0);
+
+    for (slash = strlen(path) - 1; slash >= 0; slash--) {
+        if (path[slash] == '/') {
+            break;
+        }
     }
-    if (last == 0) {
+    if (slash == 0) {
         *out = 0;
         strcpy(out_name, path);
         return;
     }
-    in = (s8 *)path;
-    for (i = 0; i <= last; i++) {
+    in = path;
+    for (i = 0; i <= slash; i++) {
         *out++ = *in++;
     }
     *out = 0;
-    strcpy(out_name, path + (last + 1));
+    strcpy(out_name, path + (slash + 1));
 }
 
 void DivPathNameExt(char *path, char *out_dir, char *out_name, char *out_ext) {
+    char *ext;
+    char  ch;
+
     DivPathName(path, out_dir, out_name);
-    s8 c;
-    s8 *cursor = (s8 *)out_name;
-    while ((c = *cursor) != 0) {
-        if (c == '.') {
-            *cursor = 0;
-            cursor++;
+    ext = out_name;
+
+    while ((ch = *ext) != 0) {
+        if (ch == '.') {
+            *ext = 0;
+            ext++;
             break;
         }
-        cursor++;
+
+        ext++;
     }
-    strcpy(out_ext, (char *)cursor);
+
+    strcpy(out_ext, ext);
 }
+
+// Initialised data (.data)
+INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dataread", TopDir__DATA);
+INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dataread", CurrentDir__2__DATA);
 
 // Constants (.rodata)
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dataread", at_183__DATA);
@@ -1113,7 +1177,25 @@ INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dataread", at_660__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dataread", at_713__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dataread", at_714__DATA);
 
+// Small initialised data (.sdata)
+INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dataread", DefaultFileDev__DATA);
+
+// Small uninitialised data (.sbss)
+INCLUDE_BSS(header_num, 0x4);
+INCLUDE_BSS(packfile_buff, 0x4);
+INCLUDE_BSS(data_sector, 0x4);
+INCLUDE_BSS(error_cb, 0x4);
+INCLUDE_BSS(old_vsync, 0x4);
+INCLUDE_BSS(start_vsync, 0x4);
+INCLUDE_BSS(CacheAddress, 0x4);
+INCLUDE_BSS(NowCacheAddress, 0x4);
+INCLUDE_BSS(FileCacheType, 0x4);
+
+// Uninitialised data (.bss)
+INCLUDE_BSS(header_buff, 0x50000);
+INCLUDE_BSS(bg_read_info, 0x2400);
 INCLUDE_BSS(at_259, 0x100);
 INCLUDE_BSS(at_554, 0x10);
 INCLUDE_BSS(at_583, 0x100);
+INCLUDE_BSS(FileCache, 0x400);
 INCLUDE_BSS(at_845, 0x130);

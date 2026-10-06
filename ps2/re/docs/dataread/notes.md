@@ -110,26 +110,18 @@ the first '.' of each entry name.
 - `packfile_buff` only zeroed (InitCDFile); type `u_int *` assumed from the first game.
 - `size_to_sector` = ceil(size / 2048) with signed division (`size / 0x800 + (size % 0x800 != 0)`).
 
-## Drafting (job dataread.1)
-- 22 functions promoted, 2 MATCH but not promotable, 15 drafts (DIFF).
-- Corrections: at_440 is `"File open error \"\"\n \n \n"` (as in the first game).
-  `DATA_HEADER` word 0 is now a union `name_offset` (as on disc) / `name` (after InitCDFile).
-- `Exit__2` in main.symbols.txt is the SDK `Exit(int)` (eekernel.h); the object references it as
-  `Exit`, which the link cannot resolve, so `LoadFile` (and later `InitCDFile`) cannot be promoted
-  until the symbol is renamed in the config.
-- `InitFileCache` matches under UNMATCHING but not in the game build: there `align_size` is only
-  declared (INCLUDE_ASM), and the schedule changes (MWCC uses a defined callee's register usage).
-  Promote it together with `align_size`. Same caution for `GetFullPath`/`SearchFileCache(char*,int*)`
-  callers of unmatched statics (those two did link and verify).
-- A file-local datum that only unpromoted functions use must stay inside `#ifdef UNMATCHING`: the
-  build drops a compiler copy only when a promoted function's reference was bound to the
-  placeholder; an unreferenced copy stays and shifts .bss (`packfile_buff`, `CacheAddress`,
-  `NowCacheAddress`, `FileCacheType` are kept there for that reason).
-- SDK: `sce_stat`, `sceGetstat`, `sceIoctl`, `SCE_NOWAIT`, `SCE_FS_EXECUTING` added to
-  `ps2/include/sce/sifdev.h`. LoadFile2 reads `stat.st_size` (+8); ReadBG polls
-  `sceIoctl(fd, SCE_FS_EXECUTING, &status)` for non-disc reads.
-- Draft notes: InitCDFile retail retries sceCdSearchFile in an inner loop before sceCdSync (draft
-  uses the first game's single loop). LoadFileCacheBG moves NowCacheAddress by
-  `align_size(size, 0x800) / 16` quads (signed) before queuing, in both directions. GetPackFile(char*)
-  also returns null for a null or empty name. DivPathName treats a slash at index 0 as "no
-  directory" and copies the whole path into the name.
+## C++ draft status
+- All 39 functions have compiled C++ implementations and match retail. No function remains a
+  guarded draft or an INCLUDE_ASM implementation.
+- `LoadFile` and `InitCDFile` call the SDK `Exit(int)` as `Exit(0)`.
+- File-local data definitions are unguarded. `header_buff` is static and has its 0x50000-byte
+  BSS placeholder; the linked image preserves the retail data layout.
+- `sceCdlFILE` is 0x24 bytes, including its ISO 9660 `flag` word. `InitCDFile` retries
+  `sceCdSearchFile` in an inner loop before `sceCdSync`. Its name offsets are rebased through an
+  integer address addition.
+- `LoadFile2` reuses `dev` and `result` as file descriptors. A separate `fd` local differs in
+  13 of 248 words (0x3D4 bytes against retail's 0x3E0).
+- `LoadFileCacheBG` moves `NowCacheAddress` by `align_size(size, 2048) / 16` quads before
+  queuing in either direction. `GetPackFile(char*)` returns null for a null or empty name.
+  `DivPathName` treats a slash at index 0 as no directory and copies the whole path into the name.
+- Variable integer division retains the retail division-by-zero trap.
