@@ -89,12 +89,12 @@ STATIC_ASSERT(sizeof(mg3DSpriteRenderInfo) == 0x280);
  */
 class mgCSprite : public mgCVisualPrim {
 public:
-    int unk_38;
-    int unk_3C;
+    s32 unk_38;
+    s32 unk_3C;
     mgCTexture *texture;  /**< Texture the rectangle is mapped with, or NULL for an untextured rectangle. */
     float depth;          /**< View-space distance the rectangle is drawn at; below 1.0 it is drawn at depth zero. */
-    int unk_48;
-    int unk_4C;
+    s32 unk_48;
+    s32 unk_4C;
     mgRect<int> screen;   /**< Corners of the rectangle on screen, in sixteenths of a pixel from the screen offset. */
     mgRect<int> uv;       /**< Corners of the rectangle in the texture, in sixteenths of a texel. */
     sceGsRgbaq color;     /**< Colour and alpha the rectangle is drawn with. */
@@ -172,14 +172,14 @@ public:
     mgCMemory *memory;        /**< Memory the packet is built in. */
     u_long128 *packet_start;  /**< Uncached address of the start of the packet. */
     u_long128 *packet_cur;    /**< Uncached address the next quadword of the packet is written to. */
-    int unk_30;
+    s32 unk_30;
     u_int *batch_tag;         /**< DMA tag and VIF unpack code that head the open batch of billboards. */
     sceGifTag *batch_giftag;  /**< GIF tag that the VU program draws the open batch's billboards with. */
     u_int *batch_header;      /**< Quadword giving the VU program the open batch's billboard count and mode. */
     int sprite_num;           /**< Billboards in the open batch. */
     int mode;                 /**< Shape the billboards are drawn as, an mgC3DSpriteMode. */
     int prog_started;         /**< Whether a batch has already started the VU program in this packet. */
-    int unk_4C;
+    s32 unk_4C;
 
     /**
      *
@@ -189,9 +189,7 @@ public:
      * @address 0x17E630
      * @size 0x60
      */
-    mgC3DSprite() {
-        Initialize();
-    }
+    mgC3DSprite() { Initialize(); }
 
     /**
      * Builds the packet that loads the VU program's matrices, lighting and
@@ -201,8 +199,7 @@ public:
      * @address 0x13B2E0
      * @size 0x400
      */
-    virtual int CreateRenderInfoPacket(u_int *packet, float (*matrix)[4],
-                                       mgRENDER_INFO *render_info);
+    virtual int CreateRenderInfoPacket(u_int *packet, float (*matrix)[4], mgRENDER_INFO *render_info);
 
     /**
      * Draws the built packet through the draw manager, adding nothing to a

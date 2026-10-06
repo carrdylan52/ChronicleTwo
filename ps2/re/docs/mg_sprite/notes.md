@@ -4,30 +4,28 @@ Header: `ps2/include/mg_sprite.hpp`. Classes: `mgCSprite` (screen sprite, base `
 `mgC3DSprite` (world billboards, base `mgCVisual`), enum `mgC3DSpriteMode`. No first-game
 counterpart (the first game's `CSprite` in `title/sprite.hpp` is an unrelated title-screen trail).
 
-## Dependencies (state when written)
-- `mgCVisual` is owned by mg_dataset and `mgCVisualPrim` / `mgCVisualAttr` by mg_visual. Neither
-  header existed, so `mg_sprite.hpp` does not compile yet. With stand-in definitions (mgCVisual
-  = 0x1C bytes of data + vptr at 0x1C; mgCVisualPrim adds a 0x18-byte `mgCVisualAttr attr` at 0x20)
-  the header compiles and gives sizeof(mgC3DSprite) = 0x50, sizeof(mgCSprite) = 0x78.
-- `mgRect<int>` comes from `mg_tanime.hpp` (left, top, right, bottom; no constructor declared).
-- Virtual return types of the overrides must equal mgCVisual's: assumed `int` for both `Draw`s
-  and `CreateRenderInfoPacket` (they return quadword counts), `void` for `Initialize`. Adjust both
-  headers together if mg_dataset chooses otherwise.
+## Dependencies
+- `mgCVisual`, `mgCVisualPrim` and `mgCVisualAttr` are declared in their owning headers.
+- `mgRect<int>` comes from `mg_tanime.hpp`.
+- The matrix-only `Draw` overrides return `void`, as `mgCVisual` declares them. The tagged
+  overloads and `CreateRenderInfoPacket` return quadword counts. `Initialize` returns `void`.
+- The unit has 17 functions: 16 compiled bodies match; `mgC3DSprite::CreateRenderInfoPacket`
+  remains a guarded draft (0x3C0 bytes against retail's 0x400).
 
 ## mgCVisual facts seen from this unit (for mg_dataset)
 - vptr at 0x1C (ctors store `__vt__9mgCVisual` there). `Initialize` zeroes 0x00, 0x04, 0x08, 0x14,
-  0x10 in that order; it is expanded in `mgC3DSprite::Initialize` and `mgCSprite::Initialize`, so
-  it is inline in the class (also emitted in mg_dataset at 0x133440).
+  0x10 in that order; it is expanded in `mgC3DSprite::Initialize` and `mgCSprite::Initialize`, and
+  the base initializer also has an out-of-line definition in mg_dataset at 0x133440.
 - 0x08 = `mgCDrawManager::texture_manager` (manager+0x58), stored by both `Draw(u_int*,...)`.
 - 0x0C = PRIM register value: `mgC3DSprite::CreateRenderInfoPacket` writes `0x158 | fog << 5`
   there and copies it into the packet's PRIM A+D write.
-- `Draw(float(*)[4], mgCDrawManager*)` is `return Draw(NULL, m, dm);` via vtable slot 0x2C.
+- `Draw(float(*)[4], mgCDrawManager*)` calls `Draw(NULL, m, dm)` via vtable slot 0x2C.
 - Constructor (inline): `mgCVisual() { Initialize(); }` (virtual call through vptr).
 
 ## mgCVisualPrim facts (for mg_visual)
-- `Iam__13mgCVisualPrimFv` (returns 7) is emitted in mg_sprite: it is an inline virtual.
+- `Iam__13mgCVisualPrimFv` (returns 7) is emitted in mg_sprite: it has an out-of-line definition.
 - `mgCSprite::Initialize` starts with the same five stores + `mgCVisualAttr::Initialize(this+0x20)`
-  as `mgCVisualPrim::Initialize`, so that function is inline too.
+  as `mgCVisualPrim::Initialize`, and that function also has an out-of-line definition.
 - `mgCVisualPrim::CreateRenderInfoPacket` reads 0x04 as `mgCDrawEnv*` (base field) and the attr at
   0x20. The attr is constructed in mgCVisualPrim's (inline) ctor (`DepthOfField`).
 
