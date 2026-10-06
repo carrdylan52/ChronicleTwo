@@ -108,7 +108,6 @@ public:
      * @size 0x30
      */
     CMapLightingInfo() { memset(this, 0, sizeof(CMapLightingInfo)); }
-    CMapLightingInfo &operator=(const CMapLightingInfo &other);
 };
 STATIC_ASSERT(sizeof(CMapLightingInfo) == 0x1D0);
 
@@ -327,7 +326,7 @@ public:
      * @address 0x163B70
      * @size 0x30
      */
-    PieceMaterial();
+    PieceMaterial() { Initialize(); }
 
     /**
      *
@@ -337,7 +336,7 @@ public:
      * @address 0x163BA0
      * @size 0x10
      */
-    void Initialize();
+    void Initialize() { memset(this, 0, sizeof(PieceMaterial)); }
 };
 STATIC_ASSERT(sizeof(PieceMaterial) == 0x20);
 
@@ -359,7 +358,7 @@ public:
      * @address 0x164320
      * @size 0x30
      */
-    CCameraDrawInfo();
+    CCameraDrawInfo() { Initialize(); }
 
     /**
      *
@@ -369,49 +368,12 @@ public:
      * @address 0x164350
      * @size 0x10
      */
-    void Initialize();
+    void Initialize() {
+        unk_4 = 0;
+        group_no = -1;
+    }
 };
 STATIC_ASSERT(sizeof(CCameraDrawInfo) == 0x8);
-
-/**
- *
- * Name of the part group that the map part being placed by the map script joins, or empty for none.
- *
- * @mangled mapMapPartsGroupName
- * @address 0x3F3260
- * @size 0x100
- */
-extern char mapMapPartsGroupName[0x100];
-
-/**
- *
- * Position of the map part being placed by the map script.
- *
- * @mangled mapPos
- * @address 0x3F3360
- * @size 0x10
- */
-extern sceVu0FVECTOR mapPos;
-
-/**
- *
- * Rotation of the map part being placed by the map script.
- *
- * @mangled mapRot
- * @address 0x3F3370
- * @size 0x10
- */
-extern sceVu0FVECTOR mapRot;
-
-/**
- *
- * Scale of the map part being placed by the map script.
- *
- * @mangled mapScale
- * @address 0x3F3380
- * @size 0x10
- */
-extern sceVu0FVECTOR mapScale;
 
 /**
  *
@@ -446,4 +408,9 @@ inline float mgAbs(float value) {
  * @address 0x163240
  * @size 0x20
  */
-unsigned int algn16_size(unsigned int size);
+inline unsigned int algn16_size(unsigned int size) {
+    if (size & 0xF) {
+        return (size >> 4) + 1;
+    }
+    return size >> 4;
+}

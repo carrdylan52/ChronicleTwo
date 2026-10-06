@@ -1,17 +1,13 @@
 # mapload: header notes
 
 ## C++ draft status
-All 118 functions have C++ in `ps2/src/mapload.cpp`. 19 are exact and compiled
-by the matching build. 68 more compile to retail's bytes in isolation but stay
-under `NONMATCHING`. 31 differ from retail and keep the `INCLUDE_ASM` fallback.
-Each function tried has its one promotion attempt recorded in
-`scripts/re/promotion_attempts.tsv`.
-
+All 118 functions have C++ coverage. 112 are exact and compiled by the matching
+build; the six remaining assembly functions also compile to retail's bytes with
+`NONMATCHING` defined. The collision constructor is emitted from its inline
+header definition.
 Header: `ps2/include/mapload.hpp`. Includes `mg_drawenv.hpp` (mgPOINT_LIGHT, mgFOG_PARAM, mgVu0FBOX
 by value) and `mg_frame.hpp` (mgCFrame by value). It must not include `map.hpp` or `funcpoint.hpp`:
-`mapinfo.hpp` includes `mapload.hpp` and `map.hpp` includes `mapinfo.hpp` (cycle). Note
-`mglib.hpp` also declares `mgFOG_PARAM`; a unit including both `mglib.hpp` and `mg_drawenv.hpp`
-will see a redefinition (not this unit's to fix).
+`mapinfo.hpp` includes `mapload.hpp` and `map.hpp` includes `mapinfo.hpp` (cycle).
 
 Classes owned (class_units.tsv): CMapLightingInfo, CFuncPoint, PieceMaterial, CCameraDrawInfo,
 plus CList<CMapParts>/CList<CMapPiece> (template already in `mg_tanime.hpp`; nothing to declare).
@@ -39,10 +35,8 @@ the mapinfo tag handlers (MPL_* strings at mapinfo at_704..at_713) and from UpDa
 - 0x190 int fog_enable (MPL_FOG_ENABLE) -> mgFogEnable.
 - 0x1A0 mgFOG_PARAM fog: near 0x1A0, far 0x1A4, r/g/b 0x1A8-0x1AA, far_value 0x1B0, near_value 0x1B4
   (MPL_FOG defaults rgb 255, 0x1B0=0, 0x1B4=255) -> mgSetFogParam. Copied as 3x lq.
-`operator=` is declared user-declared non-inline. Its retail position (right after its first caller
-GetLightInfo, before CMap::GetLightingInfo) suggests an inline/implicit definition emitted out of line;
-an implicit copy of this layout inlines in test builds, so the body agent must decide how to obtain
-the out-of-line copy (likely an explicit member-wise body in mapload.cpp).
+`operator=` is compiler-generated from this layout, with no user declaration or
+out-of-line body. It matches retail at 0x162A50.
 First game: no equivalent class.
 
 ## CFuncPoint (0x1C0)
@@ -114,7 +108,7 @@ mapFuncPointIdx, mapNowFuncPoint CFuncPoint*, mapMatIdx, mapPtsFunc (non-zero: f
 the current map part's manager at +0x2B0 instead of CMap+0xCB0), mapAddMode (IsAddMode returns it),
 ReserveFuncFlag (cfgFUNC_DATA reserves 0x40 points once), WaterIndex, cfgWater;
 map_tag SPI_TAG_PARAM[0x58] (0x2C0), cfg_tag SPI_TAG_PARAM[0x11] (0x88).
-Global (extern in header): mapMapPartsGroupName char[0x100] (PARTS_GROUP), mapPos/mapRot/mapScale
+Also LOCAL, so file statics: mapMapPartsGroupName char[0x100] (PARTS_GROUP), mapPos/mapRot/mapScale
 sceVu0FVECTOR (MAP_PARTS zeroes pos/rot, scale = 1,1,1,0; PARTS_POS/ROT/SCALE fill; MAP_PARTS_END
 passes them to CMap::PlaceParts).
 at_438__2 (.data, 0x10) = {0, -1900.0, 700.0, 1.0}: a function-local vector template.
