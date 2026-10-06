@@ -1,11 +1,10 @@
 # gamedata: reverse-engineering notes
 
 ## C++ draft status
-All 67 functions have C++ in `ps2/src/gamedata.cpp`. 20 are exact and compiled
-by the matching build. 25 more compile to retail's bytes in isolation but stay
-under `NONMATCHING`. 22 differ from retail and keep the `INCLUDE_ASM` fallback.
-Each function tried has its one promotion attempt recorded in
-`scripts/re/promotion_attempts.tsv`.
+All 67 functions have C++ in `ps2/src/gamedata.cpp`. The draft compile has
+64 exact functions and 3 differing functions. The build report has 63 perfect
+functions and 4 assembly functions, including the generated static initialiser
+among the perfect functions.
 
 Master item tables, filled by running `CScriptInterpreter` over `menu/cfg7/*.cfg` with the tag
 table `gamedata_tag`. No counterpart in the first game (its `itemdata` is a different system).
@@ -20,8 +19,8 @@ table `gamedata_tag`. No counterpart in the first game (its `itemdata` is a diff
 - `gamedata_tag` (0xC8 = 25 `SPI_TAG_PARAM`, last null): `_DATACOMINIT, _DATACOM, _DATAWEPNUM,
   _DATAWEP, _DATAWEP_ST, _DATAWEP_ST_L, _DATAWEP2_ST, _DATAWEP2_ST_L, _DATAWEP_SPE,
   _DATAWEP_BUILDUP, _DATAITEMINIT, _DATAITEM, _DATAATTACHINIT, _DATAATTACH_ST, _DATAATTACH_ST2,
-  _DATAATTACH_ST_SP, _DATAROBOINIT, _DATAROBO_ANALYZE, _DATAFISHINIT, _DATAFISH, _DATAGAURDNUM,
-  _DATAGAURD, ..., _MES_SYS, _MES_SYS_SPECTOL` (the tag-name strings are `at_1018`..`at_1041`).
+  _DATAATTACH_ST_SP, _DATAROBOINIT, _DATAROBO_ANALYZE, _DATAGAURDNUM, _DATAGAURD,
+  _DATAFISHINIT, _DATAFISH, _MES_SYS, _MES_SYS_SPECTOL` (the tag-name strings are `at_1018`..`at_1041`).
 - Every `*INIT`/`*NUM` tag stores the count into `GameItemDataManage.<x>_num` and resets the
   matching `Spi*` cursor to the table base. Tag routines all return 1 except the `SpiWeaponPt`/
   `SpiAttach == NULL` early outs.
@@ -61,7 +60,7 @@ list_no, +0x1C u8, +0x1E s16, +0xA u16 (clamped to 0x90 when weapon family and >
   `CheckStackRemain` = it - GetNum. +0x1C active_set: `IsActiveSet` returns it. +0x20 unknown.
 
 ## Item type (CDataCommon::type) -> ConvertUsedItemType
-1..4 -> 3 weapon; 5..10 -> 4 (unknown; path `main/chr/` like weapons); 0xB and >=0x14 -> 1 item;
+1..4 -> 3 weapon; 5..10 -> 4 (unknown; path `mainchr/` like weapons); 0xB and >=0x14 -> 1 item;
 0xC..0xF -> 5 robo part (`dungeon/robo/`); 0x10..0x13 and 0x22 -> 2 attach; then overrides
 0x1C -> 7 (CGameDataUsed gift box, `CopyDataGiftBox` sets used type 7), 0x1E -> 6 fish,
 0x23 -> 8 (`CGameDataUsed::Boiled` sets used type 8). The used-type values match
@@ -139,12 +138,12 @@ Static functions: all `_DATA*`/`_MES_SYS*` tags, `LoadGameDataAnalyze`, `ItemCmd
 ## Misc
 - `GetItemFileName(no, ext)`: types 5 and 8 append "t" when save bit flag 799 is set; ext==1
   appends ".chr". Uses `GetSaveData`/`CSaveData::GetBitFlag`.
-- `GetItemFilePath(no, alt)`: dir `dungeon/robo/` (family 5), `main/chr/` (3,4), else `item/`;
+- `GetItemFilePath(no, alt)`: dir `dungeon/robo/` (family 5), `mainchr/` (3,4), else `item/`;
   alt==1: weapons -> `wep_t/%s_item.chr`, types 0xD/0xE -> `wep_t/%s.chr`.
 - `CheckItemEquip(chara, item)`: 0x12A only chara 0, 0x160 only chara 1, 0x171 only chara 0.
 - `GetItemMessageNo` second argument indexes `msg_offsettbl_1363`.
 - `ATTACH_USED` is a userdata struct (CGameDataUsed+0x10); only forward-declared here.
-- Return types: `GetDataType` lbu -> u8; `GetItemIconNo`/`GetDataTypeStartListNo`/
-  `GetRidePodCore` lh -> s16; `GetOffsetNo` lbu -> u8.
+- Return types: `GetDataType` uses an int result, already extended by lbu; `GetItemIconNo` lh -> s16; `GetDataTypeStartListNo` and
+  `GetRidePodCore` use int results, already extended by lh; `GetOffsetNo` lbu -> u8.
 - `CDataRoboPart::GetOffsetNo` returns `offset_no` at +0x22 directly; the C++
   getter matches and links into a byte-identical game image.

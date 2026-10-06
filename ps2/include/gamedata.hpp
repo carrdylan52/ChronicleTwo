@@ -429,7 +429,7 @@ public:
 STATIC_ASSERT(sizeof(CGameData) == 0x30);
 
 /** Spectrumising table: for each item number from 1, the attachment parameter it raises and by how much. */
-extern s8 etcitem_spectol_table[0x352];
+extern s8 etcitem_spectol_table[425][2];
 
 /** Weapon entry the weapon data script is filling. */
 extern CDataWeapon *SpiWeaponPt;
@@ -631,5 +631,3 @@ int GetRidePodCore(int index);
  * @size 0x80
  */
 int GetUsedItemAfterEffect(int item_no, USEITEM_EFFECT *effect);
-
-int ItemCmdMsgSet(int item_no, int *messages);
