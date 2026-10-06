@@ -63,7 +63,7 @@ No first-game counterpart (Dark Cloud has no aquarium); layouts below come from 
 - Motion name addresses used with SetMotion (vtable 0xB0): 0x36F140, 0x36F150; SetStep is 0xB8.
 
 ## CAquaFishEff
-0 fish (vtable 0x18 GetPosition in Draw), 4 texture (`Tex_FishEffect`), 8 s16 type 1..5 (texture
+0 fish (vtable 0x18 GetPosition in Draw), 4 texture (`Tex_FishEffect`), 8 u16 type 1..5 (texture
 rows in Draw; `max_tbl_1484` gives each type's time), 0xC timer (-1 = forever).
 
 ## CFishFood (0x660..0x6A0)
@@ -153,3 +153,11 @@ CAquarium::Step not yet worked out — candidate for an enum.
 - FISH_PRIZE_INFO field meanings (event_func pushes both to the script stack).
 - AQUA_BUBBLE byte 0 doubles as wobble-table row (0..4) while rising and countdown (10..19) while
   popping.
+
+## Compilation state
+- Of 124 functions, the draft compile has 89 matching bodies, 1 differing body and
+  34 functions without a draft. _PRIZE_GROUP is the differing guarded body.
+- The linked unit has 89 perfect functions, 0 fuzzy functions and 35 assembly functions.
+- The bubble emitter flags are signed bytes; the effect icon type is an unsigned halfword.
+  GetFishImageColor returns int after reading the signed colour byte.
+- Both script interpreters and the aquarium use ordinary C++ construction.

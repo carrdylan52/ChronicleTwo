@@ -1006,7 +1006,7 @@ int GetFishImgPath(char *path, int fish_no, BREEDFISH_USED *fish);
  * @address 0x213900
  * @size 0x70
  */
-signed char GetFishImageColor(int fish_no, int which);
+int GetFishImageColor(int fish_no, int which);
 
 /**
  * Replaces the images of a fish's model with those of its colouring.
@@ -1229,15 +1229,6 @@ int GetFishPrize(int race_class, int rank, FISH_PRIZE_INFO *info);
  */
 void TuriTourCount();
 
-/**
- * Gives the slot of the race list that holds a racer; -1 when it is not
- * listed.
- *
- * @mangled CheckSameRacerFish__Fi
- * @address 0x21BFE0
- * @size 0x50
- */
-int CheckSameRacerFish(int racer_no);
 
 /**
  * Gives the fish of the saved racers listed in a slot; NULL for none.
