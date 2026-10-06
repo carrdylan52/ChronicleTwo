@@ -1,11 +1,10 @@
 # editloop: reverse-engineering notes
 
 ## C++ draft status
-35 of 36 functions have C++ in `ps2/src/editloop.cpp`; 1 has no draft. 3 are
-exact and compiled by the matching build. 16 more compile to retail's bytes in
-isolation but stay under `NONMATCHING`. 16 differ from retail and keep the
-`INCLUDE_ASM` fallback. Each function tried has its one promotion attempt
-recorded in `scripts/re/promotion_attempts.tsv`.
+The draft check covers 36 functions: 28 match, 7 differ and 1 has no draft.
+The matching build has 26 perfect functions and 10 assembly functions. The
+generated initializer clears `CEditEvent::data` before calling `Reset`, as the
+retail initializer does. The remaining guarded bodies retain upstream's drafts.
 
 The town main-loop mode (walking and Georama editing). `LoopInit/LoopMain/LoopExit` in mainloop
 hold `EditInit`, `EditLoop`, `EditExit`. No class is owned by this unit (`class_units.tsv`).
