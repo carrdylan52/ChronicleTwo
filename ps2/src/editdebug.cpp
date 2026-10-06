@@ -1,14 +1,7 @@
 #include "common.h"
-#include "mg_memory.hpp"
-#include "scriptinterpreter.hpp"
-#include <cstring>
-#include "editmap.hpp"
-#include "dbg_font.hpp"
-#include "menucommon.hpp"
-#include "menudraw.hpp"
-#include "gamepad.hpp"
-#include "scene.hpp"
 #include "editdebug.hpp"
+#include "dbg_font.hpp"
+#include "scene.hpp"
 #include "dataread.hpp"
 #include "cameracontrol.hpp"
 #include "editloop.hpp"
@@ -27,48 +20,84 @@
 #include "scriptinterpreter.hpp"
 #include "userdata.hpp"
 #include <cstdio>
-
-extern char at_1028__2[];
-extern char at_1029__2[];
-
-extern int EditDebugFlag;
-extern int EditDebugTexb;
-extern int Select;
-extern int LEditFlag;
 #include <cstring>
 
-extern CGamePad GamePad__2;
-extern int EditDebugFlag, EditDebugTexb, Select, SelTAG, sg_type, map_jump;
-extern int save_no, load_no, condition, map_flag_no, LEditFlag, LightType, DirLightNo, fish_num;
-extern int EventNo;
-extern int SelMax[EDIT_DEBUG_PAGE_COUNT];
-extern int LightSel[LIGHTING_EDIT_PAGE_COUNT], LightListNum[LIGHTING_EDIT_PAGE_COUNT];
-extern int *SelData[EDIT_DEBUG_PAGE_COUNT][8];
-extern char *SelText[EDIT_DEBUG_PAGE_COUNT][8];
-extern char *SelHelp[EDIT_DEBUG_PAGE_COUNT][8];
+static int EditDebugFlag;
+static int EditDebugTexb;
+static int Select;
+#ifdef NONMATCHING
+static int SelTAG;
+static int sg_type;
+static int map_jump;
+static int save_no;
+static int load_no;
+static int condition;
+static int map_flag_no;
+static int LightType;
+static int DirLightNo;
+#endif
+static int LEditFlag;
+static int fish_num;
+#ifdef NONMATCHING
+static int EventNo = 100;
+static int SelMax[EDIT_DEBUG_PAGE_COUNT] = {7, 5, 2};
+static int LightSel[LIGHTING_EDIT_PAGE_COUNT] = {0, 0, 0, 0};
+static int LightListNum[LIGHTING_EDIT_PAGE_COUNT] = {11, 8, 9, 3};
+static int *SelData[EDIT_DEBUG_PAGE_COUNT][8] = {
+    {&DebugInfo.debug_camera, &EventNo, &DebugInfo.georama_debug, &DebugInfo.chara_move, &sg_type, &DebugInfo.param_off, &DebugInfo.invent_debug, NULL},
+    {NULL, &save_no, &load_no, &condition, &map_flag_no, NULL, NULL, NULL},
+    {&map_jump, NULL, NULL, NULL, NULL, NULL, NULL, NULL},
+};
+static char *SelText[EDIT_DEBUG_PAGE_COUNT][8] = {
+    {"Debug Camera    ", "RunEvent        ", "Georama Debug   ", "CharaMove       ", "SubGame         ", "ParamOff        ", "InventDebug     ", NULL},
+    {"All Clear       ", "Save File       ", "Load File       ", "Con ", "Map Flag  ", NULL, NULL, NULL},
+    {"Map Jump        ", "Load Gyorace    ", NULL, NULL, NULL, NULL, NULL, NULL},
+};
+static char *SelHelp[EDIT_DEBUG_PAGE_COUNT][8] = {
+    {"", "\x81\x9B\x3A\x72\x75\x6E\x20\x81\xA2\x3A\x72\x65\x6C\x6F\x61\x64", "", "1:sp up 2:col off", "", "", "", NULL},
+    {"", "", "", "", "", "", NULL, NULL},
+    {"", "", "", "", "", "", NULL, NULL},
+};
+
+#endif
 
 /**
  * Writes the marker for the selected debug-menu row and returns its length.
+ *
+ * @mangled PrintCursor__FPci
+ * @address 0x1a8cd0
+ * @size 0x3c
  */
 static int PrintCursor(char *text, int row);
 /**
  * Loads one fish-race contestant from the GYOFISH script tag.
+ *
+ * @mangled tagGyoFish__FP9SPI_STACKi
+ * @address 0x1aad50
+ * @size 0x114
  */
-int tagGyoFish(SPI_STACK *stack, int argument_count);
+static int tagGyoFish(SPI_STACK *stack, int argument_count);
 /**
  * Reloads the host fish-race configuration into the bonus racer table.
+ *
+ * @mangled LoadGyorace__Fv
+ * @address 0x1aae70
+ * @size 0x78
  */
 static void LoadGyorace();
 
 // Code (.text)
 void EditDebugInit() { EditDebugFlag = 0; Select = 0; EditDebugTexb = -1; }
+
 int EditDebugMode() { return EditDebugFlag; }
+
 void EditDebugStart(int texb, mgCMemory *buffer) {
     buffer->stack_used = 0;
     buffer->lock = 0;
     EditDebugFlag = 1;
     EditDebugTexb = texb;
 }
+
 static int PrintCursor(char *text, int row) {
     if (row == Select) {
         int length = sprintf(text, "->");
@@ -99,7 +128,7 @@ int EditDebugLoop(CScene *scene, EditDebugInfo *info) {
         character->GetPosition(position);
         character->GetRotation(rotation);
         end += sprintf(end, "%7.1f %7.1f %7.1f R%4.2f\n", position[0], position[1], position[2], rotation[1]);
-        if (GamePad__2.Down(PAD_START)) {
+        if (GamePad.Down(PAD_START)) {
             char coordinates[512];
             int length = sprintf(coordinates, "%.1f,%.1f,%.1f,%.2f;", position[0], position[1], position[2], rotation[1]);
             WriteFile("host0:pos.txt", coordinates, length);
@@ -129,22 +158,22 @@ int EditDebugLoop(CScene *scene, EditDebugInfo *info) {
 
     int *value = SelData[SelTAG][Select];
     if (value) {
-        if (GamePad__2.Down(PAD_LEFT)) --*value;
-        if (GamePad__2.Down(PAD_RIGHT)) ++*value;
-        int step = GamePad__2.On(PAD_L2) && GamePad__2.On(PAD_R2) ? 10000 : 10;
-        if (GamePad__2.Down(PAD_L1)) *value -= step;
-        if (GamePad__2.Down(PAD_R1)) *value += step;
-        if (GamePad__2.Down(PAD_L2)) *value -= 100;
-        if (GamePad__2.Down(PAD_R2)) *value += 100;
+        if (GamePad.Down(PAD_LEFT)) --*value;
+        if (GamePad.Down(PAD_RIGHT)) ++*value;
+        int step = GamePad.On(PAD_L2) && GamePad.On(PAD_R2) ? 10000 : 10;
+        if (GamePad.Down(PAD_L1)) *value -= step;
+        if (GamePad.Down(PAD_R1)) *value += step;
+        if (GamePad.Down(PAD_L2)) *value -= 100;
+        if (GamePad.Down(PAD_R2)) *value += 100;
         if (*value < 0) *value = 0;
         if (*value > 99999) *value = 99999;
     }
-    if (GamePad__2.Down(PAD_SELECT)) {
+    if (GamePad.Down(PAD_SELECT)) {
         ++SelTAG;
         if (SelTAG >= EDIT_DEBUG_PAGE_COUNT) SelTAG = EDIT_DEBUG_PAGE_GENERAL;
     }
-    if (GamePad__2.Down(PAD_DOWN)) ++Select;
-    if (GamePad__2.Down(PAD_UP)) --Select;
+    if (GamePad.Down(PAD_DOWN)) ++Select;
+    if (GamePad.Down(PAD_UP)) --Select;
     if (Select < 0) Select = SelMax[SelTAG] - 1;
     if (Select >= SelMax[SelTAG]) Select = 0;
     DebugInfo.debug_camera = DebugInfo.debug_camera != 0;
@@ -157,7 +186,7 @@ int EditDebugLoop(CScene *scene, EditDebugInfo *info) {
     GetDebugFont()->DrawDirect(text, 10, 10);
 
     int closed = 0;
-    if (GamePad__2.Down(PAD_CIRCLE)) {
+    if (GamePad.Down(PAD_CIRCLE)) {
         if (SelTAG == EDIT_DEBUG_PAGE_GENERAL && Select == EDIT_DEBUG_GENERAL_SUB_GAME) {
             sgInitSubGame(sg_type, info);
             EditDebugEnd();
@@ -193,16 +222,16 @@ int EditDebugLoop(CScene *scene, EditDebugInfo *info) {
             if (Select == EDIT_DEBUG_MAP_LOAD_GYORACE) LoadGyorace();
         }
     }
-    if (GamePad__2.Down(PAD_TRIANGLE) && SelTAG == EDIT_DEBUG_PAGE_EDIT_DATA &&
+    if (GamePad.Down(PAD_TRIANGLE) && SelTAG == EDIT_DEBUG_PAGE_EDIT_DATA &&
         Select == EDIT_DEBUG_EDIT_DATA_CONDITION && info->edit_data) {
         int new_flag = !info->edit_data->dbgGetContintionFlag(info->edit_data_no, 0, NULL);
         for (int i = 0; i < 64; ++i) info->edit_data->dbgSetContintionFlag(info->edit_data_no, i, new_flag);
     }
     if (SelTAG == EDIT_DEBUG_PAGE_GENERAL && Select == EDIT_DEBUG_GENERAL_RUN_EVENT) {
-        if (GamePad__2.Down(PAD_CIRCLE)) { scene->RunEvent(EventNo, NULL); closed = 1; }
-        if (GamePad__2.Down(PAD_TRIANGLE)) ReloadMapScript();
+        if (GamePad.Down(PAD_CIRCLE)) { scene->RunEvent(EventNo, NULL); closed = 1; }
+        if (GamePad.Down(PAD_TRIANGLE)) ReloadMapScript();
     }
-    if (closed || GamePad__2.Down(PAD_CROSS | PAD_L3)) {
+    if (closed || GamePad.Down(PAD_CROSS | PAD_L3)) {
         EditDebugEnd();
         return 1;
     }
@@ -214,18 +243,21 @@ INCLUDE_ASM("ps2/asm/pal/nonmatchings/editdebug", EditDebugLoop__FP6CSceneP13Edi
 void EditDebugEnd(void) {
     EditDebugInit();
 }
+
 void InitLightingEdit() { LEditFlag = 0; }
+
 void EndLightingEdit(void) {
     InitLightingEdit();
 }
+
 int IsLightingEditMode() { return LEditFlag; }
 #ifdef NONMATCHING
 void LightingEdit(CScene *scene) {
     if (!LEditFlag) {
-        if (GamePad__2.Down2(PAD_L3)) {
+        if (GamePad.Down2(PAD_L3)) {
             LEditFlag = 1;
-            GamePad__2.SetAutoRepeat2(PAD_LEFT | PAD_RIGHT, 10, 1);
-            GamePad__2.SetAutoRepeat2(PAD_DOWN | PAD_UP, 15, 3);
+            GamePad.SetAutoRepeat2(PAD_LEFT | PAD_RIGHT, 10, 1);
+            GamePad.SetAutoRepeat2(PAD_DOWN | PAD_UP, 15, 3);
         }
         return;
     }
@@ -255,8 +287,8 @@ void LightingEdit(CScene *scene) {
     else end += sprintf(end, "%s%s\n", cursor[row == 1], pages[LightType]);
 
     int edit_row = row - 2;
-    int direction = GamePad__2.Down2(PAD_RIGHT) ? 1 : 0;
-    if (GamePad__2.Down2(PAD_LEFT)) direction = -1;
+    int direction = GamePad.Down2(PAD_RIGHT) ? 1 : 0;
+    if (GamePad.Down2(PAD_LEFT)) direction = -1;
     if (LightType == LIGHTING_EDIT_PAGE_BG_AMBIENT) {
         float *colors[3] = {light->bg_color, light->bg_color2, light->ambient};
         const char *groups[3] = {"BG", "BG2", "AMB"};
@@ -347,8 +379,8 @@ void LightingEdit(CScene *scene) {
         }
     }
 
-    if (GamePad__2.Down2(PAD_UP)) --row;
-    if (GamePad__2.Down2(PAD_DOWN)) ++row;
+    if (GamePad.Down2(PAD_UP)) --row;
+    if (GamePad.Down2(PAD_DOWN)) ++row;
     if (row < 0) row = LightListNum[LightType] - 1;
     if (row >= LightListNum[LightType]) row = 0;
     LightSel[LightType] = row;
@@ -376,12 +408,12 @@ void LightingEdit(CScene *scene) {
     GetDebugFont()->DrawDirect(text, 10, 10);
     mgCCamera *camera = scene->GetCamera(scene->active_camera);
     if (camera) {
-        float angle = -GamePad__2.GetRXf2() * 0.05f;
+        float angle = -GamePad.GetRXf2() * 0.05f;
         if (angle > 0.001f || angle < -0.001f) ((CCameraControl *)camera)->Rotate(angle);
     }
-    if (GamePad__2.Down2(PAD_L3)) {
+    if (GamePad.Down2(PAD_L3)) {
         EndLightingEdit();
-        GamePad__2.CancelAutoRepeat2(PAD_UP | PAD_DOWN | PAD_LEFT | PAD_RIGHT);
+        GamePad.CancelAutoRepeat2(PAD_UP | PAD_DOWN | PAD_LEFT | PAD_RIGHT);
     }
 }
 #else
@@ -389,17 +421,14 @@ INCLUDE_ASM("ps2/asm/pal/nonmatchings/editdebug", LightingEdit__FP6CScene);
 #endif
 int tagGyoFish(SPI_STACK *stack, int argument_count) {
     CGameDataUsed *racer = GetOmakeGyoracer2(fish_num);
-    if (racer == NULL) {
-        return 0;
-    }
+    if (!racer) return 0;
     BREEDFISH_USED *fish = &racer->data.fish;
     char *name = spiGetStackString(stack++);
-    if (name != NULL) {
-        strcpy(fish->name, name);
-    }
+    if (name) strcpy(fish->name, name);
     racer->item_no = spiGetStackInt(stack++);
     fish->unk_3a = spiGetStackInt(stack++);
-    fish->unk_16 = spiGetStackInt(stack++);
+    int pattern = spiGetStackInt(stack++);
+    fish->unk_16 = pattern;
     int tactics = spiGetStackInt(stack++);
     fish->param[4] = spiGetStackInt(stack++);
     fish->param[3] = spiGetStackInt(stack++);
@@ -410,6 +439,7 @@ int tagGyoFish(SPI_STACK *stack, int argument_count) {
     ++fish_num;
     return 1;
 }
+
 static void LoadGyorace() {
     char script[0x4000];
     int size;
@@ -418,7 +448,7 @@ static void LoadGyorace() {
         SPI_TAG_PARAM tags[2] = {{"GYOFISH", tagGyoFish}, {NULL, NULL}};
         CScriptInterpreter interpreter;
         interpreter.SetTag(tags);
-        interpreter.SetScript((char *)&script, size);
+        interpreter.SetScript((char *)script, size);
         interpreter.Run();
     }
 }

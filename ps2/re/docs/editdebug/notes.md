@@ -20,7 +20,7 @@ The unit owns no classes (`class_units.tsv` has none). Header declares `EditDebu
 | `InitLightingEdit()` / `EndLightingEdit()` | global | void | `LEditFlag = 0` |
 | `IsLightingEditMode()` | global | int | `return LEditFlag` |
 | `LightingEdit(CScene*)` | global | void | opens itself (`LEditFlag=1`) on a pad combination |
-| `tagGyoFish(SPI_STACK*, int)` | **local** in retail, globally named in C++ for the assembly data relocation | int (1/0) | script tag handler for `host:gyorace.cfg`; fills `GetOmakeGyoracer2(fish_num)` (+0x10 name strcpy, +0x02 s16, +0x4A u8, +0x26 s16, +0x3E/+0x3C/+0x36/+0x38/+0x3A s16) from args 0,1,2,3,5..9, arg 4 -> `SetOmakeGyoracerTactics(fish_num, v)`; `fish_num++` |
+| `tagGyoFish(SPI_STACK*, int)` | **local** -> static in .cpp | int (1/0) | script tag handler for `host:gyorace.cfg`; fills `GetOmakeGyoracer2(fish_num)` (+0x10 name strcpy, +0x02 s16, +0x4A u8, +0x26 s16, +0x3E/+0x3C/+0x36/+0x38/+0x3A s16) from args 0,1,2,3,5..9, arg 4 -> `SetOmakeGyoracerTactics(fish_num, v)`; `fish_num++` |
 | `LoadGyorace()` | **local** -> static | void | `LoadFile2("host:gyorace.cfg", buf[0x4000], &size, 0)`, `fish_num=0`, builds a 0x10-byte `SPI_TAG_PARAM[]` from `at_1542` (`{"…", tagGyoFish}` + terminator), runs a stack `CScriptInterpreter` |
 
 ## Data (all LOCAL in retail -> `static` in the .cpp; no externs in the header)
@@ -38,7 +38,7 @@ entry3 "1:sp up 2:col off", rest ""); `LightSel` int[4] current row per lighting
 Values edited via `SelData` are clamped 0..99999; pad: 0x8000/0x2000 ±1, 4/8 ±10 (±10000 with
 pads 1+2 held), 1/2 ±100; 0x100 next page; 0x4000/0x1000 next/prev row; 0x20 act; 0x10 alt-act.
 After editing, `DebugInfo` words are clamped: [0],[2],[3] -> bool, [1] 0..2, [4] 0..1
-(`DebugInfo` is a global int[5] at 0x3FAF30 owned elsewhere).
+(`DebugInfo` is the global `DEBUG_INFO` at 0x3FAF30 owned by mainloop).
 
 ## Enums (values from SelText strings and EditDebugLoop's `SelTAG`/`Select` tests)
 - `EDIT_DEBUG_PAGE`: 0 general ("Debug Camera","RunEvent","Georama Debug","CharaMove","SubGame",
@@ -73,16 +73,11 @@ Size from the `EdDebugInfo` global (editloop, 0x1ECDA20, size 0x3C).
   `EditMapJump(jump_map_no)` when >= 0 and resets to -1.
 
 ## Draft and promotion status
-All ten previously assembly-only named functions have C++ implementations.
-`EditDebugInit`, `EditDebugMode`, `EditDebugStart`, `PrintCursor`,
-`InitLightingEdit`, and `IsLightingEditMode` pass isolated linked-image
-verification and are promoted. The four other drafts compile behind
-`NONMATCHING`; their retail assembly remains the default. Their isolated
-differences are `EditDebugLoop` 649/692 words, `LightingEdit` 1314/1356 words,
-`tagGyoFish` 56/72 words, and `LoadGyorace` 2/32 words. Each received one
-promotion attempt. The `tagGyoFish` attempt initially failed to link because
-its C++ declaration was file-static while the retained `at_1542` assembly table
-relocates against the named symbol. The draft now has external C++ linkage,
-but the ledger prevents a second attempt this pass. m2c could not resolve the
-`LightingEdit` jump table; its existing Ghidra export and the retail assembly
-were used to establish the page and control flow after the m2c pass.
+Twelve named functions have C++ bodies. Ten match retail and are selected by
+the matching build: `EditDebugInit`, `EditDebugMode`, `EditDebugStart`,
+`PrintCursor`, `EditDebugEnd`, `InitLightingEdit`, `EndLightingEdit`,
+`IsLightingEditMode`, `tagGyoFish`, and `LoadGyorace`.
+`EditDebugLoop` and `LightingEdit` remain guarded drafts. Their isolated
+differences are 649/692 words (0xA5C versus 0xAD0 bytes) and 1314/1356 words
+(0xE48 versus 0x1530 bytes), respectively. The fish handler and loader have
+file-static C++ linkage; the loader's tag table is a typed local initializer.
