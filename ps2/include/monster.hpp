@@ -170,7 +170,7 @@ struct BASE_MONSTER_TBL {
     u32   unk_98;
     s32   next_id;       /**< Monster kind that is loaded along with this one; -1 for none. */
     union {
-        s16 drop_item[3];
+        s16 drop_item[3];  /**< Items that the monster can drop; 0 for none. */
         s16 drop_items[3];
     };
     u32   resist_attr;   /**< Hit attribute bits that cannot leave statuses on the monster. */
@@ -442,6 +442,14 @@ public:
      */
     void DrawEffectScript();
 
+    /**
+     * Finds the nearest monster whose bounds overlap the middle of a photo, filling its kind and
+     * distance, and returns its available photo number or -1.
+     *
+     * @mangled CheckPhoto__11CMonsterManFPQ26CScene17InScreenCharaInfo
+     * @address 0x1DE5E0
+     * @size 0x2CC
+     */
     int CheckPhoto(CScene::InScreenCharaInfo *info);
 
     /**
