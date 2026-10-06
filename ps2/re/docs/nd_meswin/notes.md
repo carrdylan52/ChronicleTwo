@@ -1,11 +1,10 @@
 # nd_meswin: reverse-engineering notes
 
 ## C++ draft status
-All 98 functions have C++ in `ps2/src/nd_meswin.cpp`. 41 are exact and compiled
-by the matching build. 1 more compiles to retail's bytes in isolation but stays
-under `NONMATCHING`. 56 differ from retail and keep the `INCLUDE_ASM` fallback.
-Each function tried has its one promotion attempt recorded in
-`scripts/re/promotion_attempts.tsv`.
+The draft compile covers all 98 functions: 79 match retail and 19 differ.
+The linked unit has 73 perfect functions, 1 fuzzy function and 24 assembly
+functions. Every linked section equals retail. The remaining guarded bodies
+are upstream's drafts.
 
 The migrated message setters write the window mode, background opacity, packed colours,
 message buffers and line widths through `ClsMes` members. `GetNextLineTop` scans until the
@@ -139,7 +138,7 @@ owning variable names (DngMess, EventMess, SystemMessage...) if they turn up.
   to 0xFF00).
 - `MovieCCFont` CFont (0xB8; constructed by `__sinit_nd_meswin_cpp` via inline CFont ctor).
 - `MovieCCStart/Clear` s32[20] (frames = seconds * 25), `MovieCCStr` char[20][350].
-- File-local (do not extern): `at_3748` (GetPos_AbsPosSet anchor table, 0x98),
+- File-local (do not extern): the local 19-by-2 anchor array in GetPos_AbsPosSet (0x98),
   `data_4206` (0xA0, function-local static), `at_4057`, `at_4100`, and the `at_*` literals.
 - `D_0037AFEC` is the .ctor entry.
 
