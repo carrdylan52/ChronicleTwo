@@ -8,6 +8,11 @@
 #include "mg_tanime.hpp"
 #include "mglib.hpp"
 
+static void DrawDivSprite(mgCDrawPrim *prim, mgRect<int> rect, mgCTexture *texture,
+                          int *color, int dx, int dy, int z, int unused);
+static void DrawDivSprite4(mgCDrawPrim *prim, mgRect<int> rect, mgCTexture *texture,
+                           int *color, int offset, int z);
+
 // Code (.text)
 void COutLineDraw::Initialize() {
     mgZeroVector(unk_10.max);
@@ -24,17 +29,13 @@ void COutLineDraw::Initialize() {
     hide_edge = 0;
     next = NULL;
 }
+
 void COutLineDraw::SetFrame(mgCFrame *new_frame) {
     frame = new_frame;
 }
-static void DrawDivSprite(mgCDrawPrim *prim, mgRect<int> rect, mgCTexture *texture,
-                          int *color, int dx, int dy, int z, int unused);
-static void DrawDivSprite4(mgCDrawPrim *prim, mgRect<int> rect, mgCTexture *texture,
-                           int *color, int offset, int z);
-extern int at_338[4];
-int COutLineDraw::Draw(float *pos, float scale, float alpha) {
 
-    *(u_long128 *)this->pos = *(u_long128 *)pos;
+int COutLineDraw::Draw(float *position, float scale, float alpha) {
+    *(u_long128 *)pos = *(u_long128 *)position;
     return Draw(scale, alpha);
 }
 
@@ -112,7 +113,7 @@ int COutLineDraw::Draw(float scale, float alpha) {
             depth = screen[2];
         }
     }
-    int body_color[4] = {at_338[0], at_338[1], at_338[2], (int)(128.0f * alpha)};
+    int body_color[4] = {128, 128, 128, (int)(128.0f * alpha)};
     composite.AlphaBlendEnable(1);
     composite.AlphaBlend(MG_ALPHA_BLEND_NORMAL);
     DrawDivSprite(&composite, rect, &frame_buffer, body_color, 0, 0, depth, 0);
@@ -126,6 +127,9 @@ INCLUDE_ASM("ps2/asm/pal/nonmatchings/outline", Draw__12COutLineDrawFff);
 #endif
 
 #ifdef NONMATCHING
+/**
+ * Draw the rectangle in narrow sprite columns.
+ */
 static void DrawDivSprite(mgCDrawPrim *prim, mgRect<int> rect, mgCTexture *texture,
                           int *color, int dx, int dy, int z, int unused) {
     prim->Begin(MG_PRIM_SPRITE);
@@ -148,6 +152,9 @@ INCLUDE_ASM("ps2/asm/pal/nonmatchings/outline", DrawDivSprite__FP11mgCDrawPrim9m
 #endif
 
 #ifdef NONMATCHING
+/**
+ * Draw four offset copies of each sprite tile.
+ */
 static void DrawDivSprite4(mgCDrawPrim *prim, mgRect<int> rect, mgCTexture *texture,
                            int *color, int offset, int z) {
     prim->Begin(MG_PRIM_SPRITE);
