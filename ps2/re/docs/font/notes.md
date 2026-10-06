@@ -9,6 +9,10 @@ Unit range `0x2D8AA0`-`0x2DAE90`, 45 functions. Owns `CFont` (only class in `cla
 for this unit). No first-game equivalent (`/home/adubbz/development/chronicle` has `RECT` in
 `rect.hpp` with the same layout, but no `CFont` or `RGBAQ_TYPE`).
 
+39 functions are exact C++ matches. Six retain assembly fallbacks without a C++
+draft: `GetGaijiFontNo`, `GetFontGaijiFontNo`, `GetFontGaijiHankaku`, `GetFontNo`,
+`set2DSprite_Fuchi`, and the integer-font-number `CFont::DrawChar` overload.
+
 ## CFont (size 0xB8, no vtable)
 Size: retail symbols `Font` (0x3FAF50, mainloop) and `MovieCCFont` (0x3F0510, nd_meswin) are both
 `size:0xb8`. `ClsMes` (nd_meswin) derives from `CFont`; its ctor runs `CFont::Init` twice (inline
@@ -43,15 +47,15 @@ Declared here (nd_meswin includes font.hpp for them; gameutil forward-declares R
 DIFFs: retail copies the returned value through a second stack temp (0x28 -> 0x20) before `ld`.
 
 ## Functions
-- All 45 are global (none in `local_symbols.tsv`). `FontTblBinBuff` (0x1F455C0, 0x1000) IS local:
-  `static FONT_TBL_BIN FontTblBinBuff` belongs in font.cpp, not the header.
+- All 45 are global (none in `local_symbols.tsv`). `FontTblBinBuff` (0x1F455C0, 0x1000) is local:
+  a static byte buffer of `FONT_TBL_BIN_SIZE` in font.cpp, read as `FONT_TBL_BIN`.
 - `GetRectFontTex(font_no, &tex_no)`: if font_no is a font gaiji code (0xFDE0..0xFDF7) and
   LanguageCode is French/German/Italian/Spanish (2..5), converts via
-  `GetFontNoFromFontGaijiCode`. Negative or >= 0x980 -> returns `at_784__2` (static zero RECT in
-  .bss). Pages: <0x260 page 0 (n unchanged); <0x4C0 page 1, n -= 0x98; <0x720 page 2,
-  n -= 0x130; <0x980 page 3, n -= 0x1C8 (the adjusted n keeps growing; the texture pages are
-  addressed by row, which `MySetTex` only accepts for pages 0/1). u = (n & 31) * 16, v = (n >> 5) * 20, w 16, h 20.
-- `GetRectFontTexMini` returns the static `at_817__4` RECT unchanged (stub; tex_no unused).
+  `GetFontNoFromFontGaijiCode`. Negative or >= 0x980 returns a zero-initialized RECT.
+  Pages: <0x260 page 0 (n unchanged); <0x4C0 page 1, n -= 0x260; <0x720 page 2,
+  n -= 0x4C0; <0x980 page 3, n -= 0x720. u = (n % 32) * 16,
+  v = (n / 32) * 20, w 16, h 20. `MySetTex` accepts only pages 0 and 1.
+- `GetRectFontTexMini` returns a zero-initialized RECT (stub; tex_no unused).
 - `MySetTex(int)`: tex 0/1 only -> `GetFontTexture(tex)` (another unit). `MySetTexMini`:
   0 -> "FontTex_s_0", else "FontTex_s_1" via `mgTexManager.GetTexture(name,-1)`.
 - `DrawGaiji` sets texture "gaiji" (`at_1543`) and draws with colour 0x80808080, line h = clearance_h.
