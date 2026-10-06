@@ -1,11 +1,9 @@
 # mdslist: reverse-engineering notes
 
 ## C++ draft status
-All 31 functions have C++ in `ps2/src/mdslist.cpp`. 15 are exact and compiled by
-the matching build. 6 more compile to retail's bytes in isolation but stay under
-`NONMATCHING`. 10 differ from retail and keep the `INCLUDE_ASM` fallback. Each
-function tried has its one promotion attempt recorded in
-`scripts/re/promotion_attempts.tsv`.
+All 31 functions have C++ in `ps2/src/mdslist.cpp`. 29 are exact and compiled by
+the matching build. `CMapPiece::DrawSub` and `CMdsListSet::GetTextureBlockNo`
+differ from retail and retain guarded drafts with their `INCLUDE_ASM` fallbacks.
 
 The unit loads PCP pack files (lists of MDS model / collision / character data driven by an
 `info.cfg` script inside the pack), records IMG texture files, and implements `CMapPiece`, the
@@ -61,7 +59,7 @@ and LoadPCPFile's free-slot test only touch 0..8).
 ## CIMGList (0x8, asserted)
 Stride 8 in CMdsListSet. 0x0 `char *name`, 0x4 `mgCEnterIMGInfo *info`: LoadIMGFile allocates
 `Alloc(0x12)` (0x120 bytes) and placement-news 0x100 bytes, copying the caller's 0x100-byte
-`mgCEnterIMGInfo` (declared in mg_texture.hpp: `int start[32]` at 0, `int count[32]` at 0x80, as
+`mgCEnterIMGInfo` (declared in mg_texture.hpp: `int block[MG_TEXTURE_IMG_GROUP_MAX]` at 0, `int block_num[MG_TEXTURE_IMG_GROUP_MAX]` at 0x80, as
 used by GetTextureBlockNo and mgCTextureManager::EnterIMGFile). Name alloc is `Alloc((len+1+15)/16)`.
 
 ## CMdsListSet (>= 0x114, size NOT asserted)
