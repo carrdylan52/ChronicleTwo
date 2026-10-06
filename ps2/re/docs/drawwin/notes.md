@@ -68,19 +68,16 @@ height h-0x43 (yesno), h-0x1A (_1), select-dependent (_3), and y+0xC / h-0x16 (_
 yesno: band at bottom-0x37, lower side at bottom-0x29 (h 0x10), bottom at bottom-0x19.
 
 ## Draft and promotion status
-All 11 game functions have named, typed C++ drafts. `OffsetYesNoWin` and the four-argument
-`DrawVersatileWin_1` and `DrawVersatileWin_4` wrappers passed isolated whole-image promotion
-checks and are compiled by default. The other eight drafts remain guarded by `NONMATCHING`
-with their original `INCLUDE_ASM` fallbacks. Each function received exactly one isolated
-promotion attempt, recorded in `scripts/re/promotion_attempts.tsv`. The default build is
-byte-identical to SCES_511.90.
+All 11 game functions have named, typed C++ bodies. Ten bodies compile to exact retail
+instruction matches and are compiled by default. `MyMenuFloatingWinDraw` remains the guarded
+draft with its original assembly fallback; it differs in 500 of 512 words (0x46C bytes against
+retail's 0x800). The default executable is byte-identical to SCES_511.90 in all 11 sections.
 
-The frame drafts call `set2DSprite` through the existing `mgRect<int>` declaration. MWCC
-mangles that template type as `9mgRect<i>`, while the retail function is named with
-`9mgRect_i_`. Their promotion attempts therefore failed to link before image comparison.
-That declaration mismatch needs a separate type correction before any frame draft can be
-promoted. The eight guarded drafts do compile together under `NONMATCHING`; instruction
-comparison reports differences for all eight.
+The frame bodies use the existing `mgRect<int>` declarations and link against `set2DSprite`.
+Their rectangle construction and cached geometry preserve the retail draw-call order.
+`DrawVersatileWin_3` computes the upper side height from `win.height`, while the band position
+is based on `select_y`. `MyMenuHelpWinDraw` sets the four byte color components without
+initializing `q`, as the retail function does.
 
 The draft object also emits the weak `mgRect<int>::Set` specialization. The ELF parser
 previously counted its extra `.text` section without counting its function symbol, causing
