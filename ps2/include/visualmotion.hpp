@@ -74,9 +74,7 @@ public:
      *
      * @mangled __ct__18mgCVisualMotionMDTFv
      */
-    mgCVisualMotionMDT() {
-        Initialize();
-    }
+    mgCVisualMotionMDT() { Initialize(); }
 
     /**
      * Returns the kind of this visual.
@@ -146,8 +144,7 @@ public:
      * @address 0x28D710
      * @size 0x200
      */
-    virtual int DataAssignMotionMDT(MDT_HEADER *header, mgCVMotionData *motion, mgCMemory *memory,
-                                    mgCMemory *work_memory, mgCTextureManager *texture_manager);
+    virtual int DataAssignMotionMDT(MDT_HEADER *header, mgCVMotionData *motion, mgCMemory *memory, mgCMemory *work_memory, mgCTextureManager *texture_manager);
 
     /**
      * Writes the VU1 packet for one primitive with each vertex's weights, split into batches that
