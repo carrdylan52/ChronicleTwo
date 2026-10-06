@@ -59,7 +59,7 @@ MenuInventPushKey. Not in the header. Signatures: SPI tags `int f(SPI_STACK *, i
 `int MenuInventPushKey(int,int)`.
 
 ## USER_PICTURE_INFO (0x18; stride in every photo array)
-0 u8 used; 1 u8 is_new (PhotoCheckEnd clears; DrawTakePhoto sets 0/1 both to 1);
+0 s8 used; 1 s8 is_new (PhotoCheckEnd clears; DrawTakePhoto sets 0/1 both to 1);
 2 map_no (SearchMapNo in DngMainDraw; GetMapTitle); 4 npc_no (GetNPCName; 0x104 special);
 6 monster_no (GetMonsterName); 8 s16 never read meaningfully (init/copy -1);
 A neta_id (<=0 none, <1000 idea, >=1000 scoop); C..13 never touched except by memcpy;
@@ -153,3 +153,15 @@ for `__construct_new_array` in PhotoNetaEnter. Size 0xC.
 - MenuInventInit third parameter unused in what Ghidra shows.
 - LevelCheck / CheckMakeItem / LoadAnalyzeInventFile / GetPhotoNameStr look bool-returning in
   Ghidra; declared int.
+
+## Coverage
+
+The normal build contains 88 perfect functions, one fuzzy function and 27 assembly functions.
+`CInventUserData::ResetAddress` remains fuzzy in objdiff while its linked bytes equal retail.
+The draft build has 91 matches, four differing drafts and 21 functions without a draft.
+Three differing drafts have assembly fallbacks: GetInventUserDataPtr, CheckPhotoFlag and
+CInventDataManage::HowMuchZairyouMakeItem. The static initializer is compiled.
+
+Photo state and scoop state bytes are signed: retail reads them with `lb`.
+The byte immediately before `jp_conv_lentbl_2835` is part of the length lookup used by
+IsCreateObject; its zero byte precedes the sixteen conversion-length bytes.

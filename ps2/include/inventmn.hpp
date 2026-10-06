@@ -8,11 +8,6 @@
 #include "menusys.hpp"
 #include "userdata.hpp"
 
-struct InventFoundFlags {
-    u8 flag[3];
-};
-STATIC_ASSERT(sizeof(InventFoundFlags) == 3);
-
 /**
  * @file
  * Declares the invention menu: the photos the player takes with the camera,
@@ -97,36 +92,45 @@ STATIC_ASSERT(sizeof(INVENT_MATERIAL) == 0x4);
 
 /**
  *
- * Invention recipe: the item produced, the three ideas that make it and the materials that build it.
+ * Materials and their count for one invention recipe.
  *
  */
 struct INVENT_MATERIAL_LIST {
-    INVENT_MATERIAL *material;     /**< Materials consumed in building the invention. */
-    short num;
-    u8 unk_6[2];
+    INVENT_MATERIAL *material; /**< Materials consumed in building the invention. */
+    short            num;      /**< Number of materials in the list. */
+    u8               unk_6[2];
 };
 STATIC_ASSERT(sizeof(INVENT_MATERIAL_LIST) == 0x8);
 
+/**
+ * Material quantities needed to build a number of inventions.
+ */
 struct MakeItemNeeds {
+    /**
+     * Quantity required of one material.
+     */
     struct Need {
-        int item_id;
-        int amount;
+        int item_id; /**< Material item. */
+        int amount;  /**< Number of the material required. */
     };
-    int num;
-    Need need[4];
+    int  num;     /**< Number of materials. */
+    Need need[4]; /**< Quantities for each material. */
 };
 STATIC_ASSERT(sizeof(MakeItemNeeds) == 0x24);
 
+/**
+ * Invention recipe: the item produced, its three ideas and its materials.
+ */
 struct INVENT_DATA_INFO {
     short            item_id;      /**< Item the invention produces, or -1 for an unset row. */
     short            neta_id[3];   /**< Ideas that combine into the invention. */
     union {
         struct {
-    INVENT_MATERIAL *material;     /**< Materials consumed in building the invention. */
-    short            material_num; /**< Number of entries in material. */
-    u8               unk_e[2];
+            INVENT_MATERIAL *material;     /**< Materials consumed in building the invention. */
+            short            material_num; /**< Number of entries in material. */
+            u8               unk_e[2];
         };
-        INVENT_MATERIAL_LIST materials;
+        INVENT_MATERIAL_LIST materials; /**< Materials and their count. */
     };
     short            unk_10;
     u8               unk_12[2];
@@ -216,7 +220,7 @@ public:
      * @address 0x201410
      * @size 0x180
      */
-    int CheckInventEnable(int *neta_id, int *near_match);
+    short CheckInventEnable(int *neta_id, int *near_match);
 
     /**
      *
@@ -309,23 +313,23 @@ public:
     s8                    album_flag[50];           /**< State of each album photo, -1 for an empty slot. */
     u8                    unk_53a[2];
     mgCMemory             chara_stack;              /**< Memory the menu characters are built in. */
-    u8                   *create_model_file;
-    u8                   *create_motion_file;
+    u8                   *create_model_file;        /**< Loaded model file of the item being built. */
+    u8                   *create_motion_file;       /**< Loaded motion file of the item being built. */
     CActionChara         *create_chara;             /**< Model of the item being built. */
     void                 *unk_578;
-    INVENT_MATERIAL_LIST *make_material; /**< Materials of the recipe being built. */
+    INVENT_MATERIAL_LIST *make_material;            /**< Materials of the recipe being built. */
     short                 create_step;              /**< Stage of the building sequence. */
     short                 create_item_id;           /**< Item being built. */
     int                   unk_584;
-    int                   create_photo_neta[3];
+    int                   create_photo_neta[3];     /**< Ideas used to name the photo. */
     int                   unk_594;
-    s8                    create_photo_name[32];
+    s8                    create_photo_name[32];    /**< Name entered for the created photo. */
     s8                    unk_5b8;
     u8                    unk_5b9[3];
     int                   unk_5bc;
     float                 unk_5c0;
-    u8                    unk_5c4;
-    u8                    unk_5c5[0x1F];
+    u8                    idea_effect_active[30];   /**< Photos entering the idea notebook. */
+    u8                    unk_5e2[2];
     float                 unk_5e4;
     float                 create_scale;             /**< Scale of the model of the item being built. */
     float                 unk_5ec;
@@ -374,7 +378,8 @@ public:
     mgCMemory             unk_d48;
     int                   unk_d78;
     int                   unk_d7c;
-    u8                    unk_d80[0x12C];
+    float                 idea_effect_pos[30][2];   /**< Positions of the photos entering the notebook. */
+    short                 idea_effect_alpha[30];    /**< Opacity of each photo entering the notebook. */
     int                   gradation_mode;           /**< Colour fade of the invention flash being run. */
     int                   unk_eb0;
     u8                    unk_eb4;
@@ -935,8 +940,6 @@ char *GetPhotoNameCheck(USER_PICTURE_INFO *photo);
  * @address 0x201B40
  * @size 0x1B0
  */
-int CheckPhotoFlag();
-
 int CheckInventItem(int item_id);
 
 /**
