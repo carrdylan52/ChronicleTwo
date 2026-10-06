@@ -215,11 +215,19 @@ STATIC_ASSERT(sizeof(MONSTER_STATUS) == 0xC);
 
 /**
  *
+ * An integer or float value stored by a monster script.
+ *
+ */
+union ScriptVariable {
+    int   i; /**< Integer value of the script variable. */
+    float f; /**< Value of the script variable as a float. */
+};
+
+/**
+ *
  * A monster out on the dungeon floor, run by its own script on top of an action character.
  *
  */
-union ScriptVariable { int i; float f; };
-
 class CActiveMonster : public CActionChara {
 public:
     sceVu0FVECTOR    place_pos;       /**< Position at which the monster was placed, which its script can move. */

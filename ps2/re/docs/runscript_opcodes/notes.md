@@ -1,11 +1,17 @@
 # runscript_opcodes: notes
 
 ## C++ draft status
-All 183 functions have C++ in `ps2/src/runscript_opcodes.cpp`. 12 are exact and
-compiled by the matching build. 95 more compile to retail's bytes in isolation
-but stay under `NONMATCHING`. 76 differ from retail and keep the `INCLUDE_ASM`
-fallback. Each function tried has its one promotion attempt recorded in
-`scripts/re/promotion_attempts.tsv`.
+All 183 functions have C++ in `ps2/src/runscript_opcodes.cpp`. 164 are exact and
+compiled by the matching build. The remaining 19 have guarded drafts and
+assembly fallbacks: `_SET_CAMERA_CTRL_PARAM1`, `_SET_CAMERA_CTRL_PARAM2`,
+`_GET_REF_DIR`, `_GET_HIGH2`, `_SET_DEAD_START`, `_SET_DEAD_OFF`, `_CREATE_MONSTER`,
+`_ESM_SET_VECT1`, `_ESM_GET_VECT1`, `_ESM_SET_VECT2`, `_ESM_GET_VECT2`,
+`_ESM_SET_TARGET_ID`, `_ESM_GET_TARGET_ID`, `_ESM_SET_USER_ID`, `_ESM_GET_USER_ID`,
+`_SHOT_ROCKET_LAUNCHER`, `SetMonsterExtendTable`, `_SET_INDEXOBJ_SIZE`, and
+`_GET_INDEXOBJ_SIZE`. With drafts enabled, 165 functions match and 18 differ;
+`_GET_HIGH2` matches in isolation but remains guarded. The two index-object
+size functions use upstream's typed drafts. Handlers and stack helpers use
+static C++ names, and `ext_func_info` is the typed static table in the source.
 
 Monster-script external functions (`_XXX(RS_STACKDATA *, int)`), their argument helpers, the
 monster external-function table, and `CMonsterMan::RunScript`. First-game counterpart:

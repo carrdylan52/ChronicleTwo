@@ -1,188 +1,571 @@
 #include "common.h"
 #include "runscript_opcodes.hpp"
-#ifdef NONMATCHING
+
+#include <cmath>
+#include <cstdio>
+#include <cstdlib>
+#include <cstring>
+#include <libvu0.h>
+
+#include "actionchara.hpp"
+#include "cameracontrol.hpp"
+#include "colprim.hpp"
+#include "dataread.hpp"
+#include "dng_effect.hpp"
+#include "dng_main.hpp"
 #include "dng_object.hpp"
+#include "effscript.hpp"
+#include "event_func.hpp"
 #include "gameutil.hpp"
+#include "map.hpp"
+#include "mapparts.hpp"
 #include "mdslist.hpp"
 #include "mg_camera.hpp"
 #include "mg_drawenv.hpp"
-#endif
+#include "mg_frame.hpp"
+#include "mg_math.hpp"
+#include "mg_memory.hpp"
+#include "monster.hpp"
 #include "nd_meswin.hpp"
 #include "savedata.hpp"
-#include "monster.hpp"
-#include <cstdio>
-#include "runscript.hpp"
 #include "scenesnd.hpp"
-#include "event_func.hpp"
-#include "character.hpp"
-#include "actionchara.hpp"
-#include "cameracontrol.hpp"
-#include "effscript.hpp"
-#include "colprim.hpp"
-#include "dng_main.hpp"
-#include "userdata.hpp"
-#include "maintex.hpp"
-#include "dng_hud.hpp"
-#include "dng_effect.hpp"
-#include "mg_frame.hpp"
-#include "mg_memory.hpp"
-#include "mg_math.hpp"
-#include "map.hpp"
-#include "mapparts.hpp"
-#include "object.hpp"
-#include "mainloop.hpp"
-#include "dataread.hpp"
-#include "gamepad.hpp"
-#include "sound.hpp"
 #include "snd_mngr.hpp"
+#include "userdata.hpp"
+#include "character.hpp"
+#include "dng_hud.hpp"
+#include "gamepad.hpp"
+#include "mainloop.hpp"
+#include "maintex.hpp"
 #include "menucommon.hpp"
 #include "mg_texture.hpp"
 #include "mglib.hpp"
-#include <cstdlib>
-#include <cstring>
-#include <cmath>
-#include <libvu0.h>
-extern CScene *nowScene;
-extern CActiveMonster *nowMonster;
-extern ACTION_DAMAGE *LastCInfo2;
-extern int (*ext_func[256])(RS_STACKDATA *, int);
-union ScriptVector { float f[4]; u_long128 qw; };
-extern ScriptVector at_1480__2;
-extern ScriptVector at_1481__2;
-extern ScriptVector at_1864;
-extern ScriptVector at_2160;
-extern RS_EXTFUNC_INFO ext_func_info[];
-extern char at_1728[23];
-extern char at_1733[22];
-extern char at_1784[];
-extern char at_2398__2[];
-extern char at_2399[];
-extern char at_2580[17];
-extern char at_2787[13];
-extern char at_3078[];
-extern char at_3079[];
-struct ScriptVec { float v[3]; u32 w; };
-struct ScriptVecRawZ { float v[2]; u32 z; u32 w; };
-struct RangeEntry { float distance; int id; };
-extern "C" int fptosi(float);
-extern "C" int fptoui(float);
+#include "object.hpp"
+#include "sound.hpp"
+
+static CScene *nowScene; /**< Scene of the running monster. */
+CActiveMonster *nowMonster; /**< Monster whose script is running. */
+static ACTION_DAMAGE *LastCInfo2; /**< Last damage entry created by the monster script. */
+
+static int _NORMAL_VECTOR(RS_STACKDATA *args, int argc);
+static int _COPY_VECTOR(RS_STACKDATA *args, int argc);
+static int _ADD_VECTOR(RS_STACKDATA *args, int argc);
+static int _SUB_VECTOR(RS_STACKDATA *args, int argc);
+static int _SCALE_VECTOR(RS_STACKDATA *args, int argc);
+static int _DIV_VECTOR(RS_STACKDATA *args, int argc);
+static int _ANGLE_CMP(RS_STACKDATA *args, int argc);
+static int _ANGLE_LIMIT(RS_STACKDATA *args, int argc);
+static int _SQRT(RS_STACKDATA *args, int argc);
+static int _ATAN2F(RS_STACKDATA *args, int argc);
+static int _ND_TEST(RS_STACKDATA *args, int argc);
+static int _GET_DIST_VECTOR(RS_STACKDATA *args, int argc);
+static int _GET_DIST_VECTOR2(RS_STACKDATA *args, int argc);
+static int _CALC_IP_CIRCLE_LINE(RS_STACKDATA *args, int argc);
+static int _GET_ANGLE_INNER(RS_STACKDATA *args, int argc);
+static int _MY_SE_PLAY(RS_STACKDATA *args, int argc);
+static int _MY_SE_STOP(RS_STACKDATA *args, int argc);
+static int _MONS_SE_PLAY(RS_STACKDATA *args, int argc);
+static int _MONS_SE_STOP(RS_STACKDATA *args, int argc);
+static int _MONS_SE_LOOP(RS_STACKDATA *args, int argc);
+static int _SET_CAMERA_NEXT_REF(RS_STACKDATA *args, int argc);
+static int _SET_CAMERA_FOLLOW(RS_STACKDATA *args, int argc);
+static int _SET_CAMERA_NEXT_POS(RS_STACKDATA *args, int argc);
+static int _SET_CAMERA_MODE(RS_STACKDATA *args, int argc);
+static int _SET_CAMERA_SPEED(RS_STACKDATA *args, int argc);
+static int _CAMERA_QUAKE(RS_STACKDATA *args, int argc);
+static int _SET_CAMERA_CTRL_PARAM1(RS_STACKDATA *args, int argc);
+static int _SET_CAMERA_CTRL_PARAM2(RS_STACKDATA *args, int argc);
+static int _RESET_CAMERA_CTRL_PARAM(RS_STACKDATA *args, int argc);
+static int _GET_RND(RS_STACKDATA *args, int argc);
+static int _GET_RNDF(RS_STACKDATA *args, int argc);
+static int _V_PUSH(RS_STACKDATA *args, int argc);
+static int _V_POP(RS_STACKDATA *args, int argc);
+static int _GET_MONSTER_NUM(RS_STACKDATA *args, int argc);
+static int _GET_MONSTER_INDEX(RS_STACKDATA *args, int argc);
+static int _GET_MONSTER_ID(RS_STACKDATA *args, int argc);
+static int _GET_USERID(RS_STACKDATA *args, int argc);
+static int _GET_USER_MONS_ID(RS_STACKDATA *args, int argc);
+static int _RESET_TIMER(RS_STACKDATA *args, int argc);
+static int _GET_TIMER(RS_STACKDATA *args, int argc);
+static int _CREATE_MONSTER(RS_STACKDATA *args, int argc);
+static int _RUN_EVENT_SCRIPT(RS_STACKDATA *args, int argc);
+static int _GET_FRAME_POS(RS_STACKDATA *args, int argc);
+static int _GET_OBJ_POS(RS_STACKDATA *args, int argc);
+static int _GET_MAPOBJ_POS(RS_STACKDATA *args, int argc);
+static int _SET_PAUSE(RS_STACKDATA *args, int argc);
+static int _CHECK_PAUSE(RS_STACKDATA *args, int argc);
+static int _GET_BIT_FLAG(RS_STACKDATA *args, int argc);
+static int _SET_BIT_FLAG(RS_STACKDATA *args, int argc);
+static int _GET_ATT_TYPE(RS_STACKDATA *args, int argc);
+static int _GET_USER_ATTR(RS_STACKDATA *args, int argc);
+static int _TRANS_RESERV_IMG(RS_STACKDATA *args, int argc);
+static int _GET_STS_ATTR(RS_STACKDATA *args, int argc);
+static int _V_PUSH2(RS_STACKDATA *args, int argc);
+static int _V_POP2(RS_STACKDATA *args, int argc);
+static int _SET_LOCKON_MODE(RS_STACKDATA *args, int argc);
+static int _SET_MOTION_BLUR(RS_STACKDATA *args, int argc);
+static int _GET_EVENT_INFO(RS_STACKDATA *args, int argc);
+static int _MONS_VOL_CTRL(RS_STACKDATA *args, int argc);
+static int _GET_DIST(RS_STACKDATA *args, int argc);
+static int _SEARCH_AREA(RS_STACKDATA *args, int argc);
+static int _SEARCH_AREA2(RS_STACKDATA *args, int argc);
+static int _GET_PLACE_POS(RS_STACKDATA *args, int argc);
+static int _SET_PLACE_POS(RS_STACKDATA *args, int argc);
+static int _GET_INDEX_POS(RS_STACKDATA *args, int argc);
+static int _GET_POS(RS_STACKDATA *args, int argc);
+static int _SET_POS(RS_STACKDATA *args, int argc);
+static int _GET_ROT(RS_STACKDATA *args, int argc);
+static int _SET_ROT(RS_STACKDATA *args, int argc);
+static int _SET_NEXT_ROT(RS_STACKDATA *args, int argc);
+static int _SET_NEXT_POS(RS_STACKDATA *args, int argc);
+static int _CHK_MOVE_END(RS_STACKDATA *args, int argc);
+static int _RESET_MOVE(RS_STACKDATA *args, int argc);
+static int _GET_TARGET_POS(RS_STACKDATA *args, int argc);
+static int _GET_TARGET_DIST(RS_STACKDATA *args, int argc);
+static int _GET_TARGET_ANGLE(RS_STACKDATA *args, int argc);
+static int _GET_TARGET_REF_POS(RS_STACKDATA *args, int argc);
+static int _GET_REF_DIR(RS_STACKDATA *args, int argc);
+static int _GET_REFANGLE_POS(RS_STACKDATA *args, int argc);
+static int _GET_TARGET_ROT(RS_STACKDATA *args, int argc);
+static int _GET_REF_ANGLE(RS_STACKDATA *args, int argc);
+static int _GET_HIGH(RS_STACKDATA *args, int argc);
+static int _GET_NEAR_MONS_POS(RS_STACKDATA *args, int argc);
+static int _GET_TARGET_OLD_POS(RS_STACKDATA *args, int argc);
+static int _GET_TARGET_SPEED(RS_STACKDATA *args, int argc);
+static int _CALC_MOVE_NEXT_POS(RS_STACKDATA *args, int argc);
+static int _GET_POSREF_ANGLE(RS_STACKDATA *args, int argc);
+static int _GET_ACTIVE_MONS_POS(RS_STACKDATA *args, int argc);
+static int _GET_ACTIVE_MONS_ROT(RS_STACKDATA *args, int argc);
+static int _GET_ACTIVE_MONS_DIST(RS_STACKDATA *args, int argc);
+static int _GET_ACTIVE_MONS_ANGLE(RS_STACKDATA *args, int argc);
+static int _GET_REF_ROT(RS_STACKDATA *args, int argc);
+static int _GET_REF_ROT2(RS_STACKDATA *args, int argc);
+static int _FLYING_SEARCH_AREA(RS_STACKDATA *args, int argc);
+static int _GET_HIGH2(RS_STACKDATA *args, int argc);
+static int _GET_RANGE_MONS_ID(RS_STACKDATA *args, int argc);
+static int _GET_ENTRY_OBJ_POS(RS_STACKDATA *args, int argc);
+static int _SET_OBJ(RS_STACKDATA *args, int argc);
+static int _SET_BODY(RS_STACKDATA *args, int argc);
+static int _SET_DMG(RS_STACKDATA *args, int argc);
+static int _SET_DMG2(RS_STACKDATA *args, int argc);
+static int _LINK_MAP_TO_OBJECT(RS_STACKDATA *args, int argc);
+static int _LINK_OBJECT_TO_PIECE(RS_STACKDATA *args, int argc);
+static int _LOAD_EFFECT_SCRIPT(RS_STACKDATA *args, int argc);
+static int _SET_SCOOP(RS_STACKDATA *args, int argc);
+static int _LOAD_RESERV_IMG(RS_STACKDATA *args, int argc);
+static int _SET_PRIORITY_LIMMIT(RS_STACKDATA *args, int argc);
+static int _SET_MODEL_LIGHT_SWITCH(RS_STACKDATA *args, int argc);
+static int _SET_MODEL_LIGHT_COLOR(RS_STACKDATA *args, int argc);
+static int _SET_ALPHA(RS_STACKDATA *args, int argc);
+static int _SET_SCALE(RS_STACKDATA *args, int argc);
+static int _SET_INDEX_ALPHA(RS_STACKDATA *args, int argc);
+static int _SET_PALLET_ANIM(RS_STACKDATA *args, int argc);
+static int _RESET_PALLET_ANIM(RS_STACKDATA *args, int argc);
+static int _SET_ATTRIB(RS_STACKDATA *args, int argc);
+static int _SET_STATUS(RS_STACKDATA *args, int argc);
+static int _SET_INT_FLAG(RS_STACKDATA *args, int argc);
+static int _SET_ACT_STATUS(RS_STACKDATA *args, int argc);
+static int _SET_MUTEKI(RS_STACKDATA *args, int argc);
+static int _SET_GRAVITY(RS_STACKDATA *args, int argc);
+static int _SET_COLLISION(RS_STACKDATA *args, int argc);
+static int _GET_GEKIRIN(RS_STACKDATA *args, int argc);
+static int _GET_PRIORITY(RS_STACKDATA *args, int argc);
+static int _SET_CLIP_DIST(RS_STACKDATA *args, int argc);
+static int _SET_PIYORI_MARK(RS_STACKDATA *args, int argc);
+static int _CHECK_PIYORI(RS_STACKDATA *args, int argc);
+static int _GET_SCALE(RS_STACKDATA *args, int argc);
+static int _GET_MONS_WIDTH(RS_STACKDATA *args, int argc);
+static int _BLOW_START(RS_STACKDATA *args, int argc);
+static int _SET_DEAD_START(RS_STACKDATA *args, int argc);
+static int _SET_DEAD_OFF(RS_STACKDATA *args, int argc);
+static int _SET_SHROW_END(RS_STACKDATA *args, int argc);
+static int _GET_BASE_ATTACK(RS_STACKDATA *args, int argc);
+static int _SET_DEF_RATE(RS_STACKDATA *args, int argc);
+static int _SET_MONSTER_LIFE(RS_STACKDATA *args, int argc);
+static int _GET_MONSTER_LIFE(RS_STACKDATA *args, int argc);
+static int _GET_NO_DAMAGE_CNT(RS_STACKDATA *args, int argc);
+static int _GET_ACTIVE_MONS_LIFEI(RS_STACKDATA *args, int argc);
+static int _GET_ACTIVE_MONS_LIFEF(RS_STACKDATA *args, int argc);
+static int _SET_ACTIVE_MONS_LIFEI(RS_STACKDATA *args, int argc);
+static int _SET_ACTIVE_MONS_LIFEF(RS_STACKDATA *args, int argc);
+static int _GET_ACTIVE_MONS_MAX_LIFE(RS_STACKDATA *args, int argc);
+static int _SET_DAMAGE_SCORE(RS_STACKDATA *args, int argc);
+static int _GET_MONS_GRADE(RS_STACKDATA *args, int argc);
+static int _SET_ESCAPE_RATE(RS_STACKDATA *args, int argc);
+static int _SET_GUARD_RATE(RS_STACKDATA *args, int argc);
+static int _SET_EXT_PARAM_RATE(RS_STACKDATA *args, int argc);
+static int _GET_BOSS_FLAG(RS_STACKDATA *args, int argc);
+static int _SET_INDEXOBJ_SIZE(RS_STACKDATA *args, int argc);
+static int _GET_INDEXOBJ_SIZE(RS_STACKDATA *args, int argc);
+static int _RESET_MOTION(RS_STACKDATA *args, int argc);
+static int _SET_MOS(RS_STACKDATA *args, int argc);
+static int _CHECK_MOS_END(RS_STACKDATA *args, int argc);
+static int _NOW_MOS_WAIT(RS_STACKDATA *args, int argc);
+static int _GET_MOS_STATUS(RS_STACKDATA *args, int argc);
+static int _ESM_CREATE(RS_STACKDATA *args, int argc);
+static int _ESM_FINISH(RS_STACKDATA *args, int argc);
+static int _ESM_DELETE(RS_STACKDATA *args, int argc);
+static int _ESM_SET_VECT1(RS_STACKDATA *args, int argc);
+static int _ESM_GET_VECT1(RS_STACKDATA *args, int argc);
+static int _ESM_SET_VECT2(RS_STACKDATA *args, int argc);
+static int _ESM_GET_VECT2(RS_STACKDATA *args, int argc);
+static int _ESM_SET_TARGET_ID(RS_STACKDATA *args, int argc);
+static int _ESM_GET_TARGET_ID(RS_STACKDATA *args, int argc);
+static int _ESM_SET_USER_ID(RS_STACKDATA *args, int argc);
+static int _ESM_GET_USER_ID(RS_STACKDATA *args, int argc);
+static int _ESM_SET_VALUE(RS_STACKDATA *args, int argc);
+static int _SW_EFFECT(RS_STACKDATA *args, int argc);
+static int _ESM_GET_NOTUESD_TEXB(RS_STACKDATA *args, int argc);
+static int _ESM_ADD_TEXB(RS_STACKDATA *args, int argc);
+static int _SHOT_ROCKET_LAUNCHER(RS_STACKDATA *args, int argc);
+static int _ESM_ALL_CLEAR(RS_STACKDATA *args, int argc);
+static int _SET_MAPOBJ_SHOW(RS_STACKDATA *args, int argc);
+
+static int (*ext_func[256])(RS_STACKDATA *, int); /**< External functions indexed by script number. */
+
+/**
+ * Associates monster-script function numbers with their handlers.
+ */
+static RS_EXTFUNC_INFO ext_func_info[] = {
+    { _NORMAL_VECTOR, 0 },
+    { _COPY_VECTOR, 1 },
+    { _ADD_VECTOR, 2 },
+    { _SUB_VECTOR, 3 },
+    { _SCALE_VECTOR, 4 },
+    { _DIV_VECTOR, 5 },
+    { _ANGLE_CMP, 6 },
+    { _ANGLE_LIMIT, 7 },
+    { _SQRT, 8 },
+    { _ATAN2F, 9 },
+    { _ND_TEST, 10 },
+    { _GET_DIST_VECTOR, 11 },
+    { _GET_DIST_VECTOR2, 12 },
+    { _CALC_IP_CIRCLE_LINE, 13 },
+    { _GET_ANGLE_INNER, 14 },
+    { _MY_SE_PLAY, 21 },
+    { _MY_SE_STOP, 22 },
+    { _MONS_SE_PLAY, 23 },
+    { _MONS_SE_STOP, 24 },
+    { _MONS_SE_LOOP, 65 },
+    { _SET_CAMERA_NEXT_REF, 25 },
+    { _SET_CAMERA_FOLLOW, 26 },
+    { _SET_CAMERA_NEXT_POS, 27 },
+    { _SET_CAMERA_MODE, 28 },
+    { _SET_CAMERA_SPEED, 29 },
+    { _CAMERA_QUAKE, 30 },
+    { _SET_CAMERA_CTRL_PARAM1, 31 },
+    { _SET_CAMERA_CTRL_PARAM2, 32 },
+    { _RESET_CAMERA_CTRL_PARAM, 33 },
+    { _GET_RND, 35 },
+    { _GET_RNDF, 36 },
+    { _V_PUSH, 37 },
+    { _V_POP, 38 },
+    { _GET_MONSTER_NUM, 39 },
+    { _GET_MONSTER_INDEX, 40 },
+    { _GET_MONSTER_ID, 41 },
+    { _GET_USERID, 42 },
+    { _GET_USER_MONS_ID, 43 },
+    { _RESET_TIMER, 44 },
+    { _GET_TIMER, 45 },
+    { _CREATE_MONSTER, 46 },
+    { _RUN_EVENT_SCRIPT, 47 },
+    { _GET_FRAME_POS, 48 },
+    { _GET_OBJ_POS, 49 },
+    { _GET_MAPOBJ_POS, 50 },
+    { _SET_PAUSE, 51 },
+    { _CHECK_PAUSE, 52 },
+    { _GET_BIT_FLAG, 53 },
+    { _SET_BIT_FLAG, 54 },
+    { _GET_ATT_TYPE, 55 },
+    { _GET_USER_ATTR, 56 },
+    { _TRANS_RESERV_IMG, 57 },
+    { _GET_STS_ATTR, 58 },
+    { _V_PUSH2, 59 },
+    { _V_POP2, 60 },
+    { _SET_LOCKON_MODE, 61 },
+    { _SET_MOTION_BLUR, 62 },
+    { _GET_EVENT_INFO, 64 },
+    { _MONS_VOL_CTRL, 66 },
+    { _GET_DIST, 70 },
+    { _SEARCH_AREA, 71 },
+    { _SEARCH_AREA2, 108 },
+    { _GET_PLACE_POS, 72 },
+    { _SET_PLACE_POS, 73 },
+    { _GET_INDEX_POS, 74 },
+    { _GET_POS, 75 },
+    { _SET_POS, 76 },
+    { _GET_ROT, 77 },
+    { _SET_ROT, 78 },
+    { _SET_NEXT_ROT, 79 },
+    { _SET_NEXT_POS, 80 },
+    { _CHK_MOVE_END, 81 },
+    { _RESET_MOVE, 82 },
+    { _GET_TARGET_POS, 83 },
+    { _GET_TARGET_DIST, 84 },
+    { _GET_TARGET_ANGLE, 85 },
+    { _GET_TARGET_REF_POS, 86 },
+    { _GET_REF_DIR, 87 },
+    { _GET_REFANGLE_POS, 88 },
+    { _GET_TARGET_ROT, 89 },
+    { _GET_REF_ANGLE, 90 },
+    { _GET_HIGH, 91 },
+    { _GET_NEAR_MONS_POS, 92 },
+    { _GET_TARGET_OLD_POS, 93 },
+    { _GET_TARGET_SPEED, 94 },
+    { _CALC_MOVE_NEXT_POS, 95 },
+    { _GET_POSREF_ANGLE, 96 },
+    { _GET_ACTIVE_MONS_POS, 97 },
+    { _GET_ACTIVE_MONS_ROT, 98 },
+    { _GET_ACTIVE_MONS_DIST, 99 },
+    { _GET_ACTIVE_MONS_ANGLE, 100 },
+    { _GET_REF_ROT, 101 },
+    { _GET_REF_ROT2, 102 },
+    { _FLYING_SEARCH_AREA, 103 },
+    { _GET_HIGH2, 104 },
+    { _GET_RANGE_MONS_ID, 105 },
+    { _GET_ENTRY_OBJ_POS, 106 },
+    { _SET_OBJ, 110 },
+    { _SET_BODY, 111 },
+    { _SET_DMG, 112 },
+    { _SET_DMG2, 113 },
+    { _LINK_MAP_TO_OBJECT, 114 },
+    { _LINK_OBJECT_TO_PIECE, 115 },
+    { _LOAD_EFFECT_SCRIPT, 116 },
+    { _SET_SCOOP, 117 },
+    { _LOAD_RESERV_IMG, 118 },
+    { _SET_PRIORITY_LIMMIT, 119 },
+    { _SET_MODEL_LIGHT_SWITCH, 120 },
+    { _SET_MODEL_LIGHT_COLOR, 121 },
+    { _SET_ALPHA, 122 },
+    { _SET_SCALE, 123 },
+    { _SET_INDEX_ALPHA, 124 },
+    { _SET_PALLET_ANIM, 125 },
+    { _RESET_PALLET_ANIM, 126 },
+    { _SET_ATTRIB, 127 },
+    { _SET_STATUS, 128 },
+    { _SET_INT_FLAG, 129 },
+    { _SET_ACT_STATUS, 130 },
+    { _SET_MUTEKI, 131 },
+    { _SET_GRAVITY, 132 },
+    { _SET_COLLISION, 133 },
+    { _GET_GEKIRIN, 134 },
+    { _GET_PRIORITY, 135 },
+    { _SET_CLIP_DIST, 136 },
+    { _SET_PIYORI_MARK, 137 },
+    { _CHECK_PIYORI, 138 },
+    { _GET_SCALE, 139 },
+    { _GET_MONS_WIDTH, 140 },
+    { _BLOW_START, 150 },
+    { _SET_DEAD_START, 151 },
+    { _SET_DEAD_OFF, 152 },
+    { _SET_SHROW_END, 153 },
+    { _GET_BASE_ATTACK, 160 },
+    { _SET_DEF_RATE, 161 },
+    { _SET_MONSTER_LIFE, 162 },
+    { _GET_MONSTER_LIFE, 163 },
+    { _GET_NO_DAMAGE_CNT, 164 },
+    { _GET_ACTIVE_MONS_LIFEI, 165 },
+    { _GET_ACTIVE_MONS_LIFEF, 166 },
+    { _SET_ACTIVE_MONS_LIFEI, 167 },
+    { _SET_ACTIVE_MONS_LIFEF, 168 },
+    { _GET_ACTIVE_MONS_MAX_LIFE, 169 },
+    { _SET_DAMAGE_SCORE, 170 },
+    { _GET_MONS_GRADE, 171 },
+    { _SET_ESCAPE_RATE, 173 },
+    { _SET_GUARD_RATE, 172 },
+    { _SET_EXT_PARAM_RATE, 174 },
+    { _GET_BOSS_FLAG, 175 },
+    { _SET_INDEXOBJ_SIZE, 176 },
+    { _GET_INDEXOBJ_SIZE, 177 },
+    { _RESET_MOTION, 180 },
+    { _SET_MOS, 182 },
+    { _CHECK_MOS_END, 183 },
+    { _NOW_MOS_WAIT, 184 },
+    { _GET_MOS_STATUS, 185 },
+    { _ESM_CREATE, 191 },
+    { _ESM_FINISH, 192 },
+    { _ESM_DELETE, 193 },
+    { _ESM_SET_VECT1, 194 },
+    { _ESM_GET_VECT1, 195 },
+    { _ESM_SET_VECT2, 196 },
+    { _ESM_GET_VECT2, 197 },
+    { _ESM_SET_TARGET_ID, 198 },
+    { _ESM_GET_TARGET_ID, 199 },
+    { _ESM_SET_USER_ID, 200 },
+    { _ESM_GET_USER_ID, 201 },
+    { _ESM_SET_VALUE, 202 },
+    { _SW_EFFECT, 203 },
+    { _ESM_GET_NOTUESD_TEXB, 204 },
+    { _ESM_ADD_TEXB, 205 },
+    { _SHOT_ROCKET_LAUNCHER, 206 },
+    { _ESM_ALL_CLEAR, 207 },
+    { _SET_MAPOBJ_SHOW, 63 },
+    { NULL, -1 }
+};
+
+/**
+ * Holds a vector whose components are copied together.
+ */
+union ScriptVector {
+    sceVu0FVECTOR values; /**< Vector components. */
+    u_long128 quadword;   /**< All components as one aligned value. */
+};
 
 // Code (.text)
-void CMonsterMan::RunScript(int index) {
-    int script;
+void CMonsterMan::RunScript(int no) {
+    s16 program;
 
     nowScene = scene;
-    nowMonster = active[index];
+    nowMonster = active[no];
     if (nowMonster != NULL) {
-        script = nowMonster->req_prog;
-        if (script != -1) {
-            if (nowMonster->mons_script.check_program(script) != 0) {
-                nowMonster->mons_script.run(script);
-                nowMonster->now_prog = script;
-                nowMonster->req_prog = -1;
+        program = nowMonster->req_prog;
+        if (program != MONSTER_PROG_RUNNING) {
+            if (nowMonster->mons_script.check_program(program)) {
+                nowMonster->mons_script.run(program);
+                nowMonster->now_prog = program;
+                nowMonster->req_prog = MONSTER_PROG_RUNNING;
             }
         } else {
             nowMonster->mons_script.resume();
-            if (nowMonster->mons_script.end != 0) {
+            if (nowMonster->mons_script.end) {
                 nowMonster->req_prog = MONSTER_PROG_MAIN;
             }
         }
     }
 }
-extern "C" {
-static int GetStackInt__FP12RS_STACKDATA(RS_STACKDATA *stack) {
-    if (stack->type == 1) {
-        return (int)stack->f;
-    }
-    return stack->i;
-}
-}
-extern "C" {
-static float GetStackFloat__FP12RS_STACKDATA(RS_STACKDATA *stack) {
-    if (stack->type == 0) {
-        return (float)stack->i;
-    }
-    return *(float *)&stack->i;
-}
-}
-extern "C" {
-static char *GetStackString__FP12RS_STACKDATA(RS_STACKDATA *stack) {
-    return (char *)stack->i;
-}
-}
-extern "C" {
-static void SetStack__FP12RS_STACKDATAi(RS_STACKDATA *stack, int value) {
-    if (stack->type == 3) {
-        ((RS_STACKDATA *)stack->i)->i = value;
-    }
-}
-}
-extern "C" {
-static void SetStack__FP12RS_STACKDATAf(RS_STACKDATA *stack, float value) {
-    if (stack->type == 3) {
-        *(float *)&((RS_STACKDATA *)stack->i)->i = value;
-    }
-}
-}
-extern "C" {
-static void GetStackVector__FPfPP12RS_STACKDATA(float *vec, RS_STACKDATA **stack) {
-    vec[0] = GetStackFloat__FP12RS_STACKDATA((*stack)++);
-    vec[1] = GetStackFloat__FP12RS_STACKDATA((*stack)++);
-    vec[2] = GetStackFloat__FP12RS_STACKDATA((*stack)++);
-    vec[3] = 1.0f;
-}
-}
-extern "C" {
-static void SetStackVector__FPfPP12RS_STACKDATA(float *vec, RS_STACKDATA **stack) {
-    SetStack__FP12RS_STACKDATAf((*stack)++, vec[0]);
-    SetStack__FP12RS_STACKDATAf((*stack)++, vec[1]);
-    SetStack__FP12RS_STACKDATAf((*stack)++, vec[2]);
-}
-}
-extern "C" int _SQRT__FP12RS_STACKDATAi(RS_STACKDATA *stack, int argument_count) {
-    float value = GetStackFloat__FP12RS_STACKDATA(stack++);
-    SetStack__FP12RS_STACKDATAf(stack, (float)sqrt(value));
-    return 1;
-}
-extern "C" int _ATAN2F__FP12RS_STACKDATAi(RS_STACKDATA *stack, int argument_count) {
-    float y = GetStackFloat__FP12RS_STACKDATA(stack++);
-    float x = GetStackFloat__FP12RS_STACKDATA(stack++);
-    SetStack__FP12RS_STACKDATAf(stack, atan2f(y, x));
-    return 1;
-}
-int _ND_TEST(RS_STACKDATA *stack, int argc) {
-    return 1;
-}
-int _GET_TARGET_ROT(RS_STACKDATA *stack, int argument_count) {
-    float pos[4];
-    CCharacter2 *target;
 
-    if (argument_count != 3) {
+/**
+ * Reads an integer argument, converting a float value.
+ */
+static int GetStackInt(RS_STACKDATA *data) {
+    if (data->type == RS_FLOAT) {
+        return (int)data->f;
+    }
+    return data->i;
+}
+
+/**
+ * Reads a float argument, converting an integer value.
+ */
+static float GetStackFloat(RS_STACKDATA *data) {
+    if (data->type == RS_INT) {
+        return (float)data->i;
+    }
+    return data->f;
+}
+
+/**
+ * Reads a string argument.
+ */
+static char *GetStackString(RS_STACKDATA *data) {
+    return data->s;
+}
+
+/**
+ * Stores an int through an argument that references a stack slot.
+ */
+static void SetStack(RS_STACKDATA *data, int value) {
+    if (data->type == RS_PTR) {
+        data->p->i = value;
+    }
+}
+
+/**
+ * Stores a float through an argument that references a stack slot.
+ */
+static void SetStack(RS_STACKDATA *data, float value) {
+    if (data->type == RS_PTR) {
+        data->p->f = value;
+    }
+}
+
+/**
+ * Reads three components and advances the argument pointer.
+ */
+static void GetStackVector(float *vector, RS_STACKDATA **stack) {
+    vector[0] = GetStackFloat((*stack)++);
+    vector[1] = GetStackFloat((*stack)++);
+    vector[2] = GetStackFloat((*stack)++);
+    vector[3] = 1.0f;
+}
+
+/**
+ * Stores three components and advances the argument pointer.
+ */
+static void SetStackVector(float *vector, RS_STACKDATA **stack) {
+    SetStack((*stack)++, vector[0]);
+    SetStack((*stack)++, vector[1]);
+    SetStack((*stack)++, vector[2]);
+}
+
+/**
+ * Stores the square root of a script argument.
+ */
+static int _SQRT(RS_STACKDATA *args, int argc) {
+    float value;
+
+    value = GetStackFloat(args++);
+    SetStack(args, (float)sqrt(value));
+    return 1;
+}
+
+/**
+ * Stores the angle of two script arguments.
+ */
+static int _ATAN2F(RS_STACKDATA *args, int argc) {
+    float y;
+    float x;
+
+    y = GetStackFloat(args++);
+    x = GetStackFloat(args++);
+    SetStack(args, atan2f(y, x));
+    return 1;
+}
+
+s32 _ND_TEST(RS_STACKDATA *stack, int argc) {
+    return 1;
+}
+
+/**
+ * Stores the rotation of the running monster's target.
+ */
+static int _GET_TARGET_ROT(RS_STACKDATA *args, int argc) {
+    CCharacter2  *target;
+    sceVu0FVECTOR rotation;
+
+    if (argc != 3) {
         return 0;
     }
     target = nowScene->GetCharacter(nowMonster->target_no);
     if (target == NULL) {
         return 0;
     }
-    target->GetRotation(pos);
-    SetStack__FP12RS_STACKDATAf(stack++, pos[0]);
-    SetStack__FP12RS_STACKDATAf(stack++, pos[1]);
-    SetStack__FP12RS_STACKDATAf(stack, pos[2]);
+    target->GetRotation(rotation);
+    SetStack(args++, rotation[0]);
+    SetStack(args++, rotation[1]);
+    SetStack(args, rotation[2]);
     return 1;
 }
-int _GET_MONSTER_INDEX(RS_STACKDATA *stack, int argument_count) {
-    SetStack__FP12RS_STACKDATAi(stack, nowMonster->monster_id);
+
+/**
+ * Stores the running monster's monster id.
+ */
+static int _GET_MONSTER_INDEX(RS_STACKDATA *args, int argc) {
+    SetStack(args, (int)nowMonster->monster_id);
     return 1;
 }
-int _SET_MONSTER_LIFE(RS_STACKDATA *stack, int argument_count) {
+
+/**
+ * Sets the running monster's life as an integer or a fraction of its maximum.
+ */
+static int _SET_MONSTER_LIFE(RS_STACKDATA *args, int argc) {
     int life;
 
-    switch (stack->type) {
-        case 0:
-            life = GetStackInt__FP12RS_STACKDATA(stack);
+    switch (args->type) {
+        case RS_INT:
+            life = GetStackInt(args);
             break;
-        case 1:
-            life = fptosi((float)nowMonster->max_life * GetStackFloat__FP12RS_STACKDATA(stack));
+        case RS_FLOAT:
+            life = (int)(nowMonster->max_life * GetStackFloat(args));
             break;
         default:
             return 0;
@@ -190,52 +573,73 @@ int _SET_MONSTER_LIFE(RS_STACKDATA *stack, int argument_count) {
     if (life < 0) {
         life = 0;
     }
-    if (nowMonster->max_life < life) {
+    if (life > nowMonster->max_life) {
         life = nowMonster->max_life;
     }
     nowMonster->life = life;
     if (0 < life) {
-        nowMonster->state = 1;
+        nowMonster->state = ACTIVE_MONSTER_LIVE;
     }
     return 1;
 }
-int _GET_USERID(RS_STACKDATA *stack, int argument_count) {
-    SetStack__FP12RS_STACKDATAi(stack, nowMonster->chara_type);
+
+/**
+ * Stores the running monster's chara type.
+ */
+static int _GET_USERID(RS_STACKDATA *args, int argc) {
+    SetStack(args, (int)nowMonster->chara_type);
     return 1;
 }
-int _GET_MONSTER_ID(RS_STACKDATA *stack, int argument_count) {
-    SetStack__FP12RS_STACKDATAi(stack, nowMonster->refer_no);
+
+/**
+ * Stores the running monster's refer no.
+ */
+static int _GET_MONSTER_ID(RS_STACKDATA *args, int argc) {
+    SetStack(args, (int)nowMonster->refer_no);
     return 1;
 }
-int _RESET_MOTION(RS_STACKDATA *, int) {
+
+/**
+ * Resets the running monster's motion.
+ */
+static int _RESET_MOTION(RS_STACKDATA *args, int argc) {
     nowMonster->ResetMotion();
     return 1;
 }
-int _GET_INDEX_POS(RS_STACKDATA *stack, int argument_count) {
-    int index = GetStackInt__FP12RS_STACKDATA(stack++);
-    int count = ActiveMonster->GetMonsterNum(-1.0f);
-    int i;
-    float pos[4];
-    CActiveMonster *monster;
 
-    for (i = 0; i < count; i++) {
-        monster = ActiveMonster->active[i];
+/**
+ * Stores the position of the monster of a given index.
+ */
+static int _GET_INDEX_POS(RS_STACKDATA *args, int argc) {
+    int             index;
+    int             count;
+    int             slot;
+    CActiveMonster *monster;
+    sceVu0FVECTOR   position;
+
+    index = GetStackInt(args++);
+    count = ActiveMonster->GetMonsterNum(-1.0f);
+    for (slot = 0; slot < count; slot++) {
+        monster = ActiveMonster->active[slot];
         if (monster->monster_id == index) {
-            monster->GetPosition(pos);
-            SetStack__FP12RS_STACKDATAf(stack++, pos[0]);
-            SetStack__FP12RS_STACKDATAf(stack++, pos[1]);
-            SetStack__FP12RS_STACKDATAf(stack, pos[2]);
+            monster->GetPosition(position);
+            SetStack(args++, position[0]);
+            SetStack(args++, position[1]);
+            SetStack(args, position[2]);
             return 1;
         }
     }
     return 0;
 }
-extern "C" int _SET_CAMERA_NEXT_REF__FP12RS_STACKDATAi(RS_STACKDATA *stack,
-                                                                int argument_count) {
+
+/**
+ * Sets the camera's next reference point.
+ */
+static int _SET_CAMERA_NEXT_REF(RS_STACKDATA *args, int argc) {
     CCameraControl *camera;
-    float x;
-    float y;
-    float z;
+    float           x;
+    float           y;
+    float           z;
 
     camera = (CCameraControl *)nowScene->GetCamera(nowScene->active_camera);
     if (camera == NULL) {
@@ -243,40 +647,53 @@ extern "C" int _SET_CAMERA_NEXT_REF__FP12RS_STACKDATAi(RS_STACKDATA *stack,
     }
     camera->FollowOff();
     camera->ControlOff();
-    x = GetStackFloat__FP12RS_STACKDATA(stack++);
-    y = GetStackFloat__FP12RS_STACKDATA(stack++);
-    z = GetStackFloat__FP12RS_STACKDATA(stack);
+    x = GetStackFloat(args++);
+    y = GetStackFloat(args++);
+    z = GetStackFloat(args);
     camera->SetNextRef(x, y, z);
     return 1;
 }
-int _SET_ALPHA(RS_STACKDATA *stack, int argument_count) {
-    float value = GetStackFloat__FP12RS_STACKDATA(stack);
-    nowMonster->alpha = value;
+
+/**
+ * Sets the running monster's drawing alpha.
+ */
+static int _SET_ALPHA(RS_STACKDATA *args, int argc) {
+    nowMonster->alpha = GetStackFloat(args);
     return 1;
 }
-int _SET_INDEX_ALPHA(RS_STACKDATA *stack, int argument_count) {
-    int index = GetStackInt__FP12RS_STACKDATA(stack++);
-    int count = ActiveMonster->GetMonsterNum(-1.0f);
-    int i;
+
+/**
+ * Sets the drawing alpha of the monster of a given index.
+ */
+static int _SET_INDEX_ALPHA(RS_STACKDATA *args, int argc) {
+    int             index;
+    int             count;
+    int             slot;
     CActiveMonster *monster;
 
-    for (i = 0; i < count; i++) {
-        monster = ActiveMonster->active[i];
+    index = GetStackInt(args++);
+    count = ActiveMonster->GetMonsterNum(-1.0f);
+    for (slot = 0; slot < count; slot++) {
+        monster = ActiveMonster->active[slot];
         if (monster->monster_id == index) {
-            monster->alpha = GetStackFloat__FP12RS_STACKDATA(stack);
+            monster->alpha = GetStackFloat(args);
             return 1;
         }
     }
     return 0;
 }
-int _SET_CAMERA_FOLLOW(RS_STACKDATA *stack, int argument_count) {
+
+/**
+ * Enables or disables the camera's follow and control.
+ */
+static int _SET_CAMERA_FOLLOW(RS_STACKDATA *args, int argc) {
     CCameraControl *camera;
 
     camera = (CCameraControl *)nowScene->GetCamera(nowScene->active_camera);
     if (camera == NULL) {
         return 0;
     }
-    if (GetStackInt__FP12RS_STACKDATA(stack) != 0) {
+    if (GetStackInt(args)) {
         camera->FollowOn();
         camera->ControlOn();
     } else {
@@ -285,12 +702,15 @@ int _SET_CAMERA_FOLLOW(RS_STACKDATA *stack, int argument_count) {
     }
     return 1;
 }
-extern "C" int _SET_CAMERA_NEXT_POS__FP12RS_STACKDATAi(RS_STACKDATA *stack,
-                                                                int argument_count) {
+
+/**
+ * Sets the camera's next position.
+ */
+static int _SET_CAMERA_NEXT_POS(RS_STACKDATA *args, int argc) {
     CCameraControl *camera;
-    float x;
-    float y;
-    float z;
+    float           x;
+    float           y;
+    float           z;
 
     camera = (CCameraControl *)nowScene->GetCamera(nowScene->active_camera);
     if (camera == NULL) {
@@ -298,340 +718,488 @@ extern "C" int _SET_CAMERA_NEXT_POS__FP12RS_STACKDATAi(RS_STACKDATA *stack,
     }
     camera->FollowOff();
     camera->ControlOff();
-    x = GetStackFloat__FP12RS_STACKDATA(stack++);
-    y = GetStackFloat__FP12RS_STACKDATA(stack++);
-    z = GetStackFloat__FP12RS_STACKDATA(stack);
+    x = GetStackFloat(args++);
+    y = GetStackFloat(args++);
+    z = GetStackFloat(args);
     camera->SetNextPos(x, y, z);
     return 1;
 }
-int _GET_DIST_VECTOR(RS_STACKDATA *stack, int argument_count) {
-    float vec[4];
 
-    vec[0] = GetStackFloat__FP12RS_STACKDATA(stack++);
-    vec[1] = GetStackFloat__FP12RS_STACKDATA(stack++);
-    vec[2] = GetStackFloat__FP12RS_STACKDATA(stack++);
-    vec[3] = 1.0f;
-    SetStack__FP12RS_STACKDATAf(stack, mgDistVector(vec));
-    return 1;
-}
-int _GET_DIST_VECTOR2(RS_STACKDATA *stack, int argument_count) {
-    float from[4];
-    float to[4];
+/**
+ * Stores the length of a vector.
+ */
+static int _GET_DIST_VECTOR(RS_STACKDATA *args, int argc) {
+    sceVu0FVECTOR vector;
 
-    from[0] = GetStackFloat__FP12RS_STACKDATA(stack++);
-    from[1] = GetStackFloat__FP12RS_STACKDATA(stack++);
-    from[2] = GetStackFloat__FP12RS_STACKDATA(stack++);
-    from[3] = 1.0f;
-    to[0] = GetStackFloat__FP12RS_STACKDATA(stack++);
-    to[1] = GetStackFloat__FP12RS_STACKDATA(stack++);
-    to[2] = GetStackFloat__FP12RS_STACKDATA(stack++);
-    to[3] = 1.0f;
-    SetStack__FP12RS_STACKDATAf(stack, mgDistVector(from, to));
+    vector[0] = GetStackFloat(args++);
+    vector[1] = GetStackFloat(args++);
+    vector[2] = GetStackFloat(args++);
+    vector[3] = 1.0f;
+    SetStack(args, mgDistVector(vector));
     return 1;
 }
-extern "C" int _SET_SCALE__FP12RS_STACKDATAi(RS_STACKDATA *stack, int argc) {
-    ScriptVec scale;
-    scale.v[0] = GetStackFloat__FP12RS_STACKDATA(stack++);
-    scale.v[1] = GetStackFloat__FP12RS_STACKDATA(stack++);
-    scale.v[2] = GetStackFloat__FP12RS_STACKDATA(stack);
-    scale.w = 0x3F800000;
-    ((CActionChara *)nowMonster)->SetScale(scale.v);
+
+/**
+ * Stores the distance between two vectors.
+ */
+static int _GET_DIST_VECTOR2(RS_STACKDATA *args, int argc) {
+    sceVu0FVECTOR vector;
+    sceVu0FVECTOR other;
+
+    vector[0] = GetStackFloat(args++);
+    vector[1] = GetStackFloat(args++);
+    vector[2] = GetStackFloat(args++);
+    vector[3] = 1.0f;
+    other[0] = GetStackFloat(args++);
+    other[1] = GetStackFloat(args++);
+    other[2] = GetStackFloat(args++);
+    other[3] = 1.0f;
+    SetStack(args, mgDistVector(vector, other));
     return 1;
 }
-int _SET_PALLET_ANIM(RS_STACKDATA *stack, int argc) {
-    int first;
-    int second;
-    int third;
-    int fourth;
-    int fifth;
-    int sixth = 0;
-    first = GetStackInt__FP12RS_STACKDATA(stack++);
-    second = GetStackInt__FP12RS_STACKDATA(stack++);
-    third = GetStackInt__FP12RS_STACKDATA(stack++);
-    fourth = GetStackInt__FP12RS_STACKDATA(stack++);
-    fifth = GetStackInt__FP12RS_STACKDATA(stack++);
+
+/**
+ * Sets the running monster's scale.
+ */
+static int _SET_SCALE(RS_STACKDATA *args, int argc) {
+    sceVu0FVECTOR scale;
+
+    scale[0] = GetStackFloat(args++);
+    scale[1] = GetStackFloat(args++);
+    scale[2] = GetStackFloat(args);
+    scale[3] = 1.0f;
+    nowMonster->SetScale(scale);
+    return 1;
+}
+
+/**
+ * Sets the running monster's palette pulse.
+ */
+static int _SET_PALLET_ANIM(RS_STACKDATA *args, int argc) {
+    int           red;
+    int           green;
+    int           blue;
+    int           pulses;
+    int           duration;
+    int           repeats;
+    CPalletAnime *pallet;
+
+    repeats = 0;
+    red = GetStackInt(args++);
+    green = GetStackInt(args++);
+    blue = GetStackInt(args++);
+    pulses = GetStackInt(args++);
+    duration = GetStackInt(args++);
     if (argc >= 6) {
-        sixth = GetStackInt__FP12RS_STACKDATA(stack);
+        repeats = GetStackInt(args);
     }
-    CActiveMonster *monster = nowMonster;
-    monster->unk_67c.red = first;
-    monster->unk_67c.green = second;
-    monster->unk_67c.blue = third;
-    monster->unk_67c.pulse_num = fourth;
-    monster->unk_67c.duration = fifth;
-    monster->unk_67c.elapsed = 0;
-    monster->unk_67c.repeats = sixth;
+    pallet = &nowMonster->unk_67c;
+    pallet->red = red;
+    pallet->green = green;
+    pallet->blue = blue;
+    pallet->pulse_num = pulses;
+    pallet->duration = duration;
+    pallet->elapsed = 0;
+    pallet->repeats = repeats;
     return 1;
 }
-int _RESET_PALLET_ANIM(RS_STACKDATA *stack, int argc) {
-    CActiveMonster *monster = nowMonster;
-    monster->unk_67c.duration = 0;
-    monster->unk_67c.elapsed = 0;
+
+/**
+ * Stops the running monster's palette pulse.
+ */
+static int _RESET_PALLET_ANIM(RS_STACKDATA *args, int argc) {
+    CPalletAnime *pallet;
+
+    pallet = &nowMonster->unk_67c;
+    pallet->duration = 0;
+    pallet->elapsed = 0;
     return 1;
 }
-int _CALC_IP_CIRCLE_LINE(RS_STACKDATA *stack, int argc) {
-    float center[4];
-    float line_a[4];
-    float line_b[4];
-    float hit1[4];
-    float hit2[4];
-    float center_x = GetStackFloat__FP12RS_STACKDATA(stack++);
-    float center_z = GetStackFloat__FP12RS_STACKDATA(stack++);
-    float radius = GetStackFloat__FP12RS_STACKDATA(stack++);
-    float line_a_x = GetStackFloat__FP12RS_STACKDATA(stack++);
-    float line_a_z = GetStackFloat__FP12RS_STACKDATA(stack++);
-    float line_b_x = GetStackFloat__FP12RS_STACKDATA(stack++);
-    float line_b_z = GetStackFloat__FP12RS_STACKDATA(stack++);
-    center[0] = center_x;
-    center[1] = 0.0f;
-    center[2] = center_z;
-    center[3] = 1.0f;
-    line_a[0] = line_a_x;
-    line_a[1] = 0.0f;
-    line_a[2] = line_a_z;
-    line_a[3] = 1.0f;
-    line_b[0] = line_b_x;
-    line_b[1] = 0.0f;
-    line_b[2] = line_b_z;
-    line_b[3] = 1.0f;
-    int hit_count = CalcIntersectionPointSphereAndLine(center, radius, line_a, line_b, hit1, hit2);
-    SetStack__FP12RS_STACKDATAi(stack++, hit_count);
-    if (hit_count == 2) {
-        SetStack__FP12RS_STACKDATAf(stack++, hit1[0]);
-        SetStack__FP12RS_STACKDATAf(stack++, hit1[2]);
-        SetStack__FP12RS_STACKDATAf(stack++, hit2[0]);
-        SetStack__FP12RS_STACKDATAf(stack++, hit2[2]);
+
+/**
+ * Stores the intersections of a ground-plane circle and a line.
+ */
+static int _CALC_IP_CIRCLE_LINE(RS_STACKDATA *args, int argc) {
+    sceVu0FVECTOR centre;
+    sceVu0FVECTOR from;
+    sceVu0FVECTOR to;
+    sceVu0FVECTOR hit0;
+    sceVu0FVECTOR hit1;
+    float         radius;
+    int           count;
+    float         centre_x;
+    float         centre_z;
+    float         from_x;
+    float         from_z;
+    float         to_x;
+    float         to_z;
+
+    centre_x = GetStackFloat(args++);
+    centre_z = GetStackFloat(args++);
+    radius = GetStackFloat(args++);
+    from_x = GetStackFloat(args++);
+    from_z = GetStackFloat(args++);
+    to_x = GetStackFloat(args++);
+    to_z = GetStackFloat(args++);
+    centre[0] = centre_x;
+    centre[1] = 0.0f;
+    centre[2] = centre_z;
+    centre[3] = 1.0f;
+    from[0] = from_x;
+    from[1] = 0.0f;
+    from[2] = from_z;
+    from[3] = 1.0f;
+    to[0] = to_x;
+    to[1] = 0.0f;
+    to[2] = to_z;
+    to[3] = 1.0f;
+    count = CalcIntersectionPointSphereAndLine(centre, radius, from, to, hit0, hit1);
+    SetStack(args++, count);
+    if (count == 2) {
+        SetStack(args++, hit0[0]);
+        SetStack(args++, hit0[2]);
+        SetStack(args++, hit1[0]);
+        SetStack(args++, hit1[2]);
     }
-    if (hit_count == 1) {
-        SetStack__FP12RS_STACKDATAf(stack++, hit1[0]);
-        SetStack__FP12RS_STACKDATAf(stack, hit1[2]);
+    if (count == 1) {
+        SetStack(args++, hit0[0]);
+        SetStack(args, hit0[2]);
     }
     return 1;
 }
-int _GET_POSREF_ANGLE(RS_STACKDATA *stack, int argc) {
-    ScriptVec from;
-    ScriptVec to;
-    from.v[0] = GetStackFloat__FP12RS_STACKDATA(stack++);
-    from.v[1] = GetStackFloat__FP12RS_STACKDATA(stack++);
-    from.v[2] = GetStackFloat__FP12RS_STACKDATA(stack++);
-    from.w = 0x3F800000;
-    to.v[0] = GetStackFloat__FP12RS_STACKDATA(stack++);
-    to.v[1] = GetStackFloat__FP12RS_STACKDATA(stack++);
-    to.v[2] = GetStackFloat__FP12RS_STACKDATA(stack++);
-    to.w = 0x3F800000;
-    sceVu0SubVector(to.v, to.v, from.v);
-    sceVu0Normalize(to.v, to.v);
-    float yaw = atan2f(to.v[0], to.v[2]);
-    float pitch = -atan2f(to.v[1], sqrtf(to.v[0] * to.v[0] + to.v[2] * to.v[2]));
+
+/**
+ * Stores the yaw or full rotation from one position towards another.
+ */
+static int _GET_POSREF_ANGLE(RS_STACKDATA *args, int argc) {
+    sceVu0FVECTOR from;
+    sceVu0FVECTOR direction;
+    float         yaw;
+    float         pitch;
+
+    from[0] = GetStackFloat(args++);
+    from[1] = GetStackFloat(args++);
+    from[2] = GetStackFloat(args++);
+    from[3] = 1.0f;
+    direction[0] = GetStackFloat(args++);
+    direction[1] = GetStackFloat(args++);
+    direction[2] = GetStackFloat(args++);
+    direction[3] = 1.0f;
+    sceVu0SubVector(direction, direction, from);
+    sceVu0Normalize(direction, direction);
+    yaw = atan2f(direction[0], direction[2]);
+    pitch = -atan2f(direction[1], sqrtf(direction[0] * direction[0] + direction[2] * direction[2]));
     switch (argc) {
         case 7:
-            SetStack__FP12RS_STACKDATAf(stack, yaw);
+            SetStack(args, yaw);
             break;
         case 9:
-            SetStack__FP12RS_STACKDATAf(stack++, pitch);
-            SetStack__FP12RS_STACKDATAf(stack++, yaw);
-            SetStack__FP12RS_STACKDATAf(stack, 0.0f);
+            SetStack(args++, pitch);
+            SetStack(args++, yaw);
+            SetStack(args, 0.0f);
             break;
         default:
             return 0;
     }
     return 1;
 }
-extern "C" int _NORMAL_VECTOR__FP12RS_STACKDATAi(RS_STACKDATA *stack, int argc) {
-    ScriptVec vec;
-    vec.v[0] = stack[0].p->f;
-    vec.v[1] = stack[1].p->f;
-    vec.v[2] = stack[2].p->f;
-    vec.w = 0x3F800000;
-    sceVu0Normalize(vec.v, vec.v);
-    SetStack__FP12RS_STACKDATAf(stack++, vec.v[0]);
-    SetStack__FP12RS_STACKDATAf(stack++, vec.v[1]);
-    SetStack__FP12RS_STACKDATAf(stack, vec.v[2]);
+
+/**
+ * Normalizes a vector passed through stack references.
+ */
+static int _NORMAL_VECTOR(RS_STACKDATA *args, int argc) {
+    sceVu0FVECTOR vector;
+
+    vector[0] = args[0].p->f;
+    vector[1] = args[1].p->f;
+    vector[2] = args[2].p->f;
+    vector[3] = 1.0f;
+    sceVu0Normalize(vector, vector);
+    SetStack(args++, vector[0]);
+    SetStack(args++, vector[1]);
+    SetStack(args, vector[2]);
     return 1;
 }
-extern "C" int _COPY_VECTOR__FP12RS_STACKDATAi(RS_STACKDATA *stack, int argc) {
-    RS_STACKDATA *source = stack;
+
+/**
+ * Copies a vector into three stack references.
+ */
+static int _COPY_VECTOR(RS_STACKDATA *args, int argc) {
+    float         x;
+    float         y;
+    float         z;
+    RS_STACKDATA *source;
+
+    source = args;
     source += 3;
-    float x = GetStackFloat__FP12RS_STACKDATA(source++);
-    float y = GetStackFloat__FP12RS_STACKDATA(source++);
-    float z = GetStackFloat__FP12RS_STACKDATA(source);
-    SetStack__FP12RS_STACKDATAf(stack++, x);
-    SetStack__FP12RS_STACKDATAf(stack++, y);
-    SetStack__FP12RS_STACKDATAf(stack, z);
+    x = GetStackFloat(source++);
+    y = GetStackFloat(source++);
+    z = GetStackFloat(source);
+    SetStack(args++, x);
+    SetStack(args++, y);
+    SetStack(args, z);
     return 1;
 }
-extern "C" int _ADD_VECTOR__FP12RS_STACKDATAi(RS_STACKDATA *stack, int argc) {
-    RS_STACKDATA *source = stack;
+
+/**
+ * Adds a vector to three stack references.
+ */
+static int _ADD_VECTOR(RS_STACKDATA *args, int argc) {
+    float         x;
+    float         y;
+    float         z;
+    RS_STACKDATA *source;
+
+    source = args;
     source += 3;
-    float x = GetStackFloat__FP12RS_STACKDATA(source++);
-    float y = GetStackFloat__FP12RS_STACKDATA(source++);
-    float z = GetStackFloat__FP12RS_STACKDATA(source);
-    SetStack__FP12RS_STACKDATAf(stack, stack[0].p->f + x);
-    SetStack__FP12RS_STACKDATAf(stack + 1, stack[1].p->f + y);
-    SetStack__FP12RS_STACKDATAf(stack + 2, stack[2].p->f + z);
+    x = GetStackFloat(source++);
+    y = GetStackFloat(source++);
+    z = GetStackFloat(source);
+    SetStack(args, args[0].p->f + x);
+    SetStack(args + 1, args[1].p->f + y);
+    SetStack(args + 2, args[2].p->f + z);
     return 1;
 }
-extern "C" int _SUB_VECTOR__FP12RS_STACKDATAi(RS_STACKDATA *stack, int argc) {
-    RS_STACKDATA *source = stack;
+
+/**
+ * Subtracts a vector from three stack references.
+ */
+static int _SUB_VECTOR(RS_STACKDATA *args, int argc) {
+    float         x;
+    float         y;
+    float         z;
+    RS_STACKDATA *source;
+
+    source = args;
     source += 3;
-    float x = GetStackFloat__FP12RS_STACKDATA(source++);
-    float y = GetStackFloat__FP12RS_STACKDATA(source++);
-    float z = GetStackFloat__FP12RS_STACKDATA(source);
-    SetStack__FP12RS_STACKDATAf(stack, stack[0].p->f - x);
-    SetStack__FP12RS_STACKDATAf(stack + 1, stack[1].p->f - y);
-    SetStack__FP12RS_STACKDATAf(stack + 2, stack[2].p->f - z);
+    x = GetStackFloat(source++);
+    y = GetStackFloat(source++);
+    z = GetStackFloat(source);
+    SetStack(args, args[0].p->f - x);
+    SetStack(args + 1, args[1].p->f - y);
+    SetStack(args + 2, args[2].p->f - z);
     return 1;
 }
-extern "C" int _SCALE_VECTOR__FP12RS_STACKDATAi(RS_STACKDATA *stack, int argc) {
-    float scale = GetStackFloat__FP12RS_STACKDATA(stack + 3);
-    SetStack__FP12RS_STACKDATAf(stack, stack[0].p->f * scale);
-    SetStack__FP12RS_STACKDATAf(stack + 1, stack[1].p->f * scale);
-    SetStack__FP12RS_STACKDATAf(stack + 2, stack[2].p->f * scale);
+
+/**
+ * Scales a vector passed through stack references.
+ */
+static int _SCALE_VECTOR(RS_STACKDATA *args, int argc) {
+    float scale;
+
+    scale = GetStackFloat(args + 3);
+    SetStack(args, args[0].p->f * scale);
+    SetStack(args + 1, args[1].p->f * scale);
+    SetStack(args + 2, args[2].p->f * scale);
     return 1;
 }
-extern "C" int _DIV_VECTOR__FP12RS_STACKDATAi(RS_STACKDATA *stack, int argc) {
-    float divisor = GetStackFloat__FP12RS_STACKDATA(stack + 3);
-    if (0.0f == divisor) {
+
+/**
+ * Divides a vector passed through stack references by a nonzero scalar.
+ */
+static int _DIV_VECTOR(RS_STACKDATA *args, int argc) {
+    float scale;
+
+    scale = GetStackFloat(args + 3);
+    if (scale == 0.0f) {
         return 0;
     }
-    SetStack__FP12RS_STACKDATAf(stack, stack[0].p->f / divisor);
-    SetStack__FP12RS_STACKDATAf(stack + 1, stack[1].p->f / divisor);
-    SetStack__FP12RS_STACKDATAf(stack + 2, stack[2].p->f / divisor);
+    SetStack(args, args[0].p->f / scale);
+    SetStack(args + 1, args[1].p->f / scale);
+    SetStack(args + 2, args[2].p->f / scale);
     return 1;
 }
-extern "C" int _ANGLE_CMP__FP12RS_STACKDATAi(RS_STACKDATA *stack, int argc) {
-    float angle = GetStackFloat__FP12RS_STACKDATA(stack++);
-    float target = GetStackFloat__FP12RS_STACKDATA(stack++);
-    float tolerance = GetStackFloat__FP12RS_STACKDATA(stack++);
-    SetStack__FP12RS_STACKDATAi(stack, mgAngleCmp(angle, target, tolerance));
+
+/**
+ * Stores whether two angles are within the requested tolerance.
+ */
+static int _ANGLE_CMP(RS_STACKDATA *args, int argc) {
+    float first;
+    float second;
+    float tolerance;
+
+    first = GetStackFloat(args++);
+    second = GetStackFloat(args++);
+    tolerance = GetStackFloat(args++);
+    SetStack(args, mgAngleCmp(first, second, tolerance));
     return 1;
 }
-extern "C" int _ANGLE_LIMIT__FP12RS_STACKDATAi(RS_STACKDATA *stack, int unused) {
-    SetStack__FP12RS_STACKDATAf(stack, mgAngleLimit(stack->p->f));
+
+/**
+ * Wraps an angle passed through a stack reference.
+ */
+static int _ANGLE_LIMIT(RS_STACKDATA *args, int argc) {
+    SetStack(args, mgAngleLimit(args->p->f));
     return 1;
 }
-int _GET_TARGET_OLD_POS(RS_STACKDATA *stack, int argc) {
-    float old_pos[4];
-    CActionChara *target = (CActionChara *)nowScene->GetCharacter(nowMonster->target_no);
+
+/**
+ * Stores the previous position of the running monster's target.
+ */
+static int _GET_TARGET_OLD_POS(RS_STACKDATA *args, int argc) {
+    CActionChara *target;
+    sceVu0FVECTOR position;
+
+    target = (CActionChara *)nowScene->GetCharacter(nowMonster->target_no);
     if (target == NULL) {
         return 0;
     }
-    sceVu0CopyVector(old_pos, target->old_pos);
-    SetStack__FP12RS_STACKDATAf(stack++, old_pos[0]);
-    SetStack__FP12RS_STACKDATAf(stack++, old_pos[1]);
-    SetStack__FP12RS_STACKDATAf(stack, old_pos[2]);
+    sceVu0CopyVector(position, target->old_pos);
+    SetStack(args++, position[0]);
+    SetStack(args++, position[1]);
+    SetStack(args, position[2]);
     return 1;
 }
-int _GET_TARGET_SPEED(RS_STACKDATA *stack, int argc) {
-    float pos[4];
-    float old_pos[4];
-    CActionChara *target = (CActionChara *)nowScene->GetCharacter(nowMonster->target_no);
+
+/**
+ * Stores the distance the running monster's target moved this step.
+ */
+static int _GET_TARGET_SPEED(RS_STACKDATA *args, int argc) {
+    CActionChara *target;
+    sceVu0FVECTOR position;
+    sceVu0FVECTOR old_position;
+
+    target = (CActionChara *)nowScene->GetCharacter(nowMonster->target_no);
     if (target == NULL) {
         return 0;
     }
-    target->GetPosition(pos);
-    sceVu0CopyVector(old_pos, target->old_pos);
-    SetStack__FP12RS_STACKDATAf(stack, mgDistVector(pos, old_pos));
+    target->GetPosition(position);
+    sceVu0CopyVector(old_position, target->old_pos);
+    SetStack(args, mgDistVector(position, old_position));
     return 1;
 }
-int _CALC_MOVE_NEXT_POS(RS_STACKDATA *stack, int argc) {
-    float from[4];
-    float to[4];
-    float next[4];
-    from[0] = GetStackFloat__FP12RS_STACKDATA(stack++);
-    from[1] = GetStackFloat__FP12RS_STACKDATA(stack++);
-    from[2] = GetStackFloat__FP12RS_STACKDATA(stack++);
-    to[0] = GetStackFloat__FP12RS_STACKDATA(stack++);
-    to[1] = GetStackFloat__FP12RS_STACKDATA(stack++);
-    to[2] = GetStackFloat__FP12RS_STACKDATA(stack++);
-    float distance = GetStackFloat__FP12RS_STACKDATA(stack++);
-    int result = CalcMoveNextPos(from, to, distance, next);
-    SetStack__FP12RS_STACKDATAf(stack++, next[0]);
-    SetStack__FP12RS_STACKDATAf(stack++, next[1]);
-    SetStack__FP12RS_STACKDATAf(stack++, next[2]);
-    SetStack__FP12RS_STACKDATAi(stack, result);
+
+/**
+ * Stores the next position on a move and whether the destination was reached.
+ */
+static int _CALC_MOVE_NEXT_POS(RS_STACKDATA *args, int argc) {
+    sceVu0FVECTOR from;
+    sceVu0FVECTOR to;
+    sceVu0FVECTOR position;
+    float         speed;
+    int           arrived;
+
+    from[0] = GetStackFloat(args++);
+    from[1] = GetStackFloat(args++);
+    from[2] = GetStackFloat(args++);
+    to[0] = GetStackFloat(args++);
+    to[1] = GetStackFloat(args++);
+    to[2] = GetStackFloat(args++);
+    speed = GetStackFloat(args++);
+    arrived = CalcMoveNextPos(from, to, speed, position);
+    SetStack(args++, position[0]);
+    SetStack(args++, position[1]);
+    SetStack(args++, position[2]);
+    SetStack(args, arrived);
     return 1;
 }
-int _GET_MONSTER_LIFE(RS_STACKDATA *stack, int argc) {
-    if (stack->type != 3) {
+
+/**
+ * Reads the running monster's life as a count or a share of its maximum.
+ */
+static int _GET_MONSTER_LIFE(RS_STACKDATA *args, int argc) {
+    if (args->type != RS_PTR) {
         return 0;
     }
-    RS_STACKDATA *slot = (RS_STACKDATA *)stack->i;
-    if (slot->type == 0) {
-        SetStack__FP12RS_STACKDATAi(stack, nowMonster->life);
-    } else if (slot->type == 1) {
-        SetStack__FP12RS_STACKDATAf(stack, (float)nowMonster->life / (float)nowMonster->max_life);
+    if (args->p->type == RS_INT) {
+        SetStack(args, nowMonster->life);
+    } else if (args->p->type == RS_FLOAT) {
+        SetStack(args, (float)nowMonster->life / (float)nowMonster->max_life);
     } else {
         return 0;
     }
     return 1;
 }
-int _GET_NO_DAMAGE_CNT(RS_STACKDATA *stack, int argc) {
-    SetStack__FP12RS_STACKDATAi(stack, nowMonster->no_damage_cnt);
+
+/**
+ * Reads the number of hits that did the running monster no damage.
+ */
+static int _GET_NO_DAMAGE_CNT(RS_STACKDATA *args, int argc) {
+    SetStack(args, nowMonster->no_damage_cnt);
     return 1;
 }
-int _GET_ACTIVE_MONS_LIFEI(RS_STACKDATA *stack, int argc) {
+
+/**
+ * Reads the remaining life of a selected monster.
+ */
+static int _GET_ACTIVE_MONS_LIFEI(RS_STACKDATA *args, int argc) {
+    CActiveMonster *monster;
+    int             chara_no;
+
     if (argc != 2) {
         return 0;
     }
-    int id = GetStackInt__FP12RS_STACKDATA(stack++);
-    CActiveMonster *monster;
-    if (id != -1) {
-        id -= 24;
-        monster = ActiveMonster->active[id];
+    chara_no = GetStackInt(args++);
+    if (chara_no != -1) {
+        chara_no -= MONSTER_ACTIVE_MAX;
+        monster = ActiveMonster->active[chara_no];
         if (monster == NULL) {
             return 0;
         }
     } else {
         monster = nowMonster;
     }
-    SetStack__FP12RS_STACKDATAi(stack, monster->life);
+    SetStack(args, monster->life);
     return 1;
 }
-int _GET_ACTIVE_MONS_LIFEF(RS_STACKDATA *stack, int argc) {
+
+/**
+ * Reads the share of maximum life left for a selected monster.
+ */
+static int _GET_ACTIVE_MONS_LIFEF(RS_STACKDATA *args, int argc) {
+    CActiveMonster *monster;
+    int             chara_no;
+
     if (argc != 2) {
         return 0;
     }
-    int id = GetStackInt__FP12RS_STACKDATA(stack++);
-    CActiveMonster *monster;
-    if (id != -1) {
-        id -= 24;
-        monster = ActiveMonster->active[id];
+    chara_no = GetStackInt(args++);
+    if (chara_no != -1) {
+        chara_no -= MONSTER_ACTIVE_MAX;
+        monster = ActiveMonster->active[chara_no];
         if (monster == NULL) {
             return 0;
         }
     } else {
         monster = nowMonster;
     }
-    SetStack__FP12RS_STACKDATAf(stack, (float)monster->life / (float)monster->max_life);
+    SetStack(args, (float)monster->life / (float)monster->max_life);
     return 1;
 }
-int _SET_ACTIVE_MONS_LIFEI(RS_STACKDATA *stack, int argc) {
+
+/**
+ * Adds an integer amount to a selected monster's life within its limits.
+ */
+static int _SET_ACTIVE_MONS_LIFEI(RS_STACKDATA *args, int argc) {
+    CActiveMonster *monster;
+    int             chara_no;
+    int             change;
+    int             life;
+
     if (argc != 2) {
         return 0;
     }
-    int id = GetStackInt__FP12RS_STACKDATA(stack++);
-    int amount = GetStackInt__FP12RS_STACKDATA(stack);
-    CActiveMonster *monster;
-    if (id != -1) {
-        id -= 24;
-        monster = ActiveMonster->active[id];
+    chara_no = GetStackInt(args++);
+    change = GetStackInt(args);
+    if (chara_no != -1) {
+        chara_no -= MONSTER_ACTIVE_MAX;
+        monster = ActiveMonster->active[chara_no];
         if (monster == NULL) {
             return 0;
         }
     } else {
         monster = nowMonster;
     }
-    if (amount < 0) {
-        int life = monster->life + amount;
+    if (change < 0) {
+        life = monster->life + change;
         if (life < 0) {
             monster->life = 0;
         } else {
             monster->life = life;
         }
     } else {
-        int life = monster->life + amount;
-        if (monster->max_life < life) {
+        life = monster->life + change;
+        if (life > monster->max_life) {
             monster->life = monster->max_life;
         } else {
             monster->life = life;
@@ -639,125 +1207,153 @@ int _SET_ACTIVE_MONS_LIFEI(RS_STACKDATA *stack, int argc) {
     }
     return 1;
 }
-int _SET_ACTIVE_MONS_LIFEF(RS_STACKDATA *stack, int argc) {
+
+/**
+ * Adds a nonnegative share of maximum life to a selected monster.
+ */
+static int _SET_ACTIVE_MONS_LIFEF(RS_STACKDATA *args, int argc) {
     CActiveMonster *monster;
-    int id;
-    int max_life;
-    int amount;
-    float fraction;
+    int             chara_no;
+    float           rate;
+    int             change;
+    int             life;
 
     if (argc != 2) {
         return 0;
     }
-    id = GetStackInt__FP12RS_STACKDATA(stack++);
-    fraction = GetStackFloat__FP12RS_STACKDATA(stack);
-    if (id != -1) {
-        id -= 24;
-        monster = ActiveMonster->active[id];
+    chara_no = GetStackInt(args++);
+    rate = GetStackFloat(args);
+    if (chara_no != -1) {
+        chara_no -= MONSTER_ACTIVE_MAX;
+        monster = ActiveMonster->active[chara_no];
         if (monster == NULL) {
             return 0;
         }
     } else {
         monster = nowMonster;
     }
-    max_life = monster->max_life;
-    amount = fptosi((float)max_life * fraction);
-    if (amount < 0) {
-        amount = 0;
+    change = (int)((float)monster->max_life * rate);
+    if (change < 0) {
+        change = 0;
     }
-    amount = monster->life + amount;
-    if (max_life < amount) {
-        monster->life = max_life;
+    life = monster->life + change;
+    if (life > monster->max_life) {
+        monster->life = monster->max_life;
     } else {
-        monster->life = amount;
+        monster->life = life;
     }
     return 1;
 }
-int _GET_ACTIVE_MONS_MAX_LIFE(RS_STACKDATA *stack, int argc) {
+
+/**
+ * Reads the maximum life of a selected monster.
+ */
+static int _GET_ACTIVE_MONS_MAX_LIFE(RS_STACKDATA *args, int argc) {
+    CActiveMonster *monster;
+    int             chara_no;
+
     if (argc != 2) {
         return 0;
     }
-    int id = GetStackInt__FP12RS_STACKDATA(stack++);
-    CActiveMonster *monster;
-    if (id != -1) {
-        id -= 24;
-        monster = ActiveMonster->active[id];
+    chara_no = GetStackInt(args++);
+    if (chara_no != -1) {
+        chara_no -= MONSTER_ACTIVE_MAX;
+        monster = ActiveMonster->active[chara_no];
         if (monster == NULL) {
             return 0;
         }
     } else {
         monster = nowMonster;
     }
-    SetStack__FP12RS_STACKDATAi(stack, monster->max_life);
+    SetStack(args, monster->max_life);
     return 1;
 }
-int _SET_DAMAGE_SCORE(RS_STACKDATA *stack, int argc) {
-    float pos[4];
-    int color_flag;
-    int id;
-    int value;
-    CActionChara *monster;
+
+/**
+ * Shows a damage number above a selected monster, optionally in green.
+ */
+static int _SET_DAMAGE_SCORE(RS_STACKDATA *args, int argc) {
+    sceVu0FVECTOR   position;
+    int             color;
+    int             chara_no;
+    int             damage;
+    CActiveMonster *monster;
+
     if (argc != 3 && argc != 2) {
         return 0;
     }
-    id = GetStackInt__FP12RS_STACKDATA(stack++);
-    if (id != -1) {
-        id -= 24;
-        monster = (CActionChara *)ActiveMonster->active[id];
+    chara_no = GetStackInt(args++);
+    if (chara_no != -1) {
+        chara_no -= MONSTER_ACTIVE_MAX;
+        monster = ActiveMonster->active[chara_no];
         if (monster == NULL) {
             return 0;
         }
     } else {
-        monster = (CActionChara *)nowMonster;
+        monster = nowMonster;
     }
-    value = GetStackInt__FP12RS_STACKDATA(stack++);
+    damage = GetStackInt(args++);
     if (argc == 3) {
-        color_flag = GetStackInt__FP12RS_STACKDATA(stack);
+        color = GetStackInt(args);
     }
-    monster->GetPosition(pos);
-    pos[1] += ((CActiveMonster *)monster)->body_height;
-    if (color_flag == 1) {
-        DamageScore.SetColor(0x40, 0x80, 0x60);
+    monster->GetPosition(position);
+    position[1] += monster->body_height;
+    if (color == 1) {
+        DamageScore.SetColor(64, 128, 96);
     }
-    DamageScore.SetValue(pos, value);
+    DamageScore.SetValue(position, damage);
     return 1;
 }
-int _GET_MONS_GRADE(RS_STACKDATA *stack, int argc) {
+
+/**
+ * Reads the grade of a selected monster.
+ */
+static int _GET_MONS_GRADE(RS_STACKDATA *args, int argc) {
+    CActiveMonster *monster;
+    int             chara_no;
+
     if (argc != 2) {
         return 0;
     }
-    int id = GetStackInt__FP12RS_STACKDATA(stack++);
-    CActiveMonster *monster;
-    if (id != -1) {
-        id -= 24;
-        monster = ActiveMonster->active[id];
+    chara_no = GetStackInt(args++);
+    if (chara_no != -1) {
+        chara_no -= MONSTER_ACTIVE_MAX;
+        monster = ActiveMonster->active[chara_no];
         if (monster == NULL) {
             return 0;
         }
     } else {
         monster = nowMonster;
     }
-    SetStack__FP12RS_STACKDATAi(stack, monster->tbl->grade);
+    SetStack(args, monster->tbl->grade);
     return 1;
 }
-int _SET_ESCAPE_RATE(RS_STACKDATA *stack, int argc) {
+
+/**
+ * Scales a selected monster's two dodge chances from its base parameters.
+ */
+static int _SET_ESCAPE_RATE(RS_STACKDATA *args, int argc) {
+    CActiveMonster *monster;
+    int             chara_no;
+
+    float           rate;
+
     if (argc != 2) {
         return 0;
     }
-    int id = GetStackInt__FP12RS_STACKDATA(stack++);
-    CActiveMonster *monster;
-    if (id != -1) {
-        id -= 24;
-        monster = ActiveMonster->active[id];
+    chara_no = GetStackInt(args++);
+    if (chara_no != -1) {
+        chara_no -= MONSTER_ACTIVE_MAX;
+        monster = ActiveMonster->active[chara_no];
         if (monster == NULL) {
             return 0;
         }
     } else {
         monster = nowMonster;
     }
-    float scale = GetStackFloat__FP12RS_STACKDATA(stack);
-    monster->tbl->escape_rate[0] = fptosi((float)monster->base_tbl->escape_rate[0] * scale);
-    monster->tbl->escape_rate[1] = fptosi((float)monster->base_tbl->escape_rate[1] * scale);
+    rate = GetStackFloat(args);
+    monster->tbl->escape_rate[0] = (int)((float)monster->base_tbl->escape_rate[0] * rate);
+    monster->tbl->escape_rate[1] = (int)((float)monster->base_tbl->escape_rate[1] * rate);
     if ((u8)monster->tbl->escape_rate[0] > 100) {
         monster->tbl->escape_rate[0] = 100;
     }
@@ -766,195 +1362,284 @@ int _SET_ESCAPE_RATE(RS_STACKDATA *stack, int argc) {
     }
     return 1;
 }
-int _SET_GUARD_RATE(RS_STACKDATA *stack, int argc) {
+
+/**
+ * Scales a selected monster's guard chance from its base parameters.
+ */
+static int _SET_GUARD_RATE(RS_STACKDATA *args, int argc) {
+    CActiveMonster *monster;
+    int             chara_no;
+
+    float           rate;
+
     if (argc != 2) {
         return 0;
     }
-    int id = GetStackInt__FP12RS_STACKDATA(stack++);
-    CActiveMonster *monster;
-    if (id != -1) {
-        id -= 24;
-        monster = ActiveMonster->active[id];
+    chara_no = GetStackInt(args++);
+    if (chara_no != -1) {
+        chara_no -= MONSTER_ACTIVE_MAX;
+        monster = ActiveMonster->active[chara_no];
         if (monster == NULL) {
             return 0;
         }
     } else {
         monster = nowMonster;
     }
-    float scale = GetStackFloat__FP12RS_STACKDATA(stack);
-    monster->tbl->guard_rate = fptosi((float)monster->base_tbl->guard_rate * scale);
+    rate = GetStackFloat(args);
+    monster->tbl->guard_rate = (int)((float)monster->base_tbl->guard_rate * rate);
     if ((u8)monster->tbl->guard_rate > 100) {
         monster->tbl->guard_rate = 100;
     }
     return 1;
 }
-int _SET_EXT_PARAM_RATE(RS_STACKDATA *stack, int argc) {
+
+/**
+ * Scales the selected attack damage parameters of a monster from their base values.
+ */
+static int _SET_EXT_PARAM_RATE(RS_STACKDATA *args, int argc) {
+    int             chara_no;
+    int   mask;
+    float rate;
+    int   index;
+    CActiveMonster *monster;
+
     if (argc != 3) {
         return 0;
     }
-    int id = GetStackInt__FP12RS_STACKDATA(stack++);
-    int mask = GetStackInt__FP12RS_STACKDATA(stack++);
-    float rate = GetStackFloat__FP12RS_STACKDATA(stack);
-    int i;
-    CActiveMonster *monster;
-    if (id != -1) {
-        id -= 24;
-        monster = ActiveMonster->active[id];
+    chara_no = GetStackInt(args++);
+    mask = GetStackInt(args++);
+    rate = GetStackFloat(args);
+    if (chara_no != -1) {
+        chara_no -= MONSTER_ACTIVE_MAX;
+        monster = ActiveMonster->active[chara_no];
         if (monster == NULL) {
             return 0;
         }
     } else {
         monster = nowMonster;
     }
-    for (i = 0; i < 12; i++) {
-        if (mask & (1 << i)) {
-            monster->tbl->ext_param[i] = fptosi((float)monster->base_tbl->ext_param[i] * rate);
-            if (monster->tbl->ext_param[i] > 100) {
-                monster->tbl->ext_param[i] = 100;
+    for (index = 0; index < 12; index++) {
+        if (mask & (1 << index)) {
+            monster->tbl->ext_param[index] = (int)((float)monster->base_tbl->ext_param[index] * rate);
+            if (monster->tbl->ext_param[index] > 100) {
+                monster->tbl->ext_param[index] = 100;
             }
         }
     }
     return 1;
 }
-int _GET_BOSS_FLAG(RS_STACKDATA *stack, int argc) {
+
+/**
+ * Reads whether the running monster's base parameters mark it as a boss.
+ */
+static int _GET_BOSS_FLAG(RS_STACKDATA *args, int argc) {
     if (argc != 1) {
         return 0;
     }
-    SetStack__FP12RS_STACKDATAi(stack, nowMonster->base_tbl->boss);
+    SetStack(args, nowMonster->base_tbl->boss);
     return 1;
 }
-int _RESET_TIMER(RS_STACKDATA *stack, int argc) {
-    DNG_BATTLE_AREA *block;
 
-    block = (DNG_BATTLE_AREA *)&nowScene->battle_area;
+/**
+ * Resets the dungeon timer.
+ */
+static int _RESET_TIMER(RS_STACKDATA *args, int argc) {
+    DNG_BATTLE_AREA *battle;
 
-    if (block == NULL) {
+    battle = &nowScene->battle_area;
+    if (battle == NULL) {
         return 0;
     }
-    block->timer = 0;
+    battle->timer = 0;
     return 1;
 }
-int _GET_TIMER(RS_STACKDATA *stack, int argc) {
-    DNG_BATTLE_AREA *block;
 
-    block = (DNG_BATTLE_AREA *)&nowScene->battle_area;
+/**
+ * Reads the dungeon timer.
+ */
+static int _GET_TIMER(RS_STACKDATA *args, int argc) {
+    DNG_BATTLE_AREA *battle;
 
-    if (block == NULL) {
+    battle = &nowScene->battle_area;
+    if (battle == NULL) {
         return 0;
     }
-    SetStack__FP12RS_STACKDATAi(stack, block->timer);
+    SetStack(args, battle->timer);
     return 1;
 }
-int _GET_FRAME_POS(RS_STACKDATA *stack, int argc) {
-    float pos[4];
-    char *name = (char *)GetStackString__FP12RS_STACKDATA(stack++);
-    mgCFrame *root = nowMonster->CObjectFrame::frame;
-    if (root == NULL) {
-        return 0;
-    }
-    mgCFrame *frame = root->SearchFrame(name);
+
+/**
+ * Reads the world position of a named frame of the running monster.
+ */
+static int _GET_FRAME_POS(RS_STACKDATA *args, int argc) {
+    sceVu0FVECTOR position;
+    mgCFrame     *frame;
+    char         *name;
+
+    name = GetStackString(args++);
+    frame = nowMonster->CObjectFrame::frame;
     if (frame == NULL) {
         return 0;
     }
-    frame->GetWorldPosition0(pos);
-    SetStack__FP12RS_STACKDATAf(stack++, pos[0]);
-    SetStack__FP12RS_STACKDATAf(stack++, pos[1]);
-    SetStack__FP12RS_STACKDATAf(stack, pos[2]);
+    frame = frame->SearchFrame(name);
+    if (frame == NULL) {
+        return 0;
+    }
+    frame->GetWorldPosition0(position);
+    SetStack(args++, position[0]);
+    SetStack(args++, position[1]);
+    SetStack(args, position[2]);
     return 1;
 }
-int _MY_SE_PLAY(RS_STACKDATA *stack, int argc) {
-    float pos[4];
-    float volume;
-    float pan;
-    int se_id = GetStackInt__FP12RS_STACKDATA(stack);
-    u32 se_handle = nowMonster->se_bank;
-    ((CActionChara *)nowMonster)->GetPosition(pos);
 
-    float far = 1200.0f;
-    float near = 160.0f;
-    sndGetVolPan(&volume, &pan, pos, near, far);
-    sndSePlayVPf(se_handle, se_id, volume, pan, 0);
+/**
+ * Plays a sound from the running monster's bank at its world position.
+ */
+static int _MY_SE_PLAY(RS_STACKDATA *args, int argc) {
+    sceVu0FVECTOR position;
+    float         volume;
+    float         pan;
+    int           sound;
+    unsigned int  bank;
+    float         far;
+    float         near;
+
+    sound = GetStackInt(args);
+    bank = nowMonster->se_bank;
+    nowMonster->GetPosition(position);
+    far = 1200.0f;
+    near = 160.0f;
+    sndGetVolPan(&volume, &pan, position, near, far);
+    sndSePlayVPf(bank, sound, volume, pan, 0);
     return 1;
 }
-int _MY_SE_STOP(RS_STACKDATA *stack, int argc) {
-    int id = GetStackInt__FP12RS_STACKDATA(stack);
-    sndSeStop(nowMonster->se_bank, id, 0);
+
+/**
+ * Stops a sound from the running monster's bank.
+ */
+static int _MY_SE_STOP(RS_STACKDATA *args, int argc) {
+    int sound;
+
+    sound = GetStackInt(args);
+    sndSeStop(nowMonster->se_bank, sound, 0);
     return 1;
 }
-int _GET_EVENT_INFO(RS_STACKDATA *stack, int argc) {
-    int selector = GetStackInt__FP12RS_STACKDATA(stack++);
+
+/**
+ * Reads the event stopwatch limit as an integer.
+ */
+static int _GET_EVENT_INFO(RS_STACKDATA *args, int argc) {
+    int selector;
+
+    selector = GetStackInt(args++);
     switch (selector) {
         case 0:
-            SetStack__FP12RS_STACKDATAi(stack, (int)EdEventInfo.stopwatch_limit);
+            SetStack(args, (int)EdEventInfo.stopwatch_limit);
             break;
         default:
             return 0;
     }
     return 1;
 }
-int _ESM_ALL_CLEAR(RS_STACKDATA *stack, int argc) {
+
+/**
+ * Clears every monster effect belonging to a character number.
+ */
+static int _ESM_ALL_CLEAR(RS_STACKDATA *args, int argc) {
     if (argc != 1) {
         return 0;
     }
-    FxScriptMan->ClearEffectFromChrid(GetStackInt__FP12RS_STACKDATA(stack));
+    FxScriptMan->ClearEffectFromChrid(GetStackInt(args));
     return 1;
 }
-int _GET_ANGLE_INNER(RS_STACKDATA *stack, int argc) {
+
+/**
+ * Reads the inner product of the forward vectors at two horizontal angles.
+ */
+static int _GET_ANGLE_INNER(RS_STACKDATA *args, int argc) {
+    static ScriptVector first_direction = { { 0.0f, 0.0f, 1.0f, 0.0f } };
+    static ScriptVector second_direction = { { 0.0f, 0.0f, 1.0f, 0.0f } };
     ScriptVector first;
     ScriptVector second;
-    float matrix[4][4];
-    float rotated[4][4];
+    sceVu0FMATRIX unit;
+    sceVu0FMATRIX rotation;
+    float         first_angle;
+    float         second_angle;
+
     if (argc != 3) {
         return 0;
     }
-    float angle_a = GetStackFloat__FP12RS_STACKDATA(stack++);
-    float angle_b = GetStackFloat__FP12RS_STACKDATA(stack++);
-    first = at_1480__2;
-    second = at_1481__2;
-    sceVu0UnitMatrix(matrix);
-    sceVu0RotMatrixY(rotated, matrix, angle_a);
-    sceVu0ApplyMatrix(first.f, rotated, first.f);
-    sceVu0RotMatrixY(rotated, matrix, angle_b);
-    sceVu0ApplyMatrix(second.f, rotated, second.f);
-    SetStack__FP12RS_STACKDATAf(stack, sceVu0InnerProduct(first.f, second.f));
+    first_angle = GetStackFloat(args++);
+    second_angle = GetStackFloat(args++);
+    first = first_direction;
+    second = second_direction;
+    sceVu0UnitMatrix(unit);
+    sceVu0RotMatrixY(rotation, unit, first_angle);
+    sceVu0ApplyMatrix(first.values, rotation, first.values);
+    sceVu0RotMatrixY(rotation, unit, second_angle);
+    sceVu0ApplyMatrix(second.values, rotation, second.values);
+    SetStack(args, sceVu0InnerProduct(first.values, second.values));
     return 1;
 }
-extern "C" int _CAMERA_QUAKE__FP12RS_STACKDATAi(RS_STACKDATA *stack, int argc) {
-    DNG_BATTLE_AREA *quake = (DNG_BATTLE_AREA *)&nowScene->battle_area;
-    RS_STACKDATA *next = stack + 1;
 
-    if (quake == NULL) {
+/**
+ * Starts a dungeon camera quake that fades over a given number of frames.
+ */
+static int _CAMERA_QUAKE(RS_STACKDATA *args, int argc) {
+    DNG_BATTLE_AREA *battle;
+    float            power;
+    int              frames;
+    RS_STACKDATA    *next;
+
+    battle = &nowScene->battle_area;
+    next = args + 1;
+    if (battle == NULL) {
         return 0;
     }
-    float amplitude = GetStackFloat__FP12RS_STACKDATA(stack);
-    int frames = GetStackInt__FP12RS_STACKDATA(next);
-    quake->quake_power = amplitude;
-    quake->quake_step = quake->quake_power / (float)frames;
-    quake->quake_count = frames;
+    power = GetStackFloat(args);
+    frames = GetStackInt(next);
+    battle->quake_power = power;
+    battle->quake_step = battle->quake_power / (float)frames;
+    battle->quake_count = frames;
     return 1;
 }
-int _SET_CAMERA_MODE(RS_STACKDATA *stack, int argc) {
-    int mode;
-    DNG_BATTLE_AREA *area;
 
-    mode = GetStackInt__FP12RS_STACKDATA(stack);
-    area = (DNG_BATTLE_AREA *)&nowScene->battle_area;
+/**
+ * Changes the dungeon camera mode.
+ */
+static int _SET_CAMERA_MODE(RS_STACKDATA *args, int argc) {
+    DNG_BATTLE_AREA *battle;
+    int              mode;
 
-    if (area == NULL) {
+    mode = GetStackInt(args);
+    battle = &nowScene->battle_area;
+    if (battle == NULL) {
         return 0;
     }
-    area->unk_54 = mode;
+    battle->unk_54 = mode;
     return 1;
 }
-extern "C" int _SET_CAMERA_SPEED__FP12RS_STACKDATAi(RS_STACKDATA *stack, int argc) {
-    mgCCamera *camera = nowScene->GetCamera(nowScene->active_camera);
+
+/**
+ * Changes the active camera's position speed while keeping its reference speed.
+ */
+static int _SET_CAMERA_SPEED(RS_STACKDATA *args, int argc) {
+    mgCCamera *camera;
+    float      speed;
+
+    camera = nowScene->GetCamera(nowScene->active_camera);
     if (camera == NULL) {
         return 0;
     }
-    camera->SetSpeed(GetStackFloat__FP12RS_STACKDATA(stack), -1.0f);
+    speed = GetStackFloat(args);
+    camera->SetSpeed(speed, -1.0f);
     return 1;
 }
+
 #ifdef NONMATCHING
+/**
+ * Changes selected limits of the active controlled camera.
+ */
 static int _SET_CAMERA_CTRL_PARAM1(RS_STACKDATA *args, int argc) {
     CameraCtrlParam *param;
     float            value;
@@ -964,35 +1649,40 @@ static int _SET_CAMERA_CTRL_PARAM1(RS_STACKDATA *args, int argc) {
     }
     param = ((CCameraControl *)nowScene->GetCamera(nowScene->active_camera))->GetActiveParam();
     if (argc >= 1) {
-        value = GetStackFloat__FP12RS_STACKDATA(args + 0);
+        value = GetStackFloat(args + 0);
     }
     if (value != -99999.9 && argc >= 1) {
         param->min_dist = value;
     }
     if (argc >= 2) {
-        value = GetStackFloat__FP12RS_STACKDATA(args + 1);
+        value = GetStackFloat(args + 1);
     }
     if (value != -99999.9 && argc >= 2) {
         param->max_dist = value;
     }
     if (argc >= 3) {
-        value = GetStackFloat__FP12RS_STACKDATA(args + 2);
+        value = GetStackFloat(args + 2);
     }
     if (value != -99999.9 && argc >= 3) {
         param->near_height = value;
     }
     if (argc >= 4) {
-        value = GetStackFloat__FP12RS_STACKDATA(args + 3);
+        value = GetStackFloat(args + 3);
     }
     if (value != -99999.9 && argc >= 4) {
         param->far_height = value;
     }
     return 1;
 }
+
 #else
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/runscript_opcodes", _SET_CAMERA_CTRL_PARAM1__FP12RS_STACKDATAi);
 #endif
+
 #ifdef NONMATCHING
+/**
+ * Changes selected limits of the active controlled camera.
+ */
 static int _SET_CAMERA_CTRL_PARAM2(RS_STACKDATA *args, int argc) {
     CameraCtrlParam *param;
     float            value;
@@ -1002,48 +1692,52 @@ static int _SET_CAMERA_CTRL_PARAM2(RS_STACKDATA *args, int argc) {
     }
     param = ((CCameraControl *)nowScene->GetCamera(nowScene->active_camera))->GetActiveParam();
     if (argc >= 1) {
-        value = GetStackFloat__FP12RS_STACKDATA(args + 0);
+        value = GetStackFloat(args + 0);
     }
     if (value != -99999.9 && argc >= 1) {
         param->height = value;
     }
     if (argc >= 2) {
-        value = GetStackFloat__FP12RS_STACKDATA(args + 1);
+        value = GetStackFloat(args + 1);
     }
     if (value != -99999.9 && argc >= 2) {
         param->max_height = value;
     }
     if (argc >= 3) {
-        value = GetStackFloat__FP12RS_STACKDATA(args + 2);
+        value = GetStackFloat(args + 2);
     }
     if (value != -99999.9 && argc >= 3) {
         param->min_height = value;
     }
     if (argc >= 4) {
-        value = GetStackFloat__FP12RS_STACKDATA(args + 3);
+        value = GetStackFloat(args + 3);
     }
     if (value != -99999.9 && argc >= 4) {
         param->rest_max_height = value;
     }
     if (argc >= 5) {
-        value = GetStackFloat__FP12RS_STACKDATA(args + 4);
+        value = GetStackFloat(args + 4);
     }
     if (value != -99999.9 && argc >= 5) {
         param->rest_min_height = value;
     }
     if (argc >= 6) {
-        value = GetStackFloat__FP12RS_STACKDATA(args + 5);
+        value = GetStackFloat(args + 5);
     }
     if (value != -99999.9 && argc >= 6) {
         param->ground_space = value;
     }
     return 1;
 }
+
 #else
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/runscript_opcodes", _SET_CAMERA_CTRL_PARAM2__FP12RS_STACKDATAi);
 #endif
-int _RESET_CAMERA_CTRL_PARAM(RS_STACKDATA *stack, int argc) {
 
+/**
+ * Restores the active controlled camera's distance and height limits.
+ */
+static int _RESET_CAMERA_CTRL_PARAM(RS_STACKDATA *args, int argc) {
     CameraCtrlParam *param;
 
     param = ((CCameraControl *)nowScene->GetCamera(nowScene->active_camera))->GetActiveParam();
@@ -1059,148 +1753,130 @@ int _RESET_CAMERA_CTRL_PARAM(RS_STACKDATA *stack, int argc) {
     param->ground_space = 25.0f;
     return 1;
 }
-int _GET_RND(RS_STACKDATA *stack, int argc) {
-    if (argc != 2) {
-        return 0;
-    }
-    int range = GetStackInt__FP12RS_STACKDATA(stack++);
 
-    argc = fptosi((float)range * (float)rand() / 2147483648.0f);
-    SetStack__FP12RS_STACKDATAi(stack, argc);
-    return 1;
-}
-int _GET_RNDF(RS_STACKDATA *stack, int argc) {
+/**
+ * Reads a random integer scaled by the given limit.
+ */
+static int _GET_RND(RS_STACKDATA *args, int argc) {
+    int limit;
+    int value;
+
     if (argc != 2) {
         return 0;
     }
-    float range = GetStackFloat__FP12RS_STACKDATA(stack++);
-    SetStack__FP12RS_STACKDATAf(stack, (float)fptosi(range * (float)rand() / 2147483648.0f));
+    limit = GetStackInt(args++);
+    value = (int)(((float)limit * (float)rand()) / 2147483648.0f);
+    SetStack(args, value);
     return 1;
 }
-int _V_PUSH(RS_STACKDATA *stack, int argc) {
+
+/**
+ * Reads a random whole-number float scaled by the given limit.
+ */
+static int _GET_RNDF(RS_STACKDATA *args, int argc) {
+    float limit;
+
     if (argc != 2) {
         return 0;
     }
-    int index = GetStackInt__FP12RS_STACKDATA(stack++);
+    limit = GetStackFloat(args++);
+    SetStack(args, (float)(int)((limit * (float)rand()) / 2147483648.0f));
+    return 1;
+}
+
+/**
+ * Stores a monster script variable.
+ */
+static int _V_PUSH(RS_STACKDATA *args, int argc) {
+    int index;
+
+    if (argc != 2) {
+        return 0;
+    }
+    index = GetStackInt(args++);
     if (index < 0) {
         return 0;
     }
-    if (stack->type == 0) {
+    if (args->type == RS_INT) {
         if (index < MONSTER_VAR_MAX) {
-            int value = GetStackInt__FP12RS_STACKDATA(stack);
-            ScriptVariable *vars = nowMonster->var;
-            vars[index].i = value;
+            nowMonster->var[index].i = GetStackInt(args);
         }
-        if (index >= MONSTER_VAR_MAX && index < 0x88) {
-            int value = GetStackInt__FP12RS_STACKDATA(stack);
-            ScriptVariable *vars = ActiveMonster->share_var - MONSTER_VAR_MAX;
-            vars[index].i = value;
+        if (index >= MONSTER_VAR_MAX && index < MONSTER_VAR_MAX + MONSTER_SHARE_MAX) {
+            ActiveMonster->share_var[index - MONSTER_VAR_MAX].i = GetStackInt(args);
         }
         return 1;
     }
-    if (stack->type == 1) {
+    if (args->type == RS_FLOAT) {
         if (index < MONSTER_VAR_MAX) {
-            float value = GetStackFloat__FP12RS_STACKDATA(stack);
-            ScriptVariable *vars = nowMonster->var;
-            vars[index].f = value;
+            nowMonster->var[index].f = GetStackFloat(args);
         }
-        if (index >= MONSTER_VAR_MAX && index < 0x88) {
-            float value = GetStackFloat__FP12RS_STACKDATA(stack);
-            ScriptVariable *vars = ActiveMonster->share_var - MONSTER_VAR_MAX;
-            vars[index].f = value;
+        if (index >= MONSTER_VAR_MAX && index < MONSTER_VAR_MAX + MONSTER_SHARE_MAX) {
+            ActiveMonster->share_var[index - MONSTER_VAR_MAX].f = GetStackFloat(args);
         }
         return 1;
     }
     return 1;
 }
-int _V_POP(RS_STACKDATA *stack, int argc) {
+
+/**
+ * Reads a stored monster script variable.
+ */
+static int _V_POP(RS_STACKDATA *args, int argc) {
+    int index;
+
     if (argc != 2) {
         return 0;
     }
-    int index = GetStackInt__FP12RS_STACKDATA(stack++);
+    index = GetStackInt(args++);
     if (index < 0) {
         return 0;
     }
-    if (stack->type != 3) {
+    if (args->type != RS_PTR) {
         return 0;
     }
-    RS_STACKDATA *slot = (RS_STACKDATA *)stack->i;
-    if (slot->type == 0) {
+    if (args->p->type == RS_INT) {
         if (index < MONSTER_VAR_MAX) {
-            ScriptVariable *vars = nowMonster->var;
-            SetStack__FP12RS_STACKDATAi(stack, vars[index].i);
+            SetStack(args, nowMonster->var[index].i);
         }
-        if (index >= MONSTER_VAR_MAX && index < 0x88) {
-            ScriptVariable *vars = ActiveMonster->share_var - MONSTER_VAR_MAX;
-            SetStack__FP12RS_STACKDATAi(stack, vars[index].i);
+        if (index >= MONSTER_VAR_MAX && index < MONSTER_VAR_MAX + MONSTER_SHARE_MAX) {
+            SetStack(args, ActiveMonster->share_var[index - MONSTER_VAR_MAX].i);
         }
         return 1;
-    } else if (slot->type == 1) {
+    } else if (args->p->type == RS_FLOAT) {
         if (index < MONSTER_VAR_MAX) {
-            ScriptVariable *vars = nowMonster->var;
-            SetStack__FP12RS_STACKDATAf(stack, vars[index].f);
+            SetStack(args, nowMonster->var[index].f);
         }
-        if (index >= MONSTER_VAR_MAX && index < 0x88) {
-            ScriptVariable *vars = ActiveMonster->share_var - MONSTER_VAR_MAX;
-            SetStack__FP12RS_STACKDATAf(stack, vars[index].f);
+        if (index >= MONSTER_VAR_MAX && index < MONSTER_VAR_MAX + MONSTER_SHARE_MAX) {
+            SetStack(args, ActiveMonster->share_var[index - MONSTER_VAR_MAX].f);
         }
         return 1;
     }
     return 1;
 }
-int _V_PUSH2(RS_STACKDATA *stack, int argc) {
+
+/**
+ * Stores a monster script variable.
+ */
+static int _V_PUSH2(RS_STACKDATA *args, int argc) {
+    int index;
+
     if (argc != 2) {
         return 0;
     }
-    int index = GetStackInt__FP12RS_STACKDATA(stack++);
+    index = GetStackInt(args++);
     if (index < 0) {
         return 0;
     }
-    if (stack->type == 0) {
+    if (args->type == RS_INT) {
         if (index < MONSTER_VAR2_MAX) {
-            int value = GetStackInt__FP12RS_STACKDATA(stack);
-            ScriptVariable *vars = nowMonster->var2;
-            vars[index].i = value;
+            nowMonster->var2[index].i = GetStackInt(args);
         } else {
             return 0;
         }
         return 1;
-    } else if (stack->type == 1) {
+    } else if (args->type == RS_FLOAT) {
         if (index < MONSTER_VAR2_MAX) {
-            float value = GetStackFloat__FP12RS_STACKDATA(stack);
-            ScriptVariable *vars = nowMonster->var2;
-            vars[index].f = value;
-        } else {
-            return 0;
-        }
-        return 1;
-    }
-    return 1;
-}
-int _V_POP2(RS_STACKDATA *stack, int argc) {
-    if (argc != 2) {
-        return 0;
-    }
-    int index = GetStackInt__FP12RS_STACKDATA(stack++);
-    if (index < 0) {
-        return 0;
-    }
-    if (stack->type != 3) {
-        return 0;
-    }
-    RS_STACKDATA *slot = (RS_STACKDATA *)stack->i;
-    if (slot->type == 0) {
-        if (index < MONSTER_VAR2_MAX) {
-            ScriptVariable *vars = nowMonster->var2;
-            SetStack__FP12RS_STACKDATAi(stack, vars[index].i);
-        } else {
-            return 0;
-        }
-        return 1;
-    } else if (slot->type == 1) {
-        if (index < MONSTER_VAR2_MAX) {
-            ScriptVariable *vars = nowMonster->var2;
-            SetStack__FP12RS_STACKDATAf(stack, vars[index].f);
+            nowMonster->var2[index].f = GetStackFloat(args);
         } else {
             return 0;
         }
@@ -1208,300 +1884,437 @@ int _V_POP2(RS_STACKDATA *stack, int argc) {
     }
     return 1;
 }
-int _SET_LOCKON_MODE(RS_STACKDATA *stack, int argc) {
-    if (argc != 1)
+
+/**
+ * Reads a stored monster script variable.
+ */
+static int _V_POP2(RS_STACKDATA *args, int argc) {
+    int index;
+
+    if (argc != 2) {
         return 0;
-    s16 v = (s16)GetStackInt__FP12RS_STACKDATA(stack);
-    nowScene->battle_area.unk_9e = v;
+    }
+    index = GetStackInt(args++);
+    if (index < 0) {
+        return 0;
+    }
+    if (args->type != RS_PTR) {
+        return 0;
+    }
+    if (args->p->type == RS_INT) {
+        if (index < MONSTER_VAR2_MAX) {
+            SetStack(args, nowMonster->var2[index].i);
+        } else {
+            return 0;
+        }
+        return 1;
+    } else if (args->p->type == RS_FLOAT) {
+        if (index < MONSTER_VAR2_MAX) {
+            SetStack(args, nowMonster->var2[index].f);
+        } else {
+            return 0;
+        }
+        return 1;
+    }
     return 1;
 }
-int _GET_MONSTER_NUM(RS_STACKDATA *stack, int argc) {
+
+/**
+ * Changes the dungeon's monster lock-on mode.
+ */
+static int _SET_LOCKON_MODE(RS_STACKDATA *args, int argc) {
     if (argc != 1) {
         return 0;
     }
-
-    argc = ActiveMonster->GetMonsterNum(-1.0f);
-    SetStack__FP12RS_STACKDATAi(stack, argc);
+    nowScene->battle_area.unk_9e = GetStackInt(args);
     return 1;
 }
-int _GET_DIST(RS_STACKDATA *stack, int argc) {
-    float target[4];
-    float self_pos[4];
+
+/**
+ * Reads the number of active monsters on the floor.
+ */
+static int _GET_MONSTER_NUM(RS_STACKDATA *args, int argc) {
+    int count;
+
+    if (argc != 1) {
+        return 0;
+    }
+    count = ActiveMonster->GetMonsterNum(-1.0f);
+    SetStack(args, count);
+    return 1;
+}
+
+/**
+ * Reads the distance from a point to the running monster.
+ */
+static int _GET_DIST(RS_STACKDATA *args, int argc) {
+    sceVu0FVECTOR point;
+    sceVu0FVECTOR position;
+
     if (argc != 4) {
         return 0;
     }
-    target[0] = GetStackFloat__FP12RS_STACKDATA(stack++);
-    target[1] = GetStackFloat__FP12RS_STACKDATA(stack++);
-    target[2] = GetStackFloat__FP12RS_STACKDATA(stack++);
-    ((CActionChara *)nowMonster)->GetPosition(self_pos);
-    SetStack__FP12RS_STACKDATAf(stack, mgDistVector(target, self_pos));
+    point[0] = GetStackFloat(args++);
+    point[1] = GetStackFloat(args++);
+    point[2] = GetStackFloat(args++);
+    nowMonster->GetPosition(position);
+    SetStack(args, mgDistVector(point, position));
     return 1;
 }
-extern "C" int _SET_OBJ__FP12RS_STACKDATAi(RS_STACKDATA *stack, int argc) {
+
+/**
+ * Enters a named object of the running monster into a script object slot.
+ */
+static int _SET_OBJ(RS_STACKDATA *args, int argc) {
+    int   index;
+    char *name;
+
     if (argc != 2) {
         return 0;
     }
-    int index = GetStackInt__FP12RS_STACKDATA(stack++);
-    char *name = GetStackString__FP12RS_STACKDATA(stack);
-    return ((CActionChara *)nowMonster)->EntryObject(name, index) != 0;
+    index = GetStackInt(args++);
+    name = GetStackString(args);
+    return nowMonster->EntryObject(name, index) != NULL;
 }
-extern "C" int _SET_BODY__FP12RS_STACKDATAi(void) {
-    printf(at_1728);
+
+/**
+ * Reports that the legacy body opcode is unavailable.
+ */
+static int _SET_BODY(RS_STACKDATA *args, int argc) {
+    printf("NOT FOUND (_SET_BODY)\n");
     return 1;
 }
-int _SET_DMG(RS_STACKDATA *stack, int argc) {
-    printf(at_1733);
+
+/**
+ * Reports that the legacy damage opcode is unavailable.
+ */
+static int _SET_DMG(RS_STACKDATA *args, int argc) {
+    printf("NOT FOUND (_SET_DMG)\n");
     return 1;
 }
-extern "C" int _SET_DMG2__FP12RS_STACKDATAi(RS_STACKDATA *stack, int argc) {
-    float pos[4];
-    mgCFrame *frameA;
-    mgCFrame *frameB;
+
+/**
+ * Enters damage between one or two numbered frames of the running monster.
+ */
+static int _SET_DMG2(RS_STACKDATA *args, int argc) {
+    sceVu0FVECTOR       position;
     CHARA_ENTRY_OBJECT *object;
-    char *hitName = GetStackString__FP12RS_STACKDATA(stack++);
-    float power = 2.0f * GetStackFloat__FP12RS_STACKDATA(stack++);
-    char *motion = GetStackString__FP12RS_STACKDATA(stack++);
-    float start_ratio = GetStackFloat__FP12RS_STACKDATA(stack++);
-    float end_ratio = GetStackFloat__FP12RS_STACKDATA(stack++);
-    int index_a = GetStackInt__FP12RS_STACKDATA(stack++);
-    int index_b = -1;
+    mgCFrame           *first;
+    mgCFrame           *second;
+    char               *damage;
+    char               *motion;
+    float               radius;
+    float               start;
+    float               end;
+    int                 first_index;
+    int                 second_index;
+
+    damage = GetStackString(args++);
+    radius = 2.0f * GetStackFloat(args++);
+    motion = GetStackString(args++);
+    start = GetStackFloat(args++);
+    end = GetStackFloat(args++);
+    first_index = GetStackInt(args++);
+    second_index = -1;
     if (argc == 7) {
-        index_b = GetStackInt__FP12RS_STACKDATA(stack);
+        second_index = GetStackInt(args);
     }
-    frameB = NULL;
-    object = (CHARA_ENTRY_OBJECT *)((CCharacter2 *)nowMonster)->GetEntryObjectPos(3, index_a, pos);
+    second = NULL;
+    object = nowMonster->GetEntryObjectPos(3, first_index, position);
     if (object == NULL) {
         return 0;
     }
-    frameA = object->frame;
-    if (power <= 0.0f) {
-        power = object->unk_04;
+    first = object->frame;
+    if (radius <= 0.0f) {
+        radius = object->unk_04;
     }
-    if (index_b >= 0) {
-        object = (CHARA_ENTRY_OBJECT *)((CCharacter2 *)nowMonster)->GetEntryObjectPos(3, index_b, pos);
+    if (second_index >= 0) {
+        object = nowMonster->GetEntryObjectPos(3, second_index, position);
         if (object != NULL) {
-            frameB = object->frame;
+            second = object->frame;
         }
     }
-    LastCInfo2 =
-        ((CActionChara *)nowMonster)
-            ->EntryDamage2(frameA, frameB, hitName, power, motion, start_ratio, end_ratio, NULL);
+    LastCInfo2 = nowMonster->EntryDamage2(first, second, damage, radius, motion, start, end, NULL);
     return LastCInfo2 != NULL;
 }
-int _GET_OBJ_POS(RS_STACKDATA *stack, int argc) {
-    float pos[4];
-    char *objectName;
-    mgCFrame *object;
+
+/**
+ * Reads the world position of a named object on the monster or one of its parts.
+ */
+static int _GET_OBJ_POS(RS_STACKDATA *args, int argc) {
+    sceVu0FVECTOR position;
+    char         *object_name;
+    mgCFrame     *frame;
     CActionChara *chara;
-    char *charaName;
+    char         *chara_name;
 
     if (argc < 4 || argc > 5) {
         return 0;
     }
-    objectName = GetStackString__FP12RS_STACKDATA(stack++);
-    charaName = NULL;
+    object_name = GetStackString(args++);
+    chara_name = NULL;
     if (argc == 5) {
-        charaName = GetStackString__FP12RS_STACKDATA(stack + 3);
+        chara_name = GetStackString(args + 3);
     }
     if (argc == 5) {
-        chara = ((CActionChara *)nowMonster)->SearchChara(charaName);
+        chara = nowMonster->SearchChara(chara_name);
         if (chara != NULL) {
-            object = chara->SearchObject(objectName);
+            frame = chara->SearchObject(object_name);
         }
     } else {
-        object = ((CActionChara *)nowMonster)->SearchObject(objectName);
+        frame = nowMonster->SearchObject(object_name);
     }
-    if (object == NULL) {
+    if (frame == NULL) {
         return 0;
     }
-    object->GetWorldPosition0(pos);
-    SetStack__FP12RS_STACKDATAf(stack++, pos[0]);
-    SetStack__FP12RS_STACKDATAf(stack++, pos[1]);
-    SetStack__FP12RS_STACKDATAf(stack, pos[2]);
+    frame->GetWorldPosition0(position);
+    SetStack(args++, position[0]);
+    SetStack(args++, position[1]);
+    SetStack(args, position[2]);
     return 1;
 }
-int _GET_MAPOBJ_POS(RS_STACKDATA *stack, int argc) {
-    float matrix[4][4];
-    float pos[4];
+
+/**
+ * Reads the world position of a named frame of the linked map piece.
+ */
+static int _GET_MAPOBJ_POS(RS_STACKDATA *args, int argc) {
+    sceVu0FMATRIX matrix;
+    sceVu0FVECTOR position;
+    char         *name;
+    mgCFrame     *frame;
+
     if (argc != 4) {
         return 0;
     }
     if (nowMonster->link_piece == NULL || nowMonster->link_parts == NULL) {
         return 0;
     }
-    char *name = GetStackString__FP12RS_STACKDATA(stack++);
-    CMapPiece *piece = nowMonster->link_piece;
-    piece->UpDatePosition();
-    piece = nowMonster->link_piece;
-    mgCFrame *frame = piece->frame->SearchFrame(name);
+    name = GetStackString(args++);
+    nowMonster->link_piece->UpDatePosition();
+    frame = nowMonster->link_piece->frame->SearchFrame(name);
     if (frame == NULL) {
-        printf(at_1784);
+        printf("ERR\n");
     }
     if (frame == NULL) {
         return 0;
     }
-    frame->GetWorldPosition0(pos);
+    frame->GetWorldPosition0(position);
     nowMonster->link_parts->GetLWMatrix(matrix);
-    sceVu0ApplyMatrix(pos, matrix, pos);
-    SetStack__FP12RS_STACKDATAf(stack++, pos[0]);
-    SetStack__FP12RS_STACKDATAf(stack++, pos[1]);
-    SetStack__FP12RS_STACKDATAf(stack, pos[2]);
+    sceVu0ApplyMatrix(position, matrix, position);
+    SetStack(args++, position[0]);
+    SetStack(args++, position[1]);
+    SetStack(args, position[2]);
     return 1;
 }
-int _LINK_MAP_TO_OBJECT(RS_STACKDATA *stack, int argc) {
+
+/**
+ * Makes a named map part follow the running monster.
+ */
+static int _LINK_MAP_TO_OBJECT(RS_STACKDATA *args, int argc) {
     if (argc != 1) {
         return 0;
     }
     if (DngMainMap == NULL) {
         return 0;
     }
-    nowMonster->link_parts =
-        (CMapParts *)DngMainMap->GetPlaceParts( GetStackString__FP12RS_STACKDATA(stack));
+    nowMonster->link_parts = DngMainMap->GetPlaceParts(GetStackString(args));
     if (nowMonster->link_parts == NULL) {
         return 0;
     }
-    nowMonster->link_type = 1;
+    nowMonster->link_type = MONSTER_LINK_PARTS;
     return 1;
 }
-int _LINK_OBJECT_TO_PIECE(RS_STACKDATA *stack, int argc) {
+
+/**
+ * Links the running monster to a named piece of a map part.
+ */
+static int _LINK_OBJECT_TO_PIECE(RS_STACKDATA *args, int argc) {
+    char *parts_name;
+    char *piece_name;
+
     if (argc != 2) {
         return 0;
     }
     if (DngMainMap == NULL) {
         return 0;
     }
-    char *partName = GetStackString__FP12RS_STACKDATA(stack++);
-    char *pieceName = GetStackString__FP12RS_STACKDATA(stack);
-    nowMonster->link_parts = (CMapParts *)DngMainMap->GetPlaceParts( partName);
+    parts_name = GetStackString(args++);
+    piece_name = GetStackString(args);
+    nowMonster->link_parts = DngMainMap->GetPlaceParts(parts_name);
     if (nowMonster->link_parts == NULL) {
         return 0;
     }
-    nowMonster->link_piece = nowMonster->link_parts->SearchPiece(pieceName);
+    nowMonster->link_piece = nowMonster->link_parts->SearchPiece(piece_name);
     if (nowMonster->link_piece == NULL) {
         return 0;
     }
-    nowMonster->link_type = 2;
+    nowMonster->link_type = MONSTER_LINK_PIECE;
     return 1;
 }
-int _SET_SCOOP(RS_STACKDATA *stack, int argc) {
+
+/**
+ * Sets the running monster's photo scoop for all time or a motion interval.
+ */
+static int _SET_SCOOP(RS_STACKDATA *args, int argc) {
     if (argc != 1 && argc != 4) {
         return 0;
     }
     if (argc == 1) {
-        nowMonster->scoop.type = 2;
-        nowMonster->scoop.no = GetStackInt__FP12RS_STACKDATA(stack++);
+        nowMonster->scoop.type = MONSTER_SCOOP_ALWAYS;
+        nowMonster->scoop.no = GetStackInt(args++);
     }
     if (argc == 4) {
-        nowMonster->scoop.type = 1;
-        nowMonster->scoop.motion = GetStackString__FP12RS_STACKDATA(stack++);
-        nowMonster->scoop.start = GetStackFloat__FP12RS_STACKDATA(stack++);
-        nowMonster->scoop.end = GetStackFloat__FP12RS_STACKDATA(stack++);
-        nowMonster->scoop.no = GetStackInt__FP12RS_STACKDATA(stack);
+        nowMonster->scoop.type = MONSTER_SCOOP_MOTION;
+        nowMonster->scoop.motion = GetStackString(args++);
+        nowMonster->scoop.start = GetStackFloat(args++);
+        nowMonster->scoop.end = GetStackFloat(args++);
+        nowMonster->scoop.no = GetStackInt(args);
     }
     return 1;
 }
-int _LOAD_RESERV_IMG(RS_STACKDATA *stack, int argc) {
-    int file_size;
+
+/**
+ * Loads an image into one of the running monster's reserved image slots.
+ */
+static int _LOAD_RESERV_IMG(RS_STACKDATA *args, int argc) {
+    int        size;
+    int        index;
+    mgCMemory *memory;
+    void      *image;
+
     if (argc != 2) {
         return 0;
     }
-    int slot = GetStackInt__FP12RS_STACKDATA(stack++);
-    if (slot < 0 || slot > 1) {
+    index = GetStackInt(args++);
+    if (index < 0 || index > 1) {
         return 0;
     }
-    if (LoadFile2(GetStackString__FP12RS_STACKDATA(stack), BuffReadData, &file_size, 0) == 0) {
+    if (LoadFile2(GetStackString(args), BuffReadData, &size, LOAD_FILE_READ) == 0) {
         return 0;
     }
-    mgCMemory *memory = (mgCMemory *)nowScene->GetStack(3);
+    memory = nowScene->GetStack(3);
     if (memory == NULL) {
         return 0;
     }
-    void *image = (void *)memory->Alloc(file_size / 16 + 1);
+    image = memory->Alloc(size / 16 + 1);
     if (image == NULL) {
         return 0;
     }
-    memcpy(image, BuffReadData, file_size);
-    nowMonster->reserv_img[slot] = image;
-    nowMonster->reserv_img_size[slot] = file_size;
+    memcpy(image, BuffReadData, size);
+    nowMonster->reserv_img[index] = image;
+    nowMonster->reserv_img_size[index] = size;
     return 1;
 }
-int _SET_PRIORITY_LIMMIT(RS_STACKDATA *stack, int argc) {
+
+/**
+ * Limits the number of nearest monsters allowed to come into sight.
+ */
+static int _SET_PRIORITY_LIMMIT(RS_STACKDATA *args, int argc) {
+    int limit;
+
     if (argc != 1) {
         return 0;
     }
-    int value = GetStackInt__FP12RS_STACKDATA(stack);
-    if (value < 0 || value >= MONSTER_ACTIVE_MAX) {
+    limit = GetStackInt(args);
+    if (limit < 0 || limit >= MONSTER_ACTIVE_MAX) {
         return 0;
     }
-    ActiveMonster->priority_limit = value;
+    ActiveMonster->priority_limit = limit;
     return 1;
 }
-int _GET_PLACE_POS(RS_STACKDATA *stack, int argc) {
+
+/**
+ * Reads the position at which the running monster was placed.
+ */
+static int _GET_PLACE_POS(RS_STACKDATA *args, int argc) {
     if (argc != 3) {
         return 0;
     }
-    SetStack__FP12RS_STACKDATAf(stack++, nowMonster->place_pos[0]);
-    SetStack__FP12RS_STACKDATAf(stack++, nowMonster->place_pos[1]);
-    SetStack__FP12RS_STACKDATAf(stack, nowMonster->place_pos[2]);
+    SetStack(args++, nowMonster->place_pos[0]);
+    SetStack(args++, nowMonster->place_pos[1]);
+    SetStack(args, nowMonster->place_pos[2]);
     return 1;
 }
-int _SET_PLACE_POS(RS_STACKDATA *stack, int argc) {
+
+/**
+ * Changes the position at which the running monster was placed.
+ */
+static int _SET_PLACE_POS(RS_STACKDATA *args, int argc) {
     if (argc != 3) {
         return 0;
     }
-    nowMonster->place_pos[0] = GetStackFloat__FP12RS_STACKDATA(stack++);
-    nowMonster->place_pos[1] = GetStackFloat__FP12RS_STACKDATA(stack++);
-    nowMonster->place_pos[2] = GetStackFloat__FP12RS_STACKDATA(stack);
+    nowMonster->place_pos[0] = GetStackFloat(args++);
+    nowMonster->place_pos[1] = GetStackFloat(args++);
+    nowMonster->place_pos[2] = GetStackFloat(args);
     return 1;
 }
-int _SEARCH_AREA(RS_STACKDATA *stack, int argc) {
-    ScriptVector dir;
-    float pos[4];
-    float rot[4];
-    float matrix[4][4];
+
+/**
+ * Reads how far a ray at an offset from the monster's facing reaches before hitting the map.
+ */
+static int _SEARCH_AREA(RS_STACKDATA *args, int argc) {
+    static ScriptVector initial_end = { { 0.0f, 0.0f, 1.0f, 0.0f } };
+    ScriptVector end;
+    sceVu0FVECTOR start;
+    sceVu0FVECTOR rotation;
+    sceVu0FMATRIX matrix;
+    float         distance;
+    float         angle;
+
     if (argc != 3) {
         return 0;
     }
-    float distance = GetStackFloat__FP12RS_STACKDATA(stack++);
-    float angle = GetStackFloat__FP12RS_STACKDATA(stack++);
-    dir = at_1864;
-    ((CActionChara *)nowMonster)->GetPosition(pos);
-    ((CActionChara *)nowMonster)->GetRotation(rot);
-    rot[1] = mgAngleLimit(rot[1] + angle);
+    distance = GetStackFloat(args++);
+    angle = GetStackFloat(args++);
+    end = initial_end;
+    nowMonster->GetPosition(start);
+    nowMonster->GetRotation(rotation);
+    rotation[1] = mgAngleLimit(rotation[1] + angle);
     sceVu0UnitMatrix(matrix);
-    sceVu0RotMatrixY(matrix, matrix, rot[1]);
-    sceVu0ApplyMatrix(dir.f, matrix, dir.f);
-    sceVu0ScaleVector(dir.f, dir.f, distance);
-    sceVu0AddVector(dir.f, dir.f, pos);
-    pos[1] += 100.0f;
-    dir.f[1] += 100.0f;
-    SetStack__FP12RS_STACKDATAf(stack, SearchArea(nowScene, pos, dir.f, distance));
+    sceVu0RotMatrixY(matrix, matrix, rotation[1]);
+    sceVu0ApplyMatrix(end.values, matrix, end.values);
+    sceVu0ScaleVector(end.values, end.values, distance);
+    sceVu0AddVector(end.values, end.values, start);
+    start[1] += 100.0f;
+    end.values[1] += 100.0f;
+    SetStack(args, SearchArea(nowScene, start, end.values, distance));
     return 1;
 }
-int _SEARCH_AREA2(RS_STACKDATA *stack, int argc) {
-    float from[4];
-    float to[4];
+
+/**
+ * Reports the map distance along a line between two script positions.
+ */
+static int _SEARCH_AREA2(RS_STACKDATA *args, int argc) {
+    sceVu0FVECTOR from;
+    sceVu0FVECTOR to;
+    float         distance;
+
     if (argc != 7) {
         return 0;
     }
-    GetStackVector__FPfPP12RS_STACKDATA(from, &stack);
-    GetStackVector__FPfPP12RS_STACKDATA(to, &stack);
-    SetStack__FP12RS_STACKDATAf(stack++, SearchArea(nowScene, from, to, mgDistVector(from, to)));
+    GetStackVector(from, &args);
+    GetStackVector(to, &args);
+    distance = SearchArea(nowScene, from, to, mgDistVector(from, to));
+    SetStack(args++, distance);
     return 1;
 }
-extern "C" int _SET_MODEL_LIGHT_SWITCH__FP12RS_STACKDATAi(RS_STACKDATA *stack, int argc) {
-    mgCFrame *frame;
-    char *name;
-    int flag;
+
+/**
+ * Enables or disables scene lighting on the monster's model or a named frame.
+ */
+static int _SET_MODEL_LIGHT_SWITCH(RS_STACKDATA *args, int argc) {
+    int           enabled;
+    char         *name;
+    mgCFrame     *frame;
     mgCFrameAttr *attr;
 
-    if (argc <= 0 || argc > 2) {
+    if (argc < 1 || argc > 2) {
         return 0;
     }
-    flag = GetStackInt__FP12RS_STACKDATA(stack++);
+    enabled = GetStackInt(args++);
     name = NULL;
     if (argc == 2) {
-        name = GetStackString__FP12RS_STACKDATA(stack);
+        name = GetStackString(args);
     }
     frame = nowMonster->CObjectFrame::frame;
     if (name != NULL) {
@@ -1511,38 +2324,42 @@ extern "C" int _SET_MODEL_LIGHT_SWITCH__FP12RS_STACKDATAi(RS_STACKDATA *stack, i
         return 0;
     }
     attr = frame->attr;
-    if (flag != 0) {
+    if (enabled != 0) {
         attr->no_light = 0;
-        frame->SetAttrParam(*attr, 1, 0x8000);
+        frame->SetAttrParam(*attr, 1, MG_FRAME_ATTR_NO_LIGHT);
     } else {
         attr->no_light = 1;
         attr->color[0] = 128.0f;
         attr->color[1] = 128.0f;
         attr->color[2] = 128.0f;
         attr->color[3] = 128.0f;
-        frame->SetAttrParam(*attr, 1, 0x18000);
+        frame->SetAttrParam(*attr, 1, MG_FRAME_ATTR_NO_LIGHT | MG_FRAME_ATTR_COLOR);
     }
     return 1;
 }
-extern "C" int _SET_MODEL_LIGHT_COLOR__FP12RS_STACKDATAi(RS_STACKDATA *stack, int argc) {
-    mgCFrame *frame;
-    char *name;
+
+/**
+ * Sets the unlit colour of the monster's model or a named frame.
+ */
+static int _SET_MODEL_LIGHT_COLOR(RS_STACKDATA *args, int argc) {
+    float         red;
+    float         green;
+    float         blue;
+    float         alpha;
+    char         *name;
+    mgCFrame     *frame;
     mgCFrameAttr *attr;
-    float red;
-    float green;
-    float blue;
-    float alpha;
 
     if (argc < 4 || argc > 5) {
         return 0;
     }
     name = NULL;
-    red = GetStackFloat__FP12RS_STACKDATA(stack++);
-    green = GetStackFloat__FP12RS_STACKDATA(stack++);
-    blue = GetStackFloat__FP12RS_STACKDATA(stack++);
-    alpha = GetStackFloat__FP12RS_STACKDATA(stack++);
+    red = GetStackFloat(args++);
+    green = GetStackFloat(args++);
+    blue = GetStackFloat(args++);
+    alpha = GetStackFloat(args++);
     if (argc == 5) {
-        name = GetStackString__FP12RS_STACKDATA(stack);
+        name = GetStackString(args);
     }
     frame = nowMonster->CObjectFrame::frame;
     if (name != NULL) {
@@ -1557,201 +2374,277 @@ extern "C" int _SET_MODEL_LIGHT_COLOR__FP12RS_STACKDATAi(RS_STACKDATA *stack, in
     attr->color[1] = green;
     attr->color[2] = blue;
     attr->color[3] = alpha;
-    frame->SetAttrParam(*attr, 1, 0x10000);
+    frame->SetAttrParam(*attr, 1, MG_FRAME_ATTR_COLOR);
     return 1;
 }
-int _SET_DEF_RATE(RS_STACKDATA *stack, int argc) {
+
+/**
+ * Scales the monster's defence from its table value.
+ */
+static int _SET_DEF_RATE(RS_STACKDATA *args, int argc) {
+    float rate;
+
     if (argc != 1) {
         return 0;
     }
-    float rate = GetStackFloat__FP12RS_STACKDATA(stack);
-    CActiveMonster *self = nowMonster;
-    u32 base = self->tbl->defense;
-    self->defense = fptoui((float)base * rate);
+    rate = GetStackFloat(args);
+    nowMonster->defense = (unsigned int)(nowMonster->tbl->defense * rate);
     return 1;
 }
-extern "C" int _GET_POS__FP12RS_STACKDATAi(RS_STACKDATA *stack, int argc) {
-    float pos[4];
+
+/**
+ * Writes the running monster's world position to the script.
+ */
+static int _GET_POS(RS_STACKDATA *args, int argc) {
+    sceVu0FVECTOR position;
+
     if (argc != 3) {
         return 0;
     }
-    ((CActionChara *)nowMonster)->GetPosition(pos);
-    SetStack__FP12RS_STACKDATAf(stack++, pos[0]);
-    SetStack__FP12RS_STACKDATAf(stack++, pos[1]);
-    SetStack__FP12RS_STACKDATAf(stack, pos[2]);
+    nowMonster->GetPosition(position);
+    SetStack(args++, position[0]);
+    SetStack(args++, position[1]);
+    SetStack(args, position[2]);
     return 1;
 }
-int _SET_POS(RS_STACKDATA *stack, int argc) {
+
+/**
+ * Places the running monster at the script's world position.
+ */
+static int _SET_POS(RS_STACKDATA *args, int argc) {
+    float x;
+    float y;
+    float z;
+
     if (argc != 3) {
         return 0;
     }
-    float x = GetStackFloat__FP12RS_STACKDATA(stack++);
-    float y = GetStackFloat__FP12RS_STACKDATA(stack++);
-    float z = GetStackFloat__FP12RS_STACKDATA(stack);
-    ((CActionChara *)nowMonster)->SetPosition(x, y, z);
+    x = GetStackFloat(args++);
+    y = GetStackFloat(args++);
+    z = GetStackFloat(args);
+    nowMonster->SetPosition(x, y, z);
     return 1;
 }
-extern "C" int _GET_ROT__FP12RS_STACKDATAi(RS_STACKDATA *stack, int argc) {
-    float rot[4];
+
+/**
+ * Writes the rotation of the running monster or a numbered monster to the script.
+ */
+static int _GET_ROT(RS_STACKDATA *args, int argc) {
+    sceVu0FVECTOR rotation;
+    CCharacter2  *chara;
+    int           index;
+
     if (argc < 3 || argc > 4) {
         return 0;
     }
     if (argc == 4) {
-        int id = GetStackInt__FP12RS_STACKDATA(stack++);
-        CActionChara *chara = (CActionChara *)nowScene->GetCharacter(id + 24);
+        index = GetStackInt(args++);
+        chara = nowScene->GetCharacter(index + MONSTER_ACTIVE_MAX);
         if (chara == NULL) {
             return 0;
         }
-        chara->GetRotation(rot);
+        chara->GetRotation(rotation);
     } else {
-        ((CActionChara *)nowMonster)->GetRotation(rot);
+        nowMonster->GetRotation(rotation);
     }
-    SetStack__FP12RS_STACKDATAf(stack++, rot[0]);
-    SetStack__FP12RS_STACKDATAf(stack++, rot[1]);
-    SetStack__FP12RS_STACKDATAf(stack, rot[2]);
+    SetStack(args++, rotation[0]);
+    SetStack(args++, rotation[1]);
+    SetStack(args, rotation[2]);
     return 1;
 }
-int _SET_ROT(RS_STACKDATA *stack, int argc) {
+
+/**
+ * Sets the monster's rotation and stops its scripted turn.
+ */
+static int _SET_ROT(RS_STACKDATA *args, int argc) {
+    float x;
+    float y;
+    float z;
+
     if (argc != 3) {
         return 0;
     }
-    float x = GetStackFloat__FP12RS_STACKDATA(stack++);
-    float y = GetStackFloat__FP12RS_STACKDATA(stack++);
-    float z = GetStackFloat__FP12RS_STACKDATA(stack);
-    ((CActionChara *)nowMonster)->SetRotation(x, y, z);
+    x = GetStackFloat(args++);
+    y = GetStackFloat(args++);
+    z = GetStackFloat(args);
+    nowMonster->SetRotation(x, y, z);
     nowMonster->rot_speed = 0.0f;
     return 1;
 }
-int _SET_NEXT_ROT(RS_STACKDATA *stack, int argc) {
+
+/**
+ * Sets the angle and speed of the monster's next turn.
+ */
+static int _SET_NEXT_ROT(RS_STACKDATA *args, int argc) {
     if (argc != 2) {
         return 0;
     }
-    nowMonster->next_rot = GetStackFloat__FP12RS_STACKDATA(stack++);
-    nowMonster->rot_speed = GetStackFloat__FP12RS_STACKDATA(stack);
+    nowMonster->next_rot = GetStackFloat(args++);
+    nowMonster->rot_speed = GetStackFloat(args);
     return 1;
 }
-int _SET_NEXT_POS(RS_STACKDATA *stack, int argc) {
-    float target[4];
-    float pos[4];
+
+/**
+ * Sets the monster's next walk position, speed and arrival distance.
+ */
+static int _SET_NEXT_POS(RS_STACKDATA *args, int argc) {
+    sceVu0FVECTOR next_position;
+    sceVu0FVECTOR position;
+
     if (argc < 3 || argc > 5) {
         return 0;
     }
-    target[0] = GetStackFloat__FP12RS_STACKDATA(stack++);
-    target[1] = GetStackFloat__FP12RS_STACKDATA(stack++);
-    target[2] = GetStackFloat__FP12RS_STACKDATA(stack++);
-    nowMonster->next_pos[0] = target[0];
-    nowMonster->next_pos[1] = target[1];
-    nowMonster->next_pos[2] = target[2];
-    nowMonster->move_speed = GetStackFloat__FP12RS_STACKDATA(stack++);
+    next_position[0] = GetStackFloat(args++);
+    next_position[1] = GetStackFloat(args++);
+    next_position[2] = GetStackFloat(args++);
+    nowMonster->next_pos[0] = next_position[0];
+    nowMonster->next_pos[1] = next_position[1];
+    nowMonster->next_pos[2] = next_position[2];
+    nowMonster->move_speed = GetStackFloat(args++);
     nowMonster->arrive_dist = 20.0f;
     if (argc >= 5) {
-        nowMonster->arrive_dist = GetStackFloat__FP12RS_STACKDATA(stack);
+        nowMonster->arrive_dist = GetStackFloat(args);
     }
-    ((CActionChara *)nowMonster)->GetPosition(pos);
-    if (mgDistVector(target, pos) < nowMonster->arrive_dist) {
+    nowMonster->GetPosition(position);
+    if (mgDistVector(next_position, position) < nowMonster->arrive_dist) {
         nowMonster->move_speed = 0.0f;
     }
     return 1;
 }
-int _CHK_MOVE_END(RS_STACKDATA *stack, int argc) {
-    float pos[4];
-    int arrived;
+
+/**
+ * Reports whether the monster has reached the arrival distance of its next position.
+ */
+static int _CHK_MOVE_END(RS_STACKDATA *args, int argc) {
+    sceVu0FVECTOR position;
+    int           arrived;
+
     if (argc != 1) {
         return 0;
     }
     arrived = 0;
-    ((CActionChara *)nowMonster)->GetPosition(pos);
-    if (mgDistVector(pos, nowMonster->next_pos) < nowMonster->arrive_dist) {
+    nowMonster->GetPosition(position);
+    if (mgDistVector(position, nowMonster->next_pos) < nowMonster->arrive_dist) {
         arrived = 1;
     }
-    SetStack__FP12RS_STACKDATAi(stack, arrived);
+    SetStack(args, arrived);
     return 1;
 }
-int _RESET_MOVE(RS_STACKDATA *stack, int argument_count) {
+
+s32 _RESET_MOVE(RS_STACKDATA *stack, s32 argument_count) {
     nowMonster->move_speed = 0.0f;
     return 1;
 }
-int _GET_TARGET_POS(RS_STACKDATA *stack, int argc) {
-    float pos[4];
-    float self_pos[4];
+
+/**
+ * Writes the target's position and optionally its distance from the monster.
+ */
+static int _GET_TARGET_POS(RS_STACKDATA *args, int argc) {
+    sceVu0FVECTOR target_position;
+    sceVu0FVECTOR position;
+    CCharacter2  *target;
+
     if (argc < 3 || argc > 4) {
         return 0;
     }
-    CActionChara *target = (CActionChara *)nowScene->GetCharacter(nowMonster->target_no);
+    target = nowScene->GetCharacter(nowMonster->target_no);
     if (target == NULL) {
         return 0;
     }
-    target->GetPosition(pos);
-    SetStack__FP12RS_STACKDATAf(stack++, pos[0]);
-    SetStack__FP12RS_STACKDATAf(stack++, pos[1]);
-    SetStack__FP12RS_STACKDATAf(stack++, pos[2]);
+    target->GetPosition(target_position);
+    SetStack(args++, target_position[0]);
+    SetStack(args++, target_position[1]);
+    SetStack(args++, target_position[2]);
     if (argc == 4) {
-        ((CActionChara *)nowMonster)->GetPosition(self_pos);
-        SetStack__FP12RS_STACKDATAf(stack, mgDistVector(self_pos, pos));
+        nowMonster->GetPosition(position);
+        SetStack(args, mgDistVector(position, target_position));
     }
     return 1;
 }
-int _GET_TARGET_DIST(RS_STACKDATA *stack, int argc) {
-    float target_pos[4];
-    float self_pos[4];
-    if (argc != 1) {
-        return 0;
-    }
-    CActionChara *target = (CActionChara *)nowScene->GetCharacter(nowMonster->target_no);
-    if (target == NULL) {
-        return 0;
-    }
-    target->GetPosition(target_pos);
-    ((CActionChara *)nowMonster)->GetPosition(self_pos);
-    SetStack__FP12RS_STACKDATAf(stack, mgDistVector(target_pos, self_pos));
-    return 1;
-}
-int _GET_TARGET_ANGLE(RS_STACKDATA *stack, int argc) {
-    float delta[4];
-    float self_pos[4];
-    if (argc != 1) {
-        return 0;
-    }
-    CActionChara *target = (CActionChara *)nowScene->GetCharacter(nowMonster->target_no);
-    if (target == NULL) {
-        return 0;
-    }
-    target->GetPosition(delta);
-    ((CActionChara *)nowMonster)->GetPosition(self_pos);
-    sceVu0SubVector(delta, delta, self_pos);
-    SetStack__FP12RS_STACKDATAf(stack, atan2f(delta[0], delta[2]));
-    return 1;
-}
-int _GET_TARGET_REF_POS(RS_STACKDATA *stack, int argc) {
-    float matrix[4][4];
-    float pos[4];
 
-    ScriptVecRawZ offset;
+/**
+ * Writes the distance between the monster and its target.
+ */
+static int _GET_TARGET_DIST(RS_STACKDATA *args, int argc) {
+    sceVu0FVECTOR target_position;
+    sceVu0FVECTOR position;
+    CCharacter2  *target;
+
+    if (argc != 1) {
+        return 0;
+    }
+    target = nowScene->GetCharacter(nowMonster->target_no);
+    if (target == NULL) {
+        return 0;
+    }
+    target->GetPosition(target_position);
+    nowMonster->GetPosition(position);
+    SetStack(args, mgDistVector(target_position, position));
+    return 1;
+}
+
+/**
+ * Writes the world angle from the monster to its target.
+ */
+static int _GET_TARGET_ANGLE(RS_STACKDATA *args, int argc) {
+    sceVu0FVECTOR target_position;
+    sceVu0FVECTOR position;
+    CCharacter2  *target;
+
+    if (argc != 1) {
+        return 0;
+    }
+    target = nowScene->GetCharacter(nowMonster->target_no);
+    if (target == NULL) {
+        return 0;
+    }
+    target->GetPosition(target_position);
+    nowMonster->GetPosition(position);
+    sceVu0SubVector(target_position, target_position, position);
+    SetStack(args, atan2f(target_position[0], target_position[2]));
+    return 1;
+}
+
+/**
+ * Writes a position offset from the target by a world angle and distance.
+ */
+static int _GET_TARGET_REF_POS(RS_STACKDATA *args, int argc) {
+    sceVu0FMATRIX matrix;
+    sceVu0FVECTOR position;
+    sceVu0FVECTOR direction;
+    float         angle;
+    float         distance;
+    CCharacter2  *target;
+
     if (argc != 5) {
         return 0;
     }
-    float angle = GetStackFloat__FP12RS_STACKDATA(stack++);
-    float distance = GetStackFloat__FP12RS_STACKDATA(stack++);
-    CActionChara *target = (CActionChara *)nowScene->GetCharacter(nowMonster->target_no);
+    angle = GetStackFloat(args++);
+    distance = GetStackFloat(args++);
+    target = nowScene->GetCharacter(nowMonster->target_no);
     if (target == NULL) {
         return 0;
     }
-    target->GetPosition(pos);
-    offset.v[0] = 0.0f;
-    offset.v[1] = 0.0f;
-    offset.z = 0x3F800000;
-    sceVu0Normalize(offset.v, offset.v);
+    target->GetPosition(position);
+    direction[0] = 0.0f;
+    direction[1] = 0.0f;
+    direction[2] = 1.0f;
+    sceVu0Normalize(direction, direction);
     sceVu0UnitMatrix(matrix);
     sceVu0RotMatrixY(matrix, matrix, angle);
-    sceVu0ApplyMatrix(offset.v, matrix, offset.v);
-    sceVu0ScaleVector(offset.v, offset.v, distance);
-    sceVu0AddVector(pos, pos, offset.v);
-    SetStack__FP12RS_STACKDATAf(stack++, pos[0]);
-    SetStack__FP12RS_STACKDATAf(stack++, pos[1]);
-    SetStack__FP12RS_STACKDATAf(stack, pos[2]);
+    sceVu0ApplyMatrix(direction, matrix, direction);
+    sceVu0ScaleVector(direction, direction, distance);
+    sceVu0AddVector(position, position, direction);
+    SetStack(args++, position[0]);
+    SetStack(args++, position[1]);
+    SetStack(args, position[2]);
     return 1;
 }
+
 #ifdef NONMATCHING
+/**
+ * Classifies a position's direction relative to the monster's facing.
+ */
 static int _GET_REF_DIR(RS_STACKDATA *args, int argc) {
     sceVu0FVECTOR target_position;
     sceVu0FVECTOR position;
@@ -1764,14 +2657,14 @@ static int _GET_REF_DIR(RS_STACKDATA *args, int argc) {
     if (argc < 4 || argc > 5) {
         return 0;
     }
-    target_position[0] = GetStackFloat__FP12RS_STACKDATA(args++);
-    target_position[1] = GetStackFloat__FP12RS_STACKDATA(args++);
-    target_position[2] = GetStackFloat__FP12RS_STACKDATA(args++);
+    target_position[0] = GetStackFloat(args++);
+    target_position[1] = GetStackFloat(args++);
+    target_position[2] = GetStackFloat(args++);
     target_position[3] = 1.0f;
-    distance = GetStackFloat__FP12RS_STACKDATA(args++);
+    distance = GetStackFloat(args++);
     nowMonster->GetPosition(position);
     if (mgDistVector(position, target_position) < distance) {
-        SetStack__FP12RS_STACKDATAi(args++, 0);
+        SetStack(args++, 0);
     }
     sceVu0SubVector(target_position, target_position, position);
     sceVu0Normalize(target_position, target_position);
@@ -1794,51 +2687,68 @@ static int _GET_REF_DIR(RS_STACKDATA *args, int argc) {
     if (angle > 0.8f && angle < 3.0f) {
         direction = 4;
     }
-    SetStack__FP12RS_STACKDATAi(args, direction);
+    SetStack(args, direction);
     return 1;
 }
 #else
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/runscript_opcodes", _GET_REF_DIR__FP12RS_STACKDATAi);
 #endif
-int _GET_REFANGLE_POS(RS_STACKDATA *stack, int argc) {
-    float matrix[4][4];
-    float pos[4];
-    float offset[4];
+
+/**
+ * Writes a position offset from the monster's facing by an angle and distance.
+ */
+static int _GET_REFANGLE_POS(RS_STACKDATA *args, int argc) {
+    sceVu0FMATRIX matrix;
+    sceVu0FVECTOR position;
+    sceVu0FVECTOR direction;
+    float         angle;
+    float         distance;
+
     if (argc != 5) {
         return 0;
     }
-    float angle = GetStackFloat__FP12RS_STACKDATA(stack++);
-    float distance = GetStackFloat__FP12RS_STACKDATA(stack++);
-    ((CActionChara *)nowMonster)->GetPosition(pos);
-    sceVu0CopyVector(offset, nowMonster->front_vec);
-    sceVu0Normalize(offset, offset);
+    angle = GetStackFloat(args++);
+    distance = GetStackFloat(args++);
+    nowMonster->GetPosition(position);
+    sceVu0CopyVector(direction, nowMonster->front_vec);
+    sceVu0Normalize(direction, direction);
     sceVu0UnitMatrix(matrix);
     sceVu0RotMatrixY(matrix, matrix, angle);
-    sceVu0ApplyMatrix(offset, matrix, offset);
-    sceVu0ScaleVector(offset, offset, distance);
-    sceVu0AddVector(pos, pos, offset);
-    SetStack__FP12RS_STACKDATAf(stack++, pos[0]);
-    SetStack__FP12RS_STACKDATAf(stack++, pos[1]);
-    SetStack__FP12RS_STACKDATAf(stack, pos[2]);
+    sceVu0ApplyMatrix(direction, matrix, direction);
+    sceVu0ScaleVector(direction, direction, distance);
+    sceVu0AddVector(position, position, direction);
+    SetStack(args++, position[0]);
+    SetStack(args++, position[1]);
+    SetStack(args, position[2]);
     return 1;
 }
-extern "C" int _GET_REF_ANGLE__FP12RS_STACKDATAi(RS_STACKDATA *stack, int argc) {
-    float self_pos[4];
-    ScriptVec target;
+
+/**
+ * Writes the world angle from the monster to a script position.
+ */
+static int _GET_REF_ANGLE(RS_STACKDATA *args, int argc) {
+    sceVu0FVECTOR position;
+    sceVu0FVECTOR target_position;
+
     if (argc != 4) {
         return 0;
     }
-    target.v[0] = GetStackFloat__FP12RS_STACKDATA(stack++);
-    target.v[1] = GetStackFloat__FP12RS_STACKDATA(stack++);
-    target.v[2] = GetStackFloat__FP12RS_STACKDATA(stack++);
-    target.w = 0x3F800000;
-    ((CActionChara *)nowMonster)->GetPosition(self_pos);
-    sceVu0SubVector(target.v, target.v, self_pos);
-    SetStack__FP12RS_STACKDATAf(stack, atan2f(target.v[0], target.v[2]));
+    target_position[0] = GetStackFloat(args++);
+    target_position[1] = GetStackFloat(args++);
+    target_position[2] = GetStackFloat(args++);
+    target_position[3] = 1.0f;
+    nowMonster->GetPosition(position);
+    sceVu0SubVector(target_position, target_position, position);
+    SetStack(args, atan2f(target_position[0], target_position[2]));
     return 1;
 }
-int _GET_HIGH(RS_STACKDATA *stack, int argc) {
+
+/**
+ * Writes the monster's height above the ground, or zero when landed.
+ */
+static int _GET_HIGH(RS_STACKDATA *args, int argc) {
     float height;
+
     if (argc != 1) {
         return 0;
     }
@@ -1847,140 +2757,191 @@ int _GET_HIGH(RS_STACKDATA *stack, int argc) {
     } else {
         height = nowMonster->height;
     }
-    SetStack__FP12RS_STACKDATAf(stack, height);
+    SetStack(args, height);
     return 1;
 }
-int _GET_ACTIVE_MONS_POS(RS_STACKDATA *stack, int argc) {
-    float pos[4];
-    float self_pos[4];
+
+/**
+ * Writes a scene monster's position and optionally its distance from the running monster.
+ */
+static int _GET_ACTIVE_MONS_POS(RS_STACKDATA *args, int argc) {
+    sceVu0FVECTOR   target_position;
+    sceVu0FVECTOR   position;
+    CActiveMonster *monster;
+    int             chara_no;
+
     if (argc < 4 || argc > 5) {
         return 0;
     }
-    int id = GetStackInt__FP12RS_STACKDATA(stack++);
-    id -= 24;
-    CActionChara *monster = (CActionChara *)ActiveMonster->active[id];
+    chara_no = GetStackInt(args++);
+    chara_no -= MONSTER_ACTIVE_MAX;
+    monster = ActiveMonster->active[chara_no];
     if (monster == NULL) {
         return 0;
     }
-    monster->GetPosition(pos);
-    SetStack__FP12RS_STACKDATAf(stack++, pos[0]);
-    SetStack__FP12RS_STACKDATAf(stack++, pos[1]);
-    SetStack__FP12RS_STACKDATAf(stack++, pos[2]);
+    monster->GetPosition(target_position);
+    SetStack(args++, target_position[0]);
+    SetStack(args++, target_position[1]);
+    SetStack(args++, target_position[2]);
     if (argc == 5) {
-        ((CActionChara *)nowMonster)->GetPosition(self_pos);
-        SetStack__FP12RS_STACKDATAf(stack, mgDistVector(pos, self_pos));
+        nowMonster->GetPosition(position);
+        SetStack(args, mgDistVector(target_position, position));
     }
     return 1;
 }
-int _GET_ACTIVE_MONS_ROT(RS_STACKDATA *stack, int argc) {
-    float rot[4];
+
+/**
+ * Writes a scene monster's rotation to the script.
+ */
+static int _GET_ACTIVE_MONS_ROT(RS_STACKDATA *args, int argc) {
+    sceVu0FVECTOR   rotation;
+    CActiveMonster *monster;
+    int             chara_no;
+
     if (argc != 4) {
         return 0;
     }
-    int id = GetStackInt__FP12RS_STACKDATA(stack++);
-    id -= 24;
-    CActionChara *monster = (CActionChara *)ActiveMonster->active[id];
+    chara_no = GetStackInt(args++);
+    chara_no -= MONSTER_ACTIVE_MAX;
+    monster = ActiveMonster->active[chara_no];
     if (monster == NULL) {
         return 0;
     }
-    monster->GetRotation(rot);
-    SetStack__FP12RS_STACKDATAf(stack++, rot[0]);
-    SetStack__FP12RS_STACKDATAf(stack++, rot[1]);
-    SetStack__FP12RS_STACKDATAf(stack, rot[2]);
+    monster->GetRotation(rotation);
+    SetStack(args++, rotation[0]);
+    SetStack(args++, rotation[1]);
+    SetStack(args, rotation[2]);
     return 1;
 }
-int _GET_ACTIVE_MONS_DIST(RS_STACKDATA *stack, int argc) {
-    float self_pos[4];
-    float other_pos[4];
+
+/**
+ * Writes the distance from the running monster to a scene monster.
+ */
+static int _GET_ACTIVE_MONS_DIST(RS_STACKDATA *args, int argc) {
+    sceVu0FVECTOR   position;
+    sceVu0FVECTOR   target_position;
+    CActiveMonster *monster;
+    int             chara_no;
+
     if (argc != 2) {
         return 0;
     }
-    int id = GetStackInt__FP12RS_STACKDATA(stack++);
-    id -= 24;
-    CActionChara *other = (CActionChara *)ActiveMonster->active[id];
-    if (other == NULL) {
-        return 0;
-    }
-    ((CActionChara *)nowMonster)->GetPosition(self_pos);
-    other->GetPosition(other_pos);
-    SetStack__FP12RS_STACKDATAf(stack, mgDistVector(other_pos, self_pos));
-    return 1;
-}
-int _GET_ACTIVE_MONS_ANGLE(RS_STACKDATA *stack, int argc) {
-    float rot[4];
-    if (argc != 2) {
-        return 0;
-    }
-    int id = GetStackInt__FP12RS_STACKDATA(stack++);
-    id -= 24;
-    CActionChara *monster = (CActionChara *)ActiveMonster->active[id];
+    chara_no = GetStackInt(args++);
+    chara_no -= MONSTER_ACTIVE_MAX;
+    monster = ActiveMonster->active[chara_no];
     if (monster == NULL) {
         return 0;
     }
-    monster->GetRotation(rot);
-    SetStack__FP12RS_STACKDATAf(stack, rot[1]);
+    nowMonster->GetPosition(position);
+    monster->GetPosition(target_position);
+    SetStack(args, mgDistVector(target_position, position));
     return 1;
 }
-extern "C" int _GET_REF_ROT__FP12RS_STACKDATAi(RS_STACKDATA *stack, int argc) {
-    float self_pos[4];
-    float target[4];
-    float rot[4];
+
+/**
+ * Writes the yaw of a scene monster to the script.
+ */
+static int _GET_ACTIVE_MONS_ANGLE(RS_STACKDATA *args, int argc) {
+    sceVu0FVECTOR   rotation;
+    CActiveMonster *monster;
+    int             chara_no;
+
+    if (argc != 2) {
+        return 0;
+    }
+    chara_no = GetStackInt(args++);
+    chara_no -= MONSTER_ACTIVE_MAX;
+    monster = ActiveMonster->active[chara_no];
+    if (monster == NULL) {
+        return 0;
+    }
+    monster->GetRotation(rotation);
+    SetStack(args, rotation[1]);
+    return 1;
+}
+
+/**
+ * Writes the pitch and yaw that face a script position from the monster.
+ */
+static int _GET_REF_ROT(RS_STACKDATA *args, int argc) {
+    sceVu0FVECTOR position;
+    sceVu0FVECTOR direction;
+    sceVu0FVECTOR rotation;
+
     if (argc != 6) {
         return 0;
     }
-    GetStackVector__FPfPP12RS_STACKDATA(target, &stack);
-    ((CActionChara *)nowMonster)->GetPosition(self_pos);
-    sceVu0SubVector(target, target, self_pos);
-    sceVu0Normalize(target, target);
-    rot[1] = atan2f(target[0], target[2]);
-    rot[0] = -atan2f(target[1], sqrtf(target[0] * target[0] + target[2] * target[2]));
-    rot[2] = 0;
-    SetStackVector__FPfPP12RS_STACKDATA(rot, &stack);
+    GetStackVector(direction, &args);
+    nowMonster->GetPosition(position);
+    sceVu0SubVector(direction, direction, position);
+    sceVu0Normalize(direction, direction);
+    rotation[1] = atan2f(direction[0], direction[2]);
+    rotation[0] = -atan2f(direction[1], sqrtf(direction[0] * direction[0] + direction[2] * direction[2]));
+    rotation[2] = 0.0f;
+    SetStackVector(rotation, &args);
     return 1;
 }
-int _GET_REF_ROT2(RS_STACKDATA *stack, int argc) {
-    float start[4];
-    float target[4];
+
+/**
+ * Writes the yaw or normalised direction between two script positions.
+ */
+static int _GET_REF_ROT2(RS_STACKDATA *args, int argc) {
+    sceVu0FVECTOR position;
+    sceVu0FVECTOR direction;
+    float         yaw;
+
     if (argc != 7 && argc != 9) {
         return 0;
     }
-    GetStackVector__FPfPP12RS_STACKDATA(target, &stack);
-    GetStackVector__FPfPP12RS_STACKDATA(start, &stack);
-    sceVu0SubVector(target, target, start);
-    sceVu0Normalize(target, target);
-    float yaw = atan2f(target[0], target[2]);
-    atan2f(target[1], sqrtf(target[0] * target[0] + target[2] * target[2]));
+    GetStackVector(direction, &args);
+    GetStackVector(position, &args);
+    sceVu0SubVector(direction, direction, position);
+    sceVu0Normalize(direction, direction);
+    yaw = atan2f(direction[0], direction[2]);
+    atan2f(direction[1], sqrtf(direction[0] * direction[0] + direction[2] * direction[2]));
     if (argc == 7) {
-        SetStack__FP12RS_STACKDATAf(stack++, yaw);
+        SetStack(args++, yaw);
     }
     if (argc == 9) {
-        SetStackVector__FPfPP12RS_STACKDATA(target, &stack);
+        SetStackVector(direction, &args);
     }
     return 1;
 }
-int _FLYING_SEARCH_AREA(RS_STACKDATA *stack, int argc) {
-    ScriptVector dir;
-    float pos[4];
-    float rot[4];
-    float matrix[4][4];
+
+/**
+ * Reports the map distance from the monster along a horizontal angle.
+ */
+static int _FLYING_SEARCH_AREA(RS_STACKDATA *args, int argc) {
+    static ScriptVector initial_direction = { { 0.0f, 0.0f, 1.0f, 0.0f } };
+    ScriptVector direction;
+    sceVu0FVECTOR position;
+    sceVu0FVECTOR rotation;
+    sceVu0FMATRIX matrix;
+    float         distance;
+    float         angle;
+
     if (argc != 3) {
         return 0;
     }
-    float distance = GetStackFloat__FP12RS_STACKDATA(stack++);
-    float angle = GetStackFloat__FP12RS_STACKDATA(stack++);
-    dir = at_2160;
-    ((CActionChara *)nowMonster)->GetPosition(pos);
-    ((CActionChara *)nowMonster)->GetRotation(rot);
-    rot[1] = mgAngleLimit(angle);
+    distance = GetStackFloat(args++);
+    angle = GetStackFloat(args++);
+    direction = initial_direction;
+    nowMonster->GetPosition(position);
+    nowMonster->GetRotation(rotation);
+    rotation[1] = mgAngleLimit(angle);
     sceVu0UnitMatrix(matrix);
-    sceVu0RotMatrixY(matrix, matrix, rot[1]);
-    sceVu0ApplyMatrix(dir.f, matrix, dir.f);
-    sceVu0ScaleVector(dir.f, dir.f, distance);
-    sceVu0AddVector(dir.f, dir.f, pos);
-    SetStack__FP12RS_STACKDATAf(stack, SearchArea(nowScene, pos, dir.f, distance));
+    sceVu0RotMatrixY(matrix, matrix, rotation[1]);
+    sceVu0ApplyMatrix(direction.values, matrix, direction.values);
+    sceVu0ScaleVector(direction.values, direction.values, distance);
+    sceVu0AddVector(direction.values, direction.values, position);
+    SetStack(args, SearchArea(nowScene, position, direction.values, distance));
     return 1;
 }
+
 #ifdef NONMATCHING
+/**
+ * Writes the height above the nearest map polygon below a script position.
+ */
 static int _GET_HIGH2(RS_STACKDATA *args, int argc) {
     CCPoly        polygons[128];
     sceVu0FVECTOR position;
@@ -1995,7 +2956,7 @@ static int _GET_HIGH2(RS_STACKDATA *args, int argc) {
     if (argc != 4) {
         return 0;
     }
-    GetStackVector__FPfPP12RS_STACKDATA(position, &args);
+    GetStackVector(position, &args);
     map = nowScene->GetMap(nowScene->active_map);
     if (map == NULL) {
         return 0;
@@ -2018,108 +2979,152 @@ static int _GET_HIGH2(RS_STACKDATA *args, int argc) {
     } else {
         height = -3.4028235e38f;
     }
-    SetStack__FP12RS_STACKDATAf(args++, height);
+    SetStack(args++, height);
     return 1;
 }
 #else
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/runscript_opcodes", _GET_HIGH2__FP12RS_STACKDATAi);
 #endif
-int _GET_RANGE_MONS_ID(RS_STACKDATA *stack, int argc) {
-    RangeEntry entries[24];
-    float self_pos[4];
-    float other_pos[4];
-    int i;
-    int j;
-    int count;
-    RangeEntry *entry = entries;
+
+/**
+ * Writes the scene number of a ranked monster within a script distance.
+ */
+static int _GET_RANGE_MONS_ID(RS_STACKDATA *args, int argc) {
+    /**
+     * Pairs a nearby monster's distance with its scene number.
+     */
+    struct MONSTER_RANGE_ENTRY {
+        float distance; /**< Distance from the running monster. */
+        int   no;       /**< Scene number of the monster. */
+    };
+    MONSTER_RANGE_ENTRY nearby[MONSTER_ACTIVE_MAX];
+    sceVu0FVECTOR       position;
+    sceVu0FVECTOR       target_position;
+    int                 i;
+    int                 monster_index;
+    int                 j;
+    int                 count;
+    MONSTER_RANGE_ENTRY *entry;
+    float               range;
+    int                 rank;
+    CActionChara       *monster;
+    float               distance;
+    float               swap_distance;
+    int                 swap_no;
+
+    entry = nearby;
     do {
         entry->distance = -1.0f;
-        entry->id = -1;
+        entry->no = -1;
         entry++;
-    } while (entry < entries + 24);
-    float range = GetStackFloat__FP12RS_STACKDATA(stack++);
-    int rank = GetStackInt__FP12RS_STACKDATA(stack++);
-    nowMonster->GetPosition(self_pos);
-    mgZeroVector(other_pos);
-    for (i = 0, count = 0; i < 24; i++) {
-        CActiveMonster *other;
-        if ((other = (CActiveMonster *)nowScene->GetCharacter(i + 24)) != NULL &&
-            other->chara_kind == 2 && nowMonster->chara_type != other->chara_type) {
-            other->GetPosition(other_pos);
-            float distance = mgDistVector(self_pos, other_pos);
+    } while (entry < nearby + MONSTER_ACTIVE_MAX);
+    range = GetStackFloat(args++);
+    rank = GetStackInt(args++);
+    nowMonster->GetPosition(position);
+    mgZeroVector(target_position);
+    for (monster_index = 0, count = 0; monster_index < MONSTER_ACTIVE_MAX; monster_index++) {
+        if ((monster = (CActionChara *)nowScene->GetCharacter(
+                 monster_index + MONSTER_ACTIVE_MAX)) != NULL &&
+            monster->chara_kind == ACTION_KIND_SCRIPT &&
+            nowMonster->chara_type != monster->chara_type) {
+            monster->GetPosition(target_position);
+            distance = mgDistVector(position, target_position);
             if (distance <= range) {
-                entries[count].distance = distance;
-                entries[count].id = other->chara_type;
+                nearby[count].distance = distance;
+                nearby[count].no = monster->chara_type;
                 count++;
             }
         }
     }
-    for (int m = 0; m < count - 1; m++) {
-        for (int n = m + 1; n < count; n++) {
-            float first_distance = entries[m].distance;
-            float second_distance = entries[n].distance;
-            RangeEntry *first = &entries[m];
-            RangeEntry *second = &entries[n];
-            if (!(first_distance <= second_distance)) {
-                int id = first->id;
-                first->distance = second_distance;
-                first->id = second->id;
-                second->distance = first_distance;
-                second->id = id;
+    for (i = 0; i < count - 1; i++) {
+        for (j = i + 1; j < count; j++) {
+            if (nearby[i].distance > nearby[j].distance) {
+                swap_distance = nearby[i].distance;
+                swap_no = nearby[i].no;
+                nearby[i].distance = nearby[j].distance;
+                nearby[i].no = nearby[j].no;
+                nearby[j].distance = swap_distance;
+                nearby[j].no = swap_no;
             }
         }
     }
-    SetStack__FP12RS_STACKDATAi(stack, entries[rank].id);
+    SetStack(args, nearby[rank].no);
     return 1;
 }
-int _GET_ENTRY_OBJ_POS(RS_STACKDATA *stack, int argc) {
-    float pos[4];
+
+/**
+ * Writes an entered object's position from the running monster or a scene monster.
+ */
+static int _GET_ENTRY_OBJ_POS(RS_STACKDATA *args, int argc) {
+    sceVu0FVECTOR   position;
+    CActiveMonster *monster;
+    int             no;
+    int             object;
+
     if (argc != 5) {
         return 0;
     }
-    int id = GetStackInt__FP12RS_STACKDATA(stack++);
-    int entry_index = GetStackInt__FP12RS_STACKDATA(stack++);
-    CCharacter2 *monster;
-    if (id != -1) {
-        id -= 24;
-        CActiveMonster **slots = ActiveMonster->active;
-        monster = (CCharacter2 *)ActiveMonster->active[id];
+    no = GetStackInt(args++);
+    object = GetStackInt(args++);
+    if (no != -1) {
+        no -= MONSTER_ACTIVE_MAX;
+        monster = ActiveMonster->active[no];
         if (monster == NULL) {
             return 0;
         }
     } else {
-        monster = (CCharacter2 *)nowMonster;
+        monster = nowMonster;
     }
-    monster->GetEntryObjectPos(entry_index, pos);
-    SetStackVector__FPfPP12RS_STACKDATA(pos, &stack);
+    monster->GetEntryObjectPos(object, position);
+    SetStackVector(position, &args);
     return 1;
 }
-extern "C" int _BLOW_START__FP12RS_STACKDATAi(RS_STACKDATA *stack, int argc) {
+
+/**
+ * Starts the monster's knock-back with the script's speed, deceleration and duration.
+ */
+static int _BLOW_START(RS_STACKDATA *args, int argc) {
     if (argc != 3) {
         return 0;
     }
-    nowMonster->blow_speed = GetStackFloat__FP12RS_STACKDATA(stack++);
-    nowMonster->blow_speed = nowMonster->blow_speed * nowMonster->blow_rate;
-    nowMonster->blow_decel = GetStackFloat__FP12RS_STACKDATA(stack++);
-    nowMonster->blow_time = GetStackInt__FP12RS_STACKDATA(stack);
+    nowMonster->blow_speed = GetStackFloat(args++);
+    nowMonster->blow_speed *= nowMonster->blow_rate;
+    nowMonster->blow_decel = GetStackFloat(args++);
+    nowMonster->blow_time = GetStackInt(args);
     return 1;
 }
-int _SET_ACT_STATUS(RS_STACKDATA *stack, int argc) {
+
+/**
+ * Sets the action status that other scripts read from the monster.
+ */
+static int _SET_ACT_STATUS(RS_STACKDATA *args, int argc) {
     if (argc != 1) {
         return 0;
     }
-    nowMonster->now_status = GetStackInt__FP12RS_STACKDATA(stack);
+    nowMonster->now_status = GetStackInt(args);
     return 1;
 }
-int _SET_INT_FLAG(RS_STACKDATA *stack, int argc) {
+
+/**
+ * Sets or clears the monster's script mask flags.
+ */
+static int _SET_INT_FLAG(RS_STACKDATA *args, int argc) {
+    int mask;
+    int enabled;
+
     if (argc != 2) {
         return 0;
     }
-    int flag = GetStackInt__FP12RS_STACKDATA(stack++);
-    ((CActionChara *)nowMonster)->SetMaskFlag(flag, GetStackInt__FP12RS_STACKDATA(stack));
+    mask = GetStackInt(args++);
+    enabled = GetStackInt(args);
+    nowMonster->SetMaskFlag(mask, enabled);
     return 1;
 }
+
 #ifdef NONMATCHING
+/**
+ * Starts the monster's death and scatters its money, badge and item drops.
+ */
 static int _SET_DEAD_START(RS_STACKDATA *args, int argc) {
     sceVu0FVECTOR     position;
     sceVu0FVECTOR     velocity;
@@ -2250,7 +3255,11 @@ static int _SET_DEAD_START(RS_STACKDATA *args, int argc) {
 #else
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/runscript_opcodes", _SET_DEAD_START__FP12RS_STACKDATAi);
 #endif
+
 #ifdef NONMATCHING
+/**
+ * Starts the monster's death fade, death clouds and weapon-growth pickups.
+ */
 static int _SET_DEAD_OFF(RS_STACKDATA *args, int argc) {
     sceVu0FVECTOR position;
     sceVu0FVECTOR velocity;
@@ -2352,122 +3361,168 @@ static int _SET_DEAD_OFF(RS_STACKDATA *args, int argc) {
 #else
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/runscript_opcodes", _SET_DEAD_OFF__FP12RS_STACKDATAi);
 #endif
-int _SET_SHROW_END(RS_STACKDATA *stack, int argument_count) {
+
+s32 _SET_SHROW_END(RS_STACKDATA *stack, s32 argument_count) {
     if (argument_count != 0) return 0;
     nowMonster->catch_state = 0;
     return 1;
 }
-extern "C" int _SET_MOS__FP12RS_STACKDATAi(RS_STACKDATA *stack, int argc) {
-    RS_STACKDATA *next = stack;
-    int flag = 0;
-    char *name = NULL;
-    float step = -1.0f;
 
-    if (argc <= 0 || argc > 3) {
-    return 0;
-}
+/**
+ * Starts a named motion on the monster with optional speed and playback flags.
+ */
+static int _SET_MOS(RS_STACKDATA *args, int argc) {
+    char *name;
+    float speed;
+    int   flags;
+
+    speed = -1.0f;
+    name = NULL;
+    flags = 0;
+    if (argc < 1 || argc > 3) {
+        return 0;
+    }
     if (argc > 0) {
-        name = GetStackString__FP12RS_STACKDATA(next++);
+        name = GetStackString(args++);
     }
     if (argc >= 2) {
-        step = GetStackFloat__FP12RS_STACKDATA(next++);
+        speed = GetStackFloat(args++);
     }
     if (argc == 3) {
-        flag = GetStackInt__FP12RS_STACKDATA(next);
+        flags = GetStackInt(args);
     }
     if (name == NULL) {
-    return 0;
-}
-    ((CActionChara *)nowMonster)->SetMotion(name, flag, 1);
-    if (step > 0.0f) {
-        ((CActionChara *)nowMonster)->SetStep(step);
+        return 0;
+    }
+    nowMonster->SetMotion(name, flags, 1);
+    if (speed > 0.0f) {
+        nowMonster->SetStep(speed);
     }
     return 1;
 }
-extern "C" int _CHECK_MOS_END__FP12RS_STACKDATAi(RS_STACKDATA *stack, int argc) {
-    int result;
+
+/**
+ * Reports whether the monster's motion or a named chained part's motion has ended.
+ */
+static int _CHECK_MOS_END(RS_STACKDATA *args, int argc) {
     char *name;
+    int   ended;
+
+    ended = argc;
+    if (argc == 1) {
+        ended = nowMonster->CheckMotionEnd(NULL);
+    }
+    if (argc == 2) {
+        name = GetStackString(args + 1);
+        if (name == NULL) {
+            return 0;
+        }
+        ended = nowMonster->CheckMotionEnd(name);
+    }
+    SetStack(args, ended);
+    return 1;
+}
+
+/**
+ * Writes the motion wait of the monster or a named chained part.
+ */
+static int _NOW_MOS_WAIT(RS_STACKDATA *args, int argc) {
+    char *name;
+    float wait;
 
     if (argc == 1) {
-        result = ((CActionChara *)nowMonster)->CheckMotionEnd(0);
+        wait = nowMonster->GetNowFrameWait(NULL);
     }
     if (argc == 2) {
-        name = GetStackString__FP12RS_STACKDATA(stack + 1);
+        name = GetStackString(args + 1);
         if (name == NULL) {
             return 0;
         }
-        result = ((CActionChara *)nowMonster)->CheckMotionEnd(name);
+        wait = nowMonster->GetNowFrameWait(name);
     }
-    SetStack__FP12RS_STACKDATAi(stack, result);
+    SetStack(args, wait);
     return 1;
 }
-extern "C" int _NOW_MOS_WAIT__FP12RS_STACKDATAi(RS_STACKDATA *stack, int argc) {
-    float wait;
-    if (argc == 1) {
-        wait = ((CActionChara *)nowMonster)->GetNowFrameWait(NULL);
-    }
-    if (argc == 2) {
-        char *name = (char *)GetStackString__FP12RS_STACKDATA(stack + 1);
-        if (name == NULL) {
-            return 0;
-        }
-        wait = ((CActionChara *)nowMonster)->GetNowFrameWait(name);
-    }
-    SetStack__FP12RS_STACKDATAf(stack, wait);
-    return 1;
-}
-extern "C" int _GET_MOS_STATUS__FP12RS_STACKDATAi(RS_STACKDATA *stack, int argc) {
-    int status;
+
+/**
+ * Writes the motion status of the monster or a named chained part.
+ */
+static int _GET_MOS_STATUS(RS_STACKDATA *args, int argc) {
+    char *name;
+    int   status;
+
+    status = argc;
     if (argc == 1) {
         status = nowMonster->GetMotionStatus(NULL);
     }
     if (argc == 2) {
-        char *name = GetStackString__FP12RS_STACKDATA(stack + 1);
+        name = GetStackString(args + 1);
         if (name == NULL) {
             return 0;
         }
         status = nowMonster->GetMotionStatus(name);
     }
-    SetStack__FP12RS_STACKDATAi(stack, status);
+    SetStack(args, status);
     return 1;
 }
-extern "C" int _SET_MUTEKI__FP12RS_STACKDATAi(RS_STACKDATA *stack, int argc) {
+
+/**
+ * Sets the duration for which the monster takes no damage.
+ */
+static int _SET_MUTEKI(RS_STACKDATA *args, int argc) {
     if (argc != 1) {
         return 1;
     }
-    nowMonster->muteki_time = GetStackInt__FP12RS_STACKDATA(stack);
+    nowMonster->muteki_time = GetStackInt(args);
     return 1;
 }
-int _GET_GEKIRIN(RS_STACKDATA *stack, int argc) {
-    if (argc != 1) {
-        return 0;
-    }
-    SetStack__FP12RS_STACKDATAf(stack, nowMonster->gekirin);
-    return 1;
-}
-int _GET_USER_MONS_ID(RS_STACKDATA *stack, int argc) {
-    if (argc != 1) {
-        return 0;
-    }
-    int chara_id = -1;
 
-    if (DngUserData->active_chr_no == 3) {
-        chara_id = GetBattleCharaInfo()->unk_2;
-        if (nowMonster->tbl->user_mons_id != chara_id) {
-            chara_id = -1;
+/**
+ * Writes the monster's remaining hits before rage.
+ */
+static int _GET_GEKIRIN(RS_STACKDATA *args, int argc) {
+    if (argc != 1) {
+        return 0;
+    }
+    SetStack(args, nowMonster->gekirin);
+    return 1;
+}
+
+/**
+ * Writes the player's transformation number when it is this monster's kind.
+ */
+static int _GET_USER_MONS_ID(RS_STACKDATA *args, int argc) {
+    int monster_id;
+
+    if (argc != 1) {
+        return 0;
+    }
+    monster_id = -1;
+    if (DngUserData->active_chr_no == USER_CHARA_MONSTER) {
+        monster_id = GetBattleCharaInfo()->unk_2;
+        if (nowMonster->tbl->user_mons_id != monster_id) {
+            monster_id = -1;
         }
     }
-    SetStack__FP12RS_STACKDATAi(stack, chara_id);
+    SetStack(args, monster_id);
     return 1;
 }
-int _GET_PRIORITY(RS_STACKDATA *stack, int argc) {
+
+/**
+ * Writes the monster's rank by distance to its target.
+ */
+static int _GET_PRIORITY(RS_STACKDATA *args, int argc) {
     if (argc != 1) {
         return 0;
     }
-    SetStack__FP12RS_STACKDATAi(stack, nowMonster->priority);
+    SetStack(args, (int)nowMonster->priority);
     return 1;
 }
+
 #ifdef NONMATCHING
+/**
+ * Places a monster of a loaded kind with optional position and rotation.
+ */
 static int _CREATE_MONSTER(RS_STACKDATA *args, int argc) {
     sceVu0FVECTOR   position;
     sceVu0FVECTOR   rotation;
@@ -2479,18 +3534,18 @@ static int _CREATE_MONSTER(RS_STACKDATA *args, int argc) {
     position[3] = 1.0f;
     mgZeroVector(rotation);
     rotation[3] = 1.0f;
-    id = GetStackInt__FP12RS_STACKDATA(args++);
+    id = GetStackInt(args++);
     if (argc >= 2) {
-        position[0] = GetStackFloat__FP12RS_STACKDATA(args++);
-        position[1] = GetStackFloat__FP12RS_STACKDATA(args++);
-        position[2] = GetStackFloat__FP12RS_STACKDATA(args++);
+        position[0] = GetStackFloat(args++);
+        position[1] = GetStackFloat(args++);
+        position[2] = GetStackFloat(args++);
     }
     if (argc == 5) {
-        rotation[1] = GetStackFloat__FP12RS_STACKDATA(args);
+        rotation[1] = GetStackFloat(args);
     } else if (argc == 7) {
-        rotation[0] = GetStackFloat__FP12RS_STACKDATA(args++);
-        rotation[1] = GetStackFloat__FP12RS_STACKDATA(args++);
-        rotation[2] = GetStackFloat__FP12RS_STACKDATA(args);
+        rotation[0] = GetStackFloat(args++);
+        rotation[1] = GetStackFloat(args++);
+        rotation[2] = GetStackFloat(args);
     }
     index = ActiveMonster->SearchBaseIndex(id);
     if (index < 0) {
@@ -2503,91 +3558,143 @@ static int _CREATE_MONSTER(RS_STACKDATA *args, int argc) {
 #else
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/runscript_opcodes", _CREATE_MONSTER__FP12RS_STACKDATAi);
 #endif
-int _SET_CLIP_DIST(RS_STACKDATA *stack, int argc) {
+
+/**
+ * Sets the distance within which the monster is visible in units of twenty.
+ */
+static int _SET_CLIP_DIST(RS_STACKDATA *args, int argc) {
     if (argc != 1) {
         return 0;
     }
-    nowMonster->clip_dist = 20.0f * GetStackFloat__FP12RS_STACKDATA(stack);
+    nowMonster->clip_dist = 20.0f * GetStackFloat(args);
     return 1;
 }
-int _SET_COLLISION(RS_STACKDATA *stack, int argc) {
+
+s32 _SET_COLLISION(RS_STACKDATA *stack, int argc) {
     return 0;
 }
-int _SET_GRAVITY(RS_STACKDATA *stack, int argc) {
+s32 _SET_GRAVITY(RS_STACKDATA *stack, int argc) {
     return 0;
 }
-int _SET_ATTRIB(RS_STACKDATA *stack, int argc) {
+
+/**
+ * Sets or clears the monster's behaviour flags.
+ */
+static int _SET_ATTRIB(RS_STACKDATA *args, int argc) {
+    int flags;
+
     if (argc != 2) {
-    return 0;
+        return 0;
     }
-    int mask = GetStackInt__FP12RS_STACKDATA(stack++);
-    if (GetStackInt__FP12RS_STACKDATA(stack)) {
-        nowMonster->attrib |= mask;
+    flags = GetStackInt(args++);
+    if (GetStackInt(args) != 0) {
+        nowMonster->attrib |= flags;
     } else {
-        nowMonster->attrib &= ~mask;
+        nowMonster->attrib &= ~flags;
     }
     return 1;
 }
-int _GET_SCALE(RS_STACKDATA *stack, int argc) {
-    float scale[4];
+
+/**
+ * Writes the monster's scale to three script variables.
+ */
+static int _GET_SCALE(RS_STACKDATA *args, int argc) {
+    sceVu0FVECTOR scale;
+
     if (argc != 3) {
         return 0;
     }
-    ((CActionChara *)nowMonster)->GetScale(scale);
-    SetStackVector__FPfPP12RS_STACKDATA(scale, &stack);
+    nowMonster->GetScale(scale);
+    SetStackVector(scale, &args);
     return 1;
 }
-int _GET_MONS_WIDTH(RS_STACKDATA *stack, int argc) {
+
+/**
+ * Writes the monster's movement radius, using the default for a nonpositive radius.
+ */
+static int _GET_MONS_WIDTH(RS_STACKDATA *args, int argc) {
+    float radius;
+
     if (argc != 1 || nowMonster == NULL) {
-    return 0;
+        return 0;
     }
-    float width = nowMonster->mons_move_check.radius;
-    SetStack__FP12RS_STACKDATAf(stack, width <= 0.0 ? 15.0 : width);
+    radius = nowMonster->mons_move_check.radius;
+    SetStack(args, (float)(radius <= 0.0 ? 15.0 : (double)radius));
     return 1;
 }
-extern "C" int _ESM_CREATE__FP12RS_STACKDATAi(RS_STACKDATA *stack, int argc) {
-    char *name = GetStackString__FP12RS_STACKDATA(stack++);
-    int group = nowMonster->chara_type;
-    int slot;
+
+/**
+ * Starts a named effect for the monster and optionally returns its slot.
+ */
+static int _ESM_CREATE(RS_STACKDATA *args, int argc) {
+    char *name;
+    int   user_id;
+    int   slot;
+
+    name = GetStackString(args++);
+    user_id = nowMonster->chara_type;
     switch (argc) {
         case 1:
-            ActiveMonster->effect_man->CreateEffSpt(name, group, 0);
+            ActiveMonster->effect_man->CreateEffSpt(name, user_id, 0);
             break;
         case 2:
-            slot = ActiveMonster->effect_man->CreateEffSpt(name, group, 1);
+            slot = ActiveMonster->effect_man->CreateEffSpt(name, user_id, 1);
             if (slot <= -1) {
                 return 0;
             }
-            SetStack__FP12RS_STACKDATAi(stack, slot);
+            SetStack(args, slot);
             break;
     }
     return 1;
 }
-extern "C" void _ESM_FINISH__FP12RS_STACKDATAi(RS_STACKDATA *stack, int argc) {
-    int effect_id = nowMonster->chara_type;
-    ActiveMonster->effect_man->SetScriptProgNo(300, effect_id,
-                                                    GetStackInt__FP12RS_STACKDATA(stack));
+
+/**
+ * Starts the finishing program of one of the monster's effects.
+ */
+static int _ESM_FINISH(RS_STACKDATA *args, int argc) {
+    int user_id;
+    int slot;
+
+    user_id = nowMonster->chara_type;
+    slot = GetStackInt(args);
+    return ActiveMonster->effect_man->SetScriptProgNo(300, user_id, slot);
 }
-extern "C" void _ESM_DELETE__FP12RS_STACKDATAi(RS_STACKDATA *stack, int argc) {
-    int effect_id = nowMonster->chara_type;
-    ActiveMonster->effect_man->DeleteEffSpt(effect_id, GetStackInt__FP12RS_STACKDATA(stack));
+
+/**
+ * Deletes one of the monster's effects.
+ */
+static int _ESM_DELETE(RS_STACKDATA *args, int argc) {
+    int user_id;
+    int slot;
+
+    user_id = nowMonster->chara_type;
+    slot = GetStackInt(args);
+    return ActiveMonster->effect_man->DeleteEffSpt(user_id, slot);
 }
+
 #ifdef NONMATCHING
+/**
+ * Sets the first work vector of one of the monster's effects.
+ */
 static int _ESM_SET_VECT1(RS_STACKDATA *args, int argc) {
     sceVu0FVECTOR vector;
     int           slot;
 
-    slot = GetStackInt__FP12RS_STACKDATA(args++);
-    vector[0] = GetStackFloat__FP12RS_STACKDATA(args++);
-    vector[1] = GetStackFloat__FP12RS_STACKDATA(args++);
-    vector[2] = GetStackFloat__FP12RS_STACKDATA(args);
+    slot = GetStackInt(args++);
+    vector[0] = GetStackFloat(args++);
+    vector[1] = GetStackFloat(args++);
+    vector[2] = GetStackFloat(args);
     vector[3] = 1.0f;
     return ActiveMonster->effect_man->SetScriptVect1(vector, nowMonster->chara_type, slot);
 }
 #else
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/runscript_opcodes", _ESM_SET_VECT1__FP12RS_STACKDATAi);
 #endif
+
 #ifdef NONMATCHING
+/**
+ * Writes the first work vector of one of the monster's effects to script variables.
+ */
 static int _ESM_GET_VECT1(RS_STACKDATA *args, int argc) {
     sceVu0FVECTOR vector;
     int           slot;
@@ -2596,17 +3703,21 @@ static int _ESM_GET_VECT1(RS_STACKDATA *args, int argc) {
     if (argc != 4) {
         return 0;
     }
-    slot = GetStackInt__FP12RS_STACKDATA(args++);
+    slot = GetStackInt(args++);
     result = ActiveMonster->effect_man->GetScriptVect1(vector, nowMonster->chara_type, slot);
-    SetStack__FP12RS_STACKDATAf(args++, vector[0]);
-    SetStack__FP12RS_STACKDATAf(args++, vector[1]);
-    SetStack__FP12RS_STACKDATAf(args, vector[2]);
+    SetStack(args++, vector[0]);
+    SetStack(args++, vector[1]);
+    SetStack(args, vector[2]);
     return result;
 }
 #else
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/runscript_opcodes", _ESM_GET_VECT1__FP12RS_STACKDATAi);
 #endif
+
 #ifdef NONMATCHING
+/**
+ * Sets the second work vector of one of the monster's effects.
+ */
 static int _ESM_SET_VECT2(RS_STACKDATA *args, int argc) {
     sceVu0FVECTOR vector;
     int           slot;
@@ -2614,17 +3725,21 @@ static int _ESM_SET_VECT2(RS_STACKDATA *args, int argc) {
     if (argc != 4) {
         return 0;
     }
-    slot = GetStackInt__FP12RS_STACKDATA(args++);
-    vector[0] = GetStackFloat__FP12RS_STACKDATA(args++);
-    vector[1] = GetStackFloat__FP12RS_STACKDATA(args++);
-    vector[2] = GetStackFloat__FP12RS_STACKDATA(args);
+    slot = GetStackInt(args++);
+    vector[0] = GetStackFloat(args++);
+    vector[1] = GetStackFloat(args++);
+    vector[2] = GetStackFloat(args);
     vector[3] = 1.0f;
     return ActiveMonster->effect_man->SetScriptVect2(vector, nowMonster->chara_type, slot);
 }
 #else
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/runscript_opcodes", _ESM_SET_VECT2__FP12RS_STACKDATAi);
 #endif
+
 #ifdef NONMATCHING
+/**
+ * Writes the second work vector of one of the monster's effects to script variables.
+ */
 static int _ESM_GET_VECT2(RS_STACKDATA *args, int argc) {
     sceVu0FVECTOR vector;
     int           slot;
@@ -2633,175 +3748,227 @@ static int _ESM_GET_VECT2(RS_STACKDATA *args, int argc) {
     if (argc != 4) {
         return 0;
     }
-    slot = GetStackInt__FP12RS_STACKDATA(args++);
+    slot = GetStackInt(args++);
     result = ActiveMonster->effect_man->GetScriptVect2(vector, nowMonster->chara_type, slot);
-    SetStack__FP12RS_STACKDATAf(args++, vector[0]);
-    SetStack__FP12RS_STACKDATAf(args++, vector[1]);
-    SetStack__FP12RS_STACKDATAf(args, vector[2]);
+    SetStack(args++, vector[0]);
+    SetStack(args++, vector[1]);
+    SetStack(args, vector[2]);
     return result;
 }
 #else
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/runscript_opcodes", _ESM_GET_VECT2__FP12RS_STACKDATAi);
 #endif
+
 #ifdef NONMATCHING
+/**
+ * Sets the target character of one of the monster's effects.
+ */
 static int _ESM_SET_TARGET_ID(RS_STACKDATA *args, int argc) {
     int slot;
     int id;
 
-    slot = GetStackInt__FP12RS_STACKDATA(args++);
-    id = GetStackInt__FP12RS_STACKDATA(args);
+    slot = GetStackInt(args++);
+    id = GetStackInt(args);
     return ActiveMonster->effect_man->SetScriptTargetId(id, nowMonster->chara_type, slot);
 }
 #else
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/runscript_opcodes", _ESM_SET_TARGET_ID__FP12RS_STACKDATAi);
 #endif
+
 #ifdef NONMATCHING
+/**
+ * Writes the target character of one of the monster's effects to a script variable.
+ */
 static int _ESM_GET_TARGET_ID(RS_STACKDATA *args, int argc) {
     int slot;
     int id;
     int result;
 
-    slot = GetStackInt__FP12RS_STACKDATA(args++);
+    slot = GetStackInt(args++);
     result = ActiveMonster->effect_man->GetScriptTargetId(id, nowMonster->chara_type, slot);
-    SetStack__FP12RS_STACKDATAi(args, id);
+    SetStack(args, id);
     return result;
 }
 #else
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/runscript_opcodes", _ESM_GET_TARGET_ID__FP12RS_STACKDATAi);
 #endif
+
 #ifdef NONMATCHING
+/**
+ * Sets the owner of one of the monster's effects.
+ */
 static int _ESM_SET_USER_ID(RS_STACKDATA *args, int argc) {
     int slot;
     int id;
 
-    slot = GetStackInt__FP12RS_STACKDATA(args++);
-    id = GetStackInt__FP12RS_STACKDATA(args);
+    slot = GetStackInt(args++);
+    id = GetStackInt(args);
     return ActiveMonster->effect_man->SetScriptUserId(id, nowMonster->chara_type, slot);
 }
 #else
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/runscript_opcodes", _ESM_SET_USER_ID__FP12RS_STACKDATAi);
 #endif
+
 #ifdef NONMATCHING
+/**
+ * Writes the owner of one of the monster's effects to a script variable.
+ */
 static int _ESM_GET_USER_ID(RS_STACKDATA *args, int argc) {
     int slot;
     int id;
     int result;
 
-    slot = GetStackInt__FP12RS_STACKDATA(args++);
+    slot = GetStackInt(args++);
     result = ActiveMonster->effect_man->GetScriptUserId(id, nowMonster->chara_type, slot);
-    SetStack__FP12RS_STACKDATAi(args, id);
+    SetStack(args, id);
     return result;
 }
 #else
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/runscript_opcodes", _ESM_GET_USER_ID__FP12RS_STACKDATAi);
 #endif
-extern "C" int _ESM_SET_VALUE__FP12RS_STACKDATAi(RS_STACKDATA *stack, int argc) {
+
+/**
+ * Sets an integer or float variable of one of the monster's effects.
+ */
+static int _ESM_SET_VALUE(RS_STACKDATA *args, int argc) {
     int slot;
     int index;
-    int group;
+    int user_id;
     int result;
 
-    group = nowMonster->chara_type;
-    slot = GetStackInt__FP12RS_STACKDATA(stack++);
-    index = GetStackInt__FP12RS_STACKDATA(stack++);
-    switch (stack->type) {
-        case 0:
+    user_id = nowMonster->chara_type;
+    slot = GetStackInt(args++);
+    index = GetStackInt(args++);
+    switch (args->type) {
+        case RS_INT:
             result =
-                ActiveMonster->effect_man->SetValue(index, GetStackInt__FP12RS_STACKDATA(stack), group, slot);
+                ActiveMonster->effect_man->SetValue(index, GetStackInt(args), user_id, slot);
             break;
-        case 1:
+        case RS_FLOAT:
             result =
-                ActiveMonster->effect_man->SetValue(index, GetStackFloat__FP12RS_STACKDATA(stack), group, slot);
+                ActiveMonster->effect_man->SetValue(index, GetStackFloat(args), user_id, slot);
             break;
         default:
             return 0;
     }
     return result;
 }
-int _LOAD_EFFECT_SCRIPT(RS_STACKDATA *stack, int argc) {
-    int result;
-    int level;
+
+/**
+ * Loads an effect base by number or name into the scene memory stack.
+ */
+static int _LOAD_EFFECT_SCRIPT(RS_STACKDATA *args, int argc) {
+    int        result;
+    int        texture_block;
     mgCMemory *memory;
+    int        base_no;
+    char      *name;
+
     FxScriptMan->level = 3;
-    level = -1;
-    memory = (mgCMemory *)nowScene->GetStack(3);
-    switch (stack->type) {
-        case 0: {
-            int base_no = GetStackInt__FP12RS_STACKDATA(stack++);
+    texture_block = -1;
+    memory = nowScene->GetStack(3);
+    switch (args->type) {
+        case RS_INT:
+            base_no = GetStackInt(args++);
             if (argc >= 2) {
-                level = GetStackInt__FP12RS_STACKDATA(stack++);
+                texture_block = GetStackInt(args++);
             }
-            result = ActiveMonster->effect_man->LoadBaseEffSpt(base_no, memory, level);
+            result = ActiveMonster->effect_man->LoadBaseEffSpt(base_no, memory, texture_block);
             break;
-        }
-        case 2: {
-            char *name = GetStackString__FP12RS_STACKDATA(stack++);
+        case RS_STR:
+            name = GetStackString(args++);
             if (argc >= 2) {
-                level = GetStackInt__FP12RS_STACKDATA(stack++);
+                texture_block = GetStackInt(args++);
             }
-            result = ActiveMonster->effect_man->LoadBaseEffSpt(name, memory, level);
+            result = ActiveMonster->effect_man->LoadBaseEffSpt(name, memory, texture_block);
             break;
-        }
         default:
             return 0;
     }
     if (argc >= 3) {
         if (result > 0) {
-            SetStack__FP12RS_STACKDATAi(stack, 1);
+            SetStack(args, 1);
         } else {
-            SetStack__FP12RS_STACKDATAi(stack, 0);
+            SetStack(args, 0);
         }
     }
-    return (result < 0) ^ 1;
+    return result >= 0;
 }
-extern "C" int _SW_EFFECT__FP12RS_STACKDATAi(RS_STACKDATA *stack, int argc) {
+
+/**
+ * Adds a sword after-image to the monster's motion.
+ */
+static int _SW_EFFECT(RS_STACKDATA *args, int argc) {
+    ACTION_SW_EFFECT *effect;
+    int               sword_no;
+    char             *motion;
+    float             start;
+    float             end;
+    char             *frame0;
+    char             *frame1;
+    int               mode0;
+    int               mode1;
+    int               fade_time;
+
     if (argc != 9) {
         return 0;
     }
-    ACTION_SW_EFFECT *effect = ((CActionChara *)nowMonster)->GetSwEffectPtr();
+    effect = nowMonster->GetSwEffectPtr();
     if (effect == NULL) {
         return 0;
     }
-    int index = GetStackInt__FP12RS_STACKDATA(stack++);
-    if (index < 0 || index > 2) {
+    sword_no = GetStackInt(args++);
+    if (sword_no < 0 || sword_no > CHARA_SWORD_EFFECT_MAX - 1) {
         return 0;
     }
-    if (nowMonster->sword_effect[index] == NULL) {
+    if (nowMonster->sword_effect[sword_no] == NULL) {
         return 0;
     }
-    char *motionName = GetStackString__FP12RS_STACKDATA(stack++);
-    float start_frame = GetStackFloat__FP12RS_STACKDATA(stack++);
-    float end_frame = GetStackFloat__FP12RS_STACKDATA(stack++);
-    char *startName = GetStackString__FP12RS_STACKDATA(stack++);
-    char *endName = GetStackString__FP12RS_STACKDATA(stack++);
-    int arg_a = GetStackInt__FP12RS_STACKDATA(stack++);
-    int arg_c = GetStackInt__FP12RS_STACKDATA(stack++);
-    int arg_b = GetStackInt__FP12RS_STACKDATA(stack);
-    effect->sword_no = index;
-    effect->motion = motionName;
-    effect->start = start_frame;
-    effect->end = end_frame;
-    effect->frame0 = startName;
-    effect->frame1 = endName;
-    effect->unk_1c = arg_a;
-    effect->unk_1d = arg_c;
-    effect->fade_time = arg_b;
+    motion = GetStackString(args++);
+    start = GetStackFloat(args++);
+    end = GetStackFloat(args++);
+    frame0 = GetStackString(args++);
+    frame1 = GetStackString(args++);
+    mode0 = GetStackInt(args++);
+    mode1 = GetStackInt(args++);
+    fade_time = GetStackInt(args);
+    effect->sword_no = sword_no;
+    effect->motion = motion;
+    effect->start = start;
+    effect->end = end;
+    effect->frame0 = frame0;
+    effect->frame1 = frame1;
+    effect->unk_1c = mode0;
+    effect->unk_1d = mode1;
+    effect->fade_time = fade_time;
     effect->wait = 0;
-    nowMonster->sw_effect_num += 1;
+    nowMonster->sw_effect_num++;
     return 1;
 }
-int _ESM_GET_NOTUESD_TEXB(RS_STACKDATA *stack, int argc) {
+
+/**
+ * Writes the next free effect texture block to a script variable.
+ */
+static int _ESM_GET_NOTUESD_TEXB(RS_STACKDATA *args, int argc) {
     if (argc != 1) {
         return 0;
     }
-    SetStack__FP12RS_STACKDATAi(stack, ActiveMonster->effect_man->GetNotUsedTexb());
+    SetStack(args, ActiveMonster->effect_man->GetNotUsedTexb());
     return 1;
 }
-int _ESM_ADD_TEXB(RS_STACKDATA *stack, int argc) {
+
+/**
+ * Reserves another texture block for monster effects.
+ */
+static int _ESM_ADD_TEXB(RS_STACKDATA *args, int argc) {
     ActiveMonster->effect_man->AddTexb();
     return 1;
 }
+
 #ifdef NONMATCHING
+/**
+ * Fires a rocket from a script position and direction with optional homing and damage settings.
+ */
 static int _SHOT_ROCKET_LAUNCHER(RS_STACKDATA *args, int argc) {
     sceVu0FVECTOR    position;
     sceVu0FVECTOR    target;
@@ -2817,13 +3984,13 @@ static int _SHOT_ROCKET_LAUNCHER(RS_STACKDATA *args, int argc) {
     if (argc != 6 && argc != 10) {
         return 0;
     }
-    GetStackVector__FPfPP12RS_STACKDATA(position, &args);
-    GetStackVector__FPfPP12RS_STACKDATA(direction, &args);
+    GetStackVector(position, &args);
+    GetStackVector(direction, &args);
     if (argc == 10) {
-        speed = GetStackFloat__FP12RS_STACKDATA(args++);
-        homing_delay = GetStackInt__FP12RS_STACKDATA(args++);
-        homing_time = GetStackInt__FP12RS_STACKDATA(args++);
-        damage = GetStackInt__FP12RS_STACKDATA(args++);
+        speed = GetStackFloat(args++);
+        homing_delay = GetStackInt(args++);
+        homing_time = GetStackInt(args++);
+        damage = GetStackInt(args++);
     } else {
         speed = 12.0f;
         homing_delay = 6;
@@ -2857,283 +4024,427 @@ static int _SHOT_ROCKET_LAUNCHER(RS_STACKDATA *args, int argc) {
 #else
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/runscript_opcodes", _SHOT_ROCKET_LAUNCHER__FP12RS_STACKDATAi);
 #endif
-int _RUN_EVENT_SCRIPT(RS_STACKDATA *stack, int argc) {
-    if (argc != 1)
+
+/**
+ * Requests an event script from the monster.
+ */
+static int _RUN_EVENT_SCRIPT(RS_STACKDATA *args, int argc) {
+    if (argc != 1) {
         return 0;
-    s16 v = (s16)GetStackInt__FP12RS_STACKDATA(stack);
-    nowMonster->event_no = v;
+    }
+    nowMonster->event_no = GetStackInt(args);
     return 1;
 }
-extern "C" int _SET_STATUS__FP12RS_STACKDATAi(RS_STACKDATA *stack, int argc) {
-    int status;
-    RS_STACKDATA *next = stack + 1;
-    status = GetStackInt__FP12RS_STACKDATA(stack);
-    int enable = 1;
+
+/**
+ * Sets or clears the scene status of the monster's character slot.
+ */
+static int _SET_STATUS(RS_STACKDATA *args, int argc) {
+    int flags;
+    int on;
+
+    flags = GetStackInt(args++);
+    on = 1;
     if (argc >= 2) {
-        enable = GetStackInt__FP12RS_STACKDATA(next);
+        on = GetStackInt(args);
     }
-    if (enable != 0) {
-        nowScene->SetStatus(1, nowMonster->chara_type, status);
+    if (on != 0) {
+        nowScene->SetStatus(SCENE_DATA_CHARA, nowMonster->chara_type, flags);
     } else {
-        nowScene->ResetStatus(1, nowMonster->chara_type, status);
+        nowScene->ResetStatus(SCENE_DATA_CHARA, nowMonster->chara_type, flags);
     }
     return 1;
 }
-int _SET_PAUSE(RS_STACKDATA *stack, int argc) {
-    RS_STACKDATA *next;
-    DNG_BATTLE_AREA *pause = &nowScene->battle_area;
-    next = stack + 1;
 
-    if (pause == NULL) {
+/**
+ * Sets or clears the dungeon pause flags.
+ */
+static int _SET_PAUSE(RS_STACKDATA *args, int argc) {
+    RS_STACKDATA    *next;
+    DNG_BATTLE_AREA *area;
+    int              flags;
+
+    area = &nowScene->battle_area;
+    next = args + 1;
+    if (area == NULL) {
         return 0;
     }
-    u32 mask = GetStackInt__FP12RS_STACKDATA(stack);
-    if (GetStackInt__FP12RS_STACKDATA(next)) {
-        pause->pause_flag |= mask;
+    flags = GetStackInt(args);
+    if (GetStackInt(next) != 0) {
+        area->pause_flag |= flags;
     } else {
-        pause->pause_flag &= ~mask;
+        area->pause_flag &= ~flags;
     }
     return 1;
 }
-extern "C" int _CHECK_PAUSE__FP12RS_STACKDATAi(RS_STACKDATA *stack, int argument_count) {
 
-    DNG_BATTLE_AREA *pause = &nowScene->battle_area;
-    RS_STACKDATA *output = stack + 1;
-    if (pause == NULL)
-        return 0;
-    int requested_flags = GetStackInt__FP12RS_STACKDATA(stack);
-    SetStack__FP12RS_STACKDATAi(output, pause->pause_flag & requested_flags);
-    return 1;
-}
-int _GET_BIT_FLAG(RS_STACKDATA *stack, int argument_count) {
-    if (argument_count != 2)
-        return 0;
-    int flag = GetStackInt__FP12RS_STACKDATA(stack++);
+/**
+ * Writes the masked dungeon pause flags to a script variable.
+ */
+static int _CHECK_PAUSE(RS_STACKDATA *args, int argc) {
+    DNG_BATTLE_AREA *area;
+    int              flags;
 
-    argument_count = DngSaveData->GetBitFlag(flag);
-    SetStack__FP12RS_STACKDATAi(stack, argument_count);
+    area = &nowScene->battle_area;
+    if (area == NULL) {
+        return 0;
+    }
+    flags = GetStackInt(args++);
+    SetStack(args, (int)(area->pause_flag & flags));
     return 1;
 }
-int _SET_BIT_FLAG(RS_STACKDATA *stack, int argument_count) {
-    if (argument_count != 2)
-        return 0;
 
-    int bit = GetStackInt__FP12RS_STACKDATA(stack++);
-    int enabled = GetStackInt__FP12RS_STACKDATA(stack);
-    DngSaveData->SetBitFlag(bit, enabled);
-    return 1;
-}
-int _GET_ATT_TYPE(RS_STACKDATA *stack, int argument_count) {
-    if (argument_count != 1)
-        return 0;
-    SetStack__FP12RS_STACKDATAi(stack, nowMonster->att_type);
-    return 1;
-}
-int _GET_USER_ATTR(RS_STACKDATA *stack, int argument_count) {
-    if (argument_count != 1)
-        return 0;
+/**
+ * Writes a saved bit flag to a script variable.
+ */
+static int _GET_BIT_FLAG(RS_STACKDATA *args, int argc) {
+    int flag;
+    int value;
 
-    argument_count = GetBattleCharaInfo()->GetAttr();
-    SetStack__FP12RS_STACKDATAi(stack, argument_count);
+    if (argc != 2) {
+        return 0;
+    }
+    flag = GetStackInt(args++);
+    value = DngSaveData->GetBitFlag(flag);
+    SetStack(args, value);
     return 1;
 }
-int _TRANS_RESERV_IMG(RS_STACKDATA *stack, int argument_count) {
-    if (argument_count != 1)
+
+/**
+ * Sets a saved bit flag from the script.
+ */
+static int _SET_BIT_FLAG(RS_STACKDATA *args, int argc) {
+    int flag;
+    int value;
+
+    if (argc != 2) {
         return 0;
-    int image_index = GetStackInt__FP12RS_STACKDATA(stack);
-    if (image_index < 0 || image_index > 1)
-        return 0;
-    CActiveMonster *monster = nowMonster;
-    void *image = monster->reserv_img[image_index];
-    if (image == NULL)
-        return 0;
-    memcpy(monster->images[0], image, monster->reserv_img_size[image_index]);
+    }
+    flag = GetStackInt(args++);
+    value = GetStackInt(args);
+    DngSaveData->SetBitFlag(flag, value);
     return 1;
 }
-int _GET_STS_ATTR(RS_STACKDATA *stack, int argument_count) {
-    if (argument_count != 2)
+
+/**
+ * Writes the kind of attack that last hit the monster to a script variable.
+ */
+static int _GET_ATT_TYPE(RS_STACKDATA *args, int argc) {
+    if (argc != 1) {
         return 0;
-    int mask = GetStackInt__FP12RS_STACKDATA(stack++);
-    SetStack__FP12RS_STACKDATAi(stack, nowMonster->status.attr & mask);
+    }
+    SetStack(args, (int)nowMonster->att_type);
     return 1;
 }
-int _SET_PIYORI_MARK(RS_STACKDATA *stack, int argument_count) {
+
+/**
+ * Writes the player's battle status attributes to a script variable.
+ */
+static int _GET_USER_ATTR(RS_STACKDATA *args, int argc) {
+    int attr;
+
+    if (argc != 1) {
+        return 0;
+    }
+    attr = GetBattleCharaInfo()->GetAttr();
+    SetStack(args, attr);
+    return 1;
+}
+
+/**
+ * Copies a reserved image over the monster's current image archive.
+ */
+static int _TRANS_RESERV_IMG(RS_STACKDATA *args, int argc) {
+    int image_no;
+
+    if (argc != 1) {
+        return 0;
+    }
+    image_no = GetStackInt(args);
+    if (image_no < 0 || image_no > 1) {
+        return 0;
+    }
+    if (nowMonster->reserv_img[image_no] == NULL) {
+        return 0;
+    }
+    memcpy(nowMonster->images[0], nowMonster->reserv_img[image_no], nowMonster->reserv_img_size[image_no]);
+    return 1;
+}
+
+/**
+ * Writes the monster's masked status attributes to a script variable.
+ */
+static int _GET_STS_ATTR(RS_STACKDATA *args, int argc) {
+    int flags;
+
+    if (argc != 2) {
+        return 0;
+    }
+    flags = GetStackInt(args++);
+    SetStack(args, (int)(nowMonster->status.attr & flags));
+    return 1;
+}
+
+/**
+ * Shows the monster's stun stars for the remaining stun time.
+ */
+static int _SET_PIYORI_MARK(RS_STACKDATA *args, int argc) {
     nowMonster->piyori_mark = nowMonster->piyori_time;
-    nowMonster->piyori.Set((mgCObject *)nowMonster, nowMonster->piyori_mark);
+    nowMonster->piyori.Set(nowMonster, nowMonster->piyori_mark);
     return 1;
 }
-int _CHECK_PIYORI(RS_STACKDATA *stack, int argument_count) {
-    if (argument_count != 1)
-        return 0;
-    SetStack__FP12RS_STACKDATAi(stack, nowMonster->piyori_mark);
-    return 1;
-}
-int _GET_BASE_ATTACK(RS_STACKDATA *stack, int argument_count) {
-    SetStack__FP12RS_STACKDATAi(stack, nowMonster->attack);
-    return 1;
-}
-int _GET_NEAR_MONS_POS(RS_STACKDATA *stack, int argument_count) {
-    float pos[4];
-    float nearest_pos[4];
-    float other_pos[4];
-    float nearest_dist = -1.0f;
-    int i;
 
-    nowMonster->GetPosition(pos);
-    mgZeroVector(nearest_pos);
-    for (i = 0; i < MONSTER_ACTIVE_MAX; i++) {
-        CActiveMonster *other;
-        if ((other = (CActiveMonster *)nowScene->GetCharacter(i + 24)) != NULL &&
-            other->chara_kind == 2 && nowMonster->chara_type != other->chara_type) {
-            other->GetPosition(other_pos);
-            if (nearest_dist >= 0.0) {
-                float dist = mgDistVector(pos, other_pos);
-                if (dist < nearest_dist) {
-                    nearest_dist = dist;
-                    *(u_long128 *)nearest_pos = *(u_long128 *)other_pos;
+/**
+ * Writes the remaining time of the monster's stun mark to a script variable.
+ */
+static int _CHECK_PIYORI(RS_STACKDATA *args, int argc) {
+    if (argc != 1) {
+        return 0;
+    }
+    SetStack(args, (int)nowMonster->piyori_mark);
+    return 1;
+}
+
+/**
+ * Writes the monster's attack power to a script variable.
+ */
+static int _GET_BASE_ATTACK(RS_STACKDATA *args, int argc) {
+    SetStack(args, (int)nowMonster->attack);
+    return 1;
+}
+
+/**
+ * Writes the nearest other scripted monster's position and distance to script variables.
+ */
+static int _GET_NEAR_MONS_POS(RS_STACKDATA *args, int argc) {
+    sceVu0FVECTOR position;
+    sceVu0FVECTOR nearest_position;
+    sceVu0FVECTOR monster_position;
+    CActionChara *monster;
+    float         nearest_distance;
+    float         distance;
+    int           index;
+
+    nearest_distance = -1.0f;
+    nowMonster->GetPosition(position);
+    mgZeroVector(nearest_position);
+    for (index = 0; index < MONSTER_ACTIVE_MAX; index++) {
+        if ((monster = (CActionChara *)nowScene->GetCharacter(
+                 index + MONSTER_ACTIVE_MAX)) != NULL &&
+            monster->chara_kind == ACTION_KIND_SCRIPT &&
+            nowMonster->chara_type != monster->chara_type) {
+            monster->GetPosition(monster_position);
+            if (nearest_distance >= 0.0) {
+                distance = mgDistVector(position, monster_position);
+                if (distance < nearest_distance) {
+                    nearest_distance = distance;
+                    *(u_long128 *)nearest_position = *(u_long128 *)monster_position;
                 }
             } else {
-                *(u_long128 *)nearest_pos = *(u_long128 *)other_pos;
-                nearest_dist = mgDistVector(pos, nearest_pos);
+                *(u_long128 *)nearest_position = *(u_long128 *)monster_position;
+                nearest_distance = mgDistVector(position, nearest_position);
             }
         }
     }
-    SetStack__FP12RS_STACKDATAf(stack++, nearest_pos[0]);
-    SetStack__FP12RS_STACKDATAf(stack++, nearest_pos[1]);
-    SetStack__FP12RS_STACKDATAf(stack++, nearest_pos[2]);
-    SetStack__FP12RS_STACKDATAf(stack, nearest_dist);
+    SetStack(args++, nearest_position[0]);
+    SetStack(args++, nearest_position[1]);
+    SetStack(args++, nearest_position[2]);
+    SetStack(args, nearest_distance);
     return 1;
 }
-int _SET_INDEXOBJ_SIZE(RS_STACKDATA *stack, int argument_count) {
-    if (argument_count != 2)
-        return 0;
-    int object_index = GetStackInt__FP12RS_STACKDATA(stack++);
-    float size = GetStackFloat__FP12RS_STACKDATA(stack);
-    if (object_index == -1)
-        object_index = 0;
-    CActiveMonster *monster = nowMonster;
-    CHARA_ENTRY_OBJECT *objects = monster->entry_object;
-    int offset = object_index * sizeof(CHARA_ENTRY_OBJECT);
-    int address = (int)objects;
-    address = offset + address;
-    ((CHARA_ENTRY_OBJECT *)address)->unk_04 = size;
-    return 1;
-}
-int _GET_INDEXOBJ_SIZE(RS_STACKDATA *stack, int argument_count) {
-    if (argument_count != 2)
-        return 0;
 
-    int object_index = GetStackInt__FP12RS_STACKDATA(stack++);
-    if (object_index == -1)
-        object_index = 0;
+#ifdef NONMATCHING
+/**
+ * Sets the collision radius of one of the monster's entered objects.
+ */
+static int _SET_INDEXOBJ_SIZE(RS_STACKDATA *args, int argc) {
+    int   index;
+    float size;
 
-    CActiveMonster *monster = nowMonster;
-    int object_base = (int)&monster->entry_object;
-    object_index *= sizeof(CHARA_ENTRY_OBJECT);
-    object_index += object_base;
-    CHARA_ENTRY_OBJECT *object = (CHARA_ENTRY_OBJECT *)object_index;
-    SetStack__FP12RS_STACKDATAf(stack, object->unk_04);
+    if (argc != 2) {
+        return 0;
+    }
+    index = GetStackInt(args++);
+    size = GetStackFloat(args);
+    if (index == -1) {
+        index = 0;
+    }
+    nowMonster->entry_object[index].unk_04 = size;
     return 1;
 }
-extern "C" int _SET_MOTION_BLUR__FP12RS_STACKDATAi(RS_STACKDATA *stack,
-                                                            int argument_count) {
-    if (argument_count != 1)
-        return 0;
-    nowScene->motion_blur = GetStackInt__FP12RS_STACKDATA(stack);
-    return 1;
-}
-int _MONS_SE_PLAY(RS_STACKDATA *stack, int argument_count) {
-    if (argument_count != 2)
-        return 0;
+#else
+INCLUDE_ASM("ps2/asm/pal/nonmatchings/runscript_opcodes", _SET_INDEXOBJ_SIZE__FP12RS_STACKDATAi);
+#endif
 
-    int monster_id = GetStackInt__FP12RS_STACKDATA(stack++);
-    int sound = GetStackInt__FP12RS_STACKDATA(stack);
-    monster_id -= 24;
-    CActiveMonster *monster = ActiveMonster->active[monster_id];
-    if (monster == 0)
-        return 0;
-    sndSePlay(monster->se_bank, sound, 0);
-    return 1;
-}
-int _MONS_SE_STOP(RS_STACKDATA *stack, int argument_count) {
-    if (argument_count != 2)
-        return 0;
+#ifdef NONMATCHING
+/**
+ * Writes the collision radius of one of the monster's entered objects to a script variable.
+ */
+static int _GET_INDEXOBJ_SIZE(RS_STACKDATA *args, int argc) {
+    int index;
 
-    int monster_id = GetStackInt__FP12RS_STACKDATA(stack++);
-    int sound = GetStackInt__FP12RS_STACKDATA(stack);
-    monster_id -= 24;
-    CActiveMonster *monster = ActiveMonster->active[monster_id];
-    if (monster == 0)
+    if (argc != 2) {
         return 0;
-    sndSeStop(monster->se_bank, sound, 0);
+    }
+    index = GetStackInt(args++);
+    if (index == -1) {
+        index = 0;
+    }
+    SetStack(args, nowMonster->entry_object[index].unk_04);
     return 1;
 }
-int _MONS_SE_LOOP(RS_STACKDATA *stack, int argument_count) {
-    if (argument_count != 3)
-        return 0;
+#else
+INCLUDE_ASM("ps2/asm/pal/nonmatchings/runscript_opcodes", _GET_INDEXOBJ_SIZE__FP12RS_STACKDATAi);
+#endif
 
-    int monster_id = GetStackInt__FP12RS_STACKDATA(stack++);
-    int sound = GetStackInt__FP12RS_STACKDATA(stack++);
-    int flags = GetStackInt__FP12RS_STACKDATA(stack);
-    monster_id -= 24;
-    CActiveMonster *monster = ActiveMonster->active[monster_id];
-    if (monster == 0)
+/**
+ * Sets the alpha of the previous frame used for scene motion blur.
+ */
+static int _SET_MOTION_BLUR(RS_STACKDATA *args, int argc) {
+    if (argc != 1) {
         return 0;
+    }
+    nowScene->fade.blur_alpha = GetStackInt(args);
+    return 1;
+}
 
-    monster->loop_se->SeLoopPlayStop((int)monster->se_bank, sound, flags, 13);
-    return 1;
-}
-int _MONS_VOL_CTRL(RS_STACKDATA *stack, int argument_count) {
-    if (argument_count != 1)
+/**
+ * Plays a sound in another monster's bank.
+ */
+static int _MONS_SE_PLAY(RS_STACKDATA *args, int argc) {
+    CActiveMonster *monster;
+    int             character_no;
+    int             sound_no;
+
+    if (argc != 2) {
         return 0;
-    nowMonster->se_positional = GetStackInt__FP12RS_STACKDATA(stack);
+    }
+    character_no = GetStackInt(args++);
+    sound_no = GetStackInt(args);
+    character_no -= MONSTER_ACTIVE_MAX;
+    monster = ActiveMonster->active[character_no];
+    if (monster == NULL) {
+        return 0;
+    }
+    sndSePlay(monster->se_bank, sound_no, 0);
     return 1;
 }
-int _SET_MAPOBJ_SHOW(RS_STACKDATA *stack, int argument_count) {
-    CMap *maps[8];
+
+/**
+ * Stops a sound in another monster's bank.
+ */
+static int _MONS_SE_STOP(RS_STACKDATA *args, int argc) {
+    CActiveMonster *monster;
+    int             character_no;
+    int             sound_no;
+
+    if (argc != 2) {
+        return 0;
+    }
+    character_no = GetStackInt(args++);
+    sound_no = GetStackInt(args);
+    character_no -= MONSTER_ACTIVE_MAX;
+    monster = ActiveMonster->active[character_no];
+    if (monster == NULL) {
+        return 0;
+    }
+    sndSeStop(monster->se_bank, sound_no, 0);
+    return 1;
+}
+
+/**
+ * Starts or stops a looping sound in another monster's bank.
+ */
+static int _MONS_SE_LOOP(RS_STACKDATA *args, int argc) {
+    int             character_no;
+    int             sound_no;
+    int             keep_time;
+    CActiveMonster *monster;
+
+    if (argc != 3) {
+        return 0;
+    }
+    character_no = GetStackInt(args++);
+    sound_no = GetStackInt(args++);
+    keep_time = GetStackInt(args);
+    character_no -= MONSTER_ACTIVE_MAX;
+    monster = ActiveMonster->active[character_no];
+    if (monster == NULL) {
+        return 0;
+    }
+    monster->loop_se->SeLoopPlayStop((int)monster->se_bank, sound_no, keep_time, 13);
+    return 1;
+}
+
+/**
+ * Sets whether the monster's sound volume follows its position.
+ */
+static int _MONS_VOL_CTRL(RS_STACKDATA *args, int argc) {
+    if (argc != 1) {
+        return 0;
+    }
+    nowMonster->se_positional = GetStackInt(args);
+    return 1;
+}
+
+/**
+ * Shows or hides a named map part or one of its pieces.
+ */
+static int _SET_MAPOBJ_SHOW(RS_STACKDATA *args, int argc) {
+    CMap      *maps[8];
     CMapParts *parts;
-    int map_count;
-    char *partsName;
-    char *pieceName;
+    int        map_count;
+    char      *parts_name;
+    char      *piece_name;
     CMapPiece *piece;
-    int show;
-    int i;
+    int        on;
+    int        index;
 
-    if (argument_count != 2 && argument_count != 3)
+    if (argc != 2 && argc != 3) {
         return 0;
+    }
     map_count = nowScene->GetActiveMap(maps, 8);
-    if (map_count <= 0)
+    if (map_count <= 0) {
         return 0;
-    partsName = GetStackString__FP12RS_STACKDATA(stack++);
-    if (argument_count == 3)
-        pieceName = GetStackString__FP12RS_STACKDATA(stack++);
-    show = GetStackInt__FP12RS_STACKDATA(stack);
-    for (i = 0; i < map_count; i++) {
-        parts = (CMapParts *)maps[i]->GetPlaceParts(partsName);
-        if (parts != NULL)
+    }
+    parts_name = GetStackString(args++);
+    if (argc == 3) {
+        piece_name = GetStackString(args++);
+    }
+    on = GetStackInt(args);
+    for (index = 0; index < map_count; index++) {
+        parts = maps[index]->GetPlaceParts(parts_name);
+        if (parts != NULL) {
             break;
+        }
     }
-    if (parts == NULL)
+    if (parts == NULL) {
         return 0;
-    if (argument_count == 3) {
-        if ((piece = parts->SearchPiece(pieceName)) == NULL)
-            return 0;
     }
-    if (argument_count == 2)
-        parts->Show(show);
-    else
-        piece->Show(show);
+    if (argc == 3) {
+        if ((piece = parts->SearchPiece(piece_name)) == NULL) {
+            return 0;
+        }
+    }
+    if (argc == 2) {
+        parts->Show(on);
+    } else {
+        piece->Show(on);
+    }
     return 1;
 }
-int SetMonsterScript(CRunScript *script, char *program, mgCMemory *memory) {
 
-    RS_STACKDATA *valueStack = (RS_STACKDATA *)memory->Alloc(0x40);
-    RS_CALLDATA *callStack = (RS_CALLDATA *)memory->Alloc(0x180);
-    script->load((RS_PROG_HEADER *)program, valueStack, 128, callStack,
-                 512);
+int SetMonsterScript(CRunScript *script, char *program, mgCMemory *memory) {
+    RS_STACKDATA *stack;
+    RS_CALLDATA  *call;
+
+    stack = (RS_STACKDATA *)memory->Alloc(64);
+    call = (RS_CALLDATA *)memory->Alloc(384);
+    script->load((RS_PROG_HEADER *)program, stack, 128, call, 512);
     script->ext_func(ext_func, 256);
     return 1;
 }
+
 #ifdef NONMATCHING
 void SetMonsterExtendTable() {
     int index;
@@ -3168,7 +4479,6 @@ INCLUDE_RODATA("ps2/asm/pal/nonmatchings/runscript_opcodes", at_1480__2__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/runscript_opcodes", at_1481__2__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/runscript_opcodes", at_1864__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/runscript_opcodes", at_2160__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/runscript_opcodes", ext_func_info__DATA);
 
 // Constants (.rodata)
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/runscript_opcodes", at_1728__DATA);
@@ -3182,9 +4492,5 @@ INCLUDE_RODATA("ps2/asm/pal/nonmatchings/runscript_opcodes", at_3078__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/runscript_opcodes", at_3079__DATA);
 
 // Small uninitialised data (.sbss)
-INCLUDE_BSS(nowScene, 0x4);
-INCLUDE_BSS(nowMonster, 0x4);
-INCLUDE_BSS(LastCInfo2, 0x4);
 
 // Uninitialised data (.bss)
-INCLUDE_BSS(ext_func, 0x400);
