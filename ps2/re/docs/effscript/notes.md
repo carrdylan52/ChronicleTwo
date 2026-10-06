@@ -98,3 +98,10 @@ Unseen: 0x08, 0x54, 0xC4, 0xE4, 0x108.
 - ClearBaseFromLevel: m2c says void (Ghidra's int is a leftover register).
 - CCharacter2 vtable slots used: +0xEC Copy(CCharacter2&, mgCMemory*), +0xF0 GetCopySize,
   +0xD4 (per-step update), +0x10 SetPosition, +0x18 GetPosition, +0x38 draw, +0x54 show.
+
+## Source coverage
+
+185 retail functions: 162 matched definitions, three guarded drafts, and 20 functions
+without a draft. The guarded drafts are CreateEffSpt(int, int, int), AssignCharacter,
+and SetCharacter. Every compiled non-member function has internal linkage. The
+external-function table contains 128 handlers followed by its null/-1 terminator.

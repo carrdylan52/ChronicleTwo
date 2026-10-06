@@ -1,4 +1,5 @@
 #include "common.h"
+#include "effscript.hpp"
 #include "mg_memory.hpp"
 #include "mg_drawprim.hpp"
 #include "mg_texture.hpp"
@@ -12,19 +13,7 @@
 #include "object.hpp"
 #include "padcontrol.hpp"
 #include "cameracontrol.hpp"
-#include "effscript.hpp"
 #include <cstring>
-
-extern "C" int fptosi(float value);
-extern "C" void __ct__10CRunScriptFv(void *);
-extern "C" void *Alloc__9mgCMemoryFi(mgCMemory *, int);
-extern "C" void Delete__8CColPrimFi(void *, int);
-extern "C" void Free__9mgCMemoryFP1(void *, void *);
-extern void *__vt__9mgCObject[];
-extern void *__vt__7CObject[];
-extern void *__vt__12CObjectFrame[];
-extern void *__vt__11CCharacter2[];
-union EffectVector { u_long128 quad; float values[4]; };
 #include <cstdio>
 #include <cmath>
 #include <cstdlib>
@@ -34,62 +23,285 @@ union EffectVector { u_long128 quad; float values[4]; };
 #include "dataread.hpp"
 #include "snd_mngr.hpp"
 #include "event_func.hpp"
+#include "dng_main.hpp"
+#include "runscript_opcodes.hpp"
 
-extern "C" _EFF_SCRIPT *now_script;
-extern "C" int (*ext_func__4[256])(RS_STACKDATA *, int);
-extern CColPrimMan ColPrimMan;
-EFF_SPT_BASE_DEF *GetEffSptBaseDefPtr(int index);
-int SetEffectScript(CRunScript *script, char *program, mgCMemory *memory);
-void SetEffectScriptFunc();
+static void SetEffectScriptFunc();
+static _EFF_SCRIPT *now_script; /**< Effect whose script is running. */
+CScene *now_scene; /**< Scene used by the effect script manager. */
+CEffectScriptMan *EffScriptMan; /**< Manager of the running effect. */
+static int (*ext_func[256])(RS_STACKDATA *, int); /**< Effect handlers indexed by script number. */
 
-#define GetStackInt GetStackInt__FP12RS_STACKDATA__4
-#define GetStackFloat GetStackFloat__FP12RS_STACKDATA__4
-#define GetStackVector GetStackVector__FPfP12RS_STACKDATA__2
-#define GetStackString GetStackString__FP12RS_STACKDATA__4
-#define SetStackInt SetStack__FP12RS_STACKDATAi__4
-#define SetStackFloat SetStack__FP12RS_STACKDATAf__4
+static EFF_SPT_BASE_DEF *GetEffSptBaseDefPtr(int index);
+static _ES_SPRITE *GetSpritePtr(_EFF_SCRIPT *script, int index);
+static int GetStackInt(RS_STACKDATA *slot);
+static float GetStackFloat(RS_STACKDATA *slot);
+static void GetStackVector(float *vector, RS_STACKDATA *slot);
+static char *GetStackString(RS_STACKDATA *slot);
+static void SetStack(RS_STACKDATA *slot, int value);
+static void SetStack(RS_STACKDATA *slot, float value);
+static int _ZERO_VECTOR(RS_STACKDATA *stack, int argument_count);
+static int _NORMAL_VECTOR(RS_STACKDATA *stack, int argument_count);
+static int _COPY_VECTOR(RS_STACKDATA *stack, int argument_count);
+static int _ADD_VECTOR(RS_STACKDATA *stack, int argument_count);
+static int _SUB_VECTOR(RS_STACKDATA *stack, int argument_count);
+static int _SCALE_VECTOR(RS_STACKDATA *stack, int argument_count);
+static int _DIV_VECTOR(RS_STACKDATA *stack, int argument_count);
+static int _DIST_VECTOR(RS_STACKDATA *stack, int argument_count);
+static int _DIST_VECTOR2(RS_STACKDATA *stack, int argument_count);
+static int _SQRT(RS_STACKDATA *stack, int argument_count);
+static int _ATAN2F(RS_STACKDATA *stack, int argument_count);
+static int _ANGLE_CMP(RS_STACKDATA *stack, int argument_count);
+static int _ANGLE_LIMIT(RS_STACKDATA *stack, int argument_count);
+static int _GET_RAND(RS_STACKDATA *stack, int argument_count);
+static int _GET_REF_ROT(RS_STACKDATA *stack, int argument_count);
+static int _GET_DIR_VECTOR(RS_STACKDATA *stack, int argument_count);
+static int _SET_ORIGIN(RS_STACKDATA *stack, int argument_count);
+static int _GET_ORIGIN(RS_STACKDATA *stack, int argument_count);
+static int _AUTO_SET_OFFSET(RS_STACKDATA *stack, int argument_count);
+static int _GET_WORK_VECT1(RS_STACKDATA *stack, int argument_count);
+static int _GET_WORK_VECT2(RS_STACKDATA *stack, int argument_count);
+static int _GET_TARGET_ID(RS_STACKDATA *stack, int argument_count);
+static int _GET_USER_ID(RS_STACKDATA *stack, int argument_count);
+static int _GET_VALUE(RS_STACKDATA *stack, int argument_count);
+static int _SET_VALUE(RS_STACKDATA *stack, int argument_count);
+static int _CHR_SET_SHOW(RS_STACKDATA *stack, int argument_count);
+static int _CHR_GET_SHOW(RS_STACKDATA *stack, int argument_count);
+static int _CHR_SET_POS(RS_STACKDATA *stack, int argument_count);
+static int _CHR_GET_POS(RS_STACKDATA *stack, int argument_count);
+static int _CHR_SET_ROT(RS_STACKDATA *stack, int argument_count);
+static int _CHR_GET_ROT(RS_STACKDATA *stack, int argument_count);
+static int _CHR_SET_SCALE(RS_STACKDATA *stack, int argument_count);
+static int _CHR_GET_SCALE(RS_STACKDATA *stack, int argument_count);
+static int _CHR_SET_MOTION(RS_STACKDATA *stack, int argument_count);
+static int _CHR_SET_MOT_STEP(RS_STACKDATA *stack, int argument_count);
+static int _CHR_GET_MOT_WAIT(RS_STACKDATA *stack, int argument_count);
+static int _CHR_GET_DIR_VECTOR(RS_STACKDATA *stack, int argument_count);
+static int _CHR_GET_REF_ROT(RS_STACKDATA *stack, int argument_count);
+static int _CHR_ADD_POS(RS_STACKDATA *stack, int argument_count);
+static int _CHR_ADD_ROT(RS_STACKDATA *stack, int argument_count);
+static int _CHR_ADD_SCALE(RS_STACKDATA *stack, int argument_count);
+static int _CHR_COPY_CHARA(RS_STACKDATA *stack, int argument_count);
+static int _CHR_SET_POS2(RS_STACKDATA *stack, int argument_count);
+static int _CHR_SET_ROT2(RS_STACKDATA *stack, int argument_count);
+static int _CHR_SET_SCALE2(RS_STACKDATA *stack, int argument_count);
+static int _CHR_SET_MOTION2(RS_STACKDATA *stack, int argument_count);
+static int _CHR_ADD_POS2(RS_STACKDATA *stack, int argument_count);
+static int _CHR_ADD_ROT2(RS_STACKDATA *stack, int argument_count);
+static int _CHR_ADD_SCALE2(RS_STACKDATA *stack, int argument_count);
+static int _CHR_SET_SHOW2(RS_STACKDATA *stack, int argument_count);
+static int _CHR_GET_FRAME_POS(RS_STACKDATA *stack, int argument_count);
+static int _CHR_SET_FRAME_SHOW(RS_STACKDATA *stack, int argument_count);
+static int _CHR_CHK_MOT_END(RS_STACKDATA *stack, int argument_count);
+static int _CHR_SET_LIGHT_COLOR(RS_STACKDATA *stack, int argument_count);
+static int _SPT_ASSIGN_SPRITE(RS_STACKDATA *stack, int argument_count);
+static int _SPT_DELETE_SPRITE(RS_STACKDATA *stack, int argument_count);
+static int _SPT_SET_TEXNAME(RS_STACKDATA *stack, int argument_count);
+static int _SPT_SET_ALPHAB(RS_STACKDATA *stack, int argument_count);
+static int _SPT_INIT_SPRITE(RS_STACKDATA *stack, int argument_count);
+static int _SPT_SET_DRAW_FLAG(RS_STACKDATA *stack, int argument_count);
+static int _SPT_GET_DRAW_FLAG(RS_STACKDATA *stack, int argument_count);
+static int _SPT_SET_UV_SIZE(RS_STACKDATA *stack, int argument_count);
+static int _SPT_SET_PUT_SIZE(RS_STACKDATA *stack, int argument_count);
+static int _SPT_SET_POS(RS_STACKDATA *stack, int argument_count);
+static int _SPT_GET_POS(RS_STACKDATA *stack, int argument_count);
+static int _SPT_SET_ROTZ(RS_STACKDATA *stack, int argument_count);
+static int _SPT_GET_ROTZ(RS_STACKDATA *stack, int argument_count);
+static int _SPT_SET_SCALE(RS_STACKDATA *stack, int argument_count);
+static int _SPT_GET_SCALE(RS_STACKDATA *stack, int argument_count);
+static int _SPT_SET_COLOR(RS_STACKDATA *stack, int argument_count);
+static int _SPT_GET_COLOR(RS_STACKDATA *stack, int argument_count);
+static int _SPT_ADD_ROTZ(RS_STACKDATA *stack, int argc);
+static int _SPT_WORLD_ROT(RS_STACKDATA *stack, int argc);
+static s32 _SPT_SET_LIFE(RS_STACKDATA *stack, int argument_count);
+static int _SPT_SET_VELO_ROTZ(RS_STACKDATA *stack, int argc);
+static int _SPT_SET_ACC_ROTZ(RS_STACKDATA *stack, int argc);
+static int _SPT_SET_VELO_SCL(RS_STACKDATA *stack, int argc);
+static int _SPT_SET_ACC_SCL(RS_STACKDATA *stack, int argc);
+static int _SPT_SCALE_CONV(RS_STACKDATA *stack, int argc);
+static int _SCN_GET_CHR_POS(RS_STACKDATA *stack, int argc);
+static int _SCN_GET_CHR_ROT(RS_STACKDATA *stack, int argc);
+static int _SCN_GET_CHR_FRM_POS(RS_STACKDATA *stack, int argc);
+static int _SCN_GET_ENTRY_OBJ_POS(RS_STACKDATA *stack, int argc);
+static int _MON_SE_PLAY(RS_STACKDATA *stack, int argc);
+static int _MON_SE_STOP(RS_STACKDATA *stack, int argc);
+static int _BTL_SE_PLAY(RS_STACKDATA *stack, int argc);
+static int _BTL_SE_STOP(RS_STACKDATA *stack, int argc);
+static int _BSE_SE_PLAY(RS_STACKDATA *stack, int argc);
+static int _BSE_SE_STOP(RS_STACKDATA *stack, int argc);
+static int _MON_SE_PLAY2(RS_STACKDATA *stack, int argc);
+static int _MON_SE_STOP2(RS_STACKDATA *stack, int argc);
+static int _SET_LIGHT_FLAG(RS_STACKDATA *stack, int argc);
+static int _SCN_GET_CHR_ENTOBJ_POS(RS_STACKDATA *stack, int argc);
+static int _CREATE_DAMAGE(RS_STACKDATA *stack, int argc);
+static s32 _DELETE_DAMAGE(RS_STACKDATA *stack, int argument_count);
+static s32 _DMG_SET_POS(RS_STACKDATA *stack, int argument_count);
+static s32 _DMG_SET_FRONT_VECT(RS_STACKDATA *stack, int argument_count);
+static int _DMG_SET_DAMAGE(RS_STACKDATA *stack, int argc);
+static int _COLPRIM_CREATE(RS_STACKDATA *stack, int argc);
+static int _COLPRIM_SET_COORD(RS_STACKDATA *stack, int argc);
+static int _COLPRIM_DELETE(RS_STACKDATA *stack, int argc);
+static int _COLPRIM_GET_HITCNT(RS_STACKDATA *stack, int argc);
+static int _COLPRIM_GET_GIFT(RS_STACKDATA *stack, int argc);
+static int _COLPRIM_GET_REVCNT(RS_STACKDATA *stack, int argc);
+static int _COLPRIM_SET_DAMAGE(RS_STACKDATA *stack, int argc);
+static int _COLPRIM_GET_HIT_POS(RS_STACKDATA *stack, int argc);
+static int _ES_CREATE(RS_STACKDATA *stack, int argc);
+static int _ES_SET_VECT1(RS_STACKDATA *stack, int argc);
+static int _ES_SET_VECT2(RS_STACKDATA *stack, int argc);
+static int _ES_SET_TARGET_ID(RS_STACKDATA *stack, int argc);
+static int _ES_SET_VALUE(RS_STACKDATA *stack, int argc);
+static int _ES_SET_COLPRIM(RS_STACKDATA *stack, int argc);
+static int _GET_EOH_POS(RS_STACKDATA *stack, int argc);
+static int SetEffectScript(CRunScript *script, char *program, mgCMemory *memory);
+static int _SPT_VAN_SET_POS(RS_STACKDATA *stack, int argument_count);
+static int _SPT_VAN_SET_ROT(RS_STACKDATA *stack, int argument_count);
+static int _SPT_ADD_POS(RS_STACKDATA *stack, int argument_count);
+static int _SPT_ADD_COLOR(RS_STACKDATA *stack, int argument_count);
+static int _SPT_SET_VELO_POS(RS_STACKDATA *stack, int argument_count);
+static int _SPT_SET_ACC_POS(RS_STACKDATA *stack, int argument_count);
+static int _SPT_SET_VELO_COL(RS_STACKDATA *stack, int argument_count);
+static int _SPT_SET_ACC_COL(RS_STACKDATA *stack, int argument_count);
+static int _SPT_SET_BLINKING(RS_STACKDATA *stack, int argument_count);
+static int _SPT_VAN_SET_COL(RS_STACKDATA *stack, int argument_count);
+static int _SPT_VAN_SET_SCL(RS_STACKDATA *stack, int argument_count);
+static int _SPT_COLOR_CONV(RS_STACKDATA *stack, int argument_count);
+static int _INTERSECTION_POINT(RS_STACKDATA *stack, int argument_count);
+static int _SCN_GET_CHR_FRM_DIR(RS_STACKDATA *stack, int argument_count);
+static int _SCN_GET_CHR_FRM_ROT(RS_STACKDATA *stack, int argument_count);
 
-extern float at_2311[];
-
-extern float at_2498__2[];
-
-extern char at_943__3[];
-
-extern char at_1127__2[];
-
-extern char at_1128__3[];
-
-extern char at_1129__2[];
-
-extern char at_1143[];
-
-extern char at_1144[];
-
-extern char at_1145[];
-
-extern char at_1336__2[];
-
-extern char at_1337__2[];
-
-extern char at_1338__2[];
-
-extern char at_1339__3[];
-
-extern char at_1340__2[];
-
-extern char at_1341__2[];
-
-extern char at_1655__5[];
-
-extern char at_1705[];
-
-extern char at_2025__3[];
-
-extern char at_3398[];
-
-extern char at_3495[];
-
-extern char at_3536[];
+/** Associates effect-script function numbers with their handlers. */
+static RS_EXTFUNC_INFO ext_func_info[] = {
+    { _ZERO_VECTOR, 0 },
+    { _NORMAL_VECTOR, 1 },
+    { _COPY_VECTOR, 2 },
+    { _ADD_VECTOR, 3 },
+    { _SUB_VECTOR, 4 },
+    { _SCALE_VECTOR, 5 },
+    { _DIV_VECTOR, 6 },
+    { _DIST_VECTOR, 7 },
+    { _DIST_VECTOR2, 8 },
+    { _SQRT, 9 },
+    { _ATAN2F, 10 },
+    { _ANGLE_CMP, 11 },
+    { _ANGLE_LIMIT, 12 },
+    { _GET_RAND, 13 },
+    { _GET_REF_ROT, 14 },
+    { _GET_DIR_VECTOR, 15 },
+    { _SET_ORIGIN, 50 },
+    { _GET_ORIGIN, 51 },
+    { _AUTO_SET_OFFSET, 52 },
+    { _GET_WORK_VECT1, 53 },
+    { _GET_WORK_VECT2, 54 },
+    { _GET_TARGET_ID, 55 },
+    { _GET_USER_ID, 56 },
+    { _GET_VALUE, 57 },
+    { _SET_VALUE, 58 },
+    { _CHR_SET_SHOW, 100 },
+    { _CHR_GET_SHOW, 101 },
+    { _CHR_SET_POS, 102 },
+    { _CHR_GET_POS, 103 },
+    { _CHR_SET_ROT, 104 },
+    { _CHR_GET_ROT, 105 },
+    { _CHR_SET_SCALE, 106 },
+    { _CHR_GET_SCALE, 107 },
+    { _CHR_SET_MOTION, 108 },
+    { _CHR_SET_MOT_STEP, 109 },
+    { _CHR_GET_DIR_VECTOR, 110 },
+    { _CHR_GET_REF_ROT, 111 },
+    { _CHR_ADD_POS, 112 },
+    { _CHR_ADD_ROT, 113 },
+    { _CHR_ADD_SCALE, 114 },
+    { _CHR_COPY_CHARA, 125 },
+    { _CHR_SET_POS2, 126 },
+    { _CHR_SET_ROT2, 127 },
+    { _CHR_SET_SCALE2, 128 },
+    { _CHR_SET_MOTION2, 129 },
+    { _CHR_ADD_POS2, 130 },
+    { _CHR_ADD_ROT2, 131 },
+    { _CHR_ADD_SCALE2, 132 },
+    { _CHR_GET_MOT_WAIT, 133 },
+    { _CHR_SET_SHOW2, 134 },
+    { _CHR_GET_FRAME_POS, 135 },
+    { _CHR_SET_FRAME_SHOW, 252 },
+    { _CHR_CHK_MOT_END, 253 },
+    { _CHR_SET_LIGHT_COLOR, 136 },
+    { _SPT_ASSIGN_SPRITE, 150 },
+    { _SPT_DELETE_SPRITE, 151 },
+    { _SPT_SET_TEXNAME, 152 },
+    { _SPT_SET_ALPHAB, 153 },
+    { _SPT_INIT_SPRITE, 154 },
+    { _SPT_SET_UV_SIZE, 157 },
+    { _SPT_SET_PUT_SIZE, 158 },
+    { _SPT_SET_DRAW_FLAG, 155 },
+    { _SPT_GET_DRAW_FLAG, 156 },
+    { _SPT_SET_POS, 159 },
+    { _SPT_GET_POS, 160 },
+    { _SPT_SET_ROTZ, 161 },
+    { _SPT_GET_ROTZ, 162 },
+    { _SPT_SET_SCALE, 163 },
+    { _SPT_GET_SCALE, 164 },
+    { _SPT_SET_COLOR, 165 },
+    { _SPT_GET_COLOR, 166 },
+    { _SPT_VAN_SET_POS, 167 },
+    { _SPT_VAN_SET_ROT, 168 },
+    { _SPT_ADD_POS, 169 },
+    { _SPT_ADD_ROTZ, 170 },
+    { _SPT_ADD_COLOR, 171 },
+    { _SPT_WORLD_ROT, 172 },
+    { _SPT_SET_LIFE, 173 },
+    { _SPT_SET_VELO_POS, 174 },
+    { _SPT_SET_ACC_POS, 175 },
+    { _SPT_SET_VELO_ROTZ, 176 },
+    { _SPT_SET_ACC_ROTZ, 177 },
+    { _SPT_SET_VELO_COL, 178 },
+    { _SPT_SET_ACC_COL, 179 },
+    { _SPT_SET_BLINKING, 180 },
+    { _SPT_VAN_SET_COL, 181 },
+    { _SPT_SET_VELO_SCL, 182 },
+    { _SPT_SET_ACC_SCL, 183 },
+    { _SPT_VAN_SET_SCL, 184 },
+    { _SPT_SCALE_CONV, 185 },
+    { _SPT_COLOR_CONV, 186 },
+    { _SCN_GET_CHR_POS, 200 },
+    { _SCN_GET_CHR_ROT, 201 },
+    { _SCN_GET_CHR_FRM_POS, 202 },
+    { _INTERSECTION_POINT, 203 },
+    { _MON_SE_PLAY, 220 },
+    { _MON_SE_STOP, 221 },
+    { _BTL_SE_PLAY, 222 },
+    { _BTL_SE_STOP, 223 },
+    { _BSE_SE_PLAY, 224 },
+    { _BSE_SE_STOP, 225 },
+    { _MON_SE_PLAY2, 226 },
+    { _MON_SE_STOP2, 227 },
+    { _SET_LIGHT_FLAG, 230 },
+    { _SCN_GET_CHR_ENTOBJ_POS, 231 },
+    { _SCN_GET_CHR_FRM_DIR, 232 },
+    { _SCN_GET_CHR_FRM_ROT, 233 },
+    { _SCN_GET_ENTRY_OBJ_POS, 234 },
+    { _CREATE_DAMAGE, 204 },
+    { _DELETE_DAMAGE, 205 },
+    { _DMG_SET_POS, 206 },
+    { _DMG_SET_FRONT_VECT, 207 },
+    { _DMG_SET_DAMAGE, 208 },
+    { _COLPRIM_CREATE, 210 },
+    { _COLPRIM_SET_COORD, 211 },
+    { _COLPRIM_DELETE, 212 },
+    { _COLPRIM_GET_HITCNT, 213 },
+    { _COLPRIM_SET_DAMAGE, 214 },
+    { _COLPRIM_GET_HIT_POS, 215 },
+    { _COLPRIM_GET_GIFT, 216 },
+    { _COLPRIM_GET_REVCNT, 217 },
+    { _ES_CREATE, 240 },
+    { _ES_SET_VECT1, 241 },
+    { _ES_SET_VECT2, 242 },
+    { _ES_SET_TARGET_ID, 243 },
+    { _ES_SET_COLPRIM, 244 },
+    { _ES_SET_VALUE, 245 },
+    { _GET_EOH_POS, 251 },
+    { NULL, -1 },
+};
 
 static inline u_int align16_blocks(u_int size) {
     if (size & 0xF) {
@@ -100,30 +312,30 @@ static inline u_int align16_blocks(u_int size) {
 
 // Code (.text)
 void CEffectScriptMan::Initialize(mgCMemory *memory, int texb_start, int texb_num) {
-    int i;
-    int j;
+    int                i;
+    int                j;
     mgCTextureManager *manager;
-    int bank;
+    int                bank;
 
     this->memory = memory;
-    load_buffer = 0;
-    work_memory = 0;
+    load_buffer = NULL;
+    work_memory = NULL;
     level = 0;
     for (i = 0; i < EFF_SPT_BASE_MAX; i++) {
-        base[i] = 0;
+        base[i] = NULL;
     }
     base_num = 0;
     for (i = 0; i < EFF_SPT_OWNER_MAX; i++) {
         for (j = 0; j < EFF_SPT_OWNER_SLOT_MAX; j++) {
-            slot[i][j] = 0;
+            slot[i][j] = NULL;
         }
     }
-    now = 0;
+    now = NULL;
     this->texb_start = texb_start;
     this->texb_num = texb_num;
     texb_used = 0;
-    tail = 0;
-    head = 0;
+    tail = NULL;
+    head = NULL;
     now_scene = GetMainScene();
     SetEffectScriptFunc();
     level_texb_used[0] = 0;
@@ -135,16 +347,20 @@ void CEffectScriptMan::Initialize(mgCMemory *memory, int texb_start, int texb_nu
         manager->DeleteBlock(bank);
     }
 }
+
 void CEffectScriptMan::SetWorkBuffer(mgCMemory *memory) {
     if (memory != NULL) {
         work_memory = memory;
     }
 }
-int CEffectScriptMan::SearchBaseNo(char *name) {
-    int index = 0;
+
+s32 CEffectScriptMan::SearchBaseNo(char *name) {
+    int               index = 0;
+    EFF_SPT_BASE_DEF *base;
+
     while (true) {
-        EFF_SPT_BASE_DEF *base = GetEffSptBaseDefPtr(index);
-        if (base == 0) {
+        base = GetEffSptBaseDefPtr(index);
+        if (base == NULL) {
             return -1;
         }
         if (strcmp(base->name, name) == 0) {
@@ -153,56 +369,65 @@ int CEffectScriptMan::SearchBaseNo(char *name) {
         index++;
     }
 }
-int CEffectScriptMan::LoadBaseEffSpt(int base_no, mgCMemory *memory, int level) {
+
+s32 CEffectScriptMan::LoadBaseEffSpt(int base_no, mgCMemory *memory, int level) {
     char path[0x80];
     char pack[0x80];
-    int path_size;
-    int pack_size;
-    int path_buffer;
-    int pack_buffer;
-    for (int i = 0; i < EFF_SPT_BASE_MAX; i++) {
-        if (base[i] != 0 && base[i]->base_no == base_no) {
+    int  path_size;
+    int  pack_size;
+    u8  *path_buffer;
+    u8  *pack_buffer;
+    int  i;
+    int  rest;
+    int  pad;
+
+    for (i = 0; i < EFF_SPT_BASE_MAX; i++) {
+        if (base[i] != NULL && base[i]->base_no == base_no) {
             return 0;
         }
     }
-    path_buffer = (int)load_buffer;
-    if (path_buffer == 0) {
+    path_buffer = (u8 *)load_buffer;
+    if (path_buffer == NULL) {
         return -1;
     }
     if (GetNeedFilePath(base_no, path, pack) == 0) {
         return -1;
     }
-    if (LoadFile2(path, (void *)path_buffer, &path_size, 0) == 0) {
+    if (LoadFile2(path, path_buffer, &path_size, 0) == 0) {
         path_size = 0;
-        pack_buffer = (int)load_buffer;
-        path_buffer = 0;
+        pack_buffer = (u8 *)load_buffer;
+        path_buffer = NULL;
     } else {
-        int rest = path_size & 0x3F;
-        int pad = rest != 0 ? 0x40 - rest : 0;
-        pack_buffer = path_buffer + ((path_size + pad) & -0x10);
+        rest = path_size & 0x3F;
+        pad = rest != 0 ? 0x40 - rest : 0;
+        pack_buffer = &path_buffer[(path_size + pad) & -0x10];
     }
-    if (LoadFile2(pack, (void *)pack_buffer, &pack_size, 0) == 0) {
+    if (LoadFile2(pack, pack_buffer, &pack_size, 0) == 0) {
         return -1;
     }
     return BuildBase(base_no, (u_long128 *)path_buffer, path_size, (u_long128 *)pack_buffer, pack_size, memory,
                      level);
 }
-int CEffectScriptMan::LoadBaseEffSpt(char *name, mgCMemory *memory, int level) {
+
+s32 CEffectScriptMan::LoadBaseEffSpt(char *name, mgCMemory *memory, int level) {
     return LoadBaseEffSpt(SearchBaseNo(name), memory, level);
 }
+
 void CEffectScriptMan::ClearBaseFromLevel(int level, int *cleared, int max) {
     int count;
+    int i;
+
     ClearEffectFromLevel(level);
     count = 0;
-    for (int i = 0; i < EFF_SPT_BASE_MAX; i++) {
-        if (base[i] != 0 && base[i]->level == level) {
+    for (i = 0; i < EFF_SPT_BASE_MAX; i++) {
+        if (base[i] != NULL && base[i]->level == level) {
             if (cleared != 0 && base[i]->texb_owned != 0 && count < max) {
                 cleared[count++] = base[i]->texb;
             }
             if (base[i]->texb_owned != 0) {
                 texb_used--;
             }
-            base[i] = 0;
+            base[i] = NULL;
         }
     }
     if (level > 0 && level < 4) {
@@ -215,102 +440,124 @@ void CEffectScriptMan::ClearBaseFromLevel(int level, int *cleared, int max) {
     if (cleared != 0 && count < max) {
         cleared[count] = -1;
     } else if (cleared != 0) {
-        printf(at_943__3);
+        printf("--- effect script err (ClearBaseFromLevel TexbTable Over)!!! ---\n");
         cleared[count - 1] = -1;
     }
 }
+
 CCharacter2 *CEffectScriptMan::GetBaseChara(int base_no) {
-    for (int i = 0; i < EFF_SPT_BASE_MAX; i++) {
-        if (base[i] != 0) {
-            EFF_SPT_BASE_DEF *current = GetEffSptBaseDefPtr(base[i]->base_no);
-            if (current == 0) {
-                return 0;
+    int               i;
+    EFF_SPT_BASE_DEF *current;
+    EFF_SPT_BASE_DEF *wanted;
+
+    for (i = 0; i < EFF_SPT_BASE_MAX; i++) {
+        if (base[i] != NULL) {
+            current = GetEffSptBaseDefPtr(base[i]->base_no);
+            if (current == NULL) {
+                return NULL;
             }
-            EFF_SPT_BASE_DEF *wanted = GetEffSptBaseDefPtr(base_no);
-            if (wanted == 0) {
-                return 0;
+            wanted = GetEffSptBaseDefPtr(base_no);
+            if (wanted == NULL) {
+                return NULL;
             }
             if (current->type == 0 && strcmp(current->file, wanted->file) == 0) {
                 return base[i]->chara;
             }
         }
     }
-    return 0;
+    return NULL;
 }
+
 CCharacter2 *CEffectScriptMan::GetBaseChara(char *name) {
     return GetBaseChara(SearchBaseNo(name));
 }
-int CEffectScriptMan::GetNotUsedTexb(void) {
-    int used = texb_used;
+
+s32 CEffectScriptMan::GetNotUsedTexb(void) {
+    s32 used = texb_used;
+
     if (used >= texb_num) {
         return -1;
     }
     return texb_start + used;
 }
+
 void CEffectScriptMan::AddTexb() {
     int count = texb_used;
+
     if (count < texb_num) {
         texb_used = count + 1;
         level_texb_used[level] = level_texb_used[level] + 1;
     }
 }
+
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/effscript", BuildBase__16CEffectScriptManFiP1iP1iP9mgCMemoryi);
-int CEffectScriptMan::BuildBase(char *name, u_long128 *path_file, int path_size, u_long128 *pack_file,
+s32 CEffectScriptMan::BuildBase(char *name, u_long128 *path_file, int path_size, u_long128 *pack_file,
                                  int pack_size, mgCMemory *memory, int level) {
     return BuildBase(SearchBaseNo(name), path_file, path_size, pack_file, pack_size, memory, level);
 }
-int CEffectScriptMan::BuildPack(int base_no, u_int *pack, mgCMemory *memory, int level) {
-    char path[0x20];
-    char pack_path[0x20];
-    int path_size;
-    int pack_size;
+
+s32 CEffectScriptMan::BuildPack(int base_no, u_int *pack, mgCMemory *memory, int level) {
+    char              path[0x20];
+    char              pack_path[0x20];
+    int               path_size;
+    int               pack_size;
     EFF_SPT_BASE_DEF *base = GetEffSptBaseDefPtr(base_no);
-    if (base == 0) {
+    u_int            *path_file;
+    u_int            *pack_file;
+
+    if (base == NULL) {
         return -1;
     }
     switch (base->type) {
         case 0:
-            sprintf(path, at_1127__2, base->file);
+            sprintf(path, "%s.chr", base->file);
             break;
         case 1:
-            sprintf(path, at_1128__3, base->file);
+            sprintf(path, "%s.img", base->file);
             break;
     }
-    sprintf(pack_path, at_1129__2, base->script);
-    u_int *path_file = GetPackFile(pack, path, &path_size);
-    u_int *pack_file = GetPackFile(pack, pack_path, &pack_size);
+    sprintf(pack_path, "%s.stb", base->script);
+    path_file = GetPackFile(pack, path, &path_size);
+    pack_file = GetPackFile(pack, pack_path, &pack_size);
     return BuildBase(base_no, (u_long128 *)path_file, path_size, (u_long128 *)pack_file, pack_size, memory, level);
 }
-int CEffectScriptMan::BuildPack(char *name, u_int *pack, mgCMemory *memory, int level) {
+
+s32 CEffectScriptMan::BuildPack(char *name, u_int *pack, mgCMemory *memory, int level) {
     return BuildPack(SearchBaseNo(name), pack, memory, level);
 }
-int CEffectScriptMan::GetNeedFilePath(int base_no, char *path, char *pack) {
+
+s32 CEffectScriptMan::GetNeedFilePath(int base_no, char *path, char *pack) {
     EFF_SPT_BASE_DEF *base = GetEffSptBaseDefPtr(base_no);
-    if (base == 0) {
+
+    if (base == NULL) {
         return 0;
     }
     switch (base->type) {
         case 0:
-            sprintf(path, at_1143, base->file);
+            sprintf(path, "dungeon/eff_script/%s.chr", base->file);
             break;
         case 1:
-            sprintf(path, at_1144, base->file);
+            sprintf(path, "dungeon/eff_script/%s.img", base->file);
             break;
     }
-    sprintf(pack, at_1145, base->script);
+    sprintf(pack, "dungeon/eff_script/%s.stb", base->script);
     return 1;
 }
-int CEffectScriptMan::GetNeedFilePath(char *name, char *path, char *pack) {
+
+s32 CEffectScriptMan::GetNeedFilePath(char *name, char *path, char *pack) {
     return GetNeedFilePath(SearchBaseNo(name), path, pack);
 }
+
+#ifdef NONMATCHING
 _EFF_SCRIPT *CEffectScriptMan::CreateEffSpt(int base_no, int group, int register_in_group) {
     EFF_SPT_BASE *base;
-    int slot;
-    _EFF_SCRIPT *script;
-    u_long128 *token;
+    int           slot;
+    _EFF_SCRIPT  *script;
+    u_long128    *token;
+
     base = NULL;
     if (base_num <= 0) {
-        printf(at_1336__2);
+        printf("--- effect script (non base)!!! ---\n");
         return NULL;
     }
     for (int i = 0; i < EFF_SPT_BASE_MAX; i++) {
@@ -320,12 +567,12 @@ _EFF_SCRIPT *CEffectScriptMan::CreateEffSpt(int base_no, int group, int register
         }
     }
     if (base == NULL) {
-        printf(at_1337__2);
+        printf("--- effect script (not load base[%d])!!! ---\n");
         now = NULL;
         return NULL;
     }
     if (work_memory == NULL) {
-        printf(at_1338__2);
+        printf("--- effect script (non work stack)!!! ---\n");
         now = NULL;
         return NULL;
     }
@@ -341,58 +588,41 @@ _EFF_SCRIPT *CEffectScriptMan::CreateEffSpt(int base_no, int group, int register
             }
         }
         if (slot == EFF_SPT_OWNER_SLOT_MAX) {
-            printf(at_1339__3);
+            printf("--- effect script (ent_tbl max)!!! ---\n");
             now = NULL;
             return NULL;
         }
     }
     token = work_memory->StartStackMode(3, base->work_size);
-    if (token == 0) {
-        printf(at_1340__2, work_memory->stack_size - work_memory->stack_used);
+    if (token == NULL) {
+        printf("--- effect script work max[%d]!!! ---\n", work_memory->stack_size - work_memory->stack_used);
         now = NULL;
         return NULL;
     }
-    if ((script = (_EFF_SCRIPT *)operator new(
-             sizeof(_EFF_SCRIPT), (u_long128 *)work_memory->Alloc(0x17))) !=
-        NULL) {
-        __ct__10CRunScriptFv(&script->run);
-    }
+    script = new (work_memory->Alloc(sizeof(_EFF_SCRIPT) / 16 + 2)) _EFF_SCRIPT;
     script->work = token;
     script->texb = base->texb;
     script->level = base->level;
     script->sprite = NULL;
     script->sprite_num = 0;
-    strcpy(script->tex_name, at_1341__2);
+    strcpy(script->tex_name, "");
     script->chara_work = NULL;
     if (base->chara != NULL) {
         CCharacter2 *chara;
-        if ((chara = (CCharacter2 *)operator new(
-                sizeof(CCharacter2), work_memory->Alloc(0x68))) != 0) {
-            *(void **)chara = __vt__9mgCObject;
-            chara->Initialize();
-            *(void **)chara = __vt__7CObject;
-            chara->Initialize();
-            *(void **)chara = __vt__12CObjectFrame;
-            chara->Initialize();
-            *(void **)chara = __vt__11CCharacter2;
-            chara->shadow_link_num = 0;
-            chara->shadow_link_shadow = 0;
-            chara->shadow_link_model = 0;
-            chara->Initialize();
-        }
+        chara = new (work_memory->Alloc(sizeof(CCharacter2) / 16 + 2)) CCharacter2;
         script->chara = chara;
         script->chara->Initialize();
         base->chara->Copy(*script->chara, work_memory);
         base->work_size = base->chara->GetCopySize();
         base->work_size = base->work_size + 0x7D;
         base->work_size = base->work_size + 0x24;
-        ((CCharacter2 *)script->chara)->SetPosition(0.0f, -10000.0f, 0.0f);
-        ((CCharacter2 *)script->chara)->SetRotation(0.0f, 0.0f, 0.0f);
+        script->chara->SetPosition(0.0f, -10000.0f, 0.0f);
+        script->chara->SetRotation(0.0f, 0.0f, 0.0f);
     } else {
         script->chara = NULL;
     }
-    ((CRunScript *)&script->run)->ext_func(ext_func__4, 0x100);
-    SetEffectScript(&script->run, base->script, (mgCMemory *)work_memory);
+    script->run.ext_func(ext_func, 0x100);
+    SetEffectScript(&script->run, base->script, work_memory);
     script->prog_no = 200;
     script->user_id = group;
     script->slot = slot;
@@ -464,159 +694,168 @@ _EFF_SCRIPT *CEffectScriptMan::CreateEffSpt(int base_no, int group, int register
     now = script;
     return script;
 }
-int CEffectScriptMan::CreateEffSpt(char *name, int user_id, int use_slot) {
+#else
+INCLUDE_ASM("ps2/asm/pal/nonmatchings/effscript", CreateEffSpt__16CEffectScriptManFiii);
+#endif
+
+s32 CEffectScriptMan::CreateEffSpt(char *name, s32 user_id, s32 use_slot) {
     _EFF_SCRIPT *effect = CreateEffSpt(SearchBaseNo(name), user_id, use_slot);
+
     if (effect != NULL) {
         return effect->slot;
     }
     return -1;
 }
+
 void CEffectScriptMan::ClearEffectFromChrid(int chrid) {
     _EFF_SCRIPT *script = head;
-    if (script != 0) {
-        do {
-            if (script->user_id == chrid) {
-                _EFF_SCRIPT *doomed = script;
-                script = script->next;
-                DeleteEffSpt(doomed);
-            } else {
-                script = script->next;
-            }
-        } while (script != 0);
+    _EFF_SCRIPT *doomed;
+
+    while (script != NULL) {
+        if (script->user_id == chrid) {
+            doomed = script;
+            script = script->next;
+            DeleteEffSpt(doomed);
+        } else {
+            script = script->next;
+        }
     }
 }
+
 void CEffectScriptMan::ClearEffectFromLevel(int level) {
     _EFF_SCRIPT *script = head;
-    if (script != 0) {
-        do {
-            if (script->level == level) {
-                _EFF_SCRIPT *doomed = script;
-                script = script->next;
-                DeleteEffSpt(doomed);
-            } else {
-                script = script->next;
-            }
-        } while (script != 0);
+    _EFF_SCRIPT *doomed;
+
+    while (script != NULL) {
+        if (script->level == level) {
+            doomed = script;
+            script = script->next;
+            DeleteEffSpt(doomed);
+        } else {
+            script = script->next;
+        }
     }
 }
+
 void CEffectScriptMan::DeleteEffSpt(_EFF_SCRIPT *script) {
-    if (script == 0 || work_memory == 0) {
+    if (script == NULL || work_memory == NULL) {
         return;
     }
-    if (script->prev != 0) {
+    if (script->prev != NULL) {
         script->prev->next = script->next;
     } else {
         head = script->next;
-        if (head != 0) {
-            head->prev = 0;
+        if (head != NULL) {
+            head->prev = NULL;
         }
     }
-    if (script->next != 0) {
+    if (script->next != NULL) {
         script->next->prev = script->prev;
     } else {
         tail = script->prev;
-        if (tail != 0) {
-            tail->next = 0;
+        if (tail != NULL) {
+            tail->next = NULL;
         }
     }
-    if (now != 0 && script->work == now->work) {
-        now = 0;
+    if (now != NULL && script->work == now->work) {
+        now = NULL;
     }
     if (script->slot >= 0) {
-        slot[script->user_id][script->slot] = 0;
+        slot[script->user_id][script->slot] = NULL;
     }
-    if (script->colprim != 0) {
-        Delete__8CColPrimFi((void *)script->colprim, script->user_id);
+    if (script->colprim != NULL) {
+        script->colprim->Delete(script->user_id);
     }
     DeleteSprite(script->sprite);
-    if (script->sub_chara_work != 0) {
-        Free__9mgCMemoryFP1(work_memory, script->sub_chara_work);
+    if (script->sub_chara_work != NULL) {
+        work_memory->Free(script->sub_chara_work);
     }
-    if (script->chara_work != 0) {
-        Free__9mgCMemoryFP1(work_memory, script->chara_work);
+    if (script->chara_work != NULL) {
+        work_memory->Free(script->chara_work);
     }
-    Free__9mgCMemoryFP1(work_memory, script->work);
+    work_memory->Free(script->work);
 }
-int CEffectScriptMan::DeleteEffSpt(int group, int slot) {
+
+s32 CEffectScriptMan::DeleteEffSpt(int group, int slot) {
     if (group < 0 || group >= EFF_SPT_OWNER_MAX || slot < 0 || slot >= EFF_SPT_OWNER_SLOT_MAX) {
         return 0;
     }
     DeleteEffSpt(this->slot[group][slot]);
     return 1;
 }
+
 void CEffectScriptMan::AllClearEffSpt() {
     _EFF_SCRIPT *script = tail;
-    if (script != 0) {
-        while (script->prev != 0) {
-            _EFF_SCRIPT *prev = script->prev;
+    _EFF_SCRIPT *prev;
+    int          group;
+    int          slot;
+
+    if (script != NULL) {
+        while (script->prev != NULL) {
+            prev = script->prev;
             script = prev;
             DeleteEffSpt(prev->next);
         }
         DeleteEffSpt(script);
-        tail = 0;
-        head = 0;
-        for (int group = 0; group < EFF_SPT_OWNER_MAX; group++) {
-            for (int slot = 0; slot < EFF_SPT_OWNER_SLOT_MAX; slot++) {
-                this->slot[group][slot] = 0;
+        tail = NULL;
+        head = NULL;
+        for (group = 0; group < EFF_SPT_OWNER_MAX; group++) {
+            for (slot = 0; slot < EFF_SPT_OWNER_SLOT_MAX; slot++) {
+                this->slot[group][slot] = NULL;
             }
         }
-        now = 0;
+        now = NULL;
     }
 }
+
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/effscript", Step__16CEffectScriptManFv);
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/effscript", Draw__16CEffectScriptManFv);
 _ES_SPRITE *CEffectScriptMan::AssignSprite(int count) {
-    if (work_memory == 0) {
-        return 0;
+    u_int size;
+    u_int blocks;
+
+    if (work_memory == NULL) {
+        return NULL;
     }
-    u_int size = count * sizeof(_ES_SPRITE);
-    u_int blocks = align16_blocks(size) + 3;
+    size = count * sizeof(_ES_SPRITE);
+    blocks = align16_blocks(size) + 3;
     if (work_memory->StartStackMode(3, blocks) == 0) {
-        printf(at_1655__5, blocks);
-        return 0;
+        printf("------- es work max!! (assign sprite[%d]) ---------\n", blocks);
+        return NULL;
     }
 
     _ES_SPRITE *sprite = (_ES_SPRITE *)operator new[](
-        size, (u_long128 *)Alloc__9mgCMemoryFi(work_memory, align16_blocks(size) + 2));
+        size, work_memory->Alloc(align16_blocks(size) + 2));
 
     memset(sprite, 0, blocks);
     work_memory->stAlign64();
     work_memory->EndStackMode();
     return sprite;
 }
+
 void CEffectScriptMan::DeleteSprite(_ES_SPRITE *sprite) {
     mgCMemory *memory = work_memory;
-    if (memory == 0 || sprite == 0) {
+
+    if (memory == NULL || sprite == NULL) {
         return;
     }
     memory->Free((u_long128 *)sprite);
 }
-int CEffectScriptMan::AssignCharacter(_EFF_SCRIPT *script, int count) {
+
+#ifdef NONMATCHING
+s32 CEffectScriptMan::AssignCharacter(_EFF_SCRIPT *script, int count) {
     if (count > EFF_SPT_SUB_CHARA_MAX) {
         return 0;
     }
-    int size = count * (script->chara->GetCopySize() + 0x68);
+    int size = count * (script->chara->GetCopySize() + sizeof(CCharacter2) / 16 + 2);
     u_long128 *token = work_memory->StartStackMode(3, size);
-    if (token == 0) {
-        printf(at_1705, size);
+    if (token == NULL) {
+        printf("------- es work max!! (assign character[%d]) ---------\n", size);
         return 0;
     }
     for (int i = 0; i < count; i++) {
         CCharacter2 *chara;
-        if ((chara = (CCharacter2 *)operator new(
-                sizeof(CCharacter2), work_memory->Alloc(0x68))) != 0) {
-            *(void **)chara = __vt__9mgCObject;
-            chara->Initialize();
-            *(void **)chara = __vt__7CObject;
-            chara->Initialize();
-            *(void **)chara = __vt__12CObjectFrame;
-            chara->Initialize();
-            *(void **)chara = __vt__11CCharacter2;
-            chara->shadow_link_num = 0;
-            chara->shadow_link_shadow = 0;
-            chara->shadow_link_model = 0;
-            chara->Initialize();
-        }
+        chara = new (work_memory->Alloc(sizeof(CCharacter2) / 16 + 2)) CCharacter2;
         script->sub_chara[i] = chara;
         script->chara->Copy(*script->sub_chara[i], work_memory);
     }
@@ -625,211 +864,257 @@ int CEffectScriptMan::AssignCharacter(_EFF_SCRIPT *script, int count) {
     work_memory->EndStackMode();
     return 1;
 }
-int CEffectScriptMan::SetScriptProgNo(int prog_no, int group, int slot) {
+#else
+INCLUDE_ASM("ps2/asm/pal/nonmatchings/effscript", AssignCharacter__16CEffectScriptManFP11_EFF_SCRIPTi);
+#endif
+
+s32 CEffectScriptMan::SetScriptProgNo(int prog_no, int group, int slot) {
+    _EFF_SCRIPT *script;
+
     if (group < 0 || group >= EFF_SPT_OWNER_MAX || slot < 0 || slot >= EFF_SPT_OWNER_SLOT_MAX) {
         return 0;
     }
-    _EFF_SCRIPT *script = this->slot[group][slot];
-    if (script == 0) {
+    script = this->slot[group][slot];
+    if (script == NULL) {
         return 0;
     }
     script->prog_no = prog_no;
     return 1;
 }
-int CEffectScriptMan::Pause(int state, int group, int slot) {
+
+s32 CEffectScriptMan::Pause(int state, int group, int slot) {
+    _EFF_SCRIPT *script;
+
     if (group < 0 || group >= EFF_SPT_OWNER_MAX || slot < 0 || slot >= EFF_SPT_OWNER_SLOT_MAX) {
         return 0;
     }
-    _EFF_SCRIPT *script = this->slot[group][slot];
-    if (script == 0) {
+    script = this->slot[group][slot];
+    if (script == NULL) {
         return 0;
     }
     script->state = state;
     return 1;
 }
+
 void CEffectScriptMan::PauseFromLevel(int level, int state) {
-    _EFF_SCRIPT *script = head;
-    if (script != NULL) {
-        do {
-            if (script->level == level) {
-                script->state = state;
-            }
-            script = script->next;
-        } while (script != NULL);
+    for (_EFF_SCRIPT *script = head; script != NULL; script = script->next) {
+        if (script->level == level) {
+            script->state = state;
+        }
     }
 }
-int CEffectScriptMan::SetScriptVect1(float *vect, int group, int slot) {
+
+s32 CEffectScriptMan::SetScriptVect1(float *vect, int group, int slot) {
+    _EFF_SCRIPT *script;
+    _EFF_SCRIPT *first;
+
     if (slot >= 0) {
         if (group < 0 || group >= EFF_SPT_OWNER_MAX || slot >= EFF_SPT_OWNER_SLOT_MAX) {
             return 0;
         }
-        _EFF_SCRIPT *script = this->slot[group][slot];
-        if (script == 0) {
+        script = this->slot[group][slot];
+        if (script == NULL) {
             return 0;
         }
         *(u_long128 *)script->work_vect1 = *(u_long128 *)vect;
         return 1;
     }
-    _EFF_SCRIPT *first = now;
-    if (first != 0) {
+    first = now;
+    if (first != NULL) {
         *(u_long128 *)first->work_vect1 = *(u_long128 *)vect;
         return 1;
     }
     return 0;
 }
-int CEffectScriptMan::GetScriptVect1(float *vect, int group, int slot) {
+
+s32 CEffectScriptMan::GetScriptVect1(float *vect, int group, int slot) {
+    _EFF_SCRIPT *script;
+    _EFF_SCRIPT *first;
+
     if (slot >= 0) {
         if (group < 0 || group >= EFF_SPT_OWNER_MAX || slot >= EFF_SPT_OWNER_SLOT_MAX) {
             return 0;
         }
-        _EFF_SCRIPT *script = this->slot[group][slot];
-        if (script == 0) {
+        script = this->slot[group][slot];
+        if (script == NULL) {
             return 0;
         }
         *(u_long128 *)vect = *(u_long128 *)script->work_vect1;
         return 1;
     }
-    _EFF_SCRIPT *first = now;
-    if (first != 0) {
+    first = now;
+    if (first != NULL) {
         *(u_long128 *)vect = *(u_long128 *)first->work_vect1;
         return 1;
     }
     return 0;
 }
-int CEffectScriptMan::SetScriptVect2(float *vect, int group, int slot) {
+
+s32 CEffectScriptMan::SetScriptVect2(float *vect, int group, int slot) {
+    _EFF_SCRIPT *script;
+    _EFF_SCRIPT *first;
+
     if (slot >= 0) {
         if (group < 0 || group >= EFF_SPT_OWNER_MAX || slot >= EFF_SPT_OWNER_SLOT_MAX) {
             return 0;
         }
-        _EFF_SCRIPT *script = this->slot[group][slot];
-        if (script == 0) {
+        script = this->slot[group][slot];
+        if (script == NULL) {
             return 0;
         }
         *(u_long128 *)script->work_vect2 = *(u_long128 *)vect;
         return 1;
     }
-    _EFF_SCRIPT *first = now;
-    if (first != 0) {
+    first = now;
+    if (first != NULL) {
         *(u_long128 *)first->work_vect2 = *(u_long128 *)vect;
         return 1;
     }
     return 0;
 }
-int CEffectScriptMan::GetScriptVect2(float *vect, int group, int slot) {
+
+s32 CEffectScriptMan::GetScriptVect2(float *vect, int group, int slot) {
+    _EFF_SCRIPT *script;
+    _EFF_SCRIPT *first;
+
     if (slot >= 0) {
         if (group < 0 || group >= EFF_SPT_OWNER_MAX || slot >= EFF_SPT_OWNER_SLOT_MAX) {
             return 0;
         }
-        _EFF_SCRIPT *script = this->slot[group][slot];
-        if (script == 0) {
+        script = this->slot[group][slot];
+        if (script == NULL) {
             return 0;
         }
         *(u_long128 *)vect = *(u_long128 *)script->work_vect2;
         return 1;
     }
-    _EFF_SCRIPT *first = now;
-    if (first != 0) {
+    first = now;
+    if (first != NULL) {
         *(u_long128 *)vect = *(u_long128 *)first->work_vect2;
         return 1;
     }
     return 0;
 }
-int CEffectScriptMan::SetScriptTargetId(int target_id, int group, int slot) {
+
+s32 CEffectScriptMan::SetScriptTargetId(int target_id, int group, int slot) {
+    _EFF_SCRIPT *script;
+    _EFF_SCRIPT *first;
+
     if (slot >= 0) {
         if (group < 0 || group >= EFF_SPT_OWNER_MAX || slot >= EFF_SPT_OWNER_SLOT_MAX) {
             return 0;
         }
-        _EFF_SCRIPT *script = this->slot[group][slot];
-        if (script == 0) {
+        script = this->slot[group][slot];
+        if (script == NULL) {
             return 0;
         }
         script->target_id = target_id;
         return 1;
     }
-    _EFF_SCRIPT *first = now;
-    if (first != 0) {
+    first = now;
+    if (first != NULL) {
         first->target_id = target_id;
         return 1;
     }
     return 0;
 }
-int CEffectScriptMan::GetScriptTargetId(int &target_id, int group, int slot) {
+
+s32 CEffectScriptMan::GetScriptTargetId(int &target_id, int group, int slot) {
+    _EFF_SCRIPT *script;
+    _EFF_SCRIPT *first;
+
     if (slot >= 0) {
         if (group < 0 || group >= EFF_SPT_OWNER_MAX || slot >= EFF_SPT_OWNER_SLOT_MAX) {
             return 0;
         }
-        _EFF_SCRIPT *script = this->slot[group][slot];
-        if (script == 0) {
+        script = this->slot[group][slot];
+        if (script == NULL) {
             return 0;
         }
         target_id = script->target_id;
         return 1;
     }
-    _EFF_SCRIPT *first = now;
-    if (first != 0) {
+    first = now;
+    if (first != NULL) {
         target_id = first->target_id;
         return 1;
     }
     return 0;
 }
-int CEffectScriptMan::SetScriptUserId(int user_id, int group, int slot) {
+
+s32 CEffectScriptMan::SetScriptUserId(int user_id, int group, int slot) {
+    _EFF_SCRIPT *script;
+    _EFF_SCRIPT *first;
+
     if (slot >= 0) {
         if (group < 0 || group >= EFF_SPT_OWNER_MAX || slot >= EFF_SPT_OWNER_SLOT_MAX) {
             return 0;
         }
-        _EFF_SCRIPT *script = this->slot[group][slot];
-        if (script == 0) {
+        script = this->slot[group][slot];
+        if (script == NULL) {
             return 0;
         }
         script->user_id = user_id;
         return 1;
     }
-    _EFF_SCRIPT *first = now;
-    if (first != 0) {
+    first = now;
+    if (first != NULL) {
         first->user_id = user_id;
         return 1;
     }
     return 0;
 }
-int CEffectScriptMan::GetScriptUserId(int &user_id, int group, int slot) {
+
+s32 CEffectScriptMan::GetScriptUserId(int &user_id, int group, int slot) {
+    _EFF_SCRIPT *script;
+    _EFF_SCRIPT *first;
+
     if (slot >= 0) {
         if (group < 0 || group >= EFF_SPT_OWNER_MAX || slot >= EFF_SPT_OWNER_SLOT_MAX) {
             return 0;
         }
-        _EFF_SCRIPT *script = this->slot[group][slot];
-        if (script == 0) {
+        script = this->slot[group][slot];
+        if (script == NULL) {
             return 0;
         }
         user_id = script->user_id;
         return 1;
     }
-    _EFF_SCRIPT *first = now;
-    if (first != 0) {
+    first = now;
+    if (first != NULL) {
         user_id = first->user_id;
         return 1;
     }
     return 0;
 }
-int CEffectScriptMan::SetColPrim(CColPrim *colprim, int group, int slot) {
+
+s32 CEffectScriptMan::SetColPrim(CColPrim *colprim, int group, int slot) {
+    _EFF_SCRIPT *script;
+    _EFF_SCRIPT *first;
+
     if (slot >= 0) {
         if (group < 0 || group >= EFF_SPT_OWNER_MAX || slot >= EFF_SPT_OWNER_SLOT_MAX) {
             return 0;
         }
-        _EFF_SCRIPT *script = this->slot[group][slot];
-        if (script == 0) {
+        script = this->slot[group][slot];
+        if (script == NULL) {
             return 0;
         }
         script->colprim = colprim;
         return 1;
     }
-    _EFF_SCRIPT *first = now;
-    if (first != 0) {
+    first = now;
+    if (first != NULL) {
         first->colprim = colprim;
         return 1;
     }
     return 0;
 }
-int CEffectScriptMan::SetValue(int index, int value, int group, int slot) {
+
+s32 CEffectScriptMan::SetValue(int index, int value, int group, int slot) {
+    _EFF_SCRIPT *script;
+    _EFF_SCRIPT *first;
+
     if (index < 0 || index >= EFF_SPT_VALUE_MAX) {
         return 0;
     }
@@ -837,21 +1122,25 @@ int CEffectScriptMan::SetValue(int index, int value, int group, int slot) {
         if (group < 0 || group >= EFF_SPT_OWNER_MAX || slot >= EFF_SPT_OWNER_SLOT_MAX) {
             return 0;
         }
-        _EFF_SCRIPT *script = this->slot[group][slot];
-        if (script == 0) {
+        script = this->slot[group][slot];
+        if (script == NULL) {
             return 0;
         }
         script->value[index].i = value;
         return 1;
     }
-    _EFF_SCRIPT *first = now;
-    if (first != 0) {
+    first = now;
+    if (first != NULL) {
         first->value[index].i = value;
         return 1;
     }
     return 0;
 }
-int CEffectScriptMan::SetValue(int index, float value, int group, int slot) {
+
+s32 CEffectScriptMan::SetValue(int index, float value, int group, int slot) {
+    _EFF_SCRIPT *script;
+    _EFF_SCRIPT *first;
+
     if (index < 0 || index >= EFF_SPT_VALUE_MAX) {
         return 0;
     }
@@ -859,61 +1148,72 @@ int CEffectScriptMan::SetValue(int index, float value, int group, int slot) {
         if (group < 0 || group >= EFF_SPT_OWNER_MAX || slot >= EFF_SPT_OWNER_SLOT_MAX) {
             return 0;
         }
-        _EFF_SCRIPT *script = this->slot[group][slot];
-        if (script == 0) {
+        script = this->slot[group][slot];
+        if (script == NULL) {
             return 0;
         }
         script->value[index].f = value;
         return 1;
     }
-    _EFF_SCRIPT *first = now;
-    if (first != 0) {
+    first = now;
+    if (first != NULL) {
         first->value[index].f = value;
         return 1;
     }
     return 0;
 }
-int CEffectScriptMan::SetOrigin(float *vect, int group, int slot) {
+
+s32 CEffectScriptMan::SetOrigin(float *vect, int group, int slot) {
+    _EFF_SCRIPT *script;
+    _EFF_SCRIPT *first;
+
     if (slot >= 0) {
         if (group < 0 || group >= EFF_SPT_OWNER_MAX || slot >= EFF_SPT_OWNER_SLOT_MAX) {
             return 0;
         }
-        _EFF_SCRIPT *script = this->slot[group][slot];
-        if (script == 0) {
+        script = this->slot[group][slot];
+        if (script == NULL) {
             return 0;
         }
         *(u_long128 *)script->origin = *(u_long128 *)vect;
         return 1;
     }
-    _EFF_SCRIPT *first = now;
-    if (first != 0) {
+    first = now;
+    if (first != NULL) {
         *(u_long128 *)first->origin = *(u_long128 *)vect;
         return 1;
     }
     return 0;
 }
+
 CCharacter2 *CEffectScriptMan::GetCharacter(int group, int slot) {
+    _EFF_SCRIPT *script;
+    _EFF_SCRIPT *first;
+
     if (slot >= 0) {
         if (group < 0 || group >= EFF_SPT_OWNER_MAX || slot >= EFF_SPT_OWNER_SLOT_MAX) {
-            return 0;
+            return NULL;
         }
-        _EFF_SCRIPT *script = this->slot[group][slot];
-        if (script != 0) {
+        script = this->slot[group][slot];
+        if (script != NULL) {
             return script->chara;
         }
-        return 0;
+        return NULL;
     }
-    _EFF_SCRIPT *first = now;
-    if (first != 0) {
+    first = now;
+    if (first != NULL) {
         return first->chara;
     }
-    return 0;
+    return NULL;
 }
-int CEffectScriptMan::SetCharacter(CCharacter2 *source, int group, int slot) {
-    int chara_blocks = ((CCharacter2 *)source)->GetCopySize() + 0x68;
+
+#ifdef NONMATCHING
+s32 CEffectScriptMan::SetCharacter(CCharacter2 *source, int group, int slot) {
+    int        chara_blocks = source->GetCopySize() + sizeof(CCharacter2) / 16 + 2;
     u_long128 *token = work_memory->StartStackMode(3, chara_blocks);
-    if (token == 0) {
-        printf(at_2025__3);
+
+    if (token == NULL) {
+        printf("------- es work max!! (set character) ---------\n");
         return 0;
     }
     CCharacter2 *chara;
@@ -922,43 +1222,17 @@ int CEffectScriptMan::SetCharacter(CCharacter2 *source, int group, int slot) {
             return 0;
         }
 
-        _EFF_SCRIPT **entry = (_EFF_SCRIPT **)((slot << 2) + ((group << 5) + (int)this) + 0x184);
-        if (*entry == 0) {
+        _EFF_SCRIPT **entry = &this->slot[group][slot];
+        if (*entry == NULL) {
             return 0;
         }
-        if ((chara = (CCharacter2 *)operator new(
-                sizeof(CCharacter2), work_memory->Alloc(0x68))) != 0) {
-            *(void **)chara = __vt__9mgCObject;
-            chara->Initialize();
-            *(void **)chara = __vt__7CObject;
-            chara->Initialize();
-            *(void **)chara = __vt__12CObjectFrame;
-            chara->Initialize();
-            *(void **)chara = __vt__11CCharacter2;
-            chara->shadow_link_num = 0;
-            chara->shadow_link_shadow = 0;
-            chara->shadow_link_model = 0;
-            chara->Initialize();
-        }
+        chara = new (work_memory->Alloc(sizeof(CCharacter2) / 16 + 2)) CCharacter2;
         (*entry)->chara = chara;
         source->Copy(*(*entry)->chara, work_memory);
         (*entry)->chara_work = token;
     } else {
-        if (now != 0) {
-            if ((chara = (CCharacter2 *)operator new(
-                sizeof(CCharacter2), work_memory->Alloc(0x68))) != 0) {
-            *(void **)chara = __vt__9mgCObject;
-            chara->Initialize();
-            *(void **)chara = __vt__7CObject;
-            chara->Initialize();
-            *(void **)chara = __vt__12CObjectFrame;
-            chara->Initialize();
-            *(void **)chara = __vt__11CCharacter2;
-            chara->shadow_link_num = 0;
-            chara->shadow_link_shadow = 0;
-            chara->shadow_link_model = 0;
-            chara->Initialize();
-        }
+        if (now != NULL) {
+            chara = new (work_memory->Alloc(sizeof(CCharacter2) / 16 + 2)) CCharacter2;
             now->chara = chara;
             source->Copy(*now->chara, work_memory);
             now->chara_work = token;
@@ -970,83 +1244,130 @@ int CEffectScriptMan::SetCharacter(CCharacter2 *source, int group, int slot) {
     work_memory->EndStackMode();
     return 1;
 }
-int CEffectScriptMan::SetTexb(int texb, int group, int slot) {
+#else
+INCLUDE_ASM("ps2/asm/pal/nonmatchings/effscript", SetCharacter__16CEffectScriptManFP11CCharacter2ii);
+#endif
+
+s32 CEffectScriptMan::SetTexb(int texb, int group, int slot) {
+    _EFF_SCRIPT *script;
+    _EFF_SCRIPT *first;
+
     if (slot >= 0) {
         if (group < 0 || group >= EFF_SPT_OWNER_MAX || slot >= EFF_SPT_OWNER_SLOT_MAX) {
             return 0;
         }
-        _EFF_SCRIPT *script = this->slot[group][slot];
-        if (script == 0) {
+        script = this->slot[group][slot];
+        if (script == NULL) {
             return 0;
         }
         script->texb = texb;
         return 1;
     }
-    _EFF_SCRIPT *first = now;
-    if (first != 0) {
+    first = now;
+    if (first != NULL) {
         first->texb = texb;
         return 1;
     }
     return 0;
 }
-EFF_SPT_BASE_DEF *GetEffSptBaseDefPtr(int index) {
+
+/**
+ * Returns an effect base definition unless the index reaches its terminator.
+ */
+static EFF_SPT_BASE_DEF *GetEffSptBaseDefPtr(int index) {
+    EFF_SPT_BASE_DEF *base;
+
     if (index < 0) {
-        return 0;
+        return NULL;
     }
-    EFF_SPT_BASE_DEF *base = eff_spt_base_def + index;
-    return strcmp(base->name, at_1341__2) == 0 ? 0 : base;
+    base = &eff_spt_base_def[index];
+    return strcmp(base->name, "") == 0 ? NULL : base;
 }
+
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/effscript", DrawEffSptSprite__FP11_EFF_SCRIPTP10mgCTexturePfP11mgC3DSpriteP16CMapLightingInfo);
+/**
+ * Returns an effect sprite when its index is in range.
+ */
 static _ES_SPRITE *GetSpritePtr(_EFF_SCRIPT *script, int index) {
-    if (script == 0 || index >= script->sprite_num) {
-        return 0;
+    if (script == NULL || index >= script->sprite_num) {
+        return NULL;
     }
-    return script->sprite + index;
+    return &script->sprite[index];
 }
-extern "C" {
+
+/**
+ * Returns a stack value as an integer.
+ */
 static int GetStackInt(RS_STACKDATA *slot) {
-    if (slot->type == 1) {
-        return fptosi(*(float *)&slot->i);
+    if (slot->type == RS_FLOAT) {
+        return (int)slot->f;
     }
     return slot->i;
 }
+
+/**
+ * Returns a stack value as a float.
+ */
 static float GetStackFloat(RS_STACKDATA *slot) {
-    if (slot->type == 0) {
+    if (slot->type == RS_INT) {
         return (float)slot->i;
     }
-    return *(float *)&slot->i;
+    return slot->f;
 }
+
+/**
+ * Copies three stack values into a homogeneous vector.
+ */
 static void GetStackVector(float *vector, RS_STACKDATA *slot) {
     vector[0] = GetStackFloat(slot++);
     vector[1] = GetStackFloat(slot++);
     vector[2] = GetStackFloat(slot);
     vector[3] = 1.0f;
 }
-static int GetStackString(RS_STACKDATA *slot) {
-    return slot->i;
+
+/**
+ * Returns the string address held by a stack value.
+ */
+static char *GetStackString(RS_STACKDATA *slot) {
+    return slot->s;
 }
-static void SetStackInt(RS_STACKDATA *slot, int value) {
-    if (slot->type == 3) {
+
+/**
+ * Stores a value through a stack reference.
+ */
+static void SetStack(RS_STACKDATA *slot, int value) {
+    if (slot->type == RS_PTR) {
         slot->p->i = value;
     }
 }
-static void SetStackFloat(RS_STACKDATA *slot, float value) {
-    if (slot->type == 3) {
+
+/**
+ * Stores a value through a stack reference.
+ */
+static void SetStack(RS_STACKDATA *slot, float value) {
+    if (slot->type == RS_PTR) {
         slot->p->f = value;
     }
 }
-}
-extern "C" int _ZERO_VECTOR__FP12RS_STACKDATAi__2(RS_STACKDATA *stack, int argument_count) {
+
+/**
+ * Clears a referenced vector.
+ */
+static int _ZERO_VECTOR(RS_STACKDATA *stack, int argument_count) {
     if (argument_count != 3) {
         return 0;
     }
-    SetStackFloat(stack++, 0.0f);
-    SetStackFloat(stack++, 0.0f);
-    SetStackFloat(stack, 0.0f);
+    SetStack(stack++, 0.0f);
+    SetStack(stack++, 0.0f);
+    SetStack(stack, 0.0f);
     return 1;
 }
-extern "C" int _NORMAL_VECTOR__FP12RS_STACKDATAi__3(RS_STACKDATA *stack, int argument_count) {
-    float vector[4];
+
+/**
+ * Normalizes a vector in the script stack.
+ */
+static int _NORMAL_VECTOR(RS_STACKDATA *stack, int argument_count) {
+    sceVu0FVECTOR vector;
 
     if (argument_count != 3) {
         return 0;
@@ -1056,60 +1377,80 @@ extern "C" int _NORMAL_VECTOR__FP12RS_STACKDATAi__3(RS_STACKDATA *stack, int arg
     vector[2] = (stack + 2)->p->f;
     vector[3] = 1.0f;
     sceVu0Normalize(vector, vector);
-    SetStackFloat(stack++, vector[0]);
-    SetStackFloat(stack++, vector[1]);
-    SetStackFloat(stack, vector[2]);
+    SetStack(stack++, vector[0]);
+    SetStack(stack++, vector[1]);
+    SetStack(stack, vector[2]);
     return 1;
 }
-extern "C" int _COPY_VECTOR__FP12RS_STACKDATAi__3(RS_STACKDATA *stack, int argument_count) {
-    float vector[4];
+
+/**
+ * Copies a vector into three referenced stack values.
+ */
+static int _COPY_VECTOR(RS_STACKDATA *stack, int argument_count) {
+    sceVu0FVECTOR vector;
 
     if (argument_count != 6) {
         return 0;
     }
     GetStackVector(vector, stack + 3);
-    SetStackFloat(stack++, vector[0]);
-    SetStackFloat(stack++, vector[1]);
-    SetStackFloat(stack, vector[2]);
+    SetStack(stack++, vector[0]);
+    SetStack(stack++, vector[1]);
+    SetStack(stack, vector[2]);
     return 1;
 }
-extern "C" int _ADD_VECTOR__FP12RS_STACKDATAi__3(RS_STACKDATA *stack, int argument_count) {
-    float vector[4];
+
+/**
+ * Adds a vector to three referenced stack values.
+ */
+static int _ADD_VECTOR(RS_STACKDATA *stack, int argument_count) {
+    sceVu0FVECTOR vector;
 
     if (argument_count != 6) {
         return 0;
     }
     GetStackVector(vector, stack + 3);
-    SetStackFloat(stack, stack->p->f + vector[0]);
-    SetStackFloat(stack + 1, (stack + 1)->p->f + vector[1]);
-    SetStackFloat(stack + 2, (stack + 2)->p->f + vector[2]);
+    SetStack(stack, stack->p->f + vector[0]);
+    SetStack(stack + 1, (stack + 1)->p->f + vector[1]);
+    SetStack(stack + 2, (stack + 2)->p->f + vector[2]);
     return 1;
 }
-extern "C" int _SUB_VECTOR__FP12RS_STACKDATAi__3(RS_STACKDATA *stack, int argument_count) {
-    float vector[4];
+
+/**
+ * Subtracts a vector from three referenced stack values.
+ */
+static int _SUB_VECTOR(RS_STACKDATA *stack, int argument_count) {
+    sceVu0FVECTOR vector;
 
     if (argument_count != 6) {
         return 0;
     }
     GetStackVector(vector, stack + 3);
-    SetStackFloat(stack, stack->p->f - vector[0]);
-    SetStackFloat(stack + 1, (stack + 1)->p->f - vector[1]);
-    SetStackFloat(stack + 2, (stack + 2)->p->f - vector[2]);
+    SetStack(stack, stack->p->f - vector[0]);
+    SetStack(stack + 1, (stack + 1)->p->f - vector[1]);
+    SetStack(stack + 2, (stack + 2)->p->f - vector[2]);
     return 1;
 }
-extern "C" int _SCALE_VECTOR__FP12RS_STACKDATAi__3(RS_STACKDATA *stack, int argument_count) {
+
+/**
+ * Scales three referenced vector components.
+ */
+static int _SCALE_VECTOR(RS_STACKDATA *stack, int argument_count) {
     float scale;
 
     if (argument_count != 4) {
         return 0;
     }
     scale = GetStackFloat(stack + 3);
-    SetStackFloat(stack, stack->p->f * scale);
-    SetStackFloat(stack + 1, (stack + 1)->p->f * scale);
-    SetStackFloat(stack + 2, (stack + 2)->p->f * scale);
+    SetStack(stack, stack->p->f * scale);
+    SetStack(stack + 1, (stack + 1)->p->f * scale);
+    SetStack(stack + 2, (stack + 2)->p->f * scale);
     return 1;
 }
-extern "C" int _DIV_VECTOR__FP12RS_STACKDATAi__3(RS_STACKDATA *stack, int argument_count) {
+
+/**
+ * Divides three referenced vector components by a nonzero value.
+ */
+static int _DIV_VECTOR(RS_STACKDATA *stack, int argument_count) {
     float divisor;
 
     if (argument_count != 4) {
@@ -1119,12 +1460,16 @@ extern "C" int _DIV_VECTOR__FP12RS_STACKDATAi__3(RS_STACKDATA *stack, int argume
     if (divisor == 0.0f) {
         return 0;
     }
-    SetStackFloat(stack, stack->p->f / divisor);
-    SetStackFloat(stack + 1, (stack + 1)->p->f / divisor);
-    SetStackFloat(stack + 2, (stack + 2)->p->f / divisor);
+    SetStack(stack, stack->p->f / divisor);
+    SetStack(stack + 1, (stack + 1)->p->f / divisor);
+    SetStack(stack + 2, (stack + 2)->p->f / divisor);
     return 1;
 }
-extern "C" int _DIST_VECTOR__FP12RS_STACKDATAi__2(RS_STACKDATA *stack, int argument_count) {
+
+/**
+ * Returns the length of a vector.
+ */
+static int _DIST_VECTOR(RS_STACKDATA *stack, int argument_count) {
     float vector[3];
 
     if (argument_count != 4) {
@@ -1132,10 +1477,14 @@ extern "C" int _DIST_VECTOR__FP12RS_STACKDATAi__2(RS_STACKDATA *stack, int argum
     }
     GetStackVector(vector, stack);
     stack += 3;
-    SetStackFloat(stack++, mgDistVector(vector));
+    SetStack(stack++, mgDistVector(vector));
     return 1;
 }
-extern "C" int _DIST_VECTOR2__FP12RS_STACKDATAi__2(RS_STACKDATA *stack, int argument_count) {
+
+/**
+ * Returns the distance between two vectors.
+ */
+static int _DIST_VECTOR2(RS_STACKDATA *stack, int argument_count) {
     float from[3];
     float to[3];
 
@@ -1145,18 +1494,28 @@ extern "C" int _DIST_VECTOR2__FP12RS_STACKDATAi__2(RS_STACKDATA *stack, int argu
     GetStackVector(from, stack);
     GetStackVector(to, stack + 3);
     stack += 6;
-    SetStackFloat(stack++, mgDistVector(from, to));
+    SetStack(stack++, mgDistVector(from, to));
     return 1;
 }
-extern "C" int _SQRT__FP12RS_STACKDATAi__3(RS_STACKDATA *stack, int argument_count) {
+
+/**
+ * Returns the square root of a stack value.
+ */
+static int _SQRT(RS_STACKDATA *stack, int argument_count) {
+    float value;
+
     if (argument_count != 2) {
         return 0;
     }
-    float value = GetStackFloat(stack++);
-    SetStackFloat(stack, (float)sqrt(value));
+    value = GetStackFloat(stack++);
+    SetStack(stack, (float)sqrt(value));
     return 1;
 }
-extern "C" int _ATAN2F__FP12RS_STACKDATAi__3(RS_STACKDATA *stack, int argument_count) {
+
+/**
+ * Returns the angle of two vector components.
+ */
+static int _ATAN2F(RS_STACKDATA *stack, int argument_count) {
     float y;
     float x;
 
@@ -1165,10 +1524,14 @@ extern "C" int _ATAN2F__FP12RS_STACKDATAi__3(RS_STACKDATA *stack, int argument_c
     }
     y = GetStackFloat(stack++);
     x = GetStackFloat(stack++);
-    SetStackFloat(stack, atan2f(y, x));
+    SetStack(stack, atan2f(y, x));
     return 1;
 }
-extern "C" int _ANGLE_CMP__FP12RS_STACKDATAi__3(RS_STACKDATA *stack, int argument_count) {
+
+/**
+ * Compares angles within the given tolerance.
+ */
+static int _ANGLE_CMP(RS_STACKDATA *stack, int argument_count) {
     float a;
     float b;
     float c;
@@ -1179,160 +1542,225 @@ extern "C" int _ANGLE_CMP__FP12RS_STACKDATAi__3(RS_STACKDATA *stack, int argumen
     a = GetStackFloat(stack++);
     b = GetStackFloat(stack++);
     c = GetStackFloat(stack++);
-    SetStackInt(stack, mgAngleCmp(a, b, c));
+    SetStack(stack, mgAngleCmp(a, b, c));
     return 1;
 }
-extern "C" int _ANGLE_LIMIT__FP12RS_STACKDATAi__3(RS_STACKDATA *stack, int argument_count) {
+
+/**
+ * Wraps a referenced angle.
+ */
+static int _ANGLE_LIMIT(RS_STACKDATA *stack, int argument_count) {
     if (argument_count != 1) {
         return 0;
     }
-    SetStackFloat(stack, mgAngleLimit(stack->p->f));
+    SetStack(stack, mgAngleLimit(stack->p->f));
     return 1;
 }
-extern "C" int _GET_RAND__FP12RS_STACKDATAi__2(RS_STACKDATA *stack, int argument_count) {
+
+/**
+ * Returns a random value within the requested range.
+ */
+static int _GET_RAND(RS_STACKDATA *stack, int argument_count) {
+    float float_range;
+    int   range;
+    int   value;
+
     if (argument_count != 2) {
         return 0;
     }
-    if (stack->type == 1) {
-        float range = GetStackFloat(stack++);
-        SetStackFloat(stack, range * (float)rand() / 2147483648.0f);
+    if (stack->type == RS_FLOAT) {
+    float_range = GetStackFloat(stack++);
+        SetStack(stack, float_range * (float)rand() / 2147483648.0f);
         return 1;
     }
-    int range = GetStackInt(stack++);
-    int value = fptosi((float)range * (float)rand() / 2147483648.0f);
-    SetStackInt(stack, value);
+    range = GetStackInt(stack++);
+    value = (int)((float)range * (float)rand() / 2147483648.0f);
+    SetStack(stack, value);
     return 1;
 }
-extern "C" int _GET_REF_ROT__FP12RS_STACKDATAi__2(RS_STACKDATA *stack, int argument_count) {
+
+/**
+ * Computes the rotation from one point toward another.
+ */
+static int _GET_REF_ROT(RS_STACKDATA *stack, int argument_count) {
+    sceVu0FVECTOR from;
+    sceVu0FVECTOR dir;
+    float        *z;
+    float         yaw;
+    float         pitch;
+
     if (argument_count != 7 && argument_count != 9) {
         return 0;
     }
-    float from[4];
-    float dir[4];
     GetStackVector(from, stack);
     GetStackVector(dir, stack + 3);
     stack += 6;
     sceVu0SubVector(dir, dir, from);
     sceVu0Normalize(dir, dir);
-    float *z = &dir[2];
-    float yaw = atan2f(dir[0], *z);
-    float pitch = -atan2f(dir[1], sqrtf(dir[0] * dir[0] + *z * *z));
+    z = &dir[2];
+    yaw = atan2f(dir[0], *z);
+    pitch = -atan2f(dir[1], sqrtf(dir[0] * dir[0] + *z * *z));
     switch (argument_count) {
         case 7:
-            SetStackFloat(stack, yaw);
+            SetStack(stack, yaw);
             break;
         case 9:
-            SetStackFloat(stack++, pitch);
-            SetStackFloat(stack++, yaw);
-            SetStackFloat(stack, 0.0f);
+            SetStack(stack++, pitch);
+            SetStack(stack++, yaw);
+            SetStack(stack, 0.0f);
             break;
         default:
             return 0;
     }
     return 1;
 }
-int _GET_DIR_VECTOR(RS_STACKDATA *stack, int argument_count) {
+
+/**
+ * Computes a direction vector from a rotation.
+ */
+static int _GET_DIR_VECTOR(RS_STACKDATA *stack, int argument_count) {
+    float         matrix[4][4];
+    sceVu0FVECTOR rot;
+    float        *y;
+    float        *z;
+
     if (argument_count != 6) {
         return 0;
     }
-    float matrix[4][4];
-    float rot[4];
-    float dir[4];
-    *(EffectVector *)dir = *(EffectVector *)at_2311;
+    sceVu0FVECTOR dir = { 0.0f, 0.0f, 1.0f, 1.0f };
     GetStackVector(rot, stack);
     stack += 3;
     rot[0] = mgAngleLimit(rot[0]);
-    float *y = &rot[1];
+    y = &rot[1];
     *y = mgAngleLimit(*y);
-    float *z = &rot[2];
+    z = &rot[2];
     *z = mgAngleLimit(*z);
     sceVu0UnitMatrix(matrix);
     sceVu0RotMatrixX(matrix, matrix, rot[0]);
     sceVu0RotMatrixY(matrix, matrix, *y);
     sceVu0ApplyMatrix(dir, matrix, dir);
-    SetStackFloat(stack++, dir[0]);
-    SetStackFloat(stack++, dir[1]);
-    SetStackFloat(stack, dir[2]);
+    SetStack(stack++, dir[0]);
+    SetStack(stack++, dir[1]);
+    SetStack(stack, dir[2]);
     return 1;
 }
-int _SET_ORIGIN(RS_STACKDATA *stack, int argument_count) {
+
+/**
+ * Sets the origin for the running effect.
+ */
+static int _SET_ORIGIN(RS_STACKDATA *stack, int argument_count) {
     now_script->origin[0] = GetStackFloat(stack++);
     now_script->origin[1] = GetStackFloat(stack++);
     now_script->origin[2] = GetStackFloat(stack);
     now_script->origin[3] = 0.0f;
     return 1;
 }
-int _GET_ORIGIN(RS_STACKDATA *stack, int argument_count) {
+
+/**
+ * Returns the origin for the running effect.
+ */
+static int _GET_ORIGIN(RS_STACKDATA *stack, int argument_count) {
     if (argument_count != 3) {
         return 0;
     }
-    SetStackFloat(stack++, now_script->origin[0]);
-    SetStackFloat(stack++, now_script->origin[1]);
-    SetStackFloat(stack, now_script->origin[2]);
+    SetStack(stack++, now_script->origin[0]);
+    SetStack(stack++, now_script->origin[1]);
+    SetStack(stack, now_script->origin[2]);
     return 1;
 }
-int _AUTO_SET_OFFSET(RS_STACKDATA *stack, int argument_count) {
-    char *name = 0;
-    int offset = GetStackInt(stack++);
+
+/**
+ * Selects a target character or named frame for the effect origin offset.
+ */
+static int _AUTO_SET_OFFSET(RS_STACKDATA *stack, int argument_count) {
+    char *name = NULL;
+    int   offset = GetStackInt(stack++);
+
     if (argument_count >= 2) {
-        name = (char *)GetStackString(stack);
+        name = GetStackString(stack);
     }
     now_script->auto_offset = offset;
-    if (name != 0) {
+    if (name != NULL) {
         strcpy(now_script->offset_frame, name);
     } else {
-        strcpy(now_script->offset_frame, at_1341__2);
+        strcpy(now_script->offset_frame, "");
     }
     return 1;
 }
-int _GET_WORK_VECT1(RS_STACKDATA *stack, int argument_count) {
+
+/**
+ * Returns the work first work vector for the running effect.
+ */
+static int _GET_WORK_VECT1(RS_STACKDATA *stack, int argument_count) {
     if (argument_count != 3) {
         return 0;
     }
-    SetStackFloat(stack++, now_script->work_vect1[0]);
-    SetStackFloat(stack++, now_script->work_vect1[1]);
-    SetStackFloat(stack, now_script->work_vect1[2]);
+    SetStack(stack++, now_script->work_vect1[0]);
+    SetStack(stack++, now_script->work_vect1[1]);
+    SetStack(stack, now_script->work_vect1[2]);
     return 1;
 }
-int _GET_WORK_VECT2(RS_STACKDATA *stack, int argument_count) {
+
+/**
+ * Returns the work second work vector for the running effect.
+ */
+static int _GET_WORK_VECT2(RS_STACKDATA *stack, int argument_count) {
     if (argument_count != 3) {
         return 0;
     }
-    SetStackFloat(stack++, now_script->work_vect2[0]);
-    SetStackFloat(stack++, now_script->work_vect2[1]);
-    SetStackFloat(stack, now_script->work_vect2[2]);
+    SetStack(stack++, now_script->work_vect2[0]);
+    SetStack(stack++, now_script->work_vect2[1]);
+    SetStack(stack, now_script->work_vect2[2]);
     return 1;
 }
-int _GET_TARGET_ID(RS_STACKDATA *stack, int argument_count) {
-    if (argument_count != 1)
+
+/**
+ * Returns the target id for the running effect.
+ */
+static int _GET_TARGET_ID(RS_STACKDATA *stack, int argument_count) {
+    if (argument_count != 1) {
         return 0;
-    SetStackInt(stack, now_script->target_id);
+    }
+    SetStack(stack, now_script->target_id);
     return 1;
 }
-int _GET_USER_ID(RS_STACKDATA *stack, int argument_count) {
-    if (argument_count != 1)
+
+/**
+ * Returns the user id for the running effect.
+ */
+static int _GET_USER_ID(RS_STACKDATA *stack, int argument_count) {
+    if (argument_count != 1) {
         return 0;
-    SetStackInt(stack, now_script->user_id);
+    }
+    SetStack(stack, now_script->user_id);
     return 1;
 }
-int _GET_VALUE(RS_STACKDATA *stack, int argument_count) {
+
+/**
+ * Returns the value for the running effect.
+ */
+static int _GET_VALUE(RS_STACKDATA *stack, int argument_count) {
+    RS_STACKDATA *result_slot;
+    int           index;
+    _EFF_SCRIPT  *script;
+
     if (argument_count != 2) {
         return 0;
     }
-    RS_STACKDATA *result_slot = stack + 1;
-    int index = GetStackInt(stack);
-    if (result_slot->type != 3) {
+    result_slot = stack + 1;
+    index = GetStackInt(stack);
+    if (result_slot->type != RS_PTR) {
         return 0;
     }
     switch (result_slot->p->type) {
-        case 0: {
-            _EFF_SCRIPT *script = now_script;
-            SetStackInt(result_slot, script->value[index].i);
+        case RS_INT: {
+            script = now_script;
+            SetStack(result_slot, script->value[index].i);
             break;
         }
-        case 1: {
-            _EFF_SCRIPT *script = now_script;
-            SetStackFloat(result_slot, script->value[index].f);
+        case RS_FLOAT: {
+            script = now_script;
+            SetStack(result_slot, script->value[index].f);
             break;
         }
         default:
@@ -1340,26 +1768,35 @@ int _GET_VALUE(RS_STACKDATA *stack, int argument_count) {
     }
     return 1;
 }
-int _SET_VALUE(RS_STACKDATA *stack, int argument_count) {
+
+/**
+ * Sets the value for the running effect.
+ */
+static int _SET_VALUE(RS_STACKDATA *stack, int argument_count) {
+    int           index;
+    RS_STACKDATA *value_slot;
+    int           int_value;
+    _EFF_SCRIPT  *script;
+    float         float_value;
+
     if (argument_count != 2) {
         return 0;
     }
-    int index;
-    RS_STACKDATA *value_slot = stack + 1;
+    value_slot = stack + 1;
     index = GetStackInt(stack);
-    if (value_slot->type == 3) {
+    if (value_slot->type == RS_PTR) {
         return 0;
     }
     switch (value_slot->type) {
-        case 0: {
-            int int_value = GetStackInt(value_slot);
-            _EFF_SCRIPT *script = now_script;
+        case RS_INT: {
+            int_value = GetStackInt(value_slot);
+            script = now_script;
             script->value[index].i = int_value;
             break;
         }
-        case 1: {
-            float float_value = GetStackFloat(value_slot);
-            _EFF_SCRIPT *script = now_script;
+        case RS_FLOAT: {
+            float_value = GetStackFloat(value_slot);
+            script = now_script;
             script->value[index].f = float_value;
             break;
         }
@@ -1368,13 +1805,20 @@ int _SET_VALUE(RS_STACKDATA *stack, int argument_count) {
     }
     return 1;
 }
-int _CHR_SET_SHOW(RS_STACKDATA *stack, int argument_count) {
-    if (now_script->chara == 0) {
+
+/**
+ * Sets the character show for the running effect.
+ */
+static int _CHR_SET_SHOW(RS_STACKDATA *stack, int argument_count) {
+    int           show;
+    int           fade;
+    RS_STACKDATA *next;
+
+    if (now_script->chara == NULL) {
         return 0;
     }
-    int show;
-    int fade = 0;
-    RS_STACKDATA *next = stack + 1;
+    fade = 0;
+    next = stack + 1;
     show = GetStackInt(stack);
     if (argument_count >= 2) {
         fade = GetStackInt(next++);
@@ -1392,49 +1836,71 @@ int _CHR_SET_SHOW(RS_STACKDATA *stack, int argument_count) {
     }
     return 1;
 }
-int _CHR_GET_SHOW(RS_STACKDATA *stack, int argument_count) {
+
+/**
+ * Returns the character show for the running effect.
+ */
+static int _CHR_GET_SHOW(RS_STACKDATA *stack, int argument_count) {
     if (argument_count != 1 && argument_count != 2) {
         return 0;
     }
-    if (now_script->chara == 0) {
+    if (now_script->chara == NULL) {
         return 0;
     }
-    SetStackInt(stack++, now_script->chara->GetShow());
+    SetStack(stack++, now_script->chara->GetShow());
     if (argument_count == 2) {
-        SetStackInt(stack, now_script->chara->fade);
+        SetStack(stack, now_script->chara->fade);
     }
     return 1;
 }
-int _CHR_SET_POS(RS_STACKDATA *stack, int argument_count) {
-    if (now_script->chara == 0) {
+
+/**
+ * Sets the character position for the running effect.
+ */
+static int _CHR_SET_POS(RS_STACKDATA *stack, int argument_count) {
+    sceVu0FVECTOR vector;
+
+    if (now_script->chara == NULL) {
         return 0;
     }
-    float vector[4];
     GetStackVector(vector, stack);
     now_script->chara->SetPosition(vector);
     return 1;
 }
-int _CHR_GET_POS(RS_STACKDATA *stack, int argument_count) {
+
+/**
+ * Returns the character position for the running effect.
+ */
+static int _CHR_GET_POS(RS_STACKDATA *stack, int argument_count) {
+    sceVu0FVECTOR pos;
+
     if (argument_count != 3) {
         return 0;
     }
-    if (now_script->chara == 0) {
+    if (now_script->chara == NULL) {
         return 0;
     }
-    float pos[4];
     now_script->chara->GetPosition(pos);
-    SetStackFloat(stack++, pos[0]);
-    SetStackFloat(stack++, pos[1]);
-    SetStackFloat(stack, pos[2]);
+    SetStack(stack++, pos[0]);
+    SetStack(stack++, pos[1]);
+    SetStack(stack, pos[2]);
     return 1;
 }
-int _CHR_SET_ROT(RS_STACKDATA *stack, int argument_count) {
-    if (now_script->chara == 0) {
+
+/**
+ * Sets the character rotation for the running effect.
+ */
+static int _CHR_SET_ROT(RS_STACKDATA *stack, int argument_count) {
+    sceVu0FVECTOR rot;
+    sceVu0FVECTOR current;
+    int           steps;
+    float        *y;
+    float        *z;
+
+    if (now_script->chara == NULL) {
         return 0;
     }
-    float rot[4];
-    float current[4];
-    int steps = 1;
+    steps = 1;
     GetStackVector(rot, stack);
     stack += 3;
     if (argument_count >= 4) {
@@ -1443,9 +1909,9 @@ int _CHR_SET_ROT(RS_STACKDATA *stack, int argument_count) {
     now_script->chara->GetRotation(current);
     sceVu0SubVector(rot, rot, current);
     rot[0] = mgAngleLimit(rot[0]);
-    float *y = &rot[1];
+    y = &rot[1];
     *y = mgAngleLimit(*y);
-    float *z = &rot[2];
+    z = &rot[2];
     *z = mgAngleLimit(*z);
     sceVu0DivVector(rot, rot, (float)steps);
     sceVu0AddVector(rot, rot, current);
@@ -1456,50 +1922,73 @@ int _CHR_SET_ROT(RS_STACKDATA *stack, int argument_count) {
     now_script->chara->SetRotation(rot);
     return 1;
 }
-int _CHR_GET_ROT(RS_STACKDATA *stack, int argument_count) {
+
+/**
+ * Returns the character rotation for the running effect.
+ */
+static int _CHR_GET_ROT(RS_STACKDATA *stack, int argument_count) {
+    sceVu0FVECTOR rot;
+
     if (argument_count != 3) {
         return 0;
     }
-    if (now_script->chara == 0) {
+    if (now_script->chara == NULL) {
         return 0;
     }
-    float rot[4];
     now_script->chara->GetRotation(rot);
-    SetStackFloat(stack++, rot[0]);
-    SetStackFloat(stack++, rot[1]);
-    SetStackFloat(stack, rot[2]);
+    SetStack(stack++, rot[0]);
+    SetStack(stack++, rot[1]);
+    SetStack(stack, rot[2]);
     return 1;
 }
-int _CHR_SET_SCALE(RS_STACKDATA *stack, int argument_count) {
-    if (now_script->chara == 0) {
+
+/**
+ * Sets the character scale for the running effect.
+ */
+static int _CHR_SET_SCALE(RS_STACKDATA *stack, int argument_count) {
+    sceVu0FVECTOR vector;
+
+    if (now_script->chara == NULL) {
         return 0;
     }
-    float vector[4];
     GetStackVector(vector, stack);
     now_script->chara->SetScale(vector);
     return 1;
 }
-int _CHR_GET_SCALE(RS_STACKDATA *stack, int argument_count) {
+
+/**
+ * Returns the character scale for the running effect.
+ */
+static int _CHR_GET_SCALE(RS_STACKDATA *stack, int argument_count) {
+    sceVu0FVECTOR scale;
+
     if (argument_count != 3) {
         return 0;
     }
-    if (now_script->chara == 0) {
+    if (now_script->chara == NULL) {
         return 0;
     }
-    float scale[4];
     now_script->chara->GetScale(scale);
-    SetStackFloat(stack++, scale[0]);
-    SetStackFloat(stack++, scale[1]);
-    SetStackFloat(stack, scale[2]);
+    SetStack(stack++, scale[0]);
+    SetStack(stack++, scale[1]);
+    SetStack(stack, scale[2]);
     return 1;
 }
-int _CHR_SET_MOTION(RS_STACKDATA *stack, int argument_count) {
-    if (now_script->chara == 0) {
+
+/**
+ * Sets the character motion for the running effect.
+ */
+static int _CHR_SET_MOTION(RS_STACKDATA *stack, int argument_count) {
+    int   mode;
+    float step;
+    char *name;
+
+    if (now_script->chara == NULL) {
         return 0;
     }
-    int mode = 0;
-    float step = -1.0f;
-    char *name = (char *)GetStackString(stack++);
+    mode = 0;
+    step = -1.0f;
+    name = GetStackString(stack++);
     if (argument_count >= 2) {
         step = GetStackFloat(stack++);
     }
@@ -1512,112 +2001,151 @@ int _CHR_SET_MOTION(RS_STACKDATA *stack, int argument_count) {
     }
     return 1;
 }
-int _CHR_SET_MOT_STEP(RS_STACKDATA *stack, int argument_count) {
-    if (now_script->chara == 0) {
+
+/**
+ * Sets the character motion step for the running effect.
+ */
+static int _CHR_SET_MOT_STEP(RS_STACKDATA *stack, int argument_count) {
+    if (now_script->chara == NULL) {
         return 0;
     }
-    (now_script)->chara->SetStep(GetStackFloat(stack));
+    now_script->chara->SetStep(GetStackFloat(stack));
     return 1;
 }
-int _CHR_GET_MOT_WAIT(RS_STACKDATA *stack, int argument_count) {
+
+/**
+ * Returns the character motion wait for the running effect.
+ */
+static int _CHR_GET_MOT_WAIT(RS_STACKDATA *stack, int argument_count) {
+    CCharacter2 *chara;
+
     if (argument_count != 1) {
         return 0;
     }
-    CCharacter2 *chara = now_script->chara;
-    if (chara == 0) {
+    chara = now_script->chara;
+    if (chara == NULL) {
         return 0;
     }
-    SetStackFloat(stack, chara->GetNowFrameWait());
+    SetStack(stack, chara->GetNowFrameWait());
     return 1;
 }
-int _CHR_GET_DIR_VECTOR(RS_STACKDATA *stack, int argument_count) {
+
+/**
+ * Returns the forward direction of the effect character.
+ */
+static int _CHR_GET_DIR_VECTOR(RS_STACKDATA *stack, int argument_count) {
+    float         matrix[4][4];
+    sceVu0FVECTOR rot;
+
     if (argument_count != 3) {
         return 0;
     }
-    if (now_script->chara == 0) {
+    if (now_script->chara == NULL) {
         return 0;
     }
-    float matrix[4][4];
-    float rot[4];
-    float dir[4];
-    *(EffectVector *)dir = *(EffectVector *)at_2498__2;
+    sceVu0FVECTOR dir = { 0.0f, 0.0f, 1.0f, 1.0f };
     sceVu0UnitMatrix(matrix);
     now_script->chara->GetRotation(rot);
     sceVu0RotMatrixX(matrix, matrix, rot[0]);
     sceVu0RotMatrixY(matrix, matrix, rot[1]);
     sceVu0ApplyMatrix(dir, matrix, dir);
-    SetStackFloat(stack++, dir[0]);
-    SetStackFloat(stack++, dir[1]);
-    SetStackFloat(stack, dir[2]);
+    SetStack(stack++, dir[0]);
+    SetStack(stack++, dir[1]);
+    SetStack(stack, dir[2]);
     return 1;
 }
-int _CHR_GET_REF_ROT(RS_STACKDATA *stack, int argument_count) {
+
+/**
+ * Computes the rotation from the effect character toward a point.
+ */
+static int _CHR_GET_REF_ROT(RS_STACKDATA *stack, int argument_count) {
+    sceVu0FVECTOR dir;
+    sceVu0FVECTOR pos;
+    float        *z;
+    float         yaw;
+    float         pitch;
+
     if (argument_count != 4 && argument_count != 6) {
         return 0;
     }
-    if (now_script->chara == 0) {
+    if (now_script->chara == NULL) {
         return 0;
     }
-    float dir[4];
-    float pos[4];
     GetStackVector(dir, stack);
     stack += 3;
     now_script->chara->GetPosition(pos);
     sceVu0SubVector(dir, dir, pos);
     sceVu0Normalize(dir, dir);
-    float *z = &dir[2];
-    float yaw = atan2f(dir[0], *z);
-    float pitch = -atan2f(dir[1], sqrtf(dir[0] * dir[0] + *z * *z));
+    z = &dir[2];
+    yaw = atan2f(dir[0], *z);
+    pitch = -atan2f(dir[1], sqrtf(dir[0] * dir[0] + *z * *z));
     switch (argument_count) {
         case 4:
-            SetStackFloat(stack, yaw);
+            SetStack(stack, yaw);
             break;
         case 6:
-            SetStackFloat(stack++, pitch);
-            SetStackFloat(stack++, yaw);
-            SetStackFloat(stack, 0.0f);
+            SetStack(stack++, pitch);
+            SetStack(stack++, yaw);
+            SetStack(stack, 0.0f);
             break;
         default:
             return 0;
     }
     return 1;
 }
-int _CHR_ADD_POS(RS_STACKDATA *stack, int argument_count) {
-    if (now_script->chara == 0) {
+
+/**
+ * Adds the character position for the running effect.
+ */
+static int _CHR_ADD_POS(RS_STACKDATA *stack, int argument_count) {
+    sceVu0FVECTOR offset;
+    sceVu0FVECTOR pos;
+
+    if (now_script->chara == NULL) {
         return 0;
     }
-    float offset[4];
-    float pos[4];
     GetStackVector(offset, stack);
     now_script->chara->GetPosition(pos);
     sceVu0AddVector(pos, pos, offset);
     now_script->chara->SetPosition(pos);
     return 1;
 }
-int _CHR_ADD_ROT(RS_STACKDATA *stack, int argument_count) {
-    if (now_script->chara == 0) {
+
+/**
+ * Adds the character rotation for the running effect.
+ */
+static int _CHR_ADD_ROT(RS_STACKDATA *stack, int argument_count) {
+    sceVu0FVECTOR offset;
+    sceVu0FVECTOR rot;
+    float        *y;
+    float        *z;
+
+    if (now_script->chara == NULL) {
         return 0;
     }
-    float offset[4];
-    float rot[4];
     GetStackVector(offset, stack);
     now_script->chara->GetRotation(rot);
     sceVu0AddVector(rot, rot, offset);
     rot[0] = mgAngleLimit(rot[0]);
-    float *y = &rot[1];
+    y = &rot[1];
     *y = mgAngleLimit(*y);
-    float *z = &rot[2];
+    z = &rot[2];
     *z = mgAngleLimit(*z);
     rot[3] = 1.0f;
     now_script->chara->SetRotation(rot);
     return 1;
 }
-int _CHR_ADD_SCALE(RS_STACKDATA *stack, int argument_count) {
-    if (now_script->chara == 0) {
+
+/**
+ * Adds the character scale for the running effect.
+ */
+static int _CHR_ADD_SCALE(RS_STACKDATA *stack, int argument_count) {
+    sceVu0FVECTOR offset;
+    sceVu0FVECTOR scale;
+
+    if (now_script->chara == NULL) {
         return 0;
     }
-    float offset[4];
-    float scale[4];
     GetStackVector(offset, stack);
     now_script->chara->GetScale(scale);
     sceVu0AddVector(scale, scale, offset);
@@ -1625,50 +2153,77 @@ int _CHR_ADD_SCALE(RS_STACKDATA *stack, int argument_count) {
     now_script->chara->GetScale(scale);
     return 1;
 }
-int _CHR_COPY_CHARA(RS_STACKDATA *stack, int argument_count) {
-    if (now_script->chara == 0) {
+
+/**
+ * Allocates extra character copies for the running effect.
+ */
+static int _CHR_COPY_CHARA(RS_STACKDATA *stack, int argument_count) {
+    if (now_script->chara == NULL) {
         return 0;
     }
     return EffScriptMan->AssignCharacter(now_script, GetStackInt(stack));
 }
-int _CHR_SET_POS2(RS_STACKDATA *stack, int argument_count) {
-    int index = GetStackInt(stack++);
-    if (now_script->sub_chara[index] == 0) {
+
+/**
+ * Sets the character pos2 for the running effect.
+ */
+static int _CHR_SET_POS2(RS_STACKDATA *stack, int argument_count) {
+    int           index = GetStackInt(stack++);
+    sceVu0FVECTOR vector;
+
+    if (now_script->sub_chara[index] == NULL) {
         return 0;
     }
-    float vector[4];
     GetStackVector(vector, stack);
     now_script->sub_chara[index]->SetPosition(vector);
     return 1;
 }
-int _CHR_SET_ROT2(RS_STACKDATA *stack, int argument_count) {
-    int index = GetStackInt(stack++);
-    if (now_script->sub_chara[index] == 0) {
+
+/**
+ * Sets the character rot2 for the running effect.
+ */
+static int _CHR_SET_ROT2(RS_STACKDATA *stack, int argument_count) {
+    int           index = GetStackInt(stack++);
+    sceVu0FVECTOR vector;
+
+    if (now_script->sub_chara[index] == NULL) {
         return 0;
     }
-    float vector[4];
     GetStackVector(vector, stack);
     now_script->sub_chara[index]->SetRotation(vector);
     return 1;
 }
-int _CHR_SET_SCALE2(RS_STACKDATA *stack, int argument_count) {
-    int index = GetStackInt(stack++);
-    if (now_script->sub_chara[index] == 0) {
+
+/**
+ * Sets the character scale2 for the running effect.
+ */
+static int _CHR_SET_SCALE2(RS_STACKDATA *stack, int argument_count) {
+    int           index = GetStackInt(stack++);
+    sceVu0FVECTOR vector;
+
+    if (now_script->sub_chara[index] == NULL) {
         return 0;
     }
-    float vector[4];
     GetStackVector(vector, stack);
     now_script->sub_chara[index]->SetScale(vector);
     return 1;
 }
-int _CHR_SET_MOTION2(RS_STACKDATA *stack, int argument_count) {
-    int index = GetStackInt(stack++);
-    if (now_script->sub_chara[index] == 0) {
+
+/**
+ * Sets the character motion2 for the running effect.
+ */
+static int _CHR_SET_MOTION2(RS_STACKDATA *stack, int argument_count) {
+    int   index = GetStackInt(stack++);
+    int   mode;
+    float step;
+    char *name;
+
+    if (now_script->sub_chara[index] == NULL) {
         return 0;
     }
-    int mode = 0;
-    float step = -1.0f;
-    char *name = (char *)GetStackString(stack++);
+    mode = 0;
+    step = -1.0f;
+    name = GetStackString(stack++);
     if (argument_count >= 2) {
         step = GetStackFloat(stack++);
     }
@@ -1681,60 +2236,83 @@ int _CHR_SET_MOTION2(RS_STACKDATA *stack, int argument_count) {
     }
     return 1;
 }
-int _CHR_ADD_POS2(RS_STACKDATA *stack, int argument_count) {
-    int index = GetStackInt(stack++);
-    if (now_script->sub_chara[index] == 0) {
+
+/**
+ * Adds the character pos2 for the running effect.
+ */
+static int _CHR_ADD_POS2(RS_STACKDATA *stack, int argument_count) {
+    int           index = GetStackInt(stack++);
+    sceVu0FVECTOR offset;
+    sceVu0FVECTOR pos;
+
+    if (now_script->sub_chara[index] == NULL) {
         return 0;
     }
-    float offset[4];
-    float pos[4];
     GetStackVector(offset, stack);
     now_script->sub_chara[index]->GetPosition(pos);
     sceVu0AddVector(pos, pos, offset);
     now_script->sub_chara[index]->SetPosition(pos);
     return 1;
 }
-int _CHR_ADD_ROT2(RS_STACKDATA *stack, int argument_count) {
-    int index;
+
+/**
+ * Adds the character rot2 for the running effect.
+ */
+static int _CHR_ADD_ROT2(RS_STACKDATA *stack, int argument_count) {
+    int           index;
     RS_STACKDATA *next = stack + 1;
+    sceVu0FVECTOR delta;
+    sceVu0FVECTOR rot;
+    float        *y;
+    float        *z;
+
     index = GetStackInt(stack);
-    if (now_script->sub_chara[index] == 0) {
+    if (now_script->sub_chara[index] == NULL) {
         return 0;
     }
-    float delta[4];
-    float rot[4];
     GetStackVector(delta, next);
     now_script->sub_chara[index]->GetRotation(rot);
     sceVu0AddVector(rot, rot, delta);
     rot[0] = mgAngleLimit(rot[0]);
-    float *y = &rot[1];
+    y = &rot[1];
     *y = mgAngleLimit(*y);
-    float *z = &rot[2];
+    z = &rot[2];
     *z = mgAngleLimit(*z);
     rot[3] = 1.0f;
     now_script->sub_chara[index]->SetRotation(rot);
     return 1;
 }
-int _CHR_ADD_SCALE2(RS_STACKDATA *stack, int argument_count) {
-    int index = GetStackInt(stack++);
-    if (now_script->sub_chara[index] == 0) {
+
+/**
+ * Adds the character scale2 for the running effect.
+ */
+static int _CHR_ADD_SCALE2(RS_STACKDATA *stack, int argument_count) {
+    int           index = GetStackInt(stack++);
+    sceVu0FVECTOR offset;
+    sceVu0FVECTOR scale;
+
+    if (now_script->sub_chara[index] == NULL) {
         return 0;
     }
-    float offset[4];
-    float scale[4];
     GetStackVector(offset, stack);
     now_script->sub_chara[index]->GetScale(scale);
     sceVu0AddVector(scale, scale, offset);
     now_script->sub_chara[index]->SetScale(scale);
     return 1;
 }
-int _CHR_SET_SHOW2(RS_STACKDATA *stack, int argument_count) {
+
+/**
+ * Sets the character show2 for the running effect.
+ */
+static int _CHR_SET_SHOW2(RS_STACKDATA *stack, int argument_count) {
     int index = GetStackInt(stack++);
-    if (now_script->sub_chara[index] == 0) {
+    int show;
+    int fade;
+
+    if (now_script->sub_chara[index] == NULL) {
         return 0;
     }
-    int show;
-    int fade = 0;
+    fade = 0;
     show = GetStackInt(stack++);
     if (argument_count >= 3) {
         fade = GetStackInt(stack++);
@@ -1752,43 +2330,59 @@ int _CHR_SET_SHOW2(RS_STACKDATA *stack, int argument_count) {
     }
     return 1;
 }
-int _CHR_GET_FRAME_POS(RS_STACKDATA *stack, int argument_count) {
+
+/**
+ * Returns the world position of a named frame of the effect character.
+ */
+static int _CHR_GET_FRAME_POS(RS_STACKDATA *stack, int argument_count) {
+    RS_STACKDATA *result_slot;
+    mgCFrame     *character_frame;
+    mgCFrame     *frame;
+    char         *name;
+    sceVu0FVECTOR pos;
+
     if (argument_count != 4) {
         return 0;
     }
-    if (now_script->chara == 0) {
+    if (now_script->chara == NULL) {
         return 0;
     }
-    RS_STACKDATA *result_slot = stack + 1;
-    mgCFrame *character_frame;
-    mgCFrame *frame;
-    int name = GetStackString(stack);
-    if ((character_frame = ((CObjectFrame *)now_script->chara)->frame) == 0) {
+    result_slot = stack + 1;
+    name = GetStackString(stack);
+    if ((character_frame = now_script->chara->CObjectFrame::frame) == NULL) {
         return 0;
     }
-    if ((frame = character_frame->SearchFrame((char *)name)) == 0) {
+    if ((frame = character_frame->SearchFrame(name)) == NULL) {
         return 0;
     }
-    float pos[4];
     frame->GetWorldPosition0(pos);
-    SetStackFloat(result_slot++, pos[0]);
-    SetStackFloat(result_slot++, pos[1]);
-    SetStackFloat(result_slot, pos[2]);
+    SetStack(result_slot++, pos[0]);
+    SetStack(result_slot++, pos[1]);
+    SetStack(result_slot, pos[2]);
     return 1;
 }
-int _CHR_SET_FRAME_SHOW(RS_STACKDATA *stack, int argument_count) {
+
+/**
+ * Sets the drawing attributes of a named frame of the effect character.
+ */
+static int _CHR_SET_FRAME_SHOW(RS_STACKDATA *stack, int argument_count) {
+    char     *name;
+    int       show;
+    int       attr_mask;
+    mgCFrame *character_frame;
+    mgCFrame *frame;
+
     if (argument_count != 3) {
         return 0;
     }
-    int name = GetStackString(stack++);
-    int show = GetStackInt(stack++);
-    int attr_mask = GetStackInt(stack);
-    mgCFrame *character_frame = ((CObjectFrame *)now_script->chara)->frame;
-    if (character_frame == 0) {
+    name = GetStackString(stack++);
+    show = GetStackInt(stack++);
+    attr_mask = GetStackInt(stack);
+    character_frame = now_script->chara->CObjectFrame::frame;
+    if (character_frame == NULL) {
         return 0;
     }
-    mgCFrame *frame;
-    if ((frame = character_frame->SearchFrame((char *)name)) == 0) {
+    if ((frame = character_frame->SearchFrame(name)) == NULL) {
         return 0;
     }
     mgCFrameAttr attr;
@@ -1796,34 +2390,50 @@ int _CHR_SET_FRAME_SHOW(RS_STACKDATA *stack, int argument_count) {
     frame->SetAttrParam(attr, attr_mask, 1);
     return 1;
 }
-int _CHR_CHK_MOT_END(RS_STACKDATA *stack, int argument_count) {
+
+/**
+ * Returns whether the effect character motion has ended.
+ */
+static int _CHR_CHK_MOT_END(RS_STACKDATA *stack, int argument_count) {
+    CCharacter2 *chara;
+
     if (argument_count != 1) {
         return 0;
     }
-    CCharacter2 *chara = now_script->chara;
-    if (chara == 0) {
+    chara = now_script->chara;
+    if (chara == NULL) {
         return 0;
     }
-    SetStackInt(stack, chara->CheckMotionEnd());
+    SetStack(stack, chara->CheckMotionEnd());
     return 1;
 }
-int _CHR_SET_LIGHT_COLOR(RS_STACKDATA *stack, int argument_count) {
+
+/**
+ * Sets the character light color for the running effect.
+ */
+static int _CHR_SET_LIGHT_COLOR(RS_STACKDATA *stack, int argument_count) {
+    int       flags;
+    mgCFrame *frame;
+    float     red;
+    float     green;
+    float     blue;
+    float     alpha;
+
     if (argument_count != 5 && argument_count != 4) {
         return 0;
     }
     mgCFrameAttr attr;
-    if (now_script == 0) {
+    if (now_script == NULL) {
         return 0;
     }
-    int flags;
-    mgCFrame *frame = ((CObjectFrame *)now_script->chara)->frame;
-    if (frame == 0) {
+    frame = now_script->chara->CObjectFrame::frame;
+    if (frame == NULL) {
         return 0;
     }
-    float red = GetStackFloat(stack++);
-    float green = GetStackFloat(stack++);
-    float blue = GetStackFloat(stack++);
-    float alpha = GetStackFloat(stack++);
+    red = GetStackFloat(stack++);
+    green = GetStackFloat(stack++);
+    blue = GetStackFloat(stack++);
+    alpha = GetStackFloat(stack++);
     attr.color[0] = red;
     attr.color[1] = green;
     attr.color[2] = blue;
@@ -1836,30 +2446,42 @@ int _CHR_SET_LIGHT_COLOR(RS_STACKDATA *stack, int argument_count) {
     frame->SetAttrParam(attr, 1, flags);
     return 1;
 }
-int _SPT_ASSIGN_SPRITE(RS_STACKDATA *stack, int argument_count) {
+
+/**
+ * Allocates the requested billboard sprites for the running effect.
+ */
+static int _SPT_ASSIGN_SPRITE(RS_STACKDATA *stack, int argument_count) {
+    int         count;
+    _ES_SPRITE *sprite;
+
     if (argument_count != 1 && argument_count != 2) {
         return 0;
     }
-    int count = GetStackInt(stack++);
-    if (now_script->sprite != 0) {
+    count = GetStackInt(stack++);
+    if (now_script->sprite != NULL) {
         return 0;
     }
-    _ES_SPRITE *sprite = EffScriptMan->AssignSprite(count);
-    if (sprite == 0) {
+    sprite = EffScriptMan->AssignSprite(count);
+    if (sprite == NULL) {
         if (argument_count >= 2) {
-            SetStackInt(stack, 0);
+            SetStack(stack, 0);
         }
         return 0;
     }
     if (argument_count >= 2) {
-        SetStackInt(stack, 1);
+        SetStack(stack, 1);
     }
     now_script->sprite = sprite;
     now_script->sprite_num = count;
     return 1;
 }
-int _SPT_DELETE_SPRITE(RS_STACKDATA *stack, int argument_count) {
+
+/**
+ * Deletes the billboard sprites of the running effect.
+ */
+static int _SPT_DELETE_SPRITE(RS_STACKDATA *stack, int argument_count) {
     _ES_SPRITE *sprite = now_script->sprite;
+
     if (sprite == NULL) {
         return 0;
     }
@@ -1868,15 +2490,23 @@ int _SPT_DELETE_SPRITE(RS_STACKDATA *stack, int argument_count) {
     now_script->sprite_num = 0;
     return 1;
 }
-int _SPT_SET_TEXNAME(RS_STACKDATA *stack, int argument_count) {
-    strcpy(now_script->tex_name, (char *)GetStackString(stack));
+
+/**
+ * Sets the sprite texture name for the running effect.
+ */
+static int _SPT_SET_TEXNAME(RS_STACKDATA *stack, int argument_count) {
+    strcpy(now_script->tex_name, GetStackString(stack));
     return 1;
 }
-int _SPT_SET_ALPHAB(RS_STACKDATA *stack, int argument_count) {
-    int first;
-    int alpha;
-    int count;
-    int i;
+
+/**
+ * Sets the sprite alpha blending mode for the running effect.
+ */
+static int _SPT_SET_ALPHAB(RS_STACKDATA *stack, int argument_count) {
+    int         first;
+    int         alpha;
+    int         count;
+    int         i;
     _ES_SPRITE *sprite;
 
     count = 1;
@@ -1888,17 +2518,21 @@ int _SPT_SET_ALPHAB(RS_STACKDATA *stack, int argument_count) {
 
     for (i = first; i < count + first; i++) {
         sprite = GetSpritePtr(now_script, i);
-        if (sprite == 0) {
+        if (sprite == NULL) {
             return 0;
         }
         sprite->alpha = alpha;
     }
     return 1;
 }
-int _SPT_INIT_SPRITE(RS_STACKDATA *stack, int argument_count) {
-    int first;
-    int count;
-    int i;
+
+/**
+ * Initializes a range of billboard sprites.
+ */
+static int _SPT_INIT_SPRITE(RS_STACKDATA *stack, int argument_count) {
+    int         first;
+    int         count;
+    int         i;
     _ES_SPRITE *sprite;
 
     count = 1;
@@ -1908,7 +2542,7 @@ int _SPT_INIT_SPRITE(RS_STACKDATA *stack, int argument_count) {
     }
     for (i = first; i < count + first; i++) {
         sprite = GetSpritePtr(now_script, i);
-        if (sprite == 0) {
+        if (sprite == NULL) {
             return 0;
         }
         sprite->draw_flag = 0;
@@ -1969,11 +2603,15 @@ int _SPT_INIT_SPRITE(RS_STACKDATA *stack, int argument_count) {
     }
     return 1;
 }
-int _SPT_SET_DRAW_FLAG(RS_STACKDATA *stack, int argument_count) {
-    int first;
-    int draw_flag;
-    int count;
-    int i;
+
+/**
+ * Sets the sprite draw flag for the running effect.
+ */
+static int _SPT_SET_DRAW_FLAG(RS_STACKDATA *stack, int argument_count) {
+    int         first;
+    int         draw_flag;
+    int         count;
+    int         i;
     _ES_SPRITE *sprite;
 
     count = 1;
@@ -1985,31 +2623,42 @@ int _SPT_SET_DRAW_FLAG(RS_STACKDATA *stack, int argument_count) {
 
     for (i = first; i < count + first; i++) {
         sprite = GetSpritePtr(now_script, i);
-        if (sprite == 0) {
+        if (sprite == NULL) {
             return 0;
         }
         sprite->draw_flag = draw_flag;
     }
     return 1;
 }
-int _SPT_GET_DRAW_FLAG(RS_STACKDATA *stack, int argument_count) {
+
+/**
+ * Returns the sprite draw flag for the running effect.
+ */
+static int _SPT_GET_DRAW_FLAG(RS_STACKDATA *stack, int argument_count) {
+    RS_STACKDATA *result_slot;
+    _ES_SPRITE   *sprite;
+
     if (argument_count != 2) {
         return 0;
     }
-    RS_STACKDATA *result_slot = stack + 1;
-    _ES_SPRITE *sprite = GetSpritePtr(now_script, GetStackInt(stack));
-    if (sprite == 0) {
+    result_slot = stack + 1;
+    sprite = GetSpritePtr(now_script, GetStackInt(stack));
+    if (sprite == NULL) {
         return 0;
     }
-    SetStackInt(result_slot, sprite->draw_flag);
+    SetStack(result_slot, sprite->draw_flag);
     return 1;
 }
-int _SPT_SET_UV_SIZE(RS_STACKDATA *stack, int argument_count) {
-    int first;
-    float value[4];
-    int count;
-    int i;
-    _ES_SPRITE *sprite;
+
+/**
+ * Sets the sprite uv size for the running effect.
+ */
+static int _SPT_SET_UV_SIZE(RS_STACKDATA *stack, int argument_count) {
+    int           first;
+    sceVu0FVECTOR value;
+    int           count;
+    int           i;
+    _ES_SPRITE   *sprite;
 
     count = 1;
     first = GetStackInt(stack++);
@@ -2022,18 +2671,22 @@ int _SPT_SET_UV_SIZE(RS_STACKDATA *stack, int argument_count) {
     }
     for (i = first; i < count + first; i++) {
         sprite = GetSpritePtr(now_script, i);
-        if (sprite == 0) {
+        if (sprite == NULL) {
             return 0;
         }
         *(u_long128 *)sprite->uv = *(u_long128 *)value;
     }
     return 1;
 }
-int _SPT_SET_PUT_SIZE(RS_STACKDATA *stack, int argument_count) {
-    int first;
-    float put_size[2];
-    int count;
-    int i;
+
+/**
+ * Sets the sprite put size for the running effect.
+ */
+static int _SPT_SET_PUT_SIZE(RS_STACKDATA *stack, int argument_count) {
+    int         first;
+    float       put_size[2];
+    int         count;
+    int         i;
     _ES_SPRITE *sprite;
 
     count = 1;
@@ -2046,7 +2699,7 @@ int _SPT_SET_PUT_SIZE(RS_STACKDATA *stack, int argument_count) {
 
     for (i = first; i < count + first; i++) {
         sprite = GetSpritePtr(now_script, i);
-        if (sprite == 0) {
+        if (sprite == NULL) {
             return 0;
         }
         sprite->put_size[0] = put_size[0];
@@ -2054,12 +2707,16 @@ int _SPT_SET_PUT_SIZE(RS_STACKDATA *stack, int argument_count) {
     }
     return 1;
 }
-int _SPT_SET_POS(RS_STACKDATA *stack, int argument_count) {
-    int first;
-    float value[4];
-    int count;
-    int i;
-    _ES_SPRITE *sprite;
+
+/**
+ * Sets the sprite position for the running effect.
+ */
+static int _SPT_SET_POS(RS_STACKDATA *stack, int argument_count) {
+    int           first;
+    sceVu0FVECTOR value;
+    int           count;
+    int           i;
+    _ES_SPRITE   *sprite;
 
     count = 1;
     first = GetStackInt(stack++);
@@ -2070,31 +2727,41 @@ int _SPT_SET_POS(RS_STACKDATA *stack, int argument_count) {
     }
     for (i = first; i < count + first; i++) {
         sprite = GetSpritePtr(now_script, i);
-        if (sprite == 0) {
+        if (sprite == NULL) {
             return 0;
         }
         *(u_long128 *)sprite->pos = *(u_long128 *)value;
     }
     return 1;
 }
-int _SPT_GET_POS(RS_STACKDATA *stack, int argument_count) {
+
+/**
+ * Returns the sprite position for the running effect.
+ */
+static int _SPT_GET_POS(RS_STACKDATA *stack, int argument_count) {
+    _ES_SPRITE *sprite;
+
     if (argument_count != 4) {
         return 0;
     }
-    _ES_SPRITE *sprite = GetSpritePtr(now_script, GetStackInt(stack++));
-    if (sprite == 0) {
+    sprite = GetSpritePtr(now_script, GetStackInt(stack++));
+    if (sprite == NULL) {
         return 0;
     }
-    SetStackFloat(stack++, sprite->pos[0]);
-    SetStackFloat(stack++, sprite->pos[1]);
-    SetStackFloat(stack, sprite->pos[2]);
+    SetStack(stack++, sprite->pos[0]);
+    SetStack(stack++, sprite->pos[1]);
+    SetStack(stack, sprite->pos[2]);
     return 1;
 }
-int _SPT_SET_ROTZ(RS_STACKDATA *stack, int argument_count) {
-    int first;
-    float rotz;
-    int count;
-    int i;
+
+/**
+ * Sets the sprite rotz for the running effect.
+ */
+static int _SPT_SET_ROTZ(RS_STACKDATA *stack, int argument_count) {
+    int         first;
+    float       rotz;
+    int         count;
+    int         i;
     _ES_SPRITE *sprite;
 
     count = 1;
@@ -2106,30 +2773,41 @@ int _SPT_SET_ROTZ(RS_STACKDATA *stack, int argument_count) {
 
     for (i = first; i < count + first; i++) {
         sprite = GetSpritePtr(now_script, i);
-        if (sprite == 0) {
+        if (sprite == NULL) {
             return 0;
         }
         sprite->rotz = rotz;
     }
     return 1;
 }
-int _SPT_GET_ROTZ(RS_STACKDATA *stack, int argument_count) {
+
+/**
+ * Returns the sprite rotz for the running effect.
+ */
+static int _SPT_GET_ROTZ(RS_STACKDATA *stack, int argument_count) {
+    RS_STACKDATA *result_slot;
+    _ES_SPRITE   *sprite;
+
     if (argument_count != 2) {
         return 0;
     }
-    RS_STACKDATA *result_slot = stack + 1;
-    _ES_SPRITE *sprite = GetSpritePtr(now_script, GetStackInt(stack));
-    if (sprite == 0) {
+    result_slot = stack + 1;
+    sprite = GetSpritePtr(now_script, GetStackInt(stack));
+    if (sprite == NULL) {
         return 0;
     }
-    SetStackFloat(result_slot, sprite->rotz);
+    SetStack(result_slot, sprite->rotz);
     return 1;
 }
-int _SPT_SET_SCALE(RS_STACKDATA *stack, int argument_count) {
-    int first;
-    float scale[2];
-    int count;
-    int i;
+
+/**
+ * Sets the sprite scale for the running effect.
+ */
+static int _SPT_SET_SCALE(RS_STACKDATA *stack, int argument_count) {
+    int         first;
+    float       scale[2];
+    int         count;
+    int         i;
     _ES_SPRITE *sprite;
 
     count = 1;
@@ -2142,7 +2820,7 @@ int _SPT_SET_SCALE(RS_STACKDATA *stack, int argument_count) {
 
     for (i = first; i < count + first; i++) {
         sprite = GetSpritePtr(now_script, i);
-        if (sprite == 0) {
+        if (sprite == NULL) {
             return 0;
         }
         sprite->scale[0] = scale[0];
@@ -2150,24 +2828,34 @@ int _SPT_SET_SCALE(RS_STACKDATA *stack, int argument_count) {
     }
     return 1;
 }
-int _SPT_GET_SCALE(RS_STACKDATA *stack, int argument_count) {
+
+/**
+ * Returns the sprite scale for the running effect.
+ */
+static int _SPT_GET_SCALE(RS_STACKDATA *stack, int argument_count) {
+    _ES_SPRITE *sprite;
+
     if (argument_count != 3) {
         return 0;
     }
-    _ES_SPRITE *sprite = GetSpritePtr(now_script, GetStackInt(stack++));
-    if (sprite == 0) {
+    sprite = GetSpritePtr(now_script, GetStackInt(stack++));
+    if (sprite == NULL) {
         return 0;
     }
-    SetStackFloat(stack++, sprite->scale[0]);
-    SetStackFloat(stack, sprite->scale[1]);
+    SetStack(stack++, sprite->scale[0]);
+    SetStack(stack, sprite->scale[1]);
     return 1;
 }
-int _SPT_SET_COLOR(RS_STACKDATA *stack, int argument_count) {
-    int first;
-    float value[4];
-    int count;
-    int i;
-    _ES_SPRITE *sprite;
+
+/**
+ * Sets the sprite color for the running effect.
+ */
+static int _SPT_SET_COLOR(RS_STACKDATA *stack, int argument_count) {
+    int           first;
+    sceVu0FVECTOR value;
+    int           count;
+    int           i;
+    _ES_SPRITE   *sprite;
 
     count = 1;
     first = GetStackInt(stack++);
@@ -2180,37 +2868,47 @@ int _SPT_SET_COLOR(RS_STACKDATA *stack, int argument_count) {
     }
     for (i = first; i < count + first; i++) {
         sprite = GetSpritePtr(now_script, i);
-        if (sprite == 0) {
+        if (sprite == NULL) {
             return 0;
         }
         *(u_long128 *)sprite->color = *(u_long128 *)value;
     }
     return 1;
 }
-int _SPT_GET_COLOR(RS_STACKDATA *stack, int argument_count) {
+
+/**
+ * Returns the sprite color for the running effect.
+ */
+static int _SPT_GET_COLOR(RS_STACKDATA *stack, int argument_count) {
+    _ES_SPRITE *sprite;
+
     if (argument_count != 5) {
         return 0;
     }
-    _ES_SPRITE *sprite = GetSpritePtr(now_script, GetStackInt(stack++));
-    if (sprite == 0) {
+    sprite = GetSpritePtr(now_script, GetStackInt(stack++));
+    if (sprite == NULL) {
         return 0;
     }
-    SetStackFloat(stack++, sprite->color[0]);
-    SetStackFloat(stack++, sprite->color[1]);
-    SetStackFloat(stack++, sprite->color[2]);
-    SetStackFloat(stack, sprite->color[3]);
+    SetStack(stack++, sprite->color[0]);
+    SetStack(stack++, sprite->color[1]);
+    SetStack(stack++, sprite->color[2]);
+    SetStack(stack, sprite->color[3]);
     return 1;
 }
+
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/effscript", _SPT_VAN_SET_POS__FP12RS_STACKDATAi);
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/effscript", _SPT_VAN_SET_ROT__FP12RS_STACKDATAi);
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/effscript", _SPT_VAN_SET_COL__FP12RS_STACKDATAi);
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/effscript", _SPT_VAN_SET_SCL__FP12RS_STACKDATAi);
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/effscript", _SPT_ADD_POS__FP12RS_STACKDATAi);
-int _SPT_ADD_ROTZ(RS_STACKDATA *stack, int argc) {
-    int first;
-    float angle;
-    int count;
-    int i;
+/**
+ * Adds the sprite rotz for the running effect.
+ */
+static int _SPT_ADD_ROTZ(RS_STACKDATA *stack, int argc) {
+    int         first;
+    float       angle;
+    int         count;
+    int         i;
     _ES_SPRITE *sprite;
 
     count = 1;
@@ -2221,7 +2919,7 @@ int _SPT_ADD_ROTZ(RS_STACKDATA *stack, int argc) {
     }
     for (i = first; i < first + count; i++) {
         sprite = GetSpritePtr(now_script, i);
-        if (sprite == 0) {
+        if (sprite == NULL) {
             return 0;
         }
         sprite->rotz += angle;
@@ -2229,14 +2927,18 @@ int _SPT_ADD_ROTZ(RS_STACKDATA *stack, int argc) {
     }
     return 1;
 }
+
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/effscript", _SPT_ADD_COLOR__FP12RS_STACKDATAi);
-int _SPT_WORLD_ROT(RS_STACKDATA *stack, int argc) {
-    int first;
-    float angle;
-    int count;
-    int i;
+/**
+ * Rotates sprite positions and adds the effect origin.
+ */
+static int _SPT_WORLD_ROT(RS_STACKDATA *stack, int argc) {
+    int         first;
+    float       angle;
+    int         count;
+    int         i;
     _ES_SPRITE *sprite;
-    float matrix[4][4];
+    float       matrix[4][4];
 
     count = 1;
     first = GetStackInt(stack++);
@@ -2248,23 +2950,32 @@ int _SPT_WORLD_ROT(RS_STACKDATA *stack, int argc) {
     mgRotMatrixY(matrix, angle);
     for (i = first; i < first + count; i++) {
         sprite = GetSpritePtr(now_script, i);
-        if (sprite == 0) {
+        if (sprite == NULL) {
             return 0;
         }
         sceVu0ApplyMatrix(sprite->pos, matrix, sprite->pos);
     }
     return 1;
 }
-int _SPT_SET_LIFE(RS_STACKDATA *stack, int argument_count) {
+
+/**
+ * Sets the sprite life for the running effect.
+ */
+static s32 _SPT_SET_LIFE(RS_STACKDATA *stack, int argument_count) {
     return 0;
+
 }
+
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/effscript", _SPT_SET_VELO_POS__FP12RS_STACKDATAi);
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/effscript", _SPT_SET_ACC_POS__FP12RS_STACKDATAi);
-int _SPT_SET_VELO_ROTZ(RS_STACKDATA *stack, int argc) {
-    int first;
-    float value;
-    int count;
-    int i;
+/**
+ * Sets the sprite velocity rotz for the running effect.
+ */
+static int _SPT_SET_VELO_ROTZ(RS_STACKDATA *stack, int argc) {
+    int         first;
+    float       value;
+    int         count;
+    int         i;
     _ES_SPRITE *sprite;
 
     count = 1;
@@ -2275,18 +2986,22 @@ int _SPT_SET_VELO_ROTZ(RS_STACKDATA *stack, int argc) {
     }
     for (i = first; i < first + count; i++) {
         sprite = GetSpritePtr(now_script, i);
-        if (sprite == 0) {
+        if (sprite == NULL) {
             return 0;
         }
         sprite->velo_rotz = value;
     }
     return 1;
 }
-int _SPT_SET_ACC_ROTZ(RS_STACKDATA *stack, int argc) {
-    int first;
-    float value;
-    int count;
-    int i;
+
+/**
+ * Sets the sprite acceleration rotz for the running effect.
+ */
+static int _SPT_SET_ACC_ROTZ(RS_STACKDATA *stack, int argc) {
+    int         first;
+    float       value;
+    int         count;
+    int         i;
     _ES_SPRITE *sprite;
 
     count = 1;
@@ -2297,22 +3012,26 @@ int _SPT_SET_ACC_ROTZ(RS_STACKDATA *stack, int argc) {
     }
     for (i = first; i < first + count; i++) {
         sprite = GetSpritePtr(now_script, i);
-        if (sprite == 0) {
+        if (sprite == NULL) {
             return 0;
         }
         sprite->acc_rotz = value;
     }
     return 1;
 }
+
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/effscript", _SPT_SET_VELO_COL__FP12RS_STACKDATAi);
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/effscript", _SPT_SET_ACC_COL__FP12RS_STACKDATAi);
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/effscript", _SPT_SET_BLINKING__FP12RS_STACKDATAi);
-int _SPT_SET_VELO_SCL(RS_STACKDATA *stack, int argc) {
-    int first;
-    float x;
-    float y;
-    int count;
-    int i;
+/**
+ * Sets the sprite velocity scale for the running effect.
+ */
+static int _SPT_SET_VELO_SCL(RS_STACKDATA *stack, int argc) {
+    int         first;
+    float       x;
+    float       y;
+    int         count;
+    int         i;
     _ES_SPRITE *sprite;
 
     count = 1;
@@ -2324,7 +3043,7 @@ int _SPT_SET_VELO_SCL(RS_STACKDATA *stack, int argc) {
     }
     for (i = first; i < first + count; i++) {
         sprite = GetSpritePtr(now_script, i);
-        if (sprite == 0) {
+        if (sprite == NULL) {
             return 0;
         }
         sprite->velo_scl[0] = x;
@@ -2332,12 +3051,16 @@ int _SPT_SET_VELO_SCL(RS_STACKDATA *stack, int argc) {
     }
     return 1;
 }
-int _SPT_SET_ACC_SCL(RS_STACKDATA *stack, int argc) {
-    int first;
-    float x;
-    float y;
-    int count;
-    int i;
+
+/**
+ * Sets the sprite acceleration scale for the running effect.
+ */
+static int _SPT_SET_ACC_SCL(RS_STACKDATA *stack, int argc) {
+    int         first;
+    float       x;
+    float       y;
+    int         count;
+    int         i;
     _ES_SPRITE *sprite;
 
     count = 1;
@@ -2349,7 +3072,7 @@ int _SPT_SET_ACC_SCL(RS_STACKDATA *stack, int argc) {
     }
     for (i = first; i < first + count; i++) {
         sprite = GetSpritePtr(now_script, i);
-        if (sprite == 0) {
+        if (sprite == NULL) {
             return 0;
         }
         sprite->acc_scl[0] = x;
@@ -2357,13 +3080,17 @@ int _SPT_SET_ACC_SCL(RS_STACKDATA *stack, int argc) {
     }
     return 1;
 }
-int _SPT_SCALE_CONV(RS_STACKDATA *stack, int argc) {
-    int first;
-    float time;
-    float target_x;
-    float target_y;
-    int count;
-    int i;
+
+/**
+ * Sets the scale target and convergence divisor of a range of sprites.
+ */
+static int _SPT_SCALE_CONV(RS_STACKDATA *stack, int argc) {
+    int         first;
+    float       time;
+    float       target_x;
+    float       target_y;
+    int         count;
+    int         i;
     _ES_SPRITE *sprite;
 
     count = 1;
@@ -2376,7 +3103,7 @@ int _SPT_SCALE_CONV(RS_STACKDATA *stack, int argc) {
     }
     for (i = first; i < first + count; i++) {
         sprite = GetSpritePtr(now_script, i);
-        if (sprite == 0) {
+        if (sprite == NULL) {
             return 0;
         }
         sprite->scale_target[0] = target_x;
@@ -2385,10 +3112,15 @@ int _SPT_SCALE_CONV(RS_STACKDATA *stack, int argc) {
     }
     return 1;
 }
+
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/effscript", _SPT_COLOR_CONV__FP12RS_STACKDATAi);
-int _SCN_GET_CHR_POS(RS_STACKDATA *stack, int argc) {
-    float pos[3];
+/**
+ * Returns the scene character position for the running effect.
+ */
+static int _SCN_GET_CHR_POS(RS_STACKDATA *stack, int argc) {
+    float        pos[3];
     CCharacter2 *chara;
+
     if (argc != 4) {
         return 0;
     }
@@ -2397,14 +3129,19 @@ int _SCN_GET_CHR_POS(RS_STACKDATA *stack, int argc) {
         return 0;
     }
     chara->GetPosition(pos);
-    SetStackFloat(stack++, pos[0]);
-    SetStackFloat(stack++, pos[1]);
-    SetStackFloat(stack, pos[2]);
+    SetStack(stack++, pos[0]);
+    SetStack(stack++, pos[1]);
+    SetStack(stack, pos[2]);
     return 1;
 }
-int _SCN_GET_CHR_ROT(RS_STACKDATA *stack, int argc) {
-    float rot[3];
+
+/**
+ * Returns the scene character rotation for the running effect.
+ */
+static int _SCN_GET_CHR_ROT(RS_STACKDATA *stack, int argc) {
+    float        rot[3];
     CCharacter2 *chara;
+
     if (argc != 2 && argc != 4) {
         return 0;
     }
@@ -2415,24 +3152,28 @@ int _SCN_GET_CHR_ROT(RS_STACKDATA *stack, int argc) {
     chara->GetRotation(rot);
     switch (argc) {
         case 2:
-            SetStackFloat(stack, rot[1]);
+            SetStack(stack, rot[1]);
             break;
         case 4:
-            SetStackFloat(stack++, rot[0]);
-            SetStackFloat(stack++, rot[1]);
-            SetStackFloat(stack, rot[2]);
+            SetStack(stack++, rot[0]);
+            SetStack(stack++, rot[1]);
+            SetStack(stack, rot[2]);
             break;
         default:
             return 0;
     }
     return 1;
 }
-int _SCN_GET_CHR_FRM_POS(RS_STACKDATA *stack, int argc) {
-    float pos[4];
-    int chara_slot;
-    int frame_name;
-    CCharacter2 *chara;
-    mgCFrame *frame;
+
+/**
+ * Returns the scene character frame position for the running effect.
+ */
+static int _SCN_GET_CHR_FRM_POS(RS_STACKDATA *stack, int argc) {
+    sceVu0FVECTOR pos;
+    int           chara_slot;
+    char         *frame_name;
+    CCharacter2  *chara;
+    mgCFrame     *frame;
 
     if (argc != 5) {
         return 0;
@@ -2443,25 +3184,31 @@ int _SCN_GET_CHR_FRM_POS(RS_STACKDATA *stack, int argc) {
     if (chara == NULL) {
         return 0;
     }
-    if (((CObjectFrame *)chara)->frame == NULL) {
+    if (chara->CObjectFrame::frame == NULL) {
         return 0;
     }
-    frame = ((CObjectFrame *)chara)->frame->SearchFrame((char *)frame_name);
+    frame = chara->CObjectFrame::frame->SearchFrame(frame_name);
     if (frame == NULL) {
         return 0;
     }
     frame->GetWorldPosition0(pos);
-    SetStackFloat(stack++, pos[0]);
-    SetStackFloat(stack++, pos[1]);
-    SetStackFloat(stack, pos[2]);
+    SetStack(stack++, pos[0]);
+    SetStack(stack++, pos[1]);
+    SetStack(stack, pos[2]);
     return 1;
 }
+
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/effscript", _SCN_GET_CHR_FRM_DIR__FP12RS_STACKDATAi);
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/effscript", _SCN_GET_CHR_FRM_ROT__FP12RS_STACKDATAi);
-int _SCN_GET_ENTRY_OBJ_POS(RS_STACKDATA *stack, int argc) {
-    float pos[3];
-    int chara_slot;
-    int entry_index;
+/**
+ * Returns the scene entry obj position for the running effect.
+ */
+static int _SCN_GET_ENTRY_OBJ_POS(RS_STACKDATA *stack, int argc) {
+    float        pos[3];
+    int          chara_slot;
+    int          entry_index;
+    CCharacter2 *chara;
+
     if (argc != 5) {
     return 0;
 }
@@ -2470,26 +3217,30 @@ int _SCN_GET_ENTRY_OBJ_POS(RS_STACKDATA *stack, int argc) {
     if (entry_index < 0 || entry_index > 1) {
     return 0;
 }
-    CCharacter2 *chara = now_scene->GetCharacter(chara_slot);
+    chara = now_scene->GetCharacter(chara_slot);
     if (chara == NULL) {
     return 0;
 }
     chara->GetEntryObjectPos(entry_index, pos);
-    SetStackFloat(stack++, pos[0]);
-    SetStackFloat(stack++, pos[1]);
-    SetStackFloat(stack, pos[2]);
+    SetStack(stack++, pos[0]);
+    SetStack(stack++, pos[1]);
+    SetStack(stack, pos[2]);
     return 1;
 }
+
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/effscript", _INTERSECTION_POINT__FP12RS_STACKDATAi);
-int _MON_SE_PLAY(RS_STACKDATA *stack, int argc) {
-    float position[4];
-    float pad[2];
-    float volume;
-    float pan;
-    CCharacter2 *owner;
-    int se_id;
-    u_int se_handle;
-    int slot = now_script->user_id;
+/**
+ * Plays the monster sound for the running effect.
+ */
+static int _MON_SE_PLAY(RS_STACKDATA *stack, int argc) {
+    sceVu0FVECTOR position;
+    float         volume;
+    float         pan;
+    CCharacter2  *owner;
+    int           se_id;
+    u_int         se_handle;
+    int           slot = now_script->user_id;
+
     if (slot <= -1) {
         return 0;
     }
@@ -2513,9 +3264,15 @@ int _MON_SE_PLAY(RS_STACKDATA *stack, int argc) {
     }
     return 1;
 }
-int _MON_SE_STOP(RS_STACKDATA *stack, int argc) {
+
+/**
+ * Stops the monster sound for the running effect.
+ */
+static int _MON_SE_STOP(RS_STACKDATA *stack, int argc) {
     CCharacter2 *owner;
-    int slot = now_script->user_id;
+    int          slot = now_script->user_id;
+    u_int        se_handle;
+
     if (slot <= -1) {
         return 0;
     }
@@ -2523,19 +3280,23 @@ int _MON_SE_STOP(RS_STACKDATA *stack, int argc) {
     if (owner == NULL) {
         return 0;
     }
-    u_int se_handle = owner->se_bank;
+    se_handle = owner->se_bank;
     sndSeStop(se_handle, GetStackInt(stack), 0);
     return 1;
 }
-int _BTL_SE_PLAY(RS_STACKDATA *stack, int argc) {
-    float position[4];
-    float pad[2];
-    float volume;
-    float pan;
-    float near_distance = 160.0f;
-    float far_distance = 1200.0f;
-    int se_id;
-    u_int se_handle = now_scene->se_battle_id;
+
+/**
+ * Plays the battle sound for the running effect.
+ */
+static int _BTL_SE_PLAY(RS_STACKDATA *stack, int argc) {
+    sceVu0FVECTOR position;
+    float         volume;
+    float         pan;
+    float         near_distance = 160.0f;
+    float         far_distance = 1200.0f;
+    int           se_id;
+    u_int         se_handle = now_scene->se_battle_id;
+
     se_id = GetStackInt(stack++);
     switch (argc) {
         case 1:
@@ -2551,37 +3312,53 @@ int _BTL_SE_PLAY(RS_STACKDATA *stack, int argc) {
     }
     return 1;
 }
-int _BTL_SE_STOP(RS_STACKDATA *stack, int argc) {
+
+/**
+ * Stops the battle sound for the running effect.
+ */
+static int _BTL_SE_STOP(RS_STACKDATA *stack, int argc) {
     u_int se_handle;
 
     se_handle = now_scene->se_battle_id;
     sndSeStop(se_handle, GetStackInt(stack), 0);
     return 1;
 }
-int _BSE_SE_PLAY(RS_STACKDATA *stack, int argc) {
+
+/**
+ * Plays the base sound for the running effect.
+ */
+static int _BSE_SE_PLAY(RS_STACKDATA *stack, int argc) {
     u_int se_handle;
 
     se_handle = now_scene->se_base_id;
     sndSePlay(se_handle, GetStackInt(stack), 0);
     return 1;
 }
-int _BSE_SE_STOP(RS_STACKDATA *stack, int argc) {
+
+/**
+ * Stops the base sound for the running effect.
+ */
+static int _BSE_SE_STOP(RS_STACKDATA *stack, int argc) {
     u_int se_handle;
 
     se_handle = now_scene->se_base_id;
     sndSeStop(se_handle, GetStackInt(stack), 0);
     return 1;
 }
-int _MON_SE_PLAY2(RS_STACKDATA *stack, int argc) {
-    float position[4];
-    float pad[2];
-    float volume;
-    float pan;
-    float near_distance = 160.0f;
-    float far_distance = 1200.0f;
-    CCharacter2 *owner;
-    int se_id;
-    u_int se_handle;
+
+/**
+ * Handles mon se play2 for the running effect.
+ */
+static int _MON_SE_PLAY2(RS_STACKDATA *stack, int argc) {
+    sceVu0FVECTOR position;
+    float         volume;
+    float         pan;
+    float         near_distance = 160.0f;
+    float         far_distance = 1200.0f;
+    CCharacter2  *owner;
+    int           se_id;
+    u_int         se_handle;
+
     if (argc != 2 && argc != 5) {
         return 0;
     }
@@ -2605,10 +3382,15 @@ int _MON_SE_PLAY2(RS_STACKDATA *stack, int argc) {
     }
     return 1;
 }
-int _MON_SE_STOP2(RS_STACKDATA *stack, int argc) {
+
+/**
+ * Handles mon se stop2 for the running effect.
+ */
+static int _MON_SE_STOP2(RS_STACKDATA *stack, int argc) {
     RS_STACKDATA *second = stack + 1;
-    CCharacter2 *owner;
-    u_int se_handle;
+    CCharacter2  *owner;
+    u_int         se_handle;
+
     owner = now_scene->GetCharacter(GetStackInt(stack));
     if (owner == NULL) {
         return 0;
@@ -2617,15 +3399,24 @@ int _MON_SE_STOP2(RS_STACKDATA *stack, int argc) {
     sndSeStop(se_handle, GetStackInt(second), 0);
     return 1;
 }
-int _SET_LIGHT_FLAG(RS_STACKDATA *stack, int argc) {
+
+/**
+ * Selects scene lighting for the running effect sprites.
+ */
+static int _SET_LIGHT_FLAG(RS_STACKDATA *stack, int argc) {
     now_script->light_flag = GetStackInt(stack);
     return 1;
 }
-int _SCN_GET_CHR_ENTOBJ_POS(RS_STACKDATA *stack, int argc) {
-    float pos[3];
-    int chara_slot;
-    int entry_index;
+
+/**
+ * Returns the scene character entry object position for the running effect.
+ */
+static int _SCN_GET_CHR_ENTOBJ_POS(RS_STACKDATA *stack, int argc) {
+    float        pos[3];
+    int          chara_slot;
+    int          entry_index;
     CCharacter2 *chara;
+
     if (argc != 5) {
         return 0;
     }
@@ -2636,32 +3427,59 @@ int _SCN_GET_CHR_ENTOBJ_POS(RS_STACKDATA *stack, int argc) {
         return 0;
     }
     chara->GetEntryObjectPos(entry_index, pos);
-    SetStackFloat(stack++, pos[0]);
-    SetStackFloat(stack++, pos[1]);
-    SetStackFloat(stack, pos[2]);
+    SetStack(stack++, pos[0]);
+    SetStack(stack++, pos[1]);
+    SetStack(stack, pos[2]);
     return 1;
 }
-int _CREATE_DAMAGE(RS_STACKDATA *stack, int argc) {
-    printf((const char *)&at_3398);
+
+/**
+ * Reports that scripted damage creation is unavailable.
+ */
+static int _CREATE_DAMAGE(RS_STACKDATA *stack, int argc) {
+    printf("effect script err   \214\303\202\242\203R\203\212\203W\203\207\203\223\203N\203\211\203X\202\315\216g\202\301\202\277\202\341\203_\203\201\202\346\201I\201I\n");
     return 0;
 }
-int _DELETE_DAMAGE(RS_STACKDATA *stack, int argument_count) {
+
+/**
+ * Handles delete damage for the running effect.
+ */
+static s32 _DELETE_DAMAGE(RS_STACKDATA *stack, int argument_count) {
+    return 0;
+
+}
+
+/**
+ * Sets the dmg position for the running effect.
+ */
+static s32 _DMG_SET_POS(RS_STACKDATA *stack, int argument_count) {
+    return 0;
+
+}
+
+/**
+ * Sets the dmg front vect for the running effect.
+ */
+static s32 _DMG_SET_FRONT_VECT(RS_STACKDATA *stack, int argument_count) {
+    return 0;
+
+}
+
+/**
+ * Reports that scripted damage assignment is unavailable.
+ */
+static int _DMG_SET_DAMAGE(RS_STACKDATA *stack, int argc) {
+    printf("effect script err   \214\303\202\242\203R\203\212\203W\203\207\203\223\203N\203\211\203X\202\315\216g\202\301\202\277\202\341\203_\203\201\202\346\201I\201I\n");
     return 0;
 }
-int _DMG_SET_POS(RS_STACKDATA *stack, int argument_count) {
-    return 0;
-}
-int _DMG_SET_FRONT_VECT(RS_STACKDATA *stack, int argument_count) {
-    return 0;
-}
-int _DMG_SET_DAMAGE(RS_STACKDATA *stack, int argc) {
-    printf((const char *)&at_3398);
-    return 0;
-}
-int _COLPRIM_CREATE(RS_STACKDATA *stack, int argc) {
+
+/**
+ * Creates a collision primitive owned by the running effect.
+ */
+static int _COLPRIM_CREATE(RS_STACKDATA *stack, int argc) {
     CColPrim *colprim;
-    int owner;
-    char *damage_name;
+    int       owner;
+    char     *damage_name;
 
     if (now_script->colprim != NULL) {
         now_script->colprim->Delete(now_script->user_id);
@@ -2672,21 +3490,27 @@ int _COLPRIM_CREATE(RS_STACKDATA *stack, int argc) {
         return 0;
     }
     owner = now_script->user_id;
-    damage_name = (char *)GetStackString(stack++);
+    damage_name = GetStackString(stack++);
     if (argc >= 2) {
         owner = GetStackInt(stack);
     }
     now_script->colprim->SetDamage(damage_name, owner);
     return 1;
 }
-int _COLPRIM_SET_COORD(RS_STACKDATA *stack, int argc) {
-    float start[4];
-    float end[4];
-    float radius;
-    mgCFrame *root;
-    mgCFrame *frame;
-    char *start_name;
-    char *end_name;
+
+/**
+ * Sets the coordinates and radius of the effect collision primitive.
+ */
+static int _COLPRIM_SET_COORD(RS_STACKDATA *stack, int argc) {
+    sceVu0FVECTOR start;
+    sceVu0FVECTOR end;
+    float         radius;
+    mgCFrame     *root;
+    mgCFrame     *frame;
+    char         *start_name;
+    char         *end_name;
+    mgCFrame     *first_frame;
+    mgCFrame     *second_frame;
 
     if (now_script->colprim == NULL) {
         return 0;
@@ -2707,9 +3531,9 @@ int _COLPRIM_SET_COORD(RS_STACKDATA *stack, int argc) {
             if (now_script->chara == NULL) {
                 return 0;
             }
-            start_name = (char *)GetStackString(stack++);
+            start_name = GetStackString(stack++);
             radius = GetStackFloat(stack);
-            root = ((CObjectFrame *)now_script->chara)->frame;
+            root = now_script->chara->CObjectFrame::frame;
             if (root == NULL) {
                 return 0;
             }
@@ -2723,16 +3547,14 @@ int _COLPRIM_SET_COORD(RS_STACKDATA *stack, int argc) {
             if (now_script->chara == NULL) {
                 return 0;
             }
-            start_name = (char *)GetStackString(stack++);
-            end_name = (char *)GetStackString(stack++);
+            start_name = GetStackString(stack++);
+            end_name = GetStackString(stack++);
             radius = GetStackFloat(stack);
-            root = ((CObjectFrame *)now_script->chara)->frame;
+            root = now_script->chara->CObjectFrame::frame;
             if (root == NULL) {
                 return 0;
             }
 
-            mgCFrame *first_frame;
-            mgCFrame *second_frame;
             if ((first_frame = root->SearchFrame(start_name)) == NULL) {
                 return 0;
             }
@@ -2746,7 +3568,11 @@ int _COLPRIM_SET_COORD(RS_STACKDATA *stack, int argc) {
     }
     return 1;
 }
-int _COLPRIM_DELETE(RS_STACKDATA *stack, int argc) {
+
+/**
+ * Deletes the collision primitive of the running effect.
+ */
+static int _COLPRIM_DELETE(RS_STACKDATA *stack, int argc) {
     CColPrim *colprim;
 
     if (now_script == NULL) {
@@ -2761,7 +3587,11 @@ int _COLPRIM_DELETE(RS_STACKDATA *stack, int argc) {
     now_script->colprim = NULL;
     return 1;
 }
-int _COLPRIM_GET_HITCNT(RS_STACKDATA *stack, int argc) {
+
+/**
+ * Returns the hit count of the effect collision primitive.
+ */
+static int _COLPRIM_GET_HITCNT(RS_STACKDATA *stack, int argc) {
     CColPrim *colprim;
 
     if (argc != 1) {
@@ -2771,15 +3601,20 @@ int _COLPRIM_GET_HITCNT(RS_STACKDATA *stack, int argc) {
     if (colprim == NULL) {
         return 0;
     }
-    SetStackInt(stack, colprim->hit_num);
+    SetStack(stack, colprim->hit_num);
     return 1;
 }
-int _COLPRIM_GET_GIFT(RS_STACKDATA *stack, int argc) {
-    int item_id;
-    int count;
-    int rate;
+
+/**
+ * Sets the item, count and rate of a gift from the effect collision primitive.
+ */
+static int _COLPRIM_GET_GIFT(RS_STACKDATA *stack, int argc) {
+    int           item_id;
+    int           count;
+    int           rate;
     RS_STACKDATA *next_slot;
-    CColPrim *colprim;
+    CColPrim     *colprim;
+
     if (argc != 3) {
         return 0;
     }
@@ -2795,59 +3630,76 @@ int _COLPRIM_GET_GIFT(RS_STACKDATA *stack, int argc) {
     colprim->gift[1] = count;
     colprim->gift[2] = rate;
     colprim->has_gift = 1;
-    printf(at_3495, item_id, count, rate);
+    printf("%d,%d,%d\n", item_id, count, rate);
     return 1;
 }
-int _COLPRIM_GET_REVCNT(RS_STACKDATA *stack, int argc) {
+
+/**
+ * Returns the reverse count and optional vector of the effect collision primitive.
+ */
+static int _COLPRIM_GET_REVCNT(RS_STACKDATA *stack, int argc) {
     if (argc != 4 && argc != 1) {
         return 0;
     }
     if (now_script->colprim == NULL) {
         return 0;
     }
-    SetStackInt(stack++, now_script->colprim->reversed);
+    SetStack(stack++, now_script->colprim->reversed);
     if (argc == 4) {
-        SetStackFloat(stack++, now_script->colprim->revers_vec[0]);
-        SetStackFloat(stack++, now_script->colprim->revers_vec[1]);
-        SetStackFloat(stack, now_script->colprim->revers_vec[2]);
+        SetStack(stack++, now_script->colprim->revers_vec[0]);
+        SetStack(stack++, now_script->colprim->revers_vec[1]);
+        SetStack(stack, now_script->colprim->revers_vec[2]);
     }
     return 1;
 }
-int _COLPRIM_SET_DAMAGE(RS_STACKDATA *stack, int argc) {
+
+/**
+ * Sets the damage of the effect collision primitive.
+ */
+static int _COLPRIM_SET_DAMAGE(RS_STACKDATA *stack, int argc) {
     if (now_script->colprim == NULL) {
         return 0;
     }
     now_script->colprim->damage = GetStackInt(stack);
     return 1;
 }
-int _COLPRIM_GET_HIT_POS(RS_STACKDATA *stack, int argc) {
+
+/**
+ * Returns the hit position of the effect collision primitive.
+ */
+static int _COLPRIM_GET_HIT_POS(RS_STACKDATA *stack, int argc) {
     if (argc != 3) {
         return 0;
     }
     if (now_script->colprim == NULL) {
         return 0;
     }
-    SetStackFloat(stack++, now_script->colprim->hit_pos[0]);
-    SetStackFloat(stack++, now_script->colprim->hit_pos[1]);
-    SetStackFloat(stack, now_script->colprim->hit_pos[2]);
+    SetStack(stack++, now_script->colprim->hit_pos[0]);
+    SetStack(stack++, now_script->colprim->hit_pos[1]);
+    SetStack(stack, now_script->colprim->hit_pos[2]);
     return 1;
 }
-int _ES_CREATE(RS_STACKDATA *stack, int argc) {
-    int handle = -1;
-    char *name = (char *)GetStackString(stack++);
+
+/**
+ * Starts an effect and returns its slot.
+ */
+static int _ES_CREATE(RS_STACKDATA *stack, int argc) {
+    int   handle = -1;
+    char *name = GetStackString(stack++);
+    int   user_id;
 
     switch (argc) {
         case 1:
             EffScriptMan->CreateEffSpt(name, now_script->user_id, 0);
             break;
         case 2: {
-            int user_id = now_script->user_id;
+            user_id = now_script->user_id;
             if (user_id >= 0) {
                 handle = EffScriptMan->CreateEffSpt(name, user_id, 1);
             }
-            SetStackInt(stack, handle);
+            SetStack(stack, handle);
             if (handle <= -1) {
-                printf(at_3536, name, now_script->user_id);
+                printf("ES_CREATE error [%s][%d][%d]", name, now_script->user_id);
             }
             break;
         }
@@ -2856,9 +3708,13 @@ int _ES_CREATE(RS_STACKDATA *stack, int argc) {
     }
     return 1;
 }
-int _ES_SET_VECT1(RS_STACKDATA *stack, int argc) {
-    float vect[4];
-    int target_id;
+
+/**
+ * Sets the first work vector of an effect.
+ */
+static int _ES_SET_VECT1(RS_STACKDATA *stack, int argc) {
+    sceVu0FVECTOR vect;
+    int           target_id;
 
     switch (argc) {
         case 3:
@@ -2875,9 +3731,13 @@ int _ES_SET_VECT1(RS_STACKDATA *stack, int argc) {
     }
     return 1;
 }
-int _ES_SET_VECT2(RS_STACKDATA *stack, int argc) {
-    float vect[4];
-    int target_id;
+
+/**
+ * Sets the second work vector of an effect.
+ */
+static int _ES_SET_VECT2(RS_STACKDATA *stack, int argc) {
+    sceVu0FVECTOR vect;
+    int           target_id;
 
     switch (argc) {
         case 3:
@@ -2894,16 +3754,20 @@ int _ES_SET_VECT2(RS_STACKDATA *stack, int argc) {
     }
     return 1;
 }
-int _ES_SET_TARGET_ID(RS_STACKDATA *stack, int argc) {
+
+/**
+ * Sets the target character of an effect.
+ */
+static int _ES_SET_TARGET_ID(RS_STACKDATA *stack, int argc) {
+    int source_id;
+
     switch (argc) {
         case 1:
-            EffScriptMan->SetScriptTargetId( GetStackInt(stack), now_script->user_id, -1);
+            EffScriptMan->SetScriptTargetId(GetStackInt(stack), now_script->user_id, -1);
             break;
         case 2: {
-            int source_id = GetStackInt(stack++);
-            EffScriptMan->SetScriptTargetId( GetStackInt(stack),
-                                                      now_script->user_id,
-                                                      source_id);
+            source_id = GetStackInt(stack++);
+            EffScriptMan->SetScriptTargetId(GetStackInt(stack), now_script->user_id, source_id);
             break;
         }
         default:
@@ -2911,7 +3775,11 @@ int _ES_SET_TARGET_ID(RS_STACKDATA *stack, int argc) {
     }
     return 1;
 }
-int _ES_SET_VALUE(RS_STACKDATA *stack, int argc) {
+
+/**
+ * Stores an integer or float in an effect value slot.
+ */
+static int _ES_SET_VALUE(RS_STACKDATA *stack, int argc) {
     int target_id = -1;
     int index;
 
@@ -2926,10 +3794,10 @@ int _ES_SET_VALUE(RS_STACKDATA *stack, int argc) {
     }
     index = GetStackInt(stack++);
     switch (stack->type) {
-        case 0:
+        case RS_INT:
             EffScriptMan->SetValue(index, GetStackInt(stack), now_script->user_id, target_id);
             break;
-        case 1:
+        case RS_FLOAT:
             EffScriptMan->SetValue(index, GetStackFloat(stack), now_script->user_id, target_id);
             break;
         default:
@@ -2937,42 +3805,56 @@ int _ES_SET_VALUE(RS_STACKDATA *stack, int argc) {
     }
     return 1;
 }
-int _ES_SET_COLPRIM(RS_STACKDATA *stack, int argc) {
+
+/**
+ * Assigns the running effect collision primitive to the current effect.
+ */
+static int _ES_SET_COLPRIM(RS_STACKDATA *stack, int argc) {
     CColPrim *colprim;
 
     colprim = now_script->colprim;
     if (colprim == NULL) {
         return 0;
     }
-    EffScriptMan->SetColPrim( colprim,
-                                                now_script->user_id, -1);
+    EffScriptMan->SetColPrim(colprim, now_script->user_id, -1);
     return 1;
 }
-int _GET_EOH_POS(RS_STACKDATA *stack, int argc) {
+
+/**
+ * Returns the position of an event object handle.
+ */
+static int _GET_EOH_POS(RS_STACKDATA *stack, int argc) {
     float pos[3];
+
     if (argc != 4) {
         return 0;
     }
-    EventObjHandleMother.GetPos( GetStackInt(stack++), pos);
-    SetStackFloat(stack++, pos[0]);
-    SetStackFloat(stack++, pos[1]);
-    SetStackFloat(stack, pos[2]);
+    EventObjHandleMother.GetPos(GetStackInt(stack++), pos);
+    SetStack(stack++, pos[0]);
+    SetStack(stack++, pos[1]);
+    SetStack(stack, pos[2]);
     return 1;
 }
-int SetEffectScript(CRunScript *script, char *program, mgCMemory *memory) {
+
+/**
+ * Assigns a program and arena-backed stacks to an effect interpreter.
+ */
+static int SetEffectScript(CRunScript *script, char *program, mgCMemory *memory) {
     RS_STACKDATA *stack = (RS_STACKDATA *)memory->Alloc(0x20);
-    RS_CALLDATA *callData = (RS_CALLDATA *)memory->Alloc(1);
+    RS_CALLDATA  *callData = (RS_CALLDATA *)memory->Alloc(1);
+
     script->load((RS_PROG_HEADER *)program, stack, 0x40, callData, 2);
-    script->ext_func(ext_func__4, 0x100);
+    script->ext_func(ext_func, 0x100);
     return 1;
 }
+
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/effscript", SetEffectScriptFunc__Fv);
 
 // Initialised data (.data)
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/effscript", eff_spt_base_def__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/effscript", at_2311__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/effscript", at_2498__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/effscript", ext_func_info__4__DATA);
+
 
 // Constants (.rodata)
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/effscript", at_943__3__DATA);
