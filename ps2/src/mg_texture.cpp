@@ -35,29 +35,26 @@ static int Conv32To8(int width, int height, u_char *image);
  * DMA chain flushing the GS texture cache, copied in front of and behind
  * every texture upload.
  */
-extern u_char texflush_dma[0x30];
+static u_int texflush_dma[12] __attribute__((aligned(16))) = {
+    DMA_ID_CNT | 2, 0, 0, VIF_DIRECT | 2,
+    GIF_EOP | 1, GIF_NREG_1, SCE_GIF_PACKED_AD, 0,
+    0, 0, SCE_GS_TEXFLUSH, 0,
+};
 
-extern char at_497[];
-extern char at_866[];
-extern char at_884[];
-extern char at_867[];
-extern char at_868[];
-extern u_char lut_1246[128];
-extern int block_table8_1266[32];
-extern int block_table32_1267[32];
-extern "C" void *__construct_new_array(void *, void *(*)(void *), void *, u_int, int);
-extern "C" void *__ct__10mgCTextureFv(void *);
-extern "C" void *__ct__15mgCTextureBlockFv(void *);
-extern "C" void *Alloc__9mgCMemoryFi(mgCMemory *, int);
-static inline u_int align16_blocks(u_int n) {
-    if (n & 0xF)
-        return (n >> 4) + 1;
-    return n >> 4;
+/**
+ * Gives the quadwords required for an unsigned byte count.
+ */
+static inline u_int align16_blocks(u_int bytes) {
+    if (bytes & 0xF) {
+        return (bytes >> 4) + 1;
+    }
+    return bytes >> 4;
 }
 
-#pragma schedule off
+// Keep texture-state updates and packet operations in statement order.
 
 // Code (.text)
+#pragma schedule off
 /**
  * Gives the VRAM block address of the Z buffer and stores the GS blocks
  * it spans, which 8-bit textures can borrow while it holds nothing.
@@ -70,9 +67,9 @@ static int GetZBufVram(int *size) {
     *size = frame.width * frame.width * 4 / 256;
     return mgZBUF_1.bits.zbp << 5;
 }
+
 #pragma schedule reset
 #pragma schedule off
-
 /**
  * Tells whether a texture can be placed in the Z buffer's VRAM, which
  * holds unswizzled 8-bit textures only, and stores the blocks it needs.
@@ -87,82 +84,79 @@ static int CheckCopyToZBufVram(mgCTexture *texture, int *size) {
 
     return 0;
 }
+
 #pragma schedule reset
 #pragma schedule off
 mgCTexture::mgCTexture() {
     Initialize();
 }
-#pragma schedule reset
-#pragma schedule off
-#pragma global_optimizer off
 
-void mgCTexture::Initialize() {
-    u_char *self = (u_char *)this;
-    int i;
-    *(signed char *)(self + 8) = 0;
-    this->block = -1;
-    for (i = 0; i < 4; i++) {
-        *(int *)((i << 2) + (int)self + 0x50) = 0;
-    }
-    *(int *)(self + 0x60) = 0;
-    *(long long *)(self + 0x48) = 0;
-    *(long long *)(self + 0x40) = 0;
-    *(long long *)(self + 0x38) = 0;
-    struct TexFlags {
-        u_char flags_low : 2;
-        u_char flags_mid : 2;
-        u_char flags_high : 4;
-    };
-    ((TexFlags *)(self + 0x48))->flags_low = 1;
-    ((TexFlags *)(self + 0x48))->flags_mid = 1;
-    *(short *)(self + 6) = 0;
-    this->height = 0;
-    this->width = 0;
-    *(int *)(self + 0x64) = 0;
-    *(int *)(self + 0x28) = 0;
-    *(int *)(self + 0x2C) = 0;
-    *(int *)(self + 0x30) = 0;
-    *(int *)(self + 0x68) = 0;
-}
-#pragma global_optimizer reset
 #pragma schedule reset
+// Keep the image-table clearing loop intact.
+#pragma optimization_level 2
+void mgCTexture::Initialize() {
+    int i;
+
+    name[0] = '\0';
+    block = -1;
+
+    for (i = 0; i < MG_TEXTURE_LEVEL_MAX; i++) {
+        image[i] = NULL;
+    }
+
+    clut = NULL;
+    *(u_long *)&clamp = 0;
+    *(u_long *)&tex1 = 0;
+    tex0.value = 0;
+    clamp.WMS = 1;
+    clamp.WMT = 1;
+    bpp = 0;
+    height = 0;
+    width = 0;
+    swizzled = 0;
+    vram_size = 0;
+    image_blocks = 0;
+    clut_size = 0;
+    next = NULL;
+}
+#pragma optimization_level reset
 #pragma schedule off
-#pragma global_optimizer off
 void mgCTexture::Bilinear(int mode) {
     if (tex1.MXL == 0) {
         switch (mode) {
-            case 0:
+            case MG_TEXTURE_FILTER_NEAREST:
                 tex1.MMAG = 0;
                 tex1.MMIN = 0;
                 break;
-            case 1:
-            case 2:
+            case MG_TEXTURE_FILTER_LINEAR:
+            case MG_TEXTURE_FILTER_2:
                 tex1.MMAG = 1;
                 tex1.MMIN = 1;
                 break;
         }
     } else {
         switch (mode) {
-            case 0:
+            case MG_TEXTURE_FILTER_NEAREST:
                 tex1.MMAG = 0;
                 tex1.MMIN = 2;
                 break;
-            case 1:
+            case MG_TEXTURE_FILTER_LINEAR:
                 tex1.MMAG = 1;
                 tex1.MMIN = 4;
-            case 2:
+            case MG_TEXTURE_FILTER_2:
                 tex1.MMAG = 1;
                 tex1.MMIN = 5;
                 break;
         }
     }
 }
-#pragma global_optimizer reset
+
 #pragma schedule reset
 #pragma schedule off
 mgCTextureBlock::mgCTextureBlock() {
     Initialize();
 }
+
 #pragma schedule reset
 #pragma schedule off
 void mgCTextureBlock::Initialize() {
@@ -171,45 +165,49 @@ void mgCTextureBlock::Initialize() {
     anime = NULL;
     texture = NULL;
 }
+
 #pragma schedule reset
 #pragma schedule off
 #pragma global_optimizer off
 void mgCTextureBlock::Add(mgCTexture *texture) {
+    mgCTexture *last;
+    mgCTexture *next;
+
     texture->next = NULL;
-    mgCTexture *node;
     if (this->texture == NULL) {
         this->texture = texture;
     } else {
-        node = this->texture;
-        while (node != NULL) {
-            mgCTexture *next = node->next;
+        for (last = this->texture; last != NULL; last = next) {
+            next = last->next;
             if (next == NULL) {
-                node->next = texture;
+                last->next = texture;
                 break;
-    }
-            node = next;
+            }
         }
     }
 }
+
 #pragma global_optimizer reset
 #pragma schedule reset
 #pragma schedule off
 #pragma global_optimizer off
 void mgCTextureBlock::Delete(mgCTexture *texture) {
-    mgCTexture *node = this->texture;
-    mgCTexture *prev = NULL;
-    while (node != NULL) {
-        if (node == texture) {
-            if (prev == NULL) {
-                this->texture = node->next;
+    mgCTexture *current = this->texture;
+    mgCTexture *previous = NULL;
+
+    for (current = this->texture; current != NULL; current = current->next) {
+        if (current == texture) {
+            if (previous == NULL) {
+                this->texture = current->next;
             } else {
-                prev->next = node->next;
+                previous->next = current->next;
             }
         }
-        prev = node;
-        node = node->next;
+
+        previous = current;
     }
 }
+
 #pragma global_optimizer reset
 #pragma schedule reset
 #pragma schedule off
@@ -217,189 +215,199 @@ mgCTextureManager::mgCTextureManager() : texture_max(0), hash_max(0) {
     block_max = 0;
     blocks = NULL;
 }
+
 #pragma schedule reset
 #pragma schedule off
 #pragma global_optimizer off
-void mgCTextureManager::SetTableBuffer(int texture_count, int block_total, mgCMemory *memory) {
-    int slot;
-    int node;
+void mgCTextureManager::SetTableBuffer(int texture_count, int block_count, mgCMemory *memory) {
+    int i;
+    int hash_index;
     int count;
     u_int bytes;
-    block_max = block_total;
+
+    block_max = block_count;
     count = block_max;
-    bytes = count * 0x10;
-    blocks = (mgCTextureBlock *)__construct_new_array(
-        (void *)operator new[](count * 0x10 + 0x10,
-                               (u_long128 *)Alloc__9mgCMemoryFi(memory, align16_blocks(bytes) + 2)),
-        __ct__15mgCTextureBlockFv, 0, 0x10, count);
-    if (blocks == 0) {
+    bytes = count * sizeof(mgCTextureBlock);
+    blocks = new (memory->Alloc(align16_blocks(bytes) + 2)) mgCTextureBlock[count];
+
+    if (blocks == NULL) {
         block_max = 0;
     }
+
     texture_max = texture_count;
     count = texture_max;
-    bytes = count * 0x70;
-    texture_buf = (mgCTexture *)__construct_new_array(
-        (void *)operator new[](count * 0x70 + 0x10,
-                               (u_long128 *)Alloc__9mgCMemoryFi(memory, align16_blocks(bytes) + 2)),
-        __ct__10mgCTextureFv, 0, 0x70, count);
-    bytes = texture_max * 4;
-    texture_stack = (mgCTexture **)Alloc__9mgCMemoryFi(memory, align16_blocks(bytes));
-    for (slot = 0; slot < texture_max; slot++) {
-        texture_stack[slot] = &texture_buf[slot];
+    bytes = count * sizeof(mgCTexture);
+    texture_buf = new (memory->Alloc(align16_blocks(bytes) + 2)) mgCTexture[count];
+    bytes = texture_max * sizeof(mgCTexture *);
+    texture_stack = (mgCTexture **)memory->Alloc(align16_blocks(bytes));
+
+    for (i = 0; i < texture_max; i++) {
+        texture_stack[i] = &texture_buf[i];
     }
+
     texture_num = 0;
     hash_max = texture_count;
-    bytes = hash_max * 8;
-    hash_buf = (mgTEXTURE_HASH *)operator new[](
-        hash_max * 8, (u_long128 *)Alloc__9mgCMemoryFi(memory, align16_blocks(bytes) + 2));
-    bytes = hash_max * 4;
-    hash_stack = (mgTEXTURE_HASH **)Alloc__9mgCMemoryFi(memory, align16_blocks(bytes));
-    for (node = 0; node < hash_max; node++) {
-        hash_stack[node] = hash_buf + node;
-    }
-    hash_num = 0;
-}
-#pragma global_optimizer reset
-#pragma schedule reset
-#pragma schedule off
-#pragma global_optimizer off
-void mgCTextureManager::Initialize(int start, int end) {
-    int i;
-    int slot;
-    int bucket;
-    int node;
-    vram_top = start;
-    vram_fix = end;
-    if (vram_fix < 0) {
-        vram_fix = 0x3FE0;
-    }
-    if (blocks != 0) {
-    for (i = 0; i < block_max; i++) {
-        blocks[i].Initialize();
-    }
-    fix_block.Initialize();
-        for (slot = 0; slot < texture_max; slot++) {
-            texture_stack[slot] = &texture_buf[slot];
-    }
-    texture_num = 0;
-    for (i = 0; i < block_max; i++) {
-            blocks[i].unk_0 = vram_top;
+    bytes = hash_max * sizeof(mgTEXTURE_HASH);
+    hash_buf = new (memory->Alloc(align16_blocks(bytes) + 2)) mgTEXTURE_HASH[hash_max];
+    bytes = hash_max * sizeof(mgTEXTURE_HASH *);
+    hash_stack = (mgTEXTURE_HASH **)memory->Alloc(align16_blocks(bytes));
 
-            ((mgCTextureBlock *)((i << 4) + (int)blocks))->unk_4 = vram_top;
+    for (hash_index = 0; hash_index < hash_max; hash_index++) {
+        hash_stack[hash_index] = &hash_buf[hash_index];
     }
-    last_block = -1;
-        name_suffix[0] = 0;
-        for (bucket = 0; bucket < 101; bucket++) {
-            *(mgTEXTURE_HASH **)((bucket << 2) + (int)this + 0x24) = 0;
-    }
-        for (node = 0; node < hash_max; node++) {
-            hash_stack[node] = hash_buf + node;
-    }
+
     hash_num = 0;
 }
-}
+
 #pragma global_optimizer reset
 #pragma schedule reset
-#pragma schedule off
+// Keep the separate texture and hash-table loops intact.
 #pragma optimization_level 2
-int mgCTextureManager::hash(char *name) {
-    u_char value;
-    for (value = 0; *(signed char *)name != 0; name++) {
-        value = (((value << 8) + *(signed char *)name) % 101);
-    }
-    return value;
-}
-#pragma optimization_level reset
-#pragma schedule reset
-#pragma schedule off
-#pragma global_optimizer off
-void mgCTextureManager::AddHash(mgCTexture *texture) {
-    mgTEXTURE_HASH *node;
-    mgTEXTURE_HASH *cur;
-    mgTEXTURE_HASH *following;
-    mgTEXTURE_HASH **bucket;
-    if (hash_num >= hash_max) {
-        node = NULL;
-    } else {
-        node = hash_stack[hash_num++];
-    }
-    if (node != NULL) {
-        node->next = NULL;
-        node->texture = texture;
+void mgCTextureManager::Initialize(int vram_top, int vram_fix) {
+    int i;
+    int texture_index;
+    int bucket;
+    int hash_index;
 
-        int index = hash((char *)texture + 8);
-        bucket = (mgTEXTURE_HASH **)((index << 2) + (int)this + 0x24);
-        cur = *bucket;
-        if (cur == NULL) {
-            *bucket = node;
+    this->vram_top = vram_top;
+    this->vram_fix = vram_fix;
+
+    if (this->vram_fix < 0) {
+        this->vram_fix = MG_TEXTURE_VRAM_FIX_DEFAULT;
+    }
+
+    if (blocks != NULL) {
+        for (i = 0; i < block_max; i++) {
+            blocks[i].Initialize();
+        }
+
+        fix_block.Initialize();
+
+        for (texture_index = 0; texture_index < texture_max; texture_index++) {
+            texture_stack[texture_index] = &texture_buf[texture_index];
+        }
+
+        texture_num = 0;
+
+        for (i = 0; i < block_max; i++) {
+            blocks[i].unk_0 = this->vram_top;
+            blocks[i].unk_4 = this->vram_top;
+        }
+
+        last_block = -1;
+        name_suffix[0] = '\0';
+
+        for (bucket = 0; bucket < MG_TEXTURE_HASH_SIZE; bucket++) {
+            hash_table[bucket] = NULL;
+        }
+
+        for (hash_index = 0; hash_index < hash_max; hash_index++) {
+            hash_stack[hash_index] = &hash_buf[hash_index];
+        }
+
+        hash_num = 0;
+    }
+}
+int mgCTextureManager::hash(char *name) {
+    u_char key = 0;
+
+    for (; *name != '\0'; name++) {
+        key = ((key << 8) + *name) % MG_TEXTURE_HASH_SIZE;
+    }
+
+    return key;
+}
+
+#pragma optimization_level reset
+#ifdef NONMATCHING
+void mgCTextureManager::AddHash(mgCTexture *texture) {
+    mgTEXTURE_HASH *link;
+    mgTEXTURE_HASH *last;
+    int key;
+
+    if (hash_num < hash_max) {
+        link = hash_stack[hash_num++];
     } else {
-            while (cur != NULL) {
-                following = cur->next;
-                if (following == NULL) {
-                    cur->next = node;
+        link = NULL;
+    }
+
+    if (link == NULL) {
         return;
     }
-                cur = following;
+
+    link->next = NULL;
+    link->texture = texture;
+    key = hash(texture->name);
+
+    if (hash_table[key] == NULL) {
+        hash_table[key] = link;
+        return;
+    }
+
+    for (last = hash_table[key]; last != NULL; last = last->next) {
+        if (last->next == NULL) {
+            last->next = link;
+            return;
         }
     }
 }
-}
-#pragma global_optimizer reset
-#pragma schedule reset
-#pragma schedule off
-#pragma global_optimizer off
+
+#else
+INCLUDE_ASM("ps2/asm/pal/nonmatchings/mg_texture", AddHash__17mgCTextureManagerFP10mgCTexture);
+#endif
+#ifdef NONMATCHING
 void mgCTextureManager::DelHash(mgCTexture *texture) {
-    mgTEXTURE_HASH *cur;
-    mgTEXTURE_HASH *prev;
-    mgTEXTURE_HASH *found;
-    mgTEXTURE_HASH **bucket;
-    if (texture != NULL) {
-        int index = hash((char *)texture + 8);
-        bucket = (mgTEXTURE_HASH **)((index << 2) + (int)this + 0x24);
-        cur = *bucket;
-        prev = NULL;
-        found = NULL;
-        while (cur != NULL) {
-            if (cur->texture == texture) {
-                found = cur;
+    mgTEXTURE_HASH *previous;
+    mgTEXTURE_HASH *link;
+    int key;
+
+    if (texture == NULL) {
+        return;
+    }
+
+    key = hash(texture->name);
+    previous = NULL;
+
+    for (link = hash_table[key]; link != NULL; link = link->next) {
+        if (link->texture == texture) {
             break;
         }
-            prev = cur;
-            cur = cur->next;
+
+        previous = link;
     }
-        if (found != NULL) {
-            if (prev == NULL) {
-                *bucket = found->next;
+
+    if (link == NULL) {
+        return;
+    }
+
+    if (previous == NULL) {
+        hash_table[key] = link->next;
     } else {
-                prev->next = found->next;
+        previous->next = link->next;
     }
+
     if (hash_num > 0) {
-                hash_num--;
-                hash_stack[hash_num] = found;
+        hash_stack[--hash_num] = link;
     }
 }
-        }
-    }
-#pragma global_optimizer reset
-#pragma schedule reset
-#pragma schedule off
-#pragma global_optimizer off
-mgCTexture *mgCTextureManager::SearchHash(char *name, int mode) {
-    mgTEXTURE_HASH *node;
-    int bucket = hash(name);
 
-    for (node = *(mgTEXTURE_HASH **)((bucket << 2) + (int)this + 0x24); node != NULL;
-         node = node->next) {
-        if (strcmp(name, (char *)node->texture + 8) == 0) {
-            if (mode < 0 || node->texture->block == mode) {
-                return node->texture;
-            }
+#else
+INCLUDE_ASM("ps2/asm/pal/nonmatchings/mg_texture", DelHash__17mgCTextureManagerFP10mgCTexture);
+#endif
+// Keep hash-chain traversal in statement order.
+#pragma optimization_level 2
+mgCTexture *mgCTextureManager::SearchHash(char *name, int block) {
+    mgTEXTURE_HASH *link;
+
+    for (link = hash_table[hash(name)]; link != NULL; link = link->next) {
+        if (strcmp(name, link->texture->name) == 0 && (block < 0 || link->texture->block == block)) {
+            return link->texture;
         }
     }
+
     return NULL;
 }
-#pragma global_optimizer reset
-#pragma schedule reset
+#pragma optimization_level reset
 #pragma schedule off
 mgCTexture *mgCTextureManager::SearchTextureName(char *name, int block) {
     char full_name[128];
@@ -412,28 +420,32 @@ mgCTexture *mgCTextureManager::SearchTextureName(char *name, int block) {
 
     return SearchHash(name, block);
 }
+
 #pragma schedule reset
 #pragma schedule off
 mgCTexture *mgCTextureManager::SearchTexture(char *name) {
-    mgCTexture *slot;
+    mgCTexture *texture;
+
     if (texture_num >= texture_max) {
-        slot = NULL;
+        texture = NULL;
     } else {
-        slot = texture_stack[texture_num++];
+        texture = texture_stack[texture_num++];
     }
-    if (SearchTextureName(name, -1) != 0) {
-        printf(at_497, name);
+
+    if (SearchTextureName(name, -1) != NULL) {
+        printf("%s is already used.\n", name);
     }
-    return slot;
+
+    return texture;
 }
+
 #pragma schedule reset
-#pragma schedule off
 #pragma optimization_level 1
 mgCTexture *mgCTextureManager::GetTexture(char *name, int block) {
     return SearchTextureName(name, block);
 }
+
 #pragma optimization_level reset
-#pragma schedule reset
 #pragma schedule off
 mgCTextureBlock *mgCTextureManager::GetTextureBlock(int block) {
     if (block == MG_TEXTURE_BLOCK_FIX) {
@@ -446,6 +458,7 @@ mgCTextureBlock *mgCTextureManager::GetTextureBlock(int block) {
 
     return &blocks[block];
 }
+
 #pragma schedule reset
 #pragma schedule off
 #pragma global_optimizer off
@@ -477,12 +490,12 @@ int mgCTextureManager::GetRemainVRAM(int block) {
 
     return vram_fix - vram;
 }
+
 #pragma global_optimizer reset
 #pragma schedule reset
 #ifdef NONMATCHING
-mgCTexture *mgCTextureManager::EnterTexture(int block, char *name, u_long128 **image, int width,
-                                            int height, int bpp, u_long128 *clut, u_long tex1,
-                                            int swizzled) {
+mgCTexture *mgCTextureManager::EnterTexture(int block, char *name, u_long128 **image, int width, int height, int bpp,
+                                            u_long128 *clut, u_long tex1, int swizzled) {
     char full_name[0x20];
     u_long128 *no_image[MG_TEXTURE_LEVEL_MAX];
     mgCTextureBlock *texture_block;
@@ -589,8 +602,8 @@ mgCTexture *mgCTextureManager::EnterTexture(int block, char *name, u_long128 **i
     texture->image_blocks = 0;
     last_level = -1;
 
-    if (psm == SCE_GS_PSMT4 || psm == SCE_GS_PSMT8 || psm == SCE_GS_PSMCT16 ||
-        psm == SCE_GS_PSMCT32 || psm == SCE_GS_PSMCT24) {
+    if (psm == SCE_GS_PSMT4 || psm == SCE_GS_PSMT8 || psm == SCE_GS_PSMCT16 || psm == SCE_GS_PSMCT32 ||
+        psm == SCE_GS_PSMCT24) {
         for (i = 0; i < MG_TEXTURE_LEVEL_MAX; i++) {
             if (image[i] == NULL) {
                 last_level = i - 1;
@@ -679,80 +692,78 @@ mgCTexture *mgCTextureManager::EnterTexture(int block, char *name, u_long128 **i
 
     return texture;
 }
+
 #else
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/mg_texture", EnterTexture__17mgCTextureManagerFiPcPP1iiiP1Uli);
 #endif
-#pragma schedule off
 #pragma optimization_level 2
-mgCTexture *mgCTextureManager::EnterTexture(int id, char *name, TM2_head *head, int reload,
-                                            int no_image) {
-    u_char magic[8];
-    u_long128 *images[4];
-    TM2_PICTURE *pic;
+mgCTexture *mgCTextureManager::EnterTexture(int block, char *name, TM2_head *tm2, int swizzled, int no_image) {
+    char tag[5];
+    u_long128 *image[MG_TEXTURE_LEVEL_MAX];
+    TM2_PICTURE *picture;
     int width;
     int height;
-    int pixel_bits;
-    u_char *clut;
-    u_char *mip;
+    int bpp;
+    u_long128 *clut;
+    u_char *level;
     u_char *first;
-    int level;
+    int i;
 
-    memcpy(magic, head, 4);
-    magic[4] = 0;
-    pic = &head->picture;
-    width = head->picture.width;
-    height = head->picture.height;
-    switch (head->picture.image_type) {
-        case 1:
-            pixel_bits = 0x10;
+    memcpy(tag, tm2->tag, 4);
+    tag[4] = '\0';
+    picture = &tm2->picture;
+    width = picture->image_width;
+    height = picture->image_height;
+    switch (picture->image_type) {
+        case TIM2_RGB16:
+            bpp = 16;
             break;
-        case 2:
-            pixel_bits = 0x18;
+        case TIM2_RGB24:
+            bpp = 24;
             break;
-        case 3:
-            pixel_bits = 0x20;
+        case TIM2_RGB32:
+            bpp = 32;
             break;
-        case 4:
-            pixel_bits = 4;
+        case TIM2_IDTEX4:
+            bpp = 4;
             break;
-        case 5:
-            pixel_bits = 8;
+        case TIM2_IDTEX8:
+            bpp = 8;
             break;
         default:
-            return 0;
+            return NULL;
     }
     clut = NULL;
-    for (int j = 0; j < 4; j++) {
-        images[j] = NULL;
+    for (int j = 0; j < MG_TEXTURE_LEVEL_MAX; j++) {
+        image[j] = NULL;
     }
-        // The pixels follow the picture header; the palette follows every mip level.
+
+    // The pixels follow the picture header; the palette follows every mip level.
     if (no_image == 0) {
-        images[0] = (u_long128 *)((u_char *)pic + pic->header_size);
-        if (pixel_bits <= 8) {
-            clut = (u_char *)images[0] + pic->image_size;
+        image[0] = (u_long128 *)((u_char *)picture + picture->header_size);
+        if (bpp <= 8) {
+            clut = (u_long128 *)((u_char *)image[0] + picture->image_size);
         }
-        if (pic->mipmap_count > 1) {
-            mip = (u_char *)images[0] + pic->mip_sizes[0];
-            for (level = 1; level < pic->mipmap_count; level++) {
-                images[level] = (u_long128 *)mip;
-                mip += pic->mip_sizes[level];
+        if (picture->mipmap_textures > 1) {
+            level = (u_char *)image[0] + picture->mipmap_size[0];
+            for (i = 1; i < picture->mipmap_textures; i++) {
+                image[i] = (u_long128 *)level;
+                level += picture->mipmap_size[i];
             }
         }
     }
-    if (reload != 0 && pixel_bits == 8 && pic->mipmap_count == 1) {
-        first = (u_char *)images[0];
-        if (Conv32To8(width, height, first) != 0) {
-            reload = 0;
+    if (swizzled != 0 && bpp == 8 && picture->mipmap_textures == 1) {
+        first = (u_char *)image[0];
+        if (Conv32To8(width, height, first)) {
+            swizzled = 0;
+        }
     }
+    return EnterTexture(block, name, image, width, height, bpp, clut, picture->tex1, swizzled);
 }
-    return EnterTexture(id, name, images, width, height, pixel_bits, (u_long128 *)clut, pic->tex1,
-                        reload);
-}
+
 #pragma optimization_level reset
-#pragma schedule reset
 #ifdef NONMATCHING
-int mgCTextureManager::EnterIMGFile(u_char *img, int block, mgCMemory *stack,
-                                    mgCEnterIMGInfo *info) {
+int mgCTextureManager::EnterIMGFile(u_char *img, int block, mgCMemory *stack, mgCEnterIMGInfo *info) {
     mgIMG_FILE_HEADER *file = (mgIMG_FILE_HEADER *)img;
     mgIMG_HEADER swap;
     mgIMG_HEADER *entries;
@@ -836,8 +847,7 @@ int mgCTextureManager::EnterIMGFile(u_char *img, int block, mgCMemory *stack,
                 info->block_num[entry->block] = 1;
             }
 
-            texture = EnterTexture(texture_block, entry->name, (TM2_head *)(img + offset), swizzled,
-                                   entry->no_image);
+            texture = EnterTexture(texture_block, entry->name, (TM2_head *)(img + offset), swizzled, entry->no_image);
 
             if (texture != NULL) {
                 entry->swizzled = texture->swizzled;
@@ -875,11 +885,9 @@ int mgCTextureManager::EnterIMGFile(u_char *img, int block, mgCMemory *stack,
         entry1 = (mgIMG1_HEADER *)(file + 1);
 
         for (a = 0; a < file->num; a++, entry1++) {
-            texture = EnterTexture(current_block, entry1->name, (TM2_head *)(img + entry1->offset),
-                                   not_im2 == 0, 0);
+            texture = EnterTexture(current_block, entry1->name, (TM2_head *)(img + entry1->offset), not_im2 == 0, 0);
 
-            if (texture != NULL && current_block < block_max - 1 &&
-                GetRemainVRAM(current_block) < 0) {
+            if (texture != NULL && current_block < block_max - 1 && GetRemainVRAM(current_block) < 0) {
                 current_block++;
                 spill++;
                 texture->block = current_block;
@@ -898,11 +906,11 @@ int mgCTextureManager::EnterIMGFile(u_char *img, int block, mgCMemory *stack,
 
     return last_block_used - current_block;
 }
+
 #else
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/mg_texture", EnterIMGFile__17mgCTextureManagerFPUciP9mgCMemoryP15mgCEnterIMGInfo);
 #endif
 #pragma schedule off
-
 /**
  * Identifies the archive format of an IMG texture archive from its
  * signature, or gives MG_IMG_VERSION_NONE when the data is not one.
@@ -930,103 +938,120 @@ static int GetIMGVersion(char *img) {
 
     return MG_IMG_VERSION_NONE;
 }
+
 #pragma schedule reset
 #pragma schedule off
 int mgGetIMGHeaderNum(char *img) {
-    int *words = (int *)img;
-    if (words == NULL) {
+    mgIMG_FILE_HEADER *file = (mgIMG_FILE_HEADER *)img;
+    int version;
+
+    if (file == NULL) {
         return 0;
     }
-    int version = GetIMGVersion(img);
-    if (version == 0) {
+
+    version = GetIMGVersion(img);
+
+    if (version == MG_IMG_VERSION_NONE) {
         return 0;
     }
-    if (version == 1 || version == 2) {
-        return words[1];
+
+    if (version == MG_IMG_VERSION_IMG || version == MG_IMG_VERSION_IM2) {
+        return file->num;
     }
-    if (version == 3) {
-        return words[2];
+
+    if (version == MG_IMG_VERSION_IM3) {
+        return file->num3;
     }
+
     return 0;
 }
+
 #pragma schedule reset
-#pragma schedule off
-#pragma optimization_level 2
+#ifdef NONMATCHING
 mgIMG_HEADER mgGetIMGHeader(char *img, int index) {
     mgIMG_HEADER header;
+    mgIMG_FILE_HEADER *file = (mgIMG_FILE_HEADER *)img;
+    char *entry;
     int version;
-    int count;
+    int num;
     int stride;
     int i;
-    char *entry;
-    char *start;
+
     memset(&header, 0, sizeof(mgIMG_HEADER));
+
     if (img == NULL) {
         return header;
     }
-    entry = img;
+
     version = GetIMGVersion(img);
-    if (version == 0) {
+
+    if (version == MG_IMG_VERSION_NONE) {
         return header;
     }
-    count = 0;
+
+    entry = img;
+    num = 0;
     stride = 0;
-    if (version == 1 || version == 2) {
-        entry += 0x10;
-        count = *(int *)(img + 4);
-        stride = 0x30;
+
+    if (version == MG_IMG_VERSION_IMG || version == MG_IMG_VERSION_IM2) {
+        entry = (char *)(file + 1);
+        num = file->num;
+        stride = sizeof(mgIMG1_HEADER);
     }
-    if (version == 3) {
-        start = entry;
-        entry += 0x10;
-        count = *(int *)(start + 8);
-        stride = 0x40;
+
+    if (version == MG_IMG_VERSION_IM3) {
+        entry = (char *)(file + 1);
+        num = file->num3;
+        stride = sizeof(mgIMG_HEADER);
     }
-    for (i = 0; i < count; i++) {
-        if (index == i) {
+
+    for (i = 0; i < num; i++, entry += stride) {
+        if (index != i) {
+            continue;
+        }
+
         switch (version) {
-                case 2:
-                header.swizzled = 1;
-                case 1:
-                    memcpy(&header, entry, 0x20);
-                    header.offset = *(u_int *)(entry + 0x20);
+            case MG_IMG_VERSION_IM3:
+                header = *(mgIMG_HEADER *)entry;
                 break;
-                case 3:
-                    header.name_copy = *(IMG_HEADER_NAME *)entry;
-                    header.unk_20 = *(u_int *)(entry + 0x20);
-                    header.offset = *(u_int *)(entry + 0x24);
-                    header.swizzled = *(u_int *)(entry + 0x28);
-                    header.block = *(u_int *)(entry + 0x2C);
-                    header.no_image = *(short *)(entry + 0x30);
-                    short *half = &header.unk_32;
-                    *half = *(short *)(entry + 0x32);
-                    header.size = *(int *)(entry + 0x34);
-                    header.clamp_bits = *(long long *)(entry + 0x38);
+            case MG_IMG_VERSION_IM2:
+                header.swizzled = 1;
+            case MG_IMG_VERSION_IMG:
+                memcpy(header.name, entry, sizeof(header.name));
+                header.offset = ((mgIMG1_HEADER *)entry)->offset;
                 break;
         }
     }
-        entry += stride;
-    }
+
     return header;
 }
-#pragma optimization_level reset
-#pragma schedule reset
+
+#else
+INCLUDE_ASM("ps2/asm/pal/nonmatchings/mg_texture", mgGetIMGHeader__FPci);
+#endif
 #pragma schedule off
 void mgCTextureManager::DeleteTexture(mgCTexture *texture) {
-    mgCTextureBlock *block;
+    mgCTextureBlock *texture_block;
+
     if (texture != NULL) {
-        block = GetTextureBlock(texture->block);
-        if (block != NULL) {
-    DelHash(texture);
-            block->Delete(texture);
-    if (texture_num > 0) {
+
+        texture_block = GetTextureBlock(texture->block);
+
+        if (texture_block != NULL) {
+
+            DelHash(texture);
+            texture_block->Delete(texture);
+
+            if (texture_num > 0) {
                 texture_num--;
                 texture_stack[texture_num] = texture;
+            }
+
+            texture->Initialize();
+        }
     }
-    texture->Initialize();
 }
-    }
-}
+
 #pragma schedule reset
 #pragma schedule off
 void mgCTextureManager::DeleteTexture(char *name, int block) {
@@ -1036,6 +1061,7 @@ void mgCTextureManager::DeleteTexture(char *name, int block) {
         DeleteTexture(texture);
     }
 }
+
 #pragma schedule reset
 #pragma schedule off
 #pragma global_optimizer off
@@ -1055,136 +1081,134 @@ void mgCTextureManager::DeleteBlock(int block) {
 
     texture_block->Initialize();
 }
+
 #pragma global_optimizer reset
 #pragma schedule reset
-#pragma schedule off
 #pragma optimization_level 1
 void mgCTextureManager::EndEnterTexture(int block) {
     ReloadTexture(block, (u_int *)NULL);
 }
+
 #pragma optimization_level reset
-#pragma schedule reset
-#pragma schedule off
 #pragma optimization_level 2
-int mgLoadImage(u_int *packet, int base, int format, int width, u_long128 *image, int quadwords,
-                int pos_x, int pos_y, int size_w, int size_h) {
+int mgLoadImage(u_int *packet, int dbp, int dpsm, int dbw, u_long128 *image, int qwc,
+                int x, int y, int w, int h) {
     u_int *start = packet;
-    unsigned long long blt_buf;
-    unsigned long long trx_pos;
-    unsigned long long trx_reg;
-    int chunk;
-    int length;
+    unsigned long long bitbltbuf;
+    unsigned long long trxpos;
+    unsigned long long trxreg;
+    int count;
     // The transfer setup: TEXFLUSH, BITBLTBUF, TRXPOS, TRXREG and TRXDIR as A+D pairs.
-    packet[0] = 0x10000006;
+    packet[0] = DMA_ID_CNT | 6;
     packet[1] = 0;
     packet[2] = 0;
-    packet[3] = 0x50000006;
+    packet[3] = VIF_DIRECT | 6;
     packet[4] = 5;
-    packet[5] = 0x10000000;
-    packet[6] = 0xE;
+    packet[5] = GIF_NREG_1;
+    packet[6] = SCE_GIF_PACKED_AD;
     packet[7] = 0;
     packet[8] = 0;
     packet[9] = 0;
-    packet[10] = 0x3F;
+    packet[10] = SCE_GS_TEXFLUSH;
     packet[11] = 0;
-    blt_buf = ((long long)format << 56) | (((long long)base << 32) | ((long long)width << 48));
-    packet[12] = (int)(blt_buf & 0xFFFFFFFFULL);
-    packet[13] = (int)((blt_buf >> 32) & 0xFFFFFFFFULL);
-    packet[14] = 0x50;
+    bitbltbuf = ((long long)dpsm << 56) | (((long long)dbp << 32) | ((long long)dbw << 48));
+    packet[12] = (u_int)(bitbltbuf & 0xFFFFFFFFULL);
+    packet[13] = (u_int)((bitbltbuf >> 32) & 0xFFFFFFFFULL);
+    packet[14] = SCE_GS_BITBLTBUF;
     packet[15] = 0;
-    trx_pos = ((long long)pos_x << 32) | ((long long)pos_y << 48);
-    packet[16] = (u_int)(trx_pos & 0xFFFFFFFFULL);
-    packet[17] = (int)((trx_pos >> 32) & 0xFFFFFFFFULL);
-    packet[18] = 0x51;
+    trxpos = ((long long)x << 32) | ((long long)y << 48);
+    packet[16] = (u_int)(trxpos & 0xFFFFFFFFULL);
+    packet[17] = (u_int)((trxpos >> 32) & 0xFFFFFFFFULL);
+    packet[18] = SCE_GS_TRXPOS;
     packet[19] = 0;
-    trx_reg = size_w | ((long long)size_h << 32);
-    packet[20] = (u_int)(trx_reg & 0xFFFFFFFFULL);
-    packet[21] = (int)((trx_reg >> 32) & 0xFFFFFFFFULL);
-    packet[22] = 0x52;
+    trxreg = w | ((long long)h << 32);
+    packet[20] = (u_int)(trxreg & 0xFFFFFFFFULL);
+    packet[21] = (u_int)((trxreg >> 32) & 0xFFFFFFFFULL);
+    packet[22] = SCE_GS_TRXREG;
     packet[23] = 0;
-    packet[24] = 0;
+    packet[24] = SCE_GS_SET_TRXDIR(0);
     packet[25] = 0;
-    packet[26] = 0x53;
+    packet[26] = SCE_GS_TRXDIR;
     packet[27] = 0;
     // The pixels follow by reference, in transfers of at most 0x4000 quadwords.
     packet += 28;
-    while (quadwords > 0) {
-        chunk = 0x4000;
-        if (quadwords < 0x4000) {
-            chunk = quadwords;
+    while (qwc > 0) {
+        count = 0x4000;
+        if (qwc < 0x4000) {
+            count = qwc;
         }
-        packet[0] = 0x10000001;
+        packet[0] = DMA_ID_CNT | 1;
         packet[1] = 0;
         packet[2] = 0;
-        packet[3] = 0x50000001;
-        packet[4] = chunk | 0x8000;
-        packet[5] = 0x08000000;
+        packet[3] = VIF_DIRECT | 1;
+        packet[4] = count | GIF_EOP;
+        packet[5] = GIF_FLG_IMAGE;
         packet[6] = 0;
         packet[7] = 0;
-        packet[8] = chunk | 0x30000000;
+        packet[8] = count | DMA_ID_REF;
         packet[9] = (u_int)image;
         packet[10] = 0;
-        packet[11] = chunk | 0x50000000;
+        packet[11] = count | VIF_DIRECT;
         packet += 12;
-        image += chunk;
-        quadwords -= 0x4000;
+        image += count;
+        qwc -= 0x4000;
     }
-    length = packet - start;
-    return length;
+    return packet - start;
 }
+
 #pragma optimization_level reset
-#pragma schedule reset
 #pragma schedule off
-#pragma global_optimizer off
 /**
  * Writes the DMA chain flushing the GS texture cache, when given a
  * buffer; gives the quadwords it takes either way.
  */
-static int SetTexFlush_TagCnt(u_int *buffer) {
-    if (buffer == NULL) {
+static int SetTexFlush_TagCnt(u_int *packet) {
+    if (packet == NULL) {
+        return 3;
+    }
+    u_long128 *cursor = (u_long128 *)packet;
+    cursor[0] = *(u_long128 *)&texflush_dma[0];
+    cursor[1] = *(u_long128 *)&texflush_dma[4];
+    cursor[2] = *(u_long128 *)&texflush_dma[8];
     return 3;
 }
-    u_long128 *dst = (u_long128 *)buffer;
-    dst[0] = *(u_long128 *)&texflush_dma[0];
-    dst[1] = *(u_long128 *)&texflush_dma[0x10];
-    dst[2] = *(u_long128 *)&texflush_dma[0x20];
-    return 3;
-}
-#pragma global_optimizer reset
+
 #pragma schedule reset
-#pragma schedule off
-#pragma global_optimizer off
-void mgCTextureManager::ReloadTexture(int index, sceVif1Packet *packet) {
-    int previous;
-    u_int *cursor;
-    u_int *start;
+#ifdef NONMATCHING
+void mgCTextureManager::ReloadTexture(int block, sceVif1Packet *packet) {
+    int loaded;
+    int qwc;
     mgCTextureAnime *anime;
-    if (index < 0 || index >= block_max) {
+
+    if (block < 0 || block >= block_max) {
         last_block = -1;
         return;
     }
-    previous = last_block;
+
+    loaded = last_block;
+
     if (packet == NULL) {
         packet = mgVif1Packet;
     }
+
     sceVif1PkTerminate(packet);
-    cursor = *(u_int **)packet;
-    start = cursor;
-    cursor += ReloadTexture(index, cursor) * 4;
-    sceVif1PkReserve(packet, cursor - start);
-    if (previous != index) {
-        mgCTextureBlock *base = blocks;
-        anime = ((mgCTextureBlock *)((index << 4) + (int)base))->anime;
+    qwc = ReloadTexture(block, packet->pCurrent);
+    sceVif1PkReserve(packet, qwc * 16 / 4);
+
+    if (loaded != block) {
+        anime = blocks[block].anime;
+
         if (anime != NULL) {
-            // An 8-bit texture in the Z buffer's VRAM sits in the upper byte of each 32-bit pixel.
-            anime->TexAnime(index, packet);
+            anime->TexAnime(block, packet);
         }
     }
-    last_block = index;
-// Swizzled 8-bit pixels are uploaded as a 32-bit image of half the size.
+
+    last_block = block;
 }
-#pragma global_optimizer reset
-#pragma schedule reset
+
+#else
+INCLUDE_ASM("ps2/asm/pal/nonmatchings/mg_texture", ReloadTexture__17mgCTextureManagerFiP13sceVif1Packet);
+#endif
 #ifdef NONMATCHING
 int mgCTextureManager::ReloadTexture(int block, u_int *packet) {
     sceGsTex0 tex0;
@@ -1229,6 +1253,7 @@ int mgCTextureManager::ReloadTexture(int block, u_int *packet) {
                 to_zbuf = 1;
             }
 
+            // An 8-bit texture in the Z buffer's VRAM sits in the upper byte of each 32-bit pixel.
             if (to_zbuf) {
                 texture->tex0.TBP0 = zbuf;
                 texture->tex0.PSM = SCE_GS_PSMT8H;
@@ -1249,6 +1274,7 @@ int mgCTextureManager::ReloadTexture(int block, u_int *packet) {
                 texture->tex0.CBP = fix;
             }
 
+            // Swizzled 8-bit pixels are uploaded as a 32-bit image of half the size.
             if (texture->swizzled != 0 && bpp == 8) {
                 width >>= 1;
                 height >>= 1;
@@ -1261,15 +1287,13 @@ int mgCTextureManager::ReloadTexture(int block, u_int *packet) {
                 cursor += ReloadCLUT(texture, cursor);
             }
 
-            for (level = 0; level < MG_TEXTURE_LEVEL_MAX && texture->image[level] != NULL;
-                 level++) {
+            for (level = 0; level < MG_TEXTURE_LEVEL_MAX && texture->image[level] != NULL; level++) {
                 if (tex0.TBW == 0) {
                     tex0.TBW = 1;
                 }
 
                 if (cursor != NULL) {
-                    cursor +=
-                        mgLoadImage(cursor, tex0.TBP0, tex0.PSM, tex0.TBW, texture->image[level],
+                    cursor += mgLoadImage(cursor, tex0.TBP0, tex0.PSM, tex0.TBW, texture->image[level],
                                           bpp * width * height / 16 / 8, 0, 0, width, height);
                 }
 
@@ -1288,59 +1312,56 @@ int mgCTextureManager::ReloadTexture(int block, u_int *packet) {
 
     return (cursor - packet) / 4;
 }
+
 #else
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/mg_texture", ReloadTexture__17mgCTextureManagerFiPUi);
 #endif
-#pragma schedule off
+#ifdef NONMATCHING
 // sceGsTex0::operator= is the compiler-generated copy assignment of the SDK type (sce/libgraph.h).
-sceGsTex0 &sceGsTex0::operator=(const sceGsTex0 &src) {
-    value = src.value;
-    return *this;
-}
-#pragma schedule reset
+#else
+INCLUDE_ASM("ps2/asm/pal/nonmatchings/mg_texture", __as__9sceGsTex0FRC9sceGsTex0);
+#endif
 #pragma schedule off
-#pragma global_optimizer off
-int mgCTextureManager::ReloadCLUT(mgCTexture *texture, u_int *buffer) {
-    int result;
-    short depth;
-    u_char *palette;
+int mgCTextureManager::ReloadCLUT(mgCTexture *texture, u_int *packet) {
+    int words;
+
     if (texture == NULL) {
         return 0;
     }
-    palette = (u_char *)texture->clut;
-    if (palette == NULL) {
+
+    if (texture->clut == NULL) {
         return 0;
     }
-    result = 0;
-    depth = texture->bpp;
-    if (depth == 8) {
-        return mgLoadImage(buffer, texture->tex0.CBP, texture->tex0.CPSM, 1, (u_long128 *)palette,
-                           0x40, 0, 0, 0x10, 0x10);
+
+    words = 0;
+
+    if (texture->bpp == 8) {
+        words = mgLoadImage(packet, texture->tex0.CBP, texture->tex0.CPSM, 1, texture->clut, 0x40, 0, 0, 16, 16);
+    } else if (texture->bpp == 4) {
+        words = mgLoadImage(packet, texture->tex0.CBP, texture->tex0.CPSM, 1, texture->clut, 4, 0, 0, 8, 2);
     }
-    if (depth == 4) {
-        result = mgLoadImage(buffer, texture->tex0.CBP, texture->tex0.CPSM, 1, (u_long128 *)palette,
-                             4, 0, 0, 8, 2);
+
+    return words;
 }
-    return result;
-}
-#pragma global_optimizer reset
+
 #pragma schedule reset
 #pragma schedule off
-#pragma global_optimizer off
 void mgCTextureManager::ReloadCLUT(mgCTexture *texture, sceVif1Packet *packet) {
     u_int *cursor;
     u_int *start;
+
     if (packet == NULL) {
         packet = mgVif1Packet;
     }
+
     sceVif1PkTerminate(packet);
-    cursor = *(u_int **)packet;
+    cursor = packet->pCurrent;
     start = cursor;
     cursor += ReloadCLUT(texture, cursor);
     cursor += SetTexFlush_TagCnt(cursor) * 4;
     sceVif1PkReserve(packet, cursor - start);
 }
-#pragma global_optimizer reset
+
 #pragma schedule reset
 #pragma schedule off
 void mgCTextureManager::TexAnimeOn(int block, char *group_name) {
@@ -1351,6 +1372,7 @@ void mgCTextureManager::TexAnimeOn(int block, char *group_name) {
         anime->Enable(anime->SearchGroupName(group_name));
     }
 }
+
 #pragma schedule reset
 #pragma schedule off
 void mgCTextureManager::TexAnimeOff(int block, char *group_name) {
@@ -1361,6 +1383,7 @@ void mgCTextureManager::TexAnimeOff(int block, char *group_name) {
         anime->Disable(anime->SearchGroupName(group_name));
     }
 }
+
 #pragma schedule reset
 #pragma schedule off
 void mgCTextureManager::TexAnimeAllOff(int block) {
@@ -1371,7 +1394,7 @@ void mgCTextureManager::TexAnimeAllOff(int block) {
         anime->DisableAll();
     }
 }
-#pragma schedule off
+
 char **mgCTextureManager::GetGroupNameList(int block, int *num) {
     mgCTextureBlock *texture_block = GetTextureBlock(block);
     mgCTextureAnime *anime;
@@ -1389,8 +1412,7 @@ char **mgCTextureManager::GetGroupNameList(int block, int *num) {
     *num = MG_TEX_ANIME_GROUP_MAX;
     return anime->name;
 }
-#pragma schedule reset
-#pragma schedule off
+
 void mgCTextureManager::DeleteTexAnimeGroup(int block, int group) {
     mgCTextureBlock *texture_block = GetTextureBlock(block);
     mgCTextureAnime *anime;
@@ -1399,7 +1421,7 @@ void mgCTextureManager::DeleteTexAnimeGroup(int block, int group) {
         anime->DeleteGroup(group);
     }
 }
-#pragma schedule reset
+
 void mgCTextureManager::DeleteTexAnime(int block) {
     mgCTextureBlock *texture_block = GetTextureBlock(block);
 
@@ -1407,106 +1429,127 @@ void mgCTextureManager::DeleteTexAnime(int block) {
         texture_block->anime = NULL;
     }
 }
+
 #pragma schedule reset
 #pragma schedule off
-mgCTextureAnime *mgCTextureManager::GetTexAnime(int index) {
-    mgCTextureBlock *block = GetTextureBlock(index);
-    if (block != NULL) {
-        return block->anime;
+mgCTextureAnime *mgCTextureManager::GetTexAnime(int block) {
+    mgCTextureBlock *texture_block = GetTextureBlock(block);
+
+    if (texture_block != NULL) {
+        return texture_block->anime;
     }
-        return NULL;
-    }
+    return NULL;
+}
+
 #pragma schedule reset
-#pragma schedule off
 #pragma optimization_level 1
 /**
  * Reorders one block of 8-bit pixels stored in 32-bit page order back
  * into linear order.
  */
+static int BlockConv32to8(u_char *source, u_char *destination) {
     // Each block is four columns of 64 bytes; odd columns use the second half of the table.
-static int BlockConv32to8(u_char *src, u_char *dst) {
-    u_int column;
-    u_int texel;
+    static u_char lut[128] = {
+        0,  36, 8,  44, 1,  37, 9,  45, 2,  38, 10, 46, 3,  39, 11, 47, 4,  32, 12, 40, 5,  33,
+        13, 41, 6,  34, 14, 42, 7,  35, 15, 43, 16, 52, 24, 60, 17, 53, 25, 61, 18, 54, 26, 62,
+        19, 55, 27, 63, 20, 48, 28, 56, 21, 49, 29, 57, 22, 50, 30, 58, 23, 51, 31, 59, 4,  32,
+        12, 40, 5,  33, 13, 41, 6,  34, 14, 42, 7,  35, 15, 43, 0,  36, 8,  44, 1,  37, 9,  45,
+        2,  38, 10, 46, 3,  39, 11, 47, 20, 48, 28, 56, 21, 49, 29, 57, 22, 50, 30, 58, 23, 51,
+        31, 59, 16, 52, 24, 60, 17, 53, 25, 61, 18, 54, 26, 62, 19, 55, 27, 63,
+    };
     u_int row;
+    u_int pixel;
+    u_int column;
     int lut_index;
-    int src_index;
-    src_index = 0;
-    for (row = 0; row < 4; row++) {
-        lut_index = (row & 1) << 6;
-        for (column = 0; column < 16; column++) {
-            for (texel = 0; texel < 4; texel++) {
-                u_char dst_index = lut_1246[lut_index];
+    int source_index;
+
+    source_index = 0;
+
+    for (column = 0; column < 4; column++) {
+        lut_index = (column & 1) * 64;
+
+        for (row = 0; row < 16; row++) {
+            for (pixel = 0; pixel < 4; pixel++) {
+                u_char destination_index = lut[lut_index];
                 lut_index++;
-                dst[dst_index] = src[src_index];
-                src_index++;
+                destination[destination_index] = source[source_index];
+                source_index++;
             }
         }
-        dst += 0x40;
+
+        destination += 64;
     }
+
     return 0;
 }
+
 #pragma optimization_level reset
-#pragma schedule reset
-#pragma schedule off
 #pragma optimization_level 2
 /**
  * Reorders one page of 8-bit pixels stored in 32-bit page order back
  * into linear order, block by block.
  */
-static int PageConv32to8(int width, int height, u_char *src, u_char *dst) {
+static int PageConv32to8(int width, int height, u_char *source, u_char *destination) {
+    static int block_table8[32] = {
+        0, 1, 4,  5,  16, 17, 20, 21, 2,  3,  6,  7,  18, 19, 22, 23,
+        8, 9, 12, 13, 24, 25, 28, 29, 10, 11, 14, 15, 26, 27, 30, 31,
+    };
+    static int block_table32[32] = {
+        0, 1, 4,  5,  16, 17, 20, 21, 2,  3,  6,  7,  18, 19, 22, 23,
+        8, 9, 12, 13, 24, 25, 28, 29, 10, 11, 14, 15, 26, 27, 30, 31,
+    };
     int block_column[32];
     int block_row[32];
-    u_char block_out[0x100];
-    u_char block_in[0x100];
-    int index;
-    int row;
-    int column;
-    int line;
+    u_char work8[0x100];
+    u_char work32[0x100];
+    int entry;
+    int i;
+    int j;
+    int k;
     int blocks_wide;
-    u_char *block_ptr;
-    u_char *page_ptr;
+    u_char *work_cursor;
+    u_char *source_cursor;
+    u_char *destination_cursor;
     int blocks_high;
-    int block;
+    int block_index;
 
-    index = 0;
-    for (row = 0; row < 4; row++) {
-        for (column = 0; column < 8; column++) {
-            int entry = block_table32_1267[index];
-            block_column[entry] = column;
-            block_row[entry] = row;
-            index++;
+    entry = 0;
+    for (i = 0; i < 4; i++) {
+        for (j = 0; j < 8; j++) {
+            block_column[block_table32[entry]] = j;
+            block_row[block_table32[entry]] = i;
+            entry++;
         }
     }
     blocks_wide = width / 16;
     blocks_high = height / 16;
-    memset(block_out, 0, 0x100);
-    memset(block_in, 0, 0x100);
-    for (row = 0; row < blocks_high; row++) {
-        for (column = 0; column < blocks_wide; column++) {
-            block = block_table8_1266[column + row * blocks_wide];
-            block_ptr = block_in;
-            page_ptr = src + (block_row[block] << 11) + (block_column[block] << 5);
-            for (line = 0; line < 8; line++) {
-                memcpy(block_ptr, page_ptr, 0x20);
-                block_ptr += 0x20;
-                page_ptr += 0x100;
+    memset(work8, 0, sizeof(work8));
+    memset(work32, 0, sizeof(work32));
+    for (i = 0; i < blocks_high; i++) {
+        for (j = 0; j < blocks_wide; j++) {
+            block_index = block_table8[j + i * blocks_wide];
+            work_cursor = work32;
+            source_cursor = source + block_row[block_index] * 2048 + block_column[block_index] * 32;
+            for (k = 0; k < 8; k++) {
+                memcpy(work_cursor, source_cursor, 32);
+                work_cursor += 32;
+                source_cursor += 256;
             }
-            BlockConv32to8(block_in, block_out);
-            block_ptr = block_out;
-            page_ptr = dst + (row << 11) + column * 0x10;
-            for (line = 0; line < 0x10; line++) {
-                memcpy(page_ptr, block_ptr, 0x10);
-                block_ptr += 0x10;
-                page_ptr += 0x80;
+            BlockConv32to8(work32, work8);
+            work_cursor = work8;
+            destination_cursor = destination + i * 2048 + j * 0x10;
+            for (k = 0; k < 0x10; k++) {
+                memcpy(destination_cursor, work_cursor, 0x10);
+                work_cursor += 0x10;
+                destination_cursor += 0x80;
             }
         }
     }
     return 0;
 }
-#pragma optimization_level reset
-#pragma schedule reset
-#ifdef NONMATCHING
 
+#pragma optimization_level reset
+#ifdef NONMATCHING
 /**
  * Converts 8-bit pixels stored in 32-bit page order back into linear
  * order in place; gives 0 when the image is too large to convert.
@@ -1578,6 +1621,7 @@ static int Conv32To8(int width, int height, u_char *image) {
     memcpy(image, conv_work, size);
     return 1;
 }
+
 #else
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/mg_texture", Conv32To8__FiiPUc);
 #endif

@@ -246,7 +246,7 @@ typedef struct {
     u_long pad40 : 24;
 } sceGsTexa;
 
-typedef struct sceGsTex0 {
+typedef struct {
     union {
         u_long value;
 
@@ -280,7 +280,6 @@ typedef struct sceGsTex0 {
             u_long cld : 3;
         } bits;
     };
-    sceGsTex0 &operator=(const sceGsTex0 &source);
 } sceGsTex0;
 
 /* The register built as one 64-bit word rather than field by field, which is how the SDK spells a
