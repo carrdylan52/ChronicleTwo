@@ -1,72 +1,68 @@
 #include "common.h"
-#include "mg_drawprim.hpp"
-#include "automap.hpp"
-#include "effscript.hpp"
-#include "maintex.hpp"
-#include "monster.hpp"
-#include "font.hpp"
-#include "cameracontrol.hpp"
-#include "event_func.hpp"
-#include "event.hpp"
-#include "mglib.hpp"
-#include "water.hpp"
-#include "menumain.hpp"
-#include "dngmenu.hpp"
-#include "mainloop.hpp"
-#include "quest.hpp"
-#include "menucommon.hpp"
-#include "mapload.hpp"
+#include "dngfloor.hpp"
 #include "dataread.hpp"
-#include <cmath>
-#include <cstring>
-#include <cstdlib>
-#include <cstdio>
-#include "sceneevent.hpp"
-#include "snd_seseq.hpp"
-#include "mg_drawenv.hpp"
-#include "mg_texture.hpp"
-#include "mg_math.hpp"
-#include "dng_effect.hpp"
-#include "dng_status.hpp"
-#include "dng_debug.hpp"
-#include "dng_main.hpp"
-#include "scenesnd.hpp"
+#include "mainloop.hpp"
+#include "menucommon.hpp"
+#include "menumain.hpp"
 #include "mg_memory.hpp"
 #include "savedata.hpp"
 #include "savedatadungeon.hpp"
+#include "scenesnd.hpp"
 #include "scriptinterpreter.hpp"
 #include "userdata.hpp"
-#include "dngfloor.hpp"
 
-extern int search_tbl_1366[4][3];
-extern int search_tbl_1370[4][3];
-extern int search_tbl_1372[4][3];
-extern char *fl_t_1467[2];
-extern "C" int fptosi(float value);
-extern float at_938__5;
-extern DNGMAP_ROOM_INFO *tree_spi_roominfo;
-extern DNGMAP_ROOT_INFO *tree_spi_rootinfo;
-extern CDngFloorManager *tree_dngmap;
-extern GLID_INFO *tree_glid_info;
-extern s16 menu_dng_debug_glidcnt;
-extern mgCMemory *tree_spi_stack;
-extern char at_976__4[];
-extern char at_977__4[];
-extern char at_978__4[];
-extern s8 diff_conditiontable_1102[2][7];
-extern u16 check_bittable_1123[3][6];
-extern u16 cbit_1158[4][5];
-struct RoomOptions {
-    MENU_SPI_ANALYZE_STRUCT1 entries[5];
+#include <cstdio>
+#include <cstdlib>
+#include <cstring>
+
+static int _TREE_MAPINFO(SPI_STACK *stack, int argc);
+static int _GLID_INFO(SPI_STACK *stack, int argc);
+static int _ROOT_INFO(SPI_STACK *stack, int argc);
+static int _ROOM_INFO(SPI_STACK *stack, int argc);
+static int _ROOM_LINK(SPI_STACK *stack, int count);
+static int _ROOM_OPTION(SPI_STACK *stack, int argc);
+static int _ROOM_KEYROOM(SPI_STACK *stack, int argc);
+static int _ROOM_TEXNO(SPI_STACK *stack, int argc);
+static int _ROOM_FLOOR_INFO(SPI_STACK *stack, int argc);
+static int _ROOM_FLOOR_INFO2(SPI_STACK *stack, int argc);
+static int _ROOM_TITLE(SPI_STACK *stack, int argc);
+
+static DNGMAP_ROOM_INFO *tree_spi_roominfo;
+static DNGMAP_ROOT_INFO *tree_spi_rootinfo;
+static CDngFloorManager *tree_dngmap;
+static GLID_INFO *tree_glid_info;
+static s16 menu_dng_debug_glidcnt;
+static mgCMemory *tree_spi_stack;
+static s8 diff_conditiontable[2][7] = {
+    {1, 1, 1, 1, 1, 0, 0},
+    {0, 0, 0, 0, 0, 1, 0}
 };
-union RoomDirections {
-    int v[4][3];
-    u_long128 q[3];
+static u16 check_bittable[3][6] = {
+    {2, 4, 8, 16, 32, 64},
+    {1, 2, 4, 8, 16, 64},
+    {32, 2, 4, 8, 16, 1}
 };
-extern RoomOptions at_886__4;
-extern RoomDirections at_1395__4;
-extern SPI_TAG_PARAM tree_map_tag[];
-extern int D_0036178C[];
+static u16 cbit[4][5] = {
+    {4, 8, 16, 32, 64},
+    {2, 8, 16, 32, 64},
+    {2, 4, 16, 32, 64},
+    {2, 4, 8, 32, 64}
+};
+static int texture_group_start[6] = {0, 0, 4, 8, 12, 16};
+static SPI_TAG_PARAM tree_map_tag[12] = {
+    {"TREE_INFO", _TREE_MAPINFO},
+    {"GI", _GLID_INFO},
+    {"RT", _ROOT_INFO},
+    {"RI", _ROOM_INFO},
+    {"RI_LINK", _ROOM_LINK},
+    {"RI_OP", _ROOM_OPTION},
+    {"RI_TEX", _ROOM_TEXNO},
+    {"RI_KEYROOM", _ROOM_KEYROOM},
+    {"RF_INFO", _ROOM_FLOOR_INFO},
+    {"RF_INFO2", _ROOM_FLOOR_INFO2},
+    {"RI_TITLE", _ROOM_TITLE},
+    {NULL, NULL}
+};
 
 // Code (.text)
 void CDngFloorManager::Initialize(void) {
@@ -76,8 +72,13 @@ void CDngFloorManager::Initialize(void) {
     glid_w = 0;
     glid_h = 0;
 }
-int _TREE_MAPINFO(SPI_STACK *stack, int argc) {
-    int width = spiGetStackInt(stack++);
+
+/**
+ * Sets the dungeon grid or floor settings from script arguments.
+ */
+static int _TREE_MAPINFO(SPI_STACK *stack, int argc) {
+    int width;
+    width = spiGetStackInt(stack++);
     int height = spiGetStackInt(stack++);
     int room_count = spiGetStackInt(stack);
     u32 bytes = room_count * sizeof(GLID_INFO);
@@ -95,7 +96,11 @@ int _TREE_MAPINFO(SPI_STACK *stack, int argc) {
     tree_glid_info = tree_dngmap->glid_info;
     return 1;
 }
-int _GLID_INFO(SPI_STACK *stack, int argc) {
+
+/**
+ * Sets the dungeon grid or floor settings from script arguments.
+ */
+static int _GLID_INFO(SPI_STACK *stack, int argc) {
     tree_glid_info->type = spiGetStackInt(stack++);
     tree_glid_info->x = spiGetStackInt(stack++);
     tree_glid_info->y = spiGetStackInt(stack++);
@@ -107,21 +112,29 @@ int _GLID_INFO(SPI_STACK *stack, int argc) {
     tree_glid_info->link_glid[3] = 0;
     tree_glid_info->blink = 0;
     DNGMAP_ROOM_INFO *info = &tree_glid_info->room;
-    tree_spi_rootinfo = (DNGMAP_ROOT_INFO *)info;
+    tree_spi_rootinfo = &tree_glid_info->root;
     tree_spi_roominfo = info;
-    memset(info, 0, 0x50);
-    memset(tree_spi_rootinfo, 0, 5);
+    memset(info, 0, sizeof(DNGMAP_ROOM_INFO));
+    memset(tree_spi_rootinfo, 0, sizeof(DNGMAP_ROOT_INFO));
     tree_glid_info += 1;
     menu_dng_debug_glidcnt += 1;
     return 1;
 }
-int _ROOT_INFO(SPI_STACK *stack, int argc) {
+
+/**
+ * Sets the dungeon grid or floor settings from script arguments.
+ */
+static int _ROOT_INFO(SPI_STACK *stack, int argc) {
     tree_spi_rootinfo->type = spiGetStackInt(stack++);
     tree_spi_rootinfo->shape = spiGetStackInt(stack++);
     tree_spi_rootinfo->show_mark = spiGetStackInt(stack);
     return 1;
 }
-int _ROOM_INFO(SPI_STACK *stack, int argc) {
+
+/**
+ * Sets the dungeon grid or floor settings from script arguments.
+ */
+static int _ROOM_INFO(SPI_STACK *stack, int argc) {
     tree_spi_roominfo->floor_id = spiGetStackInt(stack++);
     tree_spi_roominfo->order = spiGetStackInt(stack++);
     spiGetStackInt(stack++);
@@ -131,7 +144,7 @@ int _ROOM_INFO(SPI_STACK *stack, int argc) {
     }
     tree_spi_roominfo->unk_44 = 0;
     tree_spi_roominfo->visited = 0;
-    tree_spi_roominfo->flag = 1;
+    tree_spi_roominfo->flag = DNGMAP_ROOM_FLAG_ROOM;
     tree_spi_roominfo->offset_y = 0;
     tree_spi_roominfo->offset_x = 0;
     tree_spi_roominfo->practice_type = -1;
@@ -139,20 +152,32 @@ int _ROOM_INFO(SPI_STACK *stack, int argc) {
     tree_spi_roominfo->unk_4c = 0;
     return 1;
 }
-int _ROOM_LINK(SPI_STACK *stack, int count) {
+
+/**
+ * Sets the dungeon grid or floor settings from script arguments.
+ */
+static int _ROOM_LINK(SPI_STACK *stack, int count) {
     for (int i = 0; i < count; i++) {
         tree_spi_roominfo->link[i] = spiGetStackInt(stack++);
     }
     return 1;
 }
-int _ROOM_OPTION(SPI_STACK *stack, int argc) {
-    RoomOptions options = at_886__4;
-    int flags = 1;
+
+/**
+ * Sets the dungeon grid or floor settings from script arguments.
+ */
+static int _ROOM_OPTION(SPI_STACK *stack, int argc) {
+    int flags;
+    MENU_SPI_ANALYZE_STRUCT1 options[5] = {
+        {"start", DNGMAP_ROOM_FLAG_START}, {"exit", DNGMAP_ROOM_FLAG_EXIT},
+        {"boss", DNGMAP_ROOM_FLAG_BOSS}, {"sub", DNGMAP_ROOM_FLAG_SUB}, {NULL, 0}
+    };
+    flags = DNGMAP_ROOM_FLAG_ROOM;
     for (int i = 0; i < argc; i++) {
-        flags |= menu_spi_analyze_func_strcut1(options.entries, spiGetStackString(stack++));
+        flags |= menu_spi_analyze_func_strcut1(options, spiGetStackString(stack++));
     }
     tree_spi_roominfo->flag |= flags;
-    if ((tree_spi_roominfo->flag & 0x10) || (tree_spi_roominfo->flag & 8)) {
+    if ((tree_spi_roominfo->flag & DNGMAP_ROOM_FLAG_SUB) || (tree_spi_roominfo->flag & DNGMAP_ROOM_FLAG_BOSS)) {
         tree_spi_roominfo->offset_x = 0;
         tree_spi_roominfo->offset_y = -0x1A;
         if (argc > 1) {
@@ -162,24 +187,37 @@ int _ROOM_OPTION(SPI_STACK *stack, int argc) {
     }
     return 1;
 }
-int _ROOM_KEYROOM(SPI_STACK *stack, int argc) {
+
+/**
+ * Sets the dungeon grid or floor settings from script arguments.
+ */
+static int _ROOM_KEYROOM(SPI_STACK *stack, int argc) {
     tree_spi_roominfo->key_room[0] = spiGetStackInt(stack++);
     tree_spi_roominfo->key_room[1] = spiGetStackInt(stack++);
     tree_spi_roominfo->key_room[2] = spiGetStackInt(stack++);
     tree_spi_roominfo->key_room[3] = spiGetStackInt(stack);
     return 1;
 }
-int _ROOM_TEXNO(SPI_STACK *stack, int argc) {
-    int texture_no = spiGetStackInt(stack);
+
+/**
+ * Sets the dungeon grid or floor settings from script arguments.
+ */
+static int _ROOM_TEXNO(SPI_STACK *stack, int argc) {
+    int texture_no;
+    texture_no = spiGetStackInt(stack);
     if (texture_no < 0) {
         int texture_group = abs(texture_no);
         texture_no = GetRandI(4);
-        texture_no += D_0036178C[texture_group];
+        texture_no += texture_group_start[texture_group];
     }
     tree_spi_roominfo->tex_no = texture_no;
     return 1;
 }
-int _ROOM_FLOOR_INFO(SPI_STACK *stack, int argc) {
+
+/**
+ * Sets the dungeon grid or floor settings from script arguments.
+ */
+static int _ROOM_FLOOR_INFO(SPI_STACK *stack, int argc) {
     DNGMAP_ROOM_INFO *info = tree_dngmap->GetDngMapFloorInfo(spiGetStackInt(stack++));
     if (info == 0) {
         return 0;
@@ -196,7 +234,11 @@ int _ROOM_FLOOR_INFO(SPI_STACK *stack, int argc) {
     }
     return 1;
 }
-int _ROOM_FLOOR_INFO2(SPI_STACK *stack, int argc) {
+
+/**
+ * Sets the dungeon grid or floor settings from script arguments.
+ */
+static int _ROOM_FLOOR_INFO2(SPI_STACK *stack, int argc) {
     DNGMAP_ROOM_INFO *info = tree_dngmap->GetDngMapFloorInfo(spiGetStackInt(stack++));
     if (info == 0) {
         return 0;
@@ -205,139 +247,152 @@ int _ROOM_FLOOR_INFO2(SPI_STACK *stack, int argc) {
     info->practice_param = spiGetStackInt(stack);
     return 1;
 }
-int _ROOM_TITLE(SPI_STACK *stack, int argc) {
+
+/**
+ * Sets the dungeon grid or floor settings from script arguments.
+ */
+static int _ROOM_TITLE(SPI_STACK *stack, int argc) {
     DNGMAP_ROOM_INFO *info = tree_dngmap->GetDngMapFloorInfo(spiGetStackInt(stack++));
     if (info == 0) {
         return 0;
     }
     char *name = spiGetStackString(stack);
 
-    char empty[4];
-    *(float *)empty = at_938__5;
+    char empty[4] = "err";
     if (name == 0) {
         name = empty;
     }
     info->title = mgCopyString(name, tree_spi_stack);
     return 1;
 }
-void CDngFloorManager::AnalyzeFile(char *data, int size, mgCMemory *memory) {
-    tree_spi_stack = memory;
+
+void CDngFloorManager::AnalyzeFile(char *script, int size, mgCMemory *stack) {
+    tree_spi_stack = stack;
     tree_dngmap = this;
-    memory->Align64();
+    stack->Align64();
     menu_dng_debug_glidcnt = 0;
     CScriptInterpreter interpreter;
-    interpreter.SetTag((SPI_TAG_PARAM *)tree_map_tag);
-    interpreter.SetScript(data, size);
+    interpreter.SetTag(tree_map_tag);
+    interpreter.SetScript(script, size);
     interpreter.Run();
     tree_spi_stack->Align64();
     RelationGlid();
 }
-void CDngFloorManager::LoadDataTable(int dungeon, mgCMemory *memory) {
-    char path[0x60];
-    u8 scratch[0xA000];
-    char menu_path[0x40];
-    int size;
 
-    if (memory == NULL) {
+void CDngFloorManager::LoadDataTable(int dng_no, mgCMemory *stack) {
+    char path[0x60];
+    u8   scratch[0xA000];
+    char menu_path[0x40];
+    int  size;
+
+    if (stack == NULL) {
         return;
     }
-    if (dungeon < 0 || dungeon >= 7) {
-        dungeon = 0;
+    if (dng_no < 0 || dng_no >= DNGMAP_DUNGEON_MAX + 1) {
+        dng_no = 0;
     }
     Initialize();
-    dng_no = dungeon;
-    sprintf(path, at_976__4, dungeon);
+    this->dng_no = dng_no;
+    sprintf(path, "menu/dngmap/dmap%d.cfg", dng_no);
     u8 *data = (u8 *)MenuCalcBufAlignment((u_long128 *)scratch);
-    LoadFile2(path, data, &size, 0);
+    LoadFile2(path, data, &size, LOAD_FILE_READ);
     if (size > 0) {
-        AnalyzeFile((char *)data, size, memory);
+        AnalyzeFile((char *)data, size, stack);
     }
-    sprintf(path, at_977__4, dungeon);
+    sprintf(path, "menu/dngmap/dflr%d.cfg", dng_no);
     data = (u8 *)MenuCalcBufAlignment((u_long128 *)scratch);
-    LoadFile2(path, data, &size, 0);
+    LoadFile2(path, data, &size, LOAD_FILE_READ);
     if (size > 0) {
-        AnalyzeFile((char *)data, size, memory);
+        AnalyzeFile((char *)data, size, stack);
     }
-    sprintf(menu_path, at_978__4, dungeon);
+    sprintf(menu_path, "flrtitle%d.txt", dng_no);
     size = LoadFileMenu(menu_path, (u_long128 *)data, 1);
     if (size > 0) {
-        AnalyzeFile((char *)data, size, memory);
+        AnalyzeFile((char *)data, size, stack);
     }
 }
-GLID_INFO *CDngFloorManager::GetDngMapFloorGlidInfo(int floor) {
+
+GLID_INFO *CDngFloorManager::GetDngMapFloorGlidInfo(int floor_id) {
     int i;
 
-    if (this->glid_info == NULL || (i = 0, this->glid_num) <= 0) {
+    if (this->glid_info == NULL || this->glid_num <= 0) {
         return NULL;
     }
-    for (; i < this->glid_num; i++) {
-        if (this->glid_info[i].type == 1 && floor == this->glid_info[i].room.floor_id) {
+    for (i = 0; i < this->glid_num; i++) {
+        if (this->glid_info[i].type == GLID_TYPE_ROOM && floor_id == this->glid_info[i].room.floor_id) {
             return &this->glid_info[i];
         }
     }
     return NULL;
 }
-s8 CDngFloorManager::IsGeoStone(int floor) {
-    DNGMAP_ROOM_INFO *info = GetDngMapFloorInfo(floor);
+
+s8 CDngFloorManager::IsGeoStone(int floor_id) {
+    DNGMAP_ROOM_INFO *info = GetDngMapFloorInfo(floor_id);
     if (info != NULL) {
         return info->geostone;
     }
     return 0;
 }
-int CDngFloorManager::GetSphedaPrize(int floor, int index, int *prize, int *count) {
-    DNGMAP_ROOM_INFO *info = GetDngMapFloorInfo(floor);
+
+int CDngFloorManager::GetSphedaPrize(int floor_id, int rank, int *item, int *num) {
+    DNGMAP_ROOM_INFO *info = GetDngMapFloorInfo(floor_id);
     if (info == NULL) {
         return 0;
     }
-    if (index < 0) {
+    if (rank < 0) {
         return 0;
     }
-    if (index >= 3) {
-        index = 2;
+    if (rank >= 3) {
+        rank = 2;
     }
-    if (prize != NULL) {
-        *prize = info->spheda_prize_item[index];
+    if (item != NULL) {
+        *item = info->spheda_prize_item[rank];
     }
-    if (count != NULL) {
-        *count = info->spheda_prize_num[index];
+    if (num != NULL) {
+        *num = info->spheda_prize_num[rank];
     }
     return 1;
 }
-int CDngFloorManager::GetSphedaPrize(int index, int *prize, int *count) {
+
+int CDngFloorManager::GetSphedaPrize(int rank, int *item, int *num) {
     CSaveDataDungeon *dungeon = menu_GetSaveDataDungeon();
     if (dungeon == NULL) {
         return 0;
     }
-    return GetSphedaPrize(dungeon->floor_id[dungeon->stage_id], index, prize, count);
+    return GetSphedaPrize(dungeon->floor_id[dungeon->stage_id], rank, item, num);
 }
+
 int CDngFloorManager::IsPlaySubGame() {
-    int games = 0;
+    int games;
+    games = 0;
     DNGMAP_ROOM_INFO *info = GetActiveFloorInfo();
     if (info == NULL) {
         return 0;
     }
     if (info->fishing != 0) {
-        games |= 2;
+        games |= DNGMAP_SUB_GAME_FISHING;
     }
     if (info->spheda != 0) {
-        games |= 1;
+        games |= DNGMAP_SUB_GAME_SPHEDA;
     }
     return games;
 }
-s8 CDngFloorManager::IsSealFloor(int floor) {
+
+s8 CDngFloorManager::IsSealFloor(int floor_id) {
+    int seal;
     CSaveDataDungeon *dungeon = menu_GetSaveDataDungeon();
     if (dungeon == NULL) {
         return 0;
     }
-    if (floor < 0) {
-        floor = dungeon->floor_id[dungeon->stage_id];
+    if (floor_id < 0) {
+        floor_id = dungeon->floor_id[dungeon->stage_id];
     }
-    DNGMAP_ROOM_INFO *info = GetDngMapFloorInfo(floor);
+    DNGMAP_ROOM_INFO *info = GetDngMapFloorInfo(floor_id);
     if (info == NULL) {
         return 0;
     }
-    DNG_FLOOR_SAVE *saved = dungeon->GetFloorInfoPtr(dungeon->stage_id, floor);
-    int seal = info->seal;
+    DNG_FLOOR_SAVE *saved = dungeon->GetFloorInfoPtr(dungeon->stage_id, floor_id);
+    seal = info->seal;
     if (saved != NULL && (saved->flag & DNG_FLOOR_FLAG_SEAL_CLEAR)) {
         seal = 0;
     }
@@ -354,7 +409,10 @@ s8 CDngFloorManager::IsSealFloor(int floor) {
     }
     return seal;
 }
+
 int CDngFloorManager::IsClearMostFastDestroy() {
+    int result;
+    int elapsed;
     DNG_BATTLE_AREA *scene = (DNG_BATTLE_AREA *)menu_GetBattleAreaScene();
     CSaveData *save = GetSaveData();
     CSaveDataDungeon *dungeon = &save->save_dungeon;
@@ -368,14 +426,14 @@ int CDngFloorManager::IsClearMostFastDestroy() {
         return 0;
     }
 
-    int elapsed = (*(int *)&save->play_time - *(int *)&scene->subject_counter) * 6 / 5;
-    int result = 0;
+    elapsed = ((int)save->play_time - (int)scene->subject_counter) * 6 / 5;
+    result = 0;
     if (saved->fast_destroy_time == 0) {
         if (elapsed < info->fast_destroy_time) {
             saved->fast_destroy_time = elapsed;
             result = 1;
             GetUserDataMan()->AddYarikomiMedal(result);
-            saved->flag |= 0x10;
+            saved->flag |= DNG_FLOOR_FLAG_FAST_DESTROY_CLEAR;
         }
     } else if (elapsed < saved->fast_destroy_time) {
         saved->fast_destroy_time = elapsed;
@@ -383,10 +441,12 @@ int CDngFloorManager::IsClearMostFastDestroy() {
     }
     return result;
 }
-int CDngFloorManager::IsClearPractice(int difficulty) {
+
+int CDngFloorManager::IsClearPractice(int check_type) {
+    int floor;
     CSaveDataDungeon *dungeon = menu_GetSaveDataDungeon();
     DNG_BATTLE_AREA *scene = (DNG_BATTLE_AREA *)menu_GetBattleAreaScene();
-    int floor = dungeon->floor_id[dungeon->stage_id];
+    floor = dungeon->floor_id[dungeon->stage_id];
     DNGMAP_ROOM_INFO *info = GetDngMapFloorInfo(floor);
     DNG_FLOOR_SAVE *saved = dungeon->GetFloorInfoPtr(dungeon->stage_id, floor);
     if (info == NULL || saved == NULL || scene == NULL) {
@@ -400,7 +460,6 @@ int CDngFloorManager::IsClearPractice(int difficulty) {
     int active;
     int r;
     int i;
-    int j;
     int k;
     int l;
     int m;
@@ -411,13 +470,14 @@ int CDngFloorManager::IsClearPractice(int difficulty) {
     }
     active = scene->unk_5c;
     result = 0;
-    if (diff_conditiontable_1102[difficulty][practice_type] == 0) {
+    if (diff_conditiontable[check_type][practice_type] == 0) {
         return 0;
     }
 
     mask = scene->unk_98;
 
-    j = 0;
+
+    int j = 0;
     while (++j < 7) {
     }
 
@@ -437,21 +497,21 @@ int CDngFloorManager::IsClearPractice(int difficulty) {
                 found = 0;
                 if (practice_type == 1) {
                     for (i = 0; i < 6; i++) {
-                        if (mask & check_bittable_1123[0][i]) {
+                        if (mask & check_bittable[0][i]) {
                             found = 1;
                         }
                     }
                 }
                 if (practice_type == 3) {
                     for (k = 0; k < 6; k++) {
-                        if (mask & check_bittable_1123[1][k]) {
+                        if (mask & check_bittable[1][k]) {
                             found = 1;
                         }
                     }
                 }
                 if (practice_type == 4) {
                     for (l = 0; l < 6; l++) {
-                        if (mask & check_bittable_1123[2][l]) {
+                        if (mask & check_bittable[2][l]) {
                             found = 1;
                         }
                     }
@@ -463,7 +523,7 @@ int CDngFloorManager::IsClearPractice(int difficulty) {
 
                         r = info->practice_param - 1;
                         for (m = 0; m < 5; m++) {
-                            if (mask & cbit_1158[r][m]) {
+                            if (mask & cbit[r][m]) {
                                 found = 1;
                             }
                         }
@@ -497,17 +557,19 @@ int CDngFloorManager::IsClearPractice(int difficulty) {
     }
     return result;
 }
-DNGMAP_ROOM_INFO *CDngFloorManager::GetDngMapFloorInfo(int floor) {
+
+DNGMAP_ROOM_INFO *CDngFloorManager::GetDngMapFloorInfo(int floor_id) {
     if (this->glid_info == NULL) {
         return NULL;
     }
 
-    GLID_INFO *glid = GetDngMapFloorGlidInfo(floor);
+    GLID_INFO *glid = GetDngMapFloorGlidInfo(floor_id);
     if (glid != NULL) {
         return &glid->room;
     }
     return NULL;
 }
+
 DNGMAP_ROOM_INFO *CDngFloorManager::GetActiveFloorInfo() {
     CSaveDataDungeon *save = menu_GetSaveDataDungeon();
     if (save == NULL) {
@@ -515,9 +577,10 @@ DNGMAP_ROOM_INFO *CDngFloorManager::GetActiveFloorInfo() {
     }
     return GetDngMapFloorInfo(save->floor_id[save->stage_id]);
 }
+
 void CDngFloorManager::RelationGlid() {
-    int i;
-    int j;
+    int       i;
+    int       j;
     GLID_INFO *room;
     GLID_INFO *other;
 
@@ -547,57 +610,79 @@ void CDngFloorManager::RelationGlid() {
         }
     }
 }
+
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/dngfloor", CheckDrawGlidInfo__16CDngFloorManagerFv);
-GLID_INFO *CDngFloorManager::GetNextGlid(GLID_INFO *glid, int *index) {
-    int k;
-    int *row;
-    int current;
+GLID_INFO *CDngFloorManager::GetNextGlid(GLID_INFO *glid, int *dir) {
+    static int search_other[4][3] = {
+        {0, 2, 3},
+        {1, 2, 3},
+        {2, 0, 1},
+        {3, 0, 1}
+    };
+
+    static int search_dungeon3[4][3] = {
+        {0, 2, 3},
+        {1, 3, 2},
+        {2, 0, 1},
+        {3, 0, 1}
+    };
+
+    static int search_dungeon2[4][3] = {
+        {0, 2, 3},
+        {1, 3, 2},
+        {2, 1, 0},
+        {3, 0, 1}
+    };
+
+    int       k;
+    int       *row;
+    int       current;
     GLID_INFO *result;
     GLID_INFO *room = glid;
 
     if (glid == NULL) {
         return 0;
     }
-    current = *index;
+    current = *dir;
     if (dng_no == 2) {
-        row = search_tbl_1366[current];
+        row = search_dungeon2[current];
     } else if (dng_no == 3) {
-        row = search_tbl_1370[current];
+        row = search_dungeon3[current];
     } else {
-        row = search_tbl_1372[current];
+        row = search_other[current];
     }
     for (k = 0; k < 3; k++) {
         if (room->link_glid[row[k]] != NULL) {
-            *index = row[k];
+            *dir = row[k];
             break;
         }
     }
-    current = *index;
+    current = *dir;
     result = NULL;
     if (0 <= current) {
         result = room->link_glid[current];
     }
     return result;
 }
-GLID_INFO *CDngFloorManager::GetNextRoom(int floor, int dir, GLID_INFO *glid, int unused,
-                                         int *out_dir) {
-    RoomDirections dirs;
-    GLID_INFO *room;
-    int *row;
-    int i;
-    int k;
-    s16 next;
+
+GLID_INFO *CDngFloorManager::GetNextRoom(int floor_id, int dir, GLID_INFO *glid, int unused,
+                                         int *found_dir) {
+    GLID_INFO        *room;
+    int              *row;
+    int              i;
+    int              k;
+    s16              next;
     DNGMAP_ROOM_INFO *info;
 
-    room = GetDngMapFloorGlidInfo(floor);
+    room = GetDngMapFloorGlidInfo(floor_id);
     if (room == NULL) {
         return NULL;
     }
-    if (room->type != 1) {
+    if (room->type != GLID_TYPE_ROOM) {
         return NULL;
     }
-    dirs = at_1395__4;
-    row = dirs.v[dir];
+    int dirs[4][3] = {{0, 2, 3}, {1, 3, 2}, {2, 0, 1}, {3, 1, 1}};
+    row = dirs[dir];
     info = &room->room;
 
     i = 0;
@@ -607,39 +692,41 @@ GLID_INFO *CDngFloorManager::GetNextRoom(int floor, int dir, GLID_INFO *glid, in
         next = info->link[row[k]];
         if (0 <= next) {
             room = GetDngMapFloorGlidInfo(next);
-            if (out_dir != NULL) {
-                *out_dir = row[k];
+            if (found_dir != NULL) {
+                *found_dir = row[k];
             }
             break;
         }
     }
     return room;
 }
-GLID_INFO *CDngFloorManager::GetKeyNextRoom(int floor, int dir, GLID_INFO *glid) {
-    GLID_INFO *room = GetDngMapFloorGlidInfo(floor);
+
+GLID_INFO *CDngFloorManager::GetKeyNextRoom(int floor_id, int dir, GLID_INFO *glid) {
+    GLID_INFO *room = GetDngMapFloorGlidInfo(floor_id);
     if (room == NULL) {
         return NULL;
     }
-    if (room->type != 1) {
+    if (room->type != GLID_TYPE_ROOM) {
         return NULL;
     }
     return GetDngMapFloorGlidInfo(room->room.key_room[dir]);
 }
-int CDngFloorManager::GetDngMapNextFloorID(int floor, int root) {
-    GLID_INFO *room;
-    GLID_INFO *other;
-    GLID_INFO *next;
-    DNGMAP_ROOM_INFO *info;
-    int d;
-    DNGMAP_ROOM_INFO *other_info;
-    int index;
 
-    room = GetDngMapFloorGlidInfo(floor);
+int CDngFloorManager::GetDngMapNextFloorID(int floor_id, int root_type) {
+    GLID_INFO        *room;
+    GLID_INFO        *other;
+    GLID_INFO        *next;
+    DNGMAP_ROOM_INFO *info;
+    int              d;
+    DNGMAP_ROOM_INFO *other_info;
+    int              index;
+
+    room = GetDngMapFloorGlidInfo(floor_id);
     if (room == NULL) {
         return 0;
     }
     if (dng_no == 2) {
-        if (floor == 8) {
+        if (floor_id == 8) {
             return 8;
         }
     }
@@ -652,7 +739,7 @@ int CDngFloorManager::GetDngMapNextFloorID(int floor, int root) {
                 if (other_info != NULL && other_info->order > info->order) {
                     index = d;
                     next = GetNextGlid(room, &index);
-                    if (next != NULL && next->type == 0 && next->root.type == root) {
+                    if (next != NULL && next->type == GLID_TYPE_ROOT && next->root.type == root_type) {
                         return other_info->floor_id;
                     }
                 }
@@ -661,34 +748,38 @@ int CDngFloorManager::GetDngMapNextFloorID(int floor, int root) {
     }
     return 0;
 }
-char *CDngFloorManager::GetFloorTitle(int floor) {
-    DNGMAP_ROOM_INFO *info = GetDngMapFloorInfo(floor);
-    if (dng_no == 1 && floor == DNGMAP_FLOOR_SPECIAL) {
+
+char *CDngFloorManager::GetFloorTitle(int floor_id) {
+    static char *fl_t[2] = {"\x95\x7c\x82\xa2\x90\x58", "Wonder Forest"};
+
+    DNGMAP_ROOM_INFO *info = GetDngMapFloorInfo(floor_id);
+    if (dng_no == 1 && floor_id == DNGMAP_FLOOR_SPECIAL) {
         int language = LanguageCode;
         if (language > 1) {
             language = 1;
         }
-        return fl_t_1467[language];
+        return fl_t[language];
     }
     if (info == NULL) {
         return 0;
     }
     return info->title;
 }
-int CDngFloorManager::GetDngMapNextRoot(int floor) {
-    GLID_INFO *room;
-    GLID_INFO *other;
-    GLID_INFO *next;
-    int mask;
+
+int CDngFloorManager::GetDngMapNextRoot(int floor_id) {
+    GLID_INFO        *room;
+    GLID_INFO        *other;
+    GLID_INFO        *next;
+    int              mask;
     DNGMAP_ROOM_INFO *info;
     DNGMAP_ROOM_INFO *other_info;
-    int d;
-    int index;
+    int              d;
+    int              index;
 
-    if (floor == DNGMAP_FLOOR_SPECIAL) {
+    if (floor_id == DNGMAP_FLOOR_SPECIAL) {
         return 1;
     }
-    room = GetDngMapFloorGlidInfo(floor);
+    room = GetDngMapFloorGlidInfo(floor_id);
     mask = 0;
     if (room == NULL) {
         return 0;
@@ -702,7 +793,7 @@ int CDngFloorManager::GetDngMapNextRoot(int floor) {
                 if (other_info != NULL && other_info->order > info->order) {
                     index = d;
                     next = GetNextGlid(room, &index);
-                    if (next != NULL && next->type == 0) {
+                    if (next != NULL && next->type == GLID_TYPE_ROOT) {
                         mask |= 1 << next->root.type;
                     }
                 }
@@ -711,12 +802,13 @@ int CDngFloorManager::GetDngMapNextRoot(int floor) {
     }
     return mask;
 }
+
 int GetCountSphedaClear(void) {
     CSaveDataDungeon *save;
-    int count;
-    int dungeon;
-    int floor;
-    DNG_FLOOR_SAVE *info;
+    int              count;
+    int              dungeon;
+    int              floor;
+    DNG_FLOOR_SAVE   *info;
 
     save = menu_GetSaveDataDungeon();
     count = 0;
@@ -736,15 +828,16 @@ int GetCountSphedaClear(void) {
     }
     return count;
 }
+
 int CheckFishingRecord(float size) {
     CSaveDataDungeon *save;
     CDngFloorManager *floors;
-    DNG_FLOOR_SAVE *save_info;
+    DNG_FLOOR_SAVE   *save_info;
     DNGMAP_ROOM_INFO *info;
-    int centimeters;
-    int met;
-    s8 kind;
-    u16 flags;
+    int              centimeters;
+    int              met;
+    s8               kind;
+    u16              flags;
 
     save = menu_GetSaveDataDungeon();
     if (save == NULL) {
@@ -760,7 +853,7 @@ int CheckFishingRecord(float size) {
     if (kind == 0) {
         return 0;
     }
-    centimeters = fptosi(100.0f * size);
+    centimeters = (int)(100.0f * size);
     met = 0;
     if (kind < 0) {
         if (centimeters <= info->fishing_record) {
