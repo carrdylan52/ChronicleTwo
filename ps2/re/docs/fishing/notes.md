@@ -8,7 +8,7 @@ Header: `ps2/include/fishing.hpp`. No first-game counterpart: Dark Cloud's `fish
   sgLoopFishing, sgLoopFishing2, sgDrawFishing, sgSystemDrawFishing, ResetUkiCamera,
   GetAppearFish, FISH_PLACE_MAP::SetFishPlace, FISH_PLACE_MAP::CheckFishPlace, LoadFishPlaceData.
   All sg* return int (subgame's sgInitSubGame/sgDrawSubGameSystem use the results).
-- Every other function is LOCAL in retail (`static` in the .cpp), including SetNextMode,
+- Every other function is LOCAL in retail, including SetNextMode,
   GetRandamNumber, GetFishParam, the fp* script tag handlers and `CharaControl` (retail symbol
   `CharaControl__FP6CSceneP11CPadControl__2`; another unit has a global of the same name).
   `FishLoadBG__FP9FISH_DATAP1` and `LoadExMotionBG__FP11SubGameInfoP1` are truncated retail
@@ -49,7 +49,7 @@ Header: `ps2/include/fishing.hpp`. No first-game counterpart: Dark Cloud's `fish
   in a loop; circle uses [0]=x, [1]=z, [2]=radius, mgDistVectorXZ <= radius), 0x24 fish_num
   (max 8 in fpFISH), 0x28 FISH_PLACE[8]. No ctor (array allocated with plain __nwa, extra two
   quadwords for the array header). No virtuals.
-- Script tags (local `tag__8`, SPI_TAG_PARAM[6]): strings at_2670..at_2674 ->
+- Script tags (local `tag`, SPI_TAG_PARAM[6]): strings at_2670..at_2674 ->
   fpFISH_MAP_NUM, fpFISH_MAP, fpFISH_PLACE, fpFISH, fpFISH_MAP_END.
 - **FISHING_CHARA_MODE** (CharaMode/NextCharaMode, switch in sgLoopFishing): 0 CharaControl,
   1 SelectCastingPoint, 2 CastingLoop, 3 UkiWaitLoop, 4 nothing, 5 BattleLoop, 6 FalseLoop,
@@ -63,8 +63,17 @@ Header: `ps2/include/fishing.hpp`. No first-game counterpart: Dark Cloud's `fish
   +4 = bgm no). EsaStack, SndStack, MotionBuff, ReadStack, FishingBuff__2, FishStack: mgCMemory
   (0x30). CastPoint / CastPointCur: float[4]. RodData FISHING_ROD_DATA, FishData FISH_DATA.
   FishPlaceMap FISH_PLACE_MAP*, fpStack mgCMemory*, fpNowFishPlaceMap FISH_PLACE_MAP*.
+- UkiMode uses the file-local constants kUkiStart, kUkiWaitBite, kUkiPoke, kUkiPull,
+  kUkiReeledIn, kUkiCharge and kUkiBite (0..6).
 - Unresolved: RodStatus (0/1/2, BattleLoop and LineTensionStep: 1 raises tension and drains
-  vigour, 2 lowers tension) and UkiMode (0..4) were not turned into enums; the meaning of
-  FISH_PARAM 0x18 and FISH_PLACE_MAP area_param[3..4]; names of the rod attributes.
+  vigour, 2 lowers tension) is not an enum; the meaning of FISH_PARAM 0x18 and
+  FISH_PLACE_MAP area_param[3..4]; names of the rod attributes.
 - SetFishPlace's merge branch reads `place[i]` with the map's fish index (retail quirk: uses the
   outer index's byte offset into `place`), keep it when matching.
+
+## C++ draft status
+
+The unit has 60 functions: 50 perfect and 10 supplied by assembly. With drafts enabled,
+49 print MATCH, 2 print DIFF, and 9 have no draft. InitSuccess is a guarded C++ draft;
+CreateLoadThread differs only in relocations. The file-scope objects supply the matching
+static initializer. GetUkiPullTime has local linkage, as its retail symbol does.
