@@ -1,5 +1,4 @@
 #include "common.h"
-#include "mapload.hpp"
 #include "mapinfo.hpp"
 
 #include <cmath>
@@ -9,73 +8,8 @@
 
 #include "mg_math.hpp"
 #include "mg_memory.hpp"
+#include "mglib.hpp"
 #include "scriptinterpreter.hpp"
-
-extern "C" void __ct__18CScriptInterpreterFv(void *);
-
-static int mapIMG(SPI_STACK *stack, int argument_count);
-static int mapPCP(SPI_STACK *stack, int argument_count);
-static int mapACTIVE_LIGHT_SET(SPI_STACK *stack, int argument_count);
-static int mapLIGHT_SET(SPI_STACK *stack, int argument_count);
-static int mapFOV(SPI_STACK *stack, int argument_count);
-static int mapBGCOLOR(SPI_STACK *stack, int argument_count);
-static int mapBGCOLOR2(SPI_STACK *stack, int argument_count);
-static int mapAMBIENT(SPI_STACK *stack, int argument_count);
-static int mapLIGHT(SPI_STACK *stack, int argument_count);
-static int mapPLIGHT(SPI_STACK *stack, int argument_count);
-static int mapFOG_ENABLE(SPI_STACK *stack, int argument_count);
-static int mapFOG(SPI_STACK *stack, int argument_count);
-static int mapLIGHT_SET_END(SPI_STACK *stack, int argument_count);
-static int mapFLOOR(SPI_STACK *stack, int argument_count);
-static int mapCHARA_POS(SPI_STACK *stack, int argument_count);
-static int mapTIME_FLAG(SPI_STACK *stack, int argument_count);
-static int mapTIME_LIGHT_NUM(SPI_STACK *stack, int argument_count);
-static int mapDEF_FOOT(SPI_STACK *stack, int argument_count);
-static int mapSKY_INFO(SPI_STACK *stack, int argument_count);
-static int mapLENS_FLARE(SPI_STACK *stack, int argument_count);
-static int mapTIME_CFADE(SPI_STACK *stack, int argument_count);
-static int mapALL_SCISSOR(SPI_STACK *stack, int argument_count);
-static int mapCHARA_LIGHT_ADJUST(SPI_STACK *stack, int argument_count);
-static int amapIMG(SPI_STACK *stack, int argument_count);
-static int amapPCP(SPI_STACK *stack, int argument_count);
-
-// mglib.hpp cannot be included beside mapload.hpp (both declare mgFOG_PARAM).
-extern int mgScreenWidth;
-extern "C" int fptosi(float);
-extern char at_360[];
-extern char at_361[];
-extern char at_362[];
-extern char at_363[];
-extern char at_364[];
-extern char at_365[];
-extern char at_366[];
-extern char at_367[];
-extern char at_368[];
-extern char at_369__3[];
-extern char at_370__2[];
-extern char at_371[];
-extern char at_372[];
-extern char at_373[];
-extern char at_374[];
-extern char at_375[];
-extern char at_376[];
-extern char at_377[];
-extern char at_378[];
-extern char at_379[];
-extern char at_380[];
-extern char at_381[];
-extern char at_382__2[];
-extern char at_704[];
-extern char at_705[];
-extern char at_706[];
-extern char at_707[];
-extern char at_708[];
-extern char at_709[];
-extern char at_710[];
-extern char at_711[];
-extern char at_712[];
-extern char at_713__2[];
-
 
 static int mapIMG(SPI_STACK *stack, int argument_count);
 static int mapPCP(SPI_STACK *stack, int argument_count);
@@ -106,31 +40,30 @@ static int amapPCP(SPI_STACK *stack, int argument_count);
 /**
  * Tags of a map's configuration script and the routines that read them.
  */
-// Initialised data (.data)
 static SPI_TAG_PARAM mapinfo_tag[] = {
-    { at_360, mapIMG },
-    { at_361, mapPCP },
-    { at_362, mapACTIVE_LIGHT_SET },
-    { at_363, mapLIGHT_SET },
-    { at_364, mapFOV },
-    { at_365, mapBGCOLOR },
-    { at_366, mapBGCOLOR2 },
-    { at_367, mapAMBIENT },
-    { at_368, mapLIGHT },
-    { at_369__3, mapPLIGHT },
-    { at_370__2, mapFOG_ENABLE },
-    { at_371, mapFOG },
-    { at_372, mapLIGHT_SET_END },
-    { at_373, mapFLOOR },
-    { at_374, mapCHARA_POS },
-    { at_375, mapTIME_FLAG },
-    { at_376, mapTIME_LIGHT_NUM },
-    { at_377, mapDEF_FOOT },
-    { at_378, mapSKY_INFO },
-    { at_379, mapLENS_FLARE },
-    { at_380, mapTIME_CFADE },
-    { at_381, mapALL_SCISSOR },
-    { at_382__2, mapCHARA_LIGHT_ADJUST },
+    { "IMG", mapIMG },
+    { "PCP", mapPCP },
+    { "ACTIVE_LIGHT_SET", mapACTIVE_LIGHT_SET },
+    { "LIGHT_SET", mapLIGHT_SET },
+    { "FOV", mapFOV },
+    { "BGCOLOR", mapBGCOLOR },
+    { "BGCOLOR2", mapBGCOLOR2 },
+    { "AMBIENT", mapAMBIENT },
+    { "LIGHT", mapLIGHT },
+    { "PLIGHT", mapPLIGHT },
+    { "FOG_ENABLE", mapFOG_ENABLE },
+    { "FOG", mapFOG },
+    { "LIGHT_SET_END", mapLIGHT_SET_END },
+    { "FLOOR", mapFLOOR },
+    { "CHARA_POS", mapCHARA_POS },
+    { "TIME_FLAG", mapTIME_FLAG },
+    { "TIME_LIGHT_NUM", mapTIME_LIGHT_NUM },
+    { "DEF_FOOT", mapDEF_FOOT },
+    { "SKY_INFO", mapSKY_INFO },
+    { "LENS_FLARE", mapLENS_FLARE },
+    { "TIME_CFADE", mapTIME_CFADE },
+    { "ALL_SCISSOR", mapALL_SCISSOR },
+    { "CHARA_LIGHT_ADJUST", mapCHARA_LIGHT_ADJUST },
     { NULL, NULL },
 };
 
@@ -138,15 +71,14 @@ static SPI_TAG_PARAM mapinfo_tag[] = {
  * Tags of a map's additional configuration script and the routines that read them.
  */
 static SPI_TAG_PARAM add_mapinfo_tag[] = {
-    { at_360, amapIMG },
-    { at_361, amapPCP },
+    { "IMG", amapIMG },
+    { "PCP", amapPCP },
     { NULL, NULL },
 };
 
 /**
  * Map settings being filled in by the running configuration script.
  */
-// Small uninitialised data (.sbss)
 static CMapInfo *MapInfo;
 
 /**
@@ -245,8 +177,8 @@ CMapLightingInfo *CMapInfo::GetLightingInfo(int index) {
 static int mapIMG(SPI_STACK *stack, int argument_count) {
     char *name;
     char *copy;
-    u32 size;
-    u32 blocks;
+    u32   size;
+    int   qwc;
 
     if (now_img_num >= MapInfo->img_num || argument_count <= 0) {
         return 0;
@@ -257,11 +189,11 @@ static int mapIMG(SPI_STACK *stack, int argument_count) {
     }
     size = strlen(name) + 1;
     if (size & 0xF) {
-        blocks = (size >> 4) + 1;
+        qwc = (size >> 4) + 1;
     } else {
-        blocks = size >> 4;
+        qwc = size >> 4;
     }
-    copy = (char *)MapInfoStack->Alloc(blocks);
+    copy = (char *)MapInfoStack->Alloc(qwc);
     strcpy(copy, name);
     MapInfo->img_name[now_img_num] = copy;
     now_img_num++;
@@ -276,8 +208,8 @@ static int mapIMG(SPI_STACK *stack, int argument_count) {
 static int mapPCP(SPI_STACK *stack, int argument_count) {
     char *name;
     char *copy;
-    u32 size;
-    u32 blocks;
+    u32   size;
+    int   qwc;
 
     if (now_pcp_num >= MapInfo->pcp_num || argument_count <= 0) {
         return 0;
@@ -288,11 +220,11 @@ static int mapPCP(SPI_STACK *stack, int argument_count) {
     }
     size = strlen(name) + 1;
     if (size & 0xF) {
-        blocks = (size >> 4) + 1;
+        qwc = (size >> 4) + 1;
     } else {
-        blocks = size >> 4;
+        qwc = size >> 4;
     }
-    copy = (char *)MapInfoStack->Alloc(blocks);
+    copy = (char *)MapInfoStack->Alloc(qwc);
     strcpy(copy, name);
     MapInfo->pcp_name[now_pcp_num] = copy;
     now_pcp_num++;
@@ -339,7 +271,7 @@ static int mapFOV(SPI_STACK *stack, int argument_count) {
  * Gives 1 inside a lighting set, 0 otherwise.
  */
 static int mapBGCOLOR(SPI_STACK *stack, int argument_count) {
-    if (LightingInfo == 0) {
+    if (LightingInfo == NULL) {
         return 0;
     }
     LightingInfo->bg_color[0] = spiGetStackFloat(stack++);
@@ -355,15 +287,15 @@ static int mapBGCOLOR(SPI_STACK *stack, int argument_count) {
  * Gives 1 inside a lighting set, 0 otherwise.
  */
 static int mapBGCOLOR2(SPI_STACK *stack, int argument_count) {
-    if (LightingInfo == 0) {
+    if (LightingInfo == NULL) {
         return 0;
     }
     LightingInfo->bg_color2[0] = spiGetStackFloat(stack++);
     LightingInfo->bg_color2[1] = spiGetStackFloat(stack++);
     LightingInfo->bg_color2[2] = spiGetStackFloat(stack++);
     LightingInfo->bg_color2[3] = 128.0f;
-    if (0.0f == LightingInfo->bg_color2[0] && 0.0f == LightingInfo->bg_color2[1] &&
-        0.0f == LightingInfo->bg_color2[2]) {
+    if (LightingInfo->bg_color2[0] == 0.0f && LightingInfo->bg_color2[1] == 0.0f &&
+        LightingInfo->bg_color2[2] == 0.0f) {
         *(u_long128 *)LightingInfo->bg_color2 = *(u_long128 *)LightingInfo->bg_color;
     }
     return 1;
@@ -375,7 +307,7 @@ static int mapBGCOLOR2(SPI_STACK *stack, int argument_count) {
  * Gives 1 inside a lighting set, 0 otherwise.
  */
 static int mapAMBIENT(SPI_STACK *stack, int argument_count) {
-    if (LightingInfo == 0) {
+    if (LightingInfo == NULL) {
         return 0;
     }
     LightingInfo->ambient[0] = spiGetStackFloat(stack++);
@@ -391,28 +323,29 @@ static int mapAMBIENT(SPI_STACK *stack, int argument_count) {
  * Gives 1 on success, 0 outside a lighting set, for a bad index or too few arguments.
  */
 static int mapLIGHT(SPI_STACK *stack, int argument_count) {
-    float vec[4];
-    int index;
-    if (LightingInfo == 0) {
+    sceVu0FVECTOR vector;
+    int           light;
+
+    if (LightingInfo == NULL) {
         return 0;
     }
-    index = spiGetStackInt(stack++);
-    if (index < 0 || index > 3) {
+    light = spiGetStackInt(stack++);
+    if (light < 0 || light > 3) {
         return 0;
     }
     if (argument_count < 4) {
         return 0;
     }
 
-    spiGetStackVector(vec, stack);
-    sceVu0Normalize(vec, vec);
-    LightingInfo->light_dir[0][index] = vec[0];
-    LightingInfo->light_dir[1][index] = vec[1];
-    LightingInfo->light_dir[2][index] = vec[2];
+    spiGetStackVector(vector, stack);
+    sceVu0Normalize(vector, vector);
+    LightingInfo->light_dir[0][light] = vector[0];
+    LightingInfo->light_dir[1][light] = vector[1];
+    LightingInfo->light_dir[2][light] = vector[2];
     if (argument_count >= 7) {
-        spiGetStackVector(vec, stack + 3);
-        vec[3] = 0.0f;
-        sceVu0CopyVector(LightingInfo->light_color[index], vec);
+        spiGetStackVector(vector, &stack[3]);
+        vector[3] = 0.0f;
+        sceVu0CopyVector(LightingInfo->light_color[light], vector);
     }
     return 1;
 }
@@ -423,20 +356,20 @@ static int mapLIGHT(SPI_STACK *stack, int argument_count) {
  * Gives 1 on success, 0 outside a lighting set or for a bad index.
  */
 static int mapPLIGHT(SPI_STACK *stack, int argument_count) {
-    int index;
+    int light;
 
     if (LightingInfo == NULL) {
         return 0;
     }
-    index = spiGetStackInt(stack++);
-    if (index < 0 || index > 3) {
+    light = spiGetStackInt(stack++);
+    if (light < 0 || light > 3) {
         return 0;
     }
-    LightingInfo->point_light[index].power = spiGetStackFloat(stack++);
-    spiGetStackVector(LightingInfo->point_light[index].pos, stack);
-    LightingInfo->point_light[index].pos[3] = 1.0f;
-    spiGetStackVector(LightingInfo->point_light[index].color, stack + 3);
-    LightingInfo->point_light[index].color[3] = 0.0f;
+    LightingInfo->point_light[light].power = spiGetStackFloat(stack++);
+    spiGetStackVector(LightingInfo->point_light[light].pos, stack);
+    LightingInfo->point_light[light].pos[3] = 1.0f;
+    spiGetStackVector(LightingInfo->point_light[light].color, &stack[3]);
+    LightingInfo->point_light[light].color[3] = 0.0f;
     LightingInfo->plight_enable = 1;
     return 1;
 }
@@ -460,12 +393,13 @@ static int mapFOG_ENABLE(SPI_STACK *stack, int argument_count) {
  * Gives 1 inside a lighting set, 0 otherwise.
  */
 static int mapFOG(SPI_STACK *stack, int argument_count) {
-    if (LightingInfo == 0) {
+    if (LightingInfo == NULL) {
         return 0;
     }
-    LightingInfo->fog.r = 255;
-    LightingInfo->fog.g = 255;
-    LightingInfo->fog.b = 255;
+
+    LightingInfo->fog.r = 0xFF;
+    LightingInfo->fog.g = 0xFF;
+    LightingInfo->fog.b = 0xFF;
     LightingInfo->fog.far_value = 0.0f;
     LightingInfo->fog.near_value = 255.0f;
     LightingInfo->fog.near_dist = spiGetStackFloat(stack++);
@@ -558,7 +492,7 @@ static int mapSKY_INFO(SPI_STACK *stack, int argument_count) {
     MapInfo->sky_info = spiGetStackInt(stack++);
     MapInfo->unk_dc = spiGetStackFloat(stack++);
     if (argument_count >= 3) {
-        MapInfo->sun_angle = mgAngleLimit(3.1415927f * spiGetStackFloat(stack) / 180.0f);
+        MapInfo->sun_angle = mgAngleLimit(spiGetStackFloat(stack) * 3.1415927f / 180.0f);
     }
     return 1;
 }
@@ -615,10 +549,9 @@ void CMapInfo::LoadMapInfo(char *script, int script_size, mgCMemory *stack) {
     now_pcp_num = 0;
     LightingInfo = NULL;
 
-    u8 interpreter[0xED0];
-    __ct__18CScriptInterpreterFv(interpreter);
-    ((CScriptInterpreter *)interpreter)->SetTag(mapinfo_tag);
-    ((CScriptInterpreter *)interpreter)->SetScript(script, script_size);
+    CScriptInterpreter interpreter;
+    interpreter.SetTag(mapinfo_tag);
+    interpreter.SetScript(script, script_size);
 
     img_num = 16;
     for (i = 0; i < img_num; i++) {
@@ -630,7 +563,7 @@ void CMapInfo::LoadMapInfo(char *script, int script_size, mgCMemory *stack) {
         pcp_name[i] = NULL;
     }
 
-    u32 qwc;
+    int qwc = (u32)script_size >> 4;
     if (script_size & 0xF) {
         qwc = ((u32)script_size >> 4) + 1;
     } else {
@@ -641,21 +574,18 @@ void CMapInfo::LoadMapInfo(char *script, int script_size, mgCMemory *stack) {
     map_file_size = script_size;
 
     lighting_info_num = 16;
-    int count = lighting_info_num;
-    u32 bytes = count * sizeof(CMapLightingInfo);
-    u32 blocks;
+    u32 bytes = lighting_info_num * sizeof(CMapLightingInfo);
     if (bytes & 0xF) {
-        blocks = (bytes >> 4) + 1;
+        qwc = (bytes >> 4) + 1;
     } else {
-        blocks = bytes >> 4;
+        qwc = bytes >> 4;
     }
-    lighting_info = new (stack->Alloc(blocks + 2)) CMapLightingInfo[count];
+    lighting_info = new (stack->Alloc(qwc + 2)) CMapLightingInfo[lighting_info_num];
 
-    ((CScriptInterpreter *)interpreter)->SetScript(script, script_size);
-    ((CScriptInterpreter *)interpreter)->Run();
+    interpreter.SetScript(script, script_size);
+    interpreter.Run();
 }
 
-// Defined in mapload.hpp.
 /**
  * Adds a texture pack to the map in its first free entry, keeping a copy of its name.
  * Reads the IMG tag of an additional configuration script: the pack's name.
@@ -680,7 +610,7 @@ static int amapIMG(SPI_STACK *stack, int argument_count) {
     }
 
     u32 size = strlen(name) + 1;
-    u32 qwc;
+    int qwc = size >> 4;
     if (size & 0xF) {
         qwc = (size >> 4) + 1;
     } else {
@@ -716,7 +646,7 @@ static int amapPCP(SPI_STACK *stack, int argument_count) {
     }
 
     u32 size = strlen(name) + 1;
-    u32 qwc;
+    int qwc = size >> 4;
     if (size & 0xF) {
         qwc = (size >> 4) + 1;
     } else {
@@ -729,15 +659,14 @@ static int amapPCP(SPI_STACK *stack, int argument_count) {
 }
 
 void CMapInfo::AddMapInfo(char *script, int script_size, mgCMemory *stack) {
-    MapInfoStack = stack;
     MapInfo = this;
+    MapInfoStack = stack;
 
-    u8 interpreter[0xED0];
-    __ct__18CScriptInterpreterFv(interpreter);
-    ((CScriptInterpreter *)interpreter)->SetTag(add_mapinfo_tag);
-    ((CScriptInterpreter *)interpreter)->SetScript(script, script_size);
+    CScriptInterpreter interpreter;
+    interpreter.SetTag(add_mapinfo_tag);
+    interpreter.SetScript(script, script_size);
 
-    u32 qwc;
+    int qwc = (u32)script_size >> 4;
     if (script_size & 0xF) {
         qwc = ((u32)script_size >> 4) + 1;
     } else {
@@ -747,55 +676,50 @@ void CMapInfo::AddMapInfo(char *script, int script_size, mgCMemory *stack) {
     memcpy(add_map_file, script, script_size);
     add_map_file_size = script_size;
 
-    ((CScriptInterpreter *)interpreter)->SetScript(script, script_size);
-    ((CScriptInterpreter *)interpreter)->Run();
+    interpreter.SetScript(script, script_size);
+    interpreter.Run();
 }
 
+#ifdef NONMATCHING
 int CMapInfo::OutputLightData(char *buff) {
-    char *cursor = buff;
-    int set;
-    int offset;
-    int light;
-    struct { float x, y, z, w; } color;
-    struct { int x, y, z, w; } ambient;
+    char             *cursor;
+    CMapLightingInfo *info;
+    int               set;
+    int               light;
 
-    cursor += sprintf(cursor, at_704, active_light_no);
-    for (set = 0, offset = 0; set < lighting_info_num; offset += sizeof(CMapLightingInfo), set++) {
-        CMapLightingInfo *info = (CMapLightingInfo *)((u8 *)lighting_info + offset);
-        cursor += sprintf(cursor, at_705, set);
-        cursor += sprintf(cursor, at_706);
-        cursor += sprintf(cursor, at_707, (int)info->bg_color[0], (int)info->bg_color[1], (int)info->bg_color[2]);
-        cursor += sprintf(cursor, at_708, (int)info->bg_color2[0], (int)info->bg_color2[1], (int)info->bg_color2[2]);
-        ambient.x = fptosi(info->ambient[0]);
-        int converted_y = fptosi(info->ambient[1]);
-        int *ambient_y = &ambient.y;
-        *ambient_y = converted_y;
-        int converted_z = fptosi(info->ambient[2]);
-        int *ambient_z = &ambient.z;
-        *ambient_z = converted_z;
-        cursor += sprintf(cursor, at_709, ambient.x, *ambient_y, *ambient_z);
-        light = 0;
-        int color_offset = 0;
-        int direction_offset = 0;
-        do {
-            CMapLightingInfo *source = (CMapLightingInfo *)((u8 *)info + color_offset);
-            float *color_y = &color.y;
-            float *color_z = &color.z;
-            color.x = source->light_color[0][0];
-            *color_y = source->light_color[0][1];
-            *color_z = source->light_color[0][2];
-            CMapLightingInfo *direction = (CMapLightingInfo *)((u8 *)info + direction_offset);
-            cursor += sprintf(cursor, at_710, light, direction->light_dir[0][0], direction->light_dir[1][0], direction->light_dir[2][0], (int)color.x, (int)*color_y, (int)*color_z);
-            light++;
-            color_offset += 16;
-            direction_offset += 4;
-        } while (light < 4);
-        cursor += sprintf(cursor, at_711, info->fog_enable);
-        cursor += sprintf(cursor, at_712, info->fog.near_dist, info->fog.far_dist, info->fog.r, info->fog.g, info->fog.b, (int)info->fog.far_value, (int)info->fog.near_value);
-        cursor += sprintf(cursor, at_713__2);
+    cursor = buff;
+    cursor += sprintf(cursor, "MPL_ACTIVE_LIGHT_SET %d;\n", active_light_no);
+    for (set = 0; set < lighting_info_num; set++) {
+        info = &lighting_info[set];
+        cursor += sprintf(cursor, "MPL_LIGHT_SET %d;\n", set);
+        cursor += sprintf(cursor, " MPL_FOV 52;\n");
+        cursor += sprintf(cursor, " MPL_BGCOLOR %d,%d,%d;\n", (int)info->bg_color[0],
+                          (int)info->bg_color[1], (int)info->bg_color[2]);
+        cursor += sprintf(cursor, " MPL_BGCOLOR2 %d,%d,%d;\n", (int)info->bg_color2[0],
+                          (int)info->bg_color2[1], (int)info->bg_color2[2]);
+        cursor += sprintf(cursor, " MPL_AMBIENT %d,%d,%d;\n", (int)info->ambient[0],
+                          (int)info->ambient[1], (int)info->ambient[2]);
+        for (light = 0; light < 4; light++) {
+            cursor += sprintf(cursor, " MPL_LIGHT %d,%f,%f,%f,%d,%d,%d,1;\n", light,
+                              info->light_dir[0][light], info->light_dir[1][light],
+                              info->light_dir[2][light], (int)info->light_color[light][0],
+                              (int)info->light_color[light][1], (int)info->light_color[light][2]);
+        }
+        cursor += sprintf(cursor, " MPL_FOG_ENABLE %d;\n", info->fog_enable);
+        cursor += sprintf(cursor, " MPL_FOG %f,%f,%d,%d,%d,%d,%d;\n", info->fog.near_dist,
+                          info->fog.far_dist, info->fog.r, info->fog.g, info->fog.b,
+                          (int)info->fog.far_value, (int)info->fog.near_value);
+        cursor += sprintf(cursor, "MPL_LIGHT_SET_END;\n");
     }
     return cursor - buff;
 }
+#else
+INCLUDE_ASM("ps2/asm/pal/nonmatchings/mapinfo", OutputLightData__8CMapInfoFPc);
+#endif
+
+// Initialised data (.data)
+INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mapinfo", mapinfo_tag__DATA);
+INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mapinfo", add_mapinfo_tag__DATA);
 
 // Constants (.rodata)
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mapinfo", at_360__DATA);
@@ -831,3 +755,10 @@ INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mapinfo", at_710__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mapinfo", at_711__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mapinfo", at_712__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mapinfo", at_713__2__DATA);
+
+// Small uninitialised data (.sbss)
+INCLUDE_BSS(MapInfo, 0x4);
+INCLUDE_BSS(MapInfoStack, 0x4);
+INCLUDE_BSS(now_img_num, 0x4);
+INCLUDE_BSS(now_pcp_num, 0x4);
+INCLUDE_BSS(LightingInfo, 0x4);
