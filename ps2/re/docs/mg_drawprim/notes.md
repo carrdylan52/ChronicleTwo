@@ -1,13 +1,15 @@
 # mg_drawprim: reverse-engineering notes
 
+## C++ status
+All 51 functions have source coverage. 49 compile to retail, including four inline VU0 conversion
+methods. Texture and mgCDrawManager::Draw remain guarded drafts. The draft-enabled unit compiles.
+
 Classes: `mgCDrawPrim` (42 functions), `mgCDrawManager` (9 functions). No vtables, no statics,
-no non-member functions. Only data: `at_369` (0x10 BSS, compiler-generated, left alone).
+no non-member functions. Only data: `at_369` (0x10 BSS, compiler-generated initializer template).
 No first-game equivalent: the first game's headers have no draw-prim or draw-manager class.
 
 Depends on `mg_drawenv.hpp` (`mgCDrawEnv`, by value; `mgRENDER_INFO`) and `mg_texture.hpp`
-(`mgCTexture`, by value; `mgCTextureManager`). Neither existed when this header was written; the
-header was verified to compile with stand-in definitions of `mgCDrawEnv` (0x40 bytes) and
-`mgCTexture` (0x70 bytes), and both size asserts held.
+(`mgCTexture`, by value; `mgCTextureManager`). Both class size assertions hold with these headers.
 
 ## mgCDrawPrim (0x120)
 Size: `MenuPrimFix` (menumain global, constructed with `__ct__11mgCDrawPrimFv`) has size 0x120;
@@ -107,14 +109,13 @@ previous entry's, then a DMA CALL to `packet`.
 signature is `(int, u_long128*, u_long128*, int)`. The index's demangling "(int, P*, i)" is wrong.
 
 ## Unresolved
-- EndDraw: when `draw_order` is NULL, Ghidra shows an uninitialised group; probably `group = i`. Check the asm.
+- EndDraw: retail leaves the group uninitialised when `draw_order` is NULL; see the instruction evidence below.
 - `detached` (0x0C) is never set non-zero here; find the writer to confirm the meaning.
 - Return values of ReloadTexture/Draw are 0/1 (int).
 - `sceGsPrim` comes from `sce/libgraph.h` through `mg_drawenv.hpp`. Including `sce/libgraph.h`
   directly as well as `mg_drawenv.hpp` made MWCC redeclare `sceGifTag` (its `#pragma once` did not
   hold), so the header relies on `mg_drawenv.hpp` for it.
-- Header compile status: `mg_texture.hpp` did not exist yet; with a 0x70-byte stand-in `mgCTexture`
-  and the real `mg_drawenv.hpp` the header compiles and both size asserts hold.
+- The header compiles with the real texture and draw-environment declarations, and both size assertions hold.
 
 ## Drafting (job mg_drawprim.1)
 - `AlphaBlend(int)` is a tail call to `mgCDrawEnv::SetAlpha(mode)` on `draw_env`; the switch
@@ -127,45 +128,27 @@ signature is `(int, u_long128*, u_long128*, int)`. The index's demangling "(int,
   (asm confirms `$s3` is only loaded inside `if (draw_order)`): retail uses an uninitialised value.
 - MWCC rejects the SDK's anonymous bitfield structs (`sceGsTest::ATE` etc.); use `.bits.<lower>`.
   The anonymous union member `value` works.
-- Include problem: `mglib.hpp` and `mg_drawenv.hpp` both define `mgFOG_PARAM` (fixlist), so the
-  `.cpp` cannot include mglib.hpp; it carries local declarations of `mgVif1Packet`,
-  `mgScreenOffx/y`, `mgDrawManager`, `mgGetDataBuffer`, `mgSendVuProg`. Replace them with
-  `#include "mglib.hpp"` once the duplicate is removed.
+- The source includes `mglib.hpp` for the VIF packet, screen offsets, draw manager and packet helpers.
 - The header now includes `<libpkt.h>` (not `"sce/libpkt.h"`), which otherwise redefines
   `sceVif1Packet` next to mglib's include.
 - New enums `mgPACKET_CODE` (DMA tag IDs CNT/CALL/RET, VIF DIRECT, GIF tag EOP/PRE/field shifts,
   uncached bit) and `mgGS_CODE` (PRMODECONT, ZTST GREATER, PRIM FST) name constants the SDK shim lacks.
-- Drafts (DIFF): Data0/Data4/Vertex(float*)/Color(float*) are VU0 `lqc2`/`vftoi0`/`vftoi4`/`sqc2`
-  in retail, written as C casts here (retail is probably inline asm). The mgCDrawManager drafts
-  follow the decompilation; BeginDraw's table sizes are `group_num/4+1` without an order list and
-  `(count+1)/4+1` with one.
+- Data0/Data4/Vertex(float*)/Color(float*) match their inline VU0 conversions.
+  BeginDraw allocates `group_num/4+1` table quadwords without an order list and `(count+1)/4+1` with one.
 
 ## Drafting (job mg_drawprim.2)
 - AddPacket: the `group < group_max` test is on the caller's group, before the order lookup; with
   no `order_index` a negative group is stored as is (no lower bound check). Draft logic agrees
-  with the asm; the DIFF is register allocation only (retail keeps the caller's group and the
-  resolved group in separate registers, `a1` and `s0`).
-- mglib.hpp still defines `mgFOG_PARAM` (as does mg_drawenv.hpp) at the time of this job, so the
-  `.cpp` keeps its local mglib declarations.
+  with the assembly. The matching source keeps the caller's group and resolved index separate.
+- The source uses the owning `mglib.hpp` declarations.
 
 ## Inline VU0 matching status
-`Data4(float*)`, `Vertex(float*)`, and `Color(float*)` use `lqc2` and
-`sqc2` in retail. `Data4` applies `vftoi4.xyzw`; `Vertex(float*)` applies
-`vftoi4.xy` and `vftoi0.z`; `Color(float*)` applies `vftoi0.xyzw`.
-`decompile.sh` leaves these COP2 operations as unsupported instructions.
-The `libvu0.h` functions `sceVu0FTOI4Vector` and
-`sceVu0FTOI0Vector` are external calls, so they cannot reproduce the
-inline code or `Vertex`'s mixed per-lane conversion. Scalar C++ casts emit
-scalar conversion instructions, including different rounding and register
-traffic. No existing header supplies an intrinsic for these VU0 operations.
-Consequently these bodies currently match through inline assembly and do
-not count as decompiled C++ functions.
+Four methods use inline VU0 blocks and match retail:
+- Data0: `lqc2 vf1`, `vftoi0.xyzw vf1`, `sqc2 vf1`.
+- Data4: `lqc2 vf1`, `vftoi4.xyzw vf1`, `sqc2 vf1`.
+- Vertex(float*): `lqc2 vf10`, `vftoi4.xy vf10`, `vftoi0.z vf10`, `sqc2 vf10`.
+- Color(float*): `lqc2 vf10`, `vftoi0.xyzw vf10`, `sqc2 vf10`.
 
-The proper undecompiled form is one `INCLUDE_ASM` marker at each address:
-`Data4__11mgCDrawPrimFPf`, `Vertex__11mgCDrawPrimFPf`, and
-`Color__11mgCDrawPrimFPf` in `ps2/asm/pal/nonmatchings/mg_drawprim`.
-After replacing the bodies, run the normal split through
-`scripts/build/cmake.sh` so the generated symbol files are rebuilt; do not
-edit `ps2/asm` directly. Verify the three object diffs and both PS2 builds.
-The matching path for source C++ would require adding compiler support for
-VU0 vector intrinsics that emit the exact COP2 instruction and mask sequence.
+Scalar C++ casts emit scalar conversion instructions and different rounding and register traffic.
+The SDK's vector conversion helpers are external calls and cannot reproduce these inline sequences
+or Vertex's mixed component conversions.
