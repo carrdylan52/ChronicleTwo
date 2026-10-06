@@ -1,5 +1,12 @@
 # editmap2 notes
 
+## C++ draft status
+The matching build has 16 perfect functions and 5 assembly functions.
+`CEditMap::GetSeSrcVolPan` has a clean guarded draft; its grid accesses use
+a typed iterator. `PlaneNormalXZ` retains its vector-unit block. Both
+file-local helpers have static linkage. The draft check prints 16 matches,
+1 differing draft and 4 functions without a draft.
+
 ## What the unit owns
 - No class or struct is owned by editmap2 (`build/re/class_units.tsv` has no row for it).
 - 19 of its 21 functions are `CEditMap` members; all 19 are already declared (with `@mangled`)
