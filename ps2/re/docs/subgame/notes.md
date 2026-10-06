@@ -38,8 +38,7 @@ Names 0x14-0x28 are descriptive (no retail names). `EditDebugInfo` (editdebug.hp
 
 **Inline ctor**: `__sinit_subgame_cpp` zeroes 0x0,0x10,0x14,0x18,0x1C,0x28,0x2C (store order
 0x28,0x14,0x0,0x10,0x2C,0x18,0x1C); `_GOTO_SUBGAME` and EditLoop/LoopDungeonMain stack locals get the
-same set zeroed (scene's store removed as dead). 0x4/0x8/0xC/0x20/0x24 not initialised. The ctor's
-statement order in the header is offset order; adjust if __sinit does not match.
+same set zeroed (scene's store removed as dead). 0x4/0x8/0xC/0x20/0x24 not initialised. The constructor's statement order follows the initializer's stores.
 
 sgInitSubGame copies fields individually (not struct assign): scene, then 0xC..0x2C, then texb/texb_num
 from `GameInfo.scene`+0x3E68/0x3E6C. Returns the sub game's init result; 0 -> SubGame reset to 0.
@@ -69,3 +68,10 @@ EditInit and InitDungeonMain.
 ## Return types
 All sg* dispatchers return int (Ghidra `undefined8` = propagated sub-game result or 0). Loop/Loop2
 always return 0. SubGameRunning is `SubGame != 0` as int.
+
+## C++ status
+
+The default build has 25 perfect functions and one assembly function (sgInitSubGame).
+The draft check reports the same 25 matches, with no draft for sgInitSubGame. GameInfo's
+native constructor generates the matching initializer and constructor-table entry.
+All owned data has static native definitions. The voice filename format is written in place.

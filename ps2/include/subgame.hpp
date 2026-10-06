@@ -64,9 +64,9 @@ struct SubGameInfo {
      *
      */
     SubGameInfo() {
-        scene = 0;
         keep_bgm = 0;
         dungeon = 0;
+        scene = 0;
         menu_buff = 0;
         load_buff = 0;
         no_map_event = 0;

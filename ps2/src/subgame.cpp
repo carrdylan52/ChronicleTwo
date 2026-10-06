@@ -1,17 +1,7 @@
 #include "common.h"
-#include "mg_memory.hpp"
-#include "mg_drawprim.hpp"
-#include "mg_texture.hpp"
-#include "mg_frame.hpp"
-#include "mg_drawenv.hpp"
-#include "mg_math.hpp"
-#include "mglib.hpp"
-#include "actionchara.hpp"
-#include "scene.hpp"
-#include "object.hpp"
-#include "padcontrol.hpp"
-#include "cameracontrol.hpp"
 #include "subgame.hpp"
+#include "scene.hpp"
+#include "mglib.hpp"
 #include "scenesnd.hpp"
 #include "fishing.hpp"
 #include "gyorace.hpp"
@@ -19,18 +9,17 @@
 #include "snd_mngr.hpp"
 #include <cstdio>
 
-extern int SubGame;
-extern int MenuOpenFlag;
-extern int ItemOver;
-extern SubGameInfo GameInfo;
-extern char at_985__3[];
+static int SubGame;
+static int MenuOpenFlag;
+static int ItemOver;
+static SubGameInfo GameInfo;
 
 // Code (.text)
 void InitSubGame(CScene *scene) {
     SubGame = SUBGAME_NONE;
     MenuOpenFlag = 0;
     ItemOver = 0;
-    if (scene->GetCharacter(scene->player_chara) != 0) {
+    if (scene->GetCharacter(scene->player_chara) != NULL) {
         mgCTextureManager *tex_manager = &mgTexManager;
         for (int i = 0; i < scene->unk_3e6c; i++) {
             tex_manager->DeleteBlock(scene->unk_3e68 + i);
@@ -41,32 +30,41 @@ void InitSubGame(CScene *scene) {
         scene->DeleteEffect(7);
     }
 }
-int SubGameRunning(void) {
-    return SubGame != 0;
+
+int SubGameRunning() {
+    return SubGame != SUBGAME_NONE;
 }
-int GetSubGameNo(void) {
+
+int GetSubGameNo() {
     return SubGame;
 }
-SubGameInfo *GetNowSubGameInfo(void) {
+
+SubGameInfo *GetNowSubGameInfo() {
     return &GameInfo;
 }
-int sgMenuOpenEnable(void) {
+
+int sgMenuOpenEnable() {
     return SubGameRunning() != 0 ? MenuOpenFlag : 1;
 }
-void sgSetMenuOpenEnableFlag(int value) {
-    MenuOpenFlag = value;
+
+void sgSetMenuOpenEnableFlag(int enable) {
+    MenuOpenFlag = enable;
 }
-int sgGetItemOver(void) {
+
+int sgGetItemOver() {
     return ItemOver;
 }
-void sgGetItemOverReset(void) {
+
+void sgGetItemOverReset() {
     ItemOver = 0;
 }
-void sgGetItemOverFlagOn(void) {
+
+void sgGetItemOverFlagOn() {
     ItemOver = 1;
 }
+
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/subgame", sgInitSubGame__FiP11SubGameInfo);
-int sgLoopSubGame(void) {
+int sgLoopSubGame() {
     int finished;
 
     if (SubGameRunning() == 0) {
@@ -92,7 +90,8 @@ int sgLoopSubGame(void) {
     }
     return 0;
 }
-int sgLoopSubGame2(void) {
+
+int sgLoopSubGame2() {
     if (SubGameRunning() == 0) {
         return 0;
     }
@@ -107,7 +106,8 @@ int sgLoopSubGame2(void) {
     }
     return 0;
 }
-int sgExitSubGame(void) {
+
+int sgExitSubGame() {
     int result = 0;
     if (SubGameRunning() == 0) {
         return 0;
@@ -124,6 +124,7 @@ int sgExitSubGame(void) {
     SubGame = SUBGAME_NONE;
     return result;
 }
+
 int sgRestartSubGame(SubGameInfo *info) {
     int result = 0;
     if (SubGameRunning() == 0) {
@@ -140,7 +141,8 @@ int sgRestartSubGame(SubGameInfo *info) {
     }
     return result;
 }
-int sgBreakSubGame(void) {
+
+int sgBreakSubGame() {
     int result = 0;
     if (SubGameRunning() == 0) {
         return 0;
@@ -157,7 +159,8 @@ int sgBreakSubGame(void) {
     SubGame = SUBGAME_NONE;
     return result;
 }
-int sgDrawSubGameMap(void) {
+
+int sgDrawSubGameMap() {
     if (SubGameRunning() == 0) {
         return 0;
     }
@@ -166,7 +169,8 @@ int sgDrawSubGameMap(void) {
     }
     return sgMapDrawGyoRace(&GameInfo);
 }
-int sgDrawSubGameCharaShadow(void) {
+
+int sgDrawSubGameCharaShadow() {
     if (SubGameRunning() == 0) {
         return 0;
     }
@@ -181,7 +185,8 @@ int sgDrawSubGameCharaShadow(void) {
     }
     return 0;
 }
-int sgDrawSubGameChara(void) {
+
+int sgDrawSubGameChara() {
     if (SubGameRunning() == 0) {
         return 0;
     }
@@ -197,7 +202,8 @@ int sgDrawSubGameChara(void) {
             return 0;
     }
 }
-int sgDrawSubGameEffect(void) {
+
+int sgDrawSubGameEffect() {
     if (SubGameRunning() == 0) {
         return 0;
     }
@@ -210,7 +216,8 @@ int sgDrawSubGameEffect(void) {
             return 0;
     }
 }
-int sgDrawSubGameSystem(void) {
+
+int sgDrawSubGameSystem() {
     if (SubGameRunning() == 0) {
         return 0;
     }
@@ -226,7 +233,8 @@ int sgDrawSubGameSystem(void) {
             return 0;
     }
 }
-void sgCPlayVoice::Open(int file) {
+
+void sgCPlayVoice::Open(s32 file) {
     if (step > SG_PLAY_VOICE_IDLE) {
         Close();
     }
@@ -234,6 +242,7 @@ void sgCPlayVoice::Open(int file) {
     file_no = file;
     play = 0;
 }
+
 void sgCPlayVoice::SetVol(float left, float right) {
     float left_volume = left;
     float right_volume = right;
@@ -252,68 +261,70 @@ void sgCPlayVoice::SetVol(float left, float right) {
     }
     vol_r = right_volume;
 }
+
 void sgCPlayVoice::Play(void) {
     play = 1;
 }
-int sgCPlayVoice::Step(void) {
+
+int sgCPlayVoice::Step() {
     char name[0x80];
-    if (step <= 0) {
+    if (step <= SG_PLAY_VOICE_IDLE) {
         return 0;
     }
     switch (step) {
-        case 1:
-            sprintf(name, at_985__3, file_no);
+        case SG_PLAY_VOICE_OPEN:
+            sprintf(name, "%d.wav", file_no);
             sndStreamOpenFast(name);
             step++;
             break;
-        case 2:
+        case SG_PLAY_VOICE_OPENING:
             if (sndStreamOpenState() == 0) {
                 sndStreamStandBy();
                 step++;
             }
             break;
-        case 3:
+        case SG_PLAY_VOICE_STANDBY:
             if (sndStreamOpenState() == 0) {
                 step++;
             }
             break;
-        case 4:
+        case SG_PLAY_VOICE_READY:
             if (play != 0) {
                 sndStreamSetVol(vol_l, vol_r);
                 sndStreamPlay();
                 step++;
             }
             break;
-        case 5:
+        case SG_PLAY_VOICE_PLAYING:
             if (sndStreamGetState() != 0x1000) {
                 sndStreamClose();
-                step = 0;
+                step = SG_PLAY_VOICE_IDLE;
                 return 0;
             }
             break;
     }
     return 1;
 }
-void sgCPlayVoice::Close(void) {
-    if (step > 0) {
+
+void sgCPlayVoice::Close() {
+    if (step > SG_PLAY_VOICE_IDLE) {
         sndStreamClose();
-        step = 0;
+        step = SG_PLAY_VOICE_IDLE;
     }
 }
 
 // Static initialiser (.init)
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/subgame", __sinit_subgame_cpp);
+
 
 // Constants (.rodata)
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/subgame", at_985__3__DATA);
 
 // Static initialiser table (.ctor)
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/subgame", D_0037B078__DATA);
+
 
 // Small uninitialised data (.sbss)
-INCLUDE_BSS(SubGame, 0x4);
-INCLUDE_BSS(MenuOpenFlag, 0x4);
-INCLUDE_BSS(ItemOver, 0x4);
+
+
+
 
 // Uninitialised data (.bss)
-INCLUDE_BSS(GameInfo, 0x30);
