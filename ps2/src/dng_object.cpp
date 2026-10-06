@@ -1,65 +1,34 @@
 #include "common.h"
-#include "mg_drawprim.hpp"
-#include "automap.hpp"
+#include "dng_object.hpp"
+
+#include <cmath>
+#include <cstdio>
+#include <libvu0.h>
+
+#include "character.hpp"
+#include "colprim.hpp"
+#include "dng_effect.hpp"
+#include "dng_event.hpp"
+#include "dng_main.hpp"
 #include "effscript.hpp"
-#include "maintex.hpp"
-#include "monster.hpp"
-#include "font.hpp"
-#include "mainloop.hpp"
-#include "cameracontrol.hpp"
-#include "event_func.hpp"
-#include "event.hpp"
-#include "menucommon.hpp"
+#include "gamedata.hpp"
 #include "gameutil.hpp"
+#include "mainloop.hpp"
+#include "maintex.hpp"
+#include "map.hpp"
+#include "mg_camera.hpp"
+#include "mg_frame.hpp"
+#include "mg_math.hpp"
+#include "mg_memory.hpp"
+#include "mg_texture.hpp"
+#include "mglib.hpp"
+#include "monster.hpp"
+#include "prespr.hpp"
+#include "scene.hpp"
 #include "scenesnd.hpp"
 #include "snd_mngr.hpp"
 #include "sound.hpp"
-#include "quest.hpp"
-#include "water.hpp"
-#include "mapload.hpp"
-#include "mglib.hpp"
-#include "editriver.hpp"
-#include <cmath>
-#include <cstring>
-#include <cstdlib>
-#include <cstdio>
-#include "savedatadungeon.hpp"
-#include "sceneevent.hpp"
-#include "snd_seseq.hpp"
-#include "mg_math.hpp"
-#include "dng_status.hpp"
-#include "dng_debug.hpp"
-#include "dng_main.hpp"
-#include "character.hpp"
-#include "collision.hpp"
-#include "colprim.hpp"
-#include "dng_effect.hpp"
-#include "map.hpp"
-#include "mg_camera.hpp"
-#include "mg_drawenv.hpp"
-#include "mg_frame.hpp"
-#include "mg_texture.hpp"
-#include "prespr.hpp"
-#include "dng_object.hpp"
-
-union CopyVector { float f[4]; u_long128 word; };
-extern "C" int fptosi(float value);
-extern "C" void *__ct__11mgCDrawPrimFv(void *);
-extern "C" void *__ct__12mgCFrameAttrFv(void *);
-extern float at_1112[4];
-extern float at_1240__3[4];
-extern char at_1291__3[];
-extern float anim_1410;
-extern s8 init_1411;
-
-#ifdef NONMATCHING
-#include <libvu0.h>
-#include "dng_event.hpp"
-#include "gamedata.hpp"
-#include "mg_memory.hpp"
-#include "scene.hpp"
 #include "userdata.hpp"
-#endif
 
 #ifdef NONMATCHING
 /**
@@ -269,27 +238,28 @@ static char **mons_attr_list[8] = {
 };
 #endif
 
-
 // Code (.text)
-void CRocketLauncher::SetPos(float *pos, float *muzzle_vec, float *direction_vec) {
+void CRocketLauncher::SetPos(float *start, float *target, float *direction) {
     int i;
+
     Initialize();
-    sceVu0CopyVector(start_pos, pos);
-    sceVu0CopyVector(this->pos, pos);
-    sceVu0CopyVector(target_pos, muzzle_vec);
-    sceVu0CopyVector(dir, direction_vec);
+    sceVu0CopyVector(start_pos, start);
+    sceVu0CopyVector(pos, start);
+    sceVu0CopyVector(target_pos, target);
+    sceVu0CopyVector(dir, direction);
     speed = 15.0f;
     state = SHOT_STATE_FIRED;
     trail_timer = 0;
     for (i = 0; i < 16; i++) {
-        sceVu0CopyVector(trail[i], this->pos);
+        sceVu0CopyVector(trail[i], pos);
     }
     trail_len = 0;
     homing_delay = 15;
     homing_time = 60;
     life = 150;
-    draw_flags = 3;
+    draw_flags = SHOT_DRAW_MODEL | SHOT_DRAW_TRAIL;
 }
+
 #ifdef NONMATCHING
 void CRocketLauncher::Step() {
     sceVu0FVECTOR    movement;
@@ -410,67 +380,68 @@ void CRocketLauncher::Step() {
 #else
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/dng_object", Step__15CRocketLauncherFv);
 #endif
-void CRocketLauncher::Draw(void) {
-    union { CPreSprite sprite; };
-    float smooth[128][4];
-    int corner_a[4];
-    int corner_b[4];
-    float look_matrix[4][4];
-    int points;
-    int index;
-    float fade;
-    float size;
-    if (state == 0) {
+
+void CRocketLauncher::Draw() {
+    if (state == SHOT_STATE_FREE) {
         return;
     }
 
-    __ct__11mgCDrawPrimFv(&sprite);
-    if (draw_flags & 2) {
-        points = CreatSmoothPass(smooth, trail, 0x10, 6, trail_index, 0x10);
-        if (points < trail_len) {
-            trail_len = points;
+    CPreSprite    prim;
+    sceVu0FVECTOR points[128];
+    sceVu0IVECTOR top_left;
+    sceVu0IVECTOR bottom_right;
+    sceVu0FMATRIX matrix;
+    int           count;
+    int           i;
+    int           color;
+    float         alpha;
+    float         size;
+
+    if (draw_flags & SHOT_DRAW_TRAIL) {
+        count = CreatSmoothPass(points, trail, 16, 6, trail_index, 16);
+        if (count < trail_len) {
+            trail_len = count;
         }
-        sprite.Initialize(0, 0);
-        sprite.Preset2D();
-        sprite.AlphaBlendEnable(1);
-        sprite.AlphaTestEnable(1);
-        sprite.AlphaTest(1, 0);
-        sprite.DepthTestEnable(1);
-        sprite.ZMask(-1);
-        sprite.Bilinear(1);
-        sprite.TextureMapEnable(1);
-        sprite.Coord(1);
-        sprite.Begin(6);
-        sprite.Texture(trail_texture);
-        sprite.AlphaTestEnable(1);
-        sprite.SetAlphaBlend(1);
-        sprite.Color(0x80, 0x80, 0x80, 0x80);
-        fade = 1.0f;
+        prim.Initialize(NULL, NULL);
+        prim.Preset2D();
+        prim.AlphaBlendEnable(1);
+        prim.AlphaTestEnable(1);
+        prim.AlphaTest(1, 0);
+        prim.DepthTestEnable(1);
+        prim.ZMask(-1);
+        prim.Bilinear(1);
+        prim.TextureMapEnable(1);
+        prim.Coord(1);
+        prim.Begin(MG_PRIM_SPRITE);
+        prim.Texture(trail_texture);
+        prim.AlphaTestEnable(1);
+        prim.SetAlphaBlend(MG_ALPHA_BLEND_NORMAL);
+        prim.Color(128, 128, 128, 128);
+        alpha = 1.0f;
         size = 6.0f;
-        index = points - 1;
-        while (index >= points - trail_len + 1) {
-            smooth[index][3] = 1.0f;
-            if (mgTransWorldPrim3DSprite(corner_a, corner_b, smooth[index], size, size, 0) != 0) {
-                int alpha = fptosi(128.0f * fade);
-                sprite.Color(alpha, alpha, alpha, alpha);
-                sprite.TextureCrd(0, 0);
-                sprite.Vertex4(corner_a);
-                sprite.TextureCrd(0x3F, 0x3F);
-                sprite.Vertex4(corner_b);
+        for (i = count - 1; i >= count - trail_len + 1; i--) {
+            points[i][3] = 1.0f;
+            if (mgTransWorldPrim3DSprite(top_left, bottom_right, points[i], size, size, 0) != 0) {
+                color = (int)(128.0f * alpha);
+                prim.Color(color, color, color, color);
+                prim.TextureCrd(0, 0);
+                prim.Vertex4(top_left);
+                prim.TextureCrd(63, 63);
+                prim.Vertex4(bottom_right);
             }
-            index--;
-            fade -= 1.0f / (float)trail_len;
-            size += 12.0f / (float)trail_len;
+            alpha -= 1.0f / trail_len;
+            size += 12.0f / trail_len;
         }
-        sprite.End();
+        prim.End();
     }
-    if (draw_flags & 1) {
-        ((mgCFrame *)model)->SetPosition(pos);
-        mgLookAtMatrixZ(look_matrix, dir);
-        model->SetTransMatrix(look_matrix);
+    if (draw_flags & SHOT_DRAW_MODEL) {
+        model->SetPosition(pos);
+        mgLookAtMatrixZ(matrix, dir);
+        model->SetTransMatrix(matrix);
         mgDrawDirect(model);
     }
 }
+
 void CRocketLauncher::Initialize(void) {
     target_chara = -1;
     trail_len = 0;
@@ -479,150 +450,156 @@ void CRocketLauncher::Initialize(void) {
     col_prim_id = -1;
     draw_flags = 0;
 }
-CRocketLauncher *CRocketLauncherMan::Get(void) {
-    for (int i = 0; i < 24; i++) {
+
+CRocketLauncher *CRocketLauncherMan::Get() {
+    int i;
+
+    for (i = 0; i < 24; i++) {
         if (rocket[i].state == SHOT_STATE_FREE) {
             return &rocket[i];
         }
     }
-    return 0;
+    return NULL;
 }
-void CRocketLauncherMan::Draw(void) {
-    mgCTextureManager *manager = &mgTexManager;
-    int i;
-    int offset = 0;
+
+void CRocketLauncherMan::Draw() {
+    mgCTextureManager *textures;
+    int                i;
+
+    textures = &mgTexManager;
     for (i = 0; i < 24; i++) {
-        CRocketLauncher *entry = (CRocketLauncher *)((u8 *)this + offset);
-        (manager)->ReloadTexture(entry->tex_block, (sceVif1Packet *)NULL);
-        entry->Draw();
-        offset += 0x190;
+        textures->ReloadTexture(rocket[i].tex_block, (sceVif1Packet *)NULL);
+        rocket[i].Draw();
     }
 }
-void CRocketLauncherMan::Step(void) {
-    for (int i = 0; i < 24; i++) {
+
+void CRocketLauncherMan::Step() {
+    int i;
+
+    for (i = 0; i < 24; i++) {
         rocket[i].Step();
     }
 }
-void CRocketLauncherMan::Clear(void) {
-    for (int i = 0; i < 24; i++) {
+
+void CRocketLauncherMan::Clear() {
+    int i;
+
+    for (i = 0; i < 24; i++) {
         rocket[i].Initialize();
     }
 }
-void CRocketLauncherMan::Initialize(mgCFrame *frame, int texture_id, mgCTexture *texture) {
-    int i;
-    int offset = 0;
+
+void CRocketLauncherMan::Initialize(mgCFrame *model, int tex_block, mgCTexture *trail_texture) {
+    int             i;
+    CRocketLauncher *shot;
+
     for (i = 0; i < 24; i++) {
-        CRocketLauncher *entry = (CRocketLauncher *)((u8 *)this + offset);
-        entry->Initialize();
-        entry->model = frame;
-        entry->tex_block = texture_id;
-        offset += 0x190;
-        entry->trail_texture = texture;
+        rocket[i].Initialize();
+        rocket[i].model = model;
+        rocket[i].tex_block = tex_block;
+        rocket[i].trail_texture = trail_texture;
     }
 }
-void CMachineGun::Set(float *position, float *direction) {
-    int slot = -1;
-    int tries = 0;
-    do {
+
+void CMachineGun::Set(float *start, float *direction) {
+    int slot;
+    int i;
+
+    slot = -1;
+    for (i = 0; i < 16; i++) {
         index++;
         if (index >= 16) {
             index = 0;
         }
-        int candidate = index;
-        if (active[candidate] == 0) {
-            slot = candidate;
+        if (active[index] == 0) {
+            slot = index;
             break;
         }
-        tries++;
-    } while (tries < 16);
+    }
     if (slot >= 0) {
-        sceVu0CopyVector(start_pos[slot], position);
+        sceVu0CopyVector(start_pos[slot], start);
         sceVu0Normalize(direction, direction);
         sceVu0ScaleVectorXYZ(direction, direction, 40.0f);
         sceVu0CopyVector(velocity[slot], direction);
-        sceVu0CopyVector(pos[slot], position);
+        sceVu0CopyVector(pos[slot], start);
         active[slot] = 1;
         life[slot] = 90;
     }
 }
-void CMachineGun::Step(void) {
+
+void CMachineGun::Step() {
     int i;
     for (i = 0; i < 16; i++) {
         s16 state = active[i];
         if (state != 0 && state == 1) {
-            CColPrim *col_prim = ColPrimMan.GetID2Prim(col_prim_id[i]);
-            float previous_pos[4];
+            CColPrim *prim = ColPrimMan.GetID2Prim(col_prim_id[i]);
+            float old_pos[4];
             CCPoly polys[128];
             mgVu0FBOX box;
-            float hit[4];
+            float hit_pos[4];
 
-            float *slot = (float *)((u8 *)this + i * 16);
-            float *shot_pos = (slot + 0x80);
-            sceVu0CopyVector(previous_pos, shot_pos);
-            sceVu0AddVector(shot_pos, shot_pos, (slot + 0x40));
-            if (col_prim != NULL) {
-                col_prim->SetCoord(previous_pos, shot_pos, 5.0f);
+            sceVu0CopyVector(old_pos, pos[i]);
+            sceVu0AddVector(pos[i], pos[i], velocity[i]);
+            if (prim != NULL) {
+                prim->SetCoord(old_pos, pos[i], 5.0f);
             }
             box.max[3] = 1.0f;
             box.min[3] = 1.0f;
-            box.max[0] = 20.0f + (40.0f + (slot + 0x80)[0]);
-            box.min[0] = ((slot + 0x80)[0] - 40.0f) - 20.0f;
-            box.max[1] = 20.0f + (40.0f + (slot + 0x80)[1]);
-            box.min[1] = ((slot + 0x80)[1] - 40.0f) - 20.0f;
-            box.max[2] = 20.0f + (40.0f + (slot + 0x80)[2]);
-            box.min[2] = ((slot + 0x80)[2] - 40.0f) - 20.0f;
-            int count = ((CMap *)DngMainMap)->GetColPoly(polys, box, 128);
-            if (CheckHit(polys, count, shot_pos, previous_pos, hit, 1, 4) >= 0) {
+            box.max[0] = 20.0f + (40.0f + pos[i][0]);
+            box.min[0] = (pos[i][0] - 40.0f) - 20.0f;
+            box.max[1] = 20.0f + (40.0f + pos[i][1]);
+            box.min[1] = (pos[i][1] - 40.0f) - 20.0f;
+            box.max[2] = 20.0f + (40.0f + pos[i][2]);
+            box.min[2] = (pos[i][2] - 40.0f) - 20.0f;
+            int count = DngMainMap->GetColPoly(polys, box, 128);
+            if (CheckHit(polys, count, pos[i], old_pos, hit_pos, 1, 4) >= 0) {
                 active[i] = 0;
-                if (col_prim != NULL) {
-                    col_prim->Delete(-1);
+                if (prim != NULL) {
+                    prim->Delete(-1);
                 }
-                CopyVector dir;
-                dir = *(CopyVector *)at_1112;
-                CHitEffectImage *image;
+                sceVu0FVECTOR hit_dir = {0.0f, 1.0f, 0.0f, 1.0f};
+                CHitEffectImage *hit;
                 if (BattleFX.hit == NULL) {
-                    image = NULL;
+                    hit = NULL;
                 } else {
-                    CHitEffectImage *slot = BattleFX.hit + BattleFX.hit_next;
+                    CHitEffectImage *slot = &BattleFX.hit[BattleFX.hit_next];
                     BattleFX.hit_next++;
                     if (BattleFX.hit_next >= BattleFX.hit_num) {
                         BattleFX.hit_next = 0;
                     }
-                    image = slot;
+                    hit = slot;
                 }
-                if (image != NULL) {
-                    float power = 0.0f;
-                    float spread = 50.0f;
-                    float speed = 30.0f;
-                    float gravity = 0.1f;
-                    image->SethitEffect(previous_pos, dir.f, spread, speed, power, gravity, 16, 8);
-                    image->kind = 1;
+                if (hit != NULL) {
+                    hit->SethitEffect(old_pos, hit_dir, 50.0f, 30.0f, 0.0f, 0.1f, 16, 8);
+                    hit->kind = HIT_EFFECT_SPARK_SHORT;
                 }
-            } else if (col_prim != NULL && col_prim->hit_num > 0) {
+            } else if (prim != NULL && prim->hit_num > 0) {
                 active[i] = 0;
-                col_prim->Delete(-1);
+                prim->Delete(-1);
             } else {
                 life[i]--;
                 if (life[i] <= 0) {
                     active[i] = 0;
-                    if (col_prim != NULL) {
-                        col_prim->Delete(-1);
+                    if (prim != NULL) {
+                        prim->Delete(-1);
                     }
                 }
             }
         }
     }
 }
-void CLaserGun::SetPos(float *start, float *target, float *direction_vec) {
+
+void CLaserGun::SetPos(float *start, float *target, float *direction) {
     int i;
+
     Initialize();
     sceVu0CopyVector(start_pos, start);
     sceVu0CopyVector(pos, start);
     sceVu0CopyVector(target_pos, target);
-    sceVu0CopyVector(dir, direction_vec);
-    *(int *)&speed = 0x41A00000;
-    *(int *)&speed_add = 0;
-    *(int *)&speed_max = 0x41A00000;
+    sceVu0CopyVector(dir, direction);
+    speed = 20.0f;
+    speed_add = 0.0f;
+    speed_max = 20.0f;
     state = SHOT_STATE_FIRED;
     trail_timer = 0;
     for (i = 0; i < 8; i++) {
@@ -632,17 +609,18 @@ void CLaserGun::SetPos(float *start, float *target, float *direction_vec) {
     homing_delay = 15;
     homing_time = 60;
     life = 120;
-    *(int *)&color[0] = 0;
-    *(int *)&color[1] = 0x43000000;
-    *(int *)&color[2] = 0x43000000;
-    *(int *)&color[3] = 0x43000000;
-    *(int *)&scale = 0x3F800000;
-    *(int *)&scale_add = 0;
-    *(int *)&scale_max = 0x3F800000;
-    draw_flags = 3;
+    color[0] = 0.0f;
+    color[1] = 128.0f;
+    color[2] = 128.0f;
+    color[3] = 128.0f;
+    scale = 1.0f;
+    scale_add = 0.0f;
+    scale_max = 1.0f;
+    draw_flags = SHOT_DRAW_MODEL | SHOT_DRAW_TRAIL;
     visual_code = 0;
 }
-void CLaserGun::SetVisualCode(int code) {
+
+void CLaserGun::SetVisualCode(s32 code) {
     visual_code = (s16) code;
     if (code == 0) {
         scale = 0.1f;
@@ -701,30 +679,29 @@ void CLaserGun::SetVisualCode(int code) {
         color[2] = 0.0f;
     }
 }
-void CLaserGun::Step(void) {
 
+void CLaserGun::Step() {
     CLaserGun *gun = this;
     float gravity = 0.1f;
-    float speed2 = 30.0f;
+    float distance = 30.0f;
     float spread = 50.0f;
     float power = 0.0f;
-    float move[4];
-    float previous[4];
-    float to_target[4];
-    CCPoly polys[128];
-    mgVu0FBOX box;
-    float hit[4];
-    float flash_pos[4];
-    float flash_color[4];
-    float flash_pos2[4];
-    float flash_color2[4];
-    float hit_effect_dir[4];
-    if (state != 0) {
-        if (state == 1) {
+    sceVu0FVECTOR displacement;
+    sceVu0FVECTOR previous_pos;
+    sceVu0FVECTOR target_direction;
+    CCPoly polygons[128];
+    mgVu0FBOX bounds;
+    sceVu0FVECTOR hit_pos;
+    sceVu0FVECTOR map_effect_pos;
+    sceVu0FVECTOR map_effect_color;
+    sceVu0FVECTOR enemy_effect_pos;
+    sceVu0FVECTOR enemy_effect_color;
+    if (state != SHOT_STATE_FREE) {
+        if (state == SHOT_STATE_FIRED) {
             state = SHOT_STATE_FLYING;
         }
-        if (state == 2) {
-            CColPrim *col_prim = ColPrimMan.GetID2Prim(col_prim_id);
+        if (state == SHOT_STATE_FLYING) {
+            CColPrim *collision = ColPrimMan.GetID2Prim(col_prim_id);
             if (homing_delay > 0) {
                 homing_delay--;
             }
@@ -735,108 +712,108 @@ void CLaserGun::Step(void) {
             if (homing_delay <= 0) {
                 if (homing_time > 0) {
                     if (target_chara != -1) {
-                        CCharacter2 *chara = DngMainScene->GetCharacter(target_chara);
-                        if (chara != NULL) {
-                            chara->GetEntryObjectPos(0, 0, target_pos);
+                        CCharacter2 *target = DngMainScene->GetCharacter(target_chara);
+                        if (target != NULL) {
+                            target->GetEntryObjectPos(0, 0, target_pos);
                         }
                     }
-                    sceVu0SubVector(to_target, target_pos, pos);
-                    sceVu0Normalize(to_target, to_target);
-                    mgVectorInterpolate(dir, dir, to_target, 0.05235988f, 0);
+                    sceVu0SubVector(target_direction, target_pos, pos);
+                    sceVu0Normalize(target_direction, target_direction);
+                    mgVectorInterpolate(dir, dir, target_direction, 0.05235988f, 0);
                 }
             }
-            sceVu0CopyVector(previous, pos);
-            sceVu0ScaleVector(move, dir, gun->speed);
-            sceVu0AddVector(pos, pos, move);
-            if (col_prim != NULL) {
-                col_prim->SetCoord(pos, 5.0f);
+            sceVu0CopyVector(previous_pos, pos);
+            sceVu0ScaleVector(displacement, dir, gun->speed);
+            sceVu0AddVector(pos, pos, displacement);
+            if (collision != NULL) {
+                collision->SetCoord(pos, 5.0f);
             }
-            box.max[3] = 1.0f;
-            box.min[3] = 1.0f;
-            box.max[0] = 20.0f + (pos[0] + gun->speed);
-            box.min[0] = (pos[0] - gun->speed) - 20.0f;
-            box.max[1] = 20.0f + (pos[1] + gun->speed);
-            box.min[1] = (pos[1] - gun->speed) - 20.0f;
-            box.max[2] = 20.0f + (pos[2] + gun->speed);
-            box.min[2] = (pos[2] - gun->speed) - 20.0f;
-            int count = ((CMap *)DngMainMap)->GetColPoly(polys, box, 128);
-            if (CheckHit(polys, count, pos, previous, hit, 1, 4) >= 0) {
+            bounds.max[3] = 1.0f;
+            bounds.min[3] = 1.0f;
+            bounds.max[0] = 20.0f + (pos[0] + gun->speed);
+            bounds.min[0] = (pos[0] - gun->speed) - 20.0f;
+            bounds.max[1] = 20.0f + (pos[1] + gun->speed);
+            bounds.min[1] = (pos[1] - gun->speed) - 20.0f;
+            bounds.max[2] = 20.0f + (pos[2] + gun->speed);
+            bounds.min[2] = (pos[2] - gun->speed) - 20.0f;
+            int polygon_count = DngMainMap->GetColPoly(polygons, bounds, 128);
+            if (CheckHit(polygons, polygon_count, pos, previous_pos, hit_pos, 1, 4) >= 0) {
                 state = SHOT_STATE_BURST;
-                draw_flags &= ~1;
+                draw_flags &= ~SHOT_DRAW_MODEL;
                 mgCCamera *camera = DngMainScene->GetCamera(DngMainScene->active_camera);
                 if (camera != NULL) {
-                    camera->GetPos(flash_pos);
-                    sceVu0SubVector(flash_pos, flash_pos, pos);
-                    sceVu0Normalize(flash_pos, flash_pos);
-                    sceVu0ScaleVector(flash_pos, flash_pos, 20.0f);
-                    sceVu0AddVector(flash_pos, pos, flash_pos);
+                    camera->GetPos(map_effect_pos);
+                    sceVu0SubVector(map_effect_pos, map_effect_pos, pos);
+                    sceVu0Normalize(map_effect_pos, map_effect_pos);
+                    sceVu0ScaleVector(map_effect_pos, map_effect_pos, 20.0f);
+                    sceVu0AddVector(map_effect_pos, pos, map_effect_pos);
                 }
-                sceVu0CopyVector(flash_color, &gun->color[0]);
-                flash_color[3] *= 1.2f;
-                flash_color[3] *= 1.2f;
-                flash_color[3] *= 1.2f;
-                flash_color[3] = 240.0f;
-                FxScriptMan->CreateEffSpt(at_1291__3, 0, -1);
-                FxScriptMan->SetScriptVect1(flash_pos, -1, -1);
-                FxScriptMan->SetScriptVect2(&gun->color[0], -1, -1);
+                sceVu0CopyVector(map_effect_color, color);
+                map_effect_color[3] *= 1.2f;
+                map_effect_color[3] *= 1.2f;
+                map_effect_color[3] *= 1.2f;
+                map_effect_color[3] = 240.0f;
+                FxScriptMan->CreateEffSpt("\x82\x78\x83\x72\x81\x5B\x83\x80\x82\x67", 0, -1);
+                FxScriptMan->SetScriptVect1(map_effect_pos, -1, -1);
+                FxScriptMan->SetScriptVect2(color, -1, -1);
                 FxScriptMan->SetValue(0, 1.8f, -1, -1);
                 sndSePlay(DngMainScene->se_battle_id, 0x20, 0);
             }
-            if (col_prim != NULL && col_prim->hit_num > 0) {
+            if (collision != NULL && collision->hit_num > 0) {
                 state = SHOT_STATE_BURST;
-                draw_flags &= ~1;
+                draw_flags &= ~SHOT_DRAW_MODEL;
                 mgCCamera *camera = DngMainScene->GetCamera(DngMainScene->active_camera);
                 if (camera != NULL) {
-                    camera->GetPos(flash_pos2);
-                    sceVu0SubVector(flash_pos2, flash_pos2, pos);
-                    sceVu0Normalize(flash_pos2, flash_pos2);
-                    sceVu0ScaleVector(flash_pos2, flash_pos2, 20.0f);
-                    sceVu0AddVector(flash_pos2, pos, flash_pos2);
+                    camera->GetPos(enemy_effect_pos);
+                    sceVu0SubVector(enemy_effect_pos, enemy_effect_pos, pos);
+                    sceVu0Normalize(enemy_effect_pos, enemy_effect_pos);
+                    sceVu0ScaleVector(enemy_effect_pos, enemy_effect_pos, 20.0f);
+                    sceVu0AddVector(enemy_effect_pos, pos, enemy_effect_pos);
                 }
-                sceVu0CopyVector(flash_color2, &gun->color[0]);
-                flash_color2[3] *= 1.4f;
-                flash_color2[3] *= 1.4f;
-                flash_color2[3] *= 1.4f;
-                flash_color2[3] = 240.0f;
-                FxScriptMan->CreateEffSpt(at_1291__3, 0, -1);
-                FxScriptMan->SetScriptVect1(flash_pos2, -1, -1);
-                FxScriptMan->SetScriptVect2(&gun->color[0], -1, -1);
+                sceVu0CopyVector(enemy_effect_color, color);
+                enemy_effect_color[3] *= 1.4f;
+                enemy_effect_color[3] *= 1.4f;
+                enemy_effect_color[3] *= 1.4f;
+                enemy_effect_color[3] = 240.0f;
+                FxScriptMan->CreateEffSpt("\x82\x78\x83\x72\x81\x5B\x83\x80\x82\x67", 0, -1);
+                FxScriptMan->SetScriptVect1(enemy_effect_pos, -1, -1);
+                FxScriptMan->SetScriptVect2(color, -1, -1);
                 FxScriptMan->SetValue(0, 1.8f, -1, -1);
                 sndSePlay(DngMainScene->se_battle_id, 0x20, 0);
             }
             gun->speed += gun->speed_add;
-            if (!(gun->speed <= gun->speed_max)) {
+            if (gun->speed > gun->speed_max) {
                 gun->speed = gun->speed_max;
             }
             gun->scale += gun->scale_add;
-            if (!(gun->scale <= gun->scale_max)) {
+            if (gun->scale > gun->scale_max) {
                 gun->scale = gun->scale_max;
             }
             if (life <= 0) {
                 state = SHOT_STATE_BURST;
-                draw_flags &= ~1;
+                draw_flags &= ~SHOT_DRAW_MODEL;
             }
-            if (state == 3) {
+            if (state == SHOT_STATE_BURST) {
                 if (life > 0) {
-                    *(CopyVector *)hit_effect_dir = *(CopyVector *)at_1240__3;
-                    CHitEffectImage *image;
+                    sceVu0FVECTOR hit_direction = {0.0f, 1.0f, 0.0f, 1.0f};
+                    CHitEffectImage *hit_effect;
                     if (BattleFX.hit == NULL) {
-                        image = NULL;
+                        hit_effect = NULL;
                     } else {
-                        image = BattleFX.hit + BattleFX.hit_next;
+                        hit_effect = &BattleFX.hit[BattleFX.hit_next];
                         BattleFX.hit_next++;
                         if (BattleFX.hit_next >= BattleFX.hit_num) {
                             BattleFX.hit_next = 0;
                         }
                     }
-                    if (image != NULL) {
-                        image->SethitEffect(pos, hit_effect_dir, spread, speed2, power, gravity,
-                                            30, 32);
-                        image->kind = 1;
+                    if (hit_effect != NULL) {
+                        hit_effect->SethitEffect(pos, hit_direction, spread, distance, power,
+                                                gravity, 30, 32);
+                        hit_effect->kind = HIT_EFFECT_SPARK_SHORT;
                     }
                 }
-                if (col_prim != NULL) {
-                    col_prim->Delete(-1);
+                if (collision != NULL) {
+                    collision->Delete(-1);
                 }
             }
             trail_timer += 1;
@@ -850,7 +827,7 @@ void CLaserGun::Step(void) {
                 trail_len += 5;
             }
         }
-        if (state == 3) {
+        if (state == SHOT_STATE_BURST) {
             trail_len -= 1;
             if (trail_len < 3) {
                 state = SHOT_STATE_FREE;
@@ -858,118 +835,114 @@ void CLaserGun::Step(void) {
         }
     }
 }
-void CLaserGun::Draw(void) {
-    float size;
-    int index;
-    float fade;
-    float glow;
-    int count;
-    float t;
-    union { CPreSprite sprite; };
-    float smooth[256][4];
-    int corner_a[4];
-    int corner_b[4];
-    float previous[4];
-    float segment[4];
-    float step[4];
-    union { mgCFrameAttr attr; };
-    float matrix[4][4];
-    if (state != 0) {
-        __ct__11mgCDrawPrimFv(&sprite);
 
-        (mgTexManager).ReloadTexture(tex_block, (sceVif1Packet *)NULL);
-        if (draw_flags & 2) {
-            count = CreatSmoothPass(smooth, trail, 8, 6, trail_index, 8);
-            if (count < trail_len) {
-                trail_len = count;
+void CLaserGun::Draw() {
+    float size;
+    int i;
+    float alpha;
+    float glow;
+    int point_count;
+    float interpolation;
+    if (state != SHOT_STATE_FREE) {
+        CPreSprite prim;
+        sceVu0FVECTOR points[256];
+        sceVu0IVECTOR top_left;
+        sceVu0IVECTOR bottom_right;
+        sceVu0FVECTOR previous_point;
+        sceVu0FVECTOR interpolated_point;
+        sceVu0FVECTOR segment;
+
+        mgTexManager.ReloadTexture(tex_block, (sceVif1Packet *)NULL);
+        if (draw_flags & SHOT_DRAW_TRAIL) {
+            point_count = CreatSmoothPass(points, trail, 8, 6, trail_index, 8);
+            if (point_count < trail_len) {
+                trail_len = point_count;
             }
-            sprite.Initialize(0, 0);
-            sprite.Preset2D();
-            sprite.AlphaBlendEnable(1);
-            sprite.AlphaTestEnable(1);
-            sprite.AlphaTest(1, 0);
-            sprite.DepthTestEnable(1);
-            sprite.ZMask(-1);
-            sprite.Bilinear(1);
-            sprite.TextureMapEnable(1);
-            sprite.Coord(1);
-            sprite.Begin(6);
-            sprite.Texture(trail_texture);
-            sprite.AlphaTestEnable(1);
-            sprite.SetAlphaBlend(2);
-            sprite.Color(0x80, 0x80, 0x80, 0x80);
-            fade = 1.0f;
+            prim.Initialize(NULL, NULL);
+            prim.Preset2D();
+            prim.AlphaBlendEnable(1);
+            prim.AlphaTestEnable(1);
+            prim.AlphaTest(1, 0);
+            prim.DepthTestEnable(1);
+            prim.ZMask(MG_Z_MASK_MASKED);
+            prim.Bilinear(1);
+            prim.TextureMapEnable(1);
+            prim.Coord(1);
+            prim.Begin(MG_PRIM_SPRITE);
+            prim.Texture(trail_texture);
+            prim.AlphaTestEnable(1);
+            prim.SetAlphaBlend(MG_ALPHA_BLEND_ADD);
+            prim.Color(0x80, 0x80, 0x80, 0x80);
+            alpha = 1.0f;
             size = 6.0f * scale;
-            index = count - 1;
-            for (; index >= count - trail_len + 1; index--) {
-                smooth[index][3] = 1.0f;
-                if (mgTransWorldPrim3DSprite(corner_a, corner_b, smooth[index], size, size, 0) != 0) {
+            for (i = point_count - 1; i >= point_count - trail_len + 1; i--) {
+                points[i][3] = 1.0f;
+                if (mgTransWorldPrim3DSprite(top_left, bottom_right, points[i], size, size, 0) != 0) {
                     int b;
                     int g;
                     int r;
-                    r = fptosi(96.0f + color[0]);
-                    g = fptosi(96.0f + color[1]);
-                    b = fptosi(96.0f + color[2]);
-                    sprite.Color(r, g, b, fptosi(128.0f * fade));
-                    sprite.TextureCrd(0, 0);
-                    sprite.Vertex4(corner_a);
-                    sprite.TextureCrd(0x3F, 0x3F);
-                    sprite.Vertex4(corner_b);
+                    r = (int)(96.0f + color[0]);
+                    g = (int)(96.0f + color[1]);
+                    b = (int)(96.0f + color[2]);
+                    prim.Color(r, g, b, (int)(128.0f * alpha));
+                    prim.TextureCrd(0, 0);
+                    prim.Vertex4(top_left);
+                    prim.TextureCrd(0x3F, 0x3F);
+                    prim.Vertex4(bottom_right);
                 }
-                if (index != count - 1) {
-                    t = 0.1f;
+                if (i != point_count - 1) {
+                    interpolation = 0.1f;
                     int b;
                     int g;
                     int r;
-                    int i;
-                    sceVu0SubVector(step, smooth[index], previous);
-                    for (i = 0; i < 9; i++) {
-                        sceVu0ScaleVector(segment, step, t);
-                        sceVu0AddVector(segment, segment, previous);
-                        if (mgTransWorldPrim3DSprite(corner_a, corner_b, segment, size, size, 0) !=
+                    int subdivision;
+                    sceVu0SubVector(segment, points[i], previous_point);
+                    for (subdivision = 0; subdivision < 9; subdivision++) {
+                        sceVu0ScaleVector(interpolated_point, segment, interpolation);
+                        sceVu0AddVector(interpolated_point, interpolated_point, previous_point);
+                        if (mgTransWorldPrim3DSprite(top_left, bottom_right, interpolated_point, size, size, 0) !=
                             0) {
-                            r = fptosi(64.0f + color[0]);
-                            g = fptosi(64.0f + color[1]);
-                            b = fptosi(64.0f + color[2]);
-                            sprite.Color(r, g, b, fptosi(128.0f * fade));
-                            sprite.TextureCrd(0, 0);
-                            sprite.Vertex4(corner_a);
-                            sprite.TextureCrd(0x3F, 0x3F);
-                            sprite.Vertex4(corner_b);
+                            r = (int)(64.0f + color[0]);
+                            g = (int)(64.0f + color[1]);
+                            b = (int)(64.0f + color[2]);
+                            prim.Color(r, g, b, (int)(128.0f * alpha));
+                            prim.TextureCrd(0, 0);
+                            prim.Vertex4(top_left);
+                            prim.TextureCrd(0x3F, 0x3F);
+                            prim.Vertex4(bottom_right);
                         }
-                        t += 0.1f;
+                        interpolation += 0.1f;
                     }
                 }
-                sceVu0CopyVector(previous, smooth[index]);
+                sceVu0CopyVector(previous_point, points[i]);
                 glow = 4.0f * size;
-                if (mgTransWorldPrim3DSprite(corner_a, corner_b, smooth[index], glow, glow, 0) != 0) {
+                if (mgTransWorldPrim3DSprite(top_left, bottom_right, points[i], glow, glow, 0) != 0) {
                     int b;
                     int g;
                     int r;
-                    r = fptosi(color[0]);
-                    g = fptosi(color[1]);
-                    b = fptosi(color[2]);
-                    sprite.Color(r, g, b, fptosi(32.0f * fade));
-                    sprite.TextureCrd(0, 0);
-                    sprite.Vertex4(corner_a);
-                    sprite.TextureCrd(0x3F, 0x3F);
-                    sprite.Vertex4(corner_b);
+                    r = (int)(color[0]);
+                    g = (int)(color[1]);
+                    b = (int)(color[2]);
+                    prim.Color(r, g, b, (int)(32.0f * alpha));
+                    prim.TextureCrd(0, 0);
+                    prim.Vertex4(top_left);
+                    prim.TextureCrd(0x3F, 0x3F);
+                    prim.Vertex4(bottom_right);
                 }
-                fade -= 1.0f / (float)trail_len;
+                alpha -= 1.0f / (float)trail_len;
             }
-            sprite.End();
+            prim.End();
         }
-        if (draw_flags & 1) {
-
-            __ct__12mgCFrameAttrFv(&attr);
+        if (draw_flags & SHOT_DRAW_MODEL) {
+            mgCFrameAttr attr;
+            sceVu0FMATRIX matrix;
             attr.no_light = 1;
             attr.color[0] = color[0];
             attr.color[1] = color[1];
             attr.color[2] = color[2];
             attr.color[3] = 128.0f;
-            model->SetAttrParam(attr, 1, 0x10000);
-            float model_scale = scale;
-            ((mgCObject *)model)->SetScale(model_scale, model_scale, model_scale);
+            model->SetAttrParam(attr, 1, MG_FRAME_ATTR_COLOR);
+            model->SetScale(scale, scale, scale);
             model->SetPosition(pos);
             mgLookAtMatrixZ(matrix, dir);
             model->SetTransMatrix(matrix);
@@ -977,6 +950,7 @@ void CLaserGun::Draw(void) {
         }
     }
 }
+
 void CLaserGun::Initialize(void) {
     target_chara = -1;
     trail_len = 0;
@@ -985,110 +959,120 @@ void CLaserGun::Initialize(void) {
     col_prim_id = -1;
     draw_flags = 0;
 }
-CLaserGun *CLaserGunMan::Get(void) {
-    for (int i = 0; i < 16; i++) {
-        if (laser[i].state == 0) {
+
+CLaserGun *CLaserGunMan::Get() {
+    int i;
+
+    for (i = 0; i < 16; i++) {
+        if (laser[i].state == SHOT_STATE_FREE) {
             return &laser[i];
         }
     }
-    return 0;
+    return NULL;
 }
-void CLaserGunMan::Draw(void) {
-    mgCTextureManager *manager = &mgTexManager;
-    int i;
-    int offset = 0;
+
+void CLaserGunMan::Draw() {
+    mgCTextureManager *textures;
+    int                i;
+
+    textures = &mgTexManager;
     for (i = 0; i < 16; i++) {
-        CLaserGun *entry = (CLaserGun *)((u8 *)this + offset);
-        (manager)->ReloadTexture(entry->tex_block, (sceVif1Packet *)NULL);
-        entry->Draw();
-        offset += 0x130;
+        textures->ReloadTexture(laser[i].tex_block, (sceVif1Packet *)NULL);
+        laser[i].Draw();
     }
 }
-void CLaserGunMan::Step(void) {
-    for (int i = 0; i < 16; i++) {
+
+void CLaserGunMan::Step() {
+    int i;
+
+    for (i = 0; i < 16; i++) {
         laser[i].Step();
     }
 }
-void CLaserGunMan::Clear(void) {
-    for (int i = 0; i < 16; i++) {
+
+void CLaserGunMan::Clear() {
+    int i;
+
+    for (i = 0; i < 16; i++) {
         laser[i].Initialize();
     }
 }
-void CLaserGunMan::Initialize(mgCFrame *frame, int texture_id, mgCTexture *texture) {
-    int i;
-    int offset = 0;
-    for (i = 0; i < 16; i++) {
-        CLaserGun *entry = (CLaserGun *)((u8 *)this + offset);
-        entry->Initialize();
-        entry->model = frame;
-        entry->tex_block = texture_id;
-        offset += 0x130;
-        entry->trail_texture = texture;
-    }
-}
-void CPullItem::Draw(mgCTexture *texture) {
-    union { CPreSprite sprite; };
-    int quad_a[4];
-    int quad_b[4];
-    float center[4];
-    if (state != 0) {
-        __ct__11mgCDrawPrimFv(&sprite);
 
-        sprite.Initialize(0, 0);
-        if (glow != 0) {
-            sprite.AlphaBlend(2);
-        } else {
-            sprite.AlphaBlend(1);
-        }
-        sprite.AlphaBlendEnable(1);
-        sprite.AlphaTestEnable(1);
-        sprite.AlphaTest(1, 0);
-        sprite.DepthTestEnable(1);
-        sprite.ZMask(-1);
-        sprite.Bilinear(1);
-        sprite.TextureMapEnable(1);
-        sprite.Coord(1);
-        sprite.Begin(6);
-        sprite.Texture(texture);
-        sprite.AlphaTestEnable(1);
-        sprite.Color(0x80, 0x80, 0x80, fptosi(alpha));
-        pos[3] = 1.0f;
-        int column = anim_frame / 4;
-        int draw_u = this->tex_u + column * 16;
-        sceVu0CopyVector(center, pos);
-        center[1] += height / 2.0f;
-        center[1] += bob_height * sinf(angle);
-        if (init_1411 == 0) {
-            anim_1410 = 0.0f;
-            init_1411 = 1;
-        }
-        if (anim_1410 > 3.1415927f) {
-            anim_1410 = 0.0f;
-        } else {
-            anim_1410 += 0.20943952f;
-        }
-        float base_width = width;
-        float shadow_width = base_width + base_width * sinf(anim_1410);
-        float base_height = height;
-        float shadow_height = base_height + base_height * sinf(anim_1410);
-        sceVu0CopyVector(draw_pos, center);
-        if (glow != 0 &&
-            mgTransWorldPrim3DSprite(quad_a, quad_b, center, shadow_width, shadow_height, 0) != 0) {
-            sprite.TextureCrd(0x61, 1);
-            sprite.Vertex4(quad_a);
-            sprite.TextureCrd(0x7F, 0x1F);
-            sprite.Vertex4(quad_b);
-        }
-        if (mgTransWorldPrim3DSprite(quad_a, quad_b, center, width, height, 0) != 0) {
-            sprite.SetAlphaBlend(1);
-            sprite.TextureCrd(draw_u, tex_v);
-            sprite.Vertex4(quad_a);
-            sprite.TextureCrd(draw_u + tex_w, tex_v + tex_h);
-            sprite.Vertex4(quad_b);
-        }
-        sprite.End();
+void CLaserGunMan::Initialize(mgCFrame *model, int tex_block, mgCTexture *trail_texture) {
+    int       i;
+    CLaserGun *shot;
+
+    for (i = 0; i < 16; i++) {
+        laser[i].Initialize();
+        laser[i].model = model;
+        laser[i].tex_block = tex_block;
+        laser[i].trail_texture = trail_texture;
     }
 }
+
+void CPullItem::Draw(mgCTexture *texture) {
+    if (state == PULL_ITEM_STATE_FREE) {
+        return;
+    }
+
+    CPreSprite    prim;
+    sceVu0IVECTOR top_left;
+    sceVu0IVECTOR bottom_right;
+    sceVu0FVECTOR sprite_pos;
+    float         glow_width;
+    float         glow_height;
+    int           texture_u;
+
+    prim.Initialize(NULL, NULL);
+    if (glow != 0) {
+        prim.AlphaBlend(MG_ALPHA_BLEND_ADD);
+    } else {
+        prim.AlphaBlend(MG_ALPHA_BLEND_NORMAL);
+    }
+    prim.AlphaBlendEnable(1);
+    prim.AlphaTestEnable(1);
+    prim.AlphaTest(1, 0);
+    prim.DepthTestEnable(1);
+    prim.ZMask(MG_Z_MASK_MASKED);
+    prim.Bilinear(1);
+    prim.TextureMapEnable(1);
+    prim.Coord(1);
+    prim.Begin(MG_PRIM_SPRITE);
+    prim.Texture(texture);
+    prim.AlphaTestEnable(1);
+    prim.Color(128, 128, 128, (int)alpha);
+    pos[3] = 1.0f;
+    texture_u = tex_u + (anim_frame / 4) * 16;
+    sceVu0CopyVector(sprite_pos, pos);
+    sprite_pos[1] += height / 2.0f;
+    sprite_pos[1] += bob_height * sinf(angle);
+
+    static float anim = 0.0f;
+
+    if (anim > 3.1415927f) {
+        anim = 0.0f;
+    } else {
+        anim += 0.20943952f;
+    }
+    glow_width = width + width * sinf(anim);
+    glow_height = height + height * sinf(anim);
+    sceVu0CopyVector(draw_pos, sprite_pos);
+    if (glow != 0 && mgTransWorldPrim3DSprite(top_left, bottom_right, sprite_pos, glow_width, glow_height, 0) != 0) {
+        prim.TextureCrd(97, 1);
+        prim.Vertex4(top_left);
+        prim.TextureCrd(127, 31);
+        prim.Vertex4(bottom_right);
+    }
+    if (mgTransWorldPrim3DSprite(top_left, bottom_right, sprite_pos, width, height, 0) != 0) {
+        prim.SetAlphaBlend(MG_ALPHA_BLEND_NORMAL);
+        prim.TextureCrd(texture_u, tex_v);
+        prim.Vertex4(top_left);
+        prim.TextureCrd(texture_u + tex_w, tex_v + tex_h);
+        prim.Vertex4(bottom_right);
+    }
+    prim.End();
+}
+
 #ifdef NONMATCHING
 void CPullItem::Step() {
     CCharacter2  *player;
@@ -1368,6 +1352,7 @@ void CPullItem::Step() {
 #else
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/dng_object", Step__9CPullItemFv);
 #endif
+
 #ifdef NONMATCHING
 void CPullItem::IsGet(float *player_pos) {
     if (state != PULL_ITEM_STATE_FREE && can_get != 0) {
@@ -1391,10 +1376,13 @@ void CPullItem::IsGet(float *player_pos) {
 #else
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/dng_object", IsGet__9CPullItemFPf);
 #endif
-void CPullItem::SetItem(float *position, float *new_velocity, int kind) {
+
+void CPullItem::SetItem(float *position, float *velo, int item_type) {
+    int index;
+
     sceVu0CopyVector(pos, position);
-    sceVu0CopyVector(this->velocity, new_velocity);
-    this->type = kind;
+    sceVu0CopyVector(velocity, velo);
+    type = item_type;
     angle = 0.0f;
     can_get = 0;
     fall_time = 300;
@@ -1404,8 +1392,8 @@ void CPullItem::SetItem(float *position, float *new_velocity, int kind) {
     glow = 0;
     bob_height = 15.0f;
     wire_index = -1;
-    switch (kind) {
-        case 2:
+    switch (item_type) {
+        case PULL_ITEM_GATE_KEY:
             state = PULL_ITEM_STATE_FLOAT;
             tex_u = 0;
             tex_v = 0;
@@ -1420,11 +1408,11 @@ void CPullItem::SetItem(float *position, float *new_velocity, int kind) {
             pull_accel = 0.1f;
             bob_height = 4.0f;
             glow = 1;
-            return;
-        case 7:
+            break;
+        case PULL_ITEM_STOLEN:
             state = PULL_ITEM_STATE_FLOAT;
-            tex_u = 0x61;
-            tex_v = 0x21;
+            tex_u = 97;
+            tex_v = 33;
             tex_h = 30;
             tex_w = 30;
             width = 7.0f;
@@ -1436,8 +1424,8 @@ void CPullItem::SetItem(float *position, float *new_velocity, int kind) {
             pull_accel = 0.1f;
             bob_height = 4.0f;
             glow = 1;
-            return;
-        case 3:
+            break;
+        case PULL_ITEM_MONEY_LARGE:
             state = PULL_ITEM_STATE_FALL;
             tex_u = 32;
             tex_v = 0;
@@ -1449,8 +1437,8 @@ void CPullItem::SetItem(float *position, float *new_velocity, int kind) {
             anim_frame = 0;
             get_delay = 40;
             wait_time = 240;
-            return;
-        case 0:
+            break;
+        case PULL_ITEM_MONEY:
             state = PULL_ITEM_STATE_FALL;
             tex_u = 0;
             tex_v = 32;
@@ -1462,11 +1450,11 @@ void CPullItem::SetItem(float *position, float *new_velocity, int kind) {
             anim_frame = iRand(16);
             get_delay = 40;
             wait_time = 180;
-            return;
-        case 1: {
+            break;
+        case PULL_ITEM_WEAPON_EXP:
             state = PULL_ITEM_STATE_FALL;
             tex_u = 1;
-            tex_v = 0x31;
+            tex_v = 49;
             tex_h = 14;
             tex_w = 14;
             width = 3.0f;
@@ -1477,17 +1465,15 @@ void CPullItem::SetItem(float *position, float *new_velocity, int kind) {
             pull_speed = 1.8f;
             pull_accel = 0.1f;
             glow = 1;
-            int i = 0;
-            for (; i < 16; i++) {
-                if (afterWire[i].mode == 0) {
-                    afterWire[i].SetMode(1);
-                    wire_index = i;
-                    return;
+            for (index = 0; index < 16; index++) {
+                if (afterWire[index].mode == 0) {
+                    afterWire[index].SetMode(1);
+                    wire_index = index;
+                    break;
                 }
             }
-            return;
-        }
-        case 4:
+            break;
+        case PULL_ITEM_ITEM:
             state = PULL_ITEM_STATE_FALL;
             tex_u = 64;
             tex_v = 0;
@@ -1500,8 +1486,8 @@ void CPullItem::SetItem(float *position, float *new_velocity, int kind) {
             get_delay = 10;
             wait_time = 300;
             bob_height = 25.0f;
-            return;
-        case 5:
+            break;
+        case PULL_ITEM_ITEM2:
             state = PULL_ITEM_STATE_FALL;
             tex_u = 64;
             tex_v = 32;
@@ -1514,8 +1500,8 @@ void CPullItem::SetItem(float *position, float *new_velocity, int kind) {
             get_delay = 10;
             wait_time = 300;
             bob_height = 25.0f;
-            return;
-        case 6:
+            break;
+        case PULL_ITEM_BADGE:
             state = PULL_ITEM_STATE_FALL;
             tex_u = 64;
             tex_v = 0;
@@ -1528,13 +1514,15 @@ void CPullItem::SetItem(float *position, float *new_velocity, int kind) {
             get_delay = 10;
             wait_time = 300;
             bob_height = 25.0f;
-            return;
+            break;
     }
 }
+
 void CPullItem::Clear(void) {
     wire_index = -1;
     state = PULL_ITEM_STATE_FREE;
 }
+
 void CPullItem::Initialize(void) {
     state = PULL_ITEM_STATE_FREE;
     wait_time = 0;
@@ -1545,47 +1533,59 @@ void CPullItem::Initialize(void) {
     can_get = 0;
     anim_frame = 0;
 }
+
 CPullItem *CPullItemManager::GetList(int start) {
+    CPullItem *item;
+    int        i;
+
     if (list == NULL || num <= 0) {
         return NULL;
     }
-    CPullItem *item = list + start;
-    for (int i = start; i < num; i++) {
+    item = &list[start];
+    for (i = start; i < num; item++, i++) {
         if (item->state == PULL_ITEM_STATE_FREE) {
             return item;
         }
-        item++;
     }
     return NULL;
 }
-void CPullItemManager::Clear(void) {
+
+void CPullItemManager::Clear() {
+    int i;
+
     if (list != NULL) {
-        for (int i = 0; i < num; i++) {
+        for (i = 0; i < num; i++) {
             list[i].Clear();
         }
     }
 }
-void CRoboVoiceSystem::SetStatus(int voice, int value) {
+
+void CRoboVoiceSystem::SetStatus(s32 voice, s32 value) {
     status = 1;
     voice_no = voice;
     unk_10 = value;
 }
-void CRoboVoiceSystem::StartVoiceSystem(void) {
-    status = 5;
+
+void CRoboVoiceSystem::StartVoiceSystem() {
+    status = ROBO_VOICE_WAIT;
     voice_no = -1;
     wait_time = iRand(240) + 60;
     stream_open = 0;
 }
-void CRoboVoiceSystem::StopVoice(int frames) {
+
+void CRoboVoiceSystem::StopVoice(int pause) {
     if (stream_open != 0) {
-        do {
-        } while (CSnd.StreamOpenState() != 0);
+        while (CSnd.StreamOpenState() != 0) {
+        }
+
         CSnd.StreamClose(1);
     }
+
     stream_open = 0;
-    status = 0;
-    pause_time = (s16)frames;
+    status = ROBO_VOICE_OFF;
+    pause_time = pause;
 }
+
 #ifdef NONMATCHING
 void CRoboVoiceSystem::Step() {
     CBattleCharaInfo *battle_info;
@@ -1707,6 +1707,7 @@ void CRoboVoiceSystem::Step() {
 #else
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/dng_object", Step__16CRoboVoiceSystemFv);
 #endif
+
 
 // Initialised data (.data)
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dng_object", at_923__2__DATA);
@@ -1847,5 +1848,3 @@ INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dng_object", at_1804__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dng_object", at_1805__DATA);
 
 // Small uninitialised data (.sbss)
-INCLUDE_BSS(anim_1410, 0x4);
-INCLUDE_BSS(init_1411, 0x4);
