@@ -91,7 +91,7 @@ struct WMAP_POS_DATA {
     s16 area_no;    /**< Area of the world map the place belongs to. */
     s16 dng_no;     /**< Dungeon the place leads to when loop_no is LOOP_DUNGEON. */
     s8 floor;       /**< Dungeon floor to start on, or negative to choose one on the dungeon's tree map. */
-    u8 enable;      /**< Non-zero once the place can be travelled to. */
+    s8 enable;      /**< Non-zero once the place can be travelled to. */
     s16 flag_no;    /**< Event flag that makes the place reachable. */
     s8 type;        /**< Kind of place, which picks its icon. @see WMAP_POS_TYPE */
     u8 unk_13;
@@ -206,56 +206,6 @@ public:
     void Draw();
 };
 STATIC_ASSERT(sizeof(CWorldMapMenu) == 0xBA4);
-
-/**
- *
- * Reads the POS_NUM tag of the world map script and makes room for that many places.
- *
- * @mangled _WMAP_POSNUM__FP9SPI_STACKi
- * @address 0x2AFA60
- * @size 0x60
- */
-int _WMAP_POSNUM(SPI_STACK *stack, int argument_count);
-
-/**
- *
- * Reads one POS tag of the world map script into the place table.
- *
- * @mangled _WMAP_POS__FP9SPI_STACKi
- * @address 0x2AFAC0
- * @size 0x110
- */
-int _WMAP_POS(SPI_STACK *stack, int argument_count);
-
-/**
- *
- * Reads the AREA_NUM tag of the world map script and makes room for that many areas.
- *
- * @mangled _WMAP_AREANUM__FP9SPI_STACKi
- * @address 0x2AFBD0
- * @size 0x60
- */
-int _WMAP_AREANUM(SPI_STACK *stack, int argument_count);
-
-/**
- *
- * Reads one AREA tag of the world map script into the area table and gathers its places.
- *
- * @mangled _WMAP_AREA__FP9SPI_STACKi
- * @address 0x2AFC30
- * @size 0x240
- */
-int _WMAP_AREA(SPI_STACK *stack, int argument_count);
-
-/**
- *
- * Runs the world map script, building its area and place tables in a menu's memory.
- *
- * @mangled worldmap_analyze__FP9mgCMemoryPci
- * @address 0x2AFE70
- * @size 0x70
- */
-void worldmap_analyze(mgCMemory *stack, char *script, int size);
 
 /**
  *

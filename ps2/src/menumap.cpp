@@ -1,4 +1,6 @@
+#include "common.h"
 #include "menumap.hpp"
+#include "menuaqua.hpp"
 #include "dngmenu.hpp"
 #include "mapselect.hpp"
 #include "menucommon.hpp"
@@ -6,23 +8,37 @@
 #include "scriptinterpreter.hpp"
 #include <cstring>
 
-extern CDC2Mes *MenuDCMsg[9];
-extern signed char WorldMapMenuType;
-extern CWorldMapMenu *WorldMapPtr;
-extern short Sfida_NowPlayHorlBlink;
-extern short WorldMap_NextLoopNo;
-extern short WorldMap_MapNo;
-extern short spi_wmappos_tblnum;
-extern void *spi_wmappos_tbl;
-extern short spi_wmaparea_tblnum;
-extern void *spi_wmaparea_tbl;
-extern mgCMemory *spi_wmapstack;
-extern short MapEnableNum;
-extern SPI_TAG_PARAM menu_wmap_analyze_tag[];
-extern "C" int fptosi(float value);
+static int _WMAP_POSNUM(SPI_STACK *stack, int argc);
+static int _WMAP_POS(SPI_STACK *stack, int argc);
+static int _WMAP_AREANUM(SPI_STACK *stack, int argc);
+static int _WMAP_AREA(SPI_STACK *stack, int argc);
+
+static void worldmap_analyze(mgCMemory *stack, char *script, int size);
+
+static signed char WorldMapMenuType;
+static CWorldMapMenu *WorldMapPtr;
+static short Sfida_NowPlayHorlBlink;
+static short WorldMap_NextLoopNo;
+static short WorldMap_MapNo;
+static short spi_wmappos_tblnum;
+static WMAP_POS_DATA *spi_wmappos_tbl;
+static short spi_wmaparea_tblnum;
+static WMAP_AREA_DATA *spi_wmaparea_tbl;
+static mgCMemory *spi_wmapstack;
+static short MapEnableNum;
+static SPI_TAG_PARAM menu_wmap_analyze_tag[] = {
+    {"POS_NUM", _WMAP_POSNUM},
+    {"POS", _WMAP_POS},
+    {"AREA_NUM", _WMAP_AREANUM},
+    {"AREA", _WMAP_AREA},
+    {NULL, NULL}
+};
 
 // Code (.text)
-int _WMAP_POSNUM(SPI_STACK *stack, int) {
+/**
+ * Allocates the world-map destination table.
+ */
+static int _WMAP_POSNUM(SPI_STACK *stack, int argc) {
     unsigned int bytes;
     unsigned int blocks;
     spi_wmappos_tblnum = spiGetStackInt(stack);
@@ -32,12 +48,16 @@ int _WMAP_POSNUM(SPI_STACK *stack, int) {
     } else {
         blocks = bytes >> 4;
     }
-    spi_wmappos_tbl = spi_wmapstack->Alloc(blocks);
+    spi_wmappos_tbl = (WMAP_POS_DATA *)spi_wmapstack->Alloc(blocks);
     return 1;
 }
-int _WMAP_POS(SPI_STACK *stack, int) {
+
+/**
+ * Stores one destination and its name.
+ */
+static int _WMAP_POS(SPI_STACK *stack, int argc) {
     char converted_title[0x100];
-    WMAP_POS_DATA *pos = (WMAP_POS_DATA *)spi_wmappos_tbl + spiGetStackInt(stack++);
+    WMAP_POS_DATA *pos = &spi_wmappos_tbl[spiGetStackInt(stack++)];
     pos->map_no = spiGetStackInt(stack++);
     pos->loop_no = spiGetStackInt(stack++);
     pos->area_no = spiGetStackInt(stack++);
@@ -57,7 +77,11 @@ int _WMAP_POS(SPI_STACK *stack, int) {
     }
     return 1;
 }
-int _WMAP_AREANUM(SPI_STACK *stack, int) {
+
+/**
+ * Allocates the world-map area table.
+ */
+static int _WMAP_AREANUM(SPI_STACK *stack, int argc) {
     unsigned int bytes;
     unsigned int blocks;
     spi_wmaparea_tblnum = spiGetStackInt(stack);
@@ -67,14 +91,18 @@ int _WMAP_AREANUM(SPI_STACK *stack, int) {
     } else {
         blocks = bytes >> 4;
     }
-    spi_wmaparea_tbl = spi_wmapstack->Alloc(blocks);
+    spi_wmaparea_tbl = (WMAP_AREA_DATA *)spi_wmapstack->Alloc(blocks);
     return 1;
 }
-int _WMAP_AREA(SPI_STACK *stack, int) {
+
+/**
+ * Stores an area and its destinations.
+ */
+static int _WMAP_AREA(SPI_STACK *stack, int argc) {
     char converted_title[0x100];
     int area_no = spiGetStackInt(stack++);
     int map_no = spiGetStackInt(stack++);
-    WMAP_AREA_DATA *area = (WMAP_AREA_DATA *)((int)spi_wmaparea_tbl + (int)(area_no * sizeof(WMAP_AREA_DATA)));
+    WMAP_AREA_DATA *area = &spi_wmaparea_tbl[area_no];
     area->area_no = area_no;
     area->unk_24 = map_no;
     area->x = spiGetStackInt(stack++);
@@ -82,19 +110,19 @@ int _WMAP_AREA(SPI_STACK *stack, int) {
     area->name_x = spiGetStackInt(stack++);
     area->name_y = spiGetStackInt(stack++);
     area->name_side = spiGetStackInt(stack++);
-    area->y = fptosi(1.15f * (float)area->y);
-    area->name_y = fptosi(1.15f * (float)area->name_y);
+    area->y = (int)(1.15f * (float)area->y);
+    area->name_y = (int)(1.15f * (float)area->name_y);
     char *title = spiGetStackString(stack);
-    memset(converted_title, 0, 0x100);
+    memset(converted_title, 0, sizeof(converted_title));
     ConvertFontCode(title, converted_title);
     area->name = mgCopyString(converted_title, spi_wmapstack);
     int position_count = 0;
     area->enable = 0;
     for (int i = 0; i < spi_wmappos_tblnum; i++) {
-        if (area_no == ((WMAP_POS_DATA *)spi_wmappos_tbl)[i].area_no) {
-            WMAP_POS_DATA *pos = (WMAP_POS_DATA *)spi_wmappos_tbl + i;
+        if (area_no == spi_wmappos_tbl[i].area_no) {
+            WMAP_POS_DATA *pos = &spi_wmappos_tbl[i];
             area->pos[position_count] = pos;
-            if ((signed char)area->pos[position_count]->enable != 0) {
+            if (area->pos[position_count]->enable != 0) {
                 area->enable = 1;
             }
             position_count++;
@@ -112,11 +140,15 @@ int _WMAP_AREA(SPI_STACK *stack, int) {
         MapEnableNum++;
     }
     for (int slot = position_count; slot < 8; slot++) {
-        area->pos[slot] = 0;
+        area->pos[slot] = NULL;
     }
     return 1;
 }
-void worldmap_analyze(mgCMemory *stack, char *script, int size) {
+
+/**
+ * Builds the world-map areas and destinations from their script.
+ */
+static void worldmap_analyze(mgCMemory *stack, char *script, int size) {
     spi_wmapstack = stack;
     spi_wmappos_tbl = 0;
     MapEnableNum = 0;
@@ -125,15 +157,17 @@ void worldmap_analyze(mgCMemory *stack, char *script, int size) {
     interpreter.SetScript(script, size);
     interpreter.Run();
 }
+
 void CWorldMapMenu::SetMsgBuffer() {
     MenuDCMsg[4]->SetMessData(menu_mes_data, menu_mes_data);
     MenuDCMsg[4]->MsgPreset(15);
-    ((ClsMes *)MenuDCMsg[4])->fuchi = 5;
+    MenuDCMsg[4]->ClsMes::fuchi = 5;
     MenuDCMsg[2]->SetMessData(mes_data, menu_mes_data);
     MenuDCMsg[3]->SetMessData(mes_data, menu_mes_data);
-    ((ClsMes *)MenuDCMsg[3])->push_button = 0;
-    ((ClsMes *)MenuDCMsg[3])->fade_speed = 1.0f;
+    MenuDCMsg[3]->ClsMes::push_button = 0;
+    MenuDCMsg[3]->ClsMes::fade_speed = 1.0f;
 }
+
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/menumap", KeyStep__13CWorldMapMenuFv);
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/menumap", Draw__13CWorldMapMenuFv);
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/menumap", WorldMoveInit__FP9mgCMemoryPii);
@@ -168,6 +202,7 @@ int WorldMoveKey() {
     }
     return 0;
 }
+
 void WorldMoveDraw() {
     if (WorldMapMenuType == 0) {
         WorldMapPtr->Draw();
@@ -176,6 +211,7 @@ void WorldMoveDraw() {
         DngTreeMapDraw();
     }
 }
+
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/menumap", SphidaScreListUpdate__FP7CDC2Mesi);
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/menumap", SphidaMenuInit__FP9mgCMemoryPii);
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/menumap", OmakeSfidaSelect__Fi);
@@ -193,13 +229,13 @@ int SphidaScoreViewKey() {
     }
     return 0;
 }
+
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/menumap", SphidaScoreViewDraw__Fv);
 
 // Static initialiser (.init)
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/menumap", __sinit_menumap_cpp);
 
 // Initialised data (.data)
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menumap", menu_wmap_analyze_tag__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menumap", at_1072__2__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menumap", at_1081__3__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menumap", at_1095__DATA);
@@ -208,10 +244,6 @@ INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menumap", at_1342__2__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menumap", at_1383__2__DATA);
 
 // Constants (.rodata)
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menumap", at_970__3__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menumap", at_971__3__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menumap", at_972__3__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menumap", at_973__4__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menumap", at_1184__2__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menumap", at_1185__2__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menumap", at_1186__2__DATA);
