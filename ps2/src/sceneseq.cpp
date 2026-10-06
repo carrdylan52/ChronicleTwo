@@ -1,35 +1,194 @@
 #include "common.h"
-#include "character.hpp"
-#include "collision.hpp"
-#include "mg_camera.hpp"
-#include "mg_drawenv.hpp"
 #include "sceneseq.hpp"
-#include "scenesnd.hpp"
-#include "event.hpp"
-#include "event_func.hpp"
-#include "eventsprite.hpp"
-#include "mainloop.hpp"
-#include "mg_math.hpp"
-#include "mg_frame.hpp"
-#include "sound.hpp"
+
 #include <cmath>
 #include <cstring>
 
-extern int (*ScsCmrSeqCallTbl[])(_SEN_CMR_SEQ *, CSceneCmrSeq *);
-extern int (*ScsObjSeqCallTbl[])(_SEN_OBJ_SEQ *, CSceneObjSeq *);
-extern char at_1527__2[];
-extern char at_2863[];
+#include "character.hpp"
+#include "collision.hpp"
+#include "event.hpp"
+#include "event_func.hpp"
+#include "eventsprite.hpp"
+#include "gameutil.hpp"
+#include "mainloop.hpp"
+#include "mg_camera.hpp"
+#include "mg_math.hpp"
+#include "snd_mngr.hpp"
 
-#define CONVERT_TO_PAL_FRAMES(frames)                                                              \
-    if ((frames) > 0) {                                                                            \
-        (frames) = ((frames) * 50) / 60;                                                           \
-        if ((frames) <= 0) {                                                                       \
-            (frames) = 1;                                                                          \
-        }                                                                                          \
-    }
+// Trap on division by zero for variable integer divisors.
+#pragma divbyzerocheck on
+
+static int scsDummy(_SEN_CMR_SEQ *sequence, CSceneCmrSeq *owner);
+static int scsPRDelay(_SEN_CMR_SEQ *sequence, CSceneCmrSeq *owner);
+static int scsSetPos(_SEN_CMR_SEQ *sequence, CSceneCmrSeq *owner);
+static int scsSetRef(_SEN_CMR_SEQ *sequence, CSceneCmrSeq *owner);
+static int scsMove(_SEN_CMR_SEQ *sequence, CSceneCmrSeq *owner);
+static int scsMove2(_SEN_CMR_SEQ *sequence, CSceneCmrSeq *owner);
+static int scsMoveRef(_SEN_CMR_SEQ *sequence, CSceneCmrSeq *owner);
+static int scsMovePos(_SEN_CMR_SEQ *sequence, CSceneCmrSeq *owner);
+static int scsInitPas(_SEN_CMR_SEQ *sequence, CSceneCmrSeq *owner);
+static int scsSetPasFrm(_SEN_CMR_SEQ *sequence, CSceneCmrSeq *owner);
+static int scsAddPas(_SEN_CMR_SEQ *sequence, CSceneCmrSeq *owner);
+static int scsStartPas(_SEN_CMR_SEQ *sequence, CSceneCmrSeq *owner);
+static int scsPRSlowing(_SEN_CMR_SEQ *sequence, CSceneCmrSeq *owner);
+static int scsPRKeep(_SEN_CMR_SEQ *sequence, CSceneCmrSeq *owner);
+static int scsPRReturn(_SEN_CMR_SEQ *sequence, CSceneCmrSeq *owner);
+static int scsAHDDelay(_SEN_CMR_SEQ *sequence, CSceneCmrSeq *owner);
+static int scsSetAngle(_SEN_CMR_SEQ *sequence, CSceneCmrSeq *owner);
+static int scsSetHeight(_SEN_CMR_SEQ *sequence, CSceneCmrSeq *owner);
+static int scsSetDist(_SEN_CMR_SEQ *sequence, CSceneCmrSeq *owner);
+static int scsSetAHD(_SEN_CMR_SEQ *sequence, CSceneCmrSeq *owner);
+static int scsMoveAHD(_SEN_CMR_SEQ *sequence, CSceneCmrSeq *owner);
+static int scsMoveAHD2(_SEN_CMR_SEQ *sequence, CSceneCmrSeq *owner);
+static int scsSetSyncObj(_SEN_CMR_SEQ *sequence, CSceneCmrSeq *owner);
+static int scsReleaseSyncObj(_SEN_CMR_SEQ *sequence, CSceneCmrSeq *owner);
+static int scsAHDSlowing(_SEN_CMR_SEQ *sequence, CSceneCmrSeq *owner);
+static int scsAHDKeep(_SEN_CMR_SEQ *sequence, CSceneCmrSeq *owner);
+static int scsAHDReturn(_SEN_CMR_SEQ *sequence, CSceneCmrSeq *owner);
+static int scsFadeDelay(_SEN_CMR_SEQ *sequence, CSceneCmrSeq *owner);
+static int scsFadeInit(_SEN_CMR_SEQ *sequence, CSceneCmrSeq *owner);
+static int scsFadeIn(_SEN_CMR_SEQ *sequence, CSceneCmrSeq *owner);
+static int scsFadeOut(_SEN_CMR_SEQ *sequence, CSceneCmrSeq *owner);
+static int scsQuakeDelay(_SEN_CMR_SEQ *sequence, CSceneCmrSeq *owner);
+static int scsQuake(_SEN_CMR_SEQ *sequence, CSceneCmrSeq *owner);
+static int scsQuake2(_SEN_CMR_SEQ *sequence, CSceneCmrSeq *owner);
+static int scsCharaDelay(_SEN_CMR_SEQ *sequence, CSceneCmrSeq *owner);
+static int scsCharaAttach(_SEN_CMR_SEQ *sequence, CSceneCmrSeq *owner);
+
+static int scsDummy(_SEN_OBJ_SEQ *sequence, CSceneObjSeq *owner);
+static int scsPosDelay(_SEN_OBJ_SEQ *sequence, CSceneObjSeq *owner);
+static int scsSetPos(_SEN_OBJ_SEQ *sequence, CSceneObjSeq *owner);
+static int scsMove(_SEN_OBJ_SEQ *sequence, CSceneObjSeq *owner);
+static int scsMove2(_SEN_OBJ_SEQ *sequence, CSceneObjSeq *owner);
+static int scsInitPas(_SEN_OBJ_SEQ *sequence, CSceneObjSeq *owner);
+static int scsSetPasFrm(_SEN_OBJ_SEQ *sequence, CSceneObjSeq *owner);
+static int scsAddPas(_SEN_OBJ_SEQ *sequence, CSceneObjSeq *owner);
+static int scsStartPas(_SEN_OBJ_SEQ *sequence, CSceneObjSeq *owner);
+static int scsJump(_SEN_OBJ_SEQ *sequence, CSceneObjSeq *owner);
+static int scsSetEohFramePos(_SEN_OBJ_SEQ *sequence, CSceneObjSeq *owner);
+static int scsAddPos(_SEN_OBJ_SEQ *sequence, CSceneObjSeq *owner);
+static int scsAttachCamera(_SEN_OBJ_SEQ *sequence, CSceneObjSeq *owner);
+static int scsRotDelay(_SEN_OBJ_SEQ *sequence, CSceneObjSeq *owner);
+static int scsSetRot(_SEN_OBJ_SEQ *sequence, CSceneObjSeq *owner);
+static int scsRotation(_SEN_OBJ_SEQ *sequence, CSceneObjSeq *owner);
+static int scsRotation2(_SEN_OBJ_SEQ *sequence, CSceneObjSeq *owner);
+static int scsReference(_SEN_OBJ_SEQ *sequence, CSceneObjSeq *owner);
+static int scsMotionDelay(_SEN_OBJ_SEQ *sequence, CSceneObjSeq *owner);
+static int scsSetMotion(_SEN_OBJ_SEQ *sequence, CSceneObjSeq *owner);
+static int scsNextMotion(_SEN_OBJ_SEQ *sequence, CSceneObjSeq *owner);
+static int scsMotionWait(_SEN_OBJ_SEQ *sequence, CSceneObjSeq *owner);
+static int scsMotionTrg(_SEN_OBJ_SEQ *sequence, CSceneObjSeq *owner);
+static int scsMotionTrgWait(_SEN_OBJ_SEQ *sequence, CSceneObjSeq *owner);
+static int scsSetMotStep(_SEN_OBJ_SEQ *sequence, CSceneObjSeq *owner);
+static int scsSetMotChangeStep(_SEN_OBJ_SEQ *sequence, CSceneObjSeq *owner);
+static int scsResetMotion(_SEN_OBJ_SEQ *sequence, CSceneObjSeq *owner);
+static int scsSetMotionNowTime(_SEN_OBJ_SEQ *sequence, CSceneObjSeq *owner);
+static int scsSetMotionWaitTime(_SEN_OBJ_SEQ *sequence, CSceneObjSeq *owner);
+static int scsNormalDrive(_SEN_OBJ_SEQ *sequence, CSceneObjSeq *owner);
+static int scsTexAnimeDelay(_SEN_OBJ_SEQ *sequence, CSceneObjSeq *owner);
+static int scsTexAnime(_SEN_OBJ_SEQ *sequence, CSceneObjSeq *owner);
+static int scsColorDelay(_SEN_OBJ_SEQ *sequence, CSceneObjSeq *owner);
+static int scsSetColor(_SEN_OBJ_SEQ *sequence, CSceneObjSeq *owner);
+static int scsScaleDelay(_SEN_OBJ_SEQ *sequence, CSceneObjSeq *owner);
+static int scsSetScale(_SEN_OBJ_SEQ *sequence, CSceneObjSeq *owner);
+static int scsSeDelay(_SEN_OBJ_SEQ *sequence, CSceneObjSeq *owner);
+static int scsSePlay(_SEN_OBJ_SEQ *sequence, CSceneObjSeq *owner);
+static int scsResetDAPosition(_SEN_OBJ_SEQ *sequence, CSceneObjSeq *owner);
+
+/**
+ * Handlers of the camera sequence commands, indexed by command number.
+ */
+static int (*ScsCmrSeqCallTbl[])(_SEN_CMR_SEQ *, CSceneCmrSeq *) = {
+    scsDummy,
+    scsPRDelay,
+    scsSetPos,
+    scsSetRef,
+    scsMove,
+    scsMove2,
+    scsMoveRef,
+    scsMovePos,
+    scsInitPas,
+    scsSetPasFrm,
+    scsAddPas,
+    scsStartPas,
+    scsPRSlowing,
+    scsPRKeep,
+    scsPRReturn,
+    scsAHDDelay,
+    scsSetAngle,
+    scsSetHeight,
+    scsSetDist,
+    scsSetAHD,
+    scsMoveAHD,
+    scsMoveAHD2,
+    scsSetSyncObj,
+    scsReleaseSyncObj,
+    scsAHDSlowing,
+    scsAHDKeep,
+    scsAHDReturn,
+    scsFadeDelay,
+    scsFadeInit,
+    scsFadeIn,
+    scsFadeOut,
+    scsQuakeDelay,
+    scsQuake,
+    scsQuake2,
+    scsCharaDelay,
+    scsCharaAttach,
+    scsDummy,
+};
+
+/**
+ * Handlers of the object sequence commands, indexed by command number.
+ */
+static int (*ScsObjSeqCallTbl[])(_SEN_OBJ_SEQ *, CSceneObjSeq *) = {
+    scsDummy,
+    scsPosDelay,
+    scsSetPos,
+    scsMove,
+    scsMove2,
+    scsInitPas,
+    scsSetPasFrm,
+    scsAddPas,
+    scsStartPas,
+    scsJump,
+    scsSetEohFramePos,
+    scsAddPos,
+    scsAttachCamera,
+    scsRotDelay,
+    scsSetRot,
+    scsRotation,
+    scsRotation2,
+    scsReference,
+    scsMotionDelay,
+    scsSetMotion,
+    scsNextMotion,
+    scsMotionWait,
+    scsMotionTrg,
+    scsMotionTrgWait,
+    scsSetMotStep,
+    scsSetMotChangeStep,
+    scsResetMotion,
+    scsSetMotionNowTime,
+    scsSetMotionWaitTime,
+    scsNormalDrive,
+    scsTexAnimeDelay,
+    scsTexAnime,
+    scsColorDelay,
+    scsSetColor,
+    scsScaleDelay,
+    scsSetScale,
+    scsSeDelay,
+    scsSePlay,
+    scsResetDAPosition,
+    scsDummy,
+};
 
 // Code (.text)
-void InitSplineKey(SPLINE_KEY * key) {
+/**
+ * Clears the frame, length and coefficients of a spline key.
+ */
+static void InitSplineKey(SPLINE_KEY * key) {
     key->frame = 0;
     key->length = 0;
     key->a[0] = 0;
@@ -45,22 +204,27 @@ void InitSplineKey(SPLINE_KEY * key) {
     key->c[2] = 0;
     key->d[2] = 0;
 }
+
 C3DSpline::C3DSpline() {
     Initialize();
 }
+
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/sceneseq", Initialize__9C3DSplineFv);
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/sceneseq", SetUpSpline__9C3DSplineFPA4_fPiif);
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/sceneseq", StepS__9C3DSplineFv);
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/sceneseq", Step__9C3DSplineFv);
-void C3DSpline::GetNowXYZ(float *out) {
-    out[0] = now_pos[0];
-    out[1] = now_pos[1];
-    out[2] = now_pos[2];
-    ((int *)out)[3] = 0x3F800000;
+
+void C3DSpline::GetNowXYZ(float *pos) {
+    pos[0] = now_pos[0];
+    pos[1] = now_pos[1];
+    pos[2] = now_pos[2];
+    pos[3] = 1.0f;
 }
+
 CCameraPas::CCameraPas() {
     Initialize();
 }
+
 int CCameraPas::AddCameraPas(float *eye_point, float *look_point) {
     if (pas_num >= 16) {
         return 1;
@@ -70,27 +234,28 @@ int CCameraPas::AddCameraPas(float *eye_point, float *look_point) {
     pas_num++;
     return 0;
 }
-int CCameraPas::InsCameraPas(int index, float *eye_point, float *look_point) {
+
+int CCameraPas::InsCameraPas(int no, float *eye_point, float *look_point) {
     float carry_eye[4];
     float carry_look[4];
     float saved_eye[4];
     float saved_look[4];
-    if (index >= 16) {
+    if (no >= 16) {
         return 1;
     }
     sceVu0CopyVector(carry_eye, eye_point);
     sceVu0CopyVector(carry_look, look_point);
-    while (pas_num >= index) {
-        if (index == 16) {
+    while (pas_num >= no) {
+        if (no == 16) {
             break;
         }
-        sceVu0CopyVector(saved_eye, pos[index]);
-        sceVu0CopyVector(saved_look, ref[index]);
-        sceVu0CopyVector(pos[index], carry_eye);
-        sceVu0CopyVector(ref[index], carry_look);
+        sceVu0CopyVector(saved_eye, pos[no]);
+        sceVu0CopyVector(saved_look, ref[no]);
+        sceVu0CopyVector(pos[no], carry_eye);
+        sceVu0CopyVector(ref[no], carry_look);
         sceVu0CopyVector(carry_eye, saved_eye);
         sceVu0CopyVector(carry_look, saved_look);
-        index++;
+        no++;
     }
     pas_num++;
     if (pas_num >= 16) {
@@ -98,28 +263,31 @@ int CCameraPas::InsCameraPas(int index, float *eye_point, float *look_point) {
     }
     return 0;
 }
-int CCameraPas::SetCameraPas(int index, float *eye_point, float *look_point) {
-    if (index >= 16) {
+
+int CCameraPas::SetCameraPas(int no, float *eye_point, float *look_point) {
+    if (no >= 16) {
         return 1;
     }
-    sceVu0CopyVector(pos[index], eye_point);
-    sceVu0CopyVector(ref[index], look_point);
+    sceVu0CopyVector(pos[no], eye_point);
+    sceVu0CopyVector(ref[no], look_point);
     return 0;
 }
-int CCameraPas::GetCameraPas(int index, float *eye_point, float *look_point) {
-    if (index >= 16) {
+
+int CCameraPas::GetCameraPas(int no, float *eye_point, float *look_point) {
+    if (no >= 16) {
         return 1;
     }
-    sceVu0CopyVector(eye_point, pos[index]);
-    sceVu0CopyVector(look_point, ref[index]);
+    sceVu0CopyVector(eye_point, pos[no]);
+    sceVu0CopyVector(look_point, ref[no]);
     return 0;
 }
-int CCameraPas::DelCameraPas(int index) {
+
+int CCameraPas::DelCameraPas(int no) {
     int i;
-    if (index >= 16) {
+    if (no >= 16) {
         return 1;
     }
-    for (i = index; i < pas_num; i++) {
+    for (i = no; i < pas_num; i++) {
         if (i < 16) {
             sceVu0CopyVector(pos[i], pos[i + 1]);
             sceVu0CopyVector(ref[i], ref[i + 1]);
@@ -134,15 +302,20 @@ int CCameraPas::DelCameraPas(int index) {
     }
     return 0;
 }
-int CCameraPas::SetFrame(int frame_count) {
+
+s32 CCameraPas::SetFrame(s32 frame_count) {
     frame = frame_count;
     return 0;
 }
-int CCameraPas::GetFrame(void) {
+
+s32 CCameraPas::GetFrame(void) {
     return frame;
 }
+
 void CCameraPas::Initialize(void) {
-    for (int i = 0; i < 16; i++) {
+    int i;
+
+    for (i = 0; i < 16; i++) {
         mgZeroVector(pos[i]);
         mgZeroVector(ref[i]);
     }
@@ -152,7 +325,7 @@ void CCameraPas::Initialize(void) {
     pos_spline.Initialize();
     ref_spline.Initialize();
 }
-#pragma divbyzerocheck on
+
 int CCameraPas::Setup(void) {
     int frames[16];
     float distances[16];
@@ -183,7 +356,7 @@ int CCameraPas::Setup(void) {
         pos_spline.GetNowXYZ(eye_next);
         total_length += mgDistVector(eye_now, eye_next);
     }
-    pos_spline.SetUpSpline(pos, frames, pas_num, total_length / (float)frame);
+    pos_spline.SetUpSpline(pos, frames, pas_num, total_length / frame);
     total_length = 0.0f;
     for (i = 0; i < pas_num - 1; i++) {
         distances[i] = mgDistVector(ref[i], ref[i + 1]);
@@ -202,13 +375,14 @@ int CCameraPas::Setup(void) {
         ref_spline.GetNowXYZ(look_next);
         total_length += mgDistVector(look_now, look_next);
     }
-    ref_spline.SetUpSpline(ref, frames, pas_num, total_length / (float)frame);
+    ref_spline.SetUpSpline(ref, frames, pas_num, total_length / frame);
     return 0;
 }
-#pragma divbyzerocheck reset
+
 void CCameraPas::Run(void) {
     run = 1;
 }
+
 void CCameraPas::Step(float *eye_out, float *look_out) {
     int eye_moving;
     int look_moving;
@@ -222,23 +396,26 @@ void CCameraPas::Step(float *eye_out, float *look_out) {
         if (ref_spline.StepS() != 0) {
             look_moving = 1;
         }
-        if (eye_moving != 0) {
-            if (look_moving != 0) {
-                run = 0;
-            }
+        if (eye_moving != 0 && look_moving != 0) {
+            run = 0;
         }
         pos_spline.GetNowXYZ(eye_out);
         ref_spline.GetNowXYZ(look_out);
     }
 }
+
 int CCameraPas::CheckEnd(void) {
-    return (u8)(((u32)run > 0) ^ 1);
+    return !run;
 }
+
 CCharaPas::CCharaPas() {
     Initialize();
 }
+
 void CCharaPas::Initialize(void) {
-    for (int i = 0; i < 16; i++) {
+    int i;
+
+    for (i = 0; i < 16; i++) {
         mgZeroVector(pos[i]);
     }
     frame = 0;
@@ -247,18 +424,16 @@ void CCharaPas::Initialize(void) {
     run = 0;
     end = 0;
 }
-int CCharaPas::AddCharaPas(float *point) {
-    int n;
 
-    n = pas_num;
-    if (n >= 16) {
+int CCharaPas::AddCharaPas(float *point) {
+    if (pas_num >= 16) {
         return 1;
     }
-    sceVu0CopyVector(pos[n], point);
-    pas_num += 1;
+    sceVu0CopyVector(pos[pas_num], point);
+    pas_num++;
     return 0;
 }
-#pragma divbyzerocheck on
+
 int CCharaPas::Setup(void) {
     int frames[16];
     float distances[16];
@@ -287,16 +462,17 @@ int CCharaPas::Setup(void) {
         spline.GetNowXYZ(point_next);
         total_length += mgDistVector(point_now, point_next);
     }
-    spline.SetUpSpline(pos, frames, pas_num, total_length / (float)frame);
+    spline.SetUpSpline(pos, frames, pas_num, total_length / frame);
     return 0;
 }
-#pragma divbyzerocheck reset
+
 void CCharaPas::Run(void) {
     if (pas_num > 0) {
         run = 1;
     }
 }
-void CCharaPas::Step(float *pos, float *angle) {
+
+void CCharaPas::Step(float *pos, float *rot_y) {
     float prev_pos[4];
     float delta[4];
     float heading;
@@ -319,33 +495,35 @@ void CCharaPas::Step(float *pos, float *angle) {
         return;
     }
     heading = atan2f(delta[0], delta[2]);
-    heading -= 3.1415927f * (2.0f * (float)(int)(heading / 6.2831855f));
+    heading -= 3.1415927f * (2.0f * (int)(heading / 6.2831855f));
     if (heading > 3.1415927f) {
         heading -= 6.2831855f;
     }
     if (heading <= -3.1415927f) {
         heading += 6.2831855f;
     }
-    *angle = heading;
+    *rot_y = heading;
 }
+
 int CCharaPas::CheckEnd(void) {
-    return (u8)(((u32)run > 0) ^ 1);
+    return !run;
 }
-int CCharaPas::InsCharaPas(int index, float *point) {
+
+int CCharaPas::InsCharaPas(int no, float *point) {
     float carry[4];
     float saved[4];
-    if (index >= 16) {
+    if (no >= 16) {
         return 1;
     }
     sceVu0CopyVector(carry, point);
-    while (pas_num >= index) {
-        if (index == 16) {
+    while (pas_num >= no) {
+        if (no == 16) {
             break;
         }
-        sceVu0CopyVector(saved, pos[index]);
-        sceVu0CopyVector(pos[index], carry);
+        sceVu0CopyVector(saved, pos[no]);
+        sceVu0CopyVector(pos[no], carry);
         sceVu0CopyVector(carry, saved);
-        index++;
+        no++;
     }
     pas_num++;
     if (pas_num >= 16) {
@@ -353,26 +531,29 @@ int CCharaPas::InsCharaPas(int index, float *point) {
     }
     return 0;
 }
-int CCharaPas::SetCharaPas(int index, float *point) {
-    if (index >= 16) {
+
+int CCharaPas::SetCharaPas(int no, float *point) {
+    if (no >= 16) {
         return 1;
     }
-    sceVu0CopyVector(pos[index], point);
+    sceVu0CopyVector(pos[no], point);
     return 0;
 }
-int CCharaPas::GetCharaPas(int index, float *point) {
-    if (index >= 16) {
+
+int CCharaPas::GetCharaPas(int no, float *point) {
+    if (no >= 16) {
         return 1;
     }
-    sceVu0CopyVector(point, pos[index]);
+    sceVu0CopyVector(point, pos[no]);
     return 0;
 }
-int CCharaPas::DelCharaPas(int index) {
+
+int CCharaPas::DelCharaPas(int no) {
     int i;
-    if (index >= 16) {
+    if (no >= 16) {
         return 1;
     }
-    for (i = index; i < pas_num; i++) {
+    for (i = no; i < pas_num; i++) {
         if (i < 16) {
             sceVu0CopyVector(pos[i], pos[i + 1]);
         } else {
@@ -385,122 +566,154 @@ int CCharaPas::DelCharaPas(int index) {
     }
     return 0;
 }
-void CCharaPas::SetFrame(int frame_count) {
+
+void CCharaPas::SetFrame(s32 frame_count) {
     frame = frame_count;
 }
-int CCharaPas::GetFrame(void) {
+
+s32 CCharaPas::GetFrame(void) {
     return frame;
 }
-int scsPRDelay(_SEN_CMR_SEQ *node, CSceneCmrSeq *owner) {
-    int frame_count;
 
-    frame_count = owner->pr_cnt;
-    if (frame_count >= node->frame) {
+/**
+ * Waits the command's number of frames on the eye and target track.
+ */
+static int scsPRDelay(_SEN_CMR_SEQ *sequence, CSceneCmrSeq *owner) {
+    if (owner->pr_cnt >= sequence->frame) {
         owner->pr_cnt = 0;
-        return 0;
+        return SCENE_SEQ_NEXT;
     }
-    owner->pr_cnt = frame_count + 1;
-    return 1;
+    owner->pr_cnt++;
+    return SCENE_SEQ_WAIT;
 }
-int scsSetPos(_SEN_CMR_SEQ *node, CSceneCmrSeq *owner) {
-    float delta[4];
-    float direction[4];
-    float eye_flat[4];
-    float ref_flat[4];
-    sceVu0CopyVector(owner->pos, node->vec0);
-    sceVu0SubVector(delta, owner->ref, owner->pos);
-    direction[0] = delta[0];
-    direction[1] = 0.0f;
-    direction[2] = delta[2];
-    direction[3] = 0.0f;
-    sceVu0Normalize(direction, direction);
-    owner->angle = atan2f(-direction[0], -direction[2]);
-    owner->height = owner->pos[1] - owner->ref[1];
-    sceVu0CopyVector(eye_flat, owner->pos);
-    eye_flat[1] = 0.0f;
-    sceVu0CopyVector(ref_flat, owner->ref);
-    ref_flat[1] = 0.0f;
-    owner->dist = mgDistVector(eye_flat, ref_flat);
-    return 0;
-}
-int scsSetRef(_SEN_CMR_SEQ *node, CSceneCmrSeq *owner) {
-    float delta[4];
-    float direction[4];
-    float eye_flat[4];
-    float ref_flat[4];
-    sceVu0CopyVector(owner->ref, node->vec1);
-    sceVu0SubVector(delta, owner->ref, owner->pos);
-    direction[0] = delta[0];
-    direction[1] = 0.0f;
-    direction[2] = delta[2];
-    direction[3] = 0.0f;
-    sceVu0Normalize(direction, direction);
-    owner->angle = atan2f(-direction[0], -direction[2]);
-    owner->height = owner->pos[1] - owner->ref[1];
-    sceVu0CopyVector(eye_flat, owner->pos);
-    eye_flat[1] = 0.0f;
-    sceVu0CopyVector(ref_flat, owner->ref);
-    ref_flat[1] = 0.0f;
-    owner->dist = mgDistVector(eye_flat, ref_flat);
-    return 0;
-}
-int scsAHDDelay(_SEN_CMR_SEQ *node, CSceneCmrSeq *owner) {
-    int frame_count;
 
-    frame_count = owner->ahd_cnt;
-    if (frame_count >= node->frame) {
+/**
+ * Places the camera eye and derives its angle, height and distance.
+ */
+static int scsSetPos(_SEN_CMR_SEQ *sequence, CSceneCmrSeq *owner) {
+    float delta[4];
+    float direction[4];
+    float eye_flat[4];
+    float ref_flat[4];
+    sceVu0CopyVector(owner->pos, sequence->vec0);
+    sceVu0SubVector(delta, owner->ref, owner->pos);
+    direction[0] = delta[0];
+    direction[1] = 0.0f;
+    direction[2] = delta[2];
+    direction[3] = 0.0f;
+    sceVu0Normalize(direction, direction);
+    owner->angle = atan2f(-direction[0], -direction[2]);
+    owner->height = owner->pos[1] - owner->ref[1];
+    sceVu0CopyVector(eye_flat, owner->pos);
+    eye_flat[1] = 0.0f;
+    sceVu0CopyVector(ref_flat, owner->ref);
+    ref_flat[1] = 0.0f;
+    owner->dist = mgDistVector(eye_flat, ref_flat);
+    return SCENE_SEQ_NEXT;
+}
+
+/**
+ * Places the camera target and derives the camera's angle, height and distance.
+ */
+static int scsSetRef(_SEN_CMR_SEQ *sequence, CSceneCmrSeq *owner) {
+    float delta[4];
+    float direction[4];
+    float eye_flat[4];
+    float ref_flat[4];
+    sceVu0CopyVector(owner->ref, sequence->vec1);
+    sceVu0SubVector(delta, owner->ref, owner->pos);
+    direction[0] = delta[0];
+    direction[1] = 0.0f;
+    direction[2] = delta[2];
+    direction[3] = 0.0f;
+    sceVu0Normalize(direction, direction);
+    owner->angle = atan2f(-direction[0], -direction[2]);
+    owner->height = owner->pos[1] - owner->ref[1];
+    sceVu0CopyVector(eye_flat, owner->pos);
+    eye_flat[1] = 0.0f;
+    sceVu0CopyVector(ref_flat, owner->ref);
+    ref_flat[1] = 0.0f;
+    owner->dist = mgDistVector(eye_flat, ref_flat);
+    return SCENE_SEQ_NEXT;
+}
+
+/**
+ * Waits the command's number of frames on the angle, height and distance track.
+ */
+static int scsAHDDelay(_SEN_CMR_SEQ *sequence, CSceneCmrSeq *owner) {
+    if (owner->ahd_cnt >= sequence->frame) {
         owner->ahd_cnt = 0;
-        return 0;
+        return SCENE_SEQ_NEXT;
     }
-    owner->ahd_cnt = frame_count + 1;
-    return 1;
+    owner->ahd_cnt++;
+    return SCENE_SEQ_WAIT;
 }
-int scsSetAngle(_SEN_CMR_SEQ *node, CSceneCmrSeq *owner) {
-    owner->pos[0] = owner->ref[0] + owner->dist * sinf(node->value);
-    owner->pos[2] = owner->ref[2] + owner->dist * cosf(node->value);
-    owner->angle = node->value;
-    return 0;
+
+/**
+ * Sets the camera's angle around its target.
+ */
+static int scsSetAngle(_SEN_CMR_SEQ *sequence, CSceneCmrSeq *owner) {
+    owner->pos[0] = owner->ref[0] + owner->dist * sinf(sequence->value);
+    owner->pos[2] = owner->ref[2] + owner->dist * cosf(sequence->value);
+    owner->angle = sequence->value;
+    return SCENE_SEQ_NEXT;
 }
-int scsSetHeight(_SEN_CMR_SEQ *node, CSceneCmrSeq *owner) {
-    owner->pos[1] = node->value + owner->ref[1];
-    owner->height = node->value;
-    return 0;
+
+/**
+ * Sets the camera's height above its target.
+ */
+static int scsSetHeight(_SEN_CMR_SEQ *sequence, CSceneCmrSeq *owner) {
+    owner->pos[1] = sequence->value + owner->ref[1];
+    owner->height = sequence->value;
+    return SCENE_SEQ_NEXT;
 }
-int scsSetDist(_SEN_CMR_SEQ *node, CSceneCmrSeq *owner) {
-    owner->pos[0] = owner->ref[0] + node->value * sinf(owner->angle);
-    owner->pos[2] = owner->ref[2] + node->value * cosf(owner->angle);
-    owner->dist = node->value;
-    return 0;
+
+/**
+ * Sets the camera's distance from its target.
+ */
+static int scsSetDist(_SEN_CMR_SEQ *sequence, CSceneCmrSeq *owner) {
+    owner->pos[0] = owner->ref[0] + sequence->value * sinf(owner->angle);
+    owner->pos[2] = owner->ref[2] + sequence->value * cosf(owner->angle);
+    owner->dist = sequence->value;
+    return SCENE_SEQ_NEXT;
 }
-int scsSetAHD(_SEN_CMR_SEQ *node, CSceneCmrSeq *owner) {
+
+/**
+ * Sets the camera's angle, height and distance, or its offsets while attached to an object.
+ */
+static int scsSetAHD(_SEN_CMR_SEQ *sequence, CSceneCmrSeq *owner) {
     if (owner->sync != 0) {
-        owner->sync_angle = node->vec0[0];
-        owner->sync_height = node->vec0[1];
-        owner->sync_dist = node->vec0[2];
+        owner->sync_angle = sequence->vec0[0];
+        owner->sync_height = sequence->vec0[1];
+        owner->sync_dist = sequence->vec0[2];
     } else {
-        owner->pos[0] = owner->ref[0] + (node->vec0[2] * sinf(node->vec0[0]));
-        owner->pos[1] = node->vec0[1] + owner->ref[1];
-        owner->pos[2] = owner->ref[2] + (node->vec0[2] * cosf(node->vec0[0]));
-        owner->angle = node->vec0[0];
-        owner->height = node->vec0[1];
-        owner->dist = node->vec0[2];
+        owner->pos[0] = owner->ref[0] + sequence->vec0[2] * sinf(sequence->vec0[0]);
+        owner->pos[1] = sequence->vec0[1] + owner->ref[1];
+        owner->pos[2] = owner->ref[2] + sequence->vec0[2] * cosf(sequence->vec0[0]);
+        owner->angle = sequence->vec0[0];
+        owner->height = sequence->vec0[1];
+        owner->dist = sequence->vec0[2];
     }
-    return 0;
+    return SCENE_SEQ_NEXT;
 }
-int scsMove(_SEN_CMR_SEQ *node, CSceneCmrSeq *owner) {
+
+/**
+ * Moves the camera eye and target linearly over the command's frames.
+ */
+static int scsMove(_SEN_CMR_SEQ *sequence, CSceneCmrSeq *owner) {
     float delta[4];
-    if (owner->pr_cnt >= node->frame) {
-        sceVu0CopyVector(owner->pos, node->vec0);
-        sceVu0CopyVector(owner->ref, node->vec1);
+    if (owner->pr_cnt >= sequence->frame) {
+        sceVu0CopyVector(owner->pos, sequence->vec0);
+        sceVu0CopyVector(owner->ref, sequence->vec1);
         owner->pr_cnt = 0;
-        return 0;
+        return SCENE_SEQ_NEXT;
     }
     if (owner->pr_cnt <= 0) {
-        sceVu0SubVector(delta, node->vec0, owner->pos);
-        sceVu0DivVector(owner->pos_spd, delta, node->frame);
+        sceVu0SubVector(delta, sequence->vec0, owner->pos);
+        sceVu0DivVector(owner->pos_spd, delta, sequence->frame);
         owner->pos_spd[3] = 1.0f;
-        sceVu0SubVector(delta, node->vec1, owner->ref);
-        sceVu0DivVector(owner->ref_spd, delta, node->frame);
+        sceVu0SubVector(delta, sequence->vec1, owner->ref);
+        sceVu0DivVector(owner->ref_spd, delta, sequence->frame);
         owner->ref_spd[3] = 1.0f;
         sceVu0CopyVector(owner->pos_vel, owner->pos_spd);
         sceVu0CopyVector(owner->ref_vel, owner->ref_spd);
@@ -511,77 +724,90 @@ int scsMove(_SEN_CMR_SEQ *node, CSceneCmrSeq *owner) {
         owner->ref[3] = 1.0f;
     }
     owner->pr_cnt++;
-    return 1;
+    return SCENE_SEQ_WAIT;
 }
+
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/sceneseq", scsMove2__FP12_SEN_CMR_SEQP12CSceneCmrSeq);
-int scsMoveRef(_SEN_CMR_SEQ *node, CSceneCmrSeq *owner) {
+
+/**
+ * Moves the camera target linearly over the command's frames.
+ */
+static int scsMoveRef(_SEN_CMR_SEQ *sequence, CSceneCmrSeq *owner) {
     float delta[4];
-    if (owner->pr_cnt >= node->frame) {
-        sceVu0CopyVector(owner->ref, node->vec1);
+    if (owner->pr_cnt >= sequence->frame) {
+        sceVu0CopyVector(owner->ref, sequence->vec1);
         owner->pr_cnt = 0;
-        return 0;
+        return SCENE_SEQ_NEXT;
     }
     if (owner->pr_cnt <= 0) {
-        sceVu0SubVector(delta, node->vec1, owner->ref);
-        sceVu0DivVector(owner->ref_spd, delta, node->frame);
+        sceVu0SubVector(delta, sequence->vec1, owner->ref);
+        sceVu0DivVector(owner->ref_spd, delta, sequence->frame);
         owner->ref_spd[3] = 1.0f;
     } else {
         sceVu0AddVector(owner->ref, owner->ref, owner->ref_spd);
         owner->ref[3] = 1.0f;
     }
     owner->pr_cnt++;
-    return 1;
+    return SCENE_SEQ_WAIT;
 }
-int scsMovePos(_SEN_CMR_SEQ *node, CSceneCmrSeq *owner) {
+
+/**
+ * Moves the camera eye linearly over the command's frames.
+ */
+static int scsMovePos(_SEN_CMR_SEQ *sequence, CSceneCmrSeq *owner) {
     float delta[4];
-    if (owner->pr_cnt >= node->frame) {
-        sceVu0CopyVector(owner->pos, node->vec0);
+    if (owner->pr_cnt >= sequence->frame) {
+        sceVu0CopyVector(owner->pos, sequence->vec0);
         owner->pr_cnt = 0;
-        return 0;
+        return SCENE_SEQ_NEXT;
     }
     if (owner->pr_cnt <= 0) {
-        sceVu0SubVector(delta, node->vec0, owner->pos);
-        sceVu0DivVector(owner->pos_spd, delta, node->frame);
+        sceVu0SubVector(delta, sequence->vec0, owner->pos);
+        sceVu0DivVector(owner->pos_spd, delta, sequence->frame);
         owner->pos_spd[3] = 1.0f;
     } else {
         sceVu0AddVector(owner->pos, owner->pos, owner->pos_spd);
         owner->pos[3] = 1.0f;
     }
     owner->pr_cnt++;
-    return 1;
+    return SCENE_SEQ_WAIT;
 }
-int scsMoveAHD(_SEN_CMR_SEQ *node, CSceneCmrSeq *owner) {
+
+/**
+ * Changes the camera's angle, height and distance linearly over the command's frames.
+ */
+static int scsMoveAHD(_SEN_CMR_SEQ *sequence, CSceneCmrSeq *owner) {
     float angle_delta;
-    if (owner->ahd_cnt >= node->frame) {
+    if (owner->ahd_cnt >= sequence->frame) {
         if (owner->sync != 0) {
-            owner->sync_angle = node->vec0[0];
-            owner->sync_height = node->vec0[1];
-            owner->sync_dist = node->vec0[2];
+            owner->sync_angle = sequence->vec0[0];
+            owner->sync_height = sequence->vec0[1];
+            owner->sync_dist = sequence->vec0[2];
         } else {
-            owner->angle = node->vec0[0];
-            owner->height = node->vec0[1];
-            owner->dist = node->vec0[2];
+            owner->angle = sequence->vec0[0];
+            owner->height = sequence->vec0[1];
+            owner->dist = sequence->vec0[2];
             owner->pos[0] = owner->ref[0] + owner->dist * sinf(owner->angle);
             owner->pos[1] = owner->height + owner->ref[1];
             owner->pos[2] = owner->ref[2] + owner->dist * cosf(owner->angle);
         }
         owner->ahd_cnt = 0;
-        return 0;
+        return SCENE_SEQ_NEXT;
     }
     if (owner->ahd_cnt <= 0) {
         if (owner->sync != 0) {
-            angle_delta = node->vec0[0] - owner->sync_angle;
+            angle_delta = sequence->vec0[0] - owner->sync_angle;
         } else {
-            angle_delta = node->vec0[0] - owner->angle;
+            angle_delta = sequence->vec0[0] - owner->angle;
         }
         if (angle_delta > 3.1415927f) {
             angle_delta -= 6.2831855f;
         } else if (angle_delta <= -3.1415927f) {
             angle_delta += 6.2831855f;
         }
-        owner->angle_spd = angle_delta / (float)node->frame;
-        owner->height_spd = (node->vec0[1] - owner->height) / (float)node->frame;
-        owner->dist_spd = (node->vec0[2] - owner->dist) / (float)node->frame;
+        owner->angle_spd = angle_delta / sequence->frame;
+        owner->height_spd = (sequence->vec0[1] - owner->height) / sequence->frame;
+        owner->dist_spd = (sequence->vec0[2] - owner->dist) / sequence->frame;
         owner->ahd_vel[0] = owner->angle_spd;
         owner->ahd_vel[1] = owner->height_spd;
         owner->ahd_vel[2] = owner->dist_spd;
@@ -608,17 +834,22 @@ int scsMoveAHD(_SEN_CMR_SEQ *node, CSceneCmrSeq *owner) {
         owner->pos[2] = owner->ref[2] + owner->dist * cosf(owner->angle);
     }
     owner->ahd_cnt++;
-    return 1;
+    return SCENE_SEQ_WAIT;
 }
+
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/sceneseq", scsMoveAHD2__FP12_SEN_CMR_SEQP12CSceneCmrSeq);
-int scsSetSyncObj(_SEN_CMR_SEQ *seq, CSceneCmrSeq *owner) {
-    owner->sync_obj = seq->frame;
-    owner->sync_mode = seq->mode;
-    sceVu0CopyVector(owner->sync_ofs, seq->vec1);
-    owner->sync_angle = seq->vec0[0];
-    owner->sync_height = seq->vec0[1];
-    owner->sync_dist = seq->vec0[2];
-    strcpy(owner->sync_frame, seq->name);
+
+/**
+ * Attaches the camera to an object at the command's offsets.
+ */
+static int scsSetSyncObj(_SEN_CMR_SEQ *sequence, CSceneCmrSeq *owner) {
+    owner->sync_obj = sequence->frame;
+    owner->sync_mode = sequence->mode;
+    sceVu0CopyVector(owner->sync_ofs, sequence->vec1);
+    owner->sync_angle = sequence->vec0[0];
+    owner->sync_height = sequence->vec0[1];
+    owner->sync_dist = sequence->vec0[2];
+    strcpy(owner->sync_frame, sequence->name);
     owner->pos[0] = owner->ref[0] + owner->sync_dist * sinf(owner->sync_angle);
     owner->pos[1] = owner->sync_height + owner->ref[1];
     owner->pos[2] = owner->ref[2] + owner->sync_dist * cosf(owner->sync_angle);
@@ -626,9 +857,13 @@ int scsSetSyncObj(_SEN_CMR_SEQ *seq, CSceneCmrSeq *owner) {
     owner->height = owner->sync_height;
     owner->dist = owner->sync_dist;
     owner->sync = 1;
-    return 0;
+    return SCENE_SEQ_NEXT;
 }
-int scsReleaseSyncObj(_SEN_CMR_SEQ *seq, CSceneCmrSeq *owner) {
+
+/**
+ * Detaches the camera from its object.
+ */
+static int scsReleaseSyncObj(_SEN_CMR_SEQ *sequence, CSceneCmrSeq *owner) {
     owner->sync = 0;
     owner->sync_obj = 0;
     owner->sync_mode = 0;
@@ -636,20 +871,24 @@ int scsReleaseSyncObj(_SEN_CMR_SEQ *seq, CSceneCmrSeq *owner) {
     owner->sync_angle = 0;
     owner->sync_height = 0;
     owner->sync_dist = 0;
-    strcpy(owner->sync_frame, at_1527__2);
-    return 0;
+    strcpy(owner->sync_frame, "");
+    return SCENE_SEQ_NEXT;
 }
-int scsAHDSlowing(_SEN_CMR_SEQ *seq, CSceneCmrSeq *owner) {
+
+/**
+ * Slows the angle, height and distance motion by the command's rate each frame.
+ */
+static int scsAHDSlowing(_SEN_CMR_SEQ *sequence, CSceneCmrSeq *owner) {
     if (owner->ahd_cnt <= 0) {
         owner->ahd_cnt++;
-        return 1;
+        return SCENE_SEQ_WAIT;
     }
-    if (!(owner->ahd_cnt < seq->mode)) {
+    if (owner->ahd_cnt >= sequence->mode) {
         owner->ahd_cnt = 0;
         mgZeroVector(owner->ahd_vel);
-        return 0;
+        return SCENE_SEQ_NEXT;
     }
-    sceVu0ScaleVector(owner->ahd_vel, owner->ahd_vel, seq->value);
+    sceVu0ScaleVector(owner->ahd_vel, owner->ahd_vel, sequence->value);
     if (owner->sync != 0) {
         owner->sync_angle += owner->ahd_vel[0];
         if (owner->sync_angle > 3.1415927f) {
@@ -673,28 +912,52 @@ int scsAHDSlowing(_SEN_CMR_SEQ *seq, CSceneCmrSeq *owner) {
         owner->pos[2] = owner->ref[2] + owner->dist * cosf(owner->angle);
     }
     owner->ahd_cnt++;
-    return 1;
+    return SCENE_SEQ_WAIT;
 }
-int scsAHDKeep(_SEN_CMR_SEQ * sequence, CSceneCmrSeq * owner) {
+
+/**
+ * Marks the command the angle, height and distance track returns to.
+ */
+static s32 scsAHDKeep(_SEN_CMR_SEQ * sequence, CSceneCmrSeq * owner) {
     owner->ahd_keep = sequence;
     return SCENE_SEQ_NEXT;
 }
-int scsAHDReturn(_SEN_CMR_SEQ *sequence, CSceneCmrSeq *owner) {
+
+/**
+ * Sends the angle, height and distance track back to its marked command.
+ */
+static s32 scsAHDReturn(_SEN_CMR_SEQ *sequence, CSceneCmrSeq *owner) {
     return SCENE_SEQ_RETURN;
 }
-int scsInitPas(_SEN_CMR_SEQ *seq, CSceneCmrSeq *owner) {
+
+/**
+ * Clears the camera path.
+ */
+static int scsInitPas(_SEN_CMR_SEQ *sequence, CSceneCmrSeq *owner) {
     owner->pas.Initialize();
-    return 0;
+    return SCENE_SEQ_NEXT;
 }
-int scsSetPasFrm(_SEN_CMR_SEQ *seq, CSceneCmrSeq *owner) {
-    owner->pas.SetFrame(seq->frame);
-    return 0;
+
+/**
+ * Sets the number of frames the camera path lasts.
+ */
+static int scsSetPasFrm(_SEN_CMR_SEQ *sequence, CSceneCmrSeq *owner) {
+    owner->pas.SetFrame(sequence->frame);
+    return SCENE_SEQ_NEXT;
 }
-int scsAddPas(_SEN_CMR_SEQ *seq, CSceneCmrSeq *owner) {
-    owner->pas.AddCameraPas(seq->vec0, seq->vec1);
-    return 0;
+
+/**
+ * Adds an eye and target point to the camera path.
+ */
+static int scsAddPas(_SEN_CMR_SEQ *sequence, CSceneCmrSeq *owner) {
+    owner->pas.AddCameraPas(sequence->vec0, sequence->vec1);
+    return SCENE_SEQ_NEXT;
 }
-int scsStartPas(_SEN_CMR_SEQ *seq, CSceneCmrSeq *owner) {
+
+/**
+ * Moves the camera along its path until the path ends.
+ */
+static int scsStartPas(_SEN_CMR_SEQ *sequence, CSceneCmrSeq *owner) {
     float eye_point[4];
     float look_point[4];
 
@@ -710,110 +973,140 @@ int scsStartPas(_SEN_CMR_SEQ *seq, CSceneCmrSeq *owner) {
     sceVu0CopyVector(owner->ref, look_point);
     if (owner->pas.CheckEnd() != 0) {
         owner->pr_cnt = 0;
-        return 0;
+        return SCENE_SEQ_NEXT;
     }
-    return 1;
+    return SCENE_SEQ_WAIT;
 }
-int scsPRSlowing(_SEN_CMR_SEQ *seq, CSceneCmrSeq *owner) {
+
+/**
+ * Slows the eye and target motion by the command's rate each frame.
+ */
+static int scsPRSlowing(_SEN_CMR_SEQ *sequence, CSceneCmrSeq *owner) {
     if (owner->pr_cnt <= 0) {
         owner->pr_cnt++;
-        return 1;
+        return SCENE_SEQ_WAIT;
     }
-    if (!(owner->pr_cnt < seq->mode)) {
+    if (owner->pr_cnt >= sequence->mode) {
         owner->pr_cnt = 0;
         mgZeroVector(owner->pos_vel);
         mgZeroVector(owner->ref_vel);
-        return 0;
+        return SCENE_SEQ_NEXT;
     }
-    sceVu0ScaleVector(owner->pos_vel, owner->pos_vel, seq->value);
-    sceVu0ScaleVector(owner->ref_vel, owner->ref_vel, seq->value);
+    sceVu0ScaleVector(owner->pos_vel, owner->pos_vel, sequence->value);
+    sceVu0ScaleVector(owner->ref_vel, owner->ref_vel, sequence->value);
     sceVu0AddVector(owner->pos, owner->pos, owner->pos_vel);
     sceVu0AddVector(owner->ref, owner->ref, owner->ref_vel);
     owner->pr_cnt++;
-    return 1;
+    return SCENE_SEQ_WAIT;
 }
-int scsPRKeep(_SEN_CMR_SEQ * sequence, CSceneCmrSeq * owner) {
+
+/**
+ * Marks the command the eye and target track returns to.
+ */
+static s32 scsPRKeep(_SEN_CMR_SEQ * sequence, CSceneCmrSeq * owner) {
     owner->pr_keep = sequence;
     return SCENE_SEQ_NEXT;
 }
-int scsPRReturn(_SEN_CMR_SEQ *sequence, CSceneCmrSeq *owner) {
+
+/**
+ * Sends the eye and target track back to its marked command.
+ */
+static s32 scsPRReturn(_SEN_CMR_SEQ *sequence, CSceneCmrSeq *owner) {
     return SCENE_SEQ_RETURN;
 }
-int scsFadeDelay(_SEN_CMR_SEQ *seq, CSceneCmrSeq *owner) {
-    int elapsed;
 
-    elapsed = owner->fade_cnt;
-    if (elapsed >= seq->frame) {
+/**
+ * Waits the command's number of frames on the fade track.
+ */
+static int scsFadeDelay(_SEN_CMR_SEQ *sequence, CSceneCmrSeq *owner) {
+    if (owner->fade_cnt >= sequence->frame) {
         owner->fade_cnt = 0;
-        return 0;
+        return SCENE_SEQ_NEXT;
     }
-    owner->fade_cnt = elapsed + 1;
-    return 1;
+    owner->fade_cnt++;
+    return SCENE_SEQ_WAIT;
 }
-int scsFadeInit(_SEN_CMR_SEQ *sequence, CSceneCmrSeq *owner) {
+
+/**
+ * Runs the fade track's initialisation command, which has no action.
+ */
+static s32 scsFadeInit(_SEN_CMR_SEQ *sequence, CSceneCmrSeq *owner) {
     return SCENE_SEQ_NEXT;
 }
-int scsFadeIn(_SEN_CMR_SEQ *seq, CSceneCmrSeq *owner) {
-    if (owner->fade_cnt <= 0) {
-        EventScene->fade.FadeIn(seq->frame, seq->vec0[0], seq->vec0[1], seq->vec0[2]);
-        owner->fade_cnt = 1;
-    }
-    EventScene->fade.FadeStep();
-    EventScene->fade.Draw();
-    if (EventScene->fade.FadeCheck() != 0) {
-        owner->fade_cnt = 0;
-        return 0;
-    }
-    return 1;
-}
-int scsFadeOut(_SEN_CMR_SEQ *seq, CSceneCmrSeq *owner) {
-    if (owner->fade_cnt <= 0) {
-        EventScene->fade.FadeOut(seq->frame, seq->vec0[0], seq->vec0[1], seq->vec0[2]);
-        owner->fade_cnt = 1;
-    }
-    EventScene->fade.FadeStep();
-    EventScene->fade.Draw();
-    if (EventScene->fade.FadeCheck() != 0) {
-        owner->fade_cnt = 0;
-        return 0;
-    }
-    return 1;
-}
-int scsQuakeDelay(_SEN_CMR_SEQ *seq, CSceneCmrSeq *owner) {
-    int elapsed;
 
-    elapsed = owner->quake_cnt;
-    if (elapsed >= seq->frame) {
-        owner->quake_cnt = 0;
-        return 0;
+/**
+ * Fades the screen in from the command's colour.
+ */
+static int scsFadeIn(_SEN_CMR_SEQ *sequence, CSceneCmrSeq *owner) {
+    if (owner->fade_cnt <= 0) {
+        EventScene->fade.FadeIn(sequence->frame, sequence->vec0[0], sequence->vec0[1], sequence->vec0[2]);
+        owner->fade_cnt = 1;
     }
-    owner->quake_cnt = elapsed + 1;
-    return 1;
+    EventScene->fade.FadeStep();
+    EventScene->fade.Draw();
+    if (EventScene->fade.FadeCheck() != 0) {
+        owner->fade_cnt = 0;
+        return SCENE_SEQ_NEXT;
+    }
+    return SCENE_SEQ_WAIT;
 }
-int scsQuake(_SEN_CMR_SEQ *seq, CSceneCmrSeq *owner) {
+
+/**
+ * Fades the screen out to the command's colour.
+ */
+static int scsFadeOut(_SEN_CMR_SEQ *sequence, CSceneCmrSeq *owner) {
+    if (owner->fade_cnt <= 0) {
+        EventScene->fade.FadeOut(sequence->frame, sequence->vec0[0], sequence->vec0[1], sequence->vec0[2]);
+        owner->fade_cnt = 1;
+    }
+    EventScene->fade.FadeStep();
+    EventScene->fade.Draw();
+    if (EventScene->fade.FadeCheck() != 0) {
+        owner->fade_cnt = 0;
+        return SCENE_SEQ_NEXT;
+    }
+    return SCENE_SEQ_WAIT;
+}
+
+/**
+ * Waits the command's number of frames on the quake track.
+ */
+static int scsQuakeDelay(_SEN_CMR_SEQ *sequence, CSceneCmrSeq *owner) {
+    if (owner->quake_cnt >= sequence->frame) {
+        owner->quake_cnt = 0;
+        return SCENE_SEQ_NEXT;
+    }
+    owner->quake_cnt++;
+    return SCENE_SEQ_WAIT;
+}
+
+/**
+ * Shakes the camera, over the command's frames with a decaying amplitude or until stopped.
+ */
+static int scsQuake(_SEN_CMR_SEQ *sequence, CSceneCmrSeq *owner) {
     float amplitude[4];
 
-    if (seq->frame <= -1) {
+    if (sequence->frame <= -1) {
         owner->quake = 1;
         sceVu0CopyVector(owner->quake_pos, owner->pos);
         sceVu0CopyVector(owner->quake_ref, owner->ref);
         if (owner->quake_cnt % 4 == 0) {
-            sceVu0AddVector(owner->pos, owner->pos, seq->vec0);
-            sceVu0AddVector(owner->ref, owner->ref, seq->vec0);
+            sceVu0AddVector(owner->pos, owner->pos, sequence->vec0);
+            sceVu0AddVector(owner->ref, owner->ref, sequence->vec0);
         } else if (owner->quake_cnt % 4 == 2) {
-            sceVu0SubVector(owner->pos, owner->pos, seq->vec0);
-            sceVu0SubVector(owner->ref, owner->ref, seq->vec0);
+            sceVu0SubVector(owner->pos, owner->pos, sequence->vec0);
+            sceVu0SubVector(owner->ref, owner->ref, sequence->vec0);
         }
         owner->quake_cnt++;
     } else {
-        if (!(owner->quake_cnt < seq->frame)) {
+        if (owner->quake_cnt >= sequence->frame) {
             owner->quake_cnt = 0;
             owner->quake = 0;
-            return 0;
+            return SCENE_SEQ_NEXT;
         }
         if (owner->quake_cnt <= 0) {
             owner->quake = 1;
-            sceVu0CopyVector(owner->quake_amp, seq->vec0);
+            sceVu0CopyVector(owner->quake_amp, sequence->vec0);
         }
         sceVu0CopyVector(owner->quake_pos, owner->pos);
         sceVu0CopyVector(owner->quake_ref, owner->ref);
@@ -823,63 +1116,79 @@ int scsQuake(_SEN_CMR_SEQ *seq, CSceneCmrSeq *owner) {
         } else if (owner->quake_cnt % 4 == 2) {
             sceVu0SubVector(owner->pos, owner->pos, owner->quake_amp);
             sceVu0SubVector(owner->ref, owner->ref, owner->quake_amp);
-            sceVu0DivVector(amplitude, seq->vec0, seq->frame);
+            sceVu0DivVector(amplitude, sequence->vec0, sequence->frame);
             sceVu0ScaleVector(amplitude, amplitude, owner->quake_cnt);
-            sceVu0SubVector(owner->quake_amp, seq->vec0, amplitude);
+            sceVu0SubVector(owner->quake_amp, sequence->vec0, amplitude);
         }
         owner->quake_cnt++;
     }
-    return 1;
+    return SCENE_SEQ_WAIT;
 }
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/sceneseq", scsQuake2__FP12_SEN_CMR_SEQP12CSceneCmrSeq);
-int scsCharaDelay(_SEN_CMR_SEQ *seq, CSceneCmrSeq *owner) {
-    int elapsed;
 
-    elapsed = owner->chara_cnt;
-    if (elapsed >= seq->frame) {
+INCLUDE_ASM("ps2/asm/pal/nonmatchings/sceneseq", scsQuake2__FP12_SEN_CMR_SEQP12CSceneCmrSeq);
+
+/**
+ * Waits the command's number of frames on the character track.
+ */
+static int scsCharaDelay(_SEN_CMR_SEQ *sequence, CSceneCmrSeq *owner) {
+    if (owner->chara_cnt >= sequence->frame) {
         owner->chara_cnt = 0;
-        return 0;
+        return SCENE_SEQ_NEXT;
     }
-    owner->chara_cnt = elapsed + 1;
-    return 1;
+    owner->chara_cnt++;
+    return SCENE_SEQ_WAIT;
 }
-int scsCharaAttach(_SEN_CMR_SEQ *seq, CSceneCmrSeq *owner) {
+
+/**
+ * Places a character in front of the camera at the command's distance.
+ */
+static int scsCharaAttach(_SEN_CMR_SEQ *sequence, CSceneCmrSeq *owner) {
     CCharacter2 *chara;
     float direction[4];
     float target[4];
 
-    if (seq->attach_frame >= 0 && !(owner->chara_cnt < seq->attach_frame)) {
+    if (sequence->attach_frame >= 0 && owner->chara_cnt >= sequence->attach_frame) {
         owner->chara_cnt = 0;
-        return 0;
+        return SCENE_SEQ_NEXT;
     }
-    chara = GetCharacter(seq->frame);
+    chara = GetCharacter(sequence->frame);
     if (chara == NULL) {
-        return 0;
+        return SCENE_SEQ_NEXT;
     }
     sceVu0SubVector(direction, owner->ref, owner->pos);
     sceVu0Normalize(direction, direction);
-    sceVu0ScaleVector(direction, direction, seq->dist);
+    sceVu0ScaleVector(direction, direction, sequence->dist);
     sceVu0AddVector(target, owner->pos, direction);
     chara->SetPosition(target);
     owner->chara_cnt++;
-    return 1;
-}
-int scsDummy(_SEN_CMR_SEQ *sequence, CSceneCmrSeq *owner) {
     return SCENE_SEQ_WAIT;
 }
-void InitSceneCmrSeq(_SEN_CMR_SEQ *seq) {
+
+/**
+ * Handles the command numbers that have no action.
+ */
+static s32 scsDummy(_SEN_CMR_SEQ *sequence, CSceneCmrSeq *owner) {
+    return SCENE_SEQ_WAIT;
+}
+
+/**
+ * Clears a camera sequence command.
+ */
+static void InitSceneCmrSeq(_SEN_CMR_SEQ *seq) {
     seq->cmd = 0;
     mgZeroVector(seq->vec0);
     mgZeroVector(seq->vec1);
     seq->frame = 0;
     seq->mode = 0;
     seq->ease_rate = 0;
-    strcpy(seq->name, at_1527__2);
+    strcpy(seq->name, "");
     seq->next = NULL;
 }
+
 CSceneCmrSeq::CSceneCmrSeq() {
     ZeroInitialize();
 }
+
 void CSceneCmrSeq::ZeroInitialize() {
     seq_tbl = NULL;
     seq_num = 0;
@@ -887,12 +1196,14 @@ void CSceneCmrSeq::ZeroInitialize() {
     mgZeroVector(ref);
     Clear();
 }
+
 void CSceneCmrSeq::Initialize(_SEN_CMR_SEQ *nodes, int count) {
     ZeroInitialize();
     seq_tbl = nodes;
     seq_num = count;
     Clear();
 }
+
 void CSceneCmrSeq::Clear() {
     int i;
 
@@ -912,7 +1223,7 @@ void CSceneCmrSeq::Clear() {
     sync_obj = -1;
     sync_mode = 0;
     mgZeroVector(sync_ofs);
-    strcpy(sync_frame, at_1527__2);
+    strcpy(sync_frame, "");
     sync_dist = 0;
     sync_height = 0;
     sync_angle = 0;
@@ -946,11 +1257,12 @@ void CSceneCmrSeq::Clear() {
     chara_last = NULL;
     if (seq_tbl != NULL && seq_num > 0) {
         for (i = 0; i < seq_num; i++) {
-            InitSceneCmrSeq(seq_tbl + i);
+            InitSceneCmrSeq(&seq_tbl[i]);
         }
     }
 }
-int CSceneCmrSeq::CheckEnd(void) {
+
+s32 CSceneCmrSeq::CheckEnd(void) {
     if (pr_seq == 0) {
         if (ahd_seq == 0 && fade_seq == 0 && quake_seq == 0) {
             return 1;
@@ -958,7 +1270,9 @@ int CSceneCmrSeq::CheckEnd(void) {
     }
     return 0;
 }
+
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/sceneseq", Play__12CSceneCmrSeqFv);
+
 _SEN_CMR_SEQ *CSceneCmrSeq::SearchSeq() {
     _SEN_CMR_SEQ *node = seq_tbl;
     int i;
@@ -971,6 +1285,7 @@ _SEN_CMR_SEQ *CSceneCmrSeq::SearchSeq() {
     }
     return NULL;
 }
+
 _SEN_CMR_SEQ *CSceneCmrSeq::SearchNextPrSeq() {
     _SEN_CMR_SEQ *node = SearchSeq();
 
@@ -987,6 +1302,7 @@ _SEN_CMR_SEQ *CSceneCmrSeq::SearchNextPrSeq() {
     }
     return node;
 }
+
 _SEN_CMR_SEQ *CSceneCmrSeq::SearchNextAhdSeq() {
     _SEN_CMR_SEQ *node = SearchSeq();
 
@@ -1003,6 +1319,7 @@ _SEN_CMR_SEQ *CSceneCmrSeq::SearchNextAhdSeq() {
     }
     return node;
 }
+
 _SEN_CMR_SEQ *CSceneCmrSeq::SearchNextFadeSeq() {
     _SEN_CMR_SEQ *node = SearchSeq();
 
@@ -1019,6 +1336,7 @@ _SEN_CMR_SEQ *CSceneCmrSeq::SearchNextFadeSeq() {
     }
     return node;
 }
+
 _SEN_CMR_SEQ *CSceneCmrSeq::SearchNextQuakeSeq() {
     _SEN_CMR_SEQ *node = SearchSeq();
 
@@ -1035,6 +1353,7 @@ _SEN_CMR_SEQ *CSceneCmrSeq::SearchNextQuakeSeq() {
     }
     return node;
 }
+
 _SEN_CMR_SEQ *CSceneCmrSeq::SearchNextCharaSeq() {
     _SEN_CMR_SEQ *node = SearchSeq();
 
@@ -1051,31 +1370,33 @@ _SEN_CMR_SEQ *CSceneCmrSeq::SearchNextCharaSeq() {
     }
     return node;
 }
-_SEN_CMR_SEQ *CSceneCmrSeq::GetNextSeq(_SEN_CMR_SEQ *seq, int lane) {
+
+_SEN_CMR_SEQ *CSceneCmrSeq::GetNextSeq(_SEN_CMR_SEQ *seq, int track) {
     _SEN_CMR_SEQ *next;
 
     if (seq == NULL) {
-        return 0;
+        return NULL;
     }
     next = seq->next;
-    switch (lane) {
-        case 0:
-            if (pr_keep == 0) {
-                InitSceneCmrSeq(seq);
-            }
-            break;
-        case 1:
-            if (ahd_keep == 0) {
-                InitSceneCmrSeq(seq);
-            }
-            break;
-        case 2:
+    switch (track) {
+    case 0:
+        if (pr_keep == NULL) {
             InitSceneCmrSeq(seq);
-            break;
+        }
+        break;
+    case 1:
+        if (ahd_keep == NULL) {
+            InitSceneCmrSeq(seq);
+        }
+        break;
+    case 2:
+        InitSceneCmrSeq(seq);
+        break;
     }
     return next;
 }
-void CSceneCmrSeq::PRDelay(int frames) {
+
+void CSceneCmrSeq::PRDelay(s32 frames) {
     _SEN_CMR_SEQ *command = SearchNextPrSeq();
     if (command != NULL) {
         if (frames > 0) {
@@ -1088,79 +1409,95 @@ void CSceneCmrSeq::PRDelay(int frames) {
         command->frame = frames;
     }
 }
+
 void CSceneCmrSeq::SetPos(float *eye_pos) {
-    _SEN_CMR_SEQ *node;
-
-    node = SearchNextPrSeq();
-    if (node != NULL) {
-        node->cmd = SCENE_CMR_CMD_SET_POS;
-        sceVu0CopyVector(node->vec0, eye_pos);
+    _SEN_CMR_SEQ *command = SearchNextPrSeq();
+    if (command != NULL) {
+        command->cmd = SCENE_CMR_CMD_SET_POS;
+        sceVu0CopyVector(command->vec0, eye_pos);
     }
 }
+
 void CSceneCmrSeq::SetRef(float *ref_pos) {
-    _SEN_CMR_SEQ *node;
-
-    node = SearchNextPrSeq();
-    if (node != NULL) {
-        node->cmd = SCENE_CMR_CMD_SET_REF;
-        sceVu0CopyVector(node->vec1, ref_pos);
+    _SEN_CMR_SEQ *command = SearchNextPrSeq();
+    if (command != NULL) {
+        command->cmd = SCENE_CMR_CMD_SET_REF;
+        sceVu0CopyVector(command->vec1, ref_pos);
     }
 }
+
 void CSceneCmrSeq::Move(float *eye_pos, float *ref_pos, int frames) {
-    _SEN_CMR_SEQ *node;
-
-    node = SearchNextPrSeq();
-    if (node != NULL) {
-        CONVERT_TO_PAL_FRAMES(frames);
-        node->cmd = SCENE_CMR_CMD_MOVE;
-        sceVu0CopyVector(node->vec0, eye_pos);
-        sceVu0CopyVector(node->vec1, ref_pos);
-        node->frame = frames;
+    _SEN_CMR_SEQ *command = SearchNextPrSeq();
+    if (command != NULL) {
+        if (frames > 0) {
+            frames = (frames * 50) / 60;
+            if (frames <= 0) {
+                frames = 1;
+            }
+        }
+        command->cmd = SCENE_CMR_CMD_MOVE;
+        sceVu0CopyVector(command->vec0, eye_pos);
+        sceVu0CopyVector(command->vec1, ref_pos);
+        command->frame = frames;
     }
 }
-void CSceneCmrSeq::Move2(float *eye_pos, float *ref_pos, int frames, int param34, float param38) {
-    _SEN_CMR_SEQ *node;
 
-    node = SearchNextPrSeq();
-    if (node != NULL) {
-        CONVERT_TO_PAL_FRAMES(frames);
-        node->cmd = SCENE_CMR_CMD_MOVE2;
-        sceVu0CopyVector(node->vec0, eye_pos);
-        sceVu0CopyVector(node->vec1, ref_pos);
-        node->frame = frames;
-        node->mode = param34;
-        node->ease_rate = param38;
+void CSceneCmrSeq::Move2(float *eye_pos, float *ref_pos, int frames, int ease, float ease_rate) {
+    _SEN_CMR_SEQ *command = SearchNextPrSeq();
+    if (command != NULL) {
+        if (frames > 0) {
+            frames = (frames * 50) / 60;
+            if (frames <= 0) {
+                frames = 1;
+            }
+        }
+        command->cmd = SCENE_CMR_CMD_MOVE2;
+        sceVu0CopyVector(command->vec0, eye_pos);
+        sceVu0CopyVector(command->vec1, ref_pos);
+        command->frame = frames;
+        command->mode = ease;
+        command->ease_rate = ease_rate;
     }
 }
+
 void CSceneCmrSeq::MoveRef(float *ref_pos, int frames) {
-    _SEN_CMR_SEQ *node;
-
-    node = SearchNextPrSeq();
-    if (node != NULL) {
-        CONVERT_TO_PAL_FRAMES(frames);
-        node->cmd = SCENE_CMR_CMD_MOVE_REF;
-        sceVu0CopyVector(node->vec1, ref_pos);
-        node->frame = frames;
+    _SEN_CMR_SEQ *command = SearchNextPrSeq();
+    if (command != NULL) {
+        if (frames > 0) {
+            frames = (frames * 50) / 60;
+            if (frames <= 0) {
+                frames = 1;
+            }
+        }
+        command->cmd = SCENE_CMR_CMD_MOVE_REF;
+        sceVu0CopyVector(command->vec1, ref_pos);
+        command->frame = frames;
     }
 }
+
 void CSceneCmrSeq::MovePos(float *eye_pos, int frames) {
-    _SEN_CMR_SEQ *node;
-
-    node = SearchNextPrSeq();
-    if (node != NULL) {
-        CONVERT_TO_PAL_FRAMES(frames);
-        node->cmd = SCENE_CMR_CMD_MOVE_POS;
-        sceVu0CopyVector(node->vec0, eye_pos);
-        node->frame = frames;
+    _SEN_CMR_SEQ *command = SearchNextPrSeq();
+    if (command != NULL) {
+        if (frames > 0) {
+            frames = (frames * 50) / 60;
+            if (frames <= 0) {
+                frames = 1;
+            }
+        }
+        command->cmd = SCENE_CMR_CMD_MOVE_POS;
+        sceVu0CopyVector(command->vec0, eye_pos);
+        command->frame = frames;
     }
 }
+
 void CSceneCmrSeq::InitPas(void) {
     _SEN_CMR_SEQ *command = SearchNextPrSeq();
     if (command != NULL) {
         command->cmd = SCENE_CMR_CMD_INIT_PAS;
     }
 }
-void CSceneCmrSeq::SetPasFrm(int frames) {
+
+void CSceneCmrSeq::SetPasFrm(s32 frames) {
     _SEN_CMR_SEQ *command = SearchNextPrSeq();
     if (command != NULL) {
         if (frames > 0) {
@@ -1173,46 +1510,53 @@ void CSceneCmrSeq::SetPasFrm(int frames) {
         command->frame = frames;
     }
 }
-void CSceneCmrSeq::AddPas(float *eye_point, float *look_point) {
-    _SEN_CMR_SEQ *node;
 
-    node = SearchNextPrSeq();
-    if (node != NULL) {
-        node->cmd = SCENE_CMR_CMD_ADD_PAS;
-        sceVu0CopyVector(node->vec0, eye_point);
-        sceVu0CopyVector(node->vec1, look_point);
+void CSceneCmrSeq::AddPas(float *eye_point, float *look_point) {
+    _SEN_CMR_SEQ *command = SearchNextPrSeq();
+    if (command != NULL) {
+        command->cmd = SCENE_CMR_CMD_ADD_PAS;
+        sceVu0CopyVector(command->vec0, eye_point);
+        sceVu0CopyVector(command->vec1, look_point);
     }
 }
+
 void CSceneCmrSeq::StartPas(void) {
     _SEN_CMR_SEQ *command = SearchNextPrSeq();
     if (command != NULL) {
         command->cmd = SCENE_CMR_CMD_START_PAS;
     }
 }
-void CSceneCmrSeq::PRSlowing(float rate, int frames) {
-    _SEN_CMR_SEQ *node;
 
-    node = SearchNextPrSeq();
-    if (node != NULL) {
-        CONVERT_TO_PAL_FRAMES(frames);
-        node->cmd = SCENE_CMR_CMD_PR_SLOWING;
-        node->value = rate;
-        node->mode = frames;
+void CSceneCmrSeq::PRSlowing(float rate, int frames) {
+    _SEN_CMR_SEQ *command = SearchNextPrSeq();
+    if (command != NULL) {
+        if (frames > 0) {
+            frames = (frames * 50) / 60;
+            if (frames <= 0) {
+                frames = 1;
+            }
+        }
+        command->cmd = SCENE_CMR_CMD_PR_SLOWING;
+        command->value = rate;
+        command->mode = frames;
     }
 }
+
 void CSceneCmrSeq::PRKeep(void) {
     _SEN_CMR_SEQ *command = SearchNextPrSeq();
     if (command != NULL) {
         command->cmd = SCENE_CMR_CMD_PR_KEEP;
     }
 }
+
 void CSceneCmrSeq::PRReturn(void) {
     _SEN_CMR_SEQ *command = SearchNextPrSeq();
     if (command != NULL) {
         command->cmd = SCENE_CMR_CMD_PR_RETURN;
     }
 }
-void CSceneCmrSeq::AHDDelay(int frames) {
+
+void CSceneCmrSeq::AHDDelay(s32 frames) {
     _SEN_CMR_SEQ *command = SearchNextAhdSeq();
     if (command != NULL) {
         if (frames > 0) {
@@ -1225,6 +1569,7 @@ void CSceneCmrSeq::AHDDelay(int frames) {
         command->frame = frames;
     }
 }
+
 void CSceneCmrSeq::SetAngle(float angle) {
     _SEN_CMR_SEQ *command = SearchNextAhdSeq();
     if (command != NULL) {
@@ -1232,15 +1577,15 @@ void CSceneCmrSeq::SetAngle(float angle) {
         command->value = angle;
     }
 }
-void CSceneCmrSeq::SetHeight(float new_height) {
-    _SEN_CMR_SEQ *node;
 
-    node = SearchNextAhdSeq();
-    if (node != NULL) {
-        node->cmd = SCENE_CMR_CMD_SET_HEIGHT;
-        node->value = new_height;
+void CSceneCmrSeq::SetHeight(float new_height) {
+    _SEN_CMR_SEQ *command = SearchNextAhdSeq();
+    if (command != NULL) {
+        command->cmd = SCENE_CMR_CMD_SET_HEIGHT;
+        command->value = new_height;
     }
 }
+
 void CSceneCmrSeq::SetDist(float distance) {
     _SEN_CMR_SEQ *command = SearchNextAhdSeq();
     if (command != NULL) {
@@ -1248,96 +1593,110 @@ void CSceneCmrSeq::SetDist(float distance) {
         command->value = distance;
     }
 }
+
 void CSceneCmrSeq::SetAHD(float new_angle, float new_height, float new_dist) {
-    _SEN_CMR_SEQ *node;
-
-    node = SearchNextAhdSeq();
-    if (node != NULL) {
-        node->cmd = SCENE_CMR_CMD_SET_AHD;
-        node->vec0[0] = new_angle;
-        node->vec0[1] = new_height;
-        node->vec0[2] = new_dist;
+    _SEN_CMR_SEQ *command = SearchNextAhdSeq();
+    if (command != NULL) {
+        command->cmd = SCENE_CMR_CMD_SET_AHD;
+        command->vec0[0] = new_angle;
+        command->vec0[1] = new_height;
+        command->vec0[2] = new_dist;
     }
 }
+
 void CSceneCmrSeq::MoveAHD(float new_angle, float new_height, float new_dist, int frames) {
-    _SEN_CMR_SEQ *node;
-
-    node = SearchNextAhdSeq();
-    if (node != NULL) {
-        CONVERT_TO_PAL_FRAMES(frames);
-        node->cmd = SCENE_CMR_CMD_MOVE_AHD;
-        node->vec0[0] = new_angle;
-        node->vec0[1] = new_height;
-        node->vec0[2] = new_dist;
-        node->frame = frames;
+    _SEN_CMR_SEQ *command = SearchNextAhdSeq();
+    if (command != NULL) {
+        if (frames > 0) {
+            frames = (frames * 50) / 60;
+            if (frames <= 0) {
+                frames = 1;
+            }
+        }
+        command->cmd = SCENE_CMR_CMD_MOVE_AHD;
+        command->vec0[0] = new_angle;
+        command->vec0[1] = new_height;
+        command->vec0[2] = new_dist;
+        command->frame = frames;
     }
 }
-void CSceneCmrSeq::MoveAHD2(float new_angle, float new_height, float new_dist, int frames, int param34,
-                            float param38) {
-    _SEN_CMR_SEQ *node;
 
-    node = SearchNextAhdSeq();
-    if (node != NULL) {
-        CONVERT_TO_PAL_FRAMES(frames);
-        node->cmd = SCENE_CMR_CMD_MOVE_AHD2;
-        node->vec0[0] = new_angle;
-        node->vec0[1] = new_height;
-        node->vec0[2] = new_dist;
-        node->frame = frames;
-        node->mode = param34;
-        node->ease_rate = param38;
+void CSceneCmrSeq::MoveAHD2(float new_angle, float new_height, float new_dist, int frames, int ease,
+                            float ease_rate) {
+    _SEN_CMR_SEQ *command = SearchNextAhdSeq();
+    if (command != NULL) {
+        if (frames > 0) {
+            frames = (frames * 50) / 60;
+            if (frames <= 0) {
+                frames = 1;
+            }
+        }
+        command->cmd = SCENE_CMR_CMD_MOVE_AHD2;
+        command->vec0[0] = new_angle;
+        command->vec0[1] = new_height;
+        command->vec0[2] = new_dist;
+        command->frame = frames;
+        command->mode = ease;
+        command->ease_rate = ease_rate;
     }
 }
-void CSceneCmrSeq::SetSyncObj(int kind, float *offset, float angle_offset, float height_offset,
-                              float dist_offset, int option, char *name) {
-    _SEN_CMR_SEQ *node;
 
-    node = SearchNextAhdSeq();
-    if (node != NULL) {
-        node->cmd = SCENE_CMR_CMD_SET_SYNC_OBJ;
-        sceVu0CopyVector(node->vec1, offset);
-        node->vec0[0] = angle_offset;
-        node->vec0[1] = height_offset;
-        node->vec0[2] = dist_offset;
-        node->frame = kind;
-        node->mode = option;
-        if (name != NULL) {
-            strcpy(node->name, name);
+void CSceneCmrSeq::SetSyncObj(int obj, float *ofs, float angle_offset, float height_offset,
+                              float dist_offset, int mode, char *frame_name) {
+    _SEN_CMR_SEQ *command = SearchNextAhdSeq();
+    if (command != NULL) {
+        command->cmd = SCENE_CMR_CMD_SET_SYNC_OBJ;
+        sceVu0CopyVector(command->vec1, ofs);
+        command->vec0[0] = angle_offset;
+        command->vec0[1] = height_offset;
+        command->vec0[2] = dist_offset;
+        command->frame = obj;
+        command->mode = mode;
+        if (frame_name != NULL) {
+            strcpy(command->name, frame_name);
         } else {
-            strcpy(node->name, at_1527__2);
+            strcpy(command->name, "");
         }
     }
 }
+
 void CSceneCmrSeq::ReleaseSyncObj(void) {
     _SEN_CMR_SEQ *command = SearchNextAhdSeq();
     if (command != NULL) {
         command->cmd = SCENE_CMR_CMD_RELEASE_SYNC_OBJ;
     }
 }
-void CSceneCmrSeq::AHDSlowing(float rate, int frames) {
-    _SEN_CMR_SEQ *node;
 
-    node = SearchNextAhdSeq();
-    if (node != NULL) {
-        CONVERT_TO_PAL_FRAMES(frames);
-        node->cmd = SCENE_CMR_CMD_AHD_SLOWING;
-        node->value = rate;
-        node->mode = frames;
+void CSceneCmrSeq::AHDSlowing(float rate, int frames) {
+    _SEN_CMR_SEQ *command = SearchNextAhdSeq();
+    if (command != NULL) {
+        if (frames > 0) {
+            frames = (frames * 50) / 60;
+            if (frames <= 0) {
+                frames = 1;
+            }
+        }
+        command->cmd = SCENE_CMR_CMD_AHD_SLOWING;
+        command->value = rate;
+        command->mode = frames;
     }
 }
+
 void CSceneCmrSeq::AHDKeep(void) {
     _SEN_CMR_SEQ *command = SearchNextAhdSeq();
     if (command != NULL) {
         command->cmd = SCENE_CMR_CMD_AHD_KEEP;
     }
 }
+
 void CSceneCmrSeq::AHDReturn(void) {
     _SEN_CMR_SEQ *command = SearchNextAhdSeq();
     if (command != NULL) {
         command->cmd = SCENE_CMR_CMD_AHD_RETURN;
     }
 }
-void CSceneCmrSeq::FadeDelay(int frames) {
+
+void CSceneCmrSeq::FadeDelay(s32 frames) {
     _SEN_CMR_SEQ *command = SearchNextFadeSeq();
     if (command != NULL) {
         if (frames > 0) {
@@ -1350,39 +1709,49 @@ void CSceneCmrSeq::FadeDelay(int frames) {
         command->frame = frames;
     }
 }
+
 void CSceneCmrSeq::FadeInit(void) {
     _SEN_CMR_SEQ *command = SearchNextFadeSeq();
     if (command != NULL) {
         command->cmd = SCENE_CMR_CMD_FADE_INIT;
     }
 }
+
 void CSceneCmrSeq::FadeIn(int frames, float r, float g, float b) {
-    _SEN_CMR_SEQ *node;
-
-    node = SearchNextFadeSeq();
-    if (node != NULL) {
-        CONVERT_TO_PAL_FRAMES(frames);
-        node->cmd = SCENE_CMR_CMD_FADE_IN;
-        node->frame = frames;
-        node->vec0[0] = r;
-        node->vec0[1] = g;
-        node->vec0[2] = b;
+    _SEN_CMR_SEQ *command = SearchNextFadeSeq();
+    if (command != NULL) {
+        if (frames > 0) {
+            frames = (frames * 50) / 60;
+            if (frames <= 0) {
+                frames = 1;
+            }
+        }
+        command->cmd = SCENE_CMR_CMD_FADE_IN;
+        command->frame = frames;
+        command->vec0[0] = r;
+        command->vec0[1] = g;
+        command->vec0[2] = b;
     }
 }
+
 void CSceneCmrSeq::FadeOut(int frames, float r, float g, float b) {
-    _SEN_CMR_SEQ *node;
-
-    node = SearchNextFadeSeq();
-    if (node != NULL) {
-        CONVERT_TO_PAL_FRAMES(frames);
-        node->cmd = SCENE_CMR_CMD_FADE_OUT;
-        node->frame = frames;
-        node->vec0[0] = r;
-        node->vec0[1] = g;
-        node->vec0[2] = b;
+    _SEN_CMR_SEQ *command = SearchNextFadeSeq();
+    if (command != NULL) {
+        if (frames > 0) {
+            frames = (frames * 50) / 60;
+            if (frames <= 0) {
+                frames = 1;
+            }
+        }
+        command->cmd = SCENE_CMR_CMD_FADE_OUT;
+        command->frame = frames;
+        command->vec0[0] = r;
+        command->vec0[1] = g;
+        command->vec0[2] = b;
     }
 }
-void CSceneCmrSeq::QuakeDelay(int frames) {
+
+void CSceneCmrSeq::QuakeDelay(s32 frames) {
     _SEN_CMR_SEQ *command = SearchNextQuakeSeq();
     if (command != NULL) {
         if (frames > 0) {
@@ -1395,34 +1764,43 @@ void CSceneCmrSeq::QuakeDelay(int frames) {
         command->frame = frames;
     }
 }
-void CSceneCmrSeq::Quake(float *amplitude, int frames) {
-    _SEN_CMR_SEQ *node;
 
-    node = SearchNextQuakeSeq();
-    if (node != NULL) {
-        CONVERT_TO_PAL_FRAMES(frames);
-        node->cmd = SCENE_CMR_CMD_QUAKE;
-        sceVu0CopyVector(node->vec0, amplitude);
-        node->frame = frames;
-    }
-}
-void CSceneCmrSeq::Quake2(float *amplitude, int frames) {
-    _SEN_CMR_SEQ *node;
-
-    node = SearchNextQuakeSeq();
-    if (node != NULL) {
-        CONVERT_TO_PAL_FRAMES(frames);
-        node->cmd = SCENE_CMR_CMD_QUAKE2;
-        sceVu0CopyVector(node->vec0, amplitude);
-        node->frame = frames;
-        if (frames <= -1) {
-            sceVu0DivVector(node->vec0, node->vec0, node->frame);
+void CSceneCmrSeq::Quake(float *amp, int frames) {
+    _SEN_CMR_SEQ *command = SearchNextQuakeSeq();
+    if (command != NULL) {
+        if (frames > 0) {
+            frames = (frames * 50) / 60;
+            if (frames <= 0) {
+                frames = 1;
+            }
         }
-        node->vec0[0] = 0;
-        node->vec0[2] = 0;
+        command->cmd = SCENE_CMR_CMD_QUAKE;
+        sceVu0CopyVector(command->vec0, amp);
+        command->frame = frames;
     }
 }
-void CSceneCmrSeq::CharaDelay(int frames) {
+
+void CSceneCmrSeq::Quake2(float *amp, int frames) {
+    _SEN_CMR_SEQ *command = SearchNextQuakeSeq();
+    if (command != NULL) {
+        if (frames > 0) {
+            frames = (frames * 50) / 60;
+            if (frames <= 0) {
+                frames = 1;
+            }
+        }
+        command->cmd = SCENE_CMR_CMD_QUAKE2;
+        sceVu0CopyVector(command->vec0, amp);
+        command->frame = frames;
+        if (frames <= -1) {
+            sceVu0DivVector(command->vec0, command->vec0, command->frame);
+        }
+        command->vec0[0] = 0;
+        command->vec0[2] = 0;
+    }
+}
+
+void CSceneCmrSeq::CharaDelay(s32 frames) {
     _SEN_CMR_SEQ *command = SearchNextCharaSeq();
     if (command != NULL) {
         if (frames > 0) {
@@ -1435,42 +1813,55 @@ void CSceneCmrSeq::CharaDelay(int frames) {
         command->frame = frames;
     }
 }
-void CSceneCmrSeq::CharaAttach(int kind, float factor, int frames) {
-    _SEN_CMR_SEQ *node;
 
-    node = SearchNextCharaSeq();
-    if (node != NULL) {
-        CONVERT_TO_PAL_FRAMES(frames);
-        node->cmd = SCENE_CMR_CMD_CHARA_ATTACH;
-        node->frame = kind;
-        node->dist = factor;
-        node->attach_frame = frames;
+void CSceneCmrSeq::CharaAttach(int chara_no, float factor, int frames) {
+    _SEN_CMR_SEQ *command = SearchNextCharaSeq();
+    if (command != NULL) {
+        if (frames > 0) {
+            frames = (frames * 50) / 60;
+            if (frames <= 0) {
+                frames = 1;
+            }
+        }
+        command->cmd = SCENE_CMR_CMD_CHARA_ATTACH;
+        command->frame = chara_no;
+        command->dist = factor;
+        command->attach_frame = frames;
     }
 }
-int scsPosDelay(_SEN_OBJ_SEQ *seq, CSceneObjSeq *owner) {
-    int elapsed;
 
-    elapsed = owner->pos_cnt;
-    if (elapsed >= seq->frame) {
+/**
+ * Waits the command's number of frames on the position track.
+ */
+static int scsPosDelay(_SEN_OBJ_SEQ *sequence, CSceneObjSeq *owner) {
+    if (owner->pos_cnt >= sequence->frame) {
         owner->pos_cnt = 0;
-        return 0;
+        return SCENE_SEQ_NEXT;
     }
-    owner->pos_cnt = elapsed + 1;
-    return 1;
+    owner->pos_cnt++;
+    return SCENE_SEQ_WAIT;
 }
-int scsSetPos(_SEN_OBJ_SEQ *seq, CSceneObjSeq *owner) {
-    sceVu0CopyVector(owner->pos, seq->vec);
-    return 0;
+
+/**
+ * Places the object.
+ */
+static int scsSetPos(_SEN_OBJ_SEQ *sequence, CSceneObjSeq *owner) {
+    sceVu0CopyVector(owner->pos, sequence->vec);
+    return SCENE_SEQ_NEXT;
 }
-int scsMove(_SEN_OBJ_SEQ *seq, CSceneObjSeq *owner) {
-    if (!(owner->pos_cnt < seq->frame)) {
-        if (seq->mode == 0) {
-            sceVu0CopyVector(owner->pos, seq->vec);
+
+/**
+ * Moves the object linearly over the command's frames, on the ground if the command asks.
+ */
+static int scsMove(_SEN_OBJ_SEQ *sequence, CSceneObjSeq *owner) {
+    if (owner->pos_cnt >= sequence->frame) {
+        if (sequence->mode == 0) {
+            sceVu0CopyVector(owner->pos, sequence->vec);
             owner->pos_cnt = 0;
         } else {
-            if (seq->mode == 1) {
-                owner->pos[0] = seq->vec[0];
-                owner->pos[2] = seq->vec[2];
+            if (sequence->mode == 1) {
+                owner->pos[0] = sequence->vec[0];
+                owner->pos[2] = sequence->vec[2];
                 {
                     mgVu0FBOX box;
                     CCPoly polys[128];
@@ -1499,18 +1890,18 @@ int scsMove(_SEN_OBJ_SEQ *seq, CSceneObjSeq *owner) {
             }
             owner->pos_cnt = 0;
         }
-        return 0;
+        return SCENE_SEQ_NEXT;
     }
     if (owner->pos_cnt <= 0) {
         float delta[4];
 
-        sceVu0SubVector(delta, seq->vec, owner->pos);
-        sceVu0DivVector(owner->pos_spd, delta, seq->frame);
+        sceVu0SubVector(delta, sequence->vec, owner->pos);
+        sceVu0DivVector(owner->pos_spd, delta, sequence->frame);
         owner->pos_spd[3] = 1.0f;
     } else {
-        if (seq->mode == 0) {
+        if (sequence->mode == 0) {
             sceVu0AddVector(owner->pos, owner->pos, owner->pos_spd);
-        } else if (seq->mode == 1) {
+        } else if (sequence->mode == 1) {
             sceVu0AddVector(owner->pos, owner->pos, owner->pos_spd);
             {
                 mgVu0FBOX box;
@@ -1541,22 +1932,39 @@ int scsMove(_SEN_OBJ_SEQ *seq, CSceneObjSeq *owner) {
         owner->pos[3] = 1.0f;
     }
     owner->pos_cnt++;
-    return 1;
+    return SCENE_SEQ_WAIT;
 }
+
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/sceneseq", scsMove2__FP12_SEN_OBJ_SEQP12CSceneObjSeq);
-int scsInitPas(_SEN_OBJ_SEQ *seq, CSceneObjSeq *owner) {
+
+/**
+ * Clears the object's path.
+ */
+static int scsInitPas(_SEN_OBJ_SEQ *sequence, CSceneObjSeq *owner) {
     owner->pas.Initialize();
-    return 0;
+    return SCENE_SEQ_NEXT;
 }
-int scsSetPasFrm(_SEN_OBJ_SEQ *seq, CSceneObjSeq *owner) {
-    owner->pas.SetFrame(seq->frame);
-    return 0;
+
+/**
+ * Sets the number of frames the object's path lasts.
+ */
+static int scsSetPasFrm(_SEN_OBJ_SEQ *sequence, CSceneObjSeq *owner) {
+    owner->pas.SetFrame(sequence->frame);
+    return SCENE_SEQ_NEXT;
 }
-int scsAddPas(_SEN_OBJ_SEQ *seq, CSceneObjSeq *owner) {
-    owner->pas.AddCharaPas(seq->vec);
-    return 0;
+
+/**
+ * Adds a point to the object's path.
+ */
+static int scsAddPas(_SEN_OBJ_SEQ *sequence, CSceneObjSeq *owner) {
+    owner->pas.AddCharaPas(sequence->vec);
+    return SCENE_SEQ_NEXT;
 }
-int scsStartPas(_SEN_OBJ_SEQ *seq, CSceneObjSeq *owner) {
+
+/**
+ * Moves the object along its path until the path ends, on the ground if the command asks.
+ */
+static int scsStartPas(_SEN_OBJ_SEQ *sequence, CSceneObjSeq *owner) {
     float previous_pos[4];
     mgVu0FBOX box;
     CCPoly polys[128];
@@ -1572,7 +1980,7 @@ int scsStartPas(_SEN_OBJ_SEQ *seq, CSceneObjSeq *owner) {
     }
     sceVu0CopyVector(previous_pos, owner->pos);
     owner->pas.Step(owner->pos, &owner->rot[1]);
-    if (seq->frame == 1) {
+    if (sequence->frame == 1) {
         box.max[0] = 10.0f + owner->pos[0];
         box.min[0] = owner->pos[0] - 10.0f;
         box.max[1] = 10.0f + owner->pos[1];
@@ -1584,7 +1992,6 @@ int scsStartPas(_SEN_OBJ_SEQ *seq, CSceneObjSeq *owner) {
         from[1] += 10.0f;
         from[3] = 1.0f;
         sceVu0CopyVector(to, owner->pos);
-
         to[1] += 10.0f;
         to[3] = 1.0f;
         if (CheckHit(polys, count, from, to, hit, 1, 0) >= 0) {
@@ -1593,109 +2000,135 @@ int scsStartPas(_SEN_OBJ_SEQ *seq, CSceneObjSeq *owner) {
     }
     if (owner->pas.CheckEnd() != 0) {
         owner->pos_cnt = 0;
-        return 0;
+        return SCENE_SEQ_NEXT;
     }
-    return 1;
+    return SCENE_SEQ_WAIT;
 }
-int scsJump(_SEN_OBJ_SEQ *seq, CSceneObjSeq *owner) {
+
+/**
+ * Moves the object along a parabolic jump to the command's position.
+ */
+static int scsJump(_SEN_OBJ_SEQ *sequence, CSceneObjSeq *owner) {
     int elapsed;
 
     if (owner->pos_cnt <= 0) {
         sceVu0CopyVector(owner->jump_start, owner->pos);
-        sceVu0CopyVector(owner->jump_end, seq->vec);
+        sceVu0CopyVector(owner->jump_end, sequence->vec);
     }
     elapsed = owner->pos_cnt;
-    if (elapsed >= seq->sub_frame) {
+    if (elapsed >= sequence->sub_frame) {
         sceVu0CopyVector(owner->pos, owner->jump_end);
         owner->pos_cnt = 0;
-        return 0;
+        return SCENE_SEQ_NEXT;
     }
     owner->pos_cnt = elapsed + 1;
-    CalcPosParabolicJump(owner->pos, owner->jump_start, owner->jump_end, seq->value, (float)seq->sub_frame,
-                         (float)owner->pos_cnt);
-    return 1;
+    CalcPosParabolicJump(owner->pos, owner->jump_start, owner->jump_end, sequence->value, sequence->sub_frame,
+                         owner->pos_cnt);
+    return SCENE_SEQ_WAIT;
 }
-int scsSetEohFramePos(_SEN_OBJ_SEQ *seq, CSceneObjSeq *owner) {
+
+/**
+ * Places the object at an offset from a frame of an event object.
+ */
+static int scsSetEohFramePos(_SEN_OBJ_SEQ *sequence, CSceneObjSeq *owner) {
     float frame_pos[4];
 
-    if (EventObjHandleMother.GetFramePos(seq->no, seq->name, frame_pos) == 0) {
-        return 0;
+    if (EventObjHandleMother.GetFramePos(sequence->no, sequence->name, frame_pos) == 0) {
+        return SCENE_SEQ_NEXT;
     }
-    sceVu0AddVector(owner->pos, frame_pos, seq->vec);
-    if (seq->sub_frame >= 0 && !(owner->pos_cnt < seq->sub_frame)) {
+    sceVu0AddVector(owner->pos, frame_pos, sequence->vec);
+    if (sequence->sub_frame >= 0 && owner->pos_cnt >= sequence->sub_frame) {
         owner->pos_cnt = 0;
-        return 0;
+        return SCENE_SEQ_NEXT;
     }
-    if (seq->sub_frame > 0) {
+    if (sequence->sub_frame > 0) {
         owner->pos_cnt++;
     }
-    return 1;
+    return SCENE_SEQ_WAIT;
 }
-int scsAddPos(_SEN_OBJ_SEQ *seq, CSceneObjSeq *owner) {
-    int elapsed;
 
-    elapsed = owner->pos_cnt;
-    if (elapsed >= seq->frame) {
+/**
+ * Moves the object by the command's offset each frame.
+ */
+static int scsAddPos(_SEN_OBJ_SEQ *sequence, CSceneObjSeq *owner) {
+    if (owner->pos_cnt >= sequence->frame) {
         owner->pos_cnt = 0;
-        return 0;
+        return SCENE_SEQ_NEXT;
     }
-    sceVu0AddVector(owner->pos, owner->pos, seq->vec);
+    sceVu0AddVector(owner->pos, owner->pos, sequence->vec);
     owner->pos_cnt++;
-    return 1;
+    return SCENE_SEQ_WAIT;
 }
-int scsAttachCamera(_SEN_OBJ_SEQ *seq, CSceneObjSeq *owner) {
+
+/**
+ * Places the object in front of the camera at the command's distance.
+ */
+static int scsAttachCamera(_SEN_OBJ_SEQ *sequence, CSceneObjSeq *owner) {
     mgCCamera *camera;
     float camera_pos[4];
     float camera_ref[4];
     float direction[4];
     float target[4];
 
-    if (seq->sub_frame >= 0 && !(owner->pos_cnt < seq->sub_frame)) {
+    if (sequence->sub_frame >= 0 && owner->pos_cnt >= sequence->sub_frame) {
         owner->pos_cnt = 0;
-        return 0;
+        return SCENE_SEQ_NEXT;
     }
     camera = GetActiveCamera();
     camera->GetPos(camera_pos);
     camera->GetRef(camera_ref);
     sceVu0SubVector(direction, camera_ref, camera_pos);
     sceVu0Normalize(direction, direction);
-    sceVu0ScaleVector(direction, direction, seq->value);
+    sceVu0ScaleVector(direction, direction, sequence->value);
     sceVu0AddVector(target, camera_pos, direction);
     sceVu0CopyVector(owner->pos, target);
     owner->pos_cnt++;
-    return 1;
+    return SCENE_SEQ_WAIT;
 }
-int scsResetDAPosition(_SEN_OBJ_SEQ *seq, CSceneObjSeq *owner) {
+
+/**
+ * Writes the object's position and rotation to its event object and resets its draw position.
+ */
+static int scsResetDAPosition(_SEN_OBJ_SEQ *sequence, CSceneObjSeq *owner) {
     EventObjHandleMother.SetPos(owner->eoh_no, owner->pos[0], owner->pos[1], owner->pos[2]);
     EventObjHandleMother.SetRot(owner->eoh_no, owner->rot[0], owner->rot[1], owner->rot[2]);
     EventObjHandleMother.UpdatePosition(owner->eoh_no);
     EventObjHandleMother.ResetDAPosition(owner->eoh_no);
-    return 0;
+    return SCENE_SEQ_NEXT;
 }
-int scsRotDelay(_SEN_OBJ_SEQ *seq, CSceneObjSeq *owner) {
-    int elapsed;
 
-    elapsed = owner->rot_cnt;
-    if (elapsed >= seq->frame) {
+/**
+ * Waits the command's number of frames on the rotation track.
+ */
+static int scsRotDelay(_SEN_OBJ_SEQ *sequence, CSceneObjSeq *owner) {
+    if (owner->rot_cnt >= sequence->frame) {
         owner->rot_cnt = 0;
-        return 0;
+        return SCENE_SEQ_NEXT;
     }
-    owner->rot_cnt = elapsed + 1;
-    return 1;
+    owner->rot_cnt++;
+    return SCENE_SEQ_WAIT;
 }
-int scsSetRot(_SEN_OBJ_SEQ *seq, CSceneObjSeq *owner) {
-    sceVu0CopyVector(owner->rot, seq->vec);
-    return 0;
+
+/**
+ * Sets the object's rotation.
+ */
+static int scsSetRot(_SEN_OBJ_SEQ *sequence, CSceneObjSeq *owner) {
+    sceVu0CopyVector(owner->rot, sequence->vec);
+    return SCENE_SEQ_NEXT;
 }
-int scsRotation(_SEN_OBJ_SEQ *seq, CSceneObjSeq *owner) {
+
+/**
+ * Turns the object to the command's rotation over its frames, or by the command's step each frame.
+ */
+static int scsRotation(_SEN_OBJ_SEQ *sequence, CSceneObjSeq *owner) {
     int i;
     int j;
     int k;
     float delta;
 
-    if (seq->frame < 0) {
+    if (sequence->frame < 0) {
         for (i = 0; i < 3; i++) {
-            owner->rot[i] += seq->vec[i];
+            owner->rot[i] += sequence->vec[i];
             if (owner->rot[i] > 3.1415927f) {
                 owner->rot[i] -= 6.2831855f;
             } else if (owner->rot[i] <= -3.1415927f) {
@@ -1703,20 +2136,20 @@ int scsRotation(_SEN_OBJ_SEQ *seq, CSceneObjSeq *owner) {
             }
         }
     } else {
-        if (!(owner->rot_cnt < seq->frame)) {
-            sceVu0CopyVector(owner->rot, seq->vec);
+        if (owner->rot_cnt >= sequence->frame) {
+            sceVu0CopyVector(owner->rot, sequence->vec);
             owner->rot_cnt = 0;
-            return 0;
+            return SCENE_SEQ_NEXT;
         }
         if (owner->rot_cnt <= 0) {
             for (j = 0; j < 3; j++) {
-                delta = seq->vec[j] - owner->rot[j];
+                delta = sequence->vec[j] - owner->rot[j];
                 if (delta > 3.1415927f) {
                     delta -= 6.2831855f;
                 } else if (delta <= -3.1415927f) {
                     delta += 6.2831855f;
                 }
-                owner->rot_spd[j] = delta / seq->frame;
+                owner->rot_spd[j] = delta / sequence->frame;
             }
         } else {
             for (k = 0; k < 3; k++) {
@@ -1730,41 +2163,46 @@ int scsRotation(_SEN_OBJ_SEQ *seq, CSceneObjSeq *owner) {
         }
         owner->rot_cnt++;
     }
-    return 1;
+    return SCENE_SEQ_WAIT;
 }
+
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/sceneseq", scsRotation2__FP12_SEN_OBJ_SEQP12CSceneObjSeq);
-int scsReference(_SEN_OBJ_SEQ *seq, CSceneObjSeq *owner) {
+
+/**
+ * Turns the object to face the command's position over its frames.
+ */
+static int scsReference(_SEN_OBJ_SEQ *sequence, CSceneObjSeq *owner) {
     float direction[4];
     float target[4];
     float angle;
     float delta;
 
-    if (!(owner->rot_cnt < seq->frame)) {
-        if (seq->frame > 0) {
-            sceVu0CopyVector(owner->rot, seq->vec);
+    if (owner->rot_cnt >= sequence->frame) {
+        if (sequence->frame > 0) {
+            sceVu0CopyVector(owner->rot, sequence->vec);
         }
         owner->rot_cnt = 0;
-    return 0;
+        return SCENE_SEQ_NEXT;
     }
     if (owner->rot_cnt <= 0) {
         angle = 0.0f;
         mgZeroVector(target);
-        sceVu0SubVector(direction, owner->pos, seq->vec);
+        sceVu0SubVector(direction, owner->pos, sequence->vec);
         direction[3] = 0;
         direction[1] = 0;
         sceVu0Normalize(direction, direction);
-        if (!(angle == direction[0] && angle == direction[2])) {
+        if (angle != direction[0] || angle != direction[2]) {
             angle = atan2f(-direction[0], -direction[2]);
         }
         target[1] = angle;
-        sceVu0CopyVector(seq->vec, target);
-        delta = seq->vec[1] - owner->rot[1];
+        sceVu0CopyVector(sequence->vec, target);
+        delta = sequence->vec[1] - owner->rot[1];
         if (delta > 3.1415927f) {
             delta -= 6.2831855f;
         } else if (delta <= -3.1415927f) {
             delta += 6.2831855f;
         }
-        owner->rot_spd[1] = delta / seq->frame;
+        owner->rot_spd[1] = delta / sequence->frame;
     } else {
         owner->rot[1] += owner->rot_spd[1];
         if (owner->rot[1] > 3.1415927f) {
@@ -1774,175 +2212,250 @@ int scsReference(_SEN_OBJ_SEQ *seq, CSceneObjSeq *owner) {
         }
     }
     owner->rot_cnt++;
-    return 1;
+    return SCENE_SEQ_WAIT;
 }
-int scsMotionDelay(_SEN_OBJ_SEQ *seq, CSceneObjSeq *owner) {
-    int elapsed;
 
-    elapsed = owner->mot_cnt;
-    if (elapsed >= seq->frame) {
+/**
+ * Waits the command's number of frames on the motion track.
+ */
+static int scsMotionDelay(_SEN_OBJ_SEQ *sequence, CSceneObjSeq *owner) {
+    if (owner->mot_cnt >= sequence->frame) {
         owner->mot_cnt = 0;
-        return 0;
+        return SCENE_SEQ_NEXT;
     }
-    owner->mot_cnt = elapsed + 1;
-    return 1;
+    owner->mot_cnt++;
+    return SCENE_SEQ_WAIT;
 }
+
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/sceneseq", scsSetMotion__FP12_SEN_OBJ_SEQP12CSceneObjSeq);
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/sceneseq", scsNextMotion__FP12_SEN_OBJ_SEQP12CSceneObjSeq);
-int scsMotionWait(_SEN_OBJ_SEQ *seq, CSceneObjSeq *owner) {
-    return (EventObjHandleMother.CheckMotionEnd(owner->eoh_no) != 0) ^ 1;
-}
-int scsMotionTrg(_SEN_OBJ_SEQ *seq, CSceneObjSeq *owner) {
-    EventObjHandleMother.SetMotionTrg(owner->eoh_no);
-    return 0;
-}
-int scsSetMotStep(_SEN_OBJ_SEQ *seq, CSceneObjSeq *owner) {
-    EventObjHandleMother.SetStep(owner->eoh_no, seq->value);
-    return 0;
-}
-int scsSetMotChangeStep(_SEN_OBJ_SEQ *seq, CSceneObjSeq *owner) {
-    EventObjHandleMother.SetChangeStep(owner->eoh_no, seq->value);
-    return 0;
-}
-int scsResetMotion(_SEN_OBJ_SEQ *seq, CSceneObjSeq *owner) {
-    EventObjHandleMother.ResetMotion(owner->eoh_no);
-    return 0;
-}
-int scsSetMotionNowTime(_SEN_OBJ_SEQ *seq, CSceneObjSeq *owner) {
-    EventObjHandleMother.SetMotionNowTime(owner->eoh_no, seq->value);
-    return 0;
-}
-int scsSetMotionWaitTime(_SEN_OBJ_SEQ *seq, CSceneObjSeq *owner) {
-    EventObjHandleMother.SetMotionWaitTime(owner->eoh_no, seq->value);
-    return 0;
-}
-int scsNormalDrive(_SEN_OBJ_SEQ *seq, CSceneObjSeq *owner) {
-    EventObjHandleMother.NormalDrive(owner->eoh_no);
-    return 0;
-}
-int scsMotionTrgWait(_SEN_OBJ_SEQ *seq, CSceneObjSeq *owner) {
-    return (EventObjHandleMother.GetSeqStatus(owner->eoh_no) == 3) ^ 1;
-}
-int scsTexAnimeDelay(_SEN_OBJ_SEQ *seq, CSceneObjSeq *owner) {
-    int elapsed;
 
-    elapsed = owner->anm_cnt;
-    if (elapsed >= seq->frame) {
-        owner->anm_cnt = 0;
-        return 0;
-        }
-    owner->anm_cnt = elapsed + 1;
-    return 1;
-}
-int scsTexAnime(_SEN_OBJ_SEQ *seq, CSceneObjSeq *owner) {
-    if (strcmp(seq->name, at_1527__2) == 0) {
-        EventObjHandleMother.SetTexAnim(owner->eoh_no, seq->frame, NULL);
-    } else {
-        EventObjHandleMother.SetTexAnim(owner->eoh_no, seq->frame, seq->name);
+/**
+ * Waits until the object's motion ends.
+ */
+static int scsMotionWait(_SEN_OBJ_SEQ *sequence, CSceneObjSeq *owner) {
+    if (EventObjHandleMother.CheckMotionEnd(owner->eoh_no) != 0) {
+        return SCENE_SEQ_NEXT;
     }
-    return 0;
+    return SCENE_SEQ_WAIT;
 }
-int scsColorDelay(_SEN_OBJ_SEQ *seq, CSceneObjSeq *owner) {
-    int elapsed;
 
-    elapsed = owner->col_cnt;
-    if (elapsed >= seq->frame) {
-        owner->col_cnt = 0;
-        return 0;
-            }
-    owner->col_cnt = elapsed + 1;
-    return 1;
+/**
+ * Sets the object's motion trigger.
+ */
+static int scsMotionTrg(_SEN_OBJ_SEQ *sequence, CSceneObjSeq *owner) {
+    EventObjHandleMother.SetMotionTrg(owner->eoh_no);
+    return SCENE_SEQ_NEXT;
 }
-int scsSetColor(_SEN_OBJ_SEQ *seq, CSceneObjSeq *owner) {
+
+/**
+ * Sets the playback step of the object's motion.
+ */
+static int scsSetMotStep(_SEN_OBJ_SEQ *sequence, CSceneObjSeq *owner) {
+    EventObjHandleMother.SetStep(owner->eoh_no, sequence->value);
+    return SCENE_SEQ_NEXT;
+}
+
+/**
+ * Sets the blend step of the object's motion changes.
+ */
+static int scsSetMotChangeStep(_SEN_OBJ_SEQ *sequence, CSceneObjSeq *owner) {
+    EventObjHandleMother.SetChangeStep(owner->eoh_no, sequence->value);
+    return SCENE_SEQ_NEXT;
+}
+
+/**
+ * Resets the object's motion.
+ */
+static int scsResetMotion(_SEN_OBJ_SEQ *sequence, CSceneObjSeq *owner) {
+    EventObjHandleMother.ResetMotion(owner->eoh_no);
+    return SCENE_SEQ_NEXT;
+}
+
+/**
+ * Sets the current time of the object's motion.
+ */
+static int scsSetMotionNowTime(_SEN_OBJ_SEQ *sequence, CSceneObjSeq *owner) {
+    EventObjHandleMother.SetMotionNowTime(owner->eoh_no, sequence->value);
+    return SCENE_SEQ_NEXT;
+}
+
+/**
+ * Sets the wait time of the object's motion.
+ */
+static int scsSetMotionWaitTime(_SEN_OBJ_SEQ *sequence, CSceneObjSeq *owner) {
+    EventObjHandleMother.SetMotionWaitTime(owner->eoh_no, sequence->value);
+    return SCENE_SEQ_NEXT;
+}
+
+/**
+ * Returns the object's motion to normal control.
+ */
+static int scsNormalDrive(_SEN_OBJ_SEQ *sequence, CSceneObjSeq *owner) {
+    EventObjHandleMother.NormalDrive(owner->eoh_no);
+    return SCENE_SEQ_NEXT;
+}
+
+/**
+ * Waits until the object's motion sequence reaches its trigger.
+ */
+static int scsMotionTrgWait(_SEN_OBJ_SEQ *sequence, CSceneObjSeq *owner) {
+    if (EventObjHandleMother.GetSeqStatus(owner->eoh_no) == 3) {
+        return SCENE_SEQ_NEXT;
+    }
+    return SCENE_SEQ_WAIT;
+}
+
+/**
+ * Waits the command's number of frames on the texture animation track.
+ */
+static int scsTexAnimeDelay(_SEN_OBJ_SEQ *sequence, CSceneObjSeq *owner) {
+    if (owner->anm_cnt >= sequence->frame) {
+        owner->anm_cnt = 0;
+        return SCENE_SEQ_NEXT;
+    }
+    owner->anm_cnt++;
+    return SCENE_SEQ_WAIT;
+}
+
+/**
+ * Sets the object's texture animation.
+ */
+static int scsTexAnime(_SEN_OBJ_SEQ *sequence, CSceneObjSeq *owner) {
+    if (strcmp(sequence->name, "") == 0) {
+        EventObjHandleMother.SetTexAnim(owner->eoh_no, sequence->frame, NULL);
+    } else {
+        EventObjHandleMother.SetTexAnim(owner->eoh_no, sequence->frame, sequence->name);
+    }
+    return SCENE_SEQ_NEXT;
+}
+
+/**
+ * Waits the command's number of frames on the colour track.
+ */
+static int scsColorDelay(_SEN_OBJ_SEQ *sequence, CSceneObjSeq *owner) {
+    if (owner->col_cnt >= sequence->frame) {
+        owner->col_cnt = 0;
+        return SCENE_SEQ_NEXT;
+    }
+    owner->col_cnt++;
+    return SCENE_SEQ_WAIT;
+}
+
+/**
+ * Changes the object's colour linearly over the command's frames.
+ */
+static int scsSetColor(_SEN_OBJ_SEQ *sequence, CSceneObjSeq *owner) {
     float delta[4];
     float current[4];
     float stepped[4];
 
-    if (!(owner->col_cnt < seq->frame)) {
-        EventObjHandleMother.SetColor(owner->eoh_no, seq->vec);
+    if (owner->col_cnt >= sequence->frame) {
+        EventObjHandleMother.SetColor(owner->eoh_no, sequence->vec);
         owner->col_cnt = 0;
-        return 0;
-        }
+        return SCENE_SEQ_NEXT;
+    }
     if (owner->col_cnt <= 0) {
         EventObjHandleMother.GetColor(owner->eoh_no, current);
-        sceVu0SubVector(delta, seq->vec, current);
-        sceVu0DivVector(owner->color_spd, delta, seq->frame);
+        sceVu0SubVector(delta, sequence->vec, current);
+        sceVu0DivVector(owner->color_spd, delta, sequence->frame);
     } else {
         EventObjHandleMother.GetColor(owner->eoh_no, stepped);
         sceVu0AddVector(stepped, stepped, owner->color_spd);
         EventObjHandleMother.SetColor(owner->eoh_no, stepped);
     }
     owner->col_cnt++;
-    return 1;
+    return SCENE_SEQ_WAIT;
 }
-int scsScaleDelay(_SEN_OBJ_SEQ *seq, CSceneObjSeq *owner) {
-    int elapsed;
 
-    elapsed = owner->scale_cnt;
-    if (elapsed >= seq->frame) {
+/**
+ * Waits the command's number of frames on the scale track.
+ */
+static int scsScaleDelay(_SEN_OBJ_SEQ *sequence, CSceneObjSeq *owner) {
+    if (owner->scale_cnt >= sequence->frame) {
         owner->scale_cnt = 0;
-        return 0;
+        return SCENE_SEQ_NEXT;
     }
-    owner->scale_cnt = elapsed + 1;
-    return 1;
+    owner->scale_cnt++;
+    return SCENE_SEQ_WAIT;
 }
-int scsSetScale(_SEN_OBJ_SEQ *seq, CSceneObjSeq *owner) {
+
+/**
+ * Changes the object's scale linearly over the command's frames.
+ */
+static int scsSetScale(_SEN_OBJ_SEQ *sequence, CSceneObjSeq *owner) {
     float delta[4];
     float current[4];
     float stepped[4];
 
-    if (!(owner->scale_cnt < seq->frame)) {
-        EventObjHandleMother.SetScale(owner->eoh_no, seq->vec[0], seq->vec[1], seq->vec[2]);
+    if (owner->scale_cnt >= sequence->frame) {
+        EventObjHandleMother.SetScale(owner->eoh_no, sequence->vec[0], sequence->vec[1], sequence->vec[2]);
         owner->scale_cnt = 0;
-        return 0;
-            }
+        return SCENE_SEQ_NEXT;
+    }
     if (owner->scale_cnt <= 0) {
         EventObjHandleMother.GetScale(owner->eoh_no, current);
-        sceVu0SubVector(delta, seq->vec, current);
-        sceVu0DivVector(owner->scale_spd, delta, seq->frame);
+        sceVu0SubVector(delta, sequence->vec, current);
+        sceVu0DivVector(owner->scale_spd, delta, sequence->frame);
     } else {
         EventObjHandleMother.GetScale(owner->eoh_no, stepped);
         sceVu0AddVector(stepped, stepped, owner->scale_spd);
         EventObjHandleMother.SetScale(owner->eoh_no, stepped[0], stepped[1], stepped[2]);
-        }
-    owner->scale_cnt++;
-    return 1;
-}
-int scsSeDelay(_SEN_OBJ_SEQ *seq, CSceneObjSeq *owner) {
-    int elapsed;
-
-    elapsed = owner->se_cnt;
-    if (elapsed >= seq->frame) {
-        owner->se_cnt = 0;
-        return 0;
     }
-    owner->se_cnt = elapsed + 1;
-    return 1;
+    owner->scale_cnt++;
+    return SCENE_SEQ_WAIT;
 }
-int scsSePlay(_SEN_OBJ_SEQ *seq, CSceneObjSeq *owner) {
-    sndSePlay(seq->no, seq->se_no, 0);
-    return 0;
+
+/**
+ * Waits the command's number of frames on the sound effect track.
+ */
+static int scsSeDelay(_SEN_OBJ_SEQ *sequence, CSceneObjSeq *owner) {
+    if (owner->se_cnt >= sequence->frame) {
+        owner->se_cnt = 0;
+        return SCENE_SEQ_NEXT;
+    }
+    owner->se_cnt++;
+    return SCENE_SEQ_WAIT;
 }
-int scsDummy(_SEN_OBJ_SEQ *seq, CSceneObjSeq *owner) {
-    return 1;
+
+/**
+ * Plays the command's sound effect.
+ */
+static int scsSePlay(_SEN_OBJ_SEQ *sequence, CSceneObjSeq *owner) {
+    sndSePlay(sequence->no, sequence->se_no, 0);
+    return SCENE_SEQ_NEXT;
 }
-void InitSceneObjSeq(_SEN_OBJ_SEQ *seq) {
+
+/**
+ * Handles the command numbers that have no action.
+ */
+static int scsDummy(_SEN_OBJ_SEQ *sequence, CSceneObjSeq *owner) {
+    return SCENE_SEQ_WAIT;
+}
+
+/**
+ * Clears an object sequence command.
+ */
+static void InitSceneObjSeq(_SEN_OBJ_SEQ *seq) {
     seq->cmd = 0;
     mgZeroVector(seq->vec);
     seq->frame = 0;
     seq->mode = 0;
     seq->ease_rate = 0;
-    strcpy(seq->name, at_1527__2);
+    strcpy(seq->name, "");
     seq->next = NULL;
 }
+
 CSceneObjSeq::CSceneObjSeq() {
     ZeroInitialize();
 }
+
 void CSceneObjSeq::ZeroInitialize() {
-    seq_tbl = 0;
+    seq_tbl = NULL;
     seq_num = 0;
-    Initialize(0, 0);
+    Initialize(NULL, 0);
 }
+
 void CSceneObjSeq::Initialize(_SEN_OBJ_SEQ *nodes, int count) {
     int i;
 
@@ -1951,10 +2464,11 @@ void CSceneObjSeq::Initialize(_SEN_OBJ_SEQ *nodes, int count) {
     Clear();
     if (seq_tbl != NULL && seq_num > 0) {
         for (i = 0; i < seq_num; i++) {
-            InitSceneObjSeq(seq_tbl + i);
+            InitSceneObjSeq(&seq_tbl[i]);
         }
     }
 }
+
 void CSceneObjSeq::Clear() {
     eoh_no = -1;
     mgZeroVector(pos);
@@ -1966,20 +2480,20 @@ void CSceneObjSeq::Clear() {
     mgZeroVector(rot_ease_spd);
     mgZeroVector(rot_ease_acc);
     rot_ease_frame = 0;
-    pos_seq = 0;
-    pos_last = 0;
-    rot_seq = 0;
-    rot_last = 0;
-    mot_seq = 0;
-    mot_last = 0;
-    anm_seq = 0;
-    anm_last = 0;
-    col_seq = 0;
-    col_last = 0;
-    scale_seq = 0;
-    scale_last = 0;
-    se_seq = 0;
-    se_last = 0;
+    pos_seq = NULL;
+    pos_last = NULL;
+    rot_seq = NULL;
+    rot_last = NULL;
+    mot_seq = NULL;
+    mot_last = NULL;
+    anm_seq = NULL;
+    anm_last = NULL;
+    col_seq = NULL;
+    col_last = NULL;
+    scale_seq = NULL;
+    scale_last = NULL;
+    se_seq = NULL;
+    se_last = NULL;
     pos_cnt = 0;
     rot_cnt = 0;
     mot_cnt = 0;
@@ -1988,9 +2502,11 @@ void CSceneObjSeq::Clear() {
     scale_cnt = 0;
     se_cnt = 0;
 }
-void CSceneObjSeq::SetEohNo(int eoh_no) {
+
+void CSceneObjSeq::SetEohNo(s32 eoh_no) {
     this->eoh_no = eoh_no;
 }
+
 _SEN_OBJ_SEQ *CSceneObjSeq::SearchSeq() {
     _SEN_OBJ_SEQ *node = seq_tbl;
     int i;
@@ -1999,29 +2515,31 @@ _SEN_OBJ_SEQ *CSceneObjSeq::SearchSeq() {
         if (node->cmd == 0) {
             node->next = NULL;
             return node;
-    }
+        }
     }
     return NULL;
 }
+
 _SEN_OBJ_SEQ *CSceneObjSeq::GetNextSeq(_SEN_OBJ_SEQ *seq) {
     _SEN_OBJ_SEQ *next;
 
     if (seq == NULL) {
-        return 0;
+        return NULL;
     }
     next = seq->next;
     InitSceneObjSeq(seq);
     return next;
 }
+
 _SEN_OBJ_SEQ *CSceneObjSeq::SearchNextPosSeq() {
     _SEN_OBJ_SEQ *node = SearchSeq();
 
     if (node == NULL) {
         return NULL;
-            }
+    }
     if (pos_last != NULL) {
         pos_last->next = node;
-        }
+    }
     pos_last = node;
     node->next = NULL;
     if (pos_seq == NULL) {
@@ -2029,6 +2547,7 @@ _SEN_OBJ_SEQ *CSceneObjSeq::SearchNextPosSeq() {
     }
     return node;
 }
+
 _SEN_OBJ_SEQ *CSceneObjSeq::SearchNextRotSeq() {
     _SEN_OBJ_SEQ *node = SearchSeq();
 
@@ -2045,6 +2564,7 @@ _SEN_OBJ_SEQ *CSceneObjSeq::SearchNextRotSeq() {
     }
     return node;
 }
+
 _SEN_OBJ_SEQ *CSceneObjSeq::SearchNextMotSeq() {
     _SEN_OBJ_SEQ *node = SearchSeq();
 
@@ -2061,15 +2581,16 @@ _SEN_OBJ_SEQ *CSceneObjSeq::SearchNextMotSeq() {
     }
     return node;
 }
+
 _SEN_OBJ_SEQ *CSceneObjSeq::SearchNextAnmSeq() {
     _SEN_OBJ_SEQ *node = SearchSeq();
 
     if (node == NULL) {
         return NULL;
-            }
+    }
     if (anm_last != NULL) {
         anm_last->next = node;
-        }
+    }
     anm_last = node;
     node->next = NULL;
     if (anm_seq == NULL) {
@@ -2077,6 +2598,7 @@ _SEN_OBJ_SEQ *CSceneObjSeq::SearchNextAnmSeq() {
     }
     return node;
 }
+
 _SEN_OBJ_SEQ *CSceneObjSeq::SearchNextColSeq() {
     _SEN_OBJ_SEQ *node = SearchSeq();
 
@@ -2093,15 +2615,16 @@ _SEN_OBJ_SEQ *CSceneObjSeq::SearchNextColSeq() {
     }
     return node;
 }
+
 _SEN_OBJ_SEQ *CSceneObjSeq::SearchNextScaleSeq() {
     _SEN_OBJ_SEQ *node = SearchSeq();
 
     if (node == NULL) {
         return NULL;
-            }
+    }
     if (scale_last != NULL) {
         scale_last->next = node;
-        }
+    }
     scale_last = node;
     node->next = NULL;
     if (scale_seq == NULL) {
@@ -2109,15 +2632,16 @@ _SEN_OBJ_SEQ *CSceneObjSeq::SearchNextScaleSeq() {
     }
     return node;
 }
+
 _SEN_OBJ_SEQ *CSceneObjSeq::SearchNextSeSeq() {
     _SEN_OBJ_SEQ *node = SearchSeq();
 
     if (node == NULL) {
         return NULL;
-            }
+    }
     if (se_last != NULL) {
         se_last->next = node;
-        }
+    }
     se_last = node;
     node->next = NULL;
     if (se_seq == NULL) {
@@ -2125,7 +2649,8 @@ _SEN_OBJ_SEQ *CSceneObjSeq::SearchNextSeSeq() {
     }
     return node;
 }
-int CSceneObjSeq::CheckEnd(void) {
+
+s32 CSceneObjSeq::CheckEnd(void) {
     if (pos_seq == 0) {
         if (rot_seq == 0 && mot_seq == 0 && anm_seq == 0 && col_seq == 0 && scale_seq == 0 && se_seq == 0) {
             return 1;
@@ -2133,6 +2658,7 @@ int CSceneObjSeq::CheckEnd(void) {
     }
     return 0;
 }
+
 void CSceneObjSeq::Play() {
     _SEN_OBJ_SEQ *node;
     int lane;
@@ -2146,50 +2672,47 @@ void CSceneObjSeq::Play() {
         }
         EventObjHandleMother.GetRot(eoh_no, rot);
         for (lane = 0; lane < 7; lane++) {
-
             switch (lane) {
-                case 0:
-                    head = &pos_seq;
-                    tail = &pos_last;
-                    break;
-                case 1:
-                    head = &rot_seq;
-                    tail = &rot_last;
-                    break;
-                case 2:
-                    head = &mot_seq;
-                    tail = &mot_last;
-                    break;
-                case 3:
-                    head = &anm_seq;
-                    tail = &anm_last;
-                    break;
-                case 4:
-                    head = &col_seq;
-                    tail = &col_last;
-                    break;
-                case 5:
-                    head = &scale_seq;
-                    tail = &scale_last;
-                    break;
-                case 6:
-                    head = &se_seq;
-                    tail = &se_last;
-                    break;
+            case 0:
+                head = &pos_seq;
+                tail = &pos_last;
+                break;
+            case 1:
+                head = &rot_seq;
+                tail = &rot_last;
+                break;
+            case 2:
+                head = &mot_seq;
+                tail = &mot_last;
+                break;
+            case 3:
+                head = &anm_seq;
+                tail = &anm_last;
+                break;
+            case 4:
+                head = &col_seq;
+                tail = &col_last;
+                break;
+            case 5:
+                head = &scale_seq;
+                tail = &scale_last;
+                break;
+            case 6:
+                head = &se_seq;
+                tail = &se_last;
+                break;
             }
             node = *head;
-            if (node != NULL) {
-                do {
-                    if (node->cmd > 0 && node->cmd <= SCENE_OBJ_CMD_RESET_DA_POSITION) {
-                        if (ScsObjSeqCallTbl[node->cmd](node, this) != 0) {
-                            break;
-                        }
-                    } else {
-                        node = NULL;
+            while (node != NULL) {
+                if (node->cmd > 0 && node->cmd <= SCENE_OBJ_CMD_RESET_DA_POSITION) {
+                    if (ScsObjSeqCallTbl[node->cmd](node, this) != SCENE_SEQ_NEXT) {
                         break;
                     }
-                    node = GetNextSeq(node);
-                } while (node != NULL);
+                } else {
+                    node = NULL;
+                    break;
+                }
+                node = GetNextSeq(node);
             }
             *head = node;
             if (node == NULL) {
@@ -2201,7 +2724,8 @@ void CSceneObjSeq::Play() {
         EventObjHandleMother.SetRot(eoh_no, rot[0], rot[1], rot[2]);
     }
 }
-void CSceneObjSeq::PosDelay(int frames) {
+
+void CSceneObjSeq::PosDelay(s32 frames) {
     _SEN_OBJ_SEQ *command = SearchNextPosSeq();
     if (command != NULL) {
         if (frames > 0) {
@@ -2214,47 +2738,56 @@ void CSceneObjSeq::PosDelay(int frames) {
         command->frame = frames;
     }
 }
+
 void CSceneObjSeq::SetPos(float *new_pos) {
-    _SEN_OBJ_SEQ *node;
-
-    node = SearchNextPosSeq();
-    if (node != NULL) {
-        node->cmd = SCENE_OBJ_CMD_SET_POS;
-        sceVu0CopyVector(node->vec, new_pos);
+    _SEN_OBJ_SEQ *command = SearchNextPosSeq();
+    if (command != NULL) {
+        command->cmd = SCENE_OBJ_CMD_SET_POS;
+        sceVu0CopyVector(command->vec, new_pos);
     }
 }
-void CSceneObjSeq::Move(float *dest, int frames, int mode) {
-    _SEN_OBJ_SEQ *node;
 
-    node = SearchNextPosSeq();
-    if (node != NULL) {
-        CONVERT_TO_PAL_FRAMES(frames);
-        node->cmd = SCENE_OBJ_CMD_MOVE;
-        sceVu0CopyVector(node->vec, dest);
-        node->frame = frames;
-        node->mode = mode;
+void CSceneObjSeq::Move(float *dest, int frames, int ground) {
+    _SEN_OBJ_SEQ *command = SearchNextPosSeq();
+    if (command != NULL) {
+        if (frames > 0) {
+            frames = (frames * 50) / 60;
+            if (frames <= 0) {
+                frames = 1;
+            }
+        }
+        command->cmd = SCENE_OBJ_CMD_MOVE;
+        sceVu0CopyVector(command->vec, dest);
+        command->frame = frames;
+        command->mode = ground;
     }
 }
-void CSceneObjSeq::Move2(float *dest, int frames, int mode, float param28) {
-    _SEN_OBJ_SEQ *node;
 
-    node = SearchNextPosSeq();
-    if (node != NULL) {
-        CONVERT_TO_PAL_FRAMES(frames);
-        node->cmd = SCENE_OBJ_CMD_MOVE2;
-        sceVu0CopyVector(node->vec, dest);
-        node->frame = frames;
-        node->mode = mode;
-        node->ease_rate = param28;
+void CSceneObjSeq::Move2(float *dest, int frames, int ease, float ease_rate) {
+    _SEN_OBJ_SEQ *command = SearchNextPosSeq();
+    if (command != NULL) {
+        if (frames > 0) {
+            frames = (frames * 50) / 60;
+            if (frames <= 0) {
+                frames = 1;
+            }
+        }
+        command->cmd = SCENE_OBJ_CMD_MOVE2;
+        sceVu0CopyVector(command->vec, dest);
+        command->frame = frames;
+        command->mode = ease;
+        command->ease_rate = ease_rate;
     }
 }
+
 void CSceneObjSeq::InitPas(void) {
     _SEN_OBJ_SEQ *command = SearchNextPosSeq();
     if (command != NULL) {
         command->cmd = SCENE_OBJ_CMD_INIT_PAS;
     }
 }
-void CSceneObjSeq::SetPasFrm(int frames) {
+
+void CSceneObjSeq::SetPasFrm(s32 frames) {
     _SEN_OBJ_SEQ *command = SearchNextPosSeq();
     if (command != NULL) {
         if (frames > 0) {
@@ -2267,27 +2800,26 @@ void CSceneObjSeq::SetPasFrm(int frames) {
         command->frame = frames;
     }
 }
-void CSceneObjSeq::AddPas(float *point) {
-    _SEN_OBJ_SEQ *node;
 
-    node = SearchNextPosSeq();
-    if (node != NULL) {
-        node->cmd = SCENE_OBJ_CMD_ADD_PAS;
-        sceVu0CopyVector(node->vec, point);
+void CSceneObjSeq::AddPas(float *point) {
+    _SEN_OBJ_SEQ *command = SearchNextPosSeq();
+    if (command != NULL) {
+        command->cmd = SCENE_OBJ_CMD_ADD_PAS;
+        sceVu0CopyVector(command->vec, point);
     }
 }
-void CSceneObjSeq::StartPas(int grounded) {
+
+void CSceneObjSeq::StartPas(s32 grounded) {
     _SEN_OBJ_SEQ *command = SearchNextPosSeq();
     if (command != NULL) {
         command->cmd = SCENE_OBJ_CMD_START_PAS;
         command->grounded = grounded;
     }
 }
-void CSceneObjSeq::Jump(float *dest, float height, int frames) {
-    _SEN_OBJ_SEQ *node;
 
-    node = SearchNextPosSeq();
-    if (node != NULL) {
+void CSceneObjSeq::Jump(float *dest, float height, int frames) {
+    _SEN_OBJ_SEQ *command = SearchNextPosSeq();
+    if (command != NULL) {
         if (frames > 0) {
             frames = (frames * 50) / 60;
             if (frames <= 0) {
@@ -2295,48 +2827,61 @@ void CSceneObjSeq::Jump(float *dest, float height, int frames) {
             }
             height = 1.2f * height;
         }
-        node->cmd = SCENE_OBJ_CMD_JUMP;
-        sceVu0CopyVector(node->vec, dest);
-        node->value = height;
-        node->sub_frame = frames;
+        command->cmd = SCENE_OBJ_CMD_JUMP;
+        sceVu0CopyVector(command->vec, dest);
+        command->value = height;
+        command->sub_frame = frames;
     }
 }
-void CSceneObjSeq::SetEohFramePos(int eoh_no, char *frame_name, int frames, float *offset) {
-    _SEN_OBJ_SEQ *node;
 
-    node = SearchNextPosSeq();
-    if (node != NULL) {
-        CONVERT_TO_PAL_FRAMES(frames);
-        node->cmd = SCENE_OBJ_CMD_SET_EOH_FRAME_POS;
-        node->no = eoh_no;
-        strcpy(node->name, frame_name);
-        node->sub_frame = frames;
-        sceVu0CopyVector(node->vec, offset);
+void CSceneObjSeq::SetEohFramePos(int eoh_no, char *frame_name, int frames, float *ofs) {
+    _SEN_OBJ_SEQ *command = SearchNextPosSeq();
+    if (command != NULL) {
+        if (frames > 0) {
+            frames = (frames * 50) / 60;
+            if (frames <= 0) {
+                frames = 1;
+            }
+        }
+        command->cmd = SCENE_OBJ_CMD_SET_EOH_FRAME_POS;
+        command->no = eoh_no;
+        strcpy(command->name, frame_name);
+        command->sub_frame = frames;
+        sceVu0CopyVector(command->vec, ofs);
     }
 }
-void CSceneObjSeq::AddPos(float *offset, int frames) {
-    _SEN_OBJ_SEQ *node;
 
-    node = SearchNextPosSeq();
-    if (node != NULL) {
-        CONVERT_TO_PAL_FRAMES(frames);
-        node->cmd = SCENE_OBJ_CMD_ADD_POS;
-        sceVu0CopyVector(node->vec, offset);
-        node->frame = frames;
+void CSceneObjSeq::AddPos(float *add, int frames) {
+    _SEN_OBJ_SEQ *command = SearchNextPosSeq();
+    if (command != NULL) {
+        if (frames > 0) {
+            frames = (frames * 50) / 60;
+            if (frames <= 0) {
+                frames = 1;
+            }
+        }
+        command->cmd = SCENE_OBJ_CMD_ADD_POS;
+        sceVu0CopyVector(command->vec, add);
+        command->frame = frames;
     }
 }
-void CSceneObjSeq::AttachCamera(float value, int frames) {
-    _SEN_OBJ_SEQ *node;
 
-    node = SearchNextPosSeq();
-    if (node != NULL) {
-        CONVERT_TO_PAL_FRAMES(frames);
-        node->cmd = SCENE_OBJ_CMD_ATTACH_CAMERA;
-        node->value = value;
-        node->sub_frame = frames;
+void CSceneObjSeq::AttachCamera(float dist, int frames) {
+    _SEN_OBJ_SEQ *command = SearchNextPosSeq();
+    if (command != NULL) {
+        if (frames > 0) {
+            frames = (frames * 50) / 60;
+            if (frames <= 0) {
+                frames = 1;
+            }
+        }
+        command->cmd = SCENE_OBJ_CMD_ATTACH_CAMERA;
+        command->value = dist;
+        command->sub_frame = frames;
     }
 }
-void CSceneObjSeq::RotDelay(int frames) {
+
+void CSceneObjSeq::RotDelay(s32 frames) {
     _SEN_OBJ_SEQ *command = SearchNextRotSeq();
     if (command != NULL) {
         if (frames > 0) {
@@ -2349,51 +2894,63 @@ void CSceneObjSeq::RotDelay(int frames) {
         command->frame = frames;
     }
 }
+
 void CSceneObjSeq::SetRot(float *new_rot) {
-    _SEN_OBJ_SEQ *node;
-
-    node = SearchNextRotSeq();
-    if (node != NULL) {
-        node->cmd = SCENE_OBJ_CMD_SET_ROT;
-        sceVu0CopyVector(node->vec, new_rot);
+    _SEN_OBJ_SEQ *command = SearchNextRotSeq();
+    if (command != NULL) {
+        command->cmd = SCENE_OBJ_CMD_SET_ROT;
+        sceVu0CopyVector(command->vec, new_rot);
     }
 }
+
 void CSceneObjSeq::Rotation(float *target, int frames) {
-    _SEN_OBJ_SEQ *node;
-
-    node = SearchNextRotSeq();
-    if (node != NULL) {
-        CONVERT_TO_PAL_FRAMES(frames);
-        node->cmd = SCENE_OBJ_CMD_ROTATION;
-        sceVu0CopyVector(node->vec, target);
-        node->frame = frames;
+    _SEN_OBJ_SEQ *command = SearchNextRotSeq();
+    if (command != NULL) {
+        if (frames > 0) {
+            frames = (frames * 50) / 60;
+            if (frames <= 0) {
+                frames = 1;
+            }
+        }
+        command->cmd = SCENE_OBJ_CMD_ROTATION;
+        sceVu0CopyVector(command->vec, target);
+        command->frame = frames;
     }
 }
-void CSceneObjSeq::Rotation2(float *target, int frames, int mode, float param28) {
-    _SEN_OBJ_SEQ *node;
 
-    node = SearchNextRotSeq();
-    if (node != NULL) {
-        CONVERT_TO_PAL_FRAMES(frames);
-        node->cmd = SCENE_OBJ_CMD_ROTATION2;
-        sceVu0CopyVector(node->vec, target);
-        node->frame = frames;
-        node->mode = mode;
-        node->ease_rate = param28;
+void CSceneObjSeq::Rotation2(float *target, int frames, int ease, float ease_rate) {
+    _SEN_OBJ_SEQ *command = SearchNextRotSeq();
+    if (command != NULL) {
+        if (frames > 0) {
+            frames = (frames * 50) / 60;
+            if (frames <= 0) {
+                frames = 1;
+            }
+        }
+        command->cmd = SCENE_OBJ_CMD_ROTATION2;
+        sceVu0CopyVector(command->vec, target);
+        command->frame = frames;
+        command->mode = ease;
+        command->ease_rate = ease_rate;
     }
 }
+
 void CSceneObjSeq::Reference(float *ref, int frames) {
-    _SEN_OBJ_SEQ *node;
-
-    node = SearchNextRotSeq();
-    if (node != NULL) {
-        CONVERT_TO_PAL_FRAMES(frames);
-        node->cmd = SCENE_OBJ_CMD_REFERENCE;
-        sceVu0CopyVector(node->vec, ref);
-        node->frame = frames;
+    _SEN_OBJ_SEQ *command = SearchNextRotSeq();
+    if (command != NULL) {
+        if (frames > 0) {
+            frames = (frames * 50) / 60;
+            if (frames <= 0) {
+                frames = 1;
+            }
+        }
+        command->cmd = SCENE_OBJ_CMD_REFERENCE;
+        sceVu0CopyVector(command->vec, ref);
+        command->frame = frames;
     }
 }
-void CSceneObjSeq::MotionDelay(int frames) {
+
+void CSceneObjSeq::MotionDelay(s32 frames) {
     _SEN_OBJ_SEQ *command = SearchNextMotSeq();
     if (command != NULL) {
         if (frames > 0) {
@@ -2406,57 +2963,58 @@ void CSceneObjSeq::MotionDelay(int frames) {
         command->frame = frames;
     }
 }
-void CSceneObjSeq::SetMotion(char *name, int frames, float speed) {
-    _SEN_OBJ_SEQ *node;
 
-    node = SearchNextMotSeq();
-    if (node != NULL) {
-        node->cmd = SCENE_OBJ_CMD_SET_MOTION;
-        strcpy(node->name, name);
-        node->frame = frames;
-        node->step = speed;
-        node->ease_rate = 0;
+void CSceneObjSeq::SetMotion(char *name, int flags, float step) {
+    _SEN_OBJ_SEQ *command = SearchNextMotSeq();
+    if (command != NULL) {
+        command->cmd = SCENE_OBJ_CMD_SET_MOTION;
+        strcpy(command->name, name);
+        command->frame = flags;
+        command->step = step;
+        command->ease_rate = 0;
     }
 }
-void CSceneObjSeq::NextMotion(char *name, int frames, float speed) {
-    _SEN_OBJ_SEQ *node;
 
-    node = SearchNextMotSeq();
-    if (node != NULL) {
-        node->cmd = SCENE_OBJ_CMD_NEXT_MOTION;
-        strcpy(node->name, name);
-        node->frame = frames;
-        node->step = speed;
-        node->ease_rate = 0;
+void CSceneObjSeq::NextMotion(char *name, int flags, float step) {
+    _SEN_OBJ_SEQ *command = SearchNextMotSeq();
+    if (command != NULL) {
+        command->cmd = SCENE_OBJ_CMD_NEXT_MOTION;
+        strcpy(command->name, name);
+        command->frame = flags;
+        command->step = step;
+        command->ease_rate = 0;
     }
 }
+
 void CSceneObjSeq::MotionWait(void) {
     _SEN_OBJ_SEQ *command = SearchNextMotSeq();
     if (command != NULL) {
         command->cmd = SCENE_OBJ_CMD_MOTION_WAIT;
     }
 }
+
 void CSceneObjSeq::SetMotionTrg(void) {
     _SEN_OBJ_SEQ *command = SearchNextMotSeq();
     if (command != NULL) {
         command->cmd = SCENE_OBJ_CMD_MOTION_TRG;
     }
 }
+
 void CSceneObjSeq::MotionTrgWait(void) {
     _SEN_OBJ_SEQ *command = SearchNextMotSeq();
     if (command != NULL) {
         command->cmd = SCENE_OBJ_CMD_MOTION_TRG_WAIT;
     }
 }
-void CSceneObjSeq::SetStep(float step) {
-    _SEN_OBJ_SEQ *node;
 
-    node = SearchNextMotSeq();
-    if (node != NULL) {
-        node->cmd = SCENE_OBJ_CMD_SET_MOT_STEP;
-        node->value = step;
+void CSceneObjSeq::SetStep(float step) {
+    _SEN_OBJ_SEQ *command = SearchNextMotSeq();
+    if (command != NULL) {
+        command->cmd = SCENE_OBJ_CMD_SET_MOT_STEP;
+        command->value = step;
     }
 }
+
 void CSceneObjSeq::SetChengeStep(float step) {
     _SEN_OBJ_SEQ *command = SearchNextMotSeq();
     if (command != NULL) {
@@ -2464,37 +3022,38 @@ void CSceneObjSeq::SetChengeStep(float step) {
         command->value = step;
     }
 }
+
 void CSceneObjSeq::ResetMotion(void) {
     _SEN_OBJ_SEQ *command = SearchNextMotSeq();
     if (command != NULL) {
         command->cmd = SCENE_OBJ_CMD_RESET_MOTION;
     }
 }
+
 void CSceneObjSeq::SetMotionNowTime(float time) {
-    _SEN_OBJ_SEQ *node;
-
-    node = SearchNextMotSeq();
-    if (node != NULL) {
-        node->cmd = SCENE_OBJ_CMD_SET_MOTION_NOW_TIME;
-        node->value = time;
+    _SEN_OBJ_SEQ *command = SearchNextMotSeq();
+    if (command != NULL) {
+        command->cmd = SCENE_OBJ_CMD_SET_MOTION_NOW_TIME;
+        command->value = time;
     }
 }
+
 void CSceneObjSeq::SetMotionWaitTime(float time) {
-    _SEN_OBJ_SEQ *node;
-
-    node = SearchNextMotSeq();
-    if (node != NULL) {
-        node->cmd = SCENE_OBJ_CMD_SET_MOTION_WAIT_TIME;
-        node->value = time;
+    _SEN_OBJ_SEQ *command = SearchNextMotSeq();
+    if (command != NULL) {
+        command->cmd = SCENE_OBJ_CMD_SET_MOTION_WAIT_TIME;
+        command->value = time;
     }
 }
+
 void CSceneObjSeq::NormalDrive(void) {
     _SEN_OBJ_SEQ *command = SearchNextMotSeq();
     if (command != NULL) {
         command->cmd = SCENE_OBJ_CMD_NORMAL_DRIVE;
     }
 }
-void CSceneObjSeq::TexAnimeDelay(int frames) {
+
+void CSceneObjSeq::TexAnimeDelay(s32 frames) {
     _SEN_OBJ_SEQ *command = SearchNextAnmSeq();
     if (command != NULL) {
         if (frames > 0) {
@@ -2507,21 +3066,21 @@ void CSceneObjSeq::TexAnimeDelay(int frames) {
         command->frame = frames;
     }
 }
-void CSceneObjSeq::TexAnime(char *name, int frames) {
-    _SEN_OBJ_SEQ *node;
 
-    node = SearchNextAnmSeq();
-    if (node != NULL) {
-        node->cmd = SCENE_OBJ_CMD_TEX_ANIME;
+void CSceneObjSeq::TexAnime(char *name, int on) {
+    _SEN_OBJ_SEQ *command = SearchNextAnmSeq();
+    if (command != NULL) {
+        command->cmd = SCENE_OBJ_CMD_TEX_ANIME;
         if (name != NULL) {
-            strcpy(node->name, name);
+            strcpy(command->name, name);
         } else {
-            strcpy(node->name, at_1527__2);
+            strcpy(command->name, "");
         }
-        node->frame = frames;
+        command->frame = on;
     }
 }
-void CSceneObjSeq::ColorDelay(int frames) {
+
+void CSceneObjSeq::ColorDelay(s32 frames) {
     _SEN_OBJ_SEQ *command = SearchNextColSeq();
     if (command != NULL) {
         if (frames > 0) {
@@ -2534,18 +3093,23 @@ void CSceneObjSeq::ColorDelay(int frames) {
         command->frame = frames;
     }
 }
-void CSceneObjSeq::SetColor(float *color, int frames) {
-    _SEN_OBJ_SEQ *node;
 
-    node = SearchNextColSeq();
-    if (node != NULL) {
-        CONVERT_TO_PAL_FRAMES(frames);
-        node->cmd = SCENE_OBJ_CMD_SET_COLOR;
-        sceVu0CopyVector(node->vec, color);
-        node->frame = frames;
+void CSceneObjSeq::SetColor(float *color, int frames) {
+    _SEN_OBJ_SEQ *command = SearchNextColSeq();
+    if (command != NULL) {
+        if (frames > 0) {
+            frames = (frames * 50) / 60;
+            if (frames <= 0) {
+                frames = 1;
+            }
+        }
+        command->cmd = SCENE_OBJ_CMD_SET_COLOR;
+        sceVu0CopyVector(command->vec, color);
+        command->frame = frames;
     }
 }
-void CSceneObjSeq::ScaleDelay(int frames) {
+
+void CSceneObjSeq::ScaleDelay(s32 frames) {
     _SEN_OBJ_SEQ *command = SearchNextScaleSeq();
     if (command != NULL) {
         if (frames > 0) {
@@ -2558,18 +3122,23 @@ void CSceneObjSeq::ScaleDelay(int frames) {
         command->frame = frames;
     }
 }
-void CSceneObjSeq::SetScale(float *scale, int frames) {
-    _SEN_OBJ_SEQ *node;
 
-    node = SearchNextScaleSeq();
-    if (node != NULL) {
-        CONVERT_TO_PAL_FRAMES(frames);
-        node->cmd = SCENE_OBJ_CMD_SET_SCALE;
-        sceVu0CopyVector(node->vec, scale);
-        node->frame = frames;
+void CSceneObjSeq::SetScale(float *scale, int frames) {
+    _SEN_OBJ_SEQ *command = SearchNextScaleSeq();
+    if (command != NULL) {
+        if (frames > 0) {
+            frames = (frames * 50) / 60;
+            if (frames <= 0) {
+                frames = 1;
+            }
+        }
+        command->cmd = SCENE_OBJ_CMD_SET_SCALE;
+        sceVu0CopyVector(command->vec, scale);
+        command->frame = frames;
     }
 }
-void CSceneObjSeq::SeDelay(int frames) {
+
+void CSceneObjSeq::SeDelay(s32 frames) {
     _SEN_OBJ_SEQ *command = SearchNextSeSeq();
     if (command != NULL) {
         if (frames > 0) {
@@ -2582,7 +3151,8 @@ void CSceneObjSeq::SeDelay(int frames) {
         command->frame = frames;
     }
 }
-void CSceneObjSeq::SePlay(int sound_id, int sound_no) {
+
+void CSceneObjSeq::SePlay(s32 sound_id, s32 sound_no) {
     _SEN_OBJ_SEQ *command = SearchNextSeSeq();
     if (command != NULL) {
         command->cmd = SCENE_OBJ_CMD_SE_PLAY;
@@ -2590,6 +3160,7 @@ void CSceneObjSeq::SePlay(int sound_id, int sound_no) {
         command->se_no = sound_no;
     }
 }
+
 void CSceneObjSeq::ResetDAPosition(void) {
     _SEN_OBJ_SEQ *command = SearchNextSeSeq();
     if (command != NULL) {
@@ -2600,10 +3171,6 @@ void CSceneObjSeq::ResetDAPosition(void) {
         motion_command->cmd = SCENE_OBJ_CMD_RESET_DA_POSITION;
     }
 }
-
-// Initialised data (.data)
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/sceneseq", ScsCmrSeqCallTbl__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/sceneseq", ScsObjSeqCallTbl__DATA);
 
 // Constants (.rodata)
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/sceneseq", at_1527__2__DATA);
