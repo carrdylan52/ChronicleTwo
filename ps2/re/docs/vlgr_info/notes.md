@@ -30,7 +30,7 @@ LOCAL too, so the header has no `extern`s:
 | `giGamePI` | `GAME_PROGRESS_INFO *` | = `ProgressInfo` |
 | `VlgrPlace` | `CVillagerPlace[0x200]` | .bss 0x1000; constructed by `__sinit` (`__construct_array(.., ct, 0, 8, 0x200)`) |
 | `ProgressInfo` | `GAME_PROGRESS_INFO[0x100]` | .bss 0xC00; zeroed field-by-field in `LoadGameInfo` (unrolled by 8) |
-| `ni_tag` (0x50), `tag` (`tag__9`, 0x60), `gi_tag` (0x10) | `SPI_TAG_PARAM[]` | NULL-terminated name/function tables; `tag` is used only by `LoadPlaceInfo`; the `__9` suffix suggests a function-local static there (unconfirmed) |
+| `ni_tag` (0x50), `tag` (`tag__9`, 0x60), `gi_tag` (0x10) | `SPI_TAG_PARAM[]` | NULL-terminated name/function tables; `tag` is used only by `LoadPlaceInfo` |
 
 Tag tables: `ni_tag` = NPC, NPC_END, PROGRESS, PROGRESS_END, PLACE, NOON_PLACE, NIGHT_PLACE,
 NPC_INFO_NUM, NPC_INFO. `tag` = NPC_PLACE_NUM, NPC_PLACE, NPC_PLACE_END, PLACE_POS, MOTION,
@@ -85,3 +85,9 @@ Ctor store order: +0,+4,+8,+0x10,+0xC,+0x18,+0x14.
 - `GetVillagerModelName` returns 0/1 (`int`). `GetGameChapter` returns the s16 chapter; declared `int`.
 - The table-size enum names (`VLGR_PLACE_MAX`, `GAME_PROGRESS_MAX`) and `VLGR_HOUSE_TYPE` values
   are not retail names.
+
+## C++ status
+
+All 36 functions match with drafts enabled, including the compiler-generated static
+initializer for `VlgrPlace`. The three tag tables and all local state have typed static
+definitions; retail data placeholders retain their section placement.
