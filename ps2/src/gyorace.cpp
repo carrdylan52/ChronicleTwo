@@ -421,7 +421,7 @@ int Jikkyou(SubGameInfo *info) {
             index = 0;
             do {
                 grGetFishProgress(&RaceInfo, index, race_cnt, &fish);
-                if ((u_char)fish.state == GR_RACE_STATE_BATTLE) {
+                if (fish.state == GR_RACE_STATE_BATTLE) {
                     int lane = RaceInfo.fish[index].lane + 1;
                     message = gyo_mes;
                     message->values[0] = lane;

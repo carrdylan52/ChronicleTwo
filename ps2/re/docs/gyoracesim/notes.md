@@ -3,8 +3,8 @@
 Fish race simulation. `sgInitGyoRace` (gyorace) fills `RaceInfo` (0x1F59490, a `grRACE_INFO`),
 calls `grGyoRaceSimulate` once (result stored in `time_max`), then the race is replayed with
 `grGetFishProgress(&RaceInfo, fish, race_cnt, &prog)`. No class in `class_units.tsv` is owned by
-this unit; all types are plain structs. `gyorace.hpp` only forward-declares `grRACE_INFO` /
-`grRACE_PROGRESS`; it will need `#include "gyoracesim.hpp"` once gyorace's bodies use the fields.
+this unit; all types are plain structs. `gyorace.hpp` forward-declares `grRACE_INFO` /
+`grRACE_PROGRESS`; `gyorace.cpp` includes `gyoracesim.hpp` to use their fields.
 
 ## Linkage
 - Global: `grGyoRaceSimulate`, `grGetFishProgress`, `rand_prob` (in header).
@@ -40,7 +40,8 @@ this unit; all types are plain structs. `gyorace.hpp` only forward-declares `grR
   SetRaceFishParam copies 0x40 bytes as 8 dword pairs = struct copy).
 - 0x18C step_max: sgInit writes 1000; progress buffers are `new[] 24000` = 1000*0x18.
 - 0x190 grRACE_PROGRESS* progress[6]: memset `step_max*0x18` in SetRaceFishParam.
-- 0x1A8 after_goal_step: sgInit writes 0x14; StepGyoRace steps that many more after all goal.
+- 0x1A8 after_goal_step: sgInit writes 0x14; StepGyoRace performs up to 21 further steps after all fish reach the goal: the extra-step
+  counter runs from 0 through after_goal_step, inclusive, and is limited by step_max.
 - 0x1AC int rank[6]: StepGyoRace, 1 + number of fish with smaller goal_time.
 - 0x1C4 float goal_time[6]: step - (pos-16)/velocity when StepFish first returns 1. gyorace
   reads `RaceInfo+0x1C4+rank*4`.
@@ -78,7 +79,7 @@ Jikkyou tests ==2 for push commentary), 0xD battle u8, 0xE pad, 0x10 battle_targ
   v -= 0.01. Initial N(0.02,0.02) clamped 0.
 - 0x54 pos: += v*GetCourseR(); goal at >= 16.0 (state set 3 in the record).
 - 0x58 lane: int 0..5 (CollisionFish buckets by it into 6 lanes).
-- 0x5C state u8 (1 init, 2 push, back to 1), 0x5D battle u8 (1 during push).
+- 0x5C state s8 (1 init, 2 push, back to 1), 0x5D battle s8 (1 during push).
 - 0x60 battle_target, 0x64 battle_hits (incremented on rand_prob win), 0x68 power (out[4]),
   0x6C aggression (out[5]), 0x70 battle_urge (+= aggression*crowd, >1 starts push),
   0x74 battle_time (set 5.0, -1 per step), 0x78 boost (clamped +-1, decays 0.05/step; push winner
@@ -100,19 +101,14 @@ speed%[3] (+0xC..0x14 -> 0x2C..0x34), int affinity (+0x18). Type name is not ret
 No equivalent in Dark Cloud 1 (no fish race).
 
 ## C++ draft status
-- `GetPaseRatio`, `GetFishData`, and `rnd` compile with byte-identical MWCC output.
-- `GetRaceDivisionLength`, `GetCourseR`, `irn55`, `init_rnd`, `irnd`, `nrnd`,
-  `GetRandomNumber`, and `rand_prob` have typed C++ drafts under `NONMATCHING`.
-  Their first promotion attempts did not match, so the default build keeps their
-  retail assembly.
-- The generator draft uses the documented 56-element state array. Its first
-  promotion attempt reached 95.71% for `init_rnd`, but that is not an exact match.
-- Typed `NONMATCHING` drafts now cover all remaining race functions: the seed
-  hash and simulation entry, progress interpolation, fish stepping, collision
-  ordering, lane battles, division setup, figure modification, character
-  bonus, and parameter randomization. `FishModifyParam` needed direct assembly
-  analysis because m2c could not resolve its six-way tactics jump table.
-- `RndFishParam` matched byte for byte and passed isolated whole-image
-  promotion. The remaining new drafts failed their first isolated promotion
-  and retain retail assembly in the default build. The full default build
-  remained byte-identical after the promotion.
+
+The default build has 17 perfect functions and six assembly functions; it verifies byte
+identical to retail. The draft check reports 17 matches and six differences across 23 functions.
+All 20 retail-local helpers have internal linkage. The 18-row fish data table and the random
+number state are defined with native types in this unit.
+
+grGetFishProgress retains a typed member-copy draft and an assembly fallback. Native assignment,
+member copies and memcpy do not reproduce retail's copy instructions. LaneBattleStep,
+CollisionFish, StepGyoRace, FishModifyParam and CharacterBonus retain the upstream guarded
+drafts. StepGyoRace's restored upstream draft differs from retail, although the previous guarded
+draft matched; the default implementation remains assembly.
