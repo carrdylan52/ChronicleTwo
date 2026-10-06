@@ -1,6 +1,4 @@
 #include "common.h"
-#include "snd_mngr.hpp"
-#include "mglib.hpp"
 #include "convviewlp.hpp"
 #include "gamepad.hpp"
 #include "mg_memory.hpp"
@@ -15,59 +13,56 @@
 #include "snd_mngr.hpp"
 #include <libmc.h>
 
-// File-local data supplied by the retail assembly while data migration is pending.
-extern CGamePad GamePad__2;
-extern CScene *MovieScene__2;
-extern SAVE_CONVERT_WORK *SAVEDATA_BUFFER;
-extern mgCMemory buf0_816, buf1_819, dbuf0_822, dbuf1_825;
-extern char init_817, init_820, init_823, init_826;
-extern int ConvMode;
-extern int SlotSelect;
-extern char at_1016__4[], at_1017__4[], at_1018__7[], at_1019__5[];
-extern char at_1020__4[], at_1021__4[], at_1022__3[], at_1023__5[];
-extern char at_1024__4[], at_1025__5[], at_1026__4[], at_1027__5[];
-extern char at_1028__10[], at_1029__7[], at_1030__6[], at_1031__7[];
-extern char at_1072__4[], at_1073__4[], at_1074__5[];
-extern char at_1159__2[], at_1160__3[], at_1161__3[], at_1162__3[];
-extern char at_1163__2[], at_1164__2[], at_1165__2[], at_1166__2[];
-extern char at_1167__2[], at_1168[], at_1169[];
-extern SAVE_CONVERT_FILE_INFO *SaveFileInfoTablePtr;
-extern int SaveFileInfoTableSizeConvert[];
-extern int FileListNum;
-extern int ConvertPhase;
-extern int ConvertFileNum;
-extern int ConvertResult;
-extern int ConvertResultDispTime;
-extern mgCMemory DataBuffer__3;
-extern mgCMemory Stack_ReadBuff__3;
+#ifdef NONMATCHING
+static CScene *MovieScene;
+static SAVE_CONVERT_WORK *SAVEDATA_BUFFER;
+static int ConvMode;
+static int SlotSelect;
+#endif
+static SAVE_CONVERT_FILE_INFO *SaveFileInfoTablePtr;
+static int SaveFileInfoTableSizeConvert[128];
+static int FileListNum;
+static int ConvertPhase;
+static int ConvertFileNum;
+static int ConvertResult;
+static int ConvertResultDispTime;
+static mgCMemory DataBuffer;
+static mgCMemory Stack_ReadBuff;
 
+/**
+ * Resets the conversion counters and the first 32 file records.
+ */
 static void InitSaveFileInfoTablePtr();
+/**
+ * Converts the save directories on the selected memory card.
+ */
+static int SaveDataConvertLoop();
 
 // Code (.text)
 #ifdef NONMATCHING
 void SVConvViewInit(INIT_LOOP_ARG arg) {
-    MovieScene__2 = GetMainScene();
-    MovieScene__2->Initialize();
+    MovieScene = GetMainScene();
+    MovieScene->Initialize();
     mgInitFont();
     mgCMemory *main_stack = GetMainStack();
     main_stack->stack_used = 0;
     main_stack->lock = 0;
-    if (!init_817) { buf0_816.Init(); init_817 = 1; }
-    if (!init_820) { buf1_819.Init(); init_820 = 1; }
-    if (!init_823) { dbuf0_822.Init(); init_823 = 1; }
-    if (!init_826) { dbuf1_825.Init(); init_826 = 1; }
+    static mgCMemory buf0;
+    static mgCMemory buf1;
+    static mgCMemory dbuf0;
+    static mgCMemory dbuf1;
     u_long128 *vif0 = main_stack->stAlloc64(10000);
     u_long128 *vif1 = main_stack->stAlloc64(10000);
     mgInitVif1Packet(vif0, vif1, 10000);
-    buf0_816.stSetBuffer(main_stack->stAlloc64(30000), 30000);
-    buf1_819.stSetBuffer(main_stack->stAlloc64(30000), 30000);
-    dbuf0_822.stSetBuffer(main_stack->stAlloc64(60000), 60000);
-    dbuf1_825.stSetBuffer(main_stack->stAlloc64(60000), 60000);
-    DataBuffer__3.stSetBuffer(main_stack->stAlloc64(100000), 100000);
-    mgSetPacketBuffer(&buf0_816, &buf1_819);
-    mgSetDataBuffer(&dbuf0_822, &dbuf1_825, 1);
+    buf0.stSetBuffer(main_stack->stAlloc64(30000), 30000);
+    buf1.stSetBuffer(main_stack->stAlloc64(30000), 30000);
+    dbuf0.stSetBuffer(main_stack->stAlloc64(60000), 60000);
+    dbuf1.stSetBuffer(main_stack->stAlloc64(60000), 60000);
+    DataBuffer.stSetBuffer(main_stack->stAlloc64(100000), 100000);
+    mgSetPacketBuffer(&buf0, &buf1);
+    mgSetDataBuffer(&dbuf0, &dbuf1, 1);
     mgSetBackGround(0.0f, 0.0f, 0.0f, 128.0f);
-    SetTextureTable(100, 20, &DataBuffer__3);
+    SetTextureTable(100, 20, &DataBuffer);
     mgTexManager.EnterIMGFile(GetGaijiImgPtr(), 0, NULL, NULL);
     ReLoadFontTexture(0);
     mgTexManager.EnterIMGFile(GetFontTex2ImgPtr(), 0, NULL, NULL);
@@ -84,10 +79,10 @@ void SVConvViewInit(INIT_LOOP_ARG arg) {
         new ((u_long128 *)&SAVEDATA_BUFFER->save_data.menu_system_data) CMenuSystemData;
     }
     main_stack->Align64();
-    Stack_ReadBuff__3.stSetBuffer(main_stack->stAlloc(0), 0);
-    Stack_ReadBuff__3.stack_used = 0;
-    Stack_ReadBuff__3.lock = 0;
-    Stack_ReadBuff__3.Align64();
+    Stack_ReadBuff.stSetBuffer(main_stack->stAlloc(0), 0);
+    Stack_ReadBuff.stack_used = 0;
+    Stack_ReadBuff.lock = 0;
+    Stack_ReadBuff.Align64();
     InitSaveFileInfoTablePtr();
     ConvMode = SV_CONV_MODE_SELECT;
     SlotSelect = 0;
@@ -135,56 +130,56 @@ int SVConvViewLoop() {
     font.SetClearance(16, 20);
     font.SetFuchi(5);
     font.SetColor(0x80686A6B);
-    font.DrawDirect(at_1016__4, 40, 20);
-    if (ConvMode == SV_CONV_MODE_SELECT) font.DrawDirect(at_1017__4, 200, 20);
+    font.DrawDirect("SaveData Convert", 40, 20);
+    if (ConvMode == SV_CONV_MODE_SELECT) font.DrawDirect("Exit: Start or (A)", 200, 20);
     char line[256];
-    sprintf(line, at_1018__7, SlotSelect);
+    sprintf(line, "Now Slot : %d", SlotSelect);
     font.SetStr(line);
     font.SetPos(40, 42);
     font.DrawDirect(font.str, font.pos_x, font.pos_y);
     int y = 72;
     if (ConvMode == SV_CONV_MODE_SELECT) {
-        font.DrawDirect(at_1019__5, 40, 72);
+        font.DrawDirect("Slot Select    : Left or Right", 40, 72);
         y = 96;
-        font.DrawDirect(at_1020__4, 40, 96);
+        font.DrawDirect("Check & Convert: (O)", 40, 96);
     }
     if (ConvMode == SV_CONV_MODE_CONVERT) {
-        char *phase_text = at_1021__4;
-        if (ConvertPhase == SAVEDATA_CONVERT_PHASE_READ_DIR) phase_text = at_1022__3;
-        if (ConvertPhase == SAVEDATA_CONVERT_PHASE_CONVERT) phase_text = at_1023__5;
+        char *phase_text = "Checking MemoryCard";
+        if (ConvertPhase == SAVEDATA_CONVERT_PHASE_READ_DIR) phase_text = "Now Check DataFile";
+        if (ConvertPhase == SAVEDATA_CONVERT_PHASE_CONVERT) phase_text = "Now Convert Data ....";
         font.SetStr(phase_text);
         font.SetPos(40, y);
         font.DrawDirect(font.str, font.pos_x, font.pos_y);
         y += 24;
-        font.SetStr(at_1024__4);
+        font.SetStr("Don't remove memory card (PS2).");
         font.SetPos(40, y);
         font.DrawDirect(font.str, font.pos_x, font.pos_y);
     }
     if (ConvMode == SV_CONV_MODE_RESULT) {
         if (ConvertResult == SAVEDATA_CONVERT_RESULT_CARD_ERROR) {
-            font.SetStr(at_1025__5);
+            font.SetStr("Failed Access memory card(PS2)");
             font.SetPos(40, y);
             font.DrawDirect(font.str, font.pos_x, font.pos_y);
             y += 24;
         } else if (ConvertResult == SAVEDATA_CONVERT_RESULT_NO_FILES) {
-            font.SetStr(at_1026__4);
+            font.SetStr("Not Exist Convert Files ");
             font.SetPos(40, y);
             font.DrawDirect(font.str, font.pos_x, font.pos_y);
             y += 24;
         } else {
-            font.DrawDirect(at_1027__5, 40, y);
-            sprintf(line, at_1028__10, FileListNum);
+            font.DrawDirect("End Convert", 40, y);
+            sprintf(line, "Need Convert Files: %d", FileListNum);
             font.SetStr(line); font.SetPos(40, y + 24);
             font.DrawDirect(font.str, font.pos_x, font.pos_y);
-            sprintf(line, at_1029__7, ConvertFileNum);
+            sprintf(line, "Converted Files: %d", ConvertFileNum);
             font.SetStr(line); font.SetPos(40, y + 48);
             font.DrawDirect(font.str, font.pos_x, font.pos_y);
-            sprintf(line, at_1030__6, FileListNum - ConvertFileNum);
+            sprintf(line, "Not Convert Files: %d", FileListNum - ConvertFileNum);
             font.SetStr(line); font.SetPos(40, y + 72);
             font.DrawDirect(font.str, font.pos_x, font.pos_y);
             y += 96;
         }
-        font.DrawDirect(at_1031__7, 40, y);
+        font.DrawDirect("Return to SlotSelect : (X)", 40, y);
     }
     return 0;
 }
@@ -198,12 +193,12 @@ static void InitSaveFileInfoTablePtr() {
     ConvertResult = SAVEDATA_CONVERT_RESULT_NONE;
     ConvertResultDispTime = 0;
     for (int i = 0; i < 32; i++) {
-        SaveFileInfoTablePtr[i].entry_name[0] = '\0';
+        SaveFileInfoTablePtr[i].name[0] = '\0';
         SaveFileInfoTableSizeConvert[i] = 0;
     }
 }
 #ifdef NONMATCHING
-int SaveDataConvertLoop() {
+static int SaveDataConvertLoop() {
     int command, result;
     if (ConvertPhase == SAVEDATA_CONVERT_PHASE_CHECK_CARD) {
         int card_type, free_size, formatted;
@@ -221,7 +216,7 @@ int SaveDataConvertLoop() {
         SAVE_CONVERT_FILE_INFO entries[64];
         memset(entries, 0, sizeof(entries));
         char mask[128];
-        strcpy(mask, at_1159__2);
+        strcpy(mask, "BASCUS-97213*");
         memset(entries, 0, sizeof(entries));
         sceMcGetDir(SlotSelect, 1, mask, 0, 64, entries);
         sceMcSync(0, &command, &result);
@@ -238,16 +233,15 @@ int SaveDataConvertLoop() {
     }
     if (ConvertPhase != SAVEDATA_CONVERT_PHASE_CONVERT) return 0;
 
-    char dkcl_name[128], album_name[128], omake_name[128];
-    memcpy(dkcl_name, at_1072__4, sizeof(dkcl_name));
-    memcpy(album_name, at_1073__4, sizeof(album_name));
-    memcpy(omake_name, at_1074__5, sizeof(omake_name));
+    char dkcl_name[128] = "BESCES-51190dkcl%d";
+    char album_name[128] = "BESCES-51190dc2album";
+    char omake_name[128] = "BESCES-51190dc2omake";
     for (int file = 0; file < FileListNum; file++) {
         SAVE_CONVERT_FILE_INFO existing[64];
         char old_name[128], new_name[128], previous_dir[128];
         char existing_names[64][128];
         int existing_numbers[64];
-        strcpy(old_name, at_1160__3);
+        strcpy(old_name, "BESCES-51190*");
         memset(existing, 0, sizeof(existing));
         sceMcGetDir(SlotSelect, 1, old_name, 0, 64, existing);
         int existing_count = 0;
@@ -257,19 +251,19 @@ int SaveDataConvertLoop() {
             existing_names[i][0] = '\0';
         }
         for (int i = 0; i < existing_count; i++) {
-            strcpy(existing_names[i], existing[i].entry_name);
-            int number = atoi(&existing[i].entry_name[16]);
-            existing_numbers[i] = existing[i].entry_name[16] ? number : 32;
-            printf(at_1161__3, i, number);
+            strcpy(existing_names[i], existing[i].name);
+            int number = atoi(&existing[i].name[16]);
+            existing_numbers[i] = existing[i].name[16] ? number : 32;
+            printf("file[%d] : %d\n", i, number);
         }
-        printf(at_1162__3);
+        printf("\n");
         SAVE_CONVERT_FILE_INFO &candidate = SaveFileInfoTablePtr[file];
         SAVEDATA_CONVERT_TYPE type = SAVEDATA_CONVERT_TYPE_NONE;
-        if (strncmp(&candidate.entry_name[12], at_1163__2, 4) == 0) type = SAVEDATA_CONVERT_TYPE_GAME;
-        if (strncmp(&candidate.entry_name[12], at_1164__2, 8) == 0) type = SAVEDATA_CONVERT_TYPE_ALBUM;
-        if (strncmp(&candidate.entry_name[12], at_1165__2, 8) == 0) type = SAVEDATA_CONVERT_TYPE_OMAKE;
+        if (strncmp(&candidate.name[12], "dkcl", 4) == 0) type = SAVEDATA_CONVERT_TYPE_GAME;
+        if (strncmp(&candidate.name[12], "dc2album", 8) == 0) type = SAVEDATA_CONVERT_TYPE_ALBUM;
+        if (strncmp(&candidate.name[12], "dc2omake", 8) == 0) type = SAVEDATA_CONVERT_TYPE_OMAKE;
         if (type == SAVEDATA_CONVERT_TYPE_NONE) {
-            printf(at_1166__2, candidate.entry_name);
+            printf("not convert type : %s\n", candidate.name);
             continue;
         }
         char *target = NULL;
@@ -278,7 +272,7 @@ int SaveDataConvertLoop() {
         if (type == SAVEDATA_CONVERT_TYPE_ALBUM) target = album_name;
         if (type == SAVEDATA_CONVERT_TYPE_OMAKE) target = omake_name;
         if (type == SAVEDATA_CONVERT_TYPE_GAME) {
-            number = atoi(&candidate.entry_name[16]);
+            number = atoi(&candidate.name[16]);
             if (number >= 0) {
                 for (int i = 0; i < existing_count; i++) {
                     if (number == existing_numbers[i]) { duplicate = true; break; }
@@ -290,12 +284,12 @@ int SaveDataConvertLoop() {
             }
         }
         if (duplicate) {
-            printf(at_1167__2, number);
+            printf("error already exist ... convert no : %d\n", number);
             continue;
         }
-        sceMcChdir(SlotSelect, 1, candidate.entry_name, previous_dir);
+        sceMcChdir(SlotSelect, 1, candidate.name, previous_dir);
         sceMcSync(0, NULL, NULL);
-        strcpy(old_name, candidate.entry_name);
+        strcpy(old_name, candidate.name);
         SAVE_CONVERT_FILE_INFO inside[16];
         sceMcGetDir(SlotSelect, 1, old_name, 0, 16, inside);
         sceMcSync(0, &command, &result);
@@ -304,24 +298,24 @@ int SaveDataConvertLoop() {
                 sprintf(new_name, dkcl_name, number);
                 sceMcRename(SlotSelect, 1, old_name, new_name);
                 sceMcSync(0, NULL, NULL);
-                sceMcChdir(SlotSelect, 1, at_1168, NULL);
+                sceMcChdir(SlotSelect, 1, "/", NULL);
                 sceMcSync(0, NULL, NULL);
                 sceMcRename(SlotSelect, 1, old_name, new_name);
                 sceMcSync(0, NULL, NULL);
                 ConvertFileNum++;
             } else {
-                printf(at_1169);
+                printf("ERROR : not exist file,,,\n");
             }
         } else {
             sceMcRename(SlotSelect, 1, old_name, target);
             sceMcSync(0, NULL, NULL);
-            sceMcChdir(SlotSelect, 1, at_1168, NULL);
+            sceMcChdir(SlotSelect, 1, "/", NULL);
             sceMcSync(0, NULL, NULL);
             sceMcRename(SlotSelect, 1, old_name, target);
             sceMcSync(0, NULL, NULL);
             ConvertFileNum++;
         }
-        sceMcChdir(SlotSelect, 1, at_1168, NULL);
+        sceMcChdir(SlotSelect, 1, "/", NULL);
         sceMcSync(0, NULL, NULL);
     }
     ConvertPhase = SAVEDATA_CONVERT_PHASE_END;
@@ -333,10 +327,6 @@ INCLUDE_ASM("ps2/asm/pal/nonmatchings/convviewlp", SaveDataConvertLoop__Fv);
 #endif
 
 // Static initialiser (.init)
-extern "C" void __sinit_convviewlp_cpp() {
-    DataBuffer__3.Init();
-    Stack_ReadBuff__3.Init();
-}
 
 // Initialised data (.data)
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/convviewlp", at_1072__4__DATA);
@@ -373,7 +363,6 @@ INCLUDE_RODATA("ps2/asm/pal/nonmatchings/convviewlp", at_1168__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/convviewlp", at_1169__DATA);
 
 // Static initialiser table (.ctor)
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/convviewlp", D_0037B0A0__DATA);
 
 // Small uninitialised data (.sbss)
 INCLUDE_BSS(MovieScene__2, 0x4);

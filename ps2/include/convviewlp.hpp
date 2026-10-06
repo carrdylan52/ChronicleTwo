@@ -3,6 +3,7 @@
 #include "common.h"
 #include "mainloop.hpp"
 #include "savedata.hpp"
+#include "memcard.hpp"
 
 /**
  * @file
@@ -62,10 +63,7 @@ enum SAVEDATA_CONVERT_TYPE {
  * One memory card directory entry copied while searching for save files.
  *
  */
-struct SAVE_CONVERT_FILE_INFO {
-    char unk_0[0x20];
-    char entry_name[0x20]; /**< Directory name returned by the memory card library. */
-};
+typedef MC_DIR_ENTRY SAVE_CONVERT_FILE_INFO;
 STATIC_ASSERT(sizeof(SAVE_CONVERT_FILE_INFO) == 0x40);
 
 /**
@@ -109,13 +107,3 @@ void SVConvViewExit();
  * @size 0x530
  */
 int SVConvViewLoop();
-
-/**
- * Advances the save data conversion by one phase on the selected memory card, and returns 1
- * once the conversion has finished or failed.
- *
- * @mangled SaveDataConvertLoop__Fv
- * @address 0x325480
- * @size 0x800
- */
-int SaveDataConvertLoop();
