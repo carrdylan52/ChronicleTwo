@@ -1,11 +1,10 @@
 # effectlist: reverse-engineering notes
 
 ## C++ draft status
-All 23 functions have C++ in `ps2/src/effectlist.cpp`. 16 are exact and compiled
-by the matching build. 2 more compile to retail's bytes in isolation but stay
-under `NONMATCHING`. 5 differ from retail and keep the `INCLUDE_ASM` fallback.
-Each function tried has its one promotion attempt recorded in
-`scripts/re/promotion_attempts.tsv`.
+All 23 functions have C++ in `ps2/src/effectlist.cpp` or the inline constructor
+in `mg_sprite.hpp`. 18 are exact and compiled by the matching build. The inline
+constructor matches in isolation but remains guarded. The four remaining drafts
+differ from retail and keep the `INCLUDE_ASM` fallback.
 
 Header: `ps2/include/effectlist.hpp`. Owns `CEffectList` and `CFadeInOut` (no vtables, no
 constructors, no static members, no named globals). No first-game counterpart for either class
@@ -79,6 +78,6 @@ Behaviour notes:
   links into a byte-identical game image.
 - `SetCrossTexture` retail symbol is truncated (`...FP10mgCTextureP1`); second param is
   `u_long128 *` by the same convention as `mgStoreImage__FP10mgCTextureP1` in `mglib.hpp`
-  (callers pass `CrossFadeBuff` / `BuffReadData + 0x200000`). `draft.sh` will confirm when written.
+  (callers pass `CrossFadeBuff` / `BuffReadData + 0x200000`). Its compiled definition matches retail.
 - Data: `at_392/at_393` (CEffectManager::CreatePacket sprite size/colour init), `at_564__2..at_566`,
   `at_586..at_589` (DivSpriteScreen vertex templates / jag offsets) are compiler literals.
