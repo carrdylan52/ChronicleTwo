@@ -1,89 +1,43 @@
 #include "common.h"
-#include "mg_memory.hpp"
-#include "mglib.hpp"
-#include <cmath>
-#include "scriptinterpreter.hpp"
-#include <cstdio>
-#include "funcpoint.hpp"
-#include "mg_sprite.hpp"
-#include "mg_texture.hpp"
-#include "mg_drawprim.hpp"
-#include "mg_math.hpp"
+#include "editmap.hpp"
 #include "editdata.hpp"
 #include "editriver.hpp"
-#include "editmap.hpp"
+#include "funcpoint.hpp"
+#include "mg_drawprim.hpp"
+#include "mg_math.hpp"
+#include "mg_sprite.hpp"
+#include "mg_texture.hpp"
+#include "mglib.hpp"
+#include "scriptinterpreter.hpp"
+#include <cmath>
+#include <cstdio>
 #include <cstring>
 
-union EditVector {
-    float values[4];
-    u_long128 quad;
-};
+/**
+ * Name returned for an edit map.
+ */
+char *CEditMapName = "CEditMap";
 
-extern "C" int fptosi(float value);
-
-const int kPartsInfoColorCountOffset = 0x1C;
-const int kPartsInfoRepaintOffset = 0x20;
-const int kPartsPolyAttrOffset = 0x48;
-const int kRiverPolyFlag = 0x10;
-const int kEditPartsPolyFlag = 0x1000;
-const int kRiverHeightOffset = 0xFF8;
-const int kMaxInfoId = 0x100;
-const int kInfoFixedFlag = 0x1;
-const int kInfoRiverRelatedFlag = 0x80000;
-const int kRiverPartsType = 0xB;
-
-extern char at_449[];
-extern char at_450[];
-extern char at_451[];
-extern char at_452[];
-extern char at_474__2[];
-
-extern "C" void Initialize__4CMapFv(void *self);
-extern "C" int GetPlaceParts__4CMapFPc(void *map, char *name);
-extern "C" void Free__9mgCMemoryFP1(void *memory, void *block);
-extern "C" void Step__4CMapFv(...);
-extern "C" void PreDraw__4CMapFPf(void *self, float *pos);
-struct EditFuncCheck {
-    float time;
-    int anime_frame;
-};
-extern "C" void CreateFuncCheck__4CMapFP15CFuncPointCheck(void *self, EditFuncCheck *check);
-extern "C" void StepFuncPoint__9CMapPartsFR15CFuncPointCheck(CMapParts *self, EditFuncCheck &check);
-extern "C" void CopyFuncPointCheck__9CMapPartsFR15CFuncPointCheck(CMapParts *self, EditFuncCheck &check);
-extern "C" void DrawSub__4CMapFi(void *map, int mode);
-extern char *CEditMapName;
-extern int emapInit;
-extern int emapInitIdx;
-extern int emapInitNum;
-extern mgCMemory *emapStack;
-extern CEditInfoMngr *emapInfo;
-extern int emapFixNum;
-extern int emapFix;
-extern int emapFixIdx;
-extern EditVector at_426;
-extern "C" int GetPoly__4CMapFiP6CCPolyR9mgVu0FBOXi(void *map, int kind, CCPoly *polys,
-                                                    mgVu0FBOX &box, int max);
-extern "C" int GetRiverPoly__9CEditGridFP6CCPolyRC9mgVu0FBOXif(CEditGrid *grid, CCPoly *polys,
-                                                               const mgVu0FBOX &box, int max,
-                                                               float height);
-extern EditVector at_830__3;
-extern "C" int RePaintNum__8CEditMapFi(void *self, int count);
-extern EditVector at_988;
-extern "C" void mgCreateMatrixPY__FPA4_fPff(float (*matrix)[4], float *pos, float angle);
-extern "C" void mgApplyMatrix__FPfPfPA4_fPfPf(float *outA, float *outB, float (*matrix)[4], float *inA,
-                                              float *inB);
+static mgCMemory *emapStack; /**< Storage for Georama definition tables. */
+static CEditInfoMngr *emapInfo; /**< Manager receiving the parsed Georama definitions. */
+static int emapFixNum; /**< Capacity of the fixed placement table. */
+static int emapFixIdx; /**< Next fixed placement slot. */
+static ePlaceData *emapFix; /**< Fixed placement records being parsed. */
+static int emapInitNum; /**< Capacity of the initial placement table. */
+static int emapInitIdx; /**< Next initial placement slot. */
+static ePlaceData *emapInit; /**< Initial placement records being parsed. */
 
 // Code (.text)
 char *CEditMap::Iam(void) {
     return CEditMapName;
 }
+
 void CEditMap::Initialize() {
     int i;
-    int offset;
     area_no = -1;
     edit_parts_max = 0;
     edit_parts = 0;
-    (&parts_heap)->Init();
+    parts_heap.Init();
     place_log_max = 0;
     place_log = 0;
 
@@ -107,116 +61,110 @@ void CEditMap::Initialize() {
     river_info = 0;
     mask_piece[0] = 0;
     river_poly_margin = 0;
-    grid_max = 4;
+    grid_max = EDIT_MAP_GRID_MAX;
     i = 0;
-    offset = 0;
+
     for (; i < grid_max; i++) {
-        *(int *)((u8 *)this + offset + 0xF54) = 0;
-        offset += 4;
+        grid[i] = NULL;
     }
     ClearHouse();
     focus_parts = -1;
     frame = 0;
     balance_moved = 0;
-    Initialize__4CMapFv(this);
+    CMap::Initialize();
 }
-#pragma global_optimizer off
+
 void CEditMap::ClearGrid() {
     int i = 0;
-    int offset = 0;
     for (; i < grid_max; i++) {
 
-        CEditGrid *grid = *(CEditGrid **)((u8 *)this + offset + 0xF54);
+        CEditGrid *grid = this->grid[i];
         if (grid != 0) {
             grid->Clear();
         }
-        offset += 4;
     }
 }
-#pragma global_optimizer reset
+
 void CEditMap::ClearHouse(void) {
-    int house_no = 0;
+    s32 house_no = 0;
     do {
         memset(&house[house_no], 0, sizeof(CEditHouse));
         house_no++;
     } while (house_no < EDIT_MAP_HOUSE_MAX);
 }
-#pragma global_optimizer off
+
+#ifdef NONMATCHING
 void CEditMap::ClearAllParts() {
     int i;
-    int offset;
-    int log_offset;
     int log_index;
     ePlaceData *initial;
     CEditParts *placed;
-    int initial_offset;
     int k;
-    float rotation[4];
     CEditPartsInfo *info;
-    (&parts_heap)->ClearHeapMem();
+    parts_heap.ClearHeapMem();
     i = 0;
-    offset = 0;
+
     for (; i < edit_parts_max; i++) {
-        ((CEditParts *)((u8 *)edit_parts + offset))->Initialize();
-        offset += 0x330;
+        edit_parts[i].Initialize();
     }
     log_index = 0;
-    log_offset = 0;
+
     for (; log_index < place_log_max; log_index++) {
-        *(s16 *)((u8 *)place_log + log_offset) = -1;
-        log_offset += 4;
+        place_log[log_index].parts_no = -1;
     }
     ClearGrid();
     ClearHouse();
     k = 0;
-    initial_offset = 0;
+
     for (; k < info_mngr.fix_parts_num; k++) {
-        initial = (ePlaceData *)((u8 *)info_mngr.fix_parts + initial_offset);
-        *(EditVector *)rotation = at_426;
+        initial = &info_mngr.fix_parts[k];
+        sceVu0FVECTOR rotation = {0.0f, 0.0f, 0.0f, 0.0f};
         rotation[1] = GetEditAngle(initial->angle);
         info = info_mngr.GetePartsInfoAtID(initial->id);
         placed = 0;
         if (info != 0) {
-            placed = (CEditParts *)PlaceEditParts(info->edit_name, initial->position, rotation);
+            placed = PlaceEditParts(info->edit_name, initial->position, rotation);
         }
         if (area_no == 1 && placed != 0) {
-            int anchor = 0;
+            CMapParts *anchor = NULL;
             switch (k) {
                 case 0:
-                    anchor = GetPlaceParts__4CMapFPc(this, at_449);
+                    anchor = GetPlaceParts("p09_g0201");
                     break;
                 case 1:
-                    anchor = GetPlaceParts__4CMapFPc(this, at_450);
+                    anchor = GetPlaceParts("p09_g0201-1");
                     break;
                 case 2:
-                    anchor = GetPlaceParts__4CMapFPc(this, at_451);
+                    anchor = GetPlaceParts("p08_g0201");
                     break;
                 case 3:
-                    anchor = GetPlaceParts__4CMapFPc(this, at_452);
+                    anchor = GetPlaceParts("p08_g0201-1");
                     break;
             }
-            placed->ground = (CMapParts *)anchor;
+            placed->ground = anchor;
         }
-        initial_offset += 0x20;
     }
     focus_parts = -1;
     frame = 0;
 }
-#pragma global_optimizer reset
+
+#else
+INCLUDE_ASM("ps2/asm/pal/nonmatchings/editmap", ClearAllParts__8CEditMapFv);
+#endif
+
 void CEditMap::InitialPlaceParts(CEditData *data) {
     EP_PLACE_INFO place_info;
     float rotation[4];
     int i;
     ePlaceData *placement;
     CEditPartsInfo *info;
-    int offset;
     if (data->save_count != 0) {
         return;
     }
     i = 0;
-    offset = 0;
+
     for (; i < info_mngr.init_parts_num; i++) {
-        placement = (ePlaceData *)((char *)info_mngr.init_parts + offset);
+        placement = &info_mngr.init_parts[i];
         info = GetePartsInfoAtID(placement->id);
         if (info != 0) {
             mgZeroVector(rotation);
@@ -227,13 +175,13 @@ void CEditMap::InitialPlaceParts(CEditData *data) {
                     PlaceEditParts(built, &place_info, placement->position, rotation, 0);
                 }
             } else {
-                printf(at_474__2, i, info->edit_name);
+                printf("init place err %d %s\n", i, info->edit_name);
             }
         }
-        offset += 0x20;
     }
 }
-int CEditMap::GetPoly(int mode, CCPoly *polys, mgVu0FBOX &box, int max) {
+
+int CEditMap::GetPoly(int kind, CCPoly *polys, mgVu0FBOX &box, int max) {
     int total;
     CEditParts *part;
     int i;
@@ -241,21 +189,21 @@ int CEditMap::GetPoly(int mode, CCPoly *polys, mgVu0FBOX &box, int max) {
     int j;
     int count;
 
-    total = GetPoly__4CMapFiP6CCPolyR9mgVu0FBOXi(this, mode, polys, box, max);
+    total = CMap::GetPoly(kind, polys, box, max);
     part = edit_parts;
     max -= total;
     polys += total;
     for (i = 0; i < edit_parts_max; i++, part++) {
-        int is_free = *(signed char *)((u_char *)part + 0x70) == 0;
+        int is_free = part->name[0] == 0;
         if (is_free) {
             continue;
         }
-        if (part->state != 1) {
+        if (part->state != EDIT_PARTS_STATE_PLACED) {
             continue;
         }
-        count = ((CMapParts *)part)->GetPoly(mode, polys, box, max);
+        count = ((CMapParts *)part)->GetPoly(kind, polys, box, max);
         for (j = 0; j < count; j++, polys++) {
-            polys->parts_no = ((s16)(u16)i) | kEditPartsPolyFlag;
+            polys->parts_no = ((s16)(u16)i) | 0x1000;
         }
         max -= count;
         total += count;
@@ -263,13 +211,12 @@ int CEditMap::GetPoly(int mode, CCPoly *polys, mgVu0FBOX &box, int max) {
             return total;
         }
     }
-    if (mode == 1) {
+    if (kind == 1) {
         for (g = 0; g < grid_max; g++) {
             if (grid[g] != 0) {
-                count = GetRiverPoly__9CEditGridFP6CCPolyRC9mgVu0FBOXif(
-                    grid[g], polys, box, max, river_poly_margin);
+                count = grid[g]->GetRiverPoly(polys, box, max, river_poly_margin);
                 for (j = 0; j < count; j++, polys++) {
-                    polys->ignore_mask = kRiverPolyFlag;
+                    polys->ignore_mask = 0x10;
                 }
 
                 polys += count;
@@ -283,70 +230,76 @@ int CEditMap::GetPoly(int mode, CCPoly *polys, mgVu0FBOX &box, int max) {
     }
     return total;
 }
+
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/editmap", CreateTable__8CEditMapFP9mgCMemoryii);
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/editmap", __ct__10CEditPartsFv);
-CEditPartsInfo *CEditMap::GetePartsInfo(int index) {
-    return info_mngr.GetePartsInfo(index);
+CEditPartsInfo *CEditMap::GetePartsInfo(int no) {
+    return info_mngr.GetePartsInfo(no);
 }
+
 CEditPartsInfo *CEditMap::GetePartsInfo(char *name) {
     return info_mngr.GetePartsInfo(name);
 }
+
 CEditPartsInfo *CEditMap::GetePartsInfoAtID(int id) {
     return info_mngr.GetePartsInfoAtID(id);
 }
+
 CEditPartsInfo *CEditMap::GetePartsInfoAtType(int type) {
     return info_mngr.GetePartsInfoAtType(type);
 }
-CEditPartsInfo *CEditMap::GetePartsInfoAtPlaceID(int index) {
+
+CEditPartsInfo *CEditMap::GetePartsInfoAtPlaceID(int no) {
     CEditParts *placed;
 
-    placed = GetePlaceParts(index);
+    placed = GetePlaceParts(no);
     if (placed != NULL) {
         return placed->info;
     }
     return 0;
 }
+
 int CEditMap::eNewPlaceParts() {
     int i;
     for (i = 0; i < edit_parts_max; i++) {
-        int is_free = *(signed char *)((u_char *)&edit_parts[i] + 0x70) == 0;
+        int is_free = edit_parts[i].name[0] == 0;
         if (is_free) {
             return i;
         }
     }
     return -2;
 }
+
 CEditHouse *CEditMap::eNewHouseInfo() {
     int i;
-    for (i = 0; i < 0x20; i++) {
+    for (i = 0; i < EDIT_MAP_HOUSE_MAX; i++) {
         if (house[i].active == 0) {
             return &house[i];
         }
     }
     return 0;
 }
-#pragma global_optimizer off
-CEditParts *CEditMap::GetePlaceParts(int index) {
-    if (index < 0) {
+
+CEditParts *CEditMap::GetePlaceParts(int no) {
+    if (no < 0) {
         return 0;
     }
-    if (index < 0 || index >= edit_parts_max) {
+    if (no < 0 || no >= edit_parts_max) {
         return 0;
     }
-    return &edit_parts[index];
+    return &edit_parts[no];
 }
-#pragma global_optimizer reset
+
 CEditParts *CEditMap::GetePlaceParts(char *name) {
     int i;
     CEditParts *slot;
-    int offset;
-    offset = 0;
+
     i = 0;
     for (; i < edit_parts_max; i++) {
-        slot = (CEditParts *)((char *)edit_parts + offset);
-        int is_free = *(signed char *)((u_char *)slot + 0x70) == 0;
+        slot = &edit_parts[i];
+        int is_free = slot->name[0] == 0;
         if (!is_free) {
-            if (slot->state != 0) {
+            if (slot->state != EDIT_PARTS_STATE_NONE) {
                 if (slot->info != 0) {
                     CEditPartsInfo *info = slot->info;
                     if (info->parts_name != 0) {
@@ -357,159 +310,168 @@ CEditParts *CEditMap::GetePlaceParts(char *name) {
                 }
             }
         }
-        offset += 0x330;
     }
     return 0;
 }
-#pragma global_optimizer off
-int CEditMap::GetePlaceIDList(int *out, int max) {
+
+int CEditMap::GetePlaceIDList(int *out_no, int max) {
     int found = 0;
     int i = 0;
-    int offset = 0;
-    int out_offset = 0;
+    int parts_index = 0;
+    int output_index = 0;
     for (; i < edit_parts_max; i++) {
-        s8 *part = (s8 *)edit_parts + offset;
-        int is_free = part[0x70] == 0;
+        CEditParts *part = &edit_parts[parts_index];
+        int is_free = part->name[0] == 0;
         if (!is_free) {
             if (found >= max) {
                 break;
             }
             found++;
-            *(int *)((u8 *)out + out_offset) = i;
-            out_offset += 4;
+            out_no[output_index++] = i;
         }
-        offset += 0x330;
+
+        parts_index++;
     }
     return found;
 }
-#pragma global_optimizer reset
-void CEditMap::GetRotMatrix(float (*matrix)[4], int step) {
-    step = step % 24;
-    mgUnitMatrix(matrix);
-    if (step == 0) {
+
+void CEditMap::GetRotMatrix(float (*out_matrix)[4], int angle) {
+    angle = angle % EDIT_ANGLE_MAX;
+    mgUnitMatrix(out_matrix);
+    if (angle == 0) {
         return;
     }
-    if (step == 6) {
-        matrix[2][2] = 0.0f;
-        matrix[0][0] = 0.0f;
-        matrix[0][2] = -1.0f;
-        matrix[2][0] = 1.0f;
-    } else if (step == 12) {
-        matrix[2][2] = -1.0f;
-        matrix[0][0] = -1.0f;
-    } else if (step == 18) {
-        matrix[2][2] = 0.0f;
-        matrix[0][0] = 0.0f;
-        matrix[0][2] = 1.0f;
-        matrix[2][0] = -1.0f;
+    if (angle == 6) {
+        out_matrix[2][2] = 0.0f;
+        out_matrix[0][0] = 0.0f;
+        out_matrix[0][2] = -1.0f;
+        out_matrix[2][0] = 1.0f;
+    } else if (angle == 12) {
+        out_matrix[2][2] = -1.0f;
+        out_matrix[0][0] = -1.0f;
+    } else if (angle == 18) {
+        out_matrix[2][2] = 0.0f;
+        out_matrix[0][0] = 0.0f;
+        out_matrix[0][2] = 1.0f;
+        out_matrix[2][0] = -1.0f;
     } else {
-        sceVu0RotMatrixY(matrix, matrix, mgAngleLimit(GetEditAngle(step)));
+        sceVu0RotMatrixY(out_matrix, out_matrix, mgAngleLimit(GetEditAngle(angle)));
     }
 }
-int CEditMap::GetEditAngle90(int step) {
-    step = AngleLimit(step);
-    return step / 6 * 6;
+
+int CEditMap::GetEditAngle90(int angle) {
+    angle = AngleLimit(angle);
+    return angle / EDIT_ANGLE_90 * EDIT_ANGLE_90;
 }
-float CEditMap::GetEditAngle(int step) {
-    step = step % 24;
-    return mgAngleLimit(6.2831855f * (float)step / 24.0f);
+
+float CEditMap::GetEditAngle(int angle) {
+    angle = angle % 24;
+    return mgAngleLimit(6.2831855f * (float)angle / 24.0f);
 }
-int CEditMap::ConvEditAngle(float angle) {
+
+int CEditMap::ConvEditAngle(float rot) {
     float steps;
     int whole;
-    if (angle < 0.0f) {
-        angle += 6.2831855f;
+    if (rot < 0.0f) {
+        rot += 6.2831855f;
     }
-    steps = angle / 0.2617994f;
-    whole = fptosi(steps);
+    steps = rot / 0.2617994f;
+    whole = (int)(steps);
     if (!(steps - (float)whole <= 0.5f)) {
         whole++;
     }
     return AngleLimit(whole);
 }
-int CEditMap::AngleLimit(int angle) {
+
+s32 CEditMap::AngleLimit(s32 angle) {
     angle = angle % EDIT_ANGLE_MAX;
     if (angle < 0) {
         angle += EDIT_ANGLE_MAX;
     }
     return angle;
 }
-void CEditMap::GetEditPos(float *out, float *pos) {
+
+void CEditMap::GetEditPos(float *out_pos, float *pos) {
     if (!(pos[0] < 0.0f)) {
-        out[0] = (float)fptosi(0.01f + pos[0]);
+        out_pos[0] = (float)(int)(0.01f + pos[0]);
     }
     if (pos[0] < 0.0f) {
-        out[0] = (float)fptosi(pos[0] - 0.01f);
+        out_pos[0] = (float)(int)(pos[0] - 0.01f);
     }
     if (!(pos[1] < 0.0f)) {
-        out[1] = (float)fptosi(0.01f + pos[1]);
+        out_pos[1] = (float)(int)(0.01f + pos[1]);
     }
     if (pos[1] < 0.0f) {
-        out[1] = (float)fptosi(pos[1] - 0.01f);
+        out_pos[1] = (float)(int)(pos[1] - 0.01f);
     }
     if (!(pos[2] < 0.0f)) {
-        out[2] = (float)fptosi(0.01f + pos[2]);
+        out_pos[2] = (float)(int)(0.01f + pos[2]);
     }
     if (pos[2] < 0.0f) {
-        out[2] = (float)fptosi(pos[2] - 0.01f);
+        out_pos[2] = (float)(int)(pos[2] - 0.01f);
     }
-    out[3] = pos[3];
+    out_pos[3] = pos[3];
 }
-int CEditMap::CmpEditAlt(float alt, float base_alt) {
+
+s32 CEditMap::CmpEditAlt(float alt, float base_alt) {
     float difference = alt - base_alt;
     if (!(difference <= 0.5f)) {
         return -1;
     }
-    int result = 1;
+    s32 result = 1;
     if (!(difference < -0.5f)) {
         result = 0;
     }
     return result;
 }
-float CEditMap::GetEditAlt(float altitude) {
-    if (altitude > 0.0f) {
-        return (float)fptosi(0.5f + altitude);
+
+float CEditMap::GetEditAlt(float alt) {
+    if (alt > 0.0f) {
+        return (float)(int)(0.5f + alt);
     }
-    return (float)fptosi(altitude - 0.5f);
+    return (float)(int)(alt - 0.5f);
 }
-int CEditMap::GetGridPos(float *pos, float *river, float *out) {
+
+int CEditMap::GetGridPos(float *pos, float *out_pos, float *out_size) {
     int i;
     CEditGrid *grid;
-    int offset;
     int local[2];
-    offset = 0;
+
     i = 0;
     for (; i < grid_max; i++) {
-        grid = *(CEditGrid **)((u8 *)this + offset + 0xF54);
+        grid = this->grid[i];
         if (grid != 0) {
             if (grid->GetLPos(local, pos[0], pos[2])) {
-                grid->GetRiverPos(local[0], local[1], river);
-                out[0] = grid->step_x;
-                out[1] = 0.0f;
-                out[2] = grid->step_z;
+                grid->GetRiverPos(local[0], local[1], out_pos);
+                out_size[0] = grid->step_x;
+                out_size[1] = 0.0f;
+                out_size[2] = grid->step_z;
                 return 1;
             }
         }
-        offset += 4;
     }
     return 0;
 }
-void CEditMap::GetMatrix(float (*matrix)[4], float *pos, int step) {
-    GetRotMatrix(matrix, step);
-    *(u_long128 *)matrix[3] = *(u_long128 *)pos;
-    matrix[3][3] = 1.0f;
+
+void CEditMap::GetMatrix(float (*out_matrix)[4], float *pos, int angle) {
+    GetRotMatrix(out_matrix, angle);
+    *(u_long128 *)out_matrix[3] = *(u_long128 *)pos;
+    out_matrix[3][3] = 1.0f;
 }
-void CEditMap::GetInversMatrix(float (*a)[4], float (*b)[4]) {
-    sceVu0InversMatrix(a, b);
+
+void CEditMap::GetInversMatrix(float (*out_matrix)[4], float (*matrix)[4]) {
+    sceVu0InversMatrix(out_matrix, matrix);
 }
-int CEditMap::ConvertParts(CEditParts *part) {
-    return ((int)part - (int)edit_parts) / 816;
+
+int CEditMap::ConvertParts(CEditParts *parts) {
+    return parts - edit_parts;
 }
-int CEditMap::GetSameParts(int index) {
-    CEditParts *target = GetePlaceParts(index);
-    void *info;
+
+#ifdef NONMATCHING
+int CEditMap::GetSameParts(int no) {
+    CEditParts *target = GetePlaceParts(no);
+    CEditPartsInfo *info;
     int i;
-    int offset;
     if (target == 0) {
         return -1;
     }
@@ -518,21 +480,25 @@ int CEditMap::GetSameParts(int index) {
         return -1;
     }
     i = 0;
-    offset = 0;
+
     for (; i < edit_parts_max; i++) {
-        CEditParts *slot = (CEditParts *)((char *)edit_parts + offset);
-        int is_free = *(signed char *)((u_char *)slot + 0x70) == 0;
+        CEditParts *slot = &edit_parts[i];
+        int is_free = slot->name[0] == 0;
         if (!is_free) {
-            if (slot->state == 0) {
+            if (slot->state == EDIT_PARTS_STATE_NONE) {
                 if (slot->info == info) {
                     return i;
                 }
             }
         }
-        offset += 0x330;
     }
     return -1;
 }
+
+#else
+INCLUDE_ASM("ps2/asm/pal/nonmatchings/editmap", GetSameParts__8CEditMapFi);
+#endif
+
 int CEditMap::BuildEditParts(int id) {
     CEditPartsInfo *info;
 
@@ -542,7 +508,8 @@ int CEditMap::BuildEditParts(int id) {
     }
     return -1;
 }
-int CEditMap::GetTotalPolyn(int *vertex_total, int *texture_total) {
+
+int CEditMap::GetTotalPolyn(int *out_polyn1, int *out_polyn2) {
     int poly_total;
     int vertex_sum;
     int texture_sum;
@@ -550,7 +517,7 @@ int CEditMap::GetTotalPolyn(int *vertex_total, int *texture_total) {
     int i;
     int river_count;
     CEditPartsInfo *info;
-    float river_pos[4];
+
     i = 0;
     texture_sum = 0;
     vertex_sum = 0;
@@ -566,30 +533,31 @@ int CEditMap::GetTotalPolyn(int *vertex_total, int *texture_total) {
             }
         }
     }
-    *(EditVector *)river_pos = at_830__3;
+    sceVu0FVECTOR river_pos = {0.0f, 0.0f, 0.0f, -1.0f};
     river_count = GetRiverNum(river_pos);
-    info = GetePartsInfoAtType(0xB);
+    info = GetePartsInfoAtType(EDIT_PARTS_TYPE_RIVER);
     if (info != 0) {
         texture_sum += river_count * info->polyn[2];
         vertex_sum += river_count * info->polyn[1];
         poly_total += river_count * info->polyn[0];
     }
-    if (vertex_total != 0) {
-        *vertex_total = vertex_sum;
+    if (out_polyn1 != 0) {
+        *out_polyn1 = vertex_sum;
     }
-    if (texture_total != 0) {
-        *texture_total = texture_sum;
+    if (out_polyn2 != 0) {
+        *out_polyn2 = texture_sum;
     }
     return poly_total;
 }
+
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/editmap", BuildEditParts__8CEditMapFPc);
-int CEditMap::DeleteEditParts(int index) {
-    CEditParts *edit_parts = GetePlaceParts(index);
+int CEditMap::DeleteEditParts(int no) {
+    CEditParts *edit_parts = GetePlaceParts(no);
     if (edit_parts == 0) {
         return 0;
     }
     if (edit_parts->house != 0) {
-        memset(edit_parts->house, 0, 0x10);
+        memset(edit_parts->house, 0, sizeof(CEditHouse));
     }
     if (edit_parts->unk_320 != 0) {
         parts_heap.Free((u_long128 *)edit_parts->unk_320);
@@ -597,18 +565,18 @@ int CEditMap::DeleteEditParts(int index) {
     edit_parts->Initialize();
     return 1;
 }
-int CEditMap::RemoveEditParts(int index, float *pos, RemoveInfo *remove_info_opaque) {
-    RemoveInfo *remove_info = remove_info_opaque;
+
+int CEditMap::RemoveEditParts(int no, float *pos, RemoveInfo *info) {
+    RemoveInfo *remove_info = info;
     float color[4];
     float parts_pos[4];
     float parts_rot[4];
     CEditParts *candidate;
-    int *extra;
+    CEditHouse *extra;
     int id;
     int n;
     EditPlaceLog *other;
     CEditPartsInfo *candidate_info;
-    int color_offset;
     int c;
     CEditPartsInfo *river_info;
     int j;
@@ -618,21 +586,21 @@ int CEditMap::RemoveEditParts(int index, float *pos, RemoveInfo *remove_info_opa
     int i;
     EditPlaceLog *entry;
 
-    part = GetePlaceParts(index);
+    part = GetePlaceParts(no);
     if (part != 0) {
         if (remove_info != 0 && remove_info->force == 0) {
-            if (part->info != 0 && (part->info->attr & kInfoFixedFlag)) {
+            if (part->info != 0 && (part->info->attr & 0x1)) {
                 return 0;
             }
         }
         id = part->GetInfoID();
-        part->state = 0;
-        if (id >= 0 && id < kMaxInfoId && remove_info != 0) {
+        part->state = EDIT_PARTS_STATE_NONE;
+        if (id >= 0 && id < EDIT_REMOVE_INFO_ID_MAX && remove_info != 0) {
             remove_info->parts_num[id] += 1;
         }
-        extra = (int *)part->house;
+        extra = part->house;
         if (extra != 0) {
-            extra_value = extra[1];
+            extra_value = extra->npc_no[0];
             if (extra_value > 0 && remove_info != 0) {
                 int slot = remove_info->house_num;
                 remove_info->house_num = slot + 1;
@@ -643,12 +611,11 @@ int CEditMap::RemoveEditParts(int index, float *pos, RemoveInfo *remove_info_opa
             if (part->IsFence() == 0) {
                 for (c = 0; c < part->info->paint_num; c++) {
                     if (((CMapParts *)part)->GetColor(c, color) != 0) {
-                        for (j = 0, color_offset = 0; j < remove_info->color_num;
-                             color_offset += 0x10, j++) {
+                        for (j = 0; j < remove_info->color_num;
+                             j++) {
                             if (EditPartsCmpColor(
-                                    color, (float *)((u8 *)remove_info->color + color_offset)) != 0) {
-                                remove_info->paint_num[j] += RePaintNum__8CEditMapFi(
-                                    this, part->info->paint_used);
+                                    color, remove_info->color[j]) != 0) {
+                                remove_info->paint_num[j] += RePaintNum(part->info->paint_used);
                                 break;
                             }
                         }
@@ -656,16 +623,16 @@ int CEditMap::RemoveEditParts(int index, float *pos, RemoveInfo *remove_info_opa
                 }
             }
         }
-        DeleteEditParts(index);
+        DeleteEditParts(no);
         if (place_log_max == 0 || (entry = place_log) == 0) {
             return 1;
         }
         for (m = 0; m < place_log_max; m++, entry++) {
-            if ((s16)index == entry->parts_no) {
+            if ((s16)no == entry->parts_no) {
                 other = place_log;
                 for (n = 0; n < place_log_max; n++, other++) {
-                    if (n != m && other->base_no == index) {
-                        RemoveEditParts(other->parts_no, pos, remove_info_opaque);
+                    if (n != m && other->base_no == no) {
+                        RemoveEditParts(other->parts_no, pos, info);
                     }
                 }
                 entry->parts_no = -1;
@@ -674,10 +641,10 @@ int CEditMap::RemoveEditParts(int index, float *pos, RemoveInfo *remove_info_opa
         return 1;
     }
     if (RemoveRiver(pos) != 0) {
-        river_info = GetePartsInfoAtType(kRiverPartsType);
+        river_info = GetePartsInfoAtType(EDIT_PARTS_TYPE_RIVER);
         if (river_info != 0) {
             id = river_info->id;
-            if (id >= 0 && id < kMaxInfoId && remove_info != 0) {
+            if (id >= 0 && id < EDIT_REMOVE_INFO_ID_MAX && remove_info != 0) {
                 remove_info->parts_num[id] += 1;
             }
         }
@@ -685,11 +652,11 @@ int CEditMap::RemoveEditParts(int index, float *pos, RemoveInfo *remove_info_opa
         for (i = 0; i < edit_parts_max; i++, candidate++) {
             if (CheckNormalPlaceParts(candidate) != 0) {
                 candidate_info = candidate->info;
-                if (candidate_info != 0 && (candidate_info->attr & kInfoRiverRelatedFlag)) {
+                if (candidate_info != 0 && (candidate_info->attr & 0x80000)) {
                     candidate->GetPosition(parts_pos);
                     candidate->GetRotation(parts_rot);
                     if (CheckEditPartsOnRiver(candidate_info, parts_pos, parts_rot[1]) == 0) {
-                        RemoveEditParts(i, parts_pos, remove_info_opaque);
+                        RemoveEditParts(i, parts_pos, info);
                     }
                 }
             }
@@ -698,6 +665,7 @@ int CEditMap::RemoveEditParts(int index, float *pos, RemoveInfo *remove_info_opa
     }
     return 0;
 }
+
 int CEditMap::PlaceBurnParts() {
     CEditParts *part = edit_parts;
     int i = 0;
@@ -708,9 +676,10 @@ int CEditMap::PlaceBurnParts() {
     }
     return 0;
 }
-#pragma global_optimizer off
-int CEditMap::BurnEditParts(RemoveInfo *remove_info) {
-    float remove_pos[4];
+
+int CEditMap::BurnEditParts(RemoveInfo *info) {
+
+    sceVu0FVECTOR remove_pos = {10000000.0f, 10000000.0f, 1000000000.0f, 1.0f};
     float pos[4];
     float rotation[4];
     EP_PLACE_INFO place;
@@ -723,11 +692,10 @@ int CEditMap::BurnEditParts(RemoveInfo *remove_info) {
     u32 flags;
     int i2;
     CEditPartsInfo *replacement;
-    CEditPartsInfo *info;
+    CEditPartsInfo *parts_info;
     int replacement_id;
     int *placed_count;
     CEditParts *part2;
-    *(EditVector *)remove_pos = at_988;
     high_info = info_mngr.GetePartsInfoAtID(0x57);
     low_info = info_mngr.GetePartsInfoAtID(0x56);
     if (high_info == 0 || low_info == 0) {
@@ -740,20 +708,20 @@ int CEditMap::BurnEditParts(RemoveInfo *remove_info) {
     for (; i < edit_parts_max; i++, part++) {
         if (CheckNormalPlaceParts(part) != 0 && part->info != 0 &&
             (part->GetInfoID() == 0x57 || part->GetInfoID() == 0x56)) {
-            RemoveEditParts(i, remove_pos, remove_info);
+            RemoveEditParts(i, remove_pos, info);
         }
     }
     part2 = edit_parts;
     i2 = 0;
     for (; i2 < edit_parts_max; i2++, part2++) {
         if (CheckNormalPlaceParts(part2) != 0) {
-            info = part2->info;
-            if (info != 0) {
-                flags = info->attr;
-                if (flags & 0x1000) {
+            parts_info = part2->info;
+            if (parts_info != 0) {
+                flags = parts_info->attr;
+                if (flags & EDIT_PARTS_ATR_BURN) {
                     part2->GetPosition(pos);
                     part2->GetRotation(rotation);
-                    RemoveEditParts(i2, remove_pos, remove_info);
+                    RemoveEditParts(i2, remove_pos, info);
                     if (flags & 0x4000) {
                         replacement = low_info;
                         replacement_id = 0x56;
@@ -764,7 +732,7 @@ int CEditMap::BurnEditParts(RemoveInfo *remove_info) {
                             placed_count = &placed_high;
                         }
                         if (*placed_count < replacement->max_num &&
-                            CheckEditParts((CEditPartsInfo *)replacement, pos, rotation[1],
+                            CheckEditParts(replacement, pos, rotation[1],
                                            &place) != 0) {
                             PlaceEditParts(BuildEditParts(replacement_id), &place, pos, rotation, 0);
                             *placed_count += 1;
@@ -776,23 +744,24 @@ int CEditMap::BurnEditParts(RemoveInfo *remove_info) {
     }
     return 1;
 }
-#pragma global_optimizer reset
+
 CEditParts *CEditMap::PlaceEditParts(char *name, float *pos, float *rot) {
     CEditParts *edit_parts = GetePlaceParts(BuildEditParts(name));
     if (edit_parts == 0) {
         return 0;
     }
-    edit_parts->state = 1;
+    edit_parts->state = EDIT_PARTS_STATE_PLACED;
     edit_parts->SetPosition(pos);
     edit_parts->SetRotation(rot);
     edit_parts->SetScale(1.0f, 1.0f, 1.0f);
     return edit_parts;
 }
-CEditParts *CEditMap::PlaceEditParts(int index, EP_PLACE_INFO *place, float *pos, float *rotation,
-                             int *same_index) {
+
+CEditParts *CEditMap::PlaceEditParts(int no, EP_PLACE_INFO *place, float *pos, float *rot,
+                             int *out_same) {
     CEditParts *edit_parts;
     CEditPartsInfo *info;
-    edit_parts = GetePlaceParts(index);
+    edit_parts = GetePlaceParts(no);
     if (edit_parts == 0) {
         return 0;
     }
@@ -800,57 +769,59 @@ CEditParts *CEditMap::PlaceEditParts(int index, EP_PLACE_INFO *place, float *pos
     if (info == 0) {
         return 0;
     }
-    if (edit_parts->GetPartsType() != 0xB) {
-        if (!CreatePlaceLog(index, place)) {
+    if (edit_parts->GetPartsType() != EDIT_PARTS_TYPE_RIVER) {
+        if (!CreatePlaceLog(no, place)) {
             return 0;
         }
     }
     if (area_no == 1) {
         if (place != 0) {
-            CEditParts *other = GetePlaceParts(((int *)place)[1]);
+            CEditParts *other = GetePlaceParts(place->base[0]);
             if (other != 0) {
                 edit_parts->ground = other->ground;
             }
         }
     }
-    edit_parts->state = 1;
-    if (same_index != 0) {
-        *same_index = GetSameParts(index);
+    edit_parts->state = EDIT_PARTS_STATE_PLACED;
+    if (out_same != 0) {
+        *out_same = GetSameParts(no);
     }
-    if (info->attr & 0x80) {
+    if (info->attr & EDIT_PARTS_ATR_RIVER) {
         if (CheckRiverParts(pos)) {
             PlaceRiver(pos);
-            edit_parts->state = 2;
+            edit_parts->state = EDIT_PARTS_STATE_RIVER;
             edit_parts->SetPosition(0.0f, -10000.0f, 0.0f);
         } else {
-            edit_parts->state = 0;
+            edit_parts->state = EDIT_PARTS_STATE_NONE;
         }
         return 0;
     }
     edit_parts->SetPosition(pos);
-    edit_parts->SetRotation(rotation);
+    edit_parts->SetRotation(rot);
     edit_parts->SetScale(1.0f, 1.0f, 1.0f);
     return edit_parts;
 }
-int CEditMap::PlaceRiverParts(float *pos) {
+
+s32 CEditMap::PlaceRiverParts(float *pos) {
     if (CheckRiverParts(pos) != 0) {
         PlaceRiver(pos);
         return 1;
     }
     return 0;
 }
-int CEditMap::CreatePlaceLog(int id, EP_PLACE_INFO *info) {
+
+int CEditMap::CreatePlaceLog(int no, EP_PLACE_INFO *place) {
     EditPlaceLog *slot;
     int index;
     int remaining;
     int i;
-    if (info == 0 || id < 0) {
+    if (place == 0 || no < 0) {
         return 1;
     }
     if (place_log_max == 0 || place_log == 0) {
         return 0;
     }
-    remaining = info->num;
+    remaining = place->num;
     if (remaining < 0) {
         return 1;
     }
@@ -872,17 +843,18 @@ int CEditMap::CreatePlaceLog(int id, EP_PLACE_INFO *info) {
     for (i = 0; i < place_log_max; i++, slot++) {
         int is_free = slot->parts_no < 0;
         if (is_free) {
-            slot->parts_no = id;
-            slot->base_no = info->base[index];
+            slot->parts_no = no;
+            slot->base_no = place->base[index];
             index++;
-            if (!(index < info->num)) {
+            if (!(index < place->num)) {
                 break;
             }
         }
     }
     return 1;
 }
-int CEditMap::GetNearParts(CEditPartsInfo *info, float *pos, float angle, CEditParts **out, int max) {
+
+int CEditMap::GetNearParts(CEditPartsInfo *info, float *pos, float rot_y, CEditParts **out_parts, int max) {
     float area_matrix[4][4];
     float part_matrix[4][4];
     float area_max[4];
@@ -894,52 +866,53 @@ int CEditMap::GetNearParts(CEditPartsInfo *info, float *pos, float angle, CEditP
     CEditParts *part;
     int i;
     int count;
-    float *bounds;
-    int out_offset;
-    float *info_bounds;
+    mgVu0FBOX *bounds;
+    mgVu0FBOX *info_bounds;
+    int output_index;
     if (info == 0) {
         return 0;
     }
     part = edit_parts;
-    mgCreateMatrixPY__FPA4_fPff(area_matrix, pos, angle);
-    ((float *)info)[0x6C / 4] = 1.0f;
-    ((float *)info)[0x5C / 4] = 1.0f;
-    info_bounds = (float *)((u8 *)info + 0x50);
-    mgApplyMatrix__FPfPfPA4_fPfPf(area_max, area_min, area_matrix, info_bounds, info_bounds + 4);
+    mgCreateMatrixPY(area_matrix, pos, rot_y);
+    info->box.min[3] = 1.0f;
+    info->box.max[3] = 1.0f;
+    info_bounds = &info->box;
+    mgApplyMatrix(area_max, area_min, area_matrix, info_bounds->max, info_bounds->min);
     area_max[0] += 55.0f;
     area_max[2] += 55.0f;
     area_min[0] -= 55.0f;
     area_min[2] -= 55.0f;
     count = 0;
     i = 0;
-    out_offset = 0;
+    output_index = 0;
+
     for (; i < edit_parts_max; i++, part++) {
-        int is_free = *(signed char *)((u_char *)part + 0x70) == 0;
+        int is_free = part->name[0] == 0;
         if (is_free) {
             continue;
         }
-        if (part->state != 1) {
+        if (part->state != EDIT_PARTS_STATE_PLACED) {
             continue;
         }
         if (part->info == 0) {
             continue;
         }
-        bounds = (float *)((u8 *)part->info + 0x50);
+        bounds = &part->info->box;
         part->GetPosition(part_pos);
         part->GetRotation(part_rotation);
-        mgCreateMatrixPY__FPA4_fPff(part_matrix, part_pos, part_rotation[1]);
+        mgCreateMatrixPY(part_matrix, part_pos, part_rotation[1]);
 
-        mgApplyMatrix__FPfPfPA4_fPfPf(part_max, part_min, part_matrix, bounds, bounds + 4);
+        mgApplyMatrix(part_max, part_min, part_matrix, bounds->max, bounds->min);
         if (!(count < max)) {
             break;
         }
         count++;
-        *(CEditParts **)((u8 *)out + out_offset) = part;
-        out_offset += 4;
+        out_parts[output_index++] = part;
     }
     return count;
 }
-int CEditMap::GetNearParts(mgVu0FBOX &box, CEditParts **out, int max) {
+
+int CEditMap::GetNearParts(mgVu0FBOX &box, CEditParts **out_parts, int max) {
     float matrix[4][4];
     float world_max[4];
     float world_min[4];
@@ -948,27 +921,27 @@ int CEditMap::GetNearParts(mgVu0FBOX &box, CEditParts **out, int max) {
     int i;
     int count;
     CEditParts *part;
-    float *bounds;
-    int out_offset;
+    mgVu0FBOX *bounds;
+    int output_index = 0;
     count = 0;
-    out_offset = 0;
+
     part = edit_parts;
     for (i = 0; i < edit_parts_max; i++, part++) {
-        int is_free = *(signed char *)((u_char *)part + 0x70) == 0;
+        int is_free = part->name[0] == 0;
         if (is_free) {
             continue;
         }
-        if (part->state != 1) {
+        if (part->state != EDIT_PARTS_STATE_PLACED) {
             continue;
         }
         if (part->info == 0) {
             continue;
         }
-        bounds = (float *)((u8 *)part->info + 0x50);
+        bounds = &part->info->box;
         part->GetPosition(pos);
         part->GetRotation(rotation);
-        mgCreateMatrixPY__FPA4_fPff(matrix, pos, rotation[1]);
-        mgApplyMatrix__FPfPfPA4_fPfPf(world_max, world_min, matrix, bounds, bounds + 4);
+        mgCreateMatrixPY(matrix, pos, rotation[1]);
+        mgApplyMatrix(world_max, world_min, matrix, bounds->max, bounds->min);
         if (box.max[0] < world_min[0]) {
             continue;
         }
@@ -985,11 +958,11 @@ int CEditMap::GetNearParts(mgVu0FBOX &box, CEditParts **out, int max) {
             break;
         }
         count++;
-        *(CEditParts **)((u8 *)out + out_offset) = part;
-        out_offset += 4;
+        out_parts[output_index++] = part;
     }
     return count;
 }
+
 int CEditMap::GetePlaceParts(float *pos) {
     mgVu0FBOX box;
     CEditParts *near[0x200];
@@ -1004,48 +977,51 @@ int CEditMap::GetePlaceParts(float *pos) {
     count = GetNearParts(box, near, 0x200);
     return GetePlaceParts(pos, near, count);
 }
+
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/editmap", GetePlaceParts__8CEditMapFPfPP10CEditPartsi);
-int CEditMap::CheckEditParts(CEditPartsInfo *info, float *pos, float radius, EP_PLACE_INFO *place) {
+int CEditMap::CheckEditParts(CEditPartsInfo *info, float *pos, float rot_y, EP_PLACE_INFO *place) {
     CEditParts *near_parts[512];
     int count;
     if (info == 0) {
         return 0;
     }
-    count = GetNearParts(info, pos, radius, near_parts, 512);
-    return CheckEditParts(info, pos, radius, place, near_parts, count);
+    count = GetNearParts(info, pos, rot_y, near_parts, 512);
+    return CheckEditParts(info, pos, rot_y, place, near_parts, count);
 }
+
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/editmap", GetEditPartsAlt__8CEditMapFP14CEditPartsInfoPff);
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/editmap", MagnetParts__8CEditMapFP14CEditPartsInfoPfPfPP10CEditPartsi);
-int CEditMap::MagnetParts(CEditPartsInfo *info, float *pos, float *magnet) {
+int CEditMap::MagnetParts(CEditPartsInfo *info, float *pos, float *rot) {
     CEditParts *near_parts[512];
-    int count = GetNearParts(info, pos, magnet[0], near_parts, 512);
-    return MagnetParts(info, pos, magnet, near_parts, count);
+    int count = GetNearParts(info, pos, rot[0], near_parts, 512);
+    return MagnetParts(info, pos, rot, near_parts, count);
 }
+
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/editmap", CheckWallEditParts__8CEditMapFP14CEditPartsInfoPfiiP13EP_PLACE_INFO);
 void CEditMap::Step() {
     frame += 1;
-    Step__4CMapFv(this);
+    CMap::Step();
 }
-int CEditMap::PreDraw(float *pos) {
-    EditFuncCheck check;
+
+int CEditMap::PreDraw(float *view_pos) {
     CEditParts *part;
     int i;
-    PreDraw__4CMapFPf(this, pos);
-    check.time = 0;
-    CreateFuncCheck__4CMapFP15CFuncPointCheck(this, &check);
+    CMap::PreDraw(view_pos);
+    CFuncPointCheck check;
+    CreateFuncCheck(&check);
     part = edit_parts;
     for (i = 0; i < edit_parts_max; i++, part++) {
-        int is_free = *(signed char *)((u_char *)part + 0x70) == 0;
+        int is_free = part->name[0] == 0;
         if (!is_free) {
-            StepFuncPoint__9CMapPartsFR15CFuncPointCheck((CMapParts *)part, check);
+            part->StepFuncPoint(check);
         }
     }
     return 1;
 }
-int CEditMap::DrawSub(int mode) {
+
+int CEditMap::DrawSub(int direct) {
     float ambient[4];
     float pulsed[4];
-    EditFuncCheck check;
     CEditParts *part;
     int total;
     int light_b;
@@ -1059,15 +1035,15 @@ int CEditMap::DrawSub(int mode) {
             }
         }
     }
-    check.time = 0;
-    CreateFuncCheck__4CMapFP15CFuncPointCheck(this, &check);
+    CFuncPointCheck check;
+    CreateFuncCheck(&check);
     part = edit_parts;
     total = 0;
     i = 0;
     for (; i < edit_parts_max; i++, part++) {
-        int is_free = *(signed char *)((u_char *)part + 0x70) == 0;
-        if (!is_free && part->state == 1) {
-            CopyFuncPointCheck__9CMapPartsFR15CFuncPointCheck((CMapParts *)part, check);
+        int is_free = part->name[0] == 0;
+        if (!is_free && part->state == EDIT_PARTS_STATE_PLACED) {
+            part->CopyFuncPointCheck(check);
             if (i == focus_parts) {
                 float boost;
                 mgGetAmbient(ambient);
@@ -1081,7 +1057,7 @@ int CEditMap::DrawSub(int mode) {
                 pulsed[3] = 128.0f;
                 mgSetAmbient(pulsed);
             }
-            if (mode != 0) {
+            if (direct != 0) {
                 total += part->DrawDirect();
             } else {
                 total += part->Draw();
@@ -1091,7 +1067,7 @@ int CEditMap::DrawSub(int mode) {
             }
         }
     }
-    DrawSub__4CMapFi(this, mode);
+    CMap::DrawSub(direct);
     if (balance_moved != 0) {
         for (light_b = 0; light_b < 4; light_b++) {
             if (balance_parts[light_b] != 0) {
@@ -1101,16 +1077,28 @@ int CEditMap::DrawSub(int mode) {
     }
     return total;
 }
-int emapEDIT_RIVER(SPI_STACK *stack, int argc) {
+
+/**
+ * Begins river definitions.
+ */
+static int emapEDIT_RIVER(SPI_STACK *stack, int argc) {
     return 1;
 }
+
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/editmap", emapRIVER_PARTS_NAME__FP9SPI_STACKi);
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/editmap", emapMASK_PARTS_NAME__FP9SPI_STACKi);
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/editmap", emapWATER_PARTS_NAME__FP9SPI_STACKi);
-int emapEDIT_RIVER_END(SPI_STACK *stack, int argc) {
+/**
+ * Ends river definitions.
+ */
+static int emapEDIT_RIVER_END(SPI_STACK *stack, int argc) {
     return 1;
 }
-int emapFIX_EPARTS_START(SPI_STACK *stack, int argc) {
+
+/**
+ * Allocates the fixed parts table.
+ */
+static int emapFIX_EPARTS_START(SPI_STACK *stack, int argc) {
     int count = spiGetStackInt(stack);
     u32 size;
     int quadwords;
@@ -1121,14 +1109,18 @@ int emapFIX_EPARTS_START(SPI_STACK *stack, int argc) {
 
     size = count * sizeof(ePlaceData);
     quadwords = (size & 0xF) ? (size >> 4) + 1 : size >> 4;
-    table = new ((u_long128 *)emapStack->Alloc(quadwords + 2)) ePlaceData[count];
+    table = new (emapStack->Alloc(quadwords + 2)) ePlaceData[count];
     emapInfo->SeteFixPartsTable(table, count);
     emapFixNum = count;
-    emapFix = (int)table;
+    emapFix = table;
     emapFixIdx = 0;
     return 1;
 }
-int emapFIX_EPARTS(SPI_STACK *stack, int argc) {
+
+/**
+ * Sets a fixed part placement.
+ */
+static int emapFIX_EPARTS(SPI_STACK *stack, int argc) {
     int index = emapFixIdx;
     ePlaceData *entry;
     if (index < 0 || index >= emapFixNum) {
@@ -1137,39 +1129,51 @@ int emapFIX_EPARTS(SPI_STACK *stack, int argc) {
     if (emapFix == 0) {
         return 0;
     }
-    entry = (ePlaceData *)emapFix + index;
+    entry = &emapFix[index];
     entry->id = spiGetStackInt(stack++);
     spiGetStackVector(entry->position, stack);
     entry->angle = spiGetStackInt(stack += 3);
     emapFixIdx++;
     return 1;
 }
-int emapFIX_EPARTS_END(SPI_STACK *stack, int argc) {
+
+/**
+ * Ends the fixed parts table.
+ */
+static int emapFIX_EPARTS_END(SPI_STACK *stack, int argc) {
     emapFixNum = 0;
     emapFixIdx = 0;
     emapFix = 0;
     return 1;
 }
-int emapINIT_EPARTS_START(SPI_STACK *stack, int argc) {
+
+/**
+ * Allocates the initial parts table.
+ */
+static int emapINIT_EPARTS_START(SPI_STACK *stack, int argc) {
     int count = spiGetStackInt(stack);
     u32 size;
     int quadwords;
-    int table;
+    ePlaceData *table;
     if (count <= 0) {
         return 0;
     }
 
     size = count * sizeof(ePlaceData);
     quadwords = (size & 0xF) ? (size >> 4) + 1 : size >> 4;
-    table = (int) new ((u_long128 *)emapStack->Alloc(quadwords + 2)) ePlaceData[count];
-    emapInfo->init_parts = (ePlaceData *)table;
+    table = new (emapStack->Alloc(quadwords + 2)) ePlaceData[count];
+    emapInfo->init_parts = table;
     emapInfo->init_parts_num = count;
     emapInit = table;
     emapInitNum = count;
     emapInitIdx = 0;
     return 1;
 }
-int emapINIT_EPARTS(SPI_STACK *stack, int argc) {
+
+/**
+ * Sets an initial part placement.
+ */
+static int emapINIT_EPARTS(SPI_STACK *stack, int argc) {
     int index = emapInitIdx;
     ePlaceData *entry;
     if (index < 0 || index >= emapInitNum) {
@@ -1178,19 +1182,24 @@ int emapINIT_EPARTS(SPI_STACK *stack, int argc) {
     if (emapInit == 0) {
         return 0;
     }
-    entry = (ePlaceData *)emapInit + index;
+    entry = &emapInit[index];
     entry->id = spiGetStackInt(stack++);
     spiGetStackVector(entry->position, stack);
     entry->angle = spiGetStackInt(stack += 3);
     emapInitIdx++;
     return 1;
 }
-int emapINIT_EPARTS_END(SPI_STACK *stack, int argc) {
+
+/**
+ * Ends the initial parts table.
+ */
+static int emapINIT_EPARTS_END(SPI_STACK *stack, int argc) {
     emapInitNum = 0;
     emapInitIdx = 0;
     emapInit = 0;
     return 1;
 }
+
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/editmap", LoadEditInfo__8CEditMapFPciP9mgCMemory);
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/editmap", __ct__14CEditPartsInfoFv);
 
@@ -1203,7 +1212,6 @@ INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editmap", at_2257__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editmap", at_2278__DATA);
 
 // Constants (.rodata)
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editmap", at_346__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editmap", at_449__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editmap", at_450__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editmap", at_451__DATA);
@@ -1226,7 +1234,6 @@ INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editmap", __vt__14CEditCollision__DATA)
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editmap", __vt__8CEditMap__DATA);
 
 // Small initialised data (.sdata)
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editmap", CEditMapName__DATA);
 
 // Small uninitialised data (.sbss)
 INCLUDE_BSS(emapMap, 0x4);

@@ -8,14 +8,15 @@ non-class types `EP_PLACE_INFO`, `EditPlaceLog`, `EditBuildResult` and the capac
 - All 93 `CEditMap` members in `manifest.tsv` are declared. A scratch compile of empty
   definitions of every declared member produced exactly the 93 retail symbols (plus
   `__vt__8CEditMap`), so every signature mangles correctly.
-- The header depends on two headers that do not exist yet:
-  - `editinfo.hpp` for `CEditInfoMngr` (by-value member `info_mngr`, must be 0x18 bytes).
-  - `sceneload.hpp` for `mgCObjectStack<T>` (by-value member `message`, must be 0x14 bytes;
-    `mgCObjectStack<CList<EMAP_MESSAGE>>::Initialize` in sceneload only zeroes +0x8).
-  With stub versions of those two (sizes above) the header and `ps2/src/editmap.cpp` compile,
-  and every field offset below was checked with static asserts. `EMAP_MESSAGE` is only
-  forward-declared; no code in this game reads it (its definition belongs with sceneload).
-- `ps2/src/editmap.cpp` now includes `editmap.hpp`; it compiles once the two headers exist.
+- The header includes `editinfo.hpp` for the 0x18-byte `CEditInfoMngr` and
+  `sceneload.hpp` for the 0x14-byte `mgCObjectStack<T>`. Both headers are present.
+  `EMAP_MESSAGE` is forward-declared.
+- `ps2/src/editmap.cpp` includes `editmap.hpp` and compiles with drafts enabled.
+
+## C++ draft status
+- 68 functions: 54 matched definitions, 2 guarded drafts and 12 assembly-only functions.
+- The guarded drafts are `CEditMap::ClearAllParts` and `CEditMap::GetSameParts`.
+- All eight defined script callbacks have file-local linkage.
 
 ## Non-member functions and data (all file-local, so none in the header)
 `local_symbols.tsv` lists every one of these as LOCAL; they go in the `.cpp` as `static`:
