@@ -2041,7 +2041,7 @@ public:
      * @address 0x19D9B0
      * @size 0x8
      */
-    s8 CheckVoiceUnit();
+    int CheckVoiceUnit();
 
     /**
      * Turns the ridepod's voice on or off.
@@ -2095,7 +2095,7 @@ public:
      * @address 0x19DAE0
      * @size 0x54
      */
-    s16 CheckRobotCore();
+    int CheckRobotCore();
 
     /**
      * Gives a character's defence.
@@ -2448,7 +2448,7 @@ public:
      * @address 0x19F460
      * @size 0x70
      */
-    s16 AddYarikomiMedal(int num);
+    int AddYarikomiMedal(int num);
 
     /**
      * Gives the number of medals.

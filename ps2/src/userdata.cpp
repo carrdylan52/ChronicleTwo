@@ -2624,7 +2624,7 @@ void CUserDataManager::SetVoiceUnit(s32 fitted) {
     }
 }
 
-s8 CUserDataManager::CheckVoiceUnit() {
+int CUserDataManager::CheckVoiceUnit() {
     return robo_data.voice_unit;
 }
 
@@ -2671,7 +2671,7 @@ int CUserDataManager::CheckCapacity() {
     return 0;
 }
 
-s16 CUserDataManager::CheckRobotCore() {
+int CUserDataManager::CheckRobotCore() {
     for (int i = 0; i < 150; i++) {
         if (used_data[i].item_type == 11) {
             return used_data[i].item_no;
@@ -3220,7 +3220,8 @@ int CUserDataManager::GetNumSameItem(int item_no) {
 #else
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/userdata", GetNumSameItem__16CUserDataManagerFi);
 #endif
-s16 CUserDataManager::AddYarikomiMedal(int num) {
+
+int CUserDataManager::AddYarikomiMedal(int num) {
     short *count = &yarikomi_medal;
     *count = *count + num;
     if (yarikomi_medal < 0) {
