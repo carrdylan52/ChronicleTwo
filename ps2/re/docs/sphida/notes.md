@@ -63,8 +63,8 @@ No vtable of its own.
 ## Functions
 - `Step()` returns int: 1 when an event (3000..3003, `SphidaEvent`) was started, else 0;
   `DngMainKey` uses the result.
-- `SetCollisionModel` returns `col_model != 0`; Ghidra types it bool, declared `int`. If the body
-  does not match, try `bool`.
+- `SetCollisionModel` returns `col_model != NULL`; Ghidra types it bool, and it matches declared
+  `int`.
 - `PickupCollision` takes `mgVu0FBOX` by value (copied to the stack, passed as `const&` to
   `CColFrame::PickUpNearPoly`).
 - `_SPHIDA_SET_UP` mode 0 -> `SetUp(tex_bank)`, 1 -> `s17_SetUp(tex_bank)`, 2 -> `Omake_SetUp(course, tex_bank)`.
