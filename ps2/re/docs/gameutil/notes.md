@@ -1,11 +1,12 @@
 # gameutil: reverse-engineering notes
 
 ## C++ draft status
-All 37 functions have C++ in `ps2/src/gameutil.cpp`. 13 are exact and compiled
-by the matching build. 1 more compiles to retail's bytes in isolation but stays
-under `NONMATCHING`. 23 differ from retail and keep the `INCLUDE_ASM` fallback.
-Each function tried has its one promotion attempt recorded in
-`scripts/re/promotion_attempts.tsv`.
+All 37 functions have C++ in `ps2/src/gameutil.cpp`. 31 are exact and compiled
+by the matching build. Six differ from retail and keep the `INCLUDE_ASM` fallback:
+both the time-based `MotionProc` overload and `MotionProc2`, `CheckHits` with a
+`CollisionInfo` argument, `MoveCheck`, `GetFootPoly`, and
+`CalcIntersectionPointLineAndLine`. The unit is linked from C++ rather than
+listed in `ps2/config/pal/migrated_units.txt`.
 
 Header: `ps2/include/gameutil.hpp`. No class in `class_units.tsv` is owned by gameutil; the header
 declares the plain structs and enums the unit's code uses.
@@ -17,11 +18,13 @@ declares the plain structs and enums the unit's code uses.
 - All data of the unit is local (static): `OldSkinFrame` (mgCFrame*, last skinned frame; reset to 0
   by DeformMesh), `def_vrtx` (sceVu0FVECTOR[800], 0x3200: skinned-vertex accumulator, w = weight
   sum), `def_nml` (0x10 in retail although MotionProc3 writes up to 800 normals into it; it
-  overruns into the tmp_* matrices), and the function-local statics `vert_845`/`vert_915`
-  (sceVu0FVECTOR* into the visual's vertices), `nml_916` (normals), `tmp_*Matrix*_8xx/9xx`
-  (sceVu0FMATRIX), `at_945` (16-byte vector constant), `at_966`/`at_967` (printf strings
+  overruns into the tmp_* matrices), and the function-local statics `vert`
+  (sceVu0FVECTOR* into the visual's vertices), `nml` (normals), `tmp_*Matrix*`
+  (sceVu0FMATRIX), the zero-initialized weight vector, and the printf strings
   "MAX_VERTX OVER %d/%d" / "MAX_NORMAL OVER %d/%d", limits 400 and 800). No `extern`s in header.
-- MotionProc2 / MotionProc3 / testVUnew use VU0 macro code (`lqc2`, `vmulabc`...).
+- `testVUnew` and `CheckHit` with a `CollisionInfo` argument use VU0 macro code.
+  `MotionProc3` uses a VU0 helper. The guarded `MotionProc2` draft uses typed
+  vectors and matrices.
 
 ## Types (offset -> evidence)
 ### tagMOTION_TYPE (0x14)
