@@ -45,8 +45,8 @@ enum MENU_ASK_MODE {
     MENU_ASK_MODE_GIFT_BOX     = 11, /**< Taking an item out of a gift box. */
     MENU_ASK_MODE_EXTEND       = 12, /**< A question of the derived menu; runs IsAskExtend. */
 };
-
 // clang-format on
+
 /**
  *
  * Bits of the direction keys, as CMenuKeyFunc::CheckSelectKey and CMenuKeyFunc::CheckLRKey return them.
@@ -63,8 +63,8 @@ enum MENU_SELECT_KEY {
     MENU_SELECT_KEY_L2    = 0x40, /**< The L2 button. */
     MENU_SELECT_KEY_R2    = 0x80, /**< The R2 button. */
 };
-
 // clang-format on
+
 /**
  *
  * Bits of the face and shoulder buttons, as MenuCheckPushButton returns them.
@@ -81,8 +81,8 @@ enum MENU_PUSH_BUTTON {
     MENU_PUSH_BUTTON_R3       = 0x40, /**< The right stick button. */
     MENU_PUSH_BUTTON_L3       = 0x80, /**< The left stick button. */
 };
-
 // clang-format on
+
 /**
  *
  * How the cursor of a key layout moves, as MENU_INPUTKEY_ARG::type holds it.
@@ -93,8 +93,8 @@ enum MENU_INPUTKEY_TYPE {
     MENU_INPUTKEY_TYPE_LINE = 0, /**< The cursor moves along one list. */
     MENU_INPUTKEY_TYPE_GLID = 1, /**< The cursor moves over a grid of rows and columns. */
 };
-
 // clang-format on
+
 /**
  *
  * Where an item that is being moved came from, so that it can be put back or swapped.
@@ -581,8 +581,6 @@ STATIC_ASSERT(sizeof(CBaseMenuClass) == 0x110);
  * background music volume.
  *
  */
-#pragma push
-#pragma cpp_extensions on
 class CMenuKeyFunc {
 public:
     u8 unk_0;
@@ -601,10 +599,8 @@ public:
     int pack_size;                     /**< Size of the pack file in bytes. */
     s16 waku_type;                     /**< Frame drawn around the cursor, or negative for none. */
     s32 unk_6C;
-    union {
-        struct { int cursor; int top_line; };
-        int select_pos[2];
-    };
+    int cursor;                        /**< Cursor position within the current layout. */
+    int top_line;                      /**< First row shown of the current layout. */
     int save_cursor;                   /**< Cursor position saved by SelDataInit. */
     int save_top_line;                 /**< First row shown saved by SelDataInit. */
     u8 return_item;                    /**< Set once the held item has been put back. */
@@ -998,7 +994,6 @@ public:
     s16 StepMenuBGM();
 };
 STATIC_ASSERT(sizeof(CMenuKeyFunc) == 0x160);
-#pragma pop
 
 /**
  *
@@ -1485,8 +1480,11 @@ STATIC_ASSERT(sizeof(MENU_ITEM_CURSOR_INFO) == 0xC);
  */
 struct BUILDUP_WEAPON_INFO {
     s16 unk_0;
-    union { s8 mode; s8 select; };
-    s8 select_no;
+    union {
+        s8 mode;    /**< Non-zero while a build-up is being chosen. */
+        s8 select;
+    };
+    s8 select_no;   /**< Build-up the cursor is on. */
     s32 unk_4;
     int select_num; /**< Number of build-ups that can be chosen. */
     u8 unk_C[0x38];
@@ -1887,3 +1885,11 @@ extern CGameDataUsed SepectolFusionBeforeAfterCheck;
 
 /** Screen position of each build-up name in the weapon build-up view. */
 extern s16 BuildUpNameXY[3][2];
+
+/**
+ * Returns the item that can be discarded, or NULL when discarding is forbidden.
+ * @mangled CheckTrushWeapon__FP13CGameDataUsed
+ * @address 0x23AFF0
+ * @size 0xA8
+ */
+CGameDataUsed *CheckTrushWeapon(CGameDataUsed *item);

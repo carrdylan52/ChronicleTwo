@@ -29,8 +29,8 @@ No symbol names these types, so the names are neutral ones taken from the tables
 
 ## CBaseMenuClass
 - vtable (`__vt__14CBaseMenuClass`, 0x20 = 2 header words + 6): IsCreateObject, IsMakeObject,
-  IsAskExtend, ItemCmdAfter, InitEnd, ExitEnd. All six are inline (bodies `return 1` / `return 0` /
-  empty) and are emitted in dngmenu (0x1F3D00..) and editmenu (InitEnd 0x1FF8D0). The vtable itself is in menusys.
+  IsAskExtend, ItemCmdAfter, InitEnd, ExitEnd. All six have out-of-line definitions (bodies `return 1` / `return 0` /
+  empty) in dngmenu (0x1F3D00..) and editmenu (InitEnd 0x1FF8D0). The vtable itself is in menusys.
   `CItemSelect` keeps all six. `CMenuItemInfo` overrides IsAskExtend, ItemCmdAfter and ExitEnd.
 - ExtendCommand dispatches on `mode`. Mode 4 calls vt+0x14 (ItemCmdAfter) with `&MenuItemCmdRet`; mode 5
   calls vt+8, mode 6 vt+0xC and mode 12 vt+0x10. These give the `MENU_ASK_MODE` values 3..12.
@@ -57,7 +57,7 @@ No symbol names these types, so the names are neutral ones taken from the tables
   0x80202020 / 0x80303030 grey), 0x48 (s16[8]) and 0x58 (s16[8]; set to 1 in one case).
 - `SetAskParam` copies 0x00..0x04, then a loop of **16** iterations over the three arrays at 0x08, 0x28 and
   0x48. With 8-entry arrays this overlaps the next array, so the retail loop overran its arrays. Reproduce it
-  with a bound of 16 (unrolled by 8 → 2 iterations). Then it copies 0x68..0x70 (s16) and 0x74..0x88 (words).
+  with a bound of 16 (unrolled by 8 â†’ 2 iterations). Then it copies 0x68..0x70 (s16) and 0x74..0x88 (words).
   0x06, 0x8C and 0x90 are not copied.
 - 0x68/0x6A: mode-dependent values (MoveItemCommand: chara number; SpectolBreak: `GetSameAdrressUserData`
   of both items). 0x78 form, 0x7C item, 0x80 second item (these come from stack copies in SetPreCmd*).
@@ -86,7 +86,7 @@ No symbol names these types, so the names are neutral ones taken from the tables
   direction into `key_input`. `FadeInMenuBGMVol` records a step, targets the saved volume,
   and marks the fade active.
 - Return types: CheckAnalogKey returns float 1.0; CheckKeyInput returns the byte at +2; StepMenuBGM returns
-  s16 +0x15A; the limmit_check functions return s16.
+  s16 +0x15A; the limmit_check functions return int; narrowing at CheckMoveSelect changes its code.
 
 ## MENU_INPUTKEY_ARG (item_menu_argtbl rows)
 Seen in `menu_inputkey_limmit_check_line/glid`:
@@ -148,7 +148,7 @@ Only non-local symbols get externs (the rest are `static` in the .cpp per `local
 - `MenuItemUseTarget` is `CItemUseTarget` (sinit sets the first word to -1).
 - `menu_chara_activeItem_limmit_check` (6 bytes) is never referenced, so it is declared `u8[6]`.
 - `BuildUpNameXY` is s16[3][2] (x, y per name).
-- `BUILDUP_WEAPON_INFO`: 0x00 s16 mode, 0x02 s8 select active, 0x03 s8 cursor, 0x08 int count. Its address
+- `BUILDUP_WEAPON_INFO`: 0x00 s16 `unk_0`, 0x02 s8 selection-active byte (`select`, also `mode`), 0x03 s8 cursor, 0x08 int count. Its address
   +0x8, +0xC, +0x18 and +0x2C is also taken and +0x24 is read (not resolved: `unk_4`, `unk_C[0x38]`).
 - `MENU_ITEM_CURSOR_INFO`: byte 0 enable, bytes 1..3 (loop of 3) and 4, 5 are arrows, byte 6 is the
   character mark, and the int at 8 is a counter that wraps above 0x18.
@@ -160,7 +160,7 @@ Only non-local symbols get externs (the rest are `static` in the .cpp per `local
   MenuPosFormValueSetWeapon, MenuFormUpdataAttachInfo, MenuPosFormValueSetFishingRod, MenuItemDebugKey,
   MenuItemDebugDraw, local_item_infoview_set, MenuItemCharaActWepInfoDraw, MenuItemCharaViewCheck,
   MenuPosFormValueSetCharaRobo, MenuPosFormValueSetMonster, BuildUpWeaponNameBoardDraw,
-  MenuWeaponStatusInfoFormSet, MenuItemSelectDiffer, MenuItemInfoCursorSet, CheckTrushWeapon.
+  MenuWeaponStatusInfoFormSet, MenuItemSelectDiffer, MenuItemInfoCursorSet. CheckTrushWeapon is GLOBAL in retail.
 - Return types come from m2c and Ghidra and were checked at call sites for SearchNowPosItemExist and
   GetExistThisPosData (both `CGameDataUsed *`) and GetGameDataUsedForSWAPINFO. Parameter names of the big
   functions (ModelReadStart, WeaponBuildCheck, KeyStepLocal, CheckSpectolFusion's int) are only partly
@@ -172,3 +172,14 @@ Only non-local symbols get externs (the rest are `static` in the .cpp per `local
 ## First game
 The first game has no counterpart to any of these classes (no CBaseMenuClass, CMenuKeyFunc or item menu
 classes in `chronicle/ps2/include`).
+
+## Compilation state
+- Of 165 retail functions, the draft compile has 102 matching bodies, 5 differing bodies and
+  58 functions without a draft. The five differing bodies are MenuModeMalloc, MenuItemDebugKey, PushKey, CheckUse and
+  menu_inputkey_limmit_check_line; each uses assembly in the normal build.
+  IsEnableChangeRoboParts uses typed part-array accesses and matches.
+  MenuModeMalloc constructs all eight repair-effect memory managers and the model manager.
+- The linked unit has 101 perfect functions, 0 fuzzy functions and 64 assembly functions.
+  The generated static initializer matches retail.
+- MenuEffect has two entries in retail. Its public declaration remains unbounded because
+  bounding it changes MenuInventDraw's instruction sequence.
