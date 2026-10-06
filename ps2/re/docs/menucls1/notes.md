@@ -12,6 +12,8 @@ and the item-use checker. No first-game (`chronicle`) counterpart exists for any
 - `CItemUseTarget` from gamedata.hpp. `__sinit_menucls1_cpp` stores -1 into `MenuUsedTarget.type`,
   and `CheckItemUseEnable` stores -1 into a stack target before `SetPtr`: `CItemUseTarget` has an
   inline default ctor `type = -1` (`ITEM_USE_TARGET_NONE`), declared in gamedata.hpp.
+  `UseItem(item, int, void*)` instead constructs its target by calling `SetPtr` directly;
+  the two-argument inline constructor supplies that initialization without a preceding store.
 - `CMenuPosDataForm` (forward-declared; byte +1 = visible flag, floats +0xC/+0x10 = position,
   `GetPartInfo` returns a part whose +0x30/+0x34/+0x38 are written).
 
@@ -29,19 +31,16 @@ Size: `new(0x2A50)` before every `__ct__7CDC2MesFv` call (17 sites).
 | 0x295A/0x295C | `s16 text_off_x/y` | ctor -1; SetPutPos(int*) copies to `abs_text_off_x/y` (0x1AC/0x1B0) when `abs_win.w` (0x1A4) > 0; MsgPreset 3/8 set 0x10 |
 | 0x295E | `s16 mes_no` | MakeMsg(int) stores; MakeMsg(char*) stores -1; StepMsg calls `MakeMesWin(int)` with it when `str[0]==0`; menuop compares with 0xBEB/0xC5C |
 | 0x2960 | `u8 cursor_on` | ctor 1; DrawMsg when 0 saves `cursor_x/y` (0x2268/0x226C), sets them to -1000 around `DrawMesWin`, restores |
-| 0x2961 | `u8 put_centering` | SetPutPos: `abs_win.x = (mgScreenWidth - text_w) >> 1` |
+| 0x2961 | `s8 put_centering` | SetPutPos loads it with `lb`; `abs_win.x = (mgScreenWidth - text_w) >> 1` |
 | 0x2962 | `u8 scissor_on` | DrawMsg: `SetMenuScissor(scissor)` / `ResetMenuScissor()` around draw |
 | 0x2963..0x296F | `unk_2963[0xD]` | never accessed |
 | 0x2970 | `mgRect<int> scissor` | ctor `Set(0,0,0,0)` then `Set(0,0,0x200,0x19F)`; MsgPreset `Set(0,0,mgScreenWidth-1,mgScreenHeight-1)`; passed by value to `SetMenuScissor(mgRect<int>)` |
 | 0x2980 | `char str[0xC1]` | ctor `memset(0x2980, 0, 0xC1)`; MakeMsg(char*) strcpy; StepMsg `MakeMesWin(str,1,1)` |
 | 0x2A41..0x2A4F | `unk_2a41[0xF]` | never accessed |
 
-Both unknown gaps are exactly what a 16-byte-aligned `mgRect<int>` would produce (0x2963 -> 0x2970,
-0x2A41 -> 0x2A50). Every `mgRect` member seen in ghidra sits at a 16-aligned offset. Unconfirmed;
-if mgRect turns out aligned(16) the unk arrays become implicit padding.
-
-The ctor's first `scissor.Set(0,0,0,0)` comes before the byte stores, so it may be an inline
-`mgRect` default ctor rather than a body statement; mg_tanime.hpp's `mgRect` has no ctor yet.
+The unknown gaps preserve the retail member offsets and object size. `mgRect` is declared
+16-byte aligned in mg_tanime.hpp. The `mgRect<int>` default constructor specialization is empty;
+CDC2Mes explicitly sets the zero scissor before its byte stores, then sets the full-screen scissor.
 
 No vtable. Order of ctor stores: Set(0..), 0x2958=0, 0x2959=-1, 0x295A/C/E=-1, 0x2960=1,
 0x2961=0, 0x2962=0, Set(0,0,0x200,0x19F), memset.
@@ -57,7 +56,7 @@ line_w, 0x294C buff (StepMsg/DrawMsg do nothing when NULL).
 
 ### Functions
 - `MsgPreset(int preset)`: MenuMesInit, cursor -1, mes_no 0, str[0]=0, cursor_on 1, centering/scissor
-  0, full-screen scissor, then a switch on preset 0..0x13 (SetWindowMode values 0,2,3,4,5,6,8 —
+  0, full-screen scissor, then a switch on preset 0..0x13 (SetWindowMode values 0,2,3,4,5,6,8 â€”
   `MesWindowMode`), finally `value_half = 1` if `CheckNowEurope()`. Preset 0x13 calls
   `ClsMes::Preset(0)`. Preset 9 calls `SetFontColor(6,6,6,0x80)`; preset 7 `SetDefColor(0x80141414)`.
   Preset values are not named anywhere; left as int.
@@ -67,7 +66,9 @@ line_w, 0x294C buff (StepMsg/DrawMsg do nothing when NULL).
   (`xor`/`sltu`) -> int. `AddMsgCursor2(min,max,loop)`: pad 0x1000 (up) = -1, 0x4000 (down) = +1;
   `MenuSePlay(0)` on move; returns cursor (lb -> char). `CommandMsgCursor`: max = count of
   `item_mes[i] > 0` minus 1 (min 0), loop 1. `YesNoCursor`: pad 0x8000 (left) -1, 0x2000 (right)
-  +1, range 0..1 clamp. `YesNoCursor2(int alt)`: same, then `MenuCheckPushButton()` bit 1 confirms
+  +1, range 0..1 clamp. `YesNoCursor` and `GetMsgCursor` return `int`; their final `lb`
+  already extends the cursor, and callers consume that result without a second extension.
+  `YesNoCursor2(int alt)`: same, then `MenuCheckPushButton()` bit 1 confirms
   (1 if cursor 0 else 2), bit 4 confirms too when alt==1, bit 2 gives 2, else 0 -> `MesYesNoResult`.
 - `SetMsgItemNo(int*, n)`: up to 16; copies into item_mes; a negative entry fills the rest with -1.
   `SetMsgItemNo(char**, n)`: strcpy into name[i]; NULL entry -> empty string (`at_1328`) and fills
@@ -123,12 +124,12 @@ the item number), 4 `int target_type` (UseItem stores `target->type`), 0x8..0x17
   `MenuUseItemCheckFunc(item, target, 1)`.
 
 ## Non-members
-- `GetHatena`: two function-local statics with guards: `static char *MenuHatena = "？？？"`
+- `GetHatena`: two function-local statics with guards: `static char *MenuHatena = "ï¼Ÿï¼Ÿï¼Ÿ"`
   (`at_905__4`, 7 bytes SJIS) and `static char *MenuHatena_1byte = "???"` (`at_906__4`); returns
   the 1-byte one for `LANG_FRENCH..LANG_SPANISH` (2..5).
 - `GetMenuBigNum(n)`: `MenuBigNum[n % 10]`. `SetMenuBigNum2`: 2 bytes per digit using
   GetNumberKeta + pow(10, k). `SetMenuBigNum`: same, but `CheckNowEurope()` uses the local static
-  `sn_944` (char*[10], 0x28) and 1 byte per digit.
+  half-width digit table (char*[10], 0x28) and 1 byte per digit.
 - `MenuMesInit(ClsMes*)`: resets most ClsMes fields (see m2c); returns void.
 - `MenuUseItemCheckFunc(item, target, use)`: int count of effects that act; `use` != 0 applies
   them; when `use != 0` the result is replaced by the count of effects applied (`used`) for
@@ -149,3 +150,9 @@ the item number), 4 `int target_type` (UseItem stores `target->type`), 0x8..0x17
   (CItemUseTarget, 8). Read in menusys (SetItemEffect, MenuItemCommandSelect).
 - Skipped (local or compiler-generated): MenuHatena_894, init_895, MenuHatena_1byte_897, init_898,
   sn_944, st_bittable_1654, at_* literals.
+
+## Compiled state
+
+49 functions: 26 perfect, 0 fuzzy, 23 assembly. All 26 compiled functions match, including the
+compiler-generated static initializer for `MenuUsedTarget`. The six functions supplied by upstream
+are unchanged. The decimal conversions enable divide-by-zero traps for their quotient and remainder.

@@ -275,6 +275,11 @@ public:
     CItemUseTarget() { type = ITEM_USE_TARGET_NONE; }
 
     /**
+     * Creates a target of the given kind, setting its pointer for a known kind.
+     */
+    CItemUseTarget(int type, void *target) { SetPtr(type, target); }
+
+    /**
      * Sets the kind of the target and, for a known kind, the target itself.
      *
      * @mangled SetPtr__14CItemUseTargetFiPv
