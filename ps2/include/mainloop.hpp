@@ -549,17 +549,3 @@ int PauseMenu();
  * @size 0xB0
  */
 void LoadGameConfig(char *file_name);
-
-#ifndef NONMATCHING
-// Storage constructed by the translation unit's static initializer.
-extern CFont         Font;              /**< Font used by the debug menus. */
-extern INIT_LOOP_ARG InitArg;           /**< Entry arguments of the current mode. */
-namespace mainloop {
-    extern "C" {
-        extern mgCMemory MainBuffer;    /**< Working memory stack for the running mode. */
-    }
-}
-extern CScene        MainScene;         /**< Scene shared by the running modes. */
-extern mgCMemory     InfoStack;         /**< Memory holding language-dependent game information. */
-extern mgCMemory     MenuBuffer;        /**< Working memory for the debug menu. */
-#endif

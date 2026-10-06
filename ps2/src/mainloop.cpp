@@ -36,6 +36,20 @@
 #include "userdata.hpp"
 #include "vlgr_info.hpp"
 
+#ifndef NONMATCHING
+// Storage constructed by the translation unit's static initializer.
+extern CFont         Font;              /**< Font used by the debug menus. */
+extern INIT_LOOP_ARG InitArg;           /**< Entry arguments of the current mode. */
+namespace mainloop {
+    extern "C" {
+        extern mgCMemory MainBuffer;    /**< Working memory stack for the running mode. */
+    }
+}
+extern CScene        MainScene;         /**< Scene shared by the running modes. */
+extern mgCMemory     InfoStack;         /**< Memory holding language-dependent game information. */
+extern mgCMemory     MenuBuffer;        /**< Working memory for the debug menu. */
+#endif
+
 #ifdef NONMATCHING
 DEBUG_INFO           DebugInfo;
 static CFont         Font;                  /**< Font used by the debug menus. */
