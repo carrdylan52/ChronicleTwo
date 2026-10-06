@@ -112,7 +112,7 @@ public:
      * @address 0x301550
      * @size 0xA0
      */
-    CStarEffect();
+    CStarEffect() {}
 
     /**
      *
