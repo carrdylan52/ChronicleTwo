@@ -8,8 +8,8 @@ scene event script. No first-game counterpart (`chronicle` has no `event.cpp`).
 |---|---|---|---|---|
 | `EventScene` | 0x37DE74 .sbss 4 | global | `CScene *` | Set by `InitEvent`/`RunEvent`; read by event_func too. Declared `extern` in the header. |
 | `EventScript` | 0x1EFD400 .bss 0x54 (slot 0x60) | **local** | `static CRunScript` | Constructed by `__sinit_event_cpp` (`CRunScript::CRunScript()`); `load`/`run`/`resume`/`skip`/`DeleteProgram` called on it. Belongs in the .cpp as `static`. |
-| `cnt_1056` | 0x37DE78 .sbss 4 | local | `static int` in `EventLoop` | Door-sequence frame counter passed to `EventDoorLoop`. |
-| `vv_984` | 0x356080 .data 0x30 | local | function-local static of `EventDoorLoop` | `vv_984 + 0x10` used as a vector for `sceVu0ApplyMatrix` (camera offset rotated by the character's yaw). Likely three float[4] vectors; only +0x10 read. |
+| `cnt_1056` | 0x37DE78 .sbss 4 | local | file-local `static int door_frame` | Door-sequence frame counter passed to `EventDoorLoop`. |
+| `vv_984` | 0x356080 .data 0x30 | local | file-local `static float[3][4]` | `vv_984 + 0x10` used as a vector for `sceVu0ApplyMatrix` (camera offset rotated by the character's yaw). Three four-component camera offsets; only +0x10 is read by this unit. |
 | `at_819__4` | .rodata | literal | `"event/talk/npc_talk_c%d_%d.txt"` (chapter, LanguageCode) |
 | `at_820__4` | .rodata | literal | `"event/talk/npc_talk_c2_%d.txt"` fallback |
 | `at_1002__4` | 0x371A30 .rodata 9 | literal | SJIS "ドア開け" (door open): motion name passed to character vtable slot 0xB0 (likely `SetMotion(char*, int)`) with flags 2. |
@@ -32,7 +32,7 @@ Fields this unit touches (offsets from EdEventInfo):
 
 ## Functions
 - All 15 functions are global (none in `local_symbols.tsv`), so all are prototyped in the header.
-- `GetSquareEvent`: returns `CSaveData::CheckNowTourType()` unchanged (callee does `lb`, so a signed byte); header uses `int`, which mangles the same and needs no extension. Switch to `char`/`s8` if savedata declares it so and matching needs it.
+- `GetSquareEvent`: returns `CSaveData::CheckNowTourType()` unchanged (callee does `lb`, so a signed byte); the savedata declaration uses `int`, consistent with the extended result consumed by retail callers.
 - `SetEventScript(char *program, char *unused, mgCMemory *memory)`: second parameter never read; callers pass null. Allocs 0x40 qwords stack (0x80 entries) and 0x180 qwords call data (0x200 entries) then `CRunScript::load` and `SetEventFunc`.
 - `EventDoorLoop(frame, use_scene_se)`: frame <= 0 positions character (vtable +0x10, +0x1C) and plays door motion; frame 25 plays SE (scene SE `EventScene+0xA498`); frame 30 fades out (`EventScene+0x2C70` is a `CFadeInOut`); returns 1 once frame >= 61.
 - `GetEventMessage`/`GetActiveCamera`/`GetCharacter` wrap `CScene::GetMessage`/`GetCamera(EventScene+0x2E54 = active camera no.)`/`GetCharacter`; return types from callers (ClsMes fields in SkipEvent, mgCCamera methods, CCharacter2 cast in event_func).
@@ -42,14 +42,10 @@ Fields this unit touches (offsets from EdEventInfo):
 0x2C70 CFadeInOut (by value), 0x2E54 active camera number, 0x2E88 int, 0xA498 SE handle (passed to sndSePlay).
 
 ## Draft coverage and matching trial
-All 16 functions have typed C++ drafts, including the compiler-generated
-`__sinit_event_cpp` from the file-local `CRunScript`. The draft compiler reports
-seven exact matches and nine differences. Each of the fifteen explicit
-function pairs received one isolated promotion trial. Those trials could not
-compile independently because the typed scene, event information, and script
-storage are currently visible only to the NONMATCHING branch; the retail
-assembly remains selected in the normal build. The initializer draft matches
-in draft mode but is emitted by static object construction and has no
-standalone source function to promote. The door motion literal is the SJIS
-bytes for ドア開け; the camera offset is `vv_984[1]`. The script reload path uses
-the town script memory or dungeon script memory according to the active loop.
+All 16 functions match in the draft compiler and in the linked image. The fifteen
+explicit functions are compiled normally, and the file-local `CRunScript` emits
+the matching `__sinit_event_cpp` and constructor entry. The door motion literal
+is the SJIS bytes for ドア開け; the camera offset is `vv_984[1]`. The script reload
+path uses the town script memory or dungeon script memory according to the
+active loop. `RunEvent` returns the script runner's integer result, as its callers
+use it. The unchanged upstream draft's void definition disagrees with its header.

@@ -230,11 +230,11 @@ void CSaveData::CheckTourBoot(int day) {
     }
 }
 
-s16 CSaveData::CheckNowTourEvent() {
+int CSaveData::CheckNowTourEvent() {
     return tour.now_event;
 }
 
-s8 CSaveData::CheckNowTourType() {
+int CSaveData::CheckNowTourType() {
     return tour.type;
 }
 
