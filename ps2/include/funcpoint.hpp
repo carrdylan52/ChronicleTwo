@@ -180,9 +180,6 @@ public:
 
 STATIC_ASSERT(sizeof(CObjAnime) == 0x30);
 
-template <>
-void CList<CFuncPoint>::Initialize();
-
 /**
  *
  * Keeps the function points of a map or placed part in one list per kind and walks through them.

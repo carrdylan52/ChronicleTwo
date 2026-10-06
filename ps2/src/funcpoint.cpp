@@ -1,24 +1,19 @@
 #include "common.h"
-#include <cstring>
-#include "sound.hpp"
+#include "funcpoint.hpp"
+#include "snd_mngr.hpp"
 #include "mapparts.hpp"
 #include "mdslist.hpp"
 #include "mg_math.hpp"
-#include "mg_memory.hpp"
-#include "funcpoint.hpp"
+#include <cstring>
 
-extern "C" void Initialize__10CFuncPointFv(void *point);
-extern "C" int Check__10CFuncPointFP15CFuncPointCheck(CFuncPoint *point, CFuncPointCheck *check);
-extern "C" int GetEnd__14CFuncPointMngrFv(void *);
-extern "C" int GetStart__14CFuncPointMngrFi(void *, int);
-extern "C" int GetLWMatrix__8mgCFrameFPA4_f(void *, float (*)[4]);
-extern "C" int mgMulMatrix__FPA4_fPA4_fPA4_f(float (*)[4], float (*)[4], float (*)[4]);
-int sndGetVolPan(float *, float *, float *, float *, float, float);
-int sndGetVolPan(float *, float *, float *, float, float);
+/**
+ * Tests whether a moving coordinate has reached its limit.
+ */
+static int CheckOver(float *current, float *speed, float *end);
 
 // Code (.text)
-int CheckTime(float time, float start, float end) {
-    int outside;
+s32 CheckTime(float time, float start, float end) {
+    s32 outside;
 
     if (!(end <= start)) {
         if (time < start) {
@@ -41,8 +36,9 @@ int CheckTime(float time, float start, float end) {
     }
     return 1;
 }
+
 float LimitTime(float time) {
-    if (!(time < 0.0f) && time < 24.0f) {
+    if (time >= 0.0f && time < 24.0f) {
         return time;
     }
     time -= (int)(time / 24.0f) * 24.0f;
@@ -51,11 +47,13 @@ float LimitTime(float time) {
     }
     return time;
 }
+
 float SubTime(float a, float b) {
     float t = LimitTime(a - b);
     if (t <= 12.0f) return t;
     return 24.0f - t;
 }
+
 void CFuncPoint::Initialize() {
     name = NULL;
     type = FUNC_POINT_NONE;
@@ -69,6 +67,7 @@ void CFuncPoint::Initialize() {
     scale[0] = scale[1] = scale[2] = 1.0f;
     scale[3] = 0.0f;
 }
+
 int CFuncPoint::Check(CFuncPointCheck *check) {
     if (enable == 0) {
         return 0;
@@ -78,10 +77,11 @@ int CFuncPoint::Check(CFuncPointCheck *check) {
     }
     return 1;
 }
-int CheckOver(float *current, float *speed, float *end) {
+
+static int CheckOver(float *current, float *speed, float *end) {
     for (int index = 0; index < 3; index++) {
-        if (!(speed[index] <= 0.0f)) {
-            if (!(current[index] < end[index])) {
+        if (speed[index] > 0.0f) {
+            if (current[index] >= end[index]) {
                 return 1;
             }
         }
@@ -93,8 +93,10 @@ int CheckOver(float *current, float *speed, float *end) {
     }
     return 0;
 }
+
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/funcpoint", Step__9CObjAnimeFP12CObjAnimeEnv);
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/funcpoint", SetParam__9CObjAnimeFPf);
+
 void CObjAnime::GetParam(float *out_value) {
     CFuncPoint::AnimeData *settings = &func_point->anime;
     void *target = frame;
@@ -126,16 +128,19 @@ void CObjAnime::GetParam(float *out_value) {
         out_value[2] = out_value[0];
     }
 }
-int CObjAnime::AssignFuncAnime(CFuncPoint *point, CMapParts *map_parts) {
+
+int CObjAnime::AssignFuncAnime(CFuncPoint *point, CMapParts *parts) {
+    sceVu0FVECTOR initial_value;
+
     if (point->type != FUNC_POINT_ANIME) {
         return 0;
     }
-    if (map_parts == NULL) {
+    if (parts == NULL) {
         return 0;
     }
     frame = NULL;
     piece = NULL;
-    parts = NULL;
+    this->parts = NULL;
     func_point = NULL;
     back = 0;
     stop = 0;
@@ -144,8 +149,8 @@ int CObjAnime::AssignFuncAnime(CFuncPoint *point, CMapParts *map_parts) {
     char *frame_name = point->anime.frame_name;
     CMapPiece *matched_piece = NULL;
     mgCFrame *matched_frame = NULL;
-    if (piece_name != NULL && map_parts != NULL) {
-        matched_piece = map_parts->SearchPiece(piece_name);
+    if (piece_name != NULL && parts != NULL) {
+        matched_piece = parts->SearchPiece(piece_name);
     }
     if (frame_name != NULL && matched_piece != NULL) {
         mgCFrame *piece_frame = matched_piece->frame;
@@ -155,16 +160,22 @@ int CObjAnime::AssignFuncAnime(CFuncPoint *point, CMapParts *map_parts) {
     }
     frame = matched_frame;
     piece = matched_piece;
-    parts = map_parts;
+    this->parts = parts;
     if (matched_frame != NULL) {
         matched_frame->SetRotType(MG_FRAME_ROT_LOCAL_ORIGIN);
     }
-    sceVu0FVECTOR initial_value;
     *(u_long128 *)initial_value = *(u_long128 *)func_point->anime.param;
     SetParam(initial_value);
     return 1;
 }
+
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/funcpoint", Add__14CFuncPointMngrFiP9mgCMemory);
+
+template <>
+void CList<CFuncPoint>::Initialize() {
+    prev = NULL;
+    next = NULL;
+}
 
 CFuncPoint *CFuncPointMngr::Add(int type, CList<CFuncPoint> *node) {
     if (node == NULL) {
@@ -192,13 +203,10 @@ CFuncPoint *CFuncPointMngr::Add(int type, CList<CFuncPoint> *node) {
     node->data.type = type;
     return &node->data;
 }
+
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/funcpoint", Reserve__14CFuncPointMngrFiP9mgCMemory);
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/funcpoint", __ct__19CList_10CFuncPoint_Fv);
-template <>
-void CList<CFuncPoint>::Initialize() {
-    prev = NULL;
-    next = NULL;
-}
+
 CList<CFuncPoint> *CFuncPointMngr::GetReserve() {
     CList<CFuncPoint> *node = list[FUNC_POINT_NONE];
     if (node == NULL) {
@@ -228,7 +236,8 @@ CList<CFuncPoint> *CFuncPointMngr::GetReserve() {
     list[FUNC_POINT_NONE] = first;
     return node;
 }
-CFuncPoint *CFuncPointMngr::AddFromReserve(int kind) {
+
+CFuncPoint *CFuncPointMngr::AddFromReserve(int type) {
     CList<CFuncPoint> *node;
 
     node = GetReserve();
@@ -236,8 +245,9 @@ CFuncPoint *CFuncPointMngr::AddFromReserve(int kind) {
         return NULL;
     }
     node->data.Initialize();
-    return Add(kind, node);
+    return Add(type, node);
 }
+
 int CFuncPointMngr::GetNum(int type) {
     if (type < 0 || type >= FUNC_POINT_TYPE_NUM) {
         return 0;
@@ -248,16 +258,15 @@ int CFuncPointMngr::GetNum(int type) {
     }
     CList<CFuncPoint> *next = node->next;
     int count = 1;
-    if (next != NULL) {
-        do {
-            next = next->next;
-            count++;
-        } while (next != NULL);
+    while (next != NULL) {
+        next = next->next;
+        count++;
     }
     return count;
 }
-int CFuncPointMngr::GetEventNum(int event_flag) {
-    int count = 0;
+
+s32 CFuncPointMngr::GetEventNum(s32 event_flag) {
+    s32 count = 0;
     GetStart(FUNC_POINT_EVENT);
     CFuncPoint *point = Get();
     if (point != NULL) {
@@ -271,6 +280,7 @@ int CFuncPointMngr::GetEventNum(int event_flag) {
     GetEnd();
     return count;
 }
+
 int CFuncPointMngr::EnableFuncNum(int type) {
     if (type < 0 || type >= FUNC_POINT_TYPE_NUM) {
         return 0;
@@ -285,6 +295,7 @@ int CFuncPointMngr::EnableFuncNum(int type) {
     }
     return count;
 }
+
 void CFuncPointMngr::GetStart(int type) {
     now = NULL;
     if (type < 0 || type >= FUNC_POINT_TYPE_NUM) {
@@ -292,6 +303,7 @@ void CFuncPointMngr::GetStart(int type) {
     }
     now = list[type];
 }
+
 CFuncPoint *CFuncPointMngr::Get() {
     CList<CFuncPoint> *node = now;
     if (node == NULL) {
@@ -301,42 +313,42 @@ CFuncPoint *CFuncPointMngr::Get() {
     now = node->next;
     return point;
 }
+
 void CFuncPointMngr::GetEnd(void) {
     now = NULL;
 }
+
 CFuncPoint *CFuncPointMngr::Search(char *name) {
     CFuncPoint *first;
     CFuncPoint *next;
     int kind;
     CFuncPoint *point;
 
-    kind = 1;
-    do {
+    for (kind = 1; kind < FUNC_POINT_TYPE_NUM; kind++) {
         GetStart(kind);
         first = Get();
         point = first;
-        if (first != NULL) {
-            do {
-                if (strcasecmp(*(char **)point, name) == 0) {
-                    return point;
-                }
-                next = Get();
-                point = next;
-            } while (next != NULL);
+        while (point != NULL) {
+            if (strcasecmp(point->name, name) == 0) {
+                return point;
+            }
+            next = Get();
+            point = next;
         }
         GetEnd();
-        kind += 1;
-    } while (kind < 0xA);
+    }
     return NULL;
 }
+
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/funcpoint", GetLight__14CFuncPointMngrFPfP10CFuncPointiP15CFuncPointChecki);
-void CFuncPointMngr::Step(int i, CFuncPointCheck *c) { this->UpdateFlag(i, c); }
-int CFuncPointMngr::UpdateFlag(int type, CFuncPointCheck *check) {
+void CFuncPointMngr::Step(s32 i, CFuncPointCheck *c) { this->UpdateFlag(i, c); }
+
+s32 CFuncPointMngr::UpdateFlag(s32 type, CFuncPointCheck *check) {
     CFuncPoint *first;
     CFuncPoint *next;
     CFuncPoint *point;
-    int active;
-    int count;
+    s32 active;
+    s32 count;
 
     GetStart(type);
     count = 0;
@@ -356,86 +368,84 @@ int CFuncPointMngr::UpdateFlag(int type, CFuncPointCheck *check) {
     GetEnd();
     return count;
 }
+
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/funcpoint", UpdateStatus__14CFuncPointMngrFv);
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/funcpoint", Copy__14CFuncPointMngrFR14CFuncPointMngrP9mgCMemory);
+
 void CFuncPointMngr::Initialize() {
     for (int type = 0; type < FUNC_POINT_TYPE_NUM; type++) {
         list[type] = NULL;
     }
 }
+
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/funcpoint", DrawFireEffect__FPA4_fP14CFuncPointMngrP15CFuncPointCheckfP10mgCTextureP10mgCTexture);
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/funcpoint", DrawFireRaster__FPA4_fP14CFuncPointMngrP15CFuncPointCheckP11CFireRaster);
-int GetSeSrcVolPan(
-    float (*mat)[4], CFuncPointMngr *mgr, CFuncPointCheck *chk, int *kinds, float *vols, float *pans, int max) {
-    struct {
-        float v[3];
-        unsigned int w;
-    } q90;
-    float v_a0[4];
-    float m_b0[4][4];
-    CFuncPoint *p;
-    int n;
 
-    n = 0;
-    mgr->UpdateFlag(2, chk);
-    mgr->GetStart(2);
-    p = mgr->Get();
-    if (p != NULL) {
-        do {
-            if (p->active != 0) {
-                if (n >= max) {
-                    return n;
+int GetSeSrcVolPan(
+    float (*lw_matrix)[4], CFuncPointMngr *mngr, CFuncPointCheck *check, int *out_se_no, float *out_vol, float *out_pan, int max) {
+    sceVu0FVECTOR position;
+    sceVu0FVECTOR end_position;
+    sceVu0FMATRIX world_matrix;
+    CFuncPoint *point;
+    int count;
+
+    count = 0;
+    mngr->UpdateFlag(FUNC_POINT_FIRE, check);
+    mngr->GetStart(FUNC_POINT_FIRE);
+    point = mngr->Get();
+    while (point != NULL) {
+        if (point->active != 0) {
+            if (count >= max) {
+                return count;
+            }
+            *(u_long128 *)position = *(u_long128 *)point->position;
+            position[3] = 1.0f;
+            sceVu0ApplyMatrix(position, lw_matrix, position);
+            sndGetVolPan(out_vol, out_pan, position, 10.0f, 1200.0f);
+            if (*out_vol > 0.01f) {
+                out_vol++;
+                *out_se_no = 2;
+                out_pan++;
+                count++;
+                out_se_no++;
+            }
+        }
+        point = mngr->Get();
+    }
+    mngr->GetEnd();
+    if (mngr->UpdateFlag(FUNC_POINT_SOUND, check) > 0) {
+        mngr->GetStart(FUNC_POINT_SOUND);
+        while ((point = mngr->Get()) != NULL) {
+            if (point->active != 0) {
+                if (count >= max) {
+                    return count;
                 }
-                *(u_long128 *)q90.v = *(u_long128 *)p->position;
-                q90.w = 0x3F800000;
-                sceVu0ApplyMatrix(q90.v, mat, q90.v);
-                sndGetVolPan(vols, pans, q90.v, 10.0f, 1200.0f);
-                if (*vols > 0.01f) {
-                    vols++;
-                    *kinds = 2;
-                    pans++;
-                    n++;
-                    kinds++;
+                if (point->sound.shape == 1) {
+                    point->frame.GetLWMatrix(world_matrix);
+                    mgMulMatrix(world_matrix, world_matrix, lw_matrix);
+                    sceVu0ApplyMatrix(position, world_matrix, point->sound.start);
+                    sceVu0ApplyMatrix(end_position, world_matrix, point->sound.end);
+                    sndGetVolPan(out_vol, out_pan, position, end_position, point->sound.unk_24, point->sound.unk_28);
+                } else {
+                    *(u_long128 *)position = *(u_long128 *)point->position;
+                    position[3] = 1.0f;
+                    sceVu0ApplyMatrix(position, lw_matrix, position);
+                    sndGetVolPan(out_vol, out_pan, position, point->sound.unk_24, point->sound.unk_28);
+                }
+                if (*out_vol > 0.01f) {
+                    out_vol++;
+                    out_pan++;
+                    count++;
+                    *out_se_no = point->sound.se_no;
+                    out_se_no++;
                 }
             }
-            p = mgr->Get();
-        } while (p != NULL);
-    }
-    mgr->GetEnd();
-    if (mgr->UpdateFlag(8, chk) > 0) {
-        mgr->GetStart(8);
-        if ((p = mgr->Get()) != NULL) {
-            do {
-                if (p->active != 0) {
-                    if (n >= max) {
-                        return n;
-                    }
-                    if (p->sound.shape == 1) {
-                        p->frame.GetLWMatrix(m_b0);
-                        mgMulMatrix(m_b0, m_b0, mat);
-                        sceVu0ApplyMatrix(q90.v, m_b0, p->sound.start);
-                        sceVu0ApplyMatrix(v_a0, m_b0, p->sound.end);
-                        sndGetVolPan(vols, pans, q90.v, v_a0, p->sound.unk_24, p->sound.unk_28);
-                    } else {
-                        *(u_long128 *)q90.v = *(u_long128 *)p->position;
-                        q90.w = 0x3F800000;
-                        sceVu0ApplyMatrix(q90.v, mat, q90.v);
-                        sndGetVolPan(vols, pans, q90.v, p->sound.unk_24, p->sound.unk_28);
-                    }
-                    if (*vols > 0.01f) {
-                        vols++;
-                        pans++;
-                        n++;
-                        *kinds = p->sound.se_no;
-                        kinds++;
-                    }
-                }
-            } while ((p = mgr->Get()) != NULL);
         }
-        mgr->GetEnd();
+        mngr->GetEnd();
     }
-    return n;
+    return count;
 }
+
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/funcpoint", GetLightAnimeWeight__FP10CFuncPointi);
 
 // Constants (.rodata)

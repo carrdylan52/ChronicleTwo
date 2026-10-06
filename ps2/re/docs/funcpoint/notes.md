@@ -1,6 +1,6 @@
 # funcpoint: reverse-engineering notes
 
-The six decompiled functions in this unit compile to exact retail instruction matches. `GetEventNum`
+The 23 C++ bodies in this unit compile to exact retail instruction matches. `GetEventNum`
 tests `CFuncPoint::EventData::flag` at offset 0x20, and `UpdateFlag` stores each point's `Check`
 result in `CFuncPoint::active` at offset 0x1B0 before counting successful checks. The two walk
 functions use `CFuncPointMngr::GetEnd` to clear `now` after traversal.
@@ -13,7 +13,8 @@ Header: `ps2/include/funcpoint.hpp`. No first-game counterpart: `CFuncPointMngr`
   `mapload` and declared in `mapload.hpp`; this header includes it. `CFuncPoint::Initialize` and
   `CFuncPoint::Check` live in this unit's `.text` but are declared there.
 - `CList<CFuncPoint>` uses the template in `mg_tanime.hpp` (inline ctor + virtual inline
-  `Initialize`); both emitted copies (0x2A1260, 0x2A13E0) come from that template.
+  `Initialize`); the constructor (0x2A13E0) comes from that template, and the initializer
+  (0x2A1260) is its explicit specialization in this unit.
 - `CheckOver__FPfPfPf` (0x2A0530) is LOCAL in retail: `static` in the `.cpp`, not in the header.
   It is called only by `CObjAnime::Step` and tells whether a value moving by a speed has passed a limit.
 
@@ -58,8 +59,8 @@ is virtual.
 | 0x18, 0x1C | unk | never touched; padding before the aligned vector |
 | 0x20 | `sceVu0FVECTOR param` | `GetParam` fills it, `SetParam` writes it |
 
-Size: stride 0x30 in `CMap::AnimeStep` (array at CMap+0xC90, count at +0xC8C). The ctor (in map)
-is inline in the header. `SetParam` calls the frame/piece/parts through a vtable (they share a
+Size: stride 0x30 in `CMap::AnimeStep` (array at CMap+0xC90, count at +0xC8C). The ctor is defined
+in `map.cpp`; the header declares it. `SetParam` calls the frame/piece/parts through a vtable (they share a
 `CObject`-style base); the target is `frame`, else `piece`, else `parts`.
 
 Animation data inside CFuncPoint (offsets from CFuncPoint): +0x2C param kind (`OBJ_ANIME_PARAM`),
