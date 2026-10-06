@@ -34,10 +34,10 @@ declares no `extern`s; they belong in the `.cpp` as `static`. gp-relative offset
 | `MovieSpecialModeInfo` | 0x37E430 | `short[3]` (size 6) | all three halves zeroed in Init; only [0] used (promo part number 1..3) |
 | `MovieMode` | 0x37E438 | `int` (MOVIE_VIEW_MODE) | `sw` |
 | `init_792..init_801` | 0x37E43C.. | `char` guards of function-local statics `buf0`, `buf1`, `dbuf0`, `dbuf1` (each `static mgCMemory` in MovieViewInit, 0x30 bytes) | |
-| `DataBuffer` (`DataBuffer__2`) | 0x1F3D040 | `mgCMemory` (0x30) | 100000-byte buffer; `SetTextureTable(100, 20, &DataBuffer)` |
+| `DataBuffer` (`DataBuffer__2`) | 0x1F3D040 | `mgCMemory` (0x30) | 100000-quadword buffer; `SetTextureTable(100, 20, &DataBuffer)` |
 | `Stack_ReadBuff` (`Stack_ReadBuff__2`) | 0x1F3D070 | `mgCMemory` (0x30) | set to the rest of the main stack after the list; fields 0x1C/0x24 zeroed directly; read buffer for `CMovie::Load`, its 0x20 + 0x24*16 passed to `LoadBGM` |
 
-Packet buffers: buf0/buf1 30000 bytes (`mgSetPacketBuffer`), dbuf0/dbuf1 60000 (`mgSetDataBuffer(..., 1)`);
+Packet buffers: buf0/buf1 30000 quadwords (`mgSetPacketBuffer`), dbuf0/dbuf1 60000 quadwords (`mgSetDataBuffer(..., 1)`);
 VIF1 packet 10000+10000.
 
 ## Types declared
@@ -55,17 +55,22 @@ VIF1 packet 10000+10000.
   &Stack_ReadBuff, 0x200, 0x1A0, true, false)`, `Play("moviework")`, `SwitchThread` until `IsStarted`.
 - Play: draws `RushWork` full screen via `mgCDrawPrim`/`CPreSprite`; pad 8/2/4/1 toggles the performance
   meter; `EndCheck()` or pad 0x800 ends (`Term`, `StopBGM`), continuing a promo sequence if active.
-- CFont used on the stack (`CFont` ~0x94 bytes from the frame); not this unit's type.
+- CFont used on the stack (`CFont` 0xB8 bytes from its header); not this unit's type.
 
 ## Unresolved
-- Pad button constants are raw (0x800, 0x40, 0x1000, 0x4000, 4, 8, 0x20, 2, 1); use the gamepad
-  header's enum if one exists when writing bodies.
+- The pad button names come from the gamepad header.
 - `LoadBGM__6CSceneFiP1` takes as second argument the current pointer of `Stack_ReadBuff`
   (`buffer + offset*16`); its declared type comes from scene.hpp.
 
 ## Draft coverage and promotion
-All five game functions have named, typed C++ bodies. `MovieViewExit` and the static initializer passed isolated linked-image verification and are active source. `_MOVIE`, `MovieViewInit`, and `MovieViewLoop` remain under `NONMATCHING` with retail assembly in normal builds.
+All five game functions match in the draft compiler and linked image. The four
+explicit functions are compiled normally. Typed file-local `mgCMemory` objects
+emit the matching static initializer and constructor entry. The `tag_movie`
+table is a typed two-entry static table referring to the local `_MOVIE` handler.
 
-The `_MOVIE` trial did not link: the assembled `tag_movie` table references a global symbol while the C++ static handler was emitted with local linkage. The init trial changed image layout. The loop trial reached the data binder, which rejected newly compiled string data at `0x003759D0`. These are failed promotion attempts, not matched functions.
-
-`MovieViewInit` allocates packet, draw, texture and read buffers from the main stack, registers the font image banks, parses `mv.cfg`, and creates the movie texture. `MovieViewLoop` takes list input, starts ordinary or promotional movies, draws playback frames and advances a promotional sequence through its three parts. The drafts use typed `CMovie`, `MOVIE_LIST_ENTRY`, `CScene`, `CPreSprite` and `CFont` operations; the retained assembly controls the game build.
+`MovieViewInit` allocates packet, draw, texture and read buffers from the main
+stack, registers the font image banks, parses `mv.cfg`, and creates the movie
+texture. Its VIF1 packet capacity is 160000 bytes for the 10000-quadword buffers.
+`MovieViewLoop` uses `CFont` and `CPreSprite` objects, with the row-label and promo
+filename arrays in their corresponding scopes. The list heading retains the
+retail SJIS bytes and spacing.
