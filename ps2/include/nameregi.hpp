@@ -80,7 +80,7 @@ STATIC_ASSERT(sizeof(NAMEREGI_TARGET_INFO) == 0x48);
  */
 struct MENU_SELECT_PARAM {
     int pos; /**< Cell the cursor is on, counted row by row. */
-    int row;
+    int row; /**< First row of the kanji grid shown. */
 };
 
 /**
@@ -89,7 +89,7 @@ struct MENU_SELECT_PARAM {
  *
  */
 struct NAMEREGI_KANJI_NODE {
-    u8 code[2];              /**< Shift-JIS code of the kanji. */
+    u8   code[2];              /**< Shift-JIS code of the kanji. */
     u8 unk_2[2];
     NAMEREGI_KANJI_NODE *next; /**< Next kanji of the reading, or NULL. */
 };
@@ -100,7 +100,7 @@ struct NAMEREGI_KANJI_NODE {
  *
  */
 struct NAMEREGI_KANJI_INDEX {
-    u8 code[2];              /**< Shift-JIS code the reading starts at. */
+    u8   code[2];              /**< Shift-JIS code the reading starts at. */
     u8 unk_2[2];
     s16 num;                   /**< Number of kanji in the list. */
     u8 unk_6[2];
@@ -406,3 +406,12 @@ s8 ConvertNameRegiBaseBoardTable(int font_mode);
  * @size 0x48
  */
 extern NAMEREGI_TARGET_INFO Nameregi_Target;
+
+/**
+ * Trims invalid characters from the entered name.
+ *
+ * @mangled CheckInputWord__FPc
+ * @address 0x310990
+ * @size 0xD0
+ */
+void CheckInputWord(char *name);

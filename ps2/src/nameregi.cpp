@@ -19,42 +19,254 @@
 #include "userdata.hpp"
 #include "password.hpp"
 #include "gamedata.hpp"
-#include "gcc/stddef.h"
 
-struct BoardTable {
-    s8 slot[5];
+/**
+ * Topic of the keyword-entry prompt.
+ */
+static char NameRegiTopic[0x40];
+/**
+ * Keyword-entry result code.
+ */
+static s8 NameRegiCode;
+/**
+ * Character sets offered for each language.
+ */
+static s8 NameStrSelectModeTable[7][6] = {
+    {2, 1, 0, 4, 3, -1},
+    {-1, -1, 0, 4, -1, -1},
+    {-1, -1, 0, 4, -1, -1},
+    {-1, -1, 0, 4, -1, -1},
+    {-1, -1, 0, 4, -1, -1},
+    {-1, -1, 0, 4, -1, -1},
+    {-1, -1, 0, 4, -1, -1}
 };
-struct PositionTable {
-    s8 index[3][5][12];
+/**
+ * Kanji ranges and their available font characters.
+ */
+static NAMEREGI_KANJI_INDEX NameRegiSearchKanjiIndexTable[0x2C] = {
+    {{-120, -97}, {0, 0}, 0, {0, 0}, NULL, {0, 0, 0, 0}},
+    {{-120, -56}, {0, 0}, 0, {0, 0}, NULL, {0, 0, 0, 0}},
+    {{-119, 69}, {0, 0}, 0, {0, 0}, NULL, {0, 0, 0, 0}},
+    {{-119, 97}, {0, 0}, 0, {0, 0}, NULL, {0, 0, 0, 0}},
+    {{-119, -104}, {0, 0}, 0, {0, 0}, NULL, {0, 0, 0, 0}},
+    {{-119, -70}, {0, 0}, 0, {0, 0}, NULL, {0, 0, 0, 0}},
+    {{-118, -23}, {0, 0}, 0, {0, 0}, NULL, {0, 0, 0, 0}},
+    {{-117, -29}, {0, 0}, 0, {0, 0}, NULL, {0, 0, 0, 0}},
+    {{-116, 84}, {0, 0}, 0, {0, 0}, NULL, {0, 0, 0, 0}},
+    {{-116, -63}, {0, 0}, 0, {0, 0}, NULL, {0, 0, 0, 0}},
+    {{-115, -79}, {0, 0}, 0, {0, 0}, NULL, {0, 0, 0, 0}},
+    {{-114, 100}, {0, 0}, 0, {0, 0}, NULL, {0, 0, 0, 0}},
+    {{-112, 121}, {0, 0}, 0, {0, 0}, NULL, {0, 0, 0, 0}},
+    {{-112, -94}, {0, 0}, 0, {0, 0}, NULL, {0, 0, 0, 0}},
+    {{-111, 88}, {0, 0}, 0, {0, 0}, NULL, {0, 0, 0, 0}},
+    {{-111, -68}, {0, 0}, 0, {0, 0}, NULL, {0, 0, 0, 0}},
+    {{-110, 108}, {0, 0}, 0, {0, 0}, NULL, {0, 0, 0, 0}},
+    {{-110, -61}, {0, 0}, 0, {0, 0}, NULL, {0, 0, 0, 0}},
+    {{-110, -32}, {0, 0}, 0, {0, 0}, NULL, {0, 0, 0, 0}},
+    {{-109, 101}, {0, 0}, 0, {0, 0}, NULL, {0, 0, 0, 0}},
+    {{-109, -34}, {0, 0}, 0, {0, 0}, NULL, {0, 0, 0, 0}},
+    {{-109, -15}, {0, 0}, 0, {0, 0}, NULL, {0, 0, 0, 0}},
+    {{-108, 71}, {0, 0}, 0, {0, 0}, NULL, {0, 0, 0, 0}},
+    {{-108, 75}, {0, 0}, 0, {0, 0}, NULL, {0, 0, 0, 0}},
+    {{-108, 84}, {0, 0}, 0, {0, 0}, NULL, {0, 0, 0, 0}},
+    {{-108, 98}, {0, 0}, 0, {0, 0}, NULL, {0, 0, 0, 0}},
+    {{-108, -39}, {0, 0}, 0, {0, 0}, NULL, {0, 0, 0, 0}},
+    {{-107, 115}, {0, 0}, 0, {0, 0}, NULL, {0, 0, 0, 0}},
+    {{-107, -72}, {0, 0}, 0, {0, 0}, NULL, {0, 0, 0, 0}},
+    {{-107, -37}, {0, 0}, 0, {0, 0}, NULL, {0, 0, 0, 0}},
+    {{-106, -128}, {0, 0}, 0, {0, 0}, NULL, {0, 0, 0, 0}},
+    {{-106, -95}, {0, 0}, 0, {0, 0}, NULL, {0, 0, 0, 0}},
+    {{-106, -79}, {0, 0}, 0, {0, 0}, NULL, {0, 0, 0, 0}},
+    {{-106, -69}, {0, 0}, 0, {0, 0}, NULL, {0, 0, 0, 0}},
+    {{-106, -52}, {0, 0}, 0, {0, 0}, NULL, {0, 0, 0, 0}},
+    {{-106, -25}, {0, 0}, 0, {0, 0}, NULL, {0, 0, 0, 0}},
+    {{-106, -7}, {0, 0}, 0, {0, 0}, NULL, {0, 0, 0, 0}},
+    {{-105, 92}, {0, 0}, 0, {0, 0}, NULL, {0, 0, 0, 0}},
+    {{-105, -123}, {0, 0}, 0, {0, 0}, NULL, {0, 0, 0, 0}},
+    {{-105, -104}, {0, 0}, 0, {0, 0}, NULL, {0, 0, 0, 0}},
+    {{-105, -38}, {0, 0}, 0, {0, 0}, NULL, {0, 0, 0, 0}},
+    {{-105, -33}, {0, 0}, 0, {0, 0}, NULL, {0, 0, 0, 0}},
+    {{-104, 67}, {0, 0}, 0, {0, 0}, NULL, {0, 0, 0, 0}},
+    {{-104, 96}, {0, 0}, 0, {0, 0}, NULL, {0, 0, 0, 0}}
 };
-extern "C" void *__ct__11mgCDrawPrimFv(void *);
-extern char NameRegiTopic[0x40];
-extern s8 NameRegiCode;
-extern s8 NameStrSelectModeTable[7][6];
-extern NAMEREGI_KANJI_INDEX NameRegiSearchKanjiIndexTable[0x2C];
-extern s8 testchar[0x2C][2];
-extern s8 txt_table[0x3B];
-extern CNameRegiMenu *NameRegiMenuPtr;
-extern int OldReloadTexNumber;
-extern s16 LimmitTable_1360[5];
-extern PositionTable at_1377__5;
-extern s8 NameRegistGyouLimmitTable[5];
-extern s8 Convtable2_1382[2][5][8];
-extern BoardTable convtbl_1792;
-extern BoardTable at_1795;
-extern mgCTexture *NameRegiCursor;
-extern mgCTexture *NameRegiTex1;
-extern s16 NameRegistMax;
-extern s16 gettbl0_2012[12];
-extern s64 at_2031__3;
-extern CNameRegiMenu *NameRegiMenuPtr;
+/**
+ * Reading headings of the kanji grid.
+ */
+static s8 testchar[0x2C][2] = {
+    {-126, -96},
+    {-126, -94},
+    {-126, -92},
+    {-126, -90},
+    {-126, -88},
+    {-126, -87},
+    {-126, -85},
+    {-126, -83},
+    {-126, -81},
+    {-126, -79},
+    {-126, -77},
+    {-126, -75},
+    {-126, -73},
+    {-126, -71},
+    {-126, -69},
+    {-126, -67},
+    {-126, -65},
+    {-126, -62},
+    {-126, -60},
+    {-126, -58},
+    {-126, -56},
+    {-126, -55},
+    {-126, -54},
+    {-126, -53},
+    {-126, -52},
+    {-126, -51},
+    {-126, -48},
+    {-126, -45},
+    {-126, -42},
+    {-126, -39},
+    {-126, -36},
+    {-126, -35},
+    {-126, -34},
+    {-126, -33},
+    {-126, -32},
+    {-126, -30},
+    {-126, -28},
+    {-126, -26},
+    {-126, -25},
+    {-126, -24},
+    {-126, -23},
+    {-126, -22},
+    {-126, -21},
+    {-126, -19}
+};
+/**
+ * ASCII character conversion table.
+ */
+static s8 txt_table[0x3B] = {
+    48, 49, 50, 51, 52, 53, 54, 55, 56, 57, 97, 98,
+    99, 100, 101, 102, 103, 104, 105, 106, 107, 109, 110, 112,
+    113, 114, 115, 116, 117, 118, 119, 120, 121, 122, 65, 66,
+    67, 68, 69, 70, 71, 72, 74, 75, 76, 77, 78, 80,
+    81, 82, 83, 84, 85, 86, 87, 88, 89, 90, 0
+};
+/**
+ * Active name entry menu.
+ */
+static CNameRegiMenu *NameRegiMenuPtr;
+/**
+ * Most recently loaded texture block.
+ */
+static int OldReloadTexNumber;
+/**
+ * Columns in each character grid.
+ */
+static s8 NameRegistGyouLimmitTable[5] = {13, 15, 15, 19, 15};
+/**
+ * Texture of the name-entry mark cursor.
+ */
+static mgCTexture *NameRegiCursor;
+/**
+ * Texture used for the name-entry frame.
+ */
+static mgCTexture *NameRegiTex1;
+/**
+ * Maximum entered name length.
+ */
+static s16 NameRegistMax = 10;
+/**
+ * ASCII characters corresponding to the menu Shift-JIS grid.
+ */
+static char ascii_code_table[95] = {
+    65, 66, 67, 68, 69, 70, 71, 72, 73, 74, 75, 76,
+    77, 78, 79, 80, 81, 82, 83, 84, 85, 86, 87, 88,
+    89, 90, 97, 98, 99, 100, 101, 102, 103, 104, 105, 106,
+    107, 108, 109, 110, 111, 112, 113, 114, 115, 116, 117, 118,
+    119, 120, 121, 122, 48, 49, 50, 51, 52, 53, 54, 55,
+    56, 57, 32, 32, 32, 33, 34, 35, 36, 37, 38, 39,
+    40, 41, 42, 43, 44, 45, 46, 32, 47, 58, 59, 60,
+    61, 62, 63, 64, 91, 93, 95, 123, 125, 124, 0
+};
+/**
+ * Shift-JIS character conversion table.
+ */
+static s8 txt_table2[0x3B][2] = {
+    {-126, 79},
+    {-126, 80},
+    {-126, 81},
+    {-126, 82},
+    {-126, 83},
+    {-126, 84},
+    {-126, 85},
+    {-126, 86},
+    {-126, 87},
+    {-126, 88},
+    {-126, -127},
+    {-126, -126},
+    {-126, -125},
+    {-126, -124},
+    {-126, -123},
+    {-126, -122},
+    {-126, -121},
+    {-126, -120},
+    {-126, -119},
+    {-126, -118},
+    {-126, -117},
+    {-126, -115},
+    {-126, -114},
+    {-126, -112},
+    {-126, -111},
+    {-126, -110},
+    {-126, -109},
+    {-126, -108},
+    {-126, -107},
+    {-126, -106},
+    {-126, -105},
+    {-126, -104},
+    {-126, -103},
+    {-126, -102},
+    {-126, 96},
+    {-126, 97},
+    {-126, 98},
+    {-126, 99},
+    {-126, 100},
+    {-126, 101},
+    {-126, 102},
+    {-126, 103},
+    {-126, 105},
+    {-126, 106},
+    {-126, 107},
+    {-126, 108},
+    {-126, 109},
+    {-126, 111},
+    {-126, 112},
+    {-126, 113},
+    {-126, 114},
+    {-126, 115},
+    {-126, 116},
+    {-126, 117},
+    {-126, 118},
+    {-126, 119},
+    {-126, 120},
+    {-126, 121},
+    {0, 0}
+};
+/**
+ * Default sphida names by language.
+ */
+static char *Sfida_default_Name[7] = {"\203\206\203\212\203X", "Max", "Max", "Max", "Max", "Max", "Max"};
+
+static int search_txt_jis(char *text);
+static int search_txt_asci(char *text);
+static int nameregist_local_key(MENU_SELECT_PARAM *param, int &keys, s16 *step, int table_index);
+
+// Check division by a runtime grid width.
+#pragma divbyzerocheck on
 
 // Code (.text)
-void SetEventKeyword(char *target, char *topic, int code) {
+void SetEventKeyword(char *keyword, char *topic, int code) {
     Nameregi_Target.keyword[0] = 0;
     Nameregi_Target.keyword[1] = 0;
-    if (target != NULL) {
-        strcpy(Nameregi_Target.keyword, target);
+    if (keyword != NULL) {
+        strcpy(Nameregi_Target.keyword, keyword);
     }
     NameRegiTopic[0] = 0;
     NameRegiTopic[1] = 0;
@@ -63,6 +275,7 @@ void SetEventKeyword(char *target, char *topic, int code) {
     }
     NameRegiCode = code;
 }
+
 int CheckDeleteNameRegisteItem(CGameDataUsed *item) {
     if (item == NULL) {
         return 0;
@@ -72,6 +285,7 @@ int CheckDeleteNameRegisteItem(CGameDataUsed *item) {
     }
     return 0;
 }
+
 int CNameRegiMenu::GetActiveFontMode() {
     int language = LanguageCode;
     if (language < 0) {
@@ -82,7 +296,7 @@ int CNameRegiMenu::GetActiveFontMode() {
     }
     return NameStrSelectModeTable[language][select_mode];
 }
-extern char ascii_code_table[];
+
 void CNameRegiMenu::CopyAsciiToJis(char *src, char *dst) {
     if (src == NULL || dst == NULL) {
         return;
@@ -112,19 +326,18 @@ void CNameRegiMenu::CopyAsciiToJis(char *src, char *dst) {
         *dst = 0;
     }
 }
+
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/nameregi", CopyJisToAscii__13CNameRegiMenuFPcPc);
-int CheckChronicleKanjiFont(mgCMemory *memory) {
+int CheckChronicleKanjiFont(mgCMemory *stack) {
     char name[3];
     int total;
     int row;
-    int row_offset;
-    if (memory == NULL) {
+    if (stack == NULL) {
         return 0;
     }
     name[2] = 0;
     total = 0;
     row = 0;
-    row_offset = 0;
     do {
         NAMEREGI_KANJI_INDEX *current;
         NAMEREGI_KANJI_NODE *node;
@@ -138,20 +351,20 @@ int CheckChronicleKanjiFont(mgCMemory *memory) {
         previous = NULL;
         count = 0;
         i = 0;
-        current = (NAMEREGI_KANJI_INDEX *)((u8 *)NameRegiSearchKanjiIndexTable + row_offset);
+        current = &NameRegiSearchKanjiIndexTable[row];
         next = &NameRegiSearchKanjiIndexTable[row + 1];
         current->list = NULL;
-        high = (u8)current->code[0];
-        low = (u8)current->code[1];
+        high = current->code[0];
+        low = current->code[1];
         do {
             name[0] = high;
             name[1] = low;
             if (0 <= GetFontNo(name)) {
                 if (current->list == NULL) {
-                    current->list = (NAMEREGI_KANJI_NODE *)memory->Alloc(1);
+                    current->list = (NAMEREGI_KANJI_NODE *)stack->Alloc(1);
                     node = current->list;
                 } else {
-                    previous->next = (NAMEREGI_KANJI_NODE *)memory->Alloc(1);
+                    previous->next = (NAMEREGI_KANJI_NODE *)stack->Alloc(1);
                     node = previous->next;
                 }
                 node->code[0] = high;
@@ -166,7 +379,7 @@ int CheckChronicleKanjiFont(mgCMemory *memory) {
                 high++;
             }
             previous = node;
-            if ((u8)next->code[0] == high && (u8)next->code[1] == low) {
+            if (next->code[0] == high && next->code[1] == low) {
                 break;
             }
             i++;
@@ -176,65 +389,67 @@ int CheckChronicleKanjiFont(mgCMemory *memory) {
         }
         current->num = count;
         total += count;
-        row_offset += 0x10;
         row++;
     } while (row < 0x2C);
     return total;
 }
-int GetNameRegistFontKanjiList(int font_index, char *out) {
-    s8 *dst = (s8 *)out;
+
+int GetNameRegistFontKanjiList(int cell, char *dst) {
+    s8 *signed_dst = (s8 *)dst;
     int position = 0;
     int row = 0;
     NAMEREGI_KANJI_NODE *node;
-    int offset = 0;
+    int table_index = 0;
     do {
-        if (position == font_index) {
-            out[0] = testchar[row][0];
-            out[1] = testchar[row][1];
+        if (position == cell) {
+            dst[0] = testchar[row][0];
+            dst[1] = testchar[row][1];
             return 1;
         }
-        node = ((NAMEREGI_KANJI_INDEX *)((u8 *)NameRegiSearchKanjiIndexTable + offset))->list;
+        node = NameRegiSearchKanjiIndexTable[table_index].list;
         position++;
         if (node != NULL) {
             do {
-                if (position == font_index) {
-                    out[0] = node->code[0];
-                    out[1] = node->code[1];
+                if (position == cell) {
+                    dst[0] = node->code[0];
+                    dst[1] = node->code[1];
                     return 0;
                 }
                 node = node->next;
                 position++;
             } while (node != NULL);
         }
-        if (position == font_index) {
-            dst[0] = -0x7F;
-            dst[1] = 0x40;
+        if (position == cell) {
+            signed_dst[0] = -0x7F;
+            signed_dst[1] = 0x40;
             return 2;
         }
         row++;
         position++;
-        offset += 0x10;
+        table_index++;
     } while (row < 0x2C);
     return -1;
 }
-union NameRegiWindowPosition {
-    int coordinates[2];
-    s64 packed;
-};
-extern NameRegiWindowPosition at_1081__4;
-void AdjustWaku(CDC2Mes *message, RECT *frame) {
-    message->StepMsg();
-    int width = message->line_w[0];
-    NameRegiWindowPosition position = at_1081__4;
-    position.coordinates[0] = (mgScreenWidth - width) >> 1;
-    message->SetPutPos(position.coordinates);
-    frame->x = position.coordinates[0] - 20;
-    frame->y = position.coordinates[1] - 22;
-    frame->width = width + 44;
-    frame->height = message->font_h + 36;
+
+/**
+ * Sizes and centers the message window frame.
+ */
+void AdjustWaku(CDC2Mes *mes, RECT *waku) {
+    mes->StepMsg();
+    int width = mes->line_w[0];
+    int position[2] = {0, 36};
+    position[0] = (mgScreenWidth - width) >> 1;
+    mes->SetPutPos(position);
+    waku->x = position[0] - 20;
+    waku->y = position[1] - 22;
+    waku->width = width + 44;
+    waku->height = mes->font_h + 36;
 }
-extern s8 txt_table2[0x3B][2];
-int search_txt_jis(char *text) {
+
+/**
+ * Finds a Shift-JIS character in the conversion table.
+ */
+static int search_txt_jis(char *text) {
     int index = 0;
     do {
         if ((s8)text[0] == txt_table2[index][0] && (s8)text[1] == txt_table2[index][1]) {
@@ -244,6 +459,10 @@ int search_txt_jis(char *text) {
     } while (index < 0x3A);
     return -1;
 }
+
+/**
+ * Finds an ASCII character in the conversion table.
+ */
 static int search_txt_asci(char *text) {
     s8 *character = (s8 *)text;
     int table_index = 0;
@@ -255,6 +474,7 @@ static int search_txt_asci(char *text) {
     } while (table_index < 0x3A);
     return -1;
 }
+
 void ConvertShitJiss2Ascii(char *src, char *dst) {
     if (src == NULL || dst == NULL) {
         return;
@@ -272,6 +492,7 @@ void ConvertShitJiss2Ascii(char *src, char *dst) {
         dst++;
     }
 }
+
 void ConvertAscii2ShitJiss(char *src, char *dst) {
     if (dst == NULL || src == NULL) {
         return;
@@ -288,10 +509,12 @@ void ConvertAscii2ShitJiss(char *src, char *dst) {
         output += 2;
     }
 }
+
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/nameregi", NameRegistInit__FP9mgCMemoryPii);
 int NameRegistKey() {
     return NameRegiMenuPtr->KeyStep();
 }
+
 void NameRegistDraw() {
     OldReloadTexNumber = -1;
     NameRegiMenuPtr->DrawBaseBoard();
@@ -300,9 +523,13 @@ void NameRegistDraw() {
     NameRegiMenuPtr->DrawMarkCursor();
     NameRegiMenuPtr->DrawMessage();
 }
+
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/nameregi", CheckInputWord__FPc);
-#pragma divbyzerocheck on
-int nameregist_local_key(MENU_SELECT_PARAM *param, int &keys, s16 *step, int table_index) {
+/**
+ * Moves a character-grid cursor and adjusts the navigation keys.
+ */
+static int nameregist_local_key(MENU_SELECT_PARAM *param, int &keys, s16 *step, int table_index) {
+    static s16 limits[5] = {65, 90, 90, 114, 90};
     int direction = 0;
     if (keys & 1) {
         direction = 1;
@@ -339,36 +566,73 @@ int nameregist_local_key(MENU_SELECT_PARAM *param, int &keys, s16 *step, int tab
     }
     int base = param->pos;
     if (base < 0) {
-        param->pos = base + LimmitTable_1360[table_index];
+        param->pos = base + limits[table_index];
         direction = -1;
     }
-    if (LimmitTable_1360[table_index] <= param->pos) {
+    if (limits[table_index] <= param->pos) {
         param->pos += step[0];
         keys &= ~2;
         keys |= 1;
     }
     return direction;
 }
-#pragma divbyzerocheck reset
-#pragma divbyzerocheck on
-void CNameRegiMenu::ConvertPositionNameRegi(int mode) {
+
+void CNameRegiMenu::ConvertPositionNameRegi(int to_command) {
+    static s8 column_bounds[2][5][8] = {
+        {
+            {0, 1, 3, 5, 8, 11, 12, 0},
+            {1, 2, 5, 7, 9, 11, 13, 0},
+            {1, 2, 5, 7, 9, 11, 13, 0},
+            {1, 3, 5, 7, 11, 15, 20, 0},
+            {0, 1, 2, 3, 5, 7, 9, 14}
+        },
+        {
+            {0, 1, 3, 5, 8, 11, 12, 0},
+            {1, 2, 5, 7, 9, 11, 13, 0},
+            {1, 2, 5, 7, 9, 11, 13, 0},
+            {1, 3, 5, 7, 11, 15, 20, 0},
+            {0, 2, 5, 5, 9, 12, 9, 14}
+        }
+    };
     int font_mode = GetActiveFontMode();
-    if (mode == 0) {
+    if (to_command == 0) {
         int col = command_pos;
-        PositionTable table = at_1377__5;
+        s8 table[3][5][12] = {
+            {
+                {0, 0, 7, 9, 11, 0, 0, 2, 4, 6, 8, 12},
+                {0, 1, 3, 8, 10, 0, 1, 3, 5, 7, 9, 12},
+                {0, 1, 3, 8, 10, 0, 1, 3, 5, 7, 9, 12},
+                {0, 0, 9, 10, 11, 0, 1, 3, 6, 8, 12, 15},
+                {0, 0, 8, 10, 11, 0, 0, 2, 4, 7, 9, 14}
+            },
+            {
+                {0, 0, 5, 8, 0, 0, 0, 9, 1, 5, 8, 12},
+                {0, 1, 3, 8, 10, 0, 1, 3, 5, 7, 9, 12},
+                {0, 1, 3, 8, 10, 0, 1, 3, 5, 7, 9, 12},
+                {0, 0, 9, 10, 11, 0, 1, 3, 6, 8, 12, 15},
+                {0, 0, 8, 10, 11, 0, 0, 9, 2, 6, 9, 13}
+            },
+            {
+                {0, 0, 7, 9, 11, 0, 0, 2, 4, 6, 8, 12},
+                {0, 1, 3, 8, 10, 0, 1, 3, 5, 7, 9, 12},
+                {0, 1, 3, 8, 10, 0, 1, 3, 5, 7, 9, 12},
+                {0, 0, 9, 10, 11, 0, 1, 3, 6, 8, 12, 15},
+                {0, 0, 8, 10, 11, 0, 0, 11, 2, 6, 9, 13}
+            }
+        };
         int language = LanguageCode;
         if (language > 0) {
             language = 1;
         }
-        select.pos = table.index[language][font_mode][col];
+        select.pos = table[language][font_mode][col];
     }
-    if (mode == 1) {
+    if (to_command == 1) {
         int remainder = select.pos % NameRegistGyouLimmitTable[font_mode];
         int language = 0;
         if (LanguageCode > 0) {
             language = 1;
         }
-        s8 *limit = Convtable2_1382[language][font_mode];
+        s8 *limit = column_bounds[language][font_mode];
         if (remainder < limit[0]) {
             command_pos = 5;
         } else if (remainder < limit[1]) {
@@ -392,23 +656,23 @@ void CNameRegiMenu::ConvertPositionNameRegi(int mode) {
         }
     }
 }
-#pragma divbyzerocheck reset
-int CNameRegiMenu::CheckKanjiPosition(int position, s16 *keys, int key_mode) {
+
+int CNameRegiMenu::CheckKanjiPosition(int key, short *step, int limit_no) {
     MENU_SELECT_PARAM *param = &select;
     int result = 0;
     char cell[4];
     cell[2] = 0;
     int kind = GetNameRegistFontKanjiList(select.pos + select.row * 0x13, cell);
     while (kind != 0 && kind != 1) {
-        result = nameregist_local_key(param, position, keys, key_mode);
+        result = nameregist_local_key(param, key, step, limit_no);
         if (result == -1) {
             break;
         }
         kind = GetNameRegistFontKanjiList(param->pos + param->row * 0x13, cell);
         if (kind < 0) {
-            position = 1;
+            key = 1;
             while (kind != 0 && kind != 1) {
-                result = nameregist_local_key(param, position, keys, key_mode);
+                result = nameregist_local_key(param, key, step, limit_no);
                 if (result == -1) {
                     break;
                 }
@@ -419,37 +683,21 @@ int CNameRegiMenu::CheckKanjiPosition(int position, s16 *keys, int key_mode) {
     }
     return result;
 }
-union NameMessageArguments {
-    char *name[2];
-    s64 packed;
-};
-struct NameCommandTable {
-    s8 bytes[0x30];
-};
-struct PasswordKey {
-    u8 bytes[0x21];
-};
-extern s16 addTable_1510[8][4];
-extern s8 convTbl_1579[4];
-extern NameCommandTable at_1513__6;
-extern NameCommandTable at_1514__6;
-extern NameCommandTable at_1534;
-extern NameMessageArguments at_1621__3;
-extern NameMessageArguments at_1661__3;
-extern NameMessageArguments at_1684__3;
-extern NameMessageArguments at_1686;
-extern NameMessageArguments at_1693__2;
-extern PasswordKey at_1669;
-extern char at_1747__2[0x10];
-extern char at_1748__2[0x10];
-extern char *Sfida_default_Name[4];
-void CheckInputWord(char *name);
-s32 CNameRegiMenu::KeyStep() {
+
+int CNameRegiMenu::KeyStep() {
+    static s8 character_buttons[4] = {2, 1, 0, 4};
+    static s16 cursor_steps[6][4] = {
+        {-13, 13, -1, 1},
+        {-15, 15, -1, 1},
+        {-15, 15, -1, 1},
+        {-19, 19, -1, 1},
+        {-15, 15, -1, 1},
+        {0, 0, 0, 0}
+    };
     s32 keys;
     s32 event;
     s32 pushed;
     CDC2Mes *message;
-    const int name_offset = offsetof(CNameRegiMenu, name);
 
     event = -1;
     keys = MenuCommonInfo->CheckSelectKey();
@@ -486,7 +734,7 @@ s32 CNameRegiMenu::KeyStep() {
                     if (strcmp(Nameregi_Target.keyword, converted_name) == 0) {
                         MenuArg.result[0] = 1;
                     }
-                    if (strcmp(Nameregi_Target.keyword, at_1747__2) == 0 && strcmp(converted_name, at_1748__2) == 0) {
+                    if (strcmp(Nameregi_Target.keyword, "SIRUS") == 0 && strcmp(converted_name, "Sirus") == 0) {
                         MenuArg.result[0] = 1;
                     }
                 } else if (Nameregi_Target.target == NAMEREGI_TARGET_FISH) {
@@ -562,14 +810,40 @@ s32 CNameRegiMenu::KeyStep() {
     }
     case NAMEREGI_MODE_INPUT: {
         s32 font_mode = GetActiveFontMode();
-        s16 *key_table = addTable_1510[font_mode];
+        s16 *key_table = cursor_steps[font_mode];
         switch (key_arg_no) {
         case 0: {
-            NameCommandTable japanese_navigation = at_1513__6;
-            NameCommandTable localized_navigation = at_1514__6;
-            s8 *row = &japanese_navigation.bytes[command_pos * 4];
+            s8 japanese_navigation[12][4] = {
+                {-1, 5, 11, 1},
+                {-1, 7, 0, 2},
+                {-1, 8, 1, 3},
+                {-1, 10, 2, 4},
+                {-1, 10, 3, 11},
+                {0, -2, 11, 6},
+                {0, -2, 5, 7},
+                {1, -2, 6, 8},
+                {1, -2, 7, 9},
+                {2, -2, 8, 10},
+                {3, -2, 9, 11},
+                {-1, -2, 4, 0}
+            };
+            s8 localized_navigation[12][4] = {
+                {-1, -1, -1, -1},
+                {-1, -1, -1, -1},
+                {-1, 5, 11, 3},
+                {-1, 8, 2, 10},
+                {-1, -1, -1, -1},
+                {2, -2, 11, 6},
+                {2, -2, 5, 8},
+                {10, -2, 9, 11},
+                {2, -2, 6, 9},
+                {3, -2, 8, 7},
+                {-1, 7, 3, 11},
+                {-1, -2, 10, 2}
+            };
+            s8 *row = japanese_navigation[command_pos];
             if (LanguageCode > 0) {
-                row = &localized_navigation.bytes[command_pos * 4];
+                row = localized_navigation[command_pos];
             }
             s32 direction = -1;
             if (keys & 1) {
@@ -600,8 +874,21 @@ s32 CNameRegiMenu::KeyStep() {
                     break;
                 }
             }
-            NameCommandTable command_table = at_1534;
-            s16 *command_events = (s16 *)&command_table.bytes[command_pos * 4];
+            s16 command_table[12][2] = {
+                {20, 2},
+                {20, 2},
+                {20, 2},
+                {20, 2},
+                {20, 2},
+                {70, 2},
+                {71, 2},
+                {100, 2},
+                {110, 2},
+                {120, 2},
+                {130, 2},
+                {500, 2}
+            };
+            s16 *command_events = command_table[command_pos];
             if ((pushed & 1) || (pushed & 4)) {
                 event = command_events[0];
             } else if (pushed & 2) {
@@ -683,22 +970,19 @@ s32 CNameRegiMenu::KeyStep() {
         break;
     case 0xB:
         key_arg_no = 0;
-        command_pos = convTbl_1579[GetActiveFontMode()];
+        command_pos = character_buttons[GetActiveFontMode()];
         MenuSePlay(5);
         break;
     case 5: {
-        union {
-            char text[0x20];
-            s8 signed_text[0x20];
-        } selected_character;
-        GetSelectedActiveFont(selected_character.text);
-        selected_character.text[2] = 0;
+        char selected_character[0x20];
+        GetSelectedActiveFont(selected_character);
+        selected_character[2] = 0;
         for (s32 index = 0; index < name_pos; index++) {
-            if (((s8 *)this + index)[name_offset] == 0) {
-                ((s8 *)this + index)[name_offset] = 0x20;
+            if (name[index] == 0) {
+                name[index] = 0x20;
             }
         }
-        ((s8 *)(name_pos + (s32)this))[name_offset] = selected_character.signed_text[0];
+        name[name_pos] = selected_character[0];
         name_pos += 1;
         if (NameRegistMax <= name_pos) {
             name_pos = NameRegistMax - 1;
@@ -729,9 +1013,9 @@ s32 CNameRegiMenu::KeyStep() {
         s32 index = name_pos;
         if (index != 0) {
             for (; index < NameRegistMax; index++) {
-                ((s8 *)this + index - 1)[name_offset] = ((s8 *)this + index)[name_offset];
+                name[index - 1] = name[index];
             }
-            ((s8 *)(NameRegistMax + (s32)this))[name_offset - 1] = 0;
+            name[NameRegistMax - 1] = 0;
             button_flash[7] = 8;
             name_pos -= 1;
             if (name_pos < 0) {
@@ -744,9 +1028,9 @@ s32 CNameRegiMenu::KeyStep() {
     case 0x6E: {
         s32 index = name_pos;
         for (; index < NameRegistMax; index++) {
-            ((s8 *)this + index)[name_offset] = ((s8 *)this + index + 1)[name_offset];
+            name[index] = name[index + 1];
         }
-        ((s8 *)(NameRegistMax + (s32)this))[name_offset] = 0;
+        name[NameRegistMax] = 0;
         button_flash[8] = 8;
         caret_cnt = 0x28;
         MenuSePlay(5);
@@ -755,10 +1039,10 @@ s32 CNameRegiMenu::KeyStep() {
     case 0x78: {
         s32 index = NameRegistMax;
         for (; name_pos <= index; index--) {
-            ((s8 *)this + index + 1)[name_offset] = ((s8 *)this + index)[name_offset];
+            name[index + 1] = name[index];
         }
-        ((s8 *)(name_pos + (s32)this))[name_offset] = 0x20;
-        ((s8 *)(NameRegistMax + (s32)this))[name_offset] = 0;
+        name[name_pos] = 0x20;
+        name[NameRegistMax] = 0;
         button_flash[9] = 8;
         caret_cnt = 0x28;
         MenuSePlay(1);
@@ -768,7 +1052,7 @@ s32 CNameRegiMenu::KeyStep() {
         if (Nameregi_Target.target == NAMEREGI_TARGET_FISH) {
             MenuSePlay(5);
         } else {
-            NameMessageArguments arguments;
+
             mode = NAMEREGI_MODE_MESSAGE;
             message_open = 1;
             unk_6 = 0x14;
@@ -776,21 +1060,21 @@ s32 CNameRegiMenu::KeyStep() {
             message->SetAbsPos(5);
             message->SetMsgCursor(0);
             message->MakeMsg(0x1007);
-            arguments = at_1621__3;
+            char *arguments[2] = {NULL, NULL};
             if (Nameregi_Target.target == NAMEREGI_TARGET_ITEM) {
-                arguments.name[0] = GetItemMessage(Nameregi_Target.item->item_no);
+                arguments[0] = GetItemMessage(Nameregi_Target.item->item_no);
             }
             if (Nameregi_Target.target == NAMEREGI_TARGET_ROBO) {
-                arguments.name[0] = GetUserDataMan()->GetRoboNameDefault();
+                arguments[0] = GetUserDataMan()->GetRoboNameDefault();
             }
             if (Nameregi_Target.target == NAMEREGI_TARGET_KEYWORD) {
                 message->MakeMsg(0x1008);
             }
             if (Nameregi_Target.target == NAMEREGI_TARGET_SPHIDA) {
-                arguments.name[0] = NULL;
+                arguments[0] = NULL;
                 message->MakeMsg(0x101B);
             }
-            message->SetMsgItemNo(arguments.name, 2);
+            message->SetMsgItemNo(arguments, 2);
             MenuSePlay(1);
         }
         break;
@@ -798,7 +1082,7 @@ s32 CNameRegiMenu::KeyStep() {
         message_open = 0;
         mode = NAMEREGI_MODE_INPUT;
         MenuSePlay(1);
-        memset(name, 0, 0x61);
+        memset(name, 0, sizeof(name));
         if (Nameregi_Target.target == NAMEREGI_TARGET_KEYWORD) {
             name_pos = 0;
         } else if (Nameregi_Target.target == NAMEREGI_TARGET_SPHIDA) {
@@ -814,10 +1098,10 @@ s32 CNameRegiMenu::KeyStep() {
         break;
     case 0x1FE: {
         char final_name[0x80];
-        NameMessageArguments arguments;
+
         strcpy(final_name, name);
         if (Nameregi_Target.target == NAMEREGI_TARGET_ITEM) {
-            if (LanguageCode > 0 && Nameregi_Target.item != NULL && Nameregi_Target.item->used_type == 3 &&
+            if (LanguageCode > 0 && Nameregi_Target.item != NULL && Nameregi_Target.item->used_type == USED_ITEM_TYPE_WEAPON &&
                 Nameregi_Target.item->IsFishingRod() == 0) {
                 char ascii[0x80];
                 s32 item_no;
@@ -830,7 +1114,7 @@ s32 CNameRegiMenu::KeyStep() {
                     message->MakeMsg(0xFD4);
                     break;
                 }
-                if (ConvertUsedItemType(GetItemDataType(item_no)) == 3) {
+                if (ConvertUsedItemType(GetItemDataType(item_no)) == USED_ITEM_TYPE_WEAPON) {
                     Nameregi_Target.item->CopyDataWeapon(item_no);
                 }
             }
@@ -856,10 +1140,10 @@ s32 CNameRegiMenu::KeyStep() {
         message->MsgPreset(0xA);
         message->SetAbsPos(5);
         message->MakeMsg(0x1006);
-        arguments = at_1661__3;
-        arguments.name[0] = old_name;
-        arguments.name[1] = final_name;
-        message->SetMsgItemNo(arguments.name, 2);
+        char *arguments[2] = {NULL, NULL};
+        arguments[0] = old_name;
+        arguments[1] = final_name;
+        message->SetMsgItemNo(arguments, 2);
         break;
     }
     case 0x1F4: {
@@ -875,15 +1159,15 @@ s32 CNameRegiMenu::KeyStep() {
             if (password_input != 0) {
                 char password[0x30];
                 u8 decoded[0x20];
-                PasswordKey key;
+
                 u16 header[7];
                 u8 *key_text;
                 s32 password_valid;
                 ConvertShitJiss2Ascii(name, password);
-                key = at_1669;
+                u8 key[0x21] = {0};
                 password[0x16] = 0;
-                strcpy((char *)key.bytes, Nameregi_Target.item->GetName(0));
-                key_text = key.bytes;
+                strcpy((char *)key, Nameregi_Target.item->GetName(0));
+                key_text = key;
                 password_valid = DecodePassword(password, (u8 *)decoded, 0x10, (u8 *)key_text, 0x14);
                 memcpy(header, decoded, 0xE);
                 if (password_valid == 0 || (header[0] & 0x1FF) < 0x136) {
@@ -898,7 +1182,7 @@ s32 CNameRegiMenu::KeyStep() {
                     MenuSePlay(5);
                 } else {
                     Nameregi_Target.item->Init();
-                    Nameregi_Target.item->used_type = 6;
+                    Nameregi_Target.item->used_type = USED_ITEM_TYPE_FISH;
                     Nameregi_Target.item->SetName((char *)key_text);
                     Nameregi_Target.item->TransToData((char *)decoded, 0xE);
                     MenuSePlay(1);
@@ -932,9 +1216,9 @@ s32 CNameRegiMenu::KeyStep() {
                 message->SetAbsPos(5);
                 message->SetMsgCursor(0);
                 message->MakeMsg(0xFDC);
-                NameMessageArguments arguments = at_1684__3;
-                arguments.name[0] = old_name;
-                message->SetMsgItemNo(arguments.name, 2);
+                char *arguments[2] = {NULL, NULL};
+                arguments[0] = old_name;
+                message->SetMsgItemNo(arguments, 2);
                 MenuSePlay(1);
                 break;
             }
@@ -951,13 +1235,13 @@ s32 CNameRegiMenu::KeyStep() {
             message->SetAbsPos(5);
             message->SetMsgCursor(1);
             message->MakeMsg(message_id);
-            NameMessageArguments arguments = at_1686;
-            arguments.name[0] = name;
+            char *arguments[2] = {NULL, NULL};
+            arguments[0] = name;
             if (LanguageCode > 0) {
                 CopyJisToAscii(name, display_name);
-                arguments.name[0] = display_name;
+                arguments[0] = display_name;
             }
-            message->SetMsgItemNo(arguments.name, 1);
+            message->SetMsgItemNo(arguments, 1);
             MenuSePlay(1);
         }
         break;
@@ -979,7 +1263,7 @@ s32 CNameRegiMenu::KeyStep() {
             message->MakeMsg(0xFB4);
             MenuSePlay(5);
         } else {
-            NameMessageArguments arguments;
+
             mode = NAMEREGI_MODE_MESSAGE;
             unk_6 = 0xA;
             message_open = 1;
@@ -987,9 +1271,9 @@ s32 CNameRegiMenu::KeyStep() {
             message->SetAbsPos(5);
             message->SetMsgCursor(1);
             message->MakeMsg(0xFDC);
-            arguments = at_1693__2;
-            arguments.name[0] = old_name;
-            message->SetMsgItemNo(arguments.name, 1);
+            char *arguments[2] = {NULL, NULL};
+            arguments[0] = old_name;
+            message->SetMsgItemNo(arguments, 1);
             MenuSePlay(5);
             if (Nameregi_Target.target == NAMEREGI_TARGET_SPHIDA) {
                 message->MsgPreset(0xB);
@@ -1007,7 +1291,7 @@ s32 CNameRegiMenu::KeyStep() {
     case 0x3E8: {
         if (Nameregi_Target.target == NAMEREGI_TARGET_FISH) {
             Nameregi_Target.item->item_no = 0x140;
-            Nameregi_Target.item->used_type = 6;
+            Nameregi_Target.item->used_type = USED_ITEM_TYPE_FISH;
             if (LanguageCode > 0) {
                 char backup[0x40];
                 strcpy(backup, name);
@@ -1022,7 +1306,7 @@ s32 CNameRegiMenu::KeyStep() {
             strcpy(name_window->name[0], name_text);
         }
         AdjustWaku(MenuDCMsg[6], &NameRegiMenuPtr->waku);
-        memset(name, 0, 0x61);
+        memset(name, 0, sizeof(name));
         name_pos = 0;
         password_input = 1;
         command_pos = 2;
@@ -1045,7 +1329,7 @@ s32 CNameRegiMenu::KeyStep() {
         caret_cnt = 0;
     }
     wave_angle += 0.06981317f;
-    if (!(wave_angle <= 3.1415927f)) {
+    if (wave_angle > 3.1415927f) {
         wave_angle -= 6.2831855f;
     }
     StepMarkCursor();
@@ -1055,20 +1339,20 @@ s32 CNameRegiMenu::KeyStep() {
 }
 
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/nameregi", GetSelectedActiveFont__13CNameRegiMenuFPc);
-void CNameRegiMenu::ChangeFontSelectMode(int mode) {
-    if (mode < 0 || mode >= 5) {
+void CNameRegiMenu::ChangeFontSelectMode(int font_mode) {
+    if (font_mode < 0 || font_mode >= NAMEREGI_FONT_MODE_NUM) {
         return;
     }
     int spacing_x = 0x18;
     int spacing_y = spacing_x;
-    if (mode == 3) {
+    if (font_mode == NAMEREGI_FONT_MODE_KANJI) {
         spacing_x = 0x16;
     }
-    if (mode == 0) {
+    if (font_mode == NAMEREGI_FONT_MODE_ALPHA) {
         spacing_x = 0x30;
         spacing_y = 0x18;
     }
-    if (mode == 4) {
+    if (font_mode == NAMEREGI_FONT_MODE_KIGOU) {
         spacing_x = 0x30;
         spacing_y = 0x18;
     }
@@ -1079,14 +1363,17 @@ void CNameRegiMenu::ChangeFontSelectMode(int mode) {
     grid_font[0].unk_b0 = 0.0f;
     grid_font[0].unk_b4 = 0.0f;
 }
-s8 ConvertNameRegiBaseBoardTable(int index) {
-    s8 result = convtbl_1792.slot[index];
+
+s8 ConvertNameRegiBaseBoardTable(int font_mode) {
+    static s8 buttons[5] = {2, 1, 0, 4, 3};
+    s8 result = buttons[font_mode];
     if (LanguageCode > 0) {
-        BoardTable alternate = at_1795;
-        result = alternate.slot[index];
+        s8 alternate[5] = {0, 0, 0, 0, 4};
+        result = alternate[font_mode];
     }
     return result;
 }
+
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/nameregi", DrawBaseBoard__13CNameRegiMenuFv);
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/nameregi", DrawActiveFont__13CNameRegiMenuFv);
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/nameregi", StepMarkCursor__13CNameRegiMenuFv);
@@ -1096,26 +1383,28 @@ void CNameRegiMenu::DrawMarkCursor() {
     pos[1] = cursor_y + 4.0f * sinf(mgAngleLimit(0.10471976f * (float)cursor_cnt));
     MenuCursorDraw(NameRegiCursor, pos, 0.0f, 0, 0x80, 0.8f);
 }
+
 void CNameRegiMenu::DrawSelectedWord() {
+    static s16 frame_texture[12] = {0, 148, 42, 64, 42, 148, 16, 64, 58, 148, 42, 64};
     mgRect<int> shadow;
     mgRect<int> frame;
-    MenuReloadTexture(OldReloadTexNumber, *(s16 *)NameRegiTex1);
+    MenuReloadTexture(OldReloadTexNumber, NameRegiTex1->block);
     int box_width = NameRegistMax * 0xC + 0x3E;
     int box_left = (mgScreenWidth - box_width) >> 1;
     mgCDrawPrim *prim = GetMenuPrim();
     SetSpriteEnv(prim, 0);
-    prim->Begin(6);
+    prim->Begin(MG_PRIM_SPRITE);
     prim->Texture(NameRegiTex1);
     prim->Color(0, 0, 0, 0x33);
-    shadow.Set(box_left + 3, 0x59, box_width, gettbl0_2012[3]);
-    Menu3DivideTextureDraw(prim, shadow, gettbl0_2012, 1);
+    shadow.Set(box_left + 3, 0x59, box_width, frame_texture[3]);
+    Menu3DivideTextureDraw(prim, shadow, frame_texture, 1);
     prim->Color(0x80, 0x80, 0x80, 0x80);
-    frame.Set(box_left, 0x56, box_width, gettbl0_2012[3]);
-    Menu3DivideTextureDraw(prim, frame, gettbl0_2012, 1);
+    frame.Set(box_left, 0x56, box_width, frame_texture[3]);
+    Menu3DivideTextureDraw(prim, frame, frame_texture, 1);
     prim->End();
     int underscore_x = box_left + 0x20;
     SetSpriteEnv(prim, 2);
-    prim->Begin(6);
+    prim->Begin(MG_PRIM_SPRITE);
     prim->Color(0xFA, 0xFA, 0xFA, 0x40);
     int i = 0;
     while (i < NameRegistMax) {
@@ -1130,7 +1419,7 @@ void CNameRegiMenu::DrawSelectedWord() {
         cursor_alpha = 0;
     }
     int cursor_left = box_left + 0x1E + name_pos * 0xC;
-    prim->Begin(6);
+    prim->Begin(MG_PRIM_SPRITE);
     prim->Color(0xDC, 0xDC, 0xDC, cursor_alpha);
     prim->Vertex(cursor_left, 0x65, 0);
     prim->Vertex(cursor_left + 0xC, 0x7C, 0);
@@ -1141,18 +1430,18 @@ void CNameRegiMenu::DrawSelectedWord() {
     CFont *font = &name_font;
     font->DrawDirect(font->str, font->pos_x, font->pos_y);
 }
+
 void CNameRegiMenu::DrawMessage() {
-    RGBAQ_TYPE color;
-    u8 prim[0x128];
-    MenuReloadTexture(OldReloadTexNumber, *(int *)((u8 *)MenuDCMsg[6] + 0x22A4));
-    __ct__11mgCDrawPrimFv(prim);
-    SetSpriteEnv((mgCDrawPrim *)prim, 0);
-    *(s64 *)&color = at_2031__3;
-    DrawVersatileWin_1((mgCDrawPrim *)prim, waku, &color, 0x80);
+
+    MenuReloadTexture(OldReloadTexNumber, MenuDCMsg[6]->texture_block);
+    mgCDrawPrim prim;
+    SetSpriteEnv(&prim, 0);
+    RGBAQ_TYPE color = {128, 128, 128, 128, 1.0f};
+    DrawVersatileWin_1(&prim, waku, &color, 0x80);
     (MenuDCMsg[6])->DrawMsg();
     if (message_open != 0) {
         DrawMenuFillBox(0.0f, 0.0f, (float)mgScreenWidth, (float)mgScreenHeight, 0x40, 0, 0,
-                                   0);
+                       0);
         (MenuDCMsg[7])->DrawMsg();
     }
 }
