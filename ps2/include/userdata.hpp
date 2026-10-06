@@ -329,7 +329,7 @@ public:
      * @address 0x1986E0
      * @size 0x30
      */
-int GetLevel();
+    int GetLevel();
 
     /**
      * Gives the colour palette of a weapon's model, or 0.
@@ -338,7 +338,7 @@ int GetLevel();
      * @address 0x198710
      * @size 0x50
      */
-int GetPalletColor();
+    int GetPalletColor();
 
     /**
      * Gives the item number a spectrumised attachment came from, or 0.
@@ -347,7 +347,7 @@ int GetPalletColor();
      * @address 0x198760
      * @size 0x20
      */
-int GetSpectolNo();
+    int GetSpectolNo();
 
     /**
      * Gives how many more of the item the place can hold.
@@ -365,7 +365,7 @@ int GetSpectolNo();
      * @address 0x1987F0
      * @size 0x7C
      */
-int GetNum();
+    int GetNum();
 
     /**
      * Gives whether the item can be set as an active item.
@@ -393,7 +393,7 @@ int GetNum();
      * @address 0x198990
      * @size 0x38
      */
-int GetUseCapacity();
+    int GetUseCapacity();
 
     /**
      * Adds to a fish's health, keeping it between 0 and 100, and gives the new health.
@@ -474,7 +474,7 @@ int GetUseCapacity();
      * @address 0x1992E0
      * @size 0x20
      */
-int RemainFusion();
+    int RemainFusion();
 
     /**
      * Adds to a weapon's synthesis points and gives the new total.
@@ -483,7 +483,7 @@ int RemainFusion();
      * @address 0x199300
      * @size 0x88
      */
-int AddFusionPoint(int point);
+    int AddFusionPoint(int point);
 
     /**
      * Gives the effect names and strength of a weapon's element, and the element itself.
@@ -556,7 +556,7 @@ int AddFusionPoint(int point);
      * @address 0x1998B0
      * @size 0x64
      */
-int GetRoboInfoType();
+    int GetRoboInfoType();
 
     /**
      * Builds the joint file name of a ridepod body or arm.
@@ -684,7 +684,7 @@ int GetRoboInfoType();
      * @address 0x19A860
      * @size 0x64
      */
-int GetAttackType();
+    char GetAttackType();
 
     /**
      * Gives the model number of a weapon, or -1.
@@ -889,7 +889,9 @@ struct MOS_HENGE_PARAM {
     s16 monster_id; /**< Monster this row belongs to. */
     s16 attack;     /**< Base attack. */
     s16 defence;    /**< Base defence. */
-    u8  unk_6[0x16];
+    s16   unk_6;
+    char *unk_8;
+    char *unk_c[4];
 };
 STATIC_ASSERT(sizeof(MOS_HENGE_PARAM) == 0x1C);
 
@@ -1224,7 +1226,7 @@ public:
      * @address 0x19C470
      * @size 0x48
      */
-    int EntryFish(int item_no, int size, int weight);
+    void EntryFish(int item_no, int size, int weight);
 
     /**
      * Gives how many places are still free.

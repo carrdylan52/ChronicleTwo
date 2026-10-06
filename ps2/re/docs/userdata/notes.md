@@ -63,7 +63,7 @@ Size from `Init` memset 0x6C, every array stride, `memcpy(...,0x6C)` in `CopyGam
   CDataWeapon status/attribute; limited by status_max/attribute_max in `CheckParamLimmit`), +0x28 `special`,
   +0x2C `fusion_point` (initial value = CDataWeapon byte 0x38, + byte 0x39 per level; limit 999 or 9999 for
   rods 0x12E/0x12F), +0x2E and +0x30 zeroed, +0x33 name. `GetActiveElem` = index of the largest of
-  attribute[0..3]; `GetEffectReadType` uses `magic_str_1462[elem]`. `GetStatusParam` weapon 0x38 halves or
+  attribute[0..3]; `GetEffectReadType` uses `magic_str_1462[elem * 2]` for the effect and the next entry for the sound. `GetStatusParam` weapon 0x38 halves or
   raises status[0] by time band (`GetTimeBand`).
 - ROBOPART_USED: +0 gauge (max = now = CDataRoboPart+2), +8 gauge (CDataRoboPart+6), +0x10 status[10]
   (CDataRoboPart +8..+0x1A), +0x24 `defence` (CDataRoboPart+0x1C; `ROBO_DATA::GetDefenceVol` reads
@@ -124,7 +124,8 @@ parts[0]+0x18.
 - `GetMonsterBajjiDataByMonsterID` = `GetMonsterBajjiData(get_gajji_id_from_monster_progress_table(id) + 1)`.
 - MOS_HENGE_PARAM (0x1C): stride and count from `GetMonsterHengeParam` (57 rows; `mos_henge_param` is
   0x63C = 57*0x1C). +0 monster id, +2 attack (scaled by (level/98*2+1)), +4 defence (+2*degree). Results
-  capped at 999.
+  capped at 999. The remaining row fields are a halfword at +6, a string pointer at +8, and four
+  string pointers at +0xC; these fields retain unknown names.
 
 ## CFishAquarium (0x530), CUserDataManager 0x4958
 Tanks at +4 [6], +0x28C [4], +0x43C [2] (`Initialize`, `GetAquariumFishTop`, `FishIntoAquarium` bounds);
@@ -137,7 +138,7 @@ of the last field Initialize touches. 0x4E88..0x4EB0 (0x28 bytes) is never acces
 
 ## CFishingRecord (0x340) at 0x45258, CFishingTournament (0x70) at 0x451E8
 - Record: ctor memset 0x340; `GetFishRecord` = this + 0x40 + idx*0x20 with idx from
-  `fish_record_dataindex_convert` (local, 0x26 bytes = 18 fish numbers + 0 terminator). FISH_RECORD:
+  `fish_record_dataindex_convert` (local, 0x26 bytes = 18 fish numbers + -1 terminator). FISH_RECORD:
   +0 size, +4 previous size, +8 weight, +0xC previous weight, +0x10 int count (wraps at 999999 -> 1).
   `CheckRecordFish` returns bit 1 for size and bit 2 for weight. 24 slots fit; only 18 are mapped.
 - Tournament: Initialize memset 0x70; ResetRecord memset +0x20, 0x50; +4 `rank` (0..100); +0x20 entry[10]
@@ -190,11 +191,10 @@ Size: `Initialize` memset 0x90; global `BattleParamater` size 0x90.
   (MOS_HENGE_PARAM[57]), `fish_record_dataindex_convert` (s16[19]), `FishGamePreEquip` (CGameDataUsed*),
   `BattleParamater_Time` (float), `BattleParamater_TimeBand` (int, GetTimeBand result).
 - Function-local statics: `basefish_1288` (format per language, Boiled), `symbol_tbl_1338` (GetName
-  prefixes/suffixes, [rename_flag][lang] pairs, continues at 0x33A3D4), `word_1327` (0x70 bss, GetName
-  result buffer; memset 0x61), `magic_str_1462` (char*[2] per element), `strtbl_1505` / `temp_1510` (0x40
+  prefixes/suffixes, [lang][rename_flag] pairs, continues at 0x33A3D4), `word_1327` (0x61-byte GetName result buffer in a 0x70-byte bss split), `magic_str_1462` (char*[2] per element), `strtbl_1505` / `temp_1510` (0x40
   bss) GetMsgAddInfo, `htbl_1662` (s8[10] durability gains, LevelUp), `robo_nametable_3330`,
   `weptbl_4503` (s16 [lang 0/1][chara][5]), `at_table_5400` (u32[12], CheckWeaponAttribute),
-  `equip_type_tbl_5456` (u8[3][5], SearchEquipType), `use_limmit_table_2558` (s8[7] for items 0xF6..0xFC),
+  `equip_type_tbl_5456` (s8[3][5], SearchEquipType), `use_limmit_table_2558` (u8[7] for items 0xF6..0xFC),
   `lifetbl_2854` (s32[2] or float, starting HP; stored by word), `f_2005` (char*[2], model name prefixes),
   `tbl1_5167` / `tbl2_5168` (random-circle traps), DebugGetItem tables (`itemtbl_5745`, `start_tbl_5746`,
   `e3_town_5747`, `e3_dng_5748`, `e3_boss_5749`, `init_partytbl_5752`, `dbg_set1..3_577x`, `subgame1_5788`,
@@ -204,10 +204,10 @@ Size: `Initialize` memset 0x90; global `BattleParamater` size 0x90.
   (deletes from one place or from a gift box's contents; returns the count removed).
 
 ## Return types and other uncertainties
-- Return types are not part of the mangling. Mine follow the load width in the code: s16 for `lh`
-  returns (GetNum, GetLevel, ...), u8 for `lbu` returns, and char for `GetModelNo`/`GetAttackType`, whose
-  0xFF default `GetMainCharaModelName` tests with `< 0`. `CGameDataUsed::GetNum` may in fact be int.
-  Check each one while matching.
+- Return types are not part of the mangling. A narrow return declaration can cause callers to
+  add sign or zero extensions even when the callee already uses `lh` or `lbu`. The declarations
+  retain `int` where the linked callers require an unrestricted result. `GetAttackType` is `char`
+  and `CFishingTournament::EntryFish` returns `void`.
 - `ROBO_DATA::AddPoint` returns the gauge rate. Ghidra drops it, but menudraw `NowUseNeedItemCheck`
   uses it as a float.
 - `GetMonsterBaseInfo` duplicates monster's `GetMonsterTable` (stride 0xB8 in `base_monster_define`), so
@@ -250,3 +250,14 @@ The header gives their addresses, sizes, declarations and purpose comments.
 | `CBattleCharaInfo::ClearMagicSwordPow` | Resets the element, charge count and seven charge strengths. |
 | `ConvertItemAttrToCharaAttr` | Maps item attribute bits to separate condition-adding and curing `CHARA_STATUS_ATTR` masks. |
 | `CheckBadStatus` | Tests for any condition except `CHARA_STATUS_POWER`; it includes the two status bits whose effects remain unknown. |
+
+## C++ source status
+
+The unit contains 276 functions: 258 perfect, zero fuzzy and 18 assembly fallbacks. With guarded
+drafts enabled, 259 functions match, two differ and 15 have no draft. The differing drafts are
+`CUserDataManager::GetNumSameItem` and `LeaveMonicaItemCheck`. They use named members and plain C++ calls;
+the linked image uses their assembly fallbacks. There are no inline assembly blocks.
+
+`SetRandamCircleStatus` uses a const float local for the healing rate and a
+`float(-0.5)` local for the damage rate. Their declarations preserve the
+retail order of the floating-point argument transfers.

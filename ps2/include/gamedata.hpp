@@ -209,7 +209,7 @@ public:
      * @address 0x195AA0
      * @size 0x8
      */
-    u8 GetOffsetNo();
+    int GetOffsetNo();
 };
 STATIC_ASSERT(sizeof(CDataRoboPart) == 0x24);
 
@@ -222,11 +222,11 @@ class CDataBreedFish {
 public:
     float size;     /**< Standard size of the fish. */
     s16   unk_4;
-    s16   unk_6;
-    s16   unk_8;
-    s16   unk_a;
-    s16   unk_c;
-    s16   unk_e;
+    u16   unk_6;
+    u16   unk_8;
+    u16   unk_a;
+    u16   unk_c;
+    u16   unk_e;
     s16   unk_10;
     s16   unk_12;
 
@@ -415,7 +415,7 @@ public:
      * @address 0x196FB0
      * @size 0x30
      */
-    u8 GetDataType(int item_no);
+    int GetDataType(int item_no);
 
     /**
      * Gives the first item number, in common data order, whose item type is the one given, or 0.
