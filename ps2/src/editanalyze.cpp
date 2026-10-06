@@ -1,92 +1,94 @@
 #include "common.h"
+#include "editanalyze.hpp"
 #include "vlgr_info.hpp"
 #include "savedata.hpp"
 #include "mainloop.hpp"
 #include "mg_math.hpp"
 #include "editdata.hpp"
 #include "editmap.hpp"
-#include "editanalyze.hpp"
 #include "editmenu.hpp"
 
-const int info_tree_a = 0x28;
-const int info_tree_b = 0x29;
-const int info_tree_c = 0x2A;
-const int info_stone_wall = 0x2B;
-const int info_fence = 0x2F;
-const int analyze_slots = 64;
-const int parts_list_max = 0x200;
+static int CheckSaku(CEditMap *map, int parts_no);
+static int GetTreeNum(CEditMap *map);
+static int CheckInfoID(CEditMap *map, int parts_no, int id);
+static void AnalyzeSharlot(CEditData *data, CEditMap *map);
+static void AnalyzeStera(CEditData *data, CEditMap *map);
+static void AnalyzeBenietio(CEditData *data, CEditMap *map);
+static int GetColorType(CEditParts *parts, int color_no);
+static void AnalyzeHeim(CEditData *data, CEditMap *map);
+static void AnalyzeMoonFlower(CEditData *data, CEditMap *map);
 
-extern float at_964__4[4];
-extern float at_1297__4[4];
-union HouseInfoIds {
-    int id[4];
-    u_long128 qw;
-};
-
-extern "C" HouseInfoIds at_913__6;
+static const int info_tree_a = 0x28;
+static const int info_tree_b = 0x29;
+static const int info_tree_c = 0x2A;
+static const int info_stone_wall = 0x2B;
+static const int info_fence = 0x2F;
+static const int parts_list_max = 0x200;
 
 // Code (.text)
-void AnalyzeEditMap(int chara_no, CEditMap *map) {
+void AnalyzeEditMap(int map_no, CEditMap *edit_map) {
     CEditData *data;
 
-    if (map != NULL) {
-        data = (CEditData *)GetSaveData()->GetEditData(chara_no);
+    if (edit_map != NULL) {
+        data = GetSaveData()->GetEditData(map_no);
         if (data != NULL) {
-            if (chara_no == 0) {
-                AnalyzeSharlot(data, map);
+            if (map_no == 0) {
+                AnalyzeSharlot(data, edit_map);
             }
-            if (chara_no == 1) {
-                AnalyzeStera(data, map);
+            if (map_no == 1) {
+                AnalyzeStera(data, edit_map);
             }
-            if (chara_no == 2) {
-                AnalyzeBenietio(data, map);
+            if (map_no == 2) {
+                AnalyzeBenietio(data, edit_map);
             }
-            if (chara_no == 3) {
-                AnalyzeHeim(data, map);
+            if (map_no == 3) {
+                AnalyzeHeim(data, edit_map);
             }
-            if (chara_no == 4) {
-                AnalyzeMoonFlower(data, map);
+            if (map_no == 4) {
+                AnalyzeMoonFlower(data, edit_map);
             }
         }
     }
 }
-int CountPartsType(int parts_type, CEditMap *map, int *parts_nos, int count) {
+
+int CountPartsType(int parts_type, CEditMap *edit_map, int *list, int num) {
     CEditParts *parts;
     int matches;
     int i;
 
-    i = 0;
     matches = 0;
-    if (0 < count) {
-        do {
-            parts = map->GetePlaceParts(parts_nos[i]);
-            if ((parts != NULL) && (parts_type == parts->GetPartsType())) {
-                matches += 1;
-            }
-            i += 1;
-        } while (i < count);
+    for (i = 0; i < num; ++i) {
+        parts = edit_map->GetePlaceParts(list[i]);
+        if ((parts != NULL) && (parts_type == parts->GetPartsType())) {
+            matches += 1;
+        }
     }
     return matches;
 }
-int CountPartsInfoID(int id, CEditMap *map, int *parts_nos, int count) {
+
+int CountPartsInfoID(int info_id, CEditMap *edit_map, int *list, int num) {
     CEditParts *parts;
     int matches;
     int i;
 
-    i = 0;
     matches = 0;
-    if (0 < count) {
-        do {
-            parts = map->GetePlaceParts(parts_nos[i]);
-            if ((parts != NULL) && (id == parts->GetInfoID())) {
-                matches += 1;
-            }
-            i += 1;
-        } while (i < count);
+    for (i = 0; i < num; ++i) {
+        parts = edit_map->GetePlaceParts(list[i]);
+        if ((parts != NULL) && (info_id == parts->GetInfoID())) {
+            matches += 1;
+        }
     }
     return matches;
 }
-int CheckSaku(CEditMap *map, int parts_no) {
+
+/**
+ * Checks whether a placed part is a fence.
+ *
+ * @mangled CheckSaku__FP8CEditMapi
+ * @address 0x31c020
+ * @size 0x3c
+ */
+static int CheckSaku(CEditMap *map, int parts_no) {
     CEditParts *parts;
 
     parts = map->GetePlaceParts(parts_no);
@@ -95,7 +97,15 @@ int CheckSaku(CEditMap *map, int parts_no) {
     }
     return parts->GetPartsType() == 8;
 }
-int GetTreeNum(CEditMap *map) {
+
+/**
+ * Counts the placed tree parts in the town.
+ *
+ * @mangled GetTreeNum__FP8CEditMap
+ * @address 0x31c060
+ * @size 0xd0
+ */
+static int GetTreeNum(CEditMap *map) {
     int n;
 
     n = map->GetePlacePartsAtInfoID(7, NULL, 0);
@@ -107,12 +117,13 @@ int GetTreeNum(CEditMap *map) {
     n += map->GetePlacePartsAtInfoID(info_tree_c, NULL, 0);
     return n;
 }
-int GetHouseParts(CEditMap *map, int *out, int max) {
-    HouseInfoIds ids = at_913__6;
+
+int GetHouseParts(CEditMap *edit_map, int *list, int max) {
+    int ids[4] = {1, 9, 22, 31};
     int total = 0;
     for (int i = 0; i < 4; i++) {
-        int found = map->GetePlacePartsAtInfoID(ids.id[i], out, max);
-        out += found;
+        int found = edit_map->GetePlacePartsAtInfoID(ids[i], list, max);
+        list += found;
         total += found;
         max -= found;
         if (max <= 0) {
@@ -121,7 +132,15 @@ int GetHouseParts(CEditMap *map, int *out, int max) {
     }
     return total;
 }
-int CheckInfoID(CEditMap *map, int parts_no, int id) {
+
+/**
+ * Checks whether a placed part has the requested definition ID.
+ *
+ * @mangled CheckInfoID__FP8CEditMapii
+ * @address 0x31c1e0
+ * @size 0x44
+ */
+static int CheckInfoID(CEditMap *map, int parts_no, int id) {
     CEditParts *parts;
 
     parts = map->GetePlaceParts(parts_no);
@@ -130,6 +149,7 @@ int CheckInfoID(CEditMap *map, int parts_no, int id) {
     }
     return id == parts->GetInfoID();
 }
+
 CEditParts *GetPartsPos(CEditMap *map, int parts_no, float *position) {
     if (map == NULL) {
         return NULL;
@@ -141,11 +161,19 @@ CEditParts *GetPartsPos(CEditMap *map, int parts_no, float *position) {
     parts->GetPosition(position);
     return parts;
 }
-void AnalyzeSharlot(CEditData *data, CEditMap *map) {
-    int condition[analyze_slots];
-    int target[analyze_slots];
+
+/**
+ * Stores the Sharlot town conditions in its saved analysis.
+ *
+ * @mangled AnalyzeSharlot__FP9CEditDataP8CEditMap
+ * @address 0x31c2a0
+ * @size 0x54c
+ */
+static void AnalyzeSharlot(CEditData *data, CEditMap *map) {
+    int condition[EDIT_ANALYZE_CONDITION_MAX];
+    int target[EDIT_ANALYZE_CONDITION_MAX];
     int parts_nos[parts_list_max];
-    float river_pos[4];
+    sceVu0FVECTOR river_pos;
     float tree_pos[3][4];
     float to_second[4];
     float to_third[4];
@@ -157,11 +185,12 @@ void AnalyzeSharlot(CEditData *data, CEditMap *map) {
     int stone_wall;
     int fence;
 
-    for (int i = 0; i < analyze_slots; i++) {
+    for (int i = 0; i < EDIT_ANALYZE_CONDITION_MAX; i++) {
         condition[i] = 0;
         target[i] = -1;
     }
-    *(u_long128 *)river_pos = *(u_long128 *)at_964__4;
+    static const float initial_river_pos[4] = {0.0f, 0.0f, 0.0f, -1.0f};
+    *(u_long128 *)river_pos = *(const u_long128 *)initial_river_pos;
     condition[0] = map->GetRiverNum(river_pos) >= 0xF;
     int tree_count = map->GetePlacePartsAtInfoID(info_tree_a, &parts_nos[0], 1);
     tree_count += map->GetePlacePartsAtInfoID(info_tree_b, &parts_nos[1], 1);
@@ -180,7 +209,7 @@ void AnalyzeSharlot(CEditData *data, CEditMap *map) {
         if (length <= 800.0f) {
             sceVu0Normalize(to_second, to_second);
             float along = sceVu0InnerProduct(to_second, to_third) / length;
-            if (!(along < 0.0f) && along < 1.0f) {
+            if (along >= 0.0f && along < 1.0f) {
                 if (mgDistLinePoint(tree_pos[2], tree_pos[0], tree_pos[1], closest) <= 100.0f) {
                     condition[1] = 1;
                 }
@@ -247,12 +276,20 @@ void AnalyzeSharlot(CEditData *data, CEditMap *map) {
     }
     condition[16] = data->culture_point >= 0x28;
     condition[17] = data->culture_point >= 0x32;
-    data->Analize(0, condition, target);
+    data->Analize(EDIT_ANALYZE_MAP_SHARLOT, condition, target);
 }
-void AnalyzeStera(CEditData *data, CEditMap *map) {
-    int condition[analyze_slots];
-    int target[analyze_slots];
-    for (int i = 0; i < analyze_slots; ++i) {
+
+/**
+ * Stores the Stera town conditions in its saved analysis.
+ *
+ * @mangled AnalyzeStera__FP9CEditDataP8CEditMap
+ * @address 0x31c7f0
+ * @size 0x230
+ */
+static void AnalyzeStera(CEditData *data, CEditMap *map) {
+    int condition[EDIT_ANALYZE_CONDITION_MAX];
+    int target[EDIT_ANALYZE_CONDITION_MAX];
+    for (int i = 0; i < EDIT_ANALYZE_CONDITION_MAX; ++i) {
         condition[i] = 0;
         target[i] = -1;
     }
@@ -280,9 +317,16 @@ void AnalyzeStera(CEditData *data, CEditMap *map) {
     data->Analize(EDIT_ANALYZE_MAP_STERA, condition, target);
 }
 
-void AnalyzeBenietio(CEditData *data, CEditMap *map) {
-    int condition[analyze_slots];
-    int target[analyze_slots];
+/**
+ * Stores the Benietio town conditions in its saved analysis.
+ *
+ * @mangled AnalyzeBenietio__FP9CEditDataP8CEditMap
+ * @address 0x31ca20
+ * @size 0x48c
+ */
+static void AnalyzeBenietio(CEditData *data, CEditMap *map) {
+    int condition[EDIT_ANALYZE_CONDITION_MAX];
+    int target[EDIT_ANALYZE_CONDITION_MAX];
     int parts_nos[parts_list_max];
     int territory[parts_list_max];
     int i;
@@ -290,7 +334,7 @@ void AnalyzeBenietio(CEditData *data, CEditMap *map) {
     int slot;
     int count;
 
-    for (int i = 0; i < analyze_slots; i++) {
+    for (int i = 0; i < EDIT_ANALYZE_CONDITION_MAX; i++) {
         condition[i] = 0;
         target[i] = -1;
     }
@@ -358,20 +402,28 @@ void AnalyzeBenietio(CEditData *data, CEditMap *map) {
     condition[19] = data->culture_point >= 0x32;
     condition[20] = data->culture_point >= 0x3C;
     condition[21] = data->culture_point >= 0x50;
-    data->Analize(2, condition, target);
-    for (int i = 0; i < analyze_slots; i++) {
+    data->Analize(EDIT_ANALYZE_MAP_BENIETIO, condition, target);
+    for (int i = 0; i < EDIT_ANALYZE_CONDITION_MAX; i++) {
         condition[i] = data->analyze.condition[i];
         target[i] = -1;
     }
-    int flag1 = data->GetAnalyzeFlag(2, 1);
-    int flag2 = data->GetAnalyzeFlag(2, 2);
-    int flag3 = data->GetAnalyzeFlag(2, 3);
-    int flag4 = data->GetAnalyzeFlag(2, 4);
+    int flag1 = data->GetAnalyzeFlag(EDIT_ANALYZE_MAP_BENIETIO, 1);
+    int flag2 = data->GetAnalyzeFlag(EDIT_ANALYZE_MAP_BENIETIO, 2);
+    int flag3 = data->GetAnalyzeFlag(EDIT_ANALYZE_MAP_BENIETIO, 3);
+    int flag4 = data->GetAnalyzeFlag(EDIT_ANALYZE_MAP_BENIETIO, 4);
     condition[13] = flag1 != 0 && flag2 != 0 && flag3 != 0 && flag4 != 0;
     target[15] = 5;
-    data->Analize(2, condition, target);
+    data->Analize(EDIT_ANALYZE_MAP_BENIETIO, condition, target);
 }
-int GetColorType(CEditParts *parts, int color_no) {
+
+/**
+ * Returns the colour classification of the selected part surface.
+ *
+ * @mangled GetColorType__FP10CEditPartsi
+ * @address 0x31ceb0
+ * @size 0x128
+ */
+static int GetColorType(CEditParts *parts, int color_no) {
     float color[4];
     float default_color[4];
     float paint_color[4];
@@ -404,15 +456,23 @@ int GetColorType(CEditParts *parts, int color_no) {
     }
     return closest < 0 ? -1 : closest;
 }
-void AnalyzeHeim(CEditData *data, CEditMap *map) {
-    int condition[analyze_slots];
-    int target[analyze_slots];
+
+/**
+ * Stores the Heim town conditions in its saved analysis.
+ *
+ * @mangled AnalyzeHeim__FP9CEditDataP8CEditMap
+ * @address 0x31cfe0
+ * @size 0x564
+ */
+static void AnalyzeHeim(CEditData *data, CEditMap *map) {
+    int condition[EDIT_ANALYZE_CONDITION_MAX];
+    int target[EDIT_ANALYZE_CONDITION_MAX];
     int house_nos[parts_list_max];
     int child_nos[parts_list_max];
     float position[4];
     int i;
 
-    for (int i = 0; i < analyze_slots; i++) {
+    for (int i = 0; i < EDIT_ANALYZE_CONDITION_MAX; i++) {
         condition[i] = 0;
         target[i] = -1;
     }
@@ -425,10 +485,10 @@ void AnalyzeHeim(CEditData *data, CEditMap *map) {
         if (parts != NULL) {
             parts->GetPosition(position);
             placed++;
-            if (!(position[1] < 125.0f)) {
+            if (position[1] >= 125.0f) {
                 condition[1] = 1;
             }
-            if (!(position[1] < 167.0f) && parts->GetLiveNPC() > 0) {
+            if (position[1] >= 167.0f && parts->GetLiveNPC() > 0) {
                 condition[16] = 1;
             }
             int has_a = 0;
@@ -487,18 +547,19 @@ void AnalyzeHeim(CEditData *data, CEditMap *map) {
     condition[23] = data->culture_point >= 0x50;
     condition[24] = data->culture_point >= 0x64;
     target[25] = 2;
-    data->Analize(3, condition, target);
-    for (int i = 0; i < analyze_slots; i++) {
+    data->Analize(EDIT_ANALYZE_MAP_HEIM, condition, target);
+    for (int i = 0; i < EDIT_ANALYZE_CONDITION_MAX; i++) {
         condition[i] = data->analyze.condition[i];
         target[i] = -1;
     }
-    int flag4 = data->GetAnalyzeFlag(3, 4);
-    int flag5 = data->GetAnalyzeFlag(3, 5);
+    int flag4 = data->GetAnalyzeFlag(EDIT_ANALYZE_MAP_HEIM, 4);
+    int flag5 = data->GetAnalyzeFlag(EDIT_ANALYZE_MAP_HEIM, 5);
     condition[5] = flag4 != 0 && flag5 != 0;
     target[8] = 3;
     target[12] = 6;
-    data->Analize(3, condition, target);
+    data->Analize(EDIT_ANALYZE_MAP_HEIM, condition, target);
 }
+
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/editanalyze", AnalyzeMoonFlower__FP9CEditDataP8CEditMap);
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/editanalyze", CheckLiveChara__FiP8CEditMapii);
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/editanalyze", EditMapInitEvent__FiP8CEditMap);
