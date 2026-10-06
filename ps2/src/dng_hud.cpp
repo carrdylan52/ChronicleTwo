@@ -1,50 +1,24 @@
-extern "C" void *__ct__11mgCDrawPrimFv(void *);
 #include "common.h"
-#include "mg_drawprim.hpp"
-#include "automap.hpp"
+#include "dng_hud.hpp"
 #include "maintex.hpp"
-#include "monster.hpp"
-#include "font.hpp"
-#include "cameracontrol.hpp"
-#include "event_func.hpp"
-#include "event.hpp"
-#include "menucommon.hpp"
 #include "mglib.hpp"
-#include "dng_object.hpp"
 #include "mainloop.hpp"
-#include "quest.hpp"
-#include "water.hpp"
-#include "mapload.hpp"
-#include "editevent.hpp"
-#include "snd_mngr.hpp"
-#include "effscript.hpp"
+#include "dng_main.hpp"
+#include "scenesnd.hpp"
+#include "nd_meswin.hpp"
 #include <cmath>
 #include <cstring>
 #include <cstdlib>
 #include <cstdio>
-#include "savedatadungeon.hpp"
-#include "sceneevent.hpp"
-#include "snd_seseq.hpp"
-#include "mg_drawenv.hpp"
-#include "mg_texture.hpp"
-#include "mg_math.hpp"
-#include "dng_effect.hpp"
-#include "dng_status.hpp"
-#include "dng_debug.hpp"
-#include "dng_main.hpp"
-#include "mg_frame.hpp"
-#include "prespr.hpp"
-#include "scenesnd.hpp"
-#include "dng_hud.hpp"
-#include "character.hpp"
-#include "nd_meswin.hpp"
 
-extern "C" int fptosi(float);
-extern int gekirin_anim[16];
-extern "C" const char at_1221__2[];
+/**
+ * Vertical offsets for the enemy's breaking rage mark.
+ */
+static s32 gekirin_anim[16] = {0, 3, 6, 5, 4, 3, 2, 1, 3, 4, 3, 2, 1, 2, 1, 0};
 
 // Code (.text)
-void CLevelupInfo::SetLevelUpInfo(int screen_x, int screen_y, int source, int value) {
+
+void CLevelupInfo::SetLevelUpInfo(s32 screen_x, s32 screen_y, s32 source, s32 value) {
     unk_00 = 0;
     unk_04 = 0;
     unk_08 = 0;
@@ -60,11 +34,11 @@ void CLevelupInfo::SetLevelUpInfo(int screen_x, int screen_y, int source, int va
     unk_30 = source;
     unk_34 = value;
 }
+
 void CLevelupInfo::Draw(void) {
     int i;
 
     if (phase != LEVELUP_INFO_PHASE_NONE) {
-
         CPreSprite sprite;
         sprite.Initialize(NULL, NULL);
         sprite.Preset2D();
@@ -72,8 +46,8 @@ void CLevelupInfo::Draw(void) {
         sprite.Texture(TEX_SystenFrame);
         switch (phase) {
             case LEVELUP_INFO_PHASE_APPEAR: {
-                int rise = fptosi(32.0f * sinf(4.712389f * progress - 1.5707964f));
-                sprite.Color(0x80, 0x80, 0x80, fptosi(128.0f * progress));
+                int rise = (int)(32.0f * sinf(4.712389f * progress - 1.5707964f));
+                sprite.Color(0x80, 0x80, 0x80, (int)(128.0f * progress));
                 sprite.SetIRect(x, y - rise, 70, 12, 0, 0xA2);
                 sprite.SetIRect(x - 0x10, y - rise - 3, 0x10, 0x10, 0x30, 0x40);
                 break;
@@ -85,7 +59,7 @@ void CLevelupInfo::Draw(void) {
                 sprite.SetIRect(x - 0x10, y - 3, 0x10, 0x10, 0x30, 0x40);
                 pulse = sinf(3.1415927f * progress);
                 sprite.SetAlphaBlend(2);
-                sprite.Color(0x80, 0x80, 0x80, fptosi(32.0f * pulse));
+                sprite.Color(0x80, 0x80, 0x80, (int)(32.0f * pulse));
                 for (i = 0; i < 4; i++) {
                     sprite.SetIStretch(x - i, y - i, i * 2 + 70, i * 2 + 12, 0,
                                        0xA2, 70, 12);
@@ -102,7 +76,7 @@ void CLevelupInfo::Draw(void) {
             case LEVELUP_INFO_PHASE_FADE:
 
                 sinf(4.712389f * progress - 1.5707964f);
-                sprite.Color(0x80, 0x80, 0x80, 0x80 - fptosi(128.0f * progress));
+                sprite.Color(0x80, 0x80, 0x80, 0x80 - (int)(128.0f * progress));
                 sprite.SetIRect(x, y, 70, 12, 0, 0xA2);
                 sprite.SetIRect(x - 0x10, y - 3, 0x10, 0x10, 0x30, 0x40);
                 break;
@@ -110,6 +84,7 @@ void CLevelupInfo::Draw(void) {
         sprite.End();
     }
 }
+
 void CLevelupInfo::Step(void) {
     if (phase != LEVELUP_INFO_PHASE_NONE) {
         switch (phase) {
@@ -133,21 +108,24 @@ void CLevelupInfo::Step(void) {
         }
     }
 }
+
 void CPiyori::Initialize(void) {
     target = NULL;
 }
+
 void CPiyori::Reset(void) {
     target = NULL;
     time = 0;
 }
-void CPiyori::Set(mgCObject *object, float height, float radius, s16 life) {
+
+void CPiyori::Set(mgCObject *target, float height, float radius, short time) {
     int i;
 
-    if (object != NULL) {
-        target = (CCharacter2 *)object;
+    if (target != NULL) {
+        this->target = target;
         this->height = height;
         this->radius = radius;
-        this->time = life;
+        this->time = time;
         circle_angle = 0.0f;
         for (i = 0; i < 3; i++) {
             star_angle[i] = fRand(6.2831855f) - 3.1415927f;
@@ -155,21 +133,17 @@ void CPiyori::Set(mgCObject *object, float height, float radius, s16 life) {
         se_wait = 0;
     }
 }
+
 void CPiyori::Set(mgCObject *target, s16 time) {
     if (target != NULL) {
         CCharacter2 *character = reinterpret_cast<CCharacter2 *>(target);
         this->Set(target, 2.0f * character->body_height, 2.0f * character->body_width, time);
     }
 }
+
 void CPiyori::Draw(void) {
     float char_pos[4];
-    struct {
-        float v[3];
-        int w;
-    } pos;
-    union { CPreSprite prim; };
-    int quad_a[4];
-    int quad_b[4];
+    sceVu0FVECTOR pos;
     int i;
     int alpha;
     int draw_time;
@@ -189,7 +163,9 @@ void CPiyori::Draw(void) {
             draw_radius = this->radius / 24.0 * draw_time;
         }
 
-        __ct__11mgCDrawPrimFv(&prim);
+        CPreSprite prim;
+        int quad_a[4];
+        int quad_b[4];
         prim.Initialize(NULL, NULL);
         prim.Preset2D();
         prim.Coord(1);
@@ -200,13 +176,12 @@ void CPiyori::Draw(void) {
         prim.Begin(6);
         prim.Color(0x80, 0x80, 0x80, alpha);
         prim.Texture(TEX_SystemEffect1);
-        i = 0;
-        pos.w = 0x3F800000;
+        pos[3] = 1.0f;
         for (i = 0; i < 3; i++) {
-            pos.v[0] = char_pos[0] + draw_radius * cosf(draw_angle);
-            pos.v[1] = char_pos[1] + sinf(this->star_angle[i]);
-            pos.v[2] = char_pos[2] + draw_radius * sinf(draw_angle);
-            if (mgTransWorldPrim3DSprite(quad_a, quad_b, pos.v, 4.0f, 4.0f, 0) != 0) {
+            pos[0] = char_pos[0] + draw_radius * cosf(draw_angle);
+            pos[1] = char_pos[1] + sinf(this->star_angle[i]);
+            pos[2] = char_pos[2] + draw_radius * sinf(draw_angle);
+            if (mgTransWorldPrim3DSprite(quad_a, quad_b, pos, 4.0f, 4.0f, 0) != 0) {
                 prim.TextureCrd(0xC1, 0x61);
                 prim.Vertex4(quad_a);
                 prim.TextureCrd(0xDF, 0x7F);
@@ -217,6 +192,7 @@ void CPiyori::Draw(void) {
         prim.End();
     }
 }
+
 void CPiyori::Step(void) {
     float pos[4];
     float vol;
@@ -231,7 +207,7 @@ void CPiyori::Step(void) {
         }
         se_wait -= 1;
         if (se_wait <= 0) {
-            ((CCharacter2 *)target)->GetEntryObjectPos(0, pos);
+            static_cast<CCharacter2 *>(target)->GetEntryObjectPos(0, pos);
             sndGetVolPan(&vol, &pan, pos, 160.0f, 1200.0f);
             sndSePlayVPf(GetMainScene()->se_battle_id, 0x24, vol, pan, 0);
             se_wait = 13;
@@ -254,30 +230,28 @@ void CPiyori::Step(void) {
         }
     }
 }
-void CGiftMark::Set(CCharacter2 *character, float character_scale) {
+
+void CGiftMark::Set(CCharacter2 *chara, float height) {
     Initialize();
-    chara = character;
-    height = character_scale;
+    this->chara = chara;
+    this->height = height;
     active = 1;
 }
+
 void CGiftMark::Draw(void) {
-    struct {
-        float v[3];
-        int w;
-    } pos;
-    union { CPreSprite prim; };
-    int quad_a[4];
-    int quad_b[4];
+    sceVu0FVECTOR pos;
     int i;
 
     if (active != 0) {
         if (chara != NULL) {
-            chara->GetEntryObjectPos(0, pos.v);
-            pos.v[1] += 10.0f + 2.0f * height;
-            pos.v[1] += 5.0f * sinf(angle);
+            chara->GetEntryObjectPos(0, pos);
+            pos[1] += 10.0f + 2.0f * height;
+            pos[1] += 5.0f * sinf(angle);
 
-            __ct__11mgCDrawPrimFv(&prim);
-        prim.Initialize(NULL, NULL);
+            CPreSprite prim;
+            int quad_a[4];
+            int quad_b[4];
+            prim.Initialize(NULL, NULL);
             prim.Preset2D();
             prim.Coord(1);
             prim.DepthTestEnable(1);
@@ -287,21 +261,20 @@ void CGiftMark::Draw(void) {
             prim.Begin(6);
             prim.Color(0x80, 0x80, 0x80, 0x80);
             prim.Texture(TEX_SystemEffect1);
-            i = 0;
-            pos.w = 0x3F800000;
-            do {
-                if (mgTransWorldPrim3DSprite(quad_a, quad_b, pos.v, 8.0f, 8.0f, 0) != 0) {
+            pos[3] = 1.0f;
+            for (i = 0; i < 3; i++) {
+                if (mgTransWorldPrim3DSprite(quad_a, quad_b, pos, 8.0f, 8.0f, 0) != 0) {
                     prim.TextureCrd(0xE1, 0x41);
                     prim.Vertex4(quad_a);
                     prim.TextureCrd(0xFC, 0x62);
                     prim.Vertex4(quad_b);
                 }
-                i += 1;
-            } while (i < 3);
+            }
             prim.End();
         }
     }
 }
+
 void CGiftMark::Step(void) {
     if (active != 0) {
         angle += 0.1308997f;
@@ -314,12 +287,14 @@ void CGiftMark::Step(void) {
         }
     }
 }
+
 void CGiftMark::Initialize(void) {
     chara = NULL;
     active = 0;
     angle = 0.0f;
     time = 0;
 }
+
 void CEnemyGekirin::Draw(CPreSprite *sprite, int x, int y) {
     if (state != GEKIRIN_STATE_NONE) {
         sprite->SetAlphaBlend(0);
@@ -333,6 +308,7 @@ void CEnemyGekirin::Draw(CPreSprite *sprite, int x, int y) {
         }
     }
 }
+
 void CEnemyGekirin::Step(void) {
     if (state == GEKIRIN_STATE_BREAK) {
         frame += 1;
@@ -341,33 +317,37 @@ void CEnemyGekirin::Step(void) {
         }
     }
 }
-void CEnemyLifeGage::SetView(int visible) {
-    if (visible != 0) {
-        if (view == 0) {
+
+void CEnemyLifeGage::SetView(int view) {
+    if (view != 0) {
+        if (this->view == 0) {
             scale = 0.5f;
         }
     } else {
-        if (view != 0) {
+        if (this->view != 0) {
             scale = 1.0f;
         }
     }
-    view = visible;
+    this->view = view;
 }
-void CEnemyLifeGage::Set(float *position, int new_max_life, int new_life, int count, int new_pinned) {
+
+void CEnemyLifeGage::Set(float *pos, int max_hp, int hp, int gekirin_num, int screen) {
     int i;
 
-    sceVu0CopyVector(pos, position);
-    max_hp = new_max_life;
-    hp = new_life;
-    screen = new_pinned;
+    sceVu0CopyVector(this->pos, pos);
+    this->max_hp = max_hp;
+    this->hp = hp;
+    this->screen = screen;
     for (i = 0; i < ENEMY_LIFE_GAGE_GEKIRIN_MAX; i++) {
-        if (i > count - 1 && gekirin[i].state == GEKIRIN_STATE_SHOW) {
+        if (i > gekirin_num - 1 && gekirin[i].state == GEKIRIN_STATE_SHOW) {
             gekirin[i].frame = 0;
             gekirin[i].state = GEKIRIN_STATE_BREAK;
         }
     }
 }
+
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/dng_hud", Draw__14CEnemyLifeGageFi);
+
 void CEnemyLifeGage::Step(void) {
     int i;
 
@@ -379,7 +359,7 @@ void CEnemyLifeGage::Step(void) {
         if (scale < 1.0f) {
             scale += 0.005f + scale / 3.0f;
         }
-        if (!(scale < 1.0f)) {
+        if (scale >= 1.0f) {
             scale = 1.0f;
         }
     } else {
@@ -394,69 +374,76 @@ void CEnemyLifeGage::Step(void) {
         gekirin[i].Step();
     }
 }
-void CEnemyLifeGage::ResetGekirin(int gekirin_count) {
+
+void CEnemyLifeGage::ResetGekirin(int gekirin_num) {
     int i;
 
     for (i = 0; i < ENEMY_LIFE_GAGE_GEKIRIN_MAX; i++) {
         gekirin[i].frame = 0;
-        if (i < gekirin_count) {
+        if (i < gekirin_num) {
             gekirin[i].state = GEKIRIN_STATE_SHOW;
         } else {
             gekirin[i].state = GEKIRIN_STATE_NONE;
         }
     }
 }
-void CEnemyLifeGage::Initialize(int gekirin_num) {
+
+void CEnemyLifeGage::Initialize(s32 gekirin_num) {
     this->ResetGekirin(gekirin_num);
     hp = 0;
     max_hp = 0;
     view = 0;
     scale = 0.0f;
 }
+
 void CDamageScore::SetValue(float *pos, int value) {
     sceVu0CopyVector(this->pos, pos);
     alpha = 0;
-    phase = 0;
+    phase = DAMAGE_SCORE_PHASE_APPEAR;
     active = 1;
     sprite = 0;
-    sprintf(text, at_1221__2, value);
+    sprintf(text, "%d", value);
     length = strlen(text);
     for (int i = 0; i < length; i++) {
         bounce[i] = 3.1415927f;
     }
 }
+
 void CDamageScore::SetColor(s16 red, s16 green, s16 blue) {
     color[0] = red;
     color[1] = green;
     color[2] = blue;
 }
-void CDamageScore::SetSprite(float *pos, int u0, int v0, int u1, int v1) {
+
+void CDamageScore::SetSprite(float *pos, int u, int v, int w, int h) {
     sceVu0CopyVector(this->pos, pos);
     alpha = 0;
-    phase = 0;
+    phase = DAMAGE_SCORE_PHASE_APPEAR;
     active = 1;
     sprite = 1;
     bounce[0] = 3.1415927f;
-    sprite_w = u1;
-    sprite_h = v1;
-    sprite_u = u0;
-    sprite_v = v0;
+    sprite_w = w;
+    sprite_h = h;
+    sprite_u = u;
+    sprite_v = v;
 }
+
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/dng_hud", Draw__12CDamageScoreFv);
+
 void CDamageScore::Step() {
     if (active != 0) {
         if (sprite != 0) {
-            if (phase == 0) {
+            if (phase == DAMAGE_SCORE_PHASE_APPEAR) {
                 bounce[0] = bounce[0] - 0.3926991f;
                 if (bounce[0] < -3.1415927f) {
                     bounce[0] = -3.1415927f;
-                    phase = 1;
+                    phase = DAMAGE_SCORE_PHASE_FADE;
                 }
                 if (alpha < 0x80) {
                     alpha = alpha + 0xC;
                 }
             }
-            if (phase == 1) {
+            if (phase == DAMAGE_SCORE_PHASE_FADE) {
                 alpha -= 4;
                 if (alpha < 0) {
                     active = 0;
@@ -464,13 +451,13 @@ void CDamageScore::Step() {
             }
         }
         if (sprite == 0) {
-            if (phase == 0) {
+            if (phase == DAMAGE_SCORE_PHASE_APPEAR) {
                 for (int i = 0; i < length; i++) {
                     bounce[i] = bounce[i] - (3.1415927f / (10.0f + (2.0f * (float)i)));
                     if (bounce[i] < -3.1415927f) {
                         bounce[i] = -3.1415927f;
                         if (i == length - 1) {
-                            phase = 1;
+                            phase = DAMAGE_SCORE_PHASE_FADE;
                         }
                     }
                 }
@@ -478,7 +465,7 @@ void CDamageScore::Step() {
                     alpha = alpha + 6;
                 }
             }
-            if (phase == 1) {
+            if (phase == DAMAGE_SCORE_PHASE_FADE) {
                 alpha -= 6;
                 if (alpha < 0) {
                     active = 0;
@@ -487,17 +474,19 @@ void CDamageScore::Step() {
         }
     }
 }
-void CDamageScore2::SetValue(int slot, int value, float height) {
-    chara_no = slot;
+
+void CDamageScore2::SetValue(int chara_no, int value, float height) {
+    this->chara_no = chara_no;
     alpha = 0;
     this->value = value;
-    phase = 1;
-    offset_y = 0;
+    phase = DAMAGE_SCORE2_PHASE_JUMP;
+    offset_y = 0.0f;
     this->height = 2.0f * height;
-    progress = 0;
-    sprintf(text, at_1221__2, this->value);
+    progress = 0.0f;
+    sprintf(text, "%d", this->value);
     length = strlen(text);
 }
+
 void CDamageScore2::Draw(CScene *scene) {
     if (phase != DAMAGE_SCORE2_PHASE_NONE && length > 0) {
         CCharacter2 *character = scene->GetCharacter(chara_no);
@@ -534,6 +523,7 @@ void CDamageScore2::Draw(CScene *scene) {
         }
     }
 }
+
 void CDamageScore2::Step() {
     if (phase != DAMAGE_SCORE2_PHASE_NONE) {
         if (phase == DAMAGE_SCORE2_PHASE_JUMP) {
@@ -564,7 +554,9 @@ void CDamageScore2::Step() {
         }
     }
 }
+
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/dng_hud", Draw__12CLockOnModelFv);
+
 void CLockOnModel::DrawMess(int tex_block) {
     if (name != NULL) {
         if (mes->MakeAnd3DPosSet(name, pos, 0, -48) == 0) {
@@ -582,19 +574,23 @@ void CLockOnModel::DrawMess(int tex_block) {
         mes->DrawMesWin();
     }
 }
+
 void CLockOnModel::Step() {
     angle += 0.06981317f;
     if (angle > 3.1415927f) {
         angle -= 6.2831855f;
     }
 }
+
 void CWarningGage2::Step() {
     time += 1;
     if (time >= 0x28) {
         time = 0;
     }
 }
+
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/dng_hud", Draw__13CWarningGage2Fv);
+
 void CLockOnModel::Initialize(CScene *scene) {
     this->scene = scene;
     name = NULL;

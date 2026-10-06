@@ -5,6 +5,8 @@ Header: `ps2/include/dng_hud.hpp`. 35 functions in the unit plus `CDamageScore::
 class counterpart in the first game (it only has a plain `ENEMY_LIFE_GAGE` struct in
 `dun/gameloop.cpp`, unrelated in layout).
 
+Coverage: 31 matching C++ functions and four functions without a draft.
+
 ## Globals
 The unit's only plain-named datum is `gekirin_anim` (0x33D210, 0x40 bytes, LOCAL in retail): a
 `static` table of 16 `s32` heights (0,3,6,5,4,3,2,1,3,4,3,2,1,2,1,0) indexed by
