@@ -1,17 +1,5 @@
+#include "common.h"
 #include "helpmes.hpp"
-#include "dataread.hpp"
-#include "mainloop.hpp"
-#include "nd_meswin.hpp"
-
-#include <cstdio>
-#include <cstring>
-
-extern int ShowOffOnce;
-extern int WindowMode;
-extern HELP_MES_INFO HelpMesInfo;
-extern ClsMes HelpMes;
-extern char at_799__6[15];
-extern char at_800__5[30];
 #include "mglib.hpp"
 #include "mainloop.hpp"
 #include "snd_mngr.hpp"
@@ -22,141 +10,55 @@ extern char at_800__5[30];
 #include <cstdio>
 #include <cstring>
 
-extern HELP_MES_INFO HelpMesInfo;
-extern int ShowOffOnce;
-extern int WindowMode;
-extern ClsMes HelpMes;
-extern int LanguageCode;
-extern char HelpMesBuff[0x1000];
-extern int InitFlag__2;
+static ClsMes        HelpMes;              /**< Help message window. */
+static HELP_MES_INFO HelpMesInfo;          /**< Request displayed by the help window. */
+static int           ShowOffOnce;          /**< Non-zero to skip drawing the window once. */
+static int           WindowMode;           /**< Style requested for the help window. */
+static char          HelpMesBuff[0x1000];   /**< Loaded help message text. */
+static int           InitFlag;             /**< Non-zero once help message text has loaded. */
 
 // Code (.text)
-void LoadHelpMes(u_long128 *scratch) {
-    char path[0x4C];
+void LoadHelpMes(u_long128 *buffer) {
+    char path[76];
     int size;
 
-    sprintf(path, at_799__6, LanguageCode);
-    if (LoadFile2(path, scratch, &size, 0) != 0) {
-        if (size > 0x1000) {
-            printf(at_800__5, size, 0x1000);
+    sprintf(path, "etc/help%d.mes", LanguageCode);
+    if (LoadFile2(path, buffer, &size, 0) != 0) {
+        if (size > (int)sizeof(HelpMesBuff)) {
+            printf("HMes Buffer Over!!(%d/%dbyte)", size, sizeof(HelpMesBuff));
             return;
         }
-        memcpy(HelpMesBuff, scratch, size);
-        InitFlag__2 = 1;
+        memcpy(HelpMesBuff, buffer, size);
+        InitFlag = 1;
     }
 }
+
+/**
+ * Returns the request for the help message window.
+ */
 static HELP_MES_INFO *GetHepMesInfo() {
     return &HelpMesInfo;
 }
-void CreateHelpMes(int message_id) {
-    if (InitFlag__2 != 0) {
-        HelpMes.npc_name_mode = 0;
-        HelpMes.char_num = 0;
-        HelpMes.text_w = 0;
-        HelpMes.text_h = 0;
-        HelpMes.page = 0;
-        HelpMes.page_num = 0;
 
-        for (int i = 0; i < 16; i++) {
-            HelpMes.page_chars[i] = 0;
-        }
-        HelpMes.last_x = 0;
-        HelpMes.last_y = 0;
-        HelpMes.fade = 0.0f;
-        HelpMes.open = 1;
-        HelpMes.draw_speed = HelpMes.GetDrawSpeedDef();
-        HelpMes.page_wait = 0;
-        HelpMes.scroll_wait = 0;
-        HelpMes.reveal = 0.0f;
-        HelpMes.reveal_num = 0;
-        HelpMes.page_top = 0;
-        HelpMes.unk_1f4 = 0;
-        HelpMes.InitMesWinTbl();
-        HelpMes.color = HelpMes.def_color;
-        HelpMes.wait = 0;
-        HelpMes.page_time = 0;
-        HelpMes.page_auto_time = 30;
-        HelpMes.mes_no = -1;
-        HelpMes.unk_1e40 = 0;
-        HelpMes.alpha = 0x80;
-        for (int i = 0; i < MES_NAME_MAX; i++) {
-            memset(HelpMes.name[i], 0, sizeof(HelpMes.name[i]));
-        }
-        for (int i = 0; i < MES_NAME_MAX; i++) {
-            HelpMes.item_mes[i] = -1;
-        }
-        for (int i = 0; i < MES_VALUE_MAX; i++) {
-            HelpMes.values[i] = 0;
-            HelpMes.value_width[i] = 0;
-        }
-        HelpMes.value = 0;
-        HelpMes.value_sign = 0;
-        HelpMes.value_zero = 1;
-        HelpMes.value_half = 0;
-        HelpMes.value_space = 0;
-        HelpMes.digit_font = 0;
-        HelpMes.space_w = -1;
-        HelpMes.justify_w = -1;
-        HelpMes.select = -1;
-        HelpMes.goal_cursor_x = 0;
-        HelpMes.goal_cursor_y = 0;
-        HelpMes.cursor_x = 0;
-        HelpMes.cursor_y = 0;
-        HelpMes.select_shade = 0;
-        HelpMes.cursor_centering = 0;
-        HelpMes.cursor_time = 0;
-        HelpMes.choice_pos[0][0] = -1;
-        HelpMes.choice_pos[0][1] = -1;
-        HelpMes.choice_pos[1][0] = -1;
-        HelpMes.choice_pos[1][1] = -1;
-        HelpMes.select_top = 0;
-        HelpMes.cursor_off_y = 0;
-        HelpMes.voice_on = 0;
-        HelpMes.voice_type = 0;
-        HelpMes.voice_cnt = 0;
-        HelpMes.close_time = 0;
-        HelpMes.scissor_on = 0;
-        HelpMes.scissor.x = 0;
-        HelpMes.scissor.width = 0;
-        HelpMes.scissor.y = 0;
-        HelpMes.scissor.height = 0;
-        for (int i = 0; i < MES_LINE_MAX; i++) {
-            HelpMes.line_indent[i] = 0;
-            HelpMes.line_pos[i][0] = 0;
-            HelpMes.line_pos[i][1] = 0;
-            HelpMes.line_pos_on[i] = 0;
-            HelpMes.line_shade[i] = -1;
-            HelpMes.line_color[i] = 0;
-            HelpMes.equip_on[i] = 0;
-            HelpMes.equip_x[i] = 0;
-            HelpMes.equip_y[i] = 0;
-            HelpMes.line_w[i] = 0;
-            HelpMes.line_alpha[i] = -1;
-            HelpMes.cross_on[i] = 0;
-            HelpMes.cross_x[i] = 0;
-            HelpMes.cross_y[i] = 0;
-            HelpMes.unk_271c[i] = -1;
-            HelpMes.unk_276c[i] = -1;
-            HelpMes.unk_27bc[i] = 0;
-            HelpMes.unk_280c[i] = 0;
-            HelpMes.delta_on[i] = 0;
-            HelpMes.delta_x[i] = 0;
-            HelpMes.delta_y[i] = 0;
-        }
-        HelpMes.Preset(4);
-        HelpMes.SetWindowMode(0);
-        HelpMes.SetBuff((short *)HelpMesBuff);
-        HelpMes.texture_block = message_id;
-        ShowOffOnce = 0;
-        HelpMesInfo.time = 0;
-        HelpMesInfo.mes_no = -1;
-        HelpMesInfo.fukidashi_pos = -1;
-        HelpMesInfo.show = 0;
-        HelpMesInfo.y = 0;
-        HelpMesInfo.x = 0;
-        HelpMesInfo.created = 0;
+void CreateHelpMes(int tex_no) {
+    if (!InitFlag) {
+        return;
     }
+    HelpMes.Init();
+    HelpMes.Preset(MES_WIN_VERSATILE_1);
+    HelpMes.SetWindowMode(MES_WIN_NONE);
+    HelpMes.SetBuff((short *)HelpMesBuff);
+    HelpMes.texture_block = tex_no;
+    ShowOffOnce = 0;
+    HelpMesInfo.time = 0;
+    HelpMesInfo.mes_no = -1;
+    HelpMesInfo.fukidashi_pos = -1;
+    HelpMesInfo.show = 0;
+    HelpMesInfo.y = 0;
+    HelpMesInfo.x = 0;
+    HelpMesInfo.created = 0;
 }
+
 void StepHelpMes() {
     ClsMes *message = &HelpMes;
     HELP_MES_INFO *info = GetHepMesInfo();
@@ -195,9 +97,11 @@ void StepHelpMes() {
         }
     }
 }
+
 void ShowOffOnceHelpMes() {
     ShowOffOnce = 1;
 }
+
 void DrawHelpMes() {
     if (DebugInfo.param_off != 0) {
         return;
@@ -219,6 +123,7 @@ void DrawHelpMes() {
     mgTexManager.ReloadTexture(HelpMes.texture_block, (sceVif1Packet *)NULL);
     message->DrawMesWin();
 }
+
 void ShowHelpMes(int mes_no, int time) {
     HELP_MES_INFO *info = GetHepMesInfo();
     if (info == NULL) {
@@ -264,28 +169,9 @@ void ShowErrorHelpMes(int mes_no, int time) {
     sndSePlay(GetSystemSndID(), 28, 0);
 }
 
-// Static initialiser (.init)
-#ifdef NONMATCHING
-void __sinit_helpmes_cpp() {
-    new ((u_long128 *)&HelpMes) ClsMes;
-    HelpMesInfo.time = 0;
-    HelpMesInfo.mes_no = -1;
-    HelpMesInfo.fukidashi_pos = -1;
-    HelpMesInfo.show = 0;
-    HelpMesInfo.y = 0;
-    HelpMesInfo.x = 0;
-    HelpMesInfo.created = 0;
-}
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/helpmes", __sinit_helpmes_cpp);
-#endif
-
 // Constants (.rodata)
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/helpmes", at_799__6__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/helpmes", at_800__5__DATA);
-
-// Static initialiser table (.ctor)
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/helpmes", D_0037B094__DATA);
 
 // Small uninitialised data (.sbss)
 INCLUDE_BSS(InitFlag__2, 0x4);

@@ -31,40 +31,24 @@ Step also writes `HelpMes.fade_speed` (+0x190) = 1.0f.
 - `LoadHelpMes(u_long128 *buffer)`: `P1` mangles `u_long128` (as `LanguageChange__FiP1`,
   `InitFileCache__FP1i`). Return void (m2c; Ghidra's return of memcpy/printf is spurious; callers
   in mainloop ignore it). Loads with `LoadFile2(path, buffer, &size, 0)`, then memcpy to HelpMesBuff.
-- `GetHepMesInfo()` (retail typo "Hep") is global; returns `&HelpMesInfo`. Callers null-check it.
-- `CreateHelpMes(int tex_no)`: callers pass 0x58 (InitDungeonMain) and 0x9A (EditInit). The body
-  re-initialises most of `HelpMes` field by field (looks like an inlined ClsMes init/ctor body:
-  zeroes, `draw_speed_def = GetDrawSpeedDef()`, `InitMesWinTbl()`, 16x memset of `name[i]` 0x32,
-  `item_mes[]` = -1, per-line arrays for 20 lines, etc.), then Preset(4), SetWindowMode(0),
-  SetBuff((short*)HelpMesBuff), resets ShowOffOnce and HelpMesInfo, and stores `tex_no` into
-  ClsMes+0x22A4 (`unk_22a4` in nd_meswin.hpp). `DrawHelpMes` passes that same field to
-  `mgTexManager.ReloadTexture(tex, NULL)` before `DrawMesWin`, so ClsMes::unk_22a4 is a texture
-  number (the nd_meswin header owner may wish to name it). Compare against nd_meswin's ctor to see
-  whether the inline sequence is a single inline member.
-- `DrawHelpMes()`: returns early when a global at 0x3FAF3C (sdata/sbss of another unit; not
-  identified here) is non-zero.
+- `GetHepMesInfo()` (retail typo "Hep") is file-local (`static`); returns `&HelpMesInfo`. Callers null-check it.
+- `CreateHelpMes(int tex_no)`: callers pass 0x58 (InitDungeonMain) and 0x9A (EditInit).
+  It calls the inline `ClsMes::Init()`, then Preset(4), SetWindowMode(0), and
+  SetBuff((short*)HelpMesBuff). It clears ShowOffOnce and HelpMesInfo and stores
+  `tex_no` into `ClsMes::texture_block` at 0x22A4. `DrawHelpMes` passes that
+  field to `mgTexManager.ReloadTexture` before drawing the window.
+- `DrawHelpMes()`: returns early when `DebugInfo.param_off` is non-zero.
 - `ShowErrorHelpMes`: also `sndSePlay(GetSystemSndID(), 0x1C, 0)`.
-- `__sinit_helpmes_cpp`: `ClsMes::ClsMes(&HelpMes)` then resets HelpMesInfo (implies
-  HelpMesInfo has no ctor; the reset is a dynamic initialiser of a file-scope object, or an inline
-  helper -- same 7 stores appear in Step, Show*, Create).
+- `__sinit_helpmes_cpp`: constructs HelpMes, then initializes HelpMesInfo with
+  `time = show = created = x = y = 0` and `mes_no = fukidashi_pos = -1`.
+  The typed data definitions and inline HELP_MES_INFO constructor generate it.
 
 ## First game
 No corresponding unit/class in `/home/adubbz/development/chronicle` (only `EdSetHelpMes` etc. in
 edit.hpp, unrelated).
 
 ## C++ draft status
-- `GetHepMesInfo` and `ShowOffOnceHelpMes` compile with byte-identical MWCC output.
-- `StepHelpMes`, `DrawHelpMes`, `ShowHelpMes`, and `ShowErrorHelpMes` have typed
-  C++ drafts under `NONMATCHING`. Their first promotion attempts did not match,
-  so the default build keeps their retail assembly.
-- The `ClsMes` field at offset `0x22A4` is named `texture_block` in the header;
-  `DrawHelpMes` reloads it before drawing the window.
-- `LoadHelpMes`, `CreateHelpMes`, and `__sinit_helpmes_cpp` now have typed drafts
-  behind `NONMATCHING`. The first isolated promotions of `LoadHelpMes` and
-  `CreateHelpMes` differed from retail. The `__sinit` draft compiles under
-  `NONMATCHING`, but the isolated promotion cannot locate the unmangled
-  initializer in the C++ source, so its retail assembly remains selected.
-- `CreateHelpMes` can express the bulk of its reset with `ClsMes::Init()`,
-  which is defined inline in the class header. Its first promotion differed
-  by 0x68 bytes in `.text`, so the exact inline setup and ordering still need
-  further matching work.
+All nine functions compile to retail's bytes, including the generated static
+initializer, and are compiled by the matching build. CreateHelpMes uses
+ClsMes::Init() for the window reset. The request reset retains retail's store
+order. LoadHelpMes compares its signed file size with an int-sized buffer limit.

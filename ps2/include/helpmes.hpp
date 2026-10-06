@@ -22,6 +22,19 @@ struct HELP_MES_INFO {
     s32 x;             /**< Screen x of the window's frame when fukidashi_pos is negative. */
     s32 y;             /**< Screen y of the window's frame when fukidashi_pos is negative. */
     s32 fukidashi_pos; /**< Screen slot the window is forced into; negative to place it at x and y. */
+
+    /**
+     * Starts with no requested message or forced screen slot.
+     */
+    HELP_MES_INFO() {
+        time = 0;
+        mes_no = -1;
+        fukidashi_pos = -1;
+        show = 0;
+        y = 0;
+        x = 0;
+        created = 0;
+    }
 };
 
 STATIC_ASSERT(sizeof(HELP_MES_INFO) == 0x1C);
@@ -35,7 +48,6 @@ STATIC_ASSERT(sizeof(HELP_MES_INFO) == 0x1C);
  * @size 0x90
  */
 void LoadHelpMes(u_long128 *buffer);
-
 
 /**
  *
