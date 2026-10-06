@@ -153,11 +153,16 @@ public:
      *
      * @mangled __ct__12mgCVisualMDTFv
      */
-    mgCVisualMDT() {
-        Initialize();
-    }
+    mgCVisualMDT() { Initialize(); }
 
-    mgCVisualMDT &operator=(const mgCVisualMDT &source);
+    /**
+     * Copies the model's data references and drawing settings, preserving its visual kind.
+     *
+     * @mangled __as__12mgCVisualMDTFRC12mgCVisualMDT
+     * @address 0x1413F0
+     * @size 0x98
+     */
+    mgCVisualMDT &operator=(const mgCVisualMDT &other);
 
     /**
      * Returns the kind of this visual.
@@ -272,8 +277,7 @@ public:
      * @address 0x13F680
      * @size 0x27C
      */
-    virtual FACES_ID *CreateFace(FACES_ID *faces, mgCMemory *memory, mgCMemory *index_memory,
-                                 mgCFace **face);
+    virtual FACES_ID *CreateFace(FACES_ID *faces, mgCMemory *memory, mgCMemory *index_memory, mgCFace **face);
 
     /**
      * Writes the model's own additions to the setup packet and returns their length in quadwords;
@@ -293,8 +297,7 @@ public:
      * @address 0x13F900
      * @size 0xC8
      */
-    virtual int DataAssignMDT(MDT_HEADER *header, mgCMemory *memory,
-                              mgCTextureManager *texture_manager);
+    virtual int DataAssignMDT(MDT_HEADER *header, mgCMemory *memory, mgCTextureManager *texture_manager);
 
     /**
      * Writes the VIF packet that loads a material's colours into VU1 memory, with its texture
@@ -359,9 +362,7 @@ public:
      *
      * @mangled __ct__15mgCVisualFixMDTFv
      */
-    mgCVisualFixMDT() {
-        Initialize();
-    }
+    mgCVisualFixMDT() { Initialize(); }
 
     /**
      * Returns the kind of this visual.
@@ -409,8 +410,7 @@ public:
      * @address 0x13F9D0
      * @size 0x180
      */
-    virtual int DataAssignMDT(MDT_HEADER *header, mgCMemory *memory,
-                              mgCTextureManager *texture_manager);
+    virtual int DataAssignMDT(MDT_HEADER *header, mgCMemory *memory, mgCTextureManager *texture_manager);
 };
 STATIC_ASSERT(sizeof(mgCVisualFixMDT) == 0x50);
 
@@ -428,9 +428,7 @@ public:
      *
      * @mangled __ct__13mgCVisualPrimFv
      */
-    mgCVisualPrim() {
-        Initialize();
-    }
+    mgCVisualPrim() { Initialize(); }
 
     /**
      * Returns the kind of this visual.
@@ -511,131 +509,13 @@ int mgSetPkTEX0(u_int *packet, u_long tex0, u_long tex1, u_long texa);
 int mgSetPkTexFlush_TagCnt(u_int *packet);
 
 /**
- * Writes the VIF packet that loads two point light matrices into VU1 memory and returns its length
- * in quadwords.
- *
- * @mangled SetPointLight__FPUiPA4_fPA4_f
- * @address 0x13EBF0
- * @size 0x68
- */
-int SetPointLight(u_int *packet, float (*matrix0)[4], float (*matrix1)[4]);
-
-/**
- * Fills a material from an MDT material record, looking its texture up by name.
- *
- * @mangled CopyMaterial__FP10mgMaterialP13MDT_MATERIAL_P17mgCTextureManager
- * @address 0x13F190
- * @size 0x74
- */
-void CopyMaterial(mgMaterial *material, MDT_MATERIAL_ *source, mgCTextureManager *texture_manager);
-
-/**
- * Writes a batch of vertices with position, normal and texture coordinate, and returns the end of
- * what it wrote.
- *
- * @mangled SetData0__FiiPPiP1P1P1P1P1
- * @address 0x1401C0
- * @size 0x88
- */
-u_long128 *SetData0(int vertex_num, int type, int **index, u_long128 *packet, u_long128 *vertex,
-                    u_long128 *normal, u_long128 *uv, u_long128 *colour);
-
-/**
- * Writes a batch of vertices with position, normal, texture coordinate and colour, and returns the
- * end of what it wrote.
- *
- * @mangled SetData1__FiiPPiP1P1P1P1P1
- * @address 0x140250
- * @size 0xA8
- */
-u_long128 *SetData1(int vertex_num, int type, int **index, u_long128 *packet, u_long128 *vertex,
-                    u_long128 *normal, u_long128 *uv, u_long128 *colour);
-
-/**
- * Writes a batch of vertices with position and normal, and returns the end of what it wrote.
- *
- * @mangled SetData2__FiiPPiP1P1P1P1P1
- * @address 0x140300
- * @size 0x70
- */
-u_long128 *SetData2(int vertex_num, int type, int **index, u_long128 *packet, u_long128 *vertex,
-                    u_long128 *normal, u_long128 *uv, u_long128 *colour);
-
-/**
- * Writes a batch of vertices with position, normal and colour, and returns the end of what it
- * wrote.
- *
- * @mangled SetData3__FiiPPiP1P1P1P1P1
- * @address 0x140370
- * @size 0x88
- */
-u_long128 *SetData3(int vertex_num, int type, int **index, u_long128 *packet, u_long128 *vertex,
-                    u_long128 *normal, u_long128 *uv, u_long128 *colour);
-
-/**
- * Writes a batch of vertices with position and texture coordinate, and returns the end of what it
- * wrote.
- *
- * @mangled SetData4__FiiPPiP1P1P1P1P1
- * @address 0x140400
- * @size 0x70
- */
-u_long128 *SetData4(int vertex_num, int type, int **index, u_long128 *packet, u_long128 *vertex,
-                    u_long128 *normal, u_long128 *uv, u_long128 *colour);
-
-/**
- * Writes a batch of vertices with position, texture coordinate and colour, and returns the end of
- * what it wrote.
- *
- * @mangled SetData5__FiiPPiP1P1P1P1P1
- * @address 0x140470
- * @size 0x88
- */
-u_long128 *SetData5(int vertex_num, int type, int **index, u_long128 *packet, u_long128 *vertex,
-                    u_long128 *normal, u_long128 *uv, u_long128 *colour);
-
-/**
- * Writes a batch of vertices with position only, and returns the end of what it wrote.
- *
- * @mangled SetData6__FiiPPiP1P1P1P1P1
- * @address 0x140500
- * @size 0x5C
- */
-u_long128 *SetData6(int vertex_num, int type, int **index, u_long128 *packet, u_long128 *vertex,
-                    u_long128 *normal, u_long128 *uv, u_long128 *colour);
-
-/**
- * Writes a batch of vertices with position and colour, and returns the end of what it wrote.
- *
- * @mangled SetData7__FiiPPiP1P1P1P1P1
- * @address 0x140560
- * @size 0x70
- */
-u_long128 *SetData7(int vertex_num, int type, int **index, u_long128 *packet, u_long128 *vertex,
-                    u_long128 *normal, u_long128 *uv, u_long128 *colour);
-
-/**
- * Writes a copy of a draw environment adjusted by a visual's GS settings.
- *
- * @mangled SetDrawEnv__FP10mgCDrawEnvP13mgCVisualAttrP10mgCDrawEnv
- * @address 0x141490
- * @size 0x270
- */
-void SetDrawEnv(mgCDrawEnv *env, mgCVisualAttr *attr, mgCDrawEnv *base);
-
-/**
  * GIF tag of one A+D register write, whose loop count each user rewrites.
  *
  * @mangled giftag
  * @address 0x338320
  * @size 0x10
  */
-struct mgVisualGifTag {
-    u_int word0;
-    u_int words[3];
-};
-STATIC_ASSERT(sizeof(mgVisualGifTag) == 0x10);
-extern mgVisualGifTag giftag;
+extern u_int giftag[4];
 
 /**
  * DMA tag that sends the three quadwords of the TEX1 and TEX0 packet.

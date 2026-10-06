@@ -1,11 +1,9 @@
 # mg_visual: reverse-engineering notes
 
 ## C++ draft status
-All 42 functions have C++ in `ps2/src/mg_visual.cpp`. 11 are exact and compiled
-by the matching build. 3 more compile to retail's bytes in isolation but stay
-under `NONMATCHING`. 28 differ from retail and keep the `INCLUDE_ASM` fallback.
-Each function tried has its one promotion attempt recorded in
-`scripts/re/promotion_attempts.tsv`.
+All 42 functions have C++ in `ps2/src/mg_visual.cpp` or its header. 24 are exact
+and compiled by the matching build. The remaining 18 differ from retail and keep
+the `INCLUDE_ASM` fallback. The draft-enabled unit compiles.
 
 Header: `ps2/include/mg_visual.hpp` (includes `mg_dataset.hpp` for `mgCVisual`, `MDT_HEADER`,
 `MDT_MATERIAL_`, `FACES_ID`, `mgVisualKind`). Declares `mgFaceType`, `mgDestAlphaTest`, `mgMaterial`,
@@ -58,9 +56,9 @@ Ctors are inline (`CreateFrameVisual`, `__sinit_editloop`, `Copy`: vptr store + 
 through slot +0x30 at each level), so `mgCVisualMDT() { Initialize(); }` etc.
 
 `__as__12mgCVisualMDTFRC12mgCVisualMDT` (0x1413F0, in the manifest) is the compiler-generated copy
-assignment. It sits right after its first user `mgCVisualFixMDT::Copy`, copies every field word by
-word and skips the vptr. It is NOT declared, because declaring it would suppress generation (same as
-mg_camera's operator=). Copy uses it as `*copy = *this` (an `mgCVisualMDT&` assignment).
+assignment in retail. It sits right after its first user `mgCVisualFixMDT::Copy`, copies every field
+word by word and skips the vptr. The current header declares it and this source defines the same
+memberwise copy explicitly. Copy uses an `mgCVisualMDT&` assignment, preserving the target vptr.
 mgCVisualMotionMDT::Copy uses it too.
 
 ## Vtables
@@ -72,14 +70,14 @@ Call sites agree: Draw calls +0x20 and +0x34; CreatePacket calls +0x38; DataAssi
 FixMDT DataAssignMDT calls +0x3C then +0x38; CreateRenderInfoPacket calls +0x40.
 `__vt__15mgCVisualFixMDT` (0x37B3B0): overrides Iam, Copy, Initialize, CreatePacket(dm), DataAssignMDT.
 `__vt__13mgCVisualPrim` (0x37B370, 0x34): overrides Iam, CreateRenderInfoPacket, Initialize only.
-Inline virtuals (emitted where used): MDT Iam/GetMaterialNum/GetpMaterial/Draw(m,dm) (mg_dataset
-copies), FixMDT Iam (0x141840) and Initialize (mg_dataset 0x133420), Prim Iam (mg_sprite) and
-Initialize (0x141820). The last two in this unit sit after every non-inline function, which fits them
-being inline.
+Retail emission is consistent with inline virtuals: MDT Iam/GetMaterialNum/GetpMaterial/Draw(m,dm)
+(mg_dataset copies), FixMDT Iam (0x141840) and Initialize (mg_dataset 0x133420), Prim Iam
+(mg_sprite) and Initialize (0x141820). The current headers use out-of-line declarations for these
+methods so the tree supplies one definition at the required location.
 Return types: CreatePacket(dm) is `u_int` to match mg_shadow/mg_sprite (MDT returns
 `(u_int)p & 0x0FFFFFFF`, FixMDT the raw start). `Draw(float(*)[4], mgCDrawManager*)` is `void` because
-mg_dataset declares the base slot void. mg_sprite declares it `int`, so the three headers need to
-agree. Body: `Draw(NULL, m, dm)` via +0x2C, and $v0 passes through.
+mg_dataset declares the base slot void. The current mg_sprite and mg_visual declarations agree
+on `void`. Body: `Draw(NULL, m, dm)` via +0x2C, and $v0 passes through.
 
 ## mgCVisualFixMDT (0x50, no own fields)
 DataAssignMDT: on-stack mgCMemory over a 0x4B000-byte buffer as index memory, `CopyMDTDataPointer`
@@ -145,9 +143,8 @@ No texture: 5 qw. Texture and !(flags&1): 7 qw. Otherwise 10 qw. Sets `prev_tex`
   variants, first batch vs following) and `at_769` (end quadword) are compiler-generated, not in header.
 - .sbss: `start_dma` int (SendDMA waits on COP0 condition when set), `buff_id` int (0/1 toggled per
   SendDMA; GetScrPad returns 0x70000000 or 0x70002000), `prev_tex` mgCTexture*.
-- The retail ELF binding is lost (every symbol GLOBAL), so linkage cannot be checked. The plain-named
-  data and SetData0..7 are declared in the header. If the body writer finds them static (same-file
-  tables only), move them to the .cpp.
+- Retail marks SetPointLight, CopyMaterial, SetDrawEnv and SetData0..7 LOCAL.
+  Their definitions and prototypes are static in this source. GetScrPad and SendDMA are GLOBAL.
 
 ## Functions (non-member)
 - GetScrPad -> `u_int*`; SendDMA(void* dst, int qwc): DMA ch8 (fromSPR), MADR = dst & 0x0FFFFFFF,
@@ -166,6 +163,5 @@ No texture: 5 qw. Texture and !(flags&1): 7 qw. Otherwise 10 qw. Sets `prev_tex`
 ## Unresolved
 - Where the 16-byte alignment really lives (mgCVisual vs mgCVisualMDT), see above.
 - mgMaterial unk_10 meaning. mgFACE_GROUP 0x18/0x1C. mgCFace 0x14..0x1F (padding).
-- Draw(float(*)[4], ...) return type across mg_dataset/mg_sprite/mg_visual.
 - `mgCVisualMDT::CreateExtRenderInfoPacket` ignores its packet, matrix and render
   info arguments and returns 0. Its C++ body matches and links byte-identically.
