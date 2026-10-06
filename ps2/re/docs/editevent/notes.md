@@ -5,7 +5,9 @@ Header: `ps2/include/editevent.hpp`. No first-game counterpart class (the first 
 
 ## CEditEvent (size 0x150, no vtable)
 Size from the single instance `EditEvent` (0x01ECD8D0, size 0x150, owned by `editloop`).
-No constructor: `__sinit_editloop_cpp` calls `Reset`. No virtual functions.
+The inline constructor clears the 0xD0-byte `data` member before calling
+`Reset`, as `__sinit_editloop_cpp` does. There is no separate retail constructor
+symbol and there are no virtual functions.
 
 | Off | Field | Evidence |
 |---|---|---|
@@ -28,7 +30,7 @@ No constructor: `__sinit_editloop_cpp` calls `Reset`. No virtual functions.
 
 Offsets inside `data` as Step uses them (EditEvent offset = data offset + 0x20):
 - 0x20 `event.flag` (FUNC_EVENT_FLAG: 0x8 door, 0x10 ed_door, 0x80 close_door, 0x100 fade on open, 0x200 t_box, 0x400 book).
-- 0x28 `event.unk_28`: event number. Door step 3 runs `RunEvent(unk_28, &data)` when >= 1. StartEvent sets it to 0xF9 for a door with FUNC_EVENT_CLOSE_DOOR. (mapload.hpp calls offset +4 `event_no`; the field at +8 is the one used as an event number here.)
+- 0x28 `event.point_no`: event number. Door step 3 runs `RunEvent(point_no, &data)` when >= 1. StartEvent sets it to 0xF9 for a door with FUNC_EVENT_CLOSE_DOOR. (mapload.hpp calls offset +4 `event_no`; the field at +8 is the one used as an event number here.)
 - 0x2C `event.unk_2c`: door: < 0 means no open motion (count = 0xE); book: arg 2 of `BookshelfMessageMake`.
 - 0x30 `event.unk_30`: door: open-door sound kind for `SePlayOpenDoor`; book: arg 3.
 - 0x34 `event.unk_34`: book: arg 4.
@@ -68,19 +70,14 @@ Character vtable offsets used (not this unit's class): +0x10 set pos, +0x18 get 
 - No plain-named globals, so no externs in the header.
 
 ## Draft and promotion status
-All nine functions have named typed C++ drafts. The `Step` draft covers each of the four event
-types and their substeps; its door motion strings are encoded with octal escapes because the
-retail strings use Shift JIS bytes. Its message dismissal uses `ClsMes::Preset(0)` pending
-field-level work on the retail inline close sequence, and its preload and movement timing still
-differ from retail. Keep this draft under `NONMATCHING`.
+All nine functions have matching named, typed C++ definitions. Door motion
+strings preserve the retail Shift JIS bytes. Message dismissal clears the
+retail inline close fields. `PreLoadSync` returns the background-read busy
+flag; its declaration and definition return `int`.
 
 The standard `decompile.sh` invocation for `Step` stops at the two jump tables named `at_1152`
 and `at_1154`. To inspect its full m2c control flow, temporary copies of its assembly and those
 tables were passed to m2c with `jtbl_` names and label targets. Repository assembly was not
 changed.
 
-One isolated promotion was attempted for each of the nine functions. `Reset` and
-`CheckPlaceBurnParts` produced exact linked images and were promoted. Seven functions remain
-guarded. The `StartEvent` attempt also hit a read-only data binding error at `0x00377788`;
-its compiled draft differs from retail. The default full game build verified byte-identically
-after these attempts.
+The linked game image verifies with all nine definitions enabled.

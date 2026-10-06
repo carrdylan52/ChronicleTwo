@@ -70,9 +70,9 @@ void SetScriptBuffer(mgCMemory *buffer) {
     ScriptBuffer = buffer;
 }
 
-void PreLoadSync(void) {
+int PreLoadSync(void) {
     ReadBG();
-    ReadBGSync();
+    return ReadBGSync();
 }
 
 #ifdef NONMATCHING

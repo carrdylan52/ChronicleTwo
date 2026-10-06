@@ -101,13 +101,13 @@ void SetScriptBuffer(mgCMemory *buffer);
 
 /**
  *
- * Reads the background data ahead of a map load and waits until it is read.
+ * Reads background data ahead of a map load; returns 1 while reading and 0 when complete.
  *
  * @mangled PreLoadSync__Fv
  * @address 0x2E3D20
  * @size 0x30
  */
-void PreLoadSync();
+int PreLoadSync();
 
 /**
  *
