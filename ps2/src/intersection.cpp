@@ -52,22 +52,20 @@ int IntersectionPipeYPoly3(float *pipe, float (*poly)[4], float *normal, float (
 #else
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/intersection", IntersectionPipeYPoly3__FPfPA4_fPfPA4_f);
 #endif
-int IntersectionPipePoly3(float *pipe, float *axis, float (*tri)[4], float *offset, float (*hits_out)[4]) {
-    float basis[4][4];
-    float inverse[4][4];
-    float helper[4];
-    float pts[5][4];
-    float hits[11][4];
-    sceVu0Normalize(basis[1], axis);
+
+int IntersectionPipePoly3(float *pipe, float *direction, float (*poly)[4], float *normal, float (*hits)[4]) {
+    sceVu0FMATRIX basis;
+    sceVu0FMATRIX inverse;
+    sceVu0FVECTOR unit;
+    sceVu0FVECTOR helper;
+    sceVu0FVECTOR transformed[5];
+    sceVu0FVECTOR local_hits[11];
+
+    sceVu0Normalize(basis[1], direction);
     basis[1][3] = 0.0f;
     mgZeroVector(helper);
-    float axis_y;
-    if (basis[1][1] < 0.0f) {
-        axis_y = -basis[1][1];
-    } else {
-        axis_y = basis[1][1];
-    }
-    if (axis_y < 0.9f) {
+    float abs_y = basis[1][1] < 0.0f ? -basis[1][1] : basis[1][1];
+    if (abs_y < 0.9f) {
         helper[1] = 1.0f;
     } else {
         helper[2] = 1.0f;
@@ -78,75 +76,69 @@ int IntersectionPipePoly3(float *pipe, float *axis, float (*tri)[4], float *offs
     basis[2][3] = 0.0f;
     mgZeroVectorW(basis[3]);
     sceVu0TransposeMatrix(inverse, basis);
-    *(u_long128 *)pts[0] = *(u_long128 *)tri[0];
-    pts[0][3] = 1.0f;
-    *(u_long128 *)pts[1] = *(u_long128 *)tri[1];
-    pts[1][3] = 1.0f;
-    *(u_long128 *)pts[2] = *(u_long128 *)tri[2];
-    pts[2][3] = 1.0f;
-    *(u_long128 *)pts[3] = *(u_long128 *)offset;
-    pts[3][3] = 0.0f;
-    *(u_long128 *)pts[4] = *(u_long128 *)pipe;
-    pts[4][3] = 1.0f;
-    mgApplyMatrixN(pts, inverse, pts, 5);
-    mgPlaneNormal(pts[3], pts[0], pts[1], pts[2]);
-    sceVu0Normalize(pts[3], pts[3]);
-    pts[4][3] = pipe[3];
-    int hit_count = IntersectionPipeYPoly3(pts[4], pts, pts[3], hits);
-    if (hit_count == 0) {
+    for (int i = 0; i < 3; i++) {
+        *(u_long128 *)transformed[i] = *(u_long128 *)poly[i];
+        transformed[i][3] = 1.0f;
+    }
+    *(u_long128 *)transformed[3] = *(u_long128 *)normal;
+    transformed[3][3] = 0.0f;
+    *(u_long128 *)transformed[4] = *(u_long128 *)pipe;
+    transformed[4][3] = 1.0f;
+    mgApplyMatrixN(transformed, inverse, transformed, 5);
+    mgPlaneNormal(transformed[3], transformed[0], transformed[1], transformed[2]);
+    sceVu0Normalize(transformed[3], transformed[3]);
+    transformed[4][3] = pipe[3];
+    int count = IntersectionPipeYPoly3(transformed[4], transformed, transformed[3], local_hits);
+    if (count == 0) {
         return 0;
     }
-    for (int i = 0; i < hit_count; i++) {
-        hits[i][3] = 1.0f;
+    for (int i = 0; i < count; i++) {
+        local_hits[i][3] = 1.0f;
     }
-    mgApplyMatrixN(hits_out, basis, hits, hit_count);
-    return hit_count;
+    mgApplyMatrixN(hits, basis, local_hits, count);
+    return count;
 }
-int IntersectionSpherePoly3(float *sphere, float (*tri)[4], float *normal, float *out_push) {
-    float to_center[4];
-    float hits[2][4];
+
+int IntersectionSpherePoly3(float *sphere, float (*poly)[4], float *normal, float *push) {
+    sceVu0FVECTOR offset;
+    sceVu0FVECTOR projection;
+    sceVu0FVECTOR edge_hits[2];
     float radius = sphere[3];
-    float radius_squared = radius * radius;
-    sceVu0SubVector(to_center, sphere, tri[0]);
-    float height = sceVu0InnerProduct(normal, to_center);
-    float distance;
-    if (height < 0.0f) {
-        distance = -height;
-    } else {
-        distance = height;
+    float radius2 = radius * radius;
+    sceVu0SubVector(offset, sphere, poly[0]);
+    float signed_distance = sceVu0InnerProduct(normal, offset);
+    float distance = signed_distance < 0.0f ? -signed_distance : signed_distance;
+    if (distance > radius) {
+        return SPHERE_POLY3_NONE;
     }
-    if (!(distance <= radius)) {
-        return 0;
+    *(u_long128 *)offset = *(u_long128 *)normal;
+    sceVu0ScaleVector(offset, offset, -signed_distance);
+    sceVu0ScaleVector(push, offset, -1.0f);
+    float scale = signed_distance < 0.0f ? -signed_distance : signed_distance;
+    push[3] = scale;
+    mgAddVector(offset, sphere);
+    if (mgCheckPointPoly3_XYZ(offset, poly[0], poly[1], poly[2], normal) != 0) {
+        return SPHERE_POLY3_FACE;
     }
-    float push = -height;
-    *(u_long128 *)to_center = *(u_long128 *)normal;
-    sceVu0ScaleVector(to_center, to_center, push);
-    sceVu0ScaleVector(out_push, to_center, -1.0f);
-    push = (height < 0.0f) ? push : height;
-    out_push[3] = push;
-    mgAddVector(to_center, sphere);
-    if (mgCheckPointPoly3_XYZ(to_center, tri[0], tri[1], tri[2], normal) != 0) {
-        return 1;
+    if (mgDistVector2(sphere, poly[0]) <= radius2) {
+        return SPHERE_POLY3_VERTEX;
     }
-    if (mgDistVector2(sphere, tri[0]) <= radius_squared) {
-        return 2;
+    if (mgDistVector2(sphere, poly[1]) <= radius2) {
+        return SPHERE_POLY3_VERTEX;
     }
-    if (mgDistVector2(sphere, tri[1]) <= radius_squared) {
-        return 2;
+    if (mgDistVector2(sphere, poly[2]) <= radius2) {
+        return SPHERE_POLY3_VERTEX;
     }
-    if (mgDistVector2(sphere, tri[2]) <= radius_squared) {
-        return 2;
+    if (mgIntersectionSphereLine(sphere, poly[0], poly[1], edge_hits) > 0) {
+        return SPHERE_POLY3_EDGE;
     }
-    if (mgIntersectionSphereLine(sphere, tri[0], tri[1], hits) > 0) {
-        return 3;
+    if (mgIntersectionSphereLine(sphere, poly[1], poly[2], edge_hits) > 0) {
+        return SPHERE_POLY3_EDGE;
     }
-    if (mgIntersectionSphereLine(sphere, tri[1], tri[2], hits) > 0) {
-        return 3;
+    if (mgIntersectionSphereLine(sphere, poly[2], poly[0], edge_hits) > 0) {
+        return SPHERE_POLY3_EDGE;
     }
-    if (mgIntersectionSphereLine(sphere, tri[2], tri[0], hits) > 0) {
-        return 3;
-    }
-    return 0;
+    return SPHERE_POLY3_NONE;
 }
 #ifdef NONMATCHING
 int IntersectionBox(float *from, float *to, mgVu0FBOX *box, float (*hits)[4]) {
@@ -194,26 +186,27 @@ int IntersectionBox(float *from, float *to, mgVu0FBOX *box, float (*hits)[4]) {
 #else
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/intersection", IntersectionBox__FPfPfP9mgVu0FBOXPA4_f);
 #endif
-int IntersectionBox(float *start, float *end, mgVu0FBOX *box, float (*matrix)[4], float (*hits_out)[4]) {
-    float local_start[4];
-    float local_end[4];
-    float hits[2][4];
-    float inverse[4][4];
-    *(u_long128 *)local_start = *(u_long128 *)start;
-    local_start[3] = 1.0f;
-    *(u_long128 *)local_end = *(u_long128 *)end;
-    local_end[3] = 1.0f;
+
+int IntersectionBox(float *from, float *to, mgVu0FBOX *box, float (*matrix)[4], float (*hits)[4]) {
+    sceVu0FVECTOR local_from;
+    sceVu0FVECTOR local_to;
+    sceVu0FVECTOR local_hits[2];
+    sceVu0FMATRIX inverse;
+    *(u_long128 *)local_from = *(u_long128 *)from;
+    local_from[3] = 1.0f;
+    *(u_long128 *)local_to = *(u_long128 *)to;
+    local_to[3] = 1.0f;
     mgInversMatrix(inverse, matrix);
-    sceVu0ApplyMatrix(local_start, inverse, local_start);
-    sceVu0ApplyMatrix(local_end, inverse, local_end);
-    int hit_count = IntersectionBox(local_start, local_end, box, hits);
-    for (int i = 0; i < hit_count; i++) {
-        hits[i][3] = 1.0f;
-        sceVu0ApplyMatrix(hits_out[i], matrix, hits[i]);
+    sceVu0ApplyMatrix(local_from, inverse, local_from);
+    sceVu0ApplyMatrix(local_to, inverse, local_to);
+    int count = IntersectionBox(local_from, local_to, box, local_hits);
+    for (int i = 0; i < count; i++) {
+        local_hits[i][3] = 1.0f;
+        sceVu0ApplyMatrix(hits[i], matrix, local_hits[i]);
     }
-    return hit_count;
+    return count;
 }
-int mt_test(RS_STACKDATA *stack, int argc) {
+s32 mt_test(RS_STACKDATA *stack, int argc) {
     return 1;
 }
 

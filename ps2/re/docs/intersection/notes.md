@@ -28,7 +28,7 @@ Infinite vertical cylinder vs triangle, worked in XZ:
 Returns the hit count (max 2 + 3*2 = 8). Callers (CheckHitsPipeY) skip polys with |n.y| < 0.01.
 
 ## IntersectionPipePoly3 (0x2E31D0)
-Normalises `dir`, builds an orthonormal basis (helper axis Y if |dir.z| < 0.9 else Z) with `dir`
+Normalises `dir`, builds an orthonormal basis (helper axis Y if |dir.y| < 0.9 else Z) with `dir`
 as the second row, transposes to get world->pipe space, transforms the triangle, normal and
 pipe start (5 rows via `mgApplyMatrixN`), recomputes the normal with `mgPlaneNormal`, then calls
 `IntersectionPipeYPoly3`; sets each hit's w to 1 and transforms back with the basis. Returns the
@@ -59,6 +59,11 @@ output is therefore the transformed 1, not the distance. Caller: CMapParts::InSc
 `return 1;` Script-command signature `(RS_STACKDATA *, int)`; no references found anywhere in
 the asm (event_func's `_MT_TEST` is a different function).
 
-## C++ drafts
+## Source coverage
 
-All five intersection queries now have typed C++ drafts behind `NONMATCHING`; the default path remains retail assembly until a zero-score promotion. The pipe queries use `sceVu0FVECTOR` arrays for temporary points and transforms, sphere contact uses the `SpherePoly3Contact` values already declared in the header, and both box queries use `mgVu0FBOX::max` and `mgVu0FBOX::min` by name. The axis-aligned box query tests strict interior bounds, sorts the candidates by distance stored in each point's `w`, and returns at most two. The transformed overload replaces that `w` with 1 before applying the box matrix.
+The unit has six functions. Four compiled bodies match: `IntersectionPipePoly3`,
+`IntersectionSpherePoly3`, the transformed `IntersectionBox` overload and `mt_test`.
+`IntersectionPipeYPoly3` and the axis-aligned `IntersectionBox` remain guarded typed C++ drafts.
+The pipe query has an eleven-row local hit buffer. Its output contains at most eight hits;
+the pipelined transform preloads one vector beyond the run. Eight-, nine- and ten-row buffers
+produce a different stack-frame instruction pair.
