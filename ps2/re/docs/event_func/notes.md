@@ -1,14 +1,14 @@
 # event_func: reverse-engineering notes
 
-The 51 decompiled functions in this unit compile to exact retail instruction matches. `CEoh`'s five
+The compiled object contains 620 exact functions; 207 functions remain assembly. `CEoh`'s five
 typed pointer names occupy the same union word; its constructor clears each alias in succession.
 `CRaster::Initialize` clears the effect values in retail store order and sets `frames` to -1.
 `CScreenEffect::Initialize` clears the three effect modes and their textures. `SetSepiaFlag`
 requires a sepia texture; `SetMonoFlashFlag` requires either monochrome texture and resets the
-frame counter and selected texture. The migrated script commands that return a constant do not
-read their stack or argument count; the reset and effect commands call the named state helpers.
+frame counter and selected texture. Script commands that return a constant do not read their stack
+or argument count; reset and effect commands call the named state helpers.
 
-827 functions. 112 are global (prototyped in `event_func.hpp`); the other 715 are retail-local
+827 functions. 112 are global; the other 715 are retail-local
 (`local_symbols.tsv`) and belong in the .cpp as `static`: the ~698 event-script external functions
 `_XXX(RS_STACKDATA *, int)`, the stack/arg helpers (`GetStackInt/Float/Vector/String`, `SetStack`
 x2, `GetArgInt/Float/String/Vector`, `_DATA`, `_ID_OFFSET`), `FileNameConvLanguage`, `GetObjSeq`,
@@ -23,10 +23,8 @@ declared in this header.
 - `dng_effect.hpp` (CHitEffectImage, by-value array `HitEffect[5]`), `sceneseq.hpp`
   (`_SEN_CMR_SEQ`, `_SEN_OBJ_SEQ`, arrays), `runscript.hpp` (`RS_STACKDATA`, `CRunScript`),
   `scenesnd.hpp` (owner of `CScene`, needed for the by-value `CScene::BGM_STATUS` member of
-  `ED_EVENT_INFO`). **`scenesnd.hpp` did not exist when this header was written**, so the header
-  does not compile until it appears and declares `CScene::BGM_STATUS` (0x1C bytes: +0 state,
-  +4 now no, +8, +0xC, +0x10, +0x14 float volume, +0x18; see `CScene::GetActiveBgmStatus`).
-  With that member stubbed as `u8[0x1C]` the header and `event_func.cpp` compile and every
+  `ED_EVENT_INFO`). `CScene::BGM_STATUS` is 0x1C bytes: +0 state, +4 now no, +8, +0xC, +0x10, +0x14 float
+  volume, +0x18 (see `CScene::GetActiveBgmStatus`). The header includes `scenesnd.hpp`; every
   STATIC_ASSERT holds.
 - `RS_EXTFUNC_INFO` (row type of `ext_func_info__2` / `esa_ext_func_info`) is declared in
   `runscript_opcodes.hpp`; include it from the .cpp.
@@ -156,9 +154,9 @@ in the asm across all units (no other base+offset access exists; the addiu users
 | EventScriptArg | 0x10 | local | CEventScriptArg |
 | EventScreenEffect | 0x4C | global | CScreenEffect |
 | ext_func__2 | 0x1770 | local | `int (*[0x5DC])(RS_STACKDATA *, int)` |
-| ext_func_info__2 | 0x15C8 .data | local | `RS_EXTFUNC_INFO[]` terminated by func 0 (`SetEventFunc`, numbers 0..0x5DB) |
-| esa_ext_func_info | 0x18 .data | local | `RS_EXTFUNC_INFO[3]` (argument-script functions, numbers 0..2) |
-| vv_3333 | 0x30 .data | local | function-local static |
+| ext_func_info__2 | 0x15C8 .rodata | local | `RS_EXTFUNC_INFO[]` terminated by func 0 (`SetEventFunc`, numbers 0..0x5DB) |
+| esa_ext_func_info | 0x18 .rodata | local | `RS_EXTFUNC_INFO[3]` (argument-script functions, numbers 0..2) |
+| vv_3333 | 0x30 .rodata | local | function-local static |
 
 `HIT_EFFECT_PARTICLE` (0x50) is not retail-named; layout from dng_effect `CHitEffectImage::
 SethitEffect/Step/DrawSpark/DrawBord`: +0x10 pos, +0x20 dir, +0x30 float (rnd*200+32, never read),
@@ -172,3 +170,31 @@ this particle type, switch to it.
 - `EdEventStep` returns 1; `EdEventFinish` returns 0 when the scene camera is missing, else 1.
 - `GetLocalFlag` computes a bool but returns `int` (mangling does not include return type).
 - `CommandStreamOpen2` builds the path but never opens it (retail behaviour).
+
+## C++ draft status
+
+The unit has 827 functions: 620 exact in the compiled object and 207 supplied by assembly.
+The draft-enabled compile has 625 MATCH, 6 DIFF and 196 NO DRAFT entries. Six source bodies
+are guarded: `_DELETE_CHARA` (14 of 64 words differ),
+`_OBJS_SET_EOH_FRAME_POS` (30 of 112), `_DIST_VECTOR` (11 of 20), `_DIST_VECTOR2` (11 of 24),
+`_LINE_POINT_DIST` (10 of 68), and `_AMG_GET_ATTR_STATUS` (12 of 24). The drafts use typed
+handle-array access, named C++ calls, and stack-slot arithmetic. `GetStackVector` reads three
+values and sets the fourth vector component to 1.0f; its C++ body is exact. Both `SetStack`
+overloads return void. `GetStackFloat` takes one stack argument. `GetCamera` and `GetEventSprite`
+are source-local helpers. `CSphidaData::GetNowHorl` returns an int from its signed 16-bit field;
+both retail callers consume the already-extended result directly.
+
+`VectMatMul` is a C++ function with an exact instruction match. The typed global definitions
+generate an exact static initializer and its constructor table. `CEventScriptArg` initializes its
+four fields; `CRaster` and `CScreenEffect` each call `Initialize` during construction.
+`esa_ext_func_info` contains the two argument-script handlers and a null terminator.
+
+`GetLocalFlag` and `SetLocalFlag` retain signed quotient and remainder branches following their
+negative-index check. `_ADD_FUSION_POINT` initializes its user-data pointer within the member
+bounds condition. `_CHECK_INVENT_ITEM` calls the named inventory helper and stores its result;
+its compiled body is exact.
+
+`ext_func_info__2` is a 697-row assembly table: 696 handler/number pairs and `{NULL, -1}`.
+Its following eight bytes are padding. Fifteen assembly-only handlers have duplicate names in
+other units; resolving a typed table's plain references produces conflicting global aliases in
+the object postprocessor. The assembly table retains its unit's split symbol names.

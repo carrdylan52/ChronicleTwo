@@ -277,7 +277,7 @@ void CSphidaData::SetHorlScore(int score, int hole) {
     this->hole_score[hole] = score;
 }
 
-s16 CSphidaData::GetNowHorl(void) {
+int CSphidaData::GetNowHorl(void) {
     return now_hole;
 }
 

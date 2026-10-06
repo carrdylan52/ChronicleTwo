@@ -648,6 +648,16 @@ STATIC_ASSERT(sizeof(ARG_LIST) == 0x10);
  */
 class CEventScriptArg {
 public:
+    /**
+     * Creates an empty list of event script arguments.
+     */
+    CEventScriptArg() {
+        next_id = 0;
+        list = NULL;
+        list_num = 0;
+        memory = NULL;
+    }
+
     int next_id;        /**< Number the next list built is given. */
     ARG_LIST *list;     /**< First list, or null. */
     int list_num;       /**< Number of lists. */
@@ -673,6 +683,11 @@ STATIC_ASSERT(sizeof(CEventScriptArg) == 0x10);
  */
 class CRaster {
 public:
+    /**
+     * Initializes an inactive raster effect.
+     */
+    CRaster() { Initialize(); }
+
     int state;             /**< Progress of the effect. @see RASTER_STATE. */
     float amplitude;       /**< Distance, in pixels, lines are moved at most. */
     float amplitude_step;  /**< Change of the amplitude each frame. */
@@ -750,6 +765,11 @@ STATIC_ASSERT(sizeof(CRaster) == 0x2C);
  */
 class CScreenEffect {
 public:
+    /**
+     * Initializes inactive screen effects.
+     */
+    CScreenEffect() { Initialize(); }
+
     CRaster raster;                   /**< Raster wave effect. */
     mgCTexture *sepia_texture;        /**< Texture the sepia picture is captured into, or null. */
     int sepia;                        /**< Non-zero while the sepia picture is drawn. */
@@ -1397,15 +1417,3 @@ int CommandStreamOpen2(int port, char *name);
  * @size 0x190
  */
 void SetEventFunc(CRunScript *script);
-
-class CCameraControl;
-
-CCameraControl *GetCamera();
-CCharacter2 *GetChara(int no);
-CSceneObjSeq *GetObjSeq(int no);
-CEventSprite2 *GetEventSprite(int no);
-int GetArgInt(ARG_DATA *arg);
-float GetArgFloat(ARG_DATA *arg);
-char *GetArgString(ARG_DATA *arg);
-void GetArgVector(float *out, ARG_DATA *arg);
-void FileNameConvLanguage(char *name);

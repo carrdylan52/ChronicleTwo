@@ -498,7 +498,7 @@ public:
      * @address 0x2FBCD0
      * @size 0x10
      */
-    s16 GetNowHorl();
+    int GetNowHorl();
 
     /**
      *

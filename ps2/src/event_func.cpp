@@ -1,6 +1,7 @@
 #include "common.h"
 #include "event_func.hpp"
 #include "actionchara.hpp"
+#include "automap.hpp"
 #include "cameracontrol.hpp"
 #include "character.hpp"
 #include "collision.hpp"
@@ -10,24 +11,27 @@
 #include "dng_main.hpp"
 #include "dngmenu.hpp"
 #include "editdata.hpp"
+#include "editevent.hpp"
 #include "editinfo.hpp"
 #include "editmap.hpp"
-#include "editevent.hpp"
-#include "automap.hpp"
-#include "nowload.hpp"
+#include "editmenu.hpp"
 #include "effscript.hpp"
 #include "event.hpp"
 #include "eventsprite.hpp"
+#include "gamedata.hpp"
 #include "gamepad.hpp"
 #include "gameutil.hpp"
 #include "gyorace.hpp"
+#include "intersection.hpp"
 #include "inventmn.hpp"
 #include "mainloop.hpp"
 #include "mapinfo.hpp"
 #include "mapjump.hpp"
 #include "mapparts.hpp"
+#include "mapselect.hpp"
 #include "menuaqua.hpp"
 #include "menucommon.hpp"
+#include "menudraw.hpp"
 #include "menumain.hpp"
 #include "mg_camera.hpp"
 #include "mg_drawenv.hpp"
@@ -36,86 +40,37 @@
 #include "mg_math.hpp"
 #include "mg_memory.hpp"
 #include "mg_texture.hpp"
+#include "mglib.hpp"
 #include "movie.hpp"
 #include "nd_meswin.hpp"
+#include "nowload.hpp"
+#include "npccfg.hpp"
 #include "padcontrol.hpp"
 #include "pot.hpp"
 #include "quest.hpp"
+#include "runscript_opcodes.hpp"
 #include "savedata.hpp"
-#include "sphida.hpp"
+#include "snd_mngr.hpp"
 #include "sound.hpp"
+#include "sphida.hpp"
+#include "subgame.hpp"
 #include "swordeffect.hpp"
 #include "sysmes.hpp"
-#include "subgame.hpp"
 #include "userdata.hpp"
-#include "editmenu.hpp"
-#include "gamedata.hpp"
-#include "intersection.hpp"
-#include "mapselect.hpp"
-#include "menudraw.hpp"
-#include "mglib.hpp"
-#include "npccfg.hpp"
-#include "snd_mngr.hpp"
-#include <libcdvd.h>
-#include <cstring>
-#include <cstdio>
 #include <cmath>
+#include <cstdio>
 #include <cstdlib>
+#include <cstring>
+#include <libcdvd.h>
 
-struct ExtensionTable { char *name[4]; };
-struct EventScriptFunc { int (*func)(RS_STACKDATA *, int); int id; };
-struct VpkEntry { int group; int kind; int id; int sub; };
-struct VpkTable { VpkEntry entry[164]; };
 typedef int (*EventFunc)(RS_STACKDATA *, int);
-extern CEventScriptArg *nowScriptArg;
-extern CEventScriptArg EventScriptArg;
-extern EventScriptFunc esa_ext_func_info[];
-extern EventScriptFunc ext_func_info__2[];
-extern EventFunc ext_func__2[0x5dc];
-extern ExtensionTable at_1084;
-extern VpkTable at_6800__2;
-extern CEventSprite2 EventSprite2[0x30];
-extern CSceneObjSeq ObjectSeq[32];
-extern CSceneCmrSeq CameraSeq;
-extern mgCMemory BuffEventSnd;
-extern mgCMemory BuffEventSnd2;
-extern u_long128 event_snd_buff[];
-extern u_long128 event_snd2_buff[];
-extern CDngFreeMap EventDngMap;
-extern CEffectScriptMan *EventEffectScript;
-extern CSWordAfterImage *SwordEffect;
-extern float vv_3333[12];
-extern "C" int fptosi(float value);
-extern "C" int GetItemDataType__Fi(int);
-extern "C" int GetNowHorl__11CSphidaDataFv(CSphidaData *);
-extern "C" void VectMatMul__FPfPfPA4_f__2(float *, float *, float (*)[4]);
-extern "C" int GetStackInt__FP12RS_STACKDATA__2(RS_STACKDATA *);
-extern "C" float GetStackFloat__FP12RS_STACKDATA__2(RS_STACKDATA *);
-extern "C" char *GetStackString__FP12RS_STACKDATA__2(RS_STACKDATA *);
-extern "C" void GetStackVector__FPfP12RS_STACKDATA(float *, RS_STACKDATA *);
-extern "C" void SetStack__FP12RS_STACKDATAi__2(RS_STACKDATA *, int);
-extern "C" void SetStack__FP12RS_STACKDATAf__2(RS_STACKDATA *, float);
-extern "C" CSceneObjSeq *GetObjSeq__Fi(int, ...);
-extern "C" CEventSprite2 *GetEventSprite__Fi(int, int);
-extern "C" void SetDrawFlag__13CEventSprite2Fi(CEventSprite2 *);
-extern "C" void SetSpriteType__13CEventSprite2Fi(CEventSprite2 *);
-extern "C" void SetAlphaBlend__13CEventSprite2Fi(CEventSprite2 *);
-extern "C" int SetStep__10CEohMotherFif(CEohMother *, float);
-extern "C" void SetEohNo__12CSceneObjSeqFi(CSceneObjSeq *);
-extern "C" void PosDelay__12CSceneObjSeqFi(CSceneObjSeq *);
-extern "C" void SetPasFrm__12CSceneObjSeqFi(CSceneObjSeq *);
-extern "C" void RotDelay__12CSceneObjSeqFi(CSceneObjSeq *);
-extern "C" void MotionDelay__12CSceneObjSeqFi(CSceneObjSeq *);
-extern "C" void TexAnimeDelay__12CSceneObjSeqFi(CSceneObjSeq *);
-extern "C" void ColorDelay__12CSceneObjSeqFi(CSceneObjSeq *);
-extern "C" void ScaleDelay__12CSceneObjSeqFi(CSceneObjSeq *);
-extern "C" void SeDelay__12CSceneObjSeqFi(CSceneObjSeq *);
-extern "C" void AttachCamera__12CSceneObjSeqFfi(CSceneObjSeq *, float);
-namespace EventAbi {
-    extern "C" float GetStackFloat__FP12RS_STACKDATA__2(RS_STACKDATA *, int);
-    extern "C" int SetStack__FP12RS_STACKDATAi__2(RS_STACKDATA *, int);
-    extern "C" int SetStack__FP12RS_STACKDATAf__2(RS_STACKDATA *, float);
-}
+static CEventScriptArg *nowScriptArg; /**< Argument builder used by the running argument script. */
+extern RS_EXTFUNC_INFO ext_func_info__2[];
+static EventFunc ext_func[0x5dc];
+static u_long128 event_snd_buff[0x801];
+static u_long128 event_snd2_buff[0x141];
+static CEffectScriptMan *EventEffectScript; /**< Effect script used by the event. */
+static CSWordAfterImage *SwordEffect; /**< Sword afterimage used by the event. */
 const int hit_effect_num = 5;
 const int event_sprite2_num = 0x30;
 const int sprite_type_world = 1;
@@ -126,7 +81,6 @@ const int script_call_slots = script_stack_slots;
 const int script_func_slots = 3;
 const int script_run_id = 0x64;
 const float raster_max = 3.1415927f;
-const int prim_sprite = 6;
 const int half_color = 0x80;
 const int seq_node_num = 0x100;
 const int hit_spark_num = 0x40;
@@ -137,15 +91,12 @@ const int paku_name_size = 0x40;
 const int pack_file_max = 0x80;
 const int type_loaded = 2;
 const int event_func_slots = 0x5DC;
-const int vector_bytes = 0x18;
 const int event_local_num = 64;
 const int object_seq_num = 32;
-const int invent_user_data_offset = 0x7F30;
 const int exit_edit_mode = 17;
 const int event_stream = 1;
 const int stream_max_volume = 0x7FFF;
 const int vpk_entry_count = 164;
-const int chara_sword_after_offset = 0x570;
 const int menu_dng_map = 3;
 const int menu_select_party = 4;
 const int menu_use_item = 9;
@@ -156,52 +107,569 @@ const int exit_leave_interior = EVENT_REQUEST_OUTSIDE;
 const int exit_map_jump = EVENT_REQUEST_MAP_JUMP;
 const int request_menu = EVENT_COMMAND_SUB_MODE;
 const int request_door = EVENT_COMMAND_DOOR;
-const int event_sprite2_size = 0x80;
-extern char at_1333[];
-extern char at_1357__3[];
-extern char at_1103__2[];
-extern char at_1104__3[];
-extern char at_1245[];
-extern char at_1246[];
-extern char at_1346__2[];
-extern char at_1760__3[];
-extern char at_1761__3[];
-extern char at_2245__2[];
-extern char at_2246__2[];
-extern char at_2247__2[];
-extern char at_2248__2[];
-extern char at_2249__2[];
-extern char at_2291[];
-extern char at_2292__2[];
-extern char at_9744[];
-extern char at_9745[];
-extern char at_10100[];
-extern char at_10101[];
-extern CGamePad GamePad__2;
-extern char at_3339[];
-extern char at_3631__2[];
-extern char at_3632__2[];
-extern char at_3633[];
-extern char at_3634[];
-extern char at_3635[];
-extern char at_3636[];
-extern "C" int CheckInventItem__Fi(int);
-extern char at_1083[];
-extern char at_9148[];
-extern char at_9622[];
-extern char at_8230[];
-extern char at_2393__3[];
-extern char at_2664__2[];
-extern char at_4072[];
-extern char at_6773__2[];
-extern char at_6774__2[];
-extern char at_6775__2[];
-extern char at_6776__2[];
-extern char at_6781__2[];
-extern char at_6782__2[];
-extern char at_6816[];
-extern char at_6839[];
-extern char at_7117[];
+
+ED_EVENT_INFO EdEventInfo;
+CEohMother EventObjHandleMother;
+CEventSpriteMother esMother;
+u32 EventLocalFlag[0x40];
+int EventLocalCnt[0x40];
+CRain EventRain;
+CMarker EventMarker;
+HIT_EFFECT_PARTICLE Hit_para[EVENT_HIT_EFFECT_NUM][EVENT_HIT_PARTICLE_NUM];
+CHitEffectImage HitEffect[EVENT_HIT_EFFECT_NUM];
+char PakuAnimName[0x40];
+char PakuAnimName2[0x40];
+char PakuMotionName[0x40];
+char PakuMotionName2[0x40];
+static mgCMemory BuffEventSnd;
+static mgCMemory BuffEventSnd2;
+static CDngFreeMap EventDngMap;
+static CSceneCmrSeq CameraSeq;
+static CSceneObjSeq ObjectSeq[32];
+static CEventSprite2 EventSprite2[0x30];
+static CEventScriptArg EventScriptArg;
+CScreenEffect EventScreenEffect;
+RS_STACKDATA *p_use_item;
+int SetWorldCoordFlg;
+int PakuAnimEohNo;
+int PakuMotionEohNo;
+int PakuMotionType;
+int PakuMotionType2;
+
+static void GetStackVector(float *out, RS_STACKDATA *stack);
+static void FileNameConvLanguage(char *name);
+static int GetStackInt(RS_STACKDATA *stack);
+static float GetStackFloat(RS_STACKDATA *stack);
+static char *GetStackString(RS_STACKDATA *stack);
+static void SetStack(RS_STACKDATA *stack, int value);
+static void SetStack(RS_STACKDATA *stack, float value);
+static int _ID_OFFSET(RS_STACKDATA *stack, int argc);
+static int GetArgInt(ARG_DATA *arg);
+static float GetArgFloat(ARG_DATA *arg);
+static char *GetArgString(ARG_DATA *arg);
+static void GetArgVector(float *vec, ARG_DATA *arg);
+static CSceneObjSeq *GetObjSeq(int index);
+static int _GET_PADON(RS_STACKDATA *stack, int argc);
+static int _GET_PADDOWN(RS_STACKDATA *stack, int argc);
+static int _GET_PADUP(RS_STACKDATA *stack, int argc);
+static int _GET_APAD(RS_STACKDATA *stack, int argc);
+static int _GOTO_INTERIOR(RS_STACKDATA *stack, int argc);
+static int _GOTO_OUTSIDE(RS_STACKDATA *stack, int argc);
+static int _INITIALIZE(RS_STACKDATA *stack, int argc);
+static int _CHARA_ACTIVE(RS_STACKDATA *stack, int argc);
+static int _CLEAR_STACK(RS_STACKDATA *stack, int argc);
+static int _ASSIGN_STACK(RS_STACKDATA *stack, int argc);
+static int _SET_FLAG(RS_STACKDATA *stack, int argc);
+static int _SET_CNT(RS_STACKDATA *stack, int argc);
+static int _GET_CNT(RS_STACKDATA *stack, int argc);
+static int _SET_CURRENT_DIR(RS_STACKDATA *stack, int argc);
+static int _CHANGE_DIR(RS_STACKDATA *stack, int argc);
+static int _DELETE_CHARA(RS_STACKDATA *stack, int argc);
+static int _LOAD_MOTION(RS_STACKDATA *stack, int argc);
+static int _MAP_JUMP(RS_STACKDATA *stack, int argc);
+static int _SET_RAIN(RS_STACKDATA *stack, int argc);
+static int _DEL_EXT_MOTION(RS_STACKDATA *stack, int argc);
+static s32 _SET_MARKER(RS_STACKDATA *stack, int argc);
+static void _FINISH(RS_STACKDATA *stack, int argc);
+static int _GET_DUN_WORLD_COORD(RS_STACKDATA *stack, int argc);
+static int _DEL_IMG(RS_STACKDATA *stack, int argc);
+static int _SET_DNG_MAP(RS_STACKDATA *stack, int argc);
+static int _LOAD_ITEM(RS_STACKDATA *stack, int argc);
+static int _GOTO_USE_ITEM(RS_STACKDATA *stack, int argc);
+static int _SET_LOCAL_FLAG(RS_STACKDATA *stack, int argc);
+static int _GET_LOCAL_FLAG(RS_STACKDATA *stack, int argc);
+static int _GOTO_SELECT_PARTY(RS_STACKDATA *stack, int argc);
+static int _SET_LOADBG_FILE_MONS_TALK(RS_STACKDATA *stack, int argc);
+static int _CHECK_LOADBG_FILE(RS_STACKDATA *stack, int argc);
+static s32 _GET_TB_ITEMNO(RS_STACKDATA *stack, int argc);
+static int _ADD_ITEM(RS_STACKDATA *stack, int argc);
+static int _SUB_ITEM(RS_STACKDATA *stack, int argc);
+static int _GET_ITEM_TYPE(RS_STACKDATA *stack, int argc);
+static int _GET_ITEM_SPACE(RS_STACKDATA *stack, int argc);
+static s32 _INIT_LOCAL_CNT(RS_STACKDATA *stack, s32 argc);
+static int _SET_TIME(RS_STACKDATA *stack, int argc);
+static int _SET_ACTIVE_LIGHT(RS_STACKDATA *stack, int argc);
+static s32 _RESET_PAKU_ANIM(RS_STACKDATA *stack, s32 argc);
+static int _TRG_PAKU_ANIM(RS_STACKDATA *stack, int argc);
+static int _GET_ACTIVE_CHR_NO(RS_STACKDATA *stack, int argc);
+static int _SET_ACTIVE_CHR_NO(RS_STACKDATA *stack, int argc);
+static int _DNG_SET_FLOOR_ID(RS_STACKDATA *stack, int argc);
+static int _DNG_GET_FLOOR_ID(RS_STACKDATA *stack, int argc);
+static int _SET_PAKU_MOTION(RS_STACKDATA *stack, int argc);
+static s32 _RESET_PAKU_MOTION(RS_STACKDATA *stack, s32 argc);
+static int _TRG_PAKU_MOTION(RS_STACKDATA *stack, int argc);
+static int _GOTO_DNG_MAP(RS_STACKDATA *stack, int argc);
+static int _GOTO_DNG(RS_STACKDATA *stack, int argc);
+static int _GOTO_EDIT(RS_STACKDATA *stack, int argc);
+static int _LOAD_CHARA_NPC(RS_STACKDATA *stack, int argc);
+static int _AUTO_SET_MONSTER(RS_STACKDATA *stack, int argc);
+static int _LOAD_MONSTER_FILE(RS_STACKDATA *stack, int argc);
+static int _GET_NPC_STATUS(RS_STACKDATA *stack, int argc);
+static int _SET_NPC_STATUS(RS_STACKDATA *stack, int argc);
+static int _GET_NOW_PARTY_CHARA(RS_STACKDATA *stack, int argc);
+static int _SET_LOCAL_CNT(RS_STACKDATA *stack, int argc);
+static int _GET_LOCAL_CNT(RS_STACKDATA *stack, int argc);
+static int _GET_LOCAL_CNT2(RS_STACKDATA *stack, int argc);
+static int _GOTO_DRAW_CHAPTER(RS_STACKDATA *stack, int argc);
+static int _SET_PROJECTION(RS_STACKDATA *stack, int argc);
+static int _GET_PROJECTION(RS_STACKDATA *stack, int argc);
+static int _DNG_DEBUG_COMMAND(RS_STACKDATA *stack, int argc);
+static int _CD_SEEK(RS_STACKDATA *stack, int argc);
+static int _SET_MOTION_BLUR(RS_STACKDATA *stack, int argc);
+static int _SET_TALK_CAMERA(RS_STACKDATA *stack, int argc);
+static int _HIT_EFFECT(RS_STACKDATA *stack, int argc);
+static int _GET_START_BUTTON(RS_STACKDATA *stack, int argc);
+static int _MOVE_INTERIOR(RS_STACKDATA *stack, int argc);
+static int _GET_NOW_MAP_NO(RS_STACKDATA *stack, int argc);
+static int _GET_NOW_SUBMAP_NO(RS_STACKDATA *stack, int argc);
+static int _GET_OLD_MAP_NO(RS_STACKDATA *stack, int argc);
+static int _GET_OLD_SUBMAP_NO(RS_STACKDATA *stack, int argc);
+static int _SET_RAIN_CHARA_NO(RS_STACKDATA *stack, int argc);
+static s32 _GET_CONTENTS_POS(RS_STACKDATA *stack, int argc);
+static int _GET_BPOT_POS(RS_STACKDATA *stack, int argc);
+static int _GET_BPOT_STATUS(RS_STACKDATA *stack, int argc);
+static s32 _GET_PERSON_STATUS(RS_STACKDATA *stack, int argc);
+static int _GET_CONTROL_CHRID(RS_STACKDATA *stack, int argc);
+static int _SET_CAMERA_NEXT_REF(RS_STACKDATA *stack, int argc);
+static int _GOTO_MENU(RS_STACKDATA *stack, int argc);
+static s32 _GET_MENU_STATUS(RS_STACKDATA *stack, int argc);
+static int _LOAD_EQUIP(RS_STACKDATA *stack, int argc);
+static int _GET_EQUIP_ITEMNO(RS_STACKDATA *stack, int argc);
+static int _SET_TIME_STEP_ENABLE(RS_STACKDATA *stack, int argc);
+static s32 _SET_DOOR_MATERIAL(RS_STACKDATA *stack, int argc);
+static s32 _INIT_DRAMA_SCENE(RS_STACKDATA *stack, s32 argc);
+static int _SET_ACTIVE_CMRID(RS_STACKDATA *stack, int argc);
+static int _SET_BEFORE_CMRID(RS_STACKDATA *stack, int argc);
+static int _DNGMAP_LOAD(RS_STACKDATA *stack, int argc);
+static int _DNGMAP_DELETE(RS_STACKDATA *stack, int argc);
+static int _DNGMAP_MOVE_PIECE(RS_STACKDATA *stack, int argc);
+static int _DNGMAP_ONOFF(RS_STACKDATA *stack, int argc);
+static int _DNGMAP_SET_FADE(RS_STACKDATA *stack, int argc);
+static int _GET_BEFORE_CAMERA_NEXT_POS(RS_STACKDATA *stack, int argc);
+static int _GET_BEFORE_CAMERA_NEXT_REF(RS_STACKDATA *stack, int argc);
+static int _SET_CAMERA_NEXT_POS(RS_STACKDATA *stack, int argc);
+static int _SET_FCAMERA_FOLLOW_FLAG(RS_STACKDATA *stack, int argc);
+static int _FCAMERA_STEP(RS_STACKDATA *stack, int argc);
+static int _GET_REF_ANGLE(RS_STACKDATA *stack, int argc);
+static int _DNG_SET_STAGE_ID(RS_STACKDATA *stack, int argc);
+static int _DNG_GET_STAGE_ID(RS_STACKDATA *stack, int argc);
+static int _SET_CAMERA_CTRL(RS_STACKDATA *stack, int argc);
+static int _GET_FCAMERA_ANGLE(RS_STACKDATA *stack, int argc);
+static int _GET_FCAMERA_HEIGHT(RS_STACKDATA *stack, int argc);
+static int _GET_FCAMERA_DIST(RS_STACKDATA *stack, int argc);
+static int _GET_INVENTION_ID(RS_STACKDATA *stack, int argc);
+static int _FUNCTION_MAP_JUMP(RS_STACKDATA *stack, int argc);
+static int _FUNCTION_DOOR_MODE(RS_STACKDATA *stack, int argc);
+static int _GET_MONEY(RS_STACKDATA *stack, int argc);
+static int _ADD_MONEY(RS_STACKDATA *stack, int argc);
+static int _GET_ITEM_NUM(RS_STACKDATA *stack, int argc);
+static int _CHECK_BUTTON(RS_STACKDATA *stack, int argc);
+static int _GET_LANGUAGE(RS_STACKDATA *stack, int argc);
+static int _CHECK_INVENT_ITEM(RS_STACKDATA *stack, int argc);
+static int _SET_AI(RS_STACKDATA *stack, int argc);
+static int _GET_PHOTO_NUM(RS_STACKDATA *stack, int argc);
+static s32 _SET_CONTENTS_ETC(RS_STACKDATA *stack, int argc);
+static int _GOTO_SUBGAME(RS_STACKDATA *stack, int argc);
+static int _GET_GYORACE_ETC(RS_STACKDATA *stack, int argc);
+static int _SET_SAVEDATA_ETC(RS_STACKDATA *stack, int argc);
+static void _GEORAMA_FUNC(RS_STACKDATA *stack, int argc);
+static int _GOTO_EDITMODE(RS_STACKDATA *stack, int argc);
+static int _GET_CHAPTER(RS_STACKDATA *stack, int argc);
+static int _EYE_VIEW_DRAW_ON_OFF(RS_STACKDATA *stack, int argc);
+static int _GET_QUEST_ETC(RS_STACKDATA *stack, int argc);
+static int _GET_OLD_INTERIOR_MAP_NO(RS_STACKDATA *stack, int argc);
+static int _SET_EVENT_DATA(RS_STACKDATA *stack, int argc);
+static int _SET_FUNC_ETC(RS_STACKDATA *stack, int argc);
+static CCharacter2 *GetChara(int id);
+static int _GET_CHARA_POS(RS_STACKDATA *stack, int argc);
+static int _GET_CHARA_TALK_POS(RS_STACKDATA *stack, int argc);
+static int _TURN_CHARA(RS_STACKDATA *stack, int argc);
+static int _GET_CHARA_ROT(RS_STACKDATA *stack, int argc);
+static int _SET_TEX_ANIM(RS_STACKDATA *stack, int argc);
+static int _SET_REFERENCE(RS_STACKDATA *stack, int argc);
+static int _DEL_REFERENCE(RS_STACKDATA *stack, int argc);
+static int _SHADOW_CLIP_OFF(RS_STACKDATA *stack, int argc);
+static int _GET_CHARA_WIDTH(RS_STACKDATA *stack, int argc);
+
+static int _DATA(RS_STACKDATA *stack, int argc);
+
+static RS_EXTFUNC_INFO esa_ext_func_info[] = {
+    {_DATA, 0},
+    {_ID_OFFSET, 1},
+    {NULL, 0}
+};
+
+
+static int _GET_CHARA_HEIGHT(RS_STACKDATA *stack, int argc);
+static int _GET_CHARA_WEIGHT(RS_STACKDATA *stack, int argc);
+static int _CHARA_DA_ENABLE(RS_STACKDATA *stack, int argc);
+static int _SET_CHARA_EX_SOUNDID(RS_STACKDATA *stack, int argc);
+static int _ACTCHR_SOUND_INFO_COPY(RS_STACKDATA *stack, int argc);
+static ClsMes *GetMes(int id);
+static int _MES_CLOSE(RS_STACKDATA *stack, int argc);
+static int _MES_NEXTPAGE(RS_STACKDATA *stack, int argc);
+static int _SET_MES_AUTOSET(RS_STACKDATA *stack, int argc);
+static int _SET_MES_SHIPPO(RS_STACKDATA *stack, int argc);
+static int _SET_MES_POS(RS_STACKDATA *stack, int argc);
+static int _SET_MES_CURSOR(RS_STACKDATA *stack, int argc);
+static int _SET_MES_OKURI(RS_STACKDATA *stack, int argc);
+static int _SET_MES_WIN_FLAG(RS_STACKDATA *stack, int argc);
+static int _CHECK_MES_COMPLETE(RS_STACKDATA *stack, int argc);
+static int _CHECK_MES_WAIT(RS_STACKDATA *stack, int argc);
+static int _CHECK_MES(RS_STACKDATA *stack, int argc);
+static int _SET_MES_FUKIDASHI(RS_STACKDATA *stack, int argc);
+static int _SET_MES_WINDOW_MODE(RS_STACKDATA *stack, int argc);
+static int _SET_MES_PRESET(RS_STACKDATA *stack, int argc);
+static int _SET_MES_ITEM_DIRECT(RS_STACKDATA *stack, int argc);
+static int _SET_MES_ITEM(RS_STACKDATA *stack, int argc);
+static int _SET_MES_VALUE(RS_STACKDATA *stack, int argc);
+static int _GET_MES_STATUS(RS_STACKDATA *stack, int argc);
+static int _GET_PARTY_CHARA_MES_NO(RS_STACKDATA *stack, int argc);
+static int _MES_SET_BUFF(RS_STACKDATA *stack, int argc);
+static int _GET_MES_WINDOW_MODE(RS_STACKDATA *stack, int argc);
+static int _GET_MES_VOICE(RS_STACKDATA *stack, int argc);
+static int _SET_MES_QUESTION_GYOU(RS_STACKDATA *stack, int argc);
+static int _GET_MES_QUESTION_GYOU(RS_STACKDATA *stack, int argc);
+static int _SET_MES_CLOSE_CNT(RS_STACKDATA *stack, int argc);
+static int _GET_MES_OKURI(RS_STACKDATA *stack, int argc);
+static int _GET_OMAKE_FLAG(RS_STACKDATA *stack, int argc);
+static int _SET_OMAKE_FLAG(RS_STACKDATA *stack, int argc);
+static int _GET_CAMERA_POS(RS_STACKDATA *stack, int argc);
+static int _GET_CAMERA_REF(RS_STACKDATA *stack, int argc);
+static int _CAMERA_STEP(RS_STACKDATA *stack, int argc);
+static int _GET_BEFORE_CAMERA_POS(RS_STACKDATA *stack, int argc);
+static int _GET_BEFORE_CAMERA_REF(RS_STACKDATA *stack, int argc);
+static s32 _ASQ_INIT(RS_STACKDATA *stack, int argc);
+static s32 _ASQ_SYNC_CHARA(RS_STACKDATA *stack, int argc);
+static s32 _ASQ_SET_POS(RS_STACKDATA *stack, int argc);
+static s32 _ASQ_MOVE(RS_STACKDATA *stack, int argc);
+static s32 _ASQ_MOVE_STEP(RS_STACKDATA *stack, int argc);
+static s32 _ASQ_ROT_REF(RS_STACKDATA *stack, int argc);
+static s32 _ASQ_ROT_ANGLE(RS_STACKDATA *stack, int argc);
+static s32 _ASQ_CLEAR_ROT(RS_STACKDATA *stack, int argc);
+static s32 _ASQ_WAIT_ROT(RS_STACKDATA *stack, int argc);
+static s32 _ASQ_ROT_MOVE(RS_STACKDATA *stack, int argc);
+static s32 _ASQ_SET_ROT(RS_STACKDATA *stack, int argc);
+static s32 _ASQ_DELAY_ROT(RS_STACKDATA *stack, int argc);
+static s32 _ASQ_MOTION_TRG(RS_STACKDATA *stack, int argc);
+static s32 _ASQ_MOTION_PLAY(RS_STACKDATA *stack, int argc);
+static s32 _ASQ_MOTION_STOP(RS_STACKDATA *stack, int argc);
+static s32 _ASQ_MOTION_NEXT(RS_STACKDATA *stack, int argc);
+static s32 _ASQ_ANIME_TRG(RS_STACKDATA *stack, int argc);
+static s32 _ASQ_ANIME(RS_STACKDATA *stack, int argc);
+static s32 _ASQ_SE_PLAY(RS_STACKDATA *stack, int argc);
+static void _IMG_SET_DRAW(RS_STACKDATA *stack, int argc);
+static void _IMG_SET_GET(RS_STACKDATA *stack, int argc);
+static void _IMG_SET_PUT(RS_STACKDATA *stack, int argc);
+static void _IMG_SET_MOVE(RS_STACKDATA *stack, int argc);
+static void _IMG_SET_FADE(RS_STACKDATA *stack, int argc);
+static void _IMG_SET_COLOR(RS_STACKDATA *stack, int argc);
+static int _SPRITE_INIT(RS_STACKDATA *stack, int argc);
+static int _SPRITE_SET_DRAW(RS_STACKDATA *stack, int argc);
+static int _SPRITE_SET_TYPE(RS_STACKDATA *stack, int argc);
+static int _SPRITE_SET_ALPHAB(RS_STACKDATA *stack, int argc);
+static int _CMRS_CHECK(RS_STACKDATA *stack, int argc);
+static int _CMRS_INIT(RS_STACKDATA *stack, int argc);
+static int _CMRS_PRDELAY(RS_STACKDATA *stack, int argc);
+static int _CMRS_AHDDELAY(RS_STACKDATA *stack, int argc);
+static int _CMRS_SET_ANGLE(RS_STACKDATA *stack, int argc);
+static int _CMRS_SET_HEIGHT(RS_STACKDATA *stack, int argc);
+static int _CMRS_SET_DIST(RS_STACKDATA *stack, int argc);
+static int _CMRS_INIT_PAS(RS_STACKDATA *stack, int argc);
+static int _CMRS_SET_PAS_FRM(RS_STACKDATA *stack, int argc);
+static int _CMRS_START_PAS(RS_STACKDATA *stack, int argc);
+static int _CMRS_PR_KEEP(RS_STACKDATA *stack, int argc);
+static int _CMRS_PR_RETURN(RS_STACKDATA *stack, int argc);
+static int _CMRS_RELEASE_OBJ(RS_STACKDATA *stack, int argc);
+static int _CMRS_AHD_KEEP(RS_STACKDATA *stack, int argc);
+static int _CMRS_AHD_RETURN(RS_STACKDATA *stack, int argc);
+static int _CMRS_FADE_DELAY(RS_STACKDATA *stack, int argc);
+static int _CMRS_FADE_INIT(RS_STACKDATA *stack, int argc);
+static int _CMRS_QUAKE_DELAY(RS_STACKDATA *stack, int argc);
+static int _CMRS_CHARA_DELAY(RS_STACKDATA *stack, int argc);
+static int _CMRS_CHARA_ATTACH(RS_STACKDATA *stack, int argc);
+static int _OBJS_CHECK(RS_STACKDATA *stack, int argc);
+static int _OBJS_INIT(RS_STACKDATA *stack, int argc);
+static int _OBJS_SYNC_OBJ(RS_STACKDATA *stack, int argc);
+static int _OBJS_POS_DELAY(RS_STACKDATA *stack, int argc);
+static int _OBJS_SET_POS(RS_STACKDATA *stack, int argc);
+static int _OBJS_INIT_PAS(RS_STACKDATA *stack, int argc);
+static int _OBJS_SET_PAS_FRM(RS_STACKDATA *stack, int argc);
+static int _OBJS_ADD_PAS(RS_STACKDATA *stack, int argc);
+static int _OBJS_START_PAS(RS_STACKDATA *stack, int argc);
+static int _OBJS_SET_EOH_FRAME_POS(RS_STACKDATA *stack, int argc);
+static int _OBJS_ATTACH_CAMERA(RS_STACKDATA *stack, int argc);
+static int _OBJS_ROT_DELAY(RS_STACKDATA *stack, int argc);
+static int _OBJS_SET_ROT(RS_STACKDATA *stack, int argc);
+static int _OBJS_MOTION_DELAY(RS_STACKDATA *stack, int argc);
+static int _OBJS_MOTION_WAIT(RS_STACKDATA *stack, int argc);
+static int _OBJS_SEQ_MOT_TRG(RS_STACKDATA *stack, int argc);
+static int _OBJS_SEQ_MOT_TRG_WAIT(RS_STACKDATA *stack, int argc);
+static int _OBJS_RESET_MOTION(RS_STACKDATA *stack, int argc);
+static int _OBJS_TEXA_DELAY(RS_STACKDATA *stack, int argc);
+static int _OBJS_COLOR_DELAY(RS_STACKDATA *stack, int argc);
+static int _OBJS_SET_COLOR(RS_STACKDATA *stack, int argc);
+static int _OBJS_SCALE_DELAY(RS_STACKDATA *stack, int argc);
+static int _OBJS_SE_DELAY(RS_STACKDATA *stack, int argc);
+static int _OBJS_RESET_DA_POSITION(RS_STACKDATA *stack, int argc);
+static int _OBJS_NORMAL_DRIVE(RS_STACKDATA *stack, int argc);
+static s32 _ASQ_CHECK(RS_STACKDATA *stack, int argc);
+static int _SND_INIT_PORT(RS_STACKDATA *stack, int argc);
+static int _SND_SE_PAUSE(RS_STACKDATA *stack, int argc);
+static int _SND_SE_PLAY(RS_STACKDATA *stack, int argc);
+static int _SND_SE_STOP(RS_STACKDATA *stack, int argc);
+static int _SND_SET_SE_VOL(RS_STACKDATA *stack, int argc);
+static int _SND_SET_SE_PAN(RS_STACKDATA *stack, int argc);
+static int _SND_SET_SE_PITCH(RS_STACKDATA *stack, int argc);
+static int _SND_SE_ALL_STOP(RS_STACKDATA *stack, int argc);
+static int _LOAD_BGM(RS_STACKDATA *stack, int argc);
+static int _PLAY_BGM(RS_STACKDATA *stack, int argc);
+static int _STOP_BGM(RS_STACKDATA *stack, int argc);
+static int _STREAM_PLAY(RS_STACKDATA *stack, int argc);
+static int _STREAM_STOP(RS_STACKDATA *stack, int argc);
+static int _STREAM_STANDBY(RS_STACKDATA *stack, int argc);
+static int _STREAM_GET_STATUS(RS_STACKDATA *stack, int argc);
+static int _GET_SYS_SND_ID(RS_STACKDATA *stack, int argc);
+static int _STREAM_OPEN_CHECK(RS_STACKDATA *stack, int argc);
+static int _LOAD_SE_ENV(RS_STACKDATA *stack, int argc);
+static int _PLAY_ENV_BGM(RS_STACKDATA *stack, int argc);
+static int _SYS_SE_PLAY(RS_STACKDATA *stack, int argc);
+static int _INIT_SE_SRC(RS_STACKDATA *stack, int argc);
+static int _INIT_SE_ENV(RS_STACKDATA *stack, int argc);
+static int _INIT_SE_BAS(RS_STACKDATA *stack, int argc);
+static int _LOAD_SE_SRC(RS_STACKDATA *stack, int argc);
+static s32 _LOAD_SE_FOOT(RS_STACKDATA *stack, int argc);
+static s32 _LOAD_SE_DOOR(RS_STACKDATA *stack, int argc);
+static s32 _LOAD_SE_BOX(RS_STACKDATA *stack, int argc);
+static int _LOAD_SE_BATTLE(RS_STACKDATA *stack, int argc);
+static int _SND_DELETE_PORT(RS_STACKDATA *stack, int argc);
+static int _FADE_IN_BGM(RS_STACKDATA *stack, int argc);
+static int _FADE_OUT_BGM(RS_STACKDATA *stack, int argc);
+static int _STOP_ENV_BGM(RS_STACKDATA *stack, int argc);
+static s32 _SND_SET_REVERB(RS_STACKDATA *stack, int argc);
+static int _SND_SET_ENV_VOL(RS_STACKDATA *stack, int argc);
+static int _STREAM_SILENT_CHECK(RS_STACKDATA *stack, int argc);
+static int _AUTO_CHANGE_ENV(RS_STACKDATA *stack, int argc);
+static int _BGM_LOAD_CANCEL(RS_STACKDATA *stack, int argc);
+static int _SOUND_LOAD_CANCEL(RS_STACKDATA *stack, int argc);
+static int _BGM_LOAD_ENABLE(RS_STACKDATA *stack, int argc);
+static int _SOUND_LOAD_ENABLE(RS_STACKDATA *stack, int argc);
+static int _LOAD_SE_BASE(RS_STACKDATA *stack, int argc);
+static int _LOAD_SOUND(RS_STACKDATA *stack, int argc);
+static int _STREAM_CLOSE(RS_STACKDATA *stack, int argc);
+static int _STREAM_OPEN2(RS_STACKDATA *stack, int argc);
+static int _LOAD_BGM_PACK(RS_STACKDATA *stack, int argc);
+static int _GET_BGM_NO(RS_STACKDATA *stack, int argc);
+static int _GET_MASTER_VOL(RS_STACKDATA *stack, int argc);
+static int _SET_MASTER_VOL(RS_STACKDATA *stack, int argc);
+static int _GET_BTL_BGM_VOL(RS_STACKDATA *stack, int argc);
+static int _SND_IN_REVERB(RS_STACKDATA *stack, int argc);
+static int _SND_STOP_SRC(RS_STACKDATA *stack, int argc);
+static int _SND_PAUSE_BGM(RS_STACKDATA *stack, int argc);
+static int _STREAM_OPEN3(RS_STACKDATA *stack, int argc);
+static int _GET_ACTIVE_BGM_STATUS(RS_STACKDATA *stack, int argc);
+static int _SET_ACTIVE_BGM_STATUS(RS_STACKDATA *stack, int argc);
+static int _GET_BGM_STATUS_NOW_NO(RS_STACKDATA *stack, int argc);
+static int _GET_SE_STATUS(RS_STACKDATA *stack, int argc);
+static int _SE_ALL_STOP(RS_STACKDATA *stack, int argc);
+static int _SOUND_ALL_STOP(RS_STACKDATA *stack, int argc);
+static int _BGM_PLAY_CANCEL(RS_STACKDATA *stack, int argc);
+static int _BGM_PLAY_ENABLE(RS_STACKDATA *stack, int argc);
+static int _REGISTER_VILLAGER2(RS_STACKDATA *stack, int argc);
+static int _SET_FISHINGTOURNAMENT_ETC(RS_STACKDATA *stack, int argc);
+static int _EOH_SYNC_CHARA(RS_STACKDATA *stack, int argc);
+static int _EOH_SYNC_SPRITE(RS_STACKDATA *stack, int argc);
+static int _EOH_SET_POS(RS_STACKDATA *stack, int argc);
+static int _EOH_SET_ROT(RS_STACKDATA *stack, int argc);
+static void _EOH_GET_POS(RS_STACKDATA *stack, int argc);
+static void _EOH_GET_ROT(RS_STACKDATA *stack, int argc);
+static void _EOH_SET_STEP(RS_STACKDATA *stack, int argc);
+static void _EOH_SET_SHOW(RS_STACKDATA *stack, int argc);
+static void _EOH_GET_SHOW(RS_STACKDATA *stack, int argc);
+static void _EOH_SET_FRAME_SHOW(RS_STACKDATA *stack, int argc);
+static void _EOH_SET_SHADOW(RS_STACKDATA *stack, int argc);
+static void _EOH_SET_FOOT_SOUND_ID(RS_STACKDATA *stack, int argc);
+static void _EOH_SET_FRAME_STATUS(RS_STACKDATA *stack, int argc);
+static void _EOH_SET_SOUND_ID(RS_STACKDATA *stack, int argc);
+static void _EOH_SET_FADE_FLAG(RS_STACKDATA *stack, int argc);
+static void _EOH_RESET_DA_POSITION(RS_STACKDATA *stack, int argc);
+static void _EOH_SET_SHADOW_FRAME_STATUS(RS_STACKDATA *stack, int argc);
+static void _EOH_SYNC_GEOSTONE(RS_STACKDATA *stack, int argc);
+static int _EOH_SYNC_SEARCH_CHARA(RS_STACKDATA *stack, int argc);
+static void _EOH_NORMAL_DRIVE(RS_STACKDATA *stack, int argc);
+static void _EOH_SET_FOOT_SE_ID(RS_STACKDATA *stack, int argc);
+static int _SPHIDA_INIT(RS_STACKDATA *stack, int argc);
+static int _SPHIDA_SET_UP(RS_STACKDATA *stack, int argc);
+static int _SPHIDA_SET_PLAY_FLAG(RS_STACKDATA *stack, int argc);
+static int _SPHIDA_SET_MINIMAP_FLAG(RS_STACKDATA *stack, int argc);
+static int _SPHIDA_SET_MM_LINE_FLAG(RS_STACKDATA *stack, int argc);
+static int _SPHIDA_GET_PIN_POS(RS_STACKDATA *stack, int argc);
+static int _SPHIDA_GET_BALL_POS(RS_STACKDATA *stack, int argc);
+static int _SPHIDA_SET_PIN_COL(RS_STACKDATA *stack, int argc);
+static int _SPHIDA_GET_PIN_COL(RS_STACKDATA *stack, int argc);
+static int _SPHIDA_SET_BALL_COL(RS_STACKDATA *stack, int argc);
+static int _SPHIDA_GET_BALL_COL(RS_STACKDATA *stack, int argc);
+static int _SPHIDA_SET_PAR_COUNT(RS_STACKDATA *stack, int argc);
+static int _SPHIDA_GET_PAR_COUNT(RS_STACKDATA *stack, int argc);
+static int _SPHIDA_GET_MINI_LEVEL(RS_STACKDATA *stack, int argc);
+static int _SPHIDA_GET_TEXB(RS_STACKDATA *stack, int argc);
+static int _SPHIDA_SET_STATUS_FLAG(RS_STACKDATA *stack, int argc);
+static int _SPHIDA_RESET_POWGAGE(RS_STACKDATA *stack, int argc);
+static int _SPHIDA_START_POWGAGE(RS_STACKDATA *stack, int argc);
+static int _SPHIDA_TRIGGER_POWGAGE(RS_STACKDATA *stack, int argc);
+static int _SPHIDA_GET_SHOT_POW(RS_STACKDATA *stack, int argc);
+static int _SPHIDA_GET_POWGAGE_CODE(RS_STACKDATA *stack, int argc);
+static int _SPHIDA_SET_POWGAGE_SAFE_LEVEL(RS_STACKDATA *stack, int argc);
+static int _SPHIDA_SET_CULB_NO(RS_STACKDATA *stack, int argc);
+static int _SPHIDA_CALC_CARRY(RS_STACKDATA *stack, int argc);
+static int _SPHIDA_GET_PRIZE(RS_STACKDATA *stack, int argc);
+static int _SPHIDA_SET_LAST_CHALLENGE(RS_STACKDATA *stack, int argc);
+static int _SPHIDA_GET_LAST_CHALLENGE(RS_STACKDATA *stack, int argc);
+static int _SPHIDA_GET_OMAKE_MODE(RS_STACKDATA *stack, int argc);
+static int _SPHIDA_SET_NOW_HOLE(RS_STACKDATA *stack, int argc);
+static int _SPHIDA_GET_NOW_HOLE(RS_STACKDATA *stack, int argc);
+static int _SPHIDA_SET_SCORE(RS_STACKDATA *stack, int argc);
+static int _SPHIDA_GET_SCORE(RS_STACKDATA *stack, int argc);
+static s32 _TEST(RS_STACKDATA *stack, int argc);
+static void _MT_TEST(RS_STACKDATA *stack, int argc);
+static int _NORMAL_VECTOR(RS_STACKDATA *stack, int argc);
+static int _DIST_VECTOR(RS_STACKDATA *stack, int argc);
+static int _DIST_VECTOR2(RS_STACKDATA *stack, int argc);
+static int _SQRT(RS_STACKDATA *stack, int argc);
+static int _ANGLE_LIMIT(RS_STACKDATA *stack, int argc);
+static int _GET_RAND(RS_STACKDATA *stack, int argc);
+static int _LINE_POINT_DIST(RS_STACKDATA *stack, int argc);
+static int _CREATE_SWORD_EFFECT(RS_STACKDATA *stack, int argc);
+static int _DELETE_SWORD_EFFECT(RS_STACKDATA *stack, int argc);
+static int _SWORD_EFFECT_COLOR(RS_STACKDATA *stack, int argc);
+static int _POST_TREASURE_BOX(RS_STACKDATA *stack, int argc);
+static int _CTRLC_STEP(RS_STACKDATA *stack, int argc);
+static int _CTRLC_SET_ROTATE(RS_STACKDATA *stack, int argc);
+static int _CTRLC_ROT_BACK(RS_STACKDATA *stack, int argc);
+static int _CTRLC_MOVE_CAMERA(RS_STACKDATA *stack, int argc);
+static int _CTRLC_SET_ROT_CANCEL(RS_STACKDATA *stack, int argc);
+static int _GET_NEAR_TBOX_POS(RS_STACKDATA *stack, int argc);
+static s32 _CONV_CHRNO_S2L(RS_STACKDATA *stack, int argc);
+static int _SWE_INIT(RS_STACKDATA *stack, int argc);
+static int _SWE_SET_COLOR(RS_STACKDATA *stack, int argc);
+static int _SWE_SET_TEXTURE(RS_STACKDATA *stack, int argc);
+static int _SWE_START_EFFECT(RS_STACKDATA *stack, int argc);
+static int _SET_CHARA_TYPE(RS_STACKDATA *stack, int argc);
+static int _GET_EVENT_DATA(RS_STACKDATA *stack, int argc);
+static int _DNG_SET_PREV_FLOOR(RS_STACKDATA *stack, int argc);
+static int _DNG_GET_PREV_FLOOR(RS_STACKDATA *stack, int argc);
+static s32 _DNG_SET_FAST_FLOOR(RS_STACKDATA *stack, int argc);
+static int _SET_FLOOR_INFO(RS_STACKDATA *stack, int argc);
+static int _GET_FLOOR_INFO(RS_STACKDATA *stack, int argc);
+static int _GET_NEXT_FLOOR(RS_STACKDATA *stack, int argc);
+static int _PAD_AUTO_REPEAT_OFF(RS_STACKDATA *stack, int argc);
+static int _PAD_SET_AUTO_REPEAT(RS_STACKDATA *stack, int argc);
+static int _DNG_PAUSE(RS_STACKDATA *stack, int argc);
+static int _DNG_CHECK_PAUSE(RS_STACKDATA *stack, int argc);
+static int _DNG_RESET_TIMER(RS_STACKDATA *stack, int argc);
+static int _DNG_GET_TIMER(RS_STACKDATA *stack, int argc);
+static int _LOAD_SKIN(RS_STACKDATA *stack, int argc);
+static int _RANDOM_CIRCLE_GET_POS(RS_STACKDATA *stack, int argc);
+static int _RANDOM_CIRCLE_OFF(RS_STACKDATA *stack, int argc);
+static int _DNG_XCHG_MAP_LIGHT(RS_STACKDATA *stack, int argc);
+static int _GEOSTONE_ANIME_OFF(RS_STACKDATA *stack, int argc);
+static int _GEOSTONE_SET_FLAG(RS_STACKDATA *stack, int argc);
+static int _GEOSTONE_DEL_REFERENCE(RS_STACKDATA *stack, int argc);
+static int _GET_ROBO_MOVE_TYPE(RS_STACKDATA *stack, int argc);
+static int _SET_EXIT_FLAG(RS_STACKDATA *stack, int argc);
+static int _GET_EXIT_FLAG(RS_STACKDATA *stack, int argc);
+static int _GET_E3_VERSION(RS_STACKDATA *stack, int argc);
+static int _CHK_PAD_CTRL(RS_STACKDATA *stack, int argc);
+static int _CTRLC_STAY(RS_STACKDATA *stack, int argc);
+static int _GET_RND_CIRCLE_TRAPID(RS_STACKDATA *stack, int argc);
+static int _SET_RND_CIRCLE_STATUS(RS_STACKDATA *stack, int argc);
+static int _MENU_CHARA_CHENGE(RS_STACKDATA *stack, int argc);
+static int _GET_EVENT_INFO_SNDID(RS_STACKDATA *stack, int argc);
+static int _GET_PARTS_POS(RS_STACKDATA *stack, int argc);
+static s32 _CANCEL_DRAMA_SCENE(RS_STACKDATA *stack, s32 argc);
+static int _GET_RNDC_MOT_NOWT(RS_STACKDATA *stack, int argc);
+static int _CHARA_NORMAL_DRIVE(RS_STACKDATA *stack, int argc);
+static int _CHARA_RESET_DA(RS_STACKDATA *stack, int argc);
+static int _JOIN_PARTY_MEMBER(RS_STACKDATA *stack, int argc);
+static int _SET_CHARA_CHANGE_FLAG(RS_STACKDATA *stack, int argc);
+static int _SET_CHARA_CHANGE_MASK(RS_STACKDATA *stack, int argc);
+static int _SET_CHARA_EQUIP(RS_STACKDATA *stack, int argc);
+static int _LOAD_PACK_FILE(RS_STACKDATA *stack, int argc);
+static int _SET_BIT_CTRL(RS_STACKDATA *stack, int argc);
+static int _GET_BIT_CTRL(RS_STACKDATA *stack, int argc);
+static int _GET_ITEM_HAVE_NUM(RS_STACKDATA *stack, int argc);
+static int _SET_SKIP_BOTTON(RS_STACKDATA *stack, int argc);
+static int _SET_SKIP_FCOL(RS_STACKDATA *stack, int argc);
+static int _GET_MAP_TYPE(RS_STACKDATA *stack, int argc);
+static int _DNG_COLLISION_ALL_CLR(RS_STACKDATA *stack, int argc);
+static int _SET_MAP_DRAW(RS_STACKDATA *stack, int argc);
+static int _SET_NOW_MAP_NO(RS_STACKDATA *stack, int argc);
+static int _CANCEL_LOAD_VILLAGER(RS_STACKDATA *stack, int argc);
+static int _CANCEL_NOW_LOADING(RS_STACKDATA *stack, int argc);
+static int _ESM_INIT_FIX(RS_STACKDATA *stack, int argc);
+static int _ESM_CLEAR(RS_STACKDATA *stack, int argc);
+static int _ESM_LOAD_BASE(RS_STACKDATA *stack, int argc);
+static int _ESM_FINISH(RS_STACKDATA *stack, int argc);
+static int _ESM_DELETE(RS_STACKDATA *stack, int argc);
+static int _ESM_SET_TARGET_ID(RS_STACKDATA *stack, int argc);
+static int _ESM_SET_VALUE(RS_STACKDATA *stack, int argc);
+static int _SET_CHARA_CONDITION(RS_STACKDATA *stack, int argc);
+static int _ADD_WHP(RS_STACKDATA *stack, int argc);
+static int _GET_TIME(RS_STACKDATA *stack, int argc);
+static int _CHECK_GET_ITEM_LIMIT(RS_STACKDATA *stack, int argc);
+static int _CHECK_ITEM_OVER(RS_STACKDATA *stack, int argc);
+static int _GET_NOW_LOOP_NO(RS_STACKDATA *stack, int argc);
+static int _IS_CLEAR_DESTROY(RS_STACKDATA *stack, int argc);
+static int _IS_PLAY_SUB_GAME(RS_STACKDATA *stack, int argc);
+static int _RESET_SUBJECT_COUNTER(RS_STACKDATA *stack, int argc);
+static int _GET_TRIAL_VERSION(RS_STACKDATA *stack, int argc);
+static int _SET_FLOOR_EPISODE(RS_STACKDATA *stack, int argc);
+static int _ACTCHR_SET_DEF_MOTION(RS_STACKDATA *stack, int argc);
+static int _ADD_FUSION_POINT(RS_STACKDATA *stack, int argc);
+static int _GET_DEBUG_FLAG(RS_STACKDATA *stack, int argc);
+static int _MINIMAP_DOOR_ENABLE(RS_STACKDATA *stack, int argc);
+static int _DNG_CHECK_BOSS_MAP(RS_STACKDATA *stack, int argc);
+static int _DNG_RUN_EVENT(RS_STACKDATA *stack, int argc);
+static int _CHECK_ENABLE_CHARA_CHANGE(RS_STACKDATA *stack, int argc);
+static int _INIT_SEPIA(RS_STACKDATA *stack, int argc);
+static s32 _START_SEPIA(RS_STACKDATA *stack, s32 argc);
+static s32 _END_SEPIA(RS_STACKDATA *stack, s32 argc);
+static int _UNLOCK_STACK(RS_STACKDATA *stack, int argc);
+static int _RESET_EVENT_TRG(RS_STACKDATA *stack, int argc);
+static int _SET_CHARA_NO(RS_STACKDATA *stack, int argc);
+static int _GET_CHARA_NO(RS_STACKDATA *stack, int argc);
+static int _SEARCH_CHARA_NO(RS_STACKDATA *stack, int argc);
+static int _INIT_MONO_FLASH(RS_STACKDATA *stack, int argc);
+static int _START_MONO_FLASH(RS_STACKDATA *stack, int argc);
+static s32 _END_MONO_FLASH(RS_STACKDATA *stack, s32 argc);
+static int _DELETE_VILLAGER(RS_STACKDATA *stack, int argc);
+static int _DNG_SET_WEATHER(RS_STACKDATA *stack, int argc);
+static int _SET_CHARA_MAXHP(RS_STACKDATA *stack, int argc);
+static int _SET_CHARA_DEFENCE(RS_STACKDATA *stack, int argc);
+static int _GOTO_USE_ITEM2(RS_STACKDATA *stack, int argc);
+static int _DBG_SET_ANALYZE_FLAG(RS_STACKDATA *stack, int argc);
+static int _ATRAMIRIA_ON_OFF(RS_STACKDATA *stack, int argc);
+static int _ADD_YARIKOMI_MEDAL(RS_STACKDATA *stack, int argc);
+static int _SET_MAP_EFFECT_ID(RS_STACKDATA *stack, int argc);
+static int _GET_MAP_EFFECT_ID(RS_STACKDATA *stack, int argc);
+static int _DNG_FLOOR_INIT(RS_STACKDATA *stack, int argc);
+static int _DNG_FLOOR_FINISH(RS_STACKDATA *stack, int argc);
+static int _CLEAR_RND_STONE(RS_STACKDATA *stack, int argc);
+static int _SET_FLOOR_STATUS(RS_STACKDATA *stack, int argc);
+static int _AMG_GET_ATTR_STATUS(RS_STACKDATA *stack, int argc);
+static int _SET_KEEP_TIME(RS_STACKDATA *stack, int argc);
+static int _GET_KEEP_TIME(RS_STACKDATA *stack, int argc);
+static int _CHECK_EQUEP_CHANGE(RS_STACKDATA *stack, int argc);
+static int _DNG_EFFECT_ALL_CLEAR(RS_STACKDATA *stack, int argc);
+static int _AUTO_CHENGE_BGM_VOL(RS_STACKDATA *stack, int argc);
+static int _UDATA_ADD_WHP(RS_STACKDATA *stack, int argc);
+static int _UDATA_ADD_ABS(RS_STACKDATA *stack, int argc);
+static int _DNG_CREATE_EFFECT(RS_STACKDATA *stack, int argc);
+static int _LEAVE_MONICA_ITEM_CHECK(RS_STACKDATA *stack, int argc);
+static int _PAUSE_ENABLE_FLAG(RS_STACKDATA *stack, int argc);
+static int _FORCE_BOOT_TOUR(RS_STACKDATA *stack, int argc);
+static CCameraControl *GetCamera();
+static CEventSprite2 *GetEventSprite(int no);
 
 // Code (.text)
 CEoh::CEoh(void) {
@@ -214,82 +682,105 @@ CEoh::CEoh(void) {
     frame = NULL;
     func_point = NULL;
 }
-int CEoh::Set(int newKind, CObject *newObject, int newFlag) {
-    if (newObject == NULL) {
+
+int CEoh::Set(int type, CObject *object, int world_coord) {
+    if (object == NULL) {
         return 0;
     }
-    type = newKind;
-    if (type != EOH_TYPE_OBJECT) {
+    this->type = type;
+    if (this->type != EOH_TYPE_OBJECT) {
         return 0;
     }
-    object = newObject;
-    world_coord = newFlag;
+    this->object = object;
+    this->world_coord = world_coord;
     return 1;
 }
-int CEoh::Set(int newKind, int newCharaNo, CCharacter2 *newChara) {
-    if (newChara == 0)
+
+int CEoh::Set(int type, int scene_no, CCharacter2 *chara) {
+    if (chara == 0) {
         return 0;
-    type = newKind;
-    switch (type) {
+    }
+    this->type = type;
+    switch (this->type) {
         case EOH_TYPE_CHARA:
-            scene_no = newCharaNo;
-            chara = newChara;
-            return 1;
+            this->scene_no = scene_no;
+            this->chara = chara;
+        return 1;
         default:
-            return 0;
+        return 0;
     }
 }
-int CEoh::Set(int newKind, CEventSprite2 *newSprite) {
-    if (newSprite == 0)
+
+int CEoh::Set(int type, CEventSprite2 *sprite) {
+    if (sprite == 0) {
         return 0;
-    type = newKind;
-    switch (type) {
+    }
+    this->type = type;
+    switch (this->type) {
         case EOH_TYPE_SPRITE:
-            sprite = newSprite;
-            return 1;
+            this->sprite = sprite;
+        return 1;
         default:
-            return 0;
+        return 0;
     }
 }
-int CEoh::Set(int newKind, mgCFrame *newFrame) {
-    if (newFrame == 0)
+
+int CEoh::Set(int type, mgCFrame *frame) {
+    if (frame == 0) {
         return 0;
-    type = newKind;
-    switch (type) {
+    }
+    this->type = type;
+    switch (this->type) {
         case EOH_TYPE_FRAME:
-            frame = newFrame;
-            return 1;
+            this->frame = frame;
+        return 1;
         default:
-            return 0;
+        return 0;
     }
 }
-int CEoh::Set(int newKind, CFuncPoint *newFuncPoint) {
-    if (newFuncPoint == 0)
+
+int CEoh::Set(int type, CFuncPoint *func_point) {
+    if (func_point == 0) {
         return 0;
-    type = newKind;
-    switch (type) {
+    }
+    this->type = type;
+    switch (this->type) {
         case EOH_TYPE_FUNC_POINT:
-            func_point = newFuncPoint;
+            this->func_point = func_point;
             break;
         default:
-            return 0;
+        return 0;
     }
     return 1;
 }
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/event_func", VectMatMul__FPfPfPA4_f__2);
+
+/**
+ * Multiplies a direction by the rotational part of a matrix.
+ */
+void VectMatMul(float *out, float *in, float (*matrix)[4]) {
+    sceVu0FVECTOR result;
+
+    result[0] = in[0] * matrix[0][0] + in[1] * matrix[1][0] + in[2] * matrix[2][0];
+    result[1] = in[0] * matrix[0][1] + in[1] * matrix[1][1] + in[2] * matrix[2][1];
+    result[2] = in[0] * matrix[0][2] + in[1] * matrix[1][2] + in[2] * matrix[2][2];
+    result[3] = 1.0f;
+    sceVu0CopyVector(out, result);
+}
+
 void CalcPosWorldCoord(float *pos) {
     float rotation[4][4];
-    float rotated[4];
+    sceVu0FVECTOR rotated;
     if (SetWorldCoordFlg != 0) {
         mgRotMatrixXYZ(rotation, EdEventInfo.world_coord_rot);
-        VectMatMul__FPfPfPA4_f__2(rotated, pos, rotation);
+        VectMatMul(rotated, pos, rotation);
         sceVu0AddVector(pos, EdEventInfo.world_coord_pos, rotated);
     }
 }
+
 void CalcPosWorldCoordGyaku(float *pos) {
-    float rot[4];
+    sceVu0FVECTOR rot;
     float matrix[4][4];
-    float local[4];
+    sceVu0FVECTOR local;
     if (SetWorldCoordFlg != 0) {
         rot[0] = 0.0f;
         rot[1] = -EdEventInfo.world_coord_rot[1];
@@ -297,12 +788,13 @@ void CalcPosWorldCoordGyaku(float *pos) {
         rot[3] = 0.0f;
         mgRotMatrixXYZ(matrix, rot);
         sceVu0SubVector(local, pos, EdEventInfo.world_coord_pos);
-        VectMatMul__FPfPfPA4_f__2(pos, local, matrix);
+        VectMatMul(pos, local, matrix);
     }
 }
+
 void SetCamWorldCoord(mgCCamera *camera) {
-    float pos[4];
-    float ref[4];
+    sceVu0FVECTOR pos;
+    sceVu0FVECTOR ref;
     if ((SetWorldCoordFlg != 0) && (camera != NULL)) {
         camera->GetPos(pos);
         camera->GetRef(ref);
@@ -312,10 +804,11 @@ void SetCamWorldCoord(mgCCamera *camera) {
         camera->SetRef(ref);
     }
 }
+
 void SetCamWorldCoordGyaku(mgCCamera *camera) {
 
-    float pos[4];
-    float ref[4];
+    sceVu0FVECTOR pos;
+    sceVu0FVECTOR ref;
     if ((SetWorldCoordFlg != 0) && (camera != NULL)) {
         camera->GetPos(pos);
         camera->GetRef(ref);
@@ -325,6 +818,7 @@ void SetCamWorldCoordGyaku(mgCCamera *camera) {
         camera->SetRef(ref);
     }
 }
+
 CEohMother::CEohMother() {
     int i;
 
@@ -341,44 +835,50 @@ CEohMother::CEohMother() {
         handle->func_point = 0;
     }
 }
+
 int CEohMother::Set(int slot, int unused, CObject *object, int flag) {
     if (slot < 0 || slot >= EOH_NUM) {
         return 0;
     }
     return eoh[slot].Set(EOH_TYPE_OBJECT, object, flag);
 }
-int CEohMother::Set(int slot, int kind, int charaNo, CCharacter2 *chara) {
+
+int CEohMother::Set(int slot, int kind, int chara_no, CCharacter2 *chara) {
     if (slot < 0 || slot >= EOH_NUM) {
         return 0;
     }
-    return eoh[slot].Set(kind, charaNo, chara);
+    return eoh[slot].Set(kind, chara_no, chara);
 }
+
 int CEohMother::Set(int slot, int kind, CEventSprite2 *sprite) {
     if (slot < 0 || slot >= EOH_NUM) {
         return 0;
     }
     return eoh[slot].Set(kind, sprite);
 }
+
 int CEohMother::Set(int slot, int kind, mgCFrame *frame) {
     if (slot < 0 || slot >= EOH_NUM) {
         return 0;
     }
     return eoh[slot].Set(kind, frame);
 }
+
 int CEohMother::Set(int slot, int kind, CFuncPoint *funcPoint) {
-    if (slot < 0 || slot >= EOH_NUM) {
-    return 0;
-    }
-    return eoh[slot].Set(kind, funcPoint);
-}
-int CEohMother::SetPos(int slot, float x, float y, float z) {
     if (slot < 0 || slot >= EOH_NUM) {
         return 0;
     }
-    CEoh *handle = &eoh[slot];
+    return eoh[slot].Set(kind, funcPoint);
+}
+
+int CEohMother::SetPos(int no, float x, float y, float z) {
+    if (no < 0 || no >= EOH_NUM) {
+        return 0;
+    }
+    CEoh *handle = &eoh[no];
     switch (handle->type) {
         case EOH_TYPE_CHARA: {
-            float pos[4];
+            sceVu0FVECTOR pos;
             pos[0] = x;
             pos[1] = y;
             pos[2] = z;
@@ -387,16 +887,16 @@ int CEohMother::SetPos(int slot, float x, float y, float z) {
             x = pos[0];
             y = pos[1];
             z = pos[2];
-            mgCObject *chara = (mgCObject *)eoh[slot].object;
+            mgCObject *chara = (mgCObject *)eoh[no].object;
             if (chara == NULL) {
                 return 0;
             }
             chara->SetPosition(x, y, z);
-    return 1;
+            return 1;
         }
         case EOH_TYPE_OBJECT: {
             if (handle->world_coord != 0) {
-                float pos[4];
+                sceVu0FVECTOR pos;
                 pos[0] = x;
                 pos[1] = y;
                 pos[2] = z;
@@ -406,15 +906,15 @@ int CEohMother::SetPos(int slot, float x, float y, float z) {
                 y = pos[1];
                 z = pos[2];
             }
-            mgCObject *object = (mgCObject *)eoh[slot].object;
+            mgCObject *object = (mgCObject *)eoh[no].object;
             if (object == NULL) {
                 return 0;
             }
             object->SetPosition(x, y, z);
-    return 1;
+            return 1;
         }
         case EOH_TYPE_SPRITE: {
-            float pos[4];
+            sceVu0FVECTOR pos;
             float *posY = &pos[1];
             pos[0] = x;
             *posY = y;
@@ -431,10 +931,10 @@ int CEohMother::SetPos(int slot, float x, float y, float z) {
                 CalcPosWorldCoord(pos);
                 sprite->SetPosition(pos);
             }
-    return 1;
+            return 1;
         }
         case EOH_TYPE_FRAME: {
-            float pos[4];
+            sceVu0FVECTOR pos;
             pos[0] = x;
             pos[1] = y;
             pos[2] = z;
@@ -444,17 +944,17 @@ int CEohMother::SetPos(int slot, float x, float y, float z) {
                 return 0;
             }
             frame->SetPosition(pos);
-    return 1;
+            return 1;
         }
         case EOH_TYPE_FUNC_POINT: {
             if (handle->world_coord != 0) {
-                float pos[4];
+                sceVu0FVECTOR pos;
                 pos[0] = x;
                 pos[1] = y;
                 pos[2] = z;
                 pos[3] = 1.0f;
                 CalcPosWorldCoord(pos);
-                CFuncPoint *funcPoint = eoh[slot].func_point;
+                CFuncPoint *funcPoint = eoh[no].func_point;
                 if (funcPoint == NULL) {
                     return 0;
                 }
@@ -464,14 +964,15 @@ int CEohMother::SetPos(int slot, float x, float y, float z) {
             return 1;
         }
         default:
-    return 0;
-    }
-}
-int CEohMother::SetRot(int slot, float x, float y, float z) {
-    if (slot < 0 || slot >= EOH_NUM) {
         return 0;
     }
-    CEoh *handle = &eoh[slot];
+}
+
+int CEohMother::SetRot(int no, float x, float y, float z) {
+    if (no < 0 || no >= EOH_NUM) {
+        return 0;
+    }
+    CEoh *handle = &eoh[no];
     switch (handle->type) {
         case EOH_TYPE_CHARA: {
             mgCObject *&chara = (mgCObject *&)handle->object;
@@ -524,7 +1025,7 @@ int CEohMother::SetRot(int slot, float x, float y, float z) {
             y += EdEventInfo.world_coord_rot[1];
             z += EdEventInfo.world_coord_rot[2];
             y = mgAngleLimit(y);
-            float rot[4];
+            sceVu0FVECTOR rot;
             rot[0] = x;
             rot[1] = y;
             rot[2] = z;
@@ -535,14 +1036,15 @@ int CEohMother::SetRot(int slot, float x, float y, float z) {
             return 1;
         }
         default:
-    return 0;
-    }
-}
-int CEohMother::GetPos(int slot, float *pos) {
-    if (slot < 0 || slot >= EOH_NUM) {
         return 0;
     }
-    CEoh *handle = &eoh[slot];
+}
+
+int CEohMother::GetPos(int no, float *pos) {
+    if (no < 0 || no >= EOH_NUM) {
+        return 0;
+    }
+    CEoh *handle = &eoh[no];
     switch (handle->type) {
         case EOH_TYPE_CHARA: {
             mgCObject *chara = (mgCObject *)handle->object;
@@ -559,7 +1061,7 @@ int CEohMother::GetPos(int slot, float *pos) {
                 return 0;
             }
             object->GetPosition(pos);
-            if (eoh[slot].world_coord != 0) {
+            if (eoh[no].world_coord != 0) {
                 CalcPosWorldCoordGyaku(pos);
             }
             return 1;
@@ -592,17 +1094,18 @@ int CEohMother::GetPos(int slot, float *pos) {
             }
             *(u_long128 *)pos = *(u_long128 *)funcPoint->position;
             CalcPosWorldCoordGyaku(pos);
-    return 1;
+            return 1;
         }
         default:
-            return 0;
-    }
-}
-int CEohMother::GetRot(int slot, float *rot) {
-    if (slot < 0 || slot >= EOH_NUM) {
         return 0;
     }
-    CEoh *handle = &eoh[slot];
+}
+
+int CEohMother::GetRot(int no, float *rot) {
+    if (no < 0 || no >= EOH_NUM) {
+        return 0;
+    }
+    CEoh *handle = &eoh[no];
     switch (handle->type) {
         case EOH_TYPE_CHARA: {
             mgCObject *chara = (mgCObject *)handle->object;
@@ -620,7 +1123,7 @@ int CEohMother::GetRot(int slot, float *rot) {
                 return 0;
             }
             object->GetRotation(rot);
-            if (eoh[slot].world_coord != 0) {
+            if (eoh[no].world_coord != 0) {
                 rot[1] -= EdEventInfo.world_coord_rot[1];
                 rot[1] = mgAngleLimit(rot[1]);
             }
@@ -655,17 +1158,18 @@ int CEohMother::GetRot(int slot, float *rot) {
                 rot[1] -= EdEventInfo.world_coord_rot[1];
                 rot[1] = mgAngleLimit(rot[1]);
             }
-    return 1;
+            return 1;
         }
         default:
-            return 0;
-    }
-}
-int CEohMother::SetMotion(int slot, char *name, int type, float blend) {
-    if (slot < 0 || slot >= EOH_NUM) {
         return 0;
     }
-    CEoh *handle = &eoh[slot];
+}
+
+int CEohMother::SetMotion(int no, char *name, int flag, float time) {
+    if (no < 0 || no >= EOH_NUM) {
+        return 0;
+    }
+    CEoh *handle = &eoh[no];
     switch (handle->type) {
         case EOH_TYPE_CHARA: {
             CObject **held = &handle->object;
@@ -673,24 +1177,25 @@ int CEohMother::SetMotion(int slot, char *name, int type, float blend) {
             if (chara == NULL) {
                 return 0;
             }
-            chara->SetMotion(name, type);
-            if (blend != -1.0f) {
+            chara->SetMotion(name, flag);
+            if (time != -1.0f) {
                 ((CCharacter2 *)*held)->NormalDrive();
-                ((CCharacter2 *)*held)->SetStep(blend);
+                ((CCharacter2 *)*held)->SetStep(time);
                 chara = (CCharacter2 *)*held;
                 chara->frame = (float)chara->now_key->start_frame;
             }
-    return 1;
+            return 1;
         }
         default:
-            return 0;
-    }
-}
-int CEohMother::CheckMotionEnd(int slot) {
-    if (slot < 0 || slot >= EOH_NUM) {
         return 0;
     }
-    CEoh *handle = &eoh[slot];
+}
+
+int CEohMother::CheckMotionEnd(int no) {
+    if (no < 0 || no >= EOH_NUM) {
+        return 0;
+    }
+    CEoh *handle = &eoh[no];
     switch (handle->type) {
         case EOH_TYPE_CHARA: {
             CCharacter2 *chara = handle->chara;
@@ -706,14 +1211,15 @@ int CEohMother::CheckMotionEnd(int slot) {
             return 0;
         }
         default:
-            return 0;
-    }
-}
-int CEohMother::SetMotionTrg(int slot) {
-    if (slot < 0 || slot >= EOH_NUM) {
         return 0;
     }
-    CEoh *handle = &eoh[slot];
+}
+
+int CEohMother::SetMotionTrg(int no) {
+    if (no < 0 || no >= EOH_NUM) {
+        return 0;
+    }
+    CEoh *handle = &eoh[no];
     switch (handle->type) {
         case EOH_TYPE_CHARA: {
             CCharacter2 *chara = handle->chara;
@@ -727,15 +1233,16 @@ int CEohMother::SetMotionTrg(int slot) {
             break;
         }
         default:
-            return 0;
+        return 0;
     }
     return 0;
 }
-int CEohMother::GetSeqStatus(int slot) {
-    if (slot < 0 || slot >= EOH_NUM) {
+
+int CEohMother::GetSeqStatus(int no) {
+    if (no < 0 || no >= EOH_NUM) {
         return 0;
     }
-    CEoh *handle = &eoh[slot];
+    CEoh *handle = &eoh[no];
     switch (handle->type) {
         case EOH_TYPE_CHARA: {
             CCharacter2 *chara = handle->chara;
@@ -750,11 +1257,12 @@ int CEohMother::GetSeqStatus(int slot) {
     }
     return 0;
 }
-int CEohMother::SetStep(int slot, float step) {
-    if (slot < 0 || slot >= EOH_NUM) {
+
+int CEohMother::SetStep(int no, float step) {
+    if (no < 0 || no >= EOH_NUM) {
         return 0;
     }
-    CEoh *handle = &eoh[slot];
+    CEoh *handle = &eoh[no];
     switch (handle->type) {
         case EOH_TYPE_CHARA: {
             CCharacter2 *chara = (CCharacter2 *)handle->object;
@@ -765,14 +1273,15 @@ int CEohMother::SetStep(int slot, float step) {
             return 1;
         }
         default:
-            return 0;
-    }
-}
-int CEohMother::SetChangeStep(int slot, float step) {
-    if (slot < 0 || slot >= EOH_NUM) {
         return 0;
     }
-    CEoh *handle = &eoh[slot];
+}
+
+int CEohMother::SetChangeStep(int no, float step) {
+    if (no < 0 || no >= EOH_NUM) {
+        return 0;
+    }
+    CEoh *handle = &eoh[no];
     switch (handle->type) {
         case EOH_TYPE_CHARA: {
             CCharacter2 *chara = handle->chara;
@@ -786,15 +1295,16 @@ int CEohMother::SetChangeStep(int slot, float step) {
             break;
         }
         default:
-            return 0;
+        return 0;
     }
     return 1;
 }
-int CEohMother::ResetMotion(int slot) {
-    if (slot < 0 || slot >= EOH_NUM) {
+
+int CEohMother::ResetMotion(int no) {
+    if (no < 0 || no >= EOH_NUM) {
         return 0;
     }
-    CEoh *handle = &eoh[slot];
+    CEoh *handle = &eoh[no];
     switch (handle->type) {
         case EOH_TYPE_CHARA: {
             CCharacter2 *chara = (CCharacter2 *)handle->object;
@@ -805,15 +1315,16 @@ int CEohMother::ResetMotion(int slot) {
             break;
         }
         default:
-            return 0;
+        return 0;
     }
     return 1;
 }
-int CEohMother::SetTexAnim(int slot, int on, char *name) {
-    if (slot < 0 || slot >= EOH_NUM) {
+
+int CEohMother::SetTexAnim(int no, int on, char *name) {
+    if (no < 0 || no >= EOH_NUM) {
         return 0;
     }
-    CEoh *handle = &eoh[slot];
+    CEoh *handle = &eoh[no];
     switch (handle->type) {
         case EOH_TYPE_CHARA: {
             int texb = EventScene->GetCharaTexb(handle->scene_no);
@@ -833,11 +1344,12 @@ int CEohMother::SetTexAnim(int slot, int on, char *name) {
     }
     return 0;
 }
-int CEohMother::SetScale(int slot, float x, float y, float z) {
-    if (slot < 0 || slot >= EOH_NUM) {
+
+int CEohMother::SetScale(int no, float x, float y, float z) {
+    if (no < 0 || no >= EOH_NUM) {
         return 0;
     }
-    CEoh *handle = &eoh[slot];
+    CEoh *handle = &eoh[no];
     switch (handle->type) {
         case EOH_TYPE_CHARA: {
             mgCObject *chara = (mgCObject *)handle->object;
@@ -857,16 +1369,16 @@ int CEohMother::SetScale(int slot, float x, float y, float z) {
         }
         case EOH_TYPE_SPRITE:
             handle->sprite->SetScale(x, y);
-            return 1;
+        return 1;
         case EOH_TYPE_FRAME:
             ((mgCObject *)handle->frame)->SetScale(x, y, z);
-            return 1;
+        return 1;
         case EOH_TYPE_FUNC_POINT: {
             CFuncPoint *&funcPoint = handle->func_point;
             if (funcPoint == NULL) {
                 return 0;
             }
-            float scale[4];
+            sceVu0FVECTOR scale;
             scale[0] = x;
             scale[1] = y;
             scale[2] = z;
@@ -877,14 +1389,15 @@ int CEohMother::SetScale(int slot, float x, float y, float z) {
             return 1;
         }
         default:
-            return 0;
-    }
-}
-int CEohMother::GetScale(int slot, float *scale) {
-    if (slot < 0 || slot >= EOH_NUM) {
         return 0;
     }
-    CEoh *handle = &eoh[slot];
+}
+
+int CEohMother::GetScale(int no, float *scale) {
+    if (no < 0 || no >= EOH_NUM) {
+        return 0;
+    }
+    CEoh *handle = &eoh[no];
     switch (handle->type) {
         case EOH_TYPE_CHARA: {
             mgCObject *chara = (mgCObject *)handle->object;
@@ -925,14 +1438,15 @@ int CEohMother::GetScale(int slot, float *scale) {
             return 1;
         }
         default:
-            return 0;
-    }
-}
-int CEohMother::SetShow(int slot, int show) {
-    if (slot < 0 || slot >= EOH_NUM) {
         return 0;
     }
-    CEoh *handle = &eoh[slot];
+}
+
+int CEohMother::SetShow(int no, int show) {
+    if (no < 0 || no >= EOH_NUM) {
+        return 0;
+    }
+    CEoh *handle = &eoh[no];
     switch (handle->type) {
         case EOH_TYPE_OBJECT: {
             CObject *object = (CObject *)handle->object;
@@ -952,19 +1466,20 @@ int CEohMother::SetShow(int slot, int show) {
         }
         case EOH_TYPE_FUNC_POINT:
             if (handle->func_point == NULL) {
-                return 0;
+            return 0;
             }
             handle->func_point->enable = show;
-            return 1;
+        return 1;
         default:
-            return 0;
-    }
-}
-int CEohMother::GetShow(int slot, int *show) {
-    if (slot < 0 || slot >= EOH_NUM) {
         return 0;
     }
-    CEoh *handle = &eoh[slot];
+}
+
+int CEohMother::GetShow(int no, int *show) {
+    if (no < 0 || no >= EOH_NUM) {
+        return 0;
+    }
+    CEoh *handle = &eoh[no];
     switch (handle->type) {
         case EOH_TYPE_OBJECT: {
             CObject *object = (CObject *)handle->object;
@@ -984,12 +1499,12 @@ int CEohMother::GetShow(int slot, int *show) {
         }
         case EOH_TYPE_FUNC_POINT:
             if (handle->func_point == NULL) {
-                return 0;
+            return 0;
             }
             *show = handle->func_point->enable;
-            return 1;
+        return 1;
         default:
-            return 0;
+        return 0;
     }
 }
 mgCFrame *CEohMother::SearchFrame(int slot, char *name) {
@@ -1010,11 +1525,12 @@ mgCFrame *CEohMother::SearchFrame(int slot, char *name) {
     }
     return result;
 }
-int CEohMother::SetFrameShow(int slot, char *name, int show) {
-    if (slot < 0 || slot >= EOH_NUM) {
+
+int CEohMother::SetFrameShow(int no, char *name, int show) {
+    if (no < 0 || no >= EOH_NUM) {
         return 0;
     }
-    CEoh *handle = &eoh[slot];
+    CEoh *handle = &eoh[no];
     switch (handle->type) {
         case EOH_TYPE_CHARA: {
             CCharacter2 *chara = handle->chara;
@@ -1047,27 +1563,29 @@ int CEohMother::SetFrameShow(int slot, char *name, int show) {
     }
     return 0;
 }
-int CEohMother::SetShadow(int slot, int enable) {
-    if (slot < 0 || slot >= EOH_NUM) {
+
+int CEohMother::SetShadow(int no, int on) {
+    if (no < 0 || no >= EOH_NUM) {
         return 0;
     }
-    CEoh *handle = &eoh[slot];
+    CEoh *handle = &eoh[no];
     switch (handle->type) {
         case EOH_TYPE_CHARA:
-            if (enable != 0) {
+            if (on != 0) {
                 EventScene->ResetStatus(1, handle->scene_no, status_no_shadow);
             } else {
                 EventScene->SetStatus(1, handle->scene_no, status_no_shadow);
             }
-            return 1;
+        return 1;
     }
     return 0;
 }
-int CEohMother::SetShadowFrameShow(int slot, char *name, int show) {
-    if (slot < 0 || slot >= EOH_NUM) {
+
+int CEohMother::SetShadowFrameShow(int no, char *name, int show) {
+    if (no < 0 || no >= EOH_NUM) {
         return 0;
     }
-    CEoh *handle = &eoh[slot];
+    CEoh *handle = &eoh[no];
     switch (handle->type) {
         case EOH_TYPE_CHARA: {
             CCharacter2 *chara = handle->chara;
@@ -1092,11 +1610,12 @@ int CEohMother::SetShadowFrameShow(int slot, char *name, int show) {
     }
     return 0;
 }
-int CEohMother::SetTranslate(int slot, float *pos) {
-    if (slot < 0 || slot >= EOH_NUM) {
+
+int CEohMother::SetTranslate(int no, float *translate) {
+    if (no < 0 || no >= EOH_NUM) {
         return 0;
     }
-    CEoh *handle = &eoh[slot];
+    CEoh *handle = &eoh[no];
     switch (handle->type) {
         case EOH_TYPE_CHARA: {
             CCharacter2 *chara = handle->chara;
@@ -1107,9 +1626,9 @@ int CEohMother::SetTranslate(int slot, float *pos) {
             if (frame == NULL) {
                 return 0;
             }
-            frame->trans_matrix[3][0] = pos[0];
-            frame->trans_matrix[3][1] = pos[1];
-            frame->trans_matrix[3][2] = pos[2];
+            frame->trans_matrix[3][0] = translate[0];
+            frame->trans_matrix[3][1] = translate[1];
+            frame->trans_matrix[3][2] = translate[2];
             frame->changed = 1;
             return 1;
         }
@@ -1118,20 +1637,21 @@ int CEohMother::SetTranslate(int slot, float *pos) {
             if (frame == NULL) {
                 return 0;
             }
-            frame->trans_matrix[3][0] = pos[0];
-            frame->trans_matrix[3][1] = pos[1];
-            frame->trans_matrix[3][2] = pos[2];
+            frame->trans_matrix[3][0] = translate[0];
+            frame->trans_matrix[3][1] = translate[1];
+            frame->trans_matrix[3][2] = translate[2];
             frame->changed = 1;
             return 1;
         }
     }
     return 0;
 }
-int CEohMother::SetColor(int slot, float *color) {
-    if (slot < 0 || slot >= EOH_NUM) {
+
+int CEohMother::SetColor(int no, float *color) {
+    if (no < 0 || no >= EOH_NUM) {
         return 0;
     }
-    CEoh *handle = &eoh[slot];
+    CEoh *handle = &eoh[no];
     switch (handle->type) {
         case EOH_TYPE_SPRITE: {
             CEventSprite2 *sprite = handle->sprite;
@@ -1144,11 +1664,12 @@ int CEohMother::SetColor(int slot, float *color) {
     }
     return 0;
 }
-int CEohMother::GetColor(int slot, float *color) {
-    if (slot < 0 || slot >= EOH_NUM) {
+
+int CEohMother::GetColor(int no, float *color) {
+    if (no < 0 || no >= EOH_NUM) {
         return 0;
     }
-    CEoh *handle = &eoh[slot];
+    CEoh *handle = &eoh[no];
     switch (handle->type) {
         case EOH_TYPE_SPRITE: {
             CEventSprite2 *sprite = handle->sprite;
@@ -1161,6 +1682,7 @@ int CEohMother::GetColor(int slot, float *color) {
     }
     return 0;
 }
+
 char *CEohMother::GetNowMotionName(int slot) {
     if (slot < 0 || slot >= EOH_NUM) {
         return NULL;
@@ -1177,11 +1699,12 @@ char *CEohMother::GetNowMotionName(int slot) {
     }
     return NULL;
 }
-int CEohMother::GetNowMotionStatus(int slot) {
-    if (slot < 0 || slot >= EOH_NUM) {
+
+int CEohMother::GetNowMotionStatus(int no) {
+    if (no < 0 || no >= EOH_NUM) {
         return 0;
     }
-    CEoh *handle = &eoh[slot];
+    CEoh *handle = &eoh[no];
     switch (handle->type) {
         case EOH_TYPE_CHARA: {
             CCharacter2 *chara = (CCharacter2 *)handle->object;
@@ -1193,12 +1716,13 @@ int CEohMother::GetNowMotionStatus(int slot) {
     }
     return 0;
 }
+
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/event_func", SetMotionNowTime__10CEohMotherFif);
-int CEohMother::SetMotionWaitTime(int slot, float rate) {
-    if (slot < 0 || slot >= EOH_NUM) {
+int CEohMother::SetMotionWaitTime(int no, float rate) {
+    if (no < 0 || no >= EOH_NUM) {
         return 0;
     }
-    CEoh *handle = &eoh[slot];
+    CEoh *handle = &eoh[no];
     switch (handle->type) {
         case EOH_TYPE_CHARA: {
             CObject **held = &handle->object;
@@ -1218,31 +1742,33 @@ int CEohMother::SetMotionWaitTime(int slot, float rate) {
             return 1;
         }
         default:
-            return 0;
-    }
-}
-int CEohMother::SetFootSoundID(int slot, int soundId) {
-    if (slot < 0 || slot >= EOH_NUM) {
         return 0;
     }
-    CEoh *handle = &eoh[slot];
+}
+
+int CEohMother::SetFootSoundID(int no, int id) {
+    if (no < 0 || no >= EOH_NUM) {
+        return 0;
+    }
+    CEoh *handle = &eoh[no];
     switch (handle->type) {
         case EOH_TYPE_CHARA: {
             CCharacter2 *chara = handle->chara;
             if (chara == NULL) {
                 return 0;
             }
-            chara->foot_sound_id = soundId;
+            chara->foot_sound_id = id;
             return 1;
         }
     }
     return 0;
 }
-int CEohMother::GetFramePos(int slot, char *name, float *pos) {
-    if (slot < 0 || slot >= EOH_NUM) {
+
+int CEohMother::GetFramePos(int no, char *name, float *pos) {
+    if (no < 0 || no >= EOH_NUM) {
         return 0;
     }
-    CEoh *handle = &eoh[slot];
+    CEoh *handle = &eoh[no];
     switch (handle->type) {
         case EOH_TYPE_CHARA: {
             CCharacter2 *chara = handle->chara;
@@ -1263,28 +1789,30 @@ int CEohMother::GetFramePos(int slot, char *name, float *pos) {
     }
     return 0;
 }
-int CEohMother::SetSoundID(int slot, u32 soundId) {
-    if (slot < 0 || slot >= EOH_NUM) {
+
+int CEohMother::SetSoundID(int no, unsigned int id) {
+    if (no < 0 || no >= EOH_NUM) {
         return 0;
     }
-    CEoh *handle = &eoh[slot];
+    CEoh *handle = &eoh[no];
     switch (handle->type) {
         case EOH_TYPE_CHARA: {
             CCharacter2 *chara = handle->chara;
             if (chara == NULL) {
                 return 0;
             }
-            chara->se_bank = soundId;
+            chara->se_bank = id;
             return 1;
         }
     }
     return 0;
 }
-int CEohMother::GetFrameShow(int slot, char *name) {
-    if (slot < 0 || slot >= EOH_NUM) {
+
+int CEohMother::GetFrameShow(int no, char *name) {
+    if (no < 0 || no >= EOH_NUM) {
         return 0;
     }
-    CEoh *handle = &eoh[slot];
+    CEoh *handle = &eoh[no];
     switch (handle->type) {
         case EOH_TYPE_CHARA: {
             CCharacter2 *chara = handle->chara;
@@ -1315,11 +1843,12 @@ int CEohMother::GetFrameShow(int slot, char *name) {
     }
     return 0;
 }
-int CEohMother::SetFadeFlag(int slot, int flag) {
-    if (slot < 0 || slot >= EOH_NUM) {
+
+int CEohMother::SetFadeFlag(int no, int flag) {
+    if (no < 0 || no >= EOH_NUM) {
         return 0;
     }
-    CEoh *handle = &eoh[slot];
+    CEoh *handle = &eoh[no];
     switch (handle->type) {
         case EOH_TYPE_CHARA: {
             CCharacter2 *chara = (CCharacter2 *)handle->object;
@@ -1330,14 +1859,15 @@ int CEohMother::SetFadeFlag(int slot, int flag) {
             return 1;
         }
         default:
-            return 0;
-    }
-}
-int CEohMother::ResetDAPosition(int slot) {
-    if (slot < 0 || slot >= EOH_NUM) {
         return 0;
     }
-    CEoh *handle = &eoh[slot];
+}
+
+int CEohMother::ResetDAPosition(int no) {
+    if (no < 0 || no >= EOH_NUM) {
+        return 0;
+    }
+    CEoh *handle = &eoh[no];
     switch (handle->type) {
         case EOH_TYPE_CHARA: {
             CCharacter2 **chara = (CCharacter2 **)&handle->object;
@@ -1351,11 +1881,12 @@ int CEohMother::ResetDAPosition(int slot) {
     }
     return 0;
 }
-int CEohMother::NormalDrive(int slot) {
-    if (slot < 0 || slot >= EOH_NUM) {
+
+int CEohMother::NormalDrive(int no) {
+    if (no < 0 || no >= EOH_NUM) {
         return 0;
     }
-    CEoh *handle = &eoh[slot];
+    CEoh *handle = &eoh[no];
     switch (handle->type) {
         case EOH_TYPE_CHARA: {
             CCharacter2 *chara = (CCharacter2 *)handle->object;
@@ -1366,15 +1897,16 @@ int CEohMother::NormalDrive(int slot) {
             break;
         }
         default:
-            return 0;
+        return 0;
     }
     return 1;
 }
-int CEohMother::UpdatePosition(int slot) {
-    if (slot < 0 || slot >= EOH_NUM) {
+
+int CEohMother::UpdatePosition(int no) {
+    if (no < 0 || no >= EOH_NUM) {
         return 0;
     }
-    CEoh *handle = &eoh[slot];
+    CEoh *handle = &eoh[no];
     switch (handle->type) {
         case EOH_TYPE_CHARA: {
             CCharacter2 *chara = handle->chara;
@@ -1385,15 +1917,16 @@ int CEohMother::UpdatePosition(int slot) {
             break;
         }
         default:
-            return 0;
+        return 0;
     }
     return 1;
 }
-int CEohMother::SetFrameObjAlpha(int slot, char *name, float alpha) {
-    if (slot < 0 || slot >= EOH_NUM) {
+
+int CEohMother::SetFrameObjAlpha(int no, char *name, float alpha) {
+    if (no < 0 || no >= EOH_NUM) {
         return 0;
     }
-    CEoh *handle = &eoh[slot];
+    CEoh *handle = &eoh[no];
     switch (handle->type) {
         case EOH_TYPE_CHARA: {
             CCharacter2 *chara = handle->chara;
@@ -1429,72 +1962,106 @@ int CEohMother::SetFrameObjAlpha(int slot, char *name, float alpha) {
     }
     return 0;
 }
-int CEohMother::SetFootSeId(int slot, int stamp) {
-    if (slot < 0 || slot >= EOH_NUM) {
+
+int CEohMother::SetFootSeId(int no, int id) {
+    if (no < 0 || no >= EOH_NUM) {
         return 0;
     }
-    CEoh *handle = &eoh[slot];
+    CEoh *handle = &eoh[no];
     switch (handle->type) {
         case EOH_TYPE_CHARA: {
             CCharacter2 *chara = handle->chara;
             if (chara == NULL) {
                 return 0;
             }
-            chara->foot_se_bank = stamp;
+            chara->foot_se_bank = id;
             break;
         }
         default:
-            return 0;
+        return 0;
     }
     return 1;
 }
-void FileNameConvLanguage(char *name) {
-    ExtensionTable extension = at_1084;
+
+/**
+ * Replaces the language code in supported resource filename extensions.
+ */
+static void FileNameConvLanguage(char *name) {
+    char *extension[4] = {"txt", "img", "stb", ""};
     char marker[32];
     char *found;
     int i;
 
     for (i = 0; i < 3; i++) {
-        sprintf(marker, at_1103__2, extension.name[i]);
+        sprintf(marker, "_1.%s", extension[i]);
         if ((found = strstr(name, marker)) != NULL) {
             switch (LanguageCode) {
                 case 2:
                 case 3:
                 case 4:
                 case 5:
-                    sprintf(found, at_1104__3, LanguageCode, extension.name[i]);
+                    sprintf(found, "_%d.%s", LanguageCode, extension[i]);
                     break;
             }
         }
     }
 }
-extern "C" int GetStackInt__FP12RS_STACKDATA__2(RS_STACKDATA *stack) {
+
+/**
+ * Converts a floating-point script argument to an integer when needed.
+ */
+static int GetStackInt(RS_STACKDATA *stack) {
     if (stack->type == RS_FLOAT) {
-        return fptosi(stack->f);
+        return (int)(stack->f);
     }
     return stack->i;
 }
-extern "C" float GetStackFloat__FP12RS_STACKDATA__2(RS_STACKDATA *stack) {
+
+/**
+ * Converts an integer script argument to floating point when needed.
+ */
+static float GetStackFloat(RS_STACKDATA *stack) {
     if (stack->type == RS_INT) {
         return (float)stack->i;
     }
     return stack->f;
 }
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/event_func", GetStackVector__FPfP12RS_STACKDATA);
-extern "C" char *GetStackString__FP12RS_STACKDATA__2(RS_STACKDATA *stack) {
+
+/**
+ * Reads three script values as a position vector.
+ */
+static void GetStackVector(float *out, RS_STACKDATA *stack) {
+    out[0] = GetStackFloat(stack++);
+    out[1] = GetStackFloat(stack++);
+    out[2] = GetStackFloat(stack++);
+    out[3] = 1.0f;
+}
+/**
+ * Returns a script argument as a string.
+ */
+static char *GetStackString(RS_STACKDATA *stack) {
     return stack->s;
 }
-extern "C" void SetStack__FP12RS_STACKDATAi__2(RS_STACKDATA *stack, int value) {
+
+/**
+ * Writes a value through a script pointer argument.
+ */
+static void SetStack(RS_STACKDATA *stack, int value) {
     if (stack->type == RS_PTR) {
         stack->p->i = value;
     }
 }
-extern "C" void SetStack__FP12RS_STACKDATAf__2(RS_STACKDATA *stack, float value) {
+
+/**
+ * Writes a value through a script pointer argument.
+ */
+static void SetStack(RS_STACKDATA *stack, float value) {
     if (stack->type == RS_PTR) {
         stack->p->f = value;
     }
 }
-void CEventScriptArg::BuildArgData(u32 *program) {
+
+void CEventScriptArg::BuildArgData(unsigned int *program) {
     RS_STACKDATA stack[script_stack_slots];
     RS_CALLDATA calls[script_call_slots];
     int (*funcTable[script_func_slots])(RS_STACKDATA *, int);
@@ -1512,16 +2079,16 @@ void CEventScriptArg::BuildArgData(u32 *program) {
             break;
         }
         for (j = 0; j < count; j++) {
-            if (esa_ext_func_info[i].id == esa_ext_func_info[j].id) {
-                printf(at_1245);
+            if (esa_ext_func_info[i].no == esa_ext_func_info[j].no) {
+                printf("EvectScriptArg same ext_func_no!!!\n");
                 while (1) {
                 }
             }
         }
-        if (esa_ext_func_info[i].id < 0 || esa_ext_func_info[i].id >= script_func_slots) {
-            printf(at_1246);
+        if (esa_ext_func_info[i].no < 0 || esa_ext_func_info[i].no >= script_func_slots) {
+            printf("EvectScriptArg ext func over!!\n");
         } else {
-            funcTable[esa_ext_func_info[i].id] = esa_ext_func_info[i].func;
+            funcTable[esa_ext_func_info[i].no] = esa_ext_func_info[i].func;
         }
         i++;
         count++;
@@ -1533,26 +2100,39 @@ void CEventScriptArg::BuildArgData(u32 *program) {
     script.run(script_run_id);
     nowScriptArg = NULL;
 }
+
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/event_func", _DATA__FP12RS_STACKDATAi);
-int _ID_OFFSET(RS_STACKDATA *stack, int argCount) {
-    if (nowScriptArg == 0)
+/**
+ * Id offset.
+ */
+static int _ID_OFFSET(RS_STACKDATA *stack, int argc) {
+    if (nowScriptArg == 0) {
         return 0;
-    nowScriptArg->next_id = GetStackInt__FP12RS_STACKDATA__2(stack);
+    }
+    nowScriptArg->next_id = GetStackInt(stack);
     return 1;
 }
-int GetArgInt(ARG_DATA *arg) {
+
+/**
+ * Returns an argument-list value as an integer.
+ */
+static int GetArgInt(ARG_DATA *arg) {
     if (arg == NULL) {
-        printf(at_1333);
+        printf("GetArgInt err[null_pointer]\n");
         return 0;
     }
     if (arg->type == RS_FLOAT) {
-        return fptosi(arg->f);
+        return (int)(arg->f);
     }
     return arg->i;
 }
-float GetArgFloat(ARG_DATA *arg) {
+
+/**
+ * Returns an argument-list value as floating point.
+ */
+static float GetArgFloat(ARG_DATA *arg) {
     if (arg == NULL) {
-        printf(at_1346__2);
+        printf("GetArgFloat err[null_pointer]\n");
         return 0.0f;
     }
     if (arg->type == RS_INT) {
@@ -1560,19 +2140,28 @@ float GetArgFloat(ARG_DATA *arg) {
     }
     return arg->f;
 }
-char *GetArgString(ARG_DATA *arg) {
+
+/**
+ * Returns an argument-list value as a string.
+ */
+static char *GetArgString(ARG_DATA *arg) {
     if (arg == NULL) {
-        printf(at_1357__3);
+        printf("GetArgString err[null_pointer]\n");
         return 0;
     }
     return arg->s;
 }
-void GetArgVector(float *vec, ARG_DATA *arg) {
+
+/**
+ * Reads three consecutive vector components from an argument list.
+ */
+static void GetArgVector(float *vec, ARG_DATA *arg) {
     vec[0] = GetArgFloat(arg++);
     vec[1] = GetArgFloat(arg++);
     vec[2] = GetArgFloat(arg++);
     vec[3] = 1.0f;
 }
+
 void CRaster::Initialize(void) {
     state = RASTER_OFF;
     amplitude_step = 0.0f;
@@ -1586,81 +2175,85 @@ void CRaster::Initialize(void) {
     frames = -1;
     frame = 0;
 }
+
 void CRaster::SetParam(float amplitude, float speed, float pitch) {
     this->amplitude = amplitude;
     this->speed = speed;
     this->pitch = pitch;
 }
-void CRaster::StartRaster(float target0, float target1, float target2, int frames) {
+
+void CRaster::StartRaster(float amplitude, float speed, float pitch, int frames) {
     this->frames = frames;
     frame = 0;
     if (this->frames > 1) {
-        state = 1;
-        if (target0 != -1.0f) {
-            amplitude_step = (target0 - amplitude) / (float)this->frames;
+        state = RASTER_START;
+        if (amplitude != -1.0f) {
+            amplitude_step = (amplitude - this->amplitude) / (float)this->frames;
         } else {
             amplitude_step = 0.0f;
         }
-        if (target1 != -1.0f) {
-            speed_step = (target1 - speed) / (float)this->frames;
+        if (speed != -1.0f) {
+            speed_step = (speed - this->speed) / (float)this->frames;
         } else {
             speed_step = 0.0f;
         }
-        if (target2 != -1.0f) {
-            pitch_step = (target2 - pitch) / (float)this->frames;
+        if (pitch != -1.0f) {
+            pitch_step = (pitch - this->pitch) / (float)this->frames;
             return;
         }
         pitch_step = 0.0f;
         return;
     }
-    if (target0 != -1.0f) {
-        amplitude = target0;
+    if (amplitude != -1.0f) {
+        this->amplitude = amplitude;
     }
-    if (target1 != -1.0f) {
-        speed = target1;
+    if (speed != -1.0f) {
+        this->speed = speed;
     }
-    if (target2 != -1.0f) {
-        pitch = target2;
+    if (pitch != -1.0f) {
+        this->pitch = pitch;
     }
-    state = 2;
+    state = RASTER_ON;
 }
-void CRaster::StopRaster(float target0, float target1, float target2, int frames) {
+
+void CRaster::StopRaster(float amplitude, float speed, float pitch, int frames) {
     this->frames = frames;
     frame = 0;
     if (this->frames > 1) {
-        state = 3;
-        if (target0 != -1.0f) {
-            amplitude_step = (target0 - amplitude) / (float)this->frames;
+        state = RASTER_STOP;
+        if (amplitude != -1.0f) {
+            amplitude_step = (amplitude - this->amplitude) / (float)this->frames;
         } else {
             amplitude_step = 0.0f;
         }
-        if (target1 != -1.0f) {
-            speed_step = (target1 - speed) / (float)this->frames;
+        if (speed != -1.0f) {
+            speed_step = (speed - this->speed) / (float)this->frames;
         } else {
             speed_step = 0.0f;
         }
-        if (target2 != -1.0f) {
-            pitch_step = (target2 - pitch) / (float)this->frames;
+        if (pitch != -1.0f) {
+            pitch_step = (pitch - this->pitch) / (float)this->frames;
             return;
         }
         pitch_step = 0.0f;
         return;
     }
-    if (target0 != -1.0f) {
-        amplitude = target0;
+    if (amplitude != -1.0f) {
+        this->amplitude = amplitude;
     }
-    if (target1 != -1.0f) {
-        speed = target1;
+    if (speed != -1.0f) {
+        this->speed = speed;
     }
-    if (target2 != -1.0f) {
-        pitch = target2;
+    if (pitch != -1.0f) {
+        this->pitch = pitch;
     }
-    state = 0;
+    state = RASTER_OFF;
 }
+
 void CRaster::StepRaster(void) {
     switch (state) {
-        case 1:
-        case 3:
+        case RASTER_START:
+        case RASTER_STOP:
             amplitude += amplitude_step;
             if (amplitude < 0.0f) {
                 amplitude = 0.0f;
@@ -1683,19 +2276,20 @@ void CRaster::StepRaster(void) {
             if (frame >= this->frames) {
                 frame = 0;
                 this->frames = -1;
-                if (state == 1) {
-                    state = 2;
+                if (state == RASTER_START) {
+                    state = RASTER_ON;
                 }
-                if (state == 3) {
-                    state = 0;
+                if (state == RASTER_STOP) {
+                    state = RASTER_OFF;
                 }
             }
             break;
-        case 2:
-        case 0:
+        case RASTER_ON:
+        case RASTER_OFF:
             break;
     }
 }
+
 void CRaster::DrawRaster(void) {
     int width;
     int y;
@@ -1703,7 +2297,7 @@ void CRaster::DrawRaster(void) {
     float current_phase;
     float nextY;
 
-    if (state != 0) {
+    if (state != RASTER_OFF) {
         mgCTexture screen;
 
         mgGetFrameBuffer(&screen);
@@ -1715,7 +2309,7 @@ void CRaster::DrawRaster(void) {
         slot.ZMask(-1);
         slot.TextureMapEnable(1);
         current_phase = phase;
-        slot.Begin(prim_sprite);
+        slot.Begin(MG_PRIM_SPRITE);
         slot.Texture(&screen);
         slot.Color(half_color, half_color, half_color, half_color);
         for (y = 0; y < mgScreenHeight; y++) {
@@ -1725,16 +2319,16 @@ void CRaster::DrawRaster(void) {
             slot.TextureCrd(mgScreenWidth, y + 1);
             slot.Vertex(shift + (float)mgScreenWidth, nextY = 1.0f + (float)y, 0.0f);
             if (shift != 0.0f) {
-                if (!(shift <= 0.0f)) {
+                if (shift > 0.0f) {
                     width = mgScreenWidth;
-                    slot.TextureCrd(width - fptosi(shift), y);
+                    slot.TextureCrd(width - (int)(shift), y);
                     slot.Vertex(0.0f, (float)y, 0.0f);
                     slot.TextureCrd(mgScreenWidth, y + 1);
                     slot.Vertex(shift, nextY, 0.0f);
                 } else {
                     slot.TextureCrd(0, y);
                     slot.Vertex((float)mgScreenWidth + shift, (float)y, 0.0f);
-                    slot.TextureCrd(fptosi(-shift), y + 1);
+                    slot.TextureCrd((int)(-shift), y + 1);
                     slot.Vertex((float)mgScreenWidth, nextY, 0.0f);
                 }
             }
@@ -1746,6 +2340,7 @@ void CRaster::DrawRaster(void) {
         phase = mgAngleLimit(phase);
     }
 }
+
 void CScreenEffect::Initialize(void) {
     raster.Initialize();
     sepia_texture = NULL;
@@ -1757,9 +2352,11 @@ void CScreenEffect::Initialize(void) {
     mono_flash_frame = 0;
     mono_flash_no = 0;
 }
+
 void CScreenEffect::Step(void) {
     raster.StepRaster();
 }
+
 void CScreenEffect::Draw(void) {
 
     mgCTextureManager *manager = &mgTexManager;
@@ -1773,7 +2370,7 @@ void CScreenEffect::Draw(void) {
         sepia_prim.AlphaBlendEnable(0);
         sepia_prim.ZMask(-1);
         sepia_prim.TextureMapEnable(1);
-        sepia_prim.Begin(prim_sprite);
+        sepia_prim.Begin(MG_PRIM_SPRITE);
         sepia_prim.Texture(sepia_texture);
         sepia_prim.Color(half_color, half_color, half_color, half_color);
         sepia_prim.TextureCrd(0, 0);
@@ -1792,7 +2389,7 @@ void CScreenEffect::Draw(void) {
             flash.AlphaBlendEnable(0);
             flash.ZMask(-1);
             flash.TextureMapEnable(1);
-            flash.Begin(prim_sprite);
+            flash.Begin(MG_PRIM_SPRITE);
             flash.Texture(mono_flash_texture[mono_flash_no]);
             flash.Color(half_color, half_color, half_color, half_color);
             flash.TextureCrd(0, 0);
@@ -1802,23 +2399,27 @@ void CScreenEffect::Draw(void) {
             flash.End();
             mono_flash_frame++;
             if (mono_flash_frame >= mono_flash_interval) {
-                mono_flash_no = ((mono_flash_no != 0) ^ 1) & 0xFF;
+                mono_flash_no = !mono_flash_no;
                 mono_flash_frame = 0;
             }
         }
     }
     raster.DrawRaster();
 }
+
 void CScreenEffect::InitRaster(float amplitude, float speed, float pitch) {
     raster.Initialize();
     raster.SetParam(amplitude, speed, pitch);
 }
-void CScreenEffect::StartRaster(float target0, float target1, float target2, int frames) {
-    raster.StartRaster(target0, target1, target2, frames);
+
+void CScreenEffect::StartRaster(float amplitude, float speed, float pitch, int frames) {
+    raster.StartRaster(amplitude, speed, pitch, frames);
 }
-void CScreenEffect::StopRaster(float target0, float target1, float target2, int frames) {
-    raster.StopRaster(target0, target1, target2, frames);
+
+void CScreenEffect::StopRaster(float amplitude, float speed, float pitch, int frames) {
+    raster.StopRaster(amplitude, speed, pitch, frames);
 }
+
 void CScreenEffect::SetSepiaTexture(mgCTexture *texture, u_long128 *image) {
     if (texture != NULL) {
         sepia_texture = texture;
@@ -1826,25 +2427,28 @@ void CScreenEffect::SetSepiaTexture(mgCTexture *texture, u_long128 *image) {
         sepia_texture->image[0] = image;
     }
 }
+
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/event_func", CaptureSepiaScreen__13CScreenEffectFv);
-void CScreenEffect::SetSepiaFlag(int enabled) {
+void CScreenEffect::SetSepiaFlag(s32 enabled) {
     if (sepia_texture != NULL) {
         sepia = enabled;
         return;
     }
     sepia = 0;
 }
-void CScreenEffect::SetMonoFlashTexture(mgCTexture **textures, u_long128 **vramImages) {
-    if (textures[0] == NULL || textures[1] == NULL) {
+
+void CScreenEffect::SetMonoFlashTexture(mgCTexture **texture, u_long128 **image) {
+    if (texture[0] == NULL || texture[1] == NULL) {
         return;
     }
-    mono_flash_texture[0] = textures[0];
-    mono_flash_texture[0]->image[0] = vramImages[0];
-    mono_flash_texture[1] = textures[1];
-    mono_flash_texture[1]->image[0] = vramImages[1];
+    mono_flash_texture[0] = texture[0];
+    mono_flash_texture[0]->image[0] = image[0];
+    mono_flash_texture[1] = texture[1];
+    mono_flash_texture[1]->image[0] = image[1];
 }
+
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/event_func", CaptureMonoFlashScreen__13CScreenEffectFv);
-void CScreenEffect::SetMonoFlashFlag(int enabled, int interval) {
+void CScreenEffect::SetMonoFlashFlag(s32 enabled, s32 interval) {
     if (mono_flash_texture[0] != NULL || mono_flash_texture[1] != NULL) {
         mono_flash = enabled;
     } else {
@@ -1854,6 +2458,7 @@ void CScreenEffect::SetMonoFlashFlag(int enabled, int interval) {
     mono_flash_frame = 0;
     mono_flash_no = 0;
 }
+
 void InitWorldCoord(void) {
     EdEventInfo.world_coord_pos[2] = 0.0f;
     EdEventInfo.world_coord_pos[1] = 0.0f;
@@ -1865,25 +2470,26 @@ void InitWorldCoord(void) {
     EdEventInfo.world_coord_rot[1] = 0.0f;
     EdEventInfo.world_coord_rot[0] = 0.0f;
 }
-int GetLocalFlag(int index) {
+
+int GetLocalFlag(int no) {
     int bit;
     int inRange;
     int word;
 
-    word = index >> 5;
-    if (index < 0) {
+    word = no >> 5;
+    if (no < 0) {
         return 0;
     }
     inRange = word < event_local_num;
-    if (index < 0) {
-        word = (int)(index + 0x1F) >> 5;
+    if (no < 0) {
+        word = (int)(no + 0x1F) >> 5;
         inRange = word < event_local_num;
     }
-    bit = index & 0x1F;
+    bit = no & 0x1F;
     if (inRange == 0) {
         return 0;
     }
-    if (index < 0) {
+    if (no < 0) {
         if (bit != 0) {
             bit -= 0x20;
         }
@@ -1891,7 +2497,8 @@ int GetLocalFlag(int index) {
     int mask = 1 << bit;
     return (mask & EventLocalFlag[word]) != 0;
 }
-int SetLocalFlag(int index, int value) {
+
+int SetLocalFlag(int no, int on) {
 
     int bit;
     int inRange;
@@ -1899,45 +2506,48 @@ int SetLocalFlag(int index, int value) {
     int mask;
     u32 *flags;
 
-    word = index >> 5;
-    if (index < 0) {
+    word = no >> 5;
+    if (no < 0) {
         return 0;
     }
     inRange = word < event_local_num;
-    if (index < 0) {
-        word = (int)(index + 0x1F) >> 5;
+    if (no < 0) {
+        word = (int)(no + 0x1F) >> 5;
         inRange = word < event_local_num;
     }
-    bit = index & 0x1F;
+    bit = no & 0x1F;
     if (inRange == 0) {
         return 0;
     }
-    if (index < 0) {
+    if (no < 0) {
         if (bit != 0) {
             bit -= 0x20;
         }
     }
     mask = 1 << bit;
-    flags = EventLocalFlag + word;
+    flags = &EventLocalFlag[word];
     *flags &= ~mask;
-    if (value != 0) {
+    if (on != 0) {
         *flags |= mask;
     }
-    return value;
+    return on;
 }
-int GetLocalCnt(int index) {
-    if (index < 0 || index >= event_local_num) {
+
+int GetLocalCnt(int no) {
+    if (no < 0 || no >= event_local_num) {
         return -1;
     }
-    return EventLocalCnt[index];
+    return EventLocalCnt[no];
 }
-int SetLocalCnt(int index, int value) {
-    if (index < 0 || index >= event_local_num) {
+
+int SetLocalCnt(int no, int value) {
+    if (no < 0 || no >= event_local_num) {
         return 0;
     }
-    EventLocalCnt[index] = value;
+    EventLocalCnt[no] = value;
     return 1;
 }
+
 int GetLocalCnt2(int value) {
     int i;
     for (i = 0; i < event_local_num; i++) {
@@ -1947,12 +2557,14 @@ int GetLocalCnt2(int value) {
     }
     return -1;
 }
+
 void InitLocalCnt(void) {
     int i;
     for (i = 0; i < event_local_num; i++) {
         EventLocalCnt[i] = 0;
     }
 }
+
 void EdEventInfoCommandInitialize(void) {
     int i;
 
@@ -1980,6 +2592,7 @@ void EdEventInfoCommandInitialize(void) {
     EdEventInfo.pack_loaded = 0;
     EdEventInfo.stream_reading = 0;
 }
+
 void EventSeqInit(void) {
     int i;
     for (i = 0; i < EOH_NUM; i++) {
@@ -2009,18 +2622,19 @@ void EventSeqInit(void) {
     EventScriptArg.list_num = 0;
     EventScriptArg.memory = 0;
 }
+
 void EdEventInit(void) {
     int i;
 
     BuffEventSnd.stSetBuffer(event_snd_buff, event_snd_buffer_size);
-    if (strlen(at_1760__3) < memory_name_max) {
-        strcpy((char *)&BuffEventSnd, at_1760__3);
+    if (strlen("Event Snd Buffer") < memory_name_max) {
+        strcpy(BuffEventSnd.name, "Event Snd Buffer");
     }
     BuffEventSnd.stack_used = 0;
     BuffEventSnd.lock = 0;
     BuffEventSnd2.stSetBuffer(event_snd2_buff, event_snd2_buffer_size);
-    if (strlen(at_1761__3) < memory_name_max) {
-        strcpy((char *)&BuffEventSnd2, at_1761__3);
+    if (strlen("Event Snd2 Buffer") < memory_name_max) {
+        strcpy(BuffEventSnd2.name, "Event Snd2 Buffer");
     }
     BuffEventSnd2.stack_used = 0;
     BuffEventSnd2.lock = 0;
@@ -2077,15 +2691,16 @@ void EdEventInit(void) {
     EventScriptArg.memory = 0;
     EventScreenEffect.Initialize();
 }
+
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/event_func", EventTimeDraw__Fv);
 void EdEventDraw(void) {
-    int hitNo;
-    int spriteNo;
+    int hit_no;
+    int sprite_no;
 
     EventRain.Step();
     EventRain.Draw();
-    for (hitNo = 0; hitNo < hit_effect_num; hitNo++) {
-        HitEffect[hitNo].Draw();
+    for (hit_no = 0; hit_no < hit_effect_num; hit_no++) {
+        HitEffect[hit_no].Draw();
     }
     if (SwordEffect != NULL) {
         SwordEffect->Draw();
@@ -2097,13 +2712,14 @@ void EdEventDraw(void) {
     EventDngMap.Draw();
     esMother.Step();
     esMother.Draw();
-    for (spriteNo = 0; spriteNo < event_sprite2_num; spriteNo++) {
-        EventSprite2[spriteNo].NormalDraw();
+    for (sprite_no = 0; sprite_no < event_sprite2_num; sprite_no++) {
+        EventSprite2[sprite_no].NormalDraw();
     }
     EventScreenEffect.Draw();
     DrawMenuDl(0x80);
     DrawDownLoadAnaunce();
 }
+
 void EdEventFirstDraw(void) {
     int i;
 
@@ -2111,6 +2727,7 @@ void EdEventFirstDraw(void) {
         EventSprite2[i].FirstDraw();
     }
 }
+
 int EdEventFinish(void) {
     mgCCamera *camera;
     int i;
@@ -2184,20 +2801,21 @@ int EdEventFinish(void) {
     EventScreenEffect.Initialize();
     return 1;
 }
+
 int EdEventStep(void) {
-    int seqNo;
-    int hitNo;
+    int seq_no;
+    int hit_no;
 
     mgSetProjection(EdEventInfo.projection);
-    for (seqNo = 0; seqNo < object_seq_num; seqNo++) {
-        ObjectSeq[seqNo].Play();
+    for (seq_no = 0; seq_no < object_seq_num; seq_no++) {
+        ObjectSeq[seq_no].Play();
     }
     CameraSeq.Play();
     if (Sphida != NULL) {
         Sphida->Step();
     }
-    for (hitNo = 0; hitNo < hit_effect_num; hitNo++) {
-        HitEffect[hitNo].Step();
+    for (hit_no = 0; hit_no < hit_effect_num; hit_no++) {
+        HitEffect[hit_no].Step();
     }
     if (SwordEffect != NULL) {
         SwordEffect->CreatPointList();
@@ -2210,6 +2828,7 @@ int EdEventStep(void) {
     ReadBG();
     return 1;
 }
+
 void InitDramaScene(void) {
     EdEventInfo.skip_fade_color[0] = 0;
     EdEventInfo.skip_fade_color[1] = 0;
@@ -2218,15 +2837,18 @@ void InitDramaScene(void) {
     EdEventInfo.skip_fade_color[2] = 0;
     EdEventInfo.skip_fade_color[3] = 0;
 }
+
 void CancelDramaScene(void) {
     EdEventInfo.skip_state = 0;
 }
+
 void EdEventMenuExit(void) {
     if (p_use_item != 0) {
         p_use_item->i = MenuArg.result[0];
     }
     p_use_item = 0;
 }
+
 void EdEventLoopInit(void) {
     int i;
     for (i = 0; i < 12; i++) {
@@ -2239,22 +2861,23 @@ void EdEventLoopInit(void) {
     EdEventInfoCommandInitialize();
     EventScreenEffect.Initialize();
 }
+
 void EdSetBrokenObject(void) {
 }
+
 void ResetMesFileBuffAll(void) {
     int i;
     ClsMes *message;
 
-    i = 0;
-    do {
+    for (i = 0; i < 8; i++) {
         message = GetEventMessage(i);
         if (message != NULL) {
             message->mes_data = NULL;
             message->mes_data_size = 0;
         }
-        i += 1;
-    } while (i < 8);
+    }
 }
+
 void EdEventMapInit(void) {
     ClsMes *message;
     int i;
@@ -2334,6 +2957,7 @@ void EdEventMapInit(void) {
     EdEventInfo.stopwatch_y = 0;
     EdEventInfo.stopwatch_style = 0;
 }
+
 void EdEventTermination(void) {
     EdEventInfo.stream_playing = 0;
     if (EdEventInfo.stream_from_fpl == 1) {
@@ -2343,49 +2967,70 @@ void EdEventTermination(void) {
     CSnd.StreamClose(1);
     EdEventInfo.stream_reading = 0;
 }
+
 void EdEventEnd(void) {
     ResetMesFileBuffAll();
     EventSeqInit();
 }
-CSceneObjSeq *GetObjSeq(int index) {
+
+/**
+ * Returns an object sequence by its event index.
+ */
+static CSceneObjSeq *GetObjSeq(int index) {
     if (index < 0 || index >= object_seq_num) {
         return NULL;
     }
     return &ObjectSeq[index];
 }
-extern "C" int _GET_PADON__FP12RS_STACKDATAi(RS_STACKDATA *stack, int argCount) {
-    if (argCount <= 0) {
+
+/**
+ * Returns the padon to the script.
+ */
+static int _GET_PADON(RS_STACKDATA *stack, int argc) {
+    if (argc <= 0) {
         return 0;
     }
-    SetStack__FP12RS_STACKDATAi__2(stack, GamePad__2.GetPadOn());
+    SetStack(stack, GamePad__2.GetPadOn());
     return 1;
 }
-extern "C" int _GET_PADDOWN__FP12RS_STACKDATAi(RS_STACKDATA *stack, int argCount) {
-    if (argCount <= 0) {
+
+/**
+ * Returns the paddown to the script.
+ */
+static int _GET_PADDOWN(RS_STACKDATA *stack, int argc) {
+    if (argc <= 0) {
         return 0;
     }
-    SetStack__FP12RS_STACKDATAi__2(stack, GamePad__2.GetPadDown());
+    SetStack(stack, GamePad__2.GetPadDown());
     return 1;
 }
-extern "C" int _GET_PADUP__FP12RS_STACKDATAi(RS_STACKDATA *stack, int argCount) {
-    if (argCount <= 0) {
+
+/**
+ * Returns the padup to the script.
+ */
+static int _GET_PADUP(RS_STACKDATA *stack, int argc) {
+    if (argc <= 0) {
         return 0;
     }
-    SetStack__FP12RS_STACKDATAi__2(stack, GamePad__2.GetPadUp());
+    SetStack(stack, GamePad__2.GetPadUp());
     return 1;
 }
-int _GET_APAD(RS_STACKDATA *stack, int argCount) {
-    if (argCount > 0) {
-        SetStack__FP12RS_STACKDATAf__2(stack++, GamePad__2.GetLXf());
+
+/**
+ * Returns the apad to the script.
+ */
+static int _GET_APAD(RS_STACKDATA *stack, int argc) {
+    if (argc > 0) {
+        SetStack(stack++, GamePad__2.GetLXf());
     }
-    if (argCount > 1) {
-        SetStack__FP12RS_STACKDATAf__2(stack++, GamePad__2.GetLYf());
+    if (argc > 1) {
+        SetStack(stack++, GamePad__2.GetLYf());
     }
-    if (argCount > 2) {
-        SetStack__FP12RS_STACKDATAf__2(stack++, GamePad__2.GetRXf());
+    if (argc > 2) {
+        SetStack(stack++, GamePad__2.GetRXf());
     }
-    if (argCount > 3) {
-        SetStack__FP12RS_STACKDATAf__2(stack++, GamePad__2.GetRYf());
+    if (argc > 3) {
+        SetStack(stack++, GamePad__2.GetRYf());
     }
     return 1;
 }
@@ -2407,24 +3052,24 @@ u32 *CheckLoadedBGFile(char *name, int *size) {
 }
 u32 *GetLoadBGBuff(char *name, int *size) {
     char path[0x8C];
-    int loadedSize;
+    int loaded_size;
     u32 *buffer;
 
     strcpy(path, name);
     FileNameConvLanguage(path);
-    buffer = (u32 *)CheckLoadedBGFile(path, &loadedSize);
+    buffer = (u32 *)CheckLoadedBGFile(path, &loaded_size);
     if (buffer != NULL) {
-        printf(at_2245__2, path);
+        printf("---- EVENT LOAD BG [%s] ----\n", path);
         if (size != NULL) {
-            *size = loadedSize;
+            *size = loaded_size;
         }
     } else {
         if (EdEventInfo.pack_loaded == 1) {
-            printf(at_2246__2, path);
-            buffer = GetPackFile((u32 *)read_buffer, path, &loadedSize);
+            printf("---- EVENT LOAD PACK [%s] ----\n", path);
+            buffer = GetPackFile((u32 *)read_buffer, path, &loaded_size);
             if (buffer != NULL) {
                 if (size != NULL) {
-                    *size = loadedSize;
+                    *size = loaded_size;
                 }
             } else {
                 EdEventInfo.pack_loaded = 0;
@@ -2432,53 +3077,65 @@ u32 *GetLoadBGBuff(char *name, int *size) {
         }
         if (EdEventInfo.pack_loaded != 1) {
             if (EdEventInfo.stream_reading == 1) {
-                printf(at_2247__2);
-                printf(at_2248__2);
-                printf(at_2247__2);
+                printf("\n-------------------------------------------------------------------\n");
+                printf("EVENT ERR [NOW STREAM OPEN!!! <FILE ACCESS ERROR>]\n");
+                printf("\n-------------------------------------------------------------------\n");
                 while (1) {
                 }
             }
-            printf(at_2249__2, path);
-            if (LoadFile2(path, read_buffer, &loadedSize, 0) == 0) {
+            printf("---- EVENT LOAD FILE [%s] ----\n", path);
+            if (LoadFile2(path, read_buffer, &loaded_size, 0) == 0) {
                 buffer = NULL;
             } else {
                 buffer = (u32 *)read_buffer;
                 if (size != NULL) {
-                    *size = loadedSize;
+                    *size = loaded_size;
                 }
             }
         }
     }
     return buffer;
 }
-int _GOTO_INTERIOR(RS_STACKDATA *stack, int argCount) {
-    EdEventInfo.jump_point = GetStackInt__FP12RS_STACKDATA__2(stack++);
-    strcpy(EdEventInfo.jump_map_name, (char *)GetStackString__FP12RS_STACKDATA__2(stack++));
-    if (argCount > 2) {
-        EdEventInfo.event_no = GetStackInt__FP12RS_STACKDATA__2(stack++);
+
+/**
+ * Requests interior.
+ */
+static int _GOTO_INTERIOR(RS_STACKDATA *stack, int argc) {
+    EdEventInfo.jump_point = GetStackInt(stack++);
+    strcpy(EdEventInfo.jump_map_name, GetStackString(stack++));
+    if (argc > 2) {
+        EdEventInfo.event_no = GetStackInt(stack++);
     } else {
         EdEventInfo.event_no = 100;
     }
-    if (argCount > 3) {
-        EdEventInfo.interior_entrance = GetStackInt__FP12RS_STACKDATA__2(stack);
+    if (argc > 3) {
+        EdEventInfo.interior_entrance = GetStackInt(stack);
     } else {
         EdEventInfo.interior_entrance = 0;
     }
     EdEventInfo.request = 4;
     return 1;
 }
-int _GOTO_OUTSIDE(RS_STACKDATA *stack, int argCount) {
-    EdEventInfo.jump_point = GetStackInt__FP12RS_STACKDATA__2(stack++);
-    strcpy(EdEventInfo.jump_map_name, (char *)GetStackString__FP12RS_STACKDATA__2(stack++));
-    if (argCount > 2) {
-        EdEventInfo.event_no = GetStackInt__FP12RS_STACKDATA__2(stack);
+
+/**
+ * Requests outside.
+ */
+static int _GOTO_OUTSIDE(RS_STACKDATA *stack, int argc) {
+    EdEventInfo.jump_point = GetStackInt(stack++);
+    strcpy(EdEventInfo.jump_map_name, GetStackString(stack++));
+    if (argc > 2) {
+        EdEventInfo.event_no = GetStackInt(stack);
     } else {
         EdEventInfo.event_no = 100;
     }
     EdEventInfo.request = 7;
     return 1;
 }
-int _INITIALIZE(RS_STACKDATA *stack, int argCount) {
+
+/**
+ * Initialize .
+ */
+static int _INITIALIZE(RS_STACKDATA *stack, int argc) {
     mgCCameraFollow *camera;
 
     EdEventInit();
@@ -2489,77 +3146,95 @@ int _INITIALIZE(RS_STACKDATA *stack, int argCount) {
     camera->FollowOff();
     return 1;
 }
-int _LOAD_CHARA_sub(int stackNo, char **name, int charaNo, u32 *pack, int mode) {
+
+int _LOAD_CHARA_sub(int stack_no, char **name, int scene_no, unsigned int *data, int flag) {
     u32 *files[pack_file_max];
     int sizes[pack_file_max];
     char label[0x20];
     mgCMemory *stack;
-    int texBlock;
+    int texb;
     int result;
     mgCTextureManager *manager;
 
-    stack = (mgCMemory *)EventScene->GetStack(stackNo);
+    stack = (mgCMemory *)EventScene->GetStack(stack_no);
     if (*name == NULL) {
-        if (GetPackFileExt(pack, at_2291, files, pack_file_max, sizes, name) <= 0) {
+        if (GetPackFileExt(data, "cfg", files, pack_file_max, sizes, name) <= 0) {
             return 0;
         }
     }
-    texBlock = EventScene->GetCharaTexb(charaNo);
-    if (texBlock < 0) {
+    texb = EventScene->GetCharaTexb(scene_no);
+    if (texb < 0) {
         return 0;
     }
     manager = &mgTexManager;
-    manager->DeleteBlock(texBlock);
-    sprintf(label, at_2292__2, charaNo);
-    if (charaNo >= 8) {
+    manager->DeleteBlock(texb);
+    sprintf(label, "ev%d", scene_no);
+    if (scene_no >= 8) {
         strcpy(manager->name_suffix, label);
     }
-    result = EventScene->LoadChara(charaNo, pack, *name, stack, stack, stack, texBlock, mode);
-    if (charaNo >= 8) {
+    result = EventScene->LoadChara(scene_no, data, *name, stack, stack, stack, texb, flag);
+    if (scene_no >= 8) {
         manager->name_suffix[0] = 0;
     }
-    EventScene->SetType(1, charaNo, type_loaded);
+    EventScene->SetType(1, scene_no, type_loaded);
     return result;
 }
-int _LOAD_CHARA_sub(int a, char **b, int c, u32 *d) {
-    return _LOAD_CHARA_sub(a, b, c, d, 0);
-}
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/event_func", _LOAD_CHARA__FP12RS_STACKDATAi);
-int _CHARA_ACTIVE(RS_STACKDATA *stack, int argCount) {
-    int enable;
-    int charaNo;
 
-    switch (argCount) {
+int _LOAD_CHARA_sub(int stack_no, char **name, int scene_no, unsigned int *data) {
+    return _LOAD_CHARA_sub(stack_no, name, scene_no, data, 0);
+}
+
+INCLUDE_ASM("ps2/asm/pal/nonmatchings/event_func", _LOAD_CHARA__FP12RS_STACKDATAi);
+/**
+ * Character active.
+ */
+static int _CHARA_ACTIVE(RS_STACKDATA *stack, int argc) {
+    int enable;
+    int chara_no;
+
+    switch (argc) {
         case 1:
-            EventScene->SetActive(1, GetStackInt__FP12RS_STACKDATA__2(stack));
-            return 1;
+            EventScene->SetActive(1, GetStackInt(stack));
+        return 1;
         case 2:
-            enable = GetStackInt__FP12RS_STACKDATA__2(stack++);
-            charaNo = GetStackInt__FP12RS_STACKDATA__2(stack);
+            enable = GetStackInt(stack++);
+            chara_no = GetStackInt(stack);
             if (enable != 0) {
-                EventScene->SetActive(1, charaNo);
+                EventScene->SetActive(1, chara_no);
             } else {
-                EventScene->ResetActive(1, charaNo);
+                EventScene->ResetActive(1, chara_no);
             }
-            return 1;
+        return 1;
     }
     return 0;
 }
-int _CLEAR_STACK(RS_STACKDATA *stack, int argCount) {
-    EventScene->ClearStack(GetStackInt__FP12RS_STACKDATA__2(stack));
+
+/**
+ * Clear stack.
+ */
+static int _CLEAR_STACK(RS_STACKDATA *stack, int argc) {
+    EventScene->ClearStack(GetStackInt(stack));
     return 1;
 }
-int _ASSIGN_STACK(RS_STACKDATA *stack, int argCount) {
-    EventScene->AssignStack(GetStackInt__FP12RS_STACKDATA__2(stack));
+
+/**
+ * Assign stack.
+ */
+static int _ASSIGN_STACK(RS_STACKDATA *stack, int argc) {
+    EventScene->AssignStack(GetStackInt(stack));
     return 1;
 }
-int _SET_FLAG(RS_STACKDATA *stack, int argCount) {
+
+/**
+ * Sets the flag from the script arguments.
+ */
+static int _SET_FLAG(RS_STACKDATA *stack, int argc) {
     CSaveData *saveData;
     int bit;
     int value;
 
-    bit = GetStackInt__FP12RS_STACKDATA__2(stack++);
-    value = GetStackInt__FP12RS_STACKDATA__2(stack);
+    bit = GetStackInt(stack++);
+    value = GetStackInt(stack);
     saveData = GetSaveData();
     if (saveData == NULL) {
         return 0;
@@ -2567,14 +3242,18 @@ int _SET_FLAG(RS_STACKDATA *stack, int argCount) {
     saveData->SetBitFlag(bit, value);
     return 1;
 }
+
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/event_func", _GET_FLAG__FP12RS_STACKDATAi);
-int _SET_CNT(RS_STACKDATA *stack, int argCount) {
+/**
+ * Sets the cnt from the script arguments.
+ */
+static int _SET_CNT(RS_STACKDATA *stack, int argc) {
     CSaveData *saveData;
     int index;
     int value;
 
-    index = GetStackInt__FP12RS_STACKDATA__2(stack++);
-    value = GetStackInt__FP12RS_STACKDATA__2(stack);
+    index = GetStackInt(stack++);
+    value = GetStackInt(stack);
     saveData = GetSaveData();
     if (saveData == NULL) {
         return 0;
@@ -2582,109 +3261,132 @@ int _SET_CNT(RS_STACKDATA *stack, int argCount) {
     saveData->SetShortFlag(index, value);
     return 1;
 }
-int _GET_CNT(RS_STACKDATA *stack, int argCount) {
+
+/**
+ * Returns the cnt to the script.
+ */
+static int _GET_CNT(RS_STACKDATA *stack, int argc) {
     CSaveData *saveData;
     int index;
 
-    index = GetStackInt__FP12RS_STACKDATA__2(stack++);
+    index = GetStackInt(stack++);
     saveData = GetSaveData();
     if (saveData == NULL) {
         return 0;
     }
-    SetStack__FP12RS_STACKDATAi__2(stack, saveData->GetShortFlag(index));
+    SetStack(stack, saveData->GetShortFlag(index));
     return 1;
 }
-int _SET_CURRENT_DIR(RS_STACKDATA *stack, int argc) {
+
+/**
+ * Sets the current dir from the script arguments.
+ */
+static int _SET_CURRENT_DIR(RS_STACKDATA *stack, int argc) {
     char *dir = NULL;
     if (argc > 0) {
-        dir = GetStackString__FP12RS_STACKDATA__2(stack);
+        dir = GetStackString(stack);
     }
-    if (dir == NULL || strcmp(dir, at_2393__3) == 0 || strcmp(dir, at_1083) == 0) {
+    if (dir == NULL || strcmp(dir, "DEFAULT") == 0 || strcmp(dir, "") == 0) {
         SetCurrentDir(NULL);
     } else {
         SetCurrentDir(dir);
     }
     return 1;
 }
-int _CHANGE_DIR(RS_STACKDATA *stack, int argc) {
+
+/**
+ * Change dir.
+ */
+static int _CHANGE_DIR(RS_STACKDATA *stack, int argc) {
     char *dir = NULL;
     if (argc > 0) {
-        dir = GetStackString__FP12RS_STACKDATA__2(stack);
+        dir = GetStackString(stack);
     }
-    if (dir == NULL || strcmp(dir, at_2393__3) == 0 || strcmp(dir, at_1083) == 0) {
+    if (dir == NULL || strcmp(dir, "DEFAULT") == 0 || strcmp(dir, "") == 0) {
         SetCurrentDir(NULL);
     } else {
         ChangeDir(dir);
     }
     return 1;
 }
-int _DELETE_CHARA(RS_STACKDATA *stack, int argc) {
-    int charaNo;
-    int deleteTexture = 1;
-    charaNo = GetStackInt__FP12RS_STACKDATA__2(stack++);
-    if (argc >= 2) {
-        deleteTexture = GetStackInt__FP12RS_STACKDATA__2(stack);
-    }
-    int texBlock = EventScene->GetCharaTexb(charaNo);
 
-    if (texBlock >= 0) {
+/**
+ * Deletes the character.
+ */
+#ifdef NONMATCHING
+static int _DELETE_CHARA(RS_STACKDATA *stack, int argc) {
+    int chara_no;
+    int delete_texture = 1;
+    chara_no = GetStackInt(stack++);
+    if (argc >= 2) {
+        delete_texture = GetStackInt(stack);
+    }
+    int texb = EventScene->GetCharaTexb(chara_no);
+
+    if (texb >= 0) {
         mgCTextureManager *manager = &mgTexManager;
-        if (deleteTexture == 1) {
-            manager->DeleteBlock(texBlock);
+        if (delete_texture == 1) {
+            manager->DeleteBlock(texb);
         }
     }
-    EventScene->DeleteChara(charaNo);
+    EventScene->DeleteChara(chara_no);
     int i;
-    int offset;
-    for (i = 0, offset = 0; i < 32; i++, offset += 0x10) {
-        CEoh *handle = (CEoh *)((u8 *)&EventObjHandleMother + offset);
-        if (handle->type == 0) {
+    for (i = 0; i < EOH_NUM; i++) {
+        CEoh *handle = &EventObjHandleMother.eoh[i];
+        if (handle->type == EOH_TYPE_CHARA) {
             int *charaSlot = &handle->scene_no;
-            if (charaNo == handle->scene_no) {
-                handle->type = -1;
+            if (chara_no == handle->scene_no) {
+                handle->type = EOH_TYPE_NONE;
                 *charaSlot = -1;
                 handle->world_coord = 1;
+                handle->chara = NULL;
                 handle->object = NULL;
-                handle->object = NULL;
-                handle->object = NULL;
-                handle->object = NULL;
-                handle->object = NULL;
+                handle->sprite = NULL;
+                handle->frame = NULL;
+                handle->func_point = NULL;
             }
         }
     }
     return 1;
 }
-int _LOAD_MOTION_sub(int stackNo, char *name, int charaNo, u32 *pack) {
+#else
+INCLUDE_ASM("ps2/asm/pal/nonmatchings/event_func", _DELETE_CHARA__FP12RS_STACKDATAi);
+#endif
+int _LOAD_MOTION_sub(int stack_no, char *name, int scene_no, unsigned int *data) {
     char label[0x20];
-    mgCMemory *stack = (mgCMemory *)EventScene->GetStack(stackNo);
-    CCharacter2 *chara = EventScene->GetCharacter(charaNo);
+    mgCMemory *stack = (mgCMemory *)EventScene->GetStack(stack_no);
+    CCharacter2 *chara = EventScene->GetCharacter(scene_no);
     if (chara == NULL) {
         return 0;
     }
-    int texBlock = EventScene->GetCharaTexb(charaNo);
-    if (texBlock < 0) {
+    int texb = EventScene->GetCharaTexb(scene_no);
+    if (texb < 0) {
         return 0;
     }
-    sprintf(label, at_2292__2, charaNo);
+    sprintf(label, "ev%d", scene_no);
     mgCTextureManager *manager = &mgTexManager;
-    if (charaNo >= 8) {
+    if (scene_no >= 8) {
         strcpy(manager->name_suffix, label);
     }
-    chara->LoadPack(pack, name, stack, stack, stack, texBlock, 0);
-    if (charaNo >= 8) {
+    chara->LoadPack(data, name, stack, stack, stack, texb, 0);
+    if (scene_no >= 8) {
         manager->name_suffix[0] = 0;
     }
     return 1;
 }
-int _LOAD_MOTION(RS_STACKDATA *stack, int argc) {
-    int stackNo;
-    int charaNo;
-    char *packName;
-    char *motionName;
+
+/**
+ * Loads the motion.
+ */
+static int _LOAD_MOTION(RS_STACKDATA *stack, int argc) {
+    int stack_no;
+    int chara_no;
+    char *pack_name;
+    char *motion_name;
     u32 *pack;
     switch (argc) {
         case 1: {
-            int key = GetStackInt__FP12RS_STACKDATA__2(stack);
+            int key = GetStackInt(stack);
             int count;
             int i;
             ARG_LIST *node;
@@ -2723,119 +3425,155 @@ int _LOAD_MOTION(RS_STACKDATA *stack, int argc) {
             if (args == NULL) {
                 return 0;
             }
-            stackNo = GetArgInt(args++);
-            packName = (char *)GetArgString(args++);
-            motionName = (char *)GetArgString(args++);
-            charaNo = GetArgInt(args);
+            stack_no = GetArgInt(args++);
+            pack_name = GetArgString(args++);
+            motion_name = GetArgString(args++);
+            chara_no = GetArgInt(args);
             break;
         }
         case 4:
-            stackNo = GetStackInt__FP12RS_STACKDATA__2(stack++);
-            packName = GetStackString__FP12RS_STACKDATA__2(stack++);
-            motionName = GetStackString__FP12RS_STACKDATA__2(stack++);
-            charaNo = GetStackInt__FP12RS_STACKDATA__2(stack);
+            stack_no = GetStackInt(stack++);
+            pack_name = GetStackString(stack++);
+            motion_name = GetStackString(stack++);
+            chara_no = GetStackInt(stack);
             break;
         default:
-            return 0;
+        return 0;
     }
-    pack = GetLoadBGBuff(packName, 0);
+    pack = GetLoadBGBuff(pack_name, 0);
     if (pack == NULL) {
         return 0;
     }
-    return _LOAD_MOTION_sub(stackNo, motionName, charaNo, pack);
+    return _LOAD_MOTION_sub(stack_no, motion_name, chara_no, pack);
 }
-int _MAP_JUMP(RS_STACKDATA *stack, int argc) {
-    EdEventInfo.jump_point = GetStackInt__FP12RS_STACKDATA__2(stack++);
+
+/**
+ * Map jump.
+ */
+static int _MAP_JUMP(RS_STACKDATA *stack, int argc) {
+    EdEventInfo.jump_point = GetStackInt(stack++);
     switch (stack->type) {
         case 0:
-            strcpy(EdEventInfo.jump_map_name, GetMapName(GetStackInt__FP12RS_STACKDATA__2(stack++), NULL));
+            strcpy(EdEventInfo.jump_map_name, GetMapName(GetStackInt(stack++), NULL));
             break;
         case 2:
-            strcpy(EdEventInfo.jump_map_name, GetStackString__FP12RS_STACKDATA__2(stack++));
+            strcpy(EdEventInfo.jump_map_name, GetStackString(stack++));
             break;
         default:
-            return 0;
+        return 0;
     }
     if (argc > 2) {
-        EdEventInfo.event_no = GetStackInt__FP12RS_STACKDATA__2(stack);
+        EdEventInfo.event_no = GetStackInt(stack);
     } else {
         EdEventInfo.event_no = 100;
     }
     EdEventInfo.request = exit_map_jump;
     return 1;
 }
-int _SET_RAIN(RS_STACKDATA *stack, int argc) {
-    if (GetStackInt__FP12RS_STACKDATA__2(stack) != 0) {
+
+/**
+ * Sets the rain from the script arguments.
+ */
+static int _SET_RAIN(RS_STACKDATA *stack, int argc) {
+    if (GetStackInt(stack) != 0) {
         EventRain.Start();
     } else {
         EventRain.Stop();
     }
     return 1;
 }
-int _DEL_EXT_MOTION(RS_STACKDATA *stack, int argc) {
-    CCharacter2 *character = EventScene->GetCharacter(GetStackInt__FP12RS_STACKDATA__2(stack));
+
+/**
+ * Deletes the ext motion.
+ */
+static int _DEL_EXT_MOTION(RS_STACKDATA *stack, int argc) {
+    CCharacter2 *character = EventScene->GetCharacter(GetStackInt(stack));
     if (character == NULL) {
         return 0;
     }
     character->DeleteExtMotion();
     return 1;
 }
-int _SET_MARKER(RS_STACKDATA *stack, int argc) {
+
+/**
+ * Sets the marker from the script arguments.
+ */
+static s32 _SET_MARKER(RS_STACKDATA *stack, int argc) {
     return 1;
 }
+
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/event_func", _SET_WORLD_COORD__FP12RS_STACKDATAi);
-void _FINISH(RS_STACKDATA *stack, int argc) {
+/**
+ * Finish .
+ */
+static void _FINISH(RS_STACKDATA *stack, int argc) {
     EdEventFinish();
 }
-int _GET_DUN_WORLD_COORD(RS_STACKDATA *stack, int argc) {
 
-    float position[4];
-    float indexedPosition[6];
+/**
+ * Returns the dun world coordinates to the script.
+ */
+static int _GET_DUN_WORLD_COORD(RS_STACKDATA *stack, int argc) {
+
+    sceVu0FVECTOR position;
+    float indexed_position[6];
     float angle;
-    float indexedAngle;
+    float indexed_angle;
 
     if (argc == 4) {
         if (GetDungeonEventPoint(position, &angle, 0) == 0) {
             return 0;
         }
-        SetStack__FP12RS_STACKDATAf__2(stack++, position[0]);
-        SetStack__FP12RS_STACKDATAf__2(stack++, position[1]);
-        SetStack__FP12RS_STACKDATAf__2(stack++, position[2]);
-        SetStack__FP12RS_STACKDATAf__2(stack, angle);
+        SetStack(stack++, position[0]);
+        SetStack(stack++, position[1]);
+        SetStack(stack++, position[2]);
+        SetStack(stack, angle);
         return 1;
     }
     if (argc == 5) {
-        if (GetDungeonEventPoint(indexedPosition, &indexedAngle, GetStackInt__FP12RS_STACKDATA__2(stack + 4)) == 0) {
+        if (GetDungeonEventPoint(indexed_position, &indexed_angle, GetStackInt(stack + 4)) == 0) {
             return 0;
         }
-        SetStack__FP12RS_STACKDATAf__2(stack++, indexedPosition[0]);
-        SetStack__FP12RS_STACKDATAf__2(stack++, indexedPosition[1]);
-        SetStack__FP12RS_STACKDATAf__2(stack++, indexedPosition[2]);
-        SetStack__FP12RS_STACKDATAf__2(stack, indexedAngle);
+        SetStack(stack++, indexed_position[0]);
+        SetStack(stack++, indexed_position[1]);
+        SetStack(stack++, indexed_position[2]);
+        SetStack(stack, indexed_angle);
         return 1;
     }
     return 0;
 }
+
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/event_func", _LOAD_IMG__FP12RS_STACKDATAi);
-int _DEL_IMG(RS_STACKDATA *stack, int argc) {
-    mgTexManager.DeleteBlock(EventScene->event_texb + GetStackInt__FP12RS_STACKDATA__2(stack));
+/**
+ * Deletes the image.
+ */
+static int _DEL_IMG(RS_STACKDATA *stack, int argc) {
+    mgTexManager.DeleteBlock(EventScene->event_texb + GetStackInt(stack));
     return 1;
 }
-int _SET_DNG_MAP(RS_STACKDATA *stack, int argc) {
-    GetStackInt__FP12RS_STACKDATA__2(stack++);
-    GetStackInt__FP12RS_STACKDATA__2(stack);
+
+/**
+ * Sets the dungeon map from the script arguments.
+ */
+static int _SET_DNG_MAP(RS_STACKDATA *stack, int argc) {
+    GetStackInt(stack++);
+    GetStackInt(stack);
     return 1;
 }
-int _LOAD_ITEM(RS_STACKDATA *stack, int argc) {
+
+/**
+ * Loads the item.
+ */
+static int _LOAD_ITEM(RS_STACKDATA *stack, int argc) {
     char *name[32];
-    int stackNo;
-    int charaNo;
-    int itemNo;
+    int stack_no;
+    int chara_no;
+    int item_no;
     int index = 0;
     u32 *pack;
     switch (argc) {
         case 1: {
-            int key = GetStackInt__FP12RS_STACKDATA__2(stack);
+            int key = GetStackInt(stack);
             int count;
             int i;
             ARG_LIST *node;
@@ -2875,10 +3613,10 @@ int _LOAD_ITEM(RS_STACKDATA *stack, int argc) {
             if (args == NULL) {
                 return 0;
             }
-            stackNo = GetArgInt(args++);
-            itemNo = GetArgInt(args++);
-            name[0] = (char *)GetArgString(args++);
-            charaNo = GetArgInt(args++);
+            stack_no = GetArgInt(args++);
+            item_no = GetArgInt(args++);
+            name[0] = GetArgString(args++);
+            chara_no = GetArgInt(args++);
             if (argc >= 5) {
                 index = GetArgInt(args);
             }
@@ -2886,121 +3624,160 @@ int _LOAD_ITEM(RS_STACKDATA *stack, int argc) {
         }
         case 4:
         case 5:
-            stackNo = GetStackInt__FP12RS_STACKDATA__2(stack++);
-            itemNo = GetStackInt__FP12RS_STACKDATA__2(stack++);
-            name[0] = GetStackString__FP12RS_STACKDATA__2(stack++);
-            charaNo = GetStackInt__FP12RS_STACKDATA__2(stack++);
+            stack_no = GetStackInt(stack++);
+            item_no = GetStackInt(stack++);
+            name[0] = GetStackString(stack++);
+            chara_no = GetStackInt(stack++);
             if (argc >= 5) {
-                index = GetStackInt__FP12RS_STACKDATA__2(stack);
+                index = GetStackInt(stack);
             }
             break;
         default:
-            return 0;
+        return 0;
     }
-    pack = GetLoadBGBuff(GetItemFilePath(itemNo, index), 0);
+    pack = GetLoadBGBuff(GetItemFilePath(item_no, index), 0);
     if (pack != NULL) {
-        return _LOAD_CHARA_sub(stackNo, name, charaNo, pack);
+        return _LOAD_CHARA_sub(stack_no, name, chara_no, pack);
     }
     return 0;
 }
-int _GOTO_USE_ITEM(RS_STACKDATA *stack, int argc) {
-    int argNo;
-    if (stack->type != 3) {
+
+/**
+ * Requests use item.
+ */
+static int _GOTO_USE_ITEM(RS_STACKDATA *stack, int argc) {
+    int arg_no;
+    if (stack->type != RS_PTR) {
         return 0;
     }
-    RS_STACKDATA *itemSlot = stack->p;
-    argNo = 1;
+    RS_STACKDATA *item_slot = stack->p;
+    arg_no = 1;
     MenuArg.open_type = menu_use_item;
     stack++;
-    MenuArg.param[0] = argNo;
-    p_use_item = itemSlot;
-    if (argc > 1) {
-        do {
-            MenuArg.param[argNo] = GetStackInt__FP12RS_STACKDATA__2(stack++);
-            argNo++;
-        } while (argNo < argc);
+    MenuArg.param[0] = arg_no;
+    p_use_item = item_slot;
+    for (arg_no = 1; arg_no < argc; arg_no++) {
+        MenuArg.param[arg_no] = GetStackInt(stack++);
     }
-    MenuArg.param[argNo] = 0;
+    MenuArg.param[arg_no] = 0;
     EdEventInfo.command_mode = request_menu;
     return 1;
 }
-int _SET_LOCAL_FLAG(RS_STACKDATA *stack, int argc) {
-    int index = GetStackInt__FP12RS_STACKDATA__2(stack++);
-    SetLocalFlag(index, GetStackInt__FP12RS_STACKDATA__2(stack));
-    return 1;
-}
-int _GET_LOCAL_FLAG(RS_STACKDATA *stack, int argc) {
-    int index = GetStackInt__FP12RS_STACKDATA__2(stack++);
 
-    argc = GetLocalFlag(index);
-    SetStack__FP12RS_STACKDATAi__2(stack, argc);
+/**
+ * Sets the local flag from the script arguments.
+ */
+static int _SET_LOCAL_FLAG(RS_STACKDATA *stack, int argc) {
+    int index = GetStackInt(stack++);
+    SetLocalFlag(index, GetStackInt(stack));
     return 1;
 }
-int _GOTO_SELECT_PARTY(RS_STACKDATA *stack, int argc) {
+
+/**
+ * Returns the local flag to the script.
+ */
+static int _GET_LOCAL_FLAG(RS_STACKDATA *stack, int argc) {
+    int result;
+    int index = GetStackInt(stack++);
+
+    result = GetLocalFlag(index);
+    SetStack(stack, result);
+    return 1;
+}
+
+/**
+ * Requests select party.
+ */
+static int _GOTO_SELECT_PARTY(RS_STACKDATA *stack, int argc) {
     MenuArg.open_type = menu_select_party;
     EdEventInfo.command_mode = request_menu;
     return 1;
 }
+
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/event_func", _SET_LOADBG_FILE__FP12RS_STACKDATAi);
-int _SET_LOADBG_FILE_MONS_TALK(RS_STACKDATA *stack, int argc) {
+/**
+ * Sets the loadbg file mons talk from the script arguments.
+ */
+static int _SET_LOADBG_FILE_MONS_TALK(RS_STACKDATA *stack, int argc) {
     char path[0x8C];
     int size;
     u_long128 *buffer = read_buffer;
     StartReadBG();
-    sprintf(path, at_2664__2, DngStatus.dungeon_no, LanguageCode);
+    sprintf(path, "dungeon/msg/mostalk%d_%d.txt", DngStatus.dungeon_no, LanguageCode);
     if (LoadFileBG(path, buffer, &size) == 0) {
         return 0;
     }
     EdEventInfo.pack_loaded = 0;
     return 1;
 }
-int _CHECK_LOADBG_FILE(RS_STACKDATA *stack, int argc) {
-    argc = ReadBGSync();
-    SetStack__FP12RS_STACKDATAi__2(stack, argc);
+
+/**
+ * Checks loadbg file and returns the result to the script.
+ */
+static int _CHECK_LOADBG_FILE(RS_STACKDATA *stack, int argc) {
+    int result;
+    result = ReadBGSync();
+    SetStack(stack, result);
     return 1;
 }
-int _GET_TB_ITEMNO(RS_STACKDATA *stack, int argc) {
+
+/**
+ * Returns the tb itemno to the script.
+ */
+static s32 _GET_TB_ITEMNO(RS_STACKDATA *stack, int argc) {
     return 0;
 }
+
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/event_func", _SET_TB_STATUS__FP12RS_STACKDATAi);
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/event_func", _SET_TB_ANGLE__FP12RS_STACKDATAi);
-int _ADD_ITEM(RS_STACKDATA *stack, int argc) {
-    int itemNo = GetStackInt__FP12RS_STACKDATA__2(stack++);
+/**
+ * Adds to the item.
+ */
+static int _ADD_ITEM(RS_STACKDATA *stack, int argc) {
+    int item_no = GetStackInt(stack++);
     int count = 1;
     if (argc == 2) {
-        count = GetStackInt__FP12RS_STACKDATA__2(stack);
+        count = GetStackInt(stack);
     }
-    CUserDataManager *userData = NULL;
+    CUserDataManager *user_data = NULL;
     CSaveData *save = GetSaveData();
     if (save != NULL) {
-        userData = &save->user_data;
+        user_data = &save->user_data;
     }
-    if (userData == NULL) {
+    if (user_data == NULL) {
         return 0;
     }
-    return userData->GetItem(itemNo, count);
+    return user_data->GetItem(item_no, count);
 }
-int _SUB_ITEM(RS_STACKDATA *stack, int argc) {
 
-    int itemNo;
+/**
+ * Sub item.
+ */
+static int _SUB_ITEM(RS_STACKDATA *stack, int argc) {
+
+    int item_no;
     int count = 1;
-    itemNo = GetStackInt__FP12RS_STACKDATA__2(stack++);
+    item_no = GetStackInt(stack++);
     if (argc >= 2) {
-        count = GetStackInt__FP12RS_STACKDATA__2(stack);
+        count = GetStackInt(stack);
     }
     CSaveData *save = GetSaveData();
     if (save == NULL) {
         return 0;
     }
-    CUserDataManager *userData = &save->user_data;
-    if (userData == NULL) {
+    CUserDataManager *user_data = &save->user_data;
+    if (user_data == NULL) {
         return 0;
     }
-    userData->DeleteItem(itemNo, count);
+    user_data->DeleteItem(item_no, count);
     return 1;
 }
-int _GET_ITEM_TYPE(RS_STACKDATA *stack, int argc) {
-    int itemType = GetItemDataType__Fi(GetStackInt__FP12RS_STACKDATA__2(stack++));
+
+/**
+ * Returns the item type to the script.
+ */
+static int _GET_ITEM_TYPE(RS_STACKDATA *stack, int argc) {
+    int itemType = GetItemDataType(GetStackInt(stack++));
     int category;
     if (itemType == 0) {
         return 0;
@@ -3022,23 +3799,28 @@ int _GET_ITEM_TYPE(RS_STACKDATA *stack, int argc) {
             category = 0;
             break;
     }
-    SetStack__FP12RS_STACKDATAi__2(stack, category);
+    SetStack(stack, category);
     return 1;
 }
-int _GET_ITEM_SPACE(RS_STACKDATA *stack, int argc) {
-    CUserDataManager *userData = NULL;
+
+/**
+ * Returns the item space to the script.
+ */
+static int _GET_ITEM_SPACE(RS_STACKDATA *stack, int argc) {
+    int result;
+    CUserDataManager *user_data = NULL;
     CSaveData *save = GetSaveData();
     if (save != NULL) {
-        userData = &save->user_data;
+        user_data = &save->user_data;
     }
-    if (userData == NULL) {
+    if (user_data == NULL) {
         return 0;
     }
-    argc = userData->SearchSpaceUsedData();
-    SetStack__FP12RS_STACKDATAi__2(stack, argc);
+    result = user_data->SearchSpaceUsedData();
+    SetStack(stack, result);
     return 1;
 }
-s8 GetConfigCaptionOff(void) {
+char GetConfigCaptionOff() {
     s8 captionOff = 0;
     CSaveData *save = GetSaveData();
     if (save != NULL) {
@@ -3049,23 +3831,35 @@ s8 GetConfigCaptionOff(void) {
     }
     return captionOff;
 }
+
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/event_func", LoadMovie__FPcP9mgCMemoryb);
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/event_func", _LOAD_MOVIE__FP12RS_STACKDATAi);
-int _INIT_LOCAL_CNT(RS_STACKDATA *stack, int argc) {
+/**
+ * Clears the event local counters.
+ */
+static s32 _INIT_LOCAL_CNT(RS_STACKDATA *stack, s32 argc) {
     InitLocalCnt();
     return 1;
 }
+
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/event_func", _SET_CROSSFADE__FP12RS_STACKDATAi);
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/event_func", _GET_ADJUST_POLYGON_SCALE__FP12RS_STACKDATAi);
-int _SET_TIME(RS_STACKDATA *stack, int argc) {
-    EventScene->SetTime(GetStackFloat__FP12RS_STACKDATA__2(stack));
+/**
+ * Sets the time from the script arguments.
+ */
+static int _SET_TIME(RS_STACKDATA *stack, int argc) {
+    EventScene->SetTime(GetStackFloat(stack));
     return 1;
 }
-int _SET_ACTIVE_LIGHT(RS_STACKDATA *stack, int argc) {
+
+/**
+ * Sets the active light from the script arguments.
+ */
+static int _SET_ACTIVE_LIGHT(RS_STACKDATA *stack, int argc) {
 
     CMap *maps[8];
 
-    int lightNo = GetStackInt__FP12RS_STACKDATA__2(stack);
+    int lightNo = GetStackInt(stack);
     if (EventScene->GetActiveMap(maps, 8) <= 0) {
         return 0;
     }
@@ -3076,55 +3870,75 @@ int _SET_ACTIVE_LIGHT(RS_STACKDATA *stack, int argc) {
     }
     return 1;
 }
+
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/event_func", _SET_PAKU_ANIM__FP12RS_STACKDATAi);
-int _RESET_PAKU_ANIM(RS_STACKDATA *stack, int argc) {
+/**
+ * Resets the paku animation.
+ */
+static s32 _RESET_PAKU_ANIM(RS_STACKDATA *stack, s32 argc) {
     PakuAnimEohNo = -1;
     memset(PakuAnimName, 0, sizeof(PakuAnimName));
     memset(PakuAnimName2, 0, sizeof(PakuAnimName2));
     return 1;
 }
-int _TRG_PAKU_ANIM(RS_STACKDATA *stack, int argc) {
-    if (GetStackInt__FP12RS_STACKDATA__2(stack) != 0) {
-        if (strcmp(PakuAnimName2, at_1083) != 0) {
+
+/**
+ * Trg paku animation.
+ */
+static int _TRG_PAKU_ANIM(RS_STACKDATA *stack, int argc) {
+    if (GetStackInt(stack) != 0) {
+        if (strcmp(PakuAnimName2, "") != 0) {
             EventObjHandleMother.SetTexAnim( PakuAnimEohNo, 0, PakuAnimName2);
         }
         EventObjHandleMother.SetTexAnim( PakuAnimEohNo, 1, PakuAnimName);
     } else {
         EventObjHandleMother.SetTexAnim( PakuAnimEohNo, 0, PakuAnimName);
-        if (strcmp(PakuAnimName2, at_1083) != 0) {
+        if (strcmp(PakuAnimName2, "") != 0) {
             EventObjHandleMother.SetTexAnim( PakuAnimEohNo, 1, PakuAnimName2);
         }
     }
     return 1;
 }
+
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/event_func", _RESET_CAMERA__FP12RS_STACKDATAi);
-int _GET_ACTIVE_CHR_NO(RS_STACKDATA *stack, int argc) {
-    CUserDataManager *userData = NULL;
+/**
+ * Returns the active chr no to the script.
+ */
+static int _GET_ACTIVE_CHR_NO(RS_STACKDATA *stack, int argc) {
+    CUserDataManager *user_data = NULL;
     CSaveData *save = GetSaveData();
     if (save != NULL) {
 
-        userData = &save->user_data;
+        user_data = &save->user_data;
     }
-    if (userData == NULL) {
+    if (user_data == NULL) {
         return 0;
     }
-    SetStack__FP12RS_STACKDATAi__2(stack, userData->active_chr_no);
+    SetStack(stack, user_data->active_chr_no);
     return 1;
 }
-int _SET_ACTIVE_CHR_NO(RS_STACKDATA *stack, int argc) {
-    CUserDataManager *userData = NULL;
+
+/**
+ * Sets the active chr no from the script arguments.
+ */
+static int _SET_ACTIVE_CHR_NO(RS_STACKDATA *stack, int argc) {
+    CUserDataManager *user_data = NULL;
     CSaveData *save = GetSaveData();
     if (save != NULL) {
-        userData = &save->user_data;
+        user_data = &save->user_data;
     }
-    if (userData == NULL) {
+    if (user_data == NULL) {
         return 0;
     }
-    userData->SetActiveChrNo(GetStackInt__FP12RS_STACKDATA__2(stack));
+    user_data->SetActiveChrNo(GetStackInt(stack));
     return 1;
 }
-int _DNG_SET_FLOOR_ID(RS_STACKDATA *stack, int argc) {
-    int floorId = GetStackInt__FP12RS_STACKDATA__2(stack);
+
+/**
+ * Dungeon set floor id.
+ */
+static int _DNG_SET_FLOOR_ID(RS_STACKDATA *stack, int argc) {
+    int floorId = GetStackInt(stack);
     CSaveData *save = GetSaveData();
     if (save == NULL) {
         return 0;
@@ -3136,7 +3950,11 @@ int _DNG_SET_FLOOR_ID(RS_STACKDATA *stack, int argc) {
     dungeon->SetFloorID(floorId);
     return 1;
 }
-int _DNG_GET_FLOOR_ID(RS_STACKDATA *stack, int argc) {
+
+/**
+ * Dungeon get floor id.
+ */
+static int _DNG_GET_FLOOR_ID(RS_STACKDATA *stack, int argc) {
     CSaveData *save = GetSaveData();
     if (save == NULL) {
         return 0;
@@ -3145,44 +3963,56 @@ int _DNG_GET_FLOOR_ID(RS_STACKDATA *stack, int argc) {
     if (dungeon == NULL) {
         return 0;
     }
-    SetStack__FP12RS_STACKDATAi__2(stack, dungeon->floor_id[dungeon->stage_id]);
+    SetStack(stack, dungeon->floor_id[dungeon->stage_id]);
     return 1;
 }
-int _SET_PAKU_MOTION(RS_STACKDATA *stack, int argc) {
-    int eohNo = GetStackInt__FP12RS_STACKDATA__2(stack++);
-    char *name = GetStackString__FP12RS_STACKDATA__2(stack++);
-    int type = GetStackInt__FP12RS_STACKDATA__2(stack++);
+
+/**
+ * Sets the paku motion from the script arguments.
+ */
+static int _SET_PAKU_MOTION(RS_STACKDATA *stack, int argc) {
+    int eohNo = GetStackInt(stack++);
+    char *name = GetStackString(stack++);
+    int type = GetStackInt(stack++);
     char *name2 = NULL;
     int type2 = 0;
     if (argc > 3) {
-        name2 = GetStackString__FP12RS_STACKDATA__2(stack++);
-        type2 = GetStackInt__FP12RS_STACKDATA__2(stack);
+        name2 = GetStackString(stack++);
+        type2 = GetStackInt(stack);
     }
     PakuMotionEohNo = eohNo;
-    strcpy((char *)PakuMotionName, name);
+    strcpy(PakuMotionName, name);
     PakuMotionType = type;
     if (name2 != NULL) {
-        strcpy((char *)PakuMotionName2, name2);
+        strcpy(PakuMotionName2, name2);
     } else {
-        strcpy((char *)PakuMotionName2, at_1083);
+        strcpy(PakuMotionName2, "");
     }
     PakuMotionType2 = type2;
     return 1;
 }
-int _RESET_PAKU_MOTION(RS_STACKDATA *stack, int argc) {
+
+/**
+ * Resets the paku motion.
+ */
+static s32 _RESET_PAKU_MOTION(RS_STACKDATA *stack, s32 argc) {
     PakuMotionEohNo = -1;
     memset(PakuMotionName, 0, sizeof(PakuMotionName));
     memset(PakuMotionName2, 0, sizeof(PakuMotionName2));
     return 1;
 }
-int _TRG_PAKU_MOTION(RS_STACKDATA *stack, int argc) {
-    int mode = GetStackInt__FP12RS_STACKDATA__2(stack);
+
+/**
+ * Trg paku motion.
+ */
+static int _TRG_PAKU_MOTION(RS_STACKDATA *stack, int argc) {
+    int mode = GetStackInt(stack);
     if (mode == 0) {
         EventObjHandleMother.SetMotion( PakuMotionEohNo, PakuMotionName,
                                       PakuMotionType, -1.0f);
         return 1;
     }
-    if (strcmp(PakuMotionName2, at_1083) == 0) {
+    if (strcmp(PakuMotionName2, "") == 0) {
         return 1;
     }
     if (mode == 1) {
@@ -3207,86 +4037,106 @@ int _TRG_PAKU_MOTION(RS_STACKDATA *stack, int argc) {
     }
     return 0;
 }
+
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/event_func", _SET_BG_COLOR__FP12RS_STACKDATAi);
-int _GOTO_DNG_MAP(RS_STACKDATA *stack, int argc) {
+/**
+ * Requests dungeon map.
+ */
+static int _GOTO_DNG_MAP(RS_STACKDATA *stack, int argc) {
     MenuArg.open_type = menu_dng_map;
-    MenuArg.param[0] = GetStackInt__FP12RS_STACKDATA__2(stack);
+    MenuArg.param[0] = GetStackInt(stack);
     EdEventInfo.command_mode = request_menu;
     return 1;
 }
-int _GOTO_DNG(RS_STACKDATA *stack, int argc) {
+
+/**
+ * Requests dungeon.
+ */
+static int _GOTO_DNG(RS_STACKDATA *stack, int argc) {
     INIT_LOOP_ARG loopArg;
     if (EdEventFinish() == 0) {
         return 0;
     }
     memset(&loopArg, 0, sizeof(loopArg));
-    loopArg.map_no = GetStackInt__FP12RS_STACKDATA__2(stack++);
+    loopArg.map_no = GetStackInt(stack++);
     loopArg.floor_no = -1;
     loopArg.event_no = -1;
     if (argc > 1) {
-        loopArg.floor_no = GetStackInt__FP12RS_STACKDATA__2(stack++);
+        loopArg.floor_no = GetStackInt(stack++);
     }
     if (argc > 2) {
-        loopArg.event_no = GetStackInt__FP12RS_STACKDATA__2(stack);
+        loopArg.event_no = GetStackInt(stack);
     }
     NextLoop(2, loopArg);
     EdEventInfo.request = exit_start_loop;
     return 1;
 }
-int _GOTO_EDIT(RS_STACKDATA *stack, int argc) {
+
+/**
+ * Requests edit.
+ */
+static int _GOTO_EDIT(RS_STACKDATA *stack, int argc) {
     INIT_LOOP_ARG loopArg;
     if (EdEventFinish() == 0) {
         return 0;
     }
     memset(&loopArg, 0, sizeof(loopArg));
-    loopArg.map_no = GetStackInt__FP12RS_STACKDATA__2(stack++);
+    loopArg.map_no = GetStackInt(stack++);
     loopArg.event_no = -1;
     if (argc > 1) {
-        loopArg.event_no = GetStackInt__FP12RS_STACKDATA__2(stack);
+        loopArg.event_no = GetStackInt(stack);
     }
     NextLoop(1, loopArg);
     EdEventInfo.request = exit_start_loop;
     return 1;
 }
+
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/event_func", _GET_MENU_PARAM__FP12RS_STACKDATAi);
-int _LOAD_CHARA_NPC(RS_STACKDATA *stack, int argc) {
+/**
+ * Loads the character npc.
+ */
+static int _LOAD_CHARA_NPC(RS_STACKDATA *stack, int argc) {
     char path[0x80];
     char *modelName[0x80];
-    int kind = GetStackInt__FP12RS_STACKDATA__2(stack++);
-    int stackNo = GetStackInt__FP12RS_STACKDATA__2(stack++);
-    int charaNo = GetStackInt__FP12RS_STACKDATA__2(stack++);
+    int kind = GetStackInt(stack++);
+    int stack_no = GetStackInt(stack++);
+    int chara_no = GetStackInt(stack++);
     char *name;
     u32 *pack;
-    if (charaNo <= 0) {
+    if (chara_no <= 0) {
         return 0;
     }
-    if (charaNo >= 32) {
+    if (chara_no >= 32) {
         return 0;
     }
     if (kind == 0) {
-        name = GetPartyCharaModelName(charaNo, 0);
+        name = GetPartyCharaModelName(chara_no, 0);
     } else {
-        name = GetPartyCharaModelName(charaNo, 2);
+        name = GetPartyCharaModelName(chara_no, 2);
     }
     if (name == NULL) {
         return 0;
     }
     strcpy(path, name);
-    modelName[0] = GetPartyCharaModelName(charaNo, 1);
+    modelName[0] = GetPartyCharaModelName(chara_no, 1);
     if (modelName[0] == NULL) {
         return 0;
     }
-    kind = GetStackInt__FP12RS_STACKDATA__2(stack);
+    kind = GetStackInt(stack);
     pack = GetLoadBGBuff(path, 0);
     if (pack != NULL) {
-        return _LOAD_CHARA_sub(stackNo, modelName, kind, pack);
+        return _LOAD_CHARA_sub(stack_no, modelName, kind, pack);
     }
     return 0;
 }
+
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/event_func", _AUTO_SET_TREASURE_BOX__FP12RS_STACKDATAi);
-int _AUTO_SET_MONSTER(RS_STACKDATA *stack, int argc) {
-    float position[4];
-    float direction[4];
+/**
+ * Auto set monster.
+ */
+static int _AUTO_SET_MONSTER(RS_STACKDATA *stack, int argc) {
+    sceVu0FVECTOR position;
+    sceVu0FVECTOR direction;
     int monsterNo;
     int param;
     if (GetNowLoopNo() != 2) {
@@ -3296,22 +4146,26 @@ int _AUTO_SET_MONSTER(RS_STACKDATA *stack, int argc) {
         AutoSetMonster();
         return 1;
     }
-    monsterNo = GetStackInt__FP12RS_STACKDATA__2(stack++);
-    GetStackVector__FPfP12RS_STACKDATA(position, stack);
+    monsterNo = GetStackInt(stack++);
+    GetStackVector(position, stack);
     stack += 3;
     mgZeroVectorW(direction);
     if (argc >= 7) {
-        GetStackVector__FPfP12RS_STACKDATA(direction, stack);
+        GetStackVector(direction, stack);
         stack += 3;
     }
     if (argc == 8) {
-        param = GetStackInt__FP12RS_STACKDATA__2(stack);
+        param = GetStackInt(stack);
     }
     AutoSetMonster(monsterNo, position, direction, param);
     return 1;
 }
+
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/event_func", _LOAD_DUNGEON_MAP_FILE__FP12RS_STACKDATAi);
-int _LOAD_MONSTER_FILE(RS_STACKDATA *stack, int argc) {
+/**
+ * Loads the monster file.
+ */
+static int _LOAD_MONSTER_FILE(RS_STACKDATA *stack, int argc) {
     if (GetNowLoopNo() != 2) {
         return 0;
     }
@@ -3320,169 +4174,229 @@ int _LOAD_MONSTER_FILE(RS_STACKDATA *stack, int argc) {
             LoadMonsterFile();
             break;
         case 2: {
-            int first = GetStackInt__FP12RS_STACKDATA__2(stack++);
-            LoadMonsterFile(first, GetStackInt__FP12RS_STACKDATA__2(stack));
+            int first = GetStackInt(stack++);
+            LoadMonsterFile(first, GetStackInt(stack));
             break;
         }
         default:
-            return 0;
+        return 0;
     }
     return 1;
 }
-int _GET_NPC_STATUS(RS_STACKDATA *stack, int argc) {
-    int npcNo = GetStackInt__FP12RS_STACKDATA__2(stack++);
-    if (npcNo <= 0) {
-        return 0;
-    }
-    CUserDataManager *userData = NULL;
-    if (npcNo > 0x20) {
-        return 0;
-    }
-    CSaveData *save = GetSaveData();
-    if (save != NULL) {
-        userData = &save->user_data;
-    }
-    if (userData == NULL) {
-        return 0;
-    }
-    SetStack__FP12RS_STACKDATAi__2(stack, userData->GetPartyCharaStatus(npcNo));
-    return 1;
-}
-int _SET_NPC_STATUS(RS_STACKDATA *stack, int argc) {
-    int npcNo = GetStackInt__FP12RS_STACKDATA__2(stack++);
-    int status = GetStackInt__FP12RS_STACKDATA__2(stack);
-    if (npcNo <= 0) {
-        return 0;
-    }
-    CUserDataManager *userData = NULL;
-    if (npcNo > 0x20) {
-        return 0;
-    }
-    CSaveData *save = GetSaveData();
-    if (save != NULL) {
-        userData = &save->user_data;
-    }
-    if (userData == NULL) {
-        return 0;
-    }
-    userData->SetPartyCharaStatus(npcNo, status);
-    return 1;
-}
-int _GET_NOW_PARTY_CHARA(RS_STACKDATA *stack, int argc) {
-    CUserDataManager *userData = NULL;
-    CSaveData *save = GetSaveData();
-    if (save != NULL) {
-        userData = &save->user_data;
-    }
-    if (userData == NULL) {
-        return 0;
-    }
-    SetStack__FP12RS_STACKDATAi__2(stack, userData->NowPartyCharaID());
-    return 1;
-}
-int _SET_LOCAL_CNT(RS_STACKDATA *stack, int argc) {
-    int index = GetStackInt__FP12RS_STACKDATA__2(stack++);
-    return SetLocalCnt(index, GetStackInt__FP12RS_STACKDATA__2(stack)) > 0;
-}
-int _GET_LOCAL_CNT(RS_STACKDATA *stack, int argc) {
-    int index = GetStackInt__FP12RS_STACKDATA__2(stack++);
-    argc = GetLocalCnt(index);
-    if (argc < 0) {
-        return 0;
-    }
-    SetStack__FP12RS_STACKDATAi__2(stack, argc);
-    return 1;
-}
-int _GET_LOCAL_CNT2(RS_STACKDATA *stack, int argc) {
-    int index = GetStackInt__FP12RS_STACKDATA__2(stack++);
 
-    argc = GetLocalCnt2(index);
-    SetStack__FP12RS_STACKDATAi__2(stack, argc);
+/**
+ * Returns the npc status to the script.
+ */
+static int _GET_NPC_STATUS(RS_STACKDATA *stack, int argc) {
+    int npcNo = GetStackInt(stack++);
+    if (npcNo <= 0) {
+        return 0;
+    }
+    CUserDataManager *user_data = NULL;
+    if (npcNo > 0x20) {
+        return 0;
+    }
+    CSaveData *save = GetSaveData();
+    if (save != NULL) {
+        user_data = &save->user_data;
+    }
+    if (user_data == NULL) {
+        return 0;
+    }
+    SetStack(stack, user_data->GetPartyCharaStatus(npcNo));
     return 1;
 }
+
+/**
+ * Sets the npc status from the script arguments.
+ */
+static int _SET_NPC_STATUS(RS_STACKDATA *stack, int argc) {
+    int npcNo = GetStackInt(stack++);
+    int status = GetStackInt(stack);
+    if (npcNo <= 0) {
+        return 0;
+    }
+    CUserDataManager *user_data = NULL;
+    if (npcNo > 0x20) {
+        return 0;
+    }
+    CSaveData *save = GetSaveData();
+    if (save != NULL) {
+        user_data = &save->user_data;
+    }
+    if (user_data == NULL) {
+        return 0;
+    }
+    user_data->SetPartyCharaStatus(npcNo, status);
+    return 1;
+}
+
+/**
+ * Returns the now party character to the script.
+ */
+static int _GET_NOW_PARTY_CHARA(RS_STACKDATA *stack, int argc) {
+    CUserDataManager *user_data = NULL;
+    CSaveData *save = GetSaveData();
+    if (save != NULL) {
+        user_data = &save->user_data;
+    }
+    if (user_data == NULL) {
+        return 0;
+    }
+    SetStack(stack, user_data->NowPartyCharaID());
+    return 1;
+}
+
+/**
+ * Sets the local cnt from the script arguments.
+ */
+static int _SET_LOCAL_CNT(RS_STACKDATA *stack, int argc) {
+    int index = GetStackInt(stack++);
+    return SetLocalCnt(index, GetStackInt(stack)) > 0;
+}
+
+/**
+ * Returns the local cnt to the script.
+ */
+static int _GET_LOCAL_CNT(RS_STACKDATA *stack, int argc) {
+    int result;
+    int index = GetStackInt(stack++);
+    result = GetLocalCnt(index);
+    if (result < 0) {
+        return 0;
+    }
+    SetStack(stack, result);
+    return 1;
+}
+
+/**
+ * Returns the first event local counter holding the requested value, or -1.
+ */
+static int _GET_LOCAL_CNT2(RS_STACKDATA *stack, int argc) {
+    int result;
+    int index = GetStackInt(stack++);
+
+    result = GetLocalCnt2(index);
+    SetStack(stack, result);
+    return 1;
+}
+
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/event_func", _GET_TRAIN_NPC_POS__FP12RS_STACKDATAi);
-int _GOTO_DRAW_CHAPTER(RS_STACKDATA *stack, int argc) {
+/**
+ * Requests drawing chapter.
+ */
+static int _GOTO_DRAW_CHAPTER(RS_STACKDATA *stack, int argc) {
     MenuArg.open_type = menu_draw_chapter;
-    MenuArg.param[0] = GetStackInt__FP12RS_STACKDATA__2(stack) - 1;
+    MenuArg.param[0] = GetStackInt(stack) - 1;
     EdEventInfo.command_mode = request_menu;
     return 1;
 }
-int _SET_PROJECTION(RS_STACKDATA *stack, int argc) {
-    EdEventInfo.projection = GetStackFloat__FP12RS_STACKDATA__2(stack);
+
+/**
+ * Sets the projection from the script arguments.
+ */
+static int _SET_PROJECTION(RS_STACKDATA *stack, int argc) {
+    EdEventInfo.projection = GetStackFloat(stack);
     return 1;
 }
-int _GET_PROJECTION(RS_STACKDATA *stack, int argc) {
-    SetStack__FP12RS_STACKDATAf__2(stack, EdEventInfo.projection);
+
+/**
+ * Returns the projection to the script.
+ */
+static int _GET_PROJECTION(RS_STACKDATA *stack, int argc) {
+    SetStack(stack, EdEventInfo.projection);
     return 1;
 }
+
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/event_func", _SET_FADE_IN__FP12RS_STACKDATAi);
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/event_func", _SET_FADE_OUT__FP12RS_STACKDATAi);
-int _DNG_DEBUG_COMMAND(RS_STACKDATA *stack, int argc) {
-    ScriptDebugCommand(GetStackInt__FP12RS_STACKDATA__2(stack));
+/**
+ * Dungeon debug command.
+ */
+static int _DNG_DEBUG_COMMAND(RS_STACKDATA *stack, int argc) {
+    ScriptDebugCommand(GetStackInt(stack));
     return 1;
 }
-int _CD_SEEK(RS_STACKDATA *stack, int argc) {
+
+/**
+ * Cd seek.
+ */
+static int _CD_SEEK(RS_STACKDATA *stack, int argc) {
 
     sceCdlFILE *file_info;
-    if (sceCdSearchFile(file_info, GetStackString__FP12RS_STACKDATA__2(stack)) != 0) {
+    if (sceCdSearchFile(file_info, GetStackString(stack)) != 0) {
         return sceCdSeek(file_info->lsn);
     }
     return 0;
 }
+
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/event_func", _GET_ROT_LOOK_POS__FP12RS_STACKDATAi);
-extern "C" int _SET_MOTION_BLUR__FP12RS_STACKDATAi__2(RS_STACKDATA *stack, int argc) {
-    EventScene->motion_blur = GetStackInt__FP12RS_STACKDATA__2(stack);
+/**
+ * Sets the motion blur from the script arguments.
+ */
+static int _SET_MOTION_BLUR(RS_STACKDATA *stack, int argc) {
+    EventScene->motion_blur = GetStackInt(stack);
     return 1;
 }
+
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/event_func", _LOAD_SCRIPT__FP12RS_STACKDATAi);
-int _SET_TALK_CAMERA(RS_STACKDATA *stack, int argc) {
-    float middle[4];
-    float offset[4];
-    float rotation[4][4];
-    struct {
-        float v[3];
-        u32 w;
-    } from, to;
+/**
+ * Sets the talk camera from the script arguments.
+ */
+static int _SET_TALK_CAMERA(RS_STACKDATA *stack, int argc) {
+    static sceVu0FVECTOR vv[3] = {
+        {-94.0f, 35.5f, -106.5f, 1.0f},
+        {105.0f, 32.5f, -28.5f, 1.0f},
+        {113.0f, 34.5f, 82.5f, 1.0f}
+    };
+    sceVu0FVECTOR middle;
+    sceVu0FVECTOR offset;
+    sceVu0FMATRIX rotation;
+    sceVu0FVECTOR from;
+    sceVu0FVECTOR to;
     float angle;
-    float *middleY;
-    from.v[0] = GetStackFloat__FP12RS_STACKDATA__2(stack++);
-    from.v[1] = GetStackFloat__FP12RS_STACKDATA__2(stack++);
-    from.v[2] = GetStackFloat__FP12RS_STACKDATA__2(stack++);
-    to.v[0] = GetStackFloat__FP12RS_STACKDATA__2(stack++);
-    to.v[1] = GetStackFloat__FP12RS_STACKDATA__2(stack++);
-    to.v[2] = GetStackFloat__FP12RS_STACKDATA__2(stack++);
-    angle = GetStackFloat__FP12RS_STACKDATA__2(stack++);
-    sceVu0AddVector(middle, from.v, to.v);
+    float *middle_y;
+    from[0] = GetStackFloat(stack++);
+    from[1] = GetStackFloat(stack++);
+    from[2] = GetStackFloat(stack++);
+    to[0] = GetStackFloat(stack++);
+    to[1] = GetStackFloat(stack++);
+    to[2] = GetStackFloat(stack++);
+    angle = GetStackFloat(stack++);
+    sceVu0AddVector(middle, from, to);
     sceVu0ScaleVector(middle, middle, 0.5f);
-    middleY = &middle[1];
-    *middleY += 30.0f;
+    middle_y = &middle[1];
+    *middle_y += 30.0f;
     sceVu0UnitMatrix(rotation);
     sceVu0RotMatrixY(rotation, rotation, angle);
-    sceVu0ApplyMatrix(offset, rotation, &vv_3333[4]);
+    sceVu0ApplyMatrix(offset, rotation, vv[1]);
     sceVu0AddVector(offset, middle, offset);
-    SetStack__FP12RS_STACKDATAf__2(stack++, offset[0]);
-    SetStack__FP12RS_STACKDATAf__2(stack++, offset[1]);
-    SetStack__FP12RS_STACKDATAf__2(stack++, offset[2]);
-    SetStack__FP12RS_STACKDATAf__2(stack++, middle[0]);
-    SetStack__FP12RS_STACKDATAf__2(stack++, *middleY);
-    SetStack__FP12RS_STACKDATAf__2(stack, middle[2]);
+    SetStack(stack++, offset[0]);
+    SetStack(stack++, offset[1]);
+    SetStack(stack++, offset[2]);
+    SetStack(stack++, middle[0]);
+    SetStack(stack++, *middle_y);
+    SetStack(stack, middle[2]);
     return 1;
 }
-int _HIT_EFFECT(RS_STACKDATA *stack, int argc) {
-    float position[4];
-    float direction[4];
+
+/**
+ * Hit effect.
+ */
+static int _HIT_EFFECT(RS_STACKDATA *stack, int argc) {
+    sceVu0FVECTOR position;
     float spread;
     float speed;
     float power;
     float gravity;
     int life;
     int count;
-    int index = GetStackInt__FP12RS_STACKDATA__2(stack++);
-    position[0] = GetStackFloat__FP12RS_STACKDATA__2(stack++);
-    position[1] = GetStackFloat__FP12RS_STACKDATA__2(stack++);
-    position[2] = GetStackFloat__FP12RS_STACKDATA__2(stack++);
+    int index = GetStackInt(stack++);
+    position[0] = GetStackFloat(stack++);
+    position[1] = GetStackFloat(stack++);
+    position[2] = GetStackFloat(stack++);
     position[3] = 1.0f;
-    *(u_long128 *)direction = *(u_long128 *)at_3339;
+    sceVu0FVECTOR direction = {0.0f, 1.0f, 0.0f, 1.0f};
     spread = 50.0f;
     speed = 35.0f;
     power = 0.0f;
@@ -3490,89 +4404,141 @@ int _HIT_EFFECT(RS_STACKDATA *stack, int argc) {
     life = 30;
     count = 32;
     if (argc >= 5) {
-        GetStackVector__FPfP12RS_STACKDATA(direction, stack);
+        GetStackVector(direction, stack);
         stack += 3;
-        spread = GetStackFloat__FP12RS_STACKDATA__2(stack++);
-        speed = GetStackFloat__FP12RS_STACKDATA__2(stack++);
-        power = GetStackFloat__FP12RS_STACKDATA__2(stack++);
-        gravity = GetStackFloat__FP12RS_STACKDATA__2(stack++);
-        life = GetStackInt__FP12RS_STACKDATA__2(stack++);
-        count = GetStackInt__FP12RS_STACKDATA__2(stack);
+        spread = GetStackFloat(stack++);
+        speed = GetStackFloat(stack++);
+        power = GetStackFloat(stack++);
+        gravity = GetStackFloat(stack++);
+        life = GetStackInt(stack++);
+        count = GetStackInt(stack);
     }
     HitEffect[index].SethitEffect(position, direction, spread, speed, power, gravity, life, count);
     HitEffect[index].kind = 1;
     return 1;
 }
+
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/event_func", _COPY_CHARA__FP12RS_STACKDATAi);
-int _GET_START_BUTTON(RS_STACKDATA *stack, int argc) {
-    SetStack__FP12RS_STACKDATAi__2(stack, EdEventInfo.start_button);
+/**
+ * Returns the start button to the script.
+ */
+static int _GET_START_BUTTON(RS_STACKDATA *stack, int argc) {
+    SetStack(stack, EdEventInfo.start_button);
     return 1;
 }
-int _MOVE_INTERIOR(RS_STACKDATA *stack, int argc) {
-    EdEventInfo.jump_point = GetStackInt__FP12RS_STACKDATA__2(stack++);
-    strcpy(EdEventInfo.jump_map_name, GetStackString__FP12RS_STACKDATA__2(stack++));
+
+/**
+ * Move interior.
+ */
+static int _MOVE_INTERIOR(RS_STACKDATA *stack, int argc) {
+    EdEventInfo.jump_point = GetStackInt(stack++);
+    strcpy(EdEventInfo.jump_map_name, GetStackString(stack++));
     if (argc > 2) {
-        EdEventInfo.event_no = GetStackInt__FP12RS_STACKDATA__2(stack);
+        EdEventInfo.event_no = GetStackInt(stack);
     } else {
         EdEventInfo.event_no = 100;
     }
     EdEventInfo.request = exit_enter_interior;
     return 1;
 }
+
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/event_func", _GET_MONSTER_TALK_DATA__FP12RS_STACKDATAi);
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/event_func", _FUNC_POINT_SHOW__FP12RS_STACKDATAi);
-int _GET_NOW_MAP_NO(RS_STACKDATA *stack, int argc) {
-    SetStack__FP12RS_STACKDATAi__2(stack, EventScene->now_map_no);
+/**
+ * Returns the now map no to the script.
+ */
+static int _GET_NOW_MAP_NO(RS_STACKDATA *stack, int argc) {
+    SetStack(stack, EventScene->now_map_no);
     return 1;
 }
-int _GET_NOW_SUBMAP_NO(RS_STACKDATA *stack, int argc) {
-    SetStack__FP12RS_STACKDATAi__2(stack, EventScene->now_sub_map_no);
+
+/**
+ * Returns the now submap no to the script.
+ */
+static int _GET_NOW_SUBMAP_NO(RS_STACKDATA *stack, int argc) {
+    SetStack(stack, EventScene->now_sub_map_no);
     return 1;
 }
-int _GET_OLD_MAP_NO(RS_STACKDATA *stack, int argc) {
-    SetStack__FP12RS_STACKDATAi__2(stack, EventScene->old_map_no);
+
+/**
+ * Returns the old map no to the script.
+ */
+static int _GET_OLD_MAP_NO(RS_STACKDATA *stack, int argc) {
+    SetStack(stack, EventScene->old_map_no);
     return 1;
 }
-int _GET_OLD_SUBMAP_NO(RS_STACKDATA *stack, int argc) {
-    SetStack__FP12RS_STACKDATAi__2(stack, EventScene->old_sub_map_no);
+
+/**
+ * Returns the old submap no to the script.
+ */
+static int _GET_OLD_SUBMAP_NO(RS_STACKDATA *stack, int argc) {
+    SetStack(stack, EventScene->old_sub_map_no);
     return 1;
 }
-int _SET_RAIN_CHARA_NO(RS_STACKDATA *stack, int argc) {
-    EventRain.SetCharNo(GetStackInt__FP12RS_STACKDATA__2(stack));
+
+/**
+ * Sets the rain character no from the script arguments.
+ */
+static int _SET_RAIN_CHARA_NO(RS_STACKDATA *stack, int argc) {
+    EventRain.SetCharNo(GetStackInt(stack));
     return 1;
 }
+
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/event_func", _GET_EDIT_PARTS_POS__FP12RS_STACKDATAi);
-int _GET_CONTENTS_POS(RS_STACKDATA *stack, int argc) {
+/**
+ * Returns the contents position to the script.
+ */
+static s32 _GET_CONTENTS_POS(RS_STACKDATA *stack, int argc) {
     return 1;
 }
-int _GET_BPOT_POS(RS_STACKDATA *stack, int argc) {
-    float position[4];
+
+/**
+ * Returns the bpot position to the script.
+ */
+static int _GET_BPOT_POS(RS_STACKDATA *stack, int argc) {
+    sceVu0FVECTOR position;
     sceVu0CopyVector(position, BTsubo.position);
-    SetStack__FP12RS_STACKDATAf__2(stack++, position[0]);
-    SetStack__FP12RS_STACKDATAf__2(stack++, position[1]);
-    SetStack__FP12RS_STACKDATAf__2(stack, position[2]);
+    SetStack(stack++, position[0]);
+    SetStack(stack++, position[1]);
+    SetStack(stack, position[2]);
     return 1;
 }
-int _GET_BPOT_STATUS(RS_STACKDATA *stack, int argc) {
-    SetStack__FP12RS_STACKDATAi__2(stack, BTsubo.state);
+
+/**
+ * Returns the bpot status to the script.
+ */
+static int _GET_BPOT_STATUS(RS_STACKDATA *stack, int argc) {
+    SetStack(stack, BTsubo.state);
     return 1;
 }
-int _GET_PERSON_STATUS(RS_STACKDATA *stack, int argc) {
+
+/**
+ * Returns the person status to the script.
+ */
+static s32 _GET_PERSON_STATUS(RS_STACKDATA *stack, int argc) {
     return 0;
 }
-int _GET_CONTROL_CHRID(RS_STACKDATA *stack, int argc) {
-    SetStack__FP12RS_STACKDATAi__2(stack, EventScene->player_chara);
+
+/**
+ * Returns the control chrid to the script.
+ */
+static int _GET_CONTROL_CHRID(RS_STACKDATA *stack, int argc) {
+    SetStack(stack, EventScene->player_chara);
     return 1;
 }
-extern "C" int _SET_CAMERA_NEXT_REF__FP12RS_STACKDATAi__2(RS_STACKDATA *stack, int argc) {
-    float ref[4];
+
+/**
+ * Sets the camera next reference from the script arguments.
+ */
+static int _SET_CAMERA_NEXT_REF(RS_STACKDATA *stack, int argc) {
+    sceVu0FVECTOR ref;
     mgCCameraFollow *camera;
     if ((camera = (mgCCameraFollow *)GetActiveCamera()) == NULL) {
-    return 0;
+        return 0;
 }
     switch (argc) {
         case 1: {
-            int key = GetStackInt__FP12RS_STACKDATA__2(stack);
+            int key = GetStackInt(stack);
             int count;
             int i;
             ARG_LIST *node;
@@ -3615,37 +4581,49 @@ extern "C" int _SET_CAMERA_NEXT_REF__FP12RS_STACKDATAi__2(RS_STACKDATA *stack, i
             break;
         }
         case 3:
-            GetStackVector__FPfP12RS_STACKDATA(ref, stack);
+            GetStackVector(ref, stack);
             break;
         default:
-            return 0;
+        return 0;
     }
-    camera->SetNextRef( ref);
+    camera->SetNextRef(ref);
     return 1;
 }
-int _GOTO_MENU(RS_STACKDATA *stack, int argc) {
-    MenuArg.open_type = GetStackInt__FP12RS_STACKDATA__2(stack++);
-    for (int argNo = 0; argNo < argc - 1; argNo++) {
-        MenuArg.param[argNo] = GetStackInt__FP12RS_STACKDATA__2(stack++);
+
+/**
+ * Requests menu.
+ */
+static int _GOTO_MENU(RS_STACKDATA *stack, int argc) {
+    MenuArg.open_type = GetStackInt(stack++);
+    for (int arg_no = 0; arg_no < argc - 1; arg_no++) {
+        MenuArg.param[arg_no] = GetStackInt(stack++);
     }
     EdEventInfo.command_mode = request_menu;
     return 1;
 }
-int _GET_MENU_STATUS(RS_STACKDATA *stack, int argc) {
+
+/**
+ * Returns failure for the menu-status script query.
+ */
+static s32 _GET_MENU_STATUS(RS_STACKDATA *stack, int argc) {
     return 0;
 }
-int _LOAD_EQUIP(RS_STACKDATA *stack, int argc) {
+
+/**
+ * Loads the equip.
+ */
+static int _LOAD_EQUIP(RS_STACKDATA *stack, int argc) {
     char label[0x20];
-    char boneName[0x2C];
+    char bone_name[0x2C];
     char *name;
-    int stackNo;
-    int memberKind;
-    int equipKind;
-    int charaNo;
-    int attachNo;
+    int stack_no;
+    int member_kind;
+    int equip_kind;
+    int chara_no;
+    int attach_no;
     switch (argc) {
         case 1: {
-            int key = GetStackInt__FP12RS_STACKDATA__2(stack);
+            int key = GetStackInt(stack);
             int count;
             int i;
             ARG_LIST *node;
@@ -3685,113 +4663,113 @@ int _LOAD_EQUIP(RS_STACKDATA *stack, int argc) {
             if (args == NULL) {
                 return 0;
             }
-            stackNo = GetArgInt(args++);
-            memberKind = GetArgInt(args++);
-            equipKind = GetArgInt(args++);
-            name = (char *)GetArgString(args++);
-            charaNo = GetArgInt(args++);
+            stack_no = GetArgInt(args++);
+            member_kind = GetArgInt(args++);
+            equip_kind = GetArgInt(args++);
+            name = GetArgString(args++);
+            chara_no = GetArgInt(args++);
             if (argc >= 6) {
-                attachNo = GetArgInt(args);
+                attach_no = GetArgInt(args);
             }
             break;
         }
         case 5:
         case 6:
-            stackNo = GetStackInt__FP12RS_STACKDATA__2(stack++);
-            memberKind = GetStackInt__FP12RS_STACKDATA__2(stack++);
-            equipKind = GetStackInt__FP12RS_STACKDATA__2(stack++);
-            name = GetStackString__FP12RS_STACKDATA__2(stack++);
-            charaNo = GetStackInt__FP12RS_STACKDATA__2(stack++);
+            stack_no = GetStackInt(stack++);
+            member_kind = GetStackInt(stack++);
+            equip_kind = GetStackInt(stack++);
+            name = GetStackString(stack++);
+            chara_no = GetStackInt(stack++);
             if (argc >= 6) {
-                attachNo = GetStackInt__FP12RS_STACKDATA__2(stack);
+                attach_no = GetStackInt(stack);
             }
             break;
         default:
-            return 0;
-    }
-    if (memberKind < 0 || memberKind > 1) {
         return 0;
     }
-    if (equipKind < 0 || equipKind > 4) {
+    if (member_kind < 0 || member_kind > 1) {
         return 0;
     }
-    CUserDataManager *userData = NULL;
+    if (equip_kind < 0 || equip_kind > 4) {
+        return 0;
+    }
+    CUserDataManager *user_data = NULL;
     CSaveData *save = GetSaveData();
     if (save == NULL) {
         return 0;
     }
-    userData = &save->user_data;
-    if (userData == NULL) {
+    user_data = &save->user_data;
+    if (user_data == NULL) {
         return 0;
     }
     char *path;
     CCharacter2 *chara;
-    int texBlock;
+    int texb;
     u32 *pack;
-    if ((path = (char *)userData->GetCharaEquipDataPath(memberKind, equipKind)) == NULL) {
+    if ((path = (char *)user_data->GetCharaEquipDataPath(member_kind, equip_kind)) == NULL) {
         return 0;
     }
-    if ((chara = GetCharacter(charaNo)) == NULL) {
+    if ((chara = GetCharacter(chara_no)) == NULL) {
         return 0;
     }
-    if (0 > (texBlock = EventScene->GetCharaTexb(charaNo))) {
+    if (0 > (texb = EventScene->GetCharaTexb(chara_no))) {
         return 0;
     }
     if ((pack = GetLoadBGBuff(path, 0)) == NULL) {
         return 0;
     }
-    if (equipKind >= 3 || equipKind >= 4) {
+    if (equip_kind >= 3 || equip_kind >= 4) {
         mgCMemory *memory;
-        if ((memory = (mgCMemory *)EventScene->GetStack(stackNo)) == NULL) {
+        if ((memory = (mgCMemory *)EventScene->GetStack(stack_no)) == NULL) {
             return 0;
         }
-        sprintf(label, at_2292__2, charaNo);
+        sprintf(label, "ev%d", chara_no);
         mgCTextureManager *manager = &mgTexManager;
-        if (charaNo >= 8) {
+        if (chara_no >= 8) {
             strcpy(manager->name_suffix, label);
         }
-        chara->LoadSkin(pack, name, at_1083, memory, texBlock);
-        if (charaNo >= 8) {
+        chara->LoadSkin(pack, name, "", memory, texb);
+        if (chara_no >= 8) {
             manager->name_suffix[0] = 0;
         }
     } else {
-        if (_LOAD_CHARA_sub(stackNo, &name, attachNo, pack) <= 0) {
+        if (_LOAD_CHARA_sub(stack_no, &name, attach_no, pack) <= 0) {
             return 0;
         }
-        if (memberKind == 0) {
-            switch (equipKind) {
+        if (member_kind == 0) {
+            switch (equip_kind) {
                 case 0:
-                    strcpy(boneName, at_3631__2);
+                    strcpy(bone_name, "ef00");
                     break;
                 case 1:
-                    strcpy(boneName, at_3632__2);
+                    strcpy(bone_name, "gun_hand");
                     break;
                 case 2:
-                    strcpy(boneName, at_3633);
+                    strcpy(bone_name, "hat");
                     break;
             }
-        } else if (memberKind == 1) {
-            switch (equipKind) {
+        } else if (member_kind == 1) {
+            switch (equip_kind) {
                 case 0:
-                    strcpy(boneName, at_3634);
+                    strcpy(bone_name, "sword_hand");
                     break;
                 case 1:
-                    strcpy(boneName, at_3635);
+                    strcpy(bone_name, "wr");
                     break;
                 case 2:
-                    strcpy(boneName, at_3636);
+                    strcpy(bone_name, "ac");
                     break;
             }
         }
         CCharacter2 *attached;
-        if ((attached = GetCharacter(attachNo)) == NULL) {
+        if ((attached = GetCharacter(attach_no)) == NULL) {
             return 0;
         }
         if (chara->CObjectFrame::frame == NULL) {
             return 0;
         }
         mgCFrame *bone;
-        if ((bone = chara->CObjectFrame::frame->SearchFrame(boneName)) == NULL) {
+        if ((bone = chara->CObjectFrame::frame->SearchFrame(bone_name)) == NULL) {
             return 0;
         }
         if (attached->CObjectFrame::frame == NULL) {
@@ -3801,63 +4779,91 @@ int _LOAD_EQUIP(RS_STACKDATA *stack, int argc) {
     }
     return 1;
 }
-int _GET_EQUIP_ITEMNO(RS_STACKDATA *stack, int argc) {
-    int charaNo = GetStackInt__FP12RS_STACKDATA__2(stack++);
-    int slot = GetStackInt__FP12RS_STACKDATA__2(stack++);
-    if (charaNo < 0 || charaNo > 1) {
+
+/**
+ * Returns the equip itemno to the script.
+ */
+static int _GET_EQUIP_ITEMNO(RS_STACKDATA *stack, int argc) {
+    int chara_no = GetStackInt(stack++);
+    int slot = GetStackInt(stack++);
+    if (chara_no < 0 || chara_no > 1) {
         return 0;
     }
-    CUserDataManager *userData;
+    CUserDataManager *user_data;
 
-    if (slot < 0 || (userData = NULL, slot > 4)) {
+    if (slot < 0 || (user_data = NULL, slot > 4)) {
         return 0;
     }
     CSaveData *save = GetSaveData();
     if (save != NULL) {
-        userData = &save->user_data;
+        user_data = &save->user_data;
     }
-    if (userData == NULL) {
+    if (user_data == NULL) {
         return 0;
     }
-    CHARA_DATA *chara = userData->GetCharaDataPtr(charaNo);
+    CHARA_DATA *chara = user_data->GetCharaDataPtr(chara_no);
     if (chara == NULL) {
         return 0;
     }
-    SetStack__FP12RS_STACKDATAi__2(stack, chara->equip[slot].item_no);
+    SetStack(stack, chara->equip[slot].item_no);
     return 1;
 }
-int _SET_TIME_STEP_ENABLE(RS_STACKDATA *stack, int argc) {
-    EventScene->time_step = GetStackInt__FP12RS_STACKDATA__2(stack);
+
+/**
+ * Sets the time step enable from the script arguments.
+ */
+static int _SET_TIME_STEP_ENABLE(RS_STACKDATA *stack, int argc) {
+    EventScene->time_step = GetStackInt(stack);
     return 1;
 }
-int _SET_DOOR_MATERIAL(RS_STACKDATA *stack, int argc) {
+
+/**
+ * Sets the door material from the script arguments.
+ */
+static s32 _SET_DOOR_MATERIAL(RS_STACKDATA *stack, int argc) {
     return 1;
 }
-int _INIT_DRAMA_SCENE(RS_STACKDATA *stack, int argc) {
+
+/**
+ * Init drama scene.
+ */
+static s32 _INIT_DRAMA_SCENE(RS_STACKDATA *stack, s32 argc) {
     InitDramaScene();
     return 1;
 }
-int _SET_ACTIVE_CMRID(RS_STACKDATA *stack, int argc) {
-    EventScene->active_camera = GetStackInt__FP12RS_STACKDATA__2(stack);
+
+/**
+ * Sets the active cmrid from the script arguments.
+ */
+static int _SET_ACTIVE_CMRID(RS_STACKDATA *stack, int argc) {
+    EventScene->active_camera = GetStackInt(stack);
     return 1;
 }
-int _SET_BEFORE_CMRID(RS_STACKDATA *stack, int argc) {
-    EventScene->before_camera = GetStackInt__FP12RS_STACKDATA__2(stack);
+
+/**
+ * Sets the before cmrid from the script arguments.
+ */
+static int _SET_BEFORE_CMRID(RS_STACKDATA *stack, int argc) {
+    EventScene->before_camera = GetStackInt(stack);
     return 1;
 }
-int _DNGMAP_LOAD(RS_STACKDATA *stack, int argc) {
+
+/**
+ * Dngmap load.
+ */
+static int _DNGMAP_LOAD(RS_STACKDATA *stack, int argc) {
     int texBase;
     RS_STACKDATA *arg = stack + 1;
-    mgCMemory *memory = (mgCMemory *)EventScene->GetStack(GetStackInt__FP12RS_STACKDATA__2(stack));
-    int fileIndex = GetStackInt__FP12RS_STACKDATA__2(arg++);
+    mgCMemory *memory = (mgCMemory *)EventScene->GetStack(GetStackInt(stack));
+    int fileIndex = GetStackInt(arg++);
     int texCount = EventScene->event_texb_num;
     texBase = EventScene->event_texb;
     if (texCount <= 0 || texCount < fileIndex) {
         return 0;
     }
-    int param1 = GetStackInt__FP12RS_STACKDATA__2(arg++);
-    int param2 = GetStackInt__FP12RS_STACKDATA__2(arg++);
-    int param3 = GetStackInt__FP12RS_STACKDATA__2(arg);
+    int param1 = GetStackInt(arg++);
+    int param2 = GetStackInt(arg++);
+    int param3 = GetStackInt(arg);
     memory->Align64();
     if (memory->stAlloc64(EventDngMap.LoadDngInfo(
             memory, texBase + fileIndex, param1, param2, param3)) == 0) {
@@ -3867,21 +4873,37 @@ int _DNGMAP_LOAD(RS_STACKDATA *stack, int argc) {
     EventDngMap.active = 0;
     return 1;
 }
-int _DNGMAP_DELETE(RS_STACKDATA *stack, int argc) {
+
+/**
+ * Dngmap delete.
+ */
+static int _DNGMAP_DELETE(RS_STACKDATA *stack, int argc) {
     EventDngMap.DeleteTexBlock();
     return 1;
 }
-int _DNGMAP_MOVE_PIECE(RS_STACKDATA *stack, int argc) {
-    EventDngMap.SetKomaMove(GetStackInt__FP12RS_STACKDATA__2(stack));
+
+/**
+ * Dngmap move piece.
+ */
+static int _DNGMAP_MOVE_PIECE(RS_STACKDATA *stack, int argc) {
+    EventDngMap.SetKomaMove(GetStackInt(stack));
     return 1;
 }
-int _DNGMAP_ONOFF(RS_STACKDATA *stack, int argc) {
-    EventDngMap.active = (u8)(GetStackInt__FP12RS_STACKDATA__2(stack) != 0);
+
+/**
+ * Dngmap onoff.
+ */
+static int _DNGMAP_ONOFF(RS_STACKDATA *stack, int argc) {
+    EventDngMap.active = (u8)(GetStackInt(stack) != 0);
     return 1;
 }
-int _DNGMAP_SET_FADE(RS_STACKDATA *stack, int argc) {
-    int fadeIn = GetStackInt__FP12RS_STACKDATA__2(stack++);
-    int duration = GetStackInt__FP12RS_STACKDATA__2(stack);
+
+/**
+ * Dngmap set fade.
+ */
+static int _DNGMAP_SET_FADE(RS_STACKDATA *stack, int argc) {
+    int fadeIn = GetStackInt(stack++);
+    int duration = GetStackInt(stack);
     EventDngMap.active = 1;
     if (fadeIn != 0) {
         EventDngMap.FadeIn(duration);
@@ -3890,39 +4912,51 @@ int _DNGMAP_SET_FADE(RS_STACKDATA *stack, int argc) {
     }
     return 1;
 }
-int _GET_BEFORE_CAMERA_NEXT_POS(RS_STACKDATA *stack, int argc) {
-    float position[4];
+
+/**
+ * Returns the before camera next position to the script.
+ */
+static int _GET_BEFORE_CAMERA_NEXT_POS(RS_STACKDATA *stack, int argc) {
+    sceVu0FVECTOR position;
     mgCCamera *camera = EventScene->GetCamera(EventScene->before_camera);
     if (camera == NULL) {
         return 0;
     }
-    camera->GetNextPos( position);
-    SetStack__FP12RS_STACKDATAf__2(stack++, position[0]);
-    SetStack__FP12RS_STACKDATAf__2(stack++, position[1]);
-    SetStack__FP12RS_STACKDATAf__2(stack, position[2]);
+    camera->GetNextPos(position);
+    SetStack(stack++, position[0]);
+    SetStack(stack++, position[1]);
+    SetStack(stack, position[2]);
     return 1;
 }
-int _GET_BEFORE_CAMERA_NEXT_REF(RS_STACKDATA *stack, int argc) {
-    float position[4];
+
+/**
+ * Returns the before camera next reference to the script.
+ */
+static int _GET_BEFORE_CAMERA_NEXT_REF(RS_STACKDATA *stack, int argc) {
+    sceVu0FVECTOR position;
     mgCCamera *camera = EventScene->GetCamera(EventScene->before_camera);
     if (camera == NULL) {
         return 0;
     }
-    camera->GetNextRef( position);
-    SetStack__FP12RS_STACKDATAf__2(stack++, position[0]);
-    SetStack__FP12RS_STACKDATAf__2(stack++, position[1]);
-    SetStack__FP12RS_STACKDATAf__2(stack, position[2]);
+    camera->GetNextRef(position);
+    SetStack(stack++, position[0]);
+    SetStack(stack++, position[1]);
+    SetStack(stack, position[2]);
     return 1;
 }
-extern "C" int _SET_CAMERA_NEXT_POS__FP12RS_STACKDATAi__2(RS_STACKDATA *stack, int argc) {
-    float position[4];
+
+/**
+ * Sets the camera next position from the script arguments.
+ */
+static int _SET_CAMERA_NEXT_POS(RS_STACKDATA *stack, int argc) {
+    sceVu0FVECTOR position;
     mgCCameraFollow *camera;
     if ((camera = (mgCCameraFollow *)GetActiveCamera()) == NULL) {
         return 0;
     }
     switch (argc) {
         case 1: {
-            int key = GetStackInt__FP12RS_STACKDATA__2(stack);
+            int key = GetStackInt(stack);
             int count;
             int i;
             ARG_LIST *node;
@@ -3965,50 +4999,62 @@ extern "C" int _SET_CAMERA_NEXT_POS__FP12RS_STACKDATAi__2(RS_STACKDATA *stack, i
             break;
         }
         case 3:
-            GetStackVector__FPfP12RS_STACKDATA(position, stack);
+            GetStackVector(position, stack);
             break;
         default:
-            return 0;
+        return 0;
     }
-    camera->SetNextPos( position);
+    camera->SetNextPos(position);
     return 1;
 }
+
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/event_func", _CHK_INTERSECTION_POINT__FP12RS_STACKDATAi);
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/event_func", _CHK_INTERSECTION_POINT_PIPE__FP12RS_STACKDATAi);
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/event_func", _SET_FCAMERA_FOLLOW__FP12RS_STACKDATAi);
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/event_func", _SET_FCAMERA_FOLLOW_A__FP12RS_STACKDATAi);
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/event_func", _SET_FCAMERA_FOLLOW_OFS__FP12RS_STACKDATAi);
-int _SET_FCAMERA_FOLLOW_FLAG(RS_STACKDATA *stack, int argc) {
+/**
+ * Sets the follow camera follow flag from the script arguments.
+ */
+static int _SET_FCAMERA_FOLLOW_FLAG(RS_STACKDATA *stack, int argc) {
     mgCCameraFollow *camera = (mgCCameraFollow *)EventScene->GetCamera(EventScene->active_camera);
     if (camera == NULL) {
         return 0;
     }
-    if (GetStackInt__FP12RS_STACKDATA__2(stack) == 1) {
+    if (GetStackInt(stack) == 1) {
         camera->FollowOn();
     } else {
         camera->FollowOff();
     }
     return 1;
 }
-int _FCAMERA_STEP(RS_STACKDATA *stack, int argc) {
+
+/**
+ * Follow camera step.
+ */
+static int _FCAMERA_STEP(RS_STACKDATA *stack, int argc) {
     mgCCameraFollow *camera = (mgCCameraFollow *)EventScene->GetCamera(EventScene->active_camera);
     if (camera == NULL) {
         return 0;
     }
-    camera->Step(GetStackInt__FP12RS_STACKDATA__2(stack));
+    camera->Step(GetStackInt(stack));
     return 1;
 }
+
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/event_func", _SET_FCAMERA_ANGLE__FP12RS_STACKDATAi);
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/event_func", _SET_FCAMERA_HEIGHT__FP12RS_STACKDATAi);
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/event_func", _SET_FCAMERA_DIST__FP12RS_STACKDATAi);
-extern "C" int _GET_REF_ANGLE__FP12RS_STACKDATAi__2(RS_STACKDATA *stack, int argc) {
-    float from[4];
-    float direction[4];
+/**
+ * Returns the reference angle to the script.
+ */
+static int _GET_REF_ANGLE(RS_STACKDATA *stack, int argc) {
+    sceVu0FVECTOR from;
+    sceVu0FVECTOR direction;
     float yaw;
     float pitch;
     float *directionZ;
-    GetStackVector__FPfP12RS_STACKDATA(from, stack);
-    GetStackVector__FPfP12RS_STACKDATA(direction, stack + 3);
+    GetStackVector(from, stack);
+    GetStackVector(direction, stack + 3);
     stack += 6;
     sceVu0SubVector(direction, direction, from);
     sceVu0Normalize(direction, direction);
@@ -4017,19 +5063,23 @@ extern "C" int _GET_REF_ANGLE__FP12RS_STACKDATAi__2(RS_STACKDATA *stack, int arg
     pitch = -atan2f(direction[1], sqrtf(direction[0] * direction[0] + *directionZ * *directionZ));
     switch (argc) {
         case 7:
-            SetStack__FP12RS_STACKDATAf__2(stack, yaw);
+            SetStack(stack, yaw);
             break;
         case 9:
-            SetStack__FP12RS_STACKDATAf__2(stack++, pitch);
-            SetStack__FP12RS_STACKDATAf__2(stack++, yaw);
-            SetStack__FP12RS_STACKDATAf__2(stack, 0.0f);
+            SetStack(stack++, pitch);
+            SetStack(stack++, yaw);
+            SetStack(stack, 0.0f);
             break;
         default:
-            return 0;
+        return 0;
     }
     return 1;
 }
-int _DNG_SET_STAGE_ID(RS_STACKDATA *stack, int argc) {
+
+/**
+ * Dungeon set stage id.
+ */
+static int _DNG_SET_STAGE_ID(RS_STACKDATA *stack, int argc) {
     CSaveData *save = GetSaveData();
     if (save == NULL) {
         return 0;
@@ -4038,10 +5088,14 @@ int _DNG_SET_STAGE_ID(RS_STACKDATA *stack, int argc) {
     if (dungeon == NULL) {
         return 0;
     }
-    dungeon->stage_id = GetStackInt__FP12RS_STACKDATA__2(stack);
+    dungeon->stage_id = GetStackInt(stack);
     return 1;
 }
-int _DNG_GET_STAGE_ID(RS_STACKDATA *stack, int argc) {
+
+/**
+ * Dungeon get stage id.
+ */
+static int _DNG_GET_STAGE_ID(RS_STACKDATA *stack, int argc) {
     CSaveData *save = GetSaveData();
     if (save == NULL) {
         return 0;
@@ -4050,15 +5104,19 @@ int _DNG_GET_STAGE_ID(RS_STACKDATA *stack, int argc) {
     if (dungeon == NULL) {
         return 0;
     }
-    SetStack__FP12RS_STACKDATAi__2(stack, dungeon->stage_id);
+    SetStack(stack, dungeon->stage_id);
     return 1;
 }
-int _SET_CAMERA_CTRL(RS_STACKDATA *stack, int argc) {
+
+/**
+ * Sets the camera ctrl from the script arguments.
+ */
+static int _SET_CAMERA_CTRL(RS_STACKDATA *stack, int argc) {
     mgCCameraFollow *camera = (mgCCameraFollow *)EventScene->GetCamera(EventScene->active_camera);
     if (camera == NULL) {
         return 0;
     }
-    if (GetStackInt__FP12RS_STACKDATA__2(stack) != 0) {
+    if (GetStackInt(stack) != 0) {
         camera->FollowOn();
         ((CCameraControl *)camera)->ControlOn();
     } else {
@@ -4067,175 +5125,48 @@ int _SET_CAMERA_CTRL(RS_STACKDATA *stack, int argc) {
     }
     return 1;
 }
-int _GET_FCAMERA_ANGLE(RS_STACKDATA *stack, int argc) {
+
+/**
+ * Returns the follow camera angle to the script.
+ */
+static int _GET_FCAMERA_ANGLE(RS_STACKDATA *stack, int argc) {
     mgCCameraFollow *camera = (mgCCameraFollow *)EventScene->GetCamera(EventScene->active_camera);
     if (camera == NULL) {
         return 0;
     }
-    SetStack__FP12RS_STACKDATAf__2(stack, camera->GetAngle());
+    SetStack(stack, camera->GetAngle());
     return 1;
 }
-int _GET_FCAMERA_HEIGHT(RS_STACKDATA *stack, int argc) {
+
+/**
+ * Returns the follow camera height to the script.
+ */
+static int _GET_FCAMERA_HEIGHT(RS_STACKDATA *stack, int argc) {
     mgCCameraFollow *camera = (mgCCameraFollow *)EventScene->GetCamera(EventScene->active_camera);
     if (camera == NULL) {
         return 0;
     }
-    SetStack__FP12RS_STACKDATAf__2(stack, camera->GetHeight());
+    SetStack(stack, camera->GetHeight());
     return 1;
 }
-int _GET_FCAMERA_DIST(RS_STACKDATA *stack, int argc) {
+
+/**
+ * Returns the follow camera dist to the script.
+ */
+static int _GET_FCAMERA_DIST(RS_STACKDATA *stack, int argc) {
     mgCCameraFollow *camera = (mgCCameraFollow *)EventScene->GetCamera(EventScene->active_camera);
     if (camera == NULL) {
         return 0;
     }
-    SetStack__FP12RS_STACKDATAf__2(stack, camera->GetDistance());
+    SetStack(stack, camera->GetDistance());
     return 1;
 }
-int _GET_INVENTION_ID(RS_STACKDATA *stack, int argc) {
-    CSaveData *save = GetSaveData();
-    if (save == NULL) {
-        return 0;
-    }
-    u8 *userData = (u8 *)&save->user_data;
-    CInventUserData *inventData = (CInventUserData *)(userData + invent_user_data_offset);
-    if (userData == NULL) {
-        return 0;
-    }
-    if (inventData == NULL) {
-        return 0;
-    }
-    int inventionId = GetStackInt__FP12RS_STACKDATA__2(stack++);
 
-    argc = inventData->IsAlreadyCreatedItem(inventionId);
-    SetStack__FP12RS_STACKDATAi__2(stack, argc);
-    return 1;
-}
-int _FUNCTION_MAP_JUMP(RS_STACKDATA *stack, int argc) {
-
-    u32 *request = &EventScene->map_jump_flags;
-    if (!(*request & 0x10A)) {
-        return 0;
-    }
-    EdEventInfo.jump_point = -1;
-    EdEventInfo.event_no = 100;
-    if (strcmp((char *)(request + 6), at_4072) == 0) {
-        EdEventInfo.request = exit_leave_interior;
-    } else {
-        strcpy(EdEventInfo.jump_map_name, (char *)(request + 6));
-        EdEventInfo.request = exit_enter_interior;
-    }
-    return 1;
-}
-int _FUNCTION_DOOR_MODE(RS_STACKDATA *stack, int argc) {
-    EdEventInfo.func_iparam[0] = 0;
-    EdEventInfo.func_iparam[1] = EventScene->door_place_no[0];
-    EdEventInfo.func_iparam[2] = EventScene->door_place_no[1];
-    EdEventInfo.func_fparam[0] = EventScene->door_vec[0];
-    EdEventInfo.func_fparam[1] = EventScene->door_vec[1];
-    EdEventInfo.func_fparam[2] = EventScene->door_vec[2];
-    EdEventInfo.func_fparam[3] = atan2f(EventScene->door_dir_x, EventScene->door_dir_z);
-    EdEventInfo.command_mode = request_door;
-    return 1;
-}
-int _GET_MONEY(RS_STACKDATA *stack, int argc) {
-    CSaveData *save = GetSaveData();
-    if (save == NULL) {
-        return 0;
-    }
-    CUserDataManager *userData = &save->user_data;
-    if (userData == NULL) {
-        return 0;
-    }
-    SetStack__FP12RS_STACKDATAi__2(stack, userData->money);
-    return 1;
-}
-int _ADD_MONEY(RS_STACKDATA *stack, int argc) {
-    CSaveData *save = GetSaveData();
-    if (save == NULL) {
-        return 0;
-    }
-    CUserDataManager *userData = &save->user_data;
-    if (userData == NULL) {
-        return 0;
-    }
-    userData->AddMoney(GetStackInt__FP12RS_STACKDATA__2(stack));
-    return 1;
-}
-int _GET_ITEM_NUM(RS_STACKDATA *stack, int argc) {
-    CSaveData *save = GetSaveData();
-    if (save == NULL) {
-        return 0;
-    }
-    CUserDataManager *userData = &save->user_data;
-    if (userData == NULL) {
-        return 0;
-    }
-    int itemNo = GetStackInt__FP12RS_STACKDATA__2(stack++);
-
-    argc = userData->GetNumSameItem(itemNo);
-    SetStack__FP12RS_STACKDATAi__2(stack, argc);
-    return 1;
-}
-int _CHECK_BUTTON(RS_STACKDATA *stack, int argc) {
-    int button = GetStackInt__FP12RS_STACKDATA__2(stack++);
-    int pressed = 0;
-    int padDown = GamePad__2.GetPadDown();
-    switch (button) {
-        case 0:
-            if (LanguageCode == 0) {
-                if (padDown & 0x40) {
-                    pressed = 1;
-                }
-            } else if (padDown & 0x20) {
-                pressed = 1;
-            }
-            break;
-        case 1:
-            if (LanguageCode == 0) {
-                if (padDown & 0x20) {
-                    pressed = 1;
-                }
-            } else if (padDown & 0x40) {
-                pressed = 1;
-            }
-            break;
-        case 2:
-            if (padDown & 0x80) {
-                pressed = 1;
-            }
-            break;
-        case 3:
-            if (padDown & 0x100) {
-                pressed = 1;
-            }
-            break;
-        default:
-            return 0;
-    }
-    SetStack__FP12RS_STACKDATAi__2(stack, pressed);
-    return 1;
-}
-int _GET_LANGUAGE(RS_STACKDATA *stack, int argc) {
-    SetStack__FP12RS_STACKDATAi__2(stack, LanguageCode);
-    return 1;
-}
-extern "C" int _CHECK_INVENT_ITEM__FP12RS_STACKDATAi(RS_STACKDATA *arg0, int arg1) {
-    int value = CheckInventItem__Fi(GetStackInt__FP12RS_STACKDATA__2(arg0++));
-    SetStack__FP12RS_STACKDATAi__2(arg0, value);
-    return 1;
-}
-int _SET_AI(RS_STACKDATA *stack, int argc) {
-    int enabled = GetStackInt__FP12RS_STACKDATA__2(stack++);
-    int chara_no = GetStackInt__FP12RS_STACKDATA__2(stack);
-    if (enabled != 0) {
-        EventScene->CancelStayVillager(chara_no);
-    } else {
-        EventScene->StayVillager(chara_no);
-    }
-    return 1;
-}
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/event_func", _CHECK_INVENT_PHOTO__FP12RS_STACKDATAi);
-int _GET_PHOTO_NUM(RS_STACKDATA *stack, int argc) {
+/**
+ * Returns the invention id to the script.
+ */
+static int _GET_INVENTION_ID(RS_STACKDATA *stack, int argc) {
+    int result;
     CSaveData *save = GetSaveData();
     if (save == NULL) {
         return 0;
@@ -4248,165 +5179,393 @@ int _GET_PHOTO_NUM(RS_STACKDATA *stack, int argc) {
     if (invent_data == NULL) {
         return 0;
     }
-    SetStack__FP12RS_STACKDATAi__2(stack, invent_data->GetNowHavePictureNum());
+    int invention_id = GetStackInt(stack++);
+
+    result = invent_data->IsAlreadyCreatedItem(invention_id);
+    SetStack(stack, result);
     return 1;
 }
-int _SET_CONTENTS_ETC(RS_STACKDATA *stack, int argc) {
+
+/**
+ * Function map jump.
+ */
+static int _FUNCTION_MAP_JUMP(RS_STACKDATA *stack, int argc) {
+
+    CFuncPoint::EventData *request = &EventScene->event_data.event;
+    if (!(request->flag & (FUNC_EVENT_ACTION | FUNC_EVENT_DOOR | FUNC_EVENT_UNK_100))) {
+        return 0;
+    }
+    EdEventInfo.jump_point = -1;
+    EdEventInfo.event_no = 100;
+    if (strcmp(request->unk_38, "exit") == 0) {
+        EdEventInfo.request = exit_leave_interior;
+    } else {
+        strcpy(EdEventInfo.jump_map_name, request->unk_38);
+        EdEventInfo.request = exit_enter_interior;
+    }
     return 1;
 }
+
+/**
+ * Function door mode.
+ */
+static int _FUNCTION_DOOR_MODE(RS_STACKDATA *stack, int argc) {
+    EdEventInfo.func_iparam[0] = 0;
+    EdEventInfo.func_iparam[1] = EventScene->door_place_no[0];
+    EdEventInfo.func_iparam[2] = EventScene->door_place_no[1];
+    EdEventInfo.func_fparam[0] = EventScene->door_vec[0];
+    EdEventInfo.func_fparam[1] = EventScene->door_vec[1];
+    EdEventInfo.func_fparam[2] = EventScene->door_vec[2];
+    EdEventInfo.func_fparam[3] = atan2f(EventScene->door_dir_x, EventScene->door_dir_z);
+    EdEventInfo.command_mode = request_door;
+    return 1;
+}
+
+/**
+ * Returns the money to the script.
+ */
+static int _GET_MONEY(RS_STACKDATA *stack, int argc) {
+    CSaveData *save = GetSaveData();
+    if (save == NULL) {
+        return 0;
+    }
+    CUserDataManager *user_data = &save->user_data;
+    if (user_data == NULL) {
+        return 0;
+    }
+    SetStack(stack, user_data->money);
+    return 1;
+}
+
+/**
+ * Adds to the money.
+ */
+static int _ADD_MONEY(RS_STACKDATA *stack, int argc) {
+    CSaveData *save = GetSaveData();
+    if (save == NULL) {
+        return 0;
+    }
+    CUserDataManager *user_data = &save->user_data;
+    if (user_data == NULL) {
+        return 0;
+    }
+    user_data->AddMoney(GetStackInt(stack));
+    return 1;
+}
+
+/**
+ * Returns the item count to the script.
+ */
+static int _GET_ITEM_NUM(RS_STACKDATA *stack, int argc) {
+    int result;
+    CSaveData *save = GetSaveData();
+    if (save == NULL) {
+        return 0;
+    }
+    CUserDataManager *user_data = &save->user_data;
+    if (user_data == NULL) {
+        return 0;
+    }
+    int item_no = GetStackInt(stack++);
+
+    result = user_data->GetNumSameItem(item_no);
+    SetStack(stack, result);
+    return 1;
+}
+
+/**
+ * Checks button and returns the result to the script.
+ */
+static int _CHECK_BUTTON(RS_STACKDATA *stack, int argc) {
+    int button = GetStackInt(stack++);
+    int pressed = 0;
+    int pad_down = GamePad__2.GetPadDown();
+    switch (button) {
+        case 0:
+            if (LanguageCode == 0) {
+                if (pad_down & 0x40) {
+                    pressed = 1;
+                }
+            } else if (pad_down & 0x20) {
+                pressed = 1;
+            }
+            break;
+        case 1:
+            if (LanguageCode == 0) {
+                if (pad_down & 0x20) {
+                    pressed = 1;
+                }
+            } else if (pad_down & 0x40) {
+                pressed = 1;
+            }
+            break;
+        case 2:
+            if (pad_down & 0x80) {
+                pressed = 1;
+            }
+            break;
+        case 3:
+            if (pad_down & 0x100) {
+                pressed = 1;
+            }
+            break;
+        default:
+        return 0;
+    }
+    SetStack(stack, pressed);
+    return 1;
+}
+
+/**
+ * Returns the language to the script.
+ */
+static int _GET_LANGUAGE(RS_STACKDATA *stack, int argc) {
+    SetStack(stack, LanguageCode);
+    return 1;
+}
+
+/**
+ * Checks invent item and returns the result to the script.
+ */
+static int _CHECK_INVENT_ITEM(RS_STACKDATA *stack, int argc) {
+    int item = GetStackInt(stack++);
+    SetStack(stack, CheckInventItem(item));
+    return 1;
+}
+/**
+ * Sets the ai from the script arguments.
+ */
+static int _SET_AI(RS_STACKDATA *stack, int argc) {
+    int enabled = GetStackInt(stack++);
+    int chara_no = GetStackInt(stack);
+    if (enabled != 0) {
+        EventScene->CancelStayVillager(chara_no);
+    } else {
+        EventScene->StayVillager(chara_no);
+    }
+    return 1;
+}
+
+INCLUDE_ASM("ps2/asm/pal/nonmatchings/event_func", _CHECK_INVENT_PHOTO__FP12RS_STACKDATAi);
+/**
+ * Returns the photo count to the script.
+ */
+static int _GET_PHOTO_NUM(RS_STACKDATA *stack, int argc) {
+    CSaveData *save = GetSaveData();
+    if (save == NULL) {
+        return 0;
+    }
+    CUserDataManager *user_data = &save->user_data;
+    CInventUserData *invent_data = &user_data->invent_data;
+    if (user_data == NULL) {
+        return 0;
+    }
+    if (invent_data == NULL) {
+        return 0;
+    }
+    SetStack(stack, invent_data->GetNowHavePictureNum());
+    return 1;
+}
+
+/**
+ * Sets the contents etc from the script arguments.
+ */
+static s32 _SET_CONTENTS_ETC(RS_STACKDATA *stack, int argc) {
+    return 1;
+}
+
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/event_func", _SET_STATUS__FP12RS_STACKDATAi__2);
-int _GOTO_SUBGAME(RS_STACKDATA *stack, int argc) {
-    int type = GetStackInt__FP12RS_STACKDATA__2(stack);
+/**
+ * Requests subgame.
+ */
+static int _GOTO_SUBGAME(RS_STACKDATA *stack, int argc) {
+    int type = GetStackInt(stack);
     SubGameInfo info;
     info.scene = EventScene;
     info.texb = EventScene->unk_3e68;
     info.texb_num = EventScene->unk_3e6c;
     return sgInitSubGame(type, &info) != 0;
 }
+
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/event_func", _SET_GYORACE_ETC__FP12RS_STACKDATAi);
-int _GET_GYORACE_ETC(RS_STACKDATA *stack, int argc) {
+/**
+ * Returns the gyorace etc to the script.
+ */
+static int _GET_GYORACE_ETC(RS_STACKDATA *stack, int argc) {
     FISH_PRIZE_INFO info;
     int raceNo;
 
-    switch (GetStackInt__FP12RS_STACKDATA__2(stack++)) {
+    switch (GetStackInt(stack++)) {
         case 0:
-            SetStack__FP12RS_STACKDATAi__2(stack++, GetGyoRaceAquariumNo());
+            SetStack(stack++, GetGyoRaceAquariumNo());
             break;
         case 1:
-            SetStack__FP12RS_STACKDATAi__2(stack++, GetGyoRaceRanking());
+            SetStack(stack++, GetGyoRaceRanking());
             break;
         case 2:
-            SetStack__FP12RS_STACKDATAi__2(stack++, GetGyoRaceClass());
+            SetStack(stack++, GetGyoRaceClass());
             break;
         case 3:
-            SetStack__FP12RS_STACKDATAi__2(stack++, GetGyoRaceNo());
+            SetStack(stack++, GetGyoRaceNo());
             break;
         case 4:
-            raceNo = GetStackInt__FP12RS_STACKDATA__2(stack++);
-            if (!GetFishPrize(raceNo, GetStackInt__FP12RS_STACKDATA__2(stack++) - 1, &info)) {
-                return 0;
+            raceNo = GetStackInt(stack++);
+            if (!GetFishPrize(raceNo, GetStackInt(stack++) - 1, &info)) {
+            return 0;
             }
-            SetStack__FP12RS_STACKDATAi__2(stack++, info.unk_0);
-            SetStack__FP12RS_STACKDATAi__2(stack++, info.unk_4);
+            SetStack(stack++, info.unk_0);
+            SetStack(stack++, info.unk_4);
             break;
         case 5: {
             CSaveData *save = GetSaveData();
             if (save == NULL) {
                 return 0;
             }
-            SetStack__FP12RS_STACKDATAi__2(stack++, save->GetTourCountEtc());
+            SetStack(stack++, save->GetTourCountEtc());
             break;
         }
         default:
-            return 0;
+        return 0;
     }
     return 1;
 }
-int _SET_SAVEDATA_ETC(RS_STACKDATA *stack, int argc) {
+
+/**
+ * Sets the savedata etc from the script arguments.
+ */
+static int _SET_SAVEDATA_ETC(RS_STACKDATA *stack, int argc) {
     CSaveData *save;
     CUserDataManager *user;
     MOS_CHANGE_PARAM *bajji;
 
-    switch (GetStackInt__FP12RS_STACKDATA__2(stack++)) {
+    switch (GetStackInt(stack++)) {
         case 0:
             save = GetSaveData();
             if (save == NULL) {
-                return 0;
+            return 0;
             }
-            save->game_progress = GetStackInt__FP12RS_STACKDATA__2(stack);
+            save->game_progress = GetStackInt(stack);
             break;
         case 1:
             save = GetSaveData();
             if (save == NULL) {
-                return 0;
+            return 0;
             }
             user = &save->user_data;
             if (user == NULL) {
-                return 0;
+            return 0;
             }
-            bajji = user->GetMonsterBajjiDataPtrMosId(GetStackInt__FP12RS_STACKDATA__2(stack));
+            bajji = user->GetMonsterBajjiDataPtrMosId(GetStackInt(stack));
             if (bajji == NULL) {
-                return 0;
+            return 0;
             }
             bajji->enable = 1;
             break;
         case 2:
             save = GetSaveData();
             if (save == NULL) {
-                return 0;
+            return 0;
             }
             user = &save->user_data;
             if (user == NULL) {
-                return 0;
+            return 0;
             }
             user->AllWeaponRepair();
             break;
         case 3:
             save = GetSaveData();
             if (save == NULL) {
-                return 0;
+            return 0;
             }
-            save->unk_643C9 = GetStackInt__FP12RS_STACKDATA__2(stack);
+            save->unk_643C9 = GetStackInt(stack);
             break;
         case 4:
             DeleteErekiFish();
             break;
         default:
-            return 0;
+        return 0;
     }
     return 1;
 }
+
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/event_func", _GET_SAVEDATA_ETC__FP12RS_STACKDATAi);
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/event_func", _DEL_MONSTER__FP12RS_STACKDATAi);
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/event_func", _SET_MENU_ETC__FP12RS_STACKDATAi);
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/event_func", _GET_MENU_ETC__FP12RS_STACKDATAi);
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/event_func", _GET_ANALYZE__FP12RS_STACKDATAi);
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/event_func", _GET_DIORAMA_PERCENT__FP12RS_STACKDATAi);
-void _GEORAMA_FUNC(RS_STACKDATA *stack, int argc) {
+/**
+ * Georama func.
+ */
+static void _GEORAMA_FUNC(RS_STACKDATA *stack, int argc) {
     GeoFuncParam param;
 
     param.scene = (CScene *)EventScene;
     GeoramaFunc(&param, stack, argc);
 }
+
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/event_func", _GET_CHARA_ID__FP12RS_STACKDATAi);
-int _GOTO_EDITMODE(RS_STACKDATA *stack, int argc) {
+/**
+ * Requests editmode.
+ */
+static int _GOTO_EDITMODE(RS_STACKDATA *stack, int argc) {
     EdEventInfo.request = exit_edit_mode;
     return 1;
 }
-int _GET_CHAPTER(RS_STACKDATA *stack, int argc) {
+
+/**
+ * Returns the chapter to the script.
+ */
+static int _GET_CHAPTER(RS_STACKDATA *stack, int argc) {
     CSaveData *save;
 
     save = GetSaveData();
     if (save == NULL) {
         return 0;
     }
-    SetStack__FP12RS_STACKDATAi__2(stack, GetNowChapter(save));
+    SetStack(stack, GetNowChapter(save));
     return 1;
 }
+
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/event_func", _GET_NPC_TRAIN_ETC__FP12RS_STACKDATAi);
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/event_func", _REGISTER_VILLAGER__FP12RS_STACKDATAi);
-int _EYE_VIEW_DRAW_ON_OFF(RS_STACKDATA *stack, int argc) {
-    ((CScene *)EventScene)->EyeViewDrawOnOff(GetStackInt__FP12RS_STACKDATA__2(stack));
+/**
+ * Eye view drawing on off.
+ */
+static int _EYE_VIEW_DRAW_ON_OFF(RS_STACKDATA *stack, int argc) {
+    ((CScene *)EventScene)->EyeViewDrawOnOff(GetStackInt(stack));
     return 1;
 }
+
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/event_func", _SET_QUEST_ETC__FP12RS_STACKDATAi);
-int _GET_QUEST_ETC(RS_STACKDATA *stack, int argc) {
-    int command = GetStackInt__FP12RS_STACKDATA__2(stack++);
-    int quest_no = GetStackInt__FP12RS_STACKDATA__2(stack++);
+/**
+ * Returns the quest etc to the script.
+ */
+static int _GET_QUEST_ETC(RS_STACKDATA *stack, int argc) {
+    int command = GetStackInt(stack++);
+    int quest_no = GetStackInt(stack++);
     switch (command) {
         case 0:
-            SetStack__FP12RS_STACKDATAi__2(stack, GetQuestRequestStatus(quest_no));
+            SetStack(stack, GetQuestRequestStatus(quest_no));
             break;
         default:
-            return 0;
+        return 0;
     }
     return 1;
 }
-int _GET_OLD_INTERIOR_MAP_NO(RS_STACKDATA *stack, int argc) {
-    SetStack__FP12RS_STACKDATAi__2(stack, GetOldInteriorMapNo());
+
+/**
+ * Returns the old interior map no to the script.
+ */
+static int _GET_OLD_INTERIOR_MAP_NO(RS_STACKDATA *stack, int argc) {
+    SetStack(stack, GetOldInteriorMapNo());
     return 1;
 }
-int _SET_EVENT_DATA(RS_STACKDATA *stack, int argc) {
+
+/**
+ * Sets the event data from the script arguments.
+ */
+static int _SET_EVENT_DATA(RS_STACKDATA *stack, int argc) {
     CSceneEventData *eventData;
     RS_STACKDATA *value;
 
@@ -4415,44 +5574,48 @@ int _SET_EVENT_DATA(RS_STACKDATA *stack, int argc) {
         return 0;
     }
     value = stack + 1;
-    switch (GetStackInt__FP12RS_STACKDATA__2(stack)) {
+    switch (GetStackInt(stack)) {
         case 0:
-            eventData->event.flag = GetStackInt__FP12RS_STACKDATA__2(value);
+            eventData->event.flag = GetStackInt(value);
             break;
         case 1:
-            eventData->event.event_no = GetStackInt__FP12RS_STACKDATA__2(value);
+            eventData->event.event_no = GetStackInt(value);
             break;
         case 2:
-            eventData->event.point_no = GetStackInt__FP12RS_STACKDATA__2(value);
+            eventData->event.point_no = GetStackInt(value);
             break;
         case 3:
-            eventData->event.unk_2c = GetStackInt__FP12RS_STACKDATA__2(value);
+            eventData->event.unk_2c = GetStackInt(value);
             break;
         case 4:
-            eventData->event.unk_30 = GetStackInt__FP12RS_STACKDATA__2(value);
+            eventData->event.unk_30 = GetStackInt(value);
             break;
         case 5:
-            eventData->event.unk_34 = GetStackInt__FP12RS_STACKDATA__2(value);
+            eventData->event.unk_34 = GetStackInt(value);
             break;
         case 6:
-            eventData->map_event.check_type = GetStackInt__FP12RS_STACKDATA__2(value);
+            eventData->map_event.check_type = GetStackInt(value);
             break;
         case 7:
-            eventData->map_event.event_no = GetStackInt__FP12RS_STACKDATA__2(value);
+            eventData->map_event.event_no = GetStackInt(value);
             break;
         case 13:
-            eventData->chara_slot = GetStackInt__FP12RS_STACKDATA__2(value);
+            eventData->chara_slot = GetStackInt(value);
             break;
         case 14:
-            eventData->chara_no = GetStackInt__FP12RS_STACKDATA__2(value);
+            eventData->chara_no = GetStackInt(value);
             break;
         default:
-            return 0;
+        return 0;
     }
     return 1;
 }
+
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/event_func", _STOPWATCH__FP12RS_STACKDATAi);
-int _SET_FUNC_ETC(RS_STACKDATA *stack, int argc) {
+/**
+ * Sets the func etc from the script arguments.
+ */
+static int _SET_FUNC_ETC(RS_STACKDATA *stack, int argc) {
     u32 *flags;
 
     flags = &EventScene->map_jump_flags;
@@ -4462,7 +5625,7 @@ int _SET_FUNC_ETC(RS_STACKDATA *stack, int argc) {
     if (flags == NULL) {
         return 0;
     }
-    switch (GetStackInt__FP12RS_STACKDATA__2(stack)) {
+    switch (GetStackInt(stack)) {
         case 0:
             *flags |= 0x80;
             EdEventInfo.request = 0x13;
@@ -4471,62 +5634,78 @@ int _SET_FUNC_ETC(RS_STACKDATA *stack, int argc) {
             EdEventInfo.request = 0x12;
             break;
         default:
-            return 0;
+        return 0;
     }
     return 1;
 }
-CCharacter2 *GetChara(int id) {
+
+/**
+ * Returns a scene character by its event index.
+ */
+static CCharacter2 *GetChara(int id) {
     return GetCharacter(id);
 }
-int _GET_CHARA_POS(RS_STACKDATA *stack, int argc) {
-    float pos[4];
+
+/**
+ * Returns the character position to the script.
+ */
+static int _GET_CHARA_POS(RS_STACKDATA *stack, int argc) {
+    sceVu0FVECTOR pos;
     RS_STACKDATA *out;
     CCharacter2 *chara;
 
     out = stack + 1;
-    chara = GetChara(GetStackInt__FP12RS_STACKDATA__2(stack));
+    chara = GetChara(GetStackInt(stack));
     if (chara == NULL) {
         return 0;
     }
     chara->GetPosition(pos);
-    SetStack__FP12RS_STACKDATAf__2(out++, pos[0]);
-    SetStack__FP12RS_STACKDATAf__2(out++, pos[1]);
-    SetStack__FP12RS_STACKDATAf__2(out++, pos[2]);
+    SetStack(out++, pos[0]);
+    SetStack(out++, pos[1]);
+    SetStack(out++, pos[2]);
     return 1;
 }
-int _GET_CHARA_TALK_POS(RS_STACKDATA *stack, int argc) {
+
+/**
+ * Returns the character talk position to the script.
+ */
+static int _GET_CHARA_TALK_POS(RS_STACKDATA *stack, int argc) {
     int screenPos[2];
     RS_STACKDATA *out;
     CCharacter2 *chara;
 
     out = stack + 1;
-    chara = GetChara(GetStackInt__FP12RS_STACKDATA__2(stack));
+    chara = GetChara(GetStackInt(stack));
     if (chara == NULL) {
         return 0;
     }
     GetScrPosFromChar(chara, screenPos);
-    SetStack__FP12RS_STACKDATAi__2(out++, screenPos[0]);
-    SetStack__FP12RS_STACKDATAi__2(out, screenPos[1]);
+    SetStack(out++, screenPos[0]);
+    SetStack(out, screenPos[1]);
     return 1;
 }
-int _TURN_CHARA(RS_STACKDATA *stack, int argc) {
+
+/**
+ * Turn character.
+ */
+static int _TURN_CHARA(RS_STACKDATA *stack, int argc) {
     CCharacter2 *chara;
-    float target[4];
-    float pos[4];
-    float rot[4];
-    float diff[4];
+    sceVu0FVECTOR target;
+    sceVu0FVECTOR pos;
+    sceVu0FVECTOR rot;
+    sceVu0FVECTOR diff;
     float rate;
     float angle;
     float *yaw;
 
-    chara = GetChara(GetStackInt__FP12RS_STACKDATA__2(stack++));
+    chara = GetChara(GetStackInt(stack++));
     if (chara == NULL) {
         return 0;
     }
-    target[0] = GetStackFloat__FP12RS_STACKDATA__2(stack++);
-    target[1] = GetStackFloat__FP12RS_STACKDATA__2(stack++);
-    target[2] = GetStackFloat__FP12RS_STACKDATA__2(stack++);
-    rate = GetStackFloat__FP12RS_STACKDATA__2(stack);
+    target[0] = GetStackFloat(stack++);
+    target[1] = GetStackFloat(stack++);
+    target[2] = GetStackFloat(stack++);
+    rate = GetStackFloat(stack);
     chara->GetPosition(pos);
     chara->GetRotation(rot);
     sceVu0SubVector(diff, target, pos);
@@ -4536,38 +5715,46 @@ int _TURN_CHARA(RS_STACKDATA *stack, int argc) {
     chara->SetRotation(rot);
     return 1;
 }
+
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/event_func", _SET_CHARA_POS__FP12RS_STACKDATAi);
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/event_func", _SET_CHARA_ROT__FP12RS_STACKDATAi);
-int _GET_CHARA_ROT(RS_STACKDATA *stack, int argc) {
-    float pos[4];
+/**
+ * Returns the character rotation to the script.
+ */
+static int _GET_CHARA_ROT(RS_STACKDATA *stack, int argc) {
+    sceVu0FVECTOR pos;
     RS_STACKDATA *out;
     CCharacter2 *chara;
 
     out = stack + 1;
-    chara = GetChara(GetStackInt__FP12RS_STACKDATA__2(stack));
+    chara = GetChara(GetStackInt(stack));
     if (chara == NULL) {
         return 0;
     }
     chara->GetRotation(pos);
-    SetStack__FP12RS_STACKDATAf__2(out++, pos[0]);
-    SetStack__FP12RS_STACKDATAf__2(out++, pos[1]);
-    SetStack__FP12RS_STACKDATAf__2(out++, pos[2]);
+    SetStack(out++, pos[0]);
+    SetStack(out++, pos[1]);
+    SetStack(out++, pos[2]);
     return 1;
 }
+
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/event_func", _SET_MOTION__FP12RS_STACKDATAi);
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/event_func", _SET_STEP__FP12RS_STACKDATAi);
-int _SET_TEX_ANIM(RS_STACKDATA *stack, int argc) {
+/**
+ * Sets the texture animation from the script arguments.
+ */
+static int _SET_TEX_ANIM(RS_STACKDATA *stack, int argc) {
     int charaId;
     int enable;
     char *name;
     int texBank;
     mgCTextureManager *manager;
 
-    charaId = GetStackInt__FP12RS_STACKDATA__2(stack++);
-    enable = GetStackInt__FP12RS_STACKDATA__2(stack++);
+    charaId = GetStackInt(stack++);
+    enable = GetStackInt(stack++);
     name = NULL;
     if (argc > 2) {
-        name = GetStackString__FP12RS_STACKDATA__2(stack);
+        name = GetStackString(stack);
     }
     texBank = EventScene->GetCharaTexb(charaId);
     if (texBank < 0) {
@@ -4583,8 +5770,12 @@ int _SET_TEX_ANIM(RS_STACKDATA *stack, int argc) {
     }
     return 1;
 }
+
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/event_func", _SET_SCALE__FP12RS_STACKDATAi__2);
-int _SET_REFERENCE(RS_STACKDATA *stack, int argc) {
+/**
+ * Sets the reference from the script arguments.
+ */
+static int _SET_REFERENCE(RS_STACKDATA *stack, int argc) {
     int charaId;
     char *frameName;
     int referenceId;
@@ -4593,9 +5784,9 @@ int _SET_REFERENCE(RS_STACKDATA *stack, int argc) {
     mgCFrame *frame;
     mgCFrame *child;
 
-    charaId = GetStackInt__FP12RS_STACKDATA__2(stack++);
-    frameName = GetStackString__FP12RS_STACKDATA__2(stack++);
-    referenceId = GetStackInt__FP12RS_STACKDATA__2(stack);
+    charaId = GetStackInt(stack++);
+    frameName = GetStackString(stack++);
+    referenceId = GetStackInt(stack);
     chara = GetChara(charaId);
     if (chara == NULL) {
         return 0;
@@ -4619,11 +5810,15 @@ int _SET_REFERENCE(RS_STACKDATA *stack, int argc) {
     frame->SetReference(child);
     return 1;
 }
-int _DEL_REFERENCE(RS_STACKDATA *stack, int argc) {
+
+/**
+ * Deletes the reference.
+ */
+static int _DEL_REFERENCE(RS_STACKDATA *stack, int argc) {
     mgCFrame *frame;
     CCharacter2 *chara;
 
-    chara = GetChara(GetStackInt__FP12RS_STACKDATA__2(stack));
+    chara = GetChara(GetStackInt(stack));
     if (chara == NULL) {
         return 0;
     }
@@ -4634,15 +5829,19 @@ int _DEL_REFERENCE(RS_STACKDATA *stack, int argc) {
     frame->DeleteReference();
     return 1;
 }
-int _SHADOW_CLIP_OFF(RS_STACKDATA *stack, int argc) {
+
+/**
+ * Shadow clip off.
+ */
+static int _SHADOW_CLIP_OFF(RS_STACKDATA *stack, int argc) {
     int charaId;
     CCharacter2 *chara;
     int clipOff;
 
     clipOff = 1;
-    charaId = GetStackInt__FP12RS_STACKDATA__2(stack++);
+    charaId = GetStackInt(stack++);
     if (argc > 0) {
-        clipOff = GetStackInt__FP12RS_STACKDATA__2(stack);
+        clipOff = GetStackInt(stack);
     }
     chara = GetChara(charaId);
     if (chara == NULL) {
@@ -4656,93 +5855,123 @@ int _SHADOW_CLIP_OFF(RS_STACKDATA *stack, int argc) {
     chara->shadow_frame->SetAttrParam(attr, 1, 0x100000);
     return 1;
 }
+
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/event_func", _GET_COORDINATE_ANGLE__FP12RS_STACKDATAi);
-int _GET_CHARA_WIDTH(RS_STACKDATA *stack, int argc) {
+/**
+ * Returns the character width to the script.
+ */
+static int _GET_CHARA_WIDTH(RS_STACKDATA *stack, int argc) {
     RS_STACKDATA *nextSlot;
     CCharacter2 *chara;
 
     nextSlot = stack + 1;
-    chara = GetChara(GetStackInt__FP12RS_STACKDATA__2(stack));
+    chara = GetChara(GetStackInt(stack));
     if (chara == NULL) {
         return 0;
     }
-    SetStack__FP12RS_STACKDATAf__2(nextSlot, chara->body_width);
+    SetStack(nextSlot, chara->body_width);
     return 1;
 }
-int _GET_CHARA_HEIGHT(RS_STACKDATA *stack, int argc) {
+/**
+ * Returns the character height.
+ */
+static int _GET_CHARA_HEIGHT(RS_STACKDATA *stack, int argc) {
     RS_STACKDATA *nextSlot;
     CCharacter2 *chara;
 
     nextSlot = stack + 1;
-    chara = GetChara(GetStackInt__FP12RS_STACKDATA__2(stack));
+    chara = GetChara(GetStackInt(stack));
     if (chara == NULL) {
         return 0;
     }
-    SetStack__FP12RS_STACKDATAf__2(nextSlot, chara->body_height);
+    SetStack(nextSlot, chara->body_height);
     return 1;
 }
-int _GET_CHARA_WEIGHT(RS_STACKDATA *stack, int argc) {
+
+/**
+ * Returns the character weight.
+ */
+static int _GET_CHARA_WEIGHT(RS_STACKDATA *stack, int argc) {
     RS_STACKDATA *nextSlot;
     CCharacter2 *chara;
 
     nextSlot = stack + 1;
-    chara = GetChara(GetStackInt__FP12RS_STACKDATA__2(stack));
+    chara = GetChara(GetStackInt(stack));
     if (chara == NULL) {
         return 0;
     }
-    SetStack__FP12RS_STACKDATAf__2(nextSlot, chara->body_depth);
+    SetStack(nextSlot, chara->body_depth);
     return 1;
 }
+
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/event_func", _SET_CHARA_SHOW__FP12RS_STACKDATAi);
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/event_func", _GET_CHARA_SHOW__FP12RS_STACKDATAi);
-int _CHARA_DA_ENABLE(RS_STACKDATA *stack, int argc) {
+/**
+ * Enables the character deformation animation.
+ */
+static int _CHARA_DA_ENABLE(RS_STACKDATA *stack, int argc) {
     CCharacter2 *chara;
     RS_STACKDATA *nextSlot;
 
     nextSlot = stack + 1;
-    if ((chara = GetChara(GetStackInt__FP12RS_STACKDATA__2(stack))) == NULL) {
+    if ((chara = GetChara(GetStackInt(stack))) == NULL) {
         return 0;
     }
-    chara->SetDAnimeEnable(GetStackInt__FP12RS_STACKDATA__2(nextSlot));
+    chara->SetDAnimeEnable(GetStackInt(nextSlot));
     return 1;
 }
+
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/event_func", _GET_MOT_NOW_WAIT__FP12RS_STACKDATAi);
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/event_func", _CHECK_MOTION_END__FP12RS_STACKDATAi);
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/event_func", _ACTCHR_SET_MOTION__FP12RS_STACKDATAi);
-int _SET_CHARA_EX_SOUNDID(RS_STACKDATA *stack, int argc) {
+/**
+ * Sets the character additional soundid.
+ */
+static int _SET_CHARA_EX_SOUNDID(RS_STACKDATA *stack, int argc) {
     CActionChara *chara;
     RS_STACKDATA *nextSlot;
 
     nextSlot = stack + 1;
-    chara = (CActionChara *)GetChara(GetStackInt__FP12RS_STACKDATA__2(stack));
+    chara = (CActionChara *)GetChara(GetStackInt(stack));
     if (chara == NULL) {
         return 0;
     }
-    chara->se_bank_2 = GetStackInt__FP12RS_STACKDATA__2(nextSlot);
+    chara->se_bank_2 = GetStackInt(nextSlot);
     return 1;
 }
-int _ACTCHR_SOUND_INFO_COPY(RS_STACKDATA *stack, int argc) {
+
+/**
+ * Copies the action character sound info.
+ */
+static int _ACTCHR_SOUND_INFO_COPY(RS_STACKDATA *stack, int argc) {
     CActionChara *chara;
 
-    chara = (CActionChara *)GetCharacter(GetStackInt__FP12RS_STACKDATA__2(stack));
+    chara = (CActionChara *)GetCharacter(GetStackInt(stack));
     if (chara == NULL) {
         return 0;
     }
-
     if (chara == NULL) {
         return 0;
     }
     chara->SetSoundInfoCopy();
     return 1;
 }
-ClsMes *GetMes(int id) {
+
+/**
+ * Gets an event message window by its identifier.
+ */
+static ClsMes *GetMes(int id) {
     return GetEventMessage(id);
 }
+
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/event_func", _MES_MAKE__FP12RS_STACKDATAi);
-int _MES_CLOSE(RS_STACKDATA *stack, int argc) {
+/**
+ * Closes the message.
+ */
+static int _MES_CLOSE(RS_STACKDATA *stack, int argc) {
     ClsMes *mes;
 
-    mes = GetMes(GetStackInt__FP12RS_STACKDATA__2(stack));
+    mes = GetMes(GetStackInt(stack));
     if (mes == NULL) {
         return 0;
     }
@@ -4755,10 +5984,14 @@ int _MES_CLOSE(RS_STACKDATA *stack, int argc) {
     mes->fukidashi_centre_y = -1;
     return 1;
 }
-int _MES_NEXTPAGE(RS_STACKDATA *stack, int argc) {
+
+/**
+ * Advances a message to its next page once scrolling has stopped and a page wait is active.
+ */
+static int _MES_NEXTPAGE(RS_STACKDATA *stack, int argc) {
     ClsMes *mes;
 
-    mes = GetMes(GetStackInt__FP12RS_STACKDATA__2(stack));
+    mes = GetMes(GetStackInt(stack));
     if (mes == NULL) {
         return 0;
     }
@@ -4771,7 +6004,11 @@ int _MES_NEXTPAGE(RS_STACKDATA *stack, int argc) {
     mes->GoNextPage();
     return 1;
 }
-int _SET_MES_AUTOSET(RS_STACKDATA *stack, int argc) {
+
+/**
+ * Sets the message autoset.
+ */
+static int _SET_MES_AUTOSET(RS_STACKDATA *stack, int argc) {
     int values[4];
     int charaValues[4];
     RS_STACKDATA *args;
@@ -4781,7 +6018,7 @@ int _SET_MES_AUTOSET(RS_STACKDATA *stack, int argc) {
     int i;
 
     args = stack + 1;
-    mes = GetMes(GetStackInt__FP12RS_STACKDATA__2(stack));
+    mes = GetMes(GetStackInt(stack));
     if (mes == NULL) {
         return 0;
     }
@@ -4790,15 +6027,15 @@ int _SET_MES_AUTOSET(RS_STACKDATA *stack, int argc) {
             return 0;
         }
         for (i = 0; i < 4; i++) {
-            values[i] = GetStackInt__FP12RS_STACKDATA__2(args++);
+            values[i] = GetStackInt(args++);
         }
         mes->AutoSet(values);
     } else {
-        chara1 = GetChara(GetStackInt__FP12RS_STACKDATA__2(args++));
+        chara1 = GetChara(GetStackInt(args++));
         if (chara1 == NULL) {
             return 0;
         }
-        chara2 = GetChara(GetStackInt__FP12RS_STACKDATA__2(args));
+        chara2 = GetChara(GetStackInt(args));
         if (chara2 == NULL) {
             return 0;
         }
@@ -4807,202 +6044,258 @@ int _SET_MES_AUTOSET(RS_STACKDATA *stack, int argc) {
     }
     return 1;
 }
-int _SET_MES_SHIPPO(RS_STACKDATA *stack, int argc) {
+
+/**
+ * Sets the message shippo.
+ */
+static int _SET_MES_SHIPPO(RS_STACKDATA *stack, int argc) {
     ClsMes *mes;
 
-    mes = GetMes(GetStackInt__FP12RS_STACKDATA__2(stack++));
+    mes = GetMes(GetStackInt(stack++));
     if (mes == NULL) {
         return 0;
     }
-    mes->tail_on = GetStackInt__FP12RS_STACKDATA__2(stack++);
+    mes->tail_on = GetStackInt(stack++);
     if (argc > 2) {
-        mes->tail_length = GetStackInt__FP12RS_STACKDATA__2(stack++);
+        mes->tail_length = GetStackInt(stack++);
     }
     if (argc > 3) {
-        mes->tail_half_w = GetStackInt__FP12RS_STACKDATA__2(stack);
+        mes->tail_half_w = GetStackInt(stack);
     }
     return 1;
 }
-int _SET_MES_POS(RS_STACKDATA *stack, int argc) {
+
+/**
+ * Sets the message position.
+ */
+static int _SET_MES_POS(RS_STACKDATA *stack, int argc) {
     ClsMes *mes;
     RS_STACKDATA *nextSlot;
 
     nextSlot = stack + 1;
-    mes = GetMes(GetStackInt__FP12RS_STACKDATA__2(stack));
+    mes = GetMes(GetStackInt(stack));
     if (mes == NULL) {
         return 0;
     }
-    mes->fukidashi_pos = GetStackInt__FP12RS_STACKDATA__2(nextSlot);
+    mes->fukidashi_pos = GetStackInt(nextSlot);
     return 1;
 }
+
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/event_func", _SET_MES_DRAWSPEED__FP12RS_STACKDATAi);
-int _SET_MES_CURSOR(RS_STACKDATA *stack, int argc) {
+/**
+ * Sets the message cursor.
+ */
+static int _SET_MES_CURSOR(RS_STACKDATA *stack, int argc) {
     int cursor;
     ClsMes *mes;
     RS_STACKDATA *nextSlot;
 
     nextSlot = stack + 1;
-    mes = GetMes(GetStackInt__FP12RS_STACKDATA__2(stack));
+    mes = GetMes(GetStackInt(stack));
     if (mes == NULL) {
         return 0;
     }
-    cursor = (int)(GetStackInt__FP12RS_STACKDATA__2(nextSlot));
+    cursor = GetStackInt(nextSlot);
     if (mes->select < 0) {
         mes->cursor_time = 0;
     }
     mes->select = cursor;
     return 1;
 }
-int _SET_MES_OKURI(RS_STACKDATA *stack, int argc) {
+
+/**
+ * Sets the message okuri.
+ */
+static int _SET_MES_OKURI(RS_STACKDATA *stack, int argc) {
     ClsMes *mes;
     RS_STACKDATA *nextSlot;
 
     nextSlot = stack + 1;
-    mes = GetMes(GetStackInt__FP12RS_STACKDATA__2(stack));
+    mes = GetMes(GetStackInt(stack));
     if (mes == NULL) {
         return 0;
     }
-    mes->push_button = GetStackInt__FP12RS_STACKDATA__2(nextSlot);
+    mes->push_button = GetStackInt(nextSlot);
     return 1;
 }
-int _SET_MES_WIN_FLAG(RS_STACKDATA *stack, int argc) {
+
+/**
+ * Sets the message win flag.
+ */
+static int _SET_MES_WIN_FLAG(RS_STACKDATA *stack, int argc) {
     ClsMes *mes;
     RS_STACKDATA *nextSlot;
 
     nextSlot = stack + 1;
-    mes = GetMes(GetStackInt__FP12RS_STACKDATA__2(stack));
+    mes = GetMes(GetStackInt(stack));
     if (mes == NULL) {
         return 0;
     }
-    if (GetStackInt__FP12RS_STACKDATA__2(nextSlot) != 0) {
+    if (GetStackInt(nextSlot) != 0) {
         mes->window_mode = 1;
     } else {
         mes->window_mode = 0;
     }
     return 1;
 }
-int _CHECK_MES_COMPLETE(RS_STACKDATA *stack, int argc) {
+
+/**
+ * Checks the message complete.
+ */
+static int _CHECK_MES_COMPLETE(RS_STACKDATA *stack, int argc) {
     RS_STACKDATA *nextSlot;
     ClsMes *mes;
 
     nextSlot = stack + 1;
-    mes = GetMes(GetStackInt__FP12RS_STACKDATA__2(stack));
+    mes = GetMes(GetStackInt(stack));
     if (mes == NULL) {
         return 0;
     }
-    SetStack__FP12RS_STACKDATAi__2(nextSlot, mes->State() == 3);
+    SetStack(nextSlot, mes->State() == 3);
     return 1;
 }
-int _CHECK_MES_WAIT(RS_STACKDATA *stack, int argc) {
+
+/**
+ * Checks the message wait.
+ */
+static int _CHECK_MES_WAIT(RS_STACKDATA *stack, int argc) {
     RS_STACKDATA *nextSlot;
     ClsMes *mes;
 
     nextSlot = stack + 1;
-    mes = GetMes(GetStackInt__FP12RS_STACKDATA__2(stack));
+    mes = GetMes(GetStackInt(stack));
     if (mes == NULL) {
         return 0;
     }
-    SetStack__FP12RS_STACKDATAi__2(nextSlot, mes->State() == 5);
+    SetStack(nextSlot, mes->State() == 5);
     return 1;
 }
-int _CHECK_MES(RS_STACKDATA *stack, int argc) {
+
+/**
+ * Checks the message.
+ */
+static int _CHECK_MES(RS_STACKDATA *stack, int argc) {
     RS_STACKDATA *nextSlot;
     ClsMes *mes;
 
     nextSlot = stack + 1;
-    mes = GetMes(GetStackInt__FP12RS_STACKDATA__2(stack));
+    mes = GetMes(GetStackInt(stack));
     if (mes == NULL) {
         return 0;
     }
-    SetStack__FP12RS_STACKDATAi__2(nextSlot, mes->State() == 0);
+    SetStack(nextSlot, mes->State() == 0);
     return 1;
 }
-int _SET_MES_FUKIDASHI(RS_STACKDATA *stack, int argc) {
+
+/**
+ * Sets the message fukidashi.
+ */
+static int _SET_MES_FUKIDASHI(RS_STACKDATA *stack, int argc) {
     ClsMes *mes;
     RS_STACKDATA *nextSlot;
 
     nextSlot = stack + 1;
-    mes = GetMes(GetStackInt__FP12RS_STACKDATA__2(stack));
+    mes = GetMes(GetStackInt(stack));
     if (mes == NULL) {
         return 0;
     }
-    GetStackInt__FP12RS_STACKDATA__2(nextSlot);
+    GetStackInt(nextSlot);
     mes->SetWindowMode(1);
     return 1;
 }
-int _SET_MES_WINDOW_MODE(RS_STACKDATA *stack, int argc) {
+
+/**
+ * Sets the message window mode.
+ */
+static int _SET_MES_WINDOW_MODE(RS_STACKDATA *stack, int argc) {
     ClsMes *mes;
     RS_STACKDATA *nextSlot;
 
     nextSlot = stack + 1;
-    mes = GetMes(GetStackInt__FP12RS_STACKDATA__2(stack));
+    mes = GetMes(GetStackInt(stack));
     if (mes == NULL) {
         return 0;
     }
-    mes->SetWindowMode(GetStackInt__FP12RS_STACKDATA__2(nextSlot));
+    mes->SetWindowMode(GetStackInt(nextSlot));
     return 1;
 }
-int _SET_MES_PRESET(RS_STACKDATA *stack, int argc) {
+
+/**
+ * Sets the message preset.
+ */
+static int _SET_MES_PRESET(RS_STACKDATA *stack, int argc) {
     ClsMes *mes;
     RS_STACKDATA *nextSlot;
 
     nextSlot = stack + 1;
-    mes = GetMes(GetStackInt__FP12RS_STACKDATA__2(stack));
+    mes = GetMes(GetStackInt(stack));
     if (mes == NULL) {
         return 0;
     }
-    mes->Preset(GetStackInt__FP12RS_STACKDATA__2(nextSlot));
+    mes->Preset(GetStackInt(nextSlot));
     return 1;
 }
-int _SET_MES_ITEM_DIRECT(RS_STACKDATA *stack, int argc) {
+
+/**
+ * Sets the message item direct.
+ */
+static int _SET_MES_ITEM_DIRECT(RS_STACKDATA *stack, int argc) {
     ClsMes *mes;
     RS_STACKDATA *args;
     int slot;
     int value;
 
     args = stack + 1;
-    mes = GetMes(GetStackInt__FP12RS_STACKDATA__2(stack));
+    mes = GetMes(GetStackInt(stack));
     if (mes == NULL) {
         return 0;
     }
-    slot = GetStackInt__FP12RS_STACKDATA__2(args++);
-    value = GetStackInt__FP12RS_STACKDATA__2(args);
+    slot = GetStackInt(args++);
+    value = GetStackInt(args);
     if (slot - 1 >= 0 && slot - 1 < 0x10) {
         mes->item_mes[slot - 1] = value;
     }
     return 1;
 }
-int _SET_MES_ITEM(RS_STACKDATA *stack, int argc) {
+
+/**
+ * Sets the message item.
+ */
+static int _SET_MES_ITEM(RS_STACKDATA *stack, int argc) {
     ClsMes *mes;
     RS_STACKDATA *args;
     int slot;
     int value;
 
     args = stack + 1;
-    mes = GetMes(GetStackInt__FP12RS_STACKDATA__2(stack));
+    mes = GetMes(GetStackInt(stack));
     if (mes == NULL) {
         return 0;
     }
-    slot = GetStackInt__FP12RS_STACKDATA__2(args++);
-    value = GetItemMessageNo(GetStackInt__FP12RS_STACKDATA__2(args), 1);
+    slot = GetStackInt(args++);
+    value = GetItemMessageNo(GetStackInt(args), 1);
     if (slot - 1 >= 0 && slot - 1 < 0x10) {
         mes->item_mes[slot - 1] = value;
     }
     return 1;
 }
-int _SET_MES_VALUE(RS_STACKDATA *stack, int argc) {
+
+/**
+ * Sets the message value.
+ */
+static int _SET_MES_VALUE(RS_STACKDATA *stack, int argc) {
     ClsMes *mes;
     RS_STACKDATA *args;
     int slot;
     int value;
 
     args = stack + 1;
-    mes = GetMes(GetStackInt__FP12RS_STACKDATA__2(stack));
+    mes = GetMes(GetStackInt(stack));
     if (mes == NULL) {
         return 0;
     }
-    slot = GetStackInt__FP12RS_STACKDATA__2(args++);
-    value = GetStackInt__FP12RS_STACKDATA__2(args);
+    slot = GetStackInt(args++);
+    value = GetStackInt(args);
     if (slot == 0) {
         mes->value = value;
     } else {
@@ -5011,44 +6304,56 @@ int _SET_MES_VALUE(RS_STACKDATA *stack, int argc) {
     }
     return 1;
 }
-int _GET_MES_STATUS(RS_STACKDATA *stack, int argc) {
+
+/**
+ * Returns the message status.
+ */
+static int _GET_MES_STATUS(RS_STACKDATA *stack, int argc) {
     RS_STACKDATA *nextSlot;
     ClsMes *mes;
 
     nextSlot = stack + 1;
-    mes = GetMes(GetStackInt__FP12RS_STACKDATA__2(stack));
+    mes = GetMes(GetStackInt(stack));
     if (mes == NULL) {
         return 0;
     }
-    SetStack__FP12RS_STACKDATAi__2(nextSlot, mes->State());
+    SetStack(nextSlot, mes->State());
     return 1;
 }
-int _GET_PARTY_CHARA_MES_NO(RS_STACKDATA *stack, int argc) {
+
+/**
+ * Returns the party character message number.
+ */
+static int _GET_PARTY_CHARA_MES_NO(RS_STACKDATA *stack, int argc) {
     int npcId;
     int kind;
     RS_STACKDATA *out;
 
     out = stack + 1;
-    npcId = GetStackInt__FP12RS_STACKDATA__2(stack);
-    kind = GetStackInt__FP12RS_STACKDATA__2(out++);
-    SetStack__FP12RS_STACKDATAi__2(out++, GetPartyCharaMessage(npcId, kind, 1));
+    npcId = GetStackInt(stack);
+    kind = GetStackInt(out++);
+    SetStack(out++, GetPartyCharaMessage(npcId, kind, 1));
     if (kind == 4) {
-        SetStack__FP12RS_STACKDATAi__2(out, (s8)GetPartyNPCData(npcId)->unk_31 + 3);
+        SetStack(out, (s8)GetPartyNPCData(npcId)->unk_31 + 3);
     }
     return 1;
 }
-int _MES_SET_BUFF(RS_STACKDATA *stack, int argc) {
+
+/**
+ * Sets the message buffer.
+ */
+static int _MES_SET_BUFF(RS_STACKDATA *stack, int argc) {
     ClsMes *mes;
     int kind;
     RS_STACKDATA *args;
 
     args = stack + 1;
-    mes = GetMes(GetStackInt__FP12RS_STACKDATA__2(stack));
+    mes = GetMes(GetStackInt(stack));
     if (mes == NULL) {
         return 0;
     }
-    kind = (int)(GetStackInt__FP12RS_STACKDATA__2(args++));
-    GetStackInt__FP12RS_STACKDATA__2(args);
+    kind = GetStackInt(args++);
+    GetStackInt(args);
     if (kind == 0) {
         mes->SetBuff(GetSysMesBuffer());
     } else {
@@ -5056,81 +6361,103 @@ int _MES_SET_BUFF(RS_STACKDATA *stack, int argc) {
     }
     return 1;
 }
-int _GET_MES_WINDOW_MODE(RS_STACKDATA *stack, int argc) {
+
+/**
+ * Returns the message window mode.
+ */
+static int _GET_MES_WINDOW_MODE(RS_STACKDATA *stack, int argc) {
+    int result;
     RS_STACKDATA *nextSlot;
     ClsMes *mes;
 
     nextSlot = stack + 1;
-    mes = GetMes(GetStackInt__FP12RS_STACKDATA__2(stack));
+    mes = GetMes(GetStackInt(stack));
     if (mes == NULL) {
         return 0;
     }
 
-    argc = mes->GetWindowMode();
-    SetStack__FP12RS_STACKDATAi__2(nextSlot, argc);
+    result = mes->GetWindowMode();
+    SetStack(nextSlot, result);
     return 1;
 }
-int _GET_MES_VOICE(RS_STACKDATA *stack, int argc) {
-    SetStack__FP12RS_STACKDATAi__2(stack, EdEventInfo.stream_playing);
+
+/**
+ * Returns the message voice.
+ */
+static int _GET_MES_VOICE(RS_STACKDATA *stack, int argc) {
+    SetStack(stack, EdEventInfo.stream_playing);
     return 1;
 }
-int _SET_MES_QUESTION_GYOU(RS_STACKDATA *stack, int argc) {
+
+/**
+ * Sets the message question gyou.
+ */
+static int _SET_MES_QUESTION_GYOU(RS_STACKDATA *stack, int argc) {
     ClsMes *mes;
     RS_STACKDATA *nextSlot;
 
     nextSlot = stack + 1;
-    mes = GetMes(GetStackInt__FP12RS_STACKDATA__2(stack));
+    mes = GetMes(GetStackInt(stack));
     if (mes == NULL) {
         return 0;
     }
-    mes->select_top = GetStackInt__FP12RS_STACKDATA__2(nextSlot);
+    mes->select_top = GetStackInt(nextSlot);
     return 1;
 }
-int _GET_MES_QUESTION_GYOU(RS_STACKDATA *stack, int argc) {
+
+/**
+ * Returns the message question gyou.
+ */
+static int _GET_MES_QUESTION_GYOU(RS_STACKDATA *stack, int argc) {
     RS_STACKDATA *nextSlot;
     ClsMes *mes;
 
     nextSlot = stack + 1;
 
-    mes = GetMes(GetStackInt__FP12RS_STACKDATA__2(stack));
+    mes = GetMes(GetStackInt(stack));
     if (mes == NULL) {
         return 0;
     }
-    SetStack__FP12RS_STACKDATAi__2(nextSlot, mes->select_top);
+    SetStack(nextSlot, mes->select_top);
     return 1;
 }
-int _SET_MES_CLOSE_CNT(RS_STACKDATA *stack, int argc) {
+
+/**
+ * Sets the message close cnt.
+ */
+static int _SET_MES_CLOSE_CNT(RS_STACKDATA *stack, int argc) {
     ClsMes *mes;
     RS_STACKDATA *nextSlot;
 
     nextSlot = stack + 1;
-    mes = GetMes(GetStackInt__FP12RS_STACKDATA__2(stack));
+    mes = GetMes(GetStackInt(stack));
     if (mes == NULL) {
         return 0;
     }
-    mes->close_time = GetStackInt__FP12RS_STACKDATA__2(nextSlot);
+    mes->close_time = GetStackInt(nextSlot);
     return 1;
 }
+
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/event_func", _SET_MES_ETC__FP12RS_STACKDATAi);
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/event_func", _GET_MES_ETC__FP12RS_STACKDATAi);
-int _LOAD_MES_sub(char *fileName, int stackNo, ClsMes *mes) {
+int _LOAD_MES_sub(char *name, int no, ClsMes *mes) {
     int size;
     u32 *src;
     mgCMemory *mem;
     char *dst;
     int t;
 
-    if (fileName == NULL) {
+    if (name == NULL) {
         return 0;
     }
     if (mes == NULL) {
         return 0;
     }
-    src = GetLoadBGBuff(fileName, &size);
+    src = GetLoadBGBuff(name, &size);
     if (src == 0) {
         return 0;
     }
-    mem = (mgCMemory *)EventScene->GetStack(stackNo);
+    mem = EventScene->GetStack(no);
     mem->Align64();
     dst = (char *)mem->stAllocTest(size / 16 + 1);
     if (dst == NULL) {
@@ -5143,40 +6470,60 @@ int _LOAD_MES_sub(char *fileName, int stackNo, ClsMes *mes) {
     mes->mes_data_size = t;
     return 1;
 }
+
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/event_func", _LOAD_MES__FP12RS_STACKDATAi);
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/event_func", _LOAD_MES_MONS_TALK__FP12RS_STACKDATAi);
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/event_func", _MES_SE_PLAY__FP12RS_STACKDATAi);
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/event_func", _SET_MES_STR__FP12RS_STACKDATAi);
-int _GET_MES_OKURI(RS_STACKDATA *stack, int argc) {
+/**
+ * Returns the message okuri.
+ */
+static int _GET_MES_OKURI(RS_STACKDATA *stack, int argc) {
     if (argc != 1) {
         return 0;
     }
-    ClsMes *mes = GetMes(GetStackInt__FP12RS_STACKDATA__2(stack++));
+    ClsMes *mes = GetMes(GetStackInt(stack++));
     if (mes == NULL) {
         return 0;
     }
-    SetStack__FP12RS_STACKDATAi__2(stack, mes->push_button);
+    SetStack(stack, mes->push_button);
     return 1;
 }
+
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/event_func", _GET_FISHINGTOURNAMENT_ETC__FP12RS_STACKDATAi);
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/event_func", _SET_CHARA_FAR_DIST__FP12RS_STACKDATAi);
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/event_func", _SET_MODEL_LIGHT_SWITCH__FP12RS_STACKDATAi__2);
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/event_func", _SET_MODEL_LIGHT_COLOR__FP12RS_STACKDATAi__2);
-int _GET_OMAKE_FLAG(RS_STACKDATA *stack, int argc) {
-    SetStack__FP12RS_STACKDATAi__2(stack, OmakeFlag);
+/**
+ * Returns the extra flag.
+ */
+static int _GET_OMAKE_FLAG(RS_STACKDATA *stack, int argc) {
+    SetStack(stack, OmakeFlag);
     return 1;
 }
+
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/event_func", _SET_WIND__FP12RS_STACKDATAi);
-int _SET_OMAKE_FLAG(RS_STACKDATA *stack, int argc) {
-    OmakeFlag = GetStackInt__FP12RS_STACKDATA__2(stack);
+/**
+ * Sets the extra flag.
+ */
+static int _SET_OMAKE_FLAG(RS_STACKDATA *stack, int argc) {
+    OmakeFlag = GetStackInt(stack);
     return 1;
 }
-CCameraControl *GetCamera(void) {
+
+/**
+ * Gets the active camera controller.
+ */
+static CCameraControl *GetCamera() {
     return (CCameraControl *)GetActiveCamera();
 }
+
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/event_func", _SET_CAMERA_POS__FP12RS_STACKDATAi);
-int _GET_CAMERA_POS(RS_STACKDATA *stack, int argc) {
-    float pos[4];
+/**
+ * Returns the camera position.
+ */
+static int _GET_CAMERA_POS(RS_STACKDATA *stack, int argc) {
+    sceVu0FVECTOR pos;
     if (argc < 3) {
         return 0;
     }
@@ -5185,14 +6532,18 @@ int _GET_CAMERA_POS(RS_STACKDATA *stack, int argc) {
         return 0;
     }
     camera->GetPos( pos);
-    SetStack__FP12RS_STACKDATAf__2(stack++, pos[0]);
-    SetStack__FP12RS_STACKDATAf__2(stack++, pos[1]);
-    SetStack__FP12RS_STACKDATAf__2(stack, pos[2]);
+    SetStack(stack++, pos[0]);
+    SetStack(stack++, pos[1]);
+    SetStack(stack, pos[2]);
     return 1;
 }
+
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/event_func", _SET_CAMERA_REF__FP12RS_STACKDATAi);
-int _GET_CAMERA_REF(RS_STACKDATA *stack, int argc) {
-    float pos[4];
+/**
+ * Returns the camera ref.
+ */
+static int _GET_CAMERA_REF(RS_STACKDATA *stack, int argc) {
+    sceVu0FVECTOR pos;
     if (argc < 3) {
         return 0;
     }
@@ -5201,337 +6552,578 @@ int _GET_CAMERA_REF(RS_STACKDATA *stack, int argc) {
         return 0;
     }
     camera->GetRef( pos);
-    SetStack__FP12RS_STACKDATAf__2(stack++, pos[0]);
-    SetStack__FP12RS_STACKDATAf__2(stack++, pos[1]);
-    SetStack__FP12RS_STACKDATAf__2(stack, pos[2]);
+    SetStack(stack++, pos[0]);
+    SetStack(stack++, pos[1]);
+    SetStack(stack, pos[2]);
     return 1;
 }
+
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/event_func", _SET_CAMERA_SPEED__FP12RS_STACKDATAi__2);
-int _CAMERA_STEP(RS_STACKDATA *stack, int argc) {
+/**
+ * Moves the active follow camera by the script-specified number of steps.
+ */
+static int _CAMERA_STEP(RS_STACKDATA *stack, int argc) {
     mgCCameraFollow *camera = (mgCCameraFollow *)GetCamera();
     if (camera == NULL) {
         return 0;
     }
-    camera->Step(GetStackInt__FP12RS_STACKDATA__2(stack));
+    camera->Step(GetStackInt(stack));
     return 1;
 }
-int _GET_BEFORE_CAMERA_POS(RS_STACKDATA *stack, int argc) {
-    float pos[4];
+
+/**
+ * Returns the before camera position.
+ */
+static int _GET_BEFORE_CAMERA_POS(RS_STACKDATA *stack, int argc) {
+    sceVu0FVECTOR pos;
     mgCCamera *camera = EventScene->GetCamera(EventScene->before_camera);
     if (camera == NULL) {
         return 0;
     }
     camera->GetPos( pos);
-    SetStack__FP12RS_STACKDATAf__2(stack++, pos[0]);
-    SetStack__FP12RS_STACKDATAf__2(stack++, pos[1]);
-    SetStack__FP12RS_STACKDATAf__2(stack, pos[2]);
+    SetStack(stack++, pos[0]);
+    SetStack(stack++, pos[1]);
+    SetStack(stack, pos[2]);
     return 1;
 }
-int _GET_BEFORE_CAMERA_REF(RS_STACKDATA *stack, int argc) {
-    float pos[4];
+
+/**
+ * Returns the before camera ref.
+ */
+static int _GET_BEFORE_CAMERA_REF(RS_STACKDATA *stack, int argc) {
+    sceVu0FVECTOR pos;
     mgCCamera *camera = EventScene->GetCamera(EventScene->before_camera);
     if (camera == NULL) {
         return 0;
     }
     camera->GetRef( pos);
-    SetStack__FP12RS_STACKDATAf__2(stack++, pos[0]);
-    SetStack__FP12RS_STACKDATAf__2(stack++, pos[1]);
-    SetStack__FP12RS_STACKDATAf__2(stack, pos[2]);
+    SetStack(stack++, pos[0]);
+    SetStack(stack++, pos[1]);
+    SetStack(stack, pos[2]);
     return 1;
 }
-int _ASQ_INIT(RS_STACKDATA *stack, int argc) {
+
+/**
+ * Reports success without changing event state.
+ */
+static s32 _ASQ_INIT(RS_STACKDATA *stack, int argc) {
     return 1;
 }
-int _ASQ_SYNC_CHARA(RS_STACKDATA *stack, int argc) {
+
+/**
+ * Reports success without changing event state.
+ */
+static s32 _ASQ_SYNC_CHARA(RS_STACKDATA *stack, int argc) {
     return 1;
 }
-int _ASQ_SET_POS(RS_STACKDATA *stack, int argc) {
+
+/**
+ * Reports success without changing event state.
+ */
+static s32 _ASQ_SET_POS(RS_STACKDATA *stack, int argc) {
     return 1;
 }
-int _ASQ_MOVE(RS_STACKDATA *stack, int argc) {
+
+/**
+ * Reports success without changing event state.
+ */
+static s32 _ASQ_MOVE(RS_STACKDATA *stack, int argc) {
     return 1;
 }
-int _ASQ_MOVE_STEP(RS_STACKDATA *stack, int argc) {
+
+/**
+ * Reports success without changing event state.
+ */
+static s32 _ASQ_MOVE_STEP(RS_STACKDATA *stack, int argc) {
     return 1;
 }
-int _ASQ_ROT_REF(RS_STACKDATA *stack, int argc) {
+
+/**
+ * Reports success without changing event state.
+ */
+static s32 _ASQ_ROT_REF(RS_STACKDATA *stack, int argc) {
     return 1;
 }
-int _ASQ_ROT_ANGLE(RS_STACKDATA *stack, int argc) {
+
+/**
+ * Reports success without changing event state.
+ */
+static s32 _ASQ_ROT_ANGLE(RS_STACKDATA *stack, int argc) {
     return 1;
 }
-int _ASQ_CLEAR_ROT(RS_STACKDATA *stack, int argc) {
+
+/**
+ * Reports success without changing event state.
+ */
+static s32 _ASQ_CLEAR_ROT(RS_STACKDATA *stack, int argc) {
     return 1;
 }
-int _ASQ_WAIT_ROT(RS_STACKDATA *stack, int argc) {
+
+/**
+ * Reports success without changing event state.
+ */
+static s32 _ASQ_WAIT_ROT(RS_STACKDATA *stack, int argc) {
     return 1;
 }
-int _ASQ_ROT_MOVE(RS_STACKDATA *stack, int argc) {
+
+/**
+ * Reports success without changing event state.
+ */
+static s32 _ASQ_ROT_MOVE(RS_STACKDATA *stack, int argc) {
     return 1;
 }
-int _ASQ_SET_ROT(RS_STACKDATA *stack, int argc) {
+
+/**
+ * Reports success without changing event state.
+ */
+static s32 _ASQ_SET_ROT(RS_STACKDATA *stack, int argc) {
     return 1;
 }
-int _ASQ_DELAY_ROT(RS_STACKDATA *stack, int argc) {
+
+/**
+ * Reports success without changing event state.
+ */
+static s32 _ASQ_DELAY_ROT(RS_STACKDATA *stack, int argc) {
     return 1;
 }
-int _ASQ_MOTION_TRG(RS_STACKDATA *stack, int argc) {
+
+/**
+ * Reports success without changing event state.
+ */
+static s32 _ASQ_MOTION_TRG(RS_STACKDATA *stack, int argc) {
     return 1;
 }
-int _ASQ_MOTION_PLAY(RS_STACKDATA *stack, int argc) {
+
+/**
+ * Reports success without changing event state.
+ */
+static s32 _ASQ_MOTION_PLAY(RS_STACKDATA *stack, int argc) {
     return 1;
 }
-int _ASQ_MOTION_STOP(RS_STACKDATA *stack, int argc) {
+
+/**
+ * Reports success without changing event state.
+ */
+static s32 _ASQ_MOTION_STOP(RS_STACKDATA *stack, int argc) {
     return 1;
 }
-int _ASQ_MOTION_NEXT(RS_STACKDATA *stack, int argc) {
+
+/**
+ * Reports success without changing event state.
+ */
+static s32 _ASQ_MOTION_NEXT(RS_STACKDATA *stack, int argc) {
     return 1;
 }
-int _ASQ_ANIME_TRG(RS_STACKDATA *stack, int argc) {
+
+/**
+ * Reports success without changing event state.
+ */
+static s32 _ASQ_ANIME_TRG(RS_STACKDATA *stack, int argc) {
     return 1;
 }
-int _ASQ_ANIME(RS_STACKDATA *stack, int argc) {
+
+/**
+ * Reports success without changing event state.
+ */
+static s32 _ASQ_ANIME(RS_STACKDATA *stack, int argc) {
     return 1;
 }
-int _ASQ_SE_PLAY(RS_STACKDATA *stack, int argc) {
+
+/**
+ * Reports success without changing event state.
+ */
+static s32 _ASQ_SE_PLAY(RS_STACKDATA *stack, int argc) {
     return 1;
 }
-void _IMG_SET_DRAW(RS_STACKDATA *stack, int argc) {
+
+/**
+ * Shows or hides an event image.
+ */
+static void _IMG_SET_DRAW(RS_STACKDATA *stack, int argc) {
     int draw;
 
-    draw = GetStackInt__FP12RS_STACKDATA__2(stack++);
-    esMother.SetDraw(GetStackInt__FP12RS_STACKDATA__2(stack), draw);
+    draw = GetStackInt(stack++);
+    esMother.SetDraw(GetStackInt(stack), draw);
 }
-void _IMG_SET_GET(RS_STACKDATA *stack, int argc) {
-    int index = GetStackInt__FP12RS_STACKDATA__2(stack++);
-    int a = GetStackInt__FP12RS_STACKDATA__2(stack++);
-    int b = GetStackInt__FP12RS_STACKDATA__2(stack++);
-    int c = GetStackInt__FP12RS_STACKDATA__2(stack++);
-    esMother.SetGet(index, a, b, c, GetStackInt__FP12RS_STACKDATA__2(stack));
+
+/**
+ * Sets the texture rectangle displayed by an event image.
+ */
+static void _IMG_SET_GET(RS_STACKDATA *stack, int argc) {
+    int index = GetStackInt(stack++);
+    int x = GetStackInt(stack++);
+    int y = GetStackInt(stack++);
+    int width = GetStackInt(stack++);
+    esMother.SetGet(index, x, y, width, GetStackInt(stack));
 }
-void _IMG_SET_PUT(RS_STACKDATA *stack, int argc) {
-    int index = GetStackInt__FP12RS_STACKDATA__2(stack++);
-    int a = GetStackInt__FP12RS_STACKDATA__2(stack++);
-    int b = GetStackInt__FP12RS_STACKDATA__2(stack++);
-    int c = GetStackInt__FP12RS_STACKDATA__2(stack++);
-    esMother.SetPut(index, a, b, c, GetStackInt__FP12RS_STACKDATA__2(stack));
+
+/**
+ * Sets the screen rectangle occupied by an event image.
+ */
+static void _IMG_SET_PUT(RS_STACKDATA *stack, int argc) {
+    int index = GetStackInt(stack++);
+    int x = GetStackInt(stack++);
+    int y = GetStackInt(stack++);
+    int width = GetStackInt(stack++);
+    esMother.SetPut(index, x, y, width, GetStackInt(stack));
 }
+
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/event_func", _IMG_SET_NAME__FP12RS_STACKDATAi);
-void _IMG_SET_MOVE(RS_STACKDATA *stack, int argc) {
-    int index = GetStackInt__FP12RS_STACKDATA__2(stack++);
-    int x = GetStackInt__FP12RS_STACKDATA__2(stack++);
-    int y = GetStackInt__FP12RS_STACKDATA__2(stack++);
-    esMother.SetMove(index, x, y, GetStackInt__FP12RS_STACKDATA__2(stack));
+/**
+ * Starts moving an event image to a screen position.
+ */
+static void _IMG_SET_MOVE(RS_STACKDATA *stack, int argc) {
+    int index = GetStackInt(stack++);
+    int x = GetStackInt(stack++);
+    int y = GetStackInt(stack++);
+    esMother.SetMove(index, x, y, GetStackInt(stack));
 }
-void _IMG_SET_FADE(RS_STACKDATA *stack, int argc) {
-    int index = GetStackInt__FP12RS_STACKDATA__2(stack++);
-    int from = GetStackInt__FP12RS_STACKDATA__2(stack++);
-    esMother.SetFade(index, from, GetStackInt__FP12RS_STACKDATA__2(stack));
+
+/**
+ * Starts fading an event image in or out over the requested number of frames.
+ */
+static void _IMG_SET_FADE(RS_STACKDATA *stack, int argc) {
+    int index = GetStackInt(stack++);
+    int from = GetStackInt(stack++);
+    esMother.SetFade(index, from, GetStackInt(stack));
 }
-void _IMG_SET_COLOR(RS_STACKDATA *stack, int argc) {
-    int index = GetStackInt__FP12RS_STACKDATA__2(stack++);
-    int r = GetStackInt__FP12RS_STACKDATA__2(stack++);
-    int g = GetStackInt__FP12RS_STACKDATA__2(stack++);
-    int b = GetStackInt__FP12RS_STACKDATA__2(stack++);
-    esMother.SetColor(index, r, g, b, GetStackInt__FP12RS_STACKDATA__2(stack));
+
+/**
+ * Sets the red, green, blue and alpha components of an event image colour.
+ */
+static void _IMG_SET_COLOR(RS_STACKDATA *stack, int argc) {
+    int index = GetStackInt(stack++);
+    int r = GetStackInt(stack++);
+    int g = GetStackInt(stack++);
+    int b = GetStackInt(stack++);
+    esMother.SetColor(index, r, g, b, GetStackInt(stack));
 }
-CEventSprite2 *GetEventSprite(int index) {
-    if (index < 0 || index >= event_sprite2_num)
-        return 0;
-    return &EventSprite2[index];
+
+/**
+ * Gets an event sprite by its slot number.
+ */
+static CEventSprite2 *GetEventSprite(int no) {
+    if (no < 0 || no >= event_sprite2_num) {
+        return NULL;
+    }
+    return &EventSprite2[no];
 }
-int _SPRITE_INIT(RS_STACKDATA *stack, int argc) {
+
+/**
+ * Initializes the sprite.
+ */
+static int _SPRITE_INIT(RS_STACKDATA *stack, int argc) {
     CEventSprite2 *sprite;
 
-    sprite = GetEventSprite(GetStackInt__FP12RS_STACKDATA__2(stack));
+    sprite = GetEventSprite(GetStackInt(stack));
     if (sprite == NULL) {
         return 0;
     }
     sprite->Initialize();
     return 1;
 }
-int _SPRITE_SET_DRAW(RS_STACKDATA *stack, int argc) {
-    int index = GetStackInt__FP12RS_STACKDATA__2(stack++);
-    int value = GetStackInt__FP12RS_STACKDATA__2(stack);
-    CEventSprite2 *sprite = GetEventSprite__Fi(index, value);
+
+/**
+ * Shows or hides an event sprite.
+ */
+static int _SPRITE_SET_DRAW(RS_STACKDATA *stack, int argc) {
+    int index = GetStackInt(stack++);
+    int value = GetStackInt(stack);
+    CEventSprite2 *sprite = GetEventSprite(index);
     if (sprite == NULL) {
         return 0;
     }
-    SetDrawFlag__13CEventSprite2Fi(sprite);
+    sprite->SetDrawFlag(value);
     return 1;
 }
-int _SPRITE_SET_TYPE(RS_STACKDATA *stack, int argc) {
-    int index = GetStackInt__FP12RS_STACKDATA__2(stack++);
-    int value = GetStackInt__FP12RS_STACKDATA__2(stack);
-    CEventSprite2 *sprite = GetEventSprite__Fi(index, value);
+
+/**
+ * Sets the drawing type of an event sprite.
+ */
+static int _SPRITE_SET_TYPE(RS_STACKDATA *stack, int argc) {
+    int index = GetStackInt(stack++);
+    int value = GetStackInt(stack);
+    CEventSprite2 *sprite = GetEventSprite(index);
     if (sprite == NULL) {
         return 0;
     }
-    SetSpriteType__13CEventSprite2Fi(sprite);
+    sprite->SetSpriteType(value);
     return 1;
 }
+
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/event_func", _SPRITE_SET_TEXTURE__FP12RS_STACKDATAi);
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/event_func", _SPRITE_SET_POS__FP12RS_STACKDATAi);
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/event_func", _SPRITE_SET_PUTSIZE__FP12RS_STACKDATAi);
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/event_func", _SPRITE_SET_UVSIZE__FP12RS_STACKDATAi);
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/event_func", _SPRITE_SET_COLOR__FP12RS_STACKDATAi);
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/event_func", _SPRITE_SET_SCALE__FP12RS_STACKDATAi);
-int _SPRITE_SET_ALPHAB(RS_STACKDATA *stack, int argc) {
-    int index = GetStackInt__FP12RS_STACKDATA__2(stack++);
-    int value = GetStackInt__FP12RS_STACKDATA__2(stack);
-    CEventSprite2 *sprite = GetEventSprite__Fi(index, value);
+/**
+ * Sets an event sprite alpha-blending mode.
+ */
+static int _SPRITE_SET_ALPHAB(RS_STACKDATA *stack, int argc) {
+    int index = GetStackInt(stack++);
+    int value = GetStackInt(stack);
+    CEventSprite2 *sprite = GetEventSprite(index);
     if (sprite == NULL) {
         return 0;
     }
-    SetAlphaBlend__13CEventSprite2Fi(sprite);
+    sprite->SetAlphaBlend(value);
     return 1;
 }
-int _CMRS_CHECK(RS_STACKDATA *stack, int argc) {
-    SetStack__FP12RS_STACKDATAi__2(stack, (u8)((CameraSeq.CheckEnd() != 0) ^ 1));
+
+/**
+ * Returns whether the camera position, angle, fade or shake tracks are still running.
+ */
+static int _CMRS_CHECK(RS_STACKDATA *stack, int argc) {
+    SetStack(stack, (u8)((CameraSeq.CheckEnd() != 0) ^ 1));
     return 1;
 }
-int _CMRS_INIT(RS_STACKDATA *stack, int argc) {
+
+/**
+ * Clears the camera sequence tracks and camera state.
+ */
+static int _CMRS_INIT(RS_STACKDATA *stack, int argc) {
     CameraSeq.Clear();
     return 1;
 }
-int _CMRS_PRDELAY(RS_STACKDATA *stack, int argc) {
-    CameraSeq.PRDelay(GetStackInt__FP12RS_STACKDATA__2(stack));
+
+/**
+ * Queues a wait on the camera sequence position track.
+ */
+static int _CMRS_PRDELAY(RS_STACKDATA *stack, int argc) {
+    CameraSeq.PRDelay(GetStackInt(stack));
     return 1;
 }
+
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/event_func", _CMRS_SET_POS__FP12RS_STACKDATAi);
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/event_func", _CMRS_SET_REF__FP12RS_STACKDATAi);
-int _CMRS_AHDDELAY(RS_STACKDATA *stack, int argc) {
-    CameraSeq.AHDDelay(GetStackInt__FP12RS_STACKDATA__2(stack));
+/**
+ * Queues a wait on the camera sequence angle track.
+ */
+static int _CMRS_AHDDELAY(RS_STACKDATA *stack, int argc) {
+    CameraSeq.AHDDelay(GetStackInt(stack));
     return 1;
 }
-int _CMRS_SET_ANGLE(RS_STACKDATA *stack, int argc) {
-    CameraSeq.SetAngle(GetStackFloat__FP12RS_STACKDATA__2(stack));
+
+/**
+ * Sets the cmrs angle.
+ */
+static int _CMRS_SET_ANGLE(RS_STACKDATA *stack, int argc) {
+    CameraSeq.SetAngle(GetStackFloat(stack));
     return 1;
 }
-int _CMRS_SET_HEIGHT(RS_STACKDATA *stack, int argc) {
-    CameraSeq.SetHeight(GetStackFloat__FP12RS_STACKDATA__2(stack));
+
+/**
+ * Sets the cmrs height.
+ */
+static int _CMRS_SET_HEIGHT(RS_STACKDATA *stack, int argc) {
+    CameraSeq.SetHeight(GetStackFloat(stack));
     return 1;
 }
-int _CMRS_SET_DIST(RS_STACKDATA *stack, int argc) {
-    CameraSeq.SetDist(GetStackFloat__FP12RS_STACKDATA__2(stack));
+
+/**
+ * Sets the cmrs distance.
+ */
+static int _CMRS_SET_DIST(RS_STACKDATA *stack, int argc) {
+    CameraSeq.SetDist(GetStackFloat(stack));
     return 1;
 }
+
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/event_func", _CMRS_SET_AHD__FP12RS_STACKDATAi);
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/event_func", _CMRS_MOVE__FP12RS_STACKDATAi);
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/event_func", _CMRS_MOVE2__FP12RS_STACKDATAi);
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/event_func", _CMRS_MOVE_REF__FP12RS_STACKDATAi);
-int _CMRS_INIT_PAS(RS_STACKDATA *stack, int argc) {
+/**
+ * Initializes the cmrs position animation.
+ */
+static int _CMRS_INIT_PAS(RS_STACKDATA *stack, int argc) {
     CameraSeq.InitPas();
     return 1;
 }
-int _CMRS_SET_PAS_FRM(RS_STACKDATA *stack, int argc) {
-    CameraSeq.SetPasFrm(GetStackInt__FP12RS_STACKDATA__2(stack));
+
+/**
+ * Sets the cmrs position animation frame.
+ */
+static int _CMRS_SET_PAS_FRM(RS_STACKDATA *stack, int argc) {
+    CameraSeq.SetPasFrm(GetStackInt(stack));
     return 1;
 }
+
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/event_func", _CMRS_ADD_PAS__FP12RS_STACKDATAi);
-int _CMRS_START_PAS(RS_STACKDATA *stack, int argc) {
+/**
+ * Queues running the camera sequence along its initialized path.
+ */
+static int _CMRS_START_PAS(RS_STACKDATA *stack, int argc) {
     CameraSeq.StartPas();
     return 1;
 }
+
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/event_func", _CMRS_PR_SLOWING__FP12RS_STACKDATAi);
-int _CMRS_PR_KEEP(RS_STACKDATA *stack, int argc) {
+/**
+ * Queues a return point on the camera sequence position track.
+ */
+static int _CMRS_PR_KEEP(RS_STACKDATA *stack, int argc) {
     CameraSeq.PRKeep();
     return 1;
 }
-int _CMRS_PR_RETURN(RS_STACKDATA *stack, int argc) {
+
+/**
+ * Queues a jump to the camera sequence position track return point.
+ */
+static int _CMRS_PR_RETURN(RS_STACKDATA *stack, int argc) {
     CameraSeq.PRReturn();
     return 1;
 }
+
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/event_func", _CMRS_MOVE_AHD__FP12RS_STACKDATAi);
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/event_func", _CMRS_SYNC_OBJ__FP12RS_STACKDATAi);
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/event_func", _CMRS_MOVE_AHD2__FP12RS_STACKDATAi);
-int _CMRS_RELEASE_OBJ(RS_STACKDATA *stack, int argc) {
+/**
+ * Queues stopping the camera sequence from following its event object.
+ */
+static int _CMRS_RELEASE_OBJ(RS_STACKDATA *stack, int argc) {
     CameraSeq.ReleaseSyncObj();
     return 1;
 }
+
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/event_func", _CMRS_AHD_SLOWING__FP12RS_STACKDATAi);
-int _CMRS_AHD_KEEP(RS_STACKDATA *stack, int argc) {
+/**
+ * Queues a return point on the camera sequence angle track.
+ */
+static int _CMRS_AHD_KEEP(RS_STACKDATA *stack, int argc) {
     CameraSeq.AHDKeep();
     return 1;
 }
-int _CMRS_AHD_RETURN(RS_STACKDATA *stack, int argc) {
+
+/**
+ * Queues a jump to the camera sequence angle track return point.
+ */
+static int _CMRS_AHD_RETURN(RS_STACKDATA *stack, int argc) {
     CameraSeq.AHDReturn();
     return 1;
 }
-int _CMRS_FADE_DELAY(RS_STACKDATA *stack, int argc) {
-    CameraSeq.FadeDelay(GetStackInt__FP12RS_STACKDATA__2(stack));
+
+/**
+ * Queues a wait on the camera sequence fade track.
+ */
+static int _CMRS_FADE_DELAY(RS_STACKDATA *stack, int argc) {
+    CameraSeq.FadeDelay(GetStackInt(stack));
     return 1;
 }
-int _CMRS_FADE_INIT(RS_STACKDATA *stack, int argc) {
+
+/**
+ * Initializes the cmrs fade.
+ */
+static int _CMRS_FADE_INIT(RS_STACKDATA *stack, int argc) {
     CameraSeq.FadeInit();
     return 1;
 }
+
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/event_func", _CMRS_FADE_IN__FP12RS_STACKDATAi);
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/event_func", _CMRS_FADE_OUT__FP12RS_STACKDATAi);
-int _CMRS_QUAKE_DELAY(RS_STACKDATA *stack, int argc) {
-    CameraSeq.QuakeDelay(GetStackInt__FP12RS_STACKDATA__2(stack));
+/**
+ * Queues a wait on the camera sequence shake track.
+ */
+static int _CMRS_QUAKE_DELAY(RS_STACKDATA *stack, int argc) {
+    CameraSeq.QuakeDelay(GetStackInt(stack));
     return 1;
 }
+
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/event_func", _CMRS_QUAKE__FP12RS_STACKDATAi);
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/event_func", _CMRS_QUAKE2__FP12RS_STACKDATAi);
-int _CMRS_CHARA_DELAY(RS_STACKDATA *stack, int argc) {
-    CameraSeq.CharaDelay(GetStackInt__FP12RS_STACKDATA__2(stack));
+/**
+ * Queues a wait on the camera sequence character track.
+ */
+static int _CMRS_CHARA_DELAY(RS_STACKDATA *stack, int argc) {
+    CameraSeq.CharaDelay(GetStackInt(stack));
     return 1;
 }
-int _CMRS_CHARA_ATTACH(RS_STACKDATA *stack, int argc) {
+
+/**
+ * Queues keeping a character the requested distance in front of the camera.
+ */
+static int _CMRS_CHARA_ATTACH(RS_STACKDATA *stack, int argc) {
     int kind;
     float factor;
 
-    kind = GetStackInt__FP12RS_STACKDATA__2(stack++);
-    factor = GetStackFloat__FP12RS_STACKDATA__2(stack++);
-    CameraSeq.CharaAttach(kind, factor, GetStackInt__FP12RS_STACKDATA__2(stack));
+    kind = GetStackInt(stack++);
+    factor = GetStackFloat(stack++);
+    CameraSeq.CharaAttach(kind, factor, GetStackInt(stack));
     return 1;
 }
+
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/event_func", _CMRS_MOVE_POS__FP12RS_STACKDATAi);
-int _OBJS_CHECK(RS_STACKDATA *stack, int argc) {
+/**
+ * Checks the object sequence.
+ */
+static int _OBJS_CHECK(RS_STACKDATA *stack, int argc) {
     CSceneObjSeq *seq;
 
-    seq = GetObjSeq(GetStackInt__FP12RS_STACKDATA__2(stack++));
+    seq = GetObjSeq(GetStackInt(stack++));
     if (seq == NULL) {
         return 0;
     }
 
-    SetStack__FP12RS_STACKDATAi__2(stack, (u8)((seq->CheckEnd() != 0) ^ 1));
+    SetStack(stack, (u8)((seq->CheckEnd() != 0) ^ 1));
     return 1;
 }
-int _OBJS_INIT(RS_STACKDATA *stack, int argc) {
+
+/**
+ * Initializes the object sequence.
+ */
+static int _OBJS_INIT(RS_STACKDATA *stack, int argc) {
     CSceneObjSeq *seq;
 
-    seq = GetObjSeq(GetStackInt__FP12RS_STACKDATA__2(stack));
+    seq = GetObjSeq(GetStackInt(stack));
     if (seq == NULL) {
         return 0;
     }
     seq->Clear();
     return 1;
 }
-int _OBJS_SYNC_OBJ(RS_STACKDATA *stack, int argc) {
-    CSceneObjSeq *seq;
 
-    seq = GetObjSeq__Fi(GetStackInt__FP12RS_STACKDATA__2(stack++), GetStackInt__FP12RS_STACKDATA__2(stack));
+/**
+ * Selects the event object handle controlled by an object sequence.
+ */
+static int _OBJS_SYNC_OBJ(RS_STACKDATA *stack, int argc) {
+    CSceneObjSeq *seq;
+    int slot;
+    int frame;
+
+    slot = GetStackInt(stack++);
+    frame = GetStackInt(stack);
+    seq = GetObjSeq(slot);
     if (seq == NULL) {
         return 0;
     }
-    SetEohNo__12CSceneObjSeqFi(seq);
+    seq->SetEohNo(frame);
     return 1;
 }
-int _OBJS_POS_DELAY(RS_STACKDATA *stack, int argc) {
-    CSceneObjSeq *seq;
 
-    seq = GetObjSeq__Fi(GetStackInt__FP12RS_STACKDATA__2(stack++), GetStackInt__FP12RS_STACKDATA__2(stack));
+/**
+ * Queues a wait on an object sequence position track.
+ */
+static int _OBJS_POS_DELAY(RS_STACKDATA *stack, int argc) {
+    CSceneObjSeq *seq;
+    int slot;
+    int frame;
+
+    slot = GetStackInt(stack++);
+    frame = GetStackInt(stack);
+    seq = GetObjSeq(slot);
     if (seq == NULL) {
         return 0;
     }
-    PosDelay__12CSceneObjSeqFi(seq);
+    seq->PosDelay(frame);
     return 1;
 }
-int _OBJS_SET_POS(RS_STACKDATA *stack, int argc) {
+
+/**
+ * Sets the object sequence position.
+ */
+static int _OBJS_SET_POS(RS_STACKDATA *stack, int argc) {
     CSceneObjSeq *seq;
-    float pos[4];
+    sceVu0FVECTOR pos;
     int slot;
     int key;
     int count;
@@ -5542,7 +7134,7 @@ int _OBJS_SET_POS(RS_STACKDATA *stack, int argc) {
     switch (argc) {
         case 1:
 
-            key = GetStackInt__FP12RS_STACKDATA__2(stack);
+            key = GetStackInt(stack);
             node = EventScriptArg.list;
             if (node == NULL) {
                 args = NULL;
@@ -5574,17 +7166,17 @@ int _OBJS_SET_POS(RS_STACKDATA *stack, int argc) {
             args = node->args;
         haveArgs:
             if (args == NULL) {
-                return 0;
+            return 0;
             }
             slot = GetArgInt(args++);
             GetArgVector(pos, args);
             break;
         case 4:
-            slot = GetStackInt__FP12RS_STACKDATA__2(stack++);
-            GetStackVector__FPfP12RS_STACKDATA(pos, stack);
+            slot = GetStackInt(stack++);
+            GetStackVector(pos, stack);
             break;
         default:
-            return 0;
+        return 0;
     }
     seq = GetObjSeq(slot);
     if (seq == NULL) {
@@ -5593,31 +7185,47 @@ int _OBJS_SET_POS(RS_STACKDATA *stack, int argc) {
     seq->SetPos(pos);
     return 1;
 }
+
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/event_func", _OBJS_MOVE__FP12RS_STACKDATAi);
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/event_func", _OBJS_MOVE2__FP12RS_STACKDATAi);
-int _OBJS_INIT_PAS(RS_STACKDATA *stack, int argc) {
+/**
+ * Initializes the object sequence position animation.
+ */
+static int _OBJS_INIT_PAS(RS_STACKDATA *stack, int argc) {
     CSceneObjSeq *seq;
 
-    seq = GetObjSeq(GetStackInt__FP12RS_STACKDATA__2(stack));
+    seq = GetObjSeq(GetStackInt(stack));
     if (seq == NULL) {
         return 0;
     }
     seq->InitPas();
     return 1;
 }
-int _OBJS_SET_PAS_FRM(RS_STACKDATA *stack, int argc) {
-    CSceneObjSeq *seq;
 
-    seq = GetObjSeq__Fi(GetStackInt__FP12RS_STACKDATA__2(stack++), GetStackInt__FP12RS_STACKDATA__2(stack));
+/**
+ * Sets the object sequence position animation frame.
+ */
+static int _OBJS_SET_PAS_FRM(RS_STACKDATA *stack, int argc) {
+    CSceneObjSeq *seq;
+    int slot;
+    int frame;
+
+    slot = GetStackInt(stack++);
+    frame = GetStackInt(stack);
+    seq = GetObjSeq(slot);
     if (seq == NULL) {
         return 0;
     }
-    SetPasFrm__12CSceneObjSeqFi(seq);
+    seq->SetPasFrm(frame);
     return 1;
 }
-int _OBJS_ADD_PAS(RS_STACKDATA *stack, int argc) {
+
+/**
+ * Adds the object sequence position animation.
+ */
+static int _OBJS_ADD_PAS(RS_STACKDATA *stack, int argc) {
     CSceneObjSeq *seq;
-    float pos[4];
+    sceVu0FVECTOR pos;
     int slot;
     int key;
     int count;
@@ -5628,7 +7236,7 @@ int _OBJS_ADD_PAS(RS_STACKDATA *stack, int argc) {
     switch (argc) {
         case 1:
 
-            key = GetStackInt__FP12RS_STACKDATA__2(stack);
+            key = GetStackInt(stack);
             node = EventScriptArg.list;
             if (node == NULL) {
                 args = NULL;
@@ -5660,17 +7268,17 @@ int _OBJS_ADD_PAS(RS_STACKDATA *stack, int argc) {
             args = node->args;
         haveArgs:
             if (args == NULL) {
-                return 0;
+            return 0;
             }
             slot = GetArgInt(args++);
             GetArgVector(pos, args);
             break;
         case 4:
-            slot = GetStackInt__FP12RS_STACKDATA__2(stack++);
-            GetStackVector__FPfP12RS_STACKDATA(pos, stack);
+            slot = GetStackInt(stack++);
+            GetStackVector(pos, stack);
             break;
         default:
-            return 0;
+        return 0;
     }
     seq = GetObjSeq(slot);
     if (seq == NULL) {
@@ -5679,15 +7287,19 @@ int _OBJS_ADD_PAS(RS_STACKDATA *stack, int argc) {
     seq->AddPas(pos);
     return 1;
 }
-int _OBJS_START_PAS(RS_STACKDATA *stack, int argc) {
+
+/**
+ * Starts the object sequence position animation.
+ */
+static int _OBJS_START_PAS(RS_STACKDATA *stack, int argc) {
     CSceneObjSeq *seq;
     int seqNo;
     int frame;
 
     frame = 0;
-    seqNo = GetStackInt__FP12RS_STACKDATA__2(stack++);
+    seqNo = GetStackInt(stack++);
     if (argc >= 2) {
-        frame = GetStackInt__FP12RS_STACKDATA__2(stack);
+        frame = GetStackInt(stack);
     }
     seq = GetObjSeq(seqNo);
     if (seq == NULL) {
@@ -5696,44 +7308,48 @@ int _OBJS_START_PAS(RS_STACKDATA *stack, int argc) {
     seq->StartPas(frame);
     return 1;
 }
+
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/event_func", _OBJS_JUMP__FP12RS_STACKDATAi);
-int _OBJS_SET_EOH_FRAME_POS(RS_STACKDATA *stack, int argc) {
+/**
+ * Sets the object sequence object handle frame position.
+ */
+#ifdef NONMATCHING
+static int _OBJS_SET_EOH_FRAME_POS(RS_STACKDATA *stack, int argc) {
     CSceneObjSeq *seq;
-    float offset[4];
+    sceVu0FVECTOR offset;
     int slot;
     int eohNo;
     int frames;
-    const int vector_bytes = 0x18;
     char *frameName;
 
     frames = 0;
     mgZeroVector(offset);
     switch (argc) {
         case 3:
-            slot = GetStackInt__FP12RS_STACKDATA__2(stack++);
-            eohNo = GetStackInt__FP12RS_STACKDATA__2(stack++);
-            frameName = GetStackString__FP12RS_STACKDATA__2(stack);
+            slot = GetStackInt(stack++);
+            eohNo = GetStackInt(stack++);
+            frameName = GetStackString(stack);
             break;
         case 4:
-            slot = GetStackInt__FP12RS_STACKDATA__2(stack++);
-            eohNo = GetStackInt__FP12RS_STACKDATA__2(stack++);
-            frameName = GetStackString__FP12RS_STACKDATA__2(stack++);
-            frames = GetStackInt__FP12RS_STACKDATA__2(stack);
+            slot = GetStackInt(stack++);
+            eohNo = GetStackInt(stack++);
+            frameName = GetStackString(stack++);
+            frames = GetStackInt(stack);
             break;
         case 6:
-            slot = GetStackInt__FP12RS_STACKDATA__2(stack++);
-            eohNo = GetStackInt__FP12RS_STACKDATA__2(stack++);
-            frameName = GetStackString__FP12RS_STACKDATA__2(stack++);
-            GetStackVector__FPfP12RS_STACKDATA(offset, stack);
+            slot = GetStackInt(stack++);
+            eohNo = GetStackInt(stack++);
+            frameName = GetStackString(stack++);
+            GetStackVector(offset, stack);
             break;
         case 7:
-            slot = GetStackInt__FP12RS_STACKDATA__2(stack++);
-            eohNo = GetStackInt__FP12RS_STACKDATA__2(stack++);
-            frameName = GetStackString__FP12RS_STACKDATA__2(stack++);
-            GetStackVector__FPfP12RS_STACKDATA(offset, stack);
+            slot = GetStackInt(stack++);
+            eohNo = GetStackInt(stack++);
+            frameName = GetStackString(stack++);
+            GetStackVector(offset, stack);
 
-            stack = (RS_STACKDATA *)((u8 *)stack + vector_bytes);
-            frames = GetStackInt__FP12RS_STACKDATA__2(stack);
+            stack += 3;
+            frames = GetStackInt(stack);
             break;
     }
     seq = GetObjSeq(slot);
@@ -5743,34 +7359,55 @@ int _OBJS_SET_EOH_FRAME_POS(RS_STACKDATA *stack, int argc) {
     seq->SetEohFramePos(eohNo, frameName, frames, offset);
     return 1;
 }
+#else
+INCLUDE_ASM("ps2/asm/pal/nonmatchings/event_func", _OBJS_SET_EOH_FRAME_POS__FP12RS_STACKDATAi);
+#endif
+
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/event_func", _OBJS_ADD_POS__FP12RS_STACKDATAi);
-int _OBJS_ATTACH_CAMERA(RS_STACKDATA *stack, int argc) {
+/**
+ * Queues keeping an object the requested distance in front of the camera.
+ */
+static int _OBJS_ATTACH_CAMERA(RS_STACKDATA *stack, int argc) {
     CSceneObjSeq *seq;
     int slot;
     float rate;
+    int frame;
 
-    slot = GetStackInt__FP12RS_STACKDATA__2(stack++);
-    rate = GetStackFloat__FP12RS_STACKDATA__2(stack++);
-    seq = GetObjSeq__Fi(slot, GetStackInt__FP12RS_STACKDATA__2(stack));
+    slot = GetStackInt(stack++);
+    rate = GetStackFloat(stack++);
+    frame = GetStackInt(stack);
+    seq = GetObjSeq(slot);
     if (seq == NULL) {
         return 0;
     }
-    AttachCamera__12CSceneObjSeqFfi(seq, rate);
+    seq->AttachCamera(rate, frame);
     return 1;
 }
-int _OBJS_ROT_DELAY(RS_STACKDATA *stack, int argc) {
-    CSceneObjSeq *seq;
 
-    seq = GetObjSeq__Fi(GetStackInt__FP12RS_STACKDATA__2(stack++), GetStackInt__FP12RS_STACKDATA__2(stack));
+/**
+ * Queues a wait on an object sequence rotation track.
+ */
+static int _OBJS_ROT_DELAY(RS_STACKDATA *stack, int argc) {
+    CSceneObjSeq *seq;
+    int slot;
+    int frame;
+
+    slot = GetStackInt(stack++);
+    frame = GetStackInt(stack);
+    seq = GetObjSeq(slot);
     if (seq == NULL) {
         return 0;
     }
-    RotDelay__12CSceneObjSeqFi(seq);
+    seq->RotDelay(frame);
     return 1;
 }
-int _OBJS_SET_ROT(RS_STACKDATA *stack, int argc) {
+
+/**
+ * Sets the object sequence rotation.
+ */
+static int _OBJS_SET_ROT(RS_STACKDATA *stack, int argc) {
     CSceneObjSeq *seq;
-    float rot[4];
+    sceVu0FVECTOR rot;
     int slot;
     int key;
     int count;
@@ -5781,7 +7418,7 @@ int _OBJS_SET_ROT(RS_STACKDATA *stack, int argc) {
     switch (argc) {
         case 1:
 
-            key = GetStackInt__FP12RS_STACKDATA__2(stack);
+            key = GetStackInt(stack);
             node = EventScriptArg.list;
             if (node == NULL) {
                 args = NULL;
@@ -5813,17 +7450,17 @@ int _OBJS_SET_ROT(RS_STACKDATA *stack, int argc) {
             args = node->args;
         haveArgs:
             if (args == NULL) {
-                return 0;
+            return 0;
             }
             slot = GetArgInt(args++);
             GetArgVector(rot, args);
             break;
         case 4:
-            slot = GetStackInt__FP12RS_STACKDATA__2(stack++);
-            GetStackVector__FPfP12RS_STACKDATA(rot, stack);
+            slot = GetStackInt(stack++);
+            GetStackVector(rot, stack);
             break;
         default:
-            return 0;
+        return 0;
     }
     seq = GetObjSeq(slot);
     if (seq == NULL) {
@@ -5832,100 +7469,144 @@ int _OBJS_SET_ROT(RS_STACKDATA *stack, int argc) {
     seq->SetRot(rot);
     return 1;
 }
+
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/event_func", _OBJS_ROTATION__FP12RS_STACKDATAi);
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/event_func", _OBJS_ROTATION2__FP12RS_STACKDATAi);
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/event_func", _OBJS_REFERENCE__FP12RS_STACKDATAi);
-int _OBJS_MOTION_DELAY(RS_STACKDATA *stack, int argc) {
+/**
+ * Queues a wait on an object sequence motion track.
+ */
+static int _OBJS_MOTION_DELAY(RS_STACKDATA *stack, int argc) {
     CSceneObjSeq *seq;
+    int slot;
+    int frame;
 
-    seq = GetObjSeq__Fi(GetStackInt__FP12RS_STACKDATA__2(stack++), GetStackInt__FP12RS_STACKDATA__2(stack));
+    slot = GetStackInt(stack++);
+    frame = GetStackInt(stack);
+    seq = GetObjSeq(slot);
     if (seq == NULL) {
         return 0;
     }
-    MotionDelay__12CSceneObjSeqFi(seq);
+    seq->MotionDelay(frame);
     return 1;
 }
+
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/event_func", _OBJS_SET_MOTION__FP12RS_STACKDATAi);
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/event_func", _OBJS_NEXT_MOTION__FP12RS_STACKDATAi);
-int _OBJS_MOTION_WAIT(RS_STACKDATA *stack, int argc) {
+/**
+ * Queues waiting for an object sequence motion to finish.
+ */
+static int _OBJS_MOTION_WAIT(RS_STACKDATA *stack, int argc) {
     CSceneObjSeq *seq;
 
-    seq = GetObjSeq(GetStackInt__FP12RS_STACKDATA__2(stack));
+    seq = GetObjSeq(GetStackInt(stack));
     if (seq == NULL) {
         return 0;
     }
     seq->MotionWait();
     return 1;
 }
+
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/event_func", _OBJS_SET_STEP__FP12RS_STACKDATAi);
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/event_func", _OBJS_CHENGE_STEP__FP12RS_STACKDATAi);
-int _OBJS_SEQ_MOT_TRG(RS_STACKDATA *stack, int argc) {
+/**
+ * Queues arming an object sequence motion trigger.
+ */
+static int _OBJS_SEQ_MOT_TRG(RS_STACKDATA *stack, int argc) {
     CSceneObjSeq *seq;
 
-    seq = GetObjSeq(GetStackInt__FP12RS_STACKDATA__2(stack));
+    seq = GetObjSeq(GetStackInt(stack));
     if (seq == NULL) {
         return 0;
     }
     seq->SetMotionTrg();
     return 1;
 }
-int _OBJS_SEQ_MOT_TRG_WAIT(RS_STACKDATA *stack, int argc) {
+
+/**
+ * Queues waiting for an object sequence motion trigger.
+ */
+static int _OBJS_SEQ_MOT_TRG_WAIT(RS_STACKDATA *stack, int argc) {
     CSceneObjSeq *seq;
 
-    seq = GetObjSeq(GetStackInt__FP12RS_STACKDATA__2(stack));
+    seq = GetObjSeq(GetStackInt(stack));
     if (seq == NULL) {
         return 0;
     }
     seq->MotionTrgWait();
     return 1;
 }
-int _OBJS_RESET_MOTION(RS_STACKDATA *stack, int argc) {
+
+/**
+ * Resets the object sequence motion.
+ */
+static int _OBJS_RESET_MOTION(RS_STACKDATA *stack, int argc) {
     CSceneObjSeq *seq;
 
-    seq = GetObjSeq(GetStackInt__FP12RS_STACKDATA__2(stack));
+    seq = GetObjSeq(GetStackInt(stack));
     if (seq == NULL) {
         return 0;
     }
     seq->ResetMotion();
     return 1;
 }
+
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/event_func", _OBJS_SET_MOTION_NOW_TIME__FP12RS_STACKDATAi);
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/event_func", _OBJS_SET_MOTION_WAIT_TIME__FP12RS_STACKDATAi);
-int _OBJS_TEXA_DELAY(RS_STACKDATA *stack, int argc) {
+/**
+ * Queues a wait on an object sequence texture animation track.
+ */
+static int _OBJS_TEXA_DELAY(RS_STACKDATA *stack, int argc) {
     CSceneObjSeq *seq;
+    int slot;
+    int frame;
 
-    seq = GetObjSeq__Fi(GetStackInt__FP12RS_STACKDATA__2(stack++), GetStackInt__FP12RS_STACKDATA__2(stack));
+    slot = GetStackInt(stack++);
+    frame = GetStackInt(stack);
+    seq = GetObjSeq(slot);
     if (seq == NULL) {
         return 0;
     }
-    TexAnimeDelay__12CSceneObjSeqFi(seq);
+    seq->TexAnimeDelay(frame);
     return 1;
 }
+
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/event_func", _OBJS_TEX_ANIME__FP12RS_STACKDATAi);
-int _OBJS_COLOR_DELAY(RS_STACKDATA *stack, int argc) {
+/**
+ * Queues a wait on an object sequence colour track.
+ */
+static int _OBJS_COLOR_DELAY(RS_STACKDATA *stack, int argc) {
     CSceneObjSeq *seq;
+    int slot;
+    int frame;
 
-    seq = GetObjSeq__Fi(GetStackInt__FP12RS_STACKDATA__2(stack++), GetStackInt__FP12RS_STACKDATA__2(stack));
+    slot = GetStackInt(stack++);
+    frame = GetStackInt(stack);
+    seq = GetObjSeq(slot);
     if (seq == NULL) {
         return 0;
     }
-    ColorDelay__12CSceneObjSeqFi(seq);
+    seq->ColorDelay(frame);
     return 1;
 }
-int _OBJS_SET_COLOR(RS_STACKDATA *stack, int argc) {
+
+/**
+ * Sets the object sequence color.
+ */
+static int _OBJS_SET_COLOR(RS_STACKDATA *stack, int argc) {
     CSceneObjSeq *seq;
-    float color[4];
+    sceVu0FVECTOR color;
     int slot;
     int frames;
 
     frames = 0;
-    slot = GetStackInt__FP12RS_STACKDATA__2(stack++);
-    color[0] = GetStackFloat__FP12RS_STACKDATA__2(stack++);
-    color[1] = GetStackFloat__FP12RS_STACKDATA__2(stack++);
-    color[2] = GetStackFloat__FP12RS_STACKDATA__2(stack++);
-    color[3] = GetStackFloat__FP12RS_STACKDATA__2(stack++);
+    slot = GetStackInt(stack++);
+    color[0] = GetStackFloat(stack++);
+    color[1] = GetStackFloat(stack++);
+    color[2] = GetStackFloat(stack++);
+    color[3] = GetStackFloat(stack++);
     if (argc >= 6) {
-        frames = GetStackInt__FP12RS_STACKDATA__2(stack);
+        frames = GetStackInt(stack);
     }
     seq = GetObjSeq(slot);
     if (seq == NULL) {
@@ -5934,197 +7615,272 @@ int _OBJS_SET_COLOR(RS_STACKDATA *stack, int argc) {
     seq->SetColor(color, frames);
     return 1;
 }
-int _OBJS_SCALE_DELAY(RS_STACKDATA *stack, int argc) {
-    CSceneObjSeq *seq;
 
-    seq = GetObjSeq__Fi(GetStackInt__FP12RS_STACKDATA__2(stack++), GetStackInt__FP12RS_STACKDATA__2(stack));
+/**
+ * Queues a wait on an object sequence scale track.
+ */
+static int _OBJS_SCALE_DELAY(RS_STACKDATA *stack, int argc) {
+    CSceneObjSeq *seq;
+    int slot;
+    int frame;
+
+    slot = GetStackInt(stack++);
+    frame = GetStackInt(stack);
+    seq = GetObjSeq(slot);
     if (seq == NULL) {
         return 0;
     }
-    ScaleDelay__12CSceneObjSeqFi(seq);
+    seq->ScaleDelay(frame);
     return 1;
 }
+
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/event_func", _OBJS_SET_SCALE__FP12RS_STACKDATAi);
-int _OBJS_SE_DELAY(RS_STACKDATA *stack, int argc) {
+/**
+ * Queues a wait on an object sequence sound track.
+ */
+static int _OBJS_SE_DELAY(RS_STACKDATA *stack, int argc) {
     CSceneObjSeq *seq;
+    int slot;
+    int frame;
 
-    seq = GetObjSeq__Fi(GetStackInt__FP12RS_STACKDATA__2(stack++), GetStackInt__FP12RS_STACKDATA__2(stack));
+    slot = GetStackInt(stack++);
+    frame = GetStackInt(stack);
+    seq = GetObjSeq(slot);
     if (seq == NULL) {
         return 0;
     }
-    SeDelay__12CSceneObjSeqFi(seq);
+    seq->SeDelay(frame);
     return 1;
 }
+
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/event_func", _OBJS_SE_PLAY__FP12RS_STACKDATAi);
-int _OBJS_RESET_DA_POSITION(RS_STACKDATA *stack, int argc) {
+/**
+ * Resets the object sequence deformation animation position.
+ */
+static int _OBJS_RESET_DA_POSITION(RS_STACKDATA *stack, int argc) {
     CSceneObjSeq *seq;
 
-    seq = GetObjSeq(GetStackInt__FP12RS_STACKDATA__2(stack));
+    seq = GetObjSeq(GetStackInt(stack));
     if (seq == NULL) {
         return 0;
     }
     seq->ResetDAPosition();
     return 1;
 }
-int _OBJS_NORMAL_DRIVE(RS_STACKDATA *stack, int argc) {
+
+/**
+ * Queues returning an event object to its normal behaviour.
+ */
+static int _OBJS_NORMAL_DRIVE(RS_STACKDATA *stack, int argc) {
     CSceneObjSeq *seq;
 
-    seq = GetObjSeq(GetStackInt__FP12RS_STACKDATA__2(stack));
+    seq = GetObjSeq(GetStackInt(stack));
     if (seq == NULL) {
         return 0;
     }
     seq->NormalDrive();
     return 1;
 }
-int _ASQ_CHECK(RS_STACKDATA *stack, int argc) {
+
+/**
+ * Reports success without changing event state.
+ */
+static s32 _ASQ_CHECK(RS_STACKDATA *stack, int argc) {
     return 1;
 }
-int _SND_INIT_PORT(RS_STACKDATA *stack, int argc) {
-    sndInitPort(GetStackInt__FP12RS_STACKDATA__2(stack));
+
+/**
+ * Initializes the sound port.
+ */
+static int _SND_INIT_PORT(RS_STACKDATA *stack, int argc) {
+    sndInitPort(GetStackInt(stack));
     return 1;
 }
+
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/event_func", _SND_LOAD_SOUND__FP12RS_STACKDATAi);
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/event_func", _GET_SND_ID__FP12RS_STACKDATAi);
-int _SND_SE_PAUSE(RS_STACKDATA *stack, int argc) {
+/**
+ * Pauses the sound sound effect.
+ */
+static int _SND_SE_PAUSE(RS_STACKDATA *stack, int argc) {
     u32 seId;
 
-    seId = GetStackInt__FP12RS_STACKDATA__2(stack++);
-    sndSePause(seId, GetStackInt__FP12RS_STACKDATA__2(stack));
+    seId = GetStackInt(stack++);
+    sndSePause(seId, GetStackInt(stack));
     return 1;
 }
-int _SND_SE_PLAY(RS_STACKDATA *stack, int argc) {
+
+/**
+ * Plays the sound sound effect.
+ */
+static int _SND_SE_PLAY(RS_STACKDATA *stack, int argc) {
     switch (argc) {
         case 2: {
-            u32 seId = GetStackInt__FP12RS_STACKDATA__2(stack++);
-            int voice = GetStackInt__FP12RS_STACKDATA__2(stack);
+            u32 seId = GetStackInt(stack++);
+            int voice = GetStackInt(stack);
             sndSePlay(seId, voice, 0);
             return 1;
         }
         case 3: {
-            u32 seId = GetStackInt__FP12RS_STACKDATA__2(stack++);
-            int voice = GetStackInt__FP12RS_STACKDATA__2(stack++);
-            int volume = GetStackInt__FP12RS_STACKDATA__2(stack);
+            u32 seId = GetStackInt(stack++);
+            int voice = GetStackInt(stack++);
+            int volume = GetStackInt(stack);
             sndSePlayV(seId, voice, volume, 0);
             return 1;
         }
         case 4: {
-            u32 seId = GetStackInt__FP12RS_STACKDATA__2(stack++);
-            int voice = GetStackInt__FP12RS_STACKDATA__2(stack++);
-            int volume = GetStackInt__FP12RS_STACKDATA__2(stack++);
-            int pan = GetStackInt__FP12RS_STACKDATA__2(stack);
+            u32 seId = GetStackInt(stack++);
+            int voice = GetStackInt(stack++);
+            int volume = GetStackInt(stack++);
+            int pan = GetStackInt(stack);
             sndSePlayVP(seId, voice, volume, pan, 0);
             return 1;
         }
         default:
-    return 0;
+        return 0;
 }
 }
-int _SND_SE_STOP(RS_STACKDATA *stack, int argc) {
+
+/**
+ * Stops the sound sound effect.
+ */
+static int _SND_SE_STOP(RS_STACKDATA *stack, int argc) {
     u32 seId;
 
-    seId = GetStackInt__FP12RS_STACKDATA__2(stack++);
-    sndSeStop(seId, GetStackInt__FP12RS_STACKDATA__2(stack), 0);
+    seId = GetStackInt(stack++);
+    sndSeStop(seId, GetStackInt(stack), 0);
     return 1;
 }
-int _SND_SET_SE_VOL(RS_STACKDATA *stack, int argc) {
+
+/**
+ * Sets the sound sound effect volume.
+ */
+static int _SND_SET_SE_VOL(RS_STACKDATA *stack, int argc) {
     u32 seId;
     int voice;
 
-    seId = GetStackInt__FP12RS_STACKDATA__2(stack++);
-    voice = GetStackInt__FP12RS_STACKDATA__2(stack++);
+    seId = GetStackInt(stack++);
+    voice = GetStackInt(stack++);
     switch (stack->type) {
         case 0:
-            sndSetSeVol(seId, voice, GetStackInt__FP12RS_STACKDATA__2(stack), 0);
+            sndSetSeVol(seId, voice, GetStackInt(stack), 0);
             break;
         case 1:
-            sndSetSeVolf(seId, voice, GetStackFloat__FP12RS_STACKDATA__2(stack), 0);
+            sndSetSeVolf(seId, voice, GetStackFloat(stack), 0);
             break;
         default:
-    return 0;
+        return 0;
 }
     return 1;
 }
-int _SND_SET_SE_PAN(RS_STACKDATA *stack, int argc) {
-    int seId = GetStackInt__FP12RS_STACKDATA__2(stack++);
-    int pan = GetStackInt__FP12RS_STACKDATA__2(stack++);
-    int time = GetStackInt__FP12RS_STACKDATA__2(stack);
+
+/**
+ * Sets the sound sound effect pan.
+ */
+static int _SND_SET_SE_PAN(RS_STACKDATA *stack, int argc) {
+    int seId = GetStackInt(stack++);
+    int pan = GetStackInt(stack++);
+    int time = GetStackInt(stack);
     sndSetSePan(seId, pan, time, 0);
     return 1;
 }
-int _SND_SET_SE_PITCH(RS_STACKDATA *stack, int argc) {
-    int seId = GetStackInt__FP12RS_STACKDATA__2(stack++);
-    int pitch = GetStackInt__FP12RS_STACKDATA__2(stack++);
-    int time = GetStackInt__FP12RS_STACKDATA__2(stack);
+
+/**
+ * Sets the sound sound effect pitch.
+ */
+static int _SND_SET_SE_PITCH(RS_STACKDATA *stack, int argc) {
+    int seId = GetStackInt(stack++);
+    int pitch = GetStackInt(stack++);
+    int time = GetStackInt(stack);
     sndSetSePitch(seId, pitch, time, 0);
     return 1;
 }
-int _SND_SE_ALL_STOP(RS_STACKDATA *stack, int argc) {
-    sndSeAllStop(GetStackInt__FP12RS_STACKDATA__2(stack));
+
+/**
+ * Stops the sound sound effect all.
+ */
+static int _SND_SE_ALL_STOP(RS_STACKDATA *stack, int argc) {
+    sndSeAllStop(GetStackInt(stack));
     return 1;
 }
-int _LOAD_BGM(RS_STACKDATA *stack, int argc) {
+
+/**
+ * Loads the background music.
+ */
+static int _LOAD_BGM(RS_STACKDATA *stack, int argc) {
     int bgmNo;
 
-    bgmNo = GetStackInt__FP12RS_STACKDATA__2(stack);
+    bgmNo = GetStackInt(stack);
     if (EventScene->CheckLoadBGM(bgmNo) == 0) {
-    return 0;
+        return 0;
 }
     return EventScene->LoadBGM(bgmNo, read_buffer);
 }
-int _PLAY_BGM(RS_STACKDATA *stack, int argc) {
+
+/**
+ * Plays the background music.
+ */
+static int _PLAY_BGM(RS_STACKDATA *stack, int argc) {
     int bgmNo;
 
     switch (argc) {
         case 1:
-            EventScene->PlayBGM(GetStackInt__FP12RS_STACKDATA__2(stack), -1, 1.0f);
-            return 1;
+            EventScene->PlayBGM(GetStackInt(stack), -1, 1.0f);
+        return 1;
         case 2:
-            bgmNo = GetStackInt__FP12RS_STACKDATA__2(stack++);
-            EventScene->PlayBGM(bgmNo, GetStackInt__FP12RS_STACKDATA__2(stack), 1.0f);
-            return 1;
+            bgmNo = GetStackInt(stack++);
+            EventScene->PlayBGM(bgmNo, GetStackInt(stack), 1.0f);
+        return 1;
     }
     return 0;
 }
-int _STOP_BGM(RS_STACKDATA *stack, int argc) {
-    EventScene->StopBGM(GetStackInt__FP12RS_STACKDATA__2(stack));
+
+/**
+ * Stops the background music.
+ */
+static int _STOP_BGM(RS_STACKDATA *stack, int argc) {
+    EventScene->StopBGM(GetStackInt(stack));
     return 1;
 }
-int CommandStreamOpenFromFPL(int stream, char *name, char *base) {
+
+int CommandStreamOpenFromFPL(int port, char *pack, char *name) {
     char path[64];
     char baseName[64];
 
-    strcpy(path, at_6773__2);
-    strncat(path, name, 3);
-    strcat(path, (char *)&at_6774__2);
-    strcat(path, name);
-    strcat(path, (char *)&at_6775__2);
-    strcpy(baseName, base);
-    strcat(baseName, (char *)&at_6776__2);
-    CSnd.StreamOpenFromFPLFast( stream, path, baseName);
+    strcpy(path, "cdrom0:\\V\\");
+    strncat(path, pack, 3);
+    strcat(path, "\\V");
+    strcat(path, pack);
+    strcat(path, ".VPK;1");
+    strcpy(baseName, name);
+    strcat(baseName, ".wav");
+    CSnd.StreamOpenFromFPLFast(port, path, baseName);
     return 1;
 }
-int CommandStreamOpen(int stream, char *name) {
+
+int CommandStreamOpen(int port, char *name) {
     char path[64];
 
-    strcpy(path, (char *)at_6781__2);
+    strcpy(path, "cdrom0:\\VOICE\\");
     strcat(path, name);
-    strcat(path, (char *)at_6782__2);
-    CSnd.StreamOpenFast(stream, path);
+    strcat(path, ".WV;1");
+    CSnd.StreamOpenFast(port, path);
     return 1;
 }
-int VpkFileNameFromVoiceNo(char *name, int voiceNo) {
-    int group = voiceNo / 10000;
+
+int VpkFileNameFromVoiceNo(char *name, int voice_no) {
+    int group = voice_no / 10000;
     int kind = 0;
 
     switch (group) {
         case 1:
-            if (voiceNo >= 10705) {
-                if (voiceNo < 10721) {
+            if (voice_no >= 10705) {
+                if (voice_no < 10721) {
                     kind = 1;
                 }
             }
-            if (voiceNo >= 10300) {
-                if (voiceNo < 10701) {
+            if (voice_no >= 10300) {
+                if (voice_no < 10701) {
                     kind = 2;
                 }
             }
@@ -6138,39 +7894,223 @@ int VpkFileNameFromVoiceNo(char *name, int voiceNo) {
             break;
     }
 
-    VpkTable table = at_6800__2;
+    /**
+     * A voice group and subdivision mapped to the two numbers in a pack name.
+     */
+    struct VoicePackEntry {
+        int group; /**< Voice group from the upper decimal digits. */
+        int kind;  /**< Subdivision within the voice group. */
+        int id;    /**< First number in the pack name. */
+        int sub;   /**< Second number in the pack name. */
+    };
+
+    VoicePackEntry table[164] = {
+        {1, 0, 0, 100},
+        {1, 1, 0, 106},
+        {1, 2, 0, 105},
+        {2, 0, 0, 110},
+        {3, 0, 0, 115},
+        {4, 0, 0, 120},
+        {5, 0, 0, 125},
+        {6, 0, 100, 100},
+        {50, 0, 0, 130},
+        {60, 0, 0, 180},
+        {61, 0, 0, 185},
+        {100, 0, 100, 105},
+        {101, 0, 100, 110},
+        {102, 0, 100, 115},
+        {103, 0, 100, 120},
+        {104, 0, 100, 125},
+        {105, 0, 0, 135},
+        {105, 1, 0, 140},
+        {105, 2, 0, 145},
+        {106, 0, 0, 150},
+        {107, 0, 100, 130},
+        {108, 0, 100, 135},
+        {108, 1, 100, 136},
+        {108, 2, 100, 137},
+        {109, 0, 0, 155},
+        {109, 1, 0, 160},
+        {110, 0, 100, 140},
+        {111, 0, 100, 145},
+        {201, 0, 100, 150},
+        {202, 0, 100, 155},
+        {203, 0, 300, 100},
+        {204, 0, 10, 100},
+        {205, 0, 10, 105},
+        {206, 0, 10, 110},
+        {207, 0, 10, 115},
+        {208, 0, 10, 120},
+        {209, 0, 10, 125},
+        {215, 0, 110, 100},
+        {220, 0, 110, 105},
+        {230, 0, 110, 110},
+        {235, 0, 110, 115},
+        {240, 0, 110, 120},
+        {245, 0, 110, 125},
+        {247, 0, 10, 130},
+        {250, 0, 10, 135},
+        {253, 0, 10, 140},
+        {255, 0, 110, 130},
+        {255, 1, 110, 135},
+        {256, 0, 110, 140},
+        {257, 0, 110, 145},
+        {260, 0, 110, 150},
+        {270, 0, 10, 145},
+        {272, 0, 10, 150},
+        {275, 0, 10, 155},
+        {277, 0, 10, 160},
+        {280, 0, 10, 165},
+        {283, 0, 10, 170},
+        {285, 0, 10, 180},
+        {290, 0, 110, 155},
+        {300, 0, 15, 100},
+        {302, 0, 15, 105},
+        {304, 0, 15, 110},
+        {305, 0, 0, 165},
+        {306, 0, 15, 115},
+        {307, 0, 115, 100},
+        {308, 0, 115, 105},
+        {312, 0, 115, 110},
+        {314, 0, 115, 115},
+        {315, 0, 115, 120},
+        {316, 0, 115, 125},
+        {317, 0, 115, 130},
+        {320, 0, 15, 120},
+        {324, 0, 15, 125},
+        {328, 0, 15, 130},
+        {330, 0, 15, 135},
+        {332, 0, 115, 135},
+        {336, 0, 115, 140},
+        {340, 0, 115, 145},
+        {344, 0, 0, 170},
+        {348, 0, 115, 150},
+        {352, 0, 115, 155},
+        {356, 0, 115, 160},
+        {360, 0, 15, 140},
+        {364, 0, 15, 145},
+        {368, 0, 15, 150},
+        {372, 0, 15, 155},
+        {376, 0, 15, 160},
+        {400, 0, 20, 100},
+        {402, 0, 20, 105},
+        {404, 0, 20, 110},
+        {406, 0, 120, 100},
+        {408, 0, 120, 105},
+        {410, 0, 120, 110},
+        {412, 0, 20, 115},
+        {414, 0, 20, 120},
+        {416, 0, 120, 115},
+        {420, 0, 120, 120},
+        {424, 0, 0, 175},
+        {428, 0, 20, 125},
+        {432, 0, 120, 125},
+        {434, 0, 120, 130},
+        {436, 0, 120, 135},
+        {438, 0, 120, 140},
+        {440, 0, 120, 145},
+        {444, 0, 120, 150},
+        {448, 0, 20, 130},
+        {452, 0, 20, 135},
+        {456, 0, 20, 140},
+        {460, 0, 20, 145},
+        {464, 0, 20, 150},
+        {468, 0, 20, 155},
+        {500, 0, 25, 100},
+        {504, 0, 25, 105},
+        {508, 0, 25, 110},
+        {512, 0, 125, 100},
+        {516, 0, 125, 105},
+        {520, 0, 125, 110},
+        {522, 0, 125, 115},
+        {523, 0, 125, 120},
+        {524, 0, 25, 115},
+        {526, 0, 125, 125},
+        {528, 0, 125, 130},
+        {532, 0, 125, 135},
+        {536, 0, 125, 140},
+        {540, 0, 25, 120},
+        {548, 0, 25, 125},
+        {552, 0, 25, 130},
+        {556, 0, 25, 135},
+        {560, 0, 25, 140},
+        {600, 0, 20, 160},
+        {600, 1, 20, 161},
+        {604, 0, 30, 100},
+        {608, 0, 130, 100},
+        {610, 0, 130, 105},
+        {612, 0, 130, 110},
+        {616, 0, 40, 100},
+        {624, 0, 110, 160},
+        {628, 0, 115, 165},
+        {632, 0, 120, 155},
+        {636, 0, 125, 145},
+        {640, 0, 40, 105},
+        {640, 1, 40, 106},
+        {640, 2, 40, 107},
+        {648, 0, 40, 110},
+        {700, 0, 30, 105},
+        {702, 0, 130, 115},
+        {704, 0, 30, 110},
+        {708, 0, 130, 120},
+        {712, 0, 130, 125},
+        {716, 0, 130, 130},
+        {720, 0, 130, 135},
+        {724, 0, 130, 140},
+        {728, 0, 130, 145},
+        {732, 0, 130, 150},
+        {736, 0, 130, 160},
+        {744, 0, 30, 115},
+        {748, 0, 30, 120},
+        {800, 0, 0, 190},
+        {804, 0, 0, 195},
+        {808, 0, 150, 100},
+        {812, 0, 150, 105},
+        {816, 0, 150, 110},
+        {820, 0, 150, 115},
+        {824, 0, 50, 100},
+    };
     for (int i = 0; i < vpk_entry_count; i++) {
-        if (group == table.entry[i].group && kind == table.entry[i].kind) {
-            sprintf(name, (char *)at_6816, table.entry[i].id, table.entry[i].sub);
+        if (group == table[i].group && kind == table[i].kind) {
+            sprintf(name, "%03d_%03d", table[i].id, table[i].sub);
             return 1;
         }
     }
     return 0;
 }
+
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/event_func", _STREAM_OPEN__FP12RS_STACKDATAi);
-int CommandStreamPlay(int stream, int volume) {
+int CommandStreamPlay(int port, int volume) {
     int reverb = sndGetReverbDepth(1);
     int scaled = (int)((double)volume - 256.0 * (1.5 * (double)reverb));
-    printf((char *)at_6839, scaled, volume);
+    printf("vol=%d,vol_0=%d\n", scaled, volume);
     EdEventInfo.stream_volume = volume;
-    CSnd.StreamSetVol(stream, scaled, scaled);
-    CSnd.StreamPlay(stream);
+    CSnd.StreamSetVol(port, scaled, scaled);
+    CSnd.StreamPlay(port);
     return 1;
 }
-int _STREAM_PLAY(RS_STACKDATA *stack, int argc) {
+
+/**
+ * Plays the stream.
+ */
+static int _STREAM_PLAY(RS_STACKDATA *stack, int argc) {
     EdEventInfo.stream_playing = 1;
-    GetStackInt__FP12RS_STACKDATA__2(stack++);
+    GetStackInt(stack++);
     switch (argc) {
         case 1:
-            return CommandStreamPlay(event_stream, stream_max_volume);
+        return CommandStreamPlay(event_stream, stream_max_volume);
         case 2:
-            return CommandStreamPlay(event_stream, GetStackInt__FP12RS_STACKDATA__2(stack));
+        return CommandStreamPlay(event_stream, GetStackInt(stack));
     }
     return 0;
 }
-int _STREAM_STOP(RS_STACKDATA *stack, int argc) {
+
+/**
+ * Stops the stream.
+ */
+static int _STREAM_STOP(RS_STACKDATA *stack, int argc) {
     EdEventInfo.stream_playing = 0;
-    GetStackInt__FP12RS_STACKDATA__2(stack);
+    GetStackInt(stack);
     if (EdEventInfo.stream_from_fpl == 1) {
         CSnd.StreamEND(event_stream);
     } else {
@@ -6179,43 +8119,69 @@ int _STREAM_STOP(RS_STACKDATA *stack, int argc) {
     }
     return 1;
 }
-int _STREAM_STANDBY(RS_STACKDATA *stack, int argc) {
-    GetStackInt__FP12RS_STACKDATA__2(stack);
+
+/**
+ * Readies the event voice stream and starts buffering it.
+ */
+static int _STREAM_STANDBY(RS_STACKDATA *stack, int argc) {
+    GetStackInt(stack);
     CSnd.StreamStandBy(event_stream);
     return 1;
 }
-int _STREAM_GET_STATUS(RS_STACKDATA *stack, int argc) {
-    GetStackInt__FP12RS_STACKDATA__2(stack++);
 
-    argc = CSnd.StreamGetState(event_stream);
-    SetStack__FP12RS_STACKDATAi__2(stack, argc);
-    return 1;
-}
-int _GET_SYS_SND_ID(RS_STACKDATA *stack, int argc) {
+/**
+ * Returns the stream status.
+ */
+static int _STREAM_GET_STATUS(RS_STACKDATA *stack, int argc) {
+    int result;
+    GetStackInt(stack++);
 
-    argc = GetSystemSndID();
-    SetStack__FP12RS_STACKDATAi__2(stack, argc);
+    result = CSnd.StreamGetState(event_stream);
+    SetStack(stack, result);
     return 1;
 }
-int _STREAM_OPEN_CHECK(RS_STACKDATA *stack, int argc) {
-    SetStack__FP12RS_STACKDATAi__2(stack, CSnd.StreamOpenState());
+
+/**
+ * Returns the sys sound id.
+ */
+static int _GET_SYS_SND_ID(RS_STACKDATA *stack, int argc) {
+    int result;
+
+    result = GetSystemSndID();
+    SetStack(stack, result);
     return 1;
 }
-int _LOAD_SE_ENV(RS_STACKDATA *stack, int argc) {
+
+/**
+ * Opens the stream check.
+ */
+static int _STREAM_OPEN_CHECK(RS_STACKDATA *stack, int argc) {
+    SetStack(stack, CSnd.StreamOpenState());
+    return 1;
+}
+
+/**
+ * Loads the sound effect environment.
+ */
+static int _LOAD_SE_ENV(RS_STACKDATA *stack, int argc) {
     int bankNo;
 
-    bankNo = GetStackInt__FP12RS_STACKDATA__2(stack);
+    bankNo = GetStackInt(stack);
     if (EventScene->CheckLoadSeEnv(bankNo) == 0) {
         return 0;
     }
     EventScene->LoadSeEnv(bankNo, read_buffer);
     return 1;
 }
-int _PLAY_ENV_BGM(RS_STACKDATA *stack, int argc) {
+
+/**
+ * Plays the environment background music.
+ */
+static int _PLAY_ENV_BGM(RS_STACKDATA *stack, int argc) {
     int voice;
     int volume;
 
-    voice = GetStackInt__FP12RS_STACKDATA__2(stack++);
+    voice = GetStackInt(stack++);
     EventScene->StopEnvBGM();
     if (voice == -1) {
         EventScene->AutoChangeEnvBGM(1);
@@ -6228,76 +8194,120 @@ int _PLAY_ENV_BGM(RS_STACKDATA *stack, int argc) {
             EventScene->PlayEnvBGM(voice, 1.0f);
             EdEventInfo.env_bgm_no = voice;
             EdEventInfo.env_bgm_volume = 1.0f;
-            return 1;
+        return 1;
         case 2:
 
-            volume = fptosi(GetStackFloat__FP12RS_STACKDATA__2(stack));
+            volume = (int)GetStackFloat(stack);
             EventScene->SetEnvBGMVol(volume);
             EventScene->PlayEnvBGM(voice, 1.0f);
             EdEventInfo.env_bgm_no = voice;
             EdEventInfo.env_bgm_volume = volume;
-            return 1;
+        return 1;
     }
     return 0;
 }
-int _SYS_SE_PLAY(RS_STACKDATA *stack, int argc) {
+
+/**
+ * Plays the sys sound effect.
+ */
+static int _SYS_SE_PLAY(RS_STACKDATA *stack, int argc) {
     int seId;
 
-    seId = GetStackInt__FP12RS_STACKDATA__2(stack);
+    seId = GetStackInt(stack);
     if (seId < 0) {
         return 0;
     }
     sndSePlay(SystemSND_ID, seId, 0);
     return 1;
 }
-int _INIT_SE_SRC(RS_STACKDATA *stack, int argc) {
+
+/**
+ * Initializes the sound effect src.
+ */
+static int _INIT_SE_SRC(RS_STACKDATA *stack, int argc) {
     EventScene->InitSeSrc();
     return 1;
 }
-int _INIT_SE_ENV(RS_STACKDATA *stack, int argc) {
+
+/**
+ * Initializes the sound effect environment.
+ */
+static int _INIT_SE_ENV(RS_STACKDATA *stack, int argc) {
     EventScene->InitSeEnv();
     return 1;
 }
-int _INIT_SE_BAS(RS_STACKDATA *stack, int argc) {
+
+/**
+ * Initializes the sound effect bas.
+ */
+static int _INIT_SE_BAS(RS_STACKDATA *stack, int argc) {
     EventScene->InitSeBas();
     return 1;
 }
-int _LOAD_SE_SRC(RS_STACKDATA *stack, int argc) {
+
+/**
+ * Loads the sound effect src.
+ */
+static int _LOAD_SE_SRC(RS_STACKDATA *stack, int argc) {
     int srcNo;
 
-    srcNo = GetStackInt__FP12RS_STACKDATA__2(stack);
+    srcNo = GetStackInt(stack);
     if (EventScene->CheckLoadSeSrc(srcNo) == 0) {
         return 0;
     }
     return EventScene->LoadSeSrc(srcNo, read_buffer);
 }
-int _LOAD_SE_FOOT(RS_STACKDATA *stack, int argc) {
+
+/**
+ * Reports failure without changing event state.
+ */
+static s32 _LOAD_SE_FOOT(RS_STACKDATA *stack, int argc) {
     return 0;
 }
-int _LOAD_SE_DOOR(RS_STACKDATA *stack, int argc) {
+
+/**
+ * Reports failure without changing event state.
+ */
+static s32 _LOAD_SE_DOOR(RS_STACKDATA *stack, int argc) {
     return 0;
 }
-int _LOAD_SE_BOX(RS_STACKDATA *stack, int argc) {
+
+/**
+ * Reports failure without changing event state.
+ */
+static s32 _LOAD_SE_BOX(RS_STACKDATA *stack, int argc) {
     return 0;
 }
-int _LOAD_SE_BATTLE(RS_STACKDATA *stack, int argc) {
+
+/**
+ * Loads the sound effect battle.
+ */
+static int _LOAD_SE_BATTLE(RS_STACKDATA *stack, int argc) {
     int bankNo;
 
-    bankNo = GetStackInt__FP12RS_STACKDATA__2(stack);
+    bankNo = GetStackInt(stack);
     if (EventScene->CheckLoadSeBattle(bankNo) == 0) {
         return 0;
     }
     return EventScene->LoadSeBattle(bankNo, read_buffer);
 }
-int _SND_DELETE_PORT(RS_STACKDATA *stack, int argc) {
-    sndDeletePort(GetStackInt__FP12RS_STACKDATA__2(stack));
+
+/**
+ * Deletes the sound port.
+ */
+static int _SND_DELETE_PORT(RS_STACKDATA *stack, int argc) {
+    sndDeletePort(GetStackInt(stack));
     return 1;
 }
-int _FADE_IN_BGM(RS_STACKDATA *stack, int argc) {
+
+/**
+ * Fades in scene music over a duration converted from 60 Hz to 50 Hz frames.
+ */
+static int _FADE_IN_BGM(RS_STACKDATA *stack, int argc) {
     int frames60;
     int frames;
 
-    frames60 = GetStackInt__FP12RS_STACKDATA__2(stack);
+    frames60 = GetStackInt(stack);
     frames = frames60 * 50 / 60;
     if (frames <= 0) {
         frames = 1;
@@ -6305,11 +8315,15 @@ int _FADE_IN_BGM(RS_STACKDATA *stack, int argc) {
     EventScene->FadeInBGM(frames);
     return 1;
 }
-int _FADE_OUT_BGM(RS_STACKDATA *stack, int argc) {
+
+/**
+ * Fades out scene music over a duration converted from 60 Hz to 50 Hz frames.
+ */
+static int _FADE_OUT_BGM(RS_STACKDATA *stack, int argc) {
     int frames60;
     int frames;
 
-    frames60 = GetStackInt__FP12RS_STACKDATA__2(stack);
+    frames60 = GetStackInt(stack);
     frames = frames60 * 50 / 60;
     if (frames <= 0) {
         frames = 1;
@@ -6317,23 +8331,39 @@ int _FADE_OUT_BGM(RS_STACKDATA *stack, int argc) {
     EventScene->FadeOutBGM(frames);
     return 1;
 }
-int _STOP_ENV_BGM(RS_STACKDATA *stack, int argc) {
+
+/**
+ * Stops the environment background music.
+ */
+static int _STOP_ENV_BGM(RS_STACKDATA *stack, int argc) {
     EventScene->StopEnvBGM();
     return 1;
 }
+
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/event_func", _SET_BGM_VOL__FP12RS_STACKDATAi);
-int _SND_SET_REVERB(RS_STACKDATA *stack, int argc) {
+/**
+ * Reports failure without changing event state.
+ */
+static s32 _SND_SET_REVERB(RS_STACKDATA *stack, int argc) {
     return 0;
 }
-int _SND_SET_ENV_VOL(RS_STACKDATA *stack, int argc) {
-    EventScene->SetEnvBGMVol(GetStackFloat__FP12RS_STACKDATA__2(stack));
+
+/**
+ * Sets the sound environment volume.
+ */
+static int _SND_SET_ENV_VOL(RS_STACKDATA *stack, int argc) {
+    EventScene->SetEnvBGMVol(GetStackFloat(stack));
     return 1;
 }
-int _STREAM_SILENT_CHECK(RS_STACKDATA *stack, int argc) {
+
+/**
+ * Checks the stream silent.
+ */
+static int _STREAM_SILENT_CHECK(RS_STACKDATA *stack, int argc) {
     int level;
     int loud;
 
-    GetStackInt__FP12RS_STACKDATA__2(stack++);
+    GetStackInt(stack++);
     level = CSnd.StreamGetLevel( event_stream);
     loud = 1;
 
@@ -6341,73 +8371,114 @@ int _STREAM_SILENT_CHECK(RS_STACKDATA *stack, int argc) {
         (s16)(level >> 16) >= -10) {
         loud = 0;
     }
-    SetStack__FP12RS_STACKDATAi__2(stack, loud);
+    SetStack(stack, loud);
     return 1;
 }
-int _AUTO_CHANGE_ENV(RS_STACKDATA *stack, int argc) {
-    EventScene->AutoChangeEnvBGM(GetStackInt__FP12RS_STACKDATA__2(stack));
+
+/**
+ * Changes the auto environment.
+ */
+static int _AUTO_CHANGE_ENV(RS_STACKDATA *stack, int argc) {
+    EventScene->AutoChangeEnvBGM(GetStackInt(stack));
     return 1;
 }
-int _BGM_LOAD_CANCEL(RS_STACKDATA *stack, int argc) {
+
+/**
+ * Loads the background music cancel.
+ */
+static int _BGM_LOAD_CANCEL(RS_STACKDATA *stack, int argc) {
     EventScene->skip_load_bgm = 1;
     return 1;
 }
-int _SOUND_LOAD_CANCEL(RS_STACKDATA *stack, int argc) {
+
+/**
+ * Loads the sound cancel.
+ */
+static int _SOUND_LOAD_CANCEL(RS_STACKDATA *stack, int argc) {
     EventScene->skip_load_sound = 1;
     return 1;
 }
-int _BGM_LOAD_ENABLE(RS_STACKDATA *stack, int argc) {
+
+/**
+ * Loads the background music enable.
+ */
+static int _BGM_LOAD_ENABLE(RS_STACKDATA *stack, int argc) {
     EventScene->skip_load_bgm = 0;
     return 1;
 }
-int _SOUND_LOAD_ENABLE(RS_STACKDATA *stack, int argc) {
+
+/**
+ * Loads the sound enable.
+ */
+static int _SOUND_LOAD_ENABLE(RS_STACKDATA *stack, int argc) {
     EventScene->skip_load_sound = 0;
     return 1;
 }
-int _LOAD_SE_BASE(RS_STACKDATA *stack, int argc) {
+
+/**
+ * Loads the sound effect base.
+ */
+static int _LOAD_SE_BASE(RS_STACKDATA *stack, int argc) {
     int bankNo;
 
-    bankNo = GetStackInt__FP12RS_STACKDATA__2(stack);
+    bankNo = GetStackInt(stack);
     if (EventScene->CheckLoadSeBase(bankNo) == 0) {
         return 0;
     }
     return EventScene->LoadSeBase(bankNo, read_buffer);
 }
-int _LOAD_SOUND(RS_STACKDATA *stack, int argc) {
-    EventScene->LoadSound(GetStackInt__FP12RS_STACKDATA__2(stack), read_buffer);
+
+/**
+ * Loads the sound.
+ */
+static int _LOAD_SOUND(RS_STACKDATA *stack, int argc) {
+    EventScene->LoadSound(GetStackInt(stack), read_buffer);
     return 1;
 }
-int _STREAM_CLOSE(RS_STACKDATA *stack, int argc) {
+
+/**
+ * Closes the stream.
+ */
+static int _STREAM_CLOSE(RS_STACKDATA *stack, int argc) {
     EdEventInfo.stream_playing = 0;
-    GetStackInt__FP12RS_STACKDATA__2(stack);
+    GetStackInt(stack);
     CSnd.StreamSetVol(event_stream, EdEventInfo.stream_volume, EdEventInfo.stream_volume);
     CSnd.StreamClose(event_stream);
     EdEventInfo.stream_reading = 0;
     return 1;
 }
-int CommandStreamOpen2(int stream, char *name) {
+
+int CommandStreamOpen2(int port, char *name) {
     char path[64];
-    strcpy(path, (char *)at_6781__2);
+    strcpy(path, "cdrom0:\\VOICE\\");
     strcat(path, name);
-    strcat(path, (char *)at_6782__2);
+    strcat(path, ".WV;1");
     return 1;
 }
-int _STREAM_OPEN2(RS_STACKDATA *stack, int argc) {
+
+/**
+ * Builds the voice-stream path and marks the event as reading the stream.
+ */
+static int _STREAM_OPEN2(RS_STACKDATA *stack, int argc) {
     int result;
-    GetStackInt__FP12RS_STACKDATA__2(stack++);
+    GetStackInt(stack++);
     EdEventInfo.stream_from_fpl = 0;
-    result = CommandStreamOpen2(event_stream, GetStackString__FP12RS_STACKDATA__2(stack));
+    result = CommandStreamOpen2(event_stream, GetStackString(stack));
     if (result == 1) {
         EdEventInfo.stream_reading = 1;
     }
     return result;
 }
-int _LOAD_BGM_PACK(RS_STACKDATA *stack, int argc) {
+
+/**
+ * Loads the background music pack.
+ */
+static int _LOAD_BGM_PACK(RS_STACKDATA *stack, int argc) {
     char fileName[64];
     int bgmNo;
     u32 *pack;
 
-    bgmNo = GetStackInt__FP12RS_STACKDATA__2(stack);
+    bgmNo = GetStackInt(stack);
     if (EventScene->CheckLoadBGM(bgmNo) == 0) {
         return 0;
     }
@@ -6418,131 +8489,205 @@ int _LOAD_BGM_PACK(RS_STACKDATA *stack, int argc) {
     }
     return 0;
 }
-int _GET_BGM_NO(RS_STACKDATA *stack, int argc) {
-    SetStack__FP12RS_STACKDATAi__2(stack, EventScene->GetActiveBgmInfo()->load_no);
+
+/**
+ * Returns the background music number.
+ */
+static int _GET_BGM_NO(RS_STACKDATA *stack, int argc) {
+    SetStack(stack, EventScene->GetActiveBgmInfo()->load_no);
     return 1;
 }
-int _GET_MASTER_VOL(RS_STACKDATA *stack, int argc) {
-    SetStack__FP12RS_STACKDATAf__2(stack, EventScene->GetActiveBgmInfo()->unk_c);
+
+/**
+ * Returns the master volume.
+ */
+static int _GET_MASTER_VOL(RS_STACKDATA *stack, int argc) {
+    SetStack(stack, EventScene->GetActiveBgmInfo()->unk_c);
     return 1;
 }
-int _SET_MASTER_VOL(RS_STACKDATA *stack, int argc) {
+
+/**
+ * Sets the master volume.
+ */
+static int _SET_MASTER_VOL(RS_STACKDATA *stack, int argc) {
     float volume;
     CScene *scene;
 
-    volume = GetStackFloat__FP12RS_STACKDATA__2(stack);
+    volume = GetStackFloat(stack);
     scene = EventScene;
     scene->GetActiveBgmInfo()->unk_c = volume;
     scene->SetVolfBGM(scene->GetActiveBgmInfo()->volf);
     return 1;
 }
-int _GET_BTL_BGM_VOL(RS_STACKDATA *stack, int argc) {
+
+/**
+ * Returns the btl background music volume.
+ */
+static int _GET_BTL_BGM_VOL(RS_STACKDATA *stack, int argc) {
     DNG_BATTLE_AREA *battleBgm;
 
     battleBgm = &EventScene->battle_area;
     if (battleBgm == NULL) {
         return 0;
     }
-    SetStack__FP12RS_STACKDATAf__2(stack, battleBgm->battle_bgm_vol);
+    SetStack(stack, battleBgm->battle_bgm_vol);
     return 1;
 }
+
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/event_func", _SET_BTL_BGM_VOL__FP12RS_STACKDATAi);
-int _SND_IN_REVERB(RS_STACKDATA *stack, int argc) {
-    CSnd.SndInReverb( GetStackInt__FP12RS_STACKDATA__2(stack) != 0);
+/**
+ * Enables or disables reverberation of the sound processor inputs.
+ */
+static int _SND_IN_REVERB(RS_STACKDATA *stack, int argc) {
+    CSnd.SndInReverb(GetStackInt(stack) != 0);
     return 1;
 }
-int _SND_STOP_SRC(RS_STACKDATA *stack, int argc) {
+
+/**
+ * Stops the requested map-object sound effects.
+ */
+static int _SND_STOP_SRC(RS_STACKDATA *stack, int argc) {
     EventScene->StopSeSrc();
     return 1;
 }
-int _SND_PAUSE_BGM(RS_STACKDATA *stack, int argc) {
+
+/**
+ * Pauses the sound background music.
+ */
+static int _SND_PAUSE_BGM(RS_STACKDATA *stack, int argc) {
     EventScene->PauseBGM();
     return 1;
 }
-int _STREAM_OPEN3(RS_STACKDATA *stack, int argc) {
+
+/**
+ * Opens a numbered WAV file on the event voice stream and marks it as reading.
+ */
+static int _STREAM_OPEN3(RS_STACKDATA *stack, int argc) {
     char name[64];
 
-    GetStackInt__FP12RS_STACKDATA__2(stack++);
+    GetStackInt(stack++);
     EdEventInfo.stream_from_fpl = 2;
-    sprintf(name, at_7117, GetStackInt__FP12RS_STACKDATA__2(stack));
+    sprintf(name, "%07d.wav", GetStackInt(stack));
     CSnd.StreamOpenFast(event_stream, name);
     EdEventInfo.stream_reading = 1;
     return 1;
 }
-int _GET_ACTIVE_BGM_STATUS(RS_STACKDATA *stack, int argc) {
+
+/**
+ * Returns the active background music status.
+ */
+static int _GET_ACTIVE_BGM_STATUS(RS_STACKDATA *stack, int argc) {
     EventScene->GetActiveBgmStatus(&EdEventInfo.bgm_status);
     return 1;
 }
-int _SET_ACTIVE_BGM_STATUS(RS_STACKDATA *stack, int argc) {
+
+/**
+ * Sets the active background music status.
+ */
+static int _SET_ACTIVE_BGM_STATUS(RS_STACKDATA *stack, int argc) {
     EventScene->SetActiveBgmStatus(&EdEventInfo.bgm_status);
     return 1;
 }
-int _GET_BGM_STATUS_NOW_NO(RS_STACKDATA *stack, int argc) {
+
+/**
+ * Returns the background music status now number.
+ */
+static int _GET_BGM_STATUS_NOW_NO(RS_STACKDATA *stack, int argc) {
     if (argc != 1) {
         return 0;
     }
-    return EventAbi::SetStack__FP12RS_STACKDATAi__2(stack, EdEventInfo.bgm_status.load_no);
+    SetStack(stack, EdEventInfo.bgm_status.load_no);
+    return 1;
 }
-int _GET_SE_STATUS(RS_STACKDATA *stack, int argc) {
+
+/**
+ * Returns the sound effect status.
+ */
+static int _GET_SE_STATUS(RS_STACKDATA *stack, int argc) {
+    int result;
     if (argc != 3) {
         return 0;
     }
-    int seId = GetStackInt__FP12RS_STACKDATA__2(stack++);
-    int voice = GetStackInt__FP12RS_STACKDATA__2(stack++);
+    int seId = GetStackInt(stack++);
+    int voice = GetStackInt(stack++);
 
-    argc = sndGetSeStatus(seId, voice);
-    SetStack__FP12RS_STACKDATAi__2(stack, argc);
+    result = sndGetSeStatus(seId, voice);
+    SetStack(stack, result);
     return 1;
 }
-int _SE_ALL_STOP(RS_STACKDATA *stack, int argc) {
+
+/**
+ * Stops the sound effect all.
+ */
+static int _SE_ALL_STOP(RS_STACKDATA *stack, int argc) {
     EventScene->SeAllStop();
     return 1;
 }
-int _SOUND_ALL_STOP(RS_STACKDATA *stack, int argc) {
+
+/**
+ * Stops the sound all.
+ */
+static int _SOUND_ALL_STOP(RS_STACKDATA *stack, int argc) {
     EventScene->SoundAllStop();
     return 1;
 }
-int _BGM_PLAY_CANCEL(RS_STACKDATA *stack, int argc) {
 
-    (&EventScene->skip_load_sound)[1] = 1;
+/**
+ * Disables background music playback.
+ */
+static int _BGM_PLAY_CANCEL(RS_STACKDATA *stack, int argc) {
+
+    EventScene->skip_play_bgm = 1;
     return 1;
 }
-int _BGM_PLAY_ENABLE(RS_STACKDATA *stack, int argc) {
-    (&EventScene->skip_load_sound)[1] = 0;
+
+/**
+ * Enables background music playback.
+ */
+static int _BGM_PLAY_ENABLE(RS_STACKDATA *stack, int argc) {
+    EventScene->skip_play_bgm = 0;
     return 1;
 }
+
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/event_func", _GET_DEF_BGM_NO__FP12RS_STACKDATAi);
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/event_func", _SET_MOVIE_CC__FP12RS_STACKDATAi);
-int _REGISTER_VILLAGER2(RS_STACKDATA *stack, int argc) {
+/**
+ * Registers a villager using the scene memory stack selected by the script.
+ */
+static int _REGISTER_VILLAGER2(RS_STACKDATA *stack, int argc) {
     int villagerNo;
     int mode;
     mgCMemory *memory;
 
-    villagerNo = GetStackInt__FP12RS_STACKDATA__2(stack++);
-    mode = GetStackInt__FP12RS_STACKDATA__2(stack++);
-    memory = (mgCMemory *)EventScene->GetStack(GetStackInt__FP12RS_STACKDATA__2(stack));
+    villagerNo = GetStackInt(stack++);
+    mode = GetStackInt(stack++);
+    memory = EventScene->GetStack(GetStackInt(stack));
     if (memory == NULL) {
         return 0;
     }
     EventScene->RegisterVillager(villagerNo, mode, memory);
     return 1;
 }
-int _SET_FISHINGTOURNAMENT_ETC(RS_STACKDATA *stack, int argc) {
+
+/**
+ * Sets the fishingtournament etc.
+ */
+static int _SET_FISHINGTOURNAMENT_ETC(RS_STACKDATA *stack, int argc) {
     CFishingTournament *tournament;
     RS_STACKDATA *next = stack + 1;
 
-    switch (GetStackInt__FP12RS_STACKDATA__2(stack)) {
+    switch (GetStackInt(stack)) {
         case 0:
             tournament = GetFishTournament();
             if (tournament == NULL) {
-                return 0;
+            return 0;
             }
-            tournament->SetRank(GetStackInt__FP12RS_STACKDATA__2(next));
+            tournament->SetRank(GetStackInt(next));
             break;
         case 1:
             tournament = GetFishTournament();
             if (tournament == NULL) {
-                return 0;
+            return 0;
             }
             tournament->ResetRecord();
             break;
@@ -6554,38 +8699,50 @@ int _SET_FISHINGTOURNAMENT_ETC(RS_STACKDATA *stack, int argc) {
             TuriTourCount();
             break;
         default:
-            return 0;
+        return 0;
     }
     return 1;
 }
-int _EOH_SYNC_CHARA(RS_STACKDATA *stack, int argc) {
+
+/**
+ * Assigns a scene character to an event object handle.
+ */
+static int _EOH_SYNC_CHARA(RS_STACKDATA *stack, int argc) {
     CCharacter2 *chara;
     int slot;
     int charaNo;
 
-    slot = GetStackInt__FP12RS_STACKDATA__2(stack++);
-    charaNo = GetStackInt__FP12RS_STACKDATA__2(stack);
+    slot = GetStackInt(stack++);
+    charaNo = GetStackInt(stack);
     chara = GetChara(charaNo);
     if (chara != NULL) {
-        return EventObjHandleMother.Set(slot, 0, charaNo, chara);
+        return EventObjHandleMother.Set(slot, EOH_TYPE_CHARA, charaNo, chara);
     }
     return 0;
 }
+
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/event_func", _EOH_SYNC_OBJ__FP12RS_STACKDATAi);
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/event_func", _EOH_SYNC_EDIT_OBJ__FP12RS_STACKDATAi);
-int _EOH_SYNC_SPRITE(RS_STACKDATA *stack, int argc) {
+/**
+ * Assigns an event sprite to an event object handle.
+ */
+static int _EOH_SYNC_SPRITE(RS_STACKDATA *stack, int argc) {
     CEventSprite2 *sprite;
     int slot;
 
-    slot = GetStackInt__FP12RS_STACKDATA__2(stack++);
-    sprite = GetEventSprite(GetStackInt__FP12RS_STACKDATA__2(stack));
+    slot = GetStackInt(stack++);
+    sprite = GetEventSprite(GetStackInt(stack));
     if (sprite != NULL) {
-        return EventObjHandleMother.Set(slot, 2, sprite);
+        return EventObjHandleMother.Set(slot, EOH_TYPE_SPRITE, sprite);
     }
     return 0;
 }
-int _EOH_SET_POS(RS_STACKDATA *stack, int argc) {
-    float pos[4];
+
+/**
+ * Sets the object handle position.
+ */
+static int _EOH_SET_POS(RS_STACKDATA *stack, int argc) {
+    sceVu0FVECTOR pos;
     int slot;
     int key;
     int count;
@@ -6596,7 +8753,7 @@ int _EOH_SET_POS(RS_STACKDATA *stack, int argc) {
     switch (argc) {
         case 1:
 
-            key = GetStackInt__FP12RS_STACKDATA__2(stack);
+            key = GetStackInt(stack);
             node = EventScriptArg.list;
             if (node == NULL) {
                 args = NULL;
@@ -6628,22 +8785,26 @@ int _EOH_SET_POS(RS_STACKDATA *stack, int argc) {
             args = node->args;
         haveArgs:
             if (args == NULL) {
-                return 0;
+            return 0;
             }
             slot = GetArgInt(args++);
             GetArgVector(pos, args);
             break;
         case 4:
-            slot = GetStackInt__FP12RS_STACKDATA__2(stack++);
-            GetStackVector__FPfP12RS_STACKDATA(pos, stack);
+            slot = GetStackInt(stack++);
+            GetStackVector(pos, stack);
             break;
         default:
-            return 0;
+        return 0;
     }
     return EventObjHandleMother.SetPos(slot, pos[0], pos[1], pos[2]);
 }
-int _EOH_SET_ROT(RS_STACKDATA *stack, int argc) {
-    float rot[4];
+
+/**
+ * Sets the object handle rotation.
+ */
+static int _EOH_SET_ROT(RS_STACKDATA *stack, int argc) {
+    sceVu0FVECTOR rot;
     int slot;
     int key;
     int count;
@@ -6654,7 +8815,7 @@ int _EOH_SET_ROT(RS_STACKDATA *stack, int argc) {
     switch (argc) {
         case 1:
 
-            key = GetStackInt__FP12RS_STACKDATA__2(stack);
+            key = GetStackInt(stack);
             node = EventScriptArg.list;
             if (node == NULL) {
                 args = NULL;
@@ -6686,153 +8847,229 @@ int _EOH_SET_ROT(RS_STACKDATA *stack, int argc) {
             args = node->args;
         haveArgs:
             if (args == NULL) {
-                return 0;
+            return 0;
             }
             slot = GetArgInt(args++);
             GetArgVector(rot, args);
             break;
         case 4:
-            slot = GetStackInt__FP12RS_STACKDATA__2(stack++);
-            GetStackVector__FPfP12RS_STACKDATA(rot, stack);
+            slot = GetStackInt(stack++);
+            GetStackVector(rot, stack);
             break;
         default:
-            return 0;
+        return 0;
     }
     rot[0] = mgAngleLimit(rot[0]);
     rot[1] = mgAngleLimit(rot[1]);
     rot[2] = mgAngleLimit(rot[2]);
     return EventObjHandleMother.SetRot(slot, rot[0], rot[1], rot[2]);
 }
-void _EOH_GET_POS(RS_STACKDATA *stack, int argc) {
+
+/**
+ * Returns the object handle position.
+ */
+static void _EOH_GET_POS(RS_STACKDATA *stack, int argc) {
     float pos[3];
 
-    if (EventObjHandleMother.GetPos(GetStackInt__FP12RS_STACKDATA__2(stack++), pos) != 0) {
-        SetStack__FP12RS_STACKDATAf__2(stack++, pos[0]);
-        SetStack__FP12RS_STACKDATAf__2(stack++, pos[1]);
-        SetStack__FP12RS_STACKDATAf__2(stack, pos[2]);
+    if (EventObjHandleMother.GetPos(GetStackInt(stack++), pos) != 0) {
+        SetStack(stack++, pos[0]);
+        SetStack(stack++, pos[1]);
+        SetStack(stack, pos[2]);
     }
 }
-void _EOH_GET_ROT(RS_STACKDATA *stack, int argc) {
+
+/**
+ * Returns the object handle rotation.
+ */
+static void _EOH_GET_ROT(RS_STACKDATA *stack, int argc) {
     float rot[3];
 
-    if (EventObjHandleMother.GetRot(GetStackInt__FP12RS_STACKDATA__2(stack++), rot) != 0) {
-        SetStack__FP12RS_STACKDATAf__2(stack++, rot[0]);
-        SetStack__FP12RS_STACKDATAf__2(stack++, rot[1]);
-        SetStack__FP12RS_STACKDATAf__2(stack, rot[2]);
+    if (EventObjHandleMother.GetRot(GetStackInt(stack++), rot) != 0) {
+        SetStack(stack++, rot[0]);
+        SetStack(stack++, rot[1]);
+        SetStack(stack, rot[2]);
     }
 }
+
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/event_func", _EOH_SET_MOTION__FP12RS_STACKDATAi);
-void _EOH_SET_STEP(RS_STACKDATA *stack, int argc) {
-    argc = GetStackInt__FP12RS_STACKDATA__2(stack++);
-    SetStep__10CEohMotherFif(&EventObjHandleMother, EventAbi::GetStackFloat__FP12RS_STACKDATA__2(stack, argc));
+/**
+ * Sets the object handle step.
+ */
+static void _EOH_SET_STEP(RS_STACKDATA *stack, int argc) {
+    int slot = GetStackInt(stack++);
+    EventObjHandleMother.SetStep(slot, GetStackFloat(stack));
 }
+
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/event_func", _EOH_SET_TEX_ANIM__FP12RS_STACKDATAi);
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/event_func", _EOH_SET_SCALE__FP12RS_STACKDATAi);
-void _EOH_SET_SHOW(RS_STACKDATA *stack, int argc) {
+/**
+ * Sets the object handle show.
+ */
+static void _EOH_SET_SHOW(RS_STACKDATA *stack, int argc) {
     int slot;
 
-    slot = GetStackInt__FP12RS_STACKDATA__2(stack++);
-    EventObjHandleMother.SetShow(slot, GetStackInt__FP12RS_STACKDATA__2(stack));
+    slot = GetStackInt(stack++);
+    EventObjHandleMother.SetShow(slot, GetStackInt(stack));
 }
-void _EOH_GET_SHOW(RS_STACKDATA *stack, int argc) {
+
+/**
+ * Returns the object handle show.
+ */
+static void _EOH_GET_SHOW(RS_STACKDATA *stack, int argc) {
     RS_STACKDATA *nextSlot;
 
     nextSlot = stack + 1;
 
     int show;
-    if (EventObjHandleMother.GetShow(GetStackInt__FP12RS_STACKDATA__2(stack), &show) != 0) {
-        SetStack__FP12RS_STACKDATAi__2(nextSlot, show);
+    if (EventObjHandleMother.GetShow(GetStackInt(stack), &show) != 0) {
+        SetStack(nextSlot, show);
     }
 }
-void _EOH_SET_FRAME_SHOW(RS_STACKDATA *stack, int argc) {
+
+/**
+ * Sets the object handle frame show.
+ */
+static void _EOH_SET_FRAME_SHOW(RS_STACKDATA *stack, int argc) {
     int slot;
     char *frameName;
 
-    slot = GetStackInt__FP12RS_STACKDATA__2(stack++);
-    frameName = GetStackString__FP12RS_STACKDATA__2(stack++);
-    EventObjHandleMother.SetFrameShow(slot, frameName, GetStackInt__FP12RS_STACKDATA__2(stack) != 0 ? 1 : 0);
+    slot = GetStackInt(stack++);
+    frameName = GetStackString(stack++);
+    EventObjHandleMother.SetFrameShow(slot, frameName, GetStackInt(stack) != 0 ? 1 : 0);
 }
-void _EOH_SET_SHADOW(RS_STACKDATA *stack, int argc) {
+
+/**
+ * Sets the object handle shadow.
+ */
+static void _EOH_SET_SHADOW(RS_STACKDATA *stack, int argc) {
     int slot;
 
-    slot = GetStackInt__FP12RS_STACKDATA__2(stack++);
-    EventObjHandleMother.SetShadow(slot, GetStackInt__FP12RS_STACKDATA__2(stack));
+    slot = GetStackInt(stack++);
+    EventObjHandleMother.SetShadow(slot, GetStackInt(stack));
 }
+
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/event_func", _EOH_SET_TRANSLATE__FP12RS_STACKDATAi);
-void _EOH_SET_FOOT_SOUND_ID(RS_STACKDATA *stack, int argc) {
+/**
+ * Sets the object handle foot sound id.
+ */
+static void _EOH_SET_FOOT_SOUND_ID(RS_STACKDATA *stack, int argc) {
     int slot;
 
-    slot = GetStackInt__FP12RS_STACKDATA__2(stack++);
-    EventObjHandleMother.SetFootSoundID(slot, GetStackInt__FP12RS_STACKDATA__2(stack));
+    slot = GetStackInt(stack++);
+    EventObjHandleMother.SetFootSoundID(slot, GetStackInt(stack));
 }
-void _EOH_SET_FRAME_STATUS(RS_STACKDATA *stack, int argc) {
+
+/**
+ * Sets the object handle frame status.
+ */
+static void _EOH_SET_FRAME_STATUS(RS_STACKDATA *stack, int argc) {
     int slot;
     char *frameName;
 
-    slot = GetStackInt__FP12RS_STACKDATA__2(stack++);
-    frameName = GetStackString__FP12RS_STACKDATA__2(stack++);
-    EventObjHandleMother.SetFrameShow(slot, frameName, GetStackInt__FP12RS_STACKDATA__2(stack));
+    slot = GetStackInt(stack++);
+    frameName = GetStackString(stack++);
+    EventObjHandleMother.SetFrameShow(slot, frameName, GetStackInt(stack));
 }
+
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/event_func", _EOH_GET_FRAME_POS__FP12RS_STACKDATAi);
-void _EOH_SET_SOUND_ID(RS_STACKDATA *stack, int argc) {
+/**
+ * Sets the object handle sound id.
+ */
+static void _EOH_SET_SOUND_ID(RS_STACKDATA *stack, int argc) {
     int slot;
 
-    slot = GetStackInt__FP12RS_STACKDATA__2(stack++);
-    EventObjHandleMother.SetSoundID(slot, GetStackInt__FP12RS_STACKDATA__2(stack));
+    slot = GetStackInt(stack++);
+    EventObjHandleMother.SetSoundID(slot, GetStackInt(stack));
 }
+
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/event_func", _EOH_GET_FRAME_STATUS__FP12RS_STACKDATAi);
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/event_func", _EOH_SYNC_CHROBJ__FP12RS_STACKDATAi);
-void _EOH_SET_FADE_FLAG(RS_STACKDATA *stack, int argc) {
+/**
+ * Sets the object handle fade flag.
+ */
+static void _EOH_SET_FADE_FLAG(RS_STACKDATA *stack, int argc) {
     int slot;
 
-    slot = GetStackInt__FP12RS_STACKDATA__2(stack++);
-    EventObjHandleMother.SetFadeFlag(slot, GetStackInt__FP12RS_STACKDATA__2(stack));
+    slot = GetStackInt(stack++);
+    EventObjHandleMother.SetFadeFlag(slot, GetStackInt(stack));
 }
-void _EOH_RESET_DA_POSITION(RS_STACKDATA *stack, int argc) {
-    EventObjHandleMother.ResetDAPosition(GetStackInt__FP12RS_STACKDATA__2(stack));
+
+/**
+ * Resets the object handle deformation animation position.
+ */
+static void _EOH_RESET_DA_POSITION(RS_STACKDATA *stack, int argc) {
+    EventObjHandleMother.ResetDAPosition(GetStackInt(stack));
 }
-void _EOH_SET_SHADOW_FRAME_STATUS(RS_STACKDATA *stack, int argc) {
+
+/**
+ * Sets the object handle shadow frame status.
+ */
+static void _EOH_SET_SHADOW_FRAME_STATUS(RS_STACKDATA *stack, int argc) {
     int slot;
     char *frameName;
 
-    slot = GetStackInt__FP12RS_STACKDATA__2(stack++);
-    frameName = GetStackString__FP12RS_STACKDATA__2(stack++);
-    EventObjHandleMother.SetShadowFrameShow(slot, frameName, GetStackInt__FP12RS_STACKDATA__2(stack));
+    slot = GetStackInt(stack++);
+    frameName = GetStackString(stack++);
+    EventObjHandleMother.SetShadowFrameShow(slot, frameName, GetStackInt(stack));
 }
-void _EOH_SYNC_GEOSTONE(RS_STACKDATA *stack, int argc) {
-    EventObjHandleMother.Set(GetStackInt__FP12RS_STACKDATA__2(stack), 0, -1, (CCharacter2 *)&GeoStone);
+
+/**
+ * Assigns the Geostone object to an event object handle.
+ */
+static void _EOH_SYNC_GEOSTONE(RS_STACKDATA *stack, int argc) {
+    EventObjHandleMother.Set(GetStackInt(stack), EOH_TYPE_CHARA, -1, (CCharacter2 *)&GeoStone);
 }
-int _EOH_SYNC_SEARCH_CHARA(RS_STACKDATA *stack, int argc) {
+
+/**
+ * Searches for the object handle sync character.
+ */
+static int _EOH_SYNC_SEARCH_CHARA(RS_STACKDATA *stack, int argc) {
     int slot;
     char *name;
     CActionChara *player;
 
-    slot = GetStackInt__FP12RS_STACKDATA__2(stack++);
-    GetStackInt__FP12RS_STACKDATA__2(stack++);
-    name = GetStackString__FP12RS_STACKDATA__2(stack);
+    slot = GetStackInt(stack++);
+    GetStackInt(stack++);
+    name = GetStackString(stack);
     player = (CActionChara *)GetCharacter(0);
     if (player == NULL) {
         return 0;
     }
     return EventObjHandleMother.Set(slot, 0, -1, (CCharacter2 *)player->SearchChara(name));
 }
-void _EOH_NORMAL_DRIVE(RS_STACKDATA *stack, int argc) {
-    EventObjHandleMother.NormalDrive(GetStackInt__FP12RS_STACKDATA__2(stack));
+
+/**
+ * Returns an event object to its normal behaviour.
+ */
+static void _EOH_NORMAL_DRIVE(RS_STACKDATA *stack, int argc) {
+    EventObjHandleMother.NormalDrive(GetStackInt(stack));
 }
+
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/event_func", _EOH_SET_FRAME_ALPHA__FP12RS_STACKDATAi);
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/event_func", _EOH_SYNC_FUNCP__FP12RS_STACKDATAi);
-void _EOH_SET_FOOT_SE_ID(RS_STACKDATA *stack, int argc) {
+/**
+ * Sets the object handle foot sound effect id.
+ */
+static void _EOH_SET_FOOT_SE_ID(RS_STACKDATA *stack, int argc) {
     int slot;
 
-    slot = GetStackInt__FP12RS_STACKDATA__2(stack++);
-    EventObjHandleMother.SetFootSeId(slot, GetStackInt__FP12RS_STACKDATA__2(stack));
+    slot = GetStackInt(stack++);
+    EventObjHandleMother.SetFootSeId(slot, GetStackInt(stack));
 }
+
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/event_func", _EOH_SYNC_DOOR_PARTS__FP12RS_STACKDATAi);
-int _SPHIDA_INIT(RS_STACKDATA *stack, int argc) {
+/**
+ * Initializes the sphida.
+ */
+static int _SPHIDA_INIT(RS_STACKDATA *stack, int argc) {
     InitSphida();
     return 1;
 }
-int _SPHIDA_SET_UP(RS_STACKDATA *stack, int argc) {
+
+/**
+ * Sets the sphida up.
+ */
+static int _SPHIDA_SET_UP(RS_STACKDATA *stack, int argc) {
     CSphida *sphida;
     mgCMemory *memory;
     int param;
@@ -6842,10 +9079,10 @@ int _SPHIDA_SET_UP(RS_STACKDATA *stack, int argc) {
 
     ptr = stack;
     kind = 0;
-    slot = GetStackInt__FP12RS_STACKDATA__2(ptr++);
-    param = GetStackInt__FP12RS_STACKDATA__2(ptr++);
+    slot = GetStackInt(ptr++);
+    param = GetStackInt(ptr++);
     if (argc >= 3) {
-        kind = GetStackInt__FP12RS_STACKDATA__2(ptr++);
+        kind = GetStackInt(ptr++);
     }
     memory = EventScene->GetStack(slot);
     if (memory == NULL) {
@@ -6865,104 +9102,144 @@ int _SPHIDA_SET_UP(RS_STACKDATA *stack, int argc) {
             Sphida->s17_SetUp(param);
             break;
         case 2:
-            Sphida->Omake_SetUp( GetStackInt__FP12RS_STACKDATA__2(ptr), param);
+            Sphida->Omake_SetUp( GetStackInt(ptr), param);
             break;
     }
     return 1;
 }
-int _SPHIDA_SET_PLAY_FLAG(RS_STACKDATA *stack, int argc) {
+
+/**
+ * Sets the sphida play flag.
+ */
+static int _SPHIDA_SET_PLAY_FLAG(RS_STACKDATA *stack, int argc) {
     int flag;
 
-    flag = GetStackInt__FP12RS_STACKDATA__2(stack);
+    flag = GetStackInt(stack);
     if (Sphida == NULL) {
         return 0;
     }
     Sphida->play_flag = flag;
     return 1;
 }
-int _SPHIDA_SET_MINIMAP_FLAG(RS_STACKDATA *stack, int argc) {
+
+/**
+ * Sets the sphida minimap flag.
+ */
+static int _SPHIDA_SET_MINIMAP_FLAG(RS_STACKDATA *stack, int argc) {
     int flag;
 
-    flag = GetStackInt__FP12RS_STACKDATA__2(stack);
+    flag = GetStackInt(stack);
     if (Sphida == NULL) {
         return 0;
     }
     Sphida->minimap_flag = flag;
     return 1;
 }
-int _SPHIDA_SET_MM_LINE_FLAG(RS_STACKDATA *stack, int argc) {
+
+/**
+ * Sets the sphida mm line flag.
+ */
+static int _SPHIDA_SET_MM_LINE_FLAG(RS_STACKDATA *stack, int argc) {
     int flag;
 
-    flag = GetStackInt__FP12RS_STACKDATA__2(stack);
+    flag = GetStackInt(stack);
     if (Sphida == NULL) {
         return 0;
     }
     Sphida->mm_line_flag = flag;
     return 1;
 }
+
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/event_func", _SPHIDA_SET_MM_LINE_POS__FP12RS_STACKDATAi);
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/event_func", _SPHIDA_SET_PIN_POS__FP12RS_STACKDATAi);
-int _SPHIDA_GET_PIN_POS(RS_STACKDATA *stack, int argc) {
-    float pos[4];
+/**
+ * Returns the sphida pin position.
+ */
+static int _SPHIDA_GET_PIN_POS(RS_STACKDATA *stack, int argc) {
+    sceVu0FVECTOR pos;
     if (Sphida == NULL) {
         return 0;
     }
     sceVu0CopyVector(pos, Sphida->pin_pos);
-    SetStack__FP12RS_STACKDATAf__2(stack++, pos[0]);
-    SetStack__FP12RS_STACKDATAf__2(stack++, pos[1]);
-    SetStack__FP12RS_STACKDATAf__2(stack, pos[2]);
+    SetStack(stack++, pos[0]);
+    SetStack(stack++, pos[1]);
+    SetStack(stack, pos[2]);
     return 1;
 }
+
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/event_func", _SPHIDA_SET_BALL_POS__FP12RS_STACKDATAi);
-int _SPHIDA_GET_BALL_POS(RS_STACKDATA *stack, int argc) {
-    float pos[4];
+/**
+ * Returns the sphida ball position.
+ */
+static int _SPHIDA_GET_BALL_POS(RS_STACKDATA *stack, int argc) {
+    sceVu0FVECTOR pos;
     if (Sphida == NULL) {
         return 0;
     }
     sceVu0CopyVector(pos, Sphida->ball_pos);
-    SetStack__FP12RS_STACKDATAf__2(stack++, pos[0]);
-    SetStack__FP12RS_STACKDATAf__2(stack++, pos[1]);
-    SetStack__FP12RS_STACKDATAf__2(stack, pos[2]);
+    SetStack(stack++, pos[0]);
+    SetStack(stack++, pos[1]);
+    SetStack(stack, pos[2]);
     return 1;
 }
-int _SPHIDA_SET_PIN_COL(RS_STACKDATA *stack, int argc) {
+
+/**
+ * Sets the sphida pin col.
+ */
+static int _SPHIDA_SET_PIN_COL(RS_STACKDATA *stack, int argc) {
     int color;
 
-    color = GetStackInt__FP12RS_STACKDATA__2(stack);
+    color = GetStackInt(stack);
     if (Sphida == NULL) {
         return 0;
     }
     Sphida->pin_col = color;
     return 1;
 }
-int _SPHIDA_GET_PIN_COL(RS_STACKDATA *stack, int argc) {
+
+/**
+ * Returns the sphida pin col.
+ */
+static int _SPHIDA_GET_PIN_COL(RS_STACKDATA *stack, int argc) {
     if (Sphida == NULL) {
         return 0;
     }
-    SetStack__FP12RS_STACKDATAi__2(stack, Sphida->pin_col);
+    SetStack(stack, Sphida->pin_col);
     return 1;
 }
-int _SPHIDA_SET_BALL_COL(RS_STACKDATA *stack, int argc) {
+
+/**
+ * Sets the sphida ball col.
+ */
+static int _SPHIDA_SET_BALL_COL(RS_STACKDATA *stack, int argc) {
     int color;
 
-    color = GetStackInt__FP12RS_STACKDATA__2(stack);
+    color = GetStackInt(stack);
     if (Sphida == NULL) {
         return 0;
     }
     Sphida->ball_col = color;
     return 1;
 }
-int _SPHIDA_GET_BALL_COL(RS_STACKDATA *stack, int argc) {
+
+/**
+ * Returns the sphida ball col.
+ */
+static int _SPHIDA_GET_BALL_COL(RS_STACKDATA *stack, int argc) {
     if (Sphida == NULL) {
         return 0;
     }
-    SetStack__FP12RS_STACKDATAi__2(stack, Sphida->ball_col);
+    SetStack(stack, Sphida->ball_col);
     return 1;
 }
-int _SPHIDA_SET_PAR_COUNT(RS_STACKDATA *stack, int argc) {
+
+/**
+ * Sets the sphida par count.
+ */
+static int _SPHIDA_SET_PAR_COUNT(RS_STACKDATA *stack, int argc) {
     int parCount;
 
-    parCount = GetStackInt__FP12RS_STACKDATA__2(stack);
+    parCount = GetStackInt(stack);
     if (Sphida == NULL) {
         return 0;
     }
@@ -6971,7 +9248,11 @@ int _SPHIDA_SET_PAR_COUNT(RS_STACKDATA *stack, int argc) {
     }
     return 1;
 }
-int _SPHIDA_GET_PAR_COUNT(RS_STACKDATA *stack, int argc) {
+
+/**
+ * Returns the sphida par count.
+ */
+static int _SPHIDA_GET_PAR_COUNT(RS_STACKDATA *stack, int argc) {
     if (Sphida == NULL) {
         return 0;
     }
@@ -6981,36 +9262,53 @@ int _SPHIDA_GET_PAR_COUNT(RS_STACKDATA *stack, int argc) {
     } else {
         count = Sphida->par_count;
     }
-    SetStack__FP12RS_STACKDATAi__2(stack, count);
+    SetStack(stack, count);
     return 1;
 }
-int _SPHIDA_GET_MINI_LEVEL(RS_STACKDATA *stack, int argc) {
+
+/**
+ * Returns the sphida mini level.
+ */
+static int _SPHIDA_GET_MINI_LEVEL(RS_STACKDATA *stack, int argc) {
     if (Sphida == NULL) {
         return 0;
     }
-    SetStack__FP12RS_STACKDATAi__2(stack, Sphida->mini_level);
+    SetStack(stack, Sphida->mini_level);
     return 1;
 }
-int _SPHIDA_GET_TEXB(RS_STACKDATA *stack, int argc) {
+
+/**
+ * Returns the sphida texture block.
+ */
+static int _SPHIDA_GET_TEXB(RS_STACKDATA *stack, int argc) {
     if (Sphida == NULL) {
         return 0;
     }
-    SetStack__FP12RS_STACKDATAi__2(stack, Sphida->tex_bank);
+    SetStack(stack, Sphida->tex_bank);
     return 1;
 }
-int _SPHIDA_SET_STATUS_FLAG(RS_STACKDATA *stack, int argc) {
+
+/**
+ * Sets the sphida status flag.
+ */
+static int _SPHIDA_SET_STATUS_FLAG(RS_STACKDATA *stack, int argc) {
     int flag;
 
-    flag = GetStackInt__FP12RS_STACKDATA__2(stack);
+    flag = GetStackInt(stack);
     if (Sphida == NULL) {
         return 0;
     }
     Sphida->status_flag = flag;
     return 1;
 }
-int _SPHIDA_RESET_POWGAGE(RS_STACKDATA *stack, int argc) {
-    if (Sphida == 0)
+
+/**
+ * Resets the sphida powgage.
+ */
+static int _SPHIDA_RESET_POWGAGE(RS_STACKDATA *stack, int argc) {
+    if (Sphida == 0) {
         return 0;
+    }
 
     CSphida *sphida = Sphida;
     sphida->pow_gage.state = -1;
@@ -7020,14 +9318,22 @@ int _SPHIDA_RESET_POWGAGE(RS_STACKDATA *stack, int argc) {
     sphida->pow_gage.code = -10;
     return 1;
 }
-int _SPHIDA_START_POWGAGE(RS_STACKDATA *stack, int argc) {
+
+/**
+ * Starts the sphida powgage.
+ */
+static int _SPHIDA_START_POWGAGE(RS_STACKDATA *stack, int argc) {
     if (Sphida == NULL) {
         return 0;
     }
     Sphida->pow_gage.state = 0;
     return 1;
 }
-int _SPHIDA_TRIGGER_POWGAGE(RS_STACKDATA *stack, int argc) {
+
+/**
+ * Advances the Sphida power gauge from state 1 to 2 or from state 3 to 4.
+ */
+static int _SPHIDA_TRIGGER_POWGAGE(RS_STACKDATA *stack, int argc) {
 
     CSphida *sphida = Sphida;
     if (sphida == NULL) {
@@ -7043,24 +9349,36 @@ int _SPHIDA_TRIGGER_POWGAGE(RS_STACKDATA *stack, int argc) {
     }
     return 1;
 }
-int _SPHIDA_GET_SHOT_POW(RS_STACKDATA *stack, int argc) {
+
+/**
+ * Returns the sphida shot pow.
+ */
+static int _SPHIDA_GET_SHOT_POW(RS_STACKDATA *stack, int argc) {
     if (Sphida == NULL) {
         return 0;
     }
-    SetStack__FP12RS_STACKDATAf__2(stack, Sphida->pow_gage.power);
+    SetStack(stack, Sphida->pow_gage.power);
     return 1;
 }
-int _SPHIDA_GET_POWGAGE_CODE(RS_STACKDATA *stack, int argc) {
+
+/**
+ * Returns the sphida powgage code.
+ */
+static int _SPHIDA_GET_POWGAGE_CODE(RS_STACKDATA *stack, int argc) {
     if (Sphida == NULL) {
         return 0;
     }
-    SetStack__FP12RS_STACKDATAi__2(stack, Sphida->pow_gage.code);
+    SetStack(stack, Sphida->pow_gage.code);
     return 1;
 }
-int _SPHIDA_SET_POWGAGE_SAFE_LEVEL(RS_STACKDATA *stack, int argc) {
+
+/**
+ * Sets the sphida powgage safe level.
+ */
+static int _SPHIDA_SET_POWGAGE_SAFE_LEVEL(RS_STACKDATA *stack, int argc) {
     int level;
 
-    level = GetStackInt__FP12RS_STACKDATA__2(stack);
+    level = GetStackInt(stack);
     if (Sphida == NULL) {
         return 0;
     }
@@ -7073,36 +9391,48 @@ int _SPHIDA_SET_POWGAGE_SAFE_LEVEL(RS_STACKDATA *stack, int argc) {
     Sphida->pow_gage.safe_level = level;
     return 1;
 }
+
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/event_func", _SPHIDA_GET_CULB_DEF__FP12RS_STACKDATAi);
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/event_func", _SPHIDA_SET_SPIN_MARK_POS__FP12RS_STACKDATAi);
-int _SPHIDA_SET_CULB_NO(RS_STACKDATA *stack, int argc) {
+/**
+ * Sets the sphida culb number.
+ */
+static int _SPHIDA_SET_CULB_NO(RS_STACKDATA *stack, int argc) {
     int clubNo;
 
-    clubNo = GetStackInt__FP12RS_STACKDATA__2(stack);
+    clubNo = GetStackInt(stack);
     if (Sphida == NULL) {
         return 0;
     }
     Sphida->club_no = clubNo;
     return 1;
 }
-int _SPHIDA_CALC_CARRY(RS_STACKDATA *stack, int argc) {
-    float carry = GetStackFloat__FP12RS_STACKDATA__2(stack);
+
+/**
+ * Stores the script carry value in the Sphida state.
+ */
+static int _SPHIDA_CALC_CARRY(RS_STACKDATA *stack, int argc) {
+    float carry = GetStackFloat(stack);
     if (Sphida == NULL) {
         return 0;
     }
     Sphida->carry = carry;
     return 1;
 }
+
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/event_func", _SPHIDA_GET_PG_CURSOR_POS__FP12RS_STACKDATAi);
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/event_func", _SPHIDA_SET_COL_MODEL__FP12RS_STACKDATAi);
-int _SPHIDA_GET_PRIZE(RS_STACKDATA *stack, int argc) {
+/**
+ * Returns the sphida prize.
+ */
+static int _SPHIDA_GET_PRIZE(RS_STACKDATA *stack, int argc) {
     int prize1;
     int prize2;
     CDngFloorManager *floorManager;
     RS_STACKDATA *nextSlot;
     DNG_BATTLE_AREA *dngScene;
 
-    dngScene = &((CScene *)EventScene)->battle_area;
+    dngScene = &(EventScene)->battle_area;
     floorManager = &dngScene->floor_manager;
     if (dngScene == 0) {
         return 0;
@@ -7111,43 +9441,65 @@ int _SPHIDA_GET_PRIZE(RS_STACKDATA *stack, int argc) {
     if (floorManager == NULL) {
         return 0;
     }
-    floorManager->GetSphedaPrize(GetStackInt__FP12RS_STACKDATA__2(stack), &prize1, &prize2);
-    SetStack__FP12RS_STACKDATAi__2(nextSlot++, prize1);
-    SetStack__FP12RS_STACKDATAi__2(nextSlot, prize2);
+    floorManager->GetSphedaPrize(GetStackInt(stack), &prize1, &prize2);
+    SetStack(nextSlot++, prize1);
+    SetStack(nextSlot, prize2);
     return 1;
 }
-int _SPHIDA_SET_LAST_CHALLENGE(RS_STACKDATA *stack, int argc) {
+
+/**
+ * Sets the sphida last challenge.
+ */
+static int _SPHIDA_SET_LAST_CHALLENGE(RS_STACKDATA *stack, int argc) {
     if (Sphida == NULL) {
         return 0;
     }
-    Sphida->last_challenge = GetStackInt__FP12RS_STACKDATA__2(stack);
+    Sphida->last_challenge = GetStackInt(stack);
     return 1;
 }
-int _SPHIDA_GET_LAST_CHALLENGE(RS_STACKDATA *stack, int argc) {
+
+/**
+ * Returns the sphida last challenge.
+ */
+static int _SPHIDA_GET_LAST_CHALLENGE(RS_STACKDATA *stack, int argc) {
     if (Sphida == NULL || argc != 1) {
         return 0;
     }
-    return EventAbi::SetStack__FP12RS_STACKDATAi__2(stack, Sphida->last_challenge);
+    SetStack(stack, Sphida->last_challenge);
+    return 1;
 }
-int _SPHIDA_GET_OMAKE_MODE(RS_STACKDATA *stack, int argc) {
+
+/**
+ * Returns the sphida extra mode.
+ */
+static int _SPHIDA_GET_OMAKE_MODE(RS_STACKDATA *stack, int argc) {
     if (Sphida == NULL || argc != 1) {
         return 0;
     }
-    return EventAbi::SetStack__FP12RS_STACKDATAi__2(stack, Sphida->omake_mode);
+    SetStack(stack, Sphida->omake_mode);
+    return 1;
 }
-int _SPHIDA_SET_NOW_HOLE(RS_STACKDATA *stack, int argc) {
-    CSubGameData *subGame = (CSubGameData *)GetSubGameSaveData();
+
+/**
+ * Sets the sphida now hole.
+ */
+static int _SPHIDA_SET_NOW_HOLE(RS_STACKDATA *stack, int argc) {
+    CSubGameData *subGame = GetSubGameSaveData();
     if (subGame == NULL) {
         return 0;
     }
     CSphidaData *sphidaData;
-    if ((sphidaData = (CSphidaData *)subGame->GetSphidaData()) == NULL) {
+    if ((sphidaData = subGame->GetSphidaData()) == NULL) {
         return 0;
     }
-    sphidaData->SetHorl(GetStackInt__FP12RS_STACKDATA__2(stack));
+    sphidaData->SetHorl(GetStackInt(stack));
     return 1;
 }
-int _SPHIDA_GET_NOW_HOLE(RS_STACKDATA *stack, int argc) {
+
+/**
+ * Returns the sphida now hole.
+ */
+static int _SPHIDA_GET_NOW_HOLE(RS_STACKDATA *stack, int argc) {
     CSphidaData *sphidaData;
     CSubGameData *subGame;
 
@@ -7158,142 +9510,203 @@ int _SPHIDA_GET_NOW_HOLE(RS_STACKDATA *stack, int argc) {
     if (subGame == NULL) {
         return 0;
     }
-    sphidaData = (CSphidaData *)subGame->GetSphidaData();
+    sphidaData = subGame->GetSphidaData();
     if (sphidaData == NULL) {
         return 0;
     }
-    SetStack__FP12RS_STACKDATAi__2(stack, GetNowHorl__11CSphidaDataFv(sphidaData));
+    SetStack(stack, sphidaData->GetNowHorl());
     return 1;
 }
-int _SPHIDA_SET_SCORE(RS_STACKDATA *stack, int argc) {
-    CSubGameData *subGame = (CSubGameData *)GetSubGameSaveData();
+
+/**
+ * Sets the sphida score.
+ */
+static int _SPHIDA_SET_SCORE(RS_STACKDATA *stack, int argc) {
+    CSubGameData *subGame = GetSubGameSaveData();
     if (subGame == NULL) {
         return 0;
     }
     CSphidaData *sphidaData;
-    if ((sphidaData = (CSphidaData *)subGame->GetSphidaData()) == NULL) {
+    if ((sphidaData = subGame->GetSphidaData()) == NULL) {
         return 0;
     }
-    int slot = GetStackInt__FP12RS_STACKDATA__2(stack++);
-    int score = GetStackInt__FP12RS_STACKDATA__2(stack);
+    int slot = GetStackInt(stack++);
+    int score = GetStackInt(stack);
     sphidaData->SetHorlScore(score, slot);
     return 1;
 }
-int _SPHIDA_GET_SCORE(RS_STACKDATA *stack, int argc) {
+
+/**
+ * Returns the sphida score.
+ */
+static int _SPHIDA_GET_SCORE(RS_STACKDATA *stack, int argc) {
     if (argc != 2) {
         return 0;
     }
-    CSubGameData *subGame = (CSubGameData *)GetSubGameSaveData();
+    CSubGameData *subGame = GetSubGameSaveData();
     if (subGame == NULL) {
         return 0;
     }
     CSphidaData *sphidaData;
-    if ((sphidaData = (CSphidaData *)subGame->GetSphidaData()) == NULL) {
+    if ((sphidaData = subGame->GetSphidaData()) == NULL) {
         return 0;
     }
-    int slot = GetStackInt__FP12RS_STACKDATA__2(stack++);
-    SetStack__FP12RS_STACKDATAi__2(stack, sphidaData->GetHorlScore(slot));
+    int slot = GetStackInt(stack++);
+    SetStack(stack, sphidaData->GetHorlScore(slot));
     return 1;
 }
-int _TEST(RS_STACKDATA *stack, int argc) {
+
+/**
+ * Reports success without changing event state.
+ */
+static s32 _TEST(RS_STACKDATA *stack, int argc) {
     return 1;
 }
-void _MT_TEST(RS_STACKDATA *stack, int argc) {
+
+/**
+ * Runs the memory test with the supplied stack arguments.
+ */
+static void _MT_TEST(RS_STACKDATA *stack, int argc) {
     mt_test(stack, argc);
 }
+
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/event_func", _ZERO_VECTOR__FP12RS_STACKDATAi);
-extern "C" int _NORMAL_VECTOR__FP12RS_STACKDATAi__2(RS_STACKDATA *stack, int argc) {
-    float vec[4];
-    vec[0] = ((RS_STACKDATA *)stack[0].i)->f;
-    vec[1] = ((RS_STACKDATA *)stack[1].i)->f;
-    vec[2] = ((RS_STACKDATA *)stack[2].i)->f;
+/**
+ * Normalizes a referenced vector on the script stack.
+ */
+static int _NORMAL_VECTOR(RS_STACKDATA *stack, int argc) {
+    sceVu0FVECTOR vec;
+    vec[0] = (stack[0].p)->f;
+    vec[1] = (stack[1].p)->f;
+    vec[2] = (stack[2].p)->f;
     vec[3] = 1.0f;
     sceVu0Normalize(vec, vec);
-    SetStack__FP12RS_STACKDATAf__2(stack++, vec[0]);
-    SetStack__FP12RS_STACKDATAf__2(stack++, vec[1]);
-    SetStack__FP12RS_STACKDATAf__2(stack, vec[2]);
+    SetStack(stack++, vec[0]);
+    SetStack(stack++, vec[1]);
+    SetStack(stack, vec[2]);
     return 1;
 }
+
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/event_func", _COPY_VECTOR__FP12RS_STACKDATAi__2);
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/event_func", _ADD_VECTOR__FP12RS_STACKDATAi__2);
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/event_func", _SUB_VECTOR__FP12RS_STACKDATAi__2);
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/event_func", _SCALE_VECTOR__FP12RS_STACKDATAi__2);
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/event_func", _DIV_VECTOR__FP12RS_STACKDATAi__2);
-extern "C" int _DIST_VECTOR__FP12RS_STACKDATAi(RS_STACKDATA *stack, int argc) {
-    float vec[4];
-    GetStackVector__FPfP12RS_STACKDATA(vec, stack);
+/**
+ * Returns the length of a vector through the script stack.
+ */
+#ifdef NONMATCHING
+static int _DIST_VECTOR(RS_STACKDATA *stack, int argc) {
+    sceVu0FVECTOR vec;
+    GetStackVector(vec, stack);
 
-    stack = (RS_STACKDATA *)((int)stack + 0x18);
-    SetStack__FP12RS_STACKDATAf__2(stack, mgDistVector(vec));
+    stack += 3;
+    SetStack(stack, mgDistVector(vec));
     return 1;
 }
-extern "C" int _DIST_VECTOR2__FP12RS_STACKDATAi(RS_STACKDATA *stack, int argc) {
-    float from[4];
-    float to[4];
-    GetStackVector__FPfP12RS_STACKDATA(from, stack);
-    GetStackVector__FPfP12RS_STACKDATA(to, stack + 3);
+#else
+INCLUDE_ASM("ps2/asm/pal/nonmatchings/event_func", _DIST_VECTOR__FP12RS_STACKDATAi);
+#endif
 
-    stack = (RS_STACKDATA *)((int)stack + 0x30);
-    SetStack__FP12RS_STACKDATAf__2(stack, mgDistVector(from, to));
+/**
+ * Returns the distance between two vectors through the script stack.
+ */
+#ifdef NONMATCHING
+static int _DIST_VECTOR2(RS_STACKDATA *stack, int argc) {
+    sceVu0FVECTOR from;
+    sceVu0FVECTOR to;
+    GetStackVector(from, stack);
+    GetStackVector(to, &stack[3]);
+
+    stack += 6;
+    SetStack(stack, mgDistVector(from, to));
     return 1;
 }
-extern "C" int _SQRT__FP12RS_STACKDATAi__2(RS_STACKDATA *stack, int argc) {
-    float value = GetStackFloat__FP12RS_STACKDATA__2(stack++);
-    SetStack__FP12RS_STACKDATAf__2(stack, (float)sqrt(value));
+#else
+INCLUDE_ASM("ps2/asm/pal/nonmatchings/event_func", _DIST_VECTOR2__FP12RS_STACKDATAi);
+#endif
+
+/**
+ * Returns the square root of a stack value.
+ */
+static int _SQRT(RS_STACKDATA *stack, int argc) {
+    float value = GetStackFloat(stack++);
+    SetStack(stack, (float)sqrt(value));
     return 1;
 }
+
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/event_func", _ATAN2F__FP12RS_STACKDATAi__2);
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/event_func", _ANGLE_CMP__FP12RS_STACKDATAi__2);
-extern "C" int _ANGLE_LIMIT__FP12RS_STACKDATAi__2(RS_STACKDATA *stack, int argc) {
-    RS_STACKDATA *angle = (RS_STACKDATA *)stack->i;
-    SetStack__FP12RS_STACKDATAf__2(stack, mgAngleLimit(angle->f));
+/**
+ * Normalizes an angle referenced by the script stack.
+ */
+static int _ANGLE_LIMIT(RS_STACKDATA *stack, int argc) {
+    RS_STACKDATA *angle = stack->p;
+    SetStack(stack, mgAngleLimit(angle->f));
     return 1;
 }
-extern "C" int _GET_RAND__FP12RS_STACKDATAi(RS_STACKDATA *stack, int argc) {
+
+/**
+ * Returns a random integer or float below the supplied limit.
+ */
+static int _GET_RAND(RS_STACKDATA *stack, int argc) {
+    int result;
     int intRange;
-    if (stack->type == 1) {
-        float range = GetStackFloat__FP12RS_STACKDATA__2(stack++);
-        SetStack__FP12RS_STACKDATAf__2(stack, range * (float)rand() / 2147483648.0f);
+    if (stack->type == RS_FLOAT) {
+        float range = GetStackFloat(stack++);
+        SetStack(stack, range * (float)rand() / 2147483648.0f);
     } else {
-        intRange = GetStackInt__FP12RS_STACKDATA__2(stack++);
-        argc = (int)((float)intRange * (float)rand() / 2147483648.0f);
-        SetStack__FP12RS_STACKDATAi__2(stack, argc);
+        intRange = GetStackInt(stack++);
+        result = (int)((float)intRange * (float)rand() / 2147483648.0f);
+        SetStack(stack, result);
     }
     return 1;
 }
-int _LINE_POINT_DIST(RS_STACKDATA *stack, int argc) {
-    float segmentStart[4];
-    float segmentEnd[4];
-    float point[4];
-    float toPoint[4];
-    float direction[4];
+
+/**
+ * Returns a point distance from a line segment, or -1 when its projection lies outside the segment.
+ */
+#ifdef NONMATCHING
+static int _LINE_POINT_DIST(RS_STACKDATA *stack, int argc) {
+    sceVu0FVECTOR segmentStart;
+    sceVu0FVECTOR segmentEnd;
+    sceVu0FVECTOR point;
+    sceVu0FVECTOR toPoint;
+    sceVu0FVECTOR direction;
     float segmentLength;
     float projection;
-    GetStackVector__FPfP12RS_STACKDATA(segmentStart, stack);
-    GetStackVector__FPfP12RS_STACKDATA(segmentEnd, stack + 3);
-    GetStackVector__FPfP12RS_STACKDATA(point, stack + 6);
-    RS_STACKDATA *result = stack + 9;
+    GetStackVector(segmentStart, stack);
+    GetStackVector(segmentEnd, &stack[3]);
+    GetStackVector(point, &stack[6]);
+    RS_STACKDATA *result = &stack[9];
     segmentLength = mgDistVector(segmentStart, segmentEnd);
     sceVu0SubVector(toPoint, point, segmentStart);
     sceVu0SubVector(direction, segmentEnd, segmentStart);
     sceVu0Normalize(direction, direction);
     projection = sceVu0InnerProduct(toPoint, direction);
     if (projection < 0.0f || projection > segmentLength) {
-        SetStack__FP12RS_STACKDATAf__2(result, -1.0f);
+        SetStack(result, -1.0f);
         return 1;
     }
     sceVu0ScaleVector(direction, direction, projection);
     sceVu0AddVector(direction, segmentStart, direction);
-    SetStack__FP12RS_STACKDATAf__2(result, mgDistVector(point, direction));
+    SetStack(result, mgDistVector(point, direction));
     return 1;
 }
-int _CREATE_SWORD_EFFECT(RS_STACKDATA *stack, int argc) {
-    int stackNo = GetStackInt__FP12RS_STACKDATA__2(stack++);
-    int initParam1 = GetStackInt__FP12RS_STACKDATA__2(stack++);
-    int initParam2 = GetStackInt__FP12RS_STACKDATA__2(stack);
+#else
+INCLUDE_ASM("ps2/asm/pal/nonmatchings/event_func", _LINE_POINT_DIST__FP12RS_STACKDATAi);
+#endif
+
+/**
+ * Creates the sword effect.
+ */
+static int _CREATE_SWORD_EFFECT(RS_STACKDATA *stack, int argc) {
+    int stackNo = GetStackInt(stack++);
+    int initParam1 = GetStackInt(stack++);
+    int initParam2 = GetStackInt(stack);
     mgCMemory *sceneStack;
     CSWordAfterImage *effect;
-    sceneStack = (mgCMemory *)((CScene *)EventScene)->GetStack(stackNo);
+    sceneStack = EventScene->GetStack(stackNo);
     if (sceneStack == NULL) {
         return 0;
     }
@@ -7315,22 +9728,30 @@ int _CREATE_SWORD_EFFECT(RS_STACKDATA *stack, int argc) {
     SwordEffect->Initialize( sceneStack, initParam1, initParam2);
     return 1;
 }
-int _DELETE_SWORD_EFFECT(RS_STACKDATA *stack, int argc) {
+
+/**
+ * Deletes the sword effect.
+ */
+static int _DELETE_SWORD_EFFECT(RS_STACKDATA *stack, int argc) {
     SwordEffect = 0;
     return 1;
 }
-int _SWORD_EFFECT_COLOR(RS_STACKDATA *stack, int argc) {
-    if (SwordEffect == 0) {
+
+/**
+ * Sets the edge and back colours of the sword afterimage.
+ */
+static int _SWORD_EFFECT_COLOR(RS_STACKDATA *stack, int argc) {
+    if (SwordEffect == NULL) {
         return 0;
     }
-    int aR = GetStackInt__FP12RS_STACKDATA__2(stack++);
-    int aG = GetStackInt__FP12RS_STACKDATA__2(stack++);
-    int aB = GetStackInt__FP12RS_STACKDATA__2(stack++);
-    int aA = GetStackInt__FP12RS_STACKDATA__2(stack++);
-    int bR = GetStackInt__FP12RS_STACKDATA__2(stack++);
-    int bG = GetStackInt__FP12RS_STACKDATA__2(stack++);
-    int bB = GetStackInt__FP12RS_STACKDATA__2(stack++);
-    int bA = GetStackInt__FP12RS_STACKDATA__2(stack);
+    int aR = GetStackInt(stack++);
+    int aG = GetStackInt(stack++);
+    int aB = GetStackInt(stack++);
+    int aA = GetStackInt(stack++);
+    int bR = GetStackInt(stack++);
+    int bG = GetStackInt(stack++);
+    int bB = GetStackInt(stack++);
+    int bA = GetStackInt(stack);
     CSWordAfterImage *effect = SwordEffect;
     effect->edge_color[0] = aR;
     effect->edge_color[1] = aG;
@@ -7342,11 +9763,15 @@ int _SWORD_EFFECT_COLOR(RS_STACKDATA *stack, int argc) {
     effect->back_color[3] = bA;
     return 1;
 }
+
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/event_func", _SWORD_EFFECT_ADD_POINT__FP12RS_STACKDATAi);
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/event_func", _ADD_CHARA_POS__FP12RS_STACKDATAi);
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/event_func", _ADD_CHARA_ROT__FP12RS_STACKDATAi);
-int _POST_TREASURE_BOX(RS_STACKDATA *stack, int argc) {
-    float position[3];
+/**
+ * Places a treasure box at the script position with its requested contents and facing.
+ */
+static int _POST_TREASURE_BOX(RS_STACKDATA *stack, int argc) {
+    sceVu0FVECTOR position;
     CTreasureBoxManager *chestManager;
     float angle;
     int kind;
@@ -7354,58 +9779,74 @@ int _POST_TREASURE_BOX(RS_STACKDATA *stack, int argc) {
     DNG_BATTLE_AREA *dngScene;
 
     count = 1;
-    GetStackVector__FPfP12RS_STACKDATA(position, stack);
+    GetStackVector(position, stack);
     stack += 3;
-    angle = GetStackFloat__FP12RS_STACKDATA__2(stack++);
-    kind = (int)(GetStackInt__FP12RS_STACKDATA__2(stack++));
+    angle = GetStackFloat(stack++);
+    kind = GetStackInt(stack++);
     if (argc >= 6) {
-        count = (int)(GetStackInt__FP12RS_STACKDATA__2(stack));
+        count = GetStackInt(stack);
     }
-    dngScene = &((CScene *)EventScene)->battle_area;
+    dngScene = &(EventScene)->battle_area;
     if (dngScene == NULL) {
-    return 0;
-}
+        return 0;
+    }
     chestManager = dngScene->treasure_box;
     if (chestManager == NULL) {
-    return 0;
-}
+        return 0;
+    }
     chestManager->PutTreasureBox(-1, position, angle, 0x41, kind, count, -1, 0);
     return 1;
 }
+
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/event_func", _GET_PARTS_ORIGIN__FP12RS_STACKDATAi);
-int _CTRLC_STEP(RS_STACKDATA *stack, int argc) {
-    CCameraControl *p = (CCameraControl *)GetCamera();
+/**
+ * Moves the active camera controller one step.
+ */
+static int _CTRLC_STEP(RS_STACKDATA *stack, int argc) {
+    CCameraControl *p = GetCamera();
     p->Step(1);
     return 1;
 }
-int _CTRLC_SET_ROTATE(RS_STACKDATA *stack, int argc) {
-    float angle = GetStackFloat__FP12RS_STACKDATA__2(stack);
+
+/**
+ * Sets the camera controller rotate.
+ */
+static int _CTRLC_SET_ROTATE(RS_STACKDATA *stack, int argc) {
+    float angle = GetStackFloat(stack);
     GetCamera()->SetRotate(angle);
     return 1;
 }
-int _CTRLC_ROT_BACK(RS_STACKDATA *stack, int argc) {
-    float angle = GetStackFloat__FP12RS_STACKDATA__2(stack);
+
+/**
+ * Swings the camera eye to the requested angle about its look-at point.
+ */
+static int _CTRLC_ROT_BACK(RS_STACKDATA *stack, int argc) {
+    float angle = GetStackFloat(stack);
     GetCamera()->RotBack(angle);
     return 1;
 }
-int _CTRLC_MOVE_CAMERA(RS_STACKDATA *stack, int argc) {
-    float charaPos[4];
+
+/**
+ * Moves the camera from controller input after collecting nearby camera collision polygons.
+ */
+static int _CTRLC_MOVE_CAMERA(RS_STACKDATA *stack, int argc) {
+    sceVu0FVECTOR charaPos;
     CCPoly polys[256];
     mgVu0FBOX box;
-    float cameraRef[4];
+    sceVu0FVECTOR cameraRef;
     CCharacter2 *chara;
     CCameraControl *camera;
     CMap *map;
     int polyCount;
     float distance;
 
-    if ((chara = GetCharacter(GetStackInt__FP12RS_STACKDATA__2(stack))) == NULL) {
+    if ((chara = GetCharacter(GetStackInt(stack))) == NULL) {
         return 0;
     }
     chara->GetRotation(charaPos);
     camera = GetCamera();
     distance = camera->GetDistance();
-    map = (CMap *)((CScene *)EventScene)->GetMap(((CScene *)EventScene)->active_map);
+    map = (CMap *)(EventScene)->GetMap((EventScene)->active_map);
     camera->GetRef(cameraRef);
     camera->SetCheckRef(cameraRef);
     box.max[0] = cameraRef[0] + 1.2f * distance;
@@ -7421,50 +9862,58 @@ int _CTRLC_MOVE_CAMERA(RS_STACKDATA *stack, int argc) {
         return 0;
     }
     if (polyCount > 0x100) {
-        printf(at_8230, polyCount);
+        printf("EVENT ERROR <CTRLC_MOVE_CAMERA camera poly over %d>\n", polyCount);
         return 0;
     }
     camera->MoveCamera(&PadCtrl, charaPos, polys, polyCount);
     return 1;
 }
-int _CTRLC_SET_ROT_CANCEL(RS_STACKDATA *stack, int argc) {
+
+/**
+ * Sets the camera controller rotation cancel.
+ */
+static int _CTRLC_SET_ROT_CANCEL(RS_STACKDATA *stack, int argc) {
     int mask;
 
-    mask = (int)(GetStackInt__FP12RS_STACKDATA__2(stack));
+    mask = GetStackInt(stack);
     GetCamera()->SetRotCameraCancel(mask);
     return 1;
 }
+
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/event_func", _CTRLC_MOVE_RANGE__FP12RS_STACKDATAi);
-int _GET_NEAR_TBOX_POS(RS_STACKDATA *stack, int argc) {
-    float target[4];
-    float boxPos[4];
+/**
+ * Returns the nearest active treasure box within thirty units of a position.
+ */
+static int _GET_NEAR_TBOX_POS(RS_STACKDATA *stack, int argc) {
+    sceVu0FVECTOR target;
+    sceVu0FVECTOR boxPos;
     DNG_BATTLE_AREA *dngScene;
     int nearest;
     int i;
-    u8 *boxManager;
+    CTreasureBoxManager *boxManager;
     float nearestDist;
     float dist;
     CTreasureBox *box;
 
-    dngScene = &((CScene *)EventScene)->battle_area;
+    dngScene = &(EventScene)->battle_area;
     if (dngScene == NULL) {
         return 0;
     }
-    boxManager = (u8 *)dngScene->treasure_box;
+    boxManager = dngScene->treasure_box;
     if (boxManager == NULL) {
         return 0;
     }
     nearest = -1;
-    GetStackVector__FPfP12RS_STACKDATA(target, stack);
+    GetStackVector(target, stack);
 
-    stack = (RS_STACKDATA *)((int)stack + 0x18);
+    stack = stack + 3;
     nearestDist = 9999.0f;
     for (i = 0; i < 24; i++) {
-        box = (CTreasureBox *)(boxManager + i * 0x70 + 0x10);
+        box = &boxManager->box[i];
         if (box != NULL && (box == NULL || box->state != 0)) {
             box->GetPosition(boxPos);
             dist = mgDistVector(boxPos, target);
-            if (dist < 30.0f && !(nearestDist <= dist)) {
+            if (dist < 30.0f && nearestDist > dist) {
                 nearestDist = dist;
                 nearest = i;
             }
@@ -7475,44 +9924,41 @@ int _GET_NEAR_TBOX_POS(RS_STACKDATA *stack, int argc) {
     boxPos[2] = 0.0f;
     boxPos[3] = 0.0f;
     if (nearest >= 0) {
-        box = (CTreasureBox *)(boxManager + nearest * 0x70 + 0x10);
+        box = &boxManager->box[nearest];
         box->GetPosition(boxPos);
     }
-    SetStack__FP12RS_STACKDATAf__2(stack++, boxPos[0]);
-    SetStack__FP12RS_STACKDATAf__2(stack++, boxPos[1]);
-    SetStack__FP12RS_STACKDATAf__2(stack++, boxPos[2]);
-    SetStack__FP12RS_STACKDATAi__2(stack, nearest);
+    SetStack(stack++, boxPos[0]);
+    SetStack(stack++, boxPos[1]);
+    SetStack(stack++, boxPos[2]);
+    SetStack(stack, nearest);
     return 1;
 }
-int _CONV_CHRNO_S2L(RS_STACKDATA *stack, int argc) {
+
+/**
+ * Reports failure without changing event state.
+ */
+static s32 _CONV_CHRNO_S2L(RS_STACKDATA *stack, int argc) {
     return 0;
 }
-int _SWE_INIT(RS_STACKDATA *stack, int argc) {
-    int charaNo = GetStackInt__FP12RS_STACKDATA__2(stack++);
-    int slot = GetStackInt__FP12RS_STACKDATA__2(stack++);
-    int stackNo = GetStackInt__FP12RS_STACKDATA__2(stack++);
-    int initParam1 = GetStackInt__FP12RS_STACKDATA__2(stack++);
-    int initParam2 = GetStackInt__FP12RS_STACKDATA__2(stack);
+
+/**
+ * Initializes the swe.
+ */
+static int _SWE_INIT(RS_STACKDATA *stack, int argc) {
+    int charaNo = GetStackInt(stack++);
+    int slot = GetStackInt(stack++);
+    int stackNo = GetStackInt(stack++);
+    int initParam1 = GetStackInt(stack++);
+    int initParam2 = GetStackInt(stack);
     CCharacter2 *chara;
     if ((chara = GetCharacter(charaNo)) == NULL) {
         return 0;
     }
     mgCMemory *sceneStack;
-    if ((sceneStack = (mgCMemory *)((CScene *)EventScene)->GetStack(stackNo)) == NULL) {
+    if ((sceneStack = EventScene->GetStack(stackNo)) == NULL) {
         return 0;
     }
-    CSWordAfterEffect *effect =
-        (CSWordAfterEffect *)operator new(0xA0, (u_long128 *)sceneStack->Alloc(12));
-    if (effect != NULL) {
-        effect->color0[0] = 0x80;
-        effect->color0[1] = 0x80;
-        effect->color0[2] = 0x80;
-        effect->color0[3] = 0x80;
-        effect->color1[0] = 0x80;
-        effect->color1[1] = 0x80;
-        effect->color1[2] = 0x80;
-        effect->color1[3] = 0x80;
-    }
+    CSWordAfterEffect *effect = new (sceneStack->Alloc(12)) CSWordAfterEffect;
     chara->sword_effect[slot] = effect;
     if (chara->sword_effect[slot] == NULL) {
         return 0;
@@ -7520,31 +9966,34 @@ int _SWE_INIT(RS_STACKDATA *stack, int argc) {
     chara->sword_effect[slot]->Initialize(sceneStack, initParam1, initParam2);
     return 1;
 }
-int _SWE_SET_COLOR(RS_STACKDATA *stack, int argc) {
+
+/**
+ * Sets the swe color.
+ */
+static int _SWE_SET_COLOR(RS_STACKDATA *stack, int argc) {
     int aR, aG, aB, aA, bR, bG, bB, bA;
     int charaNo, slot;
     CCharacter2 *chara;
     CSWordAfterEffect **effectSlot;
-    charaNo = GetStackInt__FP12RS_STACKDATA__2(stack++);
-    slot = GetStackInt__FP12RS_STACKDATA__2(stack++);
+    CSWordAfterEffect **effects;
+    charaNo = GetStackInt(stack++);
+    slot = GetStackInt(stack++);
     if ((chara = GetCharacter(charaNo)) == NULL) {
         return 0;
     }
-    effectSlot =
-        (CSWordAfterEffect *
-             *)((slot << 2) + (int)chara +
-                chara_sword_after_offset);
+    effects = chara->sword_effect;
+    effectSlot = &effects[slot];
     if (*effectSlot == NULL) {
         return 0;
     }
-    aR = GetStackInt__FP12RS_STACKDATA__2(stack++);
-    aG = GetStackInt__FP12RS_STACKDATA__2(stack++);
-    aB = GetStackInt__FP12RS_STACKDATA__2(stack++);
-    aA = GetStackInt__FP12RS_STACKDATA__2(stack++);
-    bR = GetStackInt__FP12RS_STACKDATA__2(stack++);
-    bG = GetStackInt__FP12RS_STACKDATA__2(stack++);
-    bB = GetStackInt__FP12RS_STACKDATA__2(stack++);
-    bA = GetStackInt__FP12RS_STACKDATA__2(stack);
+    aR = GetStackInt(stack++);
+    aG = GetStackInt(stack++);
+    aB = GetStackInt(stack++);
+    aA = GetStackInt(stack++);
+    bR = GetStackInt(stack++);
+    bG = GetStackInt(stack++);
+    bB = GetStackInt(stack++);
+    bA = GetStackInt(stack);
     CSWordAfterEffect *effect = *effectSlot;
     effect->color0[0] = aR;
     effect->color0[1] = aG;
@@ -7556,7 +10005,11 @@ int _SWE_SET_COLOR(RS_STACKDATA *stack, int argc) {
     effect->color1[3] = bA;
     return 1;
 }
-int _SWE_SET_TEXTURE(RS_STACKDATA *stack, int argc) {
+
+/**
+ * Sets the swe texture.
+ */
+static int _SWE_SET_TEXTURE(RS_STACKDATA *stack, int argc) {
     mgCTexture *texture;
     int blockNo;
     char *name;
@@ -7565,62 +10018,64 @@ int _SWE_SET_TEXTURE(RS_STACKDATA *stack, int argc) {
     int u1;
     int v1;
     CSWordAfterEffect **effectSlot;
+    CSWordAfterEffect **effects;
     CCharacter2 *chara;
     int slot;
     int charaNo;
-    charaNo = GetStackInt__FP12RS_STACKDATA__2(stack++);
-    slot = GetStackInt__FP12RS_STACKDATA__2(stack++);
+    charaNo = GetStackInt(stack++);
+    slot = GetStackInt(stack++);
     if ((chara = GetCharacter(charaNo)) == NULL) {
         return 0;
     }
-    effectSlot =
-        (CSWordAfterEffect *
-             *)((slot << 2) + (int)chara +
-                chara_sword_after_offset);
+    effects = chara->sword_effect;
+    effectSlot = &effects[slot];
     if (*effectSlot == NULL) {
         return 0;
     }
-    blockNo = GetStackInt__FP12RS_STACKDATA__2(stack++);
-    name = GetStackString__FP12RS_STACKDATA__2(stack++);
-    u0 = GetStackInt__FP12RS_STACKDATA__2(stack++);
-    v0 = GetStackInt__FP12RS_STACKDATA__2(stack++);
-    u1 = GetStackInt__FP12RS_STACKDATA__2(stack++);
-    v1 = GetStackInt__FP12RS_STACKDATA__2(stack);
+    blockNo = GetStackInt(stack++);
+    name = GetStackString(stack++);
+    u0 = GetStackInt(stack++);
+    v0 = GetStackInt(stack++);
+    u1 = GetStackInt(stack++);
+    v1 = GetStackInt(stack);
     if ((texture = mgTexManager.GetTexture( name, blockNo)) == NULL) {
         return 0;
     }
     (*effectSlot)->SetTexture(blockNo, texture, u0, v0, u1, v1);
     return 1;
 }
-int _SWE_START_EFFECT(RS_STACKDATA *stack, int argc) {
+
+/**
+ * Starts the swe effect.
+ */
+static int _SWE_START_EFFECT(RS_STACKDATA *stack, int argc) {
     int charaNo;
     int slot;
     CCharacter2 *chara;
     char *fromName;
     char *toName;
-    int param8C;
-    int frames;
-    int param90;
+    int length;
+    int fade_time;
+    int hold_time;
     CSWordAfterEffect **effectSlot;
+    CSWordAfterEffect **effects;
     mgCFrame *fromFrame;
     mgCFrame *toFrame;
-    charaNo = GetStackInt__FP12RS_STACKDATA__2(stack++);
-    slot = GetStackInt__FP12RS_STACKDATA__2(stack++);
+    charaNo = GetStackInt(stack++);
+    slot = GetStackInt(stack++);
     if ((chara = GetCharacter(charaNo)) == NULL) {
         return 0;
     }
-    effectSlot =
-        (CSWordAfterEffect *
-             *)((slot << 2) + (int)chara +
-                chara_sword_after_offset);
+    effects = chara->sword_effect;
+    effectSlot = &effects[slot];
     if (*effectSlot == NULL) {
         return 0;
     }
-    fromName = GetStackString__FP12RS_STACKDATA__2(stack++);
-    toName = GetStackString__FP12RS_STACKDATA__2(stack++);
-    param8C = GetStackInt__FP12RS_STACKDATA__2(stack++);
-    frames = GetStackInt__FP12RS_STACKDATA__2(stack++);
-    param90 = GetStackInt__FP12RS_STACKDATA__2(stack);
+    fromName = GetStackString(stack++);
+    toName = GetStackString(stack++);
+    length = GetStackInt(stack++);
+    fade_time = GetStackInt(stack++);
+    hold_time = GetStackInt(stack);
     if (chara->CObjectFrame::frame == NULL) {
         return 0;
     }
@@ -7633,98 +10088,110 @@ int _SWE_START_EFFECT(RS_STACKDATA *stack, int argc) {
     if ((toFrame = chara->CObjectFrame::frame->SearchFrame(toName)) == NULL) {
         return 0;
     }
-    (*effectSlot)->StartEffect(fromFrame, toFrame, param8C, frames, param90);
+    (*effectSlot)->StartEffect(fromFrame, toFrame, length, fade_time, hold_time);
     return 1;
 }
-int _SET_CHARA_TYPE(RS_STACKDATA *stack, int argc) {
+
+/**
+ * Sets the character type.
+ */
+static int _SET_CHARA_TYPE(RS_STACKDATA *stack, int argc) {
     int charaNo;
 
-    charaNo = (int)(GetStackInt__FP12RS_STACKDATA__2(stack++));
-    ((CScene *)EventScene)->SetType(1, charaNo, GetStackInt__FP12RS_STACKDATA__2(stack));
+    charaNo = GetStackInt(stack++);
+    (EventScene)->SetType(1, charaNo, GetStackInt(stack));
     return 1;
 }
-int _GET_EVENT_DATA(RS_STACKDATA *stack, int argc) {
+
+/**
+ * Returns the event data.
+ */
+static int _GET_EVENT_DATA(RS_STACKDATA *stack, int argc) {
     CSceneEventData *eventData;
 
-    eventData = &((CScene *)EventScene)->event_data;
+    eventData = &(EventScene)->event_data;
     if (eventData == NULL) {
         return 0;
     }
-    switch (GetStackInt__FP12RS_STACKDATA__2(stack++)) {
+    switch (GetStackInt(stack++)) {
         case 0:
-            SetStack__FP12RS_STACKDATAi__2(stack, eventData->event.flag);
+            SetStack(stack, (int)eventData->event.flag);
             break;
         case 1:
-            SetStack__FP12RS_STACKDATAi__2(stack, eventData->event.event_no);
+            SetStack(stack, eventData->event.event_no);
             break;
         case 2:
-            SetStack__FP12RS_STACKDATAi__2(stack, eventData->event.point_no);
+            SetStack(stack, eventData->event.point_no);
             break;
         case 3:
-            SetStack__FP12RS_STACKDATAi__2(stack, eventData->event.unk_2c);
+            SetStack(stack, eventData->event.unk_2c);
             break;
         case 4:
-            SetStack__FP12RS_STACKDATAi__2(stack, eventData->event.unk_30);
+            SetStack(stack, eventData->event.unk_30);
             break;
         case 5:
-            SetStack__FP12RS_STACKDATAi__2(stack, eventData->event.unk_34);
+            SetStack(stack, eventData->event.unk_34);
             break;
         case 6:
-            SetStack__FP12RS_STACKDATAi__2(stack, eventData->map_event.check_type);
+            SetStack(stack, eventData->map_event.check_type);
             break;
         case 7:
-            SetStack__FP12RS_STACKDATAi__2(stack, eventData->map_event.event_no);
+            SetStack(stack, eventData->map_event.event_no);
             break;
         case 8:
-            SetStack__FP12RS_STACKDATAf__2(stack++, ((float *)&eventData->vectors_b.v[0])[0]);
-            SetStack__FP12RS_STACKDATAf__2(stack++, ((float *)&eventData->vectors_b.v[0])[1]);
-            SetStack__FP12RS_STACKDATAf__2(stack++, ((float *)&eventData->vectors_b.v[0])[2]);
-            SetStack__FP12RS_STACKDATAf__2(stack,
-                            atan2f(((float *)&eventData->vectors_a.v[3])[0], ((float *)&eventData->vectors_a.v[3])[2]));
+            SetStack(stack++, eventData->map_event.matrix[3][0]);
+            SetStack(stack++, eventData->map_event.matrix[3][1]);
+            SetStack(stack++, eventData->map_event.matrix[3][2]);
+            SetStack(stack,
+             atan2f(eventData->map_event.matrix[2][0], eventData->map_event.matrix[2][2]));
             break;
         case 9:
-            SetStack__FP12RS_STACKDATAi__2(stack, eventData->map_event.parts_no);
+            SetStack(stack, eventData->map_event.parts_no);
             break;
         case 10:
-            SetStack__FP12RS_STACKDATAf__2(stack++, eventData->position[0]);
-            SetStack__FP12RS_STACKDATAf__2(stack++, eventData->position[1]);
-            SetStack__FP12RS_STACKDATAf__2(stack, eventData->position[2]);
+            SetStack(stack++, eventData->position[0]);
+            SetStack(stack++, eventData->position[1]);
+            SetStack(stack, eventData->position[2]);
             break;
         case 11:
             switch (argc) {
                 case 2:
-                    SetStack__FP12RS_STACKDATAf__2(stack, eventData->rotation[1]);
+                    SetStack(stack, eventData->rotation[1]);
                     break;
                 case 4:
-                    SetStack__FP12RS_STACKDATAf__2(stack++, eventData->rotation[0]);
-                    SetStack__FP12RS_STACKDATAf__2(stack++, eventData->rotation[1]);
-                    SetStack__FP12RS_STACKDATAf__2(stack, eventData->rotation[2]);
+                    SetStack(stack++, eventData->rotation[0]);
+                    SetStack(stack++, eventData->rotation[1]);
+                    SetStack(stack, eventData->rotation[2]);
                     break;
                 default:
                     break;
             }
             break;
         case 12:
-            SetStack__FP12RS_STACKDATAf__2(stack++, eventData->scale[0]);
-            SetStack__FP12RS_STACKDATAf__2(stack++, eventData->scale[1]);
-            SetStack__FP12RS_STACKDATAf__2(stack, eventData->scale[2]);
+            SetStack(stack++, eventData->scale[0]);
+            SetStack(stack++, eventData->scale[1]);
+            SetStack(stack, eventData->scale[2]);
             break;
         case 13:
-            SetStack__FP12RS_STACKDATAi__2(stack, eventData->chara_slot);
+            SetStack(stack, eventData->chara_slot);
             break;
         case 14:
-            SetStack__FP12RS_STACKDATAi__2(stack, eventData->chara_no);
+            SetStack(stack, eventData->chara_no);
             break;
         case 15:
-            SetStack__FP12RS_STACKDATAi__2(stack, eventData->gameobj_no);
+            SetStack(stack, eventData->gameobj_no);
             break;
         default:
-            return 0;
+        return 0;
     }
     return 1;
 }
-int _DNG_SET_PREV_FLOOR(RS_STACKDATA *stack, int argc) {
-    int floor = GetStackInt__FP12RS_STACKDATA__2(stack);
+
+/**
+ * Sets the dungeon prev floor.
+ */
+static int _DNG_SET_PREV_FLOOR(RS_STACKDATA *stack, int argc) {
+    int floor = GetStackInt(stack);
     CSaveData *save = GetSaveData();
     if (save == NULL) {
         return 0;
@@ -7736,7 +10203,11 @@ int _DNG_SET_PREV_FLOOR(RS_STACKDATA *stack, int argc) {
     dungeon->prev_floor_id[dungeon->stage_id] = floor;
     return 1;
 }
-int _DNG_GET_PREV_FLOOR(RS_STACKDATA *stack, int argc) {
+
+/**
+ * Returns the dungeon prev floor.
+ */
+static int _DNG_GET_PREV_FLOOR(RS_STACKDATA *stack, int argc) {
     CSaveData *save = GetSaveData();
     if (save == NULL) {
         return 0;
@@ -7745,16 +10216,24 @@ int _DNG_GET_PREV_FLOOR(RS_STACKDATA *stack, int argc) {
     if (dungeon == NULL) {
         return 0;
     }
-    SetStack__FP12RS_STACKDATAi__2(stack, dungeon->prev_floor_id[dungeon->stage_id]);
+    SetStack(stack, dungeon->prev_floor_id[dungeon->stage_id]);
     return 1;
 }
-int _DNG_SET_FAST_FLOOR(RS_STACKDATA *stack, int argc) {
+
+/**
+ * Reports failure without changing event state.
+ */
+static s32 _DNG_SET_FAST_FLOOR(RS_STACKDATA *stack, int argc) {
     return 0;
 }
-int _SET_FLOOR_INFO(RS_STACKDATA *stack, int argc) {
-    int dungeonNo = GetStackInt__FP12RS_STACKDATA__2(stack++);
-    int floorNo = GetStackInt__FP12RS_STACKDATA__2(stack++);
-    int field = GetStackInt__FP12RS_STACKDATA__2(stack++);
+
+/**
+ * Sets the floor info.
+ */
+static int _SET_FLOOR_INFO(RS_STACKDATA *stack, int argc) {
+    int dungeonNo = GetStackInt(stack++);
+    int floorNo = GetStackInt(stack++);
+    int field = GetStackInt(stack++);
     CSaveData *save = GetSaveData();
     if (save == NULL) {
         return 0;
@@ -7769,38 +10248,42 @@ int _SET_FLOOR_INFO(RS_STACKDATA *stack, int argc) {
     }
     switch (field) {
         case 0:
-            info->unk_0 = (int)GetStackFloat__FP12RS_STACKDATA__2(stack);
+            info->unk_0 = (int)GetStackFloat(stack);
             break;
         case 1:
-            info->fast_destroy_time = (int)GetStackFloat__FP12RS_STACKDATA__2(stack);
+            info->fast_destroy_time = (int)GetStackFloat(stack);
             break;
         case 2:
-            info->unk_8 = GetStackInt__FP12RS_STACKDATA__2(stack);
+            info->unk_8 = GetStackInt(stack);
             break;
         case 3:
-            info->unk_a = GetStackInt__FP12RS_STACKDATA__2(stack);
+            info->unk_a = GetStackInt(stack);
             break;
         case 4:
-            info->spheda_clear = GetStackInt__FP12RS_STACKDATA__2(stack);
+            info->spheda_clear = GetStackInt(stack);
             break;
         case 5:
-            info->flag |= (u16)GetStackInt__FP12RS_STACKDATA__2(stack);
+            info->flag |= (u16)GetStackInt(stack);
             break;
         case 6:
-            info->kill_count = GetStackInt__FP12RS_STACKDATA__2(stack);
+            info->kill_count = GetStackInt(stack);
             break;
         case 7:
-            info->visit_count = GetStackInt__FP12RS_STACKDATA__2(stack);
+            info->visit_count = GetStackInt(stack);
             break;
         default:
-            return 0;
+        return 0;
     }
     return 1;
 }
-int _GET_FLOOR_INFO(RS_STACKDATA *stack, int argc) {
-    int dungeonNo = GetStackInt__FP12RS_STACKDATA__2(stack++);
-    int floorNo = GetStackInt__FP12RS_STACKDATA__2(stack++);
-    int field = GetStackInt__FP12RS_STACKDATA__2(stack++);
+
+/**
+ * Returns the floor info.
+ */
+static int _GET_FLOOR_INFO(RS_STACKDATA *stack, int argc) {
+    int dungeonNo = GetStackInt(stack++);
+    int floorNo = GetStackInt(stack++);
+    int field = GetStackInt(stack++);
     CSaveData *save = GetSaveData();
     if (save == NULL) {
         return 0;
@@ -7815,38 +10298,43 @@ int _GET_FLOOR_INFO(RS_STACKDATA *stack, int argc) {
     }
     switch (field) {
         case 0:
-            SetStack__FP12RS_STACKDATAi__2(stack, info->unk_0);
+            SetStack(stack, info->unk_0);
             break;
         case 1:
-            SetStack__FP12RS_STACKDATAi__2(stack, info->fast_destroy_time);
+            SetStack(stack, info->fast_destroy_time);
             break;
         case 2:
-            SetStack__FP12RS_STACKDATAi__2(stack, info->unk_8);
+            SetStack(stack, info->unk_8);
             break;
         case 3:
-            SetStack__FP12RS_STACKDATAi__2(stack, info->unk_a);
+            SetStack(stack, info->unk_a);
             break;
         case 4:
-            SetStack__FP12RS_STACKDATAi__2(stack, info->spheda_clear);
+            SetStack(stack, info->spheda_clear);
             break;
         case 5:
-            SetStack__FP12RS_STACKDATAi__2(stack, info->flag);
+            SetStack(stack, info->flag);
             break;
         case 6:
-            SetStack__FP12RS_STACKDATAi__2(stack, info->kill_count);
+            SetStack(stack, info->kill_count);
             break;
         case 7:
-            SetStack__FP12RS_STACKDATAi__2(stack, info->visit_count);
+            SetStack(stack, info->visit_count);
             break;
         default:
-            return 0;
+        return 0;
     }
     return 1;
 }
-int _GET_NEXT_FLOOR(RS_STACKDATA *stack, int argc) {
-    int floor = GetStackInt__FP12RS_STACKDATA__2(stack++);
-    int route = GetStackInt__FP12RS_STACKDATA__2(stack++);
-    DNG_BATTLE_AREA *dngScene = &((CScene *)EventScene)->battle_area;
+
+/**
+ * Returns the next floor.
+ */
+static int _GET_NEXT_FLOOR(RS_STACKDATA *stack, int argc) {
+    int result;
+    int floor = GetStackInt(stack++);
+    int route = GetStackInt(stack++);
+    DNG_BATTLE_AREA *dngScene = &(EventScene)->battle_area;
     if (dngScene == NULL) {
         return 0;
     }
@@ -7854,25 +10342,37 @@ int _GET_NEXT_FLOOR(RS_STACKDATA *stack, int argc) {
     if (floorManager == NULL) {
         return 0;
     }
-    argc = floorManager->GetDngMapNextFloorID(floor, route);
-    SetStack__FP12RS_STACKDATAi__2(stack, argc);
+    result = floorManager->GetDngMapNextFloorID(floor, route);
+    SetStack(stack, result);
     return 1;
 }
-int _PAD_AUTO_REPEAT_OFF(RS_STACKDATA *stack, int argc) {
+
+/**
+ * Disables automatic repeating of pad input.
+ */
+static int _PAD_AUTO_REPEAT_OFF(RS_STACKDATA *stack, int argc) {
     GamePad__2.AutoRepeatOff();
     return 1;
 }
-int _PAD_SET_AUTO_REPEAT(RS_STACKDATA *stack, int argc) {
-    int mask = GetStackInt__FP12RS_STACKDATA__2(stack++);
-    int delay = GetStackInt__FP12RS_STACKDATA__2(stack++);
-    int interval = GetStackInt__FP12RS_STACKDATA__2(stack);
+
+/**
+ * Sets the pad auto repeat.
+ */
+static int _PAD_SET_AUTO_REPEAT(RS_STACKDATA *stack, int argc) {
+    int mask = GetStackInt(stack++);
+    int delay = GetStackInt(stack++);
+    int interval = GetStackInt(stack);
     GamePad__2.SetAutoRepeat(mask, delay, interval);
     return 1;
 }
-int _DNG_PAUSE(RS_STACKDATA *stack, int argc) {
-    int mask = GetStackInt__FP12RS_STACKDATA__2(stack++);
-    int enable = GetStackInt__FP12RS_STACKDATA__2(stack);
-    DNG_BATTLE_AREA *dngScene = &((CScene *)EventScene)->battle_area;
+
+/**
+ * Pauses the dungeon.
+ */
+static int _DNG_PAUSE(RS_STACKDATA *stack, int argc) {
+    int mask = GetStackInt(stack++);
+    int enable = GetStackInt(stack);
+    DNG_BATTLE_AREA *dngScene = &(EventScene)->battle_area;
     if (dngScene == NULL) {
         return 0;
     }
@@ -7883,37 +10383,53 @@ int _DNG_PAUSE(RS_STACKDATA *stack, int argc) {
     }
     return 1;
 }
-int _DNG_CHECK_PAUSE(RS_STACKDATA *stack, int argc) {
-    int mask = GetStackInt__FP12RS_STACKDATA__2(stack++);
-    DNG_BATTLE_AREA *dngScene = &((CScene *)EventScene)->battle_area;
+
+/**
+ * Checks the dungeon pause.
+ */
+static int _DNG_CHECK_PAUSE(RS_STACKDATA *stack, int argc) {
+    int mask = GetStackInt(stack++);
+    DNG_BATTLE_AREA *dngScene = &(EventScene)->battle_area;
     if (dngScene == NULL) {
         return 0;
     }
     int pauseFlags = dngScene->pause_flag;
-    SetStack__FP12RS_STACKDATAi__2(stack, pauseFlags & mask);
+    SetStack(stack, pauseFlags & mask);
     return 1;
 }
-int _DNG_RESET_TIMER(RS_STACKDATA *stack, int argc) {
+
+/**
+ * Resets the dungeon timer.
+ */
+static int _DNG_RESET_TIMER(RS_STACKDATA *stack, int argc) {
     DNG_BATTLE_AREA *dngScene;
 
-    dngScene = &((CScene *)EventScene)->battle_area;
+    dngScene = &(EventScene)->battle_area;
     if (dngScene == NULL) {
         return 0;
     }
     dngScene->timer = 0;
     return 1;
 }
-int _DNG_GET_TIMER(RS_STACKDATA *stack, int argc) {
+
+/**
+ * Returns the dungeon timer.
+ */
+static int _DNG_GET_TIMER(RS_STACKDATA *stack, int argc) {
     DNG_BATTLE_AREA *dngScene;
 
-    dngScene = &((CScene *)EventScene)->battle_area;
+    dngScene = &(EventScene)->battle_area;
     if (dngScene == NULL) {
         return 0;
     }
-    SetStack__FP12RS_STACKDATAi__2(stack, dngScene->timer);
+    SetStack(stack, dngScene->timer);
     return 1;
 }
-int _LOAD_SKIN(RS_STACKDATA *stack, int argc) {
+
+/**
+ * Loads the skin.
+ */
+static int _LOAD_SKIN(RS_STACKDATA *stack, int argc) {
     int stackNo;
     int imageBlock;
     int charaNo;
@@ -7923,56 +10439,64 @@ int _LOAD_SKIN(RS_STACKDATA *stack, int argc) {
     CCharacter2 *chara;
     mgCMemory *sceneStack;
     mgCTextureManager *texManager;
-    stackNo = GetStackInt__FP12RS_STACKDATA__2(stack++);
+    stackNo = GetStackInt(stack++);
     switch (stack->type) {
-        case 0:
-            packFile = (char *)GetItemFilePath(GetStackInt__FP12RS_STACKDATA__2(stack++), 0);
+        case RS_INT:
+            packFile = (char *)GetItemFilePath(GetStackInt(stack++), 0);
             break;
-        case 2:
-            packFile = GetStackString__FP12RS_STACKDATA__2(stack++);
+        case RS_STR:
+            packFile = GetStackString(stack++);
             break;
     }
-    infoName = GetStackString__FP12RS_STACKDATA__2(stack++);
-    charaNo = GetStackInt__FP12RS_STACKDATA__2(stack);
+    infoName = GetStackString(stack++);
+    charaNo = GetStackInt(stack);
     if ((chara = GetCharacter(charaNo)) == NULL) {
         return 0;
     }
-    if (0 > (imageBlock = ((CScene *)EventScene)->GetCharaTexb(charaNo))) {
+    if (0 > (imageBlock = (EventScene)->GetCharaTexb(charaNo))) {
         return 0;
     }
-    if ((sceneStack = (mgCMemory *)((CScene *)EventScene)->GetStack(stackNo)) == NULL) {
+    if ((sceneStack = EventScene->GetStack(stackNo)) == NULL) {
         return 0;
     }
 
     if ((packFile = (char *)GetLoadBGBuff(packFile, 0)) == 0) {
         return 0;
     }
-    sprintf(name, at_2292__2, charaNo);
+    sprintf(name, "ev%d", charaNo);
     texManager = &mgTexManager;
     if (charaNo >= 8) {
         strcpy(texManager->name_suffix, name);
     }
-    chara->LoadSkin((u32 *)packFile, infoName, at_1083, sceneStack, imageBlock);
+    chara->LoadSkin((u32 *)packFile, infoName, "", sceneStack, imageBlock);
     if (charaNo >= 8) {
         texManager->name_suffix[0] = 0;
     }
     return 1;
 }
+
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/event_func", _CHK_CAMERA_COL__FP12RS_STACKDATAi);
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/event_func", _GET_PARTS_FUNC_POS__FP12RS_STACKDATAi);
-int _RANDOM_CIRCLE_GET_POS(RS_STACKDATA *stack, int argc) {
+/**
+ * Returns the random circle position.
+ */
+static int _RANDOM_CIRCLE_GET_POS(RS_STACKDATA *stack, int argc) {
     float pos[3];
-    int circleId = GetStackInt__FP12RS_STACKDATA__2(stack++);
+    int circleId = GetStackInt(stack++);
     if (RandomCircle.GetPosition( pos, circleId) <= -1) {
         return 0;
     }
-    SetStack__FP12RS_STACKDATAf__2(stack++, pos[0]);
-    SetStack__FP12RS_STACKDATAf__2(stack++, pos[1]);
-    SetStack__FP12RS_STACKDATAf__2(stack, pos[2]);
+    SetStack(stack++, pos[0]);
+    SetStack(stack++, pos[1]);
+    SetStack(stack, pos[2]);
     return 1;
 }
-int _RANDOM_CIRCLE_OFF(RS_STACKDATA *stack, int argc) {
-    int circleId = GetStackInt__FP12RS_STACKDATA__2(stack);
+
+/**
+ * Deactivates a selected random circle, or the current hit circle when the script passes -1.
+ */
+static int _RANDOM_CIRCLE_OFF(RS_STACKDATA *stack, int argc) {
+    int circleId = GetStackInt(stack);
     if (circleId == -1) {
         int current = RandomCircle.hit;
         if (current != -1) {
@@ -7983,97 +10507,156 @@ int _RANDOM_CIRCLE_OFF(RS_STACKDATA *stack, int argc) {
     }
     return 1;
 }
-int _DNG_XCHG_MAP_LIGHT(RS_STACKDATA *stack, int argc) {
+
+/**
+ * Swaps the current map first eight light sets with the following eight.
+ */
+static int _DNG_XCHG_MAP_LIGHT(RS_STACKDATA *stack, int argc) {
     XChgMapLighting();
     return 1;
 }
-int _GEOSTONE_ANIME_OFF(RS_STACKDATA *stack, int argc) {
+
+/**
+ * Disables Geostone animation.
+ */
+static int _GEOSTONE_ANIME_OFF(RS_STACKDATA *stack, int argc) {
     GeoStone.anime = 0;
     return 1;
 }
-int _GEOSTONE_SET_FLAG(RS_STACKDATA *stack, int argc) {
-    GeoStone.SetFlag( GetStackInt__FP12RS_STACKDATA__2(stack));
+
+/**
+ * Sets the geostone flag.
+ */
+static int _GEOSTONE_SET_FLAG(RS_STACKDATA *stack, int argc) {
+    GeoStone.SetFlag(GetStackInt(stack));
     return 1;
 }
+
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/event_func", _GEOSTONE_SET_REFERENCE__FP12RS_STACKDATAi);
-int _GEOSTONE_DEL_REFERENCE(RS_STACKDATA *stack, int argc) {
+/**
+ * Deletes the references of the Geostone model frame.
+ */
+static int _GEOSTONE_DEL_REFERENCE(RS_STACKDATA *stack, int argc) {
     if (GeoStone.CObjectFrame::frame == NULL) {
         return 0;
     }
     GeoStone.CObjectFrame::frame->DeleteReference();
     return 1;
 }
-int _GET_ROBO_MOVE_TYPE(RS_STACKDATA *stack, int argc) {
-    SetStack__FP12RS_STACKDATAi__2(stack, ((CActionChara *)GetCharacter(0))->move_type);
+
+/**
+ * Returns the robo move type.
+ */
+static int _GET_ROBO_MOVE_TYPE(RS_STACKDATA *stack, int argc) {
+    SetStack(stack, ((CActionChara *)GetCharacter(0))->move_type);
     return 1;
 }
-int _SET_EXIT_FLAG(RS_STACKDATA *stack, int argc) {
-    ((CScene *)EventScene)->exit_flag = GetStackInt__FP12RS_STACKDATA__2(stack);
+
+/**
+ * Sets the exit flag.
+ */
+static int _SET_EXIT_FLAG(RS_STACKDATA *stack, int argc) {
+    EventScene->exit_flag = GetStackInt(stack);
     return 1;
 }
-int _GET_EXIT_FLAG(RS_STACKDATA *stack, int argc) {
-    SetStack__FP12RS_STACKDATAi__2(stack, ((CScene *)EventScene)->exit_flag);
+
+/**
+ * Returns the exit flag.
+ */
+static int _GET_EXIT_FLAG(RS_STACKDATA *stack, int argc) {
+    SetStack(stack, EventScene->exit_flag);
     return 1;
 }
-int _GET_E3_VERSION(RS_STACKDATA *stack, int argc) {
-    SetStack__FP12RS_STACKDATAi__2(stack, 0);
+
+/**
+ * Returns zero for the E3-version script query.
+ */
+static int _GET_E3_VERSION(RS_STACKDATA *stack, int argc) {
+    SetStack(stack, 0);
     return 1;
 }
-int _CHK_PAD_CTRL(RS_STACKDATA *stack, int argc) {
-    int pressed;
+
+/**
+ * Returns the requested pad-control button state when two script arguments are present.
+ */
+static int _CHK_PAD_CTRL(RS_STACKDATA *stack, int argc) {
     if (argc != 2) {
         return 0;
     }
-    pressed = PadCtrl.Btn(GetStackInt__FP12RS_STACKDATA__2(stack++));
-    SetStack__FP12RS_STACKDATAi__2(stack, pressed);
+    int button = GetStackInt(stack++);
+    SetStack(stack, PadCtrl.Btn(button));
     return 1;
 }
-int _CTRLC_STAY(RS_STACKDATA *stack, int argc) {
-    CCameraControl *camera = (CCameraControl *)GetCamera();
+
+/**
+ * Stops the active camera controller from moving.
+ */
+static int _CTRLC_STAY(RS_STACKDATA *stack, int argc) {
+    CCameraControl *camera = GetCamera();
     camera->Stay();
     return 1;
 }
+
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/event_func", _BSCN_SET_BLIGHT_RATE__FP12RS_STACKDATAi);
-int _GET_RND_CIRCLE_TRAPID(RS_STACKDATA *stack, int argc) {
-    int circleId = GetStackInt__FP12RS_STACKDATA__2(stack++);
-    SetStack__FP12RS_STACKDATAi__2(stack, GetRandomCircleTrapID(circleId));
+/**
+ * Returns the trap identifier of a selected random circle.
+ */
+static int _GET_RND_CIRCLE_TRAPID(RS_STACKDATA *stack, int argc) {
+    int circleId = GetStackInt(stack++);
+    SetStack(stack, GetRandomCircleTrapID(circleId));
     return 1;
 }
-int _SET_RND_CIRCLE_STATUS(RS_STACKDATA *stack, int argc) {
+
+/**
+ * Sets the rnd circle status.
+ */
+static int _SET_RND_CIRCLE_STATUS(RS_STACKDATA *stack, int argc) {
     float result;
-    int circleId = GetStackInt__FP12RS_STACKDATA__2(stack++);
+    int circleId = GetStackInt(stack++);
     SetRandamCircleStatus(circleId, result);
-    SetStack__FP12RS_STACKDATAf__2(stack, result);
+    SetStack(stack, result);
     return 1;
 }
+
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/event_func", _SET_STATUSBAR_SHOW__FP12RS_STACKDATAi);
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/event_func", _SET_PULL_ITEM__FP12RS_STACKDATAi);
-int _MENU_CHARA_CHENGE(RS_STACKDATA *stack, int argc) {
-    GetStackInt__FP12RS_STACKDATA__2(stack);
-    MenuArg.open_type = 0xE;
-    EdEventInfo.command_mode = 3;
+/**
+ * Opens the dungeon party-character change menu and suspends the event script for it.
+ */
+static int _MENU_CHARA_CHENGE(RS_STACKDATA *stack, int argc) {
+    GetStackInt(stack);
+    MenuArg.open_type = MENU_OPEN_CHARA_CHANGE_DUNGEON;
+    EdEventInfo.command_mode = EVENT_COMMAND_SUB_MODE;
     return 1;
 }
-int _GET_EVENT_INFO_SNDID(RS_STACKDATA *stack, int argc) {
-    int index = GetStackInt__FP12RS_STACKDATA__2(stack++);
-    SetStack__FP12RS_STACKDATAi__2(stack, EdEventInfo.snd_id[index]);
+
+/**
+ * Returns the sound-bank handle stored in a selected event sound port.
+ */
+static int _GET_EVENT_INFO_SNDID(RS_STACKDATA *stack, int argc) {
+    int index = GetStackInt(stack++);
+    SetStack(stack, EdEventInfo.snd_id[index]);
     return 1;
 }
-int _GET_PARTS_POS(RS_STACKDATA *stack, int argc) {
+
+/**
+ * Returns the parts position.
+ */
+static int _GET_PARTS_POS(RS_STACKDATA *stack, int argc) {
     CMap *maps[8];
-    float pos[4];
+    sceVu0FVECTOR pos;
     CMapParts *parts;
     int mapCount;
     int i;
     int partsId;
     char *partsName;
-    mapCount = ((CScene *)EventScene)->GetActiveMap(maps, 8);
+    mapCount = (EventScene)->GetActiveMap(maps, 8);
     if (!(mapCount > 0)) {
         return 0;
     }
     switch (stack->type) {
         case 0:
-            partsId = GetStackInt__FP12RS_STACKDATA__2(stack++);
+            partsId = GetStackInt(stack++);
             for (i = 0; i < mapCount; i++) {
                 parts = maps[i]->GetPlaceParts( partsId);
                 if (parts != NULL) {
@@ -8082,7 +10665,7 @@ int _GET_PARTS_POS(RS_STACKDATA *stack, int argc) {
             }
             break;
         case 2:
-            partsName = GetStackString__FP12RS_STACKDATA__2(stack++);
+            partsName = GetStackString(stack++);
             for (i = 0; i < mapCount; i++) {
                 parts = maps[i]->GetPlaceParts( partsName);
                 if (parts != NULL) {
@@ -8095,42 +10678,62 @@ int _GET_PARTS_POS(RS_STACKDATA *stack, int argc) {
         return 0;
     }
     parts->GetPosition(pos);
-    SetStack__FP12RS_STACKDATAf__2(stack++, pos[0]);
-    SetStack__FP12RS_STACKDATAf__2(stack++, pos[1]);
-    SetStack__FP12RS_STACKDATAf__2(stack, pos[2]);
+    SetStack(stack++, pos[0]);
+    SetStack(stack++, pos[1]);
+    SetStack(stack, pos[2]);
     return 1;
 }
-int _CANCEL_DRAMA_SCENE(RS_STACKDATA *stack, int argc) {
+
+/**
+ * Disables skipping of the running drama scene.
+ */
+static s32 _CANCEL_DRAMA_SCENE(RS_STACKDATA *stack, s32 argc) {
     CancelDramaScene();
     return 1;
 }
-int _GET_RNDC_MOT_NOWT(RS_STACKDATA *stack, int argc) {
+
+/**
+ * Returns the rndc motion nowt.
+ */
+static int _GET_RNDC_MOT_NOWT(RS_STACKDATA *stack, int argc) {
     float weight = RandomCircle.model.frame;
-    SetStack__FP12RS_STACKDATAf__2(stack, weight);
+    SetStack(stack, weight);
     return 1;
 }
+
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/event_func", _SET_CHARA_MOT_NOWT__FP12RS_STACKDATAi);
-int _CHARA_NORMAL_DRIVE(RS_STACKDATA *stack, int argc) {
+/**
+ * Returns a selected scene character to its normal behaviour.
+ */
+static int _CHARA_NORMAL_DRIVE(RS_STACKDATA *stack, int argc) {
     CCharacter2 *chara;
-    chara = GetCharacter(GetStackInt__FP12RS_STACKDATA__2(stack));
+    chara = GetCharacter(GetStackInt(stack));
     if (chara == NULL) {
         return 0;
     }
     chara->NormalDrive();
     return 1;
 }
-int _CHARA_RESET_DA(RS_STACKDATA *stack, int argc) {
+
+/**
+ * Resets the character deformation animation.
+ */
+static int _CHARA_RESET_DA(RS_STACKDATA *stack, int argc) {
     CCharacter2 *chara;
 
-    if ((chara = GetCharacter(GetStackInt__FP12RS_STACKDATA__2(stack))) == NULL) {
+    if ((chara = GetCharacter(GetStackInt(stack))) == NULL) {
         return 0;
     }
     chara->ResetDAPosition();
     chara->StepDA(0xA);
     return 1;
 }
+
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/event_func", _DNG_SETUP_MAIN_UNIT__FP12RS_STACKDATAi);
-int _JOIN_PARTY_MEMBER(RS_STACKDATA *stack, int argc) {
+/**
+ * Adds or removes a party character, or returns that character membership through a reference slot.
+ */
+static int _JOIN_PARTY_MEMBER(RS_STACKDATA *stack, int argc) {
     int charaNo;
     CUserDataManager *userData;
     CSaveData *save = GetSaveData();
@@ -8141,26 +10744,30 @@ int _JOIN_PARTY_MEMBER(RS_STACKDATA *stack, int argc) {
     if (userData == NULL) {
         return 0;
     }
-    charaNo = GetStackInt__FP12RS_STACKDATA__2(stack++);
+    charaNo = GetStackInt(stack++);
     switch (stack->type) {
-        case 0:
-            if (GetStackInt__FP12RS_STACKDATA__2(stack) == 1) {
+        case RS_INT:
+            if (GetStackInt(stack) == 1) {
                 userData->JoinPartyMember(charaNo);
             } else {
                 userData->LeavePartyMember(charaNo);
             }
             break;
-        case 3: {
+        case RS_PTR: {
             int members = userData->GetNowPartyMember();
-            SetStack__FP12RS_STACKDATAi__2(stack, (members & (1 << charaNo)) ? 1 : 0);
+            SetStack(stack, (members & (1 << charaNo)) ? 1 : 0);
             break;
         }
         default:
-            return 0;
+        return 0;
     }
     return 1;
 }
-int _SET_CHARA_CHANGE_FLAG(RS_STACKDATA *stack, int argc) {
+
+/**
+ * Sets the character change flag.
+ */
+static int _SET_CHARA_CHANGE_FLAG(RS_STACKDATA *stack, int argc) {
     int charaNo;
     CUserDataManager *userData;
     CSaveData *save = GetSaveData();
@@ -8171,15 +10778,19 @@ int _SET_CHARA_CHANGE_FLAG(RS_STACKDATA *stack, int argc) {
     if (userData == NULL) {
         return 0;
     }
-    charaNo = GetStackInt__FP12RS_STACKDATA__2(stack++);
-    if (GetStackInt__FP12RS_STACKDATA__2(stack) == 1) {
+    charaNo = GetStackInt(stack++);
+    if (GetStackInt(stack) == 1) {
         userData->EnableCharaChange(charaNo);
     } else {
         userData->DisableCharaChange(charaNo);
     }
     return 1;
 }
-int _SET_CHARA_CHANGE_MASK(RS_STACKDATA *stack, int argc) {
+
+/**
+ * Sets the character change mask.
+ */
+static int _SET_CHARA_CHANGE_MASK(RS_STACKDATA *stack, int argc) {
     int charaNo;
     CUserDataManager *userData;
     CSaveData *save = GetSaveData();
@@ -8190,15 +10801,19 @@ int _SET_CHARA_CHANGE_MASK(RS_STACKDATA *stack, int argc) {
     if (userData == NULL) {
         return 0;
     }
-    charaNo = GetStackInt__FP12RS_STACKDATA__2(stack++);
-    if (GetStackInt__FP12RS_STACKDATA__2(stack) == 1) {
+    charaNo = GetStackInt(stack++);
+    if (GetStackInt(stack) == 1) {
         userData->EnableCharaChangeMask(charaNo);
     } else {
         userData->DisableCharaChangeMask(charaNo);
     }
     return 1;
 }
-int _SET_CHARA_EQUIP(RS_STACKDATA *stack, int argc) {
+
+/**
+ * Sets the character equip.
+ */
+static int _SET_CHARA_EQUIP(RS_STACKDATA *stack, int argc) {
     int charaNo;
     int itemNo;
     CSaveData *save = GetSaveData();
@@ -8209,33 +10824,45 @@ int _SET_CHARA_EQUIP(RS_STACKDATA *stack, int argc) {
     if (userData == NULL) {
         return 0;
     }
-    charaNo = GetStackInt__FP12RS_STACKDATA__2(stack++);
-    itemNo = GetStackInt__FP12RS_STACKDATA__2(stack);
+    charaNo = GetStackInt(stack++);
+    itemNo = GetStackInt(stack);
     return userData->SetChrEquip(charaNo, itemNo);
 }
-int _LOAD_PACK_FILE(RS_STACKDATA *stack, int argc) {
-    if (GetLoadBGBuff(GetStackString__FP12RS_STACKDATA__2(stack), 0) == 0) {
+
+/**
+ * Loads the pack file.
+ */
+static int _LOAD_PACK_FILE(RS_STACKDATA *stack, int argc) {
+    if (GetLoadBGBuff(GetStackString(stack), 0) == 0) {
         return 0;
     }
     EdEventInfo.pack_loaded = 1;
     return 1;
 }
-int _SET_BIT_CTRL(RS_STACKDATA *stack, int argc) {
+
+/**
+ * Sets the bit ctrl.
+ */
+static int _SET_BIT_CTRL(RS_STACKDATA *stack, int argc) {
     CSaveData *save;
     int bit;
 
     if ((save = GetSaveData()) == NULL) {
         return 0;
     }
-    bit = (int)(GetStackInt__FP12RS_STACKDATA__2(stack++));
-    if (GetStackInt__FP12RS_STACKDATA__2(stack) == 1) {
+    bit = GetStackInt(stack++);
+    if (GetStackInt(stack) == 1) {
         save->SetBitCtrl(bit);
     } else {
         save->ResetBitCtrl(bit);
     }
     return 1;
 }
-int _GET_BIT_CTRL(RS_STACKDATA *stack, int argc) {
+
+/**
+ * Returns the bit ctrl.
+ */
+static int _GET_BIT_CTRL(RS_STACKDATA *stack, int argc) {
     CSaveData *save;
     int bit;
     int ctrl;
@@ -8243,78 +10870,119 @@ int _GET_BIT_CTRL(RS_STACKDATA *stack, int argc) {
     if ((save = GetSaveData()) == NULL) {
         return 0;
     }
-    bit = (int)(GetStackInt__FP12RS_STACKDATA__2(stack++));
+    bit = GetStackInt(stack++);
     ctrl = save->GetBitCtrl();
-    SetStack__FP12RS_STACKDATAi__2(stack, (ctrl & bit) ? 1 : 0);
+    SetStack(stack, (ctrl & bit) ? 1 : 0);
     return 1;
 }
+
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/event_func", _LOAD_ARG__FP12RS_STACKDATAi);
-int _GET_ITEM_HAVE_NUM(RS_STACKDATA *stack, int argc) {
-    int itemId = GetStackInt__FP12RS_STACKDATA__2(stack++);
-    argc = GetUserItemHaveNum(itemId);
-    SetStack__FP12RS_STACKDATAi__2(stack, argc);
+/**
+ * Returns the item have count.
+ */
+static int _GET_ITEM_HAVE_NUM(RS_STACKDATA *stack, int argc) {
+    int result;
+    int itemId = GetStackInt(stack++);
+    result = GetUserItemHaveNum(itemId);
+    SetStack(stack, result);
     return 1;
 }
-int _SET_SKIP_BOTTON(RS_STACKDATA *stack, int argc) {
+
+/**
+ * Sets the skip botton.
+ */
+static int _SET_SKIP_BOTTON(RS_STACKDATA *stack, int argc) {
     if (argc != 1) {
         return 0;
     }
-    EdEventInfo.skip_button = GetStackInt__FP12RS_STACKDATA__2(stack);
+    EdEventInfo.skip_button = GetStackInt(stack);
     return 1;
 }
-int _SET_SKIP_FCOL(RS_STACKDATA *stack, int argc) {
+
+/**
+ * Sets the skip fade color.
+ */
+static int _SET_SKIP_FCOL(RS_STACKDATA *stack, int argc) {
     if (argc != 3) {
         return 0;
     }
-    GetStackVector__FPfP12RS_STACKDATA(EdEventInfo.skip_fade_color, stack);
+    GetStackVector(EdEventInfo.skip_fade_color, stack);
     EdEventInfo.skip_fade_color[3] = 0;
     return 1;
 }
+
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/event_func", _GET_DEBUG_MODE__FP12RS_STACKDATAi);
-int _GET_MAP_TYPE(RS_STACKDATA *stack, int argc) {
+/**
+ * Returns the map type.
+ */
+static int _GET_MAP_TYPE(RS_STACKDATA *stack, int argc) {
     int mapNo;
     RS_STACKDATA *result;
     switch (stack->type) {
         case 0:
             result = stack + 1;
-            mapNo = GetStackInt__FP12RS_STACKDATA__2(stack);
+            mapNo = GetStackInt(stack);
             break;
         case 2:
             result = stack + 1;
-            mapNo = SearchMapNo(GetStackString__FP12RS_STACKDATA__2(stack));
+            mapNo = SearchMapNo(GetStackString(stack));
             break;
         default:
-            return 0;
+        return 0;
     }
-    SetStack__FP12RS_STACKDATAi__2(result, GetMapType(mapNo));
+    SetStack(result, GetMapType(mapNo));
     return 1;
 }
-int _DNG_COLLISION_ALL_CLR(RS_STACKDATA *stack, int argc) {
+
+/**
+ * Clears dungeon collision primitives and associates their manager with the dungeon scene.
+ */
+static int _DNG_COLLISION_ALL_CLR(RS_STACKDATA *stack, int argc) {
     ColPrimMan.Initialize(DngMainScene);
     return 1;
 }
-int _SET_MAP_DRAW(RS_STACKDATA *stack, int argc) {
-    EdEventInfo.map_draw = GetStackInt__FP12RS_STACKDATA__2(stack);
+
+/**
+ * Shows or hides the map behind the event.
+ */
+static int _SET_MAP_DRAW(RS_STACKDATA *stack, int argc) {
+    EdEventInfo.map_draw = GetStackInt(stack);
     return 1;
 }
+
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/event_func", _CHECK_MC_LOAD__FP12RS_STACKDATAi);
-int _SET_NOW_MAP_NO(RS_STACKDATA *stack, int argc) {
-    ((CScene *)EventScene)->SetNowMapNo(GetStackInt__FP12RS_STACKDATA__2(stack));
+/**
+ * Sets the now map number.
+ */
+static int _SET_NOW_MAP_NO(RS_STACKDATA *stack, int argc) {
+    (EventScene)->SetNowMapNo(GetStackInt(stack));
     return 1;
 }
+
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/event_func", _GET_TBOX_PARAM__FP12RS_STACKDATAi);
-int _CANCEL_LOAD_VILLAGER(RS_STACKDATA *stack, int argc) {
-    CScene *scene = (CScene *)EventScene;
+/**
+ * Loads the cancel villager.
+ */
+static int _CANCEL_LOAD_VILLAGER(RS_STACKDATA *stack, int argc) {
+    CScene *scene = EventScene;
     scene->skip_load_sub_villager = 1;
     scene->skip_load_villager = 1;
     return 1;
 }
-int _CANCEL_NOW_LOADING(RS_STACKDATA *stack, int argc) {
+
+/**
+ * Suppresses the next loading-screen request.
+ */
+static int _CANCEL_NOW_LOADING(RS_STACKDATA *stack, int argc) {
     CancelNowLoading();
     return 1;
 }
+
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/event_func", _ESM_INITIALIZE__FP12RS_STACKDATAi);
-int _ESM_INIT_FIX(RS_STACKDATA *stack, int argc) {
+/**
+ * Allocates a work buffer in the selected scene stack for the event effect-script manager.
+ */
+static int _ESM_INIT_FIX(RS_STACKDATA *stack, int argc) {
     int stackNo;
     int heapSize;
     mgCMemory *sceneStack;
@@ -8323,14 +10991,15 @@ int _ESM_INIT_FIX(RS_STACKDATA *stack, int argc) {
         return 0;
     }
     heapSize = 0x36B0;
-    stackNo = GetStackInt__FP12RS_STACKDATA__2(stack++);
+    stackNo = GetStackInt(stack++);
     if (argc >= 2) {
-        heapSize = GetStackInt__FP12RS_STACKDATA__2(stack);
+        heapSize = GetStackInt(stack);
     }
-    if ((sceneStack = (mgCMemory *)((CScene *)EventScene)->GetStack(stackNo)) == NULL) {
+    if ((sceneStack = EventScene->GetStack(stackNo)) == NULL) {
         return 0;
     }
-    if ((heap = (mgCMemory *)operator new(0x30, (u_long128 *)sceneStack->Alloc(5))) != NULL) {
+    if ((heap = (mgCMemory *)operator new(sizeof(mgCMemory),
+                                           (u_long128 *)sceneStack->Alloc(5))) != NULL) {
         heap->Init();
     }
     if (heap == NULL) {
@@ -8342,7 +11011,11 @@ int _ESM_INIT_FIX(RS_STACKDATA *stack, int argc) {
     EventEffectScript->SetWorkBuffer(heap);
     return 1;
 }
-int _ESM_CLEAR(RS_STACKDATA *stack, int argc) {
+
+/**
+ * Clears the effect script.
+ */
+static int _ESM_CLEAR(RS_STACKDATA *stack, int argc) {
     int clearedBlocks[68];
     mgCMemory *workBuffer;
     mgCTextureManager *texManager;
@@ -8362,7 +11035,7 @@ int _ESM_CLEAR(RS_STACKDATA *stack, int argc) {
     texManager = &mgTexManager;
     EventEffectScript = 0;
     for (i = 0; i < 64; i++) {
-        printf(at_9148, clearedBlocks[i]);
+        printf("[ESM_CLEAR] DEL TEXB = %d\n", clearedBlocks[i]);
 
         if (clearedBlocks[i] <= -1) {
             break;
@@ -8371,7 +11044,11 @@ int _ESM_CLEAR(RS_STACKDATA *stack, int argc) {
     }
     return 1;
 }
-int _ESM_LOAD_BASE(RS_STACKDATA *stack, int argc) {
+
+/**
+ * Loads the effect script base.
+ */
+static int _ESM_LOAD_BASE(RS_STACKDATA *stack, int argc) {
     int ret;
 
     if (EventEffectScript == NULL) {
@@ -8379,10 +11056,10 @@ int _ESM_LOAD_BASE(RS_STACKDATA *stack, int argc) {
     }
     switch (stack->type) {
         case 0:
-            ret = EventEffectScript->LoadBaseEffSpt(GetStackInt__FP12RS_STACKDATA__2(stack), NULL, -1);
+            ret = EventEffectScript->LoadBaseEffSpt(GetStackInt(stack), NULL, -1);
             break;
         case 2:
-            ret = EventEffectScript->LoadBaseEffSpt(GetStackString__FP12RS_STACKDATA__2(stack), NULL, -1);
+            ret = EventEffectScript->LoadBaseEffSpt(GetStackString(stack), NULL, -1);
             break;
         default:
             ret = 0;
@@ -8390,29 +11067,41 @@ int _ESM_LOAD_BASE(RS_STACKDATA *stack, int argc) {
     }
     return ret;
 }
+
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/event_func", _ESM_CREATE__FP12RS_STACKDATAi__2);
-extern "C" int _ESM_FINISH__FP12RS_STACKDATAi__2(RS_STACKDATA *stack, int argc) {
+/**
+ * Selects effect-script program 300 for the requested group and object.
+ */
+static int _ESM_FINISH(RS_STACKDATA *stack, int argc) {
     int group;
-    RS_STACKDATA *nextSlot = (RS_STACKDATA *)((u8 *)stack + 8);
+    RS_STACKDATA *nextSlot = stack + 1;
 
     if (EventEffectScript == NULL) {
         return 0;
     }
-    group = GetStackInt__FP12RS_STACKDATA__2(stack);
-    EventEffectScript->SetScriptProgNo(0x12C, group, GetStackInt__FP12RS_STACKDATA__2(nextSlot));
+    group = GetStackInt(stack);
+    EventEffectScript->SetScriptProgNo(0x12C, group, GetStackInt(nextSlot));
     return 1;
 }
-extern "C" int _ESM_DELETE__FP12RS_STACKDATAi__2(RS_STACKDATA *stack, int argc) {
+
+/**
+ * Deletes the effect script.
+ */
+static int _ESM_DELETE(RS_STACKDATA *stack, int argc) {
     if (EventEffectScript == NULL) {
         return 0;
     }
-    int group = GetStackInt__FP12RS_STACKDATA__2(stack++);
-    EventEffectScript->DeleteEffSpt(group, GetStackInt__FP12RS_STACKDATA__2(stack));
+    int group = GetStackInt(stack++);
+    EventEffectScript->DeleteEffSpt(group, GetStackInt(stack));
     return 1;
 }
+
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/event_func", _ESM_SET_VECT1__FP12RS_STACKDATAi__2);
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/event_func", _ESM_SET_VECT2__FP12RS_STACKDATAi__2);
-extern "C" int _ESM_SET_TARGET_ID__FP12RS_STACKDATAi__2(RS_STACKDATA *stack, int argc) {
+/**
+ * Sets the effect script target id.
+ */
+static int _ESM_SET_TARGET_ID(RS_STACKDATA *stack, int argc) {
     int param1;
     int param2;
     int ret;
@@ -8422,12 +11111,12 @@ extern "C" int _ESM_SET_TARGET_ID__FP12RS_STACKDATAi__2(RS_STACKDATA *stack, int
     }
     switch (argc) {
         case 1:
-            ret = EventEffectScript->SetScriptTargetId(GetStackInt__FP12RS_STACKDATA__2(stack), -1, -1);
+            ret = EventEffectScript->SetScriptTargetId(GetStackInt(stack), -1, -1);
             break;
         case 3:
-            param1 = GetStackInt__FP12RS_STACKDATA__2(stack++);
-            param2 = GetStackInt__FP12RS_STACKDATA__2(stack++);
-            ret = EventEffectScript->SetScriptTargetId(GetStackInt__FP12RS_STACKDATA__2(stack), param1, param2);
+            param1 = GetStackInt(stack++);
+            param2 = GetStackInt(stack++);
+            ret = EventEffectScript->SetScriptTargetId(GetStackInt(stack), param1, param2);
             break;
         default:
             ret = 0;
@@ -8435,8 +11124,12 @@ extern "C" int _ESM_SET_TARGET_ID__FP12RS_STACKDATAi__2(RS_STACKDATA *stack, int
     }
     return ret;
 }
+
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/event_func", _ESM_LOAD_BASE_PACK__FP12RS_STACKDATAi);
-extern "C" int _ESM_SET_VALUE__FP12RS_STACKDATAi__2(RS_STACKDATA *stack, int argc) {
+/**
+ * Sets the effect script value.
+ */
+static int _ESM_SET_VALUE(RS_STACKDATA *stack, int argc) {
     int valueNo;
     int group;
     int slot;
@@ -8447,39 +11140,43 @@ extern "C" int _ESM_SET_VALUE__FP12RS_STACKDATAi__2(RS_STACKDATA *stack, int arg
     }
     switch (argc) {
         case 2:
-            valueNo = GetStackInt__FP12RS_STACKDATA__2(stack++);
+            valueNo = GetStackInt(stack++);
             switch (stack->type) {
                 case 0:
-                    ret = EventEffectScript->SetValue(valueNo, GetStackInt__FP12RS_STACKDATA__2(stack), -1, -1);
+                    ret = EventEffectScript->SetValue(valueNo, GetStackInt(stack), -1, -1);
                     break;
                 case 1:
-                    ret = EventEffectScript->SetValue(valueNo, GetStackFloat__FP12RS_STACKDATA__2(stack), -1, -1);
+                    ret = EventEffectScript->SetValue(valueNo, GetStackFloat(stack), -1, -1);
                     break;
                 default:
-                    return 0;
+            return 0;
             }
             break;
         case 4:
-            group = GetStackInt__FP12RS_STACKDATA__2(stack++);
-            slot = GetStackInt__FP12RS_STACKDATA__2(stack++);
-            valueNo = GetStackInt__FP12RS_STACKDATA__2(stack++);
+            group = GetStackInt(stack++);
+            slot = GetStackInt(stack++);
+            valueNo = GetStackInt(stack++);
             switch (stack->type) {
                 case 0:
-                    ret = EventEffectScript->SetValue(valueNo, GetStackInt__FP12RS_STACKDATA__2(stack), group, slot);
+                    ret = EventEffectScript->SetValue(valueNo, GetStackInt(stack), group, slot);
                     break;
                 case 1:
-                    ret = EventEffectScript->SetValue(valueNo, GetStackFloat__FP12RS_STACKDATA__2(stack), group, slot);
+                    ret = EventEffectScript->SetValue(valueNo, GetStackFloat(stack), group, slot);
                     break;
                 default:
-                    return 0;
+            return 0;
             }
             break;
         default:
-            return 0;
+        return 0;
     }
     return ret;
 }
-int _SET_CHARA_CONDITION(RS_STACKDATA *stack, int argc) {
+
+/**
+ * Sets the character condition.
+ */
+static int _SET_CHARA_CONDITION(RS_STACKDATA *stack, int argc) {
     switch (argc) {
         case 2: {
             CBattleCharaInfo *info;
@@ -8487,8 +11184,8 @@ int _SET_CHARA_CONDITION(RS_STACKDATA *stack, int argc) {
             if ((info = GetBattleCharaInfo()) == 0) {
                 return 0;
             }
-            chara = GetStackInt__FP12RS_STACKDATA__2(stack++);
-            info->SetAttr(chara, GetStackInt__FP12RS_STACKDATA__2(stack));
+            chara = GetStackInt(stack++);
+            info->SetAttr(chara, GetStackInt(stack));
             break;
         }
         case 3: {
@@ -8499,68 +11196,95 @@ int _SET_CHARA_CONDITION(RS_STACKDATA *stack, int argc) {
             if ((userData = GetUserDataMan()) == NULL) {
                 return 0;
             }
-            charaNo = GetStackInt__FP12RS_STACKDATA__2(stack++);
-            attr = GetStackInt__FP12RS_STACKDATA__2(stack++);
-            value = GetStackInt__FP12RS_STACKDATA__2(stack);
+            charaNo = GetStackInt(stack++);
+            attr = GetStackInt(stack++);
+            value = GetStackInt(stack);
             if (userData != NULL) {
                 userData->SetCharaStatusAttirbute(charaNo, attr, value);
             }
             break;
         }
         default:
-            return 0;
+        return 0;
     }
     return 1;
 }
-int _ADD_WHP(RS_STACKDATA *stack, int argc) {
+
+/**
+ * Adds the weapon health.
+ */
+static int _ADD_WHP(RS_STACKDATA *stack, int argc) {
     CBattleCharaInfo *info;
     if ((info = GetBattleCharaInfo()) == 0) {
         return 0;
     }
-    int chara = GetStackInt__FP12RS_STACKDATA__2(stack++);
-    int amount = GetStackInt__FP12RS_STACKDATA__2(stack);
+    int chara = GetStackInt(stack++);
+    int amount = GetStackInt(stack);
     info->AddWhp(chara, amount);
     return 1;
 }
+
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/event_func", _ADD_HP_RATE__FP12RS_STACKDATAi);
-int _GET_TIME(RS_STACKDATA *stack, int argc) {
-    SetStack__FP12RS_STACKDATAf__2(stack, ((CScene *)EventScene)->time);
+/**
+ * Returns the time.
+ */
+static int _GET_TIME(RS_STACKDATA *stack, int argc) {
+    SetStack(stack, (EventScene)->time);
     return 1;
 }
-int _CHECK_GET_ITEM_LIMIT(RS_STACKDATA *stack, int argc) {
+
+/**
+ * Checks the get item limit.
+ */
+static int _CHECK_GET_ITEM_LIMIT(RS_STACKDATA *stack, int argc) {
+    int result;
     int itemId;
     int count;
     switch (argc) {
         case 1:
-            argc = CheckItemLimmitOver();
-            SetStack__FP12RS_STACKDATAi__2(stack, argc);
+            result = CheckItemLimmitOver();
+            SetStack(stack, result);
             break;
         case 3:
-            itemId = GetStackInt__FP12RS_STACKDATA__2(stack++);
-            count = GetStackInt__FP12RS_STACKDATA__2(stack++);
+            itemId = GetStackInt(stack++);
+            count = GetStackInt(stack++);
             count = CheckGetItemRemainNum(itemId) - count < 0 ? 0 : count;
-            SetStack__FP12RS_STACKDATAi__2(stack, count);
+            SetStack(stack, count);
             break;
         default:
-            return 0;
+        return 0;
     }
     return 1;
 }
-int _CHECK_ITEM_OVER(RS_STACKDATA *stack, int argc) {
-    argc = CheckItemOver();
-    SetStack__FP12RS_STACKDATAi__2(stack, argc);
+
+/**
+ * Checks the item over.
+ */
+static int _CHECK_ITEM_OVER(RS_STACKDATA *stack, int argc) {
+    int result;
+    result = CheckItemOver();
+    SetStack(stack, result);
     return 1;
 }
-int _GET_NOW_LOOP_NO(RS_STACKDATA *stack, int argc) {
-    argc = GetNowLoopNo();
-    SetStack__FP12RS_STACKDATAi__2(stack, argc);
+
+/**
+ * Returns the now loop number.
+ */
+static int _GET_NOW_LOOP_NO(RS_STACKDATA *stack, int argc) {
+    int result;
+    result = GetNowLoopNo();
+    SetStack(stack, result);
     return 1;
 }
-int _IS_CLEAR_DESTROY(RS_STACKDATA *stack, int argc) {
+
+/**
+ * Clears the is destroy.
+ */
+static int _IS_CLEAR_DESTROY(RS_STACKDATA *stack, int argc) {
     CDngFloorManager *floorManager;
     DNG_BATTLE_AREA *dngScene;
 
-    dngScene = &((CScene *)EventScene)->battle_area;
+    dngScene = &(EventScene)->battle_area;
     if (dngScene == 0) {
         return 0;
     }
@@ -8568,15 +11292,19 @@ int _IS_CLEAR_DESTROY(RS_STACKDATA *stack, int argc) {
     if (floorManager == NULL) {
         return 0;
     }
-    SetStack__FP12RS_STACKDATAi__2(stack, floorManager->IsClearMostFastDestroy());
+    SetStack(stack, floorManager->IsClearMostFastDestroy());
     return 1;
 }
+
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/event_func", _IS_CLEAR_PRACTICE__FP12RS_STACKDATAi);
-int _IS_PLAY_SUB_GAME(RS_STACKDATA *stack, int argc) {
+/**
+ * Plays the is sub game.
+ */
+static int _IS_PLAY_SUB_GAME(RS_STACKDATA *stack, int argc) {
     CDngFloorManager *floorManager;
     DNG_BATTLE_AREA *dngScene;
 
-    dngScene = &((CScene *)EventScene)->battle_area;
+    dngScene = &(EventScene)->battle_area;
     if (dngScene == 0) {
         return 0;
     }
@@ -8584,14 +11312,18 @@ int _IS_PLAY_SUB_GAME(RS_STACKDATA *stack, int argc) {
     if (floorManager == NULL) {
         return 0;
     }
-    SetStack__FP12RS_STACKDATAi__2(stack, floorManager->IsPlaySubGame());
+    SetStack(stack, floorManager->IsPlaySubGame());
     return 1;
 }
-int _RESET_SUBJECT_COUNTER(RS_STACKDATA *stack, int argc) {
+
+/**
+ * Resets the subject counter.
+ */
+static int _RESET_SUBJECT_COUNTER(RS_STACKDATA *stack, int argc) {
     DNG_BATTLE_AREA *dngScene;
     CSaveData *save;
 
-    dngScene = &((CScene *)EventScene)->battle_area;
+    dngScene = &(EventScene)->battle_area;
     if (dngScene == NULL) {
         return 0;
     }
@@ -8602,29 +11334,41 @@ int _RESET_SUBJECT_COUNTER(RS_STACKDATA *stack, int argc) {
     dngScene->subject_counter = (u32)save->play_time;
     return 1;
 }
+
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/event_func", _SCR_EFF_INIT_RASTER__FP12RS_STACKDATAi);
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/event_func", _SCR_EFF_START_RASTER__FP12RS_STACKDATAi);
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/event_func", _SCR_EFF_STOP_RASTER__FP12RS_STACKDATAi);
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/event_func", _SET_MPCHARA_MOTION__FP12RS_STACKDATAi);
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/event_func", _FUNC_POINT_POS__FP12RS_STACKDATAi);
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/event_func", _PARTS_NAME_STRCMP__FP12RS_STACKDATAi);
-int _GET_TRIAL_VERSION(RS_STACKDATA *stack, int argc) {
-    SetStack__FP12RS_STACKDATAi__2(stack, 0);
+/**
+ * Returns the trial version.
+ */
+static int _GET_TRIAL_VERSION(RS_STACKDATA *stack, int argc) {
+    SetStack(stack, 0);
     return 1;
 }
-int _SET_FLOOR_EPISODE(RS_STACKDATA *stack, int argc) {
-    StartupEpisodeTitle.Switch(GetStackInt__FP12RS_STACKDATA__2(stack));
+
+/**
+ * Sets the floor episode.
+ */
+static int _SET_FLOOR_EPISODE(RS_STACKDATA *stack, int argc) {
+    StartupEpisodeTitle.Switch(GetStackInt(stack));
     return 1;
 }
+
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/event_func", _FUNC_POINT_GET_POS__FP12RS_STACKDATAi);
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/event_func", _FUNC_POINT_GET_ROT__FP12RS_STACKDATAi);
-int _ACTCHR_SET_DEF_MOTION(RS_STACKDATA *stack, int argc) {
+/**
+ * Sets the action character def motion.
+ */
+static int _ACTCHR_SET_DEF_MOTION(RS_STACKDATA *stack, int argc) {
     int charaNo;
     int motionArg = 0;
     CActionChara *chara;
-    charaNo = GetStackInt__FP12RS_STACKDATA__2(stack++);
+    charaNo = GetStackInt(stack++);
     if (argc >= 2) {
-        motionArg = GetStackInt__FP12RS_STACKDATA__2(stack);
+        motionArg = GetStackInt(stack);
     }
     if ((chara = (CActionChara *)GetCharacter(charaNo)) == NULL) {
         return 0;
@@ -8634,16 +11378,20 @@ int _ACTCHR_SET_DEF_MOTION(RS_STACKDATA *stack, int argc) {
     chara->SetMotion(defaultMotion, motionArg, 1);
     return 1;
 }
-int _ADD_FUSION_POINT(RS_STACKDATA *stack, int argc) {
+
+/**
+ * Adds the fusion point.
+ */
+static int _ADD_FUSION_POINT(RS_STACKDATA *stack, int argc) {
     int group;
     int member;
     int points;
     CUserDataManager *userData;
     CSaveData *save;
 
-    group = (int)(GetStackInt__FP12RS_STACKDATA__2(stack++));
-    member = (int)(GetStackInt__FP12RS_STACKDATA__2(stack++));
-    points = (int)(GetStackInt__FP12RS_STACKDATA__2(stack));
+    group = GetStackInt(stack++);
+    member = GetStackInt(stack++);
+    points = GetStackInt(stack);
     if ((group < 0) || (group > 1)) {
         return 0;
     }
@@ -8660,36 +11408,54 @@ int _ADD_FUSION_POINT(RS_STACKDATA *stack, int argc) {
     userData->AddFusionPoint(group, member, points);
     return 1;
 }
-int _GET_DEBUG_FLAG(RS_STACKDATA *stack, int argc) {
-    if (argc != 1)
+
+/**
+ * Returns the debug flag.
+ */
+static int _GET_DEBUG_FLAG(RS_STACKDATA *stack, int argc) {
+    if (argc != 1) {
         return 0;
-    return EventAbi::SetStack__FP12RS_STACKDATAi__2(stack, DebugFlag);
+    }
+    SetStack(stack, DebugFlag);
+    return 1;
 }
-int _MINIMAP_DOOR_ENABLE(RS_STACKDATA *stack, int argc) {
-    float pos[3];
+
+/**
+ * Enables the minimap door.
+ */
+static int _MINIMAP_DOOR_ENABLE(RS_STACKDATA *stack, int argc) {
+    sceVu0FVECTOR pos;
     if (argc != 3) {
         return 0;
     }
-    GetStackVector__FPfP12RS_STACKDATA(pos, stack);
+    GetStackVector(pos, stack);
     MinimapDoorEnable(pos);
     return 1;
 }
-int _DNG_CHECK_BOSS_MAP(RS_STACKDATA *stack, int argc) {
+
+/**
+ * Checks the dungeon boss map.
+ */
+static int _DNG_CHECK_BOSS_MAP(RS_STACKDATA *stack, int argc) {
     DNG_BATTLE_AREA *dngScene;
 
     if (argc != 1) {
         return 0;
     }
-    dngScene = &((CScene *)EventScene)->battle_area;
+    dngScene = &(EventScene)->battle_area;
     if (dngScene == NULL) {
         return 0;
     }
-    SetStack__FP12RS_STACKDATAi__2(stack, dngScene->boss_map);
+    SetStack(stack, dngScene->boss_map);
     return 1;
 }
-int _DNG_RUN_EVENT(RS_STACKDATA *stack, int argc) {
-    int eventNo = GetStackInt__FP12RS_STACKDATA__2(stack);
-    DNG_BATTLE_AREA *scene = &((CScene *)EventScene)->battle_area;
+
+/**
+ * Sets the dungeon battle area script event number.
+ */
+static int _DNG_RUN_EVENT(RS_STACKDATA *stack, int argc) {
+    int eventNo = GetStackInt(stack);
+    DNG_BATTLE_AREA *scene = &(EventScene)->battle_area;
     if (scene == NULL) {
         return 0;
     }
@@ -8700,7 +11466,11 @@ int _DNG_RUN_EVENT(RS_STACKDATA *stack, int argc) {
     *slot = (s16)eventNo;
     return 1;
 }
-int _CHECK_ENABLE_CHARA_CHANGE(RS_STACKDATA *stack, int argc) {
+
+/**
+ * Checks the enable character change.
+ */
+static int _CHECK_ENABLE_CHARA_CHANGE(RS_STACKDATA *stack, int argc) {
     CUserDataManager *userData;
     int charaNo;
     CSaveData *save;
@@ -8709,8 +11479,8 @@ int _CHECK_ENABLE_CHARA_CHANGE(RS_STACKDATA *stack, int argc) {
     if (argc != 2) {
         return 0;
     }
-    nextSlot = (RS_STACKDATA *)((u8 *)stack + 8);
-    charaNo = (int)(GetStackInt__FP12RS_STACKDATA__2(stack));
+    nextSlot = stack + 1;
+    charaNo = GetStackInt(stack);
     save = GetSaveData();
     if (save == 0) {
         return 0;
@@ -8719,10 +11489,14 @@ int _CHECK_ENABLE_CHARA_CHANGE(RS_STACKDATA *stack, int argc) {
     if (userData == NULL) {
         return 0;
     }
-    SetStack__FP12RS_STACKDATAi__2(nextSlot, userData->CheckEnableCharaChange(charaNo, NULL));
+    SetStack(nextSlot, userData->CheckEnableCharaChange(charaNo, NULL));
     return 1;
 }
-int _INIT_SEPIA(RS_STACKDATA *stack, int argc) {
+
+/**
+ * Initializes the sepia.
+ */
+static int _INIT_SEPIA(RS_STACKDATA *stack, int argc) {
     int stackNo;
     int blockOffset;
     u_long128 *buffer;
@@ -8734,11 +11508,11 @@ int _INIT_SEPIA(RS_STACKDATA *stack, int argc) {
     int texBase;
 
     blockOffset = 0;
-    stackNo = GetStackInt__FP12RS_STACKDATA__2(stack++);
+    stackNo = GetStackInt(stack++);
     if (argc >= 2) {
-        blockOffset = GetStackInt__FP12RS_STACKDATA__2(stack);
+        blockOffset = GetStackInt(stack);
     }
-    scene = (CScene *)EventScene;
+    scene = EventScene;
     texCount = scene->event_texb_num;
     texBase = scene->event_texb;
     if (texCount <= 0 || texCount < blockOffset) {
@@ -8746,7 +11520,7 @@ int _INIT_SEPIA(RS_STACKDATA *stack, int argc) {
     }
     blockNo = texBase + blockOffset;
     if (stackNo >= 0) {
-        if ((sceneStack = (mgCMemory *)((CScene *)EventScene)->GetStack(stackNo)) == NULL) {
+        if ((sceneStack = EventScene->GetStack(stackNo)) == NULL) {
             return 0;
         }
         size = mgScreenWidth * mgScreenHeight * mgScreenDepth;
@@ -8758,24 +11532,36 @@ int _INIT_SEPIA(RS_STACKDATA *stack, int argc) {
     }
     mgTexManager.DeleteBlock(blockNo);
     EventScreenEffect.SetSepiaTexture(mgTexManager.EnterTexture(
-                                          blockNo, at_9622, NULL, mgScreenWidth,
+                                          blockNo, "event sepia", NULL, mgScreenWidth,
                                           mgScreenHeight, mgScreenDepth, 0, 0LL, 0),
                                       (u_long128 *)buffer);
     return 1;
 }
-int _START_SEPIA(RS_STACKDATA *stack, int argc) {
+
+/**
+ * Starts the sepia.
+ */
+static s32 _START_SEPIA(RS_STACKDATA *stack, s32 argc) {
     EventScreenEffect.CaptureSepiaScreen();
     EventScreenEffect.SetSepiaFlag(1);
     return 1;
 }
-int _END_SEPIA(RS_STACKDATA *stack, int argc) {
+
+/**
+ * Ends the sepia.
+ */
+static s32 _END_SEPIA(RS_STACKDATA *stack, s32 argc) {
     EventScreenEffect.SetSepiaFlag(0);
     return 1;
 }
+
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/event_func", _COPY_MONS2SCNCHR__FP12RS_STACKDATAi);
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/event_func", __ct__7CObjectFRC7CObject);
-int _UNLOCK_STACK(RS_STACKDATA *stack, int argc) {
-    mgCMemory *sceneStack = EventScene->GetStack(GetStackInt__FP12RS_STACKDATA__2(stack));
+/**
+ * Unlocks the scene memory stack selected by the script.
+ */
+static int _UNLOCK_STACK(RS_STACKDATA *stack, int argc) {
+    mgCMemory *sceneStack = EventScene->GetStack(GetStackInt(stack));
 
     if (sceneStack == NULL) {
         return 0;
@@ -8783,38 +11569,58 @@ int _UNLOCK_STACK(RS_STACKDATA *stack, int argc) {
     sceneStack->lock = 0;
     return 1;
 }
-int _RESET_EVENT_TRG(RS_STACKDATA *stack, int argc) {
+
+/**
+ * Resets the event trg.
+ */
+static int _RESET_EVENT_TRG(RS_STACKDATA *stack, int argc) {
     EventScene->event_run = 0;
     return 1;
 }
-int _SET_CHARA_NO(RS_STACKDATA *stack, int argc) {
-    int slot = GetStackInt__FP12RS_STACKDATA__2(stack++);
 
-    EventScene->SetCharaNo(slot, GetStackInt__FP12RS_STACKDATA__2(stack));
+/**
+ * Sets the character number.
+ */
+static int _SET_CHARA_NO(RS_STACKDATA *stack, int argc) {
+    int slot = GetStackInt(stack++);
+
+    EventScene->SetCharaNo(slot, GetStackInt(stack));
     return 1;
 }
-int _GET_CHARA_NO(RS_STACKDATA *stack, int argc) {
+
+/**
+ * Returns the character number.
+ */
+static int _GET_CHARA_NO(RS_STACKDATA *stack, int argc) {
     int id;
     RS_STACKDATA *args = stack;
     if (argc != 2) {
         return 0;
     }
-    id = GetStackInt__FP12RS_STACKDATA__2(args++);
-    SetStack__FP12RS_STACKDATAi__2(args, EventScene->GetCharaNo(id));
+    id = GetStackInt(args++);
+    SetStack(args, EventScene->GetCharaNo(id));
     return 1;
 }
-int _SEARCH_CHARA_NO(RS_STACKDATA *stack, int argc) {
+
+/**
+ * Searches for the character number.
+ */
+static int _SEARCH_CHARA_NO(RS_STACKDATA *stack, int argc) {
     int id;
     RS_STACKDATA *args = stack;
     if (argc != 2) {
         return 0;
     }
-    id = GetStackInt__FP12RS_STACKDATA__2(args++);
-    SetStack__FP12RS_STACKDATAi__2(args, EventScene->SearchCharaID(id));
+    id = GetStackInt(args++);
+    SetStack(args, EventScene->SearchCharaID(id));
     return 1;
 }
+
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/event_func", _GET_NEAR_RANDOM_STONE_POS__FP12RS_STACKDATAi);
-int _INIT_MONO_FLASH(RS_STACKDATA *stack, int argc) {
+/**
+ * Initializes the mono flash.
+ */
+static int _INIT_MONO_FLASH(RS_STACKDATA *stack, int argc) {
     u_long128 *buffers[2];
     mgCTexture *textures[2];
     mgCMemory *memory;
@@ -8822,7 +11628,7 @@ int _INIT_MONO_FLASH(RS_STACKDATA *stack, int argc) {
     int texBase;
     int texCount;
 
-    stackNo = GetStackInt__FP12RS_STACKDATA__2(stack);
+    stackNo = GetStackInt(stack);
     texCount = EventScene->event_texb_num;
     texBase = EventScene->event_texb;
     if (texCount <= 0 || texCount < 0) {
@@ -8848,35 +11654,51 @@ int _INIT_MONO_FLASH(RS_STACKDATA *stack, int argc) {
     mgTexManager.DeleteBlock(texBase);
     mgTexManager.DeleteBlock(texBase + 1);
     textures[0] = (mgCTexture *)mgTexManager.EnterTexture(
-        texBase, at_9744, NULL, mgScreenWidth, mgScreenHeight, mgScreenDepth, 0, 0, 0);
+        texBase, "mono_flash1", NULL, mgScreenWidth, mgScreenHeight, mgScreenDepth, 0, 0, 0);
     textures[1] = (mgCTexture *)mgTexManager.EnterTexture(
-        texBase + 1, at_9745, NULL, mgScreenWidth, mgScreenHeight, mgScreenDepth, 0, 0,
+        texBase + 1, "mono_flash2", NULL, mgScreenWidth, mgScreenHeight, mgScreenDepth, 0, 0,
         0);
     EventScreenEffect.SetMonoFlashTexture(textures, buffers);
     return 1;
 }
-int _START_MONO_FLASH(RS_STACKDATA *stack, int argc) {
-    int param = GetStackInt__FP12RS_STACKDATA__2(stack);
+
+/**
+ * Starts the mono flash.
+ */
+static int _START_MONO_FLASH(RS_STACKDATA *stack, int argc) {
+    int param = GetStackInt(stack);
 
     EventScreenEffect.CaptureMonoFlashScreen();
     EventScreenEffect.SetMonoFlashFlag(1, param);
     return 1;
 }
-int _END_MONO_FLASH(RS_STACKDATA *stack, int argc) {
+
+/**
+ * Ends the mono flash.
+ */
+static s32 _END_MONO_FLASH(RS_STACKDATA *stack, s32 argc) {
     EventScreenEffect.SetMonoFlashFlag(0, 0);
     return 1;
 }
-int _DELETE_VILLAGER(RS_STACKDATA *stack, int argc) {
-    EventScene->DeleteVillager(GetStackInt__FP12RS_STACKDATA__2(stack));
+
+/**
+ * Deletes the villager.
+ */
+static int _DELETE_VILLAGER(RS_STACKDATA *stack, int argc) {
+    EventScene->DeleteVillager(GetStackInt(stack));
     return 1;
 }
-int _DNG_SET_WEATHER(RS_STACKDATA *stack, int argc) {
-    DNG_BATTLE_AREA *info = (DNG_BATTLE_AREA *)&EventScene->battle_area;
+
+/**
+ * Sets the dungeon weather.
+ */
+static int _DNG_SET_WEATHER(RS_STACKDATA *stack, int argc) {
+    DNG_BATTLE_AREA *info = &EventScene->battle_area;
     int weather;
     if (info == NULL) {
         return 0;
     }
-    weather = GetStackInt__FP12RS_STACKDATA__2(stack);
+    weather = GetStackInt(stack);
     info->unk_8c = weather;
     if (weather == 2) {
         EventScene->AutoChangeEnvOffset(4);
@@ -8885,7 +11707,11 @@ int _DNG_SET_WEATHER(RS_STACKDATA *stack, int argc) {
     }
     return 1;
 }
-int _SET_CHARA_MAXHP(RS_STACKDATA *stack, int argc) {
+
+/**
+ * Sets the character maximum health.
+ */
+static int _SET_CHARA_MAXHP(RS_STACKDATA *stack, int argc) {
     int charaNo;
     RS_STACKDATA *args = stack;
     int maxHp;
@@ -8893,8 +11719,8 @@ int _SET_CHARA_MAXHP(RS_STACKDATA *stack, int argc) {
     CSaveData *save;
     CHARA_DATA *chara;
 
-    charaNo = GetStackInt__FP12RS_STACKDATA__2(args++);
-    maxHp = GetStackInt__FP12RS_STACKDATA__2(args);
+    charaNo = GetStackInt(args++);
+    maxHp = GetStackInt(args);
     save = GetSaveData();
     if (save == NULL) {
         return 0;
@@ -8909,15 +11735,19 @@ int _SET_CHARA_MAXHP(RS_STACKDATA *stack, int argc) {
     chara->hp.SetFillRate(1.0f);
     return 1;
 }
-int _SET_CHARA_DEFENCE(RS_STACKDATA *stack, int argc) {
+
+/**
+ * Sets the character defence.
+ */
+static int _SET_CHARA_DEFENCE(RS_STACKDATA *stack, int argc) {
     int charaNo;
     RS_STACKDATA *args = stack;
     int defence;
     CUserDataManager *userData;
     CSaveData *save;
 
-    charaNo = GetStackInt__FP12RS_STACKDATA__2(args++);
-    defence = GetStackInt__FP12RS_STACKDATA__2(args);
+    charaNo = GetStackInt(args++);
+    defence = GetStackInt(args);
     save = GetSaveData();
     if (save == NULL) {
         return 0;
@@ -8929,25 +11759,33 @@ int _SET_CHARA_DEFENCE(RS_STACKDATA *stack, int argc) {
     userData->GetCharaDataPtr(charaNo)->defence = defence;
     return 1;
 }
+
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/event_func", _PLACE_PARTS_NAME_STRCMP__FP12RS_STACKDATAi);
-int _GOTO_USE_ITEM2(RS_STACKDATA *stack, int argc) {
+/**
+ * Opens the use item2.
+ */
+static int _GOTO_USE_ITEM2(RS_STACKDATA *stack, int argc) {
     int i;
 
-    if (stack->type != 3) {
+    if (stack->type != RS_PTR) {
         return 0;
     }
-    p_use_item = (RS_STACKDATA *)stack->i;
+    p_use_item = stack->p;
     stack++;
     MenuArg.open_type = 9;
-    MenuArg.param[0] = GetStackInt__FP12RS_STACKDATA__2(stack++);
+    MenuArg.param[0] = GetStackInt(stack++);
     for (i = 1; i < argc - 1; i++) {
-        MenuArg.param[i] = GetStackInt__FP12RS_STACKDATA__2(stack++);
+        MenuArg.param[i] = GetStackInt(stack++);
     }
     MenuArg.param[i] = 0;
     EdEventInfo.command_mode = 3;
     return 1;
 }
-int _DBG_SET_ANALYZE_FLAG(RS_STACKDATA *stack, int argc) {
+
+/**
+ * Sets the debug analyze flag.
+ */
+static int _DBG_SET_ANALYZE_FLAG(RS_STACKDATA *stack, int argc) {
     int area;
     RS_STACKDATA *args = stack;
     int entry;
@@ -8955,9 +11793,9 @@ int _DBG_SET_ANALYZE_FLAG(RS_STACKDATA *stack, int argc) {
     CSaveData *save;
     CEditData *editData;
 
-    area = GetStackInt__FP12RS_STACKDATA__2(args++);
-    entry = GetStackInt__FP12RS_STACKDATA__2(args++);
-    flag = GetStackInt__FP12RS_STACKDATA__2(args);
+    area = GetStackInt(args++);
+    entry = GetStackInt(args++);
+    flag = GetStackInt(args);
     save = GetSaveData();
     if (save == NULL) {
         return 0;
@@ -8969,19 +11807,27 @@ int _DBG_SET_ANALYZE_FLAG(RS_STACKDATA *stack, int argc) {
     editData->dbgSetAnalyzeFlag(area, entry, flag);
     return 1;
 }
-int _ATRAMIRIA_ON_OFF(RS_STACKDATA *stack, int argc) {
+
+/**
+ * Shows or hides the selected Atlamillia model frames of a scene character.
+ */
+static int _ATRAMIRIA_ON_OFF(RS_STACKDATA *stack, int argc) {
     int mode;
     RS_STACKDATA *args = stack;
     int charaNo;
     int flag;
 
-    mode = GetStackInt__FP12RS_STACKDATA__2(args++);
-    charaNo = GetStackInt__FP12RS_STACKDATA__2(args++);
-    flag = GetStackInt__FP12RS_STACKDATA__2(args);
+    mode = GetStackInt(args++);
+    charaNo = GetStackInt(args++);
+    flag = GetStackInt(args);
     AtraMiriaOnOff(mode, GetCharacter(charaNo), flag);
     return 1;
 }
-int _ADD_YARIKOMI_MEDAL(RS_STACKDATA *stack, int argc) {
+
+/**
+ * Adds the completion medal.
+ */
+static int _ADD_YARIKOMI_MEDAL(RS_STACKDATA *stack, int argc) {
     CUserDataManager *userData;
     CSaveData *save = GetSaveData();
 
@@ -8992,88 +11838,138 @@ int _ADD_YARIKOMI_MEDAL(RS_STACKDATA *stack, int argc) {
     if (userData == NULL) {
         return 0;
     }
-    userData->AddYarikomiMedal(GetStackInt__FP12RS_STACKDATA__2(stack));
+    userData->AddYarikomiMedal(GetStackInt(stack));
     return 1;
 }
-int _SET_MAP_EFFECT_ID(RS_STACKDATA *stack, int argc) {
-    DNG_BATTLE_AREA *info = (DNG_BATTLE_AREA *)&EventScene->battle_area;
+
+/**
+ * Sets the map effect id.
+ */
+static int _SET_MAP_EFFECT_ID(RS_STACKDATA *stack, int argc) {
+    DNG_BATTLE_AREA *info = &EventScene->battle_area;
     if (info == NULL) {
         return 0;
     }
-    info->map_effect_id = GetStackInt__FP12RS_STACKDATA__2(stack);
+    info->map_effect_id = GetStackInt(stack);
     return 1;
 }
-int _GET_MAP_EFFECT_ID(RS_STACKDATA *stack, int argc) {
+
+/**
+ * Returns the map effect id.
+ */
+static int _GET_MAP_EFFECT_ID(RS_STACKDATA *stack, int argc) {
     DNG_BATTLE_AREA *info = &EventScene->battle_area;
     if (info == NULL) {
         return 0;
     }
     switch (argc) {
         case 1:
-            return EventAbi::SetStack__FP12RS_STACKDATAi__2(stack, info->map_effect_id);
+            SetStack(stack, info->map_effect_id);
+        return 1;
     }
     return 0;
 }
-int _DNG_FLOOR_INIT(RS_STACKDATA *stack, int argc) {
+
+/**
+ * Initializes the dungeon floor.
+ */
+static int _DNG_FLOOR_INIT(RS_STACKDATA *stack, int argc) {
     DungeonFloorInit();
     return 1;
 }
-int _DNG_FLOOR_FINISH(RS_STACKDATA *stack, int argc) {
+
+/**
+ * Invokes the inert dungeon floor-finish hook and returns success.
+ */
+static int _DNG_FLOOR_FINISH(RS_STACKDATA *stack, int argc) {
     DungeonFloorFinish();
     return 1;
 }
-int _CLEAR_RND_STONE(RS_STACKDATA *stack, int argc) {
+
+/**
+ * Clears the rnd stone.
+ */
+static int _CLEAR_RND_STONE(RS_STACKDATA *stack, int argc) {
     AutoMapGen.ClearRandomStone();
     return 1;
 }
+
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/event_func", _GET_FLOOR_STATUS__FP12RS_STACKDATAi);
-int _SET_FLOOR_STATUS(RS_STACKDATA *stack, int argc) {
-    DNG_BATTLE_AREA *info = (DNG_BATTLE_AREA *)&EventScene->battle_area;
+/**
+ * Sets the floor status.
+ */
+static int _SET_FLOOR_STATUS(RS_STACKDATA *stack, int argc) {
+    DNG_BATTLE_AREA *info = &EventScene->battle_area;
     RS_STACKDATA *args = stack;
     int mask;
 
     if (info == NULL) {
         return 0;
     }
-    mask = GetStackInt__FP12RS_STACKDATA__2(args++);
-    if (GetStackInt__FP12RS_STACKDATA__2(args) != 0) {
+    mask = GetStackInt(args++);
+    if (GetStackInt(args) != 0) {
         info->floor_status |= mask;
     } else {
         info->floor_status &= ~mask;
     }
     return 1;
 }
-int _AMG_GET_ATTR_STATUS(RS_STACKDATA *stack, int argc) {
-    float position[4];
+
+/**
+ * Returns the map-generator attribute status at a script position.
+ */
+#ifdef NONMATCHING
+static int _AMG_GET_ATTR_STATUS(RS_STACKDATA *stack, int argc) {
+    sceVu0FVECTOR position;
 
     if (argc != 4) {
         return 0;
     }
-    GetStackVector__FPfP12RS_STACKDATA(position, stack);
+    GetStackVector(position, stack);
 
-    stack = (RS_STACKDATA *)((u8 *)stack + 0x18);
-    SetStack__FP12RS_STACKDATAi__2(stack, AutoMapGen.GetAttrStatus(position));
+    stack += 3;
+    SetStack(stack, AutoMapGen.GetAttrStatus(position));
     return 1;
 }
+#else
+INCLUDE_ASM("ps2/asm/pal/nonmatchings/event_func", _AMG_GET_ATTR_STATUS__FP12RS_STACKDATAi);
+#endif
+
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/event_func", _SET_NEAR_DIST__FP12RS_STACKDATAi);
-int _SET_KEEP_TIME(RS_STACKDATA *stack, int argc) {
-    EdEventInfo.keep_time = GetStackFloat__FP12RS_STACKDATA__2(stack);
+/**
+ * Sets the keep time.
+ */
+static int _SET_KEEP_TIME(RS_STACKDATA *stack, int argc) {
+    EdEventInfo.keep_time = GetStackFloat(stack);
     return 1;
 }
-int _GET_KEEP_TIME(RS_STACKDATA *stack, int argc) {
+
+/**
+ * Returns the keep time.
+ */
+static int _GET_KEEP_TIME(RS_STACKDATA *stack, int argc) {
     if (argc != 1) {
         return 0;
     }
-    return EventAbi::SetStack__FP12RS_STACKDATAf__2(stack, EdEventInfo.keep_time);
+    SetStack(stack, EdEventInfo.keep_time);
+    return 1;
 }
+
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/event_func", _GET_DOOR_PARTS_ID__FP12RS_STACKDATAi);
-int _CHECK_EQUEP_CHANGE(RS_STACKDATA *stack, int argc) {
-    GetStackInt__FP12RS_STACKDATA__2(stack);
+/**
+ * Checks the equep change.
+ */
+static int _CHECK_EQUEP_CHANGE(RS_STACKDATA *stack, int argc) {
+    GetStackInt(stack);
     CheckEquipChange(1);
     return 1;
 }
+
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/event_func", _ADD_HP_RATE2__FP12RS_STACKDATAi);
-int _DNG_EFFECT_ALL_CLEAR(RS_STACKDATA *stack, int argc) {
+/**
+ * Clears the dungeon effect all.
+ */
+static int _DNG_EFFECT_ALL_CLEAR(RS_STACKDATA *stack, int argc) {
     int i;
 
     RocketLauncher.Clear();
@@ -9086,12 +11982,20 @@ int _DNG_EFFECT_ALL_CLEAR(RS_STACKDATA *stack, int argc) {
     FxScriptMan->AllClearEffSpt();
     return 1;
 }
-int _AUTO_CHENGE_BGM_VOL(RS_STACKDATA *stack, int argc) {
-    EventScene->AutoChangeBGMVol(GetStackInt__FP12RS_STACKDATA__2(stack));
+
+/**
+ * Sets whether scene music volume follows time-of-day lighting.
+ */
+static int _AUTO_CHENGE_BGM_VOL(RS_STACKDATA *stack, int argc) {
+    EventScene->AutoChangeBGMVol(GetStackInt(stack));
     return 1;
 }
+
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/event_func", _UDATA_GET_WHP__FP12RS_STACKDATAi);
-int _UDATA_ADD_WHP(RS_STACKDATA *stack, int argc) {
+/**
+ * Adds the user data weapon health.
+ */
+static int _UDATA_ADD_WHP(RS_STACKDATA *stack, int argc) {
     int charaNo;
     RS_STACKDATA *args = stack;
     CUserDataManager *userData;
@@ -9107,14 +12011,18 @@ int _UDATA_ADD_WHP(RS_STACKDATA *stack, int argc) {
     if (userData == NULL) {
         return 0;
     }
-    charaNo = GetStackInt__FP12RS_STACKDATA__2(args++);
-    itemNo = GetStackInt__FP12RS_STACKDATA__2(args++);
-    amount = GetStackInt__FP12RS_STACKDATA__2(args);
+    charaNo = GetStackInt(args++);
+    itemNo = GetStackInt(args++);
+    amount = GetStackInt(args);
     userData->AddWhp(charaNo, itemNo, amount);
     return 1;
 }
+
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/event_func", _UDATA_GET_ABS__FP12RS_STACKDATAi);
-int _UDATA_ADD_ABS(RS_STACKDATA *stack, int argc) {
+/**
+ * Adds the user data weapon experience.
+ */
+static int _UDATA_ADD_ABS(RS_STACKDATA *stack, int argc) {
     int charaNo;
     RS_STACKDATA *args = stack;
     CUserDataManager *userData;
@@ -9130,50 +12038,66 @@ int _UDATA_ADD_ABS(RS_STACKDATA *stack, int argc) {
     if (userData == NULL) {
         return 0;
     }
-    charaNo = GetStackInt__FP12RS_STACKDATA__2(args++);
-    itemNo = GetStackInt__FP12RS_STACKDATA__2(args++);
-    amount = GetStackInt__FP12RS_STACKDATA__2(args);
+    charaNo = GetStackInt(args++);
+    itemNo = GetStackInt(args++);
+    amount = GetStackInt(args);
     userData->AddAbs(charaNo, itemNo, amount);
     return 1;
 }
-int _DNG_CREATE_EFFECT(RS_STACKDATA *stack, int argc) {
-    float first[4];
-    float second[4];
+
+/**
+ * Creates the dungeon effect.
+ */
+static int _DNG_CREATE_EFFECT(RS_STACKDATA *stack, int argc) {
+    sceVu0FVECTOR first;
+    sceVu0FVECTOR second;
     int value;
 
-    FxScriptMan->CreateEffSpt(GetStackString__FP12RS_STACKDATA__2(stack++), -1, 0);
+    FxScriptMan->CreateEffSpt(GetStackString(stack++), -1, 0);
     switch (argc) {
         case 4:
-            GetStackVector__FPfP12RS_STACKDATA(first, stack);
+            GetStackVector(first, stack);
             stack += 3;
             FxScriptMan->SetScriptVect1(first, -1, -1);
         case 5:
-            GetStackVector__FPfP12RS_STACKDATA(first, stack);
-            value = GetStackInt__FP12RS_STACKDATA__2(stack += 3);
+            GetStackVector(first, stack);
+            value = GetStackInt(stack += 3);
             FxScriptMan->SetScriptVect1(first, -1, -1);
             FxScriptMan->SetValue(0, value, -1, -1);
             break;
         case 7:
-            GetStackVector__FPfP12RS_STACKDATA(first, stack);
+            GetStackVector(first, stack);
             stack += 3;
-            GetStackVector__FPfP12RS_STACKDATA(second, stack);
+            GetStackVector(second, stack);
             FxScriptMan->SetScriptVect1(first, -1, -1);
             FxScriptMan->SetScriptVect2(second, -1, -1);
             break;
         default:
-            return 0;
+        return 0;
     }
     return 1;
 }
-int _LEAVE_MONICA_ITEM_CHECK(RS_STACKDATA *stack, int argc) {
+
+/**
+ * Leaves the monica item check.
+ */
+static int _LEAVE_MONICA_ITEM_CHECK(RS_STACKDATA *stack, int argc) {
     LeaveMonicaItemCheck();
     return 1;
 }
-int _PAUSE_ENABLE_FLAG(RS_STACKDATA *stack, int argc) {
-    PauseEnable(GetStackInt__FP12RS_STACKDATA__2(stack));
+
+/**
+ * Pauses the enable flag.
+ */
+static int _PAUSE_ENABLE_FLAG(RS_STACKDATA *stack, int argc) {
+    PauseEnable(GetStackInt(stack));
     return 1;
 }
-int _FORCE_BOOT_TOUR(RS_STACKDATA *stack, int argc) {
+
+/**
+ * Forces the boot tour.
+ */
+static int _FORCE_BOOT_TOUR(RS_STACKDATA *stack, int argc) {
     CSaveData *saveData = GetSaveData();
 
     if (saveData == NULL) {
@@ -9182,12 +12106,13 @@ int _FORCE_BOOT_TOUR(RS_STACKDATA *stack, int argc) {
     saveData->ForceBootTour(saveData->day, 1);
     return 1;
 }
+
 void SetEventFunc(CRunScript *script) {
     int i;
     int j;
 
     for (i = 0; i < event_func_slots; i++) {
-        ext_func__2[i] = NULL;
+        ext_func[i] = NULL;
     }
     i = 0;
     for (;;) {
@@ -9195,24 +12120,25 @@ void SetEventFunc(CRunScript *script) {
             break;
         }
         for (j = 0; j < i; j++) {
-            if (ext_func_info__2[i].id == ext_func_info__2[j].id) {
-                printf(at_10100);
+            if (ext_func_info__2[i].no == ext_func_info__2[j].no) {
+                printf("same ext_func_no!!!\n");
                 while (1) {
                 }
             }
         }
-        if (ext_func_info__2[i].id < 0 || ext_func_info__2[i].id >= event_func_slots) {
-            printf(at_10101);
+        if (ext_func_info__2[i].no < 0 || ext_func_info__2[i].no >= event_func_slots) {
+            printf("ext func over!!");
         } else {
-            ext_func__2[ext_func_info__2[i].id] = ext_func_info__2[i].func;
+            ext_func[ext_func_info__2[i].no] = ext_func_info__2[i].func;
         }
         i++;
     }
-    script->ext_func(ext_func__2, event_func_slots);
+    script->ext_func(ext_func, event_func_slots);
 }
 
+
 // Static initialiser (.init)
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/event_func", __sinit_event_func_cpp);
+
 
 // Initialised data (.data)
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/event_func", at_1084__DATA);
@@ -9335,7 +12261,7 @@ INCLUDE_RODATA("ps2/asm/pal/nonmatchings/event_func", at_10100__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/event_func", at_10101__DATA);
 
 // Static initialiser table (.ctor)
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/event_func", D_0037B03C__DATA);
+
 
 // Small uninitialised data (.sbss)
 INCLUDE_BSS(EventMarker, 0x4);
