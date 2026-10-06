@@ -4,18 +4,12 @@ Header: `ps2/include/dbg_font.hpp`. One class (`dbgCJISFont`), one global (`JisF
 file-local functions, two enums (`DbgFontSerno`, `DbgFontSheet`).
 
 ## Draft status
-All seven remaining assembly functions, including the static initializer, now
-have named, typed C++ drafts guarded by `NONMATCHING`. The three existing
-promoted functions remain unchanged. The half-width glyph lookup was decoded
-from all 64 entries of the retail `at_288__3` jump table. The normal build
-continues to use the assembly for every draft that does not match.
-The draft comparison compiles all ten functions: the existing three functions
-and the constructor match individually; the other six differ. Each new draft
-received one isolated promotion attempt, but none promoted. The checker had no
-complete `build/pal` image to link for five attempts; the two dependent
-functions failed compilation because their guarded file-local helpers lacked
-forward declarations at the time of the check. Those declarations have since
-been added; no second promotion attempt was made.
+The ten-function draft comparison has seven matches and three differences.
+Seven bodies are compiled as C++: the constructor, `Initialize`, `InitTexture`,
+`Clear`, and the three file-local conversion helpers. `__putc`, `PrintDirect`
+and the static initializer remain guarded drafts with assembly fallbacks.
+The half-width glyph switch agrees with all 64 entries of the retail
+`at_288__3` jump table. Its helpers use static linkage and 64-bit return values.
 
 `PrintDirect` currently copies the format string without expanding variadic
 arguments. The local MWCC headers provide neither `<cstdarg>` nor `<stdarg.h>`;

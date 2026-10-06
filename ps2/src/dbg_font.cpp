@@ -1,8 +1,4 @@
 #include "common.h"
-#include "mg_math.hpp"
-#include "mg_drawprim.hpp"
-#include "mg_texture.hpp"
-#include "mg_memory.hpp"
 #include "dbg_font.hpp"
 #include "mg_drawprim.hpp"
 #include "mg_texture.hpp"
@@ -10,40 +6,59 @@
 #include <cstdio>
 #include <cstring>
 
+static unsigned long SjisToJis(unsigned long sjis);
+static unsigned long SjisToSerno(unsigned long sjis);
+static unsigned long ascii2serno(unsigned char character);
 
 // Code (.text)
-unsigned long SjisToJis(unsigned long sjis) {
-    unsigned long hi = (sjis >> 8) & 0xFF;
-    unsigned long lo = sjis & 0xFF;
 
-    if (hi >= 0x81 && hi < 0xA0) {
-        hi -= 0x81;
-    } else if (hi >= 0xE0 && hi < 0xF0) {
-        hi += 0xFFFFFFFFFFFFFF3FUL;
+/**
+ * Converts a Shift-JIS character to JIS row and cell codes.
+ * @mangled SjisToJis__FUl
+ * @address 0x001874A0
+ * @size 0xE0
+ */
+static unsigned long SjisToJis(unsigned long sjis) {
+    unsigned long lead = (sjis >> 8) & 0xFF;
+    unsigned long trail = sjis & 0xFF;
+    if (lead >= 0x81 && lead < 0xA0) {
+        lead -= 0x81;
+    } else if (lead >= 0xE0 && lead < 0xF0) {
+        lead += (unsigned long)-0xC1;
     }
-    hi <<= 1;
-    if (lo >= 0x40 && lo < 0x7F) {
-        lo -= 0x40;
-    } else if (lo >= 0x80 && lo < 0x9F) {
-        lo += 0xFFFFFFFFFFFFFFBFUL;
-    } else if (lo >= 0x9F && lo < 0xFD) {
-        lo -= 0x9F;
-        hi += 1;
+    lead *= 2;
+    if (trail >= 0x40 && trail < 0x7F) {
+        trail -= 0x40;
+    } else if (trail >= 0x80 && trail < 0x9F) {
+        trail += (unsigned long)-0x41;
+    } else if (trail >= 0x9F && trail < 0xFD) {
+        trail -= 0x9F;
+        lead++;
     }
-    return ((hi + 1) << 8) + lo + 0x2021;
+    return ((lead + 1) << 8) + trail + 0x2021;
 }
-unsigned long SjisToSerno(unsigned long sjis) {
-    unsigned long jis = SjisToJis(sjis);
-    unsigned long offset = 0xFFFFFFFFFFFFFFDFUL;
-    unsigned long row = (jis >> 8) + offset;
 
+/**
+ * Converts a Shift-JIS character to its font glyph index.
+ * @mangled SjisToSerno__FUl
+ * @address 0x00187580
+ * @size 0x60
+ */
+static unsigned long SjisToSerno(unsigned long sjis) {
+    unsigned long jis = SjisToJis(sjis);
+    const unsigned long offset = (unsigned long)-0x21;
+    unsigned long row = (jis >> 8) + offset;
     return row * 94 + ((jis & 0xFF) + offset);
 }
-int ascii2serno(u8 ch) {
-    int code;
 
-    code = ch & 0xFF;
-    switch (code) {
+/**
+ * Looks up the font glyph index for a half-width character.
+ * @mangled ascii2serno__FUc
+ * @address 0x001875E0
+ * @size 0x230
+ */
+static unsigned long ascii2serno(unsigned char character) {
+    switch (character) {
         case 0xA1:
             return 0x212C;
         case 0xA2:
@@ -170,9 +185,10 @@ int ascii2serno(u8 ch) {
             return 0x2238;
         case 0xA0:
         default:
-            return 0x227E;
+            return DBG_FONT_SERNO_UNKNOWN;
     }
 }
+
 dbgCJISFont::dbgCJISFont() {
     Initialize();
 }
@@ -188,7 +204,7 @@ void dbgCJISFont::Initialize(void) {
     back_color[3] = 64;
     shadow_enable = 0;
 }
-void dbgCJISFont::InitTexture(int full0_id, char *full0_name, int full1_id, char *full1_name, int half_id, char *half_name) {
+void dbgCJISFont::InitTexture(s32 full0_id, s8 *full0_name, s32 full1_id, s8 *full1_name, s32 half_id, s8 *half_name) {
     texture_id[DBG_FONT_SHEET_FULL_WIDTH_0] = full0_id;
     texture_id[DBG_FONT_SHEET_FULL_WIDTH_1] = full1_id;
     texture_id[DBG_FONT_SHEET_HALF_WIDTH] = half_id;
