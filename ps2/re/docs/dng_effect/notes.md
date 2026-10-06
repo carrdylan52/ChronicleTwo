@@ -3,7 +3,12 @@
 Header: `ps2/include/dng_effect.hpp`. Every class size below is asserted there; offsets were also
 checked with temporary `offsetof` asserts against MWCC.
 
-## File-local (static) functions -- belong in the .cpp, not the header
+Coverage: 96 functions; 81 matching C++ functions, one guarded draft
+(`CMapEffectsManeger::Draw`), and 14 functions without a draft.
+
+## Retail-local helper functions
+The `trans_effect_rate` definition has external C++ linkage; the other two helpers are static.
+
 - `trans_effect_rate(int)` -> `float`: `min(strength / 255.0f, 1.0f)`.
 - `trans_float_to_sceVector(float *vec, float *xyz, int dir)` -> void: dir 0 copies xyz into vec with w=1;
   dir!=0 copies vec.xyz into xyz.
@@ -41,8 +46,9 @@ checked with temporary `offsetof` asserts against MWCC.
 mgCFrame -- `frame` is a member), `__ct__10CAfterWireFv` (`mode = 0`) are all in dng_main, i.e. inline
 constructors emitted where used. `__ct__15CHitEffectImageFv` and `__ct__10CPowerLineFv` sit in dng_effect
 right after AllocEffect (first use), also consistent with inline definitions. `__ct__11CCharacter2Fv` in
-this unit is CCharacter2's inline ctor (owned by character). The header only declares these ctors;
-whoever decompiles them should give them inline bodies.
+this unit is CCharacter2's inline ctor (owned by character). CPowerLine and CHitEffectImage have
+out-of-line constructor definitions in dng_effect.cpp; CCharacter2's constructor is assembly.
+The constructors emitted in dng_main remain declarations in this header.
 
 ## Layout evidence per class
 - **BattleEffectMan (0x48)**: from AllocEffect/Step/Draw and callers (`HitEffectSet`, `GuardEffectSet`,
