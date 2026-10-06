@@ -96,3 +96,9 @@ GYORACE_DATA: Init memset 0xA0; IsUsed = item_no > 1. Callers pass the GYORACE_D
 unadjusted to CGameDataUsed methods (GetName, CopyGameData), and the CSubGameData ctor constructs a
 CGameDataUsed at each entry, so it starts with a CGameDataUsed (0x6C). Declared as member `fish`;
 it could equally be a base class (same code). +0x6C..+0xA0 unseen.
+
+## C++ coverage
+The draft compile has 45 exact functions and one function without a draft
+(`SetBitFlag`). The build report has 45 perfect functions and one assembly
+function. `GetBitCtrl` and `GetTourCountEtc` return int results; the retail
+loads already extend their stored byte values.
