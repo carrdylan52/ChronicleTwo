@@ -1,11 +1,11 @@
 # mainloop: reverse-engineering notes
 
 ## C++ draft status
-All 62 functions have C++ in `ps2/src/mainloop.cpp`. 12 are exact and compiled
-by the matching build. 27 more compile to retail's bytes in isolation but stay
-under `NONMATCHING`. 23 differ from retail and keep the `INCLUDE_ASM` fallback.
-Each function tried has its one promotion attempt recorded in
-`scripts/re/promotion_attempts.tsv`.
+All 62 functions have C++ drafts in `ps2/src/mainloop.cpp`. 56 compile to retail's
+bytes in isolation and six differ. The matching build compiles 52 functions;
+10 use the `INCLUDE_ASM` fallback. LoadGameConfig uses the typed interpreter
+call with the address of its character buffer converted to `char *`. The implicit
+CUserDataManager constructor is present when drafts are enabled.
 
 No class in `build/re/class_units.tsv` is owned by mainloop. The unit emits the out-of-line
 constructors `CUserDataManager::CUserDataManager()` (owner userdata) and `CEditData::CEditData()`

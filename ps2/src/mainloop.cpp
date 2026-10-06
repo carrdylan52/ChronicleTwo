@@ -1,67 +1,115 @@
 #include "common.h"
-#include "savedata.hpp"
-#include "subgame.hpp"
-#include "scenesnd.hpp"
-#include "gamedata.hpp"
-#include "editdata.hpp"
-#include "gamepad.hpp"
-#include "mapselect.hpp"
-#include "mg_memory.hpp"
-#include "mg_texture.hpp"
-#include "mglib.hpp"
-#include "monster.hpp"
-#include "npccfg.hpp"
-#include "scriptinterpreter.hpp"
-#include "visualmotion.hpp"
-#include "vlgr_info.hpp"
-#include "water.hpp"
-#include "dataread.hpp"
-#include "font.hpp"
-#include "gaiji.hpp"
-#include "helpmes.hpp"
-#include "nowload.hpp"
-#include "snd_mngr.hpp"
-#include "sysmes.hpp"
-#include "userdata.hpp"
 #include "mainloop.hpp"
 #include <cstring>
 #include <cstdio>
 
 #include <cstdlib>
 #include <libgraph.h>
+
+#include "dataread.hpp"
+#include "editdata.hpp"
+#include "font.hpp"
+#include "gaiji.hpp"
+#include "gamedata.hpp"
+#include "helpmes.hpp"
 #include "inventmn.hpp"
 #include "main.hpp"
 #include "mainloop3.hpp"
+#include "mapselect.hpp"
 #include "menuchr.hpp"
 #include "mg_drawprim.hpp"
+#include "mg_memory.hpp"
+#include "mg_texture.hpp"
+#include "mglib.hpp"
+#include "monster.hpp"
 #include "nd_meswin.hpp"
+#include "nowload.hpp"
+#include "npccfg.hpp"
 #include "padcontrol.hpp"
+#include "savedata.hpp"
 #include "scene.hpp"
+#include "scenesnd.hpp"
+#include "scriptinterpreter.hpp"
+#include "snd_mngr.hpp"
+#include "sysmes.hpp"
 #include "title.hpp"
+#include "userdata.hpp"
+#include "vlgr_info.hpp"
 
 #ifdef NONMATCHING
-extern INIT_LOOP_ARG NextInitArg;
-extern INIT_LOOP_ARG PrevInitArg;
-extern int NextLoopNo;
-extern int PrevLoopNo;
-extern int CaptureScreen;
-extern int PauseSel;
-extern int PauseMenuMode;
-extern int exit_start;
-extern float BlackFade;
-extern float BlackFade2;
-extern CSaveData SaveData;
-extern ClsMes PauseMes;
-extern mgCMemory SystemSeStack;
-extern u_long128 main_buffer[0x1A0000];
-extern u_long128 SystemSeBuff[400];
-extern u_long128 InfoBuff[5000];
-static int MenuLoop();
-static int EventSelect();
-static int gcALL_GEO_PARTS(SPI_STACK *stack, int argc);
-extern void (*LoopInit[])(INIT_LOOP_ARG);
-extern int (*LoopMain[])();
-extern void (*LoopExit[])();
+DEBUG_INFO           DebugInfo;
+static CFont         Font;                  /**< Font used by the debug menus. */
+static INIT_LOOP_ARG InitArg;               /**< Entry arguments of the current mode. */
+static INIT_LOOP_ARG NextInitArg;           /**< Entry arguments of the next mode. */
+static INIT_LOOP_ARG PrevInitArg;           /**< Entry arguments of the previous mode. */
+// dng_main.hpp declares the same name for its own object.
+namespace mainloop {
+    static mgCMemory MainBuffer;            /**< Working memory stack for the running mode. */
+}
+static CScene        MainScene;             /**< Scene shared by the running modes. */
+static mgCMemory     SystemSeStack;         /**< Allocator for the system sound bank. */
+static mgCMemory     InfoStack;             /**< Memory holding language-dependent game information. */
+static CSaveData     SaveData;              /**< Main game's save record. */
+static mgCMemory     MenuBuffer;            /**< Working memory for the debug menu. */
+static ClsMes        PauseMes;              /**< Pause menu message window. */
+
+#endif
+
+static int           LoopNo;                /**< Current main loop mode. */
+#ifdef NONMATCHING
+static int           NextLoopNo;            /**< Mode to enter after the current one ends. */
+#endif
+#ifdef NONMATCHING
+static int           PrevLoopNo;            /**< Most recently completed mode. */
+#endif
+static int           CaptureMode;           /**< Controller recording or playback mode. */
+#ifdef NONMATCHING
+static int           CaptureScreen;         /**< Non-zero to capture rendered frames. */
+#endif
+static CSaveData     *ActiveSaveData;       /**< Save record used by the running game. */
+static CSubGameData  *SubGameSaveData;      /**< Save record used by an extra mode. */
+static int           PlayTimeCountFlag;     /**< Non-zero while vertical blanks count play time. */
+
+static int           SelectArg[32];         /**< Values selected in the debug start menu. */
+static mgCTexture    *FontTex[1];           /**< Loaded font textures. */
+static TM2_head      *FontDataAdr[1];       /**< Font texture images. */
+static u8            font_buff[0xD000];     /**< Font texture image storage. */
+
+static int           event_view;            /**< Non-zero while the event viewer is open. */
+static int           future_sel;            /**< Non-zero while the future map selector is open. */
+static int           hdd_sel;               /**< Non-zero while the HDD menu is open. */
+static int           menu_mode;             /**< Current debug menu screen. */
+#ifdef NONMATCHING
+static int           PauseSel;              /**< Selected pause menu choice. */
+#endif
+#ifdef NONMATCHING
+static int           PauseMenuMode;         /**< Current pause menu step. */
+#endif
+#ifdef NONMATCHING
+static int           exit_start;            /**< Pause menu exit state. */
+#endif
+#ifdef NONMATCHING
+static float         BlackFade;             /**< Fade to black on leaving the mode. */
+#endif
+#ifdef NONMATCHING
+static float         BlackFade2;            /**< Secondary pause fade amount. */
+#endif
+
+#ifdef NONMATCHING
+static u_long128     main_buffer[0x1A0000]; /**< Main working memory and the extra-mode save record. */
+#endif
+#ifdef NONMATCHING
+static u_long128     SystemSeBuff[400];     /**< Memory for the system sound bank. */
+#endif
+
+#ifdef NONMATCHING
+static u_long128     InfoBuff[5000];        /**< Memory for the game's information tables. */
+#endif
+
+#ifdef NONMATCHING
+/**
+ * Binds the game's logical buttons to controller buttons and triggers.
+ */
 static PAD_TABLE_ENTRY pad_table[] = {
     { 0, PAD_CTRL_TRIGGER_DOWN, PAD_CIRCLE },
     { 1, PAD_CTRL_TRIGGER_DOWN, PAD_CROSS },
@@ -127,84 +175,72 @@ static ANALOG_TABLE_ENTRY analog_table[] = {
 };
 #endif
 
-void LoadFilePictureName();
-extern "C" void LoadEditAnalyzeData__FiP1(...);
-int get_gajji_id_from_monster_progress_table(int monster_no, int *level);
-int GetMonsterProgressTableNo(int level, int monster_no);
+static void InitPadTable(int language);
 
-extern CFont Font;
-extern mgCMemory MainBuffer;
-extern int menu_mode;
-void InitEventSelect();
-
-extern INIT_LOOP_ARG SelectArg;
-
-extern CSaveData *ActiveSaveData;
-extern int CaptureMode;
-extern int LoopNo;
-extern int PlayTimeCountFlag;
-extern CSubGameData *SubGameSaveData;
-extern int event_view;
-extern int future_sel;
-extern int hdd_sel;
-extern CScene MainScene;
-extern INIT_LOOP_ARG InitArg;
-extern mgCMemory InfoStack;
-extern "C" int InitPadTable__Fi(int);
-
-extern mgCMemory MenuBuffer;
-extern mgCMemory buf0_1224;
-extern mgCMemory buf1_1227;
-extern mgCMemory dbuf0_1230;
-extern mgCMemory dbuf1_1233;
-extern s8 init_1225;
-extern s8 init_1228;
-extern s8 init_1231;
-extern s8 init_1234;
-extern mgCTexture *FontTex;
-extern u32 FontDataAdr;
-extern char at_1654[];
-extern char at_1655[];
-extern char at_1656[];
-extern u8 font_buff[];
-extern char at_1657[];
-extern char at_1296[];
-extern char at_1856[];
-
-extern SPI_TAG_PARAM tag__3[];
-extern char at_2082[];
-extern char at_2083[];
-extern char at_2084[];
-extern char at_2085[];
+static void MenuInit(INIT_LOOP_ARG arg);
+static int MenuLoop();
+static void MenuExit();
+static void InitEventSelect();
+static int EventSelect();
+static int gcMAP_NO(SPI_STACK *stack, int argc);
+static int gcPROGRESS(SPI_STACK *stack, int argc);
+static int gcBIT_FLAG_ON(SPI_STACK *stack, int argc);
+static int gcBIT_FLAG_OFF(SPI_STACK *stack, int argc);
+static int gcSTART_EVENT(SPI_STACK *stack, int argc);
+static int gcGEO_COMPLETE(SPI_STACK *stack, int argc);
+static int gcGEO_DEBUG(SPI_STACK *stack, int argc);
+static int gcITEM_SET(SPI_STACK *stack, int argc);
+static int gcGET_ITEM(SPI_STACK *stack, int argc);
+static int gcGET_N_ITEM(SPI_STACK *stack, int argc);
+static int gcEQUIP(SPI_STACK *stack, int argc);
+static int gcDEFENSE(SPI_STACK *stack, int argc);
+static int gcHP(SPI_STACK *stack, int argc);
+static int gcALL_GEO_PARTS(SPI_STACK *stack, int argc);
+static int gcPARAM_DRAW(SPI_STACK *stack, int argc);
+static int gcOPTION(SPI_STACK *stack, int argc);
+static int gcMONICA(SPI_STACK *stack, int argc);
+static int gcSTEVE(SPI_STACK *stack, int argc);
+static int gcMONSTER(SPI_STACK *stack, int argc);
+static int gcPARTY(SPI_STACK *stack, int argc);
+static int gcACTIVE_CHARA(SPI_STACK *stack, int argc);
 
 // Code (.text)
-CFont *GetDebugFont(void) {
+CFont *GetDebugFont() {
     return &Font;
 }
-int GetCaptureMode(void) {
+
+int GetCaptureMode() {
     return CaptureMode;
 }
+
 s32 GetSystemSndID(void) {
     return SystemSND_ID;
 }
-CScene *GetMainScene(void) {
+
+CScene *GetMainScene() {
     return &MainScene;
 }
-CSaveData *GetSaveData(void) {
+
+CSaveData *GetSaveData() {
     return ActiveSaveData;
 }
-CSubGameData *GetSubGameSaveData(void) {
+
+CSubGameData *GetSubGameSaveData() {
     return SubGameSaveData;
 }
-void InitSaveData(void) {
+
+void InitSaveData() {
     GetSaveData()->Initialize();
 }
-int GetVramTopAddress(void) {
+
+int GetVramTopAddress() {
     return mgGetTopVRAMAddress() + 0x20;
 }
-mgCMemory *GetMainStack(void) {
-    return &MainBuffer;
+
+mgCMemory *GetMainStack() {
+    return &mainloop::MainBuffer;
 }
+
 #ifdef NONMATCHING
 void NextLoop(int loop_no, INIT_LOOP_ARG arg) {
     NextLoopNo = loop_no;
@@ -213,18 +249,24 @@ void NextLoop(int loop_no, INIT_LOOP_ARG arg) {
 #else
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/mainloop", NextLoop__Fi13INIT_LOOP_ARG);
 #endif
-int GetNowLoopNo(void) {
+
+int GetNowLoopNo() {
     return LoopNo;
 }
-INIT_LOOP_ARG *GetNowInitArg(void) {
+
+INIT_LOOP_ARG *GetNowInitArg() {
     return &InitArg;
 }
+
 void cat_start() {}
+
 void cat_end() {}
-void SetTextureTable(int table_size, int table_count, mgCMemory *memory) {
-    mgTexManager.SetTableBuffer(table_count, table_size, memory);
+
+void SetTextureTable(int block_max, int texture_max, mgCMemory *memory) {
+    mgTexManager.SetTableBuffer(texture_max, block_max, memory);
     mgTexManager.Initialize(GetVramTopAddress(), -1);
 }
+
 #ifdef NONMATCHING
 /**
  * Registers the logical controller bindings for the selected language.
@@ -266,20 +308,29 @@ static void InitPadTable(int language) {
 #else
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/mainloop", InitPadTable__Fi);
 #endif
-extern "C" void VSyncCallBack__Fi__3(int unused) {
-    if (PlayTimeCountFlag != 0) {
-        s64 ticks = GetSaveData()->play_time;
+
+/**
+ * Counts one vertical blank toward the current game's play time.
+ */
+static void VSyncCallBack(int cause) {
+    s64 play_time;
+
+    if (PlayTimeCountFlag) {
+        play_time = GetSaveData()->play_time;
         CSaveData *save = GetSaveData();
-        save->play_time = ticks + 1;
+        save->play_time = play_time + 1;
     }
 }
-void PlayTimeCount(int value) {
-    PlayTimeCountFlag = value;
+
+void PlayTimeCount(int enable) {
+    PlayTimeCountFlag = enable;
 }
-int GetPlayTimeCountFlag(void) {
+
+int GetPlayTimeCountFlag() {
     return PlayTimeCountFlag;
 }
-extern "C" void LanguageChange__FiP1(int language) {
+
+void LanguageChange(int language, u_long128 *buffer) {
     LanguageCode = language;
     GameItemDataManage.LoadItemSystemMes(language);
     LoadHelpMes(read_buffer);
@@ -291,15 +342,16 @@ extern "C" void LanguageChange__FiP1(int language) {
     LoadGaijiImg();
     LoadFontTexture();
     LoadFontTblBin();
-    LoadEditAnalyzeData__FiP1((u32)LanguageCode, (u_long128 *)read_buffer);
+    LoadEditAnalyzeData(LanguageCode, read_buffer);
     LoadFilePictureName();
     LoadMonsterLanguage(LanguageCode);
     InfoStack.stack_used = 0;
     InfoStack.lock = 0;
     LoadGameInfo(&InfoStack);
     InitPauseData();
-    InitPadTable__Fi(LanguageCode);
+    InitPadTable(LanguageCode);
 }
+
 #ifdef NONMATCHING
 void MainLoop() {
     mgCMemory        *memory;
@@ -324,7 +376,7 @@ void MainLoop() {
     InitFileCache(NULL, 0);
     mgInit(MG_SCREEN_MODE_512X480, 3);
     PlayTimeCountFlag = 0;
-    mgInitVSyncCallBack((int (*)(int))VSyncCallBack__Fi__3);
+    mgInitVSyncCallBack((int (*)(int))VSyncCallBack);
     LanguageCode = LANG_FRENCH;
     SCElogoFade(0, memory);
     LoopNo = LOOP_TITLE;
@@ -562,51 +614,42 @@ void MainLoop() {
 #else
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/mainloop", MainLoop__Fv);
 #endif
-void MenuInit(INIT_LOOP_ARG arg) {
-    mgCMemory *main_stack;
-    u_long128 *packet_a;
-    u_long128 *packet_b;
+
+/**
+ * Allocates the debug menu's packets, working buffers and font textures.
+ */
+static void MenuInit(INIT_LOOP_ARG arg) {
+    mgCMemory *memory;
+    u_long128 *packet_buffer;
 
     sndSeAllStop(-1);
-    sndDeletePort(0);
+    sndDeletePort(SND_PORT_BGM);
     MainScene.InitBGM();
     MainScene.InitSeEnv();
     MainScene.InitSeSrc();
-    menu_mode = 0;
+    menu_mode = DEBUG_MENU_TOP;
     mgInitFont();
-    main_stack = GetMainStack();
-    main_stack->stack_used = 0;
-    main_stack->lock = 0;
-    if (init_1225 == 0) {
-        buf0_1224.Init();
-        init_1225 = 1;
-    }
-    if (init_1228 == 0) {
-        buf1_1227.Init();
-        init_1228 = 1;
-    }
-    if (init_1231 == 0) {
-        dbuf0_1230.Init();
-        init_1231 = 1;
-    }
-    if (init_1234 == 0) {
-        dbuf1_1233.Init();
-        init_1234 = 1;
-    }
-    packet_a = main_stack->stAlloc64(0x2710);
-    packet_b = main_stack->stAlloc64(0x2710);
-    mgInitVif1Packet(packet_a, packet_b, 0x27100);
-    buf0_1224.stSetBuffer((u_long128 *)main_stack->stAlloc64(0x2710), 0x2710);
-    buf1_1227.stSetBuffer((u_long128 *)main_stack->stAlloc64(0x2710), 0x2710);
-    dbuf0_1230.stSetBuffer((u_long128 *)main_stack->stAlloc64(0xC350), 0xC350);
-    dbuf1_1233.stSetBuffer((u_long128 *)main_stack->stAlloc64(0xC350), 0xC350);
-    MenuBuffer.stSetBuffer((u_long128 *)main_stack->stAlloc64(0x7A120), 0x7A120);
-    read_buffer = (u_long128 *)main_stack->stAlloc64(0x186A0);
-    mgSetPacketBuffer(&buf0_1224, &buf1_1227);
-    mgSetDataBuffer(&dbuf0_1230, &dbuf1_1233, 1);
-    GamePad__2.SetAutoRepeat(0xF000, 0xF, 4);
+    memory = GetMainStack();
+    memory->stack_used = 0;
+    memory->lock = 0;
+    static mgCMemory buf0;
+    static mgCMemory buf1;
+    static mgCMemory dbuf0;
+    static mgCMemory dbuf1;
+
+    packet_buffer = memory->stAlloc64(10000);
+    mgInitVif1Packet(packet_buffer, memory->stAlloc64(10000), 160000);
+    buf0.stSetBuffer(memory->stAlloc64(10000), 10000);
+    buf1.stSetBuffer(memory->stAlloc64(10000), 10000);
+    dbuf0.stSetBuffer(memory->stAlloc64(50000), 50000);
+    dbuf1.stSetBuffer(memory->stAlloc64(50000), 50000);
+    MenuBuffer.stSetBuffer(memory->stAlloc64(500000), 500000);
+    read_buffer = memory->stAlloc64(100000);
+    mgSetPacketBuffer(&buf0, &buf1);
+    mgSetDataBuffer(&dbuf0, &dbuf1, 1);
+    GamePad__2.SetAutoRepeat(PAD_UP | PAD_DOWN | PAD_LEFT | PAD_RIGHT, 15, 4);
     mgSetBackGround(0.0f, 0.0f, 0.0f, 0.0f);
-    SetTextureTable(0x64, 0x14, &MenuBuffer);
+    SetTextureTable(100, 20, &MenuBuffer);
     if (DebugFlag == 0) {
         InitEventSelect();
     }
@@ -616,12 +659,12 @@ void MenuInit(INIT_LOOP_ARG arg) {
     mgTexManager.EnterIMGFile(GetFontTex2ImgPtr(), 1, NULL, NULL);
     LoadEventViewData(read_buffer, &MenuBuffer);
 }
+
 #ifdef NONMATCHING
 /**
  * Runs the debug mode selection menu and its configuration screens.
  */
 static int MenuLoop() {
-    int *menu_arguments = (int *)&SelectArg;
     static char *menu[] = {
         "game start ", "map        ", "dungeon    ", "title      ",
         "chrview    ", "texview    ", "mapview    ", "sound view ",
@@ -684,32 +727,32 @@ static int MenuLoop() {
         select = 0;
     }
     if (GamePad__2.Down(PAD_RIGHT)) {
-        menu_arguments[select]++;
+        SelectArg[select]++;
     }
     if (GamePad__2.Down(PAD_LEFT)) {
-        menu_arguments[select]--;
+        SelectArg[select]--;
     }
     if (GamePad__2.Down(PAD_R1)) {
-        menu_arguments[select] += 10;
+        SelectArg[select] += 10;
     }
     if (GamePad__2.Down(PAD_L1)) {
-        menu_arguments[select] -= 10;
+        SelectArg[select] -= 10;
     }
     if (GamePad__2.Down(PAD_R2)) {
-        menu_arguments[select] += 100;
+        SelectArg[select] += 100;
     }
     if (GamePad__2.Down(PAD_L2)) {
-        menu_arguments[select] -= 100;
+        SelectArg[select] -= 100;
     }
-    if (menu_arguments[select] < -1) {
-        menu_arguments[select] = -1;
+    if (SelectArg[select] < -1) {
+        SelectArg[select] = -1;
     }
     if (select == 9) {
-        if (menu_arguments[select] >= 6) {
-            menu_arguments[select] = 5;
+        if (SelectArg[select] >= 6) {
+            SelectArg[select] = 5;
         }
-        if (menu_arguments[select] < 0) {
-            menu_arguments[select] = 0;
+        if (SelectArg[select] < 0) {
+            SelectArg[select] = 0;
         }
     }
     text_end = text + sprintf(text, "\nDark Chronicle %s\n", "Ver0.334");
@@ -735,13 +778,13 @@ static int MenuLoop() {
     }
     for (row = 0; row < 14 && menu[row][0] != '\0'; row++) {
         if (row == 10) {
-            text_end += sprintf(text_end, "%s%s%s\n", cursor[row == select], menu[row], item_set[menu_arguments[row]]);
+            text_end += sprintf(text_end, "%s%s%s\n", cursor[row == select], menu[row], item_set[SelectArg[row]]);
         } else if (row == 9) {
-            text_end += sprintf(text_end, "%s%s%s (now %s)\n", cursor[row == select], menu[row], language[menu_arguments[row]], language[LanguageCode]);
+            text_end += sprintf(text_end, "%s%s%s (now %s)\n", cursor[row == select], menu[row], language[SelectArg[row]], language[LanguageCode]);
         } else if (row <= 0) {
             text_end += sprintf(text_end, "%s%s\n", cursor[row == select], menu[row]);
         } else {
-            text_end += sprintf(text_end, "%s%s%d\n", cursor[row == select], menu[row], menu_arguments[row]);
+            text_end += sprintf(text_end, "%s%s%d\n", cursor[row == select], menu[row], SelectArg[row]);
         }
     }
     Font.DrawDirect(text, 10, 10);
@@ -753,22 +796,22 @@ static int MenuLoop() {
             InitEventSelect();
             return 0;
         case 9:
-            LanguageChange(menu_arguments[select], read_buffer);
+            LanguageChange(SelectArg[select], read_buffer);
             return 0;
         case 10:
-            DebugGetItem(&GetSaveData()->user_data, item_set_no[menu_arguments[select]]);
+            DebugGetItem(&GetSaveData()->user_data, item_set_no[SelectArg[select]]);
             return 0;
         case 11:
             InitSaveDataEdit(&MenuBuffer);
             menu_mode = DEBUG_MENU_SAVE_DATA_EDIT;
             return 0;
         case 12:
-            sprintf(config_name, "dbg/game%d.cfg", menu_arguments[select]);
+            sprintf(config_name, "dbg/game%d.cfg", SelectArg[select]);
             InitSaveData();
             LoadGameConfig(config_name);
             return 0;
         default:
-            if (menu_arguments[select] < 0 && select == 1) {
+            if (SelectArg[select] < 0 && select == 1) {
                 InitMapSelect(&MenuBuffer);
                 menu_mode = DEBUG_MENU_MAP_SELECT;
                 return 0;
@@ -782,7 +825,7 @@ static int MenuLoop() {
                 INIT_LOOP_ARG arg;
                 memset(&arg, 0, sizeof(arg));
 
-                arg.map_no = menu_arguments[select];
+                arg.map_no = SelectArg[select];
                 arg.event_no = DefStartEventNo;
                 NextLoop(select, arg);
             }
@@ -792,16 +835,25 @@ static int MenuLoop() {
 #else
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/mainloop", MenuLoop__Fv);
 #endif
-void MenuExit(void) {
+
+/**
+ * Releases the debug menu font and stops repeating the navigation keys.
+ */
+static void MenuExit() {
     GamePad__2.AutoRepeatOff();
     mgCloseFont();
 }
-void InitEventSelect(void) {
+
+/**
+ * Opens the debug event selection screen with its submenus closed.
+ */
+static void InitEventSelect() {
     event_view = 0;
     future_sel = 0;
-    menu_mode = 2;
+    menu_mode = DEBUG_MENU_EVENT_SELECT;
     hdd_sel = 0;
 }
+
 #ifdef NONMATCHING
 /**
  * Runs the debug chapter, event, map and extra-mode selection screen.
@@ -1078,84 +1130,84 @@ static int EventSelect() {
 #else
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/mainloop", EventSelect__Fv);
 #endif
-mgCTexture *GetFontTexture(int page) {
-    if ((page < 0) || (page > 0)) {
-        return 0;
-    }
-    return *(&FontTex + page);
-}
-void LoadFontTexture(void) {
-    u8 scratch[0x35000];
-    char path[0x40];
-    char file_name[0x20];
-    int size;
-    u8 *buffer;
-    int page;
-    u32 misalign;
 
-    buffer = scratch;
-    FontTex = 0;
-    misalign = (u32)buffer & 3;
-    FontDataAdr = 0;
-    if (misalign != 0) {
-        buffer += (4 - misalign) * 0x10;
+mgCTexture *GetFontTexture(int index) {
+    if (index < 0 || index >= 1) {
+        return NULL;
     }
-    page = 0;
-    do {
-        if (LanguageCode == 0) {
-            sprintf(file_name, at_1654, page);
-        } else if (LanguageCode == 1) {
-            if (page == 0) {
-                sprintf(file_name, at_1655, page);
+    return FontTex[index];
+}
+
+void LoadFontTexture() {
+    u_long128  buffer[0x3500];
+    char       path[64];
+    char       name[32];
+    int        size;
+    u_long128 *image;
+    int        alignment;
+    int        index;
+
+    FontTex[0] = NULL;
+    FontDataAdr[0] = NULL;
+    image = buffer;
+    alignment = (u_int)image & 3;
+    if (alignment != 0) {
+        image += 4 - alignment;
+    }
+    for (index = 0; index < 1; index++) {
+        if (LanguageCode == LANG_JAPANESE) {
+            sprintf(name, "FontTex_%d.tm2", index);
+        } else if (LanguageCode == LANG_ENGLISH) {
+            if (index == 0) {
+                sprintf(name, "FontTex_1_0.tm2", index);
             }
-        } else if (page == 0) {
-            sprintf(file_name, at_1656);
+        } else if (index == 0) {
+            sprintf(name, "FontTex_2_0.tm2");
         }
-        sprintf(path, at_1657, file_name);
-        if (LoadFile2(path, buffer, &size, 0) != 0) {
-            (&FontDataAdr)[page] = (u32)font_buff;
-            if ((&FontDataAdr)[page] == 0) {
+        sprintf(path, "meswin/%s", name);
+        if (LoadFile2(path, image, &size, LOAD_FILE_READ)) {
+            FontDataAdr[index] = (TM2_head *)font_buff;
+            if (FontDataAdr[index] == NULL) {
                 return;
             }
-            memcpy((void *)(&FontDataAdr)[page], buffer, size);
+            memcpy(FontDataAdr[index], image, size);
         }
-        page += 1;
-    } while (page <= 0);
+    }
 }
-void ReLoadFontTexture(int texture_no) {
-    char file_name[0x20];
-    int page;
-    int offset;
-    TM2_head **font_data;
 
-    offset = 0;
-    page = 0;
-    do {
-        font_data = (TM2_head **)((u8 *)&FontDataAdr + offset);
-        if (*font_data != NULL) {
-            if (LanguageCode == 0) {
-                sprintf(file_name, at_1654, page);
-            } else if (LanguageCode == 1) {
-                if (page == 0) {
-                    sprintf(file_name, at_1655, page);
+void ReLoadFontTexture(int block) {
+    char name[32];
+    int  index;
+
+    for (index = 0; index < 1; index++) {
+        if (FontDataAdr[index] != NULL) {
+            if (LanguageCode == LANG_JAPANESE) {
+                sprintf(name, "FontTex_%d.tm2", index);
+            } else if (LanguageCode == LANG_ENGLISH) {
+                if (index == 0) {
+                    sprintf(name, "FontTex_1_0.tm2", index);
                 }
-            } else if (page == 0) {
-                sprintf(file_name, at_1656);
+            } else if (index == 0) {
+                sprintf(name, "FontTex_2_0.tm2");
             }
             if (&mgTexManager == NULL) {
                 return;
             }
-            *(mgCTexture **)((u8 *)&FontTex + offset) = mgTexManager.EnterTexture(texture_no, file_name, *font_data, 0, 0);
+            FontTex[index] = mgTexManager.EnterTexture(block, name, FontDataAdr[index], 0, 0);
         }
-        page += 1;
-        offset += 4;
-    } while (page <= 0);
+    }
 }
+
 void demQuit() {}
+
 void demoQuitTimeOut() {}
+
 void demoAttractInterrupted() {}
+
 void demoAttractComplete() {}
+
 void FadeOutForE3() {}
+
 int TimeLimitCheck() { return 0; }
 #ifdef NONMATCHING
 void InitPauseMenu(int value) {
@@ -1172,6 +1224,7 @@ void InitPauseMenu(int value) {
 #else
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/mainloop", InitPauseMenu__Fi);
 #endif
+
 #ifdef NONMATCHING
 int PauseMenu() {
     int result;
@@ -1248,156 +1301,237 @@ int PauseMenu() {
 #else
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/mainloop", PauseMenu__Fv);
 #endif
-extern "C" void *__ct__18CScriptInterpreterFv(void *);
-extern "C" int SetScript__18CScriptInterpreterFPci(...);
-void LoadGameConfig(char *path) {
-    u8 script[0x4000];
-    u8 interpreter[sizeof(CScriptInterpreter)];
-    int size;
 
-    if (path == NULL) {
-        SetCurrentDir(at_1296);
-        if (LoadFile2(at_1856, script, &size, 0) == 0) {
+void LoadGameConfig(char *file_name) {
+    static SPI_TAG_PARAM tag[] = { /**< Handlers for the tags of game.cfg. */
+        { "MAP_NO", gcMAP_NO },
+        { "PROGRESS", gcPROGRESS },
+        { "BIT_FLAG_ON", gcBIT_FLAG_ON },
+        { "BIT_FLAG_OFF", gcBIT_FLAG_OFF },
+        { "START_EVENT", gcSTART_EVENT },
+        { "GEO_COMPLETE", gcGEO_COMPLETE },
+        { "GEO_DEBUG", gcGEO_DEBUG },
+        { "ITEM_SET", gcITEM_SET },
+        { "GET_ITEM", gcGET_ITEM },
+        { "GET_N_ITEM", gcGET_N_ITEM },
+        { "EQUIP", gcEQUIP },
+        { "DEFENSE", gcDEFENSE },
+        { "DEFENCE", gcDEFENSE },
+        { "HP", gcHP },
+        { "ALL_GEO_PARTS", gcALL_GEO_PARTS },
+        { "PARAM_DRAW", gcPARAM_DRAW },
+        { "OPTION", gcOPTION },
+        { "MONICA", gcMONICA },
+        { "STEVE", gcSTEVE },
+        { "MONSTER", gcMONSTER },
+        { "PARTY", gcPARTY },
+        { "ACTIVE_CHARA", gcACTIVE_CHARA },
+        { NULL, NULL },
+    };
+
+    char buffer[0x4000];
+    int  size;
+
+    if (file_name == NULL) {
+        SetCurrentDir("");
+        if (!LoadFile2("game.cfg", buffer, &size, LOAD_FILE_READ)) {
             SetCurrentDir(NULL);
             return;
         }
         SetCurrentDir(NULL);
-        goto run;
+    } else if (!LoadFile2(file_name, buffer, &size, LOAD_FILE_READ)) {
+        return;
     }
-    if (LoadFile2(path, script, &size, 0) != 0) {
-    run:
+    CScriptInterpreter script;
 
-        __ct__18CScriptInterpreterFv(interpreter);
-        ((CScriptInterpreter *)interpreter)->SetTag(tag__3);
-        SetScript__18CScriptInterpreterFPci(interpreter, (char *)script, size);
-        ((CScriptInterpreter *)interpreter)->Run();
-    }
+    script.SetTag(tag);
+    script.SetScript((char *)&buffer, size);
+    script.Run();
 }
-int gcMAP_NO(SPI_STACK *stack, int arg) {
+
+/**
+ * Sets the debug start map from its name or number.
+ */
+static int gcMAP_NO(SPI_STACK *stack, int argc) {
     int map_no;
-    if (stack->type == 0) {
+    if (stack->type == SPI_STACK_TYPE_STRING) {
         map_no = SearchMapNo(spiGetStackString(stack));
     } else {
         map_no = spiGetStackInt(stack);
     }
-    SelectArg.selected_map_no = map_no;
+    SelectArg[1] = map_no;
     return 1;
 }
-int gcPROGRESS(SPI_STACK *stack, int arg) {
-    int value = spiGetStackInt(stack);
-    CSaveData *save = GetSaveData();
-    save->game_progress = value;
+
+/**
+ * Sets the story progress used by the debug configuration.
+ */
+static int gcPROGRESS(SPI_STACK *stack, int argc) {
+    int progress;
+
+    progress = spiGetStackInt(stack);
+    GetSaveData()->game_progress = progress;
     return 0;
 }
-int gcBIT_FLAG_ON(SPI_STACK *stack, int count) {
-    CSaveData *save_data;
-    int i;
 
-    for (i = 0; i < count; i++) {
-        save_data = GetSaveData();
-        save_data->SetBitFlag(spiGetStackInt(stack++), 1);
+/**
+ * Sets each story flag named by the configuration.
+ */
+static int gcBIT_FLAG_ON(SPI_STACK *stack, int argc) {
+    CSaveData *save;
+    int        i;
+    int        flag;
+
+    for (i = 0; i < argc; i++) {
+        save = GetSaveData();
+        flag = spiGetStackInt(stack++);
+        save->SetBitFlag(flag, 1);
     }
     return 0;
 }
-int gcBIT_FLAG_OFF(SPI_STACK *stack, int count) {
-    CSaveData *save_data;
-    int i;
 
-    for (i = 0; i < count; i++) {
-        save_data = GetSaveData();
-        save_data->SetBitFlag(spiGetStackInt(stack++), 0);
+/**
+ * Clears each story flag named by the configuration.
+ */
+static int gcBIT_FLAG_OFF(SPI_STACK *stack, int argc) {
+    CSaveData *save;
+    int        i;
+    int        flag;
+
+    for (i = 0; i < argc; i++) {
+        save = GetSaveData();
+        flag = spiGetStackInt(stack++);
+        save->SetBitFlag(flag, 0);
     }
     return 0;
 }
-int gcSTART_EVENT(SPI_STACK *stack, int arg_count) {
+
+/**
+ * Sets the event that the debug start menu runs on entry.
+ */
+static int gcSTART_EVENT(SPI_STACK *stack, int argc) {
     DefStartEventNo = spiGetStackInt(stack);
     return 0;
 }
-int gcGEO_COMPLETE(SPI_STACK *stack, int count) {
-    int i;
-    int index;
-    void *edit_data;
+
+/**
+ * Marks every placement condition complete in the named towns.
+ */
+static int gcGEO_COMPLETE(SPI_STACK *stack, int argc) {
+    int        i;
+    int        town;
+    CEditData *edit;
 
     DebugInfo.georama_debug = 1;
-    for (i = 0; i < count; i++) {
-        index = spiGetStackInt(stack++);
-        edit_data = GetSaveData()->GetEditData(index);
-        if (edit_data != 0) {
-            ((CEditData *)edit_data)->dbgSetAllContintionFlag(index, 1);
+    for (i = 0; i < argc; i++) {
+        town = spiGetStackInt(stack++);
+        edit = GetSaveData()->GetEditData(town);
+        if (edit != NULL) {
+            edit->dbgSetAllContintionFlag(town, 1);
         }
     }
     return 1;
 }
-int gcGEO_DEBUG(SPI_STACK *stack, int arg_count) {
+
+/**
+ * Enables unrestricted debug Georama placement.
+ */
+static int gcGEO_DEBUG(SPI_STACK *stack, int argc) {
     DebugInfo.georama_debug = 1;
     return 1;
 }
-int gcITEM_SET(SPI_STACK *stack, int arg_count) {
-    CUserDataManager *user_data;
 
-    user_data = &GetSaveData()->user_data;
-    DebugGetItem(user_data, spiGetStackInt(stack));
+/**
+ * Grants a predefined set of debug items.
+ */
+static int gcITEM_SET(SPI_STACK *stack, int argc) {
+    CUserDataManager *user;
+
+    user = &GetSaveData()->user_data;
+    DebugGetItem(user, spiGetStackInt(stack));
     return 1;
 }
-int gcGET_ITEM(SPI_STACK *stack, int count) {
-    int i;
-    CUserDataManager *user_data;
 
-    for (i = 0; i < count; i++) {
-        user_data = &GetSaveData()->user_data;
-        user_data->GetItem(spiGetStackInt(stack++), 1);
+/**
+ * Grants one of each item named by the configuration.
+ */
+static int gcGET_ITEM(SPI_STACK *stack, int argc) {
+    int               i;
+    CUserDataManager *user;
+
+    for (i = 0; i < argc; i++) {
+        user = &GetSaveData()->user_data;
+        user->GetItem(spiGetStackInt(stack++), 1);
     }
     return 1;
 }
-int gcGET_N_ITEM(SPI_STACK *stack, int count) {
-    int item_no;
-    int i;
-    CUserDataManager *user_data;
 
-    for (i = 0; i < count; i++) {
-        user_data = &GetSaveData()->user_data;
-        item_no = spiGetStackInt(stack++);
-        user_data->GetItem(item_no, spiGetStackInt(stack++));
+/**
+ * Grants item and quantity pairs from the configuration.
+ */
+static int gcGET_N_ITEM(SPI_STACK *stack, int argc) {
+    int               item;
+    int               i;
+    CUserDataManager *user;
+
+    for (i = 0; i < argc; i++) {
+        user = &GetSaveData()->user_data;
+        item = spiGetStackInt(stack++);
+        user->GetItem(item, spiGetStackInt(stack++));
     }
     return 1;
 }
-int gcEQUIP(SPI_STACK *stack, int arg_count) {
-    int chara_no;
-    int item_no;
-    CUserDataManager *user_data;
-    user_data = &GetSaveData()->user_data;
-    chara_no = spiGetStackInt(stack++);
-    item_no = spiGetStackInt(stack);
-    user_data->SetChrEquip(chara_no, item_no);
+
+/**
+ * Equips a configured item on a character.
+ */
+static int gcEQUIP(SPI_STACK *stack, int argc) {
+    int character;
+    int item;
+    CUserDataManager *user;
+
+    user = &GetSaveData()->user_data;
+    character = spiGetStackInt(stack++);
+    item = spiGetStackInt(stack);
+    user->SetChrEquip(character, item);
     return 1;
 }
-int gcDEFENSE(SPI_STACK *stack, int arg_count) {
-    int chara_no;
-    int defence;
-    CHARA_DATA *chara;
 
-    chara_no = spiGetStackInt(stack++);
-    defence = spiGetStackInt(stack);
-    chara = GetSaveData()->user_data.GetCharaDataPtr(chara_no);
-    if (chara != NULL) {
-        chara->defence = defence;
+/**
+ * Sets a character's defence.
+ */
+static int gcDEFENSE(SPI_STACK *stack, int argc) {
+    CHARA_DATA *character;
+    int         number;
+    int         value;
+
+    number = spiGetStackInt(stack++);
+    value = spiGetStackInt(stack);
+    character = GetSaveData()->user_data.GetCharaDataPtr(number);
+    if (character != NULL) {
+        character->defence = value;
     }
     return 1;
 }
-int gcHP(SPI_STACK *stack, int arg_count) {
-    int chara_no;
-    int hp;
-    CHARA_DATA *chara;
 
-    chara_no = spiGetStackInt(stack++);
-    hp = spiGetStackInt(stack);
-    chara = GetSaveData()->user_data.GetCharaDataPtr(chara_no);
-    if (chara != NULL) {
-        chara->hp.max = hp;
-        chara->hp.now = hp;
+/**
+ * Sets a character's current and maximum health.
+ */
+static int gcHP(SPI_STACK *stack, int argc) {
+    CHARA_DATA *character;
+    int         number;
+    int         value;
+
+    number = spiGetStackInt(stack++);
+    value = spiGetStackInt(stack);
+    character = GetSaveData()->user_data.GetCharaDataPtr(number);
+    if (character != NULL) {
+        character->hp.max = value;
+        character->hp.now = value;
     }
     return 1;
 }
+
 #ifdef NONMATCHING
 /**
  * Unlocks Geostones and town conditions and grants Georama materials.
@@ -1451,144 +1585,162 @@ static int gcALL_GEO_PARTS(SPI_STACK *stack, int argc) {
 #else
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/mainloop", gcALL_GEO_PARTS__FP9SPI_STACKi);
 #endif
-int gcPARAM_DRAW(SPI_STACK *stack, int arg_count) {
+
+/**
+ * Sets whether the parameter display is hidden.
+ */
+static int gcPARAM_DRAW(SPI_STACK *stack, int argc) {
     DebugInfo.param_off = !spiGetStackInt(stack);
     return 1;
 }
-int gcOPTION(SPI_STACK *stack, int arg) {
-    char *name;
-    SV_CONFIG_OPTION *options;
-    SPI_STACK *value;
 
-    value = stack + 1;
-    name = (char *)spiGetStackString(stack);
+/**
+ * Sets a named dungeon display option.
+ */
+static int gcOPTION(SPI_STACK *stack, int argc) {
+    char             *name;
+    SV_CONFIG_OPTION *config;
+    SPI_STACK        *value;
+
+    value = &stack[1];
+    name = spiGetStackString(stack);
     if (name == NULL) {
         return 0;
     }
-    options = &GetSaveData()->config;
-    if (strcmp(name, at_2082) == 0) {
-        options->monster_name = spiGetStackInt(value);
-    } else if (strcmp(name, at_2083) == 0) {
-        options->map = spiGetStackInt(value);
-    } else if (strcmp(name, at_2084) == 0) {
-        options->enemy_hp = spiGetStackInt(value);
-    } else if (strcmp(name, at_2085) == 0) {
-        options->anger_counter = spiGetStackInt(value);
+    config = &GetSaveData()->config;
+    if (strcmp(name, "MonsterName") == 0) {
+        config->monster_name = spiGetStackInt(value);
+    } else if (strcmp(name, "Map") == 0) {
+        config->map = spiGetStackInt(value);
+    } else if (strcmp(name, "EnemyHP") == 0) {
+        config->enemy_hp = spiGetStackInt(value);
+    } else if (strcmp(name, "AngerCounter") == 0) {
+        config->anger_counter = spiGetStackInt(value);
     }
     return 1;
 }
-int gcMONICA(SPI_STACK *stack, int arg_count) {
-    CUserDataManager *manager;
 
-    manager = GetUserDataMan();
-    if (manager) {
-        manager->JoinPartyMember(1);
+/**
+ * Adds Monica to the party.
+ */
+static int gcMONICA(SPI_STACK *stack, int argc) {
+    CUserDataManager *user;
+
+    user = GetUserDataMan();
+    if (user != NULL) {
+        user->JoinPartyMember(USER_CHARA_MONICA);
     }
     return 1;
 }
-int gcSTEVE(SPI_STACK *stack, int mode) {
-    CUserDataManager *manager;
 
-    manager = GetUserDataMan();
-    if (manager == NULL) {
+/**
+ * Adds the ridepod and equips the requested core.
+ */
+static int gcSTEVE(SPI_STACK *stack, int argc) {
+    CUserDataManager *user;
+
+    user = GetUserDataMan();
+    if (user == NULL) {
         return 0;
     }
-    manager->JoinPartyMember(2);
-    manager->GetItemNotOver(0xF6, 1);
-    if (mode == 2) {
-        manager->DeleteItem(0xF6, 1);
-        manager->GetItemNotOver(GetRidePodCore(spiGetStackInt(stack)), 1);
+    user->JoinPartyMember(USER_CHARA_ROBO);
+    user->GetItemNotOver(246, 1);
+    if (argc == 2) {
+        user->DeleteItem(246, 1);
+        user->GetItemNotOver(GetRidePodCore(spiGetStackInt(stack)), 1);
     }
     return 1;
 }
-int gcMONSTER(SPI_STACK *stack, int arg_count) {
-    int sp7C;
-    CUserDataManager *manager;
+
+/**
+ * Unlocks configured monster badges and selects the last monster.
+ */
+static int gcMONSTER(SPI_STACK *stack, int argc) {
+    int class_level;
+    CUserDataManager *user;
     int i;
-    int monster_id;
+    int monster;
     int badge_no;
     MOS_CHANGE_PARAM *badge;
 
-    manager = GetUserDataMan();
-    if (manager == NULL) {
+    user = GetUserDataMan();
+    if (user == NULL) {
         return 0;
     }
-    manager->JoinPartyMember(3);
-    manager->GetItemNotOver(0x134, 1);
-    for (i = 0; i < arg_count; i++) {
-        monster_id = spiGetStackInt(stack++);
-        badge_no = get_gajji_id_from_monster_progress_table(monster_id, &sp7C) + 1;
-        manager->monster_box.EnableChange(badge_no);
-        badge = manager->monster_box.GetMonsterBajjiData(badge_no);
+    user->JoinPartyMember(USER_CHARA_MONSTER);
+    user->GetItemNotOver(308, 1);
+    for (i = 0; i < argc; i++) {
+        monster = spiGetStackInt(stack++);
+        badge_no = get_gajji_id_from_monster_progress_table(monster, &class_level) + 1;
+        user->monster_box.EnableChange(badge_no);
+        badge = user->monster_box.GetMonsterBajjiData(badge_no);
         if (badge != NULL) {
-            badge->class_level = sp7C;
-            badge->monster_id = monster_id;
-            badge->progress = GetMonsterProgressTableNo(sp7C, monster_id);
+            badge->class_level = class_level;
+            badge->monster_id = monster;
+            badge->progress = GetMonsterProgressTableNo(class_level, monster);
         }
-        manager->monster_id = monster_id;
+        user->monster_id = monster;
     }
     return 1;
 }
-int gcPARTY(SPI_STACK *stack, int arg_count) {
-    int chara_no;
-    CUserDataManager *manager;
 
-    chara_no = spiGetStackInt(stack);
-    if (chara_no <= 0 || chara_no > 0x1A) {
+/**
+ * Adds a valid townsperson to the active party.
+ */
+static int gcPARTY(SPI_STACK *stack, int argc) {
+    int number;
+    CUserDataManager *user;
+
+    number = spiGetStackInt(stack);
+    if (number <= 0 || number > 26) {
         return 0;
     }
-    manager = GetUserDataMan();
-    if (manager != NULL) {
-        manager->JoinPartyChara(chara_no, 0x80, 1);
-        manager->SetPartyCharaStatus(chara_no, 1);
+    user = GetUserDataMan();
+    if (user != NULL) {
+        user->JoinPartyChara(number, 0x80, 1);
+        user->SetPartyCharaStatus(number, 1);
     }
     return 1;
 }
-int gcACTIVE_CHARA(SPI_STACK *stack, int arg_count) {
-    int chara_no;
-    CUserDataManager *manager;
 
-    chara_no = spiGetStackInt(stack);
-    if (chara_no < 0) {
-        chara_no = 0;
+/**
+ * Selects Max or Monica as the active character.
+ */
+static int gcACTIVE_CHARA(SPI_STACK *stack, int argc) {
+    CUserDataManager *user;
+    int               number;
+
+    number = spiGetStackInt(stack);
+    if (number < USER_CHARA_MAX) {
+        number = USER_CHARA_MAX;
     }
-    if (chara_no > 1) {
-        chara_no = 1;
+    if (number > USER_CHARA_MONICA) {
+        number = USER_CHARA_MONICA;
     }
-    manager = GetUserDataMan();
-    if (manager) {
-        manager->SetActiveChrNo(chara_no);
+    user = GetUserDataMan();
+    if (user != NULL) {
+        user->SetActiveChrNo(number);
     }
     return 1;
 }
+
+#ifdef NONMATCHING
+// Implicit constructor defined in userdata.hpp.
+#else
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/mainloop", __ct__16CUserDataManagerFv);
-extern "C" CEditData *__ct__9CEditDataFv(CEditData *self) {
-    char *entry;
-    char *cursor;
-    char *entry2;
-    char *cursor2;
+#endif
 
-    cursor = (char *)self->parts;
-    entry = cursor;
-    do {
-        memset(entry, 0, 0x24);
-        cursor += 0x24;
-        entry = cursor;
-    } while ((u32)cursor < (u32)&self->house_max);
-    cursor2 = (char *)self->house;
-    entry2 = cursor2;
-    do {
-        memset(entry2, 0, 0x10);
-        cursor2 += 0x10;
-        entry2 = cursor2;
-    } while ((u32)cursor2 < (u32)self->place_log);
-    memset(&self->analyze, 0, sizeof(self->analyze));
-    self->Initialize();
-    return self;
+CEditData::CEditData() {
+    Initialize();
 }
 
 // Static initialiser (.init)
+#ifdef NONMATCHING
+// Generated by DebugInfo, Font, InitArg, NextInitArg, PrevInitArg, MainBuffer, MainScene, SystemSeStack, InfoStack, SaveData, MenuBuffer and PauseMes.
+#else
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/mainloop", __sinit_mainloop_cpp);
+#endif
+
 
 // Initialised data (.data)
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mainloop", LoopInit__DATA);
