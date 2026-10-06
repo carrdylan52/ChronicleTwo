@@ -99,7 +99,7 @@ void CSaveData::SetBuildPartsNum(int parts_no, int num) {
     }
 }
 
-s16 CSaveData::GetBuildPartsNum(int parts_no) {
+int CSaveData::GetBuildPartsNum(int parts_no) {
     if (parts_no < 0 || parts_no >= SAVE_BUILD_PARTS_MAX) {
         return 0;
     }

@@ -237,7 +237,7 @@ public:
      * @address 0x2FB690
      * @size 0x40
      */
-    s16 GetBuildPartsNum(int parts_no);
+    int GetBuildPartsNum(int parts_no);
 
     /**
      *
