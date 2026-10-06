@@ -28,14 +28,15 @@ void CSound::StopVoice(int core) {
     sceSdRemote(1, rSdSetSwitch, core | SD_S_KOFF, 0xFFFFFF);
     printf("voice completed Core=%d\n", core);
 }
-extern "C" void SndInReverb__6CSoundFb(CSound *self, int on) {
-    if (on != 0) {
-        sceSdRemote(1, 0x8010, 0x800, -4);
-        sceSdRemote(1, 0x8010, 0x801, -4);
+
+void CSound::SndInReverb(bool enable) {
+    if (enable) {
+        sceSdRemote(1, rSdSetParam, 0x800, -4);
+        sceSdRemote(1, rSdSetParam, 0x801, -4);
         return;
     }
-    sceSdRemote(1, 0x8010, 0x800, -0x34);
-    sceSdRemote(1, 0x8010, 0x801, -0x34);
+    sceSdRemote(1, rSdSetParam, 0x800, -0x34);
+    sceSdRemote(1, rSdSetParam, 0x801, -0x34);
 }
 
 void CSound::SetReverb(int core, int mode, int depth) {
