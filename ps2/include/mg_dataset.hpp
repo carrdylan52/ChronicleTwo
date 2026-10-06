@@ -98,7 +98,7 @@ struct MDT_MATERIAL_ {
     float unk_30;
     char texture[32];      /**< Name of the texture the material draws with. */
     int unk_54;
-    float extra[2];
+    float unk_58[2];
 };
 STATIC_ASSERT(sizeof(MDT_MATERIAL_) == 0x60);
 
@@ -122,13 +122,13 @@ STATIC_ASSERT(sizeof(MDT_FACES) == 0x10);
  */
 struct FACES_ID {
     union {
-    int type;     /**< Primitive flags, which set how many indices make one face. */
-        u_short type_low;
+        int     type;     /**< Primitive flags, which set how many indices make one face. */
+        u_short type_low; /**< Low halfword of the primitive flags. */
     };
     int face_num; /**< Number of faces in the primitive. */
     union {
-    int material; /**< Index of the material the primitive is drawn with. */
-        u_short material_low;
+        int     material;     /**< Index of the material the primitive is drawn with. */
+        u_short material_low; /**< Low halfword of the material index. */
     };
     int index[1]; /**< Vertex indices, as many as the faces need. */
 };
@@ -218,7 +218,7 @@ public:
      * @address 0x133DC0
      * @size 0x10
      */
-    virtual int Iam() ;
+    virtual int Iam();
 
     /**
      * Returns the number of materials the visual has.
@@ -227,7 +227,7 @@ public:
      * @address 0x134980
      * @size 0x10
      */
-    virtual int GetMaterialNum() ;
+    virtual int GetMaterialNum();
 
     /**
      * Returns the visual's material table, or NULL if it has none.
@@ -236,7 +236,7 @@ public:
      * @address 0x134990
      * @size 0x10
      */
-    virtual mgMaterial *GetpMaterial() ;
+    virtual mgMaterial *GetpMaterial();
 
     /**
      * Returns one of the visual's materials, or NULL if the index is out of range.
@@ -245,7 +245,7 @@ public:
      * @address 0x1349A0
      * @size 0x10
      */
-    virtual mgMaterial *GetMaterial(int index) ;
+    virtual mgMaterial *GetMaterial(int index);
 
     /**
      * Returns a copy of the visual allocated from memory; a visual with nothing to copy returns itself.
@@ -254,7 +254,7 @@ public:
      * @address 0x133DD0
      * @size 0x10
      */
-    virtual mgCVisual *Copy(mgCMemory *memory) ;
+    virtual mgCVisual *Copy(mgCMemory *memory);
 
     /**
      * Writes the visual's bounding box and returns non-zero if it has one.
@@ -263,7 +263,7 @@ public:
      * @address 0x1349B0
      * @size 0x10
      */
-    virtual int CreateBBox(float *max, float *min, float (*matrix)[4]) ;
+    virtual int CreateBBox(float *max, float *min, float (*matrix)[4]);
 
     /**
      * Writes the packet that sets up drawing the visual and returns its length in quadwords.
@@ -272,7 +272,7 @@ public:
      * @address 0x1349C0
      * @size 0x10
      */
-    virtual int CreateRenderInfoPacket(u_int *packet, float (*matrix)[4], mgRENDER_INFO *info) ;
+    virtual int CreateRenderInfoPacket(u_int *packet, float (*matrix)[4], mgRENDER_INFO *info);
 
     /**
      * Builds the visual's draw packet ahead of time and returns its size.
@@ -281,7 +281,7 @@ public:
      * @address 0x134970
      * @size 0x10
      */
-    virtual int CreatePacket(mgCMemory *memory, mgCMemory *work_memory) ;
+    virtual int CreatePacket(mgCMemory *memory, mgCMemory *work_memory);
 
     /**
      * Draws the visual through the draw manager with no packet of the caller's.
@@ -290,7 +290,7 @@ public:
      * @address 0x1349E0
      * @size 0x40
      */
-    virtual void Draw(float (*matrix)[4], mgCDrawManager *draw_manager) ;
+    virtual void Draw(float (*matrix)[4], mgCDrawManager *draw_manager);
 
     /**
      * Writes the visual into a packet and returns the number of quadwords written.
@@ -299,7 +299,7 @@ public:
      * @address 0x1349D0
      * @size 0x10
      */
-    virtual int Draw(u_int *packet, float (*matrix)[4], mgCDrawManager *draw_manager) ;
+    virtual int Draw(u_int *packet, float (*matrix)[4], mgCDrawManager *draw_manager);
 
     /**
      * Clears the visual's draw settings.
@@ -308,7 +308,7 @@ public:
      * @address 0x133440
      * @size 0x20
      */
-    virtual void Initialize() ;
+    virtual void Initialize();
 
     /**
      * Returns the visual's texture manager, or the global one if it has none.
@@ -339,14 +339,14 @@ class mgCMDTBuilder {
 public:
     mgCMemory *memory;      /**< Memory the model is written into. */
     MDT_HEADER *header;     /**< Header of the model being written. */
-    union { char *end; int cursor; };              /**< End of the model written so far. */
-    union { char *data; int sectionStart; u_long128 *dataCursor; MDT_MATERIAL_ *materialCursor; };             /**< Write position inside the open data section. */
+    char *end;              /**< End of the model written so far. */
+    char *data;             /**< Write position inside the open data section. */
     int data_num;           /**< Number of entries written to the open data section. */
-    union { MDT_FACES *faces; int *faceBlock; int faceBlockAddr; };       /**< Header of the face section. */
+    MDT_FACES *faces;       /**< Header of the face section. */
     FACES_ID *prim;         /**< Primitive being written. */
     int index_num;          /**< Number of indices added to the primitive. */
     int face_index_num;     /**< Number of indices that make one face of the primitive. */
-    union { int *index; int *faceCursor; int faceEnd; };             /**< Write position for the next index of the face section. */
+    int *index;             /**< Write position for the next index of the face section. */
     int data_type;          /**< Section open for writing, from mgMDTDataType. */
     int unk_2c;
     MDT_MATERIAL_ material; /**< Material record written by SetMaterial. */

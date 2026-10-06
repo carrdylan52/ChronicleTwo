@@ -321,13 +321,6 @@ STATIC_ASSERT(sizeof(mgCFrameBase) == 0x50);
 class mgCFrame : public mgCFrameBase {
 public:
     /**
-     * Stores the eight corners of a bounding box as scalar components.
-     */
-    struct BoundCorners {
-        float v[32]; /**< Four components for each corner. */
-    };
-
-    /**
      *
      * Bounding box and sphere of a frame in its local space.
      *
