@@ -46,13 +46,6 @@ enum SCN_LOADMAP_STEP {
 struct SCN_LOADMAP_INFO2 {
     /**
      *
-     * Creates an empty map loading description.
-     *
-     */
-    SCN_LOADMAP_INFO2() { Initialize(); }
-
-    /**
-     *
      * Names and loaded contents of the files of one map: the map itself, or the map added to it.
      *
      */
@@ -134,6 +127,15 @@ public:
      * @address 0x289900
      * @size 0x10
      */
-    void Initialize() { unk_8 = 0; }
+    void Initialize();
 };
+
+template <typename T>
+void mgCObjectStack<T>::Initialize() {
+    unk_8 = 0;
+}
+
+template <>
+void mgCObjectStack<CList<EMAP_MESSAGE> >::Initialize();
+
 STATIC_ASSERT(sizeof(mgCObjectStack<CList<EMAP_MESSAGE> >) == 0x14);

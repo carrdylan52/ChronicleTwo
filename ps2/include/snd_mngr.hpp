@@ -100,11 +100,7 @@ struct SND_LOOP_SE_SEQ {
      * @address 0x18DAE0
      * @size 0x20
      */
-    SND_LOOP_SE_SEQ() {
-        se_id = -1;
-        vol = -1.0f;
-        pan = 0.0f;
-    }
+    SND_LOOP_SE_SEQ();
 };
 STATIC_ASSERT(sizeof(SND_LOOP_SE_SEQ) == 0x14);
 
@@ -223,10 +219,7 @@ struct sndSeInfo {
      * @address 0x191520
      * @size 0x10
      */
-    sndSeInfo() {
-        unk_0 = 0;
-        type = SND_SE_TYPE_NONE;
-    }
+    sndSeInfo();
 };
 STATIC_ASSERT(sizeof(sndSeInfo) == 0xC);
 
@@ -556,7 +549,7 @@ void sndSeAllStop(int port_no);
  * @address 0x18EE40
  * @size 0x30
  */
-s8 sndGetSeDefVol(unsigned int snd_id, int se_no);
+int sndGetSeDefVol(unsigned int snd_id, int se_no);
 
 /**
  * Loads a sound pack into a port as a new bank: its wave data, driver

@@ -86,12 +86,14 @@ int sceMcEnd(void);
  * Reports how the library's last call finished, and reads back what it
  * returned. Returns zero while that call is still running.
  */
+int sceMcEnd(void);
+
 int sceMcSync(int mode, int *cmd, int *result);
 
 /**
  * Opens the named file on the card in the given port and returns a command id.
  */
-int sceMcOpen(int port, int slot, char *name, int flag);
+int sceMcOpen(int port, int slot, const unsigned char *name, int flag);
 
 /**
  * Closes the given file and returns a command id.
@@ -116,7 +118,7 @@ int sceMcFlush(int fd);
 /**
  * Enters the named directory of the card, writes back the one it left, and returns a command id.
  */
-int sceMcChdir(int port, int slot, char *name, char *current);
+int sceMcChdir(int port, int slot, const char *name, void *current);
 
 /**
  * Renames a file or directory on the selected memory card.
@@ -136,7 +138,8 @@ int sceMcDelete(int port, int slot, char *name);
 /**
  * Reads up to the given number of directory entries into the given table and returns a command id.
  */
-int sceMcGetDir(int port, int slot, char *name, unsigned int mode, int count, void *table);
+struct MC_DIR_ENTRY;
+int sceMcGetDir(int port, int slot, const char *name, int mode, int count, MC_DIR_ENTRY *table);
 
 /**
  * Asks for the type, the free space and the format flag of the card in the given port.

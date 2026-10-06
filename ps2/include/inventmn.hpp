@@ -8,6 +8,11 @@
 #include "menusys.hpp"
 #include "userdata.hpp"
 
+struct InventFoundFlags {
+    u8 flag[3];
+};
+STATIC_ASSERT(sizeof(InventFoundFlags) == 3);
+
 /**
  * @file
  * Declares the invention menu: the photos the player takes with the camera,
@@ -95,12 +100,34 @@ STATIC_ASSERT(sizeof(INVENT_MATERIAL) == 0x4);
  * Invention recipe: the item produced, the three ideas that make it and the materials that build it.
  *
  */
+struct INVENT_MATERIAL_LIST {
+    INVENT_MATERIAL *material;     /**< Materials consumed in building the invention. */
+    short num;
+    u8 unk_6[2];
+};
+STATIC_ASSERT(sizeof(INVENT_MATERIAL_LIST) == 0x8);
+
+struct MakeItemNeeds {
+    struct Need {
+        int item_id;
+        int amount;
+    };
+    int num;
+    Need need[4];
+};
+STATIC_ASSERT(sizeof(MakeItemNeeds) == 0x24);
+
 struct INVENT_DATA_INFO {
     short            item_id;      /**< Item the invention produces, or -1 for an unset row. */
     short            neta_id[3];   /**< Ideas that combine into the invention. */
+    union {
+        struct {
     INVENT_MATERIAL *material;     /**< Materials consumed in building the invention. */
     short            material_num; /**< Number of entries in material. */
     u8               unk_e[2];
+        };
+        INVENT_MATERIAL_LIST materials;
+    };
     short            unk_10;
     u8               unk_12[2];
     float            model_pos[3]; /**< Position the produced item's model is shown at when built. */
@@ -189,7 +216,7 @@ public:
      * @address 0x201410
      * @size 0x180
      */
-    short CheckInventEnable(int *neta_id, int *near_match);
+    int CheckInventEnable(int *neta_id, int *near_match);
 
     /**
      *
@@ -282,20 +309,17 @@ public:
     s8                    album_flag[50];           /**< State of each album photo, -1 for an empty slot. */
     u8                    unk_53a[2];
     mgCMemory             chara_stack;              /**< Memory the menu characters are built in. */
-    void                 *unk_56c;
-    void                 *unk_570;
+    u8                   *create_model_file;
+    u8                   *create_motion_file;
     CActionChara         *create_chara;             /**< Model of the item being built. */
     void                 *unk_578;
-    INVENT_MATERIAL     **make_material;            /**< Materials of the recipe being built. */
+    INVENT_MATERIAL_LIST *make_material; /**< Materials of the recipe being built. */
     short                 create_step;              /**< Stage of the building sequence. */
     short                 create_item_id;           /**< Item being built. */
     int                   unk_584;
-    int                   unk_588;
-    int                   unk_58c;
-    int                   unk_590;
+    int                   create_photo_neta[3];
     int                   unk_594;
-    s8                    unk_598;
-    u8                    unk_599[0x1F];
+    s8                    create_photo_name[32];
     s8                    unk_5b8;
     u8                    unk_5b9[3];
     int                   unk_5bc;
@@ -399,7 +423,7 @@ public:
      * @address 0x201F90
      * @size 0x40
      */
-    void CheckRecoverPhotoNum();
+    int CheckRecoverPhotoNum();
 
     /**
      *
@@ -479,7 +503,7 @@ public:
      * @address 0x202E30
      * @size 0xB0
      */
-    short GetNowSelectNetaID(int slot);
+    int GetNowSelectNetaID(int slot);
 
     /**
      *
@@ -911,6 +935,8 @@ char *GetPhotoNameCheck(USER_PICTURE_INFO *photo);
  * @address 0x201B40
  * @size 0x1B0
  */
+int CheckPhotoFlag();
+
 int CheckInventItem(int item_id);
 
 /**

@@ -1649,3 +1649,5 @@ int iRand(int limit);
  * @size 0x40
  */
 float fRand(float limit);
+
+int LocalTransWorldPrimPos(int (*corners)[4], float *pos, float width, float height, float angle);

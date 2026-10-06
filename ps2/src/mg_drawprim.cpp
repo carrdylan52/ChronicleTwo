@@ -1,14 +1,9 @@
 #include "common.h"
-#include "mg_drawprim.hpp"
-
 // mglib.hpp cannot be included beside mg_drawenv.hpp while both declare mgFOG_PARAM; these are
 // the mglib declarations this unit uses.
-extern sceVif1Packet *mgVif1Packet;
-extern int mgScreenOffx;
-extern int mgScreenOffy;
-extern mgCDrawManager mgDrawManager;
-mgCMemory *mgGetDataBuffer();
-int mgSendVuProg(unsigned int *packet, int id);
+#include "mg_drawprim.hpp"
+#include "mg_memory.hpp"
+#include "mglib.hpp"
 
 // Code (.text)
 mgCDrawPrim::mgCDrawPrim() {
@@ -43,52 +38,44 @@ void mgCDrawPrim::Initialize(mgCMemory *memory, sceVif1Packet *vif_packet) {
     draw_env.Initialize(0);
 }
 
-#ifdef NONMATCHING
-void mgCDrawPrim::Begin(int type) {
-    disabled = 1;
-    if (memory != NULL && vif_packet != NULL && draw_manager != NULL && draw_manager->render_info != NULL) {
-        disabled = 0;
-        prim.PRIM = type;
-        q = 1.0f;
+void mgCDrawPrim::Begin(int prim_type) {
+    this->disabled = 1;
+    if (this->memory == 0 || this->vif_packet == 0 || this->draw_manager == 0) {
+        return;
+    }
+    if (this->draw_manager->render_info == 0) {
+        return;
+    }
+    this->disabled = 0;
+    this->prim.PRIM = prim_type;
+    this->q = 1.0f;
         Begin2();
         BeginDma();
     }
-}
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/mg_drawprim", Begin__11mgCDrawPrimFi);
-#endif
 
-#ifdef NONMATCHING
 void mgCDrawPrim::BeginDma() {
-    u_int *tag;
-    u_long *data;
-
-    dma_start = write;
-    direct_start = dma_start;
-    tag = (u_int *)write;
-    tag[0] = 0;
-    tag[1] = 0;
-    tag[2] = 0;
-    tag[3] = 0;
-    dma_tag = &tag[0];
-    direct_code = &tag[3];
-    write++;
-
-    giftag = (u_int *)write;
-    giftag[0] = MG_GIFTAG_EOP;
-    giftag[1] = 1 << MG_GIFTAG_NREG_SHIFT;
-    giftag[2] = SCE_GIF_PACKED_AD;
-    giftag[3] = 0;
-    write++;
-
-    data = (u_long *)write;
-    data[0] = *(u_long *)&prim;
-    data[1] = SCE_GS_PRIM;
-    write++;
+    this->dma_start_words = this->write_words;
+    this->direct_start_words = this->dma_start_words;
+    u_int *head = this->write_words;
+    head[0] = 0;
+    head[1] = 0;
+    head[2] = 0;
+    head[3] = 0;
+    this->dma_tag_words = (int *)head;
+    this->direct_code_words = (int *)(head + 3);
+    this->write_words += 4;
+    u_int *flush = this->write_words;
+    this->giftag = (u_int *)flush;
+    flush[0] = 0x8000;
+    flush[1] = 0x10000000;
+    flush[2] = 0xE;
+    flush[3] = 0;
+    this->write_words += 4;
+    u_long *gif = (u_long *)this->write_words;
+    gif[0] = *(u_long *)&prim;
+    gif[1] = 0;
+    this->write_words = (u_int *)(gif + 2);
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/mg_drawprim", BeginDma__11mgCDrawPrimFv);
-#endif
 
 void mgCDrawPrim::EndDma() {
     int dma_qwc = (write - dma_start) - 1;
@@ -117,15 +104,20 @@ void mgCDrawPrim::End() {
     }
 }
 
-#ifdef NONMATCHING
 void mgCDrawPrim::Begin2() {
     mgRENDER_INFO *render_info;
     u_int *tag;
     u_long *data;
 
     disabled = 1;
-    if (memory != NULL && vif_packet != NULL && draw_manager != NULL &&
-        (render_info = draw_manager->render_info) != NULL) {
+    if (memory == NULL || vif_packet == NULL || draw_manager == NULL) {
+        return;
+    }
+    render_info = draw_manager->render_info;
+    if (render_info == NULL) {
+        return;
+    }
+    {
         disabled = 0;
         packet_start = memory->stAllocTest(1);
         if (detached == 0) {
@@ -136,7 +128,8 @@ void mgCDrawPrim::Begin2() {
             packet_top = packet_start;
         }
         write = packet_start;
-        draw_env.zbuf = render_info->draw_env[0].zbuf;
+        sceGsZbuf zbuf __attribute__((aligned(4))) = sceGsZbuf(render_info->draw_env[0].zbuf);
+        draw_env.zbuf = zbuf;
         draw_env.SetZBuf(z_mask);
 
         // DMA tag and VIF code for the seven quadwords of drawing state below.
@@ -147,11 +140,12 @@ void mgCDrawPrim::Begin2() {
         tag[3] = MG_VIF_DIRECT | 7;
         write++;
 
-        giftag = (u_int *)write;
-        giftag[0] = MG_GIFTAG_EOP | 2;
-        giftag[1] = 1 << MG_GIFTAG_NREG_SHIFT;
-        giftag[2] = SCE_GIF_PACKED_AD;
-        giftag[3] = 0;
+        u_int *gif = (u_int *)write;
+        giftag = gif;
+        gif[0] = MG_GIFTAG_EOP | 2;
+        gif[1] = 1 << MG_GIFTAG_NREG_SHIFT;
+        gif[2] = SCE_GIF_PACKED_AD;
+        gif[3] = 0;
         write++;
 
         data = (u_long *)write;
@@ -159,15 +153,12 @@ void mgCDrawPrim::Begin2() {
         data[1] = SCE_GS_TEXFLUSH;
         data[2] = 1;
         data[3] = MG_GS_PRMODECONT;
-        write += 2;
+        write = (u_long128 *)(data + 4);
 
         *(mgCDrawEnv *)write = draw_env;
         write += sizeof(mgCDrawEnv) / sizeof(u_long128);
     }
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/mg_drawprim", Begin2__11mgCDrawPrimFv);
-#endif
 
 void mgCDrawPrim::BeginPrim2(int type) {
     packed = 0;
@@ -176,39 +167,32 @@ void mgCDrawPrim::BeginPrim2(int type) {
     BeginDma();
 }
 
-#ifdef NONMATCHING
-void mgCDrawPrim::BeginPrim2(int type, unsigned int regs_lo, unsigned int regs_hi, int nreg) {
-    u_int *tag;
-    u_int prim_bits;
-
+void mgCDrawPrim::BeginPrim2(int prim_type, u_int data_a, u_int data_b, int unit_count) {
     packed = 1;
-    prim.PRIM = type;
+    prim.PRIM = prim_type;
     q = 1.0f;
     dma_start = write;
     direct_start = dma_start;
-    tag = (u_int *)write;
-    tag[0] = 0;
-    tag[1] = 0;
-    tag[2] = 0;
-    tag[3] = 0;
-    dma_tag = &tag[0];
-    direct_code = &tag[3];
+    u_int *clear = (u_int *)write;
+    clear[0] = 0;
+    clear[1] = 0;
+    clear[2] = 0;
+    clear[3] = 0;
+    dma_tag = clear;
+    direct_code = clear + 3;
     write++;
-
-    prim_bits = *(u_int *)&prim;
-    this->nreg = nreg;
-    giftag = (u_int *)write;
-    giftag[0] = MG_GIFTAG_EOP;
-    giftag[1] = this->nreg << MG_GIFTAG_NREG_SHIFT | (prim_bits & 0x7FF) << MG_GIFTAG_PRIM_SHIFT | MG_GIFTAG_PRE;
-    giftag[2] = regs_lo;
-    giftag[3] = regs_hi;
+    u_int flags = *(u_int *)&prim & 0x7FF;
+    nreg = unit_count;
+    u_int *tag = (u_int *)write;
+    giftag = tag;
+    tag[0] = 0x8000;
+    tag[1] = (nreg << 28) | (flags << 15) | 0x4000;
+    tag[2] = data_a;
+    tag[3] = data_b;
     write++;
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/mg_drawprim", BeginPrim2__11mgCDrawPrimFiUiUii);
-#endif
 
-#ifdef NONMATCHING
+#pragma divbyzerocheck on
 void mgCDrawPrim::EndPrim2() {
     if (packed == 0) {
         EndDma();
@@ -226,9 +210,7 @@ void mgCDrawPrim::EndPrim2() {
         }
     }
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/mg_drawprim", EndPrim2__11mgCDrawPrimFv);
-#endif
+#pragma divbyzerocheck reset
 
 void mgCDrawPrim::End2() {
     if (disabled == 0) {
@@ -245,112 +227,101 @@ void mgCDrawPrim::End2() {
     }
 }
 
-#ifdef NONMATCHING
-void mgCDrawPrim::Data0(float *data) {
-    int *dst = (int *)write;
-    write++;
-    dst[0] = (int)data[0];
-    dst[1] = (int)data[1];
-    dst[2] = (int)data[2];
-    dst[3] = (int)data[3];
+void mgCDrawPrim::Data0(float *src) {
+    u_char *dst = (u_char *)command_write;
+    command_write = (u_long *)(dst + 0x10);
+    asm {
+        lqc2 vf1, 0(src)
+        vftoi0.xyzw vf1, vf1
+        sqc2 vf1, 0(dst)
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/mg_drawprim", Data0__11mgCDrawPrimFPf);
-#endif
-
-#ifdef NONMATCHING
-void mgCDrawPrim::Data4(float *data) {
-    int *dst = (int *)write;
-    write++;
-    dst[0] = (int)(data[0] * 16.0f);
-    dst[1] = (int)(data[1] * 16.0f);
-    dst[2] = (int)(data[2] * 16.0f);
-    dst[3] = (int)(data[3] * 16.0f);
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/mg_drawprim", Data4__11mgCDrawPrimFPf);
-#endif
 
-#ifdef NONMATCHING
+void mgCDrawPrim::Data4(float *src) {
+    float *dst = (float *)command_write;
+    command_write = (u_long *)(dst + 4);
+    asm {
+        lqc2 vf1, 0(src)
+        vftoi4.xyzw vf1, vf1
+        sqc2 vf1, 0(dst)
+}
+}
+
 void mgCDrawPrim::Data(int *data) {
-    int x = data[0];
-    int y = data[1];
-    int z = data[2];
-    int w = data[3];
-    int *dst = (int *)write;
-    write++;
-    dst[0] = x;
-    dst[1] = y;
-    dst[2] = z;
-    dst[3] = w;
+    u_long128 quad = *(u_long128 *)data;
+    data = (int *)command_write;
+    command_write = (u_long *)((u_long128 *)data + 1);
+    *(u_long128 *)data = quad;
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/mg_drawprim", Data__11mgCDrawPrimFPi);
-#endif
 
-#ifdef NONMATCHING
-void mgCDrawPrim::DirectData(int count) {
-    write += count;
+u_char *mgCDrawPrim::DirectData(int count) {
+    u_char *p = (u_char *)command_write;
+    command_write = (u_long *)(p + (count << 4));
+    return p;
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/mg_drawprim", DirectData__11mgCDrawPrimFi);
-#endif
 
 void mgCDrawPrim::Vertex(int x, int y, int z) {
     Vertex4(x << 4, y << 4, z);
 }
 
+extern char at_369[16];
 void mgCDrawPrim::Vertex(float x, float y, float z) {
-    sceVu0FVECTOR pos = {x, y, z, 0.0f};
+    float pos[4];
+    *(u_long128 *)pos = *(u_long128 *)at_369;
+    pos[0] = x;
+    pos[1] = y;
+    pos[2] = z;
     Vertex(pos);
 }
 
-#ifdef NONMATCHING
+#pragma global_optimizer off
 void mgCDrawPrim::Vertex(float *pos) {
-    Vertex4((int)(pos[0] * 16.0f), (int)(pos[1] * 16.0f), (int)pos[2]);
+    int xyz[4];
+    int *dst = xyz;
+    asm {
+        lqc2 vf10, 0(pos)
+        vftoi4.xy vf10, vf10
+        vftoi0.z vf10, vf10
+        sqc2 vf10, 0(dst)
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/mg_drawprim", Vertex__11mgCDrawPrimFPf);
-#endif
+    Vertex4(xyz[0], xyz[1], xyz[2]);
+}
+#pragma global_optimizer reset
 
-#ifdef NONMATCHING
 void mgCDrawPrim::Vertex4(int x, int y, int z) {
     int offset_x = 0;
     int offset_y = 0;
-    u_long *data;
-
     GetOffset(&offset_x, &offset_y);
-    data = (u_long *)write;
-    data[0] = (long)z << 32 | (long)(x + offset_x) | (long)(y + offset_y) << 16;
-    data[1] = SCE_GS_XYZ2;
-    write++;
+    u_long *vif_packet = command_write;
+    vif_packet[0] = ((long long)z << 32) | ((long long)(x + offset_x) | ((long long)(y + offset_y) << 16));
+    vif_packet[1] = 5;
+    command_write += 2;
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/mg_drawprim", Vertex4__11mgCDrawPrimFiii);
-#endif
 
 void mgCDrawPrim::Vertex4(int *pos) {
     Vertex4(pos[0], pos[1], pos[2]);
 }
 
-#ifdef NONMATCHING
 void mgCDrawPrim::Color(int r, int g, int b, int a) {
-    u_long *data = (u_long *)write;
-    data[0] = (u_long)*(u_int *)&q << 32 | (long)a << 24 | (long)b << 16 | (long)r | (long)g << 8;
-    data[1] = SCE_GS_RGBAQ;
-    write++;
+    u_long *vif_packet = command_write;
+    u_int q = this->q_bits;
+    vif_packet[0] = ((u_long)q << 32) | ((long long)r | ((long long)g << 8) | ((long long)b << 16) | ((long long)a << 24));
+    vif_packet[1] = 1;
+    command_write += 2;
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/mg_drawprim", Color__11mgCDrawPrimFiiii);
-#endif
 
-#ifdef NONMATCHING
+#pragma global_optimizer off
 void mgCDrawPrim::Color(float *color) {
-    Color((int)color[0], (int)color[1], (int)color[2], (int)color[3]);
+    int rgba[4];
+    int *dst = rgba;
+    asm {
+        lqc2 vf10, 0(color)
+        vftoi0.xyzw vf10, vf10
+        sqc2 vf10, 0(dst)
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/mg_drawprim", Color__11mgCDrawPrimFPf);
-#endif
+    Color(rgba[0], rgba[1], rgba[2], rgba[3]);
+}
+#pragma global_optimizer reset
 
 void mgCDrawPrim::TextureCrd4(int u, int v) {
     u_long *data = (u_long *)write;
@@ -370,27 +341,45 @@ void mgCDrawPrim::Direct(unsigned long reg, unsigned long data) {
     write++;
 }
 
-#ifdef NONMATCHING
-void mgCDrawPrim::Texture(mgCTexture *texture) {
-    if (texture != NULL) {
-        u_long *data;
-
-        this->texture = *texture;
-        this->texture.Bilinear(bilinear);
-        data = (u_long *)write;
-        data[0] = 0;
-        data[1] = SCE_GS_TEXFLUSH;
-        data[2] = *(u_long *)&this->texture.tex1;
-        data[3] = SCE_GS_TEX1_1;
-        data[4] = this->texture.tex0.value;
-        data[5] = SCE_GS_TEX0_1;
-        write += 3;
+struct mgCTextureFields {
+    short word0;
+    short word1;
+    short word2;
+    short word3;
+    char name[32];
+    int field28;
+    int field2C;
+    int field30;
+    u_long field38;
+    u_long field40;
+    u_long field48;
+    float floats[4];
+    int field60;
+    int field64;
+    int field68;
+};
+struct mgCDrawPrimTexture {
+    u_char pad0[0x58];
+    mgCTextureFields texture;
+    int bilinear;
+    u_char padCC[0x10];
+    u_long *commandWrite;
+};
+void mgCDrawPrim::Texture(mgCTexture *source) {
+    mgCDrawPrimTexture *self = (mgCDrawPrimTexture *)this;
+    if (source != 0) {
+        self->texture = *(mgCTextureFields *)source;
+        ((mgCTexture *)&self->texture)->Bilinear(self->bilinear);
+        u_long *packet = self->commandWrite;
+        packet[0] = 0;
+        packet[1] = 0x3F;
+        packet[2] = self->texture.field40;
+        packet[3] = 0x14;
+        packet[4] = self->texture.field38;
+        packet[5] = 6;
+        self->commandWrite = packet + 6;
     }
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/mg_drawprim", Texture__11mgCDrawPrimFP10mgCTexture);
-#endif
-
 void mgCDrawPrim::AlphaBlendEnable(int enable) {
     prim.ABE = enable;
 }
@@ -413,34 +402,38 @@ void mgCDrawPrim::DAlphaTest(int enable, int mode) {
     draw_env.test.bits.datm = mode;
 }
 
-#ifdef NONMATCHING
+struct mgCDrawPrimDepthState {
+    u_char pad0[2];
+    u_char enable : 1;
+    u_char mode : 2;
+    u_char rest : 5;
+};
 void mgCDrawPrim::DepthTestEnable(int enable) {
+    mgCDrawPrimDepthState *state = (mgCDrawPrimDepthState *)((u_char *)this + 0x20);
     if (enable == 0) {
-        draw_env.test.bits.zte = 1;
-        draw_env.test.bits.ztst = SCE_GS_ALWAYS;
+        state->enable = 1;
+        state->mode = 1;
     } else {
-        DepthTest(MG_DEPTH_TEST_GEQUAL);
+        DepthTest(1);
     }
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/mg_drawprim", DepthTestEnable__11mgCDrawPrimFi);
-#endif
 
-#ifdef NONMATCHING
-void mgCDrawPrim::DepthTest(int method) {
-    draw_env.test.bits.zte = 1;
-    if (method == MG_DEPTH_TEST_GREATER) {
-        draw_env.test.bits.ztst = MG_GS_ZGREATER;
-    } else if (method == MG_DEPTH_TEST_GEQUAL) {
-        draw_env.test.bits.ztst = SCE_GS_ZGEQUAL;
-    } else if (method == MG_DEPTH_TEST_ALWAYS) {
-        draw_env.test.bits.ztst = SCE_GS_ALWAYS;
+
+void mgCDrawPrim::DepthTest(int mode) {
+    mgCDrawPrimDepthState *state = (mgCDrawPrimDepthState *)((u_char *)this + 0x20);
+    state->enable = 1;
+    switch (mode) {
+        case -1:
+            state->mode = 1;
+            break;
+        case 1:
+            state->mode = 2;
+            break;
+        case 2:
+            state->mode = 3;
+            break;
     }
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/mg_drawprim", DepthTest__11mgCDrawPrimFi);
-#endif
-
 void mgCDrawPrim::ZMask(int mask) {
     z_mask = mask;
 }
@@ -480,17 +473,15 @@ void mgCDrawPrim::GetOffset(int *x, int *y) {
     *y += offset_y;
 }
 
-#ifdef NONMATCHING
+#pragma schedule off
 mgCDrawManager::mgCDrawManager() {
     unk_68 = 0x40;
     unk_6c = 0;
     unk_70 = 0;
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/mg_drawprim", __ct__14mgCDrawManagerFv);
-#endif
+#pragma schedule reset
+#pragma schedule off
 
-#ifdef NONMATCHING
 void mgCDrawManager::SetSortTable(int num) {
     float near_dist = 1.0f;
     float far_dist = 2.0f;
@@ -509,101 +500,101 @@ void mgCDrawManager::SetSortTable(int num) {
     sort_ratio = near_clip / far_clip;
     sort_scale = sort_num_f;
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/mg_drawprim", SetSortTable__14mgCDrawManagerFi);
-#endif
+#pragma schedule reset
 
-#ifdef NONMATCHING
-void mgCDrawManager::BeginDraw(mgCMemory *memory, int *order) {
-    int table_size;
+#pragma schedule off
+#pragma opt_loop_invariants off
+#pragma global_optimizer off
+void mgCDrawManager::BeginDraw(mgCMemory *new_memory, int *id_list) {
+    int blocks;
+    int used_count;
     int i;
-
-    this->memory = memory;
-    if (this->memory == NULL) {
-        this->memory = packet_memory;
+    int *cursor;
+    memory = new_memory;
+    if (memory == 0) {
+        memory = packet_memory;
     }
     group_num = texture_manager->block_max;
     group_max = group_num;
-    table_size = group_num / 4;
-    order_index = NULL;
-    draw_order = NULL;
-    if (order != NULL) {
-        int count;
-        int *entry;
-
-        order_index = (int *)this->memory->Alloc(group_max / 4 + 1);
+    blocks = group_num / 4 + 1;
+    order_index = 0;
+    draw_order = 0;
+    if (id_list != 0) {
+        order_index = (int *)memory->Alloc(group_max / 4 + 1);
         for (i = 0; i < group_max; i++) {
             order_index[i] = -1;
         }
-        count = 0;
-        for (entry = order; *entry >= 0; entry++) {
-            count++;
+        cursor = id_list;
+        used_count = 0;
+        while (*cursor >= 0) {
+            used_count++;
+            cursor++;
         }
-        draw_order = (int *)this->memory->Alloc((count + 1) / 4 + 1);
-        for (i = 0; i < count; i++) {
-            draw_order[i] = order[i];
+        draw_order = (int *)memory->Alloc((used_count + 1) / 4 + 1);
+        for (i = 0; i < used_count; i++) {
+            draw_order[i] = id_list[i];
             order_index[draw_order[i]] = i;
         }
         draw_order[i] = -1;
-        group_num = count;
-        table_size = (group_num + 1) / 4;
+        group_num = used_count;
+        blocks = (group_num + 1) / 4 + 1;
     }
-    table_size = table_size + 1;
-    packet_list = (mgSORT_PACKET ***)this->memory->Alloc(table_size);
-    unk_14 = (int *)this->memory->Alloc(table_size);
-    packet_num = (int *)this->memory->Alloc(table_size);
-    sort_table = (mgSORT_PACKET **)this->memory->Alloc(sort_num);
+    packet_list = (mgSORT_PACKET ***)memory->Alloc(blocks);
+    unk_14 = (int *)memory->Alloc(blocks);
+    packet_num = (int *)memory->Alloc(blocks);
+    sort_table = (mgSORT_PACKET **)memory->Alloc(sort_num);
     ClearTable();
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/mg_drawprim", BeginDraw__14mgCDrawManagerFP9mgCMemoryPi);
-#endif
+#pragma global_optimizer reset
+#pragma opt_loop_invariants reset
+#pragma schedule reset
 
-#ifdef NONMATCHING
+#pragma optimization_level 1
 void mgCDrawManager::ClearTable() {
-    int i;
-
-    for (i = 0; i < group_num; i++) {
-        packet_list[i] = NULL;
-        unk_14[i] = 0;
-        packet_num[i] = 0;
+    int *a = (int *)packet_list;
+    int *b = unk_14;
+    int *c = packet_num;
+    int *packet = (int *)sort_table;
+    for (int i = 0; i < group_num; i++) {
+        *a++ = 0;
+        *b++ = 0;
+        *c++ = 0;
     }
-    for (i = 0; i < sort_num; i++) {
-        sort_table[i] = NULL;
+    for (int j = 0; j < sort_num; j++) {
+        *packet++ = 0;
     }
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/mg_drawprim", ClearTable__14mgCDrawManagerFv);
-#endif
+#pragma optimization_level reset
 
-#ifdef NONMATCHING
+#pragma schedule off
+#pragma global_optimizer off
 void mgCDrawManager::PreEndDraw() {
-    int i;
-
     packet_cursor = (mgSORT_PACKET ***)memory->Alloc(group_num / 4 + 1);
-    for (i = 0; i < group_num; i++) {
-        int num = packet_num[i];
-        if (num > 0) {
-            packet_list[i] = (mgSORT_PACKET **)memory->Alloc(num / 4 + 1);
+    int *sizes = packet_num;
+    for (int i = 0; i < group_num; i++) {
+        int size = *sizes;
+        sizes++;
+        if (size > 0) {
+            packet_list[i] = (mgSORT_PACKET **)memory->Alloc(size / 4 + 1);
             packet_cursor[i] = packet_list[i];
         }
     }
     // Only the first sort bucket is used.
-    for (i = 0; i < 1; i++) {
-        mgSORT_PACKET *entry = sort_table[i];
-        if (entry != NULL) {
-            for (; entry != NULL; entry = entry->next) {
-                *packet_cursor[entry->group] = entry;
-                packet_cursor[entry->group]++;
+    for (int j = 0; j < 1; j++) {
+        mgSORT_PACKET *item = sort_table[j];
+        if (item != 0) {
+            while (item != 0) {
+                *packet_cursor[item->group] = item;
+                packet_cursor[item->group]++;
+                item = item->next;
             }
         }
     }
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/mg_drawprim", PreEndDraw__14mgCDrawManagerFv);
-#endif
+#pragma global_optimizer reset
+#pragma schedule reset
+#pragma schedule off
 
-#ifdef NONMATCHING
 int mgCDrawManager::ReloadTexture(int group, sceVif1Packet *vif_packet) {
     mgCTextureManager *manager = texture_manager;
     int index;
@@ -622,17 +613,17 @@ int mgCDrawManager::ReloadTexture(int group, sceVif1Packet *vif_packet) {
     manager->ReloadTexture(group, vif_packet);
     return 1;
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/mg_drawprim", ReloadTexture__14mgCDrawManagerFiP13sceVif1Packet);
-#endif
+#pragma schedule reset
 
-#ifdef NONMATCHING
+#pragma schedule off
+#pragma global_optimizer off
 int mgCDrawManager::Draw(int group, sceVif1Packet *vif_packet) {
-    u_int *start;
-    u_int *tag;
     mgSORT_PACKET **entry;
+    u_int *tag;
+    u_int *start;
     u_long128 *common;
     int i;
+    int offset;
 
     if (group < 0 || group >= texture_manager->block_max) {
         return 0;
@@ -643,16 +634,17 @@ int mgCDrawManager::Draw(int group, sceVif1Packet *vif_packet) {
     if (group < 0) {
         return 0;
     }
-    if (packet_list[group] == NULL) {
+    offset = group << 2;
+    if ((entry = *(mgSORT_PACKET ***)((u_char *)packet_list + offset)) == NULL) {
         return 1;
     }
     sceVif1PkTerminate(vif_packet);
-    start = (u_int *)vif_packet->pCurrent;
-    entry = &packet_list[group][packet_num[group] - 1];
+    tag = (u_int *)vif_packet->pCurrent;
+    start = tag;
+    entry = &(*(mgSORT_PACKET ***)((u_char *)packet_list + offset))[*(int *)((u_char *)packet_num + offset) - 1];
     common = NULL;
-    tag = start;
     // Packets are called in the reverse of their registration order.
-    for (i = 0; i < packet_num[group]; i++) {
+    for (i = 0; i < *(int *)((u_char *)packet_num + offset); i++) {
         if (*entry != NULL) {
             tag += mgSendVuProg(tag, (*entry)->vu_program);
             if (common != (*entry)->common) {
@@ -674,11 +666,11 @@ int mgCDrawManager::Draw(int group, sceVif1Packet *vif_packet) {
     sceVif1PkReserve(vif_packet, tag - start);
     return 1;
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/mg_drawprim", Draw__14mgCDrawManagerFiP13sceVif1Packet);
-#endif
+#pragma global_optimizer reset
+#pragma schedule reset
 
-#ifdef NONMATCHING
+#pragma schedule off
+#pragma global_optimizer off
 void mgCDrawManager::EndDraw(sceVif1Packet *vif_packet) {
     int i;
     int group;
@@ -693,39 +685,36 @@ void mgCDrawManager::EndDraw(sceVif1Packet *vif_packet) {
         Draw(group, vif_packet);
     }
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/mg_drawprim", EndDraw__14mgCDrawManagerFP13sceVif1Packet);
-#endif
+#pragma global_optimizer reset
+#pragma schedule reset
+#pragma schedule off
 
-#ifdef NONMATCHING
 void mgCDrawManager::AddPacket(int group, u_long128 *common, u_long128 *packet, int vu_program) {
-    mgSORT_PACKET *entry;
-
-    if (group >= group_max) {
-        return;
-    }
-    if (order_index != NULL) {
+    int index;
+    mgSORT_PACKET *node;
+    if (group < group_max) {
+        index = group;
+        if (order_index != 0) {
         if (group < 0) {
-            group = order_index[*draw_order];
+                index = order_index[*draw_order];
         } else {
-            group = order_index[group];
-        }
-        if (group < 0) {
+                index = order_index[group];
+    }
+            if (index < 0) {
             return;
         }
     }
-    entry = (mgSORT_PACKET *)memory->Alloc(1);
-    entry->next = *sort_table;
-    *sort_table = entry;
-    entry->common = common;
-    entry->packet = packet;
-    entry->group = group;
-    entry->vu_program = vu_program;
-    packet_num[group]++;
+        node = (mgSORT_PACKET *)memory->Alloc(1);
+        node->next = *sort_table;
+        *sort_table = node;
+        node->common = common;
+        node->packet = packet;
+        node->group = index;
+        node->vu_program = vu_program;
+        packet_num[index]++;
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/mg_drawprim", AddPacket__14mgCDrawManagerFiP1P1i);
-#endif
+}
+#pragma schedule reset
 
 // Uninitialised data (.bss)
 INCLUDE_BSS(at_369, 0x10);

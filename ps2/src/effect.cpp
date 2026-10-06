@@ -1,176 +1,72 @@
 #include "common.h"
+#include "mg_memory.hpp"
+#include "mg_drawprim.hpp"
+#include "mg_texture.hpp"
+#include "mg_frame.hpp"
+#include "mg_drawenv.hpp"
+#include "mg_math.hpp"
+#include "mglib.hpp"
+#include "effectlist.hpp"
+#include "mg_sprite.hpp"
+#include "scriptinterpreter.hpp"
 #include "effect.hpp"
 #include <cstring>
 
-#include <cmath>
+extern "C" int fptosi(float value);
 #include <cstdlib>
-#include <libvu0.h>
+#include <cmath>
 
-#include "mg_drawprim.hpp"
-#include "mg_math.hpp"
-#include "mg_texture.hpp"
-#include "mglib.hpp"
-#include "scriptinterpreter.hpp"
-
-#ifdef NONMATCHING
-static CEffectManager *g_tmp_effm; /**< Effect whose script is being read. */
-static CEffectCtrl    *g_tmp_effc; /**< Emitter block being read. */
-static int            g_eff_entry_flag; /**< Non-zero to enter completed emitters. */
-static char           g_tmp_eff_name[32]; /**< Name of the current emitter block. */
-
-static int __BUFFER_SIZE(SPI_STACK *stack, int argument_count);
-static int __EFFECT_START(SPI_STACK *stack, int argument_count);
-static int __EFFECT_END(SPI_STACK *stack, int argument_count);
-static int __WAIT_FRAME(SPI_STACK *stack, int argument_count);
-static int __IMG_NAME(SPI_STACK *stack, int argument_count);
-static int __SIZE(SPI_STACK *stack, int argument_count);
-static int __DIR(SPI_STACK *stack, int argument_count);
-static int __NUM(SPI_STACK *stack, int argument_count);
-static int __NUM_RAND(SPI_STACK *stack, int argument_count);
-static int __COUNT(SPI_STACK *stack, int argument_count);
-static int __CNT_RAND(SPI_STACK *stack, int argument_count);
-static int __REPEAT(SPI_STACK *stack, int argument_count);
-static int __REP_RAND(SPI_STACK *stack, int argument_count);
-static int __POS(SPI_STACK *stack, int argument_count);
-static int __POS_RAND(SPI_STACK *stack, int argument_count);
-static int __VELO(SPI_STACK *stack, int argument_count);
-static int __VELO_RAND(SPI_STACK *stack, int argument_count);
-static int __VELO_MUL(SPI_STACK *stack, int argument_count);
-static int __ACC(SPI_STACK *stack, int argument_count);
-static int __ACC_RAND(SPI_STACK *stack, int argument_count);
-static int __ACC_MUL(SPI_STACK *stack, int argument_count);
-static int __MOVE_TYPE(SPI_STACK *stack, int argument_count);
-static int __MOVE_P1(SPI_STACK *stack, int argument_count);
-static int __MOVE_P1_RAND(SPI_STACK *stack, int argument_count);
-static int __MOVE_P2(SPI_STACK *stack, int argument_count);
-static int __MOVE_P2_RAND(SPI_STACK *stack, int argument_count);
-static int __SCALE_TYPE(SPI_STACK *stack, int argument_count);
-static int __SCALE(SPI_STACK *stack, int argument_count);
-static int __SCALE_RAND(SPI_STACK *stack, int argument_count);
-static int __SVELO(SPI_STACK *stack, int argument_count);
-static int __SVELO_RAND(SPI_STACK *stack, int argument_count);
-static int __SCALE_P1(SPI_STACK *stack, int argument_count);
-static int __SCALE_P1_RAND(SPI_STACK *stack, int argument_count);
-static int __SCALE_P2(SPI_STACK *stack, int argument_count);
-static int __SCALE_P2_RAND(SPI_STACK *stack, int argument_count);
-static int __ALPHA_BLEND(SPI_STACK *stack, int argument_count);
-static int __ALPHA_TYPE(SPI_STACK *stack, int argument_count);
-static int __ALPHA(SPI_STACK *stack, int argument_count);
-static int __ALPHA_RAND(SPI_STACK *stack, int argument_count);
-static int __ALPHA_P1(SPI_STACK *stack, int argument_count);
-static int __ALPHA_P1_RAND(SPI_STACK *stack, int argument_count);
-static int __ALPHA_P2(SPI_STACK *stack, int argument_count);
-static int __ALPHA_P2_RAND(SPI_STACK *stack, int argument_count);
-static int __TEX_GET_RECT(SPI_STACK *stack, int argument_count);
-static int __TEX_GET_TYPE(SPI_STACK *stack, int argument_count);
-static int __TEX_NAME(SPI_STACK *stack, int argument_count);
-static int __GRAVITY(SPI_STACK *stack, int argument_count);
-
-static SPI_TAG_PARAM effm_tag[] = { /**< Tags accepted by an effect script. */
-    { "BUFFER_SIZE", __BUFFER_SIZE },
-    { "EFFECT_START", __EFFECT_START },
-    { "EFFECT_END", __EFFECT_END },
-    { "WAIT_FRAME", __WAIT_FRAME },
-    { "IMG_NAME", __IMG_NAME },
-    { "SIZE", __SIZE },
-    { "DIR", __DIR },
-    { "NUM", __NUM },
-    { "NUM_RAND", __NUM_RAND },
-    { "COUNT", __COUNT },
-    { "CNT_RAND", __CNT_RAND },
-    { "REPEAT", __REPEAT },
-    { "__REP_RAND", __REP_RAND },
-    { "POS", __POS },
-    { "POS_RAND", __POS_RAND },
-    { "VELO", __VELO },
-    { "VELO_RAND", __VELO_RAND },
-    { "VELO_MUL", __VELO_MUL },
-    { "ACC", __ACC },
-    { "ACC_RAND", __ACC_RAND },
-    { "ACC_MUL", __ACC_MUL },
-    { "MOVE_TYPE", __MOVE_TYPE },
-    { "MOVE_P1", __MOVE_P1 },
-    { "MOVE_P1_RAND", __MOVE_P1_RAND },
-    { "MOVE_P2", __MOVE_P2 },
-    { "MOVE_P2_RAND", __MOVE_P2_RAND },
-    { "SCALE_TYPE", __SCALE_TYPE },
-    { "SCALE", __SCALE },
-    { "SCALE_RAND", __SCALE_RAND },
-    { "SVELO", __SVELO },
-    { "SVELO_RAND", __SVELO_RAND },
-    { "SCALE_P1", __SCALE_P1 },
-    { "SCALE_P1_RAND", __SCALE_P1_RAND },
-    { "SCALE_P2", __SCALE_P2 },
-    { "SCALE_P2_RAND", __SCALE_P2_RAND },
-    { "ALPHA_BLEND", __ALPHA_BLEND },
-    { "ALPHA_TYPE", __ALPHA_TYPE },
-    { "ALPHA", __ALPHA },
-    { "ALPHA_RAND", __ALPHA_RAND },
-    { "ALPHA_P1", __ALPHA_P1 },
-    { "ALPHA_P1_RAND", __ALPHA_P1_RAND },
-    { "ALPHA_P2", __ALPHA_P2 },
-    { "ALPHA_P2_RAND", __ALPHA_P2_RAND },
-    { "TEX_GET_RECT", __TEX_GET_RECT },
-    { "TEX_GET_TYPE", __TEX_GET_TYPE },
-    { "TEX_NAME", __TEX_NAME },
-    { "GRAVITY", __GRAVITY },
-    { NULL, NULL }
-};
-#endif
+extern CEffectManager *g_tmp_effm;
+extern CEffectCtrl *g_tmp_effc;
+extern char g_tmp_eff_name[];
+extern int g_eff_entry_flag;
+extern SPI_TAG_PARAM effm_tag[];
+extern char at_848__2[];
 
 // Code (.text)
-/**
- * Adds a uniformly distributed offset within a range to a value.
- */
-static float UniformityRand(float base, float range) {
-    float sample;
+float UniformityRand(float center, float range) {
+    float value = (float)rand() / 2147483648.0f;
 
-    sample = rand() / 2147483648.0f;
-    sample *= range;
-    return base + sample - range / 2.0f;
+    value *= range;
+    value = center + value;
+    return value - range / 2.0f;
 }
+float RegularityRand(float center, float range, int samples) {
+    float sum = 0.0f;
+    int i;
 
-/**
- * Adds an offset averaged from pairs of random samples to a value.
- */
-static float RegularityRand(float base, float range, int count) {
-    float sum;
-    int   sample;
-
-    sum = 0.0f;
-    for (sample = 0; sample < count; sample++) {
-        sum += rand() / 2147483648.0f;
-        sum -= rand() / 2147483648.0f;
+    for (i = 0; i < samples; i++) {
+        sum += (float)rand() / 2147483648.0f;
+        sum -= (float)rand() / 2147483648.0f;
     }
-    sum /= count;
+    sum /= (float)samples;
     sum *= range;
-    return base + sum;
+    return center + sum;
 }
-
-#ifdef NONMATCHING
 void InitEffectParam(EFFECT_PARAM *param) {
-    int rectangle;
+    int i;
+    int offset;
 
     param->life = 0;
     param->dir = 0;
-    param->height = 0.0f;
-    param->width = 0.0f;
-    param->pos[0] = 0.0f;
-    param->pos[1] = 0.0f;
-    param->pos[2] = 0.0f;
+    param->height = 0;
+    param->width = 0;
+    param->pos[0] = 0;
+    param->pos[1] = 0;
+    param->pos[2] = 0;
     param->pos[3] = 1.0f;
-    param->velo[0] = 0.0f;
-    param->velo[1] = 0.0f;
-    param->velo[2] = 0.0f;
-    param->velo[3] = 0.0f;
+    param->velo[0] = 0;
+    param->velo[1] = 0;
+    param->velo[2] = 0;
+    param->velo[3] = 0;
     param->velo_mul[0] = 1.0f;
     param->velo_mul[1] = 1.0f;
     param->velo_mul[2] = 1.0f;
     param->velo_mul[3] = 1.0f;
-    param->acc[0] = 0.0f;
-    param->acc[1] = 0.0f;
-    param->acc[2] = 0.0f;
-    param->acc[3] = 0.0f;
+    param->acc[0] = 0;
+    param->acc[1] = 0;
+    param->acc[2] = 0;
+    param->acc[3] = 0;
     param->acc_mul[0] = 1.0f;
     param->acc_mul[1] = 1.0f;
     param->acc_mul[2] = 1.0f;
@@ -178,14 +74,14 @@ void InitEffectParam(EFFECT_PARAM *param) {
     param->move_type[0] = EFFECT_CHANGE_NONE;
     param->move_type[1] = EFFECT_CHANGE_NONE;
     param->move_type[2] = EFFECT_CHANGE_NONE;
-    param->move_p1[0] = 0.0f;
-    param->move_p1[1] = 0.0f;
-    param->move_p1[2] = 0.0f;
-    param->move_p1[3] = 0.0f;
-    param->move_p2[0] = 0.0f;
-    param->move_p2[1] = 0.0f;
-    param->move_p2[2] = 0.0f;
-    param->move_p2[3] = 0.0f;
+    param->move_p1[0] = 0;
+    param->move_p1[1] = 0;
+    param->move_p1[2] = 0;
+    param->move_p1[3] = 0;
+    param->move_p2[0] = 0;
+    param->move_p2[1] = 0;
+    param->move_p2[2] = 0;
+    param->move_p2[3] = 0;
     param->scale_type[0] = EFFECT_CHANGE_NONE;
     param->scale_type[1] = EFFECT_CHANGE_NONE;
     param->scale_type[2] = EFFECT_CHANGE_NONE;
@@ -193,60 +89,62 @@ void InitEffectParam(EFFECT_PARAM *param) {
     param->scale[1] = 1.0f;
     param->scale[2] = 1.0f;
     param->scale[3] = 1.0f;
-    param->svelo[0] = 0.0f;
-    param->svelo[1] = 0.0f;
-    param->svelo[2] = 0.0f;
-    param->svelo[3] = 0.0f;
-    param->scale_p1[0] = 0.0f;
-    param->scale_p1[1] = 0.0f;
-    param->scale_p1[2] = 0.0f;
-    param->scale_p1[3] = 0.0f;
-    param->scale_p2[0] = 0.0f;
-    param->scale_p2[1] = 0.0f;
-    param->scale_p2[2] = 0.0f;
-    param->scale_p2[3] = 0.0f;
+    param->svelo[0] = 0;
+    param->svelo[1] = 0;
+    param->svelo[2] = 0;
+    param->svelo[3] = 0;
+    param->scale_p1[0] = 0;
+    param->scale_p1[1] = 0;
+    param->scale_p1[2] = 0;
+    param->scale_p1[3] = 0;
+    param->scale_p2[0] = 0;
+    param->scale_p2[1] = 0;
+    param->scale_p2[2] = 0;
+    param->scale_p2[3] = 0;
     param->alpha_blend = EFFECT_ALPHA_BLEND_NONE;
     param->alpha_type = EFFECT_CHANGE_NONE;
     param->alpha = 1.0f;
-    param->alpha_p1 = 0.0f;
-    param->alpha_p2 = 0.0f;
-    for (rectangle = 0; rectangle < 8; rectangle++) {
-        param->tex_rect[rectangle][0] = 0;
-        param->tex_rect[rectangle][1] = 0;
-        param->tex_rect[rectangle][2] = 0;
-        param->tex_rect[rectangle][3] = 0;
-    }
+    param->alpha_p1 = 0;
+    param->alpha_p2 = 0;
+
+    i = 0;
+    offset = 0;
+    do {
+        int *entry = (int *)((u_char *)param + offset);
+
+        i++;
+        entry[62] = 0;
+        entry[63] = 0;
+        entry[64] = 0;
+        entry[65] = 0;
+        offset += 0x10;
+    } while (i < 8);
     param->tex_get_type = 0;
     param->tex_frame = 0;
     param->gravity = 0;
-    param->gravity_pos[3] = 0.0f;
-    param->gravity_pos[2] = 0.0f;
-    param->gravity_pos[1] = 0.0f;
-    param->gravity_pos[0] = 0.0f;
+    param->gravity_pos[3] = 0;
+    param->gravity_pos[2] = 0;
+    param->gravity_pos[1] = 0;
+    param->gravity_pos[0] = 0;
     param->gravity_accel = 9.80665f;
     param->gravity_mass = 10.0f;
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/effect", InitEffectParam__FP12EFFECT_PARAM);
-#endif
-
 CEffect::CEffect() {
     Initialize();
 }
-
-void CEffect::Initialize() {
+void CEffect::Initialize(void) {
     active = 0;
     frame = 0;
     InitEffectParam(&param);
-    pos[0] = 0.0f;
-    pos[1] = 0.0f;
-    pos[2] = 0.0f;
-    pos[3] = 0.0f;
-    scale[0] = 0.0f;
-    scale[1] = 0.0f;
-    scale[2] = 0.0f;
-    scale[3] = 0.0f;
-    alpha = 0.0f;
+    pos[0] = 0;
+    pos[1] = 0;
+    pos[2] = 0;
+    pos[3] = 0;
+    scale[0] = 0;
+    scale[1] = 0;
+    scale[2] = 0;
+    scale[3] = 0;
+    alpha = 0;
     tex_rect[0] = 0;
     tex_rect[1] = 0;
     tex_rect[2] = 0;
@@ -254,16 +152,15 @@ void CEffect::Initialize() {
     tex_index = 0;
     tex_count = 0;
 }
-
 void CEffect::SetEffect(EFFECT_PARAM *param) {
     active = 1;
-    pos[0] = 0.0f;
-    pos[1] = 0.0f;
-    pos[2] = 0.0f;
-    scale[0] = 0.0f;
-    scale[1] = 0.0f;
-    scale[2] = 0.0f;
-    alpha = 0.0f;
+    pos[0] = 0;
+    pos[1] = 0;
+    pos[2] = 0;
+    scale[0] = 0;
+    scale[1] = 0;
+    scale[2] = 0;
+    alpha = 0;
     tex_rect[0] = 0;
     tex_rect[1] = 0;
     tex_rect[2] = 0;
@@ -272,7 +169,6 @@ void CEffect::SetEffect(EFFECT_PARAM *param) {
     tex_count = 0;
     memcpy(&this->param, param, sizeof(EFFECT_PARAM));
 }
-
 #ifdef NONMATCHING
 void CEffect::Step(int steps) {
     sceVu0FVECTOR      gravity_step;
@@ -337,7 +233,6 @@ void CEffect::Step(int steps) {
     scale[3] = 1.0f;
     alpha = param.alpha;
 
-    // Apply the motion, size and opacity curves to the displayed values.
     for (channel = 0; channel < 6; channel++) {
         switch (channel) {
         case 0:
@@ -443,14 +338,12 @@ void CEffect::Step(int steps) {
 #else
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/effect", Step__7CEffectFi);
 #endif
-
-#ifdef NONMATCHING
-void CEffect::Draw() {
+void CEffect::Draw(void) {
     mgCDrawPrim prim;
-    int         top_left[4] __attribute__((aligned(16)));
-    int         bottom_right[4] __attribute__((aligned(16)));
-    float       width;
-    float       height;
+    int corner_a[4];
+    int corner_b[4];
+    float width;
+    float height;
 
     if (active != 0) {
         prim.Initialize(NULL, NULL);
@@ -458,9 +351,10 @@ void CEffect::Draw() {
         prim.AlphaTestEnable(1);
         prim.AlphaTest(5, 0);
         prim.AlphaBlendEnable(1);
-        if (param.alpha_blend == EFFECT_ALPHA_BLEND_ADD) {
+
+        if (param.alpha_blend == 1) {
             prim.AlphaBlend(2);
-        } else if (param.alpha_blend == EFFECT_ALPHA_BLEND_ADD) {
+        } else if (param.alpha_blend == 1) {
             prim.AlphaBlend(3);
         } else {
             prim.AlphaBlend(4);
@@ -469,529 +363,474 @@ void CEffect::Draw() {
         prim.DepthTestEnable(1);
         prim.ZMask(-1);
         prim.Coord(1);
-        width = param.width * scale[0];
-        height = param.height * scale[1];
-        if (mgTransWorldPrim3DSprite(top_left, bottom_right, pos, width, height, 0) != 0) {
+
+        width = param.width;
+        width *= scale[0];
+        height = param.height;
+        height *= scale[1];
+        if (mgTransWorldPrim3DSprite(corner_a, corner_b, pos, width, height, 0) != 0) {
             prim.Begin(6);
-            prim.Color(0x80, 0x80, 0x80, (int)(128.0f * alpha));
+            prim.Color(0x80, 0x80, 0x80, fptosi(128.0f * alpha));
             prim.Texture(param.texture);
             prim.TextureCrd(tex_rect[0], tex_rect[1]);
-            prim.Vertex4(top_left);
-            prim.TextureCrd(tex_rect[0] + tex_rect[2] - 1, tex_rect[1] + tex_rect[3] - 1);
-            prim.Vertex4(bottom_right);
+            prim.Vertex4(corner_a);
+            prim.TextureCrd((tex_rect[0] + tex_rect[2]) - 1, (tex_rect[1] + tex_rect[3]) - 1);
+            prim.Vertex4(corner_b);
             prim.End();
         }
     }
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/effect", Draw__7CEffectFv);
-#endif
-
 CEffectCtrl::CEffectCtrl() {
     Initialize();
 }
-
-CEffectCtrl::~CEffectCtrl() {
-}
-
-#ifdef NONMATCHING
+CEffectCtrl::~CEffectCtrl() {}
+#pragma divbyzerocheck on
 void CEffectCtrl::Ctrl(CEffect *effects, int effect_num) {
+    int spawned;
+    int count;
+    int i;
     EFFECT_PARAM param;
-    int          spawn_count;
-    int          particle_index;
-    int          effect_index;
-    int          rect_index;
 
-    if (run == 0) {
+    if (run == 0 || entry == 0) {
         return;
     }
-    if (entry == 0) {
-        return;
-    }
-
     if (repeat == 1) {
-        repeat_timer++;
+        repeat_timer += 1;
         if (repeat_timer < repeat_wait_now) {
             return;
         }
-
         switch (rep_rand_type) {
-        case EFFECT_RAND_NONE:
-            break;
-        case EFFECT_RAND_UNIFORMITY:
-            repeat_wait_now = (int)UniformityRand((float)repeat_wait, rep_rand);
-            break;
-        case EFFECT_RAND_REGULARITY:
-            repeat_wait_now = (int)RegularityRand((float)repeat_wait, rep_rand, rep_rand_count);
-            break;
+            case EFFECT_RAND_NONE:
+                break;
+            case EFFECT_RAND_UNIFORMITY:
+                repeat_wait_now = fptosi(UniformityRand((float)repeat_wait, rep_rand));
+                break;
+            case EFFECT_RAND_REGULARITY:
+                repeat_wait_now =
+                    fptosi(RegularityRand((float)repeat_wait, rep_rand, rep_rand_count));
+                break;
         }
-
         repeat_timer = 0;
-        repeat_cnt++;
+        repeat_cnt += 1;
         if (repeat_num != -1 && repeat_cnt >= repeat_num) {
             run = 0;
         }
     } else {
         run = 0;
     }
-
     switch (num_rand_type) {
-    case EFFECT_RAND_NONE:
-        spawn_count = num;
-        break;
-    case EFFECT_RAND_UNIFORMITY:
-        spawn_count = (int)UniformityRand((float)num, num_rand);
-        break;
-    case EFFECT_RAND_REGULARITY:
-        spawn_count = (int)RegularityRand((float)num, num_rand, num_rand_count);
-        break;
-    }
-
-    for (particle_index = 0; particle_index < spawn_count; particle_index++) {
-        InitEffectParam(&param);
-
-        switch (cnt_rand_type) {
         case EFFECT_RAND_NONE:
-            param.life = count;
+            count = num;
             break;
         case EFFECT_RAND_UNIFORMITY:
-            param.life = (int)UniformityRand((float)count, cnt_rand);
+            count = fptosi(UniformityRand((float)num, num_rand));
             break;
         case EFFECT_RAND_REGULARITY:
-            param.life = (int)RegularityRand((float)count, cnt_rand, cnt_rand_count);
+            count = fptosi(RegularityRand((float)num, num_rand, num_rand_count));
             break;
+    }
+    for (spawned = 0; spawned < count; spawned++) {
+        InitEffectParam(&param);
+        switch (cnt_rand_type) {
+            case EFFECT_RAND_NONE:
+                param.life = this->count;
+                break;
+            case EFFECT_RAND_UNIFORMITY:
+                param.life = UniformityRand(this->count, cnt_rand);
+                break;
+            case EFFECT_RAND_REGULARITY:
+                param.life = RegularityRand(this->count, cnt_rand, cnt_rand_count);
+                break;
         }
-
         param.width = width;
         param.height = height;
         param.dir = dir;
-
         switch (pos_rand_type) {
-        case EFFECT_RAND_NONE:
-            sceVu0CopyVector(param.pos, pos);
-            break;
-        case EFFECT_RAND_UNIFORMITY:
-            param.pos[0] = UniformityRand(pos[0], pos_rand[0]);
-            param.pos[1] = UniformityRand(pos[1], pos_rand[1]);
-            param.pos[2] = UniformityRand(pos[2], pos_rand[2]);
-            break;
-        case EFFECT_RAND_REGULARITY:
-            param.pos[0] = RegularityRand(pos[0], pos_rand[0], pos_rand_count);
-            param.pos[1] = RegularityRand(pos[1], pos_rand[1], pos_rand_count);
-            param.pos[2] = RegularityRand(pos[2], pos_rand[2], pos_rand_count);
-            break;
+            case EFFECT_RAND_NONE:
+                sceVu0CopyVector(param.pos, pos);
+                break;
+            case EFFECT_RAND_UNIFORMITY:
+                param.pos[0] = UniformityRand(pos[0], pos_rand[0]);
+                param.pos[1] = UniformityRand(pos[1], pos_rand[1]);
+                param.pos[2] = UniformityRand(pos[2], pos_rand[2]);
+                break;
+            case EFFECT_RAND_REGULARITY:
+                param.pos[0] = RegularityRand(pos[0], pos_rand[0], pos_rand_count);
+                param.pos[1] = RegularityRand(pos[1], pos_rand[1], pos_rand_count);
+                param.pos[2] = RegularityRand(pos[2], pos_rand[2], pos_rand_count);
+                break;
         }
-
         sceVu0AddVector(param.pos, param.pos, origin);
-        param.move_type[0] = move_type[0];
-        param.move_type[1] = move_type[1];
-        param.move_type[2] = move_type[2];
+        param.move_type[0] = move_type.first;
+        param.move_type[1] = move_type.second;
+        param.move_type[2] = move_type.third;
         sceVu0CopyVector(param.velo_mul, velo_mul);
         sceVu0CopyVector(param.acc_mul, acc_mul);
-
         switch (velo_rand_type) {
-        case EFFECT_RAND_NONE:
-            sceVu0CopyVector(param.velo, velo);
-            break;
-        case EFFECT_RAND_UNIFORMITY:
-            param.velo[0] = UniformityRand(velo[0], velo_rand[0]);
-            param.velo[1] = UniformityRand(velo[1], velo_rand[1]);
-            param.velo[2] = UniformityRand(velo[2], velo_rand[2]);
-            break;
-        case EFFECT_RAND_REGULARITY:
-            param.velo[0] = RegularityRand(velo[0], velo_rand[0], velo_rand_count);
-            param.velo[1] = RegularityRand(velo[1], velo_rand[1], velo_rand_count);
-            param.velo[2] = RegularityRand(velo[2], velo_rand[2], velo_rand_count);
-            break;
+            case EFFECT_RAND_NONE:
+                sceVu0CopyVector(param.velo, velo);
+                break;
+            case EFFECT_RAND_UNIFORMITY:
+                param.velo[0] = UniformityRand(velo[0], velo_rand[0]);
+                param.velo[1] = UniformityRand(velo[1], velo_rand[1]);
+                param.velo[2] = UniformityRand(velo[2], velo_rand[2]);
+                break;
+            case EFFECT_RAND_REGULARITY:
+                param.velo[0] = RegularityRand(velo[0], velo_rand[0], velo_rand_count);
+                param.velo[1] = RegularityRand(velo[1], velo_rand[1], velo_rand_count);
+                param.velo[2] = RegularityRand(velo[2], velo_rand[2], velo_rand_count);
+                break;
         }
-
         switch (acc_rand_type) {
-        case EFFECT_RAND_NONE:
-            sceVu0CopyVector(param.acc, acc);
-            break;
-        case EFFECT_RAND_UNIFORMITY:
-            param.acc[0] = UniformityRand(acc[0], acc_rand[0]);
-            param.acc[1] = UniformityRand(acc[1], acc_rand[1]);
-            param.acc[2] = UniformityRand(acc[2], acc_rand[2]);
-            break;
-        case EFFECT_RAND_REGULARITY:
-            param.acc[0] = RegularityRand(acc[0], acc_rand[0], acc_rand_count);
-            param.acc[1] = RegularityRand(acc[1], acc_rand[1], acc_rand_count);
-            param.acc[2] = RegularityRand(acc[2], acc_rand[2], acc_rand_count);
-            break;
+            case EFFECT_RAND_NONE:
+                sceVu0CopyVector(param.acc, acc);
+                break;
+            case EFFECT_RAND_UNIFORMITY:
+                param.acc[0] = UniformityRand(acc[0], acc_rand[0]);
+                param.acc[1] = UniformityRand(acc[1], acc_rand[1]);
+                param.acc[2] = UniformityRand(acc[2], acc_rand[2]);
+                break;
+            case EFFECT_RAND_REGULARITY:
+                param.acc[0] = RegularityRand(acc[0], acc_rand[0], acc_rand_count);
+                param.acc[1] = RegularityRand(acc[1], acc_rand[1], acc_rand_count);
+                param.acc[2] = RegularityRand(acc[2], acc_rand[2], acc_rand_count);
+                break;
         }
-
         switch (move_p1_rand_type) {
-        case EFFECT_RAND_NONE:
-            sceVu0CopyVector(param.move_p1, move_p1);
-            break;
-        case EFFECT_RAND_UNIFORMITY:
-            param.move_p1[0] = UniformityRand(move_p1[0], move_p1_rand[0]);
-            param.move_p1[1] = UniformityRand(move_p1[1], move_p1_rand[1]);
-            param.move_p1[2] = UniformityRand(move_p1[2], move_p1_rand[2]);
-            break;
-        case EFFECT_RAND_REGULARITY:
-            param.move_p1[0] = RegularityRand(move_p1[0], move_p1_rand[0], move_p1_rand_count);
-            param.move_p1[1] = RegularityRand(move_p1[1], move_p1_rand[1], move_p1_rand_count);
-            param.move_p1[2] = RegularityRand(move_p1[2], move_p1_rand[2], move_p1_rand_count);
-            break;
+            case EFFECT_RAND_NONE:
+                sceVu0CopyVector(param.move_p1, move_p1);
+                break;
+            case EFFECT_RAND_UNIFORMITY:
+                param.move_p1[0] = UniformityRand(move_p1[0], move_p1_rand[0]);
+                param.move_p1[1] = UniformityRand(move_p1[1], move_p1_rand[1]);
+                param.move_p1[2] = UniformityRand(move_p1[2], move_p1_rand[2]);
+                break;
+            case EFFECT_RAND_REGULARITY:
+                param.move_p1[0] = RegularityRand(move_p1[0], move_p1_rand[0], move_p1_rand_count);
+                param.move_p1[1] = RegularityRand(move_p1[1], move_p1_rand[1], move_p1_rand_count);
+                param.move_p1[2] = RegularityRand(move_p1[2], move_p1_rand[2], move_p1_rand_count);
+                break;
         }
-
         switch (move_p2_rand_type) {
-        case EFFECT_RAND_NONE:
-            sceVu0CopyVector(param.move_p2, move_p2);
-            break;
-        case EFFECT_RAND_UNIFORMITY:
-            param.move_p2[0] = UniformityRand(move_p2[0], move_p2_rand[0]);
-            param.move_p2[1] = UniformityRand(move_p2[1], move_p2_rand[1]);
-            param.move_p2[2] = UniformityRand(move_p2[2], move_p2_rand[2]);
-            break;
-        case EFFECT_RAND_REGULARITY:
-            param.move_p2[0] = RegularityRand(move_p2[0], move_p2_rand[0], move_p2_rand_count);
-            param.move_p2[1] = RegularityRand(move_p2[1], move_p2_rand[1], move_p2_rand_count);
-            param.move_p2[2] = RegularityRand(move_p2[2], move_p2_rand[2], move_p2_rand_count);
-            break;
+            case EFFECT_RAND_NONE:
+                sceVu0CopyVector(param.move_p2, move_p2);
+                break;
+            case EFFECT_RAND_UNIFORMITY:
+                param.move_p2[0] = UniformityRand(move_p2[0], move_p2_rand[0]);
+                param.move_p2[1] = UniformityRand(move_p2[1], move_p2_rand[1]);
+                param.move_p2[2] = UniformityRand(move_p2[2], move_p2_rand[2]);
+                break;
+            case EFFECT_RAND_REGULARITY:
+                param.move_p2[0] = RegularityRand(move_p2[0], move_p2_rand[0], move_p2_rand_count);
+                param.move_p2[1] = RegularityRand(move_p2[1], move_p2_rand[1], move_p2_rand_count);
+                param.move_p2[2] = RegularityRand(move_p2[2], move_p2_rand[2], move_p2_rand_count);
+                break;
         }
-
-        param.scale_type[0] = scale_type[0];
-        param.scale_type[1] = scale_type[1];
-        param.scale_type[2] = scale_type[2];
-
+        param.scale_type[0] = scale_type.first;
+        param.scale_type[1] = scale_type.second;
+        param.scale_type[2] = scale_type.third;
         switch (scale_rand_type) {
-        case EFFECT_RAND_NONE:
-            sceVu0CopyVector(param.scale, scale);
-            break;
-        case EFFECT_RAND_UNIFORMITY:
-            param.scale[0] = UniformityRand(scale[0], scale_rand[0]);
-            param.scale[1] = UniformityRand(scale[1], scale_rand[1]);
-            break;
-        case EFFECT_RAND_REGULARITY:
-            param.scale[0] = RegularityRand(scale[0], scale_rand[0], scale_rand_count);
-            param.scale[1] = RegularityRand(scale[1], scale_rand[1], scale_rand_count);
-            break;
+            case EFFECT_RAND_NONE:
+                sceVu0CopyVector(param.scale, scale);
+                break;
+            case EFFECT_RAND_UNIFORMITY:
+                param.scale[0] = UniformityRand(scale[0], scale_rand[0]);
+                param.scale[1] = UniformityRand(scale[1], scale_rand[1]);
+                break;
+            case EFFECT_RAND_REGULARITY:
+                param.scale[0] = RegularityRand(scale[0], scale_rand[0], scale_rand_count);
+                param.scale[1] = RegularityRand(scale[1], scale_rand[1], scale_rand_count);
+                break;
         }
-
         switch (svelo_rand_type) {
-        case EFFECT_RAND_NONE:
-            sceVu0CopyVector(param.svelo, svelo);
-            break;
-        case EFFECT_RAND_UNIFORMITY:
-            param.svelo[0] = UniformityRand(svelo[0], svelo_rand[0]);
-            param.svelo[1] = UniformityRand(svelo[1], svelo_rand[1]);
-            break;
-        case EFFECT_RAND_REGULARITY:
-            param.svelo[0] = RegularityRand(svelo[0], svelo_rand[0], svelo_rand_count);
-            param.svelo[1] = RegularityRand(svelo[1], svelo_rand[1], svelo_rand_count);
-            break;
+            case EFFECT_RAND_NONE:
+                sceVu0CopyVector(param.svelo, svelo);
+                break;
+            case EFFECT_RAND_UNIFORMITY:
+                param.svelo[0] = UniformityRand(svelo[0], svelo_rand[0]);
+                param.svelo[1] = UniformityRand(svelo[1], svelo_rand[1]);
+                break;
+            case EFFECT_RAND_REGULARITY:
+                param.svelo[0] =
+                    RegularityRand(svelo[0], svelo_rand[0], svelo_rand_count);
+                param.svelo[1] =
+                    RegularityRand(svelo[1], svelo_rand[1], svelo_rand_count);
+                break;
         }
-
         switch (scale_p1_rand_type) {
-        case EFFECT_RAND_NONE:
-            sceVu0CopyVector(param.scale_p1, scale_p1);
-            break;
-        case EFFECT_RAND_UNIFORMITY:
-            param.scale_p1[0] = UniformityRand(scale_p1[0], scale_p1_rand[0]);
-            param.scale_p1[1] = UniformityRand(scale_p1[1], scale_p1_rand[1]);
-            param.scale_p1[2] = UniformityRand(scale_p1[2], scale_p1_rand[2]);
-            break;
-        case EFFECT_RAND_REGULARITY:
-            param.scale_p1[0] = RegularityRand(scale_p1[0], scale_p1_rand[0], scale_p1_rand_count);
-            param.scale_p1[1] = RegularityRand(scale_p1[1], scale_p1_rand[1], scale_p1_rand_count);
-            param.scale_p1[2] = RegularityRand(scale_p1[2], scale_p1_rand[2], scale_p1_rand_count);
-            break;
+            case EFFECT_RAND_NONE:
+                sceVu0CopyVector(param.scale_p1, scale_p1);
+                break;
+            case EFFECT_RAND_UNIFORMITY:
+                param.scale_p1[0] = UniformityRand(scale_p1[0], scale_p1_rand[0]);
+                param.scale_p1[1] = UniformityRand(scale_p1[1], scale_p1_rand[1]);
+                param.scale_p1[2] = UniformityRand(scale_p1[2], scale_p1_rand[2]);
+                break;
+            case EFFECT_RAND_REGULARITY:
+                param.scale_p1[0] =
+                    RegularityRand(scale_p1[0], scale_p1_rand[0], scale_p1_rand_count);
+                param.scale_p1[1] =
+                    RegularityRand(scale_p1[1], scale_p1_rand[1], scale_p1_rand_count);
+                param.scale_p1[2] =
+                    RegularityRand(scale_p1[2], scale_p1_rand[2], scale_p1_rand_count);
+                break;
         }
-
         switch (scale_p2_rand_type) {
-        case EFFECT_RAND_NONE:
-            sceVu0CopyVector(param.scale_p2, scale_p2);
-            break;
-        case EFFECT_RAND_UNIFORMITY:
-            param.scale_p2[0] = UniformityRand(scale_p2[0], scale_p2_rand[0]);
-            param.scale_p2[1] = UniformityRand(scale_p2[1], scale_p2_rand[1]);
-            param.scale_p2[2] = UniformityRand(scale_p2[2], scale_p2_rand[2]);
-            break;
-        case EFFECT_RAND_REGULARITY:
-            param.scale_p2[0] = RegularityRand(scale_p2[0], scale_p2_rand[0], scale_p2_rand_count);
-            param.scale_p2[1] = RegularityRand(scale_p2[1], scale_p2_rand[1], scale_p2_rand_count);
-            param.scale_p2[2] = RegularityRand(scale_p2[2], scale_p2_rand[2], scale_p2_rand_count);
-            break;
+            case EFFECT_RAND_NONE:
+                sceVu0CopyVector(param.scale_p2, scale_p2);
+                break;
+            case EFFECT_RAND_UNIFORMITY:
+                param.scale_p2[0] = UniformityRand(scale_p2[0], scale_p2_rand[0]);
+                param.scale_p2[1] = UniformityRand(scale_p2[1], scale_p2_rand[1]);
+                param.scale_p2[2] = UniformityRand(scale_p2[2], scale_p2_rand[2]);
+                break;
+            case EFFECT_RAND_REGULARITY:
+                param.scale_p2[0] =
+                    RegularityRand(scale_p2[0], scale_p2_rand[0], scale_p2_rand_count);
+                param.scale_p2[1] =
+                    RegularityRand(scale_p2[1], scale_p2_rand[1], scale_p2_rand_count);
+                param.scale_p2[2] =
+                    RegularityRand(scale_p2[2], scale_p2_rand[2], scale_p2_rand_count);
+                break;
         }
-
         param.alpha = alpha;
         param.alpha_blend = alpha_blend;
         param.alpha_type = alpha_type;
-
         switch (alpha_rand_type) {
-        case EFFECT_RAND_NONE:
-            param.alpha = alpha;
-            break;
-        case EFFECT_RAND_UNIFORMITY:
-            param.alpha = UniformityRand(alpha, alpha_rand);
-            break;
-        case EFFECT_RAND_REGULARITY:
-            param.alpha = RegularityRand(alpha, alpha_rand, alpha_rand_count);
-            break;
+            case EFFECT_RAND_NONE:
+                param.alpha = alpha;
+                break;
+            case EFFECT_RAND_UNIFORMITY:
+                param.alpha = UniformityRand(alpha, alpha_rand);
+                break;
+            case EFFECT_RAND_REGULARITY:
+                param.alpha = RegularityRand(alpha, alpha_rand, alpha_rand_count);
+                break;
         }
-
         switch (alpha_p1_rand_type) {
-        case EFFECT_RAND_NONE:
-            param.alpha_p1 = alpha_p1;
-            break;
-        case EFFECT_RAND_UNIFORMITY:
-            param.alpha_p1 = UniformityRand(alpha_p1, alpha_p1_rand);
-            break;
-        case EFFECT_RAND_REGULARITY:
-            param.alpha_p1 = RegularityRand(alpha_p1, alpha_p1_rand, alpha_p1_rand_count);
-            break;
+            case EFFECT_RAND_NONE:
+                param.alpha_p1 = alpha_p1;
+                break;
+            case EFFECT_RAND_UNIFORMITY:
+                param.alpha_p1 = UniformityRand(alpha_p1, alpha_p1_rand);
+                break;
+            case EFFECT_RAND_REGULARITY:
+                param.alpha_p1 = RegularityRand(alpha_p1, alpha_p1_rand, alpha_p1_rand_count);
+                break;
         }
-
         switch (alpha_p2_rand_type) {
-        case EFFECT_RAND_NONE:
-            param.alpha_p2 = alpha_p2;
-            break;
-        case EFFECT_RAND_UNIFORMITY:
-            param.alpha_p2 = UniformityRand(alpha_p2, alpha_p2_rand);
-            break;
-        case EFFECT_RAND_REGULARITY:
-            param.alpha_p2 = RegularityRand(alpha_p2, alpha_p2_rand, alpha_p2_rand_count);
-            break;
+            case EFFECT_RAND_NONE:
+                param.alpha_p2 = alpha_p2;
+                break;
+            case EFFECT_RAND_UNIFORMITY:
+                param.alpha_p2 = UniformityRand(alpha_p2, alpha_p2_rand);
+                break;
+            case EFFECT_RAND_REGULARITY:
+                param.alpha_p2 = RegularityRand(alpha_p2, alpha_p2_rand, alpha_p2_rand_count);
+                break;
         }
-
         param.tex_get_type = tex_get_type;
         if (tex_get_type == 0) {
             if (tex_rect_num <= 0) {
                 tex_rect_num = 1;
             }
-
-            rect_index = rand() % tex_rect_num;
-            param.tex_rect[0][0] = tex_rect[rect_index][0];
-            param.tex_rect[0][1] = tex_rect[rect_index][1];
-            param.tex_rect[0][2] = tex_rect[rect_index][2];
-            param.tex_rect[0][3] = tex_rect[rect_index][3];
+            param.tex_rect_copy[0] = tex_rect_copy[rand() % tex_rect_num];
         } else {
-            param.tex_rect[0][0] = tex_rect[0][0];
-            param.tex_rect[0][1] = tex_rect[0][1];
-            param.tex_rect[0][2] = tex_rect[0][2];
-            param.tex_rect[0][3] = tex_rect[0][3];
-            param.tex_rect[1][0] = tex_rect[1][0];
-            param.tex_rect[1][1] = tex_rect[1][1];
-            param.tex_rect[1][2] = tex_rect[1][2];
-            param.tex_rect[1][3] = tex_rect[1][3];
-            param.tex_rect[2][0] = tex_rect[2][0];
-            param.tex_rect[2][1] = tex_rect[2][1];
-            param.tex_rect[2][2] = tex_rect[2][2];
-            param.tex_rect[2][3] = tex_rect[2][3];
-            param.tex_rect[3][0] = tex_rect[3][0];
-            param.tex_rect[3][1] = tex_rect[3][1];
-            param.tex_rect[3][2] = tex_rect[3][2];
-            param.tex_rect[3][3] = tex_rect[3][3];
-            param.tex_rect[4][0] = tex_rect[4][0];
-            param.tex_rect[4][1] = tex_rect[4][1];
-            param.tex_rect[4][2] = tex_rect[4][2];
-            param.tex_rect[4][3] = tex_rect[4][3];
-            param.tex_rect[5][0] = tex_rect[5][0];
-            param.tex_rect[5][1] = tex_rect[5][1];
-            param.tex_rect[5][2] = tex_rect[5][2];
-            param.tex_rect[5][3] = tex_rect[5][3];
-            param.tex_rect[6][0] = tex_rect[6][0];
-            param.tex_rect[6][1] = tex_rect[6][1];
-            param.tex_rect[6][2] = tex_rect[6][2];
-            param.tex_rect[6][3] = tex_rect[6][3];
-            param.tex_rect[7][0] = tex_rect[7][0];
-            param.tex_rect[7][1] = tex_rect[7][1];
-            param.tex_rect[7][2] = tex_rect[7][2];
-            param.tex_rect[7][3] = tex_rect[7][3];
+            param.tex_rect_copy[0] = tex_rect_copy[0];
+            param.tex_rect_copy[1] = tex_rect_copy[1];
+            param.tex_rect_copy[2] = tex_rect_copy[2];
+            param.tex_rect_copy[3] = tex_rect_copy[3];
+            param.tex_rect_copy[4] = tex_rect_copy[4];
+            param.tex_rect_copy[5] = tex_rect_copy[5];
+            param.tex_rect_copy[6] = tex_rect_copy[6];
+            param.tex_rect_copy[7] = tex_rect_copy[7];
             param.tex_frame = param.life / tex_rect_num;
         }
-
         param.gravity = gravity;
         sceVu0AddVector(param.gravity_pos, gravity_pos, origin);
         param.gravity_accel = gravity_accel;
         param.gravity_mass = gravity_mass;
         param.texture = texture;
-
-        for (effect_index = 0; effect_index < effect_num; effect_index++) {
-            if (effects[effect_index].active == 0) {
-                effects[effect_index].SetEffect(&param);
+        for (i = 0; i < effect_num; i++) {
+            if (effects[i].active == 0) {
+                effects[i].SetEffect(&param);
                 break;
             }
         }
     }
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/effect", Ctrl__11CEffectCtrlFP7CEffecti);
-#endif
-
-#ifdef NONMATCHING
-void CEffectCtrl::Initialize() {
-    int rect_index;
+#pragma divbyzerocheck reset
+void CEffectCtrl::Initialize(void) {
+    int i;
+    int offset;
 
     entry = 0;
     run = 0;
-    origin[0] = 0.0f;
-    origin[1] = 0.0f;
-    origin[2] = 0.0f;
-    origin[3] = 0.0f;
+    origin[0] = 0;
+    origin[1] = 0;
+    origin[2] = 0;
+    origin[3] = 0;
     width = 1.0f;
     height = 1.0f;
     dir = 0;
     num = 0;
     num_rand_type = EFFECT_RAND_NONE;
-    num_rand = 0.0f;
+    num_rand = 0;
     num_rand_count = 1;
     count = 0;
     cnt_rand_type = EFFECT_RAND_NONE;
-    cnt_rand = 0.0f;
+    cnt_rand = 0;
     cnt_rand_count = 1;
     repeat = 0;
     repeat_wait = 0;
     repeat_timer = 0;
     rep_rand_type = EFFECT_RAND_NONE;
-    rep_rand = 0.0f;
+    rep_rand = 0;
     rep_rand_count = 1;
     repeat_cnt = 0;
     repeat_num = -1;
-    move_type[0] = EFFECT_CHANGE_NONE;
-    move_type[1] = EFFECT_CHANGE_NONE;
-    move_type[2] = EFFECT_CHANGE_NONE;
-    pos[0] = 0.0f;
-    pos[1] = 0.0f;
-    pos[2] = 0.0f;
+    move_type.first = EFFECT_CHANGE_NONE;
+    move_type.second = EFFECT_CHANGE_NONE;
+    move_type.third = EFFECT_CHANGE_NONE;
+    pos[0] = 0;
+    pos[1] = 0;
+    pos[2] = 0;
     pos[3] = 1.0f;
     pos_rand_type = EFFECT_RAND_NONE;
-    pos_rand[0] = 0.0f;
-    pos_rand[1] = 0.0f;
-    pos_rand[2] = 0.0f;
+    pos_rand[0] = 0;
+    pos_rand[1] = 0;
+    pos_rand[2] = 0;
     pos_rand[3] = 1.0f;
     pos_rand_count = 1;
-    velo[0] = 0.0f;
-    velo[1] = 0.0f;
-    velo[2] = 0.0f;
+    velo[0] = 0;
+    velo[1] = 0;
+    velo[2] = 0;
     velo[3] = 1.0f;
     velo_mul[0] = 1.0f;
     velo_mul[1] = 1.0f;
     velo_mul[2] = 1.0f;
     velo_mul[3] = 1.0f;
     velo_rand_type = EFFECT_RAND_NONE;
-    velo_rand[0] = 0.0f;
-    velo_rand[1] = 0.0f;
-    velo_rand[2] = 0.0f;
+    velo_rand[0] = 0;
+    velo_rand[1] = 0;
+    velo_rand[2] = 0;
     velo_rand[3] = 1.0f;
     velo_rand_count = 1;
-    acc[0] = 0.0f;
-    acc[1] = 0.0f;
-    acc[2] = 0.0f;
+    acc[0] = 0;
+    acc[1] = 0;
+    acc[2] = 0;
     acc[3] = 1.0f;
     acc_mul[0] = 1.0f;
     acc_mul[1] = 1.0f;
     acc_mul[2] = 1.0f;
     acc_mul[3] = 1.0f;
     acc_rand_type = EFFECT_RAND_NONE;
-    acc_rand[0] = 0.0f;
-    acc_rand[1] = 0.0f;
-    acc_rand[2] = 0.0f;
+    acc_rand[0] = 0;
+    acc_rand[1] = 0;
+    acc_rand[2] = 0;
     acc_rand[3] = 1.0f;
     acc_rand_count = 1;
-    move_p1[0] = 0.0f;
-    move_p1[1] = 0.0f;
-    move_p1[2] = 0.0f;
+    move_p1[0] = 0;
+    move_p1[1] = 0;
+    move_p1[2] = 0;
     move_p1[3] = 1.0f;
     move_p1_rand_type = EFFECT_RAND_NONE;
-    move_p1_rand[0] = 0.0f;
-    move_p1_rand[1] = 0.0f;
-    move_p1_rand[2] = 0.0f;
+    move_p1_rand[0] = 0;
+    move_p1_rand[1] = 0;
+    move_p1_rand[2] = 0;
     move_p1_rand[3] = 1.0f;
     move_p1_rand_count = 1;
-    move_p2[0] = 0.0f;
-    move_p2[1] = 0.0f;
-    move_p2[2] = 0.0f;
+    move_p2[0] = 0;
+    move_p2[1] = 0;
+    move_p2[2] = 0;
     move_p2[3] = 1.0f;
     move_p2_rand_type = EFFECT_RAND_NONE;
-    move_p2_rand[0] = 0.0f;
-    move_p2_rand[1] = 0.0f;
-    move_p2_rand[2] = 0.0f;
+    move_p2_rand[0] = 0;
+    move_p2_rand[1] = 0;
+    move_p2_rand[2] = 0;
     move_p2_rand[3] = 1.0f;
     move_p2_rand_count = 1;
-    scale_type[0] = EFFECT_CHANGE_NONE;
-    scale_type[1] = EFFECT_CHANGE_NONE;
-    scale_type[2] = EFFECT_CHANGE_NONE;
+    scale_type.first = EFFECT_CHANGE_NONE;
+    scale_type.second = EFFECT_CHANGE_NONE;
+    scale_type.third = EFFECT_CHANGE_NONE;
     scale[0] = 1.0f;
     scale[1] = 1.0f;
     scale[2] = 1.0f;
     scale[3] = 1.0f;
     scale_rand_type = EFFECT_RAND_NONE;
-    scale_rand[0] = 0.0f;
-    scale_rand[1] = 0.0f;
-    scale_rand[2] = 0.0f;
+    scale_rand[0] = 0;
+    scale_rand[1] = 0;
+    scale_rand[2] = 0;
     scale_rand[3] = 1.0f;
     scale_rand_count = 1;
-    svelo[0] = 0.0f;
-    svelo[1] = 0.0f;
-    svelo[2] = 0.0f;
+    svelo[0] = 0;
+    svelo[1] = 0;
+    svelo[2] = 0;
     svelo[3] = 1.0f;
     svelo_rand_type = EFFECT_RAND_NONE;
-    svelo_rand[0] = 0.0f;
-    svelo_rand[1] = 0.0f;
-    svelo_rand[2] = 0.0f;
+    svelo_rand[0] = 0;
+    svelo_rand[1] = 0;
+    svelo_rand[2] = 0;
     svelo_rand[3] = 1.0f;
     svelo_rand_count = 1;
-    scale_p1[0] = 0.0f;
-    scale_p1[1] = 0.0f;
-    scale_p1[2] = 0.0f;
+    scale_p1[0] = 0;
+    scale_p1[1] = 0;
+    scale_p1[2] = 0;
     scale_p1[3] = 1.0f;
     scale_p1_rand_type = EFFECT_RAND_NONE;
-    scale_p1_rand[0] = 0.0f;
-    scale_p1_rand[1] = 0.0f;
-    scale_p1_rand[2] = 0.0f;
+    scale_p1_rand[0] = 0;
+    scale_p1_rand[1] = 0;
+    scale_p1_rand[2] = 0;
     scale_p1_rand[3] = 1.0f;
     scale_p1_rand_count = 1;
-    scale_p2[0] = 0.0f;
-    scale_p2[1] = 0.0f;
-    scale_p2[2] = 0.0f;
+    scale_p2[0] = 0;
+    scale_p2[1] = 0;
+    scale_p2[2] = 0;
     scale_p2[3] = 1.0f;
     scale_p2_rand_type = EFFECT_RAND_NONE;
-    scale_p2_rand[0] = 0.0f;
-    scale_p2_rand[1] = 0.0f;
-    scale_p2_rand[2] = 0.0f;
+    scale_p2_rand[0] = 0;
+    scale_p2_rand[1] = 0;
+    scale_p2_rand[2] = 0;
     scale_p2_rand[3] = 1.0f;
     scale_p2_rand_count = 1;
     alpha_type = EFFECT_CHANGE_NONE;
     alpha_blend = EFFECT_ALPHA_BLEND_ADD;
     alpha = 1.0f;
     alpha_rand_type = EFFECT_RAND_NONE;
-    alpha_rand = 0.0f;
+    alpha_rand = 0;
     alpha_rand_count = 1;
-    alpha_p1 = 0.0f;
-    alpha_p2 = 0.0f;
+    alpha_p1 = 0;
+    alpha_p2 = 0;
     alpha_p1_rand_type = EFFECT_RAND_NONE;
     alpha_p2_rand_type = EFFECT_RAND_NONE;
-    alpha_p1_rand = 0.0f;
-    alpha_p2_rand = 0.0f;
+    alpha_p1_rand = 0;
+    alpha_p2_rand = 0;
     alpha_p1_rand_count = 1;
     alpha_p2_rand_count = 1;
     tex_rect_num = 0;
 
-    for (rect_index = 0; rect_index < 8; rect_index++) {
-        tex_rect[rect_index][0] = 0;
-        tex_rect[rect_index][1] = 0;
-        tex_rect[rect_index][2] = 0;
-        tex_rect[rect_index][3] = 0;
-    }
+    i = 0;
+    offset = 0;
+    do {
+        int *entry = (int *)((u_char *)this + offset);
 
+        i++;
+        entry[151] = 0;
+        entry[152] = 0;
+        entry[153] = 0;
+        entry[154] = 0;
+        offset += 0x10;
+    } while (i < 8);
     tex_get_type = 0;
-    texture = NULL;
+    texture = 0;
     gravity = 0;
-    gravity_pos[0] = 0.0f;
-    gravity_pos[1] = 0.0f;
-    gravity_pos[2] = 0.0f;
-    gravity_pos[3] = 0.0f;
+    gravity_pos[0] = 0;
+    gravity_pos[1] = 0;
+    gravity_pos[2] = 0;
+    gravity_pos[3] = 0;
     gravity_accel = 9.80665f;
     gravity_mass = 10.0f;
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/effect", Initialize__11CEffectCtrlFv);
-#endif
-
 void CEffectCtrl::Run(void) {
     run = 1;
     repeat_timer = 0;
@@ -1000,10 +839,8 @@ void CEffectCtrl::Run(void) {
 void CEffectCtrl::SetOrigin(float *origin) {
     sceVu0CopyVector(this->origin, origin);
 }
-
-#ifdef NONMATCHING
 CEffectCtrl &CEffectCtrl::operator=(const CEffectCtrl &other) {
-    sceVu0CopyVector(origin, (float *)other.origin);
+    sceVu0CopyVector((float *)origin, (float *)other.origin);
     run = other.run;
     entry = other.entry;
     repeat = other.repeat;
@@ -1026,46 +863,46 @@ CEffectCtrl &CEffectCtrl::operator=(const CEffectCtrl &other) {
     width = other.width;
     height = other.height;
     dir = other.dir;
-    sceVu0CopyVector(pos, (float *)other.pos);
+    sceVu0CopyVector((float *)pos, (float *)other.pos);
     pos_rand_type = other.pos_rand_type;
-    sceVu0CopyVector(pos_rand, (float *)other.pos_rand);
+    sceVu0CopyVector((float *)pos_rand, (float *)other.pos_rand);
     pos_rand_count = other.pos_rand_count;
-    move_type[0] = other.move_type[0];
-    move_type[1] = other.move_type[1];
-    move_type[2] = other.move_type[2];
-    sceVu0CopyVector(velo, (float *)other.velo);
-    sceVu0CopyVector(acc, (float *)other.acc);
-    sceVu0CopyVector(velo_mul, (float *)other.velo_mul);
-    sceVu0CopyVector(acc_mul, (float *)other.acc_mul);
-    sceVu0CopyVector(move_p1, (float *)other.move_p1);
-    sceVu0CopyVector(move_p2, (float *)other.move_p2);
+    this->move_type.first = other.move_type.first;
+    this->move_type.second = other.move_type.second;
+    this->move_type.third = other.move_type.third;
+    sceVu0CopyVector((float *)velo, (float *)other.velo);
+    sceVu0CopyVector((float *)acc, (float *)other.acc);
+    sceVu0CopyVector((float *)velo_mul, (float *)other.velo_mul);
+    sceVu0CopyVector((float *)acc_mul, (float *)other.acc_mul);
+    sceVu0CopyVector((float *)move_p1, (float *)other.move_p1);
+    sceVu0CopyVector((float *)move_p2, (float *)other.move_p2);
     velo_rand_type = other.velo_rand_type;
     acc_rand_type = other.acc_rand_type;
     move_p1_rand_type = other.move_p1_rand_type;
     move_p2_rand_type = other.move_p2_rand_type;
-    sceVu0CopyVector(velo_rand, (float *)other.velo_rand);
-    sceVu0CopyVector(acc_rand, (float *)other.acc_rand);
-    sceVu0CopyVector(move_p1_rand, (float *)other.move_p1_rand);
-    sceVu0CopyVector(move_p2_rand, (float *)other.move_p2_rand);
+    sceVu0CopyVector((float *)velo_rand, (float *)other.velo_rand);
+    sceVu0CopyVector((float *)acc_rand, (float *)other.acc_rand);
+    sceVu0CopyVector((float *)move_p1_rand, (float *)other.move_p1_rand);
+    sceVu0CopyVector((float *)move_p2_rand, (float *)other.move_p2_rand);
     velo_rand_count = other.velo_rand_count;
     acc_rand_count = other.acc_rand_count;
     move_p1_rand_count = other.move_p1_rand_count;
     move_p2_rand_count = other.move_p2_rand_count;
-    scale_type[0] = other.scale_type[0];
-    scale_type[1] = other.scale_type[1];
-    scale_type[2] = other.scale_type[2];
-    sceVu0CopyVector(scale, (float *)other.scale);
-    sceVu0CopyVector(svelo, (float *)other.svelo);
-    sceVu0CopyVector(scale_p1, (float *)other.scale_p1);
-    sceVu0CopyVector(scale_p2, (float *)other.scale_p2);
+    this->scale_type.first = other.scale_type.first;
+    this->scale_type.second = other.scale_type.second;
+    this->scale_type.third = other.scale_type.third;
+    sceVu0CopyVector((float *)scale, (float *)other.scale);
+    sceVu0CopyVector((float *)svelo, (float *)other.svelo);
+    sceVu0CopyVector((float *)scale_p1, (float *)other.scale_p1);
+    sceVu0CopyVector((float *)scale_p2, (float *)other.scale_p2);
     scale_rand_type = other.scale_rand_type;
     svelo_rand_type = other.svelo_rand_type;
     scale_p1_rand_type = other.scale_p1_rand_type;
     scale_p2_rand_type = other.scale_p2_rand_type;
-    sceVu0CopyVector(scale_rand, (float *)other.scale_rand);
-    sceVu0CopyVector(svelo_rand, (float *)other.svelo_rand);
-    sceVu0CopyVector(scale_p1_rand, (float *)other.scale_p1_rand);
-    sceVu0CopyVector(scale_p2_rand, (float *)other.scale_p2_rand);
+    sceVu0CopyVector((float *)scale_rand, (float *)other.scale_rand);
+    sceVu0CopyVector((float *)svelo_rand, (float *)other.svelo_rand);
+    sceVu0CopyVector((float *)scale_p1_rand, (float *)other.scale_p1_rand);
+    sceVu0CopyVector((float *)scale_p2_rand, (float *)other.scale_p2_rand);
     scale_rand_count = other.scale_rand_count;
     svelo_rand_count = other.svelo_rand_count;
     scale_p1_rand_count = other.scale_p1_rand_count;
@@ -1085,57 +922,26 @@ CEffectCtrl &CEffectCtrl::operator=(const CEffectCtrl &other) {
     alpha_p1_rand_count = other.alpha_p1_rand_count;
     alpha_p2_rand_count = other.alpha_p2_rand_count;
     tex_rect_num = other.tex_rect_num;
-    memcpy(tex_rect, other.tex_rect, sizeof(tex_rect));
+    memcpy(tex_rect, other.tex_rect, 0x80);
     texture = other.texture;
     tex_get_type = other.tex_get_type;
     gravity = other.gravity;
-    sceVu0CopyVector(gravity_pos, (float *)other.gravity_pos);
+    sceVu0CopyVector((float *)gravity_pos, (float *)other.gravity_pos);
     gravity_accel = other.gravity_accel;
     gravity_mass = other.gravity_mass;
-
     return *this;
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/effect", __as__11CEffectCtrlFRC11CEffectCtrl);
-#endif
-
-#ifdef NONMATCHING
-/**
- * Sets the particle and emitter pool sizes from BUFFER_SIZE.
- */
-static int __BUFFER_SIZE(SPI_STACK *stack, int argument_count) {
-    SPI_STACK *next;
-    int        effect_num;
-    int        ctrl_num;
-
-    next = stack + 1;
-    effect_num = spiGetStackInt(stack);
-    ctrl_num = spiGetStackInt(next);
-    g_tmp_effm->SetEffectNums(effect_num, ctrl_num);
+int __BUFFER_SIZE(SPI_STACK *args, int arg_count) {
+    int effect_num = spiGetStackInt(args++);
+    g_tmp_effm->SetEffectNums(effect_num, spiGetStackInt(args));
     return 1;
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/effect", __BUFFER_SIZE__FP9SPI_STACKi);
-#endif
-
-#ifdef NONMATCHING
-/**
- * Begins an emitter block under its script name.
- */
-static int __EFFECT_START(SPI_STACK *stack, int argument_count) {
-    strcpy(g_tmp_eff_name, spiGetStackString(stack));
+int __EFFECT_START(SPI_STACK *args, int arg_count) {
+    strcpy(g_tmp_eff_name, spiGetStackString(args));
     g_tmp_effc = new CEffectCtrl;
     return 1;
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/effect", __EFFECT_START__FP9SPI_STACKi);
-#endif
-
-#ifdef NONMATCHING
-/**
- * Enters the completed emitter and releases its temporary storage.
- */
-static int __EFFECT_END(SPI_STACK *stack, int argument_count) {
+int __EFFECT_END(SPI_STACK *args, int arg_count) {
     if (g_eff_entry_flag != 0) {
         g_tmp_effm->EnterEffectCtrl(*g_tmp_effc, g_tmp_eff_name);
     }
@@ -1143,14 +949,8 @@ static int __EFFECT_END(SPI_STACK *stack, int argument_count) {
     g_tmp_effc = NULL;
     return 1;
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/effect", __EFFECT_END__FP9SPI_STACKi);
-#endif
-
 #ifdef NONMATCHING
-/**
- * Sets the delay before starting an emitter.
- */
+
 static int __WAIT_FRAME(SPI_STACK *stack, int argument_count) {
     SPI_STACK *next;
     int        index;
@@ -1163,858 +963,391 @@ static int __WAIT_FRAME(SPI_STACK *stack, int argument_count) {
 #else
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/effect", __WAIT_FRAME__FP9SPI_STACKi);
 #endif
-
-#ifdef NONMATCHING
-/**
- * Sets the texture archive name for the effect.
- */
-static int __IMG_NAME(SPI_STACK *stack, int argument_count) {
-    strcpy(g_tmp_effm->img_name, spiGetStackString(stack));
+int __IMG_NAME(SPI_STACK *args, int arg_count) {
+    strcpy(g_tmp_effm->img_name, spiGetStackString(args));
     return 1;
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/effect", __IMG_NAME__FP9SPI_STACKi);
-#endif
-
-#ifdef NONMATCHING
-/**
- * Sets the unscaled particle dimensions.
- */
-static int __SIZE(SPI_STACK *stack, int argument_count) {
-    SPI_STACK *next;
-
-    next = stack + 1;
-    g_tmp_effc->width = spiGetStackFloat(stack);
-    g_tmp_effc->height = spiGetStackFloat(next);
+int __SIZE(SPI_STACK *args, int arg_count) {
+    g_tmp_effc->width = spiGetStackFloat(args++);
+    g_tmp_effc->height = spiGetStackFloat(args);
     return 1;
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/effect", __SIZE__FP9SPI_STACKi);
-#endif
-
-#ifdef NONMATCHING
-/**
- * Sets the direction setting of spawned particles.
- */
-static int __DIR(SPI_STACK *stack, int argument_count) {
-    g_tmp_effc->dir = spiGetStackInt(stack);
+int __DIR(SPI_STACK *args, int arg_count) {
+    g_tmp_effc->dir = spiGetStackInt(args);
     return 1;
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/effect", __DIR__FP9SPI_STACKi);
-#endif
-
-#ifdef NONMATCHING
-/**
- * Sets the emitter num.
- */
-static int __NUM(SPI_STACK *stack, int argument_count) {
-    g_tmp_effc->num = spiGetStackInt(stack);
+int __NUM(SPI_STACK *args, int arg_count) {
+    g_tmp_effc->num = spiGetStackInt(args);
     return 1;
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/effect", __NUM__FP9SPI_STACKi);
-#endif
-
-#ifdef NONMATCHING
-/**
- * Sets the random distribution of the emitter num.
- */
-static int __NUM_RAND(SPI_STACK *stack, int argument_count) {
-    SPI_STACK *next;
-
-    next = stack + 1;
-    g_tmp_effc->num_rand_type = (EFFECT_RAND_TYPE)spiGetStackInt(stack);
-    g_tmp_effc->num_rand = spiGetStackFloat(next++);
-    g_tmp_effc->num_rand_count = spiGetStackInt(next);
+int __NUM_RAND(SPI_STACK *args, int arg_count) {
+    g_tmp_effc->num_rand_type = (EFFECT_RAND_TYPE)spiGetStackInt(args++);
+    g_tmp_effc->num_rand = spiGetStackFloat(args++);
+    g_tmp_effc->num_rand_count = spiGetStackInt(args);
     return 1;
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/effect", __NUM_RAND__FP9SPI_STACKi);
-#endif
-
-#ifdef NONMATCHING
-/**
- * Sets the emitter count.
- */
-static int __COUNT(SPI_STACK *stack, int argument_count) {
-    g_tmp_effc->count = spiGetStackInt(stack);
+int __COUNT(SPI_STACK *args, int arg_count) {
+    g_tmp_effc->count = spiGetStackInt(args);
     return 1;
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/effect", __COUNT__FP9SPI_STACKi);
-#endif
-
-#ifdef NONMATCHING
-/**
- * Sets the random distribution of the emitter cnt.
- */
-static int __CNT_RAND(SPI_STACK *stack, int argument_count) {
-    SPI_STACK *next;
-
-    next = stack + 1;
-    g_tmp_effc->cnt_rand_type = (EFFECT_RAND_TYPE)spiGetStackInt(stack);
-    g_tmp_effc->cnt_rand = spiGetStackFloat(next++);
-    g_tmp_effc->cnt_rand_count = spiGetStackInt(next);
+int __CNT_RAND(SPI_STACK *args, int arg_count) {
+    g_tmp_effc->cnt_rand_type = (EFFECT_RAND_TYPE)spiGetStackInt(args++);
+    g_tmp_effc->cnt_rand = spiGetStackFloat(args++);
+    g_tmp_effc->cnt_rand_count = spiGetStackInt(args);
     return 1;
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/effect", __CNT_RAND__FP9SPI_STACKi);
-#endif
+int __REPEAT(SPI_STACK *args, int arg_count) {
+    g_tmp_effc->repeat = spiGetStackInt(args++);
 
-#ifdef NONMATCHING
-/**
- * Sets whether the emitter repeats, its delay and its batch limit.
- */
-static int __REPEAT(SPI_STACK *stack, int argument_count) {
-    SPI_STACK *next;
-
-    next = stack + 1;
-    g_tmp_effc->repeat = spiGetStackInt(stack);
-    g_tmp_effc->repeat_wait_now = spiGetStackInt(next);
-    g_tmp_effc->repeat_wait = spiGetStackInt(next);
-    g_tmp_effc->repeat_num = spiGetStackInt(next + 1);
+    g_tmp_effc->repeat_wait_now = spiGetStackInt(args);
+    g_tmp_effc->repeat_wait = spiGetStackInt(args++);
+    g_tmp_effc->repeat_num = spiGetStackInt(args);
     return 1;
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/effect", __REPEAT__FP9SPI_STACKi);
-#endif
-
-#ifdef NONMATCHING
-/**
- * Sets the random distribution and range of the wait between particle batches.
- */
-static int __REP_RAND(SPI_STACK *stack, int argument_count) {
-    SPI_STACK *next;
-
-    next = stack + 1;
-    g_tmp_effc->rep_rand_type = (EFFECT_RAND_TYPE)spiGetStackInt(stack);
-    g_tmp_effc->rep_rand = spiGetStackFloat(next++);
-    g_tmp_effc->rep_rand_count = spiGetStackInt(next);
+int __REP_RAND(SPI_STACK *args, int arg_count) {
+    g_tmp_effc->rep_rand_type = (EFFECT_RAND_TYPE)spiGetStackInt(args++);
+    g_tmp_effc->rep_rand = spiGetStackFloat(args++);
+    g_tmp_effc->rep_rand_count = spiGetStackInt(args);
     return 1;
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/effect", __REP_RAND__FP9SPI_STACKi);
-#endif
-
-#ifdef NONMATCHING
-/**
- * Sets the emitter pos components.
- */
-static int __POS(SPI_STACK *stack, int argument_count) {
-    SPI_STACK *next;
-
-    next = stack + 1;
-    g_tmp_effc->pos[0] = spiGetStackFloat(stack);
-    g_tmp_effc->pos[1] = spiGetStackFloat(next++);
-    g_tmp_effc->pos[2] = spiGetStackFloat(next);
+int __POS(SPI_STACK *args, int arg_count) {
+    g_tmp_effc->pos[0] = spiGetStackFloat(args++);
+    g_tmp_effc->pos[1] = spiGetStackFloat(args++);
+    g_tmp_effc->pos[2] = spiGetStackFloat(args);
     return 1;
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/effect", __POS__FP9SPI_STACKi);
-#endif
-
-#ifdef NONMATCHING
-/**
- * Sets the random distribution of the emitter pos.
- */
-static int __POS_RAND(SPI_STACK *stack, int argument_count) {
-    SPI_STACK *next;
-
-    next = stack + 1;
-    g_tmp_effc->pos_rand_type = (EFFECT_RAND_TYPE)spiGetStackInt(stack);
-    g_tmp_effc->pos_rand[0] = spiGetStackFloat(next++);
-    g_tmp_effc->pos_rand[1] = spiGetStackFloat(next++);
-    g_tmp_effc->pos_rand[2] = spiGetStackFloat(next++);
-    g_tmp_effc->pos_rand_count = spiGetStackInt(next);
+int __POS_RAND(SPI_STACK *args, int arg_count) {
+    g_tmp_effc->pos_rand_type = (EFFECT_RAND_TYPE)spiGetStackInt(args++);
+    g_tmp_effc->pos_rand[0] = spiGetStackFloat(args++);
+    g_tmp_effc->pos_rand[1] = spiGetStackFloat(args++);
+    g_tmp_effc->pos_rand[2] = spiGetStackFloat(args++);
+    g_tmp_effc->pos_rand_count = spiGetStackInt(args);
     return 1;
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/effect", __POS_RAND__FP9SPI_STACKi);
-#endif
-
-#ifdef NONMATCHING
-/**
- * Sets the emitter velo components.
- */
-static int __VELO(SPI_STACK *stack, int argument_count) {
-    SPI_STACK *next;
-
-    next = stack + 1;
-    g_tmp_effc->velo[0] = spiGetStackFloat(stack);
-    g_tmp_effc->velo[1] = spiGetStackFloat(next++);
-    g_tmp_effc->velo[2] = spiGetStackFloat(next);
+int __VELO(SPI_STACK *args, int arg_count) {
+    g_tmp_effc->velo[0] = spiGetStackFloat(args++);
+    g_tmp_effc->velo[1] = spiGetStackFloat(args++);
+    g_tmp_effc->velo[2] = spiGetStackFloat(args);
     return 1;
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/effect", __VELO__FP9SPI_STACKi);
-#endif
-
-#ifdef NONMATCHING
-/**
- * Sets the random distribution of the emitter velo.
- */
-static int __VELO_RAND(SPI_STACK *stack, int argument_count) {
-    SPI_STACK *next;
-
-    next = stack + 1;
-    g_tmp_effc->velo_rand_type = (EFFECT_RAND_TYPE)spiGetStackInt(stack);
-    g_tmp_effc->velo_rand[0] = spiGetStackFloat(next++);
-    g_tmp_effc->velo_rand[1] = spiGetStackFloat(next++);
-    g_tmp_effc->velo_rand[2] = spiGetStackFloat(next++);
-    g_tmp_effc->velo_rand_count = spiGetStackInt(next);
+int __VELO_RAND(SPI_STACK *args, int arg_count) {
+    g_tmp_effc->velo_rand_type = (EFFECT_RAND_TYPE)spiGetStackInt(args++);
+    g_tmp_effc->velo_rand[0] = spiGetStackFloat(args++);
+    g_tmp_effc->velo_rand[1] = spiGetStackFloat(args++);
+    g_tmp_effc->velo_rand[2] = spiGetStackFloat(args++);
+    g_tmp_effc->velo_rand_count = spiGetStackInt(args);
     return 1;
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/effect", __VELO_RAND__FP9SPI_STACKi);
-#endif
-
-#ifdef NONMATCHING
-/**
- * Sets the emitter velo mul components.
- */
-static int __VELO_MUL(SPI_STACK *stack, int argument_count) {
-    SPI_STACK *next;
-
-    next = stack + 1;
-    g_tmp_effc->velo_mul[0] = spiGetStackFloat(stack);
-    g_tmp_effc->velo_mul[1] = spiGetStackFloat(next++);
-    g_tmp_effc->velo_mul[2] = spiGetStackFloat(next);
+int __VELO_MUL(SPI_STACK *args, int arg_count) {
+    g_tmp_effc->velo_mul[0] = spiGetStackFloat(args++);
+    g_tmp_effc->velo_mul[1] = spiGetStackFloat(args++);
+    g_tmp_effc->velo_mul[2] = spiGetStackFloat(args);
     return 1;
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/effect", __VELO_MUL__FP9SPI_STACKi);
-#endif
-
-#ifdef NONMATCHING
-/**
- * Sets the emitter acc components.
- */
-static int __ACC(SPI_STACK *stack, int argument_count) {
-    SPI_STACK *next;
-
-    next = stack + 1;
-    g_tmp_effc->acc[0] = spiGetStackFloat(stack);
-    g_tmp_effc->acc[1] = spiGetStackFloat(next++);
-    g_tmp_effc->acc[2] = spiGetStackFloat(next);
+int __ACC(SPI_STACK *args, int arg_count) {
+    g_tmp_effc->acc[0] = spiGetStackFloat(args++);
+    g_tmp_effc->acc[1] = spiGetStackFloat(args++);
+    g_tmp_effc->acc[2] = spiGetStackFloat(args);
     return 1;
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/effect", __ACC__FP9SPI_STACKi);
-#endif
-
-#ifdef NONMATCHING
-/**
- * Sets the random distribution of the emitter acc.
- */
-static int __ACC_RAND(SPI_STACK *stack, int argument_count) {
-    SPI_STACK *next;
-
-    next = stack + 1;
-    g_tmp_effc->acc_rand_type = (EFFECT_RAND_TYPE)spiGetStackInt(stack);
-    g_tmp_effc->acc_rand[0] = spiGetStackFloat(next++);
-    g_tmp_effc->acc_rand[1] = spiGetStackFloat(next++);
-    g_tmp_effc->acc_rand[2] = spiGetStackFloat(next++);
-    g_tmp_effc->acc_rand_count = spiGetStackInt(next);
+int __ACC_RAND(SPI_STACK *args, int arg_count) {
+    g_tmp_effc->acc_rand_type = (EFFECT_RAND_TYPE)spiGetStackInt(args++);
+    g_tmp_effc->acc_rand[0] = spiGetStackFloat(args++);
+    g_tmp_effc->acc_rand[1] = spiGetStackFloat(args++);
+    g_tmp_effc->acc_rand[2] = spiGetStackFloat(args++);
+    g_tmp_effc->acc_rand_count = spiGetStackInt(args);
     return 1;
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/effect", __ACC_RAND__FP9SPI_STACKi);
-#endif
-
-#ifdef NONMATCHING
-/**
- * Sets the emitter acc mul components.
- */
-static int __ACC_MUL(SPI_STACK *stack, int argument_count) {
-    SPI_STACK *next;
-
-    next = stack + 1;
-    g_tmp_effc->acc_mul[0] = spiGetStackFloat(stack);
-    g_tmp_effc->acc_mul[1] = spiGetStackFloat(next++);
-    g_tmp_effc->acc_mul[2] = spiGetStackFloat(next);
+int __ACC_MUL(SPI_STACK *args, int arg_count) {
+    g_tmp_effc->acc_mul[0] = spiGetStackFloat(args++);
+    g_tmp_effc->acc_mul[1] = spiGetStackFloat(args++);
+    g_tmp_effc->acc_mul[2] = spiGetStackFloat(args);
     return 1;
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/effect", __ACC_MUL__FP9SPI_STACKi);
-#endif
-
-#ifdef NONMATCHING
-/**
- * Sets the emitter move type components.
- */
-static int __MOVE_TYPE(SPI_STACK *stack, int argument_count) {
-    SPI_STACK *next;
-
-    next = stack + 1;
-    g_tmp_effc->move_type[0] = (EFFECT_CHANGE_TYPE)spiGetStackInt(stack);
-    g_tmp_effc->move_type[1] = (EFFECT_CHANGE_TYPE)spiGetStackInt(next++);
-    g_tmp_effc->move_type[2] = (EFFECT_CHANGE_TYPE)spiGetStackInt(next);
+int __MOVE_TYPE(SPI_STACK *args, int arg_count) {
+    g_tmp_effc->move_type.first = (EFFECT_CHANGE_TYPE)spiGetStackInt(args++);
+    g_tmp_effc->move_type.second = (EFFECT_CHANGE_TYPE)spiGetStackInt(args++);
+    g_tmp_effc->move_type.third = (EFFECT_CHANGE_TYPE)spiGetStackInt(args);
     return 1;
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/effect", __MOVE_TYPE__FP9SPI_STACKi);
-#endif
-
-#ifdef NONMATCHING
-/**
- * Sets the emitter move p1 components.
- */
-static int __MOVE_P1(SPI_STACK *stack, int argument_count) {
-    SPI_STACK *next;
-
-    next = stack + 1;
-    g_tmp_effc->move_p1[0] = spiGetStackFloat(stack);
-    g_tmp_effc->move_p1[1] = spiGetStackFloat(next++);
-    g_tmp_effc->move_p1[2] = spiGetStackFloat(next);
+int __MOVE_P1(SPI_STACK *args, int arg_count) {
+    g_tmp_effc->move_p1[0] = spiGetStackFloat(args++);
+    g_tmp_effc->move_p1[1] = spiGetStackFloat(args++);
+    g_tmp_effc->move_p1[2] = spiGetStackFloat(args);
     return 1;
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/effect", __MOVE_P1__FP9SPI_STACKi);
-#endif
-
-#ifdef NONMATCHING
-/**
- * Sets the random distribution of the emitter move p1.
- */
-static int __MOVE_P1_RAND(SPI_STACK *stack, int argument_count) {
-    SPI_STACK *next;
-
-    next = stack + 1;
-    g_tmp_effc->move_p1_rand_type = (EFFECT_RAND_TYPE)spiGetStackInt(stack);
-    g_tmp_effc->move_p1_rand[0] = spiGetStackFloat(next++);
-    g_tmp_effc->move_p1_rand[1] = spiGetStackFloat(next++);
-    g_tmp_effc->move_p1_rand[2] = spiGetStackFloat(next++);
-    g_tmp_effc->move_p1_rand_count = spiGetStackInt(next);
+int __MOVE_P1_RAND(SPI_STACK *args, int arg_count) {
+    g_tmp_effc->move_p1_rand_type = (EFFECT_RAND_TYPE)spiGetStackInt(args++);
+    g_tmp_effc->move_p1_rand[0] = spiGetStackFloat(args++);
+    g_tmp_effc->move_p1_rand[1] = spiGetStackFloat(args++);
+    g_tmp_effc->move_p1_rand[2] = spiGetStackFloat(args++);
+    g_tmp_effc->move_p1_rand_count = spiGetStackInt(args);
     return 1;
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/effect", __MOVE_P1_RAND__FP9SPI_STACKi);
-#endif
-
-#ifdef NONMATCHING
-/**
- * Sets the emitter move p2 components.
- */
-static int __MOVE_P2(SPI_STACK *stack, int argument_count) {
-    SPI_STACK *next;
-
-    next = stack + 1;
-    g_tmp_effc->move_p2[0] = spiGetStackFloat(stack);
-    g_tmp_effc->move_p2[1] = spiGetStackFloat(next++);
-    g_tmp_effc->move_p2[2] = spiGetStackFloat(next);
+int __MOVE_P2(SPI_STACK *args, int arg_count) {
+    g_tmp_effc->move_p2[0] = spiGetStackFloat(args++);
+    g_tmp_effc->move_p2[1] = spiGetStackFloat(args++);
+    g_tmp_effc->move_p2[2] = spiGetStackFloat(args);
     return 1;
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/effect", __MOVE_P2__FP9SPI_STACKi);
-#endif
-
-#ifdef NONMATCHING
-/**
- * Sets the random distribution of the emitter move p2.
- */
-static int __MOVE_P2_RAND(SPI_STACK *stack, int argument_count) {
-    SPI_STACK *next;
-
-    next = stack + 1;
-    g_tmp_effc->move_p2_rand_type = (EFFECT_RAND_TYPE)spiGetStackInt(stack);
-    g_tmp_effc->move_p2_rand[0] = spiGetStackFloat(next++);
-    g_tmp_effc->move_p2_rand[1] = spiGetStackFloat(next++);
-    g_tmp_effc->move_p2_rand[2] = spiGetStackFloat(next++);
-    g_tmp_effc->move_p2_rand_count = spiGetStackInt(next);
+int __MOVE_P2_RAND(SPI_STACK *args, int arg_count) {
+    g_tmp_effc->move_p2_rand_type = (EFFECT_RAND_TYPE)spiGetStackInt(args++);
+    g_tmp_effc->move_p2_rand[0] = spiGetStackFloat(args++);
+    g_tmp_effc->move_p2_rand[1] = spiGetStackFloat(args++);
+    g_tmp_effc->move_p2_rand[2] = spiGetStackFloat(args++);
+    g_tmp_effc->move_p2_rand_count = spiGetStackInt(args);
     return 1;
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/effect", __MOVE_P2_RAND__FP9SPI_STACKi);
-#endif
-
-#ifdef NONMATCHING
-/**
- * Sets the emitter scale type components.
- */
-static int __SCALE_TYPE(SPI_STACK *stack, int argument_count) {
-    SPI_STACK *next;
-
-    next = stack + 1;
-    g_tmp_effc->scale_type[0] = (EFFECT_CHANGE_TYPE)spiGetStackInt(stack);
-    g_tmp_effc->scale_type[1] = (EFFECT_CHANGE_TYPE)spiGetStackInt(next);
+int __SCALE_TYPE(SPI_STACK *args, int arg_count) {
+    g_tmp_effc->scale_type.first = (EFFECT_CHANGE_TYPE)spiGetStackInt(args++);
+    g_tmp_effc->scale_type.second = (EFFECT_CHANGE_TYPE)spiGetStackInt(args);
     return 1;
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/effect", __SCALE_TYPE__FP9SPI_STACKi);
-#endif
-
-#ifdef NONMATCHING
-/**
- * Sets the emitter scale components.
- */
-static int __SCALE(SPI_STACK *stack, int argument_count) {
-    SPI_STACK *next;
-
-    next = stack + 1;
-    g_tmp_effc->scale[0] = spiGetStackFloat(stack);
-    g_tmp_effc->scale[1] = spiGetStackFloat(next);
+int __SCALE(SPI_STACK *args, int arg_count) {
+    g_tmp_effc->scale[0] = spiGetStackFloat(args++);
+    g_tmp_effc->scale[1] = spiGetStackFloat(args);
     return 1;
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/effect", __SCALE__FP9SPI_STACKi);
-#endif
-
-#ifdef NONMATCHING
-/**
- * Sets the random distribution of the emitter scale.
- */
-static int __SCALE_RAND(SPI_STACK *stack, int argument_count) {
-    SPI_STACK *next;
-
-    next = stack + 1;
-    g_tmp_effc->scale_rand_type = (EFFECT_RAND_TYPE)spiGetStackInt(stack);
-    g_tmp_effc->scale_rand[0] = spiGetStackFloat(next++);
-    g_tmp_effc->scale_rand[1] = spiGetStackFloat(next++);
-    g_tmp_effc->scale_rand_count = spiGetStackInt(next);
+int __SCALE_RAND(SPI_STACK *args, int arg_count) {
+    g_tmp_effc->scale_rand_type = (EFFECT_RAND_TYPE)spiGetStackInt(args++);
+    g_tmp_effc->scale_rand[0] = spiGetStackFloat(args++);
+    g_tmp_effc->scale_rand[1] = spiGetStackFloat(args++);
+    g_tmp_effc->scale_rand_count = spiGetStackInt(args);
     return 1;
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/effect", __SCALE_RAND__FP9SPI_STACKi);
-#endif
-
-#ifdef NONMATCHING
-/**
- * Sets the emitter svelo components.
- */
-static int __SVELO(SPI_STACK *stack, int argument_count) {
-    SPI_STACK *next;
-
-    next = stack + 1;
-    g_tmp_effc->svelo[0] = spiGetStackFloat(stack);
-    g_tmp_effc->svelo[1] = spiGetStackFloat(next);
+int __SVELO(SPI_STACK *args, int arg_count) {
+    g_tmp_effc->svelo[0] = spiGetStackFloat(args++);
+    g_tmp_effc->svelo[1] = spiGetStackFloat(args);
     return 1;
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/effect", __SVELO__FP9SPI_STACKi);
-#endif
-
-#ifdef NONMATCHING
-/**
- * Sets the random distribution of the emitter svelo.
- */
-static int __SVELO_RAND(SPI_STACK *stack, int argument_count) {
-    SPI_STACK *next;
-
-    next = stack + 1;
-    g_tmp_effc->svelo_rand_type = (EFFECT_RAND_TYPE)spiGetStackInt(stack);
-    g_tmp_effc->svelo_rand[0] = spiGetStackFloat(next++);
-    g_tmp_effc->svelo_rand[1] = spiGetStackFloat(next++);
-    g_tmp_effc->svelo_rand_count = spiGetStackInt(next);
+int __SVELO_RAND(SPI_STACK *args, int arg_count) {
+    g_tmp_effc->svelo_rand_type = (EFFECT_RAND_TYPE)spiGetStackInt(args++);
+    g_tmp_effc->svelo_rand[0] = spiGetStackFloat(args++);
+    g_tmp_effc->svelo_rand[1] = spiGetStackFloat(args++);
+    g_tmp_effc->svelo_rand_count = spiGetStackInt(args);
     return 1;
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/effect", __SVELO_RAND__FP9SPI_STACKi);
-#endif
-
-#ifdef NONMATCHING
-/**
- * Sets the emitter scale p1 components.
- */
-static int __SCALE_P1(SPI_STACK *stack, int argument_count) {
-    SPI_STACK *next;
-
-    next = stack + 1;
-    g_tmp_effc->scale_p1[0] = spiGetStackFloat(stack);
-    g_tmp_effc->scale_p1[1] = spiGetStackFloat(next);
+int __SCALE_P1(SPI_STACK *args, int arg_count) {
+    g_tmp_effc->scale_p1[0] = spiGetStackFloat(args++);
+    g_tmp_effc->scale_p1[1] = spiGetStackFloat(args);
     return 1;
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/effect", __SCALE_P1__FP9SPI_STACKi);
-#endif
-
-#ifdef NONMATCHING
-/**
- * Sets the random distribution of the emitter scale p1.
- */
-static int __SCALE_P1_RAND(SPI_STACK *stack, int argument_count) {
-    SPI_STACK *next;
-
-    next = stack + 1;
-    g_tmp_effc->scale_p1_rand_type = (EFFECT_RAND_TYPE)spiGetStackInt(stack);
-    g_tmp_effc->scale_p1_rand[0] = spiGetStackFloat(next++);
-    g_tmp_effc->scale_p1_rand[1] = spiGetStackFloat(next++);
-    g_tmp_effc->scale_p1_rand_count = spiGetStackInt(next);
+int __SCALE_P1_RAND(SPI_STACK *args, int arg_count) {
+    g_tmp_effc->scale_p1_rand_type = (EFFECT_RAND_TYPE)spiGetStackInt(args++);
+    g_tmp_effc->scale_p1_rand[0] = spiGetStackFloat(args++);
+    g_tmp_effc->scale_p1_rand[1] = spiGetStackFloat(args++);
+    g_tmp_effc->scale_p1_rand_count = spiGetStackInt(args);
     return 1;
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/effect", __SCALE_P1_RAND__FP9SPI_STACKi);
-#endif
-
-#ifdef NONMATCHING
-/**
- * Sets the emitter scale p2 components.
- */
-static int __SCALE_P2(SPI_STACK *stack, int argument_count) {
-    SPI_STACK *next;
-
-    next = stack + 1;
-    g_tmp_effc->scale_p2[0] = spiGetStackFloat(stack);
-    g_tmp_effc->scale_p2[1] = spiGetStackFloat(next);
+int __SCALE_P2(SPI_STACK *args, int arg_count) {
+    g_tmp_effc->scale_p2[0] = spiGetStackFloat(args++);
+    g_tmp_effc->scale_p2[1] = spiGetStackFloat(args);
     return 1;
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/effect", __SCALE_P2__FP9SPI_STACKi);
-#endif
-
-#ifdef NONMATCHING
-/**
- * Sets the random distribution of the emitter scale p2.
- */
-static int __SCALE_P2_RAND(SPI_STACK *stack, int argument_count) {
-    SPI_STACK *next;
-
-    next = stack + 1;
-    g_tmp_effc->scale_p2_rand_type = (EFFECT_RAND_TYPE)spiGetStackInt(stack);
-    g_tmp_effc->scale_p2_rand[0] = spiGetStackFloat(next++);
-    g_tmp_effc->scale_p2_rand[1] = spiGetStackFloat(next++);
-    g_tmp_effc->scale_p2_rand_count = spiGetStackInt(next);
+int __SCALE_P2_RAND(SPI_STACK *args, int arg_count) {
+    g_tmp_effc->scale_p2_rand_type = (EFFECT_RAND_TYPE)spiGetStackInt(args++);
+    g_tmp_effc->scale_p2_rand[0] = spiGetStackFloat(args++);
+    g_tmp_effc->scale_p2_rand[1] = spiGetStackFloat(args++);
+    g_tmp_effc->scale_p2_rand_count = spiGetStackInt(args);
     return 1;
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/effect", __SCALE_P2_RAND__FP9SPI_STACKi);
-#endif
-
-#ifdef NONMATCHING
-/**
- * Sets the emitter alpha blend.
- */
-static int __ALPHA_BLEND(SPI_STACK *stack, int argument_count) {
-    g_tmp_effc->alpha_blend = (EFFECT_ALPHA_BLEND)spiGetStackInt(stack);
+int __ALPHA_BLEND(SPI_STACK *args, int arg_count) {
+    g_tmp_effc->alpha_blend = (EFFECT_ALPHA_BLEND)spiGetStackInt(args);
     return 1;
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/effect", __ALPHA_BLEND__FP9SPI_STACKi);
-#endif
-
-#ifdef NONMATCHING
-/**
- * Sets the emitter alpha type.
- */
-static int __ALPHA_TYPE(SPI_STACK *stack, int argument_count) {
-    g_tmp_effc->alpha_type = (EFFECT_CHANGE_TYPE)spiGetStackInt(stack);
+int __ALPHA_TYPE(SPI_STACK *args, int arg_count) {
+    g_tmp_effc->alpha_type = (EFFECT_CHANGE_TYPE)spiGetStackInt(args);
     return 1;
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/effect", __ALPHA_TYPE__FP9SPI_STACKi);
-#endif
-
-#ifdef NONMATCHING
-/**
- * Sets the emitter alpha.
- */
-static int __ALPHA(SPI_STACK *stack, int argument_count) {
-    g_tmp_effc->alpha = spiGetStackFloat(stack);
+int __ALPHA(SPI_STACK *args, int arg_count) {
+    g_tmp_effc->alpha = spiGetStackFloat(args);
     return 1;
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/effect", __ALPHA__FP9SPI_STACKi);
-#endif
-
-#ifdef NONMATCHING
-/**
- * Sets the random distribution of the emitter alpha.
- */
-static int __ALPHA_RAND(SPI_STACK *stack, int argument_count) {
-    SPI_STACK *next;
-
-    next = stack + 1;
-    g_tmp_effc->alpha_rand_type = (EFFECT_RAND_TYPE)spiGetStackInt(stack);
-    g_tmp_effc->alpha_rand = spiGetStackFloat(next++);
-    g_tmp_effc->alpha_rand_count = spiGetStackInt(next);
+int __ALPHA_RAND(SPI_STACK *args, int arg_count) {
+    g_tmp_effc->alpha_rand_type = (EFFECT_RAND_TYPE)spiGetStackInt(args++);
+    g_tmp_effc->alpha_rand = spiGetStackFloat(args++);
+    g_tmp_effc->alpha_rand_count = spiGetStackInt(args);
     return 1;
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/effect", __ALPHA_RAND__FP9SPI_STACKi);
-#endif
-
-#ifdef NONMATCHING
-/**
- * Sets the emitter alpha p1.
- */
-static int __ALPHA_P1(SPI_STACK *stack, int argument_count) {
-    g_tmp_effc->alpha_p1 = spiGetStackFloat(stack);
+int __ALPHA_P1(SPI_STACK *args, int arg_count) {
+    g_tmp_effc->alpha_p1 = spiGetStackFloat(args);
     return 1;
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/effect", __ALPHA_P1__FP9SPI_STACKi);
-#endif
-
-#ifdef NONMATCHING
-/**
- * Sets the random distribution of the emitter alpha p1.
- */
-static int __ALPHA_P1_RAND(SPI_STACK *stack, int argument_count) {
-    SPI_STACK *next;
-
-    next = stack + 1;
-    g_tmp_effc->alpha_p1_rand_type = (EFFECT_RAND_TYPE)spiGetStackInt(stack);
-    g_tmp_effc->alpha_p1_rand = spiGetStackFloat(next++);
-    g_tmp_effc->alpha_p1_rand_count = spiGetStackInt(next);
+int __ALPHA_P1_RAND(SPI_STACK *args, int arg_count) {
+    g_tmp_effc->alpha_p1_rand_type = (EFFECT_RAND_TYPE)spiGetStackInt(args++);
+    g_tmp_effc->alpha_p1_rand = spiGetStackFloat(args++);
+    g_tmp_effc->alpha_p1_rand_count = spiGetStackInt(args);
     return 1;
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/effect", __ALPHA_P1_RAND__FP9SPI_STACKi);
-#endif
-
-#ifdef NONMATCHING
-/**
- * Sets the emitter alpha p2.
- */
-static int __ALPHA_P2(SPI_STACK *stack, int argument_count) {
-    g_tmp_effc->alpha_p2 = spiGetStackFloat(stack);
+int __ALPHA_P2(SPI_STACK *args, int arg_count) {
+    g_tmp_effc->alpha_p2 = spiGetStackFloat(args);
     return 1;
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/effect", __ALPHA_P2__FP9SPI_STACKi);
-#endif
-
-#ifdef NONMATCHING
-/**
- * Sets the random distribution of the emitter alpha p2.
- */
-static int __ALPHA_P2_RAND(SPI_STACK *stack, int argument_count) {
-    SPI_STACK *next;
-
-    next = stack + 1;
-    g_tmp_effc->alpha_p2_rand_type = (EFFECT_RAND_TYPE)spiGetStackInt(stack);
-    g_tmp_effc->alpha_p2_rand = spiGetStackFloat(next++);
-    g_tmp_effc->alpha_p2_rand_count = spiGetStackInt(next);
+int __ALPHA_P2_RAND(SPI_STACK *args, int arg_count) {
+    g_tmp_effc->alpha_p2_rand_type = (EFFECT_RAND_TYPE)spiGetStackInt(args++);
+    g_tmp_effc->alpha_p2_rand = spiGetStackFloat(args++);
+    g_tmp_effc->alpha_p2_rand_count = spiGetStackInt(args);
     return 1;
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/effect", __ALPHA_P2_RAND__FP9SPI_STACKi);
-#endif
+int __TEX_GET_RECT(SPI_STACK *args, int arg_count) {
+    int i;
 
-#ifdef NONMATCHING
-/**
- * Reads the texture rectangles used by the particles.
- */
-static int __TEX_GET_RECT(SPI_STACK *stack, int argument_count) {
-    SPI_STACK *rectangle_args;
-    int        rectangle;
-
-    rectangle_args = stack + 1;
-    g_tmp_effc->tex_rect_num = spiGetStackInt(stack);
-    for (rectangle = 0; rectangle < g_tmp_effc->tex_rect_num; rectangle++) {
-        g_tmp_effc->tex_rect[rectangle][0] = spiGetStackInt(rectangle_args++);
-        g_tmp_effc->tex_rect[rectangle][1] = spiGetStackInt(rectangle_args++);
-        g_tmp_effc->tex_rect[rectangle][2] = spiGetStackInt(rectangle_args++);
-        g_tmp_effc->tex_rect[rectangle][3] = spiGetStackInt(rectangle_args++);
+    g_tmp_effc->tex_rect_num = spiGetStackInt(args++);
+    for (i = 0; i < g_tmp_effc->tex_rect_num; i++) {
+        g_tmp_effc->tex_rect[i][0] = spiGetStackInt(args++);
+        g_tmp_effc->tex_rect[i][1] = spiGetStackInt(args++);
+        g_tmp_effc->tex_rect[i][2] = spiGetStackInt(args++);
+        g_tmp_effc->tex_rect[i][3] = spiGetStackInt(args++);
     }
     return 1;
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/effect", __TEX_GET_RECT__FP9SPI_STACKi);
-#endif
-
-#ifdef NONMATCHING
-/**
- * Sets the emitter tex get type.
- */
-static int __TEX_GET_TYPE(SPI_STACK *stack, int argument_count) {
-    g_tmp_effc->tex_get_type = spiGetStackInt(stack);
+int __TEX_GET_TYPE(SPI_STACK *args, int arg_count) {
+    g_tmp_effc->tex_get_type = spiGetStackInt(args);
     return 1;
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/effect", __TEX_GET_TYPE__FP9SPI_STACKi);
-#endif
+int __TEX_NAME(SPI_STACK *args, int arg_count) {
+    char *name = spiGetStackString(args);
 
-#ifdef NONMATCHING
-/**
- * Selects the particle texture by name.
- */
-static int __TEX_NAME(SPI_STACK *stack, int argument_count) {
-    char *name;
-
-    name = spiGetStackString(stack);
-    if (name != NULL) {
-        g_tmp_effc->texture = mgTexManager.GetTexture(name, -1);
+    if (name == NULL) {
+        return 1;
     }
+    g_tmp_effc->texture = mgTexManager.GetTexture(name, -1);
     return 1;
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/effect", __TEX_NAME__FP9SPI_STACKi);
-#endif
-
-#ifdef NONMATCHING
-/**
- * Enables attraction towards a point with the given strength factors.
- */
-static int __GRAVITY(SPI_STACK *stack, int argument_count) {
-    SPI_STACK *next;
-
-    next = stack + 1;
-    g_tmp_effc->gravity_pos[0] = spiGetStackFloat(stack);
-    g_tmp_effc->gravity_pos[1] = spiGetStackFloat(next++);
-    g_tmp_effc->gravity_pos[2] = spiGetStackFloat(next++);
-    g_tmp_effc->gravity_accel = spiGetStackFloat(next++);
-    g_tmp_effc->gravity_mass = spiGetStackFloat(next);
+int __GRAVITY(SPI_STACK *args, int arg_count) {
+    g_tmp_effc->gravity_pos[0] = spiGetStackFloat(args++);
+    g_tmp_effc->gravity_pos[1] = spiGetStackFloat(args++);
+    g_tmp_effc->gravity_pos[2] = spiGetStackFloat(args++);
+    g_tmp_effc->gravity_accel = spiGetStackFloat(args++);
+    g_tmp_effc->gravity_mass = spiGetStackFloat(args);
     g_tmp_effc->gravity = 1;
     return 1;
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/effect", __GRAVITY__FP9SPI_STACKi);
-#endif
-
 CEffectManager::CEffectManager() {
     EntryEffCtrls(NULL, 0, NULL, 0);
     Initialize();
     name[0] = 0;
 }
-
-void CEffectManager::Initialize() {
-    int index;
+void CEffectManager::Initialize(void) {
+    int i;
 
     load = 0;
     ctrl_index = -1;
     run = 0;
     wait_count = 0;
     next_ctrl = 0;
-    for (index = 0; index < 8; index++) {
-        wait_frame[index] = 0;
-        strcpy(ctrl_name[index], "");
+    for (i = 0; i < 8; i++) {
+        wait_frame[i] = 0;
+        strcpy(ctrl_name[i], at_848__2);
     }
-    for (index = 0; index < ctrl_num; index++) {
-        ctrls[index].Initialize();
+    for (i = 0; i < ctrl_num; i++) {
+        ctrls[i].Initialize();
     }
-    strcpy(img_name, "");
+    strcpy(img_name, at_848__2);
 }
-
-void CEffectManager::EntryEffCtrls(CEffect *effects, int effect_num, CEffectCtrl *ctrls, int ctrl_num) {
+void CEffectManager::EntryEffCtrls(CEffect *effects, int effect_num, CEffectCtrl *ctrls,
+                                   int ctrl_num) {
     this->effects = effects;
     this->effect_num = effect_num;
     this->ctrls = ctrls;
     this->ctrl_num = ctrl_num;
 }
-
-void CEffectManager::SetEffectNums(s32 particle_count, s32 emitter_count) {
+void CEffectManager::SetEffectNums(int particle_count, int emitter_count) {
     effect_num = particle_count;
     ctrl_num = emitter_count;
 }
-#ifdef NONMATCHING
-void CEffectManager::Ctrl() {
+void CEffectManager::Ctrl(void) {
     CEffectCtrl *ctrl;
 
-    if (run != 0) {
-        if (ctrls == NULL) {
-            return;
+    if (run == 0 || ctrls == NULL) {
+        return;
+    }
+    if (ctrl_index == -1) {
+        if (wait_count != 0x7FFFFFFF) {
+            wait_count++;
         }
-        if (ctrl_index == -1) {
-            if (wait_count != 0x7FFFFFFF) {
-                wait_count++;
-            }
-            if (next_ctrl < ctrl_num && wait_count > wait_frame[next_ctrl]) {
-                ctrl = &ctrls[next_ctrl];
-                if (ctrl->entry != 0) {
-                    ctrl->Run();
-                }
-                next_ctrl++;
-                wait_count = 0;
-            }
-        } else if (next_ctrl == 0) {
-            ctrl = &ctrls[ctrl_index];
+        if (next_ctrl < ctrl_num && wait_frame[next_ctrl] < wait_count) {
+            ctrl = ctrls + next_ctrl;
             if (ctrl->entry != 0) {
                 ctrl->Run();
             }
-            next_ctrl = 1;
+            next_ctrl++;
+            wait_count = 0;
         }
+    } else if (next_ctrl == 0) {
+        ctrl = ctrls + ctrl_index;
+        if (ctrl->entry != 0) {
+            ctrl->Run();
+        }
+        next_ctrl = 1;
     }
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/effect", Ctrl__14CEffectManagerFv);
-#endif
+void CEffectManager::Step(int frames) {
+    int i;
 
-#ifdef NONMATCHING
-void CEffectManager::Step(int steps) {
-    CEffectCtrl *ctrl;
-    int          index;
-
-    if (ctrls != NULL) {
-        if (effects == NULL) {
-            return;
-        }
-        for (index = 0; index < ctrl_num; index++) {
-            ctrl = &ctrls[index];
-            if (ctrl->entry != 0) {
-                ctrl->Ctrl(effects, effect_num);
-            }
-        }
-        for (index = 0; index < effect_num; index++) {
-            effects[index].Step(1);
+    if (ctrls == NULL || effects == NULL) {
+        return;
+    }
+    for (i = 0; i < ctrl_num; i++) {
+        if (ctrls[i].entry != 0) {
+            ctrls[i].Ctrl(effects, effect_num);
         }
     }
+    for (i = 0; i < effect_num; i++) {
+        effects[i].Step(1);
+    }
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/effect", Step__14CEffectManagerFi);
-#endif
-
-void CEffectManager::Draw() {
-    int index;
+void CEffectManager::Draw(void) {
+    int i;
 
     if (effects != NULL) {
-        for (index = 0; index < effect_num; index++) {
-            effects[index].Draw();
+        for (i = 0; i < effect_num; i++) {
+            effects[i].Draw();
         }
     }
 }
-
-#ifdef NONMATCHING
-void CEffectManager::Run() {
-    if (ctrls != NULL) {
-        if (effects == NULL) {
-            return;
-        }
-        run = 1;
-        wait_count = 0;
-        next_ctrl = 0;
+void CEffectManager::Run(void) {
+    if (ctrls == NULL || effects == NULL) {
+        return;
     }
+    run = 1;
+    wait_count = 0;
+    next_ctrl = 0;
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/effect", Run__14CEffectManagerFv);
-#endif
-
-void CEffectManager::Stop() {
-    int index;
+void CEffectManager::Stop(void) {
+    int i;
 
     run = 0;
     wait_count = 0;
     next_ctrl = 0;
     if (ctrls != NULL) {
-        for (index = 0; index < ctrl_num; index++) {
-            if (ctrls[index].entry != 0) {
-                ctrls[index].run = 0;
+        for (i = 0; i < ctrl_num; i++) {
+            if (ctrls[i].entry != 0) {
+                ctrls[i].run = 0;
             }
         }
     }
 }
-
-#ifdef NONMATCHING
 int CEffectManager::EnterEffectCtrl(CEffectCtrl ctrl, char *name) {
-    int index;
+    int i;
 
-    if (ctrls != NULL) {
-        for (index = 0; index < ctrl_num; index++) {
-            if (ctrls[index].entry == 0) {
-                ctrls[index] = ctrl;
-                strcpy(ctrl_name[index], name);
-                ctrls[index].entry = 1;
-                return 0;
-            }
+    if (ctrls == NULL) {
+        return 1;
+    }
+    for (i = 0; i < ctrl_num; i++) {
+        if (ctrls[i].entry == 0) {
+            CEffectCtrl *slot;
+
+            ctrls[i] = ctrl;
+            strcpy(ctrl_name[i], name);
+
+            slot = ctrls + i;
+            slot->entry = 1;
+            return 0;
         }
     }
     return 1;
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/effect", EnterEffectCtrl__14CEffectManagerF11CEffectCtrlPc);
-#endif
-
-#ifdef NONMATCHING
 void CEffectManager::GetBufferNums(char *script, int size, int *effect_num, int *ctrl_num) {
     CScriptInterpreter interpreter;
 
@@ -2026,11 +1359,6 @@ void CEffectManager::GetBufferNums(char *script, int size, int *effect_num, int 
     *effect_num = this->effect_num;
     *ctrl_num = this->ctrl_num;
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/effect", GetBufferNums__14CEffectManagerFPciPiPi);
-#endif
-
-#ifdef NONMATCHING
 void CEffectManager::Load(char *script, int size) {
     CScriptInterpreter interpreter;
 
@@ -2041,23 +1369,15 @@ void CEffectManager::Load(char *script, int size) {
     interpreter.Run();
     load = 1;
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/effect", Load__14CEffectManagerFPci);
-#endif
-
 void CEffectManager::SetOrigin(float *origin) {
-    CEffectCtrl *ctrl;
-    int          index;
+    int i;
 
-    for (index = 0; index < ctrl_num; index++) {
-        ctrl = &ctrls[index];
-        if (ctrl->entry != 0) {
-            ctrl->SetOrigin(origin);
+    for (i = 0; i < ctrl_num; i++) {
+        if (ctrls[i].entry != 0) {
+            ctrls[i].SetOrigin(origin);
         }
     }
 }
-
-
 
 // Initialised data (.data)
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/effect", effm_tag__DATA);

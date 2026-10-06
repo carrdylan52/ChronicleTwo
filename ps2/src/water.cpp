@@ -1,14 +1,17 @@
 #include "common.h"
+#include "mg_memory.hpp"
+#include "mg_drawprim.hpp"
+#include "mg_texture.hpp"
+#include "mg_frame.hpp"
+#include "mg_drawenv.hpp"
+#include "mg_math.hpp"
+#include "mglib.hpp"
 #include "water.hpp"
-
+#include <cstring>
 #include <cmath>
 #include <cstdlib>
-#include <cstring>
 
-#include "mg_drawprim.hpp"
-#include "mg_math.hpp"
-#include "mg_memory.hpp"
-#include "mglib.hpp"
+
 
 #ifdef NONMATCHING
 /**
@@ -71,48 +74,45 @@ struct WaterFinishPacket {
 STATIC_ASSERT(sizeof(WaterFinishPacket) == 0x30);
 #endif
 
-// Code (.text)
-#ifdef NONMATCHING
-void CFireRaster::Step() {
-    FireRasterParticle *free_particle;
-    FireRasterParticle *wisp;
-    int                 index;
-    int                 phase;
 
-    free_particle = NULL;
-    for (index = 0, phase = 0; index < 20; index++, phase += 2) {
-        wisp = &particle[index];
-        if (wisp->life <= 0) {
-            free_particle = wisp;
-        } else if (wisp->time >= wisp->life) {
-            memset(wisp, 0, sizeof(FireRasterParticle));
+// Code (.text)
+void CFireRaster::Step(void) {
+    FireRasterParticle *free_slot = 0;
+    int i = 0;
+    FireRasterParticle *particle_slot;
+    int offset = 0;
+    int phase = 0;
+    for (; i < 20; i++, offset += sizeof(FireRasterParticle), phase += 2) {
+        particle_slot = (FireRasterParticle *)((u8 *)this + offset + 0x70);
+        if (particle_slot->life <= 0) {
+            free_slot = particle_slot;
+        } else if (particle_slot->time >= particle_slot->life) {
+            memset(particle_slot, 0, sizeof(FireRasterParticle));
         } else {
-            wisp->position[1] += 1.2f;
-            wisp->position[0] = 10.0f * sinf(3.1415927f * ((wisp->time + phase) / 10.0f));
-            wisp->position[2] = 10.0f * sinf(3.1415927f * ((wisp->time + phase + 10) / 8.0f));
-            wisp->size -= 0.1f;
-            wisp->time++;
+            particle_slot->position[1] += 1.2f;
+            particle_slot->position[0] = 10.0f * sinf(3.1415927f * ((float)(particle_slot->time + phase) / 10.0f));
+            particle_slot->position[2] = 10.0f * sinf(3.1415927f * ((float)(particle_slot->time + phase + 10) / 8.0f));
+            particle_slot->size -= 0.1f;
+            particle_slot->time++;
         }
     }
-
-    if (free_particle != NULL) {
-        mgZeroVectorW(free_particle->position);
-        free_particle->size = 13.0f;
-        free_particle->time = rand() % 20;
-        free_particle->life = 30;
+    if (free_slot != 0) {
+        mgZeroVectorW((float *)free_slot);
+        free_slot->size = 13.0f;
+        free_slot->time = rand() % 20;
+        free_slot->life = 30;
     }
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/water", Step__11CFireRasterFv);
-#endif
-
+#ifdef NONMATCHING
 void CFireRaster::SetTexture(mgCTexture *texture) {
     if (texture != NULL) {
         this->texture = *texture;
         this->texture.tex0.bits.tcc = 0;
     }
 }
-
+#else
+INCLUDE_ASM("ps2/asm/pal/nonmatchings/water", SetTexture__11CFireRasterFP10mgCTexture);
+#endif
 #ifdef NONMATCHING
 void CFireRaster::Draw(float *position, float *scale) {
     mgCDrawPrim         prim;
@@ -220,9 +220,8 @@ void CFireRaster::Draw(float *position, float *scale) {
 #else
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/water", Draw__11CFireRasterFPfPf);
 #endif
-
 void CFireRaster::Initialize(void) {
-    s32 index = 0;
+    int index = 0;
     do {
         memset(&particle[index], 0, sizeof(particle[index]));
         index++;
@@ -270,33 +269,35 @@ void CWater::Hamon() {
 #else
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/water", Hamon__6CWaterFv);
 #endif
-
-void CWater::SetVertex(float *corner0, float *corner1) {
-    mgVectorMaxMin(max, min, corner0, corner1);
+void CWater::SetVertex(float *a, float *b) {
+    mgVectorMaxMin(max, min, a, b);
 }
+#pragma divbyzerocheck on
+void CWater::Shake(int x, int z, float amount) {
+    int last_x;
+    int last_z;
+    float *height;
 
-#ifdef NONMATCHING
-void CWater::Shake(int row, int column, float height_change) {
-    row %= rows;
-    column %= columns;
-    if (row <= 0) {
-        row = 1;
+    x = x % rows;
+    z = z % columns;
+    if (x <= 0) {
+        x = 1;
     }
-    if (column <= 0) {
-        column = 1;
+    if (z <= 0) {
+        z = 1;
     }
-    if (row > rows - 2) {
-        row = rows - 2;
+    last_x = rows - 2;
+    if (x > last_x) {
+        x = last_x;
     }
-    if (column > columns - 2) {
-        column = columns - 2;
+    last_z = columns - 2;
+    if (z > last_z) {
+        z = last_z;
     }
-    height[row * columns + column] += height_change;
+    height = &this->height[z] + x * columns;
+    *height += amount;
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/water", Shake__6CWaterFiif);
-#endif
-
+#pragma divbyzerocheck reset
 #ifdef NONMATCHING
 void CWaterFrame::Shake(float x, float z, float height_change) {
     CWater       *water;
@@ -332,62 +333,49 @@ void CWaterFrame::Shake(float x, float z, float height_change) {
 #else
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/water", Shake__11CWaterFrameFfff);
 #endif
-
-#ifdef NONMATCHING
-CWater *CWaterFrame::GetWater() {
+CWater *CWaterFrame::GetWater(void) {
     return (CWater *)visual;
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/water", GetWater__11CWaterFrameFv);
-#endif
+void CWater::SetSize(int x, int z, mgCMemory *memory) {
+    int blocks = x * z / 4 + 1;
+    int i;
 
-void CWater::SetSize(int row_count, int column_count, mgCMemory *memory) {
-    int size;
-    int index;
-
-    size = row_count * column_count / 4 + 1;
-    height_a = (float *)memory->Alloc(size);
-    height_b = (float *)memory->Alloc(size);
-    rows = row_count;
-    columns = column_count;
-    for (index = 0; index < rows * columns; index++) {
-        height_b[index] = 0.0f;
-        height_a[index] = 0.0f;
+    height_a = (float *)memory->Alloc(blocks);
+    height_b = (float *)memory->Alloc(blocks);
+    rows = x;
+    columns = z;
+    for (i = 0; i < rows * columns; i++) {
+        *(int *)&height_b[i] = 0;
+        *(int *)&height_a[i] = 0;
     }
     height = height_a;
     unk_50 = 0;
 }
-
 void CWater::SetParam(float wave_speed, float wave_damping, float param_48, float param_4c) {
     speed = wave_speed;
     damping = wave_damping;
     unk_48 = param_48;
     unk_4c = param_4c;
 }
-void CWater::SetColor(u8 red, u8 green, u8 blue, u8 alpha) {
+void CWater::SetColor(u_char red, u_char green, u_char blue, u_char alpha) {
     color[0] = red;
     color[1] = green;
     color[2] = blue;
     color[3] = alpha;
 }
-#ifdef NONMATCHING
 CWater::CWater() {
     rows = 0;
     columns = 0;
     texture = NULL;
-    color[0] = 0x80;
-    color[1] = 0x80;
-    color[2] = 0x80;
-    color[3] = 0x80;
+    color[0] = 128;
+    color[1] = 128;
+    color[2] = 128;
+    color[3] = 128;
     speed = 0.1f;
     damping = 0.015f;
-    unk_48 = 0.0f;
-    unk_4c = 0.0f;
+    unk_48 = 0;
+    unk_4c = 0;
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/water", __ct__6CWaterFv);
-#endif
-
 #ifdef NONMATCHING
 int CWater::CreateRenderInfoPacket(u_int *packet, float (*matrix)[4], mgRENDER_INFO *info) {
     sceVu0IVECTOR      clear = { 0, 0, 0, 0 };
@@ -503,42 +491,32 @@ int CWater::CreateRenderInfoPacket(u_int *packet, float (*matrix)[4], mgRENDER_I
 #else
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/water", CreateRenderInfoPacket__6CWaterFPUiPA4_fP13mgRENDER_INFO);
 #endif
-
-#ifdef NONMATCHING
-int CWater::Draw(u_int *packet, float (*matrix)[4], mgCDrawManager *draw_manager) {
-    mgRENDER_INFO *info;
-    mgCMemory     *memory;
-    u_int         *render_packet;
-    u_int         *end;
-    u_int          grid_packet;
-
+int CWater::Draw(u_int *tag, float (*matrix)[4], mgCDrawManager *draw_manager) {
     if (draw_manager == NULL) {
         draw_manager = &mgDrawManager;
     }
-    info = draw_manager->render_info;
+    mgRENDER_INFO *render_info = draw_manager->render_info;
     texture_manager = draw_manager->texture_manager;
-    memory = draw_manager->data_memory;
-    render_packet = (u_int *)memory->stAllocTest(60);
-    memory->Alloc(CreateRenderInfoPacket(render_packet, matrix, info));
-    grid_packet = this->packet;
-    if (packet != NULL) {
-        packet[0] = MG_DMA_CALL;
-        packet[1] = (u_int)render_packet;
-        packet[2] = packet[3] = 0;
-        end = packet + 4;
-        end += mgSendVuProg(end, MG_VU_PROG_USER);
-        end[0] = MG_DMA_CALL;
-        end[1] = grid_packet;
-        end[2] = end[3] = 0;
-        end += 4;
-        return (end - packet) / 4;
+    mgCMemory *data_memory = (mgCMemory *)draw_manager->data_memory;
+    int render_info_packet = (int)data_memory->stAllocTest(0x3C);
+    data_memory->Alloc(
+        CreateRenderInfoPacket((u_int *)render_info_packet, matrix, (mgRENDER_INFO *)render_info));
+    int water_packet = packet;
+    if (tag != NULL) {
+        u_int *cursor = tag + 4;
+        tag[0] = 0x50000000;
+        tag[1] = render_info_packet;
+        tag[2] = 0;
+        tag[3] = 0;
+        cursor += mgSendVuProg(cursor, MG_VU_PROG_USER);
+        cursor[0] = 0x50000000;
+        cursor[1] = water_packet;
+        cursor[2] = 0;
+        cursor[3] = 0;
+        return (int)(cursor + 4 - tag) / 4;
     }
     return 0;
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/water", Draw__6CWaterFPUiPA4_fP14mgCDrawManager);
-#endif
-
 #ifdef NONMATCHING
 u_int CWater::CreatePacket(mgCDrawManager *draw_manager) {
     static u_int       prog_vif[4] __attribute__((aligned(16))) = { 0, 0, 0, MG_VIF_MSCAL | 0x2 };
@@ -693,63 +671,40 @@ u_int CWater::CreatePacket(mgCDrawManager *draw_manager) {
 #else
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/water", CreatePacket__6CWaterFP14mgCDrawManager);
 #endif
-
 void CWaterFrame::SetTexture(mgCTexture *texture) {
-    CWater *water;
-
-    water = GetWater();
-    if (water != NULL) {
-        water->texture = texture;
+    CWater *surface = GetWater();
+    if (surface) {
+        surface->texture = texture;
     }
 }
-
-#ifdef NONMATCHING
-void CWaterFrame::Step() {
-    CWater *water;
-
-    water = GetWater();
-    if (water != NULL) {
-        if (stop != 0) {
-            return;
-        }
-        water->Hamon();
+void CWaterFrame::Step(void) {
+    CWater *surface = GetWater();
+    if (surface == 0 || stop != 0) {
+        return;
+    }
+    surface->Hamon();
+}
+void CWaterFrame::SetParam(float p0, float p1, float p2, float p3) {
+    CWater *surface = GetWater();
+    if (surface) {
+        surface->SetParam(p0, p1, p2, p3);
     }
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/water", Step__11CWaterFrameFv);
-#endif
-
-void CWaterFrame::SetParam(float speed, float damping, float param_48, float param_4c) {
-    CWater *water;
-
-    water = GetWater();
-    if (water != NULL) {
-        water->SetParam(speed, damping, param_48, param_4c);
+void CWaterFrame::SetColor(u_char r, u_char g, u_char b, u_char a) {
+    CWater *surface = GetWater();
+    if (surface) {
+        surface->SetColor(r, g, b, a);
     }
 }
-
-void CWaterFrame::SetColor(unsigned char red, unsigned char green, unsigned char blue, unsigned char alpha) {
-    CWater *water;
-
-    water = GetWater();
-    if (water != NULL) {
-        water->SetColor(red, green, blue, alpha);
+void CWaterFrame::Shake(int x, int z, float amount) {
+    CWater *surface = GetWater();
+    if (surface) {
+        surface->Shake(x, z, amount);
     }
 }
-
-void CWaterFrame::Shake(int row, int column, float height_change) {
-    CWater *water;
-
-    water = GetWater();
-    if (water != NULL) {
-        water->Shake(row, column, height_change);
-    }
-}
-
-void CWaterFrame::CreatePacket() {
+void CWaterFrame::CreatePacket(void) {
     GetWater()->CreatePacket(&mgDrawManager);
 }
-
 #ifdef NONMATCHING
 CWaterFrame *CreateWaterFrame(int rows, int columns, float *min, float *max, mgCMemory *memory) {
     CWaterFrame  *frame;
@@ -782,13 +737,11 @@ CWaterFrame *CreateWaterFrame(int rows, int columns, float *min, float *max, mgC
 #else
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/water", CreateWaterFrame__FiiPfPfP9mgCMemory);
 #endif
-
-void CWaterFrame::Initialize() {
+void CWaterFrame::Initialize(void) {
     unk_110 = 0;
     stop = 0;
     mgCFrame::Initialize();
 }
-
 
 // Initialised data (.data)
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/water", prog_vif_351__DATA);

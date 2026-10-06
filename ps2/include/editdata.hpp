@@ -113,9 +113,7 @@ public:
      * @address 0x2AEEE0
      * @size 0x30
      */
-    EditAnalyzeSrc() {
-        Init();
-    }
+    EditAnalyzeSrc();
 
     /**
      *
@@ -222,9 +220,7 @@ public:
      * @address 0x195960
      * @size 0xA0
      */
-    CEditData() {
-        Initialize();
-    }
+    CEditData();
 
     /**
      *
@@ -265,7 +261,7 @@ public:
      * @address 0x2AE390
      * @size 0x130
      */
-    int Analyze(int data_no, int map_no, int *con_src, int depth);
+    s8 Analyze(int data_no, int map_no, int *con_src, int depth);
 
     /**
      * Sets every condition of a map: those whose con_src entry is below

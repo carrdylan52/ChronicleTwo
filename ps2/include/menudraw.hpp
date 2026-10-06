@@ -59,8 +59,8 @@ enum MENUFORM_DTYPE {
     MENUFORM_DTYPE_INFOCUR   = 0x2C, /**< "infocur": draws the item info cursor and character status. */
     MENUFORM_DTYPE_CLIP      = 0x2D, /**< "clip": sets the scissor area to the form's clip size. */
 };
-// clang-format on
 
+// clang-format on
 /**
  *
  * Way a form moves towards its next position, as the mtype keyword of a menu
@@ -75,8 +75,8 @@ enum MENUFORM_MTYPE {
     MENUFORM_MTYPE_I  = 2,  /**< "i": closes a fraction of the remaining distance each frame. */
     MENUFORM_MTYPE_IR = 3,  /**< "ir": as "i", without the extra pixel of approach. */
 };
-// clang-format on
 
+// clang-format on
 /**
  *
  * Kind of drawing a form part performs.
@@ -106,8 +106,8 @@ enum MENUFORMPARTS_DTYPE {
     MENUFORMPARTS_DTYPE_FONT        = 0x4E, /**< "font". */
     MENUFORMPARTS_DTYPE_CLUT_RELOAD = 0x4F, /**< "clut_reload": reloads a character change palette. */
 };
-// clang-format on
 
+// clang-format on
 /**
  *
  * Kind of animation a part effect runs.
@@ -128,8 +128,8 @@ enum MENU_PARTS_EFFECT_TYPE {
     MENU_PARTS_EFFECT_UNK_12      = 12,  /**< Counts up without end. */
     MENU_PARTS_EFFECT_UNK_100     = 100, /**< Item icon effect; never stepped. */
 };
-// clang-format on
 
+// clang-format on
 /**
  *
  * Texture rectangle registered by name in a menu layout script, together
@@ -156,7 +156,7 @@ STATIC_ASSERT(sizeof(MENU_BASETEXINFO) == 0x20);
 struct MENU_PARTS_EFFECT_STRUCT1 {
     u8 active;       /**< Non-zero while the effect runs. */
     u8 repeat;       /**< Non-zero to keep the effect running when a cycle ends. */
-    s16 type;        /**< Kind of effect, a MENU_PARTS_EFFECT_TYPE. */
+    u16 type;        /**< Kind of effect, a MENU_PARTS_EFFECT_TYPE. */
     float param[8];  /**< Counter, limit and per-kind parameters. */
 };
 STATIC_ASSERT(sizeof(MENU_PARTS_EFFECT_STRUCT1) == 0x24);
@@ -1230,7 +1230,7 @@ public:
      * @address 0x230670
      * @size 0x10
      */
-    u8 IsRun();
+    int IsRun();
 
     /**
      *
@@ -1349,7 +1349,7 @@ public:
      * @address 0x2082C0
      * @size 0x10
      */
-    CStarDust() { active = 0; }
+    CStarDust();
 
     /**
      *
@@ -1952,7 +1952,7 @@ void DrawMenuMainFrmImg(int &tex_block, mgRect<int> put_rect, mgRect<int> tex_re
  * @address 0x2262B0
  * @size 0x10
  */
-u8 GetMenuMainFrameEndFlag();
+int GetMenuMainFrameEndFlag();
 
 /**
  *
@@ -2132,7 +2132,7 @@ void Menu3DivideTextureDraw(mgCDrawPrim *prim, mgRect<int> rect, short *tex_tbl,
  * @address 0x22D060
  * @size 0x40
  */
-char *GetMenuMainIconChar(int no);
+void *GetMenuMainIconChar(int no);
 
 /**
  *
@@ -2487,7 +2487,7 @@ extern int *menu_randam_line_draw_postbl;
  * Non-zero to draw the menu cursor reversed.
  *
  */
-extern u8 MenuCursorReverseFlag;
+extern int MenuCursorReverseFlag;
 
 /**
  *

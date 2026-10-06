@@ -1,87 +1,124 @@
 #include "common.h"
-#include "mglib.hpp"
-
-#include <cstdio>
-#include <cstring>
-#include <eekernel.h>
-#include <libdev.h>
-#include <sifdev.h>
-
-#include "mg_drawprim.hpp"
-#include "mg_frame.hpp"
-#include "mg_math.hpp"
 #include "mg_memory.hpp"
-#include "mg_tanime.hpp"
+#include "mg_drawprim.hpp"
 #include "mg_texture.hpp"
+#include "mg_frame.hpp"
+#include "mg_drawenv.hpp"
+#include "mg_math.hpp"
+#define mgDBuff mgDBuffDeclaration
+#include "mglib.hpp"
+#undef mgDBuff
+extern u_char mgDBuff[];
 #include "mg_visual.hpp"
+#include "mg_tanime.hpp"
+
+#include <cstring>
+#include <cstdio>
+#include <eekernel.h>
+
+static const u_int timer0_count = 0x10000000;
+static const u_int gs_csr = 0x12001000;
+static const u_int dma_tag_call = 0x50000000;
+static const int builtin_vu_prog_count = 3;
+static const int user_vu_prog_base = 0x100;
+enum {
+    dbuff_draw_env_a = 0x60,
+    dbuff_draw_env_b = 0x150,
+    dbuff_clear_a = 0x100,
+    dbuff_clear_b = 0x1F0
+};
+enum {
+    gs_prim = 0x00,
+    gs_rgbaq = 0x01,
+    gs_xyzf2 = 0x04,
+    gs_clamp1 = 0x08,
+    gs_tex1_1 = 0x14,
+    gs_scanmsk = 0x22,
+    gs_texflush = 0x3F,
+    gs_alpha1 = 0x42,
+    gs_test1 = 0x47,
+    gs_zbuf1 = 0x4E
+};
+
+extern int draw_performance_meter;
+extern int call_back_active;
+extern u_int VSyncCallBack2;
+extern int vcount;
+extern int rot_priority;
+extern u_int *packetbuf[2];
+extern sceVif1Packet vifpacket[2];
+extern int packet_size;
+extern mgCMemory packet_buf[2];
+extern mgCMemory data_buf[2];
+extern int mgDataID;
+extern int mgDBuffID;
+extern int h_count;
+extern int mgChangeLight;
+extern int now_prog_id;
+extern u_long128 *prog_adr[3];
+extern u_long128 **user_prog_adr;
+extern int user_prog_num;
+extern int font_cons;
+extern int font_draw_flag;
+struct mgFrameTextureCopy {
+    short block;
+    short width;
+    short height;
+    short bpp;
+    char name[0x20];
+    u_int vram_size;
+    u_int image_blocks;
+    u_int clut_size;
+    u_long tex0;
+    u_long tex1;
+    u_long clamp;
+    float image[4];
+    u_int clut;
+    u_int swizzled;
+    u_int next;
+};
+extern mgFrameTextureCopy frame_tex;
+extern mgCTexture fixz_tex[2];
+extern float at_863[4];
+extern float at_1389[4];
+extern char at_715[];
+extern char at_716[];
+extern "C" int fptosi(float value);
+extern "C" void Exit__2(int code);
+extern "C" int sceDevConsInit();
+extern "C" int sceDevConsOpen(int x, int y, int columns, int rows);
+extern "C" void sceDevConsClose(int handle);
+void StoreImage(int index);
 
 #ifdef NONMATCHING
-static int             draw_performance_meter;                                /**< Non-zero draws the frame timing meter. */
-static int             rot_priority = -1;                                     /**< Ready queue rotated while waiting for vertical sync. */
-static int             vcount;                                                /**< Number of vertical syncs received. */
-static int (*VSyncCallBack2)(int); /**< Additional vertical sync handler. */
-static int             font_cons = -1;                                        /**< Handle of the development console. */
-static int             font_draw_flag;                                        /**< Non-zero displays the development console. */
-static int             mgChangeLight;                                         /**< Non-zero requests lighting state to be sent. */
-static int             mgDBuffID;                                             /**< Display buffer selected for the current frame. */
-static int             mgDataID;                                              /**< Packet and data buffers selected for the current frame. */
-static int             old_vcount;                                            /**< Vertical sync count at the preceding buffer swap. */
-static int             over_vsync;                                            /**< Vertical syncs beyond the requested frame interval. */
-static int             call_back_active;                                      /**< Non-zero while the vertical sync handler runs. */
-static int             h_count;                                               /**< Root counter value at the preceding buffer swap. */
-static int             capture_on;                                            /**< Non-zero requests the next frame capture. */
-static int             cap_ture_cnt;                                          /**< Alternating capture phase at the single-sync frame rate. */
-static int             frame_buf0;                                            /**< First frame buffer address in GS pages. */
-static int             frame_buf1;                                            /**< Second frame buffer address in GS pages. */
-static int             packet_size;                                           /**< Capacity of a VIF packet buffer. */
-static u_int          *packetbuf[2];                                          /**< Storage of the two VIF packets. */
-static sceVif1Packet   vifpacket[2];                                          /**< Alternating VIF packet builders. */
-mgRENDER_INFO mgRenderInfo;
-mgCTextureManager mgTexManager;
-mgCDrawManager mgDrawManager;
-static mgCMemory       packet_buf[2];                                         /**< Alternating packet memory managers. */
-static mgCMemory       data_buf[2];                                           /**< Alternating drawing data memory managers. */
-static mgCTexture      frame_tex;                                             /**< Texture covering the current frame buffer. */
-static mgCTexture      fixz_tex[2];                                           /**< Textures covering the depth buffer. */
-static sceGsDimx       mgDIMX;                                                /**< Packed GS dither matrix. */
-static sceGsStoreImage gs_simage;                                             /**< GS image read-back packet. */
-
-static int VSyncCallBack(int cause);
-static void StoreImage(int front_buffer);
-static int             now_prog_id = -1;                                      /**< Identifier of the last uploaded VU program. */
-static u_long128     **user_prog_adr;                                         /**< Registered user VU upload packets. */
-static int             user_prog_num;                                         /**< Number of registered user VU programs. */
-static u_long128      *prog_adr[3] = { Vu_prog0, Vu_prog_sdw, Vu_prog_3dsp }; /**< Built-in VU upload packets. */
+#include <libdev.h>
+#include <sifdev.h>
+extern int old_vcount;
+extern int over_vsync;
+extern int capture_on;
+extern int cap_ture_cnt;
+extern int frame_buf0;
+extern int frame_buf1;
+extern sceGsDimx mgDIMX;
+extern sceGsStoreImage gs_simage;
 #endif
 
 // Code (.text)
-#ifdef NONMATCHING
 void mgPerformanceMeter(int enable) {
     draw_performance_meter = enable;
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/mglib", mgPerformanceMeter__Fi);
-#endif
-
-#ifdef NONMATCHING
-int mgGetPerformanceMeterFlag() {
+int mgGetPerformanceMeterFlag(void) {
     return draw_performance_meter;
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/mglib", mgGetPerformanceMeterFlag__Fv);
-#endif
-
-#ifdef NONMATCHING
-/**
- * Updates the display field and frame counter on a vertical sync interrupt.
- */
-static int VSyncCallBack(int cause) {
+#pragma global_optimizer off
+extern "C" int VSyncCallBack__Fi(void) {
     call_back_active = 1;
-    VSyncField = ((*(volatile u_long *)0x12001000 >> 13) & 0x1) == 0;
-    if (VSyncCallBack2 != NULL) {
-        VSyncCallBack2(cause);
+
+    VSyncField = (u_char)((((*(u_long *)gs_csr >> 13) & 1) != 0) ^ 1);
+    if (VSyncCallBack2 != 0) {
+        ((void (*)(void))VSyncCallBack2)();
     }
-    vcount++;
+    vcount += 1;
     if (vcount < 0) {
         vcount = 0;
     }
@@ -92,87 +129,55 @@ static int VSyncCallBack(int cause) {
     }
     return 0;
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/mglib", VSyncCallBack__Fi);
-#endif
-
-#ifdef NONMATCHING
+#pragma global_optimizer reset
 void mgInitVSyncCallBack(int (*callback)(int)) {
-    VSyncCallBack2 = callback;
+    VSyncCallBack2 = (unsigned int)callback;
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/mglib", mgInitVSyncCallBack__FPFi_i);
-#endif
-
-#ifdef NONMATCHING
 void mgSetRotateThread(int priority) {
     rot_priority = priority;
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/mglib", mgSetRotateThread__Fi);
-#endif
-
-#ifdef NONMATCHING
-/**
- * Waits for a number of vertical syncs, sharing the ready queue while waiting.
- */
-static void WaitVSync(int start, int count) {
-    while (mgGetVSyncCount() - start < count) {
+void WaitVSync(int start, int frames) {
+wait:
+    if ((mgGetVSyncCount() - start) < frames) {
         if (rot_priority > 0) {
             RotateThreadReadyQueue(rot_priority);
         }
+        goto wait;
     }
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/mglib", WaitVSync__Fii);
-#endif
-
-#ifdef NONMATCHING
-int mgGetVSyncCount() {
+int mgGetVSyncCount(void) {
     return vcount;
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/mglib", mgGetVSyncCount__Fv);
-#endif
-
-#ifdef NONMATCHING
-/**
- * Selects the screen dimensions and the bounds relative to their centre.
- */
-static int GetScreenSize(int mode, int *width, int *height, int *left, int *top, int *right, int *bottom) {
+int GetScreenSize(int mode, int *width, int *height, int *left, int *top, int *right, int *bottom) {
     switch (mode) {
-        case MG_SCREEN_MODE_512X448:
+        case 3:
+            *width = 0x280;
+            *height = 0x1C0;
+            break;
+        case 2:
+            *width = 0x200;
+            *height = 0x1E0;
+            break;
+        case 1:
+            *width = 0x200;
+            *height = 0x1A0;
+            break;
+        case 0:
         default:
-            mode = MG_SCREEN_MODE_512X448;
-            *width = 512;
-            *height = 448;
-            break;
-        case MG_SCREEN_MODE_512X416:
-            *width = 512;
-            *height = 416;
-            break;
-        case MG_SCREEN_MODE_512X480:
-            *width = 512;
-            *height = 480;
-            break;
-        case MG_SCREEN_MODE_640X448:
-            *width = 640;
-            *height = 448;
+            mode = 0;
+            *width = 0x200;
+            *height = 0x1C0;
             break;
     }
-
     *left = -(*width >> 1);
     *top = -(*height >> 1);
     *right = *width + *left;
     *bottom = *height + *top;
     return mode;
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/mglib", GetScreenSize__FiPiPiPiPiPiPi);
-#endif
-
 #ifdef NONMATCHING
 void mgInit(int screen_mode, int video_mode) {
+    sceGsDBuff *buffers = (sceGsDBuff *)mgDBuff;
     static signed char dimx[16] = { 10, 4, 6, 8, 12, 0, 2, 14, 7, 9, 11, 5, 3, 15, 13, 1 };
     sceDmaEnv          dma_env;
     u_long128          clear_pixels[8192];
@@ -225,7 +230,7 @@ void mgInit(int screen_mode, int video_mode) {
         FlushCache(0);
         sceGsExecLoadImage(&load_image, clear_pixels);
     }
-    sceGsSetDefDBuff(&mgDBuff, SCE_GS_PSMCT32, (short)mgScreenWidth, (short)mgScreenHeight, SCE_GS_ZGEQUAL, SCE_GS_PSMZ24, 0);
+    sceGsSetDefDBuff(buffers, SCE_GS_PSMCT32, (short)mgScreenWidth, (short)mgScreenHeight, SCE_GS_ZGEQUAL, SCE_GS_PSMZ24, 0);
     frame_buf0 = 0;
     frame_buf1 = mgScreenDepth * (mgScreenWidth * aligned_height / 2048) / 32;
     mgBackColor[0] = 0.0f;
@@ -233,24 +238,24 @@ void mgInit(int screen_mode, int video_mode) {
     mgBackColor[2] = 0.0f;
     mgBackColor[3] = 128.0f;
     mgClearBackFlag = 1;
-    mgDBuff.draw0.frame1.FBP = frame_buf1;
-    mgDBuff.draw1.frame1.FBP = frame_buf0;
-    mgDBuff.draw1.zbuf1.bits.zbp = frame_buf1 * 2;
-    mgDBuff.draw0.zbuf1.bits.zbp = mgDBuff.draw1.zbuf1.bits.zbp;
-    mgDBuff.clear0.rgbaq.bytes.red = (int)mgBackColor[0];
-    mgDBuff.clear0.rgbaq.bytes.green = (int)mgBackColor[1];
-    mgDBuff.clear0.rgbaq.bytes.blue = (int)mgBackColor[2];
-    mgDBuff.clear0.rgbaq.bytes.alpha = (int)mgBackColor[3];
-    mgDBuff.clear1.rgbaq.bytes.red = mgDBuff.clear0.rgbaq.bytes.red;
-    mgDBuff.clear1.rgbaq.bytes.green = mgDBuff.clear0.rgbaq.bytes.green;
-    mgDBuff.clear1.rgbaq.bytes.blue = mgDBuff.clear0.rgbaq.bytes.blue;
-    mgDBuff.clear1.rgbaq.bytes.alpha = mgDBuff.clear0.rgbaq.bytes.alpha;
+    buffers->draw0.frame1.FBP = frame_buf1;
+    buffers->draw1.frame1.FBP = frame_buf0;
+    buffers->draw1.zbuf1.bits.zbp = frame_buf1 * 2;
+    buffers->draw0.zbuf1.bits.zbp = buffers->draw1.zbuf1.bits.zbp;
+    buffers->clear0.rgbaq.bytes.red = (int)mgBackColor[0];
+    buffers->clear0.rgbaq.bytes.green = (int)mgBackColor[1];
+    buffers->clear0.rgbaq.bytes.blue = (int)mgBackColor[2];
+    buffers->clear0.rgbaq.bytes.alpha = (int)mgBackColor[3];
+    buffers->clear1.rgbaq.bytes.red = buffers->clear0.rgbaq.bytes.red;
+    buffers->clear1.rgbaq.bytes.green = buffers->clear0.rgbaq.bytes.green;
+    buffers->clear1.rgbaq.bytes.blue = buffers->clear0.rgbaq.bytes.blue;
+    buffers->clear1.rgbaq.bytes.alpha = buffers->clear0.rgbaq.bytes.alpha;
     *(u_long *)&mgTEX1_1 = 0x261;
     mgTEX1_2 = mgTEX1_1;
     *(u_long *)&mgTEST_1 = 0x5000B;
     mgTEST_2 = mgTEST_1;
-    mgZBUF_1 = mgDBuff.draw0.zbuf1;
-    mgZBUF_2 = mgDBuff.draw0.zbuf1;
+    mgZBUF_1 = buffers->draw0.zbuf1;
+    mgZBUF_2 = buffers->draw0.zbuf1;
     *(u_long *)&mgALPHA_1 = 0x44;
     mgALPHA_2 = mgALPHA_1;
     *(u_long *)&mgTEXA_1 = 0x100400000ULL;
@@ -277,11 +282,11 @@ void mgInit(int screen_mode, int video_mode) {
     mgFrameRate = 2;
     vcount = 0;
     over_vsync = 0;
-    sceGsSyncVCallback(VSyncCallBack);
-    VSyncCallBack2 = NULL;
+    sceGsSyncVCallback((int (*)(int))VSyncCallBack__Fi);
+    VSyncCallBack2 = 0;
     call_back_active = 0;
     FlushCache(0);
-    sceGsSwapDBuff(&mgDBuff, 0);
+    sceGsSwapDBuff(buffers, 0);
     sceDmaSync(DmaCH2, 0, 0);
     mgCreateSinTable();
     for (i = 0; i < 16; i++) {
@@ -312,222 +317,167 @@ void mgInit(int screen_mode, int video_mode) {
 #else
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/mglib", mgInit__Fii);
 #endif
-
-#ifdef NONMATCHING
-void mgInitVif1Packet(u_long128 *buffer0, u_long128 *buffer1, int size) {
-    int remainder;
-
-    packetbuf[0] = (u_int *)buffer0;
-    packetbuf[1] = (u_int *)buffer1;
-    remainder = (int)packetbuf[0] % 4;
-    if (remainder != 0) {
-        packetbuf[0] += 4 - remainder;
+void mgInitVif1Packet(u_long128 *buffer_a, u_long128 *buffer_b, int size) {
+    packetbuf[0] = (u_int *)buffer_a;
+    packetbuf[1] = (u_int *)buffer_b;
+    int misalign = (int)packetbuf[0] % 4;
+    if (misalign != 0) {
+        packetbuf[0] += 4 - misalign;
     }
-    remainder = (int)packetbuf[1] % 4;
-    if (remainder != 0) {
-        packetbuf[1] += 4 - remainder;
+    misalign = (int)packetbuf[1] % 4;
+    if (misalign != 0) {
+        packetbuf[1] += 4 - misalign;
     }
-    sceVif1PkInit(&vifpacket[0], packetbuf[0]);
-    sceVif1PkInit(&vifpacket[1], packetbuf[1]);
-    sceVif1PkReset(&vifpacket[0]);
-    sceVif1PkReset(&vifpacket[1]);
+    sceVif1PkInit(vifpacket, packetbuf[0]);
+    sceVif1PkInit(vifpacket + 1, packetbuf[1]);
+    sceVif1PkReset(vifpacket);
+    sceVif1PkReset(vifpacket + 1);
     packet_size = size;
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/mglib", mgInitVif1Packet__FP1P1i);
-#endif
-
-#ifdef NONMATCHING
-void mgSetPacketBuffer(mgCMemory *memory0, mgCMemory *memory1) {
-    packet_buf[0] = *memory0;
-    packet_buf[1] = *memory1;
+void mgSetPacketBuffer(mgCMemory *pool_a, mgCMemory *pool_b) {
+    packet_buf[0] = *pool_a;
+    packet_buf[1] = *pool_b;
     packet_buf[0].stack_used = 0;
     packet_buf[0].lock = 0;
     packet_buf[1].stack_used = 0;
     packet_buf[1].lock = 0;
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/mglib", mgSetPacketBuffer__FP9mgCMemoryP9mgCMemory);
-#endif
-
-#ifdef NONMATCHING
-void mgSetDataBuffer(mgCMemory *memory0, mgCMemory *memory1, int skip_head) {
-    u_long128 *buffer;
-    int        size;
-
-    buffer = memory0->stAllocTest(1);
-    size = memory0->stack_size - memory0->stack_used;
-    if (skip_head != 0) {
-        buffer += 1024;
-        size -= 2048;
+void mgSetDataBuffer(mgCMemory *pool_a, mgCMemory *pool_b, int skip_header) {
+    u_char *base = (u_char *)pool_a->stAllocTest(1);
+    int size = pool_a->stack_size - pool_a->stack_used;
+    if (skip_header != 0) {
+        base += 0x4000;
+        size -= 0x800;
     }
-    data_buf[0].stSetBuffer(buffer, size);
-    buffer = memory1->stAllocTest(1);
-    size = memory1->stack_size - memory1->stack_used;
-    if (skip_head != 0) {
-        buffer += 1024;
-        size -= 2048;
+    data_buf[0].stSetBuffer((u_long128 *)base, size);
+    base = (u_char *)pool_b->stAllocTest(1);
+    size = pool_b->stack_size - pool_b->stack_used;
+    if (skip_header != 0) {
+        base += 0x4000;
+        size -= 0x800;
     }
-    data_buf[1].stSetBuffer(buffer, size);
+    data_buf[1].stSetBuffer((u_long128 *)base, size);
     data_buf[0].stack_used = 0;
     data_buf[0].lock = 0;
     data_buf[1].stack_used = 0;
     data_buf[1].lock = 0;
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/mglib", mgSetDataBuffer__FP9mgCMemoryP9mgCMemoryi);
-#endif
-
-#ifdef NONMATCHING
-mgCMemory *mgGetDataBuffer() {
+mgCMemory *mgGetDataBuffer(void) {
     return &data_buf[mgDataID];
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/mglib", mgGetDataBuffer__Fv);
-#endif
-
-#ifdef NONMATCHING
-int mgGetTopVRAMAddress() {
-    int height;
-    int pixels;
-
-    height = mgScreenHeight;
+int mgGetTopVRAMAddress(void) {
+    int height = mgScreenHeight;
     if (height % 32 != 0) {
         height += 32 - height % 32;
     }
-    pixels = mgScreenWidth * height;
-    return mgScreenDepth * pixels * 2 / 256 / 8 + mgScreenZDepth * pixels / 256 / 8;
+    height = mgScreenWidth * height;
+    int blocks = mgScreenDepth * height * 2 / 256 / 8;
+    blocks += mgScreenZDepth * height / 256 / 8;
+    return blocks;
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/mglib", mgGetTopVRAMAddress__Fv);
-#endif
-
 float mgGetNowFrameRate(void) {
     return (float)mgFrameRate;
 }
-#ifdef NONMATCHING
 void mgBeginFrame(mgCDrawManager *manager) {
-    sceGsFrame *frame;
-    u_char      red;
-    u_char      green;
-    u_char      blue;
-    u_char      alpha;
-
     if (manager == NULL) {
         mgDrawManager.texture_manager = &mgTexManager;
         manager = &mgDrawManager;
         mgDrawManager.render_info = &mgRenderInfo;
     }
-    *(volatile u_int *)0x10000000 = 0;
-    h_count = *(volatile u_int *)0x10000000;
-    red = (int)mgBackColor[0];
-    green = (int)mgBackColor[1];
-    blue = (int)mgBackColor[2];
-    alpha = (int)mgBackColor[3];
-    mgDBuff.clear0.rgbaq.bytes.red = red;
-    mgDBuff.clear0.rgbaq.bytes.green = green;
-    mgDBuff.clear0.rgbaq.bytes.blue = blue;
-    mgDBuff.clear0.rgbaq.bytes.alpha = alpha;
-    mgDBuff.clear1.rgbaq.bytes.red = red;
-    mgDBuff.clear1.rgbaq.bytes.green = green;
-    mgDBuff.clear1.rgbaq.bytes.blue = blue;
-    mgDBuff.clear1.rgbaq.bytes.alpha = alpha;
+
+    *(int *)timer0_count = 0;
+    h_count = *(int *)timer0_count;
+
+    int red = fptosi(mgBackColor[0]);
+    mgDBuff[dbuff_clear_a + 0] = red;
+    int green = fptosi(mgBackColor[1]);
+    mgDBuff[dbuff_clear_a + 1] = green;
+    int blue = fptosi(mgBackColor[2]);
+    mgDBuff[dbuff_clear_a + 2] = blue;
+    int alpha = fptosi(mgBackColor[3]);
+    mgDBuff[dbuff_clear_b + 0] = red;
+    mgDBuff[dbuff_clear_b + 1] = green;
+    mgDBuff[dbuff_clear_b + 2] = blue;
+    mgDBuff[dbuff_clear_a + 3] = alpha;
+    mgDBuff[dbuff_clear_b + 3] = alpha;
     mgBeginPacket(manager);
     *(u_long128 *)&mgGiftagAD = 0;
     mgGiftagAD.EOP = 1;
     mgGiftagAD.NREG = 1;
-    mgGiftagAD.REGS0 = SCE_GIF_PACKED_AD;
+    mgGiftagAD.REGS0 = 0xE;
     sceVif1PkCnt(mgVif1Packet, 0);
     sceVif1PkOpenDirectCode(mgVif1Packet, 0);
     sceVif1PkOpenGifTag(mgVif1Packet, *(u_long128 *)&mgGiftagAD);
-    sceVif1PkAddGsAD(mgVif1Packet, SCE_GS_SCANMSK, 0);
-    sceVif1PkAddGsAD(mgVif1Packet, SCE_GS_TEXFLUSH, 0);
+    sceVif1PkAddGsAD(mgVif1Packet, gs_scanmsk, 0);
+    sceVif1PkAddGsAD(mgVif1Packet, gs_texflush, 0);
     sceVif1PkCloseGifTag(mgVif1Packet);
     sceVif1PkCloseDirectCode(mgVif1Packet);
     mgSetPkTextureRepeat(1);
+    long long *draw_env;
     if (mgDBuffID != 0) {
-        frame = &mgDBuff.draw0.frame1;
+        draw_env = (long long *)(mgDBuff + dbuff_draw_env_a);
     } else {
-        frame = &mgDBuff.draw1.frame1;
+        draw_env = (long long *)(mgDBuff + dbuff_draw_env_b);
     }
-    mgFRAME_1 = *frame;
+    mgFRAME_1.value = *draw_env;
     mgSetPkFrameBuffer(-1, -1, -1, -1);
-    mgSetPkClearScreen(mgDBuff.clear0.rgbaq.bytes.red, mgDBuff.clear0.rgbaq.bytes.green, mgDBuff.clear0.rgbaq.bytes.blue, mgDBuff.clear0.rgbaq.bytes.alpha);
+    mgSetPkClearScreen(
+        mgDBuff[dbuff_clear_a + 0], mgDBuff[dbuff_clear_a + 1],
+        mgDBuff[dbuff_clear_a + 2], mgDBuff[dbuff_clear_a + 3]);
     mgFlushRenderInfo();
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/mglib", mgBeginFrame__FP14mgCDrawManager);
-#endif
-
-#ifdef NONMATCHING
 void mgBeginPacket(mgCDrawManager *manager) {
-    mgCMemory *packet_memory;
-    mgCMemory *data_memory;
+    mgCMemory *buffer;
 
     if (manager == NULL) {
         manager = &mgDrawManager;
     }
     mgVif1Packet = &vifpacket[mgDataID];
     sceVif1PkReset(mgVif1Packet);
-    packet_memory = &packet_buf[mgDataID];
-    packet_memory->stack_used = 0;
-    packet_memory->lock = 0;
-    data_memory = &data_buf[mgDataID];
-    data_memory->stack_used = 0;
-    data_memory->lock = 0;
+    buffer = &packet_buf[mgDataID];
+    buffer->stack_used = 0;
+    buffer->lock = 0;
+    buffer = &data_buf[mgDataID];
+    buffer->stack_used = 0;
+    buffer->lock = 0;
     manager->packet_memory = &packet_buf[mgDataID];
     manager->data_memory = &data_buf[mgDataID];
     manager->SetSortTable(1);
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/mglib", mgBeginPacket__FP14mgCDrawManager);
-#endif
-
-void mgBeginDraw(mgCMemory *memory, int *block_list, mgCDrawManager *manager) {
-    if (manager == NULL) {
-        manager = &mgDrawManager;
-    }
-    manager->BeginDraw(memory, block_list);
+void mgBeginDraw(mgCMemory *memory, int *draw_size, mgCDrawManager *manager) {
+    mgCDrawManager *mgr = manager;
+    if (mgr == NULL)
+        mgr = &mgDrawManager;
+    mgr->BeginDraw(memory, draw_size);
 }
-
 void mgEndDraw(mgCDrawManager *manager) {
     if (manager == NULL) {
         manager = &mgDrawManager;
     }
-    manager->EndDraw(mgVif1Packet);
+    manager->EndDraw((sceVif1Packet *)mgVif1Packet);
 }
-
 void mgPreEndDraw(mgCDrawManager *manager) {
     if (manager == NULL) {
         manager = &mgDrawManager;
     }
     manager->PreEndDraw();
 }
-
-int mgEndDrawReloadTexture(int block, mgCDrawManager *manager) {
-    if (manager == NULL) {
+int mgEndDrawReloadTexture(int texture, mgCDrawManager *manager) {
+    if (manager == NULL)
         manager = &mgDrawManager;
-    }
-    return manager->ReloadTexture(block, mgVif1Packet);
+    return manager->ReloadTexture(texture, mgVif1Packet);
 }
-
-void mgEndDraw(int block, mgCDrawManager *manager) {
-    if (manager == NULL) {
+void mgEndDraw(int mode, mgCDrawManager *manager) {
+    if (manager == NULL)
         manager = &mgDrawManager;
-    }
-    manager->Draw(block, mgVif1Packet);
+    manager->Draw(mode, mgVif1Packet);
 }
-
-#ifdef NONMATCHING
-void mgStoreFrameImage() {
+void mgStoreFrameImage(void) {
     StoreImage(0);
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/mglib", mgStoreFrameImage__Fv);
-#endif
-
 #ifdef NONMATCHING
 void mgEndFrame(mgCDrawManager *manager) {
+    sceGsDBuff *buffers = (sceGsDBuff *)mgDBuff;
     static int       count = 1;
     static float     cpu_ratio = 0.0f;
     static float     free_ratio = 0.0f;
@@ -636,7 +586,7 @@ void mgEndFrame(mgCDrawManager *manager) {
         sceDevConsDraw(font_cons);
     }
     font_draw_flag = 0;
-    display = mgDBuffID != 0 ? &mgDBuff.disp1 : &mgDBuff.disp0;
+    display = mgDBuffID != 0 ? &buffers->disp1 : &buffers->disp0;
     if (mgAntialiasing != 0) {
         display->pmode = 0x7F23;
     } else {
@@ -645,7 +595,7 @@ void mgEndFrame(mgCDrawManager *manager) {
     }
     display->bgcolor = 0;
     display->smode2 = 1;
-    frame = mgDBuffID != 0 ? &mgDBuff.draw1.frame1 : &mgDBuff.draw0.frame1;
+    frame = mgDBuffID != 0 ? &buffers->draw1.frame1 : &buffers->draw0.frame1;
     magnification = 3;
     if (mgScreenWidth == 512) {
         magnification = 4;
@@ -655,7 +605,7 @@ void mgEndFrame(mgCDrawManager *manager) {
     display->dispfb = display_base;
     *(u_long *)&display->display = display_position | ((u_long)(mgScreenWidth * (magnification + 1) - 1) << 32) | ((u_long)(mgScreenHeight - 1) << 44);
     FlushCache(0);
-    sceGsSwapDBuff(&mgDBuff, mgDBuffID);
+    sceGsSwapDBuff(buffers, mgDBuffID);
     sceDmaSync(DmaCH2, 0, 0);
     display_base = frame->FBP | (frame->FBW << 9) | (frame->PSM << 15);
     *(volatile u_long *)0x12000070 = display_base | ((u_long)0x800 << 32);
@@ -679,8 +629,6 @@ void mgEndFrame(mgCDrawManager *manager) {
 #else
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/mglib", mgEndFrame__FP14mgCDrawManager);
 #endif
-
-#ifdef NONMATCHING
 void mgSendPacket(mgCDrawManager *manager) {
     DmaCH1 = sceDmaGetChan(1);
     DmaCH1->chcr.TTE = 1;
@@ -688,100 +636,68 @@ void mgSendPacket(mgCDrawManager *manager) {
     sceDmaSend(DmaCH1, mgVif1Packet->pBase);
     mgDataID = !mgDataID;
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/mglib", mgSendPacket__FP14mgCDrawManager);
-#endif
-
 void mgEndPacket(mgCDrawManager *manager) {
     sceVif1PkEnd(mgVif1Packet, 0);
     sceVif1PkTerminate(mgVif1Packet);
 }
-
-void mgWaitFrame() {
+void mgWaitFrame(void) {
     if (sceGsSyncPath(0, 0) < 0) {
-        printf("******\n");
-        printf("base = %x,cuur = %x\n", mgVif1Packet->pCurrent);
+        printf(at_715);
+        printf(at_716, *(int *)mgVif1Packet);
         Exit__2(-1);
     }
 }
-
-#ifdef NONMATCHING
 int mgDraw(mgCFrame *frame) {
-    if (frame != NULL) {
+    if (frame != NULL)
         return frame->Draw();
-    }
     return 0;
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/mglib", mgDraw__FP8mgCFrame);
-#endif
-
 int mgDrawDirect(mgCFrame *frame) {
-    int size;
-
     if (frame == NULL) {
         return 0;
     }
     sceVif1PkTerminate(mgVif1Packet);
-    size = frame->Draw(mgVif1Packet->pCurrent);
+    int size = frame->Draw(mgVif1Packet->pCurrent);
     sceVif1PkReserve(mgVif1Packet, size * 4);
     return size;
 }
-
-#ifdef NONMATCHING
 int mgDrawDirect(mgCVisual *visual, float (*matrix)[4]) {
-    int size;
-
     if (visual == NULL) {
         return 0;
     }
     sceVif1PkTerminate(mgVif1Packet);
-    size = visual->Draw(mgVif1Packet->pCurrent, matrix, 0);
+    int size = visual->Draw((u_int *)*(int *)mgVif1Packet, matrix, 0);
     sceVif1PkReserve(mgVif1Packet, size * 4);
     return size;
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/mglib", mgDrawDirect__FP9mgCVisualPA4_f);
-#endif
-
 void mgDrawDirectStart(void) {
     sceVif1PkTerminate(mgVif1Packet);
     ddraw_size = 0;
 }
 int mgDrawDirect2(mgCFrame *frame) {
-    int size;
-
     if (frame == NULL) {
         return 0;
     }
-    size = frame->Draw(mgVif1Packet->pCurrent + ddraw_size * 4);
+    int offset = ddraw_size << 4;
+    int size = frame->Draw((u_int *)(*(int *)mgVif1Packet + offset));
     ddraw_size += size;
     return size;
 }
-
 void mgDrawDirectEnd(void) {
-    if ((s32)ddraw_size > 0) {
+    if ((int)ddraw_size > 0) {
         sceVif1PkReserve(mgVif1Packet, ddraw_size * 4);
     }
 }
-#ifdef NONMATCHING
-int mgGetDrawRect(mgCFrame *frame, mgVu0FBOX *rect) {
-    if (frame == NULL) {
-        return 0;
+int mgGetDrawRect(mgCFrame *frame, mgVu0FBOX *box) {
+    if (frame != NULL) {
+        return frame->GetDrawRect(box, NULL);
     }
-    return frame->GetDrawRect(rect, NULL);
+    return 0;
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/mglib", mgGetDrawRect__FP8mgCFrameP9mgVu0FBOX);
-#endif
-
 void mgBeginDrawShadow(mgCTexture *shadow, mgCTexture *unused) {
-    int width;
-    int height;
-
     if (shadow != NULL) {
-        width = shadow->width;
-        height = shadow->height;
+        int width = shadow->width;
+        int height = shadow->height;
         if (width % 64 != 0) {
             width += 64 - width % 64;
         }
@@ -789,22 +705,19 @@ void mgBeginDrawShadow(mgCTexture *shadow, mgCTexture *unused) {
             height += 64 - height % 64;
         }
         mgSetPkFrameBuffer(shadow->tex0.TBP0 / 32, width, height, shadow->tex0.PSM);
-
         mgCDrawPrim prim;
-
         prim.Initialize(NULL, NULL);
         prim.DepthTestEnable(0);
         prim.AlphaTestEnable(0);
         prim.ZMask(-1);
         prim.TextureMapEnable(0);
-        prim.Begin(SCE_GS_PRIM_SPRITE);
+        prim.Begin(6);
         prim.Color(0, 0, 0, 0);
         prim.Vertex(0, 0, 0);
         prim.Vertex(shadow->width, shadow->height, 0);
         prim.End();
     }
 }
-
 #ifdef NONMATCHING
 void mgEndDrawShadow(mgCTexture *shadow, mgCTexture *unused) {
     if (shadow != NULL) {
@@ -853,241 +766,177 @@ void mgEndDrawShadow(mgCTexture *shadow, mgCTexture *unused) {
 #else
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/mglib", mgEndDrawShadow__FP10mgCTextureP10mgCTexture);
 #endif
-
-void mgSetRenderInfo(float projection, float near_z, float far_z) {
-    mgRenderInfo.SetRenderInfo(projection, mgScreenWidth, mgScreenHeight, near_z, far_z, mgScreenZDepth, 2096.0f / (3.0f * (float)mgScreenWidth));
+void mgSetRenderInfo(float fov, float clip_near, float clip_far) {
+    mgRenderInfo.SetRenderInfo(fov, mgScreenWidth, mgScreenHeight, clip_near, clip_far,
+                               mgScreenZDepth, 2096.0f / (3.0f * (float)mgScreenWidth));
 }
-
-void mgSetProjection(float projection) {
-    mgSetRenderInfo(projection, mgRenderInfo.clip_min[2], mgRenderInfo.clip_max[2]);
+void mgSetProjection(float fov) {
+    mgSetRenderInfo(fov, mgRenderInfo.clip_min[2], mgRenderInfo.clip_max[2]);
     mgSetViewMatrix(mgRenderInfo.view, mgRenderInfo.camera_pos);
 }
-
-float mgGetProjection() {
+float mgGetProjection(void) {
     return mgRenderInfo.projection;
 }
-
 void mgSetBackGround(float *color) {
     sceVu0CopyVector(mgBackColor, color);
 }
-void mgSetBackGround(float r, float g, float b, float a) {
-    sceVu0FVECTOR color = {};
-
-    color[0] = r;
-    color[1] = g;
-    color[2] = b;
-    color[3] = a;
-    mgSetBackGround(color);
+void mgSetBackGround(float red, float green, float blue, float alpha) {
+    float vector[4];
+    *(u_long128 *)vector = *(u_long128 *)at_863;
+    vector[0] = red;
+    vector[1] = green;
+    vector[2] = blue;
+    vector[3] = alpha;
+    mgSetBackGround(vector);
 }
-
-#ifdef NONMATCHING
-void mgInitLighting() {
+void mgInitLighting(void) {
     mgRenderInfo.InitLighting();
     mgChangeLight = 1;
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/mglib", mgInitLighting__Fv);
-#endif
-
-#ifdef NONMATCHING
-void mgInitActiveLighting() {
+void mgInitActiveLighting(void) {
     mgRenderInfo.InitActiveLighting();
     mgChangeLight = 1;
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/mglib", mgInitActiveLighting__Fv);
-#endif
-
-#ifdef NONMATCHING
-int mgActiveLighting(int set, int copy) {
+int mgActiveLighting(int slot, int copy_from_previous) {
     mgChangeLight = 1;
-    return mgRenderInfo.ActiveLighting(set, copy);
+    return mgRenderInfo.ActiveLighting(slot, copy_from_previous);
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/mglib", mgActiveLighting__Fii);
-#endif
-
-#ifdef NONMATCHING
-void mgSetLight(float (*direction)[4], float (*color)[4]) {
+void mgSetLight(float (*directions)[4], float (*colors)[4]) {
     mgChangeLight = 1;
-    mgRenderInfo.SetLight(direction, color);
+    mgRenderInfo.SetLight(directions, colors);
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/mglib", mgSetLight__FPA4_fPA4_f);
-#endif
-
-void mgGetLight(float (*direction)[4], float (*color)[4]) {
-    mgRenderInfo.GetLight(direction, color);
+void mgGetLight(float (*directions)[4], float (*colors)[4]) {
+    mgRenderInfo.GetLight(directions, colors);
 }
-
-#ifdef NONMATCHING
-void mgSetLight(int light, float *direction, float *color) {
+void mgSetLight(int index, float *direction, float *color) {
     mgChangeLight = 1;
-    mgRenderInfo.SetLight(light, direction, color);
+    mgRenderInfo.SetLight(index, direction, color);
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/mglib", mgSetLight__FiPfPf);
-#endif
-
-#ifdef NONMATCHING
-void mgSetAmbient(float *ambient) {
+void mgSetAmbient(float *color) {
     mgChangeLight = 1;
-    mgRenderInfo.SetAmbient(ambient);
+    mgRenderInfo.SetAmbient(color);
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/mglib", mgSetAmbient__FPf);
-#endif
-
 void mgGetAmbient(float *ambient) {
     mgRenderInfo.GetAmbient(ambient);
 }
-#ifdef NONMATCHING
-void mgSetPlight(int light, float *position, float *color, float intensity, float range) {
+void mgSetPlight(int index, float *position, float *color, float attenuation, float range) {
     mgChangeLight = 1;
-    mgRenderInfo.SetPlight(light, position, color, intensity, range);
+    mgRenderInfo.SetPlight(index, position, color, attenuation, range);
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/mglib", mgSetPlight__FiPfPfff);
-#endif
-
-#ifdef NONMATCHING
-void mgSetPlight(int light, mgPOINT_LIGHT *point_light) {
+void mgSetPlight(int index, mgPOINT_LIGHT *light) {
     mgChangeLight = 1;
-    mgRenderInfo.SetPlight(light, point_light);
+    mgRenderInfo.SetPlight(index, light);
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/mglib", mgSetPlight__FiP13mgPOINT_LIGHT);
-#endif
-
-void mgGetPlight(int light, mgPOINT_LIGHT *point_light) {
-    mgRenderInfo.GetPlight(light, point_light);
+void mgGetPlight(int index, mgPOINT_LIGHT *out) {
+    mgRenderInfo.GetPlight(index, out);
 }
-
-#ifdef NONMATCHING
-void mgResetPlight() {
-    int light;
+void mgResetPlight(void) {
+    int index;
 
     mgChangeLight = 1;
-    for (light = 0; light < 4; light++) {
-        mgRenderInfo.SetPlight(light, (mgPOINT_LIGHT *)NULL);
-    }
+    index = 0;
+    do {
+        mgRenderInfo.SetPlight(index, NULL);
+        index += 1;
+    } while (index < 4);
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/mglib", mgResetPlight__Fv);
-#endif
-
-void mgSetViewMatrix(float (*view)[4], float *position) {
-    mgRenderInfo.SetViewMatrix(view, position);
+void mgSetViewMatrix(float (*matrix)[4], float *eye) {
+    mgRenderInfo.SetViewMatrix(matrix, eye);
 }
-
 void mgSetDropShadowMatrix(float *light, float *position, float *normal) {
     mgRenderInfo.SetDropShadowMatrix(light, position, normal);
 }
-void mgFogEnable(s32 enabled) {
+void mgFogEnable(int enabled) {
     mgRenderInfo.FogEnable(enabled);
 }
-s32 mgGetFogEnable(void) {
+int mgGetFogEnable(void) {
     return mgRenderInfo.GetFogEnable();
 }
-void mgPlightEnable(s32 enabled) {
+void mgPlightEnable(int enabled) {
     mgRenderInfo.PlightEnable(enabled);
 }
-s32 mgGetPlightEnable(void) {
+int mgGetPlightEnable(void) {
     return mgRenderInfo.GetPlightEnable();
 }
-void mgSetFogParam(float near_dist, float far_dist, u8 r, u8 g, u8 b, float far_value, float near_value) {
+void mgSetFogParam(float near_dist, float far_dist, u_char r, u_char g, u_char b, float far_value,
+                   float near_value) {
     mgRenderInfo.SetFogParam(near_dist, far_dist, r, g, b, far_value, near_value);
 }
 void mgSetFogParam(mgFOG_PARAM *fog) {
-    mgRenderInfo.SetFogParam(fog->near_dist, fog->far_dist, fog->r, fog->g, fog->b,
-                             fog->far_value, fog->near_value);
+    mgRenderInfo.SetFogParam(fog->near_dist, fog->far_dist, fog->r, fog->g, fog->b, fog->far_value,
+                             fog->near_value);
 }
-#ifdef NONMATCHING
-void mgGetFogParam(mgFOG_PARAM *fog) {
-    fog->near_dist = mgRenderInfo.fog.near_dist;
-    fog->far_dist = mgRenderInfo.fog.far_dist;
-    fog->r = mgRenderInfo.fog.r;
-    fog->g = mgRenderInfo.fog.g;
-    fog->b = mgRenderInfo.fog.b;
-    fog->unk_b = mgRenderInfo.fog.unk_b;
-    fog->offset = mgRenderInfo.fog.offset;
-    fog->far_value = mgRenderInfo.fog.far_value;
-    fog->near_value = mgRenderInfo.fog.near_value;
-    fog->scale = mgRenderInfo.fog.scale;
-    fog->coef[0] = mgRenderInfo.fog.coef[0];
-    fog->coef[1] = mgRenderInfo.fog.coef[1];
-    fog->coef[2] = mgRenderInfo.fog.coef[2];
-    fog->coef[3] = mgRenderInfo.fog.coef[3];
+struct mgFogColor {
+    u_char values[4];
+};
+struct mgFogVector {
+    float values[4];
+};
+void mgGetFogParam(mgFOG_PARAM *param) {
+    param->near_dist = mgRenderInfo.fog.near_dist;
+    param->far_dist = mgRenderInfo.fog.far_dist;
+    *(mgFogColor *)&param->r = *(mgFogColor *)&mgRenderInfo.fog.r;
+    param->offset = mgRenderInfo.fog.offset;
+    param->far_value = mgRenderInfo.fog.far_value;
+    param->near_value = mgRenderInfo.fog.near_value;
+    param->scale = mgRenderInfo.fog.scale;
+    *(mgFogVector *)param->coef = *(mgFogVector *)mgRenderInfo.fog.coef;
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/mglib", mgGetFogParam__FP11mgFOG_PARAM);
-#endif
-
 void mgSetAllScissorFlag(int flag) {
     mgRenderInfo.all_scissor = flag;
 }
+void mgFlushRenderInfo(void) {
+    sceVif1Packet *packet = mgVif1Packet;
+    sceVif1PkTerminate(mgVif1Packet);
+    u_int *words = packet->pCurrent;
 
-#ifdef NONMATCHING
-void mgFlushRenderInfo() {
-    sceVif1Packet *vif;
-    u_int         *packet;
+    words[0] = 0x10000004;
+    words[1] = 0;
+    words[2] = 0;
+    words[3] = 0x6C01003B;
+    words[4] = *(u_int *)&mgRenderInfo.fog.offset;
+    words[5] = *(u_int *)&mgRenderInfo.fog.near_value;
+    words[6] = *(u_int *)&mgRenderInfo.fog.far_value;
+    words[7] = *(u_int *)&mgRenderInfo.fog.scale;
+    words[8] = 0;
+    words[9] = 0;
+    words[10] = 0;
 
-    vif = mgVif1Packet;
-    sceVif1PkTerminate(vif);
-    packet = vif->pCurrent;
-    packet[0] = MG_DMA_CNT | 4;
-    packet[1] = 0;
-    packet[2] = 0;
-    packet[3] = MG_VIF_UNPACK_V4_32 | (1 << MG_VIF_NUM_SHIFT) | 0x3B;
-    *(float *)&packet[4] = mgRenderInfo.fog.offset;
-    *(float *)&packet[5] = mgRenderInfo.fog.near_value;
-    *(float *)&packet[6] = mgRenderInfo.fog.far_value;
-    *(float *)&packet[7] = mgRenderInfo.fog.scale;
-    packet[8] = 0;
-    packet[9] = 0;
-    packet[10] = 0;
-    packet[11] = MG_VIF_UNPACK_V4_32 | (2 << MG_VIF_NUM_SHIFT) | 0x39;
-    *(u_long128 *)&packet[12] = *(u_long128 *)mgRenderInfo.guard_max;
-    *(u_long128 *)&packet[16] = *(u_long128 *)mgRenderInfo.guard_min;
-    sceVif1PkReserve(vif, 20);
+    words[11] = 0x6C020039;
+    *(u_long128 *)&words[12] = *(u_long128 *)mgRenderInfo.guard_max;
+    *(u_long128 *)&words[16] = *(u_long128 *)mgRenderInfo.guard_min;
+    sceVif1PkReserve(packet, 0x14);
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/mglib", mgFlushRenderInfo__Fv);
-#endif
-
-void mgSetPkTextureRepeat(int repeat) {
+void mgSetPkTextureRepeat(int mode) {
     sceGsClamp clamp;
-
-    memset(&clamp, 0, sizeof(clamp));
-    if (repeat == 0) {
+    memset(&clamp, 0, 8);
+    if (mode == 0) {
         clamp.WMS = 1;
         clamp.WMT = 1;
     }
     mgSetPkTextureRepeat(clamp);
 }
-
 void mgSetPkTextureRepeat(sceGsClamp clamp) {
-    sceVif1Packet *vif;
-
-    vif = mgVif1Packet;
-    sceVif1PkCnt(vif, 0);
-    sceVif1PkOpenDirectCode(vif, 0);
-    sceVif1PkOpenGifTag(vif, *(u_long128 *)&mgGiftagAD);
-    sceVif1PkAddGsAD(vif, SCE_GS_CLAMP_1, *(u_long *)&clamp);
-    sceVif1PkCloseGifTag(vif);
-    sceVif1PkCloseDirectCode(vif);
+    sceVif1Packet *packet = mgVif1Packet;
+    sceVif1PkCnt(mgVif1Packet, 0);
+    sceVif1PkOpenDirectCode(packet, 0);
+    sceVif1PkOpenGifTag(packet, *(u_long128 *)&mgGiftagAD);
+    sceVif1PkAddGsAD(packet, gs_clamp1, *(u_long *)&clamp);
+    sceVif1PkCloseGifTag(packet);
+    sceVif1PkCloseDirectCode(packet);
 }
-
 void mgSetPkFrameBuffer(mgCTexture *texture) {
     if (texture == NULL) {
         mgSetPkFrameBuffer(-1, -1, -1, -1);
         return;
     }
-    mgSetPkFrameBuffer(texture->tex0.TBP0 / 32, texture->tex0.TBW * 64, texture->height, texture->tex0.PSM);
+    mgSetPkFrameBuffer(texture->tex0.TBP0 / 32, texture->tex0.TBW << 6, texture->height,
+                       texture->tex0.PSM);
 }
-
 #ifdef NONMATCHING
 void mgSetPkFrameBuffer(int fbp, int width, int height, int psm) {
+    sceGsDBuff *buffers = (sceGsDBuff *)mgDBuff;
+    mgCTexture *frame_texture = (mgCTexture *)&frame_tex;
     sceGsFrame     frame;
     sceGsFrame    *default_frame;
     sceGsXyOffset  offset;
@@ -1104,7 +953,7 @@ void mgSetPkFrameBuffer(int fbp, int width, int height, int psm) {
     short          bpp;
     int            bit;
 
-    default_frame = mgDBuffID != 0 ? &mgDBuff.draw0.frame1 : &mgDBuff.draw1.frame1;
+    default_frame = mgDBuffID != 0 ? &buffers->draw0.frame1 : &buffers->draw1.frame1;
     if (fbp < 0) {
         fbp = default_frame->FBP;
     }
@@ -1180,17 +1029,17 @@ void mgSetPkFrameBuffer(int fbp, int width, int height, int psm) {
             bpp = 16;
             break;
     }
-    frame_tex.Initialize();
-    frame_tex.width = width;
-    frame_tex.height = height;
-    frame_tex.bpp = bpp;
-    frame_tex.vram_size = bpp * (width * height) / 8 / 256;
-    frame_tex.clut_size = 0;
-    frame_tex.image_blocks = frame_tex.vram_size;
-    frame_tex.tex0.value = 0;
-    frame_tex.tex0.TBP0 = fbp << 5;
-    frame_tex.tex0.TBW = width / 64;
-    frame_tex.tex0.PSM = psm;
+    frame_texture->Initialize();
+    frame_texture->width = width;
+    frame_texture->height = height;
+    frame_texture->bpp = bpp;
+    frame_texture->vram_size = bpp * (width * height) / 8 / 256;
+    frame_texture->clut_size = 0;
+    frame_texture->image_blocks = frame_texture->vram_size;
+    frame_texture->tex0.value = 0;
+    frame_texture->tex0.TBP0 = fbp << 5;
+    frame_texture->tex0.TBW = width / 64;
+    frame_texture->tex0.PSM = psm;
     width_shift = 0;
     for (size = width; size >= 2; size >>= 1) {
         width_shift++;
@@ -1213,50 +1062,39 @@ void mgSetPkFrameBuffer(int fbp, int width, int height, int psm) {
     if (height != size) {
         height_shift++;
     }
-    frame_tex.tex0.bits.tw = width_shift;
-    frame_tex.tex0.bits.th = height_shift;
-    frame_tex.tex0.bits.tcc = 1;
-    frame_tex.tex0.bits.tfx = 0;
-    *(u_long *)&frame_tex.tex1 = 0x261;
+    frame_texture->tex0.bits.tw = width_shift;
+    frame_texture->tex0.bits.th = height_shift;
+    frame_texture->tex0.bits.tcc = 1;
+    frame_texture->tex0.bits.tfx = 0;
+    *(u_long *)&frame_texture->tex1 = 0x261;
 }
 #else
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/mglib", mgSetPkFrameBuffer__Fiiii);
 #endif
-
-#ifdef NONMATCHING
 void mgGetFrameBuffer(mgCTexture *texture) {
-    *texture = frame_tex;
+    *(mgFrameTextureCopy *)texture = frame_tex;
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/mglib", mgGetFrameBuffer__FP10mgCTexture);
-#endif
-
-#ifdef NONMATCHING
 void mgGetFrameBackBuffer(mgCTexture *texture) {
-    sceGsFrame *frame;
-
-    frame = mgDBuffID != 0 ? &mgDBuff.draw1.frame1 : &mgDBuff.draw0.frame1;
-    *texture = frame_tex;
-    texture->tex0.TBP0 = frame->FBP << 5;
-}
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/mglib", mgGetFrameBackBuffer__FP10mgCTexture);
-#endif
-
-mgCDrawEnv *mgGetpDrawEnv(int index) {
-    return &mgRenderInfo.draw_env[index != 0];
-}
-
-#ifdef NONMATCHING
-void mgSetPkMoveImage(mgCTexture *src, mgRect<int> src_rect, mgCTexture *dst, int dst_x, int dst_y, int direction) {
-    if (src != NULL && dst != NULL) {
-        mgSetPkMoveImage(&src->tex0, src_rect, &dst->tex0, dst_x, dst_y, direction);
+    u_char *draw_env;
+    if (mgDBuffID != 0) {
+        draw_env = mgDBuff + dbuff_draw_env_b;
+    } else {
+        draw_env = mgDBuff + dbuff_draw_env_a;
     }
+    *(mgFrameTextureCopy *)texture = frame_tex;
+    texture->tex0.TBP0 = (*(u_short *)draw_env & 0x1FF) * 32;
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/mglib", mgSetPkMoveImage__FP10mgCTexture9mgRect_i_P10mgCTextureiii);
-#endif
-
+mgCDrawEnv *mgGetpDrawEnv(int which) {
+    u_int index = (u_int)which > 0;
+    return &mgRenderInfo.draw_env[index];
+}
+void mgSetPkMoveImage(mgCTexture *source, mgRect<int> rect, mgCTexture *destination, int extra0,
+                      int extra1, int extra2) {
+    if (source == NULL || destination == NULL) {
+        return;
+    }
+    mgSetPkMoveImage(&source->tex0, rect, &destination->tex0, extra0, extra1, extra2);
+}
 #ifdef NONMATCHING
 void mgSetPkMoveImage(sceGsTex0 *src, mgRect<int> src_rect, sceGsTex0 *dst, int dst_x, int dst_y, int direction) {
     sceVif1Packet *vif;
@@ -1301,17 +1139,14 @@ void mgSetPkMoveImage(sceGsTex0 *src, mgRect<int> src_rect, sceGsTex0 *dst, int 
 #else
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/mglib", mgSetPkMoveImage__FP9sceGsTex09mgRect_i_P9sceGsTex0iii);
 #endif
-
-#ifdef NONMATCHING
-void mgSetPkMoveImage(mgCTexture *src, mgRect<int> src_rect, mgCTexture *dst, mgRect<int> dst_rect, mgCDrawEnv *env) {
-    if (src != NULL && dst != NULL) {
-        mgSetPkMoveImage(&src->tex0, src_rect, &dst->tex0, dst->height, dst_rect, env);
+void mgSetPkMoveImage(mgCTexture *source, mgRect<int> source_rect, mgCTexture *destination,
+                      mgRect<int> destination_rect, mgCDrawEnv *draw_env) {
+    if (source == NULL || destination == NULL) {
+        return;
     }
+    mgSetPkMoveImage(&source->tex0, source_rect, &destination->tex0, destination->height,
+                     destination_rect, draw_env);
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/mglib", mgSetPkMoveImage__FP10mgCTexture9mgRect_i_P10mgCTexture9mgRect_i_P10mgCDrawEnv);
-#endif
-
 #ifdef NONMATCHING
 void mgSetPkMoveImage(sceGsTex0 *src, mgRect<int> src_rect, sceGsTex0 *dst, int dst_height, mgRect<int> dst_rect, mgCDrawEnv *env) {
     sceVif1Packet *vif;
@@ -1373,74 +1208,68 @@ void mgSetPkMoveImage(sceGsTex0 *src, mgRect<int> src_rect, sceGsTex0 *dst, int 
 #else
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/mglib", mgSetPkMoveImage__FP9sceGsTex09mgRect_i_P9sceGsTex0i9mgRect_i_P10mgCDrawEnv);
 #endif
-
-#ifdef NONMATCHING
-void mgSetPkClearScreen(unsigned char r, unsigned char g, unsigned char b, unsigned char a) {
-    sceVif1Packet *vif;
-    sceGsTest      test;
-    sceGsZbuf      zbuf;
-    sceGsAlpha     alpha;
-    int            x;
-
-    vif = mgVif1Packet;
-    sceVif1PkCnt(vif, 0);
-    sceVif1PkOpenDirectCode(vif, 0);
-    sceVif1PkOpenGifTag(vif, *(u_long128 *)&mgGiftagAD);
-    sceVif1PkAddGsAD(vif, SCE_GS_TEXFLUSH, 0);
-    sceVif1PkCloseGifTag(vif);
-    sceVif1PkCloseDirectCode(vif);
-    sceVif1PkCnt(vif, 0);
-    sceVif1PkOpenDirectCode(vif, 0);
-    sceVif1PkOpenGifTag(vif, *(u_long128 *)&mgGiftagAD);
-    test = mgTEST_1;
+void mgSetPkClearScreen(u_char red, u_char green, u_char blue, u_char alpha) {
+    sceVif1Packet *packet = mgVif1Packet;
+    sceVif1PkCnt(mgVif1Packet, 0);
+    sceVif1PkOpenDirectCode(packet, 0);
+    sceVif1PkOpenGifTag(packet, *(u_long128 *)&mgGiftagAD);
+    sceVif1PkAddGsAD(packet, gs_texflush, 0);
+    sceVif1PkCloseGifTag(packet);
+    sceVif1PkCloseDirectCode(packet);
+    sceVif1PkCnt(packet, 0);
+    sceVif1PkOpenDirectCode(packet, 0);
+    sceVif1PkOpenGifTag(packet, *(u_long128 *)&mgGiftagAD);
+    sceGsTest test = mgTEST_1;
     test.bits.ate = 0;
     test.bits.zte = 1;
-    test.bits.ztst = SCE_GS_ALWAYS;
+    test.bits.ztst = 1;
     test.bits.date = 0;
-    sceVif1PkAddGsAD(vif, SCE_GS_TEST_1, test.value);
-    zbuf = mgZBUF_1;
+    sceVif1PkAddGsAD(packet, gs_test1, *(u_long *)&test);
+    sceGsZbuf zbuf = mgZBUF_1;
     zbuf.bits.zmsk = 0;
-    sceVif1PkAddGsAD(vif, SCE_GS_ZBUF_1, zbuf.value);
-    alpha = mgALPHA_1;
-    alpha.bits.a = SCE_GS_ALPHA_ZERO;
-    alpha.bits.b = SCE_GS_ALPHA_ZERO;
-    alpha.bits.c = SCE_GS_ALPHA_FIX;
-    alpha.bits.d = SCE_GS_ALPHA_CS;
-    sceVif1PkAddGsAD(vif, SCE_GS_ALPHA_1, alpha.value);
-    sceVif1PkAddGsAD(vif, SCE_GS_TEX1_1, 1);
-    sceVif1PkAddGsAD(vif, SCE_GS_PRIM, 0x146);
-    sceVif1PkAddGsAD(vif, SCE_GS_RGBAQ, (u_long)a << 24 | (u_long)b << 16 | (u_long)r | (u_long)g << 8);
-    for (x = 0; x < mgScreenWidth * 16; x += 512) {
-        sceVif1PkAddGsAD(vif, SCE_GS_XYZF2, ((u_long)(mgScreenOffy * 16) << 16) | (u_long)(mgScreenOffx * 16 + x));
-        sceVif1PkAddGsAD(vif, SCE_GS_XYZF2, (u_long)(mgScreenOffx * 16 + x + 512) | ((u_long)((mgScreenOffy + mgScreenHeight) * 16) << 16));
+    sceVif1PkAddGsAD(packet, gs_zbuf1, *(u_long *)&zbuf);
+    sceGsAlpha blend = mgALPHA_1;
+    blend.bits.a = 2;
+    blend.bits.b = 2;
+    blend.bits.c = 2;
+    blend.bits.d = 0;
+    sceVif1PkAddGsAD(packet, gs_alpha1, *(u_long *)&blend);
+    sceVif1PkAddGsAD(packet, gs_tex1_1, 1);
+    sceVif1PkAddGsAD(packet, gs_prim, 0x146);
+    sceVif1PkAddGsAD(packet, gs_rgbaq,
+                     (u_long)red | ((u_long)green << 8) | ((u_long)blue << 16) |
+                         ((u_long)alpha << 24));
+    for (int x = 0; x < mgScreenWidth * 16; x += 0x200) {
+        int left = (mgScreenOffx << 4) + x;
+        sceVif1PkAddGsAD(packet, gs_xyzf2,
+                         ((long long)(int)(mgScreenOffy << 4) << 16) | (long long)left);
+        int right = (mgScreenOffx << 4) + x + 0x200;
+        sceVif1PkAddGsAD(packet, gs_xyzf2,
+                         ((long long)(int)(((int)mgScreenOffy + mgScreenHeight) << 4) << 16) |
+                             (long long)right);
     }
-    sceVif1PkAddGsAD(vif, SCE_GS_TEXFLUSH, 0);
-    sceVif1PkCloseGifTag(vif);
-    sceVif1PkCloseDirectCode(vif);
+    sceVif1PkAddGsAD(packet, gs_texflush, 0);
+    sceVif1PkCloseGifTag(packet);
+    sceVif1PkCloseDirectCode(packet);
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/mglib", mgSetPkClearScreen__FUcUcUcUc);
-#endif
-
 int mgStoreImage(mgCTexture *texture, u_long128 *buffer) {
-    sceGsStoreImage image;
-    int             width;
-
-    if (texture == NULL || buffer == NULL) {
+    sceGsStoreImage store_image;
+    int block_width;
+    if (texture == 0 || buffer == 0) {
         return 0;
     }
     mgWaitFrame();
-    width = texture->width / 64;
-    if (width == 0) {
-        width = 1;
+    block_width = texture->width / 64;
+    if (block_width == 0) {
+        block_width = 1;
     }
-    sceGsSetDefStoreImage(&image, texture->tex0.TBP0, width, texture->tex0.PSM, 0, 0, texture->width, texture->height);
+    sceGsSetDefStoreImage(&store_image, texture->tex0.TBP0, block_width, texture->tex0.PSM, 0, 0,
+                          texture->width, texture->height);
     FlushCache(0);
-    sceGsExecStoreImage(&image, buffer);
+    sceGsExecStoreImage(&store_image, buffer);
     sceGsSyncPath(0, 0);
     return texture->bpp * (texture->width * texture->height);
 }
-
 #ifdef NONMATCHING
 int mgStoreZBuffImage(mgRect<int> &rect, u_long128 *buffer) {
     sceGsStoreImage image;
@@ -1473,123 +1302,87 @@ int mgStoreZBuffImage(mgRect<int> &rect, u_long128 *buffer) {
 #else
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/mglib", mgStoreZBuffImage__FR9mgRect_i_P1);
 #endif
-
-float mgConvZBuffToDist(unsigned int z) {
-    return mgRenderInfo.view_screen[3][2] / ((float)z - mgRenderInfo.view_screen[2][2]);
+float mgConvZBuffToDist(u_int zbuf) {
+    return mgRenderInfo.view_screen[3][2] / ((float)zbuf - mgRenderInfo.view_screen[2][2]);
 }
-
-#ifdef NONMATCHING
 mgCTexture *mgGetTextureZ(int index) {
-    if (index < 0 || index >= 2) {
-        return NULL;
+    if (index < 0 || index > 1) {
+        return 0;
     }
     return &fixz_tex[index];
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/mglib", mgGetTextureZ__Fi);
-#endif
-
-#ifdef NONMATCHING
-/**
- * Tests GS coordinates and view depth against the drawing range and clip planes.
- */
-static int prim_clip_check(float *position) {
-    if (position[0] < 0.0f || position[0] > 4095.0f) {
+int prim_clip_check(float *vertex) {
+    mgRENDER_INFO *info = &mgRenderInfo;
+    if (vertex[0] < 0.0f || vertex[0] > 4095.0f) {
         return 0;
     }
-    if (position[1] < 0.0f || position[1] > 4095.0f) {
+    if (vertex[1] < 0.0f || vertex[1] > 4095.0f) {
         return 0;
     }
-    if (position[3] < mgRenderInfo.clip_min[2] || position[3] > mgRenderInfo.clip_max[2]) {
+    float z = vertex[3];
+    if (z < info->clip_min[2] || z > info->clip_max[2]) {
         return 0;
     }
     return 1;
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/mglib", prim_clip_check__FPf);
-#endif
-
-#ifdef NONMATCHING
-int mgTransWorldPrim(int *prim, float *position) {
-    sceVu0FVECTOR projected;
-    float         reciprocal;
-
-    sceVu0ApplyMatrix(projected, mgRenderInfo.world_screen, position);
-    reciprocal = 1.0f / projected[3];
-    projected[0] *= reciprocal;
-    projected[1] *= reciprocal;
-    projected[2] *= reciprocal;
-    prim[0] = (int)(16.0f * projected[0]);
-    prim[1] = (int)(16.0f * projected[1]);
-    prim[2] = (int)projected[2];
-    prim[3] = 0;
-    return prim_clip_check(projected);
+int mgTransWorldPrim(int *out, float *pos) {
+    float v[4];
+    sceVu0ApplyMatrix(v, mgRenderInfo.world_screen, pos);
+    float inv = 1.0f / v[3];
+    v[0] *= inv;
+    v[1] *= inv;
+    v[2] *= inv;
+    out[0] = fptosi(16.0f * v[0]);
+    out[1] = fptosi(16.0f * v[1]);
+    out[2] = fptosi(v[2]);
+    out[3] = 0;
+    return prim_clip_check(v);
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/mglib", mgTransWorldPrim__FPiPf);
-#endif
-
-int mgTransWorldScreen(int *screen, float *position) {
-    int visible;
-
-    visible = mgTransWorldPrim(screen, position);
-    screen[0] -= mgScreenOffx * 16;
-    screen[1] -= mgScreenOffy * 16;
+int mgTransWorldScreen(int *out, float *pos) {
+    int visible = mgTransWorldPrim(out, pos);
+    out[0] = out[0] - (mgScreenOffx << 4);
+    out[1] = out[1] - (mgScreenOffy << 4);
     return visible;
 }
-
-#ifdef NONMATCHING
-int mgTransViewPrim(int *prim, float *position) {
-    sceVu0FVECTOR projected;
-    float         reciprocal;
-
-    sceVu0ApplyMatrix(projected, mgRenderInfo.view_screen, position);
-    reciprocal = 1.0f / projected[3];
-    projected[0] *= reciprocal;
-    projected[1] *= reciprocal;
-    projected[2] *= reciprocal;
-    prim[0] = (int)(16.0f * projected[0]);
-    prim[1] = (int)(16.0f * projected[1]);
-    prim[2] = (int)projected[2];
-    prim[3] = 0;
-    return prim_clip_check(projected);
+int mgTransViewPrim(int *out, float *pos) {
+    float v[4];
+    sceVu0ApplyMatrix(v, mgRenderInfo.view_screen, pos);
+    float inv = 1.0f / v[3];
+    v[0] *= inv;
+    v[1] *= inv;
+    v[2] *= inv;
+    out[0] = fptosi(16.0f * v[0]);
+    out[1] = fptosi(16.0f * v[1]);
+    out[2] = fptosi(v[2]);
+    out[3] = 0;
+    return prim_clip_check(v);
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/mglib", mgTransViewPrim__FPiPf);
-#endif
-
-void mgTransWorldView(float *view, float *position) {
-    sceVu0ApplyMatrix(view, mgRenderInfo.view, position);
+void mgTransWorldView(float *a, float *b) {
+    sceVu0ApplyMatrix(a, mgRenderInfo.view, b);
 }
-
 int mgTransZPrim(float z) {
-    sceVu0FVECTOR position = { 0.0f, 0.0f, 0.0f, 1.0f };
-    sceVu0IVECTOR prim;
-
-    position[2] = z;
-    mgTransViewPrim(prim, position);
-    return prim[2];
+    float pos[4];
+    *(u_long128 *)pos = *(u_long128 *)at_1389;
+    int screen[4];
+    pos[2] = z;
+    mgTransViewPrim(screen, pos);
+    return screen[2];
 }
-
-float mgGetDistFromCamera(float *position) {
-    return mgDistVector(position, mgRenderInfo.camera_pos);
+float mgGetDistFromCamera(float *pos) {
+    return mgDistVector(pos, mgRenderInfo.camera_pos);
 }
-
-void mgGetDirFromCamera(float *direction, float *position) {
-    sceVu0SubVector(direction, position, mgRenderInfo.camera_pos);
+void mgGetDirFromCamera(float *dir, float *pos) {
+    sceVu0SubVector(dir, pos, mgRenderInfo.camera_pos);
 }
-
-void mgGetCameraPos(float *position) {
-    *(u_long128 *)position = *(u_long128 *)mgRenderInfo.camera_pos;
+void mgGetCameraPos(float *out) {
+    *(u_long128 *)out = *(u_long128 *)mgRenderInfo.camera_pos;
 }
-
 void mgGetCameraPose(float (*pose)[4]) {
     *(u_long128 *)pose[0] = *(u_long128 *)mgRenderInfo.camera_pose[0];
     *(u_long128 *)pose[1] = *(u_long128 *)mgRenderInfo.camera_pose[1];
     *(u_long128 *)pose[2] = *(u_long128 *)mgRenderInfo.camera_pose[2];
     *(u_long128 *)pose[3] = *(u_long128 *)mgRenderInfo.camera_pose[3];
 }
-
 #ifdef NONMATCHING
 int mgTransWorldPrim3DSprite(int *top_left, int *bottom_right, float *position, float width, float height, int unused) {
     sceVu0FVECTOR projected;
@@ -1634,93 +1427,66 @@ int mgTransWorldPrim3DSprite(int *top_left, int *bottom_right, float *position, 
 #else
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/mglib", mgTransWorldPrim3DSprite__FPiPiPfffi);
 #endif
-
-#ifdef NONMATCHING
-/**
- * Tests whether an identifier selects an available built-in or user microprogram.
- */
+#pragma global_optimizer off
 static int CheckVuProgID(int id) {
-    if (id < MG_VU_PROG_USER) {
-        if (id < 0 || id >= 3) {
+    if (id < user_vu_prog_base) {
+        if (id <= -1)
             return 0;
-        }
-        return 1;
+        if (id >= builtin_vu_prog_count)
+            return 0;
+        goto valid;
     }
-    if (id < MG_VU_PROG_USER || id >= user_prog_num + MG_VU_PROG_USER) {
+    if (id < user_vu_prog_base)
         return 0;
-    }
-    if (user_prog_adr == NULL || user_prog_adr[id - MG_VU_PROG_USER] == NULL) {
+    if (id >= user_prog_num + user_vu_prog_base)
         return 0;
-    }
+    if (user_prog_adr == 0)
+        return 0;
+    if (*(int *)((id << 2) + (int)user_prog_adr - user_vu_prog_base * 4) == 0)
+        return 0;
+valid:
     return 1;
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/mglib", CheckVuProgID__Fi);
-#endif
-
-#ifdef NONMATCHING
+#pragma global_optimizer reset
 u_long128 *mgGetVuProgPacket(int id) {
-    if (CheckVuProgID(id) == 0) {
+    if (CheckVuProgID(id) == 0)
         return NULL;
-    }
-    if (id < MG_VU_PROG_USER) {
+    if (id < user_vu_prog_base)
         return prog_adr[id];
-    }
-    return user_prog_adr[id - MG_VU_PROG_USER];
+    u_long128 **user_table = user_prog_adr;
+    return user_table[id - user_vu_prog_base];
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/mglib", mgGetVuProgPacket__Fi);
-#endif
-
-#ifdef NONMATCHING
-int mgSendVuProg(unsigned int *packet, int id) {
-    u_long128 *program;
-    int        size;
-
+int mgSendVuProg(u_int *tag, int id) {
     if (CheckVuProgID(id) == 0) {
         now_prog_id = -1;
         return 0;
     }
-    size = 0;
     if (id != now_prog_id) {
-        program = mgGetVuProgPacket(id);
-        packet[0] = MG_DMA_CALL;
-        packet[1] = (u_int)program;
-        packet[2] = 0;
-        packet[3] = 0;
-        size = 4;
+        void *packet = mgGetVuProgPacket(id);
+        tag[0] = dma_tag_call;
+        tag[1] = (u_int)packet;
+        tag[2] = 0;
+        tag[3] = 0;
         now_prog_id = id;
+        return 4;
     }
-    return size;
+    return 0;
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/mglib", mgSendVuProg__FPUii);
-#endif
-
-#ifdef NONMATCHING
 void mgSetUserVuProg(u_long128 **table, int count) {
     user_prog_adr = table;
     user_prog_num = count;
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/mglib", mgSetUserVuProg__FPP1i);
-#endif
-
-#ifdef NONMATCHING
-void mgSetUserVuProgAdr(int index, u_long128 *packet) {
-    if (index >= 0 && index < user_prog_num) {
-        user_prog_adr[index] = packet;
-    }
+#pragma global_optimizer off
+void mgSetUserVuProgAdr(int index, u_long128 *adr) {
+    if (index < 0 || index >= user_prog_num)
+        return;
+    u_char *base = (u_char *)user_prog_adr;
+    index <<= 2;
+    *(u_long128 **)(base + index) = adr;
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/mglib", mgSetUserVuProgAdr__FiP1);
-#endif
-
+#pragma global_optimizer reset
 #ifdef NONMATCHING
-/**
- * Saves a selected frame buffer as a numbered 24-bit TGA on the host device.
- */
-static void StoreImage(int front_buffer) {
+void StoreImage(int front_buffer) {
     static int image_num = 0;
     u_char     tga[18] = { 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 24, 0 };
     char       device[128];
@@ -1776,42 +1542,24 @@ static void StoreImage(int front_buffer) {
 #else
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/mglib", StoreImage__Fi);
 #endif
-
-#ifdef NONMATCHING
-int mgInitFont() {
+int mgInitFont(void) {
     sceDevConsInit();
-    font_cons = sceDevConsOpen((mgScreenOffx + 8) * 16, (mgScreenOffy + 8) * 16, 40, 24);
+    font_cons = sceDevConsOpen((mgScreenOffx + 8) * 0x10, (mgScreenOffy + 8) * 0x10, 0x28, 0x18);
     return font_cons;
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/mglib", mgInitFont__Fv);
-#endif
-
-#ifdef NONMATCHING
-void mgCloseFont() {
-    if (font_cons >= 0) {
+void mgCloseFont(void) {
+    if ((int)font_cons >= 0) {
         sceDevConsClose(font_cons);
     }
     font_draw_flag = 0;
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/mglib", mgCloseFont__Fv);
-#endif
-
-#ifdef NONMATCHING
-// Defined inline in mg_memory.hpp.
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/mglib", __ct__9mgCMemoryFv);
-#endif
-
+extern "C" mgCMemory *__ct__9mgCMemoryFv(mgCMemory *memory) {
+    memory->Init();
+    return memory;
+}
 
 // Static initialiser (.init)
-#ifdef NONMATCHING
-// Produced by mgRenderInfo, mgTexManager, mgDrawManager, packet_buf, data_buf, frame_tex and fixz_tex.
-#else
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/mglib", __sinit_mglib_cpp);
-#endif
-
 
 // Initialised data (.data)
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mglib", dimx_281__DATA);

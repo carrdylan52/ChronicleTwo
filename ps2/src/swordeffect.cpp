@@ -1,5 +1,15 @@
 #include "common.h"
+#include "mg_memory.hpp"
+#include "mg_drawprim.hpp"
+#include "mg_texture.hpp"
+#include "mg_frame.hpp"
+#include "mg_drawenv.hpp"
+#include "mg_math.hpp"
+#include "mglib.hpp"
 #include "swordeffect.hpp"
+#include <cstdio>
+
+extern char at_356[];
 
 #ifdef NONMATCHING
 #include "mg_drawprim.hpp"
@@ -100,51 +110,51 @@ void CSWordAfterEffect::Draw() {
 #else
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/swordeffect", Draw__17CSWordAfterEffectFv);
 #endif
-
-#ifdef NONMATCHING
-void CSWordAfterEffect::CreatPointList() {
-    if (active && point_num > 0) {
-        smooth_num = CreatSmoothPassSW(smooth0, point0, point_num, division, head_index, point_max);
+void CSWordAfterEffect::CreatPointList(void) {
+    if (active != 0 && point_num > 0) {
+        smooth_num =
+            CreatSmoothPassSW(smooth0, point0, point_num, division, head_index, point_max);
         CreatSmoothPassSW(smooth1, point1, point_num, division, head_index, point_max);
         if (smooth_num != 0) {
-            for (int point = 0; point < point_num - 1; ++point) { }
+            int i = 0;
+            goto check;
+        body:
+            i++;
+        check:
+            if (i < point_num - 1)
+                goto body;
         }
     }
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/swordeffect", CreatPointList__17CSWordAfterEffectFv);
-#endif
-
-#ifdef NONMATCHING
-void CSWordAfterEffect::SetTexture(int block, mgCTexture *tex, int u, int v, int w, int h) {
-    tex_block = block; texture = tex;
-    tex_u = u; tex_v = v; tex_w = w; tex_h = h;
-    for (int component = 0; component < 4; ++component) {
-        color0[component] = 0x80;
-        color1[component] = 0x80;
-    }
+void CSWordAfterEffect::SetTexture(int tex_no, mgCTexture *tex, int u0, int v0, int u1, int v1) {
+    tex_block = tex_no;
+    texture = tex;
+    tex_u = u0;
+    tex_v = v0;
+    tex_w = u1;
+    tex_h = v1;
+    color0[0] = color0[1] = color0[2] = color0[3] = 0x80;
+    color1[0] = color1[1] = color1[2] = color1[3] = 0x80;
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/swordeffect", SetTexture__17CSWordAfterEffectFiP10mgCTextureiiii);
-#endif
 
 void CSWordAfterEffect::SetTexture(int u, int v, int w, int h) {
     tex_u = u; tex_v = v; tex_w = w; tex_h = h;
 }
-
-#ifdef NONMATCHING
-void CSWordAfterEffect::StartEffect(mgCFrame *first, mgCFrame *second, int trail_length, int fade_time, int delay) {
-    frame0 = first; frame1 = second;
-    length = trail_length; hold_time = delay;
-    active = 1; alpha = 1.0f;
-    fade_speed = 1.0f / (float)fade_time;
-    smooth_num = point_num = 0;
-    write_index = head_index = point_max - 1;
-    printf("start !!\n");
+void CSWordAfterEffect::StartEffect(mgCFrame *start, mgCFrame *end, int value8_c, int frames,
+                                    int hold) {
+    frame0 = start;
+    frame1 = end;
+    length = value8_c;
+    hold_time = hold;
+    active = 1;
+    alpha = 1.0f;
+    fade_speed = 1.0f / (float)frames;
+    smooth_num = 0;
+    point_num = 0;
+    write_index = point_max - 1;
+    head_index = point_max - 1;
+    printf((char *)at_356);
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/swordeffect", StartEffect__17CSWordAfterEffectFP8mgCFrameP8mgCFrameiii);
-#endif
 
 void CSWordAfterEffect::AddPoint(float *first, float *second) {
     sceVu0CopyVector(point0[write_index], first);
@@ -154,22 +164,27 @@ void CSWordAfterEffect::AddPoint(float *first, float *second) {
     --write_index;
     if (write_index < 0) write_index = point_max - 1;
 }
-
-#ifdef NONMATCHING
-void CSWordAfterEffect::Step() {
-    if (!active || frame0 == NULL || frame1 == NULL) return;
-    float first[4], second[4];
-    frame0->GetWorldPosition0(first);
-    frame1->GetWorldPosition0(second);
-    AddPoint(first, second);
-    if (hold_time > 0) { --hold_time; return; }
+void CSWordAfterEffect::Step(void) {
+    float edge_a[4];
+    float edge_b[4];
+    if (active == 0) {
+        return;
+    }
+    if (frame0 == NULL || frame1 == NULL) {
+        return;
+    }
+    frame0->GetWorldPosition0(edge_a);
+    frame1->GetWorldPosition0(edge_b);
+    AddPoint(edge_a, edge_b);
+    if (hold_time > 0) {
+        hold_time--;
+        return;
+    }
     alpha -= fade_speed;
-    if (alpha <= 0.0f) active = 0;
+    if (alpha <= 0.0f) {
+        active = 0;
+    }
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/swordeffect", Step__17CSWordAfterEffectFv);
-#endif
-
 void CSWordAfterEffect::Clear(void) {
     active = 0;
     frame1 = NULL;

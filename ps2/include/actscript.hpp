@@ -34,7 +34,7 @@ STATIC_ASSERT(sizeof(ACTION_INFO) == 0x10);
  * Scene in which the running action script's character acts, set each time
  * a character runs its action script.
  */
-extern CScene *nowScene;
+extern CScene *nowScene__2;
 
 /**
  * Scene used by character action scripts; nowScene is the separate scene used by runscript_opcodes.

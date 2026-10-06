@@ -1,5 +1,33 @@
+#include <cstring>
+#include "object.hpp"
+#include "mglib.hpp"
+#include "mg_math.hpp"
 #include "common.h"
+#include "collision.hpp"
+#include "funcpoint.hpp"
+#include "mapinfo.hpp"
+#include "mapload.hpp"
+#include "mapparts.hpp"
+#include "mdslist.hpp"
+#include "mg_drawenv.hpp"
+#include "mg_frame.hpp"
+#include "mg_memory.hpp"
+#include "mg_texture.hpp"
 #include "map.hpp"
+#include "mg_sprite.hpp"
+extern "C" int fptosi(float value);
+extern "C" void __ct__8mgCFrameFv(void *);
+
+enum { kFuncPointHasFire = 2, kFuncPointHasPLight = 0x40, kMapPartsSize = 0x310 };
+extern CFuncPoint ft_1248[8];
+extern mgCFrameAttr attr_1300;
+extern s8 init_1249;
+extern s8 init_1301;
+extern char at_1352[];
+extern char at_1353[];
+extern char at_574[];
+extern char at_2008[];
+extern char at_1927[];
 
 #include <cmath>
 #include <cstdlib>
@@ -20,7 +48,6 @@
 #include "water.hpp"
 
 // Code (.text)
-#ifdef NONMATCHING
 int CMapFlagData::SetFlag(int no, int on) {
     u32 mask;
     u32 old_flag;
@@ -29,78 +56,56 @@ int CMapFlagData::SetFlag(int no, int on) {
         return 0;
     }
 
-    mask = 1 << (no % 32);
-    old_flag = flag[no / 32];
+    mask = 1;
+    int index = no / 32;
+    mask <<= no % 32;
+    old_flag = flag[index];
+    int was_set = (mask & old_flag) != 0;
     if (on) {
-        flag[no / 32] = old_flag | mask;
+        flag[index] = mask | old_flag;
     } else {
-        flag[no / 32] = old_flag & ~mask;
+        flag[index] = ~mask & old_flag;
     }
-    return (old_flag & mask) != 0;
+    return was_set;
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/map", SetFlag__12CMapFlagDataFii);
-#endif
-
-#ifdef NONMATCHING
-int CMapFlagData::GetFlag(int no) {
-    if (no < 0 || no >= MAP_FLAG_MAX) {
+int CMapFlagData::GetFlag(int index) {
+    if (index < 0 || index >= MAP_FLAG_MAX) {
         return 0;
     }
-    return (flag[no / 32] & (1 << (no % 32))) != 0;
+    u32 mask = 1;
+    mask <<= index % 32;
+    return (mask & flag[index / 32]) != 0;
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/map", GetFlag__12CMapFlagDataFi);
-#endif
 
 char *CMap::Iam() {
     return CMapName;
 }
-
-#ifdef NONMATCHING
-void CPartsGroup::Initialize() {
-    name = NULL;
-    off = 0;
+void CPartsGroup::Initialize(void) {
+    name = 0;
     camera_off = 0;
-    list = NULL;
+    off = 0;
+    list = 0;
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/map", Initialize__11CPartsGroupFv);
-#endif
-
-#ifdef NONMATCHING
-void CPartsGroup::Add(CList<PartsGroupData> *entry) {
-    CList<PartsGroupData> *last;
-
-    last = list;
-    if (last == NULL) {
-        list = entry;
+void CPartsGroup::Add(CList<PartsGroupData> *node) {
+    CList<PartsGroupData> *last = list;
+    CList<PartsGroupData> *next;
+    if (last == 0) {
+        list = node;
         return;
     }
-    while (last->next != NULL) {
-        last = last->next;
+    if (last != 0) {
+        do {
+            next = last->next;
+            if (next == 0)
+                break;
+            last = next;
+        } while (next != 0);
     }
-    last->next = entry;
-    if (entry != NULL) {
-        entry->prev = last;
-    }
+    last->next = node;
+    if (node != 0)
+        node->prev = last;
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/map", Add__11CPartsGroupFP23CList_14PartsGroupData_);
-#endif
-
-#ifdef NONMATCHING
-void CMapWater::Initialize() {
-    frame = NULL;
-    *(u_long128 *)follow = 0;
-    parts = NULL;
-    parts_max = 0;
-    parts_num = 0;
-    parts_name = NULL;
-}
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/map", Initialize__9CMapWaterFv);
-#endif
+void CMapWater::Initialize() { frame = NULL; *(u_long128 *)follow = 0; parts = NULL; parts_max = 0; parts_num = 0; parts_name = NULL; }
 
 void CMapWater::Clear() {
     int i;
@@ -119,150 +124,125 @@ CPartsGroup *CMap::GetPartsGroup(int no) {
     }
     return &parts_group[no];
 }
-
-#ifdef NONMATCHING
-int CMap::AddPartsGroup(char *name, CMapParts *parts, mgCMemory *stack) {
-    CList<PartsGroupData> *entry;
-    CPartsGroup          *group;
-    char                 *group_name;
-    int                   no;
-
-    no = SearchPartsGroupNo(name);
-    group_name = NULL;
-    if (no < 0) {
-        no = SerachEmptyPartsGroupNo();
-        group_name = mgCopyString(name, stack);
+extern void *__vt__23CList_14PartsGroupData_[];
+int CMap::AddPartsGroup(char *name, CMapParts *parts, mgCMemory *memory) {
+    int groupNo;
+    char *newName;
+    CPartsGroup *group;
+    CList<PartsGroupData> *node;
+    groupNo = SearchPartsGroupNo(name);
+    newName = 0;
+    if (groupNo < 0) {
+        groupNo = SerachEmptyPartsGroupNo();
+        newName = mgCopyString(name, memory);
     }
-    group = GetPartsGroup(no);
-    if (group == NULL) {
+    group = GetPartsGroup(groupNo);
+    if (group == 0)
         return -1;
+    if (newName != 0)
+        group->name = newName;
+    if ((node = (CList<PartsGroupData> *)operator new(0x10, memory->Alloc(3))) != 0) {
+        *(void ***)((u8 *)node + 0xC) = __vt__23CList_14PartsGroupData_;
+        node->data.parts = 0;
+        node->Initialize();
     }
-    if (group_name != NULL) {
-        group->name = group_name;
-    }
-    entry = new ((u_long128 *)stack->Alloc(3)) CList<PartsGroupData>;
-    entry->data.parts = parts;
-    group->Add(entry);
-    return no;
+    node->data.parts = parts;
+    group->Add(node);
+    return groupNo;
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/map", AddPartsGroup__4CMapFPcP9CMapPartsP9mgCMemory);
-#endif
-
-#ifdef NONMATCHING
-// Defined inline in mg_tanime.hpp.
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/map", Initialize__23CList_14PartsGroupData_Fv);
-#endif
 
 CPartsGroup *CMap::SearchPartsGroup(char *name) {
     return GetPartsGroup(SearchPartsGroupNo(name));
 }
-
-#ifdef NONMATCHING
 int CMap::SearchPartsGroupNo(char *name) {
     int i;
-
     for (i = 0; i < parts_group_max; i++) {
-        if (parts_group[i].name != NULL && strcmp(parts_group[i].name, name) == 0) {
+
+        u8 used = !!parts_group[i].name ^ 1;
+        if (!used && strcmp(parts_group[i].name, name) == 0)
             return i;
-        }
     }
     return -1;
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/map", SearchPartsGroupNo__4CMapFPc);
-#endif
-
-#ifdef NONMATCHING
 int CMap::SerachEmptyPartsGroupNo() {
     int i;
-
     for (i = 0; i < parts_group_max; i++) {
-        if (parts_group[i].name == NULL) {
+        u8 e = !!parts_group[i].name ^ 1;
+        if (e)
             return i;
-        }
     }
     return -1;
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/map", SerachEmptyPartsGroupNo__4CMapFv);
-#endif
-
-#ifdef NONMATCHING
 void CMap::Initialize() {
     int i;
-
-    parts_list = NULL;
-    effect_list.pack = NULL;
-    effect_list.name = NULL;
+    int j;
+    int k;
+    parts_list = 0;
+    effect_list.pack = 0;
+    effect_list.name = 0;
     effect_list.block = -1;
     effect_list.effect_num = 0;
-    effect_list.managers = NULL;
-    effect_list.sprites = NULL;
-    place_parts = NULL;
+    effect_list.managers = 0;
+    effect_list.sprites = 0;
+    place_parts = 0;
     place_parts_max = 0;
     draw_parts_num = 0;
-    draw_parts = NULL;
-    mds_list_set = NULL;
+    draw_parts = 0;
+    mds_list_set = 0;
     camera_info_num = 0;
-    camera_info = NULL;
+    camera_info = 0;
     draw_rect_max = MAP_DRAW_RECT_MAX;
     for (i = 0; i < MAP_DRAW_RECT_MAX; i++) {
         draw_rect[i].outside = 0;
         draw_rect[i].used = 0;
-        draw_rect[i].parts = NULL;
+        draw_rect[i].parts = 0;
     }
     parts_group_max = MAP_PARTS_GROUP_MAX;
-    for (i = 0; i < MAP_PARTS_GROUP_MAX; i++) {
-        parts_group[i].Initialize();
-    }
+    for (j = 0; j < MAP_PARTS_GROUP_MAX; j++)
+        parts_group[j].Initialize();
     parts_event = 0;
-    func_point.CFuncPointMngr::Initialize();
+    func_point.Initialize();
     obj_anime_num = 0;
-    obj_anime = NULL;
+    obj_anime = 0;
     tr_box_num = 0;
-    tr_box = NULL;
+    tr_box = 0;
     tr_box_texture = -1;
-    tr_box_model = NULL;
+    tr_box_model = 0;
     unk_30c = 0;
-    now_time = 0.0f;
+    now_time = 0;
     water_surface_num = 0;
-    water_surface = NULL;
+    water_surface = 0;
     water_num = 0;
-    water = NULL;
-    fire_raster = NULL;
-    anime_time = 0.0f;
+    water = 0;
+    fire_raster = 0;
+    anime_time = 0;
     anime_frame = 0;
     occlusion_num = 0;
-    for (i = 0; i < MAP_OCCLUSION_MAX; i++) {
-        memset(&occlusion[i], 0, sizeof(COcclusion));
-    }
+    for (k = 0; k < MAP_OCCLUSION_MAX; k++)
+        memset(&occlusion[k], 0, sizeof(COcclusion));
     bbox_valid = 0;
     mgZeroVectorW(bbox.max);
     mgZeroVectorW(bbox.min);
     piece_load_skip = 0;
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/map", Initialize__4CMapFv);
-#endif
-
-#ifdef NONMATCHING
-void CMap::SetPlacePartsBuff(mgCMemory *stack, int max) {
-    place_parts = new ((u_long128 *)stack->Alloc((sizeof(CMapParts) * max + 15) / 16 + 2)) CMapParts[max];
-    draw_parts = new ((u_long128 *)stack->Alloc((sizeof(CMapParts *) * max + 15) / 16 + 2)) CMapParts *[max];
-    place_parts_max = max;
+static inline unsigned int map_alloc_size(unsigned int bytes) {
+    if (bytes & 0xF) return (bytes >> 4) + 1;
+    else return bytes >> 4;
+}
+extern "C" void *__nwa__FUiP1(unsigned int, int);
+extern "C" void *__construct_new_array(void *, void *(*)(void *), void *, unsigned int, int);
+extern "C" void *__ct__9CMapPartsFv(void *);
+void CMap::SetPlacePartsBuff(mgCMemory *memory, int count) {
+    unsigned int list_bytes;
+    int block = (int)memory->Alloc(map_alloc_size((unsigned int)count * 0x310) + 2);
+    place_parts = (CMapParts *)__construct_new_array(__nwa__FUiP1(count * 0x310 + 0x10, block), __ct__9CMapPartsFv, 0, 0x310, count);
+    list_bytes = count << 2;
+    block = (int)memory->Alloc(map_alloc_size(list_bytes) + 2);
+    draw_parts = (CMapParts **)__nwa__FUiP1(list_bytes, block);
+    place_parts_max = count;
     ClearPlaceParts();
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/map", SetPlacePartsBuff__4CMapFP9mgCMemoryi);
-#endif
-
-#ifdef NONMATCHING
-// Defined inline in mapparts.hpp.
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/map", __ct__9CMapPartsFv);
-#endif
+CMapParts::CMapParts() { Initialize(); }
 
 CMapParts *CMap::GetPlacPartsTable(int *out_max) {
     *out_max = place_parts_max;
@@ -280,21 +260,7 @@ CCameraInfo *CMap::GetCameraInfo(int no) {
     }
     return &camera_info[no];
 }
-
-#ifdef NONMATCHING
-CMapParts *CMap::NewPlaceParts() {
-    int i;
-
-    for (i = 0; i < place_parts_max; i++) {
-        if (place_parts[i].name[0] == 0) {
-            return &place_parts[i];
-        }
-    }
-    return NULL;
-}
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/map", NewPlaceParts__4CMapFv);
-#endif
+CMapParts *CMap::NewPlaceParts() { for (int i = 0; i < place_parts_max; i++) { u8 unused = *(s8 *)place_parts[i].name == 0; if (unused) return &place_parts[i]; } return NULL; }
 
 CMdsInfo *CMap::SearchMDS(char *name) {
     CMdsInfo *model;
@@ -307,36 +273,34 @@ CMdsInfo *CMap::SearchMDS(char *name) {
 }
 
 void CMap::CreateEffect(unsigned int *pack, int tex_block, mgCMemory *stack) {
-    effect_list.LoadEFPFile("test", pack, tex_block, stack);
+    effect_list.LoadEFPFile(at_574, pack, tex_block, stack);
 }
 
 int CMap::SaerchEffectIndex(char *name) {
     return effect_list.SaerchEffectIndex(name);
 }
-
-#ifdef NONMATCHING
-void CMap::AddParts(CList<CMapParts> *parts) {
+void CMap::AddParts(CList<CMapParts> *node) {
     CList<CMapParts> *last;
-
-    if (parts == NULL) {
-        return;
-    }
-    last = parts_list;
-    if (last == NULL) {
-        parts_list = parts;
-        return;
-    }
-    while (last->next != NULL) {
-        last = last->next;
-    }
-    last->next = parts;
-    if (parts != NULL) {
-        parts->prev = last;
+    CList<CMapParts> *next;
+    if (node != 0) {
+        last = parts_list;
+        if (last != 0) {
+            if (last != 0) {
+                do {
+                    next = last->next;
+                    if (next == 0)
+                        break;
+                    last = next;
+                } while (next != 0);
+            }
+            last->next = node;
+            if (node != 0)
+                node->prev = last;
+        } else {
+            parts_list = node;
+        }
     }
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/map", AddParts__4CMapFP17CList_9CMapParts_);
-#endif
 
 CMapParts *CMap::GetParts(char *name) {
     CList<CMapParts> *entry;
@@ -353,61 +317,62 @@ CMapParts *CMap::GetParts(char *name) {
     }
     return NULL;
 }
-
-#ifdef NONMATCHING
-void CMap::CreateDrawRect(mgCMemory *stack, mgVu0FBOX *area, mgVu0FBOX *parts_box, int outside) {
-    mgVu0FBOX           bounds;
-    MapDrawOffRect     *rect;
-    CList<CMapParts *> *entry;
+extern "C" int __as__9mgVu0FBOXFR9mgVu0FBOX(mgVu0FBOX *, mgVu0FBOX *);
+extern "C" int GetBoundBox__9CMapPartsFP9mgVu0FBOX(void *, float *);
+extern void *__vt__18CList_P9CMapParts_[];
+void CMap::CreateDrawRect(mgCMemory *memory, mgVu0FBOX *rect, mgVu0FBOX *clip, int outside) {
+    float parts_box[4];
+    float view_box[4];
+    MapDrawOffRect *slot;
+    char *parts;
+    int i;
+    int j;
+    CList<CMapParts *> *node;
     CList<CMapParts *> *last;
-    CMapParts          *parts;
-    int                 i;
-
-    rect = NULL;
+    CList<CMapParts *> *next;
+    slot = 0;
     for (i = 0; i < draw_rect_max; i++) {
-        if (!draw_rect[i].used) {
-            rect = &draw_rect[i];
+        if (draw_rect[i].used == 0) {
+            slot = &draw_rect[i];
             break;
         }
     }
-    area->max[3] = 1.0f;
-    area->min[3] = 1.0f;
-    parts_box->max[3] = 1.0f;
-    parts_box->min[3] = 1.0f;
-    if (rect != NULL) {
-        rect->used = 1;
-        rect->area = *area;
-        rect->outside = outside;
-        parts = place_parts;
-        for (i = 0; i < place_parts_max; i++, parts++) {
-            if (parts->name[0] != 0 && parts->GetBoundBox(&bounds) && mgClipInBox(bounds.max, bounds.min, parts_box->max, parts_box->min)) {
-                entry = new ((u_long128 *)stack->Alloc(3)) CList<CMapParts *>;
-                entry->data = parts;
-                last = rect->parts;
-                if (last == NULL) {
-                    rect->parts = entry;
-                } else {
-                    while (last->next != NULL) {
-                        last = last->next;
-                    }
-                    last->next = entry;
-                    if (entry != NULL) {
-                        entry->prev = last;
-                    }
+    rect->max[3] = 1.0f;
+    rect->min[3] = 1.0f;
+    clip->max[3] = 1.0f;
+    clip->min[3] = 1.0f;
+    if (slot != 0) {
+        slot->used = 1;
+        __as__9mgVu0FBOXFR9mgVu0FBOX(&slot->area, rect);
+        slot->outside = outside;
+        parts = (char *)place_parts;
+        for (j = 0; j < place_parts_max; j++, parts += 0x310) {
+            u8 unused = *(s8 *)((CMapParts *)parts)->name == 0;
+            if (unused) continue;
+            if (GetBoundBox__9CMapPartsFP9mgVu0FBOX(parts, parts_box) == 0) continue;
+            if (mgClipInBox(parts_box, view_box, clip->max, clip->min) == 0) continue;
+            if ((node = (CList<CMapParts *> *)operator new(0x10, memory->Alloc(3))) != 0) {
+                *(void ***)((u8 *)node + 0xC) = __vt__18CList_P9CMapParts_;
+                node->Initialize();
+            }
+            node->data = (CMapParts *)parts;
+            last = slot->parts;
+            if (last == 0) {
+                slot->parts = node;
+            } else {
+                if (last != 0) {
+                    do {
+                        next = last->next;
+                        if (next == 0) break;
+                        last = next;
+                    } while (next != 0);
                 }
+                last->next = node;
+                if (node != 0) node->prev = last;
             }
         }
     }
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/map", CreateDrawRect__4CMapFP9mgCMemoryP9mgVu0FBOXP9mgVu0FBOXi);
-#endif
-
-#ifdef NONMATCHING
-// Defined inline in mg_tanime.hpp.
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/map", Initialize__18CList_P9CMapParts_Fv);
-#endif
 
 void CMap::CreateOcclusion(float (*corner)[4]) {
     if (occlusion_num < MAP_OCCLUSION_MAX) {
@@ -439,30 +404,34 @@ CMapParts *CMap::PlaceParts(char *name, float *pos, float *rot, float *scale, mg
     return parts;
 }
 
-#ifdef NONMATCHING
 void CMap::PlacePartsEnd() {
-    mgVu0FBOX  bounds;
-    CMapParts *parts;
+    mgVu0FBOX bounds;
+    {
+    int water_index;
     CMapWater *surface;
-    char      *name;
-    int        i;
-    int        j;
-
-    for (i = 0; i < water_num; i++) {
-        surface = &water[i];
+    int water_offset;
+    for (water_index = 0, water_offset = 0; water_index < water_num; water_offset += 0xA0, water_index++) {
+        surface = (CMapWater *)((u8 *)water + water_offset);
         if (surface->frame != NULL && surface->parts_name == NULL) {
             surface->parts[surface->parts_num++] = NULL;
         }
     }
+    }
+    int parts_index;
+    int water_index;
+    CMapWater *surface;
+    int water_offset;
+    int parts_offset;
+    CMapParts *parts;
+    char *name;
     place_parts_num = place_parts_max;
-    for (i = 0; i < place_parts_max; i++) {
-        parts = &place_parts[i];
-        if (parts->name[0] != 0) {
-            place_parts_num = i + 1;
-        }
+    for (parts_index = 0, parts_offset = 0; parts_index < place_parts_max; parts_offset += 0x310, parts_index++) {
+        parts = (CMapParts *)((u8 *)place_parts + parts_offset);
+        u8 unused = *(s8 *)parts->name == 0;
+        if (!unused) place_parts_num = parts_index + 1;
         if (parts->GetBoundBox(&bounds)) {
             if (!bbox_valid) {
-                bbox = bounds;
+                __as__9mgVu0FBOXFR9mgVu0FBOX(&bbox, &bounds);
                 bbox_valid = 1;
             } else {
                 mgBoxMaxMin(&bbox, &bounds);
@@ -470,37 +439,16 @@ void CMap::PlacePartsEnd() {
         }
         name = parts->parts_name;
         if (name != NULL) {
-            for (j = 0; j < water_num; j++) {
-                surface = &water[j];
+            for (water_index = 0, water_offset = 0; water_index < water_num; water_offset += 0xA0, water_index++) {
+                surface = (CMapWater *)((u8 *)water + water_offset);
                 if (surface->frame != NULL && surface->parts_name != NULL && strcmp(surface->parts_name, name) == 0) {
-                    if (surface->parts_num < surface->parts_max) {
-                        surface->parts[surface->parts_num++] = parts;
-                    }
+                    if (surface->parts_num < surface->parts_max) surface->parts[surface->parts_num++] = parts;
                 }
             }
         }
     }
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/map", PlacePartsEnd__4CMapFv);
-#endif
-
-#ifdef NONMATCHING
-void CMap::ClearPlaceParts() {
-    int i;
-
-    place_parts_num = place_parts_max;
-    for (i = 0; i < place_parts_max; i++) {
-        place_parts[i].Initialize();
-        draw_parts[i] = NULL;
-    }
-    for (i = 0; i < water_num; i++) {
-        water[i].Clear();
-    }
-}
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/map", ClearPlaceParts__4CMapFv);
-#endif
+void CMap::ClearPlaceParts() { int i; int j; place_parts_num = place_parts_max; for (i = 0; i < place_parts_max; i++) { place_parts[i].Initialize(); draw_parts[i] = 0; } for (j = 0; j < water_num; j++) water[j].Clear(); }
 
 CMapParts *CMap::GetPlaceParts(char *name) {
     int i;
@@ -529,57 +477,53 @@ int CMap::ConvertParts(CMapParts *parts) {
     }
     return no;
 }
-
-#ifdef NONMATCHING
-int CMap::GetPlaceParts(mgVu0FBOX *box, CMapParts **out_parts, int max) {
-    mgVu0FBOX  bounds;
-    CMapParts *parts;
-    int        count;
-    int        i;
-
-    if (box == NULL) {
-        return 0;
-    }
-    parts = place_parts;
+extern "C" int GetBoundBox__9CMapPartsFP9mgVu0FBOX(void *, float *);
+int CMap::GetPlaceParts(mgVu0FBOX *box, CMapParts **out, int max) {
+    float parts_box[8];
+    char *parts;
+    int count;
+    int i;
+    int out_index;
+    if (box == 0) return 0;
+    parts = (char *)place_parts;
     count = 0;
-    for (i = 0; i < place_parts_num; i++, parts++) {
-        if (parts->name[0] != 0 && parts->GetBoundBox(&bounds) && mgClipBox(bounds.max, bounds.min, box->max, box->min)) {
-            out_parts[count++] = parts;
-            if (count >= max) {
-                break;
-            }
-        }
+    i = 0;
+    out_index = 0;
+    for (; i < place_parts_num; i++, parts += sizeof(CMapParts)) {
+        u8 unused = *(s8 *)((CMapParts *)parts)->name == 0;
+        if (unused) continue;
+        if (GetBoundBox__9CMapPartsFP9mgVu0FBOX(parts, parts_box) == 0) continue;
+        if (mgClipBox(parts_box, parts_box + 4, (float *)box, (float *)box + 4) == 0) continue;
+        count++;
+        out[out_index++] = (CMapParts *)parts;
+        if (count >= max) break;
     }
     return count;
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/map", GetPlaceParts__4CMapFP9mgVu0FBOXPP9CMapPartsi);
-#endif
-
-#ifdef NONMATCHING
-int CMap::GetPlaceColParts(mgVu0FBOX *box, CMapParts **out_parts, int max) {
+int CMap::GetPlaceColParts(mgVu0FBOX *box, CMapParts **out, int max) {
     CMapParts *parts;
-    int        count;
-    int        i;
-
-    if (box == NULL) {
+    int effect_num;
+    int i;
+    int outIndex;
+    if (box == 0)
         return 0;
-    }
     parts = place_parts;
-    count = 0;
-    for (i = 0; i < place_parts_num; i++, parts++) {
-        if (parts->name[0] != 0 && parts->CheckColBox(box)) {
-            out_parts[count++] = parts;
-            if (count >= max) {
-                break;
-            }
-        }
+    effect_num = 0;
+    i = 0;
+    outIndex = 0;
+    for (; i < place_parts_num; i++, parts++) {
+        u8 unused = *(s8 *)parts->name == 0;
+        if (unused)
+            continue;
+        if (((CMapParts *)parts)->CheckColBox(box) == 0)
+            continue;
+        effect_num++;
+        out[outIndex++] = (CMapParts *)parts;
+        if (effect_num >= max)
+            break;
     }
-    return count;
+    return effect_num;
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/map", GetPlaceColParts__4CMapFP9mgVu0FBOXPP9CMapPartsi);
-#endif
 
 void CMap::CreateFuncCheck(CFuncPointCheck *check) {
     check->time = GetNowTime();
@@ -591,18 +535,14 @@ int CMap::GetBBox(mgVu0FBOX *out_box) {
     return bbox_valid;
 }
 
-#ifdef NONMATCHING
 int CMap::PreDraw(float *view_pos) {
-    CFuncPointCheck         check;
     CMapParts              *parts;
     MapDrawOffRect         *rect;
-    CPartsGroup            *group;
     CList<CMapParts *>     *rect_entry;
-    CList<PartsGroupData>  *group_entry;
     CList<CMapPiece>       *piece;
     int                     active_occlusion;
     int                     index;
-    int                     hide;
+
 
     if (bbox_valid != 0 && mgInsideScreen(&bbox) == 0) {
         draw_parts_num = 0;
@@ -610,13 +550,16 @@ int CMap::PreDraw(float *view_pos) {
     }
 
     active_occlusion = 0;
-    for (index = 0; index < occlusion_num; index++) {
-        if (occlusion[index].enable != 0) {
-            occlusion[index].Setup(mgRenderInfo.view);
+    int occlusion_offset;
+    for (index = 0, occlusion_offset = 0; index < occlusion_num; occlusion_offset += 0xC0, index++) {
+        COcclusion *current = (COcclusion *)((u8 *)this + occlusion_offset + 0x680);
+        if (current->enable != 0) {
+            current->Setup(mgRenderInfo.view);
             active_occlusion++;
         }
     }
 
+    CFuncPointCheck check;
     CreateFuncCheck(&check);
     func_point.UpdateFlag(FUNC_POINT_FIRE, &check);
     func_point.UpdateFlag(FUNC_POINT_FLARE, &check);
@@ -639,21 +582,15 @@ int CMap::PreDraw(float *view_pos) {
     for (index = 0; index < draw_rect_max; index++, rect++) {
         if (rect->used != 0) {
             if (rect->outside == 0) {
-                hide = !(view_pos[0] < rect->area.min[0])
-                    && !(view_pos[1] < rect->area.min[1])
-                    && !(view_pos[2] < rect->area.min[2])
-                    && view_pos[0] <= rect->area.max[0]
-                    && view_pos[1] <= rect->area.max[1]
-                    && view_pos[2] <= rect->area.max[2];
-            } else {
-                hide = view_pos[0] <= rect->area.min[0]
-                    || view_pos[1] <= rect->area.min[1]
-                    || view_pos[2] <= rect->area.min[2]
-                    || !(view_pos[0] < rect->area.max[0])
-                    || !(view_pos[1] < rect->area.max[1])
-                    || !(view_pos[2] < rect->area.max[2]);
+                if (!(!(view_pos[0] < rect->area.min[0]) && !(view_pos[1] < rect->area.min[1]) && !(view_pos[2] < rect->area.min[2])
+                    && view_pos[0] <= rect->area.max[0] && view_pos[1] <= rect->area.max[1])) continue;
+                do { if (!(view_pos[2] <= rect->area.max[2])) break; goto hide_parts; } while (0);
+                continue;
             }
-            if (hide != 0) {
+            if (!(view_pos[0] <= rect->area.min[0]) && !(view_pos[1] <= rect->area.min[1]) && !(view_pos[2] <= rect->area.min[2])
+                && view_pos[0] < rect->area.max[0] && view_pos[1] < rect->area.max[1] && view_pos[2] < rect->area.max[2]) continue;
+            hide_parts:
+            {
                 for (rect_entry = rect->parts; rect_entry != NULL; rect_entry = rect_entry->next) {
                     if (rect_entry->data != NULL) {
                         rect_entry->data->in_screen = 0;
@@ -663,9 +600,14 @@ int CMap::PreDraw(float *view_pos) {
         }
     }
 
-    group = parts_group;
-    for (index = 0; index < parts_group_max; index++, group++) {
-        if (group->name != NULL && (group->camera_off != 0 || group->off != 0)) {
+    {
+    int group_num = parts_group_max;
+    CPartsGroup *group = parts_group;
+    int group_no = 0;
+    CList<PartsGroupData> *group_entry;
+    if (0 < group_num) do {
+        u8 unused = (group->name != NULL) ^ 1;
+        if (!unused && (group->camera_off != 0 || group->off != 0)) {
             for (group_entry = group->list; group_entry != NULL; group_entry = group_entry->next) {
                 if (group_entry->data.parts != NULL) {
                     group_entry->data.parts->in_screen = 0;
@@ -673,6 +615,9 @@ int CMap::PreDraw(float *view_pos) {
             }
             group->camera_off = 0;
         }
+        group_no++;
+        group++;
+    } while (group_no < group_num);
     }
 
     draw_parts_num = 0;
@@ -682,9 +627,10 @@ int CMap::PreDraw(float *view_pos) {
 
     parts = place_parts;
     for (index = 0; index < place_parts_num; index++, parts++) {
-        if (parts->name[0] != '\0') {
+        if ((u8)(*(s8 *)parts->name == 0) == 0) {
             if (parts->in_screen != 0) {
-                draw_parts[draw_parts_num++] = parts;
+                draw_parts[draw_parts_num] = parts;
+                draw_parts_num++;
             } else {
                 for (piece = parts->piece_list; piece != NULL; piece = piece->next) {
                     piece->data.fade_alpha = -1.0f;
@@ -694,34 +640,20 @@ int CMap::PreDraw(float *view_pos) {
     }
     return 1;
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/map", PreDraw__4CMapFPf);
-#endif
 
-#ifdef NONMATCHING
 int CMap::GetCharaLight(mgCObject *chara, CFuncPoint *points, int max, int use_parts) {
-    CFuncPoint       candidate;
-    CFuncPoint       nearest;
-    CMapParts       *parts;
-    sceVu0FMATRIX    world_matrix;
-    sceVu0FMATRIX    inverse_matrix;
-    sceVu0FVECTOR    local_position;
-    float            distance;
-    int              nearest_distance;
-    CFuncPointCheck  check;
     sceVu0FVECTOR    chara_position;
     sceVu0FVECTOR    direction;
     sceVu0FVECTOR    color;
-    CFuncPoint      *point;
     float            attenuation;
     int              light_num;
     int              light_mode;
-    int              index;
 
     if (max <= 0) {
         return 0;
     }
 
+    CFuncPointCheck check;
     CreateFuncCheck(&check);
     chara->GetPosition(chara_position);
     chara_position[3] = 0.0f;
@@ -732,13 +664,22 @@ int CMap::GetCharaLight(mgCObject *chara, CFuncPoint *points, int max, int use_p
     }
 
     light_num = func_point.GetLight(chara_position, points, max, &check, light_mode);
-    if (light_num >= 3) {
+    if (2 < light_num) {
         light_num = 2;
     }
-    for (index = 0; index < light_num; index++) {
-        point = &points[index];
+    {
+    int index;
+    int point_offset;
+    CFuncPoint *point;
+    index = 0;
+    if (0 < light_num) {
+    point_offset = 0;
+    do {
+        point = (CFuncPoint *)((u8 *)points + point_offset);
         sceVu0SubVector(direction, point->position, chara_position);
-        attenuation = point->plight.power * point->plight.power / mgDistVector2(direction);
+        attenuation = point->plight.power;
+        attenuation *= attenuation;
+        attenuation /= mgDistVector2(direction);
         if (!(attenuation <= 1.0f)) {
             attenuation = 1.0f;
         }
@@ -746,18 +687,32 @@ int CMap::GetCharaLight(mgCObject *chara, CFuncPoint *points, int max, int use_p
         color[3] = 128.0f;
         sceVu0Normalize(direction, direction);
         mgSetLight(3 - index, direction, color);
+        index++;
+        point_offset += 0x1C0;
+    } while (index < light_num);
     }
 
+    }
     if (use_parts != 0) {
+        CMapParts *parts;
+        int nearest_distance;
+        int index;
+        float distance;
         chara->GetPosition(chara_position);
         chara_position[3] = 1.0f;
-        GetNowTime();
-
-        nearest_distance = 0x4876E000;
-        nearest.type = FUNC_POINT_NONE;
         parts = place_parts;
+        GetNowTime();
+        CFuncPoint candidate;
+        CFuncPoint nearest;
+        sceVu0FVECTOR local_position;
+        sceVu0FMATRIX world_matrix;
+        sceVu0FMATRIX inverse_matrix;
+
+        int *nearest_type = &nearest.type;
+        nearest_distance = 0x4876E000;
+        *nearest_type = FUNC_POINT_NONE;
         for (index = 0; index < place_parts_num; index++, parts++) {
-            if ((parts->func_point_mngr.flag & FUNC_POINT_MNGR_LIGHT) != 0 && parts->name[0] != '\0') {
+            if ((parts->func_point_mngr.flag & FUNC_POINT_MNGR_LIGHT) != 0 && (u8)(*(s8 *)parts->name == 0) == 0) {
                 chara_position[3] = 1.0f;
                 parts->GetLWMatrix(world_matrix);
                 mgInversMatrix(inverse_matrix, world_matrix);
@@ -775,7 +730,9 @@ int CMap::GetCharaLight(mgCObject *chara, CFuncPoint *points, int max, int use_p
             }
         }
 
-        if (nearest.type == FUNC_POINT_PLIGHT) {
+        if (*nearest_type == FUNC_POINT_PLIGHT) {
+            sceVu0FVECTOR direction;
+            sceVu0FVECTOR color;
             sceVu0SubVector(direction, nearest.position, chara_position);
             attenuation = nearest.plight.power / mgDistVector(direction);
             attenuation *= attenuation;
@@ -790,24 +747,28 @@ int CMap::GetCharaLight(mgCObject *chara, CFuncPoint *points, int max, int use_p
     }
     return light_num;
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/map", GetCharaLight__4CMapFP9mgCObjectP10CFuncPointii);
-#endif
 
+extern "C" void *__construct_array(void *, void *(*)(void *), void *, unsigned int, unsigned int);
+extern "C" void *__ct__10CFuncPointFv(void *);
 int CMap::SetFuncPLight(float *pos, CFuncPointCheck *check) {
-    static CFuncPoint points[8];
-    sceVu0FVECTOR    color;
-    CFuncPoint      *point;
-    int              light_num;
-    int              index;
-
-    light_num = func_point.GetLight(pos, points, 3, check, 0);
-    for (index = 0; index < light_num; index++) {
-        point = &points[index];
-        sceVu0ScaleVector(color, point->plight.color, GetLightAnimeWeight(point, anime_frame));
-        mgSetPlight(3 - index, point->position, color, point->plight.power, point->plight.range);
+    int count;
+    int i;
+    float color[4];
+    if (init_1249 == 0) {
+        __construct_array(ft_1248, (void *(*)(void *))__ct__10CFuncPointFv, 0, sizeof(CFuncPoint), 8);
+        init_1249 = 1;
     }
-    return light_num;
+    count = func_point.GetLight(pos, ft_1248, 3, check, 0);
+    for (i = 0; i < count; i++) {
+        u8 *point = (u8 *)ft_1248 + i * 0x1C0;
+        sceVu0ScaleVector((float *)color, (float *)(point + 0x20), GetLightAnimeWeight((CFuncPoint *)point, anime_frame));
+        mgSetPlight(3 - i, (float *)(point + 0x180), color, *(float *)(point + 0x30), *(float *)(point + 0x34));
+    }
+    return count;
+}
+extern "C" void *__ct__10CFuncPointFv(void *point) {
+    __ct__8mgCFrameFv((u8 *)point + 0x70);
+    return point;
 }
 
 void CMap::ResetFuncPLight(int num) {
@@ -817,197 +778,167 @@ void CMap::ResetFuncPLight(int num) {
         mgSetPlight(3 - index, NULL);
     }
 }
-
-#ifdef NONMATCHING
 int CMap::DrawSub(int direct) {
+    int plightEnable = mgGetPlightEnable();
+    int lighting = mgActiveLighting(2, 1);
     CFuncPointCheck check;
-    sceVu0FVECTOR  sphere;
-    CMapParts     *parts;
-    int            previous_plight;
-    int            previous_lighting;
-    int            light_num;
-    int            draw_num;
-    int            index;
-
-    previous_plight = mgGetPlightEnable();
-    previous_lighting = mgActiveLighting(2, 1);
+    float sphere[4];
+    CMapParts **list;
+    CMapParts *parts;
+    int total;
+    int lightCount;
+    int drawn;
+    int i;
+    check.time = 0;
     CreateFuncCheck(&check);
-    draw_num = 0;
+    total = 0;
+    list = draw_parts;
     GetNowTime();
-    for (index = 0; index < draw_parts_num; index++) {
-        parts = draw_parts[index];
+    for (i = 0; i < draw_parts_num; i++, list++) {
+        parts = *list;
         parts->CopyFuncPointCheck(check);
-        if ((func_point.flag & FUNC_POINT_MNGR_LIGHT) != 0) {
+        if (func_point.flag & kFuncPointHasPLight) {
             parts->GetBoundSphere(sphere);
-            light_num = SetFuncPLight(sphere, &check);
+            lightCount = SetFuncPLight(sphere, &check);
         } else {
-            light_num = 0;
+            lightCount = 0;
         }
-        if (light_num > 0) {
+        if (lightCount > 0)
             mgPlightEnable(1);
-        }
-        if (direct != 0) {
-            draw_num += parts->DrawDirect();
-        } else {
-            draw_num += parts->Draw();
-        }
-        ResetFuncPLight(light_num);
+        if (direct != 0)
+            drawn = parts->DrawDirect();
+        else
+            drawn = parts->Draw();
+        total += drawn;
+        ResetFuncPLight(lightCount);
     }
-    mgPlightEnable(previous_plight);
-    if (previous_lighting >= 0) {
-        mgActiveLighting(previous_lighting, 0);
-    }
-    return draw_num;
+    mgPlightEnable(plightEnable);
+    if (lighting >= 0)
+        mgActiveLighting(lighting, 0);
+    return total;
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/map", DrawSub__4CMapFi);
-#endif
-
-#ifdef NONMATCHING
-// Defined inline in mapparts.hpp.
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/map", Draw__9CMapPartsFv);
-#endif
-
-#ifdef NONMATCHING
-// Defined inline in mapparts.hpp.
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/map", DrawDirect__9CMapPartsFv);
-#endif
-
-#ifdef NONMATCHING
+int CMapParts::Draw() { return DrawSub(0); }
+int CMapParts::DrawDirect() { return DrawSub(1); }
+extern "C" void __ct__12mgCFrameAttrFv(void *);
 void CMap::DrawEffect() {
-    static mgCFrameAttr  attr;
-    CFuncPointCheck      check;
-    CFuncPoint          *point;
-    CMapParts           *parts;
-    int                  index;
-
+    CMapParts **list;
+    CMapParts *parts;
+    u8 *partsPoint;
+    u8 *point;
+    int i;
     GetNowTime();
     effect_list.CreatePacket();
+    CFuncPointCheck check;
+    check.time = 0;
     CreateFuncCheck(&check);
-
-    attr.draw = MG_FRAME_DRAW_VISIBLE | MG_FRAME_DRAW_SKIP_CHILDREN;
-    attr.fog = 2;
-    attr.no_cull = 1;
-    attr.depth_bias = 1.015f;
-    func_point.GetStart(FUNC_POINT_EFFECT);
-    for (point = func_point.Get(); point != NULL; point = func_point.Get()) {
-        if (point->Check(&check) != 0) {
-            point->frame.SetVisual(effect_list.GetEffectVisual(point->effect.index));
-            point->frame.attr = &attr;
-            mgDrawDirect(&point->frame);
-        }
+    if (init_1301 == 0) {
+        __ct__12mgCFrameAttrFv(&attr_1300);
+        init_1301 = 1;
+    }
+    attr_1300.draw = 3;
+    attr_1300.no_cull = 1;
+    attr_1300.fog = 2;
+    attr_1300.depth_bias = 1.015f;
+    func_point.GetStart(1);
+    if ((point = (u8 *)func_point.Get()) != 0) {
+        do {
+            if (((CFuncPoint *)point)->Check(&check) != 0) {
+                ((mgCFrame *)(point + 0x70))->SetVisual(effect_list.GetEffectVisual(*(int *)(point + 0x24)));
+                *(u8 **)(point + 0x164) = (u8 *)&attr_1300;
+                mgDrawDirect((mgCFrame *)(point + 0x70));
+            }
+        } while ((point = (u8 *)func_point.Get()) != 0);
     }
     func_point.GetEnd();
-
-    for (index = 0; index < draw_parts_num; index++) {
-        parts = draw_parts[index];
-        if (parts->CheckDraw() != 0) {
-            parts->func_point_mngr.GetStart(FUNC_POINT_EFFECT);
-            for (point = parts->func_point_mngr.Get(); point != NULL; point = parts->func_point_mngr.Get()) {
-                if (point->active != 0) {
-                    point->frame.SetReference(&parts->frame);
-                    point->frame.SetVisual(effect_list.GetEffectVisual(point->effect.index));
-                    point->frame.attr = &attr;
-                    mgDrawDirect(&point->frame);
-                    point->frame.DeleteReference();
+    list = draw_parts;
+    for (i = 0; i < draw_parts_num; i++, list++) {
+        parts = *list;
+        if (parts->CheckDraw() == 0)
+            continue;
+        (&parts->func_point_mngr)->GetStart(1);
+        if ((partsPoint = (u8 *)(&parts->func_point_mngr)->Get()) != 0) {
+            do {
+                if (*(int *)(partsPoint + 0x1B0) != 0) {
+                    ((mgCFrame *)(partsPoint + 0x70))->SetReference((mgCFrame *)&parts->frame);
+                    ((mgCFrame *)(partsPoint + 0x70))->SetVisual(effect_list.GetEffectVisual(*(int *)(partsPoint + 0x24)));
+                    *(u8 **)(partsPoint + 0x164) = (u8 *)&attr_1300;
+                    mgDrawDirect((mgCFrame *)(partsPoint + 0x70));
+                    ((mgCFrame *)(partsPoint + 0x70))->DeleteReference();
                 }
-            }
+            } while ((partsPoint = (u8 *)(&parts->func_point_mngr)->Get()) != 0);
         }
     }
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/map", DrawEffect__4CMapFv);
-#endif
-
-#ifdef NONMATCHING
-void CMap::DrawFireEffect(int tex_block) {
+void CMap::DrawFireEffect(int texBlock) {
     CFuncPointCheck check;
-    sceVu0FMATRIX  world_matrix;
-    mgCTexture    *fire_texture;
-    mgCTexture    *light_texture;
-    CMapParts     *parts;
-    int            index;
-
+    float matrix[4][4];
+    mgCTexture *fireTexture;
+    mgCTexture *lightTexture;
+    CMapParts **list;
+    CMapParts *parts;
+    int i;
+    check.time = 0;
     CreateFuncCheck(&check);
-    mgTexManager.ReloadTexture(tex_block, (sceVif1Packet *)NULL);
-    fire_texture = mgTexManager.GetTexture("fire_wrk", tex_block);
-    light_texture = mgTexManager.GetTexture("lightling", tex_block);
-    mgUnitMatrix(world_matrix);
-    ::DrawFireEffect(world_matrix, &func_point, &check, 1.0f, fire_texture, light_texture);
-    if (draw_parts != NULL) {
-        for (index = 0; index < draw_parts_num; index++) {
-            parts = draw_parts[index];
-            if ((parts->func_point_mngr.flag & FUNC_POINT_MNGR_BURN) != 0 && parts->CheckDraw() != 0) {
-                parts->GetLWMatrix(world_matrix);
-                ::DrawFireEffect(world_matrix, &parts->func_point_mngr, &check, 1.0f, fire_texture, light_texture);
-            }
+    mgTexManager.ReloadTexture(texBlock, (sceVif1Packet *)0);
+    fireTexture = mgTexManager.GetTexture(at_1352, texBlock);
+    lightTexture = mgTexManager.GetTexture(at_1353, texBlock);
+    mgUnitMatrix(matrix);
+
+    ::DrawFireEffect((float(*)[4])matrix, &func_point, &check, 1.0f, fireTexture, lightTexture);
+    list = draw_parts;
+    if (list != 0) {
+        for (i = 0; i < draw_parts_num; i++, list++) {
+            parts = *list;
+            if ((parts->func_point_mngr.flag & kFuncPointHasFire) == 0)
+                continue;
+            if (parts->CheckDraw() == 0)
+                continue;
+            parts->GetLWMatrix(matrix);
+            ::DrawFireEffect((float(*)[4])matrix, &parts->func_point_mngr, &check,
+                             1.0f, fireTexture, lightTexture);
         }
     }
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/map", DrawFireEffect__4CMapFi);
-#endif
-
-#ifdef NONMATCHING
 void CMap::DrawFireRaster() {
     CFuncPointCheck check;
-    sceVu0FMATRIX  world_matrix;
-    CMapParts     *parts;
-    int            index;
-
+    float matrix[4][4];
+    CMapParts **list;
+    int i;
+    CMapParts *parts;
+    check.time = 0;
     CreateFuncCheck(&check);
-    mgUnitMatrix(world_matrix);
-    ::DrawFireRaster(world_matrix, &func_point, &check, fire_raster);
-    if (draw_parts != NULL) {
-        for (index = 0; index < draw_parts_num; index++) {
-            parts = draw_parts[index];
-            if (parts->name[0] != '\0' && parts->CheckDraw() != 0) {
-                parts->GetLWMatrix(world_matrix);
-                ::DrawFireRaster(world_matrix, &parts->func_point_mngr, &check, fire_raster);
-            }
+    mgUnitMatrix(matrix);
+
+    ::DrawFireRaster((float(*)[4])matrix, &func_point, &check, fire_raster);
+    list = draw_parts;
+    if (list != 0) {
+        for (i = 0; i < draw_parts_num; i++, list++) {
+            parts = *list;
+            u8 unused = *(s8 *)parts->name == 0;
+            if (unused)
+                continue;
+            if (parts->CheckDraw() == 0)
+                continue;
+            parts->GetLWMatrix(matrix);
+            ::DrawFireRaster(matrix, &parts->func_point_mngr, &check, fire_raster);
         }
     }
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/map", DrawFireRaster__4CMapFv);
-#endif
 
-#ifdef NONMATCHING
 void CMap::DrawWater(mgCCamera *camera, mgCTexture *screen, mgCTexture *overlay) {
-    mgCDrawPrim    prim;
-    sceVu0FVECTOR  overlay_position;
-    sceVu0FVECTOR  overlay_rotation;
-    sceVu0FVECTOR  overlay_scale;
-    mgCTexture     framebuffer;
-    mgRect<int>    screen_rect(0, 0, (mgScreenWidth - 1) * 16, (mgScreenHeight - 1) * 16);
     sceVu0FVECTOR  camera_position;
     sceVu0FVECTOR  camera_direction;
     sceVu0FVECTOR  camera_rotation;
-    sceVu0FMATRIX  identity;
-    sceVu0FMATRIX  parts_matrix;
-    sceVu0FVECTOR  position;
-    sceVu0FVECTOR  rotation;
-    sceVu0FVECTOR  scale;
-    CMapWater     *placement;
-    CWaterFrame   *surface;
-    CMapParts     *parts;
-    int            surface_no;
-    int            placement_no;
-    int            parts_no;
-    int            ripple_row;
-    int            ripple_column;
 
-    if (water_surface_num <= 0) {
-        return;
-    }
+    int ripple_row;
+    int surface_no;
+    int surface_offset;
+    int ripple_column;
+    if (water_surface_num <= 0) return;
     if (screen == NULL) {
         return;
     }
-    if (water_num <= 0) {
-        return;
-    }
+    while (water_num <= 0) return;
 
     mgZeroVector(camera_position);
     mgZeroVector(camera_rotation);
@@ -1018,26 +949,42 @@ void CMap::DrawWater(mgCCamera *camera, mgCTexture *screen, mgCTexture *overlay)
         sceVu0ScaleVector(camera_direction, camera_direction, 400.0f);
         mgAddVector(camera_position, camera_direction);
         camera_rotation[1] = mgAngleLimit(atan2f(camera_direction[0], camera_direction[2]));
+    } else {
+        surface_no = 0;
     }
 
-    for (surface_no = 0; surface_no < water_surface_num; surface_no++) {
-        if (water_surface[surface_no] != NULL) {
-            water_surface[surface_no]->CreatePacket();
-            water_surface[surface_no]->SetTexture(screen);
-            ripple_row = (int)(48.0f * ((float)rand() / 2147483648.0f));
-            ripple_column = (int)(32.0f * ((float)rand() / 2147483648.0f));
-            water_surface[surface_no]->Shake(ripple_row, ripple_column, 0.1f);
-            water_surface[surface_no]->SetParam(0.15f, 0.0045f, 0.0f, 16.0f);
-            water_surface[surface_no]->Step();
-            water_surface[surface_no]->SetColor(0x80, 0x80, 0x80, 0x80);
+    for (surface_no = 0, surface_offset = 0; surface_no < water_surface_num; surface_offset += 4, surface_no++) {
+        if ((*(CWaterFrame **)((u8 *)water_surface + surface_offset)) != NULL) {
+            (*(CWaterFrame **)((u8 *)water_surface + surface_offset))->CreatePacket();
+            (*(CWaterFrame **)((u8 *)water_surface + surface_offset))->SetTexture(screen);
+            ripple_row = fptosi(48.0f * ((float)rand() / (float)0x7FFFFFFF));
+            ripple_column = fptosi(32.0f * ((float)rand() / 2147483648.0f));
+            float shake_strength = 0.1f;
+            (*(CWaterFrame **)((u8 *)water_surface + surface_offset))->Shake(ripple_row, ripple_column, shake_strength);
+            float speed_value = 0.15f;
+            const float &speed = speed_value;
+            (*(CWaterFrame **)((u8 *)water_surface + surface_offset))->SetParam(speed, 0.0045f, 0.0f, 16.0f);
+            (*(CWaterFrame **)((u8 *)water_surface + surface_offset))->Step();
+            (*(CWaterFrame **)((u8 *)water_surface + surface_offset))->SetColor(0x80, 0x80, 0x80, 0x80);
         }
     }
 
     mgTexManager.ReloadTexture(screen->block, (sceVif1Packet *)NULL);
 
+    mgCTexture framebuffer;
     mgGetFrameBuffer(&framebuffer);
+    mgRect<int> screen_rect(0, 0, (mgScreenWidth - 1) * 16, (mgScreenHeight - 1) * 16);
     mgSetPkMoveImage(&framebuffer, screen_rect, screen, 0, 0, 0);
-    placement = water;
+    sceVu0FMATRIX identity;
+    sceVu0FMATRIX parts_matrix;
+    sceVu0FVECTOR position;
+    sceVu0FVECTOR rotation;
+    sceVu0FVECTOR scale;
+    CMapWater *placement = water;
+    int placement_no;
+    CWaterFrame *surface;
+    CMapParts *parts;
+    int parts_no;
     mgUnitMatrix(identity);
 
     for (placement_no = 0; placement_no < water_num; placement_no++, placement++) {
@@ -1077,6 +1024,10 @@ void CMap::DrawWater(mgCCamera *camera, mgCTexture *screen, mgCTexture *overlay)
     }
 
     if (overlay != NULL) {
+        mgCDrawPrim prim;
+        sceVu0FVECTOR overlay_position;
+        sceVu0FVECTOR overlay_rotation;
+        sceVu0FVECTOR overlay_scale;
         prim.Initialize(NULL, NULL);
         prim.DepthTestEnable(0);
         prim.ZMask(-1);
@@ -1093,144 +1044,119 @@ void CMap::DrawWater(mgCCamera *camera, mgCTexture *screen, mgCTexture *overlay)
         prim.Vertex(mgScreenWidth, mgScreenHeight, 0);
         prim.End();
         mgSetPkFrameBuffer(-1, -1, -1, -1);
-        placement = water;
+        int overlay_no;
+        CWaterFrame *overlay_surface;
+        int overlay_parts_no;
+        int overlay_parts_offset;
+        CMapWater *overlay_water;
+        overlay_water = water;
 
-        for (placement_no = 0; placement_no < water_num; placement_no++, placement++) {
-            surface = placement->frame;
-            if (surface != NULL) {
-                placement->GetPosition(overlay_position);
-                placement->GetRotation(overlay_rotation);
-                placement->GetScale(overlay_scale);
-                placement->GetPosition(overlay_position);
-                placement->GetRotation(overlay_rotation);
-                placement->GetScale(overlay_scale);
-                if (placement->follow[0] != 0) {
+        for (overlay_no = 0; overlay_no < water_num; overlay_no++, overlay_water++) {
+            overlay_surface = overlay_water->frame;
+            if (overlay_surface != NULL) {
+                overlay_water->GetPosition(overlay_position);
+                overlay_water->GetRotation(overlay_rotation);
+                overlay_water->GetScale(overlay_scale);
+                overlay_water->GetPosition(overlay_position);
+                overlay_water->GetRotation(overlay_rotation);
+                overlay_water->GetScale(overlay_scale);
+                if (overlay_water->follow[0] != 0) {
                     overlay_position[0] = camera_position[0];
                 }
-                if (placement->follow[1] != 0) {
+                if (overlay_water->follow[1] != 0) {
                     overlay_position[1] = camera_position[1];
                 }
-                if (placement->follow[2] != 0) {
+                if (overlay_water->follow[2] != 0) {
                     overlay_position[2] = camera_position[2];
                 }
-                surface->SetPosition(overlay_position);
-                surface->SetRotation(overlay_rotation);
-                if (placement->follow[0] != 0 && placement->follow[2] != 0) {
-                    surface->SetRotation(camera_rotation);
+                overlay_surface->SetPosition(overlay_position);
+                overlay_surface->SetRotation(overlay_rotation);
+                if (overlay_water->follow[0] != 0 && overlay_water->follow[2] != 0) {
+                    overlay_surface->SetRotation(camera_rotation);
                 }
-                surface->SetColor(0x80, 0x80, 0x80, 0x20);
-                surface->SetParam(0.15f, 0.0045f, 0.0f, 300.0f);
-                surface->SetScale(overlay_scale);
+                overlay_surface->SetColor(0x80, 0x80, 0x80, 0x20);
+                float overlay_speed_value = 0.15f;
+                const float &overlay_speed = overlay_speed_value;
+                overlay_surface->SetParam(overlay_speed, 0.0045f, 0.0f, 300.0f);
+                overlay_surface->SetScale(overlay_scale);
 
-                for (parts_no = 0; parts_no < placement->parts_num; parts_no++) {
-                    parts = placement->parts[parts_no];
+                for (overlay_parts_no = 0, overlay_parts_offset = 0; overlay_parts_no < overlay_water->parts_num; overlay_parts_offset += 4, overlay_parts_no++) {
+                    parts = *(CMapParts **)((u8 *)overlay_water->parts + overlay_parts_offset);
                     if (parts == NULL) {
-                        mgDrawDirect(surface);
+                        mgDrawDirect(overlay_surface);
                     } else {
                         parts->GetLWMatrix(parts_matrix);
-                        surface->SetTransMatrix(parts_matrix);
-                        mgDrawDirect(surface);
-                        surface->SetTransMatrix(identity);
+                        overlay_surface->SetTransMatrix(parts_matrix);
+                        mgDrawDirect(overlay_surface);
+                        overlay_surface->SetTransMatrix(identity);
                     }
                 }
             }
         }
     }
+    return;
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/map", DrawWater__4CMapFP9mgCCameraP10mgCTextureP10mgCTexture);
-#endif
-
-#ifdef NONMATCHING
 void CMap::DrawTrBox() {
-    CFuncPointCheck   check;
-    sceVu0FVECTOR     light_sphere;
-    CMapTreasureBox  *box;
-    int               plight_enable;
-    int               lighting;
-    int               light_num;
-    int               box_no;
-
-    if (tr_box_num == 0) {
-        return;
-    }
-    if (tr_box == NULL) {
-        return;
-    }
-
-    mgTexManager.ReloadTexture(tr_box_texture, (sceVif1Packet *)NULL);
+    int plight_enable;
+    int lighting;
+    float position[4];
+    char *box;
+    int i;
+    int light_count;
+    if (tr_box_num == 0 || tr_box == 0) return;
+    mgTexManager.ReloadTexture(tr_box_texture, (sceVif1Packet *)0);
     plight_enable = mgGetPlightEnable();
     lighting = mgActiveLighting(2, 1);
-
+    CFuncPointCheck check;
+    check.time = 0;
     CreateFuncCheck(&check);
     GetNowTime();
-    box = tr_box;
-    for (box_no = 0; box_no < tr_box_num; box_no++, box++) {
-        if (box->active != 0 && (box->parts == NULL || box->parts->GetShow() != 0)) {
-            if (func_point.flag & FUNC_POINT_MNGR_LIGHT) {
-                box->GetPosition(light_sphere);
-                light_sphere[3] = 40.0f;
-                light_num = SetFuncPLight(light_sphere, &check);
-            } else {
-                light_num = 0;
-            }
-            if (light_num > 0) {
-                mgPlightEnable(1);
-            }
-            box->DrawDirect();
-            ResetFuncPLight(light_num);
-        }
+    box = (char *)tr_box;
+    for (i = 0; i < tr_box_num; i++, box += 0x680) {
+        if (((CMapTreasureBox *)box)->active == 0) continue;
+        CMapParts *link = ((CMapTreasureBox *)box)->parts;
+        if (link != 0 && link->GetShow() == 0) continue;
+        if (*(unsigned int *)&func_point & 0x40) {
+            ((CMapTreasureBox *)box)->GetPosition(position);
+            position[3] = 40.0f;
+            light_count = SetFuncPLight(position, &check);
+        } else { light_count = 0; }
+        if (light_count > 0) mgPlightEnable(1);
+        ((CMapTreasureBox *)box)->DrawDirect();
+        ResetFuncPLight(light_count);
     }
     mgPlightEnable(plight_enable);
-    if (lighting >= 0) {
-        mgActiveLighting(lighting, 0);
-    }
+    if (lighting >= 0) mgActiveLighting(lighting, 0);
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/map", DrawTrBox__4CMapFv);
-#endif
-
-#ifdef NONMATCHING
-// Defined inline in map.hpp.
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/map", GetShow__7CObjectFv);
-#endif
-
-#ifdef NONMATCHING
 int CMap::GetPoly(int kind, CCPoly *polys, mgVu0FBOX &box, int max) {
-    CMapParts *parts_table[128];
-    CMapParts *parts;
-    CCPoly    *out;
-    int        parts_count;
-    int        count;
-    int        copied;
-    int        remaining;
-    int        j;
-    u16        i;
-
-    out = polys;
-    remaining = max;
-    parts_count = GetPlaceColParts(&box, parts_table, 128);
-    count = 0;
-    for (i = 0; i < parts_count; i++) {
-        parts = parts_table[i];
-        if (parts->name[0] != 0 && parts->GetShow()) {
-            copied = parts->GetPoly(kind, out, box, remaining);
-            for (j = 0; j < copied; j++, out++) {
-                out->parts_no = i;
-            }
-            remaining -= copied;
-            count += copied;
-            if (remaining <= 0) {
-                break;
-            }
+    CMapParts *found[128];
+    int foundCount = GetPlaceColParts(&box, found, 128);
+    int total = 0;
+    int i;
+    int j;
+    for (i = 0; i < foundCount; i++) {
+        CMapParts *parts = found[i];
+        u8 unused = *(s8 *)parts->name == 0;
+        if (unused)
+            continue;
+        if (parts->GetShow() == 0)
+            continue;
+        int effect_num = ((CMapParts *)parts)->GetPoly(kind, polys, box, max);
+        if (0 < effect_num) {
+            j = 0;
+            do {
+                j++;
+                *(s16 *)((u8 *)polys + 0x48) = i;
+                polys++;
+            } while (j < effect_num);
         }
+        max -= effect_num;
+        total += effect_num;
+        if (max <= 0)
+            return total;
     }
-    return count;
+    return total;
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/map", GetPoly__4CMapFiP6CCPolyR9mgVu0FBOXi);
-#endif
 
 int CMap::GetColPoly(CCPoly *polys, mgVu0FBOX &box, int max) {
     return GetPoly(1, polys, box, max);
@@ -1239,118 +1165,118 @@ int CMap::GetColPoly(CCPoly *polys, mgVu0FBOX &box, int max) {
 int CMap::GetCameraPoly(CCPoly *polys, mgVu0FBOX &box, int max) {
     return GetPoly(3, polys, box, max);
 }
+int CMap::GetTrBoxColPoly(CCPoly *polys, float *param, int max) {
+    float position[4];
+    int total = 0;
+    CMapTreasureBox *box = tr_box;
+    int i;
+    int effect_num;
 
-#ifdef NONMATCHING
-int CMap::GetTrBoxColPoly(CCPoly *polys, float *pos, int max) {
-    sceVu0FVECTOR   position;
-    CMapTreasureBox *box;
-    int             count;
-    int             copied;
-    int             i;
-
-    count = 0;
-    box = tr_box;
     for (i = 0; i < tr_box_num; i++, box++) {
-        if (box->active && (box->parts == NULL || box->parts->GetShow())) {
-            box->GetWorldPosition(position);
-            copied = CreateCharaCPoly(polys, max, position, pos, 5.0f, 20.0f);
-            count += copied;
-            max -= copied;
-            polys += copied;
-            if (max < 0) {
-                break;
-            }
-        }
+        if (box->active == 0)
+            continue;
+        CMapParts *linked_parts = box->parts;
+        if (linked_parts != 0 && linked_parts->GetShow() == 0)
+            continue;
+        box->GetWorldPosition(position);
+        effect_num = CreateCharaCPoly(polys, max, position, param, 5.0f, 20.0f);
+        total += effect_num;
+        polys += effect_num;
+        max -= effect_num;
+        if (max < 0)
+            break;
     }
-    return count;
+    return total;
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/map", GetTrBoxColPoly__4CMapFP6CCPolyPfi);
-#endif
 
 #ifdef NONMATCHING
-int CMap::GetFixCameraPos(float *pos, float *out_camera_pos) {
-    sceVu0FVECTOR projection[8];
-    sceVu0FVECTOR direction;
-    sceVu0FVECTOR offset;
-    sceVu0FVECTOR projection_sum;
-    CCameraInfo  *selected;
-    CCameraInfo  *camera;
+int CMap::GetFixCameraPos(sceVu0FVECTOR pos, sceVu0FVECTOR out_camera_pos) {
+    CCameraInfo *selected;
+    int camera_no;
+    int rect_no;
+    int rect_offset;
+    CCameraInfo *camera;
+
     float         segment_length2;
     float         weight;
     float         nearest_distance2;
     float         nearest_distance;
     float         distance;
-    int           camera_no;
-    int           rect_no;
     int           segment_no;
     int           projection_num;
     int           nearest_projection;
-    int           point_no;
+    sceVu0FVECTOR projection[8];
+    sceVu0FVECTOR direction;
+    sceVu0FVECTOR offset;
+    sceVu0FVECTOR projection_sum;
 
     selected = NULL;
-    camera = camera_info;
-    for (camera_no = 0; camera_no < camera_info_num; camera_no++, camera++) {
-        if (camera->rect[0] == NULL) {
-            selected = camera;
+    CCameraInfo *camera_base = camera_info;
+    {
+        CCameraInfo *current = camera_base;
+        for (int default_no = 0; default_no < camera_info_num; default_no++, current++) {
+            if (current->rect[0] == NULL) selected = current;
         }
     }
-    camera = camera_info;
+    camera = camera_base;
     for (camera_no = 0; camera_no < camera_info_num; camera_no++, camera++) {
-        for (rect_no = 0; rect_no < camera->rect_num; rect_no++) {
-            if (camera->rect[rect_no] == NULL) {
-                break;
-            }
-            if (camera->rect[rect_no]->InsidePoint(pos) != 0) {
-                selected = camera;
-            }
+        for (rect_no = 0, rect_offset = 0; rect_no < camera->rect_num; rect_offset += 4, rect_no++) {
+            CColFrame *rect = *(CColFrame **)((u8 *)camera + 0x94 + rect_offset);
+            if (rect == NULL) break;
+            if (rect->InsidePoint(pos) != 0) selected = camera;
         }
     }
 
     if (selected == NULL) {
         return MAP_FIX_CAMERA_NONE;
     }
-    if (selected->pos_num >= 2) {
+    if (1 < selected->pos_num) {
         projection_num = 0;
         nearest_projection = -1;
         for (segment_no = 0; segment_no < selected->pos_num - 1; segment_no++) {
-            sceVu0SubVector(direction, selected->pos[segment_no + 1], selected->pos[segment_no]);
-            sceVu0SubVector(offset, pos, selected->pos[segment_no]);
+            float *segment = selected->pos[segment_no];
+            sceVu0SubVector(direction, selected->pos[segment_no + 1], segment);
+            sceVu0SubVector(offset, pos, segment);
             segment_length2 = mgDistVector2(direction);
             weight = sceVu0InnerProduct(direction, offset) / segment_length2;
             if (!(weight < 0.0f) && weight <= 1.0f) {
                 sceVu0ScaleVector(projection[projection_num], direction, weight);
-                mgAddVector(projection[projection_num], selected->pos[segment_no]);
-                if (nearest_projection < 0) {
-                    nearest_projection = projection_num;
-                } else {
+                mgAddVector(projection[projection_num], segment);
+                if (nearest_projection >= 0) {
                     nearest_distance2 = mgDistVector2(pos, projection[nearest_projection]);
-                    if (mgDistVector2(pos, projection[projection_num]) < nearest_distance2) {
-                        nearest_projection = projection_num;
-                    }
+                    if (!(mgDistVector2(pos, projection[projection_num]) < nearest_distance2)) goto next_projection;
                 }
+                nearest_projection = projection_num;
+                next_projection:
                 projection_num++;
             }
         }
 
         mgZeroVector(projection_sum);
-        for (point_no = 0; point_no < projection_num; point_no++) {
-            mgAddVector(projection_sum, projection[point_no]);
+        int sum_offset;
+        int sum_no = 0;
+        if (0 < projection_num) {
+            sum_offset = 0;
+            do {
+                mgAddVector(projection_sum, (float *)((u8 *)projection + sum_offset));
+                sum_no++;
+                sum_offset += 0x10;
+            } while (sum_no < projection_num);
         }
-        point_no = 0;
+        sum_no = 0;
         if (projection_num > 0) {
             *(u_long128 *)out_camera_pos = *(u_long128 *)projection[nearest_projection];
             nearest_distance = mgDistVector(out_camera_pos, pos);
         } else {
             nearest_distance = mgDistVector(selected->pos[0], pos);
             *(u_long128 *)out_camera_pos = *(u_long128 *)selected->pos[0];
-            point_no = 1;
+            sum_no = 1;
         }
-        for (; point_no < selected->pos_num; point_no++) {
-            distance = mgDistVector(pos, selected->pos[point_no]);
+        for (; sum_no < selected->pos_num; sum_no++) {
+            distance = mgDistVector(pos, selected->pos[sum_no]);
             if (distance < nearest_distance) {
                 nearest_distance = distance;
-                *(u_long128 *)out_camera_pos = *(u_long128 *)selected->pos[point_no];
+                *(u_long128 *)out_camera_pos = *(u_long128 *)selected->pos[sum_no];
             }
         }
         return MAP_FIX_CAMERA_PATH;
@@ -1362,192 +1288,143 @@ int CMap::GetFixCameraPos(float *pos, float *out_camera_pos) {
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/map", GetFixCameraPos__4CMapFPfPf);
 #endif
 
-#ifdef NONMATCHING
 void CMap::FixCameraPartsOnOff(float *camera_pos) {
-    CCameraInfo     *camera;
-    CCameraInfo     *selected;
-    CCameraDrawInfo *draw_info;
-    CPartsGroup     *group;
-    int              camera_no;
-    int              draw_no;
-
-    camera = camera_info;
-    for (camera_no = 0; camera_no < camera_info_num; camera_no++, camera++) {
-        for (draw_no = 0; draw_no < 4; draw_no++) {
-            draw_info = camera->GetDrawInfo(draw_no);
-            if (draw_info != NULL) {
-                group = GetPartsGroup(draw_info->group_no);
-                if (group != NULL) {
-                    group->camera_off = 0;
+    {
+        CCameraInfo *camera = camera_info;
+        int camera_no;
+        int draw_no;
+        for (camera_no = 0; camera_no < camera_info_num; camera_no++, camera++) {
+            for (draw_no = 0; draw_no < 4; draw_no++) {
+                CCameraDrawInfo *draw_info = camera->GetDrawInfo(draw_no);
+                if (draw_info != NULL) {
+                    CPartsGroup *group = GetPartsGroup(draw_info->group_no);
+                    if (group != NULL) group->camera_off = 0;
                 }
             }
         }
     }
-    camera = camera_info;
-    selected = NULL;
-    for (camera_no = 0; camera_no < camera_info_num; camera_no++, camera++) {
-        if (mgDistVector(camera->pos[0], camera_pos) < 10.0f) {
-            selected = camera;
+    CCameraInfo *selected = NULL;
+    int camera_no;
+    char *candidate = (char *)camera_info;
+    for (camera_no = 0; camera_no < camera_info_num; camera_no++, candidate += 0xD0) {
+        if (mgDistVector(((CCameraInfo *)candidate)->pos[0], camera_pos) < 10.0f) {
+            selected = (CCameraInfo *)candidate;
             break;
         }
     }
     if (selected != NULL) {
-        for (draw_no = 0; draw_no < 4; draw_no++) {
-            draw_info = selected->GetDrawInfo(draw_no);
+        for (int draw_no = 0; draw_no < 4; draw_no++) {
+            CCameraDrawInfo *draw_info = selected->GetDrawInfo(draw_no);
             if (draw_info != NULL) {
-                group = GetPartsGroup(draw_info->group_no);
-                if (group != NULL) {
-                    group->camera_off = 1;
-                }
+                CPartsGroup *group = GetPartsGroup(draw_info->group_no);
+                if (group != NULL) group->camera_off = 1;
             }
         }
     }
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/map", FixCameraPartsOnOff__4CMapFPf);
-#endif
 
-#ifdef NONMATCHING
 CFuncPoint *CMap::GetEvent(float *pos, int check_type, MapEventInfo *info) {
-    MapEventInfo    event_info;
+    union { u_long128 words[6]; } event_storage;
     MapEventInfo    nearest_info;
     CFuncPoint     *nearest_point;
+    MapEventInfo *current;
     CFuncPoint     *point;
     CMapParts      *parts;
     CFuncPointMngr *manager;
     float          nearest_distance;
     float          distance;
     int            last_event;
-    int            accepted;
     int            parts_no;
+    int            accepted;
     int            row;
 
+    current = (MapEventInfo *)&event_storage;
     nearest_point = NULL;
-    event_info.event_no = 0;
-    mgUnitMatrix(event_info.matrix);
-    event_info.point_no = -1;
-    event_info.parts_no = -1;
+    current->event_no = 0;
+    mgUnitMatrix((float (*)[4])((u8 *)current + 0x10));
+    current->point_no = -1;
+    current->parts_no = -1;
     func_point.GetStart(FUNC_POINT_EVENT);
     nearest_distance = 0.0f;
     last_event = 0;
-    point = func_point.Get();
-    while (point != NULL) {
-        if (CheckFuncEvent(point, pos, check_type, &event_info, &distance) == 0) {
-            if (event_info.event_no != 0) {
-                last_event = event_info.event_no;
+    if ((point = func_point.Get()) != NULL) do {
+        if (CheckFuncEvent(point, pos, check_type, current, &distance) == 0) {
+            if (current != NULL && current->event_no != 0) {
+                last_event = current->event_no;
             }
         } else {
-            event_info.point_no = point->event.point_no;
+            current->point_no = point->event.point_no;
             if (nearest_point == NULL || distance < nearest_distance) {
                 nearest_distance = distance;
                 nearest_point = point;
-                nearest_info.check_type = event_info.check_type;
-                nearest_info.event_no = event_info.event_no;
-                for (row = 0; row < 4; row++) {
-                    *(u_long128 *)nearest_info.matrix[row] = *(u_long128 *)event_info.matrix[row];
-                }
-                nearest_info.parts_no = event_info.parts_no;
-                nearest_info.point_no = event_info.point_no;
+                nearest_info = *current;
             }
         }
-        point = func_point.Get();
-    }
+    } while ((point = func_point.Get()) != NULL);
 
     parts = place_parts;
     if (parts_event != 0) {
         for (parts_no = 0; parts_no < place_parts_max; parts_no++, parts++) {
             manager = &parts->func_point_mngr;
-            if ((manager->flag & FUNC_POINT_MNGR_EVENT) && parts->name[0] != '\0' && parts->GetShow() != 0) {
+            if ((manager->flag & FUNC_POINT_MNGR_EVENT) && (u8)(*(s8 *)parts->name == 0) == 0 && parts->GetShow() != 0) {
                 manager->GetStart(FUNC_POINT_EVENT);
-                point = manager->Get();
-                while (point != NULL) {
+                if ((point = manager->Get()) != NULL) do {
                     point->frame.SetReference(&parts->frame);
-                    accepted = CheckFuncEvent(point, pos, check_type, &event_info, &distance);
+                    accepted = CheckFuncEvent(point, pos, check_type, current, &distance);
                     point->frame.DeleteReference();
-                    event_info.parts_no = parts_no;
-                    if (event_info.event_no != 0) {
-                        last_event = event_info.event_no;
+                    if (current != NULL) {
+                        current->parts_no = parts_no;
+                        if (current->event_no != 0) last_event = current->event_no;
                     }
                     if (accepted != 0) {
-                        event_info.point_no = point->event.point_no;
+                        current->point_no = point->event.point_no;
                         if (nearest_point == NULL || distance < nearest_distance) {
                             nearest_distance = distance;
                             nearest_point = point;
-                            nearest_info.check_type = event_info.check_type;
-                            nearest_info.event_no = event_info.event_no;
-                            for (row = 0; row < 4; row++) {
-                                *(u_long128 *)nearest_info.matrix[row] = *(u_long128 *)event_info.matrix[row];
-                            }
-                            nearest_info.parts_no = event_info.parts_no;
-                            nearest_info.point_no = event_info.point_no;
+                            nearest_info = *current;
                         }
                     }
-                    point = manager->Get();
-                }
+                } while ((point = manager->Get()) != NULL);
             }
         }
     }
     if (info != NULL) {
-        info->check_type = nearest_info.check_type;
-        info->event_no = nearest_info.event_no;
-        for (row = 0; row < 4; row++) {
-            *(u_long128 *)info->matrix[row] = *(u_long128 *)nearest_info.matrix[row];
-        }
-        info->parts_no = nearest_info.parts_no;
-        info->point_no = nearest_info.point_no;
+        *info = nearest_info;
         info->event_no = last_event;
     }
     return nearest_point;
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/map", GetEvent__4CMapFPfiP12MapEventInfo);
-#endif
-
-#ifdef NONMATCHING
 CFuncPoint *CMap::InScreenFunc(InScreenFuncInfo *info) {
-    CMapParts *parts;
-    CFuncPoint *nearest;
-    CFuncPoint *point;
-    float       distance;
-    int         point_info;
-    int         i;
-
-    nearest = NULL;
-    parts = place_parts;
-    point_info = 0;
-    distance = 0.0f;
-    for (i = 0; i < place_parts_max; i++, parts++) {
-        if (parts->name[0] != 0 && parts->CheckDraw()) {
-            point = parts->InScreenFunc(info);
-            if (point != NULL && (nearest == NULL || info->dist < distance)) {
-                nearest = point;
-                point_info = info->unk_04;
-                distance = info->dist;
-            }
-        }
+    CFuncPoint *hit = 0;
+    char *parts;
+    int i;
+    CFuncPoint *result;
+    float saved_y = 0.0f;
+    float nearest = 0.0f;
+    float *values = (float *)info;
+    parts = (char *)place_parts;
+    for (i = 0; i < place_parts_max; i++, parts += sizeof(CMapParts)) {
+        u8 unused = *(s8 *)((CMapParts *)parts)->name == 0;
+        if (unused) continue;
+        if (((CMapParts *)parts)->CheckDraw() == 0) continue;
+        result = ((CMapParts *)parts)->InScreenFunc(info);
+        if (result == 0) continue;
+        if (hit != 0 && !(values[2] < nearest)) continue;
+        hit = result;
+        saved_y = values[1];
+        nearest = values[2];
     }
-    info->unk_04 = point_info;
-    return nearest;
+    values[1] = saved_y;
+    return hit;
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/map", InScreenFunc__4CMapFP16InScreenFuncInfo);
-#endif
-
-#ifdef NONMATCHING
-void CMap::DrawScreenFunc(mgCFrame *marker) {
-    CMapParts *parts;
-    int        i;
-
-    parts = place_parts;
-    for (i = 0; i < place_parts_max; i++, parts++) {
-        if (parts->name[0] != 0 && parts->CheckDraw()) {
-            parts->DrawScreenFunc(marker);
-        }
+void CMap::DrawScreenFunc(mgCFrame *frame) {
+    char *parts = (char *)place_parts;
+    int i;
+    for (i = 0; i < place_parts_max; i++, parts += sizeof(CMapParts)) {
+        u8 unused = *(s8 *)((CMapParts *)parts)->name == 0;
+        if (!unused && ((CMapParts *)parts)->CheckDraw() != 0) ((CMapParts *)parts)->DrawScreenFunc(frame);
     }
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/map", DrawScreenFunc__4CMapFP8mgCFrame);
-#endif
 
 void CMap::EffectStep() {
     anime_time += 1.0f;
@@ -1558,79 +1435,76 @@ void CMap::EffectStep() {
 #ifdef NONMATCHING
 void CMap::AnimeStep(CObjAnimeEnv *env) {
     CFuncPointCheck check;
-    CObjAnime      *animation;
-    int             i;
-
     CreateFuncCheck(&check);
-    for (i = 0; i < place_parts_num; i++) {
-        place_parts[i].AnimeStep(&check, env);
+    {
+        char *parts = (char *)place_parts;
+        int parts_no;
+        for (parts_no = 0; parts_no < place_parts_num; parts_no++, parts += 0x310) {
+            ((CMapParts *)parts)->AnimeStep(&check, env);
+        }
     }
     if (obj_anime_num > 0) {
-        animation = obj_anime;
-        if (animation == NULL) {
-            return;
-        }
-        for (i = 0; i < obj_anime_num; i++, animation++) {
-            if (animation->func_point != NULL && animation->func_point->Check(&check)) {
-                animation->Step(env);
+        int animation_no = 0;
+        char *animation = (char *)obj_anime;
+        if (animation == NULL) return;
+        for (animation_no = 0; animation_no < obj_anime_num; animation_no++, animation += 0x30) {
+            if (((CObjAnime *)animation)->func_point != NULL) {
+                if (((CObjAnime *)animation)->func_point->Check(&check) != 0) {
+                    ((CObjAnime *)animation)->Step(env);
+                }
             }
         }
     }
+    return;
 }
 #else
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/map", AnimeStep__4CMapFP12CObjAnimeEnv);
 #endif
-
-#ifdef NONMATCHING
 void CMap::Step() {
+    char *parts = (char *)place_parts;
     int i;
-
-    for (i = 0; i < place_parts_num; i++) {
-        place_parts[i].Step();
-    }
+    for (i = 0; i < place_parts_num; i++, parts += sizeof(CMapParts)) ((CMapParts *)parts)->Step();
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/map", Step__4CMapFv);
-#endif
-
-#ifdef NONMATCHING
-int CMap::GetSeSrcVolPan(int *se_no, float *vol, float *pan, int max) {
+int CMap::GetSeSrcVolPan(int *ids, float *vols, float *pans, int max) {
     CFuncPointCheck check;
-    sceVu0FMATRIX  matrix;
-    CMapParts     *parts;
-    int            count;
-    int            copied;
-    int            remaining;
-    int            i;
-
+    float matrix[4][4];
+    int total;
+    int got;
+    CMapParts *parts;
+    int i;
+    check.time = 0;
     CreateFuncCheck(&check);
+    total = 0;
     mgUnitMatrix(matrix);
-    copied = ::GetSeSrcVolPan(matrix, &func_point, &check, se_no, vol, pan, max);
-    count = copied;
-    remaining = max - copied;
-    se_no += copied;
-    vol += copied;
-    pan += copied;
+
+    got = ::GetSeSrcVolPan((float(*)[4])matrix, &func_point, &check, ids, vols, pans, max);
+    total += got;
+    ids += got;
+    max -= got;
+    vols += got;
+    pans += got;
     parts = place_parts;
     for (i = 0; i < place_parts_max; i++, parts++) {
-        if (parts->name[0] != 0 && parts->CheckDraw() && (parts->func_point_mngr.flag & FUNC_POINT_MNGR_SOUND)) {
-            parts->GetLWMatrix(matrix);
-            if (remaining <= 0) {
-                return count;
-            }
-            copied = ::GetSeSrcVolPan(matrix, &parts->func_point_mngr, &check, se_no, vol, pan, remaining);
-            count += copied;
-            remaining -= copied;
-            se_no += copied;
-            vol += copied;
-            pan += copied;
-        }
+        u8 unused = *(s8 *)parts->name == 0;
+        if (unused)
+            continue;
+        if (parts->CheckDraw() == 0)
+            continue;
+        if ((*(u32 *)&parts->func_point_mngr & 0x80) == 0)
+            continue;
+        ((CMapParts *)parts)->GetLWMatrix(matrix);
+        if (max <= 0)
+            return total;
+        got = ::GetSeSrcVolPan((float(*)[4])matrix, (CFuncPointMngr *)&parts->func_point_mngr,
+                               &check, ids, vols, pans, max);
+        total += got;
+        ids += got;
+        max -= got;
+        vols += got;
+        pans += got;
     }
-    return count;
+    return total;
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/map", GetSeSrcVolPan__4CMapFPiPfPfi);
-#endif
 
 void CMap::CreateMap(CMdsListSet *mds_list_set, mgCMemory *stack) {
     char *script;
@@ -1644,47 +1518,53 @@ void CMap::CreateMap(CMdsListSet *mds_list_set, mgCMemory *stack) {
     LoadMapFile(script, size, stack, 0);
 }
 
-#ifdef NONMATCHING
+extern "C" void *__ct__9CObjAnimeFv(void *);
 void CMap::AssignFuncPoint(mgCMemory *stack) {
-    CObjAnime  *animation;
-    CFuncPoint *point;
     CMapParts  *parts;
 
     obj_anime_num = func_point.GetNum(FUNC_POINT_ANIME);
     if (obj_anime_num > 0) {
-        obj_anime = new (stack->Alloc((obj_anime_num * sizeof(CObjAnime) + 15) / 16 + 2)) CObjAnime[obj_anime_num];
-        animation = obj_anime;
+        int count = obj_anime_num;
+        unsigned int bytes = (unsigned int)count * 0x30;
+        unsigned int blocks;
+        switch (bytes & 0xF) {
+            default: blocks = (bytes >> 4) + 1; break;
+            case 0: blocks = bytes >> 4; break;
+        }
+        obj_anime = new (stack->Alloc(blocks + 2)) CObjAnime[count];
+        CFuncPoint *point;
+        char *animation = (char *)obj_anime;
         if (animation != NULL) {
             func_point.GetStart(FUNC_POINT_ANIME);
-            for (point = func_point.Get(); point != NULL; point = func_point.Get(), animation++) {
-                animation->frame = NULL;
-                animation->piece = NULL;
-                animation->parts = NULL;
-                animation->func_point = NULL;
-                animation->back = 0;
-                animation->stop = 0;
-                animation->func_point = point;
+            if ((point = func_point.Get()) != NULL) do {
+                ((CObjAnime *)animation)->frame = NULL;
+                ((CObjAnime *)animation)->piece = NULL;
+                ((CObjAnime *)animation)->parts = NULL;
+                ((CObjAnime *)animation)->func_point = NULL;
+                ((CObjAnime *)animation)->back = 0;
+                ((CObjAnime *)animation)->stop = 0;
+                ((CObjAnime *)animation)->func_point = point;
                 parts = NULL;
                 if (point->anime.parts_name != NULL) {
                     parts = GetPlaceParts(point->anime.parts_name);
                 }
-                animation->AssignFuncAnime(point, parts);
-            }
+                ((CObjAnime *)animation)->AssignFuncAnime(point, parts);
+                animation += 0x30;
+            } while ((point = func_point.Get()) != NULL);
             func_point.GetEnd();
         }
     }
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/map", AssignFuncPoint__4CMapFP9mgCMemory);
-#endif
+CObjAnime::CObjAnime() {
+    frame = 0;
+    piece = 0;
+    parts = 0;
+    func_point = 0;
+    back = 0;
+    stop = 0;
+}
 
-#ifdef NONMATCHING
-// Defined inline in funcpoint.hpp.
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/map", __ct__9CObjAnimeFv);
-#endif
-
-#ifdef NONMATCHING
+extern "C" void *__ct__15CMapTreasureBoxFv(void *);
 void CMap::CreateTrBox(CMapTreasureBox *model, int tex_block, mgCMemory *stack) {
     mgCFrame        *top_frame;
     CMapParts       *parts;
@@ -1696,7 +1576,7 @@ void CMap::CreateTrBox(CMapTreasureBox *model, int tex_block, mgCMemory *stack) 
     if (model == NULL || model->CObjectFrame::frame == NULL) {
         return;
     }
-    top_frame = model->CObjectFrame::frame->SearchFrame("top");
+    top_frame = model->CObjectFrame::frame->SearchFrame(at_1927);
     if (top_frame != NULL) {
         top_frame->SetRotType(2);
     }
@@ -1706,60 +1586,69 @@ void CMap::CreateTrBox(CMapTreasureBox *model, int tex_block, mgCMemory *stack) 
     tr_box_num = func_point.GetEventNum(FUNC_EVENT_TREASURE_BOX);
     parts = place_parts;
     for (parts_index = 0; parts_index < place_parts_max; parts_index++, parts++) {
-        if (parts->name[0] != '\0') {
+        if ((u8)(*(s8 *)parts->name == 0) == 0) {
             tr_box_num += parts->func_point_mngr.GetEventNum(FUNC_EVENT_TREASURE_BOX);
         }
     }
 
-    tr_box = new (stack->Alloc((tr_box_num * sizeof(CMapTreasureBox) + 15) / 16 + 2)) CMapTreasureBox[tr_box_num];
+    int count = tr_box_num;
+    unsigned int bytes = (unsigned int)count * 0x680;
+    unsigned int blocks;
+    switch (bytes & 0xF) {
+        default: blocks = (bytes >> 4) + 1; break;
+        case 0: blocks = bytes >> 4; break;
+    }
+    int block = (int)stack->Alloc(blocks + 2);
+    tr_box = (CMapTreasureBox *)__construct_new_array(__nwa__FUiP1(count * 0x680 + 0x10, block), __ct__15CMapTreasureBoxFv, 0, 0x680, count);
     if (tr_box == NULL) {
         tr_box_num = 0;
     }
 
-    box_index = 0;
-    for (parts_index = -1; parts_index < place_parts_max; parts_index++) {
-        if (box_index >= tr_box_num) {
-            break;
-        }
-        parts = NULL;
-        if (parts_index < 0) {
-            manager = &func_point;
+    {
+    int box_no;
+    CFuncPointMngr *current_manager;
+    CFuncPoint *current_point;
+    int box_offset;
+    int total_box_offset;
+    CMapParts *linked_parts;
+    int parts_no;
+    CMapParts *parts_cursor = place_parts;
+    box_no = 0;
+    total_box_offset = 0;
+    for (parts_no = -1, parts_cursor--; parts_no < place_parts_max; parts_cursor++, parts_no++) {
+        if (box_no >= tr_box_num) break;
+        linked_parts = NULL;
+        if (parts_no < 0) {
+            current_manager = &func_point;
         } else {
-            parts = &place_parts[parts_index];
-            manager = &parts->func_point_mngr;
+            current_manager = &parts_cursor->func_point_mngr;
+            linked_parts = parts_cursor;
         }
-        manager->GetStart(FUNC_POINT_EVENT);
-        for (point = manager->Get(); point != NULL; point = manager->Get()) {
-            if ((point->event.flag & FUNC_EVENT_TREASURE_BOX) != 0) {
-                tr_box_model->Copy(tr_box[box_index], stack);
-                tr_box[box_index].AssignFuncPoint(point, parts);
-                point->event.point_no = box_index;
-                box_index++;
-            }
+        current_manager->GetStart(FUNC_POINT_EVENT);
+        if ((current_point = current_manager->Get()) != NULL) {
+            box_offset = total_box_offset;
+            do {
+                if ((current_point->event.flag & FUNC_EVENT_TREASURE_BOX) != 0) {
+                    tr_box_model->Copy(*(CMapTreasureBox *)((u8 *)tr_box + box_offset), stack);
+                    ((CMapTreasureBox *)((u8 *)tr_box + box_offset))->AssignFuncPoint(current_point, linked_parts);
+                    current_point->event.point_no = box_no;
+                    box_offset += 0x680;
+                    total_box_offset += 0x680;
+                    box_no++;
+                }
+            } while ((current_point = current_manager->Get()) != NULL);
         }
-        manager->GetEnd();
+        current_manager->GetEnd();
+    }
     }
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/map", CreateTrBox__4CMapFP15CMapTreasureBoxiP9mgCMemory);
-#endif
-
-#ifdef NONMATCHING
-// Defined inline in mapparts.hpp.
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/map", __ct__15CMapTreasureBoxFv);
-#endif
-
-#ifdef NONMATCHING
-CMapTreasureBox *CMap::GetTrBox(int no) {
-    if (no < 0 || tr_box_num < no || tr_box == NULL) {
+CMapTreasureBox::CMapTreasureBox() { Initialize(); }
+CMapTreasureBox *CMap::GetTrBox(int index) {
+    if (index < 0 || index > tr_box_num || tr_box == NULL) {
         return NULL;
     }
-    return &tr_box[no];
+    return &tr_box[index];
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/map", GetTrBox__4CMapFi);
-#endif
 
 void CMap::DeleteTrBox(int no, CMapFlagData *flags) {
     CMapTreasureBox *box;
@@ -1777,17 +1666,14 @@ void CMap::DeleteTrBox(int no, CMapFlagData *flags) {
         }
     }
 }
-
-#ifdef NONMATCHING
-void CMap::UpdateTrBoxFlag(CMapFlagData *flags) {
+void CMap::UpdateTrBoxFlag(CMapFlagData *flagData) {
     CMapTreasureBox *box;
-    int             i;
-
-    if (flags != NULL) {
+    int i;
+    if (flagData != NULL) {
         box = tr_box;
         for (i = 0; i < tr_box_num; i++, box++) {
             if (box->flag_no > 0) {
-                box->active = flags->GetFlag(box->flag_no) == 0;
+                box->active = !(flagData->GetFlag(box->flag_no) != 0);
                 if (box->func_point != NULL) {
                     box->func_point->enable = box->active;
                 }
@@ -1795,45 +1681,45 @@ void CMap::UpdateTrBoxFlag(CMapFlagData *flags) {
         }
     }
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/map", UpdateTrBoxFlag__4CMapFP12CMapFlagData);
-#endif
 
-#ifdef NONMATCHING
 void CMap::LoadData(unsigned int *pcp_pack, unsigned int *img_pack, int *tex_block, mgCMemory *stack) {
     mgCEnterIMGInfo info;
-    char          *name;
-    unsigned int  *file;
-    int            block;
-    int            first_block;
-    int            index;
+    int index;
+    int block;
+    char *name;
+    unsigned int *file;
+    int first_block;
 
     if (mds_list_set != NULL) {
         block = *tex_block;
-        for (index = 0; (name = GetImgName(index)) != NULL; index++) {
+        mgCTextureManager *manager = &mgTexManager;
+        for (index = 0; ; index++) {
+            name = GetImgName(index);
+            if (name == NULL) break;
             file = GetPackFile(img_pack, name, NULL);
-            printf("%x %s\n", file, name);
+            printf(at_2008, file, name);
             if (file != NULL) {
                 first_block = block;
-                block += mgTexManager.EnterIMGFile((u_char *)file, block, stack, &info) + 1;
-                mgTexManager.EndEnterTexture(first_block);
+                block += manager->EnterIMGFile((u_char *)file, block, stack, &info);
+                block++;
+                manager->EndEnterTexture(first_block);
                 mds_list_set->LoadIMGFile(name, &info, stack);
             }
         }
-        for (index = 0; (name = GetPCPName(index)) != NULL; index++) {
-            file = GetPackFile(pcp_pack, name, NULL);
+        char *pcp_name;
+        int pcp_index;
+        for (pcp_index = 0; ; pcp_index++) {
+            pcp_name = GetPCPName(pcp_index);
+            if (pcp_name == NULL) break;
+            file = GetPackFile(pcp_pack, pcp_name, NULL);
             if (file != NULL) {
-                mds_list_set->LoadPCPFile(name, file, stack, all_scissor);
+                mds_list_set->LoadPCPFile(pcp_name, file, stack, all_scissor);
             }
         }
         *tex_block = block - *tex_block;
     }
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/map", LoadData__4CMapFPUiPUiPiP9mgCMemory);
-#endif
 
-#ifdef NONMATCHING
 int CheckFuncEvent(CFuncPoint *point, float *pos, int check_type, MapEventInfo *info, float *out_dist) {
     sceVu0FMATRIX matrix;
     sceVu0FVECTOR world_position;
@@ -1863,26 +1749,22 @@ int CheckFuncEvent(CFuncPoint *point, float *pos, int check_type, MapEventInfo *
         }
         info->check_type = check_type;
         flags = point->event.flag;
-        if (flags & (FUNC_EVENT_ACTION | FUNC_EVENT_ITEM)) {
-            switch (check_type) {
-            case 0:
+        if ((flags & FUNC_EVENT_ACTION) != 0 || (flags & FUNC_EVENT_ITEM) != 0) {
+            if (check_type == 0) {
                 if (flags & FUNC_EVENT_ACTION) {
                     return 0;
                 }
                 if (flags & FUNC_EVENT_ITEM) {
                     return 0;
                 }
-                break;
-            case 1:
+            } else if (check_type == 1) {
                 if (!(flags & FUNC_EVENT_ACTION)) {
                     return 0;
                 }
-                break;
-            case 2:
+            } else if (check_type == 2) {
                 if (!(flags & FUNC_EVENT_ITEM)) {
                     return 0;
                 }
-                break;
             }
         }
         *(u_long128 *)info->matrix[0] = *(u_long128 *)matrix[0];
@@ -1895,63 +1777,8 @@ int CheckFuncEvent(CFuncPoint *point, float *pos, int check_type, MapEventInfo *
     }
     return 1;
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/map", CheckFuncEvent__FP10CFuncPointPfiP12MapEventInfoPf);
-#endif
-
-#ifdef NONMATCHING
-// Defined inline in map.hpp.
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/map", Draw__4CMapFv);
-#endif
-
-#ifdef NONMATCHING
-// Defined inline in map.hpp.
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/map", DrawDirect__4CMapFv);
-#endif
-
-#ifdef NONMATCHING
 int CObject::Draw() { return 0; }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/map", Draw__7CObjectFv);
-#endif
 int CObject::DrawDirect() { return 0; }
-#ifdef NONMATCHING
-// Defined inline in map.hpp.
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/map", Show__7CObjectFi);
-#endif
-
-#ifdef NONMATCHING
-// Defined inline in map.hpp.
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/map", SetFarDist__7CObjectFf);
-#endif
-
-#ifdef NONMATCHING
-// Defined inline in map.hpp.
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/map", GetFarDist__7CObjectFv);
-#endif
-
-#ifdef NONMATCHING
-// Defined inline in map.hpp.
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/map", SetNearDist__7CObjectFf);
-#endif
-
-#ifdef NONMATCHING
-// Defined inline in map.hpp.
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/map", GetNearDist__7CObjectFv);
-#endif
-
-#ifdef NONMATCHING
-// Defined inline in map.hpp.
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/map", Copy__7CObjectFR7CObjectP9mgCMemory);
-#endif
 
 
 // Constants (.rodata)
@@ -1972,7 +1799,9 @@ INCLUDE_RODATA("ps2/asm/pal/nonmatchings/map", __vt__9CMapWater__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/map", CMapName__DATA);
 
 // Small uninitialised data (.sbss)
+INCLUDE_BSS(init_1249, 0x4);
 INCLUDE_BSS(init_1301, 0x4);
 
 // Uninitialised data (.bss)
+INCLUDE_BSS(ft_1248, 0xE00);
 INCLUDE_BSS(attr_1300, 0x90);

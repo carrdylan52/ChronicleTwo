@@ -1,42 +1,77 @@
 #include "common.h"
-#include "actionchara.hpp"
-
-#include <cmath>
-#include <cstdio>
-#include <cstring>
-#include <libvu0.h>
-
-#include "actscript.hpp"
 #include "automap.hpp"
-#include "colprim.hpp"
-#include "dng_effect.hpp"
-#include "dng_event.hpp"
-#include "effect.hpp"
-#include "effscript.hpp"
-#include "gamedata.hpp"
-#include "gameutil.hpp"
 #include "mainloop.hpp"
-#include "maintex.hpp"
+#include "padcontrol.hpp"
+#include "gamedata.hpp"
+#include "mglib.hpp"
+#include "dataread.hpp"
+#include "swordeffect.hpp"
+#include "snd_mngr.hpp"
+#include "dng_event.hpp"
+#include "effscript.hpp"
+#include "colprim.hpp"
+#include "mg_math.hpp"
+#include "mg_camera.hpp"
+#include "sceneload.hpp"
+#include "scene.hpp"
+#include "sound.hpp"
+#include "dng_main.hpp"
+#include "dng_status.hpp"
+#include "savedata.hpp"
+#include "actscript.hpp"
+#include "scriptinterpreter.hpp"
+#include <cstring>
+#include <cstdio>
+#include <cmath>
+#include "cameracontrol.hpp"
+#include "character.hpp"
+#include "dng_effect.hpp"
 #include "map.hpp"
 #include "mapparts.hpp"
 #include "mdslist.hpp"
-#include "menucommon.hpp"
-#include "mg_camera.hpp"
 #include "mg_frame.hpp"
-#include "mg_math.hpp"
 #include "mg_memory.hpp"
-#include "mglib.hpp"
 #include "monster.hpp"
-#include "padcontrol.hpp"
+#include "runscript.hpp"
 #include "scenesnd.hpp"
-#include "snd_mngr.hpp"
-#include "sphida.hpp"
-#include "swordeffect.hpp"
 #include "userdata.hpp"
+#include "actionchara.hpp"
+#include "sphida.hpp"
+#include <libvu0.h>
+#include "effect.hpp"
+#include "gameutil.hpp"
+#include "maintex.hpp"
+#include "menucommon.hpp"
 
-#ifdef NONMATCHING
-static float old_angle; /**< Previous stick direction used by the movement acceleration ramp. */
-#endif
+extern "C" void SethitEffect__15CHitEffectImageFPfPfffffii(CHitEffectImage *, float *, float *, float, float, float, float, int, int);
+extern char at_1325[];
+extern char at_1357[];
+extern char at_1358[];
+extern char at_1394[];
+extern char at_1427[];
+extern char at_1428[];
+extern CScene *nowScene__2;
+union ActionVector { float f[4]; int i[4]; u_long128 qw; };
+struct ThrowItemTable { int item_no[19]; };
+extern ThrowItemTable at_1398;
+extern CMonsterMan *ActiveMonster;
+extern float at_3289[4];
+extern float at_3291[4];
+extern char at_2423[];
+extern char at_3389[];
+extern char at_2333[];
+extern char at_2334[];
+extern char at_2210[];
+extern float old_angle;
+extern float ang_3371;
+extern s8 init_3372;
+extern char at_2846[];
+int RockOn_TargetSel(CScene *scene, int index);
+int DistCheck_Action2(CScene *scene, float unused, float range, float *out_dist, int rank, int *out_rank);
+int Check_LockOn(CScene *scene, float range, int index);
+void HitEffectSet(CScene *scene, float *point);
+int CheckAmuletAvoid(int item_no);
+int CheckEquipSetItem(int item_no);
 
 // Code (.text)
 void CActionChara::ResetAccele(void) {
@@ -46,67 +81,67 @@ void CActionChara::ResetAccele(void) {
     accele.speed = 0;
 }
 void CActionChara::ResetAction() {
-    int index;
+    int i;
 
     AllDeleteDamage();
-    for (index = 0; index < 3; index++) {
-        if (sword_effect[index] != NULL) {
-            sword_effect[index]->Clear();
+    i = 0;
+    do {
+        if (sword_effect[i] != NULL) {
+            sword_effect[i]->Clear();
         }
-    }
-    hold_type = ACTION_HOLD_NONE;
+        i++;
+    } while (i < 3);
+    hold_type = 0;
     add_speed = 0.0f;
     add_time = 0;
     blow_speed = 0.0f;
     blow_time = 0;
-    accume.frame = NULL;
+    accume.frame = 0;
     action_info.chara = this;
     action_info.env = NULL;
-    if (script.check_program(ACTION_PROG_RESET) != 0) {
-        script.run(ACTION_PROG_RESET);
+    if (this->script.check_program(0x96) != 0) {
+        this->script.run(0x96);
     }
-    prog_no = ACTION_PROG_MAIN;
+    prog_no = 0xC8;
 }
-
-#ifdef NONMATCHING
 void CActionChara::ResetScript() {
-    int index;
+    int i;
+    int j;
+    int k;
+    int l;
+    int m;
 
-    for (index = 0; index < 8; index++) {
-        object[index].frame = NULL;
+    for (i = 0; i < 8; i++) {
+        object[i].frame = 0;
     }
-    for (index = 0; index < 16; index++) {
-        body_col[index].type = 0;
-        body_col[index].unk_20 = -1;
+    for (j = 0; j < 16; j++) {
+        body_col[j].type = 0;
+        body_col[j].unk_20 = -1;
     }
-    for (index = 0; index < 11; index++) {
-        damage[index].use = 0;
-        damage[index].chara = NULL;
-        damage[index].frame0 = NULL;
-        damage[index].frame1 = NULL;
-        damage[index].damage = NULL;
-        damage[index].prim = NULL;
+    for (k = 0; k < 11; k++) {
+        damage[k].use = 0;
+        damage[k].chara = NULL;
+        damage[k].frame0 = NULL;
+        damage[k].frame1 = NULL;
+        damage[k].damage = NULL;
+        damage[k].prim = NULL;
     }
     damage_num = 0;
-    for (index = 0; index < 10; index++) {
-        sound[index].se_no = -1;
+    for (l = 0; l < 10; l++) {
+        sound[l].se_no = -1;
     }
-    for (index = 0; index < 3; index++) {
-        if (sword_effect[index] != NULL) {
-            sword_effect[index]->Clear();
+    for (m = 0; m < 3; m++) {
+        if (sword_effect[m] != NULL) {
+            sword_effect[m]->Clear();
         }
     }
-    hold_type = ACTION_HOLD_NONE;
+    hold_type = 0;
     add_speed = 0.0f;
     add_time = 0;
     blow_speed = 0.0f;
     blow_time = 0;
-    accume.frame = NULL;
+    accume.frame = 0;
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/actionchara", ResetScript__12CActionCharaFv);
-#endif
-
 s32 CActionChara::CheckRunEvent(void) {
     s32 can_run = menu_flag;
     if (hold_type != 0) {
@@ -114,48 +149,43 @@ s32 CActionChara::CheckRunEvent(void) {
     }
     return can_run;
 }
-void CActionChara::SetMaskFlag(int flag, int on) {
-    if (on != 0) {
-        mask_flag |= flag;
-    } else {
-        mask_flag &= ~flag;
-    }
+void CActionChara::SetMaskFlag(int flag, int set) {
+    if (set != 0)
+        mask_flag = mask_flag | flag;
+    else
+        mask_flag = mask_flag & ~flag;
 }
+ACTION_OBJECT *CActionChara::EntryObject(char *name, int index) {
+    mgCFrame *object;
+    ACTION_OBJECT *slot;
+    int i;
 
-#ifdef NONMATCHING
-ACTION_OBJECT *CActionChara::EntryObject(char *name, int no) {
-    mgCFrame      *entry_frame;
-    ACTION_OBJECT *entry;
-    int            index;
-
-    entry_frame = SearchObject(name);
-    if (entry_frame == NULL) {
-        return NULL;
+    object = SearchObject(name);
+    if (object == NULL) {
+        return 0;
     }
-    if (no == -1) {
-        for (index = 0; index < 8; index++) {
-            if (object[index].frame == NULL) {
-                entry = &object[index];
-                entry->frame = entry_frame;
-                entry->pos[2] = 0.0f;
-                entry->pos[1] = 0.0f;
-                entry->pos[0] = 0.0f;
-                return entry;
-            }
+    i = 0;
+    if (index != -1) {
+
+        slot = (ACTION_OBJECT *)((index << 5) + (int)this + 0xC00);
+        slot->frame = object;
+        slot->pos[2] = 0.0f;
+        slot->pos[1] = 0.0f;
+        slot->pos[0] = 0.0f;
+        return slot;
+    }
+    for (; i < 8; i++) {
+        if (this->object[i].frame == 0) {
+            slot = (ACTION_OBJECT *)((i << 5) + (int)this + 0xC00);
+            slot->frame = object;
+            slot->pos[2] = 0.0f;
+            slot->pos[1] = 0.0f;
+            slot->pos[0] = 0.0f;
+            return slot;
         }
-        return NULL;
     }
-    entry = &object[no];
-    entry->frame = entry_frame;
-    entry->pos[2] = 0.0f;
-    entry->pos[1] = 0.0f;
-    entry->pos[0] = 0.0f;
-    return entry;
+    return 0;
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/actionchara", EntryObject__12CActionCharaFPci);
-#endif
-
 void CActionChara::CalcCollision(void) {
     ACTION_OBJECT *entry = object;
     s32 index = 0;
@@ -168,942 +198,932 @@ void CActionChara::CalcCollision(void) {
         entry += 1;
     } while (index < 8);
 }
-#ifdef NONMATCHING
-ACTION_BODY_COL *CActionChara::EntryBodyCol(int object_no, float radius) {
-    ACTION_BODY_COL *entry;
-    int              index;
+ACTION_BODY_COL *CActionChara::EntryBodyCol(int index, float value) {
+    int i;
 
-    if (object_no < 0 || object_no >= 8) {
+    if (index < 0 || index >= 8) {
         return NULL;
     }
-    if (object[object_no].frame == NULL) {
+    if (object[index].frame == 0) {
         return NULL;
     }
-    for (index = 0; index < 16; index++) {
-        if (body_col[index].type == 0) {
-            entry = &body_col[index];
-            entry->type = 2;
-            entry->object = object_no;
-            entry->radius = radius;
-            return entry;
+    for (i = 0; i < 16; i++) {
+        if (body_col[i].type == 0) {
+            body_col[i].type = 2;
+            body_col[i].object = index;
+            body_col[i].radius = value;
+            return &body_col[i];
         }
     }
     return NULL;
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/actionchara", EntryBodyCol__12CActionCharaFif);
-#endif
-
-#ifdef NONMATCHING
-ACTION_DAMAGE *CActionChara::EntryDamage2(char *frame0, char *frame1, char *damage_name, float radius, char *motion, float start, float end, char *chara) {
-    mgCFrame     *first_frame;
-    mgCFrame     *second_frame;
-    ACTION_DAMAGE *entry;
-    float         start_frame;
-    float         end_frame;
-    int           i;
+ACTION_DAMAGE *CActionChara::EntryDamage2(char *frame_name_a, char *frame_name_b, char *hit_name, float power,
+                                 char *motion, float start_ratio, float end_ratio, char *chara_name) {
+    mgCFrame *frame_a;
+    mgCFrame *frame_b;
+    int i;
+    float start_frame;
+    float end_frame;
 
     if (damage_num >= 11) {
         return NULL;
     }
-
-    first_frame = NULL;
-    second_frame = NULL;
-    if (frame0 != NULL) {
-        first_frame = SearchObject(frame0);
+    frame_a = NULL;
+    frame_b = NULL;
+    if (frame_name_a != NULL) {
+        frame_a = SearchObject(frame_name_a);
     }
-    if (frame1 != NULL) {
-        second_frame = SearchObject(frame1);
+    if (frame_name_b != NULL) {
+        frame_b = SearchObject(frame_name_b);
     }
-
     for (i = 0; i < 11; i++) {
-        entry = &damage[i];
-        if (entry->use == 0) {
-            start_frame = GetWaitToFrame(motion, start, chara);
-            end_frame = GetWaitToFrame(motion, end, chara);
+        if (damage[i].use == 0) {
+            start_frame = GetWaitToFrame(motion, start_ratio, chara_name);
+            end_frame = GetWaitToFrame(motion, end_ratio, chara_name);
             if (start_frame == 0.0f && end_frame == 0.0f) {
                 return NULL;
             }
-            entry->use = 1;
-            entry->frame0 = first_frame;
-            entry->frame1 = second_frame;
-            entry->damage = damage_name;
-            entry->start_frame = start_frame;
-            entry->end_frame = end_frame;
-            entry->chara = chara;
-            entry->radius = radius;
-            entry->power_rate = 1.0f;
+            damage[i].use = 1;
+            damage[i].frame0 = frame_a;
+            damage[i].frame1 = frame_b;
+            damage[i].damage = hit_name;
+            damage[i].start_frame = start_frame;
+            damage[i].end_frame = end_frame;
+            damage[i].chara = chara_name;
+            damage[i].radius = power;
+            damage[i].power_rate = 1.0f;
             damage_num++;
-            return entry;
+            return &damage[i];
         }
     }
     return NULL;
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/actionchara", EntryDamage2__12CActionCharaFPcPcPcfPcffPc);
-#endif
-
-#ifdef NONMATCHING
-ACTION_DAMAGE *CActionChara::EntryDamage2(mgCFrame *frame0, mgCFrame *frame1, char *damage_name, float radius, char *motion, float start, float end, char *chara) {
-    ACTION_DAMAGE *entry;
-    float          start_frame;
-    float          end_frame;
-    int            i;
+ACTION_DAMAGE *CActionChara::EntryDamage2(mgCFrame *frame_a, mgCFrame *frame_b, char *hit_name, float power,
+                                 char *motion, float start_ratio, float end_ratio, char *chara_name) {
+    int i;
+    float start_frame;
+    float end_frame;
 
     if (damage_num >= 11) {
         return NULL;
     }
     for (i = 0; i < 11; i++) {
-        entry = &damage[i];
-        if (entry->use == 0) {
-            start_frame = GetWaitToFrame(motion, start, chara);
-            end_frame = GetWaitToFrame(motion, end, chara);
+        if (damage[i].use == 0) {
+            start_frame = GetWaitToFrame(motion, start_ratio, chara_name);
+            end_frame = GetWaitToFrame(motion, end_ratio, chara_name);
             if (start_frame == 0.0f && end_frame == 0.0f) {
                 return NULL;
             }
-            entry->use = 1;
-            entry->frame0 = frame0;
-            entry->frame1 = frame1;
-            entry->damage = damage_name;
-            entry->start_frame = start_frame;
-            entry->end_frame = end_frame;
-            entry->chara = chara;
-            entry->radius = radius;
-            entry->power_rate = 1.0f;
+            damage[i].use = 1;
+            damage[i].frame0 = frame_a;
+            damage[i].frame1 = frame_b;
+            damage[i].damage = hit_name;
+            damage[i].start_frame = start_frame;
+            damage[i].end_frame = end_frame;
+            damage[i].chara = chara_name;
+            damage[i].radius = power;
+            damage[i].power_rate = 1.0f;
             damage_num++;
-            return entry;
+            return &damage[i];
         }
     }
     return NULL;
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/actionchara", EntryDamage2__12CActionCharaFP8mgCFrameP8mgCFramePcfPcffPc);
-#endif
-
 void CActionChara::AllDeleteDamage() {
-    int index;
+    int i;
 
-    for (index = 0; index < damage_num; index++) {
-        if (damage[index].use != 0 && damage[index].prim != NULL) {
-            damage[index].prim->Delete(-1);
+    for (i = 0; i < damage_num; i++) {
+        if (damage[i].use != 0) {
+            if (damage[i].prim != NULL) {
+                damage[i].prim->Delete(-1);
+            }
         }
     }
 }
-
 ACTION_SW_EFFECT *CActionChara::GetSwEffectPtr() {
-    ACTION_SW_EFFECT *entry;
-    int               index;
+    ACTION_SW_EFFECT *slot;
+    int i;
 
-    entry = sw_effect;
-    for (index = 0; index < 9; index++, entry++) {
-        if (entry->motion == NULL) {
-            return entry;
+    slot = sw_effect;
+    i = 0;
+    do {
+        if (slot->motion == 0) {
+            return slot;
         }
-    }
+        i += 1;
+        slot += 1;
+    } while (i < 9);
     return NULL;
 }
-
-#ifdef NONMATCHING
 void CActionChara::SetSoundInfoCopy() {
-    CActionChara *part;
+    CActionChara *chara;
+    u8 *info;
 
-    for (part = next; part != NULL; part = part->next) {
-        memcpy(&part->foot_se_bank, &foot_se_bank, 0x28);
+    chara = next;
+    info = (u8 *)&foot_se_bank;
+    if (chara != NULL) {
+        do {
+            memcpy(&chara->foot_se_bank, info, 0x28);
+            chara = chara->next;
+        } while (chara != NULL);
     }
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/actionchara", SetSoundInfoCopy__12CActionCharaFv);
-#endif
-
-#ifdef NONMATCHING
 void CActionChara::SetFadeFlag(int flag) {
-    CActionChara *part;
-
-    for (part = this; part != NULL; part = part->next) {
-        part->fade = flag;
+    CActionChara *chara = this;
+    if (chara != NULL) {
+        do {
+            ((CCharacter2 *)chara)->fade = flag;
+            chara = chara->next;
+        } while (chara != NULL);
     }
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/actionchara", SetFadeFlag__12CActionCharaFi);
-#endif
-
 void CActionChara::SetFarDist(float dist) {
-    CActionChara *part;
-
-    for (part = this; part != NULL; part = part->next) {
-        part->far_dist = dist;
+    CActionChara *chara = this;
+    if (chara != NULL) {
+        do {
+            ((CObject *)chara)->far_dist = dist;
+            chara = chara->next;
+        } while (chara != NULL);
     }
 }
-
 void CActionChara::SetNearDist(float dist) {
-    CActionChara *part;
-
-    for (part = this; part != NULL; part = part->next) {
-        part->near_dist = dist;
+    CActionChara *chara = this;
+    if (chara != NULL) {
+        do {
+            ((CObject *)chara)->near_dist = dist;
+            chara = chara->next;
+        } while (chara != NULL);
     }
 }
-
 float CActionChara::GetCameraDist() {
-    if (parent != NULL) {
-        return parent->CCharacter2::GetCameraDist();
+    CActionChara *target;
+
+    target = parent;
+    if (target != NULL) {
+        return target->CCharacter2::GetCameraDist();
     }
     return CCharacter2::GetCameraDist();
 }
-
-void CActionChara::Show(int visible, int all) {
-    CActionChara *part;
-
-    if (all == 0) {
-        show = visible;
+void CActionChara::Show(int show, int chain) {
+    CActionChara *chara = this;
+    if (chain == 0) {
+        ((CObject *)chara)->show = show;
         return;
     }
-    for (part = this; part != NULL; part = part->next) {
-        part->show = visible;
+    if (chara != NULL) {
+        do {
+            ((CObject *)chara)->show = show;
+            chara = chara->next;
+        } while (chara != NULL);
     }
 }
+int CActionChara::GetShow(char *name) {
+    CActionChara *current;
+    int show;
 
-#ifdef NONMATCHING
-int CActionChara::GetShow(char *chara) {
-    CActionChara *part;
-
-    if (chara != NULL) {
-        for (part = this; part != NULL; part = part->next) {
-            if (strcmp(part->name, chara) == 0) {
-                return part->show;
-            }
+    show = 0;
+    current = this;
+    if (name != NULL) {
+        if (this != NULL) {
+            do {
+                if (strcmp(current->name, name) == 0) {
+                    return ((CObject *)current)->show;
+                }
+                current = current->next;
+            } while (current != NULL);
         }
-        return 0;
+    } else {
+        show = ((CObject *)this)->show;
     }
     return show;
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/actionchara", GetShow__12CActionCharaFPc);
-#endif
+int CActionChara::CheckKeri(char *name, int flag) {
+    mgCFrame *object;
+    CMapParts *stone;
+    CMapPiece *piece;
+    float pos[4];
+    float radius;
 
-#ifdef NONMATCHING
-int CActionChara::CheckKeri(char *name, int kick) {
-    sceVu0FVECTOR position;
-    mgCFrame     *frame;
-    CMapParts    *stone;
-    CMapPiece    *piece;
-    float         radius;
-
-    frame = SearchObject(name);
-    if (frame == NULL) {
+    object = SearchObject(name);
+    if (object == NULL) {
         return 0;
     }
-    frame->GetWorldPosition0(position);
-    position[3] = 1.0f;
+    object->GetWorldPosition0(pos);
+    pos[3] = 1.0f;
     radius = 30.0f;
-    if (kick != 0) {
+    if (flag != 0) {
         radius = 40.0f;
     }
-    stone = AutoMapGen.SearchRandomStone(position, radius);
-    if (stone == NULL) {
-        return 0;
-    }
-    if (kick != 0) {
-        piece = stone->SearchPiece("rnd_obj01-a");
-        if (piece != NULL) {
-            piece->Show(0);
-        }
-        release_timing = 5;
-        hold_parts = stone;
-    }
-    return 1;
-}
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/actionchara", CheckKeri__12CActionCharaFPci);
-#endif
-
-#ifdef NONMATCHING
-int CActionChara::CheckEnemyCatch(char *name) {
-    sceVu0FVECTOR   position;
-    mgCFrame       *frame;
-    CActionChara   *part;
-    CBattleCharaInfo *battle;
-    CMapParts      *stone;
-    CMapPiece      *piece;
-
-    frame = SearchObject(name);
-    if (frame == NULL || hold_type != ACTION_HOLD_NONE) {
-        return 0;
-    }
-    if (ActiveMonster->CheckThrowTarget(frame) != NULL) {
-        hold_type = ACTION_HOLD_ENEMY;
-        release_timing = 1;
-        part = SearchChara("sword");
-        if (part != NULL) {
-            part->Show(0, 0);
-        }
-        battle = GetBattleCharaInfo();
-        if (battle->chr_no == USER_CHARA_MAX) {
-            part = SearchChara("shot");
-            if (part != NULL) {
-                part->Show(0, 0);
+    stone = (CMapParts *)AutoMapGen.SearchRandomStone(pos, radius);
+    if (stone != NULL) {
+        if (flag != 0) {
+            piece = stone->SearchPiece(at_1325);
+            if (piece != NULL) {
+                piece->Show(0);
             }
-        }
-        battle->AddHp_Rate(-0.05f, 3, 1.0f);
-        return 1;
-    }
-
-    frame->GetWorldPosition0(position);
-    position[3] = 1.0f;
-    stone = AutoMapGen.SearchRandomStone(position, 30.0f);
-    if (stone == NULL) {
-        return 0;
-    }
-    piece = stone->SearchPiece("rnd_obj01-a");
-    if (piece != NULL) {
-        piece->Show(0);
-    }
-    release_timing = 1;
-    hold_frame = frame;
-    hold_parts = stone;
-    hold_type = ACTION_HOLD_STONE;
-    part = SearchChara("sword");
-    if (part != NULL) {
-        part->Show(0, 0);
-    }
-    if (GetBattleCharaInfo()->chr_no == USER_CHARA_MAX) {
-        part = SearchChara("shot");
-        if (part != NULL) {
-            part->Show(0, 0);
-        }
-    }
-    return 1;
-}
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/actionchara", CheckEnemyCatch__12CActionCharaFPc);
-#endif
-
-#ifdef NONMATCHING
-void CActionChara::ThrowItemObject() {
-    sceVu0FVECTOR target;
-    sceVu0FVECTOR position;
-    CGameDataUsed *item;
-
-    if (hold_type != ACTION_HOLD_NONE && throw_effect >= 0) {
-        effect_man->SetScriptProgNo(300, 0, throw_effect);
-        sceVu0CopyVector(target, front_vec);
-        GetPosition(position);
-        sceVu0ScaleVector(target, target, 120.0f);
-        sceVu0AddVector(target, target, position);
-        effect_man->SetScriptVect1(target, 0, throw_effect);
-        hold_type = ACTION_HOLD_NONE;
-        item = &GetBattleCharaInfo()->GetActiveItemInfo(0)[DngStatus.active_item];
-        item->DeleteNum(1);
-    }
-}
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/actionchara", ThrowItemObject__12CActionCharaFv);
-#endif
-
-#ifdef NONMATCHING
-int CActionChara::UsedItemAction() {
-    CBattleCharaInfo *battle;
-    CGameDataUsed    *item;
-    CDataItem        *info;
-    int              item_no;
-    int              effect_type;
-
-    battle = GetBattleCharaInfo();
-    item = &battle->GetActiveItemInfo(0)[DngStatus.active_item];
-    if (DngStatus.active_item == 3) {
-        return 3;
-    }
-    item_no = item->item_no;
-    info = GetItemInfoData(item_no);
-    if (info == NULL) {
-        return 0;
-    }
-    if (info->status_flags & 0x6) {
-        EntryThrowItem();
-        return 2;
-    }
-    if (info->status_flags & 0x19) {
-        if (battle->UseActiveItem(item) != 0 && (info->status_flags & 0x18)) {
-            effect_type = 0;
-            if (item_no == 274) {
-                effect_type = 1;
-            }
-            if (effect_type == 0) {
-                pallet[0].SetAnim(96, 180, 255, 1, 45, 0);
-            }
-            if (effect_type == 1) {
-                pallet[0].SetAnim(255, 220, 64, 1, 45, 0);
-            }
-            effect_man->CreateEffSpt("\x92\xCA\x8F\xED\x89\xF1\x95\x9C", 0, 0);
-            effect_man->SetScriptTargetId(0, -1, -1);
-            effect_man->SetValue(0, effect_type, 0, -1);
+            release_timing = 5;
+            hold_parts = stone;
         }
         return 1;
     }
     return 0;
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/actionchara", UsedItemAction__12CActionCharaFv);
-#endif
+int CActionChara::CheckEnemyCatch(char *name) {
+    mgCFrame *object;
+    CMapParts *stone;
+    CMapPiece *piece;
+    CActionChara *other;
+    CBattleCharaInfo *battle_info;
+    float pos[4];
+    float one;
 
-#ifdef NONMATCHING
-void CActionChara::EntryThrowItem() {
-    int            item_numbers[] = {276, 280, 281, 282, 283, 284, 285, 286, 287, 288, 289, 290, 291, 292, 304, 390, 391, 307, -1};
+    one = 1.0f;
+    object = SearchObject(name);
+    if (object == NULL) {
+        return 0;
+    }
+    if (hold_type != 0) {
+        return 0;
+    }
+    if (ActiveMonster->CheckThrowTarget(object) != NULL) {
+        hold_type = 3;
+        release_timing = 1;
+        other = SearchChara(at_1357);
+        if (other != NULL) {
+            other->Show(0, 0);
+        }
+        battle_info = GetBattleCharaInfo();
+        if (battle_info->chr_no == 0) {
+            other = SearchChara(at_1358);
+            if (other != NULL) {
+                other->Show(0, 0);
+            }
+        }
+        battle_info->AddHp_Rate(-0.05f, 3, one);
+        return 1;
+    }
+    object->GetWorldPosition0(pos);
+    pos[3] = 1.0f;
+    stone = (CMapParts *)AutoMapGen.SearchRandomStone(pos, 30.0f);
+    if (stone != NULL) {
+        piece = stone->SearchPiece(at_1325);
+        if (piece != NULL) {
+            piece->Show(0);
+        }
+        release_timing = 1;
+        hold_frame = object;
+        hold_parts = stone;
+        hold_type = 4;
+        other = SearchChara(at_1357);
+        if (other != NULL) {
+            other->Show(0, 0);
+        }
+        if ((GetBattleCharaInfo())->chr_no == 0) {
+            other = SearchChara(at_1358);
+            if (other != NULL) {
+                other->Show(0, 0);
+            }
+        }
+        return 1;
+    }
+    return 0;
+}
+void CActionChara::ThrowItemObject() {
+    float target[4];
+    float position[4];
+    u8 *item;
+
+    if (hold_type != 0) {
+        if (throw_effect >= 0) {
+            effect_man->SetScriptProgNo(0x12C, 0, throw_effect);
+            sceVu0CopyVector(target, front_vec);
+            GetPosition(position);
+            sceVu0ScaleVector(target, target, 120.0f);
+            sceVu0AddVector(target, target, position);
+            effect_man->SetScriptVect1(target, 0, throw_effect);
+            hold_type = 0;
+
+            item = (u8 *)GetBattleCharaInfo()->GetActiveItemInfo(0);
+            item += DngStatus.active_item * sizeof(CGameDataUsed);
+            ((CGameDataUsed *)item)->DeleteNum(1);
+        }
+    }
+}
+int CActionChara::UsedItemAction() {
+    CBattleCharaInfo *battle_info;
     CGameDataUsed *item;
-    int            item_no;
-    int            model_no;
-    int            i;
+    s16 item_no;
+    CDataItem *info;
+    int healing;
 
-    item = &GetBattleCharaInfo()->GetActiveItemInfo(0)[DngStatus.active_item];
+    battle_info = GetBattleCharaInfo();
+    item = (CGameDataUsed *)battle_info->GetActiveItemInfo(0) + DngStatus.active_item;
+    if (DngStatus.active_item == 3) {
+        return 3;
+    }
     item_no = item->item_no;
-    model_no = 0;
-    while (item_numbers[model_no] != -1 && item_numbers[model_no] != item_no) {
-        model_no++;
+    info = GetItemInfoData(item_no);
+    if (info != NULL) {
+        if (info->status_flags & 6) {
+            EntryThrowItem();
+            return 2;
+        }
+        if (info->status_flags & 0x19) {
+            if (battle_info->UseActiveItem(item) != 0) {
+                if (info->status_flags & 0x18) {
+                    healing = 0;
+                    if (item_no == 0x112) {
+                        healing = 1;
+                    }
+                    if (healing == 0) {
+                        pallet[0].SetAnim(0x60, 0xB4, 0xFF, 1, 0x2D, 0);
+                    }
+                    if (healing == 1) {
+                        pallet[0].SetAnim(0xFF, 0xDC, 0x40, 1, 0x2D, 0);
+                    }
+                    effect_man->CreateEffSpt(at_1394, 0, 0);
+                    effect_man->SetScriptTargetId(0, -1, -1);
+                    effect_man->SetValue(0, healing, 0, -1);
+                }
+            }
+            return 1;
+        }
     }
-    if (item_numbers[model_no] == -1) {
-        model_no = 0;
+    return 0;
+}
+void CActionChara::EntryThrowItem() {
+    ThrowItemTable table;
+    CGameDataUsed *item;
+    int index;
+    int item_no;
+    CBattleCharaInfo *battle_info;
+
+    battle_info = GetBattleCharaInfo();
+    item = (CGameDataUsed *)battle_info->GetActiveItemInfo(0) + DngStatus.active_item;
+    item_no = item->item_no;
+    table = at_1398;
+    index = 0;
+    while (table.item_no[index] != -1) {
+        if (item_no == table.item_no[index]) {
+            break;
+        }
+        index++;
     }
-    throw_effect = effect_man->CreateEffSpt("\x8E\xE8\x93\x8A\x82\xB0\x94\x9A\x92\x65", 0, 1);
+    if (table.item_no[index] == -1) {
+        index = 0;
+    }
+    throw_effect = effect_man->CreateEffSpt(at_1427, 0, 1);
     if (throw_effect < 0) {
-        printf("effect entry err\n");
+        printf(at_1428);
     } else {
         effect_man->SetValue(0, 1, 0, throw_effect);
         effect_man->SetValue(1, item_no, 0, throw_effect);
         if (action_info.env != NULL) {
-            effect_man->SetCharacter(&action_info.env->item_chara[model_no], 0, throw_effect);
+            effect_man->SetCharacter(
+                (CCharacter2 *)(action_info.env->item_chara + index), 0, throw_effect);
             effect_man->SetTexb(action_info.env->texb, 0, throw_effect);
-            if (item_no == 304) {
-                for (i = 0; i < 3; i++) {
-                    effect_man->SetValue(i + 2, item->GetGiftBoxItemNo(i), 0, throw_effect);
-                }
+            index = 0;
+            if (item_no == 0x130) {
+                do {
+                    effect_man->SetValue(index + 2, item->GetGiftBoxItemNo(index), 0,
+                                           throw_effect);
+                    index++;
+                } while (index < 3);
             }
         }
     }
-    hold_type = ACTION_HOLD_ITEM;
+    hold_type = 1;
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/actionchara", EntryThrowItem__12CActionCharaFv);
-#endif
-
 void CActionChara::RemoveThrowItem() {
-    if (hold_type != ACTION_HOLD_NONE) {
+    s8 effect_no;
+
+    if (hold_type != 0) {
         GetBattleCharaInfo();
-        if (hold_type == ACTION_HOLD_ITEM) {
-            if (throw_effect >= 0) {
-                effect_man->DeleteEffSpt(0, throw_effect);
+        if (hold_type == 1) {
+            effect_no = throw_effect;
+            if (effect_no >= 0) {
+                effect_man->DeleteEffSpt(0, effect_no);
             }
-            hold_type = ACTION_HOLD_NONE;
+            hold_type = 0;
         }
     }
 }
+float CActionChara::GetNowFrameWait(char *name) {
+    CActionChara *current;
+    float wait;
 
-#ifdef NONMATCHING
-float CActionChara::GetNowFrameWait(char *chara) {
-    CActionChara *part;
+    wait = 0.0f;
+    current = this;
+    if (name != NULL) {
+        if (this != NULL) {
+            do {
+                if (strcmp(current->name, name) == 0) {
+                    return ((CCharacter2 *)current)->frame_ratio;
+                }
+                current = current->next;
+            } while (current != NULL);
+        }
+    } else {
+        wait = CCharacter2::frame_ratio;
+    }
+    return wait;
+}
+float CActionChara::GetNowFrame(char *name) {
+    CActionChara *current;
+    float frame;
 
-    if (chara != NULL) {
-        for (part = this; part != NULL; part = part->next) {
-            if (strcmp(part->name, chara) == 0) {
-                return part->frame_ratio;
+    frame = 0.0f;
+    current = this;
+    if (name != NULL) {
+        if (this != NULL) {
+            do {
+                if (strcmp(current->name, name) == 0) {
+                    return ((CCharacter2 *)current)->frame;
+                }
+                current = current->next;
+            } while (current != NULL);
+        }
+    } else {
+        frame = CCharacter2::frame;
+    }
+    return frame;
+}
+int CActionChara::CheckMotionEnd(char *name) {
+    CActionChara *chara;
+    int result;
+
+    result = 0;
+    chara = this;
+    if (name != NULL) {
+        for (; chara != NULL; chara = chara->next) {
+            if (strcmp(chara->name, name) == 0) {
+                return chara->CCharacter2::CheckMotionEnd();
             }
         }
-        return 0.0f;
+    } else {
+        result = CCharacter2::CheckMotionEnd();
     }
-    return frame_ratio;
+    return result;
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/actionchara", GetNowFrameWait__12CActionCharaFPc);
-#endif
+int CActionChara::GetMotionStatus(char *name) {
+    CActionChara *current;
+    int status;
 
-#ifdef NONMATCHING
-float CActionChara::GetNowFrame(char *chara) {
-    CActionChara *part;
-
-    if (chara != NULL) {
-        for (part = this; part != NULL; part = part->next) {
-            if (strcmp(part->name, chara) == 0) {
-                return part->CCharacter2::frame;
-            }
+    status = 0;
+    current = this;
+    if (name != NULL) {
+        if (this != NULL) {
+            do {
+                if (strcmp(current->name, name) == 0) {
+                    return ((CCharacter2 *)current)->motion_status;
+                }
+                current = current->next;
+            } while (current != NULL);
         }
-        return 0.0f;
+    } else {
+        status = CCharacter2::motion_status;
     }
-    return CCharacter2::frame;
+    return status;
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/actionchara", GetNowFrame__12CActionCharaFPc);
-#endif
+float CActionChara::GetWaitToFrame(char *motion, float ratio, char *chara_name) {
+    CActionChara *chara;
+    CHRINFO_KEY_SET *keys;
+    float frame;
 
-#ifdef NONMATCHING
-int CActionChara::CheckMotionEnd(char *chara) {
-    CActionChara *part;
-
-    if (chara != NULL) {
-        for (part = this; part != NULL; part = part->next) {
-            if (strcmp(part->name, chara) == 0) {
-                return part->CCharacter2::CheckMotionEnd();
-            }
-        }
-        return 0;
-    }
-    return CCharacter2::CheckMotionEnd();
-}
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/actionchara", CheckMotionEnd__12CActionCharaFPc);
-#endif
-
-#ifdef NONMATCHING
-int CActionChara::GetMotionStatus(char *chara) {
-    CActionChara *part;
-
-    if (chara != NULL) {
-        for (part = this; part != NULL; part = part->next) {
-            if (strcmp(part->name, chara) == 0) {
-                return part->motion_status;
-            }
-        }
-        return 0;
-    }
-    return motion_status;
-}
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/actionchara", GetMotionStatus__12CActionCharaFPc);
-#endif
-
-#ifdef NONMATCHING
-float CActionChara::GetWaitToFrame(char *motion, float rate, char *chara) {
-    CActionChara    *part;
-    CHRINFO_KEY_SET *key;
-    float           start;
-
-    if (chara != NULL) {
-        for (part = this; part != NULL; part = part->next) {
-            if (strcmp(part->name, chara) == 0) {
-                key = part->GetKeyListPtr(motion, NULL);
-                if (key != NULL) {
-                    start = key->start_frame;
-                    return start + rate * (key->end_frame - start);
+    chara = this;
+    frame = 0.0f;
+    if (chara_name != NULL) {
+        for (; chara != NULL; chara = chara->next) {
+            if (strcmp(chara->name, chara_name) == 0) {
+                keys = ((CCharacter2 *)chara)->GetKeyListPtr(motion, NULL);
+                if (keys != NULL) {
+                    return (float)keys->start_frame +
+                           ratio * ((float)keys->end_frame - (float)keys->start_frame);
                 }
             }
         }
-        return 0.0f;
+    } else {
+        keys = CCharacter2::GetKeyListPtr(motion, NULL);
+        if (keys != NULL) {
+            frame = (float)keys->start_frame + ratio * ((float)keys->end_frame - (float)keys->start_frame);
+        }
     }
-    key = GetKeyListPtr(motion, NULL);
-    if (key != NULL) {
-        start = key->start_frame;
-        return start + rate * (key->end_frame - start);
-    }
-    return 0.0f;
+    return frame;
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/actionchara", GetWaitToFrame__12CActionCharaFPcfPc);
-#endif
+void CActionChara::SetMotion(int motion_no, int param) {
+    CActionChara *current;
 
-void CActionChara::SetMotion(int no, int flags) {
-    CActionChara *part;
-
-    for (part = this; part != NULL; part = part->next) {
-        part->CCharacter2::SetMotion(no, flags);
+    current = this;
+    if (this != NULL) {
+        do {
+            current->CCharacter2::SetMotion(motion_no, param);
+            current = current->next;
+        } while (current != NULL);
     }
 }
+void CActionChara::SetMotion(char *name, int param, int chain) {
+    CActionChara *current;
 
-#ifdef NONMATCHING
-void CActionChara::SetMotion(char *motion, int flags, int all) {
-    CActionChara *part;
-
-    if (all == 0) {
-        CCharacter2::SetMotion(motion, flags);
+    current = this;
+    if (chain == 0) {
+        CCharacter2::SetMotion(name, param);
         return;
     }
-    for (part = this; part != NULL; part = part->next) {
-        part->CCharacter2::SetMotion(motion, flags);
+    if (this != NULL) {
+        do {
+            current->CCharacter2::SetMotion(name, param);
+            current = current->next;
+        } while (current != NULL);
     }
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/actionchara", SetMotion__12CActionCharaFPcii);
-#endif
-
 void CActionChara::ResetMotion() {
-    CActionChara *part;
+    CActionChara *current;
 
-    for (part = this; part != NULL; part = part->next) {
-        part->CCharacter2::ResetMotion();
+    current = this;
+    if (this != NULL) {
+        do {
+            current->CCharacter2::ResetMotion();
+            current = current->next;
+        } while (current != NULL);
     }
 }
-
-#ifdef NONMATCHING
 int CActionChara::Draw() {
-    sceVu0FVECTOR position;
-    sceVu0FVECTOR old_position;
-    sceVu0FVECTOR ambient;
-    CActionChara *part;
-    int           result;
+    float draw_pos[4];
+    float saved_pos[4];
+    float ambient[4];
+    int result;
+    CActionChara *chara;
 
-    GetPosition(position);
-    GetPosition(old_position);
+    chara = this;
+    GetPosition(draw_pos);
+    GetPosition(saved_pos);
     if (damage_time > 6) {
-        position[1] += 2.5f * mgRnd();
+        draw_pos[1] += 2.5f * mgRnd();
     }
-    SetPosition(position);
+    SetPosition(draw_pos);
     mgGetAmbient(ambient);
-    part = this;
-    while (part != NULL) {
-        result = part->CCharacter2::Draw();
-        part->CalcCollision();
-        part = part->next;
+    if (this != NULL) {
+        do {
+            result = chara->CCharacter2::Draw();
+            chara->CalcCollision();
+            chara = chara->next;
+        } while (chara != NULL);
     }
-    SetPosition(old_position);
+    SetPosition(saved_pos);
     mgSetAmbient(ambient);
     return result;
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/actionchara", Draw__12CActionCharaFv);
-#endif
-
-#ifdef NONMATCHING
 int CActionChara::DrawDirect() {
-    sceVu0FVECTOR position;
-    sceVu0FVECTOR old_position;
-    sceVu0FVECTOR ambient;
-    sceVu0FVECTOR flash;
-    CActionChara *part;
-    int           result;
-    int           i;
+    float draw_pos[4];
+    float saved_pos[4];
+    float ambient[4];
+    float pallet_color[4];
+    int result;
+    CActionChara *chara;
+    int i;
 
-    GetPosition(position);
-    GetPosition(old_position);
+    chara = this;
+    GetPosition(draw_pos);
+    GetPosition(saved_pos);
     if (shake.time > 0) {
-        position[1] += shake.offset;
+        draw_pos[1] += shake.offset;
     }
-    SetPosition(position);
+    SetPosition(draw_pos);
     mgGetAmbient(ambient);
-    for (i = 0; i < 3; i++) {
-        if (pallet[i].CreatPallet(flash, ambient) != 0) {
-            mgSetAmbient(flash);
+    i = 0;
+    do {
+        if (pallet[i].CreatPallet(pallet_color, ambient) != 0) {
+            mgSetAmbient(pallet_color);
             break;
         }
+        i++;
+    } while (i < 3);
+    if (this != NULL) {
+        do {
+            result = chara->CCharacter2::DrawDirect();
+            chara->CalcCollision();
+            chara = chara->next;
+        } while (chara != NULL);
     }
-    part = this;
-    while (part != NULL) {
-        result = part->CCharacter2::DrawDirect();
-        part->CalcCollision();
-        part = part->next;
-    }
-    SetPosition(old_position);
+    SetPosition(saved_pos);
     mgSetAmbient(ambient);
     return result;
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/actionchara", DrawDirect__12CActionCharaFv);
-#endif
-
 int CActionChara::DrawShadowDirect() {
-    CActionChara *part;
+    CActionChara *current;
 
-    for (part = this; part != NULL; part = part->next) {
-        part->CCharacter2::DrawShadowDirect();
+    current = this;
+    if (this != NULL) {
+        do {
+            current->CCharacter2::DrawShadowDirect();
+            current = current->next;
+        } while (current != NULL);
     }
 }
 
 void CActionChara::DrawEffect() {
+    CEffectScriptMan *effect_man;
+
     CCharacter2::DrawEffect();
+    effect_man = this->effect_man;
     if (effect_man != NULL) {
         effect_man->Draw();
     }
 }
-
-#ifdef NONMATCHING
 void CActionChara::StepEffect() {
-    ACTION_SW_EFFECT *effect;
-    CActionChara     *part;
-    mgCFrame         *first_frame;
-    mgCFrame         *second_frame;
-    float             motion_frame;
-    int               i;
+    ACTION_SW_EFFECT *slot;
+    CActionChara *watched;
+    mgCFrame *start_frame;
+    mgCFrame *end_frame;
+    float frame;
+    int i;
+    int offset;
 
-    for (i = 0; i < sw_effect_num; i++) {
-        effect = &sw_effect[i];
-        if (effect->motion != NULL) {
-            if (effect->wait > 0) {
-                effect->wait--;
+    i = 0;
+    offset = 0;
+    for (; i < sw_effect_num; i++) {
+
+        slot = (ACTION_SW_EFFECT *)((u8 *)this + 0x7E4 + offset);
+        if (slot->motion != NULL) {
+            if (slot->wait > 0) {
+                slot->wait--;
             } else {
-                part = this;
-                if (effect->chara != NULL) {
-                    part = SearchChara(effect->chara);
+                watched = this;
+                if (slot->chara != NULL) {
+                    watched = SearchChara(slot->chara);
                 }
-                if (part != NULL && part->GetNowMotionName() != NULL && strcmp(part->GetNowMotionName(), effect->motion) == 0) {
-                    motion_frame = part->GetNowFrameWait(NULL);
-                    if (motion_frame >= effect->start && motion_frame < effect->end) {
-                        first_frame = part->SearchObject(effect->frame0);
-                        second_frame = part->SearchObject(effect->frame1);
-                        if (first_frame != NULL && second_frame != NULL) {
-                            sword_effect[effect->sword_no]->StartEffect(first_frame, second_frame, effect->unk_1c, effect->fade_time, effect->unk_1d);
-                            effect->wait = 5;
+                if (watched != NULL && watched->GetNowMotionName() != NULL &&
+                    strcmp(watched->GetNowMotionName(), slot->motion) == 0) {
+                    frame = watched->GetNowFrameWait(NULL);
+                    if (!(frame < slot->start) && frame < slot->end) {
+                        start_frame = watched->SearchObject(slot->frame0);
+                        end_frame = watched->SearchObject(slot->frame1);
+                        if (start_frame != NULL && end_frame != NULL) {
+                            sword_effect[slot->sword_no]->StartEffect(
+                                start_frame, end_frame, slot->unk_1c, slot->fade_time,
+                                slot->unk_1d);
+                            slot->wait = 5;
                         }
                     }
                 }
             }
         }
+        offset += 0x20;
     }
     CCharacter2::StepEffect();
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/actionchara", StepEffect__12CActionCharaFv);
-#endif
+CActionChara *CActionChara::SearchChara(char *name) {
+    CActionChara *current;
 
-CActionChara *CActionChara::SearchChara(char *chara) {
-    CActionChara *part;
-
-    for (part = this; part != NULL; part = part->next) {
-        if (strcmp(part->name, chara) == 0) {
-            return part;
-        }
+    current = this;
+    if (this != NULL) {
+        do {
+            if (strcmp(current->name, name) == 0) {
+                return current;
+            }
+            current = current->next;
+        } while (current != NULL);
     }
     return NULL;
 }
-
-#ifdef NONMATCHING
 mgCFrame *CActionChara::SearchObject(char *name) {
-    CActionChara *part;
-    mgCFrame     *found;
+    CActionChara *current;
+    mgCFrame *frame;
+    mgCFrame *found;
 
-    for (part = this; part != NULL; part = part->next) {
-        if (part->CObjectFrame::frame != NULL) {
-            found = part->CObjectFrame::frame->SearchFrame(name);
+    current = this;
+    if (this != NULL) {
+        do {
+            frame = current->CObjectFrame::frame;
+            if (frame == NULL) {
+                current = current->next;
+                continue;
+            }
+            found = frame->SearchFrame(name);
             if (found != NULL) {
                 return found;
             }
-        }
+            current = current->next;
+        } while (current != NULL);
     }
     return NULL;
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/actionchara", SearchObject__12CActionCharaFPc);
-#endif
-
 void CActionChara::ResetParent() {
+    mgCFrame *frame;
+
     next = NULL;
-    if (CObjectFrame::frame != NULL) {
-        CObjectFrame::frame->DeleteReference();
+    frame = this->CObjectFrame::frame;
+    if (frame != NULL) {
+        frame->DeleteReference();
     }
 }
-
-#ifdef NONMATCHING
-int CActionChara::SetRef(CActionChara *part, char *name) {
-    mgCFrame     *part_frame;
-    mgCFrame     *reference;
+int CActionChara::SetRef(CActionChara *other, char *name) {
+    mgCFrame *object;
+    mgCFrame *other_frame;
     CActionChara *tail;
+    CActionChara *following;
 
-    if (part == NULL) {
+    if (other == NULL) {
         return 0;
     }
-    part_frame = part->CObjectFrame::frame;
-    if (part_frame == NULL) {
+    other_frame = other->CObjectFrame::frame;
+    if (other_frame == NULL) {
         return 0;
     }
-    reference = SearchObject(name);
-    if (reference == NULL) {
+    object = SearchObject(name);
+    if (object == NULL) {
         return 0;
     }
-    part_frame->DeleteReference();
-    part_frame->SetReference(reference);
-    part->chara_kind = ACTION_KIND_PART;
-    for (tail = this; tail->next != NULL; tail = tail->next) {
+    other_frame->DeleteReference();
+    other_frame->SetReference(object);
+    tail = this;
+    other->chara_kind = 1;
+    for (;;) {
+        following = tail->next;
+        if (following == NULL) {
+            tail->next = other;
+            tail->next->parent = this;
+            break;
+        }
+        tail = following;
     }
-    tail->next = part;
-    tail->next->parent = this;
     return 1;
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/actionchara", SetRef__12CActionCharaFP12CActionCharaPc);
-#endif
-
 float CActionChara::GetTargetDist(CScene *scene) {
-    CCharacter2   *target;
-    sceVu0FVECTOR  position;
-    sceVu0FVECTOR  target_position;
+    float my_pos[4];
+    float target_pos[4];
+    s16 id;
+    CActionChara *target;
 
-    if (target_no != -1) {
-        target = scene->GetCharacter(target_no);
+    id = target_no;
+    if (id != -1) {
+        target = (CActionChara *)scene->GetCharacter(id);
         if (target != NULL) {
-            GetPosition(position);
-            target->GetPosition(target_position);
-            return mgDistVector(position, target_position);
+            GetPosition(my_pos);
+            target->GetPosition(target_pos);
+            return mgDistVector(my_pos, target_pos);
         }
     }
     return -1.0f;
 }
+int RockOn_TargetSel(CScene *scene, int index) {
+    CActionChara *target;
+    int tries;
 
-/**
- * Finds a living monster that can be selected as a lock-on target.
- */
-static int RockOn_TargetSel(CScene *scene, int target_no) {
-    CActiveMonster *monster;
-    int             count;
-
-    if (target_no != -1) {
-        target_no--;
-        for (count = 0; count < 24; count++) {
-            target_no++;
-            if (target_no >= 48) {
-                target_no = 24;
+    if (index != -1) {
+        index -= 1;
+        for (tries = 0; tries < MONSTER_ACTIVE_MAX; tries++) {
+            index += 1;
+            if (index >= MONSTER_ACTIVE_MAX * 2) {
+                index = MONSTER_ACTIVE_MAX;
             }
-            monster = (CActiveMonster *)scene->GetCharacter(target_no);
-            if (monster != NULL && monster->chara_kind == ACTION_KIND_SCRIPT &&
-                monster->state == ACTIVE_MONSTER_LIVE && monster->catch_state != 1 &&
-                (monster->attrib & MONSTER_ATTRIB_NO_LOCK_ON) == 0) {
-                return target_no;
+            target = (CActionChara *)scene->GetCharacter(index);
+            if (target != NULL && target->chara_kind == 2 && ((CActiveMonster *)target)->state == 1 &&
+                ((CActiveMonster *)target)->catch_state != 1 &&
+                !(((CActiveMonster *)target)->attrib & 1)) {
+                return index;
             }
         }
         return -1;
     }
-
-    for (count = 0; count < 24; count++) {
-        monster = (CActiveMonster *)scene->GetCharacter(count + 24);
-        if (monster != NULL && monster->chara_kind == ACTION_KIND_SCRIPT &&
-            monster->state == ACTIVE_MONSTER_LIVE && monster->catch_state != 1 &&
-            (monster->attrib & MONSTER_ATTRIB_NO_LOCK_ON) == 0) {
-            return count + 24;
+    for (tries = 0; tries < MONSTER_ACTIVE_MAX; tries++) {
+        target = (CActionChara *)scene->GetCharacter(tries + MONSTER_ACTIVE_MAX);
+        if (target != NULL && target->chara_kind == 2 && ((CActiveMonster *)target)->state == 1 &&
+            ((CActiveMonster *)target)->catch_state != 1 &&
+            !(((CActiveMonster *)target)->attrib & 1)) {
+            return tries + MONSTER_ACTIVE_MAX;
         }
     }
     return -1;
 }
-
-#ifdef NONMATCHING
-/**
- * Selects a monster in range, optionally by its rank among the nearest targets.
- */
-static int DistCheck_Action2(CScene *scene, float facing_limit, float max_distance,
-                             float *out_distance, int rank, int *out_rank) {
-    sceVu0FVECTOR  player_position;
-    sceVu0FVECTOR  player_rotation;
-    sceVu0FVECTOR  monster_position;
-    sceVu0FVECTOR  front;
-    sceVu0FVECTOR  direction;
-    float          distances[24];
-    int            targets[24];
-    CActionChara  *player;
-    CActiveMonster *monster;
-    float          nearest_distance;
-    float          distance;
-    float          saved_distance;
-    int            nearest;
-    int            count;
-    int            index;
-    int            row;
-    int            column;
-    int            best;
-    int            saved_target;
+int DistCheck_Action2(CScene *scene, float unused, float range, float *out_dist, int rank, int *out_rank) {
+    float direction[4];
+    float own_pos[4];
+    float own_rot[4];
+    float entry_pos[4];
+    float front_vec[4];
+    float dists[MONSTER_ACTIVE_MAX];
+    int ids[MONSTER_ACTIVE_MAX];
+    CActionChara *player;
+    int count;
+    int i;
+    CActionChara *target;
+    int best;
+    float best_dist;
+    float dist;
+    int a;
+    int min;
+    int b;
+    float key;
+    int tmp_id;
+    float tmp_dist;
 
     player = (CActionChara *)scene->GetCharacter(0);
     direction[3] = 1.0f;
-    nearest_distance = max_distance;
-    player->GetPosition(player_position);
-    player->GetRotation(player_rotation);
-    sceVu0CopyVector(front, player->front_vec);
+    best_dist = range;
+    player->GetPosition(own_pos);
+    player->GetRotation(own_rot);
+    sceVu0CopyVector(front_vec, player->front_vec);
     count = 0;
-    nearest = -1;
-
-    for (index = 0; index < 24; index++) {
-        monster = (CActiveMonster *)scene->GetCharacter(index + 24);
-        if (monster == NULL || monster->chara_kind != ACTION_KIND_SCRIPT ||
-            monster->state != ACTIVE_MONSTER_LIVE || monster->catch_state == 1 ||
-            (monster->attrib & MONSTER_ATTRIB_NO_LOCK_ON) != 0) {
-            continue;
-        }
-        monster->GetEntryObjectPos(0, 0, monster_position);
-        distance = monster->target_dist;
-        if (distance < max_distance || monster->tbl->boss != 0) {
-            if (distance < nearest_distance || monster->tbl->boss != 0) {
-                nearest = index;
-                nearest_distance = distance;
+    best = -1;
+    i = 0;
+    do {
+        target = (CActionChara *)scene->GetCharacter(i + MONSTER_ACTIVE_MAX);
+        if (target != NULL && target->chara_kind == 2 && ((CActiveMonster *)target)->state == 1 &&
+            ((CActiveMonster *)target)->catch_state != 1 &&
+            !(((CActiveMonster *)target)->attrib & 1)) {
+            ((CCharacter2 *)target)->GetEntryObjectPos(0, 0, entry_pos);
+            dist = ((CActiveMonster *)target)->target_dist;
+            if (dist < range || ((CActiveMonster *)target)->tbl->boss != 0) {
+                if (!(best_dist <= dist) || ((CActiveMonster *)target)->tbl->boss != 0) {
+                    best = i;
+                    best_dist = dist;
+                }
+                direction[0] = entry_pos[0] - own_pos[0];
+                direction[1] = entry_pos[1] - own_pos[1];
+                direction[2] = entry_pos[2] - own_pos[2];
+                sceVu0Normalize(direction, direction);
+                sceVu0InnerProduct(front_vec, direction);
+                dists[count] = dist;
+                ids[count] = i;
+                count++;
             }
-            direction[0] = monster_position[0] - player_position[0];
-            direction[1] = monster_position[1] - player_position[1];
-            direction[2] = monster_position[2] - player_position[2];
-            sceVu0Normalize(direction, direction);
-            sceVu0InnerProduct(front, direction);
-            distances[count] = distance;
-            targets[count] = index;
-            count++;
         }
-    }
-
+        i++;
+    } while (i < MONSTER_ACTIVE_MAX);
     if (rank == 0 || count < 2) {
-        if (nearest == -1) {
+        if (best == -1) {
             return -1;
         }
-        *out_distance = nearest_distance;
-        return nearest + 24;
+        *out_dist = best_dist;
+        return best + MONSTER_ACTIVE_MAX;
     }
-
-    for (row = 0; row < count; row++) {
-        best = row;
-        for (column = row; column < count; column++) {
-            if (column != row && distances[column] >= 0.0f && distances[column] < distances[best]) {
-                best = column;
+    for (a = 0; a < count; a++) {
+        min = a;
+        for (b = a; b < count; b++) {
+            if (b != a) {
+                key = dists[b];
+                if (!(key < 0.0f) && !(dists[min] <= key)) {
+                    min = b;
+                }
             }
         }
-        if (row != best) {
-            saved_target = targets[row];
-            saved_distance = distances[row];
-            distances[row] = distances[best];
-            targets[row] = targets[best];
-            distances[best] = saved_distance;
-            targets[best] = saved_target;
+        if (a != min) {
+            tmp_dist = dists[a];
+            tmp_id = ids[a];
+            dists[a] = dists[min];
+            ids[a] = ids[min];
+            dists[min] = tmp_dist;
+            ids[min] = tmp_id;
         }
     }
     if (rank >= count) {
         rank = 0;
     }
-    *out_distance = distances[rank];
+    *out_dist = dists[rank];
     if (out_rank != NULL) {
         *out_rank = rank;
     }
-    return targets[rank] + 24;
+    return ids[rank] + MONSTER_ACTIVE_MAX;
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/actionchara", DistCheck_Action2__FP6CSceneffPfiPi);
-#endif
+int Check_LockOn(CScene *scene, float range, int index) {
+    float own_pos[4];
+    float target_pos[4];
+    CActionChara *player;
+    CActionChara *target;
+    int farther;
 
-#ifdef NONMATCHING
-/**
- * Checks whether the current lock-on target is still alive and within range.
- */
-static int Check_LockOn(CScene *scene, float max_distance, int target_no) {
-    sceVu0FVECTOR  player_position;
-    sceVu0FVECTOR  monster_position;
-    CCharacter2   *player;
-    CActiveMonster *monster;
-
-    player = scene->GetCharacter(0);
-    player->GetPosition(player_position);
-    monster = (CActiveMonster *)scene->GetCharacter(target_no);
-    if (monster == NULL) {
+    player = (CActionChara *)scene->GetCharacter(0);
+    player->GetPosition(own_pos);
+    target = (CActionChara *)scene->GetCharacter(index);
+    if (target == NULL) {
         return 0;
     }
-    if (monster->chara_kind != ACTION_KIND_SCRIPT) {
+    if (target->chara_kind != 2) {
         return 0;
     }
-    if (monster->state != ACTIVE_MONSTER_LIVE) {
+    if (((CActiveMonster *)target)->state != 1) {
         return 0;
     }
-    if ((monster->attrib & MONSTER_ATTRIB_NO_LOCK_ON) != 0) {
+    if (((CActiveMonster *)target)->attrib & 1) {
         return 0;
     }
-    if (monster->catch_state == 1) {
+    if (((CActiveMonster *)target)->catch_state == 1) {
         return 0;
     }
-    if (monster->tbl->boss != 0) {
+    if (((CActiveMonster *)target)->tbl->boss != 0) {
         return 1;
     }
-    monster->GetEntryObjectPos(0, 0, monster_position);
-    player_position[3] = 1.0f;
-    monster_position[3] = 1.0f;
-    return monster->target_dist <= max_distance;
-}
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/actionchara", Check_LockOn__FP6CScenefi);
-#endif
+    ((CCharacter2 *)target)->GetEntryObjectPos(0, 0, target_pos);
+    own_pos[3] = 1.0f;
+    target_pos[3] = 1.0f;
+    farther = 1;
+    if (((CActiveMonster *)target)->target_dist <= range) {
+        farther = 0;
+    }
 
+    return farther = farther ^ 1;
+}
 #ifdef NONMATCHING
 void CActionChara::CollisionCheck(float *pos, float *velocity, float *out_velocity) {
     sceVu0FVECTOR      next_position;
@@ -1165,27 +1185,27 @@ void CActionChara::CollisionCheck(float *pos, float *velocity, float *out_veloci
 #else
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/actionchara", CollisionCheck__12CActionCharaFPfPfPf);
 #endif
-
 void CActionChara::RockOn() {
-    sceVu0FVECTOR  position;
-    sceVu0FVECTOR  target_position;
-    sceVu0FVECTOR  target_direction;
-    sceVu0FVECTOR  move_direction;
-    DNG_BATTLE_AREA *battle_area;
-    CActiveMonster *monster;
-    int            next_target;
+    float own_pos[4];
+    float target_pos[4];
+    float to_target[4];
+    float front_vec[4];
+    int priority_index;
+    u8 *scene_input;
+    CCharacter2 *target;
 
-    GetPosition(position);
-    battle_area = &nowScene__2->battle_area;
+    GetPosition(own_pos);
+
+    scene_input = (u8 *)nowScene__2 + 0x2F90;
     target_dot = 0.0f;
     if (lock_on != 0) {
-        monster = (CActiveMonster *)nowScene__2->GetCharacter(target_no);
-        if (monster != NULL) {
-            monster->GetEntryObjectPos(0, 0, target_position);
-            sceVu0SubVector(target_direction, target_position, position);
-            sceVu0Normalize(target_direction, target_direction);
-            sceVu0Normalize(move_direction, velocity);
-            target_dot = sceVu0InnerProduct(target_direction, move_direction);
+        target = nowScene__2->GetCharacter(target_no);
+        if (target != NULL) {
+            target->GetEntryObjectPos(0, 0, target_pos);
+            sceVu0SubVector(to_target, target_pos, own_pos);
+            sceVu0Normalize(to_target, to_target);
+            sceVu0Normalize(front_vec, velocity);
+            target_dot = sceVu0InnerProduct(to_target, front_vec);
         }
     }
     if (PadCtrl.Btn(0x34) != 0) {
@@ -1195,26 +1215,28 @@ void CActionChara::RockOn() {
                 lock_on = 0;
                 return;
             }
-            if (battle_area->unk_9e == 2) {
+
+            if (*(s16 *)(scene_input + 0x9E) == 2) {
                 if (target_no < 0) {
-                    target_no = 24;
+                    target_no = MONSTER_ACTIVE_MAX;
                 } else {
-                    target_no++;
+                    target_no = target_no + 1;
                 }
-                if (target_no >= 48) {
-                    target_no = 24;
+                if (target_no >= MONSTER_ACTIVE_MAX * 2) {
+                    target_no = MONSTER_ACTIVE_MAX;
                 }
                 target_no = RockOn_TargetSel(nowScene__2, target_no);
                 return;
             }
-            monster = (CActiveMonster *)nowScene__2->GetCharacter(target_no);
-            if (monster != NULL) {
-                if (ActiveMonster->GetPriorityLevelIndex(monster->priority + 1, &next_target) != NULL) {
+            target = nowScene__2->GetCharacter(target_no);
+            if (target != NULL) {
+                if (ActiveMonster->GetPriorityLevelIndex(
+                        ((CActiveMonster *)target)->priority + 1, &priority_index) != NULL) {
                     sndSePlay(SystemSND_ID, 0x1A, 0);
-                    target_no = next_target;
+                    target_no = priority_index;
                     return;
                 }
-                target_no = 24;
+                target_no = MONSTER_ACTIVE_MAX;
             }
         } else if (target_no != -1) {
             sndSePlay(SystemSND_ID, 0x1A, 0);
@@ -1222,7 +1244,6 @@ void CActionChara::RockOn() {
         }
     }
 }
-
 #ifdef NONMATCHING
 int CActionChara::HumanMoveIF() {
     sceVu0FVECTOR position;
@@ -1446,7 +1467,6 @@ int CActionChara::HumanMoveIF() {
 #else
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/actionchara", HumanMoveIF__12CActionCharaFv);
 #endif
-
 #ifdef NONMATCHING
 int CActionChara::HumanShrowMoveIF() {
     sceVu0FVECTOR position;
@@ -1516,37 +1536,36 @@ int CActionChara::HumanShrowMoveIF() {
 #else
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/actionchara", HumanShrowMoveIF__12CActionCharaFv);
 #endif
-
 int CActionChara::HumanTameMoveIF() {
-    sceVu0FVECTOR position;
-    sceVu0FVECTOR move_velocity;
-    float         camera_angle;
-    float         stick_x;
-    float         stick_y;
-    float         move_x;
-    float         move_z;
+    float position[4];
+    float movement[4];
+    float camera_angle;
+    float stick_x;
+    float stick_y;
+    float world_x;
+    float world_z;
 
     GetPosition(position);
-    sceVu0CopyVector(move_velocity, velocity);
+    sceVu0CopyVector(movement, velocity);
     camera_angle = action_info.camera->GetAngle();
     stick_x = GamePad__2.GetLXf();
     stick_y = GamePad__2.GetLYf();
-    move_x = stick_x * cosf(camera_angle) + stick_y * sinf(camera_angle);
-    move_z = -stick_x * sinf(camera_angle) + stick_y * cosf(camera_angle);
-    move_x *= 0.4f;
-    move_z *= 0.4f;
-    move_velocity[0] = 2.0f * move_x * (float)mgFrameRate;
-    move_velocity[2] = 2.0f * move_z * (float)mgFrameRate;
-    if (move_x != 0.0f || move_z != 0.0f) {
+    world_x = stick_x * cosf(camera_angle) + stick_y * sinf(camera_angle);
+    world_z = -stick_x * sinf(camera_angle) + stick_y * cosf(camera_angle);
+    world_x *= 0.4f;
+    world_z *= 0.4f;
+    movement[0] = 2.0f * world_x * (float)mgFrameRate;
+    movement[2] = 2.0f * world_z * (float)mgFrameRate;
+    if (world_x != 0.0f || world_z != 0.0f) {
         stand_flag = 0;
     } else {
         stand_flag = 1;
     }
-    SetMotion("\x82\xBD\x82\xDF\x83\x8B\x81[\x83v", 0, 1);
-    if (move_x != 0.0f || move_z != 0.0f) {
-        SetMotion("\x82\xBD\x82\xDF\x88\xDA\x93\xAE", 0, 1);
+    SetMotion(at_2333, 0, 1);
+    if (world_x != 0.0f || world_z != 0.0f) {
+        SetMotion(at_2334, 0, 1);
     }
-    sceVu0CopyVector(velocity, move_velocity);
+    sceVu0CopyVector(velocity, movement);
     RockOn();
     return 1;
 }
@@ -1600,7 +1619,6 @@ int CActionChara::HumanGunMoveIF(char *stand_motion, char *move_motion) {
 #else
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/actionchara", HumanGunMoveIF__12CActionCharaFPcPc);
 #endif
-
 #ifdef NONMATCHING
 int CActionChara::RoboWalkMoveIF(int mode) {
     sceVu0FVECTOR position;
@@ -1696,7 +1714,6 @@ int CActionChara::RoboWalkMoveIF(int mode) {
 #else
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/actionchara", RoboWalkMoveIF__12CActionCharaFi);
 #endif
-
 #ifdef NONMATCHING
 int CActionChara::RoboTankMoveIF(int mode) {
     sceVu0FVECTOR position;
@@ -1840,7 +1857,6 @@ int CActionChara::RoboTankMoveIF(int mode) {
 #else
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/actionchara", RoboTankMoveIF__12CActionCharaFi);
 #endif
-
 #ifdef NONMATCHING
 int CActionChara::RoboBikeMoveIF(int mode) {
     sceVu0FVECTOR position;
@@ -2030,7 +2046,6 @@ int CActionChara::RoboBikeMoveIF(int mode) {
 #else
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/actionchara", RoboBikeMoveIF__12CActionCharaFi);
 #endif
-
 #ifdef NONMATCHING
 int CActionChara::RoboAirMoveIF(int unk, int mode) {
     sceVu0FVECTOR position;
@@ -2174,7 +2189,6 @@ int CActionChara::RoboAirMoveIF(int unk, int mode) {
 #else
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/actionchara", RoboAirMoveIF__12CActionCharaFii);
 #endif
-
 #ifdef NONMATCHING
 int CActionChara::MonsterMoveIF() {
     sceVu0FVECTOR position;
@@ -2317,199 +2331,134 @@ int CActionChara::MonsterMoveIF() {
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/actionchara", MonsterMoveIF__12CActionCharaFv);
 #endif
 
-#ifdef NONMATCHING
-/**
- * Places the sparks, flash and script effect of a guarded hit in front of the camera.
- */
-static void GuardEffectSet(CScene *scene, float *pos) {
-    sceVu0FVECTOR    camera_direction;
-    sceVu0FVECTOR    effect_position;
-    sceVu0FVECTOR    spark_direction = { 0.0f, 1.0f, 0.0f, 1.0f };
-    mgCCamera      *camera;
+void HitEffectSet(CScene *scene, float *point) {
+    float pos[4];
+    float to_camera[4];
+    float origin[4];
+    float dir[4];
+    ActionVector rect;
+    CCameraControl *camera;
     CHitEffectImage *hit;
-    CFlushEffect   *flush;
+    CFlushEffect *flush;
+    float speed = 50.0f;
 
-    camera = scene->GetCamera(scene->active_camera);
-    if (camera != NULL) {
-        sceVu0CopyVector(effect_position, pos);
-        camera->GetPos(camera_direction);
-        sceVu0SubVector(camera_direction, camera_direction, effect_position);
-        sceVu0Normalize(camera_direction, camera_direction);
-        sceVu0ScaleVector(camera_direction, camera_direction, 20.0f);
-        sceVu0AddVector(effect_position, effect_position, camera_direction);
-        if (BattleFX.hit == NULL) {
-            hit = NULL;
-        } else {
-            hit = &BattleFX.hit[BattleFX.hit_next++];
-            if (BattleFX.hit_next >= BattleFX.hit_num) {
-                BattleFX.hit_next = 0;
-            }
-        }
-        hit->SethitEffect(effect_position, spark_direction, 50.0f, 30.0f, 0.0f, 0.1f, 30, 32);
-        hit->kind = HIT_EFFECT_SPARK_SHORT;
-        if (BattleFX.flush == NULL) {
-            flush = NULL;
-        } else {
-            flush = &BattleFX.flush[BattleFX.flush_next++];
-            if (BattleFX.flush_next >= BattleFX.flush_num) {
-                BattleFX.flush_next = 0;
-            }
-        }
-        if (flush != NULL) {
-            sceVu0CopyVector(flush->pos, effect_position);
-            flush->fade_speed = 16.0f;
-            flush->alpha = 160;
-            flush->active = 1;
-            flush->size = 10.0f;
-            flush->grow = 3.0f;
-            flush->tex_u = 65;
-            flush->tex_v = 193;
-            flush->tex_size = 62;
-            flush->follow = NULL;
-        }
-        if (FxScriptMan != NULL) {
-            FxScriptMan->CreateEffSpt("\x83\x4B\x81\x5B\x83\x68\x83\x47\x83\x74\x83\x46\x83\x4E\x83\x67\x82\x60", 0, 0);
-            FxScriptMan->SetScriptVect1(effect_position, 0, -1);
+    camera = (CCameraControl *)scene->GetCamera(scene->active_camera);
+    if (camera == NULL) {
+        return;
+    }
+    sceVu0CopyVector(origin, point);
+    camera->GetPos(to_camera);
+    sceVu0SubVector(to_camera, to_camera, origin);
+    sceVu0Normalize(to_camera, to_camera);
+    sceVu0ScaleVector(to_camera, to_camera, 20.0f);
+    sceVu0AddVector(pos, origin, to_camera);
+    *(ActionVector *)dir = *(ActionVector *)at_2846;
+    if (BattleFX.hit == NULL) {
+        hit = NULL;
+    } else {
+        hit = BattleFX.hit + BattleFX.hit_next;
+        BattleFX.hit_next++;
+        if (BattleFX.hit_next >= BattleFX.hit_num) {
+            BattleFX.hit_next = 0;
         }
     }
-}
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/actionchara", GuardEffectSet__FP6CScenePf);
-#endif
-
-#ifdef NONMATCHING
-/**
- * Places the sparks and flash of a damaging hit in front of the camera.
- */
-static void HitEffectSet(CScene *scene, float *pos) {
-    sceVu0FVECTOR    effect_position;
-    sceVu0FVECTOR    camera_direction;
-    sceVu0FVECTOR    hit_position;
-    sceVu0FVECTOR    spark_direction = { 0.0f, 1.0f, 0.0f, 1.0f };
-    mgCCamera      *camera;
-    CHitEffectImage *hit;
-    CFlushEffect   *flush;
-
-    camera = scene->GetCamera(scene->active_camera);
-    if (camera != NULL) {
-        sceVu0CopyVector(hit_position, pos);
-        camera->GetPos(camera_direction);
-        sceVu0SubVector(camera_direction, camera_direction, hit_position);
-        sceVu0Normalize(camera_direction, camera_direction);
-        sceVu0ScaleVector(camera_direction, camera_direction, 20.0f);
-        sceVu0AddVector(effect_position, hit_position, camera_direction);
-        if (BattleFX.hit == NULL) {
-            hit = NULL;
-        } else {
-            hit = &BattleFX.hit[BattleFX.hit_next++];
-            if (BattleFX.hit_next >= BattleFX.hit_num) {
-                BattleFX.hit_next = 0;
-            }
-        }
-        if (hit != NULL) {
-            hit->SethitEffect(effect_position, spark_direction, 30.0f, 50.0f, 0.4f, 0.1f, 30, 32);
-            hit->kind = HIT_EFFECT_BOARD;
-        }
-        if (BattleFX.flush == NULL) {
-            flush = NULL;
-        } else {
-            flush = &BattleFX.flush[BattleFX.flush_next++];
-            if (BattleFX.flush_next >= BattleFX.flush_num) {
-                BattleFX.flush_next = 0;
-            }
-        }
-        if (flush != NULL) {
-            sceVu0CopyVector(flush->pos, hit_position);
-            flush->fade_speed = 20.0f;
-            flush->alpha = 160;
-            flush->active = 1;
-            flush->size = 10.0f;
-            flush->grow = 2.0f;
-            flush->tex_u = 64;
-            flush->tex_v = 192;
-            flush->tex_size = 64;
-            flush->follow = NULL;
-        }
-        if (BattleFX.hit == NULL) {
-            hit = NULL;
-        } else {
-            hit = &BattleFX.hit[BattleFX.hit_next++];
-            if (BattleFX.hit_next >= BattleFX.hit_num) {
-                BattleFX.hit_next = 0;
-            }
-        }
-        if (hit != NULL) {
-            hit->SethitEffect(effect_position, spark_direction, 40.0f, 40.0f, 0.0f, 0.05f, 32, 32);
-            hit->kind = HIT_EFFECT_BOARD;
-            hit->tex_rect = mgRect<int>(0, 80, 16, 16);
-            hit->sprite_size = 2.0f;
+    if (hit != NULL) {
+        SethitEffect__15CHitEffectImageFPfPfffffii(hit, pos, dir, 30.0f, speed, 0.4f, 0.1f, 30, 32);
+        hit->kind = 0;
+    }
+    if (BattleFX.flush == NULL) {
+        flush = NULL;
+    } else {
+        flush = BattleFX.flush + BattleFX.flush_next;
+        BattleFX.flush_next++;
+        if (BattleFX.flush_next >= BattleFX.flush_num) {
+            BattleFX.flush_next = 0;
         }
     }
+    if (flush != NULL) {
+        sceVu0CopyVector(flush->pos, origin);
+        flush->fade_speed = 20.0f;
+        flush->alpha = 160;
+        flush->active = 1;
+        flush->size = 10.0f;
+        flush->grow = 2.0f;
+        flush->tex_u = 64;
+        flush->tex_v = 192;
+        flush->tex_size = 64;
+        flush->follow = NULL;
+    }
+    if (BattleFX.hit == NULL) {
+        hit = NULL;
+    } else {
+        hit = BattleFX.hit + BattleFX.hit_next;
+        BattleFX.hit_next++;
+        if (BattleFX.hit_next >= BattleFX.hit_num) {
+            BattleFX.hit_next = 0;
+        }
+    }
+    if (hit != NULL) {
+        SethitEffect__15CHitEffectImageFPfPfffffii(hit, pos, dir, 40.0f, 40.0f, 0.0f, 0.05f, 32,
+                                                   32);
+        hit->kind = 0;
+        ((mgRect<int> *)&rect)->Set(0, 80, 16, 16);
+        ActionVector copy = rect;
+        hit->tex_rect.left = copy.i[0];
+        hit->tex_rect.top = copy.i[1];
+        hit->tex_rect.right = copy.i[2];
+        hit->tex_rect.bottom = copy.i[3];
+        hit->sprite_size = 2.0f;
+    }
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/actionchara", HitEffectSet__FP6CScenePf);
-#endif
+int CheckAmuletAvoid(int item_no) {
+    CBattleCharaInfo *info;
+    CGameDataUsed *item;
+    int i;
 
-#ifdef NONMATCHING
-/**
- * Checks an equipped amulet, using one up on a third of the hits it prevents.
- */
-static int CheckAmuletAvoid(int item_no) {
-    CBattleCharaInfo *battle;
-    CGameDataUsed    *item;
-    int              index;
-
-    battle = GetBattleCharaInfo();
-    switch (battle->chr_no) {
-    case USER_CHARA_MAX:
-    case USER_CHARA_MONICA:
-        item = battle->GetActiveItemInfo(0);
-        for (index = 0; index < 3; index++, item++) {
-            if (item_no == item->item_no) {
-                if (iRand(100) % 3 == 0) {
-                    item->DeleteNum(1);
+    info = GetBattleCharaInfo();
+    switch (info->chr_no) {
+        case 1:
+        case 0:
+            item = (CGameDataUsed *)info->GetActiveItemInfo(0);
+            i = 0;
+            do {
+                if (item_no == item->item_no) {
+                    if (iRand(100) % 3 == 0) {
+                        item->DeleteNum(1);
+                    }
+                    return 1;
                 }
-                return 1;
-            }
-        }
-        return 0;
-    default:
-        return 1;
+                i++;
+                item = (CGameDataUsed *)((u8 *)item + sizeof(CGameDataUsed));
+            } while (i < 3);
+            return 0;
+        default:
+            return 1;
     }
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/actionchara", CheckAmuletAvoid__Fi);
-#endif
+int CheckEquipSetItem(int item_no) {
+    CBattleCharaInfo *info;
+    CGameDataUsed *item;
+    int i;
 
-#ifdef NONMATCHING
-/**
- * Uses one active item of the given kind when Max or Monica has it equipped.
- */
-static int CheckEquipSetItem(int item_no) {
-    CBattleCharaInfo *battle;
-    CGameDataUsed    *item;
-    int              index;
-
-    battle = GetBattleCharaInfo();
-    switch (battle->chr_no) {
-    case USER_CHARA_MAX:
-    case USER_CHARA_MONICA:
-        item = battle->GetActiveItemInfo(0);
-        for (index = 0; index < 3; index++, item++) {
-            if (item_no == item->item_no) {
-                item->DeleteNum(1);
-                return 1;
-            }
-        }
-        return 0;
-    default:
-        return 0;
+    info = GetBattleCharaInfo();
+    switch (info->chr_no) {
+        case 1:
+        case 0:
+            item = (CGameDataUsed *)info->GetActiveItemInfo(0);
+            i = 0;
+            do {
+                if (item_no == item->item_no) {
+                    item->DeleteNum(1);
+                    return 1;
+                }
+                i++;
+                item = (CGameDataUsed *)((u8 *)item + sizeof(CGameDataUsed));
+            } while (i < 3);
+            return 0;
+        default:
+            return 0;
     }
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/actionchara", CheckEquipSetItem__Fi);
-#endif
-
 #ifdef NONMATCHING
 int CActionChara::CheckDamage() {
     sceVu0FVECTOR    position;
@@ -2739,34 +2688,30 @@ int CActionChara::CheckDamage() {
 #else
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/actionchara", CheckDamage__12CActionCharaFv);
 #endif
-
-int CActionChara::LoadActionFile(char *data, int size, mgCMemory *memory) {
+int CActionChara::LoadActionFile(char *script, int size, mgCMemory *memory) {
     SetActionExtendTable();
-    chara_kind = ACTION_KIND_SCRIPT;
+    chara_kind = 2;
     script_buf = (char *)memory->stAlloc64(size / 16 + 1);
-    memcpy(script_buf, data, size);
-    SetActionScript(&script, script_buf, memory);
+    memcpy(script_buf, script, size);
+    SetActionScript(&this->script, script_buf, memory);
     return 1;
 }
-
 void CActionChara::InitScript() {
     ResetScript();
     action_info.chara = this;
-    if (script.check_program(ACTION_PROG_INIT) != 0) {
-        script.run(ACTION_PROG_INIT);
+    if (this->script.check_program(ACTION_PROG_INIT) != 0) {
+        this->script.run(ACTION_PROG_INIT);
     }
-    prog_no = ACTION_PROG_MAIN;
+    prog_no = 0xC8;
 }
-
 void CActionChara::SetHold() {
-    if (script.check_program(ACTION_PROG_HOLD) != 0) {
-        script.run(ACTION_PROG_HOLD);
+    if (this->script.check_program(ACTION_PROG_HOLD) != 0) {
+        this->script.run(ACTION_PROG_HOLD);
         AllDeleteDamage();
-        damage_req = ACTION_DAMAGE_REQ_NONE;
-        prog_no = ACTION_PROG_RUNNING;
+        damage_req = 0;
+        prog_no = -1;
     }
 }
-
 #ifdef NONMATCHING
 void CActionChara::RunScript(CScene *scene, RUN_SCRIPT_ENV *env) {
     sceVu0FVECTOR     adjusted_velocity = { 0.0f, 0.0f, 0.0f, 0.0f };
@@ -2956,62 +2901,64 @@ void CActionChara::RunScript(CScene *scene, RUN_SCRIPT_ENV *env) {
 #else
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/actionchara", RunScript__12CActionCharaFP6CSceneP14RUN_SCRIPT_ENV);
 #endif
-
-int CActionChara::CheckReleaseTimming(int type) {
-    if (type == -1) {
+int CActionChara::CheckReleaseTimming(int id) {
+    if (id == -1) {
         return release_timing;
     }
-    if (type == hold_type) {
+    if (id == hold_type) {
         return release_timing;
     }
     return 0;
 }
-
-#ifdef NONMATCHING
 void CActionChara::StepParam() {
-    sceVu0FVECTOR   movement;
-    sceVu0FVECTOR   rotation;
-    sceVu0FVECTOR   arm_rotation;
-    sceVu0FVECTOR   forward = {0.0f, 0.0f, 1.0f, 1.0f};
-    sceVu0FVECTOR   added_movement;
-    sceVu0FVECTOR   knockback;
-    sceVu0FMATRIX   facing_matrix;
-    CActionChara   *arm;
-    int             i;
+    float move_copy[4];
+    float self_rot[4];
+    float target_rot[4];
+    float forward[4];
+    float matrix[4][4];
+    float self_rot2[4];
+    float forward2[4];
+    float matrix2[4][4];
+    float knock[4];
+    float push[4];
+    CActionChara *target;
+    int i;
 
-    sceVu0CopyVector(movement, velocity);
-    movement[0] = 0.0f;
-    movement[2] = 0.0f;
-    sceVu0CopyVector(velocity, movement);
-    if (chara_type == ACTION_CHARA_ROBO) {
-        arm = SearchChara("arm");
-        if (arm != NULL) {
-            GetRotation(rotation);
-            arm->GetRotation(arm_rotation);
-            rotation[1] += arm_rotation[1];
-            if (rotation[1] > 3.1415927f) {
-                rotation[1] -= 6.2831855f;
+    sceVu0CopyVector(move_copy, velocity);
+    move_copy[0] = 0.0f;
+    move_copy[2] = 0.0f;
+    sceVu0CopyVector(velocity, move_copy);
+    if (chara_type == 2) {
+        target = SearchChara(at_2423);
+        if (target != NULL) {
+            GetRotation(self_rot);
+            target->GetRotation(target_rot);
+            self_rot[1] += target_rot[1];
+            if (!(self_rot[1] <= 3.1415927f)) {
+                self_rot[1] -= 6.2831855f;
             }
-            if (rotation[1] < -3.1415927f) {
-                rotation[1] += 6.2831855f;
+            if (self_rot[1] < -3.1415927f) {
+                self_rot[1] += 6.2831855f;
             }
-            sceVu0UnitMatrix(facing_matrix);
-            sceVu0RotMatrixY(facing_matrix, facing_matrix, rotation[1]);
-            sceVu0ApplyMatrix(front_vec, facing_matrix, forward);
+            *(ActionVector *)forward = *(ActionVector *)at_3289;
+            sceVu0UnitMatrix(matrix);
+            sceVu0RotMatrixY(matrix, matrix, self_rot[1]);
+            sceVu0ApplyMatrix(front_vec, matrix, forward);
         }
     } else {
-        GetRotation(rotation);
-        sceVu0UnitMatrix(facing_matrix);
-        sceVu0RotMatrixY(facing_matrix, facing_matrix, rotation[1]);
-        sceVu0ApplyMatrix(front_vec, facing_matrix, forward);
+        GetRotation(self_rot2);
+        *(ActionVector *)forward2 = *(ActionVector *)at_3291;
+        sceVu0UnitMatrix(matrix2);
+        sceVu0RotMatrixY(matrix2, matrix2, self_rot2[1]);
+        sceVu0ApplyMatrix(front_vec, matrix2, forward2);
     }
     add_vec[1] = 0.0f;
-    if (add_speed > 0.0f && add_time != 0) {
-        sceVu0ScaleVectorXYZ(added_movement, add_vec, add_speed);
-        sceVu0AddVector(velocity, velocity, added_movement);
+    if (!(add_speed <= 0.0f) && add_time != 0) {
+        sceVu0ScaleVectorXYZ(knock, add_vec, add_speed);
+        sceVu0AddVector(velocity, velocity, knock);
         if (add_time > 0) {
-            if (add_speed > 0.0f) {
-                add_speed -= add_decel;
+            if (!(add_speed <= 0.0f)) {
+                add_speed = add_speed - add_decel;
             }
             add_time--;
             if (add_time <= 0) {
@@ -3019,12 +2966,12 @@ void CActionChara::StepParam() {
             }
         }
     }
-    if (blow_speed > 0.0f && blow_time != 0) {
-        sceVu0ScaleVectorXYZ(knockback, blow_vec, blow_speed);
-        sceVu0AddVector(velocity, velocity, knockback);
+    if (!(blow_speed <= 0.0f) && blow_time != 0) {
+        sceVu0ScaleVectorXYZ(push, blow_vec, blow_speed);
+        sceVu0AddVector(velocity, velocity, push);
         if (blow_time > 0) {
-            if (blow_speed > 0.0f) {
-                blow_speed -= blow_decel;
+            if (!(blow_speed <= 0.0f)) {
+                blow_speed = blow_speed - blow_decel;
             }
             blow_time--;
             if (blow_time <= 0) {
@@ -3038,11 +2985,11 @@ void CActionChara::StepParam() {
     }
     if (unk_75e != 0) {
         unk_760 += 0.016666668f;
-        if (unk_760 >= 1.0f) {
+        if (!(unk_760 < 1.0f)) {
             unk_760 = 1.0f;
         }
     } else {
-        unk_760 -= 0.016666668f;
+        unk_760 = unk_760 - 0.016666668f;
         if (unk_760 <= 0.0f) {
             unk_760 = 0.0f;
         }
@@ -3071,6 +3018,7 @@ void CActionChara::StepParam() {
     if (no_hit_time > 0) {
         no_hit_time--;
     }
+    i = 0;
     if (shake.time > 0) {
         shake.offset = 2.5f * mgRnd();
         shake.time--;
@@ -3080,97 +3028,101 @@ void CActionChara::StepParam() {
     }
     release_timing = 0;
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/actionchara", StepParam__12CActionCharaFv);
-#endif
-
-#ifdef NONMATCHING
 void CActionChara::Step() {
-    sceVu0FVECTOR position;
-    sceVu0FVECTOR rotation;
-    sceVu0FVECTOR arm_position;
-    sceVu0FVECTOR target_position;
-    sceVu0FMATRIX arm_matrix;
-    sceVu0FMATRIX aim_matrix;
-    CActionChara *part;
-    mgCFrame     *arm;
+    float held_pos[4];
+    float rotation[4];
+    float gun_pos[4];
+    float target_pos[4];
+    float matrix[4][4];
+    float pitch_matrix[4][4];
+    CActionChara *link;
+    CCharacter2 *chained;
+    CCharacter2 *self = (CCharacter2 *)this;
+    mgCFrame *gun;
 
     StepParam();
-    if (se_positional != 2) {
-        se_positional = 1;
+    if (self->se_positional != 2) {
+        self->se_positional = 1;
     }
-    CCharacter2::Step();
-    for (part = next; part != NULL; part = part->next) {
-        if (part->se_positional != 2) {
-            part->se_positional = 0;
-        }
-        part->CCharacter2::Step();
+    self->CCharacter2::Step();
+    link = next;
+    if (link != NULL) {
+        do {
+            chained = (CCharacter2 *)link;
+            if (chained->se_positional != 2) {
+                chained->se_positional = 0;
+            }
+            chained->CCharacter2::Step();
+            link = link->next;
+        } while (link != NULL);
     }
-    if (hold_type == ACTION_HOLD_STONE && hold_parts != NULL && hold_frame != NULL) {
+    if (hold_type == 4 && hold_parts != 0 && hold_frame != 0) {
         GetRotation(rotation);
-        hold_frame->GetWorldPosition0(position);
-        position[3] = 1.0f;
-        position[1] -= 1.0f;
-        hold_parts->SetPosition(position);
-        hold_parts->SetRotation(rotation);
+        ((mgCFrame *)hold_frame)->GetWorldPosition0(held_pos);
+        held_pos[3] = 1.0f;
+        held_pos[1] -= 1.0f;
+        ((CActionChara *)hold_parts)->SetPosition(held_pos);
+        ((CActionChara *)hold_parts)->SetRotation(rotation);
     }
-    arm = SearchObject("L_arm");
-    if (arm != NULL) {
-        static float ang = 0.0f;
-
-        arm->GetWorldPosition0(arm_position);
-        if (lock_on != 0 && dir_gun != 0) {
-            ActiveMonster->active[target_no - 24]->GetEntryObjectPos(0, target_position);
-            sceVu0SubVector(arm_position, target_position, arm_position);
-            sceVu0CopyVector(target_position, arm_position);
-            target_position[3] = 1.0f;
-            target_position[1] = 0.0f;
-            ang = -atan2f(arm_position[1], mgDistVector(target_position));
-        } else {
-            ang = 0.0f;
+    gun = SearchObject(at_3389);
+    if (gun != NULL) {
+        if (init_3372 == 0) {
+            ang_3371 = 0.0f;
+            init_3372 = 1;
         }
-        sceVu0CopyMatrix(arm_matrix, arm->trans_matrix);
-        sceVu0UnitMatrix(aim_matrix);
-        sceVu0RotMatrixZ(aim_matrix, aim_matrix, ang);
-        sceVu0MulMatrix(arm_matrix, arm_matrix, aim_matrix);
-        arm->SetTransMatrix(arm_matrix);
+        gun->GetWorldPosition0(gun_pos);
+        if (lock_on != 0 && (s8)dir_gun != 0) {
+
+            (*(CCharacter2 **)(((target_no - 24) << 2) + (int)ActiveMonster + 0x484))->GetEntryObjectPos(0, target_pos);
+            sceVu0SubVector(gun_pos, target_pos, gun_pos);
+            sceVu0CopyVector(target_pos, gun_pos);
+            target_pos[3] = 1.0f;
+            target_pos[1] = 0.0f;
+            ang_3371 = -atan2f(gun_pos[1], mgDistVector(target_pos));
+        } else {
+            ang_3371 = 0.0f;
+        }
+        sceVu0CopyMatrix(matrix, gun->trans_matrix);
+        sceVu0UnitMatrix(pitch_matrix);
+        sceVu0RotMatrixZ(pitch_matrix, pitch_matrix, ang_3371);
+        sceVu0MulMatrix(matrix, matrix, pitch_matrix);
+        gun->SetTransMatrix(matrix);
     }
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/actionchara", Step__12CActionCharaFv);
-#endif
-
 void CActionChara::ShadowStep() {
-    CActionChara *part;
+    CActionChara *current;
 
-    for (part = this; part != NULL; part = part->next) {
-        part->CCharacter2::ShadowStep();
+    current = this;
+    if (this != NULL) {
+        do {
+            current->CCharacter2::ShadowStep();
+            current = current->next;
+        } while (current != NULL);
     }
 }
-
-#ifdef NONMATCHING
 void CActionChara::Initialize(mgCMemory *memory) {
     int i;
+    int j;
 
     CCharacter2::Initialize();
     accume_effect = NULL;
-    old_pos[0] = 0.0f;
-    old_pos[1] = 0.0f;
     old_pos[2] = 0.0f;
+    old_pos[1] = 0.0f;
+    old_pos[0] = 0.0f;
     old_pos[3] = 1.0f;
-    chara_kind = ACTION_KIND_NONE;
+    chara_kind = 0;
     script_buf = NULL;
     max_speed = 4.0f;
     prog = 0;
     pad_history = 0;
     parent = NULL;
     next = NULL;
-    accele.speed = 0.0f;
+    accele.speed = 0;
     accele.move_speed = 3.0f;
-    accele.accele[0] = 0.0f;
-    accele.accele[1] = 0.0f;
-    accele.accele[2] = 0.0f;
-    accele.accele[3] = 0.0f;
+    *(int *)&accele.accele[0] = 0;
+    *(int *)&accele.accele[1] = 0;
+    *(int *)&accele.accele[2] = 0;
+    *(int *)&accele.accele[3] = 0;
     acumu_pad = 0;
     now_status = 0;
     unk_bec = 0;
@@ -3179,13 +3131,13 @@ void CActionChara::Initialize(mgCMemory *memory) {
     muteki_time = 0;
     guard_flag = 0;
     menu_flag = 0;
-    add_speed = 0.0f;
+    *(int *)&add_speed = 0;
     add_time = 0;
-    blow_vec[0] = 0.0f;
-    blow_vec[1] = 0.0f;
     blow_vec[2] = 0.0f;
+    blow_vec[1] = 0.0f;
+    blow_vec[0] = 0.0f;
     blow_vec[3] = 1.0f;
-    blow_speed = 0.0f;
+    *(int *)&blow_speed = 0;
     blow_time = 0;
     unk_be4 = 0;
     damage_time = 0;
@@ -3193,20 +3145,20 @@ void CActionChara::Initialize(mgCMemory *memory) {
     stagger_time = 0;
     mask_flag = 0;
     dir_gun = 0;
-    default_motion = "\x97\xA7\x82\xBF";
+    default_motion = at_2210;
     shot_wait = 0;
     murderous = 0;
     murderous_time = 0;
     target_no = -1;
     lock_on = 0;
-    damage_req = ACTION_DAMAGE_REQ_NONE;
+    damage_req = 0;
     catch_frame = NULL;
     catch_state = 0;
     no_hit_time = 0;
     release_timing = 0;
-    hold_parts = NULL;
-    hold_frame = NULL;
-    hold_type = ACTION_HOLD_NONE;
+    hold_parts = 0;
+    hold_frame = 0;
+    hold_type = 0;
     unk_72a = -1;
     for (i = 0; i < 9; i++) {
         sw_effect[i].sword_no = 0;
@@ -3219,15 +3171,11 @@ void CActionChara::Initialize(mgCMemory *memory) {
     }
     effect_man = NULL;
     shake.time = 0;
-    for (i = 0; i < 3; i++) {
-        pallet[i].Initialize();
+    for (j = 0; j < 3; j++) {
+        pallet[j].Initialize();
     }
     ResetScript();
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/actionchara", Initialize__12CActionCharaFP9mgCMemory);
-#endif
-
 #ifdef NONMATCHING
 void CActionChara::Copy(CActionChara &dest, mgCMemory *memory) {
     dest = *this;
@@ -3238,12 +3186,72 @@ void CActionChara::Copy(CActionChara &dest, mgCMemory *memory) {
 #else
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/actionchara", Copy__12CActionCharaFR12CActionCharaP9mgCMemory);
 #endif
-
-#ifdef NONMATCHING
-// CCharacter2::operator= is the compiler-generated copy assignment (character.hpp).
-#else
+#ifndef NONMATCHING
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/actionchara", __as__11CCharacter2FRC11CCharacter2);
 #endif
+
+extern char at_2818[];
+extern char at_2840[];
+
+void GuardEffectSet(CScene *scene, float *point) {
+    float to_camera[4];
+    float position[4];
+    ActionVector direction;
+    CCameraControl *camera;
+    CHitEffectImage *hit;
+    CFlushEffect *flush;
+
+    camera = (CCameraControl *)scene->GetCamera(scene->active_camera);
+    if (camera == NULL) {
+        return;
+    }
+    sceVu0CopyVector(position, point);
+    camera->GetPos(to_camera);
+    sceVu0SubVector(to_camera, to_camera, position);
+    sceVu0Normalize(to_camera, to_camera);
+    sceVu0ScaleVector(to_camera, to_camera, 20.0f);
+    sceVu0AddVector(position, position, to_camera);
+    direction = *(ActionVector *)at_2818;
+    if (BattleFX.hit == NULL) {
+        hit = NULL;
+    } else {
+        hit = BattleFX.hit + BattleFX.hit_next;
+        BattleFX.hit_next++;
+        if (BattleFX.hit_next >= BattleFX.hit_num) {
+            BattleFX.hit_next = 0;
+        }
+    }
+    float spread = 50.0f;
+    SethitEffect__15CHitEffectImageFPfPfffffii(hit, position, direction.f,
+                                          spread, 30.0f, 0.0f, 0.1f, 30, 32);
+    hit->kind = 1;
+    if (BattleFX.flush == NULL) {
+        flush = NULL;
+    } else {
+        flush = BattleFX.flush + BattleFX.flush_next;
+        BattleFX.flush_next++;
+        if (BattleFX.flush_next >= BattleFX.flush_num) {
+            BattleFX.flush_next = 0;
+        }
+    }
+    if (flush != NULL) {
+        sceVu0CopyVector(flush->pos, position);
+        flush->fade_speed = 16.0f;
+        flush->alpha = 160;
+        flush->active = 1;
+        flush->size = 10.0f;
+        flush->grow = 3.0f;
+        flush->tex_u = 65;
+        flush->tex_v = 193;
+        flush->tex_size = 62;
+        flush->follow = NULL;
+    }
+    if (FxScriptMan != NULL) {
+        FxScriptMan->CreateEffSpt(at_2840, 0, 0);
+        FxScriptMan->SetScriptVect1(position, 0, -1);
+    }
+}
+
 
 
 // Initialised data (.data)

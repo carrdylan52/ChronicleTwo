@@ -1,6 +1,28 @@
 #include "common.h"
+#include "map.hpp"
+#include "mapload.hpp"
+#include "mg_drawenv.hpp"
+#include "mg_texture.hpp"
 #include "sceneevent.hpp"
 #include "scenesnd.hpp"
+#include "mg_camera.hpp"
+#include "mg_math.hpp"
+#include "mglib.hpp"
+#include "screeneffect.hpp"
+#include "collision.hpp"
+#include "mapsky.hpp"
+#include <cstdio>
+#include <cstring>
+
+union CopyVector { float f[4]; u_long128 word; };
+struct CopyEventName { char text[16]; };
+struct CopyEventWords { int value[16]; };
+extern float col_1003[4][4];
+extern float at_1013__4[4];
+extern char at_858__3[];
+extern char at_958__3[];
+extern char at_959__3[];
+extern char at_1093[];
 #include "collision.hpp"
 #include "mapsky.hpp"
 #include "mg_camera.hpp"
@@ -14,138 +36,157 @@
 #include <cstdio>
 
 // Code (.text)
-#ifdef NONMATCHING
 void CScene::UpDateMapInfo() {
-    CMap *maps[4];
-    int count = GetActiveMap(maps, 4);
-    for (int index = 0; index < count; ++index) {
-        if (maps[index] != NULL) maps[index]->now_time = time;
+    CMap *active_maps[4];
+    CMapLightingInfo *lighting;
+    int count = GetActiveMap(active_maps, 4);
+    int i;
+    for (i = 0; i < count; i++) {
+        if (active_maps[i] != NULL) {
+            active_maps[i]->now_time = time;
+        }
     }
     CMap *map = GetMap(active_map);
-    if (map == NULL) return;
-    CMapLightingInfo lighting;
-    map->GetLightInfo(&lighting);
-    mgFogEnable(lighting.fog_enable);
-    if (lighting.fog_enable) {
-        mgSetFogParam(lighting.fog.near_dist, lighting.fog.far_dist, lighting.fog.r,
-                      lighting.fog.g, lighting.fog.b, lighting.fog.far_value, lighting.fog.near_value);
+    if (map != NULL) {
+        CMapLightingInfo lighting_data;
+        map->GetLightInfo(lighting = &lighting_data);
+        mgFogEnable(lighting->fog_enable);
+        if (lighting->fog_enable != 0) {
+            mgSetFogParam(lighting->fog.near_dist, lighting->fog.far_dist, lighting->fog.r,
+                          lighting->fog.g, lighting->fog.b, lighting->fog.far_value,
+                          lighting->fog.near_value);
+        }
+        mgSetRenderInfo(lighting->projection, 3.0f, 50000.0f);
+        mgSetLight(lighting->light_dir, lighting->light_color);
+        mgSetAmbient(lighting->ambient);
+        mgResetPlight();
+        if (lighting->plight_enable != 0) {
+            mgPlightEnable(1);
+            int light;
+            for (light = 0; light < 4; light++) {
+                mgSetPlight(light, (mgPOINT_LIGHT *)&lighting->point_light[light]);
+            }
+        }
+        mgSetBackGround(lighting->bg_color);
     }
-    mgSetRenderInfo(lighting.projection, 3.0f, 50000.0f);
-    mgSetLight(lighting.light_dir, lighting.light_color);
-    mgSetAmbient(lighting.ambient);
-    mgResetPlight();
-    if (lighting.plight_enable) {
-        mgPlightEnable(1);
-        for (int light = 0; light < 4; ++light) mgSetPlight(light, &lighting.point_light[light]);
-    }
-    mgSetBackGround(lighting.bg_color);
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/sceneevent", UpDateMapInfo__6CSceneFv);
-#endif
-#ifdef NONMATCHING
 int CScene::GetColPoly(CCPoly *polys, mgVu0FBOX &box, int max) {
     CMap *maps[4];
     int count = GetActiveMap(maps, 4);
     int total = 0;
-    for (int index = 0; index < count; ++index) {
-        int found = maps[index]->GetColPoly(polys, box, max);
+    int i;
+    for (i = 0; i < count; i++) {
+        int found = maps[i]->GetColPoly(polys, box, max);
         total += found;
-        max -= found;
         polys += found;
+        max -= found;
         if (max < 0) {
             break;
         }
     }
     return total;
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/sceneevent", GetColPoly__6CSceneFP6CCPolyR9mgVu0FBOXi);
-#endif
-#ifdef NONMATCHING
 int CScene::GetCameraPoly(CCPoly *polys, mgVu0FBOX &box, int max) {
     CMap *maps[4];
     int count = GetActiveMap(maps, 4);
     int total = 0;
-    for (int index = 0; index < count; ++index) {
-        int found = maps[index]->GetCameraPoly(polys, box, max);
+    int i;
+    for (i = 0; i < count; i++) {
+        int found = maps[i]->GetCameraPoly(polys, box, max);
         total += found;
-        max -= found;
         polys += found;
+        max -= found;
         if (max < 0) {
             break;
         }
     }
     return total;
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/sceneevent", GetCameraPoly__6CSceneFP6CCPolyR9mgVu0FBOXi);
-#endif
 void CScene::RunEvent(int requested_event_no, CSceneEventData *data) {
-    if (event_run) {
-        printf("start event running!!\n");
-        if (event_no == 100) {
-            return;
-        }
-    }
-    event_no = requested_event_no;
-    if (data != NULL) {
-        event_data = *data;
-    }
-    event_run = 1;
-}
-#ifdef NONMATCHING
-int CScene::GetMapEvent(float *pos, int check_type, CSceneEventData *data) {
-    CMap *maps[4];
-    int count = GetActiveMap(maps, 4);
-    int last_event_no = 0;
-    for (int index = 0; index < count; ++index) {
-        MapEventInfo event_info;
-        CFuncPoint *point = maps[index]->GetEvent(pos, check_type, &event_info);
-        if (event_info.event_no != 0) last_event_no = event_info.event_no;
-        if (point == NULL) continue;
+    u8 *scene = (u8 *)this;
+    if (event_run == 0 || (printf(at_858__3), event_no != 100)) {
+        event_no = requested_event_no;
         if (data != NULL) {
-            data->event = point->event;
-            sceVu0CopyVector(data->position, point->position);
-            sceVu0CopyVector(data->rotation, point->rotation);
-            sceVu0CopyVector(data->scale, point->scale);
-            data->map_event = event_info;
+            ((CSceneEventData *)(scene + 0x2E90))->head = data->head;
+            ((CSceneEventData *)(scene + 0x2E90))->group_1 = data->group_1;
+            ((CSceneEventData *)(scene + 0x2E90))->group_2 = data->group_2;
+            ((CSceneEventData *)(scene + 0x2E90))->group_3 = data->group_3;
+            ((CSceneEventData *)(scene + 0x2E90))->group_4 = data->group_4;
+            ((CSceneEventData *)(scene + 0x2E90))->group_5 = data->group_5;
+            ((CSceneEventData *)(scene + 0x2E90))->vectors_a = data->vectors_a;
+            ((CSceneEventData *)(scene + 0x2E90))->vectors_b = data->vectors_b;
+            ((CSceneEventData *)(scene + 0x2E90))->chara_no = data->chara_no;
+            ((CSceneEventData *)(scene + 0x2E90))->chara_slot = data->chara_slot;
+            ((CSceneEventData *)(scene + 0x2E90))->gameobj_no = data->gameobj_no;
+            event_data.unk_cc = data->unk_cc;
         }
-        return 1;
+        event_run = 1;
     }
-    map_event_no = last_event_no;
-    int object_slot = GetGameObjectEvent(pos, data);
-    if (object_slot < 0) return 0;
+}
+int CScene::GetMapEvent(float *position, int map_no, CSceneEventData *event) {
+    CMap *maps[4];
+    MapEventInfo result;
+    int flag_no;
+    int count = GetActiveMap(maps, 4);
+    int i;
+    flag_no = 0;
+    for (i = 0; i < count; i++) {
+        CFuncPoint *point = maps[i]->GetEvent(position, map_no, &result);
+        if (result.event_no != 0) {
+            flag_no = result.event_no;
+        }
+        if (point != NULL) {
+            if (event != NULL) {
+                *(CopyVector *)event->position = *(CopyVector *)point->position;
+                *(CopyVector *)event->rotation = *(CopyVector *)point->rotation;
+                *(CopyVector *)event->scale = *(CopyVector *)point->scale;
+                event->event.flag = point->event.flag;
+                event->event.event_no = point->event.event_no;
+                event->event.point_no = point->event.point_no;
+                event->event.unk_2c = point->event.unk_2c;
+                event->event.unk_30 = point->event.unk_30;
+                event->event.unk_34 = point->event.unk_34;
+                *(CopyEventName *)event->event.unk_38 = *(CopyEventName *)point->event.unk_38;
+                event->map_event.check_type = result.check_type;
+                event->map_event.event_no = result.event_no;
+                *(CopyEventWords *)event->map_event.matrix = *(CopyEventWords *)result.matrix;
+                event->map_event.parts_no = result.parts_no;
+                event->map_event.point_no = result.point_no;
+            }
+            return 1;
+        }
+    }
+    map_event_no = flag_no;
+    int object_chara = GetGameObjectEvent(position, event);
+    if (object_chara < 0) {
+        return 0;
+    }
     map_event_no = 1;
-    if (check_type == 1) {
-        if (data != NULL) {
-            if (object_slot == 0x78) data->event.event_no = 300;
-            else if (object_slot == 0x7A) data->event.event_no = 400;
-        }
-        return 1;
+    if (map_no != 1) {
+        return 0;
     }
-    return 0;
+    if (object_chara == 0x78) {
+        event->event.point_no = 300;
+    } else if (object_chara == 0x7A) {
+        event->event.point_no = 400;
+    }
+    return 1;
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/sceneevent", GetMapEvent__6CSceneFPfiP15CSceneEventData);
-#endif
-#ifdef NONMATCHING
-int CScene::GetFixCameraPos(float *pos, float *camera) {
-    sceVu0FVECTOR raised;
-    sceVu0CopyVector(raised, pos);
-    raised[1] += 1.0f;
+int CScene::GetFixCameraPos(float *position, float *out_camera) {
+    float lifted[4];
     CMap *maps[4];
-    int count = GetActiveMap(maps, 4);
-    for (int index = 0; index < count; ++index) {
-        if (maps[index]->GetFixCameraPos(raised, camera)) {
+    int count;
+    int i;
+    *(u_long128 *)lifted = *(u_long128 *)position;
+    lifted[1] += 1.0f;
+    count = GetActiveMap(maps, 4);
+    for (i = 0; i < count; i++) {
+        if (maps[i]->GetFixCameraPos(lifted, out_camera) != 0) {
             return 1;
         }
     }
     return 0;
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/sceneevent", GetFixCameraPos__6CSceneFPfPf);
-#endif
 void CScene::FixCameraPartsOnOff(float *pos) {
     CMap *maps[4];
     int count = GetActiveMap(maps, 4);
@@ -157,9 +198,9 @@ void CScene::EyeViewDrawOnOff(int on) {
     CMap *maps[4];
     int count = GetActiveMap(maps, 4);
     for (int index = 0; index < count; ++index) {
-        CPartsGroup *shown = maps[index]->SearchPartsGroup("eyeview_on");
-        CPartsGroup *hidden = maps[index]->SearchPartsGroup("eyeview_off");
-        if (shown != NULL) shown->off = !on;
+        CPartsGroup *shown = maps[index]->SearchPartsGroup(at_958__3);
+        CPartsGroup *hidden = maps[index]->SearchPartsGroup(at_959__3);
+        if (shown != NULL) shown->off = (u8)((on != 0) ^ 1);
         if (hidden != NULL) hidden->off = on;
     }
 }
@@ -181,66 +222,90 @@ void CScene::GetMoonPosition(float *pos) {
     GetSunPosition(pos);
     pos[1] *= -1.0f;
 }
-#ifdef NONMATCHING
-void CScene::DrawSky(int no) {
-    CMapSky *sky = no < 0 ? GetSky(1) : GetSky(no);
-    if (sky == NULL && no < 0) sky = GetSky(0);
-    if (sky == NULL) return;
-    sceVu0FVECTOR camera_pos;
-    mgZeroVector(camera_pos);
-    mgCCamera *camera = GetCamera(active_camera);
-    if (camera != NULL) camera->GetPos(camera_pos);
-    CMap *map = GetMap(active_map);
-    if (map == NULL || !map->sky_info) return;
-    camera_pos[1] = map->unk_dc;
-    CMapLightingInfo lighting;
-    float ratio[4];
-    float sun_ratio[4];
-    sceVu0FVECTOR sun_pos;
-    sceVu0FVECTOR moon_pos;
-    map->GetLightInfo(&lighting);
-    map->GetLightingRatio(ratio);
-    map->GetLightingSunRatio(sun_ratio);
-    GetSunPosition(sun_pos);
-    GetMoonPosition(moon_pos);
-    sceVu0FVECTOR color0;
-    sceVu0FVECTOR color1;
-    sceVu0CopyVector(color0, lighting.bg_color);
-    sceVu0CopyVector(color1, lighting.bg_color2);
-    sceVu0ScaleVector(color0, color0, 0.0078125f);
-    sceVu0ScaleVector(color1, color1, 0.0078125f);
-    color0[3] = 1.0f;
-    color1[3] = 1.0f;
-    sky->DrawSkyBack(camera_pos, color0, color1);
-    sky->DrawSky(camera_pos, sun_pos, moon_pos, map->GetNowTimeBand(), ratio, sun_ratio);
-}
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/sceneevent", DrawSky__6CSceneFi);
-#endif
-#ifdef NONMATCHING
-void CScene::DrawLensFlare(int texb, char *name0, char *name1) {
-    CMap *map = GetMap(active_map);
-    if (map == NULL || !map->sky_info || !map->lens_flare) return;
-    float ratio[4];
-    map->GetLightingFlareRatio(ratio);
-    if (ratio[0] == 0.0f && ratio[1] == 0.0f && ratio[3] == 0.0f) return;
-    sceVu0FVECTOR color = { 0.0f, 0.0f, 0.0f, 1.0f };
-    for (int band = 0; band < 4; ++band) {
-        color[0] += ratio[band];
-        color[1] += ratio[band];
-        color[2] += ratio[band];
+void CScene::DrawSky(int sky_index) {
+    float camera_info[4];
+    float sun_position[4];
+    float moon_position[4];
+    float lighting_ratio[8];
+    float sun_ratio[8];
+    union { CMapLightingInfo lighting; };
+    float sky_color_a[4];
+    float sky_color_b[4];
+    CMapSky *sky;
+    mgCCamera *camera;
+    CMap *map;
+    if (sky_index < 0) {
+        sky = GetSky(1);
+        if (sky == NULL) {
+            sky = GetSky(0);
+        }
+    } else {
+        sky = GetSky(sky_index);
     }
-    sceVu0FVECTOR sun_pos;
-    GetSunPosition(sun_pos);
+    if (sky != NULL) {
+        mgZeroVector(camera_info);
+        camera = GetCamera(active_camera);
+        if (camera != NULL) {
+            camera->GetPos(camera_info);
+            camera_info[3] = camera->GetAngleH();
+        }
+        map = GetMap(active_map);
+        if (map != NULL && map->sky_info != 0) {
+            camera_info[1] = map->unk_dc;
+            memset(&lighting, 0, sizeof(lighting));
+            map->GetLightInfo(&lighting);
+            map->GetLightingRatio(lighting_ratio);
+            map->GetLightingSunRatio(sun_ratio);
+            GetSunPosition(sun_position);
+            GetMoonPosition(moon_position);
+            *(CopyVector *)sky_color_a = *(CopyVector *)lighting.bg_color;
+            sceVu0ScaleVector(sky_color_a, sky_color_a, 0.0078125f);
+            sky_color_a[3] = 1.0f;
+            *(CopyVector *)sky_color_b = *(CopyVector *)lighting.bg_color2;
+            sceVu0ScaleVector(sky_color_b, sky_color_b, 0.0078125f);
+            sky_color_b[3] = 1.0f;
+            sky->DrawSkyBack(camera_info, sky_color_a, sky_color_b);
+            sky->DrawSky(camera_info, sun_position, moon_position,
+                                          map->GetNowTimeBand(), lighting_ratio, sun_ratio);
+        }
+    }
+}
+void CScene::DrawLensFlare(int flare_type, char *texture, char *alpha_texture) {
+    float ratio[4];
+    float color[4];
+    float sun_position[4];
     int screen[4];
-    if (mgTransWorldScreen(screen, sun_pos)) {
-        screen[2] = mgTransZPrim(10000.0f);
-        LensFlare(screen, color, texb, name0, name1);
+    CMap *map = GetMap(active_map);
+    if (map != NULL && map->sky_info != 0) {
+        if (map->lens_flare == 0) {
+            return;
+        }
+    } else {
+        return;
+    }
+    map->GetLightingFlareRatio(ratio);
+    if (ratio[0] != 0.0f || ratio[1] != 0.0f || ratio[3] != 0.0f) {
+        *(CopyVector *)color = *(CopyVector *)at_1013__4;
+        color[0] += col_1003[0][0] * ratio[0];
+        color[1] += col_1003[0][1] * ratio[0];
+        color[2] += col_1003[0][2] * ratio[0];
+        color[0] += col_1003[1][0] * ratio[1];
+        color[1] += col_1003[1][1] * ratio[1];
+        color[2] += col_1003[1][2] * ratio[1];
+        color[0] += col_1003[2][0] * ratio[2];
+        color[1] += col_1003[2][1] * ratio[2];
+        color[2] += col_1003[2][2] * ratio[2];
+        color[0] += col_1003[3][0] * ratio[3];
+        color[1] += col_1003[3][1] * ratio[3];
+        color[2] += col_1003[3][2] * ratio[3];
+        GetSunPosition(sun_position);
+        sun_position[3] = 1.0f;
+        if (mgTransWorldScreen(screen, sun_position) != 0) {
+            screen[2] = mgTransZPrim(10000.0f);
+            LensFlare(screen, color, flare_type, texture, alpha_texture);
+        }
     }
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/sceneevent", DrawLensFlare__6CSceneFiPcPc);
-#endif
 void CScene::EffectStep() {
     CMap *maps[4];
     int count = GetActiveMap(maps, 4);
@@ -249,42 +314,45 @@ void CScene::EffectStep() {
     }
     fire_raster.Step();
 }
-#ifdef NONMATCHING
-void CScene::DrawEffect(int mode) {
+void CScene::DrawEffect(int tex_block) {
     CMap *maps[4];
+    mgCTextureManager *tex_manager = &mgTexManager;
+    mgCTexture *fire_texture;
     int count = GetActiveMap(maps, 4);
-    for (int index = 0; index < count; ++index) {
-        CMap *map = maps[index];
-        if (map->effect_list.block >= 0) {
-            mgTexManager.ReloadTexture(map->effect_list.block, (sceVif1Packet *)NULL);
-            map->DrawEffect();
+    int i;
+    int j;
+    int k;
+    for (i = 0; i < count; i++) {
+        int block = maps[i]->effect_list.block;
+        if (block >= 0) {
+            tex_manager->ReloadTexture(block, (sceVif1Packet *)NULL);
+            maps[i]->DrawEffect();
         }
     }
-    mgTexManager.ReloadTexture(mode, (sceVif1Packet *)NULL);
-    for (int index = 0; index < count; ++index) {
-        CMap *map = maps[index];
-        if (map == NULL) continue;
-        map->fire_raster = &fire_raster;
-        map->DrawFireEffect(mode);
-        map->fire_raster = NULL;
+    tex_manager->ReloadTexture(tex_block, (sceVif1Packet *)NULL);
+    for (j = 0; j < count; j++) {
+        if (maps[j] != NULL) {
+            maps[j]->fire_raster = &fire_raster;
+            maps[j]->DrawFireEffect(tex_block);
+            maps[j]->fire_raster = NULL;
+        }
     }
-    mgCTexture *texture = mgTexManager.GetTexture("fire", mode);
-    fire_raster.SetTexture(texture);
+    fire_texture =
+        tex_manager->GetTexture(at_1093, tex_block);
+    fire_raster.SetTexture(fire_texture);
     mgCTexture frame;
+    mgRect<int> rect;
     mgGetFrameBuffer(&frame);
-    mgRect<int> frame_rect(0, 0, (mgScreenWidth - 1) * 16, (mgScreenHeight - 1) * 16);
-    mgSetPkMoveImage(&frame, frame_rect, texture, 0, 0, 0);
-    for (int index = 0; index < count; ++index) {
-        CMap *map = maps[index];
-        if (map == NULL) continue;
-        map->fire_raster = &fire_raster;
-        map->DrawFireRaster();
-        map->fire_raster = NULL;
+    rect.Set( 0, 0, (mgScreenWidth - 1) << 4, (mgScreenHeight - 1) << 4);
+    mgSetPkMoveImage(&frame, rect, fire_texture, 0, 0, 0);
+    for (k = 0; k < count; k++) {
+        if (maps[k] != NULL) {
+            maps[k]->fire_raster = &fire_raster;
+            maps[k]->DrawFireRaster();
+            maps[k]->fire_raster = NULL;
+        }
     }
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/sceneevent", DrawEffect__6CSceneFi);
-#endif
 
 // Initialised data (.data)
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/sceneevent", col_1003__DATA);

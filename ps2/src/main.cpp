@@ -10,21 +10,32 @@
 #include <sifdev.h>
 #include <sifrpc.h>
 
-#ifdef NONMATCHING
 /** Vertical blanks counted since start-up, kept non-negative. */
-static volatile int vcount;
-#endif
+// Small uninitialised data (.sbss)
+static volatile int vcount__2;
+extern int MainThreadPriority;
+extern const unsigned char at_846__DATA[];
+extern const unsigned char at_847__DATA[];
+extern const unsigned char at_848__DATA[];
+extern const unsigned char at_849__DATA[];
+extern const unsigned char at_850__DATA[];
+extern const unsigned char at_851__DATA[];
+extern const unsigned char at_852__DATA[];
+extern const unsigned char at_853__DATA[];
+extern const unsigned char at_854__DATA[];
+extern const unsigned char at_855__DATA[];
+extern const unsigned char at_856__DATA[];
+extern const unsigned char at_857__DATA[];
 
 // Code (.text)
-#ifdef NONMATCHING
 /**
  * Vertical-blank interrupt handler: counts the frame and re-enables
  * interrupts before returning.
  */
-static int VSyncCallBack(int) {
-    vcount++;
-    if (vcount < 0) {
-        vcount = 0;
+extern "C" int VSyncCallBack__Fi__2(int) {
+    vcount__2++;
+    if (vcount__2 < 0) {
+        vcount__2 = 0;
     }
     asm {
         sync
@@ -32,9 +43,7 @@ static int VSyncCallBack(int) {
     }
     return 0;
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/main", VSyncCallBack__Fi__2);
-#endif
+
 /**
  * Sets up a default double buffer, clears both buffers to the given colour
  * and shows each in turn so the screen starts out blank.
@@ -61,7 +70,7 @@ static void ClearScreen(int r, int g, int b) {
     sceGsSwapDBuff(&db, 1);
     sceGsSyncPath(0, 0);
 }
-#ifdef NONMATCHING
+
 /**
  * Resets the graphics hardware, reboots the IOP with the game's IOP image,
  * loads every IOP module the game uses and opens the CD file system.
@@ -70,14 +79,14 @@ static void init() {
     sceDmaReset(1);
     sceGsResetPath();
     sceGsResetGraph(0, SCE_GS_INTERLACE, SCE_GS_PAL, 0);
-    sceGsSyncVCallback(VSyncCallBack);
+    sceGsSyncVCallback(VSyncCallBack__Fi__2);
     ClearScreen(0, 0, 0);
     mwInit();
 
     sceSifInitRpc(0);
     sceCdInit(0);
     sceCdMmode(2);
-    while (!sceSifRebootIop("cdrom0:\\MODULES\\IOPRP243.IMG;1")) {
+    while (!sceSifRebootIop((const char *)at_846__DATA)) {
     }
     while (!sceSifSyncIop()) {
     }
@@ -85,42 +94,38 @@ static void init() {
     sceCdInit(0);
     sceCdMmode(2);
     sceFsReset();
-    printf("######################%d\n", vcount);
+    printf((const char *)at_847__DATA, vcount__2);
 
-    while (sceSifLoadModule("cdrom0:\\MODULES\\SIO2MAN.IRX;1", 0, NULL) < 0) {
+    while (sceSifLoadModule((const char *)at_848__DATA, 0, NULL) < 0) {
     }
-    while (sceSifLoadModule("cdrom0:\\MODULES\\PADMAN.IRX;1", 0, NULL) < 0) {
+    while (sceSifLoadModule((const char *)at_849__DATA, 0, NULL) < 0) {
     }
-    while (sceSifLoadModule("cdrom0:\\MODULES\\MCMAN.IRX;1", 0, NULL) < 0) {
+    while (sceSifLoadModule((const char *)at_850__DATA, 0, NULL) < 0) {
     }
-    while (sceSifLoadModule("cdrom0:\\MODULES\\MCSERV.IRX;1", 0, NULL) < 0) {
+    while (sceSifLoadModule((const char *)at_851__DATA, 0, NULL) < 0) {
     }
-    while (sceSifLoadModule("cdrom0:\\MODULES\\LIBSD.IRX;1", 0, NULL) < 0) {
+    while (sceSifLoadModule((const char *)at_852__DATA, 0, NULL) < 0) {
     }
-    while (sceSifLoadModule("cdrom0:\\MODULES\\SDRDRV.IRX;1", 0, NULL) < 0) {
+    while (sceSifLoadModule((const char *)at_853__DATA, 0, NULL) < 0) {
     }
-    while (sceSifLoadModule("cdrom0:\\MODULES\\MODMIDI.IRX;1", 0, NULL) < 0) {
+    while (sceSifLoadModule((const char *)at_854__DATA, 0, NULL) < 0) {
     }
-    while (sceSifLoadModule("cdrom0:\\MODULES\\MODHSYN.IRX;1", 0, NULL) < 0) {
+    while (sceSifLoadModule((const char *)at_855__DATA, 0, NULL) < 0) {
     }
-    while (sceSifLoadModule("cdrom0:\\MODULES\\EZMIDI.IRX;1", 0, NULL) < 0) {
+    while (sceSifLoadModule((const char *)at_856__DATA, 0, NULL) < 0) {
     }
-    while (sceSifLoadModule("cdrom0:\\MODULES\\EZBGM.IRX;1", 0, NULL) < 0) {
+    while (sceSifLoadModule((const char *)at_857__DATA, 0, NULL) < 0) {
     }
 
     InitCDFile();
     sceDmaReset(1);
     sceGsResetPath();
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/main", init__Fv);
-#endif
-#ifdef NONMATCHING
 int main() {
     MainThreadPriority = 10;
     ChangeThreadPriority(GetThreadId(), MainThreadPriority);
     init();
-    printf("######################%d\n", vcount);
+    printf((const char *)at_847__DATA, vcount__2);
     MainLoop();
 
     sceGsSyncPath(0, 0);
@@ -130,9 +135,6 @@ int main() {
     sceSifExitCmd();
     return 0;
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/main", main);
-#endif
 
 // Constants (.rodata)
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/main", at_846__DATA);
@@ -147,6 +149,3 @@ INCLUDE_RODATA("ps2/asm/pal/nonmatchings/main", at_854__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/main", at_855__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/main", at_856__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/main", at_857__DATA);
-
-// Small uninitialised data (.sbss)
-INCLUDE_BSS(vcount__2, 0x4);

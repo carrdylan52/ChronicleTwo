@@ -1,4 +1,6 @@
 #include "common.h"
+#include "snd_mngr.hpp"
+#include "mglib.hpp"
 #include "convviewlp.hpp"
 #include "gamepad.hpp"
 #include "mg_memory.hpp"

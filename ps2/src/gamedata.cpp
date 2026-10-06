@@ -1,123 +1,84 @@
 #include "common.h"
 #include "gamedata.hpp"
 #include <cstring>
-
-#include <cstdio>
-
-#include "dataread.hpp"
-#include "mainloop.hpp"
-#include "menucommon.hpp"
-#include "mg_memory.hpp"
+#include "userdata.hpp"
 #include "savedata.hpp"
 #include "scriptinterpreter.hpp"
-#include "userdata.hpp"
+#include "mg_memory.hpp"
+#include "menucommon.hpp"
+#include "dataread.hpp"
+#include "mainloop.hpp"
+#include <cstdio>
+#include <cstdlib>
 
-#ifdef NONMATCHING
-static s8 ItemCmdMsgTbl[33][8] = { /**< Menu commands for each item group. */
-    { 2, 3, 4, 9, 23, 26, 1, -1 },
-    { 9, 3, 1, -1, 0, 0, 0, 0 },
-    { 10, 9, 26, 1, -1, 0, 0, 0 },
-    { 15, 16, 5, 9, 1, -1, 0, 0 },
-    { 5, 9, 1, -1, 0, 0, 0, 0 },
-    { 30, 3, 1, -1, 0, 0, 0, 0 },
-    { 2, 3, 9, 1, -1, 0, 0, 0 },
-    { 3, 26, 34, -1, 0, 0, 0, 0 },
-    { 2, 9, 1, -1, 0, 0, 0, 0 },
-    { 11, -1, 0, 0, 0, 0, 0, 0 },
-    { 12, -1, 0, 0, 0, 0, 0, 0 },
-    { 13, 5, 1, -1, 0, 0, 0, 0 },
-    { 14, 45, 42, 9, 26, 1, -1, 0 },
-    { 19, 5, 9, 1, -1, 0, 0, 0 },
-    { 2, 3, 46, 26, 1, -1, 0, 0 },
-    { 25, 9, 1, -1, -1, 0, 0, 0 },
-    { 10, 22, 9, 26, 1, -1, 0, 0 },
-    { 20, 5, 9, 1, -1, 0, 0, 0 },
-    { 15, -1, 0, 0, 0, 0, 0, 0 },
-    { 16, -1, 0, 0, 0, 0, 0, 0 },
-    { 15, 16, -1, 0, 0, 0, 0, 0 },
-    { 29, -1, 0, 0, 0, 0, 0, 0 },
-    { 10, 3, 4, 9, 26, 1, -1, 0 },
-    { 22, 9, 1, -1, 0, 0, 0, 0 },
-    { 9, 1, -1, 0, 0, 0, 0, 0 },
-    { 37, 9, 1, -1, 0, 0, 0, 0 },
-    { 38, -1, 0, 0, 0, 0, 0, 0 },
-    { 43, 9, 1, -1, 0, 0, 0, 0 },
-    { 44, 9, 1, -1, 0, 0, 0, 0 },
-    { 15, 16, 1, -1, 0, 0, 0, 0 },
-    { 47, -1, 0, 0, 0, 0, 0, 0 },
-    { 19, 20, 9, 1, -1, 0, 0, 0 },
-    { 48, -1, 0, 0, 0, 0, 0, 0 },
-};
-static int _DATACOMINIT(SPI_STACK *stack, int argument_count);
-static int _DATACOM(SPI_STACK *stack, int argument_count);
-static int _DATAWEPNUM(SPI_STACK *stack, int argument_count);
-static int _DATAWEP(SPI_STACK *stack, int argument_count);
-static int _DATAWEP_ST(SPI_STACK *stack, int argument_count);
-static int _DATAWEP_ST_L(SPI_STACK *stack, int argument_count);
-static int _DATAWEP2_ST(SPI_STACK *stack, int argument_count);
-static int _DATAWEP2_ST_L(SPI_STACK *stack, int argument_count);
-static int _DATAWEP_SPE(SPI_STACK *stack, int argument_count);
-static int _DATAWEP_BUILDUP(SPI_STACK *stack, int argument_count);
-static int _DATAITEMINIT(SPI_STACK *stack, int argument_count);
-static int _DATAITEM(SPI_STACK *stack, int argument_count);
-static int _DATAATTACHINIT(SPI_STACK *stack, int argument_count);
-static int _DATAATTACH_ST(SPI_STACK *stack, int argument_count);
-static int _DATAATTACH_ST2(SPI_STACK *stack, int argument_count);
-static int _DATAATTACH_ST_SP(SPI_STACK *stack, int argument_count);
-static int _DATAROBOINIT(SPI_STACK *stack, int argument_count);
-static int _DATAROBO_ANALYZE(SPI_STACK *stack, int argument_count);
-static int _DATAGAURDNUM(SPI_STACK *stack, int argument_count);
-static int _DATAGAURD(SPI_STACK *stack, int argument_count);
-static int _DATAFISHINIT(SPI_STACK *stack, int argument_count);
-static int _DATAFISH(SPI_STACK *stack, int argument_count);
-static int _MES_SYS(SPI_STACK *stack, int argument_count);
-static int _MES_SYS_SPECTOL(SPI_STACK *stack, int argument_count);
+extern "C" void __ct__18CScriptInterpreterFv(void *);
+extern "C" u8 *GetCommonData__9CGameDataFi(CGameData *, int);
+extern "C" int GetDataType__9CGameDataFi(CGameData *, int);
 
-static SPI_TAG_PARAM gamedata_tag[] = { /**< Tags of the item configuration scripts. */
-    { "COMINIT", _DATACOMINIT },
-    { "COM", _DATACOM },
-    { "WEPNUM", _DATAWEPNUM },
-    { "WEP", _DATAWEP },
-    { "WEP_ST", _DATAWEP_ST },
-    { "WEP_ST_L", _DATAWEP_ST_L },
-    { "WEP_ST2", _DATAWEP2_ST },
-    { "WEP_ST2_L", _DATAWEP2_ST_L },
-    { "WEP_SPE", _DATAWEP_SPE },
-    { "WEP_BUILD", _DATAWEP_BUILDUP },
-    { "ITEMINIT", _DATAITEMINIT },
-    { "ITEM", _DATAITEM },
-    { "AT_INIT", _DATAATTACHINIT },
-    { "AT_ST", _DATAATTACH_ST },
-    { "AT_ST2", _DATAATTACH_ST2 },
-    { "AT_ST_SP", _DATAATTACH_ST_SP },
-    { "ROBOINIT", _DATAROBOINIT },
-    { "RB_PARTS", _DATAROBO_ANALYZE },
-    { "GRDNUM", _DATAGAURDNUM },
-    { "GRD", _DATAGAURD },
-    { "FISHINIT", _DATAFISHINIT },
-    { "FISH", _DATAFISH },
-    { "MES_SYS", _MES_SYS },
-    { "MES_SYSSPE", _MES_SYS_SPECTOL },
-    { NULL, NULL },
-};
-static mgCMemory     *gamedata_build_stack; /**< Storage for item names. */
-static CDataCommon   *comdatapt; /**< Common entry being filled. */
-static int            comdatapt_num; /**< Index of the common entry being filled. */
-static CDataCommon    local_com_itemdata[432]; /**< Common item storage. */
-static CDataItem      local_itemdata[162]; /**< Usable item storage. */
-static CDataWeapon    local_weapondata[116]; /**< Weapon storage. */
-static CDataAttach    local_attachdata[38]; /**< Attachment storage. */
-static CDataRoboPart  local_robodata[68]; /**< Ridepod part storage. */
-static CDataBreedFish local_fishdata[20]; /**< Fish storage. */
-static s16            local_guarddata[35]; /**< Guard storage. */
-static s16            local_itemdatano_converttable[512]; /**< Item number to common entry index. */
-#endif
+extern CDataCommon *comdatapt;
+extern int comdatapt_num;
+extern mgCMemory *gamedata_build_stack;
+extern CDataCommon local_com_itemdata[432];
+extern CDataItem local_itemdata[162];
+extern CDataWeapon local_weapondata[116];
+extern CDataAttach local_attachdata[38];
+extern CDataRoboPart local_robodata[68];
+extern CDataBreedFish local_fishdata[20];
+extern short local_guarddata[40];
+extern short local_itemdatano_converttable[512];
+extern char gamedata_sysword_buffer_1073[0x2800];
+extern char filename_1267[0x20];
+extern char item_file_path_1288[0x80];
+extern SPI_TAG_PARAM gamedata_tag[];
+extern short msg_offsettbl_1363[3];
+extern signed char ItemCmdMsgTbl[33][8];
+extern "C" unsigned int fptoui(float);
+extern char at_1018[];
+extern char at_1019[];
+extern char at_1020[];
+extern char at_1021[];
+extern char at_1022[];
+extern char at_1023[];
+extern char at_1024[];
+extern char at_1025__2[];
+extern char at_1026[];
+extern char at_1027[];
+extern char at_1028[];
+extern char at_1029[];
+extern char at_1030[];
+extern char at_1031[];
+extern char at_1032[];
+extern char at_1033[];
+extern char at_1034[];
+extern char at_1035[];
+extern char at_1036[];
+extern char at_1037[];
+extern char at_1038[];
+extern char at_1039[];
+extern char at_1040[];
+extern char at_1041[];
+extern char at_1048[];
+extern char at_1063[];
+extern char at_1064__2[];
+extern char at_1065[];
+extern char at_1066[];
+extern char at_1067[];
+extern char at_1068[];
+extern char at_1069__2[];
+extern char at_1079[];
+extern char at_1283__3[];
+extern char at_1284__3[];
+extern char at_1307__2[];
+extern char at_1308__2[];
+extern char at_1309__2[];
+extern char at_1310__2[];
+extern char at_1311__2[];
+extern char at_1501[];
 
 // Code (.text)
-CGameData *GetGameDataPt() {
+CGameData *GetGameDataPt(void) {
     return &GameItemDataManage;
 }
-
 CDataItem::CDataItem(void) {
     use_flags = 0;
     status_flags = 0;
@@ -125,22 +86,18 @@ CDataItem::CDataItem(void) {
     value[1] = 0;
     value[2] = 0;
 }
-CDataAttach::CDataAttach() {
-    memset(this, 0, sizeof(CDataAttach));
+CDataAttach::CDataAttach(void) {
+    memset(this, 0, 0x18);
 }
-
-CDataWeapon::CDataWeapon() {
-    memset(this, 0, sizeof(CDataWeapon));
-    durability = 20;
-    levelup_exp = 20;
+CDataWeapon::CDataWeapon(void) {
+    memset(this, 0, 0x4C);
+    durability = 0x14;
+    levelup_exp = 0x14;
 }
-
 u8 CDataRoboPart::GetOffsetNo() { return this->offset_no; }
-CDataBreedFish::CDataBreedFish() {
-    memset(this, 0, sizeof(CDataBreedFish));
+CDataBreedFish::CDataBreedFish(void) {
+    memset(this, 0, 0x14);
 }
-
-#ifdef NONMATCHING
 void CGameData::Initialize() {
     max_item_no = 0;
     common_data = local_com_itemdata;
@@ -149,7 +106,7 @@ void CGameData::Initialize() {
     item_num = 0;
     weapon_data = local_weapondata;
     weapon_num = 0;
-    guard_data = local_guarddata;
+    guard_data = (short *)local_guarddata;
     guard_num = 0;
     attach_data = local_attachdata;
     attach_num = 0;
@@ -159,31 +116,15 @@ void CGameData::Initialize() {
     fish_num = 0;
     InitItemMes(1, 1);
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/gamedata", Initialize__9CGameDataFv);
-#endif
-
-#ifdef NONMATCHING
-/**
- * Starts the common item table.
- */
-static int _DATACOMINIT(SPI_STACK *stack, int argument_count) {
+int _DATACOMINIT(SPI_STACK *stack, int arg_count) {
     GameItemDataManage.common_num = spiGetStackInt(stack);
     comdatapt_num = 0;
     comdatapt = GameItemDataManage.common_data;
-    memset(local_itemdatano_converttable, -1, sizeof(local_itemdatano_converttable));
+    memset(local_itemdatano_converttable, -1, 0x400);
     return 1;
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/gamedata", _DATACOMINIT__FP9SPI_STACKi);
-#endif
-
-#ifdef NONMATCHING
-/**
- * Reads one common item entry and records its item number.
- */
-static int _DATACOM(SPI_STACK *stack, int argument_count) {
-    char *file_name;
+int _DATACOM(SPI_STACK *stack, int arg_count) {
+    char *name_stack;
 
     comdatapt->item_no = spiGetStackInt(stack++);
     comdatapt->type = spiGetStackInt(stack++);
@@ -191,203 +132,146 @@ static int _DATACOM(SPI_STACK *stack, int argument_count) {
     comdatapt->active_set = spiGetStackInt(stack++);
     comdatapt->stack_num = spiGetStackInt(stack++);
     comdatapt->max_num = spiGetStackInt(stack++);
-    if (ConvertUsedItemType(comdatapt->type) == USED_ITEM_TYPE_WEAPON && comdatapt->max_num > 100) {
-        comdatapt->max_num = 144;
+    if (ConvertUsedItemType(comdatapt->type) == 3) {
+        if (comdatapt->max_num > 0x64) {
+            comdatapt->max_num = 0x90;
+        }
     }
     comdatapt->unk_20 = spiGetStackInt(stack++);
     comdatapt->icon_no = spiGetStackInt(stack++);
     comdatapt->message_no = spiGetStackInt(stack++);
-    file_name = spiGetStackString(stack++);
-    if (file_name != NULL) {
-        strcpy(comdatapt->file_name, file_name);
+    name_stack = spiGetStackString(stack++);
+    if (name_stack != 0) {
+        strcpy(comdatapt->file_name, name_stack);
     }
     comdatapt->attribute = spiGetStackInt(stack);
     comdatapt->name = NULL;
     local_itemdatano_converttable[comdatapt->item_no] = comdatapt_num;
-    comdatapt_num++;
+    comdatapt_num += 1;
     comdatapt++;
     return 1;
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/gamedata", _DATACOM__FP9SPI_STACKi);
-#endif
+int _MES_SYS(SPI_STACK *stack, int arg_count) {
+    u8 converted[0x100];
+    int item_no;
+    int copy;
+    signed char *text;
+    CDataCommon *record;
 
-#ifdef NONMATCHING
-/**
- * Copies the display name of an item into the name buffer.
- */
-static int _MES_SYS(SPI_STACK *stack, int argument_count) {
-    char         converted[256];
-    int          item_no;
-    char        *name;
-    CDataCommon *data;
-
-    item_no = spiGetStackInt(stack++);
-    name = spiGetStackString(stack);
-    data = GameItemDataManage.GetCommonData(item_no);
-    if (data != NULL) {
-        if (LanguageCode >= 2 && LanguageCode < 6) {
-            memset(converted, 0, sizeof(converted));
-            ConvertFontCode(name, converted);
-            data->name = mgCopyString(converted, gamedata_build_stack);
+    item_no = (int)(spiGetStackInt(stack++));
+    text = (signed char *)(spiGetStackString(stack));
+    record = (CDataCommon *)(GameItemDataManage.GetCommonData(item_no));
+    if (record != NULL) {
+        if (((int)LanguageCode >= 2) && ((int)LanguageCode < 6)) {
+            memset(converted, 0, 0x100);
+            ConvertFontCode((char *)text, (char *)converted);
+            copy = (int)mgCopyString((char *)converted, gamedata_build_stack);
         } else {
-            data->name = mgCopyString(name, gamedata_build_stack);
+            copy = (int)(mgCopyString((char *)text, gamedata_build_stack));
         }
+        record->name = (char *)copy;
     }
     return 1;
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/gamedata", _MES_SYS__FP9SPI_STACKi);
-#endif
-
-#ifdef NONMATCHING
-/**
- * Reads the unused spectrumising message arguments.
- */
-static int _MES_SYS_SPECTOL(SPI_STACK *stack, int argument_count) {
+int _MES_SYS_SPECTOL(SPI_STACK *stack, int arg_count) {
     spiGetStackInt(stack++);
     spiGetStackString(stack);
     return 1;
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/gamedata", _MES_SYS_SPECTOL__FP9SPI_STACKi);
-#endif
-
-#ifdef NONMATCHING
-/**
- * Starts the weapon table.
- */
-static int _DATAWEPNUM(SPI_STACK *stack, int argument_count) {
+int _DATAWEPNUM(SPI_STACK *stack, int arg_count) {
     GameItemDataManage.weapon_num = spiGetStackInt(stack);
     SpiWeaponPt = GameItemDataManage.weapon_data;
     return 1;
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/gamedata", _DATAWEPNUM__FP9SPI_STACKi);
-#endif
+int _DATAWEP(SPI_STACK *stack, int arg_count) {
+    SPI_STACK *next;
 
-#ifdef NONMATCHING
-/**
- * Reads two weapon parameters.
- */
-static int _DATAWEP(SPI_STACK *stack, int argument_count) {
+    next = stack + 1;
     if (SpiWeaponPt == NULL) {
         return 0;
     }
-    SpiWeaponPt->durability = spiGetStackInt(stack++);
-    SpiWeaponPt->levelup_exp = spiGetStackInt(stack);
+    SpiWeaponPt->durability = spiGetStackInt(stack);
+    SpiWeaponPt->levelup_exp = spiGetStackInt(next);
     return 1;
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/gamedata", _DATAWEP__FP9SPI_STACKi);
-#endif
+int _DATAWEP_ST(SPI_STACK *stack, int arg_count) {
+    SPI_STACK *next;
 
-#ifdef NONMATCHING
-/**
- * Reads two weapon parameters.
- */
-static int _DATAWEP_ST(SPI_STACK *stack, int argument_count) {
+    next = stack + 1;
     if (SpiWeaponPt == NULL) {
         return 0;
     }
-    SpiWeaponPt->status[0] = spiGetStackInt(stack++);
-    SpiWeaponPt->status[1] = spiGetStackInt(stack);
+    SpiWeaponPt->status[0] = spiGetStackInt(stack);
+    SpiWeaponPt->status[1] = spiGetStackInt(next);
     return 1;
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/gamedata", _DATAWEP_ST__FP9SPI_STACKi);
-#endif
+int _DATAWEP_ST_L(SPI_STACK *stack, int arg_count) {
+    SPI_STACK *next;
 
-#ifdef NONMATCHING
-/**
- * Reads two weapon parameters.
- */
-static int _DATAWEP_ST_L(SPI_STACK *stack, int argument_count) {
+    next = stack + 1;
     if (SpiWeaponPt == NULL) {
         return 0;
     }
-    SpiWeaponPt->status_max[0] = spiGetStackInt(stack++);
-    SpiWeaponPt->status_max[1] = spiGetStackInt(stack);
+    SpiWeaponPt->status_max[0] = spiGetStackInt(stack);
+    SpiWeaponPt->status_max[1] = spiGetStackInt(next);
     return 1;
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/gamedata", _DATAWEP_ST_L__FP9SPI_STACKi);
-#endif
-
-#ifdef NONMATCHING
-/**
- * Reads the eight weapon attribute parameters.
- */
-static int _DATAWEP2_ST(SPI_STACK *stack, int argument_count) {
+int _DATAWEP2_ST(SPI_STACK *stack, int arg_count) {
     int i;
+    int offset;
 
-    if (SpiWeaponPt == NULL) {
+    if (SpiWeaponPt == 0) {
         return 0;
     }
-    for (i = 0; i < 8; i++) {
+    i = 0;
+    offset = 0;
+    do {
         SpiWeaponPt->attribute[i] = spiGetStackInt(stack++);
-    }
+        i += 1;
+        offset += 2;
+    } while (i < 8);
     return 1;
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/gamedata", _DATAWEP2_ST__FP9SPI_STACKi);
-#endif
-
-#ifdef NONMATCHING
-/**
- * Reads the eight weapon attribute parameters.
- */
-static int _DATAWEP2_ST_L(SPI_STACK *stack, int argument_count) {
+int _DATAWEP2_ST_L(SPI_STACK *stack, int arg_count) {
     int i;
+    int offset;
 
-    if (SpiWeaponPt == NULL) {
+    if (SpiWeaponPt == 0) {
         return 0;
     }
-    for (i = 0; i < 8; i++) {
+    i = 0;
+    offset = 0;
+    do {
         SpiWeaponPt->attribute_max[i] = spiGetStackInt(stack++);
-    }
+        i += 1;
+        offset += 2;
+    } while (i < 8);
     return 1;
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/gamedata", _DATAWEP2_ST_L__FP9SPI_STACKi);
-#endif
-
-#ifdef NONMATCHING
-/**
- * Reads weapon abilities and model options.
- */
-static int _DATAWEP_SPE(SPI_STACK *stack, int argument_count) {
+int _DATAWEP_SPE(SPI_STACK *stack, int arg_count) {
     if (SpiWeaponPt == NULL) {
         return 0;
     }
-    SpiWeaponPt->unk_38 = (u8)spiGetStackFloat(stack++);
+    SpiWeaponPt->unk_38 = fptoui(spiGetStackFloat(stack++));
     SpiWeaponPt->pallet_color = spiGetStackInt(stack++);
     SpiWeaponPt->unk_47 = spiGetStackInt(stack++);
     SpiWeaponPt->fusion_point = spiGetStackInt(stack++);
     SpiWeaponPt->special = spiGetStackInt(stack++);
     SpiWeaponPt->attack_type = 0;
-    if (argument_count > 5) {
+    if (arg_count >= 6) {
         SpiWeaponPt->attack_type = spiGetStackInt(stack++);
     }
     SpiWeaponPt->model_no = 0;
-    if (argument_count > 6) {
+    if (arg_count >= 7) {
         SpiWeaponPt->model_no = spiGetStackInt(stack);
     }
     return 1;
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/gamedata", _DATAWEP_SPE__FP9SPI_STACKi);
-#endif
-
-#ifdef NONMATCHING
-/**
- * Reads weapon build-up requirements and advances the weapon entry.
- */
-static int _DATAWEP_BUILDUP(SPI_STACK *stack, int argument_count) {
+int _DATAWEP_BUILDUP(SPI_STACK *stack, int count) {
     SpiWeaponPt->buildup_weapon[0] = spiGetStackInt(stack++);
     SpiWeaponPt->buildup_weapon[1] = spiGetStackInt(stack++);
     SpiWeaponPt->buildup_weapon[2] = spiGetStackInt(stack++);
-    if (argument_count > 3) {
+    if (count > 3) {
         SpiWeaponPt->buildup_monster[0] = spiGetStackInt(stack++);
         SpiWeaponPt->buildup_monster[1] = spiGetStackInt(stack++);
         SpiWeaponPt->buildup_monster[2] = spiGetStackInt(stack);
@@ -395,40 +279,21 @@ static int _DATAWEP_BUILDUP(SPI_STACK *stack, int argument_count) {
     SpiWeaponPt++;
     return 1;
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/gamedata", _DATAWEP_BUILDUP__FP9SPI_STACKi);
-#endif
-
-#ifdef NONMATCHING
-/**
- * Starts the item table.
- */
-static int _DATAITEMINIT(SPI_STACK *stack, int argument_count) {
+int _DATAITEMINIT(SPI_STACK *stack, int arg_count) {
     GameItemDataManage.item_num = spiGetStackInt(stack);
     SpiItemPt = GameItemDataManage.item_data;
     return 1;
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/gamedata", _DATAITEMINIT__FP9SPI_STACKi);
-#endif
-
-#ifdef NONMATCHING
-/**
- * Reads the effects of a usable item.
- */
-static int _DATAITEM(SPI_STACK *stack, int argument_count) {
-    int use_flags;
+int _DATAITEM(SPI_STACK *stack, int arg_count) {
+    unsigned int flags;
 
     SpiItemPt = GetItemInfoData(spiGetStackInt(stack++));
-    if (SpiItemPt != NULL) {
-        use_flags = spiGetStackInt(stack++);
-        if (use_flags & ITEM_USE_FLAG_CURE_ALL) {
-            use_flags = (use_flags & ~ITEM_USE_FLAG_CURE_ALL) | ITEM_USE_FLAG_CURE_STATUS_UNK_8
-                        | ITEM_USE_FLAG_CURE_POISON | ITEM_USE_FLAG_CURE_STATUS_UNK_4
-                        | ITEM_USE_FLAG_CURE_STATUS_UNK_2 | ITEM_USE_FLAG_CURE_STATUS_UNK_20
-                        | ITEM_USE_FLAG_CURE_STATUS_UNK_40;
+    if (SpiItemPt != 0) {
+        flags = spiGetStackInt(stack++);
+        if (flags & 0x800000) {
+            flags = (flags & 0xFF7FFFFF) | 0x142A8000;
         }
-        SpiItemPt->use_flags = use_flags;
+        SpiItemPt->use_flags = flags;
         SpiItemPt->status_flags = spiGetStackInt(stack++);
         SpiItemPt->target_flags = spiGetStackInt(stack++);
         SpiItemPt->value[0] = spiGetStackInt(stack++);
@@ -437,28 +302,12 @@ static int _DATAITEM(SPI_STACK *stack, int argument_count) {
     }
     return 1;
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/gamedata", _DATAITEM__FP9SPI_STACKi);
-#endif
-
-#ifdef NONMATCHING
-/**
- * Starts the attach table.
- */
-static int _DATAATTACHINIT(SPI_STACK *stack, int argument_count) {
+int _DATAATTACHINIT(SPI_STACK *stack, int arg_count) {
     GameItemDataManage.attach_num = spiGetStackInt(stack);
     SpiAttach = GameItemDataManage.attach_data;
     return 1;
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/gamedata", _DATAATTACHINIT__FP9SPI_STACKi);
-#endif
-
-#ifdef NONMATCHING
-/**
- * Reads attachment parameters.
- */
-static int _DATAATTACH_ST(SPI_STACK *stack, int argument_count) {
+int _DATAATTACH_ST(SPI_STACK *stack, int arg_count) {
     int i;
 
     if (SpiAttach == NULL) {
@@ -469,15 +318,7 @@ static int _DATAATTACH_ST(SPI_STACK *stack, int argument_count) {
     }
     return 1;
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/gamedata", _DATAATTACH_ST__FP9SPI_STACKi);
-#endif
-
-#ifdef NONMATCHING
-/**
- * Reads attachment parameters.
- */
-static int _DATAATTACH_ST2(SPI_STACK *stack, int argument_count) {
+int _DATAATTACH_ST2(SPI_STACK *stack, int arg_count) {
     int i;
 
     if (SpiAttach == NULL) {
@@ -488,103 +329,60 @@ static int _DATAATTACH_ST2(SPI_STACK *stack, int argument_count) {
     }
     return 1;
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/gamedata", _DATAATTACH_ST2__FP9SPI_STACKi);
-#endif
-
-#ifdef NONMATCHING
-/**
- * Reads attachment abilities and advances the entry.
- */
-static int _DATAATTACH_ST_SP(SPI_STACK *stack, int argument_count) {
-    if (SpiAttach != NULL) {
-        SpiAttach->special = spiGetStackInt(stack);
-        SpiAttach++;
+int _DATAATTACH_ST_SP(SPI_STACK *stack, int arg_count) {
+    if (SpiAttach == NULL) {
+        return 1;
     }
+    SpiAttach->special = spiGetStackInt(stack);
+    SpiAttach++;
     return 1;
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/gamedata", _DATAATTACH_ST_SP__FP9SPI_STACKi);
-#endif
-
-#ifdef NONMATCHING
-/**
- * Starts the robo table.
- */
-static int _DATAROBOINIT(SPI_STACK *stack, int argument_count) {
+int _DATAROBOINIT(SPI_STACK *stack, int arg_count) {
     GameItemDataManage.robo_num = spiGetStackInt(stack);
     SpiRoboPart = GameItemDataManage.robo_data;
     return 1;
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/gamedata", _DATAROBOINIT__FP9SPI_STACKi);
-#endif
-
-#ifdef NONMATCHING
-/**
- * Reads a ridepod part according to its kind.
- */
-static int _DATAROBO_ANALYZE(SPI_STACK *stack, int argument_count) {
-    int kind;
+int _DATAROBO_ANALYZE(SPI_STACK *stack, int arg_count) {
+    int type;
     int i;
 
     SpiRoboPart = GameItemDataManage.GetRoboData(spiGetStackInt(stack++));
     if (SpiRoboPart == NULL) {
         return 0;
     }
-    kind = spiGetStackInt(stack++);
+    type = spiGetStackInt(stack++);
     SpiRoboPart->use_capacity = spiGetStackInt(stack++);
     SpiRoboPart->offset_no = spiGetStackInt(stack++);
-    switch (kind) {
-        case 0:
-            SpiRoboPart->unk_1c = spiGetStackInt(stack++);
-            spiGetStackString(stack);
-            break;
-        case 1:
-            SpiRoboPart->unk_6 = spiGetStackInt(stack++);
-            SpiRoboPart->unk_8 = spiGetStackInt(stack++);
-            SpiRoboPart->unk_a = spiGetStackInt(stack++);
-            for (i = 0; i < 8; i++) {
-                SpiRoboPart->unk_c[i] = spiGetStackInt(stack++);
-            }
-            SpiRoboPart->info_type_d = spiGetStackInt(stack++);
-            spiGetStackString(stack);
-            break;
-        case 2:
-            SpiRoboPart->unk_4 = spiGetStackInt(stack++);
-            SpiRoboPart->info_type_e = spiGetStackInt(stack);
-            break;
-        case 3:
-            SpiRoboPart->unk_2 = spiGetStackInt(stack);
-            break;
+    if (type == 0) {
+        SpiRoboPart->unk_1c = spiGetStackInt(stack++);
+        spiGetStackString(stack++);
+    } else if (type == 1) {
+        SpiRoboPart->unk_6 = spiGetStackInt(stack++);
+        SpiRoboPart->unk_8 = spiGetStackInt(stack++);
+        SpiRoboPart->unk_a = spiGetStackInt(stack++);
+        for (i = 0; i < 8; i++) {
+            SpiRoboPart->unk_c[i] = spiGetStackInt(stack++);
+        }
+        SpiRoboPart->info_type_d = spiGetStackInt(stack++);
+        spiGetStackString(stack++);
+    } else if (type == 2) {
+        SpiRoboPart->unk_4 = spiGetStackInt(stack++);
+        SpiRoboPart->info_type_e = spiGetStackInt(stack++);
+    } else if (type == 3) {
+        SpiRoboPart->unk_2 = spiGetStackInt(stack);
     }
     SpiRoboPart++;
     return 1;
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/gamedata", _DATAROBO_ANALYZE__FP9SPI_STACKi);
-#endif
-
-#ifdef NONMATCHING
-/**
- * Starts the fish table.
- */
-static int _DATAFISHINIT(SPI_STACK *stack, int argument_count) {
+int _DATAFISHINIT(SPI_STACK *stack, int arg_count) {
     GameItemDataManage.fish_num = spiGetStackInt(stack);
     SpiFish = GameItemDataManage.fish_data;
     return 1;
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/gamedata", _DATAFISHINIT__FP9SPI_STACKi);
-#endif
-
-#ifdef NONMATCHING
-/**
- * Reads the base parameters of a fish.
- */
-static int _DATAFISH(SPI_STACK *stack, int argument_count) {
+int _DATAFISH(SPI_STACK *stack, int arg_count) {
     SpiFish = GameItemDataManage.GetFishData(spiGetStackInt(stack++));
     if (SpiFish != NULL) {
+
         SpiFish->size = spiGetStackFloat(stack++);
         SpiFish->unk_4 = spiGetStackInt(stack++);
         SpiFish->unk_6 = spiGetStackInt(stack++);
@@ -592,526 +390,447 @@ static int _DATAFISH(SPI_STACK *stack, int argument_count) {
         SpiFish->unk_c = spiGetStackInt(stack++);
         SpiFish->unk_e = spiGetStackInt(stack++);
         SpiFish->unk_8 = spiGetStackInt(stack++);
-        if (argument_count > 7) {
-            SpiFish->unk_10 = spiGetStackInt(stack);
+        if (arg_count < 8) {
+            return 1;
         }
+        SpiFish->unk_10 = spiGetStackInt(stack);
     }
     return 1;
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/gamedata", _DATAFISH__FP9SPI_STACKi);
-#endif
-
-#ifdef NONMATCHING
-/**
- * Sets the number of guard entries.
- */
-static int _DATAGAURDNUM(SPI_STACK *stack, int argument_count) {
+int _DATAGAURDNUM(SPI_STACK *stack, int arg_count) {
     GameItemDataManage.guard_num = spiGetStackInt(stack);
     return 1;
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/gamedata", _DATAGAURDNUM__FP9SPI_STACKi);
-#endif
+int _DATAGAURD(SPI_STACK *stack, int arg_count) {
+    short *guard;
 
-#ifdef NONMATCHING
-/**
- * Reads a guard entry and consumes its remaining parameters.
- */
-static int _DATAGAURD(SPI_STACK *stack, int argument_count) {
-    s16 *guard;
-
-    guard = GameItemDataManage.GetGuardData(spiGetStackInt(stack++));
-    if (guard != NULL) {
-        *guard = spiGetStackInt(stack++);
-        spiGetStackInt(stack++);
-        spiGetStackInt(stack++);
-        spiGetStackInt(stack++);
-        spiGetStackInt(stack++);
-        spiGetStackInt(stack);
+    guard = (short *)GameItemDataManage.GetGuardData(spiGetStackInt(stack++));
+    if (guard == NULL) {
+        return 1;
     }
+    *guard = spiGetStackInt(stack++);
+    spiGetStackInt(stack++);
+    spiGetStackInt(stack++);
+    spiGetStackInt(stack++);
+    spiGetStackInt(stack++);
+    spiGetStackInt(stack);
     return 1;
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/gamedata", _DATAGAURD__FP9SPI_STACKi);
-#endif
+int LoadGameDataAnalyze(char *name) {
+    int size;
+    u8 buffer[0x7800];
+    char path[0x40];
+    u8 interpreter_storage[0xED0];
+    char *script;
 
-#ifdef NONMATCHING
-/**
- * Reads one item configuration script into the item tables.
- */
-static int LoadGameDataAnalyze(char *file_name) {
-    u_long128  buffer[0x780];
-    char       path[64];
-    u_long128 *aligned_buffer;
-    int        size;
-
-    aligned_buffer = MenuCalcBufAlignment(buffer);
+    script = (char *)MenuCalcBufAlignment((u_long128 *)buffer);
     SetCurrentDir(NULL);
-    sprintf(path, "menu/cfg7/%s", file_name);
-    if (LoadFile2(path, aligned_buffer, &size, LOAD_FILE_READ) == 0) {
+    sprintf(path, at_1048, name);
+    if (LoadFile2(path, script, &size, 0) == 0) {
         return 0;
     }
 
-    CScriptInterpreter interpreter;
-
-    interpreter.SetTag(gamedata_tag);
-    interpreter.SetScript((char *)aligned_buffer, size);
-    interpreter.Run();
+    __ct__18CScriptInterpreterFv(interpreter_storage);
+    ((CScriptInterpreter *)interpreter_storage)->SetTag(gamedata_tag);
+    ((CScriptInterpreter *)interpreter_storage)->SetScript(script, size);
+    ((CScriptInterpreter *)interpreter_storage)->Run();
     return 1;
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/gamedata", LoadGameDataAnalyze__FPc);
-#endif
-
-#ifdef NONMATCHING
-int CGameData::LoadData() {
-    u16 item_no;
-
-    Initialize();
-    comdatapt = common_data;
-    comdatapt_num = 0;
-    memset(local_itemdatano_converttable, -1, sizeof(local_itemdatano_converttable));
-    LoadGameDataAnalyze("comdat.cfg");
-    LoadGameDataAnalyze("wepdat.cfg");
-    LoadGameDataAnalyze("itemdat.cfg");
-    LoadGameDataAnalyze("atdat.cfg");
-    LoadGameDataAnalyze("robodat.cfg");
-    LoadGameDataAnalyze("fishdat.cfg");
-    LoadGameDataAnalyze("grddat.cfg");
-    common_num = comdatapt_num;
-    max_item_no = 0;
-    for (item_no = 0; item_no < 512; item_no++) {
-        if (local_itemdatano_converttable[item_no] >= 0) {
-            max_item_no = item_no;
-        }
-    }
-    return unk_0;
-}
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/gamedata", LoadData__9CGameDataFv);
-#endif
-
-#ifdef NONMATCHING
-int CGameData::LoadItemSystemMes(int language) {
-    static u_long128  gamedata_sysword_buffer[0x280]; /**< Item display name storage. */
-    u_long128         buffer[0x780];
-    char              path[64];
-    u_long128        *aligned_buffer;
-    int               size;
-
-    aligned_buffer = MenuCalcBufAlignment(buffer);
-    memset(gamedata_sysword_buffer, 0, sizeof(gamedata_sysword_buffer));
-    mgCMemory memory;
-    memory.stSetBuffer(gamedata_sysword_buffer, 0x280);
-    gamedata_build_stack = &memory;
-    sprintf(path, "menu/cfg7/comdatmes%d.cfg", language);
-    if (LoadFile2(path, aligned_buffer, &size, LOAD_FILE_READ) != 0) {
-        CScriptInterpreter interpreter;
-
-        interpreter.SetTag(gamedata_tag);
-        interpreter.SetScript((char *)aligned_buffer, size);
-        interpreter.Run();
-    }
-    return 1;
-}
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/gamedata", LoadItemSystemMes__9CGameDataFi);
-#endif
-
-#ifdef NONMATCHING
-void CGameData::InitItemMes(int clear_name, int unused) {
+extern "C" int LoadData__9CGameDataFv(CGameData *self) {
     int i;
+    int offset;
 
-    if (clear_name != 0) {
-        for (i = 0; i < 432; i++) {
-            local_com_itemdata[i].name = NULL;
+    self->Initialize();
+    comdatapt = self->common_data;
+    comdatapt_num = 0;
+    memset(local_itemdatano_converttable, -1, 0x400);
+    LoadGameDataAnalyze(at_1063);
+    LoadGameDataAnalyze(at_1064__2);
+    LoadGameDataAnalyze(at_1065);
+    LoadGameDataAnalyze(at_1066);
+    LoadGameDataAnalyze(at_1067);
+    LoadGameDataAnalyze(at_1068);
+    LoadGameDataAnalyze(at_1069__2);
+    i = 0;
+    offset = 0;
+    self->common_num = comdatapt_num;
+    self->max_item_no = 0;
+    do {
+        if (0 <= *(short *)((u8 *)local_itemdatano_converttable + offset)) {
+            self->max_item_no = i;
         }
+        i += 1;
+        offset += 2;
+    } while (i < 0x200);
+    return self->unk_0;
+}
+extern "C" int LoadItemSystemMes__9CGameDataFi(CGameData *self, int language) {
+    int size;
+    u8 buffer[0x7800];
+    u8 memory_storage[0x30];
+    char path[0x40];
+    u8 interpreter_storage[0xED0];
+    char *script;
+
+    script = (char *)MenuCalcBufAlignment((u_long128 *)buffer);
+    memset(gamedata_sysword_buffer_1073, 0, 0x2800);
+
+    ((mgCMemory *)memory_storage)->Init();
+    ((mgCMemory *)memory_storage)->stSetBuffer((u_long128 *)gamedata_sysword_buffer_1073, 0x280);
+    gamedata_build_stack = (mgCMemory *)memory_storage;
+    sprintf(path, at_1079, language);
+    if (LoadFile2(path, script, &size, 0) != 0) {
+
+        __ct__18CScriptInterpreterFv(interpreter_storage);
+    ((CScriptInterpreter *)interpreter_storage)->SetTag(gamedata_tag);
+        ((CScriptInterpreter *)interpreter_storage)->SetScript(script, size);
+        ((CScriptInterpreter *)interpreter_storage)->Run();
+    }
+    return 1;
+}
+void CGameData::InitItemMes(int clear, int unused) {
+    int offset;
+    CDataCommon *records;
+
+    if (clear != 0) {
+
+        clear = 0;
+        offset = 0;
+        do {
+            records = (CDataCommon *)((u8 *)local_com_itemdata + offset);
+            clear += 8;
+            records[0].name = 0;
+            records[1].name = 0;
+            offset += 0x160;
+            records[2].name = 0;
+            records[3].name = 0;
+            records[4].name = 0;
+            records[5].name = 0;
+            records[6].name = 0;
+            records[7].name = 0;
+        } while (clear < 0x1B0);
     }
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/gamedata", InitItemMes__9CGameDataFii);
-#endif
-
-#ifdef NONMATCHING
 CDataCommon *CGameData::GetCommonData(int item_no) {
-    s16 index;
+    short index;
 
-    if (item_no <= 0 || item_no >= 512) {
-        return NULL;
+    if (item_no <= 0 || item_no > 0x1FF) {
+        return 0;
     }
     index = local_itemdatano_converttable[item_no];
     if (index < 0) {
-        return NULL;
+        return 0;
     }
-    return &common_data[index];
+    return common_data + index;
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/gamedata", GetCommonData__9CGameDataFi);
-#endif
-
-#ifdef NONMATCHING
 CDataWeapon *CGameData::GetWeaponData(int item_no) {
-    CDataCommon *data;
+    CDataCommon *record;
+    short list_no;
 
-    data = GetCommonData(item_no);
-    if (data == NULL) {
-        return NULL;
+    record = (CDataCommon *)GetCommonData(item_no);
+    if (record == NULL) {
+        return 0;
     }
-    if (data->list_no >= weapon_num) {
-        return NULL;
+    list_no = record->list_no;
+    if ((int)weapon_num <= list_no) {
+        return 0;
     }
-    if (weapon_data == NULL) {
-        return NULL;
+    if (weapon_data == 0) {
+        return 0;
     }
-    if (ConvertUsedItemType(data->type) != USED_ITEM_TYPE_WEAPON) {
-        return NULL;
+    if (ConvertUsedItemType(record->type) != 3) {
+        return 0;
     }
-    return &weapon_data[data->list_no];
+    return weapon_data + record->list_no;
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/gamedata", GetWeaponData__9CGameDataFi);
-#endif
-
-#ifdef NONMATCHING
 CDataItem *CGameData::GetItemData(int item_no) {
-    CDataCommon *data;
-    int          family;
+    CDataCommon *record;
+    short list_no;
+    int type;
 
-    data = GetCommonData(item_no);
-    if (data == NULL) {
-        return NULL;
+    record = (CDataCommon *)GetCommonData(item_no);
+    if (record == NULL) {
+        return 0;
     }
-    if (data->list_no >= item_num) {
-        return NULL;
+    list_no = record->list_no;
+    if ((int)item_num <= list_no) {
+        return 0;
     }
-    if (item_data == NULL) {
-        return NULL;
+    if (item_data == 0) {
+        return 0;
     }
-    family = ConvertUsedItemType(data->type);
-    if (family != USED_ITEM_TYPE_ITEM && family != USED_ITEM_TYPE_GIFT_BOX && family != USED_ITEM_TYPE_BOILED) {
-        return NULL;
+    type = ConvertUsedItemType(record->type);
+    if (type == 1 || type == 7 || type == 8) {
+        return item_data + record->list_no;
     }
-    return &item_data[data->list_no];
+    return 0;
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/gamedata", GetItemData__9CGameDataFi);
-#endif
-
-#ifdef NONMATCHING
 CDataAttach *CGameData::GetAttachData(int item_no) {
-    CDataCommon *data;
+    CDataCommon *record;
+    short list_no;
 
-    data = GetCommonData(item_no);
-    if (data == NULL) {
-        return NULL;
+    record = (CDataCommon *)GetCommonData(item_no);
+    if (record == NULL) {
+        return 0;
     }
-    if (data->list_no >= attach_num) {
-        return NULL;
+    list_no = record->list_no;
+    if ((int)attach_num <= list_no) {
+        return 0;
     }
-    if (attach_data == NULL) {
-        return NULL;
+    if (attach_data == 0) {
+        return 0;
     }
-    if (ConvertUsedItemType(data->type) != USED_ITEM_TYPE_ATTACH) {
-        return NULL;
+    if (ConvertUsedItemType(record->type) != 2) {
+        return 0;
     }
-    return &attach_data[data->list_no];
+    return attach_data + record->list_no;
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/gamedata", GetAttachData__9CGameDataFi);
-#endif
-
-#ifdef NONMATCHING
 CDataRoboPart *CGameData::GetRoboData(int item_no) {
-    CDataCommon *data;
+    CDataCommon *record;
+    short list_no;
+    CDataRoboPart *table;
 
-    data = GetCommonData(item_no);
-    if (data == NULL) {
-        return NULL;
+    record = (CDataCommon *)GetCommonData(item_no);
+    if (record == NULL) {
+        return 0;
     }
-    if (data->list_no >= robo_num) {
-        return NULL;
+    list_no = record->list_no;
+    if ((int)robo_num <= list_no) {
+        return 0;
     }
-    if (robo_data == NULL) {
-        return NULL;
+    table = robo_data;
+    if (table != 0) {
+        return table + list_no;
     }
-    return &robo_data[data->list_no];
+    return 0;
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/gamedata", GetRoboData__9CGameDataFi);
-#endif
-
-#ifdef NONMATCHING
 CDataBreedFish *CGameData::GetFishData(int item_no) {
-    CDataCommon *data;
+    CDataCommon *record;
+    short list_no;
 
-    data = GetCommonData(item_no);
-    if (data == NULL) {
-        return NULL;
+    record = (CDataCommon *)GetCommonData(item_no);
+    if (record == NULL) {
+        return 0;
     }
-    if (data->list_no >= fish_num) {
-        return NULL;
+    list_no = record->list_no;
+    if ((int)fish_num <= list_no) {
+        return 0;
     }
-    if (fish_data == NULL) {
-        return NULL;
+    if (fish_data == 0) {
+        return 0;
     }
-    if (ConvertUsedItemType(data->type) != USED_ITEM_TYPE_FISH) {
-        return NULL;
+    if (ConvertUsedItemType(record->type) != 6) {
+        return 0;
     }
-    return &fish_data[data->list_no];
+    return fish_data + record->list_no;
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/gamedata", GetFishData__9CGameDataFi);
-#endif
+#pragma optimization_level 4
+extern "C" u8 *GetGuardData__9CGameDataFi(CGameData *self, int item_no) {
+    CDataCommon *record;
+    short list_no;
 
-#ifdef NONMATCHING
-s16 *CGameData::GetGuardData(int item_no) {
-    CDataCommon *data;
-
-    data = GetCommonData(item_no);
-    if (data == NULL) {
-        return NULL;
+    record = (CDataCommon *)GetCommonData__9CGameDataFi(self, item_no);
+    if (record == NULL) {
+        return 0;
     }
-    if (data->list_no >= guard_num) {
-        return NULL;
+    list_no = record->list_no;
+    if ((int)self->guard_num <= list_no) {
+        return 0;
     }
-    if (guard_data == NULL) {
-        return NULL;
+    if (self->guard_data != 0) {
+        return (u8 *)(self->guard_data + list_no);
     }
-    return &guard_data[data->list_no];
+    return 0;
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/gamedata", GetGuardData__9CGameDataFi);
-#endif
-
-u8 CGameData::GetDataType(s32 item_no) {
+#pragma optimization_level reset
+u8 CGameData::GetDataType(int item_no) {
     CDataCommon *common = GetCommonData(item_no);
     if (common != NULL) {
         return common->type;
     }
     return 0U;
 }
-s16 CGameData::GetDataTypeStartListNo(int type) {
-    CDataCommon *data;
-    int          i;
+short CGameData::GetDataTypeStartListNo(int type) {
+    int i;
+    CDataCommon *record;
 
-    data = GetCommonData(1);
-    for (i = 0; i < common_num; i++, data++) {
-        if (data->type == type) {
-            return data->item_no;
+    record = GetCommonData(1);
+    for (i = 0; i < common_num; i++, record++) {
+        if (record->type == type) {
+            return record->item_no;
         }
     }
     return 0;
 }
-
 CDataCommon *GetCommonItemData(int item_no) {
-    return GameItemDataManage.GetCommonData(item_no);
+    return (CDataCommon *)GameItemDataManage.GetCommonData(item_no);
 }
-
 CDataItem *GetItemInfoData(int item_no) {
     return GameItemDataManage.GetItemData(item_no);
 }
-
 CDataWeapon *GetWeaponInfoData(int item_no) {
     return GameItemDataManage.GetWeaponData(item_no);
 }
-
 CDataRoboPart *GetRoboPartInfoData(int item_no) {
     return GameItemDataManage.GetRoboData(item_no);
 }
-
 CDataBreedFish *GetBreedFishInfoData(int item_no) {
     return GameItemDataManage.GetFishData(item_no);
 }
+char *GetItemFileName(int item_no, int variant) {
+    CDataCommon *record = GetCommonItemData(item_no);
+    char *name;
 
-#ifdef NONMATCHING
-char *GetItemFileName(int item_no, int with_extension) {
-    static char  filename[32]; /**< Item model file name buffer. */
-    CDataCommon *data;
-    CSaveData   *save;
-    char        *file_name;
-
-    data = GetCommonItemData(item_no);
-    if (data == NULL) {
+    if (record == NULL) {
         return NULL;
     }
-    file_name = data->file_name;
-    if (file_name == NULL) {
+    name = record->file_name;
+    if (name == NULL) {
         return NULL;
     }
-    strcpy(filename, file_name);
-    save = GetSaveData();
-    if ((data->type == 5 || data->type == 8) && save->GetBitFlag(799) != 0) {
-        strcat(filename, "t");
+    strcpy(filename_1267, name);
+    CSaveData *save_data = GetSaveData();
+    u8 type = record->type;
+    if ((type == 5 || type == 8) && save_data->GetBitFlag(0x31F) != 0) {
+        strcat(filename_1267, at_1283__3);
     }
-    if (with_extension == 1) {
-        strcat(filename, ".chr");
+    if (variant != 0 && variant == 1) {
+        strcat(filename_1267, at_1284__3);
     }
-    return filename;
+    return filename_1267;
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/gamedata", GetItemFileName__Fii);
-#endif
+char *GetItemFilePath(int item_no, int variant) {
+    char name[0x20];
+    CDataCommon *record;
+    int type;
+    char *file_name;
 
-#ifdef NONMATCHING
-char *GetItemFilePath(int item_no, int alternate) {
-    static char  item_file_path[128]; /**< Item model path buffer. */
-    CDataCommon *data;
-    char         file_name[32];
-    char        *name;
-    int          family;
-
-    item_file_path[0] = '\0';
-    data = GameItemDataManage.GetCommonData(item_no);
-    if (data != NULL) {
-        family = ConvertUsedItemType(data->type);
-        name = GetItemFileName(item_no, 0);
-        if (name != NULL) {
-            strcpy(file_name, name);
+    item_file_path_1288[0] = 0;
+    record = (CDataCommon *)GameItemDataManage.GetCommonData(item_no);
+    if (record != NULL) {
+        type = ConvertUsedItemType(record->type);
+        file_name = GetItemFileName(item_no, 0);
+        if (file_name != NULL) {
+            strcpy(name, file_name);
         }
-        switch (family) {
-            case USED_ITEM_TYPE_WEAPON:
-            case USED_ITEM_TYPE_UNK_4:
-                strcpy(item_file_path, "mainchr/");
+        switch (type) {
+            case 3:
+            case 4:
+                strcpy(item_file_path_1288, at_1307__2);
                 break;
-            case USED_ITEM_TYPE_ROBO_PART:
-                strcpy(item_file_path, "dungeon/robo/");
+            case 5:
+                strcpy(item_file_path_1288, at_1308__2);
                 break;
             default:
-                strcpy(item_file_path, "item/");
+                strcpy(item_file_path_1288, at_1309__2);
                 break;
         }
-        strcat(item_file_path, file_name);
-        strcat(item_file_path, ".chr");
-        if (alternate == 1 && family == USED_ITEM_TYPE_WEAPON) {
-            sprintf(item_file_path, "wep_t/%s_item.chr", file_name);
+        strcat(item_file_path_1288, name);
+        strcat(item_file_path_1288, at_1284__3);
+        if (variant == 1) {
+            if (type == 3) {
+                sprintf(item_file_path_1288, at_1310__2, name);
+            }
         }
-        if (alternate == 1 && (data->type == 0xD || data->type == 0xE)) {
-            sprintf(item_file_path, "wep_t/%s.chr", file_name);
+        if (variant == 1 && (record->type == 0xD || record->type == 0xE)) {
+            sprintf(item_file_path_1288, at_1311__2, name);
         }
     }
-    return item_file_path;
+    return item_file_path_1288;
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/gamedata", GetItemFilePath__Fii);
-#endif
-
-u8 GetItemDataType(s32 item_no) {
-    return GameItemDataManage.GetDataType(item_no);
+int GetItemDataType(int item_no) {
+    return GetDataType__9CGameDataFi(&GameItemDataManage, item_no);
 }
-u32 GetItemDataAttribute(int item_no) {
-    CDataCommon *data;
+unsigned int GetItemDataAttribute(int item_no) {
+    CDataCommon *record;
 
-    data = GameItemDataManage.GetCommonData(item_no);
-    if (data != NULL) {
-        return data->attribute;
+    record = (CDataCommon *)GameItemDataManage.GetCommonData(item_no);
+    if (record != NULL) {
+        return record->attribute;
     }
     return 0;
 }
+int ConvertUsedItemType(int item_no) {
+    int type;
 
-#ifdef NONMATCHING
-int ConvertUsedItemType(int type) {
-    int family;
-
-    family = USED_ITEM_TYPE_NONE;
-    if (type > 0 && type < 5) {
-        family = USED_ITEM_TYPE_WEAPON;
-    } else if (type >= 5 && type < 11) {
-        family = USED_ITEM_TYPE_UNK_4;
-    } else if (type >= 12 && type < 16) {
-        family = USED_ITEM_TYPE_ROBO_PART;
-    } else if ((type >= 16 && type < 20) || type == 0x22) {
-        family = USED_ITEM_TYPE_ATTACH;
-    } else if (type == 11 || type >= 20) {
-        family = USED_ITEM_TYPE_ITEM;
+    type = 0;
+    if (item_no > 0 && item_no < 5) {
+        type = 3;
+    } else if (item_no >= 5 && item_no < 11) {
+        type = 4;
+    } else if (item_no > 11 && item_no <= 15) {
+        type = 5;
+    } else if ((item_no >= 16 && item_no <= 19) || item_no == 0x22) {
+        type = 2;
+    } else if (item_no == 11 || item_no >= 20) {
+        type = 1;
     }
-    switch (type) {
-        case 28:
-            return USED_ITEM_TYPE_GIFT_BOX;
-        case 30:
-            return USED_ITEM_TYPE_FISH;
-        case 35:
-            family = USED_ITEM_TYPE_BOILED;
-            break;
+    if (item_no == 0x1C) {
+        type = 7;
+    } else if (item_no == 0x1E) {
+        type = 6;
+    } else if (item_no == 0x23) {
+        type = 8;
     }
-    return family;
+    return type;
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/gamedata", ConvertUsedItemType__Fi);
-#endif
+int GetItemMessageNo(int item_no, int message_kind) {
+    CDataCommon *record;
 
-#ifdef NONMATCHING
-int GetItemMessageNo(int item_no, int message) {
-    static s16   msg_offsettbl[3] = { 0, 10000, 0 }; /**< Offsets of the item message groups. */
-    CDataCommon *data;
-
-    data = GameItemDataManage.GetCommonData(item_no);
-    if (data == NULL) {
+    record = GameItemDataManage.GetCommonData(item_no);
+    if (record == NULL) {
         return -1;
     }
-    return data->message_no + msg_offsettbl[message];
+    return ((CDataCommon *)record)->message_no + msg_offsettbl_1363[message_kind];
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/gamedata", GetItemMessageNo__Fii);
-#endif
+char *GetItemMessage(int item_no) {
+    CDataCommon *record;
 
-char * GetItemMessage(int item_no) {
-    CDataCommon *data;
-
-    data = GameItemDataManage.GetCommonData(item_no);
-    if (data != NULL) {
-        return data->name;
+    record = (CDataCommon *)GameItemDataManage.GetCommonData(item_no);
+    if (record != NULL) {
+        return record->name;
     }
-    return NULL;
+    return 0;
 }
-
-s16 GetItemIconNo(s32 item_no) {
+short GetItemIconNo(int item_no) {
     CDataCommon *common = GameItemDataManage.GetCommonData(item_no);
     if (common != NULL) {
         return common->icon_no;
     }
     return -1;
 }
-#ifdef NONMATCHING
-void SetItemSpectolPoint(int item_no, ATTACH_USED *attach, int num) {
-    int slot;
-    int value;
+void SetItemSpectolPoint(int item_no, ATTACH_USED *used, int multiplier) {
+    int index;
+    int list_no;
+    int points;
 
-    if (item_no > 0 && attach != NULL) {
-        slot = etcitem_spectol_table[item_no - 1][0];
-        value = etcitem_spectol_table[item_no - 1][1];
-        if (slot < 8) {
-            attach->attribute[slot] = value * num;
+    if (item_no > 0 && used != NULL) {
+        index = (item_no - 1) * 2;
+        list_no = etcitem_spectol_table[index];
+        points = etcitem_spectol_table[index + 1];
+        if (list_no < 8) {
+            used->attribute[list_no] = points * multiplier;
         }
-        if (slot >= 10) {
-            attach->status[slot - 10] = value * num;
+        if (list_no >= 10) {
+            used->status[list_no - 10] = points * multiplier;
         }
     }
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/gamedata", SetItemSpectolPoint__FiP11ATTACH_USEDi);
-#endif
-
-#ifdef NONMATCHING
-/**
- * Copies one item command group's message numbers and terminates the list.
- */
-static int ItemCmdMsgSet(int group, int *message_list) {
+int ItemCmdMsgSet(int item_no, int *messages) {
+    int count;
     int i;
 
+    count = 0;
     for (i = 0; i < 8; i++) {
-        message_list[i] = ItemCmdMsgTbl[group][i] + 5000;
-        if (message_list[i] < 5000) {
+        messages[i] = ItemCmdMsgTbl[item_no][i] + 5000;
+        if (messages[i] < 5000) {
             break;
         }
+        count++;
     }
-    message_list[i] = -1;
-    return i;
+    messages[i] = -1;
+    return count;
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/gamedata", ItemCmdMsgSet__FiPi);
-#endif
-
 #ifdef NONMATCHING
 int GetMenuCommandMsg(int item_no, int *message_list) {
     int count;
@@ -1246,7 +965,6 @@ int GetMenuCommandMsg(int item_no, int *message_list) {
 #else
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/gamedata", GetMenuCommandMsg__FiPi);
 #endif
-
 #ifdef NONMATCHING
 int CheckItemEquip(int chara, int item_no) {
     if (GetItemInfoData(item_no) == NULL) {
@@ -1270,23 +988,24 @@ int CheckItemEquip(int chara, int item_no) {
 #else
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/gamedata", CheckItemEquip__Fii);
 #endif
-
 int SearchItemByName(char *name) {
-    CDataCommon *data;
-    int          item_no;
+    int item_no;
+    CDataCommon *record;
 
     for (item_no = 1; item_no < 512; item_no++) {
-        data = GetCommonItemData(item_no);
-        if (data != NULL && data->name != NULL && strcmp(data->name, name) == 0) {
-            return item_no;
+        record = (CDataCommon *)GetCommonItemData(item_no);
+        if (record != NULL) {
+            char *item_name = record->name;
+            if ((item_name != 0) && (strcmp(item_name, name) == 0)) {
+                return item_no;
+            }
         }
     }
     return -1;
 }
-
 #ifdef NONMATCHING
 s16 GetRidePodCore(int index) {
-    static s16 table[8] = { 246, 247, 248, 249, 250, 251, 252, -1 }; /**< Ridepod core item numbers. */
+    static s16 table[8] = { 246, 247, 248, 249, 250, 251, 252, -1 }; 
 
     if (index < 0 || index >= 7) {
         return 0;
@@ -1296,7 +1015,6 @@ s16 GetRidePodCore(int index) {
 #else
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/gamedata", GetRidePodCore__Fi);
 #endif
-
 void Init_USEITEM_EFFECT(USEITEM_EFFECT *effect) {
     effect->target_flags = 0;
     effect->use_flags = 0;
@@ -1326,31 +1044,25 @@ int GetUsedItemAfterEffect(int item_no, USEITEM_EFFECT *effect) {
 #else
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/gamedata", GetUsedItemAfterEffect__FiP14USEITEM_EFFECT);
 #endif
+void CItemUseTarget::SetPtr(int new_kind, void *new_ptr) {
+    type = new_kind;
 
-void CItemUseTarget::SetPtr(int type, void *target) {
-    this->type = type;
-    if (this->type == ITEM_USE_TARGET_CHARA) {
-        this->target.data = target;
+    if (type == 0) {
+        target.data = new_ptr;
     }
-    if (this->type == ITEM_USE_TARGET_ITEM) {
-        this->target.data = target;
+    if (type == 1) {
+        target.data = new_ptr;
     }
-    if (this->type == ITEM_USE_TARGET_ROBO) {
-        this->target.data = target;
+    if (type == 2) {
+        target.data = new_ptr;
     }
-    if (this->type == ITEM_USE_TARGET_MONSTER) {
-        this->target.data = target;
+    if (type == 3) {
+        target.data = new_ptr;
     }
 }
 
-
 // Static initialiser (.init)
-#ifdef NONMATCHING
-// File-scope local_itemdata, local_weapondata, local_attachdata and local_fishdata arrays produce the initialiser.
-#else
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/gamedata", __sinit_gamedata_cpp);
-#endif
-
 
 // Initialised data (.data)
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/gamedata", etcitem_spectol_table__DATA);

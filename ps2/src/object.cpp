@@ -131,26 +131,12 @@ float CObject::GetAlpha() {
 
     return 0.0f;
 }
-
-#ifdef NONMATCHING
 int CObject::PreDraw() {
-    int draw;
-
-    draw = 0;
-
-    if (show) {
-        draw = 1;
-
-        if (draw_off) {
-            draw = 0;
-        }
+    if (show == 0 || draw_off != 0) {
+        return 0;
     }
-
-    return draw;
+    return 1;
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/object", PreDraw__7CObjectFv);
-#endif
 
 void CObject::Initialize() {
     SetPosition(0.0f, 0.0f, 0.0f);
@@ -202,19 +188,13 @@ int CObjectFrame::PreDraw() {
 
     return draw;
 }
-
-#ifdef NONMATCHING
 int CObjectFrame::Draw() {
-    if (!CObjectFrame::PreDraw()) {
+    if (CObjectFrame::PreDraw() == 0) {
         return 0;
     }
-
     mgDraw(frame);
     return 0;
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/object", Draw__12CObjectFrameFv);
-#endif
 
 int CObjectFrame::DrawDirect() {
     if (!CObjectFrame::PreDraw()) {

@@ -1,18 +1,25 @@
 #include "common.h"
-#include "effectlist.hpp"
-
-#include <cstring>
-#include <libvu0.h>
-
-#include "dataread.hpp"
-#include "effect.hpp"
-#include "mg_drawenv.hpp"
-#include "mg_drawprim.hpp"
-#include "mg_math.hpp"
 #include "mg_memory.hpp"
-#include "mg_sprite.hpp"
+#include "mg_drawprim.hpp"
 #include "mg_texture.hpp"
+#include "mg_frame.hpp"
+#include "mg_drawenv.hpp"
+#include "mg_math.hpp"
 #include "mglib.hpp"
+#include "effect.hpp"
+#include "mg_sprite.hpp"
+#include "scriptinterpreter.hpp"
+#include "effectlist.hpp"
+#ifdef NONMATCHING
+#include "dataread.hpp"
+#endif
+#include <cstring>
+
+extern "C" int fptosi(float value);
+extern "C" void __ct__11mgCDrawPrimFv(void *);
+
+void DivSpriteScreen(mgCDrawPrim &prim);
+void DivSpriteScreen(mgCDrawPrim &prim, int left, int right, int mode);
 
 // Code (.text)
 #ifdef NONMATCHING
@@ -86,13 +93,10 @@ void CEffectList::LoadEFPFile(char *name, u_int *pack, int block, mgCMemory *sta
 #else
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/effectlist", LoadEFPFile__11CEffectListFPcPUiiP9mgCMemory);
 #endif
-
 #ifdef NONMATCHING
-// Defined inline in mg_sprite.hpp.
 #else
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/effectlist", __ct__11mgC3DSpriteFv);
 #endif
-
 int CEffectList::SaerchEffectIndex(char *name) {
     int i;
 
@@ -103,15 +107,13 @@ int CEffectList::SaerchEffectIndex(char *name) {
     }
     return -1;
 }
-
 mgC3DSprite *CEffectList::GetEffectVisual(int index) {
     if (index < 0 || index >= effect_num) {
         return NULL;
     }
-    return &sprites[index];
+    return sprites + index;
 }
-
-void CEffectList::Step() {
+void CEffectList::Step(void) {
     int i;
 
     for (i = 0; i < effect_num; i++) {
@@ -119,15 +121,13 @@ void CEffectList::Step() {
         managers[i].Step(1);
     }
 }
-
-void CEffectList::CreatePacket() {
+void CEffectList::CreatePacket(void) {
     int i;
 
     for (i = 0; i < effect_num; i++) {
-        managers[i].CreatePacket(&sprites[i]);
+        managers[i].CreatePacket(sprites + i);
     }
 }
-
 #ifdef NONMATCHING
 void CEffectManager::CreatePacket(mgC3DSprite *sprite) {
     if (sprite == NULL) {
@@ -212,7 +212,6 @@ void CEffectManager::CreatePacket(mgC3DSprite *sprite) {
 #else
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/effectlist", CreatePacket__14CEffectManagerFP11mgC3DSprite);
 #endif
-
 void CFadeInOut::Initialize(void) {
     alpha = 0.0f;
     b = 0.0f;
@@ -231,121 +230,106 @@ void CFadeInOut::ResetFade(void) {
     cross = 0;
 }
 void CFadeInOut::FadeIn(int frames, float r, float g, float b) {
-    if (mode == FADE_MODE_NONE || frames < 0) {
+    if ((mode == 0) || (frames < 0)) {
         alpha = 128.0f;
     }
-    mode = FADE_MODE_IN;
+    mode = 1;
     end = 0;
     if (frames < 0) {
         speed = 0.0f;
     } else {
-        speed = 128.0f / frames;
+        speed = 128.0f / (float)frames;
     }
     this->r = r;
     this->g = g;
     this->b = b;
     cross = 0;
 }
-
 void CFadeInOut::FadeIn(int frames) {
-    if (mode >= FADE_MODE_NONE) {
+    if (mode >= 0) {
         FadeIn(frames, 0.0f, 0.0f, 0.0f);
-        return;
+    } else {
+        FadeIn(frames, r, g, b);
     }
-    FadeIn(frames, r, g, b);
 }
-
 void CFadeInOut::FadeOut(int frames, float r, float g, float b) {
-    if (mode == FADE_MODE_NONE || frames < 0) {
+    if ((mode == 0) || (frames < 0)) {
         alpha = 0.0f;
     }
-    mode = FADE_MODE_OUT;
+    mode = -1;
     end = 0;
     if (frames < 0) {
         speed = 0.0f;
     } else {
-        speed = 128.0f / frames;
+        speed = 128.0f / (float)frames;
     }
     this->r = r;
     this->g = g;
     this->b = b;
     cross = 0;
 }
-
 void CFadeInOut::CrossFade(int duration, float alpha) {
     CrossFadeIn(0, duration, alpha);
 }
-void CFadeInOut::CrossFadeIn(int type, int frames, float alpha_rate) {
-    cross_type = type;
+void CFadeInOut::CrossFadeIn(int mode, int frames, float value) {
+    cross_type = mode;
     FadeIn(frames, 128.0f, 128.0f, 128.0f);
     cross = 1;
-    cross_alpha_rate = alpha_rate;
+    cross_alpha_rate = value;
 }
-
-void CFadeInOut::CrossFadeOut(int type, int frames, float alpha_rate) {
-    cross_type = type;
+void CFadeInOut::CrossFadeOut(int mode, int frames, float value) {
+    cross_type = mode;
     FadeOut(frames, 128.0f, 128.0f, 128.0f);
     alpha = 0.0f;
     cross = 1;
-    cross_alpha_rate = alpha_rate;
+    cross_alpha_rate = value;
 }
-
 int CFadeInOut::FadeCheck() { return this->end; }
-s32 CFadeInOut::NowFade(void) {
+int CFadeInOut::NowFade(void) {
     return mode != 0;
 }
-int CFadeInOut::FadeStep() {
-    if (mode == FADE_MODE_NONE) {
+int CFadeInOut::FadeStep(void) {
+    if (mode == 0) {
         return 1;
     }
-    if (mode > FADE_MODE_NONE) {
+    if (mode > 0) {
         alpha -= speed;
         if (alpha <= 0.0f) {
             alpha = 0.0f;
-            mode = FADE_MODE_NONE;
+            mode = 0;
             end = 1;
         }
     } else {
         alpha += speed;
-        if (alpha >= 128.0f) {
+        if (!(alpha < 128.0f)) {
             alpha = 128.0f;
             end = 1;
         }
     }
-    if (end && cross && cross_type == CROSS_FADE_WIPE) {
+    if (end != 0 && cross != 0 && cross_type == CROSS_FADE_WIPE) {
         alpha = 0.0f;
     }
     return end;
 }
-
-void CFadeInOut::SetCrossTexture(mgCTexture *texture, u_long128 *buffer) {
+void CFadeInOut::SetCrossTexture(mgCTexture *texture, u_long128 *image) {
     if (texture != NULL) {
         cross_texture = texture;
-        cross_texture->image[0] = buffer;
+
+        (*(mgCTexture *volatile *)&cross_texture)->image[0] = image;
     }
 }
-
-#ifdef NONMATCHING
-void CFadeInOut::CaptureScreen() {
-    if (cross_texture != NULL) {
-        if (cross_texture->image[0] == NULL) {
-            return;
-        }
-        mgCTexture backbuffer;
-
-        mgGetFrameBackBuffer(&backbuffer);
-        mgStoreImage(&backbuffer, cross_texture->image[0]);
+void CFadeInOut::CaptureScreen(void) {
+    if (cross_texture == NULL || cross_texture->image[0] == NULL) {
+        return;
     }
-}
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/effectlist", CaptureScreen__10CFadeInOutFv);
-#endif
+    mgCTexture back_buffer;
 
+    mgGetFrameBackBuffer(&back_buffer);
+    mgStoreImage(&back_buffer, cross_texture->image[0]);
+}
 #ifdef NONMATCHING
-/**
- * Tiles the screen with textured rectangles of 64 by 32 pixels.
- */
-static void DivSpriteScreen(mgCDrawPrim &prim) {
+
+void DivSpriteScreen(mgCDrawPrim &prim) {
     sceVu0IVECTOR offset = { 0, 0, 0, 0 };
     sceVu0IVECTOR vertex = { 0, 0, 0, 0 };
     sceVu0IVECTOR uv = { 0, 0, 0, 0 };
@@ -377,12 +361,9 @@ static void DivSpriteScreen(mgCDrawPrim &prim) {
 #else
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/effectlist", DivSpriteScreen__FR11mgCDrawPrim);
 #endif
-
 #ifdef NONMATCHING
-/**
- * Draws a strip across the screen with a jagged left or right edge.
- */
-static void DivSpriteScreen(mgCDrawPrim &prim, int left, int right, int jagged_left) {
+
+void DivSpriteScreen(mgCDrawPrim &prim, int left, int right, int jagged_left) {
     sceVu0IVECTOR offset = { 0, 0, 0, 0 };
     sceVu0IVECTOR vertex = { 0, 0, 0, 0 };
     sceVu0IVECTOR uv = { 0, 0, 0, 0 };
@@ -427,85 +408,101 @@ static void DivSpriteScreen(mgCDrawPrim &prim, int left, int right, int jagged_l
 #else
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/effectlist", DivSpriteScreen__FR11mgCDrawPrimiii);
 #endif
+void CFadeInOut::Draw(void) {
+    u_char prim[0x120];
+    u_char prim2[0x120];
 
-#ifdef NONMATCHING
-void CFadeInOut::Draw() {
     if (alpha > 0.0f) {
-        mgCDrawPrim prim;
-
-        prim.Initialize(NULL, NULL);
-        prim.DepthTestEnable(0);
-        prim.AlphaTestEnable(0);
-        prim.AlphaBlendEnable(1);
-        prim.AlphaBlend(MG_ALPHA_BLEND_NORMAL);
-        prim.ZMask(MG_Z_MASK_MASKED);
-        if (cross) {
+        __ct__11mgCDrawPrimFv(prim);
+        ((mgCDrawPrim *)prim)->Initialize(NULL, NULL);
+        ((mgCDrawPrim *)prim)->DepthTestEnable(0);
+        ((mgCDrawPrim *)prim)->AlphaTestEnable(0);
+        ((mgCDrawPrim *)prim)->AlphaBlendEnable(1);
+        ((mgCDrawPrim *)prim)->AlphaBlend(1);
+        ((mgCDrawPrim *)prim)->ZMask(-1);
+        if (cross != 0) {
             if (cross_texture != NULL) {
                 cross_texture->tex0.bits.tcc = 0;
                 mgTexManager.ReloadTexture(cross_texture->block, (sceVif1Packet *)NULL);
-                prim.TextureMapEnable(1);
+                ((mgCDrawPrim *)prim)->TextureMapEnable(1);
                 if (cross_type == CROSS_FADE_WIPE) {
-                    prim.Begin2();
-                    prim.BeginPrim2(MG_PRIM_SPRITE);
-                    prim.Texture(cross_texture);
-                    prim.Direct(SCE_GS_TEXA, 0x8080UL | (0x80UL << 32));
-                    prim.Color(128, 128, 128, 128);
-                    prim.EndPrim2();
-                    if (mode > FADE_MODE_NONE) {
-                        DivSpriteScreen(prim, 0, (int)((alpha / 128.0f) * mgScreenWidth), 0);
+                    ((mgCDrawPrim *)prim)->Begin2();
+                    ((mgCDrawPrim *)prim)->BeginPrim2(6);
+                    ((mgCDrawPrim *)prim)->Texture(cross_texture);
+
+                    ((mgCDrawPrim *)prim)->Direct(0x3B, 0x8080 | ((u_long)0x80 << 32));
+                    ((mgCDrawPrim *)prim)->Color(0x80, 0x80, 0x80, 0x80);
+                    ((mgCDrawPrim *)prim)->EndPrim2();
+                    if (mode > 0) {
+                        DivSpriteScreen(*(mgCDrawPrim *)prim, 0,
+                                        fptosi((alpha / 128.0f) * (float)mgScreenWidth), 0);
                     } else {
-                        DivSpriteScreen(prim, (int)((alpha / 128.0f) * mgScreenWidth), mgScreenWidth, 1);
+                        int width = mgScreenWidth;
+
+                        DivSpriteScreen(*(mgCDrawPrim *)prim, fptosi((alpha / 128.0f) * (float)width),
+                                        width, 1);
                     }
-                    prim.End2();
+                    ((mgCDrawPrim *)prim)->End2();
                 } else {
-                    prim.Begin2();
-                    prim.BeginPrim2(MG_PRIM_SPRITE);
-                    prim.Texture(cross_texture);
-                    prim.Direct(SCE_GS_TEXA, 0x8080UL | (0x80UL << 32));
-                    prim.Color((int)r, (int)g, (int)b, (int)(alpha * cross_alpha_rate));
-                    prim.EndPrim2();
-                    DivSpriteScreen(prim);
-                    prim.End2();
+                    int b;
+                    int g;
+                    int r;
+
+                    ((mgCDrawPrim *)prim)->Begin2();
+                    ((mgCDrawPrim *)prim)->BeginPrim2(6);
+                    ((mgCDrawPrim *)prim)->Texture(cross_texture);
+
+                    ((mgCDrawPrim *)prim)->Direct(0x3B, 0x8080 | ((u_long)0x80 << 32));
+                    r = fptosi(this->r);
+                    g = fptosi(this->g);
+                    b = fptosi(this->b);
+                    ((mgCDrawPrim *)prim)->Color(r, g, b, fptosi(alpha * cross_alpha_rate));
+                    ((mgCDrawPrim *)prim)->EndPrim2();
+                    DivSpriteScreen(*(mgCDrawPrim *)prim);
+                    ((mgCDrawPrim *)prim)->End2();
                 }
             }
         } else {
-            prim.TextureMapEnable(0);
-            prim.Begin2();
-            prim.BeginPrim2(MG_PRIM_SPRITE);
-            prim.Color((int)r, (int)g, (int)b, (int)alpha);
-            prim.EndPrim2();
-            DivSpriteScreen(prim);
-            prim.End2();
+            int b;
+            int g;
+            int r;
+
+            ((mgCDrawPrim *)prim)->TextureMapEnable(0);
+            ((mgCDrawPrim *)prim)->Begin2();
+            ((mgCDrawPrim *)prim)->BeginPrim2(6);
+            r = fptosi(this->r);
+            g = fptosi(this->g);
+            b = fptosi(this->b);
+            ((mgCDrawPrim *)prim)->Color(r, g, b, fptosi(alpha));
+            ((mgCDrawPrim *)prim)->EndPrim2();
+            DivSpriteScreen(*(mgCDrawPrim *)prim);
+            ((mgCDrawPrim *)prim)->End2();
         }
     }
-    if (blur_alpha) {
-        mgCDrawPrim prim;
+    if (blur_alpha != 0) {
+        __ct__11mgCDrawPrimFv(prim2);
+        ((mgCDrawPrim *)prim2)->Initialize(NULL, NULL);
+        mgCTexture back_tex;
 
-        prim.Initialize(NULL, NULL);
-        mgCTexture backbuffer;
+        mgGetFrameBackBuffer(&back_tex);
+        back_tex.tex0.bits.tcc = 0;
+        ((mgCDrawPrim *)prim2)->TextureMapEnable(1);
+        ((mgCDrawPrim *)prim2)->AlphaBlendEnable(1);
+        ((mgCDrawPrim *)prim2)->AlphaBlend(1);
+        ((mgCDrawPrim *)prim2)->DepthTestEnable(0);
+        ((mgCDrawPrim *)prim2)->ZMask(-1);
+        ((mgCDrawPrim *)prim2)->Begin(6);
 
-        mgGetFrameBackBuffer(&backbuffer);
-        backbuffer.tex0.bits.tcc = 0;
-        prim.TextureMapEnable(1);
-        prim.AlphaBlendEnable(1);
-        prim.AlphaBlend(MG_ALPHA_BLEND_NORMAL);
-        prim.DepthTestEnable(0);
-        prim.ZMask(MG_Z_MASK_MASKED);
-        prim.Begin(MG_PRIM_SPRITE);
-        prim.Direct(SCE_GS_TEXA, 0x80UL | (0x80UL << 32));
-        prim.Texture(&backbuffer);
-        prim.Color(128, 128, 128, blur_alpha);
-        prim.TextureCrd(0, 0);
-        prim.Vertex(0, 0, 0);
-        prim.TextureCrd(backbuffer.width, backbuffer.height);
-        prim.Vertex(backbuffer.width, backbuffer.height, 0);
-        prim.End();
+        ((mgCDrawPrim *)prim2)->Direct( 0x3B, 0x80 | ((u_long)0x80 << 32));
+        ((mgCDrawPrim *)prim2)->Texture(&back_tex);
+        ((mgCDrawPrim *)prim2)->Color(0x80, 0x80, 0x80, blur_alpha);
+        ((mgCDrawPrim *)prim2)->TextureCrd(0, 0);
+        ((mgCDrawPrim *)prim2)->Vertex(0, 0, 0);
+        ((mgCDrawPrim *)prim2)->TextureCrd(back_tex.width, back_tex.height);
+        ((mgCDrawPrim *)prim2)->Vertex(back_tex.width, back_tex.height, 0);
+        ((mgCDrawPrim *)prim2)->End();
     }
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/effectlist", Draw__10CFadeInOutFv);
-#endif
-
 
 // Initialised data (.data)
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/effectlist", at_393__DATA);

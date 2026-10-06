@@ -32,15 +32,11 @@ static void DrawDivSprite(mgCDrawPrim *prim, mgRect<int> rect, mgCTexture *textu
 static void DrawDivSprite4(mgCDrawPrim *prim, mgRect<int> rect, mgCTexture *texture,
                            int *color, int offset, int z);
 extern int at_338[4];
+int COutLineDraw::Draw(float *pos, float scale, float alpha) {
 
-#ifdef NONMATCHING
-int COutLineDraw::Draw(float *position, float scale, float alpha) {
-    for (int i = 0; i < 4; i++) pos[i] = position[i];
+    *(u_long128 *)this->pos = *(u_long128 *)pos;
     return Draw(scale, alpha);
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/outline", Draw__12COutLineDrawFPfff);
-#endif
 
 #ifdef NONMATCHING
 int COutLineDraw::Draw(float scale, float alpha) {

@@ -22,53 +22,45 @@ extern signed char typetbl_853[16];
 extern char path_885[0x40];
 extern char infocfg_886[];
 extern const char at_847__3[];
+// Code (.text)
 extern SPI_TAG_PARAM npc_spitag[3];
 
-// Code (.text)
-#ifdef NONMATCHING
 /**
  * Records the number of party characters declared by the NPC script.
  */
-static int _NPC_NUM(SPI_STACK *stack, int argument_count) {
+int _NPC_NUM(SPI_STACK *stack, int argument_count) {
     NpcBaseDataTotalNum = spiGetStackInt(stack);
     return 1;
 }
-#else
-s32 _NPC_NUM(SPI_STACK *stack, s32 argument_count) {
-    NpcBaseDataTotalNum = spiGetStackInt(stack);
-    return 1;
-}
-#endif
-#ifdef NONMATCHING
+
 /**
  * Reads one party-character record from the NPC script's stack.
  */
-static int _NPC_INFO(SPI_STACK *stack, int argument_count) {
+int _NPC_INFO(SPI_STACK *stack, int argument_count) {
     NPC_BASE_DATA *data = &NpcBaseData[npc_spi_count_num++];
-    data->chara_no = spiGetStackInt(&stack[0]);
-    char *name = spiGetStackString(&stack[1]);
-    char *model = spiGetStackString(&stack[2]);
+    int id = spiGetStackInt(stack++);
+    char *name = spiGetStackString(stack++);
+    char *model = spiGetStackString(stack++);
+    data->chara_no = id;
     if (name != 0) {
         strcpy(data->name, name);
-        if (strlen(name) >= sizeof(data->name)) {
+        if (strlen(name) > 0x1B) {
             printf(at_838__4, name);
         }
     }
     if (model != 0) {
         strcpy(data->model, model);
     }
-    data->unk_31 = spiGetStackInt(&stack[3]);
-    data->ability_num = spiGetStackInt(&stack[4]);
-    data->max_npc_point = spiGetStackInt(&stack[5]);
-    for (int i = 0; i < 4; i++) {
-        data->ability_cost[i] = spiGetStackInt(&stack[6 + i]);
-    }
-    data->debug_flag = spiGetStackInt(&stack[10]);
+    data->unk_31 = spiGetStackInt(stack++);
+    data->ability_num = spiGetStackInt(stack++);
+    data->max_npc_point = spiGetStackInt(stack++);
+    data->ability_cost[0] = spiGetStackInt(stack++);
+    data->ability_cost[1] = spiGetStackInt(stack++);
+    data->ability_cost[2] = spiGetStackInt(stack++);
+    data->ability_cost[3] = spiGetStackInt(stack++);
+    data->debug_flag = spiGetStackInt(stack);
     return 1;
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/npccfg", _NPC_INFO__FP9SPI_STACKi);
-#endif
 void LoadNPCCfg() {
     u_long128 work[2048];
     char path[32];
@@ -112,36 +104,34 @@ char *GetNPCName(int chara_no) {
     }
     return 0;
 }
-#ifdef NONMATCHING
 char *GetPartyCharaModelName(int chara_no, int type) {
-    if (chara_no <= 0 || chara_no >= 33) {
+    char *model;
+    if (chara_no <= 0 || chara_no > 0x20) {
         return 0;
     }
-    path_885[0] = '\0';
-    char *model = GetNPCModelName(chara_no);
-    if (model == 0) {
-        return 0;
-    }
-    switch (type) {
-    case NPC_MODEL_PATH_CHARA:
-        strcpy(path_885, at_898__4);
-        strcat(path_885, model);
-        strcat(path_885, at_899__4);
-        return path_885;
-    case NPC_MODEL_PATH_INFO:
-        return infocfg_886;
-    case NPC_MODEL_PATH_EVENT_TRAIN:
-        sprintf(path_885, at_900__5, model);
-        return path_885;
-    case NPC_MODEL_PATH_MENU:
-        sprintf(path_885, at_901__3, model);
-        return path_885;
+    path_885[0] = 0;
+    model = GetNPCModelName(chara_no);
+    if (model != 0) {
+        if (type == 0) {
+            strcpy(path_885, at_898__4);
+            strcat(path_885, model);
+            strcat(path_885, at_899__4);
+            return path_885;
+        }
+        if (type == 1) {
+            return infocfg_886;
+        }
+        if (type == 2) {
+            sprintf(path_885, at_900__5, model);
+            return path_885;
+        }
+        if (type == 3) {
+            sprintf(path_885, at_901__3, model);
+            return path_885;
+        }
     }
     return 0;
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/npccfg", GetPartyCharaModelName__Fii);
-#endif
 NPC_BASE_DATA *GetPartyNPCData(int chara_no) {
     for (int i = 0; i < NpcBaseDataTotalNum; i++) {
         if (NpcBaseData[i].chara_no == chara_no) {

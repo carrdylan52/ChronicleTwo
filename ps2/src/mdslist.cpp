@@ -1,53 +1,64 @@
 #include "common.h"
+#include "mg_memory.hpp"
+#include "mg_visual.hpp"
+#include "mg_drawprim.hpp"
+#include "mg_texture.hpp"
+#include "mg_frame.hpp"
+#include "mg_drawenv.hpp"
+#include "mg_math.hpp"
+#include "mglib.hpp"
+#include "actionchara.hpp"
+#include "scene.hpp"
+#include "object.hpp"
+#include "padcontrol.hpp"
+#include "cameracontrol.hpp"
 #include "mdslist.hpp"
-
-#include <cstdio>
-#include <cstring>
-#include <libvu0.h>
-
 #include "character.hpp"
 #include "collision.hpp"
-#include "dataread.hpp"
 #include "mapload.hpp"
-#include "mg_dataset.hpp"
-#include "mg_frame.hpp"
-#include "mg_memory.hpp"
-#include "mg_texture.hpp"
-#include "mg_visual.hpp"
+#include "dataread.hpp"
 #include "scriptinterpreter.hpp"
+#include <cstring>
+#include <cstdio>
 
-#ifdef NONMATCHING
-static int        now_mds_num;   /**< Next entry the pack script fills. */
-static int        max_mds_num;   /**< Number of entries allocated for the pack. */
-static CMdsList  *pcpMdsList;    /**< Pack list the script is loading. */
-static CMdsInfo  *pcpMdsInfo;    /**< Entries allocated for the pack. */
-static CMdsInfo  *pcpNowMdsInfo; /**< Entry the current script tags describe. */
-static mgCMemory *pcpStack;     /**< Memory used to load the pack's entries. */
-static u_int     *pcp_file;      /**< Pack whose script is being read. */
-static int        pcpAllScissor; /**< Non-zero enables clipping on every loaded frame. */
+extern "C" int strcasecmp(const char *left, const char *right);
+extern int now_mds_num;
+extern int max_mds_num;
+extern CMdsList *pcpMdsList;
+extern CMdsInfo *pcpMdsInfo;
+extern CMdsInfo *pcpNowMdsInfo;
+extern mgCMemory *pcpStack;
+extern u_int *pcp_file;
+extern int pcpAllScissor;
+extern SPI_TAG_PARAM pcp_tag[];
+CCharacter2 *CreateChara(u_int *pack, char *config, mgCMemory *memory);
+extern "C" void *__vt__9mgCObject[];
+extern "C" void *__vt__7CObject[];
+extern "C" void *__vt__12CObjectFrame[];
+extern "C" void *__vt__11CCharacter2[];
 
-static int          pcpMDS(SPI_STACK *stack, int count);
-static int          pcpTYPE(SPI_STACK *stack, int count);
-static int          pcpFAR_CLIP(SPI_STACK *stack, int count);
-static int          pcpMDS_END(SPI_STACK *stack, int count);
-static CCharacter2 *CreateChara(u_int *pack, char *name, mgCMemory *stack);
+extern char at_754[];
 
-static SPI_TAG_PARAM pcp_tag[] = { /**< Tags describing entries of a PCP pack. */
-    { "MDS", pcpMDS },
-    { "TYPE", pcpTYPE },
-    { "FAR_CLIP", pcpFAR_CLIP },
-    { "MDS_END", pcpMDS_END },
-    { NULL, NULL },
-    { NULL, NULL },
-};
-#endif
+extern char at_807[];
+
+extern char at_828[];
+
+extern char at_829[];
+
+extern char at_830[];
+
+static inline u_int align16_blocks(u_int size) {
+    if (size & 15) {
+        return (size >> 4) + 1;
+    }
+    return size >> 4;
+}
 
 // Code (.text)
 int CMapPiece::AssignMds(CMdsInfo *info) {
     if (info == NULL) {
         return 0;
     }
-
     name = info->name;
     chara = info->chara;
     type = info->type;
@@ -56,56 +67,53 @@ int CMapPiece::AssignMds(CMdsInfo *info) {
     fade = info->far_fade;
     return 1;
 }
-
-#ifdef NONMATCHING
-int CMapPiece::GetPoly(int type, CCPoly *poly, mgVu0FBOX &box, int max) {
+int CMapPiece::GetPoly(int type, CCPoly *poly, mgVu0FBOX &box, int num) {
     if (type != this->type) {
         return 0;
     }
     if (col_type != 0) {
         return 0;
     }
-    if (!GetShow()) {
+    if (GetShow() == 0) {
         return 0;
     }
-
     UpDatePosition();
-    return ((CColFrame *)frame)->PickUpNearPoly(poly, box, max);
+    return ((CColFrame *)frame)->PickUpNearPoly(poly, box, num);
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/mdslist", GetPoly__9CMapPieceFiP6CCPolyR9mgVu0FBOXi);
-#endif
-
 void CMapPiece::SetTimeBand(float start, float end) {
     time_start = start;
     time_end = end;
 }
 PieceMaterial *CMapPiece::GetMaterial(int index) {
-    if (material == NULL) {
-        return NULL;
-    }
-    if (index < 0 || index >= material_num) {
-        return NULL;
-    }
-    return &material[index];
-}
+    PieceMaterial *list;
 
+    list = material;
+    if (list == NULL) {
+        return NULL;
+    }
+    if (index >= 0) {
+        if (index < material_num) {
+            goto found;
+        }
+    }
+    return NULL;
+
+found:
+    return list + index;
+}
 void CMapPiece::Step() {
     if (chara != NULL) {
         UpDatePosition();
         chara->Step();
     }
 }
-
 int CMapPiece::GetBoundBox(mgVu0FBOX *box) {
     if (frame == NULL) {
         return 0;
     }
-
     UpDatePosition();
     return frame->GetWorldBBox(box);
 }
-
 #ifdef NONMATCHING
 int CMapPiece::DrawSub(int direct) {
     sceVu0FVECTOR  saved_color[4];
@@ -149,13 +157,16 @@ int CMapPiece::DrawSub(int direct) {
 #else
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/mdslist", DrawSub__9CMapPieceFi);
 #endif
-
-#ifdef NONMATCHING
-void CMapPiece::Copy(CMapPiece &dest, mgCMemory *stack) {
+void CMapPiece::Copy(CMapPiece &dest, mgCMemory *memory) {
     int i;
+    PieceMaterial *to;
+    PieceMaterial *from;
+    int offset;
+    int num;
+    CCharacter2 *model;
 
     dest.Initialize();
-    CObjectFrame::Copy(dest, stack);
+    CObjectFrame::Copy((CObjectFrame &)dest, memory);
     dest.name = name;
     dest.type = type;
     dest.draw_enable = draw_enable;
@@ -163,55 +174,72 @@ void CMapPiece::Copy(CMapPiece &dest, mgCMemory *stack) {
     dest.time_start = time_start;
     dest.time_end = time_end;
     dest.material_num = material_num;
-
-    if (stack == NULL) {
+    if (memory == NULL) {
         dest.material = material;
     } else {
-        dest.material = new (stack->Alloc(algn16_size(material_num * sizeof(PieceMaterial)) + 2)) PieceMaterial[material_num];
+        num = material_num;
+        dest.material = new (memory->Alloc(align16_blocks(num * sizeof(PieceMaterial)) + 2)) PieceMaterial[num];
+        i = 0;
         if (dest.material == NULL) {
             dest.material_num = 0;
         }
-        for (i = 0; i < dest.material_num; i++) {
-            dest.material[i] = material[i];
+        offset = 0;
+        for (; i < dest.material_num; i++) {
+            from = (PieceMaterial *)((u_char *)material + offset);
+            to = (PieceMaterial *)((u_char *)dest.material + offset);
+            offset += 0x20;
+            to->frame = from->frame;
+            to->material_no = from->material_no;
+            to->material = from->material;
+            to->unk_c = from->unk_c;
+            struct Color { float v[4]; };
+            *(Color *)to->color = *(Color *)from->color;
         }
     }
-
-    if (chara != NULL && stack != NULL) {
-        dest.chara = new (stack->Alloc(algn16_size(sizeof(CCharacter2)) + 2)) CCharacter2;
+    if (chara != NULL && memory != NULL) {
+        if ((model = (CCharacter2 *)operator new(sizeof(CCharacter2), memory->Alloc(0x68))) != NULL) {
+            *(void ***)model = __vt__9mgCObject;
+            model->Initialize();
+            *(void ***)model = __vt__7CObject;
+            model->Initialize();
+            *(void ***)model = __vt__12CObjectFrame;
+            model->Initialize();
+            *(void ***)model = __vt__11CCharacter2;
+            model->shadow_link_num = 0;
+            model->shadow_link_shadow = 0;
+            model->shadow_link_model = 0;
+            model->Initialize();
+        }
+        dest.chara = (CCharacter2 *)model;
         if (dest.chara != NULL) {
-            chara->Copy(*dest.chara, stack);
-            dest.frame = dest.chara->CObjectFrame::frame;
+            chara->Copy(*dest.chara, memory);
+            dest.frame = (mgCFrame *)((CObjectFrame *)dest.chara)->frame;
         }
     } else {
         dest.chara = chara;
     }
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/mdslist", Copy__9CMapPieceFR9CMapPieceP9mgCMemory);
-#endif
-
-#ifdef NONMATCHING
 void CMapPiece::Initialize() {
     int i;
+    int offset;
 
     CObjectFrame::Initialize();
-    type = MDS_TYPE_MODEL;
+    type = 0;
     chara = NULL;
+    i = 0;
     draw_enable = 1;
+    offset = 0;
     name = NULL;
     material_num = 0;
     col_type = 0;
     col_param = 0;
-    for (i = 0; i < material_num; i++) {
-        memset(&material[i], 0, sizeof(PieceMaterial));
+    for (; i < material_num; i++) {
+        memset((u_char *)material + offset, 0, 0x20);
+        offset += 0x20;
     }
-    time_end = 0.0f;
-    time_start = 0.0f;
+    time_end = 0;
+    time_start = 0;
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/mdslist", Initialize__9CMapPieceFv);
-#endif
-
 void CMdsInfo::Initialize(void) {
     name = NULL;
     type = MDS_TYPE_MODEL;
@@ -233,36 +261,40 @@ CMdsList *CMdsListSet::SearchMdsList(char *name) {
     }
     return NULL;
 }
-
 CMdsList *CMdsListSet::GetMdsList(int index) {
-    if (index < 0 || mds_list_num < index) {
-        return NULL;
-    }
-    return &mds_list[index];
-}
-
-CMdsInfo *CMdsListSet::SearchMDS(char *name) {
-    CMdsList *entry;
-    CMdsInfo *info;
-    int       i;
-
-    for (i = 0; ; i++) {
-        entry = GetMdsList(i);
-        if (entry == NULL) {
-            break;
-        }
-        info = entry->GetList(name);
-        if (info != NULL) {
-            return info;
+    if (index >= 0) {
+        if (index <= mds_list_num) {
+            goto found;
         }
     }
     return NULL;
-}
 
-#ifdef NONMATCHING
-int CMdsListSet::LoadPCPFile(char *name, unsigned int *pack, mgCMemory *stack, int all_scissor) {
-    CMdsList *entry;
-    int       i;
+found:
+    return mds_list + index;
+}
+CMdsInfo *CMdsListSet::SearchMDS(char *name) {
+    int i;
+    CMdsList *models;
+    CMdsInfo *item;
+
+    i = 0;
+    for (;;) {
+        models = GetMdsList(i);
+        if (models == NULL) {
+            break;
+        }
+        item = models->GetList(name);
+        if (item != NULL) {
+            return item;
+        }
+        i++;
+    }
+    return 0;
+}
+int CMdsListSet::LoadPCPFile(char *name, u_int *pack, mgCMemory *memory, int type) {
+    CMdsList *slot;
+    int i;
+    int is_free;
 
     if (name == NULL) {
         return 0;
@@ -270,23 +302,21 @@ int CMdsListSet::LoadPCPFile(char *name, unsigned int *pack, mgCMemory *stack, i
     if (SearchMdsList(name) != NULL) {
         return 0;
     }
-    entry = NULL;
-    for (i = 0; i < mds_list_num; i++) {
-        if (mds_list[i].list == NULL || mds_list[i].name == NULL || mds_list[i].num == 0) {
-            entry = &mds_list[i];
+    slot = NULL;
+    i = 0;
+    for (; i < mds_list_num; i++) {
+        is_free = !mds_list[i].list || !mds_list[i].name || mds_list[i].num == 0;
+        if (is_free & 0xFF) {
+            slot = &mds_list[i];
         }
     }
-    if (entry == NULL) {
+    if (slot == NULL) {
         return 0;
     }
-    entry->LoadPCPFile(name, pack, stack, all_scissor);
+    slot->LoadPCPFile(name, pack, memory, type);
     return 1;
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/mdslist", LoadPCPFile__11CMdsListSetFPcPUiP9mgCMemoryi);
-#endif
-
-s32 CMdsListSet::DeleteMdsList(char *name) {
+int CMdsListSet::DeleteMdsList(char *name) {
     CMdsList *mds_list = SearchMdsList(name);
     if (mds_list == NULL) {
         return 0;
@@ -296,10 +326,9 @@ s32 CMdsListSet::DeleteMdsList(char *name) {
     mds_list->list = NULL;
     return 1;
 }
-#ifdef NONMATCHING
-int CMdsListSet::LoadIMGFile(char *name, mgCEnterIMGInfo *info, mgCMemory *stack) {
-    CIMGList *entry;
-    int       i;
+int CMdsListSet::LoadIMGFile(char *name, mgCEnterIMGInfo *info, mgCMemory *memory) {
+    CIMGList *slot;
+    int i;
 
     if (name == NULL) {
         return 0;
@@ -307,22 +336,19 @@ int CMdsListSet::LoadIMGFile(char *name, mgCEnterIMGInfo *info, mgCMemory *stack
     if (SearchIMGList(name) != NULL) {
         return 0;
     }
-    entry = NULL;
-    for (i = 0; i < img_list_num; i++) {
-        if (img_list[i].name == NULL) {
-            entry = &img_list[i];
+    slot = NULL;
+    i = 0;
+    for (; i < img_list_num; i++) {
+        if ((u_char)(!img_list[i].name) != 0) {
+            slot = &img_list[i];
         }
     }
-    if (entry == NULL) {
+    if (slot == NULL) {
         return 0;
     }
-    entry->LoadIMGFile(name, info, stack);
+    ((CIMGList *)slot)->LoadIMGFile(name, info, memory);
     return 1;
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/mdslist", LoadIMGFile__11CMdsListSetFPcP15mgCEnterIMGInfoP9mgCMemory);
-#endif
-
 void CMdsListSet::DeleteIMG(char *name) {
     CIMGList *img_list = SearchIMGList(name);
     if (img_list != NULL) {
@@ -330,21 +356,16 @@ void CMdsListSet::DeleteIMG(char *name) {
         img_list->info = NULL;
     }
 }
-#ifdef NONMATCHING
 CIMGList *CMdsListSet::SearchIMGList(char *name) {
     int i;
 
     for (i = 0; i < img_list_num; i++) {
-        if (img_list[i].name != NULL && strcmp(img_list[i].name, name) == 0) {
+        if ((u_char)(!img_list[i].name) == 0 && img_list[i].name != NULL && strcmp(img_list[i].name, name) == 0) {
             return &img_list[i];
         }
     }
     return NULL;
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/mdslist", SearchIMGList__11CMdsListSetFPc);
-#endif
-
 #ifdef NONMATCHING
 int CMdsListSet::GetTextureBlockNo(int group, int *out_block, int max) {
     mgCEnterIMGInfo *info;
@@ -380,10 +401,9 @@ int CMdsListSet::GetTextureBlockNo(int group, int *out_block, int max) {
 #else
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/mdslist", GetTextureBlockNo__11CMdsListSetFiPii);
 #endif
-
-#ifdef NONMATCHING
 void CMdsListSet::Initialize() {
     int i;
+    int j;
 
     mds_list_num = 8;
     for (i = 0; i < mds_list_num; i++) {
@@ -392,26 +412,26 @@ void CMdsListSet::Initialize() {
         mds_list[i].list = NULL;
     }
     img_list_num = 16;
-    for (i = 0; i < img_list_num; i++) {
-        img_list[i].name = NULL;
-        img_list[i].info = NULL;
+    for (j = 0; j < img_list_num; j++) {
+        img_list[j].name = NULL;
+        img_list[j].info = NULL;
     }
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/mdslist", Initialize__11CMdsListSetFv);
-#endif
-
 CMdsInfo *CMdsList::GetList(int index) {
-    if (index < 0 || index >= num) {
-        return NULL;
+    if (index >= 0) {
+        if (index < num) {
+            goto found;
+        }
     }
-    return &list[index];
-}
+    return NULL;
 
+found:
+    return list + index;
+}
 int CMdsList::GetListID(char *name) {
     int i;
 
-    if (name == NULL || *name == '\0') {
+    if (name == NULL || *(signed char *)name == 0) {
         return -1;
     }
     for (i = 0; i < num; i++) {
@@ -421,44 +441,46 @@ int CMdsList::GetListID(char *name) {
     }
     return -1;
 }
-
 CMdsInfo *CMdsList::GetList(char *name) {
     int index;
 
     index = GetListID(name);
     if (index < 0) {
-        return NULL;
+        return 0;
     }
     return GetList(index);
 }
+int CIMGList::LoadIMGFile(char *name, mgCEnterIMGInfo *info, mgCMemory *memory) {
+    CIMGList *slot;
+    mgCEnterIMGInfo *copy;
+    u_int length;
+    u_int blocks;
 
-#ifdef NONMATCHING
-int CIMGList::LoadIMGFile(char *name, mgCEnterIMGInfo *info, mgCMemory *stack) {
+    slot = (CIMGList *)this;
     if (name == NULL) {
         return 0;
     }
-    this->name = NULL;
-    this->name = (char *)stack->Alloc(algn16_size(strlen(name) + 1));
-    strcpy(this->name, name);
-    this->info = NULL;
+    slot->name = NULL;
+    length = strlen(name) + 1;
+    blocks = align16_blocks(length);
+    slot->name = (char *)memory->Alloc(blocks);
+    strcpy(slot->name, name);
+    slot->info = NULL;
     if (info != NULL) {
-        this->info = new (stack->Alloc(algn16_size(sizeof(mgCEnterIMGInfo)) + 2)) mgCEnterIMGInfo;
-        *this->info = *info;
+        slot->info =
+            (mgCEnterIMGInfo *)operator new(sizeof(mgCEnterIMGInfo), (u_long128 *)memory->Alloc(0x12));
+        copy = slot->info;
+        struct Blocks { int v[32]; };
+        *(Blocks *)copy->block = *(Blocks *)info->block;
+        *(Blocks *)copy->block_num = *(Blocks *)info->block_num;
     }
     return 1;
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/mdslist", LoadIMGFile__8CIMGListFPcP15mgCEnterIMGInfoP9mgCMemory);
-#endif
-
-#ifdef NONMATCHING
-/**
- * Starts a named pack entry, rejecting duplicate names and entries beyond the allocated list.
- */
-static int pcpMDS(SPI_STACK *stack, int count) {
-    char         *name;
-    char         *entry_name;
-    unsigned int  name_size;
+int pcpMDS(SPI_STACK *stack, int arg) {
+    char *name;
+    char *copy;
+    u_int length;
+    u_int blocks;
 
     if (now_mds_num >= max_mds_num) {
         pcpNowMdsInfo = NULL;
@@ -466,31 +488,25 @@ static int pcpMDS(SPI_STACK *stack, int count) {
     }
     name = spiGetStackString(stack);
     if (name != NULL && pcpMdsList->GetList(name) != NULL) {
-        printf("same mds %s\n", name);
+        printf(at_754, name);
         pcpNowMdsInfo = NULL;
         return 0;
     }
-    pcpNowMdsInfo = &pcpMdsInfo[now_mds_num++];
+    pcpNowMdsInfo = &pcpMdsInfo[now_mds_num];
+    now_mds_num += 1;
     pcpNowMdsInfo->Initialize();
     if (name == NULL) {
         pcpNowMdsInfo->name = NULL;
     } else {
-        name_size = strlen(name) + 1;
-        entry_name = (char *)pcpStack->Alloc(algn16_size(name_size));
-        strcpy(entry_name, name);
-        pcpNowMdsInfo->name = entry_name;
+        length = strlen(name) + 1;
+        blocks = align16_blocks(length);
+        copy = (char *)pcpStack->Alloc(blocks);
+        strcpy(copy, name);
+        pcpNowMdsInfo->name = copy;
     }
     return 1;
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/mdslist", pcpMDS__FP9SPI_STACKi);
-#endif
-
-#ifdef NONMATCHING
-/**
- * Converts the script's entry type to the model, collision or character type stored in the list.
- */
-static int pcpTYPE(SPI_STACK *stack, int count) {
+int pcpTYPE(SPI_STACK *stack, int argc) {
     int type;
 
     if (pcpNowMdsInfo == NULL) {
@@ -498,153 +514,135 @@ static int pcpTYPE(SPI_STACK *stack, int count) {
     }
     type = spiGetStackInt(stack);
     switch (type) {
-    case 0:
-        type = MDS_TYPE_MODEL;
-        break;
-    case 1:
-        type = MDS_TYPE_COLLISION;
-        break;
-    case 2:
-        type = MDS_TYPE_CAMERA_COLLISION;
-        break;
-    case 3:
-    case 4:
-        type = MDS_TYPE_CHARA;
-        break;
+        case 0:
+            type = 0;
+            break;
+        case 1:
+            type = 1;
+            break;
+        case 2:
+            type = 3;
+            break;
+        case 3:
+        case 4:
+            type = 4;
+            break;
     }
     pcpNowMdsInfo->type = type;
     return 1;
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/mdslist", pcpTYPE__FP9SPI_STACKi);
-#endif
-
-#ifdef NONMATCHING
-/**
- * Sets the current entry's far distance and whether it fades at that distance.
- */
-static int pcpFAR_CLIP(SPI_STACK *stack, int count) {
-    SPI_STACK *fade_argument;
-
-    fade_argument = stack + 1;
+int pcpFAR_CLIP(SPI_STACK *stack, int argc) {
     if (pcpNowMdsInfo == NULL) {
         return 0;
     }
-    pcpNowMdsInfo->far_dist = spiGetStackFloat(stack);
-    pcpNowMdsInfo->far_fade = spiGetStackInt(fade_argument);
+    pcpNowMdsInfo->far_dist = spiGetStackFloat(stack++);
+    pcpNowMdsInfo->far_fade = spiGetStackInt(stack);
     return 1;
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/mdslist", pcpFAR_CLIP__FP9SPI_STACKi);
-#endif
-
-#ifdef NONMATCHING
-/**
- * Loads the current entry's file as its selected type and applies the pack's clipping setting.
- */
-static int pcpMDS_END(SPI_STACK *stack, int count) {
-    MDS_HEADER  *file;
-    mgCFrame    *frame;
+int pcpMDS_END(SPI_STACK *stack, int argc) {
+    int size;
+    u_int *file;
+    mgCFrame *frame;
     CCharacter2 *chara;
-    int          size;
 
     if (pcpNowMdsInfo == NULL) {
         return 0;
     }
     frame = NULL;
-    file = (MDS_HEADER *)GetPackFile(pcp_file, pcpNowMdsInfo->name, &size);
+    file = GetPackFile(pcp_file, pcpNowMdsInfo->name, &size);
     if (file == NULL) {
         return 0;
     }
     switch (pcpNowMdsInfo->type) {
-    case MDS_TYPE_MODEL:
-        frame = mgLoadMDSFile(file, pcpStack, NULL, NULL);
-        break;
-    case MDS_TYPE_CAMERA_COLLISION:
-    case MDS_TYPE_COLLISION:
-        frame = LoadCollisionFile(file, pcpStack);
-        break;
-    case MDS_TYPE_CHARA:
-        chara = CreateChara((u_int *)file, "info.cfg", pcpStack);
-        pcpNowMdsInfo->chara = chara;
-        if (chara != NULL) {
-            frame = chara->CObjectFrame::frame;
-        }
-        break;
+        case 0:
+            frame = (mgCFrame *)mgLoadMDSFile((MDS_HEADER *)file, pcpStack, NULL, NULL);
+            break;
+
+        case 3:
+        case 1:
+            frame = LoadCollisionFile((MDS_HEADER *)file, pcpStack);
+            break;
+        case 4:
+            chara = CreateChara(file, at_807, pcpStack);
+            pcpNowMdsInfo->chara = (CCharacter2 *)chara;
+            if (chara != NULL) {
+                frame = (mgCFrame *)((CObjectFrame *)chara)->frame;
+            }
+            break;
     }
     if (pcpAllScissor != 0 && frame != NULL) {
-        mgCFrameAttr attr;
 
+        mgCFrameAttr attr;
         attr.clip_enable = 1;
-        frame->SetAttrParam(attr, 1, MG_FRAME_ATTR_CLIP);
+        frame->SetAttrParam(attr, 1, 0x20);
     }
     pcpNowMdsInfo->frame = frame;
     return 1;
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/mdslist", pcpMDS_END__FP9SPI_STACKi);
-#endif
-
-#ifdef NONMATCHING
-void CMdsList::LoadPCPFile(char *name, unsigned int *pack, mgCMemory *stack, int all_scissor) {
-    u_int *files[512];
-    char  *file_names[512];
-    char  *script;
-    int    script_size;
+void CMdsList::LoadPCPFile(char *name, u_int *pack, mgCMemory *memory, int type) {
+    u_int *files[0x200];
+    char *names[0x200];
+    char *script;
+    int script_size;
+    u_int length;
+    u_int blocks;
+    int model_count;
 
     pcpMdsList = this;
     GetPackFileNum(pack);
-    num = GetPackFileExt(pack, "mds", files, 512, NULL, file_names);
-    num += GetPackFileExt(pack, "chr", files, 512, NULL, file_names);
-    if (num >= 512) {
-        printf("over pcp %d\n", num);
+    num = GetPackFileExt(pack, at_828, files, 0x200, NULL, names);
+    num += GetPackFileExt(pack, at_829, files, 0x200, NULL, names);
+    if (num >= 0x200) {
+        printf(at_830, num);
     }
     this->name = NULL;
     if (name != NULL) {
-        this->name = (char *)stack->Alloc(algn16_size(strlen(name) + 1));
+        length = strlen(name) + 1;
+        blocks = align16_blocks(length);
+        this->name = (char *)memory->Alloc(blocks);
         strcpy(this->name, name);
     }
-    list = new (stack->Alloc(algn16_size(num * sizeof(CMdsInfo)) + 2)) CMdsInfo[num];
+    model_count = num;
+    list = new (memory->Alloc(align16_blocks(model_count * sizeof(CMdsInfo)) + 2)) CMdsInfo[model_count];
     now_mds_num = 0;
     max_mds_num = num;
-    pcpMdsInfo = list;
-    pcpStack = stack;
+    pcpMdsInfo = (CMdsInfo *)list;
+    pcpStack = memory;
     pcp_file = pack;
-    pcpAllScissor = all_scissor;
+    pcpAllScissor = type;
     pcpNowMdsInfo = NULL;
-    script = (char *)GetPackFile(pack, "info.cfg", &script_size);
-
+    script = (char *)GetPackFile(pack, at_807, &script_size);
     CScriptInterpreter interpreter;
-
     interpreter.SetTag(pcp_tag);
     interpreter.SetScript(script, script_size);
     interpreter.Run();
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/mdslist", LoadPCPFile__8CMdsListFPcPUiP9mgCMemoryi);
-#endif
-
-#ifdef NONMATCHING
-// Defined inline in mdslist.hpp.
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/mdslist", __ct__8CMdsInfoFv);
-#endif
-
-/**
- * Creates and initializes a character from a pack using the named configuration script.
- */
-static CCharacter2 *CreateChara(u_int *pack, char *name, mgCMemory *stack) {
+CMdsInfo::CMdsInfo() {
+    Initialize();
+}
+CCharacter2 *CreateChara(u_int *pack, char *config, mgCMemory *memory) {
     CCharacter2 *chara;
 
-    chara = new (stack->Alloc(algn16_size(sizeof(CCharacter2)) + 2)) CCharacter2;
+    if ((chara = (CCharacter2 *)operator new(sizeof(CCharacter2), memory->Alloc(0x68))) != NULL) {
+        *(void ***)chara = __vt__9mgCObject;
+        chara->Initialize();
+        *(void ***)chara = __vt__7CObject;
+        chara->Initialize();
+        *(void ***)chara = __vt__12CObjectFrame;
+        chara->Initialize();
+        *(void ***)chara = __vt__11CCharacter2;
+        chara->shadow_link_num = 0;
+        chara->shadow_link_shadow = 0;
+        chara->shadow_link_model = 0;
+        chara->Initialize();
+    }
     if (chara == NULL) {
         return NULL;
     }
     chara->Initialize();
-    chara->LoadPackNoLine(pack, name, stack, stack, stack, -1, NULL);
+    chara->LoadPackNoLine(pack, config, memory, memory, memory, -1, 0);
     return chara;
 }
-
 
 // Initialised data (.data)
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mdslist", pcp_tag__DATA);

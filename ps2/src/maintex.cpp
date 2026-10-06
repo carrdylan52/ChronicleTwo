@@ -1,5 +1,50 @@
 #include "common.h"
 #include "maintex.hpp"
+#include "mglib.hpp"
+#include "snd_mngr.hpp"
+#include "mg_texture.hpp"
+#include "mg_memory.hpp"
+#include "gaiji.hpp"
+#include "photo.hpp"
+#include "dataread.hpp"
+#include "mainloop.hpp"
+#include "scenesnd.hpp"
+#include "monster.hpp"
+#include "colprim.hpp"
+#include "userdata.hpp"
+#include "character.hpp"
+#include "swordeffect.hpp"
+#include "dng_hud.hpp"
+#include "sound.hpp"
+#include <cstdio>
+
+extern char at_792__2[];
+extern char at_793__2[];
+extern char at_794__2[];
+extern char at_795__2[];
+extern char at_796__2[];
+extern char at_797__2[];
+extern char at_798__2[];
+extern char at_799__2[];
+extern char at_800__2[];
+extern char at_801__2[];
+extern char at_802__2[];
+extern char at_803__2[];
+extern char at_804__2[];
+extern char at_819__3[];
+extern char at_820__3[];
+extern char at_821__3[];
+extern char at_822__3[];
+extern char at_823__3[];
+extern char at_824__3[];
+extern char at_825__3[];
+extern char at_826__3[];
+extern char at_827__3[];
+extern char at_828__4[];
+extern char at_829__4[];
+extern char at_830__5[];
+extern char at_831__4[];
+extern char at_832__4[];
 
 #include <cstdio>
 
@@ -149,80 +194,101 @@ void calcWeaponParam2(int type, int divisor) {
         }
     }
 }
-
-#ifdef NONMATCHING
-void SetDamageParam(CColPrim *col_prim, int chara_no) {
-    CBattleCharaInfo *battle = GetBattleCharaInfo();
-    if (battle->chr_no == USER_CHARA_MONSTER) {
-        col_prim->damage = battle->weapon_param[chara_no].status[0];
+void SetDamageParam(CColPrim *prim, int slot_no) {
+    CBattleCharaInfo *info = GetBattleCharaInfo();
+    int damage;
+    int mode = info->chr_no;
+    BATTLE_WEAPON_PARAM *weapon_param = info->weapon_param;
+    if (mode == 3) {
+        prim->damage = weapon_param[slot_no].status[0];
     } else {
-        int whp;
-        battle->GetNowWhp(chara_no, &whp);
-        col_prim->damage = whp > 0 ? battle->weapon_param[chara_no].status[0] : 0;
-        for (int i = 0; i < DAMAGE_ELEMENT_MAX; ++i)
-            col_prim->element[i] = battle->weapon_param[chara_no].status[i + 2];
-        u32 status = battle->GetSpecialStatus(chara_no);
-        if ((status & 4) && iRand(10) != 1) status &= ~4;
-        if ((status & 8) && iRand(20) != 1) status &= ~8;
-        col_prim->status = status;
+        damage = weapon_param[slot_no].status[0];
+        int attack[2];
+        info->GetNowWhp(slot_no, attack);
+        if (attack[0] <= 0)
+            damage = 0;
+        prim->damage = damage;
+        prim->element[0] = info->weapon_param[slot_no].status[2];
+        prim->element[1] = info->weapon_param[slot_no].status[3];
+        prim->element[2] = info->weapon_param[slot_no].status[4];
+        prim->element[3] = info->weapon_param[slot_no].status[5];
+        prim->element[4] = info->weapon_param[slot_no].status[6];
+        prim->element[5] = info->weapon_param[slot_no].status[7];
+        prim->element[6] = info->weapon_param[slot_no].status[8];
+        prim->element[7] = info->weapon_param[slot_no].status[9];
+        int status = info->GetSpecialStatus(slot_no);
+        if (status & 4) {
+            if (iRand(10) != 1)
+                status &= ~4;
+        }
+        if (status & 8) {
+            if (iRand(20) != 1)
+                status &= ~8;
+        }
+        prim->status = status;
     }
-    col_prim->attacker = battle->chr_no;
+    prim->attacker = mode;
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/maintex", SetDamageParam__FP8CColPrimi);
-#endif
-#ifdef NONMATCHING
-void AddExpWeaponParam(float exp, int chara_no, int type) {
-    CBattleCharaInfo *battle = GetBattleCharaInfo();
-    int level_up = 0;
-    int slot = 0;
-    if (battle->chr_no == chara_no) {
-        switch (type) {
-        case 1:
-        case 8:
-            battle->AddAbs(0, exp, &level_up);
-            slot = 0;
-            break;
-        case 2:
-            battle->AddAbs(1, exp, &level_up);
-            slot = 1;
-            break;
-        case 3: {
-            float half = exp / 2.0f;
-            if (battle->AddAbs(0, half, &level_up) >= 1.0f) slot = 0;
-            if (battle->AddAbs(1, half, &level_up) >= 1.0f) slot = 1;
-            break;
-        }
-        case 4:
-            battle->AddAbs(0, exp, NULL);
-            break;
+void AddExpWeaponParam(float amount, int weapon_owner, int kind) {
+    CBattleCharaInfo *info = GetBattleCharaInfo();
+    int slot;
+    int chr_no = info->chr_no;
+    int leveled_up = 0;
+    if (chr_no != weapon_owner) {
+        switch (chr_no) {
+            case 0:
+            case 1: {
+                float half = amount / 2.0f;
+                if (!(info->AddAbs(0, half, &leveled_up) < 1.0f))
+                    slot = 0;
+                if (!(info->AddAbs(1, half, &leveled_up) < 1.0f))
+                    slot = 1;
+                break;
+            }
+            case 2:
+                info->AddAbs(0, amount, NULL);
+                break;
+            case 3:
+                info->AddAbs(0, amount, &leveled_up);
+                slot = 0;
+                break;
         }
     } else {
-        switch (battle->chr_no) {
-        case USER_CHARA_MONSTER:
-            battle->AddAbs(0, exp, &level_up);
-            slot = 0;
-            break;
-        case USER_CHARA_ROBO:
-            battle->AddAbs(0, exp, NULL);
-            break;
-        case USER_CHARA_MAX:
-        case USER_CHARA_MONICA: {
-            float half = exp / 2.0f;
-            if (battle->AddAbs(0, half, &level_up) >= 1.0f) slot = 0;
-            if (battle->AddAbs(1, half, &level_up) >= 1.0f) slot = 1;
-            break;
-        }
+        switch (kind) {
+            case 1:
+                info->AddAbs(0, amount, &leveled_up);
+                slot = 0;
+                break;
+            case 2:
+                info->AddAbs(1, amount, &leveled_up);
+                slot = 1;
+                break;
+            case 3: {
+                float half = amount / 2.0f;
+                if (!(info->AddAbs(0, half, &leveled_up) < 1.0f))
+                    slot = 0;
+                if (!(info->AddAbs(1, half, &leveled_up) < 1.0f))
+                    slot = 1;
+                break;
+            }
+            case 4:
+                info->AddAbs(0, amount, NULL);
+                break;
+            case 5:
+            case 6:
+            case 7:
+                break;
+            case 8:
+                info->AddAbs(0, amount, &leveled_up);
+                slot = 0;
+                break;
         }
     }
-    if (level_up != 0) {
+    if (leveled_up != 0) {
         LevelupInfo.SetLevelUpInfo(0x100, mgScreenHeight / 2, slot, 0);
-        sndSePlay(SystemSND_ID, 0x1E, 0);
+        sndSePlay(SystemSND_ID, 30, 0);
     }
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/maintex", AddExpWeaponParam__Ffii);
-#endif
 void SetSwordBlurEffect(CCharacter2 *chara, mgCMemory *stack, int blur_type) {
     int u;
     int v;

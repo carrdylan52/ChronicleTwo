@@ -1,192 +1,204 @@
 #include "common.h"
+#include "vlgr_info.hpp"
+#include "dng_effect.hpp"
+#include "mglib.hpp"
+#include "sphida.hpp"
+#include "nowload.hpp"
+#include "helpmes.hpp"
+#include "sysmes.hpp"
+#include "mapselect.hpp"
+#include "mapjump.hpp"
+#include "event.hpp"
+#include "scenesnd.hpp"
+#include "mg_memory.hpp"
+#include "dataread.hpp"
+#include "actionchara.hpp"
+#include "event_func.hpp"
+#include "mainloop.hpp"
+#include "editevent.hpp"
+#include <cstdio>
+#include "editanalyze.hpp"
+#include "menucommon.hpp"
+#include "nd_meswin.hpp"
+#include "subgame.hpp"
+#include "sound.hpp"
+#include "eventedit.hpp"
+#include "main.hpp"
+#include "dbg_font.hpp"
+#include "editdebug.hpp"
+#include "editdata.hpp"
+#include "editmenu.hpp"
+#include "editmode.hpp"
+#include "editctrl.hpp"
+#include "editmap.hpp"
+#include "editexception.hpp"
+#include "mg_texture.hpp"
+#include "sceneevent.hpp"
+#include "mg_math.hpp"
+#include "cameracontrol.hpp"
+#include "gamepad.hpp"
+#include "padcontrol.hpp"
+#include "userdata.hpp"
+#include "savedata.hpp"
+#include "character.hpp"
+#include "scene.hpp"
 #include "editloop.hpp"
 #include <cstring>
 
-#include <cstdio>
-#include <libvu0.h>
+void EditModeChgStep(CScene *scene);
 
-#include "actionchara.hpp"
-#include "cameracontrol.hpp"
+extern EditDebugInfo EdDebugInfo;
+extern DEBUG_INFO DebugInfo;
+extern CEditEvent EditEvent;
+extern "C" int Reset__10CEditEventFv(CEditEvent *event);
+
+static const int kEventNoMapJump = 0x1869F;
+static const int kEventDataCallFlag = 8;
+static const int kKeyOpenEvent = 0x96;
+static const int kCameraKindEvent = 0x3E8;
+
+extern char at_2948[];
+extern char at_2949[];
+extern char at_2950[];
+extern char at_2951[];
+extern char at_2952[];
+extern char at_2953[];
+extern char at_2954[];
+extern char at_2955[];
+extern char at_2956[];
+extern char at_2957[];
+extern char at_2958[];
+extern char at_2261[];
+extern char at_2262[];
+
+extern mgCMemory ControlCharaBuff;
+extern mgCMemory MainDataBuff;
+extern EditDebugInfo EdDebugInfo;
+extern int EditDrawCancelFlag;
+extern int LoopCounter;
+extern int LanguageCode;
+extern mgCTextureManager mgTexManager;
+extern CScene *MainScene__2;
+extern int SubMapLoadBG;
+extern int now_load_map_no;
+extern u_long128 *read_buffer;
+extern int MapNo;
+extern int DelMainNPCflag;
+extern CMapTreasureBox *TreasureBox;
+extern int beforeAnalyze[16];
+extern DEBUG_INFO DebugInfo;
+extern CEditEvent EditEvent;
+extern float at_3041[4];
+extern CCharacter2 *WalkChara;
+extern int ControlMode;
+extern int LoopMode;
+extern ClsMes EventMes1;
+extern char at_2747[9];
+extern "C" void LoadEditInfo__13CEditInfoMngrFPciP9mgCMemory(void *infoMngr, char *data, int size,
+                                                             mgCMemory *memory);
+extern "C" void CreateTrBox__4CMapFP15CMapTreasureBoxiP9mgCMemory(CMap *map, CMapTreasureBox *boxes,
+                                                                  int count, int stack);
+extern "C" int Reset__10CEditEventFv(CEditEvent *event);
+extern "C" void *__ct__10CRunScriptFv(void *);
+extern CGamePad GamePad__2;
+extern int LockChara;
+extern int EditModeChgCnt;
+extern int EditModeChgEvent;
+extern int EditModeChgFlag;
+
+#ifdef NONMATCHING
+#include <libvu0.h>
 #include "charasetup.hpp"
-#include "dataread.hpp"
-#include "editanalyze.hpp"
-#include "editctrl.hpp"
-#include "editdebug.hpp"
 #include "editeff.hpp"
-#include "editevent.hpp"
-#include "editexception.hpp"
-#include "editmap.hpp"
-#include "editmode.hpp"
 #include "editparts.hpp"
 #include "effectlist.hpp"
 #include "effscript.hpp"
-#include "event.hpp"
-#include "event_func.hpp"
-#include "eventedit.hpp"
 #include "gaiji.hpp"
 #include "gamedata.hpp"
-#include "gamepad.hpp"
-#include "helpmes.hpp"
-#include "mainloop.hpp"
-#include "mapjump.hpp"
 #include "mapload.hpp"
 #include "mapparts.hpp"
-#include "mapselect.hpp"
 #include "menumain.hpp"
 #include "mg_dataset.hpp"
 #include "mg_drawprim.hpp"
 #include "mg_frame.hpp"
-#include "mg_math.hpp"
-#include "mg_memory.hpp"
 #include "mg_visual.hpp"
-#include "mglib.hpp"
-#include "nd_meswin.hpp"
-#include "nowload.hpp"
-#include "padcontrol.hpp"
 #include "photo.hpp"
-#include "savedata.hpp"
-#include "scenesnd.hpp"
 #include "screeneffect.hpp"
 #include "snd_mngr.hpp"
-#include "sphida.hpp"
-#include "subgame.hpp"
-#include "sysmes.hpp"
-#include "vlgr_info.hpp"
 #include "wavetable.hpp"
-
-#ifdef NONMATCHING
-static mgCFrame         *WaterFrame;        /**< Frame of the water overlay. */
-static mgCFrame         *RedBicMark;        /**< Red map marker frame. */
-static mgCFrame         *BlueBicMark;       /**< Blue map marker frame. */
-static CMapTreasureBox  *TreasureBox;       /**< Model used for the town's treasure chests. */
-static int              MapNo;             /**< Main map number of the town. */
-static CCameraControl  *Camera;            /**< Walking camera. */
-// dng_main.hpp declares the same name for its own object.
-namespace editloop {
-    static CCameraControl *EventCamera;    /**< Camera used by town events. */
-}
-static CCameraControl  *FixCamera;         /**< Fixed-map camera. */
-static CCameraControl  *EditCamera;        /**< Georama camera. */
-static int              ActiveCharaNo;     /**< Current player character type. */
-static int              ControlCharaID;    /**< Scene slot of the controlled character. */
-static CCharacter2     *WalkChara;         /**< Character walking through the town. */
-static int              LoopCounter;       /**< Frames spent in the town loop. */
-static int              LoopMode;          /**< Phase of the town loop, an EditLoopMode. */
-static int              ControlMode;       /**< Owner of player control, an EditControlMode. */
-static int              SubMapLoadBG;      /**< Non-zero while a sub-map loads in the background. */
-static int              now_load_map_no;   /**< Number of the background sub-map load. */
-static int              EventSquareJump;   /**< Event requested when entering a square. */
-static int              EditDrawFlag;      /**< Non-zero when town drawing is enabled. */
-static int              EditDrawCancelFlag; /**< Cancels one town draw. */
-static int              PauseFlag;         /**< Non-zero while the town is paused. */
-static int              LockChara;         /**< Number of character control locks held. */
-static int              PreEditMenuCnt;    /**< Frames waiting for the Georama menu animation. */
-static int              EditModeChgFlag;   /**< Non-zero while changing Georama mode. */
-static int              EditModeChgCnt;    /**< Frames left in a mode change. */
-static int              EditModeChgEvent;  /**< Event started after the mode-change delay. */
-static CScene          *MainScene;         /**< Scene of the town loop. */
-static u_long128       *main_pkt1;         /**< First VIF packet buffer. */
-static u_long128       *main_pkt2;         /**< Second VIF packet buffer. */
-u_long128              *read_buffer_end;
-static u_long128       *MenuDataBuf;       /**< Loaded menu configuration. */
-static int              MenuDataSize;      /**< Byte size of the menu configuration. */
-static int              FixCharaBuffSize;  /**< Quadwords reserved for character data. */
-static u_long128       *CrossFadeBuff;     /**< Saved frame used for cross-fades. */
-static int              DelMainNPCflag;    /**< Non-zero when the outdoor villagers were removed. */
-static MENU_INIT_ARG   *MenuInfo = &MenuArg;          /**< Parameters and result of the town menu. */
-static int              DataPktMode = -1;  /**< Kind of packet buffers currently installed. */
-
-static CWaveTable       WaveTable;         /**< Water ripple heights. */
-static sceVu0FVECTOR    CharaOldPos;        /**< Player position saved before the menu. */
-ClsMes                  EventMes1;
-static mgCMemory        buf0;              /**< First drawing packet stack. */
-static mgCMemory        buf1;              /**< Second drawing packet stack. */
-static mgCMemory        data_buf[2];       /**< Map drawing data stacks. */
-static mgCMemory        init_dbuf[2];      /**< Initial drawing data stacks. */
-static mgCMemory        WorkBuffer;        /**< Temporary town work memory. */
-static mgCMemory        MenuBuffer;        /**< Main menu memory. */
-static mgCMemory        ChrEffBuffer;      /**< Character effect memory. */
-mgCMemory               ScriptBuffer;
-static mgCMemory        TotalDataBuff;     /**< Memory holding persistent town data. */
-static mgCMemory        ControlCharaBuff;  /**< Player character memory. */
-static mgCMemory        MainDataBuff;      /**< Main map memory. */
-static mgCMemory        MainCharaBuff;     /**< Main map character memory. */
-static mgCMemory        SubDataBuff;       /**< Sub-map memory. */
-static mgCMemory        SubCharaBuff;      /**< Sub-map character memory. */
-static mgCMemory        EventBuff[4];      /**< Scene event stacks. */
-static mgCMemory        CharaBufs[8];      /**< Character stacks. */
-static mgCMemory        FishingBuff;       /**< Fishing sub-game memory. */
-static mgCMemory        SkyBuff;           /**< Sky memory. */
-static CEditEvent       EditEvent;         /**< Town event controller. */
-static EditDebugInfo    EdDebugInfo;       /**< Town debug-menu parameters. */
-static mgCVisualMDT     TestVisual;        /**< Debug test model. */
-static mgCFrame         TestFrame;         /**< Frame of the debug test model. */
-static int              beforeAnalyze[16]; /**< Georama analysis flags before the last edit. */
-
-static void InitSubMapLoadStep();
-static void LoadMap();
-static void InitEditEvent();
-static void ResetEditEvent();
-static void RestartEditEvent();
-static void UnLockCharaCtrl();
-static void UpdateTrBoxFlag(int map_no);
-static void editLoadSound(int map_no);
+extern mgCFrame * WaterFrame;
+extern mgCFrame * RedBicMark;
+extern mgCFrame * BlueBicMark;
+extern CCameraControl * Camera;
+extern CCameraControl * FixCamera;
+extern CCameraControl * EditCamera;
+extern int ActiveCharaNo;
+extern int ControlCharaID;
+extern int EventSquareJump;
+extern int EditDrawFlag;
+extern int PauseFlag;
+extern int PreEditMenuCnt;
+extern u_long128 * main_pkt1;
+extern u_long128 * main_pkt2;
+extern u_long128 * read_buffer_end;
+extern u_long128 * MenuDataBuf;
+extern int MenuDataSize;
+extern int FixCharaBuffSize;
+extern u_long128 * CrossFadeBuff;
+extern MENU_INIT_ARG * MenuInfo;
+extern int DataPktMode;
+extern CWaveTable WaveTable;
+extern sceVu0FVECTOR CharaOldPos;
+extern mgCMemory buf0;
+extern mgCMemory buf1;
+extern mgCMemory data_buf__2[2];
+extern mgCMemory init_dbuf[2];
+extern mgCMemory WorkBuffer;
+extern mgCMemory MenuBuffer__2;
+extern mgCMemory ChrEffBuffer;
+extern mgCMemory ScriptBuffer__2;
+extern mgCMemory TotalDataBuff;
+extern mgCMemory MainCharaBuff;
+extern mgCMemory SubDataBuff;
+extern mgCMemory SubCharaBuff;
+extern mgCMemory EventBuff[4];
+extern mgCMemory CharaBufs[8];
+extern mgCMemory FishingBuff;
+extern mgCMemory SkyBuff;
+extern mgCVisualMDT TestVisual;
+extern mgCFrame TestFrame;
+namespace editloop { extern CCameraControl *EventCamera; }
+void InitSubMapLoadStep();
+void LoadMap();
+void InitEditEvent();
+void ResetEditEvent();
+void RestartEditEvent();
+void UpdateTrBoxFlag(int map_no);
+void editLoadSound(int map_no);
 #endif
 
 // Code (.text)
-#ifdef NONMATCHING
-/**
- * Returns the player data in the current save, or NULL when no save is attached.
- */
-static CUserDataManager *GetUserData() {
+extern "C" CUserDataManager *GetUserData__Fv__2(void) {
     CSaveData *save;
 
     save = GetSaveData();
-    if (save != NULL) {
+    if (save != 0) {
         return &save->user_data;
     }
-    return NULL;
+    return 0;
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/editloop", GetUserData__Fv__2);
-#endif
-
-#ifdef NONMATCHING
-/**
- * Clears the town character control lock.
- */
-static void InitLockCharaCtrl() {
+void InitLockCharaCtrl(void) {
     LockChara = 0;
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/editloop", InitLockCharaCtrl__Fv);
-#endif
-
-#ifdef NONMATCHING
-/**
- * Adds a lock preventing player control of the town character.
- */
-static void LockCharaCtrl() {
+void LockCharaCtrl(void) {
     LockChara++;
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/editloop", LockCharaCtrl__Fv);
-#endif
-
-#ifdef NONMATCHING
-/**
- * Releases one character control lock, stopping at zero.
- */
-static void UnLockCharaCtrl() {
-    LockChara--;
+void UnLockCharaCtrl(void) {
+    LockChara -= 1;
     if (LockChara < 0) {
         LockChara = 0;
     }
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/editloop", UnLockCharaCtrl__Fv);
-#endif
-
 #ifdef NONMATCHING
 int IsEditMode() {
     if (LoopMode == EDIT_LOOP_EDIT) {
@@ -200,39 +212,22 @@ int IsEditMode() {
 #else
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/editloop", IsEditMode__Fv);
 #endif
-
-#ifdef NONMATCHING
-/**
- * Clears the pending transition between walking and Georama editing.
- */
-static void InitEditModeChg() {
+void InitEditModeChg(void) {
     EditModeChgFlag = 0;
     EditModeChgCnt = 0;
     EditModeChgEvent = 0;
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/editloop", InitEditModeChg__Fv);
-#endif
-
-#ifdef NONMATCHING
-/**
- * Reports whether a Georama mode transition is still counting down.
- */
-static int NowEditModeChg() {
+int NowEditModeChg(void) {
     if (EditModeChgFlag != 0) {
         return EditModeChgCnt > 0;
     }
     return 0;
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/editloop", NowEditModeChg__Fv);
-#endif
-
 #ifdef NONMATCHING
 /**
  * Locks character control for thirty frames before starting the transition event.
  */
-static void EditModeChg(int event) {
+void EditModeChg(int event) {
     EditModeChgEvent = event;
     EditModeChgCnt = 30;
     EditModeChgFlag = 1;
@@ -241,12 +236,11 @@ static void EditModeChg(int event) {
 #else
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/editloop", EditModeChg__Fi);
 #endif
-
 #ifdef NONMATCHING
 /**
  * Finishes the transition delay and starts its event when the scene is idle.
  */
-static void EditModeChgStep(CScene *scene) {
+void EditModeChgStep(CScene *scene) {
     if (EditModeChgFlag != 0) {
         EditModeChgCnt--;
         if (EditModeChgCnt <= 0) {
@@ -262,7 +256,6 @@ static void EditModeChgStep(CScene *scene) {
 #else
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/editloop", EditModeChgStep__FP6CScene);
 #endif
-
 #ifdef NONMATCHING
 void SetDataPacket(int mode) {
     u_long128 *buffer;
@@ -297,21 +290,17 @@ void SetDataPacket(int mode) {
     ControlCharaBuff.Alloc(FixCharaBuffSize);
     mgInitVif1Packet(main_pkt1, main_pkt2, 160000);
     mgSetPacketBuffer(&buf0, &buf1);
-    data_buf[0].stSetBuffer(ControlCharaBuff.Alloc(size), size);
-    data_buf[1].stSetBuffer(ControlCharaBuff.Alloc(size), size);
+    data_buf__2[0].stSetBuffer(ControlCharaBuff.Alloc(size), size);
+    data_buf__2[1].stSetBuffer(ControlCharaBuff.Alloc(size), size);
     ControlCharaBuff.lock = 1;
-    mgSetDataBuffer(&data_buf[0], &data_buf[1], 1);
-    printf("Data ADR %x,%x\n", data_buf[0].stack + data_buf[0].stack_used, data_buf[1].stack + data_buf[1].stack_used);
+    mgSetDataBuffer(&data_buf__2[0], &data_buf__2[1], 1);
+    printf("Data ADR %x,%x\n", data_buf__2[0].stack + data_buf__2[0].stack_used, data_buf__2[1].stack + data_buf__2[1].stack_used);
     DataPktMode = mode;
 }
 #else
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/editloop", SetDataPacket__Fi);
 #endif
-
-/**
- * Saves the town and stops its sub-game, sound, background reads and event.
- */
-static void PreExitLoop(CScene *scene) {
+void PreExitLoop(CScene *scene) {
     BurnEditParts();
     EditDataSave();
     sgBreakSubGame();
@@ -323,7 +312,6 @@ static void PreExitLoop(CScene *scene) {
     ResetNpcTalkMes();
     EdEventTermination();
 }
-
 #ifdef NONMATCHING
 void EditInit(INIT_LOOP_ARG arg) {
     mgCMemory         *main_stack;
@@ -353,7 +341,7 @@ void EditInit(INIT_LOOP_ARG arg) {
     static sceVu0FVECTOR initial_position;
 
     DataPktMode = -1;
-    MainScene = GetMainScene();
+    MainScene__2 = GetMainScene();
     DeleteFileCache();
     MapNo = -1;
     mgInitFont();
@@ -383,9 +371,9 @@ void EditInit(INIT_LOOP_ARG arg) {
     mgSetPacketBuffer(&buf0, &buf1);
     script_data = main_stack->stAlloc64(20000);
     if (strlen("SsScript Buffer") < 16) {
-        strcpy(ScriptBuffer.name, "SsScript Buffer");
+        strcpy(ScriptBuffer__2.name, "SsScript Buffer");
     }
-    ScriptBuffer.stSetBuffer(script_data, 20000);
+    ScriptBuffer__2.stSetBuffer(script_data, 20000);
     main_stack->Align64();
     data_size = main_stack->stack_size - main_stack->stack_used - 210128;
     TotalDataBuff.stSetBuffer(&main_stack->stack[main_stack->stack_used], data_size);
@@ -397,7 +385,7 @@ void EditInit(INIT_LOOP_ARG arg) {
     TotalDataBuff.lock = 0;
     main_stack->Alloc(data_size);
     read_buffer = main_stack->stAlloc64(200000);
-    MenuBuffer.stSetBuffer(read_buffer, 200000);
+    MenuBuffer__2.stSetBuffer(read_buffer, 200000);
     read_buffer_end = read_buffer + 200000;
     WorkBuffer.stSetBuffer(main_stack->stAlloc64(10000), 10000);
     mgTexManager.SetTableBuffer(350, 221, &TotalDataBuff);
@@ -514,16 +502,16 @@ void EditInit(INIT_LOOP_ARG arg) {
     mgTexManager.EnterIMGFile(GetGaijiImgPtr(), 154, NULL, NULL);
     mgTexManager.EnterIMGFile(GetFontTex2ImgPtr(), 154, NULL, NULL);
     NowLoadingBarStep();
-    MainScene->Initialize();
-    MainScene->chara_texb = 70;
-    MainScene->villager_texb = 78;
-    MainScene->villager_texb_num = 56;
-    MainScene->event_texb = 160;
-    MainScene->event_texb_num = 2;
-    MainScene->GetActiveBgmInfo()->unk_c = 1.0f;
-    MainScene->SetVolfBGM(MainScene->GetActiveBgmInfo()->volf);
-    MainScene->unk_3e68 = 185;
-    MainScene->unk_3e6c = 21;
+    MainScene__2->Initialize();
+    MainScene__2->chara_texb = 70;
+    MainScene__2->villager_texb = 78;
+    MainScene__2->villager_texb_num = 56;
+    MainScene__2->event_texb = 160;
+    MainScene__2->event_texb_num = 2;
+    MainScene__2->GetActiveBgmInfo()->unk_c = 1.0f;
+    MainScene__2->SetVolfBGM(MainScene__2->GetActiveBgmInfo()->volf);
+    MainScene__2->unk_3e68 = 185;
+    MainScene__2->unk_3e6c = 21;
     effects = new (TotalDataBuff.Alloc(sizeof(CEffectScriptMan) / 16 + 2)) CEffectScriptMan;
     effects->Initialize(&TotalDataBuff, 174, 11);
     effects->load_buffer = read_buffer;
@@ -533,8 +521,8 @@ void EditInit(INIT_LOOP_ARG arg) {
     effects->LoadBaseEffSpt("\x91\xab\x90\x85\x83\x70\x83\x56\x83\x83", NULL, -1);
     effects->LoadBaseEffSpt("\x91\xab\x8e\xc5\x90\xb6", NULL, -1);
     effects->LoadBaseEffSpt("\x8d\xbb\x89\x8c" "2", NULL, -1);
-    MainScene->AssignEffect(0, effects, NULL);
-    MainScene->read_buff = read_buffer;
+    MainScene__2->AssignEffect(0, effects, NULL);
+    MainScene__2->read_buff = read_buffer;
     if (LoadFile2("img/water_ref.img", TotalDataBuff.stAllocTest(1), &water_size, 0) != 0) {
         water_qwords = (u_int)water_size / 16;
         if (water_size & 0xF) {
@@ -546,32 +534,32 @@ void EditInit(INIT_LOOP_ARG arg) {
 
     characters = new (TotalDataBuff.Alloc(sizeof(CActionChara) * 8 / 16 + 2)) CActionChara[8];
     for (i = 0; i < 8; i++) {
-        MainScene->AssignChara(i, &characters[i], NULL);
+        MainScene__2->AssignChara(i, &characters[i], NULL);
     }
-    MainScene->AssignMessage(0, &EventMes1, NULL);
+    MainScene__2->AssignMessage(0, &EventMes1, NULL);
     GetSystemMessage()->texture_block = 154;
-    MainScene->AssignMessage(1, GetSystemMessage(), NULL);
+    MainScene__2->AssignMessage(1, GetSystemMessage(), NULL);
     GetSystemMessage(1)->texture_block = 154;
-    MainScene->AssignMessage(2, GetSystemMessage(1), NULL);
+    MainScene__2->AssignMessage(2, GetSystemMessage(1), NULL);
     GetSystemMessage(2)->texture_block = 154;
-    MainScene->AssignMessage(3, GetSystemMessage(2), NULL);
+    MainScene__2->AssignMessage(3, GetSystemMessage(2), NULL);
     Camera = new (TotalDataBuff.Alloc(sizeof(CCameraControl) / 16 + 2)) CCameraControl;
     editloop::EventCamera = new (TotalDataBuff.Alloc(sizeof(CCameraControl) / 16 + 2)) CCameraControl;
     FixCamera = new (TotalDataBuff.Alloc(sizeof(CCameraControl) / 16 + 2)) CCameraControl;
     EditCamera = new (TotalDataBuff.Alloc(sizeof(CCameraControl) / 16 + 2)) CCameraControl;
     debug_camera = new (TotalDataBuff.Alloc(sizeof(CCameraControl) / 16 + 2)) CCameraControl;
-    MainScene->AssignCamera(0, Camera, NULL);
-    MainScene->AssignCamera(1, editloop::EventCamera, NULL);
-    MainScene->AssignCamera(2, FixCamera, NULL);
-    MainScene->AssignCamera(3, EditCamera, NULL);
-    MainScene->AssignCamera(7, debug_camera, NULL);
-    MainScene->active_camera = 0;
-    MainScene->before_camera = 0;
+    MainScene__2->AssignCamera(0, Camera, NULL);
+    MainScene__2->AssignCamera(1, editloop::EventCamera, NULL);
+    MainScene__2->AssignCamera(2, FixCamera, NULL);
+    MainScene__2->AssignCamera(3, EditCamera, NULL);
+    MainScene__2->AssignCamera(7, debug_camera, NULL);
+    MainScene__2->active_camera = 0;
+    MainScene__2->before_camera = 0;
     Camera->GetActiveParam()->near_height = 10.0f;
     Camera->GetActiveParam()->far_height = 10.0f;
     Camera->GetActiveParam()->ground_space = 30.0f;
     Camera->default_param = *Camera->GetActiveParam();
-    MainScene->player_chara = 0;
+    MainScene__2->player_chara = 0;
 
     mgTexManager.EnterTexture(156, "work", NULL, mgScreenWidth, mgScreenHeight, 32, NULL, 0, 0);
     mgTexManager.EnterTexture(159, "shadow_work", NULL, mgScreenWidth, mgScreenHeight, 32, NULL, 0, 0);
@@ -583,34 +571,34 @@ void EditInit(INIT_LOOP_ARG arg) {
     cross_texture = mgTexManager.EnterTexture(213, "cross_f", NULL, mgScreenWidth, mgScreenHeight, 32, NULL, 0, 0);
     InitPause(207);
     CrossFadeBuff = read_buffer + 131072;
-    MainScene->fade.SetCrossTexture(cross_texture, CrossFadeBuff);
-    MainScene->unk_2e84 = 159;
+    MainScene__2->fade.SetCrossTexture(cross_texture, CrossFadeBuff);
+    MainScene__2->unk_2e84 = 159;
 
     TotalDataBuff.Align64();
     TotalDataBuff.lock = 1;
     ControlCharaBuff.stSetBuffer(&TotalDataBuff.stack[TotalDataBuff.stack_used], TotalDataBuff.stack_size - TotalDataBuff.stack_used);
     ControlCharaBuff.stack_used = 0;
     ControlCharaBuff.lock = 0;
-    MainScene->SetStack(0, &ControlCharaBuff);
-    MainScene->SetStack(1, &MainDataBuff);
-    MainScene->SetStack(2, &MainCharaBuff);
-    MainScene->SetStack(3, &SubDataBuff);
-    MainScene->SetStack(4, &SubCharaBuff);
-    MainScene->SetStack(5, &EventBuff[0]);
-    MainScene->SetStack(6, &EventBuff[1]);
-    MainScene->SetStack(7, &EventBuff[2]);
-    MainScene->SetStack(8, &EventBuff[3]);
-    MainScene->work_stack = &WorkBuffer;
+    MainScene__2->SetStack(0, &ControlCharaBuff);
+    MainScene__2->SetStack(1, &MainDataBuff);
+    MainScene__2->SetStack(2, &MainCharaBuff);
+    MainScene__2->SetStack(3, &SubDataBuff);
+    MainScene__2->SetStack(4, &SubCharaBuff);
+    MainScene__2->SetStack(5, &EventBuff[0]);
+    MainScene__2->SetStack(6, &EventBuff[1]);
+    MainScene__2->SetStack(7, &EventBuff[2]);
+    MainScene__2->SetStack(8, &EventBuff[3]);
+    MainScene__2->work_stack = &WorkBuffer;
     ControlCharaBuff.stAlloc64(GetCharaMemAllocSize());
     ControlCharaBuff.Align64();
     FixCharaBuffSize = ControlCharaBuff.stack_used;
     ControlCharaBuff.lock = 1;
-    active_chara_no = GetUserData()->active_chr_no;
-    SetupMainUnit(read_buffer, &ControlCharaBuff, CharaBufs, 70, MainScene, GetUserData(), active_chara_no, 1);
-    ActiveCharaNo = GetUserData()->active_chr_no;
+    active_chara_no = GetUserData__Fv__2()->active_chr_no;
+    SetupMainUnit(read_buffer, &ControlCharaBuff, CharaBufs, 70, MainScene__2, GetUserData__Fv__2(), active_chara_no, 1);
+    ActiveCharaNo = GetUserData__Fv__2()->active_chr_no;
     ControlCharaID = 0;
-    MainScene->SetActive(1, 0);
-    MainScene->player_chara = ControlCharaID;
+    MainScene__2->SetActive(1, 0);
+    MainScene__2->player_chara = ControlCharaID;
     NowLoadingBarStep();
 
     MapJumpMapInfo main_map;
@@ -629,10 +617,10 @@ void EditInit(INIT_LOOP_ARG arg) {
     sub_map.sky_tex_block = 169;
     sub_map.load_buf = (u_char *)read_buffer;
     SetSubMapInfo(&sub_map);
-    SetScriptBuffer(&ScriptBuffer);
-    MainScene->InitSeBas();
+    SetScriptBuffer(&ScriptBuffer__2);
+    MainScene__2->InitSeBas();
     if (arg.map_no < 0) {
-        MainScene->LoadSound(0, read_buffer);
+        MainScene__2->LoadSound(0, read_buffer);
     }
     EditMapJump(SearchMapNo(GetMapName(arg.map_no, NULL)));
     NowLoadingBarStep();
@@ -649,8 +637,8 @@ void EditInit(INIT_LOOP_ARG arg) {
     SubDataBuff.lock = 0;
     SetCurrentDir(NULL);
     *(u_long128 *)position = *(u_long128 *)initial_position;
-    player = MainScene->GetCharacter(MainScene->player_chara);
-    map = MainScene->GetMap(0);
+    player = MainScene__2->GetCharacter(MainScene__2->player_chara);
+    map = MainScene__2->GetMap(0);
     if (player != NULL && map != NULL) {
         player->SetPosition(map->chara_pos);
         player->GetPosition(position);
@@ -669,25 +657,25 @@ void EditInit(INIT_LOOP_ARG arg) {
     printf("Sub Data %dkbyte\n", SubDataBuff.stack_used * 16 / 1024);
     printf("Remain %dkbyte\n", (SubDataBuff.stack_size - SubDataBuff.stack_used) * 16 / 1024);
     CreateHelpMes(154);
-    InitEvent(MainScene);
-    InitEventEdit(214, &MenuBuffer);
+    InitEvent(MainScene__2);
+    InitEventEdit(214, &MenuBuffer__2);
     EdEventLoopInit();
-    EditControlInit(MainScene);
-    MainScene->fade.FadeIn(30);
-    MainScene->time_step = 1;
+    EditControlInit(MainScene__2);
+    MainScene__2->fade.FadeIn(30);
+    MainScene__2->time_step = 1;
     event_no = arg.event_no;
     if (event_no <= 0) {
         event_no = 100;
     }
-    if (event_no > 0 && RunEvent(event_no, MainScene) > 0) {
+    if (event_no > 0 && RunEvent(event_no, MainScene__2) > 0) {
         ControlMode = EDIT_CONTROL_EVENT;
     }
-    MenuInfo->stack = &MenuBuffer;
+    MenuInfo->stack = &MenuBuffer__2;
     MenuInfo->tex_block_top = 134;
     MenuInfo->tex_block_num = 16;
     MenuInfo->mes_tex_block = 154;
     MenuInfo->active_chara_no = ActiveCharaNo;
-    MenuInfo->user_data = GetUserData();
+    MenuInfo->user_data = GetUserData__Fv__2();
     MenuInfo->chara_stack = &ControlCharaBuff;
     MenuInfo->base_chara_stack = CharaBufs;
     MenuInfo->chara_tex_block = 70;
@@ -696,7 +684,7 @@ void EditInit(INIT_LOOP_ARG arg) {
     EditDebugInit();
     InitLightingEdit();
     EditEvent.Reset();
-    InitSubGame(MainScene);
+    InitSubGame(MainScene__2);
     EdDebugInfo.rod_no = fishing_item;
     EdDebugInfo.menu_buff = NULL;
     EdDebugInfo.esa_no = fishing_item;
@@ -709,7 +697,7 @@ void EditInit(INIT_LOOP_ARG arg) {
     EdDebugInfo.no_map_event = 0;
     EdDebugInfo.record_check = 0;
     EdDebugInfo.keep_bgm = 0;
-    EdDebugInfo.scene = MainScene;
+    EdDebugInfo.scene = MainScene__2;
     InitPauseMenu(154);
     NowLoadingBarSteEnd();
     DeleteNowLoading();
@@ -717,19 +705,11 @@ void EditInit(INIT_LOOP_ARG arg) {
 #else
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/editloop", EditInit__F13INIT_LOOP_ARG);
 #endif
-
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/editloop", __as__15CameraCtrlParamFRC15CameraCtrlParam);
-
-#ifdef NONMATCHING
-// Defined inline in actionchara.hpp.
-#else
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/editloop", __ct__12CActionCharaFv);
-#endif
-
-#ifdef NONMATCHING
-void EditExit() {
+void EditExit(void) {
     sndSeAllStop(1);
-    MainScene->InitSeSrc();
+    MainScene__2->InitSeSrc();
     mgCloseFont();
     BreakReadBG();
     sndStopVoice(1);
@@ -737,50 +717,27 @@ void EditExit() {
         sgExitSubGame();
     }
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/editloop", EditExit__Fv);
-#endif
-
-#ifdef NONMATCHING
-/**
- * Clears the pending background sub-map load.
- */
-static void InitSubMapLoadStep() {
+void InitSubMapLoadStep(void) {
     SubMapLoadBG = 0;
     now_load_map_no = -1;
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/editloop", InitSubMapLoadStep__Fv);
-#endif
-
-#ifdef NONMATCHING
-/**
- * Finishes a background sub-map load and attaches its villagers and events.
- */
-static int SubMapLoadStep() {
+int SubMapLoadStep(void) {
     CScene *scene;
-    int     loading;
-
-    loading = 1;
-    if (MainScene->LoadMapBGStep(NULL) != 0) {
-        loading = 0;
+    if (MainScene__2->LoadMapBGStep(0) != 0) {
         if (SubMapLoadBG != 0) {
             SubMapLoadBG = 0;
-            MainScene->SetActive(2, 1);
-            MainScene->LoadSubVillager(GetSubMapNo(), 94);
-            MainScene->PreLoadVillagerEnd();
-            scene = MainScene;
-            EditMapInitEvent(now_load_map_no, (CEditMap *)scene->GetMap(scene->GetMapID(GetMapName(now_load_map_no, NULL))));
+            MainScene__2->SetActive(2, 1);
+            MainScene__2->LoadSubVillager(GetSubMapNo(), 0x5E);
+            MainScene__2->PreLoadVillagerEnd();
+            char *name = GetMapName(now_load_map_no, 0);
+            scene = MainScene__2;
+            EditMapInitEvent(now_load_map_no, (CEditMap *)scene->GetMap(scene->GetMapID(name)));
             now_load_map_no = -1;
-            loading = 0;
         }
+        return 0;
     }
-    return loading;
+    return 1;
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/editloop", SubMapLoadStep__Fv);
-#endif
-
 #ifdef NONMATCHING
 int EditLoop() {
     static int          time_step;
@@ -864,18 +821,18 @@ int EditLoop() {
     }
 
     if (PauseFlag == 0 && IsLightingEditMode() == 0) {
-        map = MainScene->GetMap(MainScene->active_map);
+        map = MainScene__2->GetMap(MainScene__2->active_map);
         if (map != NULL) {
-            map->now_time = MainScene->time;
+            map->now_time = MainScene__2->time;
             light_band = map->GetNowTimeLightBand();
             if (GamePad__2.On2(PAD_RIGHT) != 0) {
-                MainScene->AddTime(0.1f);
+                MainScene__2->AddTime(0.1f);
             }
             if (GamePad__2.On2(PAD_LEFT) != 0) {
-                MainScene->AddTime(-0.1f);
+                MainScene__2->AddTime(-0.1f);
             }
             if (GamePad__2.Down2(PAD_UP) != 0) {
-                MainScene->SetTime(((int)MainScene->time / 2) * 2 + 2);
+                MainScene__2->SetTime(((int)MainScene__2->time / 2) * 2 + 2);
             }
             if (GamePad__2.Down2(PAD_DOWN) != 0) {
                 show_time_step = 30;
@@ -891,12 +848,12 @@ int EditLoop() {
                 if (GetSaveData() != NULL && GetSaveData()->config.fast_time != 0) {
                     time_rate = 1.5f;
                 }
-                MainScene->TimeStep(time_rate);
+                MainScene__2->TimeStep(time_rate);
             }
-            map->now_time = MainScene->time;
+            map->now_time = MainScene__2->time;
             if (light_band != map->GetNowTimeLightBand() && map->time_cfade != 0) {
-                MainScene->fade.CaptureScreen();
-                MainScene->fade.CrossFade(10, 0.8f);
+                MainScene__2->fade.CaptureScreen();
+                MainScene__2->fade.CrossFade(10, 0.8f);
             }
         }
     }
@@ -905,9 +862,9 @@ int EditLoop() {
     if (PadCtrl.Btn(0) != 0 || PadCtrl.Btn(5) != 0) {
         wait_for_map = 1;
     }
-    map_name = MainScene->GetMapName(MainScene->active_map);
+    map_name = MainScene__2->GetMapName(MainScene__2->active_map);
     if (LoopCounter >= 3 && LoopMode == EDIT_LOOP_WALK && map_name != NULL && strcmp(map_name, "m01") == 0) {
-        chara = MainScene->GetCharacter(MainScene->player_chara);
+        chara = MainScene__2->GetCharacter(MainScene__2->player_chara);
         if (chara != NULL) {
             chara->GetPosition(position);
             *(u_long128 *)ground_position = *(u_long128 *)position;
@@ -915,7 +872,7 @@ int EditLoop() {
             line_start[3] = 1.0f;
             line_end[3] = 1.0f;
             next_sub_map = -1;
-            if (MainScene->LoadMapBGStep(NULL) == 0) {
+            if (MainScene__2->LoadMapBGStep(NULL) == 0) {
                 line_start[0] = 1900.0f;
                 line_start[1] = 0.0f;
                 line_start[2] = 1200.0f;
@@ -969,7 +926,7 @@ int EditLoop() {
             line_end[1] = 0.0f;
             line_end[2] = -245.0f;
             if (now_load_map_no != 11 &&
-                mgDistLinePoint(ground_position, line_start, line_end, closest) < 20.0f && MainScene->GetMapID("m02") != 1) {
+                mgDistLinePoint(ground_position, line_start, line_end, closest) < 20.0f && MainScene__2->GetMapID("m02") != 1) {
                 next_sub_map = 11;
             }
             line_start[0] = 1500.0f;
@@ -981,12 +938,12 @@ int EditLoop() {
             if (mgDistLinePoint(ground_position, line_start, line_end, closest) < 40.0f) {
                 if (GetSquareEvent() != 0) {
                     if (ground_position[0] >= 1500.0f && CharaOldPos[0] < 1500.0f) {
-                        MainScene->RunEvent(201, NULL);
+                        MainScene__2->RunEvent(201, NULL);
                         if (SubGameRunning() != 0 && GetSubGameNo() == SUBGAME_FISHING) {
                             sgExitSubGame();
                         }
                     }
-                } else if (now_load_map_no != 12 && MainScene->GetMapID("m03") != 1) {
+                } else if (now_load_map_no != 12 && MainScene__2->GetMapID("m03") != 1) {
                     next_sub_map = 12;
                 }
             }
@@ -999,20 +956,20 @@ int EditLoop() {
                 line_end[1] = 0.0f;
                 line_end[2] = -187.0f;
                 if (now_load_map_no != 13 &&
-                    mgDistLinePoint(ground_position, line_start, line_end, closest) < 50.0f && MainScene->GetMapID("m04") != 1) {
+                    mgDistLinePoint(ground_position, line_start, line_end, closest) < 50.0f && MainScene__2->GetMapID("m04") != 1) {
                     next_sub_map = 13;
                 }
             }
             load_position[0] = -2259.0f;
             load_position[1] = 185.0f;
             load_position[2] = 851.0f;
-            if (now_load_map_no != 13 && mgDistVectorXZ(position, load_position) < 150.0f && MainScene->GetMapID("m04") != 1) {
+            if (now_load_map_no != 13 && mgDistVectorXZ(position, load_position) < 150.0f && MainScene__2->GetMapID("m04") != 1) {
                 next_sub_map = 13;
             }
             load_position[0] = -2700.0f;
             load_position[1] = 256.0f;
             load_position[2] = 1207.0f;
-            if (now_load_map_no != 14 && mgDistVectorXZ(position, load_position) < 150.0f && MainScene->GetMapID("m05") != 1) {
+            if (now_load_map_no != 14 && mgDistVectorXZ(position, load_position) < 150.0f && MainScene__2->GetMapID("m05") != 1) {
                 next_sub_map = 14;
             }
             line_start[0] = -2157.0f;
@@ -1022,7 +979,7 @@ int EditLoop() {
             line_end[1] = 0.0f;
             line_end[2] = 1531.0f;
             distance = mgDistLinePoint(ground_position, line_start, line_end, closest);
-            camera = (CCameraControl *)MainScene->GetCamera(MainScene->active_camera);
+            camera = (CCameraControl *)MainScene__2->GetCamera(MainScene__2->active_camera);
             camera_param = camera->GetActiveParam();
             default_param = &camera->default_param;
             if (distance < 220.0f) {
@@ -1036,8 +993,8 @@ int EditLoop() {
             *(u_long128 *)CharaOldPos = *(u_long128 *)position;
             if (next_sub_map > 0) {
                 now_load_map_no = next_sub_map;
-                LoadSubMap(MainScene, next_sub_map, 1);
-                MainScene->PreLoadVillager(next_sub_map, read_buffer_end);
+                LoadSubMap(MainScene__2, next_sub_map, 1);
+                MainScene__2->PreLoadVillager(next_sub_map, read_buffer_end);
                 SubMapLoadBG = 1;
             }
         }
@@ -1048,7 +1005,7 @@ int EditLoop() {
     }
 
     if (LoopMode == EDIT_LOOP_WALK_MENU || LoopMode == EDIT_LOOP_EDIT_MENU) {
-        menu_pause.scene = MainScene;
+        menu_pause.scene = MainScene__2;
         menu_pause.event_skip = 0;
         if (PadCtrl.Btn(21) != 0) {
             PauseStart(&menu_pause);
@@ -1064,27 +1021,27 @@ int EditLoop() {
                     case 1:
                     case 21:
                         if (MenuInfo->end_code == 21) {
-                            MainScene->fade.CaptureScreen();
-                            MainScene->fade.CrossFade(20, 1.0f);
+                            MainScene__2->fade.CaptureScreen();
+                            MainScene__2->fade.CrossFade(20, 1.0f);
                         }
                         ActiveCharaNo = MenuInfo->result[0];
-                        ActiveCharaNo = GetUserData()->active_chr_no;
-                        chara = MainScene->GetCharacter(MainScene->player_chara);
+                        ActiveCharaNo = GetUserData__Fv__2()->active_chr_no;
+                        chara = MainScene__2->GetCharacter(MainScene__2->player_chara);
                         if (chara != NULL) {
                             chara->UpdatePosition();
                             chara->ResetDAPosition();
                         }
-                        EditControlStatusInit(MainScene);
+                        EditControlStatusInit(MainScene__2);
                         break;
                     case 11: {
                         SubGameInfo fishing;
 
-                        fishing.scene = MainScene;
+                        fishing.scene = MainScene__2;
                         fishing.rod_no = MenuInfo->result[0];
                         fishing.esa_no = MenuInfo->result[1];
                         FishingBuff.stSetBuffer(CharaBufs[0].stack + CharaBufs[0].stack_used,
                                                 CharaBufs[0].stack_size - CharaBufs[0].stack_used);
-                        fishing.menu_buff = &MenuBuffer;
+                        fishing.menu_buff = &MenuBuffer__2;
                         fishing.load_buff = &FishingBuff;
                         MenuInfo->end_code = 0;
                         current_subgame = GetNowSubGameInfo();
@@ -1092,7 +1049,7 @@ int EditLoop() {
                             fishing.keep_bgm = 1;
                         }
                         if ((GetMenuEtcFlag() & 0x1) != 0 || SubGameRunning() == 0 || current_subgame->rod_no != fishing.rod_no) {
-                            ResetViewMode(MainScene);
+                            ResetViewMode(MainScene__2);
                             sgInitSubGame(SUBGAME_FISHING, &fishing);
                         } else {
                             sgRestartSubGame(&fishing);
@@ -1102,7 +1059,7 @@ int EditLoop() {
                     case 6:
                         SetEventScript(NULL, NULL, NULL);
                         if (ControlMode == EDIT_CONTROL_EVENT) {
-                            MainScene->active_camera = MainScene->before_camera;
+                            MainScene__2->active_camera = MainScene__2->before_camera;
                             ControlMode = EDIT_CONTROL_PLAYER;
                         }
                         if (MenuInfo->result[0] != LOOP_EDIT) {
@@ -1116,24 +1073,24 @@ int EditLoop() {
                         } else {
                             BurnEditParts();
                             EditMapJump(MenuInfo->result[1]);
-                            MainScene->RunEvent(100, NULL);
+                            MainScene__2->RunEvent(100, NULL);
                         }
                         break;
                 }
             } else if (LoopMode == EDIT_LOOP_EDIT_MENU) {
-                MainScene->GetMap(MainScene->active_map);
-                MainScene->GetCharacter(MainScene->player_chara);
+                MainScene__2->GetMap(MainScene__2->active_map);
+                MainScene__2->GetCharacter(MainScene__2->player_chara);
                 LoopMode = EDIT_LOOP_EDIT;
-                MainScene->before_camera = MainScene->active_camera;
-                MainScene->active_camera = 3;
-                StartEditModeFromMenu(MainScene, MenuInfo->end_code, MenuInfo->result);
+                MainScene__2->before_camera = MainScene__2->active_camera;
+                MainScene__2->active_camera = 3;
+                StartEditModeFromMenu(MainScene__2, MenuInfo->end_code, MenuInfo->result);
             }
         }
         FadeOutForE3();
-        MainScene->fade.FadeStep();
-        MainScene->fade.Draw();
+        MainScene__2->fade.FadeStep();
+        MainScene__2->fade.Draw();
         if (finish != 0) {
-            PreExitLoop(MainScene);
+            PreExitLoop(MainScene__2);
             return 1;
         }
         return TimeLimitCheck() != 0;
@@ -1142,15 +1099,15 @@ int EditLoop() {
     if (DebugFlag != 0 && EdDebugInfo.jump_map_no >= 0) {
         BurnEditParts();
         EditMapJump(EdDebugInfo.jump_map_no);
-        MainScene->RunEvent(100, NULL);
+        MainScene__2->RunEvent(100, NULL);
         EdDebugInfo.jump_map_no = -1;
         return 0;
     }
     mgPlightEnable(0);
-    MainScene->UpDateMapInfo();
+    MainScene__2->UpDateMapInfo();
     projection = mgGetProjection() + PhotoAddProjection();
-    if (strcmp(MainScene->GetMapName(MainScene->active_map), "s32") == 0 ||
-        strcmp(MainScene->GetMapName(MainScene->active_map), "s55") == 0) {
+    if (strcmp(MainScene__2->GetMapName(MainScene__2->active_map), "s32") == 0 ||
+        strcmp(MainScene__2->GetMapName(MainScene__2->active_map), "s55") == 0) {
         projection = 250.0f;
     }
     if (projection < 300.0f) {
@@ -1160,13 +1117,13 @@ int EditLoop() {
         projection = 1000.0f;
     }
     mgSetRenderInfo(projection, 3.0f, 30000.0f);
-    S51Thunder(MainScene);
+    S51Thunder(MainScene__2);
     menu_mode = LoopMode;
     open_menu = 0;
     change_mode = 0;
     return_to_player = 0;
     start_event = -1;
-    pause.scene = MainScene;
+    pause.scene = MainScene__2;
     pause.event_skip = 0;
     pause_enabled = 0;
     if (PauseFlag == 0) {
@@ -1178,11 +1135,11 @@ int EditLoop() {
                     sgLoopSubGame();
                 } else {
                     if (LockChara == 0 && IsEditMode() != 0) {
-                        EditMode(MainScene);
+                        EditMode(MainScene__2);
                         GamePad__2.SetAutoRepeat2(PAD_L2 | PAD_R2, 13, 2);
                         GamePad__2.SetAutoRepeat2(PAD_UP | PAD_RIGHT | PAD_DOWN | PAD_LEFT, 13, 2);
                     }
-                    event_result = EditEvent.Step(MainScene);
+                    event_result = EditEvent.Step(MainScene__2);
                     CSceneEventData event_data;
                     memset(&event_data, 0, sizeof(event_data));
                     reset_event = 0;
@@ -1196,13 +1153,13 @@ int EditLoop() {
                             reset_event = 1;
                             event_data = EditEvent.data;
                             EditGotoInterior(SearchMapNo(EditEvent.map_name), event_result == EDIT_EVENT_RESULT_ENTER_HOUSE);
-                            MainScene->RunEvent(100, &event_data);
+                            MainScene__2->RunEvent(100, &event_data);
                             break;
                         case EDIT_EVENT_RESULT_EXIT:
                             reset_event = 1;
                             event_data = EditEvent.data;
                             EditExitInterior(0);
-                            MainScene->RunEvent(100, &event_data);
+                            MainScene__2->RunEvent(100, &event_data);
                             break;
                         case EDIT_EVENT_RESULT_MENU:
                             open_menu = 1;
@@ -1215,21 +1172,21 @@ int EditLoop() {
                     }
                     if (LoopMode == EDIT_LOOP_WALK) {
                         if (LockChara == 0) {
-                            EditControl(MainScene, &PadCtrl);
+                            EditControl(MainScene__2, &PadCtrl);
                         } else {
-                            EditControl(MainScene, NULL);
+                            EditControl(MainScene__2, NULL);
                         }
                         GamePad__2.AutoRepeatOff();
-                        MainScene->EyeViewDrawOnOff(IsWalkMode() == 0);
-                        if (LockChara == 0 && MainScene->event_run == 0 && PadCtrl.Btn(0) != 0 && IsWalkMode() != 0) {
-                            chara = MainScene->GetCharacter(MainScene->player_chara);
+                        MainScene__2->EyeViewDrawOnOff(IsWalkMode() == 0);
+                        if (LockChara == 0 && MainScene__2->event_run == 0 && PadCtrl.Btn(0) != 0 && IsWalkMode() != 0) {
+                            chara = MainScene__2->GetCharacter(MainScene__2->player_chara);
                             chara->GetPosition(talk_position);
                             chara->GetPosition(talk_height);
                             talk_position[3] = talk_height[1];
                             CSceneEventData talk_event;
                             memset(&talk_event, 0, sizeof(talk_event));
-                            if (MainScene->GetTalkEvent(talk_position, &talk_event) != 0) {
-                                MainScene->RunEvent(1000, &talk_event);
+                            if (MainScene__2->GetTalkEvent(talk_position, &talk_event) != 0) {
+                                MainScene__2->RunEvent(1000, &talk_event);
                                 printf("chara No = %d\n", talk_event.chara_no);
                             }
                         }
@@ -1301,10 +1258,10 @@ int EditLoop() {
                 }
                 if (return_to_player != 0) {
                     ControlMode = EDIT_CONTROL_PLAYER;
-                    MainScene->active_camera = MainScene->before_camera;
+                    MainScene__2->active_camera = MainScene__2->before_camera;
                 }
                 if (start_event > 0) {
-                    MainScene->RunEvent(start_event, NULL);
+                    MainScene__2->RunEvent(start_event, NULL);
                 }
                 break;
             case EDIT_CONTROL_EVENT_EDIT:
@@ -1316,30 +1273,30 @@ int EditLoop() {
         if (pause_enabled != 0 && (PadCtrl.Btn(21) != 0 || GamePad__2.Connect() == 0)) {
             PauseStart(&pause);
         }
-        WalkChara = MainScene->GetCharacter(MainScene->player_chara);
+        WalkChara = MainScene__2->GetCharacter(MainScene__2->player_chara);
         if (WalkChara != NULL) {
-            WalkChara->foot_se_bank = MainScene->se_base_id;
+            WalkChara->foot_se_bank = MainScene__2->se_base_id;
         }
         EditStep();
         if (WalkChara != NULL) {
             WalkChara->GetPosition(villager_position);
             villager_position[3] = 30.0f;
-            MainScene->StayNearVillager(villager_position, stay);
+            MainScene__2->StayNearVillager(villager_position, stay);
         }
         if (LoopMode == EDIT_LOOP_WALK) {
-            MainScene->StepVillager();
+            MainScene__2->StepVillager();
         }
-        MainScene->CancelStayVillager(stay);
+        MainScene__2->CancelStayVillager(stay);
         sgLoopSubGame2();
         if (open_menu == 0 && LockChara == 0 && sgMenuOpenEnable() != 0 && change_mode == 0) {
             menu_requested = PadCtrl.Btn(5) != 0 || sgGetItemOver() != 0;
             menu_button = PadCtrl.Btn(5);
             quick_change = EditOnGround() != 0 && PadCtrl.Btn(23) != 0 && SubGameRunning() == 0;
-            if (MainScene->fade.NowFade() != 0 && MainScene->fade.cross != 0) {
+            if (MainScene__2->fade.NowFade() != 0 && MainScene__2->fade.cross != 0) {
                 quick_change = 0;
             }
-            next_chara = GetUserData()->active_chr_no == 0;
-            if ((GetUserData()->CheckQuickChange(next_chara, NULL) & 0x1) == 0) {
+            next_chara = GetUserData__Fv__2()->active_chr_no == 0;
+            if ((GetUserData__Fv__2()->CheckQuickChange(next_chara, NULL) & 0x1) == 0) {
                 quick_change = 0;
             }
             if (IsWalkMode() == 0 || GetPauseFlag() != 0) {
@@ -1393,11 +1350,11 @@ int EditLoop() {
     }
 
     mgFlushRenderInfo();
-    EditEvent.Draw(MainScene);
+    EditEvent.Draw(MainScene__2);
     EditDraw();
     debug_closed = 0;
     if (DebugFlag != 0) {
-        if (EditDebugMode() != 0 && EditDebugLoop(MainScene, &EdDebugInfo) != 0) {
+        if (EditDebugMode() != 0 && EditDebugLoop(MainScene__2, &EdDebugInfo) != 0) {
             ControlMode = old_cm;
             debug_closed = 1;
             if (ControlMode == EDIT_CONTROL_DEBUG) {
@@ -1405,22 +1362,22 @@ int EditLoop() {
             }
         }
         if (ControlMode != EDIT_CONTROL_DEBUG && GamePad__2.Down(PAD_R3) != 0 && debug_closed == 0) {
-            EditDebugStart(215, &MenuBuffer);
+            EditDebugStart(215, &MenuBuffer__2);
             old_cm = ControlMode;
             ControlMode = EDIT_CONTROL_DEBUG;
         }
-        LightingEdit(MainScene);
+        LightingEdit(MainScene__2);
     }
     if (PauseFlag == 0) {
         if (LockChara == 0 && NowEditModeChg() == 0) {
             edit_enabled = 1;
             debug_move = DebugInfo.chara_move > 0;
-            chara = MainScene->GetCharacter(MainScene->player_chara);
+            chara = MainScene__2->GetCharacter(MainScene__2->player_chara);
             if (debug_move == 0) {
                 if ((GetSaveData()->GetBitCtrl() & 0x2) != 0) {
                     edit_enabled = 0;
                 }
-                main_map_no = MainScene->GetMainMapNo();
+                main_map_no = MainScene__2->GetMainMapNo();
                 if (main_map_no < 0 || main_map_no >= 5) {
                     edit_enabled = 0;
                 }
@@ -1437,30 +1394,30 @@ int EditLoop() {
             if (edit_enabled != 0 && chara != NULL && ControlMode == EDIT_CONTROL_PLAYER && change_mode != 0) {
                 chara->GetPosition(edit_position);
                 if (LoopMode == EDIT_LOOP_WALK) {
-                    if (CheckWalkToEdit(MainScene, edit_position) != 0 || debug_move != 0) {
+                    if (CheckWalkToEdit(MainScene__2, edit_position) != 0 || debug_move != 0) {
                         open_menu = 0;
-                        ResetViewMode(MainScene);
-                        MainScene->before_camera = MainScene->active_camera;
-                        MainScene->active_camera = 3;
-                        StartEditMode(MainScene);
+                        ResetViewMode(MainScene__2);
+                        MainScene__2->before_camera = MainScene__2->active_camera;
+                        MainScene__2->active_camera = 3;
+                        StartEditMode(MainScene__2);
                         LoopMode = EDIT_LOOP_EDIT;
                         KeepEditAnalyze();
                         chara->SetMotion("\x97\xA7\x82\xBF", 0);
-                        MainScene->map_event_no = 0;
+                        MainScene__2->map_event_no = 0;
                     }
-                } else if (LoopMode == EDIT_LOOP_EDIT && (CheckEditToWalk(MainScene, return_position) != 0 || debug_move != 0)) {
+                } else if (LoopMode == EDIT_LOOP_EDIT && (CheckEditToWalk(MainScene__2, return_position) != 0 || debug_move != 0)) {
                     LoopMode = EDIT_LOOP_WALK;
                     open_menu = 0;
-                    EndEditMode(MainScene, return_position);
-                    EditControlStatusInit(MainScene);
-                    camera = (CCameraControl *)MainScene->GetCamera(MainScene->active_camera);
+                    EndEditMode(MainScene__2, return_position);
+                    EditControlStatusInit(MainScene__2);
+                    camera = (CCameraControl *)MainScene__2->GetCamera(MainScene__2->active_camera);
                     camera_angle = 0.0f;
                     if (camera != NULL) {
                         camera_angle = camera->GetAngle();
                         camera->GetPos(camera_position);
                         camera->GetRef(camera_reference);
                     }
-                    walk_camera = (CCameraControl *)MainScene->GetCamera(0);
+                    walk_camera = (CCameraControl *)MainScene__2->GetCamera(0);
                     if (walk_camera != NULL) {
                         walk_camera->FollowOff();
                         walk_camera->SetRef(camera_reference);
@@ -1470,9 +1427,9 @@ int EditLoop() {
                         walk_camera->Step(-1);
                         walk_camera->FollowOn();
                     }
-                    MainScene->active_camera = 0;
+                    MainScene__2->active_camera = 0;
                     EditDataSave();
-                    GeoUpdateNpcPos(MainScene);
+                    GeoUpdateNpcPos(MainScene__2);
                     if (GetGameChapter(GetSaveData()->game_progress) < 8) {
                         change_event = -1;
                         if (MapNo == 0 && GetSaveData()->GetBitFlag(0x21) != 0 && GetSaveData()->GetBitFlag(0x22) == 0) {
@@ -1499,11 +1456,11 @@ int EditLoop() {
         }
         if (open_menu != 0) {
             EditDrawFlag &= ~0x1;
-            if (MainScene->bg_load_step <= 0) {
-                if (MainScene->fade.NowFade() != 0 && MainScene->fade.cross != 0) {
-                    MainScene->fade.FadeIn(0);
+            if (MainScene__2->bg_load_step <= 0) {
+                if (MainScene__2->fade.NowFade() != 0 && MainScene__2->fade.cross != 0) {
+                    MainScene__2->fade.FadeIn(0);
                 }
-                MenuInfo->scene = MainScene;
+                MenuInfo->scene = MainScene__2;
                 if (MenuDataBuf != NULL) {
                     LoopMode = menu_mode;
                     MenuMainInit(MenuInfo);
@@ -1529,9 +1486,9 @@ int EditLoop() {
             }
             rain_flag = rain_flag == 0;
         }
-        MainScene->fade.FadeStep();
+        MainScene__2->fade.FadeStep();
     }
-    MainScene->fade.Draw();
+    MainScene__2->fade.Draw();
     if (PauseFlag != 0) {
         pause_result = PauseMenu();
         if (pause_result == 1) {
@@ -1625,12 +1582,12 @@ int EditLoop() {
     if (DebugFlag != 0 && GamePad__2.On(PAD_SELECT) != 0 && GamePad__2.Down(PAD_START) != 0) {
         finish = 1;
     }
-    if (MainScene->exit_flag != 0) {
+    if (MainScene__2->exit_flag != 0) {
         finish = 1;
     }
     if (finish != 0) {
         PauseCancel();
-        PreExitLoop(MainScene);
+        PreExitLoop(MainScene__2);
         return 1;
     }
     return 0;
@@ -1638,132 +1595,113 @@ int EditLoop() {
 #else
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/editloop", EditLoop__Fv);
 #endif
-
-#ifdef NONMATCHING
-/**
- * Clears character locks and resets the town event controller.
- */
-static void InitEditEvent() {
+void InitEditEvent(void) {
     InitLockCharaCtrl();
-    EditEvent.Reset();
+    Reset__10CEditEventFv(&EditEvent);
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/editloop", InitEditEvent__Fv);
-#endif
-
-#ifdef NONMATCHING
-/**
- * Resets a running town event and releases its character lock.
- */
-static void ResetEditEvent() {
-    if (EditEvent.state == EDIT_EVENT_STATE_RUNNING) {
-        EditEvent.Reset();
+void ResetEditEvent() {
+    if (EditEvent.state == 1) {
+        Reset__10CEditEventFv(&EditEvent);
         UnLockCharaCtrl();
     }
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/editloop", ResetEditEvent__Fv);
-#endif
-
-#ifdef NONMATCHING
-/**
- * Restarts a running town event using the scene event description.
- */
-static void RestartEditEvent() {
-    if (EditEvent.state == EDIT_EVENT_STATE_RUNNING) {
+void RestartEditEvent() {
+    if (EditEvent.state == 1) {
         ResetEditEvent();
-        if (EditEvent.StartEvent(&MainScene->event_data) != 0) {
+        if (EditEvent.StartEvent(&MainScene__2->event_data) != 0) {
             LockCharaCtrl();
         }
     }
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/editloop", RestartEditEvent__Fv);
-#endif
+int EditStep(void) {
+    CEditMap *maps[8];
+    float viewer[24];
+    int event_no;
+    int map_count;
+    int index;
+    CSceneEventData *event_data;
+    CCameraControl *camera;
+    CEditMap *map;
+    CCharacter2 *chara;
 
-#ifdef NONMATCHING
-int EditStep() {
-    CObjAnimeEnv   environment;
-    CMap          *maps[8];
-    CScene        *scene;
-    mgCCamera     *camera;
-    int            event_no;
-    int            count;
-    int            i;
-
-    scene = MainScene;
-    WalkChara = scene->GetCharacter(scene->player_chara);
-    if (WalkChara != NULL) {
-        WalkChara->foot_se_bank = MainScene->se_base_id;
+    chara = MainScene__2->GetCharacter(MainScene__2->player_chara);
+    WalkChara = chara;
+    if (chara != NULL) {
+        chara->foot_se_bank = MainScene__2->se_base_id;
     }
-    EditModeChgStep(MainScene);
-    scene = MainScene;
-    if (scene->event_run != 0) {
-        event_no = scene->event_no;
-        printf("event = %d\n", event_no);
-        scene = MainScene;
-        if (event_no == 99999) {
-            if (EditEvent.StartEvent(&scene->event_data) != 0) {
-                camera = MainScene->GetCamera(MainScene->active_camera);
-                if (camera == NULL || camera->Iam() != 1000) {
+    EditModeChgStep(MainScene__2);
+    if (MainScene__2->event_run != 0) {
+        event_no = MainScene__2->event_no;
+        printf(at_2261, event_no);
+        event_data = &MainScene__2->event_data;
+        if (event_no == kEventNoMapJump) {
+            if (EditEvent.StartEvent( event_data) != 0) {
+                camera = (CCameraControl *)MainScene__2->GetCamera(MainScene__2->active_camera);
+                if (camera == NULL || camera->Iam() != kCameraKindEvent) {
                     return 0;
                 }
-                if (scene->event_data.event.flag & FUNC_EVENT_DOOR) {
-                    if (scene->event_data.event.unk_34 > 0) {
-                        printf("   event = %d\n", scene->event_data.event.unk_34);
-                        if (RunEvent(scene->event_data.event.unk_34, MainScene) > 0) {
-                            ResetViewMode(MainScene);
-                            ControlMode = EDIT_CONTROL_EVENT;
+                if ((event_data->event.flag & kEventDataCallFlag) != 0) {
+                    event_no = event_data->event.unk_34;
+                    if (event_no > 0) {
+                        printf(at_2262, event_no);
+                        if (RunEvent(event_data->event.unk_34, MainScene__2) > 0) {
+                            ResetViewMode(MainScene__2);
+                            ControlMode = 2;
                         }
                     }
                 }
                 LockCharaCtrl();
             }
         } else {
-            InitEvent(scene);
-            MainScene->before_camera = MainScene->active_camera;
-            if (RunEvent(event_no, MainScene) > 0) {
-                ResetViewMode(MainScene);
-                ControlMode = EDIT_CONTROL_EVENT;
+            InitEvent(MainScene__2);
+            MainScene__2->before_camera = MainScene__2->active_camera;
+            if (RunEvent(event_no, MainScene__2) > 0) {
+                ResetViewMode(MainScene__2);
+                ControlMode = 2;
             }
         }
-        MainScene->event_run = 0;
+        MainScene__2->event_run = 0;
     }
-    if (GamePad__2.Down2(PAD_SQUARE) != 0) {
-        InitEvent(MainScene);
+    if (GamePad__2.Down2(0x80) != 0) {
+        InitEvent(MainScene__2);
         ReloadMapScript();
-        MainScene->before_camera = MainScene->active_camera;
-        if (RunEvent(150, MainScene) != 0) {
-            ControlMode = EDIT_CONTROL_EVENT;
+        MainScene__2->before_camera = MainScene__2->active_camera;
+        if (RunEvent(kKeyOpenEvent, MainScene__2) != 0) {
+            ControlMode = 2;
         }
     }
-    count = MainScene->GetActiveMap(maps, 8);
+    map_count = MainScene__2->GetActiveMap((CMap **)maps, 8);
     if (WalkChara != NULL) {
-        *(u_long128 *)environment.chara_pos = *(u_long128 *)WalkChara->position;
-        environment.time = MainScene->time;
-        for (i = 0; i < count; i++) {
-            if (maps[i] != NULL) {
-                maps[i]->AnimeStep(&environment);
-                maps[i]->Step();
-            }
+        *(u_long128 *)viewer = *(u_long128 *)WalkChara->position;
+        viewer[4] = MainScene__2->time;
+        index = 0;
+        if (0 < map_count) {
+            do {
+                map = maps[index];
+                if (map != NULL) {
+                    map->AnimeStep((CObjAnimeEnv *)viewer);
+                    maps[index]->Step();
+                }
+                index += 1;
+            } while (index < map_count);
         }
     }
-    MainScene->PrePlaySeSrc();
-    MainScene->PlayMapSeSrc();
-    if (LoopMode != EDIT_LOOP_EDIT) {
-        EditStepChara(MainScene);
+    MainScene__2->PrePlaySeSrc();
+    MainScene__2->PlayMapSeSrc();
+    if (LoopMode != 2) {
+        EditStepChara(MainScene__2);
     }
-    MainScene->EffectStep();
-    MainScene->StepEffectScript(-1);
+    MainScene__2->EffectStep();
+    MainScene__2->StepEffectScript(-1);
     if (InInterior() == 0) {
-        StepFirePowder(MainScene);
-        StepGeyserEffect(MainScene);
+        StepFirePowder(MainScene__2);
+        StepGeyserEffect(MainScene__2);
     }
-    camera = MainScene->GetCamera(MainScene->active_camera);
+    camera = (CCameraControl *)MainScene__2->GetCamera(MainScene__2->active_camera);
     if (camera != NULL) {
         camera->Step(1);
     }
-    EditExceptionStep(MapNo, MainScene);
+    EditExceptionStep(MapNo, MainScene__2);
     EventMes1.Step();
     GetSystemMessage()->Step();
     GetSystemMessage(1)->Step();
@@ -1771,10 +1709,6 @@ int EditStep() {
     StepHelpMes();
     return 1;
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/editloop", EditStep__Fv);
-#endif
-
 #ifdef NONMATCHING
 int EditDraw() {
     static int                 flag;
@@ -1831,21 +1765,21 @@ int EditDraw() {
     }
 
     map_draw = EdEventInfo.map_draw;
-    map_count = MainScene->GetActiveMap(maps, 8);
+    map_count = MainScene__2->GetActiveMap(maps, 8);
     mgSetPkTextureRepeat(0);
-    MainScene->GetCamera(MainScene->active_camera);
-    camera = MainScene->GetCamera(MainScene->active_camera);
+    MainScene__2->GetCamera(MainScene__2->active_camera);
+    camera = MainScene__2->GetCamera(MainScene__2->active_camera);
     if (camera != NULL) {
         camera->GetCameraMatrix(view_matrix);
         camera->GetPos(camera_pos);
         camera->GetDir(camera_dir);
         mgSetViewMatrix(view_matrix, camera_pos);
         sndSetMicPos(camera_pos, camera_dir);
-        MainScene->FixCameraPartsOnOff(camera_pos);
+        MainScene__2->FixCameraPartsOnOff(camera_pos);
     }
 
-    MainScene->DrawSky(-1);
-    map = MainScene->GetMap(MainScene->active_map);
+    MainScene__2->DrawSky(-1);
+    map = MainScene__2->GetMap(MainScene__2->active_map);
     edit_map = NULL;
     if (map != NULL && strcmp(map->Iam(), "CEditMap") == 0) {
         edit_map = (CEditMap *)map;
@@ -1855,7 +1789,7 @@ int EditDraw() {
     }
 
     ghost_visible = GhostPhotoTiming();
-    if (CheckTime(MainScene->time, 0.0f, 4.0f) == 0) {
+    if (CheckTime(MainScene__2->time, 0.0f, 4.0f) == 0) {
         ghost_visible = 0;
     }
     for (map_index = 0; map_index < map_count; map_index++) {
@@ -1904,7 +1838,7 @@ int EditDraw() {
         }
         mgSetPkTextureRepeat(1);
         if (IsEditMode() != 0 && edit_map != NULL) {
-            DrawEditCursorParts(MainScene);
+            DrawEditCursorParts(MainScene__2);
             EditPlaceAnimeDraw();
         }
         EditPlaceAnime2();
@@ -1916,7 +1850,7 @@ int EditDraw() {
         }
         mgPreEndDraw(NULL);
         for (texture_group = 0; texture_group < 6; texture_group++) {
-            block_count = MainScene->mds_list_set.GetTextureBlockNo(texture_group, texture_blocks, 128);
+            block_count = MainScene__2->mds_list_set.GetTextureBlockNo(texture_group, texture_blocks, 128);
             for (block_index = 0; block_index < block_count; block_index++) {
                 block = texture_blocks[block_count - block_index - 1];
                 if (mgEndDrawReloadTexture(block, NULL) != 0 && water_block == block) {
@@ -1927,7 +1861,7 @@ int EditDraw() {
         }
         mgSetPkTextureRepeat(0);
         sgDrawSubGameMap();
-        map = MainScene->GetMap(MainScene->active_map);
+        map = MainScene__2->GetMap(MainScene__2->active_map);
         dof_off = 0;
         if (map != NULL) {
             map->GetNowTimeBand();
@@ -1942,7 +1876,7 @@ int EditDraw() {
             mgTexManager.ReloadTexture(0x9C, (sceVif1Packet *)NULL);
             DepthOfField(2, blur_range, screen, 1.0f);
         } else {
-            map = MainScene->GetMap(MainScene->active_map);
+            map = MainScene__2->GetMap(MainScene__2->active_map);
             if (map != NULL) {
                 map->GetLightingRatio(lighting);
             }
@@ -1956,7 +1890,7 @@ int EditDraw() {
 
     EdEventFirstDraw();
     if (TreasureBox != NULL) {
-        map = MainScene->GetMap(MainScene->active_map);
+        map = MainScene__2->GetMap(MainScene__2->active_map);
         if (map != NULL) {
             map->DrawTrBox();
         }
@@ -1965,21 +1899,21 @@ int EditDraw() {
         mgTexManager.ReloadTexture(0x9F, (sceVif1Packet *)NULL);
         screen = mgTexManager.GetTexture("shadow_work", 0x9F);
         mgBeginDrawShadow(screen, NULL);
-        EditDrawShadowChara(MainScene);
+        EditDrawShadowChara(MainScene__2);
         sgDrawSubGameCharaShadow();
         mgEndDrawShadow(screen, NULL);
-        chara = MainScene->GetCharacter(MainScene->player_chara);
+        chara = MainScene__2->GetCharacter(MainScene__2->player_chara);
         if (chara != NULL) {
             chara->SetFadeFlag(1);
             chara->SetNearDist(25.0f);
         }
-        EditDrawChara(MainScene);
+        EditDrawChara(MainScene__2);
     }
     sgDrawSubGameChara();
     mgSetPkTextureRepeat(1);
     if (map_draw != 0) {
         for (texture_group = 6; texture_group < 16; texture_group++) {
-            block_count = MainScene->mds_list_set.GetTextureBlockNo(texture_group, later_texture_blocks, 128);
+            block_count = MainScene__2->mds_list_set.GetTextureBlockNo(texture_group, later_texture_blocks, 128);
             for (block_index = 0; block_index < block_count; block_index++) {
                 block = later_texture_blocks[block_index];
                 mgEndDrawReloadTexture(block, NULL);
@@ -1987,19 +1921,19 @@ int EditDraw() {
             }
         }
     }
-    MainScene->DrawEffectScript(-1);
+    MainScene__2->DrawEffectScript(-1);
     if (InInterior() == 0) {
-        DrawFirePowder(MainScene);
-        DrawGeyserEffect(MainScene);
+        DrawFirePowder(MainScene__2);
+        DrawGeyserEffect(MainScene__2);
     }
-    MainScene->DrawExclamationMark(RedBicMark);
-    chara = MainScene->GetCharacter(MainScene->player_chara);
+    MainScene__2->DrawExclamationMark(RedBicMark);
+    chara = MainScene__2->GetCharacter(MainScene__2->player_chara);
     if (chara != NULL) {
         chara->GetPosition(player_pos);
         if (BlueBicMark != NULL) {
             BlueBicMark->SetPosition(player_pos);
         }
-        exit_flag = MainScene->map_event_no;
+        exit_flag = MainScene__2->map_event_no;
         if ((exit_flag & 0x1) != 0) {
             if (RedBicMark != NULL) {
                 RedBicMark->SetPosition(0.0f, 0.0f, 0.0f);
@@ -2012,35 +1946,35 @@ int EditDraw() {
             mgDrawDirect(BlueBicMark);
         }
     }
-    EditDrawEffectChara(MainScene);
+    EditDrawEffectChara(MainScene__2);
     if (map_draw != 0) {
         screen = mgTexManager.GetTexture("water_work", 0x9E);
         overlay = mgTexManager.GetTexture("ref", 0x9E);
-        camera = MainScene->GetCamera(MainScene->active_camera);
+        camera = MainScene__2->GetCamera(MainScene__2->active_camera);
         for (map_index = 0; map_index < map_count; map_index++) {
             maps[map_index]->DrawWater(camera, screen, overlay);
         }
     }
     if (IsEditMode() != 0 && edit_map != NULL) {
         mgTexManager.ReloadTexture(0xA3, (sceVif1Packet *)NULL);
-        DrawEditCursor(MainScene);
+        DrawEditCursor(MainScene__2);
         EditPEffectStep();
         EditPEffectDraw(0xA3);
     }
     if (map_draw != 0) {
-        MainScene->DrawEffect(0x42);
+        MainScene__2->DrawEffect(0x42);
         mgTexManager.ReloadTexture(0xA4, (sceVif1Packet *)NULL);
-        MainScene->DrawGameObject(MapNo);
+        MainScene__2->DrawGameObject(MapNo);
     }
     sgDrawSubGameEffect();
     EdEventDraw();
     mgSetPkTextureRepeat(0);
     if (InInterior() == 0) {
-        MainScene->DrawLensFlare(0x9D, "f_work", "f_work2");
+        MainScene__2->DrawLensFlare(0x9D, "f_work", "f_work2");
     }
     sgDrawSubGameSystem();
     if (DebugFlag != 0 && DebugInfo.invent_debug == 1) {
-        MainScene->DrawScreenFunc(&TestFrame);
+        MainScene__2->DrawScreenFunc(&TestFrame);
     }
 
     if (NowTakePhoto() == 0) {
@@ -2049,8 +1983,8 @@ int EditDraw() {
         mgTexManager.ReloadTexture(0xA2, (sceVif1Packet *)NULL);
         mgTexManager.GetTexture("fix_work", -1);
         invent = NULL;
-        if (GetUserData() != NULL) {
-            invent = &GetUserData()->invent_data;
+        if (GetUserData__Fv__2() != NULL) {
+            invent = &GetUserData__Fv__2()->invent_data;
         }
         if (init == 0) {
             flag = 0;
@@ -2059,10 +1993,10 @@ int EditDraw() {
         screen_chara.chara_no = -1;
         screen_chara.dist = 0.0f;
         screen_chara.in_center = 0;
-        chara_no = MainScene->InScreenChara(&screen_chara, screen_range);
-        chara = MainScene->GetCharacter(chara_no);
+        chara_no = MainScene__2->InScreenChara(&screen_chara, screen_range);
+        chara = MainScene__2->GetCharacter(chara_no);
         if (chara_no >= 0 && chara != NULL && chara->GetKeyListPtr("\x83\x4A\x83\x81\x83\x89", NULL) != NULL) {
-            MainScene->ExModeVillager(chara_no);
+            MainScene__2->ExModeVillager(chara_no);
         }
         picture = invent->IsPhotoSpace(NULL);
         if (DrawTakePhoto(picture, &photo_dist) != 0 && picture != NULL) {
@@ -2070,15 +2004,15 @@ int EditDraw() {
             screen_func.unk_04 = 0;
             screen_func.dist = -1.0f;
             screen_func.range = photo_dist;
-            subject = MainScene->InScreenFunc(&screen_func);
-            picture->map_no = MainScene->GetMainMapNo();
+            subject = MainScene__2->InScreenFunc(&screen_func);
+            picture->map_no = MainScene__2->GetMainMapNo();
             idea_no = -1;
             picture->neta_id = -1;
             picture->npc_no = -1;
             if (subject != NULL) {
                 idea_no = subject->invent.unk_20;
             }
-            if (idea_no == 196 && MainScene->GetMainMapNo() == 2) {
+            if (idea_no == 196 && MainScene__2->GetMainMapNo() == 2) {
                 idea_no = 2006;
             }
             if (screen_chara.dist < 5.0f + photo_dist) {
@@ -2104,7 +2038,7 @@ int EditDraw() {
     if ((GetSaveData()->GetBitCtrl() & 0x2) != 0) {
         show_system = 0;
     }
-    main_map_no = MainScene->GetMainMapNo();
+    main_map_no = MainScene__2->GetMainMapNo();
     if (main_map_no < 0 || main_map_no >= 5) {
         show_system = 0;
     }
@@ -2121,11 +2055,11 @@ int EditDraw() {
         show_system = 0;
     }
     if (show_system != 0) {
-        chara = MainScene->GetCharacter(MainScene->player_chara);
+        chara = MainScene__2->GetCharacter(MainScene__2->player_chara);
         if (chara != NULL) {
             chara->GetPosition(system_pos);
         }
-        DrawEditSystem(0xA3, MainScene, system_pos, LoopMode == EDIT_LOOP_EDIT);
+        DrawEditSystem(0xA3, MainScene__2, system_pos, LoopMode == EDIT_LOOP_EDIT);
     }
     mgTexManager.ReloadTexture(0x9A, (sceVif1Packet *)NULL);
     EventMes1.DrawMesWin();
@@ -2140,143 +2074,127 @@ int EditDraw() {
 #else
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/editloop", EditDraw__Fv);
 #endif
+void UpdateTrBoxFlag(int map_no) {
+    int i;
+    CMapFlagData *flag_data = (CMapFlagData *)GetSaveData()->GetMapFlag(map_no);
+    CMap *map = MainScene__2->GetMap(MainScene__2->active_map);
+    map->UpdateTrBoxFlag(flag_data);
+    int box_count = map->tr_box_num;
 
-#ifdef NONMATCHING
-/**
- * Removes opened town chests and chests whose dungeon floor has never been visited.
- */
-static void UpdateTrBoxFlag(int map_no) {
-    CMap             *map;
-    CMapFlagData     *flags;
-    CMapTreasureBox  *chest;
-    CSaveDataDungeon *dungeon;
-    DNG_FLOOR_SAVE   *floor;
-    int               count;
-    int               i;
+    CSaveDataDungeon *dungeon_save = &GetSaveData()->save_dungeon;
+    for (i = 0; i < box_count; i++) {
+        CMapTreasureBox *box = map->GetTrBox(i);
+        if (box != NULL) {
 
-    flags = GetSaveData()->GetMapFlag(map_no);
-    map = MainScene->GetMap(MainScene->active_map);
-    map->UpdateTrBoxFlag(flags);
-    count = map->tr_box_num;
-    dungeon = &GetSaveData()->save_dungeon;
-    for (i = 0; i < count; i++) {
-        chest = map->GetTrBox(i);
-        if (chest != NULL) {
-            floor = dungeon->GetFloorInfoPtr(chest->floor_id / 100 - 1, chest->floor_id % 100);
-            if (floor != NULL && floor->visit_count <= 0) {
+            DNG_FLOOR_SAVE *floor = (DNG_FLOOR_SAVE *)dungeon_save->GetFloorInfoPtr(
+                box->floor_id / 100 - 1, box->floor_id % 100);
+            if (floor != NULL && (u16)floor->visit_count <= 0) {
                 map->DeleteTrBox(i, NULL);
             }
         }
     }
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/editloop", UpdateTrBoxFlag__Fi);
-#endif
-
-#ifdef NONMATCHING
-int BurnEditParts() {
-    CEditMap::RemoveInfo removed;
-    CEditMap           *map;
-    CEditPartsInfo     *info;
-    int                 i;
-
+int BurnEditParts(void) {
+    CEditMap::RemoveInfo info;
+    CEditMap *map;
+    int i;
+    int id;
     if (GetSaveData()->GetBitFlag(0x208) != 0) {
         return 0;
     }
-    if (MainScene->GetMainMapNo() != 3) {
-        return 0;
-    }
-    map = (CEditMap *)MainScene->GetMap(MainScene->active_map);
-    if (map == NULL) {
-        return 0;
-    }
-    memset(&removed, 0, sizeof(removed));
-    map->BurnEditParts(&removed);
-    for (i = 0; i < removed.house_num; i++) {
-        GetSaveData()->user_data.LeaveHouse(removed.house_npc[i]);
-    }
-    for (i = 0; i < 256; i++) {
-        info = map->GetePartsInfoAtID(i);
-        if (info != NULL && !(info->attr & 0x8000) && !(info->attr & EDIT_PARTS_ATR_BURN)) {
-            if (removed.parts_num[i] > 0) {
-                GetSaveData()->AddBuildPartsNum(i, removed.parts_num[i]);
+    if (MainScene__2->GetMainMapNo() == 3) {
+        map = (CEditMap *)MainScene__2->GetMap(MainScene__2->active_map);
+        if (map != NULL) {
+            memset(&info, 0, sizeof(info));
+            map->BurnEditParts(&info);
+            for (i = 0; i < info.house_num; i++) {
+                GetSaveData()->user_data.LeaveHouse(info.house_npc[i]);
             }
+            id = 0;
+            do {
+                CEditPartsInfo *river_info = map->GetePartsInfoAtID(id);
+
+                if (river_info != NULL && !(river_info->attr & 0x8000) &&
+                    !(river_info->attr & 0x1000)) {
+                    int count = info.parts_num[id];
+                    if (count > 0) {
+                        GetSaveData()->AddBuildPartsNum(id, count);
+                    }
+                }
+                id++;
+            } while (id < 0x100);
+            return 1;
         }
     }
-    return 1;
+    return 0;
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/editloop", BurnEditParts__Fv);
-#endif
-
-#ifdef NONMATCHING
-/**
- * Loads the sound set for a map and starts its default background music.
- */
-static void editLoadSound(int map_no) {
-    int sound_no;
+void editLoadSound(int map_no) {
+    int sound_data_id;
     int bgm_no;
 
-    sound_no = GetMapSndDataID(map_no);
-    MainScene->LoadSound(sound_no, read_buffer);
-    if (MainScene->skip_load_bgm == 0) {
-        bgm_no = MainScene->GetDefBgmNo(sound_no);
+    sound_data_id = GetMapSndDataID(map_no);
+    MainScene__2->LoadSound(sound_data_id, read_buffer);
+    if (MainScene__2->skip_load_bgm == 0) {
+        bgm_no = MainScene__2->GetDefBgmNo(sound_data_id);
         if (bgm_no == -1) {
-            MainScene->StopBGM(0);
+            MainScene__2->StopBGM(0);
         }
-        if (MainScene->CheckLoadBGM(bgm_no) == 0 || bgm_no == 9999) {
-            MainScene->PlayBGM(0, -1, 1.0f);
+
+        if ((MainScene__2->CheckLoadBGM(bgm_no) == 0) || (bgm_no == 0x270F)) {
+            MainScene__2->PlayBGM(0, -1, 1.0f);
             return;
         }
-        MainScene->StopBGM(0);
-        if (MainScene->LoadBGM(bgm_no, read_buffer) != 0) {
-            MainScene->PlayBGM(0, -1, 1.0f);
+        MainScene__2->StopBGM(0);
+        if (MainScene__2->LoadBGM(bgm_no, read_buffer) != 0) {
+            MainScene__2->PlayBGM(0, -1, 1.0f);
             if (bgm_no == 0) {
-                MainScene->AutoChangeBGMVol(1);
-                MainScene->StepSnd();
+                MainScene__2->AutoChangeBGMVol(1);
+                MainScene__2->StepSnd();
                 sndStep(2.0f);
             }
         }
     } else {
-        MainScene->skip_load_bgm = 0;
+        MainScene__2->skip_load_bgm = 0;
     }
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/editloop", editLoadSound__Fi);
-#endif
-
-#ifdef NONMATCHING
 int EditMapJump(int map_no) {
-    char             path[136];
-    char             language[16];
-    char            *name;
-    CEditMap        *map;
-    CEditData       *data;
-    CCameraControl  *camera;
+    SCN_LOADMAP_INFO2 load_info;
+    char path[0x88];
+    int file_size;
+    char size_text[4];
+    int sub_map_no;
+    char *map_name;
+    mgCMemory *main_data;
+    int area_no;
+    CEditMap *map;
+    mgCTextureManager *textures;
+    int used_before;
+    CCameraControl *camera;
     CameraCtrlParam *param;
-    int              sub_map_no;
-    int              edit_data_no;
-    int              size;
-    int              used;
-    int              loaded;
+    CEditData *edit_data;
+    int loaded_sub;
+    int used_quads;
+    int used_kb;
+    int free_quads;
 
     InitEditEvent();
     DeleteFileCache();
+    textures = &mgTexManager;
     sub_map_no = map_no;
-    if (map_no >= 11 && map_no < 15) {
-        map_no = 10;
+    if (map_no > 0xA && map_no < 0xF) {
+        map_no = 0xA;
     } else {
         sub_map_no = -1;
     }
     InitSubMapLoadStep();
-    name = GetMapName(map_no, NULL);
-    if (name == NULL) {
-        printf("not found map %d\n", map_no);
+    map_name = GetMapName(map_no, NULL);
+    if (map_name == NULL) {
+        printf(at_2948, map_no);
         return 0;
     }
-    MainScene->SeAllStop();
+    MainScene__2->SeAllStop();
     EditDataSave();
-    MainScene->ResetWind();
+    MainScene__2->ResetWind();
     InitSphida();
     mgWaitFrame();
     if (GetMapType(map_no) == 1) {
@@ -2284,129 +2202,133 @@ int EditMapJump(int map_no) {
     } else {
         SetDataPacket(1);
     }
+    free_quads = ControlCharaBuff.stack_size;
     ControlCharaBuff.lock = 1;
-    MainDataBuff.stSetBuffer(ControlCharaBuff.stack + ControlCharaBuff.stack_used, ControlCharaBuff.stack_size - ControlCharaBuff.stack_used);
+    MainDataBuff.stSetBuffer((u_long128 *)(ControlCharaBuff.stack + ControlCharaBuff.stack_used),
+                             free_quads - ControlCharaBuff.stack_used);
     MainDataBuff.stack_used = 0;
     MainDataBuff.lock = 0;
-    printf("MAP DATA %x\n", MainDataBuff.stack + MainDataBuff.stack_used);
-    SCN_LOADMAP_INFO2 info;
-    if (GetLoadMapInfo(&info, map_no) == 0) {
+    printf(at_2949, MainDataBuff.stack + MainDataBuff.stack_used);
+    load_info.Initialize();
+    if (GetLoadMapInfo(&load_info, map_no) == 0) {
         return 0;
     }
-    if (map_no == SearchMapNo("f01") && GetSaveData()->GetEditData(0)->GetAnalyzeFlag(0, 3) == 0) {
-        strcat(info.files[0].map_name, "_2");
-        strcat(info.files[0].mpk_name, "_2");
-        strcat(info.files[0].ipk_name, "_2");
+    if (map_no == SearchMapNo(at_2950) &&
+        ((CEditData *)GetSaveData()->GetEditData(0))->GetAnalyzeFlag(0, 3) == 0) {
+        strcat(load_info.files[0].map_name, at_2951);
+        strcat(load_info.files[0].mpk_name, at_2951);
+        strcat(load_info.files[0].ipk_name, at_2951);
     }
-    MainScene->DeleteVillager();
-    MainScene->DeleteSubVillager();
-    MapJump(MainScene, &info, map_no);
-    EditMapInitEvent(map_no, (CEditMap *)MainScene->GetMap(0));
+    MainScene__2->DeleteVillager();
+    MainScene__2->DeleteSubVillager();
+    MapJump(MainScene__2, &load_info, map_no);
+    EditMapInitEvent(map_no, (CEditMap *)MainScene__2->GetMap(0));
+    main_data = &MainDataBuff;
     ResetNpcTalkMes();
-    switch (map_no) {
-    case 34:
-    case 121:
-    case 10:
-        MainDataBuff.Align64();
-        LoadNpcTalkMes(&MainDataBuff);
-        break;
+    if (map_no == 0xA || map_no == 0x22 || map_no == 0x79) {
+        main_data->Align64();
+        LoadNpcTalkMes(main_data);
     }
     NowLoadingBarStep();
-    MapNo = SearchMapNo(name);
-    MainScene->SetNowMapNo(MapNo);
+    MapNo = SearchMapNo(map_name);
+    MainScene__2->SetNowMapNo(MapNo);
     EdEventMapInit();
     if (GetMapType(MapNo) == 1) {
-        used = MainDataBuff.stack_used;
-        map = (CEditMap *)MainScene->GetMap(0);
-        map->CreateTable(&MainDataBuff, 256, 40960);
-        GetMapPath(path, name);
-        sprintf(language, "%d", LanguageCode);
-        strcat(path, language);
-        strcat(path, ".gpi");
-        if (LoadFile2(path, read_buffer, &size, 0) != 0) {
-            map->info_mngr.LoadEditInfo((char *)read_buffer, size, &MainDataBuff);
+        used_before = main_data->stack_used;
+        map = (CEditMap *)MainScene__2->GetMap(0);
+        map->CreateTable(main_data, 0x100, 0xA000);
+        GetMapPath(path, map_name);
+        sprintf(size_text, at_2952, LanguageCode);
+        strcat(path, size_text);
+        strcat(path, at_2953);
+        if (LoadFile2(path, (void *)read_buffer, &file_size, 0) != 0) {
+            LoadEditInfo__13CEditInfoMngrFPciP9mgCMemory(&map->info_mngr, (char *)read_buffer,
+                                                         file_size, main_data);
         }
-        GetMapPath(path, name);
-        strcat(path, ".cfg");
-        if (LoadFile2(path, read_buffer, &size, 0) != 0) {
-            map->LoadEditInfo((char *)read_buffer, size, &MainDataBuff);
+        GetMapPath(path, map_name);
+        strcat(path, at_2954);
+        if (LoadFile2(path, (void *)read_buffer, &file_size, 0) != 0) {
+            map->LoadEditInfo((char *)read_buffer, file_size, main_data);
         }
-        map->area_no = MainScene->now_map_no;
+        map->area_no = MainScene__2->now_map_no;
         map->ClearAllParts();
-        printf("edit data %dKB\n", (MainDataBuff.stack_used - used) * 16 / 1024);
+        used_quads = main_data->stack_used - used_before;
+        used_kb = (used_quads * 0x10) / 0x400;
+        printf(at_2955, used_kb);
         EditDataLoad();
         if (map_no == 0) {
             map->river_poly_margin = 15.0f;
         }
     }
     NowLoadingBarStep();
-    MainScene->LoadGameObject(map_no, 164, &MainDataBuff);
+    MainScene__2->LoadGameObject(map_no, 0xA4, main_data);
     if (GetMapType(MapNo) == 5) {
-        edit_data_no = 0;
-        SearchMapNo("f01");
-        if (map_no == SearchMapNo("f02")) {
-            edit_data_no = 1;
+        area_no = 0;
+        SearchMapNo(at_2950);
+        if (map_no == SearchMapNo(at_2956)) {
+            area_no = 1;
         }
-        if (map_no == SearchMapNo("f03")) {
-            edit_data_no = 2;
+        if (map_no == SearchMapNo(at_2957)) {
+            area_no = 2;
         }
-        if (map_no == SearchMapNo("f04")) {
-            edit_data_no = 3;
+        if (map_no == SearchMapNo(at_2958)) {
+            area_no = 3;
         }
-        data = GetSaveData()->GetEditData(edit_data_no);
-        map = (CEditMap *)MainScene->GetMap(MainScene->active_map);
+        edit_data = (CEditData *)GetSaveData()->GetEditData(area_no);
+        map = (CEditMap *)MainScene__2->GetMap(MainScene__2->active_map);
         if (map != NULL) {
-            map->PartsOnOff(edit_data_no, data);
+            map->PartsOnOff(area_no, edit_data);
         }
     }
-    map = (CEditMap *)MainScene->GetMap(MainScene->active_map);
+    map = (CEditMap *)MainScene__2->GetMap(MainScene__2->active_map);
     if (map != NULL) {
         if (TreasureBox != NULL) {
-            map->CreateTrBox(TreasureBox, 173, &MainDataBuff);
+            CreateTrBox__4CMapFP15CMapTreasureBoxiP9mgCMemory((CMap *)map, TreasureBox, 0xAD,
+                                                              (int)main_data);
             UpdateTrBoxFlag(MapNo);
         }
-        map->now_time = MainScene->time;
+        map->now_time = MainScene__2->time;
     }
-    InitFirePowder(map_no, MainScene, 208, &MainDataBuff);
-    InitGeyserEffect(map_no, MainScene, 209, &MainDataBuff);
-    EditControlInit(MainScene);
+    InitFirePowder(map_no, MainScene__2, 0xD0, main_data);
+    InitGeyserEffect(map_no, MainScene__2, 0xD1, main_data);
+    EditControlInit(MainScene__2);
     NowLoadingBarStep();
     editLoadSound(map_no);
     NowLoadingBarStep();
-    MainScene->DeleteVillager();
-    MainScene->LoadVillager(MapNo, 78);
+    MainScene__2->DeleteVillager();
+    MainScene__2->LoadVillager(MapNo, 0x4E);
     NowLoadingBarStep();
     if (sub_map_no > 0) {
-        loaded = LoadSubMap(MainScene, sub_map_no, 0);
+        loaded_sub = LoadSubMap(MainScene__2, sub_map_no, 0);
         NowLoadingBarStep();
-        if (loaded != 0) {
-            MainScene->SetActive(2, 1);
-            MainScene->LoadSubVillager(GetSubMapNo(), 94);
-            EditMapInitEvent(sub_map_no, (CEditMap *)MainScene->GetMap(1));
+        if (loaded_sub != 0) {
+            MainScene__2->SetActive(2, 1);
+            MainScene__2->LoadSubVillager(GetSubMapNo(), 0x5E);
+            EditMapInitEvent(sub_map_no, (CEditMap *)MainScene__2->GetMap(1));
         }
         NowLoadingBarStep();
     } else {
         NowLoadingBarStep();
         NowLoadingBarStep();
     }
-    edit_data_no = MapNo;
-    if (MapNo == SearchMapNo("f01")) {
-        edit_data_no = 0;
+    area_no = MapNo;
+    if (area_no == SearchMapNo(at_2950)) {
+        area_no = 0;
     }
-    if (MapNo == SearchMapNo("f02")) {
-        edit_data_no = 1;
+    if (MapNo == SearchMapNo(at_2956)) {
+        area_no = 1;
     }
-    if (MapNo == SearchMapNo("f03")) {
-        edit_data_no = 2;
+    if (MapNo == SearchMapNo(at_2957)) {
+        area_no = 2;
     }
-    if (MapNo == SearchMapNo("f04")) {
-        edit_data_no = 3;
+    if (MapNo == SearchMapNo(at_2958)) {
+        area_no = 3;
     }
-    EdDebugInfo.edit_data_no = edit_data_no;
-    EdDebugInfo.edit_data = GetSaveData()->GetEditData(edit_data_no);
+    EdDebugInfo.edit_data_no = area_no;
+    EdDebugInfo.edit_data = (CEditData *)GetSaveData()->GetEditData(area_no);
     mgPlightEnable(0);
-    MainScene->UpDateMapInfo();
-    camera = (CCameraControl *)MainScene->GetCamera(MainScene->active_camera);
+    MainScene__2->UpDateMapInfo();
+    camera = (CCameraControl *)MainScene__2->GetCamera(MainScene__2->active_camera);
     if (camera != NULL) {
         param = camera->GetActiveParam();
         param->min_dist = camera->default_param.min_dist;
@@ -2421,121 +2343,102 @@ int EditMapJump(int map_no) {
         param->ground_space = camera->default_param.ground_space;
         param->no_check = camera->default_param.no_check;
     }
-    mgTexManager.ReloadTexture(-1, (sceVif1Packet *)NULL);
+    textures->ReloadTexture(-1, (sceVif1Packet *)NULL);
     LoopCounter = 0;
     EditDrawCancelFlag = 1;
     InitS51Thunder();
     return 1;
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/editloop", EditMapJump__Fi);
-#endif
-
-#ifdef NONMATCHING
-int EditGotoInterior(int map_no, int delete_villager) {
-    sceVu0FVECTOR  position;
-    mgCMemory     *stack;
-    CMap          *map;
-
+int EditGotoInterior(int interior_no, int delete_villagers) {
+    float door_pos[4];
+    int stack;
+    CMap *map;
     InitEditEvent();
     DeleteFileCache();
     EditDataSave();
-    MainScene->StopSeSrc();
+    MainScene__2->StopSeSrc();
     DelMainNPCflag = 0;
-    if (delete_villager != 0) {
-        MainScene->DeleteVillager();
+    if (delete_villagers != 0) {
+        MainScene__2->DeleteVillager();
         DelMainNPCflag = 1;
     }
-    MainScene->DeleteSubVillager();
+    MainScene__2->DeleteSubVillager();
     if (InInterior() != 0) {
-        InteriorMapJump(MainScene, map_no);
+        InteriorMapJump(MainScene__2, interior_no);
     } else {
-        GotoInterior(MainScene, map_no);
+        GotoInterior(MainScene__2, interior_no);
     }
-    editLoadSound(map_no);
-    stack = MainScene->GetStack(3);
-    map = MainScene->GetMap(MainScene->active_map);
+    editLoadSound(interior_no);
+    stack =
+        (int)MainScene__2->GetStack(3);
+    map = MainScene__2->GetMap(MainScene__2->active_map);
     if (map != NULL && TreasureBox != NULL) {
-        map->CreateTrBox(TreasureBox, 173, stack);
-        UpdateTrBoxFlag(map_no);
+        CreateTrBox__4CMapFP15CMapTreasureBoxiP9mgCMemory(map, TreasureBox, 0xAD, stack);
+        UpdateTrBoxFlag(interior_no);
     }
-    MainScene->LoadSubVillager(map_no, 94);
-    MainScene->SetActiveVillager();
-    EditControlInit(MainScene);
+    MainScene__2->LoadSubVillager(interior_no, 0x5E);
+    MainScene__2->SetActiveVillager();
+    EditControlInit(MainScene__2);
     if (EditEvent.door_se >= 0) {
-        MainScene->SePlayCloseDoor(EditEvent.door_se, position);
+        MainScene__2->SePlayCloseDoor(EditEvent.door_se, door_pos);
     }
     mgPlightEnable(0);
-    MainScene->UpDateMapInfo();
+    MainScene__2->UpDateMapInfo();
     return 1;
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/editloop", EditGotoInterior__Fii);
-#endif
-
-#ifdef NONMATCHING
-int EditExitInterior(int arg) {
-    sceVu0FVECTOR position;
-    int           map_no;
-    int           time;
-
+int EditExitInterior(int interior_no) {
+    int exit_map_no;
+    float door_pos[4];
+    int villager_time;
+    int saved_time;
     InitEditEvent();
     DeleteFileCache();
-    MainScene->StopSeSrc();
-    MainScene->DeleteSubVillager();
-    time = MainScene->GetNowVillagerTime();
-    if (DelMainNPCflag != 0 || time != MainScene->villager_time) {
-        DeleteInterior(MainScene);
-        MainScene->DeleteVillager();
-        MainScene->LoadVillager(GetMainMapNo(), 78);
+    MainScene__2->StopSeSrc();
+    MainScene__2->DeleteSubVillager();
+    villager_time = MainScene__2->GetNowVillagerTime();
+    saved_time =
+        MainScene__2->villager_time;
+    if (DelMainNPCflag != 0 || villager_time != saved_time) {
+        DeleteInterior(MainScene__2);
+        MainScene__2->DeleteVillager();
+        MainScene__2->LoadVillager(GetMainMapNo(), 0x4E);
     }
-    map_no = -1;
-    ExitInterior(MainScene, &map_no);
-    EditMapInitEvent(map_no, (CEditMap *)MainScene->GetMap(1));
-    MainScene->LoadSubVillager(GetSubMapNo(), 94);
-    MainScene->SetActiveVillager();
-    EditControlInit(MainScene);
+    exit_map_no = -1;
+    ExitInterior(MainScene__2, &exit_map_no);
+    EditMapInitEvent(exit_map_no, (CEditMap *)MainScene__2->GetMap(1));
+    MainScene__2->LoadSubVillager(GetSubMapNo(), 0x5E);
+    MainScene__2->SetActiveVillager();
+    EditControlInit(MainScene__2);
     if (EditEvent.door_se >= 0) {
-        MainScene->SePlayCloseDoor(EditEvent.door_se, position);
+        MainScene__2->SePlayCloseDoor(EditEvent.door_se, door_pos);
     }
-    MainScene->LoadSound(GetMapSndDataID(GetMainMapNo()), read_buffer);
+    MainScene__2->LoadSound(GetMapSndDataID(GetMainMapNo()), read_buffer);
     mgPlightEnable(0);
-    MainScene->UpDateMapInfo();
+    MainScene__2->UpDateMapInfo();
     return 1;
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/editloop", EditExitInterior__Fi);
-#endif
-
-#ifdef NONMATCHING
-void EditDataSave() {
-    CEditData *data;
-    CMap      *base;
-    CEditMap  *map;
+void EditDataSave(void) {
+    CEditData *edit_data;
+    CEditMap *map;
 
     if (InInterior() == 0) {
-        data = GetSaveData()->GetEditData(MapNo);
-        if (data != NULL) {
-            base = MainScene->GetMap(MainScene->active_map);
-            if (base != NULL && strcmp(base->Iam(), "CEditMap") == 0) {
-                map = (CEditMap *)base;
-                map->SaveData(data);
+        edit_data = (CEditData *)(GetSaveData()->GetEditData(MapNo));
+        if (edit_data != NULL) {
+            map = (CEditMap *)(MainScene__2->GetMap(MainScene__2->active_map));
+            if ((map != NULL) && (strcmp(map->Iam(), at_2747) == 0) && (map != NULL)) {
+                map->SaveData(edit_data);
                 GetSaveData()->GetBitFlag(0x208);
-                data->culture_point = map->CultureAnalyze(0);
-                data->save_count++;
+                edit_data->culture_point = map->CultureAnalyze(0);
+                edit_data->save_count += 1;
                 map->GroundBalance(0);
                 map->UpdateHouse();
-                if (DebugInfo.georama_debug == 0 && GetMapType(MapNo) == 1) {
+                if ((DebugInfo.georama_debug == 0) && (GetMapType(MapNo) == 1)) {
                     AnalyzeEditMap(MapNo, map);
                 }
             }
         }
     }
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/editloop", EditDataSave__Fv);
-#endif
-
 #ifdef NONMATCHING
 void EditDataLoad() {
     EP_PLACE_INFO   placement;
@@ -2549,7 +2452,7 @@ void EditDataLoad() {
     int            slot;
     int            i;
 
-    base = MainScene->GetMap(MainScene->active_map);
+    base = MainScene__2->GetMap(MainScene__2->active_map);
     if (base == NULL) {
         return;
     }
@@ -2583,41 +2486,25 @@ void EditDataLoad() {
 #else
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/editloop", EditDataLoad__Fv);
 #endif
-
-#ifdef NONMATCHING
 void KeepEditAnalyze() {
-    CEditData *data;
-    int        i;
-
-    data = GetSaveData()->GetEditData(MapNo);
-    for (i = 0; i < 16; i++) {
-        beforeAnalyze[i] = data->GetAnalyzeFlag(MapNo, i);
+    CEditData *edit_data = (CEditData *)GetSaveData()->GetEditData(MapNo);
+    for (int entry = 0; entry < 16; entry++) {
+        beforeAnalyze[entry] = edit_data->GetAnalyzeFlag(MapNo, entry);
     }
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/editloop", KeepEditAnalyze__Fv);
-#endif
-
-#ifdef NONMATCHING
 int EditAnalyzeChanged() {
-    CEditData *data;
-    int        i;
-
     if (GetGameChapter(GetSaveData()->game_progress) >= 8) {
         return 0;
     }
-    data = GetSaveData()->GetEditData(MapNo);
-    for (i = 0; i < 16; i++) {
-        if (data->GetAnalyzeFlag(MapNo, i) != beforeAnalyze[i]) {
+    CEditData *edit_data = (CEditData *)GetSaveData()->GetEditData(MapNo);
+    for (int entry = 0; entry < 16; entry++) {
+        int analyze_flag = edit_data->GetAnalyzeFlag(MapNo, entry);
+        if (analyze_flag != beforeAnalyze[entry]) {
             return 1;
         }
     }
     return 0;
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/editloop", EditAnalyzeChanged__Fv);
-#endif
-
 void LoadComVillaager(void) {
 }
 void LoadMap(void) {
@@ -2625,12 +2512,7 @@ void LoadMap(void) {
 }
 
 // Static initialiser (.init)
-#ifdef NONMATCHING
-// Initializes WaveTable, EventMes1, the memory stacks, EditEvent, EdDebugInfo, TestVisual and TestFrame.
-#else
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/editloop", __sinit_editloop_cpp);
-#endif
-
 
 // Initialised data (.data)
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editloop", at_1045__DATA);
