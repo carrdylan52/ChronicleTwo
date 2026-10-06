@@ -1,10 +1,4 @@
 #include "common.h"
-#include "mg_memory.hpp"
-#include "mg_drawprim.hpp"
-#include "mg_texture.hpp"
-#include "mg_frame.hpp"
-#include "mg_drawenv.hpp"
-#include "mglib.hpp"
 #include "mg_camera.hpp"
 #include "mg_math.hpp"
 
@@ -13,72 +7,67 @@
 #include <cmath>
 
 // Code (.text)
-void mgCCamera::Step(int frames) {
-    mgCCamera *self = this;
-    float dir[4];
-    struct {
-        float x;
-        float y;
-        float z;
-        float w;
-    } flat;
-    int frame;
-    int i;
-    if (self->suspended == 0 && mgCCamera::StopCamera == 0) {
-        if (self->pos_speed <= 0.0f) {
-            self->pos_speed = 1.0f;
+void mgCCamera::Step(int steps) {
+    sceVu0FVECTOR dir;
+    sceVu0FVECTOR flat;
+    int step;
+    int axis;
+    if (suspended == 0 && mgCCamera::StopCamera == 0) {
+        if (pos_speed <= 0.0f) {
+            pos_speed = 1.0f;
         }
-        if (self->ref_speed <= 0.0f) {
-            self->ref_speed = 1.0f;
+        if (ref_speed <= 0.0f) {
+            ref_speed = 1.0f;
         }
-        if (frames < 0) {
-            self->pos[0] = self->next_pos[0];
-            self->ref[0] = self->next_ref[0];
-            self->pos[1] = self->next_pos[1];
-            self->ref[1] = self->next_ref[1];
-            self->pos[2] = self->next_pos[2];
-            self->ref[2] = self->next_ref[2];
-        } else if (0 < frames) {
-            frame = 0;
-            do {
-                i = 0;
-                do {
-                    if (self->pos_speed <= 1.0f && self->ref_speed <= 1.0f) {
-                        self->pos[i] = self->next_pos[i];
-                        self->ref[i] = self->next_ref[i];
+        if (steps < 0) {
+            pos[0] = next_pos[0];
+            ref[0] = next_ref[0];
+            pos[1] = next_pos[1];
+            ref[1] = next_ref[1];
+            pos[2] = next_pos[2];
+            ref[2] = next_ref[2];
+        } else {
+            for (step = 0; step < steps; step++) {
+                for (axis = 0; axis < 3; axis++) {
+                    float speed = pos_speed;
+
+                    if (speed <= 1.0f && ref_speed <= 1.0f) {
+                        pos[axis] = next_pos[axis];
+                        ref[axis] = next_ref[axis];
                     } else {
-                        float posStep = (self->next_pos[i] - self->pos[i]) / self->pos_speed;
-                        float refRate = self->ref_speed;
-                        if (refRate < 1.0f) {
-                            refRate = 1.0f;
+                        float position_step = (next_pos[axis] - pos[axis]) / speed;
+                        float look_speed = ref_speed;
+                        if (look_speed < 1.0f) {
+                            look_speed = 1.0f;
                         }
-                        float refStep = (self->next_ref[i] - self->ref[i]) / refRate;
-                        self->pos[i] += posStep;
-                        self->ref[i] += refStep;
-                        float posError = self->pos[i] - self->next_pos[i];
-                        float refError = self->ref[i] - self->next_ref[i];
-                        posError = posError < 0.0f ? -posError : posError;
-                        if (posError < self->snap_range) {
-                            self->pos[i] = self->next_pos[i];
+                        float reference_step = (next_ref[axis] - ref[axis]) / look_speed;
+                        pos[axis] += position_step;
+                        ref[axis] += reference_step;
+                        // The last step of the movement is not exact, so the eye
+                        // and the look-at point snap on once they are near enough.
+                        float left_pos = pos[axis] - next_pos[axis];
+                        float left_ref = ref[axis] - next_ref[axis];
+                        left_pos = left_pos < 0.0f ? -left_pos : left_pos;
+                        if (left_pos < snap_range) {
+                            pos[axis] = next_pos[axis];
                         }
-                        refError = refError < 0.0f ? -refError : refError;
-                        if (refError < self->snap_range) {
-                            self->ref[i] = self->next_ref[i];
+                        left_ref = left_ref < 0.0f ? -left_ref : left_ref;
+                        if (left_ref < snap_range) {
+                            ref[axis] = next_ref[axis];
                         }
                     }
-                    i++;
-                } while (i < 3);
-                frame++;
-            } while (frame < frames);
+                }
+            }
         }
-        self->GetDir(dir);
-        flat.x = dir[0];
-        flat.y = 0.0f;
-        flat.z = dir[2];
-        flat.w = 0.0f;
-        sceVu0Normalize(&flat.x, &flat.x);
-        self->angle_h = atan2f(-flat.x, -flat.z);
-        self->angle_v = -atan2f(dir[1], sqrtf(dir[0] * dir[0] + dir[2] * dir[2]));
+        // The horizontal angle comes from the view direction with its height taken out.
+        GetDir(dir);
+        flat[0] = dir[0];
+        flat[1] = 0.0f;
+        flat[2] = dir[2];
+        flat[3] = 0.0f;
+        sceVu0Normalize(flat, flat);
+        angle_h = atan2f(-flat[0], -flat[2]);
+        angle_v = -atan2f(dir[1], sqrtf(dir[0] * dir[0] + dir[2] * dir[2]));
     }
 }
 
@@ -142,25 +131,21 @@ void mgCCamera::GetDir(float *dir) {
 }
 
 void mgCCamera::GetCameraMatrix(float (*matrix)[4]) {
-    struct {
-        float x, y, z;
-        float w;
-    } forward;
-    struct {
-        float x, y, z;
-        unsigned int w;
-    } up;
-    GetDir(&forward.x);
-    forward.x = forward.x;
-    forward.y = forward.y;
-    forward.z = forward.z;
-    up.x = forward.x * forward.y;
-    up.y = -(forward.x * forward.x + forward.z * forward.z);
-    up.z = forward.y * forward.z;
-    up.w = 0x3F800000;
-    sceVu0Normalize(&up.x, &up.x);
-    sceVu0Normalize(&forward.x, &forward.x);
-    sceVu0CameraMatrix(matrix, pos, &forward.x, &up.x);
+    sceVu0FVECTOR dir;
+    sceVu0FVECTOR up;
+    GetDir(dir);
+    dir[0] = dir[0];
+    dir[1] = dir[1];
+    dir[2] = dir[2];
+    // The up direction lies in the vertical plane of the view direction, at
+    // right angles to it.
+    up[0] = dir[0] * dir[1];
+    up[1] = -(dir[0] * dir[0] + dir[2] * dir[2]);
+    up[2] = dir[1] * dir[2];
+    up[3] = 1.0f;
+    sceVu0Normalize(up, up);
+    sceVu0Normalize(dir, dir);
+    sceVu0CameraMatrix(matrix, pos, dir, up);
 }
 
 void mgCCamera::SetSpeed(float pos_speed, float ref_speed) {
@@ -226,48 +211,50 @@ void mgCCameraFollow::GetFollowNext(float *pos) {
     mgAddVector(pos, follow_offset);
 }
 
-void mgCCameraFollow::Step(int frames) {
-    float pos[4];
-    int i;
-    float rate;
-    if (suspended == 0 && StopCamera == 0) {
+void mgCCameraFollow::Step(int steps) {
+    sceVu0FVECTOR next_pos;
+    int step;
+    if (suspended == 0 && mgCCamera::StopCamera == 0) {
         sceVu0AddVector(follow_next, follow, follow_offset);
-        if (frames < 0) {
+        // A step count below zero turns the eye onto its angle without any of the
+        // steps in between.
+        if (steps < 0) {
             if (follow_on != 0) {
                 angle = next_angle;
-                GetFollowNextPos(pos);
-                SetNextPos(pos);
+                GetFollowNextPos(next_pos);
+                SetNextPos(next_pos);
                 SetNextRef(follow_next[0], follow_next[1], follow_next[2]);
             }
-            mgCCamera::Step(frames);
+            mgCCamera::Step(steps);
             return;
         }
-        if (!(next_angle <= 6.2831855f)) {
+        // The angle that the eye turns to stays inside one turn.
+        if (next_angle > 6.2831855f) {
             next_angle -= 6.2831855f;
         }
         if (next_angle < 0.0f) {
             next_angle += 6.2831855f;
         }
-        i = 0;
-        if (0 < frames) {
-            do {
-                if (follow_on != 0) {
-                    rate = pos_speed / 2.0f;
-                    if (rate < 1.0f) {
-                        rate = 1.0f;
-                    }
-                    angle = mgAngleInterpolate(angle, next_angle, rate, 1);
-                    if (pos_speed < 1.1f) {
-                        angle = next_angle;
-                    }
-                    GetFollowNextPos(pos);
-                    SetNextPos(pos);
-                    SetNextRef(follow_next[0], follow_next[1], follow_next[2]);
+        for (step = 0; step < steps; step++) {
+            if (follow_on != 0) {
+                float turn = pos_speed / 2.0f;
+                if (turn < 1.0f) {
+                    turn = 1.0f;
                 }
-                mgCCamera::Step(1);
-                i++;
-            } while (i < frames);
+                angle = mgAngleInterpolate(angle, next_angle, turn, MG_INTERPOLATE_FRACTION);
+                // An eye that reaches its position in about one step turns at
+                // once as well.
+                if (pos_speed < 1.1f) {
+                    angle = next_angle;
+                }
+                GetFollowNextPos(next_pos);
+                SetNextPos(next_pos);
+                SetNextRef(follow_next[0], follow_next[1], follow_next[2]);
+            }
+            mgCCamera::Step(1);
         }
+        // An eye that no longer circles the point takes the angle that the base
+        // camera measured for it.
         if (follow_on == 0) {
             next_angle = angle_h;
             angle = angle_h;
@@ -365,10 +352,6 @@ mgCCameraFollow::mgCCameraFollow(float distance, float height, float angle, floa
     mgZeroVector(follow_offset);
 }
 
-    // Defined in mg_camera.hpp.
-    // Defined in mg_camera.hpp.
-    // Defined in mg_camera.hpp.
-    // Defined in mg_camera.hpp.
 // Virtual tables (.vtables)
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mg_camera", __vt__15mgCCameraFollow__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mg_camera", __vt__9mgCCamera__DATA);
