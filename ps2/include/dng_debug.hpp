@@ -115,6 +115,3 @@ int dngDebugKey();
  * @size 0x50
  */
 void DrawDebugWindow();
-
-
-void DBGCMD_ReloadEnemy(int monster_id, int reset);

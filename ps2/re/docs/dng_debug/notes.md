@@ -68,17 +68,16 @@ Every function was run through `decompile.sh`; the Ghidra export clarified
 the irregular jump table in `dngDebugKey` and the monster target fields in
 `DrawSystemParamInfo2`.
 
-`dngGetDebugInfo`, `dngDebugInit`, `dngDebugExit`, and `DrawDebugWindow`
-passed linked-image promotion and are active. `CTreasureBox::Initialize`
-also compared exactly in the isolated draft, but its single promotion attempt
-failed because the header supplied an inline definition. The header now gives
-this unit a declaration so the guarded out-of-line draft compiles; a later
-matching pass can revisit that promotion. `dngDebugStart` and the other five
-large drafts differ from retail and remain behind `NONMATCHING`. The static
-initializer draft compiles, but `mwccgap` cannot locate its unmangled local
-symbol for promotion. Each symbol had one recorded promotion attempt in
-`scripts/re/promotion_attempts.tsv`. The default full build remains byte
-identical to retail.
+Nine functions match in the linked image: `dngGetDebugInfo`, `dngDebugInit`,
+`dngDebugExit`, `dngDebugKey`, `CTreasureBox::Initialize`, `DrawSystemParamInfo`,
+`DrawSystemParamInfo2`, `DrawDebugWindow`, and `__sinit_dng_debug_cpp`.
+The static font object emits the initializer and its constructor-table entry.
+`dngDebugStart`, `dngDebugDraw`, and `DBGCMD_ReloadEnemy` are guarded drafts.
+The latter two use typed array accesses and keep their assembly fallbacks.
+The default full build remains byte identical to retail.
+
+The command-value table has 24 words: one value/minimum pair for each of the
+12 commands, including the last command's minimum at index 23.
 
 ## dngDebugDraw
 Reloads texture 0x6C, draws a translucent box (14,70)-(260,332), then prints the list; on
