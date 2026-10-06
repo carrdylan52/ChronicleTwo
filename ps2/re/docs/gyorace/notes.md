@@ -11,14 +11,14 @@ counterpart (Dark Cloud 1 has no fish race).
 | `AutoCam(SubGameInfo*)` | global | void | nearest of 5 `cam_pos` to hero fish; plays SE 2 vol when cam y < 0 |
 | `sgMapDrawGyoRace` | global | int | returns 0 |
 | `sgCharaDrawGyoRace` | global | int | DrawChara for 6 fish, Step/Draw 0x60 CHitEffectImage |
-| `DivSpriteScreen(mgCDrawPrim&)` | **LOCAL** (`__2` suffix) | void | static, belongs in .cpp; not in header. Uses fn-local statics `ras_off_1762` (float), `init_1763` (bool), `at_1765__2`/`at_1775`/`at_1776` (local 0x10 bss). Underwater raster wobble |
+| `DivSpriteScreen(mgCDrawPrim&)` | **LOCAL** (`__2` suffix) | void | static, belongs in .cpp; not in header. Uses static raster offset (float), initialized flag (s8), and local 16-byte coordinate arrays. Underwater raster wobble |
 | `sgEffectDrawGyoRace` | global | int | only when `water_cam` |
 | `sgSysDrawGyoRace` | global | int | fn-local statics `lap_inf_1798` int[2][5] (h, m/10, m%10, cs/10, cs%10 per lap), `lap_inf2_1799` int[5] (total time digits) |
 | `Jikkyou(SubGameInfo*)` | global | int | -1 while race_cnt<=0 or mes_count>0, else 0 |
 | `__sinit_gyorace_cpp` | — | — | `BuffTextureData.Init()`, `BuffWorkData.Init()`, `camera0 = mgCCamera(8.0f)` |
 
 ## SubGameInfo (subgame.hpp, not owned here)
-`+0` CScene*; `+4` is the first texture block number for fish characters (`CharaTexb = info->unk_4`).
+`+0` CScene*; `+4` is the first texture block number for fish characters (`CharaTexb = info->texb`).
 
 ## Global data (non-local -> extern in header)
 | Symbol | Type | Evidence |
@@ -33,8 +33,8 @@ counterpart (Dark Cloud 1 has no fish race).
 | `race_rank` | int[2] | [0]=GetGyoRaceClass, [1]=GetGyoRaceNo; symbol size 8 |
 | `gyo_mes` | ClsMes* | `new(Alloc(0x298)) ClsMes` (0x2958) ; inlined ClsMes init follows the ctor |
 | `fish_game_data` | `GYORACE_RESULT[6]` | 0xD8 = 6*0x24; written in sgLoop mode 5 at index rank-1; read by event_func `_SET_GYORACE_ETC` (name +0, time +0x18) and sgInit (+0x1C/+0x20 for races already run) |
-| `RaceInfo` | `grRACE_INFO` (gyoracesim) | 0x1DC; incomplete here |
-| `old_prog` | `grRACE_PROGRESS[6]` (0x90, stride 0x18) | **not declared in header**: grRACE_PROGRESS is gyoracesim's and gyoracesim.hpp does not exist yet, and an extern array of an incomplete type does not compile. Add `extern grRACE_PROGRESS old_prog[6];` with `#include "gyoracesim.hpp"` once it exists |
+| `RaceInfo` | `grRACE_INFO` (gyoracesim) | 0x1DC; declared in gyoracesim.hpp |
+| `old_prog` | `grRACE_PROGRESS[6]` (0x90, stride 0x18) | declared with the complete grRACE_PROGRESS type in gyorace.hpp |
 | `camera0` | mgCCamera (0x70) | ctor in __sinit; `mgCCamera` methods called on it |
 | `fish_inf` | `GYORACE_FISH_INF[6]` | 0x108 = 6*0x2C |
 
@@ -84,19 +84,13 @@ grRACE_PROGRESS (0x18): `+0` float course position (0..16, 8 per lap), `+8` floa
 
 ## C++ draft and promotion status (2026-10-06)
 
-All eight ASM-backed runtime functions have typed C++ drafts guarded by `NONMATCHING`.
-`sgMapDrawGyoRace` is already matched. The compiler-generated initializer matches when the
-guarded globals are compiled, but default promotion is blocked: the object compiler emits
-`__sinit_gyorace.cpp`, whereas the retail constructor table references
-`__sinit_gyorace_cpp`. The retail initializer remains the default assembly implementation.
+The draft check reports seven matches and three differences across ten functions.
+Seven functions compile in the default build: AutoCam, sgMapDrawGyoRace,
+sgCharaDrawGyoRace, DivSpriteScreen, sgEffectDrawGyoRace, Jikkyou and the
+compiler-generated initializer. AutoCam declares the nearest-distance local before
+the scene local and assigns its initial value after obtaining the hero position.
+The draft and default executable both match retail.
 
-The eight runtime drafts all differ from retail. Each received one isolated promotion
-attempt; each trial failed to compile because the trial deliberately enabled only that
-function while its dependent includes and locally owned globals remained guarded.
-The guarded unit itself compiles, and the default full build verifies byte-identical.
-
-The initializer, race loop and race display drafts currently model their principal
-state transitions and typed data flow. They do not yet cover every resource load,
-animation update, screen primitive or commentary branch in retail. In particular,
-`sgInitGyoRace` and `sgSysDrawGyoRace` are substantially shorter than the retail code.
-These remain analysis and matching gaps, not promoted functions.
+sgInitGyoRace, sgLoopGyoRace and sgSysDrawGyoRace retain the upstream typed drafts.
+They remain substantially shorter than retail and do not cover every resource load,
+animation update, screen primitive or commentary branch.
