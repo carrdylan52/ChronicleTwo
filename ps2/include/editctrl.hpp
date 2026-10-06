@@ -140,7 +140,7 @@ char *GetFootEffName(int ground_kind);
  * @address 0x1A5750
  * @size 0xB10
  */
-void EditMoveChara(CScene *scene, float *velocity, EditMoveCharaInfo *info);
+void EditMoveChara(CScene *scene, sceVu0FVECTOR velocity, EditMoveCharaInfo *info);
 
 /**
  *

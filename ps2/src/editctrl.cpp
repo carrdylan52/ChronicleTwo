@@ -1,89 +1,5 @@
 #include "common.h"
-#include "dng_effect.hpp"
-#include "helpmes.hpp"
-#include "inventmn.hpp"
-#include "scenesnd.hpp"
-#include <cstring>
-#include "mainloop.hpp"
-#include "mglib.hpp"
-#include "sphida.hpp"
-#include "editmap.hpp"
-#include "editexception.hpp"
-#include "mg_texture.hpp"
-#include "sceneevent.hpp"
-#include "photo.hpp"
-#include "mg_math.hpp"
-#include "cameracontrol.hpp"
-#include "gamepad.hpp"
-#include "padcontrol.hpp"
-#include "userdata.hpp"
-#include "savedata.hpp"
-#include "character.hpp"
-#include "scene.hpp"
 #include "editctrl.hpp"
-
-void CameraControl(CScene *scene, CPadControl *pad);
-
-const int kFirstEventChara = 8;
-const int kEventCharaEnd = 0x40;
-const int kCharaTypeEffect = 4;
-
-extern char at_962[];
-
-extern CSceneEventData LadderData;
-extern "C" int CharaControl__FP6CSceneP11CPadControl(CScene *, CPadControl *);
-extern "C" void CancelRotBack__14CCameraControlFv(CCameraControl *camera);
-extern MoveCheckInfo MoveInfo;
-extern int move_chara;
-extern int CharaAngleTarget;
-extern int CharaAngleTargetFlag;
-extern int FixCameraFlag;
-extern int InitEyeViewFlag;
-extern float viewAngleH;
-extern float viewAngleV;
-extern float AddProj;
-extern int ShutterCnt;
-extern float OldCameraPos[4];
-extern sceVu0FVECTOR OldFixCameraPos;
-extern int name_id_982[30];
-extern char *name_978[4];
-extern "C" void ControlOff__14CCameraControlFv(CCameraControl *camera);
-extern "C" void ControlOn__14CCameraControlFv(CCameraControl *camera);
-extern "C" void FollowOff__15mgCCameraFollowFv(CCameraControl *camera);
-extern "C" void FollowOn__15mgCCameraFollowFv(CCameraControl *camera);
-extern "C" void SetDistance__15mgCCameraFollowFf(CCameraControl *camera, float distance);
-extern "C" void SetHeight__14CCameraControlFf(CCameraControl *camera, float height);
-extern "C" float GetHeight__15mgCCameraFollowFv(CCameraControl *camera);
-extern "C" void EyeCamera__FP9mgCCameraP11CCharacter2i(mgCCameraFollow *, CCharacter2 *, int);
-extern "C" void InitEyeCamera__FP11CCharacter2P14CCameraControl(CCharacter2 *chara,
-                                                                CCameraControl *camera);
-extern DEBUG_INFO DebugInfo;
-extern "C" void GetPos__9mgCCameraFPf(CCameraControl *camera, float *out);
-extern "C" void SetPos__9mgCCameraFPf(mgCCameraFollow *camera, float *pos);
-extern "C" void SetNextPos__9mgCCameraFPf(mgCCameraFollow *camera, float *pos);
-extern "C" void SetNextRef__9mgCCameraFPf(mgCCameraFollow *camera, float *ref);
-extern int LadderMode;
-extern int LadderStep;
-extern mgCCamera *LadderCamera;
-extern float LdrNext;
-extern float LdrRot;
-extern float OldMtnRate;
-extern int LdrSound;
-extern int LdrBtmFoot;
-extern int LdrTopFoot;
-extern sceVu0FVECTOR LdrPos;
-extern sceVu0FVECTOR StdPos;
-extern sceVu0FVECTOR LdrBottomPos;
-extern sceVu0FVECTOR LdrTopPos;
-extern sceVu0FVECTOR LdrTopWalk;
-extern sceVu0FVECTOR LdrCamPos;
-extern int EyeViewCancelOnce;
-extern int CharaFallFlag;
-extern int CharaMotionMode;
-extern int CharaMotionModeCnt;
-extern int FixCameraChgCnt;
-extern int ViewMode;
-extern CGamePad GamePad__2;
 
 #include <cmath>
 #include <cstring>
@@ -108,7 +24,6 @@ extern CGamePad GamePad__2;
 #include "sphida.hpp"
 #include "userdata.hpp"
 
-#ifdef NONMATCHING
 static int           LadderMode;           /**< End of the ladder the player entered. */
 static int           LadderStep;           /**< Stage of climbing the ladder. */
 static int           CharaMotionMode;      /**< Special movement motion in progress. */
@@ -144,13 +59,14 @@ static sceVu0FVECTOR  LdrTopPos;            /**< Landing at the top of the ladde
 static sceVu0FVECTOR  LdrTopWalk;           /**< Walk-off position at the top of the ladder. */
 static sceVu0FVECTOR  LdrCamPos;            /**< Camera eye position for ladder climbing. */
 
-static void EyeCamera(mgCCamera *camera, CCharacter2 *character, int right_stick);
-static void LadderControl(CScene *scene, CPadControl *pad);
-#endif
-
-static void LadderControl(CScene *scene, CPadControl *pad);
 static void CharaControl(CScene *scene, CPadControl *pad);
+static void CameraControl(CScene *scene, CPadControl *pad);
+static void InitEyeCamera(CCharacter2 *character, CCameraControl *camera);
+static void EyeCamera(mgCCamera *camera, CCharacter2 *character, int right_stick);
 static void InitLadder(int mode, CScene *scene, CSceneEventData *event);
+static void EndLadder();
+static void LadderControl(CScene *scene, CPadControl *pad);
+
 
 // Code (.text)
 /**
@@ -165,27 +81,31 @@ static CUserDataManager *GetUserData() {
     }
     return NULL;
 }
-int EditOnGround(void) {
+
+int EditOnGround() {
     if (CharaFallFlag > 0) {
         return 0;
     }
-    if (CharaMotionMode != 0) {
+    if (CharaMotionMode != EDIT_CHARA_MOTION_FREE) {
         return 0;
     }
-    return (LadderMode != 0) ^ 1;
+    return (LadderMode != EDIT_LADDER_MODE_NONE) ^ 1;
 }
-int IsWalkMode(void) {
-    return ViewMode == 0;
+
+int IsWalkMode() {
+    return ViewMode == EDIT_VIEW_MODE_WALK;
 }
+
 void EditControlInit(CScene *scene) {
-    CCameraControl *camera;
-    memset(&MoveInfo, 0, 0x110);
+    mgCCamera *camera;
+
+    memset(&MoveInfo, 0, sizeof(MoveInfo));
     EyeViewCancelOnce = 0;
-    ViewMode = 0;
+    ViewMode = EDIT_VIEW_MODE_WALK;
     InitEyeViewFlag = 0;
-    viewAngleH = 0;
-    viewAngleV = 0;
-    AddProj = 0;
+    viewAngleH = 0.0f;
+    viewAngleV = 0.0f;
+    AddProj = 0.0f;
     ShutterCnt = 0;
     move_chara = 0;
     scene->ResetStatus(1, scene->player_chara, 0x10);
@@ -194,52 +114,57 @@ void EditControlInit(CScene *scene) {
     FixCameraFlag = 0;
     InitTakePhoto();
     EditControlStatusInit(scene);
-    camera = (CCameraControl *)scene->GetCamera(scene->active_camera);
-    if (camera != NULL && camera->Iam() != 1000) {
-        CancelRotBack__14CCameraControlFv(camera);
+    camera = scene->GetCamera(scene->active_camera);
+    if (camera != NULL && camera->Iam() != CAMERA_KIND_CONTROL) {
+        ((CCameraControl *)camera)->CancelRotBack();
     }
 }
-void EditControlStatusInit(CScene *scene) {
-    CCharacter2 *chara;
 
-    LadderMode = 0;
-    CharaMotionMode = 0;
+void EditControlStatusInit(CScene *scene) {
+    CCharacter2 *character;
+
+    LadderMode = EDIT_LADDER_MODE_NONE;
+    CharaMotionMode = EDIT_CHARA_MOTION_FREE;
     CharaMotionModeCnt = 0;
     CharaFallFlag = 0;
     FixCameraChgCnt = 0;
-    chara = scene->GetCharacter(scene->player_chara);
-    if (chara != NULL) {
-        chara->SetMotion(at_962, 4);
-
-        *(int *)((u8 *)chara + 0x84) = 0;
-        chara->Step();
+    character = scene->GetCharacter(scene->player_chara);
+    if (character != NULL) {
+        character->SetMotion("\x97\xA7\x82\xBF", CHARA_MOTION_RESTART);
+        character->velocity[1] = 0.0f;
+        character->Step();
     }
 }
-int EditControl(CScene *scene, CPadControl *pad) {
-    CPadControl *camera_pad;
 
-    camera_pad = pad;
-    if (LadderMode != 0) {
+int EditControl(CScene *scene, CPadControl *pad) {
+    if (LadderMode != EDIT_LADDER_MODE_NONE) {
         LadderControl(scene, pad);
     } else {
-        CharaControl__FP6CSceneP11CPadControl(scene, pad);
+        CharaControl(scene, pad);
         if (scene->event_run != 0) {
-            camera_pad = (CPadControl *)NULL;
+            pad = NULL;
         }
-        CameraControl(scene, camera_pad);
+        CameraControl(scene, pad);
     }
     return 0;
 }
-char *GetFootEffName(int index) {
-    if (index < 0 || index >= 30) {
-        return 0;
+
+char *GetFootEffName(int ground_kind) {
+    static char *names[4] = { NULL, "\x91\xAB\x8D\xBB\x89\x8C", "\x91\xAB\x90\x85\x83\x70\x83\x56\x83\x83", "\x91\xAB\x8E\xC5\x90\xB6" };
+    static int   name_ids[30] = { 0, 3, 0, 0, 0, 0, 0, 1, 1, 0, 0, 2, 0, 1, 1, 0, 1, 0, 2, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0 };
+
+    if (ground_kind < 0 || ground_kind >= 30) {
+        return NULL;
     }
-    return name_978[name_id_982[index]];
+    return names[name_ids[ground_kind]];
 }
 
 void EditMoveChara(CScene *scene, sceVu0FVECTOR velocity, EditMoveCharaInfo *info) {
     CCharacter2      *character;
+    CCharacter2      *other;
     CEffectScriptMan *effects;
+    mgCCamera        *camera;
+    CCameraControl   *control_camera;
     CMap             *map;
     CEditMap         *edit_map;
     CEditParts       *parts;
@@ -275,21 +200,21 @@ void EditMoveChara(CScene *scene, sceVu0FVECTOR velocity, EditMoveCharaInfo *inf
     }
     effects = scene->GetEffect(0);
     {
-    CCameraControl *control_camera;
-    CCameraControl *camera = (CCameraControl *)scene->GetCamera(scene->active_camera);
-    control_camera = NULL;
-    if (camera != NULL) {
-        if (camera->Iam() == CAMERA_KIND_CONTROL) {
-            control_camera = camera;
+        CCameraControl *control_camera;
+        CCameraControl *camera = (CCameraControl *)scene->GetCamera(scene->active_camera);
+        control_camera = NULL;
+        if (camera != NULL) {
+            if (camera->Iam() == CAMERA_KIND_CONTROL) {
+                control_camera = camera;
+            }
         }
-    }
-    if (control_camera != NULL) {
-        if (!(mgDistVectorXZ(velocity) <= 0.1f)) {
-            control_camera->BitResetRotCameraCancel(CAMERA_ROT_CANCEL_AUTO_MOVE);
-        } else {
-            control_camera->BitSetRotCameraCancel(CAMERA_ROT_CANCEL_AUTO_MOVE);
+        if (control_camera != NULL) {
+            if (!(mgDistVectorXZ(velocity) <= 0.1f)) {
+                control_camera->BitResetRotCameraCancel(CAMERA_ROT_CANCEL_AUTO_MOVE);
+            } else {
+                control_camera->BitSetRotCameraCancel(CAMERA_ROT_CANCEL_AUTO_MOVE);
+            }
         }
-    }
     }
     character->GetPosition(position);
     for (i = 0; i < 3; i++) {
@@ -345,7 +270,7 @@ void EditMoveChara(CScene *scene, sceVu0FVECTOR velocity, EditMoveCharaInfo *inf
     }
     if (info != NULL && info->polys != NULL) {
         for (int copy_index = 0; copy_index < info->poly_num; copy_index++) {
-            mgVec4 *source = (mgVec4 *)(info->polys + copy_index);
+            mgVec4 *source = (mgVec4 *)&info->polys[copy_index];
             mgVec4 *dest = (mgVec4 *)next_poly++;
             for (int row = 0; row < 5; row++) {
                 dest[row] = source[row];
@@ -555,15 +480,13 @@ void EditCameraControl(CScene *scene, CPadControl *pad, float (*look_at)[4]) {
                 camera->Step(-1);
                 return;
             }
-            camera->SetSpeed(1, 4);
+            camera->SetSpeed(1.0f, 4.0f);
             camera->SetNextPos(fixed_position);
             camera->SetNextRef(position[0], 30.0f + position[1], position[2]);
             return;
         }
         camera->ControlOn();
-        float speed = 4.0f;
-        float damping = 3.0f;
-        camera->SetSpeed(speed, damping);
+        camera->SetSpeed(4.0f, 3.0f);
         camera->GetPos(eye);
         camera->GetRef(target);
         mgVectorMaxMin(bounds.max, bounds.min, eye, target);
@@ -583,39 +506,39 @@ void EditCameraControl(CScene *scene, CPadControl *pad, float (*look_at)[4]) {
     camera->SetFollowOffset(0.0f, reference, 0.0f);
     camera->ControlOff();
     camera->FollowOn();
-    camera->AddAngle(frame_rate * (0.03f * -GamePad__2.GetRXf()));
-    camera->SetSpeed(4, 2);
-    if (GamePad__2.On(0x200)) {
-        camera->AddDistance(frame_rate * (3.0f * GamePad__2.GetRYf()));
+    camera->AddAngle(frame_rate * (0.03f * -GamePad.GetRXf()));
+    camera->SetSpeed(4.0f, 2.0f);
+    if (GamePad.On(0x200)) {
+        camera->AddDistance(frame_rate * (3.0f * GamePad.GetRYf()));
     } else {
-        camera->AddHeight(frame_rate * (-2.0f * GamePad__2.GetRYf()));
+        camera->AddHeight(frame_rate * (-2.0f * GamePad.GetRYf()));
     }
-    if (GamePad__2.On(0x1000)) {
+    if (GamePad.On(0x1000)) {
         reference += 3.0f * frame_rate;
     }
-    if (GamePad__2.On(0x4000)) {
+    if (GamePad.On(0x4000)) {
         reference -= 3.0f * frame_rate;
     }
-    if (GamePad__2.On(0x4)) {
+    if (GamePad.On(0x4)) {
         camera->AddAngle(0.04f * frame_rate);
     }
-    if (GamePad__2.On(0x8)) {
+    if (GamePad.On(0x8)) {
         camera->AddAngle(-0.04f * frame_rate);
     }
-    if (!(GamePad__2.GetLXf() <= 0.1f)) {
+    if (!(GamePad.GetLXf() <= 0.1f)) {
         camera->AddAngle(-0.02f * frame_rate);
     }
-    if (GamePad__2.GetLXf() < -0.1f) {
+    if (GamePad.GetLXf() < -0.1f) {
         camera->AddAngle(0.02f * frame_rate);
     }
     static int camera_dist_mode = 0;
-    float camera_distances[3] = {30.0f, 130.0f, 250.0f};
-    if (GamePad__2.Down(0x800)) {
+    float distances[3] = { 30.0f, 130.0f, 250.0f };
+    if (GamePad.Down(0x800)) {
         camera_dist_mode++;
         if (camera_dist_mode >= 3) {
             camera_dist_mode = 0;
         }
-        camera->SetDistance(camera_distances[camera_dist_mode]);
+        camera->SetDistance(distances[camera_dist_mode]);
     }
 }
 
@@ -689,7 +612,7 @@ static void CharaControl(CScene *scene, CPadControl *pad) {
         speed_z *= 0.5f;
     }
     if (DebugInfo.chara_move) {
-        if (GamePad__2.On(0x1)) {
+        if (GamePad.On(0x1)) {
             speed_x *= 3.0f;
             speed_z *= 3.0f;
         }
@@ -796,118 +719,121 @@ static void CharaControl(CScene *scene, CPadControl *pad) {
         scene->RunEvent(event_no, &event);
     }
 }
-void CancelEyeViewMode(void) {
+
+void CancelEyeViewMode() {
     EyeViewCancelOnce = 1;
 }
-void CameraControl(CScene *scene, CPadControl *pad) {
-    int photo_locked;
-    int eye_pressed;
-    int photo_pressed;
-    CCharacter2 *chara;
-    CCameraControl *camera;
-    CInventUserData *user_data;
-    float position[4];
-    float facing[4];
-    chara = scene->GetCharacter(scene->player_chara);
-    if (chara != NULL) {
-        camera = (CCameraControl *)scene->GetCamera(scene->active_camera);
-        if (camera != NULL) {
-            switch (camera->Iam()) {
-                default:
+
+/**
+ * Switches between the follow camera, eye view and photo view from pad requests.
+ */
+static void CameraControl(CScene *scene, CPadControl *pad) {
+    int              photo_disabled;
+    int              eye_pressed;
+    int              photo_pressed;
+    CCharacter2     *character;
+    CCameraControl  *camera;
+    CInventUserData *invent;
+    sceVu0FVECTOR    position;
+    sceVu0FVECTOR    rotation;
+
+    character = scene->GetCharacter(scene->player_chara);
+    if (character == NULL) {
+        return;
+    }
+    camera = (CCameraControl *)scene->GetCamera(scene->active_camera);
+    if (camera == NULL || camera->Iam() != CAMERA_KIND_CONTROL) {
+        return;
+    }
+    photo_disabled = 0;
+    if (scene->event_run) {
+        photo_disabled = 1;
+    }
+    if (!IsTakePhoto() && !DebugInfo.chara_move) {
+        photo_disabled = 1;
+    }
+    character->GetPosition(position);
+    character->GetRotation(rotation);
+    mgGetNowFrameRate();
+    if (pad != NULL) {
+        if (ViewMode == EDIT_VIEW_MODE_WALK) {
+            eye_pressed = pad->Btn(6);
+            photo_pressed = !photo_disabled && pad->Btn(0x33) != 0;
+            if (eye_pressed) {
+                photo_pressed = 0;
+            }
+            if (eye_pressed || photo_pressed) {
+                if (EyeViewCancelOnce) {
+                    ShowErrorHelpMes(200, 40);
+                } else {
+                    ViewMode = EDIT_VIEW_MODE_EYE;
+                    if (photo_pressed) {
+                        ViewMode = EDIT_VIEW_MODE_PHOTO;
+                        StartTakePhoto();
+                    }
+                    camera->ControlOff();
+                    camera->FollowOff();
+                    InitEyeCamera(character, camera);
+                    EyeCamera(camera, character, 0);
+                    scene->SetStatus(1, scene->player_chara, 0x10);
+                    scene->EyeViewDrawOnOff(1);
                     return;
-                case 1000: {
-                    photo_locked = 0;
-                    if (scene->event_run != 0) {
-                        photo_locked = 1;
-                    }
-                    if (IsTakePhoto() == 0 && DebugInfo.chara_move == 0) {
-                        photo_locked = 1;
-                    }
-                    chara->GetPosition(position);
-                    chara->GetRotation(facing);
-                    mgGetNowFrameRate();
-                    if (pad != NULL) {
-                        if (ViewMode == 0) {
-                            eye_pressed = pad->Btn(6);
-                            photo_pressed = !photo_locked && pad->Btn(0x33) != 0;
-                            if (eye_pressed != 0) {
-                                photo_pressed = 0;
-                            }
-                            if (eye_pressed != 0 || photo_pressed != 0) {
-                                if (EyeViewCancelOnce != 0) {
-                                    ShowErrorHelpMes(200, 40);
-                                } else {
-                                    ViewMode = 1;
-                                    if (photo_pressed != 0) {
-                                        ViewMode = 2;
-                                        StartTakePhoto();
-                                    }
-                                    ControlOff__14CCameraControlFv(camera);
-                                    FollowOff__15mgCCameraFollowFv(camera);
-                                    InitEyeCamera__FP11CCharacter2P14CCameraControl(chara, camera);
-                                    EyeCamera__FP9mgCCameraP11CCharacter2i(
-                                        (mgCCameraFollow *)camera, chara, 0);
-                                    scene->SetStatus(1, scene->player_chara, 0x10);
-                                    scene->EyeViewDrawOnOff(1);
-                                    goto done;
-                                }
-                            }
-                        } else if (ViewMode == 1 || ViewMode == 2) {
-                            if (pad->Btn(6) != 0 || pad->Btn(1) != 0) {
-                                if (ViewMode == 2) {
-                                    EndTakePhoto();
-                                }
-                                FollowOn__15mgCCameraFollowFv(camera);
-                                if (DebugInfo.debug_camera == 0) {
-                                    SetDistance__15mgCCameraFollowFf(camera, 5.0f);
-                                    SetHeight__14CCameraControlFf(camera, 0.0f);
-                                } else {
-                                    SetHeight__14CCameraControlFf(
-                                        camera, GetHeight__15mgCCameraFollowFv(camera));
-                                }
-                                camera->Step(-1);
-                                ControlOn__14CCameraControlFv(camera);
-                                ResetViewMode(scene);
-                                scene->EyeViewDrawOnOff(0);
-                            } else {
-                                FollowOff__15mgCCameraFollowFv(camera);
-                                EyeCamera__FP9mgCCameraP11CCharacter2i(
-                                    (mgCCameraFollow *)camera, chara, 0);
-                                user_data = NULL;
-                                if (GetUserData() != 0) {
-                                    user_data =
-                                        (CInventUserData *)((u8 *)GetUserData() +
-                                                            0x7F30);
-                                }
-                                LoopTakePhoto(pad, user_data);
-                                goto done;
-                            }
-                        }
-                    }
-                    EditCameraControl(scene, pad, NULL);
-                    EyeViewCancelOnce = 0;
                 }
+            }
+        } else if (ViewMode == EDIT_VIEW_MODE_EYE || ViewMode == EDIT_VIEW_MODE_PHOTO) {
+            if (pad->Btn(6) || pad->Btn(1)) {
+                if (ViewMode == EDIT_VIEW_MODE_PHOTO) {
+                    EndTakePhoto();
+                }
+                camera->FollowOn();
+                if (!DebugInfo.debug_camera) {
+                    camera->SetDistance(5.0f);
+                    camera->SetHeight(0.0f);
+                } else {
+                    camera->SetHeight(camera->GetHeight());
+                }
+                camera->Step(-1);
+                camera->ControlOn();
+                ResetViewMode(scene);
+                scene->EyeViewDrawOnOff(0);
+            } else {
+                camera->FollowOff();
+                EyeCamera(camera, character, 0);
+                invent = NULL;
+                if (GetUserData() != NULL) {
+                    invent = &GetUserData()->invent_data;
+                }
+                LoopTakePhoto(pad, invent);
+                return;
             }
         }
     }
-done:;
+    EditCameraControl(scene, pad, NULL);
+    EyeViewCancelOnce = 0;
 }
-void InitEyeCamera(CCharacter2 *chara, CCameraControl *camera) {
-    float rotation[4];
-    chara->GetRotation(rotation);
+
+/**
+ * Saves the follow-camera eye and starts first-person view at the player's heading.
+ */
+static void InitEyeCamera(CCharacter2 *character, CCameraControl *camera) {
+    sceVu0FVECTOR rotation;
+
+    character->GetRotation(rotation);
     InitEyeViewFlag = 1;
-    viewAngleV = 0;
-    AddProj = 0;
+    viewAngleV = 0.0f;
+    AddProj = 0.0f;
     ShutterCnt = 0;
     viewAngleH = rotation[1];
-    GetPos__9mgCCameraFPf(camera, OldCameraPos);
+    camera->GetPos(OldCameraPos);
 }
+
 void ResetViewMode(CScene *scene) {
-    mgCCameraFollow *camera;
-    ViewMode = 0;
-    camera = (mgCCameraFollow *)scene->GetCamera(scene->active_camera);
-    if (InitEyeViewFlag != 0) {
-        SetPos__9mgCCameraFPf(camera, OldCameraPos);
+    mgCCamera *camera;
+
+    ViewMode = EDIT_VIEW_MODE_WALK;
+    camera = scene->GetCamera(scene->active_camera);
+    if (InitEyeViewFlag) {
+        camera->SetPos(OldCameraPos);
     }
     InitEyeViewFlag = 0;
     if (camera != NULL) {
@@ -916,64 +842,69 @@ void ResetViewMode(CScene *scene) {
     scene->ResetStatus(1, scene->player_chara, 0x10);
     EndTakePhoto();
 }
-extern "C" void EyeCamera__FP9mgCCameraP11CCharacter2i(mgCCameraFollow *camera,
-                                                                CCharacter2 *chara,
-                                                                int use_right_stick) {
-    SV_CONFIG_OPTION *options;
-    float angle;
-    float turn_speed =
-        0.04f;
-    float stick_x;
-    float stick_y;
-    float pos[4];
-    float ref[4];
-    float look[4][4];
-    float unit[4][4];
+
+/**
+ * Turns the first-person camera with a stick and places its eye above the player.
+ */
+static void EyeCamera(mgCCamera *camera, CCharacter2 *character, int right_stick) {
+    SV_CONFIG_OPTION *config;
+    float         turn_speed = 0.04f;
+    sceVu0FVECTOR position;
+    sceVu0FVECTOR target;
+    sceVu0FMATRIX rotation;
+    sceVu0FMATRIX unit;
+    float         horizontal;
+    float         vertical;
+
     mgSetAllScissorFlag(1);
-    if (use_right_stick != 0) {
-        stick_x = 0.0f;
-        stick_y = GamePad__2.GetRYf();
+    if (right_stick) {
+        horizontal = 0.0f;
+        vertical = GamePad.GetRYf();
     } else {
-        stick_x = GamePad__2.GetLXf();
-        stick_y = GamePad__2.GetLYf();
+        horizontal = GamePad.GetLXf();
+        vertical = GamePad.GetLYf();
     }
-    options = &GetSaveData()->config;
-    if (options->eye_reverse == 0) {
-        stick_y = -stick_y;
+    config = &GetSaveData()->config;
+    if (config->eye_reverse == 0) {
+        vertical = -vertical;
     }
-    if (stick_x > 0.0f) {
-        viewAngleH -= stick_x * turn_speed;
+    if (!(horizontal <= 0.0f)) {
+        viewAngleH -= horizontal * turn_speed;
         if (viewAngleH < -3.1415927f) {
             viewAngleH += 6.2831855f;
         }
     }
-    if (stick_x < 0.0f) {
-        viewAngleH -= stick_x * turn_speed;
-        if (viewAngleH > 3.1415927f) {
+    if (horizontal < 0.0f) {
+        viewAngleH -= horizontal * turn_speed;
+        if (!(viewAngleH <= 3.1415927f)) {
             viewAngleH -= 6.2831855f;
         }
     }
-    if (stick_y > 0.0f && viewAngleV < 0.65f) {
-        viewAngleV += stick_y * turn_speed;
+    if (!(vertical <= 0.0f)) {
+        if (viewAngleV < 0.65f) {
+            viewAngleV += vertical * turn_speed;
+        }
     }
-    if (stick_y < 0.0f && viewAngleV > -1.0f) {
-        viewAngleV += stick_y * turn_speed;
+    if (vertical < 0.0f) {
+        if (!(viewAngleV <= -1.0f)) {
+            viewAngleV += vertical * turn_speed;
+        }
     }
-    ref[0] = 0.0f;
-    ref[1] = 0.0f;
-    ref[2] = 10.0f;
-    ref[3] = 0.0f;
+    target[0] = 0.0f;
+    target[1] = 0.0f;
+    target[2] = 10.0f;
+    target[3] = 0.0f;
     sceVu0UnitMatrix(unit);
-    sceVu0RotMatrixX(look, unit, viewAngleV);
-    sceVu0RotMatrixY(look, look, viewAngleH);
-    sceVu0ApplyMatrix(ref, look, ref);
-    chara->GetPosition(pos);
-    pos[1] += 28.0f;
-    ref[0] += pos[0];
-    ref[1] += pos[1];
-    ref[2] += pos[2];
-    SetNextPos__9mgCCameraFPf(camera, pos);
-    SetNextRef__9mgCCameraFPf(camera, ref);
+    sceVu0RotMatrixX(rotation, unit, viewAngleV);
+    sceVu0RotMatrixY(rotation, rotation, viewAngleH);
+    sceVu0ApplyMatrix(target, rotation, target);
+    character->GetPosition(position);
+    position[1] += 28.0f;
+    target[0] += position[0];
+    target[1] += position[1];
+    target[2] += position[2];
+    camera->SetNextPos(position);
+    camera->SetNextRef(target);
     camera->Step(-1);
 }
 
@@ -981,7 +912,7 @@ extern "C" void EyeCamera__FP9mgCCameraP11CCharacter2i(mgCCameraFollow *camera,
  * Builds the ladder landings and camera position from the event's world transform.
  */
 static void InitLadder(int mode, CScene *scene, CSceneEventData *event) {
-    int other_foot;
+    int           other_foot;
     CCharacter2  *character;
     sceVu0FVECTOR bottom_offset;
     sceVu0FVECTOR top_offset;
@@ -1040,8 +971,12 @@ static void InitLadder(int mode, CScene *scene, CSceneEventData *event) {
     LdrCamPos[1] = LdrTopPos[1];
     scene->map_event_no = 0;
 }
-void EndLadder(void) {
-    LadderMode = 0;
+
+/**
+ * Releases the player from ladder control.
+ */
+static void EndLadder() {
+    LadderMode = EDIT_LADDER_MODE_NONE;
 }
 
 /**
@@ -1296,12 +1231,9 @@ void EditDrawEffectChara(CScene *scene) {
     }
 }
 
-// Static initialiser (.init)
-extern "C" void __sinit_editctrl_cpp() {
-    memset(&MoveInfo, 0, sizeof(MoveInfo));
-    memset(&LadderData, 0, sizeof(LadderData));
-}
 
+// Static initialiser (.init)
+INCLUDE_ASM("ps2/asm/pal/nonmatchings/editctrl", __sinit_editctrl_cpp);
 
 
 // Initialised data (.data)
