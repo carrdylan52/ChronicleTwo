@@ -135,3 +135,19 @@ GLID_INFO stride 0x70 (CDngFloorManager +4 array, +8 count, +0xC/+0xE grid width
 +0x18 s16 message no, +0x3E/+0x40 s16 draw offset, +0x42 s8 picture, +0x45 u8 (cleared/visited;
 also read as glid+0x65 in DrawGlidCheck), +0x46 u8 mark (bobbing mark, glid+0x66 in InitEnd),
 +0x48 float mark phase (DrawRoomOne).
+
+## Current bodies
+
+The unit has 48 functions: 25 matching drafts, three differing drafts and 20 without a draft.
+`CheckIsViewMove`, `GetEntranceRoomGlid` and `CDngFreeMap::Draw` retain their C++ drafts under
+`NONMATCHING` and use retail assembly in the normal build. The normal build links the unit's
+C++ source; it is absent from `migrated_units.txt`.
+
+`ClsMes::Init` remains inline in `nd_meswin.hpp`. Its page, name, item, value and line tables
+are cleared through typed array members, with a separate loop index for each table.
+The standalone copy at 0x1F38E0 is assembly-backed in `dngmenu.cpp`: its caller in this unit
+is assembly-only, so the compiler does not emit the unused inline member here.
+`mgRect<float>::Set` is an explicit C++ template specialization. It matches in the draft check
+and links at 0x1F3D50, but objdiff does not pair the compiler's `Set__9mgRect<f>Fffff` with
+the target's sanitized `Set__9mgRect_f_Fffff`: the normal report lists 24 perfect, zero fuzzy
+and 24 assembly functions despite the linked image matching retail in all 11 sections.

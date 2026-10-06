@@ -1043,9 +1043,11 @@ public:
      * @size 0x2C0
      */
     void Init() {
-        int name_offset;
-        int name_count;
-        int i;
+        int page_index;
+        int name_index;
+        int item_index;
+        int value_index;
+        int line_index;
 
         npc_name_mode = 0;
         char_num = 0;
@@ -1053,8 +1055,8 @@ public:
         text_h = 0;
         page = 0;
         page_num = 0;
-        for (i = 0; i < MES_PAGE_MAX; i++) {
-            page_chars[i] = 0;
+        for (page_index = 0; page_index < MES_PAGE_MAX; page_index++) {
+            page_chars[page_index] = 0;
         }
         last_x = 0;
         last_y = 0;
@@ -1075,17 +1077,13 @@ public:
         mes_no = -1;
         unk_1e40 = 0;
         alpha = 0x80;
-        name_count = 0;
-        name_offset = 0;
-        do {
-            memset(((ClsMes *)((char *)this + name_offset))->name[0], 0, MES_NAME_LEN);
-            name_count++;
-            name_offset += MES_NAME_LEN;
-        } while (name_count < MES_NAME_MAX);
-        for (int item_index = 0; item_index < MES_ITEM_MAX; item_index++) {
+        for (name_index = 0; name_index < MES_NAME_MAX; name_index++) {
+            memset(name[name_index], 0, sizeof(name[name_index]));
+        }
+        for (item_index = 0; item_index < MES_ITEM_MAX; item_index++) {
             item_mes[item_index] = -1;
         }
-        for (int value_index = 0; value_index < MES_VALUE_MAX; value_index++) {
+        for (value_index = 0; value_index < MES_VALUE_MAX; value_index++) {
             values[value_index] = 0;
             value_width[value_index] = 0;
         }
@@ -1120,38 +1118,29 @@ public:
         scissor.width = 0;
         scissor.y = 0;
         scissor.height = 0;
-        int pair_offset;
-        int line_offset;
-        int line_index;
-        line_index = 0;
-        line_offset = 0;
-        pair_offset = 0;
-        do {
-            ((ClsMes *)((char *)this + line_offset))->line_indent[0] = 0;
-            ((ClsMes *)((char *)this + pair_offset))->line_pos[0][0] = 0;
-            ((ClsMes *)((char *)this + pair_offset))->line_pos[0][1] = 0;
-            ((ClsMes *)((char *)this + line_offset))->line_pos_on[0] = 0;
-            ((ClsMes *)((char *)this + line_offset))->line_shade[0] = MES_SHADE_AUTO;
-            ((ClsMes *)((char *)this + line_offset))->line_color[0] = 0;
-            ((ClsMes *)((char *)this + line_offset))->equip_on[0] = 0;
-            ((ClsMes *)((char *)this + line_offset))->equip_x[0] = 0;
-            ((ClsMes *)((char *)this + line_offset))->equip_y[0] = 0;
-            ((ClsMes *)((char *)this + line_offset))->line_w[0] = 0;
-            ((ClsMes *)((char *)this + line_offset))->line_alpha[0] = -1;
-            ((ClsMes *)((char *)this + line_offset))->cross_on[0] = 0;
-            ((ClsMes *)((char *)this + line_offset))->cross_x[0] = 0;
-            ((ClsMes *)((char *)this + line_offset))->cross_y[0] = 0;
-            ((ClsMes *)((char *)this + line_offset))->unk_271c[0] = -1;
-            ((ClsMes *)((char *)this + line_offset))->unk_276c[0] = -1;
-            ((ClsMes *)((char *)this + line_offset))->unk_27bc[0] = 0;
-            ((ClsMes *)((char *)this + line_offset))->unk_280c[0] = 0;
-            ((ClsMes *)((char *)this + line_offset))->delta_on[0] = 0;
-            ((ClsMes *)((char *)this + line_offset))->delta_x[0] = 0;
-            ((ClsMes *)((char *)this + line_offset))->delta_y[0] = 0;
-            line_index++;
-            line_offset += sizeof(int);
-            pair_offset += sizeof(int) * 2;
-        } while (line_index < MES_LINE_MAX);
+        for (line_index = 0; line_index < MES_LINE_MAX; line_index++) {
+            line_indent[line_index] = 0;
+            line_pos[line_index][0] = 0;
+            line_pos[line_index][1] = 0;
+            line_pos_on[line_index] = 0;
+            line_shade[line_index] = MES_SHADE_AUTO;
+            line_color[line_index] = 0;
+            equip_on[line_index] = 0;
+            equip_x[line_index] = 0;
+            equip_y[line_index] = 0;
+            line_w[line_index] = 0;
+            line_alpha[line_index] = -1;
+            cross_on[line_index] = 0;
+            cross_x[line_index] = 0;
+            cross_y[line_index] = 0;
+            unk_271c[line_index] = -1;
+            unk_276c[line_index] = -1;
+            unk_27bc[line_index] = 0;
+            unk_280c[line_index] = 0;
+            delta_on[line_index] = 0;
+            delta_x[line_index] = 0;
+            delta_y[line_index] = 0;
+        }
     }
 };
 
