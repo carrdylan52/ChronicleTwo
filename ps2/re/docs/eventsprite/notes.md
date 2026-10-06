@@ -1,6 +1,6 @@
 # eventsprite: reverse-engineering notes
 
-The 17 decompiled functions in this unit compile to exact retail instruction matches. The sprite
+The 44 decompiled functions in this unit compile to exact retail instruction matches. The sprite
 setters access the named fields in `eventsprite.hpp`; `CEventSprite::Init` clears each logical block
 separately, while `SetMove` first resets its four animation words and then selects the move mode.
 `CEventSprite2::NormalDraw` and `FirstDraw` dispatch only for their respective draw pass values.
