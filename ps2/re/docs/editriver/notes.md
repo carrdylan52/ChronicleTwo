@@ -1,5 +1,12 @@
 # editriver: header notes
 
+## C++ draft status
+22 of 27 functions match and are perfect in the matching build; 5 remain
+assembly-only. Grid indexing uses the declared cell array. Grid creation
+retains the empty cell loops and reserves two extra quadwords. The box
+copies retain their quadword casts and the repeated minimum-W store.
+
+
 Unit holds the river functions of `CEditMap` (declared in `editmap.hpp`, owned by editmap) and
 all of `CEditGrid` and `CGridData` (declared in `ps2/include/editriver.hpp`). No first-game
 counterpart: neither class exists in `/home/adubbz/development/chronicle`.
