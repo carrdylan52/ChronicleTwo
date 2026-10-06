@@ -64,20 +64,18 @@ Every data symbol of the unit is in local_symbols.tsv, so the header has no exte
   "pause_work", "skip", "title/title%d.img", "moji". CreateNowLoading maps LanguageCode 1..5 to 2.
 
 ## Functions
-- `SwitchNowLoadingThread`, `CancelNowLoading`, `NowLoadingBarStep`, `DeleteNowLoading`,
-  `NowLoadingInfo::NowLoadingInfo`, `PauseEnable`, `GetPauseFlag`, `PauseCancel`, `PauseEnd`, and
-  `PauseCount` now compile as C++ and individually match the retail instructions.
-- `NowLoadingBarSteEnd`, `InitPauseData`, `InitPause`, and `PauseStart` have named C++ drafts behind
-  `NONMATCHING`. Their single promotion attempts differed from retail, so the normal build uses
-  assembly for those functions.
-- `NowLoadingLoop(void*)` is LOCAL (static, thread entry) -> not in the header.
-- Return types from asm: InitPauseData int (0/1), InitPause int (always 1), PauseEnable int (old
-  flag), GetPauseFlag int, PauseStart int, PauseLoop int (1 while paused). Others void.
-- SCElogoFade(int fade_out, mgCMemory*): MainLoop calls (0, mem) at boot (language select via
-  TitleLangSelInit/Key/Draw, sets LanguageCode, loads "title/title%d.img" into block 0) and (1, mem)
-  later. Fades the "moji" texture (UV 0,0x144-0x200,0x180) over 23 frames.
-- PauseLoop's two "unreachable blocks" in Ghidra are just the signed /2 rounding of constants.
-- Pad buttons 0x15 (pause/start) and 0x16 (skip) are CPadControl button ids; no enum exists yet.
+Eighteen functions compile as C++ and match retail, including the generated
+`__sinit_nowload_cpp`. `CreateNowLoading` has a typed guarded draft; its
+stack frame is 0xE0 bytes rather than retail's 0xF0. The normal build selects
+retail assembly for that function. `NowLoadingLoop` is retail-local and static.
+The pause-state object uses a `PAUSE_INFO` subclass whose constructor clears
+the event flag and scene pointer in the generated static initializer.
+
+Return types from assembly: InitPauseData, InitPause, PauseEnable, GetPauseFlag,
+PauseStart and PauseLoop return int. Other runtime functions return void.
+SCElogoFade sets up the graphics buffers, selects the title language on fade-in,
+and draws the logo for 23 frames. PauseLoop checks event_skip against exactly 1.
+Pad buttons 0x15 and 0x16 are pause and event-skip button ids.
 
 ## Remaining draft implementations
 `NowLoadingLoop` constructs a texture rectangle, draws the progress bar and
@@ -92,11 +90,7 @@ memory, runs language selection on fade-in, then draws the logo for 23 frames.
 The draft build creates `__sinit_nowload_cpp` from the typed `LoadInfo` global;
 its retail initializer also clears the two words of `PauseInfo`.
 
-## Matching trial
-The complete unit compiles in draft mode with all 19 functions present: 11
-instruction matches and eight differences. Four new runtime drafts received
-one isolated promotion trial each; each remains guarded because its typed
-dependencies are available only in the draft branch. The generated static
-initializer matches in the grouped draft. Its single normal-build promotion
-trial failed at mwccgap's source lookup for `__sinit_nowload_cpp`, so the
-assembly initializer remains selected. The normal full build is byte-identical.
+## Matching state
+The draft build has all 19 functions: 18 instruction matches and one difference.
+The normal linked build uses C++ for 18 functions and retail assembly for
+CreateNowLoading and verifies every image section against retail.

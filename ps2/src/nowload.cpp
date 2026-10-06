@@ -1,98 +1,76 @@
 #include "common.h"
 #include "nowload.hpp"
+#include "sce/eekernel.h"
 #include "mglib.hpp"
-#include "snd_mngr.hpp"
-#include <eekernel.h>
 #include "mg_texture.hpp"
 #include "mainloop.hpp"
-#include "dataread.hpp"
 #include "scenesnd.hpp"
-#include "sound.hpp"
-#include "menucommon.hpp"
-#include "mg_drawprim.hpp"
-#include "gamepad.hpp"
-#include "title.hpp"
+#include "snd_mngr.hpp"
+#include "dataread.hpp"
+#include <cstdio>
+#include <cstring>
 #include "event.hpp"
+#include "gamepad.hpp"
 #include "padcontrol.hpp"
+#include "mg_drawprim.hpp"
 #include "savedata.hpp"
-#include <cstring>
-#include <cstdio>
+#include "title.hpp"
 
-extern int PauseFlag__2;
-extern int cancel_now_loading;
-extern int InitFlag;
-extern PAUSE_INFO PauseInfo;
-extern float SeCoreVol;
-extern int PauseEnableFlag;
-extern int PauseCancelCnt;
-extern int ProgBarCnt;
-extern int LoopStep;
-extern int EndFlag;
-extern int TheadID__3;
-extern float NextProgBarWidth;
-extern char at_832__7[];
-extern char at_863__5[];
-extern char at_864__3[];
-extern float ProgBarWidth;
-extern u8 ThreadStack__3[0x1000];
-extern "C" void NowLoadingLoop__FPv(void *);
-extern int load_skip_img;
-extern char at_912__6[];
-extern char at_913__5[];
-extern u8 SkipImage[];
-extern int start_vcount;
-extern int PauseTexb;
-extern char at_920__7[];
-extern int wave_status;
-extern int play_time_count;
-extern NowLoadingInfo LoadInfo;
-extern float ProgBarWidthStep;
-#include "mglib.hpp"
-#include "mg_texture.hpp"
-#include "mainloop.hpp"
-#include "scenesnd.hpp"
-#include "snd_mngr.hpp"
-#include "dataread.hpp"
-#include <cstdio>
-#include <cstring>
 #ifdef NONMATCHING
-#include "event.hpp"
-#include "gamepad.hpp"
-#include "padcontrol.hpp"
-#include "mg_drawprim.hpp"
-#include "mg_tanime.hpp"
-#include "savedata.hpp"
-#include "title.hpp"
-
+/** Worker-thread stack for the loading screen. */
+static char ThreadStack[0x1000];
 #endif
+static float ProgBarWidth;
+static int start_vcount;
+static NowLoadingInfo LoadInfo;
+static int cancel_now_loading;
+static int PauseEnableFlag;
+static int PauseFlag;
+static int PauseCancelCnt;
+static int ProgBarCnt;
+static float ProgBarWidthStep;
+static float NextProgBarWidth;
+static int InitFlag;
+static float SeCoreVol;
+static int TheadID;
+static int EndFlag;
+static NowLoadingStep LoopStep = NOW_LOADING_STEP_NONE;
+static int play_time_count;
+static int wave_status;
+static int bgm_status[7];
+static int load_skip_img;
+static int PauseTexb;
+static unsigned char SkipImage[0x2800];
 
-extern int cancel_now_loading;
-extern int PauseEnableFlag;
-extern int PauseFlag__2;
-extern int PauseCancelCnt;
-extern int ProgBarCnt;
-extern float ProgBarWidthStep;
-extern float NextProgBarWidth;
-extern int InitFlag;
-extern float SeCoreVol;
-extern PAUSE_INFO PauseInfo;
-extern NowLoadingInfo LoadInfo;
-extern int TheadID__3;
-extern int EndFlag;
-extern int play_time_count;
-extern int wave_status;
-extern int bgm_status[7];
-extern int load_skip_img;
-extern int PauseTexb;
-extern unsigned char SkipImage[0x2800];
+/**
+ * Holds the pause state and initializes it without a scene or skippable event.
+ */
+struct InitializedPauseInfo : PAUSE_INFO {
+    InitializedPauseInfo() {
+        event_skip = 0;
+        scene = NULL;
+    }
 
+    InitializedPauseInfo &operator=(const PAUSE_INFO &info) {
+        event_skip = info.event_skip;
+        scene = info.scene;
+        return *this;
+    }
+};
+static InitializedPauseInfo PauseInfo;
 
+// Preserve the logo fade opacity progression and buffer scheduling.
+#pragma opt_strength_reduction off
 
 // Code (.text)
 void SwitchNowLoadingThread() {
     RotateThreadReadyQueue(10);
 }
-void NowLoadingLoop(void *unused) {
+
+/**
+ * Draws and advances the loading screen on its worker thread.
+ */
+static void NowLoadingLoop(void *unused) {
     mgRect<int> image_rect(0, 0, 256, 192);
     int image_y = mgScreenHeight - 186;
     if (LanguageCode > 0 && LanguageCode < 6) image_y -= 20;
@@ -105,7 +83,7 @@ void NowLoadingLoop(void *unused) {
                 mgSetBackGround(0.0f, 0.0f, 0.0f, 0.0f);
                 mgBeginFrame(NULL);
                 mgTexManager.ReloadTexture(LoadInfo.tex_block, (sceVif1Packet *)NULL);
-                mgCTexture *loading = mgTexManager.GetTexture(at_832__7, LoadInfo.tex_block);
+                mgCTexture *loading = mgTexManager.GetTexture("loading", LoadInfo.tex_block);
                 mgCDrawPrim prim;
                 prim.Initialize(NULL, NULL);
                 prim.DepthTestEnable(0);
@@ -115,16 +93,16 @@ void NowLoadingLoop(void *unused) {
                 prim.Shading(1);
                 prim.AntiAliasing(1);
                 prim.Begin(4);
-                float x_local = 91.0f;
-                const float &x_value = x_local;
+                float bar_left = 91.0f;
+                const float &bar_left_reference = bar_left;
                 float top_y;
                 float end_x;
                 float bottom_y;
                 top_y = 0.0f;
                 top_y = (float)bar_y + top_y;
-                end_x = x_value + 157.0f * ProgBarWidth;
+                end_x = 91.0f + 157.0f * ProgBarWidth;
                 bottom_y = top_y;
-            bottom_y += 5.0f;
+                bottom_y += 5.0f;
                 prim.Color(40, 100, 255, 128);
                 prim.Vertex(91.0f, top_y, 0.0f);
                 prim.Vertex(end_x, top_y, 0.0f);
@@ -144,16 +122,18 @@ void NowLoadingLoop(void *unused) {
                 prim.Vertex(image_rect.right + 50 - image_rect.left, image_y + image_rect.bottom - image_rect.top, 0);
                 prim.End();
                 ProgBarWidth += ProgBarWidthStep;
-                if (!(ProgBarWidth <= NextProgBarWidth)) ProgBarWidth = NextProgBarWidth;
+                if (ProgBarWidth > NextProgBarWidth) {
+                    ProgBarWidth = NextProgBarWidth;
+                }
                 mgSetRotateThread(10);
                 mgEndFrame(NULL);
                 mgSetRotateThread(-1);
-                if (EndFlag && !(ProgBarWidth < 1.0f)) {
+                if (EndFlag && ProgBarWidth >= 1.0f) {
                     LoopStep = NOW_LOADING_STEP_END;
                     SwitchNowLoadingThread();
                     break;
-            }
-            SwitchNowLoadingThread();
+                }
+                SwitchNowLoadingThread();
             }
         } else if (LoopStep == NOW_LOADING_STEP_END) {
             LoopStep = NOW_LOADING_STEP_END;
@@ -161,65 +141,63 @@ void NowLoadingLoop(void *unused) {
         SwitchNowLoadingThread();
     }
 }
+
 void CancelNowLoading() {
     cancel_now_loading = 1;
 }
-struct LoadingMemoryWords { float words[12]; };
+#ifdef NONMATCHING
 void CreateNowLoading(NowLoadingInfo *info) {
-    char name[0x40];
+    char directory[0x40];
     char path[0x40];
-    struct {
-        ThreadParam param;
-        int reserved[4];
-    } thread;
-    int size;
-    u32 length;
+    ThreadParam thread;
+    int image_size;
     mgCMemory *memory;
-    u8 *buffer;
+    u8 *image;
     int language;
-    LoopStep = -1;
+    LoopStep = NOW_LOADING_STEP_NONE;
     if (cancel_now_loading != 0) {
         cancel_now_loading = 0;
         return;
     }
-    LoadInfo.tex_block = info->tex_block;
-    LoadInfo.unk_4 = info->unk_4;
+    LoadInfo = *info;
     memory = &LoadInfo.memory;
-    *(LoadingMemoryWords *)memory = *(LoadingMemoryWords *)&info->memory;
     language = LanguageCode;
-    LoadInfo.step_count = info->step_count;
-    buffer = (u8 *)(memory->stack + memory->stack_used);
+    image = (u8 *)&memory->stack[memory->stack_used];
     if (language > 0 && language < 6) {
         language = 2;
     }
-    sprintf(name, at_863__5, language);
-    strcpy(path, name);
-    strcat(path, at_864__3);
-    if (LoadFile2(path, buffer, &size, 0) != 0) {
+    sprintf(directory, "img/%d/", language);
+    strcpy(path, directory);
+    strcat(path, "loading.img");
+    if (LoadFile2(path, image, &image_size, 0) != 0) {
         u32 blocks;
-        if ((u32)size & 0xF) {
-            blocks = ((u32)size >> 4) + 1;
+        if ((u32)image_size & 0xF) {
+            blocks = ((u32)image_size >> 4) + 1;
         } else {
-            blocks = (u32)size >> 4;
+            blocks = (u32)image_size >> 4;
         }
         memory->Alloc(blocks);
-        mgTexManager.EnterIMGFile(buffer, LoadInfo.tex_block, memory, 0);
+        mgTexManager.EnterIMGFile(image, LoadInfo.tex_block, memory, 0);
         ProgBarWidthStep = 0.2f / (float)LoadInfo.step_count;
         ProgBarWidth = 0;
         ProgBarCnt = 0;
         NextProgBarWidth = 0;
-        LoopStep = 0;
-        thread.param.entry = (void (*)(void *))NowLoadingLoop__FPv;
+        LoopStep = NOW_LOADING_STEP_START;
+        thread.entry = NowLoadingLoop;
         EndFlag = 0;
-        thread.param.stack = ThreadStack__3;
-        thread.param.option = 0;
-        thread.param.stackSize = 0x1000;
-        thread.param.initPriority = 10;
-        thread.param.gpReg = &_gp;
-        TheadID__3 = CreateThread(&thread.param);
-        StartThread(TheadID__3, 0);
+        thread.stack = ThreadStack;
+        thread.option = 0;
+        thread.stackSize = 0x1000;
+        thread.initPriority = 10;
+        thread.gpReg = &_gp;
+        TheadID = CreateThread(&thread);
+        StartThread(TheadID, 0);
     }
 }
+#else
+INCLUDE_ASM("ps2/asm/pal/nonmatchings/nowload", CreateNowLoading__FP14NowLoadingInfo);
+#endif
+
 void NowLoadingBarStep() {
     ProgBarCnt++;
     if (ProgBarCnt >= LoadInfo.step_count) {
@@ -230,10 +208,13 @@ void NowLoadingBarStep() {
         NextProgBarWidth = 1.0f;
     }
 }
+
 void NowLoadingBarSteEnd() {
     ProgBarCnt = LoadInfo.step_count;
     ProgBarWidthStep = 0.05f;
+    ProgBarCnt = LoadInfo.step_count;
 }
+
 void DeleteNowLoading() {
     if (LoopStep == NOW_LOADING_STEP_NONE) {
         return;
@@ -244,48 +225,52 @@ void DeleteNowLoading() {
     while (LoopStep != NOW_LOADING_STEP_END) {
         SwitchNowLoadingThread();
     }
-    TerminateThread(TheadID__3);
-    DeleteThread(TheadID__3);
+    TerminateThread(TheadID);
+    DeleteThread(TheadID);
     mgTexManager.DeleteBlock(LoadInfo.tex_block);
 }
+
 NowLoadingInfo::NowLoadingInfo() {
     tex_block = -1;
     unk_4 = 0;
     step_count = 0;
 }
+
 int InitPauseData() {
-    int size;
-    u8 data[0x10000];
-    char path[0x40];
+    int image_size;
+    unsigned char image_buffer[0x10000];
+    char image_path[0x40];
     if (LanguageCode > 1) {
-        sprintf(path, at_912__6, LanguageCode);
-        if (LoadFile2(path, data, &size, 0) == 0) {
+        sprintf(image_path, "img/%d/skip.img", LanguageCode);
+        if (LoadFile2(image_path, image_buffer, &image_size, 0) == 0) {
             return 0;
         }
-    } else if (LoadFile2(at_913__5, data, &size, 0) == 0) {
+    } else if (LoadFile2("img/skip.img", image_buffer, &image_size, 0) == 0) {
         return 0;
     }
-    if (size >= 0x2800) {
+    if (image_size >= 0x2800) {
         return 0;
     }
-    memcpy(SkipImage, data, size);
+    memcpy(SkipImage, image_buffer, image_size);
     load_skip_img = 1;
     return 1;
 }
-int InitPause(int block) {
+
+int InitPause(int tex_block) {
     mgCTextureManager *tex = &mgTexManager;
     PauseEnableFlag = 1;
-    PauseFlag__2 = 0;
+    PauseFlag = 0;
     InitFlag = 0;
     PauseCancelCnt = 0;
-    tex->DeleteBlock(block);
-    tex->EnterTexture(block, at_920__7, 0, mgScreenWidth, mgScreenHeight, 0x20, 0, 0, 0);
+    tex->DeleteBlock(tex_block);
+    tex->EnterTexture(tex_block, "pause_work", 0, mgScreenWidth, mgScreenHeight, 0x20, 0, 0, 0);
     if (load_skip_img != 0) {
-        tex->EnterIMGFile(SkipImage, block, 0, 0);
+        tex->EnterIMGFile(SkipImage, tex_block, 0, 0);
     }
-    PauseTexb = block;
+    PauseTexb = tex_block;
     return 1;
 }
+
 int PauseEnable(int enable) {
     int previous = PauseEnableFlag;
     PauseEnableFlag = enable;
@@ -293,7 +278,7 @@ int PauseEnable(int enable) {
 }
 
 int GetPauseFlag() {
-    return PauseFlag__2;
+    return PauseFlag;
 }
 
 int PauseStart(PAUSE_INFO *info) {
@@ -305,21 +290,22 @@ int PauseStart(PAUSE_INFO *info) {
         return 0;
     }
     InitFlag = 0;
-    PauseFlag__2 = result;
+    PauseFlag = result;
     PauseCancelCnt = 10;
     PauseInfo = *info;
     SeCoreVol = -1.0f;
-    return result;
+    return 1;
 }
 
 void PauseCancel() {
-    PauseFlag__2 = 0;
+    PauseFlag = 0;
 }
+
 void PauseEnd() {
-    if (PauseFlag__2 == 0 || InitFlag <= 0) {
+    if (PauseFlag == 0 || InitFlag <= 0) {
         return;
     }
-    PauseFlag__2 = 0;
+    PauseFlag = 0;
     if (bgm_status[0] == 1) {
         PauseInfo.scene->RePlayBGM();
     }
@@ -334,18 +320,19 @@ void PauseEnd() {
     }
     sndSePlay(GetSystemSndID(), 0x19, 0);
 }
+
 int PauseLoop() {
-    if (!PauseFlag__2) return 0;
+    if (!PauseFlag) {
+        return 0;
+    }
     mgCTextureManager *tex = &mgTexManager;
     mgBeginFrame(NULL);
-    tex->ReloadTexture(PauseTexb, (sceVif1Packet *)NULL);
-    mgCTexture *backdrop = tex->GetTexture(at_920__7, -1);
+    mgTexManager.ReloadTexture(PauseTexb, (sceVif1Packet *)NULL);
+    mgCTexture *backdrop = mgTexManager.GetTexture((char *)"pause_work", -1);
     if (InitFlag == 0) {
         sndSePlay(GetSystemSndID(), 25, 0);
         SeCoreVol = sndGetMasterVol(1);
-        float zero_local = 0.0f;
-        const float &zero_value = zero_local;
-        sndMasterVolFadeInOut(1, 15, zero_value, -1.0f);
+        sndMasterVolFadeInOut(1, 15, 0.0f, -1.0f);
         sndPortSqPause(4);
         sndPortSqPause(0);
         mgCTexture back_buffer;
@@ -360,9 +347,11 @@ int PauseLoop() {
         wave_status = sndStreamGetState();
         if (wave_status & 0x1000) { sndStreamPause(); sndSetMasterVol(1, 0.0f); }
     }
-    if (InitFlag <= 15) sndStep(2.0f);
+    if (InitFlag < 16) sndStep(2.0f);
     ++InitFlag;
-    if (InitFlag > 1000) InitFlag = 1000;
+    if (InitFlag > 1000) {
+        InitFlag = 1000;
+    }
     SV_CONFIG_OPTION *config = &GetSaveData()->config;
     mgCDrawPrim prim;
     prim.Initialize(NULL, NULL);
@@ -373,7 +362,7 @@ int PauseLoop() {
     prim.TextureMapEnable(1);
     prim.Begin(6);
     prim.Texture(backdrop);
-    if ((signed char)config->unk_35 == 0) {
+    if ((s8)config->unk_35 == 0) {
         prim.Color(64, 64, 64, 128);
     } else {
         prim.Color(128, 128, 128, 128);
@@ -384,11 +373,15 @@ int PauseLoop() {
     prim.Vertex(mgScreenWidth, mgScreenHeight, 0);
     prim.End();
     mgCTexture *skip = tex->GetTexture((char *)"skip", -1);
-    if (skip != NULL && (signed char)config->unk_35 == 0) {
+    if (skip != NULL && (s8)config->unk_35 == 0) {
         int width = 82;
         int height = 22;
-        if (LanguageCode == 3) width = 112;
-        if (PauseInfo.event_skip == 1) height = 46;
+        if (LanguageCode == 3) {
+            width = 112;
+        }
+        if (PauseInfo.event_skip == 1) {
+            height = 46;
+        }
         int x = mgScreenWidth / 2 - width / 2;
         int y = mgScreenHeight / 2 - height / 2;
         prim.AlphaBlendEnable(1);
@@ -402,21 +395,24 @@ int PauseLoop() {
         prim.End();
     }
     mgEndFrame(NULL);
-    GamePad__2.UpDate();
-    PadCtrl.Update(&GamePad__2);
+    GamePad.UpDate();
+    PadCtrl.Update(&GamePad);
     int quit = 0;
-    if (InitFlag > 17 && PadCtrl.Btn(21)) quit = 1;
+    if (InitFlag > 17 && PadCtrl.Btn(21)) {
+        quit = 1;
+    }
     if (PauseInfo.event_skip == 1 && PadCtrl.Btn(22)) { SkipEventStart(); quit = 1; }
     if (quit) { PauseEnd(); return 0; }
     return 1;
 }
+
 void PauseCount() {
     PauseCancelCnt--;
     if (PauseCancelCnt < 0) {
         PauseCancelCnt = 0;
     }
 }
-#pragma opt_strength_reduction off
+
 void SCElogoFade(int fade_out, mgCMemory *memory) {
     mgCMemory packet0, packet1, data0, data1;
     u_long128 *vif0 = memory->stAlloc64(0x2710);
@@ -428,7 +424,7 @@ void SCElogoFade(int fade_out, mgCMemory *memory) {
     data0.stSetBuffer(memory->stAlloc64(0x2710), 0x2710);
     u_long128 *data1_buffer = memory->stAlloc64(0x2710);
     mgCMemory *data1_pointer = &data1;
-    mgCMemory *const &data1_memory = data1_pointer;
+    mgCMemory *const data1_memory = data1_pointer;
     data1_memory->stSetBuffer(data1_buffer, 0x2710);
     mgSetDataBuffer(&data0, data1_memory, 1);
     mgCTextureManager *tex = &mgTexManager;
@@ -438,14 +434,14 @@ void SCElogoFade(int fade_out, mgCMemory *memory) {
     int language;
     void *image = &memory->stack[memory->stack_used];
     if (!fade_out) {
-        GamePad__2.WaitEnable();
-        GamePad__2.UpDate();
+        GamePad.WaitEnable();
+        GamePad.UpDate();
         TitleLangSelInit(memory);
         do {
             mgBeginFrame(NULL);
             language = TitleLangSelKey();
             TitleLangSelDraw();
-            GamePad__2.UpDate();
+            GamePad.UpDate();
             mgEndFrame(NULL);
         } while (!(0 < language));
         LanguageCode = language;
@@ -479,7 +475,9 @@ void SCElogoFade(int fade_out, mgCMemory *memory) {
         prim.TextureMapEnable(1);
         prim.Begin(6);
         int opacity = opacity_value / 20;
-        if (opacity > 128) opacity = 128;
+        if (opacity > 128) {
+            opacity = 128;
+        }
         if (fade_out) {
             prim.Color(128, 128, 128, 128 - opacity);
         } else {
@@ -494,10 +492,10 @@ void SCElogoFade(int fade_out, mgCMemory *memory) {
         mgEndFrame(NULL);
     }
 }
+
 #pragma opt_strength_reduction reset
 
 // Static initialiser (.init)
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/nowload", __sinit_nowload_cpp);
 
 // Constants (.rodata)
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/nowload", at_832__7__DATA);
@@ -511,7 +509,6 @@ INCLUDE_RODATA("ps2/asm/pal/nonmatchings/nowload", at_1068__4__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/nowload", at_1069__6__DATA);
 
 // Static initialiser table (.ctor)
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/nowload", D_0037B080__DATA);
 
 // Small initialised data (.sdata)
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/nowload", LoopStep__DATA);
@@ -537,7 +534,8 @@ INCLUDE_BSS(wave_status, 0x4);
 INCLUDE_BSS(start_vcount, 0x4);
 
 // Uninitialised data (.bss)
+#ifndef NONMATCHING
 INCLUDE_BSS(ThreadStack__3, 0x1000);
-INCLUDE_BSS(LoadInfo, 0x40);
+#endif
 INCLUDE_BSS(SkipImage, 0x2800);
 INCLUDE_BSS(bgm_status, 0x20);
