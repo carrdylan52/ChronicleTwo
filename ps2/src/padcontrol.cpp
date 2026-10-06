@@ -12,12 +12,12 @@ void CPadControl::Initialize() {
     }
 }
 
-int CPadControl::RegisterBtn(int index, int mask, int flags) {
-    if (index < 0 || index >= PAD_CTRL_BTN_MAX) {
+int CPadControl::RegisterBtn(int no, int button, int trigger) {
+    if (no < 0 || no >= PAD_CTRL_BTN_MAX) {
         return 0;
     }
-    btn[index].value = 0;
-    btn[index].config = flags | mask;
+    btn[no].value = 0;
+    btn[no].config = trigger | button;
     return 1;
 }
 
@@ -45,47 +45,46 @@ float CPadControl::Analog(int no) {
 }
 
 void CPadControl::Update(CGamePad *pad) {
-    int i;
-    int j;
-
     rx = pad->GetRXf();
     ry = pad->GetRYf();
     lx = pad->GetLXf();
     ly = pad->GetLYf();
-    for (i = 0; i < PAD_CTRL_BTN_MAX; i++) {
+
+    for (int i = 0; i < PAD_CTRL_BTN_MAX; i++) {
         PAD_CTRL_BTN *entry = &btn[i];
-        int mask = entry->config;
-        if (mask != 0) {
-            int button = mask & 0xFFFF;
-            switch (mask & PAD_CTRL_TRIGGER_MASK) {
-        case PAD_CTRL_TRIGGER_ON:
-                    entry->value = pad->On(button);
-            break;
-        case PAD_CTRL_TRIGGER_DOWN:
-                    entry->value = pad->Down(button);
-            break;
-        case PAD_CTRL_TRIGGER_UP:
-                    entry->value = pad->Up(button);
-            break;
+        int config = btn[i].config;
+        if (config != 0) {
+            int button = config & PAD_CTRL_BUTTON_MASK;
+            switch (config & PAD_CTRL_TRIGGER_MASK) {
+            case PAD_CTRL_TRIGGER_ON:
+                entry->value = pad->On(button);
+                break;
+            case PAD_CTRL_TRIGGER_DOWN:
+                entry->value = pad->Down(button);
+                break;
+            case PAD_CTRL_TRIGGER_UP:
+                entry->value = pad->Up(button);
+                break;
+            }
         }
     }
-}
-    for (j = 0; j < PAD_CTRL_ANALOG_MAX; j++) {
-        PAD_CTRL_ANALOG *axis = &analog[j];
-        switch (axis->axis) {
+
+    for (int i = 0; i < PAD_CTRL_ANALOG_MAX; i++) {
+        PAD_CTRL_ANALOG *entry = &analog[i];
+        switch (analog[i].axis) {
         case PAD_CTRL_AXIS_LX:
-                axis->value = lx;
+            entry->value = lx;
             break;
         case PAD_CTRL_AXIS_LY:
-                axis->value = ly;
+            entry->value = ly;
             break;
         case PAD_CTRL_AXIS_RX:
-                axis->value = rx;
+            entry->value = rx;
             break;
         case PAD_CTRL_AXIS_RY:
-                axis->value = ry;
-                break;
-            case PAD_CTRL_AXIS_NONE:
+            entry->value = ry;
+            break;
+        case PAD_CTRL_AXIS_NONE:
             break;
         }
     }
