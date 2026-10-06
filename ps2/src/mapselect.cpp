@@ -1,97 +1,6 @@
-#include <cstring>
-#include <cstdlib>
-extern "C" char *strncat(char *destination, const char *source, size_t count);
-#include <cstdio>
-#include "font.hpp"
-#include "gamepad.hpp"
-#include "dataread.hpp"
 #include "common.h"
-#include "actionchara.hpp"
-#include "character.hpp"
-#include "mainloop.hpp"
-#include "mg_frame.hpp"
-#include "mg_memory.hpp"
-#include "scriptinterpreter.hpp"
 #include "mapselect.hpp"
-#include "savedata.hpp"
-#include "editdata.hpp"
-#include "vlgr_info.hpp"
-#include "scenesnd.hpp"
 
-struct EventListColors { u32 color[2]; };
-struct LineBreakPair { char chars[2]; };
-struct SaveEditLabels { const char *text[2]; };
-extern SaveEditLabels at_1125;
-extern SaveEditLabels at_1128__2;
-extern int MapNameNum;
-extern MAP_NAME_INFO * map_name;
-extern int pMapNameBuff;
-extern int pCharBuff;
-extern char * CharBuff;
-extern int now_no;
-extern int SedSel;
-extern int SedSelData[SED_ITEM_NUM];
-extern char *config_str[1];
-extern mgCMemory *MenuStack;
-extern int SelectMode;
-extern int SelectMapType;
-extern int select_1009;
-extern signed char init_1010;
-extern EVENT_VIEW_INFO * EventInfo;
-extern int EventInfoNum;
-extern int BossEventTop;
-extern int sel_event;
-extern int top_event;
-extern int BossBattleSelFlag;
-extern char MapNameBuff[0x8000];
-extern char SelectMapName[];
-extern char ** SelectMapList[8];
-extern int SelectMapNum[8];
-extern char * map_sel_type[8];
-extern int select__1049[8];
-extern int top__1050[8];
-extern SPI_TAG_PARAM tag__7[];
-extern CGamePad GamePad__2;
-extern EventListColors at_1270__4;
-extern LineBreakPair at_1377__2;
-extern char at_1040__4[];
-extern char at_1041__4[];
-extern char at_1042__3[];
-extern char at_1043__3[];
-extern char at_1044__2[];
-extern char at_1045__3[];
-extern char at_1103__4[];
-extern char at_1104__6[];
-extern char at_1105__3[];
-extern char at_1323__3[];
-extern char at_1324__2[];
-extern char at_1469__4[];
-extern char at_1470__3[];
-extern char at_1471__3[];
-extern char at_842__4[];
-extern char at_859__3[];
-extern char at_860__2[];
-int mlMAP_NAME_NUM(SPI_STACK *stack, int argc);
-int mlMAP_NAME(SPI_STACK *stack, int argc);
-void LoadMapName(int language, u_long128 *buffer);
-extern "C" void __ct__18CScriptInterpreterFv(void *interpreter);
-static MAP_NAME_INFO *GetMapNameInfo(int map_no);
-void GetMapPath(char *path, char *name);
-int GetMapType(int map_no);
-int GetMapAreaNo(int map_no);
-int GetMapSelType(int map_no);
-int GetMapSndDataID(int map_no);
-char *GetMapName(int map_no, char **title);
-int SearchMapNo(char *name);
-char *GetMapTitle(int map_no);
-char *GetAddMapPath(int map_no);
-int MapTypeSelect(void);
-int MapSelect(void);
-void InitSaveDataEdit(mgCMemory *stack);
-int EventViewLoop(void);
-extern "C" char *GetLine__FPPcPcPc__3(char **fields, char *cursor, char *end);
-void AtraMiriaOnOff(int mode, CCharacter2 *chara, int enable);
-#ifdef NONMATCHING
 #include "character.hpp"
 #include "dataread.hpp"
 #include "editdata.hpp"
@@ -114,12 +23,10 @@ static int pMapNameBuff;
 static int pCharBuff;
 static char *CharBuff;
 static int now_no;
-static char MapNameBuff[MAP_NAME_BUFF_SIZE * 16];
+static u_long128 MapNameBuff[MAP_NAME_BUFF_SIZE];
 static mgCMemory *MenuStack;
 static int SelectMode;
 static int SelectMapType;
-static int select_1009;
-static signed char init_1010;
 static int SedSel;
 static int EventInfoNum;
 static int BossEventTop;
@@ -129,174 +36,166 @@ static char **SelectMapList[MAP_SEL_TYPE_NUM];
 static int SelectMapNum[MAP_SEL_TYPE_NUM];
 EVENT_VIEW_INFO *EventInfo;
 int BossBattleSelFlag;
-extern SPI_TAG_PARAM tag__7[3];
-extern char *map_sel_type[MAP_SEL_TYPE_NUM];
-extern char SelectMapName[0x100];
-extern int select__1049[8];
-extern int top__1050[8];
-extern int SedSelData[SED_ITEM_NUM];
-extern char *config_str[1];
+/** Map categories shown by the debug selector. */
+static char *map_sel_type[MAP_SEL_TYPE_NUM] = {
+    "New", "Georama", "PalmBlinks", "Submap", "Future", "Dungeon", "Event", "Special"
+};
+/** Map name chosen by the debug selector. */
+static char SelectMapName[0x100] = "";
+/** Values edited by the save-data debug menu. */
+static int SedSelData[SED_ITEM_NUM] = {0};
+/** Configuration choices shown by the save-data debug menu. */
+static char *config_str[1] = {"Caption off"};
 static char *GetLine(char **columns, char *position, char *end);
-#endif
 
 // Code (.text)
-int mlMAP_NAME_NUM(SPI_STACK *stack, int argc) {
+/**
+ * Initializes the map table and its string buffer from the script count.
+ */
+static int mlMAP_NAME_NUM(SPI_STACK *arguments, int argument_count) {
     pMapNameBuff = 0;
     pCharBuff = 0;
-    int count = spiGetStackInt(stack);
+    int count = spiGetStackInt(arguments);
     MapNameNum = count;
-    map_name = (MAP_NAME_INFO *)(MapNameBuff + pMapNameBuff * 16);
-    pMapNameBuff += ((count + 1) * sizeof(MAP_NAME_INFO) >> 4) + 1;
-    CharBuff = MapNameBuff + pMapNameBuff * 16;
-    for (int i = 0; i < count + 1; i++) {
-        memset(&map_name[i], 0, sizeof(MAP_NAME_INFO));
-    }
+    map_name = (MAP_NAME_INFO *)&MapNameBuff[pMapNameBuff];
+    pMapNameBuff += ((count + 1) * sizeof(MAP_NAME_INFO)) / 16 + 1;
+    CharBuff = (char *)&MapNameBuff[pMapNameBuff];
+    for (int index = 0; index < count + 1; ++index) memset(&map_name[index], 0, sizeof(MAP_NAME_INFO));
     now_no = 0;
     return 1;
 }
-int mlMAP_NAME(SPI_STACK *stack, int argc) {
-    char *args[3];
-    char *copies[3];
-    args[0] = spiGetStackString(stack++);
-    args[1] = spiGetStackString(stack++);
-    args[2] = spiGetStackString(stack++);
-    int i;
+
+/**
+ * Copies one map entry from script arguments into the map table.
+ */
+static int mlMAP_NAME(SPI_STACK *arguments, int argument_count) {
+    char *strings[3];
+    char *copied[3];
+    int index;
     int length;
-    for (i = 0; i < 3; i++) {
-        if (args[i] == NULL || *(s8 *)args[i] == 0) {
-            copies[i] = NULL;
+
+    strings[0] = spiGetStackString(arguments++);
+    strings[1] = spiGetStackString(arguments++);
+    strings[2] = spiGetStackString(arguments++);
+    for (index = 0; index < 3; ++index) {
+        if (strings[index] == NULL || strings[index][0] == 0) {
+            copied[index] = NULL;
         } else {
-            length = strlen(args[i]);
-            copies[i] = CharBuff + pCharBuff;
-            strcpy(copies[i], args[i]);
+            length = strlen(strings[index]);
+            copied[index] = &CharBuff[pCharBuff];
+            strcpy(copied[index], strings[index]);
             pCharBuff += length + 1;
         }
     }
-    MAP_NAME_INFO *info = &map_name[now_no++];
-    info->name = copies[0];
-    info->title = copies[1];
-    info->add_path = copies[2];
-    info->type = spiGetStackInt(stack++);
-    info->sel_type = spiGetStackInt(stack++);
-    info->snd_data_id = -1;
-    if (argc >= 6) {
-        info->snd_data_id = spiGetStackInt(stack++);
+    MAP_NAME_INFO &entry = map_name[now_no++];
+    entry.name = copied[0];
+    entry.title = copied[1];
+    entry.add_path = copied[2];
+    entry.type = spiGetStackInt(arguments++);
+    entry.sel_type = spiGetStackInt(arguments++);
+    entry.snd_data_id = -1;
+    if (argument_count >= 6) {
+        entry.snd_data_id = spiGetStackInt(arguments++);
     }
-    if (argc >= 7) {
-        info->area_no = spiGetStackInt(stack);
+    if (argument_count >= 7) {
+        entry.area_no = spiGetStackInt(arguments);
     }
     return 1;
 }
+
 void LoadMapName(int language, u_long128 *buffer) {
-    char path[0x80];
-    u_char interpreter[0xED0];
-    int size;
+    static SPI_TAG_PARAM tag[] = {
+        {"MAP_NAME_NUM", mlMAP_NAME_NUM},
+        {"MAP_NAME", mlMAP_NAME},
+        {NULL, NULL}
+    };
+
     MapNameNum = 0;
-    sprintf(path, at_842__4, language);
-    if (LoadFile2(path, buffer, &size, 0)) {
-        __ct__18CScriptInterpreterFv(interpreter);
-        ((CScriptInterpreter *)interpreter)->SetTag(tag__7);
-        ((CScriptInterpreter *)interpreter)->SetScript((char *)buffer, size);
-        ((CScriptInterpreter *)interpreter)->Run();
+    char path[0x80];
+    sprintf(path, "map/map%d.cfg", language);
+    int file_size;
+    if (LoadFile2(path, buffer, &file_size, 0)) {
+        CScriptInterpreter interpreter;
+        interpreter.SetTag(tag);
+        interpreter.SetScript((char *)buffer, file_size);
+        interpreter.Run();
         pMapNameBuff += pCharBuff / 16 + 1;
     }
 }
-static MAP_NAME_INFO *GetMapNameInfo(int map_no) {
 
-    if (map_no < 0 || map_no >= MapNameNum) {
-        return NULL;
-    }
+/**
+ * Returns a map table entry only for a valid map number.
+ */
+static MAP_NAME_INFO *GetMapNameInfo(int map_no) {
+    if (map_no < 0 || map_no >= MapNameNum) return NULL;
     return &map_name[map_no];
 }
-void GetMapPath(char *path, char *name) {
+
+char *GetMapPath(char *path, char *name) {
     int length = strlen(name);
     char *rest = name;
-    strcpy(path, at_859__3);
+
+    strcpy(path, "map/");
     strncat(path, name, 1);
-    strcat(path, at_860__2);
+    strcat(path, "/");
     if (length >= 3) {
         strncat(path, name, 3);
-        rest = name + 3;
-        strcat(path, at_860__2);
+        rest = &name[3];
+        strcat(path, "/");
     }
     if (length >= 6) {
         strncat(path, rest, 3);
-        strcat(path, at_860__2);
+        strcat(path, "/");
     }
-    strcat(path, name);
+    return strcat(path, name);
 }
+
 int GetMapType(int map_no) {
-    MAP_NAME_INFO *info = GetMapNameInfo(map_no);
-    if (info != NULL) {
-        return info->type;
-    }
-    return -1;
+    MAP_NAME_INFO *entry = GetMapNameInfo(map_no);
+    return entry != NULL ? entry->type : -1;
 }
+
 int GetMapAreaNo(int map_no) {
-    MAP_NAME_INFO *info = GetMapNameInfo(map_no);
-    if (info != NULL) {
-        return info->area_no;
-    }
-    return -1;
+    MAP_NAME_INFO *entry = GetMapNameInfo(map_no);
+    return entry != NULL ? entry->area_no : -1;
 }
+
 int GetMapSelType(int map_no) {
-    MAP_NAME_INFO *info = GetMapNameInfo(map_no);
-    if (info != NULL) {
-        return info->sel_type;
-    }
-    return 0;
+    MAP_NAME_INFO *entry = GetMapNameInfo(map_no);
+    return entry != NULL ? entry->sel_type : 0;
 }
+
 int GetMapSndDataID(int map_no) {
-    MAP_NAME_INFO *info = GetMapNameInfo(map_no);
-    if (info != NULL) {
-        return info->snd_data_id;
-    }
-    return -1;
+    MAP_NAME_INFO *entry = GetMapNameInfo(map_no);
+    return entry != NULL ? entry->snd_data_id : -1;
 }
+
 char *GetMapName(int map_no, char **title) {
-    if (title != NULL) {
-        *title = NULL;
-    }
-    MAP_NAME_INFO *info = GetMapNameInfo(map_no);
-    if (info == NULL) {
-        return SelectMapName;
-    }
-    if (title != NULL) {
-        *title = info->title;
-    }
-    return info->name;
+    if (title != NULL) *title = NULL;
+    MAP_NAME_INFO *entry = GetMapNameInfo(map_no);
+    if (entry == NULL) return SelectMapName;
+    if (title != NULL) *title = entry->title;
+    return entry->name;
 }
+
 int SearchMapNo(char *name) {
-    struct { int no; int offset; char *name; } search;
-    search.name = name;
-    if (search.name == NULL) {
-        return -1;
-    }
-    search.no = 0;
-    search.offset = 0;
-    for (; search.no < MapNameNum; search.offset += sizeof(MAP_NAME_INFO), search.no++) {
-        MAP_NAME_INFO *info = (MAP_NAME_INFO *)((u_char *)map_name + search.offset);
-        if (info->name != NULL && strcmp(info->name, search.name) == 0) {
-            return search.no;
-        }
+    if (name == NULL) return -1;
+    for (int map_no = 0; map_no < MapNameNum; ++map_no) {
+        if (map_name[map_no].name != NULL && strcmp(map_name[map_no].name, name) == 0) return map_no;
     }
     return -1;
 }
 
 char *GetMapTitle(int map_no) {
-    MAP_NAME_INFO *info = GetMapNameInfo(map_no);
-    if (info != NULL) {
-        return info->title;
-    }
-    return NULL;
+    MAP_NAME_INFO *entry = GetMapNameInfo(map_no);
+    return entry != NULL ? entry->title : NULL;
 }
+
 char *GetAddMapPath(int map_no) {
-    MAP_NAME_INFO *info = GetMapNameInfo(map_no);
-    if (info != NULL) {
-        return info->add_path;
-    }
-    return NULL;
+    MAP_NAME_INFO *entry = GetMapNameInfo(map_no);
+    return entry != NULL ? entry->add_path : NULL;
 }
+
 void InitMapSelect(mgCMemory *stack) {
     MenuStack = stack;
     SetCurrentDir(NULL);
@@ -307,21 +206,29 @@ void InitMapSelect(mgCMemory *stack) {
     lines.size = list_size;
     for (int type = 0; type < MAP_SEL_TYPE_NUM; ++type) {
         SelectMapNum[type] = 0;
-        SelectMapList[type] = new ((u_long128 *)MenuStack->Alloc(0x22)) char *[SELECT_MAP_MAX];
-        for (int index = 0; index < SELECT_MAP_MAX; ++index) SelectMapList[type][index] = NULL;
+        SelectMapList[type] = new (MenuStack->Alloc(0x22)) char *[SELECT_MAP_MAX];
+        for (int index = 0; index < SELECT_MAP_MAX; ++index) {
+            SelectMapList[type][index] = NULL;
+        }
     }
     SelectMode = MAP_SELECT_MODE_TYPE;
     char line[0x100];
-    if (!lines.GetLine(line, sizeof(line), NULL)) return;
+    if (!lines.GetLine(line, sizeof(line), NULL)) {
+        return;
+    }
     int path_length = strlen(line) + 1;
     if (lines.GetLine(line, sizeof(line), NULL)) {
         do {
             if (line[0] != 0) {
                 char *letter = line;
-                for (; *letter != 0; letter++) {
-                    char c = *letter;
-                    if (c == 0) break;
-                    if (c == '\\') *letter = '/';
+                for (; *letter != 0; ++letter) {
+                    char ch = *letter;
+                    if (ch == 0) {
+                        break;
+                    }
+                    if (ch == '\\') {
+                        *letter = '/';
+                    }
                     if (strncmp(letter, "cmn", 3) == 0) {
                         letter = NULL;
                         break;
@@ -329,7 +236,7 @@ void InitMapSelect(mgCMemory *stack) {
                 }
                 if (letter != NULL) {
                     char directory[0x80], name[0x80], extension[0x80];
-                    DivPathNameExt(line + path_length, directory, name, extension);
+                    DivPathNameExt(&line[path_length], directory, name, extension);
                     int type = GetMapSelType(SearchMapNo(name));
                     SelectMapList[type][SelectMapNum[type]++] = mgCopyString(name, MenuStack);
                 }
@@ -337,155 +244,162 @@ void InitMapSelect(mgCMemory *stack) {
         } while (lines.GetLine(line, sizeof(line), NULL));
     }
 }
-int MapTypeSelect(void) {
-    char text[0x800];
-    char *cursor = text;
-    if (init_1010 == 0) {
-        select_1009 = 0;
-        init_1010 = 1;
+
+/**
+ * Steps and draws the debug map category picker.
+ */
+static int MapTypeSelect() {
+    char display[0x800];
+    char *cursor = display;
+    static int select = 0;
+    if (GamePad.Down(PAD_UP)) {
+        select--;
     }
-    if (GamePad__2.Down(0x1000)) {
-        select_1009--;
+    if (GamePad.Down(PAD_DOWN)) {
+        select++;
     }
-    if (GamePad__2.Down(0x4000)) {
-        select_1009++;
+    if (select < 0) {
+        select = MAP_SEL_TYPE_NUM - 1;
     }
-    if (select_1009 < 0) {
-        select_1009 = 7;
+    if (select >= MAP_SEL_TYPE_NUM) {
+        select = 0;
     }
-    if (select_1009 >= 8) {
-        select_1009 = 0;
-    }
-    if (GamePad__2.Down(0x20)) {
-        if (SelectMapNum[select_1009] > 0) {
-            SelectMapType = select_1009;
-            SelectMode = 1;
+    if (GamePad.Down(PAD_CIRCLE)) {
+        if (SelectMapNum[select] > 0) {
+            SelectMapType = select;
+            SelectMode = MAP_SELECT_MODE_MAP;
         }
     }
-    if (GamePad__2.Down(0x40)) {
-        SelectMode = -1;
+    if (GamePad.Down(PAD_CROSS)) {
+        SelectMode = MAP_SELECT_MODE_CANCEL;
     }
-    cursor += sprintf(cursor, at_1040__4);
-    for (int i = 0; i < 8; i++) {
-        if (i == select_1009) {
-            cursor += sprintf(cursor, at_1041__4);
+    cursor += sprintf(cursor, "\n\n");
+    for (int type = 0; type < MAP_SEL_TYPE_NUM; type++) {
+        if (type == select) {
+            cursor += sprintf(cursor, ">>");
         } else {
-            cursor += sprintf(cursor, at_1042__3);
+            cursor += sprintf(cursor, "  ");
         }
-        cursor += sprintf(cursor, at_1043__3, map_sel_type[i]);
-        if (i == select_1009) {
-            cursor += sprintf(cursor, at_1044__2);
+        cursor += sprintf(cursor, "%s", map_sel_type[type]);
+        if (type == select) {
+            cursor += sprintf(cursor, "<<");
         }
-        cursor += sprintf(cursor, at_1045__3);
+        cursor += sprintf(cursor, "\n");
     }
-    GetDebugFont()->DrawDirect(text, 10, 10);
+    GetDebugFont()->DrawDirect(display, 10, 10);
     return 0;
 }
-int MapSelect(void) {
-    char text[0x800];
-    char *name;
-    char *cursor = text;
-    int *selected;
+
+/**
+ * Steps and draws the maps in the selected category.
+ */
+static int MapSelect() {
+    static int select[MAP_SEL_TYPE_NUM] = {0};
+    static int first[MAP_SEL_TYPE_NUM] = {0};
+    char display[0x800];
+    char *title;
+    char *cursor = display;
+    int &selected = select[SelectMapType];
     int count;
-    int *top;
+    int &top = first[SelectMapType];
     int paged;
-    int offset;
-    selected = &select__1049[SelectMapType];
-    top = &top__1050[SelectMapType];
-    offset = *selected - *top;
-    if (GamePad__2.Down(0x1000)) {
-        (*selected)--;
+    int row;
+    row = selected - top;
+    if (GamePad.Down(PAD_UP)) {
+        selected--;
     }
-    if (GamePad__2.Down(0x4000)) {
-        (*selected)++;
+    if (GamePad.Down(PAD_DOWN)) {
+        selected++;
     }
     paged = 0;
-    if (GamePad__2.Down(4)) {
+    if (GamePad.Down(PAD_L1)) {
         paged = 1;
-        *top -= 8;
+        top -= 8;
     }
-    if (GamePad__2.Down(8)) {
+    if (GamePad.Down(PAD_R1)) {
         paged = 1;
-        *top += 8;
+        top += 8;
     }
     count = SelectMapNum[SelectMapType];
-    if (*selected < 0) {
-        *selected = 0;
+    if (selected < 0) {
+        selected = 0;
     }
-    if (*selected >= count) {
-        *selected = count - 1;
+    if (selected >= count) {
+        selected = count - 1;
     }
     if (paged == 0) {
-        if (*selected - *top >= 8) {
-            (*top)++;
+        if (selected - top >= 8) {
+            top++;
         }
-        if (*selected < *top) {
-            (*top)--;
+        if (selected < top) {
+            top--;
         }
     }
-    if (*top + 8 >= count) {
-        *top = count - 8;
+    if (top + 8 >= count) {
+        top = count - 8;
     }
-    if (*top < 0) {
-        *top = 0;
+    if (top < 0) {
+        top = 0;
     }
     if (paged != 0) {
-        *selected = *top + offset;
+        selected = top + row;
     }
-    int selectedMapNo = SearchMapNo(SelectMapList[SelectMapType][*selected]);
-    cursor += sprintf(cursor, at_1103__4, selectedMapNo);
-    int end = *top + 8;
-    if (count < end) {
-        end = count;
+    int chosen_map = SearchMapNo(SelectMapList[SelectMapType][selected]);
+    cursor += sprintf(cursor, "\n\nMapNo = %d\n", chosen_map);
+    int last = top + 8;
+    if (last > count) {
+        last = count;
     }
-    for (int i = *top; i < end; i++) {
-        int map_no = SearchMapNo(SelectMapList[SelectMapType][i]);
-        if (i == *selected) {
-            cursor += sprintf(cursor, at_1041__4);
+    for (int index = top; index < last; ++index) {
+        int map_no = SearchMapNo(SelectMapList[SelectMapType][index]);
+        if (index == selected) {
+            cursor += sprintf(cursor, ">>");
         } else {
-            cursor += sprintf(cursor, at_1042__3);
+            cursor += sprintf(cursor, "  ");
         }
-        cursor += sprintf(cursor, at_1043__3, SelectMapList[SelectMapType][i]);
-        if (selectedMapNo < 0) {
-            cursor += sprintf(cursor, at_1104__6);
+        cursor += sprintf(cursor, "%s", SelectMapList[SelectMapType][index]);
+        if (chosen_map < 0) {
+            cursor += sprintf(cursor, "   *");
         } else {
-            cursor += sprintf(cursor, at_1105__3);
+            cursor += sprintf(cursor, "    ");
         }
-        name = NULL;
-        GetMapName(map_no, &name);
-        if (name != NULL) {
-            cursor += sprintf(cursor, at_1043__3, name);
+        title = NULL;
+        GetMapName(map_no, &title);
+        if (title != NULL) {
+            cursor += sprintf(cursor, "%s", title);
         }
-        if (i == *selected) {
-            cursor += sprintf(cursor, at_1044__2);
+        if (index == selected) {
+            cursor += sprintf(cursor, "<<");
         }
-        cursor += sprintf(cursor, at_1045__3);
+        cursor += sprintf(cursor, "\n");
     }
-    GetDebugFont()->DrawDirect(text, 10, 10);
-    if (GamePad__2.Down(0x40)) {
-        SelectMode = 0;
+    GetDebugFont()->DrawDirect(display, 10, 10);
+    if (GamePad.Down(PAD_CROSS)) {
+        SelectMode = MAP_SELECT_MODE_TYPE;
     }
-    if (GamePad__2.Down(0x20)) {
-        strcpy(SelectMapName, SelectMapList[SelectMapType][*selected]);
-        SelectMode = 2;
+    if (GamePad.Down(PAD_CIRCLE)) {
+        strcpy(SelectMapName, SelectMapList[SelectMapType][selected]);
+        SelectMode = MAP_SELECT_MODE_DECIDE;
     }
     return 0;
 }
+
 int MapSelectLoop() {
     switch (SelectMode) {
-    case -1:
-        return 1;
-    case 0:
+    case MAP_SELECT_MODE_CANCEL:
+        return MAP_SELECT_CANCEL;
+    case MAP_SELECT_MODE_TYPE:
         MapTypeSelect();
         break;
-    case 1:
+    case MAP_SELECT_MODE_MAP:
         MapSelect();
         break;
-    case 2:
-        return 2;
+    case MAP_SELECT_MODE_DECIDE:
+        return MAP_SELECT_DECIDE;
     }
-    return 0;
+    return MAP_SELECT_CONTINUE;
 }
+
 void InitSaveDataEdit(mgCMemory *stack) {
 }
 int SaveDataEditLoop() {
@@ -496,157 +410,145 @@ int SaveDataEditLoop() {
     GAME_PROGRESS_INFO *progress;
     const char *progress_name;
     SV_CONFIG_OPTION *config = save->GetConfig();
-    SaveEditLabels marker = at_1125;
-    SaveEditLabels on_off = at_1128__2;
+    const char *marker[2] = {"  ", ">>"};
+    const char *on_off[2] = {"OFF", "ON"};
     progress = GetGameProgressInfo(SedSelData[SED_PROGRESS]);
     SedSelData[SED_PLAY_TIME] = GetPlayTimeCountFlag();
-    char *caption[1] = {(char *)&config->caption_off};
-    progress_name = marker.text[0];
-    if (progress != NULL) progress_name = progress->name;
+    s8 *caption[1] = {&config->caption_off};
+    progress_name = marker[0];
+    if (progress != NULL) {
+        progress_name = progress->name;
+    }
     cursor += sprintf(cursor, "Save Data Editer\n\n");
-    cursor += sprintf(cursor, "%sPROGRESS  %d(%s)\n", marker.text[SedSel == SED_PROGRESS], SedSelData[SED_PROGRESS], progress_name);
-    cursor += sprintf(cursor, "%sTIME      %5.1f\n", marker.text[SedSel == SED_TIME], save->now_time);
-    cursor += sprintf(cursor, "%sFLAG      %4d = %s\n", marker.text[SedSel == SED_FLAG], SedSelData[SED_FLAG], on_off.text[save->GetBitFlag(SedSelData[SED_FLAG]) != 0]);
-    cursor += sprintf(cursor, "%sGEO COMP  %d\n", marker.text[SedSel == SED_GEO_COMP], SedSelData[SED_GEO_COMP]);
-    cursor += sprintf(cursor, "%sPLAY TIME %d\n", marker.text[SedSel == SED_PLAY_TIME], SedSelData[SED_PLAY_TIME]);
+    cursor += sprintf(cursor, "%sPROGRESS  %d(%s)\n", marker[SedSel == SED_PROGRESS], SedSelData[SED_PROGRESS], progress_name);
+    cursor += sprintf(cursor, "%sTIME      %5.1f\n", marker[SedSel == SED_TIME], save->now_time);
+    cursor += sprintf(cursor, "%sFLAG      %4d = %s\n", marker[SedSel == SED_FLAG], SedSelData[SED_FLAG], on_off[save->GetBitFlag(SedSelData[SED_FLAG]) != 0]);
+    cursor += sprintf(cursor, "%sGEO COMP  %d\n", marker[SedSel == SED_GEO_COMP], SedSelData[SED_GEO_COMP]);
+    cursor += sprintf(cursor, "%sPLAY TIME %d\n", marker[SedSel == SED_PLAY_TIME], SedSelData[SED_PLAY_TIME]);
     int config_value = *caption[0];
     const int &config_reference = config_value;
-    cursor += sprintf(cursor, "%sCONFIG    %s = %d\n", marker.text[SedSel == SED_CONFIG], config_str[0], config_reference);
+    cursor += sprintf(cursor, "%sCONFIG    %s = %d\n", marker[SedSel == SED_CONFIG], config_str[0], config_reference);
     SedSelData[SED_PROGRESS] = save->game_progress;
     if (SedSel == SED_PROGRESS) {
-        if (GamePad__2.Down(PAD_RIGHT)) ++SedSelData[SED_PROGRESS];
-        if (GamePad__2.Down(PAD_LEFT)) --SedSelData[SED_PROGRESS];
+        if (GamePad.Down(PAD_RIGHT)) ++SedSelData[SED_PROGRESS];
+        if (GamePad.Down(PAD_LEFT)) --SedSelData[SED_PROGRESS];
         if (SedSelData[SED_PROGRESS] <= 0) SedSelData[SED_PROGRESS] = 1;
         if (SedSelData[SED_PROGRESS] >= GetGameProgressNum()) SedSelData[SED_PROGRESS] = GetGameProgressNum() - 1;
         save->game_progress = SedSelData[SED_PROGRESS];
     }
     if (SedSel == SED_TIME) {
         int hour = (int)save->now_time;
-        if (GamePad__2.Down(PAD_RIGHT)) ++hour;
-        if (GamePad__2.Down(PAD_LEFT)) --hour;
+        if (GamePad.Down(PAD_RIGHT)) ++hour;
+        if (GamePad.Down(PAD_LEFT)) --hour;
         hour %= 24;
-        if (GamePad__2.Down(PAD_TRIANGLE)) {
-            if (hour == 12) hour = 0;
-            else hour = 12;
+        if (GamePad.Down(PAD_TRIANGLE)) {
+            if (hour == 12) {
+                hour = 0;
+            } else {
+                hour = 12;
+            }
         }
         scene->SetTime((float)hour);
         save->now_time = (float)hour;
     }
     if (SedSel == SED_FLAG) {
-        if (GamePad__2.Down(PAD_RIGHT)) ++SedSelData[SED_FLAG];
-        if (GamePad__2.Down(PAD_LEFT)) --SedSelData[SED_FLAG];
-        if (GamePad__2.Down(PAD_R1)) SedSelData[SED_FLAG] += 10;
-        if (GamePad__2.Down(PAD_L1)) SedSelData[SED_FLAG] -= 10;
-        if (GamePad__2.Down(PAD_R2)) SedSelData[SED_FLAG] += 100;
-        if (GamePad__2.Down(PAD_L2)) SedSelData[SED_FLAG] -= 100;
+        if (GamePad.Down(PAD_RIGHT)) ++SedSelData[SED_FLAG];
+        if (GamePad.Down(PAD_LEFT)) --SedSelData[SED_FLAG];
+        if (GamePad.Down(PAD_R1)) SedSelData[SED_FLAG] += 10;
+        if (GamePad.Down(PAD_L1)) SedSelData[SED_FLAG] -= 10;
+        if (GamePad.Down(PAD_R2)) SedSelData[SED_FLAG] += 100;
+        if (GamePad.Down(PAD_L2)) SedSelData[SED_FLAG] -= 100;
         if (SedSelData[SED_FLAG] < 0) SedSelData[SED_FLAG] = 0;
-        if (GamePad__2.Down(PAD_CIRCLE)) save->SetBitFlag(SedSelData[SED_FLAG], !save->GetBitFlag(SedSelData[SED_FLAG]));
+        if (GamePad.Down(PAD_CIRCLE)) save->SetBitFlag(SedSelData[SED_FLAG], !save->GetBitFlag(SedSelData[SED_FLAG]));
     }
     if (SedSel == SED_GEO_COMP) {
-        if (GamePad__2.Down(PAD_RIGHT)) ++SedSelData[SED_GEO_COMP];
-        if (GamePad__2.Down(PAD_LEFT)) --SedSelData[SED_GEO_COMP];
+        if (GamePad.Down(PAD_RIGHT)) ++SedSelData[SED_GEO_COMP];
+        if (GamePad.Down(PAD_LEFT)) --SedSelData[SED_GEO_COMP];
         if (SedSelData[SED_GEO_COMP] < 0) SedSelData[SED_GEO_COMP] = 0;
-        if (GamePad__2.Down(PAD_CIRCLE) || GamePad__2.Down(PAD_TRIANGLE)) {
+        if (GamePad.Down(PAD_CIRCLE) || GamePad.Down(PAD_TRIANGLE)) {
             DebugInfo.georama_debug = 1;
             CEditData *edit = save->GetEditData(SedSelData[SED_GEO_COMP]);
-            if (edit != NULL) edit->dbgSetAllContintionFlag(SedSelData[SED_GEO_COMP], GamePad__2.Down(PAD_CIRCLE));
+            if (edit != NULL) edit->dbgSetAllContintionFlag(SedSelData[SED_GEO_COMP], GamePad.Down(PAD_CIRCLE));
         }
     }
     if (SedSel == SED_PLAY_TIME) {
-        if (GamePad__2.Down(PAD_RIGHT)) SedSelData[SED_PLAY_TIME] = 1;
-        if (GamePad__2.Down(PAD_LEFT)) SedSelData[SED_PLAY_TIME] = 0;
+        if (GamePad.Down(PAD_RIGHT)) SedSelData[SED_PLAY_TIME] = 1;
+        if (GamePad.Down(PAD_LEFT)) SedSelData[SED_PLAY_TIME] = 0;
         PlayTimeCount(SedSelData[SED_PLAY_TIME]);
     }
     if (SedSel == SED_CONFIG) {
-        if (GamePad__2.Down(PAD_RIGHT)) ++SedSelData[SED_CONFIG];
-        if (GamePad__2.Down(PAD_LEFT)) --SedSelData[SED_CONFIG];
+        if (GamePad.Down(PAD_RIGHT)) ++SedSelData[SED_CONFIG];
+        if (GamePad.Down(PAD_LEFT)) --SedSelData[SED_CONFIG];
         SedSelData[SED_CONFIG] = 0;
-        if (GamePad__2.Down(PAD_CIRCLE)) {
-            if (*caption[0] != 0) *caption[0] = 0;
-            else *caption[0] = 1;
+        if (GamePad.Down(PAD_CIRCLE)) {
+            if (*caption[0] != 0) {
+                *caption[0] = 0;
+            } else {
+                *caption[0] = 1;
+            }
         }
     }
-    if (GamePad__2.Down(PAD_DOWN)) ++SedSel;
-    if (GamePad__2.Down(PAD_UP)) --SedSel;
+    if (GamePad.Down(PAD_DOWN)) ++SedSel;
+    if (GamePad.Down(PAD_UP)) --SedSel;
     if (SedSel < 0) SedSel = SED_ITEM_NUM - 1;
     if (SedSel >= SED_ITEM_NUM) SedSel = 0;
     GetDebugFont()->DrawDirect(display, 10, 10);
-    if (GamePad__2.Down(PAD_CROSS)) return 1;
+    if (GamePad.Down(PAD_CROSS)) {
+        return 1;
+    }
     return 0;
 }
-int EventViewLoop(void) {
-    char text[0x400];
-    EventListColors colors;
-    INIT_LOOP_ARG loopArg;
-    char *cursor = text;
-    cursor += sprintf(cursor, at_1323__3);
-    if (BossBattleSelFlag != 0) {
-        if (top_event < BossEventTop) {
-            top_event = BossEventTop;
-        }
+
+int EventViewLoop() {
+    char display[0x400];
+    INIT_LOOP_ARG arg;
+    char *cursor = display;
+    cursor += sprintf(cursor, "\nEvent \n");
+    if (BossBattleSelFlag) {
+        if (top_event < BossEventTop) top_event = BossEventTop;
         BossBattleSelFlag = 0;
     }
     int index = top_event;
     int last = index + 10;
-    colors = at_1270__4;
-    if (last >= EventInfoNum) {
-        last = EventInfoNum;
+    const char *marker[2] = {"  ", ">>"};
+    if (last >= EventInfoNum) last = EventInfoNum;
+    for (; index < last; ++index) {
+        EVENT_VIEW_INFO &entry = EventInfo[index];
+        if (entry.name != NULL) cursor += sprintf(cursor, "%s%s   %s\n", marker[index == top_event + sel_event], entry.name, entry.detail);
     }
-    for (; index < last; index++) {
-        EVENT_VIEW_INFO *info = &EventInfo[index];
-        if (info->name != NULL) {
-            cursor += sprintf(cursor, at_1324__2, colors.color[index == top_event + sel_event],
-                              info->name, info->detail);
-        }
-    }
-    GetDebugFont()->DrawDirect(text, 10, 10);
-    if (GamePad__2.Down(0x1000)) {
-        sel_event--;
-    }
-    if (GamePad__2.Down(0x4000)) {
-        sel_event++;
-    }
-    if (GamePad__2.Down(0x8004)) {
-        top_event -= 10;
-    }
-    if (GamePad__2.Down(0x2008)) {
-        top_event += 10;
-    }
-    if (top_event < 0) {
-        top_event = 0;
-    }
-    if (top_event >= EventInfoNum - 1) {
-        top_event -= 10;
-    }
+    GetDebugFont()->DrawDirect(display, 10, 10);
+    if (GamePad.Down(PAD_UP)) --sel_event;
+    if (GamePad.Down(PAD_DOWN)) ++sel_event;
+    if (GamePad.Down(PAD_LEFT | PAD_L1)) top_event -= 10;
+    if (GamePad.Down(PAD_RIGHT | PAD_R1)) top_event += 10;
+    if (top_event < 0) top_event = 0;
+    if (top_event >= EventInfoNum - 1) top_event -= 10;
     if (sel_event < 0) {
         sel_event = 9;
-        if (top_event + 9 >= EventInfoNum) {
-            sel_event = EventInfoNum - top_event - 1;
-        }
+        if (top_event + 9 >= EventInfoNum) sel_event = EventInfoNum - top_event - 1;
     }
-    if (sel_event >= 10 || top_event + sel_event >= EventInfoNum) {
-        sel_event = 0;
-    }
-    if (GamePad__2.Down(0x20)) {
-        memset(&loopArg, 0, sizeof(loopArg));
-        EVENT_VIEW_INFO *chosen = &EventInfo[top_event + sel_event];
-        if (chosen->map_no >= 0) {
-            loopArg.map_no = chosen->map_no;
-            loopArg.floor_no = chosen->floor_no;
-            loopArg.event_no = chosen->event_no;
-            if (chosen->dungeon != 0) {
-                NextLoop(2, loopArg);
+    if (sel_event >= 10 || top_event + sel_event >= EventInfoNum) sel_event = 0;
+    if (GamePad.Down(PAD_CIRCLE)) {
+        memset(&arg, 0, sizeof(arg));
+        EVENT_VIEW_INFO &entry = EventInfo[top_event + sel_event];
+        if (entry.map_no >= 0) {
+            arg.map_no = entry.map_no;
+            arg.floor_no = entry.floor_no;
+            arg.event_no = entry.event_no;
+            if (entry.dungeon != 0) {
+                NextLoop(LOOP_DUNGEON, arg);
             } else {
-                NextLoop(1, loopArg);
+                NextLoop(LOOP_EDIT, arg);
             }
-            return 1;
+            return EVENT_VIEW_START;
         }
     }
-    if (GamePad__2.Down(0x40)) {
-        return 2;
+    if (GamePad.Down(PAD_CROSS)) {
+        return EVENT_VIEW_CANCEL;
     }
-    return 0;
+    return EVENT_VIEW_CONTINUE;
 }
+
 void LoadEventViewData(u_long128 *buffer, mgCMemory *stack) {
     int file_size;
     char fields[16][0x80];
@@ -659,16 +561,16 @@ void LoadEventViewData(u_long128 *buffer, mgCMemory *stack) {
     int floor_no;
     int dungeon;
     if (!LoadFile2((char *)"event/view_pal.txt", buffer, &file_size, 0)) return;
-    EventInfo = new ((u_long128 *)stack->Alloc(0x382)) EVENT_VIEW_INFO[EVENT_VIEW_MAX];
+    EventInfo = new (stack->Alloc(0x382)) EVENT_VIEW_INFO[EVENT_VIEW_MAX];
     for (index = 0; index < EVENT_VIEW_MAX; ++index) memset(&EventInfo[index], 0, sizeof(EVENT_VIEW_INFO));
     end = (char *)buffer + file_size;
     for (index = 0; index < 16; ++index) columns[index] = fields[index];
     entry = EventInfo;
     EventInfoNum = 0;
     BossEventTop = 0;
-    next = GetLine__FPPcPcPc__3(columns, (char *)buffer, end);
+    next = GetLine(columns, (char *)buffer, end);
     while (next < end) {
-        next = GetLine__FPPcPcPc__3(columns, next, end);
+        next = GetLine(columns, next, end);
         map_no = SearchMapNo(columns[0]);
         floor_no = 0;
         dungeon = 0;
@@ -688,108 +590,113 @@ void LoadEventViewData(u_long128 *buffer, mgCMemory *stack) {
         entry++;
     }
 }
-extern "C" char *GetLine__FPPcPcPc__3(char **fields, char *cursor, char *end) {
-    LineBreakPair lineBreakPair;
-    int field;
+
+/**
+ * Splits a tab-separated event record into its columns.
+ */
+static char *GetLine(char **columns, char *position, char *end) {
+    char line_break[2] = {'\r', '\n'};
+    int column;
     int length;
-    lineBreakPair = at_1377__2;
-    if (cursor < end) {
-        field = 0;
+    if (position < end) {
+        column = 0;
         do {
-            if (memcmp(cursor, lineBreakPair.chars, 2) == 0) {
-                cursor += 2;
+            if (memcmp(position, line_break, 2) == 0) {
+                position += 2;
                 break;
             }
-            if (memcmp(cursor, lineBreakPair.chars, 1) == 0) {
-                cursor += 1;
+            if (memcmp(position, line_break, 1) == 0) {
+                position += 1;
                 break;
             }
-            if (memcmp(cursor, lineBreakPair.chars + 1, 1) == 0) {
-                cursor += 1;
+            if (memcmp(position, &line_break[1], 1) == 0) {
+                position += 1;
                 break;
             }
             length = 0;
-            while (cursor < end) {
-                if (memcmp(cursor, lineBreakPair.chars, 2) == 0 ||
-                    memcmp(cursor, lineBreakPair.chars, 1) == 0 ||
-                    memcmp(cursor, lineBreakPair.chars + 1, 1) == 0) {
+            while (position < end) {
+                if (memcmp(position, line_break, 2) == 0 ||
+                    memcmp(position, line_break, 1) == 0 ||
+                    memcmp(position, &line_break[1], 1) == 0) {
                     break;
                 }
-                s8 ch = *cursor;
+                s8 ch = *position;
                 if (ch == '\t') {
-                    char *next = fields[field + 1];
-                    cursor++;
+                    char *next = columns[column + 1];
+                    position++;
                     if (next != NULL) {
                         *next = 0;
                     }
                     break;
                 }
-                if (ch != ' ' && fields[field] != NULL) {
-                    fields[field][length] = ch;
+                if (ch != ' ' && columns[column] != NULL) {
+                    columns[column][length] = ch;
                     length++;
                 }
-                cursor++;
+                position++;
             }
-            char *current = fields[field];
+            char *current = columns[column];
             if (current != NULL) {
-                field++;
+                column++;
                 current[length] = 0;
             }
-        } while (cursor < end);
+        } while (position < end);
     }
-    return cursor;
+    return position;
 }
-void AtraMiriaOnOff(int mode, CCharacter2 *chara, int enable) {
-    mgCFrame *left;
-    mgCFrame *right;
-    mgCFrame *frame;
+
+void AtraMiriaOnOff(int type, CCharacter2 *chara, int on) {
+    mgCFrame *atlamillia;
+    mgCFrame *cord;
+    mgCFrame *gem;
+
     if (chara == NULL) {
         return;
     }
-    frame = chara->CObjectFrame::frame;
-    if (frame == NULL) {
+    mgCFrame *model = chara->CObjectFrame::frame;
+    if (model == NULL) {
         return;
     }
-    if (mode == 0) {
-        left = frame->SearchFrame(at_1469__4);
-        right = frame->SearchFrame(at_1470__3);
-        if (enable) {
-            if (left != NULL) {
-                left->attr->draw = 5;
+    if (type == 0) {
+        atlamillia = model->SearchFrame("atoramiria");
+        cord = model->SearchFrame("himo");
+        if (on) {
+            if (atlamillia != NULL) {
+                atlamillia->attr->draw = MG_FRAME_DRAW_VISIBLE | MG_FRAME_DRAW_SKIP_BY_PARENT;
             }
-            if (right != NULL) {
-                right->attr->draw = 1;
+            if (cord != NULL) {
+                cord->attr->draw = MG_FRAME_DRAW_VISIBLE;
             }
         } else {
-            if (left != NULL) {
-                left->attr->draw = 2;
+            if (atlamillia != NULL) {
+                atlamillia->attr->draw = MG_FRAME_DRAW_SKIP_CHILDREN;
             }
-            if (right != NULL) {
-                right->attr->draw = 2;
+            if (cord != NULL) {
+                cord->attr->draw = MG_FRAME_DRAW_SKIP_CHILDREN;
             }
         }
     }
-    if (mode == 1) {
-        left = frame->SearchFrame(at_1469__4);
-        if (enable) {
-            if (left != NULL) {
-                left->attr->draw = 1;
+    if (type == 1) {
+        atlamillia = model->SearchFrame("atoramiria");
+        if (on) {
+            if (atlamillia != NULL) {
+                atlamillia->attr->draw = MG_FRAME_DRAW_VISIBLE;
             }
         } else {
-            if (left != NULL) {
-                left->attr->draw = 2;
+            if (atlamillia != NULL) {
+                atlamillia->attr->draw = MG_FRAME_DRAW_SKIP_CHILDREN;
             }
         }
     }
-    if (mode == 2) {
-        right = frame->SearchFrame(at_1471__3);
-        if (enable) {
-            if (right != NULL) {
-                right->attr->draw = 5;
+    if (type == 2) {
+        gem = model->SearchFrame("atora");
+        if (on) {
+            if (gem != NULL) {
+                gem->attr->draw = MG_FRAME_DRAW_VISIBLE | MG_FRAME_DRAW_SKIP_BY_PARENT;
             }
         } else {
-            if (right != NULL) {
-                right->attr->draw = 2;
+            if (gem != NULL) {
+                gem->attr->draw = MG_FRAME_DRAW_SKIP_CHILDREN;
             }
         }
     }
@@ -854,68 +761,45 @@ INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mapselect", at_1270__4__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mapselect", at_1377__2__DATA);
 
 // Small uninitialised data (.sbss)
-#ifndef NONMATCHING
 INCLUDE_BSS(MapNameNum, 0x4);
-#endif
-#ifndef NONMATCHING
+
 INCLUDE_BSS(map_name, 0x4);
-#endif
-#ifndef NONMATCHING
+
 INCLUDE_BSS(pMapNameBuff, 0x4);
-#endif
-#ifndef NONMATCHING
+
 INCLUDE_BSS(pCharBuff, 0x4);
-#endif
-#ifndef NONMATCHING
+
 INCLUDE_BSS(CharBuff, 0x4);
-#endif
-#ifndef NONMATCHING
+
 INCLUDE_BSS(now_no, 0x4);
-#endif
-#ifndef NONMATCHING
+
 INCLUDE_BSS(MenuStack, 0x4);
-#endif
-#ifndef NONMATCHING
+
 INCLUDE_BSS(SelectMode, 0x4);
-#endif
-#ifndef NONMATCHING
+
 INCLUDE_BSS(SelectMapType, 0x4);
-#endif
-#ifndef NONMATCHING
+
 INCLUDE_BSS(select_1009, 0x4);
-#endif
-#ifndef NONMATCHING
+
 INCLUDE_BSS(init_1010, 0x4);
-#endif
-#ifndef NONMATCHING
+
 INCLUDE_BSS(SedSel, 0x4);
-#endif
-#ifndef NONMATCHING
+
 INCLUDE_BSS(EventInfo, 0x4);
-#endif
-#ifndef NONMATCHING
+
 INCLUDE_BSS(EventInfoNum, 0x4);
-#endif
-#ifndef NONMATCHING
+
 INCLUDE_BSS(BossEventTop, 0x4);
-#endif
-#ifndef NONMATCHING
+
 INCLUDE_BSS(sel_event, 0x4);
-#endif
-#ifndef NONMATCHING
+
 INCLUDE_BSS(top_event, 0x4);
-#endif
-#ifndef NONMATCHING
+
 INCLUDE_BSS(BossBattleSelFlag, 0x4);
-#endif
 
 // Uninitialised data (.bss)
-#ifndef NONMATCHING
 INCLUDE_BSS(MapNameBuff, 0x8000);
-#endif
-#ifndef NONMATCHING
+
 INCLUDE_BSS(SelectMapList, 0x20);
-#endif
-#ifndef NONMATCHING
+
 INCLUDE_BSS(SelectMapNum, 0x20);
-#endif

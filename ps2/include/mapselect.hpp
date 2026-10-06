@@ -163,7 +163,7 @@ void LoadMapName(int language, u_long128 *buffer);
  * @address 0x2D6F60
  * @size 0xF0
  */
-void GetMapPath(char *path, char *name);
+char *GetMapPath(char *path, char *name);
 
 /**
  * Returns the kind of a map, or -1 for a map number outside the table.

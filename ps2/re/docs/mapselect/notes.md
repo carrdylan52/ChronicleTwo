@@ -42,9 +42,9 @@ No class is owned by this unit (`class_units.tsv` has none). No first-game count
   for an out-of-range map number.
 - `static char **SelectMapList[8]; static int SelectMapNum[8]`: per category, `new (Alloc(0x22))
   char*[0x80]` (placement `__nwa__FUiP1`, 0x200 bytes, zeroed), filled with `mgCopyString` names.
-- `static int select[16], top[16]` (function-local in MapSelect, `select__1049`/`top__1050`,
-  0x40 each, indexed by SelectMapType 0..7): cursor and first visible row, 8 rows shown.
-- `select_1009`/`init_1010` (u8 guard): function-local static `select` of MapTypeSelect.
+- `static int select[8], first[8]` (function-local in MapSelect, `select__1049`/`top__1050`,
+  eight entries each, indexed by SelectMapType 0..7; their retail splits include trailing padding): cursor and first visible row, 8 rows shown.
+- `select_1009`/`init_1010`: function-local static `select` of MapTypeSelect and its compiler-generated initialization guard.
 - `static int SedSelData[6]` (0x18; file holds 0x20): indexed like `SaveDataEditItem`:
   [0] progress (mirrors CSaveData+0x1A08), [1] unused, [2] flag number, [3] geo comp town,
   [4] play time count flag, [5] config value (incremented on RIGHT, reset to 0 every frame).
@@ -102,7 +102,7 @@ Called by charasetup `SetupUnitMan(scene, user, chara_type, ...)` with chara_typ
 is set; so `type` is that chara_type.
 
 ## Complete C++ draft pass
-All 22 assembly-backed functions in the unit have typed, named C++ drafts.
+All 23 functions have exact, compiled C++ bodies.
 The map script handlers populate `MAP_NAME_INFO` records in `MapNameBuff` and
 copy their strings into the adjacent character buffer. The map selector builds
 per-category lists from `map/map.lst`, while the save editor changes story
@@ -112,10 +112,8 @@ passes a selected town or dungeon event to `NextLoop`. `AtraMiriaOnOff`
 changes the draw flags of three named model frames according to character
 type.
 
-The draft comparison covers 23 of 23 functions, including the preexisting
-`InitSaveDataEdit`: five match and 18 differ. The four matching new drafts are
-`LoadMapName`, `GetMapNameInfo`, `GetMapName`, and `SearchMapNo`. Each of the
-22 guarded functions received one isolated promotion trial. Those isolated
-trials could not compile without the unit's guarded typed state and includes,
-so every new function keeps its retail `INCLUDE_ASM` fallback. The normal
-full build remained byte-identical after the draft pass.
+The draft comparison covers 23 of 23 functions, including `InitSaveDataEdit`:
+all 23 match. The normal full build equals retail in all eleven loaded sections.
+`GetMapPath` returns its final `strcat` result under the header's `char *` signature.
+The source reads the controller as `GamePad`; the build binds its references to
+retail's main-loop controller instance at `GamePad__2`.
