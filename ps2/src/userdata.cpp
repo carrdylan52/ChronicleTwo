@@ -1424,11 +1424,11 @@ char CGameDataUsed::GetAttackType() {
     return this->used_type == USED_ITEM_TYPE_ROBO_PART ? this->GetRoboInfoType() : -1;
 }
 
-s8 CGameDataUsed::GetModelNo(void) {
+int CGameDataUsed::GetModelNo(void) {
     if (used_type == USED_ITEM_TYPE_WEAPON) {
         CDataWeapon *weapon = GetWeaponInfoData(item_no);
         if (weapon != NULL) {
-            return weapon->model_no;
+            return (s8)weapon->model_no;
         }
         return -1;
     }
