@@ -424,7 +424,7 @@ public:
      * @address 0x196FE0
      * @size 0x6C
      */
-    s16 GetDataTypeStartListNo(int type);
+    int GetDataTypeStartListNo(int type);
 };
 STATIC_ASSERT(sizeof(CGameData) == 0x30);
 

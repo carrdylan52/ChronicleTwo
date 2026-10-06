@@ -650,7 +650,7 @@ u8 CGameData::GetDataType(int item_no) {
     }
     return 0U;
 }
-short CGameData::GetDataTypeStartListNo(int type) {
+int CGameData::GetDataTypeStartListNo(int type) {
     int i;
     CDataCommon *record;
 

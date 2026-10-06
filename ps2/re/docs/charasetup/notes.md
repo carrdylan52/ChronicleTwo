@@ -62,15 +62,16 @@ Stack sizes per character row. `GetCharaMemAllocSize` returns max row sum + 0x10
 ## Other data
 - `r_robo_pname_1282` (bss 0x40) = `char[4][16]`; `fname_1290` (bss 0x40) = `char[64]`;
   function-local statics of GetRoboPartsInfo.
-- `fname_tbl_1291`, `fname_tbl2_1298`: local `char *[8]` (6 used, 2 NULL).
+- `fname_tbl_1291`, `fname_tbl2_1298`: function-local `char *[6]`; the trailing words in their assembly extents are alignment padding.
 
 ## First game
 No direct counterpart header checked in chronicle for this unit.
 
-## Draft and promotion status
-All ten game functions have typed C++ drafts. `GetCharaMemAllocSize` compiled and promoted with a
-byte-identical linked image. The nine other functions compiled but differed in their isolated
-promotion attempts, so their `INCLUDE_ASM` implementations remain selected by default. In
-particular, `SetupRobo` caused a local read-only datum binding mismatch at `0x0036D870` during
-its attempted promotion. A full default build after these attempts verified every section of
-`SCES_511.90` against retail.
+## C++ draft status
+Nine of the ten functions are compiled C++ implementations and match retail.
+`SetupMainUnit` remains an upstream NONMATCHING draft with INCLUDE_ASM selected by default;
+it differs in 729 of 780 words (0xA20 bytes against retail's 0xC30).
+The linked image is byte-identical across all 11 checked sections.
+`GetRoboPartsInfo` calls the int-returning `CGameData::GetDataTypeStartListNo` member.
+Its model-name buffers and six-entry filename tables are function-local statics.
+`SetupMonica` returns int and returns 1; retail leaves register 2 equal to 1 at return.
