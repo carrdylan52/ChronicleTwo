@@ -1,29 +1,17 @@
 # editexception: reverse-engineering notes
 
 ## Draft and matching status
-Named, typed C++ definitions for `InitNpcCameraReaction`, `InitS51Thunder`,
-`StepFirePowder`, `CGeyserEffect::Create`, `Step`, `GetEmpty`, `CreatePoint`, and
-`StepGeyserEffect` reproduce the retail image and are promoted. The
-`CGeyserEffect` constructor also compiles to matching instructions, but its
-single linked-image promotion attempt produced duplicate `mgCVisual` and
-`mgC3DSprite` definitions from the header's inline virtual functions; it
-remains guarded by `NONMATCHING` with the original assembly in the game build.
-The other seven functions now have named, typed C++ drafts behind `NONMATCHING`.
-All 17 functions compile in the draft comparison: ten compare equal and seven
-differ. Each of the seven new drafts received one isolated promotion attempt;
-none promoted, so the default game build still selects their `INCLUDE_ASM`
-branches. Three promotion attempts reached image comparison and differed;
-`DrawGeyserEffect`, `DrawFirePowder`, and `InitFirePowder` encountered duplicate
-inline `mgCVisual`/`mgC3DSprite`/`mgCFrame::SetVisual` definitions while linking,
-and `CreatePacket` failed the local-data postprocessor comparison. Those are
-promotion tooling or emitted-data blockers in addition to the function diffs.
+Sixteen of the 17 functions are unguarded, matching C++ definitions.
+`InitFirePowder` uses a typed placement-new constructor in its `NONMATCHING`
+draft and assembly in the game build. All 17 functions compile with drafts
+enabled: sixteen compare equal and `InitFirePowder` differs.
 
 Special-case effects for edit (Georama) maps and the S51 dungeon floor. No first-game
 counterpart was found in `/home/adubbz/development/chronicle`.
 
 ## Globals
 Every named global in this unit is LOCAL in retail (`build/re/local_symbols.tsv`), so none is
-declared in the header; they become `static` definitions in the `.cpp` when data is migrated.
+declared in the header; they are `static` definitions in the `.cpp`.
 All are 4-byte `.sbss`.
 
 | Symbol | Type | Meaning / evidence |
@@ -91,7 +79,7 @@ after their first use or ordinary out-of-line definitions -- the header declares
 ## Functions
 - `EditExceptionStep(map_no, scene)`: only map_no 9 or 2 (callers pass `MapNo`). Pieces
   "g0301_07-m"/"g0301_08-m" of place parts "p07_g0301" -> their mgCFrame at piece+0x70.
-  Texture anime of texture "g0301_21" group "na": list+0x26 (s16 length), +0x2A (s16 current).
+  Texture anime of texture "g0301_21" group "na": list+0x26 (s16 period_y), +0x2A (s16 current phase).
   Writes float at frameattr+0x44 of frame "na" in piece 07 (fade in first quarter, out over the
   next half), and `SetAttrParamObjAlpha((sin(cur/len*2pi)+1)/0.5, 1)` on piece 08. Camera pos is
   fetched but unused.
@@ -106,18 +94,13 @@ after their first use or ordinary out-of-line definitions -- the header declares
   geyser parts); emitter index = ((id * 0x10DE8 + 1) >> 16) % 4 (signed). Calls parts vtbl+0x18
   to get a position/matrix into a 16-byte buffer, frame vtbl+0x10 to set it, `mgDrawDirect`.
 - Map numbers (2, 3, 9, 0x55, 0x57) and 0x4C (place-parts info id) have no enum yet in the tree;
-  left as literals for the body agent to wrap if an enum appears.
+  remain integer literals.
 
 ## Unresolved
 - Retail name of the fire rain particle struct (`FirePowder` is neutral).
 - Meaning of `start_thunder`, `GeyserRndSeed` (written only), CGeyserEffect 0x18/0x74 gaps,
   CGeyserEffectPoint 0x2C.
-- The texture-anime record offsets used by `EditExceptionStep` do not align
-  cleanly with the current `CList<mgCTexAnimeData>` layout; the draft uses
-  named record fields as a provisional interpretation. Its fade timing needs
-  a type-layout check before matching work continues.
-- The `DrawFirePowder` and `CreatePacket` drafts use provisional UV, size and
-  colour arrays. Retail keeps their exact values in local assembly data; those
-  values and the associated local-data layout still need migration.
-- `S51Thunder` writes two fields of each map-piece list node in retail; the
-  current named-field interpretation for those node writes needs verification.
+
+The animation record accesses are `period_y` and `phase_y`. The S51 node
+writes are the inherited `fade` and `fade_alpha` fields. Particle vectors
+use retail pixel UVs (32 and 64), size 5, and initial colour alpha 50.

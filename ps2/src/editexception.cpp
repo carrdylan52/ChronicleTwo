@@ -1,80 +1,5 @@
 #include "common.h"
-#include "mglib.hpp"
-#include <cstring>
-#include <cstdlib>
-#include "mdslist.hpp"
-#include "mapparts.hpp"
-#include "mapload.hpp"
-#include "dataread.hpp"
-#include "sound.hpp"
-#include "event_func.hpp"
-#include "mainloop.hpp"
-#include "editevent.hpp"
-#include "photo.hpp"
-#include "funcpoint.hpp"
-#include "mg_texture.hpp"
-#include "mg_math.hpp"
-#include "mg_memory.hpp"
-#include "character.hpp"
-#include "scene.hpp"
 #include "editexception.hpp"
-
-extern "C" int fptosi(float value);
-extern char at_917__5[];
-extern char at_918__4[];
-extern char at_919__6[];
-extern char at_920__5[];
-extern char at_921__4[];
-extern char at_1143__2[];
-extern char at_1259[];
-extern void *__vt__9mgCVisual[];
-extern void *__vt__11mgC3DSprite[];
-extern mgVec4 at_1327;
-extern mgVec4 at_1328__2;
-extern mgVec4 at_1329;
-extern mgVec4 at_1330;
-
-extern char at_1084__2[];
-extern char at_1085[];
-extern char at_1086[];
-extern char at_1385__4[];
-extern char at_1386__3[];
-
-extern int fade_cnt;
-extern int next_thunder_cnt;
-extern int rea_chara_id;
-extern int rea_mtn_step;
-extern int sound_cnt;
-extern int sound_flag;
-extern int start_thunder;
-extern int thunder_count;
-extern CGeyserEffect *GeyserEffect;
-extern int FirePowderFlag;
-extern FirePowder *fire_powder;
-extern mgCTextureManager mgTexManager;
-extern int GeyserEffectTexb;
-extern mgCFrame *GeyserFrame;
-extern int GeyserRndSeed;
-
-struct EditGsTest {
-    u_long ATE : 1;
-    u_long ATST : 3;
-    u_long AREF : 8;
-    u_long AFAIL : 2;
-    u_long DATE : 1;
-    u_long DATM : 1;
-    u_long ZTE : 1;
-    u_long ZTST : 2;
-    u_long rest : 45;
-};
-STATIC_ASSERT(sizeof(EditGsTest) == 8);
-
-static inline u32 align16_blocks(u32 bytes) {
-    if (bytes & 0xF) {
-        return (bytes >> 4) + 1;
-    }
-    return bytes >> 4;
-}
 #include "mg_math.hpp"
 #include "mg_memory.hpp"
 #include "mg_frame.hpp"
@@ -100,77 +25,122 @@ static inline u32 align16_blocks(u32 bytes) {
 #include <cstdlib>
 #include <cstring>
 
-extern s32 rea_chara_id;
-extern s32 rea_mtn_step;
-extern s32 thunder_count;
-extern s32 start_thunder;
-extern s32 next_thunder_cnt;
-extern s32 fade_cnt;
-extern s32 sound_flag;
-extern s32 sound_cnt;
-extern s32 FirePowderFlag;
-extern FirePowder *fire_powder;
-extern s32 FirePowderTexb;
-extern mgC3DSprite *SpriteVis;
-extern mgCFrame *FirePowFrame;
-extern s32 GeyserEffectFlag;
-extern CGeyserEffect *GeyserEffect;
-extern s32 GeyserEffectTexb;
-extern mgCFrame *GeyserFrame;
-extern s32 GeyserRndSeed;
+static s32 rea_chara_id;
+static s32 rea_mtn_step;
+static s32 thunder_count;
+static s32 start_thunder;
+static s32 next_thunder_cnt;
+static s32 fade_cnt;
+static s32 sound_flag;
+static s32 sound_cnt;
+static s32 FirePowderFlag;
+static FirePowder *fire_powder;
+static s32 FirePowderTexb;
+static mgC3DSprite *SpriteVis;
+static mgCFrame *FirePowFrame;
+static s32 GeyserEffectFlag;
+static CGeyserEffect *GeyserEffect;
+static s32 GeyserEffectTexb;
+static mgCFrame *GeyserFrame;
+static s32 GeyserRndSeed;
+
+/**
+ * Converts a byte count to the memory pool's 16-byte allocation units.
+ */
+static inline u32 align16_blocks(u32 bytes) {
+    if (bytes & 0xF) {
+        return (bytes >> 4) + 1;
+    }
+    return bytes >> 4;
+}
 
 // Code (.text)
 void EditExceptionStep(int map_no, CScene *scene) {
     int quarter;
     int frame;
-    if (scene == NULL) return;
+    if (scene == NULL) {
+        return;
+    }
     mgCTextureManager *textures = &mgTexManager;
     CMap *map = scene->GetMap(scene->active_map);
-    if (map == NULL) return;
+    if (map == NULL) {
+        return;
+    }
     mgCCamera *camera = scene->GetCamera(scene->active_camera);
-    if (camera == NULL) return;
+    if (camera == NULL) {
+        return;
+    }
     float camera_pos[4];
     camera->GetPos(camera_pos);
     switch (map_no) {
     case 2:
     case 9: {
-        CMapParts *parts = map->GetPlaceParts(at_917__5);
-        if (parts == NULL) return;
-        CMapPiece *piece07 = parts->SearchPiece(at_918__4);
-        CMapPiece *piece08 = parts->SearchPiece(at_919__6);
-        if (piece07 == NULL) return;
-        if (piece08 == NULL) return;
+        CMapParts *parts = map->GetPlaceParts("p07_g0301");
+        if (parts == NULL) {
+            return;
+        }
+        CMapPiece *piece07 = parts->SearchPiece("g0301_07-m");
+        CMapPiece *piece08 = parts->SearchPiece("g0301_08-m");
+        if (piece07 == NULL) {
+            return;
+        }
+        if (piece08 == NULL) {
+            return;
+        }
         mgCFrame *frame07 = piece07->frame;
         mgCFrame *frame08 = piece08->frame;
-        if (frame07 == NULL) return;
-        if (frame08 == NULL) return;
-        mgCFrame *fade_frame = frame07->SearchFrame(at_920__5);
-        if (fade_frame == NULL) return;
+        if (frame07 == NULL) {
+            return;
+        }
+        if (frame08 == NULL) {
+            return;
+        }
+        mgCFrame *fade_frame = frame07->SearchFrame("na");
+        if (fade_frame == NULL) {
+            return;
+        }
         mgCFrameAttr *attr = fade_frame->attr;
-        if (attr == NULL) return;
-        mgCTexture *texture = textures->GetTexture(at_921__4, -1);
-        if (texture == NULL) return;
+        if (attr == NULL) {
+            return;
+        }
+        mgCTexture *texture = textures->GetTexture("g0301_21", -1);
+        if (texture == NULL) {
+            return;
+        }
         mgCTextureAnime *anime = textures->GetTexAnime(texture->block);
-        if (anime == NULL) return;
-        CList<mgCTexAnimeData> *list = anime->GetAnimeList(anime->SearchGroupName(at_920__5));
-        if (list == NULL) return;
+        if (anime == NULL) {
+            return;
+        }
+        CList<mgCTexAnimeData> *list = anime->GetAnimeList(anime->SearchGroupName("na"));
+        if (list == NULL) {
+            return;
+        }
         mgCTexAnimeData *data = &list->data;
-        quarter = data->period_y / 4;
+        int length = data->period_y;
+        quarter = length / 4;
         frame = data->phase_y - 20;
-        if (frame < 0) frame = 0;
+        if (frame < 0) {
+            frame = 0;
+        }
         float alpha = 0.0f;
-        if (frame < quarter) alpha = (float)frame / (float)quarter;
-        else if (frame < quarter * 3) alpha = 1.0f - (float)(frame - quarter) / (float)(quarter * 2);
+        if (frame < quarter) {
+            alpha = (float)frame / (float)quarter;
+        }
+        else if (frame < quarter * 3) {
+            alpha = 1.0f - (float)(frame - quarter) / (float)(quarter * 2);
+        }
         attr->obj_alpha = alpha;
         frame08->SetAttrParamObjAlpha((1.0f + sinf(6.2831855f * ((float)data->phase_y / (float)data->period_y))) / 0.5f, 1);
         break;
     }
     }
 }
+
 void InitNpcCameraReaction() {
     rea_mtn_step = 0;
     rea_chara_id = -1;
 }
+
 void InitS51Thunder() {
     thunder_count = 0;
     start_thunder = 0;
@@ -179,12 +149,13 @@ void InitS51Thunder() {
     sound_cnt = 0;
     sound_flag = 0;
 }
+
 void S51Thunder(CScene *scene) {
     float ratio[2];
 
     char *map_name = scene->GetMapName(scene->active_map);
     if (map_name != NULL) {
-        switch (strcmp(map_name, at_1084__2)) {
+        switch (strcmp(map_name, "s51")) {
             case 0:
                 break;
             default:
@@ -214,37 +185,39 @@ void S51Thunder(CScene *scene) {
         if (fade_cnt < 0) {
             fade_cnt = 0;
         }
-        float fade = (float)fade_cnt / 40.0f;
+        float flash = (float)fade_cnt / 40.0f;
         CMap *map = scene->GetMap(scene->active_map);
         if (map != NULL && map->GetTimeLightingRatio(ratio) >= 2) {
-            ratio[0] = 1.0f - fade;
-            ratio[1] = fade;
-            CMapLightingInfo info;
-            map->GetLightInfo(&info, ratio, 2);
-            mgSetLight(info.light_dir, info.light_color);
-            mgSetAmbient(info.ambient);
+            ratio[0] = 1.0f - flash;
+            ratio[1] = flash;
+            CMapLightingInfo lighting;
+            map->GetLightInfo(&lighting, ratio, 2);
+            mgSetLight(lighting.light_dir, lighting.light_color);
+            mgSetAmbient(lighting.ambient);
             for (int i = 0; i < 2; i++) {
                 CMapParts *parts = NULL;
                 if (i == 0) {
-                    parts = map->GetPlaceParts(at_1085);
+                    parts = map->GetPlaceParts("p05_s5102-0");
                 }
                 if (i == 1) {
-                    parts = map->GetPlaceParts(at_1086);
+                    parts = map->GetPlaceParts("p11_s5102-0");
                 }
                 if (parts != NULL) {
                     parts->show = 1;
 
                     for (CList<CMapPiece> *node = parts->piece_list; node != NULL;
                          node = node->next) {
-                        CObject *piece = (CObject *)&node->data;
+                        CMapPiece *piece = &node->data;
                         piece->fade = 1;
-                        piece->fade_alpha = fade;
+                        piece->fade_alpha = flash;
                     }
                 }
             }
         }
     }
 }
+
+#ifdef NONMATCHING
 void InitFirePowder(int map_no, CScene *scene, int texb, mgCMemory *memory) {
     int i;
     FirePowder *particle;
@@ -252,26 +225,27 @@ void InitFirePowder(int map_no, CScene *scene, int texb, mgCMemory *memory) {
     int size;
     u_char *image;
     FirePowderFlag = 0;
-    if (map_no != 3 && map_no != 0x57 && map_no != 0x55) return;
-    if (GetSaveData()->GetBitFlag(0x208) != 0) return;
+    if (map_no != 3 && map_no != 0x57 && map_no != 0x55) {
+        return;
+    }
+    if (GetSaveData()->GetBitFlag(0x208) != 0) {
+        return;
+    }
     u_char *buffer = (u_char *)scene->read_buff;
-    if (LoadFile2(at_1143__2, buffer, &size, 0) == 0) return;
+    if (LoadFile2("effect/firerain.img", buffer, &size, 0) == 0) {
+        return;
+    }
     image = (u_char *)memory->Alloc(align16_blocks(size));
     memcpy(image, buffer, size);
     FirePowderFlag = 1;
     FirePowderTexb = texb;
     mgTexManager.DeleteBlock(texb);
     mgTexManager.EnterIMGFile(image, FirePowderTexb, NULL, NULL);
-    if ((created = (mgC3DSprite *)operator new(sizeof(mgC3DSprite), memory->Alloc(7))) != NULL) {
-        ((void ***)created)[7] = __vt__9mgCVisual;
-        created->Initialize();
-        *(void ***)((u_int)created + 0x1C) = __vt__11mgC3DSprite;
-        created->Initialize();
-    }
+    created = new (memory->Alloc(7)) mgC3DSprite;
     SpriteVis = created;
-    fire_powder = new ((u_long128 *)memory->Alloc(0x202)) FirePowder[FIRE_POWDER_NUM];
-    FirePowFrame = new ((u_long128 *)memory->Alloc(0x13)) mgCFrame;
-    mgCFrameAttr *attr = new ((u_long128 *)memory->Alloc(0xB)) mgCFrameAttr;
+    fire_powder = new (memory->Alloc(0x202)) FirePowder[FIRE_POWDER_NUM];
+    FirePowFrame = new (memory->Alloc(0x13)) mgCFrame;
+    mgCFrameAttr *attr = new (memory->Alloc(0xB)) mgCFrameAttr;
     FirePowFrame->attr = attr;
     attr->fog = 2;
     attr->z_write = -1;
@@ -288,6 +262,10 @@ void InitFirePowder(int map_no, CScene *scene, int texb, mgCMemory *memory) {
         particle->fall_speed = -(0.1f + 0.5f * mgRnd());
     }
 }
+#else
+INCLUDE_ASM("ps2/asm/pal/nonmatchings/editexception", InitFirePowder__FiP6CSceneiP9mgCMemory);
+#endif
+
 void StepFirePowder(CScene *scene) {
     if (!FirePowderFlag) return;
     for (int particle_index = 0; particle_index < FIRE_POWDER_NUM; ++particle_index) {
@@ -298,27 +276,31 @@ void StepFirePowder(CScene *scene) {
         if (particle.pos[3] > 3.1415927f) particle.pos[3] -= 6.2831855f;
     }
 }
+
 void DrawFirePowder(CScene *scene) {
     int i;
-    if (!FirePowderFlag) return;
+    if (!FirePowderFlag) {
+        return;
+    }
     mgTexManager.ReloadTexture(FirePowderTexb, (sceVif1Packet *)NULL);
     SpriteVis->Initialize();
     mgC3DSprite *draw_sprite = SpriteVis;
     mgCDrawEnv draw_env = *mgGetpDrawEnv(0);
-    ((EditGsTest *)&draw_env.test)->ZTE = 1;
-    ((EditGsTest *)&draw_env.test)->ZTST = 2;
+    sceGsTest *test = &draw_env.test;
+    test->bits.zte = 1;
+    test->bits.ztst = 2;
     draw_env.SetZBuf(-1);
     draw_env.SetAlpha(2);
     draw_sprite->BeginCreatePacket(0, NULL);
     draw_sprite->CPSetDrawEnv(&draw_env);
-    draw_sprite->CPSetTexture(mgTexManager.GetTexture(at_1259, -1));
+    draw_sprite->CPSetTexture(mgTexManager.GetTexture("firerain", -1));
     draw_sprite->BeginCPSprite();
-    sceVu0FVECTOR size = {5.0f, 5.0f, 0.0f, 0.0f};
-    sceVu0FMATRIX uv0 = {{0.0f, 0.0f, 0.0f, 0.0f}, {32.0f, 0.0f, 0.0f, 0.0f},
+    float size[4] = {5.0f, 5.0f, 0.0f, 0.0f};
+    float uv0[4][4] = {{0.0f, 0.0f, 0.0f, 0.0f}, {32.0f, 0.0f, 0.0f, 0.0f},
                           {0.0f, 32.0f, 0.0f, 0.0f}, {32.0f, 32.0f, 0.0f, 0.0f}};
-    sceVu0FMATRIX uv1 = {{32.0f, 32.0f, 0.0f, 0.0f}, {64.0f, 32.0f, 0.0f, 0.0f},
+    float uv1[4][4] = {{32.0f, 32.0f, 0.0f, 0.0f}, {64.0f, 32.0f, 0.0f, 0.0f},
                           {32.0f, 64.0f, 0.0f, 0.0f}, {64.0f, 64.0f, 0.0f, 0.0f}};
-    sceVu0FVECTOR color = {128.0f, 128.0f, 128.0f, 50.0f};
+    float color[4] = {128.0f, 128.0f, 128.0f, 50.0f};
     for (i = 0; i < FIRE_POWDER_NUM; ++i) {
         FirePowder &particle = fire_powder[i];
         sceVu0FVECTOR pos;
@@ -351,11 +333,15 @@ void DrawFirePowder(CScene *scene) {
     mgSetFogParam(50.0f, 400.0f, 100, 0, 0, 255.0f, 0.0f);
     mgFlushRenderInfo();
     sceVu0FVECTOR centre;
-    sceVu0FVECTOR half_extent = {200.0f, 300.0f, 200.0f, 0.0f};
+    float half_extent[4] = {200.0f, 300.0f, 200.0f, 0.0f};
     for (int axis = 0; axis < 3; ++axis) {
         int cell = (int)(camera_pos[axis] / half_extent[axis]);
-        if (cell >= 0) cell++;
-        else cell--;
+        if (cell >= 0) {
+            cell++;
+        }
+        else {
+            cell--;
+        }
         centre[axis] = (float)(cell / 2) * half_extent[axis] * 2.0f;
     }
     int x, z, y;
@@ -377,6 +363,7 @@ void DrawFirePowder(CScene *scene) {
     mgSetFogParam(&old_fog_param);
     mgFlushRenderInfo();
 }
+
 void CGeyserEffect::Create() {
     if (wait <= 0) {
         if (wait == 0) erupting = 1;
@@ -394,6 +381,7 @@ void CGeyserEffect::Create() {
         if (erupt_count <= 0) erupting = 0;
     }
 }
+
 void CGeyserEffect::Step() {
     Create();
     if (!point) return;
@@ -408,6 +396,7 @@ void CGeyserEffect::Step() {
         if (effect_point.alpha < 0.0f) effect_point.active = 0;
     }
 }
+
 CGeyserEffectPoint *CGeyserEffect::GetEmpty() {
     if (!point) return NULL;
     for (int point_index = 0; point_index < point_num; ++point_index) {
@@ -415,6 +404,7 @@ CGeyserEffectPoint *CGeyserEffect::GetEmpty() {
     }
     return NULL;
 }
+
 void CGeyserEffect::CreatePoint() {
     CGeyserEffectPoint *effect_point = GetEmpty();
     if (!effect_point) return;
@@ -427,99 +417,118 @@ void CGeyserEffect::CreatePoint() {
     effect_point->phase_speed = 0.1f + 0.1f * mgRnd();
     mgZeroVectorW(effect_point->pos);
 }
+
 void CGeyserEffect::CreatePacket() {
     int i;
-    if (point_num == 0 || point == NULL) return;
+    if (point_num == 0 || point == NULL) {
+        return;
+    }
     sprite.Initialize();
     mgC3DSprite *draw_sprite = &sprite;
     mgCDrawEnv draw_env = *mgGetpDrawEnv(0);
-    ((EditGsTest *)&draw_env.test)->ZTE = 1;
-    ((EditGsTest *)&draw_env.test)->ZTST = 2;
+    sceGsTest *test = &draw_env.test;
+    test->bits.zte = 1;
+    test->bits.ztst = 2;
     draw_env.SetZBuf(-1);
     draw_env.SetAlpha(2);
     draw_sprite->BeginCreatePacket(0, NULL);
     draw_sprite->CPSetDrawEnv(&draw_env);
     draw_sprite->CPSetTexture(texture);
     draw_sprite->BeginCPSprite();
-    mgVec4 size = at_1327;
-    mgVec4 uv0 = at_1328__2;
-    mgVec4 uv1 = at_1329;
-    mgVec4 color = at_1330;
+    float size[4] = {5.0f, 5.0f, 0.0f, 0.0f};
+    sceVu0FVECTOR uv0 = {0.0f, 0.0f, 0.0f, 0.0f};
+    sceVu0FVECTOR uv1 = {64.0f, 64.0f, 0.0f, 0.0f};
+    float color[4] = {128.0f, 128.0f, 128.0f, 50.0f};
     for (i = 0; i < point_num; ++i) {
         CGeyserEffectPoint &particle = point[i];
-        if (!particle.active) continue;
+        if (!particle.active) {
+            continue;
+        }
         float pos[4];
         pos[0] = particle.pos[0] + particle.scale * particle.sway_x * sinf(particle.pos[3]);
         pos[1] = particle.pos[1];
         pos[2] = particle.pos[2] + particle.scale * particle.sway_z * sinf(particle.pos[3]);
         pos[3] = 1.0f;
-        color.v[3] = 64.0f * particle.alpha;
-        size.v[1] = size.v[0] = 15.0f * particle.scale;
-        draw_sprite->CPSetSprite(pos, size.v, color.v, uv0.v, uv1.v);
+        color[3] = 64.0f * particle.alpha;
+        size[1] = size[0] = 15.0f * particle.scale;
+        draw_sprite->CPSetSprite(pos, size, color, uv0, uv1);
     }
     draw_sprite->EndCPSprite();
     draw_sprite->EndCreatePacket();
 }
-void InitGeyserEffect(int scene_no, CScene *scene, int texb, mgCMemory *memory) {
+
+void InitGeyserEffect(int map_no, CScene *scene, int texb, mgCMemory *memory) {
     int size;
-    u8 *copy;
+    u_char *image;
     GeyserEffectFlag = 0;
-    if (scene_no == 3) {
-        u8 *buffer = (u8 *)scene->read_buff;
-        if (LoadFile2(at_1385__4, buffer, &size, 0) != 0) {
-            copy = (u8 *)memory->Alloc(align16_blocks(size));
-            memcpy(copy, buffer, size);
+    if (map_no == 3) {
+        u_char *buffer = (u_char *)scene->read_buff;
+        if (LoadFile2("effect/geyser.img", buffer, &size, 0) != 0) {
+            image = (u_char *)memory->Alloc(align16_blocks(size));
+            memcpy(image, buffer, size);
             mgCTextureManager *textures = &mgTexManager;
             GeyserEffectFlag = 1;
             GeyserEffectTexb = texb;
             textures->DeleteBlock(texb);
-            textures->EnterIMGFile(copy, GeyserEffectTexb, NULL, NULL);
-            GeyserFrame = new ((u_long128 *)memory->Alloc(0x13)) mgCFrame;
-            mgCFrameAttr *attr = new ((u_long128 *)memory->Alloc(0xB)) mgCFrameAttr;
+            textures->EnterIMGFile(image, GeyserEffectTexb, NULL, NULL);
+            GeyserFrame = new (memory->Alloc(0x13)) mgCFrame;
+            mgCFrameAttr *attr = new (memory->Alloc(0xB)) mgCFrameAttr;
             GeyserFrame->attr = attr;
             attr->fog = 2;
             attr->z_write = -1;
-            GeyserEffect = new ((u_long128 *)memory->Alloc(0x22)) CGeyserEffect[4];
-            for (int i = 0; i < 4; i++) {
+            GeyserEffect = new (memory->Alloc(0x22)) CGeyserEffect[GEYSER_EFFECT_NUM];
+            for (int i = 0; i < GEYSER_EFFECT_NUM; i++) {
                 CGeyserEffectPoint *pool =
-                    new ((u_long128 *)memory->Alloc(0x92)) CGeyserEffectPoint[0x30];
-                GeyserEffect[i].point_num = 0x30;
+                    new (memory->Alloc(0x92)) CGeyserEffectPoint[GEYSER_EFFECT_POINT_NUM];
+                GeyserEffect[i].point_num = GEYSER_EFFECT_POINT_NUM;
                 GeyserEffect[i].point = pool;
-                GeyserEffect[i].texture = textures->GetTexture(at_1386__3, -1);
+                GeyserEffect[i].texture = textures->GetTexture("geyser_eff", -1);
             }
             GeyserRndSeed = rand();
         }
     }
 }
+
 CGeyserEffectPoint::CGeyserEffectPoint(void) {
     active = 0;
 }
+
 CGeyserEffect::CGeyserEffect() {
     point_num = 0;
-    point = 0;
+    point = NULL;
     sprite.Initialize();
     wait = -1;
     erupting = 0;
 }
+
 void StepGeyserEffect(CScene *scene) {
     if (!GeyserEffectFlag) return;
     for (int emitter_index = 0; emitter_index < GEYSER_EFFECT_NUM; ++emitter_index) {
         GeyserEffect[emitter_index].Step();
     }
 }
+
 void DrawGeyserEffect(CScene *scene) {
     int count;
     int i;
     CEditMap *map;
-    if (!GeyserEffectFlag) return;
+    if (!GeyserEffectFlag) {
+        return;
+    }
     map = (CEditMap *)scene->GetMap(scene->active_map);
-    if (map == NULL) return;
+    if (map == NULL) {
+        return;
+    }
     int ids[20];
     count = map->GetePlacePartsAtInfoID(0x4C, ids, 20);
-    if (count <= 0) return;
+    if (count <= 0) {
+        return;
+    }
     mgGetDataBuffer();
     mgTexManager.ReloadTexture(GeyserEffectTexb, (sceVif1Packet *)NULL);
-    for (i = 0; i < GEYSER_EFFECT_NUM; ++i) GeyserEffect[i].CreatePacket();
+    for (i = 0; i < GEYSER_EFFECT_NUM; ++i) {
+        GeyserEffect[i].CreatePacket();
+    }
     for (i = 0; i < count; ++i) {
         CEditParts *parts = map->GetePlaceParts(ids[i]);
         if (parts == NULL) continue;
