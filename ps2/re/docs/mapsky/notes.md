@@ -4,12 +4,11 @@ Unit at 0x1846F0-0x185710. One class (`CMapSky`, no vtable, no constructor) and 
 struct (`MAP_SKY_INFO`). No first-game counterpart (Dark Cloud has no `CMapSky`).
 
 ## Draft and matching status
-All eleven previously assembly-only functions have named, typed C++ drafts.
-`DrawSkyBack`, `LoadSkyPack`, and `_SKY_BG` passed their first isolated
-promotion checks and now compile in the matching build. The other eight
-compiled but differed from retail; they remain guarded by `NONMATCHING` with
-their original `INCLUDE_ASM` branches selected by default. Every function in
-the unit has a C++ body, and the full default build remains byte identical.
+All thirteen functions have named, typed C++ bodies. Nine compile in the matching build:
+`Initialize`, `DrawSkyBack`, `LoadSkyPack`, `CheckSkyID`, `_SKY_IMG`, `_SKY_MDS`, `_SUN_MDS`,
+`_SKYB_MDS`, and `_SKY_BG`. `DrawSky`, `LoadPack`, `_SKY_ANIME`, and `_SKYB_ANIME` compile
+as guarded drafts but differ from retail; their `INCLUDE_ASM` branches are selected by default.
+The full default build is byte identical.
 
 ## CMapSky (0x108)
 Size: `CScene::LoadMapFromMemory` (sceneload) does `__nw__FUiP1(0x108, mem)`, then calls

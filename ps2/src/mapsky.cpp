@@ -1,4 +1,3 @@
-#include "scriptinterpreter.hpp"
 #include "common.h"
 #include "mapsky.hpp"
 #include "dataread.hpp"
@@ -12,23 +11,18 @@
 #include "scriptinterpreter.hpp"
 #include <cstring>
 
-extern MAP_SKY_INFO * skyInfo;
-extern int skyAnmNum;
-extern int skybAnmNum;
-extern SPI_TAG_PARAM tag__2[];
-s32 CheckSkyID(s32 sky_id);
-s32 _SKY_IMG(SPI_STACK *stack, s32 argCount);
-s32 _SKY_MDS(SPI_STACK *stack, s32 argCount);
-s32 _SUN_MDS(SPI_STACK *stack, s32 argCount);
-s32 _SKYB_MDS(SPI_STACK *stack, s32 argCount);
-extern MAP_SKY_INFO *skyInfo;
-extern int skyAnmNum;
-extern int skybAnmNum;
+static MAP_SKY_INFO *skyInfo;
+static int skyAnmNum;
+static int skybAnmNum;
 
+static int _SKY_IMG(SPI_STACK *stack, int argument_count);
+static int _SKY_MDS(SPI_STACK *stack, int argument_count);
+static int _SUN_MDS(SPI_STACK *stack, int argument_count);
+static int _SKYB_MDS(SPI_STACK *stack, int argument_count);
 static int _SKY_BG(SPI_STACK *stack, int argument_count);
 static int _SKY_ANIME(SPI_STACK *stack, int argument_count);
 static int _SKYB_ANIME(SPI_STACK *stack, int argument_count);
-int CheckSkyID(int sky_id);
+static int CheckSkyID(int sky_id);
 static void LoadSkyPack(MAP_SKY_INFO *info, char *script, int size);
 
 // Code (.text)
@@ -64,6 +58,7 @@ void CMapSky::Initialize(void) {
     bg = NULL;
     bg_visual = NULL;
 }
+
 void CMapSky::DrawSkyBack(float *camera_pos, float *color1, float *color0) {
     if (bg == NULL) return;
     bg->SetPosition(camera_pos[0], camera_pos[1], camera_pos[2]);
@@ -80,6 +75,7 @@ void CMapSky::DrawSkyBack(float *camera_pos, float *color1, float *color0) {
     bg->SetScale(1.0f, -1.0f, 1.0f);
     mgDrawDirect(bg);
 }
+
 #ifdef NONMATCHING
 void CMapSky::DrawSky(float *camera_pos, float *sun_pos, float *moon_pos, int time_band,
                       float *lighting_ratio, float *sun_lighting_ratio) {
@@ -141,6 +137,7 @@ void CMapSky::DrawSky(float *camera_pos, float *sun_pos, float *moon_pos, int ti
 #else
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/mapsky", DrawSky__7CMapSkyFPfPfPfiPfPf);
 #endif
+
 #ifdef NONMATCHING
 void CMapSky::LoadPack(unsigned int *pack, int tex_block_base, mgCMemory *memory) {
     if (pack == NULL) return;
@@ -221,6 +218,10 @@ void CMapSky::LoadPack(unsigned int *pack, int tex_block_base, mgCMemory *memory
 #else
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/mapsky", LoadPack__7CMapSkyFPUiiP9mgCMemory);
 #endif
+
+/**
+ * Populate sky settings from the pack configuration.
+ */
 static void LoadSkyPack(MAP_SKY_INFO *info, char *script, int size) {
     skyInfo = info;
     skyAnmNum = 0;
@@ -247,66 +248,82 @@ s32 CheckSkyID(s32 sky_id) {
     if (sky_id < 0 || sky_id >= 4) valid = 0; else valid = 1;
     return valid;
 }
-s32 _SKY_IMG(SPI_STACK *stack, s32 argCount) {
-    s32 skyId = spiGetStackInt(stack++);
-    char *name;
 
-    if (!CheckSkyID(skyId)) {
+/**
+ * Set the image name for a sky time band.
+ */
+static int _SKY_IMG(SPI_STACK *stack, int argument_count) {
+    int id = spiGetStackInt(stack++);
+    if (!CheckSkyID(id)) {
         return 0;
     }
-    name = spiGetStackString(stack);
-    if (name != 0) {
-        strcpy(skyInfo->img_name[skyId], name);
+    char *name = spiGetStackString(stack);
+    if (name != NULL) {
+        strcpy(skyInfo->img_name[id], name);
     }
     return 1;
 }
-s32 _SKY_MDS(SPI_STACK *stack, s32 argCount) {
-    s32 skyId = spiGetStackInt(stack++);
-    char *name;
 
-    if (!CheckSkyID(skyId)) {
+/**
+ * Set the sky model and angular speed for a time band.
+ */
+static int _SKY_MDS(SPI_STACK *stack, int argument_count) {
+    int id = spiGetStackInt(stack++);
+    if (!CheckSkyID(id)) {
         return 0;
     }
-    name = spiGetStackString(stack++);
-    if (name != 0) {
-        strcpy(skyInfo->sky_mds_name[skyId], name);
+    char *name = spiGetStackString(stack++);
+    if (name != NULL) {
+        strcpy(skyInfo->sky_mds_name[id], name);
     }
-    skyInfo->sky_rot_speed[skyId] = spiGetStackFloat(stack) * 3.14159265358979323846f / 180.0f;
+    skyInfo->sky_rot_speed[id] = 3.1415927f * spiGetStackFloat(stack) / 180.0f;
     return 1;
 }
-s32 _SUN_MDS(SPI_STACK *stack, s32 argCount) {
-    s32 skyId = spiGetStackInt(stack++);
-    char *name;
 
-    if (!CheckSkyID(skyId)) {
+/**
+ * Set the sun model for a sky time band.
+ */
+static int _SUN_MDS(SPI_STACK *stack, int argument_count) {
+    int id = spiGetStackInt(stack++);
+    if (!CheckSkyID(id)) {
         return 0;
     }
-    name = spiGetStackString(stack);
-    if (name != 0) {
-        strcpy(skyInfo->sun_mds_name[skyId], name);
+    char *name = spiGetStackString(stack);
+    if (name != NULL) {
+        strcpy(skyInfo->sun_mds_name[id], name);
     }
     return 1;
 }
-s32 _SKYB_MDS(SPI_STACK *stack, s32 argCount) {
-    s32 skyId = spiGetStackInt(stack++);
-    char *name;
 
-    if (!CheckSkyID(skyId)) {
+/**
+ * Set the background sky model and angular speed for a time band.
+ */
+static int _SKYB_MDS(SPI_STACK *stack, int argument_count) {
+    int id = spiGetStackInt(stack++);
+    if (!CheckSkyID(id)) {
         return 0;
     }
-    name = spiGetStackString(stack++);
-    if (name != 0) {
-        strcpy(skyInfo->skyb_mds_name[skyId], name);
+    char *name = spiGetStackString(stack++);
+    if (name != NULL) {
+        strcpy(skyInfo->skyb_mds_name[id], name);
     }
-    skyInfo->skyb_rot_speed[skyId] = spiGetStackFloat(stack) * 3.14159265358979323846f / 180.0f;
+    skyInfo->skyb_rot_speed[id] = 3.1415927f * spiGetStackFloat(stack) / 180.0f;
     return 1;
 }
+
+/**
+ * Set the sky background model name.
+ */
 static int _SKY_BG(SPI_STACK *stack, int argument_count) {
     char *name = spiGetStackString(&stack[0]);
     if (name != NULL) strcpy(skyInfo->bg_mds_name, name);
     return 1;
 }
+
 #ifdef NONMATCHING
+/**
+ * Append a sky animation entry.
+ */
 static int _SKY_ANIME(SPI_STACK *stack, int argument_count) {
     if (skyAnmNum >= 16) return 0;
     int id = spiGetStackInt(&stack[0]);
@@ -321,7 +338,11 @@ static int _SKY_ANIME(SPI_STACK *stack, int argument_count) {
 #else
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/mapsky", _SKY_ANIME__FP9SPI_STACKi);
 #endif
+
 #ifdef NONMATCHING
+/**
+ * Append a background sky animation entry.
+ */
 static int _SKYB_ANIME(SPI_STACK *stack, int argument_count) {
     if (skybAnmNum >= 16) return 0;
     int id = spiGetStackInt(&stack[0]);
