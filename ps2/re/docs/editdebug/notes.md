@@ -72,7 +72,7 @@ Size from the `EdDebugInfo` global (editloop, 0x1ECDA20, size 0x3C).
 - 0x38 `int jump_map_no`: set from `map_jump`; EditInit sets -1; EditLoop calls
   `EditMapJump(jump_map_no)` when >= 0 and resets to -1.
 
-## Draft and promotion status
+## Earlier draft snapshot
 All ten previously assembly-only named functions have C++ implementations.
 `EditDebugInit`, `EditDebugMode`, `EditDebugStart`, `PrintCursor`,
 `InitLightingEdit`, and `IsLightingEditMode` pass isolated linked-image
@@ -86,3 +86,54 @@ relocates against the named symbol. The draft now has external C++ linkage,
 but the ledger prevents a second attempt this pass. m2c could not resolve the
 `LightingEdit` jump table; its existing Ghidra export and the retail assembly
 were used to establish the page and control flow after the m2c pass.
+
+## LightingEdit on the 73f8e75 merged base
+
+`LightingEdit__FP6CScene` is the unit's only guarded function. With the pinned
+Satan's Fiddle profile, the entry draft has 46 differing words out of 1,356
+(the plain-wibo draft helper reports 60). Four named projected endpoint arrays
+and a two-dimension coordinate adjustment loop reproduce retail's endpoint
+lifetimes. A single indexed matrix retains axis addresses across projection
+calls and differs by 53 words. The named-array version has zero differing
+words and identical relocation fields; its native body is 0x1524 bytes against
+the 0x1530 retail extent, whose remaining bytes are zero padding.
+
+The absolute value of the projected Y axis is a conditional expression. This
+removes the non-retail `LightAbs` wrapper. An in-place `if` instead changes the
+branch delay slot at function offsets 0x122C/0x1230. The projection declaration
+comes from its owning `mglib.hpp` header. The BG/ambient, Fog and File page
+labels include retail's trailing arrows; omitting them passes the instruction
+comparison but fails canonical data binding at retail 0x0036A850 (`at_1230`).
+
+A temporary, manually unguarded canonical compile with the wrapper and section
+fixup passes the complete unit: 0x296C allocated bytes and 668 resolved
+relocations. This is a matching candidate, but the assembly guard remains:
+the inherited fog-channel expression still converts the object address to an
+integer and adds the raw byte offset 6. Promotion must also satisfy the lane's
+natural-source rule.
+
+The proposed shared-header change overlays `mgFOG_PARAM::r/g/b/a` at offsets
+8..11 with `u_char color[4]`, retaining sizeof 0x30. Typed access
+`&fog->color[edit - 2]` adds an instruction at offset 0x79C, moving subsequent
+code by four bytes and producing 873 differing words. Signed and unsigned edit
+indices both do this. The proposal was tested privately and reverted; it is
+layout evidence, not an accepted matching patch. No profile row is needed for
+the zero-word candidate; the existing TU helper-mask row accounts for the 14
+extra differences seen with plain wibo.
+
+**Park category:** source compliance/shared layout. **Reconsider when:** an
+approved fog-channel representation permits indexed C++ access without the
+extra subtraction instruction, followed by a zero-word and whole-unit check.
+The rest of the function's control flow, strings, locals and expressions have
+matching evidence.
+
+Local evidence is in `.private/receipts/bigfn-drafts/editdebug-final.log` and
+`.private/receipts/bigfn-editdebug/final-probe/check.log`; the exact shared-header
+proposal is `.private/bigfn/mg_drawenv-color-proposal.patch`. The final guarded
+build comparison is `.private/receipts/bigfn-final/`.
+
+Final guarded validation is identical to i9 in verifier, complete object-check
+output and coverage. All three lane units pass; the inherited failing set stays
+mg_texture, nd_meswin, actionchara and actscript (145/149 pass). Coverage stays
+6,666 matched / 184 guarded / 15 assembly-only / 7 fuzzy. No target is promoted.
+Comparison receipt: `.private/receipts/bigfn-final/comparison.json`.
