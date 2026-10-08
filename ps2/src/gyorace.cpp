@@ -58,6 +58,17 @@ extern int              EffectTexb;
 extern u_char           water_cam;
 extern CHitEffectImage *battle_effect;
 extern mgCMemory        BuffTextureData;
+
+/**
+ * Texture atlas used by the fish-race window and time display.
+ */
+static mgCTexture *wind_tex;
+
+/**
+ * Texture block containing the fish-race window atlas.
+ */
+static int WindowTexb;
+
 #ifndef NONMATCHING
 extern unsigned int gyore_snd_id;
 extern int          hero_no;
@@ -88,7 +99,6 @@ int                     time_max;
 static int              rank_count;
 static mgCTexture      *EffectTex;
 static mgCTexture      *EffectTex2;
-static mgCTexture      *wind_tex;
 static int              hero_no;
 static u_char           water_cam;
 static int              cam_no;
@@ -104,7 +114,6 @@ int                   camera_id;
 int                   race_rank[2];
 ClsMes               *gyo_mes;
 static int            CharaTexb;
-static int            WindowTexb;
 static int            EffectTexb;
 static float          raster_offset;
 static bool           raster_initialized;
@@ -1486,7 +1495,6 @@ INCLUDE_BSS(time_max, 0x4);
 INCLUDE_BSS(rank_count, 0x4);
 INCLUDE_BSS(EffectTex, 0x4);
 INCLUDE_BSS(EffectTex2, 0x4);
-INCLUDE_BSS(wind_tex, 0x4);
 INCLUDE_BSS(hero_no, 0x4);
 INCLUDE_BSS(water_cam, 0x4);
 INCLUDE_BSS(cam_no, 0x4);
@@ -1502,7 +1510,6 @@ INCLUDE_BSS(camera_id, 0x8);
 INCLUDE_BSS(race_rank, 0x8);
 INCLUDE_BSS(gyo_mes, 0x4);
 INCLUDE_BSS(CharaTexb, 0x4);
-INCLUDE_BSS(WindowTexb, 0x4);
 INCLUDE_BSS(EffectTexb, 0x4);
 INCLUDE_BSS(ras_off_1762, 0x4);
 INCLUDE_BSS(init_1763, 0x4);
