@@ -33,8 +33,17 @@ extern float DngTreeMapActiveLightRate;
 
 #ifdef NONMATCHING
 extern mgRect<float> treemap_root_put;
-static void          DrawDngRoomInfo(DNGMAP_ROOM_INFO *room);
 #endif
+
+/**
+ * Draws the selected room's floor information and completion medals.
+ */
+static void DrawDngRoomInfo(DNGMAP_ROOM_INFO *room);
+
+/**
+ * Draws a paged list of georama materials for the dungeon room.
+ */
+void DrawGeoramaMateria(int top_y, char *title, int unused_count, int *items, int tex_block);
 
 /** Tree map menu attached to the active dungeon screen. */
 extern CMenuTreeMap *CMenuTreePt;
@@ -1751,7 +1760,7 @@ extern s8              init_2834;
 extern GLID_INFO      *NextFloorGlid_2836;
 extern s8              init_2837;
 extern int             bitTable_2900[12];
-extern u8              DngAskMessageDrawFlag;
+extern s8              DngAskMessageDrawFlag;
 extern u8              DngInfoFishOkFlag;
 extern u8              DngInfoSphidaOkFlag;
 extern u8              dngfloor_infoview;
@@ -2258,17 +2267,30 @@ int CMenuTreeMap::Step() {
 #else
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/dngmenu", Step__12CMenuTreeMapFv);
 #endif
-#ifdef NONMATCHING
-extern CDC2Mes      *MenuDngMes[DNG_TREE_MAP_MES_MAX];
-extern CDngFreeMap  *MenuDngMap;
+/** Floor-information message windows attached to the tree map. */
+extern CDC2Mes *MenuDngMes[DNG_TREE_MAP_MES_MAX];
+/** Floor map drawn behind the tree-map menu. */
+extern CDngFreeMap *MenuDngMap;
+/** Non-zero while the selected floor's information is visible. */
 extern unsigned char dngfloor_infoview;
+/** Non-zero while the floor-information backdrop fades in. */
 extern unsigned char dngfloor_backdraw;
-extern int           dngfloor_backdraw_alpha;
+/** Current opacity of the floor-information backdrop. */
+extern int dngfloor_backdraw_alpha;
+/** Non-zero while the selected floor's georama materials are visible. */
 extern unsigned char GeoramaMateriaInfoDrawFlag;
-extern unsigned char DngAskMessageDrawFlag;
-extern short         TreeMapSaveDispCount;
-extern short         TreeMapSaveNum;
-extern float         TreeMapSaveHopCount;
+/** Visibility state of the question about jumping to the selected floor. */
+extern s8 DngAskMessageDrawFlag;
+/** Resting vertical position of the animated save prompt. */
+extern short TreeMapSaveDispY;
+/** Number of georama materials available on the selected floor. */
+extern short GeoramaMateriaNum;
+/** Frame counter of the save prompt's animation. */
+extern short TreeMapSaveDispCount;
+/** Number displayed in the save prompt. */
+extern short TreeMapSaveNum;
+/** Sine phase of the save prompt's vertical animation. */
+extern float TreeMapSaveHopCount;
 
 void CMenuTreeMap::Draw() {
     if ((mode & 2) && draw_hidden == 1) {
@@ -2282,9 +2304,10 @@ void CMenuTreeMap::Draw() {
     if (menu_debug_flag != 0) {
         show_help = 0;
     }
+    mgCTextureManager *textures = &mgTexManager;
     mgCDrawPrim *prim = GetMenuPrim();
     if (show_help) {
-        mgTexManager.ReloadTexture(MenuArg.mes_tex_block, (sceVif1Packet *) NULL);
+        textures->ReloadTexture(MenuArg.mes_tex_block, (sceVif1Packet *) NULL);
         MenuDCMsg[6]->StepMsg();
         MenuDCMsg[6]->DrawMsg();
         if (TreeMapSaveFlag == 1) {
@@ -2298,11 +2321,11 @@ void CMenuTreeMap::Draw() {
                     MenuDCMsg[6]->line_color[1] = 0x80686A6B;
                 }
                 TreeMapSaveHopCount += 0.06829549f;
-                if (TreeMapSaveHopCount >= 3.1415927f) {
+                if (3.1415927f <= TreeMapSaveHopCount) {
                     TreeMapSaveHopCount -= 3.1415927f;
                 }
-                MenuDCMsg[6]->line_pos[1][1] = (int) ((float) TreeMapSaveDispY - 10.0f * sinf(TreeMapSaveHopCount));
-                MenuDCMsg[6]->line_pos_on[1] = 1;
+                MenuDCMsg[6]->SetMovePosGyou(1, MenuDCMsg[6]->line_pos[1][0],
+                                           (int) ((float) TreeMapSaveDispY - 10.0f * sinf(TreeMapSaveHopCount)));
             }
         }
     }
@@ -2313,25 +2336,24 @@ void CMenuTreeMap::Draw() {
             CalcMenuAdd(&dngfloor_backdraw_alpha, -3, 0);
         }
         DrawMenuFillBox(dngfloor_backdraw_alpha, 0, 0, 0);
-        int medal = GetUserDataMan()->GetYarikomiMedal();
         int number_x = 540;
         int number_y = 0;
         int number_alpha = 0;
+        int medal = GetUserDataMan()->GetYarikomiMedal();
         if (Floor_InfoTex != NULL) {
-            mgTexManager.ReloadTexture(Floor_InfoTex->block, (sceVif1Packet *) NULL);
+            textures->ReloadTexture(Floor_InfoTex->block, (sceVif1Packet *) NULL);
             int alpha = dngfloor_backdraw_alpha * 2;
             SetSpriteEnv(prim, 0);
             prim->Begin(6);
             prim->Texture(Floor_InfoTex);
             prim->Color(0, 0, 0, alpha / 3);
-            mgRect<int> board(0, 182, 164, 56);
-            PrimQuad(prim, 289.0f, 25.0f, board);
+            PrimQuad(prim, 289.0f, 25.0f, mgRect<int>(0, 182, 164, 56));
             prim->Color(128, 128, 128, alpha);
-            PrimQuad(prim, 286.0f, 22.0f, board);
+            PrimQuad(prim, 286.0f, 22.0f, mgRect<int>(0, 182, 164, 56));
             prim->End();
-            number_y = 39;
             number_x = 410 - GetNumberKeta(medal) * 16;
-            number_alpha = alpha;
+            number_y = 39;
+            number_alpha = dngfloor_backdraw_alpha * 2;
         }
         DrawDngRoomInfo(&MenuDngMap->select_glid->room);
         if (GeoramaMateriaInfoDrawFlag != 0 && Floor_InfoTex != NULL) {
@@ -2339,9 +2361,10 @@ void CMenuTreeMap::Draw() {
                                GeoramaMateriaNum, georama_materia, Floor_InfoTex->block);
         }
         MenuDngMap->DrawDngName(128);
-        mgTexManager.ReloadTexture(MenuArg.mes_tex_block, (sceVif1Packet *) NULL);
+        textures->ReloadTexture(MenuArg.mes_tex_block, (sceVif1Packet *) NULL);
         CMenuFont font;
-        char      number[64];
+        font.alpha = number_alpha;
+        char      number[32];
         SetMenuBigNum(number, medal);
         font.SetStr(number);
         font.SetPos(number_x, number_y);
@@ -2351,49 +2374,56 @@ void CMenuTreeMap::Draw() {
             MenuDngMes[i]->DrawMsg();
         }
     }
-    float x, y;
-    MenuDngMap->CalcGlidPutPos(select_glid, x, y, 0);
-    x -= 58.0f;
-    y -= 8.0f;
-    cursor_pos[0] += (x - cursor_pos[0]) / 4.0f;
-    cursor_pos[1] += (y - cursor_pos[1]) / 4.0f;
+    mgRect<int> number_rect;
+    float pos[2];
+    MenuDngMap->CalcGlidPutPos(select_glid, pos[0], pos[1], 0);
+    pos[0] -= 58.0f;
+    pos[1] -= 8.0f;
+    cursor_pos[0] += (pos[0] - cursor_pos[0]) / 4.0f;
+    cursor_pos[1] += (pos[1] - cursor_pos[1]) / 4.0f;
     if (cursor_reset != 0) {
-        cursor_pos[0] = x;
-        cursor_pos[1] = y;
+        cursor_pos[0] = pos[0];
+        cursor_pos[1] = pos[1];
         cursor_reset = 0;
     }
-    int cursor_alpha = (mode == 1 || mode == 2) ? 0 : 128;
+    int cursor_alpha;
+    if (mode == 1) {
+        cursor_alpha = 0;
+    } else {
+        cursor_alpha = 128;
+        if (mode == 2) {
+            cursor_alpha = 0;
+        }
+    }
     if (cursor_view != 0) {
-        mgCTexture *cursor = mgTexManager.GetTexture("mnmain", -1);
+        mgCTexture *cursor = textures->GetTexture("mnmain", -1);
         if (cursor == NULL) {
             return;
         }
-        mgTexManager.ReloadTexture(cursor->block, (sceVif1Packet *) NULL);
+        textures->ReloadTexture(cursor->block, (sceVif1Packet *) NULL);
         MenuCursorDraw(cursor, cursor_pos, 0.0f, cursor_alpha);
     }
     if (money_view != 0 && Floor_InfoTex != NULL) {
-        mgTexManager.ReloadTexture(Floor_InfoTex->block, (sceVif1Packet *) NULL);
+        textures->ReloadTexture(Floor_InfoTex->block, (sceVif1Packet *) NULL);
         SetSpriteEnv(prim, 0);
         int y_money = mgScreenHeight - 76;
         prim->Begin(6);
         prim->Texture(Floor_InfoTex);
         prim->Color(128, 128, 128, 128);
-        mgRect<int> money_rect(0, 144, 184, 36);
-        PrimQuad(prim, 302.0f, (float) y_money, money_rect);
-        mgRect<int> number_rect(0, 126, 12, 18);
+        PrimQuad(prim, 302.0f, (float) y_money, mgRect<int>(0, 144, 184, 36));
+        number_rect.Set(0, 126, 12, 18);
+        prim->Color(128, 128, 128, 128);
         PrimDrawNumber(prim, GetUserDataMan()->money, 0, 426, y_money + 7,
                        number_rect, -1, 0);
         prim->End();
     }
-    mgTexManager.ReloadTexture(MenuArg.mes_tex_block, (sceVif1Packet *) NULL);
+    textures->ReloadTexture(MenuArg.mes_tex_block, (sceVif1Packet *) NULL);
     if (key_arg_no == 1 && DngAskMessageDrawFlag == 1) {
         MenuDCMsg[3]->StepMsg();
         MenuDCMsg[3]->DrawMsg();
     }
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/dngmenu", Draw__12CMenuTreeMapFv);
-#endif
+
 int CMenuTreeMap::FadeInOutMenu() {
     int done = 0;
     switch (mode) {

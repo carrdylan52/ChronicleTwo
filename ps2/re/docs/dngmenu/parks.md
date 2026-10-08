@@ -1,6 +1,6 @@
 # dngmenu remainder after r2 — October 8
 
-Current merged source: 37 native functions, 10 guarded drafts, 1 asm-only
+Current lane source: 38 native functions, 9 guarded drafts, 1 asm-only
 function. Upstream supplies the exact `CheckIsViewMove` implementation and
 its translation-unit helper seed; its former park is resolved.
 The r2 baseline at `2f71f10` was 34/13/1. All assigned targets were
@@ -24,7 +24,7 @@ see [r2.md](r2.md).
 | `InitEnd__12CMenuTreeMapFv` | 198/224, 0x364/0x380 → exact | Promoted. Cached floor bound, loader locals, sequential bounds, separate sub/boss checks, coordinate pair updates, output-size lifetime, and cursor state now match all 224 words and the complete unit. |
 | `DrawGeoramaMateria__FiPciPii` | 0x404/0x400 → unchanged (224/257 detailed words) | Guarded. Retail spills the right column at spA0; draft spills the panel-left position. Earlier declaration of right column does not change this. Reconsider with a demonstrated title/column/page lifetime map that produces the correct spill and message scratch slots. No profile row was attempted for this broad allocation remainder. |
 | `Draw__11CDngFreeMapFv` | 0x630/0x610 (367/396 detailed words) → 0x628/0x610 (353/394) | Guarded. Positive enclosing condition makes the texture check share the exit; NaN comparison behavior is preserved. This/texture/manager registers, mark-rectangle scratch placement and debug traversal remain different. Reconsider with retained manager/texture lifetimes and explicit order of the four floor-link calls. |
-| `Draw__12CMenuTreeMapFv` | 376/460, 0x6F0/0x730 → 446/460, 0x6E0/0x730 | Guarded. Explicit integer help-state branch removes boolean materialization and matches retail's short-circuit logic. Subsequent offsets shift, worsening the raw differing-word score. Frame remains 0x1A0 versus retail 0x1B0. Reconsider with manager/primitive/medal lifetimes and cursor/message scratch layout before float-order calibration. |
+| `Draw__12CMenuTreeMapFv` | 446/460, 0x6E0/0x730 → exact | Promoted in the midday lane. Restored numeral alpha and money-digit Color, manager lifetime, ordered wrap comparison, 32-byte numeral buffer, separate board temporaries, named digit rectangle, coordinate pair, cursor branches, and signed question flag. Complete-unit byte/relocation check passes; see [midday.md](midday.md). |
 
 ## Excluded targets
 
