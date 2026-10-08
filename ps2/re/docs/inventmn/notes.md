@@ -201,8 +201,8 @@ for `__construct_new_array` in PhotoNetaEnter. Size 0xC.
 - `UpdataNetaMemoStr` indexes `PIC_NAME_INFO` records directly and matches
   retail with the file-local `neta_sort` definition described below.
 - `CInventUserData::ResetAddress` unrolls eight photo pointers per iteration. A
-  typed `photo_work` row pointer preserves the loop shape, but MWCC hoists its base
-  calculation and chooses different constants for the unrolled addresses. Direct
+  typed, indexed `photo_work` row pointer now matches the unrolled body, with
+  fourteen words remaining in base setup and the final two-photo tail. Direct
   `&photo_work[index][0]` indexing scores 60.0%, while the previous byte-offset
   expression scored 99.583336% but used raw pointer arithmetic. The typed draft
   remains under `NONMATCHING`; the matching build uses retail assembly.
@@ -257,23 +257,16 @@ objdiff reporting 100% for the native 404-byte UpdataNetaMemoStr.
 The draft checker compares relocated instruction words against each manifest
 extent, including alignment padding. The following functions remain guarded.
 
-- `MenuInventKey__Fv`: 10/524 words differ; native text is 0x824 bytes in a
-  retail 0x830-byte extent. Differences are confined to offsets 0x5E0–0x620:
-  the negative-card padding loop allocates the card, name-offset and position-offset
-  inductions to `a0/a1/a2` instead of retail's `a2/a0/a1`. Moving the row increment
-  into the loop expression leaves ten differences; sharing a named position index
-  increases them to 144; using `top + line < 0` increases them to 205; moving
-  the card increment into the body leaves eleven. Reconsider when the original
-  padding-loop source form or a measured MWCC induction-allocation rule is available.
-- `ResetAddress__15CInventUserDataFv`: 34/48 words differ, both 0xC0 bytes.
-  Retail computes the invariant photo-work base before the eight-way unrolled
-  loop; typed direct indexing folds 0xD60 into the individual unrolled addresses.
-  Advancing a typed row pointer suppresses unrolling (0x34 bytes, 47 differing
-  words). Flattening the shared pixel-buffer type to `char[30 * 0x2000]` leaves
-  34 differences and preserves the matched buffer getter and free-slot search;
-  that temporary type probe is reverted and is not a proposed header change.
-  Reconsider when a natural typed buffer expression reproduces retail's invariant
-  base and eight-way unrolling without byte-offset pointer arithmetic.
+- `MenuInventKey__Fv`: 8/524 words differ; native text is 0x824 bytes in a
+  retail 0x830-byte extent. Initializing the card after row Y and before number
+  X improves the previous 10-word remainder. The negative-card padding loop's
+  induction register map still differs at +0x5E0..+0x620. See [midday.md](midday.md)
+  for measured declaration and loop negatives.
+- `ResetAddress__15CInventUserDataFv`: 14/48 words differ, both 0xC0 bytes.
+  A typed, indexed row pointer restores the exact eight-assignment unrolled
+  body; its invariant-base setup and two-photo remainder still differ. The
+  previous direct indexing was 34/48. No row-pointer induction or shared
+  flat-buffer type change is retained; see [midday.md](midday.md).
 - `LoadCharaCheck__11CMenuInventFv`: 190/312 words differ, 0x48C native bytes
   against retail's 0x4E0 extent. Retail's placement new branches on `v0` at
   0x00202528 and copies its result into `s4` in the delay slot at 0x0020252C.
@@ -316,3 +309,10 @@ extent, including alignment padding. The following functions remain guarded.
 `IsCreateObject` at assembly lines 176 and 861, respectively. The instruction
 findings above use their retail assembly directly; no jump-table metadata or
 assembly was modified.
+
+## Midday remainder measurements
+
+[midday.md](midday.md) records the retained ResetAddress and MenuInventKey
+improvements, rejected CalcTex local-layout probes, and the natural-constructor
+condition for revisiting the four placement-new remainders. All seven guards
+and the complete canonical inventory object remain intact.
