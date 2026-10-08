@@ -859,7 +859,6 @@ union NameRegiWindowPosition {
     s64 packed;         /**< Both positions copied together. */
 };
 
-
 /**
  *
  * Centers a message window and updates its surrounding frame.
@@ -983,8 +982,6 @@ void ConvertAscii2ShitJiss(char *src, char *dst) {
 struct NameRegiItemNames {
     char *name[3]; /**< Item name for each selectable entry. */
 };
-
-extern NameRegiItemNames at_1171__3;
 
 inline CNameRegiMenu::CNameRegiMenu() {
     select.pos = 0;
@@ -1161,7 +1158,7 @@ void NameRegistInit(mgCMemory *stack, int *tex_block, int open_type) {
     message->push_button = 0;
     message->fade_speed = 1.0f;
     int               message_no = 0;
-    NameRegiItemNames item_names = at_1171__3;
+    NameRegiItemNames item_names = {{NULL, NULL, NULL}};
 
     switch (Nameregi_Target.target) {
         case NAMEREGI_TARGET_ITEM:
@@ -1511,12 +1508,6 @@ static s8 convTbl_1579[5] = {2, 1, 0, 4, 3};
 struct NameCommandEvents {
     s16 entry[12][2]; /**< Confirmation and cancellation events for each board button. */
 };
-extern NameMessageArguments at_1621__3;
-extern NameMessageArguments at_1661__3;
-extern NameMessageArguments at_1684__3;
-extern NameMessageArguments at_1686;
-extern NameMessageArguments at_1693__2;
-extern PasswordKey          at_1669;
 /**
  *
  * Stores the default Spheda name for each language.
@@ -1937,7 +1928,7 @@ s32 CNameRegiMenu::KeyStep() {
             if (Nameregi_Target.target == NAMEREGI_TARGET_FISH) {
                 MenuSePlay(5);
             } else {
-                NameMessageArguments arguments;
+                
                 mode = NAMEREGI_MODE_MESSAGE;
                 message_open = 1;
                 message_type = 0x14;
@@ -1945,7 +1936,7 @@ s32 CNameRegiMenu::KeyStep() {
                 message->SetAbsPos(5);
                 message->SetMsgCursor(0);
                 message->MakeMsg(0x1007);
-                arguments = at_1621__3;
+                NameMessageArguments arguments = {{NULL, NULL}};
 
                 if (Nameregi_Target.target == NAMEREGI_TARGET_ITEM) {
                     arguments.name[0] = GetItemMessage(Nameregi_Target.item->item_no);
@@ -1993,7 +1984,7 @@ s32 CNameRegiMenu::KeyStep() {
             break;
         case 0x1FE: {
             char                 final_name[0x80];
-            NameMessageArguments arguments;
+            
             strcpy(final_name, name);
 
             if (Nameregi_Target.target == NAMEREGI_TARGET_ITEM) {
@@ -2045,7 +2036,7 @@ s32 CNameRegiMenu::KeyStep() {
             message->MsgPreset(0xA);
             message->SetAbsPos(5);
             message->MakeMsg(0x1006);
-            arguments = at_1661__3;
+            NameMessageArguments arguments = {{NULL, NULL}};
             arguments.name[0] = old_name;
             arguments.name[1] = final_name;
             message->SetMsgItemNo(arguments.name, 2);
@@ -2068,12 +2059,12 @@ s32 CNameRegiMenu::KeyStep() {
                 if (password_input != 0) {
                     char        password[0x30];
                     u8          decoded[0x20];
-                    PasswordKey key;
+                    
                     u16         header[7];
                     u8         *key_text;
                     s32         password_valid;
                     ConvertShitJiss2Ascii(name, password);
-                    key = at_1669;
+                    PasswordKey key = {{0}};
                     password[0x16] = 0;
                     strcpy((char *) key.bytes, Nameregi_Target.item->GetName(0));
                     key_text = key.bytes;
@@ -2130,7 +2121,7 @@ s32 CNameRegiMenu::KeyStep() {
                     message->SetAbsPos(5);
                     message->SetMsgCursor(0);
                     message->MakeMsg(0xFDC);
-                    NameMessageArguments arguments = at_1684__3;
+                    NameMessageArguments arguments = {{NULL, NULL}};
                     arguments.name[0] = old_name;
                     message->SetMsgItemNo(arguments.name, 2);
                     MenuSePlay(1);
@@ -2150,7 +2141,7 @@ s32 CNameRegiMenu::KeyStep() {
                 message->SetAbsPos(5);
                 message->SetMsgCursor(1);
                 message->MakeMsg(message_id);
-                NameMessageArguments arguments = at_1686;
+                NameMessageArguments arguments = {{NULL, NULL}};
                 arguments.name[0] = name;
 
                 if (LanguageCode > 0) {
@@ -2180,7 +2171,7 @@ s32 CNameRegiMenu::KeyStep() {
                 message->MakeMsg(0xFB4);
                 MenuSePlay(5);
             } else {
-                NameMessageArguments arguments;
+                
                 mode = NAMEREGI_MODE_MESSAGE;
                 message_type = 0xA;
                 message_open = 1;
@@ -2188,7 +2179,7 @@ s32 CNameRegiMenu::KeyStep() {
                 message->SetAbsPos(5);
                 message->SetMsgCursor(1);
                 message->MakeMsg(0xFDC);
-                arguments = at_1693__2;
+                NameMessageArguments arguments = {{NULL, NULL}};
                 arguments.name[0] = old_name;
                 message->SetMsgItemNo(arguments.name, 1);
                 MenuSePlay(5);
@@ -2707,14 +2698,6 @@ void CNameRegiMenu::DrawMessage() {
         (MenuDCMsg[7])->DrawMsg();
     }
 }
-
-// Initialised data (.data)
-
-// Constants (.rodata)
-
-// Virtual tables (.vtables)
-
-// Small initialised data (.sdata)
 
 // Small uninitialised data (.sbss)
 INCLUDE_BSS(at_1621__3, 0x8);

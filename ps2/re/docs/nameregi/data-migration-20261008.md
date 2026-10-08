@@ -106,3 +106,42 @@ Each datum has a separate receipt prefix `nameregi-<retail name>`; the
 memory definition uses `nameregi-stack`. Every accepted step passes PAL,
 all 149 objects and all 148 other object hashes. The vtable, local aggregates,
 GS colour and inline strings leave zero `INCLUDE_RODATA` markers.
+
+## Zero aggregates and remaining BSS identity blocker
+
+`NameRegistInit` initializes its three name pointers with `{NULL,NULL,NULL}`.
+Five `KeyStep` message argument pairs initialize `{NULL,NULL}`, and the
+33-byte password key initializes `{0}`. These seven initializers preserve
+retail's loads and copies while removing every anonymous extern and aggregate
+assignment scaffold. Initializations occur at the original copy points.
+Their separate receipt prefixes end in `-natural-zero` and all pass PAL,
+149 object checks and 148 unchanged other objects.
+
+Eight BSS markers remain: `at_1171__3`, `at_1621__3`, `at_1661__3`,
+`at_1684__3`, `at_1686`, `at_1693__2`, `at_1669`, and `at_1755`.
+The final one belongs to the existing three-pointer kana table initializer.
+They describe the compiler's zero aggregate templates; defining named synthetic
+variables for them would misrepresent the source.
+
+Removing the `at_1171__3` marker from its now-natural initializer leaves a
+native anonymous 12-byte BSS piece unidentified. The canonical checker reports
+`.bss: missing ['at_1171__3'], unexpected [None]`; section ordering then
+changes relocation destinations. `name_literal_data` only identifies
+initialized `.rodata`, `.sdata`, `.data` and `.ctor` pieces, while
+`bind_local_data` can bind these anonymous BSS objects only when their markers
+supply retail identity. Thus the marker removal needs a shared metadata/naming
+fix; the source initializer itself already matches.
+
+Rejected receipt: `nameregi-zero-removal-probe-objects.log`, with the
+failed source retained privately as `failed-at_1171__3.cpp`. The accepted
+source retains the eight markers and has no anonymous extern declarations,
+replacement assembly, pointer casts for data templates or synthetic globals.
+
+## Final checkpoint
+
+Markers change from 57/18 to 0/8 (`INCLUDE_RODATA`/`INCLUDE_BSS`):
+67 markers removed. Refreshed `matched_data` remains 36/3,648 because of
+objdiff's data preparation defects. All 30 native functions remain exact.
+Final receipts: `04-nameregi-final-{build,objects,hashes}.log`,
+`04-nameregi-refresh.log` and `04-nameregi-metrics.json`.
+PAL is OK, all 149 objects pass, and every other object hash is unchanged.
