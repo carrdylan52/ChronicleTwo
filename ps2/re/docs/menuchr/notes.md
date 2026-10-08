@@ -10,11 +10,11 @@ and `CMosBookMenu::KeyStep`. The current source also keeps gaps for
 `CMenuCostumeSel::Draw` and `MenuCostumeInit`.
 Only unguarded functions are active C++ decompilations. `MenuMemoryDivide` and
 `CMosBookMenu::Draw` are native, including their capacity and drawing tables.
-The complete unit passes canonical verification. The merged October 8
-Satan's Fiddle base has independent PAL `.text` mismatches in `nd_meswin`
-and `actscript`. The current scores, retained drafts, and receipts are in
-[mid-day round-one assessment](midday-r1-assessment.md); the dated older assessments below
-record their earlier baselines.
+The complete unit passes canonical verification. The `63f7a9e5` baseline
+and the current lane pass all 149 object checks and the complete PAL
+verifier. Current scores and new probes are in
+[the night assessment](night-20261008.md); the dated older assessments
+below record their earlier baselines.
 
 `MonsterBookDraw` draws the book, then draws a debug label when
 `menu_debug_flag` is set. The retail float register setup for

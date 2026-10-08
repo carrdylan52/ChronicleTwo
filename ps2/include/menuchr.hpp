@@ -563,7 +563,7 @@ public:
      *
      * @mangled Draw__15CMenuCostumeSelFv
      * @address 0x2C19D0
-     * @size 0x8E0
+     * @size 0x8D4
      */
     void Draw();
 };
@@ -1175,7 +1175,7 @@ int MenuMonsterLoadBGCheck(MENU_BGREAD_INFO2 **info, CActionChara **chara, int t
  *
  * @mangled MenuItemCharaDataLoadEndCheckAfter__FPP17MENU_BGREAD_INFO2i
  * @address 0x2BF9C0
- * @size 0x370
+ * @size 0x368
  */
 void MenuItemCharaDataLoadEndCheckAfter(MENU_BGREAD_INFO2 **info, int chara_no);
 
