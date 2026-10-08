@@ -192,3 +192,39 @@ These trial native promotions were restored. No profile rows were accepted.
 ## Compiler helper history
 
 The unused `PrimeDoubleToFloat` definition is removed. The translation-unit profile uses GPR helper mask `0x10` and FPR mask `0`; private baseline and candidate checks preserve all allocated bytes and resolved relocation identities. The existing `DrawMesWin` finding is unchanged. Its two `0.5f` calls require opposite retail schedules and share the current stable selector identity.
+
+## DrawMesWin deterministic scheduling regression
+
+The current game source supplies `DrawMesWin` natively. Its body has the correct
+`0xB80` size, but the deterministic default-false profile leaves 17 instruction
+words different. All six placement calls target `CalcAutoPosSet__Fffff`: four
+use the binary32 half ratio and two use the binary32 `0.95` ratio. Retail has
+three half-materialization forms: half reaches `$f15` before the screen limit
+at `+0x6FC` and `+0xA38`; the screen and half GPR constants are loaded in that
+order at `+0x99C`; the order reverses at `+0xA08`. The two `0.95` calls also need
+opposite scheduling. Thus a value-and-callee selector cannot select each
+required call separately.
+
+The following natural source changes leave the complete fixed-up object
+byte-identical to this baseline: replacing the existing local inline placement
+helpers with direct calls; using float extent parameters for those helpers;
+unsuffixed double ratio literals; integer screen-limit literals; function-local
+or branch-local named ratios; converting each text extent to a float local
+immediately before its call; and storing each placement result in a float
+local before narrowing it into the corresponding text coordinate. Constant
+folding removes the proposed type and statement-boundary distinctions.
+Converting both dimensions at branch entry instead preserves the height across
+the first call and grows the body to `0xB94`; it does not match retail.
+
+Scoped evaluate-first trials for zero and screen height reproduce the baseline.
+Screen width first increases the differing-word count to 20. Half and `0.95`
+first together leave 12 differing words: `+0x72C..+0x73C`,
+`+0x99C/+0x9A0/+0x9A8/+0x9AC`, and `+0xA08/+0xA0C/+0xA14`.
+Half and screen width first together leave 16. Screen width and `0.95` first
+leave 20, while all three first leave 16; these complete all eight combinations
+of the three selectors that change the failing instructions. No source or
+profile candidate passes the complete unit, so none is retained. Reconsider this
+function when
+retail-supported source evidence identifies a meaningful expression difference
+between these placement calls, or a separately verified stable expression
+policy can represent that difference without occurrence selectors.
