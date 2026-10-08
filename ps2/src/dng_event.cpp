@@ -80,7 +80,6 @@ extern char                    at_2529[];
 static MapJumpMapInfo          MainMapInfo;
 
 // Code (.text)
-#ifdef NONMATCHING
 void CStartupEpisodeTitle::DrawEpisode(int mes_tex_block, int frame_tex_block) {
     if (mes == NULL || state == 0) {
         return;
@@ -96,28 +95,27 @@ void CStartupEpisodeTitle::DrawEpisode(int mes_tex_block, int frame_tex_block) {
     sprite.Begin(6);
     sprite.Texture(TEX_SystenFrame2);
     int y = mgScreenHeight - 0x38;
-    sprite.Color(0x80, 0x80, 0x80, fptosi(128.0f * alpha));
+    sprite.Color(0x80, 0x80, 0x80, (int) (128.0f * alpha));
     sprite.SetIRect(0x16, y, 10, 8, 0x62, 0x38);
-    int fill_width = fptosi((float) width * alpha);
-    sprite.SetIStretch(0x20, y, fill_width, 8, 0x6C, 0x38, 10, 8);
-    sprite.SetIRect(fill_width + 0x20, y, 10, 8, 0x76, 0x38);
-    y = mgScreenHeight - 0x34;
-    int half = width / 2;
-    int revealed = fptosi(154.0f * reveal);
+    int x = (int) ((float) width * alpha);
+    sprite.SetIStretch(0x20, y, x, 8, 0x6C, 0x38, 10, 8);
+    sprite.SetIRect(x + 0x20, y, 10, 8, 0x76, 0x38);
+    int title_y = mgScreenHeight - 0x34;
     if (LanguageCode == 3) {
-        sprite.SetScirror(half + 0x92 - revealed, y, revealed, 0xE);
-        sprite.SetIRect(half - 8, y, 0x48, 0xE, 0, 0x24);
+        x = width / 2 - 8;
+        int revealed = (int) (154.0f * reveal);
+        sprite.SetScirror(x + 154 - revealed, title_y, revealed, 0xE);
+        sprite.SetIRect(x, title_y, 0x48, 0xE, 0, 0x24);
     } else {
-        sprite.SetScirror(half + 0x69 - revealed, y, revealed, 0xE);
-        sprite.SetIRect(half - 0x31, y, 0x48, 0xE, 0, 0x24);
-        sprite.SetIRect(half + 0x17, y, 0x52, 0xE, 0, 0x32);
+        x = width / 2 - 0x31;
+        int revealed = (int) (154.0f * reveal);
+        sprite.SetScirror(x + 154 - revealed, title_y, revealed, 0xE);
+        sprite.SetIRect(x, title_y, 0x48, 0xE, 0, 0x24);
+        sprite.SetIRect(x + 0x48, title_y, 0x52, 0xE, 0, 0x32);
     }
     sprite.SetScirror(0, 0, mgScreenWidth - 1, mgScreenHeight - 1);
     sprite.End();
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/dng_event", DrawEpisode__20CStartupEpisodeTitleFii);
-#endif
 void CStartupEpisodeTitle::Switch(int on) {
     char   *title;
     ClsMes *current;

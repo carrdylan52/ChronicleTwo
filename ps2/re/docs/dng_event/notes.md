@@ -118,11 +118,46 @@ TRESURE_BOX_GROUP / TRESURE_BOX_ITEM / TRESURE_BOX_FLOOR / MESSAGE_TASK are not 
 No counterpart class in Dark Cloud 1; its CDungeonMap (dungeonmap.hpp) held treasure boxes as
 TREASURE_BOX structs and trap circles as MAP_TRAP_CIRCLE, a different layout.
 
-## DrawEpisode draft
-`CStartupEpisodeTitle::DrawEpisode` draws the message first, then the title frame with alpha-scaled width and a language-dependent reveal scissor. The guarded C++ draft compiles and retains its assembly fallback because it differs from retail.
+## DrawEpisode native match
 
-## SearchMapFlatPosition draft
-`SearchMapFlatPosition` selects a placed map part that the automap has not hidden, samples vertical segments around its center, and accepts a floor polygon only when a short follow-up collision succeeds. It tries sixteen segments per part and reports failure after the retry count expires. Its guarded C++ draft differs in 33 of 260 instructions, primarily around the initial map and parts-table null checks and local stack slots. Splitting the initial map assignment from its null check changed the stack frame from 0x2BE0 to 0x2BD0 and increased the instruction differences, so the combined expression remains.
+`DrawEpisode__20CStartupEpisodeTitleFii` (0x0028ED90, 0x2C0 bytes) draws
+the message before constructing the frame sprite. Its alpha controls the frame
+width, and its reveal clips the language-specific title glyphs. Language 3 uses
+left edge `width / 2 - 8`; other languages use `width / 2 - 0x31` and two glyph
+pieces. Each branch calculates its own reveal width and retains its left edge
+through scissor and glyph drawing.
+
+Native integer casts for alpha, fill width and reveal use the calibrated
+conversion-helper history. Explicit `fptosi` calls leave two height-temporary
+register differences after the branch calculations are corrected. With casts,
+no new float selector is needed; the existing TU masks are GPR 0x30/FPR zero.
+The baseline draft differed in 83/176 words (0x294 vs 0x2C0); the promoted body
+has zero byte or resolved-relocation differences. Canonical wrapper/fixup checks
+pass the complete unit: 0x5440 bytes and 876 relocations.
+
+## SearchMapFlatPosition guarded checkpoint
+
+`SearchMapFlatPosition__FPfP11CAutoMapGen` selects a placed map part that the
+automap has not hidden, samples vertical segments around its center, and accepts
+a floor polygon only when a short follow-up collision succeeds. It tries sixteen
+segments per part and reports failure after the retry count expires.
+
+Under the checked-in Satan's Fiddle profile its existing guarded draft differs
+in seven of 260 words, all spilled-pointer stack offsets: +0x2C/+0x374/+0x380
+use sp+0xEC instead of retail sp+0xE0; +0x34/+0xFC use sp+0xE8 instead of
+sp+0xDC; +0x44/+0x1E8 use sp+0xE0 instead of sp+0xD8. Frame size is 0x2BE0.
+The draft still contains artificial `ActiveDngMap`/`Ident` wrappers and scalar
+alignment attributes, so this near-match is not promotable natural source.
+
+Direct scene/map method calls with a combined assignment/null test give eight
+word differences: the same seven stack offsets plus a reload before the placed
+parts query. Removing the scalar alignment attributes gives 53/260 differences
+and a 0x2BD0 frame. SDK vector aliases and a named scene receiver do not recover
+the missing frame space. These less accurate drafts are not retained. This is a
+stack-layout/register-lifetime blocker, with no demonstrated float-order row.
+Reconsider when a natural collision-buffer and pointer-lifetime layout produces
+retail's sp+0xD8/sp+0xDC/sp+0xE0 spills and 0x2BE0 frame without the artificial
+wrappers or scalar alignment attributes.
 
 ## AutoSetTreasureBox
 
