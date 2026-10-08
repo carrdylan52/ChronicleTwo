@@ -440,6 +440,14 @@
         "evaluate_first": true
       },
       {
+        "translation_unit": "menuchr.cpp",
+        "function": "Draw__12CMosBookMenuFv",
+        "value_type": "binary32",
+        "value_bits": "0x41800000",
+        "callee": "PrimQuad__FP11mgCDrawPrimff9mgRect<i>",
+        "evaluate_first": true
+      },
+      {
         "translation_unit": "menudraw.cpp",
         "function": "Func_MenuItemBrdPosStep__Fi",
         "value_type": "binary32",
