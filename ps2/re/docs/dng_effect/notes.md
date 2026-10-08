@@ -165,3 +165,31 @@ whoever decompiles them should give them inline bodies.
 ## Division-check pragma
 
 The unit-level `divbyzerocheck` pragma was redundant with the global MWCC flag; removing it left the full compiled object identical in objdiff.
+
+## CDeadEffect::Draw native match
+
+`Draw__11CDeadEffectFv` (0x001C4EC0, 0x480-byte manifest extent)
+draws each live fleck as a projected, alpha-faded textured quad. The sprite is
+constructed after the inactive-effect guard, before the projection buffers.
+Expired flecks advance the cursor and continue; independent kind-0 and kind-1
+tests retain the texture coordinates across other kinds. The glitter glyph is
+selected by `life % 3`. The seven `i % 7` palette entries are red, green, blue,
+cyan, yellow, magenta and white, as the `at_1981` jump table and its targets show.
+
+The texture load is GP-relative -0x71E8: with retail `_gp` 0x003846F0 this is
+0x0037D508, `TEX_SystemEffect1` (effect00). The former draft's effect2 name was
+a resolved-relocation error even after its masked instructions matched.
+
+Native integer casts for alpha conversion reproduce the conversion helpers and
+honor the existing GPR helper mask 0x30/FPR mask zero. Explicit `fptosi` calls
+instead allow different scratch registers in the mixed-corner copies. No new
+profile selector is required. Native switch generation supplies the jump labels
+and table; the existing data fallback is preserved by the wrapper.
+
+The final canonical wrapper plus section fixup check passes the complete unit:
+0xAC54 allocated bytes and 994 resolved relocations. The function is promoted
+manually. Its baseline draft differed in 284/288 words and had 0x464 bytes
+against retail's 0x480; final instructions and resolved relocations have zero
+differences. The m2c parser needs a recognized `jtbl_` name and the seven table
+entries to reconstruct this switch; a private copy used for analysis changes
+only that label spelling, leaving generated retail assembly untouched.

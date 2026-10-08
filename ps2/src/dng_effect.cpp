@@ -2111,18 +2111,17 @@ void CDeadEffect::Step() {
         }
     }
 }
-#ifdef NONMATCHING
 void CDeadEffect::Draw(void) {
+    if (duration <= 0 && live_num <= 0) {
+        return;
+    }
+    CPreSprite prim_draw;
     float world[4];
     int   corner0[4];
     int   corner_b_r[4];
     int   corner_t_l[4];
     int   corner1[4];
 
-    if (duration <= 0 && live_num <= 0) {
-        return;
-    }
-    CPreSprite prim_draw;
     prim_draw.Initialize(0, 0);
     prim_draw.Preset2D();
     prim_draw.DepthTestEnable(1);
@@ -2131,83 +2130,83 @@ void CDeadEffect::Draw(void) {
     prim_draw.Coord(1);
     prim_draw.AlphaBlend(2);
     prim_draw.Begin(3);
-    prim_draw.Texture(TEX_SystemEffect2);
+    prim_draw.Texture(TEX_SystemEffect1);
     prim_draw.AlphaTestEnable(1);
+    int u;
+    int v;
+    int span;
     BattleEffectPrim *fleck = prim;
     for (int i = 0; i < prim_max; i++) {
-        if (fleck->life > 0) {
-            int u;
-            int v;
-            int span;
-            if (fleck->kind == 0) {
-                u = 0x80;
-                v = 0x40;
-                span = 0x1F;
-            } else {
-                u = 0xA0;
-                v = 0x40;
-                if (fleck->life % 3 == 1) {
-                    v = 0x60;
-                }
-                span = 0x1F;
+        if (fleck->life <= 0) {
+            fleck++;
+            continue;
+        }
+        if (fleck->kind == 0) {
+            u = 0x80;
+            v = 0x40;
+            span = 0x1F;
+        }
+        if (fleck->kind == 1) {
+            u = 0xA0;
+            v = 0x40;
+            span = 0x1F;
+            if (fleck->life % 3 == 1) {
+                v = 0x60;
             }
-            sceVu0AddVector(world, fleck->pos, pos);
-            world[3] = 1.0f;
-            float fade = sinf(3.1415927f * ((float) fleck->life / (float) fleck->life_max));
-            if (mgTransWorldPrim3DSprite(corner0, corner1, world, 15.0f * fleck->size,
-                                         1.5f * (12.0f * fleck->size), 0) != 0) {
-                corner_b_r[0] = corner1[0];
-                corner_b_r[1] = corner0[1];
-                corner_b_r[2] = corner0[2];
-                corner_b_r[3] = corner0[3];
-                corner_t_l[0] = corner0[0];
-                corner_t_l[1] = corner1[1];
-                corner_t_l[2] = corner1[2];
-                corner_t_l[3] = corner1[3];
-                switch (i % 7) {
-                    case 0:
-                        prim_draw.Color(0x80, 0, 0, fptosi(fleck->rate * fade));
-                        break;
-                    case 1:
-                        prim_draw.Color(0, 0x80, 0, fptosi(fleck->rate * fade));
-                        break;
-                    case 2:
-                        prim_draw.Color(0, 0, 0x80, fptosi(fleck->rate * fade));
-                        break;
-                    case 3:
-                        prim_draw.Color(0x80, 0x80, 0, fptosi(fleck->rate * fade));
-                        break;
-                    case 4:
-                        prim_draw.Color(0x80, 0, 0x80, fptosi(fleck->rate * fade));
-                        break;
-                    case 5:
-                        prim_draw.Color(0, 0x80, 0x80, fptosi(fleck->rate * fade));
-                        break;
-                    case 6:
-                        prim_draw.Color(0x80, 0x80, 0x80, fptosi(fleck->rate * fade));
-                        break;
-                }
-                prim_draw.TextureCrd(u, v);
-                prim_draw.Vertex4(corner0);
-                prim_draw.TextureCrd(u + span, v);
-                prim_draw.Vertex4(corner_b_r);
-                prim_draw.TextureCrd(u, v + span);
-                prim_draw.Vertex4(corner_t_l);
-                prim_draw.TextureCrd(u, v + span);
-                prim_draw.Vertex4(corner_t_l);
-                prim_draw.TextureCrd(u + span, v);
-                prim_draw.Vertex4(corner_b_r);
-                prim_draw.TextureCrd(u + span, v + span);
-                prim_draw.Vertex4(corner1);
+        }
+        sceVu0AddVector(world, fleck->pos, pos);
+        world[3] = 1.0f;
+        float fade = sinf(3.1415927f * ((float) fleck->life / (float) fleck->life_max));
+        if (mgTransWorldPrim3DSprite(corner0, corner1, world, 15.0f * fleck->size,
+                                     1.5f * (12.0f * fleck->size), 0) != 0) {
+            corner_b_r[0] = corner1[0];
+            corner_b_r[1] = corner0[1];
+            corner_b_r[2] = corner0[2];
+            corner_b_r[3] = corner0[3];
+            corner_t_l[0] = corner0[0];
+            corner_t_l[1] = corner1[1];
+            corner_t_l[2] = corner1[2];
+            corner_t_l[3] = corner1[3];
+            switch (i % 7) {
+                case 0:
+                    prim_draw.Color(0x80, 0, 0, (int) (fleck->rate * fade));
+                    break;
+                case 1:
+                    prim_draw.Color(0, 0x80, 0, (int) (fleck->rate * fade));
+                    break;
+                case 2:
+                    prim_draw.Color(0, 0, 0x80, (int) (fleck->rate * fade));
+                    break;
+                case 3:
+                    prim_draw.Color(0, 0x80, 0x80, (int) (fleck->rate * fade));
+                    break;
+                case 4:
+                    prim_draw.Color(0x80, 0x80, 0, (int) (fleck->rate * fade));
+                    break;
+                case 5:
+                    prim_draw.Color(0x80, 0, 0x80, (int) (fleck->rate * fade));
+                    break;
+                case 6:
+                    prim_draw.Color(0x80, 0x80, 0x80, (int) (fleck->rate * fade));
+                    break;
             }
+            prim_draw.TextureCrd(u, v);
+            prim_draw.Vertex4(corner0);
+            prim_draw.TextureCrd(u + span, v);
+            prim_draw.Vertex4(corner_b_r);
+            prim_draw.TextureCrd(u, v + span);
+            prim_draw.Vertex4(corner_t_l);
+            prim_draw.TextureCrd(u, v + span);
+            prim_draw.Vertex4(corner_t_l);
+            prim_draw.TextureCrd(u + span, v);
+            prim_draw.Vertex4(corner_b_r);
+            prim_draw.TextureCrd(u + span, v + span);
+            prim_draw.Vertex4(corner1);
         }
         fleck++;
     }
     prim_draw.End();
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/dng_effect", Draw__11CDeadEffectFv);
-#endif
 void CMapEffect_Sprite::Set(float *spawn_pos) {
     sceVu0CopyVector(pos, spawn_pos);
     sceVu0CopyVector(target, spawn_pos);
