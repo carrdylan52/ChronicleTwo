@@ -6344,7 +6344,6 @@ void CMenuItemInfo::AttachFormInfo() {
     GiftBoxViewForm = (CMenuPosDataForm *) MenuPosData->GetFormInfo(at_5283);
 }
 
-#ifdef NONMATCHING
 #pragma inline_depth(8)
 void CMenuItemInfo::MenuModeMalloc(mgCMemory *stack) {
     int             i;
@@ -6386,16 +6385,13 @@ void CMenuItemInfo::MenuModeMalloc(mgCMemory *stack) {
     MenuRepairMan = repair;
     repair->Initialize();
     MenuLevelUpMan.Initialize();
-    InitBuildUpInfoEffect(&MenuItemMemory2, (mgCTexture *) mgTexManager.GetTexture(at_4672, -1), 8,
+    InitBuildUpInfoEffect(&MenuItemMemory2, (mgCTexture *) mgTexManager.GetTexture("menueff0", -1), 8,
                           20.0f);
     free_blocks = MenuItemMemory2.stack_size - MenuItemMemory2.stack_used;
     MenuItemMemory.stSetBuffer(
         (MenuItemMemory2.stack + MenuItemMemory2.stack_used), free_blocks);
 }
 #pragma inline_depth reset
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/menusys", MenuModeMalloc__13CMenuItemInfoFP9mgCMemory);
-#endif
 
 extern s8   init_5412;
 extern s8   checkmoveFlag_5411;
