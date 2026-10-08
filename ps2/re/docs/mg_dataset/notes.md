@@ -1,14 +1,11 @@
 # mg_dataset: reverse-engineering notes
 
-The native drafts of `htoi`, `CreateFrameVisual`, `mgLoadMDSFile(mgLoadData*)`,
-`CopyFrame`, `CopyFrameSub`, and `mgCMDTBuilder::End(mgCFrame*, mgCVisualMDT*,
-mgLoadData*)` still differ from retail. Their matching build paths use retail
-assembly while the C++ remains under `NONMATCHING`. For `htoi`, replacing the
-unsigned-byte view with `static_cast<u8>(text[back - 1])` changed the score from
-99.81132% to 96.01887%; the original draft was retained.
-Guarding `htoi` also changes the following `mgSetFrameAttr` code generation:
-the latter grows from its exact retail size 0x658 to 0x668 and changes calls and
-relocations. `mgSetFrameAttr` therefore also uses a retail gap in this build.
+The remaining guarded functions are `CreateFrameVisual`, `CopyFrame`,
+`CopyFrameSub`, and `mgCMDTBuilder::End(frame, visual, load)`. The
+`mgLoadMDSFile(mgLoadData*)` overload is native and matches retail with a
+separate allocation count and iteration index. `htoi` and `mgSetFrameAttr`
+are also native in this source state. Current measurements and placement-new
+parks are in [matching-20261008.md](matching-20261008.md).
 
 Header: `ps2/include/mg_dataset.hpp`. Retail unit `0x1321E0`-`0x134A20`.
 First-game counterpart: `dataset`/`mds`/`mdt` (`LoadMDSFile`, `CopyFrame`, `SetFrameAttr`,
@@ -157,8 +154,8 @@ The draft compiler must use the same global flag: without it, `EndPrim`
 omits retail's divide-by-zero trap and appears to differ in 10 words even
 though its normal game build matches.
 
-Current guarded drafts: `htoi` differs only in the operand order of one
-commutative `addu` at +0x44. `CopyFrame` and `mgCMDTBuilder::End(frame, visual,
+Earlier isolated draft measurements found `htoi` differing only in the operand
+order of one commutative `addu` at +0x44; it is now native. `CopyFrame` and `mgCMDTBuilder::End(frame, visual,
 load)` each differ only in the null branch following placement allocation:
 retail tests `v0`, while the compiled drafts test the equal-valued `a0`.
 `CreateFrameVisual` has this same branch-register difference at six placement
