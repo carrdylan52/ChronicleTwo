@@ -75,7 +75,6 @@ void CScene::InitBGM() {
     info->stack.stSetBuffer(info->buff, 0x40);
     sndInitPort(info->port);
 }
-#ifdef NONMATCHING
 void CScene::InitSeSrc() {
     StopSeSrc();
     sndSeAllStop(4);
@@ -95,9 +94,7 @@ void CScene::InitSeSrc() {
     }
     PrePlaySeSrc();
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/scenesnd", InitSeSrc__6CSceneFv);
-#endif
+
 void CScene::InitSeEnv() {
     StopEnvBGM();
     sndSeAllStop(2);

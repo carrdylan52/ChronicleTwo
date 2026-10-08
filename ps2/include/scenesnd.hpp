@@ -374,7 +374,7 @@ public:
     u8               unk_9078[0x8];
     BGM_INFO         bgm[2];        /**< Music ports. */
     s32              bgm_no;        /**< Index of the active entry of bgm. */
-    s32              se_src_id[16]; /**< Sound IDs of the map object sound effect banks, or -1. */
+    u32              se_src_id[16]; /**< Sound IDs of the map object sound effect banks, or -1. */
     s32              se_src_no[16]; /**< Numbers of the map object sound effect banks, or -1. */
     u8               unk_99c4[0xC];
     u_long128        se_src_buff[0x40];   /**< Memory the map object sound effect banks are loaded into. */

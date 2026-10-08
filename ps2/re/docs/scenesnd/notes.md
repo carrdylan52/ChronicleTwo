@@ -75,14 +75,38 @@ the .cpp. No global data: every datum is an `at_*` literal ("snd2/bgm/BG_%s...",
 `InitSeSrc` stops the old source effects and ports, clears both 16-entry
 source tables, attaches the source stack to its buffer, starts ports 4 and 1,
 clears the four active playback slots, and queues source effects for playback.
-MWCC unrolls the typed array loop eight entries at a time with the same stores
-and branch positions as retail. The guarded C++ draft differs only in register
-allocation within that loop: retail uses `v1` for the count, `a0` for the byte
-offset, `a1` for the scene-relative base, and `a2` for -1; the draft uses
-`a0`, `a1`, `a2`, and `v1`, respectively. Explicit eight-entry unrolling,
-separate count and array indices, array references, chained assignments,
-unsigned indices, and equivalent `for`/`while` forms did not reproduce retail's
-register assignment. The retail assembly remains active.
+MWCC unrolls the table loop eight entries at a time.
+
+The ID table at +0x9944 holds unsigned packed sound IDs; the bank-number table
+at +0x9984 holds signed numbers with -1 marking an empty slot. The matched
+`LoadSeSrcPack__6CSceneFiPUi` stores the unsigned return value of
+`sndLoadSound__FiPUiP9mgCMemory` directly into the ID table, while its free-slot
+search uses a signed word load and `bgez` on the number table. Both tables
+have four-byte elements; `GetSeSrcID__6CSceneFi` indexes them separately.
+The sound manager represents IDs as a port byte, bank byte, and effect
+halfword. Its unsigned return declaration is in `snd_mngr.hpp`; returning
+an ID through the existing signed `GetSeSrcID` signature preserves its bits.
+
+With `se_src_id` declared `u32[16]` and `se_src_no` retained as `s32[16]`, the
+existing C++ body matches all 110 retail instruction words, and all 71
+scenesnd functions match. No layout, call ordering, or loop-body changes are
+needed.
+
+When both tables are signed, 39 words differ solely through the loop register
+permutation: retail uses `v1` for the count, `a0` for the byte offset, `a1` for
+the scene-relative base, and `a2` for -1; the signed-table draft uses `a0`,
+`a1`, `a2`, and `v1`, respectively. Casting the sentinel RHS to `u32` does not
+fix that permutation when the destination remains signed. Named sentinel
+locals, earlier index declarations, index reuse between loops, nested table
+grouping, and explicit playback-slot clearing also preserve the mismatch.
+Initializing the index across stop calls adds a saved register; local table
+pointers change the addressing, and separate table loops are not fused.
+Explicit eight-entry unrolling, separate count and array indices, array
+references, chained assignments, unsigned indices, and equivalent loop forms
+also do not reproduce retail with signed destinations.
+
+`CScene` and these fields are declared in `scenesnd.hpp`. With the unsigned
+ID table, `InitSeSrc` is active matching C++.
 
 Accesses at +0xA46C/+0xA474 (LoadSeEnvPack) and BGM_INFO +0x44C/+0x454 (LoadBGMPack,
 `piVar1[0x113]`/`[0x115]`) are `mgCMemory::lock` / `stack_used` of the embedded stacks, not
