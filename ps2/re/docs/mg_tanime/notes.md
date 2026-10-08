@@ -177,3 +177,42 @@ through the argument alias. Default peephole optimization fixes those two aliase
 but sinks the saved-pointer move into the successful branch and skips its return on
 failure. Disabling propagation or lifetime optimization does not change that result.
 This is a code-generation difference, not evidence of an incorrect `CList` layout.
+
+## Placement construction under Satan's Fiddle (2026-10-08)
+
+The canonical SF wrapper retains the guarded NewTexAnimeData draft at
+**6/32 differing words, 0x7c/0x80 bytes**. Current-source plain wibo emits
+the same selected function. GPR helper seeds 0/0x10/0x30, default float
+evaluate-first true, and the baseline policy all leave its text unchanged.
+The shared-header and source-form experiments above were not repeated.
+
+A hash- and signature-checked LLDB trace now explains the saved-copy position.
+The inliner classifies `CList<mgCTexAnimeData>`'s constructor as expression
+inline class 6. Original high-level IR retains a construction node (kind 0x3a)
+with allocation and a constructor comma expression. Late IroLinearForm emits
+an allocation-result temporary and its null guard, with the constructed-object
+copy inside the successful branch. Constructor-result copies then feed the
+allocation-expression result at the join. First coalescing maps that result
+and the guard to ABI `v0`, while retaining the success-only object copy;
+coloring maps that object to `s0`. The ordinary scheduling pass is skipped
+for this function. Retail instead saves its allocation pointer before the
+`v0` guard and returns the retained register at the join.
+
+Thus this six-word case includes a null-path/result-lifetime difference beyond
+the two-word saved-register guard pattern. Helper/float state did not move the
+copy, and no affected uninitialized compiler input was found. No new natural
+source or SF policy is validated. Reconsider when an evidenced constructor or
+caller takes the early statement-conversion path while preserving the retail
+construction calls and result lifetime, or when an identical-source state
+probe demonstrates an affected state read. Merely forcing control flow into
+the constructor would change source semantics or add a codegen no-op.
+
+The [SF placement-new report](../funcpoint/placement-new.md#under-satans-fiddle)
+records the comparison with class-A CMenuInvent/CMenuMoveItem, exact pass
+boundaries and initialized inline classification. Private evidence is in
+`.private/placenew-sf/trace-final-mg_tanime/` (inline classifications,
+original/optimized/expanded IR, PCode and canonical text comparison) and
+`.private/placenew-sf/baseline/native/mg_tanime.*`. No symbol was promoted.
+The lane's canonical image retains i13's three unrelated object failures
+(146/149); all sections except the known 0x2c-byte .text difference pass,
+and coverage remains 6,677 matched / 175 guarded / 15 asm-only / 5 fuzzy.
