@@ -92,45 +92,30 @@ identical hashes; two differ only in compiler-generated local symbol strings.
 This distinction matters when comparing source-only diagnostics with accepted
 assembled artifacts.
 
-The scoped capability and its genuine-compiler regressions are being developed
-on this branch. No placement profile row or function promotion is committed
-at this stage.
+The [constructor/header subset controls](placement-new-global-subsets-20261008.md)
+complete the 149-unit comparison. Converting every class-6 constructor inline
+read, including ordinary stack/member construction, loses 13 existing zero
+scores. The observed-header before-inline subset loses one and gives 23 guarded
+zeros. The header after-inline subset loses none and gives 24, missing the
+cpp-defined `CMapParts` allocation in `EditSetPlaceAnime`. Both header controls
+select 21 exact observed header identities in 67 trace events; those event
+counts are not unique construction counts. None explains the template caller
+that needs the other timing.
 
-## Initial census and controlled probe
+The scoped implementation compiles all 17 candidate units on `sf-63f7a9e-pn12`.
+Its profile asserts 26 caller/constructor rows and 37 eligible constructions;
+all 26 callers reach diagnostic zero, while no other scored function changes
+in those units. The exact semantic scope is narrower than the global probes:
+root call-node identity, actual initialized class read, exact normal mangled
+witnesses, verified single-construction regions, and observed ordinary lowering.
+Natural-source cleanup and promotion acceptance remain separate checks.
 
-The exhaustive PAL scalar-allocator scan finds 216 `__nw__FUiP1` calls in
-116 callers. Its first pass records 196 guards testing `v0`, two guards
-testing a copied register, 16 calls without a nearby guard, and two member
-store/reload guards requiring separate explicit-allocation classification.
-The two B sites are both in matched `mapFIX_CAMERA_RECT`: `CColFrame` and
-`CCollision`, under the existing `inline_depth(0)` region, with out-of-line
-constructor calls. Type/source classification of the remaining sites is
-still being completed; the 196 A rows are not all natural new-expressions.
-Raw site windows and source annotations are under `.private/pntc/census/`.
-
-A private, signature-checked prototype requests class-3 conversion only when
-an actual scalar construction node encloses a class-6 constructor inline
-request. It leaves stored constructor inline-info untouched and changes only
-the current classification register read. With unchanged game sources,
-funcpoint's allocation draft changes from 2/40 to 0/40 words; mg_tanime's
-from 6/32 to 0/32 words. Both retain their relocation-kind maps. These are
-draft diagnostics, not promotions or complete-object acceptance.
-`CreateFrameVisual` worsens from 6/444 to 107/444, establishing that blanket
-conversion is not already proved by the two small positive cases. Full-corpus
-comparison and the narrower conversion-request experiment remain necessary.
-
-The prototype also exposes an identity boundary: `0x57b6bc` is the backend's
-current function and can still identify the previous function during frontend
-inlining. A frontend selector must instead use the function object published
-at `0x54d6d2` before statement inlining. The private probe's early diagnostic
-caller labels are therefore not semantic selector evidence. Its output-byte
-measurements are unaffected because that experiment is unscoped.
-
-Images built so far are only `sf-63f7a9e-pn1` (cached-source extraction) and
-`sf-63f7a9e-pn2` (private conversion probe). No existing tag was rebuilt or
-retagged. Private extraction/probe changes are not the proposed production
-capability. Neither successful forced conversion nor the census demonstrates
-an uninitialized-state defect; any eventual proposal must retain that limit.
+After-inline global conversion is empirically safe for the established zero
+scores in this corpus. The proposal deliberately limits activation to callers
+being promoted, adds fail-closed semantic scope/count checks absent from the
+global driver, and uses before-inline timing only where separately measured.
+This is a maintainer proposal for intentional lowering policy. No tested build
+setting or memory-state defect establishes that retail used such a policy.
 
 ## Proposed semantic boundary
 
@@ -142,7 +127,12 @@ full executable hash and exact hook opcode signatures.
 
 Each row requires the logical translation-unit name, exact mangled caller,
 scalar allocator signature, direct constructor identity, explicit conversion
-timing, and a positive expected count of distinct compiler constructions.
+timing, and a positive expected count of distinct eligible compiler constructions.
+Eligibility requires the measured expression-inline class 6, uniformly before
+raw or cached-name filtering. Class 0 and class 3 sites are outside the capability;
+a row with no eligible sites fails its count. This prevents an uncached generic
+`__ct` of an unrelated non-inline or implicit constructor from being treated as
+a selected class-6 candidate.
 The constructor projects the allocated type from the compiler's direct
 scalar-construction child. No address, construction ordinal, or match count
 selects a site. Count is a completion assertion; two otherwise identical
@@ -161,9 +151,14 @@ and scheduling decisions. To bound construction effects, the initial support
 requires a single scalar construction in that region. It checks both the
 initial walk and the final AST after expression inlining, then observes actual
 ordinary construction lowering. A helper introducing an unvisited sibling or
-nested construction is therefore rejected. Before-inline timing also audits
-the direct constructor's retained inline body and transitive inline callees
-for latent constructions; unsupported body forms reject conservatively.
+nested construction is therefore rejected. Both timings audit retained inline
+callees for deferred constructions; before-inline timing also audits the direct
+constructor body before changing its current inline request. Transitive latent
+constructions, unsupported indirect calls, body forms, and cleanup metadata reject
+conservatively. An empty void return is accepted only as a metadata-free latent
+body record with the canonical void return type. The audit treats its expression
+graph as empty. The ordinary statement-return copier has a verified NULL path;
+the generic expression-body copier does not.
 
 Internal pointer bookkeeping has compiler-arena epochs. A measured AST arena
 reset requires all active conversions and exact identity witnesses to have
