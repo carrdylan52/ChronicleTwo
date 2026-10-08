@@ -216,7 +216,7 @@ public:
     signed char type;        /**< How the rectangle is moved, an mgTEX_ANIME_TYPE. */
     signed char group;       /**< Animation group the record is entered into. */
     signed char link_group;  /**< Group enabled while this record plays, or -1 for none. */
-    u_char      clut_copy;   /**< Non-zero copies the source's palette to the destination even when the rectangle is not the whole texture. */
+    signed char clut_copy;   /**< Non-zero copies the source's palette to the destination even when the rectangle is not the whole texture. */
     mgCTexture *src_tex;     /**< Texture the rectangle is taken from. */
     mgCTexture *dest_tex;    /**< Texture the rectangle is drawn into. */
     short       src_x;       /**< Left edge of the source rectangle, in sixteenths of a texel. */
@@ -235,8 +235,8 @@ public:
     short       amplitude_y; /**< Vertical sway of a wave record, in ten-thousandths of the destination height. */
     short       wait;        /**< Frames the record plays before the group moves on; zero also plays the next record, -1 holds forever. */
     short       bug_patch;   /**< Non-zero ends the record after exactly wait frames rather than one frame later. */
-    u_char      bilinear;    /**< Non-zero filters a drawn rectangle bilinearly. */
-    u_char      alpha_blend; /**< Alpha blending mode a drawn rectangle uses, or 4 for none. */
+    signed char bilinear;    /**< Non-zero filters a drawn rectangle bilinearly. */
+    signed char alpha_blend; /**< Alpha blending mode a drawn rectangle uses, or 4 for none. */
     signed char alpha_test;  /**< Alpha test method a drawn rectangle uses, or -1 for none. */
     u_char      alpha_ref;   /**< Reference value of the alpha test. */
     u_char      r;           /**< Red the drawn rectangle is tinted with, 0x80 for unchanged. */
