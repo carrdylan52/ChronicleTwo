@@ -7,26 +7,6 @@
 #include <cstdlib>
 #include <cstring>
 
-extern char at_275[];
-extern char at_292__3[];
-extern char at_293__2[];
-extern char at_300__3[];
-extern char at_341__2[];
-extern char at_686[];
-extern char at_687[];
-extern char at_688[];
-extern char at_689[];
-extern char at_690[];
-extern char at_691[];
-extern char at_692[];
-extern char at_693[];
-extern char at_694[];
-extern char at_695[];
-extern char at_696[];
-extern char at_699[];
-extern char at_698[];
-extern char at_697[];
-
 // Code (.text)
 /**
  *
@@ -195,8 +175,8 @@ RS_STACKDATA CRunScript::pop() {
 
 vmcode_t *CRunScript::call_func(funcdata *callee, vmcode_t *return_pc) {
     if (call_sp >= call_end) {
-        printf("\202\261\202\352\210\310\217\343\212\326\220\224\214\304\202\321\217\157\202\265"
-               "\202\252\202\305\202\253\202\334\202\271\202\361\201\102\n");
+        printf("\x82\xB1\x82\xEA\x88\xC8\x8F\xE3\x8A\xD6\x90\x94\x8C\xC4\x82\xD1\x8F\x6F\x82\xB5"
+               "\x82\xAA\x82\xC5\x82\xAB\x82\xDC\x82\xB9\x82\xF1\x81\x42\n");
         exit(-2);
     }
 
@@ -225,19 +205,19 @@ void CRunScript::ext(RS_STACKDATA *command, int arg_count) {
     int (*func)(RS_STACKDATA *, int);
 
     if (index < 0 || index >= ext_func_num) {
-        printf(at_292__3, index);
+        printf("not found ext %d\n", index);
         return;
     }
 
     func = ext_func_table[index];
 
     if (func == 0) {
-        printf(at_292__3, index);
+        printf("not found ext %d\n", index);
         return;
     }
 
     if (func(command + 1, arg_count - 1) == 0) {
-        printf(at_293__2, command->val.i);
+        printf("illegal function call ext %d\n", command->val.i);
     }
 }
 
@@ -251,7 +231,7 @@ void CRunScript::load(RS_PROG_HEADER *program, RS_STACKDATA *values, int value_c
     prog = program;
     code = (char *) program + program->code;
 
-    if (strncmp(prog->magic, at_300__3, 3) == 0) {
+    if (strncmp(prog->magic, "SB2", 3) == 0) {
         version = RS_VERSION_2;
         global = stack;
         stack += prog->global_num;
@@ -344,6 +324,7 @@ void CRunScript::skip() {
     skip_wait = 1;
     resume();
 }
+
 void CRunScript::exe(vmcode_t *entry) {
     RS_STACKDATA  value;
     RS_STACKDATA  rhs;
@@ -679,9 +660,7 @@ void CRunScript::exe(vmcode_t *entry) {
                 if (rhs.type == RS_INT) {
                     push_int(!rhs.val.i);
                 } else {
-                    fprintf(stderr, "RUNTIME ERROR: %s: \220\256\220\224\202\305\202\310\202\242\203\111"
-                                    "\203\171\203\211\203\223\203\150\n",
-                            func->name);
+                    fprintf(stderr, "RUNTIME ERROR: %s: \x90\xAE\x90\x94\x82\xC5\x82\xC8\x82\xA2\x83I\x83y\x83\x89\x83\x93\x83h\n", func->name);
                     exit(-1);
                 }
 
@@ -769,6 +748,7 @@ void CRunScript::exe(vmcode_t *entry) {
         pc++;
     }
 }
+
 int rsGetStackInt(RS_STACKDATA *data) {
     if (data->type == RS_FLOAT) {
         return (int) data->val.f;
@@ -782,24 +762,3 @@ void rsSetStack(RS_STACKDATA *data, int value) {
         data->val.p->val.i = value;
     }
 }
-
-// Constants (.rodata)
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/runscript", at_275__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/runscript", at_292__3__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/runscript", at_293__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/runscript", at_300__3__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/runscript", at_341__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/runscript", at_686__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/runscript", at_687__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/runscript", at_688__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/runscript", at_689__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/runscript", at_690__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/runscript", at_691__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/runscript", at_692__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/runscript", at_693__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/runscript", at_694__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/runscript", at_695__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/runscript", at_696__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/runscript", at_699__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/runscript", at_698__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/runscript", at_697__DATA);
