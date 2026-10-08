@@ -127,10 +127,6 @@ void CEditMap::AnimeStep(CObjAnimeEnv *env) {
     }
 }
 
-// Constants (.rodata)
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editmapeffect", at_358__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editmapeffect", at_359__DATA);
-
 // Small uninitialised data (.sbss)
 INCLUDE_BSS(init_379, 0x4);
 
