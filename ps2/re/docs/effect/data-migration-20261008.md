@@ -18,3 +18,16 @@ No class layouts or public declarations change.
 Acceptance receipts are `.private/dataC-r1/effect-storage-build.log`,
 `effect-storage-objects.log`, and `effect-storage-metrics.log`: PAL OK,
 149/149 objects, and no unowned object hash changes. Markers become 51/0.
+
+## Script tag table
+
+`effm_tag` is a native file-local array of 48 `SPI_TAG_PARAM` records: 47
+name/callback pairs and one null terminator. The existing interpreter header
+owns the documented eight-byte record type. The definition follows the
+callbacks, with each exact tag spelling inline, including `__REP_RAND`.
+This removes the table marker and 47 pooled-string markers without changing
+callbacks or consumer declarations. The existing table and string associations
+are checked against their retail pointer words.
+
+`effect-tags-{build,objects,metrics}.log` accepts this group: PAL OK,
+149/149 objects, and no unowned object changes. Markers become 3/0.
