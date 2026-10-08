@@ -39,38 +39,10 @@ struct HankakuKanaTable {
     u8 code[63]; /**< Single byte kana codes. */
 };
 
-extern char                 at_812__3[];
-extern char                 at_813__3[];
 /**
  * Holds the loaded font-code table and its character counts.
  */
 static FONT_TBL_BIN FontTblBinBuff;
-extern char                 at_848__4[];
-extern char                 at_849__3[];
-extern char                 at_850__3[];
-extern char                 at_936__5[26];
-extern char                 at_1089[];
-extern char                 at_1090[];
-extern char                 at_1091[];
-extern char                 at_1092[];
-extern char                 at_1093__2[];
-extern char                 at_1094[];
-extern char                 at_1095__2[];
-extern char                 at_1096[];
-extern char                 at_1097[];
-extern char                 at_1098[];
-extern char                 at_1099[];
-extern char                 at_988__4[];
-extern char                 at_989__3[];
-extern char                 at_990__4[];
-extern char                 at_991__5[];
-extern char                 at_992__4[];
-extern char                 at_993__3[];
-extern char                 at_994__3[];
-extern char                 at_995__3[];
-extern char                 at_996__3[];
-extern char                 at_997__3[];
-extern const unsigned char  at_1543[6];
 
 // Code (.text)
 int GetGaijiW(int code) {
@@ -138,9 +110,9 @@ void MySetTexMini(int page, mgCDrawPrim *prim) {
     mgCTextureManager *tex_manager = &mgTexManager;
 
     if (page == 0) {
-        prim->Texture(tex_manager->GetTexture(at_812__3, -1));
+        prim->Texture(tex_manager->GetTexture("FontTex_s_0", -1));
     } else {
-        prim->Texture(tex_manager->GetTexture(at_813__3, -1));
+        prim->Texture(tex_manager->GetTexture("FontTex_s_1", -1));
     }
 }
 
@@ -190,13 +162,13 @@ int LoadFontTblBin() {
     int size;
 
     if (LanguageCode == 1) {
-        LoadFile(at_848__4, &FontTblBinBuff, &size);
+        LoadFile("meswin/fonttbl_1.bin", &FontTblBinBuff, &size);
     } else {
-        LoadFile(at_849__3, &FontTblBinBuff, &size);
+        LoadFile("meswin/fonttbl_2.bin", &FontTblBinBuff, &size);
     }
 
     if (size > 0x1000) {
-        printf(at_850__3);
+        printf("****ERR\tFontTblBinBuff OVER!!!****\n");
         return 0;
     }
 
@@ -302,7 +274,7 @@ void CFont::SetStr(char *text) {
     memset(this->str, 0, 0x80);
 
     if (strlen(text) >= 0x80U) {
-        printf(at_936__5);
+        printf("ERR:\225\266\216\232\220\224\202\252\221\275\202\267\202\254\202\334\202\267\201B\n");
         return;
     }
 
@@ -392,30 +364,30 @@ u16 GetAlphabeticalFontNo_cp(char *text) {
         return 0;
     }
 
-    if (strncmp(text, at_1089, 5) != 0) {
+    if (strncmp(text, "[UNI0", 5) != 0) {
         return 0;
     }
 
-    strncpy(code, text + 5, 5);
+    strncpy(code, &text[5], 5);
 
-    if (strncmp(code, at_1090, 4) == 0) {
-        strncpy(code, at_1091, 4);
+    if (strncmp(code, "11d]", 4) == 0) {
+        strncpy(code, "0e8]", 4);
     }
 
-    if (strncmp(code, at_1092, 4) == 0) {
-        strncpy(code, at_1093__2, 4);
+    if (strncmp(code, "129]", 4) == 0) {
+        strncpy(code, "0ea]", 4);
     }
 
-    if (strncmp(code, at_1094, 4) == 0) {
-        strncpy(code, at_1095__2, 4);
+    if (strncmp(code, "155]", 4) == 0) {
+        strncpy(code, "0e0]", 4);
     }
 
-    if (strncmp(code, at_1096, 4) == 0) {
-        strncpy(code, at_1097, 4);
+    if (strncmp(code, "171]", 4) == 0) {
+        strncpy(code, "0fb]", 4);
     }
 
-    if (strncmp(code, at_1098, 4) == 0) {
-        strncpy(code, at_1099, 4);
+    if (strncmp(code, "17f]", 4) == 0) {
+        strncpy(code, "0f9]", 4);
     }
 
     for (i = 0; i < 63; i++) {
@@ -555,43 +527,43 @@ int GetHalfFontNo(char c) {
 }
 
 int CFont::GetDigitNo(int font_no) {
-    if (font_no == GetFontNo(at_989__3)) {
+    if (font_no == GetFontNo("\202P")) {
         return 1;
     }
 
-    if (font_no == GetFontNo(at_990__4)) {
+    if (font_no == GetFontNo("\202Q")) {
         return 2;
     }
 
-    if (font_no == GetFontNo(at_991__5)) {
+    if (font_no == GetFontNo("\202R")) {
         return 3;
     }
 
-    if (font_no == GetFontNo(at_992__4)) {
+    if (font_no == GetFontNo("\202S")) {
         return 4;
     }
 
-    if (font_no == GetFontNo(at_993__3)) {
+    if (font_no == GetFontNo("\202T")) {
         return 5;
     }
 
-    if (font_no == GetFontNo(at_994__3)) {
+    if (font_no == GetFontNo("\202U")) {
         return 6;
     }
 
-    if (font_no == GetFontNo(at_995__3)) {
+    if (font_no == GetFontNo("\202V")) {
         return 7;
     }
 
-    if (font_no == GetFontNo(at_996__3)) {
+    if (font_no == GetFontNo("\202W")) {
         return 8;
     }
 
-    if (font_no == GetFontNo(at_997__3)) {
+    if (font_no == GetFontNo("\202X")) {
         return 9;
     }
 
-    if (font_no == GetFontNo(at_988__4)) {
+    if (font_no == GetFontNo("\202O")) {
         return 0;
     }
 
@@ -814,7 +786,7 @@ void DrawGaiji_sub(mgCDrawPrim *prim, int glyph, int x, int y, RGBAQ_TYPE color,
 
 void CFont::DrawGaiji(mgCDrawPrim *prim, int glyph, int x, int y) {
     RGBAQ_TYPE neutral;
-    MySetTex((char *) at_1543, prim);
+    MySetTex("gaiji", prim);
     neutral.a = 0x80;
     neutral.b = 0x80;
     neutral.g = 0x80;
@@ -1249,25 +1221,7 @@ char alphabetical_chara_tbl[ALPHABETICAL_CHARA_NUM][ALPHABETICAL_CHARA_LEN] = {
 };
 
 // Constants (.rodata)
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/font", at_812__3__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/font", at_813__3__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/font", at_848__4__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/font", at_849__3__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/font", at_850__3__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/font", at_936__5__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/font", at_1089__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/font", at_1090__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/font", at_1091__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/font", at_1092__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/font", at_1093__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/font", at_1094__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/font", at_1095__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/font", at_1096__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/font", at_1097__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/font", at_1098__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/font", at_1099__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/font", at_1448__3__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/font", at_1543__DATA);
 
 // Uninitialised data (.bss)
 INCLUDE_BSS(FontTblBinBuff, 0x1000);

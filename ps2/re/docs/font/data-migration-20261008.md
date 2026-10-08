@@ -69,3 +69,20 @@ After these table steps, font has 19 RODATA markers and four BSS markers.
 The refreshed source-only objdiff metric remains 0/7344; that build does not
 run the final object's literal naming, piece ordering, and padding fixups.
 The final linked-object comparison verifies every migrated byte and relocation.
+
+## Inline literals
+
+`MySetTexMini` uses the two retail small-font texture names directly.
+`LoadFontTblBin` inlines its Japanese/other-language paths and oversize-file
+diagnostic, and `CFont::SetStr` inlines its capacity diagnostic. The decimal
+character comparisons in `GetHalfFontNo` use the exact two-byte code literals
+also present in `FontGaijiConvTbl`; ordinary compiler pooling preserves their
+shared identities. `GetAlphabeticalFontNo_cp` inlines the bracket prefix and
+five normalization pairs, and indexes `&text[5]` for the payload. `DrawGaiji`
+passes `"gaiji"` directly without a cast. Every function's literal replacement
+was checked separately with the full build and object comparison.
+
+These steps remove all font string extern declarations. One RODATA marker
+remains temporarily: `at_1448__3`, the nine-entry branch table for the existing
+outline-style switch, whose marker removal is checked separately. Four BSS
+markers remain as described above. The refreshed data metric is still 0/7344.
