@@ -1,4 +1,8 @@
-# menusys guarded-function status
+# menusys guarded-function status (historical morning snapshot)
+
+This records the older `0abce376` baseline. See
+[the midday status](matching-midday-20261008.md) for the `c79e57c` lane results.
+The counts and guard descriptions below describe that earlier snapshot.
 
 Reference: PAL SCES_511.90, base
 `0abce376a0d178797f62ae7e0e67b407fb67bd62`, MWCC 3.0-011126 with `-O3,p`.
