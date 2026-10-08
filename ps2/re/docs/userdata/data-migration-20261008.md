@@ -174,3 +174,13 @@ patch hashes, unit checks, program-image SHA-256 equality, and linker/verifier
 receipts are in `.private/dataC/proposal-integration/`. The compiler-access
 techniques also have a proposed shared documentation update in
 `.private/proposals/dataC-MWCC-data-access.patch`; `docs/MWCC.md` is unchanged.
+
+## Native zero templates
+
+The final two BSS markers are removed. The existing local pointer array
+and equipment array generate the zero templates naturally. The postprocessor
+identifies them by their exact declared sizes and consistent opcode-matched
+retail address relocations; the 0x14-byte pointer template retains its
+12-byte piece alignment. No local initializer or instruction changes.
+PAL and all 149 object checks pass; all unowned game objects retain their
+baseline hashes. Receipts: `.private/dtool/08-userdata-{build,objects,metrics,tests}.log`.

@@ -6637,9 +6637,5 @@ void DebugGetItem(CUserDataManager *user_data, int mode) {
     }
 }
 
-// Small uninitialised data (.sbss)
-INCLUDE_BSS(at_5773, 0x8);
-
 // Uninitialised data (.bss)
-INCLUDE_BSS(at_2061, 0x20);
 CBattleCharaInfo BattleParamater;
