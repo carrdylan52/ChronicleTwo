@@ -25,7 +25,6 @@
 
 extern char at_1088[];
 extern char at_1089__2[];
-extern char at_1221__5[];
 #include <cmath>
 #include <cstdio>
 #include <cstdlib>
@@ -590,13 +589,12 @@ int CSphida::Step() {
 }
 
 void CSphida::InitStatusSprite() {
-    mgCTexture *texture = mgTexManager.GetTexture(at_1221__5, -1);
+    mgCTexture *texture = mgTexManager.GetTexture("sphida_bar", -1);
 
     pow_gage.pos_x = 256.0f;
     pow_gage.pos_y = 406.4f;
     pow_gage.texture = texture;
 }
-#ifdef NONMATCHING
 void CSphida::DrawStatusSprite() {
     int index;
     if (status_flag == 0) {
@@ -605,7 +603,7 @@ void CSphida::DrawStatusSprite() {
     InitStatusSprite();
     mgTexManager.ReloadTexture(tex_bank, (sceVif1Packet *)NULL);
     pow_gage.Draw();
-    mgCTexture *texture = mgTexManager.GetTexture(at_1221__5, -1);
+    mgCTexture *texture = mgTexManager.GetTexture("sphida_bar", -1);
     mgCDrawPrim prim;
     prim.Initialize(NULL, NULL);
     prim.DepthTestEnable(0);
@@ -774,13 +772,10 @@ void CSphida::DrawStatusSprite() {
     }
     prim.End();
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/sphida", DrawStatusSprite__7CSphidaFv);
-#endif
 
 void CSphida::DrawParCounter() {
     mgTexManager.ReloadTexture(tex_bank, (sceVif1Packet *) NULL);
-    mgCTexture *texture = mgTexManager.GetTexture(at_1221__5, -1);
+    mgCTexture *texture = mgTexManager.GetTexture("sphida_bar", -1);
     int         digits[5];
     int         digit;
     int         divisor = 10000;
@@ -1012,7 +1007,6 @@ INCLUDE_RODATA("ps2/asm/pal/nonmatchings/sphida", at_1088__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/sphida", at_1089__2__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/sphida", at_1090__2__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/sphida", at_1138__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/sphida", at_1221__5__DATA);
 
 // Small uninitialised data (.sbss)
 INCLUDE_BSS(Sphida, 0x4);

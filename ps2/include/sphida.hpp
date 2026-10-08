@@ -254,7 +254,7 @@ public:
      *
      * @mangled DrawStatusSprite__7CSphidaFv
      * @address 0x2EF390
-     * @size 0x1120
+     * @size 0x111C
      */
     void DrawStatusSprite();
 

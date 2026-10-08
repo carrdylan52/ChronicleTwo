@@ -4,6 +4,11 @@ Sphida is the golf-like minigame on dungeon floors. Event scripts (`_SPHIDA_*` i
 create and drive it; `dng_main` steps/draws it; `actionchara`/`editctrl` collide against its pin.
 No corresponding class in the first game.
 
+All twenty unit functions now match as native C++, including status-sprite
+drawing. The current selector and whole-PAL acceptance evidence is in
+[the October 8 night assessment](night-20261008.md). Dated guarded results
+below retain their historical compiler and source baselines.
+
 ## CPowGage (size 0x24, asserted)
 Size: it is the first member of CSphida, and CSphida's next field (`tex_bank`) is at 0x24.
 No vtable. `CSphida::CSphida` calls `CPowGage::Initialize` on `this`, so the gauge's
