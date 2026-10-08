@@ -108,6 +108,31 @@ A fuzzy percentage is diagnostic, not proof of an exact match. `INCLUDE_ASM`
 and inline assembly do not qualify as matched native decompilation. Internal
 class initializers must be generated naturally by the compiler.
 
+## Branch delay slots
+
+A conditional branch may take the first instruction of its target block into
+its delay slot (and retarget past it) only if no earlier branch has already
+taken that instruction; in matched retail code no target loses the same
+instruction to two conditional branches. An unconditional jump to the block
+also counts, and once filled it looks the same as an early return
+(`b exit; move v0,zero`). When retail shows a `nop` where MWCC steals a shared
+`return 0`, look for an earlier natural jump to that block, such as a
+`switch` default falling out to the final return.
+`CMenuItemInfo::LRCheck` (menusys) and `CheckOmakeVtuto` (menuop) are the
+references. In LRCheck, four sparse case labels sharing one body compare in
+the reverse of their written order.
+
+## Register colouring of loop and snapshot locals
+
+A loop's own index, or the first use of a variable, is coloured before the
+loop optimizer's offset values; a later use of a variable first used
+elsewhere (for example an unbraced `case` index reused by a later case) is
+coloured after them. Declaration position at function scope does not change
+this. Constant-indexed two-element local arrays kept in registers colour
+differently from separate scalars; `u8` snapshots compared after calls
+follow their uses rather than their declaration order. `MenuItemDebugDraw`
+(menusys) and `TitleModeKey` (title) are the references.
+
 ## Data extents and alignment
 
 Retail symbol sizes describe objects, while the split section pieces include
