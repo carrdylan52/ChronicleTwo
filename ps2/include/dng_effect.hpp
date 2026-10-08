@@ -145,11 +145,21 @@ enum MAP_EFFECT_TYPE {
 
 /**
  *
+ * Looks of a death-effect fleck.
+ *
+ */
+enum DEAD_EFFECT_FLECK_KIND {
+    DEAD_EFFECT_FLECK_CLOUD = 0,   /**< A cloud puff. */
+    DEAD_EFFECT_FLECK_GLITTER = 1, /**< A shrinking glitter. */
+};
+
+/**
+ *
  * One particle of the battle effect manager's pooled effects, kept in a block allocated beside each effect.
  *
  */
 struct BattleEffectPrim {
-    s32           kind;       /**< Look of a death-effect fleck: 0 a cloud puff, 1 a shrinking glitter. */
+    s32           kind;       /**< DEAD_EFFECT_FLECK_KIND look of a death-effect fleck. */
     sceVu0FVECTOR pos;        /**< Position, absolute for hit sparks and relative to the effect for the others. */
     sceVu0FVECTOR velocity;   /**< Direction of a hit spark, or distance a death-effect fleck moves per step. */
     float         size;       /**< Drawn size of a death-effect fleck. */

@@ -2038,7 +2038,7 @@ void CDeadEffect::CreatPrim(int kind) {
         particle->velocity[1] = 1.0f + 0.5f * mgRnd();
         particle->velocity[2] = 8.0f * mgRnd() - 4.0f;
 
-        if (kind == 0) {
+        if (kind == DEAD_EFFECT_FLECK_CLOUD) {
             particle->life = fptosi(10.0f * mgRnd()) + 20;
             particle->life_max = particle->life;
             particle->speed = 0.2f;
@@ -2046,7 +2046,7 @@ void CDeadEffect::CreatPrim(int kind) {
             particle->rate = 32.0f + 8.0f * mgRnd();
         }
 
-        if (kind == 1) {
+        if (kind == DEAD_EFFECT_FLECK_GLITTER) {
             particle->life = fptosi(10.0f * mgRnd()) + 20;
             particle->life_max = particle->life;
             particle->speed = 0.2f;
@@ -2076,7 +2076,7 @@ void CDeadEffect::Step() {
                 spark->velocity[0] = spark->velocity[0] - 0.2f * spark->velocity[0];
                 spark->velocity[2] = spark->velocity[2] - 0.2f * spark->velocity[2];
 
-                if (spark->kind == 1) {
+                if (spark->kind == DEAD_EFFECT_FLECK_GLITTER) {
                     spark->size = spark->size - 0.01f;
                 }
 
@@ -2100,13 +2100,13 @@ void CDeadEffect::Step() {
                     int n = 0;
 
                     do {
-                        CreatPrim(0);
+                        CreatPrim(DEAD_EFFECT_FLECK_CLOUD);
                         n += 1;
                     } while (n < 10);
                 }
 
-                CreatPrim(0);
-                CreatPrim(1);
+                CreatPrim(DEAD_EFFECT_FLECK_CLOUD);
+                CreatPrim(DEAD_EFFECT_FLECK_GLITTER);
             }
         }
     }
@@ -2141,12 +2141,12 @@ void CDeadEffect::Draw(void) {
             fleck++;
             continue;
         }
-        if (fleck->kind == 0) {
+        if (fleck->kind == DEAD_EFFECT_FLECK_CLOUD) {
             u = 0x80;
             v = 0x40;
             span = 0x1F;
         }
-        if (fleck->kind == 1) {
+        if (fleck->kind == DEAD_EFFECT_FLECK_GLITTER) {
             u = 0xA0;
             v = 0x40;
             span = 0x1F;
