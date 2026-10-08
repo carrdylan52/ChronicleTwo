@@ -1,0 +1,742 @@
+diff --git a/src/compiler.rs b/src/compiler.rs
+index 1bed2fe..dd858a2 100644
+--- a/src/compiler.rs
++++ b/src/compiler.rs
+@@ -13,6 +13,8 @@ pub struct Compiler {
+     pub annotation_node_register: &'static str,
+     pub argument_read: u64,
+     pub argument_node_register: &'static str,
++    pub statement_read: Option<u64>,
++    pub ordinary_argument_walk: Option<(u64, u64)>,
+     pub call_callee_stack_offset: u64,
+     pub annotation_returns: &'static [(u64, &'static str)],
+     pub current_function: u64,
+@@ -35,6 +37,8 @@ pub static COMPILERS: &[Compiler] = &[
+         annotation_node_register: "ebp",
+         argument_read: 0x0049e925,
+         argument_node_register: "ecx",
++        statement_read: None,
++        ordinary_argument_walk: None,
+         call_callee_stack_offset: 0x0c,
+         annotation_returns: &[(0x004b290d, "ebp"), (0x004b330d, "ebp")],
+         current_function: 0x00555ec0,
+@@ -68,6 +72,8 @@ pub static COMPILERS: &[Compiler] = &[
+         annotation_node_register: "ebx",
+         argument_read: 0x004a4ae3,
+         argument_node_register: "ecx",
++        statement_read: Some(0x00437140),
++        ordinary_argument_walk: Some((0x004a4bb9, 0x004a4bdc)),
+         call_callee_stack_offset: 0x08,
+         annotation_returns: &[(0x004b9548, "ebx"), (0x004ba11c, "ebx")],
+         current_function: 0x0057b6bc,
+@@ -80,6 +86,9 @@ pub static COMPILERS: &[Compiler] = &[
+             (0x004324f0, &hex!("565783ec68")),
+             (0x004b9532, &hex!("ff731cff73188b430a50")),
+             (0x004a4ae3, &hex!("80790500741a8d4708")),
++            (0x00437140, &hex!("89358cab57000fb64604")),
++            (0x004a4bb9, &hex!("89f7eb1b8d40000fbf573c")),
++            (0x004a4bdc, &hex!("89f7e9bd040000")),
+             (0x004b9548, &hex!("83c4285d5f5e5bc3")),
+             (0x004ba11c, &hex!("83c4285d5f5e5bc3")),
+             (0x004b8dd3, &hex!("89e85d5f5e5bc3")),
+diff --git a/src/config.rs b/src/config.rs
+index 964d183..abda997 100644
+--- a/src/config.rs
++++ b/src/config.rs
+@@ -105,10 +105,39 @@ pub struct ExpressionOverride {
+     pub nested_call: Option<NestedCallSelector>,
+     #[serde(skip_serializing_if = "Option::is_none")]
+     pub nested_variable: Option<NestedVariableSelector>,
++    #[serde(skip_serializing_if = "Option::is_none")]
++    pub control: Option<ControlSelector>,
++    #[serde(skip_serializing_if = "Option::is_none")]
++    pub argument: Option<ArgumentSelector>,
+     pub value_type: ValueType,
+     #[serde(with = "hex_bits")]
+     pub value_bits: u64,
+     pub evaluate_first: bool,
++    #[serde(skip_serializing_if = "Option::is_none")]
++    pub evaluate_before: Option<u8>,
++}
++
++#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize)]
++#[serde(rename_all = "snake_case")]
++pub enum ControlKind {
++    Condition,
++    Switch,
++}
++
++#[derive(Debug, Clone, PartialEq, Eq, Hash, Serialize, Deserialize)]
++#[serde(deny_unknown_fields)]
++pub struct ControlSelector {
++    pub kind: ControlKind,
++    pub values: Vec<i32>,
++}
++
++#[derive(Debug, Clone, PartialEq, Eq, Hash, Serialize, Deserialize)]
++#[serde(deny_unknown_fields)]
++pub struct ArgumentSelector {
++    pub argument_index: u8,
++    pub value_type: ValueType,
++    #[serde(with = "hex_bits")]
++    pub value_bits: u64,
+ }
+ 
+ #[derive(Debug, Clone, PartialEq, Eq, Hash, Serialize, Deserialize)]
+@@ -240,6 +269,26 @@ impl Config {
+                     "nested variable argument index must be below 16"
+                 );
+             }
++            if let Some(control) = &mut row.control {
++                ensure!(row.callee.is_some(), "control requires expression callee");
++                ensure!(!control.values.is_empty(), "control values must not be empty");
++                ensure!(control.values.len() <= 16, "control values exceeds verified limit");
++                control.values.sort_unstable();
++                ensure!(
++                    control.values.windows(2).all(|pair| pair[0] != pair[1]),
++                    "duplicate control value"
++                );
++            }
++            if let Some(argument) = &row.argument {
++                ensure!(row.callee.is_some(), "argument requires expression callee");
++                ensure!(argument.argument_index < 16, "argument index must be below 16");
++                validate_bits(argument.value_type, argument.value_bits)?;
++            }
++            if let Some(before) = row.evaluate_before {
++                ensure!(row.callee.is_some(), "evaluate_before requires expression callee");
++                ensure!(before < 16, "evaluate_before argument index must be below 16");
++                ensure!(!row.evaluate_first, "evaluate_before requires evaluate_first false");
++            }
+             validate_bits(row.value_type, row.value_bits)?;
+             ensure!(
+                 expressions.insert((
+@@ -248,6 +297,8 @@ impl Config {
+                     row.callee.clone(),
+                     row.nested_call.clone(),
+                     row.nested_variable.clone(),
++                    row.control.clone(),
++                    row.argument.clone(),
+                     row.value_type,
+                     row.value_bits
+                 )),
+diff --git a/src/control.rs b/src/control.rs
+new file mode 100644
+index 0000000..294ef53
+--- /dev/null
++++ b/src/control.rs
+@@ -0,0 +1,153 @@
++//! Source control identities reconstructed from the verified lowered statement list.
++//! Positions and compiler pointers locate graph regions; neither is a selector.
++use crate::config::{ControlKind, ControlSelector};
++use anyhow::{Result, ensure};
++use std::collections::HashMap;
++
++#[derive(Debug)]
++pub struct Conditional {
++    pub value: i32,
++    pub jump_when_equal: bool,
++    pub target: u32,
++}
++
++#[derive(Debug, Default)]
++pub struct Statement {
++    pub address: u32,
++    pub label: Option<u32>,
++    pub conditional: Option<Conditional>,
++    pub cases: Vec<(i32, u32)>,
++    pub switch_end: Option<u32>,
++}
++
++pub fn contexts(statements: &[Statement]) -> HashMap<u32, Vec<ControlSelector>> {
++    let labels: HashMap<_, _> = statements.iter().enumerate()
++        .filter_map(|(index, statement)| statement.label.map(|label| (label, index)))
++        .collect();
++    let mut contexts: HashMap<u32, Vec<ControlSelector>> = HashMap::new();
++    let mut add = |start: usize, end: usize, kind, mut values: Vec<i32>| {
++        values.sort_unstable();
++        values.dedup();
++        for statement in &statements[start..end] {
++            contexts.entry(statement.address).or_default().push(ControlSelector {
++                kind, values: values.clone(),
++            });
++        }
++    };
++    for (index, statement) in statements.iter().enumerate() {
++        if let Some(conditional) = &statement.conditional {
++            // A forward unequal exit bounds the equality-controlled body.
++            // Consecutive equal jumps to its entry label form short-circuit OR.
++            if !conditional.jump_when_equal {
++                if let Some(&end) = labels.get(&conditional.target) {
++                    if end > index + 1 {
++                        let mut values = vec![conditional.value];
++                        if let Some(entry) = statements[index + 1].label {
++                            for prefix in statements[..index].iter().rev() {
++                                let Some(prefix) = &prefix.conditional else { break };
++                                if !prefix.jump_when_equal || prefix.target != entry { break; }
++                                values.push(prefix.value);
++                            }
++                        }
++                        add(index + 1, end, ControlKind::Condition, values);
++                    }
++                }
++            }
++        }
++        if let Some(&end) = statement.switch_end.as_ref().and_then(|label| labels.get(label)) {
++            let mut groups: HashMap<usize, Vec<i32>> = HashMap::new();
++            for &(value, label) in &statement.cases {
++                if let Some(&start) = labels.get(&label) {
++                    if start > index && start < end {
++                        groups.entry(start).or_default().push(value);
++                    }
++                }
++            }
++            let mut groups: Vec<_> = groups.into_iter().collect();
++            groups.sort_unstable_by_key(|group| group.0);
++            for (position, (start, values)) in groups.iter().enumerate() {
++                let stop = groups.get(position + 1).map(|group| group.0).unwrap_or(end);
++                add(*start, stop, ControlKind::Switch, values.clone());
++            }
++        }
++    }
++    contexts
++}
++
++/// Stable topological ordering changes evaluation only; formal slots stay intact.
++pub fn evaluation_order(arguments: &[u32], priorities: &[(u32, u8)]) -> Result<Vec<u32>> {
++    let mut edges = Vec::new();
++    for &(argument, before) in priorities {
++        let source = arguments.iter().position(|&node| node == argument)
++            .ok_or_else(|| anyhow::anyhow!("selected argument is absent from call"))?;
++        let target = usize::from(before);
++        ensure!(target < arguments.len(), "evaluate_before argument is absent from call");
++        ensure!(source != target, "argument cannot evaluate before itself");
++        edges.push((source, target));
++    }
++    fn visit(index: usize, arguments: &[u32], edges: &[(usize, usize)],
++        state: &mut [u8], result: &mut Vec<u32>) -> Result<()> {
++        ensure!(state[index] != 1, "cyclic evaluate_before policies");
++        if state[index] == 2 { return Ok(()); }
++        state[index] = 1;
++        for &(source, target) in edges {
++            if target == index { visit(source, arguments, edges, state, result)?; }
++        }
++        result.push(arguments[index]);
++        state[index] = 2;
++        Ok(())
++    }
++    let mut state = vec![0; arguments.len()];
++    let mut result = Vec::new();
++    for index in 0..arguments.len() {
++        visit(index, arguments, &edges, &mut state, &mut result)?;
++    }
++    Ok(result)
++}
++
++#[cfg(test)]
++mod tests {
++    use super::*;
++
++    #[test]
++    fn equality_regions_and_or_clauses_end_at_the_actual_join() {
++        let branch = |address, value, equal, target| Statement { address,
++            conditional: Some(Conditional { value, jump_when_equal: equal, target }),
++            ..Statement::default() };
++        let statements = vec![branch(1, 7, true, 40), branch(2, 9, true, 40),
++            branch(3, 10, false, 60), Statement { address: 4, label: Some(40), ..Statement::default() },
++            Statement { address: 5, ..Statement::default() },
++            Statement { address: 6, label: Some(60), ..Statement::default() },
++            branch(7, 90, false, 100), Statement { address: 8, ..Statement::default() },
++            Statement { address: 9, label: Some(100), ..Statement::default() }];
++        let result = contexts(&statements);
++        assert_eq!(result[&5][0].values, [7, 9, 10]);
++        assert!(!result.contains_key(&6));
++        assert_eq!(result[&8][0].values, [90]);
++        assert!(!result.contains_key(&9));
++    }
++
++    #[test]
++    fn grouped_switch_cases_do_not_leak_past_the_switch() {
++        let statements = vec![Statement { address: 1, cases: vec![(1, 20), (9, 40), (10, 40)],
++            switch_end: Some(60), ..Statement::default() },
++            Statement { address: 2, label: Some(20), ..Statement::default() },
++            Statement { address: 3, ..Statement::default() },
++            Statement { address: 4, label: Some(40), ..Statement::default() },
++            Statement { address: 5, ..Statement::default() },
++            Statement { address: 6, label: Some(60), ..Statement::default() }];
++        let result = contexts(&statements);
++        assert_eq!(result[&3][0].values, [1]);
++        assert_eq!(result[&5][0].values, [9, 10]);
++        assert!(!result.contains_key(&6));
++    }
++
++    #[test]
++    fn ordinary_walk_priority_preserves_slots_and_rejects_invalid_dependencies() {
++        assert_eq!(evaluation_order(&[10, 20, 30, 40], &[(40, 1)]).unwrap(), [10, 40, 20, 30]);
++        assert!(evaluation_order(&[10, 20], &[(10, 0)]).is_err());
++        assert!(evaluation_order(&[10, 20], &[(10, 2)]).is_err());
++        assert!(evaluation_order(&[10, 20], &[(30, 1)]).is_err());
++        assert!(evaluation_order(&[10, 20], &[(10, 1), (20, 0)]).is_err());
++    }
++}
+diff --git a/src/hooks.rs b/src/hooks.rs
+index 613deae..a0672ca 100644
+--- a/src/hooks.rs
++++ b/src/hooks.rs
+@@ -1,6 +1,7 @@
+ use crate::{
+     compiler::{COMPILERS, Compiler},
+     config::{self, ValueType},
++    control::{self, Conditional, Statement},
+ };
+ use anyhow::{Context, Result, anyhow, bail, ensure};
+ use lldb::*;
+@@ -46,6 +47,11 @@ struct HookState {
+     literal_seen: HashSet<usize>,
+     constants: usize,
+     argument_constants: usize,
++    control_function: Option<u32>,
++    current_statement: u32,
++    control_contexts: HashMap<u32, Vec<config::ControlSelector>>,
++    walk_priorities: HashMap<u64, Vec<(u32, u8)>>,
++    saved_argument_orders: HashMap<u64, Vec<u32>>,
+     reloads: usize,
+ }
+ 
+@@ -73,6 +79,13 @@ pub fn load_compiler(path: &Path) -> Result<()> {
+ 
+ pub fn configure_hooks(target: &SBTarget, process: &SBProcess) -> Result<()> {
+     let c = compiler()?;
++    let rows = &config::floating_point().expression_overrides;
++    let wants_control = rows.iter().any(|row| row.control.is_some());
++    let wants_walk = rows.iter().any(|row| row.evaluate_before.is_some());
++    ensure!(!wants_control || c.statement_read.is_some(),
++        "compiler {} has no verified statement context hook", c.version);
++    ensure!(!wants_walk || c.ordinary_argument_walk.is_some(),
++        "compiler {} has no verified ordinary argument walk hook", c.version);
+     ensure!(
+         c.alias_test.is_some()
+             || (config::floating_point().literal_overrides.is_empty()
+@@ -95,6 +108,9 @@ pub fn configure_hooks(target: &SBTarget, process: &SBProcess) -> Result<()> {
+         .chain(c.annotation_returns.iter().map(|x| x.0))
+         .chain(c.literal_returns.iter().map(|x| x.0))
+         .chain(c.alias_test)
++        .chain(c.statement_read.filter(|_| wants_control))
++        .chain(c.ordinary_argument_walk.filter(|_| wants_walk).into_iter()
++            .flat_map(|(start, end)| [start, end]))
+     {
+         let breakpoint = target.breakpoint_create_by_load_address(address);
+         ensure!(
+@@ -478,6 +494,101 @@ fn set_annotation_returns(process: &SBProcess, state: &HookState, enabled: bool)
+     Ok(())
+ }
+ 
++// MWCC's private integer literal is four big-significance-order 32-bit limbs.
++// Accept only sign-extended small source integers; never interpret arena residue.
++fn small_integer(process: &SBProcess, payload: u64) -> Result<Option<i32>> {
++    let value = u32_at(process, payload + 12)? as i32;
++    let extension = if value < 0 { u32::MAX } else { 0 };
++    for offset in [0, 4, 8] {
++        if u32_at(process, payload + offset)? != extension { return Ok(None); }
++    }
++    Ok(Some(value))
++}
++
++fn condition_integer(process: &SBProcess, c: &Compiler, expression: u32) -> Result<Option<(i32, u8)>> {
++    if expression == 0 { return Ok(None); }
++    let kind = read(process, expression as u64, 1)?[0];
++    if !matches!(kind, 0x17 | 0x18) { return Ok(None); }
++    for offset in [c.node_value, c.node_value + 4] {
++        let child = u32_at(process, expression as u64 + offset)? as u64;
++        if child != 0 && read(process, child, 1)?[0] == 0x32 {
++            if let Some(value) = small_integer(process, child + c.node_value)? {
++                return Ok(Some((value, kind)));
++            }
++        }
++    }
++    Ok(None)
++}
++
++fn statement_contexts(process: &SBProcess, c: &Compiler, mut statement: u32)
++    -> Result<HashMap<u32, Vec<config::ControlSelector>>> {
++    let mut statements = Vec::new();
++    let mut visited = HashSet::new();
++    while statement != 0 {
++        ensure!(visited.insert(statement), "cyclic lowered statement list");
++        ensure!(visited.len() <= 8192, "statement list exceeds verified limit");
++        let address = statement as u64;
++        let kind = read(process, address + 4, 1)?[0];
++        let mut record = Statement { address: statement, ..Statement::default() };
++        if kind == 2 {
++            record.label = Some(u32_at(process, address + 14)?);
++        } else if matches!(kind, 6 | 7) {
++            if let Some((value, comparison)) = condition_integer(process, c, u32_at(process, address + 10)?)? {
++                record.conditional = Some(Conditional {
++                    value,
++                    jump_when_equal: (kind == 6) == (comparison == 0x17),
++                    target: u32_at(process, address + 14)?,
++                });
++            }
++        } else if kind == 5 {
++            let descriptor = u32_at(process, address + 14)? as u64;
++            ensure!(descriptor != 0, "null switch descriptor");
++            record.switch_end = Some(u32_at(process, descriptor + 4)?);
++            let mut case = u32_at(process, descriptor)? as u64;
++            let mut cases_seen = HashSet::new();
++            while case != 0 {
++                ensure!(cases_seen.insert(case), "cyclic switch case list");
++                ensure!(cases_seen.len() <= 1024, "switch case list exceeds verified limit");
++                let lower = small_integer(process, case + 8)?;
++                let upper = small_integer(process, case + 24)?;
++                if let (Some(lower), Some(upper)) = (lower, upper) {
++                    // Ranges larger than the source-selector limit stay unsupported.
++                    if upper >= lower && i64::from(upper) - i64::from(lower) < 16 {
++                        for value in lower..=upper {
++                            record.cases.push((value, u32_at(process, case + 4)?));
++                        }
++                    }
++                }
++                case = u32_at(process, case)? as u64;
++            }
++        }
++        statements.push(record);
++        statement = u32_at(process, address)?;
++    }
++    Ok(control::contexts(&statements))
++}
++
++fn call_arguments(process: &SBProcess, mut list: u32) -> Result<Vec<u32>> {
++    let mut arguments = Vec::new();
++    while list != 0 {
++        ensure!(!arguments.contains(&list), "cyclic call argument list");
++        ensure!(arguments.len() < 16, "call argument list exceeds verified limit");
++        arguments.push(list);
++        list = u32_at(process, list as u64)?;
++    }
++    Ok(arguments)
++}
++
++fn link_arguments(process: &SBProcess, frame: &SBFrame, arguments: &[u32]) -> Result<()> {
++    for (index, &argument) in arguments.iter().enumerate() {
++        let next = arguments.get(index + 1).copied().unwrap_or(0);
++        write(process, argument as u64, &next.to_le_bytes())?;
++    }
++    register(frame, "esi")?.set_value(&arguments.first().copied().unwrap_or(0).to_string())
++        .map_err(|e| anyhow!("write argument walk head: {e:?}"))?;
++    Ok(())
++}
++
+ fn apply(process: &SBProcess, thread: &SBThread) -> Result<()> {
+     let c = compiler()?;
+     let frame = thread.frame_at_index(0);
+@@ -486,7 +597,32 @@ fn apply(process: &SBProcess, thread: &SBThread) -> Result<()> {
+     let s = state
+         .as_mut()
+         .ok_or_else(|| anyhow!("hook state not initialized"))?;
+-    if pc == c.translation_unit {
++    if Some(pc) == c.statement_read {
++        let object = u32_at(process, c.current_function)?;
++        let function = function(process, c)?;
++        let wants_context = config::floating_point().expression_overrides.iter().any(|row| {
++            row.translation_unit == s.unit && row.function == function && row.control.is_some()
++        });
++        if wants_context {
++            s.current_statement = reg(&frame, "esi")?;
++            if s.control_function != Some(object) {
++                s.control_contexts = statement_contexts(process, c, s.current_statement)?;
++                s.control_function = Some(object);
++            }
++        }
++    } else if c.ordinary_argument_walk.is_some_and(|(start, _)| pc == start) {
++        if let Some(priorities) = s.walk_priorities.remove(&frame.sp()) {
++            let original = call_arguments(process, reg(&frame, "esi")?)?;
++            let ordered = control::evaluation_order(&original, &priorities)?;
++            ensure!(!s.saved_argument_orders.contains_key(&frame.sp()), "argument walk already active");
++            link_arguments(process, &frame, &ordered)?;
++            s.saved_argument_orders.insert(frame.sp(), original);
++        }
++    } else if c.ordinary_argument_walk.is_some_and(|(_, end)| pc == end) {
++        if let Some(original) = s.saved_argument_orders.remove(&frame.sp()) {
++            link_arguments(process, &frame, &original)?;
++        }
++    } else if pc == c.translation_unit {
+         let size = read(process, c.tu_name, 1)?[0] as usize;
+         let name = String::from_utf8(read(process, c.tu_name + 1, size)?)?;
+         s.unit =
+@@ -496,6 +632,9 @@ fn apply(process: &SBProcess, thread: &SBThread) -> Result<()> {
+         s.literal_objects.clear();
+         s.converted_constants.clear();
+         s.function_names.clear();
++        s.control_function = None;
++        s.current_statement = 0;
++        s.control_contexts.clear();
+         write(
+             process,
+             c.helper_masks[0],
+@@ -626,7 +765,7 @@ fn apply(process: &SBProcess, thread: &SBThread) -> Result<()> {
+         let mut selected = None;
+         // Scoped decisions override the general value policy independently of
+         // configuration order. Every matched selector identifies real input.
+-        for specificity in 0..=2 {
++        for specificity in 0..=4 {
+             for (index, row) in rows.iter().enumerate() {
+                 if row.translation_unit == s.unit
+                     && row.function == function
+@@ -634,8 +773,19 @@ fn apply(process: &SBProcess, thread: &SBThread) -> Result<()> {
+                     && row.value_bits == bits
+                     && usize::from(row.callee.is_some())
+                         + usize::from(row.nested_call.is_some() || row.nested_variable.is_some())
++                        + usize::from(row.control.is_some())
++                        + usize::from(row.argument.is_some())
+                         == specificity
+                     && (row.callee.is_none() || row.callee.as_deref() == callee.as_deref())
++                    && (row.control.is_none() || s.control_contexts.get(&s.current_statement)
++                        .is_some_and(|contexts| contexts.contains(row.control.as_ref().expect("checked control"))))
++                    && (row.argument.is_none() || {
++                        let selector = row.argument.as_ref().expect("checked argument");
++                        let expression = nested_argument(process, reg(&frame, "esi")? as u64, selector.argument_index)?;
++                        if let Some(expression) = expression {
++                            argument_constant(process, c, s, object, expression)? == Some((selector.value_type, selector.value_bits))
++                        } else { false }
++                    })
+                     && (row.nested_call.is_none()
+                         || nested_call_matches(
+                             process,
+@@ -665,6 +815,9 @@ fn apply(process: &SBProcess, thread: &SBThread) -> Result<()> {
+         if selected.is_some() || direct {
+             write(process, node + 5, &[u8::from(flag)])?;
+         }
++        if let Some(before) = selected.and_then(|index| rows[index].evaluate_before) {
++            s.walk_priorities.entry(frame.sp()).or_default().push((reg(&frame, "edi")?, before));
++        }
+         if selected.is_some() && std::env::var_os("SATANSFIDDLE_VERIFY").is_some() {
+             let actual = read(process, node + 5, 1)?[0];
+             ensure!(
+@@ -672,12 +825,15 @@ fn apply(process: &SBProcess, thread: &SBThread) -> Result<()> {
+                 "argument constant memory verification failed"
+             );
+             eprintln!(
+-                "satansfiddle: call-expression {}/{} callee={} {:?} {:#x} evaluate_first={actual}",
++                "satansfiddle: call-expression {}/{} callee={} {:?} {:#x} evaluate_first={actual} control={:?} argument={:?} evaluate_before={:?}",
+                 s.unit,
+                 function,
+                 callee.as_deref().unwrap_or("*"),
+                 value_type,
+-                bits
++                bits,
++                rows[selected.expect("selected expression")].control,
++                rows[selected.expect("selected expression")].argument,
++                rows[selected.expect("selected expression")].evaluate_before,
+             );
+         }
+     } else if let Some(&(_, register_name)) = c.annotation_returns.iter().find(|x| x.0 == pc) {
+@@ -784,6 +940,8 @@ pub fn check_complete() -> Result<()> {
+         s.pending_expressions.is_empty() && s.pending_conversions.is_empty(),
+         "expression annotation hook did not return"
+     );
++    ensure!(s.walk_priorities.is_empty() && s.saved_argument_orders.is_empty(),
++        "ordinary argument walk did not complete or restore formal order");
+     ensure!(
+         !s.units.is_empty(),
+         "translation-unit hook was never reached"
+diff --git a/src/main.rs b/src/main.rs
+index b79835c..57949fe 100644
+--- a/src/main.rs
++++ b/src/main.rs
+@@ -1,5 +1,6 @@
+ mod compiler;
+ mod config;
++mod control;
+ mod hooks;
+ 
+ #[cfg(test)]
+diff --git a/tests/compiler_cli.rs b/tests/compiler_cli.rs
+index 8660e44..15c9951 100644
+--- a/tests/compiler_cli.rs
++++ b/tests/compiler_cli.rs
+@@ -30,7 +30,9 @@ impl Drop for Workspace {
+ }
+ 
+ fn cli_command(input: &Path, output: &Path, config: &Path) -> Command {
+-    let mut command = Command::new(env!("CARGO_BIN_EXE_satansfiddle"));
++    let executable = env::var_os("SATANSFIDDLE_TEST_EXECUTABLE")
++        .unwrap_or_else(|| env!("CARGO_BIN_EXE_satansfiddle").into());
++    let mut command = Command::new(executable);
+     command
+         .arg("--config")
+         .arg(config)
+@@ -88,6 +90,131 @@ fn assert_success(output: &Output) {
+     );
+ }
+ 
++#[test]
++#[ignore = "requires SATANSFIDDLE_TEST_COMPILER_300 plus debug-symbol wibo"]
++fn real_control_regions_and_ordinary_argument_walk() {
++    let compiler = PathBuf::from(env::var_os("SATANSFIDDLE_TEST_COMPILER_300").unwrap());
++    let work = Workspace::new();
++    let input = work.0.join("semantic.cpp");
++    let config = work.0.join("config.json");
++    let source = r#"
++extern void consume(float, float, float, float);
++extern float width, height;
++void shots(int mode) {
++    if (mode == 40) consume(0.0f, 512.0f, width, 160.0f);
++    if (mode == 90) consume(0.0f, 512.0f, width, 160.0f);
++}
++void placements(int mode) {
++    switch (mode) {
++        case 9: case 10:
++            consume(0.0f, 512.0f, width, 0.5f);
++            consume(0.0f, 480.0f, height, 0.95f);
++            break;
++        default: break;
++    }
++    if (mode == 7 || mode == 9 || mode == 10) {
++        consume(0.0f, 512.0f, width, 0.5f);
++        consume(0.0f, 480.0f, height, 0.95f);
++    }
++    if (mode == 11) {
++        consume(0.0f, 512.0f, width, 0.5f);
++        consume(0.0f, 480.0f, height, 0.5f);
++    }
++}
++void untouched() { consume(0.0f, 512.0f, width, 160.0f); }
++"#;
++    fs::write(&input, source).unwrap();
++    let baseline = work.0.join("baseline.o");
++    fs::write(&config, compiler_config(&compiler, "")).unwrap();
++    assert_success(&cli(&input, &baseline, &config));
++    let base = fs::read(&baseline).unwrap();
++    let policy = r#"
++[[floating_point.expression_overrides]]
++translation_unit='semantic.cpp'
++function='shots__Fi'
++callee='consume__Fffff'
++value_type='binary32'
++value_bits='0x43200000'
++evaluate_first=true
++[floating_point.expression_overrides.control]
++kind='condition'
++values=[90]
++[[floating_point.expression_overrides]]
++translation_unit='semantic.cpp'
++function='placements__Fi'
++callee='consume__Fffff'
++value_type='binary32'
++value_bits='0x3f000000'
++evaluate_first=true
++[floating_point.expression_overrides.control]
++kind='switch'
++values=[9,10]
++[[floating_point.expression_overrides]]
++translation_unit='semantic.cpp'
++function='placements__Fi'
++callee='consume__Fffff'
++value_type='binary32'
++value_bits='0x3f733333'
++evaluate_first=true
++[floating_point.expression_overrides.control]
++kind='condition'
++values=[7,9,10]
++[[floating_point.expression_overrides]]
++translation_unit='semantic.cpp'
++function='placements__Fi'
++callee='consume__Fffff'
++value_type='binary32'
++value_bits='0x3f000000'
++evaluate_first=false
++evaluate_before=1
++[floating_point.expression_overrides.control]
++kind='condition'
++values=[11]
++[floating_point.expression_overrides.argument]
++argument_index=1
++value_type='binary32'
++value_bits='0x44000000'
++[[floating_point.expression_overrides]]
++translation_unit='semantic.cpp'
++function='placements__Fi'
++callee='consume__Fffff'
++value_type='binary32'
++value_bits='0x3f000000'
++evaluate_first=true
++[floating_point.expression_overrides.control]
++kind='condition'
++values=[11]
++[floating_point.expression_overrides.argument]
++argument_index=1
++value_type='binary32'
++value_bits='0x43f00000'
++"#;
++    let mut repeated = Vec::new();
++    for serial in 0..2 {
++        fs::write(&config, compiler_config(&compiler, policy)).unwrap();
++        let output = work.0.join(format!("selected-{serial}.o"));
++        assert_success(&cli(&input, &output, &config));
++        let actual = fs::read(&output).unwrap();
++        for function in ["shots__Fi", "placements__Fi"] {
++            assert_ne!(function_bytes(&base, function), function_bytes(&actual, function));
++        }
++        assert_eq!(function_bytes(&base, "untouched__Fv"), function_bytes(&actual, "untouched__Fv"));
++        let code = function_bytes(&actual, "placements__Fi");
++        if serial == 0 { repeated = code; } else { assert_eq!(repeated, code); }
++    }
++    // A generated filename still resolves the original semantic unit identity.
++    let generated = work.0.join("temporary.cpp");
++    fs::write(&generated, source).unwrap();
++    let output = work.0.join("generated.o");
++    assert_success(&cli_command(&generated, &output, &config).arg("--translation-unit")
++        .arg("path/semantic.cpp").output().unwrap());
++    assert_eq!(repeated, function_bytes(&fs::read(&output).unwrap(), "placements__Fi"));
++    fs::write(&config, compiler_config(&compiler, &policy.replace("values=[90]", "values=[91]"))).unwrap();
++    let failed = work.0.join("stale.o");
++    assert!(!cli(&input, &failed, &config).status.success());
++    assert!(!failed.exists());
++}
++
+ #[test]
+ fn unknown_compiler_is_rejected() {
+     let work = Workspace::new();
+diff --git a/tests/config/mod.rs b/tests/config/mod.rs
+index fac2d17..087aa30 100644
+--- a/tests/config/mod.rs
++++ b/tests/config/mod.rs
+@@ -115,6 +115,39 @@ fn nested_call_selector_is_semantic_and_validated() {
+     assert!(parse(&variable.replace("argument_index = 1", "argument_index = 16")).is_err());
+ }
+ 
++#[test]
++fn control_argument_and_ordinary_walk_selectors_are_validated() {
++    let scoped = EXPRESSION.replace("function = 'float__Fv'",
++        "function = 'float__Fv'\ncallee = 'placement__Fffff'\nevaluate_before = 1");
++    let policy = format!("{scoped}\n[floating_point.expression_overrides.control]\nkind='condition'\nvalues=[10,7,9]\n[floating_point.expression_overrides.argument]\nargument_index=1\nvalue_type='binary32'\nvalue_bits='0x44000000'\n");
++    let config = parse(&policy).unwrap();
++    let row = &config.floating_point.expression_overrides[0];
++    assert_eq!(row.control.as_ref().unwrap().values, [7,9,10]);
++    assert_eq!(row.argument.as_ref().unwrap().argument_index, 1);
++    assert_eq!(row.evaluate_before, Some(1));
++    let encoded = serde_json::to_string(&config).unwrap();
++    assert_eq!(Config::parse(&encoded).unwrap().floating_point.expression_overrides[0].control,
++        row.control);
++    for (from, to) in [
++        ("callee = 'placement__Fffff'", ""),
++        ("values=[10,7,9]", "values=[]"),
++        ("values=[10,7,9]", "values=[9,9]"),
++        ("kind='condition'", "kind='ordinal'"),
++        ("argument_index=1", "argument_index=16"),
++        ("0x44000000", "0x100000000"),
++        ("evaluate_before = 1", "evaluate_before = 16"),
++        ("evaluate_first = false", "evaluate_first = true"),
++    ] {
++        assert!(parse(&policy.replace(from, to)).is_err(), "accepted {to}");
++    }
++    assert!(parse(&format!("{policy}{policy}")).is_err());
++    let reordered = policy.replace("values=[10,7,9]", "values=[7,9,10]");
++    assert!(parse(&format!("{policy}{reordered}")).is_err());
++    assert!(parse(&policy.replace("kind='condition'", "kind='switch'")).is_ok());
++    let legacy = serde_json::to_string(&parse(EXPRESSION).unwrap()).unwrap();
++    for field in ["control", "argument", "evaluate_before"] { assert!(!legacy.contains(field)); }
++}
++
+ #[test]
+ fn widths_flags_and_precision_are_validated() {
+     for (from, to) in [

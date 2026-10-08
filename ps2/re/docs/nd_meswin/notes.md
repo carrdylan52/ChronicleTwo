@@ -392,3 +392,47 @@ relocations with the same sole finding at `0x0015C5AD`. The `0xB80` body has
 17 differing masked words; the previously measured broad-ratio candidate's
 12-word result still lacks a complete-unit match. Whole-project verification
 retains the baseline `0x26` text-byte difference and identical object failures.
+
+## Predicate and ordinary-walk calibration, October 8 prototype
+
+`satansfiddle-control-context.patch` preserves source control identity through
+the verified lowered statement list. Four binary32 rows for
+`DrawMesWin__6ClsMesFv` / `CalcAutoPosSet__Fffff` implement these six schedules:
+
+| Source placement | Control values | Screen limit | Ratio | Policy |
+| --- | --- | --- | --- | --- |
+| Initial DQ X | switch `[9, 10]` | 512 | half | evaluate first |
+| Initial DQ Y | switch `[9, 10]` | 480 | 0.95 | default |
+| Final bottom/DQ X | condition `[7, 9, 10]` | 512 | half | default |
+| Final bottom/DQ Y | condition `[7, 9, 10]` | 480 | 0.95 | evaluate first |
+| Final center X | condition `[11]` | 512 | half | ordinary evaluation before argument 1 |
+| Final center Y | condition `[11]` | 480 | half | evaluate first |
+
+The two centered half rows additionally select screen-limit argument 1 by its
+exact bits: `0x44000000` (512) versus `0x43f00000` (480). The control sets are
+the real `MesWindowMode` values, and the argument positions are source parameter
+positions. Neither source-helper names nor call occurrence numbers are used.
+
+Center X's half ratio is an optimizer temporary assignment shared with center Y.
+Prioritizing that argument in the early walk completes its floating transfer
+too soon. A probe that changes order only after ordinary expression evaluation
+has finished leaves all 17 baseline word differences. Moving the argument
+before screen limit argument 1 at the verified ordinary register-argument walk
+(`0x004a4bb9`) and restoring formal order at `0x004a4bdc` removes all four
+center-X differences, leaving the 13 unrelated baseline words in that private
+probe. The compiler retains both GPR values until their later floating transfers,
+producing retail's third schedule naturally.
+
+The accepted center-X row uses `evaluate_first: false` and `evaluate_before: 1`.
+Combined with the other three rows, the focused complete object has zero byte
+and resolved-relocation differences: `0xBF28` checked bytes, 1,364 relocations,
+and a `0xB80` `DrawMesWin` body with zero differing masked words. Each of the
+four rows is consumed once in each mwccgap pass. All source and headers,
+including the existing inline placement helpers, are unchanged.
+
+The implementation and whole-project validation are recorded in
+[the selector proposal](../satansfiddle/selector-proposal-20261008.md).
+Image: `chronicletwo_dev:sf-d8bf13c-proto`. Receipts:
+`.private/receipts/prototype/focused.log` and `message-word-diff.json`;
+`.private/sfproto/nd_meswin-reorder2-diff.json` records the isolated ordinary-walk
+probe rather than an accepted profile.

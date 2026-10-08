@@ -29,10 +29,17 @@ RUN git init \
 COPY scripts/build/patches/satansfiddle-nested-arguments.patch /tmp/satansfiddle-nested-arguments.patch
 RUN git apply --check /tmp/satansfiddle-nested-arguments.patch \
     && git apply /tmp/satansfiddle-nested-arguments.patch
+COPY scripts/build/patches/satansfiddle-control-context.patch /tmp/satansfiddle-control-context.patch
+RUN git apply --check /tmp/satansfiddle-control-context.patch \
+    && git apply /tmp/satansfiddle-control-context.patch
 # Rust 1.85 can place native libraries before the LLDB C++ archive; repeat
 # them at the end of the link command so GNU ld resolves that archive.
-RUN cargo rustc --release --locked --jobs 3 -- \
-    -C link-arg=-llldb -C link-arg=-lstdc++
+ENV RUSTFLAGS="-L native=/usr/lib/llvm-19/lib -C link-arg=-llldb -C link-arg=-lstdc++"
+RUN cargo build --release --locked --jobs 3 \
+    && cargo test --release --locked --jobs 3 \
+    && mkdir /satansfiddle-tests \
+    && find target/release/deps -maxdepth 1 -name 'compiler_cli-*' -type f -executable \
+        -exec cp {} /satansfiddle-tests/ \;
 
 FROM --platform=linux/amd64 debian:trixie-slim AS base
 
@@ -96,6 +103,8 @@ RUN python -m pip install --no-cache-dir "splat64[mips]==0.50.0" libclang
 # Development stage
 #
 FROM base AS dev
+
+COPY --from=satansfiddle-build /satansfiddle-tests/ /usr/local/libexec/satansfiddle-tests/
 
 RUN apt-get update \
     && apt-get install -y --no-install-recommends \

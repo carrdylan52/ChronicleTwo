@@ -275,3 +275,26 @@ with the same sole finding at `0x002D5DB2`. `_SHOT` remains `0x900` bytes and
 has four differing masked instruction words, at `+0x8B0`, `+0x8B4`, `+0x8B8`,
 and `+0x8C4`. The whole-project verifier retains the baseline `0x26` text-byte
 difference, and the other object findings are unchanged.
+
+## Predicate selector calibration, October 8 prototype
+
+`satansfiddle-control-context.patch` implements the missing source predicate
+identity using MWCC's verified lowered statement list. The checked-in binary32
+160 row keeps `SetValue__16CEffectScriptManFifii` as its callee and adds
+`control: {"kind": "condition", "values": [90]}`. It evaluates only the
+attack-type-90 branch's alpha argument first. The attack-type-40 alpha call
+retains the default schedule. The integer is the actual weapon-type comparison
+in `_SHOT`; neither call order nor output address selects it.
+
+The original `actscript.cpp` and header are unchanged. The row is consumed once
+in each mwccgap pass, including the temporary replacement source, under the
+logical `actscript.cpp` identity. `_SHOT__FP12RS_STACKDATAi` remains `0x900`
+bytes and has zero differing masked words, resolving the four-word residual
+above. The complete focused object passes `0x47FC` checked bytes and 1,111
+resolved relocations.
+
+The implementation, source-context limits, and whole-project validation are
+recorded in [the selector proposal](../satansfiddle/selector-proposal-20261008.md).
+Image: `chronicletwo_dev:sf-d8bf13c-proto`. Receipts:
+`.private/receipts/prototype/focused.log` and `shot-word-diff.json`; the trace
+shows the same semantic identity in both compiler passes.
