@@ -3765,7 +3765,6 @@ void CAquarium::Thinking(int no) {
 
     me->NextThink(next, &param);
 }
-#ifdef NONMATCHING
 
 int CAquarium::ColCheck(int no) {
     aqua_col_point       *point;
@@ -3936,9 +3935,6 @@ int CAquarium::ColCheck(int no) {
     me->SetPosition(pos);
     return result;
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/menuaqua", ColCheck__9CAquariumFi);
-#endif
 int CAquarium::InitSelFish() {
     int i;
     sel_fish = -1;
