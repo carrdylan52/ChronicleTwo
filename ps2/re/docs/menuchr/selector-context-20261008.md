@@ -35,3 +35,38 @@ The final `CLEAN=1 JOBS=4` proto build passes `SCES_511.90: OK` and
 149/149 complete objects. The production menuchr object passes `0x11CC4`
 bytes and 3,745 relocations; its linked and source-only SHA-256 hashes
 equal the baseline. The sole promotion in this lane is FishModifyParam.
+
+## Proto2 round-1 cardinality audit
+
+Base `202d02d`, image `chronicletwo_dev:sf-d8bf13c-proto2`. The existing
+36.0f help-box selector now asserts `expected_matches: 1` privately. Both
+mwccgap passes accept the assertion. This is a callee-only identity; no
+control, sibling, or ordinary-walk feature is required for that call.
+
+The complete-wrapper result remains **18/568 words**, body `0x8D4` in
+extent `0x8E0`, with matching relocation offsets. The only canonical error
+is target bytes at `0x002C1C7C`; `0x11CB8` bytes and 3,752 relocations are
+checked. The residual `+0x2AC..+0x2F8` arithmetic/merge region is unchanged.
+Its four-pixel offsets are arithmetic operands rather than eligible
+constant call arguments; the new selector forms do not extend that domain.
+The previously rejected naming, absolute-value, and arithmetic-selector
+trials are not repeated.
+
+The function stays guarded with unchanged source. The partial row remains
+private. Receipt: `.private/ctxrows-r1/menuchr/cardinal-best/`; exact
+candidate: `.private/ctxrows-r1/menuchr-best-rows.json`.
+
+## Proto2 round-1 final acceptance
+
+The `CLEAN=1 JOBS=4` build passes all ten initialized PAL sections, the
+`0x01F64A00` memory end, and `SCES_511.90: OK`. The complete checker passes
+**149/149 units**. All **149 linked game-object hashes**, all **149
+source-only object hashes**, and the complete linked ELF hash equal the
+`202d02d` baseline. Game source and headers are unchanged.
+
+Freshly regenerated `progress/report.json` and coverage retain **6,746
+matched / 116 guarded / 10 assembly-only / zero fuzzy**. No function is
+promoted in round 1; the only profile edits add count assertions to the
+two already accepted FishModifyParam rows. Receipts:
+`.private/ctxrows-r1/final/clean-build.log`, `check-objects.log`,
+`coverage.txt`, `hashes.json`, `report.json`, and `comparison.json`.
