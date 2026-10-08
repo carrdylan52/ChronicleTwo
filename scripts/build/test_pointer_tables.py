@@ -129,9 +129,16 @@ class PointerTableTests(unittest.TestCase):
         for placeholder in (True, False):
             fixture = self.fixture()
             if not placeholder:
-                fixture[0].sections.append(NS(name='.data', data=bytes(8)))
+                fixture[0].sections.append(NS(name='.data', sh_type=p.SHT_PROGBITS,
+                                              sh_flags=p.SHF_ALLOC, data=bytes(8)))
                 fixture[0].symtab.symbols.append(symbol('geo_table_12', 4, 8))
             self.assertEqual(self.apply(fixture, [1] if placeholder else []), 'geo_table_9999')
+
+    def test_executable_data_cannot_supply_a_verified_table_anchor(self):
+        fixture = self.fixture()
+        fixture[0].sections[1].sh_flags |= p.SHF_EXECINSTR
+        self.assertEqual(self.apply(fixture), 'geo_table_9999')
+        self.assertEqual(fixture[0].symtab.symbols[1].name, 'at_999')
 
     def test_named_target_must_resolve_the_real_pointer(self):
         for address, expected in ((0x3008, 'geo_table_12'), (0x3000, 'geo_table_9999')):

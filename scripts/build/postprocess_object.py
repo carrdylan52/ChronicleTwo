@@ -773,6 +773,7 @@ def pointer_table_names(elf, unit, placeholders, *, retail, pieces, addresses, r
         section = elf.sections[index]
         if (section.name not in ('.data', '.sdata', '.rodata')
                 or section.sh_type != SHT_PROGBITS or not section.sh_flags & SHF_ALLOC
+                or section.sh_flags & SHF_EXECINSTR
                 or not symbol.st_size or symbol.st_size != len(section.data)
                 or any(other.st_shndx == index and other.st_value for other in symbols)
                 or sum(other.st_shndx == index and other.type == STT_OBJECT for other in symbols) != 1):
@@ -873,6 +874,11 @@ def name_literal_data(elf, unit, placeholders, *, retail=None, pieces=None, addr
         if symbol.type == STT_OBJECT and symbol.name in addresses
         and addresses[symbol.name] in cuts and symbol.st_value == 0
         and 0 < symbol.st_shndx < len(elf.sections)
+        and symbol.st_shndx not in placeholders
+        and elf.sections[symbol.st_shndx].name in ('.rodata', '.sdata', '.data', '.ctor')
+        and elf.sections[symbol.st_shndx].sh_type == SHT_PROGBITS
+        and elf.sections[symbol.st_shndx].sh_flags & SHF_ALLOC
+        and not elf.sections[symbol.st_shndx].sh_flags & SHF_EXECINSTR
         and not re.fullmatch(r'at_\d+(?:__\d+)?', symbol.name)
     }
     data_starts.update((symbol.st_shndx, addresses[pointer_names[id(symbol)]])

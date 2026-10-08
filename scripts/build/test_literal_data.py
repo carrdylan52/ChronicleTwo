@@ -336,6 +336,27 @@ class LiteralPointerTests(unittest.TestCase):
         retail.word = lambda address: 0x3008 if address == 0x4000 else 0x3000
         self.assertEqual(self.apply(fixture), 'at_999')
 
+    def test_placeholder_data_cannot_anchor_a_literal(self):
+        fixture = self.fixture()
+        self.assertEqual(self.apply(fixture, [2]), 'at_999')
+
+    def test_dead_nonallocated_or_nondata_storage_cannot_anchor_a_literal(self):
+        for invalid in ('dead', 'nonallocated', 'text', 'executable_data', 'nobits'):
+            with self.subTest(invalid=invalid):
+                fixture = self.fixture()
+                section = fixture[0].sections[2]
+                if invalid == 'dead':
+                    section.name = p.DEAD
+                elif invalid == 'nonallocated':
+                    section.sh_flags = 0
+                elif invalid == 'text':
+                    section.name = '.text'
+                    section.sh_flags |= p.SHF_EXECINSTR
+                elif invalid == 'executable_data':
+                    section.sh_flags |= p.SHF_EXECINSTR
+                else:
+                    section.sh_type = p.SHT_NOBITS
+                self.assertEqual(self.apply(fixture), 'at_999')
 
 
 if __name__ == '__main__':
