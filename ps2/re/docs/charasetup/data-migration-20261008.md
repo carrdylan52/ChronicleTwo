@@ -59,3 +59,33 @@ identity does not need the data-only relocation proposal parked by automap.
 Each string was separately built and checked with a receipt prefix
 `charasetup-<retail literal name>`, from `at_868__3` through `at_1018__4`.
 Every step passes PAL, all 149 objects and the 148 other object hashes.
+
+## Attachment tables and remaining strings
+
+`SetupMints` initializes its four attachment names and three part names as
+native pointer aggregates. `SetupMonica` does the same for its two three-name
+aggregates. The repeated `{"sword","shot","hat"}` catalogs retain their
+separate local templates and shared literal storage. `SetupRobo` initializes
+`{"body%d","spine","joint2","joint1","hat",NULL}` naturally.
+The sword/shot strings and four ridepod joint-name strings have data-only
+consumers and are removed with their owning aggregate templates.
+
+The remaining character-name, attachment diagnostic, ridepod body/arm and
+monster file/name literals are inline, one separately checked step per string.
+Receipt prefixes are `charasetup-at_1110`, `charasetup-at_1113`,
+`charasetup-at_1161`, `charasetup-at_1162`, `charasetup-at_1216__4`,
+and the twelve remaining literal names (`at_1149`, `at_1150`, `at_1268`
+through `at_1277`), all with `-{build,objects,hashes}.log`.
+Every step passes PAL, all 149 objects and 148 unchanged other objects.
+
+## Final checkpoint
+
+Markers change from 65/3 to 0/0 (`INCLUDE_RODATA`/`INCLUDE_BSS`):
+all 68 markers removed. All ten functions remain native and exact.
+Refreshed `matched_data` remains 0/1,824; source-only data extents and
+anonymous symbol identity have the objdiff limitations recorded for automap.
+No data markers or anonymous extern scaffolds remain in this unit.
+
+Final receipts: `05-charasetup-final-{build,objects,hashes}.log`,
+`05-charasetup-refresh.log`, and `05-charasetup-metrics.json`.
+PAL is OK, all 149 objects pass, and every other object is unchanged.
