@@ -22,28 +22,6 @@
 #include "scriptinterpreter.hpp"
 #include "water.hpp"
 
-extern char          at_1064[];
-extern char          at_1128[];
-extern char          at_1129[];
-extern char          at_1130[];
-extern char          at_1131[];
-extern char          at_1132[];
-extern char          at_1133[];
-extern char          at_1134[];
-extern char          at_1135[];
-extern char          at_1136[];
-extern char          at_1278[];
-extern char          at_1279[];
-extern char          at_1280[];
-extern char          at_1281[];
-extern char          at_1282[];
-extern char          at_1283[];
-extern char          at_1284[];
-extern char          at_1436[];
-extern char          at_1437[];
-extern char          at_1438[];
-extern char          at_1439[];
-extern char          at_1544[];
 int                  mapDummy(SPI_STACK *stack, int argument_count);
 static int           IsAddMode();
 int                  mapPARTS(SPI_STACK *stack, int argument_count);
@@ -1532,7 +1510,7 @@ int mapFIX_CAMERA_RECT(SPI_STACK *stack, int argc) {
     frame = new (mapStack->Alloc(algn16_size(sizeof(CColFrame)) + 2)) CColFrame;
     collision = NULL;
 
-    if (strcmp(name, at_1064) == 0) {
+    if (strcmp(name, "box") == 0) {
         collision = new (mapStack->Alloc(algn16_size(sizeof(CCollision)) + 2)) CCollision;
         spiGetStackVector(collision->bbox.min, stack);
         collision->bbox.min[3] = 1.0f;
@@ -1630,24 +1608,24 @@ int mapFUNC_DATA(SPI_STACK *stack, int argc) {
         return 0;
     }
 
-    if (strcmp(name, at_1128) == 0) {
+    if (strcmp(name, "effect") == 0) {
         kind = 1;
-    } else if (strcmp(name, at_1129) == 0) {
+    } else if (strcmp(name, "fire") == 0) {
         kind = 2;
-    } else if (strcmp(name, at_1130) == 0) {
+    } else if (strcmp(name, "flare") == 0) {
         kind = 3;
-    } else if (strcmp(name, at_1131) == 0) {
+    } else if (strcmp(name, "plight") == 0) {
         kind = 4;
-    } else if (strcmp(name, at_1132) == 0) {
+    } else if (strcmp(name, "anime") == 0) {
         kind = 5;
-    } else if (strcmp(name, at_1133) == 0) {
+    } else if (strcmp(name, "invent") == 0) {
         kind = 7;
-    } else if (strcmp(name, at_1134) == 0) {
+    } else if (strcmp(name, "event") == 0) {
         kind = 6;
         mapMap->parts_event = 1;
-    } else if (strcmp(name, at_1135) == 0) {
+    } else if (strcmp(name, "sound") == 0) {
         kind = 8;
-    } else if (strcmp(name, at_1136) == 0) {
+    } else if (strcmp(name, "pos") == 0) {
         kind = 9;
     } else {
         return 0;
@@ -1902,22 +1880,22 @@ int mapFUNC_EVENT_DATA(SPI_STACK *stack, int argc) {
     event->arg3 = spiGetStackInt(stack++);
 
     if (kind_name != NULL) {
-        if (strcmp(kind_name, at_1278) == 0) {
+        if (strcmp(kind_name, "door") == 0) {
             kind = 0x10A;
-        } else if (strcmp(kind_name, at_1279) == 0) {
+        } else if (strcmp(kind_name, "ed_door") == 0) {
             kind = 0x11A;
-        } else if (strcmp(kind_name, at_1280) == 0) {
+        } else if (strcmp(kind_name, "lddr_b") == 0) {
             kind = 0x20;
             event->event_no = 1;
-        } else if (strcmp(kind_name, at_1281) == 0) {
+        } else if (strcmp(kind_name, "lddr_t") == 0) {
             kind = 0x40;
             event->event_no = 1;
-        } else if (strcmp(kind_name, at_1282) == 0) {
+        } else if (strcmp(kind_name, "close_door") == 0) {
             kind = 0x8A;
-        } else if (strcmp(kind_name, at_1283) == 0) {
+        } else if (strcmp(kind_name, "t_box") == 0) {
             kind = 0x202;
             event->event_no = 1;
-        } else if (strcmp(kind_name, at_1284) == 0) {
+        } else if (strcmp(kind_name, "book") == 0) {
             kind = 0x402;
         }
     }
@@ -2332,7 +2310,7 @@ int cfgFUNC_DATA(SPI_STACK *stack, int argc) {
         return 0;
     }
 
-    if (strcmp(kind_name, at_1134) == 0) {
+    if (strcmp(kind_name, "event") == 0) {
         mapMap->parts_event = 1;
     } else {
         return 0;
@@ -2361,17 +2339,17 @@ int cfgFUNC_EVENT_DATA(SPI_STACK *stack, int argc) {
         mapNowFuncPoint->event.event_no = 0;
 
         if (mode_name != NULL) {
-            if (strcmp(mode_name, at_1436) == 0) {
+            if (strcmp(mode_name, "every") == 0) {
                 mapNowFuncPoint->event.flag = 1;
-            } else if (strcmp(mode_name, at_1437) == 0) {
+            } else if (strcmp(mode_name, "action") == 0) {
                 mapNowFuncPoint->event.flag = 2;
-            } else if (strcmp(mode_name, at_1438) == 0) {
+            } else if (strcmp(mode_name, "check") == 0) {
                 mapNowFuncPoint->event.flag = 2;
                 mapNowFuncPoint->event.event_no = 1;
-            } else if (strcmp(mode_name, at_1439) == 0) {
+            } else if (strcmp(mode_name, "item") == 0) {
                 mapNowFuncPoint->event.flag = 4;
                 mapNowFuncPoint->event.event_no = 1;
-            } else if (strcmp(mode_name, at_1133) == 0) {
+            } else if (strcmp(mode_name, "invent") == 0) {
                 mapNowFuncPoint->event.flag = 2;
                 mapNowFuncPoint->event.event_no = 2;
             } else {
@@ -2569,7 +2547,7 @@ int cfgWATER_DRAW(SPI_STACK *stack, int argc) {
 
     if (name != NULL) {
         if (*(s8 *) name != 0) {
-            if (strncmp(name, at_1544, 7) == 0) {
+            if (strncmp(name, "#follow", 7) == 0) {
                 slot->follow[0] = ((s8 *) name)[7] - '0';
                 slot->follow[1] = ((s8 *) name)[8] - '0';
                 slot->follow[2] = ((s8 *) name)[9] - '0';
@@ -2624,36 +2602,6 @@ void CMap::LoadCfgFile(char *script, int length, mgCMemory *memory) {
     interpreter.Run();
 }
 
-// Initialised data (.data)
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mapload", at_438__2__DATA);
-
-// Constants (.rodata)
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mapload", at_1064__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mapload", at_1128__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mapload", at_1129__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mapload", at_1130__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mapload", at_1131__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mapload", at_1132__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mapload", at_1133__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mapload", at_1134__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mapload", at_1135__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mapload", at_1136__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mapload", at_1278__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mapload", at_1279__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mapload", at_1280__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mapload", at_1281__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mapload", at_1282__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mapload", at_1283__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mapload", at_1284__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mapload", at_1436__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mapload", at_1437__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mapload", at_1438__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mapload", at_1439__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mapload", at_1544__DATA);
-
 // Virtual tables (.vtables)
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mapload", __vt__17CList_9CMapPiece___DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mapload", __vt__17CList_9CMapParts___DATA);
-
-
-// Uninitialised data (.bss)

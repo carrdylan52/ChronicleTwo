@@ -64,3 +64,45 @@ additional eight assembly-piece bytes are zero alignment, not another row.
 Removing the table and string markers leaves 25 RODATA markers and zero BSS
 markers, with complete object and PAL validation passing. Refreshed source-only
 objdiff data coverage remains 888/3088 bytes.
+
+## Selector literals and sun template
+
+Twenty-two ordinary string objects become literals at the existing `strcmp`
+and `strncmp` uses. The affected handlers are `mapFIX_CAMERA_RECT`,
+`mapFUNC_DATA`, `mapFUNC_EVENT_DATA`, `cfgFUNC_DATA`, `cfgFUNC_EVENT_DATA`,
+and `cfgWATER_DRAW`. Shared `event` and `invent` selectors pool naturally;
+markers and declarations remain until the last external use is replaced.
+Each handler's change passes the full build and object checks independently.
+
+The existing `CMap::GetSunPoint` local `sceVu0FVECTOR` initializer contains
+`{0.0f, -1900.0f, 700.0f, 1.0f}`. It emits the 16-byte `at_438__2` template
+itself, so that marker can be removed without changing the function or adding
+an artifact global.
+
+## Retained compiler vtables
+
+The two remaining markers reserve compiler-generated `CList<CMapPiece>` and
+`CList<CMapParts>` vtables. The existing placement constructions instantiate
+both native tables automatically. Each real table is 12 bytes: two zero words
+followed by an `Initialize` relocation at offset eight. Their retail addresses
+are `0x37B608` and `0x37B618`, with callbacks at `0x1637D0` and `0x1631A0`.
+
+Deleting both markers with the current tools produces exact native contents
+and relocations, but the first table lacks its four-byte interior alignment
+gap. The checker reports size 0xC versus a 0x10 retail piece, then identifies
+the same gap before the second table. `postprocess_object.py::pad_data` omits
+`.vtables` from its existing exact-declared-size and zero-padding policy.
+Changing a native vtable's source contents to own padding would require
+artificial scaffolding. Both markers therefore remain.
+
+The private proposal `dataC-vtable-padding.patch` extends that policy to
+`.vtables`. A private wrapper with the proposal passes the complete object
+check: 0x4750 bytes, 945 relocations. Its terminal 12-byte section tail is
+left to linker alignment. No instructions, special members, vtable writes,
+or relocation fields need source changes. Tool-owner integration and full
+PAL validation are required before deleting the remaining markers.
+
+Final mapload markers are **2 RODATA / 0 BSS**, down from **90 / 17**.
+Refreshed source-only objdiff data coverage remains **888/3088**. All 118
+functions and the complete final object match; all 149 objects and the PAL
+binary pass, and every unowned game object is unchanged.
