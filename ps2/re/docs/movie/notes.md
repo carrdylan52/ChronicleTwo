@@ -9,8 +9,9 @@ No first-game counterpart (Dark Cloud 1 headers have no movie player).
 the frame free after the second transfer. If no frame is ready it increments
 `frd`. `handler_endimage` decrements the queued frame count when `isFrameEnd`
 was set by that second transfer. Both handlers reenable interrupts before
-returning zero. Guarded drafts are present; existing unrelated unresolved
-`sceGifPkReserve`/`sceGifPkRef` declarations prevent a unit draft check.
+returning zero. Guarded drafts compile with the current SDK declarations. The pinned compiler
+measurements and remaining blockers are in
+[matching-20261008.md](matching-20261008.md).
 
 ## Linkage
 - Every non-member function (`defMain` ... `isAudioOK`, 0x29D0C0-0x29FDC0) is LOCAL in retail
