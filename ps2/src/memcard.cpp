@@ -18,69 +18,6 @@ extern char at_852__4[];
 
 /**
  *
- * Holds a formatted memory-card directory name.
- *
- */
-struct FormatA {
-    char text[0x14]; /**< Directory-name format string. */
-};
-
-/**
- *
- * Holds a formatted memory-card file name.
- *
- */
-struct FormatB {
-    char text[0x13]; /**< File-name format string. */
-};
-
-/**
- *
- * Holds a memory-card file name.
- *
- */
-struct McFileName {
-    char text[0x40]; /**< Memory-card file name. */
-};
-
-/**
- *
- * Holds the path pattern used to find memory-card save directories.
- *
- */
-struct McSaveDirPattern {
-    char text[0x80]; /**< Save-directory path pattern. */
-};
-
-/**
- *
- * Holds the memory-card icon background colours.
- *
- */
-struct McIconBlock40 {
-    u8 data[0x40]; /**< Icon background-colour data. */
-};
-
-/**
- *
- * Holds memory-card icon light directions or colours.
- *
- */
-struct McIconBlock30 {
-    u8 data[0x30]; /**< Icon light data. */
-};
-
-/**
- *
- * Holds the memory-card icon ambient colour.
- *
- */
-struct McIconBlock10 {
-    u8 data[0x10]; /**< Icon ambient-colour data. */
-};
-
-/**
- *
  * Holds album data and the check digits written with it.
  *
  */
@@ -131,10 +68,6 @@ static COSBIT_INFO cosbit_table[34] = {
 extern char                at_922__4[0x13];
 extern char                at_923__5[0xD];
 extern char                at_924__4[];
-extern McIconBlock40       at_1031__6;
-extern McIconBlock30       at_1032__7;
-extern McIconBlock30       at_1033__8;
-extern McIconBlock10       at_1034__6;
 extern char                at_1036__6[];
 extern char                at_1229__3[0x10];
 extern int                 old_format_1242;
@@ -142,13 +75,9 @@ extern char                at_843__5[];
 extern const unsigned char at_1315__3[5];
 extern unsigned char       at_1954[0x2B];
 extern char                at_2083__2[0x18];
-extern McFileName          at_2131__3;
-extern McSaveDirPattern    at_2297;
 extern int                 ReadFileNo_2290;
 extern char                init_2291;
 extern char                at_2285[0x12];
-extern FormatA             at_838__5;
-extern FormatB             at_839__5;
 /** Browser titles for save, album, bonus, and formatted save entries by region. */
 static const char *MCBrowsetName[3][4] = {
     {"\203_\201[\203N\203N\203\215\203j\203N\203\213", "\203_\201[\203N\203N\203\215\203j\203N\203\213\203A\203\213\203o\203\200\203f\201[\203^", "\203_\201[\203N\203N\203\215\203j\203N\203\213\202\250\202\334\202\257\203f\201[\203^", "\203_\201[\203N\203N\203\215\203j\203N\203\213\201m%s\201n"},
@@ -198,15 +127,15 @@ void SetDngTreeFlag(int flag) {
 }
 
 void MakeMemoryCardFileName(int slot, char *path) {
-    FormatA directory = at_838__5;
-    FormatB file_name = at_839__5;
-    sprintf(directory.text, directory.text, slot);
-    sprintf(file_name.text, file_name.text, slot);
+    char directory[0x14] = "/BESCES-51190dkcl%d";
+    char file_name[0x13] = "BESCES-51190dkcl%d";
+    sprintf(directory, directory, slot);
+    sprintf(file_name, file_name, slot);
 
     if (path != NULL) {
-        strcpy(path, directory.text);
+        strcpy(path, directory);
         strcat(path, at_843__5);
-        strcat(path, file_name.text);
+        strcat(path, file_name);
     }
 }
 
@@ -345,29 +274,39 @@ void CMemoryCardManager::SetBuff_Album(char *buf) {
 }
 
 void CMemoryCardManager::SetIconData(MC_ICON_DATA *icon_data, int index) {
-    McIconBlock40 bg_colors;
-    McIconBlock30 light_dirs;
-    McIconBlock30 light_colors;
-    McIconBlock10 ambient_color;
     memcpy(&icon[0], &icon_data[0], sizeof(MC_ICON_DATA));
     memcpy(&icon[1], &icon_data[1], sizeof(MC_ICON_DATA));
     memcpy(&icon[2], &icon_data[2], sizeof(MC_ICON_DATA));
-    bg_colors = at_1031__6;
-    light_dirs = at_1032__7;
-    light_colors = at_1033__8;
-    ambient_color = at_1034__6;
+    sceMcColor bg_colors[4] = {
+        {128, 0, 64, 0},
+        {0, 128, 0, 0},
+        {0, 0, 128, 0},
+        {128, 128, 128, 0},
+    };
+    sceMcVu0FVECTOR light_dirs[3] = {
+        {0.5f, 0.5f, 0.5f, 0.0f},
+        {0.0f, -0.4f, -0.1f, 0.0f},
+        {-0.5f, -0.5f, 0.5f, 0.0f},
+    };
+    sceMcColorF light_colors[3] = {
+        {0.48f, 0.48f, 0.03f, 0.0f},
+        {0.5f, 0.33f, 0.2f, 0.0f},
+        {0.14f, 0.14f, 0.38f, 0.0f},
+    };
+    sceMcColorF ambient_color = {0.5f, 0.5f, 0.5f, 0.0f};
     memset(&icon_sys, 0, sizeof(sceMcIconSys));
     strcpy(icon_sys.head, at_1036__6);
     CopyMCBrowserName(index, (char *) icon_sys.title_name, &icon_sys.nl_offset);
     icon_sys.trans_rate = 0x60;
-    memcpy(icon_sys.bg_color, &bg_colors, 0x10);
-    memcpy(icon_sys.light_dir, &light_dirs, 0x10);
-    memcpy(icon_sys.light_color, &light_colors, 0x10);
-    memcpy(icon_sys.ambient, &ambient_color, 0x10);
+    // Each lighting array contributes only its first entry to icon.sys.
+    memcpy(icon_sys.bg_color, bg_colors, 0x10);
+    memcpy(icon_sys.light_dir, light_dirs, 0x10);
+    memcpy(icon_sys.light_color, light_colors, 0x10);
+    memcpy(icon_sys.ambient, ambient_color, 0x10);
 
-    strcpy((char *) &icon_sys.fname_view, (char *) &icon[0]);
-    strcpy((char *) &icon_sys.fname_copy, (char *) &icon[1]);
-    strcpy((char *) &icon_sys.fname_del, (char *) &icon[2]);
+    strcpy(icon_sys.fname_view, icon[0].name);
+    strcpy(icon_sys.fname_copy, icon[1].name);
+    strcpy(icon_sys.fname_del, icon[2].name);
 }
 
 int CMemoryCardManager::GetIconDataSize() {
@@ -2223,15 +2162,14 @@ int CMemoryCardManager::Format() {
 int CMemoryCardManager::DeleteFile(int index) {
     int        result;
     int        command;
-    McFileName name;
 
     switch (step) {
         case 0:
             if (sceMcSync(1, NULL, NULL) != 0) {
-                name = at_2131__3;
-                sprintf(name.text, name.text, index);
+                char name[0x40] = "darkcloud%d";
+                sprintf(name, name, index);
 
-                if (sceMcDelete(port, 1, name.text) == 0) {
+                if (sceMcDelete(port, 1, name) == 0) {
                     step += 1;
                 } else {
                     sceMcSync(1, NULL, NULL);
@@ -2476,7 +2414,6 @@ int CMemoryCardManager::GetSaveFileInfoFromMc(int index, int *step) {
     return 0;
 }
 int CMemoryCardManager::GetAllSaveFileInfo() {
-    McSaveDirPattern pattern;
     int result;
     int command;
     int sub_step;
@@ -2491,8 +2428,8 @@ int CMemoryCardManager::GetAllSaveFileInfo() {
             if (sceMcSync(1, NULL, NULL) != 0) {
                 InitSaveFileInfoTable();
                 total_transferred = 0;
-                pattern = at_2297;
-                if (sceMcGetDir(port, 1, pattern.text, 0, 0x11, dir_table) == 0) {
+                char pattern[0x80] = "/BESCES-51190dkcl??";
+                if (sceMcGetDir(port, 1, pattern, 0, 0x11, dir_table) == 0) {
                     step++;
                 }
             }
@@ -2584,14 +2521,6 @@ COSBIT_INFO *GetCosInfo(int costume_no) {
 }
 
 // Initialised data (.data)
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/memcard", at_838__5__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/memcard", at_839__5__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/memcard", at_1031__6__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/memcard", at_1032__7__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/memcard", at_1033__8__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/memcard", at_1034__6__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/memcard", at_2131__3__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/memcard", at_2297__DATA);
 
 // Constants (.rodata)
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/memcard", at_843__5__DATA);

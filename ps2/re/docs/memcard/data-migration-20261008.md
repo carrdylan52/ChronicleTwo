@@ -38,3 +38,25 @@ Receipts `memcard-costume-table`, `memcard-browser-titles-fixed`, and
 The rejected first browser-title substitution interpreted octal escapes
 inside a regular-expression replacement; regenerating the source with
 literal backslashes resolves that script error without changing values.
+
+## Local aggregate templates
+
+`MakeMemoryCardFileName` now initializes its 20-byte directory buffer and
+19-byte filename buffer directly with their retail formats. `DeleteFile`
+initializes its 64-byte local `darkcloud%d` buffer inside the successful
+synchronization branch. `GetAllSaveFileInfo` initializes its 128-byte
+save-directory search pattern at the original copy point. The anonymous
+aggregate objects, extern declarations, and byte-array wrapper types are
+removed; native compiler templates supply identical data and relocations.
+
+`SetIconData` uses the SDK's `sceMcColor`, `sceMcVu0FVECTOR`, and
+`sceMcColorF` types for four background colours, three light directions,
+three light colours, and ambient colour. Their initialized templates remain
+64/48/48/16 bytes. The retail routine copies just 16 bytes from each
+array into the cleared icon descriptor, leaving its remaining entries zero;
+that behavior is preserved. Icon filename fields are accessed by their
+real `name` members instead of structure-address casts.
+
+Receipts `memcard-filename-templates`, `memcard-icon-templates`,
+`memcard-delete-template`, and `memcard-directory-template` each report
+PAL OK, 149/149 objects, and unchanged unowned hashes. Markers become 22/7.
