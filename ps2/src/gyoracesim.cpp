@@ -408,7 +408,11 @@ void LaneBattleStep(RACE_FISH_PARAM *fish, int count) {
     }
 }
 #pragma divbyzerocheck reset
-#ifdef NONMATCHING
+/**
+ *
+ * Sorts fish by projected position and spaces each lane's followers behind their leaders.
+ *
+ */
 static void CollisionFish(RACE_FISH_PARAM *fish, int count) {
     int i;
     int order[6];
@@ -418,8 +422,9 @@ static void CollisionFish(RACE_FISH_PARAM *fish, int count) {
         distance[i] = fish[i].pos - fish[i].velocity;
     }
     int old_index;
+    int j;
     for (i = 0; i < count - 1; ++i) {
-        for (int j = i + 1; j < count; ++j) {
+        for (j = i + 1; j < count; ++j) {
             if (distance[i] < distance[j]) {
                 float old_distance = distance[i];
                 distance[i] = distance[j];
@@ -432,39 +437,35 @@ static void CollisionFish(RACE_FISH_PARAM *fish, int count) {
     }
     int lane_fish[6][6];
     int lane_count[6];
+    RACE_FISH_PARAM *current;
     for (i = 0; i < 6; ++i) lane_count[i] = 0;
     for (i = 0; i < count; ++i) {
         int index = order[i];
-        int lane = fish[index].lane;
+        current = &fish[index];
+        int lane = current->lane;
         lane_fish[lane][lane_count[lane]++] = index;
     }
-    int lane_no = 0;
-    do {
-        RACE_FISH_PARAM *ahead = &fish[lane_fish[lane_no][0]];
-        for (i = 1; i < lane_count[lane_no]; ++i) {
-            RACE_FISH_PARAM *behind = &fish[lane_fish[lane_no][i]];
+    for (i = 0; i < 6; ++i) {
+        RACE_FISH_PARAM *ahead = &fish[lane_fish[i][0]];
+        for (j = 1; j < lane_count[i]; ++j) {
+            current = &fish[lane_fish[i][j]];
             float limit = ahead->pos - 0.05f;
-            if (limit < behind->pos) behind->pos = limit;
-            ahead = behind;
+            if (limit < current->pos) current->pos = limit;
+            ahead = current;
         }
-        ++lane_no;
-    } while (lane_no < 6);
+    }
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/gyoracesim", CollisionFish__FP15RACE_FISH_PARAMi);
-#endif
-#ifdef NONMATCHING
 /**
  *
  * Simulates race steps, records goal times and assigns the final places.
  *
  */
 int StepGyoRace(RACE_FISH_PARAM *fish, grRACE_INFO *info) {
-    int i;
+    int i, j;
     int step;
-    for (i = 0; i < 6; ++i) {
-        info->rank[i] = 0;
-        info->goal_time[i] = 0.0f;
+    for (j = 0; j < 6; ++j) {
+        info->rank[j] = 0;
+        info->goal_time[j] = 0.0f;
     }
     step = 0;
     for (; step < info->step_max; ++step) {
@@ -477,7 +478,6 @@ int StepGyoRace(RACE_FISH_PARAM *fish, grRACE_INFO *info) {
             }
         }
         for (i = 0; i < info->fish_num; ++i) {
-            int j;
             int rank = 0;
             for (j = 0; j < info->fish_num; ++j) {
                 if (i != j && fish[i].pos < fish[j].pos) ++rank;
@@ -493,10 +493,9 @@ int StepGyoRace(RACE_FISH_PARAM *fish, grRACE_INFO *info) {
         if (all_finished) break;
     }
     for (i = 0; i < info->fish_num; ++i) {
-        int number=info->fish_num;
         int rank = 0;
-        for (unsigned int j = 0; (int)j < (int)number; ++j) {
-            if (i != (int)j && info->goal_time[i] > info->goal_time[j]) ++rank;
+        for (j = 0; j < info->fish_num; ++j) {
+            if (i != j && info->goal_time[i] > info->goal_time[j]) ++rank;
         }
         info->rank[i] = rank + 1;
     }
@@ -507,9 +506,6 @@ int StepGyoRace(RACE_FISH_PARAM *fish, grRACE_INFO *info) {
     }
     return step;
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/gyoracesim", StepGyoRace__FP15RACE_FISH_PARAMP11grRACE_INFO);
-#endif
 
 /**
  *

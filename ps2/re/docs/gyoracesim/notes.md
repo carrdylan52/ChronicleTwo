@@ -100,18 +100,16 @@ No equivalent in Dark Cloud 1 (no fish race).
 
 ## Current matching status (2026-10-08)
 
-Twenty functions are source supplied. `StepGyoRace`, `CollisionFish` and
-`FishModifyParam` retain guarded typed drafts and retail assembly in the
-default build. With every draft enabled, twenty-one functions match: only
-CollisionFish and FishModifyParam differ. StepGyoRace's default-build callee
-dependency is described below.
+Twenty-two functions are source supplied. `CollisionFish` and `StepGyoRace`
+are native and exact (see [night-20261008.md](night-20261008.md));
+`FishModifyParam` retains its guarded typed draft and retail assembly in the
+default build.
 
 FishModifyParam still needs direct retail assembly analysis because m2c
-cannot resolve its six-way tactics jump table. All three draft reservations
-already exist in the promotion ledger; no new promotion attempt is reserved.
+cannot resolve its six-way tactics jump table.
 
 ## StepGyoRace draft
-`StepGyoRace` records the first completed step of each fish as a fractional goal time, assigns a current rank by position each step, resolves collisions and lane battles, then assigns final ranks by goal time. It records up to `after_goal_step + 1` further steps and returns the next step index. The C++ draft matches all 204 retail instruction words when CollisionFish is compiled in the same unit. Isolated promotion fails: the assembly-backed CollisionFish prevents MWCC from proving that its call preserves the fish argument in a0, so StepGyoRace reloads that argument and reschedules seven instruction words at +0x1A8. Promotion requires a matching C++ CollisionFish.
+`StepGyoRace` records the first completed step of each fish as a fractional goal time, assigns a current rank by position each step, resolves collisions and lane battles, then assigns final ranks by goal time. It records up to `after_goal_step + 1` further steps and returns the next step index. It matches all 204 retail instruction words. Its call to LaneBattleStep relies on MWCC knowing that the native CollisionFish preserves the fish argument in a0; with an assembly CollisionFish the compiler reloads a0 and reschedules seven words at +0x1A8, so the two functions are native together.
 
 `FISH_STATS` is the six-float output buffer passed to `FishModifyParam`.
 `SetRaceFishParam` maps its fifth and sixth floats directly to the race
@@ -132,13 +130,16 @@ constants, without relying on their visitation order.
 With MWCC 3.0-011126, `-O3,p`, both mwccgap passes and the normal section
 fixup, the complete unit passes the retail checker: `0x3150` initialized bytes and
 86 relocations. This remains true with the call-argument consumer hook.
-`CollisionFish` differs by eight register choices in its final per-lane separation loop; moving the lane counter declaration did not change the allocation.
+`CollisionFish` and `StepGyoRace` are now native; the complete unit is `0x313C` bytes with 87 relocations.
 
 ## CollisionFish and StepGyoRace caller dependency
 
 A post-merge isolated trial with the explicit GPR 0x30/FPR 0 helper history compiles both guarded drafts natively. StepGyoRace then matches completely: its retail call to LaneBattleStep relies on a0 remaining live across CollisionFish. When CollisionFish remains an opaque assembly fallback, the compiler reloads a0 and shifts the following call by four bytes. The joint trial retains one canonical error in CollisionFish at 0x003231B1, in the final per-lane traversal register assignment. Advancing one fish pointer directly, and using the existing outer traversal index with a separate inner index, both preserve the retail operations but leave that allocation difference. Both fallbacks remain active until the joint unit passes.
 
 ## Remaining matching blockers (2026-10-08)
+
+The CollisionFish paragraph below is superseded by the C-style variable
+reuse in [night-20261008.md](night-20261008.md).
 
 `CollisionFish` is 8/360 instruction words from matching; the compiled body is
 0x59C bytes within the 0x5A0 retail extent. Only the final per-lane separation
