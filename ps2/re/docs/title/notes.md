@@ -1,10 +1,9 @@
 # title: reverse-engineering notes
 
-`TitleBootInit`, `TitleModeKey`, and `TitleHDDInstallDraw` retain C++ drafts
-under `NONMATCHING`; the matching build uses retail `INCLUDE_ASM` gaps for all
-three. The promoted `TitleHDDInstallDraw` emitted 0x424 bytes against retail's
-0x410 and moved the following function after alignment. Restoring all three
-gaps also restores the base unit's data layout.
+`TitleBootInit` and `TitleModeKey` retain C++ drafts under `NONMATCHING`;
+the matching build uses retail `INCLUDE_ASM` gaps for both. `TitleHDDInstallDraw`
+is source-supplied and matches retail, including the complete title object and
+linked PAL image. The unit has 35 matched functions and two guarded drafts.
 
 The title main-loop mode (`LOOP_TITLE`). No class is owned by this unit (`class_units.tsv`
 has none); the header declares the unit's own structs and enums, the 8 global functions and
@@ -23,16 +22,11 @@ External callers: mainloop `LoopInit/LoopMain/LoopExit` tables (TitleInit/Loop/E
 mainloop `EventSelect` and menuaqua `GyoraceMenuKey` (InitOmakeEnv), nowload
 `SCElogoFade` (TitleLangSel*), menuchr `MenuCostumeInit` (reads CostumeOptionEnv).
 
-## Header dependencies (unresolved)
-`TITLE_INFO` holds by value `SV_CONFIG_OPTION` (+0x48, 0x40 bytes; `InitSV_CONFIG_OPTION` in
-savedata memsets 0x40 and sets +0x14 = 1) and `CScene::BGM_STATUS` (+0x178, 0x1C bytes, from
-`CScene::Get/SetActiveBgmStatus` in scenesnd: words at +0,+4,+8,+0xC,+0x10,+0x14,+0x18).
-The header includes `savedata.hpp` and `scenesnd.hpp`, which do not exist yet, so it does not
-compile until they do. With stub definitions of those two types (0x40 / 0x1C) the header
-compiles and every STATIC_ASSERT holds. `title.cpp` was left without `#include "title.hpp"`
-so the unit keeps building; add it once those headers exist. Which header will own
-`SV_CONFIG_OPTION` is a guess (savedata, home of `InitSV_CONFIG_OPTION`); `menumain.hpp`
-only forward-declares it.
+## Header dependencies
+`TITLE_INFO` holds `SV_CONFIG_OPTION` by value (+0x48, 0x40 bytes; declared in
+`savedata.hpp`) and `CScene::BGM_STATUS` (+0x178, 0x1C bytes; declared in
+`scenesnd.hpp`). Both headers exist and are included by `title.hpp`, which is
+included by `title.cpp`. The `TITLE_INFO` size assertion is 0x194.
 
 ## Function return types (static ones go in the .cpp)
 - `title_init_rand()` void: srand(mgGetVSyncCount()).
@@ -178,5 +172,71 @@ established.
   +0x2E5C map slot, +0x38/+0x3C stacks, +0x906C, +0x10548 object with vtable call.
 - CCharacter2/CActionChara is constructed inline in TitleBootInit (new 0x1030).
 
-## DrawMenuDl draft
-The install progress panel draws two quads for its bar, then three textured rows with a shadow pass. Its fill changes from grey to green at progress 1. The panel width uses the short values at table_2611 offsets 4 and 0x20. Its guarded C++ draft differs from retail, so the matching build uses the assembly gap.
+## HDD installation drawing
+
+`TitleHDDInstallDraw` directly constructs a scoped `CMenuFont` when the progress
+bar is drawn. Its five rectangles are `mgRect<int>(...)` argument temporaries,
+not named stack locals. The background's source rectangle is constructed before
+its destination rectangle. MWCC reserves the font at stack +0x60, the rectangle
+temporaries at +0x120..+0x160, and the cursor pair at +0x178 in a 0x180-byte frame.
+The emitted function is 0x408 bytes; retail's 0x410 extent includes trailing
+padding. The checker reports zero differences, and promotion preserves the
+production object and linked image.
+
+An anonymous union plus the game's `u_long128*` placement-new overload adds an
+allocation call and null test absent from retail. A scoped font with named
+rectangles removes those calls but allocates the rectangles before the font,
+shrinking the frame to 0x170 and differing at 26 instruction operands. Direct
+rectangle constructor arguments reproduce retail without storage or constructor
+helpers. The other matched title drawing functions use this same form.
+
+`DrawMenuDl` draws two quads for the bar, then three textured rows with a shadow
+pass. Its fill changes from grey to green at progress 1. The panel width uses
+the short values at `table_2611` offsets 4 and 0x20.
+
+## Remaining guarded differences
+
+### TitleModeKey
+
+The draft emits 0x9BC bytes against retail's padded 0x9C0 extent. Fifteen of
+624 words differ:
+
+- +0xC8/+0xCC: the two captured port bytes occupy s1/s2 instead of s2/s1.
+- +0x188/+0x198/+0x1AC: byte narrowing and the first comparison use different
+  registers; the second narrowing reuses the dead first snapshot register.
+- +0x3C4/+0x3C8, +0x3DC/+0x3E0, and +0x410/+0x414: fade-down speed and zero
+  endpoint materialization are reversed.
+- +0x7FC..+0x808: extras cursor speed 3 and endpoint 128 materialization are
+  reversed.
+
+Retail captures port 0 before port 1. The earlier draft captured port 1 first,
+which reversed the relocation addends of the loads at +0xC8/+0xCC. Relocation
+masking hid those addend differences in its thirteen-word difference count.
+Both orders preserve the draft's card comparison semantics; the retained guarded
+draft follows retail's capture order.
+
+Declaration order, direct initialization, paired card/snapshot declarations,
+function-scope snapshots, comparison operand reversal, and an unescaped byte
+array do not reproduce the retail registers. Removing the named first-card
+pointer changes its caching and substantially disturbs the function. Float
+literal/cast/default-expression changes and named fade parameters either leave
+the mismatched schedules or disturb other matching calls; some also remove one
+instruction from the menu setup and shift the tail.
+
+Blocker category: register allocation and float constant scheduling. Reconsider
+when an independently validated MWCC byte-snapshot allocation idiom and fade
+parameter materialization idiom cover these exact patterns.
+
+### TitleBootInit
+
+The draft emits 0xA84 bytes against retail's padded 0xA90 extent, differing in
+56 of 676 words. Differences include follow-camera float argument scheduling,
+map-buffer/register assignments, file-size stack slots, icon-copy registers,
+and memory-buffer argument scheduling.
+
+At +0x7D8, after allocating `CActionChara`, retail branches on v0 and copies v0
+to s0 in the delay slot at +0x7DC. MWCC copies first and then branches on s0.
+This is the placement-new null-branch blocker assigned to the dedicated compiler
+lane. Further title-local experiments on this function are deferred. Reconsider
+when that lane supplies a validated natural placement-construction pattern;
+then address the other scheduling and local-layout differences.

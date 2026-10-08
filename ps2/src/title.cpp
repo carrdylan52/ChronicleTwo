@@ -377,6 +377,11 @@ void TitleInit(INIT_LOOP_ARG arg) {
 
 #pragma inline_depth(8)
 
+/**
+ *
+ * Loads the title scene, menu resources, sound, and boot-time memory card state.
+ *
+ */
 void TitleBootInit() {
     RushMovie = new ((u_long128 *) DataBuffer.Alloc(0x2396)) CMovie;
     TitleMCFuncFlag = 1;
@@ -1182,6 +1187,11 @@ void TitleModeInit() {
 #ifdef NONMATCHING
 int CalcMenuAdd(float *cursor, float step, float limit = 0.0f);
 
+/**
+ *
+ * Updates card detection, title menu input, fades, and attract-movie timing.
+ *
+ */
 int TitleModeKey() {
     int start_pushed;
     int start;
@@ -1205,8 +1215,8 @@ int TitleModeKey() {
         MC_CARD_INFO       *card0;
         u8                  inport0;
         MC_CARD_INFO       *card1;
-        inport1 = TitleMCCheckInport[1];
         inport0 = TitleMCCheckInport[0];
+        inport1 = TitleMCCheckInport[1];
         card0 = &card_manager->card[0];
         card1 = &card_manager->card[1];
         if (TitleMCCheckNow != 0) {
@@ -2699,29 +2709,18 @@ void DrawMenuDl(int x, int y, int width, int alpha, float rate) {
  * Draws the hard drive installation image, progress, and messages.
  *
  */
-#ifdef NONMATCHING
 void TitleHDDInstallDraw() {
-    union {
-        CMenuFont font;
-    };
-
     mgCTextureManager *textures = &mgTexManager;
 
     if (HDDBGTex != NULL) {
         textures->ReloadTexture(HDDBGTex->block, (sceVif1Packet *) NULL);
-        mgRect<int> bg_rect;
-        mgRect<int> bg_tex_rect;
-        bg_tex_rect.Set(0, 0, 0x200, 0x1A0);
-        bg_rect.Set(0, 0, 0x200, 0x1A0);
-        PrimQuad(HDDBGTex, bg_rect, bg_tex_rect, 0x80, 0x80, 0x80, 0x80);
+        PrimQuad(HDDBGTex, mgRect<int>(0, 0, 0x200, 0x1A0), mgRect<int>(0, 0, 0x200, 0x1A0), 0x80, 0x80, 0x80, 0x80);
     }
 
     if (HDDSysImage != NULL && HDDMesDrawFlag == 0) {
         textures->ReloadTexture(HDDSysImage->block, (sceVif1Packet *) NULL);
         float       cursor[2] = {160.0f, 180.0f};
-        mgRect<int> logo_rect;
-        logo_rect.Set(0x12E, 0x94, 0xD2, 0x36);
-        PrimQuad(HDDSysImage, cursor[0], cursor[1], logo_rect, 0x80, 0x80, 0x80, 0x80);
+        PrimQuad(HDDSysImage, cursor[0], cursor[1], mgRect<int>(0x12E, 0x94, 0xD2, 0x36), 0x80, 0x80, 0x80, 0x80);
 
         if (init_2648 == 0) {
             count_2647 = 0;
@@ -2738,9 +2737,7 @@ void TitleHDDInstallDraw() {
         cursor[1] += 12.0f;
         cursor[0] += 6.0f * cosf(0.05235988f * (float) count_2647);
         cursor[1] += 4.0f * sinf(0.10471976f * (float) count_2647);
-        mgRect<int> cursor_rect;
-        cursor_rect.Set(0, 0x28, 0x28, 0x20);
-        PrimQuad(HDDSysImage, cursor[0], cursor[1], cursor_rect, 0x80, 0x80, 0x80, 0x80);
+        PrimQuad(HDDSysImage, cursor[0], cursor[1], mgRect<int>(0, 0x28, 0x28, 0x20), 0x80, 0x80, 0x80, 0x80);
     }
 
     int block = -1;
@@ -2752,9 +2749,7 @@ void TitleHDDInstallDraw() {
                 block = HDDImage[i]->block;
             }
 
-            mgRect<int> image_rect;
-            image_rect.Set(0, 0, 0x200, 0x1A0);
-            PrimQuad(HDDImage[i], 0.0f, 0.0f, image_rect, HDDImageAlpha[i], 0x80, 0x80, 0x80);
+            PrimQuad(HDDImage[i], 0.0f, 0.0f, mgRect<int>(0, 0, 0x200, 0x1A0), HDDImageAlpha[i], 0x80, 0x80, 0x80);
         }
     }
 
@@ -2764,7 +2759,7 @@ void TitleHDDInstallDraw() {
             DrawMenuDl(0x88, 0x9C, 0xF0, 0x80, (float) HDDINFO.progress / 100.0f);
             textures->ReloadTexture(0x46, (sceVif1Packet *) NULL);
 
-            new ((u_long128 *) &font) CMenuFont;
+            CMenuFont font;
             font.SetStr(infomsg_2664[LanguageCode]);
             font.SetPos(0xA6, 0xAE);
             font.DrawDirect(font.str, font.pos_x, font.pos_y);
@@ -2783,9 +2778,6 @@ void TitleHDDInstallDraw() {
         }
     }
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/title", TitleHDDInstallDraw__Fv);
-#endif
 
 /**
  *
