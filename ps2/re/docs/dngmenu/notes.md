@@ -14,9 +14,10 @@ functions; they do not assert retail enum names.
 `CDngFreeMap::CheckIsViewMove`, `DrawRoot`, `DrawRoomOne`,
 `Draw`, and `LoadDngInfo` retain C++ drafts
 under `NONMATCHING`; the matching build selects their retail `INCLUDE_ASM`
-gaps. The same applies to `CheckGeoramaMateria`, `DrawDngRoomInfo`,
-`DrawGeoramaMateria`, `CMenuTreeMap::InitEnd`,
-`MsgInit`, `Step`, and `Draw`, plus `DngTreeMapInit`. The `ClsMes::Init`
+gaps. The same applies to `DrawDngRoomInfo`, `DrawGeoramaMateria`,
+`MsgInit`, `Step`, and `Draw`, plus `DngTreeMapInit`.
+`CheckGeoramaMateria` and `CMenuTreeMap::InitEnd` are now native and exact;
+see [r2.md](r2.md) for their complete-unit evidence. The `ClsMes::Init`
 body at the end of this unit is also an assembly gap. Match claims elsewhere
 in these notes apply only to the named unguarded C++ functions.
 
@@ -29,10 +30,9 @@ at the right and bottom, and returns the displacement required to bring it
 inside. `SetNextRoomPos` applies that displacement to the scroll target.
 `SetNextRoomPos` matches retail from C++. `CheckIsViewMove` remains guarded.
 Using `right + -10.0f` and `bottom + -10.0f` with float comparisons in the
-retail direction reduces its draft to four differing instructions: two
-register moves and the placement of the final X displacement across a
-floating point branch delay slot. MWCC
-emits the retail integer sequence
+retail direction initially reduces its draft to four differing instructions.
+The final conditional clipping expression then fixes displacement scheduling;
+the two initial register copies remain exchanged. MWCC emits the retail integer sequence
 for `x * 52 + y * -16`; the equivalent subtraction emits a different
 sequence. The conversions to float are implicit. `SetTextureInfo` looks up
 the `dt`, `dtbg`, `dngop`, and `dtname` textures in that order and also passes
@@ -352,10 +352,12 @@ six alpha units per frame and out eight. It draws the border and seal pulse,
 then places four challenge rows and their message windows; the medal message
 uses a language-specific position.
 
-The medal overlay's UV coordinates in `DrawDngRoomInfo` remain uncertain:
-retail copies packed words from `medal_xytbl_1736` into rectangle locals.
-The current draft uses the existing highlight rectangle for that overlay,
-so its placement needs further work during matching.
+The completion overlay uses signed halfword X coordinates from
+`medal_xytbl_1736`, assigning only the highlight rectangle's left field.
+Offsets 0, 4, 6, and 8 supply X positions 168, 212, 234, and 146 for the
+geostone, fishing, spheda, and final medal rows. The guarded draft now
+contains these typed reads; the rectangle retains top 0 and size 22 by 22.
+See [r2.md](r2.md) for the resolved table interpretation and remaining work.
 
 `mgRect<float>::Set` stores its four arguments directly into the left, top,
 right and bottom fields. The explicit float specialization is a separate
@@ -541,10 +543,10 @@ the nonzero blink read uses a signed byte conversion. The function matches all
 both removal passes. Declaring that index before `count` reproduces stack
 slots 0x38 and 0x3C; declaring the group-search index before the group ID
 reproduces the search registers. Separate input checks give retail's early
-returns. Six instruction words remain different: the item-loop counter and
-strength-reduced byte offset exchange registers a2 and a3 at offsets 0xCC,
-0xD4, 0xD8, 0xE0, 0xE4 and 0x10C. Changing declaration placement,
-initialization placement and postincrement syntax does not resolve the swap.
+returns. Earlier item-loop declaration placement, initialization placement,
+and postincrement syntax leave six register differences. Reusing the finished
+group-search index for item traversal resolves them in r2, and the guard is
+removed after complete-unit byte and relocation validation; see [r2.md](r2.md).
 
 `DrawGeoramaMateria` reads `GeoramaMateriaInfoDrawPage` as a signed byte at
 0x1EEE84 and 0x1EEF68. Both declarations in this unit therefore use `s8`.
@@ -565,3 +567,10 @@ scheduling and branch structure remain different; the body stays guarded.
 The remaining differences and reconsideration triggers are recorded in
 [parks.md](parks.md). The standalone `ClsMes::Init` proposal is recorded in
 [clsmes-init-proposal.md](clsmes-init-proposal.md).
+
+## Merged SF second pass
+
+[The r2 record](r2.md) documents exact native promotions of
+`CheckGeoramaMateria` and `CMenuTreeMap::InitEnd`, refreshed SF measurements
+of every assigned guard, and the retained guarded corrections.
+[parks.md](parks.md) is the current remainder list and retry guide.

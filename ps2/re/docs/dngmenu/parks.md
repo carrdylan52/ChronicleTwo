@@ -1,37 +1,45 @@
-# Remaining dngmenu matching work — October 8
+# dngmenu remainder after r2 — October 8
 
-The normal build continues to select retail assembly for every function
-below. Scores are instruction words differing in `draft.sh` unless a size
-only is shown; sizes include generated body length and retail manifest
-padding as reported by that tool. Per-function `--diff` logs additionally
-exclude trailing retail padding. Baseline: 29 matched, 18 guarded, 1 asm-only.
-Current (after merging upstream, whose Satan's Fiddle profile matches `CDngFreeMap::Initialize`): 34 matched, 13 guarded, 1 asm-only.
+Current: 36 native matches, 11 guarded drafts, 1 asm-only function.
+The r2 baseline at `2f71f10` was 34/13/1. All assigned targets were
+remeasured with the merged SF profile before experiments. Rows below use SF
+diagnostic differing words (including retail padding), or body/retail bytes
+when the body exceeds retail. Detailed disassemblies are saved privately.
+Only complete-unit canonical checks authorize the two native promotions;
+see [r2.md](r2.md).
 
-## Guarded functions
+## Assigned targets
 
-| Mangled symbol | Before → after | Blocker and concrete reconsideration trigger |
+| Target | SF baseline → retained result | Status and concrete reconsideration trigger |
 |---|---|---|
-| `CheckIsViewMove__11CDngFreeMapFiiRfRf` | 4/80 → unchanged | Scheduler: copy instructions at 0x44/0x54 exchange slots; X subtraction is duplicated into delay slot 0xDC and the final branch target advances by four bytes. Reconsider when a natural form fixes both copy ordering and final subtraction scheduling. Reversed declarations, delayed Y initialization and named/updated displacements did not help. |
-| `CheckGeoramaMateria__FP22TRESURE_BOX_FLOOR_INFOiPi` | 105/112, 0x1A8/0x1C0 → 6/112, exact size | Induction register allocation: a2/a3 swap for counter and byte offset at 0xCC, 0xD4, 0xD8, 0xE0, 0xE4, 0x10C. Reconsider with a demonstrated typed item-loop form that keeps counter in a3 and offset in a2. |
-| `MsgInit__12CMenuTreeMapFv` | 7/116 → unchanged | Scalar scheduling: height, width and first-line width loads and calculations at 0x140..0x15C use different order/registers. Reconsider with a natural line-position expression that emits height-first loads; dimension snapshots and existing SetMovePosGyou calls did not help. |
-| `DrawGeoramaMateria__FiPciPii` | 0x404/0x400 → same sizes; 226/257 → 224/257 in detailed diff | Local allocation/scheduling: retail spills right column at sp0xA0; draft spills left column there. The corrected rectangle temporaries and signed page read still differ through the draw calls. Reconsider after deriving title/column/page local declaration lifetimes that reproduce retail's column spill and text scratch layout. |
-| `Draw__11CDngFreeMapFv` | 0x614/0x610 → 0x630/0x610; 372/389 → 367/396 in detailed diff | Control flow/local allocation: frame now matches 0x280 and omitted NONE append is restored, but early returns, this/texture register assignment and debug traversal remain different. Reconsider after deriving the top-level nested active/alpha/texture condition and explicit order of the four floor-link queries. |
-| `DrawRoot__11CDngFreeMapF9mgRect_f_P16DNGMAP_ROOT_INFOiUii` | 781/844, 0xD08/0xD30 → unchanged | Register lifetimes and shape branches: the 0xF0 frame matches, but root/marks/opacity saved registers differ from offset 0x2C and shape cases differ broadly. Reconsider with a case-by-case local-lifetime map for shape 0, then the shared color/mark setup. No shape rewrite attempted this round. |
-| `DrawRoomOne__11CDngFreeMapF9mgRect_f_P16DNGMAP_ROOM_INFOUiif` | 553/584, 0x8A8/0x920 → unchanged | Local allocation and drawing branches: retail frame is 0xF0 versus draft 0xE0; retail preserves f22 and more integer state. Reconsider after mapping distinct picture, texture, special-overlay and glyph rectangle lifetimes before revising room flag paths. |
-| `DrawDngRoomInfo__FP16DNGMAP_ROOM_INFO` | 0xBEC/0xB20 → unchanged; 742/763 detailed diff | Type/geometry and FP liveness: retail frame is 0x150 versus 0x140 and saves f23. The medal UV rectangle still uses the uncertain packed table described in notes.md. Reconsider when medal_xytbl_1736's typed UV layout is established and can replace the guessed highlight rectangle. |
-| `LoadDngInfo__11CDngFreeMapFP9mgCMemoryiiii` | 957/1016 → 956/1016; 0xDD0/0xFE0 unchanged | Arena/local layout and path control flow: retail frame is 0x160 versus 0x1A0; stGetRest/stGetTop evaluation differs at 0x90..0xAC; later dungeon/path branches differ broadly. Reconsider after deriving the filename/direction/position local layout and arena argument order, then one dungeon path branch at a time. No path rewrite attempted. |
-| `InitEnd__12CMenuTreeMapFv` | 198/224, 0x364/0x380 → unchanged | Local lifetimes: retail frame is 0xA0F0 versus 0xA0E0 and retains texture manager across the loader calls; selected/marked room state also differs. Reconsider with the manager and room-selection lifetimes established from 0x1F0FF0..0x1F1260. |
-| `Step__12CMenuTreeMapFv` | 1506/1548, 0x1734/0x1830 → unchanged score | State-machine control flow and signed flags: frame is 0x110 versus retail 0x130; startup init flags use lbu where retail uses lb, and mode dispatch differs from offset 0xA8. Reconsider when the owned init flag types and mode-12 dispatch can be changed as one evidenced block before working through later states. |
-| `Draw__12CMenuTreeMapFv` | 376/460, 0x6F0/0x730 → unchanged | Boolean control flow and local lifetimes: help visibility materializes booleans with sltu/xor instead of retail short-circuit branches; frame is 0x1A0 versus 0x1B0. Reconsider with explicit integer show_help initialization and a derived cursor/message scratch layout. |
-| `DngTreeMapInit__FP9mgCMemoryPiii` | 0x610/0x400 → unchanged | Placement-new park: retail branches on v0 at 0x1F3564 with the pointer copy in the delay slot at 0x1F3568; the same pattern recurs at 0x1F3684/0x1F3688. Current draft also calls an undefined out-of-line CMenuTreeMap constructor and inlines ClsMes::Init. Stop constructor tuning here. Reconsider only after the dedicated placement-new lane supplies a natural matching form and coordinated constructor/Init emission work is available. |
+| `CheckIsViewMove__11CDngFreeMapFiiRfRf` | 4/80 → 2/80 | Guarded. Final conditional clipping fixes the duplicated subtraction/branch target. X/Y copies at +0x44/+0x54 remain swapped; actual-unit guard removal also fails. Reconsider with a natural first-clip form that preserves both copies without adding a branch. Tested clip-local input, retained float input, mutable parameters, and first conditional clipping do not help. |
+| `CheckGeoramaMateria__FP22TRESURE_BOX_FLOOR_INFOiPi` | 6/112 → exact | Promoted. Reusing the completed group-search index for item traversal fixes the induction allocation. Complete-unit byte/relocation check passes. |
+| `MsgInit__12CMenuTreeMapFv` | 7/116 → unchanged | Guarded. Height/width/first-line width loads at +0x140..+0x15C remain reordered. Actual-unit removal fails bytes and the height relocation. Reconsider with demonstrated integer argument/store scheduling evidence; floating annotation rows cannot select this integer block. Named first-line X, dimension snapshots, and existing line-position inline calls do not help. |
+| `LoadDngInfo__11CDngFreeMapFP9mgCMemoryiiii` | 957/1016, 0xDD0/0xFE0 → 954/1016, 0xDE0/0xFE0 | Guarded. Frame now matches 0x160; capacity-before-top evaluation and unsigned quadword rounding are corrected. Arena/filename local offsets and saved-register assignment still differ before the broad path branches. Reconsider after placing memory at retail spB0, filename at spE0, and path direction/coordinate locals at sp14C..sp15C, then deriving one dungeon path branch at a time. The 64-byte filename capacity remains a layout hypothesis. |
+| `DrawRoot__11CDngFreeMapF9mgRect_f_P16DNGMAP_ROOT_INFOiUii` | 781/844, 0xD08/0xD30 → 754/844, 0xCC0/0xD30 | Guarded. Event tints now share retail's single branch. Root/marks/opacity and color/mark saved registers, shape predicate, and individual shape loops still differ. Reconsider with a case-zero lifetime map and the default/event color register map before changing the other shapes. |
+| `DrawRoomOne__11CDngFreeMapF9mgRect_f_P16DNGMAP_ROOM_INFOUiif` | 553/584, 0x8A8/0x920 → 462/584, 0x8C4/0x920 | Guarded. Missing glyph destination rectangle and pre-draw overlay geometry restored. SF frame is 0x110 versus retail 0x120. Reconsider after mapping separate picture, texture, special-overlay, glyph and tint lifetimes; room flag paths and texture-number signedness still require attention. |
+| `DrawDngRoomInfo__FP16DNGMAP_ROOM_INFO` | 0xBEC/0xB20 (742/763 detailed words) → 0xC1C/0xB20 (754/775) | Guarded. Signed halfword completion X table is resolved and its omitted reads restored. This semantic correction adds code to a still-mismatching body. Reconsider after replacing the reused panel/seal rectangles with retail's distinct lifetimes (sp120/sp130/sp140 panels, sp100/sp110 seal choices), then resolving geometry/FP and message-position control flow. The UV table is no longer a blocker. |
+| `Step__12CMenuTreeMapFv` | 1506/1548, 0x1734/0x1830 → 1505/1548, same sizes | Guarded. Three initialization flags now have signed-byte types. Frame remains 0x110 versus retail 0x130; message pointer timing and mode dispatch differ. Reconsider with mode-12 dispatch and the message/key/fade-result live ranges established as one block, then individual later states. |
+| `InitEnd__12CMenuTreeMapFv` | 198/224, 0x364/0x380 → exact | Promoted. Cached floor bound, loader locals, sequential bounds, separate sub/boss checks, coordinate pair updates, output-size lifetime, and cursor state now match all 224 words and the complete unit. |
+| `DrawGeoramaMateria__FiPciPii` | 0x404/0x400 → unchanged (224/257 detailed words) | Guarded. Retail spills the right column at spA0; draft spills the panel-left position. Earlier declaration of right column does not change this. Reconsider with a demonstrated title/column/page lifetime map that produces the correct spill and message scratch slots. No profile row was attempted for this broad allocation remainder. |
+| `Draw__11CDngFreeMapFv` | 0x630/0x610 (367/396 detailed words) → 0x628/0x610 (353/394) | Guarded. Positive enclosing condition makes the texture check share the exit; NaN comparison behavior is preserved. This/texture/manager registers, mark-rectangle scratch placement and debug traversal remain different. Reconsider with retained manager/texture lifetimes and explicit order of the four floor-link calls. |
+| `Draw__12CMenuTreeMapFv` | 376/460, 0x6F0/0x730 → 446/460, 0x6E0/0x730 | Guarded. Explicit integer help-state branch removes boolean materialization and matches retail's short-circuit logic. Subsequent offsets shift, worsening the raw differing-word score. Frame remains 0x1A0 versus retail 0x1B0. Reconsider with manager/primitive/medal lifetimes and cursor/message scratch layout before float-order calibration. |
 
-## Standalone assembly function
+## Excluded targets
 
-`Init__6ClsMesFv`: NO DRAFT in the unmodified shared-header configuration.
-The documented out-of-line proposal matches 174/174 nonpadding instructions
-and passes the isolated unit-linked image check, but depends on moving the
-shared inline definition. Reconsider with coordinated shared-header ownership
-and verification of every affected caller; see clsmes-init-proposal.md.
+`DngTreeMapInit__FP9mgCMemoryPiii` remains a placement-new park. Retail branches
+on v0 at 0x1F3564 with the pointer copy in its delay slot at 0x1F3568, repeated
+at 0x1F3684/0x1F3688. Its unchanged diagnostic draft is 0x610/0x400. Reconsider
+only after the dedicated placement-new lane supplies a natural matching form
+and constructor/Init emission is coordinated.
 
-No VU0/COP2 inline-code blocker was found in this unit's remaining assembly.
-There is no new promotion-ledger reservation, and no shared patch is retained.
+`Init__6ClsMesFv` has no standalone draft in the unchanged shared-header
+configuration. Its earlier 174-instruction matching proposal still requires
+moving the inline definition in the shared nd_meswin header. Reconsider with
+that lane's ownership and checks for all affected callers; see
+[clsmes-init-proposal.md](clsmes-init-proposal.md). No shared edit is retained.
+
+No VU0/COP2 inline-code blocker was identified in this unit. No ledger rows
+or compiler-profile rows were added in r2. One-hypothesis experiment logs are
+private at `.private/experiments-dngmenu-r2.md`; receipts for final acceptance
+are at `.private/receipts/r2-final/`.

@@ -103,9 +103,9 @@ void CDngFreeMap::CheckIsViewMove(int x, int y, float &move_x, float &move_y) {
     if ((float) y < view_rect.top) {
         clipped_y = (int) view_rect.top;
     }
-    if (view_rect.bottom < (float) (clipped_y - 10)) {
-        clipped_y = (int) (view_rect.bottom + -10.0f);
-    }
+    clipped_y = view_rect.bottom < (float) (clipped_y - 10)
+                    ? (int) (view_rect.bottom + -10.0f)
+                    : clipped_y;
     move_x = (float) (clipped_x - x);
     move_y = (float) (clipped_y - y);
 }
@@ -273,10 +273,16 @@ void CDngFreeMap::DrawRoot(mgRect<float> rect, DNGMAP_ROOT_INFO *root, int shado
         put.left += 8.0f;
         put.top += 8.0f;
     }
-    float           red = mode == DNGMAP_MODE_EVENT ? 128.0f : 212.0f;
-    float           green = mode == DNGMAP_MODE_EVENT ? 111.0f : 192.0f;
-    float           blue = mode == DNGMAP_MODE_EVENT ? 0.0f : 144.0f;
-    float           mark_color = mode == DNGMAP_MODE_EVENT ? 64.0f : 128.0f;
+    float red = 212.0f;
+    float green = 192.0f;
+    float blue = 144.0f;
+    float mark_color = 128.0f;
+    if (mode == DNGMAP_MODE_EVENT) {
+        red = 128.0f;
+        green = 111.0f;
+        blue = 0.0f;
+        mark_color = 64.0f;
+    }
     RootMarkOffset *mark = markOffsetTable_1092;
     mgCDrawPrim    *prim = GetMenuPrim();
     SetSpriteEnv(prim, 2);
@@ -582,12 +588,18 @@ void CDngFreeMap::DrawRoomOne(mgRect<float> rect, DNGMAP_ROOM_INFO *room, unsign
     PrimQuad(prim, picture, tex);
     prim->End();
     if (room->visited == 0 && user_glid != NULL && &user_glid->room != room) {
+        float overlay_left = picture.left + 40.0f;
+        float overlay_top = picture.top + 25.0f;
+        int left = (int) overlay_left;
+        int top = (int) overlay_top;
+        int right = (int) (overlay_left + 20.0f);
+        int bottom = (int) (overlay_top + 30.0f);
         prim->Begin(6);
         prim->Color(red, red, red, opacity);
         prim->TextureCrd(492, 66);
-        prim->Vertex((int) (picture.left + 40.0f), (int) (picture.top + 25.0f), 0);
+        prim->Vertex(left, top, 0);
         prim->TextureCrd(512, 96);
-        prim->Vertex((int) (picture.left + 60.0f), (int) (picture.top + 55.0f), 0);
+        prim->Vertex(right, bottom, 0);
         prim->End();
     }
     if (room->mark != 0) {
@@ -608,6 +620,9 @@ void CDngFreeMap::DrawRoomOne(mgRect<float> rect, DNGMAP_ROOM_INFO *room, unsign
                 continue;
             }
             RoomGlyphOffset *offset = &put_moji_tbl_1525[i];
+            mgRect<float> glyph_put(picture.left + (float) offset->x,
+                                    picture.top + (float) offset->y,
+                                    (float) glyph->w, (float) glyph->h);
             prim->TextureMapEnable(1);
             prim->Begin(6);
             prim->Texture(name_tex);
@@ -615,7 +630,7 @@ void CDngFreeMap::DrawRoomOne(mgRect<float> rect, DNGMAP_ROOM_INFO *room, unsign
             prim->Color(tint, tint, tint, opacity);
             mgRect<int> glyph_rect;
             glyph_rect.Set(glyph->x, glyph->y, glyph->w, glyph->h);
-            PrimQuad(prim, picture.left + (float) offset->x, picture.top + (float) offset->y, glyph_rect);
+            PrimQuad(prim, glyph_put.left, glyph_put.top, glyph_rect);
             prim->End();
         }
     }
@@ -639,7 +654,6 @@ void CDngFreeMap::DrawGlid(mgRect<float> rect) {
     prim.Vertex(rect.left, top, 0.0f);
     prim.End();
 }
-#ifdef NONMATCHING
 /**
  *
  * Collects qualifying georama material items for a treasure floor.
@@ -669,8 +683,8 @@ static int CheckGeoramaMateria(TRESURE_BOX_FLOOR_INFO *info, int floor_no, int *
             }
         }
         if (group != NULL) {
-            for (int item_index = 0; item_index < group->item_num; item_index++) {
-                items[count++] = group->item[item_index].item_no;
+            for (group_index = 0; group_index < group->item_num; group_index++) {
+                items[count++] = group->item[group_index].item_no;
             }
         }
     }
@@ -683,9 +697,7 @@ static int CheckGeoramaMateria(TRESURE_BOX_FLOOR_INFO *info, int floor_no, int *
     }
     return count;
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/dngmenu", CheckGeoramaMateria__FP22TRESURE_BOX_FLOOR_INFOiPi);
-#endif
+
 #ifdef NONMATCHING
 extern mgCTexture     *Floor_InfoTex;
 extern mgRect<int>     Floor_Info;
@@ -699,6 +711,8 @@ extern int             DngInfoRoomInfo;
 extern DNG_FLOOR_SAVE *DngInfoFloorInfo;
 extern int             DngInfoDrawAlpha;
 extern u8              dngfloor_infoview;
+/** Texture X coordinates of the room-info completion icons. */
+extern s16             medal_xytbl_1736[];
 extern float           AlphaRate_1743;
 extern u8              init_1744;
 
@@ -812,6 +826,7 @@ void DrawDngRoomInfo(DNGMAP_ROOM_INFO *room) {
     int text_x = icon_x + 0x1C;
     PrimQuad(prim, (float) icon_x, row_top, mark);
     if (DngInfoFloorInfo != NULL && (DngInfoFloorInfo->flag & 0x10)) {
+        highlight.left = medal_xytbl_1736[0];
         PrimQuad(prim, (float) icon_x, (float) icon_y, highlight);
     }
     int current_y = icon_y;
@@ -827,6 +842,7 @@ void DrawDngRoomInfo(DNGMAP_ROOM_INFO *room) {
     if (shown != NULL && shown->fishing) {
         PrimQuad(prim, (float) icon_x, (float) current_y, mark);
         if (DngInfoFloorInfo != NULL && (DngInfoFloorInfo->flag & 0x20)) {
+            highlight.left = medal_xytbl_1736[2];
             PrimQuad(prim, (float) icon_x, (float) current_y, highlight);
         }
         if (MenuDngMes[3] != NULL) {
@@ -843,6 +859,7 @@ void DrawDngRoomInfo(DNGMAP_ROOM_INFO *room) {
     if (shown != NULL && shown->spheda) {
         PrimQuad(prim, (float) icon_x, (float) current_y, mark);
         if (DngInfoFloorInfo != NULL && (DngInfoFloorInfo->flag & 0x80)) {
+            highlight.left = medal_xytbl_1736[3];
             PrimQuad(prim, (float) icon_x, (float) current_y, highlight);
         }
         if (MenuDngMes[4] != NULL) {
@@ -868,6 +885,7 @@ void DrawDngRoomInfo(DNGMAP_ROOM_INFO *room) {
     }
     PrimQuad(prim, (float) icon_x, (float) current_y, mark);
     if (DngInfoFloorInfo != NULL && (DngInfoFloorInfo->flag & 8)) {
+        highlight.left = medal_xytbl_1736[4];
         PrimQuad(prim, (float) icon_x, (float) current_y, highlight);
     }
     if (MenuDngMes[5] != NULL) {
@@ -1124,109 +1142,108 @@ extern char         at_2176[];
 extern char         at_2184[];
 
 void CDngFreeMap::Draw() {
-    if (active == 0 || alpha <= 0.0f || map_tex == NULL) {
-        return;
-    }
-    int opacity = (int) alpha;
-    if (opacity < 0) {
-        opacity = 0;
-    }
-    if (opacity > 128) {
-        opacity = 128;
-    }
-    mgTexManager.ReloadTexture(map_tex->block, (sceVif1Packet *) NULL);
-    DrawBackPattern(opacity);
-    DrawLast();
-    DrawTreeMap(opacity);
-    DrawPlayer(opacity);
-    if (mode != DNGMAP_MODE_EVENT) {
-        mgCDrawPrim *prim = GetMenuPrim();
-        SetSpriteEnv(prim, 0);
-        prim->Bilinear(1);
-        prim->Begin(6);
-        prim->Texture(name_tex);
-        prim->Color(128, 128, 128, opacity);
-        for (int i = 0; i < mark_num; i++) {
-            mgRect<int> tex_rect(192, 210, 64, 46);
-            PrimQuad(prim, mark_rect[i], tex_rect);
+    if (active != 0 && !(alpha <= 0.0f) && map_tex != NULL) {
+        int opacity = (int) alpha;
+        if (opacity < 0) {
+            opacity = 0;
         }
-        prim->End();
-    }
-    if (menu_debug_flag == 0) {
-        return;
-    }
-    int block = -1;
-    MenuReloadTexture(block, MenuDCMsg[2]->texture_block);
-    CMenuFont font;
-    DrawMenuFillBox(0.0f, 50.0f, 160.0f, 60.0f, 64, 0, 0, 0);
-    font.SetStr(at_2176);
-    font.SetPos(0, 50);
-    font.DrawDirect(font.str, font.pos_x, font.pos_y);
-    DrawMenuFillBox(0.0f, 110.0f, 160.0f, (float) (mgScreenHeight - 110), 64, 0, 0, 0);
-    if (select_glid == NULL || select_glid->type != GLID_TYPE_ROOM) {
-        return;
-    }
-    DNG_FLOOR_SAVE *save = MenuSaveDataDungeonPtr->GetFloorInfoPtr(dng_no, select_glid->room.floor_id);
-    if (save == NULL) {
-        return;
-    }
-    char detail[256];
-    char line[32];
-    sprintf(detail, "Room ID : %d", select_glid->room.floor_id);
-    if (select_glid->room.flag & DNGMAP_ROOM_FLAG_START) {
-        strcat(detail, ":START ");
-    }
-    if (select_glid->room.flag & DNGMAP_ROOM_FLAG_EXIT) {
-        strcat(detail, ":EXIT");
-    }
-    if (select_glid->room.flag & DNGMAP_ROOM_FLAG_BOSS) {
-        strcat(detail, ":BOSS");
-    }
-    if (select_glid->room.flag & DNGMAP_ROOM_FLAG_SUB) {
-        strcat(detail, ":SUBMAP");
-    }
-    strcat(detail, "\n");
-    font.SetStr(detail);
-    font.SetPos(10, 112);
-    font.DrawDirect(font.str, font.pos_x, font.pos_y);
-    sprintf(line, "Normal:%d\nSun:%d\n Moon :%d\n Star :%d",
-            floor_manager->GetDngMapNextFloorID(select_glid->room.floor_id, 0),
-            floor_manager->GetDngMapNextFloorID(select_glid->room.floor_id, 1),
-            floor_manager->GetDngMapNextFloorID(select_glid->room.floor_id, 2),
-            floor_manager->GetDngMapNextFloorID(select_glid->room.floor_id, 3));
-    font.SetStr(line);
-    font.SetPos(20, 132);
-    font.DrawDirect(font.str, font.pos_x, font.pos_y);
-    strcpy(line, at_2184);
-    int links = floor_manager->GetDngMapNextRoot(select_glid->room.floor_id);
-    for (int i = 0; i < 4; i++) {
-        if (links & (1 << i)) {
-            strcat(line, RootTable_2119[i]);
+        if (opacity > 128) {
+            opacity = 128;
         }
-    }
-    font.SetStr(line);
-    font.SetPos(10, 212);
-    font.DrawDirect(font.str, font.pos_x, font.pos_y);
-    sprintf(detail, "  VisitNum\x81\x40: %d\n", save->visit_count);
-    if (MenuDngDebugFlagSelect == 0) {
-        sprintf(detail, "> VisitNum\x81\x40: %d\n", save->visit_count);
-    }
-    font.SetStr(detail);
-    font.SetPos(10, 232);
-    font.DrawDirect(font.str, font.pos_x, font.pos_y);
-    int y = 252;
-    for (int i = 0; i < 8; i++) {
-        strcpy(detail, Table_2133[i]);
-        strcat(detail, (save->flag & bittable_2134[i]) ? "ON" : "OFF");
-        if (MenuDngDebugFlagSelect > 0 && MenuDngDebugFlagSelect - 1 == i) {
-            detail[0] = '>';
+        mgTexManager.ReloadTexture(map_tex->block, (sceVif1Packet *) NULL);
+        DrawBackPattern(opacity);
+        DrawLast();
+        DrawTreeMap(opacity);
+        DrawPlayer(opacity);
+        if (mode != DNGMAP_MODE_EVENT) {
+            mgCDrawPrim *prim = GetMenuPrim();
+            SetSpriteEnv(prim, 0);
+            prim->Bilinear(1);
+            prim->Begin(6);
+            prim->Texture(name_tex);
+            prim->Color(128, 128, 128, opacity);
+            for (int i = 0; i < mark_num; i++) {
+                mgRect<int> tex_rect(192, 210, 64, 46);
+                PrimQuad(prim, mark_rect[i], tex_rect);
+            }
+            prim->End();
+        }
+        if (menu_debug_flag == 0) {
+            return;
+        }
+        int block = -1;
+        MenuReloadTexture(block, MenuDCMsg[2]->texture_block);
+        CMenuFont font;
+        DrawMenuFillBox(0.0f, 50.0f, 160.0f, 60.0f, 64, 0, 0, 0);
+        font.SetStr(at_2176);
+        font.SetPos(0, 50);
+        font.DrawDirect(font.str, font.pos_x, font.pos_y);
+        DrawMenuFillBox(0.0f, 110.0f, 160.0f, (float) (mgScreenHeight - 110), 64, 0, 0, 0);
+        if (select_glid == NULL || select_glid->type != GLID_TYPE_ROOM) {
+            return;
+        }
+        DNG_FLOOR_SAVE *save = MenuSaveDataDungeonPtr->GetFloorInfoPtr(dng_no, select_glid->room.floor_id);
+        if (save == NULL) {
+            return;
+        }
+        char detail[256];
+        char line[32];
+        sprintf(detail, "Room ID : %d", select_glid->room.floor_id);
+        if (select_glid->room.flag & DNGMAP_ROOM_FLAG_START) {
+            strcat(detail, ":START ");
+        }
+        if (select_glid->room.flag & DNGMAP_ROOM_FLAG_EXIT) {
+            strcat(detail, ":EXIT");
+        }
+        if (select_glid->room.flag & DNGMAP_ROOM_FLAG_BOSS) {
+            strcat(detail, ":BOSS");
+        }
+        if (select_glid->room.flag & DNGMAP_ROOM_FLAG_SUB) {
+            strcat(detail, ":SUBMAP");
+        }
+        strcat(detail, "\n");
+        font.SetStr(detail);
+        font.SetPos(10, 112);
+        font.DrawDirect(font.str, font.pos_x, font.pos_y);
+        sprintf(line, "Normal:%d\nSun:%d\n Moon :%d\n Star :%d",
+                floor_manager->GetDngMapNextFloorID(select_glid->room.floor_id, 0),
+                floor_manager->GetDngMapNextFloorID(select_glid->room.floor_id, 1),
+                floor_manager->GetDngMapNextFloorID(select_glid->room.floor_id, 2),
+                floor_manager->GetDngMapNextFloorID(select_glid->room.floor_id, 3));
+        font.SetStr(line);
+        font.SetPos(20, 132);
+        font.DrawDirect(font.str, font.pos_x, font.pos_y);
+        strcpy(line, at_2184);
+        int links = floor_manager->GetDngMapNextRoot(select_glid->room.floor_id);
+        for (int i = 0; i < 4; i++) {
+            if (links & (1 << i)) {
+                strcat(line, RootTable_2119[i]);
+            }
+        }
+        font.SetStr(line);
+        font.SetPos(10, 212);
+        font.DrawDirect(font.str, font.pos_x, font.pos_y);
+        sprintf(detail, "  VisitNum\x81\x40: %d\n", save->visit_count);
+        if (MenuDngDebugFlagSelect == 0) {
+            sprintf(detail, "> VisitNum\x81\x40: %d\n", save->visit_count);
         }
         font.SetStr(detail);
-        font.SetPos(10, y);
+        font.SetPos(10, 232);
         font.DrawDirect(font.str, font.pos_x, font.pos_y);
-        y += 20;
+        int y = 252;
+        for (int i = 0; i < 8; i++) {
+            strcpy(detail, Table_2133[i]);
+            strcat(detail, (save->flag & bittable_2134[i]) ? "ON" : "OFF");
+            if (MenuDngDebugFlagSelect > 0 && MenuDngDebugFlagSelect - 1 == i) {
+                detail[0] = '>';
+            }
+            font.SetStr(detail);
+            font.SetPos(10, y);
+            font.DrawDirect(font.str, font.pos_x, font.pos_y);
+            y += 20;
+        }
+        strcat(detail, "NONE");
     }
-    strcat(detail, "NONE");
 }
 #else
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/dngmenu", Draw__11CDngFreeMapFv);
@@ -1280,7 +1297,8 @@ int CDngFreeMap::LoadDngInfo(mgCMemory *stack, int block, int dungeon, int room,
     prim->offset_x = 0;
     prim->offset_y = 0;
     mgCMemory memory;
-    memory.stSetBuffer(stack->stGetTop(), stack->stGetRest());
+    int remaining = stack->stGetRest();
+    memory.stSetBuffer(stack->stGetTop(), remaining);
     memory.Align64();
     floor_manager = &((DNG_BATTLE_AREA *) menu_GetBattleAreaScene())->floor_manager;
     dng_no = dungeon;
@@ -1298,10 +1316,14 @@ int CDngFreeMap::LoadDngInfo(mgCMemory *stack, int block, int dungeon, int room,
     memory.Align64();
     u_long128 *buffer = memory.stGetTop();
     if (buffer != NULL) {
-        char filename[0x80];
+        char filename[0x40];
         sprintf(filename, "dmap%d.img", dungeon);
-        int size = LoadFileMenu(filename, buffer, 1);
-        memory.Alloc((size + 15) >> 4);
+        unsigned int size = LoadFileMenu(filename, buffer, 1);
+        unsigned int quadwords = size / sizeof(u_long128);
+        if (size % sizeof(u_long128) != 0) {
+            quadwords++;
+        }
+        memory.Alloc(quadwords);
         MenuEnterIMG(tex_block, (unsigned char *) buffer, "_dn");
         koma_tex = mgTexManager.GetTexture("dngop_dn", -1);
         map_tex = mgTexManager.GetTexture("dt_dn", -1);
@@ -1591,7 +1613,6 @@ void MakeDngTreeMapJumpNo(int dng_no, int floor_id, int *loop_no, int *map_no) {
         }
     }
 }
-#ifdef NONMATCHING
 extern CDngFreeMap *MenuDngMap;
 extern u_long128   *MenuCursorDataBuff;
 extern mgCTexture  *Floor_InfoTex;
@@ -1608,20 +1629,26 @@ void CMenuTreeMap::InitEnd() {
     BG_READ_INFO *read = GetReadBGFile(0);
     char          map_name[32];
     sprintf(map_name, at_2681, dng_no);
+    int block;
+    mgCTextureManager *textures;
     u8 *map_img = (u8 *) GetPackFile((u_int *) read->buffer, map_name, NULL);
-    int block = tex_block[0];
+    block = tex_block[0];
+    textures = &mgTexManager;
     MenuWorkTextureEnter(block, at_2786, 0x200, 0x100, 0x18);
-    mgTexManager.EnterIMGFile(map_img, block, NULL, NULL);
+    textures->EnterIMGFile(map_img, block, NULL, NULL);
     if (CheckDngTreeMapFuncType() == 2) {
-        mgTexManager.EnterIMGFile((u8 *) MenuCursorDataBuff, block, NULL, NULL);
+        textures->EnterIMGFile((u8 *) MenuCursorDataBuff, block, NULL, NULL);
     }
     MenuDngMap->SetTextureInfo();
-    Floor_InfoTex = mgTexManager.GetTexture(at_2787__2, -1);
+    Floor_InfoTex = textures->GetTexture(at_2787__2, -1);
     if (read != NULL) {
         script = (char *) GetPackFile((u_int *) read->buffer, at_2788, &script_size);
         MenuDngMap->floor_manager->CheckDrawGlidInfo();
         int room_no = MenuSaveDataDungeonPtr->floor_id[dng_no];
-        if (room_no < 1 || room_no > maxidtable_2752[dng_no]) {
+        if (room_no < 1) {
+            room_no = 1;
+        }
+        if (maxidtable_2752[dng_no] < room_no) {
             room_no = 1;
         }
         MenuDngMap->SetUserGlid(room_no);
@@ -1631,7 +1658,8 @@ void CMenuTreeMap::InitEnd() {
         }
         int        active_room = room_no;
         GLID_INFO *marked = NULL;
-        for (int i = 0; i < maxidtable_2752[dng_no]; ++i) {
+        int room_count = maxidtable_2752[dng_no];
+        for (int i = 0; i < room_count; ++i) {
             GLID_INFO *cell = MenuDngMap->floor_manager->GetDngMapFloorGlidInfo(i);
             if (cell != NULL && cell->room.mark != 0) {
                 active_room = cell->room.floor_id;
@@ -1640,18 +1668,21 @@ void CMenuTreeMap::InitEnd() {
             }
         }
         if (select_glid != NULL &&
-            (select_glid->room.flag & (DNGMAP_ROOM_FLAG_BOSS | DNGMAP_ROOM_FLAG_SUB))) {
-            active_room = room_no;
+            ((select_glid->room.flag & DNGMAP_ROOM_FLAG_SUB) ||
+             (select_glid->room.flag & DNGMAP_ROOM_FLAG_BOSS))) {
             marked = select_glid;
+            active_room = room_no;
         }
         if (marked != NULL) {
             select_glid = marked;
         }
         MenuDngMap->ResetDngMapPos(active_room, 1);
-        float x, y;
-        MenuDngMap->CalcGlidPutPos(marked, x, y, 0);
-        cursor_pos[0] = x - 30.0f - 20.0f;
-        cursor_pos[1] = y;
+        float position[2];
+        MenuDngMap->CalcGlidPutPos(marked, position[0], position[1], 0);
+        position[0] -= 30.0f;
+        position[0] -= 20.0f;
+        cursor_pos[0] = position[0];
+        cursor_pos[1] = position[1];
         FadeInMenu(40, 0.0f);
         mes_data = (short *) GetPackFile((u_int *) read->buffer, at_2789, NULL);
         MsgInit();
@@ -1659,7 +1690,7 @@ void CMenuTreeMap::InitEnd() {
         u_long128 *aligned = MenuCalcBufAlignment(buffer);
         char       treasure_name[64];
         sprintf(treasure_name, at_2790, dng_no + 1);
-        int size = 0;
+        int size;
         if (LoadFile2(treasure_name, aligned, &size, 0)) {
             CreatTresuarBoxInfo(&tresure, (char *) aligned, size);
             tresure_loaded = 1;
@@ -1667,13 +1698,11 @@ void CMenuTreeMap::InitEnd() {
     }
     DngInfoDrawAlpha = 0;
     MenuCommonInfo->key_enable = 1;
-    money_view = 1;
+    cursor_view = 1;
     mode = 0;
     key_arg_no = 0;
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/dngmenu", InitEnd__12CMenuTreeMapFv);
-#endif
+
 #ifdef NONMATCHING
 extern short         TreeMapSaveDispY;
 extern unsigned char TreeMapSaveFlag;
@@ -1719,11 +1748,11 @@ INCLUDE_ASM("ps2/asm/pal/nonmatchings/dngmenu", MsgInit__12CMenuTreeMapFv);
 #endif
 #ifdef NONMATCHING
 extern int             old_direction_2830;
-extern u8              init_2831;
+extern s8              init_2831;
 extern GLID_INFO      *old_glid_2833;
-extern u8              init_2834;
+extern s8              init_2834;
 extern GLID_INFO      *NextFloorGlid_2836;
-extern u8              init_2837;
+extern s8              init_2837;
 extern int             bitTable_2900[12];
 extern u8              DngAskMessageDrawFlag;
 extern u8              DngInfoFishOkFlag;
@@ -2249,7 +2278,10 @@ void CMenuTreeMap::Draw() {
         return;
     }
     MenuDngMap->Draw();
-    int show_help = help_view != 0 && dngfloor_infoview == 0 && key_arg_no == 0;
+    int show_help = 0;
+    if (help_view != 0 && dngfloor_infoview == 0 && key_arg_no == 0) {
+        show_help = 1;
+    }
     if (menu_debug_flag != 0) {
         show_help = 0;
     }
