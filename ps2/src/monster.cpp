@@ -1140,7 +1140,13 @@ float SearchArea(CScene *scene, float *from, float *to, float range) {
     return mgDistVector(hit, from);
 }
 
-#ifdef NONMATCHING
+/**
+ * Creates the spark bursts and flash for a monster hit, shifted toward the camera.
+ *
+ * @mangled HitEffectSet__FP6CScenePfi
+ * @address 0x001DEEA0
+ * @size 0x340
+ */
 void HitEffectSet(CScene *scene, float *point, int flags) {
     float            to_camera[4];
     float            pos[4];
@@ -1177,8 +1183,8 @@ void HitEffectSet(CScene *scene, float *point, int flags) {
     }
 
     if (hit != NULL) {
-        float speed = 60.0f;
         float spread = 30.0f;
+        float speed = 60.0f;
         float gravity = 0.1f;
         power = 0.2f;
         hit->SethitEffect(pos, dir.f, spread, speed, power, gravity, 30, 32);
@@ -1244,10 +1250,14 @@ void HitEffectSet(CScene *scene, float *point, int flags) {
         hit->kind = 2;
     }
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/monster", HitEffectSet__FP6CScenePfi);
-#endif
 
+/**
+ * Creates a guard spark burst and flash, optionally starting the guard effect script.
+ *
+ * @mangled GuardEffectSet__FP6CScenePfi
+ * @address 0x001DF1E0
+ * @size 0x220
+ */
 #ifdef NONMATCHING
 void GuardEffectSet(CScene *scene, float *point, int play_script) {
     float            to_camera[4];
@@ -1282,12 +1292,7 @@ void GuardEffectSet(CScene *scene, float *point, int play_script) {
         }
     }
 
-    float        speed = 30.0f;
-    float        power_value = 0.0f;
-    const float &power = power_value;
-    float        spread = 50.0f;
-    float        gravity = 0.1f;
-    hit->SethitEffect(pos, dir.f, spread, speed, power, gravity, 30, 32);
+    hit->SethitEffect(pos, dir.f, 50.0f, 30.0f, 0.0f, 0.1f, 30, 32);
     hit->kind = 1;
 
     if (BattleFX.flush == NULL) {
