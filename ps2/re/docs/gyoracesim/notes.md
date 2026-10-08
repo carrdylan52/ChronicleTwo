@@ -249,3 +249,157 @@ is proposed for this unit.
 The fresh production FishModifyParam probe confirms 5/480 words and one
 complete-unit byte problem at `0x00323C46`, with every other native function
 preserved. Receipt: `.private/floatsel/gyoracesim/fish-best-production/`.
+
+## Round-1 natural loop and tactics probes (2026-10-08)
+
+Round 1 starts at integration commit `a9dddc679a4550c1d3ab9fdf1c1ce2bfb1e4a88b`.
+The fresh canonical `chronicletwo_dev:sf-d8bf13c`, `JOBS=4` build passes
+147/149 complete objects; only the inherited `nd_meswin` and `actscript`
+problems remain. The PAL verifier reports exactly `0x26` differing text
+bytes and passes every other section and the memory-end check. The guarded
+production gyoracesim object passes `0x314C` bytes and 87 relocations.
+Coverage reports 6,687 matched, 122 guarded drafts, 61 assembly-only and
+two fuzzy functions. These counts supersede the earlier pre-upstream guard
+classifications; they are measurements of this base.
+
+The existing m2c receipts and documented dependency layouts are the analysis
+baseline. Every source experiment below uses the canonical Satan's Fiddle
+adapter with `-O3,p` and the existing GPR `0x30` / FPR `0` history. No assembly,
+source helper, compiler hook or per-occurrence selector is introduced.
+
+### CollisionFish
+
+All 42 natural variants retain an eight-word best residual. The `for`/`while`
+outer loop, typed row/count/index walks, inner-index scope, pointer/reference
+lifetimes and sorting scopes are measured separately below. Pre/post
+increments and comparison direction are included. A carried preceding
+position or entrant index instead of the preceding fish pointer emits a
+`0x5A4` body, exceeding the `0x5A0` retail extent. The original `0x59C` body
+remains the best source.
+
+The reference to the following fish's position adds a separate field-address
+calculation in the branch delay slot and changes the store base, in addition
+to the original integer permutation. Reversing the comparison uses a
+different floating comparison and opposite branch sense. The sorting
+variants that retain their earlier bytes also retain the final permutation;
+changing the swap declaration or comparison introduces earlier differences.
+None justifies replacing the guarded draft.
+
+| Trial | Differing words / retail extent |
+|---|---|
+| `outer-for` | 14/360 |
+| `outer-for-post` | 14/360 |
+| `outer-while` | 14/360 |
+| `outer-condition-pre` | 8/360 |
+| `inner-condition-pre` | 8/360 |
+| `inner-post` | 8/360 |
+| `outer-compare-reverse` | 8/360 |
+| `inner-compare-reverse` | 8/360 |
+| `carry-position` | 0x5A4 body, oversized |
+| `carry-index` | 0x5A4 body, oversized |
+| `carry-reference` | 8/360 |
+| `local-position` | 8/360 |
+| `row-and-count-walk` | 44/360 |
+| `row-reference-for` | 33/360 |
+| `inner-index-walk` | 32/360 |
+| `row-count-indices` | 41/360 |
+| `inner-after-condition` | 21/360 |
+| `inner-after-post` | 43/360 |
+| `inner-infinite-break` | 32/360 |
+| `inner-counter-scope` | 17/360 |
+| `inner-counter-entry` | 8/360 |
+| `behind-outside-loop` | 8/360 |
+| `limit-outside-loop` | 8/360 |
+| `behind-limit-scoped` | 8/360 |
+| `sort-compare-reverse` | 10/360 |
+| `sort-inner-while` | 8/360 |
+| `sort-inner-index-function` | 8/360 |
+| `sort-outer-while` | 8/360 |
+| `sort-both-while` | 8/360 |
+| `sort-index-before-distance` | 22/360 |
+| `sort-distance-scope` | 8/360 |
+| `sort-distance-references` | 17/360 |
+| `sort-order-references` | 23/360 |
+| `sort-old-index-const` | 18/360 |
+| `sort-old-distance-const` | 8/360 |
+| `sort-index-before-const-distance` | 26/360 |
+| `sort-scope-block` | 8/360 |
+| `final-counter-register` | 8/360 |
+| `limit-member-compare` | 10/360 |
+| `behind-reference-assignment` | 10/360 |
+| `inner-counter-declaration` | 17/360 |
+| `inner-index-local-counter-register` | 17/360 |
+
+With only CollisionFish and StepGyoRace made native in a private production
+probe, StepGyoRace still matches all 204 words. The complete object has one
+byte problem, in CollisionFish at `0x003231B1`; `0x3144` bytes and 87
+relocations are checked. No other function or relocation differs. Both
+production guards remain because the joint object does not pass.
+Receipt: `.private/round1/gyoracesim/collision-step-production/`.
+
+### FishModifyParam
+
+Thirteen per-case expression forms are tested under both private range
+policies. `range03` is the previously verified callee-scoped binary32 0.3f
+(`0x3e99999a`) evaluate-first row. `range02-03` adds the same callee's
+binary32 0.2f (`0x3e4ccccd`) evaluate-first row. Both rows use real
+`GetRandomNumber__Fff` identities in `FishModifyParam__FP12grFISH_PARAMPff`.
+They remain private partial calibrations, with no production profile edit.
+
+The variants include explicit speed-tier products, factor assignment in
+loop initialization or the first product, product operand order, `do` and
+`while` loops, and separate case-2 random-factor evaluation. Unary negation
+pairs and the equivalent one-fifth range fold to the same binary32 literal;
+they do not distinguish the conflicting calls. A case-4 comma expression
+preserves the random-factor call before its aggression update but also
+retains the conflict.
+
+| Trial and private policy | Differing words / retail extent |
+|---|---|
+| `fish-case1-explicit-speeds-range03` | 5/480 |
+| `fish-case1-explicit-speeds-range02-03` | 13/480 |
+| `fish-case1-loop-init-range03` | 5/480 |
+| `fish-case1-loop-init-range02-03` | 13/480 |
+| `fish-case1-factor-assignment-range03` | 5/480 |
+| `fish-case1-factor-assignment-range02-03` | 13/480 |
+| `fish-case1-factor-first-product-range03` | 5/480 |
+| `fish-case1-factor-first-product-range02-03` | 13/480 |
+| `fish-case1-products-factor-first-range03` | 8/480 |
+| `fish-case1-products-factor-first-range02-03` | 16/480 |
+| `fish-case1-loop-do-range03` | 146/480 |
+| `fish-case1-loop-do-range02-03` | 140/480 |
+| `fish-case1-loop-while-range03` | 5/480 |
+| `fish-case1-loop-while-range02-03` | 13/480 |
+| `fish-case1-range-negation-range03` | 5/480 |
+| `fish-case1-range-negation-range02-03` | 13/480 |
+| `fish-case1-range-ratio-range03` | 5/480 |
+| `fish-case1-range-ratio-range02-03` | 13/480 |
+| `fish-case2-factor-separate-range03` | 5/480 |
+| `fish-case2-factor-separate-range02-03` | 13/480 |
+| `fish-case4-factor-aggression-expression-range03` | 5/480 |
+| `fish-case4-factor-aggression-expression-range02-03` | 13/480 |
+| `fish-cases2-4-unary-range-range03` | 5/480 |
+| `fish-cases2-4-unary-range-range02-03` | 13/480 |
+| `fish-cases2-4-range-ratio-range03` | 5/480 |
+| `fish-cases2-4-range-ratio-range02-03` | 13/480 |
+
+The private complete-wrapper confirmation checks `0x3144` bytes and 87
+relocations and has only the FishModifyParam byte problem at `0x00323C46`.
+Its body remains `0x778` bytes and 5/480 differing words. The five words in
+case 1 are the unchanged range/mean materialization order; enabling 0.2f
+first fixes them but breaks the already matching cases 2 and 4. There is
+still no sibling nested call identity at those direct-constant calls.
+Receipt: `.private/round1/gyoracesim/fish-best-production/`.
+
+The guarded source and checked-in profile remain byte-for-byte identical to
+the round-1 base. Trial source copies, compile logs, instruction diffs,
+structured sweep ledgers and the exact private profiles are retained under
+`.private/round1/`. No shared-file proposal is needed.
+
+Final guarded validation repeats the baseline exactly: all 149 game object
+SHA-256 hashes and the complete PAL ELF file are unchanged, the canonical
+checker remains 147/149 with only `nd_meswin` and `actscript` failing, and
+coverage is unchanged. The verifier retains exactly `0x26` text bytes and
+passes all other sections and the memory-end check. Receipts:
+`.private/round1/final-build.log`, `final-check.log`, `final-coverage.txt`,
+`final-hashes.json` and `validation-summary.json`.
