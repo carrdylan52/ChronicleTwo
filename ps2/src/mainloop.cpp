@@ -1926,11 +1926,8 @@ CEditData::CEditData() {
 }
 
 // Constants (.rodata)
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mainloop", at_1315__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mainloop", at_1316__DATA);
 
 // Small initialised data (.sdata)
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mainloop", at_1317__2__DATA);
 int MainThreadPriority = 1;
 
 // Small uninitialised data (.sbss)
@@ -1942,18 +1939,6 @@ int LanguageCode;
 int OmakeFlag;
 int MasterDebugCode;
 CSound CSnd;
-INCLUDE_BSS(pmeter_flag_1037, 0x4);
-INCLUDE_BSS(init_1038, 0x4);
-INCLUDE_BSS(pause_1108, 0x4);
-INCLUDE_BSS(init_1109, 0x4);
-INCLUDE_BSS(init_1225, 0x4);
-INCLUDE_BSS(init_1228, 0x4);
-INCLUDE_BSS(init_1231, 0x4);
-INCLUDE_BSS(init_1234, 0x4);
-INCLUDE_BSS(select_1312, 0x4);
-INCLUDE_BSS(init_1313, 0x4);
-INCLUDE_BSS(select_1469, 0x4);
-INCLUDE_BSS(init_1470, 0x4);
 
 // Uninitialised data (.bss)
 CGamePad GamePad__2;
@@ -1999,11 +1984,6 @@ CSaveData SaveData;
  * Allocator for the debug menu resources.
  */
 mgCMemory MenuBuffer;
-INCLUDE_BSS(buf0_1224, 0x30);
-INCLUDE_BSS(buf1_1227, 0x30);
-INCLUDE_BSS(dbuf0_1230, 0x30);
-INCLUDE_BSS(dbuf1_1233, 0x30);
-INCLUDE_BSS(at_1529, 0x40);
 /**
  * Message window used by the pause menu.
  */
