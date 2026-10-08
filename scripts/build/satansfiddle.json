@@ -807,10 +807,82 @@
   "placement_new": {
     "statement_conversions": [
       {
+        "translation_unit": "dynamicanime.cpp",
+        "function": "dynCOLLISION__FP9SPI_STACKi",
+        "allocator": "__nw__FUiP1",
+        "constructor": "__ct__10CDAColPipeFv",
+        "conversion": "after_constructor_inline",
+        "expected_matches": 1
+      },
+      {
+        "translation_unit": "editexception.cpp",
+        "function": "InitFirePowder__FiP6CSceneiP9mgCMemory",
+        "allocator": "__nw__FUiP1",
+        "constructor": "__ct__11mgC3DSpriteFv",
+        "conversion": "after_constructor_inline",
+        "expected_matches": 1
+      },
+      {
+        "translation_unit": "editmap.cpp",
+        "function": "emapRIVER_PARTS_NAME__FP9SPI_STACKi",
+        "allocator": "__nw__FUiP1",
+        "constructor": "__ct__9CMapPieceFv",
+        "conversion": "after_constructor_inline",
+        "expected_matches": 1
+      },
+      {
+        "translation_unit": "editmap.cpp",
+        "function": "emapMASK_PARTS_NAME__FP9SPI_STACKi",
+        "allocator": "__nw__FUiP1",
+        "constructor": "__ct__9CMapPieceFv",
+        "conversion": "after_constructor_inline",
+        "expected_matches": 1
+      },
+      {
+        "translation_unit": "editmap.cpp",
+        "function": "emapWATER_PARTS_NAME__FP9SPI_STACKi",
+        "allocator": "__nw__FUiP1",
+        "constructor": "__ct__9CMapPieceFv",
+        "conversion": "after_constructor_inline",
+        "expected_matches": 1
+      },
+      {
+        "translation_unit": "effscript.cpp",
+        "function": "BuildBase__16CEffectScriptManFiP1iP1iP9mgCMemoryi",
+        "allocator": "__nw__FUiP1",
+        "constructor": "__ct__11CCharacter2Fv",
+        "conversion": "after_constructor_inline",
+        "expected_matches": 1
+      },
+      {
+        "translation_unit": "effscript.cpp",
+        "function": "AssignCharacter__16CEffectScriptManFP11_EFF_SCRIPTi",
+        "allocator": "__nw__FUiP1",
+        "constructor": "__ct__11CCharacter2Fv",
+        "conversion": "after_constructor_inline",
+        "expected_matches": 1
+      },
+      {
         "translation_unit": "funcpoint.cpp",
         "function": "Add__14CFuncPointMngrFiP9mgCMemory",
         "allocator": "__nw__FUiP1",
         "constructor": "__ct__19CList<10CFuncPoint>Fv",
+        "conversion": "after_constructor_inline",
+        "expected_matches": 1
+      },
+      {
+        "translation_unit": "mdslist.cpp",
+        "function": "Copy__9CMapPieceFR9CMapPieceP9mgCMemory",
+        "allocator": "__nw__FUiP1",
+        "constructor": "__ct__11CCharacter2Fv",
+        "conversion": "after_constructor_inline",
+        "expected_matches": 1
+      },
+      {
+        "translation_unit": "mdslist.cpp",
+        "function": "CreateChara__FPUiPcP9mgCMemory",
+        "allocator": "__nw__FUiP1",
+        "constructor": "__ct__11CCharacter2Fv",
         "conversion": "after_constructor_inline",
         "expected_matches": 1
       },
