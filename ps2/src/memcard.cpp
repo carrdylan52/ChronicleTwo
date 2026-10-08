@@ -14,7 +14,6 @@
 #include "menusys.hpp"
 #include "mg_memory.hpp"
 
-extern char at_852__4[];
 
 /**
  *
@@ -65,19 +64,11 @@ static COSBIT_INFO cosbit_table[34] = {
     {0x10A, 32, 0},
     {0x10B, 33, 0},
 };
-extern char                at_922__4[0x13];
-extern char                at_923__5[0xD];
-extern char                at_924__4[];
-extern char                at_1036__6[];
-extern char                at_1229__3[0x10];
-extern int                 old_format_1242;
-extern char                at_843__5[];
 extern const unsigned char at_1315__3[5];
+extern int                 old_format_1242;
 extern unsigned char       at_1954[0x2B];
-extern char                at_2083__2[0x18];
 extern int                 ReadFileNo_2290;
 extern char                init_2291;
-extern char                at_2285[0x12];
 /** Browser titles for save, album, bonus, and formatted save entries by region. */
 static const char *MCBrowsetName[3][4] = {
     {"\203_\201[\203N\203N\203\215\203j\203N\203\213", "\203_\201[\203N\203N\203\215\203j\203N\203\213\203A\203\213\203o\203\200\203f\201[\203^", "\203_\201[\203N\203N\203\215\203j\203N\203\213\202\250\202\334\202\257\203f\201[\203^", "\203_\201[\203N\203N\203\215\203j\203N\203\213\201m%s\201n"},
@@ -92,18 +83,9 @@ static u16 MCBrowserName_Offset[3][4] = {
 /** Whether dungeon-tree state is included in the next save. */
 static short DngTreeSaveFlag;
 extern int                 iconNo_1323;
-extern char                at_1953[];
-extern char                at_1679__2[];
-extern char                at_1680__2[];
-extern char                at_1681[];
 extern int                 test_write_num_1476;
 extern char                init_1477;
-extern char                at_1581__4[];
-extern char                at_1582__4[];
 extern char                init_1324;
-extern char                at_1453__3[];
-extern char                at_1454__3[];
-extern char                at_1455__3[];
 
 // Code (.text)
 void CopyMCBrowserName(int index, char *name, u16 *offset) {
@@ -134,17 +116,17 @@ void MakeMemoryCardFileName(int slot, char *path) {
 
     if (path != NULL) {
         strcpy(path, directory);
-        strcat(path, at_843__5);
+        strcat(path, "/");
         strcat(path, file_name);
     }
 }
 
 void MakeMemoryCardAlbumName(char *name, int append_again) {
     if (name != NULL) {
-        strcpy(name, at_852__4);
+        strcpy(name, "/BESCES-51190dc2album");
 
         if (append_again != 0) {
-            strcat(name, at_852__4);
+            strcat(name, "/BESCES-51190dc2album");
         }
     }
 }
@@ -172,8 +154,8 @@ CMemoryCardManager::CMemoryCardManager() {
 
 void CMemoryCardManager::Initialize(mgCMemory *memory) {
     memset(this, 0, 0x1100);
-    strcpy(file_name, at_922__4);
-    strcpy(game_name, at_923__5);
+    strcpy(file_name, "BESCES-51190dkcl%d");
+    strcpy(game_name, "darkclonicle");
     port = 0;
     file_no = 0;
     fd = -1;
@@ -186,7 +168,7 @@ void CMemoryCardManager::Initialize(mgCMemory *memory) {
 
     InitError();
     InitSaveFileInfoTable();
-    strcpy(version, at_924__4);
+    strcpy(version, "dc2Ver4");
     func_no = MC_FUNC_IDLE;
     search_wait = 0x3D;
     step = 0;
@@ -295,7 +277,7 @@ void CMemoryCardManager::SetIconData(MC_ICON_DATA *icon_data, int index) {
     };
     sceMcColorF ambient_color = {0.5f, 0.5f, 0.5f, 0.0f};
     memset(&icon_sys, 0, sizeof(sceMcIconSys));
-    strcpy(icon_sys.head, at_1036__6);
+    strcpy(icon_sys.head, "PS2D");
     CopyMCBrowserName(index, (char *) icon_sys.title_name, &icon_sys.nl_offset);
     icon_sys.trans_rate = 0x60;
     // Each lighting array contributes only its first entry to icon.sys.
@@ -509,7 +491,7 @@ int CMemoryCardManager::Step() {
             status = LoadFromMc(file_no);
 
             if (status != 0) {
-                printf(at_1229__3, step);
+                printf("funcphase : %d\n", step);
             }
 
             break;
@@ -686,7 +668,7 @@ int CMemoryCardManager::Write() {
     u8  buffer[0x1000];
     int remaining;
     result = 0;
-    sceMcChdir(port, 1, at_843__5, 0);
+    sceMcChdir(port, 1, "/", 0);
     sceMcSync(0, &command, &result);
     sceMcOpen(port, 1, at_1315__3, 0x202);
     sceMcSync(0, &command, &result);
@@ -732,15 +714,15 @@ int CMemoryCardManager::MakeDir(int file_no) {
         init_1324 = 1;
     }
 
-    strcpy((char *) path, at_1453__3);
+    strcpy((char *) path, "/BESCES-51190dkcl%d");
     sprintf((char *) path, (char *) path, file_no);
 
     if (file_no == -1) {
-        strcpy((char *) path, at_852__4);
+        strcpy((char *) path, "/BESCES-51190dc2album");
     }
 
     if (file_no == -2) {
-        strcpy((char *) path, at_1454__3);
+        strcpy((char *) path, "/BESCES-51190dc2omake");
     }
 
     if (port == 0 || port == 1) {
@@ -774,7 +756,7 @@ int CMemoryCardManager::MakeDir(int file_no) {
                     return 1;
                 }
 
-                strcat((char *) path, at_1455__3);
+                strcat((char *) path, "/icon.sys");
 
                 if (sceMcOpen(port, 1, path, 0x202) == 0) {
                     iconNo_1323 = -1;
@@ -911,7 +893,7 @@ int CMemoryCardManager::MakeDir(int file_no) {
                 iconNo_1323++;
 
                 if (iconNo_1323 < 3) {
-                    strcat((char *) path, at_843__5);
+                    strcat((char *) path, "/");
                     strcat((char *) path, icon[iconNo_1323].name);
                     command = sceMcOpen(port, 1, path, 0x203);
 
@@ -1051,14 +1033,14 @@ int CMemoryCardManager::SaveToMc(int file_no) {
                 save_buffer->map_no = save->map_no;
                 save_buffer->dungeon_no = dungeon->stage_id;
                 save_buffer->floor_id = dungeon->floor_id[dungeon->stage_id];
-                printf(at_1581__4, save_buffer->unique_counter);
+                printf("UNIQUE : %d\n", save_buffer->unique_counter);
                 memcpy(&save_buffer->save_data, save, sizeof(CSaveData));
                 save_buffer->unk_20 = 0;
                 save_buffer->unk_24 = 0;
                 save_buffer->check_digit_half = MakeCheckDigit(0, (char *) &save_buffer->save_data, 0x32C98);
                 save_buffer->check_digit = 0;
                 save_buffer->check_digit = MakeCheckDigit(0, (char *) &save_buffer->save_data, sizeof(CSaveData));
-                printf(at_1582__4, save_buffer->check_digit, save_buffer->check_digit_half);
+                printf("checkbit : %d  ,%d\n", save_buffer->check_digit, save_buffer->check_digit_half);
                 transfer_size = sizeof(SAVEDATA_FORMAT);
                 transfer_result = 0;
                 write_buffer = (char *) save_buffer;
@@ -1296,13 +1278,13 @@ int CMemoryCardManager::LoadFromMc(int file_no) {
                     bad = 1;
 
                     if (short_read == 0) {
-                        if (strcmp(save_buffer->version, at_1679__2) == 0) {
+                        if (strcmp(save_buffer->version, "dc2Ver2") == 0) {
                             old_version = bad;
                             bad = 0;
                         }
                     }
 
-                    printf(at_1680__2);
+                    printf("dif version!!!!!!\n");
                 }
 
                 if (bad == 0) {
@@ -1328,7 +1310,7 @@ int CMemoryCardManager::LoadFromMc(int file_no) {
                     }
                 } else {
                     error.code = MC_ERROR_LOAD;
-                    printf(at_1681);
+                    printf("BREAK or DIF VERSION!!\n");
                     return 1;
                 }
 
@@ -1689,7 +1671,7 @@ int CMemoryCardManager::SaveOamkeFile() {
 
             if (synced != 0) {
                 InitError();
-                strcpy((char *) path, at_1953);
+                strcpy((char *) path, "/BESCES-51190dc2omake/");
                 strcat((char *) path, icon[2].name);
 
                 if (sceMcOpen(port, 1, path, 1) == 0) {
@@ -1990,7 +1972,7 @@ int CMemoryCardManager::CheckOmakeFile() {
                 InitSaveFileInfoTable();
                 *album_found = 0;
 
-                if (sceMcGetDir(port, 1, at_2083__2, 0, 0xD, dir_table) == 0) {
+                if (sceMcGetDir(port, 1, "/BESCES-51190dc2omake/*", 0, 0xD, dir_table) == 0) {
                     step = 1;
                 } else {
                     error_record->code = 0;
@@ -2283,7 +2265,7 @@ int CMemoryCardManager::GetSaveFileInfoFromMc(int index, int *step) {
         case 0:
             if (sceMcSync(1, NULL, NULL) != 0) {
                 memset(slot, 0, sizeof(SAVEDATA_INFO));
-                sprintf(save_name, at_922__4, index);
+                sprintf(save_name, "BESCES-51190dkcl%d", index);
 
                 if (GetOpenAttribute(save_name) == 0) {
                     *step += 4;
@@ -2382,12 +2364,12 @@ int CMemoryCardManager::GetSaveFileInfoFromMc(int index, int *step) {
 
                 int broken = 0;
 
-                if (strcmp((char *) save_buffer, at_924__4) != 0) {
+                if (strcmp((char *) save_buffer, "dc2Ver4") != 0) {
                     broken = 1;
                 }
 
                 if (broken != 0) {
-                    printf(at_2285);
+                    printf("differnt version\n");
                 }
 
                 if ((s8) (save_buffer)->incomplete != 0) {
@@ -2523,28 +2505,8 @@ COSBIT_INFO *GetCosInfo(int costume_no) {
 // Initialised data (.data)
 
 // Constants (.rodata)
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/memcard", at_843__5__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/memcard", at_852__4__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/memcard", at_922__4__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/memcard", at_923__5__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/memcard", at_924__4__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/memcard", at_1036__6__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/memcard", at_1229__3__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/memcard", at_1230__3__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/memcard", at_1315__3__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/memcard", at_1453__3__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/memcard", at_1454__3__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/memcard", at_1455__3__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/memcard", at_1456__3__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/memcard", at_1581__4__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/memcard", at_1582__4__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/memcard", at_1679__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/memcard", at_1680__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/memcard", at_1681__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/memcard", at_1953__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/memcard", at_1954__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/memcard", at_2083__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/memcard", at_2285__DATA);
 
 // Small initialised data (.sdata)
 s16 NowProgramLoopNo = -1;

@@ -60,3 +60,41 @@ real `name` members instead of structure-address casts.
 Receipts `memcard-filename-templates`, `memcard-icon-templates`,
 `memcard-delete-template`, and `memcard-directory-template` each report
 PAL OK, 149/149 objects, and unchanged unowned hashes. Markers become 22/7.
+
+## Inline strings and native switches
+
+The accepted string steps preserve `darkclonicle`, `dc2Ver4`, the legacy
+`dc2Ver2` comparison, and the original diagnostic misspellings. Shared path,
+filename, and version strings pool at their original addresses. Each step
+has PAL, 149-object, and unowned-hash receipts under `.private/dataC-r1/`:
+
+| Function | Receipt prefix |
+| --- | --- |
+| `MakeMemoryCardFileName` | `memcard-literals-MakeMemoryCardFileName` |
+| `MakeMemoryCardAlbumName` | `memcard-literals-MakeMemoryCardAlbumName` |
+| `Initialize` | `memcard-literals-Initialize` |
+| `SetIconData` | `memcard-literals-SetIconData` |
+| `Step` | `memcard-literals-Step` |
+| `Write` (slash only) | `memcard-literals-Write-slash` |
+| `MakeDir` | `memcard-literals-MakeDir` |
+| `SaveToMc` | `memcard-literals-SaveToMc` |
+| `LoadFromMc` | `memcard-literals-LoadFromMc` |
+| `SaveOamkeFile` (directory only) | `memcard-literals-SaveOamkeFile-path` |
+| `CheckOmakeFile` (wildcard only) | `memcard-literals-CheckOmakeFile-pattern` |
+| `GetSaveFileInfoFromMc` | `memcard-literals-GetSaveFileInfoFromMc` |
+
+Two string markers remain for genuine argument-order mismatches. Inlining
+`at_1315__3` as `(const unsigned char *) "test"` in `Write` preserves the
+0xfc-byte function but changes two masked words at +0x48/+0x4c: the filename
+low-half load precedes the slot argument instead of following it. Casting to
+mutable unsigned bytes also fails. Inlining `at_1954` as the bonus-file path
+in `SaveOamkeFile` preserves its 0x4f8-byte size but changes two words at
++0x2a4/+0x2ac for the same argument-order reason. Its shared marker and
+references in `LoadOmakeFile` and `CheckOmakeFile` are retained. The rejected
+build receipts are `memcard-literals-Write`,
+`memcard-literals-Write-mutable-cast`, and
+`memcard-literals-SaveOamkeFile`. No scheduling helper or new local is added.
+
+The existing `Step` and `MakeDir` switches supply their own `at_1230__3`
+and `at_1456__3` tables. Each marker removal is checked separately in
+`memcard-switch-at_<number>__3` receipts. Markers become 2 RODATA / 7 BSS.
