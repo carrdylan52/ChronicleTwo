@@ -58,25 +58,57 @@ VIF1 packet 10000+10000.
   &Stack_ReadBuff, 0x200, 0x1A0, true, false)`, `Play("moviework")`, `SwitchThread` until `IsStarted`.
 - Play: draws `RushWork` full screen via `mgCDrawPrim`/`CPreSprite`; pad 8/2/4/1 toggles the performance
   meter; `EndCheck()` or pad 0x800 ends (`Term`, `StopBGM`), continuing a promo sequence if active.
-- CFont used on the stack (`CFont` ~0x94 bytes from the frame); not this unit's type.
+- `CFont` occupies 0xB8 bytes on the stack. Its string starts at 0x0 and its draw position is at 0x94/0x98, matching `font.hpp`. The constructor calls `Init`; the loop explicitly calls `Init` again.
 
-## Unresolved
-- Pad button constants are raw (0x800, 0x40, 0x1000, 0x4000, 4, 8, 0x20, 2, 1); use the gamepad
-  header's enum if one exists when writing bodies.
-- `LoadBGM__6CSceneFiP1` takes as second argument the current pointer of `Stack_ReadBuff`
-  (`buffer + offset*16`); its declared type comes from scene.hpp.
+## Matching source and stack layout
 
-## Current source status
+All five game functions are active C++ and match retail. The unit has no
+remaining `NONMATCHING` function guards. The complete unit linked against the
+other game objects passes the PAL image comparison.
 
-All five game functions have named, typed C++ bodies. `_MOVIE` and
-`MovieViewExit` are active source. `MovieViewInit` and `MovieViewLoop` retain
-C++ drafts under `NONMATCHING`; the matching build selects their retail
-`INCLUDE_ASM` gaps. Promoted versions were 0x3C8 and 0x770 bytes against
-retail's 0x3B4 and 0x758, moving later code and data.
+`MovieViewInit` has 0x3B4 bytes of instructions in its 0x3C0 manifest extent;
+`MovieViewLoop` has 0x758 bytes of instructions in its 0x760 extent. The
+remaining bytes are zero alignment padding. The former drafts emitted 0x3C8
+and 0x770 bytes because placement construction of stack byte arrays added an
+allocation call and null check. The interpreter path added five instructions;
+the primitive path added six. Ordinary `CScriptInterpreter` and `CPreSprite`
+locals reproduce retail's direct constructor calls.
 
-`MovieViewInit` allocates packet, draw, texture and read buffers from the main
-stack, registers the font image banks, parses `mv.cfg`, and creates the movie
-texture. `MovieViewLoop` takes list input, starts ordinary or promotional
-movies, draws playback frames, and advances a promotional sequence through its
-three parts. Their guarded drafts use typed `CMovie`, `MOVIE_LIST_ENTRY`,
-`CScene`, `CPreSprite`, and `CFont` operations.
+The interpreter is declared inside the successful `LoadFile2` branch, after
+the 0x5000-byte script buffer. Init's frame is 0x5F30 bytes: script at sp+0x50,
+interpreter at sp+0x5050, and script size at sp+0x5F2C. Keep `script_ptr` for
+the shared script address; the branch-local interpreter does not move it.
+
+Loop's 0x370-byte frame holds `CFont` at sp+0x40, row text at sp+0x100,
+`CPreSprite` at sp+0x200, and the promotional part path at sp+0x330. Declaring
+the row text before the branch-local font swaps their slots, producing fourteen
+instruction differences. Declaring the part path before the branch-local
+sprite swaps those slots, producing fifteen differences. Declare each text
+buffer after the object that precedes it in retail's stack layout.
+
+`MovieList[i].name` generates retail's incrementing 0xC row offset. The
+existing `mgCMemory::stGetRest()` and `stGetTop()` inline methods generate
+retail's remaining-block count and quadword stack indexing in both functions.
+`new (Alloc(...)) CMovie` and `new (Alloc(...)) MOVIE_LIST_ENTRY[64]` generate
+only the retail placement allocation calls; both types need no constructor
+instructions. Pad buttons, viewer states, outline style, and sprite primitive
+use the existing header enums without changing the code.
+
+## Buffer-manager storage constraint
+
+The four packet/draw managers retain their explicit one-time `Init` guard
+paths and existing `INCLUDE_BSS` storage. Native function-local static
+`mgCMemory` objects reproduce every function instruction after relocation
+masking but do not preserve the complete unit layout with the current build.
+Their four one-byte compiler guards are packed at the start of the unit's
+`.sbss`, ahead of viewer globals; retail has four separate four-byte guard
+slots at 0x37E43C, 0x37E440, 0x37E444, and 0x37E448. This shortens `.sbss` by
+twelve bytes and shifts references in later units. Defining `DataBuffer__2`
+and `Stack_ReadBuff__2` before the native locals restores `.bss` order but
+leaves that `.sbss` mismatch. MWCC's generated local names also differ from
+the numbered retail inventory names.
+
+Reconsider native buffer-manager statics only with a supported storage/symbol
+mapping that preserves the four retail guard slots and the complete `.sbss`
+order. No shared-header or compiler-option change is needed for the matched
+viewer functions.
