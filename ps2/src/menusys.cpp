@@ -7781,8 +7781,7 @@ void MenuItemDebugDraw(void) {
             for (int row = 0; row < 8; row++) {
                 int col;
                 for (col = 0; col < 8; col++) {
-                    int row_first = row * 8;
-                    int item_no = page * 64 + 1 + row_first + col;
+                    int item_no = page * 64 + 1 + row * 8 + col;
                     if (item_no == CMenuItemInfoPt->debug_item_no) {
                         int x = col * 32 + 24;
                         int y = row * 32 + 60;
