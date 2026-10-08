@@ -297,3 +297,13 @@ both selectors are needed. The body is exact at 0xE78 bytes in the 0xE80 extent.
 With all three selectors and both guards removed, the complete menuaqua object
 passes the canonical checker (0x11C48 bytes, 3,172 relocations), and the
 integrated build leaves every other object and the linked image unchanged.
+
+## Gyorace menu drawing under the verified profile
+
+`GyoraceMenuDraw__Fv` now passes an isolated production-wrapper compilation
+with the existing Satan's Fiddle profile, including GPR `0x30` / FPR `0`.
+The former game-build reversal of the final `CalcMenu1__FfPfffi` cursor
+arguments, binary32 4.0f (`0x40800000`) and 2.0f (`0x40000000`), is absent.
+No additional selector or source-body change is needed. Removing only its
+guard passes the complete menuaqua object: `0x11C3C` allocated bytes and
+3,244 resolved relocations, with zero byte or relocation differences.
