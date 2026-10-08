@@ -27,41 +27,144 @@
 #include "scriptinterpreter.hpp"
 #include "userdata.hpp"
 
-extern char at_1028__2[];
-extern char at_1029__2[];
-
-extern int EditDebugFlag;
-extern int EditDebugTexb;
-extern int Select;
-extern int LEditFlag;
-
-extern int      EditDebugFlag, EditDebugTexb, Select, SelTAG, sg_type, map_jump;
-extern int      save_no, load_no, condition, map_flag_no, LEditFlag, LightType, DirLightNo, fish_num;
-extern int      EventNo;
-extern int      SelMax[EDIT_DEBUG_PAGE_COUNT];
-extern int      LightSel[LIGHTING_EDIT_PAGE_COUNT], LightListNum[LIGHTING_EDIT_PAGE_COUNT];
-extern int     *SelData[EDIT_DEBUG_PAGE_COUNT][8];
-extern char    *SelText[EDIT_DEBUG_PAGE_COUNT][8];
-extern char    *SelHelp[EDIT_DEBUG_PAGE_COUNT][8];
-
 /**
  *
  * Writes the marker for the selected debug-menu row and returns its length.
  *
  */
 static int PrintCursor(char *text, int row);
+
 /**
  *
  * Loads one fish-race contestant from the GYOFISH script tag.
  *
  */
-int tagGyoFish(SPI_STACK *stack, int argument_count);
+static int tagGyoFish(SPI_STACK *stack, int argument_count);
+
 /**
  *
  * Reloads the host fish-race configuration into the bonus racer table.
  *
  */
 static void LoadGyorace();
+
+/**
+ * Whether the town-building debug menu is open.
+ */
+static int EditDebugFlag;
+
+/**
+ * Texture bank selected for the town-building debug menu.
+ */
+static int EditDebugTexb;
+
+/**
+ * Selected row of the town-building debug menu.
+ */
+static int Select;
+
+/**
+ * Current page of the town-building debug menu.
+ */
+static int SelTAG;
+
+/**
+ * Sub game selected for the debug launch action.
+ */
+static int sg_type;
+
+/**
+ * Destination map selected for the debug jump action.
+ */
+static int map_jump;
+
+/**
+ * Host town-layout file number selected for saving.
+ */
+static int save_no;
+
+/**
+ * Host town-layout file number selected for loading.
+ */
+static int load_no;
+
+/**
+ * Town-layout condition selected for inspection.
+ */
+static int condition;
+
+/**
+ * Map flag selected for inspection.
+ */
+static int map_flag_no;
+
+/**
+ * Whether the lighting editor is open.
+ */
+static int LEditFlag;
+
+/**
+ * Current page of the lighting editor.
+ */
+static int LightType;
+
+/**
+ * Directional light selected in the lighting editor.
+ */
+static int DirLightNo;
+
+/**
+ * Fish-race contestant index while loading the debug configuration.
+ */
+static int fish_num;
+
+/**
+ * Event selected for the debug run action.
+ */
+static int EventNo = 100;
+
+/**
+ * Number of selectable rows on each debug-menu page.
+ */
+static int SelMax[EDIT_DEBUG_PAGE_COUNT] = {EDIT_DEBUG_GENERAL_COUNT, EDIT_DEBUG_EDIT_DATA_COUNT, EDIT_DEBUG_MAP_COUNT};
+
+/**
+ * Editable values associated with each debug-menu row.
+ */
+static int *SelData[EDIT_DEBUG_PAGE_COUNT][8] = {
+    {&DebugInfo.debug_camera, &EventNo, &DebugInfo.georama_debug, &DebugInfo.chara_move,
+     &sg_type, &DebugInfo.param_off, &DebugInfo.invent_debug, NULL},
+    {NULL, &save_no, &load_no, &condition, &map_flag_no, NULL, NULL, NULL},
+    {&map_jump, NULL, NULL, NULL, NULL, NULL, NULL, NULL},
+};
+
+/**
+ * Labels displayed for each debug-menu row.
+ */
+static char *SelText[EDIT_DEBUG_PAGE_COUNT][8] = {
+    {"Debug Camera    ", "RunEvent        ", "Georama Debug   ", "CharaMove       ", "SubGame         ", "ParamOff        ", "InventDebug     ", NULL},
+    {"All Clear       ", "Save File       ", "Load File       ", "Con ", "Map Flag  ", NULL, NULL, NULL},
+    {"Map Jump        ", "Load Gyorace    ", NULL, NULL, NULL, NULL, NULL, NULL},
+};
+
+/**
+ * Help text displayed for each debug-menu row.
+ */
+static char *SelHelp[EDIT_DEBUG_PAGE_COUNT][8] = {
+    {"", "\x81\x9B:run \x81\xA2:reload", "", "1:sp up 2:col off", "", "", "", NULL},
+    {"", "", "", "", "", "", NULL, NULL},
+    {"", "", "", "", "", "", NULL, NULL},
+};
+
+/**
+ * Selected row on each lighting-editor page.
+ */
+static int LightSel[LIGHTING_EDIT_PAGE_COUNT] = {0, 0, 0, 0};
+
+/**
+ * Number of selectable rows on each lighting-editor page.
+ */
+static int LightListNum[LIGHTING_EDIT_PAGE_COUNT] = {11, 8, 9, 3};
 
 // Code (.text)
 void EditDebugInit() {
@@ -92,6 +195,7 @@ static int PrintCursor(char *text, int row) {
 
     return sprintf(text, "  ");
 }
+
 int EditDebugLoop(CScene *scene, EditDebugInfo *info) {
     char text[4096];
     int edit_data_no;
@@ -660,7 +764,7 @@ void LightingEdit(CScene *scene) {
  * Loads a gyorace fish definition from a debug script.
  *
  */
-int tagGyoFish(SPI_STACK *stack, int argument_count) {
+static int tagGyoFish(SPI_STACK *stack, int argument_count) {
     CGameDataUsed *racer = GetOmakeGyoracer2(fish_num);
 
     if (racer == NULL) {
@@ -709,117 +813,3 @@ static void LoadGyorace() {
         interpreter.Run();
     }
 }
-
-// Initialised data (.data)
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editdebug", SelMax__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editdebug", SelData__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editdebug", SelText__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editdebug", SelHelp__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editdebug", LightSel__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editdebug", LightListNum__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editdebug", at_1219__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editdebug", at_1222__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editdebug", at_1231__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editdebug", at_1243__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editdebug", at_1321__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editdebug", at_1385__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editdebug", at_1386__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editdebug", at_1387__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editdebug", at_1388__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editdebug", at_1542__DATA);
-
-// Constants (.rodata)
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editdebug", at_989__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editdebug", at_990__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editdebug", at_991__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editdebug", at_992__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editdebug", at_993__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editdebug", at_994__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editdebug", at_995__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editdebug", at_996__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editdebug", at_997__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editdebug", at_998__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editdebug", at_999__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editdebug", at_1000__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editdebug", at_1001__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editdebug", at_1002__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editdebug", at_1003__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editdebug", at_1004__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editdebug", at_1005__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editdebug", at_1028__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editdebug", at_1029__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editdebug", at_1057__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editdebug", at_1058__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editdebug", at_1181__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editdebug", at_1182__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editdebug", at_1183__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editdebug", at_1184__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editdebug", at_1185__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editdebug", at_1186__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editdebug", at_1187__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editdebug", at_1188__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editdebug", at_1189__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editdebug", at_1190__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editdebug", at_1191__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editdebug", at_1216__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editdebug", at_1217__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editdebug", at_1218__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editdebug", at_1220__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editdebug", at_1221__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editdebug", at_1223__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editdebug", at_1225__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editdebug", at_1227__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editdebug", at_1228__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editdebug", at_1229__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editdebug", at_1230__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editdebug", at_1240__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editdebug", at_1241__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editdebug", at_1242__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editdebug", at_1495__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editdebug", at_1496__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editdebug", at_1497__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editdebug", at_1498__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editdebug", at_1499__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editdebug", at_1500__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editdebug", at_1501__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editdebug", at_1502__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editdebug", at_1503__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editdebug", at_1504__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editdebug", at_1505__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editdebug", at_1506__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editdebug", at_1507__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editdebug", at_1508__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editdebug", at_1509__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editdebug", at_1510__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editdebug", at_1511__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editdebug", at_1512__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editdebug", at_1513__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editdebug", at_1514__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editdebug", at_1541__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editdebug", at_1544__2__DATA);
-
-// Small initialised data (.sdata)
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editdebug", EventNo__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editdebug", at_1059__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editdebug", at_1063__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editdebug", at_1224__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editdebug", at_1226__DATA);
-
-// Small uninitialised data (.sbss)
-INCLUDE_BSS(EditDebugFlag, 0x4);
-INCLUDE_BSS(EditDebugTexb, 0x4);
-INCLUDE_BSS(Select, 0x4);
-INCLUDE_BSS(SelTAG, 0x4);
-INCLUDE_BSS(sg_type, 0x4);
-INCLUDE_BSS(map_jump, 0x4);
-INCLUDE_BSS(save_no, 0x4);
-INCLUDE_BSS(load_no, 0x4);
-INCLUDE_BSS(condition, 0x4);
-INCLUDE_BSS(map_flag_no, 0x4);
-INCLUDE_BSS(LEditFlag, 0x4);
-INCLUDE_BSS(LightType, 0x4);
-INCLUDE_BSS(DirLightNo, 0x4);
-INCLUDE_BSS(fish_num, 0x4);
-
-// Uninitialised data (.bss)
-INCLUDE_BSS(at_1237, 0x10);
