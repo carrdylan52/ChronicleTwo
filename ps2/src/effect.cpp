@@ -17,10 +17,17 @@
 #include "mglib.hpp"
 #include "scriptinterpreter.hpp"
 
-extern CEffectManager *g_tmp_effm;
-extern CEffectCtrl    *g_tmp_effc;
-extern char            g_tmp_eff_name[];
-extern int             g_eff_entry_flag;
+/** Effect manager receiving the current script. */
+static CEffectManager *g_tmp_effm;
+
+/** Emitter receiving the current script block. */
+static CEffectCtrl *g_tmp_effc;
+
+/** Whether parsed emitters are entered into the manager. */
+static int g_eff_entry_flag;
+
+/** Name of the emitter being parsed. */
+static char g_tmp_eff_name[0x20];
 extern SPI_TAG_PARAM   effm_tag[];
 extern char            at_848__2[];
 
@@ -1826,9 +1833,5 @@ INCLUDE_RODATA("ps2/asm/pal/nonmatchings/effect", at_612__2__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/effect", at_848__2__DATA);
 
 // Small uninitialised data (.sbss)
-INCLUDE_BSS(g_tmp_effm, 0x4);
-INCLUDE_BSS(g_tmp_effc, 0x4);
-INCLUDE_BSS(g_eff_entry_flag, 0x4);
 
 // Uninitialised data (.bss)
-INCLUDE_BSS(g_tmp_eff_name, 0x20);
