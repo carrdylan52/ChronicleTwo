@@ -2661,11 +2661,20 @@ s8 ret_tbl1_2511[2] = {MENU_SWAP_RESULT_NORMAL, MENU_SWAP_RESULT_DESTINATION_EMP
 
 /**
  *
+ * Holds the general exchange results for an empty and an occupied destination slot.
+ *
+ */
+struct MenuSwapResultTable {
+    s8 v[2]; /**< Result for an empty and an occupied destination, a MENU_SWAP_RESULT. */
+};
+
+/**
+ *
  * Supplies the initial result entries for an empty or occupied destination slot.
  *
  */
-s8 at_2512[2] = {MENU_SWAP_RESULT_FAILED, MENU_SWAP_RESULT_DESTINATION_OCCUPIED};
-#ifdef NONMATCHING
+MenuSwapResultTable at_2512 = {{MENU_SWAP_RESULT_FAILED, MENU_SWAP_RESULT_DESTINATION_OCCUPIED}};
+
 /**
  *
  * Exchanges menu items through gift-box, bait, stacking and aquarium handling.
@@ -2681,7 +2690,6 @@ int MenuDataSwap(CGameDataUsed *destination, CGameDataUsed *source, int quantity
     int          src_no;
     int          result;
     int          dst_used;
-    s8           results[2];
     if (destination == NULL || source == NULL) {
         return MENU_SWAP_RESULT_FAILED;
     }
@@ -2728,8 +2736,8 @@ int MenuDataSwap(CGameDataUsed *destination, CGameDataUsed *source, int quantity
         }
         result = MENU_SWAP_RESULT_STACK;
     } else {
-        int had_src = 0;
         int had_dst = 0;
+        int had_src = 0;
         GameDataSwap(destination, source, 1);
         if (dst_no > 0) {
             had_dst = 1;
@@ -2737,16 +2745,14 @@ int MenuDataSwap(CGameDataUsed *destination, CGameDataUsed *source, int quantity
         if (src_no > 0) {
             had_src = 1;
         }
-        results[0] = ret_tbl1_2511[had_src];
-        results[1] = MENU_SWAP_RESULT_DESTINATION_OCCUPIED;
-        result = results[had_dst];
+        result = ret_tbl1_2511[had_src];
+        MenuSwapResultTable results = at_2512;
+        results.v[0] = result;
+        result = results.v[had_dst];
     }
     CheckEnableHaveItemNum();
     return result;
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/menusys", MenuDataSwap__FP13CGameDataUsedP13CGameDataUsedi);
-#endif
 void CMenuKeyFunc::Initialize() {
     int i;
 
