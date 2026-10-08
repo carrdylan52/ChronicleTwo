@@ -2161,23 +2161,6 @@ void sndStreamClose() {
 }
 
 // Constants (.rodata)
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/snd_mngr", at_732__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/snd_mngr", at_816__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/snd_mngr", at_1549__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/snd_mngr", at_1625__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/snd_mngr", at_1626__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/snd_mngr", at_1627__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/snd_mngr", at_1628__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/snd_mngr", at_1629__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/snd_mngr", at_1630__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/snd_mngr", at_1631__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/snd_mngr", at_1632__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/snd_mngr", at_1633__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/snd_mngr", at_1634__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/snd_mngr", at_1635__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/snd_mngr", at_1636__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/snd_mngr", at_1679__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/snd_mngr", at_1680__DATA);
 
 // Small initialised data (.sdata)
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/snd_mngr", EnableSndMngr__DATA);
@@ -2185,7 +2168,6 @@ INCLUDE_RODATA("ps2/asm/pal/nonmatchings/snd_mngr", snd_sema_id__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/snd_mngr", MasterVol__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/snd_mngr", MasterVolFade__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/snd_mngr", snd_old_vsync__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/snd_mngr", at_1469__DATA);
 
 // Small uninitialised data (.sbss)
 INCLUDE_BSS(ReverbType, 0x8);
@@ -2199,5 +2181,3 @@ INCLUDE_BSS(fstpMasterVol, 0x8);
 INCLUDE_BSS(PortVolf, 0x40);
 INCLUDE_BSS(MicPos, 0x10);
 INCLUDE_BSS(MicDir, 0x10);
-INCLUDE_BSS(at_1555, 0x30);
-INCLUDE_BSS(at_1648, 0x10);
