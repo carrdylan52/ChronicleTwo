@@ -135,5 +135,80 @@ class AnonymousBssTests(unittest.TestCase):
         self.assertEqual(self.apply(fixture), 'at_999')
 
 
+class LiteralPointerTests(unittest.TestCase):
+    def fixture(self, addend=0, target_offset=0):
+        literal = symbol('at_999', 1, 1)
+        target = literal
+        symbols = [literal, symbol('table', 2, 4, bind=1)]
+        if target_offset:
+            target = symbol('alias', 1, value=target_offset, kind=p.STT_SECTION)
+            symbols.append(target)
+        elf = NS(sections=[None, NS(name='.rodata', sh_type=1, data=b'\0'),
+                           NS(name='.data', sh_type=1, data=struct.pack('<I', addend))],
+                 symtab=NS(symbols=symbols),
+                 relocations=[NS(sh_info=2, relocations=[relocation(0, p.R_MIPS_32,
+                                                                  symbols.index(target))])],
+                 strtab=NS(add_symbol=lambda name: len(name)))
+        pieces = NS(layout=NS(sections=lambda unit: [('.rodata', 0x3000, 0x3010)]),
+                    unit=lambda unit: [('.rodata', [('at_1', 0x3000, 0x3008),
+                                                   ('at_2', 0x3008, 0x3010)]),
+                                       ('.data', [('table', 0x4000, 0x4004)])])
+        retail = NS(relocations={0x4000: p.R_MIPS_32},
+                    bytes=lambda lo, hi: bytes(hi - lo),
+                    word=lambda address: 0x3008 + addend + target_offset)
+        return elf, pieces, retail, []
+
+    def apply(self, fixture):
+        elf, pieces, retail, rows = fixture
+        with patch.object(p.layout, 'Retail', return_value=retail), \
+             patch.object(p.disassemble, 'Pieces', return_value=pieces), \
+             patch.object(p, 'retail_addresses', return_value={'table': 0x4000}), \
+             patch.object(p.layout, 'read_symbols', return_value=rows):
+            p.name_literal_data(elf, 'unit', set())
+        return elf.symtab.symbols[0].name
+
+    def test_empty_literal_is_identified_by_native_pointer(self):
+        fixture = self.fixture()
+        pointer_bytes = fixture[0].sections[2].data
+        self.assertEqual(self.apply(fixture), 'at_2')
+        self.assertEqual(fixture[0].sections[1].data, bytes(8))
+        self.assertEqual(fixture[0].sections[2].data, pointer_bytes)
+
+    def test_addend_and_target_symbol_offset_are_subtracted(self):
+        fixture = self.fixture(addend=3, target_offset=1)
+        self.assertEqual(self.apply(fixture), 'at_2')
+        self.assertEqual(fixture[0].sections[2].data, struct.pack('<I', 3))
+
+    def test_inferred_pointer_has_no_identity_authority(self):
+        fixture = self.fixture()
+        fixture[2].relocations.clear()
+        self.assertEqual(self.apply(fixture), 'at_999')
+
+    def test_wrong_relocation_kind_is_rejected(self):
+        fixture = self.fixture()
+        fixture[0].relocations[0].relocations[0].reloc_type = p.R_MIPS_HI16
+        self.assertEqual(self.apply(fixture), 'at_999')
+
+    def test_unknown_or_anonymous_owner_is_not_an_anchor(self):
+        for name in ('other', 'at_123__2'):
+            fixture = self.fixture()
+            fixture[0].symtab.symbols[1].name = name
+            self.assertEqual(self.apply(fixture), 'at_999')
+
+    def test_destination_must_be_exact_byte_candidate(self):
+        fixture = self.fixture()
+        fixture[2].word = lambda address: 0x3004
+        self.assertEqual(self.apply(fixture), 'at_999')
+
+    def test_conflicting_pointers_are_rejected(self):
+        fixture = self.fixture()
+        elf, _pieces, retail, _rows = fixture
+        elf.sections[2].data += bytes(4)
+        elf.relocations[0].relocations.append(relocation(4, p.R_MIPS_32, 0))
+        retail.relocations[0x4004] = p.R_MIPS_32
+        retail.word = lambda address: 0x3008 if address == 0x4000 else 0x3000
+        self.assertEqual(self.apply(fixture), 'at_999')
+
+
 if __name__ == '__main__':
     unittest.main()

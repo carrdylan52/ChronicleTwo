@@ -652,6 +652,14 @@ def name_literal_data(elf, unit, placeholders):
                       if section in CODE for name, start, end in run}
     code_starts = {symbol.st_shndx: code_addresses[symbol.name]
                    for symbol in elf.symtab.symbols if symbol.name in code_addresses}
+    data_starts = {
+        symbol.st_shndx: addresses[symbol.name]
+        for symbol in elf.symtab.symbols
+        if symbol.type == STT_OBJECT and symbol.name in addresses
+        and addresses[symbol.name] in cuts and symbol.st_value == 0
+        and 0 < symbol.st_shndx < len(elf.sections)
+        and not re.fullmatch(r'at_\d+(?:__\d+)?', symbol.name)
+    }
     for symbol in elf.symtab.symbols:
         index = symbol.st_shndx
         if (index in placeholders or not re.fullmatch(r'(?:at_\d+|\.p__sinit_.+)', symbol.name)
@@ -739,9 +747,20 @@ def name_literal_data(elf, unit, placeholders):
                         destination = ((expected & 0xFFFF) << 16) + sext16(expected_low)
                         destination -= ((value & 0xFFFF) << 16) + sext16(low)
                     destination -= target.st_value
-                    if nobits or destination in found:
-                        targets.add(destination)
-            if len(targets) != 1 or (nobits and not targets.issubset(found)):
+                    targets.add(destination)
+            for record in elf.relocations:
+                base = data_starts.get(record.sh_info)
+                if base is None:
+                    continue
+                contents = elf.sections[record.sh_info].data
+                for entry in record.relocations:
+                    target = elf.symtab.symbols[entry.symbol_index]
+                    if (target.st_shndx != index or entry.reloc_type != R_MIPS_32
+                            or retail.relocations.get(base + entry.r_offset) != R_MIPS_32):
+                        continue
+                    addend = struct.unpack_from('<I', contents, entry.r_offset)[0]
+                    targets.add(retail.word(base + entry.r_offset) - addend - target.st_value)
+            if len(targets) != 1 or not targets.issubset(found):
                 continue
             found = list(targets)
         start = found[0]
