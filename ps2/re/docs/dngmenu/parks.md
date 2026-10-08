@@ -1,6 +1,6 @@
 # dngmenu remainder after r2 — October 8
 
-Current lane source: 38 native functions, 9 guarded drafts, 1 asm-only
+Current lane source: 39 native functions, 8 guarded drafts, 1 asm-only
 function. Upstream supplies the exact `CheckIsViewMove` implementation and
 its translation-unit helper seed; its former park is resolved.
 The r2 baseline at `2f71f10` was 34/13/1. All assigned targets were
@@ -23,7 +23,7 @@ see [r2.md](r2.md).
 | `Step__12CMenuTreeMapFv` | 1506/1548, 0x1734/0x1830 → 1505/1548, same sizes | Guarded. Three initialization flags now have signed-byte types. Frame remains 0x110 versus retail 0x130; message pointer timing and mode dispatch differ. Reconsider with mode-12 dispatch and the message/key/fade-result live ranges established as one block, then individual later states. |
 | `InitEnd__12CMenuTreeMapFv` | 198/224, 0x364/0x380 → exact | Promoted. Cached floor bound, loader locals, sequential bounds, separate sub/boss checks, coordinate pair updates, output-size lifetime, and cursor state now match all 224 words and the complete unit. |
 | `DrawGeoramaMateria__FiPciPii` | 0x404/0x400 → unchanged (224/257 detailed words) | Guarded. Retail spills the right column at spA0; draft spills the panel-left position. Earlier declaration of right column does not change this. Reconsider with a demonstrated title/column/page lifetime map that produces the correct spill and message scratch slots. No profile row was attempted for this broad allocation remainder. |
-| `Draw__11CDngFreeMapFv` | 0x630/0x610 (367/396 detailed words) → 0x628/0x610 (353/394) | Guarded. Positive enclosing condition makes the texture check share the exit; NaN comparison behavior is preserved. This/texture/manager registers, mark-rectangle scratch placement and debug traversal remain different. Reconsider with retained manager/texture lifetimes and explicit order of the four floor-link calls. |
+| `Draw__11CDngFreeMapFv` | 0x628/0x610 (353/394 detailed words) → exact | Promoted in the midday lane. Retained texture/manager, temporary mark rectangle, local-font access, typed room pointer, positive conditions, debug Y base, ordered query calls with moon/sun/normal declarations, and separate ON/OFF calls reproduce the complete unit; see [midday.md](midday.md). |
 | `Draw__12CMenuTreeMapFv` | 446/460, 0x6E0/0x730 → exact | Promoted in the midday lane. Restored numeral alpha and money-digit Color, manager lifetime, ordered wrap comparison, 32-byte numeral buffer, separate board temporaries, named digit rectangle, coordinate pair, cursor branches, and signed question flag. Complete-unit byte/relocation check passes; see [midday.md](midday.md). |
 
 ## Excluded targets

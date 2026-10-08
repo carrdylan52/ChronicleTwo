@@ -73,3 +73,60 @@ baseline objects: only dngmenu changes. All allocated sections of the linked
 PAL ELF, including BSS address and size, are byte-identical to the baseline.
 `draw-coverage.log`, refreshed through ctx/objdiff and the progress report,
 records 6,737 matched / 123 guarded / 10 asm-only / 2 fuzzy functions.
+
+## CDngFreeMap::Draw
+
+`Draw__11CDngFreeMapFv` at `0x1EF730` draws the background, room map, player,
+queued room marks, and optional debug readout. The native body matches all
+388 words of its 0x610-byte retail extent, including eight bytes of padding.
+With both drawing functions native, the canonical dngmenu object passes
+0x8BC0 checked bytes and 1,187 relocations. No compiler-profile row is added.
+
+The texture manager and map texture are retained before converting opacity;
+the missing texture shares the function exit. Each queued mark constructs
+its source rectangle as an argument temporary. Debug drawing retains a
+`CFont` pointer to the local menu font, while the first print uses the local
+object directly. That first print reads positions from stack offsets 0x114
+and 0x118; subsequent prints use offsets 0x94 and 0x98 from the saved font
+pointer. Selected-room and floor-save work uses positive nested conditions,
+preserving retail's direct branches to the common exit.
+
+The debug panel has a starting Y of 110, retained in `s1`. Room description,
+next-floor IDs, root list, and visit count are positioned at Y + 2, +22, +102,
+and +122. The flag list advances that Y by 142, then by 20 per row. Replacing
+this live base with unrelated absolute positions frees a register too early
+and shrinks the frame from retail's 0x280 to 0x270. Restoring the coordinate
+relationship reproduces the saved registers and all addressable local slots:
+font at 0x80, 256-byte detail text at 0x140, 32-byte line text at 0x240, mark
+rectangle temporary at 0x260, and texture-block cache at 0x27C.
+
+The four next-floor queries execute in normal/sun/moon/star order. The first
+three have named results; the fourth remains the final sprintf argument.
+The locals are declared moon, sun, normal before constructing the font and
+assigned in call order. This changes four differing words to zero by
+assigning normal to `s2`, sun to `s4`, and moon to `s6`. Declaring them in call
+order or at function entry leaves normal and moon exchanged. The existing
+dngfloor documentation establishes these as passage-type queries, not grid
+direction queries; the named `DNGMAP_ROOT_TYPE` constants follow the retail
+debug labels and keep the numeric query values 0 through 3.
+
+ON and OFF use separate strcat calls. A conditional string argument factors
+those calls and removes four instructions, shifting the final flag loop and
+epilogue. The heading and root-prefix literals preserve their exact retail
+Shift-JIS bytes. The final unused `strcat(detail, "NONE")` is retained because
+retail executes it after the flag loop.
+
+Progression after restoring the live Y coordinate: 63/388 differing words,
+then 7 with separate ON/OFF branches, 4 with direct first-font access, and
+zero with the query-result declaration order. Relevant private receipts are
+`FreeMapDraw.m2c.c`, `free-query-decls-reversed/`,
+`free-exact-canonical.log`, and `free-exact-style.log`; the latter also checks
+the named passage constants and inline string bytes.
+
+Actual-source receipts `free-build.log`, `free-objects.log`,
+`free-compare.log`/`.json`, and `free-coverage.log` confirm the two drawing
+promotions together. The object checker remains 147/149; dngmenu passes
+0x8BC0 bytes and 1,187 relocations. Only dngmenu differs from the 149 saved
+object fingerprints. Every allocated PAL section is identical to the base,
+with the same 0x26 retail `.text` discrepancy and BSS end at 0x1F64A00.
+Coverage is 6,738 matched / 122 guarded / 10 asm-only / 2 fuzzy functions.
