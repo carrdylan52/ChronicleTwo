@@ -414,11 +414,26 @@ extern u8 get_btntbl_1810[2][2];
 
 extern float menu_cursor_rotation_angle;
 
-extern menu_cursor_pos at_3428;
+/**
+ *
+ * Supplies the initial position copied into a menu cursor draw.
+ *
+ */
+static menu_cursor_pos at_3428;
 
-extern menu_line_origin at_3527;
+/**
+ *
+ * Supplies the initial origin copied into a random menu line draw.
+ *
+ */
+static menu_line_origin at_3527;
 
-extern menu_memo_pos at_3531;
+/**
+ *
+ * Supplies the initial position copied into a menu memo draw.
+ *
+ */
+static menu_memo_pos at_3531;
 
 extern float putpostbl_3410[8];
 
@@ -459,7 +474,6 @@ void SetPartEffectInfoRandFunc(MENU_PARTS_EFFECT_STRUCT1 *effect, short *values,
 
 extern "C" char at_2237[];
 
-extern "C" char at_2238[];
 
 extern mgRect<int> MenuMainFrame_PutRect;
 
@@ -572,7 +586,29 @@ extern "C" char at_4935[];
 void MENU_BASETEXINFO_Init(MENU_BASETEXINFO *info);
 
 
-void ConvMGIRECTtoINTtbl(mgRect<int> rect, int *corners);
+/**
+ *
+ * Item identities whose form icons use an embedded item number.
+ *
+ */
+enum MenuIconItem {
+    MENU_ICON_ITEM_SPECTRUM = 0xB9, /**< Spectrumised attachment whose original item supplies the icon. */
+    MENU_ICON_ITEM_BOILED_FISH = 0x1AA, /**< Boiled fish whose original fish supplies the icon. */
+};
+
+/**
+ *
+ * Palette and effect modes used to render an item icon.
+ *
+ */
+enum MenuIconMode {
+    MENU_ICON_MODE_NORMAL = 0, /**< Normal icon with its drop shadow. */
+    MENU_ICON_MODE_SPECTRUM = 1, /**< Spectrumised icon with raster and sparkle effects. */
+    MENU_ICON_MODE_DIMMED = 2, /**< Icon with a dark overlay. */
+    MENU_ICON_MODE_BOILED_FISH = 3, /**< Boiled-fish icon with its alternate palette. */
+};
+
+static void ConvMGIRECTtoINTtbl(mgRect<int> rect, int *corners);
 
 void PushPrimRepeat(mgCDrawPrim *prim, float *positions, int *tex_coords, int count);
 
@@ -649,7 +685,7 @@ mgCTexture *GetMenuItemIconTexInfo(int item_no, int index) {
  * Expands an integer rectangle into its four drawing corners.
  *
  */
-void ConvMGIRECTtoINTtbl(mgRect<int> rect, int *corners) {
+static void ConvMGIRECTtoINTtbl(mgRect<int> rect, int *corners) {
     corners[0] = rect.left;
     corners[1] = rect.top;
     corners[2] = rect.left + rect.right;
@@ -665,7 +701,7 @@ void ConvMGIRECTtoINTtbl(mgRect<int> rect, int *corners) {
  * Expands a floating-point rectangle into its four drawing corners.
  *
  */
-void ConvMGFRECTtoFLOATtbl(mgRect<float> rect, float *corners) {
+static void ConvMGFRECTtoFLOATtbl(mgRect<float> rect, float *corners) {
     corners[0] = rect.left;
     corners[1] = rect.top;
     corners[2] = rect.left + rect.right;
@@ -2188,7 +2224,7 @@ void MenuMainFrameDraw(int &loaded_tex, int unused) {
     prim->Color(0x80, 0x80, 0x80, alpha_int = fptosi(alpha));
     PrimQuad(prim, MenuMainFrame_PutRect, screen_rect);
     prim->End();
-    mgCTexture *ornament = textures->GetTexture(at_2238, -1);
+    mgCTexture *ornament = textures->GetTexture("mnmain", -1);
     prim->AlphaBlend(MG_ALPHA_BLEND_ADD);
     prim->Shading(1);
     prim->Begin(MG_PRIM_TRIANGLE_FAN);
@@ -3560,7 +3596,6 @@ void Menu3DivideTextureDraw(mgCDrawPrim *prim, mgRect<int> rect, short *tex_tbl,
         }
     }
 }
-#ifdef NONMATCHING
 void CMenuPosDataForm::MenuFormDrawNormal(int x, int y, float sway_x, float sway_y, int &tex_block) {
     mgCTextureManager *textures = &mgTexManager;
     mgCDrawPrim       *prim = GetMenuPrim();
@@ -3596,7 +3631,7 @@ void CMenuPosDataForm::MenuFormDrawNormal(int x, int y, float sway_x, float sway
             menu_cursor_pos cursor = at_3428;
             cursor.pos[0] = put.left;
             cursor.pos[1] = put.top;
-            mgCTexture *cursor_tex = textures->GetTexture(at_2238, -1);
+            mgCTexture *cursor_tex = textures->GetTexture("mnmain", -1);
             if (cursor_tex == NULL) {
                 return;
             }
@@ -3738,19 +3773,19 @@ void CMenuPosDataForm::MenuFormDrawNormal(int x, int y, float sway_x, float sway
                 if (item > 0) {
                     MenuReloadTexture(tex_block, MenuItemIconTextureBlock);
                     int icon_item = item;
-                    int icon_mode = 0;
-                    if (item == 0xB9) {
+                    MenuIconMode icon_mode = MENU_ICON_MODE_NORMAL;
+                    if (item == MENU_ICON_ITEM_SPECTRUM) {
                         icon_item = part->etc_info[2];
-                        icon_mode = 1;
+                        icon_mode = MENU_ICON_MODE_SPECTRUM;
                         item_effect = part->effect;
                     }
-                    if (item == 0x1AA) {
+                    if (item == MENU_ICON_ITEM_BOILED_FISH) {
                         icon_item = part->etc_info[2];
-                        icon_mode = 3;
+                        icon_mode = MENU_ICON_MODE_BOILED_FISH;
                     }
                     DrawOneItem(prim, put, icon_item, icon_mode, item_effect, color, part->item_flag);
-                    if (icon_mode != 0) {
-                        if (icon_mode == 1) {
+                    if (icon_mode != MENU_ICON_MODE_NORMAL) {
+                        if (icon_mode == MENU_ICON_MODE_SPECTRUM) {
                             DrawItemIconEffect2(prim, effect_tex, part, put);
                         }
                         textures->ReloadCLUT(MenuPosData->item_icon_tex[0][use_trans_rect], (sceVif1Packet *) NULL);
@@ -3833,9 +3868,6 @@ void CMenuPosDataForm::MenuFormDrawNormal(int x, int y, float sway_x, float sway
         }
     }
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/menudraw", MenuFormDrawNormal__16CMenuPosDataFormFiiffRi);
-#endif
 void CMenuPosDataForm::MenuFormDraw(int x, int y, int &tex_block) {
     if (active == 0 || draw_flag == 0) {
         return;
@@ -3887,7 +3919,7 @@ void CMenuPosDataForm::MenuFormDraw(int x, int y, int &tex_block) {
 
         if (mgScreenWidth > draw_x && clip.bottom > 0) {
             MENU_BASETEXINFO *num_info = MenuPosData->GetTexGetInfo(at_3721);
-            mgCTexture       *num_tex = textures->GetTexture(at_2238, -1);
+            mgCTexture       *num_tex = textures->GetTexture("mnmain", -1);
             mgRect<int>       num_rect = num_info->rect;
             MenuItemBrdUnderBrdPosXY[0] = board_x;
             MenuItemBrdDraw(MenuItemBrdUnderBrdPosXY, clip, tex_block, 0x80, 0x80, 0x80, 0x80);
@@ -3896,7 +3928,7 @@ void CMenuPosDataForm::MenuFormDraw(int x, int y, int &tex_block) {
         }
     } else if (type == MENUFORM_DTYPE_GIFTVIEW) {
         mgCTexture *board_tex = textures->GetTexture(at_1780, -1);
-        mgCTexture *cursor_tex = textures->GetTexture(at_2238, -1);
+        mgCTexture *cursor_tex = textures->GetTexture("mnmain", -1);
 
         if (board_tex != NULL) {
             MenuPresentBoxView((int) (draw_x), (int) (draw_y), tex_block, board_tex, cursor_tex);
@@ -7156,7 +7188,6 @@ INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menudraw", at_1711__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menudraw", at_1780__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menudraw", at_2209__2__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menudraw", at_2237__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menudraw", at_2238__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menudraw", at_3054__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menudraw", at_3721__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menudraw", at_3927__DATA);
@@ -7237,9 +7268,6 @@ INCLUDE_BSS(MenuItemBrdUnderBrdPosXY, 0x8);
 INCLUDE_BSS(MenuItemBrdScrlBarY, 0x4);
 INCLUDE_BSS(localrgba_3166, 0x4);
 INCLUDE_BSS(at_3325, 0x8);
-INCLUDE_BSS(at_3428, 0x8);
-INCLUDE_BSS(at_3527, 0x8);
-INCLUDE_BSS(at_3531, 0x8);
 INCLUDE_BSS(at_3612, 0x8);
 INCLUDE_BSS(at_3651, 0x8);
 INCLUDE_BSS(MenuPosData, 0x8);

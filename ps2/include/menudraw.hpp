@@ -610,7 +610,7 @@ public:
      *
      * @mangled MenuFormDrawNormal__16CMenuPosDataFormFiiffRi
      * @address 0x22B0E0
-     * @size 0xFF0
+     * @size 0xFE8
      */
     void MenuFormDrawNormal(int x, int y, float sway_x, float sway_y, int &tex_block);
 

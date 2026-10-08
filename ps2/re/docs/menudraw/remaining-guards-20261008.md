@@ -4,7 +4,9 @@ The current MWCC 3.0-011126 Satan's Fiddle profile selects GPR helper mask
 `0x30`, FPR mask `0` for `menudraw.cpp`. Measurements below use that profile,
 canonical `-O3,p` flags, and relocation-masked instruction comparisons.
 They supersede older draft percentages recorded with different compiler state.
-All three functions retain their assembly fallbacks.
+CommonBoardDraw and GeneratePoly retain their assembly fallbacks.
+MenuFormDrawNormal is promoted in [round 3](round3-20261008.md), which
+resolves its helper linkage and records the complete-object validation.
 
 The [round-1](round1-20261008.md) and [round-2](round2-20261008.md) notes
 give subsequent direct-access and allocation findings. The measurements
@@ -34,11 +36,12 @@ is not a basis for native promotion.
 
 `MenuFormDrawNormal__16CMenuPosDataFormFiiffRi` dispatches visible form parts
 by draw type, applies vibration and effects, reloads texture state, and emits
-textured, numeric, filled, or memo primitives. Its draft emits `0xFE8` bytes
-against the padded `0xFF0` retail extent. All 13 differing words are in the
+textured, numeric, filled, or memo primitives. Its native body is the retail
+symbol's `0xFE8` bytes against the padded `0xFF0` comparison extent. Before
+round 3, all 13 differing words were in the
 integer block at offsets `0x43C` through `0x488`, after `GetNowPosRGBA`:
-retail uses `v1/a2` where the draft uses `v0/v1`. The second texture-rectangle
-copy in the number branch already matches.
+retail used `v1/a2` where the draft used `v0/v1`. The second texture-rectangle
+copy in the number branch already matched.
 
 Spelling the first rectangle copy as four assignments to its named fields
 produces the same instructions and the same 13 differences. Removing the
@@ -54,9 +57,11 @@ The signed shadow offset, unsigned vibration bytes, signed vibration counts,
 colour bytes, and effect-array stride agree with the current header. There
 is no evidenced shared-header change or float-order profile proposal.
 
-The blocker is integer register allocation in this local copy block. Reconsider when
-compiler allocation evidence explains the block without changing supported
-field types or introducing source-level steering helpers.
+The allocation difference is resolved by correcting ConvMGIRECTtoINTtbl to
+the LOCAL binding recorded in the retail symbol table. Both rectangle
+helpers now have static linkage, and all 1020 comparison words match.
+The guard is removed after native data/literal hygiene and a zero-problem
+complete-object check; no shared field or return type is changed.
 
 ## CRepairManager::GeneratePoly
 
