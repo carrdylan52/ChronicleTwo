@@ -23,3 +23,30 @@ Acceptance: `.private/dataC-r2/snd-native-literals-{build,objects}.log` and
 `snd-native-literals-metrics.json`. The whole image and all 149 objects pass,
 and all unowned hashes are unchanged. Markers fall to 5 rodata / 9 BSS;
 native data coverage is 250 / 16808.
+
+## Typed sound state
+
+The five initialized flags/volume arrays and nine uninitialized state
+objects now have documented definitions with their established types.
+`init_snd` is a four-byte integer; its eight-byte section piece includes
+four bytes of alignment. Listener position/direction use the SDK's aligned
+four-float vector type. The existing sequencer array remains 32 instances
+of the established 0xB0-byte class, and the port array remains 16 instances
+of the 0x29C-byte class. Their compiler-generated initializer stays exact.
+
+All newly defined state has retail-local `static` binding. `PortInfo`, which
+was already a typed global at the checkpoint, keeps its existing global
+binding: making it static exposes a generated SDK-library reference from
+`e_rem_pio2`'s `two_over_pi` numeric table. At 0x003658E0 the retail word is
+0x003F669E with no relocation, but splat emits `PortInfo + 0x15E`.
+The failed linker receipt is `snd-typed-state-build.log`; the evidence is
+`snd-library-word-evidence.log`. An untested proposal to preserve raw library
+words lacking real relocations is at
+`.private/proposals/dataC-r2-library-numeric-words.patch`. No shared tooling
+or generated assembly was edited. The port array itself needs no marker.
+
+Final acceptance: `.private/dataC-r2/snd-typed-state-global-port-{build,objects}.log`
+and `snd-typed-state-global-port-metrics.json`. All markers are gone and
+native data coverage is 16808 / 16808. The complete image, all 149 objects,
+and all unowned object hashes pass. No function is promoted or rewritten
+for the named state definitions.
