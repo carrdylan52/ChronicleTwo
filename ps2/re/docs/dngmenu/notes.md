@@ -13,14 +13,15 @@ functions; they do not assert retail enum names.
 
 `CDngFreeMap::DrawRoot`, `DrawRoomOne` and `LoadDngInfo` retain C++ drafts
 under `NONMATCHING`; the matching build selects their retail `INCLUDE_ASM`
-gaps. The same applies to `DrawDngRoomInfo`, `DrawGeoramaMateria`,
+gaps. The same applies to `DrawDngRoomInfo`,
 `CMenuTreeMap::MsgInit` and `Step`.
 `CheckGeoramaMateria` and `CMenuTreeMap::InitEnd` are native and exact;
 see [r2.md](r2.md). Both classes' `Draw` functions are now native and exact;
 see [midday.md](midday.md) for complete-unit and baseline acceptance.
 `DngTreeMapInit` is native and exact, and its constructor makes MWCC emit
 `ClsMes::Init` from the shared header; see
-[night-20261008.md](night-20261008.md). Match claims elsewhere in these notes
+[night-20261008.md](night-20261008.md). `DrawGeoramaMateria` is native and
+exact; the same file records the shared text-position form it needs. Match claims elsewhere in these notes
 apply only to the named unguarded C++ functions.
 
 ## Additional map behavior

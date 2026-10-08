@@ -955,7 +955,6 @@ void DrawDngRoomInfo(DNGMAP_ROOM_INFO *room) {
 #else
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/dngmenu", DrawDngRoomInfo__FP16DNGMAP_ROOM_INFO);
 #endif
-#ifdef NONMATCHING
 extern mgCTexture   *Floor_InfoTex;
 extern s8            GeoramaMateriaInfoDrawPage;
 extern short         GeoramaMateriaNum;
@@ -970,6 +969,9 @@ extern char          at_1993[];
  *
  */
 void DrawGeoramaMateria(int top_y, char *title, int unused_count, int *items, int tex_block) {
+    int index;
+    int x;
+    int y;
     int left = (mgScreenWidth - 0x1AE) >> 1;
     int column_left = mgScreenWidth / 3;
     int column_right = mgScreenWidth - column_left;
@@ -992,42 +994,48 @@ void DrawGeoramaMateria(int top_y, char *title, int unused_count, int *items, in
     prim->End();
 
     mgTexManager.ReloadTexture(MenuArg.mes_tex_block, (sceVif1Packet *) NULL);
-    int text_w, text_h;
+    int text_h, text_w;
     font.SetStr(title);
     font.CalcDrawWH(font.str, &text_w, &text_h);
-    font.SetPos((mgScreenWidth - text_w) >> 1, top_y + 0x26);
+    x = (mgScreenWidth - text_w) >> 1;
+    y = top_y + 0x26;
+    font.SetPos(x, y);
     font.DrawDirect(font.str, font.pos_x, font.pos_y);
 
     int first = GeoramaMateriaInfoDrawPage * 14;
     int last = first + 14;
+    y = top_y + 0x47;
     if (GeoramaMateriaNum < last) {
         last = GeoramaMateriaNum;
     }
-    int row_y = top_y + 0x47;
-    for (int index = first; index < last; ++index) {
+    for (index = first; index < last; ++index) {
         char *name = GetItemMessage(items[index]);
         if (name == NULL) {
             continue;
         }
         font.SetStr(name);
-        int item_w, item_h;
+        int item_h, item_w;
         font.CalcDrawWH(font.str, &item_w, &item_h);
-        int column = (index % 2 == 0) ? column_left : column_right;
-        font.SetPos(column - (item_w >> 1), row_y);
+        x = item_w;
+        if (index % 2 == 0) {
+            x = column_left - (x >> 1);
+        } else {
+            x = column_right - (x >> 1);
+        }
+        font.SetPos(x, y);
         font.DrawDirect(font.str, font.pos_x, font.pos_y);
         if (index % 2 != 0) {
-            row_y += 0x18;
+            y += 0x18;
         }
     }
+    x = left + 0x186;
+    y = top_y + 0xEF;
     char page[32];
     sprintf(page, at_1993, GeoramaMateriaInfoDrawPage + 1, GeoramaMateriaNum / 14 + 1);
     font.SetStr(page);
-    font.SetPos(left + 0x186, top_y + 0xEF);
+    font.SetPos(x, y);
     font.DrawDirect(font.str, font.pos_x, font.pos_y);
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/dngmenu", DrawGeoramaMateria__FiPciPii);
-#endif
 /** Source rectangle of the selected floor highlight. */
 extern const mgRect<int> dng_light_circle;
 
