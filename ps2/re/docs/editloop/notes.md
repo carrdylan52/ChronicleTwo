@@ -80,3 +80,24 @@ All other named data is local (static in .cpp): .sbss ints/pointers 0x37D2C0..0x
 `CameraCtrlParam::operator=` copies the 11 scalar limits and `no_check`
 field in retail. The current editloop source keeps this body as an assembly
 gap; `cameracontrol.hpp` leaves assignment implicit for other C++ users.
+
+## October 8 natural small-member audit
+
+The existing class definitions reproduce both small members naturally:
+implicit `CameraCtrlParam::operator=` matches all 24 words when emitted from
+an isolated assignment caller, and `CActionChara::CActionChara()` matches all
+48 words when emitted as a natural array-constructor callback. Neither
+needs a shared-header change. The assignment copies ten floats and the
+integer `no_check`; this corrects the earlier description of eleven scalar
+limits plus the flag.
+
+Their actual editloop uses are in the guarded `EditInit`. With that caller
+excluded from this lane, neither member has an admissible independent
+emission site in the active unit. Keep the assembly entries; do not add
+artificial globals, callers or member-address objects to force emission.
+The all-drafts diagnostic cannot compile the excluded large drafts because
+several scene/map member names are stale; those bodies were not changed.
+
+Blocker: natural member emission depends on a guarded caller. Reconsider
+when `EditInit`'s owning lane restores its verified native assignment and
+character-array construction.
