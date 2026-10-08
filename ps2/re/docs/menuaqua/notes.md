@@ -1,19 +1,80 @@
 # menuaqua: reverse-engineering notes
 
 `CAquarium::Draw` draws the fish, aquarium frames, bubbles, water reflection,
-and menu overlays in retail order. An earlier C++ version passed an isolated
-comparison, but the current matching build selects its `INCLUDE_ASM` gap.
-`CAquarium::SettingAqua` and `GyoraceMenuDraw` also use retail assembly gaps.
-Their C++ bodies remain guarded drafts and are not active decompilations.
-The `SettingAqua` draft constructs its `love_chara` member as a `CCharacter2`.
+and menu overlays in retail order. Its C++ body remains a guarded draft.
+`CAquarium::SettingAqua` constructs its `love_chara` member as a `CCharacter2`
+and remains guarded, as do `CAquaFish::SetAdjustScale`, `DrawFishParam`,
+`CAquarium::ColCheck`, `CAquarium::Step`, and `GyoraceMenuDraw`.
 
-`CAquaFish::SetAdjustScale`, `DrawFishParam`, `CAquarium::ColCheck`,
-`CAquarium::Step`, and `GyoraceMenuKey` likewise retain `NONMATCHING` drafts
-with retail `INCLUDE_ASM` fallbacks.
+`GyoraceMenuKey` is active C++. Its existing draft is instruction-identical;
+removing its guard passes the complete-unit linked-image comparison, PAL
+verification, and all 149 complete-object comparisons. Its saved-race menu
+handles loading, fish selection, tactics, name registration, and save prompts.
+The retail switch labels split its objdiff function row, so coverage requires
+the generated matching-assembly inventory to be refreshed with the supported
+`disassemble` target after promotion. m2c currently cannot resolve that switch's
+jump table; the retail assembly and existing types remain the analysis evidence.
 
-`CAquaFish::SetAdjustScale` is otherwise instruction-identical: its six differing
-instructions load the `0.95f` and `0.6f` arguments in the opposite order. Explicit
-float construction and named argument locals retain the compiler's ordering.
+## Remaining matching blockers
+
+The following scores compare the complete C++ drafts with retail, including
+zero-padding to each manifest extent. A shorter compiled body alone is not a
+mismatch when the remaining retail words are padding.
+
+- `SetAdjustScale__9CAquaFishFv`: **6/36 words**, compiled **0x8C**, retail extent
+  **0x90**. All differences are float argument setup: retail materializes
+  `0.95f` into `f13` before `0.6f` into `f12`; the draft reverses that order.
+  Explicit float construction and named argument locals retain the compiler's
+  ordering. Reconsider with a documented natural MWCC expression/scheduling
+  explanation for that order, rather than repeating those forms.
+- `SettingAqua__9CAquariumFv`: **2/752 words**, compiled **0xBB4**, retail extent
+  **0xBC0**. At **+0xA00/+0xA04**, placement new for `CCharacter2` branches on
+  `v0` and copies it to `s3` in the retail delay slot. MWCC instead copies first
+  and branches on `s3`. Parked under the placement-new stop rule; reconsider
+  when the dedicated constructor/null-branch lane supplies a natural solution.
+- `Draw__9CAquariumFv`: **6/928 words**, compiled **0xE78**, retail extent
+  **0xE80**. At **+0xD0C..+0xD28**, the debug panel's float arguments load in
+  the wrong order: retail width `120`, height `242`, top `80`; draft top,
+  width, height. Sharing the existing integer text `y = 0x50` with the panel
+  leaves the same six-word difference. Reconsider with a supported float
+  argument scheduling correction that also passes the game-object comparison.
+- `GyoraceMenuDraw__Fv`: **0/624 words in the all-draft build**, but activating
+  it produces **four differing bytes** in instructions at
+  **0x0021E310..0x0021E324** (**+0x8D0..+0x8E4**). The game build reverses the
+  final cursor call's `4.0f`/`2.0f` setup. Matching the earlier scroll call's
+  integral snap-range conversion, or using explicit double-to-float literal
+  conversions, leaves the game-build difference unchanged. Retain the guard.
+  Reconsider when the all-draft/game-build translation-unit scheduling
+  difference is understood or changed by another naturally matched body.
+- `ColCheck__9CAquariumFi`: **60/448 words**, compiled **0x6F8**, retail extent
+  **0x700**. The differing instructions exchange `s2` and `s3`: retail holds
+  the selected fish in `s3` and uses `s2` for the fish-loop offset and obstacle
+  count; draft allocates those registers oppositely. All other instructions
+  and relocations agree. Giving each loop its own index produces **76**
+  differing words; initializing the selected-fish pointer before the
+  temporary declarations produces **89**. Reconsider with evidence for a
+  natural local lifetime or type correction that yields the retail allocation.
+- `DrawFishParam__FiiP10mgCTextureP13CGameDataUsed`: **652/704 words**, compiled
+  **0xAA4**, retail extent **0xB00**. Retail uses a **0x450** stack frame;
+  draft uses **0x430**. Fresh rectangle temporaries for the three unknown-weight
+  glyphs restore the frame size but still leave **651** differing words and
+  the same body length. Retail also preloads six dimension-table bytes before
+  copying the width/height initializer templates; draft interleaves template
+  copies and loads. Separate zero initialization and entry assignments leave
+  **669** differing words with **0xAD4** compiled bytes. Reconsider with the
+  original initializer/lifetime structure established from the retail loads,
+  stores, and rectangle stack slots. Both probes are reverted.
+- `Step__9CAquariumFv`: **1111/1732 words**, compiled **0x1B04**, retail extent
+  **0x1B10**. Before **+0x660**, instruction differences are downstream branch
+  targets. At **+0x664**, the draft schedules the tank-index shift into a
+  branch delay slot where retail has a nop, then loads `menu_cursor` after
+  the table-address work; retail loads it first. That one-word contraction
+  shifts the following menu cases and inflates the aligned-word difference.
+  Its out-of-line `CFishFood` constructor preserves the retail placement-new
+  branch/copy-delay pattern and is not the inline constructor blocker above.
+  m2c currently cannot resolve the menu switch jump table. Reconsider with
+  jump-table recovery and a natural evaluation-order/type explanation for
+  the menu-id lookup, then realign the comparison before chasing later blocks.
 
 Aquarium menu (fish swim, eat food, fight, pair/breed), the gyorace (fish race) fish-select and
 saved-race menus, fish race/fishing tournament prize scripts, and shared sub-game panel drawing.

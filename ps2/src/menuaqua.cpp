@@ -6304,7 +6304,6 @@ static inline void SetHaveName(CDC2Mes *mes, int k, char *name) {
         strcpy(mes->name[k], name);
     }
 }
-#ifdef NONMATCHING
 int GyoraceMenuKey() {
     static CGameDataUsed *local_gdata = NULL;
     CDC2Mes              *ask = MenuDCMsg[0];
@@ -6875,9 +6874,6 @@ int GyoraceMenuKey() {
               &GyoraceHaveFishCursor, 3.6f, 3.0f, scroll_init);
     return 0;
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/menuaqua", GyoraceMenuKey__Fv);
-#endif
 #ifdef NONMATCHING
 void GyoraceMenuDraw() {
     mgCTextureManager *textures;
