@@ -2637,7 +2637,34 @@ int MenuItemBrdKey(int keys, int *cursor, int *scroll, int board) {
     return result;
 }
 
-extern s8 ret_tbl1_2511[2];
+/**
+ *
+ * Identifies the result of exchanging items between menu slots.
+ *
+ */
+enum MenuSwapResult {
+    kMenuSwapFailed = 0,              /**< The requested exchange cannot run. */
+    kMenuSwapNormal = 1,              /**< The exchange uses the ordinary completion path. */
+    kMenuSwapDestinationOccupied = 2, /**< The general exchange starts with an occupied destination. */
+    kMenuSwapDestinationEmpty = 3,    /**< The general exchange places an item in an empty destination. */
+    kMenuSwapGiftBox = 4,             /**< The destination handles gift-box insertion. */
+    kMenuSwapStack = 5,               /**< Matching stackable items handle the exchange. */
+    kMenuSwapAquarium = 7,            /**< The aquarium handles the source fish. */
+};
+
+/**
+ *
+ * Selects the general exchange result from the source slot's original item presence.
+ *
+ */
+s8 ret_tbl1_2511[2] = {kMenuSwapNormal, kMenuSwapDestinationEmpty};
+
+/**
+ *
+ * Supplies the initial result entries for an empty or occupied destination slot.
+ *
+ */
+s8 at_2512[2] = {kMenuSwapFailed, kMenuSwapDestinationOccupied};
 #ifdef NONMATCHING
 int MenuDataSwap(CGameDataUsed *destination, CGameDataUsed *source, int quantity) {
     int          dst_type;
@@ -11929,8 +11956,6 @@ INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menusys", trans_spectol_pos__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menusys", trans_spectol_posold__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menusys", trans_spectol_rgb__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menusys", SpectolFramePosValue__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menusys", ret_tbl1_2511__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menusys", at_2512__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menusys", menu_camera_reference_id__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menusys", menu_camera_reference_no__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menusys", tbl_4094__DATA);
