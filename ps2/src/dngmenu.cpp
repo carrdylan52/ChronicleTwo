@@ -992,40 +992,39 @@ INCLUDE_ASM("ps2/asm/pal/nonmatchings/dngmenu", DrawGeoramaMateria__FiPciPii);
 /** Source rectangle of the selected floor highlight. */
 extern const mgRect<int> dng_light_circle;
 
-#ifdef NONMATCHING
 void CDngFreeMap::DrawTreeMap(int opacity) {
-    mgRect<float> cell_rect;
-    cell_rect.Set(0.0f, 0.0f, 52.0f, 20.0f);
+    GLID_INFO *glid = floor_manager->glid_info;
+    mgRect<float> cell_rect(0.0f, 0.0f, 52.0f, 20.0f);
     if (mode == DNGMAP_MODE_MENU) {
         mgCDrawPrim *prim = GetMenuPrim();
-        float        x, y;
-        CalcGlidPutPos(select_glid, x, y, 0);
-        x -= 38.0f;
-        y -= 31.0f;
-        float reach_x = 62.0f * (1.0f - DngTreeMapActiveLightRate);
-        float reach_y = 40.0f * (1.0f - DngTreeMapActiveLightRate);
+        float position[2];
+        CalcGlidPutPos(select_glid, position[0], position[1], 0);
+        position[0] = position[0] - 8.0f - 30.0f;
+        position[1] = -42.0f + (11.0f + position[1]);
+        float reach_x = 62.0f - 62.0f * DngTreeMapActiveLightRate;
+        float reach_y = 40.0f - 40.0f * DngTreeMapActiveLightRate;
         SetSpriteEnv(prim, 4);
         prim->Bilinear(0);
         prim->Begin(6);
         prim->Texture(map_tex);
         prim->Color(128, 128, 128, (int) (0.5f * (float) opacity));
         prim->TextureCrd(dng_light_circle.left, dng_light_circle.top);
-        prim->Vertex(x + reach_x, y + reach_y, 0.0f);
+        prim->Vertex(position[0] + reach_x, position[1] + reach_y, 0.0f);
         prim->TextureCrd(dng_light_circle.left + dng_light_circle.right,
                          dng_light_circle.top + dng_light_circle.bottom);
-        prim->Vertex(x + 124.0f - reach_x, y + 80.0f - reach_y, 0.0f);
+        prim->Vertex(position[0] + 124.0f - reach_x, position[1] + 80.0f - reach_y, 0.0f);
         prim->End();
     }
-    for (int i = 0; i < floor_manager->glid_num; i++) {
-        GLID_INFO *glid = &floor_manager->glid_info[i];
+    unsigned int marks;
+    for (int i = 0; i < floor_manager->glid_num; i++, glid++) {
         CalcGlidPutPos(glid, cell_rect.left, cell_rect.top, 0);
         if (menu_debug_flag != 0) {
             DrawGlid(cell_rect);
         }
-        unsigned int marks = DrawGlidCheck(glid);
+        marks = DrawGlidCheck(glid);
         if (glid->type == GLID_TYPE_ROOM) {
             float brightness = 1.0f;
-            if (glid->blink != 0 && blink_cnt % 25 < 14) {
+            if ((s8) glid->blink != 0 && blink_cnt % 25 < 14) {
                 brightness = 0.5f;
             }
             DrawRoomOne(cell_rect, &glid->room, 0, opacity, brightness);
@@ -1035,9 +1034,6 @@ void CDngFreeMap::DrawTreeMap(int opacity) {
         }
     }
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/dngmenu", DrawTreeMap__11CDngFreeMapFi);
-#endif
 extern float dng_player_pos[2];
 extern int   dng_player_blink_cnt;
 

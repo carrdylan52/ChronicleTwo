@@ -524,3 +524,13 @@ constructor avoids an unnecessary default initialization. Together with the
 jump helper, the complete unit passes:0x8BD4 bytes,1129 relocations.
 No new floating selectors are required; initial 4/30 selector trials were
 ineffective and discarded.
+
+## DrawTreeMap
+
+`DrawTreeMap` constructs its board rectangle with four values and walks a
+retained grid pointer. Its highlight uses a two-float position array and keeps
+the separate float adjustments `x - 8 - 30`, `-42 + (11 + y)` and
+`size - size * rate`; retail performs each float operation separately.
+Declaring the mark mask before the loop index matches retail register reuse;
+the nonzero blink read uses a signed byte conversion. The function matches all
+198 nonpadding instructions.
