@@ -327,7 +327,7 @@ extern int                menu_debug_flag;
 extern s16                menu_debug_select;
 extern int                langTbl_3630[2][2];
 extern s8                 menu_max_tbl_3720[3];
-extern s8                 menu_id_tbl_3721[3][6];
+extern s8                 menu_id_tbl_3721[18];
 extern s8                 another_aquarium_Notbl_3642[3][2];
 
 /**
@@ -4203,7 +4203,7 @@ int CAquarium::Step() {
                     MenuSePlay(5);
                     next = 0;
                 } else if (key & 1) {
-                    switch (menu_id_tbl_3721[aqua_no][menu->menu_cursor]) {
+                    switch (menu_id_tbl_3721[aqua_no * 6 + menu->menu_cursor]) {
                         case 0:
                             if (InitSelFish() != 0) {
                                 MenuSePlay(5);

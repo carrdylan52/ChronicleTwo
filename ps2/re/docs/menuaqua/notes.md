@@ -318,14 +318,15 @@ ColCheck byte mismatch. This improves on the declaration-position swap but remai
   original initializer/lifetime structure established from the retail loads,
   stores, and rectangle stack slots. Both probes are reverted.
 
-- `Step__9CAquariumFv`: **1111/1732 words**, compiled **0x1B04**, retail extent
-  **0x1B10**. Before **+0x660**, instruction differences are downstream branch
-  targets. At **+0x664**, the draft schedules the tank-index shift into a
-  branch delay slot where retail has a nop, then loads `menu_cursor` after
-  the table-address work; retail loads it first. That one-word contraction
-  shifts the following menu cases and inflates the aligned-word difference.
-  Its out-of-line `CFishFood` constructor preserves the retail placement-new
-  branch/copy-delay pattern and is not the inline constructor blocker above.
-  m2c currently cannot resolve the menu switch jump table. Reconsider with
-  jump-table recovery and a natural evaluation-order/type explanation for
-  the menu-id lookup, then realign the comparison before chasing later blocks.
+- `Step__9CAquariumFv`: **39/1732 words**, compiled **0x1B04** (retail
+  **0x1B04** plus three padding words). Reading the menu-id table as a flat
+  `s8[18]` with `menu_id_tbl_3721[aqua_no * 6 + menu->menu_cursor]` loads
+  `menu_cursor` first like retail, leaves the `+0x664` delay slot empty and
+  removes the later compensating nop, so all instructions now align. Three
+  windows remain, all register roles or association: the menu-id sum
+  (retail `cursor + (table + tank * 6)`, the flat form
+  `(table + cursor) + tank * 6`), both `another_aquarium_Notbl_3642`
+  lookups (`+0x11B0`, `+0x1374`; same instructions, cursor and table
+  temporaries coloured differently), and the final simulation loop, where
+  retail keeps `i` in `s0` and `result` in `s2` and the draft swaps them.
+  See [night-20261008.md](night-20261008.md).
