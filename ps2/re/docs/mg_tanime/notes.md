@@ -24,6 +24,22 @@ is a semantic no-op and inadmissible in either case. The original 6/32-word
 guarded draft is retained. Reconsider when a genuine matching inlined-list
 caller establishes a new constructor or allocation-result lifetime distinction.
 
+The [Chronicle comparison](../funcpoint/placement-new.md#chronicle--dark-cloud-1-comparison)
+records all 19 matching DC1 placement-new expressions: four scalar sites test
+`v0`, six test a saved register, and nine arrays have no caller construction
+guard. DC1 uses MWCC 2.3.3 build 1010 at `-O2`, so these are comparative
+examples rather than a 3.0-011126 source recipe. Its class-A scalar constructors
+carry the expression through the constructor return; none preserves the original
+allocation pointer in DC2's copy-before-`beqz v0` sequence. Naming the placement
+buffer, initializing the destination at declaration, and compiling the original
+draft at `-O2` all leave this target at 6/32 words and 0x7C/0x80 bytes. A direct
+return was reproduced with the same result; that form was already recorded
+above. All experimental source changes were restored; the guarded unit passes
+`draft.sh --promote`, the PAL image passes, and complete objects pass 149/149.
+No source or shared-header patch is validated. A comparable 3.0-011126 inlined
+list caller, or a compiler trace showing where the implicit allocation check
+is bound to its persistent object pointer, is still needed.
+
 Engine texture animation (`mg_tanime.cpp`). First-game counterpart: `textureanime.hpp`
 (`CTexAnimeData` / `CTextureAnime`). The design is the same in spirit, but every layout differs:
 records are now heap-allocated `CList<mgCTexAnimeData>` nodes in per-group linked lists, groups have
