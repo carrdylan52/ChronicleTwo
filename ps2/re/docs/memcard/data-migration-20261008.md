@@ -129,3 +129,15 @@ and `memcard-local-icon-guard-marker-free-{build,check}.log` capture that
 boundary. Both markers are restored before acceptance. A general marker-free
 local-static/guard identity mapper is needed in the shared toolchain; this
 lane makes no shared-tool edits.
+
+## Costume count and completion-loop probe
+
+`MC_COSTUME_COUNT` names the 34-entry table extent and both costume lookup
+bounds. `memcard-costume-count` preserves PAL, all objects, and unowned hashes.
+
+Removing the empty thirteen-iteration completion loop in
+`GetAllSaveFileInfo` fails: its native size shrinks from 0x244 to 0x1f4,
+with 17 differing masked words in the common prefix and 20 missing trailing
+words. Retail retains the counted loop's instructions; the original loop is
+restored. `memcard-completion-loop-cleanup-build.log` records the rejected
+trial. No new loop, local, or scheduling helper is introduced.

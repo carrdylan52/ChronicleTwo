@@ -27,8 +27,13 @@ struct AlbumFile {
     int  trailer;           /**< Second album check digit. */
 };
 
+/**
+ * Number of costumes tracked by the persistent costume flags.
+ */
+enum { MC_COSTUME_COUNT = 34 };
+
 /** Costume item numbers and their persistent costume-bit indices. */
-static COSBIT_INFO cosbit_table[34] = {
+static COSBIT_INFO cosbit_table[MC_COSTUME_COUNT] = {
     {0x6F, 0, 0},
     {0x70, 1, 0},
     {0x71, 2, 0},
@@ -944,7 +949,7 @@ int GetCostumeList(unsigned long mask, int type, short *list) {
     COSBIT_INFO *row = cosbit_table;
     unsigned long bit = 1;
 
-    for (unsigned long i = 0; i < 0x22; i++) {
+    for (unsigned long i = 0; i < MC_COSTUME_COUNT; i++) {
         if ((mask & bit) && type == GetItemDataType(row->item_no)) {
             count++;
             *list = row->item_no;
@@ -2480,7 +2485,7 @@ int McCheckMCPs2Boot(MC_CARD_INFO *info, int blocks_needed) {
 COSBIT_INFO *GetCosInfo(int costume_no) {
     COSBIT_INFO *row = cosbit_table;
 
-    for (int i = 0; i < 0x22; i++) {
+    for (int i = 0; i < MC_COSTUME_COUNT; i++) {
         if (row->item_no == costume_no) {
             return row;
         }
