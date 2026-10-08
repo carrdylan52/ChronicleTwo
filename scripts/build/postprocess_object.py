@@ -642,6 +642,11 @@ def name_literal_data(elf, unit, placeholders):
                if name in ('.rodata', '.sdata', '.data', '.ctor')]
     cuts = {start: (name, end) for section, run in pieces.unit(unit)
             if section in ('.rodata', '.sdata', '.data', '.ctor') for name, start, end in run}
+    declared_sizes = {name: size for _address, name, size, is_function
+                      in layout.read_symbols(ROOT / layout.SYMBOLS) if not is_function}
+    bss_cuts = {start: (section, name, end) for section, run in pieces.unit(unit)
+                if section in layout.NOBITS for name, start, end in run
+                if re.fullmatch(r'at_\d+(?:__\d+)?', name)}
     positions = sorted(retail.relocations)
     code_addresses = {name: start for section, run in pieces.unit(unit)
                       if section in CODE for name, start, end in run}
@@ -654,9 +659,25 @@ def name_literal_data(elf, unit, placeholders):
                 or not 0 < index < len(elf.sections)):
             continue
         section = elf.sections[index]
-        if section.name not in ('.rodata', '.sdata', '.data', '.ctor') or not section.data:
-            continue
-        data = bytearray(section.data)
+        nobits = section.sh_type == SHT_NOBITS
+        if nobits:
+            if (section.name not in layout.NOBITS or symbol.bind != STB_LOCAL
+                    or not symbol.st_size or symbol.st_size != section_size(section)
+                    or any(record.sh_info == index and record.relocations
+                           for record in elf.relocations)
+                    or any(other.st_shndx == index and other.st_value != 0
+                           for other in elf.symtab.symbols)
+                    or sum(other.st_shndx == index and other.type == STT_OBJECT
+                           for other in elf.symtab.symbols) != 1):
+                continue
+            found = [start for start, (kind, name, end) in bss_cuts.items()
+                     if kind == section.name and declared_sizes.get(name) == symbol.st_size
+                     and start + symbol.st_size <= end]
+            data = bytearray()
+        else:
+            if section.name not in ('.rodata', '.sdata', '.data', '.ctor') or not section.data:
+                continue
+            data = bytearray(section.data)
         entries = {}
         unresolved = False
         for record in elf.relocations:
@@ -672,8 +693,9 @@ def name_literal_data(elf, unit, placeholders):
                 entries[entry.r_offset] = entry.reloc_type
         if unresolved:
             continue
-        found = []
-        for lo, contents in regions:
+        if not nobits:
+            found = []
+        for lo, contents in (() if nobits else regions):
             offset = contents.find(data)
             while offset >= 0:
                 start = lo + offset
@@ -683,7 +705,8 @@ def name_literal_data(elf, unit, placeholders):
                 if actual == entries and start in cuts:
                     found.append(start)
                 offset = contents.find(data, offset + 1)
-        if len(found) != 1:
+        # Zero-filled storage has no byte identity; require matching code references.
+        if nobits or len(found) != 1:
             targets = set()
             for record in elf.relocations:
                 base = code_starts.get(record.sh_info)
@@ -716,12 +739,17 @@ def name_literal_data(elf, unit, placeholders):
                         destination = ((expected & 0xFFFF) << 16) + sext16(expected_low)
                         destination -= ((value & 0xFFFF) << 16) + sext16(low)
                     destination -= target.st_value
-                    if destination in found:
+                    if nobits or destination in found:
                         targets.add(destination)
-            if len(targets) != 1:
+            if len(targets) != 1 or (nobits and not targets.issubset(found)):
                 continue
             found = list(targets)
         start = found[0]
+        if nobits:
+            _kind, name, _end = bss_cuts[start]
+            symbol.name = name
+            symbol.st_name = elf.strtab.add_symbol(name)
+            continue
         name, end = cuts[start]
         if start + len(data) > end:
             continue
