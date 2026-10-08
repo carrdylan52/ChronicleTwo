@@ -1741,7 +1741,6 @@ int CheckHitsSphere(CCPoly *polys, int count, float *sphere, int max_hits, int *
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/gameutil", CheckHitsSphere__FP6CCPolyiPfiPiPA4_fii);
 #endif
 
-#ifdef NONMATCHING
 int MoveCheck(float *pos, float *velocity, float *out_pos, MoveCheckInfo *info, CCPoly *polys, int count, int ignore_mask) {
     sceVu0FVECTOR ground;
     sceVu0FVECTOR from;
@@ -1803,9 +1802,10 @@ int MoveCheck(float *pos, float *velocity, float *out_pos, MoveCheckInfo *info, 
     if (velocity[1] > 0.1f) {
         landing_margin = 0.0f;
     }
+    float *query_pos = ground_query;
     CCPoly *found_poly = (CCPoly *) &ground_poly;
-    sceVu0CopyVector(ground_query, from);
-    if (info->skip_ground == 0 && GetFootPoly(ground_query, 20.0f, found_poly, ground, polys, count, ignore_mask) != 0) {
+    sceVu0CopyVector(query_pos, from);
+    if (info->skip_ground == 0 && GetFootPoly(query_pos, 20.0f, found_poly, ground, polys, count, ignore_mask) != 0) {
         sceVu0Normalize(ground_poly.normal, ground_poly.normal);
         *(CCPolyCopy *) &info->ground_poly = ground_poly;
         *(CCPolyCopy *) &info->second_poly = ground_poly;
@@ -1842,8 +1842,8 @@ int MoveCheck(float *pos, float *velocity, float *out_pos, MoveCheckInfo *info, 
         out_pos[2] = wall_query[2];
     }
     if (info->skip_ground == 0) {
-        sceVu0CopyVector(ground_query, from);
-        if (GetFootPoly(ground_query, 20.0f, found_poly, ground, polys, count, ignore_mask) != 0) {
+        sceVu0CopyVector(query_pos, from);
+        if (GetFootPoly(query_pos, 20.0f, found_poly, ground, polys, count, ignore_mask) != 0) {
             *(u_long128 *) info->ground_point = *(u_long128 *) ground;
             if (ground[1] > ((from[1] + velocity[1]) - 10.0f) - landing_margin) {
                 out_pos[1] = ground[1];
@@ -1853,9 +1853,6 @@ int MoveCheck(float *pos, float *velocity, float *out_pos, MoveCheckInfo *info, 
     GetCPolyAttr(info, pos, out_pos, 34.0f, polys, count, ignore_mask);
     return 0;
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/gameutil", MoveCheck__FPfPfPfP13MoveCheckInfoP6CCPolyii);
-#endif
 
 int GetFootPoly(float *pos, float depth, CCPoly *found, sceVu0FVECTOR ground, CCPoly *polys, int count, int ignore_mask) {
     s16           poly_ignore_mask;
