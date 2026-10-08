@@ -3737,9 +3737,6 @@ extern char at_3631[];
 extern char at_3632[];
 
 #ifdef NONMATCHING
-
-#pragma opt_common_subs off
-
 void CMenuInvent::CalcTex() {
     if (bg_form != NULL) {
         float *left_top = GetMenuMainFrameLeftTopPos(0);
@@ -4062,7 +4059,6 @@ void CMenuInvent::CalcTex() {
     MenuEffect[1]->Step();
 }
 
-#pragma opt_common_subs reset
 #else
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/inventmn", CalcTex__11CMenuInventFv);
 #endif
