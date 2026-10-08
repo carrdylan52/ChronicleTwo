@@ -57,3 +57,19 @@ The declared 0xC8 bytes receive their eight-byte zero alignment tail.
 
 `gamedata-tags-{build,objects,metrics}.log` accepts this group with PAL OK,
 149/149 objects, and no unowned object changes. Markers become 20/1.
+
+## Command, core and message tables
+
+`ItemCmdMsgTbl` is a native 33-by-8 signed-byte table. Negative entries
+terminate command lists; zeros after each terminator remain real table data.
+`table_1553` holds seven signed-halfword core item numbers and the final -1
+sentinel, so its native extent is eight elements rather than the former
+seven-element extern. `msg_offsettbl_1363` contains the three signed-halfword
+message bases `{0, 10000, 0}`; its two trailing piece bytes are alignment.
+These definitions are local, mutable, and documented without changing the
+public API.
+
+Each table passes separately in `gamedata-command-table`,
+`gamedata-core-table`, and `gamedata-message-offsets` build/object/metrics
+receipts. PAL stays OK, all 149 objects pass, and unowned hashes remain
+unchanged. Markers become 17/1.

@@ -496,8 +496,44 @@ static char filename_1267[0x20];
 /** Scratch buffer for an item model path. */
 static char item_file_path_1288[0x80];
 
-extern short          msg_offsettbl_1363[3];
-extern signed char    ItemCmdMsgTbl[33][8];
+/** Message-number bases for the three item message kinds. */
+static short msg_offsettbl_1363[3] = {0, 10000, 0};
+/** Command-message offsets offered for each item command group. */
+static signed char ItemCmdMsgTbl[33][8] = {
+    {2, 3, 4, 9, 23, 26, 1, -1},
+    {9, 3, 1, -1, 0, 0, 0, 0},
+    {10, 9, 26, 1, -1, 0, 0, 0},
+    {15, 16, 5, 9, 1, -1, 0, 0},
+    {5, 9, 1, -1, 0, 0, 0, 0},
+    {30, 3, 1, -1, 0, 0, 0, 0},
+    {2, 3, 9, 1, -1, 0, 0, 0},
+    {3, 26, 34, -1, 0, 0, 0, 0},
+    {2, 9, 1, -1, 0, 0, 0, 0},
+    {11, -1, 0, 0, 0, 0, 0, 0},
+    {12, -1, 0, 0, 0, 0, 0, 0},
+    {13, 5, 1, -1, 0, 0, 0, 0},
+    {14, 45, 42, 9, 26, 1, -1, 0},
+    {19, 5, 9, 1, -1, 0, 0, 0},
+    {2, 3, 46, 26, 1, -1, 0, 0},
+    {25, 9, 1, -1, -1, 0, 0, 0},
+    {10, 22, 9, 26, 1, -1, 0, 0},
+    {20, 5, 9, 1, -1, 0, 0, 0},
+    {15, -1, 0, 0, 0, 0, 0, 0},
+    {16, -1, 0, 0, 0, 0, 0, 0},
+    {15, 16, -1, 0, 0, 0, 0, 0},
+    {29, -1, 0, 0, 0, 0, 0, 0},
+    {10, 3, 4, 9, 26, 1, -1, 0},
+    {22, 9, 1, -1, 0, 0, 0, 0},
+    {9, 1, -1, 0, 0, 0, 0, 0},
+    {37, 9, 1, -1, 0, 0, 0, 0},
+    {38, -1, 0, 0, 0, 0, 0, 0},
+    {43, 9, 1, -1, 0, 0, 0, 0},
+    {44, 9, 1, -1, 0, 0, 0, 0},
+    {15, 16, 1, -1, 0, 0, 0, 0},
+    {47, -1, 0, 0, 0, 0, 0, 0},
+    {19, 20, 9, 1, -1, 0, 0, 0},
+    {48, -1, 0, 0, 0, 0, 0, 0},
+};
 extern char           at_1048[];
 extern char           at_1063[];
 extern char           at_1064__2[];
@@ -1764,7 +1800,8 @@ int SearchItemByName(char *name) {
     return -1;
 }
 
-extern s16 table_1553[7];
+/** Ridepod core item numbers in increasing capacity order. */
+static s16 table_1553[8] = {0xF6, 0xF7, 0xF8, 0xF9, 0xFA, 0xFB, 0xFC, -1};
 
 int GetRidePodCore(int index) {
     if (index < 0 || index > 6) {
@@ -1829,8 +1866,6 @@ void CItemUseTarget::SetPtr(int new_kind, void *new_ptr) {
 }
 
 // Initialised data (.data)
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/gamedata", ItemCmdMsgTbl__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/gamedata", table_1553__DATA);
 
 // Constants (.rodata)
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/gamedata", at_1048__DATA);
@@ -1852,7 +1887,6 @@ INCLUDE_RODATA("ps2/asm/pal/nonmatchings/gamedata", at_1311__2__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/gamedata", at_1501__DATA);
 
 // Small initialised data (.sdata)
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/gamedata", msg_offsettbl_1363__DATA);
 
 // Small uninitialised data (.sbss)
 
