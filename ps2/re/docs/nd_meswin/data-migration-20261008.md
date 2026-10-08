@@ -82,3 +82,26 @@ compares its four `_STA `, `_CLR `, `_STR ` and `_END` tags inline. The
 redundant literal cast disappears without changing parser code. Separate
 receipts `nd-linefeed-string` and `nd-caption-tag-strings` pass PAL, all
 149 objects and unowned hashes. Only the five switch-table markers remain.
+
+## Native switches and complete data migration
+
+Each existing native switch emits its branch table itself:
+
+| Table | Owning function |
+| --- | --- |
+| `at_1724` | `Preset` |
+| `at_1758` | `SetWindowMode` |
+| `at_2900` | `MakeMesWinTbl(int)` |
+| `at_4276` | `DrawPushButton` |
+| `at_4472` | `DrawMesWin` |
+
+Each marker removal passes its own `nd-at_<number>-switch` build, object,
+and hash receipt. All 149 objects pass; PAL remains OK and unowned hashes
+are unchanged. `nd-drawmeswin-source.log` independently verifies that the
+complete `DrawMesWin` source body is unchanged from `ab376093`.
+
+Final markers are **0 RODATA / 0 BSS**, versus **71 / 8**. All 98 functions
+remain matched; none is promoted. Refreshed source-only matched data stays
+**20/9,068**. That report does not normalize source data identities, ordering
+and piece padding as the linked-object stage does; the canonical complete
+object verifies every migrated byte and resolved relocation.

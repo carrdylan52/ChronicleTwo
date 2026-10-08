@@ -4623,18 +4623,6 @@ void MovieCCInit(char *text, int size, int id) {
     }
 }
 
-// Initialised data (.data)
-
-// Constants (.rodata)
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/nd_meswin", at_1724__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/nd_meswin", at_1758__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/nd_meswin", at_2900__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/nd_meswin", at_4276__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/nd_meswin", at_4472__DATA);
-
-// Small uninitialised data (.sbss)
-
-// Uninitialised data (.bss)
 s32 MesAbsDrawOff;
 s32 MovieCCCnt;
 s32 MovieCCW;
