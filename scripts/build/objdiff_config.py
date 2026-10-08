@@ -48,7 +48,7 @@ def compiler_mappings(retail_names, compiler_names):
         candidates = actual.get(retail_name, actual.get(identity, []))
         if len(candidates) > 1:
             raise ValueError(f"ambiguous compiler symbols for {retail_name}: {candidates}")
-        if candidates and candidates[0] != retail_name:
+        if candidates and (candidates[0] != retail_name or identity != retail_name):
             result[retail_name] = candidates[0]
     return result
 

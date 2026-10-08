@@ -17,6 +17,11 @@ class CompilerMappingsTests(unittest.TestCase):
             ["helper__Fv", "table$42", "@17"],
         ), {"helper__Fv__2": "helper__Fv", "table_42__3": "table$42"})
 
+    def test_normalized_native_suffix_still_maps_the_reference_identity(self):
+        self.assertEqual(compiler_mappings(['Font__3', 'at_17__2'], ['Font__3', 'at_17__2']),
+                         {'Font__3': 'Font__3', 'at_17__2': 'at_17__2'})
+        self.assertEqual(compiler_mappings(['ordinary'], ['ordinary']), {})
+
     def test_anonymous_number_is_never_a_mapping_identity(self):
         self.assertEqual(compiler_mappings(['at_17', 'at_17__2'], ['@17']), {})
 
