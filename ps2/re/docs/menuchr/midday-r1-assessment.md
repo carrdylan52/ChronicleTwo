@@ -194,3 +194,11 @@ Coverage is unchanged: **6,688 matched / 119 guarded / 63 assembly-only /
 round's base changes the guarded/assembly classification from the older
 round-zero figures; those older global split counts must not be carried
 forward. There are no unowned-file proposals, network writes, or contacts.
+
+## Palette quantization loop in the `EnterDataMenu` draft
+
+The guarded draft walks the copied character-change palette by index (`colors[palette_index]`) instead
+of incrementing a `PaletteColor *`, because pointer induction is not an allowed source form. With the
+indexed loop the draft compiles to 0x620 bytes (retail 0x610); the pointer walk gave 0x608 bytes with
+15/388 differing words. Both an element pointer and an array reference per iteration give 0x620. The
+remaining blocker is unchanged: the NPC index/stride allocation recorded above.

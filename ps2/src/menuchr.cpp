@@ -1130,10 +1130,10 @@ void CMenuChrCngMenu::EnterDataMenu(u_char *pack) {
         PALETTE_BAND_NUM = 32,
         NPC_COMMAND_NUM = 4
     };
-    int palette_index = 0;
-    PaletteColor *color = reinterpret_cast<PaletteColor *>(MenuCharaChangeCLUT);
-    for (; palette_index < CHR_CNG_CLUT_NUM; palette_index++, color++) {
-        float luminance = (float) (((*color)[PALETTE_RED] + (*color)[PALETTE_GREEN] + (*color)[PALETTE_BLUE]) / 3);
+    PaletteColor *colors = reinterpret_cast<PaletteColor *>(MenuCharaChangeCLUT);
+    for (int palette_index = 0; palette_index < CHR_CNG_CLUT_NUM; palette_index++) {
+        PaletteColor &color = colors[palette_index];
+        float         luminance = (float) ((color[PALETTE_RED] + color[PALETTE_GREEN] + color[PALETTE_BLUE]) / 3);
         // Quantize brightness without changing the palette alpha byte.
         int step = 1;
         do {
@@ -1142,9 +1142,9 @@ void CMenuChrCngMenu::EnterDataMenu(u_char *pack) {
             }
             step++;
         } while (step < PALETTE_BAND_NUM + 1);
-        (*color)[PALETTE_RED] = (u8) (7.75f * (float) step);
-        (*color)[PALETTE_GREEN] = (u8) (5.625f * (float) step);
-        (*color)[PALETTE_BLUE] = (u8) (4.6875f * (float) step);
+        color[PALETTE_RED] = (u8) (7.75f * (float) step);
+        color[PALETTE_GREEN] = (u8) (5.625f * (float) step);
+        color[PALETTE_BLUE] = (u8) (4.6875f * (float) step);
     }
     MenuPosData->InitDrawList();
     AttachForm();
