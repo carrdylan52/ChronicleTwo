@@ -182,3 +182,58 @@ demonstrably stable across both mwccgap passes and temporary filenames, and
 the resulting complete unit has zero byte and relocation differences. No
 source line, instruction address, compiler-arena address, ordinal, invented
 helper, or wrapper change is part of this proposal.
+
+## Historical shot source and conditional forms
+
+`actscript.cpp` and its owned header are unchanged between the old-toolchain
+matching `250ac10` source and round-3 head `accc605`. Both 160 arguments,
+their receiver expressions, and the independent attack-type-40/90 predicates
+already have their current shapes in that matching source. `d08b13d` does not
+edit `_SHOT` relative to its parent; `5b4deb3` inherits the current body from
+its second parent. Its older integration parent has a guarded draft with a
+scalar WHP output and early return. Restoring that output type would conflict
+with the actual two-integer `GetNowWhp` output. The current matching source
+does not supply an untested expression to restore.
+
+Seven new source/control-flow hypotheses retain the actual two-element WHP
+buffer and the real effect-manager API:
+
+- Replacing the positive-WHP scope with an exhausted-WHP early return grows
+  `_SHOT` to `0x908`, changes 450 masked words, and yields 177 canonical
+  findings, including moved static-data bindings. The prepared 160-first
+  companion is not run on this structurally changed body.
+- Expressing only the final beam laser-allocation condition as a null-failure
+  return, or only its attack-type condition as a mismatch return, produces
+  `0x908` bodies with 114 / 136 masked-word differences and 40 / 47 canonical
+  findings respectively. Both are rejected without broader policy trials.
+- Assigning the beam collision ID in the existing non-null branch and assigning
+  `-1` in an explicit null alternative produces the baseline object exactly.
+  This meaningful definition boundary does not change the final alpha call.
+- Making the final 40/90 dispatch an `else if` preserves `0x900` size but has
+  ten differing words. In addition to the four alpha words, the branch target
+  and collision-ID saved register change because attack type is no longer live
+  across the completed type-40 branch. Retail retains the independent checks.
+- Representing the earlier four color channels as a constant byte vector and
+  converting its components to the float setter tests the actual color domain
+  under scoped 160-first. It adds non-retail `.sdata`, grows `_SHOT` to
+  `0x9B0`, and changes 239 words with 63 canonical findings. This differs from
+  the earlier float-vector trial and is also rejected.
+- Adding a zero-first row for the preceding float color setters to scoped
+  160-first reproduces the earlier conflict object
+  `cd33a0d7e3739ec3e72cd43f57123976bfc8eb0eb9e8c802d114de00d9c6a2ae`
+  exactly. Zero materialization introduces no surviving dependency capable of
+  separating the two alpha arguments.
+
+No candidate passes the complete unit. Retained source, headers and profile
+are unchanged; the normal object remains
+`d01bd5dead4c6225ddfd46d5b787b9b2a5d87eb7822f7ddafc86318ef237f082`.
+It has a `0x900` body, the same four differing words, `0x47FC` checked bytes,
+1111 relocations, and one finding at `0x002D5DB2`, equal to round 3 and i14.
+The predicate-provenance proposal above remains a research requirement, not
+a supported selector or proof that all natural source forms are exhausted.
+
+Receipts: `.private/receipts/regress/round4/actscript-*/`,
+`analysis/function-history.json`, `analysis/actscript-function-history.diff`,
+`analysis/experiment-summary.json`, and `final/`. A read-only detailed review
+under `AGENTS.md` identified these conditional probes; it made no edits or
+compiles.
