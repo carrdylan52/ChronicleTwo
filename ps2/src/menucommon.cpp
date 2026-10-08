@@ -34,30 +34,144 @@ extern signed char sort_table[0x24];
 #include "sysmes.hpp"
 #include "userdata.hpp"
 
-extern "C" u16 MenuTexPosNo;
+u8 MenuSePlayUsedFlag;
 
-extern "C" u16 MenuTexPosNo_local;
+/**
+ *
+ *Volume of the object sound port before the menu silences it.
+ *
+ */
+static float SndPortVol_Ob;
 
-extern "C" u8 MenuSpiTextureName[];
+/**
+ *
+ *Volume of the base sound port before the menu silences it.
+ *
+ */
+static float SndPortVol_Base;
 
-extern "C" CMenuPosDataForm *menu_formPt;
+/**
+ *
+ *Volume of the event sound port before the menu silences it.
+ *
+ */
+static float SndPortVol_Event;
 
-extern "C" MENU_FORM_ACTION
-    *menu_spi_form_action_info;
+/**
+ *
+ *Whether the menu also silences the event sound port.
+ *
+ */
+static int SndPortCheck_EventPort;
 
-extern "C" MENU_PARTS_EFFECT_STRUCT1 *menu_parts_effect_ptr;
+/**
+ *
+ *Environment music volume before the menu silences it.
+ *
+ */
+static float SndPortVol_Env;
 
-extern "C" MENUFORMPARTS_TYPE *menu_form_part;
+/**
+ *
+ *First texture-information slot of the current script block.
+ *
+ */
+static u16 MenuTexPosNo;
 
-extern "C" int menu_form_partsno;
+/**
+ *
+ *Texture-information offset within the current script block.
+ *
+ */
+static u16 MenuTexPosNo_local;
 
-extern "C" u8 SpiMenuExeCommandFlag;
+/**
+ *
+ *Texture block assigned to the current script texture.
+ *
+ */
+static short menu_analyze_texblock;
 
-extern "C" short menu_analyze_texblock;
+mgCMemory *MenuSpiStack;
 
-extern "C" short menu_analyze_formno;
+/**
+ *
+ *First miscellaneous-information slot of the current script block.
+ *
+ */
+static u16 Menu_Target_No;
 
-extern "C" short menu_analyze_formno_offset;
+/**
+ *
+ *Miscellaneous-information offset within the current script block.
+ *
+ */
+static u16 Menu_Target_No_local;
+
+/**
+ *
+ *Form receiving the current menu layout script entries.
+ *
+ */
+static CMenuPosDataForm *menu_formPt;
+
+/**
+ *
+ *Part receiving the current menu layout script entries.
+ *
+ */
+static MENUFORMPARTS_TYPE *menu_form_part;
+
+/**
+ *
+ *Next effect entry receiving script parameters.
+ *
+ */
+static MENU_PARTS_EFFECT_STRUCT1 *menu_parts_effect_ptr;
+
+/**
+ *
+ *Form index selected by the layout script.
+ *
+ */
+static short menu_analyze_formno;
+
+/**
+ *
+ *Offset added to form indices in the current script block.
+ *
+ */
+static short menu_analyze_formno_offset;
+
+/**
+ *
+ *Next part index receiving a layout script entry.
+ *
+ */
+static int menu_form_partsno;
+
+/**
+ *
+ *Next action entry receiving layout script parameters.
+ *
+ */
+static MENU_FORM_ACTION *menu_spi_form_action_info;
+
+/**
+ *
+ *Whether the command interpreter is executing the selected command block.
+ *
+ */
+static u8 SpiMenuExeCommandFlag;
+
+/**
+ *
+ *Texture name copied into entries of the current texture-information block.
+ *
+ */
+static char MenuSpiTextureName[0x20];
+
+MENU_COMMAND_ANALYZE_INFO MenuCommandAnalyzeInfo;
 
 extern MENU_SPI_ANALYZE_STRUCT1 tbl_1728[];
 
@@ -92,20 +206,6 @@ static const int default_etc_count = 0x60;
 
 extern short sort_top_type;
 
-extern u16 Menu_Target_No;
-
-extern u16 Menu_Target_No_local;
-
-extern float SndPortVol_Ob;
-
-extern float SndPortVol_Base;
-
-extern float SndPortVol_Event;
-
-extern float SndPortVol_Env;
-
-extern int SndPortCheck_EventPort;
-
 extern char at_1173[];
 
 extern char *langdirpathTable_1161[7];
@@ -113,11 +213,7 @@ extern s8    mes_cord_conv_1193[16][2];
 
 static inline unsigned int align16_blocks(unsigned int n);
 
-
 int menu_dtype_init(CMenuPosDataForm *form, SPI_STACK *stack, int argc);
-
-extern "C" MENU_FORM_ACTION
-    *menu_spi_form_action_info;
 
 int CompGameData(int item_a, int item_b);
 
@@ -305,7 +401,6 @@ static inline unsigned int align16_blocks(unsigned int n) {
 }
 
 #include "common.h"
-
 
 // Code (.text)
 int GetRandI(int range) {
@@ -1272,7 +1367,7 @@ int _MENU_TEXNAME(SPI_STACK *stack, int argc) {
     char      *name = spiGetStackString(stack);
 
     if (name != NULL) {
-        strcpy((char *) MenuSpiTextureName, name);
+        strcpy(MenuSpiTextureName, name);
     }
 
     int index = spiGetStackInt(block_arg);
@@ -1331,7 +1426,7 @@ int _MENU_TEXDATA(SPI_STACK *stack, int argc) {
         return 0;
     }
 
-    slot->tex_name = mgCopyString((char *) MenuSpiTextureName, MenuSpiStack);
+    slot->tex_name = mgCopyString(MenuSpiTextureName, MenuSpiStack);
     slot->tex_block = (signed char) menu_analyze_texblock;
     slot->tbl_no = no;
     slot->name = mgCopyString(name, MenuSpiStack);
@@ -3286,28 +3381,3 @@ INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menucommon", at_2567__2__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menucommon", sort_top_type__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menucommon", at_2092__DATA);
 
-// Small uninitialised data (.sbss)
-INCLUDE_BSS(MenuSePlayUsedFlag, 0x4);
-INCLUDE_BSS(SndPortVol_Ob, 0x4);
-INCLUDE_BSS(SndPortVol_Base, 0x4);
-INCLUDE_BSS(SndPortVol_Event, 0x4);
-INCLUDE_BSS(SndPortCheck_EventPort, 0x4);
-INCLUDE_BSS(SndPortVol_Env, 0x4);
-INCLUDE_BSS(MenuTexPosNo, 0x4);
-INCLUDE_BSS(MenuTexPosNo_local, 0x4);
-INCLUDE_BSS(menu_analyze_texblock, 0x4);
-INCLUDE_BSS(MenuSpiStack, 0x4);
-INCLUDE_BSS(Menu_Target_No, 0x4);
-INCLUDE_BSS(Menu_Target_No_local, 0x4);
-INCLUDE_BSS(menu_formPt, 0x4);
-INCLUDE_BSS(menu_form_part, 0x4);
-INCLUDE_BSS(menu_parts_effect_ptr, 0x4);
-INCLUDE_BSS(menu_analyze_formno, 0x4);
-INCLUDE_BSS(menu_analyze_formno_offset, 0x4);
-INCLUDE_BSS(menu_form_partsno, 0x4);
-INCLUDE_BSS(menu_spi_form_action_info, 0x4);
-INCLUDE_BSS(SpiMenuExeCommandFlag, 0x4);
-
-// Uninitialised data (.bss)
-INCLUDE_BSS(MenuSpiTextureName, 0x20);
-INCLUDE_BSS(MenuCommandAnalyzeInfo, 0x70);
