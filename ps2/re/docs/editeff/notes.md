@@ -142,3 +142,24 @@ comparison before the function's matching status can be stated.
 ## Constructor-backed allocations
 
 `EditSetPlaceAnime` uses native placement construction of the temporary `CMapParts` in its guarded draft. The retail assembly remains active because that constructor has not matched the call schedule.
+
+## October 8 merged-base constructor visibility
+
+The guarded `EditSetPlaceAnime` draft makes the same natural inline
+`CMapParts` constructor definition available that editmap already uses.
+This reduces the pinned-profile comparison from 106/156 differing words
+(0x1FC/0x270 bytes) to 2/156 (0x264/0x270; the retail tail is zero padding).
+All instructions except the allocation-result branch/copy pair at +0xC0
+and +0xC4 agree, including the frame and function-point initialization.
+The constructor definition remains inside `NONMATCHING`, so it has no
+active-unit effect.
+
+Blocker: placement-new allocation-result scheduling. Keep the draft guarded
+and reconsider when the dedicated constructor lane establishes a natural
+form that branches on `v0` before the saved-pointer copy in the delay slot.
+No shared-header change is required.
+
+With this closer draft retained behind its guard, the complete editeff object
+passes with 0x1C80 bytes and 265 resolved relocations; its coverage remains
+27 matched functions and one guarded draft. The integrated allocated ELF
+contents and inherited verifier output remain unchanged.

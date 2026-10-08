@@ -510,6 +510,8 @@ int EditNowPlaceAnime() {
 }
 
 #ifdef NONMATCHING
+inline CMapParts::CMapParts() { Initialize(); }
+
 int EditSetPlaceAnime(int kind, CMapParts *parts) {
     CPlaceAnime *slot;
     CMapParts   *target;
