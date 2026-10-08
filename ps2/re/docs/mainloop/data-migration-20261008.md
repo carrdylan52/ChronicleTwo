@@ -111,6 +111,13 @@ matching access form is retained. Receipts:
 `.private/dataB-r2/mainloop-font-walk-{build,check,diff}.log` and
 `.private/dataB-r2/mainloop-font-walk-diff.json` (the diff receipt is the JSON).
 
+A scoped `#pragma optimization_level 2` around the direct typed-index form
+also fails: 0x124 bytes versus retail's 0x108 and 69.469696% in objdiff.
+The original source is restored and the complete main-loop object passes.
+Receipts: `.private/dataB-r2/mainloop-font-opt2-{build,check,diff}.log`,
+`.private/dataB-r2/mainloop-font-opt2-diff.json`, and
+`.private/dataB-r2/mainloop-font-opt2-restored-{build,check}.log`.
+
 Removing only the cursor's arrow-string marker also fails: the arrow's
 native copy is discarded while the retained parent table refers to its retail
 name. All three cursor markers therefore remain together. Receipt:
