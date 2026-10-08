@@ -33,3 +33,15 @@ The failed removal receipt is `gamedata-storage-build.log`. Acceptance with
 the single marker retained is `gamedata-storage-retained-buffer-{build,
 objects,metrics}.log` under `.private/dataC-r1/`: PAL OK, 149/149 objects,
 and every unowned object hash unchanged. Markers become 46/1.
+
+## Spectrumising parameters
+
+The public `etcitem_spectol_table` retains its existing signed-byte array
+declaration and has a native initializer for all 425 parameter/value pairs.
+Each line holds one pair in item-number order. The 0x352-byte declared object
+has a 14-byte zero alignment tail; no extra pairs are introduced. Its existing
+consumer interprets parameter indices below eight as attributes and indices
+10 and above as status parameters.
+
+`gamedata-spectrum-table-{build,objects,metrics}.log` accepts the table:
+PAL OK, 149/149 objects, unowned hashes unchanged. Markers become 45/1.
