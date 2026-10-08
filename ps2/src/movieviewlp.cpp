@@ -16,17 +16,6 @@
 #include "scriptinterpreter.hpp"
 #include "snd_mngr.hpp"
 
-extern SPI_TAG_PARAM     tag_movie[];
-extern CMovie           *MovieView;
-extern int               MovieMode;
-extern short             MovieSelect;
-extern short             MovieLine;
-extern short             MovieSpecialMode;
-extern short             MovieSpecialModeInfo[3];
-extern CScene           *MovieScene;
-extern mgCTexture       *RushWork__2;
-extern mgCMemory         Stack_ReadBuff__2;
-extern mgCMemory         DataBuffer__2;
 extern mgCMemory         buf0_791;
 extern mgCMemory         buf1_794;
 extern mgCMemory         dbuf0_797;
@@ -47,13 +36,112 @@ extern char              at_1034__5[];
 extern char              at_1035__5[];
 extern char              at_1036__5[];
 extern char              at_1037__5[];
-extern MOVIE_LIST_ENTRY *MovieList;
-extern int               MovieListNum;
-extern mgCMemory        *spi_MovieStack;
-extern int               performance_meter_flag;
+
+/**
+ *
+ * Scene used to display movies and play their music.
+ *
+ */
+static CScene *MovieScene;
+
+/**
+ *
+ * Movie player for the selected viewer entry.
+ *
+ */
+static CMovie *MovieView;
+
+/**
+ *
+ * Texture containing the current movie frame.
+ *
+ */
+static mgCTexture *RushWork__2;
+
+/**
+ *
+ * Performance meter setting restored when the viewer exits.
+ *
+ */
+static int performance_meter_flag;
+
+/**
+ *
+ * Number of configured movie entries.
+ *
+ */
+static int MovieListNum;
+
+/**
+ *
+ * Configured movies available to the viewer.
+ *
+ */
+static MOVIE_LIST_ENTRY *MovieList;
+
+/**
+ *
+ * First movie row displayed in the viewer list.
+ *
+ */
+static short MovieLine;
+
+/**
+ *
+ * Index of the selected movie entry.
+ *
+ */
+static short MovieSelect;
+
+/**
+ *
+ * Stack used to store movie names parsed from the configuration.
+ *
+ */
+static mgCMemory *spi_MovieStack;
+
+/**
+ *
+ * Promotional sequence currently selected for playback.
+ *
+ */
+static short MovieSpecialMode;
+
+/**
+ *
+ * Current part and additional state of a promotional sequence.
+ *
+ */
+static short MovieSpecialModeInfo[3];
+
+/**
+ *
+ * Current movie viewer list or playback mode.
+ *
+ */
+static int MovieMode;
+
+/**
+ *
+ * Texture data buffer used by the movie viewer.
+ *
+ */
+static mgCMemory DataBuffer__2;
+
+/**
+ *
+ * Read buffer for movie files and their accompanying music.
+ *
+ */
+static mgCMemory Stack_ReadBuff__2;
 
 // Code (.text)
-int _MOVIE(SPI_STACK *stack, int argument_count) {
+/**
+ *
+ * Adds one configured movie and its optional music to the viewer list.
+ *
+ */
+static int _MOVIE(SPI_STACK *stack, int argument_count) {
     MOVIE_LIST_ENTRY *entry = MovieList + MovieListNum;
 
     if (entry == NULL) {
@@ -77,6 +165,16 @@ int _MOVIE(SPI_STACK *stack, int argument_count) {
     MovieListNum++;
     return 1;
 }
+
+/**
+ *
+ * Script tags accepted by the movie viewer configuration.
+ *
+ */
+static SPI_TAG_PARAM tag_movie[2] = {
+    {"MOVIE", _MOVIE},
+    {NULL, NULL},
+};
 
 void MovieViewInit(INIT_LOOP_ARG arg) {
     mgCMemory         *main_stack;
@@ -367,11 +465,7 @@ int MovieViewLoop() {
     return 0;
 }
 
-// Initialised data (.data)
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/movieviewlp", tag_movie__DATA);
-
 // Constants (.rodata)
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/movieviewlp", at_786__2__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/movieviewlp", at_843__4__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/movieviewlp", at_844__3__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/movieviewlp", at_1028__8__DATA);
@@ -386,26 +480,12 @@ INCLUDE_RODATA("ps2/asm/pal/nonmatchings/movieviewlp", at_1036__5__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/movieviewlp", at_1037__5__DATA);
 
 // Small uninitialised data (.sbss)
-INCLUDE_BSS(MovieScene, 0x4);
-INCLUDE_BSS(MovieView, 0x4);
-INCLUDE_BSS(RushWork__2, 0x4);
-INCLUDE_BSS(performance_meter_flag, 0x4);
-INCLUDE_BSS(MovieListNum, 0x4);
-INCLUDE_BSS(MovieList, 0x4);
-INCLUDE_BSS(MovieLine, 0x4);
-INCLUDE_BSS(MovieSelect, 0x4);
-INCLUDE_BSS(spi_MovieStack, 0x4);
-INCLUDE_BSS(MovieSpecialMode, 0x4);
-INCLUDE_BSS(MovieSpecialModeInfo, 0x8);
-INCLUDE_BSS(MovieMode, 0x4);
 INCLUDE_BSS(init_792, 0x4);
 INCLUDE_BSS(init_795, 0x4);
 INCLUDE_BSS(init_798, 0x4);
 INCLUDE_BSS(init_801, 0x4);
 
 // Uninitialised data (.bss)
-mgCMemory DataBuffer__2;
-mgCMemory Stack_ReadBuff__2;
 INCLUDE_BSS(buf0_791, 0x30);
 INCLUDE_BSS(buf1_794, 0x30);
 INCLUDE_BSS(dbuf0_797, 0x30);
