@@ -20,10 +20,6 @@ extern mgCMemory buf0_791;
 extern mgCMemory buf1_794;
 extern mgCMemory dbuf0_797;
 extern mgCMemory dbuf1_800;
-extern signed char       init_792;
-extern signed char       init_795;
-extern signed char       init_798;
-extern signed char       init_801;
 
 /**
  *
@@ -108,6 +104,34 @@ static short MovieSpecialModeInfo[3];
  *
  */
 static int MovieMode;
+
+/**
+ *
+ * Whether the first packet buffer manager has been initialized.
+ *
+ */
+static signed char init_792;
+
+/**
+ *
+ * Whether the second packet buffer manager has been initialized.
+ *
+ */
+static signed char init_795;
+
+/**
+ *
+ * Whether the first draw-data buffer manager has been initialized.
+ *
+ */
+static signed char init_798;
+
+/**
+ *
+ * Whether the second draw-data buffer manager has been initialized.
+ *
+ */
+static signed char init_801;
 
 /**
  *
@@ -452,12 +476,6 @@ int MovieViewLoop() {
 
     return 0;
 }
-
-// Small uninitialised data (.sbss)
-INCLUDE_BSS(init_792, 0x4);
-INCLUDE_BSS(init_795, 0x4);
-INCLUDE_BSS(init_798, 0x4);
-INCLUDE_BSS(init_801, 0x4);
 
 // Uninitialised data (.bss)
 INCLUDE_BSS(buf0_791, 0x30);

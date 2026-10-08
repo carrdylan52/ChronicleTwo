@@ -38,3 +38,34 @@ Initialized-data markers fall from **12 to 0**. Interim matched data is
 **186/539**; the eight buffer-manager BSS markers remain. Receipts:
 `.private/dataD/movieviewlp-{config,work,promo,list,parts}-{build,objects,metrics}.log`.
 Every group passes PAL and all 149 objects with unchanged unowned object hashes.
+
+## Buffer initialization flags
+
+The four existing one-time initialization flags are native file-local signed
+bytes. Their three-byte piece tails remain alignment padding. The four explicit
+manager initialization paths are unchanged while their storage still comes from
+markers. Markers fall from **0 RODATA / 8 BSS** to **0 / 4**; refreshed matched
+data rises from **186/539** to **251/539**. Receipts:
+`.private/dataD/movieviewlp-guards-final-{build,objects,metrics}.log`.
+
+## Remaining buffer-manager storage
+
+Native function-local `static mgCMemory` declarations reproduce all retail
+instructions and constructor guards. The current data binder cannot name those
+four manager objects or their compiler guards without storage markers. A raw
+private copy using `buf0`, `buf1`, `dbuf0` and `dbuf1` has zero masked instruction
+differences, but the unchanged postprocessor leaves the eight local identities
+unmapped and the complete object fails. Four canonical manager markers remain.
+
+The same generic proposal tested for scene,
+`.private/proposals/dataD-local-static-bss.patch`, establishes each identity
+from exact extent and consistent opcode-matched retail references. On that same
+raw copy it names and pads the four individual guard slots, preserves the two
+earlier native global buffers, and passes the complete unit: 0xD00 initialized
+bytes and 361 resolved relocations. No shared tool or profile file is edited.
+Receipts: `.private/dataD/movieviewlp-native-bss-{raw-build,baseline-check,proposed-check}.log`.
+
+Final canonical markers: **0 RODATA / 4 BSS**, from **14 / 20**. Final
+`matched_data` is **251/539**, from **4/539**. The unmatched 288-byte BSS
+section contains the four retained 48-byte managers and the two native 48-byte
+global buffers; objdiff's exact data credit applies to the complete section.
