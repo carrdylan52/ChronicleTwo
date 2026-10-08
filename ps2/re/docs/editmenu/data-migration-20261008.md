@@ -337,3 +337,51 @@ bypasses postprocessing, literal naming, ordering and piece padding. Marker
 counts and canonical complete-object checks establish migration progress;
 this lane does not modify coverage tooling or substitute a private metric.
 Final standard refresh and final validation receipts are recorded below.
+
+## Final measured result and commit ledger
+
+The final prescribed refresh records menucommon at 0 initialized/0 BSS
+markers and 8/3,816 matched_data (baseline 186/22 and 0/3,816).
+editmenu is at 0 initialized/16 BSS markers and 68/6,092 matched_data
+(baseline 153/101 and 68/6,092). All 129 and 61 functions remain exact; no
+function guard was promoted. The standard coverage totals remain 6,749
+matched, 113 guarded, 10 assembly-only and zero fuzzy functions.
+
+Final linked-object validation: PAL OK, 149/149 objects, and the other 147
+object file hashes equal the warm baseline. Relevant receipts:
+
+- `.private/dataB/receipts/editmenu-final-natural-cleanup-build.log`
+- `.private/dataB/receipts/editmenu-final-natural-cleanup-objects.log`
+- `.private/dataB/receipts/editmenu-final-natural-cleanup-changed-objects.json`
+- `.private/dataB/receipts/dataB-final-progress.log`
+- `.private/dataB/receipts/dataB-final-coverage.log`
+- `.private/dataB/final-metrics.json`
+- `.private/dataB/receipts/editmenu-final-proposed-native-object.log`
+
+The final private source-only editmenu proof still passes 0xC7E8 bytes and
+2,581 relocations after declaration ordering and accepted cleanup. The
+menucommon source-only proof uses existing production tooling and passes
+0x5558 bytes and 1,021 relocations. Standard metrics are not replaced with
+these independent checks. Neither proposal nor generated/private files are
+staged. All source/data commits below use carrdylan52's configured identity
+and have no attribution trailers.
+
+```text
+f15ad88f Migrate menucommon uninitialized data
+003cb55c Migrate menucommon layout and file tables
+cb7224c9 Migrate menucommon script dispatch and command data
+0e6acc49 Migrate editmenu named uninitialized data
+4d71b6aa Migrate editmenu model vectors and paint palette
+2b401fa7 Migrate editmenu board and list tables
+f31c7199 Inline editmenu initialization and drawing strings
+05a96b00 Inline editmenu Georama method strings
+77bd53a2 Inline editmenu Georama input strings
+bc240eee Inline editmenu villager removal strings
+f4f698f5 Use natural editmenu local aggregates
+c710caa1 Migrate editmenu initialized state and input tables
+47960268 Use native editmenu aggregate data and vtables
+39db110c Organize editmenu data and use typed removal access
+```
+
+The subsequent documentation-only checkpoint records this final receipt and
+ledger. Its hash is supplied in the lane's final report.
