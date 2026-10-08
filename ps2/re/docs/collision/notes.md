@@ -169,3 +169,26 @@ was tested and changed existing inline emission; it was reverted. Seeding helper
 masks for integer argument registers and float argument registers did not change
 the remaining native differences. The original constructor/header and assembly
 fallback remain in place while these source-shape issues are unresolved.
+
+## CColFrame caller preservation remainder
+
+`CColFrame::PickUpNearPoly` is a non-COP2 caller, but its two triangle-transform
+helpers retain VU0 assembly fallbacks. The current native caller has the
+retail 0x290-byte body in the 0x290 extent and differs by five of 164 words.
+The mismatch at +0x1A8/+0x1B0 exchanges the captured hit count and world-matrix
+argument around `pre_trance_normal`; +0x1BC/+0x1D4/+0x1D8 use s1 for the
+triangle loop counter where retail uses v1 across `trance_normal` calls.
+All other instructions and call relocations match.
+
+This remainder persists in the production mwccgap compilation with only the
+caller enabled and all original VU helper fallbacks active. The complete
+object reports one problem, first differing at 0x1481B8. It is not merely
+an artifact of compiling scalar helper drafts. Keep the caller guarded;
+reconsider when an admissible compiler description of those existing
+helpers' preserved registers, or retail source evidence for their call
+interface, explains the caller-saved loop counter. New inline assembly or
+an invented preservation wrapper is outside this lane.
+
+The MDT pickup and both transform helpers remain parked for direct VU0/COP2
+code. Their instructions are in the functions themselves, not hidden SDK
+calls; reconsider only with an existing admissible implementation mechanism.
