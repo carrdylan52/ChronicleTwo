@@ -21,15 +21,6 @@
 
 /**
  *
- * Two colours used by the event list.
- *
- */
-struct EventListColors {
-    u32 color[2]; /**< Event list colours. */
-};
-
-/**
- *
  * Pair of characters used for a line break.
  *
  */
@@ -39,15 +30,13 @@ struct LineBreakPair {
 
 /**
  *
- * Two labels used by the save editor.
+ * Pair of labels used to mark selections or name boolean values.
  *
  */
 struct SaveEditLabels {
-    const char *text[2]; /**< Save editor labels. */
+    const char *text[2]; /**< Selection markers or boolean labels. */
 };
 
-extern SaveEditLabels   at_1125;
-extern SaveEditLabels   at_1128__2;
 /**
  *
  * Counts the map name records loaded for the current language.
@@ -180,11 +169,7 @@ static int select__1049[16] = {0};
  *
  */
 static int top__1050[16] = {0};
-extern EventListColors  at_1270__4;
-extern LineBreakPair    at_1377__2;
 extern char             at_1040__4[];
-extern char             at_1041__4[];
-extern char             at_1042__3[];
 extern char             at_1043__3[];
 extern char             at_1044__2[];
 extern char             at_1045__3[];
@@ -548,9 +533,9 @@ int MapTypeSelect() {
 
     for (int i = 0; i < 8; i++) {
         if (i == select) {
-            cursor += sprintf(cursor, at_1041__4);
+            cursor += sprintf(cursor, ">>");
         } else {
-            cursor += sprintf(cursor, at_1042__3);
+            cursor += sprintf(cursor, "  ");
         }
 
         cursor += sprintf(cursor, at_1043__3, map_sel_type[i]);
@@ -648,9 +633,9 @@ int MapSelect() {
         int map_no = SearchMapNo(SelectMapList[SelectMapType][i]);
 
         if (i == *selected) {
-            cursor += sprintf(cursor, at_1041__4);
+            cursor += sprintf(cursor, ">>");
         } else {
-            cursor += sprintf(cursor, at_1042__3);
+            cursor += sprintf(cursor, "  ");
         }
 
         cursor += sprintf(cursor, at_1043__3, SelectMapList[SelectMapType][i]);
@@ -717,8 +702,8 @@ int SaveDataEditLoop() {
     GAME_PROGRESS_INFO *progress;
     const char         *progress_name;
     SV_CONFIG_OPTION   *config = save->GetConfig();
-    SaveEditLabels      marker = at_1125;
-    SaveEditLabels      on_off = at_1128__2;
+    SaveEditLabels      marker = {{"  ", ">>"}};
+    SaveEditLabels      on_off = {{"OFF", "ON"}};
     progress = GetGameProgressInfo(SedSelData[SED_PROGRESS]);
     SedSelData[SED_PLAY_TIME] = GetPlayTimeCountFlag();
     char *caption[1] = {(char *) &config->caption_off};
@@ -900,7 +885,6 @@ int SaveDataEditLoop() {
 
 int EventViewLoop() {
     char            text[0x400];
-    EventListColors colors;
     char           *cursor = text;
     cursor += sprintf(cursor, at_1323__3);
 
@@ -914,7 +898,7 @@ int EventViewLoop() {
 
     int index = top_event;
     int last = index + 10;
-    colors = at_1270__4;
+    SaveEditLabels marker = {{"  ", ">>"}};
 
     if (last >= EventInfoNum) {
         last = EventInfoNum;
@@ -924,7 +908,7 @@ int EventViewLoop() {
         EVENT_VIEW_INFO *info = &EventInfo[index];
 
         if (info->name != NULL) {
-            cursor += sprintf(cursor, at_1324__2, colors.color[index == top_event + sel_event],
+            cursor += sprintf(cursor, at_1324__2, marker.text[index == top_event + sel_event],
                               info->name, info->detail);
         }
     }
@@ -1060,10 +1044,9 @@ void LoadEventViewData(u_long128 *buffer, mgCMemory *stack) {
  *
  */
 static char *GetLine(char **columns, char *position, char *end) {
-    LineBreakPair line_break_pair;
+    LineBreakPair line_break_pair = {{'\r', '\n'}};
     int           field;
     int           length;
-    line_break_pair = at_1377__2;
 
     if (position < end) {
         field = 0;
@@ -1202,16 +1185,12 @@ INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mapselect", at_860__2__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mapselect", at_1004__4__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mapselect", at_1005__4__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mapselect", at_1040__4__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mapselect", at_1041__4__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mapselect", at_1042__3__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mapselect", at_1043__3__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mapselect", at_1044__2__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mapselect", at_1045__3__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mapselect", at_1103__4__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mapselect", at_1104__6__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mapselect", at_1105__3__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mapselect", at_1126__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mapselect", at_1127__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mapselect", at_1222__5__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mapselect", at_1223__5__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mapselect", at_1224__5__DATA);
@@ -1228,10 +1207,6 @@ INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mapselect", at_1470__3__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mapselect", at_1471__3__DATA);
 
 // Small initialised data (.sdata)
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mapselect", at_1125__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mapselect", at_1128__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mapselect", at_1270__4__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mapselect", at_1377__2__DATA);
 
 // Small uninitialised data (.sbss)
 INCLUDE_BSS(select_1009, 0x4);

@@ -62,3 +62,31 @@ the declared extents and existing verified postprocessing supplies padding.
 Each object has a separate `mapselect-<name>-{build,objects,hashes}.log`
 receipt. All seven accepted steps pass PAL, all 149 objects and all 148 other
 object hashes. Markers are now 34/2.
+
+## Local selection and line-break templates
+
+`SaveDataEditLoop` now initializes its two `SaveEditLabels` pairs locally:
+`{"  ",">>"}` and `{"OFF","ON"}`. `EventViewLoop` uses the same typed
+pointer pair for its cursor markers. Its preceding `EventListColors` type
+was incorrect: retail's two words are string addresses passed to `%s`, not
+color values. The obsolete type, extern and assignment are removed; the
+native initializer remains at the original copy point.
+
+The first cursor template must be migrated with both shared cursor literals.
+Migrating the template alone leaves two extra read-only pieces (43 versus
+41); PAL grows by 0x80 bytes and the checker rejects the layout. The
+accepted grouped step inlines the two labels in `MapTypeSelect` and removes
+their markers with `at_1125`. Both local marker pairs share the original
+pooled strings. The OFF/ON strings similarly migrate with `at_1128__2`.
+
+`GetLine` initializes the documented two-byte `LineBreakPair` with CR and
+LF. There is no trailing null byte in this object. Its extern, assignment
+and marker are removed.
+
+The four accepted receipt prefixes are `mapselect-at_1125`,
+`mapselect-at_1128__2`, `mapselect-at_1270__4`, and
+`mapselect-at_1377__2`, each with `-{build,objects,hashes}.log`.
+Every accepted step passes PAL, all 149 objects and all 148 other hashes.
+The rejected isolated-template object receipt is
+`mapselect-at_1125-ungrouped-objects.log`; its source is
+`failed-mapselect-at_1125.cpp`. Markers are now 26/2.
