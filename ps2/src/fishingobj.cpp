@@ -262,13 +262,6 @@ static CFishObj         HariObj;
  *
  */
 static sceVu0FVECTOR    ChanceBarPos;
-extern TriAxis          at_975__5;
-extern TriAxis          at_985__4;
-extern TriAxis          at_986__3;
-extern Matrix4          at_1797;
-extern float            at_1798[4];
-extern char             at_1503__4[];
-extern char             at_1564[];
 #include <libvu0.h>
 
 #include "dng_main.hpp"
@@ -387,8 +380,6 @@ float GetMinLineLength() {
     return 25.0f;
 }
 
-extern char at_896__4[];
-extern char at_903__5[];
 
 void InitRodPoint(mgCFrame *reference, mgCFrame *rod) {
     int i;
@@ -411,14 +402,14 @@ void InitRodPoint(mgCFrame *reference, mgCFrame *rod) {
         mgZeroVector(LurePoint[i].velo);
     }
 
-    SaoFrame[0] = rod->SearchFrame(at_896__4);
+    SaoFrame[0] = rod->SearchFrame("sao");
     SaoFrame[1] = rod->SearchFrame("sao2");
     SaoFrame[2] = rod->SearchFrame("sao3");
     SaoFrame[3] = rod->SearchFrame("sao4");
     SaoFrame[4] = rod->SearchFrame("sao5");
     SaoFrame[5] = rod->SearchFrame("sao6");
     SaoFrame[6] = rod->SearchFrame("sao7");
-    SaoFrame[7] = rod->SearchFrame(at_903__5);
+    SaoFrame[7] = rod->SearchFrame("ito");
     sceVu0FVECTOR span;
     sceVu0FVECTOR root;
     sceVu0FVECTOR tip;
@@ -530,7 +521,6 @@ int SetLurePose(mgCFrame *frame) {
     float   position[4];
     float   matrix[4][4];
     float   tri[3][4];
-    TriAxis order;
 
     if (frame == NULL) {
         return 0;
@@ -545,7 +535,7 @@ int SetLurePose(mgCFrame *frame) {
     *(u_long128 *) tri[0] = *(u_long128 *) &LureObj.point[0].pos;
     *(u_long128 *) tri[1] = *(u_long128 *) &LureObj.point[1].pos;
     *(u_long128 *) tri[2] = *(u_long128 *) &LureObj.point[2].pos;
-    order = at_975__5;
+    TriAxis order = {{0, 1, 2}};
     GetTriPose(matrix, tri, order.v);
     frame->SetPosition(position);
     frame->SetTransMatrix(matrix);
@@ -556,8 +546,6 @@ int SetUkiPose(mgCFrame *uki_frame, mgCFrame *hari_frame) {
     float   matrix[4][4];
     float   position[4];
     float   tri[3][4];
-    TriAxis uki_order;
-    TriAxis hari_order;
 
     if (uki_frame == NULL || hari_frame == NULL) {
         return 0;
@@ -574,7 +562,7 @@ int SetUkiPose(mgCFrame *uki_frame, mgCFrame *hari_frame) {
     *(u_long128 *) tri[0] = *(u_long128 *) &UkiObj.point[0].pos;
     sceVu0ScaleVector(tri[1], tri[1], 0.33333334f);
     *(u_long128 *) tri[2] = *(u_long128 *) &UkiObj.point[1].pos;
-    uki_order = at_985__4;
+    TriAxis uki_order = {{-1, 2, 0}};
     GetTriPose(matrix, tri, uki_order.v);
     uki_frame->SetTransMatrix(matrix);
     uki_frame->SetPosition(position);
@@ -583,7 +571,7 @@ int SetUkiPose(mgCFrame *uki_frame, mgCFrame *hari_frame) {
     *(u_long128 *) tri[0] = *(u_long128 *) &HariObj.point[0].pos;
     sceVu0ScaleVector(tri[1], tri[1], 0.5f);
     *(u_long128 *) tri[2] = *(u_long128 *) &HariObj.point[2].pos;
-    hari_order = at_986__3;
+    TriAxis hari_order = {{-1, 0, 2}};
     GetTriPose(matrix, tri, hari_order.v);
     hari_frame->SetTransMatrix(matrix);
     hari_frame->SetPosition(position);
@@ -1313,7 +1301,7 @@ void DrawFishingActionChance() {
             prim.ZMask(MG_Z_MASK_MASKED);
             prim.Begin(MG_PRIM_SPRITE);
             prim.Color(0x80, 0x80, 0x80, 0x80);
-            prim.Texture(textures->GetTexture(at_1503__4, -1));
+            prim.Texture(textures->GetTexture("fish_juji", -1));
 
             if (ActionChanceDir > 0) {
                 bottom_right[0] += 0x180;
@@ -1360,7 +1348,7 @@ void InitLureObj(int rod_type, mgCFrame *rod_frame) {
 
     rod_frame->SetPosition(0.0f, 0.0f, 0.0f);
     rod_frame->SetRotation(0.0f, 0.0f, 0.0f);
-    mgCFrame *tip_frame = rod_frame->SearchFrame(at_1564);
+    mgCFrame *tip_frame = rod_frame->SearchFrame("obj1");
     lure_dist = 4.0f;
 
     if (rod_type == 0 && tip_frame != NULL) {
@@ -1686,9 +1674,6 @@ void CFishObj::Correct(CCPoly *poly, int poly_num, float damping) {
  *
  */
 void ParaBlend(float *out, float t, float (*point)[4], int count) {
-    Matrix4 basis;
-    Matrix4 geometry;
-    float   powers[4];
     float   step = 1.0f / (float) (count - 1);
     int     cur = fptosi(t / step);
     int     prev;
@@ -1716,7 +1701,13 @@ void ParaBlend(float *out, float t, float (*point)[4], int count) {
         next2 = count - 1;
     }
 
-    basis = at_1797;
+    Matrix4 basis = {{
+        {-1.0f, 3.0f, -3.0f, 1.0f},
+        {2.0f, -5.0f, 4.0f, -1.0f},
+        {-1.0f, 0.0f, 1.0f, 0.0f},
+        {0.0f, 2.0f, 0.0f, 0.0f}
+    }};
+    Matrix4 geometry;
     sceVu0TransposeMatrix(basis.m, basis.m);
     *(u_long128 *) geometry.m[0] = *(u_long128 *) point[prev];
     geometry.m[0][3] = 0.0f;
@@ -1729,7 +1720,7 @@ void ParaBlend(float *out, float t, float (*point)[4], int count) {
     sceVu0TransposeMatrix(geometry.m, geometry.m);
     mgMulMatrix(basis.m, basis.m, geometry.m);
     sceVu0TransposeMatrix(basis.m, basis.m);
-    *(u_long128 *) powers = *(u_long128 *) at_1798;
+    float powers[4] = {0.0f, 0.0f, 0.0f, 1.0f};
     float square = local * local;
     powers[0] = local * square;
     powers[1] = square;
@@ -1737,22 +1728,3 @@ void ParaBlend(float *out, float t, float (*point)[4], int count) {
     sceVu0ScaleVector(powers, powers, 0.5f);
     sceVu0ApplyMatrix(out, basis.m, powers);
 }
-
-// Initialised data (.data)
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/fishingobj", at_975__5__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/fishingobj", at_985__4__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/fishingobj", at_986__3__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/fishingobj", at_1797__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/fishingobj", at_1798__DATA);
-
-// Constants (.rodata)
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/fishingobj", at_896__4__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/fishingobj", at_897__4__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/fishingobj", at_898__5__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/fishingobj", at_899__5__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/fishingobj", at_900__6__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/fishingobj", at_901__4__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/fishingobj", at_902__4__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/fishingobj", at_903__5__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/fishingobj", at_1503__4__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/fishingobj", at_1564__DATA);
