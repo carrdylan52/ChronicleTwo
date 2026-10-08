@@ -258,3 +258,20 @@ removal-file-list,input-dispatch,list-message-enums}-*` beneath
 The failed ordinary zero definition is recorded separately as
 `editmenu-removal-quantity-build.log` and is not retained.
 Nine compiler-generated initialized markers remain at this checkpoint.
+
+## Native aggregate templates, switch table and vtables
+
+The existing C++ local aggregates supply the child-number list (21 ints),
+cursor list counts (11 ints), model position (four floats), window colour
+(eight-byte RGBAQ), scrollbar size (two ints) and scrollbar line counts
+(two ints). Their six initialized template markers are removed individually;
+no separately named constant or dummy local replaces them. CalcCursorPosition's
+existing switch supplies its jump table naturally. Both class vtables come
+from the existing C++ class definitions and overrides; their markers are
+removed without writing a vtable or special member.
+
+Each of the nine marker removals passes PAL and all 149 object checks:
+`editmenu-native-<retail symbol>-*` beneath `.private/dataB/receipts/`.
+Initialized marker count is now zero. Sixteen anonymous BSS markers remain;
+every one has a natural local aggregate initializer, including the newly
+cleaned item-name arrays. The tooling limitation is documented below.

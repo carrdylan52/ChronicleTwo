@@ -5400,21 +5400,12 @@ void MenuRemovalDraw() {
 void CBaseMenuClass::InitEnd() {}
 
 // Initialised data (.data)
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editmenu", at_2326__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editmenu", at_3361__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editmenu", at_4101__DATA);
 
 // Constants (.rodata)
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editmenu", at_3330__DATA);
 
 // Virtual tables (.vtables)
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editmenu", __vt__12CRemovalMenu__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editmenu", __vt__12CMenuGeorama__DATA);
 
 // Small initialised data (.sdata)
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editmenu", at_1828__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editmenu", at_4151__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editmenu", at_4152__DATA);
 
 // Small uninitialised data (.sbss)
 INCLUDE_BSS(at_1556, 0x8);
