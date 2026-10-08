@@ -2836,7 +2836,6 @@ void CMenuChrCngMenu::UpdataLife() {
         ExeScript(at_2365);
     }
 }
-#ifdef NONMATCHING
 void MenuCharaChangeStarDraw() {
     mgCTextureManager *tex_manager = &mgTexManager;
 
@@ -2925,9 +2924,6 @@ void MenuCharaChangeStarDraw() {
     }
     prim->End();
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/menuchr", MenuCharaChangeStarDraw__Fv);
-#endif
 #ifdef NONMATCHING
 int MenuCharaChangeInit(mgCMemory *stack, int *tex_block, int mode) {
     u_long128       *buffer;
@@ -7228,29 +7224,6 @@ void MonsterBookDraw() {
         font.SetPos(20, 40);
         font.DrawDirect(font.str, font.pos_x, font.pos_y);
     }
-}
-
-/**
- *
- * Short rectangle used for screen positions and bounds.
- *
- */
-class mgRect_s_ {
-public:
-    short left;   /**< Left edge. */
-    short top;    /**< Top edge. */
-    short right;  /**< Right edge. */
-    short bottom; /**< Bottom edge. */
-
-    /** Sets the four sides of the rectangle. */
-    void Set(short x, short y, short w, short h);
-};
-
-void mgRect_s_::Set(short x, short y, short w, short h) {
-    left = x;
-    top = y;
-    right = w;
-    bottom = h;
 }
 
 // Initialised data (.data)

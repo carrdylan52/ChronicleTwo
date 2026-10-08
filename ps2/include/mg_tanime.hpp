@@ -98,33 +98,6 @@ public:
     void Set(T new_left, T new_top, T new_right, T new_bottom);
 } __attribute__((aligned(16)));
 
-/**
- *
- * Short integer rectangle used by the texture animator.
- *
- */
-template <>
-class mgRect<short> {
-public:
-    short left;   /**< Left edge. */
-    short top;    /**< Top edge. */
-    short right;  /**< Right edge, inclusive. */
-    short bottom; /**< Bottom edge, inclusive. */
-
-    mgRect() { Set(0, 0, 0, 0); }
-
-    mgRect(short new_left, short new_top, short new_right, short new_bottom) {
-        Set(new_left, new_top, new_right, new_bottom);
-    }
-
-    void Set(short new_left, short new_top, short new_right, short new_bottom) {
-        left = new_left;
-        top = new_top;
-        right = new_right;
-        bottom = new_bottom;
-    }
-};
-
 template <class T>
 void mgRect<T>::Set(T new_left, T new_top, T new_right, T new_bottom) {
     left = new_left;

@@ -190,7 +190,7 @@ extern int                 title_lang_select;
 extern char                at_2723[];
 extern char                at_2724[];
 extern float               title_lang_curxy[2];
-extern mgRect<short>       start_button_tbl_1826[];
+extern MENU_SHORT_RECT     start_button_tbl_1826[];
 extern s16                 btn_tblxy_1830[][2];
 
 /**
