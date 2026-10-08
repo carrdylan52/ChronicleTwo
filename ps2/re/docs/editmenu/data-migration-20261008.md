@@ -159,3 +159,16 @@ Receipts: `editmenu-paint-items-*`, `editmenu-list-indexes-*`,
 `editmenu-active-board-*`, and `editmenu-table-<symbol>-*` beneath
 `.private/dataB/receipts/`. All other 147 object hashes remain identical.
 This group removes fourteen more markers (132 initialized markers remain).
+
+## Inline strings: initialization and drawing
+
+Form/table names, debug scripts, menu textures, the download blank name,
+and placed-house/message blank names are inline literals at their use sites.
+Shared literal markers disappear only after their last extern reference is
+replaced. Every byte above ASCII is encoded as a three-digit octal escape,
+so Shift-JIS strings are preserved independently of the editor encoding.
+
+The ten function-sized steps from SetEditMenuEnv through
+MenuGeoramaMessageMake each pass the full PAL and 149-unit checks. Receipts
+are `editmenu-literals-<function>-*` in `.private/dataB/receipts/`.
+This checkpoint has 118 initialized markers and 16 BSS markers.
