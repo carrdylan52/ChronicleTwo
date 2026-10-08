@@ -1173,7 +1173,3 @@ void AtraMiriaOnOff(int mode, CCharacter2 *chara, int enable) {
         }
     }
 }
-
-// Small uninitialised data (.sbss)
-INCLUDE_BSS(select_1009, 0x4);
-INCLUDE_BSS(init_1010, 0x4);

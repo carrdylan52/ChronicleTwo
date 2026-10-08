@@ -135,3 +135,23 @@ match the original lane checkpoint, not merely the preceding step.
 Receipts: `08-final-refresh.log`, `08-final-coverage.log`, and
 `08-baseline-other-objects.log`. All 76 functions across this lane's four
 units remain matched. No functions are promoted by this data migration.
+
+## Native data marker completion (round 1)
+
+The existing initialized function-local selection and its compiler guard
+supply `select_1009` and `init_1010` without storage markers. Their declared
+sizes are four and one bytes; both retail pieces are four bytes. Every
+GP-relative consumer identifies its exact retail destination, independent of
+compiler suffixes. The unused anonymous compiler template remains uncredited
+and is discarded by the normal linked-object preparation.
+
+All initialized-data and BSS markers are now absent. Refreshed objdiff
+`matched_data` changes from 33,896 to 33,968/33,968 bytes. All existing
+native functions and code bytes remain matched; no function is promoted.
+
+Validation receipts in `.private/dtool-r1/`: `final-build.log`,
+`final-objects.log`, `final-hashes.json`, `final-refresh.log`,
+`resume-metrics.json`, `final-tests.log` and `all-test-scripts.log`. The PAL
+verifier and all 149 canonical object comparisons pass. All 142 unowned
+object file hashes match the warm baseline. The retained-fallback audit
+finds no assembly-supplied piece credited as native data.
