@@ -1547,7 +1547,7 @@ int MakeDownLoadAnaunce(int town_no, mgCMemory *stack, int *out_num, int *out_su
     int no __attribute__((aligned(16)));
     int height __attribute__((aligned(8)));
     int limit __attribute__((aligned(8)));
-    EditAnalyzeDataSrc *src;
+    int con;
     char *condition_name __attribute__((aligned(8)));
     int size;
     CScene *scene __attribute__((aligned(16)));
@@ -1558,7 +1558,7 @@ int MakeDownLoadAnaunce(int town_no, mgCMemory *stack, int *out_num, int *out_su
     char *word;
     int geo_floor __attribute__((aligned(32)));
     CEditData *edit __attribute__((aligned(8)));
-    int font_no __attribute__((aligned(32)));
+    int font_no;
     short floors[0x180][2];
     char *names[0x180];
     signed char extras[0x180];
@@ -1657,7 +1657,7 @@ int MakeDownLoadAnaunce(int town_no, mgCMemory *stack, int *out_num, int *out_su
     condition_num = 0;
     height = 0;
     for (no = 0; no < 32; no++) {
-        src = MenuEditAnalyzeDataSrc[no];
+        EditAnalyzeDataSrc *src = MenuEditAnalyzeDataSrc[no];
         if (src == NULL) {
             continue;
         }
@@ -1699,7 +1699,7 @@ int MakeDownLoadAnaunce(int town_no, mgCMemory *stack, int *out_num, int *out_su
             request_num++;
             height += *tex_h;
         }
-        for (int con = 0; src->con_no[con] >= 0; con++, condition_num++) {
+        for (con = 0; src->con_no[con] >= 0; con++, condition_num++) {
             condition = src->con_no[con];
             condition_name = MenuEditAnalyzeSrc->condition[condition];
             if (condition_name == NULL) {
