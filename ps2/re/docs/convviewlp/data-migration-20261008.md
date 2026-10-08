@@ -40,3 +40,30 @@ limits make this metric distinct from the exact linked-object proof. The
 final receipts are `.private/dataB-r1/final-{build,objects,progress}.log`.
 `ConvertResultDispTime` is only written in this unit; its source comment
 states the recorded display-time value without claiming countdown behavior.
+
+## Native data marker completion (round 1)
+
+The four existing function-local `mgCMemory` objects and their generated
+guards supply all eight buffer/guard pieces. Each buffer is 48 bytes; each
+guard is one byte, with the first three owning four-byte pieces and the last
+owning one byte. Their unchanged HI16/LO16 and GP-relative consumers establish
+identity through the general BSS matcher.
+
+`ConvertResultDispTime` is a native file-local integer of declared size four.
+Its canonical .sbss reservation extends from 0x0037EA8C to 0x0037EAC0,
+including the following 48 zero bytes. The general NOBITS extent rule preserves
+that reservation through the next canonical piece boundary; it does not
+invent a larger source object or change initialized-data padding policy.
+Objdiff exposes this tail only when the native object has its exact declared
+size and the section extent agrees with the canonical piece.
+
+All initialized-data and BSS markers are now absent. Refreshed objdiff
+`matched_data` changes from 1,087 to 1,988/1,988 bytes. All existing
+native functions and code bytes remain matched; no function is promoted.
+
+Validation receipts in `.private/dtool-r1/`: `final-build.log`,
+`final-objects.log`, `final-hashes.json`, `final-refresh.log`,
+`resume-metrics.json`, `final-tests.log` and `all-test-scripts.log`. The PAL
+verifier and all 149 canonical object comparisons pass. All 142 unowned
+object file hashes match the warm baseline. The retained-fallback audit
+finds no assembly-supplied piece credited as native data.

@@ -19,7 +19,7 @@
 /**
  * Display-time value recorded for the conversion result.
  */
-extern int ConvertResultDispTime;
+static int ConvertResultDispTime;
 /**
  * Texture and data storage used by the conversion screen.
  */
@@ -445,16 +445,3 @@ int SaveDataConvertLoop() {
     }
     return 0;
 }
-
-// Small uninitialised data (.sbss)
-INCLUDE_BSS(ConvertResultDispTime, 0x34);
-INCLUDE_BSS(init_817, 0x4);
-INCLUDE_BSS(init_820, 0x4);
-INCLUDE_BSS(init_823, 0x4);
-INCLUDE_BSS(init_826, 0x1);
-
-// Uninitialised data (.bss)
-INCLUDE_BSS(buf0_816, 0x30);
-INCLUDE_BSS(buf1_819, 0x30);
-INCLUDE_BSS(dbuf0_822, 0x30);
-INCLUDE_BSS(dbuf1_825, 0x30);
