@@ -38,6 +38,11 @@ struct FrameLinkRecord {
     int link[11];
 };
 
+/**
+ *
+ * Views a collision polygon as five vectors for copying its complete stored representation.
+ *
+ */
 struct CCPolyCopy {
     float vertex[3][4];
     float normal[4];
@@ -1635,41 +1640,46 @@ int CheckHitsPipe(CCPoly *polys, int count, sceVu0FVECTOR from, float *to, int m
 
 #ifdef NONMATCHING
 int CheckHitsSphere(CCPoly *polys, int count, float *sphere, int max_hits, int *hit_polys, float (*hit_points)[4], int sort, int ignore_mask) {
-    sceVu0FVECTOR sphere_max;
-    sceVu0FVECTOR sphere_min;
-    sceVu0FVECTOR poly_max;
-    sceVu0FVECTOR poly_min;
-    sceVu0FVECTOR push;
-    sceVu0FVECTOR normal;
-    sceVu0FVECTOR swap;
+    float         push[4];
+    float         poly_min[4];
+    float         poly_max[4];
+    float         sphere_max[4];
+    float         sphere_min[4];
+    float         normal[4];
+    float         swap[4];
     CCPoly       *poly;
+    float         radius;
+    int           component;
+    int           j;
     int           hits;
     int           i;
-    int           j;
+    int           index;
 
-    hits = 0;
-    sphere_max[0] = sphere[0] + sphere[3];
-    sphere_max[1] = sphere[1] + sphere[3];
-    sphere_max[2] = sphere[2] + sphere[3];
-    sphere_max[3] = sphere[3];
-    sphere_min[0] = sphere[0] - sphere[3];
-    sphere_min[1] = sphere[1] - sphere[3];
-    sphere_min[2] = sphere[2] - sphere[3];
-    sphere_min[3] = sphere[3];
     poly = polys;
+    i = 0;
+    hits = 0;
+    radius = sphere[3];
+    *(u_long128 *) sphere_max = *(u_long128 *) sphere;
+    *(u_long128 *) sphere_min = *(u_long128 *) sphere;
+    for (component = 0; component < 3; component++) {
+        sphere_max[component] += radius;
+    }
+    for (component = 0; component < 3; component++) {
+        sphere_min[component] -= radius;
+    }
 
-    for (i = 0; i < count; i++, poly++) {
+    for (; i < count; i++, poly++) {
         if (poly->ignore_mask & ignore_mask) {
             continue;
         }
 
         mgVectorMaxMin(poly_max, poly_min, poly->vertex[0], poly->vertex[1], poly->vertex[2]);
 
-        if (poly_min[0] > sphere_max[0] || poly_min[1] > sphere_max[1] || poly_min[2] > sphere_max[2]) {
+        if (sphere_max[0] < poly_min[0] || sphere_max[1] < poly_min[1] || sphere_max[2] < poly_min[2]) {
             continue;
         }
 
-        if (sphere_min[0] > poly_max[0] || sphere_min[1] > poly_max[1] || sphere_min[2] > poly_max[2]) {
+        if (!(sphere_min[0] <= poly_max[0]) || !(sphere_min[1] <= poly_max[1]) || !(sphere_min[2] <= poly_max[2])) {
             continue;
         }
 
@@ -1688,12 +1698,14 @@ int CheckHitsSphere(CCPoly *polys, int count, float *sphere, int max_hits, int *
         hits++;
     }
 
-    if (sort != 0) {
+    if (sort == 0) {
+        return hits;
+    } else {
         if (sort > 0) {
             for (i = 0; i < hits - 1; i++) {
                 for (j = i + 1; j < hits; j++) {
-                    if (hit_points[j][3] < hit_points[i][3]) {
-                        int index = hit_polys[i];
+                    if (!(hit_points[i][3] <= hit_points[j][3])) {
+                        index = hit_polys[i];
 
                         hit_polys[i] = hit_polys[j];
                         hit_polys[j] = index;
@@ -1709,8 +1721,8 @@ int CheckHitsSphere(CCPoly *polys, int count, float *sphere, int max_hits, int *
         if (sort < 0) {
             for (i = 0; i < hits - 1; i++) {
                 for (j = i + 1; j < hits; j++) {
-                    if (hit_points[j][3] < hit_points[i][3]) {
-                        int index = hit_polys[i];
+                    if (!(hit_points[i][3] <= hit_points[j][3])) {
+                        index = hit_polys[i];
 
                         hit_polys[i] = hit_polys[j];
                         hit_polys[j] = index;
@@ -1738,7 +1750,7 @@ int MoveCheck(float *pos, float *velocity, float *out_pos, MoveCheckInfo *info, 
     int           hit_polys[64];
     sceVu0FVECTOR hit_points[64];
     sceVu0FVECTOR extended_to;
-    CCPoly        ground_poly;
+    CCPolyCopy    ground_poly __attribute__((aligned(16)));
     sceVu0FVECTOR ground_query;
     sceVu0FVECTOR wall_query;
     float         radius;
@@ -1791,11 +1803,12 @@ int MoveCheck(float *pos, float *velocity, float *out_pos, MoveCheckInfo *info, 
     if (velocity[1] > 0.1f) {
         landing_margin = 0.0f;
     }
+    CCPoly *found_poly = (CCPoly *) &ground_poly;
     sceVu0CopyVector(ground_query, from);
-    if (info->skip_ground == 0 && GetFootPoly(ground_query, 20.0f, &ground_poly, ground, polys, count, ignore_mask) != 0) {
+    if (info->skip_ground == 0 && GetFootPoly(ground_query, 20.0f, found_poly, ground, polys, count, ignore_mask) != 0) {
         sceVu0Normalize(ground_poly.normal, ground_poly.normal);
-        info->ground_poly = ground_poly;
-        info->second_poly = ground_poly;
+        *(CCPolyCopy *) &info->ground_poly = ground_poly;
+        *(CCPolyCopy *) &info->second_poly = ground_poly;
         info->ground_found = 1;
         info->landed = 0;
         *(u_long128 *) info->ground_point = *(u_long128 *) ground;
@@ -1814,8 +1827,9 @@ int MoveCheck(float *pos, float *velocity, float *out_pos, MoveCheckInfo *info, 
     }
     *(u_long128 *) wall_query = *(u_long128 *) out_pos;
     wall_query[1] += 5.0f;
-    info->width_result = CheckWidth(polys, count, wall_query, radius, to, ignore_mask);
-    if (info->width_result != 0) {
+    int width_result = CheckWidth(polys, count, wall_query, radius, to, ignore_mask);
+    info->width_result = width_result;
+    if (width_result != 0) {
         wall_query[0] = to[0];
         wall_query[2] = to[2];
     }
@@ -1829,7 +1843,7 @@ int MoveCheck(float *pos, float *velocity, float *out_pos, MoveCheckInfo *info, 
     }
     if (info->skip_ground == 0) {
         sceVu0CopyVector(ground_query, from);
-        if (GetFootPoly(ground_query, 20.0f, &ground_poly, ground, polys, count, ignore_mask) != 0) {
+        if (GetFootPoly(ground_query, 20.0f, found_poly, ground, polys, count, ignore_mask) != 0) {
             *(u_long128 *) info->ground_point = *(u_long128 *) ground;
             if (ground[1] > ((from[1] + velocity[1]) - 10.0f) - landing_margin) {
                 out_pos[1] = ground[1];

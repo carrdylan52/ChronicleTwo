@@ -1,11 +1,10 @@
 # gameutil: reverse-engineering notes
 
 ## C++ draft status
-All 37 functions have C++ in `ps2/src/gameutil.cpp`. 13 are exact and compiled
-by the matching build. 1 more compiles to retail's bytes in isolation but stays
-under `NONMATCHING`. 23 differ from retail and keep the `INCLUDE_ASM` fallback.
-Each function tried has its one promotion attempt recorded in
-`scripts/re/promotion_attempts.tsv`.
+The matching build supplies 30 of the 37 functions as native C++. Seven remain
+under `NONMATCHING` with retail assembly fallbacks. Raw draft comparisons use
+the pinned deterministic compiler profile; promotion also requires complete
+object bytes, resolved relocations, and the inherited linked-image baseline.
 
 Header: `ps2/include/gameutil.hpp`. No class in `class_units.tsv` is owned by gameutil; the header
 declares the plain structs and enums the unit's code uses.
@@ -122,3 +121,63 @@ The unit-level `divbyzerocheck` pragma was redundant with the global MWCC flag; 
 `CheckHits(CollisionInfo*, ...)` retain C++ drafts under `NONMATCHING` and use
 `INCLUDE_ASM` in retail builds. Their promoted versions contained VU0 assembly
 inside C++ functions, so those promotions do not meet the source matching rule.
+
+## Guarded collision-query remainders
+
+`CheckHitsSphere` copies the complete sphere vector into both bounds, then
+adds/subtracts the captured radius from xyz. Its first box rejection tests
+`sphere_max < poly_min`; the second rejects `!(sphere_min <= poly_max)`.
+Both positive and negative sort modes swap when `!(point_i.w <= point_j.w)`.
+The unordered-comparison behavior therefore matters; replacing the latter
+predicates with ordinary greater-than or reversed less-than changes NaN cases.
+The zero-sort path returns before the two sorting blocks.
+
+The retained sphere draft differs in 55 of 252 padded words, down from
+246/252. Its body is 0x3E4 within the retail 0x3F0 extent. Its 0x140-byte
+stack frame is 0x10 smaller than retail, the spilled argument/vector slots
+are lower, and the scan index and polygon cursor use exchanged s2/s3 registers.
+The sorting instructions otherwise line up. Ordinary versus aligned vector
+typedefs, component-index lifetime, and function-scope scalar declarations
+alone do not resolve this. Reconsider with evidence for the original scratch
+lifetimes or an established compiler allocation policy.
+
+`MoveCheck` copies polygon results as five float vectors, including the raw
+surface-attribute representation, using the same `CCPolyCopy` view already
+used by `GetFootPoly`. Its scratch view retains the real polygon's 16-byte
+alignment at the typed query interface. The captured `CheckWidth` return
+value is stored in `info->width_result` and tested without rereading the
+member. The typed output pointer serves both ground queries.
+
+The retained movement draft has a 0x608-byte body within retail 0x610 and
+differs in two of 388 padded
+words, down from the previous oversized 0x654 draft. At +0x540/+0x548,
+retail materializes the ground-query position pointer before the polygon
+output pointer, while the compiler exchanges them around the same 20.0f
+argument. The first ground query and all copy/result operations match.
+A private callee-scoped binary32 0x41A00000 evaluate-first selector does not
+change this remainder; no profile row is validated. A second output-pointer
+local changes the first query and its saved-register lifetime. Reconsider
+with a natural query-interface type/lifetime distinction or a verified
+compiler policy that explains these pointer arguments.
+
+`MotionProc(float)` retains its original draft, 289/596 padded words and
+0x934 bytes against retail 0x950. Its first differences exchange the saved
+camera/key registers and retain a subtraction of key/next where retail
+materializes -1. Direct unsigned upper-bound subtraction removes a word
+and shifts later code; unsigned locals alone do not fix the difference.
+Retail reads the motion type after `GetFrame`; m2c lifts this read in its
+pseudocode, so moving it before the call is incorrect. Sequential vertex
+time-region tests alone do not close the later control-flow differences. Reconsider
+with original index-lifetime and vertex-case control-flow evidence.
+
+## COP2 audit
+
+`CheckHit(CollisionInfo*)` and `CheckHits(CollisionInfo*)` each load the query
+bounds into vf10/vf11 using two direct `lqc2` instructions between ordinary
+calls. `MotionProc2` clears each skin accumulator with a direct
+`sqc2 vf0`, storing (0,0,0,1). These are instructions in the callers, not SDK
+call bodies. The SDK header declares out-of-line operations and no existing
+native inline helper reproduces these sequences. All three remain parked,
+along with the VU0 `testVUnew`; reconsider only when an admissible existing
+SDK/inline mechanism or a separately authorized VU implementation policy
+covers those operations.
