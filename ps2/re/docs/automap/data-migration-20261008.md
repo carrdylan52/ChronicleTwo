@@ -49,3 +49,40 @@ Receipts: `03-tiles-build.log`, `03-tiles-objects.log`, `03-tiles-metrics.log`.
 All 149 units pass; PAL is OK; all 148 other object hashes remain unchanged.
 Marker counts become 305/0; matched data remains 28/21,300 while other pieces
 of the source-only `.data` section are incomplete.
+
+## Generated part catalog
+
+`PartsInfoData` at `0x33D440` is 277 native `AUTOMAP_PARTS_INFO`
+aggregates. Its names and documented kind/link flags are inline; the eight
+auxiliary shorts of each row retain their existing unknown field name and exact
+retail values. Those shorts range from -1 to 85 and are not uniformly repeated;
+no consumer establishes their meaning. Bits 0x40 and 0x80 have neutral enum
+names recording which stair and door variants carry them, without claiming a
+behavior. All 276 nonempty part-name literals are emitted by the compiler.
+
+The final row at `0x33EE20` points to the empty string at `0x36CFA8`.
+Its name pointer is not NULL. Retail `SetMapInfo` advances the row offset by
+0x18 at `0x1D5EE8`, then tests the name pointer at `0x1D5EFC`/`0x1D5F00`;
+after the empty-name row it reads zero from `0x33EE38`, the eight alignment
+bytes before the next table. The native 0x19F8-byte object receives that exact
+zero tail through the documented data-padding postprocessor.
+
+The empty-name literal retains `at_1054` and its marker. A fully inline `""`
+initializer emits one unnamed byte of zero: `name_literal_data` finds several
+matching zero-filled pieces, and currently distinguishes candidates only through
+code relocations. This literal has only a pointer relocation in the catalog.
+The probe leaves `at_1054` missing and an unexpected unnamed `.rodata` piece,
+so it cannot pass the canonical checker. Keeping just that literal marker and
+reference preserves exact source for the rest of the catalog. Negative receipts:
+`04-parts-build.log`, `04-parts-probe-objects.log`.
+
+Proposed shared-tool change, outside this lane's ownership:
+`.private/proposals/automap-empty-literal-data-relocation.patch`. It extends
+ambiguous-literal identification to existing R_MIPS_32 relocations in known
+named native data objects; it does not modify data or instruction bytes. The
+proposal is not applied or validated here. After accepting that tool change, the
+last row can use `""` and the `at_1054` declaration/marker can be removed.
+
+Accepted receipts: `04b-parts-build.log`, `04b-parts-objects.log`,
+`04b-parts-metrics.log`. All 149 units pass; PAL is OK; all 148 other object
+hashes remain unchanged. Marker counts become 28/0.
