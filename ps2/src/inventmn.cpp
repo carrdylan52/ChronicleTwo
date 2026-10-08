@@ -4025,12 +4025,12 @@ void CMenuInvent::CalcTex() {
     if (kakudai_pic_form != NULL && kakudai_pic != NULL) {
         if (mode == 12) {
             if (ask_para.ask_mode == INVENT_ASK_ZOOM) {
-                CalcMenuAdd(&kakudai_pic->unk_2c, 0.025f, 1.3f);
-            } else if (CalcMenuAdd(&kakudai_pic->unk_2c, -0.025f, 0.7f)) {
+                CalcMenuAdd(&kakudai_pic->picture_scale, 0.025f, 1.3f);
+            } else if (CalcMenuAdd(&kakudai_pic->picture_scale, -0.025f, 0.7f)) {
                 kakudai_pic_form->draw_flag = 0;
             }
         } else {
-            kakudai_pic->unk_2c = 0.7f;
+            kakudai_pic->picture_scale = 0.7f;
         }
     }
     NowGiftBoxPtr = SearchNowPosItemExist();
@@ -5254,7 +5254,6 @@ static int neta_sort(int mode, int first, int last, int *keys) {
     return swapped;
 }
 
-#ifdef NONMATCHING
 void CMenuInvent::UpdataNetaMemoStr() {
     int              sort_keys[(0x184)];
     CInventUserData *user_data;
@@ -5301,9 +5300,6 @@ void CMenuInvent::UpdataNetaMemoStr() {
     }
 }
 
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/inventmn", UpdataNetaMemoStr__11CMenuInventFv);
-#endif
 
 void MakeMsgNetaName(CDC2Mes *message, CMenuPosDataForm *form, USER_PICTURE_INFO *photo, int *pos, int show_mark) {
     NetaNameBlank blank = at_4470;

@@ -6,9 +6,7 @@ The native drafts of `CMenuInvent::LoadCharaCheck`, `CMenuInvent::IsCreateObject
 and `MenuInventInit` compile to 0x48C, 0x1568, and 0x1018 bytes, respectively;
 retail uses 0x4D8, 0x1588, and 0x1048. Their shorter code shifts the following
 linked text by 0xA0 after function alignment. These drafts remain guarded by
-`NONMATCHING` and the matching build uses their retail assembly. The native
-`UpdataNetaMemoStr` also has differing bytes and relocations, so it uses the
-retail assembly while its C++ draft is refined.
+`NONMATCHING` and the matching build uses their retail assembly. `UpdataNetaMemoStr` matches with the sorting helper declared local, as in retail.
 
 The matching build also selects retail gaps for `ResetAddress`, `CalcTex`,
 `IsAccessAlbum`, and `MenuInventKey`; those functions have guarded C++ drafts.
