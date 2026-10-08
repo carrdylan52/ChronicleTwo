@@ -106,7 +106,7 @@ void CMonsterMan::RunScript(int index) {
  *
  */
 static int GetStackInt(RS_STACKDATA *stack) {
-    if (stack->type == 1) {
+    if (stack->type == RS_FLOAT) {
         return (int) stack->val.f;
     }
 
@@ -119,11 +119,11 @@ static int GetStackInt(RS_STACKDATA *stack) {
  *
  */
 static float GetStackFloat(RS_STACKDATA *stack) {
-    if (stack->type == 0) {
+    if (stack->type == RS_INT) {
         return (float) stack->val.i;
     }
 
-    return *(float *) &stack->val.i;
+    return stack->val.f;
 }
 
 /**
@@ -132,7 +132,7 @@ static float GetStackFloat(RS_STACKDATA *stack) {
  *
  */
 static char *GetStackString(RS_STACKDATA *stack) {
-    return (char *) stack->val.i;
+    return stack->val.s;
 }
 
 /**
@@ -141,8 +141,8 @@ static char *GetStackString(RS_STACKDATA *stack) {
  *
  */
 static void SetStack(RS_STACKDATA *stack, int value) {
-    if (stack->type == 3) {
-        ((RS_STACKDATA *) stack->val.i)->val.i = value;
+    if (stack->type == RS_PTR) {
+        stack->val.p->val.i = value;
     }
 }
 
@@ -152,8 +152,8 @@ static void SetStack(RS_STACKDATA *stack, int value) {
  *
  */
 static void SetStack(RS_STACKDATA *stack, float value) {
-    if (stack->type == 3) {
-        *(float *) &((RS_STACKDATA *) stack->val.i)->val.i = value;
+    if (stack->type == RS_PTR) {
+        stack->val.p->val.f = value;
     }
 }
 
@@ -829,15 +829,15 @@ int _CALC_MOVE_NEXT_POS(RS_STACKDATA *stack, int argc) {
  *
  */
 int _GET_MONSTER_LIFE(RS_STACKDATA *stack, int argc) {
-    if (stack->type != 3) {
+    if (stack->type != RS_PTR) {
         return 0;
     }
 
-    RS_STACKDATA *slot = (RS_STACKDATA *) stack->val.i;
+    RS_STACKDATA *slot = stack->val.p;
 
-    if (slot->type == 0) {
+    if (slot->type == RS_INT) {
         SetStack(stack, nowMonster->life);
-    } else if (slot->type == 1) {
+    } else if (slot->type == RS_FLOAT) {
         SetStack(stack, (float) nowMonster->life / (float) nowMonster->max_life);
     } else {
         return 0;
@@ -1682,13 +1682,13 @@ int _V_POP(RS_STACKDATA *stack, int argc) {
         return 0;
     }
 
-    if (stack->type != 3) {
+    if (stack->type != RS_PTR) {
         return 0;
     }
 
-    RS_STACKDATA *slot = (RS_STACKDATA *) stack->val.i;
+    RS_STACKDATA *slot = stack->val.p;
 
-    if (slot->type == 0) {
+    if (slot->type == RS_INT) {
         if (index < MONSTER_VAR_MAX) {
             ScriptVariable *vars = nowMonster->var;
             SetStack(stack, vars[index].i);
@@ -1700,7 +1700,7 @@ int _V_POP(RS_STACKDATA *stack, int argc) {
         }
 
         return 1;
-    } else if (slot->type == 1) {
+    } else if (slot->type == RS_FLOAT) {
         if (index < MONSTER_VAR_MAX) {
             ScriptVariable *vars = nowMonster->var;
             SetStack(stack, vars[index].f);
@@ -1774,13 +1774,13 @@ int _V_POP2(RS_STACKDATA *stack, int argc) {
         return 0;
     }
 
-    if (stack->type != 3) {
+    if (stack->type != RS_PTR) {
         return 0;
     }
 
-    RS_STACKDATA *slot = (RS_STACKDATA *) stack->val.i;
+    RS_STACKDATA *slot = stack->val.p;
 
-    if (slot->type == 0) {
+    if (slot->type == RS_INT) {
         if (index < MONSTER_VAR2_MAX) {
             ScriptVariable *vars = nowMonster->var2;
             SetStack(stack, vars[index].i);
@@ -1789,7 +1789,7 @@ int _V_POP2(RS_STACKDATA *stack, int argc) {
         }
 
         return 1;
-    } else if (slot->type == 1) {
+    } else if (slot->type == RS_FLOAT) {
         if (index < MONSTER_VAR2_MAX) {
             ScriptVariable *vars = nowMonster->var2;
             SetStack(stack, vars[index].f);

@@ -86,3 +86,18 @@ and `opcodes-native-table-metrics.json`. There are no rodata or BSS markers,
 and native data coverage is 2700 / 2700. The full image and all 149 objects
 pass, including units that include the owned header; every unowned object
 hash remains unchanged. No data marker or tooling proposal is parked.
+
+## Tagged stack-value accesses
+
+The numeric/string helpers and both output-reference overloads now use
+`RS_STACKDATA::val.f`, `val.s`, and `val.p` directly, replacing integer-field
+pointer views. `_GET_MONSTER_LIFE`, `_V_POP`, and `_V_POP2` likewise obtain
+their output slot from `val.p` after checking `RS_PTR`. Their tag tests use
+the established `RS_STACK_TYPE` enum; conversions and dispatch semantics
+are unchanged.
+
+Each helper/reference group was validated independently. Acceptance:
+`.private/dataC-r2/opcodes-{typed-stack-values,int-stack-type,life-stack-reference,variable-stack-reference,variable2-stack-reference}-{build,objects}.log`.
+Every instruction and resolved relocation stays exact, and the complete
+image, all 149 objects, and all unowned hashes pass. Native data remains
+2700 / 2700 with no markers.
