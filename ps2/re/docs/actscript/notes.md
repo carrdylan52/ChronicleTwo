@@ -298,3 +298,27 @@ recorded in [the selector proposal](../satansfiddle/selector-proposal-20261008.m
 Image: `chronicletwo_dev:sf-d8bf13c-proto`. Receipts:
 `.private/receipts/prototype/focused.log` and `shot-word-diff.json`; the trace
 shows the same semantic identity in both compiler passes.
+
+## Predicate selector validation, October 8 round 1
+
+The attack-type-90 row adds `expected_matches: 1` before `evaluate_first`,
+asserting one distinct selected call argument per compiler invocation. This
+cardinality is validation only. `control` retains the equality's integer value
+set and omits the compared subject, so another comparison against 90 can share
+the projection; it is not a unique source-call identity. Additional matches
+fail the assertion, and missing matches still fail consumption checking.
+
+The hardened resolver collects applicable rows before selecting the greatest
+specificity, rejects conflicting winning policies independently of row order,
+and records only winning consumer applications. Compiler regression tests
+check both mode-40 and mode-90 calls in one function, including equal code
+preparation for the unselected mode-40 call. The earlier broad-160 conflict
+is not reintroduced.
+
+With `chronicletwo_dev:sf-d8bf13c-proto2`, the focused full-wrapper receipt
+contains one `expected=1 actual=1` readback in each mwccgap pass. `_SHOT`
+remains `0x900` bytes with zero differing masked words; the complete object
+passes `0x47FC` bytes and 1,111 resolved relocations. Source and headers
+remain unchanged. Receipts: `.private/receipts/proto2/focused.log` and
+`shot-word-diff.json`; whole-project evidence and selector limitations are
+recorded in [the proposal](../satansfiddle/selector-proposal-20261008.md).
