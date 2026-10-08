@@ -23,3 +23,15 @@ definitions preserves every instruction, data extent, and resolved relocation.
 Receipts: `01-bss-build.log`, `01-bss-objects.log`. All 148 other object hashes
 are unchanged. Marker counts become 307/0; matched data remains 28/21,300,
 because the source-only object already inferred storage from the BSS markers.
+
+## Mini map symbol appearance
+
+`symbol_table` at `0x341C60` is a file-local writable array of ten
+`MINIMAP_SYMBOL_INFO` rows. Nine rows specify existing `MINIMAP_SYMBOL`
+values; the final row uses `MINIMAP_SYMBOL_END` and zero appearance fields.
+The native aggregate retains every colour, dimension, blink flag and visibility
+flag, and preserves the retail-local binding.
+
+Receipts: `02-symbols-build.log`, `02-symbols-objects.log`. All 149 units pass;
+PAL is OK; all 148 other object hashes remain unchanged. Marker counts become
+306/0; refreshed matched data becomes 188/21,300.

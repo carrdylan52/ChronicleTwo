@@ -34,7 +34,6 @@ enum {
     kDoorPartsLast = kDoorPartsEnd - 1
 };
 
-extern MINIMAP_SYMBOL_INFO symbol_table[];
 extern SPI_TAG_PARAM       tag__4[];
 extern char                at_1111[];
 extern char                at_2119__2[];
@@ -58,6 +57,24 @@ int                        _ROOM_SIZE(SPI_STACK *stack, int arg_count);
 int                        _ROOM_RATE(SPI_STACK *stack, int arg_count);
 int                        _RD(SPI_STACK *stack, int arg_count);
 int                        _ROOM_END(SPI_STACK *stack, int arg_count);
+
+/**
+ *
+ * Colours, sizes and visibility rules of the mini map symbols.
+ *
+ */
+static MINIMAP_SYMBOL_INFO symbol_table[] = {
+    {MINIMAP_SYMBOL_MONSTER_BLINK, 255, 0, 0, 10, 10, 1, 1},
+    {MINIMAP_SYMBOL_MONSTER, 255, 0, 0, 10, 10, 0, 1},
+    {MINIMAP_SYMBOL_TREASURE_BOX, 96, 64, 0, 10, 10, 0, 1},
+    {MINIMAP_SYMBOL_RANDOM_CIRCLE, 255, 255, 0, 10, 10, 0, 1},
+    {MINIMAP_SYMBOL_GEOSTONE, 255, 0, 180, 10, 10, 0, 1},
+    {MINIMAP_SYMBOL_SPHIDA_6, 255, 0, 0, 10, 10, 1, 0},
+    {MINIMAP_SYMBOL_SPHIDA_7, 0, 0, 255, 10, 10, 1, 0},
+    {MINIMAP_SYMBOL_SPHIDA_4, 255, 0, 0, 14, 14, 0, 0},
+    {MINIMAP_SYMBOL_SPHIDA_5, 0, 64, 255, 14, 14, 0, 0},
+    {MINIMAP_SYMBOL_END, 0, 0, 0, 0, 0, 0, 0}
+};
 
 // Small uninitialised data (.sbss)
 /**
@@ -2180,7 +2197,6 @@ void CAutoMapGen::UpdateNaviMap(float *pos, int depth) {
 // Initialised data (.data)
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/automap", PartsInfoData__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/automap", MiniMapInfoData__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/automap", symbol_table__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/automap", tag__4__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/automap", at_2125__2__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/automap", at_2126__2__DATA);
