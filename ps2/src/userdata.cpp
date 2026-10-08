@@ -258,14 +258,7 @@ static signed char equip_type_tbl_5456[3][5] = {
     {3, 4, 9, 10, 8},
     {13, 12, 15, 14, 0},
 };
-extern char            at_1378__2[];
-extern char            at_1379__2[];
-extern char            at_1623[];
-extern char            at_1624[];
-extern char            at_1637[];
 extern char            at_2061[];
-extern char            at_2018[];
-extern char            at_2019[];
 extern char            at_5773[];
 
 /**
@@ -800,10 +793,10 @@ char *CGameDataUsed::GetName(int name_type) {
 
         if (weapon_level > 0) {
             if ((int) LanguageCode > 0) {
-                strcat(word_1327, at_1378__2);
+                strcat(word_1327, " + %d");
                 sprintf(word_1327, word_1327, weapon_level);
             } else {
-                strcat(word_1327, at_1379__2);
+                strcat(word_1327, "\x81{");
                 digits = GetNumberKeta(weapon_level);
 
                 if (digits > 0) {
@@ -1193,11 +1186,11 @@ void CGameDataUsed::GetRoboJointName(char *name) {
     }
 
     if (item_type == 0xD) {
-        sprintf(name, at_1623, record->GetOffsetNo());
+        sprintf(name, "body%d", record->GetOffsetNo());
     }
 
     if (item_type == 0xC) {
-        sprintf(name, at_1624, record->GetOffsetNo());
+        sprintf(name, "arm%d", record->GetOffsetNo());
     }
 }
 
@@ -1215,7 +1208,7 @@ void CGameDataUsed::GetRoboSoundFileName(char *name) {
             sound_no = 0x28;
         }
 
-        sprintf(name, at_1637, sound_no);
+        sprintf(name, "CH_0%d", sound_no);
     }
 }
 
@@ -1698,10 +1691,10 @@ int GetMainCharaModelName(int character_index, char *model_name, int alternate) 
     }
 
     if (alternate != 0) {
-        sprintf(model_name, at_2018, f_2005[character_index]);
+        sprintf(model_name, "%s.chr", f_2005[character_index]);
         return 1;
     } else {
-        sprintf(model_name, at_2019, f_2005[character_index], model_number);
+        sprintf(model_name, "%s%d.chr", f_2005[character_index], model_number);
         return 1;
     }
 }
@@ -6430,14 +6423,6 @@ INCLUDE_RODATA("ps2/asm/pal/nonmatchings/userdata", dbg_set3_5776__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/userdata", subgame1_5788__DATA);
 
 // Constants (.rodata)
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/userdata", at_1378__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/userdata", at_1379__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/userdata", at_1623__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/userdata", at_1624__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/userdata", at_1637__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/userdata", at_2018__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/userdata", at_2019__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/userdata", at_4442__DATA);
 
 // Small initialised data (.sdata)
 /**

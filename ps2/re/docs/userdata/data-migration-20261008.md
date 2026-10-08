@@ -90,3 +90,19 @@ compatible. Detailed m2c/disassembly evidence is in
 objects after rebuilding all header consumers. Every unowned object
 file hash equals the warm baseline. There are 19 data markers and
 two BSS markers after this group.
+
+## Inline format strings and switch data
+
+`GetName`, `GetModelFileName`, `GetSoundReadName`, and
+`GetMainCharaModelName` use their string literals directly. Their
+external anonymous-string declarations and seven data markers are
+removed. `CUserDataManager::CopyGameData` already has a native
+switch; it emits `at_4442` and its eight function-relative
+relocations without the marker.
+
+Each function's change has a full receipt (`userdata-name-level`,
+`userdata-weapon-model`, `userdata-weapon-sound`,
+`userdata-character-model`, and `userdata-item-copy-switch`) in
+`.private/dataC/`. PAL remains OK, all 149 objects pass, and
+unowned object hashes are unchanged. Eleven data markers and two
+BSS markers remain.
