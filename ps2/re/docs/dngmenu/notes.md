@@ -622,3 +622,9 @@ of every assigned guard, and the retained guarded corrections.
 condition, cursor-buffer type and optimizer probes. Their best results remain
 7/116 and 55/256. The conditional natural ClsMes::Init proposal remains
 inactive; no dungeon function, global type or profile row changes this round.
+
+## October 8 near-miss wave
+
+[nearmiss-20261008.md](nearmiss-20261008.md) records the new local-data,
+coordinate-width, input-order and compiler-control probes. MsgInit remains
+at 7/116 words, and the conditional ClsMes::Init proposal remains inactive.
