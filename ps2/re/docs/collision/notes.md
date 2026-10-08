@@ -106,25 +106,25 @@ then index words, three per triangle. Returns null if any list has `(flags & 7) 
 `flags & 0x100`, or if the poly Alloc fails (the CCollisionMDT is leaked). Ends with virtual
 CreateBBox (+8).
 
-## Drafting (job collision.1)
+## Initial drafting and current implementations
 - Inline-emitted copies: the tail block 0x1489E0-0x148A80 (both `CColFrame::Draw`,
   `CCollisionMDT::Initialize`, `CCollision::Copy/CreateBBox/GetMaxY/Initialize`) are class-body
   inline virtuals, now defined in collision.hpp. Evidence: `CCollision::Initialize` is inlined
   into `CCollisionMDT::Initialize` and into the inlined MDT ctor in `CreateCollisionMDT`.
-  Their INCLUDE_ASM stays: the compiler does not emit them here while the vtables are
-  INCLUDE_RODATA (removing them breaks the link: editmap, mapload and the vtables reference them).
-- Promotion limits: defining a class's key function (first non-inline virtual) makes MWCC emit
-  that class's vtable and inline virtuals here, which shifts the tail (CCollision:
-  `InsidePoint`; CColFrame: `Initialize`, +0x80 bytes). The CColFrame ctor cannot be promoted
-  because it references `__vt__9CColFrame`, which the game build only has as `__DATA`.
-  Promoted: `CColFrame::InsidePoint`, `CCollision::Intersection`, `CCollision::PickUpNearPoly`.
+  The initial draft required INCLUDE_ASM while the vtables were assembly data.
+  The current native definitions emit these methods and their required symbols.
+- Initial promotion limits: defining a class's key function (first non-inline virtual) makes MWCC emit
+  that class's vtable and inline virtuals here. Early trials shifted the tail
+  (CCollision: `InsidePoint`; CColFrame: `Initialize`, +0x80 bytes) and had an
+  unresolved `__vt__9CColFrame` constructor reference. Those historical emission
+  problems are superseded by the current exact native unit.
 - `pre_trance_normal` / `trance_normal` are whole-function VU0 blocks.
   `pre_trance_normal` keeps the world matrix in vf10-vf13 across calls;
   `trance_normal` transforms three contiguous vertices by that matrix, writes
   them through three destination pointers, and writes their unnormalised
-  cross-product normal. Guarded C++ drafts keep the matrix in a file-local
-  array and compute the same three vertices and xyz normal. VU0 leaves the
-  normal's w lane unspecified; the draft writes zero there. `pre_trance_normal`
+  cross-product normal. Earlier scalar C++ drafts kept the matrix in a
+  file-local array and computed the same three vertices and xyz normal. VU0
+  leaves the normal's w lane unspecified; those drafts wrote zero there. `pre_trance_normal`
   now uses the narrow inline VU0 exception: its four matrix loads match all
   0x14 retail bytes, and the `collision` object passes `check_objects.py` with
   98 resolved relocations.
@@ -154,8 +154,8 @@ CreateBBox (+8).
   recursively queries child frames while capacity remains. Its 0x290 bytes
   match objdiff exactly; the collision object passes `check_objects.py` with
   98 resolved relocations.
-- Unsure drafts (DIFF): LoadCollisionFile matrix copy loop shape;
-  CreateCollisionMDT vertex copies.
+- Earlier private loader and constructor variants differed in matrix or
+  vertex-copy allocation; the retained native implementations are exact.
 
 ## Native loader comparison
 
@@ -165,8 +165,8 @@ retail 0x230-byte size and all call relocations, but the original header, record
 cursor, memory allocator and frames receive different saved registers. The
 matrix column-copy loop and the call order are unchanged. Naming a captured
 object count, sharing or separating the frame index, and moving the original
-header declaration did not close the register difference. The fallback remains
-active; no unmatched trial is promoted.
+header declaration did not close the register difference. Those trial forms are not the active implementation; the retained native
+`LoadCollisionFile` passes the complete-unit comparison.
 
 ## Native MDT constructor comparison
 
@@ -182,8 +182,8 @@ The counting pass and subsequent primitive walk also differ from retail.
 A class-body CCollisionMDT::Initialize with its constructor calling Initialize
 was tested and changed existing inline emission; it was reverted. Seeding helper
 masks for integer argument registers and float argument registers did not change
-the remaining native differences. The original constructor/header and assembly
-fallback remain in place while these source-shape issues are unresolved.
+the remaining native differences. Those private candidates are not retained. The active native constructor
+and `CreateCollisionMDT` implementation pass the complete-unit comparison.
 
 ## CColFrame caller preservation
 
@@ -193,3 +193,10 @@ Their visible register preservation resolves the earlier five-word caller
 park: the hit-count/world-matrix argument order and caller-saved triangle
 counter now follow retail. The earlier scalar-helper-interface measurements
 do not describe this merged implementation.
+
+## Merged-unit validation
+
+The `sf-d8bf13c` clean build passes the complete collision object: `0x1240`
+checked bytes and 98 resolved relocations. All 23 function rows are exact;
+there are no guarded or assembly-only gaps. Processor-specific VU0 source
+is imported unchanged from upstream rather than supplied by new C++ trials.
