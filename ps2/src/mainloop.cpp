@@ -256,14 +256,6 @@ extern INIT_LOOP_ARG InitArg;
 extern mgCMemory     InfoStack;
 
 extern mgCMemory   MenuBuffer;
-extern mgCMemory   buf0_1224;
-extern mgCMemory   buf1_1227;
-extern mgCMemory   dbuf0_1230;
-extern mgCMemory   dbuf1_1233;
-extern s8          init_1225;
-extern s8          init_1228;
-extern s8          init_1231;
-extern s8          init_1234;
 /**
  * Font texture pages loaded for the current language.
  */
@@ -362,6 +354,11 @@ static char *menu_1457[12] = {
  * Persistent row values selected by the chapter and event debug menu.
  */
 static int menu_sel_1452[11] = {0};
+
+/**
+ * Microprogram addresses loaded when the main game loop starts.
+ */
+static u_long128 *vu_prog_1048[16];
 
 // Code (.text)
 CFont *GetDebugFont() {
@@ -522,7 +519,6 @@ void MainLoop() {
     int               mode_finished;
     int               buffer_address;
     int               alignment;
-    static u_long128 *vu_prog[16];
 
     memory = GetMainStack();
     memory->stSetBuffer(main_buffer, 0x1A0000);
@@ -542,6 +538,9 @@ void MainLoop() {
     LoopNo = LOOP_TITLE;
     DebugFlag = 0;
     DebugInfo.chara_move = 0;
+    /**
+     * Whether the debug performance meter is displayed.
+     */
     static int pmeter_flag = 0;
 
     pmeter_flag = 0;
@@ -562,7 +561,7 @@ void MainLoop() {
     GamePad__2.UpDate();
     sceGsSyncV(0);
     GamePad__2.UpDate();
-    mgSetUserVuProg(vu_prog, 16);
+    mgSetUserVuProg(vu_prog_1048, 16);
     mgSetUserVuProgAdr(0, Vu_prog_wtr);
     InitPadTable(LanguageCode);
     GameItemDataManage.LoadData();
@@ -757,6 +756,9 @@ void MainLoop() {
                 case LOOP_EDIT:
                 case LOOP_DUNGEON:
                 case LOOP_TITLE: {
+                    /**
+                     * Whether the debug frame-advance pause is enabled.
+                     */
                     static int pause = 0;
 
                     if (GamePad__2.Down2(PAD_SELECT)) {
@@ -825,6 +827,9 @@ void MainLoop() {
     GamePad__2.Close();
 }
 
+/**
+ * Prepares rendering and resource buffers for the main debug menu.
+ */
 void MenuInit(INIT_LOOP_ARG arg) {
     mgCMemory *main_stack;
     u_long128 *packet_a;
@@ -841,37 +846,37 @@ void MenuInit(INIT_LOOP_ARG arg) {
     main_stack->stack_used = 0;
     main_stack->lock = 0;
 
-    if (init_1225 == 0) {
-        buf0_1224.Init();
-        init_1225 = 1;
-    }
+    /**
+     * Packet buffer for the first debug-menu draw buffer.
+     */
+    static mgCMemory buf0;
 
-    if (init_1228 == 0) {
-        buf1_1227.Init();
-        init_1228 = 1;
-    }
+    /**
+     * Packet buffer for the second debug-menu draw buffer.
+     */
+    static mgCMemory buf1;
 
-    if (init_1231 == 0) {
-        dbuf0_1230.Init();
-        init_1231 = 1;
-    }
+    /**
+     * Data buffer for the first debug-menu draw buffer.
+     */
+    static mgCMemory dbuf0;
 
-    if (init_1234 == 0) {
-        dbuf1_1233.Init();
-        init_1234 = 1;
-    }
+    /**
+     * Data buffer for the second debug-menu draw buffer.
+     */
+    static mgCMemory dbuf1;
 
     packet_a = main_stack->stAlloc64(0x2710);
     packet_b = main_stack->stAlloc64(0x2710);
     mgInitVif1Packet(packet_a, packet_b, 0x27100);
-    buf0_1224.stSetBuffer(main_stack->stAlloc64(0x2710), 0x2710);
-    buf1_1227.stSetBuffer(main_stack->stAlloc64(0x2710), 0x2710);
-    dbuf0_1230.stSetBuffer(main_stack->stAlloc64(0xC350), 0xC350);
-    dbuf1_1233.stSetBuffer(main_stack->stAlloc64(0xC350), 0xC350);
+    buf0.stSetBuffer(main_stack->stAlloc64(0x2710), 0x2710);
+    buf1.stSetBuffer(main_stack->stAlloc64(0x2710), 0x2710);
+    dbuf0.stSetBuffer(main_stack->stAlloc64(0xC350), 0xC350);
+    dbuf1.stSetBuffer(main_stack->stAlloc64(0xC350), 0xC350);
     MenuBuffer.stSetBuffer(main_stack->stAlloc64(0x7A120), 0x7A120);
     read_buffer = main_stack->stAlloc64(0x186A0);
-    mgSetPacketBuffer(&buf0_1224, &buf1_1227);
-    mgSetDataBuffer(&dbuf0_1230, &dbuf1_1233, 1);
+    mgSetPacketBuffer(&buf0, &buf1);
+    mgSetDataBuffer(&dbuf0, &dbuf1, 1);
     GamePad__2.SetAutoRepeat(0xF000, 0xF, 4);
     mgSetBackGround(0.0f, 0.0f, 0.0f, 0.0f);
     SetTextureTable(0x64, 0x14, &MenuBuffer);
@@ -1063,6 +1068,9 @@ static int MenuLoop() {
     }
     return 0;
 }
+/**
+ * Releases debug-menu input repeat and font state.
+ */
 void MenuExit() {
     GamePad__2.AutoRepeatOff();
     mgCloseFont();
@@ -1917,18 +1925,12 @@ CEditData::CEditData() {
     Initialize();
 }
 
-// Static initialiser (.init)
-
-// Initialised data (.data)
-
 // Constants (.rodata)
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mainloop", at_1317__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mainloop", at_1316__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mainloop", at_1315__DATA);
-
-// Static initialiser table (.ctor)
+INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mainloop", at_1316__DATA);
 
 // Small initialised data (.sdata)
+INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mainloop", at_1317__2__DATA);
 int MainThreadPriority = 1;
 
 // Small uninitialised data (.sbss)
@@ -1957,20 +1959,52 @@ INCLUDE_BSS(init_1470, 0x4);
 CGamePad GamePad__2;
 CPadControl PadCtrl;
 DEBUG_INFO    DebugInfo;
+/**
+ * Font used by debug screens.
+ */
 CFont         Font;
+/**
+ * Initialization arguments for the current game mode.
+ */
 INIT_LOOP_ARG InitArg;
+/**
+ * Initialization arguments for the next game mode.
+ */
 INIT_LOOP_ARG NextInitArg;
+/**
+ * Initialization arguments for the previous game mode.
+ */
 INIT_LOOP_ARG PrevInitArg;
+/**
+ * Main allocator over the game resource arena.
+ */
 static mgCMemory MainBuffer;
+/**
+ * Scene used by the main game modes.
+ */
 CScene           MainScene;
+/**
+ * Allocator for system sound-effect resources.
+ */
 mgCMemory SystemSeStack;
+/**
+ * Allocator for configuration and villager records.
+ */
 mgCMemory InfoStack;
+/**
+ * Main save-data object owned by the game loop.
+ */
 CSaveData SaveData;
-INCLUDE_BSS(vu_prog_1048, 0x40);
+/**
+ * Allocator for the debug menu resources.
+ */
 mgCMemory MenuBuffer;
 INCLUDE_BSS(buf0_1224, 0x30);
 INCLUDE_BSS(buf1_1227, 0x30);
 INCLUDE_BSS(dbuf0_1230, 0x30);
 INCLUDE_BSS(dbuf1_1233, 0x30);
 INCLUDE_BSS(at_1529, 0x40);
+/**
+ * Message window used by the pause menu.
+ */
 ClsMes PauseMes;

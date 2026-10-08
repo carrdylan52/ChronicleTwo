@@ -76,3 +76,57 @@ The three markers are retained; restoring only this group resolves the full
 object check. Receipts:
 `.private/dataB-r2/mainloop-menu-literals-{build,check}.log` and
 `.private/dataB-r2/mainloop-menu-literals-restored-{build,check}.log`.
+
+## Menu render buffers and VU addresses
+
+The four render-buffer initialization blocks are natural local `mgCMemory`
+statics (`buf0`, `buf1`, `dbuf0`, `dbuf1`). Their constructors call `Init` and
+emit the original guarded initialization in the original order. The four
+storage markers and four guard markers remain for compiler-local identity
+binding. The 16-entry VU program-address table is native file-private
+`u_long128 *` storage under its retail name `vu_prog_1048`.
+
+The remaining 17 BSS markers are:
+
+- Four scalar local statics and their guards: `pmeter_flag`, `pause`, and the
+  two menu `select` values (eight markers).
+- Four local render-buffer statics and their guards (eight markers).
+- The compiler's 64-byte zero initializer for EventSelect's local
+  `char config_name[64] = ""` (one marker, `at_1529`). This is not an
+  additional field of `INIT_LOOP_ARG`. Its use copies four quadwords from
+  the initializer to the local buffer; converting that initializer to a
+  named standalone template would preserve the scaffolding rather than
+  produce its natural source form. Native anonymous BSS identification is
+  needed to remove its marker.
+
+## Font reload access
+
+`ReLoadFontTexture` retains its existing byte-offset access to the now-typed
+font-page arrays. The indexed alternatives in `notes.md` are not repeated.
+A new walk with typed `TM2_head **` and `mgCTexture **` cursors produces a
+0xFC-byte function versus retail's 0x108 bytes, at 85.833% in objdiff. Its
+alignment has 6 argument mismatches, 6 deletions and 3 insertions (15 differing
+instruction rows). This changes the complete object and PAL image, so the
+matching access form is retained. Receipts:
+`.private/dataB-r2/mainloop-font-walk-{build,check,diff}.log` and
+`.private/dataB-r2/mainloop-font-walk-diff.json` (the diff receipt is the JSON).
+
+Removing only the cursor's arrow-string marker also fails: the arrow's
+native copy is discarded while the retained parent table refers to its retail
+name. All three cursor markers therefore remain together. Receipt:
+`.private/dataB-r2/mainloop-cursor-arrow-{build,check}.log`.
+
+## Tooling proposal
+
+`.private/proposals/native-local-data-identity.patch` is a proposed change
+for the tooling lane, not an applied change. Its identity is the source-local
+name, declared size and referencing mangled-function set from actual native
+and retail relocations. Guard identity adds the named storage initialized by
+the guard's semantic initialization region. It does not select instruction
+positions, change allocated bytes, or edit instruction/relocation values.
+The scalar guard prototype covers editctrl's three pairs and character's
+outline counter. Constructor guards need additional support. Objdiff base
+objects need equivalent identity mapping separately; linked-object
+normalization alone will not fix the data coverage metric.
+
+After refreshing progress: 4 / 27902952 matched data bytes; markers 3 ROData, 17 BSS. Final receipts: `.private/dataB-r2/mainloop-final-{build,check,progress}.log`.
