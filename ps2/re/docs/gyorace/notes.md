@@ -87,23 +87,72 @@ grRACE_PROGRESS (0x18): `+0` float course position (0..16, 8 per lap), `+8` floa
 - Retail names of the two structs (neutral names chosen).
 - Enum names for `GYORACE_MODE` are neutral.
 
-## C++ draft and promotion status (2026-10-06)
+## Current matching status (2026-10-08)
 
-All eight ASM-backed runtime functions have typed C++ drafts guarded by `NONMATCHING`.
-`sgMapDrawGyoRace` is already matched. The compiler-generated initializer matches when the
-guarded globals are compiled, but default promotion is blocked: the object compiler emits
-`__sinit_gyorace.cpp`, whereas the retail constructor table references
-`__sinit_gyorace_cpp`. The retail initializer remains the default assembly implementation.
+Seven of the ten functions are source supplied. Only `sgInitGyoRace`,
+`sgLoopGyoRace` and `sgSysDrawGyoRace` remain guarded. The earlier partial-draft
+and initializer promotion descriptions are obsolete; the current initializer
+and drawing/commentary helpers already match. Fresh receipts supersede the
+previous claims of ten/twelve-word Init/Draw differences.
 
-The eight runtime drafts all differ from retail. Each received one isolated promotion
-attempt; each trial failed to compile because the trial deliberately enabled only that
-function while its dependent includes and locally owned globals remained guarded.
-The guarded unit itself compiles, and the default full build verifies byte-identical.
+### Race display
 
-The initializer, race loop and race display drafts currently model their principal
-state transitions and typed data flow. They do not yet cover every resource load,
-animation update, screen primitive or commentary branch in retail. In particular,
-`sgInitGyoRace` and `sgSysDrawGyoRace` are substantially shorter than the retail code.
-These remain analysis and matching gaps, not promoted functions.
+`sgSysDrawGyoRace` starts at 65/1172 differing words, with a 0x1244-byte body
+inside the 0x1250 retail extent. Computing the lane's vertical bar position
+before passing the draw arguments reproduces retail's float scheduling and
+removes 38 differences. The lap-display comparison is signed (`slt`), despite
+the stored unsigned lap number, so an explicit signed index conversion
+removes another difference.
 
-The guarded `sgInitGyoRace` C++ draft differs only in the setup order for its final `camera0.SetRef(222.0f, 0.0f, 0.0f)` and `SetNextRef` calls: retail loads the zero argument before the 222.0f constant and camera address. Named and explicitly constructed zero float values leave ten instruction-order differences. `sgSysDrawGyoRace` has twelve differences in lap digit setup, including the choice of saved register for an array index.
+The closest compliant draft differs by 47 words after removing an unused
+pre-bar index initialization and storing all lap digits before initializing
+the display counters. The remaining differences concern saved-register
+allocation for the lane pointer and row induction, seconds/hundredths values,
+and the later lap rows. Keeping the unused initialization yields 26 words,
+but is not an acceptable matching technique. Reusing an entrant index or a
+row variable across display paths and scoping the row pointers locally do
+not recover the retail lifetimes. Reconsider with a natural loop form that
+accounts for these saved-register identities.
+
+### Race initialization
+
+The untouched Init draft emits a 0x1210-byte section against retail's 0x1200
+extent and differs in 437 disassembled instructions. Direct fish pointers
+for stamina and character scale replace unnecessary pointer-reference
+bindings reduce its section to 0x1208 bytes, still eight bytes beyond the
+retail extent; 433 disassembled instructions differ. Its first register differences are at +0x69C in entrant
+selection. The parameter loop keeps the RaceInfo base and its entry offset
+live separately, whereas retail retains one computed entry address and
+keeps the fish-state induction offset in s8 instead of spilling it. Later
+code inherits the resulting instruction displacement. The final reference
+camera calls also load constants in a different order. Unsuffixed camera
+arguments do not fix that order.
+
+At +0xB84 retail loads the fish fatigue increment with `lhu`, whereas the
+shared `BREEDFISH_USED::fatigue` declaration is signed. A temporary unsigned
+field declaration corrects that opcode but also changes register allocation;
+it was reverted. Any shared type correction requires auditing its other
+consumers and complete-object validation. Neither pointer changes nor this
+type probe produced a match. Reconsider after that type audit and with a
+natural form preserving the computed entry address through its parameter
+writes. The placement-new branch and pointer-copy delay slot at +0x154 and
++0x158 already match; they are not this function's blocker.
+
+### Race loop
+
+The untouched Loop draft emits a 0x1A40-byte section against the 0x1A30 extent
+and differs in 1188 disassembled instructions. The unused dead-section
+division helper and the identity wrapper around rectangle construction have
+been removed. Rectangle assignment now uses the normal `mgRect<int>`
+constructor and compiler-generated value assignment. Reading the hero's
+time through the hero index when updating its lap time retains retail's
+reload after writing the current fish time; this is equivalent within the
+existing fish-equals-hero branch. The draft still differs in 1188
+disassembled instructions, with substantial instruction displacement.
+
+The early differences include camera argument constant order, followed by
+evaluation order and reloads in the hero lap/goal-time branches. Implicit
+double-to-float startup camera arguments do not improve the code. Reconsider
+with source-level evaluation and alias-lifetime evidence for those branches,
+then the rectangle copy, before treating later displaced instructions as
+independent mismatches. The guarded assembly remains active.

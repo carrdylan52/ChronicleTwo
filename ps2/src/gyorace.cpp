@@ -287,8 +287,7 @@ int sgInitGyoRace(SubGameInfo *info) {
         if (OmakeFlag == 0 && racer == 0) {
             if (race_rank[1] == 0) data->fatigue++;
             fish_item = *item;
-            BREEDFISH_USED *stamina_pointer = &fish_item->data.fish;
-            BREEDFISH_USED *const &stamina_data = stamina_pointer;
+            BREEDFISH_USED *stamina_data = &fish_item->data.fish;
             fatigue = (unsigned short)fish_item->data.fish.fatigue;
             entry->fish[racer].stamina = (int)((float)stamina_data->param[3] - (0.1f * (float)(fatigue - 1) * (float)fish_item->data.fish.param[3]));
             printf(at_1377__4__DATA, fatigue);
@@ -342,8 +341,7 @@ int sgInitGyoRace(SubGameInfo *info) {
         position.f[2] = character->body_height / 4.0f;
         RaceVector rotation = at_1028__9;
         CGameDataUsed *fish_item = *item;
-        BREEDFISH_USED *data_pointer = &fish_item->data.fish;
-        BREEDFISH_USED *const &data = data_pointer;
+        BREEDFISH_USED *data = &fish_item->data.fish;
         CDataBreedFish *breed = GetBreedFishInfoData(fish_item->item_no);
         float scale = (float)data->size / breed->size;
         if (!(scale <= 2.0f)) scale = 2.0f;
@@ -389,7 +387,6 @@ int sgInitGyoRace(SubGameInfo *info) {
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/gyorace", sgInitGyoRace__FP11SubGameInfo);
 #endif
 #ifdef NONMATCHING
-template <typename T> static inline T Ident(T v) { return v; }
 int sgLoopGyoRace(SubGameInfo *info) {
     extern const unsigned char at_1380__2__DATA[];
     extern const unsigned char at_1696__2__DATA[];
@@ -530,7 +527,7 @@ int sgLoopGyoRace(SubGameInfo *info) {
                 if (fish == hero) {
                     if ((unsigned char) progress.state != 3) {
                         state->time = 20.0f * race_cnt;
-                        state->lap_time[fish_inf[hero].lap] = fish_inf[fish].time - 20.0f * state->lap_start;
+                        state->lap_time[fish_inf[hero].lap] = fish_inf[hero].time - 20.0f * state->lap_start;
                     } else if ((unsigned char) progress.state == 3) {
                         float *total;
                         *(total = &state->time) = 20.0f * RaceInfo.goal_time[(int)fish] ;
@@ -604,7 +601,7 @@ int sgLoopGyoRace(SubGameInfo *info) {
                     character->SetMotion((char *) at_1380__2__DATA, 0);
                 }
                 image->kind = 0;
-                image->tex_rect = Ident(mgRect<int>(425, 85, 42, 42));
+                image->tex_rect = mgRect<int>(425, 85, 42, 42);
                 effect_cnt++;
                 if (effect_cnt >= 96) {
                     effect_cnt = 0;
@@ -1072,7 +1069,6 @@ int sgSysDrawGyoRace(SubGameInfo *info) {
     sp90.Set(0, 0, 0x1D6, 0x54);
     PrimQuad(wind_tex, sp80, sp90, 0x80, 0x80, 0x80, 0x80);
     var_16 = 0;
-    var_17 = 0;
     do {
         grGetFishProgress(&RaceInfo, var_16, race_cnt, &spA0);
         float limit = 16.0f;
@@ -1081,7 +1077,8 @@ int sgSysDrawGyoRace(SubGameInfo *info) {
         }
         bar_done = 326.0f * (spA0.pos / 16.0f);
         lane = &RaceInfo.fish[var_16].lane;
-        DrawMenuFillBox(41.0f + bar_done, 35.0f + (10.0f * (float) *lane), 326.0f - bar_done, 2.0f, 0x4A, 0x70, 0xD9, 0x8B);
+        float bar_y = 35.0f + 10.0f * (float)*lane;
+        DrawMenuFillBox(41.0f + bar_done, bar_y, 326.0f - bar_done, 2.0f, 0x4A, 0x70, 0xD9, 0x8B);
         float filled = 326.0f * (spA0.pos / 16.0f);
         DrawMenuFillBox(41.0f, (float) ((*lane * 0xA) + 0x23), filled, 2.0f, 0x54, 0xE5, 0x8B, 0x29);
         spC0.Set((int)(31.0f + (float) (int)(326.0f * (spA0.pos / 16.0f))), (*lane * 0xA) + 0x1C, 0x12, 0xC);
@@ -1157,14 +1154,13 @@ int sgSysDrawGyoRace(SubGameInfo *info) {
         lap_inf_1798[var_19][1] = lap_second_tens;
         lap_inf_1798[var_19][2] = var_17 - (lap_second_tens * 0xA);
         lap_centi_tens = (lap_inf_1798[var_19][3] = (int)(0.1f * (float) var_18));
-        int centi_units = var_18 - lap_centi_tens * 10;
+        lap_inf_1798[var_19][4] = var_18 - lap_centi_tens * 10;
         var_16 = 0;
         var_17 = 0;
         var_18 = 0;
-        lap_inf_1798[var_19][4] = centi_units;
         var_19 = 0;
         do {
-            if (fish_inf[hero_no].lap < var_16) {
+            if ((int)fish_inf[hero_no].lap < var_16) {
                 sp250.Set(var_18 + 0x1A2, var_17 + 0x41, 0xC, 0xC);
                 sp260.Set(0x138, 0x62, 0xC, 0xC);
                 PrimQuad(wind_tex, sp250, sp260, 0x80, 0x80, 0x80, 0x80);
