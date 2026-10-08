@@ -54,3 +54,38 @@ The final `CLEAN=1 JOBS=4` proto build passes `SCES_511.90: OK` and
 149/149 complete objects. The production menusys object passes `0x1B0DC`
 bytes and 5,872 relocations; its linked and source-only SHA-256 hashes
 equal the baseline. The sole promotion in this lane is FishModifyParam.
+
+## Proto2 round-1 cardinality audit
+
+Base `202d02d`, image `chronicletwo_dev:sf-d8bf13c-proto2`. Every one of
+the seven private fill-box rows above now asserts `expected_matches: 1`.
+Both mwccgap passes accept the assertions, including the page-2 lower-panel
+height scheduled before width in the ordinary walk. The selectors still
+need `control`, `argument`, and `evaluate_before`.
+
+The best complete-wrapper result remains **8/1260 words**, body `0x13A4`
+in extent `0x13B0`, with matching relocation offsets. The single error is
+target bytes at `0x00249672`; `0x1B0D0` bytes and 5,905 relocations are
+checked. The residual addition at `+0x190` and name-loop register choices
+at `+0xD4C..+0xD74` contain no eligible floating constant argument. The
+prior arithmetic and loop-form trials are not repeated.
+
+The source and guard remain unchanged, and no partial row is accepted into
+the production profile. Receipt:
+`.private/ctxrows-r1/menusys/cardinal-best/`; exact candidate:
+`.private/ctxrows-r1/menusys-best-rows.json`.
+
+## Proto2 round-1 final acceptance
+
+The `CLEAN=1 JOBS=4` build passes all ten initialized PAL sections, the
+`0x01F64A00` memory end, and `SCES_511.90: OK`. The complete checker passes
+**149/149 units**. All **149 linked game-object hashes**, all **149
+source-only object hashes**, and the complete linked ELF hash equal the
+`202d02d` baseline. Game source and headers are unchanged.
+
+Freshly regenerated `progress/report.json` and coverage retain **6,746
+matched / 116 guarded / 10 assembly-only / zero fuzzy**. No function is
+promoted in round 1; the only profile edits add count assertions to the
+two already accepted FishModifyParam rows. Receipts:
+`.private/ctxrows-r1/final/clean-build.log`, `check-objects.log`,
+`coverage.txt`, `hashes.json`, `report.json`, and `comparison.json`.
