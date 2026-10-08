@@ -6,6 +6,14 @@
 #include <cstdlib>
 #include <cstring>
 
+#include "charaviewlp.hpp"
+#include "convviewlp.hpp"
+#include "dng_main.hpp"
+#include "editloop.hpp"
+#include "mapviewlp.hpp"
+#include "movieviewlp.hpp"
+#include "sndviewlp.hpp"
+#include "texviewlp.hpp"
 #include "dataread.hpp"
 #include "editdata.hpp"
 #include "font.hpp"
@@ -90,12 +98,47 @@ u_long128            SystemSeBuff[400];
  * Memory backing configuration and villager data.
  */
 u_long128            InfoBuff[5000];
+static void MenuInit(INIT_LOOP_ARG arg);
+static void MenuExit();
 static int           MenuLoop();
 static int           EventSelect();
 static int           gcALL_GEO_PARTS(SPI_STACK *stack, int argc);
-extern void (*LoopInit[])(INIT_LOOP_ARG);
-extern int (*LoopMain[])();
-extern void (*LoopExit[])();
+LOOP_INIT_FUNC LoopInit[LOOP_MODE_NUM] = {
+    MenuInit,
+    EditInit,
+    InitDungeonMain,
+    TitleInit,
+    InitCharaViewerMain,
+    InitTextuerViewerMain,
+    MapViewInit,
+    InitSoundViewerMain,
+    MovieViewInit,
+    SVConvViewInit,
+};
+LOOP_MAIN_FUNC LoopMain[LOOP_MODE_NUM] = {
+    MenuLoop,
+    EditLoop,
+    LoopDungeonMain,
+    TitleLoop,
+    LoopCharaViewerMain,
+    LoopTextuerViewerMain,
+    MapViewLoop,
+    LoopSoundViewerMain,
+    MovieViewLoop,
+    SVConvViewLoop,
+};
+LOOP_EXIT_FUNC LoopExit[LOOP_MODE_NUM] = {
+    MenuExit,
+    EditExit,
+    FinishDungeonMain,
+    TitleExit,
+    FinishCharaVieweMain,
+    FinishTextuerVieweMain,
+    MapViewExit,
+    FinishSoundVieweMain,
+    MovieViewExit,
+    SVConvViewExit,
+};
 /**
  * Language-adjusted mappings from logical controls to pad buttons.
  */
@@ -1824,9 +1867,6 @@ CEditData::CEditData() {
 // Static initialiser (.init)
 
 // Initialised data (.data)
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mainloop", LoopInit__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mainloop", LoopMain__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mainloop", LoopExit__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mainloop", menu_1281__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mainloop", at_1305__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mainloop", at_1310__DATA);

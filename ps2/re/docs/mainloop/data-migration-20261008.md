@@ -37,3 +37,14 @@ section by the existing named-object section mapping.
 Each table and the caller's literals pass the complete main-loop object
 check; the full build reports `SCES_511.90: OK`, and all 149 objects pass.
 Receipt: `.private/dataB-r2/mainloop-button-literals-{build,check}.log`.
+
+## Mode callback tables
+
+`LoopInit`, `LoopMain` and `LoopExit` are native ten-entry arrays using the
+existing `LOOP_INIT_FUNC`, `LOOP_MAIN_FUNC` and `LOOP_EXIT_FUNC` types and
+`LOOP_MODE_NUM` bounds. Entries follow `MainLoopMode` order and reference
+functions through their owning headers. The local menu callbacks retain local
+linkage. Each 0x28-byte table receives the retail eight-byte alignment tail.
+All three steps preserve the complete main-loop object and PAL executable;
+all 149 objects pass after the final table. Receipts:
+`.private/dataB-r2/mainloop-{init,main,exit}-table-{build,check}.log`.
