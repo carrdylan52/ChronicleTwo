@@ -1722,6 +1722,7 @@ int CSaveMenuClass::KeyStep(void) {
     int                 openDone;
     int                 moveKey;
     int                 selectKeys;
+    bool                input_waiting;
     int                 pushed;
     int                 lrKeys;
     int                 answer;
@@ -1805,7 +1806,7 @@ int CSaveMenuClass::KeyStep(void) {
             pushed = MenuCommonInfo->CheckPushButton();
             lrKeys = MenuCommonInfo->CheckLRKey();
             if (selectKeys & 1) {
-                moveKey = -1;
+                moveKey -= 1;
             }
             if (selectKeys & 2) {
                 moveKey += 1;
@@ -1818,7 +1819,7 @@ int CSaveMenuClass::KeyStep(void) {
                         if (slot < 0) {
                             slot = 0;
                         }
-                        if (slot >= 2) {
+                        if (slot > 1) {
                             slot = 1;
                         }
                         if (slot != prevSlot) {
@@ -1919,12 +1920,13 @@ int CSaveMenuClass::KeyStep(void) {
                                 if (cursor_form != NULL) {
                                     cursor_form->SetAction(tp_2083[select - top]);
                                 }
-                                input_wait_counter--;
                                 info = &MemoryCardPtr->file_info[select];
+                                input_wait_counter--;
                                 if (input_wait_counter <= 0) {
                                     input_wait_counter = 0;
                                 }
-                                if (input_wait_counter <= 0) {
+                                input_waiting = input_wait_counter > 0;
+                                if (!input_waiting) {
                                     card_ok = McCheckMCPs2(card);
                                     switch (ConvertCheckPushButton(pushed)) {
                                         case 1:
@@ -1954,7 +1956,7 @@ int CSaveMenuClass::KeyStep(void) {
                                                             phase = SAVE_LIST_PHASE_CONFIRM_SAVE;
                                                         } else {
                                                             save_kind = 1;
-                                                            if (check_kb >= card->free_size) {
+                                                            if (card->free_size <= check_kb) {
                                                                 next = SAVE_MENU_PAGE_ERROR;
                                                             } else {
                                                                 fileMes->SetMsgVolumeNoOne(need_kb);
@@ -2010,7 +2012,8 @@ int CSaveMenuClass::KeyStep(void) {
                                 if (input_wait_counter <= 0) {
                                     input_wait_counter = 0;
                                 }
-                                if (input_wait_counter <= 0) {
+                                input_waiting = input_wait_counter > 0;
+                                if (!input_waiting) {
                                     switch (pushed) {
                                         case 1:
                                             if (answer == 0) {
@@ -2097,7 +2100,8 @@ int CSaveMenuClass::KeyStep(void) {
                                     if (input_wait_counter <= 0) {
                                         input_wait_counter = 0;
                                     }
-                                    if (input_wait_counter <= 0) {
+                                    input_waiting = input_wait_counter > 0;
+                                    if (!input_waiting) {
                                         switch (pushed) {
                                             case 1:
                                                 if (answer == 0) {
@@ -2278,7 +2282,7 @@ int CSaveMenuClass::KeyStep(void) {
                                 next = SAVE_MENU_PAGE_SLOT_SELECT;
                                 MenuSePlay(5);
                             }
-                        } else if (check_kb >= card->free_size) {
+                        } else if (card->free_size <= check_kb) {
                             if (pushed != 0) {
                                 next = SAVE_MENU_PAGE_SLOT_SELECT;
                                 MenuSePlay(5);
@@ -2319,7 +2323,7 @@ int CSaveMenuClass::KeyStep(void) {
                 fileMes->SetAbsPos(5);
                 fileMes->MakeMsg(0xBE3);
                 fileMes->SetMsgVolumeNoOne(slot + 1);
-            } else if (check_kb >= card->free_size) {
+            } else if (card->free_size <= check_kb) {
                 ExeScript(at_2508__2);
                 int values[2] = {0, 0};
                 values[0] = slot + 1;
@@ -2393,7 +2397,7 @@ int CSaveMenuClass::KeyStep(void) {
     if (refresh != 0) {
         card = GetSaveMenuCard(MemoryCardPtr->port);
         emptyMes = 0xC27;
-        if (card != NULL && card->formatted != 0 && check_kb >= card->free_size) {
+        if (card != NULL && card->formatted != 0 && card->free_size <= check_kb) {
             emptyMes = 0xC28;
         }
         for (row = 0; row < 13; row++) {

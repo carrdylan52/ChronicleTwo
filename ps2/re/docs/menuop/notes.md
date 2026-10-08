@@ -261,3 +261,91 @@ inventories stay identical. Coverage increases from 6,682/173/15/2 to
 6,683 matched / 172 guarded / 15 asm-only / 2 fuzzy, without any matched function
 losing its status. Receipts: `.private/receipts/ctor-final/save-promoted/`.
 See [the classifier rules](../funcpoint/placement-new.md#constructor-inline-classification).
+
+## Mid-day save-menu draft at c79e57c
+
+The lane baseline has 34 matched functions and two guarded drafts in the
+36-function unit: MenuManualInit and CSaveMenuClass::KeyStep. There are no
+asm-only functions. Canonical SF native compilation confirms the earlier
+1189/1692 masked-word KeyStep diff and its 0x1A44-byte body.
+
+### Input-wait predicate and retained scheduling
+
+The signed input-wait counter is decremented and clamped to zero separately
+from deciding whether input is still waiting. An explicit boolean
+`input_waiting = input_wait_counter > 0`, followed by `if (!input_waiting)`,
+reproduces retail's boolean materialization (`slt` followed by `bnez`) at
+all three readiness checks. This flag carries the actual debounce condition;
+it adds no game state, dummy storage, helper function, or SF policy.
+An integer flag produces the same native function as the boolean control.
+
+Additional retained natural expressions preserve these retail operations:
+
+- Accumulate the up-key movement with `moveKey -= 1`, matching the retail
+  saved-register decrement at +0x290; the accumulator begins at zero.
+- Clamp the slot with `slot > 1`, producing retail's `slti at`/`bnez`
+  upper-bound check at +0x2F4/+0x2F8.
+- Express insufficient space as `card->free_size <= check_kb`. The equality
+  boundary is unchanged, while operand loading and comparison allocation
+  become closer to retail at the relevant space checks.
+- Capture the selected file-info pointer before decrementing the input-wait
+  counter. Both operations follow the cursor's SetAction call and no call
+  intervenes; this restores retail's select/manager load order in that block.
+
+| Canonical native KeyStep variant | Differing words / 1692 | Body bytes |
+| --- | --- | --- |
+| Lane entry | 1189 | 0x1A44 |
+| Explicit waiting flag only, bool or int | 1011 | 0x1A4C |
+| Waiting flag plus slot upper-bound spelling | 1009 | 0x1A4C |
+| Waiting flag plus accumulated up movement | 1010 | 0x1A4C |
+| Waiting flag plus free-space operand order | 1003 | 0x1A4C |
+| All three additional expressions | 1000 | 0x1A4C |
+| Combined version capturing file info before decrement, retained | 994 | 0x1A4C |
+| Combined version capturing file info after clamping, rejected | 1008 | 0x1A4C |
+
+All other 34 native functions remain exact, and the MenuManualInit native
+body remains 0x518 against retail's 0x510. The diff printer counts
+285/326 words when it includes that body's two-word overrun.
+No guard or assembly fallback is removed.
+
+### Remaining boundaries
+
+KeyStep's frame is still 0x160 against retail's 0x1A0, and scratch-array
+addresses still differ by 0x40 after the existing row-info and form-coordinate
+locals. Page exits and later scheduling remain different; the body is still
+0x24 bytes shorter than the 0x1A70 retail extent. The improved readiness
+predicate does not resolve these independent boundaries.
+
+The quest-fish confirmation at retail +0x950 passes count 16 to the already
+documented CDC2Mes::SetMsgVolumeNo overload, with its buffer at stack +0x168;
+only the first two words are initialized in this caller. That count is not
+evidence for filling the unreferenced interval +0x128..+0x167 with a larger
+initialized local array: the buffer begins after that interval, and the
+callee reads up to MES_VALUE_MAX entries from the supplied pointer. No
+artificial stack padding, invented extent, or shared-header proposal is made.
+
+m2c uses an analysis-only assembly copy with the two existing jump tables
+named `jtbl_at_2517__2` and `jtbl_at_2518__2`; exact destinations are copied
+from their retail data files. Passing that copy as an additional input to
+decompile.sh yields the complete function without modifying generated
+assembly. MenuManualInit's earlier constructor classification park remains
+applicable: no supported homogeneous inline member-array clear exists.
+
+### Validation
+
+The final build retains the baseline 0x26 differing PAL .text bytes; all
+other file-backed sections and memory end 0x01F64A00 are OK. Complete object
+checks remain 147/149, with the unchanged single nd_meswin/DrawMesWin and
+actscript/_SHOT problems. Owned units pass: menudraw 0x14058 bytes/2,584
+relocations, menushop 0x5A5C/1,327, menuop 0x7DE4/2,075.
+
+All 149 final object SHA-256 values and allocated-section inventories are
+identical to lane entry. Coverage stays 6,686 matched / 169 guarded /
+15 asm-only / 2 fuzzy, with identical per-function rows. No header, compiler
+profile, toolchain, or non-owned source is changed.
+
+Private receipts: `.private/menuui-{baseline,final}-{build,objects,objdiff,progress}.log`,
+`.private/menuui/hash-comparison.json`, the before/final coverage files,
+`.private/menuui/native-before/`, `.private/menuui/retained/`,
+`.private/menuui/save-*/`, and the complete m2c output
+`.private/menuui/save.m2c.txt`.
