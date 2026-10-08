@@ -18,6 +18,7 @@ from pathlib import Path
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import layout  # noqa: E402
+import objdiff_data  # noqa: E402
 
 ROOT = Path(__file__).resolve().parents[2]
 
@@ -38,6 +39,8 @@ def compiler_mappings(retail_names, compiler_names):
     """Resolve sanitized retail identities to symbols actually present in C++."""
     actual = {}
     for name in compiler_names:
+        if re.fullmatch(r'@\d+', name):
+            continue  # Anonymous numbers are not source/retail identities.
         actual.setdefault(project_name(name), []).append(name)
     result = {}
     for retail_name in retail_names:
@@ -107,15 +110,21 @@ def config(build_dir):
     lay = layout.Layout()
     rows = layout.read_symbols(layout.SYMBOLS)
     units = []
+    context = objdiff_data.Context()
     for unit in lay.units("cpp"):
         base_path = f"{build_dir}/objdiff/base/{unit}.cpp.o"
+        target_path = f"{build_dir}/objdiff/target/{unit}.s.o"
+        if (ROOT / base_path).is_file() and (ROOT / target_path).is_file():
+            prepared_base = f"{build_dir}/objdiff/compare/base/{unit}.cpp.o"
+            prepared_target = f"{build_dir}/objdiff/compare/target/{unit}.s.o"
+            objdiff_data.comparison_copy(ROOT / base_path, ROOT / prepared_base, unit, context, True)
+            objdiff_data.comparison_copy(ROOT / target_path, ROOT / prepared_target, unit, context, False)
+            base_path, target_path = prepared_base, prepared_target
         units.append({
             "name": unit,
-            "target_path": f"{build_dir}/objdiff/target/{unit}.s.o",
+            "target_path": target_path,
             "base_path": base_path,
-            "symbol_mappings": {f"__sinit_{unit}_cpp": f"__sinit_{unit}.cpp",
-                                **suffixed_names(lay, unit, rows),
-                                **object_mappings(lay, unit, rows, ROOT / base_path)},
+            "symbol_mappings": object_mappings(lay, unit, rows, ROOT / base_path),
             "metadata": {
                 "source_path": lay.source(unit),
             },

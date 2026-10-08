@@ -62,6 +62,15 @@ class AnonymousBssTests(unittest.TestCase):
     def test_gp_relative_evidence(self):
         self.assertEqual(self.apply(self.fixture(small=True)), 'at_1__2')
 
+    def test_cached_inputs_produce_the_same_identity_without_file_reads(self):
+        elf, pieces, retail, rows = self.fixture()
+        with patch.object(p.layout, 'Retail', side_effect=AssertionError('retail reread')), \
+             patch.object(p.disassemble, 'Pieces', side_effect=AssertionError('pieces reread')), \
+             patch.object(p.layout, 'read_symbols', side_effect=AssertionError('symbols reread')):
+            p.name_literal_data(elf, 'unit', set(), retail=retail, pieces=pieces,
+                                addresses={'_gp': 0x2000}, rows=rows)
+        self.assertEqual(elf.symtab.symbols[0].name, 'at_1__2')
+
     def test_wrong_declared_size(self):
         fixture = self.fixture()
         fixture[3][0] = (0x3000, 'at_1__2', 4, False)

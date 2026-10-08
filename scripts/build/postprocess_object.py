@@ -634,16 +634,17 @@ def discard_external_functions(elf, unit):
                 entry.st_value = 0
 
 
-def name_literal_data(elf, unit, placeholders):
-    retail = layout.Retail()
-    pieces = disassemble.Pieces(references=[])
-    addresses = retail_addresses()
+def name_literal_data(elf, unit, placeholders, *, retail=None, pieces=None, addresses=None, rows=None):
+    retail = layout.Retail() if retail is None else retail
+    pieces = disassemble.Pieces(references=[]) if pieces is None else pieces
+    addresses = retail_addresses() if addresses is None else addresses
+    rows = layout.read_symbols(ROOT / layout.SYMBOLS) if rows is None else rows
     regions = [(lo, retail.bytes(lo, hi)) for name, lo, hi in pieces.layout.sections(unit)
                if name in ('.rodata', '.sdata', '.data', '.ctor')]
     cuts = {start: (name, end) for section, run in pieces.unit(unit)
             if section in ('.rodata', '.sdata', '.data', '.ctor') for name, start, end in run}
     declared_sizes = {name: size for _address, name, size, is_function
-                      in layout.read_symbols(ROOT / layout.SYMBOLS) if not is_function}
+                      in rows if not is_function}
     bss_cuts = {start: (section, name, end) for section, run in pieces.unit(unit)
                 if section in layout.NOBITS for name, start, end in run
                 if re.fullmatch(r'at_\d+(?:__\d+)?', name)}
@@ -781,15 +782,16 @@ def name_literal_data(elf, unit, placeholders):
         symbol.st_name = elf.strtab.add_symbol(name)
 
 
-def pad_data(elf, unit, placeholders):
-    retail = layout.Retail()
-    pieces = disassemble.Pieces()
+def pad_data(elf, unit, placeholders, *, retail=None, pieces=None, rows=None):
+    retail = layout.Retail() if retail is None else retail
+    pieces = disassemble.Pieces() if pieces is None else pieces
+    rows = layout.read_symbols(ROOT / layout.SYMBOLS) if rows is None else rows
     runs = [(section, run) for section, run in pieces.unit(unit)
             if section in ('.data', '.sdata', '.rodata', '.bss', '.sbss', '.vtables')]
     cuts = {name: (start, end) for section, run in runs for name, start, end in run}
     trailing = {(section, run[-1][0]) for section, run in runs if run}
     declared_sizes = {name: size for _address, name, size, _is_function
-                      in layout.read_symbols(ROOT / layout.SYMBOLS) if size}
+                      in rows if size}
     for symbol in elf.symtab.symbols:
         index = symbol.st_shndx
         if (symbol.type != STT_OBJECT or symbol.st_value or index in placeholders

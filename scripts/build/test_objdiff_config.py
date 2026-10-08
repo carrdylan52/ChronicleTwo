@@ -15,7 +15,10 @@ class CompilerMappingsTests(unittest.TestCase):
         self.assertEqual(compiler_mappings(
             ["helper__Fv__2", "table_42__3", "at_17__2"],
             ["helper__Fv", "table$42", "@17"],
-        ), {"helper__Fv__2": "helper__Fv", "table_42__3": "table$42", "at_17__2": "@17"})
+        ), {"helper__Fv__2": "helper__Fv", "table_42__3": "table$42"})
+
+    def test_anonymous_number_is_never_a_mapping_identity(self):
+        self.assertEqual(compiler_mappings(['at_17', 'at_17__2'], ['@17']), {})
 
     def test_unavailable_native_symbol_is_not_invented(self):
         self.assertEqual(compiler_mappings(["missing__Fv", "native__Fv"], ["native__Fv"]), {})
