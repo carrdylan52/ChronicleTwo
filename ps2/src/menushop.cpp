@@ -32,11 +32,210 @@
 #include "sysmes.hpp"
 #include "userdata.hpp"
 
-mgCMemory MenuLocalStack;
+/**
+ *
+ * Storage for shop and quest memo resources.
+ *
+ */
+static mgCMemory MenuLocalStack;
+
+/**
+ *
+ * Currency used for the current shop.
+ *
+ */
+static short NowSellMode;
+
+/**
+ *
+ * Goods and prices for the current shop.
+ *
+ */
+static CShop *CShopPtr;
+
+/**
+ *
+ * Texture atlas for the shop boards and item marks.
+ *
+ */
+static mgCTexture *Tex_Shop;
+
+/**
+ *
+ * Item texture loaded with the shop resources.
+ *
+ */
+static mgCTexture *Tex_Mt0;
+
+/**
+ *
+ * Number of goods parsed from the selected shop row.
+ *
+ */
+static short Now_ShopListNum;
+
+/**
+ *
+ * Destination for item numbers parsed from the shop script.
+ *
+ */
+static int *Now_ShopDataReadPtr;
+
+/**
+ *
+ * Shop number selected while parsing the goods script.
+ *
+ */
+static short Now_Shop_ID;
+
+/**
+ *
+ * Destination for buying and selling prices parsed from the shop script.
+ *
+ */
+static SHOP_PRICE_INFO *Spi_PriceList;
+
+/**
+ *
+ * Active shop menu.
+ *
+ */
+static CShopMenu *CShopMenuPt;
+
+/**
+ *
+ * Request definitions displayed in the quest memo.
+ *
+ */
+static CQuestManager *QuestMan;
+
+/**
+ *
+ * Saved request acceptance and completion flags.
+ *
+ */
+static CQuestData *QuestDataPtr;
+
+/**
+ *
+ * Texture atlas for the quest and scoop memo.
+ *
+ */
+static mgCTexture *Tex_QuestMemo;
+
+/**
+ *
+ * Message shown beneath the quest memo.
+ *
+ */
+static CDC2Mes *QuestMenuMes;
+
+/**
+ *
+ * Request selected for the open memo comment.
+ *
+ */
+static QUEST_INFO *ActiveQuestInfo;
+
+/**
+ *
+ * Scrolling offset of the quest memo backing pattern.
+ *
+ */
+static float QuestTilePatternXY;
+
+/**
+ *
+ * Screen position of the quest memo selection cursor.
+ *
+ */
+static float QuestCursorPos[2];
+
+/**
+ *
+ * Screen position of the first quest memo list row.
+ *
+ */
+static float QuestListTopY;
+
+/**
+ *
+ * Horizontal position of the open memo comment.
+ *
+ */
+static float QuestCommentWinX;
+
+/**
+ *
+ * Vertical position of the quest memo scrollbar.
+ *
+ */
+static float QuestScrlBarY;
+
+/**
+ *
+ * Height of the quest memo scrollbar.
+ *
+ */
+static float QuestScrlBarH;
+
+/**
+ *
+ * Whether the quest memo comment window is open.
+ *
+ */
+static u8 QuestViewCommentFlag;
+
+/**
+ *
+ * Number of lines in the request reaction message.
+ *
+ */
+static s16 QuestReactionCommentGyouNum;
+
+/**
+ *
+ * Saved scoop discovery and photograph flags.
+ *
+ */
+static CScoopDataManager *ScoopMan;
+
+/**
+ *
+ * Scoop selected for the open memo comment.
+ *
+ */
+static SCOOP_DATA *ScmFlagCtrl;
+
+/**
+ *
+ * First request or scoop displayed by the debug overlay.
+ *
+ */
+static int menu_debug_questselect;
+
+/**
+ *
+ * Request or photo-scoop mode of the quest memo.
+ *
+ */
+static s8 Menu_Memo_ViewMode;
+
+/**
+ *
+ * Active quest memo viewer.
+ *
+ */
+static CMenuQuestView *MenuQuestView;
+
+/**
+ *
+ * Request title, description and reaction message windows.
+ *
+ */
+static CDC2Mes *QuestCommentMes[3];
 
 
-extern short            NowSellMode;
-extern SHOP_PRICE_INFO *Spi_PriceList;
 extern char             at_1221__3[];
 extern char             at_1222__3[];
 extern char             at_1223__3[];
@@ -46,12 +245,7 @@ extern char             at_1226__3[];
 extern char             at_1227__2[];
 extern char             at_1228__2[];
 extern DONY_SHOP_ITEM   dony_shoplist[];
-extern short            Now_Shop_ID;
-extern int             *Now_ShopDataReadPtr;
-extern short            Now_ShopListNum;
 extern SPI_TAG_PARAM    menu_shop_tag[];
-extern CShopMenu       *CShopMenuPt;
-extern CMenuQuestView  *MenuQuestView;
 
 // Code (.text)
 int GetDonyShopLineUp(int *item_list, int *status) {
@@ -396,7 +590,6 @@ int CShopMenu::IsCancelNoneLoadItem() {
 extern char   at_1252[];
 extern char   at_1253[];
 extern char   at_1254[];
-extern CShop *CShopPtr;
 
 void CShopMenu::UpdataScrlBar() {
     if (item_brd != NULL) {
@@ -435,8 +628,6 @@ extern char        at_1307__4[];
 extern char        at_1308__4[];
 extern char       *imglist_1267[3];
 extern char       *extbl_1278[4];
-extern mgCTexture *Tex_Shop;
-extern mgCTexture *Tex_Mt0;
 
 void CShopMenu::InitEnd() {
     mgCTextureManager *textures = &mgTexManager;
@@ -1566,7 +1757,6 @@ void MenuShopDraw() {
     MenuPosData->FormDraw();
 }
 
-extern CDC2Mes *QuestMenuMes;
 
 void CMenuQuestView::UnderMsg(int type) {
     int position[2];
@@ -1588,10 +1778,6 @@ void CMenuQuestView::UnderMsg(int type) {
     QuestMenuMes->SetWindowMode(4);
 }
 
-/** Current request or photo-scoop memo mode. */
-extern s8 Menu_Memo_ViewMode;
-/** Request list shown by the quest memo. */
-extern CQuestManager *QuestMan;
 
 int CMenuQuestView::SelectMax() {
     if (Menu_Memo_ViewMode == QUEST_VIEW_MODE_QUEST) {
@@ -1610,16 +1796,7 @@ extern char        at_2219__2[];
 extern char        at_2220[];
 extern char        at_2221[];
 extern char        at_2222[];
-extern CDC2Mes    *QuestCommentMes[3];
-extern mgCTexture *Tex_QuestMemo;
-extern float       QuestTilePatternXY[2];
-extern float       QuestCursorPos[2];
-extern float       QuestScrlBarY;
-extern float       QuestScrlBarH;
 extern float       QuestMoveRate;
-extern u8          QuestViewCommentFlag;
-extern QUEST_INFO *ActiveQuestInfo;
-extern SCOOP_DATA *ScmFlagCtrl;
 
 void CMenuQuestView::InitEnd() {
     select = 0;
@@ -1689,7 +1866,7 @@ void CMenuQuestView::InitEnd() {
         u_char *image = (u_char *) GetPackFile(pack, at_2221, NULL);
         mgTexManager.EnterIMGFile(image, tex_block[0], NULL, NULL);
         Tex_QuestMemo = mgTexManager.GetTexture(at_2222, -1);
-        QuestTilePatternXY[0] = 0.0f;
+        QuestTilePatternXY = 0.0f;
     }
 
     QuestScrlBarH = 10.0f;
@@ -1708,12 +1885,6 @@ void CMenuQuestView::InitEnd() {
     FadeInMenu(40, 0.0f);
 }
 
-extern CQuestData        *QuestDataPtr;
-extern CScoopDataManager *ScoopMan;
-extern float              QuestListTopY;
-extern float              QuestCommentWinX;
-extern s16                QuestReactionCommentGyouNum;
-extern int                menu_debug_questselect;
 int CMenuQuestView::KeyStep() {
     MenuCommonInfo->CheckSelectKey();
     int lr_key = MenuCommonInfo->CheckLRKey();
@@ -1865,9 +2036,9 @@ int CMenuQuestView::KeyStep() {
         }
         break;
     }
-    QuestTilePatternXY[0] += 0.5f;
-    if (0.0f <= QuestTilePatternXY[0]) {
-        QuestTilePatternXY[0] -= 128.0f;
+    QuestTilePatternXY += 0.5f;
+    if (0.0f <= QuestTilePatternXY) {
+        QuestTilePatternXY -= 128.0f;
     }
     float target = 0x52 - top * 0x22;
     QuestListTopY += (target - QuestListTopY) / QuestMoveRate;
@@ -1936,7 +2107,7 @@ void MenuNPCQuestViewDraw() {
     textures->ReloadTexture(Tex_QuestMemo->block, (sceVif1Packet *)NULL);
     mgCDrawPrim *prim = GetMenuPrim();
     SetSpriteEnv(prim, 0);
-    DrawMenuTilePattern(prim, Tex_QuestMemo, QuestTilePatternXY[0], QuestTilePatternXY[0],
+    DrawMenuTilePattern(prim, Tex_QuestMemo, QuestTilePatternXY, QuestTilePatternXY,
                         mgRect<int>(0x180, 0, 0x80, 0x80), 0, NULL);
     SetSpriteEnv(prim, 0);
     prim->Begin(MG_PRIM_SPRITE);
@@ -2315,14 +2486,6 @@ INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menushop", QuestMoveRate__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menushop", packname_2171__DATA);
 
 // Small uninitialised data (.sbss)
-INCLUDE_BSS(NowSellMode, 0x4);
-INCLUDE_BSS(CShopPtr, 0x4);
-INCLUDE_BSS(Tex_Shop, 0x4);
-INCLUDE_BSS(Tex_Mt0, 0x4);
-INCLUDE_BSS(Now_ShopListNum, 0x4);
-INCLUDE_BSS(Now_ShopDataReadPtr, 0x4);
-INCLUDE_BSS(Now_Shop_ID, 0x4);
-INCLUDE_BSS(Spi_PriceList, 0x4);
 INCLUDE_BSS(shop_mode_prev_1326, 0x4);
 INCLUDE_BSS(init_1327, 0x8);
 INCLUDE_BSS(at_1581__2, 0x8);
@@ -2330,25 +2493,5 @@ INCLUDE_BSS(at_1582__3, 0x8);
 INCLUDE_BSS(at_1595__3, 0x8);
 INCLUDE_BSS(at_1685__2, 0x8);
 INCLUDE_BSS(at_1831__2, 0x8);
-INCLUDE_BSS(CShopMenuPt, 0x4);
-INCLUDE_BSS(QuestMan, 0x4);
-INCLUDE_BSS(QuestDataPtr, 0x4);
-INCLUDE_BSS(Tex_QuestMemo, 0x4);
-INCLUDE_BSS(QuestMenuMes, 0x4);
-INCLUDE_BSS(ActiveQuestInfo, 0x4);
-INCLUDE_BSS(QuestTilePatternXY, 0x8);
-INCLUDE_BSS(QuestCursorPos, 0x8);
-INCLUDE_BSS(QuestListTopY, 0x4);
-INCLUDE_BSS(QuestCommentWinX, 0x4);
-INCLUDE_BSS(QuestScrlBarY, 0x4);
-INCLUDE_BSS(QuestScrlBarH, 0x4);
-INCLUDE_BSS(QuestViewCommentFlag, 0x4);
-INCLUDE_BSS(QuestReactionCommentGyouNum, 0x4);
-INCLUDE_BSS(ScoopMan, 0x4);
-INCLUDE_BSS(ScmFlagCtrl, 0x4);
-INCLUDE_BSS(menu_debug_questselect, 0x4);
-INCLUDE_BSS(Menu_Memo_ViewMode, 0x4);
-INCLUDE_BSS(MenuQuestView, 0x4);
 
 // Uninitialised data (.bss)
-INCLUDE_BSS(QuestCommentMes, 0x10);
