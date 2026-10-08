@@ -1931,7 +1931,7 @@ void CalcCommonBrdDrawInfo(float *pos, MENUFORM_MAKEBRD_INFO *info, ClsMes *mes)
  *
  * @mangled CommonBoardDraw__FPfRi
  * @address 0x224F10
- * @size 0xDE0
+ * @size 0xDD8
  */
 void CommonBoardDraw(float *pos, int &tex_block);
 

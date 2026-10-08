@@ -410,7 +410,7 @@ extern board_button_color at_1814;
 
 extern s16 get_onoffbrdtbl_1789[2][3][4];
 
-extern u8 get_btntbl_1810[2][2];
+extern s8 get_btntbl_1810[2][2];
 
 extern float menu_cursor_rotation_angle;
 
@@ -1732,7 +1732,6 @@ void CalcCommonBrdDrawInfo(float *pos, MENUFORM_MAKEBRD_INFO *info, ClsMes *mes)
     memcpy(&CommonBoardDrawInfo, info, sizeof(MENUFORM_MAKEBRD_INFO));
 }
 #ifdef NONMATCHING
-static inline MENUFORM_MAKEBRD_LINE *BoardLine(int i) { return &CommonBoardDrawInfo.line[i]; }
 void CommonBoardDraw(float *pos, int &tex_block) {
     mgCTexture *board_tex = Tex_CommonBoard;
     if (board_tex == NULL) {
@@ -1767,30 +1766,30 @@ void CommonBoardDraw(float *pos, int &tex_block) {
     int row_bottom;
     int row;
     int pass;
-    int row_top;
+    int top;
     for (row = 0; row < 5; row++) {
         int left = (int)(6.0f + pos[0]);
-        row_top = (int)(6.0f + board_y);
+        top = (int)(6.0f + board_y);
         board_pass_color pass_color = at_1796;
         for (pass = 0; pass < 2; pass++) {
             int *rgba = pass_color.rgba[pass];
             prim->Color(rgba[0], rgba[1], rgba[2], rgba[3]);
             prim->TextureCrd(row_uv.uv[row][0][0], row_uv.uv[row][0][1]);
-            prim->Vertex(left, row_top, 0);
+            prim->Vertex(left, top, 0);
             prim->TextureCrd(row_uv.uv[row][0][0] + row_uv.uv[row][0][2], row_uv.uv[row][0][1] + row_uv.uv[row][0][3]);
-            row_bottom = row_top + heights[row];
+            row_bottom = top + heights[row];
             prim->Vertex(((int)left) + row_uv.uv[row][0][2], row_bottom, 0);
             left += row_uv.uv[row][0][2];
             prim->TextureCrd(row_uv.uv[row][1][0], row_uv.uv[row][1][1]);
-            prim->Vertex(left, row_top, 0);
+            prim->Vertex(left, top, 0);
             prim->TextureCrd(row_uv.uv[row][1][0] + row_uv.uv[row][1][2], row_uv.uv[row][1][1] + row_uv.uv[row][1][3]);
             prim->Vertex(left + board_w, row_bottom, 0);
             left += board_w;
             prim->TextureCrd(row_uv.uv[row][2][0], row_uv.uv[row][2][1]);
-            prim->Vertex(((int)left), row_top, 0);
+            prim->Vertex(((int)left), top, 0);
             prim->TextureCrd(row_uv.uv[row][2][0] + row_uv.uv[row][2][2], row_uv.uv[row][2][1] + row_uv.uv[row][2][3]);
             prim->Vertex(((int)left) + row_uv.uv[row][2][2], row_bottom, 0);
-            row_top -= 6;
+            top -= 6;
             left = (int)pos[0];
         }
         board_y += heights[row];
@@ -1803,8 +1802,7 @@ void CommonBoardDraw(float *pos, int &tex_block) {
     prim->Begin(MG_PRIM_SPRITE);
     prim->Texture(Tex_CommonBoard);
     prim->Color(0x80, 0x80, 0x80, 0x80);
-    int title_top;
-    PrimQuad(prim, mgRect<int>((int)title_x, title_top = (int)title_y, title_uv.right, title_uv.bottom), title_uv);
+    PrimQuad(prim, mgRect<int>((int)title_x, top = (int)title_y, title_uv.right, title_uv.bottom), title_uv);
     prim->End();
     float blink = 32.0f * sinf(0.05235988f * make_object_husoku_number_blink);
     int blink_rgba[4] = {(int)blink + 0x80, 0x80 - (int)blink, 0x80 - (int)blink, 0x80};
@@ -1815,13 +1813,12 @@ void CommonBoardDraw(float *pos, int &tex_block) {
     prim->Color(0x80, 0x80, 0x80, 0x80);
 
     for (pass = 0; pass < 4; pass++) {
-        MENUFORM_MAKEBRD_LINE *line = BoardLine(pass);
+        MENUFORM_MAKEBRD_LINE *line = &CommonBoardDrawInfo.line[pass];
         float line_x;
         float x = 20.0f + pos[0];
         line_x = x;
         float line_top = 88.0f + pos[1] + pass * 34;
         s16 (*brd)[4] = get_onoffbrdtbl_1789[line->kind];
-        int top;
         PrimQuad(prim, mgRect<int>((int)x, top = (int)line_top, brd[0][2], brd[0][3]),
                  mgRect<int>(brd[0][0], brd[0][1], brd[0][2], brd[0][3]));
         x += brd[0][2];
@@ -1845,7 +1842,7 @@ void CommonBoardDraw(float *pos, int &tex_block) {
             prim->Color(0x80, 0x80, 0x80, 0x80);
         }
         if (line->kind != 0) {
-            s8 *button = (s8 *)get_btntbl_1810[line->button];
+            s8 *button = get_btntbl_1810[line->button];
             PrimQuad(prim, mgRect<int>((int)(line_x - 3.0f), top, 16, 16), mgRect<int>(button[0], button[1], 16, 16));
         }
     }

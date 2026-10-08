@@ -1,5 +1,9 @@
 # menudraw: reverse-engineering notes
 
+`CommonBoardDraw` has a guarded, directly indexed draft at 16/888
+relocation-masked words. Its current source and the new negative probes
+are documented in [the night assessment](night-20261008.md).
+
 `CRepairManager::GeneratePoly` compiles to 0x214 bytes against retail's 0x240,
 moving the next function and the following translation units by 0x20 after
 alignment. Its typed C++ draft is guarded by `NONMATCHING`; the matching build
