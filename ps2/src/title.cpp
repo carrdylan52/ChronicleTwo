@@ -1205,14 +1205,12 @@ int TitleModeKey() {
     if (TitlePhase <= TITLE_PHASE_MENU || TitlePhase == TITLE_PHASE_PUSH_START || TitlePhase == TITLE_PHASE_OMAKE_MENU ||
         TitlePhase == TITLE_PHASE_MC_MESSAGE) {
         CMemoryCardManager *card_manager = TitleMCCheck;
-        u8                  inport1;
-        MC_CARD_INFO       *card0;
-        u8                  inport0;
-        MC_CARD_INFO       *card1;
-        inport0 = TitleMCCheckInport[0];
-        inport1 = TitleMCCheckInport[1];
-        card0 = &card_manager->card[0];
-        card1 = &card_manager->card[1];
+        MC_CARD_INFO       *cards[2];
+        u8                  inport[2];
+        cards[0] = &card_manager->card[0];
+        cards[1] = &card_manager->card[1];
+        inport[0] = TitleMCCheckInport[0];
+        inport[1] = TitleMCCheckInport[1];
         if (TitleMCCheckNow != 0) {
             switch (TitleMainMCCheckPhase) {
                 case 0:
@@ -1239,12 +1237,12 @@ int TitleModeKey() {
         }
         int port_done = card_manager->Step();
         int card_lost = 0;
-        if (inport0 != McCheckMCPs2(card0)) {
+        if (inport[0] != McCheckMCPs2(cards[0])) {
             TitleMCCheckInport[0] = 0;
             card_lost = 1;
         }
-        if (inport1 != McCheckMCPs2(card1)) {
-            memset(card1, 0, sizeof(MC_CARD_INFO));
+        if (inport[1] != McCheckMCPs2(cards[1])) {
+            memset(cards[1], 0, sizeof(MC_CARD_INFO));
             TitleMCCheckInport[1] = 0;
             card_lost = 1;
         }
