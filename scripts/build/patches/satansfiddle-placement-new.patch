@@ -769,7 +769,7 @@
 +}
 --- a/tests/compiler_cli.rs
 +++ b/tests/compiler_cli.rs
-@@ -835,3 +835,344 @@
+@@ -835,3 +835,421 @@
              .then(|| code[index.saturating_sub(8) * 4..((index + 2) * 4).min(code.len())].to_vec())
      }).collect()
  }
@@ -1110,6 +1110,83 @@
 +        let trace = String::from_utf8_lossy(&result.stderr);
 +        assert!(trace.contains("expected=1 actual=1"), "eligible construction was not completed: {trace}");
 +        assert!(fs::read(&output).unwrap().starts_with(b"\x7fELF"));
++        assert!(fs::read_dir(&work.0).unwrap().all(|entry| !entry.unwrap().file_name()
++            .to_string_lossy().starts_with(".satansfiddle-")));
++    }
++}
++
++const IMPLICIT_SHADOW_SOURCE: &str = r#"
++void *operator new(unsigned int size, void *storage);
++
++class Visual {
++public:
++    void *texture_manager;
++    unsigned int drawing_flags;
++
++    Visual() { Initialize(); }
++    virtual void Initialize();
++    virtual void Draw();
++};
++
++class Model : public Visual {
++public:
++    unsigned int vertex_count;
++    float (*vertices)[4];
++
++    Model() { Initialize(); }
++    virtual void Initialize();
++};
++
++class Shadow : public Model {
++public:
++    virtual void Draw();
++};
++
++class FixedShadow : public Shadow {
++};
++
++Shadow *MakeShadow(void *storage) {
++    return new (storage) Shadow;
++}
++
++FixedShadow *MakeFixedShadow(void *storage) {
++    return new (storage) FixedShadow;
++}
++"#;
++
++#[test]
++#[ignore = "requires SATANSFIDDLE_TEST_COMPILER_300 plus debug-symbol wibo"]
++fn real_placement_rejects_unwitnessed_implicit_class_six_constructors() {
++    let compiler = PathBuf::from(env::var_os("SATANSFIDDLE_TEST_COMPILER_300").unwrap());
++    let work = Workspace::new();
++    let input = work.0.join("placement.cpp");
++    let config = work.0.join("config.json");
++    let baseline = work.0.join("baseline.o");
++    fs::write(&input, IMPLICIT_SHADOW_SOURCE).unwrap();
++    fs::write(&config, compiler_config(&compiler, "")).unwrap();
++    assert_success(&cli(&input, &baseline, &config));
++    let original = fs::read(&baseline).unwrap();
++    for (caller, constructor) in [
++        ("MakeShadow__FPv", "__ct__6ShadowFv"),
++        ("MakeFixedShadow__FPv", "__ct__11FixedShadowFv"),
++    ] {
++        assert!(!function_bytes(&original, caller).is_empty());
++        let profile = placement_config(&compiler, caller, constructor,
++            "after_constructor_inline", 1);
++        fs::write(&config, serde_json::to_string(&profile).unwrap()).unwrap();
++        let output = work.0.join(format!("unwitnessed-{constructor}.o"));
++        fs::write(&output, b"original object sentinel").unwrap();
++        let result = cli_command(&input, &output, &config).env("SATANSFIDDLE_VERIFY", "1")
++            .output().unwrap();
++        assert!(!result.status.success());
++        let trace = String::from_utf8_lossy(&result.stderr);
++        // Candidate tracing occurs only after the real class-6 eligibility
++        // read; an expected-count failure would not exercise this boundary.
++        assert!(trace.contains("placement-candidate"), "class-6 candidate missing: {trace}");
++        assert!(trace.contains("(\"__ct\", false)"), "uncached implicit constructor missing: {trace}");
++        assert!(trace.contains("selected placement construction has unresolved mangled identities"),
++            "implicit constructor identity was not rejected: {trace}");
++        assert_eq!(fs::read(&output).unwrap(), b"original object sentinel");
 +        assert!(fs::read_dir(&work.0).unwrap().all(|entry| !entry.unwrap().file_name()
 +            .to_string_lossy().starts_with(".satansfiddle-")));
 +    }

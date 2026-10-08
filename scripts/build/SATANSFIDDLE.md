@@ -204,7 +204,8 @@ A mounted genuine 3.0 compiler exercises selected and unselected calls in the sa
 function, all six placement schedules, two simultaneous nested saved lists,
 restoration write failure without object publication, ambiguous and shadowed
 policies in both row orders, excess cardinality, unsupported switch bounds,
-early-evaluated targets, repeated builds, temporary filenames and stale selectors:
+early-evaluated targets, repeated builds, temporary filenames, stale selectors,
+and implicit class-6 constructors whose raw names lack exact mangled witnesses:
 
 ```sh
 export SATANSFIDDLE_TEST_COMPILER_300="$PWD/tools/compilers/mw/3.0-011126/mwccps2.exe"
