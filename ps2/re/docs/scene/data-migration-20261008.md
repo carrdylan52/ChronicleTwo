@@ -47,3 +47,12 @@ complete scene object: 0x3794 initialized bytes and 349 resolved relocations.
 The unchanged postprocessor fails on the same raw object. No shared tool or
 profile file is edited. Receipts:
 `.private/dataD/scene-native-bss-{raw-build,baseline-check,proposed-check}.log`.
+
+The fixture checks also reject missing reference evidence, conflicting reference
+addresses, a wrong declared extent and an existing live retail identity, while
+preserving instruction bytes. A private PAL link replacing both scene and
+movieviewlp objects with the proposed native-static objects remains byte-identical
+to retail. Receipts: `.private/dataD/bss-proposal-rejections.log` and
+`.private/dataD/bss-proposal-pair-pal.log`. The ready source follow-up is
+`.private/proposals/dataD-scene-native-statics.patch`; it requires the shared
+tool proposal first.
