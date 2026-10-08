@@ -62,13 +62,22 @@ struct CharaBitTable {
 };
 
 extern CharaBitTable   at_3192;
-extern CGameDataUsed  *FishGamePreEquip;
+/**
+ * Keeps the weapon to restore after the fishing game.
+ */
+static CGameDataUsed *FishGamePreEquip;
 extern char           *magic_str_1462[8];
-extern char            word_1327[0x61];
+/**
+ * Holds the formatted name of an owned item.
+ */
+static char word_1327[0x61];
 extern char           *symbol_tbl_1338[8][2][2];
 extern signed char     htbl_1662[10];
 extern char           *strtbl_1505[8];
-extern char            temp_1510[0x40];
+/**
+ * Holds an attachment's spectrum source description.
+ */
+static char temp_1510[0x40];
 extern char           *f_2005[2];
 extern char           *basefish_1288[];
 extern unsigned char   use_limmit_table_2558[7];
@@ -77,8 +86,14 @@ extern short           fish_record_dataindex_convert[];
 extern char           *robo_nametable_3330[];
 extern float           lifetbl_2854[2];
 extern short           weptbl_4503[2][10];
-extern float           BattleParamater_Time;
-extern int             BattleParamater_TimeBand;
+/**
+ * Caches the scene time used for battle parameters.
+ */
+static float BattleParamater_Time;
+/**
+ * Caches the time band used for battle parameters.
+ */
+static int BattleParamater_TimeBand;
 extern signed char     tbl1_5167[3];
 extern signed char     tbl2_5168[2];
 extern unsigned int    at_table_5400[12];
@@ -6362,13 +6377,8 @@ INCLUDE_RODATA("ps2/asm/pal/nonmatchings/userdata", tbl2_5168__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/userdata", dbg_set1_5774__DATA);
 
 // Small uninitialised data (.sbss)
-INCLUDE_BSS(FishGamePreEquip, 0x4);
-INCLUDE_BSS(BattleParamater_Time, 0x4);
-INCLUDE_BSS(BattleParamater_TimeBand, 0x4);
 INCLUDE_BSS(at_5773, 0x8);
 
 // Uninitialised data (.bss)
-INCLUDE_BSS(word_1327, 0x70);
-INCLUDE_BSS(temp_1510, 0x40);
 INCLUDE_BSS(at_2061, 0x20);
 CBattleCharaInfo BattleParamater;
