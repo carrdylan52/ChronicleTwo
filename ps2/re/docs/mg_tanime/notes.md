@@ -11,6 +11,19 @@ separate allocation storage, constructor parentheses, pointer qualifiers, and
 local optimizer, scheduler, and inline-depth controls retain or worsen this
 difference. No candidate passed isolated linked-image verification.
 
+The [placement-new report](../funcpoint/placement-new.md) records constructor
+and cross-unit evidence. Complete list specializations, including ordinary
+inline constructors defined in this source unit, narrow the difference to
+`beqz s0` instead of retail's `beqz v0` at +0x30 but do not match. The current
+generic constructor already performs virtual list initialization; the data
+constructor is independently evidenced by its retail out-of-line symbol.
+Changing either to omit initialization is inconsistent with those constructors.
+The saved and reproduced null-aware result-helper experiment grows the function
+to 0x88 bytes, despite a handoff synopsis describing it as a match; the helper
+is a semantic no-op and inadmissible in either case. The original 6/32-word
+guarded draft is retained. Reconsider when a genuine matching inlined-list
+caller establishes a new constructor or allocation-result lifetime distinction.
+
 Engine texture animation (`mg_tanime.cpp`). First-game counterpart: `textureanime.hpp`
 (`CTexAnimeData` / `CTextureAnime`). The design is the same in spirit, but every layout differs:
 records are now heap-allocated `CList<mgCTexAnimeData>` nodes in per-group linked lists, groups have
