@@ -6,6 +6,10 @@ canonical `-O3,p` flags, and relocation-masked instruction comparisons.
 They supersede older draft percentages recorded with different compiler state.
 All three functions retain their assembly fallbacks.
 
+The [round-1](round1-20261008.md) and [round-2](round2-20261008.md) notes
+give subsequent direct-access and allocation findings. The measurements
+below include the earlier mid-day experiment ledger.
+
 ## CommonBoardDraw
 
 `CommonBoardDraw__FPfRi` draws the material board's background, four material
@@ -39,8 +43,10 @@ copy in the number branch already matches.
 Spelling the first rectangle copy as four assignments to its named fields
 produces the same instructions and the same 13 differences. Removing the
 inherited `PlusF`, `FormPart`, and `PartTex` wrappers in favor of an explicit
-float cast, typed array indexing, and the named texture field increases the
-difference to 173 words. Neither experiment is retained.
+float cast, typed array indexing, and the named texture field initially gives
+173 words. Round 1 combines genuine local lifetimes and the shared horizontal
+float offset to recover 13 words with all three wrappers removed. That
+direct-access draft is retained.
 
 Retail `GetNowPosRGBA` explicitly returns zero or one. Its existing `int`
 return declaration is supported; changing it to `void` is unsupported.
@@ -48,8 +54,7 @@ The signed shadow offset, unsigned vibration bytes, signed vibration counts,
 colour bytes, and effect-array stride agree with the current header. There
 is no evidenced shared-header change or float-order profile proposal.
 
-The blocker is integer register allocation in this local copy block, plus
-natural removal of the inherited wrappers before promotion. Reconsider when
+The blocker is integer register allocation in this local copy block. Reconsider when
 compiler allocation evidence explains the block without changing supported
 field types or introducing source-level steering helpers.
 
