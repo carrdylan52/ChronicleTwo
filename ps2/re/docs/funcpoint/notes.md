@@ -109,3 +109,15 @@ removing the redundant cast on `mgCMemory::Alloc`, separating the allocation
 buffer, and changing the pointer declaration or constructor parentheses all
 retain those two differing instructions. Local scheduling and optimizer pragmas
 either leave the same pair or change many additional instructions.
+
+The [placement-new report](placement-new.md) records the constructor evidence
+and the remaining allocation-result register issue. Retail's point constructor
+and array-node constructor do not initialize the point's other fields. Adding
+that initialization to the shared constructor changes five complete units and
+fails PAL verification (144/149 object checks pass). Compiler-generated,
+empty, specialized, and source-defined inline constructor variants do not
+reproduce the target's two differing instructions. A matching invented inline
+consumer is retained only as private evidence; it is not admissible source.
+The original guarded draft is retained. Reconsider upon a genuine matching
+inlined-list caller or new retail constructor evidence that distinguishes the
+allocation-result lifetime without an invented helper.
