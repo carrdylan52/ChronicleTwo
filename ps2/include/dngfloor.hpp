@@ -179,7 +179,7 @@ struct GLID_INFO {
     s16        unk_8;
     u8         unk_a[0x2];
     GLID_INFO *link_glid[GLID_DIR_NUM]; /**< Cell beside this one in each GLID_DIR, or NULL. */
-    u8         blink;                   /**< Non-zero to blink the cell on the map. */
+    s8         blink;                   /**< Non-zero to blink the cell on the map. */
     u8         unk_1d[0x3];
 
     union {

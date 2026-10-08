@@ -1063,7 +1063,7 @@ void CDngFreeMap::DrawTreeMap(int opacity) {
         marks = DrawGlidCheck(glid);
         if (glid->type == GLID_TYPE_ROOM) {
             float brightness = 1.0f;
-            if ((s8) glid->blink != 0 && blink_cnt % 25 < 14) {
+            if (glid->blink != 0 && blink_cnt % 25 < 14) {
                 brightness = 0.5f;
             }
             DrawRoomOne(cell_rect, &glid->room, 0, opacity, brightness);
