@@ -12,41 +12,6 @@
 #include "hddinstall.hpp"
 #include "mglib.hpp"
 
-
-/**
- *
- * File path buffer viewed as text or aligned quadwords.
- *
- */
-union dataread_path {
-    u_long128 quadwords[16]; /**< Aligned storage for the path. */
-    char      text[256];     /**< Path text. */
-};
-
-/**
- *
- * Aligned storage for a file path prefix.
- *
- */
-struct dataread_prefix {
-    u_long128 quadword[1]; /**< Prefix bytes. */
-};
-
-/**
- *
- * File path prefix viewed as text or aligned storage.
- *
- */
-union dataread_prefix_text {
-    dataread_prefix init;     /**< Aligned prefix value. */
-    char            text[16]; /**< Prefix text. */
-};
-
-extern dataread_path   at_259;
-extern dataread_path   at_845;
-extern dataread_path   at_583;
-extern dataread_prefix at_554;
-
 // Initialised data (.data)
 static char TopDir[256] = "";
 static char CurrentDir__2[256] = "";
@@ -192,8 +157,6 @@ void InitReadBG() {
 }
 
 int LoadFileBG(char *name, u_long128 *buffer, int *out_size) {
-    dataread_path full_path;
-    char          rest[256];
     int           loaded_size;
     int           device;
     int           i;
@@ -213,9 +176,11 @@ int LoadFileBG(char *name, u_long128 *buffer, int *out_size) {
         return 0;
     }
 
-    full_path = at_259;
-    strcpy(full_path.text, CurrentDir__2);
-    strcat(full_path.text, name);
+    char full_path[256] = "";
+    char rest[256];
+
+    strcpy(full_path, CurrentDir__2);
+    strcat(full_path, name);
     device = GetDevType(name, rest);
 
     if (device == -1) {
@@ -241,13 +206,13 @@ search:
     words = (int *) info;
 
     if (device == 1) {
-        file = SearchFile(full_path.text);
+        file = SearchFile(full_path);
 
         if (file == NULL) {
             return 0;
         }
 
-        strcpy(info->name, full_path.text);
+        strcpy(info->name, full_path);
         info->busy = 1;
         info->dev = 1;
         info->issued = 0;
@@ -264,7 +229,7 @@ search:
         return 1;
     }
 
-    strcpy(info->name, full_path.text);
+    strcpy(info->name, full_path);
     info->busy = 1;
     info->dev = device;
     info->issued = 0;
@@ -600,10 +565,9 @@ static void ConvStr(char *text) {
  *
  */
 static int GetFullPath(char *path, char *out_path) {
-    char                 rest[256];
-    dataread_prefix_text prefix;
-    int                  device = GetDevType(path, rest);
-    int                  has_device = 0;
+    char rest[256];
+    int  device = GetDevType(path, rest);
+    int  has_device = 0;
 
     if (device == -1) {
         device = DefaultFileDev;
@@ -611,17 +575,17 @@ static int GetFullPath(char *path, char *out_path) {
         has_device = 1;
     }
 
-    prefix.init = at_554;
+    char prefix[16] = "";
 
     if (device == 0) {
-        strcpy(prefix.text, "host:");
+        strcpy(prefix, "host:");
     }
 
     if (device == 3) {
-        strcpy(prefix.text, "pfs0:");
+        strcpy(prefix, "pfs0:");
     }
 
-    strcpy(out_path, prefix.text);
+    strcpy(out_path, prefix);
 
     if (has_device == 0) {
         strcat(out_path, CurrentDir__2);
@@ -651,8 +615,6 @@ int LoadFile2(char *path, void *buffer, int *out_size, int mode) {
     int             dev;
     int             size;
     int             result;
-    dataread_path   full_path;
-    struct sce_stat stat;
 
     if (out_size) {
         *out_size = 0;
@@ -674,17 +636,18 @@ int LoadFile2(char *path, void *buffer, int *out_size, int mode) {
         return 1;
     }
 
-    full_path = at_583;
+    char full_path[256] = "";
+    struct sce_stat stat;
 
-    dev = GetFullPath(path, full_path.text);
+    dev = GetFullPath(path, full_path);
 
     if (dev == FILE_DEV_DEFAULT) {
         dev = DefaultFileDev;
     }
 
     if (dev == FILE_DEV_NET) {
-        printf("load %s\n", full_path.text);
-        size = LoadFileSocket(full_path.text, (u_int *) buffer);
+        printf("load %s\n", full_path);
+        size = LoadFileSocket(full_path, (u_int *) buffer);
 
         if (out_size) {
             *out_size = size;
@@ -699,7 +662,7 @@ int LoadFile2(char *path, void *buffer, int *out_size, int mode) {
 
     if (dev == FILE_DEV_CDROM) {
         if (mode == LOAD_FILE_SIZE) {
-            header = SearchFile(full_path.text);
+            header = SearchFile(full_path);
 
             if (!header) {
                 return 0;
@@ -712,14 +675,14 @@ int LoadFile2(char *path, void *buffer, int *out_size, int mode) {
             return 1;
         }
 
-        return CDRead(full_path.text, (u_int *) buffer, out_size);
+        return CDRead(full_path, (u_int *) buffer, out_size);
     }
 
-    printf("load %s\n", full_path.text);
+    printf("load %s\n", full_path);
 
     // Every failing hard-disk operation is reported to the error callback.
     if (dev == FILE_DEV_HDD) {
-        result = sceGetstat(full_path.text, &stat);
+        result = sceGetstat(full_path, &stat);
 
         if (result < 0 && error_cb) {
             error_cb(result);
@@ -734,7 +697,7 @@ int LoadFile2(char *path, void *buffer, int *out_size, int mode) {
         }
 
         if (mode == LOAD_FILE_OPEN) {
-            dev = sceOpen(full_path.text, SCE_RDONLY | SCE_NOWAIT, 0x1FF);
+            dev = sceOpen(full_path, SCE_RDONLY | SCE_NOWAIT, 0x1FF);
 
             if (dev < 0 && error_cb) {
                 error_cb(dev);
@@ -743,7 +706,7 @@ int LoadFile2(char *path, void *buffer, int *out_size, int mode) {
             return dev;
         }
 
-        dev = sceOpen(full_path.text, SCE_RDONLY, 0x1FF);
+        dev = sceOpen(full_path, SCE_RDONLY, 0x1FF);
 
         if (dev < 0) {
             if (error_cb) {
@@ -781,7 +744,7 @@ int LoadFile2(char *path, void *buffer, int *out_size, int mode) {
         return 1;
     }
 
-    result = sceOpen(full_path.text, SCE_RDONLY);
+    result = sceOpen(full_path, SCE_RDONLY);
 
     if (result < 0) {
         return mode == LOAD_FILE_OPEN ? -1 : 0;
@@ -799,7 +762,7 @@ int LoadFile2(char *path, void *buffer, int *out_size, int mode) {
         // The size is learnt through a blocking descriptor; the read itself is left to ReadBG.
         if (mode == LOAD_FILE_OPEN) {
             sceClose(result);
-            return sceOpen(full_path.text, SCE_RDONLY | SCE_NOWAIT);
+            return sceOpen(full_path, SCE_RDONLY | SCE_NOWAIT);
         }
 
         sceRead(result, buffer, size);
@@ -1018,12 +981,12 @@ u_long128 *SearchFileCache(char *path, int *out_size) {
 }
 
 int WriteFile(char *path, void *buffer, int size) {
-    dataread_path full_path = at_845;
-    int           fd;
+    char full_path[256] = "";
+    int  fd;
 
-    if (GetFullPath(path, full_path.text) == 2) {
-        printf("load %s\n", full_path.text);
-        WriteFileSocket(full_path.text, (u32 *) buffer, size);
+    if (GetFullPath(path, full_path) == 2) {
+        printf("load %s\n", full_path);
+        WriteFileSocket(full_path, (u32 *) buffer, size);
         return 1;
     }
 
@@ -1228,7 +1191,4 @@ void DivPathNameExt(char *path, char *out_dir, char *out_name, char *out_ext) {
 }
 
 
-INCLUDE_BSS(at_259, 0x100);
-INCLUDE_BSS(at_554, 0x10);
-INCLUDE_BSS(at_583, 0x100);
 INCLUDE_BSS(at_845, 0x130);
