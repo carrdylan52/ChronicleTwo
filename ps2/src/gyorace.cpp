@@ -60,12 +60,16 @@ extern CHitEffectImage *battle_effect;
 extern mgCMemory        BuffTextureData;
 
 /**
+ *
  * Texture atlas used by the fish-race window and time display.
+ *
  */
 static mgCTexture *wind_tex;
 
 /**
+ *
  * Texture block containing the fish-race window atlas.
+ *
  */
 static int WindowTexb;
 
