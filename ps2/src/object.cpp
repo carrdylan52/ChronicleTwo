@@ -232,5 +232,4 @@ void CObjectFrame::Initialize() {
 }
 
 // Virtual tables (.vtables)
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/object", __vt__12CObjectFrame__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/object", __vt__7CObject__DATA);
