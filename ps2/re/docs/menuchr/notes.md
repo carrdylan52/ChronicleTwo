@@ -5,11 +5,12 @@ The matching build uses retail gaps for the C++ drafts still guarded by
 `MenuCharaChangeInit`, `CMenuCostumeSel::LoadMenuData`,
 and `CMosBookMenu::KeyStep`. The current source also keeps gaps for
 `MenuMemoryDivide`, `EnterDataMenu`, `KeyChangeMain`,
-`MenuCharaChangeStarDraw`, `CMenuMosSelect::KeyStep`, `MenuMonsterLoadBG`,
+`MenuCharaChangeStarDraw`, `CMenuMosSelect::KeyStep`,
 `MenuItemCharaDataLoadEndCheckAfter`,
 `CMenuCostumeSel::Draw`, `MenuCostumeInit`, and `CMosBookMenu::Draw`.
-Only unguarded functions are active C++ decompilations. The complete unit and
-PAL image pass integrated verification after the October 8 promotions.
+Only unguarded functions are active C++ decompilations. The complete unit passes canonical verification. The merged October 8
+Satan's Fiddle base has independent PAL `.text` mismatches in `nd_meswin`
+and `actscript`; the remaining-guard assessment below records that baseline.
 
 `MonsterBookDraw` draws the book, then draws a debug label when
 `menu_debug_flag` is set. The retail float register setup for
@@ -314,3 +315,28 @@ from 370 to 331 of 388 words; the body remains guarded.
 See [the October 8 lane assessment](round2.md) for the remaining function
 scores, concrete park triggers, shared constructor proposal, and validation
 receipts.
+
+## Native monster background read
+
+`MenuMonsterLoadBG` resets the background reader when requested, selects the
+monster model path for the current menu mode, and starts the model read from
+an aligned stack buffer. A successful read marks the request as reading and
+reserves its rounded quadword count. Mode 2 also starts the monster script
+read and reserves its buffer. A missing model filename returns zero; an
+unsuccessful background read still returns one without marking the request
+as reading or reserving buffers.
+
+The model and script filenames occupy separate 64-byte buffers. Naming the
+pointer into each buffer at its lookup preserves their lifetimes across
+lookup and string-copy calls. The script pointer begins after model lookup
+succeeds. The successful-read branch encloses allocation and optional script
+loading, followed by the common return. Naming the typed `stGetTop()` result
+before `LoadFileBG` preserves the buffer read before the path argument read.
+These source changes reduce the current Satan's Fiddle draft from 118
+differing words to zero, without a profile row or shared-header change.
+
+After manual guard removal, the canonical wrapper, section fixup, and
+complete-unit checker accept `0x11CDC` allocated bytes and 3,734 resolved
+relocations. The native loader body is `0x1E4` bytes inside its `0x1F0` retail
+extent. See [remaining guards on the merged base](remaining-sf-r2.md) for
+per-target measurements, useful negative experiments, and final receipts.

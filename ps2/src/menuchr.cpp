@@ -5454,10 +5454,9 @@ void MenuRoboPartsLightOff(mgCFrame *frame) {
         }
     }
 }
-#ifdef NONMATCHING
 int MenuMonsterLoadBG(mgCMemory *stack, MENU_BGREAD_INFO2 **info, int monster_no, int restart_read) {
-    char model[0x40];
-    char script[0x40];
+    char model_buffer[0x40];
+    char script_buffer[0x40];
     char path[0x6C];
     int  size;
 
@@ -5473,35 +5472,34 @@ int MenuMonsterLoadBG(mgCMemory *stack, MENU_BGREAD_INFO2 **info, int monster_no
     if (MenuLoadInfo.mode == 4) {
         dir = 2;
     }
+    char *model = model_buffer;
     monster_load_id = monster_no;
     if (GetMonsterModelFile(monster_no, 0, model) == 0) {
         return 0;
     }
+    char *script = script_buffer;
     GetMonsterModelFile(monster_no, 2, script);
     strcpy(info[0]->name, model);
     strcpy(path, MonsterDataPath[dir]);
     strcat(path, model);
     strcpy(info[0]->path, path);
     stack->Align64();
-    if (LoadFileBG(info[0]->path, stack->stGetTop(), &size) == 0) {
-        return 1;
-    }
-    info[0]->reading = 1;
-    stack->Alloc(blocks_for(size));
-    if (MenuLoadInfo.mode == 2) {
-        stack->Align64();
-        u_long128 *buffer = stack->stGetTop();
-        strcpy(path, at_4548);
-        strcat(path, script);
-        strcpy(script_file_name, script);
-        LoadFileBG(path, buffer, &size);
+    u_long128 *model_data = stack->stGetTop();
+    if (LoadFileBG(info[0]->path, model_data, &size) != 0) {
+        info[0]->reading = 1;
         stack->Alloc(blocks_for(size));
+        if (MenuLoadInfo.mode == 2) {
+            stack->Align64();
+            u_long128 *buffer = stack->stGetTop();
+            strcpy(path, at_4548);
+            strcat(path, script);
+            strcpy(script_file_name, script);
+            LoadFileBG(path, buffer, &size);
+            stack->Alloc(blocks_for(size));
+        }
     }
     return 1;
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/menuchr", MenuMonsterLoadBG__FP9mgCMemoryPP17MENU_BGREAD_INFO2ii);
-#endif
 extern SceneCharaList at_4565;
 extern LoadTargetList at_4585;
 extern LoadStackList  at_4586;
