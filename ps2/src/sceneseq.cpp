@@ -4388,4 +4388,3 @@ void CSceneObjSeq::ResetDAPosition() {
         motion_command->cmd = SCENE_OBJ_CMD_RESET_DA_POSITION;
     }
 }
-
