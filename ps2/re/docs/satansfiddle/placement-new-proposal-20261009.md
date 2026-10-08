@@ -312,3 +312,30 @@ implicit class-6 shadow constructors retain only raw `__ct` identities with
 no normal cached mangled witness. Multirow raw ambiguity and single-row
 unresolved witnesses are rejected; they are not bypassed or mislabeled as
 class-3 exclusions. Frame attributes there are genuinely class 0/out-of-line.
+
+## Accepted twenty-five-caller source group
+
+`CAquarium::SettingAqua` is accepted with one class-6 after-inline row and
+two existing-capability floating rows, each selecting one real 47.0f argument
+by exact callee with expected count one. All resource names and four actual
+array initializer templates are ordinary C++; the function uses plain int/float
+arrays, typed buffer boundaries and real local lifetimes. Its exact native
+body is 0xBB4 in extent 0xBC0, and all 123 other diagnostic rows remain stable.
+
+The pn14 **clean** build now accepts 25 manually promoted callers across
+17 units under 25 placement rows asserting 34 static constructions. All 149
+resolved objects and PAL verification pass. The full recursive 306-object
+census and 149 source-only objects retain baseline whole-file hashes outside
+those units; linked main/game bytes and memory end agree. Explicit refreshed
+coverage is 6,774 matched / 88 guarded / 10 assembly-only / 0 fuzzy. Receipts
+are `.private/pntc/receipts/promote-twenty-five-clean-*`,
+`promote-twenty-five-progress.log` and `promote-twenty-five-coverage.log`.
+
+Further genuine identity-boundary evidence has a standalone no-include C++
+fixture with ordinary virtual base constructors and two implicitly generated
+shadow constructors. With no placement rows it compiles; each exact selected
+after-inline row reaches the class-6 candidate gate, lacks a normal ctor link
+name witness and fails specifically for unresolved identity. Both preserve
+the original sentinel output exactly. This supplements the stronger numeric
+game-root traces; it does not classify all implicit constructors. Integration
+as an additional genuine regression is under validation on a new own image.
