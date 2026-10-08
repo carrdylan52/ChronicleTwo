@@ -48,28 +48,111 @@ struct SaveEditLabels {
 
 extern SaveEditLabels   at_1125;
 extern SaveEditLabels   at_1128__2;
-extern int              MapNameNum;
-extern MAP_NAME_INFO   *map_name;
-extern int              pMapNameBuff;
-extern int              pCharBuff;
-extern char            *CharBuff;
-extern int              now_no;
-extern int              SedSel;
+/**
+ *
+ * Counts the map name records loaded for the current language.
+ *
+ */
+static int MapNameNum;
+/**
+ *
+ * Points to map records in the map name storage arena.
+ *
+ */
+static MAP_NAME_INFO * map_name;
+/**
+ *
+ * Tracks the next free quadword in the map name storage arena.
+ *
+ */
+static int pMapNameBuff;
+/**
+ *
+ * Tracks the next free byte in the map name string buffer.
+ *
+ */
+static int pCharBuff;
+/**
+ *
+ * Points to the map name string buffer following its records.
+ *
+ */
+static char * CharBuff;
+/**
+ *
+ * Selects the map record filled by the next script command.
+ *
+ */
+static int now_no;
+/**
+ *
+ * Selects the save data editor item.
+ *
+ */
+static int SedSel;
 extern int              SedSelData[SED_ITEM_NUM];
 extern char            *config_str[1];
-extern mgCMemory       *MenuStack;
-extern int              SelectMode;
-extern int              SelectMapType;
-extern int              select_1009;
-extern signed char      init_1010;
-extern int              EventInfoNum;
-extern int              BossEventTop;
-extern int              sel_event;
-extern int              top_event;
-extern char             MapNameBuff[0x8000];
+/**
+ *
+ * Points to the memory stack used by the map selection menu.
+ *
+ */
+static mgCMemory * MenuStack;
+/**
+ *
+ * Selects the current map selection screen.
+ *
+ */
+static int SelectMode;
+/**
+ *
+ * Selects the map category shown by the map list.
+ *
+ */
+static int SelectMapType;
+/**
+ *
+ * Counts the loaded event viewer records.
+ *
+ */
+static int EventInfoNum;
+/**
+ *
+ * Marks the first boss entry in the event viewer list.
+ *
+ */
+static int BossEventTop;
+/**
+ *
+ * Selects the visible event viewer row.
+ *
+ */
+static int sel_event;
+/**
+ *
+ * Selects the first event viewer row on screen.
+ *
+ */
+static int top_event;
+/**
+ *
+ * Stores map records and their variable-length strings in one arena.
+ *
+ */
+char MapNameBuff[MAP_NAME_BUFF_SIZE * 16];
 extern char             SelectMapName[];
-extern char           **SelectMapList[8];
-extern int              SelectMapNum[8];
+/**
+ *
+ * Points to the map name lists for each selection category.
+ *
+ */
+static char ** SelectMapList[MAP_SEL_TYPE_NUM];
+/**
+ *
+ * Counts the map names in each selection category.
+ *
+ */
+static int SelectMapNum[MAP_SEL_TYPE_NUM];
 extern char            *map_sel_type[8];
 extern int              select__1049[8];
 extern int              top__1050[8];
@@ -99,33 +182,6 @@ static MAP_NAME_INFO   *GetMapNameInfo(int map_no);
 int                     MapTypeSelect();
 int                     MapSelect();
 static char            *GetLine(char **columns, char *position, char *end);
-#ifdef NONMATCHING
-
-static int            MapNameNum;
-static MAP_NAME_INFO *map_name;
-static int            pMapNameBuff;
-static int            pCharBuff;
-static char          *CharBuff;
-static int            now_no;
-static char           MapNameBuff[MAP_NAME_BUFF_SIZE * 16];
-static mgCMemory     *MenuStack;
-static int            SelectMode;
-static int            SelectMapType;
-static int            select_1009;
-static signed char    init_1010;
-static int            SedSel;
-static int            EventInfoNum;
-static int            BossEventTop;
-static int            sel_event;
-static int            top_event;
-static char         **SelectMapList[MAP_SEL_TYPE_NUM];
-static int            SelectMapNum[MAP_SEL_TYPE_NUM];
-EVENT_VIEW_INFO      *EventInfo;
-int                   BossBattleSelFlag;
-extern SPI_TAG_PARAM  tag__7[3];
-extern char          *map_sel_type[MAP_SEL_TYPE_NUM];
-extern char           SelectMapName[0x100];
-#endif
 
 // Code (.text)
 /**
@@ -416,30 +472,27 @@ int MapTypeSelect() {
     char  text[0x800];
     char *cursor = text;
 
-    if (init_1010 == 0) {
-        select_1009 = 0;
-        init_1010 = 1;
-    }
+    static int select = 0;
 
     if (GamePad__2.Down(0x1000)) {
-        select_1009--;
+        select--;
     }
 
     if (GamePad__2.Down(0x4000)) {
-        select_1009++;
+        select++;
     }
 
-    if (select_1009 < 0) {
-        select_1009 = 7;
+    if (select < 0) {
+        select = 7;
     }
 
-    if (select_1009 >= 8) {
-        select_1009 = 0;
+    if (select >= 8) {
+        select = 0;
     }
 
     if (GamePad__2.Down(0x20)) {
-        if (SelectMapNum[select_1009] > 0) {
-            SelectMapType = select_1009;
+        if (SelectMapNum[select] > 0) {
+            SelectMapType = select;
             SelectMode = 1;
         }
     }
@@ -451,7 +504,7 @@ int MapTypeSelect() {
     cursor += sprintf(cursor, at_1040__4);
 
     for (int i = 0; i < 8; i++) {
-        if (i == select_1009) {
+        if (i == select) {
             cursor += sprintf(cursor, at_1041__4);
         } else {
             cursor += sprintf(cursor, at_1042__3);
@@ -459,7 +512,7 @@ int MapTypeSelect() {
 
         cursor += sprintf(cursor, at_1043__3, map_sel_type[i]);
 
-        if (i == select_1009) {
+        if (i == select) {
             cursor += sprintf(cursor, at_1044__2);
         }
 
@@ -1156,68 +1209,19 @@ INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mapselect", at_1270__4__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mapselect", at_1377__2__DATA);
 
 // Small uninitialised data (.sbss)
-#ifndef NONMATCHING
-INCLUDE_BSS(MapNameNum, 0x4);
-#endif
-#ifndef NONMATCHING
-INCLUDE_BSS(map_name, 0x4);
-#endif
-#ifndef NONMATCHING
-INCLUDE_BSS(pMapNameBuff, 0x4);
-#endif
-#ifndef NONMATCHING
-INCLUDE_BSS(pCharBuff, 0x4);
-#endif
-#ifndef NONMATCHING
-INCLUDE_BSS(CharBuff, 0x4);
-#endif
-#ifndef NONMATCHING
-INCLUDE_BSS(now_no, 0x4);
-#endif
-#ifndef NONMATCHING
-INCLUDE_BSS(MenuStack, 0x4);
-#endif
-#ifndef NONMATCHING
-INCLUDE_BSS(SelectMode, 0x4);
-#endif
-#ifndef NONMATCHING
-INCLUDE_BSS(SelectMapType, 0x4);
-#endif
-#ifndef NONMATCHING
 INCLUDE_BSS(select_1009, 0x4);
-#endif
-#ifndef NONMATCHING
 INCLUDE_BSS(init_1010, 0x4);
-#endif
-#ifndef NONMATCHING
-INCLUDE_BSS(SedSel, 0x4);
-#endif
-#ifndef NONMATCHING
-INCLUDE_BSS(EventInfo, 0x4);
-#endif
-#ifndef NONMATCHING
-INCLUDE_BSS(EventInfoNum, 0x4);
-#endif
-#ifndef NONMATCHING
-INCLUDE_BSS(BossEventTop, 0x4);
-#endif
-#ifndef NONMATCHING
-INCLUDE_BSS(sel_event, 0x4);
-#endif
-#ifndef NONMATCHING
-INCLUDE_BSS(top_event, 0x4);
-#endif
-#ifndef NONMATCHING
-INCLUDE_BSS(BossBattleSelFlag, 0x4);
-#endif
+/**
+ *
+ * Points to the loaded event viewer records.
+ *
+ */
+EVENT_VIEW_INFO * EventInfo;
+/**
+ *
+ * Selects the boss event list when opening the event viewer.
+ *
+ */
+int BossBattleSelFlag;
 
 // Uninitialised data (.bss)
-#ifndef NONMATCHING
-INCLUDE_BSS(MapNameBuff, 0x8000);
-#endif
-#ifndef NONMATCHING
-INCLUDE_BSS(SelectMapList, 0x20);
-#endif
-#ifndef NONMATCHING
-INCLUDE_BSS(SelectMapNum, 0x20);
-#endif
