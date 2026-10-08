@@ -133,6 +133,60 @@ differently from separate scalars; `u8` snapshots compared after calls
 follow their uses rather than their declaration order. `MenuItemDebugDraw`
 (menusys) and `TitleModeKey` (title) are the references.
 
+## Register allocation order
+
+GPR simplify scans virtual registers in increasing number and pushes a node
+when its current degree is below 25, lowering its neighbours' degrees at once;
+passes repeat until no node is pushed. Then the remaining node with the lowest
+cost divided by current degree is pushed (ties keep the latest-scanned node) and
+simplify resumes. Colouring pops the stack and takes the first free register in
+`v0 v1 a0–a3 t0–t7 t8 t9 s0–s7` order. Within one pass, a higher-numbered node
+is therefore coloured first and receives the lower register. Scheduling
+precedes allocation, so a statement order that schedules identically can still
+change interference.
+
+Observed numbering, highest first: single-web locals in reverse declaration
+order, induction and invariant temporaries, extra live-range webs of reused
+variables (per variable, in program order), load CSE temporaries (per source
+branch, earlier branches higher) and materialized constants. Reusing a C-style
+loop variable across disjoint loops is a natural way to move a counter below
+the optimizer's temporaries. Indexing an array directly, rather than through a
+named row pointer, makes the row address a low-numbered CSE temporary.
+`CollisionFish`, `StepGyoRace` and `sgSysDrawGyoRace` match only with these
+forms (see the gyoracesim and gyorace night notes).
+
+Named locals take stack slots in declaration order, including block-scoped
+ones, before argument temporaries. Temporaries such as `mgRect<int>(…)`
+arguments are built right to left after them, so a call that retail builds
+left to right in rising slots needs named locals.
+
+## Instruction scheduling order
+
+The pre-allocation list scheduler issues ready instructions cycle by cycle.
+Critical nodes (latest start at or before the cycle) come first, then nodes
+that unblock more successors, then greater height, then source order. Under
+register pressure it instead picks the smallest pressure change: a store that
+ends a value's live range beats a zero store, which beats a new constant.
+Constants therefore issue in source order, and independent stores move with
+the constants they consume. `CSound::Init` matches only when its configuration
+assignments follow the same port order as its other field groups (see the
+sound night notes).
+
+## Copy propagation and spilled pointers
+
+The IR optimizer propagates a copy between two locals of the same type into
+every later use of the destination, so `map = active;` makes `active` the one
+long-lived value and removes `map`. Propagation stops when the source is
+redefined later or when the types differ by a top-level `const`. A local
+assigned from a call whose uses all come before the next call gets no virtual
+register and reads the return register directly. In `if ((map = f()) == NULL)`
+the test reads the return register, but later uses of a spilled `map` reload
+it. Retail code that tests and uses `v0` while storing a spill slot therefore
+comes from a separate `const` lookup local that is copied into the persistent
+pointer (`SearchMapFlatPosition`, see the dng_event night notes). A
+`sceVu0FVECTOR` parameter keeps its 16-byte alignment, so its spill slot takes
+16 bytes of the frame.
+
 ## Data extents and alignment
 
 Retail symbol sizes describe objects, while the split section pieces include
