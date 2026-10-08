@@ -720,17 +720,5 @@ void CEditGrid::GetGridBox(mgVu0FBOX *box, float *pos) {
 }
 
 // Initialised data (.data)
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editriver", at_504__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editriver", at_505__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editriver", at_506__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editriver", at_507__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editriver", at_590__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editriver", at_591__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editriver", at_592__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editriver", at_593__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editriver", at_594__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editriver", at_799__3__DATA);
 
 // Uninitialised data (.bss)
-INCLUDE_BSS(at_733__2, 0x10);
-INCLUDE_BSS(at_734, 0x10);
