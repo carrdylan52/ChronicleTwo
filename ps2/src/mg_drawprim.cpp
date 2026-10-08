@@ -277,11 +277,8 @@ void mgCDrawPrim::Vertex(int x, int y, int z) {
     Vertex4(x << 4, y << 4, z);
 }
 
-extern char at_369[16];
-
 void mgCDrawPrim::Vertex(float x, float y, float z) {
-    float pos[4];
-    *(u_long128 *) pos = *(u_long128 *) at_369;
+    float pos[4] = {0.0f, 0.0f, 0.0f, 0.0f};
     pos[0] = x;
     pos[1] = y;
     pos[2] = z;
@@ -804,6 +801,3 @@ void mgCDrawManager::AddPacket(int group, u_long128 *common, u_long128 *packet, 
 }
 
 #pragma schedule reset
-
-// Uninitialised data (.bss)
-INCLUDE_BSS(at_369, 0x10);
