@@ -370,3 +370,25 @@ Receipts: `.private/receipts/regress/round4/nd_meswin-*/`,
 `analysis/experiment-summary.json`, and `final/`. The semantic-provenance and
 center-X lowering requirements above remain unresolved; these measurements
 do not establish that all natural source forms are impossible.
+
+## Nested-selector scope after the upstream merge
+
+The supported `nested_call` and `nested_variable` identities require an
+outer call argument containing a real sibling call. `DrawMesWin`'s six
+`CalcAutoPosSet` calls instead receive scalar zero, screen limit, converted
+extent, and ratio arguments. The local placement helpers inline those same
+arguments; they do not introduce a sibling call inside `CalcAutoPosSet`.
+The new selectors therefore do not distinguish the required window-mode
+predicates or width/height origins. The predicate-provenance and center-X
+third-schedule requirements above remain unresolved. No unsupported or
+unconsumed profile row is added, and the recorded broad-ratio experiments
+are not repeated.
+
+A fresh `decompile.sh DrawMesWin__6ClsMesFv` still stops at the indirect
+switch jump, input line 112. Existing source, documented call identities,
+and retail assembly remain the evidence for the placement sites. Under the
+new image, the clean merged object retains `0xBF28` checked bytes and 1,364
+relocations with the same sole finding at `0x0015C5AD`. The `0xB80` body has
+17 differing masked words; the previously measured broad-ratio candidate's
+12-word result still lacks a complete-unit match. Whole-project verification
+retains the baseline `0x26` text-byte difference and identical object failures.
