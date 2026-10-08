@@ -28,7 +28,6 @@ static int g_eff_entry_flag;
 
 /** Name of the emitter being parsed. */
 static char g_tmp_eff_name[0x20];
-extern char            at_848__2[];
 
 // Code (.text)
 /**
@@ -1662,14 +1661,14 @@ void CEffectManager::Initialize() {
 
     for (i = 0; i < 8; i++) {
         wait_frame[i] = 0;
-        strcpy(ctrl_name[i], at_848__2);
+        strcpy(ctrl_name[i], "");
     }
 
     for (i = 0; i < ctrl_num; i++) {
         ctrls[i].Initialize();
     }
 
-    strcpy(img_name, at_848__2);
+    strcpy(img_name, "");
 }
 
 void CEffectManager::EntryEffCtrls(CEffect *effects, int effect_num, CEffectCtrl *ctrls,
@@ -1827,12 +1826,3 @@ void CEffectManager::SetOrigin(float *origin) {
         }
     }
 }
-
-// Initialised data (.data)
-
-// Constants (.rodata)
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/effect", at_848__2__DATA);
-
-// Small uninitialised data (.sbss)
-
-// Uninitialised data (.bss)

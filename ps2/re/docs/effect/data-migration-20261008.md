@@ -39,3 +39,18 @@ The existing `CEffect::Step` switches emit `at_383` (seven entries) and
 requires no function edits. `effect-switches-{build,objects,metrics}.log`
 records PAL OK, all 149 objects passing, and unowned hashes unchanged.
 Markers become 1/0.
+
+## Empty names and final state
+
+`CEffectManager::Initialize` passes `""` directly when clearing the emitter
+and image names. The native pooled literal is identified by its unchanged
+code references; the table-pointer ambiguity previously found in automap
+does not apply here. Its extern and final marker are removed.
+
+`effect-empty-name-{build,objects,metrics}.log` records PAL OK, 149/149
+objects passing, and every unowned object unchanged. Final markers are
+**0 RODATA / 0 BSS**, versus **51 / 4**. All 75 functions remain matched;
+none is newly promoted. Refreshed source-only matched data stays **44/1,124**.
+That comparison omits the linked object's naming, ordering and piece-padding
+normalization; the canonical complete object verifies every byte and resolved
+relocation of the migrated data.
