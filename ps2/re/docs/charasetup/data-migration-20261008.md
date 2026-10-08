@@ -47,3 +47,15 @@ Receipts: `charasetup-at_919__3`, `charasetup-at_1281__2`,
 `charasetup-fname_tbl_1291`, and `charasetup-fname_tbl2_1298`, all with
 `-{build,objects,hashes}.log`. Every step passes PAL, all 149 objects and
 148 unchanged other objects.
+
+## Character loading strings
+
+The five sound-bank format strings in `GetCharacterSnd` and all 19 model,
+texture, joint, action-script and diagnostic strings in `SetupMainUnit` are
+inline at their uses. Shared names, including `hat` and the empty skin name,
+remain pooled by MWCC. The empty literal has direct code consumers, so its
+identity does not need the data-only relocation proposal parked by automap.
+
+Each string was separately built and checked with a receipt prefix
+`charasetup-<retail literal name>`, from `at_868__3` through `at_1018__4`.
+Every step passes PAL, all 149 objects and the 148 other object hashes.
