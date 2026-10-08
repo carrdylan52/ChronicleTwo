@@ -238,3 +238,41 @@ request-source and three reduced array-index spill slots match naturally.
 Receipts: `.private/receipts/nearmiss-probes/editmenu/n1` through `n10`; retained
 candidate `n2`. The canonical guarded complete-object check is under
 `.private/receipts/nearmiss-canonical/editmenu/n2/`. No profile row is added.
+
+## Mid-day request-pointer lifetime match (October 8)
+
+`MakeDownLoadAnaunce__FiP9mgCMemoryPiPiPi` is now native and exact. The request
+loop first checks `MenuEditAnalyzeDataSrc[no]` for NULL and skips the empty
+entry, then declares `EditAnalyzeDataSrc *src` from that same table entry.
+There is no call or write between the test and the declaration. MWCC shares
+the table load while delaying the local pointer's lifetime until after the
+empty-entry branch.
+
+This changes only the four spill assignments that accounted for the retained
+19/900-word checkpoint. The reduced condition-array indices occupy sp+0x140
+and sp+0x150, the reduced request-table index occupies sp+0x160, and `src`
+occupies sp+0x170, as in retail. The previous draft placed `src` at sp+0x140
+and the other three spills at sp+0x150/+0x160/+0x170. Instruction order,
+register operands, calls and branch layout are otherwise unchanged. No new
+compiler selector, type change, alignment annotation or helper is needed.
+
+The native body is 0xE08 bytes followed by the retail extent's eight zero
+padding bytes. Canonical wrapper/fixup comparison reports zero of 900 differing
+words and passes the whole unit: 0xC7E8 allocated bytes, 2,581 relocations.
+Removing the assembly guard also passes the integrated unit check. All 148
+other game objects retain their baseline file hashes. The full check remains
+147/149, with only the inherited nd_meswin and actscript failures, and PAL
+remains 0x26 differing .text bytes with every other file-backed section exact.
+Coverage increases from 6,686 to 6,687 matched functions.
+
+Natural scope trials retained 19 words for a const source pointer, a separately
+named signed request index, a source object reference, and a scoped font index;
+scoping the condition index instead gives 32. An unsigned request index adds a
+signedness difference (20), and a reference to the global pointer slot gives
+539/900 with a 0xE18 body. Those variants are not retained.
+
+Receipts: `.private/midday/probes/editmenu/source-after-test/` contains the
+source snapshot, word comparison, disassembly and complete-object check;
+`.private/midday-editmenu-build.log`, `.private/midday-editmenu-objects.log`,
+`.private/midday/editmenu-hash-comparison.json`, and
+`.private/midday-coverage-editmenu.txt` record integrated validation.

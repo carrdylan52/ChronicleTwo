@@ -1530,7 +1530,6 @@ void DrawDownLoadAnaunce() {
         }
     }
 }
-#ifdef NONMATCHING
 #pragma divbyzerocheck on
 int MakeDownLoadAnaunce(int town_no, mgCMemory *stack, int *out_num, int *out_sub_num, int *out_height) {
     int *ok_table;
@@ -1657,10 +1656,10 @@ int MakeDownLoadAnaunce(int town_no, mgCMemory *stack, int *out_num, int *out_su
     condition_num = 0;
     height = 0;
     for (no = 0; no < 32; no++) {
-        EditAnalyzeDataSrc *src = MenuEditAnalyzeDataSrc[no];
-        if (src == NULL) {
+        if (MenuEditAnalyzeDataSrc[no] == NULL) {
             continue;
         }
+        EditAnalyzeDataSrc *src = MenuEditAnalyzeDataSrc[no];
         MenuEditAnalyzeDataSrcNum++;
         if (src->message != NULL) {
             GeoramaReqMsgFont[font_no] = new (stack->Alloc(0xE)) CMenuFont;
@@ -1861,9 +1860,7 @@ int MakeDownLoadAnaunce(int town_no, mgCMemory *stack, int *out_num, int *out_su
     return 0;
 }
 #pragma divbyzerocheck reset
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/editmenu", MakeDownLoadAnaunce__FiP9mgCMemoryPiPiPi);
-#endif
+
 void InitMenuDl3(mgCTexture *texture) {
     InitMenuDl(texture, MenuGeoStoneDownLoadTime);
 }
