@@ -567,7 +567,8 @@ void EditInit(INIT_LOOP_ARG arg) {
     MainScene__2->villager_texb_num = 56;
     MainScene__2->event_texb = 160;
     MainScene__2->event_texb_num = 2;
-    MainScene__2->GetActiveBgmInfo()->master_volf = 1.0f;
+    CScene::BGM_INFO *const bgm = MainScene__2->GetActiveBgmInfo();
+    bgm->master_volf = 1.0f;
     MainScene__2->SetVolfBGM(MainScene__2->GetActiveBgmInfo()->volf);
     MainScene__2->tex_block_base = 185;
     MainScene__2->tex_block_count = 21;
