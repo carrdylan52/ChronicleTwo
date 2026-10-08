@@ -2,7 +2,7 @@
 
 The current Satan's Fiddle translation-unit row uses GPR helper mask `0x30`
 and FPR mask `0`. The existing `DrawMenuTopic` selector remains unchanged.
-Both guarded functions retain their assembly fallbacks.
+`MenuMainInit` retains its assembly fallback.
 
 ## MenuInternSelectDraw float-order calibration
 
@@ -20,12 +20,11 @@ box; the second is the y coordinate of the help box. No source rewrite is
 needed. Each identity is consumed by the pinned compiler without stale-row
 errors.
 
-With both selectors and only this guard manually removed in a private source
-copy, the canonical wrapper, section fixup, and complete object checker pass:
-`0x4F98` allocated bytes, 1,396 relocations, zero byte or resolved-relocation
-differences. The calibration rows are proposed for the profile-owning lane;
-the shared profile is not changed here. Reconsider native promotion when those
-rows are integrated and the complete unit and linked baseline are revalidated.
+With both selectors in `scripts/build/satansfiddle.json` and the guard
+removed, the complete object checker passes: `0x4F98` allocated bytes, 1,396
+relocations, zero byte or resolved-relocation differences. The integrated
+build leaves every other object and the linked image unchanged, so the
+function is native.
 
 ## MenuMainInit
 

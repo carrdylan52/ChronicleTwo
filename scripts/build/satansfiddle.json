@@ -426,6 +426,20 @@
         "evaluate_first": true
       },
       {
+        "translation_unit": "menumain.cpp",
+        "function": "MenuInternSelectDraw__Fv",
+        "value_type": "binary32",
+        "value_bits": "0x42a00000",
+        "evaluate_first": true
+      },
+      {
+        "translation_unit": "menumain.cpp",
+        "function": "MenuInternSelectDraw__Fv",
+        "value_type": "binary32",
+        "value_bits": "0x43af0000",
+        "evaluate_first": true
+      },
+      {
         "translation_unit": "menumap.cpp",
         "function": "Draw__13CWorldMapMenuFv",
         "value_type": "binary32",

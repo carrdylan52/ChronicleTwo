@@ -1853,7 +1853,6 @@ int MenuInternSelectKey(void) {
     MenuPosData->FormStep();
     return result;
 }
-#ifdef NONMATCHING
 
 void MenuInternSelectDraw(void) {
     MenuPosData->FormDraw();
@@ -1896,9 +1895,7 @@ void MenuInternSelectDraw(void) {
         font.DrawDirect(at_2335, 300, 350);
     }
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/menumain", MenuInternSelectDraw__Fv);
-#endif
+
 void CopyActiveItemAndWeapon(int slot, int weapon_slot) {
     mgCTexture *textures[2];
 
