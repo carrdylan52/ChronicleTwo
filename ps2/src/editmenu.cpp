@@ -131,30 +131,7 @@ enum GeoramaInitialMessage {
     GEORAMA_INITIAL_MESSAGE_HOUSE = 0x5F7, /**< Placed-house information message. */
 };
 
-/**
- *
- * Inventory item identifiers for the eight Georama paint colours.
- *
- */
-static short penki_item_no[8] = {
-    237, 238, 242, 240, 241, 243, 244, 239,
-};
-/**
- *
- * Part-list index for each Georama view mode, or minus one when no list applies.
- *
- */
-static short tbl_957[7] = {
-    GEORAMA_MESSAGE_LIST_MAKE,
-    GEORAMA_MESSAGE_LIST_STOCK,
-    GEORAMA_MESSAGE_LIST_PAINT,
-    GEORAMA_MESSAGE_LIST_NONE,
-    GEORAMA_MESSAGE_LIST_HOUSE,
-    GEORAMA_MESSAGE_LIST_NONE,
-    GEORAMA_MESSAGE_LIST_PLACED,
-};
 void             MenuGeoramaMessageMake(int mode);
-
 
 /**
  *
@@ -220,7 +197,6 @@ struct GeoStoneDmyCnt {
     }
 };
 
-
 /**
  *
  * Tracks whether each georama request condition has been met.
@@ -256,28 +232,66 @@ struct MenuGeoramaSystemInfo {
 
 /**
  *
- * Town edit map inspected by the Georama menu.
+ * Handles held and pressed buttons for one Georama menu action.
  *
  */
-static CEditMap *MenuMainMapInfo;
+typedef int (*GeoramaPushFunc)(CMenuGeorama *menu, int buttons_held, int buttons_pressed);
+
+int                           georama_menu_local_key(int keys);
+void                          MenuPlacedHousePosLinkMes();
+void                          MenuPlacedHouseMessMake(CEditPartsInfo *info, CEditHouse *house, int update);
+int                           MenuGeoramaPushKey(int keys, int pushed);
+int                           MenuGeoramaBasePush(CMenuGeorama *menu, int buttons_held, int buttons_pressed);
+int                           MenuGeoramaPlacePush(CMenuGeorama *menu, int buttons_held, int buttons_pressed);
+
+int MenuGeoramaMakePush(CMenuGeorama *menu, int keys, int pushed);
+int MenuGeoramaPaintSelect(CMenuGeorama *menu, int keys, int pushed);
+int MenuGeoramaCheckPointPush(CMenuGeorama *menu, int keys, int pushed);
+int MenuGeoramaAnalyzeSelect(CMenuGeorama *menu, int keys, int pushed);
+
 /**
  *
- * Percentage of the current town Georama requests that are satisfied.
+ * Original position of the displayed Georama part before menu transformations.
  *
  */
-static int analyze_percent = 100;
+static float old_menuparts_pos[4] = {0.0f, 0.0f, 0.0f, 0.0f};
+
 /**
  *
- * Vertical scroll-bar position for the Georama analysis list.
+ * Original rotation of the displayed Georama part before menu transformations.
  *
  */
-static float GeoAnalyzeCheckPointScrlBarY;
+static float old_menuparts_rot[4] = {
+    0.0f, 0.0f, 0.0f, 0.0f,
+};
+
 /**
  *
- * Scroll direction used to populate each Georama list message.
+ * Current position of the map part shown in the Georama preview.
  *
  */
-static signed char GeoramaMesMakeManner[5];
+static float now_menu_pos_mapparts[4] = {
+    0.0f, 0.0f, 0.0f, 0.0f,
+};
+
+/**
+ *
+ * Offset positioning the displayed Georama part within its preview.
+ *
+ */
+static float georama_adjust_position[4] = {
+    0.0f, 0.0f, 0.0f, 0.0f,
+};
+
+/**
+ *
+ * Inventory item identifiers for the eight Georama paint colours.
+ *
+ */
+static short penki_item_no[8] = {
+    237, 238, 242, 240, 241, 243, 244, 239,
+};
+
 /**
  *
  * Georama paint colours and the unpainted sentinel.
@@ -294,388 +308,7 @@ static float GeoramaColorList[9][3] = {
     {50.0f, 50.0f, 50.0f},
     {-1.0f, -1.0f, -1.0f},
 };
-/**
- *
- * Handles held and pressed buttons for one Georama menu action.
- *
- */
-typedef int (*GeoramaPushFunc)(CMenuGeorama *, int, int);
-/**
- *
- * Active Georama menu.
- *
- */
-static CMenuGeorama *CMenuGeoPt;
-/**
- *
- * Active villager removal menu.
- *
- */
-static CRemovalMenu *RemovalMenuPtr;
-/**
- *
- * First entry in the Geostone download announcement.
- *
- */
-static DownLoadEntry *DownLoadInfo;
-/**
- *
- * First stage of the Geostone count animation.
- *
- */
-static GeoStoneDmyCnt *MenuGeoStoneDmyCnt;
-/**
- *
- * Number of entries displayed by the download announcement.
- *
- */
-static short DownLoadDispNum;
-/**
- *
- * Number of request entries in the Georama analysis list.
- *
- */
-static short MenuEditAnalyzeDataSrcNum;
-/**
- *
- * Input action number associated with each Georama view mode.
- *
- */
-static signed char viewmode_to_mode_convtable_1310[7] = {
-    GEORAMA_VIEW_MAKE + 1,
-    GEORAMA_VIEW_STOCK + 1,
-    GEORAMA_VIEW_PAINT + 1,
-    GEORAMA_VIEW_EDIT + 1,
-    GEORAMA_VIEW_CHECK_POINT + 1,
-    GEORAMA_VIEW_ANALYZE + 1,
-    GEORAMA_VIEW_PLACED + 1,
-};
-/**
- *
- * Texture rectangles of the active Georama list board pieces.
- *
- */
-static short brdtbl_active_1314[12] = {
-    350, 460, 12, 22, 362, 460, 12, 22,
-    374, 460, 12, 22,
-};
-/**
- *
- * Texture rectangles of the inactive Georama list board pieces.
- *
- */
-static short brdtbl_noneactive_1315[12] = {
-    350, 438, 12, 22, 362, 438, 12, 22,
-    374, 438, 12, 22,
-};
-/**
- *
- * Texture rectangles of the Georama list scroll bar pieces.
- *
- */
-static short ScrlBarTable_1320[12] = {
-    356, 234, 8, 10, 356, 242, 8, 10,
-    356, 250, 8, 10,
-};
-/**
- *
- * Screen positions of the two message columns for each Georama list.
- *
- */
-static short constant_msg_xyoffsettbl_2427[5][4] = {
-    {40, 258, 40, 282},
-    {40, 258, 40, 282},
-    {54, 267, 0, 0},
-    {40, 261, 40, 285},
-    {54, 267, 0, 0},
-};
-/**
- *
- * Request source currently examined by the Georama analysis menu.
- *
- */
-static EditAnalyzeSrc *MenuEditAnalyzeSrc;
-/**
- *
- * Font objects containing the individual Georama request messages.
- *
- */
-static CFont *GeoramaReqMsgFont[48];
-/**
- *
- * Number of text lines in each request message font object.
- *
- */
-static signed char GeoramaReqMsgFontGyouNum[48];
-/**
- *
- * Whether each request message font object should be drawn.
- *
- */
-static signed char GeoramaReqMsgFontDrawFlag[48];
-/**
- *
- * Texture origins of the two Georama analysis topic buttons.
- *
- */
-static short maintopicbtn_1568[2][2] = {
-    {356, 114},
-    {356, 152},
-};
-/**
- *
- * Georama analysis title position offsets for the two language layouts.
- *
- */
-static float offsettable_1551[2][2] = {
-    {59.0f, 11.0f},
-    {67.0f, 12.0f},
-};
-/**
- *
- * Texture rectangles of inactive Georama analysis board pieces.
- *
- */
-static short brdtbl_noneactive_1547[12] = {
-    350, 438, 12, 22, 362, 438, 12, 22,
-    374, 438, 12, 22,
-};
-/**
- *
- * Texture rectangles of active Georama analysis board pieces.
- *
- */
-static short brdtbl_1550[12] = {
-    350, 460, 12, 22, 362, 460, 12, 22,
-    374, 460, 12, 22,
-};
-/**
- *
- * Texture rectangles of the Georama analysis scroll bar pieces.
- *
- */
-static short rectboxtbl_1555[12] = {
-    356, 264, 8, 32, 364, 264, 2, 32,
-    366, 264, 8, 32,
-};
-/**
- *
- * Texture rectangles of the placed-house panel titles by language.
- *
- */
-static short postbl_2175[8][4] = {
-    {364, 674, 60, 18},
-    {280, 674, 100, 18},
-    {278, 674, 104, 18},
-    {280, 674, 100, 18},
-    {278, 674, 102, 18},
-    {280, 674, 98, 18},
-    {364, 674, 60, 18},
-    {364, 674, 60, 18},
-};
-/**
- *
- * Placed-house panel title position offset for each language.
- *
- */
-static short offset_2176[7] = {
-    82, 62, 62, 62, 64, 64, 62,
-};
-/**
- *
- * Texture rectangles of resident labels in the placed-house panel.
- *
- */
-static short jyunintbl_2187[2][4] = {
-    {466, 692, 32, 18},
-    {400, 606, 32, 20},
-};
-/**
- *
- * Frame counter of the placed-house scroll-arrow blinking animation.
- *
- */
-static signed char cnt_2177;
-/**
- *
- * Whether the placed-house scroll-arrow blink counter has been initialized.
- *
- */
-static signed char init_2178;
-/**
- *
- * House whose residents and attached parts appear in the placed-house panel.
- *
- */
-static CEditHouse *HouseDrawInfo;
-/**
- *
- * Files loaded by the villager removal menu.
- *
- */
-static char *fname_4292[2] = {"npcmove.pac", NULL};
-/**
- *
- * Whether the download announcement windows are drawn.
- *
- */
-static signed char DownLoadInfoDrawFlag;
-/**
- *
- * Number of request entries supplied by the Geostone download.
- *
- */
-static u16 MenuGeoStoneDownLoad_Request;
-/**
- *
- * Number of part entries supplied by the Geostone download.
- *
- */
-static u16 MenuGeoStoneDownLoad_PartsNum;
-/**
- *
- * Whether every download entry has been announced.
- *
- */
-static signed char DownLoadInfoEndFlag;
-/**
- *
- * Progress state for constructing the next announcement message.
- *
- */
-static signed char DownLoadMesMakeProgress;
-/**
- *
- * Next announcement entry waiting for message construction.
- *
- */
-static DownLoadEntry *DownLoadInfoNext;
-/**
- *
- * Message window currently revealing a download entry.
- *
- */
-static ClsMes *DownLoadActiveMes;
-/**
- *
- * Current progress of the download announcement.
- *
- */
-static short DownLoadProgress;
-/**
- *
- * Message windows available to the Geostone download announcement.
- *
- */
-static CDC2Mes *DownLoadMes[6];
-/**
- *
- * Number of text lines used when scrolling the Geostone announcement.
- *
- */
-static short DownLoadMesScrlGyouNum = 1;
-/**
- *
- * Announcement message window selected for construction.
- *
- */
-static signed char DownLoadMesMakeNo;
-/**
- *
- * Upward scrolling offset of announcement message windows.
- *
- */
-static short DownLoadMesUpY;
-/**
- *
- * Screen rectangle used by the download announcement windows.
- *
- */
-static DownLoadRect DownLoadWinRect;
-/**
- *
- * Total steps represented by the staged Geostone count animation.
- *
- */
-static u32 MenuGeoStoneDownLoadTime;
-/**
- *
- * Current stage of the Geostone count animation.
- *
- */
-static GeoStoneDmyCnt *MenuGeoStoneDmyCnt_Now;
-/**
- *
- * Vertical scrolling position of the placed-house information list.
- *
- */
-static int HouseInfoSelectY;
-/**
- *
- * Vertical position of the placed-house list cursor.
- *
- */
-static int HouseInfoCursorY;
-/**
- *
- * First visible row of the placed-house information list.
- *
- */
-static short HouseInfoSelectLine;
-/**
- *
- * Selected row of the placed-house information list.
- *
- */
-static short HouseInfoSelectSelect;
-/**
- *
- * Whether to snap the placed-house list and cursor to their target positions.
- *
- */
-static signed char HouseInfoSelectMoveInit;
-/**
- *
- * Map part currently shown by the Georama menu.
- *
- */
-static CMapParts *MenuMapPart;
-/**
- *
- * Whether the original displayed part position and rotation have been saved.
- *
- */
-static u8 old_menuparts_pos_flag;
-/**
- *
- * Original position of the displayed Georama part before menu transformations.
- *
- */
-static float old_menuparts_pos[4] = {0.0f, 0.0f, 0.0f, 0.0f};
-/**
- *
- * Original rotation of the displayed Georama part before menu transformations.
- *
- */
-static float old_menuparts_rot[4] = {
-    0.0f, 0.0f, 0.0f, 0.0f,
-};
-/**
- *
- * Current position of the map part shown in the Georama preview.
- *
- */
-static float now_menu_pos_mapparts[4] = {
-    0.0f, 0.0f, 0.0f, 0.0f,
-};
-/**
- *
- * Offset positioning the displayed Georama part within its preview.
- *
- */
-static float georama_adjust_position[4] = {
-    0.0f, 0.0f, 0.0f, 0.0f,
-};
+
 /**
  *
  * Preview scale for each georama part definition.
@@ -695,6 +328,7 @@ static float georama_parts_adjust_scaletable[93] = {
     0.300000012f, 0.244200006f, 0.337500006f, 0.0f, 0.0f, 0.759500027f, 0.0f, 0.0f,
     0.94599998f, 0.329100013f, 0.390799999f, 0.0f, 0.0f,
 };
+
 /**
  *
  * Preview depth offset for each georama part definition.
@@ -714,24 +348,210 @@ static float georama_parts_adjust_z_table[93] = {
     0.300000012f, 5.0f, 15.0f, 0.0f, 0.0f, -3.0f, 0.0f, 0.0f,
     -10.0f, 0.329100013f, 0.390799999f, 0.0f, 0.0f,
 };
+
 /**
  *
- * Memory stack used for the displayed Georama part.
+ * Part-list index for each Georama view mode, or minus one when no list applies.
  *
  */
-static mgCMemory *MenuPartsDrawStack;
+static short tbl_957[7] = {
+    GEORAMA_MESSAGE_LIST_MAKE,
+    GEORAMA_MESSAGE_LIST_STOCK,
+    GEORAMA_MESSAGE_LIST_PAINT,
+    GEORAMA_MESSAGE_LIST_NONE,
+    GEORAMA_MESSAGE_LIST_HOUSE,
+    GEORAMA_MESSAGE_LIST_NONE,
+    GEORAMA_MESSAGE_LIST_PLACED,
+};
+
 /**
  *
- * Frames to wait before drawing the displayed Georama part.
+ * Texture rectangles of the active Georama list board pieces.
  *
  */
-static short GeoramaParts_DrawWaitCnt;
+static short brdtbl_active_1314[12] = {
+    350, 460, 12, 22, 362, 460, 12, 22,
+    374, 460, 12, 22,
+};
+
 /**
  *
- * Message windows used by the Georama lists.
+ * Texture rectangles of the inactive Georama list board pieces.
  *
  */
-static CDC2Mes *GeoramaMes[5];
+static short brdtbl_noneactive_1315[12] = {
+    350, 438, 12, 22, 362, 438, 12, 22,
+    374, 438, 12, 22,
+};
+
+/**
+ *
+ * Texture rectangles of the Georama list scroll bar pieces.
+ *
+ */
+static short ScrlBarTable_1320[12] = {
+    356, 234, 8, 10, 356, 242, 8, 10,
+    356, 250, 8, 10,
+};
+
+/**
+ *
+ * Texture rectangles of inactive Georama analysis board pieces.
+ *
+ */
+static short brdtbl_noneactive_1547[12] = {
+    350, 438, 12, 22, 362, 438, 12, 22,
+    374, 438, 12, 22,
+};
+
+/**
+ *
+ * Texture rectangles of active Georama analysis board pieces.
+ *
+ */
+static short brdtbl_1550[12] = {
+    350, 460, 12, 22, 362, 460, 12, 22,
+    374, 460, 12, 22,
+};
+
+/**
+ *
+ * Georama analysis title position offsets for the two language layouts.
+ *
+ */
+static float offsettable_1551[2][2] = {
+    {59.0f, 11.0f},
+    {67.0f, 12.0f},
+};
+
+/**
+ *
+ * Texture rectangles of the Georama analysis scroll bar pieces.
+ *
+ */
+static short rectboxtbl_1555[12] = {
+    356, 264, 8, 32, 364, 264, 2, 32,
+    366, 264, 8, 32,
+};
+
+/**
+ *
+ * Texture rectangles of the placed-house panel titles by language.
+ *
+ */
+static short postbl_2175[8][4] = {
+    {364, 674, 60, 18},
+    {280, 674, 100, 18},
+    {278, 674, 104, 18},
+    {280, 674, 100, 18},
+    {278, 674, 102, 18},
+    {280, 674, 98, 18},
+    {364, 674, 60, 18},
+    {364, 674, 60, 18},
+};
+
+/**
+ *
+ * Placed-house panel title position offset for each language.
+ *
+ */
+static short offset_2176[7] = {
+    82, 62, 62, 62, 64, 64, 62,
+};
+
+/**
+ *
+ * Texture rectangles of resident labels in the placed-house panel.
+ *
+ */
+static short jyunintbl_2187[2][4] = {
+    {466, 692, 32, 18},
+    {400, 606, 32, 20},
+};
+
+/**
+ *
+ * Screen positions of the two message columns for each Georama list.
+ *
+ */
+static short constant_msg_xyoffsettbl_2427[5][4] = {
+    {40, 258, 40, 282},
+    {40, 258, 40, 282},
+    {54, 267, 0, 0},
+    {40, 261, 40, 285},
+    {54, 267, 0, 0},
+};
+
+/**
+ *
+ * Input handler for each Georama menu action, with null entries for inactive actions.
+ *
+ */
+static GeoramaPushFunc MenuGeoramaPushFunc[9] = {
+    MenuGeoramaBasePush,
+    MenuGeoramaMakePush,
+    MenuGeoramaPlacePush,
+    MenuGeoramaPaintSelect,
+    NULL,
+    MenuGeoramaCheckPointPush,
+    MenuGeoramaAnalyzeSelect,
+    NULL,
+    NULL,
+};
+
+/**
+ *
+ * Number of text lines used when scrolling the Geostone announcement.
+ *
+ */
+static short DownLoadMesScrlGyouNum = 1;
+
+/**
+ *
+ * Percentage of the current town Georama requests that are satisfied.
+ *
+ */
+static int analyze_percent = 100;
+
+/**
+ *
+ * Whether the Georama request message list needs reconstruction.
+ *
+ */
+static signed char GeoramaReqMakeFlag = 1;
+
+/**
+ *
+ * Files loaded by the Georama menu.
+ *
+ */
+static char *fname_1013[2] = {"georama0.pac", NULL};
+
+/**
+ *
+ * Input action number associated with each Georama view mode.
+ *
+ */
+static signed char viewmode_to_mode_convtable_1310[7] = {
+    GEORAMA_VIEW_MAKE + 1,
+    GEORAMA_VIEW_STOCK + 1,
+    GEORAMA_VIEW_PAINT + 1,
+    GEORAMA_VIEW_EDIT + 1,
+    GEORAMA_VIEW_CHECK_POINT + 1,
+    GEORAMA_VIEW_ANALYZE + 1,
+    GEORAMA_VIEW_PLACED + 1,
+};
+
+/**
+ *
+ * Texture origins of the two Georama analysis topic buttons.
+ *
+ */
+static short maintopicbtn_1568[2][2] = {
+    {356, 114},
+    {356, 152},
+};
+
 /**
  *
  * Initial message offsets for the five Georama list windows.
@@ -744,279 +564,7 @@ static signed char msgtbl_2587[5] = {
     GEORAMA_INITIAL_MESSAGE_PLACED - GEORAMA_INITIAL_MESSAGE_BASE,
     GEORAMA_INITIAL_MESSAGE_HOUSE - GEORAMA_INITIAL_MESSAGE_BASE,
 };
-/**
- *
- * Whether Georama list messages need immediate reconstruction.
- *
- */
-static u8 GeoramaMesForceMakeFlag;
-/**
- *
- * Whether Georama message positions must snap to their targets.
- *
- */
-static u8 GeoramaMesPosForceSetFlag;
-/**
- *
- * Whether the paint-list message needs reconstruction.
- *
- */
-static u8 GeoramaMesForceMakeFlag_PaintVer;
-/**
- *
- * Whether the menu cursor must move immediately to its target.
- *
- */
-static u8 MenuGeoramaCursorForceSetFlag;
-/**
- *
- * Whether a Geostone download is active in the Georama menu.
- *
- */
-static signed char MenuGeoStoneDonwLoadFlag;
-mgCMemory                     MenuGeoramaStack;
-mgRect<int>                   potti0(0x174, 0xBE, 0x10, 0x10);
-mgRect<int>                   potti1(0x164, 0xBE, 0x10, 0x10);
-/**
- *
- * Texture containing the Georama menu artwork.
- *
- */
-static mgCTexture *Tex_Georama;
-/**
- *
- * Results of checking each Georama request condition.
- *
- */
-static GeoRequestCheck *GeoRequestFlag;
-/**
- *
- * Saved selections and scrolling positions for the Georama menu lists.
- *
- */
-static MenuGeoramaSystemInfo *MenuGeoramaSystemData;
-/**
- *
- * Current analysis of the town's Georama state.
- *
- */
-static EditDataAnalyze *MenuAnalyzeData;
-/**
- *
- * Number of part definitions already available for construction.
- *
- */
-static int PartsMakeOkTableNum;
-/**
- *
- * Part definition identifiers already available for construction.
- *
- */
-int PartsMakeOkTable[256];
-/**
- *
- * Form containing the placed-house information panel.
- *
- */
-static CMenuPosDataForm *HouseInfoFormGrobal;
-/**
- *
- * Number of selectable rows within the analysis list scroll limit.
- *
- */
-static short MenuEditAnalyzeDataSrcListLimmitNum;
-/**
- *
- * Total vertical extent of the Georama analysis list.
- *
- */
-static float MenuEditAnalyzeDataSrcListH;
-/**
- *
- * Target vertical position of the Georama analysis list.
- *
- */
-static float MenuEditAnalyzeDataSrcListH_Move;
-/**
- *
- * Vertical starting position of each Georama analysis entry.
- *
- */
-static float MenuEditAnalyzeDataSrcListHTable[16];
-/**
- *
- * Screen position of the Georama menu title.
- *
- */
-static float menu_georama_title_pos[2];
-/**
- *
- * Scroll direction used to populate the analysis message.
- *
- */
-static short GeoramaReqMakeManner;
-/**
- *
- * Whether the Georama request message list needs reconstruction.
- *
- */
-static signed char GeoramaReqMakeFlag = 1;
-/**
- *
- * Opacity of the download announcement message windows.
- *
- */
-static int DownLoadMesAlpha;
-/**
- *
- * Whether the displayed model form should snap to its target position.
- *
- */
-static u8 NowPolyGonFormMoveFlag;
-/**
- *
- * Photograph selected for the Georama wall-picture preview.
- *
- */
-static short MenuGeoramaViewNowPicNo;
-/**
- *
- * Texture of the selected Georama wall photograph.
- *
- */
-static mgCTexture *MenuGeoramaViewWallPic;
-/**
- *
- * Files loaded by the Georama menu.
- *
- */
-static char *fname_1013[2] = {"georama0.pac", NULL};
-/**
- *
- * Whether the placed-house list cursor is visible.
- *
- */
-static int HouseInfoCursorAlphaOnOff;
-/**
- *
- * Opacity of the placed-house list cursor.
- *
- */
-static int HouseInfoCursorAlpha;
-/**
- *
- * Request data entries shown by the Georama analysis menu.
- *
- */
-static EditAnalyzeDataSrc *MenuEditAnalyzeDataSrc[32];
-/**
- *
- * Texture height reserved for each Georama request message.
- *
- */
-static short GeoramaReqMsgTexH[48];
-/**
- *
- * First source line used to populate each Georama list message.
- *
- */
-static short GeoramaMesMakeLine[5];
-/**
- *
- * First request line used to populate the analysis message.
- *
- */
-static short GeoramaReqMakeLine;
-/**
- *
- * Cached quantities for the paint items displayed by the Georama menu.
- *
- */
-static short GeoramaPenkiNum[16];
-/**
- *
- * Screen-position offsets of the Georama list titles.
- *
- */
-static int GeoBoardListTitlePutOffset[5][2];
-/**
- *
- * Texture rectangles of the Georama list titles.
- *
- */
-static float GeoBoardListTitleTexRect[5][4];
-/**
- *
- * Texture rectangle of the request-board checkpoint indicator.
- *
- */
-static float GeoRequestBoardCheckPoint[4];
-/**
- *
- * Integer position parameters of the request-board checkpoint indicator.
- *
- */
-static int GeoRequestBoardCheckPoint_P[2];
-/**
- *
- * Fade opacity of the Georama model preview while the menu closes.
- *
- */
-static int GeoAlpha_1199;
-/**
- *
- * Whether the Georama model-preview opacity has been initialized.
- *
- */
-static signed char init_1200;
-/**
- *
- * Blank display name used for unused Georama list rows.
- *
- */
-static char *dmychar_3207;
-/**
- *
- * Blank name used for missing placed-house information.
- *
- */
-static char *Dmy_2314;
-/**
- *
- * Whether the blank placed-house name has been initialized.
- *
- */
-static signed char init_2315;
-/**
- *
- * House name, resident name and names of up to twenty attached parts.
- *
- */
-char *HouseChildPartInfo[22];
-/**
- *
- * Placed part identifier of the house shown in the information panel.
- *
- */
-static int HousePartsID;
-/**
- *
- * Whether the blank Georama list name has been initialized.
- *
- */
-static signed char init_3208;
-/**
- *
- * Definition of the placed Georama part selected for removal.
- *
- */
-static CEditPartsInfo *edparts_info_3580;
-/**
- *
- * Whether the cached removal part definition has been initialized.
- *
- */
-static signed char init_3581;
+
 #pragma explicit_zero_data on
 
 /**
@@ -1025,20 +573,8 @@ static signed char init_3581;
  *
  */
 static int DestroyNum_3583 = 0;
-
 #pragma explicit_zero_data reset
-/**
- *
- * Maximum quantity of the selected Georama part that can be removed.
- *
- */
-static short DestroyMaxNum_3584;
-/**
- *
- * Whether the cached removal quantity limit has been initialized.
- *
- */
-static signed char init_3585;
+
 #pragma explicit_zero_data on
 
 /**
@@ -1047,17 +583,631 @@ static signed char init_3585;
  *
  */
 static char *DestroyPartsName_3587 = NULL;
-
 #pragma explicit_zero_data reset
-int                           georama_menu_local_key(int keys);
-void                          MenuPlacedHousePosLinkMes();
-void                          MenuPlacedHouseMessMake(CEditPartsInfo *info, CEditHouse *house, int update);
-int                           MenuGeoramaPushKey(int keys, int pushed);
-int                           MenuGeoramaBasePush(CMenuGeorama *menu, int buttons_held, int buttons_pressed);
-int                           MenuGeoramaPlacePush(CMenuGeorama *menu, int buttons_held, int buttons_pressed);
 
+/**
+ *
+ * Files loaded by the villager removal menu.
+ *
+ */
+static char *fname_4292[2] = {"npcmove.pac", NULL};
 
-// Code (.text)
+/**
+ *
+ * House whose residents and attached parts appear in the placed-house panel.
+ *
+ */
+static CEditHouse *HouseDrawInfo;
+
+/**
+ *
+ * Form containing the placed-house information panel.
+ *
+ */
+static CMenuPosDataForm *HouseInfoFormGrobal;
+
+/**
+ *
+ * Placed part identifier of the house shown in the information panel.
+ *
+ */
+static int HousePartsID;
+
+/**
+ *
+ * First visible row of the placed-house information list.
+ *
+ */
+static short HouseInfoSelectLine;
+
+/**
+ *
+ * Selected row of the placed-house information list.
+ *
+ */
+static short HouseInfoSelectSelect;
+
+/**
+ *
+ * Whether to snap the placed-house list and cursor to their target positions.
+ *
+ */
+static signed char HouseInfoSelectMoveInit;
+
+/**
+ *
+ * Vertical scrolling position of the placed-house information list.
+ *
+ */
+static int HouseInfoSelectY;
+
+/**
+ *
+ * Whether the placed-house list cursor is visible.
+ *
+ */
+static int HouseInfoCursorAlphaOnOff;
+
+/**
+ *
+ * Opacity of the placed-house list cursor.
+ *
+ */
+static int HouseInfoCursorAlpha;
+
+/**
+ *
+ * Vertical position of the placed-house list cursor.
+ *
+ */
+static int HouseInfoCursorY;
+
+/**
+ *
+ * Number of part definitions already available for construction.
+ *
+ */
+static int PartsMakeOkTableNum;
+
+/**
+ *
+ * First entry in the Geostone download announcement.
+ *
+ */
+static DownLoadEntry *DownLoadInfo;
+
+/**
+ *
+ * Next announcement entry waiting for message construction.
+ *
+ */
+static DownLoadEntry *DownLoadInfoNext;
+
+/**
+ *
+ * Whether every download entry has been announced.
+ *
+ */
+static signed char DownLoadInfoEndFlag;
+
+/**
+ *
+ * Whether the download announcement windows are drawn.
+ *
+ */
+static signed char DownLoadInfoDrawFlag;
+
+/**
+ *
+ * Screen rectangle used by the download announcement windows.
+ *
+ */
+static DownLoadRect DownLoadWinRect;
+
+/**
+ *
+ * Number of entries displayed by the download announcement.
+ *
+ */
+static short DownLoadDispNum;
+
+/**
+ *
+ * Current progress of the download announcement.
+ *
+ */
+static short DownLoadProgress;
+
+/**
+ *
+ * Progress state for constructing the next announcement message.
+ *
+ */
+static signed char DownLoadMesMakeProgress;
+
+/**
+ *
+ * Opacity of the download announcement message windows.
+ *
+ */
+static int DownLoadMesAlpha;
+
+/**
+ *
+ * Announcement message window selected for construction.
+ *
+ */
+static signed char DownLoadMesMakeNo;
+
+/**
+ *
+ * Message window currently revealing a download entry.
+ *
+ */
+static ClsMes *DownLoadActiveMes;
+
+/**
+ *
+ * Upward scrolling offset of announcement message windows.
+ *
+ */
+static short DownLoadMesUpY;
+
+/**
+ *
+ * Whether the original displayed part position and rotation have been saved.
+ *
+ */
+static u8 old_menuparts_pos_flag;
+
+/**
+ *
+ * Whether the displayed model form should snap to its target position.
+ *
+ */
+static u8 NowPolyGonFormMoveFlag;
+
+/**
+ *
+ * Map part currently shown by the Georama menu.
+ *
+ */
+static CMapParts *MenuMapPart;
+
+/**
+ *
+ * Saved selections and scrolling positions for the Georama menu lists.
+ *
+ */
+static MenuGeoramaSystemInfo *MenuGeoramaSystemData;
+
+/**
+ *
+ * Whether the menu cursor must move immediately to its target.
+ *
+ */
+static u8 MenuGeoramaCursorForceSetFlag;
+
+/**
+ *
+ * Whether a Geostone download is active in the Georama menu.
+ *
+ */
+static signed char MenuGeoStoneDonwLoadFlag;
+
+/**
+ *
+ * Number of part entries supplied by the Geostone download.
+ *
+ */
+static u16 MenuGeoStoneDownLoad_PartsNum;
+
+/**
+ *
+ * Number of request entries supplied by the Geostone download.
+ *
+ */
+static u16 MenuGeoStoneDownLoad_Request;
+
+/**
+ *
+ * Total steps represented by the staged Geostone count animation.
+ *
+ */
+static u32 MenuGeoStoneDownLoadTime;
+
+/**
+ *
+ * First stage of the Geostone count animation.
+ *
+ */
+static GeoStoneDmyCnt *MenuGeoStoneDmyCnt;
+
+/**
+ *
+ * Current stage of the Geostone count animation.
+ *
+ */
+static GeoStoneDmyCnt *MenuGeoStoneDmyCnt_Now;
+
+/**
+ *
+ * Results of checking each Georama request condition.
+ *
+ */
+static GeoRequestCheck *GeoRequestFlag;
+
+/**
+ *
+ * Memory stack used for the displayed Georama part.
+ *
+ */
+static mgCMemory *MenuPartsDrawStack;
+
+/**
+ *
+ * Town edit map inspected by the Georama menu.
+ *
+ */
+static CEditMap *MenuMainMapInfo;
+
+/**
+ *
+ * Active Georama menu.
+ *
+ */
+static CMenuGeorama *CMenuGeoPt;
+
+/**
+ *
+ * Photograph selected for the Georama wall-picture preview.
+ *
+ */
+static short MenuGeoramaViewNowPicNo;
+
+/**
+ *
+ * Texture of the selected Georama wall photograph.
+ *
+ */
+static mgCTexture *MenuGeoramaViewWallPic;
+
+/**
+ *
+ * Request source currently examined by the Georama analysis menu.
+ *
+ */
+static EditAnalyzeSrc *MenuEditAnalyzeSrc;
+
+/**
+ *
+ * Number of request entries in the Georama analysis list.
+ *
+ */
+static short MenuEditAnalyzeDataSrcNum;
+
+/**
+ *
+ * Total vertical extent of the Georama analysis list.
+ *
+ */
+static float MenuEditAnalyzeDataSrcListH;
+
+/**
+ *
+ * Target vertical position of the Georama analysis list.
+ *
+ */
+static float MenuEditAnalyzeDataSrcListH_Move;
+
+/**
+ *
+ * Number of selectable rows within the analysis list scroll limit.
+ *
+ */
+static short MenuEditAnalyzeDataSrcListLimmitNum;
+
+/**
+ *
+ * Current analysis of the town's Georama state.
+ *
+ */
+static EditDataAnalyze *MenuAnalyzeData;
+
+/**
+ *
+ * Integer position parameters of the request-board checkpoint indicator.
+ *
+ */
+static int GeoRequestBoardCheckPoint_P[2];
+
+/**
+ *
+ * Texture containing the Georama menu artwork.
+ *
+ */
+static mgCTexture *Tex_Georama;
+
+/**
+ *
+ * Frames to wait before drawing the displayed Georama part.
+ *
+ */
+static short GeoramaParts_DrawWaitCnt;
+
+/**
+ *
+ * Whether Georama message positions must snap to their targets.
+ *
+ */
+static u8 GeoramaMesPosForceSetFlag;
+
+/**
+ *
+ * Scroll direction used to populate each Georama list message.
+ *
+ */
+static signed char GeoramaMesMakeManner[5];
+
+/**
+ *
+ * First request line used to populate the analysis message.
+ *
+ */
+static short GeoramaReqMakeLine;
+
+/**
+ *
+ * Scroll direction used to populate the analysis message.
+ *
+ */
+static short GeoramaReqMakeManner;
+
+/**
+ *
+ * Whether Georama list messages need immediate reconstruction.
+ *
+ */
+static u8 GeoramaMesForceMakeFlag;
+
+/**
+ *
+ * Whether the paint-list message needs reconstruction.
+ *
+ */
+static u8 GeoramaMesForceMakeFlag_PaintVer;
+
+/**
+ *
+ * Vertical scroll-bar position for the Georama analysis list.
+ *
+ */
+static float GeoAnalyzeCheckPointScrlBarY;
+
+/**
+ *
+ * Fade opacity of the Georama model preview while the menu closes.
+ *
+ */
+static int GeoAlpha_1199;
+
+/**
+ *
+ * Whether the Georama model-preview opacity has been initialized.
+ *
+ */
+static signed char init_1200;
+
+/**
+ *
+ * Screen position of the Georama menu title.
+ *
+ */
+static float menu_georama_title_pos[2];
+
+/**
+ *
+ * Frame counter of the placed-house scroll-arrow blinking animation.
+ *
+ */
+static signed char cnt_2177;
+
+/**
+ *
+ * Whether the placed-house scroll-arrow blink counter has been initialized.
+ *
+ */
+static signed char init_2178;
+
+/**
+ *
+ * Blank name used for missing placed-house information.
+ *
+ */
+static char *Dmy_2314;
+
+/**
+ *
+ * Whether the blank placed-house name has been initialized.
+ *
+ */
+static signed char init_2315;
+
+/**
+ *
+ * Blank display name used for unused Georama list rows.
+ *
+ */
+static char *dmychar_3207;
+
+/**
+ *
+ * Whether the blank Georama list name has been initialized.
+ *
+ */
+static signed char init_3208;
+
+/**
+ *
+ * Definition of the placed Georama part selected for removal.
+ *
+ */
+static CEditPartsInfo *edparts_info_3580;
+
+/**
+ *
+ * Whether the cached removal part definition has been initialized.
+ *
+ */
+static signed char init_3581;
+
+/**
+ *
+ * Maximum quantity of the selected Georama part that can be removed.
+ *
+ */
+static short DestroyMaxNum_3584;
+
+/**
+ *
+ * Whether the cached removal quantity limit has been initialized.
+ *
+ */
+static signed char init_3585;
+
+/**
+ *
+ * Active villager removal menu.
+ *
+ */
+static CRemovalMenu *RemovalMenuPtr;
+
+/**
+ *
+ * House name, resident name and names of up to twenty attached parts.
+ *
+ */
+char *HouseChildPartInfo[22];
+
+/**
+ *
+ * Part definition identifiers already available for construction.
+ *
+ */
+int PartsMakeOkTable[256];
+
+/**
+ *
+ * Message windows available to the Geostone download announcement.
+ *
+ */
+static CDC2Mes *DownLoadMes[6];
+
+/**
+ *
+ * Cached quantities for the paint items displayed by the Georama menu.
+ *
+ */
+static short GeoramaPenkiNum[16];
+
+/**
+ *
+ * Memory stack for Georama menu data and display objects.
+ *
+ */
+mgCMemory                     MenuGeoramaStack;
+
+/**
+ *
+ * Vertical starting position of each Georama analysis entry.
+ *
+ */
+static float MenuEditAnalyzeDataSrcListHTable[16];
+
+/**
+ *
+ * Request data entries shown by the Georama analysis menu.
+ *
+ */
+static EditAnalyzeDataSrc *MenuEditAnalyzeDataSrc[32];
+
+/**
+ *
+ * Texture rectangles of the Georama list titles.
+ *
+ */
+static float GeoBoardListTitleTexRect[5][4];
+
+/**
+ *
+ * Screen-position offsets of the Georama list titles.
+ *
+ */
+static int GeoBoardListTitlePutOffset[5][2];
+
+/**
+ *
+ * Texture rectangle of the request-board checkpoint indicator.
+ *
+ */
+static float GeoRequestBoardCheckPoint[4];
+
+/**
+ *
+ * Message windows used by the Georama lists.
+ *
+ */
+static CDC2Mes *GeoramaMes[5];
+
+/**
+ *
+ * First source line used to populate each Georama list message.
+ *
+ */
+static short GeoramaMesMakeLine[5];
+
+/**
+ *
+ * Font objects containing the individual Georama request messages.
+ *
+ */
+static CFont *GeoramaReqMsgFont[48];
+
+/**
+ *
+ * Number of text lines in each request message font object.
+ *
+ */
+static signed char GeoramaReqMsgFontGyouNum[48];
+
+/**
+ *
+ * Texture height reserved for each Georama request message.
+ *
+ */
+static short GeoramaReqMsgTexH[48];
+
+/**
+ *
+ * Whether each request message font object should be drawn.
+ *
+ */
+static signed char GeoramaReqMsgFontDrawFlag[48];
+
+/**
+ *
+ * Texture rectangle marking completed Georama conditions.
+ *
+ */
+mgRect<int>                   potti0(0x174, 0xBE, 0x10, 0x10);
+
+/**
+ *
+ * Texture rectangle of Georama list and condition markers.
+ *
+ */
+mgRect<int>                   potti1(0x164, 0xBE, 0x10, 0x10);
+
 void GetPenkiColor(int no, float *out_rgb) {
     if (no >= 0 && no < 8) {
         float *color = GeoramaColorList[no];
@@ -4166,18 +4316,13 @@ int MenuGeoramaPlacePush(CMenuGeorama *menu, int buttons_held, int buttons_press
 
                         if (DestroyPartsName_3587 != NULL) {
                             int j = 0;
-                            int offset = 0;
 
                             for (; j < menu->stock_num; j++) {
                                 if (strcmp(DestroyPartsName_3587,
-                                           menu->stock_list->name + offset) ==
-                                    0) {
-                                    DestroyMaxNum_3584 =
-                                        menu->stock_list[j].num;
+                                           menu->stock_list[j].name) == 0) {
+                                    DestroyMaxNum_3584 = menu->stock_list[j].num;
                                     break;
                                 }
-
-                                offset += sizeof(GEORAMA_PARTS_LIST_ITEM);
                             }
                         }
 
@@ -4452,7 +4597,7 @@ int MenuGeoramaMakePush(CMenuGeorama *menu, int keys, int pushed) {
                         menu->make_cursor = 0;
                         menu->make_item_no = menu->make_parts->id;
                         menu->CBaseMenuClass::make_num = 1;
-                        menu->make_num_max = *(short *) &menu->make_parts->max_num;
+                        menu->make_num_max = (short) menu->make_parts->max_num;
 
                         if (0 > menu->make_parts->map_no) {
                             menu->make_num_max *= 4;
@@ -4816,22 +4961,6 @@ int MenuGeoramaPaintSelect(CMenuGeorama *menu, int keys, int pushed) {
  * Dispatches Georama menu input to the active page and starts a requested page transition.
  *
  */
-/**
- *
- * Input handler for each Georama menu action, with null entries for inactive actions.
- *
- */
-static GeoramaPushFunc MenuGeoramaPushFunc[9] = {
-    MenuGeoramaBasePush,
-    MenuGeoramaMakePush,
-    MenuGeoramaPlacePush,
-    MenuGeoramaPaintSelect,
-    NULL,
-    MenuGeoramaCheckPointPush,
-    MenuGeoramaAnalyzeSelect,
-    NULL,
-    NULL,
-};
 
 int MenuGeoramaPushKey(int keys, int pushed) {
     if (MenuCommonInfo->key_enable == 0) {
@@ -5399,13 +5528,10 @@ void MenuRemovalDraw() {
 
 void CBaseMenuClass::InitEnd() {}
 
-// Initialised data (.data)
 
-// Constants (.rodata)
 
 // Virtual tables (.vtables)
 
-// Small initialised data (.sdata)
 
 // Small uninitialised data (.sbss)
 INCLUDE_BSS(at_1556, 0x8);

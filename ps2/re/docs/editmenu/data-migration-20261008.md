@@ -275,3 +275,65 @@ Each of the nine marker removals passes PAL and all 149 object checks:
 Initialized marker count is now zero. Sixteen anonymous BSS markers remain;
 every one has a natural local aggregate initializer, including the newly
 cleaned item-name arrays. The tooling limitation is documented below.
+
+## Final source organization and exact cleanup
+
+All 119 named/native global definitions are documented and ordered by retail
+address, including the existing MenuGeoramaStack and two marker rectangles.
+The constructor-bearing globals retain their relative order; the compiler
+still emits the exact static initializer. The input handler table has ordinary
+forward declarations for its existing functions and named argument purposes.
+
+MenuGeoramaPlacePush indexes `stock_list[j].name` directly instead of adding
+a manually maintained byte offset to the first row's name. MenuGeoramaMakePush
+uses a numeric short conversion of max_num instead of a short-pointer view
+of its integer storage. Both function cleanups pass independently and retain
+zero byte and relocation differences. Receipts:
+`editmenu-{quantity-conversion,stock-index,native-data-order,
+final-natural-cleanup}-*`. PAL is OK, all 149 objects pass and all other
+147 object file hashes remain identical.
+
+## Remaining source cleanup limits
+
+Native definitions of now_menu_pos_mapparts and georama_adjust_position are
+exact float[4] objects. Replacing their inherited quadword-view copy with a
+16-byte typed GeoramaVector and compiler-generated assignment preserves the
+data and object extent but changes source/destination address scheduling in
+LoadGeoramaPart. The checker records six problems (one byte-difference report
+and five relocation-context differences). Ordinary memcpy adds a real call,
+changes later instruction positions and reports 24 problems. Neither source
+alternative is retained. Existing mglib notes separately rule out repeating
+inline_intrinsics/level-4 memcpy probes and record crashes for direct __memcpy.
+The inherited copy remains a source-style limitation; no new overlay type,
+copy special member, dummy local, assembly or helper is introduced.
+
+Replacing the three inherited form/house pointer-induction loops with direct
+array indexing also changes emitted instructions in MenuGeoramaInit,
+InitEnd and MenuGeoramaListDraw. Those alternatives are restored rather than
+changing compiler state or retaining a nonzero object diff. Their receipts
+are `editmenu-{init-form-index,end-form-index,house-row-index}-build.log` and
+the corresponding `-failed-objects.log`; private source snapshots retain the
+exact attempted forms. Every accepted function remains at zero differences.
+
+## Remaining assembly and independent native-data proof
+
+Sixteen anonymous BSS markers remain because existing tooling cannot name
+natural zero initializer templates after marker removal. Their types, sizes,
+owners, reference offsets and the unapplied proposal are documented in
+[anonymous-data-20261008.md](anonymous-data-20261008.md). Removing them without
+that shared-tool change cannot pass the current complete-object check.
+
+The private compiler-only editmenu object passes a complete check after the
+proposed naming pass: 0xC7E8 allocated bytes and 2,581 relocations, with no
+assembly data placeholders/transplants. Production postprocess_object.py is
+unchanged; the proposed pass is tested only against a private object copy.
+Receipt: `.private/dataB/receipts/editmenu-proposed-native-only-object.log`.
+This proves the natural aggregates already supply all held BSS templates;
+it does not treat the proposal as integrated or remove the production markers.
+
+The prescribed unmodified report still records 68/6,092 matched initialized
+bytes at the native-data checkpoint. As with menucommon, its source-only base
+bypasses postprocessing, literal naming, ordering and piece padding. Marker
+counts and canonical complete-object checks establish migration progress;
+this lane does not modify coverage tooling or substitute a private metric.
+Final standard refresh and final validation receipts are recorded below.
