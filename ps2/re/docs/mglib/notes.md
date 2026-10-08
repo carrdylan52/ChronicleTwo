@@ -1,5 +1,9 @@
 # mglib notes
 
+The pinned Satan’s Fiddle baseline and current guarded-function findings are in
+[matching-20261008.md](matching-20261008.md). The older isolated draft counts
+below describe earlier source/compiler states.
+
 The guarded frame-rotation draft uses the SDK's `sceGsDBuff::disp[2]`
 array. Naming its two elements `disp1` and `disp0` prevented the whole-unit
 draft compiler from running; using `disp[1]` and `disp[0]` restores that
