@@ -144,3 +144,20 @@ trial is applied; the pre-existing copies retain their complete matches.
 No helper, macro, fabricated local, or shared type change is introduced.
 Private disassembly, full checker failures, and measurement details are in
 `.private/dataC/mapload-cleanup-analysis/`.
+
+## Combined tool-proposal validation
+
+A private integration copy applies the three general data-tool proposals and
+removes all eight retained markers across this lane. The completely native
+mapload snapshot passes 0x4748 bytes and 945 relocations. Its smaller allocated
+extent reflects final zero section tails left to linker alignment; the private
+full PAL link verifies the exact program bytes and retail memory extent and
+reports `SCES_511.90: OK`. All 306 original link inputs, actual shared tools,
+and generated VU input retain their hashes.
+
+Actual mapload keeps its two vtable markers until the tooling owner integrates
+and validates the general fixes with a clean canonical build. The combined
+check demonstrates compatibility with the userdata/font BSS and VU proposals;
+no special member, source helper, or vtable write is needed. Snapshots, tool
+patches, hashes, unit checks, and PAL receipts are captured in
+`.private/dataC/proposal-integration/`.
