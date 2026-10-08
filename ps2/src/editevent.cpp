@@ -38,7 +38,6 @@ const int kEventFlagSetNumber = 0x80;
 const int kEventFlagTypeC = 0x200;
 const int kEventFlagTypeD = 0x400;
 
-
 #include <cmath>
 
 static int CheckPlaceBurnParts(GeoFuncParam *param, RS_STACKDATA *args, int argc);
@@ -109,19 +108,10 @@ int CEditEvent::StartEvent(CSceneEventData *event_data) {
     return 1;
 }
 
-extern "C" char at_916__4[];
-extern "C" u_long128      at_920__4;
-extern "C" MENU_INIT_ARG *MenuInfo__2;
-
 /**
- *
- * Four edit event names stored in one quadword.
- *
+ * Menu arguments used by house-door events.
  */
-union EditEventNames {
-    char     *name[4]; /**< Event names. */
-    u_long128 qw;      /**< The same pointers as one quadword. */
-};
+static MENU_INIT_ARG *MenuInfo__2 = &MenuArg;
 
 /**
  *
@@ -221,10 +211,10 @@ int CEditEvent::Step(CScene *scene) {
 
                             if (strlen(map_name) < 4) {
                                 if (info != NULL) {
-                                    EditEventNames suffix = *(EditEventNames *) &at_920__4;
-                                    strcat(map_name, suffix.name[info->house_type % 4]);
+                                    char *suffix[4] = {"ia", "ib", "ic", "id"};
+                                    strcat(map_name, suffix[info->house_type % 4]);
                                 } else {
-                                    strcat(map_name, at_916__4);
+                                    strcat(map_name, "ia");
                                 }
                             }
                         }
@@ -818,15 +808,3 @@ void GeoUpdateNpcPos(CScene *scene) {
         }
     }
 }
-
-// Initialised data (.data)
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editevent", at_920__4__DATA);
-
-// Constants (.rodata)
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editevent", at_916__4__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editevent", at_917__4__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editevent", at_918__3__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editevent", at_919__5__DATA);
-
-// Small initialised data (.sdata)
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editevent", MenuInfo__2__DATA);
