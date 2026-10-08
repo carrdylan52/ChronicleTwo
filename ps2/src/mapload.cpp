@@ -22,8 +22,6 @@
 #include "scriptinterpreter.hpp"
 #include "water.hpp"
 
-extern SPI_TAG_PARAM map_tag[];
-extern SPI_TAG_PARAM cfg_tag[];
 extern char          at_1064[];
 extern char          at_1128[];
 extern char          at_1129[];
@@ -2162,6 +2160,102 @@ update:
 
 #pragma inline_depth reset
 
+/**
+ *
+ * Maps map script tags to their argument handlers.
+ *
+ */
+static SPI_TAG_PARAM map_tag[] = {
+    {"d", mapDummy},
+    {"d", mapDummy},
+    {"d", mapDummy},
+    {"d", mapDummy},
+    {"d", mapDummy},
+    {"d", mapDummy},
+    {"d", mapDummy},
+    {"d", mapDummy},
+    {"d", mapDummy},
+    {"d", mapDummy},
+    {"d", mapDummy},
+    {"d", mapDummy},
+    {"d", mapDummy},
+    {"d", mapDummy},
+    {"d", mapDummy},
+    {"d", mapDummy},
+    {"d", mapDummy},
+    {"d", mapDummy},
+    {"d", mapDummy},
+    {"d", mapDummy},
+    {"d", mapDummy},
+    {"d", mapDummy},
+    {"d", mapDummy},
+    {"d", mapDummy},
+    {"d", mapDummy},
+    {"d", mapDummy},
+    {"d", mapDummy},
+    {"d", mapDummy},
+    {"d", mapDummy},
+    {"d", mapDummy},
+    {"d", mapDummy},
+    {"d", mapDummy},
+    {"d", mapDummy},
+    {"d", mapDummy},
+    {"d", mapDummy},
+    {"PARTS", mapPARTS},
+    {"FAR_CLIP", mapFAR_CLIP},
+    {"LIGHT_FLAG", mapLIGHT_FLAG},
+    {"MOVE_FLAG", mapMOVE_FLAG},
+    {"LOD_START", mapLOD_START},
+    {"LOD_BLEND", mapLOD_BLEND},
+    {"LOD_PIECE", mapLOD_PIECE},
+    {"LOD_END", mapLOD_END},
+    {"PIECE", mapPIECE},
+    {"PIECE_POS", mapPIECE_POS},
+    {"PIECE_NAME", mapPIECE_NAME},
+    {"PIECE_ROT", mapPIECE_ROT},
+    {"PIECE_SCALE", mapPIECE_SCALE},
+    {"PIECE_MATERIAL_START", mapPIECE_MATERIAL_START},
+    {"PIECE_MATERIAL", mapPIECE_MATERIAL},
+    {"PIECE_MATERIAL_END", mapPIECE_MATERIAL_END},
+    {"PIECE_COL_TYPE", mapPIECE_COL_TYPE},
+    {"PIECE_TIME", mapPIECE_TIME},
+    {"PIECE_END", mapPIECE_END},
+    {"PARTS_END", mapPARTS_END},
+    {"MAP_PARTS", mapMAP_PARTS},
+    {"MAP_FAR_CLIP", mapMAP_FAR_CLIP},
+    {"PARTS_NAME", mapPARTS_NAME},
+    {"PARTS_GROUP", mapPARTS_GROUP},
+    {"PARTS_POS", mapPARTS_POS},
+    {"PARTS_ROT", mapPARTS_ROT},
+    {"PARTS_SCALE", mapPARTS_SCALE},
+    {"MAP_PARTS_END", mapMAP_PARTS_END},
+    {"_MAP_INFO_TOP", map_MAP_INFO_TOP},
+    {"CAMERA_INFO", mapCAMERA_INFO},
+    {"FIX_CAMERA", mapFIX_CAMERA},
+    {"FIX_CAMERA_POS", mapFIX_CAMERA_POS},
+    {"FIX_CAMERA_POS2", mapFIX_CAMERA_POS2},
+    {"FIX_CAMERA_OFF_GROUP", mapFIX_CAMERA_OFF_GROUP},
+    {"FIX_CAMERA_RECT", mapFIX_CAMERA_RECT},
+    {"FIX_CAMERA_END", mapFIX_CAMERA_END},
+    {"CAMERA_INFO_END", mapCAMERA_INFO_END},
+    {"FUNC_POINT", mapFUNC_POINT},
+    {"FUNC_DATA", mapFUNC_DATA},
+    {"FUNC_NAME", mapFUNC_NAME},
+    {"FUNC_FLAG", mapFUNC_FLAG},
+    {"FUNC_FIRE_DATA", mapFUNC_FIRE_DATA},
+    {"FUNC_EFFECT_NAME", mapFUNC_EFFECT_NAME},
+    {"FUNC_FIRE_DATA", mapFUNC_EFFECT_NAME},
+    {"FUNC_PLIGHT_DATA", mapFUNC_PLIGHT_DATA},
+    {"FUNC_ANIME_DATA", mapFUNC_ANIME_DATA},
+    {"FUNC_INVENT_DATA", mapFUNC_INVENT_DATA},
+    {"FUNC_EVENT_DATA", mapFUNC_EVENT_DATA},
+    {"FUNC_POS", mapFUNC_POS},
+    {"FUNC_DATA_END", mapFUNC_DATA_END},
+    {"FUNC_POINT_END", mapFUNC_POINT_END},
+    {"FUNC_SOUND_DATA", mapFUNC_SOUND_DATA},
+    {NULL, NULL},
+};
+
 void CMap::LoadMapFile(char *script, int length, mgCMemory *memory, int add_mode) {
     mapStack = memory;
     mapAddMode = add_mode;
@@ -2493,6 +2587,31 @@ int cfgWATER_DRAW(SPI_STACK *stack, int argc) {
     return 1;
 }
 
+/**
+ *
+ * Maps map configuration tags to their argument handlers.
+ *
+ */
+static SPI_TAG_PARAM cfg_tag[] = {
+    {"DRAW_OFF_RECT", cfgDRAW_OFF_RECT},
+    {"OCCLUSION_PLANE", cfgOCCLUSION_PLANE},
+    {"FUNC_DATA", cfgFUNC_DATA},
+    {"FUNC_NAME", mapFUNC_NAME},
+    {"FUNC_EVENT_DATA", cfgFUNC_EVENT_DATA},
+    {"FUNC_POS", mapFUNC_POS},
+    {"FUNC_DATA", cfgFUNC_DATA_END},
+    {"WATER_SURFACE_NUM", cfgWATER_SURFACE_NUM},
+    {"WATER_SURFACE_START", cfgWATER_SURFACE_START},
+    {"WATER_VERTEX", cfgWATER_VERTEX},
+    {"WATER_POS", cfgWATER_POS},
+    {"WATER_PARAM", cfgWATER_PARAM},
+    {"WATER_SHAKE", cfgWATER_SHAKE},
+    {"WATER_SURFACE_END", cfgWATER_SURFACE_END},
+    {"WATER_DRAW_NUM", cfgWATER_DRAW_NUM},
+    {"WATER_DRAW", cfgWATER_DRAW},
+    {NULL, NULL},
+};
+
 void CMap::LoadCfgFile(char *script, int length, mgCMemory *memory) {
     mapMap = this;
     mapStack = memory;
@@ -2507,62 +2626,8 @@ void CMap::LoadCfgFile(char *script, int length, mgCMemory *memory) {
 
 // Initialised data (.data)
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mapload", at_438__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mapload", map_tag__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mapload", cfg_tag__DATA);
 
 // Constants (.rodata)
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mapload", at_611__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mapload", at_612__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mapload", at_613__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mapload", at_614__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mapload", at_615__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mapload", at_616__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mapload", at_617__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mapload", at_618__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mapload", at_619__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mapload", at_620__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mapload", at_621__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mapload", at_622__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mapload", at_623__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mapload", at_624__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mapload", at_625__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mapload", at_626__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mapload", at_627__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mapload", at_628__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mapload", at_629__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mapload", at_630__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mapload", at_631__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mapload", at_632__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mapload", at_633__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mapload", at_634__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mapload", at_635__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mapload", at_636__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mapload", at_637__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mapload", at_638__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mapload", at_639__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mapload", at_640__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mapload", at_641__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mapload", at_642__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mapload", at_643__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mapload", at_644__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mapload", at_645__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mapload", at_646__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mapload", at_647__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mapload", at_648__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mapload", at_649__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mapload", at_650__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mapload", at_651__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mapload", at_652__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mapload", at_653__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mapload", at_654__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mapload", at_655__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mapload", at_656__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mapload", at_657__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mapload", at_658__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mapload", at_659__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mapload", at_660__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mapload", at_661__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mapload", at_662__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mapload", at_1064__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mapload", at_1128__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mapload", at_1129__DATA);
@@ -2580,17 +2645,6 @@ INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mapload", at_1281__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mapload", at_1282__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mapload", at_1283__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mapload", at_1284__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mapload", at_1370__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mapload", at_1371__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mapload", at_1372__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mapload", at_1373__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mapload", at_1374__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mapload", at_1375__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mapload", at_1376__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mapload", at_1377__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mapload", at_1378__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mapload", at_1379__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mapload", at_1380__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mapload", at_1436__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mapload", at_1437__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mapload", at_1438__DATA);

@@ -38,3 +38,29 @@ The BSS step removes all 17 markers. The refreshed source-only objdiff data
 metric remains 888/3088 bytes; that build omits final-object naming, ordering,
 and padding fixups. Complete linked-object comparisons verify the migrated
 storage and every resolved code reference.
+
+## Script tag tables
+
+The native tables use the existing documented `SPI_TAG_PARAM` type from
+`scriptinterpreter.hpp`: a tag-name pointer and `int (*)(SPI_STACK *, int)`
+callback, occupying eight bytes. `map_tag` is a local array of 88 records
+(0x2C0 bytes); `cfg_tag` is a local array of 17 records (0x88 bytes). Both
+terminate with `{NULL, NULL}`. Their definitions follow their callbacks and
+precede the loader that installs them, avoiding extra forward declarations.
+The tables stay mutable because that is the existing interpreter API.
+
+All table ordinals and associations remain literal retail data. In particular:
+
+- The first 35 map records are `{"d", mapDummy}`.
+- `FUNC_FIRE_DATA` appears with both `mapFUNC_FIRE_DATA` and
+  `mapFUNC_EFFECT_NAME`; the repeated spelling is preserved.
+- Configuration `FUNC_DATA` appears with both `cfgFUNC_DATA` and
+  `cfgFUNC_DATA_END`.
+
+Sixty-three string objects belong to these initializers. Their literals pool
+naturally when shared between records or tables. Uppercase tags remain
+distinct from the lowercase selectors used by handlers. The cfg table's
+additional eight assembly-piece bytes are zero alignment, not another row.
+Removing the table and string markers leaves 25 RODATA markers and zero BSS
+markers, with complete object and PAL validation passing. Refreshed source-only
+objdiff data coverage remains 888/3088 bytes.
