@@ -27,12 +27,23 @@
 #include "scenesnd.hpp"
 #include "snd_mngr.hpp"
 #include "sound.hpp"
+/**
+ *
+ * Interpreter running the active scene event script.
+ *
+ */
 static CRunScript EventScript;
-extern float      vv_984[3][4];
-extern char       at_819__4[];
-extern char       at_820__4[];
-extern char       at_1002__4[];
-extern char       D_0037B038[];
+/**
+ *
+ * Camera offsets used by the door-opening sequence.
+ *
+ */
+static float vv_984[3][4] __attribute__((aligned(16))) = {
+    {-94.0f, 35.5f, -106.5f, 1.0f},
+    {105.0f, 32.5f, -28.5f, 1.0f},
+    {113.0f, 34.5f, 82.5f, 1.0f}
+};
+
 
 #include "dng_main.hpp"
 #include "editloop.hpp"
@@ -41,7 +52,19 @@ extern char       D_0037B038[];
 #include "padcontrol.hpp"
 #include "runscript.hpp"
 
-extern int cnt_1056;
+/**
+ *
+ * Door-sequence frame counter while a scene event is active.
+ *
+ */
+static int cnt_1056;
+
+/**
+ *
+ * Scene receiving the active event script's commands.
+ *
+ */
+CScene *EventScene;
 
 // Code (.text)
 int LoadNpcTalkMes(mgCMemory *memory) {
@@ -53,10 +76,10 @@ int LoadNpcTalkMes(mgCMemory *memory) {
         return 0;
     }
 
-    sprintf(path, at_819__4, GetNowChapter(GetSaveData()), LanguageCode);
+    sprintf(path, "event/talk/npc_talk_c%d_%d.txt", GetNowChapter(GetSaveData()), LanguageCode);
 
     if (LoadFile2(path, buffer, &size, 0) == 0) {
-        sprintf(path, at_820__4, LanguageCode);
+        sprintf(path, "event/talk/npc_talk_c2_%d.txt", LanguageCode);
 
         if (LoadFile2(path, buffer, &size, 0) == 0) {
             return 0;
@@ -141,9 +164,9 @@ int EventDoorLoop(int frame, int use_scene_se) {
         character->SetRotation(character_rot);
 
         if (use_scene_se != 0) {
-            character->SetMotion(at_1002__4, 2);
+            character->SetMotion("\x83\x68\x83\x41\x8A\x4A\x82\xAF", 2);
         } else {
-            character->SetMotion(at_1002__4, 2);
+            character->SetMotion("\x83\x68\x83\x41\x8A\x4A\x82\xAF", 2);
         }
     } else if (frame == 25) {
         u32 bank = EventScene->se_base_id;
@@ -463,15 +486,3 @@ CCharacter2 *GetCharacter(int index) {
 
     return character;
 }
-
-// Initialised data (.data)
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/event", vv_984__DATA);
-
-// Constants (.rodata)
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/event", at_819__4__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/event", at_820__4__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/event", at_1002__4__DATA);
-
-// Small uninitialised data (.sbss)
-INCLUDE_BSS(EventScene, 0x4);
-INCLUDE_BSS(cnt_1056, 0x4);
