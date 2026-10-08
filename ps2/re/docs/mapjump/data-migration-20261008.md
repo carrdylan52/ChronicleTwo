@@ -28,3 +28,21 @@ Separate state/template receipts are
 Both pass PAL, all 149 objects and unchanged unowned hashes. m2c evidence is
 `.private/dataD/map-script-m2c.c`. Interim markers are 11/0 and matched data
 572/753. No scheduling profile or other unit is edited.
+
+## Door initializer and inline paths
+
+`SetInteriorDoorPos` already initializes its 64-byte local with `"exit"`;
+its redundant aggregate marker is removed without editing its body. The ten
+ordinary literals are inline at their existing uses: the shared missing-map
+diagnostic, default sky name, late-chapter suffix, train map substitution,
+common-map directory, script extension and language suffix, interior script
+name and Shift-JIS motion name. Shift-JIS bytes use hexadecimal escapes.
+`ExitInterior` retains its original floating-point source and profile identity.
+
+Each group has a separate receipt under `.private/dataD/`:
+`mapjump-{door-template,diagnostic,map-paths,script-extension,localized-script,interior-script,interior-motion}-{build,objects,metrics}.log`.
+Every step passes PAL and all 149 objects with no unowned hash changes.
+
+Final markers: **0 RODATA / 0 BSS**, from **11 / 17**. Refreshed
+`matched_data` increases from **4/753** to **753/753**. All 24 functions
+remain matched, including the generated initializer; none is promoted.

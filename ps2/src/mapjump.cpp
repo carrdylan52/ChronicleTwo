@@ -32,16 +32,6 @@ static MapJumpMapInfo MainMapInfo__2;
  *
  */
 static MapJumpMapInfo SubMapInfo;
-extern char               at_1047__2[];
-extern char               at_863__3[];
-extern char               at_890__4[];
-extern char               at_891__3[];
-extern char               at_892__2[];
-extern char               at_893__2[];
-extern char               at_894__2[];
-extern char               at_914__4[];
-extern char               at_950__4[];
-extern char               at_1091__2[];
 
 /**
  *
@@ -203,7 +193,7 @@ int MapJump(CScene *scene, SCN_LOADMAP_INFO2 *info, int map_index) {
     char *map_name = GetMapName(map_index, NULL);
 
     if (map_name == NULL) {
-        printf(at_863__3, map_index);
+        printf("not found map %d\n", map_index);
         return 0;
     }
 
@@ -267,7 +257,7 @@ int GetLoadMapInfo(SCN_LOADMAP_INFO2 *info, int map_no) {
     char *map_name = GetMapName(map_no, NULL);
 
     if (map_name == NULL) {
-        printf(at_863__3, map_no);
+        printf("not found map %d\n", map_no);
         return 0;
     }
 
@@ -291,14 +281,14 @@ int GetLoadMapInfo(SCN_LOADMAP_INFO2 *info, int map_no) {
     strcpy(info->files[0].ipk_name, file_name);
     strcpy(info->files[0].efp_name, file_name);
     strcpy(info->files[0].sky_name, file_name);
-    strcpy(info->files[0].def_sky_name, at_890__4);
+    strcpy(info->files[0].def_sky_name, "def");
 
     if (progress != NULL) {
         s16 chapter = progress->chapter;
 
         if (chapter >= 8 && chapter < 10) {
-            strcat(info->files[0].sky_name, at_891__3);
-            strcat(info->files[0].def_sky_name, at_891__3);
+            strcat(info->files[0].sky_name, "b");
+            strcat(info->files[0].def_sky_name, "b");
         }
     }
 
@@ -313,14 +303,14 @@ int GetLoadMapInfo(SCN_LOADMAP_INFO2 *info, int map_no) {
             s16 chapter = progress->chapter;
 
             if (chapter >= 6) {
-                if (chapter < 8 && strcmp(add_path, at_892__2) == 0) {
-                    strcpy(add_path, at_893__2);
+                if (chapter < 8 && strcmp(add_path, "trn/train") == 0) {
+                    strcpy(add_path, "trn2/s36");
                 }
             }
         }
 
         DivPathName(add_path, add_directory, file_name);
-        strcpy(info->files[1].dir, at_894__2);
+        strcpy(info->files[1].dir, "map/cmn/");
         strcat(info->files[1].dir, add_directory);
         strcpy(info->files[1].map_name, file_name);
         strcpy(info->files[1].cfg_name, file_name);
@@ -336,7 +326,7 @@ int LoadSubMap(CScene *scene, int sub_map_no, int flag) {
     char *map_name = GetMapName(sub_map_no, NULL);
 
     if (map_name == NULL) {
-        printf(at_863__3, sub_map_no);
+        printf("not found map %d\n", sub_map_no);
         return 0;
     }
 
@@ -385,7 +375,7 @@ void LoadMapScript(char *map_name) {
     char             script[0x80] = "";
     GetMapPath(map_path, map_name);
     strcat(script, map_path);
-    strcat(script, at_914__4);
+    strcat(script, ".stb");
     LoadScript(script);
     strcpy(now_script_file, script);
 }
@@ -413,7 +403,7 @@ void LoadScript(char *path) {
     if (length >= 5) {
         strncpy(localized_path, path, length - 4);
         localized_path[length - 4] = 0;
-        sprintf(language_suffix, at_950__4, LanguageCode);
+        sprintf(language_suffix, "_%d.stb", LanguageCode);
         strcat(localized_path, language_suffix);
 
         if (LoadFile2(localized_path, buffer, &file_size, 0) != 0) {
@@ -547,7 +537,7 @@ void GotoInterior(CScene *scene, int interior_no) {
         }
 
         if (GetMapType(interior_no) == 2) {
-            LoadMapScript(at_1047__2);
+            LoadMapScript("g00");
         } else {
             LoadMapScript(map_name);
         }
@@ -588,7 +578,7 @@ void ExitInterior(CScene *scene, int *map_no) {
     CCharacter2 *chara = scene->GetCharacter(scene->player_chara);
 
     if (chara != NULL) {
-        chara->SetMotion(at_1091__2, 4);
+        chara->SetMotion("\x97\xa7\x82\xbf", 4);
         chara->SetPosition(OldPos);
         chara->SetRotation(0.0f, mgAngleLimit(3.1415927f + OldRot[1]), 0.0f);
         chara->ResetDAPosition();
@@ -667,18 +657,3 @@ int InteriorMapJump(CScene *scene, int interior_no) {
 
     return 0;
 }
-
-// Initialised data (.data)
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mapjump", at_997__4__DATA);
-
-// Constants (.rodata)
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mapjump", at_863__3__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mapjump", at_890__4__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mapjump", at_891__3__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mapjump", at_892__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mapjump", at_893__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mapjump", at_894__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mapjump", at_914__4__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mapjump", at_950__4__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mapjump", at_1047__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mapjump", at_1091__2__DATA);
