@@ -113,3 +113,58 @@ against RandomCircle in retail, even though it is choosing the ball.
 ## CPowGage::Draw floating argument order
 
 Merged source had one canonical mismatch at 0x002EE3A8. Retail prepares the sprite height 28.0f before the width 18.0f on the side caps. A stable Satan’s Fiddle selector for Draw__8CPowGageFv, binary32 bits 0x41e00000, evaluate_first true reproduces the argument order across all matching sprite calls without source changes, ordinals or compiler register tricks. The prepared isolated unit passes all 0x3134 allocated bytes and 438 resolved relocations.
+
+## DrawStatusSprite on the 73f8e75 merged base
+
+`DrawStatusSprite__7CSphidaFv` is the unit's only guarded function. Its existing
+source is retained: 193 of 1,096 words differ under the pinned profile, versus
+168 instructions with the plain-wibo draft helper. The native extent is 0x111C
+against retail 0x1120. The helper's disassembly display omits zero padding and
+symbol-label fragments, so canonical word counts are the retained-draft metric.
+
+m2c and retail establish the two language branches, par and distance digit
+loops, spin marker and club carry simulation. Projectile vectors start at zero,
+raise the landing height by 3, use the club power/carry and double-precision
+trigonometric helpers, then integrate up to 600 steps with horizontal damping
+0.999 and vertical acceleration -0.0045*(step+1). The matched region does not
+need a replacement helper or COP2 inline code.
+
+Using f-suffixed literals instead of explicit casts, naming the carry-digit X
+position before the sprite call, and using SDK vector typedefs each leave 193
+words unchanged. Replacing `par - par_tens * 10` with `par % 10` worsens the
+count to 281 because MWCC emits a separate integer division/remainder. These
+source experiments were reverted.
+
+Private stable float-value selectors reduce the count to 134 words. Each row
+uses translation unit `sphida.cpp`, function `DrawStatusSprite__7CSphidaFv`,
+value_type `binary32`, evaluate_first `true`, and no callee restriction. The
+candidate IEEE identities are `0x42040000`, `0x43e30000`, `0x41b00000`, `0x43bf3333`, `0x42500000`, `0x42880000`, `0x42940000`, `0x43b98000`, `0x43b18000`, `0x43ed0000`, `0x43be0000`.
+
+The exact JSON rows are saved privately in
+`.private/receipts/bigfn-sphida/proposed-rows.json`; the complete candidate
+profile and per-row measurements are in that same receipt directory. The rows
+are exploratory proposals, not accepted calibration: the complete canonical
+unguarded probe fails only this function, with bytes at 0x002EF545 and a
+`DPrimEnterSprite__FP11mgCDrawPrimiiiiffff` relocation at function offset 0x8E4
+resolving differently from retail. The repository profile is unchanged.
+
+Retail materialization evidence includes 33.0f before the tens-digit arithmetic
+at 0x002EF55C..0x002EF568, the 454.0f ones-digit position at 0x002EF5A0, and the
+382.4f/406.4f carry labels and digit calls in both language branches. Scoped and
+unscoped 33.0f selectors alone each reduce 193 to 188; the complete set's
+interaction must be validated across every identical-value sprite call.
+
+**Park category:** floating argument evaluation/scheduling. **Reconsider when:**
+a stable semantic selector or natural argument-expression structure reproduces
+the remaining 134 private-profile words and restores the +0x8E4 relocation,
+with a complete-unit pass. Per-occurrence or instruction-address selectors are
+not acceptable. No improved source draft was retained, and the guard remains.
+
+The final unchanged-profile build comparison is
+`.private/receipts/bigfn-final/`; target native coverage is still guarded.
+
+Final guarded validation is identical to i9 in verifier, complete object-check
+output and coverage. All three lane units pass; the inherited failing set stays
+mg_texture, nd_meswin, actionchara and actscript (145/149 pass). Coverage stays
+6,666 matched / 184 guarded / 15 assembly-only / 7 fuzzy. No target is promoted.
+Comparison receipt: `.private/receipts/bigfn-final/comparison.json`.
