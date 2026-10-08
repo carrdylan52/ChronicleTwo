@@ -39,9 +39,17 @@ class DataPaddingTests(unittest.TestCase):
         self.assertEqual(self.run_padding(size=8), 8)
         self.assertEqual(self.run_padding(size=13), 13)
 
-    def test_large_or_negative_gaps_are_not_padding(self):
-        self.assertEqual(self.run_padding(end=28), 12)
+    def test_large_bss_piece_tails_are_owned_reservations(self):
+        self.assertEqual(self.run_padding(size=4, declared=4, end=52), 52)
+        self.assertEqual(self.run_padding(end=28), 28)
+        self.assertEqual(self.run_padding(end=28, nobits=False), 12)
         self.assertEqual(self.run_padding(end=8), 12)
+        self.assertEqual(self.run_padding(size=8, end=52), 8)
+        self.assertEqual(self.run_padding(end=52, declared=0), 12)
+        self.assertEqual(self.run_padding(end=52, terminal=True), 12)
+
+    def test_referenced_boundary_limits_the_bss_piece(self):
+        self.assertEqual(self.run_padding(size=4, declared=4, end=20), 20)
 
     def test_initialized_tail_must_be_retail_zero(self):
         self.assertEqual(self.run_padding(nobits=False), 16)

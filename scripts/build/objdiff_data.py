@@ -283,7 +283,7 @@ def prepare_native_data(elf, unit, ctx):
         symbol.st_size = min(symbol.st_size, size)
     # Order data only and retain each function's identity under the same name
     # projection objdiff already uses for template and initializer mappings.
-    set_data_symbol_extents(elf, ctx)
+    set_data_symbol_extents(elf, unit, ctx)
     order_data_sections(elf, ctx.addresses)
     for symbol, name in function_names:
         symbol.name = p.project_name(name)
@@ -309,8 +309,10 @@ def fallback_data_names(source):
     return names
 
 
-def set_data_symbol_extents(elf, ctx):
-    """Expose the padding owned by verified native pieces to objdiff."""
+def set_data_symbol_extents(elf, unit, ctx):
+    """Expose only exact native BSS objects and their canonical piece tails."""
+    pieces = {name: end - start for section, run in ctx.pieces.unit(unit)
+              if section in layout.NOBITS for name, start, end in run}
     declared = {name: size for _address, name, size, function in ctx.rows if not function and size}
     for symbol in elf.symtab.symbols:
         index = symbol.st_shndx
@@ -321,7 +323,7 @@ def set_data_symbol_extents(elf, ctx):
         section = elf.sections[index]
         extent = p.section_size(section)
         if (section.sh_type == p.SHT_NOBITS and symbol.st_size == size
-                and 0 <= extent - size < 16):
+                and extent >= size and extent in (size, pieces.get(symbol.name))):
             symbol.st_size = extent
 
 

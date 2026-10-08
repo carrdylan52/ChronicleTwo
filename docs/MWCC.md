@@ -192,8 +192,12 @@ pointer (`SearchMapFlatPosition`, see the dng_event night notes). A
 Retail symbol sizes describe objects, while the split section pieces include
 the alignment gap before the next symbol or referenced address. Once data
 sections are assigned alignment one for linking, their bytes must retain that
-gap. The postprocessor extends a correctly sized native object by fewer than
-16 bytes to its piece boundary; initialized padding must be zero in retail.
+gap. The postprocessor extends a correctly sized native initialized object by
+fewer than 16 bytes to its piece boundary; initialized padding must be zero
+in retail. A native NOBITS object with its exact declared size owns its full
+reservation through the next canonical piece boundary, including larger gaps.
+Referenced interior addresses stop that reservation, and terminal tails remain
+linker-owned.
 An object with a size different from its declared retail size is not padded.
 The same policy covers compiler-generated vtables; their final section tail
 belongs to linker alignment. Referenced interior addresses and explicit

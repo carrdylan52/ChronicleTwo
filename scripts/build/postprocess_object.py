@@ -1003,7 +1003,8 @@ def pad_data(elf, unit, placeholders, *, retail=None, pieces=None, rows=None):
         declared_size = declared_sizes.get(symbol.name)
         if declared_size is not None and size != declared_size:
             continue
-        if (section.sh_type == SHT_NOBITS and size and 0 < end - start - size < 16):
+        if (section.name in layout.NOBITS and section.sh_type == SHT_NOBITS
+                and declared_size is not None and size and end - start > size):
             section.sh_size = end - start
             continue
         if (section.name in ('.data', '.sdata', '.rodata', '.vtables') and size

@@ -189,13 +189,16 @@ INCLUDE_ASM("dir", function);
 
     def test_bss_padding_is_visible_only_for_exact_declared_object(self):
         for declared, native, extent, expected in ((20, 20, 32, 32), (20, 19, 32, 19),
-                                                    (20, 20, 36, 20), (20, 20, 19, 20)):
+                                                    (20, 20, 36, 20), (20, 20, 19, 20), (4, 4, 52, 52)):
             with self.subTest(native=native, extent=extent):
                 sym = symbol('object', 1, native, info=1)
                 elf = NS(sections=[None, NS(sh_type=d.p.SHT_NOBITS, sh_size=extent)],
                          symtab=NS(symbols=[sym]))
-                ctx = NS(rows=[(0x3000, 'object', declared, False)])
-                d.set_data_symbol_extents(elf, ctx)
+                piece_size = 52 if declared == 4 else 32
+                ctx = NS(rows=[(0x3000, 'object', declared, False)],
+                         pieces=NS(unit=lambda unit: [('.sbss', [('object', 0x3000,
+                                                                 0x3000 + piece_size)])]))
+                d.set_data_symbol_extents(elf, 'unit', ctx)
                 self.assertEqual(sym.st_size, expected)
 
 
