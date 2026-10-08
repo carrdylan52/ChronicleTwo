@@ -11,15 +11,16 @@ functions; they do not assert retail enum names.
 
 ## Current assembly gaps
 
-`CDngFreeMap::DrawRoot`, `DrawRoomOne`,
-`Draw`, and `LoadDngInfo` retain C++ drafts
+`CDngFreeMap::DrawRoot`, `DrawRoomOne` and `LoadDngInfo` retain C++ drafts
 under `NONMATCHING`; the matching build selects their retail `INCLUDE_ASM`
 gaps. The same applies to `DrawDngRoomInfo`, `DrawGeoramaMateria`,
-`MsgInit`, `Step`, and `Draw`, plus `DngTreeMapInit`.
-`CheckGeoramaMateria` and `CMenuTreeMap::InitEnd` are now native and exact;
-see [r2.md](r2.md) for their complete-unit evidence. The `ClsMes::Init`
-body at the end of this unit is also an assembly gap. Match claims elsewhere
-in these notes apply only to the named unguarded C++ functions.
+`CMenuTreeMap::MsgInit`, `Step` and `DngTreeMapInit`.
+`CheckGeoramaMateria` and `CMenuTreeMap::InitEnd` are native and exact;
+see [r2.md](r2.md). Both classes' `Draw` functions are now native and exact;
+see [midday.md](midday.md) for complete-unit and baseline acceptance.
+`ClsMes::Init` remains an assembly gap by assignment, with a conditional
+natural-emission proposal. Match claims elsewhere in these notes apply
+only to the named unguarded C++ functions.
 
 ## Additional map behavior
 
@@ -182,7 +183,7 @@ the page count in the lower right.
 constructs the tree menu and floor map inside it, loads the floor grid when
 the opening mode requires it, and reads the menu's data list. It sets each
 of the eight message windows to use the system message buffer and gives
-the second window the digit font. The menu cursor texture file is
+the second window sixteen-pixel numeric value spacing. The menu cursor texture file is
 `frametex.img`.
 
 `CMenuTreeMap::InitEnd` loads the dungeon map picture and floor information
@@ -601,7 +602,8 @@ floor ID for each graph query. Retail also appends `"NONE"` to the detail
 buffer after the final debug row; the append is present at 0x1EFD00..0x1EFD0C,
 and the literal occupies 0x36DAE8. It is not followed by another draw call.
 Restoring these details gives the retail 0x280-byte frame, while instruction
-scheduling and branch structure remain different; the body stays guarded.
+scheduling and branch structure initially remained different. The midday pass resolves
+those differences and promotes the function; see [midday.md](midday.md).
 
 The remaining differences and reconsideration triggers are recorded in
 [parks.md](parks.md). The standalone `ClsMes::Init` proposal is recorded in

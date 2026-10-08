@@ -238,3 +238,89 @@ respectively. The independent checks alone give 942, split point loops 916,
 and the byte direction 914. Those rejected forms are not retained.
 Receipts: `LoadDngInfo.m2c.c`, `load-direction-byte/`, `load-retained/`,
 `load-retained.log`, and `load-retained-canonical.log`.
+
+## DngTreeMapInit and the natural constructor
+
+`DngTreeMapInit__FP9mgCMemoryPiii` remains guarded at 55/256 differing words,
+0x3F8 native bytes against retail's 0x400. The previous draft is oversized
+at 0x610. The inline `CMenuTreeMap` definition now contains its real eight
+`CDC2Mes` members' initialization and the eight-window attachment loop.
+The base constructor, compiler-generated vtable store and real member-array
+constructor expansion are automatic C++. Both allocation sites now match
+retail's branch on v0 with the saved-pointer copy in the delay slot, at
+0x1F3564/0x1F3568 and 0x1F3684/0x1F3688. No allocation helper or artificial
+array is introduced.
+
+The constructor assigns `MenuDngMes[1]->value_space = 16`; offset 0x224C is
+numeric value spacing, not `digit_font` at 0x2250. The caller reads remaining
+arena capacity before its top and rounds unsigned file sizes to quadwords.
+`DngTreeReadNames` is an eight-byte record of two filename pointers, copied
+from the zeroed local BSS seed before setting its first name to the
+forty-byte filename buffer. Retail's eight-byte load/store copy is retained.
+`frametex.img` and `dmap%d.pac` are inline source literals.
+
+A boolean records whether this opening mode uses a separate map rather than
+the common menu's cursor. It gives 55 differing words; integer condition
+variants give 84 or 85, a bitwise boolean variant 57, and a switch variant
+124. The remaining mode test uses xor/slti in MWCC versus retail's two
+comparisons. MWCC also forwards the loaded cursor-buffer pointer across
+its store instead of reloading the global. That branch is one instruction
+short; the suffix from +0x308 agrees. These source/evaluation differences
+remain before promotion.
+
+The natural constructor causes MWCC to emit the existing inline
+`ClsMes::Init` as a standalone function. A private canonical unit with
+only the Init assembly marker removed reports `MATCH Init__6ClsMesFv`;
+all 28 reported unit problems belong to the still-mismatching
+`DngTreeMapInit`. No shared-header change is needed by that experiment.
+The real source retains the Init marker as assigned. Its conditional
+removal is a private proposal, requiring exact native tree initialization
+and complete-unit validation first. See `clsmes-init-proposal.md`.
+Receipts: `DngTreeMapInit.m2c.c`, `tree-init-bool/`, `tree-retained.log`,
+and `tree-retained-canonical.log`.
+
+## CMenuTreeMap::Step
+
+`Step__12CMenuTreeMapFv` remains guarded at 1488/1548 differing words,
+0x1734 native bytes against retail's 0x1830; the current baseline is
+1505/1548. The outer mode switch follows the recovered cases 1, 2, 12,
+and default. Result and key-manager lifetimes precede the first initialization
+flag. The question-message pointer is acquired after the first two static
+initializations and before the fade result. Selection change is an integer
+zero/one flag, preserving the non-byte operations. The existing signed-byte
+initialization flags, typed selected-room pointer and established grid and
+floor-flag enums are retained.
+
+The frame is still 0x110 against retail's 0x130; the draft saves s0..s6,
+retail s0..s7. Retail's 72-byte time-text buffer spans spC0..sp107, so
+resizing it to repair the frame would change a correctly identified local.
+A separately copied message-default array gives 1499 words and is rejected.
+No switch conversion of the two mode-12 substate tests is retained: m2c
+shows two independent conditions. The remaining saved-register and local
+lifetimes require resolution before rematching the later state branches.
+Receipts: `TreeStep.m2c.c`, `step-int-selection/`, `step-message-defaults/`,
+and `step-retained.log`.
+
+## Small remainders without retained changes
+
+`MsgInit__12CMenuTreeMapFv` remains 7/116 differing words, with matching
+0x1D0 extent. Screen height, width and first-line width loads differ at
++0x140..+0x15C. Moving the Y declaration, caching coordinates and expanding
+the existing line-position interface leave seven differences. A private
+copy of the established `SetMovePosCenteringGyou` interface gives ten,
+whether passed the retained Y or its expression. A two-line loop grows to
+0x1F0; assigning the save-label Y first gives 23 words. No helper definition,
+shared-header patch or profile row is retained. Receipts: `MsgInit.m2c.c`,
+`msg-baseline/`, `msg-existing-centering/`, `msg-centering-y-argument/`,
+`msg-line-loop/`, and `msg-save-yfirst/`.
+
+`DrawGeoramaMateria__FiPciPii` remains oversized at 0x404 against 0x400,
+224/257 detailed words, with matching 0x1D0 frame. Retail spills the right
+column at spA0; the draft spills the panel-left position. Width and height
+scratch order at sp1C0/sp1C4 and sp1C8/sp1CC also differs. Declaration,
+dimension, page, manager and even/odd column variants leave 0x404. Branch
+position gives 0x40C; a halfword last-index gives 0x410. A retained font
+pointer reduces size to 0x3FC but worsens the word comparison to 234/256.
+Those variants are rejected. Reconsider the title/column/page live ranges
+and the two dimension scratch pairs together. Receipts:
+`DrawGeoramaMateria.m2c.c`, `geo-baseline/`, and the `geo-*` directories.

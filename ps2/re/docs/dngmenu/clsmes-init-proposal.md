@@ -1,138 +1,34 @@
 # ClsMes::Init standalone proposal
 
-`Init__6ClsMesFv` at 0x001F38E0 remains assembly-supplied in dngmenu.
-`nd_meswin.hpp` already contains its native inline definition; the normal
-unit has no active C++ caller that emits the standalone copy. The guarded
-`DngTreeMapInit` inlines that body instead of emitting the function.
+`Init__6ClsMesFv` at 0x001F38E0 remains assembly-supplied in dngmenu by
+assignment. The unchanged `nd_meswin.hpp` contains its inline definition.
+The midday natural `CMenuTreeMap` constructor makes MWCC emit that body as
+a standalone function: all 176 words match its 0x2C0 manifest reservation,
+comprising 0x2B8 native bytes and eight bytes of alignment padding.
 
-A temporary proposal replacing the inline definition in `nd_meswin.hpp`
-with `void Init();` and placing the same body out of line in dngmenu.cpp
-matches all 174 nonpadding instructions: 0x2B8 bytes, with eight bytes of
-retail alignment padding completing the 0x2C0 manifest reservation. An
-isolated normal dngmenu object using this proposal also passes the linked
-PAL image check against the last complete build. The proposed shared-header
-change has not been validated by rebuilding every caller; existing caller
-inlining must be preserved or rematched before adopting it.
+The private canonical experiment removes only the Init assembly marker
+while enabling the tree-initialization draft. It reports `MATCH` for Init
+and 28 complete-unit problems, all for `DngTreeMapInit`; there are no Init
+byte or relocation failures. This experiment needs no shared-header edit.
+The constructor and its real eight-window member array supply the necessary
+natural call/emission context. The draft itself remains 55/256 words from
+exact, so neither function is promoted by this experiment.
 
-Both temporary edits were reverted. No shared-header edit or promotion is
-retained. The exact header removal patch is in the worktree at
-`.private/clsmes-shared-header.patch`; function and isolated-link receipts
-are `.private/receipts/clsmes-out-of-line.log` and
-`.private/receipts/clsmes-proposed-unit-link.log`. Reconsider when the shared
-header owner coordinates standalone emission and validates all affected
-callers. This is an emission/ownership blocker, separate from the
-placement-new blocker in `DngTreeMapInit`.
+The exact conditional marker-removal patch is
+`.private/proposals/dngmenu-clsmes-emission.patch`; its conditions are in
+`.private/proposals/dngmenu-clsmes-emission.md`. Apply it only with exact
+native `DngTreeMapInit`, then require complete-unit, other-object and PAL
+baseline acceptance. Applying it to the current guarded tree initialization
+would remove the sole active implementation. The real Init marker remains
+intact. Receipts: `.private/dnginv-midday/tree-retained-canonical.log` and
+its `tree-retained-canonical/` compile, word and object reports.
 
-The out-of-line body for that coordinated change is:
+## Earlier out-of-line experiment
 
-```cpp
-void ClsMes::Init() {
-    int name_count;
-    int i;
-
-    npc_name_mode = 0;
-    char_num = 0;
-    text_w = 0;
-    text_h = 0;
-    page = 0;
-    page_num = 0;
-
-    for (i = 0; i < MES_PAGE_MAX; i++) {
-        page_chars[i] = 0;
-    }
-
-    last_x = 0;
-    last_y = 0;
-    fade = 0.0f;
-    open = 1;
-    draw_speed = GetDrawSpeedDef();
-    page_wait = 0;
-    scroll_wait = 0;
-    reveal = 0.0f;
-    reveal_num = 0;
-    page_top = 0;
-    unk_1f4 = 0;
-    InitMesWinTbl();
-    color = def_color;
-    wait = 0;
-    page_time = 0;
-    page_auto_time = 30;
-    mes_no = -1;
-    text_ptr = 0;
-    alpha = 0x80;
-    name_count = 0;
-
-    do {
-        memset(name[name_count], 0, MES_NAME_LEN);
-        name_count++;
-    } while (name_count < MES_NAME_MAX);
-
-    for (int item_index = 0; item_index < MES_ITEM_MAX; item_index++) {
-        item_mes[item_index] = -1;
-    }
-
-    for (int value_index = 0; value_index < MES_VALUE_MAX; value_index++) {
-        values[value_index] = 0;
-        value_width[value_index] = 0;
-    }
-
-    value = 0;
-    value_sign = 0;
-    value_zero = 1;
-    value_half = 0;
-    value_space = 0;
-    digit_font = 0;
-    space_w = -1;
-    justify_w = -1;
-    select = -1;
-    goal_cursor_x = 0;
-    goal_cursor_y = 0;
-    cursor_x = 0;
-    cursor_y = 0;
-    select_shade = MES_SELECT_SHADE_DARK;
-    cursor_centering = 0;
-    cursor_time = 0;
-    choice_pos[0][0] = -1;
-    choice_pos[0][1] = -1;
-    choice_pos[1][0] = -1;
-    choice_pos[1][1] = -1;
-    select_top = 0;
-    cursor_off_y = 0;
-    voice_on = 0;
-    voice_type = 0;
-    voice_cnt = 0;
-    close_time = 0;
-    scissor_on = 0;
-    scissor.x = 0;
-    scissor.width = 0;
-    scissor.y = 0;
-    scissor.height = 0;
-    int line_index;
-    line_index = 0;
-
-    do {
-        line_indent[line_index] = 0;
-        line_pos[line_index][0] = 0;
-        line_pos[line_index][1] = 0;
-        line_pos_on[line_index] = 0;
-        line_shade[line_index] = MES_SHADE_AUTO;
-        line_color[line_index] = 0;
-        equip_on[line_index] = 0;
-        equip_x[line_index] = 0;
-        equip_y[line_index] = 0;
-        line_w[line_index] = 0;
-        line_alpha[line_index] = -1;
-        cross_on[line_index] = 0;
-        cross_x[line_index] = 0;
-        cross_y[line_index] = 0;
-        unk_271c[line_index] = -1;
-        unk_276c[line_index] = -1;
-        unk_27bc[line_index] = 0;
-        unk_280c[line_index] = 0;
-        delta_on[line_index] = 0;
-        delta_x[line_index] = 0;
-        delta_y[line_index] = 0;
-        line_index++;
-    } while (line_index < MES_LINE_MAX);
-}
-```
+The earlier r2 proposal moved the inline definition from the shared header
+to dngmenu.cpp and also matched all 174 nonpadding instructions. It was
+reverted because callers' inlining had not been validated. Its historical
+receipts remain `.private/receipts/clsmes-out-of-line.log` and
+`.private/receipts/clsmes-proposed-unit-link.log`. That shared-header route
+is unnecessary for the natural constructor result above; no foreign-file
+patch or shared-header change is retained in this lane.
