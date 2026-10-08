@@ -1832,7 +1832,6 @@ int EditStep() {
     StepHelpMes();
     return 1;
 }
-#ifdef NONMATCHING
 int EditDraw() {
     static int             flag;
     static char            init;
@@ -1841,7 +1840,6 @@ int EditDraw() {
     USER_PICTURE_INFO     *picture;
     int                    map_index;
     CCharacter2           *chara;
-    mgCTexture            *overlay;
     mgCTexture            *water;
     int                    ghost_visible;
     int                    texture_group;
@@ -1960,11 +1958,11 @@ int EditDraw() {
         mgPreEndDraw(NULL);
         int texture_blocks[128];
         for (texture_group = 0; texture_group < 6; texture_group++) {
-            reverse_block_count = MainScene__2->mds_list_set.GetTextureBlockNo(texture_group, texture_blocks, 128);
+            reverse_block_count = MainScene__2->GetTextureBlockNo(texture_group, texture_blocks, 128);
             for (block_count = 0; block_count < reverse_block_count; block_count++) {
-                int *entry = &texture_blocks[reverse_block_count - block_count - 1];
-                block = *entry;
-                if (mgEndDrawReloadTexture(block, NULL) != 0 && water_block == *entry) {
+                int index = reverse_block_count - block_count - 1;
+                block = texture_blocks[index];
+                if (mgEndDrawReloadTexture(block, NULL) != 0 && water_block == texture_blocks[index]) {
                     WaveTable.CreateTexture(water);
                 }
                 mgEndDraw(block, NULL);
@@ -2023,7 +2021,7 @@ int EditDraw() {
     if (map_draw != 0) {
         int later_texture_blocks[128];
         for (int texture_group = 6; texture_group < 16; texture_group++) {
-            block_count = MainScene__2->mds_list_set.GetTextureBlockNo(texture_group, later_texture_blocks, 128);
+            block_count = MainScene__2->GetTextureBlockNo(texture_group, later_texture_blocks, 128);
             for (int block_index = 0; block_index < block_count; block_index++) {
                 int block = later_texture_blocks[block_index];
                 mgEndDrawReloadTexture(block, NULL);
@@ -2186,9 +2184,6 @@ int EditDraw() {
     EventTimeDraw();
     return 0;
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/editloop", EditDraw__Fv);
-#endif
 void UpdateTrBoxFlag(int map_no) {
     int           i;
     CMapFlagData *flag_data = GetSaveData()->GetMapFlag(map_no);
