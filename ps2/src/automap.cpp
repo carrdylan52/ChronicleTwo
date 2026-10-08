@@ -34,12 +34,6 @@ enum {
     kDoorPartsLast = kDoorPartsEnd - 1
 };
 
-/**
- *
- * Empty name of the final generated-part catalog entry.
- *
- */
-extern char at_1054[];
 static int _ROOM_FIXED(SPI_STACK *stack, int arg_count);
 static int _GRID_SIZE(SPI_STACK *stack, int unused);
 static int _ROOM_ID(SPI_STACK *stack, int arg_count);
@@ -330,7 +324,7 @@ AUTOMAP_PARTS_INFO PartsInfoData[277] = {
     {"door97", AUTOMAP_KIND_ROOM_ALT | AUTOMAP_KIND_DOOR | AUTOMAP_KIND_PART, AUTOMAP_LINK_NEG_Z | AUTOMAP_LINK_POS_Z | AUTOMAP_LINK_NEG_X, AUTOMAP_LINK_POS_X, {47, 47, 47, 47, 47, 47, 47, 47}},
     {"door98", AUTOMAP_KIND_ROOM_ALT | AUTOMAP_KIND_DOOR | AUTOMAP_KIND_PART, AUTOMAP_LINK_NEG_Z | AUTOMAP_LINK_POS_X | AUTOMAP_LINK_NEG_X, AUTOMAP_LINK_POS_Z, {48, 48, 48, 48, 48, 48, 48, 48}},
     {"door99", AUTOMAP_KIND_ROOM_ALT | AUTOMAP_KIND_DOOR | AUTOMAP_KIND_PART, AUTOMAP_LINK_NEG_Z | AUTOMAP_LINK_POS_Z | AUTOMAP_LINK_POS_X, AUTOMAP_LINK_NEG_X, {49, 49, 49, 49, 49, 49, 49, 49}},
-    {at_1054, 0, 0, 0, {0, 0, 0, 0, 0, 0, 0, 0}}
+    {"", 0, 0, 0, {0, 0, 0, 0, 0, 0, 0, 0}}
 };
 
 /**
@@ -2888,4 +2882,3 @@ void CAutoMapGen::UpdateNaviMap(float *pos, int depth) {
 }
 
 // Constants (.rodata)
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/automap", at_1054__DATA);

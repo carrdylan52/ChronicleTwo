@@ -230,3 +230,13 @@ Final receipts: `22-final-build.log` (`SCES_511.90: OK`),
 and `22-final-metrics.log` (all 148 other object hashes unchanged). The shared
 tool/source proposals are kept private for the coordinator; no tooling change,
 network write, or generated artifact is committed.
+
+## Final empty-name piece
+
+The catalog's last name is the inline empty string. Its native one-byte
+literal is identified through the real `PartsInfoData` R_MIPS_32 relocation,
+with the compiled addend and symbol offset subtracted. The matcher accepts
+only an exact-byte candidate selected consistently by real references.
+The `at_1054` declaration and final marker are removed; automap now has
+zero data markers. The complete PAL build and all 149 objects pass.
+Receipts: `.private/dtool/07-automap-{build,objects,metrics,tests}.log`.
