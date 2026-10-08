@@ -477,19 +477,6 @@ unsigned int CDngFreeMap::DrawGlidCheck(GLID_INFO *glid) {
     }
     return marks;
 }
-#ifdef NONMATCHING
-/**
- *
- * Source rectangle of a room's letter or symbol.
- *
- */
-struct RoomGlyph {
-    s16 x; /**< Horizontal texture origin of the glyph. */
-    s16 y; /**< Vertical texture origin of the glyph. */
-    s16 w; /**< Width of the glyph in texture pixels. */
-    s16 h; /**< Height of the glyph in texture pixels. */
-};
-
 /**
  *
  * Offset of a room's letter or symbol within its picture.
@@ -500,8 +487,8 @@ struct RoomGlyphOffset {
     s16 y; /**< Vertical glyph offset within the room picture. */
 };
 
-/** Source rectangles of the room-kind glyphs. */
-extern RoomGlyph get_moji_tbl_1524[];
+/** Source rectangles of the room-kind glyphs as x, y, width and height halfwords. */
+extern s16 get_moji_tbl_1524[];
 /** Destination offsets of the room-kind glyphs. */
 extern RoomGlyphOffset put_moji_tbl_1525[];
 /** Room-mark phase increment for menu and event maps. */
@@ -526,12 +513,15 @@ void CDngFreeMap::DrawRoomOne(mgRect<float> rect, DNGMAP_ROOM_INFO *room, unsign
     mgRect<int> special;
     tex.Set(0, 66, 96, 66);
     special.Set(192, 198, 96, 96);
+    int tex_no = room->tex_no;
     if (room->visited == 0) {
         tex.left = 0;
         tex.top = 0;
     } else {
-        tex.left += tex.right * (room->tex_no % 5);
-        tex.top += tex.bottom * (room->tex_no / 5);
+        int column = tex_no % 5;
+        int row = tex_no / 5;
+        tex.left += tex.right * column;
+        tex.top += tex.bottom * row;
         if (room->flag & DNGMAP_ROOM_FLAG_START) {
             tex.left = 96;
             tex.top = 0;
@@ -540,11 +530,14 @@ void CDngFreeMap::DrawRoomOne(mgRect<float> rect, DNGMAP_ROOM_INFO *room, unsign
             tex.left = 192;
             tex.top = 0;
         }
-        if (room->flag & (DNGMAP_ROOM_FLAG_SUB | DNGMAP_ROOM_FLAG_BOSS)) {
+        if ((room->flag & DNGMAP_ROOM_FLAG_SUB) || (room->flag & DNGMAP_ROOM_FLAG_BOSS)) {
             tex.left = special.left + (room->tex_no % 3) * 96;
             tex.top = special.top + (room->tex_no / 3) * 96;
             tex.right = special.right;
-            tex.bottom = room->tex_no >= 3 ? 90 : special.bottom;
+            tex.bottom = special.bottom;
+            if (room->tex_no >= 3) {
+                tex.bottom = 90;
+            }
             picture.right = (float) special.right;
             picture.bottom = (float) special.bottom;
         }
@@ -552,6 +545,7 @@ void CDngFreeMap::DrawRoomOne(mgRect<float> rect, DNGMAP_ROOM_INFO *room, unsign
         picture.top += (float) room->offset_y;
     }
     int   level = (int) (128.0f * brightness);
+    float shadow_alpha = 0.25f * static_cast<float>(opacity);
     float event_brightness = 1.0f;
     if (mode == DNGMAP_MODE_EVENT && user_glid != NULL && &user_glid->room != room) {
         level = (int) (64.0f * brightness);
@@ -560,7 +554,7 @@ void CDngFreeMap::DrawRoomOne(mgRect<float> rect, DNGMAP_ROOM_INFO *room, unsign
     if (mode == DNGMAP_MODE_MENU) {
         prim->Begin(6);
         prim->Texture(map_tex);
-        prim->Color(0, 0, 0, static_cast<int>(0.25f * static_cast<float>(opacity)));
+        prim->Color(0, 0, 0, (int) shadow_alpha);
         PrimQuad(prim, picture.left + 8.0f, picture.top + 8.0f, tex);
         prim->End();
     }
@@ -569,7 +563,7 @@ void CDngFreeMap::DrawRoomOne(mgRect<float> rect, DNGMAP_ROOM_INFO *room, unsign
     if (room->mark_phase > 3.1415927f) {
         room->mark_phase -= 6.2831855f;
     }
-    int red = 192;
+    int r = 192, g = 192, b = 192;
     if (room->mark != 0) {
         float phase = room->mark_phase;
         while (phase > 3.1415927f) {
@@ -579,26 +573,26 @@ void CDngFreeMap::DrawRoomOne(mgRect<float> rect, DNGMAP_ROOM_INFO *room, unsign
             phase += 6.2831855f;
         }
         if (phase > 0.0f) {
-            red = (int) (7.0f * (float) level / 8.0f);
+            b = g = r = (int) (7.0f * (float) level / 8.0f);
         }
     } else {
-        red = level;
+        b = g = r = level;
     }
     prim->Bilinear(0);
     prim->Begin(6);
     prim->Texture(map_tex);
-    prim->Color(red, red, red, opacity);
+    prim->Color(r, g, b, opacity);
     PrimQuad(prim, picture, tex);
     prim->End();
     if (room->visited == 0 && user_glid != NULL && &user_glid->room != room) {
         float overlay_left = picture.left + 40.0f;
+        int left = fptosi(overlay_left);
         float overlay_top = picture.top + 25.0f;
-        int left = (int) overlay_left;
-        int top = (int) overlay_top;
-        int right = (int) (overlay_left + 20.0f);
-        int bottom = (int) (overlay_top + 30.0f);
+        int top = fptosi(overlay_top);
+        int right = fptosi(overlay_left + 20.0f);
+        int bottom = fptosi(overlay_top + 30.0f);
         prim->Begin(6);
-        prim->Color(red, red, red, opacity);
+        prim->Color(r, g, b, opacity);
         prim->TextureCrd(492, 66);
         prim->Vertex(left, top, 0);
         prim->TextureCrd(512, 96);
@@ -606,41 +600,36 @@ void CDngFreeMap::DrawRoomOne(mgRect<float> rect, DNGMAP_ROOM_INFO *room, unsign
         prim->End();
     }
     if (room->mark != 0) {
-        float          bob = 0.71875f * (6.0f * sinf(-room->mark_phase));
-        mgRect<float> &mark = mark_rect[mark_num++];
-        mark.left = picture.left + 64.0f;
-        mark.top = picture.top + 4.0f - bob;
-        mark.right = 64.0f + bob;
-        mark.bottom = 46.0f + bob;
+        float bob = 0.71875f * (6.0f * sinf(-room->mark_phase));
+        mark_rect[mark_num].left = picture.left + 64.0f;
+        mark_rect[mark_num].top = picture.top + 4.0f - bob;
+        mark_rect[mark_num].right = 64.0f + bob;
+        mark_rect[mark_num].bottom = 46.0f + bob;
+        mark_num++;
     }
+    float tint = 128.0f * event_brightness;
     if (name_tex != NULL && room->visited == 1) {
         for (int i = 0; i < 3; i++) {
             if (!(room->flag & (1 << (i + 1)))) {
                 continue;
             }
-            RoomGlyph *glyph = &get_moji_tbl_1524[i];
-            if (glyph->x < 0) {
+            if (get_moji_tbl_1524[i << 2] < 0) {
                 continue;
             }
-            RoomGlyphOffset *offset = &put_moji_tbl_1525[i];
-            mgRect<float> glyph_put(picture.left + (float) offset->x,
-                                    picture.top + (float) offset->y,
-                                    (float) glyph->w, (float) glyph->h);
+            mgRect<float> glyph_put(picture.left + (float) put_moji_tbl_1525[i].x,
+                                    picture.top + (float) put_moji_tbl_1525[i].y,
+                                    (float) get_moji_tbl_1524[(i << 2) + 2], (float) get_moji_tbl_1524[(i << 2) + 3]);
             prim->TextureMapEnable(1);
             prim->Begin(6);
             prim->Texture(name_tex);
-            int tint = (int) (128.0f * event_brightness);
-            prim->Color(tint, tint, tint, opacity);
+            prim->Color((int) tint, (int) tint, (int) tint, opacity);
             mgRect<int> glyph_rect;
-            glyph_rect.Set(glyph->x, glyph->y, glyph->w, glyph->h);
+            glyph_rect.Set(get_moji_tbl_1524[i << 2], get_moji_tbl_1524[(i << 2) + 1], get_moji_tbl_1524[(i << 2) + 2], get_moji_tbl_1524[(i << 2) + 3]);
             PrimQuad(prim, glyph_put.left, glyph_put.top, glyph_rect);
             prim->End();
         }
     }
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/dngmenu", DrawRoomOne__11CDngFreeMapF9mgRect_f_P16DNGMAP_ROOM_INFOUiif);
-#endif
 void CDngFreeMap::DrawGlid(mgRect<float> rect) {
     mgCDrawPrim prim;
     SetSpriteEnv(&prim, 1);

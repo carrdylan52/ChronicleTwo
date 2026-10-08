@@ -11,9 +11,10 @@ functions; they do not assert retail enum names.
 
 ## Current assembly gaps
 
-`CDngFreeMap::DrawRoot`, `DrawRoomOne` and `LoadDngInfo` retain C++ drafts
+`CDngFreeMap::DrawRoot` and `LoadDngInfo` retain C++ drafts
 under `NONMATCHING`; the matching build selects their retail `INCLUDE_ASM`
-gaps. The same applies to `DrawDngRoomInfo`,
+gaps. `DrawRoomOne` is native and exact; see
+[night-20261008.md](night-20261008.md). The same applies to `DrawDngRoomInfo`,
 `CMenuTreeMap::MsgInit` and `Step`.
 `CheckGeoramaMateria` and `CMenuTreeMap::InitEnd` are native and exact;
 see [r2.md](r2.md). Both classes' `Draw` functions are now native and exact;
@@ -174,6 +175,13 @@ room's mark phase by the mode-specific value in `stepCntTbl_1501`, and
 queues the bobbing mark rectangle. An unvisited room receives a small
 overlay unless it is the player's room. Visited rooms can display up to
 three glyphs from `dtname`, chosen by the room flags.
+
+`get_moji_tbl_1524` is a flat table of signed halfwords, four per glyph
+(texture x, y, width, height): entries for flag bits 1–3 are
+`{0, 172, 62, 22}`, `{0, 194, 62, 20}` and `{0, 216, 62, 20}`, followed by a
+`{-1, 0, 0, 0}` row; a negative x skips the glyph. `put_moji_tbl_1525` holds
+the matching `RoomGlyphOffset` destination offsets within the picture:
+`{20, -7}`, `{20, -7}`, `{20, 0}` and an unused `{10, 10}`.
 
 `DrawGeoramaMateria` draws a page of up to fourteen georama item names in
 two columns, using `GeoramaMateriaInfoDrawPage` for the starting item and
@@ -553,7 +561,7 @@ The comparison includes canonical section bytes and resolved relocations.
 | Native draft | Objdiff | Result |
 |---|---:|---|
 | `CDngFreeMap::DrawRoot` | 81.85545% | 3332-byte native body; canonical check fails. |
-| `CDngFreeMap::DrawRoomOne` | 73.13356% | 2216-byte native body; canonical check fails. |
+| `CDngFreeMap::DrawRoomOne` | exact | Promoted on October 8 night; see [night-20261008.md](night-20261008.md). |
 | `DrawDngRoomInfo` | 48.992977% | 3052-byte native body; canonical check fails. |
 | `DrawGeoramaMateria` | 79.984% | 0x404 bytes rather than 0x400; canonical check fails. |
 | `CMenuTreeMap::MsgInit` | 97.836% | Correct 0x1D0 size; screen-coordinate load scheduling still differs. Naming the X coordinate in a local leaves output unchanged. |
