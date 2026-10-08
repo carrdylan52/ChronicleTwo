@@ -43,8 +43,18 @@ struct PositionTable {
     s8 index[3][5][12]; /**< Character grid position for each language, font, and command. */
 };
 
-extern char                 NameRegiTopic[0x40];
-extern s8                   NameRegiCode;
+/**
+ *
+ * Stores the topic shown while entering an event keyword.
+ *
+ */
+static char NameRegiTopic[0x40];
+/**
+ *
+ * Stores the event keyword result code.
+ *
+ */
+static s8 NameRegiCode;
 extern s8                   NameStrSelectModeTable[7][6];
 extern NAMEREGI_KANJI_INDEX NameRegiSearchKanjiIndexTable[0x2C];
 extern s8                   testchar[0x2C][2];
@@ -114,20 +124,55 @@ extern char           at_1285__3[0x10];
 extern char           at_1286__2[0x10];
 extern char           at_1287__3[0x10];
 extern char           at_1288__2[0x10];
-extern mgCTexture    *NameRegiWaku;
-extern mgCTexture    *NameRegiBGTile;
-extern mgCTexture    *NameregiGaiji;
+/**
+ *
+ * Points to the name entry window frame texture.
+ *
+ */
+static mgCTexture * NameRegiWaku;
+/**
+ *
+ * Points to the scrolling name entry background texture.
+ *
+ */
+static mgCTexture * NameRegiBGTile;
+/**
+ *
+ * Points to the extra glyph texture used by name entry.
+ *
+ */
+static mgCTexture * NameregiGaiji;
 extern FontTables     NameRegistFont_Table[NAMEREGI_FONT_MODE_NUM];
-extern CNameRegiMenu *NameRegiMenuPtr;
-extern int            OldReloadTexNumber;
+/**
+ *
+ * Points to the active name entry menu.
+ *
+ */
+static CNameRegiMenu * NameRegiMenuPtr;
+/**
+ *
+ * Caches the last texture block loaded by the name entry menu.
+ *
+ */
+static int OldReloadTexNumber;
 extern s16            LimmitTable_1360[5];
 extern PositionTable  at_1377__5;
 extern s8             NameRegistGyouLimmitTable[5];
 extern s8             Convtable2_1382[2][5][8];
 extern BoardTable     convtbl_1792;
 extern BoardTable     at_1795;
-extern mgCTexture    *NameRegiCursor;
-extern mgCTexture    *NameRegiTex1;
+/**
+ *
+ * Points to the name entry cursor texture.
+ *
+ */
+static mgCTexture * NameRegiCursor;
+/**
+ *
+ * Points to the name entry board texture.
+ *
+ */
+static mgCTexture * NameRegiTex1;
 extern s16            NameRegistMax;
 extern s16            gettbl0_2012[12];
 extern s64            at_2031__3;
@@ -2224,14 +2269,6 @@ INCLUDE_RODATA("ps2/asm/pal/nonmatchings/nameregi", at_1807__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/nameregi", at_2031__3__DATA);
 
 // Small uninitialised data (.sbss)
-INCLUDE_BSS(NameRegiCode, 0x4);
-INCLUDE_BSS(NameRegiMenuPtr, 0x4);
-INCLUDE_BSS(OldReloadTexNumber, 0x4);
-INCLUDE_BSS(NameRegiTex1, 0x4);
-INCLUDE_BSS(NameRegiBGTile, 0x4);
-INCLUDE_BSS(NameRegiCursor, 0x4);
-INCLUDE_BSS(NameRegiWaku, 0x4);
-INCLUDE_BSS(NameregiGaiji, 0x8);
 INCLUDE_BSS(at_1621__3, 0x8);
 INCLUDE_BSS(at_1661__3, 0x8);
 INCLUDE_BSS(at_1684__3, 0x8);
@@ -2239,8 +2276,12 @@ INCLUDE_BSS(at_1686, 0x8);
 INCLUDE_BSS(at_1693__2, 0x8);
 
 // Uninitialised data (.bss)
-INCLUDE_BSS(Nameregi_Target, 0x50);
-INCLUDE_BSS(NameRegiTopic, 0x40);
+/**
+ *
+ * Stores the target and keyword for the name entry screen.
+ *
+ */
+NAMEREGI_TARGET_INFO Nameregi_Target;
 mgCMemory NameRegiStack;
 INCLUDE_BSS(at_1171__3, 0x10);
 INCLUDE_BSS(at_1669, 0x28);
