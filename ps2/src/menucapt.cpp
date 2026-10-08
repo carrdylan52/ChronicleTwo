@@ -26,23 +26,94 @@
 #include "sysmes.hpp"
 #include "userdata.hpp"
 
-extern MENU_CHAPTER_INFO *MenuChapterInfo;
-extern u32                MenuChapterMode;
-extern u32                MenuChapterSnd_ID;
-extern signed char        init_919;
-extern signed char        init_922;
-extern int                menu_chap_error_check_cnt;
-extern int                menu_snd_counter;
-extern u32                voiceflag_921;
-extern u32                wait_cnt_918;
-extern mgCTexture        *MenuChapterBG;
-extern mgCTexture        *MenuChapter_Logo;
-
 #include "mg_memory.hpp"
 #include "mg_tanime.hpp"
 #include "snd_mngr.hpp"
 
-static mgCMemory           MenuChapterStack;
+/**
+ *
+ * Chapter title fade and display mode.
+ *
+ */
+static u32 MenuChapterMode;
+
+/**
+ *
+ * Chapter title texture blocks, display counter and logo opacity.
+ *
+ */
+static MENU_CHAPTER_INFO *MenuChapterInfo;
+
+/**
+ *
+ * Background texture for the chapter title.
+ *
+ */
+static mgCTexture *MenuChapterBG;
+
+/**
+ *
+ * Logo texture for the chapter title.
+ *
+ */
+static mgCTexture *MenuChapter_Logo;
+
+/**
+ *
+ * Loaded chapter sound bank ID.
+ *
+ */
+static u32 MenuChapterSnd_ID;
+
+/**
+ *
+ * Frame counter for chapter narration and sound playback.
+ *
+ */
+static int menu_snd_counter;
+
+/**
+ *
+ * Elapsed frames used to time out chapter narration.
+ *
+ */
+static int menu_chap_error_check_cnt;
+
+/**
+ *
+ * Chapter narration wait counter.
+ *
+ */
+static u32 wait_cnt_918;
+
+/**
+ *
+ * Whether the chapter narration wait counter has been initialized.
+ *
+ */
+static signed char init_919;
+
+/**
+ *
+ * Whether chapter narration has finished or timed out.
+ *
+ */
+static u32 voiceflag_921;
+
+/**
+ *
+ * Whether chapter narration completion state has been initialized.
+ *
+ */
+static signed char init_922;
+
+/**
+ *
+ * Memory stack reserved for chapter images, sound and display state.
+ *
+ */
+static mgCMemory MenuChapterStack;
+
 extern char               *chap_voice_851[8];
 extern const unsigned char at_902__3__DATA[];
 extern const unsigned char at_903__3__DATA[];
@@ -261,17 +332,3 @@ INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menucapt", at_904__5__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menucapt", at_905__5__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menucapt", at_906__5__DATA);
 
-// Small uninitialised data (.sbss)
-INCLUDE_BSS(MenuChapterMode, 0x4);
-INCLUDE_BSS(MenuChapterInfo, 0x4);
-INCLUDE_BSS(MenuChapterBG, 0x4);
-INCLUDE_BSS(MenuChapter_Logo, 0x4);
-INCLUDE_BSS(MenuChapterSnd_ID, 0x4);
-INCLUDE_BSS(menu_snd_counter, 0x4);
-INCLUDE_BSS(menu_chap_error_check_cnt, 0x4);
-INCLUDE_BSS(wait_cnt_918, 0x4);
-INCLUDE_BSS(init_919, 0x4);
-INCLUDE_BSS(voiceflag_921, 0x4);
-INCLUDE_BSS(init_922, 0x4);
-
-// Uninitialised data (.bss)
