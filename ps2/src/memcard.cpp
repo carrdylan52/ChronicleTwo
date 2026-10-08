@@ -115,7 +115,8 @@ extern FormatA             at_838__5;
 extern FormatB             at_839__5;
 extern const char         *MCBrowsetName[3][4];
 extern u16                 MCBrowserName_Offset[3][4];
-extern short               DngTreeSaveFlag;
+/** Whether dungeon-tree state is included in the next save. */
+static short DngTreeSaveFlag;
 extern int                 iconNo_1323;
 extern char                at_1953[];
 extern char                at_1679__2[];
@@ -2587,15 +2588,14 @@ INCLUDE_RODATA("ps2/asm/pal/nonmatchings/memcard", at_2083__2__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/memcard", at_2285__DATA);
 
 // Small initialised data (.sdata)
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/memcard", NowProgramLoopNo__DATA);
+s16 NowProgramLoopNo = -1;
 
 // Small uninitialised data (.sbss)
-INCLUDE_BSS(DngTreeSaveFlag, 0x4);
 INCLUDE_BSS(old_format_1242, 0x4);
 INCLUDE_BSS(iconNo_1323, 0x4);
 INCLUDE_BSS(init_1324, 0x4);
 INCLUDE_BSS(test_write_num_1476, 0x4);
 INCLUDE_BSS(init_1477, 0x4);
-INCLUDE_BSS(SubGameOmakeTempBuffer, 0x4);
+char *SubGameOmakeTempBuffer;
 INCLUDE_BSS(ReadFileNo_2290, 0x4);
 INCLUDE_BSS(init_2291, 0x4);
