@@ -78,3 +78,31 @@ its remaining bytes before European initialization.
 Receipts use `nameregi-<datum>-{build,objects,hashes}.log` for each separate
 step, with the font catalog and its dependent arrays checked together.
 Every step passes PAL, all 149 objects and the 148 other object hashes.
+
+## Native compiler-generated data and strings
+
+The native initializers in `NameRegistInit` and `DrawBaseBoard` supply
+`at_1153` and `at_1807`. The compiler also supplies the complete 32-byte
+`CNameRegiMenu` vtable; its assembly marker is unnecessary.
+`AdjustWaku` initializes `{0,36}` locally, and the position, Japanese and
+localized navigation, and alternate board tables now have local aggregate
+initializers. `KeyStep` uses a typed `NameCommandEvents` aggregate of
+12 halfword pairs for confirmation/cancellation, removing its halfword cast.
+`DrawMessage` initializes a typed `RGBAQ_TYPE` with four 0x80 channels and
+Q bits 0x3F800000, removing its external constant and packed write.
+`NameRegiStack` is documented, file-local `mgCMemory` storage.
+
+`Sfida_default_Name` is seven pointers, not four or eight: the Japanese
+Shift-JIS default followed by six `"Max"` entries. Its four trailing bytes
+are zero piece padding. The table and its two string markers must be removed
+together; retaining both strings while supplying native literals emits duplicate
+read-only pieces. The successful native table preserves all seven pointers.
+
+Ten function strings are inline: eight resource names in `NameRegistInit`
+and `"SIRUS"`/`"Sirus"` in `KeyStep`. All spelling, argument order and
+pooling remain unchanged.
+
+Each datum has a separate receipt prefix `nameregi-<retail name>`; the
+memory definition uses `nameregi-stack`. Every accepted step passes PAL,
+all 149 objects and all 148 other object hashes. The vtable, local aggregates,
+GS colour and inline strings leave zero `INCLUDE_RODATA` markers.

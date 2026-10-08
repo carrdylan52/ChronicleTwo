@@ -500,15 +500,6 @@ static char KIGOU_TABLE_ASCII2[128] = " ";
  *
  */
 static char *jis_ptr_table[2] = {NULL, NULL};
-extern mgCMemory      NameRegiStack;
-extern char           at_1281__6[0x10];
-extern char           at_1282__6[0x10];
-extern char           at_1283__5[0x10];
-extern char           at_1284__6[0x10];
-extern char           at_1285__3[0x10];
-extern char           at_1286__2[0x10];
-extern char           at_1287__3[0x10];
-extern char           at_1288__2[0x10];
 /**
  *
  * Points to the name entry window frame texture.
@@ -557,7 +548,6 @@ static int OldReloadTexNumber;
  *
  */
 static s16 LimmitTable_1360[5] = {65, 90, 90, 114, 90};
-extern PositionTable  at_1377__5;
 /**
  *
  * Stores the number of columns in each name entry character set.
@@ -591,7 +581,6 @@ static s8 Convtable2_1382[2][5][8] = {
  *
  */
 static BoardTable convtbl_1792 = {{2, 1, 0, 4, 3}};
-extern BoardTable     at_1795;
 /**
  *
  * Points to the name entry cursor texture.
@@ -616,7 +605,13 @@ static s16 NameRegistMax = 10;
  *
  */
 static s16 gettbl0_2012[12] = {0, 148, 42, 64, 42, 148, 16, 64, 58, 148, 42, 64};
-extern s64            at_2031__3;
+
+/**
+ *
+ * Owns the temporary model, texture and font storage for name entry.
+ *
+ */
+static mgCMemory NameRegiStack;
 
 // Code (.text)
 void SetEventKeyword(char *target, char *topic, int code) {
@@ -864,7 +859,6 @@ union NameRegiWindowPosition {
     s64 packed;         /**< Both positions copied together. */
 };
 
-extern NameRegiWindowPosition at_1081__4;
 
 /**
  *
@@ -877,7 +871,7 @@ extern NameRegiWindowPosition at_1081__4;
 void AdjustWaku(CDC2Mes *message, RECT *frame) {
     message->StepMsg();
     int                    width = message->line_w[0];
-    NameRegiWindowPosition position = at_1081__4;
+    NameRegiWindowPosition position = {{0, 36}};
     position.coordinates[0] = (mgScreenWidth - width) >> 1;
     message->SetPutPos(position.coordinates);
     frame->x = position.coordinates[0] - 20;
@@ -1081,28 +1075,28 @@ void NameRegistInit(mgCMemory *stack, int *tex_block, int open_type) {
     mgCTextureManager *textures;
     int                file_size;
     u_int             *pack = (u_int *) NameRegiStack.stGetTop();
-    NameRegiStack.Alloc(Align16Blocks(LoadFileMenu(at_1281__6, (u_long128 *) pack, 1)));
+    NameRegiStack.Alloc(Align16Blocks(LoadFileMenu("nregi.pac", (u_long128 *) pack, 1)));
     textures = &mgTexManager;
-    MenuEnterIMG(NameRegiMenuPtr->tex_block[0], (u8 *) GetPackFile(pack, at_1282__6, &file_size), NULL);
-    NameRegiTex1 = textures->GetTexture(at_1283__5, -1);
-    NameRegiBGTile = textures->GetTexture(at_1283__5, -1);
+    MenuEnterIMG(NameRegiMenuPtr->tex_block[0], (u8 *) GetPackFile(pack, "img.img", &file_size), NULL);
+    NameRegiTex1 = textures->GetTexture("nameregi", -1);
+    NameRegiBGTile = textures->GetTexture("nameregi", -1);
     NameRegiWaku = NULL;
     NameRegiCursor = NULL;
-    u8 *waku_img = (u8 *) GetPackFile(pack, at_1284__6, &file_size);
+    u8 *waku_img = (u8 *) GetPackFile(pack, "edmenu.img", &file_size);
 
     if (waku_img != NULL) {
-        MenuEnterIMG(NameRegiMenuPtr->tex_block[0], waku_img, at_1285__3);
-        NameRegiWaku = textures->GetTexture(at_1286__2, -1);
+        MenuEnterIMG(NameRegiMenuPtr->tex_block[0], waku_img, "m");
+        NameRegiWaku = textures->GetTexture("menueff0m", -1);
     }
 
     u8 *cursor_img = (u8 *) GetMenuMainIMGPtr();
 
     if (cursor_img != NULL) {
-        MenuEnterIMG(NameRegiMenuPtr->tex_block[0], cursor_img, at_1285__3);
-        NameRegiCursor = textures->GetTexture(at_1287__3, -1);
+        MenuEnterIMG(NameRegiMenuPtr->tex_block[0], cursor_img, "m");
+        NameRegiCursor = textures->GetTexture("mnmainm", -1);
     }
 
-    NameregiGaiji = textures->GetTexture(at_1288__2, -1);
+    NameregiGaiji = textures->GetTexture("gaiji", -1);
     NameRegistMax = 10;
     NameRegistFont_Table[NAMEREGI_FONT_MODE_KIGOU].first = KIGOU_TABLE1;
     NameRegistFont_Table[NAMEREGI_FONT_MODE_KIGOU].second = KIGOU_TABLE2;
@@ -1359,7 +1353,29 @@ void CNameRegiMenu::ConvertPositionNameRegi(int mode) {
 
     if (mode == 0) {
         int           col = command_pos;
-        PositionTable table = at_1377__5;
+        PositionTable table = {{
+    {
+        {0, 0, 7, 9, 11, 0, 0, 2, 4, 6, 8, 12},
+        {0, 1, 3, 8, 10, 0, 1, 3, 5, 7, 9, 12},
+        {0, 1, 3, 8, 10, 0, 1, 3, 5, 7, 9, 12},
+        {0, 0, 9, 10, 11, 0, 1, 3, 6, 8, 12, 15},
+        {0, 0, 8, 10, 11, 0, 0, 2, 4, 7, 9, 14}
+    },
+    {
+        {0, 0, 5, 8, 0, 0, 0, 9, 1, 5, 8, 12},
+        {0, 1, 3, 8, 10, 0, 1, 3, 5, 7, 9, 12},
+        {0, 1, 3, 8, 10, 0, 1, 3, 5, 7, 9, 12},
+        {0, 0, 9, 10, 11, 0, 1, 3, 6, 8, 12, 15},
+        {0, 0, 8, 10, 11, 0, 0, 9, 2, 6, 9, 13}
+    },
+    {
+        {0, 0, 7, 9, 11, 0, 0, 2, 4, 6, 8, 12},
+        {0, 1, 3, 8, 10, 0, 1, 3, 5, 7, 9, 12},
+        {0, 1, 3, 8, 10, 0, 1, 3, 5, 7, 9, 12},
+        {0, 0, 9, 10, 11, 0, 1, 3, 6, 8, 12, 15},
+        {0, 0, 8, 10, 11, 0, 0, 11, 2, 6, 9, 13}
+    }
+}};
         int           language = LanguageCode;
 
         if (language > 0) {
@@ -1487,18 +1503,28 @@ static s16 addTable_1510[5][4] = {
  *
  */
 static s8 convTbl_1579[5] = {2, 1, 0, 4, 3};
-extern NameCommandTable     at_1513__6;
-extern NameCommandTable     at_1514__6;
-extern NameCommandTable     at_1534;
+/**
+ *
+ * Stores the confirmation and cancellation events triggered by name entry buttons.
+ *
+ */
+struct NameCommandEvents {
+    s16 entry[12][2]; /**< Confirmation and cancellation events for each board button. */
+};
 extern NameMessageArguments at_1621__3;
 extern NameMessageArguments at_1661__3;
 extern NameMessageArguments at_1684__3;
 extern NameMessageArguments at_1686;
 extern NameMessageArguments at_1693__2;
 extern PasswordKey          at_1669;
-extern char                 at_1747__2[0x10];
-extern char                 at_1748__2[0x10];
-extern char                *Sfida_default_Name[4];
+/**
+ *
+ * Stores the default Spheda name for each language.
+ *
+ */
+static char *Sfida_default_Name[7] = {
+    "\203\206\203\212\203X", "Max", "Max", "Max", "Max", "Max", "Max"
+};
 
 s32 CNameRegiMenu::KeyStep() {
     s32      keys;
@@ -1548,7 +1574,7 @@ s32 CNameRegiMenu::KeyStep() {
                             MenuArg.result[0] = 1;
                         }
 
-                        if (strcmp(Nameregi_Target.keyword, at_1747__2) == 0 && strcmp(converted_name, at_1748__2) == 0) {
+                        if (strcmp(Nameregi_Target.keyword, "SIRUS") == 0 && strcmp(converted_name, "Sirus") == 0) {
                             MenuArg.result[0] = 1;
                         }
                     } else if (Nameregi_Target.target == NAMEREGI_TARGET_FISH) {
@@ -1648,8 +1674,8 @@ s32 CNameRegiMenu::KeyStep() {
 
             switch (key_arg_no) {
                 case 0: {
-                    NameCommandTable japanese_navigation = at_1513__6;
-                    NameCommandTable localized_navigation = at_1514__6;
+                    NameCommandTable japanese_navigation = {{-1, 5, 11, 1, -1, 7, 0, 2, -1, 8, 1, 3, -1, 10, 2, 4, -1, 10, 3, 11, 0, -2, 11, 6, 0, -2, 5, 7, 1, -2, 6, 8, 1, -2, 7, 9, 2, -2, 8, 10, 3, -2, 9, 11, -1, -2, 4, 0}};
+                    NameCommandTable localized_navigation = {{-1, -1, -1, -1, -1, -1, -1, -1, -1, 5, 11, 3, -1, 8, 2, 10, -1, -1, -1, -1, 2, -2, 11, 6, 2, -2, 5, 8, 10, -2, 9, 11, 2, -2, 6, 9, 3, -2, 8, 7, -1, 7, 3, 11, -1, -2, 10, 2}};
                     s8              *row = &japanese_navigation.bytes[command_pos * 4];
 
                     if (LanguageCode > 0) {
@@ -1694,8 +1720,21 @@ s32 CNameRegiMenu::KeyStep() {
                         }
                     }
 
-                    NameCommandTable command_table = at_1534;
-                    s16             *command_events = (s16 *) &command_table.bytes[command_pos * 4];
+                    NameCommandEvents command_table = {{
+    {20, 2},
+    {20, 2},
+    {20, 2},
+    {20, 2},
+    {20, 2},
+    {70, 2},
+    {71, 2},
+    {100, 2},
+    {110, 2},
+    {120, 2},
+    {130, 2},
+    {500, 2}
+}};
+                    s16             *command_events = command_table.entry[command_pos];
 
                     if ((pushed & 1) || (pushed & 4)) {
                         event = command_events[0];
@@ -2312,7 +2351,7 @@ int ConvertNameRegiBaseBoardTable(int index) {
     int result = convtbl_1792.slot[index];
 
     if (LanguageCode > 0) {
-        BoardTable alternate = at_1795;
+        BoardTable alternate = {{0, 0, 0, 0, 4}};
         result = alternate.slot[index];
     }
 
@@ -2655,11 +2694,10 @@ void CNameRegiMenu::DrawSelectedWord() {
 }
 
 void CNameRegiMenu::DrawMessage() {
-    RGBAQ_TYPE color;
     MenuReloadTexture(OldReloadTexNumber, MenuDCMsg[6]->texture_block);
     mgCDrawPrim prim;
     SetSpriteEnv(&prim, 0);
-    *(s64 *) &color = at_2031__3;
+    RGBAQ_TYPE color = {0x80, 0x80, 0x80, 0x80, 0x3F800000};
     DrawVersatileWin_1(&prim, waku, &color, 0x80);
     (MenuDCMsg[6])->DrawMsg();
 
@@ -2671,35 +2709,12 @@ void CNameRegiMenu::DrawMessage() {
 }
 
 // Initialised data (.data)
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/nameregi", Sfida_default_Name__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/nameregi", at_1153__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/nameregi", at_1377__5__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/nameregi", at_1513__6__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/nameregi", at_1514__6__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/nameregi", at_1534__DATA);
 
 // Constants (.rodata)
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/nameregi", at_892__3__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/nameregi", at_893__3__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/nameregi", at_1281__6__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/nameregi", at_1282__6__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/nameregi", at_1283__5__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/nameregi", at_1284__6__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/nameregi", at_1285__3__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/nameregi", at_1286__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/nameregi", at_1287__3__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/nameregi", at_1288__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/nameregi", at_1747__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/nameregi", at_1748__2__DATA);
 
 // Virtual tables (.vtables)
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/nameregi", __vt__13CNameRegiMenu__DATA);
 
 // Small initialised data (.sdata)
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/nameregi", at_1081__4__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/nameregi", at_1795__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/nameregi", at_1807__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/nameregi", at_2031__3__DATA);
 
 // Small uninitialised data (.sbss)
 INCLUDE_BSS(at_1621__3, 0x8);
@@ -2715,7 +2730,7 @@ INCLUDE_BSS(at_1693__2, 0x8);
  *
  */
 NAMEREGI_TARGET_INFO Nameregi_Target;
-mgCMemory NameRegiStack;
+
 INCLUDE_BSS(at_1171__3, 0x10);
 INCLUDE_BSS(at_1669, 0x28);
 INCLUDE_BSS(at_1755, 0x18);
