@@ -268,8 +268,6 @@ void DrawMainUnitStatusBord(float rate) {
     mgRect<int>       second_whp_max_glyph;
     int               whp[2][2];
     int               abs[2][2];
-    int               weapon_y;
-    int               hp_y;
     int               weapon_x;
     int               second_weapon_x;
     int               second_weapon_y;
@@ -302,8 +300,8 @@ void DrawMainUnitStatusBord(float rate) {
     color.g = 0x80;
     color.b = 0x80;
     color.a = 0x80;
-    weapon_y = (int) (80.0f * rate) - 72;
-    hp_y = weapon_y;
+    int weapon_y = (int) (80.0f * rate) - 72;
+    int hp_y = weapon_y;
     weapon_x = 280;
     second_weapon_x = 580 - (int) (300.0f * rate);
     second_weapon_y = 8;
@@ -347,14 +345,16 @@ void DrawMainUnitStatusBord(float rate) {
     sprite.SetIRect(212, hp_y + 14, 12, 12, 0x78, 0xE8);
     sprite.SetIRect(48, hp_y + 18, 149, 47, 0xEC, 0);
     active_items = info->GetActiveItemInfo(0);
+    CGameDataUsed *second_item = &active_items[1];
+    CGameDataUsed *third_item = &active_items[2];
     sprite.Texture(TEX_DummyIcon1);
     if (active_items[0].GetNum() > 0) {
         sprite.SetIStretch(54, hp_y + 20, 28, 35, 0, 0, 31, 31);
     }
-    if (active_items[1].GetNum() > 0) {
+    if (second_item->GetNum() > 0) {
         sprite.SetIStretch(96, hp_y + 20, 28, 35, 32, 0, 31, 31);
     }
-    if (active_items[2].GetNum() > 0) {
+    if (third_item->GetNum() > 0) {
         sprite.SetIStretch(138, hp_y + 20, 28, 35, 0, 32, 31, 31);
     }
     sprite.End();
