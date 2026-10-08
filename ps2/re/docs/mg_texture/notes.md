@@ -183,6 +183,17 @@ unsigned indices, swapped subscript syntax, local manager pointers, and direct
 bucket-load expressions did not produce the retail instruction. These functions
 remain fuzzy; no zero-difference match is claimed.
 
+Explicit index-first addition over the actual inline bucket array, a C++ reference
+to each bucket head, and a layout-equivalent array of one-pointer bucket records
+all produce the same complete object as member-array indexing under the pinned
+MWCC/Satan's Fiddle settings. This rules out those typed representations as an
+operand-order solution. Enabling global optimization for the three functions
+changes loop code and introduces a `DelHash` size failure; it does not establish
+a match. DC1's texture manager has no corresponding hash table. Reconsider these
+three words when new retail-supported source/type evidence changes typed
+array-address lowering, or a separately verified compiler-state mechanism
+explains integer operand ordering.
+
 ## Native full-image conversion
 
 The merged `Conv32To8` uses the newer native optimization-level-1 body and
