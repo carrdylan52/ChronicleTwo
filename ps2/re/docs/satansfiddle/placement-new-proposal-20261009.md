@@ -60,3 +60,39 @@ and resolved-relocation audit, and is performed by hand in per-unit commits.
 
 Investigation in progress. No new SF policy or promotion is established by
 this initial record.
+
+## Initial census and controlled probe
+
+The exhaustive PAL scalar-allocator scan finds 216 `__nw__FUiP1` calls in
+116 callers. Its first pass records 196 guards testing `v0`, two guards
+testing a copied register, 16 calls without a nearby guard, and two member
+store/reload guards requiring separate explicit-allocation classification.
+The two B sites are both in matched `mapFIX_CAMERA_RECT`: `CColFrame` and
+`CCollision`, under the existing `inline_depth(0)` region, with out-of-line
+constructor calls. Type/source classification of the remaining sites is
+still being completed; the 196 A rows are not all natural new-expressions.
+Raw site windows and source annotations are under `.private/pntc/census/`.
+
+A private, signature-checked prototype requests class-3 conversion only when
+an actual scalar construction node encloses a class-6 constructor inline
+request. It leaves stored constructor inline-info untouched and changes only
+the current classification register read. With unchanged game sources,
+funcpoint's allocation draft changes from 2/40 to 0/40 words; mg_tanime's
+from 6/32 to 0/32 words. Both retain their relocation-kind maps. These are
+draft diagnostics, not promotions or complete-object acceptance.
+`CreateFrameVisual` worsens from 6/444 to 107/444, establishing that blanket
+conversion is not already proved by the two small positive cases. Full-corpus
+comparison and the narrower conversion-request experiment remain necessary.
+
+The prototype also exposes an identity boundary: `0x57b6bc` is the backend's
+current function and can still identify the previous function during frontend
+inlining. A frontend selector must instead use the function object published
+at `0x54d6d2` before statement inlining. The private probe's early diagnostic
+caller labels are therefore not semantic selector evidence. Its output-byte
+measurements are unaffected because that experiment is unscoped.
+
+Images built so far are only `sf-63f7a9e-pn1` (cached-source extraction) and
+`sf-63f7a9e-pn2` (private conversion probe). No existing tag was rebuilt or
+retagged. Private extraction/probe changes are not the proposed production
+capability. Neither successful forced conversion nor the census demonstrates
+an uninitialized-state defect; any eventual proposal must retain that limit.
