@@ -207,3 +207,21 @@ removal initializer's background and form filenames are also inline.
 with all other 147 hashes unchanged. No string extern remains. The two
 file-list string markers remain until their owning pointer tables migrate.
 Twenty-two initialized markers remain at this checkpoint.
+
+## Natural local aggregates
+
+MenuGeoramaMakePush initializes an aligned `sceVu0FVECTOR` at the river
+query with `{0,0,0,-1}`. Its compiler-created initialized template replaces
+`at_3757`; the former float/quadword overlay type is unnecessary. Both
+IsMakeObject item-name arrays use `{make_parts->edit_name}` directly instead
+of loading a float through a cast into pointer storage. Their generated zero
+templates still need the two anonymous BSS markers until tooling can name
+them. DrawDownLoadAnaunce uses the existing `RGBAQ_TYPE` aggregate directly
+for its two window colours, removing the redundant colour overlay union.
+The redundant MakeBoardDrawInfo extern is removed; menudraw.hpp owns its
+existing declaration.
+
+The three function changes each pass complete object and PAL checks. The
+combined cleanup passes 149/149, with all other 147 hashes unchanged:
+`editmenu-{river-vector,item-arrays,window-colours,natural-aggregates}-*`.
+Twenty-one initialized markers and sixteen BSS markers remain here.

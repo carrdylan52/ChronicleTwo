@@ -121,17 +121,6 @@ static short tbl_957[7] = {
 };
 void             MenuGeoramaMessageMake(int mode);
 
-/**
- *
- * Stores four georama coordinates as floats or one quadword.
- *
- */
-struct GeoramaVector {
-    union {
-        float     f[4]; /**< Four floating-point vector components. */
-        u_long128 qw;   /**< Combined 128-bit vector representation. */
-    };
-};
 
 /**
  *
@@ -197,22 +186,6 @@ struct GeoStoneDmyCnt {
     }
 };
 
-/**
- *
- * Views a window colour as channels or an RGBAQ value.
- *
- */
-union WinColor {
-    struct {
-        u_long r : 8;
-        u_long g : 8;
-        u_long b : 8;
-        u_long a : 8;
-        u_long q : 32;
-    } bits;
-
-    RGBAQ_TYPE rgbaq; /**< Combined colour and Q value. */
-};
 
 /**
  *
@@ -260,7 +233,6 @@ extern int               analyze_percent;
  *
  */
 static float GeoAnalyzeCheckPointScrlBarY;
-extern "C" GeoramaVector at_3757;
 /**
  *
  * Scroll direction used to populate each Georama list message.
@@ -800,7 +772,6 @@ static float MenuEditAnalyzeDataSrcListHTable[16];
  *
  */
 static float menu_georama_title_pos[2];
-extern float                  MakeBoardDrawInfo[];
 /**
  *
  * Scroll direction used to populate the analysis message.
@@ -899,8 +870,6 @@ static float GeoRequestBoardCheckPoint[4];
  *
  */
 static int GeoRequestBoardCheckPoint_P[2];
-extern float                  at_3260;
-extern float                  at_3268;
 /**
  *
  * Fade opacity of the Georama model preview while the menu closes.
@@ -2014,16 +1983,12 @@ void DrawDownLoadAnaunce() {
             mgCDrawPrim prim;
             RECT        win = {DownLoadWinRect.x, DownLoadWinRect.y, DownLoadWinRect.w, DownLoadWinRect.h};
             RECT        shadow = {DownLoadWinRect.x + 5, DownLoadWinRect.y + 5, DownLoadWinRect.w, DownLoadWinRect.h};
-            WinColor    frame_color = {
-                {0x80, 0x80, 0x80, DownLoadMesAlpha, 0}
-            };
-            WinColor shadow_color = {
-                {0, 0, 0, DownLoadMesAlpha >> 2, 0}
-            };
+            RGBAQ_TYPE frame_color = {0x80, 0x80, 0x80, DownLoadMesAlpha, 0};
+            RGBAQ_TYPE shadow_color = {0, 0, 0, DownLoadMesAlpha >> 2, 0};
             SetSpriteEnv(&prim, 0);
-            DrawVersatileWin_1(&prim, shadow, &shadow_color.rgbaq, shadow_color.rgbaq.a);
+            DrawVersatileWin_1(&prim, shadow, &shadow_color, shadow_color.a);
             DrawMenuFillBox(&prim, shadow.x, shadow.y, shadow.width - 10, shadow.height - 10, 0x40, 0, 0, 0);
-            DrawVersatileWin_1(&prim, win, &frame_color.rgbaq, frame_color.rgbaq.a);
+            DrawVersatileWin_1(&prim, win, &frame_color, frame_color.a);
             mgRect<int> clip(win.x, win.y + 0x11, win.x + win.width, win.y + win.height);
             MenuClipRectCheck(clip);
             SetMenuScissor(clip);
@@ -3554,10 +3519,7 @@ int CMenuGeorama::IsMakeObject(int buttons_held, int buttons_pressed) {
                                 step = kMakeNeedMaterials;
                             } else {
                                 ExeScript("MAKE_GEOPARTS\212m\224F");
-                                char *items[1];
-
-                                *(float *) items = at_3260;
-                                items[0] = make_parts->edit_name;
+                                char *items[1] = {make_parts->edit_name};
                                 mes->SetMsgItemNo(items, 1);
                                 mes->SetMsgVolumeNoOne(CBaseMenuClass::make_num);
                                 step = kMakeConfirm;
@@ -3592,10 +3554,7 @@ int CMenuGeorama::IsMakeObject(int buttons_held, int buttons_pressed) {
                 UpdateGeoramaPartsList();
                 GeoramaMesForceMakeFlag = 1;
                 ExeScript("MAKE_GEOPARTS");
-                char *items[1];
-
-                *(float *) items = at_3268;
-                items[0] = make_parts->edit_name;
+                char *items[1] = {make_parts->edit_name};
                 mes->SetMsgItemNo(items, 1);
                 mes->SetMsgVolumeNoOne(CBaseMenuClass::make_num);
 
@@ -4344,7 +4303,6 @@ int MenuGeoramaPlacePush(CMenuGeorama *menu, int buttons_held, int buttons_press
  *
  */
 int MenuGeoramaMakePush(CMenuGeorama *menu, int keys, int pushed) {
-    GeoramaVector   position;
     CEditPartsInfo *parts;
     int             old_index;
     int             step;
@@ -4403,8 +4361,8 @@ int MenuGeoramaMakePush(CMenuGeorama *menu, int keys, int pushed) {
                         count = menu->make_num_max;
 
                         if (parts->attr & 0x80) {
-                            position = at_3757;
-                            river = MenuMainMapInfo->GetRiverNum(position.f);
+                            sceVu0FVECTOR position = {0.0f, 0.0f, 0.0f, -1.0f};
+                            river = MenuMainMapInfo->GetRiverNum(position);
                             menu->make_num_max = menu->make_num_max - river;
                             built = GetSaveData()->GetBuildPartsNum(menu->make_parts->id);
                             menu->make_num_max = menu->make_num_max - built;
@@ -5322,7 +5280,6 @@ void CBaseMenuClass::InitEnd() {}
 // Initialised data (.data)
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editmenu", at_2326__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editmenu", at_3361__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editmenu", at_3757__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editmenu", MenuGeoramaPushFunc__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editmenu", at_4101__DATA);
 
