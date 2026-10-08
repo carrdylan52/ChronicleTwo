@@ -7,14 +7,6 @@
 #include <cstdlib>
 #include <cstring>
 
-extern char at_168[];
-extern char at_173[];
-extern char at_183__2[];
-extern char at_197[];
-extern char at_202[];
-extern char at_223[];
-extern char at_224[];
-extern char at_225[];
 extern char at_275[];
 extern char at_292__3[];
 extern char at_293__2[];
@@ -42,7 +34,7 @@ extern char at_697[];
  *
  */
 void runerror(const char *message) {
-    fprintf(stderr, at_168, message);
+    fprintf(stderr, "RUNTIME ERROR: %s\n", message);
     exit(-1);
 }
 
@@ -52,7 +44,7 @@ void runerror(const char *message) {
  *
  */
 void stkoverflow() {
-    runerror(at_173);
+    runerror("stack overflow");
 }
 
 /**
@@ -65,7 +57,7 @@ int chk_int(RS_STACKDATA data, funcdata *func) {
         return data.val.i;
     }
 
-    fprintf(stderr, at_183__2, func->name);
+    fprintf(stderr, "RUNTIME ERROR: %s: operand is not integer\n", func->name);
     exit(-1);
     return 0;
 }
@@ -91,7 +83,7 @@ u8 is_true(RS_STACKDATA data) {
  *
  */
 void divby0error() {
-    runerror(at_197);
+    runerror("Divide by 0");
 }
 
 /**
@@ -100,7 +92,7 @@ void divby0error() {
  *
  */
 void modby0error() {
-    runerror(at_202);
+    runerror("Modulo by 0");
 }
 
 /**
@@ -114,11 +106,11 @@ void print(RS_STACKDATA *slots, int count) {
     if (0 < count) {
         do {
             if (slots->type == RS_INT) {
-                printf(at_223, slots->val.i);
+                printf("%d", slots->val.i);
             } else if (slots->type == RS_STR) {
-                printf(at_224, slots->val.i);
+                printf("%s", slots->val.i);
             } else if (slots->type == RS_FLOAT) {
-                printf(at_225, slots->val.f);
+                printf("%f", slots->val.f);
             }
 
             fflush(stdout);
@@ -792,14 +784,6 @@ void rsSetStack(RS_STACKDATA *data, int value) {
 }
 
 // Constants (.rodata)
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/runscript", at_168__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/runscript", at_173__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/runscript", at_183__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/runscript", at_197__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/runscript", at_202__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/runscript", at_223__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/runscript", at_224__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/runscript", at_225__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/runscript", at_275__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/runscript", at_292__3__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/runscript", at_293__2__DATA);
