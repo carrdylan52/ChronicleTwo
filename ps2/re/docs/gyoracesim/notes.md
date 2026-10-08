@@ -202,3 +202,50 @@ history, StepGyoRace matches and CollisionFish remains the sole canonical
 problem at `0x003231B1`. Both guards remain. Reconsider with a natural final
 lane-loop representation that accounts for the lane counter, row base and
 inner-offset lifetimes; helper-mask calibration does not remove this blocker.
+
+## Mid-day float-selector and loop probes (2026-10-08)
+
+The remaining guards are `CollisionFish`, `StepGyoRace` and
+`FishModifyParam`. Source-only probes use the canonical Satan's Fiddle
+adapter, rather than the draft helper's plain-wibo compiler. The existing
+drafts remain 8/360 words for CollisionFish and 11/480 for FishModifyParam;
+StepGyoRace remains exact when CollisionFish is native alongside it.
+
+The upstream `nested_call` / `nested_variable` selectors require an actual
+sibling call expression inside the outer call's argument list. The conflicting
+`GetRandomNumber` calls in tactics 1, 2 and 4 take direct constants. There is
+no nested call identity to select at those sites. Moving the cases 2/4 range
+into float locals does not create one: with the private 0.2f/0.3f rows the
+consumer still recognizes the same binary32 constants, retaining 13 differing
+words. A shared tactics multiplier also retains 13. Double range locals
+instead produce a `0x7A0` body, exceeding the `0x780` extent. The existing
+0.3f-only calibration remains the best five-word FishModifyParam probe and
+is not accepted into the production profile.
+
+CollisionFish's final six-lane loop has no call consuming its 0.05f distance;
+its eight-word register permutation is independent of these selectors.
+New natural lifetime/type probes give:
+
+| Source boundary | CollisionFish differing words |
+|---|---:|
+| Initialize the lane counter at function entry | 349 |
+| Initialize it before sorting | 259 |
+| Initialize it beside the lane counts | 232 |
+| Use an unsigned byte or halfword lane counter | 10 |
+| Use a signed byte or halfword lane counter | 17 |
+| Scope the saved sorting index to its swap block | 18 |
+| Compute the separation limit before selecting the following fish | 8 |
+| Separate the ahead pointer's declaration and initialization | 8 |
+
+The narrower counters add extension/induction differences without fixing
+the original permutation. Scoping the saved sorting index changes the
+sorting loop's registers as well. Removing the unused float declarations
+does not change either function's score. None of these source probes is
+retained. m2c receipts and each canonical-profile source snapshot are under
+`.private/floatsel/`; m2c's original FishModifyParam jump-table limitation
+remains recorded in its receipt. No new helper-history or expression row
+is proposed for this unit.
+
+The fresh production FishModifyParam probe confirms 5/480 words and one
+complete-unit byte problem at `0x00323C46`, with every other native function
+preserved. Receipt: `.private/floatsel/gyoracesim/fish-best-production/`.
