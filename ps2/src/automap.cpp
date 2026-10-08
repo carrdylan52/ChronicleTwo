@@ -35,13 +35,6 @@ enum {
 };
 
 extern MINIMAP_SYMBOL_INFO symbol_table[];
-extern int                 cax;
-extern int                 cay;
-extern CAutoMapGen        *auto_map;
-extern mgCMemory          *nowPrisetStack;
-extern AUTOMAP_ROOM_INFO  *nowPriset;
-extern int                 nowPrisetNum;
-extern s16                *nowPrisetTable;
 extern SPI_TAG_PARAM       tag__4[];
 extern char                at_1111[];
 extern char                at_2119__2[];
@@ -65,6 +58,56 @@ int                        _ROOM_SIZE(SPI_STACK *stack, int arg_count);
 int                        _ROOM_RATE(SPI_STACK *stack, int arg_count);
 int                        _RD(SPI_STACK *stack, int arg_count);
 int                        _ROOM_END(SPI_STACK *stack, int arg_count);
+
+// Small uninitialised data (.sbss)
+/**
+ *
+ * Floor generator whose room script is running.
+ *
+ */
+static CAutoMapGen *auto_map;
+
+/**
+ *
+ * Memory arena for room presets read from the current script.
+ *
+ */
+static mgCMemory *nowPrisetStack;
+
+/**
+ *
+ * Room preset receiving the current script commands.
+ *
+ */
+static AUTOMAP_ROOM_INFO *nowPriset;
+
+/**
+ *
+ * Number of room layouts read from the current script.
+ *
+ */
+static int nowPrisetNum;
+
+/**
+ *
+ * Next cell value to fill in the current room preset.
+ *
+ */
+static s16 *nowPrisetTable;
+
+/**
+ *
+ * Horizontal grid coordinate of the last navigation target.
+ *
+ */
+static int cax;
+
+/**
+ *
+ * Vertical grid coordinate of the last navigation target.
+ *
+ */
+static int cay;
 
 /**
  *
@@ -2444,12 +2487,3 @@ INCLUDE_RODATA("ps2/asm/pal/nonmatchings/automap", at_2349__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/automap", at_2377__2__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/automap", at_2561__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/automap", at_2609__DATA);
-
-// Small uninitialised data (.sbss)
-INCLUDE_BSS(auto_map, 0x4);
-INCLUDE_BSS(nowPrisetStack, 0x4);
-INCLUDE_BSS(nowPriset, 0x4);
-INCLUDE_BSS(nowPrisetNum, 0x4);
-INCLUDE_BSS(nowPrisetTable, 0x4);
-INCLUDE_BSS(cax, 0x4);
-INCLUDE_BSS(cay, 0x4);
