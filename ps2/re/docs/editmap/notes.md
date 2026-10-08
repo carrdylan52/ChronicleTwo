@@ -129,3 +129,16 @@ offset in the first overload remains: `out[count - 1]` and
 ## Constructor-backed allocations
 
 `emapRIVER_PARTS_NAME`, `emapMASK_PARTS_NAME`, and `emapWATER_PARTS_NAME` each allocate a `CMapPiece`. The typed drafts use placement construction of that class. Retail assembly remains active pending an exact match.
+
+## October 8 merged-base allocation audit
+
+Under MWCC 3.0-011126 and the pinned Satan's Fiddle profile, the water,
+mask and river callbacks differ in exactly two instruction words each
+(2/72, 2/96 and 2/104 respectively). Retail branches on `v0` before copying
+it to the saved piece pointer in the branch delay slot; native construction
+copies first and branches on that saved pointer. The water and mask bodies
+omit only zero alignment tails otherwise. Keep all three guarded.
+
+Blocker: placement-new allocation-result scheduling. Reconsider after a
+validated natural constructor form resolves the same inlined class and
+null-result flow; see `../funcpoint/placement-new.md`.
