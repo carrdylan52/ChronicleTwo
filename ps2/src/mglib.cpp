@@ -76,7 +76,10 @@ extern int       capture_on;
 extern int       cap_ture_cnt;
 extern int       frame_buf0;
 extern int       frame_buf1;
-extern sceGsDimx mgDIMX;
+/**
+ * Packed GS dither matrix presets.
+ */
+extern sceGsDimx mgDIMX[1];
 #endif
 
 // Code (.text)
@@ -132,23 +135,30 @@ int mgGetVSyncCount() {
     return vcount;
 }
 
-int GetScreenSize(int mode, int *width, int *height, int *left, int *top, int *right, int *bottom) {
+/**
+ * Returns the normalized screen mode and its dimensions and centered bounds.
+ *
+ * @mangled GetScreenSize__FiPiPiPiPiPiPi
+ * @address 0x141990
+ * @size 0xC0
+ */
+static int GetScreenSize(int mode, int *width, int *height, int *left, int *top, int *right, int *bottom) {
     switch (mode) {
-        case 3:
+        case MG_SCREEN_MODE_640X448:
             *width = 0x280;
             *height = 0x1C0;
             break;
-        case 2:
+        case MG_SCREEN_MODE_512X480:
             *width = 0x200;
             *height = 0x1E0;
             break;
-        case 1:
+        case MG_SCREEN_MODE_512X416:
             *width = 0x200;
             *height = 0x1A0;
             break;
-        case 0:
+        case MG_SCREEN_MODE_512X448:
         default:
-            mode = 0;
+            mode = MG_SCREEN_MODE_512X448;
             *width = 0x200;
             *height = 0x1C0;
             break;
@@ -162,11 +172,13 @@ int GetScreenSize(int mode, int *width, int *height, int *left, int *top, int *r
 }
 #ifdef NONMATCHING
 void mgInit(int screen_mode, int video_mode) {
-    static signed char dimx[16] = {10, 4, 6, 8, 12, 0, 2, 14, 7, 9, 11, 5, 3, 15, 13, 1};
+    /**
+     * Dither presets converted to signed three-bit GS coefficients.
+     */
+    static signed char dimx[1][16] = {{10, 4, 6, 8, 12, 0, 2, 14, 7, 9, 11, 5, 3, 15, 13, 1}};
     sceDmaEnv          dma_env;
     u_long128          clear_pixels[8192];
     sceGsLoadImage     load_image;
-    u_long             packed_dimx;
     int                aligned_height;
     int                buffer;
     int                i;
@@ -194,17 +206,17 @@ void mgInit(int screen_mode, int video_mode) {
     mgGiftagAD.REGS0 = SCE_GIF_PACKED_AD;
     mgScreenMode = GetScreenSize(screen_mode, &mgScreenWidth, &mgScreenHeight, &mgScreenNX, &mgScreenNY, &mgScreenMX, &mgScreenMY);
     aligned_height = mgScreenHeight;
-    if (aligned_height % 32 != 0) {
+    if (mgScreenHeight % 32 != 0) {
         aligned_height += 32 - aligned_height % 32;
     }
     mgScreenOffx = 0x800 - mgScreenWidth / 2;
     mgScreenOffy = 0x800 - mgScreenHeight / 2;
-    mgScreenDepth = 32;
-    mgScreenZDepth = 32;
     mgScreenLeft = mgScreenOffx;
     mgScreenRight = mgScreenOffx + mgScreenWidth;
     mgScreenTop = mgScreenOffy;
     mgScreenBottom = mgScreenOffy + mgScreenHeight;
+    mgScreenDepth = 32;
+    mgScreenZDepth = 32;
     sceGsResetGraph(0, SCE_GS_INTERLACE, video_mode, 0);
     for (i = 0; i < 8192; i++) {
         clear_pixels[i] = 0;
@@ -225,15 +237,15 @@ void mgInit(int screen_mode, int video_mode) {
     mgDBuff.draw0.frame1.FBP = frame_buf1;
     mgDBuff.draw1.frame1.FBP = frame_buf0;
     mgDBuff.draw1.zbuf1.bits.zbp = frame_buf1 * 2;
-    mgDBuff.draw0.zbuf1.bits.zbp = mgDBuff.draw1.zbuf1.bits.zbp;
+    mgDBuff.draw0.zbuf1.bits.zbp = frame_buf1 * 2;
     mgDBuff.clear0.rgbaq.bytes.red = (int) mgBackColor[0];
     mgDBuff.clear0.rgbaq.bytes.green = (int) mgBackColor[1];
     mgDBuff.clear0.rgbaq.bytes.blue = (int) mgBackColor[2];
     mgDBuff.clear0.rgbaq.bytes.alpha = (int) mgBackColor[3];
-    mgDBuff.clear1.rgbaq.bytes.red = mgDBuff.clear0.rgbaq.bytes.red;
-    mgDBuff.clear1.rgbaq.bytes.green = mgDBuff.clear0.rgbaq.bytes.green;
-    mgDBuff.clear1.rgbaq.bytes.blue = mgDBuff.clear0.rgbaq.bytes.blue;
-    mgDBuff.clear1.rgbaq.bytes.alpha = mgDBuff.clear0.rgbaq.bytes.alpha;
+    mgDBuff.clear1.rgbaq.bytes.red = (int) mgBackColor[0];
+    mgDBuff.clear1.rgbaq.bytes.green = (int) mgBackColor[1];
+    mgDBuff.clear1.rgbaq.bytes.blue = (int) mgBackColor[2];
+    mgDBuff.clear1.rgbaq.bytes.alpha = (int) mgBackColor[3];
     *(u_long *) &mgTEX1_1 = 0x261;
     mgTEX1_2 = mgTEX1_1;
     *(u_long *) &mgTEST_1 = 0x5000B;
@@ -247,8 +259,10 @@ void mgInit(int screen_mode, int video_mode) {
     mgDrawManager.texture_manager = &mgTexManager;
     mgDrawManager.render_info = &mgRenderInfo;
     mgRenderInfo.Initialize();
-    mgRenderInfo.draw_env[0].zbuf = mgZBUF_1;
-    mgRenderInfo.draw_env[1].zbuf = mgZBUF_2;
+    sceGsZbuf first_zbuf = mgZBUF_1;
+    sceGsZbuf second_zbuf = mgZBUF_2;
+    mgRenderInfo.draw_env[0].zbuf = first_zbuf;
+    mgRenderInfo.draw_env[1].zbuf = second_zbuf;
     FlushCache(0);
     sceDmaSend(DmaCH1, My_dma_start0);
     sceGsSyncPath(0, 0);
@@ -273,30 +287,34 @@ void mgInit(int screen_mode, int video_mode) {
     sceGsSwapDBuff(&mgDBuff, 0);
     sceDmaSync(DmaCH2, 0, 0);
     mgCreateSinTable();
-    for (i = 0; i < 16; i++) {
-        dimx[i] = dimx[i] / 2 - 4;
+    for (int preset = 0; preset < 1; preset++) {
+        for (int cell = 0; cell < 16; cell++) {
+            dimx[preset][cell] = dimx[preset][cell] / 2 - 4;
+        }
     }
-    packed_dimx = 0;
-    for (i = 0; i < 16; i++) {
-        packed_dimx |= (u_long) (dimx[i] & 0x7) << (i * 4);
+    for (int preset = 0; preset < 1; preset++) {
+        u_long packed_dimx = 0;
+        for (int cell = 0; cell < 16; cell++) {
+            packed_dimx |= (dimx[preset][cell] & 0x7) << (cell * 4);
+        }
+        mgDIMX[preset].value = packed_dimx;
     }
-    mgDIMX.value = packed_dimx;
-    mgDIMX.bits.dm00 = dimx[0];
-    mgDIMX.bits.dm01 = dimx[1];
-    mgDIMX.bits.dm02 = dimx[2];
-    mgDIMX.bits.dm03 = dimx[3];
-    mgDIMX.bits.dm10 = dimx[4];
-    mgDIMX.bits.dm11 = dimx[5];
-    mgDIMX.bits.dm12 = dimx[6];
-    mgDIMX.bits.dm13 = dimx[7];
-    mgDIMX.bits.dm20 = dimx[8];
-    mgDIMX.bits.dm21 = dimx[9];
-    mgDIMX.bits.dm22 = dimx[10];
-    mgDIMX.bits.dm23 = dimx[11];
-    mgDIMX.bits.dm30 = dimx[12];
-    mgDIMX.bits.dm31 = dimx[13];
-    mgDIMX.bits.dm32 = dimx[14];
-    mgDIMX.bits.dm33 = dimx[15];
+    mgDIMX[0].bits.dm00 = dimx[0][0];
+    mgDIMX[0].bits.dm01 = dimx[0][1];
+    mgDIMX[0].bits.dm02 = dimx[0][2];
+    mgDIMX[0].bits.dm03 = dimx[0][3];
+    mgDIMX[0].bits.dm10 = dimx[0][4];
+    mgDIMX[0].bits.dm11 = dimx[0][5];
+    mgDIMX[0].bits.dm12 = dimx[0][6];
+    mgDIMX[0].bits.dm13 = dimx[0][7];
+    mgDIMX[0].bits.dm20 = dimx[0][8];
+    mgDIMX[0].bits.dm21 = dimx[0][9];
+    mgDIMX[0].bits.dm22 = dimx[0][10];
+    mgDIMX[0].bits.dm23 = dimx[0][11];
+    mgDIMX[0].bits.dm30 = dimx[0][12];
+    mgDIMX[0].bits.dm31 = dimx[0][13];
+    mgDIMX[0].bits.dm32 = dimx[0][14];
+    mgDIMX[0].bits.dm33 = dimx[0][15];
 }
 #else
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/mglib", mgInit__Fii);
@@ -1012,10 +1030,7 @@ void mgSetPkFrameBuffer(mgCTexture *texture) {
 }
 #ifdef NONMATCHING
 void mgSetPkFrameBuffer(int fbp, int width, int height, int psm) {
-    sceGsFrame     frame;
     sceGsFrame    *default_frame;
-    sceGsXyOffset  offset;
-    sceGsScissor   scissor;
     sceVif1Packet *vif;
     u_int         *packet;
     u_long        *registers;
@@ -1052,7 +1067,7 @@ void mgSetPkFrameBuffer(int fbp, int width, int height, int psm) {
     if (aligned_width % 64 != 0) {
         aligned_width += 64 - aligned_width % 64;
     }
-    frame = *default_frame;
+    sceGsFrame frame = *default_frame;
     frame.FBP = fbp;
     frame.FBW = aligned_width / 64;
     frame.PSM = psm;
@@ -1060,6 +1075,8 @@ void mgSetPkFrameBuffer(int fbp, int width, int height, int psm) {
     mgFRAME_1 = frame;
     mgScreenOffx = 0x800 - width / 2;
     mgScreenOffy = 0x800 - height / 2;
+    sceGsXyOffset offset;
+    sceGsScissor scissor;
     offset.OFX = (short) mgScreenOffx * 16;
     offset.OFY = (short) mgScreenOffy * 16;
     scissor.SCAX0 = 0;
