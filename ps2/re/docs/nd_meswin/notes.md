@@ -292,3 +292,56 @@ source, profile, wrapper, ordinal, source-line selector, or address selector
 changes are retained. New receipts:
 `.private/receipts/regress/round3/nd_meswin-*/`,
 `analysis/message-call-policy-matrix.json`, and `after-mg/`.
+
+## Historical source and individual placement expansions
+
+The old-toolchain matching source at `250ac10` already has exactly the current
+`DrawMesWin` body and the three inline placement helpers. The complete
+`nd_meswin.cpp` / `nd_meswin.hpp` diff from that commit to the round-3 head
+`accc605` contains only removal of the discarded `PrimeDoubleToFloat` definition.
+`d08b13d` does not change `DrawMesWin` relative to its parent; `5b4deb3` takes
+the current native body from its second parent. There is no different matching
+placement expression to restore from the SF adoption. The older direct-call
+body predates `810c9f0`, and its all-sites/default-policy expansion is already
+recorded above.
+
+Twelve additional source/lowering hypotheses test the remaining boundaries
+without rerunning those default-policy trials:
+
+- Expanding just DQ X, bottom Y, center X, or center Y directly in `DrawMesWin`,
+  retaining each helper's exact literal types and the real extent member, is
+  tested separately under the supported half-and-0.95-first rows. All four
+  complete objects equal the prior row-only object
+  `9cf3f22a774e7cbc3ed78b51af6d06c9bdfbab39e8c8dee7b47048aaf509d76c`.
+- Expanding all helpers and removing their definitions, using unsuffixed double
+  ratios, and using integer screen limits are each tested under those same
+  rows. All three also produce that exact object. Their previously measured
+  default-policy versions are not recompiled.
+- Explicitly calling the existing runtime `fptosi` around center-X
+  `CalcAutoPosSet` tests a real nested source call rather than the conversion
+  introduced by an integer cast. Under the default profile its complete object
+  equals the retained baseline. Under half-and-0.95-first, both center-X alone
+  and all six explicit conversion calls equal the prior row-only object.
+  The actual runtime conversion boundary therefore does not provide the
+  missing center-X materialization order.
+- An `else if` between the final bottom/DQ and center placements is semantically
+  valid because `CalcAutoPosSet` is pure arithmetic. It shortens the body to
+  `0xB7C`, changes 113 masked words, and produces 15 complete-unit findings.
+- Local optimization level 2 changes the body to `0xD1C` with 796 masked-word
+  differences and 445 canonical findings, including the resulting local-data
+  binding cascade. No profile sweep or postprocessor change is made on that
+  structurally different body.
+
+The nine half-and-0.95-first source variants above all retain `0xB80` bodies,
+12 differing words, `0xBF28` checked bytes, and 1364 relocations. The explicit
+center conversion under default has the baseline 17 words. None passes the
+complete unit, so no source, header, or profile change is retained. The final
+normal object remains
+`bca019021f704eb88aafb01c024c57871062bc8a6171e840637f6891fa3716c1`,
+with the same single finding at `0x0015C5AD` as round 3 and integration i14.
+
+Receipts: `.private/receipts/regress/round4/nd_meswin-*/`,
+`analysis/function-history.json`, `analysis/nd_meswin-function-history.diff`,
+`analysis/experiment-summary.json`, and `final/`. The semantic-provenance and
+center-X lowering requirements above remain unresolved; these measurements
+do not establish that all natural source forms are impossible.
