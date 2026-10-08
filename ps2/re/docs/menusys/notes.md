@@ -167,10 +167,8 @@ Only non-local symbols get externs (the rest are `static` in the .cpp per `local
   MenuPosFormValueSetCharaRobo, MenuPosFormValueSetMonster, BuildUpWeaponNameBoardDraw,
   MenuWeaponStatusInfoFormSet, MenuItemSelectDiffer, CheckTrushWeapon.
 - `MenuItemSelectDiffer` has a 0x30-byte jump table at `at_7968` whose entries
-  point to interior addresses in the function. The current C++ draft compiles
-  to 0x268 bytes rather than retail's 0x270, changing those targets. The
-  default build uses retail assembly while the draft remains under
-  `NONMATCHING` for further matching work.
+  point to interior addresses in the function. Its active C++ matches the
+  retail function and the linked jump-table targets.
 - Return types come from m2c and Ghidra and were checked at call sites for SearchNowPosItemExist and
   GetExistThisPosData (both `CGameDataUsed *`) and GetGameDataUsedForSWAPINFO. Parameter names of the big
   functions (ModelReadStart, WeaponBuildCheck, KeyStepLocal, CheckSpectolFusion's int) are only partly
@@ -189,8 +187,8 @@ retaining its absorption gauge percentage as the next weapon's level-up
 requirement replaces the maximum. It resets the weapon level, adds ten percent
 of the next weapon's base status and attribute values, combines special ability
 bits, limits parameters, and sets save bit 0x31. It replaces the custom name
-only when the old name still equals the old item's default message. A guarded
-C++ draft compiles but differs from retail.
+only when the old name still equals the old item's default message. Its active
+C++ matches retail.
 
 ## Question parameter copy layout
 
@@ -213,8 +211,9 @@ object diff unchanged.
 differs from the retail function, including its size, so the normal build uses
 the retail assembly until its C++ form matches. `MenuItemInfoCursorSet` now
 matches exactly as C++, including its linked image.
-`CMenuItemInfo::PushKey` also retains a guarded draft: its object section exceeds
-the retail function by 0x20 bytes and shifts later linked text.
+`CMenuItemInfo::PushKey` also retains a guarded draft: its raw C++ section is
+0x1BB4 bytes against retail's 0x1BA0. Aligning the next function to sixteen
+bytes would shift later linked text by 0x20 bytes.
 `MenuWeaponBuildUpDraw` retains a guarded draft because MWCC assigns opposite
 integer registers to the bottom bar Y coordinate and its X literal before
 `PrimQuad`; the four resulting instructions differ from retail when the draft
@@ -226,8 +225,56 @@ nonmatching functions.
 
 - `CBaseMenuClass::MenuItemCommandSelect` is an exact C++ match when compiled alone through mwccgap. Its dispatch selects an item command from a key and button pair, including ask mode handling.
 - `MenuItemSelectDiffer` is an exact C++ match when compiled alone through mwccgap. It tests whether an item selection differs from the currently selected item.
-- Both functions passed the isolated linked-image verification. `MenuWeaponBuildUpDraw` differs by one instruction in the linked image despite the whole-unit draft comparison reporting a match. `CMenuItemInfo::LRCheck` differs in two branch-delay-slot words at offsets 0x264 and 0x268; the compiler places the zero return value in the delay slot and skips the shared return-value assignment.
+- Both functions passed the isolated linked-image verification. `MenuWeaponBuildUpDraw` differs in four instructions in the linked image despite the whole-unit draft comparison reporting a match. `CMenuItemInfo::LRCheck` differs in two branch-delay-slot words at offsets 0x264 and 0x268; the compiler places the zero return value in the delay slot and skips the shared return-value assignment.
 
 ## Constructor-backed allocations
 
 `NewMenuActionChara` now uses native placement construction of `CActionChara`; both callers (`IsAskExtend` and `MenuModeMalloc`) are guarded C++ drafts with retail assembly active.
+
+## Remaining matching blockers
+
+The [current matching status](matching-status-20261008.md) records the thirteen
+guarded symbols, measured differences, and reconsideration triggers. The
+whole-draft comparison and the game-build comparison are distinct:
+`MenuWeaponBuildUpDraw` matches with all drafts enabled, but its isolated linked
+image differs in four instructions at function offsets 0x960, 0x964, 0x968 and
+0x970. The Y-coordinate addition and X-coordinate literal receive opposite
+`v0`/`v1` temporaries. Reversing addition operands or naming the bottom Y float
+does not resolve the isolated mismatch.
+
+`CalcTex` has seven differing words at offsets 0x394, 0x398, 0x3A4, 0x3A8,
+0x3B0, 0x3B8 and 0x3BC. Retail uses `s3` for the held item type and `s0` for the
+equipment-search counter; the draft reverses them. This persists in the
+isolated game build. Moving either variable's scope, grouping the declarations,
+or giving the equipment loop a separate counter does not give a match.
+
+`MenuPosFormValueSetCharaRobo` has nineteen differing words: the zero-WHP red
+assignment at 0x238 and the eighteen colour stores for six parts at
+0x24C..0x2B8. Retail uses `s3` for red and `s1` for green; the draft reverses
+them. Changing initialization order, chained assignment order or declaration
+scope does not resolve it. Its isolated game build has the same nineteen
+differences. A section ending at 0x498 instead of the manifest extent 0x4A0
+is only zero alignment padding, not missing behavior.
+
+`CheckEnableHaveItemNum` has two register-allocation differences: the first
+active-slot loop exchanges the `s1` counter and `s3` item pointer, while the
+final flag loop exchanges `t0` and `a3` offsets. Reusing the earlier `j` counter
+or replacing repeated active-item address expressions with the named pointer
+does not resolve these thirteen differing words.
+
+`MenuDataSwap` agrees through the swap behavior but differs in its final
+presence flags and two-byte result-table scheduling. Retail's table at
+`at_2512` contains `{0, 2}`; `ret_tbl1_2511` contains `{1, 3}`. Splitting the
+mixed initializer into a constant initializer and an assignment produces the
+same instructions. Swapping the presence-flag declaration order worsens the
+comparison. `CommonSetMoveItemClass` differs in its source-row copy and first
+equipment branch; the draft adds a `dsll32`/`dsra32` pair before comparing the
+copied short with one. An unrolled four-field loop produces the same draft;
+holding the short in a local worsens its layout.
+
+The placement-new null-branch blocker occurs in `MenuItemSelectInit`,
+`MenuModeMalloc`, `IsAskExtend` and `MenuItemDebugKey`. Retail branches on `v0`
+and copies the returned pointer in the delay slot. The draft copies it before
+branching on the saved register. Native action-character construction also
+emits a shorter constructor sequence than retail. These functions require
+the dedicated constructor investigation before further allocation experiments.
