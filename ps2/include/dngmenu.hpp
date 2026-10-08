@@ -533,7 +533,7 @@ void MakeDngTreeMapJumpNo(int dng_no, int floor_id, int *loop_no, int *map_no);
  *
  * @mangled DngTreeMapInit__FP9mgCMemoryPiii
  * @address 0x1F34E0
- * @size 0x400
+ * @size 0x3F8
  */
 void DngTreeMapInit(mgCMemory *stack, int *tex_block, int menu_mode, int dng_no);
 
