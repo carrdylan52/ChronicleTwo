@@ -25,3 +25,16 @@ matched data is **20/539**, from **4/539**. All five functions remain matched;
 none is promoted. Each accepted group passes PAL and all 149 objects with
 unchanged unowned object hashes. Receipts:
 `.private/dataD/movieviewlp-{state,storage,tags}-{build,objects,metrics}.log`.
+
+## Inline configuration and playback strings
+
+All twelve remaining strings are inline at their existing uses: configuration
+path, movie-work texture name, promotional list names and first-part paths,
+list heading and row formats, and later promotional-part formats. The list
+heading's Shift-JIS bytes use hexadecimal escapes. No argument order, stack
+local or runtime control flow changes.
+
+Initialized-data markers fall from **12 to 0**. Interim matched data is
+**186/539**; the eight buffer-manager BSS markers remain. Receipts:
+`.private/dataD/movieviewlp-{config,work,promo,list,parts}-{build,objects,metrics}.log`.
+Every group passes PAL and all 149 objects with unchanged unowned object hashes.

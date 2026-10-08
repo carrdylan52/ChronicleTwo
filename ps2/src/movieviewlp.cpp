@@ -16,26 +16,14 @@
 #include "scriptinterpreter.hpp"
 #include "snd_mngr.hpp"
 
-extern mgCMemory         buf0_791;
-extern mgCMemory         buf1_794;
-extern mgCMemory         dbuf0_797;
-extern mgCMemory         dbuf1_800;
+extern mgCMemory buf0_791;
+extern mgCMemory buf1_794;
+extern mgCMemory dbuf0_797;
+extern mgCMemory dbuf1_800;
 extern signed char       init_792;
 extern signed char       init_795;
 extern signed char       init_798;
 extern signed char       init_801;
-extern char              at_843__4[];
-extern char              at_844__3[];
-extern char              at_1028__8[];
-extern char              at_1029__6[];
-extern char              at_1030__5[];
-extern char              at_1031__5[];
-extern char              at_1032__6[];
-extern char              at_1033__7[];
-extern char              at_1034__5[];
-extern char              at_1035__5[];
-extern char              at_1036__5[];
-extern char              at_1037__5[];
 
 /**
  *
@@ -239,7 +227,7 @@ void MovieViewInit(INIT_LOOP_ARG arg) {
     spi_MovieStack = main_stack;
     script_ptr = script;
 
-    if (LoadFile2(at_843__4, script_ptr, &script_size, 0) != 0) {
+    if (LoadFile2("mv.cfg", script_ptr, &script_size, 0) != 0) {
         CScriptInterpreter interpreter;
         interpreter.SetTag(tag_movie);
         interpreter.SetScript(script_ptr, script_size);
@@ -257,9 +245,9 @@ void MovieViewInit(INIT_LOOP_ARG arg) {
     special_info[1] = 0;
     MovieSpecialMode = MOVIE_SPECIAL_MODE_NONE;
     special_info[2] = 0;
-    textures->EnterTexture(0xA, at_844__3, NULL, mgScreenWidth, mgScreenHeight, mgScreenDepth,
+    textures->EnterTexture(0xA, "moviework", NULL, mgScreenWidth, mgScreenHeight, mgScreenDepth,
                            0, 0, 0);
-    RushWork__2 = textures->GetTexture(at_844__3, 0xA);
+    RushWork__2 = textures->GetTexture("moviework", 0xA);
     performance_meter_flag = mgGetPerformanceMeterFlag();
     mgPerformanceMeter(0);
 }
@@ -334,21 +322,21 @@ int MovieViewLoop() {
 
             MovieSpecialMode = MOVIE_SPECIAL_MODE_NONE;
 
-            if (strcmp(entry->name, at_1028__8) == 0) {
+            if (strcmp(entry->name, "promo") == 0) {
                 MovieSpecialMode = MOVIE_SPECIAL_MODE_PROMO;
                 MovieSpecialModeInfo[0] = 1;
-                MovieView->Load(at_1029__6, &Stack_ReadBuff__2, 0x200, 0x1A0, true, false);
-                MovieView->Play(at_844__3);
+                MovieView->Load("PROMO1.PSS", &Stack_ReadBuff__2, 0x200, 0x1A0, true, false);
+                MovieView->Play("moviework");
                 MovieView->SwitchThread();
 
                 while (MovieView->IsStarted() == 0) {
                     MovieView->SwitchThread();
                 }
-            } else if (strcmp(entry->name, at_1030__5) == 0) {
+            } else if (strcmp(entry->name, "promo_tv") == 0) {
                 MovieSpecialMode = MOVIE_SPECIAL_MODE_PROMO_TV;
                 MovieSpecialModeInfo[0] = 1;
-                MovieView->Load(at_1031__5, &Stack_ReadBuff__2, 0x200, 0x1A0, true, false);
-                MovieView->Play(at_844__3);
+                MovieView->Load("PROMO1TV.PSS", &Stack_ReadBuff__2, 0x200, 0x1A0, true, false);
+                MovieView->Play("moviework");
                 MovieView->SwitchThread();
 
                 while (MovieView->IsStarted() == 0) {
@@ -356,7 +344,7 @@ int MovieViewLoop() {
                 }
             } else {
                 MovieView->Load(entry->file_name, &Stack_ReadBuff__2, 0x200, 0x1A0, true, false);
-                MovieView->Play(at_844__3);
+                MovieView->Play("moviework");
                 MovieView->SwitchThread();
 
                 while (MovieView->IsStarted() == 0) {
@@ -374,12 +362,12 @@ int MovieViewLoop() {
         menu_font.SetClearance(0x10, 0x14);
         menu_font.SetFuchi(FUCHI_SHADOW_BLACK_WIDE);
         menu_font.SetColor(0x80686A6BU);
-        sprintf(row_text, at_1032__6, at_1033__7, at_1034__5);
+        sprintf(row_text, "  :%18s     %s", "\x89" "f\x91\x9c  ", "BGMID");
         i = MovieLine;
         row_y = 0x28;
 
         while (i < MovieLine + 8 && i < MovieListNum) {
-            sprintf(row_text, at_1035__5, i, MovieList[i].name);
+            sprintf(row_text, "  %d:%18s  ", i, MovieList[i].name);
 
             if (i == MovieSelect) {
                 row_text[1] = '>';
@@ -438,15 +426,15 @@ int MovieViewLoop() {
                     MovieMode = MOVIE_VIEW_MODE_PLAY;
 
                     if (MovieSpecialMode == MOVIE_SPECIAL_MODE_PROMO) {
-                        sprintf(part_path, at_1036__5, MovieSpecialModeInfo[0]);
+                        sprintf(part_path, "PROMO%d.PSS", MovieSpecialModeInfo[0]);
                     }
 
                     if (MovieSpecialMode == MOVIE_SPECIAL_MODE_PROMO_TV) {
-                        sprintf(part_path, at_1037__5, MovieSpecialModeInfo[0]);
+                        sprintf(part_path, "PROMO%dTV.PSS", MovieSpecialModeInfo[0]);
                     }
 
                     MovieView->Load(part_path, &Stack_ReadBuff__2, 0x200, 0x1A0, true, false);
-                    MovieView->Play(at_844__3);
+                    MovieView->Play("moviework");
                     MovieView->SwitchThread();
 
                     while (MovieView->IsStarted() == 0) {
@@ -464,20 +452,6 @@ int MovieViewLoop() {
 
     return 0;
 }
-
-// Constants (.rodata)
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/movieviewlp", at_843__4__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/movieviewlp", at_844__3__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/movieviewlp", at_1028__8__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/movieviewlp", at_1029__6__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/movieviewlp", at_1030__5__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/movieviewlp", at_1031__5__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/movieviewlp", at_1032__6__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/movieviewlp", at_1033__7__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/movieviewlp", at_1034__5__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/movieviewlp", at_1035__5__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/movieviewlp", at_1036__5__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/movieviewlp", at_1037__5__DATA);
 
 // Small uninitialised data (.sbss)
 INCLUDE_BSS(init_792, 0x4);
