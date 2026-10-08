@@ -299,13 +299,30 @@ def prepare_native_data(elf, unit, ctx):
 
 
 def fallback_data_names(source):
-    """Explicit source markers, excluding comments and function fallbacks."""
-    source = re.sub(r'"(?:\\.|[^"\\])*"|\'(?:\\.|[^\'\\])*\'|/\*.*?\*/|//[^\n]*',
-                    lambda match: match.group() if match.group()[0] in ('"', "'") else '',
-                    source, flags=re.DOTALL)
-    names = set(re.findall(r'\bINCLUDE_BSS\s*\(\s*([A-Za-z_]\w*)\s*,', source))
-    names.update(re.findall(r'\bINCLUDE_RODATA\s*\(\s*"[^"\n]+"\s*,\s*'
-                            r'([A-Za-z_]\w*)__DATA\s*\)', source))
+    """Recognize marker tokens outside comments and quoted literal contents."""
+    pattern = re.compile(
+        r'(?P<comment>/\*.*?\*/|//[^\n]*)|'
+        r'(?P<string>(?:u8|u|U|L)?R"(?P<delimiter>[^ ()\\\t\r\n]{0,16})'
+        r'\(.*?\)(?P=delimiter)"|(?:u8|u|U|L)?"(?:\\.|[^"\\])*")|'
+        r"(?P<char>(?:u8|u|U|L)?'(?:\\.|[^'\\])*')|"
+        r'(?P<identifier>[A-Za-z_]\w*)|(?P<punctuation>[^\s])', re.DOTALL)
+    tokens = [(match.lastgroup, match.group()) for match in pattern.finditer(source)
+              if match.lastgroup != 'comment']
+    names = set()
+    for index, (kind, token) in enumerate(tokens):
+        if kind != 'identifier':
+            continue
+        arguments = tokens[index + 1:index + 6]
+        if token == 'INCLUDE_BSS' and len(arguments) >= 3:
+            if arguments[0][1] == '(' and arguments[1][0] == 'identifier' and arguments[2][1] == ',':
+                names.add(arguments[1][1])
+        elif token == 'INCLUDE_RODATA' and len(arguments) == 5:
+            if (arguments[0][1] == '(' and arguments[1][0] == 'string'
+                    and arguments[2][1] == ',' and arguments[3][0] == 'identifier'
+                    and arguments[4][1] == ')' and arguments[3][1].endswith('__DATA')):
+                name = arguments[3][1][:-len('__DATA')]
+                if name:
+                    names.add(name)
     return names
 
 
