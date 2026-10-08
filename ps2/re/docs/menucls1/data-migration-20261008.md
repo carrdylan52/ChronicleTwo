@@ -60,3 +60,20 @@ Receipts: `.private/dataA-r2/menucls1-status-enum.log`,
 `menucls1-status-enum-build.log`, and `menucls1-status-enum-objects.log`.
 The reservation counts and data coverage remain 12 initialized-data markers,
 7 BSS markers, and 12/548 matched data bytes.
+
+## Native status-table section
+
+Retail `st_bittable_1654` is a mutable 0x1C-byte object in `.data`.
+A native `static const u32[7]` instead emits `.rodata`; the retained marker
+had hidden that difference. Its source definition is `static u32[7]`, retaining
+the same enumerator initializers and item-use instructions while matching the
+retail storage kind. The stricter proposed local-data mapper rejects a native
+section-kind mismatch rather than rewriting it into the retail kind.
+
+Both the retained-marker object (0x2B04 bytes) and the fresh marker-free
+proposal object (0x2B00 bytes) pass all 304 resolved relocations. The private
+proposal leaves the final four zero alignment bytes to the linker. Full stock
+build and object receipts: `.private/dataA-r2/menucls1-mutable-status-build.log`
+and `menucls1-mutable-status-objects.log`; focused receipt:
+`menucls1-mutable-status.log`. The fresh proposal receipt is
+`.private/dataA-r2/resume-proposal/menucls1-check-v4.log`.

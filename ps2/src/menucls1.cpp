@@ -1044,7 +1044,7 @@ int MenuUseItemCheckFunc(CGameDataUsed *item, CItemUseTarget *target, int apply)
     /**
      * Character status bits tested when an item adds or cures a condition.
      */
-    static const u32 st_bittable[7] = {
+    static u32 st_bittable[7] = {
         CHARA_STATUS_POISON, CHARA_STATUS_UNK_2, CHARA_STATUS_UNK_4, CHARA_STATUS_UNK_8,
         CHARA_STATUS_POWER, CHARA_STATUS_UNK_20, CHARA_STATUS_UNK_40
     };
