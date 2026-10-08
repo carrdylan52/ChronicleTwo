@@ -2642,14 +2642,14 @@ int MenuItemBrdKey(int keys, int *cursor, int *scroll, int board) {
  * Identifies the result of exchanging items between menu slots.
  *
  */
-enum MenuSwapResult {
-    kMenuSwapFailed = 0,              /**< The requested exchange cannot run. */
-    kMenuSwapNormal = 1,              /**< The exchange uses the ordinary completion path. */
-    kMenuSwapDestinationOccupied = 2, /**< The general exchange starts with an occupied destination. */
-    kMenuSwapDestinationEmpty = 3,    /**< The general exchange places an item in an empty destination. */
-    kMenuSwapGiftBox = 4,             /**< The destination handles gift-box insertion. */
-    kMenuSwapStack = 5,               /**< Matching stackable items handle the exchange. */
-    kMenuSwapAquarium = 7,            /**< The aquarium handles the source fish. */
+enum MENU_SWAP_RESULT {
+    MENU_SWAP_RESULT_FAILED = 0,               /**< The requested exchange cannot run. */
+    MENU_SWAP_RESULT_NORMAL = 1,               /**< The exchange uses the ordinary completion path. */
+    MENU_SWAP_RESULT_DESTINATION_OCCUPIED = 2, /**< The general exchange starts with an occupied destination. */
+    MENU_SWAP_RESULT_DESTINATION_EMPTY = 3,    /**< The general exchange places an item in an empty destination. */
+    MENU_SWAP_RESULT_GIFT_BOX = 4,             /**< The destination handles gift-box insertion. */
+    MENU_SWAP_RESULT_STACK = 5,                /**< Matching stackable items handle the exchange. */
+    MENU_SWAP_RESULT_AQUARIUM = 7,             /**< The aquarium handles the source fish. */
 };
 
 /**
@@ -2657,14 +2657,14 @@ enum MenuSwapResult {
  * Selects the general exchange result from the source slot's original item presence.
  *
  */
-s8 ret_tbl1_2511[2] = {kMenuSwapNormal, kMenuSwapDestinationEmpty};
+s8 ret_tbl1_2511[2] = {MENU_SWAP_RESULT_NORMAL, MENU_SWAP_RESULT_DESTINATION_EMPTY};
 
 /**
  *
  * Supplies the initial result entries for an empty or occupied destination slot.
  *
  */
-s8 at_2512[2] = {kMenuSwapFailed, kMenuSwapDestinationOccupied};
+s8 at_2512[2] = {MENU_SWAP_RESULT_FAILED, MENU_SWAP_RESULT_DESTINATION_OCCUPIED};
 #ifdef NONMATCHING
 /**
  *
@@ -2683,9 +2683,9 @@ int MenuDataSwap(CGameDataUsed *destination, CGameDataUsed *source, int quantity
     int          dst_used;
     s8           results[2];
     if (destination == NULL || source == NULL) {
-        return kMenuSwapFailed;
+        return MENU_SWAP_RESULT_FAILED;
     }
-    result = kMenuSwapNormal;
+    result = MENU_SWAP_RESULT_NORMAL;
     dst_no = destination->item_no;
     src_no = source->item_no;
     dst_type = GetItemDataType(dst_no);
@@ -2698,17 +2698,17 @@ int MenuDataSwap(CGameDataUsed *destination, CGameDataUsed *source, int quantity
         if (destination->SetGiftBoxItem(src_no, -1) >= 0) {
             source->DeleteNum(1);
         }
-        result = kMenuSwapGiftBox;
+        result = MENU_SWAP_RESULT_GIFT_BOX;
     } else if (dst_type == 0x1D && src_used == USED_ITEM_TYPE_FISH) {
         MenuUserDataManPtr->FishInAquarium(source, 0);
-        result = kMenuSwapAquarium;
+        result = MENU_SWAP_RESULT_AQUARIUM;
     } else if (destination == MenuUserDataManPtr->GetActiveEsa()) {
-        result = kMenuSwapNormal;
+        result = MENU_SWAP_RESULT_NORMAL;
         if (destination->GetNum() <= 0) {
             destination->CopyDataItem(src_no);
             source->DeleteNum(1);
         } else if (source->CopyDataItem(destination) == 0) {
-            result = kMenuSwapFailed;
+            result = MENU_SWAP_RESULT_FAILED;
         }
     } else if (destination->CheckTypeEnableStack() && destination->GetNum() > 1 && src_used == 0) {
         memcpy(source, destination, sizeof(CGameDataUsed));
@@ -2726,7 +2726,7 @@ int MenuDataSwap(CGameDataUsed *destination, CGameDataUsed *source, int quantity
             destination->AddNum(add, 1);
             source->AddNum(-add, 1);
         }
-        result = kMenuSwapStack;
+        result = MENU_SWAP_RESULT_STACK;
     } else {
         int had_src = 0;
         int had_dst = 0;
@@ -2738,7 +2738,7 @@ int MenuDataSwap(CGameDataUsed *destination, CGameDataUsed *source, int quantity
             had_src = 1;
         }
         results[0] = ret_tbl1_2511[had_src];
-        results[1] = kMenuSwapDestinationOccupied;
+        results[1] = MENU_SWAP_RESULT_DESTINATION_OCCUPIED;
         result = results[had_dst];
     }
     CheckEnableHaveItemNum();

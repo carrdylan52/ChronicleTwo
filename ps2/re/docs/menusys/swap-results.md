@@ -22,7 +22,7 @@ remains two. The resulting mapping is:
 Other paths return zero when the exchange cannot run, one for ordinary
 completion, four for the gift-box path, five for matching stackable items,
 and seven for the aquarium path. The gift-box path returns four even when
-`SetGiftBoxItem` fails. `MenuSwapResult` is a descriptive source enum for these
+`SetGiftBoxItem` fails. `MENU_SWAP_RESULT` is a descriptive source enum for these
 observed values, not an established retail type name.
 
 Both data objects now have C++ definitions in `menusys.cpp`. The existing

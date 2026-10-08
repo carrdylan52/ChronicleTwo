@@ -62,7 +62,7 @@ input row. Removing the sign extension by widening the record would change
 that behavior and contradict the established layout.
 
 The swap tables and observed result values are documented in
-[swap-results.md](swap-results.md). `MenuSwapResult` is a descriptive local
+[swap-results.md](swap-results.md). `MENU_SWAP_RESULT` is a descriptive local
 enum, not a recovered retail type name. Its values replace result-code
 literals in the guarded draft. The two data definitions replace only their
 `INCLUDE_RODATA` markers and retain both declared sizes and alignment bytes.
