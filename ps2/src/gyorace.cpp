@@ -527,7 +527,7 @@ int sgLoopGyoRace(SubGameInfo *info) {
                 if (fish == hero) {
                     if ((unsigned char) progress.state != 3) {
                         state->time = 20.0f * race_cnt;
-                        state->lap_time[fish_inf[hero].lap] = fish_inf[hero].time - 20.0f * state->lap_start;
+                        state->lap_time[fish_inf[hero].lap] = state->time - 20.0f * state->lap_start;
                     } else if ((unsigned char) progress.state == 3) {
                         float *total;
                         *(total = &state->time) = 20.0f * RaceInfo.goal_time[(int)fish] ;
@@ -1048,11 +1048,9 @@ int sgSysDrawGyoRace(SubGameInfo *info) {
     int var_16;
     int row_index;
     int var_17;
-    int row_y;
     int var_18;
     int var_19;
     int *lap;
-    int *lane;
     mgCTextureManager *textures = &mgTexManager;
     scene = info->scene;
     textures->ReloadTexture( GetSystemMessage()->texture_block, (sceVif1Packet *)0);
@@ -1076,12 +1074,11 @@ int sgSysDrawGyoRace(SubGameInfo *info) {
             spA0.pos = limit;
         }
         bar_done = 326.0f * (spA0.pos / 16.0f);
-        lane = &RaceInfo.fish[var_16].lane;
-        float bar_y = 35.0f + 10.0f * (float)*lane;
+        float bar_y = 35.0f + 10.0f * (float)RaceInfo.fish[var_16].lane;
         DrawMenuFillBox(41.0f + bar_done, bar_y, 326.0f - bar_done, 2.0f, 0x4A, 0x70, 0xD9, 0x8B);
         float filled = 326.0f * (spA0.pos / 16.0f);
-        DrawMenuFillBox(41.0f, (float) ((*lane * 0xA) + 0x23), filled, 2.0f, 0x54, 0xE5, 0x8B, 0x29);
-        spC0.Set((int)(31.0f + (float) (int)(326.0f * (spA0.pos / 16.0f))), (*lane * 0xA) + 0x1C, 0x12, 0xC);
+        DrawMenuFillBox(41.0f, (float) ((RaceInfo.fish[var_16].lane * 0xA) + 0x23), filled, 2.0f, 0x54, 0xE5, 0x8B, 0x29);
+        spC0.Set((int)(31.0f + (float) (int)(326.0f * (spA0.pos / 16.0f))), (RaceInfo.fish[var_16].lane * 0xA) + 0x1C, 0x12, 0xC);
         if ((var_16 == hero_no) && (OmakeFlag == 0)) {
             spD0.Set(0x1EE, 0xC, 0x12, 0xC);
             if ((u_char)spA0.state != 3) {
@@ -1102,26 +1099,26 @@ int sgSysDrawGyoRace(SubGameInfo *info) {
     mode = race_mode;
     row_index = 0;
     if ((mode == 0) || (mode == 1)) {
-        row_y = 0;
+        var_17 = 0;
         var_18 = 0;
         do {
-            spF0.Set(var_18 + 0x1A2, row_y + 0x41, 0xC, 0xC);
+            spF0.Set(var_18 + 0x1A2, var_17 + 0x41, 0xC, 0xC);
             sp100.Set(0x138, 0x62, 0xC, 0xC);
             PrimQuad(wind_tex, spF0, sp100, 0x80, 0x80, 0x80, 0x80);
-            sp110.Set(var_18 + 0x1B0, row_y + 0x41, 0xC, 0xC);
+            sp110.Set(var_18 + 0x1B0, var_17 + 0x41, 0xC, 0xC);
             sp120.Set(0x138, 0x62, 0xC, 0xC);
             PrimQuad(wind_tex, sp110, sp120, 0x80, 0x80, 0x80, 0x80);
-            sp130.Set(var_18 + 0x1BA, row_y + 0x41, 0xC, 0xC);
+            sp130.Set(var_18 + 0x1BA, var_17 + 0x41, 0xC, 0xC);
             sp140.Set(0x138, 0x62, 0xC, 0xC);
             PrimQuad(wind_tex, sp130, sp140, 0x80, 0x80, 0x80, 0x80);
-            sp150.Set(var_18 + 0x1C9, row_y + 0x41, 0xC, 0xC);
+            sp150.Set(var_18 + 0x1C9, var_17 + 0x41, 0xC, 0xC);
             sp160.Set(0x138, 0x62, 0xC, 0xC);
             PrimQuad(wind_tex, sp150, sp160, 0x80, 0x80, 0x80, 0x80);
-            sp170.Set(var_18 + 0x1D3, row_y + 0x41, 0xC, 0xC);
+            sp170.Set(var_18 + 0x1D3, var_17 + 0x41, 0xC, 0xC);
             sp180.Set(0x138, 0x62, 0xC, 0xC);
             PrimQuad(wind_tex, sp170, sp180, 0x80, 0x80, 0x80, 0x80);
             row_index += 1;
-            row_y += 0x10;
+            var_17 += 0x10;
             var_18 += 2;
         } while (row_index < 2);
         sp190.Set(0x1CB, 0x1B, 0x18, 0x20);
@@ -1156,47 +1153,47 @@ int sgSysDrawGyoRace(SubGameInfo *info) {
         lap_centi_tens = (lap_inf_1798[var_19][3] = (int)(0.1f * (float) var_18));
         lap_inf_1798[var_19][4] = var_18 - lap_centi_tens * 10;
         var_16 = 0;
-        var_17 = 0;
-        var_18 = 0;
+        int lap_y = 0;
+        int lap_x = 0;
         var_19 = 0;
         do {
             if ((int)fish_inf[hero_no].lap < var_16) {
-                sp250.Set(var_18 + 0x1A2, var_17 + 0x41, 0xC, 0xC);
+                sp250.Set(lap_x + 0x1A2, lap_y + 0x41, 0xC, 0xC);
                 sp260.Set(0x138, 0x62, 0xC, 0xC);
                 PrimQuad(wind_tex, sp250, sp260, 0x80, 0x80, 0x80, 0x80);
-                sp270.Set(var_18 + 0x1B0, var_17 + 0x41, 0xC, 0xC);
+                sp270.Set(lap_x + 0x1B0, lap_y + 0x41, 0xC, 0xC);
                 sp280.Set(0x138, 0x62, 0xC, 0xC);
                 PrimQuad(wind_tex, sp270, sp280, 0x80, 0x80, 0x80, 0x80);
-                sp290.Set(var_18 + 0x1BA, var_17 + 0x41, 0xC, 0xC);
+                sp290.Set(lap_x + 0x1BA, lap_y + 0x41, 0xC, 0xC);
                 sp2A0.Set(0x138, 0x62, 0xC, 0xC);
                 PrimQuad(wind_tex, sp290, sp2A0, 0x80, 0x80, 0x80, 0x80);
-                sp2B0.Set(var_18 + 0x1C9, var_17 + 0x41, 0xC, 0xC);
+                sp2B0.Set(lap_x + 0x1C9, lap_y + 0x41, 0xC, 0xC);
                 sp2C0.Set(0x138, 0x62, 0xC, 0xC);
                 PrimQuad(wind_tex, sp2B0, sp2C0, 0x80, 0x80, 0x80, 0x80);
-                sp2D0.Set(var_18 + 0x1D3, var_17 + 0x41, 0xC, 0xC);
+                sp2D0.Set(lap_x + 0x1D3, lap_y + 0x41, 0xC, 0xC);
                 sp2E0.Set(0x138, 0x62, 0xC, 0xC);
                 PrimQuad(wind_tex, sp2D0, sp2E0, 0x80, 0x80, 0x80, 0x80);
             } else {
-                sp2F0.Set(var_18 + 0x1A2, var_17 + 0x41, 0xC, 0xC);
+                sp2F0.Set(lap_x + 0x1A2, lap_y + 0x41, 0xC, 0xC);
                 lap = lap_inf_1798[var_19];
                 sp300.Set((lap[0] * 0xC) + 0xC0, 0x62, 0xC, 0xC);
                 PrimQuad(wind_tex, sp2F0, sp300, 0x80, 0x80, 0x80, 0x80);
-                sp310.Set(var_18 + 0x1B0, var_17 + 0x41, 0xC, 0xC);
+                sp310.Set(lap_x + 0x1B0, lap_y + 0x41, 0xC, 0xC);
                 sp320.Set((lap[1] * 0xC) + 0xC0, 0x62, 0xC, 0xC);
                 PrimQuad(wind_tex, sp310, sp320, 0x80, 0x80, 0x80, 0x80);
-                sp330.Set(var_18 + 0x1BA, var_17 + 0x41, 0xC, 0xC);
+                sp330.Set(lap_x + 0x1BA, lap_y + 0x41, 0xC, 0xC);
                 sp340.Set((lap[2] * 0xC) + 0xC0, 0x62, 0xC, 0xC);
                 PrimQuad(wind_tex, sp330, sp340, 0x80, 0x80, 0x80, 0x80);
-                sp350.Set(var_18 + 0x1C9, var_17 + 0x41, 0xC, 0xC);
+                sp350.Set(lap_x + 0x1C9, lap_y + 0x41, 0xC, 0xC);
                 sp360.Set((lap[3] * 0xC) + 0xC0, 0x62, 0xC, 0xC);
                 PrimQuad(wind_tex, sp350, sp360, 0x80, 0x80, 0x80, 0x80);
-                sp370.Set(var_18 + 0x1D3, var_17 + 0x41, 0xC, 0xC);
+                sp370.Set(lap_x + 0x1D3, lap_y + 0x41, 0xC, 0xC);
                 sp380.Set((lap[4] * 0xC) + 0xC0, 0x62, 0xC, 0xC);
                 PrimQuad(wind_tex, sp370, sp380, 0x80, 0x80, 0x80, 0x80);
             }
             var_16 += 1;
-            var_17 += 0x10;
-            var_18 += 2;
+            lap_y += 0x10;
+            lap_x += 2;
             var_19++;
         } while (var_16 < 2);
         total_frames = fish_inf[hero_no].time;
