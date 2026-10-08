@@ -278,3 +278,13 @@ and copies the returned pointer in the delay slot. The draft copies it before
 branching on the saved register. Native action-character construction also
 emits a shorter constructor sequence than retail. These functions require
 the dedicated constructor investigation before further allocation experiments.
+
+## Weapon buildup drawing under the verified profile
+
+`MenuWeaponBuildUpDraw__FRi` passes an isolated production-wrapper build
+with the existing Satan's Fiddle profile, GPR `0x30` / FPR `0`. The former
+four-word bottom-bar argument discrepancy at +0x960..+0x970 is absent:
+the binary32 256.0f (`0x43800000`) X argument and computed Y argument to
+`PrimQuad__FP11mgCDrawPrimff9mgRect<i>` have the retail temporary registers.
+No new selector or source-body change is required. Removing only the guard
+passes all `0x1B0E8` allocated unit bytes and 5,764 resolved relocations.
