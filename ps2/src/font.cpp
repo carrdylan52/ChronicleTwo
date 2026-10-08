@@ -1217,9 +1217,3 @@ char alphabetical_chara_tbl[ALPHABETICAL_CHARA_NUM][ALPHABETICAL_CHARA_LEN] = {
     "152]",
     "153]",
 };
-
-// Uninitialised data (.bss)
-INCLUDE_BSS(FontTblBinBuff, 0x1000);
-INCLUDE_BSS(at_784__2, 0x10);
-INCLUDE_BSS(at_817__4, 0x10);
-INCLUDE_BSS(at_1466__6, 0x10);

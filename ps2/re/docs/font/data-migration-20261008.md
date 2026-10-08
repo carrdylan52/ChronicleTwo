@@ -117,3 +117,13 @@ unrelocated symbolic words whose emitted bytes agree with retail. Its nine
 focused tests and actual 0x46A0-byte VU comparison are in
 `.private/dataC/font-analysis/vu-splitter/`; complete private integration
 snapshots and receipts are in `.private/dataC/proposal-integration/`.
+
+## Native buffer and zero rectangles
+
+The font buffer and three rectangle BSS markers are removed. The existing
+static `FONT_TBL_BIN` and local `RECT` initializers supply the exact storage.
+Anonymous templates retain their identities through exact extent and real
+code-reference evidence. VU instruction words are numeric when retail has
+no relocation, so the local buffer has no artificial external dependency.
+PAL and all 149 objects pass, and all unowned game objects remain identical
+to the baseline. Receipts: `.private/dtool/09-font-{build,objects,metrics,tests}.log`.
