@@ -403,3 +403,17 @@ coverage is unchanged. The verifier retains exactly `0x26` text bytes and
 passes all other sections and the memory-end check. Receipts:
 `.private/round1/final-build.log`, `final-check.log`, `final-coverage.txt`,
 `final-hashes.json` and `validation-summary.json`.
+
+## Control-context promotion (2026-10-08)
+
+`FishModifyParam` is now source-supplied and exact at 0/480 words. Two
+callee-scoped range rows select tactics 1's 0.2f argument by its switch
+context and evaluate tactics 5's 0.3f first. The whole function removes
+seven unused declarations and initializes the RNG state and name-hash
+seed together. `CollisionFish` and `StepGyoRace` retain their guards.
+
+The clean proto-image build passes `SCES_511.90: OK`, 149/149 complete
+objects, and 6,746 matched / zero fuzzy functions. Every other linked and
+source-only object hash equals the `24d3d21` baseline. Full selector,
+hygiene and validation evidence is in
+[selector-context-20261008.md](selector-context-20261008.md).
