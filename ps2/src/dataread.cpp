@@ -161,7 +161,6 @@ int LoadFileBG(char *name, u_long128 *buffer, int *out_size) {
     int           device;
     int           i;
     BG_READ_INFO *info;
-    int          *words;
     DATA_HEADER  *file;
 
     if (out_size != 0) {
@@ -183,7 +182,7 @@ int LoadFileBG(char *name, u_long128 *buffer, int *out_size) {
     strcat(full_path, name);
     device = GetDevType(name, rest);
 
-    if (device == -1) {
+    if (device == FILE_DEV_DEFAULT) {
         device = DefaultFileDev;
     }
 
@@ -203,9 +202,7 @@ search:
         return 0;
     }
 
-    words = (int *) info;
-
-    if (device == 1) {
+    if (device == FILE_DEV_CDROM) {
         file = SearchFile(full_path);
 
         if (file == NULL) {
@@ -214,18 +211,18 @@ search:
 
         strcpy(info->name, full_path);
         info->busy = 1;
-        info->dev = 1;
+        info->dev = FILE_DEV_CDROM;
         info->issued = 0;
         info->done = 0;
-        words[0x44] = (int) buffer;
-        words[0x45] = file->size;
+        info->buffer = buffer;
+        info->size = file->size;
 
         if (out_size != 0) {
             *out_size = file->size;
         }
 
         info->fd = file->sector + data_sector;
-        words[0x47] = size_to_sector(file->size);
+        info->sectors = size_to_sector(file->size);
         return 1;
     }
 
@@ -234,11 +231,11 @@ search:
     info->dev = device;
     info->issued = 0;
     info->done = 0;
-    words[0x44] = (int) buffer;
+    info->buffer = buffer;
 
     if (SearchFileCache(name, &loaded_size) != 0) {
-        info->fd = LoadFile2(name, buffer, &loaded_size, 0);
-        words[0x45] = loaded_size;
+        info->fd = LoadFile2(name, buffer, &loaded_size, LOAD_FILE_READ);
+        info->size = loaded_size;
 
         if (info->fd == 0) {
             info->busy = 0;
@@ -255,9 +252,9 @@ search:
         return 1;
     }
 
-    if (device == 2) {
-        info->fd = LoadFile2(name, buffer, &loaded_size, 0);
-        words[0x45] = loaded_size;
+    if (device == FILE_DEV_NET) {
+        info->fd = LoadFile2(name, buffer, &loaded_size, LOAD_FILE_READ);
+        info->size = loaded_size;
         info->busy = 1;
         info->issued = 1;
         info->done = 1;
@@ -269,8 +266,8 @@ search:
         return 1;
     }
 
-    info->fd = LoadFile2(name, buffer, &loaded_size, 2);
-    words[0x45] = loaded_size;
+    info->fd = LoadFile2(name, buffer, &loaded_size, LOAD_FILE_OPEN);
+    info->size = loaded_size;
 
     if (info->fd < 0) {
         info->busy = 0;
@@ -779,29 +776,29 @@ int LoadFile2(char *path, void *buffer, int *out_size, int mode) {
  *
  */
 static int CDRead(char *path, u_int *buffer, int *out_size) {
-    int       *entry;
+    DATA_HEADER *entry;
     sceCdRMode mode;
     printf("Load %s\n", path);
-    entry = (int *) SearchFile(path);
+    entry = SearchFile(path);
 
     if (entry == NULL) {
         return 0;
     }
 
-    printf("%s %d %d\n", entry[0], entry[2], size_to_sector(entry[1]));
+    printf("%s %d %d\n", entry->name, entry->sector, size_to_sector(entry->size));
     mode.trycount = 0;
     mode.spindlctrl = 1;
     mode.datapattern = 0;
 
     do {
-        while (sceCdRead(entry[2] + data_sector, size_to_sector(entry[1]), buffer, &mode) == 0) {
+        while (sceCdRead(entry->sector + data_sector, size_to_sector(entry->size), buffer, &mode) == 0) {
         }
 
         sceCdSync(0);
     } while (sceCdGetError() != 0);
 
     if (out_size != NULL) {
-        *out_size = entry[1];
+        *out_size = entry->size;
     }
 
     return 1;

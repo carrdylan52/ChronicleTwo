@@ -58,3 +58,17 @@ canonical acceptance contract. The source uses the natural array even
 with that fallback piece. Enlarging the local path to imitate section
 padding would change the retail stack frame and is not a justified source
 form. A generic linker-tail proposal belongs to the tooling lane.
+
+## Typed background-read and disc-header accesses
+
+`LoadFileBG` writes the established `BG_READ_INFO::buffer`, `size`, and
+`sectors` fields directly instead of indexing an `int*` view of the queue
+entry. Its device and read-mode decisions use the existing enums.
+`CDRead` keeps the `DATA_HEADER*` returned by `SearchFile` and reads its
+`name`, `size`, and `sector` fields instead of indexing a second integer
+view. The field offsets and signed integer arithmetic are unchanged.
+
+Acceptance: `.private/dataC-r2/dataread-bg-fields-{build,objects}.log` and
+`dataread-cd-header-fields-{build,objects}.log`. Every code byte and resolved
+relocation remains exact; both complete images, all 149 objects, and all
+unowned hashes pass. Data counts and the single parked marker are unchanged.
