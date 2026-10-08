@@ -324,3 +324,10 @@ and the complete canonical inventory object remain intact.
 photo index and assigned after its initialization. The native unrolled body
 remains exact; the invariant-base setup and two-photo tail still differ.
 MenuInventKey remains at 8/524 words and all seven inventory guards remain.
+
+## October 8 near-miss wave
+
+[nearmiss-20261008.md](nearmiss-20261008.md) records the new linkage,
+local-data, index-width, initialization-order and compiler-control probes.
+MenuInventKey and ResetAddress remain at 8/524 and 13/48 words; no source
+change or promotion is retained.
