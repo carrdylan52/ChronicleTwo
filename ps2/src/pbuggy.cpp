@@ -364,7 +364,33 @@ int sgSystemDrawBuggy(SubGameInfo *info) {
     return 1;
 }
 static inline int BombCPoly(CCPoly *polys, float *bomb, float *pos) { return CreateCharaCPoly(polys, 0x10, bomb, pos, 1.0f, 20.0f); }
-#ifdef NONMATCHING
+/**
+ *
+ * Steps of the player's bomb pickup, carrying and throwing motions.
+ *
+ */
+enum BUGGY_CHARA_STATE {
+    BUGGY_CHARA_FREE = 0,         /**< Moves without carrying a bomb. */
+    BUGGY_CHARA_PICKUP_START = 1, /**< Starts the bomb pickup motion. */
+    BUGGY_CHARA_PICKING_UP = 2,   /**< Takes the bomb during its pickup motion. */
+    BUGGY_CHARA_CARRYING = 3,     /**< Moves with the bomb and accepts a throw. */
+    BUGGY_CHARA_THROWING = 4,     /**< Releases the bomb during its throw motion. */
+};
+
+/**
+ *
+ * Steps of the buggy game's bomb from reloading to its explosion.
+ *
+ */
+enum BUGGY_BOMB_STATE {
+    BUGGY_BOMB_RELOAD_START = 1, /**< Starts the bomb carrier's reload motion. */
+    BUGGY_BOMB_RELOADING = 2,    /**< Releases a new bomb from the carrier's hand. */
+    BUGGY_BOMB_PLACED = 3,       /**< Waits for the player to pick it up. */
+    BUGGY_BOMB_CARRIED = 4,      /**< Attaches the bomb to the player's hand. */
+    BUGGY_BOMB_THROWN = 6,       /**< Moves the thrown bomb until impact or timeout. */
+    BUGGY_BOMB_EXPLODING = 7,    /**< Displays the explosion before reloading. */
+};
+
 /**
  *
  * Moves the player character and handles bomb input during the buggy game.
@@ -458,37 +484,37 @@ void CharaControl(CScene *scene, CPadControl *pad) {
             sceVu0ApplyMatrix(direction, direction_matrix, direction);
             sceVu0Normalize(direction, direction);
             switch (CharaStatus) {
-                case 0:
+                case BUGGY_CHARA_FREE:
                     if (pad->Btn(0) && pad->Btn(0x36) && TakeBombCheck() &&
                         mgDistVector(player_position, bomb_position) <= 40.0f &&
                         mgAngleCmp(player_rotation[1], atan2f(to_bomb[0], to_bomb[2]), 2.0f) == 0) {
-                        CharaStatus = 1;
+                        CharaStatus = BUGGY_CHARA_PICKUP_START;
                     }
                     break;
-                case 1:
+                case BUGGY_CHARA_PICKUP_START:
                     player->SetMotion(at_1160__2, 6);
-                    CharaStatus = 2;
+                    CharaStatus = BUGGY_CHARA_PICKING_UP;
                     break;
-                case 2:
+                case BUGGY_CHARA_PICKING_UP:
                     if (frame_now <= 15.0f && !(frame_next <= 15.0f)) {
                         TakeBomb();
                         sndSePlay(BuggySndID, 0xA, 0);
                     }
                     if (player->CheckMotionEnd() != 0) {
-                        CharaStatus = 3;
+                        CharaStatus = BUGGY_CHARA_CARRYING;
                     }
                     break;
-                case 3:
+                case BUGGY_CHARA_CARRYING:
                     if (pad->Btn(0) != 0) {
                         player->SetMotion(at_1161__2, 6);
-                        CharaStatus = 4;
+                        CharaStatus = BUGGY_CHARA_THROWING;
                     }
                     BuggyChara->GetPosition(buggy_position);
                     camera->RotBack(mgAngleLimit(atan2f(buggy_position[0] - player_position[0],
                                                         buggy_position[2] - player_position[2]) -
                                                  3.1415927f));
                     break;
-                case 4:
+                case BUGGY_CHARA_THROWING:
                     if (frame_now <= 44.0f && !(frame_next <= 44.0f)) {
                         sceVu0Normalize(direction, direction);
                         sceVu0ScaleVector(throw_velocity, direction, 10.0f);
@@ -497,22 +523,22 @@ void CharaControl(CScene *scene, CPadControl *pad) {
                         sndSePlay(BuggySndID, 0xB, 0);
                     }
                     if (player->CheckMotionEnd() != 0) {
-                        CharaStatus = 0;
+                        CharaStatus = BUGGY_CHARA_FREE;
                     }
                     break;
             }
             stopped = 0;
             switch (CharaStatus) {
-                case 1:
-                case 2:
-                case 4:
+                case BUGGY_CHARA_PICKUP_START:
+                case BUGGY_CHARA_PICKING_UP:
+                case BUGGY_CHARA_THROWING:
                     speed_x = 0.0f;
                     velocity[0] = 0.0f;
                     velocity[2] = 0.0f;
                     stopped = 1;
                     speed_z = 0.0f;
                     break;
-                case 3:
+                case BUGGY_CHARA_CARRYING:
                     idle_motion = carry_idle_motion;
                     walk_motion = carry_walk_motion;
                     anim_scale = 0.3f;
@@ -560,21 +586,23 @@ void CharaControl(CScene *scene, CPadControl *pad) {
                 camera->SetRotCameraCancel(1);
             }
             switch (BombStatus) {
-                case 1:
-                    player->SetPosition(0.0f, 134.0f, -340.0f);
-                    player->SetRotation(0.0f, 0.0f, 0.0f);
+                case BUGGY_BOMB_RELOAD_START: {
+                    mgCObject &player_object = *player;
+                    player_object.SetPosition(0.0f, 134.0f, -340.0f);
+                    player_object.SetRotation(0.0f, 0.0f, 0.0f);
                     camera->SetHeight(20.0f);
                     camera->RotBack(2.6415927f);
                     EditCameraControl(scene, pad, NULL);
                     camera->SetHeight(20.0f);
                     camera->Step(-1);
                     break;
-                case 7:
+                }
+                case BUGGY_BOMB_EXPLODING:
                     player->SetPosition(0.0f, 134.0f, -340.0f);
                     player->SetRotation(0.0f, 0.0f, 0.0f);
-                case 6:
+                case BUGGY_BOMB_THROWN:
                     camera->RotBack(0.0f);
-                    EditCameraControl(scene, NULL, (float (*)[4]) bomb_position);
+                    EditCameraControl(scene, NULL, &bomb_position);
                     break;
                 default:
                     EditCameraControl(scene, pad, NULL);
@@ -586,9 +614,7 @@ void CharaControl(CScene *scene, CPadControl *pad) {
         }
     }
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/pbuggy", CharaControl__FP6CSceneP11CPadControl__3);
-#endif
+
 /**
  *
  * Places the buggy and resets its health, movement, and visual effects.
