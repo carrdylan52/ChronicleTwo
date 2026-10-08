@@ -91,3 +91,38 @@ Final focused and whole-project receipts:
 - `.private/dataA-r2/monster-objects.log`: 149/149 units pass.
 
 The final refreshed data measure remains 0/64936.
+
+## Native identity proposal validation
+
+The remaining three BSS markers can be removed without changing any function
+instructions. The exact source cleanup is
+`.private/proposals/monster-remove-native-data-markers.patch`; it requires
+`.private/proposals/native-local-data-identities.patch` for the object
+postprocessor. The retained source keeps its markers until that tooling change
+is integrated. No build script or Satan's Fiddle profile is changed in this lane.
+
+The proposal requires every live incoming BSS reference to belong to a complete,
+byte-identical retail function with matching declared extent. It resolves the
+other relocation destinations, validates HI16/LO16 pairs in emitted record
+order, and requires one agreed destination, the same source base name, exact
+retail object size, the correct section, and a sole zero-offset object definition.
+For initialized named locals, exact symbol and section sizes and the retail
+section kind are checked before naming; existing bounded alignment padding is
+applied afterward. Pointer-table literals are named before their tables.
+
+The exact marker-free source was freshly compiled privately through both
+mwccgap passes with the pinned image and unchanged profile. Its final object
+passes 0x167EC bytes and 587 resolved relocations. Combining the four private
+replacement objects with the unchanged stock objects passes 149/149 checks,
+and the resulting linked PAL passes every section and memory-extent check.
+This staged validation does not install the proposal or claim a fresh whole-tree
+build with modified tooling.
+
+Receipts: `.private/dataA-r2/resume-proposal/monster-final-check.log`,
+`final-objects.log`, and `final-verify.log`. The private safety harness receipt
+`.private/dataA-r2/proposal-safety-v2.log` contains 25 successful checks,
+including rejection of changed instructions, truncated functions, changed calls,
+non-code consumers, duplicate relocation sites, orphan lows, wrong base names,
+object aliases, wrong sizes and sections, nonlocal bindings, and changed table
+pointers. The untouched canonical control passes; both initialized-local
+metadata counterexamples are rejected by the canonical checker.
