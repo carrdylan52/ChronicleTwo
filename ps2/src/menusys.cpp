@@ -9211,13 +9211,12 @@ extern char  at_7538[];
 extern char  at_7541[];
 extern float counter_7509;
 extern s8    init_7510;
-#ifdef NONMATCHING
 void MenuPosFormValueSetCharaRobo(ROBO_DATA *robo, int flag) {
     float               sway;
     MENUFORMPARTS_TYPE *hp_part;
     float               rate;
     MENUFORMPARTS_TYPE *batu;
-    int                 red;
+    int                 green;
     CGameDataUsed      *parts;
     MENUFORMPARTS_TYPE *whp_bar;
     int                 capacity;
@@ -9228,8 +9227,8 @@ void MenuPosFormValueSetCharaRobo(ROBO_DATA *robo, int flag) {
     if (form == NULL) {
         return;
     }
-    int green = 0x80;
-    red = green;
+    int red = 0x80;
+    green = red;
     int blink = (int) (64.0f * sinf(WeaponWarningCounter));
     parts = robo->parts;
     COMMON_GAGE *hp = &robo->hp;
@@ -9256,7 +9255,7 @@ void MenuPosFormValueSetCharaRobo(ROBO_DATA *robo, int flag) {
     int whp[2];
     rate = parts->GetWHp(whp);
     if (rate < 0.2f) {
-        red = green = 0x80 - blink;
+        green = red = 0x80 - blink;
         if (rate == 0.0f) {
             red = blink + 0x80;
         }
@@ -9301,9 +9300,6 @@ void MenuPosFormValueSetCharaRobo(ROBO_DATA *robo, int flag) {
     }
     form->SetNumber(at_7541, GetDispVolumeForFloat(robo->abs.now));
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/menusys", MenuPosFormValueSetCharaRobo__FP9ROBO_DATAi);
-#endif
 extern char at_7560[];
 extern char at_7561[];
 extern char at_7562[];
