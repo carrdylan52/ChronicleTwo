@@ -1696,7 +1696,7 @@ void MakeDngTreeMapJumpNo(int dng_no, int floor_id, int *loop_no, int *map_no) {
     }
 }
 extern CDngFreeMap *MenuDngMap;
-extern u_long128   *MenuCursorDataBuff;
+extern u8          *MenuCursorDataBuff;
 extern mgCTexture  *Floor_InfoTex;
 extern s8           maxidtable_2752[7];
 extern char         at_2681[];
@@ -1719,7 +1719,7 @@ void CMenuTreeMap::InitEnd() {
     MenuWorkTextureEnter(block, at_2786, 0x200, 0x100, 0x18);
     textures->EnterIMGFile(map_img, block, NULL, NULL);
     if (CheckDngTreeMapFuncType() == 2) {
-        textures->EnterIMGFile((u8 *) MenuCursorDataBuff, block, NULL, NULL);
+        textures->EnterIMGFile(MenuCursorDataBuff, block, NULL, NULL);
     }
     MenuDngMap->SetTextureInfo();
     Floor_InfoTex = textures->GetTexture(at_2787__2, -1);
@@ -2531,7 +2531,6 @@ int CMenuTreeMap::FadeInOutMenu() {
     }
     return done;
 }
-#ifdef NONMATCHING
 /** Arena used for tree-menu objects and files. */
 extern mgCMemory     MenuTreeMapStack;
 /** Tree map menu attached to the active dungeon screen. */
@@ -2541,7 +2540,7 @@ extern CDngFreeMap  *MenuDngMap;
 /** Message windows belonging to the active tree map. */
 extern CDC2Mes      *MenuDngMes[8];
 /** Loaded image data for the tree-menu cursor. */
-extern u_long128    *MenuCursorDataBuff;
+extern u8           *MenuCursorDataBuff;
 /** Room whose floor-information activities are being shown. */
 extern DNGMAP_ROOM_INFO *DngInfoRoomInfo;
 /** Opacity of the floor-information backdrop. */
@@ -2603,29 +2602,33 @@ void DngTreeMapInit(mgCMemory *stack, int *tex_block, int menu_mode, int dng_no)
     DngTreeMode = DNG_TREE_MODE_MAP;
     DngInfoRoomInfo = 0;
     dngfloor_backdraw_alpha = 0;
-    bool separate_map = menu_mode == 3 || menu_mode == 0;
-    if (separate_map) {
-        MenuTreeMapStack.Align64();
-        MenuCursorDataBuff = MenuTreeMapStack.stGetTop();
-        unsigned int size = LoadFileMenu("frametex.img", MenuCursorDataBuff, 1);
-        MenuTreeMapStack.Alloc((size & 15) ? (size >> 4) + 1 : size >> 4);
-        CMenuTreePt->FadeOutMenu(1, 0.0f);
-        if (GetNowLoopNo() == 1 || menu_mode == 0) {
-            MenuDngMap->floor_manager->LoadDataTable(dng_no, &MenuTreeMapStack);
-            MenuDngMap->floor_manager->CheckDrawGlidInfo();
-            MenuTreeMapStack.Alloc(0x800);
+    switch (menu_mode) {
+        case MENU_OPEN_MAIN_TOWN:
+        case MENU_OPEN_DNG_TREE_MAP: {
             MenuTreeMapStack.Align64();
+            MenuCursorDataBuff = (u8 *) MenuTreeMapStack.stGetTop();
+            unsigned int size = LoadFileMenu("frametex.img", (u_long128 *) MenuCursorDataBuff, 1);
+            MenuTreeMapStack.Alloc((size & 15) ? (size >> 4) + 1 : size >> 4);
+            CMenuTreePt->FadeOutMenu(1, 0.0f);
+            if (GetNowLoopNo() == 1 || menu_mode == MENU_OPEN_MAIN_TOWN) {
+                MenuDngMap->floor_manager->LoadDataTable(dng_no, &MenuTreeMapStack);
+                MenuDngMap->floor_manager->CheckDrawGlidInfo();
+                MenuTreeMapStack.Alloc(0x800);
+                MenuTreeMapStack.Align64();
+            }
+            break;
         }
-    } else {
-        if (MenuCommonInfo->cursor_form != NULL) {
-            MenuCommonInfo->cursor_form->draw_flag = 0;
-        }
-        MenuCommonInfo->SetVibeCnt(0, 0);
-        MenuCommonInfo->SetWakuType(-1);
-        MenuCommonInfo->key_enable = 0;
-        MenuCommonInfo->cursor = 0;
-        MenuCommonInfo->top_line = 0;
-        CMenuTreePt->FadeOutMenu(30, 0.0f);
+        default:
+            if (MenuCommonInfo->cursor_form != NULL) {
+                MenuCommonInfo->cursor_form->draw_flag = 0;
+            }
+            MenuCommonInfo->SetVibeCnt(0, 0);
+            MenuCommonInfo->SetWakuType(-1);
+            MenuCommonInfo->key_enable = 0;
+            MenuCommonInfo->cursor = 0;
+            MenuCommonInfo->top_line = 0;
+            CMenuTreePt->FadeOutMenu(30, 0.0f);
+            break;
     }
     dngfloor_infoview = 0;
     dngfloor_backdraw = 0;
@@ -2642,10 +2645,6 @@ void DngTreeMapInit(mgCMemory *stack, int *tex_block, int menu_mode, int dng_no)
     names.name[0] = filename;
     MenuCommonReadData(&MenuTreeMapStack, names.name, 0);
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/dngmenu", DngTreeMapInit__FP9mgCMemoryPiii);
-#endif
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/dngmenu", Init__6ClsMesFv);
 extern mgCMemory    MenuTreeMapStack;
 extern CDngFreeMap *MenuDngMap;
 

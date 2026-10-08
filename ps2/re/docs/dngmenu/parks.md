@@ -28,18 +28,15 @@ see [r2.md](r2.md).
 
 ## Constructor and emission remainders
 
-`DngTreeMapInit__FP9mgCMemoryPiii` remains guarded at 55/256 words,
-0x3F8/0x400 bytes. Its natural constructor and real message-member array
-now reproduce both placement-new branch/copy pairs. The opening-mode
-comparison and cursor-buffer store forwarding remain different.
-Reconsider those two blocks; see [midday.md](midday.md).
+`DngTreeMapInit__FP9mgCMemoryPiii` is exact and native (0x3F8 bytes in its
+0x400 reservation). The opening modes are a `switch` whose `MENU_OPEN_MAIN_TOWN`
+and `MENU_OPEN_DNG_TREE_MAP` cases share the separate-map block, and the
+cursor buffer is a byte image pointer converted for `LoadFileMenu`; see
+[night-20261008.md](night-20261008.md).
 
-`Init__6ClsMesFv` remains assembly-supplied by assignment. The natural
-constructor causes exact standalone emission from the unchanged shared
-header. The private canonical checker reports only tree-initialization
-problems, with none for Init. Marker removal is a conditional private
-proposal after tree initialization is exact; see
-[clsmes-init-proposal.md](clsmes-init-proposal.md).
+`Init__6ClsMesFv` is emitted natively from the unchanged shared header by the
+natural tree-map constructor, as [clsmes-init-proposal.md](clsmes-init-proposal.md)
+predicted; its assembly marker is removed.
 
 No VU0/COP2 inline-code blocker was identified in this unit. No ledger rows
 or compiler-profile rows were added in r2. One-hypothesis experiment logs are

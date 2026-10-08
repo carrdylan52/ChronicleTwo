@@ -14,13 +14,14 @@ functions; they do not assert retail enum names.
 `CDngFreeMap::DrawRoot`, `DrawRoomOne` and `LoadDngInfo` retain C++ drafts
 under `NONMATCHING`; the matching build selects their retail `INCLUDE_ASM`
 gaps. The same applies to `DrawDngRoomInfo`, `DrawGeoramaMateria`,
-`CMenuTreeMap::MsgInit`, `Step` and `DngTreeMapInit`.
+`CMenuTreeMap::MsgInit` and `Step`.
 `CheckGeoramaMateria` and `CMenuTreeMap::InitEnd` are native and exact;
 see [r2.md](r2.md). Both classes' `Draw` functions are now native and exact;
 see [midday.md](midday.md) for complete-unit and baseline acceptance.
-`ClsMes::Init` remains an assembly gap by assignment, with a conditional
-natural-emission proposal. Match claims elsewhere in these notes apply
-only to the named unguarded C++ functions.
+`DngTreeMapInit` is native and exact, and its constructor makes MWCC emit
+`ClsMes::Init` from the shared header; see
+[night-20261008.md](night-20261008.md). Match claims elsewhere in these notes
+apply only to the named unguarded C++ functions.
 
 ## Additional map behavior
 
@@ -555,7 +556,7 @@ The comparison includes canonical section bytes and resolved relocations.
 | `DrawDngRoomInfo` | 48.992977% | 3052-byte native body; canonical check fails. |
 | `DrawGeoramaMateria` | 79.984% | 0x404 bytes rather than 0x400; canonical check fails. |
 | `CMenuTreeMap::MsgInit` | 97.836% | Correct 0x1D0 size; screen-coordinate load scheduling still differs. Naming the X coordinate in a local leaves output unchanged. |
-| `DngTreeMapInit` | 25.15625% | 1552-byte native body; canonical check fails. |
+| `DngTreeMapInit` | exact | Promoted on October 8 night; see [night-20261008.md](night-20261008.md). |
 
 The isolated `CDngFreeMap::Draw` promotion reaches object postprocessing but
 its generated `at_606` datum does not match the retail piece at 0x0036DA58.
