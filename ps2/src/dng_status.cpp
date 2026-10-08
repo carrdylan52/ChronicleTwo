@@ -208,8 +208,6 @@ void DrawActiveItemCursor(int x, int y, float alpha) {
 #ifdef NONMATCHING
 void DrawMainUnitStatusBord(float rate) {
     SP_RGBA           color;
-    CPreSprite        sprite;
-    CPreSprite        spare;
     extern float      palanim_1023;
     extern s8         init_1024;
     CActionChara     *character;
@@ -337,6 +335,8 @@ void DrawMainUnitStatusBord(float rate) {
     }
     flash[0] = sinf(palanim_1023);
 
+    CPreSprite sprite;
+    CPreSprite spare;
     sprite.Initialize(NULL, NULL);
     sprite.Preset2D();
     sprite.Begin(MG_PRIM_SPRITE);

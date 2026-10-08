@@ -63,17 +63,29 @@ owned (`class_units.tsv` lists none for this unit). No first-game counterpart (D
 
 ## Current C++ status
 
-All functions in this unit are now ordinary C++ definitions; the source has no
-`NONMATCHING` branches or `INCLUDE_ASM` gaps. `PrintV` uses a stack digit array,
-`CPreSprite`, and a glyph rectangle passed by value. The durability and
+Six functions have active C++ definitions. `DrawMainUnitStatusBord__Ff` remains
+behind `NONMATCHING` with its assembly fallback. `PrintV` uses a stack digit
+array, `CPreSprite`, and a glyph rectangle passed by value. The durability and
 absorption getters write current and maximum values into adjacent integers.
-The boards use typed battle, status, gauge, and user-data records. The main
-board's magic-sword and ailment-icon tables are typed local arrays with the
-values found in retail data.
+The boards use typed battle, status, gauge, and user-data records.
 
-Earlier isolated promotion trials had compiler or layout blockers; those
-results do not describe the current source. The current unit still needs an
-integrated object check before every function can be called matched.
+The main-board draft's two native sprite constructors belong immediately after
+the flash `sinf`, at retail +0x1E4/+0x1EC, before the first Initialize. Moving
+the declarations to this point reduces its checked-in-profile differences from
+1126/1192 words to 1124/1192, with code size still 0x1240 versus retail 0x12A0.
+This closer natural correction is retained with the guard. Scalar flash and
+durability ratios, or moving render-only glyph/table/absorption buffers after
+the sprites, do not improve that result and are not retained.
+
+Remaining differences begin at +0x74 with position-register allocation and
+include different spills, branch scheduling and sprite stack slots. The current
+sprite locals follow the early buffers in the frame; retail uses sp+0x110 and
+sp+0x240, with durability values at sp+0x480. This is a local-lifetime and
+stack-layout blocker; no isolated float-order selector has been demonstrated.
+Reconsider when a natural rendering scope and buffer declaration arrangement
+recovers those retail slots and lifetimes without fake scalar alignments or
+constructor-suppression helpers. The linked unit continues to pass with the
+main-board assembly fallback.
 
 ## Number glyph calls
 
@@ -85,4 +97,4 @@ The unit-level `divbyzerocheck` pragma was redundant with the global MWCC flag; 
 
 ## Native primitive constructors
 
-The former `MG_DRAWPRIM_MANUAL_CTOR` macro suppressed normal `mgCDrawPrim` construction throughout this unit. Removing it and the explicit constructor aliases makes `PrintV`, `DrawDrumCounter`, the active-item cursor, and the status boards construct their `CPreSprite` locals through C++. `DrawRoboUnitStatusBord` declares its two sprites immediately before first use, after calculating gauge colours, so the calls retain retail order; the full unit has no new fuzzy functions.
+The former `MG_DRAWPRIM_MANUAL_CTOR` macro suppressed normal `mgCDrawPrim` construction throughout this unit. Removing it and the explicit constructor aliases makes `PrintV`, `DrawDrumCounter`, the active-item cursor, and the status boards construct their `CPreSprite` locals through C++. `DrawRoboUnitStatusBord` declares its two sprites immediately before first use, after calculating gauge colours, so the calls retain retail order; the already active functions continue to match; the main board retains its guarded checkpoint above.
