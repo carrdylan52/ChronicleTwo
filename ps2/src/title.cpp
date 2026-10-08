@@ -1178,7 +1178,7 @@ void TitleModeInit() {
         TitleCamera2->Resume();
     }
 }
-#ifdef NONMATCHING
+
 /**
  *
  * Updates card detection, title menu input, fades, and attract-movie timing.
@@ -1462,9 +1462,6 @@ int TitleModeKey() {
     }
     return TITLE_KEY_NONE;
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/title", TitleModeKey__Fv);
-#endif
 void TitleModeDraw() {
     int i;
     int x;

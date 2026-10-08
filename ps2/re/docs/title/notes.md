@@ -1,9 +1,12 @@
 # title: reverse-engineering notes
 
-`TitleBootInit` and `TitleModeKey` retain C++ drafts under `NONMATCHING`;
-the matching build uses retail `INCLUDE_ASM` gaps for both. `TitleHDDInstallDraw`
-is source-supplied and matches retail, including the complete title object and
-linked PAL image. The unit has 35 matched functions and two guarded drafts.
+`TitleBootInit` retains a C++ draft under `NONMATCHING`; the matching build
+uses its retail `INCLUDE_ASM` gap. `TitleModeKey` matches with five
+`CalcMenuAdd__FPfff` control selectors (see [night-20261008.md](night-20261008.md)).
+`TitleHDDInstallDraw` is source-supplied and matches retail, including the
+complete title object and linked PAL image. The unit has 36 matched functions
+and one guarded draft. Later sections that describe `TitleModeKey` as guarded
+are dated investigation records.
 
 The title main-loop mode (`LOOP_TITLE`). No class is owned by this unit (`class_units.tsv`
 has none); the header declares the unit's own structs and enums, the 8 global functions and
