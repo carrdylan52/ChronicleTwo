@@ -1974,21 +1974,20 @@ int CSaveMenuClass::KeyStep(void) {
                                                             ExeScript(at_2503);
                                                             fileMes->SetMsgVolumeNoOne(fileNo);
                                                             phase = SAVE_LIST_PHASE_NOTICE;
-                                                        } else {
-                                                            int values[2] = {0, 0};
-                                                            values[0] = fileNo;
-                                                            values[1] = info->fish_num;
-                                                            fileMes->SetMsgCursor(1);
-                                                            fileMes->SetMsgVolumeNo(values, 0x10);
-                                                            fileMes->MakeMsg(0x13A9);
-                                                            MenuSePlay(SYSTEM_SE_DECIDE);
+                                                            break;
                                                         }
+                                                        int values[2] = {0, 0};
+                                                        values[0] = fileNo;
+                                                        values[1] = info->fish_num;
+                                                        fileMes->SetMsgCursor(1);
+                                                        fileMes->SetMsgVolumeNo(values, MES_VALUE_MAX);
+                                                        fileMes->MakeMsg(0x13A9);
                                                     } else {
                                                         fileMes->SetMsgCursor(1);
                                                         fileMes->SetMsgVolumeNoOne(fileNo);
                                                         fileMes->MakeMsg(0xBE0);
-                                                        MenuSePlay(SYSTEM_SE_DECIDE);
                                                     }
+                                                    MenuSePlay(SYSTEM_SE_DECIDE);
                                                 } else {
                                                     ExeScript(at_2501);
                                                 }

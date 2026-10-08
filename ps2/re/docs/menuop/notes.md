@@ -349,3 +349,38 @@ Private receipts: `.private/menuui-{baseline,final}-{build,objects,objdiff,progr
 `.private/menuui/native-before/`, `.private/menuui/retained/`,
 `.private/menuui/save-*/`, and the complete m2c output
 `.private/menuui/save.m2c.txt`.
+
+## Round-1 load-confirmation join at b1220c8
+
+The refreshed baseline has 6,736 matched functions, 124 guarded drafts,
+10 asm-only functions and two fuzzy functions. Complete objects pass
+147/149; the only failures remain nd_meswin/DrawMesWin and actscript/_SHOT.
+The PAL verifier differs in exactly 0x26 .text bytes, with all other sections
+and memory end 0x01F64A00 matching. The menuop baseline is 34 native matches
+and the two established guarded drafts.
+
+Retail's quest-fish and ordinary load-confirmation paths join at +0x994
+for one MenuSePlay(SYSTEM_SE_DECIDE) call. A quest file without fish instead
+sets SAVE_LIST_PHASE_NOTICE and exits the input-button switch. Expressing
+that exit with break allows the two successful confirmation paths to share
+the sound call naturally. The message setup order and notice behavior are
+unchanged; the count-16 volume argument is spelled MES_VALUE_MAX.
+
+Canonical native KeyStep improves from 994/1692 to 522/1692 differing
+relocation-masked words, retaining the 0x1A4C body and NONMATCHING guard.
+All 34 other native functions remain exact, and MenuManualInit retains
+its independent 0x518-versus-0x510 constructor park.
+
+The 0x160 native frame still differs from retail's 0x1A0. The initialized
+quest buffer remains two words at retail stack +0x168, immediately followed
+by another two-word initializer at +0x170. Extending that buffer to 16
+elements would overlap the documented neighboring locals and extend beyond
+retail's frame. The SetMsgVolumeNo count does not justify a larger buffer
+or a dummy array in the unreferenced +0x128..+0x167 interval.
+
+Receipts: .private/menuui-r1/{baseline-build,baseline-objects,baseline-objdiff,
+baseline-progress}.log, coverage-before.txt, native-before/,
+save-shared-load-sound/, and save.m2c.txt. The complete m2c analysis uses the
+pre-existing private jump-table input; no assembly file is written or modified.
+
+The guarded-change build preserves the baseline PAL result. The complete\nmenuop object passes with 0x7DE4 allocated bytes and 2,075 relocations.\nAll 149 object file hashes and allocated-section inventories are identical\nto the refreshed baseline. Additional receipts are save-shared-build.log,\nsave-shared-objects.log and save-shared-hash-comparison.json in that directory.
