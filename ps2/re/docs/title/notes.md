@@ -313,3 +313,79 @@ the m2c TitleModeKey output is also in `.private/floatsel/`.
 The fresh isolated production probe confirms 15/624 words, one byte problem
 and the two displaced relocation sites at `+0x7DC/+0x7E8`; no sibling function
 changes. Receipt: `.private/floatsel/title/key-best-production/`.
+
+## Round-1 snapshot and fade expression probes (2026-10-08)
+
+The round-1 base is `a9dddc6`, with its fresh canonical baseline and object
+copies saved under `.private/round1/`. TitleModeKey and TitleBootInit retain
+their guards. Existing m2c output, header layouts and documented negative
+trials are the analysis baseline; TitleBootInit's construction work is not
+repeated.
+
+The nineteen new TitleModeKey probes use the canonical adapter and a private
+profile containing the documented zero/128.0f `CalcMenuAdd__FPfff` rows.
+Alpha-address and reset-order probes also test that profile plus the
+previously recorded 8.0f row. No profile row is accepted or written into the
+production configuration.
+
+Explicit byte masks, widening only one captured port, references to the card
+or manager, and separate comparison scopes leave the original five snapshot
+register differences. Local `CardSnapshot` aggregates with either field
+order contain just the two captured bytes; scalar replacement changes the
+card-pointer and snapshot allocations and increases the residual to 23
+words. This is a source experiment, not evidence of a retail aggregate type.
+Naming the detected card result, using XOR for a change test or narrowing
+the loss accumulator to bool also worsens the result.
+
+Named addresses/references to the title and extras alpha fields do not
+improve fade ordering. With 8.0f evaluated first, the title-alpha call also
+moves its field-address load and changes its integer temporary, leaving 16
+words overall. Moving the extras pulse reset after its alpha update leaves
+19 or 20 words. The existing documented `CalcMenuAdd(float*, float, float)`
+changes only its cursor, clamps it at the endpoint after crossing and
+returns the clamp result; these address/reset variants introduce no new
+callee or nested call expression.
+
+| Trial and private policy | Differing words / retail extent |
+|---|---|
+| `key-snapshot-mask-first-zero128` | 15/624 |
+| `key-first-snapshot-int-zero128` | 15/624 |
+| `key-second-snapshot-int-zero128` | 15/624 |
+| `key-card-check-result-zero128` | 529/624 |
+| `key-card-check-xor-zero128` | 0x9C8 body, oversized |
+| `key-card-lost-bool-zero128` | 0x9C4 body, oversized |
+| `key-card-reference-zero128` | 15/624 |
+| `key-manager-reference-zero128` | 15/624 |
+| `key-check-scopes-zero128` | 15/624 |
+| `key-snapshot-struct-zero128` | 23/624 |
+| `key-snapshot-struct-reverse-zero128` | 23/624 |
+| `key-title-alpha-address-zero128` | 15/624 |
+| `key-title-alpha-address-zero128-plus8` | 16/624 |
+| `key-title-alpha-reference-zero128` | 15/624 |
+| `key-title-alpha-reference-zero128-plus8` | 16/624 |
+| `key-omake-alpha-address-zero128` | 15/624 |
+| `key-omake-alpha-address-zero128-plus8` | 16/624 |
+| `key-omake-reset-call-zero128` | 19/624 |
+| `key-omake-reset-call-zero128-plus8` | 20/624 |
+
+The best complete-wrapper confirmation retains the `0x9BC` body and
+15/624 differing words. The title object checks `0x68B4` bytes and 2,200
+relocations, with exactly three problems: target bytes at `0x002A521A` and
+the two displaced relocations at `+0x7DC` (`TitleInfo`) and `+0x7E8`
+(`TitlePushStart_AlphaPlus`). All other functions and relocations remain
+exact. The private confirmation is
+`.private/round1/title/key-best-production/`; individual sources, compiler
+logs, diffs and the structured ledger are alongside it.
+
+No new source draft, production calibration or shared-file proposal is
+retained. The guarded title source and production profile are unchanged
+from the round-1 base; the blocker remains snapshot allocation plus the
+context-dependent fade scheduling described above.
+
+Final guarded validation repeats the baseline exactly: all 149 game object
+SHA-256 hashes and the complete PAL ELF file are unchanged, the canonical
+checker remains 147/149 with only `nd_meswin` and `actscript` failing, and
+coverage is unchanged. The verifier retains exactly `0x26` text bytes and
+passes all other sections and the memory-end check. Receipts:
+`.private/round1/final-build.log`, `final-check.log`, `final-coverage.txt`,
+`final-hashes.json` and `validation-summary.json`.
