@@ -102,8 +102,6 @@ enum TuneBuildUpStep {
  *
  */
 enum BuildUpTuning {
-    kStatWord = 11,
-    kSpareWord = 22,
     kPointsPerStep = 100,
     kStatMax = 100
 };
@@ -7955,7 +7953,6 @@ void MenuItemDebugDraw(void) {
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/menusys", MenuItemDebugDraw__Fv);
 #endif
 
-#ifdef NONMATCHING
 int CMenuItemInfo::PushKey(int pad, int trigger) {
     int               leaving = 0;
     CHARA_DATA       *chara;
@@ -7969,12 +7966,6 @@ int CMenuItemInfo::PushKey(int pad, int trigger) {
     int               fusion_target;
     CMenuPosDataForm *message_form;
 
-    union {
-        CGameDataUsed saved_item;
-    };
-
-    char               path[0x40];
-    char               full_path[0x60];
     MENU_SWAPITEM_INFO swap;
     int                equip_slot;
     int                robo_equip_slot;
@@ -8345,7 +8336,7 @@ int CMenuItemInfo::PushKey(int pad, int trigger) {
                     break;
                 case kCmdSortBag: {
                     int found = 0;
-                    new ((u_long128 *) &saved_item) CGameDataUsed;
+                    CGameDataUsed saved_item;
                     short view_mode = this->view_mode;
 
                     if ((view_mode == 2 || view_mode == 5) &&
@@ -8567,6 +8558,8 @@ int CMenuItemInfo::PushKey(int pad, int trigger) {
                     int model_no = (*chr_ptr)->equip[0].GetModelNo();
 
                     if (this->equipped_model_no != model_no) {
+                        char path[0x40];
+                        char full_path[0x60];
                         SetMenuEtcFlag(1);
                         MainCharaReadStackReadAdr =
                             (u8 *) (MainCharaReadStack.stack + MainCharaReadStack.stack_used);
@@ -8662,32 +8655,30 @@ int CMenuItemInfo::PushKey(int pad, int trigger) {
                     }
 
                     CGameDataUsed *item = this->view_weapon;
-                    short         *saved_words = (short *) &SpectolInfoStay.data.weapon.whp;
-                    short         *words = (short *) &item->data.weapon.whp;
-                    int            spare_points = item->data.weapon.fusion_point / kPointsPerStep;
+                    WEAPON_USED   *saved_weapon = &SpectolInfoStay.data.weapon;
+                    WEAPON_USED   *weapon = &item->data.weapon;
+                    int            spare_points = weapon->fusion_point / kPointsPerStep;
                     int            selected = MenuCommonInfo->select_pos[0];
-                    short         *entry = (short *) ((selected << 1) + (int) words);
-                    short         *stat_slot = &entry[kStatWord];
-                    short          value = entry[kStatWord];
+                    short          value = weapon->attribute[selected];
 
-                    if (0 < value - saved_words[selected + kStatWord]) {
+                    if (0 < value - saved_weapon->attribute[selected]) {
                         if (0 < value) {
                             if (pad & kPadLeft) {
-                                *stat_slot = value - 1;
-                                words[kSpareWord] += kPointsPerStep;
+                                weapon->attribute[selected] = value - 1;
+                                weapon->fusion_point += kPointsPerStep;
                                 MenuSePlay(0);
                             }
                         }
                     }
 
                     if (0 < spare_points) {
-                        if (words[MenuCommonInfo->select_pos[0] + kStatWord] < kStatMax &&
+                        if (weapon->attribute[MenuCommonInfo->select_pos[0]] < kStatMax &&
                             (pad & kPadRight)) {
-                            words[kSpareWord] -= kPointsPerStep;
-                            words[MenuCommonInfo->select_pos[0] + kStatWord] += 1;
+                            weapon->fusion_point -= kPointsPerStep;
+                            weapon->attribute[MenuCommonInfo->select_pos[0]] += 1;
 
-                            if (words[kSpareWord] < 0) {
-                                words[kSpareWord] = 0;
+                            if (weapon->fusion_point < 0) {
+                                weapon->fusion_point = 0;
                             }
 
                             MenuSePlay(0);
@@ -8699,8 +8690,7 @@ int CMenuItemInfo::PushKey(int pad, int trigger) {
                         int i = 0;
 
                         do {
-                            if (SpectolInfoStay.data.weapon.attribute[i] <
-                                item->data.weapon.attribute[i]) {
+                            if (saved_weapon->attribute[i] < weapon->attribute[i]) {
                                 changed = 1;
                             }
 
@@ -8994,9 +8984,7 @@ int CMenuItemInfo::PushKey(int pad, int trigger) {
 done:
     return 1;
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/menusys", PushKey__13CMenuItemInfoFii);
-#endif
+
 
 /**
  *
