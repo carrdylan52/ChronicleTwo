@@ -187,3 +187,23 @@ They also assert that bytes, extents, symbol bindings and relocations remain
 unchanged. Receipts are `native-bss-proposal-safety.log`,
 `native-bss-both-proposal-check.log`, and `native-bss-proposal-pal.log` under
 `.private/dataA-r1/`; private source/object/link artifacts remain there.
+
+## Native data marker completion (round 1)
+
+All eight remaining zero-template reservations are supplied by the existing
+local pointer arrays and password-key initializer. Their declared object
+sizes are 8, 12 and 33 bytes; their larger retail pieces retain canonical
+zero tails. The shared BSS matcher validates every code consumer, pairing
+HI16/LO16 entries in ELF relocation order, including pairs whose instruction
+positions are not monotonic. No native aggregate or game instruction changes.
+
+All initialized-data and BSS markers are now absent. Refreshed objdiff
+`matched_data` changes from 3,290 to 3,626/3,626 bytes. All existing
+native functions and code bytes remain matched; no function is promoted.
+
+Validation receipts in `.private/dtool-r1/`: `final-build.log`,
+`final-objects.log`, `final-hashes.json`, `final-refresh.log`,
+`resume-metrics.json`, `final-tests.log` and `all-test-scripts.log`. The PAL
+verifier and all 149 canonical object comparisons pass. All 142 unowned
+object file hashes match the warm baseline. The retained-fallback audit
+finds no assembly-supplied piece credited as native data.

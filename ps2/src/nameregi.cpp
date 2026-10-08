@@ -2699,13 +2699,6 @@ void CNameRegiMenu::DrawMessage() {
     }
 }
 
-// Small uninitialised data (.sbss)
-INCLUDE_BSS(at_1621__3, 0x8);
-INCLUDE_BSS(at_1661__3, 0x8);
-INCLUDE_BSS(at_1684__3, 0x8);
-INCLUDE_BSS(at_1686, 0x8);
-INCLUDE_BSS(at_1693__2, 0x8);
-
 // Uninitialised data (.bss)
 /**
  *
@@ -2713,7 +2706,3 @@ INCLUDE_BSS(at_1693__2, 0x8);
  *
  */
 NAMEREGI_TARGET_INFO Nameregi_Target;
-
-INCLUDE_BSS(at_1171__3, 0x10);
-INCLUDE_BSS(at_1669, 0x28);
-INCLUDE_BSS(at_1755, 0x18);
