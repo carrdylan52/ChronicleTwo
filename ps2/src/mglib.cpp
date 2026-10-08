@@ -229,13 +229,13 @@ void mgInit(int screen_mode, int video_mode) {
     sceGsSetDefDBuff(&mgDBuff, SCE_GS_PSMCT32, (short) mgScreenWidth, (short) mgScreenHeight, SCE_GS_ZGEQUAL, SCE_GS_PSMZ24, 0);
     frame_buf0 = 0;
     frame_buf1 = mgScreenDepth * (mgScreenWidth * aligned_height / 2048) / 32;
-    mgClearBackFlag = 1;
     mgBackColor[0] = 0.0f;
+    mgDBuff.draw0.frame1.FBP = frame_buf1;
     mgBackColor[1] = 0.0f;
     mgBackColor[2] = 0.0f;
-    mgBackColor[3] = 128.0f;
-    mgDBuff.draw0.frame1.FBP = frame_buf1;
     mgDBuff.draw1.frame1.FBP = frame_buf0;
+    mgBackColor[3] = 128.0f;
+    mgClearBackFlag = 1;
     mgDBuff.draw0.zbuf1.bits.zbp = mgDBuff.draw1.zbuf1.bits.zbp = frame_buf1 * 2;
     mgDBuff.clear0.rgbaq.bytes.red = (int) mgBackColor[0];
     mgDBuff.clear0.rgbaq.bytes.green = (int) mgBackColor[1];

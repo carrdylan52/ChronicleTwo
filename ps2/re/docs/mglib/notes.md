@@ -12,6 +12,11 @@ Round 1 from integration `017d119` improves the guarded `mgInit` draft to
 store scheduling, initialization hygiene, packet reservation park and acceptance
 receipts are documented in [mglib-r1-20261008.md](mglib-r1-20261008.md).
 
+Round 2 from `529fb83` resolves the background/FRAME store scheduling and
+retains a 0/652 guarded `mgInit` draft. Five inherited register type-puns
+still block promotion; new typed-copy and intrinsic findings and unchanged
+baseline validation are in [mglib-r2-20261008.md](mglib-r2-20261008.md).
+
 The guarded frame-rotation draft uses the SDK's `sceGsDBuff::disp[2]`
 array. Naming its two elements `disp1` and `disp0` prevented the whole-unit
 draft compiler from running; using `disp[1]` and `disp[0]` restores that
