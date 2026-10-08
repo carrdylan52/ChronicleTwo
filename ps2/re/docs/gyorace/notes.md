@@ -89,13 +89,16 @@ grRACE_PROGRESS (0x18): `+0` float course position (0..16, 8 per lap), `+8` floa
 
 ## Current matching status (2026-10-08)
 
-Seven of the ten functions are source supplied. Only `sgInitGyoRace`,
-`sgLoopGyoRace` and `sgSysDrawGyoRace` remain guarded. The earlier partial-draft
+Eight of the ten functions are source supplied. Only `sgInitGyoRace` and
+`sgLoopGyoRace` remain guarded; `sgSysDrawGyoRace` is native (see
+[night-20261008.md](night-20261008.md)). The earlier partial-draft
 and initializer promotion descriptions are obsolete; the current initializer
 and drawing/commentary helpers already match. Fresh receipts supersede the
 previous claims of ten/twelve-word Init/Draw differences.
 
 ### Race display
+
+Superseded by [night-20261008.md](night-20261008.md): the function matches.
 
 `sgSysDrawGyoRace` starts at 65/1172 differing words, with a 0x1244-byte body
 inside the 0x1250 retail extent. Computing the lane's vertical bar position

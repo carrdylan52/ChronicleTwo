@@ -12,6 +12,7 @@
 #include "mainloop.hpp"
 #include "mapparts.hpp"
 #include "mdslist.hpp"
+#include "menudraw.hpp"
 #include "mg_drawenv.hpp"
 #include "mg_drawprim.hpp"
 #include "mg_frame.hpp"
@@ -27,6 +28,7 @@
 #include "snd_mngr.hpp"
 #include "snd_seseq.hpp"
 #include "subgame.hpp"
+#include "sysmes.hpp"
 
 /**
  *
@@ -965,85 +967,24 @@ int sgEffectDrawGyoRace(SubGameInfo *info) {
     prim.End2();
     return 0;
 }
-#ifdef NONMATCHING
-#pragma global_optimizer on
+
+/**
+ *
+ * Draws one sprite of the race window atlas from its screen and texel rectangles.
+ *
+ */
+#define DrawRaceSprite(x, y, width, height, tex_x, tex_y, tex_width, tex_height, alpha) \
+    do {                                                                                 \
+        mgRect<int> screen;                                                              \
+        mgRect<int> texture;                                                             \
+        screen.Set(x, y, width, height);                                                 \
+        texture.Set(tex_x, tex_y, tex_width, tex_height);                                \
+        PrimQuad(wind_tex, screen, texture, 0x80, 0x80, 0x80, alpha);                    \
+    } while (0)
+
 int sgSysDrawGyoRace(SubGameInfo *info) {
-    extern ClsMes *GetSystemMessage();
-    extern void PrimQuad(mgCTexture *, mgRect<int>, mgRect<int>, int, int, int, int);
-    extern void DrawMenuFillBox(float, float, float, float, int, int, int, int);
-    extern char at_1384__2[];
-    extern int OmakeFlag;
-    extern int lap_inf_1798[2][5];
-    extern int lap_inf2_1799[5];
-    mgRect<int> sp80;
-    mgRect<int> sp90;
-    grRACE_PROGRESS spA0;
-    mgRect<int> spC0;
-    mgRect<int> spD0;
-    mgRect<int> spE0;
-    mgRect<int> spF0;
-    mgRect<int> sp100;
-    mgRect<int> sp110;
-    mgRect<int> sp120;
-    mgRect<int> sp130;
-    mgRect<int> sp140;
-    mgRect<int> sp150;
-    mgRect<int> sp160;
-    mgRect<int> sp170;
-    mgRect<int> sp180;
-    mgRect<int> sp190;
-    mgRect<int> sp1A0;
-    mgRect<int> sp1B0;
-    mgRect<int> sp1C0;
-    mgRect<int> sp1D0;
-    mgRect<int> sp1E0;
-    mgRect<int> sp1F0;
-    mgRect<int> sp200;
-    mgRect<int> sp210;
-    mgRect<int> sp220;
-    mgRect<int> sp230;
-    mgRect<int> sp240;
-    mgRect<int> sp250;
-    mgRect<int> sp260;
-    mgRect<int> sp270;
-    mgRect<int> sp280;
-    mgRect<int> sp290;
-    mgRect<int> sp2A0;
-    mgRect<int> sp2B0;
-    mgRect<int> sp2C0;
-    mgRect<int> sp2D0;
-    mgRect<int> sp2E0;
-    mgRect<int> sp2F0;
-    mgRect<int> sp300;
-    mgRect<int> sp310;
-    mgRect<int> sp320;
-    mgRect<int> sp330;
-    mgRect<int> sp340;
-    mgRect<int> sp350;
-    mgRect<int> sp360;
-    mgRect<int> sp370;
-    mgRect<int> sp380;
-    mgRect<int> sp390;
-    mgRect<int> sp3A0;
-    mgRect<int> sp3B0;
-    mgRect<int> sp3C0;
-    mgRect<int> sp3D0;
-    mgRect<int> sp3E0;
-    mgRect<int> sp3F0;
-    mgRect<int> sp400;
-    mgRect<int> sp410;
-    mgRect<int> sp420;
-    mgRect<int> sp430;
-    mgRect<int> sp440;
-    grRACE_PROGRESS sp450;
-    mgRect<int> sp470;
-    mgRect<int> sp480;
-    mgRect<int> sp490;
-    mgRect<int> sp4A0;
-    mgRect<int> sp4B0;
-    mgRect<int> sp4C0;
-    mgRect<int> sp4D0;
-    mgRect<int> sp4E0;
+    static int lap_inf[2][5];
+    static int lap_inf2[5];
     CScene *scene;
     float lap_frames;
     float lap_seconds_frames;
@@ -1058,15 +999,14 @@ int sgSysDrawGyoRace(SubGameInfo *info) {
     int total_centi;
     int total_second_tens;
     int mode;
-    int var_16;
-    int row_index;
-    int var_17;
-    int var_18;
-    int var_19;
-    int *lap;
+    int i;
+    int row;
+    int j;
+    int k;
+    int lap;
     mgCTextureManager *textures = &mgTexManager;
     scene = info->scene;
-    textures->ReloadTexture( GetSystemMessage()->texture_block, (sceVif1Packet *)0);
+    textures->ReloadTexture(GetSystemMessage()->texture_block, (sceVif1Packet *) NULL);
     Jikkyou(info);
     gyo_mes->Step();
     gyo_mes->DrawMesWin();
@@ -1074,195 +1014,124 @@ int sgSysDrawGyoRace(SubGameInfo *info) {
     if (win_alpha < 0.0f) {
         win_alpha = 0.0f;
     }
-    textures->ReloadTexture( WindowTexb, (sceVif1Packet *)0);
-    wind_tex = textures->GetTexture(at_1384__2, -1);
-    sp80.Set(0x15, 0x13, 0x1D6, 0x54);
-    sp90.Set(0, 0, 0x1D6, 0x54);
-    PrimQuad(wind_tex, sp80, sp90, 0x80, 0x80, 0x80, 0x80);
-    var_16 = 0;
+    textures->ReloadTexture(WindowTexb, (sceVif1Packet *) NULL);
+    wind_tex = textures->GetTexture("grt1", -1);
+    DrawRaceSprite(0x15, 0x13, 0x1D6, 0x54, 0, 0, 0x1D6, 0x54, 0x80);
+    grRACE_PROGRESS progress;
+    i = 0;
     do {
-        grGetFishProgress(&RaceInfo, var_16, race_cnt, &spA0);
-        float limit = 16.0f;
-        if (!(spA0.pos <= limit)) {
-            spA0.pos = limit;
+        grGetFishProgress(&RaceInfo, i, race_cnt, &progress);
+        if (progress.pos > 16.0f) {
+            progress.pos = 16.0f;
         }
-        bar_done = 326.0f * (spA0.pos / 16.0f);
-        float bar_y = 35.0f + 10.0f * (float)RaceInfo.fish[var_16].lane;
+        bar_done = 326.0f * (progress.pos / 16.0f);
+        float bar_y = 35.0f + 10.0f * (float) RaceInfo.fish[i].lane;
         DrawMenuFillBox(41.0f + bar_done, bar_y, 326.0f - bar_done, 2.0f, 0x4A, 0x70, 0xD9, 0x8B);
-        float filled = 326.0f * (spA0.pos / 16.0f);
-        DrawMenuFillBox(41.0f, (float) ((RaceInfo.fish[var_16].lane * 0xA) + 0x23), filled, 2.0f, 0x54, 0xE5, 0x8B, 0x29);
-        spC0.Set((int)(31.0f + (float) (int)(326.0f * (spA0.pos / 16.0f))), (RaceInfo.fish[var_16].lane * 0xA) + 0x1C, 0x12, 0xC);
-        if ((var_16 == hero_no) && (OmakeFlag == 0)) {
-            spD0.Set(0x1EE, 0xC, 0x12, 0xC);
-            if ((u_char)spA0.state != 3) {
-                PrimQuad(wind_tex, spC0, spD0, 0x80, 0x80, 0x80, 0x80);
+        float filled = 326.0f * (progress.pos / 16.0f);
+        DrawMenuFillBox(41.0f, (float) ((RaceInfo.fish[i].lane * 10) + 35), filled, 2.0f, 0x54, 0xE5, 0x8B, 0x29);
+        mgRect<int> icon((int) (31.0f + (float) (int) (326.0f * (progress.pos / 16.0f))), (RaceInfo.fish[i].lane * 10) + 28, 0x12, 0xC);
+        if ((i == hero_no) && (OmakeFlag == 0)) {
+            mgRect<int> hero_icon(0x1EE, 0xC, 0x12, 0xC);
+            if ((u_char) progress.state != GR_RACE_STATE_GOAL) {
+                PrimQuad(wind_tex, icon, hero_icon, 0x80, 0x80, 0x80, 0x80);
             } else {
-                PrimQuad(wind_tex, spC0, spD0, 0x80, 0x80, 0x80, 0);
+                PrimQuad(wind_tex, icon, hero_icon, 0x80, 0x80, 0x80, 0);
             }
         } else {
-            spE0.Set(0x1EE, 0, 0x12, 0xC);
-            if ((u_char)spA0.state != 3) {
-                PrimQuad(wind_tex, spC0, spE0, 0x80, 0x80, 0x80, 0x80);
+            mgRect<int> rival_icon(0x1EE, 0, 0x12, 0xC);
+            if ((u_char) progress.state != GR_RACE_STATE_GOAL) {
+                PrimQuad(wind_tex, icon, rival_icon, 0x80, 0x80, 0x80, 0x80);
             } else {
-                PrimQuad(wind_tex, spC0, spE0, 0x80, 0x80, 0x80, 0);
+                PrimQuad(wind_tex, icon, rival_icon, 0x80, 0x80, 0x80, 0);
             }
         }
-        var_16 += 1;
-    } while (var_16 < 6);
+        i += 1;
+    } while (i < 6);
     mode = race_mode;
-    row_index = 0;
-    if ((mode == 0) || (mode == 1)) {
-        var_17 = 0;
-        var_18 = 0;
+    if ((mode == GYORACE_MODE_READY) || (mode == GYORACE_MODE_GATE_OPEN)) {
+        row = 0;
+        j = 0;
+        k = 0;
         do {
-            spF0.Set(var_18 + 0x1A2, var_17 + 0x41, 0xC, 0xC);
-            sp100.Set(0x138, 0x62, 0xC, 0xC);
-            PrimQuad(wind_tex, spF0, sp100, 0x80, 0x80, 0x80, 0x80);
-            sp110.Set(var_18 + 0x1B0, var_17 + 0x41, 0xC, 0xC);
-            sp120.Set(0x138, 0x62, 0xC, 0xC);
-            PrimQuad(wind_tex, sp110, sp120, 0x80, 0x80, 0x80, 0x80);
-            sp130.Set(var_18 + 0x1BA, var_17 + 0x41, 0xC, 0xC);
-            sp140.Set(0x138, 0x62, 0xC, 0xC);
-            PrimQuad(wind_tex, sp130, sp140, 0x80, 0x80, 0x80, 0x80);
-            sp150.Set(var_18 + 0x1C9, var_17 + 0x41, 0xC, 0xC);
-            sp160.Set(0x138, 0x62, 0xC, 0xC);
-            PrimQuad(wind_tex, sp150, sp160, 0x80, 0x80, 0x80, 0x80);
-            sp170.Set(var_18 + 0x1D3, var_17 + 0x41, 0xC, 0xC);
-            sp180.Set(0x138, 0x62, 0xC, 0xC);
-            PrimQuad(wind_tex, sp170, sp180, 0x80, 0x80, 0x80, 0x80);
-            row_index += 1;
-            var_17 += 0x10;
-            var_18 += 2;
-        } while (row_index < 2);
-        sp190.Set(0x1CB, 0x1B, 0x18, 0x20);
-        sp1A0.Set(0xA8, 0x54, 0x18, 0x20);
-        PrimQuad(wind_tex, sp190, sp1A0, 0x80, 0x80, 0x80, 0x80);
-        sp1B0.Set(0x176, 0x2B, 0x10, 0xE);
-        sp1C0.Set(0x160, 0x54, 0x10, 0xE);
-        PrimQuad(wind_tex, sp1B0, sp1C0, 0x80, 0x80, 0x80, 0x80);
-        sp1D0.Set(0x189, 0x2B, 0x10, 0xE);
-        sp1E0.Set(0x160, 0x54, 0x10, 0xE);
-        PrimQuad(wind_tex, sp1D0, sp1E0, 0x80, 0x80, 0x80, 0x80);
-        sp1F0.Set(0x197, 0x2B, 0x10, 0xE);
-        sp200.Set(0x160, 0x54, 0x10, 0xE);
-        PrimQuad(wind_tex, sp1F0, sp200, 0x80, 0x80, 0x80, 0x80);
-        sp210.Set(0x1AB, 0x2B, 0x10, 0xE);
-        sp220.Set(0x160, 0x54, 0x10, 0xE);
-        PrimQuad(wind_tex, sp210, sp220, 0x80, 0x80, 0x80, 0x80);
-        sp230.Set(0x1B9, 0x2B, 0x10, 0xE);
-        sp240.Set(0x160, 0x54, 0x10, 0xE);
-        PrimQuad(wind_tex, sp230, sp240, 0x80, 0x80, 0x80, 0x80);
+            DrawRaceSprite(k + 0x1A2, j + 0x41, 0xC, 0xC, 0x138, 0x62, 0xC, 0xC, 0x80);
+            DrawRaceSprite(k + 0x1B0, j + 0x41, 0xC, 0xC, 0x138, 0x62, 0xC, 0xC, 0x80);
+            DrawRaceSprite(k + 0x1BA, j + 0x41, 0xC, 0xC, 0x138, 0x62, 0xC, 0xC, 0x80);
+            DrawRaceSprite(k + 0x1C9, j + 0x41, 0xC, 0xC, 0x138, 0x62, 0xC, 0xC, 0x80);
+            DrawRaceSprite(k + 0x1D3, j + 0x41, 0xC, 0xC, 0x138, 0x62, 0xC, 0xC, 0x80);
+            row += 1;
+            j += 0x10;
+            k += 2;
+        } while (row < 2);
+        DrawRaceSprite(0x1CB, 0x1B, 0x18, 0x20, 0xA8, 0x54, 0x18, 0x20, 0x80);
+        DrawRaceSprite(0x176, 0x2B, 0x10, 0xE, 0x160, 0x54, 0x10, 0xE, 0x80);
+        DrawRaceSprite(0x189, 0x2B, 0x10, 0xE, 0x160, 0x54, 0x10, 0xE, 0x80);
+        DrawRaceSprite(0x197, 0x2B, 0x10, 0xE, 0x160, 0x54, 0x10, 0xE, 0x80);
+        DrawRaceSprite(0x1AB, 0x2B, 0x10, 0xE, 0x160, 0x54, 0x10, 0xE, 0x80);
+        DrawRaceSprite(0x1B9, 0x2B, 0x10, 0xE, 0x160, 0x54, 0x10, 0xE, 0x80);
     } else {
-        lap_frames = fish_inf[hero_no].lap_time[var_19 = (int)fish_inf[hero_no].lap];
-        var_16 = (int)(lap_frames / 3600.0f);
-        float minute_frames = 3600.0f; lap_seconds_frames = lap_frames - minute_frames * (float)var_16;
-        float second_base = 60.0f;
-        var_17 = (int)(lap_seconds_frames / second_base);
-        float second_frames = 60.0f; float centi = 100.0f; var_18 = (int)(centi * (lap_seconds_frames - second_frames * (float)var_17) / second_frames);
-        lap_inf_1798[var_19][0] = var_16;
-        lap_second_tens = (int)(0.1f * (float) var_17);
-        lap_inf_1798[var_19][1] = lap_second_tens;
-        lap_inf_1798[var_19][2] = var_17 - (lap_second_tens * 0xA);
-        lap_centi_tens = (lap_inf_1798[var_19][3] = (int)(0.1f * (float) var_18));
-        lap_inf_1798[var_19][4] = var_18 - lap_centi_tens * 10;
-        var_16 = 0;
+        lap_frames = fish_inf[hero_no].lap_time[lap = fish_inf[hero_no].lap];
+        i = (int) (lap_frames / 3600.0f);
+        lap_seconds_frames = lap_frames - 3600.0f * (float) i;
+        j = (int) (lap_seconds_frames / 60.0f);
+        k = (int) (100.0f * (lap_seconds_frames - 60.0f * (float) j) / 60.0f);
+        lap_inf[lap][0] = i;
+        lap_second_tens = (int) (0.1f * (float) j);
+        lap_inf[lap][1] = lap_second_tens;
+        lap_inf[lap][2] = j - (lap_second_tens * 10);
+        lap_centi_tens = (lap_inf[lap][3] = (int) (0.1f * (float) k));
+        lap_inf[lap][4] = k - lap_centi_tens * 10;
+        int lap_no = 0;
         int lap_y = 0;
         int lap_x = 0;
-        var_19 = 0;
         do {
-            if ((int)fish_inf[hero_no].lap < var_16) {
-                sp250.Set(lap_x + 0x1A2, lap_y + 0x41, 0xC, 0xC);
-                sp260.Set(0x138, 0x62, 0xC, 0xC);
-                PrimQuad(wind_tex, sp250, sp260, 0x80, 0x80, 0x80, 0x80);
-                sp270.Set(lap_x + 0x1B0, lap_y + 0x41, 0xC, 0xC);
-                sp280.Set(0x138, 0x62, 0xC, 0xC);
-                PrimQuad(wind_tex, sp270, sp280, 0x80, 0x80, 0x80, 0x80);
-                sp290.Set(lap_x + 0x1BA, lap_y + 0x41, 0xC, 0xC);
-                sp2A0.Set(0x138, 0x62, 0xC, 0xC);
-                PrimQuad(wind_tex, sp290, sp2A0, 0x80, 0x80, 0x80, 0x80);
-                sp2B0.Set(lap_x + 0x1C9, lap_y + 0x41, 0xC, 0xC);
-                sp2C0.Set(0x138, 0x62, 0xC, 0xC);
-                PrimQuad(wind_tex, sp2B0, sp2C0, 0x80, 0x80, 0x80, 0x80);
-                sp2D0.Set(lap_x + 0x1D3, lap_y + 0x41, 0xC, 0xC);
-                sp2E0.Set(0x138, 0x62, 0xC, 0xC);
-                PrimQuad(wind_tex, sp2D0, sp2E0, 0x80, 0x80, 0x80, 0x80);
+            if ((int) fish_inf[hero_no].lap < lap_no) {
+                DrawRaceSprite(lap_x + 0x1A2, lap_y + 0x41, 0xC, 0xC, 0x138, 0x62, 0xC, 0xC, 0x80);
+                DrawRaceSprite(lap_x + 0x1B0, lap_y + 0x41, 0xC, 0xC, 0x138, 0x62, 0xC, 0xC, 0x80);
+                DrawRaceSprite(lap_x + 0x1BA, lap_y + 0x41, 0xC, 0xC, 0x138, 0x62, 0xC, 0xC, 0x80);
+                DrawRaceSprite(lap_x + 0x1C9, lap_y + 0x41, 0xC, 0xC, 0x138, 0x62, 0xC, 0xC, 0x80);
+                DrawRaceSprite(lap_x + 0x1D3, lap_y + 0x41, 0xC, 0xC, 0x138, 0x62, 0xC, 0xC, 0x80);
             } else {
-                sp2F0.Set(lap_x + 0x1A2, lap_y + 0x41, 0xC, 0xC);
-                lap = lap_inf_1798[var_19];
-                sp300.Set((lap[0] * 0xC) + 0xC0, 0x62, 0xC, 0xC);
-                PrimQuad(wind_tex, sp2F0, sp300, 0x80, 0x80, 0x80, 0x80);
-                sp310.Set(lap_x + 0x1B0, lap_y + 0x41, 0xC, 0xC);
-                sp320.Set((lap[1] * 0xC) + 0xC0, 0x62, 0xC, 0xC);
-                PrimQuad(wind_tex, sp310, sp320, 0x80, 0x80, 0x80, 0x80);
-                sp330.Set(lap_x + 0x1BA, lap_y + 0x41, 0xC, 0xC);
-                sp340.Set((lap[2] * 0xC) + 0xC0, 0x62, 0xC, 0xC);
-                PrimQuad(wind_tex, sp330, sp340, 0x80, 0x80, 0x80, 0x80);
-                sp350.Set(lap_x + 0x1C9, lap_y + 0x41, 0xC, 0xC);
-                sp360.Set((lap[3] * 0xC) + 0xC0, 0x62, 0xC, 0xC);
-                PrimQuad(wind_tex, sp350, sp360, 0x80, 0x80, 0x80, 0x80);
-                sp370.Set(lap_x + 0x1D3, lap_y + 0x41, 0xC, 0xC);
-                sp380.Set((lap[4] * 0xC) + 0xC0, 0x62, 0xC, 0xC);
-                PrimQuad(wind_tex, sp370, sp380, 0x80, 0x80, 0x80, 0x80);
+                DrawRaceSprite(lap_x + 0x1A2, lap_y + 0x41, 0xC, 0xC, (lap_inf[lap_no][0] * 12) + 0xC0, 0x62, 0xC, 0xC, 0x80);
+                DrawRaceSprite(lap_x + 0x1B0, lap_y + 0x41, 0xC, 0xC, (lap_inf[lap_no][1] * 12) + 0xC0, 0x62, 0xC, 0xC, 0x80);
+                DrawRaceSprite(lap_x + 0x1BA, lap_y + 0x41, 0xC, 0xC, (lap_inf[lap_no][2] * 12) + 0xC0, 0x62, 0xC, 0xC, 0x80);
+                DrawRaceSprite(lap_x + 0x1C9, lap_y + 0x41, 0xC, 0xC, (lap_inf[lap_no][3] * 12) + 0xC0, 0x62, 0xC, 0xC, 0x80);
+                DrawRaceSprite(lap_x + 0x1D3, lap_y + 0x41, 0xC, 0xC, (lap_inf[lap_no][4] * 12) + 0xC0, 0x62, 0xC, 0xC, 0x80);
             }
-            var_16 += 1;
             lap_y += 0x10;
             lap_x += 2;
-            var_19++;
-        } while (var_16 < 2);
+            lap_no += 1;
+        } while (lap_no < 2);
         total_frames = fish_inf[hero_no].time;
-        total_minutes = (int)(total_frames / 3600.0f);
+        total_minutes = (int) (total_frames / 3600.0f);
         total_seconds_frames = total_frames - (3600.0f * (float) total_minutes);
-        total_seconds = (int)(total_seconds_frames / 60.0f);
-        total_centi = (int)((100.0f * (total_seconds_frames - (60.0f * (float) total_seconds))) / 60.0f);
-        lap_inf2_1799[0] = total_minutes;
-        total_second_tens = (int)(0.1f * (float) total_seconds);
-        lap_inf2_1799[1] = total_second_tens;
-        lap_inf2_1799[2] = (int) (total_seconds - (total_second_tens * 0xA));
-        total_centi_tens = (int)(0.1f * (float) total_centi);
-        lap_inf2_1799[3] = total_centi_tens;
-        lap_inf2_1799[4] = (int) (total_centi - (total_centi_tens * 0xA));
-        sp390.Set(0x176, 0x2B, 0x10, 0xE);
-        sp3A0.Set((lap_inf2_1799[0] * 0x10) + 0xC0, 0x54, 0x10, 0xE);
-        PrimQuad(wind_tex, sp390, sp3A0, 0x80, 0x80, 0x80, 0x80);
-        sp3B0.Set(0x189, 0x2B, 0x10, 0xE);
-        sp3C0.Set((lap_inf2_1799[1] * 0x10) + 0xC0, 0x54, 0x10, 0xE);
-        PrimQuad(wind_tex, sp3B0, sp3C0, 0x80, 0x80, 0x80, 0x80);
-        sp3D0.Set(0x197, 0x2B, 0x10, 0xE);
-        sp3E0.Set((lap_inf2_1799[2] * 0x10) + 0xC0, 0x54, 0x10, 0xE);
-        PrimQuad(wind_tex, sp3D0, sp3E0, 0x80, 0x80, 0x80, 0x80);
-        sp3F0.Set(0x1AB, 0x2B, 0x10, 0xE);
-        sp400.Set((lap_inf2_1799[3] * 0x10) + 0xC0, 0x54, 0x10, 0xE);
-        PrimQuad(wind_tex, sp3F0, sp400, 0x80, 0x80, 0x80, 0x80);
-        sp410.Set(0x1B9, 0x2B, 0x10, 0xE);
-        sp420.Set((lap_inf2_1799[4] * 0x10) + 0xC0, 0x54, 0x10, 0xE);
-        PrimQuad(wind_tex, sp410, sp420, 0x80, 0x80, 0x80, 0x80);
-        sp430.Set(0x1CB, 0x1B, 0x18, 0x20);
-        sp440.Set(fish_inf[hero_no].rank * 0x18, 0x54, 0x18, 0x20);
-        PrimQuad(wind_tex, sp430, sp440, 0x80, 0x80, 0x80, 0x80);
+        total_seconds = (int) (total_seconds_frames / 60.0f);
+        total_centi = (int) ((100.0f * (total_seconds_frames - (60.0f * (float) total_seconds))) / 60.0f);
+        lap_inf2[0] = total_minutes;
+        total_second_tens = (int) (0.1f * (float) total_seconds);
+        lap_inf2[1] = total_second_tens;
+        lap_inf2[2] = total_seconds - (total_second_tens * 10);
+        total_centi_tens = (int) (0.1f * (float) total_centi);
+        lap_inf2[3] = total_centi_tens;
+        lap_inf2[4] = total_centi - (total_centi_tens * 10);
+        DrawRaceSprite(0x176, 0x2B, 0x10, 0xE, (lap_inf2[0] * 16) + 0xC0, 0x54, 0x10, 0xE, 0x80);
+        DrawRaceSprite(0x189, 0x2B, 0x10, 0xE, (lap_inf2[1] * 16) + 0xC0, 0x54, 0x10, 0xE, 0x80);
+        DrawRaceSprite(0x197, 0x2B, 0x10, 0xE, (lap_inf2[2] * 16) + 0xC0, 0x54, 0x10, 0xE, 0x80);
+        DrawRaceSprite(0x1AB, 0x2B, 0x10, 0xE, (lap_inf2[3] * 16) + 0xC0, 0x54, 0x10, 0xE, 0x80);
+        DrawRaceSprite(0x1B9, 0x2B, 0x10, 0xE, (lap_inf2[4] * 16) + 0xC0, 0x54, 0x10, 0xE, 0x80);
+        DrawRaceSprite(0x1CB, 0x1B, 0x18, 0x20, fish_inf[hero_no].rank * 0x18, 0x54, 0x18, 0x20, 0x80);
     }
-    scene->GetCharacter( fish_inf[hero_no].chara_no);
-    grGetFishProgress(&RaceInfo, hero_no, race_cnt, &sp450);
-    if ((u_char)sp450.state == 3) {
-        sp470.Set(0x178, 0x1C, 0xC, 0xC);
-        sp480.Set(0xD8, 0x62, 0xC, 0xC);
-        PrimQuad(wind_tex, sp470, sp480, 0x80, 0x80, 0x80, 0x80);
-        sp490.Set(0x187, 0x1C, 0xC, 0xC);
-        sp4A0.Set(0xD8, 0x62, 0xC, 0xC);
-        PrimQuad(wind_tex, sp490, sp4A0, 0x80, 0x80, 0x80, 0x80);
+    grRACE_PROGRESS hero_progress;
+    scene->GetCharacter(fish_inf[hero_no].chara_no);
+    grGetFishProgress(&RaceInfo, hero_no, race_cnt, &hero_progress);
+    if ((u_char) hero_progress.state == GR_RACE_STATE_GOAL) {
+        DrawRaceSprite(0x178, 0x1C, 0xC, 0xC, 0xD8, 0x62, 0xC, 0xC, 0x80);
+        DrawRaceSprite(0x187, 0x1C, 0xC, 0xC, 0xD8, 0x62, 0xC, 0xC, 0x80);
     } else {
-        sp4B0.Set(0x178, 0x1C, 0xC, 0xC);
-        sp4C0.Set(((int)fish_inf[hero_no].lap * 0xC) + 0xC0, 0x62, 0xC, 0xC);
-        PrimQuad(wind_tex, sp4B0, sp4C0, 0x80, 0x80, 0x80, 0x80);
-        sp4D0.Set(0x187, 0x1C, 0xC, 0xC);
-        sp4E0.Set(0xD8, 0x62, 0xC, 0xC);
-        PrimQuad(wind_tex, sp4D0, sp4E0, 0x80, 0x80, 0x80, 0x80);
+        DrawRaceSprite(0x178, 0x1C, 0xC, 0xC, ((int) fish_inf[hero_no].lap * 12) + 0xC0, 0x62, 0xC, 0xC, 0x80);
+        DrawRaceSprite(0x187, 0x1C, 0xC, 0xC, 0xD8, 0x62, 0xC, 0xC, 0x80);
     }
     return 0;
 }
-#pragma global_optimizer reset
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/gyorace", sgSysDrawGyoRace__FP11SubGameInfo);
-#endif
 int Jikkyou(SubGameInfo *info) {
     CFont           font;
     grRACE_PROGRESS lead;
