@@ -327,7 +327,7 @@ void EndLightingEdit() {
 }
 
 int IsLightingEditMode() { return LEditFlag; }
-#ifdef NONMATCHING
+
 void LightingEdit(CScene *scene) {
     int row;
     float *selected;
@@ -447,11 +447,10 @@ void LightingEdit(CScene *scene) {
             case 2:
             case 3:
             case 4: {
-                u_char *component = (u_char *)(edit + (u_int)fog + 6);
-                int value = *component + direction;
+                int value = fog->color[edit - 2] + direction;
                 if (value < 0) value = 0;
                 if (value > 255) value = 255;
-                *component = value;
+                fog->color[edit - 2] = value;
                 break;
             }
             case 5:
@@ -655,9 +654,7 @@ void LightingEdit(CScene *scene) {
         GamePad__2.CancelAutoRepeat2(PAD_UP | PAD_DOWN | PAD_LEFT | PAD_RIGHT);
     }
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/editdebug", LightingEdit__FP6CScene);
-#endif
+
 /**
  *
  * Loads a gyorace fish definition from a debug script.
