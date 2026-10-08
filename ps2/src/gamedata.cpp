@@ -496,33 +496,8 @@ static char filename_1267[0x20];
 /** Scratch buffer for an item model path. */
 static char item_file_path_1288[0x80];
 
-extern SPI_TAG_PARAM  gamedata_tag[];
 extern short          msg_offsettbl_1363[3];
 extern signed char    ItemCmdMsgTbl[33][8];
-extern char           at_1018[];
-extern char           at_1019[];
-extern char           at_1020[];
-extern char           at_1021[];
-extern char           at_1022[];
-extern char           at_1023[];
-extern char           at_1024[];
-extern char           at_1025__2[];
-extern char           at_1026[];
-extern char           at_1027[];
-extern char           at_1028[];
-extern char           at_1029[];
-extern char           at_1030[];
-extern char           at_1031[];
-extern char           at_1032[];
-extern char           at_1033[];
-extern char           at_1034[];
-extern char           at_1035[];
-extern char           at_1036[];
-extern char           at_1037[];
-extern char           at_1038[];
-extern char           at_1039[];
-extern char           at_1040[];
-extern char           at_1041[];
 extern char           at_1048[];
 extern char           at_1063[];
 extern char           at_1064__2[];
@@ -1079,6 +1054,35 @@ int _DATAGAURD(SPI_STACK *stack, int arg_count) {
     spiGetStackInt(stack);
     return 1;
 }
+
+/** Item-data script tags and their record loaders. */
+static SPI_TAG_PARAM gamedata_tag[25] = {
+    {"COMINIT", _DATACOMINIT},
+    {"COM", _DATACOM},
+    {"WEPNUM", _DATAWEPNUM},
+    {"WEP", _DATAWEP},
+    {"WEP_ST", _DATAWEP_ST},
+    {"WEP_ST_L", _DATAWEP_ST_L},
+    {"WEP_ST2", _DATAWEP2_ST},
+    {"WEP_ST2_L", _DATAWEP2_ST_L},
+    {"WEP_SPE", _DATAWEP_SPE},
+    {"WEP_BUILD", _DATAWEP_BUILDUP},
+    {"ITEMINIT", _DATAITEMINIT},
+    {"ITEM", _DATAITEM},
+    {"AT_INIT", _DATAATTACHINIT},
+    {"AT_ST", _DATAATTACH_ST},
+    {"AT_ST2", _DATAATTACH_ST2},
+    {"AT_ST_SP", _DATAATTACH_ST_SP},
+    {"ROBOINIT", _DATAROBOINIT},
+    {"RB_PARTS", _DATAROBO_ANALYZE},
+    {"GRDNUM", _DATAGAURDNUM},
+    {"GRD", _DATAGAURD},
+    {"FISHINIT", _DATAFISHINIT},
+    {"FISH", _DATAFISH},
+    {"MES_SYS", _MES_SYS},
+    {"MES_SYSSPE", _MES_SYS_SPECTOL},
+    {NULL, NULL},
+};
 
 /**
  *
@@ -1825,35 +1829,10 @@ void CItemUseTarget::SetPtr(int new_kind, void *new_ptr) {
 }
 
 // Initialised data (.data)
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/gamedata", gamedata_tag__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/gamedata", ItemCmdMsgTbl__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/gamedata", table_1553__DATA);
 
 // Constants (.rodata)
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/gamedata", at_1018__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/gamedata", at_1019__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/gamedata", at_1020__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/gamedata", at_1021__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/gamedata", at_1022__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/gamedata", at_1023__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/gamedata", at_1024__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/gamedata", at_1025__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/gamedata", at_1026__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/gamedata", at_1027__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/gamedata", at_1028__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/gamedata", at_1029__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/gamedata", at_1030__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/gamedata", at_1031__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/gamedata", at_1032__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/gamedata", at_1033__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/gamedata", at_1034__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/gamedata", at_1035__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/gamedata", at_1036__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/gamedata", at_1037__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/gamedata", at_1038__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/gamedata", at_1039__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/gamedata", at_1040__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/gamedata", at_1041__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/gamedata", at_1048__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/gamedata", at_1063__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/gamedata", at_1064__2__DATA);

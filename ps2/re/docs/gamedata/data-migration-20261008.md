@@ -45,3 +45,15 @@ consumer interprets parameter indices below eight as attributes and indices
 
 `gamedata-spectrum-table-{build,objects,metrics}.log` accepts the table:
 PAL OK, 149/149 objects, unowned hashes unchanged. Markers become 45/1.
+
+## Script tags
+
+The native `gamedata_tag[25]` contains 24 exact name/callback pairs and the
+null terminator. It follows its callbacks and precedes the script loader,
+using the existing `SPI_TAG_PARAM` type. Strings and callback associations
+are copied from the actual retail relocation words; the guard callbacks
+precede the fish callbacks in the table, regardless of source function order.
+The declared 0xC8 bytes receive their eight-byte zero alignment tail.
+
+`gamedata-tags-{build,objects,metrics}.log` accepts this group with PAL OK,
+149/149 objects, and no unowned object changes. Markers become 20/1.
