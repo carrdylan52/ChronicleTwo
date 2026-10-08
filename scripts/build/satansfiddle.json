@@ -237,6 +237,7 @@
             90
           ]
         },
+        "expected_matches": 1,
         "evaluate_first": true
       },
       {
@@ -574,6 +575,7 @@
             10
           ]
         },
+        "expected_matches": 1,
         "evaluate_first": true
       },
       {
@@ -590,6 +592,7 @@
             10
           ]
         },
+        "expected_matches": 1,
         "evaluate_first": true
       },
       {
@@ -609,8 +612,9 @@
           "value_type": "binary32",
           "value_bits": "0x44000000"
         },
-        "evaluate_first": false,
-        "evaluate_before": 1
+        "evaluate_before": 1,
+        "expected_matches": 1,
+        "evaluate_first": false
       },
       {
         "translation_unit": "nd_meswin.cpp",
@@ -629,6 +633,7 @@
           "value_type": "binary32",
           "value_bits": "0x43f00000"
         },
+        "expected_matches": 1,
         "evaluate_first": true
       },
       {

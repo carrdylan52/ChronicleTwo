@@ -32,12 +32,17 @@ RUN git apply --check /tmp/satansfiddle-nested-arguments.patch \
 COPY scripts/build/patches/satansfiddle-control-context.patch /tmp/satansfiddle-control-context.patch
 RUN git apply --check /tmp/satansfiddle-control-context.patch \
     && git apply /tmp/satansfiddle-control-context.patch
-# Rust 1.85 can place native libraries before the LLDB C++ archive; repeat
-# them at the end of the link command so GNU ld resolves that archive.
+# Rust 1.85 can place native libraries before the LLDB C++ archive. Stage-local
+# flags supply trailing libraries to the CLI, Cargo test runners and dependency
+# build scripts. The explicit search path lets their trailing -llldb resolve
+# the same LLVM-19 installation even without this package's build.rs flags.
+# This recipe can change wrapper artifacts; equivalence is checked on game objects.
 ENV RUSTFLAGS="-L native=/usr/lib/llvm-19/lib -C link-arg=-llldb -C link-arg=-lstdc++"
 RUN cargo build --release --locked --jobs 3 \
-    && cargo test --release --locked --jobs 3 \
+    && cp target/release/satansfiddle /satansfiddle-production \
+    && cargo test --release --locked --jobs 3 --features hook-test-faults \
     && mkdir /satansfiddle-tests \
+    && cp target/release/satansfiddle /satansfiddle-tests/satansfiddle-fault-test \
     && find target/release/deps -maxdepth 1 -name 'compiler_cli-*' -type f -executable \
         -exec cp {} /satansfiddle-tests/ \;
 
@@ -90,7 +95,7 @@ RUN wget -O /tmp/binutils.tar.gz \
 # wibo runs the Windows-hosted Metrowerks compiler and linker.
 # This image contains the unstripped loader symbols required by LLDB hooks.
 COPY --from=ghcr.io/decompals/wibo@sha256:3a89948cf841cd6ae2555eb9d8b8ba60c35700852afc5fd9bd62660ef3d201f5 /usr/local/bin/wibo /usr/bin/
-COPY --from=satansfiddle-build /satansfiddle/target/release/satansfiddle /usr/local/bin/
+COPY --from=satansfiddle-build /satansfiddle-production /usr/local/bin/satansfiddle
 ENV LLDB_DEBUGSERVER_PATH=/usr/lib/llvm-19/bin/lldb-server
 
 # splat is the disassembler; its MIPS support (spimdisasm, rabbitizer) is an
