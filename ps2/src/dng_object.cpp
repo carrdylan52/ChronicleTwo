@@ -655,26 +655,24 @@ void CMachineGun::Step() {
             mgVu0FBOX box;
             float     hit[4];
 
-            float *slot = (float *) ((u8 *) this + i * 16);
-            float *shot_pos = (slot + 0x80);
-            sceVu0CopyVector(previous_pos, shot_pos);
-            sceVu0AddVector(shot_pos, shot_pos, (slot + 0x40));
+            sceVu0CopyVector(previous_pos, pos[i]);
+            sceVu0AddVector(pos[i], pos[i], velocity[i]);
 
             if (col_prim != NULL) {
-                col_prim->SetCoord(previous_pos, shot_pos, 5.0f);
+                col_prim->SetCoord(previous_pos, pos[i], 5.0f);
             }
 
             box.max[3] = 1.0f;
             box.min[3] = 1.0f;
-            box.max[0] = 20.0f + (40.0f + (slot + 0x80)[0]);
-            box.min[0] = ((slot + 0x80)[0] - 40.0f) - 20.0f;
-            box.max[1] = 20.0f + (40.0f + (slot + 0x80)[1]);
-            box.min[1] = ((slot + 0x80)[1] - 40.0f) - 20.0f;
-            box.max[2] = 20.0f + (40.0f + (slot + 0x80)[2]);
-            box.min[2] = ((slot + 0x80)[2] - 40.0f) - 20.0f;
+            box.max[0] = 20.0f + (40.0f + pos[i][0]);
+            box.min[0] = (pos[i][0] - 40.0f) - 20.0f;
+            box.max[1] = 20.0f + (40.0f + pos[i][1]);
+            box.min[1] = (pos[i][1] - 40.0f) - 20.0f;
+            box.max[2] = 20.0f + (40.0f + pos[i][2]);
+            box.min[2] = (pos[i][2] - 40.0f) - 20.0f;
             int count = ((CMap *) DngMainMap)->GetColPoly(polys, box, 128);
 
-            if (CheckHit(polys, count, shot_pos, previous_pos, hit, 1, 4) >= 0) {
+            if (CheckHit(polys, count, pos[i], previous_pos, hit, 1, 4) >= 0) {
                 active[i] = 0;
 
                 if (col_prim != NULL) {

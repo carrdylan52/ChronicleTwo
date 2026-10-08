@@ -1,12 +1,11 @@
 # dng_object: reverse-engineering notes
 
 ## C++ draft status
-All 33 functions have C++ in `ps2/src/dng_object.cpp`. The matching build compiles
-24 of them and verifies the retail image; `draft.sh` reports 24 matches and 9
-differences. The build's objdiff report counts 23, because it does not report
-`SetItem__9CPullItemFPfPfi` as perfect. The 9 differing drafts keep the
-`INCLUDE_ASM` fallback. Each function tried has its one promotion attempt recorded in
-`scripts/re/promotion_attempts.tsv`.
+
+All 33 functions have C++ in `ps2/src/dng_object.cpp`; 32 are active and
+`CMachineGun::Step` remains guarded pending its verified compiler-profile row.
+The typed checkpoint and exact proposal below supersede earlier 24-match,
+nine-difference draft counts. The promotion ledger is unchanged.
 
 Unit holds the dungeon's gun projectiles (rocket, laser, machine gun), the pickups dropped by monsters
 (`CPullItem`), and the robot voice commentary (`CRoboVoiceSystem`). None of these classes exist in the
@@ -175,18 +174,37 @@ also makes its complete 0x2F0-byte function exact. Giving the spread
 constant an evaluate-first policy changes scheduling again; it remains
 false. The pre-merge calibration checkpoint passed the entire unit: 0x4B90 bytes and 654 relocations. The subsequent compliance guard described below supersedes its native status.
 
-## Merge checkpoint and compliance guard
+## Typed machine-gun checkpoint and profile proposal
 
-The newer master source retains `CMachineGun::Step` behind `NONMATCHING`
-because its draft still uses a raw slot alias. The compiler calibration
-above records the exact instruction and relocation result of that earlier
-body; it does not override the current assembly fallback or qualify that
-guarded draft as native decompilation. `CLaserGun::Step` remains native.
-Typed shot-array work is still required before restoring the machine-gun
-body as accepted source. The merged unit requires fresh integrated checks.
+The guarded `Step__11CMachineGunFv` now uses direct `pos[i]` and `velocity[i]`
+accesses for movement, collision bounds and queries. Named typed aliases retain
+the common indexed base and position pointer in swapped s1/s2 registers; direct
+array expressions restore retail allocation. The raw `this + i * 16` slot alias
+is removed. Existing layout evidence establishes position at +0x200 and velocity
+at +0x100, each with 16-byte elements.
 
-The former binary32 zero evaluate-first calibration for `CMachineGun::Step`
-is retained as analysis evidence, but its active profile row is removed while
-the source stays guarded for raw field-offset aliases. Strict selector checking
-must not accept a calibration that no native function consumes. Restore a row
-only after the typed native body reaches zero byte and relocation differences.
+With the checked-in profile, the typed body has the same remaining ten of 188
+word differences as the prior raw draft: literal materialization at
++0x20C..+0x234. Retail places zero into f14 before speed 30 into f13 and gravity
+0.1 into f15. A private profile with the exact row below yields zero byte and
+resolved-relocation differences for the typed 0x2F0-byte body, and the complete
+canonical wrapper/fixup unit passes: 0x4B90 bytes, 675 relocations.
+
+```json
+{
+  "translation_unit": "dng_object.cpp",
+  "function": "Step__11CMachineGunFv",
+  "value_type": "binary32",
+  "value_bits": "0x00000000",
+  "evaluate_first": true
+}
+```
+
+This lane proposes the row and leaves `scripts/build/satansfiddle.json`
+unchanged. The function stays guarded because strict selector validation cannot
+install this row while the game build still supplies it from assembly. The
+profile-owning lane can add the row and manually remove this function's guard
+together, then rerun complete-object, linked-baseline and coverage checks.
+No helper-mask adjustment or shared-header change is needed. Earlier raw-alias
+and initializer-only calibration evidence above is historical; this checkpoint
+uses natural typed accesses and the consumer-level stable selector.
