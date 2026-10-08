@@ -200,11 +200,10 @@ canonical wrapper/fixup unit passes: 0x4B90 bytes, 675 relocations.
 }
 ```
 
-This lane proposes the row and leaves `scripts/build/satansfiddle.json`
-unchanged. The function stays guarded because strict selector validation cannot
-install this row while the game build still supplies it from assembly. The
-profile-owning lane can add the row and manually remove this function's guard
-together, then rerun complete-object, linked-baseline and coverage checks.
-No helper-mask adjustment or shared-header change is needed. Earlier raw-alias
-and initializer-only calibration evidence above is historical; this checkpoint
-uses natural typed accesses and the consumer-level stable selector.
+The row is installed in `scripts/build/satansfiddle.json` and the guard is
+removed. The complete dng_object object passes (0x4B90 bytes, 675
+relocations), and the integrated build leaves every other object and the
+linked image unchanged. No helper-mask adjustment or shared-header change is
+needed. Earlier raw-alias and initializer-only calibration evidence above is
+historical; this function uses natural typed accesses and the consumer-level
+stable selector.

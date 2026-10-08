@@ -641,7 +641,6 @@ void CMachineGun::Set(float *position, float *direction) {
     }
 }
 
-#ifdef NONMATCHING
 void CMachineGun::Step() {
     int i;
 
@@ -721,9 +720,6 @@ void CMachineGun::Step() {
         }
     }
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/dng_object", Step__11CMachineGunFv);
-#endif
 
 void CLaserGun::SetPos(float *start, float *target, float *direction_vec) {
     int i;
