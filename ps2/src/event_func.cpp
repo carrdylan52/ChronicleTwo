@@ -5463,7 +5463,11 @@ int _HIT_EFFECT(RS_STACKDATA *stack, int argc) {
     return 1;
 }
 
-#ifdef NONMATCHING
+/**
+ *
+ * Copies a scene character into another slot using the requested event memory stack.
+ *
+ */
 int _COPY_CHARA(RS_STACKDATA *stack, int argc) {
     int stack_no;
     int src_no;
@@ -5522,9 +5526,6 @@ int _COPY_CHARA(RS_STACKDATA *stack, int argc) {
     EventScene->SetCharaTexb(dst_no, EventScene->GetCharaTexb(src_no));
     return 1;
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/event_func", _COPY_CHARA__FP12RS_STACKDATAi);
-#endif
 
 int _GET_START_BUTTON(RS_STACKDATA *stack, int argc) {
     SetStack(stack, EdEventInfo.start_button);
