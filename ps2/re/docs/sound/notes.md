@@ -51,7 +51,7 @@
 | Off | Type | Name | Evidence |
 |---|---|---|---|
 | 0x00 | s32 | unk_00 | Init: 0 then per-port 0/1/2 (1,2,8,14,15 = 2; 13 = 1). Never read in sound. |
-| 0x04 | s8 | spu_direction | `sb`; LoadHdBd2/Add `lb` compare 0 / 1 (SpuAllocDirection). Port 13 = 1. |
+| 0x04 | u8 | spu_direction | `sb`; LoadHdBd2/Add `lbu` compare 0 / 1 (SpuAllocDirection). Port 13 = 1. |
 | 0x08 | s32 | linked_port | Init -1; LoadHdBd2/Add also load gBank into it, copy bank ptr / next addr, bump its bank_count; DEL_PORT deletes it. Port 2 -> 14, port 14 -> 2. |
 | 0x0C | s32[16] | dependent_port | Init -1 (loop 16); loops to count at 0x4C; stopped and given this port's spu addresses. |
 | 0x4C | s32 | dependent_port_count | port1: [15,2,14] n=3; port8: [1,15,2,14] n=4; port10: [8,1,15,2,14] n=5; port15: [2,14] n=2. |
@@ -91,9 +91,53 @@
 - All of the above except `iop_bd_addr` are LOCAL in retail, so they belong as `static` in sound.cpp.
 
 ## Unresolved / for the body writer
-- `sceSifAllocSysMemory` / `sceSifFreeSysMemory` / `sceSifCheckStatRpc` are not yet declared in
-  `ps2/include/sce`; `ezBgm`/`ezBgmInit` have no header yet (ezbgm unit).
+- IOP heap/system-memory and RPC declarations are in `ps2/include/sce/sifrpc.h`;
+  EZBGM and EZMIDI declarations are in `ezbgm.hpp` and `ezmidi.hpp`.
 - TransHdBd checks "SYS AREA HAKAI?" when the destination range straddles 0x18AE20.
 - Port roles (BGM, SE, ...) are not established from this unit; no port enum was declared.
 
-The guarded `CSound::LoadHdBd2` draft differs mostly because retail holds the port argument in `s4` and bank data argument in `s3`, while MWCC reverses those saved registers. Declaring the port parameter `register` did not change that allocation. Its isolated linked image remains different and the assembly fallback stays active.
+## CSound::Init guarded draft — scheduling blocker
+
+`Init__6CSoundFiiii` (0x18A410, retail extent 0x780) remains guarded. The
+natural draft has 12/480 relocated-field-masked instruction differences, down
+from 190/480 at 0abce37. Its body is 0x77C bytes; retail's final four bytes are
+alignment padding. The other 36 sound functions match in the draft check.
+
+The common success return reproduces retail's final zero return and register
+allocation. Chained SPU assignments write next address before current address.
+The CSL null statements appear as extmod, callBack, conf in source, reproducing
+retail's stores to context offsets 0x10, 0x0C, 0x08. The port setup is grouped
+by field; its shared configuration IDs precede its singleton IDs in source.
+
+The remaining instruction differences occupy function offsets 0x518..0x548
+(0x18A928..0x18A958). Retail stores the configuration values for ports 10, 8,
+1 and 15 at 0x518, 0x524, 0x530 and 0x53C, then writes port11.unk_00 = 0
+at 0x548, in the load-immediate scheduling slot for port13's 0x3036. The draft
+writes port11.unk_00 at 0x518, shifting those four configuration stores to
+0x520, 0x52C, 0x538 and 0x544. Both streams realign at 0x54C. The remaining
+MIDI_STATE stores have the retail widths, source registers and field addends;
+the masked score alone does not check those addends.
+
+Useful exclusions:
+
+- Moving just port11's zero past the first four configuration statements makes
+  an allocation-direction byte store advance into the early slot. Moving the
+  entire direction group later makes a linked-port store advance instead.
+  Splitting directions between the two configuration subgroups also fails.
+- Moving the first singleton configuration group before the final kinds,
+  directions, relationships or addresses disrupts constant allocation or
+  scheduling. Separate SPU-address statements also disrupt allocation.
+- Chained equal configuration IDs and a four-field chain for the shared
+  0x5210 base have no effect. A twelve-field 0x7D210 chain worsens the schedule.
+- A fixed-index local const configuration array survives as stack initialization
+  and loads. Retail uses immediates here. A named port reference likewise adds
+  pointers and saved registers.
+- Retail uses word stores for kinds/configuration IDs and byte stores for
+  directions; narrowing the word fields contradicts those stores. Direction is
+  unsigned: changing it to s8 leaves Init unchanged but changes two loads each
+  in LoadHdBd2/Add from retail's lbu to lb.
+
+Reconsider when there is evidence for the original special-port assignment
+ordering/grouping, or a documented MWCC scheduling rule that explains delaying
+port11's zero without advancing a direction or relationship store. No runtime
+helper, volatile qualifier or artificial dependency is justified by this code.
