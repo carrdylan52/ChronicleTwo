@@ -161,3 +161,44 @@ resolve this. Earlier case-0 mean conversion changes affect cases 2/3
 without fixing cases 1/5. Reconsider with evidence about MWCC constant
 identity and argument scheduling. Both this draft and StepGyoRace remain
 guarded; no linked mismatch is accepted.
+
+## FishModifyParam stable-selector limits
+
+The canonical Satan's Fiddle build with FishModifyParam alone native retains
+11/480 differing words, a `0x778` body in the `0x780` retail extent, and one
+complete-unit byte problem. A callee-scoped binary32 `0x3e99999a` (0.3f)
+evaluate-first selector for `GetRandomNumber__Fff` fixes all six case-5 words
+at +0x68C..+0x6A8. It prepares the range before the 1.3f mean
+(`0x3fa66666`), leaving only the five case-1 words at +0x4F4..+0x504.
+This is a partial calibration, so the row is not accepted into the profile.
+
+Selecting binary32 `0x3e4ccccd` (0.2f) first at that same callee fixes case 1
+but disturbs already matching calls: eight words at +0x540..+0x55C in case 2
+and five at +0x610..+0x620 in case 4. With both range selectors the function
+has 13/480 differing words. The unscoped 0.2f selector has the same result.
+Changing case 1's mean to a float literal does not resolve the conflict.
+An explicit binary64 0.2 selector (`0x3fc999999999999a`) is unmatched and
+correctly fails compilation: the consumed constants have already narrowed
+to binary32. The same enclosing function, bits and callee cannot distinguish
+these case-specific requirements; occurrence/address selectors are unsuitable.
+
+Blocker category: floating argument scheduling with conflicting stable
+identities. The original 11-word guarded draft remains. Reconsider when a
+natural expression/type distinction explains the case-1/case-4 materialization
+without disturbing case 2; then combine it with the verified case-5 range row
+and require a complete-unit pass.
+
+## CollisionFish helper-history exclusion
+
+The GPR `0x30` / FPR `0` history retains the eight final-loop differences in
+`CollisionFish__FP15RACE_FISH_PARAMi`. GPR `0x10` / FPR `0` leaves all eight
+unchanged and introduces a byte problem in `LaneBattleStep__FP15RACE_FISH_PARAMi`.
+Thus that alternate helper history is unsuitable for this unit. CollisionFish
+has no call consuming its binary32 0.05f (`0x3d4ccccd`) separation distance;
+its remaining differences are the final loop's integer register permutation.
+
+With CollisionFish and StepGyoRace jointly native under the existing `0x30`
+history, StepGyoRace matches and CollisionFish remains the sole canonical
+problem at `0x003231B1`. Both guards remain. Reconsider with a natural final
+lane-loop representation that accounts for the lane counter, row base and
+inner-offset lifetimes; helper-mask calibration does not remove this blocker.
