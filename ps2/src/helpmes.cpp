@@ -36,7 +36,9 @@ static char HelpMesBuff[0x1000];
  * Message window used to display help and error messages.
  */
 ClsMes        HelpMes __attribute__((aligned(4)));
+
 u8            D_01F628BC[4];
+
 /**
  * State of the current help or error message request.
  */
