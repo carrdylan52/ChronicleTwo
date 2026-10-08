@@ -29,3 +29,21 @@ and all 149 objects with unchanged unowned object hashes. Receipts:
 `.private/dataD/resumed-scene-{build,objects,metrics}.log` and
 `resumed-scene-{refresh,coverage}.log`, plus the individual
 `scene-{vtable,data-switch,noname_*,ripple,hat,screen-bounds}` receipts.
+
+## Remaining local-static BSS
+
+`InScreenFunc` already contains the native `static CFuncPoint sun_func`.
+Its 0x1C0-byte object and one-byte constructor guard are compiler-generated,
+but the current literal binder only names anonymous `at_*` BSS objects.
+Removing both markers leaves `sun_func_1223` and `init_1224` unresolved,
+with twelve complete-object errors and no function instruction differences.
+The canonical source retains both markers.
+
+`.private/proposals/dataD-local-static-bss.patch` extends the existing
+extent and relocation evidence to local BSS names. It also refuses to create
+a second live object with an existing retail name. On private raw copies
+compiled without the two markers, the proposed postprocessor passes the
+complete scene object: 0x3794 initialized bytes and 349 resolved relocations.
+The unchanged postprocessor fails on the same raw object. No shared tool or
+profile file is edited. Receipts:
+`.private/dataD/scene-native-bss-{raw-build,baseline-check,proposed-check}.log`.
