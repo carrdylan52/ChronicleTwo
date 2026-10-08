@@ -73,13 +73,13 @@ def drop_sections(elf, removed):
 
 
 def code_snapshot(elf):
-    """Capture bytes, function metadata and original relocation addends."""
+    """Capture bytes, function metadata and serialized code relocation fields."""
     code = {index for index, section in enumerate(elf.sections)
             if section.sh_flags & p.SHF_EXECINSTR}
     return [(bytes(elf.sections[index].data),
              sorted((p.project_name(symbol.name), symbol.st_value, symbol.st_size, symbol.bind, symbol.type)
                     for symbol in elf.symtab.symbols if symbol.st_shndx == index),
-             [(entry.r_offset, entry.reloc_type) for record in elf.relocations
+             [entry.pack() for record in elf.relocations
               if record.sh_info == index for entry in record.relocations])
             for index in sorted(code)]
 
