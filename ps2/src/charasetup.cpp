@@ -47,7 +47,17 @@ struct SetupPartStack {
 };
 
 extern SetupPartStack at_919__3;
-extern int            mem_table[4][7];
+/**
+ *
+ * Stores the memory stack capacities for each main character setup.
+ *
+ */
+static int mem_table[4][7] = {
+    {68500, 40000, 7000, 4650, 3000, 9900, 4500},
+    {30000, 30000, 60000, 10000, 10000, 0, 0},
+    {75000, 40000, 7000, 4650, 3000, 9900, 0},
+    {120000, 0, 0, 0, 0, 5500, 0}
+};
 extern char           at_1149[];
 int                   SetupMints(CScene *scene, CUserDataManager *user_data);
 int                   SetupMonica(CScene *scene, CUserDataManager *user_data);
@@ -95,8 +105,18 @@ int                    SetupMonster(CScene *scene, CUserDataManager *user_data);
 #include "menuchr.hpp"
 #include "mg_memory.hpp"
 
-extern char r_robo_pname_1282[4][16];
-extern char fname_1290[64];
+/**
+ *
+ * Stores the filenames of the four equipped ridepod components.
+ *
+ */
+static char r_robo_pname_1282[4][16];
+/**
+ *
+ * Stores the filename of Max's model aboard the ridepod.
+ *
+ */
+static char fname_1290[64];
 
 /**
  *
@@ -704,13 +724,29 @@ int SetupMonster(CScene *scene, CUserDataManager *user_data) {
 
 // Initialised data (.data)
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/charasetup", at_919__3__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/charasetup", mem_table__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/charasetup", at_1110__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/charasetup", at_1113__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/charasetup", at_1161__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/charasetup", at_1162__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/charasetup", at_1216__4__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/charasetup", robo_info_body__DATA);
+/**
+ *
+ * Stores the body model and arm joint names for each ridepod body type.
+ *
+ */
+ROBO_INFO_BODY robo_info_body[11] = {
+    {"body01.chr", "arm1"},
+    {"body02.chr", "arm2"},
+    {"body02.chr", "arm2"},
+    {"body02.chr", "arm2"},
+    {"body02.chr", "arm2"},
+    {"body02.chr", "arm2"},
+    {"body02.chr", "arm2"},
+    {"body02.chr", "arm2"},
+    {"body02.chr", "arm2"},
+    {"body02.chr", "arm2"},
+    {"body02.chr", "arm2"}
+};
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/charasetup", at_1281__2__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/charasetup", fname_tbl_1291__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/charasetup", fname_tbl2_1298__DATA);
@@ -772,6 +808,9 @@ INCLUDE_RODATA("ps2/asm/pal/nonmatchings/charasetup", at_1303__2__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/charasetup", at_1304__3__DATA);
 
 // Uninitialised data (.bss)
-INCLUDE_BSS(robo_dat, 0x30);
-INCLUDE_BSS(r_robo_pname_1282, 0x40);
-INCLUDE_BSS(fname_1290, 0x40);
+/**
+ *
+ * Stores the model files and behaviour of the equipped ridepod.
+ *
+ */
+ROBO_INFO_DATA robo_dat;
