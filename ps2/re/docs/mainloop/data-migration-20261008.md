@@ -23,3 +23,17 @@ variables retain the declarations and types in `mainloop.hpp`.
 The PAL build is byte-identical and all 149 objects pass. Receipts:
 `.private/dataB-r2/mainloop-controller-{build,check}.log` and
 `.private/dataB-r2/mainloop-state-{build,check}.log`.
+
+## Controller bindings
+
+The mutable 46-entry button table uses `PAD_TABLE_ENTRY`, existing logical
+button names where documented, `PadCtrlTrigger` values and `PadButton` masks.
+The nine-entry analog table uses `ANALOG_TABLE_ENTRY` and `PadCtrlAxis` values.
+Each retains its negative terminator. The two language-dependent button pairs
+are emitted by the natural local initializers in `InitPadTable`. `SelectArg`
+is a zero-initialized native `int[32]`, placed in retail's initialized-data
+section by the existing named-object section mapping.
+
+Each table and the caller's literals pass the complete main-loop object
+check; the full build reports `SCES_511.90: OK`, and all 149 objects pass.
+Receipt: `.private/dataB-r2/mainloop-button-literals-{build,check}.log`.

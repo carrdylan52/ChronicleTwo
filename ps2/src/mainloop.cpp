@@ -96,8 +96,71 @@ static int           gcALL_GEO_PARTS(SPI_STACK *stack, int argc);
 extern void (*LoopInit[])(INIT_LOOP_ARG);
 extern int (*LoopMain[])();
 extern void (*LoopExit[])();
-extern PAD_TABLE_ENTRY    pad_table[];
-extern ANALOG_TABLE_ENTRY analog_table[];
+/**
+ * Language-adjusted mappings from logical controls to pad buttons.
+ */
+static PAD_TABLE_ENTRY pad_table[] = {
+    {PAD_BTN_CONFIRM, PAD_CTRL_TRIGGER_DOWN, PAD_CIRCLE},
+    {PAD_BTN_CANCEL, PAD_CTRL_TRIGGER_DOWN, PAD_CROSS},
+    {2, PAD_CTRL_TRIGGER_ON, PAD_R1},
+    {3, PAD_CTRL_TRIGGER_ON, PAD_L1},
+    {4, PAD_CTRL_TRIGGER_DOWN, PAD_L2},
+    {PAD_BTN_MENU, PAD_CTRL_TRIGGER_DOWN, PAD_TRIANGLE},
+    {6, PAD_CTRL_TRIGGER_DOWN, PAD_R2},
+    {7, PAD_CTRL_TRIGGER_DOWN, PAD_UP},
+    {8, PAD_CTRL_TRIGGER_DOWN, PAD_DOWN},
+    {PAD_BTN_RIGHT, PAD_CTRL_TRIGGER_DOWN, PAD_RIGHT},
+    {PAD_BTN_LEFT, PAD_CTRL_TRIGGER_DOWN, PAD_LEFT},
+    {11, PAD_CTRL_TRIGGER_ON, PAD_UP},
+    {12, PAD_CTRL_TRIGGER_ON, PAD_DOWN},
+    {13, PAD_CTRL_TRIGGER_ON, PAD_RIGHT},
+    {14, PAD_CTRL_TRIGGER_ON, PAD_LEFT},
+    {PAD_BTN_START, PAD_CTRL_TRIGGER_DOWN, PAD_START},
+    {16, PAD_CTRL_TRIGGER_DOWN, PAD_CIRCLE},
+    {17, PAD_CTRL_TRIGGER_DOWN, PAD_CROSS},
+    {19, PAD_CTRL_TRIGGER_ON, PAD_CIRCLE},
+    {20, PAD_CTRL_TRIGGER_DOWN, PAD_CIRCLE},
+    {PAD_BTN_PAUSE, PAD_CTRL_TRIGGER_DOWN, PAD_START},
+    {PAD_BTN_EVENT_SKIP, PAD_CTRL_TRIGGER_DOWN, PAD_TRIANGLE},
+    {PAD_BTN_QUICK_CHANGE, PAD_CTRL_TRIGGER_DOWN, PAD_L3},
+    {24, PAD_CTRL_TRIGGER_DOWN, PAD_R3},
+    {PAD_BTN_ACTION_CONFIRM, PAD_CTRL_TRIGGER_DOWN, PAD_CIRCLE},
+    {PAD_BTN_ACTION_SQUARE, PAD_CTRL_TRIGGER_DOWN, PAD_SQUARE},
+    {PAD_BTN_ACTION_CANCEL, PAD_CTRL_TRIGGER_DOWN, PAD_CROSS},
+    {53, PAD_CTRL_TRIGGER_ON, PAD_L1},
+    {54, PAD_CTRL_TRIGGER_ON, PAD_R1},
+    {55, PAD_CTRL_TRIGGER_DOWN, PAD_SELECT},
+    {PAD_BTN_ACTION_HELD, PAD_CTRL_TRIGGER_ON, PAD_CIRCLE},
+    {100, PAD_CTRL_TRIGGER_DOWN, PAD_R2},
+    {101, PAD_CTRL_TRIGGER_DOWN, PAD_L2},
+    {102, PAD_CTRL_TRIGGER_DOWN, PAD_CIRCLE},
+    {103, PAD_CTRL_TRIGGER_DOWN, PAD_CIRCLE},
+    {104, PAD_CTRL_TRIGGER_DOWN, PAD_CIRCLE},
+    {107, PAD_CTRL_TRIGGER_DOWN, PAD_SQUARE},
+    {105, PAD_CTRL_TRIGGER_DOWN, PAD_R2},
+    {106, PAD_CTRL_TRIGGER_DOWN, PAD_L2},
+    {18, PAD_CTRL_TRIGGER_DOWN, PAD_R1},
+    {PAD_BTN_EDIT_SWITCH, PAD_CTRL_TRIGGER_DOWN, PAD_SELECT},
+    {109, PAD_CTRL_TRIGGER_DOWN, PAD_SQUARE},
+    {120, PAD_CTRL_TRIGGER_DOWN, PAD_CIRCLE},
+    {121, PAD_CTRL_TRIGGER_ON, PAD_CIRCLE},
+    {122, PAD_CTRL_TRIGGER_ON, PAD_SQUARE},
+    {-1, -1, -1},
+};
+/**
+ * Mappings from logical analog controls to pad stick axes.
+ */
+static ANALOG_TABLE_ENTRY analog_table[] = {
+    {0, PAD_CTRL_AXIS_LX},
+    {1, PAD_CTRL_AXIS_LY},
+    {2, PAD_CTRL_AXIS_RX},
+    {3, PAD_CTRL_AXIS_RY},
+    {4, PAD_CTRL_AXIS_LY},
+    {5, PAD_CTRL_AXIS_LX},
+    {6, PAD_CTRL_AXIS_RX},
+    {7, PAD_CTRL_AXIS_RY},
+    {-1, -1},
+};
 
 
 extern CFont     Font;
@@ -108,7 +171,10 @@ extern mgCMemory MainBuffer;
 static int       menu_mode;
 void             InitEventSelect();
 
-extern int SelectArg[32];
+/**
+ * Values selected by the debug menu and game configuration tags.
+ */
+static int SelectArg[32] = {0};
 
 /**
  * Save data used by the current game mode.
@@ -1761,9 +1827,6 @@ CEditData::CEditData() {
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mainloop", LoopInit__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mainloop", LoopMain__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mainloop", LoopExit__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mainloop", pad_table__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mainloop", analog_table__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mainloop", SelectArg__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mainloop", menu_1281__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mainloop", at_1305__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mainloop", at_1310__DATA);
@@ -1886,8 +1949,6 @@ INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mainloop", at_2085__DATA);
 
 // Small initialised data (.sdata)
 int MainThreadPriority = 1;
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mainloop", at_973__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mainloop", at_974__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mainloop", at_1317__2__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mainloop", at_1474__DATA);
 
