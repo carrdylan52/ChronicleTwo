@@ -27,3 +27,67 @@ Receipts:
 - `.private/dataA-r2/monster-base-build.log`: `SCES_511.90: OK`, 6763 perfect,
   zero fuzzy, 109 assembly, zero unmatched.
 - `.private/dataA-r2/monster-base-objects.log`: 149/149 units pass.
+
+## Language and combat tables
+
+The seven language pointers inline the six exact retail messages; the seventh
+reuses the English literal. Both UV tables are `static int[7][4]`. The attack-kind
+lookup is `static s16[26]`. The fourteen `MONSTER_REACT` records use existing
+`DamageKind` enumerators wherever that shared enum defines the recorded kind.
+Kinds 14 and 21 remain numeric because the shared header does not define them.
+The two-entry `SPI_TAG_PARAM` table contains `"NAME"` and `_MONSTER_NAME`, then
+null pointers; the callback has its documented retail local linkage.
+
+The gift table’s actual symbol is 88 bytes, not an integral number of six-byte
+rows. It contains fourteen triples followed by two negative halfwords. A flat
+`static s16[44]` preserves that real extent. `MONSTER_GIFT_ENTRY_FIELDS` names
+the three-halfword stride used by `CheckGiftPack`; ordinary element indexing
+preserves all of that function’s instructions without an array-type cast or
+reading a synthetic final third field. The third field of complete rows remains
+unknown. Piece padding is zero: four bytes for the language-pointer table,
+twelve for the attack-index table and eight for the gift table.
+
+## Literals, vectors and native static state
+
+All initialized-data markers are removed: the final count is 0 initialized-data
+markers and 3 BSS reservations. The existing element-rate and launch-vector
+initializers and compiler-generated virtual table emit their own data. Strings
+at direct use sites retain their retail bytes, including the guard effect name.
+Hit/guard directions are native `float[4]` initializers at the original copy
+sites. The hit texture rectangle is declared after the hit direction, retaining
+its stack position. Shadow normal/position vectors are initialized in their
+actual use scopes, and the dropped-item velocity is a native vector initializer.
+No float selectors or Satan’s Fiddle rows are changed.
+
+`HitScoreSet` uses `static int dmg_sc_cnt = 0` instead of explicit external
+counter/guard tests. Its counter and guard markers, plus the zero-initializer
+marker for `DrawShadowActMonster`, remain because the postprocessor cannot name
+the corresponding native BSS objects. Removing them leaves `dmg_sc_cnt_1152`,
+`init_1153` and `at_1783` unmapped, with no instruction-byte differences. The
+native guard occupies one byte while its retail piece reserves four; a tooling
+change must preserve the zero padding while establishing identity.
+
+An incidental existing rectangle-copy cast was tested with `hit->tex_rect = rect`
+and with `mgRect<int> copy = rect` plus the existing field stores. Both reduce
+`HitEffectSet` from 0x334 to 0x324 bytes: MWCC eliminates the retail intermediate
+quadword copy. Explicit field aggregate initialization instead grows the
+function to 0x364 and introduces another zero initializer. These rejected forms
+are restored; the pre-existing rectangle-copy cast remains outside the migrated
+data initializers. No new type-puns are introduced. The existing matrix-copy
+casts are likewise unchanged.
+
+Final focused and whole-project receipts:
+
+- `.private/dataA-r2/monster-small-tables.log`: all typed tables pass.
+- `.private/dataA-r2/monster-native-literals.log`: literals and native counter pass.
+- `.private/dataA-r2/monster-native-vectors.log`: whole unit passes, 0x167EC
+  compared bytes and 587 relocations; trailing zero alignment comes from linking.
+- `.private/dataA-r2/monster-unmarked-locals.log`: retained BSS mapping blocker.
+- `.private/dataA-r2/monster-native-rectangle.log`,
+  `monster-typed-rectangle-copy.log`, `monster-rectangle-fields.log`: rejected
+  incidental cast cleanup attempts.
+- `.private/dataA-r2/monster-build.log`: `SCES_511.90: OK`, 6763 perfect,
+  zero fuzzy, 109 assembly, zero unmatched.
+- `.private/dataA-r2/monster-objects.log`: 149/149 units pass.
+
+The final refreshed data measure remains 0/64936.

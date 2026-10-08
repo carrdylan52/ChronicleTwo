@@ -46,8 +46,6 @@
 #include "userdata.hpp"
 #include "mainloop.hpp"
 
-extern short             gift_item_tbl[][3];
-extern char             *dung_progtxt_notlift_mons[];
 
 /**
  *
@@ -71,25 +69,10 @@ struct HitRectangle {
     int bottom; /**< Bottom texture coordinate. */
 } __attribute__((aligned(16)));
 
-extern EffectVector      at_2031;
-extern EffectVector      at_1707;
-extern EffectVector      at_1724__2;
-extern EffectVector      at_2079__2;
-extern char              at_1999[];
-extern char              at_2100[];
-extern char              at_2588[];
-extern char              at_2589[];
-extern char              at_2809[];
-extern int               no_score_uv[][4];
-extern int               guard_score_uv[][4];
-extern int               dmg_sc_cnt_2104;
-extern s8                init_2105;
-extern SPI_TAG_PARAM     mos_data_anlyze_tag[];
 void                     HitEffectSet(CScene *scene, float *point, int flags);
 void                     GuardEffectSet(CScene *scene, float *point, int play_script);
 void                     HitScoreSet(float *pos, int type, int value);
 int                      CheckGiftPack(CActiveMonster *monster, CColPrim *prim);
-int                      _MONSTER_NAME(SPI_STACK *stack, int argument_count);
 
 BASE_MONSTER_TBL base_monster_define[344] = {
     {0, 0, "Sewer Rat", "e201a", "e201a", 0,
@@ -1124,6 +1107,121 @@ BASE_MONSTER_TBL base_monster_define[344] = {
     {-1}
 };
 
+/**
+ *
+ * Messages displayed when a monster cannot be lifted, indexed by language.
+ *
+ */
+static char *dung_progtxt_notlift_mons[7] = {
+    "[(!)]\x82\xB1\x82\xCC\x83\x82\x83\x93\x83X\x83^\x81[\x82\xCD\x8E\x9D\x82\xBF\x8F\xE3\x82\xB0\x82\xE9\x82\xB1\x82\xC6\x82\xAA\x82\xC5\x82\xAB\x82\xC8\x82\xA2!",
+    "[(!)]You can't lift this monster!",
+    "[(!)]Tu ne peux soulever ce monstre!",
+    "[(!)]Dieses Monster kannst du nicht hochheben!",
+    "[(!)]Non puoi sollevare questo mostro!",
+    "[(!)][UNI00a1]No puedes levantar al montruo!",
+    "[(!)]You can't lift this monster!"
+};
+
+/**
+ *
+ * Texture rectangles for the no-damage label in each language.
+ *
+ */
+static int no_score_uv[7][4] = {
+    {94, 186, 62, 16},
+    {94, 184, 66, 18},
+    {94, 182, 96, 20},
+    {94, 184, 68, 18},
+    {94, 184, 86, 18},
+    {94, 184, 66, 18},
+    {94, 184, 66, 18}
+};
+
+/**
+ *
+ * Texture rectangles for the guard label in each language.
+ *
+ */
+static int guard_score_uv[7][4] = {
+    {340, 192, 44, 18},
+    {330, 192, 54, 16},
+    {330, 192, 54, 16},
+    {330, 192, 54, 16},
+    {330, 192, 54, 16},
+    {330, 192, 54, 16},
+    {330, 192, 54, 16}
+};
+
+/**
+ *
+ * Damage-kind indices into the monster extended resistance parameters.
+ *
+ */
+static s16 vs_attk_index[26] = {
+    0, 1, 2, 3, 4, 5, 0, 0, 0, 0, 0, 6, 7, 8, 9, 0, 0, 0, 0, 0, 10, 10, 0, 0, 0, 11
+};
+
+/**
+ *
+ * Stride of the gift-type, accepted-item and unknown value triples.
+ *
+ */
+enum MONSTER_GIFT_ENTRY_SIZE { MONSTER_GIFT_ENTRY_FIELDS = 3 };
+
+/**
+ *
+ * Gift triples followed by the negative gift-type and item terminator.
+ *
+ */
+static s16 gift_item_tbl[44] = {
+    0, 269, 1,
+    34, 270, 1,
+    2, 318, 3,
+    37, 314, 3,
+    11, 289, 8,
+    59, 189, 10,
+    18, 225, 6,
+    38, 192, 6,
+    41, 211, 5,
+    31, 234, 7,
+    29, 232, 7,
+    30, 233, 7,
+    28, 235, 7,
+    32, 229, 7,
+    -1, -1
+};
+
+/**
+ *
+ * Monster hit reactions and recorded practice-action bits by damage kind.
+ *
+ */
+static MONSTER_REACT react_tbl[14] = {
+    {DAMAGE_KIND_MAX_MELEE, 2, 1, 0},
+    {DAMAGE_KIND_LASER_GUN, 4, 0, 0},
+    {DAMAGE_KIND_GRENADE, 4, 0, 0},
+    {DAMAGE_KIND_MAX_GUN, 4, 0, 0},
+    {DAMAGE_KIND_MONICA_MELEE, 8, 1, 0},
+    {DAMAGE_KIND_MONICA_MAGIC, 16, 0, 0},
+    {DAMAGE_KIND_ITEM, 1, 1, 0},
+    {DAMAGE_KIND_RIDEPOD_PUNCH, 32, 1, 0},
+    {DAMAGE_KIND_RIDEPOD_SWORD, 32, 1, 0},
+    {14, 32, 1, 0},
+    {DAMAGE_KIND_RIDEPOD_GUN, 32, 1, 0},
+    {DAMAGE_KIND_MONSTER, 64, 1, 0},
+    {21, 64, 1, 0},
+    {-1, 0, 0, 0}
+};
+
+static int _MONSTER_NAME(SPI_STACK *stack, int argument_count);
+
+/**
+ *
+ * Tags accepted by the language-specific monster-name script.
+ *
+ */
+static SPI_TAG_PARAM mos_data_anlyze_tag[2] = {{"NAME", _MONSTER_NAME}, {NULL, NULL}};
+
 // Code (.text)
 int CActiveMonster::IsDraw(int view_state) {
     if (chara_kind != 2) {
@@ -1617,17 +1715,6 @@ int CMonsterMan::EntryRefer(int monster_id, mgCMemory *memory) {
 
     return 1;
 }
-extern char at_1421__2[];
-extern char at_1422__2[];
-extern char at_1423[];
-extern char at_1424[];
-extern char at_1425[];
-extern char at_1426[];
-extern char at_1427__2[];
-extern char at_1428__3[];
-extern char at_1429__2[];
-extern char at_1430__2[];
-extern char at_1431__2[];
 int CMonsterMan::LoadReferMonsterFile(int id, BASE_MONSTER_TBL *tbl, mgCMemory *memory) {
     char path[0x40];
     char config_path[0x40];
@@ -1646,14 +1733,14 @@ int CMonsterMan::LoadReferMonsterFile(int id, BASE_MONSTER_TBL *tbl, mgCMemory *
     if (entry == NULL) {
         return 0;
     }
-    sprintf(config_path, at_1421__2, tbl->model);
-    sprintf(path, at_1422__2, tbl->model);
+    sprintf(config_path, "%s.cfg", tbl->model);
+    sprintf(path, "dungeon/monster/%s.chr", tbl->model);
     (textures = &mgTexManager)->DeleteBlock(slot + 0x28);
     LoadFile(path, BuffReadData, &size);
-    strcpy(textures->name_suffix, at_1423);
+    strcpy(textures->name_suffix, "_m");
     entry->chara.Initialize();
-    if (strcmp(tbl->model, at_1424) == 0 || strcmp(tbl->model, at_1425) == 0 ||
-        strcmp(tbl->model, at_1426) == 0 || strcmp(tbl->model, at_1427__2) == 0) {
+    if (strcmp(tbl->model, "b11a") == 0 || strcmp(tbl->model, "b05a") == 0 ||
+        strcmp(tbl->model, "b07a") == 0 || strcmp(tbl->model, "b02a") == 0) {
         entry->chara.LoadPackNoLine((unsigned int *)BuffReadData, config_path, memory, memory, memory, slot + 0x28, NULL);
     } else {
         entry->chara.LoadPack((unsigned int *)BuffReadData, config_path, memory, memory, memory, slot + 0x28, NULL);
@@ -1663,11 +1750,11 @@ int CMonsterMan::LoadReferMonsterFile(int id, BASE_MONSTER_TBL *tbl, mgCMemory *
     sound = -1;
     if (tbl->sound_no > 0) {
         if (tbl->sound_no < 10) {
-            sprintf(path, at_1428__3, tbl->sound_no);
+            sprintf(path, "snd2/mon/EN_00%d.snd", tbl->sound_no);
         } else if (tbl->sound_no < 100) {
-            sprintf(path, at_1429__2, tbl->sound_no);
+            sprintf(path, "snd2/mon/EN_0%d.snd", tbl->sound_no);
         } else {
-            sprintf(path, at_1430__2, tbl->sound_no);
+            sprintf(path, "snd2/mon/EN_%d.snd", tbl->sound_no);
         }
         LoadFile(path, BuffReadData, &size);
         sound = sndLoadSound(5, (unsigned int *)BuffReadData, memory);
@@ -1678,7 +1765,7 @@ int CMonsterMan::LoadReferMonsterFile(int id, BASE_MONSTER_TBL *tbl, mgCMemory *
         entry->chara.sword_effect[i]->Initialize(memory, 0xC, 8);
         entry->chara.sword_effect[i]->SetTexture(0x4A, TEX_SystemEffectSw, 0, 0x20, 0x40, 0x20);
     }
-    sprintf(path, at_1431__2, tbl->script);
+    sprintf(path, "dungeon/monster/%s.stb", tbl->script);
     LoadFile(path, BuffReadData, &size);
     blocks = size / 16;
     entry->script = (char *)memory->stAlloc64(blocks + 1);
@@ -2099,7 +2186,7 @@ void CMonsterMan::CollisionCheck(CActiveMonster *monster, float *pos, float *mov
 
         if (dist < reach) {
             if (monster->catch_state == 2 && i != 0) {
-                printf(at_1999);
+                printf("HIT!!\n");
                 other->req_prog = MONSTER_PROG_PIYORI;
                 other->piyori_time = 120;
                 sceVu0ScaleVectorXYZ(push, push, -0.8f);
@@ -2171,8 +2258,6 @@ float SearchArea(CScene *scene, float *from, float *to, float range) {
 void HitEffectSet(CScene *scene, float *point, int flags) {
     float            to_camera[4];
     float            pos[4];
-    EffectVector     dir;
-    mgRect<int>      rect;
     CCameraControl  *camera;
     CHitEffectImage *hit;
     CFlushEffect    *flush;
@@ -2190,7 +2275,8 @@ void HitEffectSet(CScene *scene, float *point, int flags) {
     sceVu0Normalize(to_camera, to_camera);
     sceVu0ScaleVector(to_camera, to_camera, 20.0f);
     sceVu0AddVector(pos, pos, to_camera);
-    dir = at_2031;
+    float dir[4] = {0.0f, 1.0f, 0.0f, 1.0f};
+    mgRect<int> rect;
 
     if (BattleFX.hit == NULL) {
         hit = NULL;
@@ -2208,7 +2294,7 @@ void HitEffectSet(CScene *scene, float *point, int flags) {
         float spread = 30.0f;
         float gravity = 0.1f;
         power = 0.2f;
-        hit->SethitEffect(pos, dir.f, spread, speed, power, gravity, 30, 32);
+        hit->SethitEffect(pos, dir, spread, speed, power, gravity, 30, 32);
         hit->kind = 0;
         rect.Set(32, 0, 32, 32);
         HitRectangle copy = *(HitRectangle *) &rect;
@@ -2267,7 +2353,7 @@ void HitEffectSet(CScene *scene, float *point, int flags) {
     }
 
     if (hit != NULL) {
-        hit->SethitEffect(pos, dir.f, 60.0f, 45.0f, 0.0f, 0.0f, 15, 16);
+        hit->SethitEffect(pos, dir, 60.0f, 45.0f, 0.0f, 0.0f, 15, 16);
         hit->kind = 2;
     }
 }
@@ -2275,7 +2361,6 @@ void HitEffectSet(CScene *scene, float *point, int flags) {
 void GuardEffectSet(CScene *scene, float *point, int play_script) {
     float            to_camera[4];
     float            pos[4];
-    EffectVector     dir;
     CCameraControl  *camera;
     CHitEffectImage *hit;
     CFlushEffect    *flush;
@@ -2292,7 +2377,7 @@ void GuardEffectSet(CScene *scene, float *point, int play_script) {
     sceVu0Normalize(to_camera, to_camera);
     sceVu0ScaleVector(to_camera, to_camera, 20.0f);
     sceVu0AddVector(pos, pos, to_camera);
-    dir = at_2079__2;
+    float dir[4] = {0.0f, 1.0f, 0.0f, 1.0f};
 
     if (BattleFX.hit == NULL) {
         hit = NULL;
@@ -2310,7 +2395,7 @@ void GuardEffectSet(CScene *scene, float *point, int play_script) {
     const float &power = power_value;
     float        spread = 50.0f;
     float        gravity = 0.1f;
-    hit->SethitEffect(pos, dir.f, spread, speed, power, gravity, 30, 32);
+    hit->SethitEffect(pos, dir, spread, speed, power, gravity, 30, 32);
     hit->kind = 1;
 
     if (BattleFX.flush == NULL) {
@@ -2338,7 +2423,7 @@ void GuardEffectSet(CScene *scene, float *point, int play_script) {
     }
 
     if (play_script != 0) {
-        FxScriptMan->CreateEffSpt(at_2100, 0, 0);
+        FxScriptMan->CreateEffSpt("\x83K\x81[\x83h\x83G\x83t\x83" "F\x83N\x83g\x82`", 0, 0);
         FxScriptMan->SetScriptVect1(pos, 0, -1);
     }
 }
@@ -2347,29 +2432,26 @@ void HitScoreSet(float *pos, int type, int value) {
     int *no_score = no_score_uv[LanguageCode];
     int *guard_score = guard_score_uv[LanguageCode];
 
-    if (!init_2105) {
-        dmg_sc_cnt_2104 = 0;
-        init_2105 = 1;
-    }
+    static int dmg_sc_cnt = 0;
 
     switch (type) {
         case 0:
-            DamageScoreMons[dmg_sc_cnt_2104].SetValue(pos, value);
+            DamageScoreMons[dmg_sc_cnt].SetValue(pos, value);
             break;
         case 1:
-            DamageScoreMons[dmg_sc_cnt_2104].SetSprite(pos, no_score[0], no_score[1], no_score[2],
+            DamageScoreMons[dmg_sc_cnt].SetSprite(pos, no_score[0], no_score[1], no_score[2],
                                                        no_score[3]);
             break;
         case 2:
-            DamageScoreMons[dmg_sc_cnt_2104].SetSprite(pos, guard_score[0], guard_score[1],
+            DamageScoreMons[dmg_sc_cnt].SetSprite(pos, guard_score[0], guard_score[1],
                                                        guard_score[2], guard_score[3]);
             break;
     }
 
-    if (dmg_sc_cnt_2104 == 7) {
-        dmg_sc_cnt_2104 = 0;
+    if (dmg_sc_cnt == 7) {
+        dmg_sc_cnt = 0;
     } else {
-        dmg_sc_cnt_2104++;
+        dmg_sc_cnt++;
     }
 }
 
@@ -2378,36 +2460,30 @@ int CheckGiftPack(CActiveMonster *monster, CColPrim *prim) {
     int row = 0;
     int i;
 
-    while (gift_item_tbl[row][0] != -1) {
-        if (gift_item_tbl[row][0] == key) {
+    while (gift_item_tbl[row * MONSTER_GIFT_ENTRY_FIELDS] != -1) {
+        if (gift_item_tbl[row * MONSTER_GIFT_ENTRY_FIELDS] == key) {
             break;
         }
 
         row++;
     }
 
-    if (gift_item_tbl[row][0] == -1) {
+    if (gift_item_tbl[row * MONSTER_GIFT_ENTRY_FIELDS] == -1) {
         return 0;
     }
 
     for (i = 0; i < 3; i++) {
-        if (prim->gift[i] != gift_item_tbl[row][1]) {
+        if (prim->gift[i] != gift_item_tbl[row * MONSTER_GIFT_ENTRY_FIELDS + 1]) {
             return 0;
         }
     }
 
     return 1;
 }
-extern MONSTER_REACT react_tbl[];
-extern s16 vs_attk_index[];
 extern CFireAfterHit fireAfterHit[];
 extern CChillAfterHit chillAfterHit[];
 extern CThunder thunder[];
 extern CTornado tornado[];
-extern char at_2485[];
-extern char at_2486[];
-extern char at_2487[];
-extern char at_2488[];
 static inline DNG_BATTLE_AREA *BattleArea(CScene *scene) {
     return &scene->battle_area;
 }
@@ -2495,7 +2571,7 @@ void CMonsterMan::CheckDamage() {
                 if (monster->tbl->user_mons_id != 9) {
                     damage = 0.0f;
                 }
-                printf(at_2485, prim->status);
+                printf("SEISUI !\n", prim->status);
             }
             damage *= 0.01f * (float)tbl->ext_param[vs_attk_index[prim->param->kind]];
             element_damage = 0.0f;
@@ -2528,7 +2604,7 @@ void CMonsterMan::CheckDamage() {
                 damage /= (float)prim->param->hit_count;
             }
             dist = mgDistVector(prim->pos[0], prim->origin);
-            printf(at_2486, dist, prim->range);
+            printf("%.2f->%.2f\n", dist, prim->range);
             float half_range = prim->range / 2.0f;
             if (!(dist <= half_range)) {
                 float rate;
@@ -2539,7 +2615,7 @@ void CMonsterMan::CheckDamage() {
                     rate = 1.0f - dist / half_range;
                 }
                 damage *= rate;
-                printf(at_2487, rate);
+                printf("rate = %.2f\n", rate);
             }
             if (!(damage < 0.0f)) {
                 damage = GetDispVolumeForFloat(damage);
@@ -2606,7 +2682,7 @@ void CMonsterMan::CheckDamage() {
                     steal_rate = 1;
                 }
                 roll = (iRand(100) + iRand(100)) / 2;
-                printf(at_2488, steal_rate, roll);
+                printf("%d/%d\n", steal_rate, roll);
                 if (roll <= steal_rate && (monster->tbl->drop_item[0] > 0 || monster->tbl->drop_item[1] > 0)) {
                     int slot = 0;
                     if (iRand(100) < 20 && monster->tbl->drop_item[1] > 0) {
@@ -2953,7 +3029,7 @@ void CMonsterMan::MoveUnit(CActiveMonster *monster, CCPoly *poly, int poly_num) 
                 }
 
                 if (ground == -1) {
-                    FxScriptMan->CreateEffSpt(at_2588, 0, 0);
+                    FxScriptMan->CreateEffSpt("\x8D\xBB\x89\x8C", 0, 0);
                     FxScriptMan->SetScriptVect1(monster->mons_move_check.ground_point, 0, -1);
                     sndSePlay(sound_bank, 30, 0);
                 } else {
@@ -2961,7 +3037,7 @@ void CMonsterMan::MoveUnit(CActiveMonster *monster, CCPoly *poly, int poly_num) 
                         sceVu0CopyVector(effect_position, monster->mons_move_check.ground_point);
                         effect_position[0] += fRand(40.0f) - 20.0f;
                         effect_position[2] += fRand(40.0f) - 20.0f;
-                        FxScriptMan->CreateEffSpt(at_2589, 0, 0);
+                        FxScriptMan->CreateEffSpt("\x91\xAB\x90\x85\x83p\x83V\x83\x83", 0, 0);
                         FxScriptMan->SetScriptVect1(effect_position, 0, -1);
                     }
 
@@ -3013,7 +3089,6 @@ void CMonsterMan::MoveUnit(CActiveMonster *monster, CCPoly *poly, int poly_num) 
         monster->link_parts->SetRotation(rotation);
     }
 }
-extern EffectVector at_2699;
 void CMonsterMan::ThinkHost() {
     sceVu0FVECTOR monster_pos;
     CCPoly polys[0x80];
@@ -3171,10 +3246,10 @@ void CMonsterMan::ThinkHost() {
                 if (monster->gate_key > 0) {
                     CPullItem *item = PullItemMan.GetList(0);
                     if (item != NULL) {
-                        EffectVector velocity = at_2699;
+                        float velocity[4] = {0.0f, 2.0f, 0.0f, 1.0f};
                         monster->GetEntryObjectPos(0, item_pos);
                         item_pos[1] += 20.0f;
-                        item->SetItem(item_pos, velocity.f, 2);
+                        item->SetItem(item_pos, velocity, 2);
                         item->item_no = monster->gate_key;
                     }
                 }
@@ -3236,7 +3311,7 @@ void CMonsterMan::ThinkHost() {
     }
     PriorityLevelCheck();
 }
-int _MONSTER_NAME(SPI_STACK *stack, int argument_count) {
+static int _MONSTER_NAME(SPI_STACK *stack, int argument_count) {
     char              name[0x80];
     int               monster_id;
     char             *text;
@@ -3272,7 +3347,7 @@ void LoadMonsterLanguage(int language) {
     int   size;
     char *script = text;
 
-    sprintf(path, at_2809, language);
+    sprintf(path, "dungeon/cfg_file/mosdata%d.cfg", language);
 
     if (LoadFile2(path, script, &size, 0)) {
         CScriptInterpreter interpreter;
@@ -3301,9 +3376,7 @@ void CMonsterMan::DrawShadowActMonster() {
         shadow_direction[1] = 0.8f;
     }
 
-    float shadow_normal[4];
-    float shadow_position[4];
-    *(EffectVector *) shadow_normal = at_1707;
+    float shadow_normal[4] = {0.0f, 1.0f, 0.0f, 0.0f};
 
     for (index = 0; index < MONSTER_ACTIVE_MAX; index++) {
         monster = active[index];
@@ -3311,7 +3384,7 @@ void CMonsterMan::DrawShadowActMonster() {
         if (monster != NULL && monster->chara_kind == 2 && monster->catch_state != 1 &&
             monster->target_dist <= 0.6f * monster->clip_dist && monster->priority < priority_limit &&
             !(monster->alpha < 0.6f)) {
-            *(EffectVector *) shadow_position = at_1724__2;
+            float shadow_position[4] = {0.0f, -10.0f, 0.0f, 0.0f};
             active[index]->GetEntryObjectPos(1, shadow_position);
             shadow_position[1] -= 20.0f;
             mgSetDropShadowMatrix(shadow_direction, shadow_position, shadow_normal);
@@ -3392,54 +3465,6 @@ int CMonsterMan::CheckPhoto(CScene::InScreenCharaInfo *info) {
 
     return -1;
 }
-
-// Initialised data (.data)
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/monster", dung_progtxt_notlift_mons__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/monster", at_1707__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/monster", at_1724__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/monster", at_2031__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/monster", at_2079__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/monster", no_score_uv__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/monster", guard_score_uv__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/monster", vs_attk_index__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/monster", gift_item_tbl__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/monster", react_tbl__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/monster", at_2183__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/monster", at_2294__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/monster", at_2699__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/monster", mos_data_anlyze_tag__DATA);
-
-// Constants (.rodata)
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/monster", at_1200__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/monster", at_1201__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/monster", at_1202__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/monster", at_1203__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/monster", at_1204__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/monster", at_1205__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/monster", at_1421__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/monster", at_1422__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/monster", at_1423__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/monster", at_1424__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/monster", at_1425__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/monster", at_1426__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/monster", at_1427__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/monster", at_1428__3__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/monster", at_1429__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/monster", at_1430__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/monster", at_1431__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/monster", at_1999__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/monster", at_2100__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/monster", at_2485__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/monster", at_2486__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/monster", at_2487__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/monster", at_2488__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/monster", at_2588__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/monster", at_2589__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/monster", at_2802__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/monster", at_2809__DATA);
-
-// Virtual tables (.vtables)
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/monster", __vt__14CActiveMonster__DATA);
 
 // Small uninitialised data (.sbss)
 INCLUDE_BSS(dmg_sc_cnt_2104, 0x4);
