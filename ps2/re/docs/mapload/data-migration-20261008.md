@@ -161,3 +161,13 @@ check demonstrates compatibility with the userdata/font BSS and VU proposals;
 no special member, source helper, or vtable write is needed. Snapshots, tool
 patches, hashes, unit checks, and PAL receipts are captured in
 `.private/dataC/proposal-integration/`.
+
+## Native list vtables
+
+Both final vtable markers are removed. Existing `CList<CMapPiece>` and
+`CList<CMapParts>` constructions generate the 12-byte tables and their
+`Initialize` relocations naturally. The first table owns four verified
+zero alignment bytes; the terminal tail belongs to the linker. No manual
+vtable store or special member is added. PAL and all 149 object checks
+pass, with all unowned game object hashes unchanged. Receipts:
+`.private/dtool/10-mapload-{build,objects,metrics,tests}.log`.

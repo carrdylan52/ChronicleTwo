@@ -2603,5 +2603,3 @@ void CMap::LoadCfgFile(char *script, int length, mgCMemory *memory) {
 }
 
 // Virtual tables (.vtables)
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mapload", __vt__17CList_9CMapPiece___DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mapload", __vt__17CList_9CMapParts___DATA);
