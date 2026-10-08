@@ -1179,8 +1179,6 @@ void TitleModeInit() {
     }
 }
 #ifdef NONMATCHING
-int CalcMenuAdd(float *cursor, float step, float limit = 0.0f);
-
 /**
  *
  * Updates card detection, title menu input, fades, and attract-movie timing.
@@ -1301,10 +1299,10 @@ int TitleModeKey() {
             }
             break;
         case TITLE_PHASE_PUSH_START:
-            CalcMenuAdd(&TitleInfo->menu_alpha, float(-12.0));
-            CalcMenuAdd(&TitleInfo->cursor_alpha, float(-12.0));
+            CalcMenuAdd(&TitleInfo->menu_alpha, float(-12.0), 0.0f);
+            CalcMenuAdd(&TitleInfo->cursor_alpha, float(-12.0), 0.0f);
             CalcMenuAdd(&TitleInfo->title_alpha, 8.0f, 128.0f);
-            CalcMenuAdd(&TitleInfo->omake_alpha, -8.0f);
+            CalcMenuAdd(&TitleInfo->omake_alpha, -8.0f, 0.0f);
             if (start_pushed != 0) {
                 sndSePlay(TitleEventSound, 0, 0);
                 TitlePhase = TITLE_PHASE_MENU;
@@ -1420,7 +1418,7 @@ int TitleModeKey() {
             break;
         case TITLE_PHASE_OMAKE_MENU: {
             TitlePushStart_AlphaPlus = 0;
-            CalcMenuAdd(&TitleInfo->menu_alpha, float(-8.0));
+            CalcMenuAdd(&TitleInfo->menu_alpha, float(-8.0), 0.0f);
             CalcMenuAdd(&TitleInfo->cursor_alpha, float(3.0), float(128.0));
             int old_select = TitleInfo->omake_select;
             if (GamePad__2.Down(PAD_UP) != 0) {
