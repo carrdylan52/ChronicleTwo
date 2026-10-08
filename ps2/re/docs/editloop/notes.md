@@ -180,9 +180,10 @@ it has not been applied and needs whole-object checks for every consumer.
 
 The retail epilogue writes the incoming, otherwise unassigned saved `s4`
 value to both debug fishing-item fields. m2c identifies it as a saved incoming
-register. The existing uninitialized `fishing_item` local preserves that
-behavior and its compiler warning; giving it a fabricated default would
-change the executable. Other unresolved differences involve saved-register
+register. The uninitialized `fishing_item` local represents an indeterminate source
+value and retains its compiler warning; the native register allocation does
+not yet reproduce the saved incoming `s4` value. Giving it a fabricated
+default would also change the executable. Other unresolved differences involve saved-register
 allocation, BGM scene-pointer lifetimes, allocation argument order and water
 size rounding. Pointer induction and broad inline-depth changes did not
 produce a compliant match.
@@ -255,3 +256,112 @@ but retail gives that symbol the processor-specific binding 13 of a compiler-gen
 (`readelf -s` on SCES_511.90), while the hand-written definition is `GLOBAL`. `docs/MWCC.md` ("Natural
 C++ definitions") rules out hand-writing generated assignments, so the function stays `INCLUDE_ASM`
 until the implicit assignment is emitted naturally from its genuine caller (`EditInit`).
+
+## October 8 mid-day round 1
+
+The round starts at `98f90fd49612bf69d6ac32926438162661cce4bb`, including
+upstream `d8bf13c` and a hand-written camera-parameter assignment that was
+later returned to assembly (see above). The fresh baseline has 147/149
+passing game objects, 6,687 matched functions and the
+known 0x26-byte PAL `.text` discrepancy. All experiments use the pinned
+`chronicletwo_dev:sf-d8bf13c` image and the canonical profile. No replacement
+assembly or compiler-profile row is introduced.
+
+### Texture-group drawing
+
+`EditDraw` now contains no `Ident` definition or call. Its retained natural
+C++ body differs by 8/860 words and occupies 0xD6C bytes in the 0xD70 retail
+extent. The six-word result described in the previous audit requires the
+removed identity helper and is not the accepted source baseline.
+
+`CMdsListSet::GetTextureBlockNo` supplies a signed count and writes at most
+128 integer block numbers. The map groups 0..5 traverse that list backwards;
+the groups 6..15 traverse it forwards. In the reverse loop, the address of
+the current array element survives the reload call so the water-block test
+reloads that element, while `mgEndDraw` receives the cached block number.
+The first loop reuses the existing count/index locals; the later loop keeps
+its own induction variable. The previously measured helper-free eight-word
+form is now retained in the guarded source.
+
+Raw-word offsets of the remaining differences are +0x428, +0x42C, +0x6EC,
++0x6F0, +0x6FC, +0x700, +0x724 and +0x72C. At both count acquisitions, retail
+checks `v0` before copying it to `s3`; native copies before checking the
+saved register. The forward loop additionally exchanges the count and its
+array induction between `s3` and `s4`. Every other instruction word compares.
+
+New probes cover count acquisition in the loop initializer or condition,
+assignment conditions with do/while bodies, array references and typed
+iterators, direct model-list references, reverse-index expression order,
+remaining-count induction, shared count/index lifetimes, scoped cached block
+values, unsigned or wider induction, a short water-block value, and buffer
+capacity expressed through `sizeof` or a named constant. None improves the
+retained eight-word form. Pointer induction gives 19 or 37 words; a separate
+later count gives 10. Several type/control variants exceed the retail extent.
+The exact probe scores, including excess words, are in the private ledger;
+these trials should not be repeated without a new source hypothesis.
+
+The complete wrapper/fixup check of the helper-free draft also fails only
+`EditDraw`, first at retail 0x1AFC28. The function stays guarded. Receipts:
+`.private/editloop-r1/draw-base-full/{check.log,diff.txt}`,
+`retained-draw/{compare.log,diff.txt}`, `draw-new-shapes.log`,
+`draw-induction.log`, `draw-count-lifetimes.log`,
+`draw-result-conditions.log` and `trial-ledger.tsv`.
+
+### Initialization regions
+
+The retained `EditInit` improves from 1,261/1,776 to 1,239/1,776 differing
+words, with a 0x1B2C native body against the 0x1BC0 retail extent.
+
+Writing the billboard's RGB components before its alpha reproduces the
+whole instruction sequence at +0x6D8..+0x70C. This includes the early 255.0f
+materialization, billboard/no-light stores, the 128.0f alpha and the three
+RGB stores around `SetAttrParam`. Chained assignments and a named colour
+constant retain the original score; moving RGB ahead of all flags leaves
+four stores in the wrong order. RGB followed by alpha is the retained form.
+
+The water image is allocated in quadwords rounded up for a partial final
+quadword. Retail tests the low four file-size bits, shifts the unsigned
+byte size in the branch delay slot and recomputes that shift in the rounding
+branch. Separate rounded/unrounded assignments preserve both shifts;
+incrementing a precomputed count removes the second one. The equivalent
+ternary also gives the 1,250-word isolated result. A size snapshot and a
+cached full-quadword count do not improve the original draft. Combining the
+explicit branch with the corrected billboard setup gives the retained
+1,239-word result.
+
+Retail also retains one `CScene*` across both `GetActiveBgmInfo` calls and
+`SetVolfBGM`. A local scene snapshot gives 1,251 words alone and 1,240 with
+the billboard change; adding it to both retained changes gives 1,252 words.
+That alternate is recorded but not retained in the best word-comparison
+body. Its master multiplier is `BGM_INFO::master_volf` at +0xC, and the
+current volume is `volf` at +0x14, as the existing sound declarations specify.
+
+The out-of-line `CMapTreasureBox` constructor still prevents retail's inline
+constructor chain at +0x774 onwards. The prior shared-file proposal remains
+unapplied. The first 0x748 bytes now compare word-for-word; the branch at
++0x748 differs because its destination follows that missing constructor
+expansion. Later differences include allocation/call argument scheduling
+and scene lifetimes. The uninitialized fishing-item local remains guarded;
+its native stores currently use `s2`, whereas retail stores the unassigned
+incoming `s4`. Keeping that source local is not yet a machine-register match
+and does not justify promoting the function.
+
+Receipts: `.private/editloop-r1/EditInit.m2c.cpp`, `init-regions.log`,
+`init-region-combinations.log`, `init-exact-attributes.log`,
+`retained-init/{compare.log,diff-with-zeros.txt}` and
+`attempt-word-metrics.json`.
+
+### Validation
+
+The final active build remains at 147/149 object passes. Only the existing
+`nd_meswin/DrawMesWin` and `actscript/_SHOT` checks fail. PAL `.text` still
+has exactly 0x26 differing bytes, every other file-backed section passes and
+memory ends at 0x1F64A00. All 149 game object file hashes are identical to
+the fresh baseline. Coverage remains 6,687 matched functions; no function
+is promoted in this round.
+
+Receipts under `.private/editloop-r1/`: `baseline-build.log`,
+`baseline-objects.log`, `final-build.log`, `final-objects.log`,
+`final-object-hash-diff.json`, `final-coverage.txt` and
+`retained-drafts.log`. The existing shared constructor, rectangle-assignment
+and fatigue proposals are not applied.

@@ -517,10 +517,10 @@ void EditInit(INIT_LOOP_ARG arg) {
         mgCFrameAttr attr;
         attr.billboard = MG_FRAME_BILLBOARD_Y;
         attr.no_light = 1;
-        attr.color[3] = 128.0f;
         attr.color[0] = 255.0f;
         attr.color[1] = 255.0f;
         attr.color[2] = 255.0f;
+        attr.color[3] = 128.0f;
         RedBicMark->SetAttrParam(attr, 1, 0);
     }
     LoadEditCursor(&TotalDataBuff, 163);
@@ -585,9 +585,10 @@ void EditInit(INIT_LOOP_ARG arg) {
     MainScene__2->AssignEffect(0, effects, NULL);
     MainScene__2->read_buff = read_buffer;
     if (LoadFile2("img/water_ref.img", TotalDataBuff.stAllocTest(1), &water_size, 0) != 0) {
-        water_qwords = (u_int) water_size / 16;
         if (water_size & 0xF) {
-            water_qwords++;
+            water_qwords = (u_int) water_size / 16 + 1;
+        } else {
+            water_qwords = (u_int) water_size / 16;
         }
         textures->EnterIMGFile((u_char *) TotalDataBuff.Alloc(water_qwords), 158, NULL, NULL);
     }
@@ -1832,9 +1833,6 @@ int EditStep() {
     return 1;
 }
 #ifdef NONMATCHING
-template <typename T>
-static inline T Ident(T v) { return v; }
-
 int EditDraw() {
     static int             flag;
     static char            init;
@@ -1962,9 +1960,9 @@ int EditDraw() {
         mgPreEndDraw(NULL);
         int texture_blocks[128];
         for (texture_group = 0; texture_group < 6; texture_group++) {
-            block_count = MainScene__2->mds_list_set.GetTextureBlockNo(texture_group, texture_blocks, 128);
-            for (int block_index = 0; block_index < block_count; block_index++) {
-                int *entry = &texture_blocks[block_count - block_index - 1];
+            block_index = MainScene__2->mds_list_set.GetTextureBlockNo(texture_group, texture_blocks, 128);
+            for (block_count = 0; block_count < block_index; block_count++) {
+                int *entry = &texture_blocks[block_index - block_count - 1];
                 block = *entry;
                 if (mgEndDrawReloadTexture(block, NULL) != 0 && water_block == *entry) {
                     WaveTable.CreateTexture(water);
@@ -2025,7 +2023,7 @@ int EditDraw() {
     if (map_draw != 0) {
         int later_texture_blocks[128];
         for (int texture_group = 6; texture_group < 16; texture_group++) {
-            block_count = Ident(MainScene__2->mds_list_set.GetTextureBlockNo(texture_group, later_texture_blocks, 128));
+            block_count = MainScene__2->mds_list_set.GetTextureBlockNo(texture_group, later_texture_blocks, 128);
             for (int block_index = 0; block_index < block_count; block_index++) {
                 int block = later_texture_blocks[block_index];
                 mgEndDrawReloadTexture(block, NULL);
