@@ -10,7 +10,9 @@ The recent objdump `-z` change repairs side-by-side instruction offsets and deno
 
 The three zero-word drafts remain guarded: the object copy constructor depends on the monster-copy caller for natural emission; `StepGyoRace` belongs to the excluded ctxrows lane; `LightingEdit` retains prohibited fog-channel address arithmetic. No guard is removed on score alone. Off-limits units are read and rescored only. Previously exhaustive placement, integer-allocation and typed-layout trials are not replayed; VU0/asm targets are excluded.
 
-## Ranked baseline
+The retained `MotionProc(float)` branch change improves 289/596 to 32/596 words and restores its 0x94C retail body. It is recompiled with both helpers; the other 116 guarded scores are unchanged. Sound port-grouping trials are worse than the retained 12/480. No function is promoted. All 149 linked objects and the linked ELF remain identical to the baseline; final coverage and 147/149 object acceptance are unchanged.
+
+## Final ranked guarded functions
 
 | Rank | Unit | Retail function symbol | SF words / extent | Plain words / extent | Size delta (bytes) | Documented blocker | Sweep disposition |
 | ---: | --- | --- | ---: | ---: | ---: | --- | --- |
@@ -65,47 +67,47 @@ The three zero-word drafts remain guarded: the object copy constructor depends o
 | 49 | `menuop` | `KeyStep__14CSaveMenuClassFv` | 28/1692 | 28/1692 | -0xC | [Save-state frame/local layout and integer predicate scheduling](../menuop/notes.md) | Off limits; rescore only |
 | 50 | `mg_math` | `mgClipInBoxW__FPfPfPfPf` | 29/20 | 29/20 | +0x30 | [VU0 vector/matrix/status instructions; scalar draft cannot match](../mg_math/notes.md) | VU0/asm exclusion |
 | 51 | `menudraw` | `CommonBoardDraw__FPfRi` | 29/888 | 52/888 | -0x8 | [Board coordinate/line-pointer integer allocation with direct typed access](../menudraw/remaining-guards-20261008.md) | Off limits; rescore only |
-| 52 | `menusys` | `MenuItemDebugDraw__Fv` | 32/1260 | 34/1260 | -0xC | [Float argument setup, item-index addition and build-up-name loop registers](../menusys/matching-round1-20261008.md) | Off limits; rescore only |
-| 53 | `menusys` | `MenuDataSwap__FP13CGameDataUsedP13CGameDataUsedi` | 34/228 | 34/228 | -0x8 | [Presence registers, result-array setup and tail scheduling](../menusys/matching-round1-20261008.md) | Off limits; rescore only |
-| 54 | `mg_math` | `mgVectorMinMaxN__FPfPfPA4_fi` | 42/24 | 42/24 | +0x64 | [VU0 vector/matrix/status instructions; scalar draft cannot match](../mg_math/notes.md) | VU0/asm exclusion |
-| 55 | `movie` | `vblankHandler__Fi` | 42/56 | 42/56 | -0x14 | [sync/ei instructions lack a native compiler expression](../movie/midday-20261008.md) | VU0/asm exclusion |
-| 56 | `menusys` | `CommonSetMoveItemClass__FPA4_i` | 42/248 | 42/248 | -0x8 | [Input-row copy scheduling and narrowed-short sign extension](../menusys/matching-round1-20261008.md) | Off limits; rescore only |
-| 57 | `mg_math` | `mgApplyMatrixN__FPA4_fPA4_fPA4_fi` | 46/20 | 46/20 | +0x80 | [VU0 vector/matrix/status instructions; scalar draft cannot match](../mg_math/notes.md) | VU0/asm exclusion |
-| 58 | `mg_dataset` | `CopyFrameSub__FP8mgCFrameP9mgCMemoryiPP8mgCFrame` | 46/68 | 46/68 | -0x8 | [Placement-new allocation-result/null-branch scheduling](../mg_dataset/notes.md) | Documented park; no repeated probes |
-| 59 | `menushop` | `MenuNPCQuestViewInit__FP9mgCMemoryPii` | 46/76 | 46/76 | -0x8 | [Quest/menu native constructor expansion and allocation-result scheduling](../menushop/notes.md) | Documented park; no repeated probes |
-| 60 | `mg_math` | `MulMatrix3__FPA4_fPA4_fPA4_f` | 49/52 | 49/52 | -0x84 | [VU0 vector/matrix/status instructions; scalar draft cannot match](../mg_math/notes.md) | VU0/asm exclusion |
-| 61 | `dngmenu` | `DngTreeMapInit__FP9mgCMemoryPiii` | 55/256 | 55/256 | -0x8 | [Opening-mode boolean lowering and cursor-buffer store forwarding](../dngmenu/parks.md) | Documented park; no repeated probes |
-| 62 | `title` | `TitleBootInit__Fv` | 56/676 | 56/676 | -0xC | [Boot/member construction and argument scheduling](../title/notes.md) | Off limits; rescore only |
-| 63 | `mdslist` | `Copy__9CMapPieceFR9CMapPieceP9mgCMemory` | 57/156 | 57/156 | -0x4 | [Placement-new allocation-result/null-branch scheduling](../mdslist/notes.md) | Documented park; no repeated probes |
-| 64 | `mg_math` | `mgApplyMatrixN_MaxMin__FPA4_fPA4_fPA4_fiPfPf` | 60/36 | 60/36 | +0x78 | [VU0 vector/matrix/status instructions; scalar draft cannot match](../mg_math/notes.md) | VU0/asm exclusion |
-| 65 | `menuaqua` | `ColCheck__9CAquariumFi` | 60/448 | 60/448 | -0x8 | [Selected-fish/displacement/count saved-register lifetimes](../menuaqua/midday-20261008.md) | Documented park; no repeated probes |
-| 66 | `mg_math` | `mgMulMatrix__FPA4_fPA4_fPA4_f` | 65/32 | 65/32 | +0x84 | [VU0 vector/matrix/status instructions; scalar draft cannot match](../mg_math/notes.md) | VU0/asm exclusion |
-| 67 | `menuchr` | `Draw__15CMenuCostumeSelFv` | 71/568 | 71/568 | -0x10 | [Pulse merge, integer conversion and arrow-shadow argument schedule](../menuchr/midday-r1-assessment.md) | Off limits; rescore only |
-| 68 | `water` | `CreateWaterFrame__FiiPfPfP9mgCMemory` | 82/104 | 82/104 | 0 | [Placement-new allocation-result/null-branch scheduling](../water/notes.md) | Documented park; no repeated probes |
-| 69 | `editmode` | `EditMode__FP6CScene` | 87/1912 | 74/1912 | -0x4 | [Quarter-turn argument order, axis registers and ground-query scheduling](../editmode/notes.md) | Off limits; rescore only |
-| 70 | `map` | `CreateDrawRect__4CMapFP9mgCMemoryP9mgVu0FBOXP9mgVu0FBOXi` | 112/112 | 112/112 | +0x10 | [Visibility-list construction and placement-new result scheduling](../map/midday-20261008.md) | Documented park; no repeated probes |
-| 71 | `menudraw` | `GeneratePoly__14CRepairManagerFPfi` | 117/144 | 117/144 | -0x2C | [Action-character base construction and placement-new result schedule](../menudraw/remaining-guards-20261008.md) | Off limits; rescore only |
-| 72 | `menusys` | `MenuModeMalloc__13CMenuItemInfoFP9mgCMemory` | 127/240 | 127/240 | -0x4 | [Native member construction and placement-new scheduling](../menusys/matching-round1-20261008.md) | Off limits; rescore only |
-| 73 | `mg_math` | `mgInversMatrix__FPA4_fPA4_f` | 140/64 | 140/64 | +0x130 | [VU0 vector/matrix/status instructions; scalar draft cannot match](../mg_math/notes.md) | VU0/asm exclusion |
-| 74 | `menusys` | `MenuItemSelectInit__FP9mgCMemoryPii` | 146/164 | 146/164 | -0x4 | [Native member construction and placement-new scheduling](../menusys/matching-round1-20261008.md) | Off limits; rescore only |
-| 75 | `editexception` | `InitFirePowder__FiP6CSceneiP9mgCMemory` | 150/216 | 150/216 | -0x4 | [Sprite placement-new branch/copy schedule shifts construction/arithmetic tail](../editexception/notes.md) | Documented park; no repeated probes |
-| 76 | `menuchr` | `MenuCostumeInit__FP9mgCMemoryPii` | 161/184 | 165/184 | -0x24 | [Menu/camera/character native constructor expansion](../menuchr/midday-r1-assessment.md) | Off limits; rescore only |
-| 77 | `mglib` | `mgInit__Fii` | 168/652 | 168/652 | 0 | [SDK register/structure and frame-end source scheduling (see unit notes)](../mglib/notes.md) | Off limits; rescore only |
-| 78 | `mg_frame` | `Draw__8mgCFrameFPUi` | 182/236 | 182/236 | +0x4 | [VU0 helper call retains output pointers across a nonstandard register contract](../mg_frame/notes.md) | VU0/asm exclusion |
-| 79 | `inventmn` | `LoadCharaCheck__11CMenuInventFv` | 190/312 | 190/312 | -0x54 | [Shared character/album construction and placement-new scheduling](../inventmn/notes.md) | Documented park; no repeated probes |
-| 80 | `sphida` | `DrawStatusSprite__7CSphidaFv` | 193/1096 | 168/1096 | -0x4 | [Context-dependent sprite argument scheduling and carry-digit extent](../sphida/notes.md) | Off limits; rescore only |
-| 81 | `gameutil` | `MotionProc2__FP8mgCFrameP14tagMOTION_TYPEP12tagFRAME_INFP8Mot_List` | 206/224 | 206/224 | -0x40 | [VU0 skinning instructions/register state](../gameutil/notes.md) | VU0/asm exclusion |
-| 82 | `effscript` | `CreateEffSpt__16CEffectScriptManFiii` | 206/320 | 206/320 | 0 | [Placement-new/member construction and subsequent character allocation](../effscript/notes.md) | Documented park; no repeated probes |
-| 83 | `dngmenu` | `DrawGeoramaMateria__FiPciPii` | 224/256 | 224/256 | +0x4 | [Title/column/page lifetimes and dimension scratch slots](../dngmenu/parks.md) | Documented park; no repeated probes |
-| 84 | `mglib` | `mgEndFrame__FP14mgCDrawManager` | 232/672 | 232/672 | -0x4C | [SDK register/structure and frame-end source scheduling (see unit notes)](../mglib/notes.md) | Off limits; rescore only |
-| 85 | `menuchr` | `MenuCharaChangeInit__FP9mgCMemoryPii` | 236/316 | 236/316 | 0 | [Menu/camera/character native constructor expansion](../menuchr/midday-r1-assessment.md) | Off limits; rescore only |
-| 86 | `event_func` | `_COPY_MONS2SCNCHR__FP12RS_STACKDATAi` | 246/472 | 246/472 | -0x10 | [Placement-new branch and shadow-link aggregate copy/type evidence](../event_func/notes.md) | Documented park; no repeated probes |
-| 87 | `gameutil` | `CheckHits__FP13CollisionInfoPfPfiPiPA4_fii` | 252/264 | 252/264 | +0x28 | [VU0 segment-bound register state across polygon helpers](../gameutil/notes.md) | VU0/asm exclusion |
-| 88 | `mglib` | `mgSetPkFrameBuffer__Fiiii` | 252/424 | 252/424 | -0x20 | [SDK register/structure and frame-end source scheduling (see unit notes)](../mglib/notes.md) | Off limits; rescore only |
-| 89 | `editmode` | `LoadEditCursor__FP9mgCMemoryi` | 270/368 | 270/368 | 0 | [Cursor/character placement-new construction](../editmode/notes.md) | Off limits; rescore only |
-| 90 | `menuop` | `MenuManualInit__FP9mgCMemoryPii` | 285/324 | 285/324 | +0x8 | [Manual-menu native construction/placement-new scheduling](../menuop/notes.md) | Off limits; rescore only |
-| 91 | `menuchr` | `MenuCharaChangeStarDraw__Fv` | 285/368 | 285/368 | -0x3C | [Center/rectangle storage, manager and floating register lifetimes](../menuchr/midday-r1-assessment.md) | Off limits; rescore only |
-| 92 | `gameutil` | `MotionProc__FP8mgCFramefP8Mot_ListP9mgCCamera` | 289/596 | 289/596 | -0x1C | [Camera/key saved-register allocation and vertex-key control flow](../gameutil/notes.md) | Eligible for new vertex/lifetime evidence |
+| 52 | `gameutil` | `MotionProc__FP8mgCFramefP8Mot_ListP9mgCCamera` | 32/596 | 32/596 | -0x4 | [Camera/key saved-register allocation and last-key clamp lowering](../gameutil/notes.md) | Retain guarded successor-branch improvement: 289 to 32 words |
+| 53 | `menusys` | `MenuItemDebugDraw__Fv` | 32/1260 | 34/1260 | -0xC | [Float argument setup, item-index addition and build-up-name loop registers](../menusys/matching-round1-20261008.md) | Off limits; rescore only |
+| 54 | `menusys` | `MenuDataSwap__FP13CGameDataUsedP13CGameDataUsedi` | 34/228 | 34/228 | -0x8 | [Presence registers, result-array setup and tail scheduling](../menusys/matching-round1-20261008.md) | Off limits; rescore only |
+| 55 | `mg_math` | `mgVectorMinMaxN__FPfPfPA4_fi` | 42/24 | 42/24 | +0x64 | [VU0 vector/matrix/status instructions; scalar draft cannot match](../mg_math/notes.md) | VU0/asm exclusion |
+| 56 | `movie` | `vblankHandler__Fi` | 42/56 | 42/56 | -0x14 | [sync/ei instructions lack a native compiler expression](../movie/midday-20261008.md) | VU0/asm exclusion |
+| 57 | `menusys` | `CommonSetMoveItemClass__FPA4_i` | 42/248 | 42/248 | -0x8 | [Input-row copy scheduling and narrowed-short sign extension](../menusys/matching-round1-20261008.md) | Off limits; rescore only |
+| 58 | `mg_math` | `mgApplyMatrixN__FPA4_fPA4_fPA4_fi` | 46/20 | 46/20 | +0x80 | [VU0 vector/matrix/status instructions; scalar draft cannot match](../mg_math/notes.md) | VU0/asm exclusion |
+| 59 | `mg_dataset` | `CopyFrameSub__FP8mgCFrameP9mgCMemoryiPP8mgCFrame` | 46/68 | 46/68 | -0x8 | [Placement-new allocation-result/null-branch scheduling](../mg_dataset/notes.md) | Documented park; no repeated probes |
+| 60 | `menushop` | `MenuNPCQuestViewInit__FP9mgCMemoryPii` | 46/76 | 46/76 | -0x8 | [Quest/menu native constructor expansion and allocation-result scheduling](../menushop/notes.md) | Documented park; no repeated probes |
+| 61 | `mg_math` | `MulMatrix3__FPA4_fPA4_fPA4_f` | 49/52 | 49/52 | -0x84 | [VU0 vector/matrix/status instructions; scalar draft cannot match](../mg_math/notes.md) | VU0/asm exclusion |
+| 62 | `dngmenu` | `DngTreeMapInit__FP9mgCMemoryPiii` | 55/256 | 55/256 | -0x8 | [Opening-mode boolean lowering and cursor-buffer store forwarding](../dngmenu/parks.md) | Documented park; no repeated probes |
+| 63 | `title` | `TitleBootInit__Fv` | 56/676 | 56/676 | -0xC | [Boot/member construction and argument scheduling](../title/notes.md) | Off limits; rescore only |
+| 64 | `mdslist` | `Copy__9CMapPieceFR9CMapPieceP9mgCMemory` | 57/156 | 57/156 | -0x4 | [Placement-new allocation-result/null-branch scheduling](../mdslist/notes.md) | Documented park; no repeated probes |
+| 65 | `mg_math` | `mgApplyMatrixN_MaxMin__FPA4_fPA4_fPA4_fiPfPf` | 60/36 | 60/36 | +0x78 | [VU0 vector/matrix/status instructions; scalar draft cannot match](../mg_math/notes.md) | VU0/asm exclusion |
+| 66 | `menuaqua` | `ColCheck__9CAquariumFi` | 60/448 | 60/448 | -0x8 | [Selected-fish/displacement/count saved-register lifetimes](../menuaqua/midday-20261008.md) | Documented park; no repeated probes |
+| 67 | `mg_math` | `mgMulMatrix__FPA4_fPA4_fPA4_f` | 65/32 | 65/32 | +0x84 | [VU0 vector/matrix/status instructions; scalar draft cannot match](../mg_math/notes.md) | VU0/asm exclusion |
+| 68 | `menuchr` | `Draw__15CMenuCostumeSelFv` | 71/568 | 71/568 | -0x10 | [Pulse merge, integer conversion and arrow-shadow argument schedule](../menuchr/midday-r1-assessment.md) | Off limits; rescore only |
+| 69 | `water` | `CreateWaterFrame__FiiPfPfP9mgCMemory` | 82/104 | 82/104 | 0 | [Placement-new allocation-result/null-branch scheduling](../water/notes.md) | Documented park; no repeated probes |
+| 70 | `editmode` | `EditMode__FP6CScene` | 87/1912 | 74/1912 | -0x4 | [Quarter-turn argument order, axis registers and ground-query scheduling](../editmode/notes.md) | Off limits; rescore only |
+| 71 | `map` | `CreateDrawRect__4CMapFP9mgCMemoryP9mgVu0FBOXP9mgVu0FBOXi` | 112/112 | 112/112 | +0x10 | [Visibility-list construction and placement-new result scheduling](../map/midday-20261008.md) | Documented park; no repeated probes |
+| 72 | `menudraw` | `GeneratePoly__14CRepairManagerFPfi` | 117/144 | 117/144 | -0x2C | [Action-character base construction and placement-new result schedule](../menudraw/remaining-guards-20261008.md) | Off limits; rescore only |
+| 73 | `menusys` | `MenuModeMalloc__13CMenuItemInfoFP9mgCMemory` | 127/240 | 127/240 | -0x4 | [Native member construction and placement-new scheduling](../menusys/matching-round1-20261008.md) | Off limits; rescore only |
+| 74 | `mg_math` | `mgInversMatrix__FPA4_fPA4_f` | 140/64 | 140/64 | +0x130 | [VU0 vector/matrix/status instructions; scalar draft cannot match](../mg_math/notes.md) | VU0/asm exclusion |
+| 75 | `menusys` | `MenuItemSelectInit__FP9mgCMemoryPii` | 146/164 | 146/164 | -0x4 | [Native member construction and placement-new scheduling](../menusys/matching-round1-20261008.md) | Off limits; rescore only |
+| 76 | `editexception` | `InitFirePowder__FiP6CSceneiP9mgCMemory` | 150/216 | 150/216 | -0x4 | [Sprite placement-new branch/copy schedule shifts construction/arithmetic tail](../editexception/notes.md) | Documented park; no repeated probes |
+| 77 | `menuchr` | `MenuCostumeInit__FP9mgCMemoryPii` | 161/184 | 165/184 | -0x24 | [Menu/camera/character native constructor expansion](../menuchr/midday-r1-assessment.md) | Off limits; rescore only |
+| 78 | `mglib` | `mgInit__Fii` | 168/652 | 168/652 | 0 | [SDK register/structure and frame-end source scheduling (see unit notes)](../mglib/notes.md) | Off limits; rescore only |
+| 79 | `mg_frame` | `Draw__8mgCFrameFPUi` | 182/236 | 182/236 | +0x4 | [VU0 helper call retains output pointers across a nonstandard register contract](../mg_frame/notes.md) | VU0/asm exclusion |
+| 80 | `inventmn` | `LoadCharaCheck__11CMenuInventFv` | 190/312 | 190/312 | -0x54 | [Shared character/album construction and placement-new scheduling](../inventmn/notes.md) | Documented park; no repeated probes |
+| 81 | `sphida` | `DrawStatusSprite__7CSphidaFv` | 193/1096 | 168/1096 | -0x4 | [Context-dependent sprite argument scheduling and carry-digit extent](../sphida/notes.md) | Off limits; rescore only |
+| 82 | `gameutil` | `MotionProc2__FP8mgCFrameP14tagMOTION_TYPEP12tagFRAME_INFP8Mot_List` | 206/224 | 206/224 | -0x40 | [VU0 skinning instructions/register state](../gameutil/notes.md) | VU0/asm exclusion |
+| 83 | `effscript` | `CreateEffSpt__16CEffectScriptManFiii` | 206/320 | 206/320 | 0 | [Placement-new/member construction and subsequent character allocation](../effscript/notes.md) | Documented park; no repeated probes |
+| 84 | `dngmenu` | `DrawGeoramaMateria__FiPciPii` | 224/256 | 224/256 | +0x4 | [Title/column/page lifetimes and dimension scratch slots](../dngmenu/parks.md) | Documented park; no repeated probes |
+| 85 | `mglib` | `mgEndFrame__FP14mgCDrawManager` | 232/672 | 232/672 | -0x4C | [SDK register/structure and frame-end source scheduling (see unit notes)](../mglib/notes.md) | Off limits; rescore only |
+| 86 | `menuchr` | `MenuCharaChangeInit__FP9mgCMemoryPii` | 236/316 | 236/316 | 0 | [Menu/camera/character native constructor expansion](../menuchr/midday-r1-assessment.md) | Off limits; rescore only |
+| 87 | `event_func` | `_COPY_MONS2SCNCHR__FP12RS_STACKDATAi` | 246/472 | 246/472 | -0x10 | [Placement-new branch and shadow-link aggregate copy/type evidence](../event_func/notes.md) | Documented park; no repeated probes |
+| 88 | `gameutil` | `CheckHits__FP13CollisionInfoPfPfiPiPA4_fii` | 252/264 | 252/264 | +0x28 | [VU0 segment-bound register state across polygon helpers](../gameutil/notes.md) | VU0/asm exclusion |
+| 89 | `mglib` | `mgSetPkFrameBuffer__Fiiii` | 252/424 | 252/424 | -0x20 | [SDK register/structure and frame-end source scheduling (see unit notes)](../mglib/notes.md) | Off limits; rescore only |
+| 90 | `editmode` | `LoadEditCursor__FP9mgCMemoryi` | 270/368 | 270/368 | 0 | [Cursor/character placement-new construction](../editmode/notes.md) | Off limits; rescore only |
+| 91 | `menuop` | `MenuManualInit__FP9mgCMemoryPii` | 285/324 | 285/324 | +0x8 | [Manual-menu native construction/placement-new scheduling](../menuop/notes.md) | Off limits; rescore only |
+| 92 | `menuchr` | `MenuCharaChangeStarDraw__Fv` | 285/368 | 285/368 | -0x3C | [Center/rectangle storage, manager and floating register lifetimes](../menuchr/midday-r1-assessment.md) | Off limits; rescore only |
 | 93 | `menuchr` | `EnterDataMenu__15CMenuChrCngMenuFPUc` | 376/388 | 376/388 | +0x10 | [Palette/command array indexing and NPC index/stride allocation](../menuchr/midday-r1-assessment.md) | Off limits; rescore only |
 | 94 | `title` | `TitleModeKey__Fv` | 379/624 | 15/624 | -0x8 | [Card-readiness snapshots and context-dependent fade scheduling](../title/notes.md) | Off limits; rescore only |
 | 95 | `inventmn` | `IsCreateObject__11CMenuInventFii` | 380/1380 | 380/1380 | -0x28 | [Shared character/album construction and placement-new scheduling](../inventmn/notes.md) | Documented park; no repeated probes |
@@ -140,6 +142,9 @@ All paths are relative to the assigned worktree. Private receipts are not staged
 - `.private/sweep-midday/baseline-coverage.log`, `baseline-image.sha256` and `baseline-fingerprints.json`: function classifications, linked ELF hash and allocated-section/relocation inventories of all 149 units.
 - `.private/sweep-midday/rescore-plain.log`, `drafts/*.log` and `guarded-scores-plain-baseline.json`: every requested plain draft check.
 - `.private/sweep-midday/rescore-sf.log`, `drafts-sf/*.log` and `guarded-scores-sf-baseline.json`: the matching compiler-profile rescore.
-- `.private/sweep-midday/guarded-functions-baseline.json`, `guarded-units.txt` and `guarded-ranked-baseline.json`: exact classified queue, unit list and structured ranked table.
+- `.private/sweep-midday/gameutil-retained-native.log`, `gameutil-retained-plain.log`, `guarded-scores-sf-final.json` and `guarded-scores-plain-final.json`: final retained-unit comparisons and current scores.
+- `.private/sweep-midday/gameutil-retained-build.log`, `gameutil-retained-objects.log` and `gameutil-retained-object-preservation.json`: full build, 147/149 object acceptance and all 149 unchanged object inventories.
+- `.private/sweep-midday/final-progress-manifest.log`, `final-coverage.log` and `final-image-preservation.json`: refreshed coverage/manifest and identical linked ELF hash.
+- `.private/sweep-midday/guarded-functions-baseline.json`, `guarded-units.txt` and `guarded-ranked-final.json`: exact classified queue, unit list and structured ranked table.
 
 The m2c outputs, source hypotheses and final acceptance measurements for any worked unit are documented in its own notes. No tooling, compiler profile, off-limits source or shared header is changed by this sweep.
