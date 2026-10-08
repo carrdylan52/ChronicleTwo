@@ -231,8 +231,12 @@ selector construction boundaries are documented in
 
 ## Remaining matching blockers
 
+The [round-one matching status](matching-round1-20261008.md) records the current
+scores, new source hypotheses, and validation receipts. `MenuDataSwap` improves
+to 34/228 differing words while remaining guarded, and both swap-result tables
+have exact C++ data definitions; see [swap-results.md](swap-results.md).
 The [midday matching status](matching-midday-20261008.md) records the eleven
-remaining guarded symbols, measured differences, experiments and receipt paths.
+remaining guarded symbols and the earlier round-zero experiments.
 The [morning matching status](matching-status-20261008.md) is a historical
 snapshot from before the lane base and includes the subsequently promoted
 `MenuWeaponBuildUpDraw`.
@@ -258,7 +262,9 @@ or replacing repeated active-item address expressions with the named pointer
 does not resolve these thirteen differing words.
 
 `MenuDataSwap` agrees through the swap behavior but differs in its final
-presence flags and two-byte result-table scheduling. Retail's table at
+presence flags and two-byte result-table scheduling. Its retained automatic
+result array is declared with the function locals and filled in the general
+exchange tail, giving 34/228 differing words. Retail's table at
 `at_2512` contains `{0, 2}`; `ret_tbl1_2511` contains `{1, 3}`. Splitting the
 mixed initializer into a constant initializer and an assignment produces the
 same instructions. Swapping the presence-flag declaration order worsens the

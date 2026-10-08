@@ -2666,6 +2666,11 @@ s8 ret_tbl1_2511[2] = {kMenuSwapNormal, kMenuSwapDestinationEmpty};
  */
 s8 at_2512[2] = {kMenuSwapFailed, kMenuSwapDestinationOccupied};
 #ifdef NONMATCHING
+/**
+ *
+ * Exchanges menu items through gift-box, bait, stacking and aquarium handling.
+ *
+ */
 int MenuDataSwap(CGameDataUsed *destination, CGameDataUsed *source, int quantity) {
     int          dst_type;
     int          dst_no;
@@ -2676,10 +2681,11 @@ int MenuDataSwap(CGameDataUsed *destination, CGameDataUsed *source, int quantity
     int          src_no;
     int          result;
     int          dst_used;
+    s8           results[2];
     if (destination == NULL || source == NULL) {
-        return 0;
+        return kMenuSwapFailed;
     }
-    result = 1;
+    result = kMenuSwapNormal;
     dst_no = destination->item_no;
     src_no = source->item_no;
     dst_type = GetItemDataType(dst_no);
@@ -2692,17 +2698,17 @@ int MenuDataSwap(CGameDataUsed *destination, CGameDataUsed *source, int quantity
         if (destination->SetGiftBoxItem(src_no, -1) >= 0) {
             source->DeleteNum(1);
         }
-        result = 4;
+        result = kMenuSwapGiftBox;
     } else if (dst_type == 0x1D && src_used == USED_ITEM_TYPE_FISH) {
         MenuUserDataManPtr->FishInAquarium(source, 0);
-        result = 7;
+        result = kMenuSwapAquarium;
     } else if (destination == MenuUserDataManPtr->GetActiveEsa()) {
-        result = 1;
+        result = kMenuSwapNormal;
         if (destination->GetNum() <= 0) {
             destination->CopyDataItem(src_no);
             source->DeleteNum(1);
         } else if (source->CopyDataItem(destination) == 0) {
-            result = 0;
+            result = kMenuSwapFailed;
         }
     } else if (destination->CheckTypeEnableStack() && destination->GetNum() > 1 && src_used == 0) {
         memcpy(source, destination, sizeof(CGameDataUsed));
@@ -2720,7 +2726,7 @@ int MenuDataSwap(CGameDataUsed *destination, CGameDataUsed *source, int quantity
             destination->AddNum(add, 1);
             source->AddNum(-add, 1);
         }
-        result = 5;
+        result = kMenuSwapStack;
     } else {
         int had_src = 0;
         int had_dst = 0;
@@ -2731,7 +2737,8 @@ int MenuDataSwap(CGameDataUsed *destination, CGameDataUsed *source, int quantity
         if (src_no > 0) {
             had_src = 1;
         }
-        s8 results[2] = {ret_tbl1_2511[had_src], 2};
+        results[0] = ret_tbl1_2511[had_src];
+        results[1] = kMenuSwapDestinationOccupied;
         result = results[had_dst];
     }
     CheckEnableHaveItemNum();
