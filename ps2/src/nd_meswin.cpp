@@ -79,7 +79,6 @@ union message_draw_prim {
 
 extern u8 at_4574[];
 
-extern message_anchor_table at_3748;
 
 extern char at_4634[];
 
@@ -3554,7 +3553,27 @@ void DrawYesNo(mgCDrawPrim *prim, int yes_x, int yes_y, int no_x, int no_y, RGBA
 }
 
 void GetPos_AbsPosSet(RECT screen, int width, int height, int bubble_pos, int *x, int *y) {
-    message_anchor_table anchor = at_3748;
+    message_anchor_table anchor = {{
+        {0.17f, 0.17f},
+        {0.5f, 0.17f},
+        {0.83f, 0.17f},
+        {0.17f, 0.5f},
+        {0.5f, 0.5f},
+        {0.83f, 0.5f},
+        {0.17f, 0.83f},
+        {0.5f, 0.83f},
+        {0.83f, 0.83f},
+        {0.0f, 0.0f},
+        {0.5f, 0.0f},
+        {1.0f, 0.0f},
+        {0.0f, 0.5f},
+        {1.0f, 0.5f},
+        {0.0f, 1.0f},
+        {0.5f, 1.0f},
+        {1.0f, 1.0f},
+        {0.5f, 0.42f},
+        {0.5f, 0.375f},
+    }};
     int                  pos_x = fptosi(screen.width * anchor.point[bubble_pos - 1][0]);
     pos_x -= width / 2;
     int pos_y = fptosi(screen.height * anchor.point[bubble_pos - 1][1]);
@@ -4033,7 +4052,19 @@ void ClsMes::DrawDigit(mgCDrawPrim *prim, int digit, int x, int y, int alpha, RG
     xy.Set(x, (int)(y + 2.0), w, h);
     set2DSpriteEasy(prim, xy, uv, color);
 }
-extern RECT data_4206[];
+/** Texture rectangles for the message advance button animations. */
+static RECT data_4206[10] = {
+    {56, 198, 24, 18},
+    {80, 198, 24, 18},
+    {104, 198, 24, 18},
+    {80, 198, 24, 18},
+    {128, 90, 20, 20},
+    {148, 90, 20, 20},
+    {168, 90, 20, 20},
+    {188, 90, 20, 20},
+    {88, 116, 16, 16},
+    {104, 116, 18, 16},
+};
 
 void ClsMes::DrawPushButton(mgCDrawPrim *prim, int right, int bottom) {
     mgRect<int> destination;
@@ -4651,12 +4682,6 @@ void MovieCCInit(char *text, int size, int id) {
 }
 
 // Initialised data (.data)
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/nd_meswin", at_3748__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/nd_meswin", at_4057__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/nd_meswin", at_4100__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/nd_meswin", at_4143__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/nd_meswin", at_4185__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/nd_meswin", data_4206__DATA);
 
 // Constants (.rodata)
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/nd_meswin", at_1124__DATA);

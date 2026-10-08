@@ -31,3 +31,21 @@ preserved. All other ratios use round-tripping decimal literals.
 The independently rerun receipts `nd-outline-isolated` and
 `nd-frame-margins-isolated` verify one table at a time. Each records PAL OK,
 149/149 passing objects and unowned hashes unchanged. Markers become 69/0.
+
+## Anchor and icon templates
+
+`GetPos_AbsPosSet` initializes the existing 19-point aggregate directly,
+replacing its anonymous-table extern and marker. The real 0x98-byte template
+retains its eight-byte alignment tail. `data_4206` is a native local
+10-element `RECT` table for the advance-button animations. Its dimensions,
+repeated second/fourth frame and all ten rows retain the exact retail values.
+
+The existing `RECT` initializers in `DrawEquipment`, `DrawCross`,
+`DrawRightDelta` and `DrawDigit` already emit `at_4057`, `at_4100`, `at_4143`
+and `at_4185`. Each redundant marker is removed without editing those bodies.
+
+Separate receipts are `nd-anchor-template`, `nd-advance-button-table`, and
+`nd-at_<number>-template` for each of those four rectangle templates. Each
+passes PAL, all 149 objects, and the unowned hash comparison. Markers become
+63/0. No dummy storage, cast, vector helper or code change is required to
+emit these aggregate data objects.
