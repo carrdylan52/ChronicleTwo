@@ -27,7 +27,6 @@ extern char   at_918__4[];
 extern char   at_919__6[];
 extern char   at_920__5[];
 extern char   at_921__4[];
-extern char   at_1143__2[];
 extern char   at_1259[];
 extern mgVec4 at_1327;
 extern mgVec4 at_1328__2;
@@ -319,8 +318,19 @@ void S51Thunder(CScene *scene) {
     }
 }
 
-#ifdef NONMATCHING
 void InitFirePowder(int map_no, CScene *scene, int texb, mgCMemory *memory) {
+    /**
+     *
+     * Fog colours selected by a frame's visual attributes.
+     *
+     */
+    enum FrameFogMode {
+        FRAME_FOG_OFF = 0,   /**< Disable fog. */
+        FRAME_FOG_SCENE = 1, /**< Use the scene fog colour. */
+        FRAME_FOG_BLACK = 2, /**< Blend toward black. */
+        FRAME_FOG_WHITE = 3  /**< Blend toward white. */
+    };
+
     int          i;
     FirePowder  *particle;
     mgC3DSprite *created;
@@ -338,7 +348,7 @@ void InitFirePowder(int map_no, CScene *scene, int texb, mgCMemory *memory) {
 
     u_char *buffer = (u_char *) scene->read_buff;
 
-    if (LoadFile2(at_1143__2, buffer, &size, 0) == 0) {
+    if (LoadFile2("effect/firerain.img", buffer, &size, 0) == 0) {
         return;
     }
 
@@ -356,8 +366,8 @@ void InitFirePowder(int map_no, CScene *scene, int texb, mgCMemory *memory) {
     FirePowFrame = new ((u_long128 *) memory->Alloc(0x13)) mgCFrame;
     mgCFrameAttr *attr = new ((u_long128 *) memory->Alloc(0xB)) mgCFrameAttr;
     FirePowFrame->attr = attr;
-    attr->fog = 2;
-    attr->z_write = -1;
+    attr->fog = FRAME_FOG_BLACK;
+    attr->z_write = MG_ZBUF_NO_WRITE;
     FirePowFrame->SetVisual(SpriteVis);
 
     for (i = 0; i < FIRE_POWDER_NUM; ++i) {
@@ -372,9 +382,6 @@ void InitFirePowder(int map_no, CScene *scene, int texb, mgCMemory *memory) {
         particle->fall_speed = -(0.1f + 0.5f * mgRnd());
     }
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/editexception", InitFirePowder__FiP6CSceneiP9mgCMemory);
-#endif
 
 void StepFirePowder(CScene *scene) {
     if (!FirePowderFlag) {
@@ -753,7 +760,6 @@ INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editexception", at_921__4__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editexception", at_1084__2__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editexception", at_1085__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editexception", at_1086__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editexception", at_1143__2__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editexception", at_1259__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editexception", at_1385__4__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editexception", at_1386__3__DATA);
