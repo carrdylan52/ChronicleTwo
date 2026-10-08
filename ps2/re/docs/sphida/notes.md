@@ -168,3 +168,42 @@ output and coverage. All three lane units pass; the inherited failing set stays
 mg_texture, nd_meswin, actionchara and actscript (145/149 pass). Coverage stays
 6,666 matched / 184 guarded / 15 assembly-only / 7 fuzzy. No target is promoted.
 Comparison receipt: `.private/receipts/bigfn-final/comparison.json`.
+
+## Mid-day scoped sprite-policy audit (2026-10-08)
+
+DrawStatusSprite remains the unit's sole guard. The canonical source-only
+baseline reproduces 193/1096 differing words and the previous eleven-row
+private profile reproduces 134/1096. Additional callee-scoped evaluate-first
+rows for `DPrimEnterSprite__FP11mgCDrawPrimiiiiffff`, tested on that private
+profile, give:
+
+| Literal | Differing words | Literal | Differing words |
+|---:|---:|---:|---:|
+| 18 | 160 | 20 | 187 |
+| 438 | 134 | 60 | 142 |
+| 54 | 142 | 58 | 136 |
+| 16 | 164 | 336 | 134 |
+| 85 | 134 | 34 | 141 |
+| 102 | 138 | 406.4 | 137 |
+| 460 | 144 | 355 | 134 |
+| 371 | 134 | 442 | 140 |
+| 80 | 134 | 40 | 134 |
+| 30 | 134 | 304 | 140 |
+| 384 | 134 | | |
+
+No additional row improves the 134-word result. The parameter order differs
+between sprite calls sharing a literal; the carry-digit call also remains
+four bytes shorter, moving its relocation. The sprite calls have direct
+constants and arithmetic arguments, including inline integer-to-float
+conversion. They have no actual sibling nested call for the upstream SF
+selectors. New calls or per-occurrence identities are not introduced.
+
+No profile row or source trial is retained. The full evidence ledger is
+`.private/floatsel/sphida-calibration-ledger.json`, with profiles and compiler
+logs alongside it and the base/private-profile instruction comparisons
+under `.private/floatsel/sphida/`. The fresh m2c output remains in that
+receipt root and confirms the existing type/function analysis.
+
+The fresh isolated production probe confirms 134/1096 words, a byte problem
+at `0x002EF545` and the displaced sprite relocation at `+0x8E4`. Other native
+functions remain exact. Receipt: `.private/floatsel/sphida/sprite-best-production/`.
