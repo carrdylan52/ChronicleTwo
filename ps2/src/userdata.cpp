@@ -61,7 +61,6 @@ struct CharaBitTable {
     int bit[4]; /**< Party bit corresponding to each selectable character. */
 };
 
-extern CharaBitTable   at_3192;
 /**
  * Keeps the weapon to restore after the fishing game.
  */
@@ -72,7 +71,10 @@ extern char           *magic_str_1462[8];
  */
 static char word_1327[0x61];
 extern char           *symbol_tbl_1338[8][2][2];
-extern signed char     htbl_1662[10];
+/**
+ * Gives a weapon's random durability gain when it levels up.
+ */
+static signed char htbl_1662[10] = {1, 1, 1, 1, 1, 2, 2, 2, 3, 3};
 extern char           *strtbl_1505[8];
 /**
  * Holds an attachment's spectrum source description.
@@ -80,12 +82,27 @@ extern char           *strtbl_1505[8];
 static char temp_1510[0x40];
 extern char           *f_2005[2];
 extern char           *basefish_1288[];
-extern unsigned char   use_limmit_table_2558[7];
+/**
+ * Gives the shield kit limit for each ridepod core.
+ */
+static unsigned char use_limmit_table_2558[7] = {3, 6, 9, 12, 15, 18, 21};
 extern MOS_HENGE_PARAM mos_henge_param[];
-extern short           fish_record_dataindex_convert[];
+/**
+ * Maps fish item numbers to the fishing record slots.
+ */
+static short fish_record_dataindex_convert[19] = {320, 321, 322, 323, 324, 325, 326, 327, 328, 329, 330, 331, 332, 333, 334, 335, 336, 310, -1};
 extern char           *robo_nametable_3330[];
-extern float           lifetbl_2854[2];
-extern short           weptbl_4503[2][10];
+/**
+ * Gives the initial health capacity of the two human characters.
+ */
+static float lifetbl_2854[2] = {32.0f, 48.0f};
+/**
+ * Gives the default equipment for each language group and human character.
+ */
+static short weptbl_4503[2][10] = {
+    {0x1, 0x16, 0x6f, 0x75, 0x102, 0x29, 0x5b, 0x7b, 0x81, 0x107},
+    {0x1, 0x16, 0x6f, 0x75, 0x104, 0x29, 0x5b, 0x7b, 0x81, 0x107},
+};
 /**
  * Caches the scene time used for battle parameters.
  */
@@ -94,10 +111,28 @@ static float BattleParamater_Time;
  * Caches the time band used for battle parameters.
  */
 static int BattleParamater_TimeBand;
-extern signed char     tbl1_5167[3];
-extern signed char     tbl2_5168[2];
-extern unsigned int    at_table_5400[12];
-extern signed char     equip_type_tbl_5456[15];
+/**
+ * Lists the trap choices for the first random-circle kind.
+ */
+static signed char tbl1_5167[4] = {1, 2, 3, 4};
+/**
+ * Lists the trap choices for the second random-circle kind.
+ */
+static signed char tbl2_5168[2] = {6, 7};
+/**
+ * Pairs weapon abilities that cancel one another when combined.
+ */
+static unsigned int at_table_5400[14] = {
+    0x2, 0x1, 0, 0, 0, 0x40, 0x20, 0x100, 0x80, 0x400, 0x200, 0, 0, 0,
+};
+/**
+ * Gives the item type accepted by each human or ridepod equipment slot.
+ */
+static signed char equip_type_tbl_5456[3][5] = {
+    {1, 2, 6, 7, 5},
+    {3, 4, 9, 10, 8},
+    {13, 12, 15, 14, 0},
+};
 extern char            at_1378__2[];
 extern char            at_1379__2[];
 extern char            at_1623[];
@@ -2983,7 +3018,8 @@ void CUserDataManager::InitCharaChangeMask() {
 u32 CUserDataManager::GetEnableCharaChangeFlag() {
     int           party_chara = GetNowPartyMember();
     int           mask = chara_change & chara_change_mask;
-    CharaBitTable bits = at_3192;
+    CharaBitTable bits = {{1 << USER_CHARA_MAX, 1 << USER_CHARA_MONICA,
+                          1 << USER_CHARA_ROBO, 1 << USER_CHARA_MONICA}};
 
     for (int chara_no = 0; chara_no < 4; chara_no++) {
         if ((party_chara & bits.bit[chara_no]) == 0) {
@@ -5732,7 +5768,7 @@ int SearchEquipType(int category, int slot) {
         return 0;
     }
 
-    return *(slot + (equip_type_tbl_5456 + category * 5));
+    return equip_type_tbl_5456[category][slot];
 }
 
 #pragma global_optimizer reset
@@ -6262,14 +6298,7 @@ INCLUDE_RODATA("ps2/asm/pal/nonmatchings/userdata", basefish_1288__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/userdata", symbol_tbl_1338__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/userdata", magic_str_1462__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/userdata", strtbl_1505__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/userdata", htbl_1662__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/userdata", fish_record_dataindex_convert__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/userdata", at_3192__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/userdata", robo_nametable_3330__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/userdata", at_4196__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/userdata", weptbl_4503__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/userdata", at_table_5400__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/userdata", equip_type_tbl_5456__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/userdata", cureItemtable_5744__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/userdata", itemtbl_5745__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/userdata", start_tbl_5746__DATA);
@@ -6368,12 +6397,10 @@ INCLUDE_RODATA("ps2/asm/pal/nonmatchings/userdata", at_4442__DATA);
 
 // Small initialised data (.sdata)
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/userdata", f_2005__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/userdata", aquarium_fish_maxtbl__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/userdata", use_limmit_table_2558__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/userdata", lifetbl_2854__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/userdata", at_4695__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/userdata", tbl1_5167__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/userdata", tbl2_5168__DATA);
+/**
+ * Gives the fish capacity of each aquarium tank.
+ */
+s8 aquarium_fish_maxtbl[3] = {6, 4, 2};
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/userdata", dbg_set1_5774__DATA);
 
 // Small uninitialised data (.sbss)
