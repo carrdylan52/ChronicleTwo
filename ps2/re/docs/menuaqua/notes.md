@@ -279,3 +279,21 @@ The original source-only object is fuzzy; the calibrated native body has zero
 masked instruction differences. Both mwccgap passes retain the original
 `menuaqua.cpp` policy identity with and without the deterministic temporary
 filename patch. Evidence is in the October 8 regress-lane private receipts.
+
+## Fish scale and aquarium panel argument calibration
+
+`CAquaFish::SetAdjustScale` needs binary32 0.95f (`0x3f733333`) evaluated
+first, scoped to its `SetFishAdjustScale__Fiiff` call. Retail prepares the
+f13 upper bound before the 0.6f (`0x3f19999a`) f12 argument. The natural
+source is unchanged; the selector alone takes the body from 6 differing words
+to an exact 0x8C-byte body in the 0x90 retail extent.
+
+`CAquarium::Draw` needs width 120 (`0x42f00000`) and height 242
+(`0x43720000`) evaluated first, both scoped to `DrawMenuFillBox__Fffffiiii`.
+Retail materializes width and height before the top coordinate 80
+(`0x42a00000`) for the debug panel. Width alone leaves four differing words;
+both selectors are needed. The body is exact at 0xE78 bytes in the 0xE80 extent.
+
+With all three selectors and both guards removed, the complete menuaqua object
+passes the canonical checker (0x11C48 bytes, 3,172 relocations), and the
+integrated build leaves every other object and the linked image unchanged.

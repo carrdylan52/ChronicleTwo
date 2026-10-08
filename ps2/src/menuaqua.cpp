@@ -951,7 +951,6 @@ void CAquaFish::SetLiveParam(CGameDataUsed *item) {
     fatigue = 0;
 }
 
-#ifdef NONMATCHING
 void CAquaFish::SetAdjustScale() {
     float hi = 0.95f;
     float scale = SetFishAdjustScale(data->data.fish.size, data->item_no,
@@ -959,9 +958,6 @@ void CAquaFish::SetAdjustScale() {
     SetScale(scale, scale, scale);
     radius = body_height * (scale / 0.6f);
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/menuaqua", SetAdjustScale__9CAquaFishFv);
-#endif
 
 int CAquaFish::AddFatigue(int amount) {
     fatigue += amount;
@@ -4925,7 +4921,6 @@ int CAquarium::Step() {
 #else
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/menuaqua", Step__9CAquariumFv);
 #endif
-#ifdef NONMATCHING
 void CAquarium::Draw() {
     mgCTextureManager *textures = &mgTexManager;
     int                i;
@@ -5247,9 +5242,7 @@ void CAquarium::Draw() {
         }
     }
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/menuaqua", Draw__9CAquariumFv);
-#endif
+
 void MenuAquaInit(mgCMemory *memory, int *tex_block, int) {
     AquaScene = GetMainScene();
     Auqa_Bgm_Volf = AquaScene->GetTimeBgmVolf();

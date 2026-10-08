@@ -357,10 +357,34 @@
       },
       {
         "translation_unit": "menuaqua.cpp",
+        "function": "Draw__9CAquariumFv",
+        "value_type": "binary32",
+        "value_bits": "0x42f00000",
+        "evaluate_first": true,
+        "callee": "DrawMenuFillBox__Fffffiiii"
+      },
+      {
+        "translation_unit": "menuaqua.cpp",
+        "function": "Draw__9CAquariumFv",
+        "value_type": "binary32",
+        "value_bits": "0x43720000",
+        "evaluate_first": true,
+        "callee": "DrawMenuFillBox__Fffffiiii"
+      },
+      {
+        "translation_unit": "menuaqua.cpp",
         "function": "MenuAquaInit__FP9mgCMemoryPii",
         "value_type": "binary32",
         "value_bits": "0x00000000",
         "evaluate_first": true
+      },
+      {
+        "translation_unit": "menuaqua.cpp",
+        "function": "SetAdjustScale__9CAquaFishFv",
+        "value_type": "binary32",
+        "value_bits": "0x3f733333",
+        "evaluate_first": true,
+        "callee": "SetFishAdjustScale__Fiiff"
       },
       {
         "translation_unit": "menuaqua.cpp",
