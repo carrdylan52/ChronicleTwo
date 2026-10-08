@@ -173,3 +173,35 @@ contains another construction. They are not evidence of a source defect.
 The original study's recommendation against claiming an unsupported state
 repair remains valid; this branch is a maintainer proposal authorized by the
 isolated investigation brief.
+
+
+## Isolated implementation and baseline validation
+
+The proposed patch is `scripts/build/patches/satansfiddle-placement-new.patch`,
+applied after the existing nested-argument and control-context patches in the
+Dockerfile. The Python adapter filters placement rows by the original logical
+translation-unit name, including mwccgap's temporary physical C inputs.
+
+The production executable in `sf-63f7a9e-pn12` and `sf-63f7a9e-pn13` has the same
+SHA-256, `a9da1a7739987952f838db26e420c40c17606125c3ab1ef53a44a29587471b26`.
+pn13 adds genuine class-0 exclusion and mixed same-caller constructor fixtures;
+all ten runnable 3.0 compiler integration tests pass, including the five placement
+tests. The container's Cargo suite and four host adapter tests pass. The existing
+dual-compiler integration test needs an unavailable 2.3.3 executable and is not
+claimed as run. Placement hooks reject compiler versions other than the verified
+3.0 executable (`0e16a5d6205101f840f85c02664f21cd63b39a0dec2dff417b3a61b4477f0e00`)
+and validate exact instruction signatures before mutation.
+
+With no placement rows and every original game guard retained, a clean pn12
+build exits zero, verifies `SCES_511.90: OK`, and passes 149/149 complete game
+objects. All 306 recursive assembled objects, all 149 source-only base objects,
+and the linked PAL image have their exact baseline hashes. This stronger empty-
+profile check establishes that adding the capability leaves the baseline intact.
+
+Receipts are `.private/pntc/receipts/production-empty-clean-build.log`, its `.exit`,
+`production-empty-objects.log`, `production-empty-artifact-comparison.json`,
+`semantic-pn13-tests.log` and `.exit`, and `semantic12-score-comparison.json`.
+Image build logs are `image-pnN.log`; the pinned original Git-fetch stage remains
+cached in each build. Only this lane's new pn1 through pn13 tags were created;
+none of the existing tags or remote Git refs was changed. Private global probes
+are retained as receipts and are not part of the committed production patch.

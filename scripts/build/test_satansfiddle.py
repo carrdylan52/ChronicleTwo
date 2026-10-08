@@ -44,6 +44,11 @@ class AdapterTests(unittest.TestCase):
                 "translation_unit": unit, "function": "f__Fv", "value_type": "binary32",
                 "value_bits": "0x3f800000", "evaluate_first": True,
             }
+            placement = lambda unit: {
+                "translation_unit": unit, "function": "f__FPv",
+                "allocator": "__nw__FUiPv", "constructor": "__ct__5ThingFv",
+                "conversion": "after_constructor_inline", "expected_matches": 1,
+            }
             profile.write_text(json.dumps({
                 "compiler_path": "unused", "compiler_options": "unused",
                 "translation_units": [
@@ -53,6 +58,9 @@ class AdapterTests(unittest.TestCase):
                 "floating_point": {
                     "expression_overrides": [expression("unit.cpp"), expression("other.cpp")],
                     "literal_overrides": [],
+                },
+                "placement_new": {
+                    "statement_conversions": [placement("unit.cpp"), placement("other.cpp")],
                 },
             }))
             observed = {}
@@ -77,6 +85,7 @@ class AdapterTests(unittest.TestCase):
                              ["-c", "-pragma", "divbyzerocheck on"])
             self.assertEqual([row["name"] for row in selected["translation_units"]], ["unit.cpp"])
             self.assertEqual(selected["floating_point"]["expression_overrides"], [expression("unit.cpp")])
+            self.assertEqual(selected["placement_new"]["statement_conversions"], [placement("unit.cpp")])
             self.assertFalse(Path(observed["arguments"][2]).exists())
 
     def test_missing_binary_has_setup_error(self):

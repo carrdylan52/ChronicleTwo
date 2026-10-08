@@ -63,6 +63,12 @@ def main(arguments):
                 row for row in floating_point[key]
                 if unit_name(row["translation_unit"]) == logical_unit
             ]
+    placement_new = profile.get("placement_new", {})
+    if "statement_conversions" in placement_new:
+        placement_new["statement_conversions"] = [
+            row for row in placement_new["statement_conversions"]
+            if unit_name(row["translation_unit"]) == logical_unit
+        ]
 
     # Each compiler pass runs in a fresh process with a private configuration.
     with tempfile.TemporaryDirectory(prefix="chronicletwo-satansfiddle-") as directory:
