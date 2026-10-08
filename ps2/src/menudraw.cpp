@@ -5568,7 +5568,6 @@ void CRepairManager::SetRepairData(mgCMemory *memory, int block, unsigned int *p
 }
 
 
-#ifdef NONMATCHING
 void CRepairManager::GeneratePoly(float *pos, int block) {
     int           pack_size;
     unsigned int *pack;
@@ -5576,7 +5575,7 @@ void CRepairManager::GeneratePoly(float *pos, int block) {
     mgCFrameAttr *attr;
     CActionChara *chara;
 
-    pack = (unsigned int *) GetPackFile(data, at_4933, &pack_size);
+    pack = (unsigned int *) GetPackFile(data, "repair_powder.chr", &pack_size);
     model_stack.stack_used = 0;
     model_stack.lock = 0;
 
@@ -5584,26 +5583,23 @@ void CRepairManager::GeneratePoly(float *pos, int block) {
 
     model = chara;
     model->Initialize(NULL);
-    model->LoadPack(pack, at_4934, &model_stack, &model_stack, &model_stack, block, NULL);
+    model->LoadPack(pack, "info.cfg", &model_stack, &model_stack, &model_stack, block, NULL);
     model->SetScale(0.4f, 0.4f, 0.4f);
     model->SetPosition(pos);
-    model->SetMotion(at_4935, 0, 1);
+    model->SetMotion("\224\255\223\256", 0, 1);
     model->SetFadeFlag(1);
     model->Show(0, 1);
     frame = model->CObjectFrame::frame;
 
     if (frame != NULL && (attr = frame->attr) != NULL) {
-        attr->z_test = -1;
-        frame->SetAttrParam(*attr, 1, 0x10);
+        attr->z_test = MG_DEPTH_TEST_ALWAYS;
+        frame->SetAttrParam(*attr, 1, MG_FRAME_ATTR_Z_TEST);
     }
 
     model->Show(1, 1);
     model_counter = 0;
 }
 
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/menudraw", GeneratePoly__14CRepairManagerFPfi);
-#endif
 
 void CRepairManager::Generate(int x, int y) {
     int            i;
