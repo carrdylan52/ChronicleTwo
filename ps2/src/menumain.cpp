@@ -41,13 +41,9 @@
 #include "sysmes.hpp"
 #include "userdata.hpp"
 
-extern int          MenuEtcSpecialCode;
-extern signed char  MenuLoopType;
 extern mgCDrawPrim *MenuPrim;
-extern int          CommonMenuModeID2[8];
 extern int (*menu_keyfunctbl[])();
 extern void (*menu_drawfunctbl[])();
-extern char workchr_1622[0x60];
 int         CheckItemTable(int item_no, int *photos);
 void        GetPhotoNameStr(int photo_no, char *name);
 void        MenuPolygonSetEnv();
@@ -130,8 +126,6 @@ struct MonsterTableEntry {
     short message_no; /**< Message number for the monster description. */
 };
 
-extern CMenuInter *CMenuInterPt;
-extern u_long128  *MenuMainSubDataPackAdr;
 extern char       *fname_1858[2];
 extern MovePoint   at_1865;
 extern MovePoint   at_1866;
@@ -146,35 +140,19 @@ extern char        at_1935[];
 extern char        at_1936[];
 extern char        at_1937[];
 extern char        at_1938[];
-extern CMenuInter  CMenuInterStatic;
-extern CDC2Mes    *MenuInterMes;
-extern signed char MenuInterMesDrawFlag;
 extern char        at_2003[];
 extern char        at_1684[];
 extern char        at_2004__2[];
 extern char        at_2439[];
 extern char        at_2440[];
 extern int         loopnumtbl_2360[2];
-extern u8          MenuDoubleDrawCheck;
-extern u8          ManualMenuOkFlag;
-extern u8          HatumeiMenuOkFlag;
-extern u8          WorldMapOkFlag;
-extern u8          DngMoveMenuOkFlag;
-extern short       MenuTopicAlphaCalc;
 extern char        at_1028__4[];
 extern char        at_1630__3[12];
 extern char        at_1635__2[12];
 extern char        at_1640[12];
-extern int         old_light_menu;
 extern mgCDrawPrim MenuPrimFix;
-extern float       SndPortVol_Enemy;
-extern float       menu_old_chara_position[4];
-extern float       menu_old_chara_rotation[4];
-extern int         MenuBGMVolume_Save;
 extern mgCMemory   MenuMainStack;
 extern MenuKeyPageTable  at_1514__4;
-extern signed char       refresh_cnt_1523;
-extern signed char       init_1524;
 extern char              at_1598__2[];
 extern char              at_1599__2[];
 extern u8                menu_basedgRef[16];
@@ -184,12 +162,9 @@ extern char              at_1625__3[0x15];
 extern char             *menu_main_cfgname_1620[2];
 extern int               CommonMenuModeID[2][8];
 extern char             *acttbl_1682[2];
-extern CMenuPosDataForm *MenuAreaBrdForm;
-extern CMenuPosDataForm *MenuTimeBrdForm;
 extern AreaNameItems     at_1697__2;
 extern BoardPosition     at_1698__2;
 extern LanguageWidths    at_1699__2;
-extern char             *MenuAreaName;
 extern char              at_1736__2[];
 extern char              at_1737[];
 extern char              at_1738[];
@@ -197,13 +172,9 @@ extern char              at_1739[];
 extern char              at_1740[];
 extern char              at_1741[];
 extern char              at_1742[];
-extern short             MenuTopicType;
-extern mgCTexture       *TopicTex;
 extern float             menu_maintopic_colortbl[4][4];
 extern float             menu_maintopic_colortbl_shadow[4][4];
 extern int               MenuTopicAlpha;
-extern short             MenuTopicLength;
-extern int               TopicFontX;
 extern char             *topic_tbl_1777[7][3];
 extern CMenuFont         TopicFont;
 extern MonsterTableEntry monster_table[];
@@ -216,6 +187,349 @@ extern char              at_2345[];
 extern char              at_2450[];
 extern char             *filetbl_2141[];
 
+
+/**
+ *
+ * Scene that the menu opens over.
+ *
+ */
+CScene *MenuMainScene;
+
+/**
+ *
+ * Save data that the menu shows and changes.
+ *
+ */
+CSaveData *MenuActiveSaveData;
+
+/**
+ *
+ * Player data within the active save data.
+ *
+ */
+CUserDataManager *MenuUserDataManPtr;
+
+/**
+ *
+ * Menu system record within the active save data.
+ *
+ */
+CMenuSystemData *MenuSystemDataPtr;
+
+/**
+ *
+ * Option settings within the active save data.
+ *
+ */
+SV_CONFIG_OPTION *MenuConfigPtr;
+
+/**
+ *
+ * Dungeon progress record within the active save data.
+ *
+ */
+CSaveDataDungeon *MenuSaveDataDungeonPtr;
+
+/**
+ *
+ * Aquarium within the active save data.
+ *
+ */
+CFishAquarium *MenuFishAquarium;
+
+/**
+ *
+ * Map that the menu was opened on.
+ *
+ */
+s16 MenuNowMapNo;
+
+/**
+ *
+ * Type of the map that the menu was opened on.
+ *
+ */
+s16 MenuNowMapType;
+
+/**
+ *
+ * Time of day, in hours, shown on the time board.
+ *
+ */
+float MenuNowTime;
+
+/**
+ *
+ * Non-zero when the menu opened because items overflow.
+ *
+ */
+s8 ItemOverFlowCheckFlag;
+
+/**
+ *
+ * Camera and lighting that the menu draws its models with.
+ *
+ */
+MENU_DRAW_ENV *MenuDrawEnv;
+
+/**
+ *
+ * Key handling and state shared by every menu mode.
+ *
+ */
+CMenuKeyFunc *MenuCommonInfo;
+
+/**
+ *
+ * Texture block and texture that the top menu shares with the menu modes.
+ *
+ */
+MENU_ETC_INFO MenuEtcInfo;
+
+/**
+ *
+ * Item being moved between lists.
+ *
+ */
+CMenuMoveItem *MenuMoveItemPtr;
+
+/**
+ *
+ * Form named mi2 in the main menu layout, whose move speed the top menu sets.
+ *
+ */
+CMenuPosDataForm *MenuFormMI2;
+
+/**
+ *
+ * Frames the menu has run, wrapping after ten million.
+ *
+ */
+int MenuItemCommandCounter;
+
+/**
+ *
+ * Non-zero while the menu debug display is on.
+ *
+ */
+int menu_debug_flag;
+
+/**
+ *
+ * Item use state shared by the item menus.
+ *
+ */
+CMenuItemUse MenuItemUse;
+
+/**
+ *
+ * Arguments the main menu uses when a game loop passes none.
+ *
+ */
+MENU_INIT_ARG MenuArg;
+
+/**
+ *
+ * Resource pack containing the active sub-menu background.
+ *
+ */
+static u_long128 *MenuMainSubDataPackAdr;
+
+/**
+ *
+ * Active top-menu state.
+ *
+ */
+static CMenuInter *CMenuInterPt;
+
+/**
+ *
+ * Help and restriction messages for the selected sub-menu.
+ *
+ */
+static CDC2Mes *MenuInterMes;
+
+/**
+ *
+ * Whether the top-menu message window is visible.
+ *
+ */
+static signed char MenuInterMesDrawFlag;
+
+/**
+ *
+ * Board showing the current area name.
+ *
+ */
+static CMenuPosDataForm *MenuAreaBrdForm;
+
+/**
+ *
+ * Board showing the current day and time.
+ *
+ */
+static CMenuPosDataForm *MenuTimeBrdForm;
+
+/**
+ *
+ * Name displayed on the menu area board.
+ *
+ */
+static char *MenuAreaName;
+
+/**
+ *
+ * Enemy sound volume restored when the menu closes.
+ *
+ */
+static float SndPortVol_Enemy;
+
+/**
+ *
+ * Game loop mode that opened the menu.
+ *
+ */
+static signed char MenuLoopType;
+
+/**
+ *
+ * Additional result code returned by the menu.
+ *
+ */
+static int MenuEtcSpecialCode;
+
+/**
+ *
+ * Background-music volume restored when the menu closes.
+ *
+ */
+static int MenuBGMVolume_Save;
+
+/**
+ *
+ * Fade direction of the topic ticker.
+ *
+ */
+static short MenuTopicAlphaCalc;
+
+/**
+ *
+ * Texture atlas containing the topic ticker backing.
+ *
+ */
+static mgCTexture *TopicTex;
+
+/**
+ *
+ * Lighting state restored when the menu closes.
+ *
+ */
+static int old_light_menu;
+
+/**
+ *
+ * Whether invention is available in the top menu.
+ *
+ */
+static u8 HatumeiMenuOkFlag;
+
+/**
+ *
+ * Whether the world map is available in the top menu.
+ *
+ */
+static u8 WorldMapOkFlag;
+
+/**
+ *
+ * Whether the help menu is available in the top menu.
+ *
+ */
+static u8 ManualMenuOkFlag;
+
+/**
+ *
+ * Whether the dungeon map is available in the top menu.
+ *
+ */
+static u8 DngMoveMenuOkFlag;
+
+/**
+ *
+ * Whether this frame has already drawn the menu.
+ *
+ */
+static u8 MenuDoubleDrawCheck;
+
+/**
+ *
+ * Frames elapsed since the last player-data refresh.
+ *
+ */
+signed char refresh_cnt_1523;
+
+/**
+ *
+ * Whether the player-data refresh counter is initialized.
+ *
+ */
+signed char init_1524;
+
+/**
+ *
+ * Topic message category selected for the ticker.
+ *
+ */
+static short MenuTopicType;
+
+/**
+ *
+ * Width of the scrolling topic message.
+ *
+ */
+static short MenuTopicLength;
+
+/**
+ *
+ * Horizontal position of the scrolling topic message.
+ *
+ */
+static int TopicFontX;
+
+/**
+ *
+ * Storage for the top-menu state.
+ *
+ */
+static CMenuInter CMenuInterStatic;
+
+/**
+ *
+ * Player position restored when the menu closes.
+ *
+ */
+float menu_old_chara_position[4];
+
+/**
+ *
+ * Player rotation restored when the menu closes.
+ *
+ */
+float menu_old_chara_rotation[4];
+
+/**
+ *
+ * Path buffer used to locate the menu configuration.
+ *
+ */
+char workchr_1622[0x60];
+
+/**
+ *
+ * Sub-menu destinations after availability filtering.
+ *
+ */
+static int CommonMenuModeID2[8];
 
 // Code (.text)
 void MenuScreenBlackBeltSet(int enable) {
@@ -2141,65 +2455,16 @@ INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menumain", at_1867__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menumain", loopnumtbl_2360__DATA);
 
 // Small uninitialised data (.sbss)
-INCLUDE_BSS(MenuMainScene, 0x4);
-INCLUDE_BSS(MenuActiveSaveData, 0x4);
-INCLUDE_BSS(MenuUserDataManPtr, 0x4);
-INCLUDE_BSS(MenuSystemDataPtr, 0x4);
-INCLUDE_BSS(MenuConfigPtr, 0x4);
-INCLUDE_BSS(MenuSaveDataDungeonPtr, 0x4);
-INCLUDE_BSS(MenuFishAquarium, 0x4);
-INCLUDE_BSS(MenuNowMapNo, 0x4);
-INCLUDE_BSS(MenuNowMapType, 0x4);
-INCLUDE_BSS(MenuMainSubDataPackAdr, 0x4);
-INCLUDE_BSS(CMenuInterPt, 0x4);
-INCLUDE_BSS(MenuInterMes, 0x4);
-INCLUDE_BSS(MenuInterMesDrawFlag, 0x4);
-INCLUDE_BSS(MenuAreaBrdForm, 0x4);
-INCLUDE_BSS(MenuTimeBrdForm, 0x4);
-INCLUDE_BSS(MenuAreaName, 0x4);
-INCLUDE_BSS(MenuNowTime, 0x4);
-INCLUDE_BSS(SndPortVol_Enemy, 0x4);
-INCLUDE_BSS(ItemOverFlowCheckFlag, 0x4);
-INCLUDE_BSS(MenuDrawEnv, 0x4);
-INCLUDE_BSS(MenuCommonInfo, 0x4);
-INCLUDE_BSS(MenuLoopType, 0x4);
-INCLUDE_BSS(MenuEtcSpecialCode, 0x4);
-INCLUDE_BSS(MenuEtcInfo, 0x8);
-INCLUDE_BSS(MenuMoveItemPtr, 0x4);
-INCLUDE_BSS(MenuBGMVolume_Save, 0x4);
-INCLUDE_BSS(MenuFormMI2, 0x4);
-INCLUDE_BSS(MenuItemCommandCounter, 0x4);
-INCLUDE_BSS(menu_debug_flag, 0x4);
-INCLUDE_BSS(MenuTopicAlphaCalc, 0x4);
-INCLUDE_BSS(TopicTex, 0x4);
-INCLUDE_BSS(old_light_menu, 0x4);
-INCLUDE_BSS(HatumeiMenuOkFlag, 0x4);
-INCLUDE_BSS(WorldMapOkFlag, 0x4);
-INCLUDE_BSS(ManualMenuOkFlag, 0x4);
-INCLUDE_BSS(DngMoveMenuOkFlag, 0x4);
-INCLUDE_BSS(MenuDoubleDrawCheck, 0x4);
-INCLUDE_BSS(refresh_cnt_1523, 0x4);
-INCLUDE_BSS(init_1524, 0x8);
 INCLUDE_BSS(at_1697__2, 0x8);
 INCLUDE_BSS(at_1698__2, 0x8);
-INCLUDE_BSS(MenuTopicType, 0x4);
-INCLUDE_BSS(MenuTopicLength, 0x4);
-INCLUDE_BSS(TopicFontX, 0x8);
 INCLUDE_BSS(at_1976, 0x8);
 INCLUDE_BSS(at_2209__3, 0x8);
 
 // Uninitialised data (.bss)
 mgCMemory MenuMainStack;
 mgCMemory MenuMainStack_Next;
-INCLUDE_BSS(CMenuInterStatic, 0x20);
 mgCDrawPrim MenuPrimFix;
-INCLUDE_BSS(MenuItemUse, 0x20);
 mgCMemory MenuMainTextureReadBuf;
 mgCMemory MenuSoundBuffer;
-INCLUDE_BSS(MenuArg, 0xA0);
-INCLUDE_BSS(menu_old_chara_position, 0x10);
-INCLUDE_BSS(menu_old_chara_rotation, 0x10);
-INCLUDE_BSS(workchr_1622, 0x60);
-INCLUDE_BSS(CommonMenuModeID2, 0x20);
 CMenuFont TopicFont;
 INCLUDE_BSS(at_2351, 0x20);
