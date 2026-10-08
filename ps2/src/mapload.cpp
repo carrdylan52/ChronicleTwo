@@ -2601,5 +2601,3 @@ void CMap::LoadCfgFile(char *script, int length, mgCMemory *memory) {
     interpreter.SetScript(script, length);
     interpreter.Run();
 }
-
-// Virtual tables (.vtables)

@@ -2880,5 +2880,3 @@ void CAutoMapGen::UpdateNaviMap(float *pos, int depth) {
     } while (changed != 0);
     navi_valid = 1;
 }
-
-// Constants (.rodata)
