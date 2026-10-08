@@ -270,7 +270,22 @@ extern "C" GeoramaVector at_3757;
  *
  */
 static signed char GeoramaMesMakeManner[5];
-extern float             GeoramaColorList[][3];
+/**
+ *
+ * Georama paint colours and the unpainted sentinel.
+ *
+ */
+static float GeoramaColorList[9][3] = {
+    {90.5f, 38.2000008f, 35.0f},
+    {38.2000008f, 63.7000008f, 76.5f},
+    {155.0f, 145.0f, 50.5f},
+    {63.7000008f, 89.25f, 63.7000008f},
+    {128.5f, 90.8000031f, 30.0f},
+    {76.5f, 63.7999992f, 89.0f},
+    {128.0f, 76.0f, 76.0f},
+    {50.0f, 50.0f, 50.0f},
+    {-1.0f, -1.0f, -1.0f},
+};
 typedef int (*GeoramaPushFunc)(CMenuGeorama *, int, int);
 extern GeoramaPushFunc        MenuGeoramaPushFunc[];
 /**
@@ -520,12 +535,74 @@ static CMapParts *MenuMapPart;
  *
  */
 static u8 old_menuparts_pos_flag;
-extern float                  old_menuparts_pos[4];
-extern float                  old_menuparts_rot[4];
-extern float                  now_menu_pos_mapparts[4];
-extern float                  georama_adjust_position[4];
-extern float                  georama_parts_adjust_scaletable[];
-extern float                  georama_parts_adjust_z_table[];
+/**
+ *
+ * Original position of the displayed Georama part before menu transformations.
+ *
+ */
+static float old_menuparts_pos[4] = {0.0f, 0.0f, 0.0f, 0.0f};
+/**
+ *
+ * Original rotation of the displayed Georama part before menu transformations.
+ *
+ */
+static float old_menuparts_rot[4] = {
+    0.0f, 0.0f, 0.0f, 0.0f,
+};
+/**
+ *
+ * Current position of the map part shown in the Georama preview.
+ *
+ */
+static float now_menu_pos_mapparts[4] = {
+    0.0f, 0.0f, 0.0f, 0.0f,
+};
+/**
+ *
+ * Offset positioning the displayed Georama part within its preview.
+ *
+ */
+static float georama_adjust_position[4] = {
+    0.0f, 0.0f, 0.0f, 0.0f,
+};
+/**
+ *
+ * Preview scale for each georama part definition.
+ *
+ */
+static float georama_parts_adjust_scaletable[93] = {
+    0.0f, 0.35800001f, 0.607200027f, 0.0f, 0.963f, 0.948000014f, 0.483999997f, 0.307999998f,
+    1.1868f, 0.326700002f, 0.529200017f, 0.995999992f, 0.237499997f, 0.43599999f, 0.635999978f, 1.579f,
+    2.27850008f, 0.699999988f, 2.04099989f, 0.241500005f, 0.250999987f, 0.485000014f, 0.284999996f, 0.450100005f,
+    1.36889994f, 0.833800018f, 0.301999986f, 0.529500008f, 0.860000014f, 0.299899995f, 1.18200004f, 0.35800001f,
+    0.292699993f, 0.485500008f, 0.565999985f, 0.183300003f, 0.698499978f, 0.615001023f, 0.527711987f, 0.325399995f,
+    0.168400005f, 0.195690006f, 0.204999998f, 0.0680000037f, 0.600000024f, 0.166500002f, 0.533999979f, 0.205308005f,
+    0.0f, 0.219300002f, 0.0f, 0.0f, 0.0f, 0.190599993f, 0.0f, 0.0f,
+    0.0f, 0.196999997f, 0.0f, 0.0983999968f, 0.1426f, 0.146919996f, 0.207599998f, 0.188999996f,
+    0.269699991f, 1.06760001f, 0.235699996f, 0.385600001f, 0.163000003f, 0.156680003f, 0.210327998f, 0.259932995f,
+    0.243741006f, 0.42750001f, 1.09300005f, 0.106700003f, 0.0f, 1.23500001f, 0.15106f, 0.128000006f,
+    0.300000012f, 0.244200006f, 0.337500006f, 0.0f, 0.0f, 0.759500027f, 0.0f, 0.0f,
+    0.94599998f, 0.329100013f, 0.390799999f, 0.0f, 0.0f,
+};
+/**
+ *
+ * Preview depth offset for each georama part definition.
+ *
+ */
+static float georama_parts_adjust_z_table[93] = {
+    0.0f, 0.0f, 7.0f, 0.0f, 0.200000003f, 0.0f, 2.0f, 14.0f,
+    0.0f, 0.0f, -0.5f, 6.0f, 12.0f, 12.0f, 1.60000002f, 0.600000024f,
+    2.27850008f, 0.0f, 13.0f, 18.0f, -10.0f, -6.0f, 0.0f, 9.0f,
+    0.0f, 0.0f, 27.0f, -2.5f, 0.860000014f, 17.0f, 3.0f, -5.0f,
+    -5.0f, 4.0f, -6.0f, 14.0f, 0.0f, 0.0f, 0.0f, -4.0f,
+    1.0f, 1.0f, 0.0f, -30.0f, 2.0f, -8.0f, 5.5f, -0.800000012f,
+    0.0f, 0.219300002f, 0.0f, 0.0f, 0.0f, -3.0f, 0.0f, 0.0f,
+    0.0f, -11.0f, 0.0f, 0.0983999968f, 15.0f, -8.0f, -14.0f, 0.172999993f,
+    0.269699991f, -3.0f, -14.0f, -14.0f, 14.0f, -8.0f, -19.0f, -17.0f,
+    -19.0f, 0.42750001f, 1.09300005f, 0.0f, 0.0f, 1.23500001f, -3.0f, 3.0f,
+    0.300000012f, 5.0f, 15.0f, 0.0f, 0.0f, -3.0f, 0.0f, 0.0f,
+    -10.0f, 0.329100013f, 0.390799999f, 0.0f, 0.0f,
+};
 /**
  *
  * Memory stack used for the displayed Georama part.
@@ -5235,14 +5312,7 @@ void MenuRemovalDraw() {
 void CBaseMenuClass::InitEnd() {}
 
 // Initialised data (.data)
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editmenu", old_menuparts_pos__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editmenu", old_menuparts_rot__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editmenu", now_menu_pos_mapparts__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editmenu", georama_adjust_position__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editmenu", penki_item_no__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editmenu", GeoramaColorList__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editmenu", georama_parts_adjust_scaletable__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editmenu", georama_parts_adjust_z_table__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editmenu", tbl_957__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editmenu", brdtbl_active_1314__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editmenu", brdtbl_noneactive_1315__DATA);

@@ -123,3 +123,21 @@ PAL OK; `editmenu-named-bss-objects.log` records 149/149; the associated
 changed-object receipt contains only this lane's two owned units. The other
 147 object file hashes equal the warm-built baseline. The header remains
 unchanged in this checkpoint. All 61 functions remain exact.
+
+## Model vectors and paint palette
+
+`old_menuparts_pos`, `old_menuparts_rot`, `now_menu_pos_mapparts` and
+`georama_adjust_position` are four-float initialized vectors. They retain
+zero components in initialized data, rather than BSS. `GeoramaColorList`
+contains eight RGB paint colours followed by the negative unpainted sentinel.
+The 93-entry `georama_parts_adjust_scaletable` and
+`georama_parts_adjust_z_table` arrays supply per-definition model preview
+scales and depth offsets. Their decimal float literals round-trip to the
+retail binary32 values, including non-integral scale constants.
+
+Each vector/table was migrated and checked separately. Receipts are under
+`.private/dataB/receipts/editmenu-{original-position,original-rotation,
+current-part-position,preview-offset,paint-colours,preview-scales,
+preview-depths}-*`. Every check reports PAL OK and 149/149 objects, with
+only the two owned unit hashes differing from baseline. This checkpoint
+removes seven initialized-data markers (146 remain).
