@@ -196,3 +196,14 @@ The exact Japanese diagnostic bytes remain octal escaped.
 Receipts: `editmenu-literals-MenuGeorama<handler>-*`; PAL and all 149 object
 checks pass, and the other 147 object hashes remain unchanged. Remaining
 initialized markers: 59.
+
+## Inline strings: villager removal
+
+KeyStep's villager-removal form/part names, script actions, pack members,
+formatted colour cells and cursor/list templates are inline strings. The
+removal initializer's background and form filenames are also inline.
+`editmenu-literals-CRemovalMenu-KeyStep-*` and
+`editmenu-literals-MenuRemovalInit-*` record PAL OK and 149/149 objects,
+with all other 147 hashes unchanged. No string extern remains. The two
+file-list string markers remain until their owning pointer tables migrate.
+Twenty-two initialized markers remain at this checkpoint.

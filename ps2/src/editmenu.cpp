@@ -253,8 +253,6 @@ struct MenuGeoramaSystemInfo {
  *
  */
 static CEditMap *MenuMainMapInfo;
-extern char              at_3420[];
-extern char              at_3421[];
 extern int               analyze_percent;
 /**
  *
@@ -262,7 +260,6 @@ extern int               analyze_percent;
  *
  */
 static float GeoAnalyzeCheckPointScrlBarY;
-extern "C" char          at_3952[];
 extern "C" GeoramaVector at_3757;
 /**
  *
@@ -324,31 +321,6 @@ static short DownLoadDispNum;
  *
  */
 static short MenuEditAnalyzeDataSrcNum;
-extern char                   at_4248[];
-extern char                   at_4249[];
-extern char                   at_4250[];
-extern char                   at_4251[];
-extern char                   at_4252[];
-extern char                   at_4253[];
-extern char                   at_4254[];
-extern char                   at_4255[];
-extern char                   at_4256[];
-extern char                   at_4257[];
-extern char                   at_4258[];
-extern char                   at_4259[];
-extern char                   at_4260[];
-extern char                   at_4261[];
-extern char                   at_4262[];
-extern char                   at_4263[];
-extern char                   at_4264[];
-extern char                   at_4265[];
-extern char                   at_4266[];
-extern char                   at_4267[];
-extern char                   at_4268[];
-extern char                   at_4269[];
-extern char                   at_4270[];
-extern char                   at_4271[];
-extern char                   at_4272[];
 extern signed char            viewmode_to_mode_convtable_1310[7];
 /**
  *
@@ -509,8 +481,6 @@ static signed char init_2178;
  */
 static CEditHouse *HouseDrawInfo;
 extern char                  *fname_4292[2];
-extern char                   at_4367[];
-extern char                   at_4368[];
 /**
  *
  * Whether the download announcement windows are drawn.
@@ -929,13 +899,6 @@ static float GeoRequestBoardCheckPoint[4];
  *
  */
 static int GeoRequestBoardCheckPoint_P[2];
-extern char                   at_2654[];
-extern char                   at_2656[];
-extern char                   at_2657[];
-extern char                   at_2659[];
-extern char                   at_2986[];
-extern char                   at_3162[];
-extern char                   at_3167[];
 extern float                  at_3260;
 extern float                  at_3268;
 /**
@@ -4870,43 +4833,43 @@ int CRemovalMenu::KeyStep() {
                 MakeNPCList();
                 BG_READ_INFO *read_b_g = GetReadBGFile(0);
                 if (read_b_g != NULL) {
-                    MenuDataAnalyze((char *)GetPackFile((unsigned int *)read_b_g->buffer, at_4248, &size), size, &data_stack);
-                    script = (char *)GetPackFile((unsigned int *)read_b_g->buffer, at_4249, &script_size);
+                    MenuDataAnalyze((char *)GetPackFile((unsigned int *)read_b_g->buffer, "npcmove.cfg", &size), size, &data_stack);
+                    script = (char *)GetPackFile((unsigned int *)read_b_g->buffer, "npcmove_com.cfg", &script_size);
                     AttachMessageForm();
                     MenuMesForm[0]->rgba_bit = 8;
-                    house_form = MenuPosData->GetFormInfo(at_3167);
+                    house_form = MenuPosData->GetFormInfo("\211\306\217\356\225\361");
                     HouseInfoFormGrobal = house_form;
-                    list_form = MenuPosData->GetFormInfo(at_4250);
-                    clip_form = MenuPosData->GetFormInfo(at_4251);
-                    npc_win_form = MenuPosData->GetFormInfo(at_4252);
-                    npc_chr_form = MenuPosData->GetFormInfo(at_4253);
+                    list_form = MenuPosData->GetFormInfo("\214\363\225\342\203\212\203X\203g");
+                    clip_form = MenuPosData->GetFormInfo("ListClip");
+                    npc_win_form = MenuPosData->GetFormInfo("polywin");
+                    npc_chr_form = MenuPosData->GetFormInfo("polychr");
                     if (list_form != NULL) {
-                        scroll_parts[0] = list_form->GetPartInfo(at_3420);
-                        scroll_parts[1] = list_form->GetPartInfo(at_3421);
-                        scroll_parts[2] = list_form->GetPartInfo(at_4254);
+                        scroll_parts[0] = list_form->GetPartInfo("bar0");
+                        scroll_parts[1] = list_form->GetPartInfo("bar1");
+                        scroll_parts[2] = list_form->GetPartInfo("bar2");
                         for (int i = 0; i < 9; i++) {
-                            sprintf(part_name, at_4255, i);
+                            sprintf(part_name, "ULine%d", i);
                             line_parts[i] = list_form->GetPartInfo(part_name);
                         }
                     }
                     list_jump = 1;
                     list_scroll_dir = 0;
-                    u8 *pack = (u8 *)GetPackFile((unsigned int *)read_b_g->buffer, at_2654, NULL);
+                    u8 *pack = (u8 *)GetPackFile((unsigned int *)read_b_g->buffer, "g.img", NULL);
                     int tex_block = MenuCommonInfo->tex_block[3];
                     mgTexManager.EnterIMGFile(pack, tex_block, NULL, NULL);
-                    mgTexManager.EnterIMGFile((u8 *)GetPackFile((unsigned int *)read_b_g->buffer, at_4256, NULL), tex_block, NULL, NULL);
-                    Tex_Georama = mgTexManager.GetTexture(at_2656, tex_block);
+                    mgTexManager.EnterIMGFile((u8 *)GetPackFile((unsigned int *)read_b_g->buffer, "npcdata.img", NULL), tex_block, NULL, NULL);
+                    Tex_Georama = mgTexManager.GetTexture("geo", tex_block);
                     MenuPosData->ResetTextureInfoAll();
-                    ExeScript(at_2659);
-                    short *message_pack = (short *)GetPackFile((unsigned int *)read_b_g->buffer, at_2657, &size);
+                    ExeScript("INIT_END");
+                    short *message_pack = (short *)GetPackFile((unsigned int *)read_b_g->buffer, "npcmsg.mes", &size);
                     MenuCommandAnalyzeInfo.system_mes_buff[0] = GetSystemMesBuffer();
                     MenuCommandAnalyzeInfo.system_mes_buff[1] = message_pack;
                     MenuCommandAnalyzeInfo.mes_buff[0] = GetMenuMainMessageBuffer();
                     MenuCommandAnalyzeInfo.mes_buff[1] = message_pack;
                     if (LanguageCode == 0) {
-                        ExeScript(at_4257);
+                        ExeScript("MSG_INIT");
                     } else {
-                        ExeScript(at_4258);
+                        ExeScript("MSG_INITUSA");
                     }
                     if (special_house == 1) {
                         CMenuPosDataForm *form = MenuMesForm[1];
@@ -4970,7 +4933,7 @@ int CRemovalMenu::KeyStep() {
                                                 } else {
                                                     key_arg_no = 1;
                                                     step = 0;
-                                                    ExeScript(at_4259);
+                                                    ExeScript("TO_NPCSEL");
                                                     model_wait = 0;
                                                     reload = 1;
                                                     model_state = 1;
@@ -4985,7 +4948,7 @@ int CRemovalMenu::KeyStep() {
                                                     }
                                                 }
                                             } else {
-                                                ExeScript(at_4260);
+                                                ExeScript("MSG_IS_RETURN_TRAIN");
                                                 char *name[1] = { GetNPCName(house->npc_no[0]) };
                                                 yes_mes->SetMsgItemNo(name, 1);
                                                 ask_mes->cursor_on = 0;
@@ -5007,7 +4970,7 @@ int CRemovalMenu::KeyStep() {
                             if (answer == 1) {
                                 MenuUserDataManPtr->LeaveHouse(house->npc_no[0]);
                                 house->npc_no[0] = 0;
-                                ExeScript(at_4261);
+                                ExeScript("MSG_RETURN_TRAIN_AFTER");
                                 ask_mes->cursor_on = 1;
                                 if (special_house == 1) {
                                     ask_mes->MakeMsg(0x11F8);
@@ -5018,7 +4981,7 @@ int CRemovalMenu::KeyStep() {
                             }
                             if (answer == 2) {
                                 ask_mes->cursor_on = 1;
-                                ExeScript(at_4262);
+                                ExeScript("MSG_ISMOVE_END");
                                 step = 0;
                                 MenuSePlay(5);
                             }
@@ -5067,7 +5030,7 @@ int CRemovalMenu::KeyStep() {
                         }
                         case 2:
                             if (push != 0) {
-                                ExeScript(at_4263);
+                                ExeScript("NOT_\210\332\217ZEND");
                                 step = 0;
                             }
                             break;
@@ -5085,7 +5048,7 @@ int CRemovalMenu::KeyStep() {
                         live = 1;
                     }
                     if (live == 0) {
-                        ExeScript(at_4264);
+                        ExeScript("NOT_\210\332\217Z");
                         MenuDCMsg[6]->MakeMsg(GetPartyCharaMessage(npc, 10, 0));
                         MenuDCMsg[6]->StepMsg();
                         AdjustNPCTalk(MenuDCMsg[6], &chara);
@@ -5096,7 +5059,7 @@ int CRemovalMenu::KeyStep() {
                         select_npc = npc_list[select];
                         char *names[2] = { GetNPCName(select_npc), parts_info->edit_name };
                         step = 1;
-                        ExeScript(at_4265);
+                        ExeScript("MSG_ISMOVE_COMFIRM");
                         yes_mes->SetMsgItemNo(names, 2);
                     }
                     break;
@@ -5106,28 +5069,28 @@ int CRemovalMenu::KeyStep() {
                     house->npc_no[0] = select_npc;
                     MakeNPCList();
                     remake = 1;
-                    ExeScript(at_4262);
-                    ExeScript(at_4266);
+                    ExeScript("MSG_ISMOVE_END");
+                    ExeScript("BACK_FROM_NPCSEL");
                     step = 0;
                     key_arg_no = 0;
                     model_state = 0;
                     MenuSePlay(SYSTEM_SE_DECIDE);
                     break;
                 case REMOVAL_ACTION_CANCEL:
-                    ExeScript(at_4262);
+                    ExeScript("MSG_ISMOVE_END");
                     step = 0;
                     MenuSePlay(5);
                     break;
                 case REMOVAL_ACTION_BACK:
                     key_arg_no = 0;
-                    ExeScript(at_4266);
+                    ExeScript("BACK_FROM_NPCSEL");
                     model_state = 0;
                     break;
                 case REMOVAL_ACTION_WAIT:
                     break;
                 case REMOVAL_ACTION_CLOSE:
                     mode = 2;
-                    ExeScript(at_3952);
+                    ExeScript("\217I\227\271\217\210\227\235");
                     exit_wait = 0;
                     if (MenuArg.end_code != 9 && house != NULL && first_npc != house->npc_no[0]) {
                         MenuArg.end_code = 0xD;
@@ -5157,7 +5120,7 @@ int CRemovalMenu::KeyStep() {
             StartReadBG();
             MenuNPCModelLoad(&MenuChangeNpcMemory, npc, 1);
             npc_chr_form->SetActionCharaPtr(NULL, -1, -1);
-            ExeScript(at_4267);
+            ExeScript("FADEINIT_CHR");
             model_state = 2;
             break;
         case 2:
@@ -5173,7 +5136,7 @@ int CRemovalMenu::KeyStep() {
                     MenuAdjustPolygonScale(&chara, 6.96f);
                 }
                 chara.SetRotation(0.0f, -0.07853982f, 0.0f);
-                chara.SetMotion(at_4268, 0, 1);
+                chara.SetMotion("\227\247\202\277", 0, 1);
                 npc_chr_form->SetActionCharaPtr(&chara, MenuCommonInfo->tex_block[4], -1);
                 npc_chr_form->counter = -14;
                 model_state = 3;
@@ -5182,7 +5145,7 @@ int CRemovalMenu::KeyStep() {
         case 3:
             chara.Step();
             if (npc_chr_form->counter == 14) {
-                ExeScript(at_4269);
+                ExeScript("FADEIN_CHR");
             }
             break;
     }
@@ -5202,31 +5165,31 @@ int CRemovalMenu::KeyStep() {
         npc_mes->MakeMsg(0xB);
         npc_mes->StepMsg();
     }
-    CMenuPosDataForm *culture_form = MenuPosData->GetFormInfo(at_3162);
+    CMenuPosDataForm *culture_form = MenuPosData->GetFormInfo("CPVIEW");
     if (culture_form != NULL) {
         int flag = GetSaveData()->GetBitFlag(kBitFlagCulture);
         int cpoint_no = 0;
         if (flag == 0 && MenuMainScene->now_map_no == 3) {
             cpoint_no |= 1;
         }
-        culture_form->SetNumber(at_2986, MenuMainMapInfo->CultureAnalyzeParts(place_no, cpoint_no));
+        culture_form->SetNumber("CP", MenuMainMapInfo->CultureAnalyzeParts(place_no, cpoint_no));
     }
     if (list_form != NULL && list_mes != NULL) {
         int put_pos[2];
         if (clip_form != NULL) {
-            list_form->GetPutPosXY(at_4270, put_pos[0], put_pos[1]);
+            list_form->GetPutPosXY("clippos", put_pos[0], put_pos[1]);
             CMenuPosDataForm *clip = clip_form;
             clip->x = put_pos[0];
             clip->y = put_pos[1];
         }
         if (info_mes != NULL) {
-            list_form->GetPutPosXY(at_4271, put_pos[0], put_pos[1]);
+            list_form->GetPutPosXY("btnmsg", put_pos[0], put_pos[1]);
             info_mes->SetMovePosGyou(0, put_pos[0], put_pos[1]);
         }
         int top_line[2] = { top, top - 1 };
         first = top_line[list_scroll_dir];
         float list_pos[2];
-        list_form->GetPutPosXY(at_4272, list_pos[0], list_pos[1]);
+        list_form->GetPutPosXY("infomsg", list_pos[0], list_pos[1]);
         int line_h = list_mes->font_h;
         list_pos[1] -= top * line_h;
         list_x = list_pos[0];
@@ -5272,7 +5235,7 @@ int CRemovalMenu::KeyStep() {
             switch (key_arg_no) {
                 case 1: {
                     int cursor_pos[2];
-                    list_form->GetPutPosXY(at_4272, cursor_pos[0], cursor_pos[1]);
+                    list_form->GetPutPosXY("infomsg", cursor_pos[0], cursor_pos[1]);
                     cursor_pos[0] -= 0x28;
                     cursor_pos[1] += list_mes->font_h * (select - top);
                     MenuCommonInfo->MenuPosStep(cursor_pos, NULL);
@@ -5325,11 +5288,11 @@ void MenuRemovalInit(mgCMemory *stack, int *arg) {
     }
     HouseDrawInfo = RemovalMenuPtr->house;
     SetEditMenuEnv();
-    CMenuPosDataForm *form = MenuPosData->GetFormInfo(at_4367);
+    CMenuPosDataForm *form = MenuPosData->GetFormInfo("timeboard");
     if (form != NULL) {
         form->draw_flag = 0;
     }
-    form = MenuPosData->GetFormInfo(at_4368);
+    form = MenuPosData->GetFormInfo("areaboard");
     if (form != NULL) {
         form->draw_flag = 0;
     }
@@ -5365,45 +5328,8 @@ INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editmenu", at_4101__DATA);
 
 // Constants (.rodata)
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editmenu", at_1014__3__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editmenu", at_2654__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editmenu", at_2656__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editmenu", at_2657__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editmenu", at_2659__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editmenu", at_2986__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editmenu", at_3162__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editmenu", at_3167__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editmenu", at_3330__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editmenu", at_3420__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editmenu", at_3421__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editmenu", at_3952__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editmenu", at_4248__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editmenu", at_4249__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editmenu", at_4250__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editmenu", at_4251__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editmenu", at_4252__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editmenu", at_4253__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editmenu", at_4254__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editmenu", at_4255__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editmenu", at_4256__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editmenu", at_4257__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editmenu", at_4258__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editmenu", at_4259__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editmenu", at_4260__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editmenu", at_4261__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editmenu", at_4262__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editmenu", at_4263__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editmenu", at_4264__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editmenu", at_4265__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editmenu", at_4266__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editmenu", at_4267__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editmenu", at_4268__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editmenu", at_4269__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editmenu", at_4270__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editmenu", at_4271__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editmenu", at_4272__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editmenu", at_4293__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editmenu", at_4367__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editmenu", at_4368__DATA);
 
 // Virtual tables (.vtables)
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editmenu", __vt__12CRemovalMenu__DATA);
