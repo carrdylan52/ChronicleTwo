@@ -114,12 +114,21 @@ static signed char init_922;
  */
 static mgCMemory MenuChapterStack;
 
-extern char               *chap_voice_851[8];
-extern const unsigned char at_902__3__DATA[];
-extern const unsigned char at_903__3__DATA[];
-extern const unsigned char at_904__5__DATA[];
-extern const unsigned char at_905__5__DATA[];
-extern const unsigned char at_906__5__DATA[];
+/**
+ *
+ * Narration stream filenames for the eight chapter titles.
+ *
+ */
+static char *chap_voice_851[8] = {
+    "0060600.wav",
+    "2070310.wav",
+    "3060260.wav",
+    "4020120.wav",
+    "5000010.wav",
+    "6000360.wav",
+    "7000010.wav",
+    "8000140.wav",
+};
 
 // Code (.text)
 void MenuChapterInit(mgCMemory *stack, int *tex_block, int open_type, int chapter) {
@@ -166,7 +175,7 @@ void MenuChapterInit(mgCMemory *stack, int *tex_block, int open_type, int chapte
     MenuChapterStack.Align64();
     menu_snd_counter = 0;
     unsigned int *sound_buffer = (unsigned int *) (MenuChapterStack.stack + MenuChapterStack.stack_used);
-    LoadFile2((char *) at_906__5__DATA, sound_buffer, (int *) &file_size, 0);
+    LoadFile2((char *) "snd2/sp/SP_007.snd", sound_buffer, (int *) &file_size, 0);
 
     if (file_size & 0xF) {
         blocks = (file_size >> 4) + 1;
@@ -313,22 +322,3 @@ void MenuChapterDraw() {
 
     prim.End();
 }
-
-// Initialised data (.data)
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menucapt", chap_voice_851__DATA);
-
-// Constants (.rodata)
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menucapt", at_852__3__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menucapt", at_853__4__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menucapt", at_854__3__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menucapt", at_855__4__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menucapt", at_856__3__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menucapt", at_857__3__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menucapt", at_858__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menucapt", at_859__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menucapt", at_902__3__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menucapt", at_903__3__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menucapt", at_904__5__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menucapt", at_905__5__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menucapt", at_906__5__DATA);
-
