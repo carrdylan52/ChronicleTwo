@@ -1534,30 +1534,30 @@ void DrawDownLoadAnaunce() {
 #pragma divbyzerocheck on
 int MakeDownLoadAnaunce(int town_no, mgCMemory *stack, int *out_num, int *out_sub_num, int *out_height) {
     int *ok_table;
-    int valid __attribute__((aligned(16)));
-    int map_no __attribute__((aligned(8)));
+    int valid;
+    int map_no;
     CSaveData *save;
-    int floor_num __attribute__((aligned(16)));
-    int count __attribute__((aligned(32)));
-    int n __attribute__((aligned(32)));
-    char *dst_char __attribute__((aligned(8)));
+    int floor_num;
+    int count;
+    int n;
+    char *dst_char;
     char *hatena;
-    int request_num __attribute__((aligned(8)));
+    int request_num;
     int condition_num;
-    int no __attribute__((aligned(16)));
-    int height __attribute__((aligned(8)));
-    int limit __attribute__((aligned(8)));
+    int no;
+    int height;
+    int limit;
     int con;
-    char *condition_name __attribute__((aligned(8)));
+    char *condition_name;
     int size;
-    CScene *scene __attribute__((aligned(16)));
-    int condition __attribute__((aligned(16)));
-    CSaveDataDungeon *dungeon __attribute__((aligned(16)));
-    int total __attribute__((aligned(16)));
+    CScene *scene;
+    int condition;
+    CSaveDataDungeon *dungeon;
+    int total;
     CEditInfoMngr *info;
     char *word;
-    int geo_floor __attribute__((aligned(32)));
-    CEditData *edit __attribute__((aligned(8)));
+    int geo_floor;
+    CEditData *edit;
     int font_no;
     short floors[0x180][2];
     char *names[0x180];
@@ -1699,7 +1699,7 @@ int MakeDownLoadAnaunce(int town_no, mgCMemory *stack, int *out_num, int *out_su
             request_num++;
             height += *tex_h;
         }
-        for (con = 0; src->con_no[con] >= 0; con++, condition_num++) {
+        for (con = 0; src->con_no[con] >= 0; condition_num++, con++) {
             condition = src->con_no[con];
             condition_name = MenuEditAnalyzeSrc->condition[condition];
             if (condition_name == NULL) {

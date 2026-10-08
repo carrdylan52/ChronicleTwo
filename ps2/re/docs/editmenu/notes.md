@@ -213,3 +213,28 @@ output and coverage. All three lane units pass; the inherited failing set stays
 mg_texture, nd_meswin, actionchara and actscript (145/149 pass). Coverage stays
 6,666 matched / 184 guarded / 15 assembly-only / 7 fuzzy. No target is promoted.
 Comparison receipt: `.private/receipts/bigfn-final/comparison.json`.
+
+## Nearmiss continuation order and source cleanup
+
+The retained guarded `MakeDownLoadAnaunce` draft now differs by 19/900 words,
+down from 23/900, with the same 0xE08 body in the retail 0xE10 extent. Retail
+increments the aggregate condition count at +0x9E0/+0x9E8 before incrementing
+the condition iterator at +0x9EC/+0x9F4. Updating `condition_num` before `con`
+in the shared loop continuation reproduces these four words; their original
+slots were already correct. This is independent update order, not a spill
+layout difference. Every remaining scalar alignment attribute is removed;
+removing them does not change the draft's code. The quadword load buffer
+retains its real type and alignment.
+
+The 19 remaining differences are the prior list excluding those four
+continuation words. A separate request index, request-pass source scope,
+checked source reference, shared font-height pointer and a function-scope
+source after the scalar declarations all retain 19. Sharing the font pointer
+changes saved-register allocation (44/900); merging the source assignment/null
+test changes scheduling/body size (605/900); declaring the source first moves
+earlier spills too (76/900). All are reverted. The guard remains until the
+request-source and three reduced array-index spill slots match naturally.
+
+Receipts: `.private/receipts/nearmiss-probes/editmenu/n1` through `n10`; retained
+candidate `n2`. The canonical guarded complete-object check is under
+`.private/receipts/nearmiss-canonical/editmenu/n2/`. No profile row is added.
