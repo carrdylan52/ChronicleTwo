@@ -98,7 +98,7 @@ here with a stub only; object.hpp/map.hpp are other agents').
 | 0x98 | `float time_end` | same |
 | 0x9C | `CCharacter2 *chara` | AssignMds; Step calls chara vt+0xD4; Copy news a CCharacter2 (0x660) and calls src chara vt+0xEC (Copy) |
 | 0xA0 | `s16 col_type` | mapPIECE_COL_TYPE arg 0; GetPoly requires 0; SearchPieceColType |
-| 0xA2 | `s16 col_param` | mapPIECE_COL_TYPE optional arg 1; only Initialize/Copy elsewhere; meaning unknown |
+| 0xA2 | `s16 col_param` | mapPIECE_COL_TYPE optional arg 1; Initialize clears it and Copy does not copy it; meaning unknown |
 0xA4..0xAF: tail padding to 16-byte alignment (no access seen).
 
 Vtable `__vt__9CMapPiece` (0x7C) is CObjectFrame's with three overrides: slot 0x34 `Draw`, 0x38
