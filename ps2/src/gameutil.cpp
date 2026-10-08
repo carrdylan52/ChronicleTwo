@@ -57,6 +57,11 @@ float def_vrtx[800][4];
 static float def_nml[1][4];
 
 // Code (.text)
+/**
+ *
+ * Blends rotation quaternion keys and writes the resulting rotation.
+ *
+ */
 static void QuatSlerp(float *q0, float *q1, float t, float *out) {
     float cos_theta;
     float scale0;
@@ -97,7 +102,6 @@ static void QuatSlerp(float *q0, float *q1, float t, float *out) {
     }
 }
 
-#ifdef NONMATCHING
 Mot_List *MotionProc(mgCFrame *root, float time, Mot_List *list, mgCCamera *camera) {
     unsigned int frame_no = (unsigned int) time;
     int          high;
@@ -108,7 +112,10 @@ Mot_List *MotionProc(mgCFrame *root, float time, Mot_List *list, mgCCamera *came
     high = count;
     int          next;
     mgCFrame    *frame;
+    unsigned int vertex;
+    int          driven;
     int          key;
+    sceVu0FVECTOR *vertices;
     unsigned int key_frame;
     float        t;
     float        one_minus_t;
@@ -132,7 +139,7 @@ Mot_List *MotionProc(mgCFrame *root, float time, Mot_List *list, mgCCamera *came
     key = low - 1;
     next = key + 1;
 
-    if (next > count + (key - next)) {
+    if (next > count - 1) {
         next = key;
     }
 
@@ -193,14 +200,13 @@ Mot_List *MotionProc(mgCFrame *root, float time, Mot_List *list, mgCCamera *came
             frame->changed = 1;
             break;
         case MOTION_KEY_VERTEX: {
-            int            vertex;
-            int            driven = list->frame;
-            sceVu0FVECTOR *vertices = ((mgCVisualMDT *) frame->visual)->vertex;
+            driven = list->frame;
+            vertices = ((mgCVisualMDT *) frame->visual)->vertex;
             do {
                 if (!(t <= 0.001f) && t < 0.999f) {
                     Mot_List *node = list;
                     while (driven == node->frame) {
-                        vertex = list->target - 1;
+                        vertex = (unsigned int) list->target - 1;
                         sceVu0InterVectorXYZ(value, list->values[next], list->values[key], t);
                         sceVu0CopyVectorXYZ(vertices[vertex], value);
                         list = list->next;
@@ -303,9 +309,6 @@ Mot_List *MotionProc(mgCFrame *root, float time, Mot_List *list, mgCCamera *came
 
     return list->next;
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/gameutil", MotionProc__FP8mgCFramefP8Mot_ListP9mgCCamera);
-#endif
 
 Mot_List *MotionProc(mgCFrame *root, unsigned int from_frame, unsigned int to_frame, float blend, Mot_List *list, mgCCamera *camera) {
     int       high;

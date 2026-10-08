@@ -1,8 +1,8 @@
 # gameutil: reverse-engineering notes
 
 ## C++ draft status
-The matching build supplies 34 of the 37 functions from source, including
-the existing inline-assembly exceptions. Three remain under `NONMATCHING`
+The matching build supplies 35 of the 37 functions from source, including
+the existing inline-assembly exceptions. Two remain under `NONMATCHING`
 with retail assembly fallbacks. Raw draft comparisons use
 the pinned deterministic compiler profile; promotion also requires complete
 object bytes, resolved relocations, and the inherited linked-image baseline.
@@ -139,17 +139,20 @@ inline VU loads to retain the segment bounds in vf10/vf11 before testing
 polygons. Its 0x32C bytes match objdiff exactly, and the `gameutil` object
 passes `check_objects.py` with 357 resolved relocations.
 
-## Other guarded remainders
+## MotionProc(float) match
 
-`MotionProc(float)` retains a 32/596-word guarded draft, 0x94C body bytes
-against the retail 0x950 padded extent. Its remaining differences exchange
-the saved camera/key registers and retain a subtraction of key/next where
-retail materializes -1. Direct unsigned upper-bound subtraction removes a
-word and shifts later code; unsigned locals alone do not fix the difference.
+`MotionProc(float)` is native and matches all 596 comparison words, including
+the trailing alignment word. Its body is 0x94C bytes; the complete gameutil
+object passes with 357 resolved relocations. Declaration order for the
+existing vertex locals and unsigned vertex-index arithmetic resolve the
+camera/key allocation and permit the ordinary `count - 1` clamp.
+[The October 8 follow-up](matching-r0-20261008.md) records the source form,
+linkage audit, compiler observations and full validation.
+
 Retail reads the motion type after `GetFrame`; m2c lifts this read in its
 pseudocode, so moving it before the call is incorrect.
 
-## October 8 guarded sweep: MotionProc(float)
+## October 8 guarded sweep: MotionProc(float), before the follow-up
 
 The refreshed baseline is 289/596 differing words, with a 0x934 native body.
 `decompile.sh MotionProc__FP8mgCFramefP8Mot_ListP9mgCCamera` recovers the
@@ -225,6 +228,7 @@ remain. `gameutil-retained-build.log` retains only 0x26 PAL `.text` bytes
 different, first at 0x0015C5AD, with memory end 0x01F64A00 and every other
 file-backed section exact. No function is promoted.
 
-Reconsider this remainder only with new evidence that explains the camera/key
-register assignment and the last-key clamp together; the recorded lifetime,
-integer-type and helper-history variants do not close them.
+This sweep's remaining camera/key and clamp differences are resolved by the
+follow-up above. The recorded negative probes remain useful evidence: changing
+the search-local lifetimes, integer types or helper-history masks alone did
+not close them.
