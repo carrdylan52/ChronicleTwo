@@ -44,3 +44,19 @@ The full build retains `SCES_511.90: OK`, and all 149 objects pass. Refreshed
 `matched_data / total_data` is 12 / 548 (baseline 12 / 548).
 Whole-project receipts: `.private/dataA-r2/menucls1-build.log` and
 `menucls1-objects.log`.
+
+## Status-bit names and digit pointer types
+
+The local status table uses the existing `CHARA_STATUS_ATTR` enumerators in
+ascending bit order. These are the same seven masks consumed by the item
+add/cure loop; no shared enum or header changes are required. `SetMenuBigNum2`
+uses `char *` for the full-width glyph returned by `GetMenuBigNum`, removing
+its two signed-character pointer casts. The two question-mark statics and both
+local initialized tables have purpose comments at their definitions.
+
+The focused object passes all 0x2B04 bytes and 304 resolved relocations.
+The full build retains `SCES_511.90: OK`, and all 149 objects pass.
+Receipts: `.private/dataA-r2/menucls1-status-enum.log`,
+`menucls1-status-enum-build.log`, and `menucls1-status-enum-objects.log`.
+The reservation counts and data coverage remain 12 initialized-data markers,
+7 BSS markers, and 12/548 matched data bytes.

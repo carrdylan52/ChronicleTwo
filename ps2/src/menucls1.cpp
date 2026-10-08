@@ -37,7 +37,13 @@ int MenuUsedNotErrorCode;
 
 // Code (.text)
 char *GetHatena() {
+    /**
+     * Full-width placeholder for an unidentified item name.
+     */
     static char *MenuHatena = "\x81H\x81H\x81H";
+    /**
+     * Single-byte placeholder for an unidentified item name.
+     */
     static char *MenuHatena_1byte = "???";
 
     if (LanguageCode >= 2 && LanguageCode < 6) {
@@ -59,13 +65,13 @@ void SetMenuBigNum2(char *out, int number) {
 
         if (digits > 0) {
             do {
-                signed char *glyph;
+                char *glyph;
 
                 if (digits == 1) {
-                    glyph = (signed char *) GetMenuBigNum(rest);
+                    glyph = GetMenuBigNum(rest);
                 } else {
                     int divisor = (int) pow(10.0, (double) (digits - 1));
-                    glyph = (signed char *) GetMenuBigNum(rest / divisor);
+                    glyph = GetMenuBigNum(rest / divisor);
                     rest = rest % divisor;
                 }
 
@@ -82,6 +88,9 @@ void SetMenuBigNum2(char *out, int number) {
 }
 
 void SetMenuBigNum(char *out, int number) {
+    /**
+     * Single-byte glyphs used to write decimal item counts.
+     */
     static char *sn[10] = {"0", "1", "2", "3", "4", "5", "6", "7", "8", "9"};
     if (out != 0) {
         int rest = number;
@@ -1032,7 +1041,13 @@ int CheckRoboShieldKit(CUserDataManager *manager, CGameDataUsed *item, int apply
 }
 
 int MenuUseItemCheckFunc(CGameDataUsed *item, CItemUseTarget *target, int apply) {
-    static const u32 st_bittable[7] = {1, 2, 4, 8, 16, 32, 64};
+    /**
+     * Character status bits tested when an item adds or cures a condition.
+     */
+    static const u32 st_bittable[7] = {
+        CHARA_STATUS_POISON, CHARA_STATUS_UNK_2, CHARA_STATUS_UNK_4, CHARA_STATUS_UNK_8,
+        CHARA_STATUS_POWER, CHARA_STATUS_UNK_20, CHARA_STATUS_UNK_40
+    };
     if (item == NULL || target == NULL) {
         return 0;
     }
