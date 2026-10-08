@@ -7,10 +7,11 @@ import postprocess_object as p
 
 
 class DataPaddingTests(unittest.TestCase):
-    def run_padding(self, size=12, declared=12, end=16, nobits=True, tail=b"\0" * 4, terminal=False):
+    def run_padding(self, size=12, declared=12, end=16, nobits=True, tail=b"\0" * 4,
+                    terminal=False, section_name=None, placeholder=False):
         section = SimpleNamespace(sh_type=p.SHT_NOBITS if nobits else 1,
                                   sh_size=size, data=b"x" * size,
-                                  name=".bss" if nobits else ".data")
+                                  name=section_name or (".bss" if nobits else ".data"))
         symbol = SimpleNamespace(type=p.STT_OBJECT, st_value=0, st_shndx=1,
                                  name="object", st_size=size)
         elf = SimpleNamespace(sections=[None, section],
@@ -23,9 +24,10 @@ class DataPaddingTests(unittest.TestCase):
         with patch.object(p.disassemble, "Pieces", return_value=pieces), \
              patch.object(p.layout, "Retail", return_value=retail), \
              patch.object(p.layout, "read_symbols", return_value=[(0, "object", declared, False)]):
-            p.pad_data(elf, "test", set())
+            placeholders = {1} if placeholder else set()
+            p.pad_data(elf, "test", placeholders)
             once = p.section_size(section)
-            p.pad_data(elf, "test", set())
+            p.pad_data(elf, "test", placeholders)
             self.assertEqual(p.section_size(section), once)
         return once
 
@@ -47,6 +49,18 @@ class DataPaddingTests(unittest.TestCase):
 
     def test_terminal_padding_belongs_to_linker(self):
         self.assertEqual(self.run_padding(terminal=True), 12)
+
+    def test_vtable_padding_uses_the_same_exact_size_policy(self):
+        self.assertEqual(self.run_padding(nobits=False, section_name='.vtables'), 16)
+        self.assertEqual(self.run_padding(nobits=False, section_name='.vtables', size=8), 8)
+        self.assertEqual(self.run_padding(nobits=False, section_name='.vtables',
+                                          tail=b'\0\0\1\0'), 12)
+        self.assertEqual(self.run_padding(nobits=False, section_name='.vtables',
+                                          terminal=True), 12)
+
+    def test_vtable_placeholder_is_not_padded(self):
+        self.assertEqual(self.run_padding(nobits=False, section_name='.vtables',
+                                          placeholder=True), 12)
 
 
 if __name__ == "__main__":

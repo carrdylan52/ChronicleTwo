@@ -766,7 +766,7 @@ def pad_data(elf, unit, placeholders):
     retail = layout.Retail()
     pieces = disassemble.Pieces()
     runs = [(section, run) for section, run in pieces.unit(unit)
-            if section in ('.data', '.sdata', '.rodata', '.bss', '.sbss')]
+            if section in ('.data', '.sdata', '.rodata', '.bss', '.sbss', '.vtables')]
     cuts = {name: (start, end) for section, run in runs for name, start, end in run}
     trailing = {(section, run[-1][0]) for section, run in runs if run}
     declared_sizes = {name: size for _address, name, size, _is_function
@@ -790,7 +790,7 @@ def pad_data(elf, unit, placeholders):
         if (section.sh_type == SHT_NOBITS and size and 0 < end - start - size < 16):
             section.sh_size = end - start
             continue
-        if (section.name in ('.data', '.sdata', '.rodata') and size
+        if (section.name in ('.data', '.sdata', '.rodata', '.vtables') and size
                 and 0 < end - start - size < 16 and not any(retail.bytes(start + size, end))):
             section.data += bytes(end - start - size)
             symbol.st_size = len(section.data)
