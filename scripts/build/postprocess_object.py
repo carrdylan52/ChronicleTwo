@@ -750,7 +750,7 @@ def bss_data_names(elf, unit, placeholders, *, retail, pieces, addresses, rows):
 
 
 def pointer_table_names(elf, unit, placeholders, *, retail, pieces, addresses, rows):
-    """Select local pointer table identities before their compiler-owned literals.
+    """Select named local pointer tables before their compiler-owned literals.
 
     All code consumers establish the table address. Its nonpointer bytes,
     real relocation shape and each pointed-to native literal must match retail.
@@ -767,8 +767,8 @@ def pointer_table_names(elf, unit, placeholders, *, retail, pieces, addresses, r
         index = symbol.st_shndx
         if (index in placeholders or symbol.bind != STB_LOCAL or symbol.type != STT_OBJECT
                 or symbol.st_value or not 0 < index < len(elf.sections)
-                or (symbol.name in addresses and addresses[symbol.name] in cuts
-                    and not re.fullmatch(r'at_\d+', symbol.name))):
+                or re.fullmatch(r'at_\d+', symbol.name)
+                or (symbol.name in addresses and addresses[symbol.name] in cuts)):
             continue
         section = elf.sections[index]
         if (section.name not in ('.data', '.sdata', '.rodata')

@@ -69,6 +69,12 @@ class PointerTableTests(unittest.TestCase):
         fixture[0].symtab.symbols[0].name = 'another_table_7'
         self.assertEqual(self.apply(fixture), 'geo_table_12')
 
+    def test_anonymous_templates_keep_the_existing_literal_matcher(self):
+        fixture = self.fixture()
+        fixture[0].symtab.symbols[0].name = 'at_9999'
+        selected = p.pointer_table_names(fixture[0], 'unit', set(), **fixture[1])
+        self.assertEqual(selected, {})
+
     def test_unknown_consumer_and_opcode_change_reject_table(self):
         for invalid in ('unknown', 'opcode'):
             fixture = self.fixture()
