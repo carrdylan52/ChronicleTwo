@@ -114,3 +114,30 @@ Each function's pair was removed and verified separately. Receipts:
 `06-mountain-vectors-*`, `07-tree-vectors-*`, `08-placement-vectors-*`.
 Every step passes all 149 objects and PAL; all 148 other object hashes are
 unchanged. Marker counts become 14/0.
+
+## Function strings
+
+Thirteen strings are inline at their uses, with their exact spelling, format
+arguments and terminating newlines preserved:
+
+| Function | Strings | Receipt prefix |
+|---|---|---|
+| `CMiniMapSymbol::SetMapInfo` | `minimap1` | `09-minimap-string` |
+| `CAutoMapGen::RoomLink` | `ERR:NotFound StartLinkPoint\n` | `10-room-link-string` |
+| `CAutoMapGen::SetPartsIndex` | `%d,%d [%d][%d]\n` | `11-parts-index-string` |
+| `SetDummyMountain`, `SetDummyTree` | `o00`, `o01` | `12-dummy-parts-strings` |
+| `SearchHealingPoint` | `room5%d`, `kaifuku` | `13-healing-strings` |
+| `IndexToPartsPlace` | `p01_gio`, `obj01`, `obj02` | `14-placement-strings` |
+| `SetInOutPartsIndex` | `EXIT INDEX = %d\n` | `15-exit-index-string` |
+| `RandomMapMainProc` | `rand = %d\n` | `16-random-seed-string` |
+| `Build` | `%d\n` | `17-floor-number-string` |
+
+The shared `o00` literal retains one pooled object across the two consumers.
+The room-script command table definition follows the tag callbacks and precedes
+`SetupRoomInfo`, so the table definitions and literal uses follow retail data
+order naturally. No command or code behavior changes.
+
+Each row above has a separate full build, all-object check and baseline hash
+receipt with `-build.log`, `-objects.log`, and `-metrics.log` suffixes. Every
+step passes all 149 units, PAL, and the unchanged-other-object check. Marker
+counts become 1/0. The sole remaining marker is the catalog's empty name.

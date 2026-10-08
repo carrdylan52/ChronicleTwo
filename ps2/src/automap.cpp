@@ -35,19 +35,6 @@ enum {
 };
 
 extern char                at_1054[];
-extern char                at_1111[];
-extern char                at_2119__2[];
-extern char                at_2128__2[];
-extern char                at_2270[];
-extern char                at_2347[];
-extern char                at_2348[];
-extern char                at_2349[];
-extern char                at_2289[];
-extern char                at_2290[];
-extern char                at_2377__2[];
-extern char                at_1661[];
-extern char                at_2561[];
-extern char                at_2609[];
 static int                        _ROOM_FIXED(SPI_STACK *stack, int arg_count);
 static int                        _GRID_SIZE(SPI_STACK *stack, int unused);
 static int                        _ROOM_ID(SPI_STACK *stack, int arg_count);
@@ -55,22 +42,6 @@ static int                        _ROOM_SIZE(SPI_STACK *stack, int arg_count);
 static int                        _ROOM_RATE(SPI_STACK *stack, int arg_count);
 static int                        _RD(SPI_STACK *stack, int arg_count);
 static int                        _ROOM_END(SPI_STACK *stack, int arg_count);
-
-/**
- *
- * Commands accepted by the dungeon room preset script interpreter.
- *
- */
-static SPI_TAG_PARAM tag[] = {
-    {"ROOM_FIXED", _ROOM_FIXED},
-    {"GRID_SIZE", _GRID_SIZE},
-    {"ROOM_ID", _ROOM_ID},
-    {"ROOM_SIZE", _ROOM_SIZE},
-    {"ROOM_RATE", _ROOM_RATE},
-    {"RD", _RD},
-    {"ROOM_END", _ROOM_END},
-    {NULL, NULL}
-};
 
 /**
  *
@@ -861,7 +832,7 @@ void CMiniMapSymbol::SetMapInfo(CMap *new_map, CAutoMapParts *new_auto_map_parts
         parts_num++;
     }
 
-    texture = mgTexManager.GetTexture(at_1111, -1);
+    texture = mgTexManager.GetTexture("minimap1", -1);
     char *floor_name = BattleAreaScene->map_name;
 
     if (*floor_name == 0) {
@@ -1196,6 +1167,22 @@ static int _ROOM_END(SPI_STACK *stack, int arg_count) {
     return 1;
 }
 
+/**
+ *
+ * Commands accepted by the dungeon room preset script interpreter.
+ *
+ */
+static SPI_TAG_PARAM tag[] = {
+    {"ROOM_FIXED", _ROOM_FIXED},
+    {"GRID_SIZE", _GRID_SIZE},
+    {"ROOM_ID", _ROOM_ID},
+    {"ROOM_SIZE", _ROOM_SIZE},
+    {"ROOM_RATE", _ROOM_RATE},
+    {"RD", _RD},
+    {"ROOM_END", _ROOM_END},
+    {NULL, NULL}
+};
+
 void CAutoMapGen::SetupRoomInfo(char *name, int length, mgCMemory *mem) {
     int i;
 
@@ -1475,7 +1462,7 @@ void CAutoMapGen::RoomLink(int from, int to) {
             break;
     }
     if (start_num <= 0) {
-        printf(at_1661);
+        printf("ERR:NotFound StartLinkPoint\n");
         return;
     }
     pick = iRand(start_num);
@@ -2022,7 +2009,7 @@ void CAutoMapGen::SetPartsIndex() {
                     }
                 }
             } else if (flags & 8) {
-                printf(at_2119__2, x, y, flags, cell->road_link);
+                printf("%d,%d [%d][%d]\n", x, y, flags, cell->road_link);
 
                 for (j = 0; j < 0x118; j++) {
                     if (PartsInfoData[j].kind == (grid + y * grid_w)[x].kind &&
@@ -2044,7 +2031,7 @@ void CAutoMapGen::SetDummyMountain() {
         mgCMemory *stack = DngMainScene->GetStack(2);
         float      pos[4] = {0.0f, 0.0f, 0.0f, 1.0f};
         float      scale[4] = {1.0f, 1.0f, 1.0f, 1.0f};
-        map->PlaceParts(at_2128__2, pos, pos, scale, stack);
+        map->PlaceParts("o00", pos, pos, scale, stack);
     }
 }
 
@@ -2176,11 +2163,11 @@ void CAutoMapGen::SetDummyTree() {
                 pos[3] = 1.0f;
 
                 if (tile == 2) {
-                    parts = map->PlaceParts(at_2128__2, pos, rot, scale, stack);
+                    parts = map->PlaceParts("o00", pos, rot, scale, stack);
                 }
 
                 if (field[row * width + col] == 3) {
-                    parts = map->PlaceParts(at_2270, pos, rot, scale, stack);
+                    parts = map->PlaceParts("o01", pos, rot, scale, stack);
                 }
 
                 if (parts != NULL) {
@@ -2204,12 +2191,12 @@ void CAutoMapGen::SearchHealingPoint(CMap *map) {
     }
 
     for (i = 0; i < 4; i++) {
-        sprintf(name, at_2289, i + 6);
+        sprintf(name, "room5%d", i + 6);
         parts = map->GetPlaceParts(name);
 
         if (parts != NULL) {
             (parts)->GetPosition(pos);
-            point = parts->func_point_mngr.Search(at_2290);
+            point = parts->func_point_mngr.Search("kaifuku");
 
             if (point != NULL) {
                 *(u_long128 *) offset = *(u_long128 *) point->position;
@@ -2273,13 +2260,13 @@ void CAutoMapGen::IndexToPartsPlace() {
     pos[3] = 1.0f;
     pos[0] = 0.0f;
     pos[2] = 0.0f;
-    gio_parts = map->PlaceParts(at_2347, pos, rot, scale, stack);
+    gio_parts = map->PlaceParts("p01_gio", pos, rot, scale, stack);
 
     for (int i = 0; i < 12; i++) {
-        random_stone[i] = map->PlaceParts(at_2348, pos, rot, scale, stack);
+        random_stone[i] = map->PlaceParts("obj01", pos, rot, scale, stack);
     }
 
-    pot_parts = map->PlaceParts(at_2349, pos, rot, scale, stack);
+    pot_parts = map->PlaceParts("obj02", pos, rot, scale, stack);
     map->PlacePartsEnd();
 
     for (int row = 0; row < grid_h; row++) {
@@ -2319,7 +2306,7 @@ void CAutoMapGen::SetInOutPartsIndex(int offset) {
     }
 
     if (count > 0) {
-        printf(at_2377__2, count);
+        printf("EXIT INDEX = %d\n", count);
         pick = iRand(count);
         grid[candidates[pick]].parts_no += offset;
     }
@@ -2436,7 +2423,7 @@ void CAutoMapGen::RandomMapMainProc() {
     random_map = 1;
     seed = iRand(0xFFFF);
     if (DebugFlag != 0) {
-        printf(at_2561, seed);
+        printf("rand = %d\n", seed);
     }
     srand(seed);
     floor_id = DngSaveDataDungeon->floor_id[DngSaveDataDungeon->stage_id];
@@ -2547,7 +2534,7 @@ void CAutoMapGen::Build() {
 
     if (mode & 2) {
         floor_no = DngSaveDataDungeon->floor_id[DngSaveDataDungeon->stage_id];
-        printf(at_2609, floor_no);
+        printf("%d\n", floor_no);
         room = 0;
 
         if (floor_no < 8) {
@@ -2899,16 +2886,3 @@ void CAutoMapGen::UpdateNaviMap(float *pos, int depth) {
 
 // Constants (.rodata)
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/automap", at_1054__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/automap", at_1111__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/automap", at_1661__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/automap", at_2119__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/automap", at_2128__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/automap", at_2270__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/automap", at_2289__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/automap", at_2290__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/automap", at_2347__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/automap", at_2348__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/automap", at_2349__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/automap", at_2377__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/automap", at_2561__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/automap", at_2609__DATA);
