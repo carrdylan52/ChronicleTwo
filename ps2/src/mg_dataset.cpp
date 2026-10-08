@@ -903,33 +903,7 @@ void CopyFrame(mgCFrame *dst, mgCFrame *src, mgCMemory *memory, int copy_visual,
 
         attr = new (memory->Alloc(0xB)) mgCFrameAttr;
 
-        attr->alpha_ref = source_attr->alpha_ref;
-        attr->alpha_blend = source_attr->alpha_blend;
-        attr->z_write = source_attr->z_write;
-        attr->z_test = source_attr->z_test;
-        attr->alpha_test = source_attr->alpha_test;
-        attr->dest_alpha_test = source_attr->dest_alpha_test;
-        attr->draw = source_attr->draw;
-        attr->clip_enable = source_attr->clip_enable;
-        attr->unk_20 = source_attr->unk_20;
-        attr->unk_24 = source_attr->unk_24;
-        attr->unk_28 = source_attr->unk_28;
-        attr->program_option = source_attr->program_option;
-        attr->fog = source_attr->fog;
-        attr->unk_34 = source_attr->unk_34;
-        attr->unk_38 = source_attr->unk_38;
-        attr->unk_3c = source_attr->unk_3c;
-        attr->program_mode = source_attr->program_mode;
-        attr->obj_alpha = source_attr->obj_alpha;
-        attr->no_cull = source_attr->no_cull;
-        attr->ambient_boost = source_attr->ambient_boost;
-        *(mgVec4 *) &attr->unk_50[0] = *(mgVec4 *) &source_attr->unk_50[0];
-        attr->no_light = source_attr->no_light;
-        *(mgVec4 *) attr->color = *(mgVec4 *) source_attr->color;
-        attr->point_light = source_attr->point_light;
-        attr->unk_84 = source_attr->unk_84;
-        attr->billboard = source_attr->billboard;
-        attr->depth_bias = source_attr->depth_bias;
+        *attr = *source_attr;
         dst->attr = attr;
     }
 
