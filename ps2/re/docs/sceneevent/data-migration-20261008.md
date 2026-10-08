@@ -18,8 +18,8 @@ allocation (`sceneevent-flare-vector`, `-aligned`, `-aggregate`, `-order`).
 Copying a native static union generates an extra implicit assignment
 function (`sceneevent-flare-vector-copy`), so it is rejected. Ordinary
 memcpy from a static native base-color array, with and without SDK vector
-alignment, preserves the function extent but changes source/destination
-address registers: the best candidate differs in **29/156 relocation-masked
+alignment, preserves the function extent but emits an out-of-line memcpy call
+and changes argument/address setup: the best candidate differs in **29/156 relocation-masked
 words**, native extent 0x26C within the retail 0x270-byte piece
 (`sceneevent-flare-vector-memcpy`, `-memcpy-aligned`). No failing source,
 new type pun, helper, dummy local, compiler pragma, or tool/profile edit is
