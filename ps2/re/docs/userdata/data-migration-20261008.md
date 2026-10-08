@@ -156,3 +156,21 @@ migration despite that source-side metric.
 `userdata-indexed-attributes-build.log` and its object receipt accept
 the final indexed ability-table consumer: PAL OK, 149 / 149 objects,
 and every unowned object hash unchanged.
+
+## Combined tool-proposal validation
+
+A private integration copy applies `dataC-anonymous-bss.patch`,
+`dataC-vtable-padding.patch`, and `dataC-vu-raw-words.patch`, then removes all
+eight retained markers across this lane. Its userdata object passes every
+byte and relocation: 0xBC1C allocated bytes and 1081 relocations, with final
+zero section tails supplied by the linker. The private full PAL link reports
+`SCES_511.90: OK` and the exact retail loaded-memory extent. All 306 existing
+input objects, actual tools, and generated VU input remain unchanged.
+
+This validates the two native local templates without invented globals.
+Actual userdata retains their markers until the tooling owner integrates the
+general fixes and validates a clean canonical build. Reproducible snapshots,
+patch hashes, unit checks, program-image SHA-256 equality, and linker/verifier
+receipts are in `.private/dataC/proposal-integration/`. The compiler-access
+techniques also have a proposed shared documentation update in
+`.private/proposals/dataC-MWCC-data-access.patch`; `docs/MWCC.md` is unchanged.
