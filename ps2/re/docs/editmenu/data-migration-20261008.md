@@ -184,3 +184,15 @@ including the Japanese house-information form name, are byte-identical.
 Each step passes PAL and all 149 objects, with the other 147 object hashes
 unchanged. Receipts are `editmenu-literals-CMenuGeorama-<method>-*` and
 `editmenu-literals-MakeMsgPartsItemInfo-*`. Remaining initialized markers: 86.
+
+## Inline strings: Georama input handlers
+
+Base navigation, part placement/removal, part construction, placed-house
+inspection, paint selection and input dispatch now use their inline script
+actions and diagnostic messages. The six independent function steps from
+MenuGeoramaBasePush through MenuGeoramaPushKey retain zero object differences.
+The exact Japanese diagnostic bytes remain octal escaped.
+
+Receipts: `editmenu-literals-MenuGeorama<handler>-*`; PAL and all 149 object
+checks pass, and the other 147 object hashes remain unchanged. Remaining
+initialized markers: 59.
