@@ -256,3 +256,22 @@ Receipts: `.private/receipts/regress/round4/actscript-*/`,
 `analysis/experiment-summary.json`, and `final/`. A read-only detailed review
 under `AGENTS.md` identified these conditional probes; it made no edits or
 compiles.
+
+## Nested-selector scope after the upstream merge
+
+The `sf-d8bf13c` image supports `nested_call` and `nested_variable`, both
+requiring a sibling call inside an outer call's arguments. The current m2c
+output and source still show two direct
+`SetValue(4, 160.0f, 0, -1)` calls with a loaded effect-manager receiver and
+scalar arguments. Neither contains the nested sibling call required by those
+selectors. `nested_variable` selects a variable argument of such a nested
+call; it does not select an arbitrary receiver, branch, or direct argument.
+Thus the new supported identities cannot express the attack-type-40 versus
+attack-type-90 distinction. The predicate-provenance proposal above remains
+unimplemented; no unsupported or unconsumed profile row is added.
+
+The clean merged object retains `0x47FC` checked bytes and 1,111 relocations,
+with the same sole finding at `0x002D5DB2`. `_SHOT` remains `0x900` bytes and
+has four differing masked instruction words, at `+0x8B0`, `+0x8B4`, `+0x8B8`,
+and `+0x8C4`. The whole-project verifier retains the baseline `0x26` text-byte
+difference, and the other object findings are unchanged.
