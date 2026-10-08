@@ -4695,14 +4695,14 @@ INCLUDE_RODATA("ps2/asm/pal/nonmatchings/nd_meswin", at_4636__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/nd_meswin", at_4637__DATA);
 
 // Small uninitialised data (.sbss)
-INCLUDE_BSS(MesAbsDrawOff, 0x4);
-INCLUDE_BSS(MovieCCCnt, 0x4);
-INCLUDE_BSS(MovieCCW, 0x4);
-INCLUDE_BSS(MovieCCH, 0x4);
 
 // Uninitialised data (.bss)
-INCLUDE_BSS(NameRegistTbl, 0xB0);
+s32 MesAbsDrawOff;
+s32 MovieCCCnt;
+s32 MovieCCW;
+s32 MovieCCH;
+short NameRegistTbl[NAME_REGIST_MAX][NAME_REGIST_LEN];
 CFont MovieCCFont;
-INCLUDE_BSS(MovieCCStart, 0x50);
-INCLUDE_BSS(MovieCCClear, 0x50);
-INCLUDE_BSS(MovieCCStr, 0x1B60);
+s32 MovieCCStart[MOVIE_CC_MAX];
+s32 MovieCCClear[MOVIE_CC_MAX];
+char MovieCCStr[MOVIE_CC_MAX][MOVIE_CC_LEN];
