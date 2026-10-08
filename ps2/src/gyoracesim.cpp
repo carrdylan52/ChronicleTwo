@@ -609,7 +609,7 @@ void FishModifyParam(grFISH_PARAM *source, float *output, float average) {
     int length = strlen(source->name);
     for (i = 0; i < length; ++i) {
         signed char letter = source->name[i];
-        seed += letter << shift;
+        seed += (u32) (s32) letter << shift;
         shift += 4;
         shift %= 28;
     }
