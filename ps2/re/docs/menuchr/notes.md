@@ -4,13 +4,17 @@ The matching build uses retail gaps for the C++ drafts still guarded by
 `NONMATCHING`, including `CMenuChrCngMenu::LoadBGNPCModel`,
 `MenuCharaChangeInit`, `CMenuCostumeSel::LoadMenuData`,
 and `CMosBookMenu::KeyStep`. The current source also keeps gaps for
-`MenuMemoryDivide`, `EnterDataMenu`, `KeyChangeMain`,
+`EnterDataMenu`, `KeyChangeMain`,
 `MenuCharaChangeStarDraw`, `CMenuMosSelect::KeyStep`,
 `MenuItemCharaDataLoadEndCheckAfter`,
-`CMenuCostumeSel::Draw`, `MenuCostumeInit`, and `CMosBookMenu::Draw`.
-Only unguarded functions are active C++ decompilations. The complete unit passes canonical verification. The merged October 8
+`CMenuCostumeSel::Draw` and `MenuCostumeInit`.
+Only unguarded functions are active C++ decompilations. `MenuMemoryDivide` and
+`CMosBookMenu::Draw` are native, including their capacity and drawing tables.
+The complete unit passes canonical verification. The merged October 8
 Satan's Fiddle base has independent PAL `.text` mismatches in `nd_meswin`
-and `actscript`; the remaining-guard assessment below records that baseline.
+and `actscript`. The current scores, retained drafts, and receipts are in
+[midday assessment](midday-assessment.md); the dated older assessments below
+record their earlier baselines.
 
 `MonsterBookDraw` draws the book, then draws a debug label when
 `menu_debug_flag` is set. The retail float register setup for
@@ -50,9 +54,13 @@ compiled body differs in only two instructions: retail branches on the
 allocation result in `v0` and moves it to `s1` in the delay slot, while MWCC
 currently moves first and branches on `s1`. Named locals, assignment chaining,
 parenthesized new expressions, and a same-type cast retain that difference.
-`MenuMemoryDivide` differs in 18 instructions, mostly saved-register choices
-for its buffer and loop indices. Its quadword buffers now use typed array
-indexing; allocation still differs. `MenuMonsterLoadBG` has a larger stack-frame and register-allocation difference in its guarded draft.
+`MenuMemoryDivide` partitions aligned quadword storage with typed table and
+buffer indexing; its native function, capacity tables, and stack-name literal
+match retail. See [memory partitioning](midday-memory.md).
+`MenuMonsterLoadBG` is also native, as documented in the loader section below.
+`CMosBookMenu::Draw` preserves the explicit panel, heading, model, digit, and
+font sequence and matches with its six native drawing tables; see
+[monster-book drawing](midday-book.md).
 `CMenuCostumeSel::LoadMenuData` and `CMosBookMenu::KeyStep` each differ by
 the same two placement-new branch/move instructions as `LoadBGNPCModel`.
 `MenuItemCharaDataLoadEndCheckAfter` differs by two instructions in the

@@ -1089,22 +1089,21 @@ void CMenuChrCngMenu::AttachForm() {
 }
 #ifdef NONMATCHING
 void CMenuChrCngMenu::EnterDataMenu(u_char *pack) {
-    u_int *files = (u_int *) pack;
     mgCTextureManager *tex_manager = &mgTexManager;
     int block = tex_block[0];
-    tex_manager->EnterIMGFile((u_char *) GetPackFile(files, at_1276__3, NULL),
+    tex_manager->EnterIMGFile((u_char *) GetPackFile(reinterpret_cast<u_int *>(pack), "chr_bg.img", NULL),
                               block, NULL, NULL);
     int    size;
-    u_int *cfg = GetPackFile(files, at_1277__3, &size);
+    u_int *cfg = GetPackFile(reinterpret_cast<u_int *>(pack), "chrchg.cfg", &size);
     if (MenuCharaChangePosDataCfgBuffer == 0 && cfg != NULL) {
         MenuCharaChangePosDataCfgBuffer = (int) cfg;
         MenuDataAnalyze((char *) cfg, size, &MenuChangeMemory);
     }
     MenuRepairMan->Initialize();
-    MenuRepairMan->SetRepairData(&MenuChangeMemory, block, files);
-    script = (char *) GetPackFile(files, at_1278__3, &script_size);
-    MenuCharaChangeStar_Tex = tex_manager->GetTexture(at_1279__4, -1);
-    MenuCharaChangeBase_Tex = tex_manager->GetTexture(at_1280__3, -1);
+    MenuRepairMan->SetRepairData(&MenuChangeMemory, block, reinterpret_cast<u_int *>(pack));
+    script = (char *) GetPackFile(reinterpret_cast<u_int *>(pack), "chr_com.cfg", &script_size);
+    MenuCharaChangeStar_Tex = tex_manager->GetTexture("menueff0", -1);
+    MenuCharaChangeBase_Tex = tex_manager->GetTexture("chr0", -1);
     MenuCharaChangeCLUT = palette.clut;
     tex_manager->ReloadTexture(block, (sceVif1Packet *) NULL);
     if (MenuCharaChangeCLUT_Tex == NULL) {
@@ -1113,41 +1112,62 @@ void CMenuChrCngMenu::EnterDataMenu(u_char *pack) {
     memcpy(MenuCharaChangeCLUT_Tex, MenuCharaChangeBase_Tex, sizeof(mgCTexture));
     memcpy(MenuCharaChangeCLUT, MenuCharaChangeBase_Tex->clut, 0x400);
     MenuCharaChangeCLUT_Tex->clut = (u_long128 *) MenuCharaChangeCLUT;
-    for (int i = 0; i < 0x100; i++) {
-        u8   *color = (u8 *) &MenuCharaChangeCLUT[i];
-        float luminance = (float) ((color[0] + color[1] + color[2]) / 3);
-        int   step = 1;
-        while (step < 0x20 &&
-               !(8.0f * (float) (step - 1) <= luminance && luminance < 8.0f * (float) step)) {
+    /**
+     *
+     * A byte-addressable RGBA colour in the copied character-change palette.
+     *
+     */
+    typedef u8 PaletteColor[4];
+    /**
+     *
+     * Components, quantization bands, and command slots of the character-change screen.
+     *
+     */
+    enum {
+        PALETTE_RED = 0,
+        PALETTE_GREEN = 1,
+        PALETTE_BLUE = 2,
+        PALETTE_BAND_NUM = 32,
+        NPC_COMMAND_NUM = 4
+    };
+    int palette_index = 0;
+    PaletteColor *color = reinterpret_cast<PaletteColor *>(MenuCharaChangeCLUT);
+    for (; palette_index < CHR_CNG_CLUT_NUM; palette_index++, color++) {
+        float luminance = (float) (((*color)[PALETTE_RED] + (*color)[PALETTE_GREEN] + (*color)[PALETTE_BLUE]) / 3);
+        // Quantize brightness without changing the palette alpha byte.
+        int step = 1;
+        do {
+            if (8.0f * (float) (step - 1) <= luminance && luminance < 8.0f * (float) step) {
+                break;
+            }
             step++;
-        }
-        color[0] = (u8) (7.75f * (float) step);
-        color[1] = (u8) (5.625f * (float) step);
-        color[2] = (u8) (4.6875f * (float) step);
+        } while (step < PALETTE_BAND_NUM + 1);
+        (*color)[PALETTE_RED] = (u8) (7.75f * (float) step);
+        (*color)[PALETTE_GREEN] = (u8) (5.625f * (float) step);
+        (*color)[PALETTE_BLUE] = (u8) (4.6875f * (float) step);
     }
     MenuPosData->InitDrawList();
     AttachForm();
     AttachMessageForm();
-    ExeScript(at_1281__5);
+    ExeScript("INIT_FORM");
     party_member = MenuUserDataManPtr->GetNowPartyMember();
     enable_change = MenuUserDataManPtr->GetEnableCharaChangeFlag();
-    for (int i = 0; i < 4; i++) {
+    for (int i = 0; i < USER_CHARA_NUM; i++) {
         char name[32];
-        sprintf(name, at_1282__5, i);
+        sprintf(name, "clut%d", i);
         MENUFORMPARTS_TYPE *locked = form->GetPartInfo(name);
-        sprintf(name, at_1283__4, i);
+        sprintf(name, "clut0%d", i);
         MENUFORMPARTS_TYPE *other = form->GetPartInfo(name);
-        sprintf(name, at_1284__4, i);
+        sprintf(name, "fc%d", i);
         MENUFORMPARTS_TYPE *face = form->GetPartInfo(name);
         locked->draw_flag = 1;
         if (party_member & (1 << i)) {
             face->draw_flag = 1;
+            locked->draw_flag = 1;
             other->draw_flag = 0;
-            locked->draw_flag = (i < 2 && (enable_change & (1 << i))) ? 0 : 1;
-            if (i >= 2) {
+            if ((i < USER_CHARA_ROBO && (enable_change & (1 << i))) || i >= USER_CHARA_ROBO) {
                 locked->draw_flag = 0;
-            }
-            if (i < 2 && !(enable_change & (1 << i))) {
+            } else {
                 other->draw_flag = 1;
             }
         } else {
@@ -1155,7 +1175,7 @@ void CMenuChrCngMenu::EnterDataMenu(u_char *pack) {
         }
     }
     UpdataLife();
-    mes_data = (s16 *) GetPackFile(files, at_1285__2, NULL);
+    mes_data = (s16 *) GetPackFile(reinterpret_cast<u_int *>(pack), "npcmsg.mes", NULL);
     sys_mes = MenuDCMsg[0]->buff;
     MenuCommandAnalyzeInfo.system_mes_buff[0] = GetSystemMesBuffer();
     MenuCommandAnalyzeInfo.system_mes_buff[1] = mes_data;
@@ -1164,8 +1184,10 @@ void CMenuChrCngMenu::EnterDataMenu(u_char *pack) {
     if (key_arg_no == 2) {
         MenuDCMsg[0]->SetBuff(mes_data);
     }
-    npc_mes_talk = npc_mes_cmd = npc_mes_cancel = 0;
-    for (int i = 0; i < 4; i++) {
+    npc_mes_talk = 0;
+    npc_mes_cmd = 0;
+    npc_mes_cancel = 0;
+    for (int i = 0; i < NPC_COMMAND_NUM; i++) {
         npc_cmd_mes[i] = 0;
     }
     unk_23C = 0;
@@ -1179,18 +1201,22 @@ void CMenuChrCngMenu::EnterDataMenu(u_char *pack) {
         npc_mes_cmd = GetPartyCharaMessage(npc_no, 0, 0);
         npc_mes_cancel = GetPartyCharaMessage(npc_no, 3, 0);
         int first_message = GetPartyCharaMessage(npc_no, 5, 0);
-        for (int i = 0; i < 4; i++) {
-            npc_cmd_mes[i] = i < npc_data->ability_num ? first_message + i : 0;
+        int i = 0;
+        for (; i < npc_data->ability_num; i++) {
+            npc_cmd_mes[i] = first_message + i;
+        }
+        for (; i < NPC_COMMAND_NUM; i++) {
+            npc_cmd_mes[i] = 0;
         }
         if (npc_data->ability_num == 0) {
             npc_cmd_mes[0] = 10;
         }
-        for (int i = 0; i < 4; i++) {
-            if (i < npc_data->ability_num) {
-                form->SetNumber(tbl_1233[i], npc_data->ability_cost[i]);
-            } else {
-                form->SetPartDrawFlag(tbl_1233[i], 0);
-            }
+        i = 0;
+        for (; i < npc_data->ability_num; i++) {
+            form->SetNumber(tbl_1233[i], npc_data->ability_cost[i]);
+        }
+        for (; i < NPC_COMMAND_NUM; i++) {
+            form->SetPartDrawFlag(tbl_1233[i], 0);
         }
     }
 }
@@ -1404,42 +1430,47 @@ int CMenuChrCngMenu::KeyChangeMain() {
                     if (lastCmd < 0) {
                         lastCmd = 0;
                     }
-                    if (keyFunc->open_type == 4) {
-                        if (buttons) {
-                            mode = 2;
-                            ExeScript(at_2003__2);
+                    switch (keyFunc->open_type) {
+                        case MENU_OPEN_CHARA_CHANGE: {
+                            if (buttons) {
+                                mode = 2;
+                                ExeScript(at_2003__2);
+                            }
+                            break;
                         }
-                    } else {
-                        if (npc_data->ability_num > 0) {
-                            cmdMes->AddMsgCursor2(0, lastCmd, 1);
-                        }
-                        if (menu_debug_flag) {
-                            if (keys & 8) {
-                                party_info->point++;
+                        default: {
+                            if (npc_data->ability_num > 0) {
+                                cmdMes->AddMsgCursor2(0, lastCmd, 1);
                             }
-                            if (keys & 4) {
-                                party_info->point--;
-                            }
-                            if (npc_data->max_npc_point < party_info->point) {
-                                party_info->point = npc_data->max_npc_point;
-                            }
-                            if (party_info->point < 0) {
-                                party_info->point = 0;
-                            }
-                        }
-                        SelectedCmdNo_1415 = -1;
-                        switch (buttons) {
-                            case 1:
-                            case 4:
-                                action = 5;
-                                if (npc_data->ability_num > 0) {
-                                    action = 100;
-                                    SelectedCmdNo_1415 = cmdMes->GetMsgCursor();
+                            if (menu_debug_flag) {
+                                if (keys & 8) {
+                                    party_info->point++;
                                 }
-                                break;
-                            case 2:
-                                action = 0x3C;
-                                break;
+                                if (keys & 4) {
+                                    party_info->point--;
+                                }
+                                if (npc_data->max_npc_point < party_info->point) {
+                                    party_info->point = npc_data->max_npc_point;
+                                }
+                                if (party_info->point < 0) {
+                                    party_info->point = 0;
+                                }
+                            }
+                            SelectedCmdNo_1415 = -1;
+                            switch (buttons) {
+                                case 1:
+                                case 4:
+                                    action = 5;
+                                    if (npc_data->ability_num > 0) {
+                                        action = 100;
+                                        SelectedCmdNo_1415 = cmdMes->GetMsgCursor();
+                                    }
+                                    break;
+                                case 2:
+                                    action = 0x3C;
+                                    break;
+                            }
+                            break;
                         }
                     }
                     break;
@@ -1467,9 +1498,11 @@ int CMenuChrCngMenu::KeyChangeMain() {
                     break;
                 case 10: {
                     int widest = 0;
-                    for (int i = 0; i < npcMes->page_num; i++) {
-                        if (widest < npcMes->page_chars[i]) {
-                            widest = npcMes->page_chars[i];
+                    if (npcMes->page_num > 0) {
+                        for (int i = 0; i < npcMes->page_num; i++) {
+                            if (widest < npcMes->page_chars[i]) {
+                                widest = npcMes->page_chars[i];
+                            }
                         }
                     }
                     int cursor = npcMes->AddMsgCursor2(widest - 2, widest - 1, 1);
@@ -2093,9 +2126,11 @@ int CMenuChrCngMenu::KeyChangeMain() {
                 npcMes->MakeMsg(GetPartyCharaMessage(npc_no, 6, 0) + SelectedCmdNo_1415);
                 npcMes->StepMsg();
                 int widest = 0;
-                for (int i = 0; i < npcMes->page_num; i++) {
-                    if (widest < npcMes->page_chars[i]) {
-                        widest = npcMes->page_chars[i];
+                if (npcMes->page_num > 0) {
+                    for (int i = 0; i < npcMes->page_num; i++) {
+                        if (widest < npcMes->page_chars[i]) {
+                            widest = npcMes->page_chars[i];
+                        }
                     }
                 }
                 npcMes->SetMsgCursor(widest - 1);
@@ -2261,7 +2296,13 @@ int CMenuChrCngMenu::KeyChangeMain() {
                 case 0xD:
                 case 0x14:
                 case 0x19: {
-                    int esa[8];
+                    /**
+                     *
+                     * Capacity of the aquarium-food list supplied by a townsperson.
+                     *
+                     */
+                    enum { NPC_GIFT_FOOD_CAPACITY = 32 };
+                    int esa[NPC_GIFT_FOOD_CAPACITY];
                     gift_item = -1;
                     gift_num = 1;
                     if (npc_no == 7) {
@@ -2837,12 +2878,11 @@ void CMenuChrCngMenu::UpdataLife() {
 }
 #ifdef NONMATCHING
 void MenuCharaChangeStarDraw() {
-    mgCTextureManager *texManager = &mgTexManager;
 
     if (MenuCharaChangeBase_Tex == NULL) {
         return;
     }
-    texManager->ReloadTexture(MenuCharaChangeBase_Tex->block, (sceVif1Packet *) NULL);
+    mgTexManager.ReloadTexture(MenuCharaChangeBase_Tex->block, (sceVif1Packet *) NULL);
     CMenuChrCngMenu *menu = ChrChangMenuPt;
     float            size = menu->star_size;
     float            offset = size / 2.0f - 2.0f;
@@ -2863,7 +2903,7 @@ void MenuCharaChangeStarDraw() {
     crd.uv[1][1] = baseRect.top;
     SetSpriteEnv(prim, 4);
     prim->Bilinear(1);
-    prim->Begin(5);
+    prim->Begin(MG_PRIM_TRIANGLE_FAN);
     prim->Texture(MenuCharaChangeBase_Tex);
     prim->Color(0x80, 0x80, 0x80, (int) ChrChangMenuPt->star_alpha);
     for (int i = 0; i < 4; i++) {
@@ -2879,11 +2919,10 @@ void MenuCharaChangeStarDraw() {
     angle -= 0.15707964f;
     float ringSize = 0.546875f * ChrChangMenuPt->star_size;
     float pulse = sinf(ChrChangMenuPt->star_pulse);
-    float halfAlpha = 0.5f * ChrChangMenuPt->star_alpha;
     if (pulse < 0.0f) {
         pulse = -pulse;
     }
-    float pulseAlpha = halfAlpha * pulse;
+    float pulseAlpha = 0.5f * ChrChangMenuPt->star_alpha * pulse;
     for (int j = 0; j < 2; j++) {
         float alpha = ChrChangMenuPt->star_alpha;
         float circle = 60.0f + 3.0f * sinf(wave);
@@ -2906,9 +2945,9 @@ void MenuCharaChangeStarDraw() {
     if (MenuCharaChangeStar_Tex == NULL) {
         return;
     }
-    texManager->ReloadTexture(MenuCharaChangeStar_Tex->block, (sceVif1Packet *) NULL);
+    mgTexManager.ReloadTexture(MenuCharaChangeStar_Tex->block, (sceVif1Packet *) NULL);
     mgRect<short> starRect(0, 0x20, 8, 8);
-    prim->Begin(6);
+    prim->Begin(MG_PRIM_SPRITE);
     prim->Texture(MenuCharaChangeStar_Tex);
     for (int k = 0; k < CHR_CNG_STAR_NUM; k++) {
         CHR_CNG_STAR *star = &ChrChangMenuPt->star[k];
@@ -4022,7 +4061,7 @@ int CMenuMosSelect::KeyStep() {
                                 action = 5;
                             } else {
                                 select_badge = &badge[select];
-                                if (select_badge == NULL || !select_badge->enable) {
+                                if (select_badge == NULL || (select_badge != NULL && !select_badge->enable)) {
                                     MenuSePlay(5);
                                     select_badge = NULL;
                                 } else {
