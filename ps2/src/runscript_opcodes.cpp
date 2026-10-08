@@ -65,15 +65,6 @@ extern ScriptVector    at_1481__2;
 extern ScriptVector    at_1864;
 extern ScriptVector    at_2160;
 extern RS_EXTFUNC_INFO ext_func_info[];
-extern char            at_1728[23];
-extern char            at_1733[22];
-extern char            at_1784[];
-extern char            at_2398__2[];
-extern char            at_2399[];
-extern char            at_2580[17];
-extern char            at_2787[13];
-extern char            at_3078[];
-extern char            at_3079[];
 
 /**
  *
@@ -1889,7 +1880,7 @@ int _SET_OBJ(RS_STACKDATA *stack, int argc) {
  *
  */
 int _SET_BODY(RS_STACKDATA *stack, int argc) {
-    printf(at_1728);
+    printf("NOT FOUND (_SET_BODY)\n");
     return 1;
 }
 
@@ -1899,7 +1890,7 @@ int _SET_BODY(RS_STACKDATA *stack, int argc) {
  *
  */
 int _SET_DMG(RS_STACKDATA *stack, int argc) {
-    printf(at_1733);
+    printf("NOT FOUND (_SET_DMG)\n");
     return 1;
 }
 
@@ -2020,7 +2011,7 @@ int _GET_MAPOBJ_POS(RS_STACKDATA *stack, int argc) {
     mgCFrame *frame = piece->frame->SearchFrame(name);
 
     if (frame == NULL) {
-        printf(at_1784);
+        printf("ERR\n");
     }
 
     if (frame == NULL) {
@@ -4638,7 +4629,7 @@ void SetMonsterExtendTable() {
 
             do {
                 if (ext_func_info[index].no == ext_func_info[earlier].no) {
-                    printf(at_3078);
+                    printf("mscript same ext_func_no!!!\n");
 
                     while (1) {
                     }
@@ -4649,7 +4640,7 @@ void SetMonsterExtendTable() {
         }
 
         if (ext_func_info[index].no < 0 || ext_func_info[index].no >= 256) {
-            printf(at_3079);
+            printf("ext func over!!");
         } else {
             ext_func[ext_func_info[index].no] = ext_func_info[index].func;
         }
@@ -4664,15 +4655,6 @@ INCLUDE_RODATA("ps2/asm/pal/nonmatchings/runscript_opcodes", at_2160__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/runscript_opcodes", ext_func_info__DATA);
 
 // Constants (.rodata)
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/runscript_opcodes", at_1728__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/runscript_opcodes", at_1733__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/runscript_opcodes", at_1784__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/runscript_opcodes", at_2398__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/runscript_opcodes", at_2399__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/runscript_opcodes", at_2580__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/runscript_opcodes", at_2787__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/runscript_opcodes", at_3078__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/runscript_opcodes", at_3079__DATA);
 
 // Small uninitialised data (.sbss)
 INCLUDE_BSS(nowScene, 0x4);
