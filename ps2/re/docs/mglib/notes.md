@@ -3,9 +3,14 @@
 The pinned Satan’s Fiddle baseline and current guarded-function findings are in
 [matching-20261008.md](matching-20261008.md). The older isolated draft counts
 below describe earlier source/compiler states.
-The latest pass from `0c33a7e`, including the retail-local `GetScreenSize`,
+The preceding pass from `0c33a7e`, including the retail-local `GetScreenSize`,
 frame-copy scopes and nested dither-table reconstruction, is documented in
 [mapmglib-midday-20261008.md](mapmglib-midday-20261008.md).
+
+Round 1 from integration `017d119` improves the guarded `mgInit` draft to
+18/652 words; its context copies and dither loops now agree. The remaining
+store scheduling, initialization hygiene, packet reservation park and acceptance
+receipts are documented in [mglib-r1-20261008.md](mglib-r1-20261008.md).
 
 The guarded frame-rotation draft uses the SDK's `sceGsDBuff::disp[2]`
 array. Naming its two elements `disp1` and `disp0` prevented the whole-unit
