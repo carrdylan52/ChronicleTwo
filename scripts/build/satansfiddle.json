@@ -359,6 +359,7 @@
             1
           ]
         },
+        "expected_matches": 1,
         "evaluate_first": true
       },
       {
@@ -367,6 +368,7 @@
         "value_type": "binary32",
         "value_bits": "0x3e99999a",
         "callee": "GetRandomNumber__Fff",
+        "expected_matches": 1,
         "evaluate_first": true
       },
       {
