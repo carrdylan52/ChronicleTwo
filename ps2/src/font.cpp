@@ -883,22 +883,20 @@ void CFont::CalcDrawWH(char *text, int *width, int *height) {
 void CFont::DrawDirect(char *text, int x, int y) {
     SetPos(x, y);
 
+    /**
+     *
+     * Holds the primitive builder initialized for this text draw.
+     *
+     */
     union {
-        mgCDrawPrim prim;
-
-        struct {
-            u8  padding[0x110];
-            int size_x;
-            int size_y;
-            u8  tail[8];
-        } sizes;
+        mgCDrawPrim prim; /**< Builder for the glyph sprite packets. */
     } local;
 
     MySetPrim(&local.prim, 1, 0);
 
     int height = fptosi(offset_y);
-    local.sizes.size_x = fptosi(offset_x) * 16;
-    local.sizes.size_y = height * 16;
+    local.prim.offset_x = fptosi(offset_x) * 16;
+    local.prim.offset_y = height * 16;
     (&local.prim)->Begin(MG_PRIM_SPRITE);
     int   len = strlen(text);
     int   pen_x = 0;
@@ -1219,9 +1217,6 @@ char alphabetical_chara_tbl[ALPHABETICAL_CHARA_NUM][ALPHABETICAL_CHARA_LEN] = {
     "152]",
     "153]",
 };
-
-// Constants (.rodata)
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/font", at_1448__3__DATA);
 
 // Uninitialised data (.bss)
 INCLUDE_BSS(FontTblBinBuff, 0x1000);

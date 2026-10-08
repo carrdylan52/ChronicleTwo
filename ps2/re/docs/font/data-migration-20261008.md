@@ -82,7 +82,19 @@ five normalization pairs, and indexes `&text[5]` for the payload. `DrawGaiji`
 passes `"gaiji"` directly without a cast. Every function's literal replacement
 was checked separately with the full build and object comparison.
 
-These steps remove all font string extern declarations. One RODATA marker
-remains temporarily: `at_1448__3`, the nine-entry branch table for the existing
-outline-style switch, whose marker removal is checked separately. Four BSS
-markers remain as described above. The refreshed data metric is still 0/7344.
+These steps remove all font string extern declarations. The nine-entry branch table `at_1448__3` comes from the existing outline-style
+switch. Removing its marker also passes without adding a definition or changing
+the switch. No RODATA markers remain; four BSS markers remain as described
+above. The refreshed data metric is still 0/7344.
+
+## Primitive builder offsets
+
+`CFont::DrawDirect` uses `mgCDrawPrim::offset_x` and `offset_y` directly at
+`0x110` and `0x114`. Its local union retains only the genuine primitive-builder
+member, which is initialized by `MySetPrim` for this draw. This preserves the
+retail initialization without an automatic constructor call. The padding/size
+overlay is unnecessary; removing it changes no code or relocations.
+
+Final font markers are **0 RODATA / 4 BSS**, down from **97 / 4**. All 45
+functions remain matched, the full 149-object check passes, unowned objects
+remain unchanged, and the PAL verifier reports OK.
