@@ -188,6 +188,6 @@ int IsLightingEditMode();
  *
  * @mangled LightingEdit__FP6CScene
  * @address 0x1A9820
- * @size 0x1530
+ * @size 0x1524
  */
 void LightingEdit(CScene *scene);
