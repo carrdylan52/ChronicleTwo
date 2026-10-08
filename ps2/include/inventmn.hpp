@@ -1104,7 +1104,7 @@ int MenuInventInit(mgCMemory *memory, int *tex_block, int arg);
  *
  * @mangled MenuInventKey__Fv
  * @address 0x20DBE0
- * @size 0x830
+ * @size 0x824
  */
 int MenuInventKey();
 
