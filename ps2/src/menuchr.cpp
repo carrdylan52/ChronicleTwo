@@ -6553,7 +6553,7 @@ void CMenuCostumeSel::Draw() {
     int         cursorY = select * 0x42 + 0x6E;
     int         y = 0x50;
     SetSpriteEnv(prim, 0);
-    prim->Begin(6);
+    prim->Begin(MG_PRIM_SPRITE);
     prim->Texture(tile_tex);
     for (i = 0; i < COSTUME_LIST_NUM; i++) {
         int lineY = y + 0x1E;
@@ -6567,9 +6567,9 @@ void CMenuCostumeSel::Draw() {
         float leftX;
         float rightX;
         float arrowY;
+        rightX = wave + (float) (lineRect.right + 0x49);
         leftX = 55.0f - wave;
         arrowY = (float) (lineY + 3);
-        rightX = wave + (float) (lineRect.right + 0x49);
         PrimQuad(prim, 4.0f + leftX, 4.0f + arrowY, leftRect);
         PrimQuad(prim, 4.0f + rightX, 4.0f + arrowY, rightRect);
         if (i == select) {
