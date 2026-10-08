@@ -117,6 +117,74 @@ global driver, and uses before-inline timing only where separately measured.
 This is a maintainer proposal for intentional lowering policy. No tested build
 setting or memory-state defect establishes that retail used such a policy.
 
+## Stronger global alternative: request4-all
+
+`request4-all` is the stronger alternative explanation for the widespread
+retail pattern: one profile-level after-inline conversion policy accounts for
+25 guarded diagnostic zeros without losing any established zero. It deserves
+maintainer consideration alongside the implemented caller-scoped proposal;
+the investigation does not reject it in favor of per-caller rows.
+
+The pn4 private driver captures the direct scalar allocator and constructor,
+records the original inline class, performs ordinary expression inlining,
+then requests the compiler's normal enclosing statement conversion for a
+class-6 construction. It leaves the classifier result and retained constructor
+metadata unchanged. Its allocator-name filter accepts `__nw__FUiP1` and the
+provisional `__nw` alias. This is a measured global experiment, not a supported
+global switch in the production patch.
+
+| Measurement against the canonical all-drafts corpus | request4-all |
+| --- | ---: |
+| Successful native translation units | 149 / 149 |
+| Common scored retail function identities | 6,773 |
+| Canonical score-zero functions | 6,654 |
+| Previous score-zero functions losing zero | 0 |
+| Newly zero guarded functions | 25 |
+| Changed scored functions | 44, all guarded |
+| Changed whole native objects | 25 / 149 |
+
+These counts require zero masked words, equal relocation offset/type sets,
+and a body within its retail extent. They do not compare resolved relocation
+targets or establish admissible source. Two changed native objects,
+`editmenu` and `monster`, change only compiler-generated local symbol strings;
+whole-file counts include that metadata. The full tables, exact changed rows,
+object hashes and trace evidence are in
+[global controls](placement-new-global-controls-20261008.md) and
+[the extended comparison](placement-new-global-subsets-20261008.md), backed by
+`.private/pntc/natural/global-comparison.json`,
+`extended-global-comparison.json`, and the complete
+`.private/pntc/experiments/request4-all/` corpus. The corresponding compile
+receipt is `.private/pntc/receipts/corpus-request4-all.log`.
+
+The clean global build with the original guards retained also passes PAL
+verification and 149/149 resolved game objects. All 306 recursive assembled
+objects and the linked ELF are byte-identical to the accepted baseline.
+That validates preservation of existing native code; guards still supply
+retail assembly for the newly zero drafts. It is not acceptance of 25 new
+native functions. The source-only comparison has 147 exact object hashes
+and the two metadata-only differences above. Receipts are
+`global-request-clean-build.log`, `global-request-objects.log`, and the
+timestamped artifact census in `global-comparison.json`.
+
+The global result is stronger than overriding every constructor inline class,
+which loses 13 existing zeros, or applying the earlier broad before-inline
+new-expression policy, which loses one. The observed-header after-inline
+subset preserves existing zeros but yields 24 gains, missing the cpp-defined
+`CMapParts` construction. Thus header location is not necessary for the useful
+global after-inline behavior. Conversely, `request4-all` leaves
+`NewTexAnimeData` at its six-word baseline; the separately measured
+before-inline template policy supplies that additional candidate.
+
+A production global capability would still need a precise direct-call/allocator
+boundary, handling for implicit constructors, bounded enclosing-expression
+scope, and genuine failure-path tests. The private driver compares captured
+constructor names rather than exact root call-node identity and does not
+provide the scoped patch's exact live witnesses or completion assertions.
+The existing global evidence supports evaluating such a profile-level option,
+but does not establish that the original source or compiler enabled it.
+The current committed capability supplies a narrower, validated artifact
+while that design choice remains explicit for the maintainer.
+
 ## Proposed semantic boundary
 
 The proposal is an intentional request for MWCC's normal early conversion of
@@ -338,4 +406,21 @@ after-inline row reaches the class-6 candidate gate, lacks a normal ctor link
 name witness and fails specifically for unresolved identity. Both preserve
 the original sentinel output exactly. This supplements the stronger numeric
 game-root traces; it does not classify all implicit constructors. Integration
-as an additional genuine regression is under validation on a new own image.
+as an additional genuine regression is accepted on `sf-63f7a9e-pn15`:
+all 13 runnable pinned-3.0 CLI regressions pass, including both implicit
+class-6 roots. The image build also passes the 30 Rust unit/config tests.
+pn15's production wrapper has the same SHA-256 as pn14,
+`8f506132538b65e828c5677d21d218b898fe8206ee276075240ff1f653790f67`.
+The extension changes only the genuine compiler test input and assertions.
+Receipts are `.private/pntc/receipts/semantic-pn15-tests.log` and `.exit`,
+`image-pn15.log` and `.exit`, and `image-pn15-production-sha256.log`.
+
+The resumed pn15 clean build accepts the same 25-caller group: PAL verification
+and 149/149 complete objects pass. The recursive 306 assembled objects and
+149 source-only objects retain exact baseline hashes outside the same 17
+promoted units. Linked main/game bytes and the loaded memory end remain equal.
+Explicit context/objdiff refresh gives 6,774 matched / 88 guarded /
+10 assembly-only / 0 fuzzy. Receipts are
+`.private/pntc/receipts/resume-pn15-clean-build.log`, `resume-pn15-objects.log`,
+`resume-pn15-artifacts.json`, and `resume-pn15-progress.log`, with explicit
+exit files for the build, object check, artifact comparison, and refresh.
