@@ -134,11 +134,19 @@ struct TrainNpcTable {
 extern TrainNpcTable at_3242;
 extern NpcTrainTable at_4517;
 typedef int (*EventFunc)(RS_STACKDATA *, int);
-extern CEventScriptArg  *nowScriptArg;
+/**
+ * Argument script whose external commands are being executed.
+ */
+static CEventScriptArg *nowScriptArg;
+
 extern CEventScriptArg   EventScriptArg;
 extern EventScriptFunc   esa_ext_func_info[];
 extern EventScriptFunc   ext_func_info__2[];
-extern EventFunc         ext_func__2[0x5dc];
+/**
+ * Dispatch slots for event script external commands.
+ */
+static EventFunc ext_func[0x5DC];
+
 extern ExtensionTable    at_1084;
 extern VpkTable          at_6800__2;
 extern CEventSprite2     EventSprite2[0x30];
@@ -146,11 +154,17 @@ extern CSceneObjSeq      ObjectSeq[32];
 extern CSceneCmrSeq      CameraSeq;
 extern mgCMemory         BuffEventSnd;
 extern mgCMemory         BuffEventSnd2;
-extern u_long128         event_snd_buff[];
-extern u_long128         event_snd2_buff[];
 extern CDngFreeMap       EventDngMap;
-extern CEffectScriptMan *EventEffectScript;
-extern CSWordAfterImage *SwordEffect;
+/**
+ * Effect script manager controlled by the event script.
+ */
+static CEffectScriptMan *EventEffectScript;
+
+/**
+ * Sword trail effect controlled by the event script.
+ */
+static CSWordAfterImage *SwordEffect;
+
 extern float             vv_3333[12];
 
 static int   GetStackInt(RS_STACKDATA *stack);
@@ -181,6 +195,17 @@ const int              seq_node_num = 0x100;
 const int              hit_spark_num = 0x40;
 const int              event_snd_buffer_size = 0x801;
 const int              event_snd2_buffer_size = 0x141;
+
+/**
+ * Storage for secondary event sound banks.
+ */
+static u_long128 event_snd2_buff[event_snd2_buffer_size];
+
+/**
+ * Storage for event sound banks.
+ */
+static u_long128 event_snd_buff[event_snd_buffer_size];
+
 const int              memory_name_max = 0x10;
 const int              paku_name_size = 0x40;
 const int              pack_file_max = 0x80;
@@ -17109,7 +17134,7 @@ void SetEventFunc(CRunScript *script) {
     int j;
 
     for (i = 0; i < event_func_slots; i++) {
-        ext_func__2[i] = NULL;
+        ext_func[i] = NULL;
     }
 
     i = 0;
@@ -17131,13 +17156,13 @@ void SetEventFunc(CRunScript *script) {
         if (ext_func_info__2[i].id < 0 || ext_func_info__2[i].id >= event_func_slots) {
             printf(at_10101);
         } else {
-            ext_func__2[ext_func_info__2[i].id] = ext_func_info__2[i].func;
+            ext_func[ext_func_info__2[i].id] = ext_func_info__2[i].func;
         }
 
         i++;
     }
 
-    script->ext_func(ext_func__2, event_func_slots);
+    script->ext_func(ext_func, event_func_slots);
 }
 
 // Static initialiser (.init)
@@ -17267,7 +17292,7 @@ INCLUDE_RODATA("ps2/asm/pal/nonmatchings/event_func", at_10101__DATA);
 // Small uninitialised data (.sbss)
 
 // Uninitialised data (.bss)
-INCLUDE_BSS(EdEventInfo, 0x12A0);
+ED_EVENT_INFO EdEventInfo;
 
 inline CEventScriptArg::CEventScriptArg() {
     next_id = 0;
@@ -17285,36 +17310,57 @@ inline CScreenEffect::CScreenEffect() {
 }
 
 CEohMother         EventObjHandleMother;
+
 CEventSpriteMother esMother;
-INCLUDE_BSS(EventLocalFlag, 0x100);
-INCLUDE_BSS(EventLocalCnt, 0x100);
+
+u32 EventLocalFlag[event_local_num];
+
+int EventLocalCnt[event_local_num];
+
 CRain   EventRain;
+
 CMarker EventMarker;
-INCLUDE_BSS(SwordEffect, 0x4);
-INCLUDE_BSS(EventEffectScript, 0x4);
-INCLUDE_BSS(p_use_item, 0x4);
-INCLUDE_BSS(SetWorldCoordFlg, 0x4);
-INCLUDE_BSS(PakuAnimEohNo, 0x4);
-INCLUDE_BSS(PakuMotionEohNo, 0x4);
-INCLUDE_BSS(PakuMotionType, 0x4);
-INCLUDE_BSS(PakuMotionType2, 0x4);
-INCLUDE_BSS(nowScriptArg, 0x4);
-INCLUDE_BSS(Hit_para, 0x6400);
+
+RS_STACKDATA *p_use_item;
+
+int SetWorldCoordFlg;
+
+int PakuAnimEohNo;
+
+int PakuMotionEohNo;
+
+int PakuMotionType;
+
+int PakuMotionType2;
+
+HIT_EFFECT_PARTICLE Hit_para[EVENT_HIT_EFFECT_NUM][EVENT_HIT_PARTICLE_NUM];
+
 CHitEffectImage HitEffect[5];
-INCLUDE_BSS(PakuAnimName, 0x40);
-INCLUDE_BSS(PakuAnimName2, 0x40);
-INCLUDE_BSS(PakuMotionName, 0x40);
-INCLUDE_BSS(PakuMotionName2, 0x40);
-INCLUDE_BSS(event_snd_buff, 0x8010);
+
+char PakuAnimName[paku_name_size];
+
+char PakuAnimName2[paku_name_size];
+
+char PakuMotionName[paku_name_size];
+
+char PakuMotionName2[paku_name_size];
+
 mgCMemory BuffEventSnd;
-INCLUDE_BSS(event_snd2_buff, 0x1410);
+
 mgCMemory   BuffEventSnd2;
+
 CDngFreeMap EventDngMap;
-INCLUDE_BSS(cmr_seq_tbl, 0x6000);
+
+_SEN_CMR_SEQ cmr_seq_tbl[seq_node_num];
+
 CSceneCmrSeq CameraSeq;
-INCLUDE_BSS(obj_seq_tbl, 0x5000);
+
+_SEN_OBJ_SEQ obj_seq_tbl[seq_node_num];
+
 CSceneObjSeq    ObjectSeq[32];
+
 CEventSprite2   EventSprite2[48];
+
 CEventScriptArg EventScriptArg;
+
 CScreenEffect   EventScreenEffect;
-INCLUDE_BSS(ext_func__2, 0x1770);
