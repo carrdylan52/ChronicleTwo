@@ -454,6 +454,11 @@ static void CollisionFish(RACE_FISH_PARAM *fish, int count) {
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/gyoracesim", CollisionFish__FP15RACE_FISH_PARAMi);
 #endif
 #ifdef NONMATCHING
+/**
+ *
+ * Simulates race steps, records goal times and assigns the final places.
+ *
+ */
 int StepGyoRace(RACE_FISH_PARAM *fish, grRACE_INFO *info) {
     int i;
     int step;
@@ -640,9 +645,7 @@ void FishModifyParam(grFISH_PARAM *source, float *output, float average) {
         break;
     }
     case 1: {
-        float mean = (float)1.0;
-        float range = 0.2f;
-        float factor = GetRandomNumber(mean, range);
+        float factor = GetRandomNumber(1.0, 0.2);
         for (i = 1; i <= 3; ++i) output[i] *= factor;
         break;
     }

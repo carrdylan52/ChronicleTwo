@@ -3,8 +3,7 @@
 Fish race simulation. `sgInitGyoRace` (gyorace) fills `RaceInfo` (0x1F59490, a `grRACE_INFO`),
 calls `grGyoRaceSimulate` once (result stored in `time_max`), then the race is replayed with
 `grGetFishProgress(&RaceInfo, fish, race_cnt, &prog)`. No class in `class_units.tsv` is owned by
-this unit; all types are plain structs. `gyorace.hpp` only forward-declares `grRACE_INFO` /
-`grRACE_PROGRESS`; it will need `#include "gyoracesim.hpp"` once gyorace's bodies use the fields.
+this unit; all types are plain structs. `gyorace.hpp` includes `gyoracesim.hpp` for the complete race and progress types.
 
 ## Linkage
 - Global: `grGyoRaceSimulate`, `grGetFishProgress`, `rand_prob` (in header).
@@ -99,26 +98,20 @@ speed%[3] (+0xC..0x14 -> 0x2C..0x34), int affinity (+0x18). Type name is not ret
 ## First game
 No equivalent in Dark Cloud 1 (no fish race).
 
-## C++ draft status
-- `GetPaseRatio`, `GetFishData`, and `rnd` compile with byte-identical MWCC output.
-- `GetRaceDivisionLength`, `GetCourseR`, `irn55`, `init_rnd`, `irnd`, `nrnd`,
-  `GetRandomNumber`, and `rand_prob` have typed C++ drafts under `NONMATCHING`.
-  Their first promotion attempts did not match, so the default build keeps their
-  retail assembly.
-- The generator draft uses the documented 56-element state array. Its first
-  promotion attempt reached 95.71% for `init_rnd`, but that is not an exact match.
-- Typed `NONMATCHING` drafts now cover all remaining race functions: the seed
-  hash and simulation entry, progress interpolation, fish stepping, collision
-  ordering, lane battles, division setup, figure modification, character
-  bonus, and parameter randomization. `FishModifyParam` needed direct assembly
-  analysis because m2c could not resolve its six-way tactics jump table.
-- `RndFishParam` matched byte for byte and passed isolated whole-image
-  promotion. The remaining new drafts failed their first isolated promotion
-  and retain retail assembly in the default build. The full default build
-  remained byte-identical after the promotion.
+## Current matching status (2026-10-08)
+
+Twenty functions are source supplied. `StepGyoRace`, `CollisionFish` and
+`FishModifyParam` retain guarded typed drafts and retail assembly in the
+default build. With every draft enabled, twenty-one functions match: only
+CollisionFish and FishModifyParam differ. StepGyoRace's default-build callee
+dependency is described below.
+
+FishModifyParam still needs direct retail assembly analysis because m2c
+cannot resolve its six-way tactics jump table. All three draft reservations
+already exist in the promotion ledger; no new promotion attempt is reserved.
 
 ## StepGyoRace draft
-`StepGyoRace` records the first completed step of each fish as a fractional goal time, assigns a current rank by position each step, resolves collisions and lane battles, then assigns final ranks by goal time. It records up to `after_goal_step + 1` further steps and returns the next step index. The guarded C++ draft compiles; the assembly fallback remains active.
+`StepGyoRace` records the first completed step of each fish as a fractional goal time, assigns a current rank by position each step, resolves collisions and lane battles, then assigns final ranks by goal time. It records up to `after_goal_step + 1` further steps and returns the next step index. The C++ draft matches all 204 retail instruction words when CollisionFish is compiled in the same unit. Isolated promotion fails: the assembly-backed CollisionFish prevents MWCC from proving that its call preserves the fish argument in a0, so StepGyoRace reloads that argument and reschedules seven instruction words at +0x1A8. Promotion requires a matching C++ CollisionFish.
 
 `FISH_STATS` is the six-float output buffer passed to `FishModifyParam`.
 `SetRaceFishParam` maps its fifth and sixth floats directly to the race
@@ -144,3 +137,27 @@ fixup, the complete unit passes the retail checker: `0x3150` initialized bytes a
 ## CollisionFish and StepGyoRace caller dependency
 
 A post-merge isolated trial with the explicit GPR 0x30/FPR 0 helper history compiles both guarded drafts natively. StepGyoRace then matches completely: its retail call to LaneBattleStep relies on a0 remaining live across CollisionFish. When CollisionFish remains an opaque assembly fallback, the compiler reloads a0 and shifts the following call by four bytes. The joint trial retains one canonical error in CollisionFish at 0x003231B1, in the final per-lane traversal register assignment. Advancing one fish pointer directly, and using the existing outer traversal index with a separate inner index, both preserve the retail operations but leave that allocation difference. Both fallbacks remain active until the joint unit passes.
+
+## Remaining matching blockers (2026-10-08)
+
+`CollisionFish` is 8/360 instruction words from matching; the compiled body is
+0x59C bytes within the 0x5A0 retail extent. Only the final per-lane separation
+loop differs: retail uses t3 for its lane counter, t2 for its row base and a3
+for its inner byte offset, while the draft uses a3/t3/t2. Unsigned lane
+induction leaves that permutation unchanged. Reusing bucket or sorting
+indices, adding a row pointer/reference, and changing loop induction forms
+produce more differences. Reconsider when a natural loop representation
+accounts for those three register lifetimes; retain the original scoped
+pointers and indexed arrays meanwhile.
+
+`FishModifyParam` improves from 19/480 to 11/480 words by passing the case-1
+range as an implicitly converted double literal. Case 2 then matches. The
+remaining words are argument constant materialization in case 1 (+0x4F4
+through +0x504, five words) and case 5 (+0x68C through +0x6A8, six words).
+Retail prepares f13 before f12; the draft reverses their integer temporary
+identities and constant order. Named range-first initialization, direct
+case-5 arguments, integer mean folding and float suffix changes do not
+resolve this. Earlier case-0 mean conversion changes affect cases 2/3
+without fixing cases 1/5. Reconsider with evidence about MWCC constant
+identity and argument scheduling. Both this draft and StepGyoRace remain
+guarded; no linked mismatch is accepted.
