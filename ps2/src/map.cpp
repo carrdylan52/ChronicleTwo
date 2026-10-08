@@ -434,9 +434,9 @@ void CMap::CreateDrawRect(mgCMemory *memory, mgVu0FBOX *rect, mgVu0FBOX *clip, i
         slot->used = 1;
         slot->area = *rect;
         slot->outside = outside;
-        parts = place_parts;
-
-        for (j = 0; j < place_parts_max; j++, parts++) {
+        CMapParts *placed_parts = place_parts;
+        for (j = 0; j < place_parts_max; j++) {
+            parts = &placed_parts[j];
             u8 unused = parts->name[0] == 0;
 
             if (unused) {

@@ -242,7 +242,7 @@ bodies, but do not establish the still-guarded allocation callers.
 already clears it. Removing that redundant caller clear produces 0xFC bytes
 but increases positional differences to 26/64 words through constructor
 scheduling and inserted nops, so that trial is not retained.
-`CreateDrawRect` remains guarded at 50/112 positional word differences;
+The earlier pointer-walk `CreateDrawRect` draft had 50/112 positional word differences;
 its construction moves the allocation result before the null branch and
 adds two nops, shifting the subsequent instructions. These counts supersede
 the older pre-merge percentage above.
@@ -250,3 +250,11 @@ the older pre-merge percentage above.
 Blocker for both callers: placement-new allocation-result scheduling.
 Reconsider when the dedicated constructor investigation validates a natural
 form for the same list construction and null-result flow.
+
+The mapmglib pass at `0c33a7e` replaces that draft's array pointer induction
+with typed indexing, as required by the midday lane rules. Its retained
+comparison is 112/116 words, with a 0x1D0 native body against 0x1C0 retail.
+The captured array base preserves the original selection traversal. This
+is a guarded source-compliance cleanup, not a closer instruction match.
+See [mapmglib-midday-20261008.md](mapmglib-midday-20261008.md) for the
+constructor trial, current boundaries and validation receipts.
