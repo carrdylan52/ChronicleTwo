@@ -591,8 +591,8 @@ void MENU_BASETEXINFO_Init(MENU_BASETEXINFO *info);
  * Item identities whose form icons use an embedded item number.
  *
  */
-enum MenuIconItem {
-    MENU_ICON_ITEM_SPECTRUM = 0xB9, /**< Spectrumised attachment whose original item supplies the icon. */
+enum MENU_ICON_ITEM {
+    MENU_ICON_ITEM_SPECTRUM = 0xB9,     /**< Spectrumised attachment whose original item supplies the icon. */
     MENU_ICON_ITEM_BOILED_FISH = 0x1AA, /**< Boiled fish whose original fish supplies the icon. */
 };
 
@@ -601,10 +601,10 @@ enum MenuIconItem {
  * Palette and effect modes used to render an item icon.
  *
  */
-enum MenuIconMode {
-    MENU_ICON_MODE_NORMAL = 0, /**< Normal icon with its drop shadow. */
-    MENU_ICON_MODE_SPECTRUM = 1, /**< Spectrumised icon with raster and sparkle effects. */
-    MENU_ICON_MODE_DIMMED = 2, /**< Icon with a dark overlay. */
+enum MENU_ICON_MODE {
+    MENU_ICON_MODE_NORMAL = 0,      /**< Normal icon with its drop shadow. */
+    MENU_ICON_MODE_SPECTRUM = 1,    /**< Spectrumised icon with raster and sparkle effects. */
+    MENU_ICON_MODE_DIMMED = 2,      /**< Icon with a dark overlay. */
     MENU_ICON_MODE_BOILED_FISH = 3, /**< Boiled-fish icon with its alternate palette. */
 };
 
@@ -3773,7 +3773,7 @@ void CMenuPosDataForm::MenuFormDrawNormal(int x, int y, float sway_x, float sway
                 if (item > 0) {
                     MenuReloadTexture(tex_block, MenuItemIconTextureBlock);
                     int icon_item = item;
-                    MenuIconMode icon_mode = MENU_ICON_MODE_NORMAL;
+                    MENU_ICON_MODE icon_mode = MENU_ICON_MODE_NORMAL;
                     if (item == MENU_ICON_ITEM_SPECTRUM) {
                         icon_item = part->etc_info[2];
                         icon_mode = MENU_ICON_MODE_SPECTRUM;
