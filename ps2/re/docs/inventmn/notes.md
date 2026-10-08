@@ -202,7 +202,7 @@ for `__construct_new_array` in PhotoNetaEnter. Size 0xC.
   retail with the file-local `neta_sort` definition described below.
 - `CInventUserData::ResetAddress` unrolls eight photo pointers per iteration. A
   typed, indexed `photo_work` row pointer now matches the unrolled body, with
-  fourteen words remaining in base setup and the final two-photo tail. Direct
+  thirteen words remaining in base setup and the final two-photo tail. Direct
   `&photo_work[index][0]` indexing scores 60.0%, while the previous byte-offset
   expression scored 99.583336% but used raw pointer arithmetic. The typed draft
   remains under `NONMATCHING`; the matching build uses retail assembly.
@@ -262,7 +262,7 @@ extent, including alignment padding. The following functions remain guarded.
   X improves the previous 10-word remainder. The negative-card padding loop's
   induction register map still differs at +0x5E0..+0x620. See [midday.md](midday.md)
   for measured declaration and loop negatives.
-- `ResetAddress__15CInventUserDataFv`: 14/48 words differ, both 0xC0 bytes.
+- `ResetAddress__15CInventUserDataFv`: 13/48 words differ, both 0xC0 bytes.
   A typed, indexed row pointer restores the exact eight-assignment unrolled
   body; its invariant-base setup and two-photo remainder still differ. The
   previous direct indexing was 34/48. No row-pointer induction or shared
@@ -316,3 +316,11 @@ assembly was modified.
 improvements, rejected CalcTex local-layout probes, and the natural-constructor
 condition for revisiting the four placement-new remainders. All seven guards
 and the complete canonical inventory object remain intact.
+
+## Midday round 1
+
+[round1.md](round1.md) records the new small-remainder probes and the retained
+13/48-word ResetAddress draft. The row pointer is declared before the real
+photo index and assigned after its initialization. The native unrolled body
+remains exact; the invariant-base setup and two-photo tail still differ.
+MenuInventKey remains at 8/524 words and all seven inventory guards remain.

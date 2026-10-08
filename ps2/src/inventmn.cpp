@@ -895,8 +895,10 @@ void CInventUserData::Initialize() {
 
 #ifdef NONMATCHING
 void CInventUserData::ResetAddress() {
-    char (*work)[0x2000] = photo_work;
-    for (int index = 0; index < 30; index++) {
+    char (*work)[0x2000];
+    int index = 0;
+    work = photo_work;
+    for (; index < 30; index++) {
         photo[index].image = work[index];
     }
 }
