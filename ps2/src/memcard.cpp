@@ -2508,11 +2508,4 @@ INCLUDE_RODATA("ps2/asm/pal/nonmatchings/memcard", at_1954__DATA);
 s16 NowProgramLoopNo = -1;
 
 // Small uninitialised data (.sbss)
-INCLUDE_BSS(old_format_1242, 0x4);
-INCLUDE_BSS(iconNo_1323, 0x4);
-INCLUDE_BSS(init_1324, 0x4);
-INCLUDE_BSS(test_write_num_1476, 0x4);
-INCLUDE_BSS(init_1477, 0x4);
 char *SubGameOmakeTempBuffer;
-INCLUDE_BSS(ReadFileNo_2290, 0x4);
-INCLUDE_BSS(init_2291, 0x4);
