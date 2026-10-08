@@ -27,16 +27,13 @@ observed values, not an established retail type name.
 
 Both data objects now have C++ definitions in `menusys.cpp`. The existing
 postprocessor retains their two zero alignment bytes. Their assembly data
-markers are removed; the `MenuDataSwap` function guard remains in place.
+markers are removed.
 
-The guarded source declares its two-byte automatic result array with the
-function's other locals and fills both entries in the general exchange tail.
-This preserves the mapping above while reducing the isolated comparison from
-36 to 34 differing words and avoiding an extra compiler literal piece. Its
-raw function size is `0x388` against the retail extent `0x390`. Retail still
-uses the halfword default copy, and the source/destination presence flags have
-opposite saved registers, so the function is not promoted. Result codes in
-the guarded source use the documented enum constants.
+`MenuDataSwap` is matched. The empty/occupied template `at_2512` is the
+`MenuSwapResultTable` struct and the general exchange tail copies it by value
+(retail's halfword copy) after looking up `ret_tbl1_2511`; the source facts and
+rejected forms are in [night-20261008.md](night-20261008.md). Result codes use
+the documented enum constants.
 
 ## October 8 round-one validation
 

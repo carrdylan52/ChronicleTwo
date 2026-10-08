@@ -10230,7 +10230,6 @@ void CMenuItemInfo::SetItemEffect() {
         }
     }
 }
-#ifdef NONMATCHING
 int CMenuItemInfo::LRCheck(int key) {
     if (mode != MENU_ASK_MODE_NONE) {
         return 0;
@@ -10247,98 +10246,99 @@ int CMenuItemInfo::LRCheck(int key) {
     if (dir == 0) {
         return 0;
     }
-    if (key != MENU_SELECT_KEY_R2 && key != MENU_SELECT_KEY_L2 && key != MENU_SELECT_KEY_R1 &&
-        key != MENU_SELECT_KEY_L1) {
-        return 0;
-    }
-    int        page_view[8];
-    int        page_chara[8];
-    int        page_arg_no[8];
-    mgCMemory *item_memory = &MenuItemMemory;
-    mgCMemory *load_stack = &MenuCharaLoadStack;
-    int        page_num = 0;
-    int        active = GetActiveCharaNo();
-    int        party = MenuUserDataManPtr->GetNowPartyMember();
-    if (party & 1) {
-        page_view[page_num] = 0;
-        page_arg_no[page_num] = 3;
-        page_num++;
-        page_chara[0] = 0;
-    }
-    if (party & 2) {
-        if (active != 3) {
-            page_view[page_num] = 1;
-            page_arg_no[page_num] = 3;
-            page_chara[page_num] = 1;
-            page_num++;
-        }
-    }
-    if (party & 4) {
-        page_view[page_num] = 3;
-        page_chara[page_num] = 2;
-        page_arg_no[page_num] = 6;
-        page_num++;
-    }
-    if (party & 8) {
-        if (active == 3) {
-            page_view[page_num] = 4;
-            page_chara[page_num] = 3;
-            page_arg_no[page_num] = 8;
-            page_num++;
-        }
-    }
-    int page = -1;
-    for (int i = 0; i < page_num; i++) {
-        if (view_mode == page_view[i]) {
-            page = i;
-        }
-    }
-    page += dir;
-    if (page < 0) {
-        page = page_num - 1;
-    }
-    if (page_num <= page) {
-        page = 0;
-    }
-    int next_view = page_view[page];
-    int next_chara = page_chara[page];
-    int next_arg_no = page_arg_no[page];
-    if (view_mode != next_view) {
-        int held_type = ConvertUsedItemType(GetItemDataType(MenuCommonInfo->have_item.item_no));
-        if ((view_mode == 0 || view_mode == 1) &&
-            (held_type == USED_ITEM_TYPE_WEAPON || held_type == USED_ITEM_TYPE_UNK_4)) {
-        } else if (view_mode != 3 || held_type != USED_ITEM_TYPE_ROBO_PART) {
-            MenuMemoryAdjust(item_memory, load_stack, MenuActionCharaBuffer, next_chara);
-            MenuLoadInfo.load_all = 1;
-            MenuLoadInfo.request_phase = -1;
-            MenuLoadInfo.load_phase = 0;
-            view_mode = next_view;
-            if (view_mode == 0 || view_mode == 1) {
-                sub_view = next_chara;
+    switch (key) {
+        case MENU_SELECT_KEY_L1:
+        case MENU_SELECT_KEY_R1:
+        case MENU_SELECT_KEY_L2:
+        case MENU_SELECT_KEY_R2: {
+            int        page_view[8];
+            int        page_chara[8];
+            int        page_arg_no[8];
+            mgCMemory *item_memory = &MenuItemMemory;
+            mgCMemory *load_stack = &MenuCharaLoadStack;
+            int        page_num = 0;
+            int        active = GetActiveCharaNo();
+            int        party = MenuUserDataManPtr->GetNowPartyMember();
+            if (party & 1) {
+                page_view[page_num] = 0;
+                page_arg_no[page_num] = 3;
+                page_num++;
+                page_chara[0] = 0;
             }
-            int load_chara = view_mode;
-            if (load_chara != 4) {
-                if (load_chara == 3) {
-                    load_chara = 2;
+            if (party & 2) {
+                if (active != 3) {
+                    page_view[page_num] = 1;
+                    page_arg_no[page_num] = 3;
+                    page_chara[page_num] = 1;
+                    page_num++;
                 }
-                CheckLoadInfo(load_chara);
             }
-            if (view_mode == 3) {
-                MenuLoadInfo.request_phase = -1;
-                MenuLoadInfo.load_phase = 0;
-                MenuActionChara[5]->Initialize(NULL);
+            if (party & 4) {
+                page_view[page_num] = 3;
+                page_chara[page_num] = 2;
+                page_arg_no[page_num] = 6;
+                page_num++;
             }
-            key_arg_no = next_arg_no;
-            MenuCommonInfo->key_arg = &item_menu_argtbl[key_arg_no];
-            ModelReadStart(view_mode, 1, 1);
-            MenuSePlay(SYSTEM_SE_DECIDE);
+            if (party & 8) {
+                if (active == 3) {
+                    page_view[page_num] = 4;
+                    page_chara[page_num] = 3;
+                    page_arg_no[page_num] = 8;
+                    page_num++;
+                }
+            }
+            int page = -1;
+            for (int i = 0; i < page_num; i++) {
+                if (view_mode == page_view[i]) {
+                    page = i;
+                }
+            }
+            page += dir;
+            if (page < 0) {
+                page = page_num - 1;
+            }
+            if (page_num <= page) {
+                page = 0;
+            }
+            int next_view = page_view[page];
+            int next_chara = page_chara[page];
+            int next_arg_no = page_arg_no[page];
+            if (view_mode != next_view) {
+                int held_type = ConvertUsedItemType(GetItemDataType(MenuCommonInfo->have_item.item_no));
+                if ((view_mode == 0 || view_mode == 1) &&
+                    (held_type == USED_ITEM_TYPE_WEAPON || held_type == USED_ITEM_TYPE_UNK_4)) {
+                } else if (view_mode != 3 || held_type != USED_ITEM_TYPE_ROBO_PART) {
+                    MenuMemoryAdjust(item_memory, load_stack, MenuActionCharaBuffer, next_chara);
+                    MenuLoadInfo.load_all = 1;
+                    MenuLoadInfo.request_phase = -1;
+                    MenuLoadInfo.load_phase = 0;
+                    view_mode = next_view;
+                    if (view_mode == 0 || view_mode == 1) {
+                        sub_view = next_chara;
+                    }
+                    int load_chara = view_mode;
+                    if (load_chara != 4) {
+                        if (load_chara == 3) {
+                            load_chara = 2;
+                        }
+                        CheckLoadInfo(load_chara);
+                    }
+                    if (view_mode == 3) {
+                        MenuLoadInfo.request_phase = -1;
+                        MenuLoadInfo.load_phase = 0;
+                        MenuActionChara[5]->Initialize(NULL);
+                    }
+                    key_arg_no = next_arg_no;
+                    MenuCommonInfo->key_arg = &item_menu_argtbl[key_arg_no];
+                    ModelReadStart(view_mode, 1, 1);
+                    MenuSePlay(SYSTEM_SE_DECIDE);
+                }
+            }
+            break;
         }
     }
     return 0;
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/menusys", LRCheck__13CMenuItemInfoFi);
-#endif
 /**
  *
  * Sets the item information cursor indicators for the active menu mode.
