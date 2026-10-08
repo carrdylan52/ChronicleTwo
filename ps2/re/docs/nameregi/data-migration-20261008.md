@@ -145,3 +145,45 @@ objdiff's data preparation defects. All 30 native functions remain exact.
 Final receipts: `04-nameregi-final-{build,objects,hashes}.log`,
 `04-nameregi-refresh.log` and `04-nameregi-metrics.json`.
 PAL is OK, all 149 objects pass, and every other object hash is unchanged.
+
+## Private native BSS identity proposal
+
+The shared postprocessor change is saved, without changing shared files, as
+`.private/proposals/dataA-native-bss-identification.patch`. It identifies a
+native LOCAL NOBITS object only when its section kind and exact declared
+extent agree with one retail piece, every incoming live relocation belongs
+to known code at the same offset and opcode, all relocation destinations
+agree, and only one native object claims that destination. HI16/LO16 pairs
+and GP-relative addends are validated; unreferenced, ambiguous or conflicting
+objects remain unidentified. The pass changes symbol names only: no code,
+data, relocation targets, addends or extents. Existing padding then supplies
+retail's piece extents.
+
+The private source patch `nameregi-native-bss-source.patch` removes all eight
+remaining reservations. With the proposal, the compiler's native objects map
+as follows (compiler IDs are for the recorded private source):
+
+| Native identity | Retail identity | Declared bytes |
+| --- | --- | ---: |
+| `at_435` | `at_1171__3` | 12 |
+| `at_861` | `at_1621__3` | 8 |
+| `at_902` | `at_1661__3` | 8 |
+| `at_910` | `at_1669` | 33 |
+| `at_927` | `at_1684__3` | 8 |
+| `at_929` | `at_1686` | 8 |
+| `at_937` | `at_1693__2` | 8 |
+| `at_988` | `at_1755` | 12 |
+
+The two private fully native objects (nameregi and mapselect) pass canonical
+comparison, and substituting both into a separate complete PAL link prints
+`SCES_511.90: OK` for every section and the final BSS extent. The official
+source retains its markers because shared tooling is outside this lane's
+ownership. Native source templates themselves already match exactly.
+
+Nine private safety cases validate positive identification and rejection of
+held placeholders, wrong types/extents, missing consumers, opcode changes,
+disagreeing destinations, already-defined destinations and duplicate claims.
+They also assert that bytes, extents, symbol bindings and relocations remain
+unchanged. Receipts are `native-bss-proposal-safety.log`,
+`native-bss-both-proposal-check.log`, and `native-bss-proposal-pal.log` under
+`.private/dataA-r1/`; private source/object/link artifacts remain there.
