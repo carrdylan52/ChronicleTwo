@@ -124,11 +124,21 @@ CreateBBox (+8).
   them through three destination pointers, and writes their unnormalised
   cross-product normal. Guarded C++ drafts keep the matrix in a file-local
   array and compute the same three vertices and xyz normal. VU0 leaves the
-  normal's w lane unspecified; the draft writes zero there. Both drafts
-  compile but differ from the VU0 code, so retail retains the original ASM.
+  normal's w lane unspecified; the draft writes zero there. `pre_trance_normal`
+  now uses the narrow inline VU0 exception: its four matrix loads match all
+  0x14 retail bytes, and the `collision` object passes `check_objects.py` with
+  98 resolved relocations.
+  `trance_normal` also uses the narrow inline VU0 exception. It reads three
+  contiguous input vectors from its first pointer, transforms them with the
+  matrix retained in vf10-vf13, stores the three results through separate
+  destination pointers, and computes their cross-product normal. Its 0x64
+  retail bytes match objdiff exactly; the `collision` object passes
+  `check_objects.py` with 98 resolved relocations.
 - `CCollisionMDT::PickUpNearPoly` loads the query box (w = 1) into vf10/vf11 with two `lqc2`
-  before the loop; nothing in this function reads them. The C++ draft does not reproduce
-  these register writes, so the retail build uses `INCLUDE_ASM`.
+  before the loop; nothing in this function reads them. The typed volatile view of the
+  box's maximum bounds makes MWCC reload its X lane after the early overlap tests, as
+  retail does. The function's 0x238 bytes match objdiff exactly, and the full collision
+  object passes `check_objects.py` with 98 resolved relocations.
 - MDT layout: `CreateCollisionMDT` reads `MDT_HEADER` (mg_dataset.hpp) vertex_ofs/faces_ofs/
   material_ofs; `MDT_FACES::prim_num`, records from `faces + 1`; `FACES_ID::face_num` is used as
   an INDEX count here (triangles = face_num / 3; the next record is `&index[face_num]`), so
@@ -138,9 +148,14 @@ CreateBBox (+8).
 - `LoadCollisionFile`: object records start at `header + 1` (not `object_ofs`) with fixed stride
   0x70 (`MDTOBJ_HEADER`, not its `size`); `frame->Initialize()` is a virtual call; bounds alloc
   is `mgCFrame::BoundInfo` (0xB0). Alloc sizes follow `size/16 + 2` quadwords for placement new.
-- Unsure drafts (DIFF): CColFrame::PickUpNearPoly builds the 8 box corners in a loop (retail
-  stores them explicitly; corner i takes max on x/y/z for bits 1/2/4); LoadCollisionFile matrix
-  copy loop shape; CreateCollisionMDT vertex copies.
+- `CColFrame::PickUpNearPoly` explicitly forms eight corners from the query box,
+  transforms them into collision space, queries its own polygons, transforms the
+  returned triangles back with `pre_trance_normal` and `trance_normal`, then
+  recursively queries child frames while capacity remains. Its 0x290 bytes
+  match objdiff exactly; the collision object passes `check_objects.py` with
+  98 resolved relocations.
+- Unsure drafts (DIFF): LoadCollisionFile matrix copy loop shape;
+  CreateCollisionMDT vertex copies.
 
 ## Native loader comparison
 
@@ -170,25 +185,11 @@ masks for integer argument registers and float argument registers did not change
 the remaining native differences. The original constructor/header and assembly
 fallback remain in place while these source-shape issues are unresolved.
 
-## CColFrame caller preservation remainder
+## CColFrame caller preservation
 
-`CColFrame::PickUpNearPoly` is a non-COP2 caller, but its two triangle-transform
-helpers retain VU0 assembly fallbacks. The current native caller has the
-retail 0x290-byte body in the 0x290 extent and differs by five of 164 words.
-The mismatch at +0x1A8/+0x1B0 exchanges the captured hit count and world-matrix
-argument around `pre_trance_normal`; +0x1BC/+0x1D4/+0x1D8 use s1 for the
-triangle loop counter where retail uses v1 across `trance_normal` calls.
-All other instructions and call relocations match.
-
-This remainder persists in the production mwccgap compilation with only the
-caller enabled and all original VU helper fallbacks active. The complete
-object reports one problem, first differing at 0x1481B8. It is not merely
-an artifact of compiling scalar helper drafts. Keep the caller guarded;
-reconsider when an admissible compiler description of those existing
-helpers' preserved registers, or retail source evidence for their call
-interface, explains the caller-saved loop counter. New inline assembly or
-an invented preservation wrapper is outside this lane.
-
-The MDT pickup and both transform helpers remain parked for direct VU0/COP2
-code. Their instructions are in the functions themselves, not hidden SDK
-calls; reconsider only with an existing admissible implementation mechanism.
+`CColFrame::PickUpNearPoly` now uses upstream's exact native caller and its
+processor-specific `pre_trance_normal` / `trance_normal` implementations.
+Their visible register preservation resolves the earlier five-word caller
+park: the hit-count/world-matrix argument order and caller-saved triangle
+counter now follow retail. The earlier scalar-helper-interface measurements
+do not describe this merged implementation.

@@ -36,6 +36,11 @@
       "fpr_helper_mask": 0
     },
     {
+      "name": "dngmenu.cpp",
+      "gpr_helper_mask": 48,
+      "fpr_helper_mask": 0
+    },
+    {
       "name": "editdebug.cpp",
       "gpr_helper_mask": 48,
       "fpr_helper_mask": 0
@@ -221,22 +226,6 @@
         "evaluate_first": true
       },
       {
-        "translation_unit": "actionchara.cpp",
-        "function": "RoboAirMoveIF__12CActionCharaFii",
-        "value_type": "binary32",
-        "value_bits": "0x00000000",
-        "callee": "SetRotation__9mgCObjectFfff",
-        "evaluate_first": true
-      },
-      {
-        "translation_unit": "actionchara.cpp",
-        "function": "RoboWalkMoveIF__12CActionCharaFi",
-        "value_type": "binary32",
-        "value_bits": "0x00000000",
-        "callee": "SetRotation__9mgCObjectFfff",
-        "evaluate_first": true
-      },
-      {
         "translation_unit": "cameracontrol.cpp",
         "function": "__ct__14CCameraControlFv",
         "value_type": "binary32",
@@ -267,13 +256,6 @@
       },
       {
         "translation_unit": "dng_object.cpp",
-        "function": "Step__11CMachineGunFv",
-        "value_type": "binary32",
-        "value_bits": "0x00000000",
-        "evaluate_first": true
-      },
-      {
-        "translation_unit": "dng_object.cpp",
         "function": "Step__9CLaserGunFv",
         "value_type": "binary32",
         "value_bits": "0x00000000",
@@ -284,6 +266,13 @@
         "function": "Step__9CLaserGunFv",
         "value_type": "binary32",
         "value_bits": "0x3dcccccd",
+        "evaluate_first": true
+      },
+      {
+        "translation_unit": "dng_object.cpp",
+        "function": "Step__11CMachineGunFv",
+        "value_type": "binary32",
+        "value_bits": "0x00000000",
         "evaluate_first": true
       },
       {
@@ -373,26 +362,19 @@
       },
       {
         "translation_unit": "menuaqua.cpp",
-        "function": "DrawEsaDropRoot__FP9CFishFoodf",
+        "function": "Draw__9CAquariumFv",
         "value_type": "binary32",
-        "value_bits": "0x3f800000",
+        "value_bits": "0x42f00000",
+        "callee": "DrawMenuFillBox__Fffffiiii",
         "evaluate_first": true
       },
       {
         "translation_unit": "menuaqua.cpp",
         "function": "Draw__9CAquariumFv",
         "value_type": "binary32",
-        "value_bits": "0x42f00000",
-        "evaluate_first": true,
-        "callee": "DrawMenuFillBox__Fffffiiii"
-      },
-      {
-        "translation_unit": "menuaqua.cpp",
-        "function": "Draw__9CAquariumFv",
-        "value_type": "binary32",
         "value_bits": "0x43720000",
-        "evaluate_first": true,
-        "callee": "DrawMenuFillBox__Fffffiiii"
+        "callee": "DrawMenuFillBox__Fffffiiii",
+        "evaluate_first": true
       },
       {
         "translation_unit": "menuaqua.cpp",
@@ -400,14 +382,6 @@
         "value_type": "binary32",
         "value_bits": "0x00000000",
         "evaluate_first": true
-      },
-      {
-        "translation_unit": "menuaqua.cpp",
-        "function": "SetAdjustScale__9CAquaFishFv",
-        "value_type": "binary32",
-        "value_bits": "0x3f733333",
-        "evaluate_first": true,
-        "callee": "SetFishAdjustScale__Fiiff"
       },
       {
         "translation_unit": "menuaqua.cpp",
@@ -484,6 +458,7 @@
         "function": "MenuInternSelectDraw__Fv",
         "value_type": "binary32",
         "value_bits": "0x42a00000",
+        "callee": "DrawMenuFillBox__Fffffiiii",
         "evaluate_first": true
       },
       {
@@ -491,6 +466,7 @@
         "function": "MenuInternSelectDraw__Fv",
         "value_type": "binary32",
         "value_bits": "0x43af0000",
+        "callee": "DrawMenuFillBox__Fffffiiii",
         "evaluate_first": true
       },
       {
@@ -638,6 +614,47 @@
         "function": "SetRandamCircleStatus__FiRf",
         "value_type": "binary32",
         "value_bits": "0x3f800000",
+        "evaluate_first": true
+      },
+      {
+        "translation_unit": "menuaqua.cpp",
+        "function": "SetAdjustScale__9CAquaFishFv",
+        "value_type": "binary32",
+        "value_bits": "0x3f733333",
+        "evaluate_first": true
+      },
+      {
+        "translation_unit": "menuaqua.cpp",
+        "function": "DrawEsaDropRoot__FP9CFishFoodf",
+        "value_type": "binary32",
+        "value_bits": "0x3f800000",
+        "callee": "mgTransWorldPrim3DSprite__FPiPiPfffi",
+        "evaluate_first": true
+      },
+      {
+        "translation_unit": "actionchara.cpp",
+        "function": "RoboWalkMoveIF__12CActionCharaFi",
+        "value_type": "binary32",
+        "value_bits": "0x00000000",
+        "callee": "SetRotation__9mgCObjectFfff",
+        "nested_call": {
+          "callee": "unitRotation__FP8mgCFrameff",
+          "argument_index": 2,
+          "value_type": "binary32",
+          "value_bits": "0x41800000"
+        },
+        "evaluate_first": true
+      },
+      {
+        "translation_unit": "actionchara.cpp",
+        "function": "RoboAirMoveIF__12CActionCharaFii",
+        "value_type": "binary32",
+        "value_bits": "0x00000000",
+        "callee": "SetRotation__9mgCObjectFfff",
+        "nested_variable": {
+          "callee": "unitRotation__FP8mgCFrameff",
+          "argument_index": 1
+        },
         "evaluate_first": true
       }
     ]

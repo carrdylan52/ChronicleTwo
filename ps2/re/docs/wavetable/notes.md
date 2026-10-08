@@ -1,13 +1,32 @@
 # wavetable: reverse-engineering notes
 
 ## C++ draft status
-Four functions are active matching C++: `CWaveTable()`, `~CWaveTable()`,
-`CreateTexture(mgCTexture *)`, and `GetEffect()`. Only `Effect()` remains a
-`NONMATCHING` draft with an `INCLUDE_ASM` fallback. The current draft compiles
-at the retail size of 0x510 bytes and differs in 27 of 324 instructions.
-The existing promotion reservations remain in
-`scripts/re/promotion_attempts.tsv`; no new promotion attempt is needed to
-compare this draft.
+The constructor, destructor, `CreateTexture`, and `GetEffect` are native C++.
+Only `Effect` retains `INCLUDE_ASM` in the matching build. Its guarded draft
+compiles to the retail 0x510-byte length with `-O3,p`, but 27 instructions
+differ: the compiler assigns the 0.0196f and 1.9216f constants to opposite
+floating registers, propagating the difference through the unrolled wave
+calculation and the final seam loop. The guarded draft also flattens the
+three-dimensional height array through raw float pointers, so it does not
+meet the source-type requirements for promotion.
+
+Private MWCC trials using typed two-dimensional array indexing, typed row
+array pointers, and a typed flat-array union all compile but yield scalar
+inner loops of 0x208 or 0x290 bytes instead of retail's eight-column
+unroll. This shows that the currently close instruction schedule depends on
+the flat pointer expression; an exact, type-safe source form is still needed.
+Scoped optimization level four also leaves the typed two-dimensional loop
+scalar at 0x208 bytes, so the mismatch is not resolved by stronger standard
+optimization.
+These private trials changed neither the canonical source nor Satan's Fiddle.
+
+`CreateTexture` is byte-matched but still uses two flat-pointer expressions
+to select the current height plane. Replacing them with direct
+`height[current][row]` indexing or an equivalent typed flat-array view keeps
+the 0x420-byte size but changes instructions at 0x1A370D onward. Hoisting a
+typed row-array pointer shrinks the function to 0x400 bytes and moves later
+literals and calls. These private type-cleanup forms therefore cannot replace
+the matched source without further source-schedule analysis.
 
 ## CWaveTable (size 0x1208)
 No counterpart in the first game's headers.

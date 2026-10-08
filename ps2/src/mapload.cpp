@@ -22,42 +22,6 @@
 #include "scriptinterpreter.hpp"
 #include "water.hpp"
 
-/**
- *
- * Copies a map light's four-component vector.
- *
- */
-struct map_light_vector {
-    float v[4]; /**< Four components of a light or ambient vector. */
-};
-
-/**
- *
- * Copies four rows of map light direction or colour values.
- *
- */
-struct map_light_rows {
-    float v[4][4]; /**< Four rows of direction or colour values. */
-};
-
-/**
- *
- * Copies the map's point light table as twelve quadwords.
- *
- */
-struct map_light_points {
-    u_long128 quad[12]; /**< Point light entries copied in quadwords. */
-};
-
-/**
- *
- * Copies the map's fog parameters as three quadwords.
- *
- */
-struct map_light_fog {
-    u_long128 quad[3]; /**< Fog parameters copied in quadwords. */
-};
-
 extern CFuncPoint   *mapNowFuncPoint;
 extern int           mapCameraInfoIdx;
 extern int           mapCameraRectIdx;
@@ -434,6 +398,8 @@ int CMap::GetTimeEnable() {
     return map_info.time_enable;
 }
 
+#pragma inline_depth(0)
+
 void CMap::GetLightInfo(CMapLightingInfo *out_info) {
     if (out_info == NULL) {
         return;
@@ -484,19 +450,7 @@ void CMap::GetLightInfo(CMapLightingInfo *out_info) {
     }
 }
 
-CMapLightingInfo &CMapLightingInfo::operator=(const CMapLightingInfo &other) {
-    projection = other.projection;
-    *(map_light_vector *) bg_color = *(map_light_vector *) other.bg_color;
-    *(map_light_vector *) bg_color2 = *(map_light_vector *) other.bg_color2;
-    *(map_light_rows *) light_dir = *(map_light_rows *) other.light_dir;
-    *(map_light_rows *) light_color = *(map_light_rows *) other.light_color;
-    plight_enable = other.plight_enable;
-    *(map_light_points *) point_light = *(map_light_points *) other.point_light;
-    *(map_light_vector *) ambient = *(map_light_vector *) other.ambient;
-    fog_enable = other.fog_enable;
-    *(map_light_fog *) &fog = *(map_light_fog *) &other.fog;
-    return *this;
-}
+#pragma inline_depth reset
 
 mgMaterial *mgCFrame::GetMaterial(int index) {
     if (visual != NULL) {

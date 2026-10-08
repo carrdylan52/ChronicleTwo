@@ -149,13 +149,6 @@ extern char        at_1938[];
 extern CMenuInter  CMenuInterStatic;
 extern CDC2Mes    *MenuInterMes;
 extern signed char MenuInterMesDrawFlag;
-extern char        at_2329[];
-extern char        at_2330[];
-extern char        at_2331[];
-extern char        at_2332[];
-extern char        at_2333__2[];
-extern char        at_2334__2[];
-extern char        at_2335[];
 extern char        at_2003[];
 extern char        at_1684[];
 extern char        at_2004__2[];
@@ -1853,46 +1846,43 @@ int MenuInternSelectKey(void) {
     MenuPosData->FormStep();
     return result;
 }
-
+/**
+ * Draws the internal menu's message, topic ticker and debug status.
+ */
 void MenuInternSelectDraw(void) {
     MenuPosData->FormDraw();
     if (MenuInterMesDrawFlag != 0 && MenuInterMes != NULL) {
-        mgTexManager.ReloadTexture(MenuArg.mes_tex_block, (sceVif1Packet *) 0);
+        mgTexManager.ReloadTexture(MenuArg.mes_tex_block, static_cast<sceVif1Packet *>(NULL));
         MenuInterMes->DrawMsg();
     }
     DrawMenuTopic();
     if (menu_debug_flag != 0) {
-        float box_x = 360.0f;
-        float box_h = 80.0f;
-        float box_y = 60.0f;
-        float box_w = (float) (mgScreenWidth - 360);
-        DrawMenuFillBox(box_x, box_y, box_w, box_h, 0x40, 0, 0, 0);
+        DrawMenuFillBox(360.0f, 60.0f, static_cast<float>(mgScreenWidth - 360), 80.0f, 0x40, 0, 0, 0);
         CMenuFont font;
         char      text[0x100];
         text[0] = 0;
         int bit_ctrl = MenuActiveSaveData->GetBitCtrl();
-        if (bit_ctrl & 1) {
-            strcat(text, at_2329);
+        if (bit_ctrl & MENU_DEBUG_BIT_CTRL_NO_MOVE) {
+            strcat(text, "Not Move\n");
         }
-        if (bit_ctrl & 2) {
-            strcat(text, at_2330);
+        if (bit_ctrl & MENU_DEBUG_BIT_CTRL_NO_GEORAMA) {
+            strcat(text, "Not Georama\n");
         }
-        if (bit_ctrl & 4) {
-            strcat(text, at_2331);
+        if (bit_ctrl & MENU_DEBUG_BIT_CTRL_NO_FISHING) {
+            strcat(text, "Not Fishing\n");
         }
-        if (bit_ctrl & 8) {
-            strcat(text, at_2332);
+        if (bit_ctrl & MENU_DEBUG_BIT_CTRL_ATRA_OFF) {
+            strcat(text, "Atra OFF\n");
         }
-        if (bit_ctrl & 0x10) {
-            strcat(text, at_2333__2);
+        if (bit_ctrl & MENU_DEBUG_BIT_CTRL_BOOT_TREEMAP) {
+            strcat(text, "Boot Treemap\n");
         }
         if (bit_ctrl == 0) {
-            strcpy(text, at_2334__2);
+            strcpy(text, "\211\275\202\340\213\326\216\176\012\202\263\202\352\202\304\202\242\202\334\202\271\202\361");
         }
         font.DrawDirect(text, 360, 60);
-        float help_y = 350.0f;
-        DrawMenuFillBox(300.0f, help_y, 190.0f, 60.0f, 0x40, 0, 0, 0);
-        font.DrawDirect(at_2335, 300, 350);
+        DrawMenuFillBox(300.0f, 350.0f, 190.0f, 60.0f, 0x40, 0, 0, 0);
+        font.DrawDirect("\201\233\072\101\144\144\040\104\141\171\012\201\176\072\126\151\145\167\040\117\160\145\156\151\156\147\012\201\242\201\106\102\157\157\164\040\106\151\163\150\105\166\145\156\164", 300, 350);
     }
 }
 
@@ -2129,13 +2119,6 @@ INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menumain", at_2143__2__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menumain", at_2144__2__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menumain", at_2145__2__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menumain", at_2146__3__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menumain", at_2329__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menumain", at_2330__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menumain", at_2331__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menumain", at_2332__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menumain", at_2333__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menumain", at_2334__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menumain", at_2335__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menumain", at_2344__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menumain", at_2345__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menumain", at_2439__DATA);

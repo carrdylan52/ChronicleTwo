@@ -2,11 +2,11 @@
 
 ## Current source status
 
-`ClipBoxXZ` remains an `INCLUDE_ASM` gap because the retail routine uses VU0
-status flags. The other nine functions now have C++ definitions without
-`NONMATCHING` guards. Earlier isolated drafts differed from retail; the
-current definitions require an integrated object check before their matching
-status can be stated.
+`ClipBoxXZ` uses the narrow inline VU0 exception because its status-flag
+operations cannot be expressed in C++. Its 0x50 retail bytes match objdiff
+exactly, and the complete `editcoll` object passes `check_objects.py` with
+46 resolved relocations. The other nine functions have C++ definitions without
+`NONMATCHING` guards.
 
 Header: `ps2/include/editcoll.hpp`. No first-game counterpart (`CEditCollision` does not exist in
 `/home/adubbz/development/chronicle`); the base classes `CCollision`/`CCollisionMDT`/`CCPoly` are in
@@ -32,7 +32,8 @@ Header: `ps2/include/editcoll.hpp`. No first-game counterpart (`CEditCollision` 
 - `ClipBoxXZ(max_a, min_a, max_b, min_b)`: VU0 inline asm; clears status, `vsub.xz max_a-min_b`,
   `vsub.xz max_b-min_a`, returns `(status & 0x80 /*sticky sign*/) == 0` -> nonzero when the boxes
   overlap in X and Z. Callers pass outputs of `mgVectorMaxMin(max, min, ...)` and `bbox.max/min`.
-  Global (not in local_symbols.tsv); called only from editcoll.
+  Global (not in local_symbols.tsv); called only from editcoll. The status
+  transfer waits five `vnop` instructions after the two comparisons.
 - `OverlapPoly3AreaXZ(clipped, clipper, box)`: Sutherland-Hodgman clip of triangle `clipped` (Y
   zeroed) against the 3 edges of `clipper` in XZ, two ping-pong buffers of 7 float4 each
   (0x70 stride); returns shoelace area * 0.5 (signed; callers take fabs), 0 if < 3 vertices. If

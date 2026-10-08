@@ -1097,7 +1097,7 @@ void mgSetPkFrameBuffer(int fbp, int width, int height, int psm);
  *
  * @mangled mgGetFrameBuffer__FP10mgCTexture
  * @address 0x144B30
- * @size 0x100
+ * @size 0xF8
  */
 void mgGetFrameBuffer(mgCTexture *texture);
 
@@ -1107,7 +1107,7 @@ void mgGetFrameBuffer(mgCTexture *texture);
  *
  * @mangled mgGetFrameBackBuffer__FP10mgCTexture
  * @address 0x144C30
- * @size 0x140
+ * @size 0x138
  */
 void mgGetFrameBackBuffer(mgCTexture *texture);
 

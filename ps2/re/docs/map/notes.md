@@ -209,10 +209,14 @@ fallback.
 constructors install the list vtable and initialize the links. Their typed
 constructor drafts remain behind `NONMATCHING`; retail assembly supplies the
 active functions until those drafts compare byte for byte. The list vtables
-reference `CList<PartsGroupData>::Initialize` and `CList<CMapParts *>::Initialize`;
-these twelve-byte virtual methods now come from the natural template definition.
-The earlier native specialization trials reproduced their instruction bodies,
-but that does not establish a completed native constructor-backed implementation.
+reference `CList<PartsGroupData>::Initialize` and `CList<CMapParts *>::Initialize`.
+Both methods have native explicit specializations: `PartsGroupData` at
+0x15DB50 and `CMapParts *` at 0x15E3D0 (each size 0xC). Each clears
+`prev` at offset 4, then `next` at offset 0, leaving the stored data unchanged. `decompile.sh` confirms those
+two stores. The specializations use the documented `CList` fields and let
+MWCC generate their template symbols naturally. The complete `map` object matches
+0x4734 bytes and 418 resolved relocations; this verifies the methods independently
+of the still-guarded constructor-backed allocations.
 
 `CPartsGroup::Add` and `CMap::AddParts` reproduce PAL code in the pre-merge
 canonical comparison. Each append walks to the last node, writes its next link
@@ -227,16 +231,11 @@ declaration and redundant initialization trials did not correct those
 allocations and are absent from the source. These observations describe the
 pre-merge snapshot; the merged source requires canonical revalidation.
 
-## October 8 merged-base template instantiations
+## Guarded list allocation callers
 
-The two list initialization functions are supplied by explicit class
-instantiations of the existing generic `CList<T>` definition. Their bodies
-clear `prev` and `next`; the compiler supplies their native template names.
-With both allocation callers still guarded, the canonical complete object
-has zero byte or resolved-relocation differences (0x4734 allocated bytes,
-418 relocations). No specialized method bodies or hand-emitted symbols are
-needed. MWCC rejects member-only explicit-instantiation syntax but accepts
-standard class-instantiation syntax.
+Explicit member specializations are the active list initializers. Earlier
+whole-class instantiation experiments also matched the two initialization
+bodies, but do not establish the still-guarded allocation callers.
 
 `AddPartsGroup` remains guarded: its original draft is 0x104 bytes against
 0x100 retail. It clears `data.parts` again after the natural data constructor
@@ -251,9 +250,3 @@ the older pre-merge percentage above.
 Blocker for both callers: placement-new allocation-result scheduling.
 Reconsider when the dedicated constructor investigation validates a natural
 form for the same list construction and null-result flow.
-
-The integrated build retains byte-identical allocated ELF contents and the
-merged-base verifier output. Both initializers are classified as matched by
-the refreshed objdiff coverage; map has 83 matched functions and two guarded
-callers. The checker counts eight fewer object bytes because the two native
-bodies omit their four-byte zero tails; the linked layout retains those gaps.

@@ -5242,7 +5242,6 @@ void CAquarium::Draw() {
         }
     }
 }
-
 void MenuAquaInit(mgCMemory *memory, int *tex_block, int) {
     AquaScene = GetMainScene();
     Auqa_Bgm_Volf = AquaScene->GetTimeBgmVolf();
@@ -6297,7 +6296,34 @@ static inline void SetHaveName(CDC2Mes *mes, int k, char *name) {
         strcpy(mes->name[k], name);
     }
 }
+/**
+ *
+ * Tracks the current saved fish-race menu screen and prompt.
+ *
+ */
+enum GyoraceMenuMode {
+    GYORACE_MENU_ASSIGN_FISH = 0xA,
+    GYORACE_MENU_SELECT_TACTICS = 0xB,
+    GYORACE_MENU_TACTICS_RESULT = 0xC,
+    GYORACE_MENU_DELETE_FISH = 0x14,
+    GYORACE_MENU_DELETE_CONFIRM = 0x15,
+    GYORACE_MENU_ALREADY_ASSIGNED = 0x16,
+    GYORACE_MENU_START_CONFIRM = 0x1E,
+    GYORACE_MENU_START_ACK = 0x1F,
+    GYORACE_MENU_VIEW_TACTICS = 0x28,
+    GYORACE_MENU_SUBMIT_CONFIRM = 0x32,
+    GYORACE_MENU_SAVE_FADE = 0x3C,
+    GYORACE_MENU_SAVE = 0x3D,
+    GYORACE_MENU_RETURN_FROM_SAVE = 0x3E,
+    GYORACE_MENU_LOAD_FISH = 0x3F,
+    GYORACE_MENU_RESET_CONFIRM = 0x40,
+    GYORACE_MENU_ASSIGN_CONFIRM = 0x41,
+    GYORACE_MENU_ASSIGN_RESULT = 0x42,
+    GYORACE_MENU_LOAD_BOARD = 0x43,
+};
+
 int GyoraceMenuKey() {
+    /** Stores the fish being renamed while the name-entry menu is open. */
     static CGameDataUsed *local_gdata = NULL;
     CDC2Mes              *ask = MenuDCMsg[0];
     CDC2Mes              *tactics_mes = MenuDCMsg[1];
@@ -6319,6 +6345,7 @@ int GyoraceMenuKey() {
     key |= MenuCommonInfo->CheckLRKey();
     button = MenuCommonInfo->CheckPushButton();
     old_top = GyoraceFishHaveListSelect.top;
+    /** Keeps the selected saved-racer slot through the tactics prompt. */
     static s8 save_now_space_racer_no = 0;
     switch (GyoraceNowMode) {
         case 0:
@@ -6330,15 +6357,16 @@ int GyoraceMenuKey() {
                 GyoraceNowMode = 1;
                 file = GetReadBGFile(0);
                 textures = &mgTexManager;
-                image = GetPackFile((u_int *) file->buffer, at_5487, NULL);
+                image = GetPackFile(reinterpret_cast<u_int *>(file->buffer), at_5487, NULL);
                 if (image != NULL) {
-                    textures->EnterIMGFile((u_char *) image, GyoraceTexBlock[1], NULL, NULL);
+                    textures->EnterIMGFile(reinterpret_cast<u_char *>(image), GyoraceTexBlock[1], NULL, NULL);
                 }
-                image = GetPackFile((u_int *) file->buffer, at_5488, NULL);
+                image = GetPackFile(reinterpret_cast<u_int *>(file->buffer), at_5488, NULL);
                 if (file != NULL) {
-                    textures->EnterIMGFile((u_char *) image, GyoraceTexBlock[1], NULL, NULL);
+                    textures->EnterIMGFile(reinterpret_cast<u_char *>(image), GyoraceTexBlock[1], NULL, NULL);
                 }
-                GyoraceExeCfgBuffer = (char *) GetPackFile((u_int *) file->buffer, at_5489, &GyoraceExeCfgBufferSize);
+                GyoraceExeCfgBuffer = reinterpret_cast<char *>(
+                    GetPackFile(reinterpret_cast<u_int *>(file->buffer), at_5489, &GyoraceExeCfgBufferSize));
                 MenuMainImageDataEnter(GyoraceTexBlock[1]);
                 GyoraceFishTex = textures->GetTexture(at_5490, -1);
                 GyoraceCursor = textures->GetTexture(at_2361, -1);
@@ -6381,10 +6409,10 @@ int GyoraceMenuKey() {
                     case 2:
                     case 3:
                         if (cursor == 2) {
-                            GyoraceNowMode = 0xA;
+                            GyoraceNowMode = GYORACE_MENU_ASSIGN_FISH;
                         }
                         if (cursor == 3) {
-                            GyoraceNowMode = 0x14;
+                            GyoraceNowMode = GYORACE_MENU_DELETE_FISH;
                         }
                         list_update = 1;
                         GyoraceMes->cursor_on = 0;
@@ -6397,13 +6425,13 @@ int GyoraceMenuKey() {
                         if (racer_num <= 0) {
                             se = 5;
                         } else {
-                            GyoraceNowMode = 0x1E;
+                            GyoraceNowMode = GYORACE_MENU_START_CONFIRM;
                             GyoraceQuestionMsgDrawFlag = se;
                             GyoraceCFGAnalyze(at_5493);
                         }
                         break;
                     case 4:
-                        GyoraceNowMode = 0x28;
+                        GyoraceNowMode = GYORACE_MENU_VIEW_TACTICS;
                         GyoraceFishInfoDrawFlag = se;
                         GyoracerActive = NULL;
                         GyoraceFishTacMesDrawFlag = se;
@@ -6420,13 +6448,13 @@ int GyoraceMenuKey() {
                         if (racer_num <= 0) {
                             se = 5;
                         } else {
-                            GyoraceNowMode = 0x32;
+                            GyoraceNowMode = GYORACE_MENU_SUBMIT_CONFIRM;
                             GyoraceQuestionMsgDrawFlag = se;
                             GyoraceCFGAnalyze(at_5494);
                         }
                         break;
                     case 6:
-                        GyoraceNowMode = 0x3C;
+                        GyoraceNowMode = GYORACE_MENU_SAVE_FADE;
                         MenuMainScene->fade.FadeOut(40, 0.0f, 0.0f, 0.0f);
                         break;
                 }
@@ -6464,7 +6492,7 @@ int GyoraceMenuKey() {
                 GyoracerListUpdate();
             }
             break;
-        case 0xA:
+        case GYORACE_MENU_ASSIGN_FISH:
             if (MenuKeySelectCheck(OmakeGyoraceSelect(key), &GyoraceFishHaveListSelect.cursor,
                                    &GyoraceFishHaveListSelect.top, 0, 0x40, 9, 0) != 0) {
                 MenuSePlay(SYSTEM_SE_CURSOR);
@@ -6493,14 +6521,14 @@ int GyoraceMenuKey() {
                     tactics_mes->SetMsgItemNo(vol_5253, 6);
                     tactics_mes->select_top = list_update;
                     tactics_mes->SetWindowBgOpaqueFlg(list_update);
-                    GyoraceNowMode = 0xB;
+                    GyoraceNowMode = GYORACE_MENU_SELECT_TACTICS;
                 }
             } else if (button & 2) {
                 next = 1;
                 MenuSePlay(5);
             }
             break;
-        case 0xB:
+        case GYORACE_MENU_SELECT_TACTICS:
             cursor = tactics_mes->AddMsgCursor2(1, 6, 1);
             if (button & 1) {
                 CGameDataUsed *racer_fish;
@@ -6516,22 +6544,22 @@ int GyoraceMenuKey() {
                     strcpy(tactics_mes->name[0], name);
                 }
                 tactics_mes->SetWindowBgOpaqueFlg(0);
-                GyoraceNowMode = 0xC;
+                GyoraceNowMode = GYORACE_MENU_TACTICS_RESULT;
             } else if (button & 2) {
                 MenuSePlay(5);
                 GyoraceFishTacMesDrawFlag = 0;
                 tactics_mes->SetWindowBgOpaqueFlg(0);
-                GyoraceNowMode = 0xA;
+                GyoraceNowMode = GYORACE_MENU_ASSIGN_FISH;
             }
             break;
-        case 0xC:
+        case GYORACE_MENU_TACTICS_RESULT:
             if (button != 0) {
                 MenuSePlay(SYSTEM_SE_DECIDE);
                 GyoraceFishTacMesDrawFlag = 0;
-                GyoraceNowMode = 0xA;
+                GyoraceNowMode = GYORACE_MENU_ASSIGN_FISH;
             }
             break;
-        case 0x14:
+        case GYORACE_MENU_DELETE_FISH:
             if (MenuKeySelectCheck(OmakeGyoraceSelect(key), &GyoraceFishHaveListSelect.cursor,
                                    &GyoraceFishHaveListSelect.top, 0, 0x40, 9, 0) != 0) {
                 MenuSePlay(SYSTEM_SE_CURSOR);
@@ -6550,13 +6578,13 @@ int GyoraceMenuKey() {
                     GyoraceQuestionMsgDrawFlag = 1;
                     name = racer->fish.GetName(0);
                     if (0 <= CheckSameRacerFish(GyoraceFishHaveListSelect.cursor)) {
-                        GyoraceNowMode = 0x16;
+                        GyoraceNowMode = GYORACE_MENU_ALREADY_ASSIGNED;
                         GyoraceCFGAnalyze(at_5497);
                         if (name != NULL) {
                             strcpy(ask->name[0], name);
                         }
                     } else {
-                        GyoraceNowMode = 0x15;
+                        GyoraceNowMode = GYORACE_MENU_DELETE_CONFIRM;
                         GyoraceCFGAnalyze(at_5498);
                         if (name != NULL) {
                             strcpy(ask->name[0], name);
@@ -6568,7 +6596,7 @@ int GyoraceMenuKey() {
                 MenuSePlay(5);
             }
             break;
-        case 0x15: {
+        case GYORACE_MENU_DELETE_CONFIRM: {
             int answer = ask->YesNoCursor2(0);
 
             if (answer == 1) {
@@ -6577,25 +6605,25 @@ int GyoraceMenuKey() {
                     racer->Init();
                 }
                 list_update = 1;
-                GyoraceNowMode = 0x14;
+                GyoraceNowMode = GYORACE_MENU_DELETE_FISH;
                 GyoraceQuestionMsgDrawFlag = 0;
                 MenuSePlay(list_update);
             }
             if (answer == 2) {
-                GyoraceNowMode = 0x14;
+                GyoraceNowMode = GYORACE_MENU_DELETE_FISH;
                 GyoraceQuestionMsgDrawFlag = 0;
                 MenuSePlay(5);
             }
             break;
         }
-        case 0x16:
+        case GYORACE_MENU_ALREADY_ASSIGNED:
             if (button != 0) {
-                GyoraceNowMode = 0x14;
+                GyoraceNowMode = GYORACE_MENU_DELETE_FISH;
                 GyoraceQuestionMsgDrawFlag = 0;
                 MenuSePlay(SYSTEM_SE_DECIDE);
             }
             break;
-        case 0x1E: {
+        case GYORACE_MENU_START_CONFIRM: {
             int answer = ask->YesNoCursor2(0);
 
             if (answer == 1) {
@@ -6611,13 +6639,13 @@ int GyoraceMenuKey() {
             }
             break;
         }
-        case 0x1F:
+        case GYORACE_MENU_START_ACK:
             if (button != 0) {
                 next = 1;
                 MenuSePlay(next);
             }
             break;
-        case 0x28: {
+        case GYORACE_MENU_VIEW_TACTICS: {
             int old_cursor = GyoraceFishMes->GetMsgCursor();
             int racer_slot = GyoraceFishMes->AddMsgCursor2(0, 5, 0);
 
@@ -6636,7 +6664,7 @@ int GyoraceMenuKey() {
             tactics_mes->SetMsgItemNo(tactics, 1);
             break;
         }
-        case 0x32: {
+        case GYORACE_MENU_SUBMIT_CONFIRM: {
             int answer = ask->YesNoCursor2(0);
 
             if (answer == 1) {
@@ -6658,33 +6686,33 @@ int GyoraceMenuKey() {
                 return 2;
             }
             break;
-        case 0x3C:
+        case GYORACE_MENU_SAVE_FADE:
             if (MenuMainScene->fade.FadeCheck() != 0) {
-                GyoraceNowMode = 0x3D;
+                GyoraceNowMode = GYORACE_MENU_SAVE;
                 MenuSaveInit(&GyoraceStack, &GyoraceTexBlock[5], 0x1E);
             }
             break;
-        case 0x3D:
+        case GYORACE_MENU_SAVE:
             if (0 < MenuSaveKey()) {
                 MenuLoadFishIsLoad = 0;
                 if (MenuArg.end_code == 10) {
                     MenuLoadFishIsLoad = 1;
                 }
-                next = 0x3E;
+                next = GYORACE_MENU_RETURN_FROM_SAVE;
                 MenuMainScene->fade.FadeIn(30);
                 MenuArg.end_code = 0;
                 MenuArg.result[0] = 0;
             }
             break;
-        case 0x3E:
+        case GYORACE_MENU_RETURN_FROM_SAVE:
             if (MenuMainScene->fade.FadeCheck() != 0) {
                 next = 1;
                 if (MenuLoadFishIsLoad == 1) {
-                    next = 0x3F;
+                    next = GYORACE_MENU_LOAD_FISH;
                 }
             }
             break;
-        case 0x3F:
+        case GYORACE_MENU_LOAD_FISH:
             if (MenuLoadFishBoardX > 0xE0) {
                 CalcMenu1(0xE0, &MenuLoadFishBoardX, 3, 3, 0);
             } else {
@@ -6692,32 +6720,32 @@ int GyoraceMenuKey() {
                 CGameDataUsed *item = MenuDrawItemInfo[MenuLoadFishSelect];
                 GyoracerActive = item;
                 if (button & 2) {
-                    next = 0x40;
+                    next = GYORACE_MENU_RESET_CONFIRM;
                     MenuSePlay(5);
                 } else if (button & 1) {
                     MenuLoadFishSelectData = item;
                     if (GyoraceData->SearchSpaceData(NULL) == NULL || MenuLoadFishSelectData == NULL) {
                         MenuSePlay(5);
                     } else {
-                        next = 0x41;
+                        next = GYORACE_MENU_ASSIGN_CONFIRM;
                         MenuSePlay(SYSTEM_SE_DECIDE);
                     }
                 }
             }
             break;
-        case 0x40:
-        case 0x41: {
+        case GYORACE_MENU_RESET_CONFIRM:
+        case GYORACE_MENU_ASSIGN_CONFIRM: {
             int answer = ask->YesNoCursor2(0);
 
             if (answer == 1) {
                 MenuSePlay(1);
-                if (GyoraceNowMode == 0x40) {
+                if (GyoraceNowMode == GYORACE_MENU_RESET_CONFIRM) {
                     next = 1;
                     InitSaveData();
                     InitOmakeEnv(next, NULL, NULL);
                     memcpy(GetSaveData()->GetConfig(), &GyoraceMenuOptionBuff, sizeof(SV_CONFIG_OPTION));
                 }
-                if (GyoraceNowMode == 0x41) {
+                if (GyoraceNowMode == GYORACE_MENU_ASSIGN_CONFIRM) {
                     GYORACE_DATA *space = GyoraceData->SearchSpaceData(NULL);
 
                     if (space != NULL && MenuLoadFishSelectData != NULL) {
@@ -6725,7 +6753,7 @@ int GyoraceMenuKey() {
                         space->Init();
                         space->fish.CopyGameData(MenuLoadFishSelectData);
                         list_update = 1;
-                        next = 0x42;
+                        next = GYORACE_MENU_ASSIGN_RESULT;
                         GyoraceHaveFishListScrlInit = list_update;
                     } else {
                         break;
@@ -6734,18 +6762,18 @@ int GyoraceMenuKey() {
             }
             if (answer == 2) {
                 MenuSePlay(5);
-                if (GyoraceNowMode == 0x40) {
-                    next = 0x3F;
+                if (GyoraceNowMode == GYORACE_MENU_RESET_CONFIRM) {
+                    next = GYORACE_MENU_LOAD_FISH;
                 }
-                if (GyoraceNowMode == 0x41) {
-                    next = 0x3F;
+                if (GyoraceNowMode == GYORACE_MENU_ASSIGN_CONFIRM) {
+                    next = GYORACE_MENU_LOAD_FISH;
                 }
             }
             break;
         }
-        case 0x42:
+        case GYORACE_MENU_ASSIGN_RESULT:
             if (button != 0) {
-                next = 0x3F;
+                next = GYORACE_MENU_LOAD_FISH;
                 MenuLoadFishSelectData->Init();
                 MenuLoadFishSelectData = NULL;
                 MenuSePlay(SYSTEM_SE_DECIDE);
@@ -6763,7 +6791,7 @@ int GyoraceMenuKey() {
                 GyoraceMes->cursor_on = 1;
                 GyoraceFishMes->SetMsgCursor(-1);
                 break;
-            case 0x3E:
+            case GYORACE_MENU_RETURN_FROM_SAVE:
                 GyoraceFishInfoDrawFlag = 0;
                 if (MenuLoadFishIsLoad != 0) {
                     int bag_max;
@@ -6783,22 +6811,22 @@ int GyoraceMenuKey() {
                     GyoracerActive = NULL;
                 }
                 break;
-            case 0x3F:
+            case GYORACE_MENU_LOAD_FISH:
                 SetModeMenuDrawItemBoard(4);
                 GyoraceQuestionMsgDrawFlag = 0;
                 GyoraceFishHaveDrawFlag = 1;
                 GyoraceHaveFishCursorDrawFlag = 0;
                 break;
-            case 0x40:
-            case 0x41:
+            case GYORACE_MENU_RESET_CONFIRM:
+            case GYORACE_MENU_ASSIGN_CONFIRM:
                 GyoraceQuestionMsgDrawFlag = 1;
                 ask->MsgPreset(0xB);
                 ask->SetAbsPos(5);
                 ask->SetMsgCursor(1);
-                if (next == 0x40) {
+                if (next == GYORACE_MENU_RESET_CONFIRM) {
                     ask->MakeMsg(0x13AC);
                 }
-                if (next == 0x41) {
+                if (next == GYORACE_MENU_ASSIGN_CONFIRM) {
                     ask->MakeMsg(0x1393);
                     if (MenuLoadFishSelectData != NULL) {
                         name = MenuLoadFishSelectData->GetName(0);
@@ -6808,7 +6836,7 @@ int GyoraceMenuKey() {
                     }
                 }
                 break;
-            case 0x42:
+            case GYORACE_MENU_ASSIGN_RESULT:
                 GyoraceCFGAnalyze(at_5499);
                 name = MenuLoadFishSelectData->GetName(0);
                 if (name != NULL) {
@@ -6867,7 +6895,6 @@ int GyoraceMenuKey() {
               &GyoraceHaveFishCursor, 3.6f, 3.0f, scroll_init);
     return 0;
 }
-
 void GyoraceMenuDraw() {
     mgCTextureManager *textures;
     mgCDrawPrim       *prim;
@@ -6881,7 +6908,7 @@ void GyoraceMenuDraw() {
         case 7:
             NameRegistDraw();
             break;
-        case 0x3D:
+        case GYORACE_MENU_SAVE:
             MenuSaveDraw();
             break;
         default: {
@@ -6937,16 +6964,16 @@ void GyoraceMenuDraw() {
             }
 
             switch (GyoraceNowMode) {
-                case 0xA:
-                case 0xB:
-                case 0xC:
-                case 0x14:
-                case 0x15:
-                case 0x16:
-                case 0x3F:
-                case 0x40:
-                case 0x41:
-                case 0x42: {
+                case GYORACE_MENU_ASSIGN_FISH:
+                case GYORACE_MENU_SELECT_TACTICS:
+                case GYORACE_MENU_TACTICS_RESULT:
+                case GYORACE_MENU_DELETE_FISH:
+                case GYORACE_MENU_DELETE_CONFIRM:
+                case GYORACE_MENU_ALREADY_ASSIGNED:
+                case GYORACE_MENU_LOAD_FISH:
+                case GYORACE_MENU_RESET_CONFIRM:
+                case GYORACE_MENU_ASSIGN_CONFIRM:
+                case GYORACE_MENU_ASSIGN_RESULT: {
                     int   title_x = 0x13;
                     float label_x = 34.0f;
                     int   title_w = 0xE4;
@@ -7013,7 +7040,7 @@ void GyoraceMenuDraw() {
             if (GyoraceFishTacMesDrawFlag != 0) {
                 int cursor = GyoraceFishMes->GetMsgCursor();
 
-                if (GyoraceNowMode == 0x28) {
+                if (GyoraceNowMode == GYORACE_MENU_VIEW_TACTICS) {
                     int tac_x = 0x118;
                     int tac_y = cursor * 0x18 + 0x30;
 
@@ -7032,12 +7059,12 @@ void GyoraceMenuDraw() {
             show_cursor = 0;
 
             switch (GyoraceNowMode) {
-                case 0x3F:
+                case GYORACE_MENU_LOAD_FISH:
                     show_cursor = 1;
-                case 0x40:
-                case 0x41:
-                case 0x42:
-                case 0x43: {
+                case GYORACE_MENU_RESET_CONFIRM:
+                case GYORACE_MENU_ASSIGN_CONFIRM:
+                case GYORACE_MENU_ASSIGN_RESULT:
+                case GYORACE_MENU_LOAD_BOARD: {
                     int board_block;
 
                     Func_MenuItemBrdPosStep(MenuLoadFishTopLine);
@@ -7054,10 +7081,10 @@ void GyoraceMenuDraw() {
             }
 
             switch (GyoraceNowMode) {
-                case 0x28:
-                case 0x3F:
-                case 0x40:
-                case 0x41:
+                case GYORACE_MENU_VIEW_TACTICS:
+                case GYORACE_MENU_LOAD_FISH:
+                case GYORACE_MENU_RESET_CONFIRM:
+                case GYORACE_MENU_ASSIGN_CONFIRM:
                     if (GyoraceFishInfoDrawFlag != 0 && GyoracerActive != NULL && Tex_Aqualium != NULL) {
                         textures->ReloadTexture(Tex_Aqualium->block, (sceVif1Packet *) NULL);
                         DrawFishParam(((mgScreenWidth - 0x14A) >> 1) + 0xA, mgScreenHeight - 0x8E, Tex_Aqualium,
@@ -7099,7 +7126,6 @@ void GyoraceMenuDraw() {
 
     GyoraceHaveFishListScrlInit = 0;
 }
-
 void DrawSubGameTitle(mgCTexture *texture, int large, int x, int y, int width) {
     mgRect<int> shadow;
     mgRect<int> frame;

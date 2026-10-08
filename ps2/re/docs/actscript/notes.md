@@ -92,6 +92,25 @@ Global (in header): `SetActionScript`, `SetActionExtendTable`, both called only 
 
 The unit-level `divbyzerocheck` pragma was redundant with the global MWCC flag; removing it left the full compiled object identical in objdiff.
 
+## `_SHOT` native residual
+
+The current native `_SHOT` body has one four-instruction register-allocation difference in its final beam-effect `SetValue(4, 160.0f, 0, -1)` call. Retail loads `0x4320` into `v1`, loads `action_info` into `v0`, transfers `v1` to `fa0`, then reads the effect manager through `v0`. MWCC currently uses `v0` for the constant and `v1` for `action_info`; the rest of the 0x900-byte function and its relocations match.
+
+Private whole-object trials of `160.0f` versus `float(160.0)`, a named float local, and a named effect-manager pointer retain that difference. Seeding the unit's helper GPR mask with either `0x10` or `0x30` also leaves it unchanged. An evaluate-first override for binary32 `0x43200000` affects an earlier call with the same function, callee, type, and value, so it creates an additional mismatch rather than isolating the final call. A binary64 override is unconsumed: MWCC has folded the explicit double conversion to binary32 before the hook sees it. No source or profile change from these trials is accepted as a match.
+
+A final-call-only `CEffectScriptMan&` receiver alias was also tested in a private
+copy. The whole-unit checker still reports only the `_SHOT` byte mismatch, and
+the project-configured function diff retains the same four operand differences
+in the constant/action-info register assignment. The alias does not improve
+the match and was not promoted.
+
+At MWCC's floating-argument consumer, both `SetValue(4, 160.0f, 0, -1)`
+calls have the same parsed shape: a direct binary32 constant node (`0x33`),
+the same mangled callee, a receiver load, and three integer constant
+arguments. A callee/value policy cannot distinguish the two without an
+occurrence selector, which is not an accepted compiler calibration. The
+temporary trace used to establish this was removed from Satan's Fiddle.
+
 ## `_SHOT` floating argument schedule
 
 Both attack-type 40 and 90 branches finish their effect setup by calling

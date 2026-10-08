@@ -87,7 +87,7 @@ STATIC_ASSERT(sizeof(SCOOP_DATA) == 0x14);
  */
 struct PIC_NAME_INFO {
     u16   neta_id; /**< Idea the name belongs to. */
-    short unk_2;
+    short sort_key; /**< Ordering key for the idea notebook. */
     char *name; /**< Name of the idea. */
 };
 
@@ -810,7 +810,7 @@ public:
      *
      * @mangled UpdataNetaMemoStr__11CMenuInventFv
      * @address 0x209900
-     * @size 0x1A0
+     * @size 0x194
      */
     void UpdataNetaMemoStr();
 

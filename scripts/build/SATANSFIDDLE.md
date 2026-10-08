@@ -63,9 +63,21 @@ first. Its row is:
 }
 ```
 
+The pinned compiler receives the checked-in
+`patches/satansfiddle-nested-arguments.patch` during the Docker build. Its
+optional `nested_call` selector identifies a sibling call by mangled callee
+and an inner argument's formal index, floating type, and IEEE bits. The
+optional `nested_variable` selector identifies a nonliteral variable load at
+an inner argument index. Both require an outer `callee`; neither uses an
+occurrence number or output address. For example, `RoboWalkMoveIF` selects
+the `SetRotation` zero associated with `unitRotation`'s third argument 16.0f,
+while `RoboAirMoveIF` selects the zero associated with a local angle passed
+as `unitRotation`'s second argument.
+
 Unscoped rows apply during annotation and argument consumption. Callee-scoped
 rows apply at argument consumption, where a matching scoped row takes precedence
-over an unscoped row regardless of configuration order. The consumer hook also
+over an unscoped row regardless of configuration order. Nested selectors take
+precedence over callee-only rows. The consumer hook also
 initializes fresh direct constant nodes that bypassed annotation. An explicit
 stable selector can adjust verified assignment wrappers and compiler-registered
 literal-pool loads; arbitrary variable expressions retain normal annotation.

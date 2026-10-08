@@ -46,17 +46,20 @@ extern u_long128       at_796__4;
  * Calculates a normal for a triangle projected onto the horizontal plane.
  *
  */
-#ifdef NONMATCHING
 static void PlaneNormalXZ(float *normal, float *p0, float *p1, float *p2) {
-    sceVu0FVECTOR edge1 = {p1[0] - p0[0], 0.0f, p1[2] - p0[2], 0.0f};
-    sceVu0FVECTOR edge2 = {p2[0] - p0[0], 0.0f, p2[2] - p0[2], 0.0f};
-    sceVu0OuterProduct(normal, edge1, edge2);
+    asm {
+        lqc2 vf15, 0(p0)
+        vsub.xyzw vf10, vf10, vf10
+        lqc2 vf16, 0(p1)
+        vsub.xyzw vf11, vf11, vf11
+        lqc2 vf17, 0(p2)
+        vsub.xz vf10, vf16, vf15
+        vsub.xz vf11, vf17, vf15
+        vopmula.xyz ACC, vf10, vf11
+        vopmsub.xyz vf12, vf11, vf10
+        sqc2 vf12, 0(normal)
+    }
 }
-#else
-void PlaneNormalXZ(float *normal, float *p0, float *p1, float *p2);
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/editmap2", PlaneNormalXZ__FPfPfPfPf);
-#endif
-#ifdef NONMATCHING
 float CEditMap::GetEditPartsAlt(CEditPartsInfo *info, sceVu0FVECTOR pos, float rot_y, CEditParts **parts, int num) {
     sceVu0FMATRIX   parts_matrix;
     sceVu0FMATRIX   invers_matrix;
@@ -119,9 +122,6 @@ float CEditMap::GetEditPartsAlt(CEditPartsInfo *info, sceVu0FVECTOR pos, float r
     }
     return GetEditAlt(alt);
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/editmap2", GetEditPartsAlt__8CEditMapFP14CEditPartsInfoPffPP10CEditPartsi);
-#endif
 int CEditMap::CheckEditParts(CEditPartsInfo *info, float *pos, float rot_y, EP_PLACE_INFO *place, CEditParts **parts, int num) {
     sceVu0FMATRIX parts_matrix;
     sceVu0FMATRIX invers_matrix;

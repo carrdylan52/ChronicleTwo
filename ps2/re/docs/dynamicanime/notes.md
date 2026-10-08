@@ -1,11 +1,11 @@
 # dynamicanime: reverse-engineering notes
 
 ## C++ draft status
-All 67 functions have C++ in `ps2/src/dynamicanime.cpp`. 24 are exact and
-compiled by the matching build. 19 more compile to retail's bytes in isolation
-but stay under `NONMATCHING`. 24 differ from retail and keep the `INCLUDE_ASM`
-fallback. Each function tried has its one promotion attempt recorded in
-`scripts/re/promotion_attempts.tsv`.
+The current source compiles 66 of 67 functions as exact native C++; the
+remaining `dynCOLLISION` has a typed C++ draft under `NONMATCHING` and uses its
+retail assembly fallback. The whole unit passes the canonical comparison at
+0x2C70 bytes and 366 relocations. `scripts/re/promotion_attempts.tsv` records
+older isolated trials and is not the current match inventory.
 
 Cloth/hair simulation ("dynamic anime") driven by a tag script. Owned by `CCharacter2` as an array
 of `CDynamicAnime` (character `+0x130`, count at `+0x12C`, stride 0x90), loaded by `_CLOTH` in
@@ -135,3 +135,9 @@ matches the retail function; its promotion links byte-identically.
 ## Constructor-backed allocations
 
 `dynCOLLISION` allocates a `CDAColPipe`; its C++ constructor naturally initializes the `CDACollision` base before the derived volume. The typed draft is guarded by `NONMATCHING`, with retail assembly active pending an exact match.
+
+The native draft compiles to 97.25%: its only byte difference is the allocation
+null check, where MWCC tests the saved pointer register instead of the return
+register used by retail. Splitting `Alloc(16)` into a typed `u_long128 *` local
+before placement construction produces identical code. The checked source
+retains the nested typed placement expression; retail assembly remains active.

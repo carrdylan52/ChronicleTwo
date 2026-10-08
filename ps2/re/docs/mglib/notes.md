@@ -9,30 +9,62 @@ array. Naming its two elements `disp1` and `disp0` prevented the whole-unit
 draft compiler from running; using `disp[1]` and `disp[0]` restores that
 diagnostic build without changing the matching game build.
 
+`mgGetFrameBuffer` and `mgGetFrameBackBuffer` use native `mgCTexture` assignment and match
+their 0xF8 and 0x138 retail bodies in objdiff. The matching mglib object has 0x4DB0 bytes
+and 1048 resolved relocations;
+`mg_texture` remains exact at 0x3674 bytes and 160 relocations. The linked build retains only
+the pre-existing 0x26-byte `nd_meswin` mismatch. The narrow
+`MGLIB_IMPLICIT_TEX0_ASSIGNMENT` header switch omits the custom SDK assignment operator
+declaration while compiling mglib, allowing MWCC to emit its retail implicit member copy.
+`mg_texture` keeps the custom operator needed by `ReloadTexture`. This gives the two translation
+units different member declarations for `sceGsTex0`; the layout and generated runtime behavior
+are the same, but the declaration difference is a C++ ODR concern if these are ever combined
+under link-time optimization. The back-buffer function selects `draw1.frame1` when
+`mgDBuffID` is nonzero, otherwise `draw0.frame1`, and replaces the copied TEX0 base with
+the selected frame's FBP scaled by 32.
+
 The global draw environment, texture manager, draw manager, two packet stacks, two data stacks,
 frame texture and two fixed-Z textures are native C++ objects. Their declaration order reproduces
 the compiler-generated `__sinit_mglib_cpp` call sequence, which matches the 200-byte retail
 initializer. The frame texture has the genuine `mgCTexture` type. Defining it in this translation
 unit changes MWCC's code generation for the two buffer-copy functions because it hoists the
-symbol base instead of loading each field through a separate relocation; this matching issue
-remains under investigation; both copy functions use their retail assembly in matching builds.
+symbol base instead of loading each field through a separate relocation. The scoped SDK
+assignment declaration produces the retail code for both functions.
 
 The retail `mgGetFrameBuffer` and `mgGetFrameBackBuffer` are 0xF8 and 0x138 bytes. With the
 required out-of-line `sceGsTex0::operator=`, the current native `frame_tex` definition makes the
-copies 0x120 and 0x168 bytes: an extra call plus stack setup. Inlining the same TEX0 value copy
+copies 0x120 and 0x168 bytes: an extra call plus stack setup. An explicit inline TEX0 value copy
 reduces them to 0x100 and 0x140 bytes, leaving two extra `addiu` instructions in each. MWCC
 forms `frame_tex+0x40` and `frame_tex+0x48` in registers before loading TEX1 and CLAMP, while
 retail loads them directly through HI16/LO16 relocations. The out-of-line assignment symbol
-`__as__9sceGsTex0FRC9sceGsTex0` (0x14 bytes) must remain because it is present in retail;
-the current `mg_texture` source's only additional use is in code guarded by `NONMATCHING`.
+`__as__9sceGsTex0FRC9sceGsTex0` (0x14 bytes) is present in retail, and
+`mg_texture`'s `ReloadTexture` source calls it when copying to local `tex0`.
 The m2c output shows a 16-iteration, two-character copy of `name`, followed by
 scalar copies through `next`. Explicit typed member writes with that same
 two-character loop compile to 0x178 bytes for `mgGetFrameBuffer`, farther from
 retail than implicit assignment. Local optimization levels 1 or 2 make the
-implicit-copy functions 0x12C and 0x17C bytes; level 4 retains their baseline
-0x120 and 0x168 bytes. The exact copy still needs the compiler-generated
-memberwise shape without the out-of-line TEX0 call and without hoisted register
-bases for TEX1 and CLAMP.
+explicit-operator copies 0x12C and 0x17C bytes; level 4 retains their baseline
+0x120 and 0x168 bytes. The private implicit-operator trial below resolves the
+remaining TEX1/CLAMP base and copy-size differences, subject to preserving the
+matched `ReloadTexture` body during the shared SDK assignment cleanup.
+
+A private whole-unit trial removed the `sceGsTex0::operator=` declaration from
+an isolated SDK-header copy and compiled the existing native drafts of both
+buffer-copy functions at default inline depth. MWCC then generated the
+`mgCTexture` memberwise copies without a TEX0 operator call or the two extra
+TEX1/CLAMP base `addiu`s. The functions were exactly 0xF8 and 0x138 bytes, and
+the fixed-up mglib object passed at 0x4DB0 bytes with 1048 relocations. ObjDiff
+reported 100% for `mgGetFrameBuffer`; its 99.98718% for `mgGetFrameBackBuffer`
+was only the `mgDBuffID` GP relocation being named instead of represented as
+the retail numeric GP offset, which the resolved-object checker accepted. The accepted unit-local SDK declaration switch now retains this implicit
+copy while preserving `ReloadTexture`; the earlier header park is resolved. The
+back-buffer draft now reads `sceGsDBuff::draw0/draw1.frame1.FBP` through the
+SDK type. The same source cleanup replaces the file's raw `mgDBuff` byte
+declaration and clear-colour offsets with typed SDK fields. With the existing
+SDK assignment and assembly fallbacks, the canonical mglib object remains
+exact at 0x4DC0 bytes and 1047 relocations. With the private implicit SDK
+assignment and both native copy drafts, its object remains exact at 0x4DB0
+bytes and 1048 relocations.
 After 16-byte function alignment, the first oversized copy moves
 `mgGetFrameBackBuffer` by 0x20 bytes; the second moves `mgGetpDrawEnv` by a
 further 0x30 bytes. Their cumulative unit `.text` shift is 0x50 bytes. In the linked image the

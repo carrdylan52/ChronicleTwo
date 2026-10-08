@@ -37,19 +37,19 @@ instruction as unsupported rather than C expressions. The available
 `libvu0.h` exposes callable SDK functions, including `sceVu0OuterProduct`;
 a call introduces an ABI boundary and cannot reproduce this inline body.
 Scalar C++ likewise emits scalar FPU instructions instead of the required
-COP2 opcodes. A guarded C++ draft forms two XZ-only edge vectors and calls
-`sceVu0OuterProduct`. It compiles, but differs from the retail inline VU0
-instructions; the game build retains the assembly fallback.
+COP2 opcodes. The function now uses the narrow inline VU0 exception. The
+MWCC body matches all 0x2C retail bytes, and the `editmap2` object passes
+`check_objects.py` with 143 resolved relocations.
 
 ## GetEditPartsAlt with placed parts
 
-The guarded C++ draft transforms each candidate polygon into a placed part's
+`GetEditPartsAlt` transforms each candidate polygon into a placed part's
 space, finds horizontal overlap, and raises the best floor height. In retail,
 the `triangle` pointer passed in `a1` to `PlaneNormalXZ` remains in that register
-for `CEditCollision::OverlapPoly3XZ`. MWCC reloads the pointer when the normal
-helper is represented by an external assembly gap, producing one extra
-instruction and a shifted delay slot. The draft scores 98.653595% in objdiff;
-the retail build retains `INCLUDE_ASM` for this function.
+for `CEditCollision::OverlapPoly3XZ`. Compiling the normal helper in this unit
+preserves that register across the call. The resulting 0x264-byte function
+matches objdiff exactly, and the `editmap2` object passes `check_objects.py`
+with 143 resolved relocations.
 
 ## GetSeSrcVolPan
 

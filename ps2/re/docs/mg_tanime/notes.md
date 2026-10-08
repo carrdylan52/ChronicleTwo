@@ -178,6 +178,13 @@ but sinks the saved-pointer move into the successful branch and skips its return
 failure. Disabling propagation or lifetime optimization does not change that result.
 This is a code-generation difference, not evidence of an incorrect `CList` layout.
 
+An additional native trial scoped `optimization_level 2` around `NewTexAnimeData`,
+with `optimization_level reset` immediately after the function. Its target retained
+the same six instruction differences. The fixed-up unit changed from 0x27E0 bytes
+to 0x25F8 bytes and reported 223 object problems, including shortened later function
+extents. Pairing the scope with `global_optimizer off` produced the same target
+difference and unit-wide failure. Neither pragma form is a viable local fix.
+
 ## Placement construction under Satan's Fiddle (2026-10-08)
 
 The canonical SF wrapper retains the guarded NewTexAnimeData draft at

@@ -120,16 +120,6 @@ public:
      * @size 0x30
      */
     CMapLightingInfo() { memset(this, 0, sizeof(CMapLightingInfo)); }
-
-    /**
-     *
-     * Copies a lighting set, including its colours, direction vectors, point lights, and fog.
-     *
-     * @mangled __as__16CMapLightingInfoFRC16CMapLightingInfo
-     * @address 0x162A50
-     * @size 0x11C
-     */
-    CMapLightingInfo &operator=(const CMapLightingInfo &other);
 };
 
 STATIC_ASSERT(sizeof(CMapLightingInfo) == 0x1D0);

@@ -61,11 +61,29 @@ Initialize: clears 0x20..0x48, then the inlined `mgCVisual::Initialize`, then `v
 Ctors are inline (`CreateFrameVisual`, `__sinit_editloop`, `Copy`: vptr store + virtual Initialize
 through slot +0x30 at each level), so `mgCVisualMDT() { Initialize(); }` etc.
 
-`__as__12mgCVisualMDTFRC12mgCVisualMDT` (0x1413F0, in the manifest) is the compiler-generated copy
+`__as__12mgCVisualMDTFRC12mgCVisualMDT` (0x1413F0, in the manifest) is a compiler-generated copy
 assignment. It sits right after its first user `mgCVisualFixMDT::Copy`, copies every field word by
-word and skips the vptr. It is NOT declared, because declaring it would suppress generation (same as
-mg_camera's operator=). Copy uses it as `*copy = *this` (an `mgCVisualMDT&` assignment).
-mgCVisualMotionMDT::Copy uses it too.
+word and skips the vptr. The current source explicitly declares and defines this
+operator while `Copy` is assembly-backed; this is a compliance blocker. Copy uses
+it as `*copy = *this` (an `mgCVisualMDT&` assignment), and
+`mgCVisualMotionMDT::Copy` uses it too.
+
+A private typed `Copy` trial removed the declaration and manual definition.
+At default inline depth MWCC inlined the assignment, omitted its symbol, and
+made `Copy` 0x228 bytes versus retail's 0x190. Scoped `inline_depth(0)` emitted
+the implicit assignment as a weak 0x8C-byte function but made `Copy` 0x11C
+bytes and emitted a separate 0x40-byte `mgCVisual` base assignment. Retail's
+0x98-byte derived assignment is a leaf that copies the base fields inline.
+A scoped depth of one made `Copy` 0x1D0
+bytes and again omitted the assignment symbol. These are compiler scheduling
+observations, not accepted source forms; `Copy` and the derived assignment
+remain to be promoted together.
+
+A further private typed `Copy` trial kept the existing explicit assignment
+definition to isolate the caller. MWCC emitted 0x1A0 bytes instead of retail's
+0x190; the first instruction difference is at 0x141294, and the later `Alloc`
+and placement-array-new calls move with the extra code. It cannot be promoted
+independently of the compiler-derived assignment cleanup.
 
 ## Vtables
 `__vt__12mgCVisualMDT` (0x37B400, 0x48): base slots +0x08..+0x30 (Iam, GetMaterialNum, GetpMaterial,

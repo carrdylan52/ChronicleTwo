@@ -39,10 +39,10 @@ the mapinfo tag handlers (MPL_* strings at mapinfo at_704..at_713) and from UpDa
 - 0x190 int fog_enable (MPL_FOG_ENABLE) -> mgFogEnable.
 - 0x1A0 mgFOG_PARAM fog: near 0x1A0, far 0x1A4, r/g/b 0x1A8-0x1AA, far_value 0x1B0, near_value 0x1B4
   (MPL_FOG defaults rgb 255, 0x1B0=0, 0x1B4=255) -> mgSetFogParam. Copied as 3x lq.
-`operator=` is declared user-declared non-inline. Its retail position (right after its first caller
-GetLightInfo, before CMap::GetLightingInfo) suggests an inline/implicit definition emitted out of line;
-an implicit copy of this layout inlines in test builds, so the body agent must decide how to obtain
-the out-of-line copy (likely an explicit member-wise body in mapload.cpp).
+`operator=` is the implicit compiler-generated memberwise copy assignment. The two real assignments in
+`CMap::GetLightInfo(CMapLightingInfo *)` cause MWCC to emit it naturally as an out-of-line weak symbol
+when `#pragma inline_depth(0)` is scoped to that caller. The pragma resets immediately after the
+caller; the remaining functions keep their existing inlining behavior.
 First game: no equivalent class.
 
 ## CFuncPoint (0x1C0)
@@ -133,3 +133,20 @@ The local `divbyzerocheck on/reset` directives are redundant with the unit's
 global flag: removing them produces an identical complete `mapload.cpp.o`.
 The `fptosi` conversion used by this unit is the CodeWarrior runtime helper declared in
 `mw_runtime.h`; using that header preserves the complete object.
+
+## CMapLightingInfo implicit assignment
+
+The explicit operator declaration, hand-written body, and its byte-copy helper structs were removed.
+The real `*out_info = *info` assignments in `CMap::GetLightInfo(CMapLightingInfo *)` emit the retail
+`__as__16CMapLightingInfoFRC16CMapLightingInfo` naturally when that caller is compiled with inline
+depth zero. The scoped `#pragma inline_depth(0)`/`reset` pair leaves unrelated callers at their
+existing settings; this is the only unit-local assignment use of `CMapLightingInfo`.
+
+After section fixup, the canonical object passes with 0x475C bytes and 945 relocations. ObjDiff
+reports 100% for the 0x11C operator, the 0x1A4 one-argument `GetLightInfo`, and the 0x4AC overload.
+
+The retail ELF marks this assignment with processor-specific binding 13, as it
+also does for the generated CameraCtrlParam, sceGsTex0, and mgCVisualMDT copy
+assignments. The non-const-reference mgCDrawEnv assignment instead has ordinary
+GLOBAL binding. This provides additional evidence that the map-light copy is a
+compiler-generated member rather than an authored operator body.

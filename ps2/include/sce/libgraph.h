@@ -283,7 +283,9 @@ typedef struct sceGsTex0 {
         } bits;
     };
 
+#ifndef MGLIB_IMPLICIT_TEX0_ASSIGNMENT
     sceGsTex0 &operator=(const sceGsTex0 &source);
+#endif
 } sceGsTex0;
 
 /* The register built as one 64-bit word rather than field by field, which is how the SDK spells a

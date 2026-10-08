@@ -915,7 +915,7 @@ public:
      *
      * @mangled ColCheck__9CAquariumFi
      * @address 0x2171F0
-     * @size 0x700
+     * @size 0x6F8
      */
     int ColCheck(int no);
 

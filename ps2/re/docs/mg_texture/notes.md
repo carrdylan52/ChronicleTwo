@@ -175,40 +175,20 @@ node and appends it to its name's chain. `DelHash` unlinks the matching texture
 and returns that node to the free stack. `SearchHash` compares names and applies
 an optional texture-block filter.
 
-All three hash functions now match retail. `AddHash` and `DelHash` keep the
-integer hash result and read or update the bucket head directly through
-`hash_table[index]`, rather than retaining a separate pointer to that member.
-The three functions use local optimization level 2, with their existing
-scheduling and global-optimizer pragmas retained. This source form emits retail's
-scaled-index-first `addu` at `AddHash+0x74`, `DelHash+0x30`, and
-`SearchHash+0x2C`, without pointer arithmetic or another helper.
+The native implementations now match retail exactly. `AddHash` obtains one free
+link, initializes it, and either installs it as the bucket head or appends it to
+the end of the chain. `DelHash` unlinks the matching texture and returns the link
+to the free stack. `SearchHash` compares names and applies an optional texture-block
+filter. All three use typed `hash_table[index]` reads and writes.
 
-Both parts of this result were measured. At the default level, earlier direct
-member accesses, index/base casts, unsigned indices, swapped subscripts, manager
-locals, bucket-head references, and one-pointer bucket records did not resolve
-the operand order. Level 2 with the original bucket-pointer locals makes only
-`SearchHash` exact; a head reference at that level repeats the same partial
-object. Direct bucket-head accesses at level 2 pass the complete unit:
-`0x3674` bytes and all 160 relocations, with zero differing words in all three
-functions. Native body sizes remain `0xD8`, `0xE8`, and `0xB0` respectively.
-
-The private full-wrapper object and the normal build object are byte-identical,
-SHA-256 `2c51189689aee333b19190eeaad4c3217a826aadea3751bfbceac0ea76d2d4c4`.
-The normal PAL build reduces `.text` differences from 44 to 38 bytes and improves
-the canonical check from 146/149 to 147/149. Hashing all 149 objects shows that
-the other 148 are unchanged; the remaining `actscript` and `nd_meswin` finding
-lists equal round 2 and integration i12. All other PAL sections and the
-retail-sized main/BSS extents pass. No shared header or Satan's Fiddle profile
-row changes are needed. Receipts: `.private/receipts/regress/round3/after-mg/`
-and `mg_texture-level2-direct-head/` beside it.
-
-Useful rejected alternatives remain distinct from the accepted form. Directly
-nesting `hash()` in the subscript and changing its return type to `u_int`
-reproduce the default object. A `u_char` return adds normalization and new
-body/size/relocation failures. Local level 1 and the earlier global-optimizer-on
-trial change other instructions and fail the complete unit. The read-only DC1
-search finds only `CTextureManager` with fixed arrays, no corresponding hash
-table or bucket accessor; it supplies no helper to port.
+A single `optimization_level 2` scope across these contiguous methods, while the
+translation unit retains its existing disabled global optimizer and scheduler,
+produces the retail operand order for bucket address formation. The fixed
+translation-unit `-O3,p` build without this scope leaves one commutative `addu`
+operand mismatch in each function. Applying `-O2` to the whole unit fails many
+unrelated function extents and instructions, so the narrow shared scope is
+required. The fixed-profile private build passed `check_objects.py` for the whole
+unit: 0x3674 bytes and 160 resolved relocations, with all three functions exact.
 
 ## Native full-image conversion
 
@@ -220,3 +200,19 @@ matched topology and relocations but permuted saved registers; they do not
 establish a remaining failure in this newer body. The merged function needs
 canonical validation under the deterministic compiler profile. Its cursor
 advancement operates on byte-copy buffers rather than hidden object fields.
+
+## Additional hash-table source trials
+
+At default optimization level, index/base casts, unsigned indices, swapped
+subscripts, manager locals, bucket-head references, and one-pointer bucket
+records do not resolve address-operand order. Level 2 with the original
+bucket-pointer locals makes only `SearchHash` exact. Direct bucket-head
+accesses at level 2 make all three exact: native sizes are `0xD8`, `0xE8`,
+and `0xB0`.
+
+Nesting `hash()` in the subscript or changing its return to `u_int` retains
+the default mismatch. A `u_char` return adds normalization and size/relocation
+failures. Level 1 and global-optimizer-on change other instructions. The DC1
+`CTextureManager` uses fixed arrays and provides no corresponding bucket
+accessor. The active implementation uses upstream's single shared level-2
+scope; no profile row or shared-header change is required.

@@ -11,7 +11,7 @@ functions; they do not assert retail enum names.
 
 ## Current assembly gaps
 
-`CDngFreeMap::CheckIsViewMove`, `DrawRoot`, `DrawRoomOne`,
+`CDngFreeMap::DrawRoot`, `DrawRoomOne`,
 `Draw`, and `LoadDngInfo` retain C++ drafts
 under `NONMATCHING`; the matching build selects their retail `INCLUDE_ASM`
 gaps. The same applies to `DrawDngRoomInfo`, `DrawGeoramaMateria`,
@@ -25,14 +25,25 @@ in these notes apply only to the named unguarded C++ functions.
 
 `CalcGlidPutPos` maps a cell to board coordinates `x * 52 - y * 16` and
 `y * 20`; its final argument selects whether to add the current scroll.
-`CheckIsViewMove` clips a point to the view rectangle, reserving 10 pixels
-at the right and bottom, and returns the displacement required to bring it
-inside. `SetNextRoomPos` applies that displacement to the scroll target.
-`SetNextRoomPos` matches retail from C++. `CheckIsViewMove` remains guarded.
-Using `right + -10.0f` and `bottom + -10.0f` with float comparisons in the
-retail direction initially reduces its draft to four differing instructions.
-The final conditional clipping expression then fixes displacement scheduling;
-the two initial register copies remain exchanged. MWCC emits the retail integer sequence
+`CheckIsViewMove` clamps the point against the left and top edges and against
+`right - 10`. Its bottom test is asymmetric: it clamps to `bottom - 10` only
+when `clipped_y - 10` exceeds the bottom edge. It returns the resulting integer
+coordinate differences as floats. `SetNextRoomPos` applies that displacement to
+the scroll target. Both functions match retail from native C++.
+
+The `CheckIsViewMove` 320-byte body requires the translation unit's verified
+GPR helper-history seed `0x30`, with FPR seed zero. With seed zero, the two
+initial coordinate copies exchange positions and the final X displacement
+moves into the last floating branch's delay slot (four differing instructions,
+98.9375% objdiff). Seeding `0x30` gives 100% objdiff and zero differing bytes or
+resolved relocations across the whole unit: 0x8BD4 bytes and 1129 relocations.
+The source retains typed integer coordinates and ordinary float conversions;
+no function-local pragma or artificial source dependency is needed. Swapping
+the coordinate declarations or preserving the inputs while clamping the
+parameters changes register allocation without fixing the zero-seed mismatch.
+
+MWCC
+emits the retail integer sequence
 for `x * 52 + y * -16`; the equivalent subtraction emits a different
 sequence. The conversions to float are implicit. `SetTextureInfo` looks up
 the `dt`, `dtbg`, `dngop`, and `dtname` textures in that order and also passes
@@ -95,7 +106,7 @@ dispatches modes 0 and 1 to the map or save menu. Both functions match retail
 from C++ and pass full-image verification. `CheckGeoramaMateria` walks the
 floor's group identifiers, collects the item numbers from matching groups,
 then twice removes items whose
-attribute word does not contain bit `0x10`.
+attribute word does not contain `ITEM_ATTRIBUTE_GEORAMA_MATERIA` (`0x10`).
 
 `DrawPlayer` draws the `dngop` texture at its room's board position, shifted
 four pixels right and thirty up. In event mode it takes positions from the
@@ -526,6 +537,34 @@ constructor avoids an unnecessary default initialization. Together with the
 jump helper, the complete unit passes:0x8BD4 bytes,1129 relocations.
 No new floating selectors are required; initial 4/30 selector trials were
 ineffective and discarded.
+
+## Remaining native draft checks with helper seed 0x30
+
+Each result below compiles only the named draft as native C++, retaining the
+other assembly gaps, after the matching `CheckIsViewMove` promotion. Local
+`DrawTreeMap`, `CheckGeoramaMateria`, and `InitEnd` implementations supersede
+the earlier failed trials of those functions. The
+normal unit remains byte-identical; none of these trials is a new match.
+The comparison includes canonical section bytes and resolved relocations.
+
+| Native draft | Objdiff | Result |
+|---|---:|---|
+| `CDngFreeMap::DrawRoot` | 81.85545% | 3332-byte native body; canonical check fails. |
+| `CDngFreeMap::DrawRoomOne` | 73.13356% | 2216-byte native body; canonical check fails. |
+| `DrawDngRoomInfo` | 48.992977% | 3052-byte native body; canonical check fails. |
+| `DrawGeoramaMateria` | 79.984% | 0x404 bytes rather than 0x400; canonical check fails. |
+| `CMenuTreeMap::MsgInit` | 97.836% | Correct 0x1D0 size; screen-coordinate load scheduling still differs. Naming the X coordinate in a local leaves output unchanged. |
+| `DngTreeMapInit` | 25.15625% | 1552-byte native body; canonical check fails. |
+
+The isolated `CDngFreeMap::Draw` promotion reaches object postprocessing but
+its generated `at_606` datum does not match the retail piece at 0x0036DA58.
+`LoadDngInfo` cannot pass mwccgap's placeholder compile while its three typed
+`RootHokanTablePtrTable_2240__DATA`, `RoomHokanTablePtrTable_2245__DATA`, and
+`is_reverse_tbl_2246__DATA` declarations conflict with `INCLUDE_RODATA`
+placeholder types. Those tables require native typed data definitions before
+that draft can be compared. Isolated `CMenuTreeMap::Step` and `Draw` drafts
+also have declaration/type compilation failures; their guards cannot simply
+be removed. These results distinguish buildable drafts from native matches.
 
 ## DrawTreeMap
 

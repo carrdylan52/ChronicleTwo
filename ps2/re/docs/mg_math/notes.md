@@ -33,13 +33,66 @@ helpers in `chronicle/ps2/include/mathutil.hpp` / `src/mathutil.cpp` (`VectorMax
 - Clip functions return the result of `(cfc2 status & 0x80) == 0` (sticky sign flag; `ctc2 $0`
   clears status first). Return type taken as `int`; callers only test != 0.
   - mgClipBoxVertex(p, max, min): vsub.xyz max-p, p-min.
+    Five `vnop` instructions wait for the VU status update before `cfc2`.
   - mgClipBox(max0,min0,max1,min1): vsub.xyz max0-min1, max1-min0 (overlap).
+    Either negative result sets the sticky sign flag; five `vnop` instructions
+    wait before the flag is read and converted to a Boolean return.
   - mgClipInBox: vsub.xyz max1-max0, min0-min1 (box0 inside box1).
+    Both vectors must be nonnegative on x, y and z for containment.
   - W variants use `.xyw` masks (screen-space boxes, mg_frame).
+    `mgClipBoxW` uses the overlap operands of `mgClipBox`; z is excluded and
+    w participates in the sticky-sign test instead.
 - mgZeroVector: `sq $zero` (all four zero). mgZeroVectorW: `sqc2 vf0` -> (0,0,0,1).
+- mgFotI4: `lqc2` loads four floats, `vftoi4.xyzw` converts each lane to a signed
+  integer after multiplying by 16, and `sqc2` stores all four results.
+- mgAddVector: `lqc2` loads both four-component vectors, `vadd.xyzw` adds
+  their corresponding components, and `sqc2` writes the result to the first.
+- mgSubVector: `lqc2` loads both four-component vectors, `vsub.xyzw` subtracts
+  the second from the first, and `sqc2` writes the result to the first.
+- mgVectorMin(out, a, b): `vmini.xyzw` selects the lower value in each of
+  the four lanes, including w, then `sqc2` stores the result.
+- mgVectorMin(out, a, b, c, d): three consecutive `vmini.xyzw` operations
+  reduce four vectors to one per-lane minimum, including w.
+- mgVectorMaxMin(max, min, a, b): `vmax.xyzw` and `vmini.xyzw` select both
+  bounds across all four lanes and store them to separate vectors.
+- mgVectorMaxMin(max, min, a, b, c): a second `vmax.xyzw`/`vmini.xyzw` pair
+  folds the third input into both four-lane bounds before storing them.
+- mgVectorMaxMin(max, min, a, b, c, d): three paired VU reductions produce
+  the per-lane maximum and minimum of all four input vectors.
+- mgBoxMaxMin(box, other): paired VU reductions take the maximum and minimum
+  across both corners of both boxes, so the result also normalizes reversed
+  corners. Both results include the w component and are stored in `box`.
+- mgPlaneNormal(out, v0, v1, v2): subtracts v0 from v1 and v2, then uses
+  `vopmula.xyz`/`vopmsub.xyz` to form their cross product. The result is
+  unnormalized; the masked operation does not assign `vf12.w` before the
+  whole quadword is stored, so the output w component is unspecified.
+- mgZeroMatrix: `vsub.xyzw` clears all lanes of `vf1`, then four `sqc2` stores
+  write the rows of the matrix, with row zero in the return delay slot.
+- mgUnitMatrix: three `vmr32.xyzw` rotations of VU0's constant `vf0` form
+  the x, y and z identity rows; `vf0` supplies the w row, and four `sqc2`
+  stores write them in reverse row order.
 - mgCreateBox8(out[8], max, min): out[0]=min, out[7]=max, others mixed via vaddx.x/.y/.z with vf0.
+  Each mixed corner starts as a four-lane copy of max or min, then a masked
+  `vaddx` copies one selected component from the opposite bound; every corner
+  retains the source vector's w component.
 - mgDistVector*/XZ: vmul then vmr32 sums; non-squared ones use vsqrt + vwaitq, result via
   `cfc2 vi22` (Q). XZ sums x and z only. Squared ones via qmfc2.
+- mgDistVector2(vector): squares the x/y/z lanes with `vmul.xyz`, rotates
+  them so the x lane accumulates x²+y² then z²+(x²+y²), and transfers that
+  lane through `qmfc2` and `mtc1` to the float return register.
+- mgDistVector(vector): uses the same x/y/z accumulation, then `vsqrt` writes
+  the VU Q register. After `vwaitq`, `cfc2 vi22` and `mtc1` return its value.
+- mgDistVectorXZ(vector): squares x/y/z but rotates z² into the x lane and
+  adds only x²+z² before the VU Q square root; y does not affect the result.
+- mgDistVector2(a, b): subtracts `b-a` in the x/y/z lanes, squares those
+  lanes, accumulates x²+y² then z²+(x²+y²), and returns the raw float bits
+  from VU0 through `qmfc2` and `mtc1`.
+- mgDistVectorXZ2(a, b): uses the same masked subtraction and squaring but
+  adds only x²+z² before returning the VU x lane through `qmfc2`.
+- mgDistVector(a, b): follows the two-vector squared-distance lane sequence,
+  then takes the VU Q square root and transfers Q to the float return register.
+- mgDistVectorXZ(a, b): subtracts `b-a`, squares xyz, accumulates x²+z² in
+  one VU lane, and returns its VU Q square root after `vwaitq`.
 - mgDistPlanePoint(n, on_plane, p) = n . (p - on_plane) (sceVu0SubVector + sceVu0InnerProduct).
   Ghidra shows it void; mgReflectionPlane consumes its $f0, so it returns float.
 - mgReflectionPlane: d = DistPlanePoint; out = (on_plane - p) - n*(-2d); returns 2d.
@@ -154,11 +207,42 @@ ordinary PS2 builds therefore use retail assembly.
 `mgZeroVector` now uses a 128-bit integer store through the four-float vector
 address. MWCC emits retail's `jr ra` with `sq zero,0(a0)` in the delay slot;
 the isolated linked image matches. The reinterpretation is needed to request
-one PS2 quadword store from C++. `mgZeroVectorW` remains an assembly gap:
-retail stores VU0 constant `vf0` with `sqc2`, which a scalar or integer
-C++ store does not express. The other shortest remaining gaps (`mgFotI4`,
-`mgAddVector`, `mgSubVector`, `mgUnitMatrix`, `mgZeroMatrix`) likewise use
-VU0 arithmetic or `sqc2` in retail.
+one PS2 quadword store from C++. `mgZeroVectorW` uses the VU-only inline
+assembly exception: retail stores VU0 constant `vf0` with `sqc2`, which a
+scalar or integer C++ store does not express.
+`mgFotI4` also uses the VU-only exception because C++ cannot express the
+four-lane `vftoi4.xyzw` conversion. `mgAddVector` uses the VU-only exception for
+its four-lane `vadd.xyzw`.
+`mgSubVector` uses the VU-only exception for its four-lane `vsub.xyzw`.
+`mgZeroMatrix` and `mgUnitMatrix` use the VU-only exception for their
+quadword stores and vector instructions.
+`mgCreateBox8` uses the same exception because its masked VU component
+operations produce the eight four-component box corners.
+The two-input `mgVectorMin` uses the exception for VU0's per-lane minimum.
+The four-input overload uses the same VU minimum operation three times.
+The two-input `mgVectorMaxMin` uses VU maximum and minimum operations for
+both output vectors.
+The three-input overload uses a second VU reduction stage for the third vector.
+The four-input overload uses a third stage for the fourth vector.
+`mgBoxMaxMin` uses the same VU reduction over the two corners of each box.
+`mgPlaneNormal` uses VU0's outer-product accumulator instructions; its old
+C++ draft's explicit zero for w did not reflect the masked VU destination.
+The single-vector `mgDistVector2` uses VU0's lane rotation and accumulation
+order to preserve the retail floating-point result.
+The single-vector `mgDistVector` uses the same accumulation and VU Q square
+root, which differs from a scalar `sqrtf` call.
+The XZ overload keeps only the squared x and z components in the Q input.
+The two-vector `mgDistVector2` adds a VU masked subtraction before the same
+three-lane squared accumulation.
+The two-vector `mgDistVectorXZ2` omits y from that final accumulation.
+The two-vector `mgDistVector` follows the squared three-lane path with the VU
+Q square root and wait.
+The two-vector `mgDistVectorXZ` uses only x and z in the Q input.
+`mgClipBoxVertex` uses VU0's sticky sign flag across its two masked
+subtractions; the integer return path tests bit 0x80 after the VU pipeline wait.
+`mgClipBox` applies the same status test to the two box separation vectors.
+`mgClipBoxW` performs that test on x, y and w only.
+`mgClipInBox` uses the sticky VU sign flag for containment rather than overlap.
 
 The VU0 vector and matrix routines in this unit retain their guarded C++ drafts
 and retail `INCLUDE_ASM` entries. Handwritten assembly bodies promoted into the

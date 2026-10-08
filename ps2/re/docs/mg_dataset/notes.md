@@ -1,11 +1,19 @@
 # mg_dataset: reverse-engineering notes
 
-The remaining guarded functions are `CreateFrameVisual`, `CopyFrame`,
-`CopyFrameSub`, and `mgCMDTBuilder::End(frame, visual, load)`. The
-`mgLoadMDSFile(mgLoadData*)` overload is native and matches retail with a
-separate allocation count and iteration index. `htoi` and `mgSetFrameAttr`
-are also native in this source state. Current measurements and placement-new
-parks are in [matching-20261008.md](matching-20261008.md).
+The native drafts of `CreateFrameVisual`, `CopyFrame`, `CopyFrameSub`, and `mgCMDTBuilder::End(mgCFrame*, mgCVisualMDT*,
+mgLoadData*)` remain behind `NONMATCHING` with retail assembly fallbacks.
+The current `htoi` and `mgSetFrameAttr` bodies are active native C++; earlier
+statements that both remained guarded are stale. `htoi` matches retail bytes
+with an integer-address expression, but that expression violates the source
+rules and still needs a compliant replacement.
+
+A prior typed `static_cast<u8>(text[back - 1])` trial scored 96.01887%.
+An unsigned-byte view of `&text[back]` differed in one commutative `addu`
+operand order (99.81132%). A reversed-index byte-view experiment also retains
+the first difference at 0x132586 and is not an accepted compliant source form.
+No replacement from these experiments is promoted. Guarding `htoi` in an
+earlier experiment also changed the following mgSetFrameAttr code generation
+from 0x658 to 0x668; that experimental guard is not present in current source.
 
 Header: `ps2/include/mg_dataset.hpp`. Retail unit `0x1321E0`-`0x134A20`.
 First-game counterpart: `dataset`/`mds`/`mdt` (`LoadMDSFile`, `CopyFrame`, `SetFrameAttr`,
@@ -35,7 +43,9 @@ and each was re-verified here.
 | `mgCVisualFixMDT::Initialize` | inline, owner mg_visual | just calls `mgCVisualMDT::Initialize` |
 | `mgCVisualMDT::Iam/GetMaterialNum/GetpMaterial/Draw(float(*)[4],mgCDrawManager*)` | inline, owner mg_visual | Iam=1; `+0x40` material count; `+0x44` material table; Draw = `Draw(NULL, m, dm)` via slot +0x2C |
 
-`htoi` now reads the byte at `&text[back]` with an unsigned-byte view instead of adding the text address to an integer. MWCC generates the same instructions except for the commutative operand order in one `addu` (`base,index` rather than retail's `index,base`), leaving this function at 99.81132% while that pointer expression is tuned.
+The typed-view `htoi` experiment above emits `base,index` rather than retail's
+`index,base` in one commutative address addition. This is an unresolved source
+compliance issue, not an accepted replacement.
 
 `CopyFrameSub` allocates and constructs a frame, copies its contents, then recursively copies each child and attaches the copy to the new parent. The guarded draft's native placement new tests the allocation result before putting it in saved register `s0`; retail first saves it in `s0`, then tests and passes that saved register to the constructor. The four-instruction shift also moves the following loop and epilogue, producing 46 differing instructions out of 68. Splitting the memory allocation from placement new, combining the frame assignment with its null check, and spelling the child loop as `while` left this code generation unchanged. The retail gap remains active.
 
@@ -154,8 +164,8 @@ The draft compiler must use the same global flag: without it, `EndPrim`
 omits retail's divide-by-zero trap and appears to differ in 10 words even
 though its normal game build matches.
 
-Earlier isolated draft measurements found `htoi` differing only in the operand
-order of one commutative `addu` at +0x44; it is now native. `CopyFrame` and `mgCMDTBuilder::End(frame, visual,
+The typed-view `htoi` experiment differs in one commutative `addu` at +0x44.
+Among the current guarded drafts, `CopyFrame` and `mgCMDTBuilder::End(frame, visual,
 load)` each differ only in the null branch following placement allocation:
 retail tests `v0`, while the compiled drafts test the equal-valued `a0`.
 `CreateFrameVisual` has this same branch-register difference at six placement
@@ -166,3 +176,9 @@ allocations, plus one four-instruction scheduling difference near +0x1E4.
 `mgCopyFrame` keeps its allocated copies as `mgCFrame*` and accesses each
 frame by array index. The constructor array has a 0x110-byte element stride;
 the typed version matches retail at 100% (0x274 bytes).
+
+## Native MDS loader
+
+`mgLoadMDSFile(mgLoadData*)` is native and matches retail with a separate
+allocation count and iteration index. Its serialized-file offsets and current
+placement-new parks are documented in [matching-20261008.md](matching-20261008.md).

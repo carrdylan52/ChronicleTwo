@@ -44,6 +44,28 @@ No vtable, no ctor (the static instance is not constructed in `__sinit_menumain_
 0x16-0x17 padding. MenuMainKey writes these through an int* (`CMenuInterPt+4` = 0x10 etc).
 `ReadBGTexture` returns `bg_read_step == 2` via xori/sltiu (declared int; bool is also possible).
 
+## MenuInternSelectDraw
+
+Draws the position form, optional message, and topic ticker, then conditionally
+draws its debug status panels. `MENU_DEBUG_BIT_CTRL` names the five status bits
+shown by this function; these are diagnostic labels, not inferred retail enum
+names. The function uses native `CMenuFont` construction and inline literals.
+
+The first debug rectangle requires `80.0f` (`0x42A00000`) to evaluate first;
+the second requires `350.0f` (`0x43AF0000`). Both verified consumer selectors
+are scoped to `DrawMenuFillBox__Fffffiiii`. With those rows and direct float
+arguments, the complete unit matches 0x4F98 bytes and 1396 resolved relocations.
+
+All seven strings are inline. The Japanese fallback is the 23-byte Shift-JIS
+payload `何も禁止\nされていません`; the help panel is the 45-byte payload
+`○:Add Day\n×:View Opening\n△：Boot FishEvent`. Fixed three-digit octal
+escapes preserve their bytes independently of source-file encoding. The retail
+pieces are padded to 0x20 and 0x30 bytes, respectively, and have no relocations.
+Only this function references their original labels, so their assembly data
+markers and source extern declarations are removed. The earlier failed literal
+experiment used incorrectly reordered bytes; its malformed payloads do not
+establish a limitation of the source representation or toolchain.
+
 ## MENU_INIT_ARG (size 0x98; `MenuArg` symbol size 0x98)
 Filled by dng_main (InitDungeonMain/LoopDungeonMain), title (TitleBootInit/TitleLoop), editloop
 (EditInit, via its `MenuInfo` pointer) and event_func (_GOTO_*), read by many menu units as

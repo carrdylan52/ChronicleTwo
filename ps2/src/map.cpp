@@ -179,7 +179,11 @@ int CMap::AddPartsGroup(char *name, CMapParts *parts, mgCMemory *memory) {
 #else
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/map", AddPartsGroup__4CMapFPcP9CMapPartsP9mgCMemory);
 #endif
-template class CList<PartsGroupData>;
+template <>
+void CList<PartsGroupData>::Initialize() {
+    prev = 0;
+    next = 0;
+}
 
 CPartsGroup *CMap::SearchPartsGroup(char *name) {
     return GetPartsGroup(SearchPartsGroupNo(name));
@@ -479,7 +483,11 @@ void CMap::CreateDrawRect(mgCMemory *memory, mgVu0FBOX *rect, mgVu0FBOX *clip, i
 #else
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/map", CreateDrawRect__4CMapFP9mgCMemoryP9mgVu0FBOXP9mgVu0FBOXi);
 #endif
-template class CList<CMapParts *>;
+template <>
+void CList<CMapParts *>::Initialize() {
+    prev = 0;
+    next = 0;
+}
 
 void CMap::CreateOcclusion(float (*corner)[4]) {
     if (occlusion_num < MAP_OCCLUSION_MAX) {

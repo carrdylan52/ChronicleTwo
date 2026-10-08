@@ -219,31 +219,27 @@ The stable function/type/value policy produces the complete retail
 allocated sections retain identical bytes, geometry and resolved relocation
 targets; the unit's other existing findings remain unchanged.
 
-## Robo movement heading expressions
+## Robot movement literals and remaining instruction order
 
-`RoboWalkMoveIF` and `RoboAirMoveIF` keep the earlier turn results in local
-`heading` variables before applying the three-axis rotation. The non-lock-on
-Walk arm reset and Air body turn retain their nested `unitRotation` expressions.
-Both functions use binary32 zero (`0x00000000`) evaluated first, scoped to
-`SetRotation__9mgCObjectFfff`. The statement boundaries allow the earlier calls
-to materialize their neutral axes after computing the heading, while the nested
-calls preserve zero across `unitRotation`, as retail does.
+`RoboWalkMoveIF` and `RoboAirMoveIF` already emit the six Shift-JIS motion
+strings `at_2420`–`at_2422` and `at_2504`–`at_2506` directly from their
+`SetMotion` arguments. Keeping matching `INCLUDE_RODATA` markers appended a
+second copy of each section and prevented the object checker from resolving
+the whole `.rodata` run. Removing those markers leaves the retail 43-piece
+data layout and reduces the unit check to two movement-function differences.
 
-The complete wrapper/fixup object passes with 0x8F80 checked bytes and 1035
-relocations. Walk is 0x514 bytes and Air is 0x6F8, with zero masked instruction
-differences. Matching those bodies also restores the later literal-reference
-positions: the unit has the retail 43 rodata pieces, rather than six extra
-copies of the Walk and Air motion names.
+In `RoboWalkMoveIF`'s idle-arm path, retail preserves floating zero in a saved
+FPR across `unitRotation(frame, 0.0f, 16.0f)` and reuses it for `SetRotation`.
+In `RoboAirMoveIF`, the equivalent idle-arm call instead materializes zero
+late; the later movement call with a local angle preserves it across
+`unitRotation`. A broad zero evaluate-first policy for `SetRotation` changes
+other calls in these functions. The compiler profile distinguishes the walk
+call by the nested `16.0f` argument and the air call by its nested local-angle
+load. These are parsed argument identities, independent of occurrence or code
+address. With both policies, the whole actionchara object matches its retail
+0x8F80 bytes and 1,035 resolved relocations.
 
-The full build retains identical raw hashes for the other 148 game objects.
-Canonical checks improve from 145/149 to 146/149 units, and source coverage
-from 6660 matched / 7 fuzzy to 6662 matched / 5 fuzzy. Main shrinks from
-0x27CE00 to retail's 0x27CD80 and the BSS end from 0x1F64A80 to 0x1F64A00.
-Every file-backed section except text matches; the remaining 0x2C text bytes
-belong to the unchanged mg_texture, nd_meswin and actscript findings.
-
-A reused `neutral_angle` float local was constant-folded and left both short
-bodies unchanged. Unsuffixed double zero at the earlier outer calls was
-converted to the same binary32 argument identity; a broad zero-first row still
-disturbed those calls. `unitRotation` and the three-axis `SetRotation` both take
-float parameters, so literal suffixes do not distinguish these consumers.
+A reused `neutral_angle` local constant-folds away; unsuffixed double zero
+also narrows to the same binary32 identity. Neither separates the rotation
+consumers under a broad zero-first policy. The native nested expressions and
+upstream nested selectors are the active implementation.

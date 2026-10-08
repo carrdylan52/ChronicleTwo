@@ -102,7 +102,17 @@ At least 0x110 here (larger than the first game's 0xD0): 0x00 float radius (<=0 
 - Return types: CheckHit/CheckHitVertical return polygon index or -1 (0 for NULL info in CheckHit,
   -1 in CheckHitVertical); CheckHits* return hit count; sort > 0 and sort < 0 both sort ascending by
   distance (stored in hit_points[i][3]). Pipe radius is from[3]; sphere radius is sphere[3].
-- MoveCheck always returns 0. CreateCharaCPoly returns 0 if max_polys < 2, else 2.
+  `CheckHitsSphere` expands the sphere centre by its radius on xyz, rejects
+  polygons outside that box, records sphere/polygon intersections, and sorts
+  their distances when requested. Its 0x3E4 bytes match objdiff exactly;
+  `gameutil` passes `check_objects.py` with 357 resolved relocations.
+- MoveCheck always returns 0. It clips the requested movement against pipe
+  hits, halves horizontal velocity for up to two retries, then updates ground
+  and wall contact through polygon probes. A union overlays the returned
+  `CCPoly` with the copied polygon record so `GetFootPoly` has its actual
+  argument type; this also preserves the retail call setup. Its 0x608 bytes
+  match objdiff, and `gameutil` passes `check_objects.py` with 357 relocations.
+  CreateCharaCPoly returns 0 if max_polys < 2, else 2.
 - CheckPosInOutFor*/CalcIntersection* return 0/1 (declared int; `xori` result could also be bool).
 - ChangeWeight: void (v0 is memcpy leftover). AnimeDataInit(*) returns 1; CreateAnimeDataEX 1.
 - MotionProc (time): `fptoui(time)` then binary search; types 12 process consecutive lists with the
@@ -117,64 +127,16 @@ The unit-level `divbyzerocheck` pragma was redundant with the global MWCC flag; 
 
 ## Assembly gaps
 
-`testVUnew`, `MotionProc2`, `CheckHit(CollisionInfo*, ...)`, and
-`CheckHits(CollisionInfo*, ...)` retain C++ drafts under `NONMATCHING` and use
-`INCLUDE_ASM` in retail builds. Their promoted versions contained VU0 assembly
-inside C++ functions, so those promotions do not meet the source matching rule.
-
-## Guarded collision-query remainders
-
-`CheckHitsSphere` copies the complete sphere vector into both bounds, then
-adds/subtracts the captured radius from xyz. Its first box rejection tests
-`sphere_max < poly_min`; the second rejects `!(sphere_min <= poly_max)`.
-Both positive and negative sort modes swap when `!(point_i.w <= point_j.w)`.
-The unordered-comparison behavior therefore matters; replacing the latter
-predicates with ordinary greater-than or reversed less-than changes NaN cases.
-The zero-sort path returns before the two sorting blocks.
-
-The retained sphere draft differs in 55 of 252 padded words, down from
-246/252. Its body is 0x3E4 within the retail 0x3F0 extent. Its 0x140-byte
-stack frame is 0x10 smaller than retail, the spilled argument/vector slots
-are lower, and the scan index and polygon cursor use exchanged s2/s3 registers.
-The sorting instructions otherwise line up. Ordinary versus aligned vector
-typedefs, component-index lifetime, and function-scope scalar declarations
-alone do not resolve this. Reconsider with evidence for the original scratch
-lifetimes or an established compiler allocation policy.
-
-## Movement query native match
-
-`MoveCheck` copies polygon results as five float vectors, including the raw
-surface-attribute representation, using the same `CCPolyCopy` view already
-used by `GetFootPoly`. Its scratch view retains the real polygon's 16-byte
-alignment at the typed query interface. The captured `CheckWidth` return
-value is stored in `info->width_result` and tested without rereading the
-member.
-
-The native function has a 0x608-byte body within retail's 0x610 padded extent
-and zero differing words or relocation fields. Capturing `float *query_pos =
-ground_query` alongside the existing typed polygon output pointer, then using
-both named pointers for both copies/ground queries, resolves the two pointer
-loads at +0x540/+0x548. The paired input/output lifetimes reproduce retail's
-position-before-polygon argument order around 20.0f. Capturing the input only
-for the second query retains the two-word remainder; the shared capture is
-required. No compiler-profile row is added.
-
-The manually unguarded canonical wrapper/fixup check passes the complete unit:
-0x5BE0 allocated bytes and 357 resolved relocations. Probe receipts are under
-`.private/receipts/nearmiss-probes/gameutil/e25/` and the complete-object check
-under `.private/receipts/nearmiss-canonical/gameutil/e25/`.
-
-## Additional sphere layout negatives
-
-The 55/252 sphere draft remains guarded. A sphere-bounds `mgVu0FBOX` aggregate
-changes alias scheduling and differs by 240/252 words; separate quadword union
-views differ by 247/252; a polygon-bounds box differs by 211/252. None restores
-the missing 0x10 of frame space. Giving polygon scanning its own index,
-independent of sorting, retains the 0x140 frame and adds ten register differences
-(65/252). These candidates are reverted. Reconsider with evidence for the
-actual scratch lifetime/allocation that produces the 0x150 frame, rather than
-another vector typedef or bounds aggregate. Private sphere receipts are
-`nearmiss-probes/gameutil/sphere-n1` through `sphere-n4`.
+`testVUnew` uses the narrow inline VU0 exception: it transforms a vertex,
+weights its xyz lanes, adds it to the accumulated vertex, and writes the
+result to both destinations. Its 0x40 retail bytes match objdiff exactly;
+the complete `gameutil` object passes `check_objects.py` with 357 resolved
+relocations. `MotionProc2` and `CheckHits(CollisionInfo*, ...)` retain C++
+drafts under `NONMATCHING` and use `INCLUDE_ASM` in retail builds.
+`CheckHit(CollisionInfo*, ...)` now uses two
+inline VU loads to retain the segment bounds in vf10/vf11 before testing
+polygons. Its 0x32C bytes match objdiff exactly, and the `gameutil` object
+passes `check_objects.py` with 357 resolved relocations.
 
 ## Other guarded remainders
 
@@ -187,29 +149,3 @@ Retail reads the motion type after `GetFrame`; m2c lifts this read in its
 pseudocode, so moving it before the call is incorrect. Sequential vertex
 time-region tests alone do not close the later control-flow differences. Reconsider
 with original index-lifetime and vertex-case control-flow evidence.
-
-## COP2 audit
-
-`CheckHit(CollisionInfo*)` and `CheckHits(CollisionInfo*)` each load the query
-bounds into vf10/vf11 using two direct `lqc2` instructions between ordinary
-calls. `MotionProc2` clears each skin accumulator with a direct
-`sqc2 vf0`, storing (0,0,0,1). These are instructions in the callers, not SDK
-call bodies. The SDK header declares out-of-line operations and no existing
-native inline helper reproduces these sequences. All three remain parked,
-along with the VU0 `testVUnew`; reconsider only when an admissible existing
-SDK/inline mechanism or a separately authorized VU implementation policy
-covers those operations.
-
-## Nearmiss final validation
-
-The PAL verifier is identical to i12: only the inherited 0x2C text bytes differ;
-main and BSS remain retail-sized. The failure set and every problem entry stay
-mg_texture, nd_meswin and actscript (146/149 units pass). Coverage is now
-6,676 matched / 176 guarded / 15 assembly-only / 5 fuzzy. All 148 other raw
-object hashes are unchanged, including the default guarded editmenu object.
-The native MoveCheck body removes eight object tail-padding bytes (gameutil
-0x5BE8 to 0x5BE0); linked alignment supplies them before GetFootPoly, and the
-verifier is unchanged. Final receipts:
-`.private/receipts/nearmiss-final/comparison.json`, `objects-sha256.json`,
-`image.json`, `check.log`, `objdiff.log`, `coverage.txt` and per-unit draft logs.
-No shared header, compiler-profile row or promotion-ledger entry is changed.

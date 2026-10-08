@@ -1,3 +1,4 @@
+#define MGLIB_IMPLICIT_TEX0_ASSIGNMENT
 #include "common.h"
 #include "mw_runtime.h"
 
@@ -420,7 +421,7 @@ void mgBeginFrame(mgCDrawManager *manager) {
         draw_env = &mgDBuff.draw1.frame1;
     }
 
-    mgFRAME_1 = *draw_env;
+    mgFRAME_1.value = draw_env->value;
     mgSetPkFrameBuffer(-1, -1, -1, -1);
     mgSetPkClearScreen(
         mgDBuff.clear0.rgbaq.bytes.red, mgDBuff.clear0.rgbaq.bytes.green,
@@ -1145,15 +1146,10 @@ void mgSetPkFrameBuffer(int fbp, int width, int height, int psm) {
 #else
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/mglib", mgSetPkFrameBuffer__Fiiii);
 #endif
-#ifdef NONMATCHING
 void mgGetFrameBuffer(mgCTexture *texture) {
     *texture = frame_tex;
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/mglib", mgGetFrameBuffer__FP10mgCTexture);
-#endif
 
-#ifdef NONMATCHING
 void mgGetFrameBackBuffer(mgCTexture *texture) {
     sceGsFrame *draw_env;
 
@@ -1166,9 +1162,6 @@ void mgGetFrameBackBuffer(mgCTexture *texture) {
     *texture = frame_tex;
     texture->tex0.TBP0 = draw_env->FBP * 32;
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/mglib", mgGetFrameBackBuffer__FP10mgCTexture);
-#endif
 
 mgCDrawEnv *mgGetpDrawEnv(int which) {
     u_int index = (u_int) which > 0;

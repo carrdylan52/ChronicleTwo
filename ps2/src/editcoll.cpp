@@ -20,7 +20,28 @@ struct CollisionRow {
 #include <libvu0.h>
 
 // Code (.text)
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/editcoll", ClipBoxXZ__FPfPfPfPf);
+int ClipBoxXZ(float *max_a, float *min_a, float *max_b, float *min_b) {
+    int flags;
+    asm {
+        lqc2 vf10, 0(max_a)
+        lqc2 vf11, 0(min_a)
+        lqc2 vf1, 0(max_b)
+        lqc2 vf2, 0(min_b)
+        vnop
+        vnop
+        vnop
+        ctc2.ni zero, vi16
+        vsub.xz vf25, vf10, vf2
+        vsub.xz vf25, vf1, vf11
+        vnop
+        vnop
+        vnop
+        vnop
+        vnop
+        cfc2.ni flags, vi16
+    }
+    return (flags & 0x80) == 0;
+}
 #pragma global_optimizer reset
 
 float OverlapPoly3AreaXZ(sceVu0FVECTOR *clipped, sceVu0FVECTOR *clipper, mgVu0FBOX *box) {

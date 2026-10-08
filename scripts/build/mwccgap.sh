@@ -102,7 +102,9 @@ if [ -f "$raw" ]; then
             for (i = 1; i <= n; i++) {
                 path = deps[i]
                 sub(/^[A-Za-z]:\//, "/", path)
-                if (path == "")
+                # The compiler wrapper can prepend its temporary object as another
+                # dependency-map target. A target is not a source dependency.
+                if (path == "" || path ~ /:$/)
                     continue
                 if (path !~ /^\//)
                     path = root "/" path

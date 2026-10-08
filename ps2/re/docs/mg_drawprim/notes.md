@@ -166,13 +166,24 @@ The `libvu0.h` functions `sceVu0FTOI4Vector` and
 inline code or `Vertex`'s mixed per-lane conversion. Scalar C++ casts emit
 scalar conversion instructions, including different rounding and register
 traffic. No existing header supplies an intrinsic for these VU0 operations.
-The three functions now use `INCLUDE_ASM` gaps at their retail addresses:
-`Data4__11mgCDrawPrimFPf`, `Vertex__11mgCDrawPrimFPf`, and
-`Color__11mgCDrawPrimFPf`. They remain undecompiled. `Data0(float*)` also
-uses an assembly gap after its scalar C++ draft failed to match. The current
-source contains no inline assembly definitions for these functions.
-The matching path for source C++ would require adding compiler support for
-VU0 vector intrinsics that emit the exact COP2 instruction and mask sequence.
+`Color(float*)` converts all four lanes with `vftoi0.xyzw`, stores the
+result in an aligned stack array, and passes the integer lanes to
+`Color(int, int, int, int)`. Its 14 instructions and 0x38-byte symbol match
+retail exactly in objdiff (score 0).
+`Data0(float*)` failed to match as scalar C++. It is now defined in source using the narrow
+VU instruction exception: MWCC emits the exact retail `lqc2 vf1`,
+`vftoi0.xyzw vf1`, and `sqc2 vf1` sequence after incrementing `write`.
+Objdiff scores `Data0` at 100% instruction match (score 0); its seven instructions
+and 0x1c-byte symbol size equal retail.
+`Data4(float*)` uses the same cursor update and VU transfer instructions, with
+`vftoi4.xyzw` scaling all lanes to 12.4 fixed point. Objdiff scores it at
+100% instruction match (score 0), with seven identical instructions and a
+0x1c-byte symbol.
+`Vertex(float*)` converts x and y with `vftoi4.xy`, z with `vftoi0.z`,
+stores the vector in an aligned stack array, then passes its first three
+integer lanes to `Vertex4`. MWCC produces the retail 14-instruction,
+0x38-byte function exactly; objdiff scores the function at 100% (score 0).
+
 ## Compiler flag cleanup
 
 The local `divbyzerocheck on`/`reset` pair is redundant with the PS2

@@ -40,6 +40,16 @@ ordinals, instruction addresses or compiler-arena addresses select expressions.
 Unmatched selectors are errors, so source changes cannot silently leave stale
 calibration behind. Signed zero and NaN payloads remain distinct identities.
 
+**Nested call arguments.** Some calls in one function need opposite schedules
+despite sharing the outer callee and constant. At argument consumption, the
+verified 3.0 call AST exposes sibling call expressions. A scoped selector may
+identify a nested call by its mangled callee and either a typed constant at a
+formal argument index or a nonliteral variable load at that index. The index
+is a source argument position, not a call occurrence. `RoboWalkMoveIF` uses
+`unitRotation`'s 16.0f argument to preserve zero across that call;
+`RoboAirMoveIF` instead selects the call whose angle is a local variable.
+The pinned Satan's Fiddle source patch implements and tests this generic form.
+
 **Pooled literal aliasing.** The separate bug that treats a literal's value buffer
 as variable alias metadata is verified for MWCC 2.3.3. No affected alias path is
 validated for this 3.0 image. It can pool constants under other optimization
@@ -53,13 +63,22 @@ therefore omits literal-reload policy settings.
 | `mapjump.cpp`, `ExitInterior__FP6CScenePi` | binary32 zero (`0x00000000`) first restores the retail stack frame and float preservation across the angle-limit call. |
 | `pbuggy.cpp`, `InitBomb__FP6CScene` | binary32 pi (`0x40490fdb`) first restores the retail instruction order. |
 | `dngmenu.cpp`, `Initialize__11CDngFreeMapFv` | binary32 286 (`0x438f0000`) first restores the initial rectangle argument order; the whole unit passes after native promotions. |
+| `dngmenu.cpp`, `CheckIsViewMove__11CDngFreeMapFiiRfRf` | GPR helper-history seed `0x30` preserves coordinate-copy order and the final displacement after the floating branch; the whole unit passes with the native function. |
+| `menumain.cpp`, `MenuInternSelectDraw__Fv` | binary32 80 (`0x42A00000`) and 350 (`0x43AF0000`) evaluate first for `DrawMenuFillBox` only; direct arguments and inline strings pass the whole-unit check. |
 | `event_func.cpp`, `_SET_CROSSFADE__FP12RS_STACKDATAi` | binary32 one (`0x3f800000`) first only for `CrossFadeOut__10CFadeInOutFiif`; sibling `CrossFadeIn` and `CrossFade` calls retain false. |
 | `scenesnd.cpp`, `SePlayFoot__6CSceneFiiPf` | binary32 1200 (`0x44960000`) first emits it before 160, as retail does. |
 | `gyoracesim.cpp`, `CharacterBonus__FP12grFISH_PARAMP15RACE_FISH_PARAMi` | zero and 0.01 (`0x3c23d70a`) first preserve both the earlier zero/0.01 calls and the later call's 0.01-before-one materialization. |
+| `menuaqua.cpp`, `Draw__9CAquariumFv` | binary32 120 (`0x42f00000`) and 242 (`0x43720000`) evaluate first for `DrawMenuFillBox` only, preserving the retail debug-panel width/height preparation before its top coordinate. |
+| `actionchara.cpp`, `RoboWalkMoveIF__12CActionCharaFi` and `RoboAirMoveIF__12CActionCharaFii` | Nested `unitRotation` argument identity selects the zero load order for only the differing rotation calls; the complete unit passes. |
 
 These rows were accepted through the canonical object comparison. They establish
 the listed functions' bytes and resolved relocations, not whole-unit matching
 when other source or data-layout failures remain.
+
+`mg_texture.cpp` needs one shared `#pragma optimization_level 2` region around
+its three hash-table methods. Direct indexing yields the retail table access;
+whole-unit level 2 changes unrelated functions. The scoped region preserves
+the exact 0x3674-byte object and 160 resolved relocations.
 Unit-specific evidence is in the tracked mapjump and event_func RE notes and
 [pbuggy calibration notes](../ps2/re/docs/pbuggy/notes.md).
 
@@ -111,6 +130,17 @@ MWCC generates constructor vtable writes and C++ symbol names from class
 definitions. Keep member functions and constructors in C++ form so the compiler
 emits those symbols. A local `divbyzerocheck` pragma needs demonstrated code
 generation evidence because that option is enabled by the shared flags.
+
+Retail compiler-derived copy assignments have processor-specific symbol binding
+13, unlike user-written assignments with global binding. Their outline decision
+depends on inline depth: scoped `inline_depth(0)` makes the implicit
+`CMapLightingInfo` assignment appear at the retail address and matches its
+callers, while default depth inlines it. The same depth outlines the implicit
+`sceGsTex0` and `mgCVisualMDT` assignments, but changes their callers or nested
+base/constructor calls; those units still need exact source and type work.
+`dont_inline` does not outline the implicit TEX0 assignment in the tested
+compiler. Do not hand-write these generated assignments or compensate with
+function-specific compiler hooks.
 
 Compare complete objects as well as individual functions: emitted inline
 helpers, static initializers and data sizes can change the containing unit.

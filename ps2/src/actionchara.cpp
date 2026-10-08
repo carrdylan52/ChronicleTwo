@@ -1891,8 +1891,7 @@ int CActionChara::RoboWalkMoveIF(int mode) {
     stand_flag = 0;
     if (lock_on != 0) {
         if (move_x != 0.0f || move_z != 0.0f) {
-            float heading = unitRotation(CObjectFrame::frame, atan2f(move_x, move_z), 5.0f);
-            SetRotation(0.0f, heading, 0.0f);
+            SetRotation(0.0f, unitRotation(CObjectFrame::frame, atan2f(move_x, move_z), 5.0f), 0.0f);
             movement[0] = move_x;
             movement[1] = 0.0f;
             movement[2] = move_z;
@@ -1922,8 +1921,7 @@ int CActionChara::RoboWalkMoveIF(int mode) {
             }
             arm = SearchChara("arm");
             if (arm != NULL) {
-                float heading = unitRotation(arm->CObjectFrame::frame, target_angle, 3.0f);
-                arm->SetRotation(0.0f, heading, 0.0f);
+                arm->SetRotation(0.0f, unitRotation(arm->CObjectFrame::frame, target_angle, 3.0f), 0.0f);
             }
         }
     } else {
@@ -1933,8 +1931,7 @@ int CActionChara::RoboWalkMoveIF(int mode) {
         }
         if (move_x != 0.0f || move_z != 0.0f) {
             sceVu0FVECTOR movement;
-            float heading = unitRotation(CObjectFrame::frame, atan2f(move_x, move_z), 10.0f);
-            SetRotation(0.0f, heading, 0.0f);
+            SetRotation(0.0f, unitRotation(CObjectFrame::frame, atan2f(move_x, move_z), 10.0f), 0.0f);
             movement[0] = move_x;
             movement[1] = 0.0f;
             movement[2] = move_z;
@@ -2361,8 +2358,7 @@ int CActionChara::RoboAirMoveIF(int unk, int mode) {
         sceVu0FVECTOR target_position;
         sceVu0FVECTOR rotation;
         if (move_x != 0.0f || move_z != 0.0f) {
-            float heading = unitRotation(CObjectFrame::frame, atan2f(move_x, move_z), turn_speed);
-            SetRotation(0.0f, heading, 0.0f);
+            SetRotation(0.0f, unitRotation(CObjectFrame::frame, atan2f(move_x, move_z), turn_speed), 0.0f);
             movement[0] = move_x;
             movement[1] = 0.0f;
             movement[2] = move_z;
@@ -2399,8 +2395,7 @@ int CActionChara::RoboAirMoveIF(int unk, int mode) {
     } else {
         arm = SearchChara("arm");
         if (arm != NULL) {
-            float heading = unitRotation(arm->CObjectFrame::frame, 0.0f, 16.0f);
-            arm->SetRotation(0.0f, heading, 0.0f);
+            arm->SetRotation(0.0f, unitRotation(arm->CObjectFrame::frame, 0.0f, 16.0f), 0.0f);
         }
         if (move_x != float(0.0) || move_z != 0.0f) {
             sceVu0FVECTOR movement;
@@ -3620,13 +3615,7 @@ INCLUDE_RODATA("ps2/asm/pal/nonmatchings/actionchara", at_2294__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/actionchara", at_2295__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/actionchara", at_2333__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/actionchara", at_2334__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/actionchara", at_2420__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/actionchara", at_2421__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/actionchara", at_2422__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/actionchara", at_2423__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/actionchara", at_2504__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/actionchara", at_2505__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/actionchara", at_2506__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/actionchara", at_2507__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/actionchara", at_2508__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/actionchara", at_2509__DATA);

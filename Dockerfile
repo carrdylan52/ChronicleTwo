@@ -26,6 +26,9 @@ RUN git init \
     && git remote add origin https://github.com/Adubbz/SatansFiddle.git \
     && git fetch --depth 1 origin ${SATANSFIDDLE_REV} \
     && git checkout --detach FETCH_HEAD
+COPY scripts/build/patches/satansfiddle-nested-arguments.patch /tmp/satansfiddle-nested-arguments.patch
+RUN git apply --check /tmp/satansfiddle-nested-arguments.patch \
+    && git apply /tmp/satansfiddle-nested-arguments.patch
 # Rust 1.85 can place native libraries before the LLDB C++ archive; repeat
 # them at the end of the link command so GNU ld resolves that archive.
 RUN cargo rustc --release --locked --jobs 3 -- \

@@ -1,6 +1,8 @@
 # dngmenu remainder after r2 — October 8
 
-Current: 36 native matches, 11 guarded drafts, 1 asm-only function.
+Current merged source: 37 native functions, 10 guarded drafts, 1 asm-only
+function. Upstream supplies the exact `CheckIsViewMove` implementation and
+its translation-unit helper seed; its former park is resolved.
 The r2 baseline at `2f71f10` was 34/13/1. All assigned targets were
 remeasured with the merged SF profile before experiments. Rows below use SF
 diagnostic differing words (including retail padding), or body/retail bytes
@@ -12,7 +14,6 @@ see [r2.md](r2.md).
 
 | Target | SF baseline → retained result | Status and concrete reconsideration trigger |
 |---|---|---|
-| `CheckIsViewMove__11CDngFreeMapFiiRfRf` | 4/80 → 2/80 | Guarded. Final conditional clipping fixes the duplicated subtraction/branch target. X/Y copies at +0x44/+0x54 remain swapped; actual-unit guard removal also fails. Reconsider with a natural first-clip form that preserves both copies without adding a branch. Tested clip-local input, retained float input, mutable parameters, and first conditional clipping do not help. |
 | `CheckGeoramaMateria__FP22TRESURE_BOX_FLOOR_INFOiPi` | 6/112 → exact | Promoted. Reusing the completed group-search index for item traversal fixes the induction allocation. Complete-unit byte/relocation check passes. |
 | `MsgInit__12CMenuTreeMapFv` | 7/116 → unchanged | Guarded. Height/width/first-line width loads at +0x140..+0x15C remain reordered. Actual-unit removal fails bytes and the height relocation. Reconsider with demonstrated integer argument/store scheduling evidence; floating annotation rows cannot select this integer block. Named first-line X, dimension snapshots, and existing line-position inline calls do not help. |
 | `LoadDngInfo__11CDngFreeMapFP9mgCMemoryiiii` | 957/1016, 0xDD0/0xFE0 → 954/1016, 0xDE0/0xFE0 | Guarded. Frame now matches 0x160; capacity-before-top evaluation and unsigned quadword rounding are corrected. Arena/filename local offsets and saved-register assignment still differ before the broad path branches. Reconsider after placing memory at retail spB0, filename at spE0, and path direction/coordinate locals at sp14C..sp15C, then deriving one dungeon path branch at a time. The 64-byte filename capacity remains a layout hypothesis. |

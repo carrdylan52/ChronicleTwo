@@ -90,10 +90,13 @@ Magic values seen (no enum declared here because they belong to other units):
   compiler emits the retail `__vt__17CList_9CObjAnime_` table naturally.
   Construction uses `CObjAnime`'s default constructor, then calls virtual
   `Initialize`; `AssignFuncAnime` calls the virtual method again before
-  linking the node. Both calls now use retail's `t9` dispatch register.
-  The remaining two instruction differences are the allocation-result copy
-  and null branch: retail branches on `v0` and copies to `s1` in its delay
-  slot, whereas the isolated compiler copies first and branches on `s1`.
+  linking the node. Both calls use retail's `t9` dispatch register. A private
+  typed `AssignFuncAnime` draft compiles, but compares at 80.4375% and emits
+  0x148 bytes against retail's 0x140. Differences include allocation-result
+  null checks, list-head/tail control flow, and the loop-tail branch and delay
+  slot. A private `do`/`while` form and a private 0x30 helper-mask seed did not
+  change the output. The source retains its assembly gap; this private draft
+  is not a matched implementation.
 - COcclusion stride 0xC0 (InsideScreen).
 - DAT_003971e0 in InsideScreen: global view matrix (owned elsewhere).
 

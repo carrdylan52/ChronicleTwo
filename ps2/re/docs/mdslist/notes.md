@@ -129,6 +129,11 @@ indexed by material without a bound of 4.
 `chara->vt+0x3C` (Initialize) and `vt+0x80(pack, "info.cfg", stack, stack, stack, -1, 0)`; returns
 the character or NULL. The C++ draft uses typed placement construction and is
 guarded by `NONMATCHING`; the matching build uses assembly.
+Retail saves the placement-new result from `v0` to `s0` in the delay slot of
+the null branch. On success, the compiler-generated constructor chain runs
+`mgCObject`, `CObject`, `CObjectFrame`, and `CCharacter2` initialization; the
+function then calls `Initialize` once more before `LoadPackNoLine`. The isolated
+native candidate has not been checked against the repaired compiler toolchain.
 
 ## CMapPiece::Copy
 

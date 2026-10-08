@@ -193,6 +193,31 @@ These trial native promotions were restored. No profile rows were accepted.
 
 The unused `PrimeDoubleToFloat` definition is removed. The translation-unit profile uses GPR helper mask `0x10` and FPR mask `0`; private baseline and candidate checks preserve all allocated bytes and resolved relocation identities. The existing `DrawMesWin` finding is unchanged. Its two `0.5f` calls require opposite retail schedules and share the current stable selector identity.
 
+## DrawMesWin call-site scheduling residual
+
+The `f0a4ce9` baseline has one native byte-comparison failure in DrawMesWin;
+its function objdiff score is 99.365486%. This supersedes the earlier baseline
+statement above that this unit has no native code failures. Running the current
+m2c wrapper for DrawMesWin stops at its indirect switch jump (`jr`, input line
+112), so the documented function and emitted switch body remain necessary for
+this scheduling analysis.
+
+A private profile selecting both binary32 0.5f and 0.95f with
+`evaluate_first: true`, scoped to CalcAutoPosSet, still fails the whole-unit
+check and lowers the function score to 99.09239%. The unit's other code is
+unchanged. The calls sharing a ratio and callee need different schedules:
+
+- The DQ horizontal call through CentrePos, bottom vertical call through
+  BottomPos, and centre calls through CentrePosX/CentrePos need early ratio
+  preparation. CentrePosX also has a different integer temporary allocation.
+- The direct DQ vertical and bottom horizontal CalcAutoPosSet expressions
+  already match the default order; the broad selectors change their order.
+
+The matching direct expressions and differing inlined-helper expressions share
+one post-inline selector identity. A stable inline-origin or expression-shape
+selector may distinguish them, but no such behavior has been validated. No
+source or profile change from this unsuccessful trial is accepted.
+
 ## DrawMesWin deterministic scheduling regression
 
 The current game source supplies `DrawMesWin` natively. Its body has the correct

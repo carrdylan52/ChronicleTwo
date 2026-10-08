@@ -179,30 +179,39 @@ this game's `CObject` (object unit) derives from mgCObject.
   three scale factors are row 0's length. Yaw: z axis = eye-pos with y zeroed, normalised;
   x axis = (z.z, 0, -z.x). Mode bit 0 multiplies in a pitch matrix (rows 1/2: (0,h,-dy),(0,dy,h)).
   The mode-2 path contains `m[2][0]=m[2][0]; m[2][2]=m[2][2]` self-copies in retail.
-  A guarded C++ draft now computes those axes and caches the billboard matrix;
-  it compiles but differs from the retail VU0 scaling block.
+  The C++ definition now computes those axes and caches the billboard matrix.
+  Its inline VU0 scaling block multiplies all four rows by the derived scale,
+  preserving the homogeneous component. All 123 instructions and the
+  0x1ec-byte symbol match retail in objdiff (score 0).
 - GetLocalMatrix scales trans_matrix component-wise by `scale` (each row times the scale vector,
   last row copied) via VU0 asm; GetLWMatrix/TopBottom multiply parent*local with one VU0 block
-  that stores the product to lw_matrix and to the output.
-  A guarded C++ GetLocalMatrix draft now expresses the scaling, optional
-  rotations, and translation using SDK vector helpers; it compiles but differs
-  from retail's VU0 block.
-  Guarded GetLWMatrix and GetLWMatrixTopBottom drafts now rebuild the cached
-  matrix when the frame or an ancestor changed. The top-to-bottom form can use
-  the parent's cached matrix directly. Both compile and differ from retail's
-  inline VU0 matrix multiply.
+  that stores the product to lw_matrix and to the output. The VU0 block now
+  lives in the C++ definition; its address setup uses `this+0xb0` for the
+  source matrix and `this+0x30` for scale, preserving retail's register order.
+  Objdiff scores all 87 instructions and the 0x15c-byte function at 100%
+  (score 0).
+  `GetLWMatrix` now rebuilds the cached matrix when the frame or an ancestor
+  changed. Its inline VU0 block multiplies the parent world matrix by the
+  local matrix and stores the product in both the cache and caller's output.
+  All 94 instructions and the 0x178-byte function match retail exactly in
+  objdiff (score 0). `GetLWMatrixTopBottom` uses its parent's cached matrix
+  and the same VU0 multiplication sequence. Its 89 instructions and
+  0x164-byte symbol also match retail exactly (score 0).
 - test1/test2 are whole-asm VU0 functions. `test1` first multiplies the screen matrix by
   the supplied matrix, transforms eight corners into vf10-vf17, and writes their
   four-component bounds. `test2` reads those eight retained VU0 vectors, divides only
   their x/y components by the absolute value of w, then writes four-component bounds.
   The guarded C++ drafts preserve the intermediate vectors in a file-local array;
-  they compile but differ from the hand-scheduled VU0 functions. The original ASM
-  remains in the retail build.
+  they compile but differ from the hand-scheduled VU0 functions. Both functions
+  are now emitted by MWCC from VU0 `asm void` source definitions. `test1` has
+  81 instructions and a 0x144-byte symbol; `test2` has 49 instructions and a
+  0xc4-byte symbol. Both match retail exactly in objdiff (score 0).
 - mgInsideScreen(corners, matrix, max, min): hand-scheduled VU0 block (screen*matrix, transform
   8 corners, divide by |w|, max/min), then tail-calls mgClipBoxW against screen_box_max/min.
-  A guarded scalar/intrinsic C++ draft now computes the same screen bounds and
-  compiles, but it differs from retail's inline VU0 instruction sequence.
-  Draft differs only in how the base register for world_screen_rel is formed.
+  Its inline VU0 source now matches retail exactly: keeping a local pointer to
+  `mgRenderInfo` makes MWCC form `world_screen_rel` from the common base and
+  reuse that base for both clip bounds. Objdiff scores all 121 instructions of
+  the 0x1e4-byte function at 100% (score 0).
 - Promotion: promoting `mgCFrame::mgCFrame` loses `__vt__9mgCObject`; promoting
   `mgCObject::SetPosition(float*)` (first non-inline virtual) makes the compiler emit the inline
   virtuals ChangeParam/UseParam/... out of place. Both stay as drafts. mgFrameNameComp needs
@@ -211,11 +220,12 @@ this game's `CObject` (object unit) derives from mgCObject.
 
 ## Assembly gaps
 
-`test1`, `test2`, the four-argument `mgInsideScreen`, `GetLocalMatrix`,
-`GetBBoardMatrix`, `GetLWMatrix`, `GetLWMatrixTopBottom`, and `GetDrawRect` retain
-their C++ drafts under `NONMATCHING` and use `INCLUDE_ASM` in the retail build.
-Their promoted forms required VU0 assembly inside C++ source. The surrounding
-matched functions remain compiled from C++.
+`GetDrawRect` now compiles from C++ with an inline VU0 block. It starts with
+empty bounds, transforms the visible frame's eight bound corners through the
+world-to-screen matrix, divides x/y by the absolute homogeneous w, and builds
+screen bounds. It rejects bounds outside the screen or behind the scissor
+threshold, then merges eligible children's rectangles. Objdiff scores all
+320 instructions and the 0x500-byte symbol at 100% (score 0).
 
 `mgCFrame::Draw(u_int*)` has a guarded C++ draft. In its screen clipping path,
 retail keeps the `test1` output pointers in argument registers `a3` and `a4`

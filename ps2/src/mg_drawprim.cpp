@@ -240,9 +240,25 @@ void mgCDrawPrim::End2() {
     }
 }
 
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/mg_drawprim", Data0__11mgCDrawPrimFPf);
+void mgCDrawPrim::Data0(float *data) {
+    u_long128 *destination = write;
+    write++;
+    asm {
+        lqc2 vf1, 0(data)
+        vftoi0.xyzw vf1, vf1
+        sqc2 vf1, 0(destination)
+    }
+}
 
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/mg_drawprim", Data4__11mgCDrawPrimFPf);
+void mgCDrawPrim::Data4(float *data) {
+    u_long128 *destination = write;
+    write++;
+    asm {
+        lqc2 vf1, 0(data)
+        vftoi4.xyzw vf1, vf1
+        sqc2 vf1, 0(destination)
+    }
+}
 
 void mgCDrawPrim::Data(int *data) {
     u_long128 quad = *(u_long128 *) data;
@@ -273,7 +289,17 @@ void mgCDrawPrim::Vertex(float x, float y, float z) {
 }
 
 #pragma global_optimizer off
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/mg_drawprim", Vertex__11mgCDrawPrimFPf);
+void mgCDrawPrim::Vertex(float *pos) {
+    int converted[4] __attribute__((aligned(16)));
+    int *result = converted;
+    asm {
+        lqc2 vf10, 0(pos)
+        vftoi4.xy vf10, vf10
+        vftoi0.z vf10, vf10
+        sqc2 vf10, 0(result)
+    }
+    Vertex4(converted[0], converted[1], converted[2]);
+}
 #pragma global_optimizer reset
 
 void mgCDrawPrim::Vertex4(int x, int y, int z) {
@@ -299,7 +325,16 @@ void mgCDrawPrim::Color(int r, int g, int b, int a) {
 }
 
 #pragma global_optimizer off
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/mg_drawprim", Color__11mgCDrawPrimFPf);
+void mgCDrawPrim::Color(float *color) {
+    int converted[4] __attribute__((aligned(16)));
+    int *result = converted;
+    asm {
+        lqc2 vf10, 0(color)
+        vftoi0.xyzw vf10, vf10
+        sqc2 vf10, 0(result)
+    }
+    Color(converted[0], converted[1], converted[2], converted[3]);
+}
 #pragma global_optimizer reset
 
 void mgCDrawPrim::TextureCrd4(int u, int v) {
