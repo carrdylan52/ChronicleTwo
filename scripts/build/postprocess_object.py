@@ -854,6 +854,10 @@ def name_literal_data(elf, unit, placeholders, *, retail=None, pieces=None, addr
                if name in ('.rodata', '.sdata', '.data', '.ctor')]
     cuts = {start: (name, end) for section, run in pieces.unit(unit)
             if section in ('.rodata', '.sdata', '.data', '.ctor') for name, start, end in run}
+    trailing = {run[-1][1] for section, run in pieces.unit(unit)
+                if section in ('.rodata', '.sdata', '.data', '.ctor') and run}
+    declared_sizes = {name: size for _address, name, size, function in rows
+                      if not function and size}
     bss_names = bss_data_names(elf, unit, placeholders, retail=retail, pieces=pieces,
                                addresses=addresses, rows=rows)
     pointer_names = pointer_table_names(elf, unit, placeholders, retail=retail, pieces=pieces,
@@ -885,7 +889,8 @@ def name_literal_data(elf, unit, placeholders, *, retail=None, pieces=None, addr
                 or not 0 < index < len(elf.sections)):
             continue
         section = elf.sections[index]
-        if section.name not in ('.rodata', '.sdata', '.data', '.ctor') or not section.data:
+        if (section.name not in ('.rodata', '.sdata', '.data', '.ctor') or not section.data
+                or symbol.st_size != len(section.data)):
             continue
         data = bytearray(section.data)
         entries = {}
@@ -966,10 +971,19 @@ def name_literal_data(elf, unit, placeholders, *, retail=None, pieces=None, addr
             found = list(targets)
         start = found[0]
         name, end = cuts[start]
+        if declared_sizes.get(name, len(data)) != len(data):
+            continue
+        # Complete linked pieces retain verified terminal tails; comparison
+        # copies trim them at the linker's contents_end. Internal gaps must
+        # be alignment, never missing object contents.
+        terminal_tail = start in trailing and name in declared_sizes
         if start + len(data) > end:
             continue
+        if ((end - start - len(data) >= 16 and not terminal_tail)
+                or any(start + len(data) <= address < end for address in retail.relocations)):
+            continue
         padding = retail.bytes(start + len(data), end)
-        if any(padding):
+        if len(padding) != end - start - len(data) or any(padding):
             continue
         section.data += bytes(len(padding))
         symbol.st_size = len(section.data)
@@ -1008,9 +1022,12 @@ def pad_data(elf, unit, placeholders, *, retail=None, pieces=None, rows=None):
             section.sh_size = end - start
             continue
         if (section.name in ('.data', '.sdata', '.rodata', '.vtables') and size
-                and 0 < end - start - size < 16 and not any(retail.bytes(start + size, end))):
-            section.data += bytes(end - start - size)
-            symbol.st_size = len(section.data)
+                and 0 < end - start - size < 16):
+            padding = retail.bytes(start + size, end)
+            if (len(padding) == end - start - size and not any(padding)
+                    and not any(start + size <= address < end for address in retail.relocations)):
+                section.data += bytes(len(padding))
+                symbol.st_size = len(section.data)
 
 
 def order_sections(elf):

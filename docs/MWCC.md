@@ -198,6 +198,11 @@ in retail. A native NOBITS object with its exact declared size owns its full
 reservation through the next canonical piece boundary, including larger gaps.
 Referenced interior addresses stop that reservation, and terminal tails remain
 linker-owned.
+An initialized object's original payload and symbol extent must both match its
+known declared retail size before naming or padding. Appended bytes must be
+complete zero retail bytes with no relocation fields. The linked literal pass
+can retain a larger verified terminal zero tail; comparison preparation trims
+it at the linker's `contents_end`. Internal initialized gaps stay below 16 bytes.
 An object with a size different from its declared retail size is not padded.
 The same policy covers compiler-generated vtables; their final section tail
 belongs to linker alignment. Referenced interior addresses and explicit

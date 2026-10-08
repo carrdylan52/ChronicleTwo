@@ -8,7 +8,7 @@ import postprocess_object as p
 
 class DataPaddingTests(unittest.TestCase):
     def run_padding(self, size=12, declared=12, end=16, nobits=True, tail=b"\0" * 4,
-                    terminal=False, section_name=None, placeholder=False):
+                    terminal=False, section_name=None, placeholder=False, relocations=()):
         section = SimpleNamespace(sh_type=p.SHT_NOBITS if nobits else 1,
                                   sh_size=size, data=b"x" * size,
                                   name=section_name or (".bss" if nobits else ".data"))
@@ -20,7 +20,7 @@ class DataPaddingTests(unittest.TestCase):
         if not terminal:
             run.append(("following", end, end + 4))
         pieces = SimpleNamespace(unit=lambda unit: [(section.name, run)])
-        retail = SimpleNamespace(bytes=lambda start, end: tail)
+        retail = SimpleNamespace(bytes=lambda start, end: tail, relocations=dict.fromkeys(relocations, 2))
         with patch.object(p.disassemble, "Pieces", return_value=pieces), \
              patch.object(p.layout, "Retail", return_value=retail), \
              patch.object(p.layout, "read_symbols", return_value=[(0, "object", declared, False)]):
@@ -57,6 +57,12 @@ class DataPaddingTests(unittest.TestCase):
 
     def test_terminal_padding_belongs_to_linker(self):
         self.assertEqual(self.run_padding(terminal=True), 12)
+
+    def test_initialized_padding_cannot_contain_relocation_fields(self):
+        self.assertEqual(self.run_padding(nobits=False, relocations=(12,)), 12)
+
+    def test_initialized_padding_requires_the_complete_retail_tail(self):
+        self.assertEqual(self.run_padding(nobits=False, tail=b'\0'), 12)
 
     def test_vtable_padding_uses_the_same_exact_size_policy(self):
         self.assertEqual(self.run_padding(nobits=False, section_name='.vtables'), 16)

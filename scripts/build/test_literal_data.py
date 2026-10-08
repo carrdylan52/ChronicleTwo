@@ -273,22 +273,25 @@ class LiteralPointerTests(unittest.TestCase):
                  relocations=[NS(sh_info=2, relocations=[relocation(0, p.R_MIPS_32,
                                                                   symbols.index(target))])],
                  strtab=NS(add_symbol=lambda name: len(name)))
-        pieces = NS(layout=NS(sections=lambda unit: [('.rodata', 0x3000, 0x3010)]),
+        pieces = NS(layout=NS(sections=lambda unit: [('.rodata', 0x3000, 0x3018)]),
                     unit=lambda unit: [('.rodata', [('at_1', 0x3000, 0x3008),
-                                                   ('at_2', 0x3008, 0x3010)]),
+                                                   ('at_2', 0x3008, 0x3010),
+                                                   ('at_3', 0x3010, 0x3018)]),
                                        ('.data', [('table', 0x4000, 0x4004)])])
         retail = NS(relocations={0x4000: p.R_MIPS_32},
                     bytes=lambda lo, hi: bytes(hi - lo),
                     word=lambda address: 0x3008 + addend + target_offset)
-        return elf, pieces, retail, []
+        rows = [(0x3000, 'at_1', 1, False), (0x3008, 'at_2', 1, False),
+                (0x3010, 'at_3', 1, False), (0x4000, 'table', 4, False)]
+        return elf, pieces, retail, rows
 
-    def apply(self, fixture):
+    def apply(self, fixture, placeholders=()):
         elf, pieces, retail, rows = fixture
         with patch.object(p.layout, 'Retail', return_value=retail), \
              patch.object(p.disassemble, 'Pieces', return_value=pieces), \
              patch.object(p, 'retail_addresses', return_value={'table': 0x4000}), \
              patch.object(p.layout, 'read_symbols', return_value=rows):
-            p.name_literal_data(elf, 'unit', set())
+            p.name_literal_data(elf, 'unit', set(placeholders))
         return elf.symtab.symbols[0].name
 
     def test_empty_literal_is_identified_by_native_pointer(self):
@@ -332,6 +335,7 @@ class LiteralPointerTests(unittest.TestCase):
         retail.relocations[0x4004] = p.R_MIPS_32
         retail.word = lambda address: 0x3008 if address == 0x4000 else 0x3000
         self.assertEqual(self.apply(fixture), 'at_999')
+
 
 
 if __name__ == '__main__':
