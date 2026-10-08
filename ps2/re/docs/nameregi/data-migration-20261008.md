@@ -59,3 +59,22 @@ Each table was built and checked separately. Receipt prefixes are
 `03-nameregi-enum-modes`, each with `-build.log`, `-objects.log` and
 `-hashes.log`. Every accepted step passes PAL, all 149 objects and the 148
 unchanged-other-object hashes.
+
+## Character grid storage
+
+The native font catalog points directly to inline writable character arrays:
+`ALPHA_TABLE1[28]`, `ALPHA_TABLE2[28]`, `STR_NUM_TABLE[14]`,
+six `HIRA_TABLE*`/`KATA_TABLE*` arrays containing `" "`,
+`KIGOU_TABLE1[1] = ""`, and `KIGOU_TABLE2[2] = " "`.
+The older notes' description of the small kana/symbol objects as pointers
+is incorrect: their retail bytes are characters, and the catalog relocates to
+the arrays themselves. `KIGOU_TABLE_ASCII1[31]`,
+`KIGOU_TABLE_ASCII2[128]`, and `ascii_code_table[95]` also have exact native
+extents. The second ASCII symbol table begins with one space and zero-fills
+its remaining bytes before European initialization.
+
+`NameRegistMax` is a native signed short initialized to ten.
+`jis_ptr_table[2]` is the two-null-pointer catalog in PAL.
+Receipts use `nameregi-<datum>-{build,objects,hashes}.log` for each separate
+step, with the font catalog and its dependent arrays checked together.
+Every step passes PAL, all 149 objects and the 148 other object hashes.

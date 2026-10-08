@@ -137,6 +137,83 @@ static s8 txt_table[59] = "0123456789abcdefghijkmnpqrstuvwxyzABCDEFGHJKLMNPQRSTU
 
 /**
  *
+ * Stores the alpha characters used by the name entry font.
+ *
+ */
+static char ALPHA_TABLE1[28] = "ABCDEFGHIJKLM\nNOPQRSTUVWXYZ";
+
+/**
+ *
+ * Stores the alpha characters used by the name entry font.
+ *
+ */
+static char ALPHA_TABLE2[28] = "abcdefghijklm\nnopqrstuvwxyz";
+
+/**
+ *
+ * Stores the str characters used by the name entry font.
+ *
+ */
+static char STR_NUM_TABLE[14] = "0123456789   ";
+
+/**
+ *
+ * Stores the hira characters used by the name entry font.
+ *
+ */
+static char HIRA_TABLE1[2] = " ";
+
+/**
+ *
+ * Stores the hira characters used by the name entry font.
+ *
+ */
+static char HIRA_TABLE2[2] = " ";
+
+/**
+ *
+ * Stores the hira characters used by the name entry font.
+ *
+ */
+static char HIRA_TABLE3[2] = " ";
+
+/**
+ *
+ * Stores the kata characters used by the name entry font.
+ *
+ */
+static char KATA_TABLE1[2] = " ";
+
+/**
+ *
+ * Stores the kata characters used by the name entry font.
+ *
+ */
+static char KATA_TABLE2[2] = " ";
+
+/**
+ *
+ * Stores the kata characters used by the name entry font.
+ *
+ */
+static char KATA_TABLE3[2] = " ";
+
+/**
+ *
+ * Stores the kigou characters used by the name entry font.
+ *
+ */
+static char KIGOU_TABLE1[1] = "";
+
+/**
+ *
+ * Stores the kigou characters used by the name entry font.
+ *
+ */
+static char KIGOU_TABLE2[2] = " ";
+
+/**
+ *
  * Holds the character tables used by one name entry font mode.
  *
  */
@@ -405,11 +482,24 @@ static BoardPoint nameregist_baseboard_upper_table[6][12] = {
  *
  */
 static s16 get_Htable_1806[4] = {100, 16, 32, 0};
-extern char           KIGOU_TABLE_ASCII1[0x20];
-extern char           KIGOU_TABLE_ASCII2[0x100];
-extern char           KIGOU_TABLE1[4];
-extern char           KIGOU_TABLE2[8];
-extern char          *jis_ptr_table[2];
+/**
+ *
+ * Stores the primary ASCII symbol grid for European name entry.
+ *
+ */
+static char KIGOU_TABLE_ASCII1[31] = "!?\"#$&'()*+-%,.\n:;<=>@[]_{}|/ ";
+/**
+ *
+ * Stores the extended ASCII symbol grid for European name entry.
+ *
+ */
+static char KIGOU_TABLE_ASCII2[128] = " ";
+/**
+ *
+ * Lists the Shift-JIS character tables used to build the conversion grid.
+ *
+ */
+static char *jis_ptr_table[2] = {NULL, NULL};
 extern mgCMemory      NameRegiStack;
 extern char           at_1281__6[0x10];
 extern char           at_1282__6[0x10];
@@ -437,7 +527,18 @@ static mgCTexture * NameRegiBGTile;
  *
  */
 static mgCTexture * NameregiGaiji;
-extern FontTables     NameRegistFont_Table[NAMEREGI_FONT_MODE_NUM];
+/**
+ *
+ * Groups the character arrays available for each name entry font mode.
+ *
+ */
+static FontTables NameRegistFont_Table[NAMEREGI_FONT_MODE_NUM] = {
+    {ALPHA_TABLE1, ALPHA_TABLE2, STR_NUM_TABLE},
+    {HIRA_TABLE1, HIRA_TABLE2, HIRA_TABLE3},
+    {KATA_TABLE1, KATA_TABLE2, KATA_TABLE3},
+    {NULL, NULL, NULL},
+    {KIGOU_TABLE1, KIGOU_TABLE2, NULL}
+};
 /**
  *
  * Points to the active name entry menu.
@@ -503,7 +604,12 @@ static mgCTexture * NameRegiCursor;
  *
  */
 static mgCTexture * NameRegiTex1;
-extern s16            NameRegistMax;
+/**
+ *
+ * Limits the number of characters accepted by name entry.
+ *
+ */
+static s16 NameRegistMax = 10;
 /**
  *
  * Stores the three texture slices used to draw the selected name frame.
@@ -557,7 +663,12 @@ int CNameRegiMenu::GetActiveFontMode() {
     return NameStrSelectModeTable[language][select_mode];
 }
 
-extern char ascii_code_table[];
+/**
+ *
+ * Lists the ASCII characters mapped by the name entry font.
+ *
+ */
+static char ascii_code_table[95] = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789   !\"#$%&'()*+,-. /:;<=>?@[]_{}|";
 
 void CNameRegiMenu::CopyAsciiToJis(char *src, char *dst) {
     if (src == NULL || dst == NULL) {
@@ -2561,13 +2672,6 @@ void CNameRegiMenu::DrawMessage() {
 
 // Initialised data (.data)
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/nameregi", Sfida_default_Name__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/nameregi", ALPHA_TABLE1__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/nameregi", ALPHA_TABLE2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/nameregi", STR_NUM_TABLE__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/nameregi", KIGOU_TABLE_ASCII1__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/nameregi", KIGOU_TABLE_ASCII2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/nameregi", ascii_code_table__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/nameregi", NameRegistFont_Table__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/nameregi", at_1153__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/nameregi", at_1377__5__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/nameregi", at_1513__6__DATA);
@@ -2592,16 +2696,6 @@ INCLUDE_RODATA("ps2/asm/pal/nonmatchings/nameregi", at_1748__2__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/nameregi", __vt__13CNameRegiMenu__DATA);
 
 // Small initialised data (.sdata)
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/nameregi", NameRegistMax__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/nameregi", HIRA_TABLE1__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/nameregi", HIRA_TABLE2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/nameregi", HIRA_TABLE3__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/nameregi", KATA_TABLE1__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/nameregi", KATA_TABLE2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/nameregi", KATA_TABLE3__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/nameregi", KIGOU_TABLE1__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/nameregi", KIGOU_TABLE2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/nameregi", jis_ptr_table__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/nameregi", at_1081__4__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/nameregi", at_1795__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/nameregi", at_1807__DATA);
