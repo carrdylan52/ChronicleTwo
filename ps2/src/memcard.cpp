@@ -65,10 +65,7 @@ static COSBIT_INFO cosbit_table[34] = {
     {0x10B, 33, 0},
 };
 extern const unsigned char at_1315__3[5];
-extern int                 old_format_1242;
 extern unsigned char       at_1954[0x2B];
-extern int                 ReadFileNo_2290;
-extern char                init_2291;
 /** Browser titles for save, album, bonus, and formatted save entries by region. */
 static const char *MCBrowsetName[3][4] = {
     {"\203_\201[\203N\203N\203\215\203j\203N\203\213", "\203_\201[\203N\203N\203\215\203j\203N\203\213\203A\203\213\203o\203\200\203f\201[\203^", "\203_\201[\203N\203N\203\215\203j\203N\203\213\202\250\202\334\202\257\203f\201[\203^", "\203_\201[\203N\203N\203\215\203j\203N\203\213\201m%s\201n"},
@@ -82,10 +79,6 @@ static u16 MCBrowserName_Offset[3][4] = {
 };
 /** Whether dungeon-tree state is included in the next save. */
 static short DngTreeSaveFlag;
-extern int                 iconNo_1323;
-extern int                 test_write_num_1476;
-extern char                init_1477;
-extern char                init_1324;
 
 // Code (.text)
 void CopyMCBrowserName(int index, char *name, u16 *offset) {
@@ -560,6 +553,8 @@ char *CMemoryCardManager::GetVersion() {
 }
 
 int CMemoryCardManager::SearchMcType() {
+    /** Format state before the current card-type query. */
+    static int old_format;
     int           command;
     int           result;
     MC_CARD_INFO *card;
@@ -573,7 +568,7 @@ int CMemoryCardManager::SearchMcType() {
     }
 
     if (step == 0) {
-        old_format_1242 = card->formatted;
+        old_format = card->formatted;
     }
 
     switch (step % 2) {
@@ -618,11 +613,11 @@ int CMemoryCardManager::SearchMcType() {
                 if (step >= 2) {
                     if (card->present != 0) {
                         if (card->formatted != 0) {
-                            if (old_format_1242 != 0 && card->formatted != 0) {
+                            if (old_format != 0 && card->formatted != 0) {
                                 card->format_change = 0;
                             }
 
-                            if (old_format_1242 == 0) {
+                            if (old_format == 0) {
                                 if (card->formatted != 0) {
                                     card->format_change = 1;
                                 }
@@ -634,19 +629,19 @@ int CMemoryCardManager::SearchMcType() {
                 }
 
                 if (step >= 10) {
-                    if (old_format_1242 != 0 && card->formatted != 0) {
+                    if (old_format != 0 && card->formatted != 0) {
                         card->format_change = 0;
                     }
 
-                    if (old_format_1242 == 0 && card->formatted == 0) {
+                    if (old_format == 0 && card->formatted == 0) {
                         card->format_change = 0;
                     }
 
-                    if (old_format_1242 == 0 && card->formatted != 0) {
+                    if (old_format == 0 && card->formatted != 0) {
                         card->format_change = 1;
                     }
 
-                    if (old_format_1242 != 0) {
+                    if (old_format != 0) {
                         if (card->formatted == 0) {
                             card->format_change = -1;
                         }
@@ -709,10 +704,8 @@ int CMemoryCardManager::MakeDir(int file_no) {
 
     result = 0;
 
-    if (init_1324 == 0) {
-        iconNo_1323 = -1;
-        init_1324 = 1;
-    }
+    /** Icon file currently being written during directory creation. */
+    static int iconNo = -1;
 
     strcpy((char *) path, "/BESCES-51190dkcl%d");
     sprintf((char *) path, (char *) path, file_no);
@@ -759,7 +752,7 @@ int CMemoryCardManager::MakeDir(int file_no) {
                 strcat((char *) path, "/icon.sys");
 
                 if (sceMcOpen(port, 1, path, 0x202) == 0) {
-                    iconNo_1323 = -1;
+                    iconNo = -1;
                     step++;
                     break;
                 }
@@ -890,11 +883,11 @@ int CMemoryCardManager::MakeDir(int file_no) {
                     return 1;
                 }
 
-                iconNo_1323++;
+                iconNo++;
 
-                if (iconNo_1323 < 3) {
+                if (iconNo < 3) {
                     strcat((char *) path, "/");
-                    strcat((char *) path, icon[iconNo_1323].name);
+                    strcat((char *) path, icon[iconNo].name);
                     command = sceMcOpen(port, 1, path, 0x203);
 
                     if (command == 0) {
@@ -924,8 +917,8 @@ int CMemoryCardManager::MakeDir(int file_no) {
 
                 fd = result;
                 transferred = 0;
-                transfer_size = icon[iconNo_1323].size;
-                write_buffer = (char *) icon[iconNo_1323].data;
+                transfer_size = icon[iconNo].size;
+                write_buffer = (char *) icon[iconNo].data;
                 command = sceMcWrite(fd, write_buffer, 0xC00);
 
                 if (command == 0) {
@@ -980,10 +973,8 @@ int CMemoryCardManager::SaveToMc(int file_no) {
         card = NULL;
     }
 
-    if (init_1477 == 0) {
-        test_write_num_1476 = 0;
-        init_1477 = 1;
-    }
+    /** Polls spent waiting for the current save write. */
+    static int test_write_num = 0;
 
     switch (step) {
         case 0:
@@ -1061,7 +1052,7 @@ int CMemoryCardManager::SaveToMc(int file_no) {
                 }
 
                 fd = result;
-                test_write_num_1476 = 0;
+                test_write_num = 0;
 
                 if (sceMcWrite(fd, write_buffer, 0xC00) == 0) {
                     step++;
@@ -1074,7 +1065,7 @@ int CMemoryCardManager::SaveToMc(int file_no) {
             break;
         case 0x65:
             if (sceMcSync(1, &command, &transfer_result) == 0) {
-                test_write_num_1476++;
+                test_write_num++;
                 break;
             }
 
@@ -2401,10 +2392,8 @@ int CMemoryCardManager::GetAllSaveFileInfo() {
     int sub_step;
 
     result = 0;
-    if (init_2291 == 0) {
-        ReadFileNo_2290 = 0;
-        init_2291 = 1;
-    }
+    /** Save slot whose header is currently being read. */
+    static int ReadFileNo = 0;
     switch (step) {
         case 0:
             if (sceMcSync(1, NULL, NULL) != 0) {
@@ -2425,7 +2414,7 @@ int CMemoryCardManager::GetAllSaveFileInfo() {
                         McError(result);
                         return 1;
                 }
-                ReadFileNo_2290 = 0;
+                ReadFileNo = 0;
                 dir_entries = 0;
                 if (result >= 0) {
                     dir_entries = result;
@@ -2446,12 +2435,12 @@ int CMemoryCardManager::GetAllSaveFileInfo() {
             break;
         default:
             sub_step = step - 2;
-            int finished = GetSaveFileInfoFromMc(ReadFileNo_2290, &sub_step);
+            int finished = GetSaveFileInfoFromMc(ReadFileNo, &sub_step);
             step = sub_step + 2;
             if (finished != 0) {
-                ReadFileNo_2290++;
+                ReadFileNo++;
             }
-            if (ReadFileNo_2290 >= 13) {
+            if (ReadFileNo >= 13) {
                 for (int i = 0; i < 13; i++) {
                 }
                 return 1;
@@ -2501,8 +2490,6 @@ COSBIT_INFO *GetCosInfo(int costume_no) {
 
     return NULL;
 }
-
-// Initialised data (.data)
 
 // Constants (.rodata)
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/memcard", at_1315__3__DATA);

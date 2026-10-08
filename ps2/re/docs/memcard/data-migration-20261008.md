@@ -98,3 +98,34 @@ build receipts are `memcard-literals-Write`,
 The existing `Step` and `MakeDir` switches supply their own `at_1230__3`
 and `at_1456__3` tables. Each marker removal is checked separately in
 `memcard-switch-at_<number>__3` receipts. Markers become 2 RODATA / 7 BSS.
+
+## Native function-local state
+
+`SearchMcType` owns a zero-initialized `static int old_format` recording the
+card's initial format state. `MakeDir` owns `static int iconNo = -1`,
+`SaveToMc` owns `static int test_write_num = 0`, and `GetAllSaveFileInfo`
+owns `static int ReadFileNo = 0`. Their explicit externs and hand-written
+initialization guard blocks disappear. MWCC naturally generates the same
+three guards and all four data objects. Separate accepted receipts are
+`memcard-local-old-format`, `memcard-local-icon-number`,
+`memcard-local-write-counter`, and `memcard-local-read-slot`;
+`memcard-local-statics-final` verifies the restored final source. Every
+accepted step passes PAL, all 149 objects, and the unowned hash comparison.
+
+Seven BSS markers remain solely for local-symbol binding. Removing only
+`old_format_1242` leaves `SearchMcType` at 0x260 bytes with zero masked
+instruction-word differences, but the current postprocessor leaves native
+`old_format_532` unnamed in the retail layout. Removing only `init_1324`
+leaves `MakeDir` at 0x5cc bytes with zero masked instruction-word differences,
+but native `init_613` is likewise unbound. The canonical checker reports the
+missing retail BSS piece, an unexpected unnamed piece, and unresolved targets.
+The explicit markers permit the existing unique-basename local-BSS binder
+and relocation-based guard binder to fold these native copies correctly.
+The generated numeric suffixes are unstable compiler identities, so no
+source-name or line-padding workaround is introduced.
+
+Rejected receipts `memcard-local-old-format-marker-free-{build,check}.log`
+and `memcard-local-icon-guard-marker-free-{build,check}.log` capture that
+boundary. Both markers are restored before acceptance. A general marker-free
+local-static/guard identity mapper is needed in the shared toolchain; this
+lane makes no shared-tool edits.
