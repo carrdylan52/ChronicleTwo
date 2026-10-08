@@ -249,7 +249,7 @@ wrapper hash equality is not asserted. Real compiler behavior and complete
 game artifacts provide the equivalence checks. The image's pinned Git-fetch
 layer is cached; no Git network operation is executed.
 
-## Accepted source group at 18:55 EDT
+## Accepted eighteen-caller source group
 
 The local pn14 clean build accepts 18 manually promoted callers in 12 units
 under 18 semantic rows, asserting 26 eligible static constructions. The group
@@ -283,3 +283,32 @@ asserted. Fresh context/objdiff and native coverage report 6,767 matched /
 The inherited invention-menu allocation helper and event ESM identity helper
 remain guarded. Their initial natural controls are nonzero and are not promoted
 merely because inherited scaffolding had a diagnostic zero.
+
+## Accepted twenty-four-caller source group
+
+Six naturally cleaned menu callers add six semantic rows and seven static
+constructions. The production profile now has 24 rows / 33 constructions,
+all manually promoted, across 16 units. In particular, the costume loader's
+float field receives 2.0f without an integer alias, the book has no
+self-assignment steering, and recovered file/motion strings are compiler
+literals. Array-bound and domain enums are used only for their actual owning
+values; an unrelated same-valued enum is not used for the manual preset.
+
+The full pn14 build passes `SCES_511.90: OK` and 149/149 resolved objects.
+Every object outside these 16 units retains its exact baseline hash in the
+306 assembled objects and 149 source-only objects. Main/game payload bytes
+and loaded memory end remain baseline-identical. Fresh context/objdiff and
+coverage give 6,773 matched / 89 guarded / 10 assembly-only / 0 fuzzy.
+Receipts are `.private/pntc/receipts/promote-twenty-four-*`, including the
+explicit refresh and coverage logs. Complete per-unit notes carry the exact
+body-versus-extent and binding checks.
+
+A separate aquarium caller becomes diagnostic zero with the existing
+documented 47.0f floating-evaluation selector plus a semantic placement row.
+Its natural local initializer cleanup is zero after moving real fish/think
+declarations to their uses, but promotion still awaits complete acceptance.
+The dataset investigation also exposes a fail-closed capability boundary:
+implicit class-6 shadow constructors retain only raw `__ct` identities with
+no normal cached mangled witness. Multirow raw ambiguity and single-row
+unresolved witnesses are rejected; they are not bypassed or mislabeled as
+class-3 exclusions. Frame attributes there are genuinely class 0/out-of-line.
