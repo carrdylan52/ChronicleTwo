@@ -274,13 +274,6 @@ public:
 
     /**
      *
-     * Constructs the frame-matching holder.
-     *
-     */
-    CCharaFrameMatching() {}
-
-    /**
-     *
      * Empties the matching.
      *
      * @mangled Initialize__19CCharaFrameMatchingFv

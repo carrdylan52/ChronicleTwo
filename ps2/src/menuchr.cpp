@@ -3757,7 +3757,6 @@ inline CMenuMosSelect::CMenuMosSelect() {
 
 #pragma inline_depth(3)
 
-#ifdef NONMATCHING
 void MenuMonsterBoxInit(mgCMemory *stack, int *tex_block, int mode) {
     CMenuMosSelect *menu;
     CActionChara   *chara;
@@ -3838,9 +3837,6 @@ void MenuMonsterBoxInit(mgCMemory *stack, int *tex_block, int mode) {
         MenuMosSelectPtr->view_monster = MenuMosSelectPtr->badge[MenuMosSelectPtr->select].monster_id;
     }
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/menuchr", MenuMonsterBoxInit__FP9mgCMemoryPii);
-#endif
 
 #pragma inline_depth reset
 #ifdef NONMATCHING

@@ -87,9 +87,9 @@ means the before score and size remain unchanged.
 
 ### `MenuMonsterBoxInit__FP9mgCMemoryPii`
 
-- Before: 0x630 / 0x620 (oversized). After: same; MATCH with shared proposal.
-- Blocker: Shared nontrivial empty constructor.
-- Trigger: Revisit after the shared owner removes CCharaFrameMatching() {} and validates affected units. The proposal gives MATCH and an exact isolated PAL image, but was reverted here.
+- Before: 0x630 / 0x620 (oversized). After: MATCH once the empty
+  `CCharaFrameMatching` constructor was removed from `character.hpp`; the
+  integrated build kept every other object unchanged, and the function is promoted.
 
 ### `MenuCharaChangeDraw__Fv`
 
