@@ -69,3 +69,66 @@ inlined vtable/virtual-initialization sequence. This is the established
 spelling or shared-header experiment is warranted here. Reconsider after the
 dedicated constructor/compiler investigation validates a natural solution
 for the null branch and the base construction sequence.
+
+## Mid-day lane at c79e57c
+
+Coverage lists exactly these three guarded drafts, with 195 matched functions
+and no asm-only functions in the 198-function unit. Canonical SF measurements
+reproduce the 29/888, 13/1020 and 117/144 word differences above. The build
+object passes with 0x14058 allocated bytes and 2,584 resolved relocations because
+the three fallbacks remain active.
+
+### Drawing expression experiments
+
+All experiments use private source copies, the canonical compiler adapter and
+profile, and the complete native function inventory. No drawing edit is retained.
+
+| MenuFormDrawNormal expression/lifetime change | Differing words / 1020 |
+| --- | --- |
+| Remove only PlusF; cast the signed shadow offset to float | 21 |
+| Remove only FormPart; index the typed parts array directly | 118 |
+| Remove only PartTex; read the named texture member | 165 |
+| Remove all three wrappers | 173 |
+| Direct version with part, texture and texture-info locals declared outside the loop | 173 |
+| Direct version fetching texture after texture-info lookup | 163 |
+| Direct version with promoted integer shadow-offset locals | 173 |
+| Direct version naming the typed parts-array base | 173 |
+| Direct version binding the UV source as a const rectangle reference | 173 |
+| Direct version binding the part as a reference | 173 |
+| Direct version capturing draw type before texture-info lookup | 175 |
+| Direct version advancing a typed base pointer by the element index | 174 |
+
+The cast-only experiment adds two four-word FPR operand swaps in the shadow
+x-coordinate calculations at +0x5AC and +0x880. The array and texture access
+experiments also change the saved-register assignments across the draw-type
+dispatch. The named array-base, reference, and promoted-offset forms do not
+recover the inherited inline-call lowering. None resolves the original local
+copy block's v1/a2 allocation. An unsupported return-type change to
+GetNowPosRGBA is not used.
+
+| CommonBoardDraw change after direct line-array indexing | Differing words / 888 |
+| --- | --- |
+| Scope row_top to its row loop | 43 |
+| Scope row_bottom to its pass loop | 48 |
+| Use a typed line-array base followed by element advancement | 213 |
+| Give each pass loop its own index | 52 |
+| Convert the material-row top before the first rectangle construction | 527 |
+| Assign row_bottom in the second Vertex argument | 43 |
+| Copy pass colors before converting the row coordinates | 63 |
+| Select the material line after calculating its floating coordinates | 217 |
+
+All board variants retain 0xDD8 bytes except the separate top-conversion
+variant, which emits 0xDD0. The first background block still exchanges the
+s1/s4 coordinate and color-pointer assignments. Direct line indexing also
+exchanges s2/s3 in the material-row rectangle and coordinate code. These
+are integer source/lifetime differences; nested floating-argument selectors
+have no supported use here. The best retained draft remains 29/888.
+
+GeneratePoly retains its placement-new and base-construction park. The
+CActionChara constructor chain has no supported homogeneous inline array
+initialization to replace in an owned header; the accepted shop/save array
+technique supplies no new experiment for this function.
+
+Private receipts: `.private/menuui/native-before/`,
+`.private/menuui/form-*/`, `.private/menuui/board-*/`, and the three m2c
+outputs `form.m2c.txt`, `board.m2c.txt`, and `repair.m2c.txt`.
