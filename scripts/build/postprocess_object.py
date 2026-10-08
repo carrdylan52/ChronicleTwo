@@ -705,8 +705,8 @@ def referenced_data_starts(elf, index, retail, addresses, code_starts, data_star
     return destinations
 
 
-def name_bss_data(elf, unit, placeholders, *, retail, pieces, addresses, rows):
-    """Name isolated native BSS objects by exact extent and all code consumers."""
+def bss_data_names(elf, unit, placeholders, *, retail, pieces, addresses, rows):
+    """Select isolated native BSS identities by exact extent and all code consumers."""
     runs = pieces.unit(unit)
     declared = {name: size for _start, name, size, function in rows if not function and size}
     cuts = {start: (section, name, end) for section, run in runs if section in layout.NOBITS
@@ -745,10 +745,8 @@ def name_bss_data(elf, unit, placeholders, *, retail, pieces, addresses, rows):
             continue
         assignments.append((symbol, name))
     counts = Counter(name for _symbol, name in assignments)
-    for symbol, name in assignments:
-        if counts[name] == 1 and symbol.name != name:
-            symbol.name = name
-            symbol.st_name = elf.strtab.add_symbol(name)
+    return {id(symbol): name for symbol, name in assignments
+            if counts[name] == 1 and symbol.name != name}
 
 
 def name_literal_data(elf, unit, placeholders, *, retail=None, pieces=None, addresses=None, rows=None):
@@ -760,8 +758,8 @@ def name_literal_data(elf, unit, placeholders, *, retail=None, pieces=None, addr
                if name in ('.rodata', '.sdata', '.data', '.ctor')]
     cuts = {start: (name, end) for section, run in pieces.unit(unit)
             if section in ('.rodata', '.sdata', '.data', '.ctor') for name, start, end in run}
-    name_bss_data(elf, unit, placeholders, retail=retail, pieces=pieces,
-                  addresses=addresses, rows=rows)
+    bss_names = bss_data_names(elf, unit, placeholders, retail=retail, pieces=pieces,
+                               addresses=addresses, rows=rows)
     positions = sorted(retail.relocations)
     code_addresses = {name: start for section, run in pieces.unit(unit)
                       if section in CODE for name, start, end in run}
@@ -776,6 +774,11 @@ def name_literal_data(elf, unit, placeholders, *, retail=None, pieces=None, addr
         and not re.fullmatch(r'at_\d+(?:__\d+)?', symbol.name)
     }
     for symbol in elf.symtab.symbols:
+        name = bss_names.get(id(symbol))
+        if name is not None:
+            symbol.name = name
+            symbol.st_name = elf.strtab.add_symbol(name)
+            continue
         index = symbol.st_shndx
         if (index in placeholders or not re.fullmatch(r'(?:at_\d+|\.p__sinit_.+)', symbol.name)
                 or symbol.type != STT_OBJECT or symbol.st_value != 0

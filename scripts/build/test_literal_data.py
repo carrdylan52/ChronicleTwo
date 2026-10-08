@@ -143,6 +143,24 @@ class AnonymousBssTests(unittest.TestCase):
             if addr >= 0x1008 else old_word(addr)
         self.assertEqual(self.apply(fixture), 'at_999')
 
+    def test_anonymous_names_retain_native_symbol_table_order(self):
+        fixture = self.fixture()
+        elf, pieces, retail, rows = fixture
+        elf.sections.append(NS(name='.data', sh_type=1, sh_flags=p.SHF_ALLOC,
+                               data=b'\x11' * 4))
+        elf.symtab.symbols.insert(0, symbol('at_998', 3, 4))
+        for entry in elf.relocations[0].relocations:
+            entry.symbol_index += 1
+        old_unit = pieces.unit
+        pieces.unit = lambda unit: old_unit(unit) + [('.data', [('at_3', 0x4000, 0x4004)])]
+        pieces.layout.sections = lambda unit: [('.data', 0x4000, 0x4004)]
+        retail.bytes = lambda lo, hi: b'\x11' * (hi - lo)
+        rows.append((0x4000, 'at_3', 4, False))
+        names = []
+        elf.strtab.add_symbol = lambda name: names.append(name) or len(names)
+        self.apply(fixture)
+        self.assertEqual(names, ['at_3', 'at_1__2'])
+
     def test_local_static_names_and_guard_counters_are_not_identities(self):
         for native, retail_name in [('select_999', 'select_5'), ('init_987', 'init_2'),
                                     ('buffer_123', 'buffer_7')]:
