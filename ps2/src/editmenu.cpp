@@ -105,6 +105,34 @@ enum {
 
 /**
  *
+ * Identifies the five Georama list message windows and their backing part lists.
+ *
+ */
+enum GeoramaMessageList {
+    GEORAMA_MESSAGE_LIST_NONE = -1, /**< View without a list message window. */
+    GEORAMA_MESSAGE_LIST_MAKE = 0, /**< Buildable part list. */
+    GEORAMA_MESSAGE_LIST_STOCK = 1, /**< Built part stock list. */
+    GEORAMA_MESSAGE_LIST_PAINT = 2, /**< Paint colour list. */
+    GEORAMA_MESSAGE_LIST_PLACED = 3, /**< Placed part list. */
+    GEORAMA_MESSAGE_LIST_HOUSE = 4, /**< Placed-house information list. */
+};
+
+/**
+ *
+ * Identifies the initial system messages assigned to Georama list windows.
+ *
+ */
+enum GeoramaInitialMessage {
+    GEORAMA_INITIAL_MESSAGE_BASE = 0x5DC, /**< Base added to the compact message offsets. */
+    GEORAMA_INITIAL_MESSAGE_MAKE = 0x5F0, /**< Buildable part message. */
+    GEORAMA_INITIAL_MESSAGE_STOCK = 0x5F1, /**< Built part stock message. */
+    GEORAMA_INITIAL_MESSAGE_PAINT = 0x5F2, /**< Paint colour message. */
+    GEORAMA_INITIAL_MESSAGE_PLACED = 0x5F6, /**< Placed part message. */
+    GEORAMA_INITIAL_MESSAGE_HOUSE = 0x5F7, /**< Placed-house information message. */
+};
+
+/**
+ *
  * Inventory item identifiers for the eight Georama paint colours.
  *
  */
@@ -117,7 +145,13 @@ static short penki_item_no[8] = {
  *
  */
 static short tbl_957[7] = {
-    0, 1, 2, -1, 4, -1, 3,
+    GEORAMA_MESSAGE_LIST_MAKE,
+    GEORAMA_MESSAGE_LIST_STOCK,
+    GEORAMA_MESSAGE_LIST_PAINT,
+    GEORAMA_MESSAGE_LIST_NONE,
+    GEORAMA_MESSAGE_LIST_HOUSE,
+    GEORAMA_MESSAGE_LIST_NONE,
+    GEORAMA_MESSAGE_LIST_PLACED,
 };
 void             MenuGeoramaMessageMake(int mode);
 
@@ -226,7 +260,12 @@ struct MenuGeoramaSystemInfo {
  *
  */
 static CEditMap *MenuMainMapInfo;
-extern int               analyze_percent;
+/**
+ *
+ * Percentage of the current town Georama requests that are satisfied.
+ *
+ */
+static int analyze_percent = 100;
 /**
  *
  * Vertical scroll-bar position for the Georama analysis list.
@@ -255,8 +294,12 @@ static float GeoramaColorList[9][3] = {
     {50.0f, 50.0f, 50.0f},
     {-1.0f, -1.0f, -1.0f},
 };
+/**
+ *
+ * Handles held and pressed buttons for one Georama menu action.
+ *
+ */
 typedef int (*GeoramaPushFunc)(CMenuGeorama *, int, int);
-extern GeoramaPushFunc        MenuGeoramaPushFunc[];
 /**
  *
  * Active Georama menu.
@@ -293,7 +336,20 @@ static short DownLoadDispNum;
  *
  */
 static short MenuEditAnalyzeDataSrcNum;
-extern signed char            viewmode_to_mode_convtable_1310[7];
+/**
+ *
+ * Input action number associated with each Georama view mode.
+ *
+ */
+static signed char viewmode_to_mode_convtable_1310[7] = {
+    GEORAMA_VIEW_MAKE + 1,
+    GEORAMA_VIEW_STOCK + 1,
+    GEORAMA_VIEW_PAINT + 1,
+    GEORAMA_VIEW_EDIT + 1,
+    GEORAMA_VIEW_CHECK_POINT + 1,
+    GEORAMA_VIEW_ANALYZE + 1,
+    GEORAMA_VIEW_PLACED + 1,
+};
 /**
  *
  * Texture rectangles of the active Georama list board pieces.
@@ -452,7 +508,12 @@ static signed char init_2178;
  *
  */
 static CEditHouse *HouseDrawInfo;
-extern char                  *fname_4292[2];
+/**
+ *
+ * Files loaded by the villager removal menu.
+ *
+ */
+static char *fname_4292[2] = {"npcmove.pac", NULL};
 /**
  *
  * Whether the download announcement windows are drawn.
@@ -507,7 +568,12 @@ static short DownLoadProgress;
  *
  */
 static CDC2Mes *DownLoadMes[6];
-extern short                  DownLoadMesScrlGyouNum;
+/**
+ *
+ * Number of text lines used when scrolling the Geostone announcement.
+ *
+ */
+static short DownLoadMesScrlGyouNum = 1;
 /**
  *
  * Announcement message window selected for construction.
@@ -666,7 +732,18 @@ static short GeoramaParts_DrawWaitCnt;
  *
  */
 static CDC2Mes *GeoramaMes[5];
-extern signed char            msgtbl_2587[5];
+/**
+ *
+ * Initial message offsets for the five Georama list windows.
+ *
+ */
+static signed char msgtbl_2587[5] = {
+    GEORAMA_INITIAL_MESSAGE_MAKE - GEORAMA_INITIAL_MESSAGE_BASE,
+    GEORAMA_INITIAL_MESSAGE_STOCK - GEORAMA_INITIAL_MESSAGE_BASE,
+    GEORAMA_INITIAL_MESSAGE_PAINT - GEORAMA_INITIAL_MESSAGE_BASE,
+    GEORAMA_INITIAL_MESSAGE_PLACED - GEORAMA_INITIAL_MESSAGE_BASE,
+    GEORAMA_INITIAL_MESSAGE_HOUSE - GEORAMA_INITIAL_MESSAGE_BASE,
+};
 /**
  *
  * Whether Georama list messages need immediate reconstruction.
@@ -778,7 +855,12 @@ static float menu_georama_title_pos[2];
  *
  */
 static short GeoramaReqMakeManner;
-extern signed char            GeoramaReqMakeFlag;
+/**
+ *
+ * Whether the Georama request message list needs reconstruction.
+ *
+ */
+static signed char GeoramaReqMakeFlag = 1;
 /**
  *
  * Opacity of the download announcement message windows.
@@ -803,7 +885,12 @@ static short MenuGeoramaViewNowPicNo;
  *
  */
 static mgCTexture *MenuGeoramaViewWallPic;
-extern char                  *fname_1013[2];
+/**
+ *
+ * Files loaded by the Georama menu.
+ *
+ */
+static char *fname_1013[2] = {"georama0.pac", NULL};
 /**
  *
  * Whether the placed-house list cursor is visible.
@@ -930,7 +1017,16 @@ static CEditPartsInfo *edparts_info_3580;
  *
  */
 static signed char init_3581;
-extern int                    DestroyNum_3583;
+#pragma explicit_zero_data on
+
+/**
+ *
+ * Selected quantity of the Georama part being removed.
+ *
+ */
+static int DestroyNum_3583 = 0;
+
+#pragma explicit_zero_data reset
 /**
  *
  * Maximum quantity of the selected Georama part that can be removed.
@@ -943,7 +1039,16 @@ static short DestroyMaxNum_3584;
  *
  */
 static signed char init_3585;
-extern char                  *DestroyPartsName_3587;
+#pragma explicit_zero_data on
+
+/**
+ *
+ * Display name of the selected Georama part being removed.
+ *
+ */
+static char *DestroyPartsName_3587 = NULL;
+
+#pragma explicit_zero_data reset
 int                           georama_menu_local_key(int keys);
 void                          MenuPlacedHousePosLinkMes();
 void                          MenuPlacedHouseMessMake(CEditPartsInfo *info, CEditHouse *house, int update);
@@ -2791,7 +2896,7 @@ void CMenuGeorama::InitEnd() {
     ExeScript("MSG_BUFF");
 
     for (i = 0; i < 5; i++) {
-        GeoramaMes[i]->MakeMesWin(msgtbl_2587[i] + 0x5DC);
+        GeoramaMes[i]->MakeMesWin(msgtbl_2587[i] + GEORAMA_INITIAL_MESSAGE_BASE);
     }
 
     GeoramaMesForceMakeFlag = 1;
@@ -4711,6 +4816,23 @@ int MenuGeoramaPaintSelect(CMenuGeorama *menu, int keys, int pushed) {
  * Dispatches Georama menu input to the active page and starts a requested page transition.
  *
  */
+/**
+ *
+ * Input handler for each Georama menu action, with null entries for inactive actions.
+ *
+ */
+static GeoramaPushFunc MenuGeoramaPushFunc[9] = {
+    MenuGeoramaBasePush,
+    MenuGeoramaMakePush,
+    MenuGeoramaPlacePush,
+    MenuGeoramaPaintSelect,
+    NULL,
+    MenuGeoramaCheckPointPush,
+    MenuGeoramaAnalyzeSelect,
+    NULL,
+    NULL,
+};
+
 int MenuGeoramaPushKey(int keys, int pushed) {
     if (MenuCommonInfo->key_enable == 0) {
         return 0;
@@ -5280,31 +5402,19 @@ void CBaseMenuClass::InitEnd() {}
 // Initialised data (.data)
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editmenu", at_2326__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editmenu", at_3361__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editmenu", MenuGeoramaPushFunc__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editmenu", at_4101__DATA);
 
 // Constants (.rodata)
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editmenu", at_1014__3__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editmenu", at_3330__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editmenu", at_4293__DATA);
 
 // Virtual tables (.vtables)
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editmenu", __vt__12CRemovalMenu__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editmenu", __vt__12CMenuGeorama__DATA);
 
 // Small initialised data (.sdata)
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editmenu", DownLoadMesScrlGyouNum__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editmenu", analyze_percent__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editmenu", GeoramaReqMakeFlag__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editmenu", fname_1013__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editmenu", viewmode_to_mode_convtable_1310__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editmenu", at_1828__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editmenu", msgtbl_2587__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editmenu", DestroyNum_3583__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editmenu", DestroyPartsName_3587__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editmenu", at_4151__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editmenu", at_4152__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editmenu", fname_4292__DATA);
 
 // Small uninitialised data (.sbss)
 INCLUDE_BSS(at_1556, 0x8);

@@ -225,3 +225,36 @@ The three function changes each pass complete object and PAL checks. The
 combined cleanup passes 149/149, with all other 147 hashes unchanged:
 `editmenu-{river-vector,item-arrays,window-colours,natural-aggregates}-*`.
 Twenty-one initialized markers and sixteen BSS markers remain here.
+
+## Initialized state, file lists and input dispatch
+
+The scrolling line count, analysis percentage, request reconstruction flag,
+view-to-action map and initial list message offsets are native typed data.
+The existing view enum expresses the one-based action numbers. The new
+source-local GeoramaMessageList enum records that slot 3 is the placed-part
+list and slot 4 is the house list; GeoramaInitialMessage names the initial
+system message IDs, while the compact signed-byte table retains their
+base-relative offsets. Every public declaration remains unchanged.
+
+DestroyNum_3583 and DestroyPartsName_3587 are explicit zero/null defaults in
+retail initialized small data. An ordinary scalar `= 0` emits .sbss and
+postprocessing correctly rejects converting it to .sdata. The pinned
+compiler's `explicit_zero_data` pragma is supported (its pragma inventory
+contains the name). Scoped `on`/`reset` pairs around only these declarations
+preserve native initialized .sdata and match without runtime initialization.
+The initialized zero vector arrays already emit file-backed data naturally.
+
+The two two-pointer file lists contain an inline pack name and null. The
+nine-entry MenuGeoramaPushFunc table names the existing native handlers,
+retaining its three null action slots. All data is writable where the
+existing pointer-consuming APIs require mutable types.
+
+Each individual migration passes PAL and the complete 149-unit check.
+Receipts: `editmenu-{download-scroll-lines,analysis-percentage,
+request-rebuild-flag,view-actions,list-window-messages,
+explicit-zero-quantity,explicit-zero-removal-name,georama-file-list,
+removal-file-list,input-dispatch,list-message-enums}-*` beneath
+`.private/dataB/receipts/`. All other 147 object hashes remain identical.
+The failed ordinary zero definition is recorded separately as
+`editmenu-removal-quantity-build.log` and is not retained.
+Nine compiler-generated initialized markers remain at this checkpoint.
