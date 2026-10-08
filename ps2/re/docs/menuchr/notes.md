@@ -6,10 +6,10 @@ The matching build uses retail gaps for the C++ drafts still guarded by
 and `CMosBookMenu::KeyStep`. The current source also keeps gaps for
 `MenuMemoryDivide`, `EnterDataMenu`, `KeyChangeMain`,
 `MenuCharaChangeStarDraw`, `CMenuMosSelect::KeyStep`, `MenuMonsterLoadBG`,
-`MenuItemCharaDataLoadEndCheckAfter`, `InitMainCharaBG`,
+`MenuItemCharaDataLoadEndCheckAfter`,
 `CMenuCostumeSel::Draw`, `MenuCostumeInit`, and `CMosBookMenu::Draw`.
-Only the unguarded functions described below are C++ decompilations; the
-current complete object requires integrated verification.
+Only unguarded functions are active C++ decompilations. The complete unit and
+PAL image pass integrated verification after the October 8 promotions.
 
 `MonsterBookDraw` draws the book, then draws a debug label when
 `menu_debug_flag` is set. The retail float register setup for
@@ -271,3 +271,28 @@ Three unscoped binary32 selectors for `MonsterBookDraw__Fv` mark `40.0f` (`0x422
 ## Native monster-box draw
 
 `MenuMonsterBoxDraw` uses its existing typed native draft. The `sceVif1Packet*` null argument selects the texture reload overload. Its debug-label literal preserves the retail Shift-JIS bytes inline; the unused `at_3762` declaration and separate assembly data include are removed. Canonical verification passes the complete unit: `0x11CF4` allocated bytes and 3,651 relocations, with the accepted monster-book selectors and helper masks.
+
+## Main-character background initialization
+
+`InitMainCharaBG` prepares the menu texture blocks and load stacks, selects the
+requested character, preserves the active model's position and rotation, then
+starts the appropriate character, ridepod, or monster background read. When
+the stored monster ID is negative it sets both user data and the read request
+to 0x34. Naming the `CUserDataManager *` returned by the getter before the
+store produces retail's two halfword stores from v1, avoiding the draft's
+constant in saved register s0. This removes all five differing instructions.
+
+`InitMainCharaBG` passes the draft comparison, the game-unit object check,
+and coverage.
+
+The guarded drafts refer to the current shared field names `battle_clear`
+(`DNG_BATTLE_AREA` offset 0x5c) and `monster_mode` (`BUILDUP_WEAPON_INFO`
+offset zero). The palette overlay's substructure is named `palette`, exposing
+`palette.clut` through MWCC without changing its layout or the contiguous
+constructor clear. These names repair compilation of all eighteen original
+drafts; the nested switch in `KeyChangeMain` itself was well formed.
+
+`MenuMemoryDivide` uses typed quadword-array indexing for its buffer movement.
+This preserves the existing 18-word register-allocation difference. Moving
+the buffer declaration before alignment and reversing the explicit rounding
+addition operands do not correct the allocation.

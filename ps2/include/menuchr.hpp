@@ -190,7 +190,7 @@ public:
         struct {
             u32 clut[CHR_CNG_CLUT_NUM]; /**< Darkened copy of the screen's palette, drawn for those not in the party. */
             u8  unk_1E80[0x100];
-        };
+        } palette; /**< Palette entries and adjacent reserved space. */
 
         u8 clut_storage[0x500]; /**< Palette bytes and adjacent reserved space cleared together. */
     };

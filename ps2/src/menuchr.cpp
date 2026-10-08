@@ -892,13 +892,13 @@ static int MenuMemoryDivide(mgCMemory *memory, mgCMemory **list, int chara) {
                 SetMemoryName(list[i], name);
                 list[i]->stSetBuffer(buffer, size);
                 total += size;
-                buffer = list[i]->stGetTop() + size;
+                buffer = &list[i]->stGetTop()[size];
             }
             break;
         }
         case 3:
             list[0]->stSetBuffer(buffer, 0x6400);
-            list[5]->stSetBuffer(buffer + 0x6400, 0x3C0);
+            list[5]->stSetBuffer(&buffer[0x6400], 0x3C0);
             total = 0x67C0;
             break;
     }
@@ -1022,7 +1022,7 @@ void CMenuChrCngMenu::EnterDataMenu(u_char *pack) {
     unk_118 = (int) GetPackFile(files, at_1278__3, (int *) &open_wait);
     MenuCharaChangeStar_Tex = mgTexManager.GetTexture(at_1279__4, -1);
     MenuCharaChangeBase_Tex = mgTexManager.GetTexture(at_1280__3, -1);
-    MenuCharaChangeCLUT = clut;
+    MenuCharaChangeCLUT = palette.clut;
     mgTexManager.ReloadTexture(party_member, (sceVif1Packet *) NULL);
     if (MenuCharaChangeCLUT_Tex == NULL) {
         MenuCharaChangeCLUT_Tex = new (MenuChangeMemory.Alloc(9)) mgCTexture;
@@ -2098,7 +2098,7 @@ int CMenuChrCngMenu::KeyChangeMain() {
                         if (bitCtrl & 1) {
                             used = 0;
                         }
-                        if (MenuMainScene->battle_area.boss_map && MenuMainScene->battle_area.unk_5c) {
+                        if (MenuMainScene->battle_area.boss_map && MenuMainScene->battle_area.battle_clear) {
                             used = 0;
                         }
                     }
@@ -4341,7 +4341,7 @@ int CMenuMosSelect::KeyStep() {
                     MenuSePlay(2);
                     break;
                 case 30: {
-                    BuildUpWeaponInfo.unk_0 = 1;
+                    BuildUpWeaponInfo.monster_mode = 1;
                     step = 10;
                     int monsterNo = monster_progress_tbl[select_badge->progress][1 + select_badge->class_level];
                     level_num = get_monster_tbl_bajjilevel(level_monster, select, monsterNo, select_badge->class_level + 1);
@@ -5619,7 +5619,6 @@ void MenuItemCharaDataLoadEndCheckAfter(MENU_BGREAD_INFO2 **info, int chara_no) 
 #else
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/menuchr", MenuItemCharaDataLoadEndCheckAfter__FPP17MENU_BGREAD_INFO2i);
 #endif
-#ifdef NONMATCHING
 void InitMainCharaBG(int chara_no, mgCMemory *stack, int mode) {
     int                reason;
     mgCTextureManager *texManager;
@@ -5702,7 +5701,8 @@ void InitMainCharaBG(int chara_no, mgCMemory *stack, int mode) {
         case 3:
             NowReadMainCharaMonsterNo = GetUserDataMan()->monster_id;
             if (NowReadMainCharaMonsterNo < 0) {
-                GetUserDataMan()->monster_id = 0x34;
+                CUserDataManager *user_data = GetUserDataMan();
+                user_data->monster_id = 0x34;
                 NowReadMainCharaMonsterNo = 0x34;
             }
             for (int i = 1; i < 5; i++) {
@@ -5715,9 +5715,6 @@ void InitMainCharaBG(int chara_no, mgCMemory *stack, int mode) {
             break;
     }
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/menuchr", InitMainCharaBG__FiP9mgCMemoryi);
-#endif
 int ReadMainCharaBG() {
     char model[0x48];
     int  size;
