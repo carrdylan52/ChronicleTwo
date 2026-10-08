@@ -283,3 +283,33 @@ fade-argument scheduling. TitleModeKey remains guarded with its original
 source/profile. Reconsider with a natural lifetime/expression explanation
 covering both the snapshot allocation and the differing -8/zero and 8/128
 call schedules. TitleBootInit remains deferred to the placement-new lane.
+
+## Mid-day selector applicability and snapshot types (2026-10-08)
+
+Both TitleModeKey and TitleBootInit remain guarded. The source-only
+canonical-profile baseline reproduces 379/624 aligned-word differences
+for TitleModeKey (the four-byte contraction described above) and 56/676
+for TitleBootInit. The documented private zero/128.0f `CalcMenuAdd` rows
+restore the TitleModeKey extent and its 15-word residual.
+
+Changing both captured port values to `int`, `u32` or `u16`, with explicit
+byte narrowing at the two comparisons, leaves the same 15 words. Each
+trial keeps the two capture loads in retail order, but s1/s2 remain
+permuted at `+0xC8/+0xCC`, `+0x188`, `+0x198` and `+0x1AC`.
+No widened snapshot type is retained.
+
+The conflicting `CalcMenuAdd` calls take a field address and direct float
+arguments. Neither the enclosing phase switch nor the selected field is
+a nested call expression, so upstream's new nested selectors do not
+distinguish those calls. Manufacturing an extra call would not represent
+retail source behavior. No new production profile row is accepted.
+TitleBootInit's placement-construction experiments remain deferred under
+the existing ownership rule; this lane does not repeat them.
+
+Receipts: `.private/floatsel/title/draft-base/`,
+`.private/floatsel/title/snapshot-int/`, `snapshot-u32/` and `snapshot-u16/`;
+the m2c TitleModeKey output is also in `.private/floatsel/`.
+
+The fresh isolated production probe confirms 15/624 words, one byte problem
+and the two displaced relocation sites at `+0x7DC/+0x7E8`; no sibling function
+changes. Receipt: `.private/floatsel/title/key-best-production/`.
