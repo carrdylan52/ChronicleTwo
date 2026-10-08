@@ -205,9 +205,13 @@ must match the retail relocation kind and instruction operands outside the
 immediate. HI16/LO16 pairs follow ELF relocation order, which can differ from
 instruction order; orphan pairs, unknown consumers, out-of-object addends and
 competing live definitions reject naming. Zero contents and compiler counters
-alone establish no identity. Ambiguous initialized literals can also be named
-through real R_MIPS_32 pointers in named native data, subtracting the compiled
-addend and target-symbol offset; conflicting references reject the binding.
+alone establish no identity. Local pointer tables can establish literal
+identities when their exact declared extent, all code consumers, nonpointer
+bytes, real relocation shape and native target bytes agree with retail. Their
+validated identities are available before names are written in native symbol
+order. Ambiguous initialized literals can then be named through real
+R_MIPS_32 pointers in native data, subtracting the compiled addend and
+target-symbol offset; conflicting references reject the binding.
 
 VU microcode words that resemble addresses remain numeric when retail has no
 relocation. The splitter checks their emitted byte comments against retail

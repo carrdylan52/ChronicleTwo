@@ -267,8 +267,8 @@ class LiteralPointerTests(unittest.TestCase):
         if target_offset:
             target = symbol('alias', 1, value=target_offset, kind=p.STT_SECTION)
             symbols.append(target)
-        elf = NS(sections=[None, NS(name='.rodata', sh_type=1, data=b'\0'),
-                           NS(name='.data', sh_type=1, data=struct.pack('<I', addend))],
+        elf = NS(sections=[None, NS(name='.rodata', sh_type=1, sh_flags=p.SHF_ALLOC, data=b'\0'),
+                           NS(name='.data', sh_type=1, sh_flags=p.SHF_ALLOC, data=struct.pack('<I', addend))],
                  symtab=NS(symbols=symbols),
                  relocations=[NS(sh_info=2, relocations=[relocation(0, p.R_MIPS_32,
                                                                   symbols.index(target))])],

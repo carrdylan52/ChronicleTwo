@@ -749,6 +749,102 @@ def bss_data_names(elf, unit, placeholders, *, retail, pieces, addresses, rows):
             if counts[name] == 1 and symbol.name != name}
 
 
+def pointer_table_names(elf, unit, placeholders, *, retail, pieces, addresses, rows):
+    """Select local pointer table identities before their compiler-owned literals.
+
+    All code consumers establish the table address. Its nonpointer bytes,
+    real relocation shape and each pointed-to native literal must match retail.
+    """
+    runs = pieces.unit(unit)
+    cuts = {start: (section, name, end) for section, run in runs
+            if section in ('.data', '.sdata', '.rodata') for name, start, end in run}
+    declared = {name: size for _start, name, size, function in rows if not function and size}
+    code = {name: start for section, run in runs if section in CODE for name, start, _end in run}
+    symbols = elf.symtab.symbols
+    code_starts = {symbol.st_shndx: code[symbol.name] for symbol in symbols if symbol.name in code}
+    assignments = []
+    for symbol in symbols:
+        index = symbol.st_shndx
+        if (index in placeholders or symbol.bind != STB_LOCAL or symbol.type != STT_OBJECT
+                or symbol.st_value or not 0 < index < len(elf.sections)
+                or (symbol.name in addresses and addresses[symbol.name] in cuts
+                    and not re.fullmatch(r'at_\d+', symbol.name))):
+            continue
+        section = elf.sections[index]
+        if (section.name not in ('.data', '.sdata', '.rodata')
+                or section.sh_type != SHT_PROGBITS or not section.sh_flags & SHF_ALLOC
+                or not symbol.st_size or symbol.st_size != len(section.data)
+                or any(other.st_shndx == index and other.st_value for other in symbols)
+                or sum(other.st_shndx == index and other.type == STT_OBJECT for other in symbols) != 1):
+            continue
+        targets = referenced_data_starts(elf, index, retail, addresses, code_starts,
+                                         size=symbol.st_size)
+        if targets is None or len(targets) != 1:
+            continue
+        start = next(iter(targets))
+        cut = cuts.get(start)
+        if cut is None:
+            continue
+        kind, name, end = cut
+        if (kind != section.name or declared.get(name) != symbol.st_size
+                or start + symbol.st_size > end
+                or any(other is not symbol and other.name == name
+                       and 0 < other.st_shndx < len(elf.sections)
+                       and elf.sections[other.st_shndx].name != DEAD for other in symbols)):
+            continue
+        entries = [entry for record in elf.relocations if record.sh_info == index
+                   for entry in record.relocations]
+        expected = {address - start: kind for address, kind in retail.relocations.items()
+                    if start <= address < start + symbol.st_size}
+        actual = {entry.r_offset: entry.reloc_type for entry in entries}
+        if not entries or len(actual) != len(entries) or actual != expected:
+            continue
+        data = bytearray(section.data)
+        literal_starts = {}
+        valid = True
+        for entry in entries:
+            offset = entry.r_offset
+            if entry.reloc_type != R_MIPS_32 or offset % 4 or not 0 <= offset <= len(data) - 4:
+                valid = False
+                break
+            target = symbols[entry.symbol_index]
+            addend = struct.unpack_from('<I', data, offset)[0]
+            destination = retail.word(start + offset)
+            known = (addresses.get(target.name)
+                     if not re.fullmatch(r'at_\d+', target.name) else None)
+            if known is not None:
+                valid = (known + addend) & 0xFFFFFFFF == destination
+            elif 0 < target.st_shndx < len(elf.sections):
+                literal_index = target.st_shndx
+                literal = elf.sections[literal_index]
+                base = (destination - addend - target.st_value) & 0xFFFFFFFF
+                literal_cut = cuts.get(base)
+                owners = [other for other in symbols
+                          if other.st_shndx == literal_index and other.type == STT_OBJECT]
+                valid = (literal_index not in placeholders and literal.name == '.rodata'
+                         and literal.sh_type == SHT_PROGBITS and literal.sh_flags & SHF_ALLOC
+                         and len(owners) == 1 and owners[0].bind == STB_LOCAL
+                         and owners[0].st_value == 0 and literal.data
+                         and owners[0].st_size == len(literal.data)
+                         and re.fullmatch(r'at_\d+', owners[0].name) is not None
+                         and literal_cut is not None and literal_cut[0] == '.rodata'
+                         and base + len(literal.data) <= literal_cut[2]
+                         and literal.data == retail.bytes(base, base + len(literal.data))
+                         and not any(record.sh_info == literal_index and record.relocations
+                                     for record in elf.relocations)
+                         and literal_starts.get(literal_index, base) == base)
+                literal_starts[literal_index] = base
+            else:
+                valid = False
+            if not valid:
+                break
+            struct.pack_into('<I', data, offset, destination)
+        if valid and data == retail.bytes(start, start + len(data)):
+            assignments.append((symbol, name))
+    counts = Counter(name for _symbol, name in assignments)
+    return {id(symbol): name for symbol, name in assignments if counts[name] == 1}
+
+
 def name_literal_data(elf, unit, placeholders, *, retail=None, pieces=None, addresses=None, rows=None):
     retail = layout.Retail() if retail is None else retail
     pieces = disassemble.Pieces(references=[]) if pieces is None else pieces
@@ -760,6 +856,8 @@ def name_literal_data(elf, unit, placeholders, *, retail=None, pieces=None, addr
             if section in ('.rodata', '.sdata', '.data', '.ctor') for name, start, end in run}
     bss_names = bss_data_names(elf, unit, placeholders, retail=retail, pieces=pieces,
                                addresses=addresses, rows=rows)
+    pointer_names = pointer_table_names(elf, unit, placeholders, retail=retail, pieces=pieces,
+                                        addresses=addresses, rows=rows)
     positions = sorted(retail.relocations)
     code_addresses = {name: start for section, run in pieces.unit(unit)
                       if section in CODE for name, start, end in run}
@@ -773,8 +871,10 @@ def name_literal_data(elf, unit, placeholders, *, retail=None, pieces=None, addr
         and 0 < symbol.st_shndx < len(elf.sections)
         and not re.fullmatch(r'at_\d+(?:__\d+)?', symbol.name)
     }
+    data_starts.update((symbol.st_shndx, addresses[pointer_names[id(symbol)]])
+                       for symbol in elf.symtab.symbols if id(symbol) in pointer_names)
     for symbol in elf.symtab.symbols:
-        name = bss_names.get(id(symbol))
+        name = bss_names.get(id(symbol), pointer_names.get(id(symbol)))
         if name is not None:
             symbol.name = name
             symbol.st_name = elf.strtab.add_symbol(name)
