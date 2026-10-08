@@ -91,7 +91,43 @@ struct AlbumFile {
     int  trailer;           /**< Second album check digit. */
 };
 
-extern u8                  cosbit_table[136];
+/** Costume item numbers and their persistent costume-bit indices. */
+static COSBIT_INFO cosbit_table[34] = {
+    {0x6F, 0, 0},
+    {0x70, 1, 0},
+    {0x71, 2, 0},
+    {0x72, 3, 0},
+    {0x73, 4, 0},
+    {0x74, 5, 0},
+    {0x75, 6, 0},
+    {0x76, 7, 0},
+    {0x77, 8, 0},
+    {0x78, 9, 0},
+    {0x79, 10, 0},
+    {0x7A, 11, 0},
+    {0x7B, 12, 0},
+    {0x7C, 13, 0},
+    {0x7D, 14, 0},
+    {0x7E, 15, 0},
+    {0x7F, 16, 0},
+    {0x80, 17, 0},
+    {0x81, 18, 0},
+    {0x82, 19, 0},
+    {0x83, 20, 0},
+    {0x84, 21, 0},
+    {0x85, 22, 0},
+    {0x86, 23, 0},
+    {0x102, 24, 0},
+    {0x103, 25, 0},
+    {0x104, 26, 0},
+    {0x105, 27, 0},
+    {0x106, 28, 0},
+    {0x107, 29, 0},
+    {0x108, 30, 0},
+    {0x109, 31, 0},
+    {0x10A, 32, 0},
+    {0x10B, 33, 0},
+};
 extern char                at_922__4[0x13];
 extern char                at_923__5[0xD];
 extern char                at_924__4[];
@@ -113,8 +149,17 @@ extern char                init_2291;
 extern char                at_2285[0x12];
 extern FormatA             at_838__5;
 extern FormatB             at_839__5;
-extern const char         *MCBrowsetName[3][4];
-extern u16                 MCBrowserName_Offset[3][4];
+/** Browser titles for save, album, bonus, and formatted save entries by region. */
+static const char *MCBrowsetName[3][4] = {
+    {"\203_\201[\203N\203N\203\215\203j\203N\203\213", "\203_\201[\203N\203N\203\215\203j\203N\203\213\203A\203\213\203o\203\200\203f\201[\203^", "\203_\201[\203N\203N\203\215\203j\203N\203\213\202\250\202\334\202\257\203f\201[\203^", "\203_\201[\203N\203N\203\215\203j\203N\203\213\201m%s\201n"},
+    {"\202c\202\201\202\222\202\213\201@\202b\202\214\202\217\202\225\202\204\202Q", "\202c\202\201\202\222\202\213\201@\202b\202\214\202\217\202\225\202\204\202Q\201@\202`\202\214\202\202\202\225\202\215", "\202c\202\201\202\222\202\213\201@\202b\202\214\202\217\202\225\202\204\202Q\201@\202d\202\230\202\224\202\222\202\201", "\202c\202\201\202\222\202\213\201@\202b\202\214\202\217\202\225\202\204\202Q\201m%s\201n"},
+    {"\202c\202\201\202\222\202\213\201@\202b\202\210\202\222\202\217\202\216\202\211\202\203\202\214\202\205", "\202c\202\201\202\222\202\213\201@\202b\202\210\202\222\202\217\202\216\202\211\202\203\202\214\202\205\201@\202`\202\214\202\202\202\225\202\215", "\202c\202\201\202\222\202\213\201@\202b\202\210\202\222\202\217\202\216\202\211\202\203\202\214\202\205\201@\202d\202\230\202\224\202\222\202\201", "\202c\202\201\202\222\202\213\201@\202b\202\210\202\222\202\217\202\216\202\211\202\203\202\214\202\205\201m%s\201n"},
+};/** Byte offsets of the second title line for each region and save category. */
+static u16 MCBrowserName_Offset[3][4] = {
+    {0x20, 0x10, 0x10, 0x20},
+    {0x20, 0x16, 0x16, 0x20},
+    {0x20, 0x1C, 0x1C, 0x1C},
+};
 /** Whether dungeon-tree state is included in the next save. */
 static short DngTreeSaveFlag;
 extern int                 iconNo_1323;
@@ -982,18 +1027,18 @@ int GetCostumeList(unsigned long mask, int type, short *list) {
     }
 
     int           count = 0;
-    short        *row = (short *) cosbit_table;
+    COSBIT_INFO *row = cosbit_table;
     unsigned long bit = 1;
 
     for (unsigned long i = 0; i < 0x22; i++) {
-        if ((mask & bit) && type == GetItemDataType(*row)) {
+        if ((mask & bit) && type == GetItemDataType(row->item_no)) {
             count++;
-            *list = *row;
+            *list = row->item_no;
             list++;
         }
 
         bit <<= 1;
-        row += 2;
+        row++;
     }
 
     *list = -1;
@@ -2525,23 +2570,20 @@ int McCheckMCPs2Boot(MC_CARD_INFO *info, int blocks_needed) {
 }
 
 COSBIT_INFO *GetCosInfo(int costume_no) {
-    short *row = (short *) cosbit_table;
+    COSBIT_INFO *row = cosbit_table;
 
     for (int i = 0; i < 0x22; i++) {
-        if (*row == costume_no) {
-            return (COSBIT_INFO *) row;
+        if (row->item_no == costume_no) {
+            return row;
         }
 
-        row += 2;
+        row++;
     }
 
     return NULL;
 }
 
 // Initialised data (.data)
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/memcard", cosbit_table__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/memcard", MCBrowsetName__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/memcard", MCBrowserName_Offset__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/memcard", at_838__5__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/memcard", at_839__5__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/memcard", at_1031__6__DATA);
@@ -2552,18 +2594,6 @@ INCLUDE_RODATA("ps2/asm/pal/nonmatchings/memcard", at_2131__3__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/memcard", at_2297__DATA);
 
 // Constants (.rodata)
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/memcard", at_808__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/memcard", at_809__3__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/memcard", at_810__4__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/memcard", at_811__3__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/memcard", at_812__4__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/memcard", at_813__4__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/memcard", at_814__3__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/memcard", at_815__4__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/memcard", at_816__5__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/memcard", at_817__5__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/memcard", at_818__4__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/memcard", at_819__6__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/memcard", at_843__5__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/memcard", at_852__4__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/memcard", at_922__4__DATA);
