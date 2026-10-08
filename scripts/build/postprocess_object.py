@@ -634,6 +634,123 @@ def discard_external_functions(elf, unit):
                 entry.st_value = 0
 
 
+def referenced_data_starts(elf, index, retail, addresses, code_starts, data_starts=None,
+                           size=None):
+    """Resolve every live incoming reference, rejecting incomplete evidence.
+
+    HI16 entries share the next LO16 for their target in relocation order.
+    No numeric compiler name or unchecked consumer supplies an identity.
+    """
+    data_starts = {} if data_starts is None else data_starts
+    destinations = set()
+    symbols = elf.symtab.symbols
+    for record in elf.relocations:
+        section = elf.sections[record.sh_info]
+        if section.name == DEAD:
+            continue
+        incoming = [entry for entry in record.relocations
+                    if symbols[entry.symbol_index].st_shndx == index]
+        if not incoming:
+            continue
+        code_base = code_starts.get(record.sh_info)
+        data_base = data_starts.get(record.sh_info)
+        if code_base is None and data_base is None:
+            return None
+        contents = section.data
+        pending = {}
+        seen_offsets = set()
+        for entry in incoming:
+            offset, kind = entry.r_offset, entry.reloc_type
+            target = symbols[entry.symbol_index]
+            if offset % 4 or offset < 0 or offset + 4 > len(contents) or offset in seen_offsets:
+                return None
+            seen_offsets.add(offset)
+            base = code_base if code_base is not None else data_base
+            if retail.relocations.get(base + offset) != kind:
+                return None
+            value = struct.unpack_from('<I', contents, offset)[0]
+            expected = retail.word(base + offset)
+            if code_base is None:
+                if kind != R_MIPS_32:
+                    return None
+                addend, destination = value, expected
+            else:
+                if kind not in (R_MIPS_HI16, R_MIPS_LO16, R_MIPS_GPREL16):
+                    return None
+                if (value ^ expected) & 0xFFFF0000:
+                    return None
+                if kind == R_MIPS_HI16:
+                    pending.setdefault(entry.symbol_index, []).append((value, expected))
+                    continue
+                if kind == R_MIPS_LO16:
+                    highs = pending.pop(entry.symbol_index, [])
+                    if not highs:
+                        return None
+                    for high, retail_high in highs:
+                        addend = ((high & 0xFFFF) << 16) + sext16(value) + target.st_value
+                        destination = ((retail_high & 0xFFFF) << 16) + sext16(expected)
+                        if size is not None and not 0 <= addend < size:
+                            return None
+                        destinations.add((destination - addend) & 0xFFFFFFFF)
+                    continue
+                if '_gp' not in addresses:
+                    return None
+                addend, destination = sext16(value), addresses['_gp'] + sext16(expected)
+            addend += target.st_value
+            if size is not None and not 0 <= addend < size:
+                return None
+            destinations.add((destination - addend) & 0xFFFFFFFF)
+        if pending:
+            return None
+    return destinations
+
+
+def name_bss_data(elf, unit, placeholders, *, retail, pieces, addresses, rows):
+    """Name isolated native BSS objects by exact extent and all code consumers."""
+    runs = pieces.unit(unit)
+    declared = {name: size for _start, name, size, function in rows if not function and size}
+    cuts = {start: (section, name, end) for section, run in runs if section in layout.NOBITS
+            for name, start, end in run if name in declared}
+    code = {name: start for section, run in runs if section in CODE for name, start, _end in run}
+    symbols = elf.symtab.symbols
+    code_starts = {symbol.st_shndx: code[symbol.name] for symbol in symbols if symbol.name in code}
+    assignments = []
+    for symbol in symbols:
+        index = symbol.st_shndx
+        if (index in placeholders or symbol.bind != STB_LOCAL or symbol.type != STT_OBJECT
+                or symbol.st_value or not 0 < index < len(elf.sections)):
+            continue
+        section = elf.sections[index]
+        if (section.name not in layout.NOBITS or section.sh_type != SHT_NOBITS
+                or not section.sh_flags & SHF_ALLOC or not symbol.st_size
+                or symbol.st_size != section_size(section)
+                or any(other.st_shndx == index and other.st_value for other in symbols)
+                or sum(other.st_shndx == index and other.type == STT_OBJECT for other in symbols) != 1
+                or any(record.sh_info == index and record.relocations for record in elf.relocations)):
+            continue
+        targets = referenced_data_starts(elf, index, retail, addresses, code_starts,
+                                         size=symbol.st_size)
+        if targets is None or len(targets) != 1:
+            continue
+        start = next(iter(targets))
+        cut = cuts.get(start)
+        if cut is None:
+            continue
+        kind, name, end = cut
+        if (kind != section.name or declared[name] != symbol.st_size
+                or start + symbol.st_size > end
+                or any(other is not symbol and other.name == name
+                       and 0 < other.st_shndx < len(elf.sections)
+                       and elf.sections[other.st_shndx].name != DEAD for other in symbols)):
+            continue
+        assignments.append((symbol, name))
+    counts = Counter(name for _symbol, name in assignments)
+    for symbol, name in assignments:
+        if counts[name] == 1 and symbol.name != name:
+            symbol.name = name
+            symbol.st_name = elf.strtab.add_symbol(name)
+
+
 def name_literal_data(elf, unit, placeholders, *, retail=None, pieces=None, addresses=None, rows=None):
     retail = layout.Retail() if retail is None else retail
     pieces = disassemble.Pieces(references=[]) if pieces is None else pieces
@@ -643,11 +760,8 @@ def name_literal_data(elf, unit, placeholders, *, retail=None, pieces=None, addr
                if name in ('.rodata', '.sdata', '.data', '.ctor')]
     cuts = {start: (name, end) for section, run in pieces.unit(unit)
             if section in ('.rodata', '.sdata', '.data', '.ctor') for name, start, end in run}
-    declared_sizes = {name: size for _address, name, size, is_function
-                      in rows if not is_function}
-    bss_cuts = {start: (section, name, end) for section, run in pieces.unit(unit)
-                if section in layout.NOBITS for name, start, end in run
-                if re.fullmatch(r'at_\d+(?:__\d+)?', name)}
+    name_bss_data(elf, unit, placeholders, retail=retail, pieces=pieces,
+                  addresses=addresses, rows=rows)
     positions = sorted(retail.relocations)
     code_addresses = {name: start for section, run in pieces.unit(unit)
                       if section in CODE for name, start, end in run}
@@ -668,25 +782,9 @@ def name_literal_data(elf, unit, placeholders, *, retail=None, pieces=None, addr
                 or not 0 < index < len(elf.sections)):
             continue
         section = elf.sections[index]
-        nobits = section.sh_type == SHT_NOBITS
-        if nobits:
-            if (section.name not in layout.NOBITS or symbol.bind != STB_LOCAL
-                    or not symbol.st_size or symbol.st_size != section_size(section)
-                    or any(record.sh_info == index and record.relocations
-                           for record in elf.relocations)
-                    or any(other.st_shndx == index and other.st_value != 0
-                           for other in elf.symtab.symbols)
-                    or sum(other.st_shndx == index and other.type == STT_OBJECT
-                           for other in elf.symtab.symbols) != 1):
-                continue
-            found = [start for start, (kind, name, end) in bss_cuts.items()
-                     if kind == section.name and declared_sizes.get(name) == symbol.st_size
-                     and start + symbol.st_size <= end]
-            data = bytearray()
-        else:
-            if section.name not in ('.rodata', '.sdata', '.data', '.ctor') or not section.data:
-                continue
-            data = bytearray(section.data)
+        if section.name not in ('.rodata', '.sdata', '.data', '.ctor') or not section.data:
+            continue
+        data = bytearray(section.data)
         entries = {}
         unresolved = False
         for record in elf.relocations:
@@ -702,9 +800,8 @@ def name_literal_data(elf, unit, placeholders, *, retail=None, pieces=None, addr
                 entries[entry.r_offset] = entry.reloc_type
         if unresolved:
             continue
-        if not nobits:
-            found = []
-        for lo, contents in (() if nobits else regions):
+        found = []
+        for lo, contents in regions:
             offset = contents.find(data)
             while offset >= 0:
                 start = lo + offset
@@ -714,8 +811,8 @@ def name_literal_data(elf, unit, placeholders, *, retail=None, pieces=None, addr
                 if actual == entries and start in cuts:
                     found.append(start)
                 offset = contents.find(data, offset + 1)
-        # Zero-filled storage has no byte identity; require matching code references.
-        if nobits or len(found) != 1:
+        # Ambiguous literals use existing code or named-data reference evidence.
+        if len(found) != 1:
             targets = set()
             for record in elf.relocations:
                 base = code_starts.get(record.sh_info)
@@ -765,11 +862,6 @@ def name_literal_data(elf, unit, placeholders, *, retail=None, pieces=None, addr
                 continue
             found = list(targets)
         start = found[0]
-        if nobits:
-            _kind, name, _end = bss_cuts[start]
-            symbol.name = name
-            symbol.st_name = elf.strtab.add_symbol(name)
-            continue
         name, end = cuts[start]
         if start + len(data) > end:
             continue

@@ -199,8 +199,12 @@ The same policy covers compiler-generated vtables; their final section tail
 belongs to linker alignment. Referenced interior addresses and explicit
 `D_<address>` source identifiers remain separate piece boundaries.
 
-Anonymous BSS templates need both an exact declared extent and consistent
-opcode-matched HI16/LO16 or GPREL16 retail reference evidence. Zero contents
+Native BSS templates, local statics and their guards need an exact declared
+extent and agreement from every live incoming code reference. Each reference
+must match the retail relocation kind and instruction operands outside the
+immediate. HI16/LO16 pairs follow ELF relocation order, which can differ from
+instruction order; orphan pairs, unknown consumers, out-of-object addends and
+competing live definitions reject naming. Zero contents and compiler counters
 alone establish no identity. Ambiguous initialized literals can also be named
 through real R_MIPS_32 pointers in named native data, subtracting the compiled
 addend and target-symbol offset; conflicting references reject the binding.

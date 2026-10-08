@@ -29,7 +29,7 @@ class AnonymousBssTests(unittest.TestCase):
             refs = [relocation(0, p.R_MIPS_GPREL16, 0)]
             words = {0x1000: 0x27821000}
             kinds = {0x1000: p.R_MIPS_GPREL16}
-        elf = NS(sections=[None, NS(name=kind, sh_type=p.SHT_NOBITS, sh_size=8, data=b''),
+        elf = NS(sections=[None, NS(name=kind, sh_type=p.SHT_NOBITS, sh_flags=p.SHF_ALLOC, sh_size=8, data=b''),
                            NS(name='.text', data=code)],
                  symtab=NS(symbols=[symbol('at_999', 1, 8),
                                    symbol('caller', 2, kind=p.STT_FUNC)]),
@@ -142,6 +142,103 @@ class AnonymousBssTests(unittest.TestCase):
         retail.word = lambda addr: {0x1008: 0x3c020000, 0x100c: 0x24423010}.get(addr, 0) \
             if addr >= 0x1008 else old_word(addr)
         self.assertEqual(self.apply(fixture), 'at_999')
+
+    def test_local_static_names_and_guard_counters_are_not_identities(self):
+        for native, retail_name in [('select_999', 'select_5'), ('init_987', 'init_2'),
+                                    ('buffer_123', 'buffer_7')]:
+            fixture = self.fixture()
+            fixture[0].symtab.symbols[0].name = native
+            fixture[3][0] = (0x3000, retail_name, 8, False)
+            old_unit = fixture[1].unit
+            fixture[1].unit = lambda unit: [
+                (kind, [(retail_name if name == 'at_1__2' else name, start, end)
+                        for name, start, end in run]) for kind, run in old_unit(unit)]
+            self.assertEqual(self.apply(fixture), retail_name)
+
+    def test_nonallocated_storage_is_rejected(self):
+        fixture = self.fixture()
+        fixture[0].sections[1].sh_flags = 0
+        self.assertEqual(self.apply(fixture), 'at_999')
+
+    def test_valid_reference_cannot_hide_invalid_consumer(self):
+        for invalid in ('unknown', 'opcode', 'metadata', 'kind', 'truncated', 'orphan'):
+            with self.subTest(invalid=invalid):
+                fixture = self.fixture(small=True)
+                elf, _pieces, retail, _rows = fixture
+                elf.sections[2].data += struct.pack('<I', 0x27820000)
+                elf.relocations[0].relocations.append(relocation(4, p.R_MIPS_GPREL16, 0))
+                retail.relocations[0x1004] = p.R_MIPS_GPREL16
+                words = {0x1000: 0x27821000, 0x1004: 0x27821000}
+                retail.word = words.__getitem__
+                if invalid == 'unknown':
+                    elf.sections.append(NS(name='.text', data=struct.pack('<I', 0x27820000)))
+                    elf.relocations.append(NS(sh_info=3, relocations=[relocation(0, p.R_MIPS_GPREL16, 0)]))
+                elif invalid == 'opcode':
+                    words[0x1004] = 0x27831000
+                elif invalid == 'metadata':
+                    del retail.relocations[0x1004]
+                elif invalid == 'kind':
+                    elf.relocations[0].relocations[-1].reloc_type = p.R_MIPS_32
+                    retail.relocations[0x1004] = p.R_MIPS_32
+                elif invalid == 'truncated':
+                    elf.sections[2].data = elf.sections[2].data[:4]
+                else:
+                    elf.relocations[0].relocations[-1].reloc_type = p.R_MIPS_LO16
+                    retail.relocations[0x1004] = p.R_MIPS_LO16
+                self.assertEqual(self.apply(fixture), 'at_999')
+
+    def test_dead_consumer_is_ignored(self):
+        fixture = self.fixture()
+        fixture[0].sections.append(NS(name=p.DEAD, data=b''))
+        fixture[0].relocations.append(NS(sh_info=3, relocations=[relocation(0, p.R_MIPS_32, 0)]))
+        self.assertEqual(self.apply(fixture), 'at_1__2')
+
+    def test_object_addends_must_stay_inside_declared_extent(self):
+        for addend in (8, 0xffff):
+            fixture = self.fixture(small=True)
+            fixture[0].sections[2].data = struct.pack('<I', 0x27820000 | addend)
+            self.assertEqual(self.apply(fixture), 'at_999')
+
+    def test_base_section_alias_retains_identity(self):
+        fixture = self.fixture()
+        elf = fixture[0]
+        elf.symtab.symbols.append(symbol('.bss', 1, kind=p.STT_SECTION))
+        for entry in elf.relocations[0].relocations:
+            entry.symbol_index = 2
+        self.assertEqual(self.apply(fixture), 'at_1__2')
+
+    def test_live_destination_name_and_duplicate_claims_are_rejected(self):
+        for duplicate in (False, True):
+            fixture = self.fixture()
+            elf = fixture[0]
+            elf.sections.append(NS(name='.bss', sh_type=p.SHT_NOBITS,
+                                   sh_flags=p.SHF_ALLOC, sh_size=8, data=b''))
+            elf.symtab.symbols.append(symbol('at_1000' if duplicate else 'at_1__2', 3, 8))
+            if duplicate:
+                elf.sections[2].data += elf.sections[2].data
+                elf.relocations[0].relocations.extend([
+                    relocation(8, p.R_MIPS_HI16, 2), relocation(12, p.R_MIPS_LO16, 2)])
+                fixture[2].relocations.update({0x1008: p.R_MIPS_HI16, 0x100c: p.R_MIPS_LO16})
+                fixture[2].word = {0x1000: 0x3c020000, 0x1004: 0x24423000,
+                                   0x1008: 0x3c020000, 0x100c: 0x24423000}.__getitem__
+            self.assertEqual(self.apply(fixture), 'at_999')
+
+    def test_hi_lo_pairing_preserves_relocation_order(self):
+        fixture = self.fixture()
+        elf, _pieces, retail, _rows = fixture
+        # The lows appear in the opposite instruction order from their highs,
+        # as in nameregi KeyStep's real Nameregi_Target relocation record.
+        elf.sections[2].data = struct.pack('<IIII', 0x3c020000, 0x3c030000,
+                                           0x24630004, 0x24420000)
+        elf.relocations[0].relocations = [relocation(0, p.R_MIPS_HI16, 0),
+                                         relocation(12, p.R_MIPS_LO16, 0),
+                                         relocation(4, p.R_MIPS_HI16, 0),
+                                         relocation(8, p.R_MIPS_LO16, 0)]
+        retail.relocations = {0x1000: p.R_MIPS_HI16, 0x1004: p.R_MIPS_HI16,
+                              0x1008: p.R_MIPS_LO16, 0x100c: p.R_MIPS_LO16}
+        retail.word = {0x1000: 0x3c020000, 0x1004: 0x3c030000,
+                       0x1008: 0x24633004, 0x100c: 0x24423000}.__getitem__
+        self.assertEqual(self.apply(fixture), 'at_1__2')
 
 
 class LiteralPointerTests(unittest.TestCase):
