@@ -130,3 +130,55 @@ expression distinction that survives optimization without a conversion call,
 or a separately validated stable compiler identity that distinguishes those
 expressions. Occurrence selectors and invented helper functions do not follow
 from this evidence.
+
+## Shot receiver boundaries and proposed semantic context
+
+The complete arguments at both remaining sites are identical:
+`action_info.chara->effect_man->SetValue(4, 160.0f, 0, -1)`.
+`action_info` is a direct global structure, `effect_man` is a direct member,
+and the float `SetValue` overload is out of line. There is no nested argument
+call or inline accessor to move into a result local as in the matched movement
+functions. The two source branches test attack type 40 and 90 respectively.
+
+Additional private source-boundary trials under the scoped 160-first row
+produce these results:
+
+- Binding the earlier action character before reading its effect manager
+  repeats the earlier-call conflict, just as the previous manager-local trial.
+- Grouping the earlier color channels into separate float locals, with blue
+  sharing green as in the neighboring `ShotLaserGun`, also repeats that exact
+  object. Both objects have SHA-256
+  `cd33a0d7e3739ec3e72cd43f57123976bfc8eb0eb9e8c802d114de00d9c6a2ae`:
+  four differing words, `0x47FC` checked bytes, and 1111 relocations.
+- A local four-float color array grows the raw `_SHOT` body to `0x908`, grows
+  its stack frame from `0x100` to `0x110`, and has 181 differing words. Normal
+  postprocessing rejects a shifted local-data binding; no tool change was made.
+- Local optimization level 2 grows `_SHOT` to `0xAA8`, with 633 differing
+  words and 210 complete-unit findings. It is rejected without further policy
+  trials on that changed body.
+
+None is retained. After the independent texture-hash fix, the normal object
+still has baseline SHA-256
+`d01bd5dead4c6225ddfd46d5b787b9b2a5d87eb7822f7ddafc86318ef237f082`.
+Its complete finding remains the single byte mismatch at `0x002D5DB2`, equal
+to round 2 and integration i12. Receipts are in
+`.private/receipts/regress/round3/actscript-*/` and `after-mg/`.
+
+The minimal proposed selector extension is an optional **semantic predicate
+context**, preserving the existing TU, enclosing function, float type/bits,
+and callee identity. For this case the meaningful discriminator is the
+enclosing equality test on the ranged-weapon attack type: 40 versus 90.
+A 160-first row restricted to the attack-type-90 branch would leave the
+already-matched attack-type-40 branch at the default policy. These are game
+values, not call occurrence numbers. Receiver spelling, argument position,
+and inline-origin identity cannot distinguish the recorded trees.
+
+This is a research proposal, not a supported profile row or a claim that the
+present hook can recover predicates. Satan's Fiddle would need verified
+provenance from the actual enclosing source predicate through optimized and
+cloned argument nodes to the consumer; current function/callee/constant logging
+does not establish that provenance. Reopen when that semantic identity is
+demonstrably stable across both mwccgap passes and temporary filenames, and
+the resulting complete unit has zero byte and relocation differences. No
+source line, instruction address, compiler-arena address, ordinal, invented
+helper, or wrapper change is part of this proposal.
