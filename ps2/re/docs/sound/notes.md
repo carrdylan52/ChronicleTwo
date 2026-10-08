@@ -190,3 +190,22 @@ sent when their length is nonzero and at most 512 as unsigned; oversized records
 are discarded. The full 512-byte record is transferred, and length is cleared
 regardless of transfer status. The active native body accesses fade members directly through the port array.
 Caching a MIDI_FADE pointer changes retail's separate field-address allocation.
+
+## Init compiler-policy exclusion
+
+`Init__6CSoundFiiii` contains no floating-point instructions or floating call
+arguments. Its remaining +0x518..+0x548 discrepancy is integer global-store
+scheduling: the zero store to port 11's `unk_00` occupies the configuration
+store slot, and the streams realign at +0x54C. There is no IEEE-valued argument
+consumer for an evaluate-first selector to identify.
+
+The canonical Satan's Fiddle build with GPR helper mask `0x30` / FPR `0`
+retains 12/480 differing instruction words and eight resolved-relocation
+errors in Init. GPR `0x10` / FPR `0` leaves those Init differences unchanged
+and additionally breaks `SQ_Play__6CSoundFiii` and `Step__6CSoundFv`. This mask
+is unsuitable for the complete sound unit; no new profile row is accepted.
+
+Blocker category: integer store scheduling, rather than floating argument
+order or the measured helper-history alternatives. The guard remains.
+Reconsider with a natural special-port assignment grouping that delays the
+port-11 zero without advancing another direction/relationship store.
