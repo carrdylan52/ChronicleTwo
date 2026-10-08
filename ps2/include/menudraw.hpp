@@ -141,6 +141,20 @@ enum MENU_PARTS_EFFECT_TYPE {
 
 /**
  *
+ * Rectangle of short edges as packed in the menu drawing tables.
+ *
+ */
+struct MENU_SHORT_RECT {
+    short left;   /**< Left edge. */
+    short top;    /**< Top edge. */
+    short right;  /**< Right edge, inclusive. */
+    short bottom; /**< Bottom edge, inclusive. */
+};
+
+STATIC_ASSERT(sizeof(MENU_SHORT_RECT) == 0x8);
+
+/**
+ *
  * Texture rectangle registered by name in a menu layout script, together
  * with the texture it is cut from.
  *

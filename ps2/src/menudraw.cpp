@@ -340,7 +340,7 @@ extern short baseposoffset_tbl_4194[23][2];
 
 extern short actposoffsettbl1_4195[3][18][2];
 
-extern mgRect<short> table_1650[3][3];
+extern MENU_SHORT_RECT table_1650[3][3];
 
 extern u8 rgbatbl_1379[4];
 
@@ -388,7 +388,7 @@ extern s16 frmtbl0_2922[16];
 
 extern s16 frmtbl1_2938[10];
 
-extern mgRect<short> item_transtbl[2];
+extern MENU_SHORT_RECT item_transtbl[2];
 
 extern int paint_color_table_1234[9][4];
 
