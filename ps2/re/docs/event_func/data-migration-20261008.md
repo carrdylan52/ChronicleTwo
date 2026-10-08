@@ -50,6 +50,13 @@ the existing bounded padding policy.
 Receipts: `.private/dataA-r3/event-{train-pos,train-etc,voice-pack}-{build,objects,hashes}.log`.
 Each topic passes PAL, all 149 objects and every unowned object hash.
 
+## Hit-effect direction
+
+`_HIT_EFFECT` initializes its default upward vector at the existing copy site,
+after reading the position. The `{0, 1, 0, 1}` local array replaces the external
+template and quadword type-pun. Its bytes and all caller instructions match.
+Receipt: `.private/dataA-r3/event-hit-direction-corrected-{build,objects,hashes}.log`.
+
 ## Retained markers
 
 The initialized-data markers are pending the following migration topics.

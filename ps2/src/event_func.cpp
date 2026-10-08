@@ -286,7 +286,6 @@ extern char            at_9744[];
 extern char            at_9745[];
 extern char            at_10100[];
 extern char            at_10101[];
-extern char            at_3339[];
 extern char            at_3631__2[];
 extern char            at_3632__2[];
 extern char            at_3633[];
@@ -5459,7 +5458,6 @@ int _SET_TALK_CAMERA(RS_STACKDATA *stack, int argc) {
 
 int _HIT_EFFECT(RS_STACKDATA *stack, int argc) {
     float position[4];
-    float direction[4];
     float spread;
     float speed;
     float power;
@@ -5471,7 +5469,7 @@ int _HIT_EFFECT(RS_STACKDATA *stack, int argc) {
     position[1] = GetStackFloat(stack++);
     position[2] = GetStackFloat(stack++);
     position[3] = 1.0f;
-    *(u_long128 *) direction = *(u_long128 *) at_3339;
+    float direction[4] = {0.0f, 1.0f, 0.0f, 1.0f};
     spread = 50.0f;
     speed = 35.0f;
     power = 0.0f;
@@ -17368,7 +17366,6 @@ void SetEventFunc(CRunScript *script) {
 // Initialised data (.data)
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/event_func", esa_ext_func_info__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/event_func", vv_3333__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/event_func", at_3339__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/event_func", ext_func_info__2__DATA);
 
 // Constants (.rodata)
