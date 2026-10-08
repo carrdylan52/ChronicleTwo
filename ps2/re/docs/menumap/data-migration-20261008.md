@@ -44,3 +44,29 @@ The final state passes the PAL verifier and all 149 object checks. Accepted
 step receipts are `.private/dataB-r1/menumap-{native-aggregates,script-tags,world-strings,sphida-strings,state,texture-table,geo-table,final}-{build,objects}.log`.
 The unsuccessful marker-removal probe and detailed checker output are
 `.private/dataB-r1/menumap-geo-without-markers-{build,objects}.log`.
+
+## Native data marker completion (round 1)
+
+The existing eleven-pointer `geo_table` supplies its 44-byte retail object
+and four-byte piece tail. Every code consumer establishes the table address;
+its nonpointer bytes, real R_MIPS_32 fields and pointed-to native literal bytes
+validate the identity. This table then anchors the one-byte empty literal;
+`g01` through `g05` retain their inline literal definitions. All seven held
+initialized pieces are native, with no synthetic source table or string.
+
+The three remaining BSS templates are the existing `names`, `put_pos` and
+`clear_names` aggregates, with declared sizes four, eight and eight bytes.
+Their consumers establish identity through the shared all-consumer matcher.
+The previously documented texture-table overflow and game function bodies
+are unchanged.
+
+All initialized-data and BSS markers are now absent. Refreshed objdiff
+`matched_data` changes from 172 to 898/898 bytes. All existing
+native functions and code bytes remain matched; no function is promoted.
+
+Validation receipts in `.private/dtool-r1/`: `final-build.log`,
+`final-objects.log`, `final-hashes.json`, `final-refresh.log`,
+`resume-metrics.json`, `final-tests.log` and `all-test-scripts.log`. The PAL
+verifier and all 149 canonical object comparisons pass. All 142 unowned
+object file hashes match the warm baseline. The retained-fallback audit
+finds no assembly-supplied piece credited as native data.
