@@ -17,7 +17,7 @@
 #include "snd_mngr.hpp"
 
 /**
- * Frames remaining before the conversion result display is reset.
+ * Display-time value recorded for the conversion result.
  */
 extern int ConvertResultDispTime;
 /**

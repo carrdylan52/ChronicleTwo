@@ -33,3 +33,10 @@ The accepted screen, conversion-literal and final state/local-buffer steps
 pass the PAL verifier and all 149 object checks. Marker counts decrease
 from 30 `INCLUDE_RODATA` and 19 `INCLUDE_BSS` to 0 and 9. Receipts:
 `.private/dataB-r1/convviewlp-{screen,conversion-literals,local-buffers-linked}-{build,objects}.log`.
+
+The refreshed progress report remains at matched_data 0 / total_data 2165
+before and after this migration. The source-only data naming/configuration
+limits make this metric distinct from the exact linked-object proof. The
+final receipts are `.private/dataB-r1/final-{build,objects,progress}.log`.
+`ConvertResultDispTime` is only written in this unit; its source comment
+states the recorded display-time value without claiming countdown behavior.
