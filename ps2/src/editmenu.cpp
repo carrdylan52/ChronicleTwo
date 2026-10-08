@@ -5527,28 +5527,3 @@ void MenuRemovalDraw() {
 }
 
 void CBaseMenuClass::InitEnd() {}
-
-
-
-// Virtual tables (.vtables)
-
-
-// Small uninitialised data (.sbss)
-INCLUDE_BSS(at_1556, 0x8);
-INCLUDE_BSS(at_1829__2, 0x8);
-INCLUDE_BSS(at_2434, 0x8);
-INCLUDE_BSS(at_3260, 0x4);
-INCLUDE_BSS(at_3268, 0x4);
-INCLUDE_BSS(at_4043, 0x8);
-INCLUDE_BSS(at_4085, 0x8);
-INCLUDE_BSS(at_4124, 0x8);
-INCLUDE_BSS(at_4137, 0x8);
-INCLUDE_BSS(at_4150, 0x8);
-
-// Uninitialised data (.bss)
-INCLUDE_BSS(at_1826__2, 0x10);
-INCLUDE_BSS(at_1827__2, 0x10);
-INCLUDE_BSS(at_2443, 0x40);
-INCLUDE_BSS(at_2444, 0x40);
-INCLUDE_BSS(at_3303, 0x30);
-INCLUDE_BSS(at_3304, 0x10);

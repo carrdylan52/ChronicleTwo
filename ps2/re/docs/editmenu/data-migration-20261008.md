@@ -385,3 +385,24 @@ c710caa1 Migrate editmenu initialized state and input tables
 
 The subsequent documentation-only checkpoint records this final receipt and
 ledger. Its hash is supplied in the lane's final report.
+
+## Native data marker completion (round 1)
+
+All sixteen remaining BSS reservations are supplied by the existing natural
+local aggregate initializers listed in `anonymous-data-20261008.md`. The
+shared matcher identifies each exact declared object through every live
+opcode-matched retail consumer; compiler counter values supply no identity.
+The existing arrays, rectangles, colours and pointer lists are unchanged.
+The anonymous-only private proposal is redundant with the round-0 support;
+round 1 strengthens all-consumer rejection and preserves native symbol order.
+
+All initialized-data and BSS markers are now absent. Refreshed objdiff
+`matched_data` changes from 3,450 to 6,086/6,086 bytes. All existing
+native functions and code bytes remain matched; no function is promoted.
+
+Validation receipts in `.private/dtool-r1/`: `final-build.log`,
+`final-objects.log`, `final-hashes.json`, `final-refresh.log`,
+`resume-metrics.json`, `final-tests.log` and `all-test-scripts.log`. The PAL
+verifier and all 149 canonical object comparisons pass. All 142 unowned
+object file hashes match the warm baseline. The retained-fallback audit
+finds no assembly-supplied piece credited as native data.
