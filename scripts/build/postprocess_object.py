@@ -413,10 +413,10 @@ def bind_local_data(elf, unit, placeholder_sections):
 
     held = sorted((address_of_section[i], i) for i in placeholder_sections
                   if i in address_of_section)
-    starts = [a for a, _i in held]
+    held_starts = [a for a, _i in held]
 
     def placeholder_at(address):
-        k = bisect.bisect_right(starts, address) - 1
+        k = bisect.bisect_right(held_starts, address) - 1
         if k < 0:
             return None
         start, index = held[k]
@@ -550,7 +550,9 @@ def bind_local_data(elf, unit, placeholder_sections):
                         or sections[to].sh_flags & SHF_EXECINSTR):
                     continue
                 ours = struct.unpack_from("<I", data, relocation.r_offset)[0]
-                found[to] = retail.word(base + relocation.r_offset) - ours - target.st_value
+                start = retail.word(base + relocation.r_offset) - ours - target.st_value
+                if placeholder_at(start) is not None:
+                    found[to] = start
         if not found:
             break
         for index, start in found.items():
