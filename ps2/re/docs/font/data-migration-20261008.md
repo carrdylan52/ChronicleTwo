@@ -2,7 +2,7 @@
 
 ## Baseline and validation
 
-The lane starts at `63 f 7 a 9 e 5`: all 45 font functions match, with 97
+The lane starts at `63f7a9e5`: all 45 font functions match, with 97
 `INCLUDE_RODATA` markers and 4 `INCLUDE_BSS` markers. The refreshed objdiff
 report records 0/7344 matched data bytes. Each accepted step passes the full
 149-object comparison with resolved relocations, produces `SCES_511.90: OK`,
@@ -29,9 +29,43 @@ The four BSS markers remain for shared-tool constraints. The existing
 postprocessor does not assign retail identities to anonymous NOBITS aggregate
 templates. The named buffer marker additionally preserves an exported symbol
 required by generated `vutext.data.s`: eight raw VU words are expressed as
-`FontTblBinBuff + 0x 2 FD` or `+ 0xAFE` despite having no retail relocation.
+`FontTblBinBuff + 0x2FD` or `+ 0xAFE` despite having no retail relocation.
 Removing the marker gives an exact font object but fails the full link because
 the natural static definition correctly has local binding. Keeping the native
 typed declaration with its marker lets the existing binder select the retained
 reservation and preserves the link. Shared-tool proposals and focused checks
 are stored privately; no tool or generated-file changes belong to this lane.
+
+## Glyph, tag, and code tables
+
+The existing header types and public declarations describe the native tables
+without changing any consumers:
+
+- `GaijiDataTbl`: 51 `GAIJI_DATA` rows of 14 bytes (714 declared bytes).
+  Each row contains a 16-bit code and six signed 16-bit texture/offset values.
+  Codes run from `0xFD00` to `0xFD31`; the final row has code `0xFFFF`.
+  Ten trailing bytes of its assembly piece are alignment, not extra rows.
+- `FconvCodeTbl`: 46 `FCONV_CODE` rows of 12 bytes (552 declared bytes),
+  comprising 44 named tags and two zero rows. The eight-byte tail of the
+  assembly piece is alignment. Tags such as `[select]`, `[start]`, and `[L1]`
+  are string literals in their table rows.
+- `FontGaijiConvTbl`: 24 `FCONV_CODE` rows (288 bytes), for codes `0xFDE0`
+  through `0xFDF7`. Its two-byte tag strings preserve the retail Shift-JIS
+  bytes with fixed-width octal escapes.
+- `alphabetical_chara_tbl`: 63 five-byte rows (315 bytes). Each row holds
+  a four-character tag payload plus its NUL; five trailing piece bytes are
+  alignment, not a 64th row.
+
+The half-width and wide kana lookup functions initialize their existing local
+wrapper types directly: 63 single-byte codes, 63 16-bit codes, and 24 16-bit
+font-gaiji codes respectively. Their declared extents are 63, 126, and 48
+bytes. They remain local copies rather than new global arrays.
+
+The three outline offset templates are emitted by the existing four-, eight-,
+and twelve-point local `int[][2]` initializers in `set2DSprite_Fuchi`. Their
+redundant markers can be removed without changing code or relocations.
+
+After these table steps, font has 19 RODATA markers and four BSS markers.
+The refreshed source-only objdiff metric remains 0/7344; that build does not
+run the final object's literal naming, piece ordering, and padding fixups.
+The final linked-object comparison verifies every migrated byte and relocation.

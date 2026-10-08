@@ -49,7 +49,6 @@ extern char                 at_848__4[];
 extern char                 at_849__3[];
 extern char                 at_850__3[];
 extern char                 at_936__5[26];
-extern HankakuKanaTable     at_1041__5;
 extern char                 at_1089[];
 extern char                 at_1090[];
 extern char                 at_1091[];
@@ -61,8 +60,6 @@ extern char                 at_1096[];
 extern char                 at_1097[];
 extern char                 at_1098[];
 extern char                 at_1099[];
-extern HankakuKanaWideTable at_1120;
-extern GaijiCodeTable       at_1137__2;
 extern char                 at_988__4[];
 extern char                 at_989__3[];
 extern char                 at_990__4[];
@@ -354,7 +351,16 @@ int GetGaijiLen(u16 code) {
 }
 
 u16 GetAlphabeticalFontNo_uc(u8 ch) {
-    HankakuKanaTable table = at_1041__5;
+    HankakuKanaTable table = {{
+        0xA1, 0xAA, 0xB0, 0xBA, 0xBF, 0xC0, 0xC1, 0xC2,
+        0xC3, 0xC4, 0xC5, 0xC6, 0xC7, 0xC8, 0xC9, 0xCA,
+        0xCB, 0xCC, 0xCD, 0xCE, 0xCF, 0xD1, 0xD2, 0xD3,
+        0xD4, 0xD5, 0xD6, 0xD9, 0xDA, 0xDB, 0xDC, 0xDD,
+        0xDF, 0xE0, 0xE1, 0xE2, 0xE3, 0xE4, 0xE5, 0xE6,
+        0xE7, 0xE8, 0xE9, 0xEA, 0xEB, 0xEC, 0xED, 0xEE,
+        0xEF, 0xF1, 0xF2, 0xF3, 0xF4, 0xF5, 0xF6, 0xF9,
+        0xFA, 0xFB, 0xFC, 0xFD, 0xFF, 0xBD, 0xBE,
+    }};
     int              i;
 
     if (LanguageCode == 1) {
@@ -440,7 +446,16 @@ u16 GetFontGaijiFontNo(char *text) {
 }
 
 u16 GetAlphabeticalFontNo_us(u16 code) {
-    HankakuKanaWideTable table = at_1120;
+    HankakuKanaWideTable table = {{
+        0xFFA1, 0xFFAA, 0xFFB0, 0xFFBA, 0xFFBF, 0xFFC0, 0xFFC1, 0xFFC2,
+        0xFFC3, 0xFFC4, 0xFFC5, 0xFFC6, 0xFFC7, 0xFFC8, 0xFFC9, 0xFFCA,
+        0xFFCB, 0xFFCC, 0xFFCD, 0xFFCE, 0xFFCF, 0xFFD1, 0xFFD2, 0xFFD3,
+        0xFFD4, 0xFFD5, 0xFFD6, 0xFFD9, 0xFFDA, 0xFFDB, 0xFFDC, 0xFFDD,
+        0xFFDF, 0xFFE0, 0xFFE1, 0xFFE2, 0xFFE3, 0xFFE4, 0xFFE5, 0xFFE6,
+        0xFFE7, 0xFFE8, 0xFFE9, 0xFFEA, 0xFFEB, 0xFFEC, 0xFFED, 0xFFEE,
+        0xFFEF, 0xFFF1, 0xFFF2, 0xFFF3, 0xFFF4, 0xFFF5, 0xFFF6, 0xFFF9,
+        0xFFFA, 0xFFFB, 0xFFFC, 0xFFFD, 0xFFFF, 0xFFBD, 0xFFBE,
+    }};
     int                  i;
 
     if (LanguageCode == 1) {
@@ -457,7 +472,11 @@ u16 GetAlphabeticalFontNo_us(u16 code) {
 }
 
 u16 GetFontNoFromFontGaijiCode(u16 code) {
-    GaijiCodeTable table = at_1137__2;
+    GaijiCodeTable table = {{
+        0xFDE0, 0xFDE1, 0xFDE2, 0xFDE3, 0xFDE4, 0xFDE5, 0xFDE6, 0xFDE7,
+        0xFDE8, 0xFDE9, 0xFDEA, 0xFDEB, 0xFDEC, 0xFDED, 0xFDEE, 0xFDEF,
+        0xFDF0, 0xFDF1, 0xFDF2, 0xFDF3, 0xFDF4, 0xFDF5, 0xFDF6, 0xFDF7,
+    }};
     int            i;
 
     if (LanguageCode == 1) {
@@ -1024,16 +1043,210 @@ void CFont::Init() {
 }
 
 // Initialised data (.data)
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/font", GaijiDataTbl__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/font", FconvCodeTbl__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/font", FontGaijiConvTbl__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/font", alphabetical_chara_tbl__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/font", at_1041__5__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/font", at_1120__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/font", at_1137__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/font", at_1255__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/font", at_1264__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/font", at_1272__2__DATA);
+/**
+ * Gives the texture rectangle and drawing offset of each external glyph.
+ */
+GAIJI_DATA GaijiDataTbl[GAIJI_DATA_NUM] = {
+    {0xFD00, 12, 176, 86, 22, 0, -4},
+    {0xFD01, 0, 154, 110, 22, 0, -4},
+    {0xFD02, 32, 132, 32, 22, 0, -4},
+    {0xFD03, 64, 132, 32, 22, 0, -4},
+    {0xFD04, 0, 132, 32, 22, 0, -4},
+    {0xFD05, 96, 132, 32, 22, 0, -4},
+    {0xFD06, 0, 22, 22, 22, -1, -3},
+    {0xFD07, 22, 22, 22, 22, -1, -3},
+    {0xFD08, 66, 22, 22, 22, -1, -3},
+    {0xFD09, 44, 22, 22, 22, -1, -3},
+    {0xFD0A, 0, 66, 22, 22, -2, -2},
+    {0xFD0B, 22, 66, 22, 22, -2, -2},
+    {0xFD0C, 44, 66, 22, 22, -2, -2},
+    {0xFD0D, 0, 88, 22, 22, -2, -4},
+    {0xFD0E, 22, 88, 22, 22, -2, -4},
+    {0xFD0F, 44, 88, 22, 22, -2, -4},
+    {0xFD10, 66, 66, 22, 22, -2, -4},
+    {0xFD11, 66, 88, 22, 22, -2, -4},
+    {0xFD12, 0, 204, 26, 26, 0, -4},
+    {0xFD13, 26, 204, 26, 26, 0, -4},
+    {0xFD14, 0, 230, 26, 26, 0, -4},
+    {0xFD15, 26, 230, 26, 26, 0, -4},
+    {0xFD16, 230, 118, 26, 26, 0, -4},
+    {0xFD17, 22, 110, 66, 22, 8, 0},
+    {0xFD18, 0, 44, 56, 22, 0, 0},
+    {0xFD19, 88, 224, 40, 32, 0, 0},
+    {0xFD1A, 88, 22, 22, 22, -2, -4},
+    {0xFD1B, 0, 0, 0, 0, 0, 0},
+    {0xFD1C, 0, 0, 0, 0, 0, 0},
+    {0xFD1D, 0, 0, 0, 0, 0, 0},
+    {0xFD1E, 0, 0, 0, 0, 0, 0},
+    {0xFD1F, 0, 0, 0, 0, 0, 0},
+    {0xFD20, 0, 0, 0, 0, 0, 0},
+    {0xFD21, 100, 44, 12, 18, -6, -3},
+    {0xFD22, 168, 232, 16, 24, 0, 0},
+    {0xFD23, 184, 232, 8, 24, 0, 0},
+    {0xFD24, 132, 104, 10, 16, 0, 0},
+    {0xFD25, 158, 240, 10, 16, 0, 0},
+    {0xFD26, 128, 122, 26, 18, 0, 0},
+    {0xFD27, 154, 122, 26, 18, 0, 0},
+    {0xFD28, 132, 238, 26, 18, 0, 0},
+    {0xFD29, 136, 200, 28, 30, 0, -4},
+    {0xFD2A, 164, 200, 28, 30, 0, -4},
+    {0xFD2B, 224, 144, 16, 22, 0, -2},
+    {0xFD2C, 240, 144, 16, 22, 0, -2},
+    {0xFD2D, 176, 170, 16, 30, 0, 0},
+    {0xFD2E, 204, 118, 26, 26, 0, -3},
+    {0xFD2F, 148, 110, 28, 30, 0, 0},
+    {0xFD30, 176, 110, 28, 30, 0, 0},
+    {0xFD31, 208, 144, 16, 20, 0, 0},
+    {0xFFFF, 222, 118, 34, 32, 0, 0},
+};
+/**
+ * Converts named text tags to external glyph codes.
+ */
+FCONV_CODE FconvCodeTbl[FCONV_CODE_NUM] = {
+    {"[select]", 8, 0xFD00},
+    {"[start]", 7, 0xFD01},
+    {"[l1]", 4, 0xFD02},
+    {"[r1]", 4, 0xFD03},
+    {"[l2]", 4, 0xFD04},
+    {"[r2]", 4, 0xFD05},
+    {"(O)", 3, 0xFD06},
+    {"(A)", 3, 0xFD07},
+    {"(X)", 3, 0xFD08},
+    {"(#)", 3, 0xFD09},
+    {"[+]", 3, 0xFD0A},
+    {"[-]", 3, 0xFD0B},
+    {"[|]", 3, 0xFD0C},
+    {"[!]", 3, 0xFD0D},
+    {"[heart]", 7, 0xFD0E},
+    {"[clef]", 6, 0xFD0F},
+    {"[dame]", 6, 0xFD10},
+    {"[sita]", 6, 0xFD11},
+    {"[weapon]", 8, 0xFD12},
+    {"[protector]", 11, 0xFD13},
+    {"[material]", 10, 0xFD14},
+    {"[tool]", 6, 0xFD15},
+    {"[parts]", 7, 0xFD16},
+    {"[hari]", 6, 0xFD17},
+    {"[button]", 8, 0xFD18},
+    {"[fish]", 6, 0xFD19},
+    {"[(!)]", 5, 0xFD1A},
+    {"[bulb]", 6, 0xFD21},
+    {"[*]", 3, 0xFD22},
+    {"[|~]", 4, 0xFD23},
+    {"[cross]", 7, 0xFD24},
+    {"[|>]", 4, 0xFD25},
+    {"[hp]", 4, 0xFD26},
+    {"[mp]", 4, 0xFD27},
+    {"[lv]", 4, 0xFD28},
+    {"(L)", 3, 0xFD29},
+    {"(R)", 3, 0xFD2A},
+    {"[bulb2]", 7, 0xFD2B},
+    {"[bulb3]", 7, 0xFD2C},
+    {"[tuck]", 6, 0xFD2D},
+    {"[spectrum]", 10, 0xFD2E},
+    {"(L3)", 4, 0xFD2F},
+    {"(R3)", 4, 0xFD30},
+    {"(regi)", 6, 0xFD31},
+    {NULL, 0, 0x0000},
+    {NULL, 0, 0x0000},
+};
+/**
+ * Converts encoded font tags to language-specific glyph codes.
+ */
+FCONV_CODE FontGaijiConvTbl[FONT_GAIJI_CONV_NUM] = {
+    {"\201\233", 2, 0xFDE0},
+    {"\201\234", 2, 0xFDE1},
+    {"\201\252", 2, 0xFDE2},
+    {"\201\253", 2, 0xFDE3},
+    {"\201\251", 2, 0xFDE4},
+    {"\201\250", 2, 0xFDE5},
+    {"\202O", 2, 0xFDE6},
+    {"\202P", 2, 0xFDE7},
+    {"\202Q", 2, 0xFDE8},
+    {"\202R", 2, 0xFDE9},
+    {"\202S", 2, 0xFDEA},
+    {"\202T", 2, 0xFDEB},
+    {"\202U", 2, 0xFDEC},
+    {"\202V", 2, 0xFDED},
+    {"\202W", 2, 0xFDEE},
+    {"\202X", 2, 0xFDEF},
+    {"\201F", 2, 0xFDF0},
+    {"\201{", 2, 0xFDF1},
+    {"\201|", 2, 0xFDF2},
+    {"\201E", 2, 0xFDF3},
+    {"\201g", 2, 0xFDF4},
+    {"\201h", 2, 0xFDF5},
+    {"\201e", 2, 0xFDF6},
+    {"\201f", 2, 0xFDF7},
+};
+/**
+ * Gives the alphabetical tag payload for each half-width glyph.
+ */
+char alphabetical_chara_tbl[ALPHABETICAL_CHARA_NUM][ALPHABETICAL_CHARA_LEN] = {
+    "0a1]",
+    "0aa]",
+    "0b0]",
+    "0ba]",
+    "0bf]",
+    "0c0]",
+    "0c1]",
+    "0c2]",
+    "0c3]",
+    "0c4]",
+    "0c5]",
+    "0c6]",
+    "0c7]",
+    "0c8]",
+    "0c9]",
+    "0ca]",
+    "0cb]",
+    "0cc]",
+    "0cd]",
+    "0ce]",
+    "0cf]",
+    "0d1]",
+    "0d2]",
+    "0d3]",
+    "0d4]",
+    "0d5]",
+    "0d6]",
+    "0d9]",
+    "0da]",
+    "0db]",
+    "0dc]",
+    "0dd]",
+    "0df]",
+    "0e0]",
+    "0e1]",
+    "0e2]",
+    "0e3]",
+    "0e4]",
+    "0e5]",
+    "0e6]",
+    "0e7]",
+    "0e8]",
+    "0e9]",
+    "0ea]",
+    "0eb]",
+    "0ec]",
+    "0ed]",
+    "0ee]",
+    "0ef]",
+    "0f1]",
+    "0f2]",
+    "0f3]",
+    "0f4]",
+    "0f5]",
+    "0f6]",
+    "0f9]",
+    "0fa]",
+    "0fb]",
+    "0fc]",
+    "0fd]",
+    "0ff]",
+    "152]",
+    "153]",
+};
 
 // Constants (.rodata)
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/font", at_812__3__DATA);
@@ -1042,74 +1255,6 @@ INCLUDE_RODATA("ps2/asm/pal/nonmatchings/font", at_848__4__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/font", at_849__3__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/font", at_850__3__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/font", at_936__5__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/font", at_938__4__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/font", at_939__3__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/font", at_940__3__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/font", at_941__4__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/font", at_942__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/font", at_943__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/font", at_944__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/font", at_945__4__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/font", at_946__3__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/font", at_947__3__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/font", at_948__3__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/font", at_949__4__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/font", at_950__3__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/font", at_951__3__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/font", at_952__3__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/font", at_953__3__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/font", at_954__3__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/font", at_955__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/font", at_956__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/font", at_957__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/font", at_958__4__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/font", at_959__4__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/font", at_960__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/font", at_961__3__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/font", at_962__3__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/font", at_963__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/font", at_964__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/font", at_965__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/font", at_966__3__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/font", at_967__3__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/font", at_968__3__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/font", at_969__3__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/font", at_970__4__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/font", at_971__4__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/font", at_972__4__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/font", at_973__5__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/font", at_974__4__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/font", at_975__4__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/font", at_976__3__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/font", at_977__3__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/font", at_978__3__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/font", at_979__5__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/font", at_980__3__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/font", at_981__3__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/font", at_982__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/font", at_983__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/font", at_984__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/font", at_985__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/font", at_986__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/font", at_987__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/font", at_988__4__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/font", at_989__3__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/font", at_990__4__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/font", at_991__5__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/font", at_992__4__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/font", at_993__3__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/font", at_994__3__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/font", at_995__3__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/font", at_996__3__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/font", at_997__3__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/font", at_998__3__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/font", at_999__3__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/font", at_1000__4__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/font", at_1001__4__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/font", at_1002__5__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/font", at_1003__4__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/font", at_1004__5__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/font", at_1005__5__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/font", at_1089__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/font", at_1090__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/font", at_1091__DATA);
