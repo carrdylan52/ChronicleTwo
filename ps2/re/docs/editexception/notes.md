@@ -125,3 +125,17 @@ after their first use or ordinary out-of-line definitions -- the header declares
 ## Constructor-backed allocations
 
 `InitFirePowder` uses native placement construction of `mgC3DSprite` in the guarded C++ draft; retail assembly remains active pending an exact match.
+
+## October 8 merged-base fire-powder audit
+
+`InitFirePowder` remains guarded at 150/216 positional differing words
+(0x35C/0x360 bytes) under the pinned profile. Its sprite allocation at +0x108
+has the known placement-new mismatch: retail branches on `v0` and copies to
+`s0` in the delay slot; native construction copies first and branches on
+`s0`. Constructor scheduling shifts the subsequent initialization and
+arithmetic. The natural sprite, frame and attribute types are retained.
+
+Blocker: placement-new construction scheduling. Reconsider after the
+constructor lane validates the sprite/null-result sequence, then remeasure
+the arithmetic tail; the current positional count does not establish that
+all remaining differences have that single cause.
