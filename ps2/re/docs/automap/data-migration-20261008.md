@@ -34,4 +34,18 @@ flag, and preserves the retail-local binding.
 
 Receipts: `02-symbols-build.log`, `02-symbols-objects.log`. All 149 units pass;
 PAL is OK; all 148 other object hashes remain unchanged. Marker counts become
-306/0; refreshed matched data becomes 188/21,300.
+306/0; refreshed matched data remains 28/21,300.
+
+## Dungeon map tile tables
+
+`MiniMapInfoData` at `0x33EE40` contains 18 writable `MINIMAP_INFO`
+aggregates, each with its 16-byte map name and 320 signed tile indices.
+All 18 names and all 5,760 tile indices are represented directly by the native
+initializer. The definition retains the public name, 0x2E20-byte declared
+extent, and existing header layout. The trailing 43 tile slots of each map
+are zero; tile values include the retail negative entries unchanged.
+
+Receipts: `03-tiles-build.log`, `03-tiles-objects.log`, `03-tiles-metrics.log`.
+All 149 units pass; PAL is OK; all 148 other object hashes remain unchanged.
+Marker counts become 305/0; matched data remains 28/21,300 while other pieces
+of the source-only `.data` section are incomplete.
