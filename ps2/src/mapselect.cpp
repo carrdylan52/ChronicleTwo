@@ -48,7 +48,7 @@ static int MapNameNum;
  * Points to map records in the map name storage arena.
  *
  */
-static MAP_NAME_INFO * map_name;
+static MAP_NAME_INFO *map_name;
 /**
  *
  * Tracks the next free quadword in the map name storage arena.
@@ -66,7 +66,7 @@ static int pCharBuff;
  * Points to the map name string buffer following its records.
  *
  */
-static char * CharBuff;
+static char *CharBuff;
 /**
  *
  * Selects the map record filled by the next script command.
@@ -96,7 +96,7 @@ static char *config_str[1] = {"Caption off"};
  * Points to the memory stack used by the map selection menu.
  *
  */
-static mgCMemory * MenuStack;
+static mgCMemory *MenuStack;
 /**
  *
  * Selects the current map selection screen.
@@ -150,7 +150,7 @@ static char SelectMapName[0x100] = "";
  * Points to the map name lists for each selection category.
  *
  */
-static char ** SelectMapList[MAP_SEL_TYPE_NUM];
+static char **SelectMapList[MAP_SEL_TYPE_NUM];
 /**
  *
  * Counts the map names in each selection category.
@@ -169,21 +169,6 @@ static int select__1049[16] = {0};
  *
  */
 static int top__1050[16] = {0};
-extern char             at_1040__4[];
-extern char             at_1043__3[];
-extern char             at_1044__2[];
-extern char             at_1045__3[];
-extern char             at_1103__4[];
-extern char             at_1104__6[];
-extern char             at_1105__3[];
-extern char             at_1323__3[];
-extern char             at_1324__2[];
-extern char             at_1469__4[];
-extern char             at_1470__3[];
-extern char             at_1471__3[];
-extern char             at_842__4[];
-extern char             at_859__3[];
-extern char             at_860__2[];
 int                     mlMAP_NAME_NUM(SPI_STACK *stack, int argc);
 int                     mlMAP_NAME(SPI_STACK *stack, int argc);
 static MAP_NAME_INFO   *GetMapNameInfo(int map_no);
@@ -199,6 +184,19 @@ static char            *GetLine(char **columns, char *position, char *end);
 static char *map_sel_type[MAP_SEL_TYPE_NUM] = {
     "New", "Georama", "PalmBlinks", "Submap", "Future", "Dungeon", "Event", "Special"
 };
+
+/**
+ *
+ * Points to the loaded event viewer records.
+ *
+ */
+EVENT_VIEW_INFO *EventInfo;
+/**
+ *
+ * Selects the boss event list when opening the event viewer.
+ *
+ */
+int BossBattleSelFlag;
 
 // Code (.text)
 /**
@@ -282,7 +280,7 @@ void LoadMapName(int language, u_long128 *buffer) {
     char path[0x80];
     int  size;
     MapNameNum = 0;
-    sprintf(path, at_842__4, language);
+    sprintf(path, "map/map%d.cfg", language);
 
     if (LoadFile2(path, buffer, &size, 0)) {
         CScriptInterpreter interpreter;
@@ -310,19 +308,19 @@ static MAP_NAME_INFO *GetMapNameInfo(int map_no) {
 void GetMapPath(char *path, char *name) {
     int   length = strlen(name);
     char *rest = name;
-    strcpy(path, at_859__3);
+    strcpy(path, "map/");
     strncat(path, name, 1);
-    strcat(path, at_860__2);
+    strcat(path, "/");
 
     if (length >= 3) {
         strncat(path, name, 3);
         rest = name + 3;
-        strcat(path, at_860__2);
+        strcat(path, "/");
     }
 
     if (length >= 6) {
         strncat(path, rest, 3);
-        strcat(path, at_860__2);
+        strcat(path, "/");
     }
 
     strcat(path, name);
@@ -529,7 +527,7 @@ int MapTypeSelect() {
         SelectMode = -1;
     }
 
-    cursor += sprintf(cursor, at_1040__4);
+    cursor += sprintf(cursor, "\n\n");
 
     for (int i = 0; i < 8; i++) {
         if (i == select) {
@@ -538,13 +536,13 @@ int MapTypeSelect() {
             cursor += sprintf(cursor, "  ");
         }
 
-        cursor += sprintf(cursor, at_1043__3, map_sel_type[i]);
+        cursor += sprintf(cursor, "%s", map_sel_type[i]);
 
         if (i == select) {
-            cursor += sprintf(cursor, at_1044__2);
+            cursor += sprintf(cursor, "<<");
         }
 
-        cursor += sprintf(cursor, at_1045__3);
+        cursor += sprintf(cursor, "\n");
     }
 
     GetDebugFont()->DrawDirect(text, 10, 10);
@@ -622,7 +620,7 @@ int MapSelect() {
     }
 
     int selected_map_no = SearchMapNo(SelectMapList[SelectMapType][*selected]);
-    cursor += sprintf(cursor, at_1103__4, selected_map_no);
+    cursor += sprintf(cursor, "\n\nMapNo = %d\n", selected_map_no);
     int end = *top + 8;
 
     if (count < end) {
@@ -638,26 +636,26 @@ int MapSelect() {
             cursor += sprintf(cursor, "  ");
         }
 
-        cursor += sprintf(cursor, at_1043__3, SelectMapList[SelectMapType][i]);
+        cursor += sprintf(cursor, "%s", SelectMapList[SelectMapType][i]);
 
         if (selected_map_no < 0) {
-            cursor += sprintf(cursor, at_1104__6);
+            cursor += sprintf(cursor, "   *");
         } else {
-            cursor += sprintf(cursor, at_1105__3);
+            cursor += sprintf(cursor, "    ");
         }
 
         name = NULL;
         GetMapName(map_no, &name);
 
         if (name != NULL) {
-            cursor += sprintf(cursor, at_1043__3, name);
+            cursor += sprintf(cursor, "%s", name);
         }
 
         if (i == *selected) {
-            cursor += sprintf(cursor, at_1044__2);
+            cursor += sprintf(cursor, "<<");
         }
 
-        cursor += sprintf(cursor, at_1045__3);
+        cursor += sprintf(cursor, "\n");
     }
 
     GetDebugFont()->DrawDirect(text, 10, 10);
@@ -886,7 +884,7 @@ int SaveDataEditLoop() {
 int EventViewLoop() {
     char            text[0x400];
     char           *cursor = text;
-    cursor += sprintf(cursor, at_1323__3);
+    cursor += sprintf(cursor, "\nEvent \n");
 
     if (BossBattleSelFlag != 0) {
         if (top_event < BossEventTop) {
@@ -908,7 +906,7 @@ int EventViewLoop() {
         EVENT_VIEW_INFO *info = &EventInfo[index];
 
         if (info->name != NULL) {
-            cursor += sprintf(cursor, at_1324__2, marker.text[index == top_event + sel_event],
+            cursor += sprintf(cursor, "%s%s   %s\n", marker.text[index == top_event + sel_event],
                               info->name, info->detail);
         }
     }
@@ -1125,8 +1123,8 @@ void AtraMiriaOnOff(int mode, CCharacter2 *chara, int enable) {
     }
 
     if (mode == 0) {
-        left = frame->SearchFrame(at_1469__4);
-        right = frame->SearchFrame(at_1470__3);
+        left = frame->SearchFrame("atoramiria");
+        right = frame->SearchFrame("himo");
 
         if (enable) {
             if (left != NULL) {
@@ -1148,7 +1146,7 @@ void AtraMiriaOnOff(int mode, CCharacter2 *chara, int enable) {
     }
 
     if (mode == 1) {
-        left = frame->SearchFrame(at_1469__4);
+        left = frame->SearchFrame("atoramiria");
 
         if (enable) {
             if (left != NULL) {
@@ -1162,7 +1160,7 @@ void AtraMiriaOnOff(int mode, CCharacter2 *chara, int enable) {
     }
 
     if (mode == 2) {
-        right = frame->SearchFrame(at_1471__3);
+        right = frame->SearchFrame("atora");
 
         if (enable) {
             if (right != NULL) {
@@ -1176,52 +1174,6 @@ void AtraMiriaOnOff(int mode, CCharacter2 *chara, int enable) {
     }
 }
 
-// Initialised data (.data)
-
-// Constants (.rodata)
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mapselect", at_842__4__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mapselect", at_859__3__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mapselect", at_860__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mapselect", at_1004__4__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mapselect", at_1005__4__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mapselect", at_1040__4__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mapselect", at_1043__3__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mapselect", at_1044__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mapselect", at_1045__3__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mapselect", at_1103__4__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mapselect", at_1104__6__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mapselect", at_1105__3__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mapselect", at_1222__5__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mapselect", at_1223__5__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mapselect", at_1224__5__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mapselect", at_1225__5__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mapselect", at_1226__5__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mapselect", at_1227__4__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mapselect", at_1228__4__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mapselect", at_1323__3__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mapselect", at_1324__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mapselect", at_1372__3__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mapselect", at_1373__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mapselect", at_1469__4__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mapselect", at_1470__3__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mapselect", at_1471__3__DATA);
-
-// Small initialised data (.sdata)
-
 // Small uninitialised data (.sbss)
 INCLUDE_BSS(select_1009, 0x4);
 INCLUDE_BSS(init_1010, 0x4);
-/**
- *
- * Points to the loaded event viewer records.
- *
- */
-EVENT_VIEW_INFO * EventInfo;
-/**
- *
- * Selects the boss event list when opening the event viewer.
- *
- */
-int BossBattleSelFlag;
-
-// Uninitialised data (.bss)

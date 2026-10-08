@@ -90,3 +90,20 @@ Every accepted step passes PAL, all 149 objects and all 148 other hashes.
 The rejected isolated-template object receipt is
 `mapselect-at_1125-ungrouped-objects.log`; its source is
 `failed-mapselect-at_1125.cpp`. Markers are now 26/2.
+
+## Inline strings and final checkpoint
+
+The remaining 26 string markers now come from inline literals, including the
+map file paths, menu displays, save editor labels, event viewer formats and
+Atlamillia frame names. Several displays already used literals; removing their
+markers now leaves the compiler's own pooled strings as the only definitions.
+Every string has a separate `mapselect-<retail name>-{build,objects,hashes}.log`
+receipt, and each accepted step passes PAL, all 149 objects and all 148 other
+object hashes.
+
+Markers change from 52/21 to 0/2 (`INCLUDE_RODATA`/`INCLUDE_BSS`):
+71 markers are removed. Only the compiler's local-static selection and guard
+identities still use reservations. Refreshed `matched_data` remains
+32,832/33,980; all 23 native functions remain exact. Final receipts are
+`07-mapselect-final-{build,objects,hashes}.log`,
+`07-mapselect-refresh.log` and `07-mapselect-metrics.json`.
