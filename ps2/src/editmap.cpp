@@ -2003,7 +2003,6 @@ int emapEDIT_RIVER(SPI_STACK *stack, int argc) {
  * Loads a named river part and its map piece model.
  *
  */
-#ifdef NONMATCHING
 int emapRIVER_PARTS_NAME(SPI_STACK *stack, int argc) {
     int index = spiGetStackInt(stack++);
 
@@ -2026,7 +2025,7 @@ int emapRIVER_PARTS_NAME(SPI_STACK *stack, int argc) {
         attr.obj_alpha = 0.0f;
         attr.clip_enable = 1;
         attr.alpha_ref = 0;
-        attr.z_write = -1;
+        attr.z_write = MG_ZBUF_NO_WRITE;
         emapMap->river_piece[index]->AssignMds(mds);
         mgCFrame *frame = emapMap->river_piece[index]->frame;
 
@@ -2037,20 +2036,16 @@ int emapRIVER_PARTS_NAME(SPI_STACK *stack, int argc) {
 
     return 1;
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/editmap", emapRIVER_PARTS_NAME__FP9SPI_STACKi);
-#endif
 
 /**
  *
  * Loads the map mask piece model.
  *
  */
-#ifdef NONMATCHING
 int emapMASK_PARTS_NAME(SPI_STACK *stack, int argc) {
     int index = spiGetStackInt(stack++);
 
-    if (index < 0 || index > 0) {
+    if (index < 0 || index >= EDIT_MAP_MASK_PIECE_MAX) {
         return 0;
     }
 
@@ -2067,7 +2062,7 @@ int emapMASK_PARTS_NAME(SPI_STACK *stack, int argc) {
         attr.obj_alpha = 0.0f;
         attr.clip_enable = 1;
         attr.alpha_ref = 0;
-        attr.z_write = -1;
+        attr.z_write = MG_ZBUF_NO_WRITE;
         emapMap->mask_piece[index]->AssignMds(mds);
         mgCFrame *frame = emapMap->mask_piece[index]->frame;
 
@@ -2078,16 +2073,12 @@ int emapMASK_PARTS_NAME(SPI_STACK *stack, int argc) {
 
     return 1;
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/editmap", emapMASK_PARTS_NAME__FP9SPI_STACKi);
-#endif
 
 /**
  *
  * Loads the map water piece model.
  *
  */
-#ifdef NONMATCHING
 int emapWATER_PARTS_NAME(SPI_STACK *stack, int argc) {
     CMdsInfo  *mds = emapMap->SearchMDS(spiGetStackString(stack));
     CMapPiece *piece;
@@ -2099,7 +2090,7 @@ int emapWATER_PARTS_NAME(SPI_STACK *stack, int argc) {
     if (mds != NULL) {
         emapMap->water_piece->AssignMds(mds);
         mgCFrameAttr attr;
-        attr.z_write = -1;
+        attr.z_write = MG_ZBUF_NO_WRITE;
         attr.clip_enable = 1;
 
         if (emapMap->water_piece->frame != NULL) {
@@ -2109,9 +2100,6 @@ int emapWATER_PARTS_NAME(SPI_STACK *stack, int argc) {
 
     return 1;
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/editmap", emapWATER_PARTS_NAME__FP9SPI_STACKi);
-#endif
 
 /**
  *
