@@ -1712,6 +1712,7 @@ static inline MC_CARD_INFO *GetSaveMenuCard(int port) {
 }
 #ifdef NONMATCHING
 int CSaveMenuClass::KeyStep(void) {
+    int                 transferred;
     int                 finished;
     CDC2Mes            *fileMes;
     CDC2Mes            *titleMes;
@@ -1791,8 +1792,7 @@ int CSaveMenuClass::KeyStep(void) {
                     ResetMapInfo();
                     ReStartEnvSoundMenu();
                     MenuMainScene->StopBGM(0);
-                    MenuMainScene->LoadBGM(bgm_status.load_no,
-                                           SaveMenuStack.stack + SaveMenuStack.stack_used);
+                    MenuMainScene->LoadBGM(bgm_status.load_no, SaveMenuStack.stGetTop());
                     MenuMainScene->SetActiveBgmStatus(&bgm_status);
                     MenuMainScene->StepSnd();
                 }
@@ -1872,7 +1872,8 @@ int CSaveMenuClass::KeyStep(void) {
                     }
                     break;
                 case SAVE_MENU_PAGE_FILE_READ:
-                    StepMenuDl2(MemoryCardPtr->total_transferred);
+                    transferred = MemoryCardPtr->total_transferred;
+                    StepMenuDl2(transferred);
                     card = GetSaveMenuCard(slot);
                     if (stepResult != 0) {
                         if (McCheckMCPs2(card) == 0) {
@@ -2038,7 +2039,8 @@ int CSaveMenuClass::KeyStep(void) {
                             case SAVE_LIST_PHASE_UNK_7:
                                 break;
                             case SAVE_LIST_PHASE_SAVING:
-                                StepMenuDl2(MemoryCardPtr->total_transferred + dl_base);
+                                transferred = MemoryCardPtr->total_transferred;
+                                StepMenuDl2(dl_base + transferred);
                                 if (stepResult != 0) {
                                     if (error->code != 0) {
                                         printf(at_2504__2, error->code);
@@ -2072,7 +2074,8 @@ int CSaveMenuClass::KeyStep(void) {
                                 }
                                 break;
                             case SAVE_LIST_PHASE_MAKING_DIR:
-                                StepMenuDl2(MemoryCardPtr->total_transferred);
+                                transferred = MemoryCardPtr->total_transferred;
+                                StepMenuDl2(transferred);
                                 if (stepResult != 0) {
                                     card = GetSaveMenuCard(slot);
                                     if (McCheckMCPs2(card) == 0) {
@@ -2123,7 +2126,8 @@ int CSaveMenuClass::KeyStep(void) {
                                 }
                                 break;
                             case SAVE_LIST_PHASE_LOADING:
-                                StepMenuDl2(MemoryCardPtr->total_transferred);
+                                transferred = MemoryCardPtr->total_transferred;
+                                StepMenuDl2(transferred);
                                 if (stepResult != 0) {
                                     card = GetSaveMenuCard(slot);
                                     if (error->code != 0) {
@@ -2337,7 +2341,7 @@ int CSaveMenuClass::KeyStep(void) {
             }
         }
     }
-    if ((next < 0) == false || first_step != 0) {
+    if (0 <= next || first_step != 0) {
         switch (next) {
             case SAVE_MENU_PAGE_SLOT_SELECT:
                 phase = 0;
