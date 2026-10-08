@@ -12,28 +12,110 @@
 #include "hddinstall.hpp"
 #include "mglib.hpp"
 
-// Initialised data (.data)
+/**
+ *
+ * Root directory restored when changing the file device or current directory.
+ *
+ */
 static char TopDir[256] = "";
+
+/**
+ *
+ * Directory prepended to file names without an explicit device prefix.
+ *
+ */
 static char CurrentDir__2[256] = "";
-// Small initialised data (.sdata)
+
+/**
+ *
+ * Device selected for file names without a device prefix.
+ *
+ */
 static int DefaultFileDev = FILE_DEV_CDROM;
 
-// Small uninitialised data (.sbss)
+/**
+ *
+ * Number of file records loaded from DATA.HD4.
+ *
+ */
 static int header_num;
+
+/**
+ *
+ * Logical sector at which DATA.DAT begins on the disc.
+ *
+ */
 static int data_sector;
+
+/**
+ *
+ * Callback receiving failed hard-disk file operation results.
+ *
+ */
 static int (*error_cb)(int);
+
+/**
+ *
+ * Vsync count at which the background-read queue was last stepped.
+ *
+ */
 static int old_vsync;
+
+/**
+ *
+ * Background-read steps elapsed since the current request was issued.
+ *
+ */
 static int start_vsync;
 
-// Uninitialised data (.bss)
-u_char              header_buff[0x50000];
-static BG_READ_INFO bg_read_info[32];
-static FILE_CACHE   FileCache[16];
+/**
+ *
+ * Loaded DATA.HD4 records and their file-name text.
+ *
+ */
+u_char header_buff[0x50000];
 
-static u_int     *packfile_buff;
+/**
+ *
+ * Background file-read request slots.
+ *
+ */
+static BG_READ_INFO bg_read_info[32];
+
+/**
+ *
+ * File names, addresses, and pending uses held by the cache.
+ *
+ */
+static FILE_CACHE FileCache[16];
+
+/**
+ *
+ * Pack-file buffer cleared when initializing the disc file index.
+ *
+ */
+static u_int *packfile_buff;
+
+/**
+ *
+ * Aligned base address of the file-cache memory region.
+ *
+ */
 static u_long128 *CacheAddress;
-static int        NowCacheAddress;
-static int        FileCacheType;
+
+/**
+ *
+ * Next quadword address used to allocate a cached file.
+ *
+ */
+static u_long128 *NowCacheAddress;
+
+/**
+ *
+ * Direction in which the cache allocates file data.
+ *
+ */
+static int FileCacheType;
 
 static DATA_HEADER *SearchFile(char *name);
 static int          GetDevType(char *path, char *out_name);
@@ -850,10 +932,10 @@ void InitFileCache(u_long128 *address, int type) {
 
     if (type == FILE_CACHE_DOWN || type == FILE_CACHE_UP) {
         CacheAddress = (u_long128 *) align_size((u_int) address, 64);
-        NowCacheAddress = (int) CacheAddress;
+        NowCacheAddress = CacheAddress;
 
         if (type == FILE_CACHE_DOWN) {
-            NowCacheAddress -= 64;
+            NowCacheAddress -= 4;
         }
 
         FileCacheType = type;
@@ -889,7 +971,7 @@ static int EntryFileCache(char *path, u_long128 *address, int size) {
 int LoadFileCacheBG(char *path) {
     int         size;
     int         aligned;
-    int         buffer;
+    u_long128  *buffer;
     FILE_CACHE *entry;
 
     if (path == NULL || *(s8 *) path == 0) {
@@ -909,27 +991,27 @@ int LoadFileCacheBG(char *path) {
 
     size = 0;
 
-    if (LoadFile2(path, NULL, &size, 1) == 0) {
+    if (LoadFile2(path, NULL, &size, LOAD_FILE_SIZE) == 0) {
         return 0;
     }
 
     aligned = align_size(size, 0x800);
     buffer = NowCacheAddress;
 
-    if (FileCacheType == 1) {
-        NowCacheAddress -= aligned / 16 * 16;
+    if (FileCacheType == FILE_CACHE_DOWN) {
+        NowCacheAddress -= aligned / 16;
         buffer = NowCacheAddress;
     }
 
-    if (FileCacheType == 2) {
-        NowCacheAddress += aligned / 16 * 16;
+    if (FileCacheType == FILE_CACHE_UP) {
+        NowCacheAddress += aligned / 16;
     }
 
-    if (LoadFileBG(path, (u_long128 *) buffer, NULL) == 0) {
+    if (LoadFileBG(path, buffer, NULL) == 0) {
         return 0;
     }
 
-    return EntryFileCache(path, (u_long128 *) buffer, size);
+    return EntryFileCache(path, buffer, size);
 }
 
 /**

@@ -72,3 +72,27 @@ Acceptance: `.private/dataC-r2/dataread-bg-fields-{build,objects}.log` and
 `dataread-cd-header-fields-{build,objects}.log`. Every code byte and resolved
 relocation remains exact; both complete images, all 149 objects, and all
 unowned hashes pass. Data counts and the single parked marker are unchanged.
+
+## Typed cache allocation and global declarations
+
+`NowCacheAddress` and the pending `LoadFileCacheBG` buffer use
+`u_long128*`, matching the existing cache base and request-buffer type.
+Downward initialization subtracts four quadwords (64 bytes); subsequent
+allocations move by the aligned byte count divided by 16. The pointer
+updates preserve the original instruction bytes without integer-address
+round trips. Read-size and allocation-direction tests use their existing
+enum constants. Every file-scope data definition has a purpose comment.
+
+Acceptance: `.private/dataC-r2/dataread-cache-pointer-final-{build,objects}.log`
+and `dataread-cache-pointer-final-metrics.json`. The complete PAL image,
+all 149 objects, and every unowned object hash pass. The unit remains
+0 rodata / 1 BSS marker and 850 / 339554 native data bytes.
+
+Making `header_buff` file-local, as its retail binding suggests, currently
+leaves references unresolved in `intr`, `libgraph`, `libdev`, and
+`e_rem_pio2`. The split library assembly identifies unrelocated numeric
+words as symbol references; changing game-source binding cannot repair
+that interpretation. The declaration therefore keeps its established
+external binding. Receipt:
+`.private/dataC-r2/dataread-static-header-build.log`; the shared-tool
+proposal is `.private/proposals/dataC-r2-library-numeric-words.patch`.
