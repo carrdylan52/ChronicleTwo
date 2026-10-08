@@ -5,9 +5,9 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[2]
 
 
-def apply_patch():
+def apply_patch(patch_name):
     module = ROOT / 'tools/mwccgap'
-    patch = ROOT / 'scripts/build/patches/mwccgap-elf.patch'
+    patch = ROOT / 'scripts/build/patches' / patch_name
     if not (module / 'mwccgap.py').exists():
         raise RuntimeError('Initialize submodules before building')
     command = ['git', '-C', str(module), 'apply']
@@ -19,4 +19,6 @@ def apply_patch():
 
 
 if __name__ == '__main__':
-    apply_patch()
+    # Separate patches also upgrade checkouts with the ELF patch already applied.
+    apply_patch('mwccgap-elf.patch')
+    apply_patch('mwccgap-repro.patch')
