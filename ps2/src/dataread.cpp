@@ -12,25 +12,6 @@
 #include "hddinstall.hpp"
 #include "mglib.hpp"
 
-extern char at_183[];
-extern char at_190[];
-extern char at_369__2[];
-extern char at_370[];
-extern char at_438[];
-extern char at_439[];
-extern char at_440[];
-extern char at_441[];
-extern char at_530[];
-extern char at_531[];
-extern char at_532[];
-extern char at_533[];
-extern char at_534[];
-extern char at_564[];
-extern char at_571[];
-extern char at_659[];
-extern char at_660[];
-extern char at_713[];
-extern char at_714[];
 
 /**
  *
@@ -130,8 +111,8 @@ int ChangeHddFile() {
     }
 
     DefaultFileDev = FILE_DEV_HDD;
-    strcpy(TopDir, at_183);
-    strcpy(CurrentDir__2, at_183);
+    strcpy(TopDir, "/");
+    strcpy(CurrentDir__2, "/");
     return 1;
 }
 
@@ -142,8 +123,8 @@ int ChangeDefaultFile() {
 
     UmountHDDFileSystem();
     DefaultFileDev = FILE_DEV_CDROM;
-    strcpy(TopDir, at_190);
-    strcpy(CurrentDir__2, at_190);
+    strcpy(TopDir, "");
+    strcpy(CurrentDir__2, "");
     return 1;
 }
 
@@ -490,8 +471,8 @@ void InitCDFile() {
     packfile_buff = 0;
 
     do {
-        if (sceCdSearchFile((sceCdlFILE *) file, at_438) == 0) {
-            while (sceCdSearchFile((sceCdlFILE *) file, at_438) == 0) {
+        if (sceCdSearchFile((sceCdlFILE *) file, "\\DATA.DAT;1") == 0) {
+            while (sceCdSearchFile((sceCdlFILE *) file, "\\DATA.DAT;1") == 0) {
             }
         }
 
@@ -499,10 +480,10 @@ void InitCDFile() {
     } while (sceCdGetError() != 0);
 
     data_sector = file[0];
-    fd = sceOpen(at_439, 1);
+    fd = sceOpen("cdrom0:\\DATA.HD4;1", 1);
 
     if (fd < 0) {
-        printf(at_440);
+        printf("File open error \"\"\n \n \n");
         Exit__2(0);
     }
 
@@ -510,7 +491,7 @@ void InitCDFile() {
     sceLseek(fd, 0, 0);
     sceRead(fd, header_buff, header_size);
     sceClose(fd);
-    printf(at_441, header_size, 0x50000);
+    printf("head size = %d/%d\n", header_size, 0x50000);
     base = (int) header_buff;
     i = 0;
     offset = 0;
@@ -575,23 +556,23 @@ static int GetDevType(char *path, char *out_name) {
         strcpy(out_name, path);
     }
 
-    if (strcmp(device, at_530) == 0) {
+    if (strcmp(device, "host:") == 0) {
         return 0;
     }
 
-    if (strcmp(device, at_531) == 0) {
+    if (strcmp(device, "host0:") == 0) {
         return 0;
     }
 
-    if (strcmp(device, at_532) == 0) {
+    if (strcmp(device, "cdrom:") == 0) {
         return 1;
     }
 
-    if (strcmp(device, at_533) == 0) {
+    if (strcmp(device, "net:") == 0) {
         return 2;
     }
 
-    return strcmp(device, at_534) == 0 ? 3 : -1;
+    return strcmp(device, "psf0:") == 0 ? 3 : -1;
 }
 
 /**
@@ -633,11 +614,11 @@ static int GetFullPath(char *path, char *out_path) {
     prefix.init = at_554;
 
     if (device == 0) {
-        strcpy(prefix.text, at_530);
+        strcpy(prefix.text, "host:");
     }
 
     if (device == 3) {
-        strcpy(prefix.text, at_564);
+        strcpy(prefix.text, "pfs0:");
     }
 
     strcpy(out_path, prefix.text);
@@ -657,7 +638,7 @@ static int GetFullPath(char *path, char *out_path) {
 
 int LoadFile(char *path, void *buffer, int *out_size) {
     if (!LoadFile2(path, buffer, out_size, LOAD_FILE_READ)) {
-        printf(at_571, path);
+        printf("File open error \"%s\"\n \n \n", path);
         Exit__2(0);
     }
 
@@ -689,7 +670,7 @@ int LoadFile2(char *path, void *buffer, int *out_size, int mode) {
             *out_size = cache->size;
         }
 
-        printf(at_659, path);
+        printf("file cache %s\n", path);
         return 1;
     }
 
@@ -702,7 +683,7 @@ int LoadFile2(char *path, void *buffer, int *out_size, int mode) {
     }
 
     if (dev == FILE_DEV_NET) {
-        printf(at_660, full_path.text);
+        printf("load %s\n", full_path.text);
         size = LoadFileSocket(full_path.text, (u_int *) buffer);
 
         if (out_size) {
@@ -734,7 +715,7 @@ int LoadFile2(char *path, void *buffer, int *out_size, int mode) {
         return CDRead(full_path.text, (u_int *) buffer, out_size);
     }
 
-    printf(at_660, full_path.text);
+    printf("load %s\n", full_path.text);
 
     // Every failing hard-disk operation is reported to the error callback.
     if (dev == FILE_DEV_HDD) {
@@ -837,14 +818,14 @@ int LoadFile2(char *path, void *buffer, int *out_size, int mode) {
 static int CDRead(char *path, u_int *buffer, int *out_size) {
     int       *entry;
     sceCdRMode mode;
-    printf(at_713, path);
+    printf("Load %s\n", path);
     entry = (int *) SearchFile(path);
 
     if (entry == NULL) {
         return 0;
     }
 
-    printf(at_714, entry[0], entry[2], size_to_sector(entry[1]));
+    printf("%s %d %d\n", entry[0], entry[2], size_to_sector(entry[1]));
     mode.trycount = 0;
     mode.spindlctrl = 1;
     mode.datapattern = 0;
@@ -1041,7 +1022,7 @@ int WriteFile(char *path, void *buffer, int size) {
     int           fd;
 
     if (GetFullPath(path, full_path.text) == 2) {
-        printf(at_660, full_path.text);
+        printf("load %s\n", full_path.text);
         WriteFileSocket(full_path.text, (u32 *) buffer, size);
         return 1;
     }
@@ -1246,26 +1227,6 @@ void DivPathNameExt(char *path, char *out_dir, char *out_name, char *out_ext) {
     strcpy(out_ext, cursor);
 }
 
-// Constants (.rodata)
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dataread", at_183__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dataread", at_190__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dataread", at_369__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dataread", at_370__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dataread", at_438__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dataread", at_439__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dataread", at_440__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dataread", at_441__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dataread", at_530__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dataread", at_531__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dataread", at_532__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dataread", at_533__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dataread", at_534__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dataread", at_564__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dataread", at_571__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dataread", at_659__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dataread", at_660__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dataread", at_713__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dataread", at_714__DATA);
 
 INCLUDE_BSS(at_259, 0x100);
 INCLUDE_BSS(at_554, 0x10);
