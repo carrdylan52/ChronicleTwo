@@ -6,9 +6,9 @@ and menu overlays in retail order. Its native body is exact.
 `GyoraceMenuDraw` is native and exact.
 The `SettingAqua` draft constructs its `love_chara` member as a `CCharacter2`.
 
-`DrawFishParam`, `CAquarium::ColCheck`,
 `CAquarium::Step` retains a `NONMATCHING` draft with a retail `INCLUDE_ASM`
-fallback. `GyoraceMenuKey` is native and exact.
+fallback. `DrawFishParam` and `CAquarium::ColCheck` are native and exact; see
+[night-20261008.md](night-20261008.md). `GyoraceMenuKey` is native and exact.
 
 `CAquaFish::SetAdjustScale` (0x20F0E0, size 0x8C) is native and exact. It
 computes a size-dependent scale, applies it to all three axes, and derives the
@@ -306,7 +306,8 @@ ColCheck byte mismatch. This improves on the declaration-position swap but remai
   temporary declarations produces **89**. Reconsider with evidence for a
   natural local lifetime or type correction that yields the retail allocation.
 
-- `DrawFishParam__FiiP10mgCTextureP13CGameDataUsed`: **652/704 words**, compiled
+- `DrawFishParam__FiiP10mgCTextureP13CGameDataUsed` (now exact; the forms that
+  match are in [night-20261008.md](night-20261008.md)). Earlier state: **652/704 words**, compiled
   **0xAA4**, retail extent **0xB00**. Retail uses a **0x450** stack frame;
   draft uses **0x430**. Fresh rectangle temporaries for the three unknown-weight
   glyphs restore the frame size but still leave **651** differing words and
