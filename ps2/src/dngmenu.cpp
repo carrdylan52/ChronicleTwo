@@ -1322,11 +1322,11 @@ extern const short *RootHokanTablePtrTable_2240__DATA[];
 /** Room interpolation point tables, indexed by entry and exit direction. */
 extern const short *RoomHokanTablePtrTable_2245__DATA[];
 /** Point order of passage routes, indexed by shape and direction. */
-extern const signed char is_reverse_tbl_2246__DATA[];
+extern const signed char is_reverse_tbl_2246__DATA[][4];
 /** Room interpolation table selected by entry and exit direction. */
-extern const signed char old_hokantbl_useno_2247__DATA[];
+extern signed char old_hokantbl_useno_2247__DATA[8];
 /** Point order of entry and exit room interpolation tables. */
-extern const signed char is_reverse_tbl_room_2248__DATA[];
+extern signed char is_reverse_tbl_room_2248__DATA[8];
 
 /**
  *
@@ -1357,7 +1357,7 @@ int CDngFreeMap::LoadDngInfo(mgCMemory *stack, int block, int dungeon, int room,
     user_room_no = room;
     next_room_no = next_room;
     GetRoomGlid(user_room_no);
-    if (next_room_no >= 0) {
+    if (0 <= next_room_no) {
         GetRoomGlid(next_room_no);
     }
     select_glid = NULL;
@@ -1386,7 +1386,8 @@ int CDngFreeMap::LoadDngInfo(mgCMemory *stack, int block, int dungeon, int room,
     CalcGlidPutPos(user_glid, dng_player_pos[0], dng_player_pos[1], 0);
     dng_player_pos[0] += 8.0f;
     dng_player_pos[1] += -28.0f;
-    if (next_room_no >= 0) {
+    if (0 <= next_room_no) {
+        int i;
         int direction = -1;
         float gx = 0.0f;
         float gy = 0.0f;
@@ -1395,150 +1396,219 @@ int CDngFreeMap::LoadDngInfo(mgCMemory *stack, int block, int dungeon, int room,
         GLID_INFO *start = GetRoomGlid(user_room_no);
         // Event jumps enter the first room of the branch between the two floors.
         if (dng_no == 1) {
-            if (user_room_no == 8 && next_room_no >= 9) {
-                next_room_no = next_room_no < 13 ? 9 : 13;
+            if (user_room_no == 8 && next_room_no > 8) {
+                if (next_room_no < 8) {
+                    next_room_no = 7;
+                } else if (next_room_no < 13) {
+                    next_room_no = 9;
+                } else {
+                    next_room_no = 13;
+                }
             }
-            if (user_room_no >= 14 && next_room_no < user_room_no) {
+            if (user_room_no > 13 && next_room_no < user_room_no) {
                 next_room_no = user_room_no - 1;
             }
             if (user_room_no == 13) {
-                next_room_no = next_room_no < 14 ? 8 : 14;
+                if (next_room_no < 14) {
+                    next_room_no = 8;
+                } else {
+                    next_room_no = 14;
+                }
             }
         }
         if (dng_no == 2) {
-            if (user_room_no == 5 && next_room_no >= 6 && next_room_no < 9) {
+            if (user_room_no == 5 && next_room_no > 5 && next_room_no < 9) {
                 next_room_no = 6;
             }
-            if (user_room_no >= 6 && user_room_no < 9 && next_room_no >= 9) {
+            if (user_room_no > 5 && user_room_no < 9 && next_room_no > 8) {
                 next_room_no = user_room_no - 1;
             }
-            if (user_room_no >= 12 && user_room_no < 15 && next_room_no >= 16) {
+            if (user_room_no >= 12 && user_room_no < 15 && next_room_no > 15) {
                 next_room_no = user_room_no - 1;
             }
             if (user_room_no == 16) {
-                next_room_no = next_room_no < 16 ? 11 : 17;
+                if (next_room_no < 16) {
+                    next_room_no = 11;
+                } else {
+                    next_room_no = 17;
+                }
             }
-            if (user_room_no >= 17 && next_room_no < user_room_no) {
+            if (user_room_no > 16 && next_room_no < user_room_no) {
                 next_room_no = user_room_no - 1;
             }
             if (user_room_no == 11) {
-                next_room_no = next_room_no < 11 ? 10 : (next_room_no < 12 ? 16 : (next_room_no < 16 ? 12 : 16));
+                if (next_room_no < 11) {
+                    next_room_no = 10;
+                } else if (next_room_no > 11 && next_room_no < 16) {
+                    next_room_no = 12;
+                } else {
+                    next_room_no = 16;
+                }
             }
         }
         if (dng_no == 3) {
-            if (user_room_no >= 11 && user_room_no < 14 && next_room_no >= 16) {
+            if (user_room_no > 10 && user_room_no < 14 && next_room_no > 15) {
                 next_room_no = user_room_no - 1;
             }
-            if (user_room_no == 10 && next_room_no >= 11 && next_room_no < 15) {
+            if (user_room_no == 10 && next_room_no > 10 && next_room_no < 15) {
                 next_room_no = 11;
             }
             if (user_room_no == 15) {
-                next_room_no = next_room_no < 15 ? 10 : 16;
+                if (next_room_no < 15) {
+                    next_room_no = 10;
+                } else {
+                    next_room_no = 16;
+                }
             }
-            if (user_room_no >= 16 && next_room_no < user_room_no) {
+            if (user_room_no > 15 && next_room_no < user_room_no) {
                 next_room_no = user_room_no - 1;
             }
         }
         if (dng_no == 4) {
-            if (user_room_no == 4 && next_room_no >= 5 && next_room_no < 9) {
+            if (user_room_no == 4 && next_room_no > 4 && next_room_no < 9) {
                 next_room_no = 5;
             }
-            if (user_room_no >= 5 && user_room_no < 8 && next_room_no >= 9) {
+            if (user_room_no > 4 && user_room_no < 8 && next_room_no > 8) {
                 next_room_no = user_room_no - 1;
             }
             if (user_room_no == 9) {
-                next_room_no = next_room_no < 9 ? 4 : 10;
+                if (next_room_no < 9) {
+                    next_room_no = 4;
+                } else {
+                    next_room_no = 10;
+                }
             }
-            if (user_room_no >= 10 && next_room_no < user_room_no) {
+            if (user_room_no > 9 && next_room_no < user_room_no) {
                 next_room_no = user_room_no - 1;
             }
         }
         if (dng_no == 5) {
-            if (user_room_no == 4 && next_room_no >= 5 && next_room_no < 12) {
+            if (user_room_no == 4 && next_room_no > 4 && next_room_no < 12) {
                 next_room_no = 5;
             }
-            if (user_room_no >= 5 && user_room_no < 11 && next_room_no >= 12) {
+            if (user_room_no > 4 && user_room_no < 11 && next_room_no > 11) {
                 next_room_no = user_room_no - 1;
             }
             if (user_room_no == 12) {
-                next_room_no = next_room_no < 12 ? 4 : 13;
+                if (next_room_no < 12) {
+                    next_room_no = 4;
+                } else {
+                    next_room_no = 13;
+                }
             }
-            if (user_room_no >= 13 && next_room_no < user_room_no) {
+            if (user_room_no > 12 && next_room_no < user_room_no) {
                 next_room_no = user_room_no - 1;
             }
         }
         if (dng_no == 6) {
-            if (user_room_no >= 8 && user_room_no < 11 && next_room_no >= 11) {
+            if (user_room_no > 7 && user_room_no < 11 && next_room_no > 10) {
                 next_room_no = user_room_no - 1;
             }
-            if (user_room_no >= 13 && user_room_no < 17 && next_room_no >= 17) {
+            if (user_room_no > 12 && user_room_no < 17 && next_room_no > 16) {
                 next_room_no = user_room_no - 1;
             }
-            if (user_room_no == 20 && next_room_no >= 22) {
-                next_room_no = 19;
+            if (user_room_no > 19 && user_room_no < 21 && next_room_no > 21) {
+                next_room_no = user_room_no - 1;
             }
-            if (user_room_no >= 24 && user_room_no < 27 && next_room_no >= 27) {
+            if (user_room_no > 23 && user_room_no < 27 && next_room_no > 26) {
                 next_room_no = user_room_no - 1;
             }
             if (user_room_no >= 29 && user_room_no < 33) {
-                next_room_no = next_room_no < user_room_no ? user_room_no - 1 : user_room_no + 1;
+                if (next_room_no < user_room_no) {
+                    next_room_no = user_room_no - 1;
+                } else {
+                    next_room_no = user_room_no + 1;
+                }
             }
             if (user_room_no == 6) {
-                next_room_no = next_room_no < 6 ? 5 : (next_room_no >= 11 ? 11 : 7);
+                if (next_room_no < 6) {
+                    next_room_no = 5;
+                } else if (next_room_no >= 11) {
+                    next_room_no = 11;
+                } else {
+                    next_room_no = 7;
+                }
             }
             if (user_room_no == 11) {
-                next_room_no = next_room_no < 11 ? 6 : (next_room_no >= 17 ? 17 : 12);
+                if (next_room_no < 11) {
+                    next_room_no = 6;
+                } else if (next_room_no >= 17) {
+                    next_room_no = 17;
+                } else {
+                    next_room_no = 12;
+                }
             }
             if (user_room_no == 18) {
-                next_room_no = next_room_no < 18 ? 17 : (next_room_no >= 22 ? 22 : 19);
+                if (next_room_no < 18) {
+                    next_room_no = 17;
+                } else if (next_room_no >= 22) {
+                    next_room_no = 22;
+                } else {
+                    next_room_no = 19;
+                }
             }
             if (user_room_no == 22) {
-                next_room_no = next_room_no < 22 ? 18 : (next_room_no >= 27 ? 27 : 23);
+                if (next_room_no < 22) {
+                    next_room_no = 18;
+                } else if (next_room_no >= 27) {
+                    next_room_no = 27;
+                } else {
+                    next_room_no = 23;
+                }
             }
             if (user_room_no == 28) {
-                next_room_no = next_room_no < 28 ? 27 : (next_room_no >= 34 ? 34 : 29);
+                if (next_room_no < 28) {
+                    next_room_no = 27;
+                } else if (next_room_no >= 34) {
+                    next_room_no = 34;
+                } else {
+                    next_room_no = 29;
+                }
             }
             if (user_room_no == 35) {
-                next_room_no = next_room_no == 34 ? 34 : (next_room_no >= 36 ? 36 : 33);
+                if (next_room_no == 34) {
+                    next_room_no = 34;
+                } else if (next_room_no >= 36) {
+                    next_room_no = 36;
+                } else {
+                    next_room_no = 33;
+                }
             }
         }
         GLID_INFO *target = GetRoomGlid(next_room_no);
         if (target == NULL) {
             return 0;
         }
-        if (start != NULL && abs((int) start->room.order - (int) target->room.order) >= 2) {
-            GLID_INFO *candidate[4];
+        if (start != NULL && target != NULL && abs((int) start->room.order - (int) target->room.order) > 1) {
             int        candidate_room[4];
-            int        candidate_count = 0;
-            int        farthest = -1;
+            GLID_INFO *candidate[4];
             u8 reverse = DNGMAP_PATH_REVERSE;
-            if (start->room.order < target->room.order) {
+            if (target->room.order > start->room.order) {
                 reverse = DNGMAP_PATH_FORWARD;
             }
+            int candidate_count = 0;
+            int farthest = -1;
             for (int dir = 0; dir < GLID_DIR_NUM; ++dir) {
-                int adjacent = start->room.link[dir];
-                if (adjacent < 0) {
-                    continue;
-                }
-                GLID_INFO *linked = GetRoomGlid(adjacent);
-                if (linked == NULL) {
-                    continue;
-                }
-                if ((reverse == DNGMAP_PATH_REVERSE && linked->room.order < start->room.order) ||
-                    (reverse == DNGMAP_PATH_FORWARD && start->room.order < linked->room.order)) {
-                    candidate[candidate_count] = linked;
-                    candidate_room[candidate_count] = adjacent;
-                    if (adjacent > farthest) {
-                        farthest = adjacent;
+                if (start->room.link[dir] >= 0) {
+                    GLID_INFO *linked = GetRoomGlid(start->room.link[dir]);
+                    if (linked != NULL &&
+                        ((reverse == DNGMAP_PATH_REVERSE && linked->room.order < start->room.order) ||
+                         (reverse == DNGMAP_PATH_FORWARD && linked->room.order > start->room.order))) {
+                        candidate_room[candidate_count] = start->room.link[dir];
+                        candidate[candidate_count] = linked;
+                        if (farthest < start->room.link[dir]) {
+                            farthest = start->room.link[dir];
+                        }
+                        ++candidate_count;
                     }
-                    ++candidate_count;
                 }
             }
+            int target_room = target->room.floor_id;
             for (int i = 0; i < candidate_count; ++i) {
                 if (reverse == DNGMAP_PATH_REVERSE ||
                     (reverse == DNGMAP_PATH_FORWARD &&
-                     ((target->room.floor_id < farthest && abs((int) target->room.floor_id - candidate_room[i]) <= 0) ||
-                      (farthest < target->room.floor_id && abs((int) target->room.floor_id - candidate_room[i]) > 0)))) {
+                     ((target_room < farthest && abs(target_room - candidate_room[i]) <= 0) ||
+                      (farthest < target_room && abs(target_room - candidate_room[i]) > 0)))) {
                     target = candidate[i];
                     next_room_no = candidate_room[i];
                     break;
@@ -1554,7 +1624,7 @@ int CDngFreeMap::LoadDngInfo(mgCMemory *stack, int block, int dungeon, int room,
         tail->x = x;
         tail->y = y;
         for (int i = 0; i < GLID_DIR_NUM; ++i) {
-            if (target->room.link[i] == user_room_no) {
+            if (target != NULL && target->room.link[i] == user_room_no) {
                 direction = i;
                 break;
             }
@@ -1563,8 +1633,8 @@ int CDngFreeMap::LoadDngInfo(mgCMemory *stack, int block, int dungeon, int room,
             return memory.stGetUsed();
         }
         int table = old_hokantbl_useno_2247__DATA[direction];
-        int reverse = is_reverse_tbl_room_2248__DATA[table];
         const short *points = RoomHokanTablePtrTable_2245__DATA[table];
+        int reverse = is_reverse_tbl_room_2248__DATA[table];
         if (reverse == DNGMAP_PATH_FORWARD) {
             for (int i = 0; i < 10; i++) {
                 DNGMAP_KOMA_POS *node = (DNGMAP_KOMA_POS *) memory.Alloc(1);
@@ -1588,13 +1658,13 @@ int CDngFreeMap::LoadDngInfo(mgCMemory *stack, int block, int dungeon, int room,
             glid->blink = 1;
             if (glid->type == GLID_TYPE_ROOT) {
                 int route_table = glid->root.shape;
-                int reverse = is_reverse_tbl_2246__DATA[route_table * 4 + direction];
                 const short *points = RootHokanTablePtrTable_2240__DATA[route_table];
+                int reverse = is_reverse_tbl_2246__DATA[route_table][direction];
                 if (reverse < 0) {
                     break;
                 }
                 if (reverse == DNGMAP_PATH_FORWARD) {
-                    for (int i = 0; i < 20; i++) {
+                    for (i = 0; i < 20; i++) {
                         DNGMAP_KOMA_POS *node = (DNGMAP_KOMA_POS *) memory.Alloc(1);
                         node->x = gx + (float) points[i * 2];
                         node->y = gy + (float) points[i * 2 + 1];
@@ -1602,7 +1672,7 @@ int CDngFreeMap::LoadDngInfo(mgCMemory *stack, int block, int dungeon, int room,
                         tail = tail->next;
                     }
                 } else if (reverse == DNGMAP_PATH_REVERSE) {
-                    for (int i = 19; i >= 0; i--) {
+                    for (i = 19; i >= 0; i--) {
                         DNGMAP_KOMA_POS *node = (DNGMAP_KOMA_POS *) memory.Alloc(1);
                         node->x = gx + (float) points[i * 2];
                         node->y = gy + (float) points[i * 2 + 1];
@@ -1612,10 +1682,10 @@ int CDngFreeMap::LoadDngInfo(mgCMemory *stack, int block, int dungeon, int room,
                 }
             } else if (glid->type == GLID_TYPE_ROOM) {
                 int route_table = old_hokantbl_useno_2247__DATA[direction + 4];
-                int reverse = is_reverse_tbl_room_2248__DATA[route_table + 4];
                 const short *points = RoomHokanTablePtrTable_2245__DATA[route_table];
+                int reverse = is_reverse_tbl_room_2248__DATA[route_table + 4];
                 if (reverse == DNGMAP_PATH_FORWARD) {
-                    for (int i = 0; i < 10; i++) {
+                    for (i = 0; i < 10; i++) {
                         DNGMAP_KOMA_POS *node = (DNGMAP_KOMA_POS *) memory.Alloc(1);
                         node->x = gx + (float) points[i * 2];
                         node->y = gy + (float) points[i * 2 + 1];
@@ -1623,7 +1693,7 @@ int CDngFreeMap::LoadDngInfo(mgCMemory *stack, int block, int dungeon, int room,
                         tail = node;
                     }
                 } else if (reverse == DNGMAP_PATH_REVERSE) {
-                    for (int i = 9; i >= 0; i--) {
+                    for (i = 9; i >= 0; i--) {
                         DNGMAP_KOMA_POS *node = (DNGMAP_KOMA_POS *) memory.Alloc(1);
                         node->x = gx + (float) points[i * 2];
                         node->y = gy + (float) points[i * 2 + 1];
@@ -1638,11 +1708,15 @@ int CDngFreeMap::LoadDngInfo(mgCMemory *stack, int block, int dungeon, int room,
                 break;
             }
             glid = GetNextGlid(glid, &direction);
+            if (glid == NULL) {
+                break;
+            }
         }
         tail->next = NULL;
-        if (koma_now->next != NULL) {
-            dng_player_pos[0] = koma_now->next->x;
-            dng_player_pos[1] = koma_now->next->y;
+        DNGMAP_KOMA_POS *first = koma_now->next;
+        if (first != NULL) {
+            dng_player_pos[0] = first->x;
+            dng_player_pos[1] = first->y;
         }
     }
     return memory.stGetUsed();
