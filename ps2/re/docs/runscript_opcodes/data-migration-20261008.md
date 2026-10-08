@@ -52,3 +52,19 @@ trial build logs under `.private/dataC-r2/`.
 Acceptance: `opcodes-ordered-vectors-{build,objects}.log`; the whole image,
 all 149 objects, and all unowned hashes pass. Only the named callback
 metadata table remains marker-backed.
+
+## Callback return types required by the typed table
+
+The metadata row's callback type is `int (RS_STACKDATA *, int)`. Three
+callbacks were declared `void`, preventing a natural initializer without
+incompatible function-pointer casts. `_ESM_FINISH` and `_ESM_DELETE` leave
+the integer status of `SetScriptProgNo` and `DeleteEffSpt` in v0.
+`_ESM_GET_TARGET_ID` leaves `GetScriptTargetId`'s status in v0 while its
+subsequent file-local integer `SetStack` call uses only a0/a1/a2/v1.
+
+All three now return those existing manager results explicitly. Their
+native instructions, sizes, and relocations remain identical. The m2c
+receipts for each callback are under `.private/dataC-r2/*-m2c.txt`; the
+acceptance receipts are `opcodes-callback-returns-{build,objects}.log`.
+This corrects the callback types before defining the table and introduces
+neither casts nor adapter callbacks.

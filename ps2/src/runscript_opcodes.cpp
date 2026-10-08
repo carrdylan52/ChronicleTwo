@@ -3794,10 +3794,9 @@ int _ESM_CREATE(RS_STACKDATA *stack, int argc) {
  * Sets an effect script program for this monster effect slot.
  *
  */
-void _ESM_FINISH(RS_STACKDATA *stack, int argc) {
+int _ESM_FINISH(RS_STACKDATA *stack, int argc) {
     int effect_id = nowMonster->chara_type;
-    ActiveMonster->effect_man->SetScriptProgNo(300, effect_id,
-                                               GetStackInt(stack));
+    return ActiveMonster->effect_man->SetScriptProgNo(300, effect_id, GetStackInt(stack));
 }
 
 /**
@@ -3805,9 +3804,9 @@ void _ESM_FINISH(RS_STACKDATA *stack, int argc) {
  * Deletes an effect from this monster effect slot.
  *
  */
-void _ESM_DELETE(RS_STACKDATA *stack, int argc) {
+int _ESM_DELETE(RS_STACKDATA *stack, int argc) {
     int effect_id = nowMonster->chara_type;
-    ActiveMonster->effect_man->DeleteEffSpt(effect_id, GetStackInt(stack));
+    return ActiveMonster->effect_man->DeleteEffSpt(effect_id, GetStackInt(stack));
 }
 int _ESM_SET_VECT1(RS_STACKDATA *stack, int argc) {
     sceVu0FVECTOR vector;
@@ -3869,13 +3868,17 @@ int _ESM_SET_TARGET_ID(RS_STACKDATA *stack, int argc) {
     int group = monster_type;
     return ActiveMonster->effect_man->SetScriptTargetId(id, group, slot);
 }
-void _ESM_GET_TARGET_ID(RS_STACKDATA *stack, int argc) {
+/**
+ * Writes an effect target identifier and returns the manager lookup status.
+ */
+int _ESM_GET_TARGET_ID(RS_STACKDATA *stack, int argc) {
     int id;
     int slot = GetStackInt(stack++);
     int monster_type = nowMonster->chara_type;
     int group = monster_type;
-    ActiveMonster->effect_man->GetScriptTargetId(id, group, slot);
+    int result = ActiveMonster->effect_man->GetScriptTargetId(id, group, slot);
     SetStack(stack, id);
+    return result;
 }
 int _ESM_SET_USER_ID(RS_STACKDATA *stack, int argc) {
     int slot = GetStackInt(stack++);
