@@ -492,7 +492,6 @@ int CObjAnime::AssignFuncAnime(CFuncPoint *point, CMapParts *map_parts) {
     SetParam(initial_value);
     return 1;
 }
-#ifdef NONMATCHING
 CFuncPoint *CFuncPointMngr::Add(int type, mgCMemory *stack) {
     CList<CFuncPoint> *node = new ((u_long128 *) stack->Alloc(0x20)) CList<CFuncPoint>;
     if (node == NULL) {
@@ -501,9 +500,6 @@ CFuncPoint *CFuncPointMngr::Add(int type, mgCMemory *stack) {
     node->data.Initialize();
     return Add(type, node);
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/funcpoint", Add__14CFuncPointMngrFiP9mgCMemory);
-#endif
 
 CFuncPoint *CFuncPointMngr::Add(int type, CList<CFuncPoint> *node) {
     if (node == NULL) {
