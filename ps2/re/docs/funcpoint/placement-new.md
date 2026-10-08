@@ -413,3 +413,213 @@ through `r2-e33` logs, `r2-matched-placement-sites.log`, and the two
 `r2-entry-helper-<unit>.log` audits. Hypotheses are in the private experiment
 logs. `r2-e27-rejected.patch` and `r2-e33-rejected.patch` preserve rejected
 shared/source experiments; they are **not proposals for integration**.
+
+## Under Satan's Fiddle
+
+Research on 2026-10-08 used lane `work/dc2-placenew-sf-20261008` at
+`b0ddb0956c67d0ccebe7671ebb90796606944df3`, image
+`chronicletwo_dev:sf-24490d0`, and SF revision
+`365415fa2fd7bf69e899044b704b571a64ed4e6c`. The compiler SHA-256 was
+`0e16a5d6205101f840f85c02664f21cd63b39a0dec2dff417b3a61b4477f0e00`.
+Native draft measurements used the canonical SF adapter and compiler flags
+with `UNMATCHING`/`NONMATCHING`; plain-wibo drafts were comparison controls.
+Prior E01–E37 source experiments were read before this work and were not
+repeated. No game source, shared header, ledger, SF policy, adapter or image
+was changed, and no symbol was promoted.
+
+### Canonical measurements
+
+SF leaves the measured allocation guard shapes unchanged. An eight-unit
+plain-wibo control using the **same current sources** also retains every
+selected allocation window. `LoadCharaCheck` has other text changes under SF,
+but its allocation guard and 190/312-word score remain unchanged. The older
+inventmn note's 382-word `IsCreateObject` score is now 380/1380 under both
+paths; it is not an improvement attributable to SF.
+
+| Unit / function | Differing words / retail extent | Current allocation guard |
+| --- | --- | --- |
+| funcpoint / `CFuncPointMngr::Add(int, mgCMemory*)` | 2/40 | Copy to `s0`, then test `s0`; retail tests `v0` with the copy in the delay slot. |
+| editmap / `emapWATER_PARTS_NAME` | 2/72 | Saved-register test after the copy. |
+| editmap / `emapMASK_PARTS_NAME` | 2/96 | Saved-register test after the copy. |
+| editmap / `emapRIVER_PARTS_NAME` | 2/104 | Saved-register test after the copy. |
+| editeff / `EditSetPlaceAnime` | 2/156 | Saved-register test after the copy. |
+| menuchr / `CMosBookMenu::KeyStep` | 2/340 | Saved-register test after the copy. |
+| menuchr / `CMenuChrCngMenu::LoadBGNPCModel` | 2/120 | Saved-register test after the copy. |
+| menuchr / `CMenuCostumeSel::LoadMenuData` | 2/228 | Saved-register test after the copy. |
+| mg_dataset / `mgCMDTBuilder::End` overload | 1/96 | `a0` instead of `v0` at +0x144; the copy before the branch already matches retail. |
+| mg_dataset / `CopyFrame` | 1/208 | `a0` instead of `v0` at +0x138; the copy before the branch already matches retail. |
+| mg_tanime / `NewTexAnimeData` | 6/32, 0x7c/0x80 bytes | Tests `v0`, saves `s0` only on success; retail saves before its `v0` test. Separate result-flow case, below. |
+| menuchr / `MenuItemCharaDataLoadEndCheckAfter` | 2/220 | No scalar placement allocation. Differences +0xf4/+0xfc move a stack-address argument setup across a call. |
+| menusys / `CMenuItemInfo::LRCheck` | 2/220 | No scalar placement allocation. Differences +0x264/+0x268 change a branch target and schedule the return-zero copy into its delay slot. |
+
+Thus the last two near misses do not belong to the placement-new blocker;
+mg_dataset's one-word argument alias cases also differ from class B's
+saved-register copy/delay-slot pair. No source proposal was sent to its owner.
+
+Within one unchanged `MenuInventInit` native body, all seven scalar allocations
+retain their mixed shapes. Offsets below are native **draft** offsets, not
+retail addresses or policy selectors.
+
+| Allocation | Call offset | Guard / delay slot | Class |
+| --- | --- | --- | --- |
+| Direct `new CMenuInvent` | +0x6c | `beqz v0` / `move s2,v0` | A |
+| Three `NewInventActionChara` allocations | +0x7e4, +0x8ac, +0x964 | `beqz s0` / `nop`, copy before branch | B |
+| Two effect allocations | +0xa6c, +0xa9c | `beqz v0` / `move s0,v0` | A |
+| Direct `new CMenuMoveItem` | +0xacc | `beqz v0` / `move s0,v0` | A |
+
+The effect sources explicitly call `operator new` inside assignment conditions
+and then `Initialize`; they are not positive examples of C++ new-expression
+constructor lowering. The direct CMenuInvent and CMenuMoveItem expressions
+are genuine natural new-expression positives. The whole native body still
+differs by 606/1044 words, so matching these guards does not validate the unit.
+
+### State and TU-history probes
+
+Private profiles varied GPR helper masks through `0`, `0x10`, `0x30` in all
+eight units (24 compiles), FPR mask `0x3000` in funcpoint/inventmn (2), and
+default float evaluate-first false to true in funcpoint/mg_tanime/inventmn (3).
+Established scoped float selectors were retained in these profile probes.
+All selected function text and allocation windows stayed byte-identical.
+Positive controls changed unrelated functions: GPR masks changed TexAnime,
+menu drawing and inventory functions; evaluate-first changed
+MenuInventDebugDraw and MenuInventPictureBoardDraw. The probes therefore
+did exercise compiler policy rather than silently bypassing it.
+
+Two independent private funcpoint copies removed preceding definitions or
+moved the unchanged Add definition first. Both retained Add's exact text and
+2/40 difference. A private inventmn reduction from 7,545 to 862 lines retained
+original globals, required existing definitions and the unchanged MenuInventInit
+body. Its seven guards remained A/B/B/B/A/A/A. Removing other character
+definitions changed construction elsewhere (633/1044 words, 0xf64 bytes),
+so this reduction establishes guard-shape persistence, not body equivalence.
+
+Together with eight plain-wibo controls, these are 39 state/history/control
+compiles. They provide no observed hidden cross-function sensitivity of the
+allocation binding. They do not rule out every unobserved compiler state.
+
+### Verified lowering trace
+
+A private LLDB driver observed the hash-pinned compiler under wibo, using
+signature-checked guest breakpoints. It reproduced the TU helper seeds and
+default float annotation/argument-consumer hooks. Scoped inventmn debug float
+selectors were unnecessary for the selected MenuInventInit trace; their
+omission changes only an untraced drawing function. Selected traced function
+text was checked against canonical native objects. Diagnostic addresses,
+temporary numbers and object pointers below apply to this compiler image and
+trace only; they are not proposed stable selectors.
+
+The distinction is visible before the backend. At the original high-level IR
+boundary `0x436f5d`, CMenuInvent/CMenuMoveItem already have an allocator
+assignment inside a conditional statement. Funcpoint, mg_tanime and the three
+inventory character allocations instead retain construction node kind `0x3a`
+containing allocation and a constructor comma expression. After high-level IR
+optimization (`0x436f66`), the latter become a separate allocation assignment
+statement followed by a condition loading the object temporary. The
+expandIR32 boundary (`0x436f87`) preserves this distinction.
+
+The two relevant expansion paths are:
+
+- Early inline statement conversion, construction handler `0x463bf0`: builds
+  a conditional statement whose expression assigns the allocator result
+  (`0x463c26` calls assignment builder `0x463920`). Constructor statements follow.
+- Late IroLinearForm, construction case `0x4c2d8a`: emits a separate assignment
+  via `0x4c1da0`, then a conditional load of its fresh temporary via `0x4c2280`.
+
+The inliner reads callee inline-info byte +0x64 at `0x462fa0`. Dynamic readings
+identify `CMenuInvent` and `CMenuMoveItem` constructors as classification `3`,
+requesting statement conversion; the CList specializations, CFuncPoint and
+inventory character constructors are classification `6`, remaining expression
+inlines. For eligible function signatures the classifier at `0x465030` starts
+at `6` and chooses `3` for control flow, unsupported return forms or other
+statements unsuitable for expression inlining. Inline-info is
+zeroed before classification and published only after the byte is written.
+The conversion-request flag is explicitly reset before each expression walk
+and before conversion. These recovered inputs are ordinary constructor/inline
+structure, not established uninitialized state.
+
+At the actual condition lowerer `0x49b9c0`, class A therefore receives
+`allocation_temp = operator_new(...)` inside its zero comparison, while class
+B receives a load of an already assigned temporary. After code selection
+(`0x435d66`), the difference is explicit:
+
+```text
+funcpoint Add (B):            inventmn CMenuInvent (A):
+result39 = v0                result86 = v0
+object35 = result39          object67 = result86
+if (object35 == 0) ...       if (result86 == 0) ...
+```
+
+The first coalescer (`0x4a73c0`, return boundary `0x435da1`) merges funcpoint's
+result39 into object35, retaining the copy from ABI register 2; the guard still
+tests object35. Inventory's short-lived result86 instead merges into ABI 2,
+while object67 remains separate because it survives constructor calls.
+Coloring (`0x4af3f0`, boundary `0x435fa0`) assigns object35 to `s0` and object67
+to `s2`. Subsequent scheduling preserves the differing branch dependencies.
+The delay-slot pass (`0x4b2320`, boundary `0x4362fc`) can place A's retained
+copy in the independent `v0` guard's delay slot. B's guard needs the copied
+register, so that copy must execute before it.
+
+The merge path normalizes union-find roots at `0x4a6d70`, checks interference
+at `0x4a6eb0`, register-zero restrictions at `0x4a6ec7`, and the special
+call-register set at `0x4a6f05`; accepted parent writes occur at `0x4a6f1b`
+and operand renaming at `0x4a700d`. Its scratch/interference tables are
+explicitly initialized. No affected read-before-write has been recovered.
+Raw unused bytes in packed operand unions are not evidence of a state bug.
+
+mg_tanime is related but not the two-word case: its optimized IR copies the
+allocation into an object temporary **inside the successful branch**, then
+carries the constructed result back to the allocation-expression result at
+the join. First coalescing maps the guard's result to ABI 2 but retains the
+success-only object copy; coloring puts that object in `s0`. This explains
+the native `v0` guard followed by its `s0` copy and the different vtable alias.
+The selected scheduling boundary is skipped for this function. The saved
+copy's null-path lifetime, not merely delay-slot filling, must change to
+match retail. [mg_tanime's notes](../mg_tanime/notes.md) record this separately.
+
+### Policy decision, acceptance and reconsideration
+
+**No additional SF policy is justified by these observations.** Existing
+helper/float state does not change the binding, and the recovered inline
+classification and conversion flag are initialized from real code structure.
+Changing a coalescer operand or moving an allocator assignment would override
+code generation without an evidenced state-initialization defect. The natural
+inline-context distinction is now established, but no admissible source
+transformation reproduces it in these guarded targets while retaining the
+retail construction operations. There is no promotion or shared-header patch
+in this lane.
+
+The exact recommendation is to retain the existing SF profile. A future
+policy requires a demonstrated affected state read, its missing/incorrect
+initialization, and a one-state-change reproduction of the retail binding.
+Any selector must use compiler profile identity, logical TU, mangled caller,
+allocator signature and semantic construction identity (allocated type and
+constructor/callee), with ambiguity rejected. Guest addresses, virtual register
+IDs, object pointers, encounter ordinals and counters cannot key that policy.
+The diagnostic breakpoints above are observation points, not such selectors.
+
+Reconsider on (1) an evidenced natural constructor/caller form that takes the
+early statement-conversion path while retaining every retail construction
+operation, (2) a controlled identical-source/history change that flips the
+guard, or (3) an affected uninitialized state read before these IR paths.
+Another spelling of an already tested buffer/local/condition, or changing
+constructor semantics solely to force a statement inline, supplies none of
+that evidence. The previous report's request for a frontend/PCode trace is
+now fulfilled; the remaining source or state distinction is more specific.
+
+The clean canonical PAL build matches the i13 acceptance baseline: only
+`.text` differs by **0x2c bytes**, other sections and memory end are OK;
+complete objects **146/149**, failing exactly mg_texture, nd_meswin and
+actscript; coverage **6,677 matched / 175 guarded / 15 asm-only / 5 fuzzy**.
+All 149 canonical object hashes are retained and checked for restoration.
+The earlier 149/149 figures above belong to the previous integration snapshot.
+
+Private evidence is in `.private/placenew-sf/`: `baseline/` contains build,
+manifest, object, coverage, hash and canonical-native receipts;
+`experiment-summary.json` and `control-changes.json` cover the 39 controls;
+`minimal-inventmn/` preserves the reduction; `trace-final-{funcpoint,mg_tanime,inventmn}/`
+contains inline classification, original/optimized/expanded IR, all observed
+backend stages and object comparisons; `static/` contains aligned compiler
+disassembly, decoded PCode layouts and breakpoint signatures. The private
+driver and readable `.frontend.txt` / `.pcode.txt` summaries accompany those
+receipts. Hypotheses and failures of private diagnostics are recorded in
+`.private/experiments-placenew-sf.md`.
