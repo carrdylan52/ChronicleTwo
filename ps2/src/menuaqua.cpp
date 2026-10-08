@@ -3785,11 +3785,10 @@ int CAquarium::ColCheck(int no) {
     float                 point_away[4];
     float                 food_pos[4];
     float                 rot[4];
-    me = fish[no];
-
-    if (me == NULL) {
+    if (fish[no] == NULL) {
         return 0;
     }
+    me = fish[no];
     result = 0;
     radius = me->radius;
     radius = 0.29f * radius;
