@@ -49,3 +49,28 @@ Separate receipts are `nd-anchor-template`, `nd-advance-button-table`, and
 passes PAL, all 149 objects, and the unowned hash comparison. Markers become
 63/0. No dummy storage, cast, vector helper or code change is required to
 emit these aggregate data objects.
+
+## Message strings
+
+The texture selector, Unicode prefix, decimal formats, full-width digits,
+message tags and capacity diagnostics are inline at their existing uses.
+Shift-JIS strings use fixed-width octal escapes, preserving their exact bytes
+without source-file encoding dependence. Shared formats and tags remain pooled;
+a marker disappears only after its final external reference is replaced.
+
+Each function has separate full-build, object and unowned-hash receipts:
+
+| Function | Receipt prefix |
+| --- | --- |
+| `set2DSprite` | `nd-sprite-texture-string` |
+| `GetStrWidth(char *)` | `nd-width-unicode-prefix` |
+| `MakeMesWinTbl_value(int *, int *)` | `nd-value-strings` |
+| `MakeMesWinTbl_value(int, int *, int *)` | `nd-indexed-value-strings` |
+| `MakeMesWinTbl_str(char *, int *, int *)` | `nd-text-tags` |
+| `MakeMesWinTbl_item` | `nd-item-diagnostic` |
+| `SetMesWinTbl` | `nd-table-capacity-string` |
+| `NeedMesWinWH(int)` | `nd-system-size-strings` |
+| `NeedMesWinWH(char *)` | `nd-text-size-strings` |
+
+Every step passes PAL and all 149 objects, with unowned object hashes unchanged.
+Markers become 10/0. No placement expression or `DrawMesWin` body is edited.
