@@ -248,3 +248,38 @@ Its hash differs from pn13 despite this being a test-only source extension;
 wrapper hash equality is not asserted. Real compiler behavior and complete
 game artifacts provide the equivalence checks. The image's pinned Git-fetch
 layer is cached; no Git network operation is executed.
+
+## Accepted source group at 18:55 EDT
+
+The local pn14 clean build accepts 18 manually promoted callers in 12 units
+under 18 semantic rows, asserting 26 eligible static constructions. The group
+contains 17 after-inline rows and the measured before-inline texture-list row.
+Natural source cleanup is required independently of a diagnostic zero: the
+placement-animation searches now use typed indexing, the cursor loader uses a
+real signed file-size output with value-only unsigned shifts, and recovered
+resource literals are compiler literals. Per-unit notes record complete bodies,
+exact symbol sizes, binding, alignment and data/relocation evidence.
+
+The clean image verifies `SCES_511.90: OK` and all 149 complete game objects.
+Every assembled object outside the 12 promoted units is byte-identical to the
+baseline in the full recursive 306-object census; the same holds outside those
+units for all 149 source-only base objects. The linked main/game section and
+loaded memory end retain their baseline values. The complete ELF differs only
+in symbol/metadata representation. Restoring untouched source data markers to
+their original sections changes fishing's assembled object metadata hash but
+preserves the complete resolved-unit check and linked game bytes.
+
+pn14 also passes all 12 genuine compiler CLI regressions, the 30 Rust unit/config
+tests, and four host adapter tests. Its production binary SHA256 is
+`8f506132538b65e828c5677d21d218b898fe8206ee276075240ff1f653790f67`; a test-source
+change altered the binary build fingerprint, so equality with pn13 is not
+asserted. Fresh context/objdiff and native coverage report 6,767 matched /
+95 guarded / 10 assembly-only / 0 fuzzy. Receipts are
+`.private/pntc/receipts/promote-eighteen-pn14-clean-*`,
+`promote-eighteen-final-*`, `promote-eighteen-progress.log`,
+`promote-eighteen-coverage.log`, `semantic-pn14-tests.log`, and
+`adapter-pn14-tests.log`.
+
+The inherited invention-menu allocation helper and event ESM identity helper
+remain guarded. Their initial natural controls are nonzero and are not promoted
+merely because inherited scaffolding had a diagnostic zero.
