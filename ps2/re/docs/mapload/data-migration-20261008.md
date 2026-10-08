@@ -106,3 +106,41 @@ Final mapload markers are **2 RODATA / 0 BSS**, down from **90 / 17**.
 Refreshed source-only objdiff data coverage remains **888/3088**. All 118
 functions and the complete final object match; all 149 objects and the PAL
 binary pass, and every unowned game object is unchanged.
+
+## Typed effect, plane, and name accesses
+
+`mapFUNC_EFFECT_NAME` uses the existing `CFuncPoint::EffectData` union arm:
+`effect.name` at offset 0x20 and `effect.index` at offset 0x24. The former
+animation-pointer aliases and integer pointer write are unnecessary. The
+allocation and bounds setup retain their existing behavior.
+
+`cfgOCCLUSION_PLANE` assigns the homogeneous component as `1.0f` rather than
+writing its bit pattern through an integer pointer. `cfgWATER_DRAW` indexes
+`name[0]` and the three follow digits at indices 7, 8, and 9 directly. Each
+cleanup passes separately and together, with all final bytes and relocations
+exact and the full PAL check OK.
+
+The inherited quadword vector copies were also checked for natural alternatives.
+Existing layouts and prior notes were used; these functions were not
+re-decompiled. Under the current compiler, `memcpy` and `sceVu0CopyVector`
+remain external calls, while component copies and loops use scalar float
+loads/stores. Their diagnostic masked instruction-word differences are:
+
+| Function | memcpy | Explicit components | Component loop |
+| --- | ---: | ---: | ---: |
+| `CMap::GetLightInfo(out_info, ratio, num)` | 76 | 99 | 100 |
+| `mapFUNC_FIRE_DATA` | 36 | 85 | 85 |
+| `mapFUNC_PLIGHT_DATA` | 73 | 149 | 149 |
+| `CFuncPoint::SetScale` | 19 | 12 | 12 |
+| `CFuncPoint::SetRotation` | 19 | 12 | 12 |
+| `CFuncPoint::SetPosition` | 19 | 12 | 12 |
+
+The SDK call differs by 18 words in `SetScale`. The setters' real bodies are
+0x1C bytes plus four bytes of alignment; natural component copies grow them
+to 0x34, memcpy to 0x4C, and the SDK call to 0x48. Using the genuine aligned
+vector typedef in the parameter definitions preserves float-pointer mangling
+and source compatibility but produces the same differences. No vector-copy
+trial is applied; the pre-existing copies retain their complete matches.
+No helper, macro, fabricated local, or shared type change is introduced.
+Private disassembly, full checker failures, and measurement details are in
+`.private/dataC/mapload-cleanup-analysis/`.

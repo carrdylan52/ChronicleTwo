@@ -1990,11 +1990,11 @@ int mapFUNC_EFFECT_NAME(SPI_STACK *stack, int argc) {
         strcpy(copy, name);
     }
 
-    mapNowFuncPoint->anime.parts_name = copy;
+    mapNowFuncPoint->effect.name = copy;
     effect_index = mapMap->SaerchEffectIndex(copy);
 
     if (effect_index >= 0) {
-        *(int *) &mapNowFuncPoint->anime.piece_name = effect_index;
+        mapNowFuncPoint->effect.index = effect_index;
         ((mgCFrame *) &mapNowFuncPoint->frame)
             ->SetBound((mgCFrame::BoundInfo *) operator new(
                 0xB0, mapStack->Alloc(algn16_size(0xB0) + 2)));
@@ -2283,7 +2283,7 @@ int cfgOCCLUSION_PLANE(SPI_STACK *stack, int argc) {
 
     for (i = 0; i < 4; i++) {
         spiGetStackVector(plane[i], stack);
-        *(int *) &plane[i][3] = 0x3F800000;
+        plane[i][3] = 1.0f;
         stack += 3;
     }
 
@@ -2546,11 +2546,11 @@ int cfgWATER_DRAW(SPI_STACK *stack, int argc) {
     name = spiGetStackString(stack++);
 
     if (name != NULL) {
-        if (*(s8 *) name != 0) {
+        if (name[0] != 0) {
             if (strncmp(name, "#follow", 7) == 0) {
-                slot->follow[0] = ((s8 *) name)[7] - '0';
-                slot->follow[1] = ((s8 *) name)[8] - '0';
-                slot->follow[2] = ((s8 *) name)[9] - '0';
+                slot->follow[0] = name[7] - '0';
+                slot->follow[1] = name[8] - '0';
+                slot->follow[2] = name[9] - '0';
             } else {
                 slot->parts_name = mgCopyString(name, mapStack);
             }
