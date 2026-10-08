@@ -209,3 +209,40 @@ Blocker category: integer store scheduling, rather than floating argument
 order or the measured helper-history alternatives. The guard remains.
 Reconsider with a natural special-port assignment grouping that delays the
 port-11 zero without advancing another direction/relationship store.
+
+## Guarded sweep: per-port initialization groups (October 8)
+
+The refreshed `6be9e34` sweep confirms `Init__6CSoundFiiii` at 12/480
+relocation-masked words, with a 0x77C body in the 0x780 retail extent.
+Fresh `decompile.sh` output and the complete zero-word-preserving instruction
+comparison retain the same +0x518..+0x548 discrepancy. The decompiler flattens
+the composite MIDI state into guessed fields; the existing 0x124-byte
+`MIDI_PORT` layout and retail load/store widths remain the type authority.
+
+The new hypothesis groups each port's existing kind, direction, dependency,
+address and configuration assignments together, instead of grouping by field.
+No assignment value or destination changes. Three port traversals test the
+retail setup order, numeric index order and common-memory grouping. Each is
+also measured with configuration immediately after kind within a port.
+
+| New source grouping | Differing words / 480 | Native bytes |
+| --- | ---: | ---: |
+| Existing field groups | 12 | 0x77C |
+| Port groups in retail setup order | 121 | 0x77C |
+| Same, configuration after kind | 120 | 0x77C |
+| Port groups in numeric index order | 121 | 0x77C |
+| Same, configuration after kind | 119 | 0x77C |
+| Port groups by common memory region | 120 | 0x77C |
+| Same, configuration after kind | 123 | 0x77C |
+
+These forms do not recover the special zero-store schedule and disrupt other
+already matching initialization instructions. All candidates remain private;
+the source, header and compiler profile are unchanged. The retained blocker
+is still integer global-store scheduling, with no admissible floating-argument
+selector or helper-policy improvement.
+
+Receipts are `.private/sweep-midday/sound-init-m2c.cpp`,
+`sound-init-baseline-diff.txt`, `sound-port-probes.log` and the per-candidate
+sources, compile logs and metrics under `sound-port-probes/`. The lane-wide
+baseline is recorded in `baseline-build.log` and `baseline-objects.log` in
+that same private root.
