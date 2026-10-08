@@ -31,3 +31,11 @@ are checked against their retail pointer words.
 
 `effect-tags-{build,objects,metrics}.log` accepts this group: PAL OK,
 149/149 objects, and no unowned object changes. Markers become 3/0.
+
+## Particle switches
+
+The existing `CEffect::Step` switches emit `at_383` (seven entries) and
+`at_382__3` (six entries) themselves. Removing their redundant markers
+requires no function edits. `effect-switches-{build,objects,metrics}.log`
+records PAL OK, all 149 objects passing, and unowned hashes unchanged.
+Markers become 1/0.

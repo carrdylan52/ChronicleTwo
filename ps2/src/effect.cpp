@@ -1831,8 +1831,6 @@ void CEffectManager::SetOrigin(float *origin) {
 // Initialised data (.data)
 
 // Constants (.rodata)
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/effect", at_383__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/effect", at_382__3__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/effect", at_848__2__DATA);
 
 // Small uninitialised data (.sbss)
