@@ -171,3 +171,20 @@ zero alignment bytes; the terminal tail belongs to the linker. No manual
 vtable store or special member is added. PAL and all 149 object checks
 pass, with all unowned game object hashes unchanged. Receipts:
 `.private/dtool/10-mapload-{build,objects,metrics,tests}.log`.
+
+## Corrected data comparison
+
+The repaired objdiff preparation credits **3,068/3,068 native data
+bytes (100%)**, versus 888/3,088 in the checkpoint report.
+The denominator excludes only the unit's terminal zero alignment owned by
+the linker. Reference relocations and data boundaries use retail metadata;
+native identities, internal padding, and retained-marker exclusions use
+the same verified piece model. Function rows and code bytes are unchanged.
+
+Final proof: `.private/dtool/final-proof.log`; whole PAL build:
+`.private/dtool/14-final-build.log`; all-object check:
+`.private/dtool/final-objects.log`; unit tests: `.private/dtool/final-tests.log`.
+The full 149-unit before/after table is
+`.private/dtool/matched-data-before-after.csv`. Negative retained-marker,
+unknown-BSS, byte, and pointer controls are recorded in
+`.private/dtool/13-negative-results.log`.

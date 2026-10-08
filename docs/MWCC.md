@@ -116,13 +116,40 @@ sections are assigned alignment one for linking, their bytes must retain that
 gap. The postprocessor extends a correctly sized native object by fewer than
 16 bytes to its piece boundary; initialized padding must be zero in retail.
 An object with a size different from its declared retail size is not padded.
-Referenced interior addresses remain separate piece boundaries.
+The same policy covers compiler-generated vtables; their final section tail
+belongs to linker alignment. Referenced interior addresses and explicit
+`D_<address>` source identifiers remain separate piece boundaries.
+
+Anonymous BSS templates need both an exact declared extent and consistent
+opcode-matched HI16/LO16 or GPREL16 retail reference evidence. Zero contents
+alone establish no identity. Ambiguous initialized literals can also be named
+through real R_MIPS_32 pointers in named native data, subtracting the compiled
+addend and target-symbol offset; conflicting references reject the binding.
+
+VU microcode words that resemble addresses remain numeric when retail has no
+relocation. The splitter checks their emitted byte comments against retail
+before replacing an inferred expression; real relocations remain intact.
 
 A terminal function may end before the next unit's address when the generated
 linker script supplies the intervening alignment. The canonical checker permits
 this only at the exact `contents_end` established by the script and only for an
 all-zero retail tail. Objdiff target symbol metadata records declared retail
 function sizes so the same linker padding is excluded from function scores.
+
+Objdiff uses separate comparison copies of the raw source-only and reference
+objects. Data references come from retail relocation metadata, never splat's
+address guesses; switch-table pointers use their enclosing function and interior
+addend. Native anonymous names are established by bytes and real references,
+not compiler numbering. Native pieces retain verified internal padding and both
+sides exclude terminal zero tails owned by the linker. BSS symbol extents include
+that verified piece padding consistently with initialized objects.
+
+Reservation arrays and every retained data-marker piece are excluded from the
+source comparison, including coincidental compiler copies. No fallback payload
+is imported. Function bytes, declared sizes and relocation fields remain intact;
+function names use the existing template/initializer projection. The build and
+GUI refresh these copies when inputs or preparation tools change. `matched_data`
+requires exact native section comparison and is independent of executable matching.
 
 ## Natural C++ definitions
 

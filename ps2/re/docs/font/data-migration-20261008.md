@@ -127,3 +127,20 @@ code-reference evidence. VU instruction words are numeric when retail has
 no relocation, so the local buffer has no artificial external dependency.
 PAL and all 149 objects pass, and all unowned game objects remain identical
 to the baseline. Receipts: `.private/dtool/09-font-{build,objects,metrics,tests}.log`.
+
+## Corrected data comparison
+
+The repaired objdiff preparation credits **7,342/7,342 native data
+bytes (100%)**, versus 0/7,344 in the checkpoint report.
+The denominator excludes only the unit's terminal zero alignment owned by
+the linker. Reference relocations and data boundaries use retail metadata;
+native identities, internal padding, and retained-marker exclusions use
+the same verified piece model. Function rows and code bytes are unchanged.
+
+Final proof: `.private/dtool/final-proof.log`; whole PAL build:
+`.private/dtool/14-final-build.log`; all-object check:
+`.private/dtool/final-objects.log`; unit tests: `.private/dtool/final-tests.log`.
+The full 149-unit before/after table is
+`.private/dtool/matched-data-before-after.csv`. Negative retained-marker,
+unknown-BSS, byte, and pointer controls are recorded in
+`.private/dtool/13-negative-results.log`.
