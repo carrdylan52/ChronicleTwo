@@ -62,83 +62,16 @@ struct CharaBitTable {
 };
 
 /**
- * Keeps the weapon to restore after the fishing game.
+ *
+ * Identifies fields in a debug preset item sequence.
+ *
  */
-static CGameDataUsed *FishGamePreEquip;
-/**
- * Gives the primary and secondary effect scripts for each weapon element.
- */
-static char *magic_str_1462[8] = {
-    "\x83\x82\x83j\x83J\x96\x82\x96@\x81|\x89\xCE",
-    "\x83\x82\x83j\x83J\x96\x82\x96@\x81|\x89\xCE\x83q\x83""b\x83g",
-    "\x83\x82\x83j\x83J\x96\x82\x96@\x81|\x95X",
-    "\x83\x82\x83j\x83J\x96\x82\x96@\x81|\x95X\x83q\x83""b\x83g",
-    "\x83\x82\x83j\x83J\x96\x82\x96@\x81|\x97\x8B",
-    "\x83\x82\x83j\x83J\x96\x82\x96@\x81|\x97\x8B\x83q\x83""b\x83g",
-    "\x83\x82\x83j\x83J\x96\x82\x96@\x81|\x95\x97",
-    "\x83\x82\x83j\x83J\x96\x82\x96@\x81|\x95\x97\x83q\x83""b\x83g",
+enum DEBUG_ITEM_FIELD {
+    DEBUG_ITEM_NUMBER = 0,      /**< Item number in each preset pair. */
+    DEBUG_ITEM_QUANTITY = 1,    /**< Quantity in each preset pair. */
+    DEBUG_ITEM_FIELD_COUNT = 2, /**< Halfwords in each complete preset pair. */
 };
-/**
- * Holds the formatted name of an owned item.
- */
-static char word_1327[0x61];
-/**
- * Gives the name prefix and suffix for each language and rename state.
- */
-static char *symbol_tbl_1338[8][2][2] = {
-    {{"\x81w", "\x81x"}, {"\x81y", "\x81z"}},
-    {{"\"", "\""}, {"\x81y", "\x81z"}},
-    {{"\"", "\""}, {"'", "'"}},
-    {{"\"", "\""}, {"'", "'"}},
-    {{"\"", "\""}, {"'", "'"}},
-    {{"\"", "\""}, {"'", "'"}},
-    {{"\"", "\""}, {"'", "'"}},
-    {{"\"", "\""}, {"\x81y", "\x81z"}},
-};
-/**
- * Gives a weapon's random durability gain when it levels up.
- */
-static signed char htbl_1662[10] = {1, 1, 1, 1, 1, 2, 2, 2, 3, 3};
-/**
- * Gives the spectrum source description format for each language.
- */
-static char *strtbl_1505[8] = {
-    "\x81w%s\x81x",
-    "\"%s\"",
-    "\"%s\"",
-    "\"%s\"",
-    "\"%s\"",
-    "\"%s\"",
-    "\"%s\"",
-    "\"%s\"",
-};
-/**
- * Holds an attachment's spectrum source description.
- */
-static char temp_1510[0x40];
-/**
- * Gives the model-name prefix for each human character.
- */
-static char *f_2005[2] = {
-    "c01_base",
-    "c02_base",
-};
-/**
- * Formats a cooked fish name for each language.
- */
-static char *basefish_1288[7] = {
-    " ",
-    "Grilled %s",
-    "R[UNI00f4]tir %s",
-    "Ger[UNI00f6]steter %s",
-    "Cuoci %s",
-    "Asar %s",
-    "Roast %s",
-};
-/**
- * Gives the shield kit limit for each ridepod core.
- */
-static unsigned char use_limmit_table_2558[7] = {3, 6, 9, 12, 15, 18, 21};
+
 /**
  * Gives the combat parameters and script names for monster transformations.
  */
@@ -201,10 +134,72 @@ static MOS_HENGE_PARAM mos_henge_param[57] = {
     {236, 45, 22, {0, 0}, "f45a", {NULL, NULL, NULL, NULL}},
     {240, 80, 20, {0, 0}, "f45a", {NULL, NULL, NULL, NULL}},
 };
+
+/**
+ * Formats a cooked fish name for each language.
+ */
+static char *basefish_1288[7] = {
+    " ",
+    "Grilled %s",
+    "R[UNI00f4]tir %s",
+    "Ger[UNI00f6]steter %s",
+    "Cuoci %s",
+    "Asar %s",
+    "Roast %s",
+};
+
+/**
+ * Gives the name prefix and suffix for each language and rename state.
+ */
+static char *symbol_tbl_1338[8][2][2] = {
+    {{"\x81w", "\x81x"}, {"\x81y", "\x81z"}},
+    {{"\"", "\""}, {"\x81y", "\x81z"}},
+    {{"\"", "\""}, {"'", "'"}},
+    {{"\"", "\""}, {"'", "'"}},
+    {{"\"", "\""}, {"'", "'"}},
+    {{"\"", "\""}, {"'", "'"}},
+    {{"\"", "\""}, {"'", "'"}},
+    {{"\"", "\""}, {"\x81y", "\x81z"}},
+};
+
+/**
+ * Gives the primary and secondary effect scripts for each weapon element.
+ */
+static char *magic_str_1462[8] = {
+    "\x83\x82\x83j\x83J\x96\x82\x96@\x81|\x89\xCE",
+    "\x83\x82\x83j\x83J\x96\x82\x96@\x81|\x89\xCE\x83q\x83""b\x83g",
+    "\x83\x82\x83j\x83J\x96\x82\x96@\x81|\x95X",
+    "\x83\x82\x83j\x83J\x96\x82\x96@\x81|\x95X\x83q\x83""b\x83g",
+    "\x83\x82\x83j\x83J\x96\x82\x96@\x81|\x97\x8B",
+    "\x83\x82\x83j\x83J\x96\x82\x96@\x81|\x97\x8B\x83q\x83""b\x83g",
+    "\x83\x82\x83j\x83J\x96\x82\x96@\x81|\x95\x97",
+    "\x83\x82\x83j\x83J\x96\x82\x96@\x81|\x95\x97\x83q\x83""b\x83g",
+};
+
+/**
+ * Gives the spectrum source description format for each language.
+ */
+static char *strtbl_1505[8] = {
+    "\x81w%s\x81x",
+    "\"%s\"",
+    "\"%s\"",
+    "\"%s\"",
+    "\"%s\"",
+    "\"%s\"",
+    "\"%s\"",
+    "\"%s\"",
+};
+
+/**
+ * Gives a weapon's random durability gain when it levels up.
+ */
+static signed char htbl_1662[10] = {1, 1, 1, 1, 1, 2, 2, 2, 3, 3};
+
 /**
  * Maps fish item numbers to the fishing record slots.
  */
 static short fish_record_dataindex_convert[19] = {320, 321, 322, 323, 324, 325, 326, 327, 328, 329, 330, 331, 332, 333, 334, 335, 336, 310, -1};
+
 /**
  * Gives the default ridepod name for each language.
  */
@@ -217,10 +212,7 @@ static char *robo_nametable_3330[7] = {
     "Ridepod",
     "Ridepod",
 };
-/**
- * Gives the initial health capacity of the two human characters.
- */
-static float lifetbl_2854[2] = {32.0f, 48.0f};
+
 /**
  * Gives the default equipment for each language group and human character.
  */
@@ -228,28 +220,14 @@ static short weptbl_4503[2][10] = {
     {0x1, 0x16, 0x6f, 0x75, 0x102, 0x29, 0x5b, 0x7b, 0x81, 0x107},
     {0x1, 0x16, 0x6f, 0x75, 0x104, 0x29, 0x5b, 0x7b, 0x81, 0x107},
 };
-/**
- * Caches the scene time used for battle parameters.
- */
-static float BattleParamater_Time;
-/**
- * Caches the time band used for battle parameters.
- */
-static int BattleParamater_TimeBand;
-/**
- * Lists the trap choices for the first random-circle kind.
- */
-static signed char tbl1_5167[4] = {1, 2, 3, 4};
-/**
- * Lists the trap choices for the second random-circle kind.
- */
-static signed char tbl2_5168[2] = {6, 7};
+
 /**
  * Pairs weapon abilities that cancel one another when combined.
  */
 static unsigned int at_table_5400[14] = {
     0x2, 0x1, 0, 0, 0, 0x40, 0x20, 0x100, 0x80, 0x400, 0x200, 0, 0, 0,
 };
+
 /**
  * Gives the item type accepted by each human or ridepod equipment slot.
  */
@@ -258,30 +236,280 @@ static signed char equip_type_tbl_5456[3][5] = {
     {3, 4, 9, 10, 8},
     {13, 12, 15, 14, 0},
 };
-extern char            at_2061[];
-extern char            at_5773[];
 
 /**
- *
- * Gives an item and quantity for a debug inventory preset.
- *
+ * Stores item numbers and quantities for a debug preset, terminated by -1.
  */
-struct DEBUG_ITEM {
-    short item_no; /**< Item number to grant. */
-    short num;     /**< Quantity to grant. */
+static short cureItemtable_5744[] = {
+    0x10C, 10,
+    0x126, 10,
+    0x12A, 10,
+    0x160, 10,
+    -1,
 };
 
-extern DEBUG_ITEM cureItemtable_5744[];
-extern DEBUG_ITEM itemtbl_5745[];
-extern DEBUG_ITEM start_tbl_5746[];
-extern DEBUG_ITEM e3_town_5747[];
-extern DEBUG_ITEM e3_dng_5748[];
-extern DEBUG_ITEM e3_boss_5749[];
-extern s8         init_partytbl_5752[];
-extern DEBUG_ITEM dbg_set1_5774[1];
-extern DEBUG_ITEM dbg_set2_5775[];
-extern DEBUG_ITEM dbg_set3_5776[];
-extern DEBUG_ITEM subgame1_5788[];
+/**
+ * Stores item numbers and quantities for a debug preset, terminated by -1.
+ */
+static short itemtbl_5745[] = {
+    0x87, 1,
+    0x91, 1,
+    0x9B, 1,
+    0xA5, 1,
+    0xF6, 1,
+    0x88, 1,
+    0x9C, 1,
+    0xA6, 1,
+    0x89, 1,
+    0x98, 1,
+    0xA7, 1,
+    0xA, 1,
+    0x2, 1,
+    0x17, 1,
+    0x70, 1,
+    0x2A, 1,
+    0x5C, 1,
+    0x5D, 1,
+    0x62, 1,
+    0x6A, 1,
+    0x10C, 5,
+    0x126, 3,
+    0x12A, 10,
+    0x160, 10,
+    0x135, 1,
+    0x140, 1,
+    0x142, 1,
+    0x147, 1,
+    0x14C, 1,
+    0x14F, 1,
+    0x138, 10,
+    0x139, 10,
+    0x13A, 10,
+    0x134, 1,
+    0x72, 1,
+    0x103, 1,
+    0x104, 1,
+    0x16A, 1,
+    0x12E, 1,
+    0x167, 1,
+    0x165, 1,
+    0x171, 1,
+    0x137, 1,
+    0x182, 1,
+    0x82, 1,
+    0x83, 1,
+    0x7C, 1,
+    0x7D, 1,
+    0x105, 1,
+    0x78, 1,
+    0x73, 1,
+    0x108, 1,
+    0x10A, 1,
+    0xFC, 1,
+    -1,
+};
+
+/**
+ * Stores item numbers and quantities for a debug preset, terminated by -1.
+ */
+static short start_tbl_5746[] = {
+    0x161, 1,
+    0x137, 1,
+    0x10C, 5,
+    0x126, 3,
+    0x12A, 3,
+    -1,
+};
+
+/**
+ * Stores item numbers and quantities for a debug preset, terminated by -1.
+ */
+static short e3_town_5747[] = {
+    0x171, 1,
+    0x2, 1,
+    0xA, 1,
+    0x17, 1,
+    0x103, 1,
+    0x102, 1,
+    0x72, 1,
+    0x76, 1,
+    0x12E, 1,
+    0x139, 3,
+    -1,
+};
+
+/**
+ * Stores item numbers and quantities for a debug preset, terminated by -1.
+ */
+static short e3_dng_5748[] = {
+    0x10C, 12,
+    0x126, 7,
+    0x12A, 5,
+    0x160, 5,
+    0x2, 1,
+    0xA, 1,
+    0x17, 1,
+    0x103, 1,
+    0x102, 1,
+    0x72, 1,
+    0x76, 1,
+    0x2A, 1,
+    0x5C, 1,
+    0x7C, 1,
+    0x118, 8,
+    0x87, 1,
+    0x91, 1,
+    0x9B, 1,
+    0xA5, 1,
+    0xF6, 1,
+    0x88, 1,
+    0xA6, 1,
+    0x134, 1,
+    -1,
+};
+
+/**
+ * Stores item numbers and quantities for a debug preset, terminated by -1.
+ */
+static short e3_boss_5749[] = {
+    0x10C, 12,
+    0x126, 8,
+    0x12A, 6,
+    0x160, 6,
+    0x2, 1,
+    0xA, 1,
+    0x17, 1,
+    0x103, 1,
+    0x102, 1,
+    0x72, 1,
+    0x76, 1,
+    0x87, 1,
+    0x91, 1,
+    0x9B, 1,
+    0xA5, 1,
+    0xF6, 1,
+    0x88, 1,
+    0xA6, 1,
+    -1,
+};
+
+/**
+ * Lists the townspeople enabled by the initial debug preset.
+ */
+static s8 init_partytbl_5752[26] = {
+    1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13,
+    14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, -1,
+};
+
+/**
+ * Stores item numbers and quantities for a debug preset, terminated by -1.
+ */
+static short dbg_set2_5775[] = {
+    0x171, 1,
+    0x167, 1,
+    0x137, 1,
+    0x87, 1,
+    0x91, 1,
+    0x9B, 1,
+    0xA5, 1,
+    0xF6, 1,
+    -1,
+};
+
+/**
+ * Stores item numbers and quantities for a debug preset, terminated by -1.
+ */
+static short dbg_set3_5776[] = {
+    0x171, 1,
+    0x167, 1,
+    0x137, 1,
+    0x87, 1,
+    0x91, 1,
+    0x9B, 1,
+    0xA5, 1,
+    0xF6, 1,
+    0x134, 1,
+    0x12E, 1,
+    -1,
+};
+
+/**
+ * Stores item numbers and quantities for a debug preset, terminated by -1.
+ */
+static short subgame1_5788[] = {
+    0x9, 1,
+    0xB, 1,
+    0xC, 1,
+    0xD, 1,
+    0xE, 1,
+    -1,
+};
+
+/**
+ * Gives the model-name prefix for each human character.
+ */
+static char *f_2005[2] = {
+    "c01_base",
+    "c02_base",
+};
+
+/**
+ * Gives the fish capacity of each aquarium tank.
+ */
+s8 aquarium_fish_maxtbl[3] = {6, 4, 2};
+
+/**
+ * Gives the shield kit limit for each ridepod core.
+ */
+static unsigned char use_limmit_table_2558[7] = {3, 6, 9, 12, 15, 18, 21};
+
+/**
+ * Gives the initial health capacity of the two human characters.
+ */
+static float lifetbl_2854[2] = {32.0f, 48.0f};
+
+/**
+ * Lists the trap choices for the first random-circle kind.
+ */
+static signed char tbl1_5167[4] = {1, 2, 3, 4};
+
+/**
+ * Lists the trap choices for the second random-circle kind.
+ */
+static signed char tbl2_5168[2] = {6, 7};
+
+/**
+ * Stores item numbers and quantities for a debug preset, terminated by -1.
+ */
+static short dbg_set1_5774[] = {
+    0x167, 1,
+    -1,
+};
+
+/**
+ * Keeps the weapon to restore after the fishing game.
+ */
+static CGameDataUsed *FishGamePreEquip;
+
+/**
+ * Caches the scene time used for battle parameters.
+ */
+static float BattleParamater_Time;
+
+/**
+ * Caches the time band used for battle parameters.
+ */
+static int BattleParamater_TimeBand;
+
+/**
+ * Holds the formatted name of an owned item.
+ */
+static char word_1327[0x61];
+
+/**
+ * Holds an attachment's spectrum source description.
+ */
+static char temp_1510[0x40];
 
 // Code (.text)
 CUserDataManager *GetUserDataMan() {
@@ -6267,8 +6495,8 @@ void AquaFishFatigueClear() {
 }
 void DebugGetItem(CUserDataManager *user_data, int mode) {
     CUserDataManager *manager = user_data;
-    DEBUG_ITEM *items;
-    DEBUG_ITEM *extra_items;
+    short *items;
+    short *extra_items;
     CGameDataUsed *attach;
 
     if (user_data == NULL) {
@@ -6325,7 +6553,7 @@ void DebugGetItem(CUserDataManager *user_data, int mode) {
     short equip_no[4] = {0, 0, 0, 0};
     if (mode == 7) {
         items = dbg_set1_5774;
-        extra_items = &start_tbl_5746[1];
+        extra_items = &start_tbl_5746[DEBUG_ITEM_FIELD_COUNT];
     }
     if (mode == 8) {
         equip_no[0] = 2;
@@ -6353,8 +6581,9 @@ void DebugGetItem(CUserDataManager *user_data, int mode) {
         }
     }
     if (items != NULL) {
-        for (int i = 0; items[i].item_no > 0; i++) {
-            manager->GetItem(items[i].item_no, items[i].num);
+        for (int i = 0; items[i * DEBUG_ITEM_FIELD_COUNT + DEBUG_ITEM_NUMBER] > 0; i++) {
+            manager->GetItem(items[i * DEBUG_ITEM_FIELD_COUNT + DEBUG_ITEM_NUMBER],
+                             items[i * DEBUG_ITEM_FIELD_COUNT + DEBUG_ITEM_QUANTITY]);
         }
         if (mode == 0) {
             manager->monster_box.EnableChange(1);
@@ -6403,33 +6632,13 @@ void DebugGetItem(CUserDataManager *user_data, int mode) {
             manager->SetChrEquip(1, e3);
         }
         if (extra_items != NULL) {
-            for (int i = 0; extra_items[i].item_no > 0; i++) {
-                manager->GetItem(extra_items[i].item_no, extra_items[i].num);
+            for (int i = 0; extra_items[i * DEBUG_ITEM_FIELD_COUNT + DEBUG_ITEM_NUMBER] > 0; i++) {
+                manager->GetItem(extra_items[i * DEBUG_ITEM_FIELD_COUNT + DEBUG_ITEM_NUMBER],
+                                 extra_items[i * DEBUG_ITEM_FIELD_COUNT + DEBUG_ITEM_QUANTITY]);
             }
         }
     }
 }
-
-// Initialised data (.data)
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/userdata", cureItemtable_5744__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/userdata", itemtbl_5745__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/userdata", start_tbl_5746__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/userdata", e3_town_5747__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/userdata", e3_dng_5748__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/userdata", e3_boss_5749__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/userdata", init_partytbl_5752__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/userdata", dbg_set2_5775__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/userdata", dbg_set3_5776__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/userdata", subgame1_5788__DATA);
-
-// Constants (.rodata)
-
-// Small initialised data (.sdata)
-/**
- * Gives the fish capacity of each aquarium tank.
- */
-s8 aquarium_fish_maxtbl[3] = {6, 4, 2};
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/userdata", dbg_set1_5774__DATA);
 
 // Small uninitialised data (.sbss)
 INCLUDE_BSS(at_5773, 0x8);

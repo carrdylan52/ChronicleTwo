@@ -93,7 +93,7 @@ two BSS markers after this group.
 
 ## Inline format strings and switch data
 
-`GetName`, `GetModelFileName`, `GetSoundReadName`, and
+`GetName`, `GetRoboJointName`, `GetRoboSoundFileName`, and
 `GetMainCharaModelName` use their string literals directly. Their
 external anonymous-string declarations and seven data markers are
 removed. `CUserDataManager::CopyGameData` already has a native
@@ -106,3 +106,49 @@ Each function's change has a full receipt (`userdata-name-level`,
 `.private/dataC/`. PAL remains OK, all 149 objects pass, and
 unowned object hashes are unchanged. Eleven data markers and two
 BSS markers remain.
+
+## Debug presets and retained BSS templates
+
+All ten debug item tables have exact declared sizes `4 * count + 2`: a
+sequence of signed halfword item/quantity pairs followed by one `-1`
+item-number halfword. A `DEBUG_ITEM` record array would add a quantity
+for the sentinel and misstate the object extent. The native tables
+therefore use `short[]`; `DEBUG_ITEM_FIELD` names the two columns and
+the pair width. The two loops read the quantity only after a positive
+item-number test. Mode 7 starts the extra list at the second pair.
+`init_partytbl_5752` is a separate signed-byte list of townspeople
+1 through 25 followed by -1, with declared size 0x1A.
+
+Private m2c and exact-object evidence for the encoding is in
+`.private/dataC/type-analysis/debug/`. Full acceptance receipts are
+`userdata-debug-flat-tables` and `userdata-ordered-data` under
+`.private/dataC/`. Named storage definitions follow retail address
+order; the functions' local aggregate initializers remain at their
+uses. Empty data-section headings and unused anonymous declarations
+are removed. The completed unit has zero `INCLUDE_RODATA` markers.
+
+Two `INCLUDE_BSS` markers remain because the current postprocessor
+cannot name native anonymous NOBITS templates after their markers
+are removed:
+
+- `at_2061` is the zero template for the local `u16 *param[5]` in
+  `CheckParamLimmit`. Its declared size is 0x14, with a 12-byte
+  alignment tail.
+- `at_5773` is the local `short equip_no[4]` template in
+  `DebugGetItem`, exactly eight bytes.
+
+The natural local aggregates already exist. A private removal trial
+fails only the missing anonymous identities and resulting relocation
+resolution. `.private/proposals/dataC-anonymous-bss.patch` proposes
+naming anonymous NOBITS objects using exact declared extent and
+unambiguous opcode-matched HI16/LO16 or GPREL16 reference evidence.
+It changes no instructions or relocation fields. The private complete
+userdata check and 15 positive/rejection cases pass. The shared tool
+is outside this lane's ownership, so the proposal is not applied here.
+Details and receipts are in `.private/dataC/type-analysis/findings.md`.
+
+After the explicit objdiff/progress refresh, `matched_data` remains
+4 / 4,264 bytes. Objdiff compares source-only objects before the
+linking postprocessor's native literal naming, piece padding, and
+retail section ordering; the exact linked-object checks prove the
+migration despite that source-side metric.
