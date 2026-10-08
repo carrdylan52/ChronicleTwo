@@ -14,20 +14,60 @@
 #include "scriptinterpreter.hpp"
 #include "userdata.hpp"
 
-extern CDataCommon   *comdatapt;
-extern int            comdatapt_num;
-extern mgCMemory     *gamedata_build_stack;
-extern CDataCommon    local_com_itemdata[432];
-extern CDataItem      local_itemdata[162];
-extern CDataWeapon    local_weapondata[116];
-extern CDataAttach    local_attachdata[38];
-extern CDataRoboPart  local_robodata[68];
-extern CDataBreedFish local_fishdata[20];
-extern short          local_guarddata[40];
-extern short          local_itemdatano_converttable[512];
-extern char           gamedata_sysword_buffer_1073[0x2800];
-extern char           filename_1267[0x20];
-extern char           item_file_path_1288[0x80];
+/** Allocator for loaded item display names. */
+static mgCMemory *gamedata_build_stack;
+
+/** Common item entry receiving script values. */
+static CDataCommon *comdatapt;
+
+/** Number of common item entries parsed. */
+static int comdatapt_num;
+
+CDataWeapon *SpiWeaponPt;
+
+CDataItem *SpiItemPt;
+
+CDataAttach *SpiAttach;
+
+CDataRoboPart *SpiRoboPart;
+
+CDataBreedFish *SpiFish;
+
+CGameData GameItemDataManage;
+
+/** Common records for the master item catalog. */
+static CDataCommon local_com_itemdata[432];
+
+/** Usable item records loaded from item data scripts. */
+static CDataItem local_itemdata[162];
+
+/** Weapon records loaded from weapon data scripts. */
+static CDataWeapon local_weapondata[116];
+
+/** Attachment records loaded from attachment data scripts. */
+static CDataAttach local_attachdata[38];
+
+/** Ridepod part records loaded from part data scripts. */
+static CDataRoboPart local_robodata[68];
+
+/** Breedable fish records loaded from fish data scripts. */
+static CDataBreedFish local_fishdata[20];
+
+/** Guard values loaded from guard data scripts. */
+static short local_guarddata[35];
+
+/** Lookup from item numbers to common-record indices. */
+static short local_itemdatano_converttable[512];
+
+/** Storage for loaded item display names. */
+static char gamedata_sysword_buffer_1073[0x2800];
+
+/** Scratch buffer for an item model filename. */
+static char filename_1267[0x20];
+
+/** Scratch buffer for an item model path. */
+static char item_file_path_1288[0x80];
+
 extern SPI_TAG_PARAM  gamedata_tag[];
 extern short          msg_offsettbl_1363[3];
 extern signed char    ItemCmdMsgTbl[33][8];
@@ -1409,25 +1449,6 @@ INCLUDE_RODATA("ps2/asm/pal/nonmatchings/gamedata", at_1501__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/gamedata", msg_offsettbl_1363__DATA);
 
 // Small uninitialised data (.sbss)
-INCLUDE_BSS(gamedata_build_stack, 0x4);
-INCLUDE_BSS(comdatapt, 0x4);
-INCLUDE_BSS(comdatapt_num, 0x4);
-INCLUDE_BSS(SpiWeaponPt, 0x4);
-INCLUDE_BSS(SpiItemPt, 0x4);
-INCLUDE_BSS(SpiAttach, 0x4);
-INCLUDE_BSS(SpiRoboPart, 0x4);
-INCLUDE_BSS(SpiFish, 0x4);
 
 // Uninitialised data (.bss)
-INCLUDE_BSS(GameItemDataManage, 0x30);
-INCLUDE_BSS(local_com_itemdata, 0x4A40);
-CDataItem   local_itemdata[162];
-CDataWeapon local_weapondata[116];
-CDataAttach local_attachdata[38];
-INCLUDE_BSS(local_robodata, 0x990);
-CDataBreedFish local_fishdata[20];
-INCLUDE_BSS(local_guarddata, 0x50);
-INCLUDE_BSS(local_itemdatano_converttable, 0x400);
 INCLUDE_BSS(gamedata_sysword_buffer_1073, 0x2800);
-INCLUDE_BSS(filename_1267, 0x20);
-INCLUDE_BSS(item_file_path_1288, 0x80);
