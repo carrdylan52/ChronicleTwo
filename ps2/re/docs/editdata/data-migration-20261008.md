@@ -73,3 +73,16 @@ Final acceptance: `.private/dataC-r2/editdata-state-final-{build,objects}.log`
 and `editdata-state-final-metrics.json`. All 149 objects, the complete PAL
 image, and every unowned object hash pass. The unit has 0 rodata / 3 BSS
 markers and native data coverage 372 / 16884.
+
+## Direct saved-house indexing trial
+
+The inherited `EditHouseIndex` inline wrapper was tested as the direct
+`part->house - house + 1` expression and with a meaningful local
+`house_index`. Both are semantically identical but swap the division
+result's v0/v1 registers in six instruction words (seven differing linked
+bytes). An explicit `static_cast<int>` worsens the schedule and spills,
+expanding `SaveData` to 0x5D8 bytes from the 0x5D0-byte retail extent.
+No new helper or dummy local is retained. The accepted source is restored.
+Receipts: `.private/dataC-r2/editdata-house-difference-build.log`,
+`editdata-house-difference.dump`, `owned-natural-fields-{build,objects}.log`,
+and `editdata-house-index-local-build.log`.
