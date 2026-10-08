@@ -4327,18 +4327,12 @@ void CheckEnableHaveItemNum(void) {
         }
     }
     chara = user_data->GetCharaDataPtr(0);
-    {
-        i = 0;
-        if (i < 2) {
-            do {
-                for (j = 0; j < 3; j++) {
-                    menu_chara_activeItem_limmit_check[i * 3 + j] = 0;
-                    if (chara->active_item[j].item_no > 0 && full[chara->active_item[j].item_no] != 0) {
-                        menu_chara_activeItem_limmit_check[i * 3 + j] = 1;
-                    }
-                }
-                i++, chara++;
-            } while (i < 2);
+    for (i = 0; i < 2; i++, chara++) {
+        for (j = 0; j < 3; j++) {
+            menu_chara_activeItem_limmit_check[i * 3 + j] = 0;
+            if (chara->active_item[j].item_no > 0 && full[chara->active_item[j].item_no] != 0) {
+                menu_chara_activeItem_limmit_check[i * 3 + j] = 1;
+            }
         }
     }
 }

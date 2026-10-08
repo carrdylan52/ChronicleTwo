@@ -248,11 +248,12 @@ selectors), and records the source facts that close each one.
 The earlier residual descriptions of those functions in the dated notes are
 superseded.
 
-`CheckEnableHaveItemNum` has two register-allocation differences: the first
-active-slot loop exchanges the `s1` counter and `s3` item pointer, while the
-final flag loop exchanges `t0` and `a3` offsets. Reusing the earlier `j` counter
+`CheckEnableHaveItemNum` retains seven register-allocation differences: the
+first active-slot loop exchanges the `s1` counter and `s3` item pointer.
+The plain final `for` loop resolves the former `t0`/`a3` offset exchange;
+see [night-20261008.md](night-20261008.md). Reusing the earlier `j` counter
 or replacing repeated active-item address expressions with the named pointer
-does not resolve these thirteen differing words.
+does not resolve the first loop's allocation.
 
 The placement-new null-branch blocker occurs in `MenuItemSelectInit`,
 `MenuModeMalloc`, `IsAskExtend` and `MenuItemDebugKey`. Retail branches on `v0`
