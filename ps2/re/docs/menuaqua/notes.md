@@ -262,3 +262,20 @@ and resolved relocations. With the division primer removed and helper masks
 GPR `0x30` / FPR `0`, validation checks `0x11C50` bytes and 2,970 relocations.
 The seven existing `DrawEsaDropRoot` issues remain; their complete masked
 instruction bytes and resolved relocation targets/addends are unchanged.
+
+## Fish-food drop-line floating argument calibration
+
+`DrawEsaDropRoot__FP9CFishFoodf` needs binary32 one (`0x3f800000`)
+`evaluate_first: true` in `menuaqua.cpp`. This selects the existing sprite
+height argument to `mgTransWorldPrim3DSprite`; the source and argument values
+stay the same. The deterministic false default produced a 0x134-byte body,
+with different float argument setup and six shifted call relocations. The
+one selector restores the complete 0x13C-byte retail body and all loop offsets.
+Selecting only 0.3f (`0x3e99999a`) did not resolve the seven canonical findings.
+
+Canonical wrapper compilation followed by `fixup_sections.sh` passes the
+complete unit: 0x11C54 checked bytes, 3,146 resolved relocations, zero problems.
+The original source-only object is fuzzy; the calibrated native body has zero
+masked instruction differences. Both mwccgap passes retain the original
+`menuaqua.cpp` policy identity with and without the deterministic temporary
+filename patch. Evidence is in the October 8 regress-lane private receipts.

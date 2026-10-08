@@ -350,6 +350,13 @@
       },
       {
         "translation_unit": "menuaqua.cpp",
+        "function": "DrawEsaDropRoot__FP9CFishFoodf",
+        "value_type": "binary32",
+        "value_bits": "0x3f800000",
+        "evaluate_first": true
+      },
+      {
+        "translation_unit": "menuaqua.cpp",
         "function": "MenuAquaInit__FP9mgCMemoryPii",
         "value_type": "binary32",
         "value_bits": "0x00000000",
