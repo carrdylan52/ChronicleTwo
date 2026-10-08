@@ -137,3 +137,30 @@ output and coverage. All three lane units pass; the inherited failing set stays
 mg_texture, nd_meswin, actionchara and actscript (145/149 pass). Coverage stays
 6,666 matched / 184 guarded / 15 assembly-only / 7 fuzzy. No target is promoted.
 Comparison receipt: `.private/receipts/bigfn-final/comparison.json`.
+
+## Nearmiss fog representation audit
+
+The current read-only DC1 checkout has no `mg_drawenv` unit or `mgFOG_PARAM`.
+Its `EDIT_FOG_INFO` in `ps2/include/editloop.hpp` places near/far floats at
+0/4, RGB at 8/9/10, and an unknown byte at 11. `EdSetLightParam` in
+`ps2/src/editloop3.cpp` interpolates those fields and calls `MGSetFogParm`;
+DC1's renderer keeps them in `RenderInfo`. Neither supplies an editor colour
+array beginning at byte 6. DC2's retail switch uses `edit = row - 2`, merges
+items 2/3/4, and then performs `edit + fog`, followed by byte offset 6.
+The switch data is a branch-target table, not a table of field addresses.
+
+A private three-channel RGB overlay, keeping alpha separate, still adds the
+index subtraction at +0x79C and differs by 873/1356 words. Selecting the three
+actual typed field addresses with a conditional expression adds branches and
+emits 0x1548 bytes, exceeding retail's 0x1530 extent. Both are reverted. A
+colour array starting at byte 6 would cover part of `far_dist`; it is not an
+evidenced colour representation. Packed int/short access also lacks evidence
+for retail's byte load/store sequence.
+
+The original zero-word candidate remains guarded because its integer/byte
+address arithmetic remains noncompliant. No shared header is changed. A new
+promotion requires a genuine typed layout/index expression that folds the
+colour offset without an extra operation, then the whole-unit check and the
+required hashes of all other game objects if the shared header changes.
+Receipts: `.private/receipts/nearmiss-probes/editdebug/n1/` and `n2/`; the RGB
+header proposal existed only in a private include-tree copy.
