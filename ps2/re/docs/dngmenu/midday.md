@@ -130,3 +130,67 @@ promotions together. The object checker remains 147/149; dngmenu passes
 object fingerprints. Every allocated PAL section is identical to the base,
 with the same 0x26 retail `.text` discrepancy and BSS end at 0x1F64A00.
 Coverage is 6,738 matched / 122 guarded / 10 asm-only / 2 fuzzy functions.
+
+## Guarded rendering corrections
+
+`DrawRoot` remains guarded at 708/844 differing words, with a 0xCEC-byte
+native body against a 0xD30 retail extent. The retail shape predicate at
++0x1F4..+0x248 subtracts five pixels only for shapes 1, 2, 3, 6 and 7.
+The former draft included shapes 4 and 5. Passage shape dispatch is an
+ordered comparison chain, rather than the draft's dense switch jump table.
+The default `RootMarkOffset` pointer precedes the event tint branch.
+`RootMarkOffset` has two signed halfword coordinates, size four; its fields
+and the shape/icon tables now have purpose comments. All coordinates use
+ordinary typed fields and indexed arrays.
+
+Explicitly caching integer color conversions reduces the float lifetimes,
+but explicit `fptosi(mark_color)` arguments emit three calls instead of the
+single conversion shared by compiler casts. That variant is rejected.
+Separate color declarations and a nested positive entry guard also fail to
+reproduce retail's parameter/color register map. The retained source uses
+its existing casts and guards. Frame size already agrees at 0xF0; root,
+marks, opacity, global rectangle and color register assignment still differ,
+as do the individual shape-loop schedules. Receipts: `DrawRoot.m2c.c`,
+`root-chain-casts/`, and `render-retained/`.
+
+`DrawRoomOne` retains its original typed picture, texture, special-overlay,
+glyph and tint locals. Retail adds -42.0f to the room picture's Y coordinate;
+restoring that operation changes 461/584 differing words to 459/584, still
+0x8C4 versus 0x920 bytes. The frame remains 0x110 versus retail 0x120.
+Both save s0 through s8; the discrepancy is local storage, not an omitted
+saved GPR. Cached texture numbers, split special-height branches, default
+constructed glyph destination plus Set, separate RGB locals, and an overlay
+coordinate pair all worsen the result. `RoomGlyph` is four signed halfwords
+(texture X/Y and width/height), size eight; `RoomGlyphOffset` is two signed
+halfwords, size four. Their fields now have purpose comments. Receipts:
+`DrawRoomOne.m2c.c`, `room-negative-only/`, and the `room-*` probe directories.
+
+`DrawDngRoomInfo` remains guarded at 611/744 diagnostic words, 0xBA0 versus
+retail 0xB20 bytes. This denominator is the longer body, not the retail
+manifest's 712 words. The three panel pieces are separate value arguments
+at sp120/sp130/sp140. The two seal rectangles exist together at sp100/sp110;
+a pointer selects one and changes its top or left coordinate. The first
+activity icon's Y has a retained floating row coordinate across the seal
+pulse. Integer icon and message-row coordinates advance separately.
+These lifetimes restore the 0x150 frame and f20 through f23 saves.
+
+Retail directly accesses message windows 1, 3, 4, 5, 6 and 7. The added
+null checks in the draft are removed; the existing checks for window 0,
+window 5 while choosing panel height, and the final medal window remain.
+The fishing second line is placed before its message-2 override. Spheda
+prize placement checks Europe only on the cleared or bonus-unlocked paths,
+and before the cleared highlight is drawn. The final challenge's Japanese
+and translated layouts have distinct branches. The selected room is
+reloaded for the later activities, as retail does. `DngInfoRoomInfo` is a
+`DNGMAP_ROOM_INFO *`, rather than an integer address; its declarations and
+stores are consistent throughout this unit. Progress flags use the existing
+`DNG_FLOOR_FLAG` names. The first completion icon is the timed-clear icon,
+not a geostone icon.
+
+The ordered seal-wrap comparison, 68 + integer Y + 2 expression, region
+placement calls and message accesses follow m2c and the retail instructions.
+Moving the alpha calculation or changing coordinate declaration order does
+not resolve the remaining width/alpha/room/primitive register map. The panel
+and seal slots agree, but integer allocation and subsequent instruction
+scheduling still differ. Receipts: `DrawRoomInfo.m2c.c`, `info-row-live/`,
+`render-retained/`, and `render-format/`.

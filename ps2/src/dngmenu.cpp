@@ -31,10 +31,6 @@
 /** Brightness of the active dungeon tree selection. */
 extern float DngTreeMapActiveLightRate;
 
-#ifdef NONMATCHING
-extern mgRect<float> treemap_root_put;
-#endif
-
 /**
  * Draws the selected room's floor information and completion medals.
  */
@@ -261,13 +257,18 @@ void CDngFreeMap::DrawLast() {
  *
  */
 struct RootMarkOffset {
-    s16 x;
-    s16 y;
+    s16 x; /**< Horizontal position of the mark inside its grid cell. */
+    s16 y; /**< Vertical position of the mark inside its grid cell. */
 };
 
+/** Destination rectangle used while drawing passage lines. */
+extern mgRect<float> treemap_root_put;
+/** Passage mark offsets selected by shape. */
 extern RootMarkOffset markOffsetTable_1092[];
+/** Mark offset of the final dungeon's diagonal passage. */
 extern RootMarkOffset zerumaito_offset_1110;
-extern s16            root_type_texturecrd_1216[][2];
+/** Texture origins of the passage-type icons. */
+extern s16 root_type_texturecrd_1216[][2];
 
 void CDngFreeMap::DrawRoot(mgRect<float> rect, DNGMAP_ROOT_INFO *root, int shadow, unsigned int marks, int opacity) {
     if (root == NULL || (float) mgScreenWidth < rect.left || rect.top > (float) (mgScreenHeight + 20)) {
@@ -283,13 +284,13 @@ void CDngFreeMap::DrawRoot(mgRect<float> rect, DNGMAP_ROOT_INFO *root, int shado
     float green = 192.0f;
     float blue = 144.0f;
     float mark_color = 128.0f;
+    RootMarkOffset *mark = markOffsetTable_1092;
     if (mode == DNGMAP_MODE_EVENT) {
         red = 128.0f;
         green = 111.0f;
         blue = 0.0f;
         mark_color = 64.0f;
     }
-    RootMarkOffset *mark = markOffsetTable_1092;
     mgCDrawPrim    *prim = GetMenuPrim();
     SetSpriteEnv(prim, 2);
     prim->Begin(1);
@@ -297,123 +298,111 @@ void CDngFreeMap::DrawRoot(mgRect<float> rect, DNGMAP_ROOT_INFO *root, int shado
     if (shadow != 0) {
         prim->Color(0, 0, 0, (int) (0.05f * (float) opacity));
     }
-    if (root->shape == 1 || (root->shape >= 2 && root->shape < 4) ||
-        (root->shape >= 4 && root->shape < 6) || (root->shape >= 6 && root->shape < 8)) {
+    if (root->shape == 1 || (root->shape >= 2 && root->shape < 4) || (root->shape >= 6 && root->shape < 8)) {
         put.left -= 5.0f;
     }
     put.right = put.left + 52.0f;
     put.bottom = put.top + 20.0f;
-    switch (root->shape) {
-        case 0:
-            put.left += 26.0f;
-            for (int i = 0; i < 3; i++) {
-                prim->Vertex(put.left + (float) i, put.top, 0.0f);
-                prim->Vertex(put.left + (float) i - 16.0f, put.bottom, 0.0f);
-            }
-            if (dng_no == 6) {
-                mark = &zerumaito_offset_1110;
-            }
-            break;
-        case 1:
-            if (marks & 0x100) {
-                put.left += 14.0f;
-            }
-            put.top += 10.0f;
-            for (int i = 0; i < 3; i++) {
-                prim->Vertex(put.left - (float) i, put.top + (float) i, 0.0f);
-                prim->Vertex(put.right - (float) i, put.top + (float) i, 0.0f);
-            }
-            mark = &markOffsetTable_1092[1];
-            break;
-        case 2:
-            put.left += 25.0f;
-            put.top += 10.0f;
-            for (int i = 0; i < 3; i++) {
-                prim->Vertex(put.left - (float) i, put.top + (float) i, 0.0f);
-                prim->Vertex(put.right - (float) i, put.top + (float) i, 0.0f);
-            }
-            for (int i = 0; i < 3; i++) {
-                prim->Vertex(put.left + (float) i, put.top, 0.0f);
-                prim->Vertex(put.left + (float) i - 10.0f, put.bottom, 0.0f);
-            }
-            mark = &markOffsetTable_1092[2];
-            break;
-        case 3:
-            put.right -= 27.0f;
-            put.top += 10.0f;
-            for (int i = 0; i < 3; i++) {
-                prim->Vertex(put.left - (float) i, put.top + (float) i, 0.0f);
-                prim->Vertex(put.right - (float) i, put.top + (float) i, 0.0f);
-            }
-            for (int i = 0; i < 3; i++) {
-                prim->Vertex(put.right + (float) i, put.top, 0.0f);
-                prim->Vertex(put.right + (float) i - 10.0f, put.bottom, 0.0f);
-            }
-            mark = &markOffsetTable_1092[3];
-            break;
-        case 4:
-            put.left += 26.0f;
-            put.bottom -= 10.0f;
-            for (int i = 0; i < 3; i++) {
-                prim->Vertex(put.left + (float) i, put.top, 0.0f);
-                prim->Vertex(put.left + (float) i - 10.0f, put.bottom + 2.0f, 0.0f);
-            }
-            for (int i = 0; i < 3; i++) {
-                prim->Vertex(put.left - 7.0f - (float) i, put.bottom + (float) i, 0.0f);
-                prim->Vertex(put.right - 5.0f - (float) i, put.bottom + (float) i, 0.0f);
-            }
-            mark = &markOffsetTable_1092[4];
-            break;
-        case 5:
-            put.right -= 26.0f;
-            put.bottom -= 10.0f;
-            put.left += 1.0f;
-            for (int i = 0; i < 3; i++) {
-                prim->Vertex(put.left - 6.0f - (float) i, put.bottom + (float) i, 0.0f);
-                prim->Vertex(put.right - 6.0f - (float) i, put.bottom + (float) i, 0.0f);
-            }
-            for (int i = 0; i < 3; i++) {
-                prim->Vertex(put.right + (float) i, put.top, 0.0f);
-                prim->Vertex(put.right + (float) i - 9.0f, put.bottom, 0.0f);
-            }
-            mark = &markOffsetTable_1092[5];
-            put.left = put.right;
-            break;
-        case 6:
-            put.left += 15.5f;
-            put.top += 10.0f;
-            for (int i = 0; i < 3; i++) {
-                prim->Vertex(put.left + (float) i, put.bottom, 0.0f);
-                prim->Vertex(put.right - (float) i, put.top + (float) i, 0.0f);
-            }
-            break;
-        case 7:
-            put.left -= 1.0f;
-            put.right -= 35.0f;
-            put.top += 10.0f;
-            for (int i = 0; i < 3; i++) {
-                prim->Vertex(put.left - (float) i / 2.0f, put.top + (float) i, 0.0f);
-                prim->Vertex(put.right - (float) i, put.bottom, 0.0f);
-            }
-            break;
-        case 8:
-            put.left += 26.0f;
-            put.right -= 5.5f;
-            put.bottom -= 10.0f;
-            for (int i = 0; i < 3; i++) {
-                prim->Vertex(put.left + 1.5f - (float) i, put.top, 0.0f);
-                prim->Vertex(put.right - (float) i / 2.0f, put.bottom + (float) i, 0.0f);
-            }
-            break;
-        case 9:
-            put.left -= 6.0f;
-            put.right -= 26.0f;
-            put.bottom -= 10.0f;
-            for (int i = 0; i < 3; i++) {
-                prim->Vertex(put.left - (float) i, put.bottom + (float) i, 0.0f);
-                prim->Vertex(put.right + (float) i, put.top, 0.0f);
-            }
-            break;
+    if (root->shape == 0) {
+        put.left += 26.0f;
+        for (int i = 0; i < 3; i++) {
+            prim->Vertex(put.left + (float) i, put.top, 0.0f);
+            prim->Vertex(put.left + (float) i - 16.0f, put.bottom, 0.0f);
+        }
+        if (dng_no == 6) {
+            mark = &zerumaito_offset_1110;
+        }
+    } else if (root->shape == 1) {
+        if (marks & 0x100) {
+            put.left += 14.0f;
+        }
+        put.top += 10.0f;
+        for (int i = 0; i < 3; i++) {
+            prim->Vertex(put.left - (float) i, put.top + (float) i, 0.0f);
+            prim->Vertex(put.right - (float) i, put.top + (float) i, 0.0f);
+        }
+        mark = &markOffsetTable_1092[1];
+    } else if (root->shape == 2) {
+        put.left += 25.0f;
+        put.top += 10.0f;
+        for (int i = 0; i < 3; i++) {
+            prim->Vertex(put.left - (float) i, put.top + (float) i, 0.0f);
+            prim->Vertex(put.right - (float) i, put.top + (float) i, 0.0f);
+        }
+        for (int i = 0; i < 3; i++) {
+            prim->Vertex(put.left + (float) i, put.top, 0.0f);
+            prim->Vertex(put.left + (float) i - 10.0f, put.bottom, 0.0f);
+        }
+        mark = &markOffsetTable_1092[2];
+    } else if (root->shape == 3) {
+        put.right -= 27.0f;
+        put.top += 10.0f;
+        for (int i = 0; i < 3; i++) {
+            prim->Vertex(put.left - (float) i, put.top + (float) i, 0.0f);
+            prim->Vertex(put.right - (float) i, put.top + (float) i, 0.0f);
+        }
+        for (int i = 0; i < 3; i++) {
+            prim->Vertex(put.right + (float) i, put.top, 0.0f);
+            prim->Vertex(put.right + (float) i - 10.0f, put.bottom, 0.0f);
+        }
+        mark = &markOffsetTable_1092[3];
+    } else if (root->shape == 4) {
+        put.left += 26.0f;
+        put.bottom -= 10.0f;
+        for (int i = 0; i < 3; i++) {
+            prim->Vertex(put.left + (float) i, put.top, 0.0f);
+            prim->Vertex(put.left + (float) i - 10.0f, put.bottom + 2.0f, 0.0f);
+        }
+        for (int i = 0; i < 3; i++) {
+            prim->Vertex(put.left - 7.0f - (float) i, put.bottom + (float) i, 0.0f);
+            prim->Vertex(put.right - 5.0f - (float) i, put.bottom + (float) i, 0.0f);
+        }
+        mark = &markOffsetTable_1092[4];
+    } else if (root->shape == 5) {
+        put.right -= 26.0f;
+        put.bottom -= 10.0f;
+        put.left += 1.0f;
+        for (int i = 0; i < 3; i++) {
+            prim->Vertex(put.left - 6.0f - (float) i, put.bottom + (float) i, 0.0f);
+            prim->Vertex(put.right - 6.0f - (float) i, put.bottom + (float) i, 0.0f);
+        }
+        for (int i = 0; i < 3; i++) {
+            prim->Vertex(put.right + (float) i, put.top, 0.0f);
+            prim->Vertex(put.right + (float) i - 9.0f, put.bottom, 0.0f);
+        }
+        mark = &markOffsetTable_1092[5];
+        put.left = put.right;
+    } else if (root->shape == 6) {
+        put.left += 15.5f;
+        put.top += 10.0f;
+        for (int i = 0; i < 3; i++) {
+            prim->Vertex(put.left + (float) i, put.bottom, 0.0f);
+            prim->Vertex(put.right - (float) i, put.top + (float) i, 0.0f);
+        }
+    } else if (root->shape == 7) {
+        put.left -= 1.0f;
+        put.right -= 35.0f;
+        put.top += 10.0f;
+        for (int i = 0; i < 3; i++) {
+            prim->Vertex(put.left - (float) i / 2.0f, put.top + (float) i, 0.0f);
+            prim->Vertex(put.right - (float) i, put.bottom, 0.0f);
+        }
+    } else if (root->shape == 8) {
+        put.left += 26.0f;
+        put.right -= 5.5f;
+        put.bottom -= 10.0f;
+        for (int i = 0; i < 3; i++) {
+            prim->Vertex(put.left + 1.5f - (float) i, put.top, 0.0f);
+            prim->Vertex(put.right - (float) i / 2.0f, put.bottom + (float) i, 0.0f);
+        }
+    } else if (root->shape == 9) {
+        put.left -= 6.0f;
+        put.right -= 26.0f;
+        put.bottom -= 10.0f;
+        for (int i = 0; i < 3; i++) {
+            prim->Vertex(put.left - (float) i, put.bottom + (float) i, 0.0f);
+            prim->Vertex(put.right + (float) i, put.top, 0.0f);
+        }
     }
     prim->End();
     prim->Bilinear(0);
@@ -438,6 +427,7 @@ void CDngFreeMap::DrawRoot(mgRect<float> rect, DNGMAP_ROOT_INFO *root, int shado
     }
     prim->End();
 }
+
 #else
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/dngmenu", DrawRoot__11CDngFreeMapF9mgRect_f_P16DNGMAP_ROOT_INFOiUii);
 #endif
@@ -490,10 +480,10 @@ unsigned int CDngFreeMap::DrawGlidCheck(GLID_INFO *glid) {
  *
  */
 struct RoomGlyph {
-    s16 x;
-    s16 y;
-    s16 w;
-    s16 h;
+    s16 x; /**< Horizontal glyph offset within the room picture. */ /**< Horizontal texture origin of the glyph. */
+    s16 y; /**< Vertical glyph offset within the room picture. */ /**< Vertical texture origin of the glyph. */
+    s16 w; /**< Width of the glyph in texture pixels. */
+    s16 h; /**< Height of the glyph in texture pixels. */
 };
 
 /**
@@ -515,7 +505,7 @@ void CDngFreeMap::DrawRoomOne(mgRect<float> rect, DNGMAP_ROOM_INFO *room, unsign
         return;
     }
     rect.left -= 30.0f;
-    rect.top -= 42.0f;
+    rect.top += -42.0f;
     mgRect<float> picture = rect;
     mgCDrawPrim  *prim = GetMenuPrim();
     SetSpriteEnv(prim, 0);
@@ -713,7 +703,8 @@ extern short           dngboardbrdtbl_2[12];
 extern short           DngInfoMedalNumMsg[16];
 extern int             DngInfoMedalMsgPutPos[2];
 extern CDC2Mes        *MenuDngMes[8];
-extern int             DngInfoRoomInfo;
+/** Room whose floor-information activities are being shown. */
+extern DNGMAP_ROOM_INFO *DngInfoRoomInfo;
 extern DNG_FLOOR_SAVE *DngInfoFloorInfo;
 extern int             DngInfoDrawAlpha;
 extern u8              dngfloor_infoview;
@@ -728,220 +719,232 @@ extern u8              init_1744;
  *
  */
 void DrawDngRoomInfo(DNGMAP_ROOM_INFO *room) {
-    if (room == NULL || Floor_InfoTex == NULL) {
-        return;
-    }
-    if (dngfloor_infoview) {
-        CalcMenuAdd(&DngInfoDrawAlpha, 6, 128);
-    } else {
-        CalcMenuAdd(&DngInfoDrawAlpha, -8, 0);
-    }
-    int alpha = DngInfoDrawAlpha;
-    int language = LanguageCode;
-    int width = 0x19C;
-    int height = 0xE4;
-    if (language > 0) {
-        width = 0x1D6;
-        if (MenuDngMes[5] == NULL || MenuDngMes[5]->ClsMes::mes_no != 0x6C) {
-            height = 0xFA;
-        }
-    }
-    float             top = 92.0f;
-    short            *bottom_table = dngboardbrdtbl_1;
-    int               center = mgScreenWidth >> 1;
-    float             left = (float) ((0x200 - width) >> 1);
-    DNGMAP_ROOM_INFO *shown = (DNGMAP_ROOM_INFO *) DngInfoRoomInfo;
-    if (shown != NULL) {
-        if (!shown->geostone) {
-            bottom_table = dngboardbrdtbl_2;
-            height -= 0x20;
-            top = 112.0f;
-        }
-        if (!shown->spheda) {
-            height -= 0x16;
-            top += 14.0f;
-        }
-        if (!shown->fishing) {
-            height -= 0x16;
-            top += 14.0f;
-        }
-    }
-    DrawMenuFillBox(left + 6.0f, top + 6.0f, (float) (width - 8), (float) (height - 8),
-                    (alpha * 7) / 10, 12, 12, 12);
-    mgCDrawPrim *prim = GetMenuPrim();
-    SetSpriteEnv(prim, 0);
-    prim->Begin(6);
-    prim->Texture(Floor_InfoTex);
-    prim->Color(128, 128, 128, alpha);
-    int         ix = fptosi(left);
-    int         iy = fptosi(top);
-    mgRect<int> panel(ix, iy, width, 0x46);
-    Menu3DivideTextureDraw(prim, panel, dngboardbrdtbl, 1);
-    panel.Set(ix, iy + 0x46, width, height - 0x46 - dngboardbrdtbl[15]);
-    Menu3DivideTextureDraw(prim, panel, &dngboardbrdtbl[12], 1);
-    panel.Set(ix, iy + height - bottom_table[3], width, bottom_table[3]);
-    Menu3DivideTextureDraw(prim, panel, bottom_table, 1);
-    prim->End();
-    prim->Begin(6);
-    prim->Texture(Floor_InfoTex);
-    prim->Color(128, 128, 128, alpha);
-    PrimQuad(prim, (float) (center - (Floor_Info.right >> 1)) - 1.0f, top + 10.0f, Floor_Info);
-    prim->End();
-
-    int         right = ix + width;
-    int         right_text = right - (CheckNowEurope() ? 0x54 : 0x48);
-    float       row_top = top + 68.0f;
-    mgRect<int> mark(0x7C, 0, 0x16, 0x16);
-    mgRect<int> highlight(0x92, 0, 0x16, 0x16);
-    prim->Bilinear(1);
-    prim->Begin(6);
-    prim->Texture(Floor_InfoTex);
-    prim->Color(128, 128, 128, alpha);
-    if (MenuDngMes[0] != NULL) {
-        MenuDngMes[0]->SetMovePosCenteringGyou(0, center, iy + 0x26);
-    }
-    if (DngInfoFloorInfo != NULL && !(DngInfoFloorInfo->flag & 0x400) && room->seal > 0) {
-        if (!init_1744) {
-            AlphaRate_1743 = 0.0f;
-            init_1744 = 1;
-        }
-        AlphaRate_1743 += 0.034906585f;
-        if (AlphaRate_1743 >= 3.1415927f) {
-            AlphaRate_1743 -= 3.1415927f;
-        }
-        float seal_alpha = (float) alpha * sinf(AlphaRate_1743);
-        if (seal_alpha < 0.0f) {
-            seal_alpha = 0.0f;
-        }
-        if (seal_alpha > 128.0f) {
-            seal_alpha = 128.0f;
-        }
-        prim->Color(128, 128, 128, fptosi(seal_alpha));
-        mgRect<int> seal = language > 0 ? mgRect<int>(0xD8, 0xA6, 0x28, 0x18)
-                                        : mgRect<int>(0xB8, 0xD6, 0x18, 0x18);
-        if (language > 0) {
-            seal.top += (room->seal - 1) * 0x18;
+    if (room != NULL && Floor_InfoTex != NULL) {
+        if (dngfloor_infoview) {
+            CalcMenuAdd(&DngInfoDrawAlpha, 6, 128);
         } else {
-            seal.left += (room->seal - 1) * 0x18;
+            CalcMenuAdd(&DngInfoDrawAlpha, -8, 0);
         }
-        PrimQuad(prim, left + width - (language > 0 ? 56.0f : 40.0f), top + 35.0f, seal);
+        int language = LanguageCode;
+        int width = 0x19C;
+        int height = 0xE4;
+        if (language > 0) {
+            width = 0x1D6;
+            if (MenuDngMes[5] == NULL || MenuDngMes[5]->ClsMes::mes_no != 0x6C) {
+                height += 0x16;
+            }
+        }
+        int               alpha = DngInfoDrawAlpha;
+        float             top = 92.0f;
+        short            *bottom_table = dngboardbrdtbl_1;
+        int               center = mgScreenWidth >> 1;
+        float             left = (float) ((0x200 - width) >> 1);
+        DNGMAP_ROOM_INFO *shown = DngInfoRoomInfo;
+        if (shown != NULL) {
+            if (!shown->geostone) {
+                bottom_table = dngboardbrdtbl_2;
+                height -= 0x20;
+                top += 20.0f;
+            }
+            if (!shown->spheda) {
+                height -= 0x16;
+                top += 14.0f;
+            }
+            if (!shown->fishing) {
+                height -= 0x16;
+                top += 14.0f;
+            }
+        }
+        DrawMenuFillBox(left + 6.0f, top + 6.0f, (float) (width - 8), (float) (height - 8),
+                        (alpha * 7) / 10, 12, 12, 12);
+        mgCDrawPrim *prim = GetMenuPrim();
+        SetSpriteEnv(prim, 0);
+        prim->Begin(6);
+        prim->Texture(Floor_InfoTex);
         prim->Color(128, 128, 128, alpha);
-    }
-    int icon_x = fptosi(left + 20.0f);
-    int icon_y = fptosi((float) iy + 70.0f);
-    int text_x = icon_x + 0x1C;
-    PrimQuad(prim, (float) icon_x, row_top, mark);
-    if (DngInfoFloorInfo != NULL && (DngInfoFloorInfo->flag & 0x10)) {
-        highlight.left = medal_xytbl_1736[0];
-        PrimQuad(prim, (float) icon_x, (float) icon_y, highlight);
-    }
-    int current_y = icon_y;
-    if (MenuDngMes[1] != NULL) {
-        MenuDngMes[1]->line_pos[0][0] = text_x;
-        MenuDngMes[1]->line_pos[0][1] = current_y;
-        MenuDngMes[1]->line_pos_on[0] = 1;
-        MenuDngMes[1]->line_pos[1][0] = right - MenuDngMes[1]->line_w[1] - (CheckNowEurope() ? 0x16 : 0xE);
-        MenuDngMes[1]->line_pos[1][1] = current_y;
-        MenuDngMes[1]->line_pos_on[1] = 1;
-    }
-    current_y += 0x16;
-    if (shown != NULL && shown->fishing) {
-        PrimQuad(prim, (float) icon_x, (float) current_y, mark);
-        if (DngInfoFloorInfo != NULL && (DngInfoFloorInfo->flag & 0x20)) {
-            highlight.left = medal_xytbl_1736[2];
-            PrimQuad(prim, (float) icon_x, (float) current_y, highlight);
+        int         ix = fptosi(left);
+        int         iy = fptosi(top);
+        Menu3DivideTextureDraw(prim, mgRect<int>(ix, iy, width, 0x46), dngboardbrdtbl, 1);
+        Menu3DivideTextureDraw(prim, mgRect<int>(ix, iy + 0x46, width, height - 0x46 - dngboardbrdtbl[15]),
+                               &dngboardbrdtbl[12], 1);
+        Menu3DivideTextureDraw(prim, mgRect<int>(ix, iy + height - bottom_table[3], width, bottom_table[3]),
+                               bottom_table, 1);
+        prim->End();
+        prim->Begin(6);
+        prim->Texture(Floor_InfoTex);
+        prim->Color(128, 128, 128, alpha);
+        PrimQuad(prim, (float) (center - (Floor_Info.right >> 1)) - 1.0f, top + 10.0f, Floor_Info);
+        prim->End();
+
+        int         right = ix + width;
+        int right_text = right - 0x48;
+        if (CheckNowEurope()) {
+            right_text = right - 0x54;
         }
-        if (MenuDngMes[3] != NULL) {
-            MenuDngMes[3]->line_pos[0][0] = text_x;
-            MenuDngMes[3]->line_pos[0][1] = current_y;
+        float row_top = top + 68.0f;
+        mgRect<int> mark(0x7C, 0, 0x16, 0x16);
+        mgRect<int> highlight(0x92, 0, 0x16, 0x16);
+        prim->Bilinear(1);
+        prim->Begin(6);
+        prim->Texture(Floor_InfoTex);
+        prim->Color(128, 128, 128, alpha);
+        if (MenuDngMes[0] != NULL) {
+            MenuDngMes[0]->SetMovePosCenteringGyou(0, center, iy + 0x26);
+        }
+        if (DngInfoFloorInfo != NULL && !(DngInfoFloorInfo->flag & DNG_FLOOR_FLAG_SEAL_CLEAR) && room->seal > 0) {
+            if (!init_1744) {
+                AlphaRate_1743 = 0.0f;
+                init_1744 = 1;
+            }
+            AlphaRate_1743 += 0.034906585f;
+            if (3.1415927f <= AlphaRate_1743) {
+                AlphaRate_1743 -= 3.1415927f;
+            }
+            float seal_alpha = (float) alpha * sinf(AlphaRate_1743);
+            if (seal_alpha < 0.0f) {
+                seal_alpha = 0.0f;
+            }
+            if (seal_alpha > 128.0f) {
+                seal_alpha = 128.0f;
+            }
+            mgRect<int> translated_seal(0xD8, 0xA6, 0x28, 0x18);
+            mgRect<int> japanese_seal(0xB8, 0xD6, 0x18, 0x18);
+            mgRect<int> *seal = &translated_seal;
+            prim->Color(128, 128, 128, fptosi(seal_alpha));
+            float seal_right_offset;
+            if (language > 0) {
+                seal->top += (room->seal - 1) * 0x18;
+                seal_right_offset = 56.0f;
+            } else {
+                seal = &japanese_seal;
+                seal->left += (room->seal - 1) * 0x18;
+                seal_right_offset = 40.0f;
+            }
+            PrimQuad(prim, left + width - seal_right_offset, top + 35.0f, *seal);
+            prim->Color(128, 128, 128, alpha);
+        }
+        int icon_x = fptosi(left + 20.0f);
+        int icon_y = fptosi(2.0f + (68.0f + (float) iy));
+        int text_x = icon_x + 0x1C;
+        PrimQuad(prim, (float) icon_x, row_top, mark);
+        if (DngInfoFloorInfo != NULL && (DngInfoFloorInfo->flag & DNG_FLOOR_FLAG_FAST_DESTROY_CLEAR)) {
+            highlight.left = medal_xytbl_1736[0];
+            PrimQuad(prim, (float) icon_x, (float) icon_y, highlight);
+        }
+        int icon_row_y = icon_y;
+        int text_row_y = icon_y;
+        {
+            MenuDngMes[1]->line_pos[0][0] = text_x;
+            MenuDngMes[1]->line_pos[0][1] = text_row_y;
+            MenuDngMes[1]->line_pos_on[0] = 1;
+            int line_right = right - MenuDngMes[1]->line_w[1] - 0xE;
+            if (CheckNowEurope()) {
+                line_right -= 8;
+            }
+            MenuDngMes[1]->line_pos[1][0] = line_right;
+            MenuDngMes[1]->line_pos[1][1] = text_row_y;
+            MenuDngMes[1]->line_pos_on[1] = 1;
+        }
+        icon_row_y += 0x16;
+        text_row_y += 0x16;
+        shown = DngInfoRoomInfo;
+        if (shown != NULL && shown->fishing) {
+            PrimQuad(prim, (float) icon_x, (float) icon_row_y, mark);
+            if (DngInfoFloorInfo->flag & DNG_FLOOR_FLAG_FISHING_CLEAR) {
+                highlight.left = medal_xytbl_1736[2];
+                PrimQuad(prim, (float) icon_x, (float) icon_row_y, highlight);
+            }
+                MenuDngMes[3]->line_pos[0][0] = text_x;
+            MenuDngMes[3]->line_pos[0][1] = text_row_y;
             MenuDngMes[3]->line_pos_on[0] = 1;
-            MenuDngMes[3]->line_pos[1][0] = MenuDngMes[3]->ClsMes::mes_no == 2 ? right_text
-                                                                               : right - MenuDngMes[3]->line_w[1] - 0x10;
-            MenuDngMes[3]->line_pos[1][1] = current_y;
+            MenuDngMes[3]->line_pos[1][0] = right - MenuDngMes[3]->line_w[1] - 0x10;
+            MenuDngMes[3]->line_pos[1][1] = text_row_y;
             MenuDngMes[3]->line_pos_on[1] = 1;
+            if (MenuDngMes[3]->ClsMes::mes_no == 2) {
+                MenuDngMes[3]->line_pos[1][0] = right_text;
+                MenuDngMes[3]->line_pos[1][1] = text_row_y;
+                MenuDngMes[3]->line_pos_on[1] = 1;
+            }
+
+            icon_row_y += 0x16;
+            text_row_y += 0x16;
         }
-        current_y += 0x16;
-    }
-    if (shown != NULL && shown->spheda) {
-        PrimQuad(prim, (float) icon_x, (float) current_y, mark);
-        if (DngInfoFloorInfo != NULL && (DngInfoFloorInfo->flag & 0x80)) {
-            highlight.left = medal_xytbl_1736[3];
-            PrimQuad(prim, (float) icon_x, (float) current_y, highlight);
-        }
-        if (MenuDngMes[4] != NULL) {
-            MenuDngMes[4]->line_pos[0][0] = text_x;
-            MenuDngMes[4]->line_pos[0][1] = current_y;
-            MenuDngMes[4]->line_pos_on[0] = 1;
+        shown = DngInfoRoomInfo;
+        if (shown != NULL && shown->spheda) {
+            PrimQuad(prim, (float) icon_x, (float) icon_row_y, mark);
             int prize_x = right_text;
-            if (DngInfoFloorInfo != NULL && (DngInfoFloorInfo->flag & 0x80)) {
+            if (DngInfoFloorInfo->flag & DNG_FLOOR_FLAG_SPHEDA_CLEAR) {
                 if (language > 0) {
                     prize_x -= 9;
                 }
-            } else if (CheckBitFlagMenu(0x13D) && language > 0) {
-                prize_x -= 0x20;
+                if (CheckNowEurope()) {
+                    prize_x = right - MenuDngMes[4]->line_w[1] - 0x10;
+                }
+                highlight.left = medal_xytbl_1736[3];
+                PrimQuad(prim, (float) icon_x, (float) icon_row_y, highlight);
+            } else if (CheckBitFlagMenu(0x13D)) {
+                if (language > 0) {
+                    prize_x -= 0x20;
+                }
+                if (CheckNowEurope()) {
+                    prize_x = right - MenuDngMes[4]->line_w[1] - 0x10;
+                }
             }
-            if (CheckNowEurope()) {
-                prize_x = right - MenuDngMes[4]->line_w[1] - 0x10;
-            }
+            MenuDngMes[4]->line_pos[0][0] = text_x;
+            MenuDngMes[4]->line_pos[0][1] = text_row_y;
+            MenuDngMes[4]->line_pos_on[0] = 1;
             MenuDngMes[4]->line_pos[1][0] = prize_x;
-            MenuDngMes[4]->line_pos[1][1] = current_y;
+            MenuDngMes[4]->line_pos[1][1] = text_row_y;
             MenuDngMes[4]->line_pos_on[1] = 1;
+            icon_row_y += 0x16;
+            text_row_y += 0x16;
         }
-        current_y += 0x16;
-    }
-    PrimQuad(prim, (float) icon_x, (float) current_y, mark);
-    if (DngInfoFloorInfo != NULL && (DngInfoFloorInfo->flag & 8)) {
-        highlight.left = medal_xytbl_1736[4];
-        PrimQuad(prim, (float) icon_x, (float) current_y, highlight);
-    }
-    if (MenuDngMes[5] != NULL) {
-        MenuDngMes[5]->line_pos[0][0] = text_x;
-        MenuDngMes[5]->line_pos[0][1] = current_y;
-        MenuDngMes[5]->line_pos_on[0] = 1;
+        PrimQuad(prim, (float) icon_x, (float) icon_row_y, mark);
+        if (DngInfoFloorInfo != NULL && (DngInfoFloorInfo->flag & DNG_FLOOR_FLAG_PRACTICE_CLEAR)) {
+            highlight.left = medal_xytbl_1736[4];
+            PrimQuad(prim, (float) icon_x, (float) icon_row_y, highlight);
+        }
         if (language == 0) {
-            MenuDngMes[5]->line_pos[1][0] = right_text;
-            MenuDngMes[5]->line_pos[1][1] = current_y;
-            MenuDngMes[5]->line_pos_on[1] = 1;
-            current_y += 0x16;
-        } else if (MenuDngMes[5]->ClsMes::mes_no == 0x6C) {
-            MenuDngMes[5]->line_pos[1][0] = right - MenuDngMes[5]->line_w[1] - 0x10;
-            MenuDngMes[5]->line_pos[1][1] = current_y;
-            MenuDngMes[5]->line_pos_on[1] = 1;
-            current_y += 0x16;
+            MenuDngMes[5]->SetMovePosGyou(0, text_x, text_row_y);
+            MenuDngMes[5]->SetMovePosGyou(1, right_text, text_row_y);
+            text_row_y += 0x16;
         } else {
-            MenuDngMes[5]->line_pos[1][0] = text_x;
-            MenuDngMes[5]->line_pos[1][1] = current_y + 0x16;
-            MenuDngMes[5]->line_pos_on[1] = 1;
-            MenuDngMes[5]->line_pos[2][0] = right - MenuDngMes[5]->line_w[2] - 0x10;
-            MenuDngMes[5]->line_pos[2][1] = current_y + 0x12;
-            MenuDngMes[5]->line_pos_on[2] = 1;
-            current_y += 0x2C;
+            MenuDngMes[5]->SetMovePosGyou(0, text_x, text_row_y);
+            if (MenuDngMes[5]->ClsMes::mes_no == 0x6C) {
+                MenuDngMes[5]->SetMovePosGyou(1, right - MenuDngMes[5]->line_w[1] - 0x10, text_row_y);
+                text_row_y += 0x16;
+            } else {
+                MenuDngMes[5]->SetMovePosGyou(1, text_x, text_row_y + 0x16);
+                MenuDngMes[5]->SetMovePosGyou(2, right - MenuDngMes[5]->line_w[2] - 0x10, text_row_y + 0x12);
+                text_row_y += 0x2C;
+            }
         }
-    }
-    prim->End();
-    if (MenuDngMes[6] != NULL) {
+        prim->End();
         MenuDngMes[6]->line_pos[0][0] = text_x;
-        MenuDngMes[6]->line_pos[0][1] = current_y;
+        MenuDngMes[6]->line_pos[0][1] = text_row_y;
         MenuDngMes[6]->line_pos_on[0] = 1;
         MenuDngMes[6]->line_pos[1][0] = right - MenuDngMes[6]->line_w[1] - 0x1A;
-        MenuDngMes[6]->line_pos[1][1] = current_y;
+        MenuDngMes[6]->line_pos[1][1] = text_row_y;
         MenuDngMes[6]->line_pos_on[1] = 1;
-    }
-    if (shown != NULL && shown->geostone && MenuDngMes[7] != NULL) {
-        MenuDngMes[7]->line_pos[0][0] = center - (MenuDngMes[7]->line_w[0] >> 1);
-        MenuDngMes[7]->line_pos[0][1] = current_y + 0x24;
-        MenuDngMes[7]->line_pos_on[0] = 1;
-    }
-    for (int i = 0; i < 8; ++i) {
-        MenuDngMes[i]->SetMsgAlpha(alpha);
-    }
-    if (MenuDCMsg[5] != NULL) {
-        DngInfoMedalMsgPutPos[0] = DngInfoMedalNumMsg[language * 2];
-        DngInfoMedalMsgPutPos[1] = DngInfoMedalNumMsg[language * 2 + 1];
-        MenuDCMsg[5]->SetPutPos(DngInfoMedalMsgPutPos);
-        MenuDCMsg[5]->SetMsgAlpha(alpha);
+
+        shown = DngInfoRoomInfo;
+        if (shown != NULL && shown->geostone) {
+            MenuDngMes[7]->line_pos[0][0] = center - (MenuDngMes[7]->line_w[0] >> 1);
+            MenuDngMes[7]->line_pos[0][1] = text_row_y + 0x24;
+            MenuDngMes[7]->line_pos_on[0] = 1;
+        }
+        for (int i = 0; i < 8; ++i) {
+            MenuDngMes[i]->SetMsgAlpha(alpha);
+        }
+        if (MenuDCMsg[5] != NULL) {
+            DngInfoMedalMsgPutPos[0] = DngInfoMedalNumMsg[language * 2];
+            DngInfoMedalMsgPutPos[1] = DngInfoMedalNumMsg[language * 2 + 1];
+            MenuDCMsg[5]->SetPutPos(DngInfoMedalMsgPutPos);
+            MenuDCMsg[5]->SetMsgAlpha(alpha);
+        }
     }
 }
+
 #else
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/dngmenu", DrawDngRoomInfo__FP16DNGMAP_ROOM_INFO);
 #endif
@@ -1790,7 +1793,8 @@ extern u8              GeoramaMateriaInfoDrawFlag;
 extern s8              GeoramaMateriaInfoDrawPage;
 extern int             DngInfoDrawAlpha;
 extern DNG_FLOOR_SAVE *DngInfoFloorInfo;
-extern int             DngInfoRoomInfo;
+/** Room whose floor-information activities are being shown. */
+extern DNGMAP_ROOM_INFO *DngInfoRoomInfo;
 extern int             MenuDngDebugFlagSelect;
 extern float           DngTreeMapActiveLightRate;
 extern char            at_3342[];
@@ -2113,7 +2117,7 @@ int CMenuTreeMap::Step() {
                     MenuSePlay(0x13);
                     dngfloor_infoview = 1;
                     dngfloor_backdraw = 1;
-                    DngInfoRoomInfo = (int) &NextFloorGlid_2836->room;
+                    DngInfoRoomInfo = &NextFloorGlid_2836->room;
                     DngInfoFloorInfo = target_save;
                     GetSaveData()->GetBitCtrl();
                     DNG_BATTLE_AREA *area = (DNG_BATTLE_AREA *) menu_GetBattleAreaScene();
@@ -2468,7 +2472,8 @@ extern CMenuTreeMap *CMenuTreePt;
 extern CDngFreeMap  *MenuDngMap;
 extern CDC2Mes      *MenuDngMes[8];
 extern u_long128    *MenuCursorDataBuff;
-extern int           DngInfoRoomInfo;
+/** Room whose floor-information activities are being shown. */
+extern DNGMAP_ROOM_INFO *DngInfoRoomInfo;
 extern int           dngfloor_backdraw_alpha;
 extern u8            dngfloor_infoview;
 extern u8            dngfloor_backdraw;
