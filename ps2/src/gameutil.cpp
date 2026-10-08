@@ -204,10 +204,11 @@ Mot_List *MotionProc(mgCFrame *root, float time, Mot_List *list, mgCCamera *came
                         sceVu0InterVectorXYZ(value, list->values[next], list->values[key], t);
                         sceVu0CopyVectorXYZ(vertices[vertex], value);
                         list = list->next;
-                        if (list == NULL) {
+                        if (list != NULL) {
+                            node = list;
+                        } else {
                             return NULL;
                         }
-                        node = list;
                     }
                     break;
                 }
@@ -216,10 +217,11 @@ Mot_List *MotionProc(mgCFrame *root, float time, Mot_List *list, mgCCamera *came
                     while (driven == node->frame) {
                         sceVu0CopyVectorXYZ(vertices[list->target - 1], list->values[key]);
                         list = list->next;
-                        if (list == NULL) {
+                        if (list != NULL) {
+                            node = list;
+                        } else {
                             return NULL;
                         }
-                        node = list;
                     }
                 }
                 if (!(t < 0.999f)) {
@@ -227,10 +229,11 @@ Mot_List *MotionProc(mgCFrame *root, float time, Mot_List *list, mgCCamera *came
                     while (driven == node->frame) {
                         sceVu0CopyVectorXYZ(vertices[list->target - 1], list->values[next]);
                         list = list->next;
-                        if (list == NULL) {
+                        if (list != NULL) {
+                            node = list;
+                        } else {
                             return NULL;
                         }
-                        node = list;
                     }
                 }
             } while (0);

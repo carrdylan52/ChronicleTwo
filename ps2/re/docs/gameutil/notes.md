@@ -1,8 +1,9 @@
 # gameutil: reverse-engineering notes
 
 ## C++ draft status
-The matching build supplies 31 of the 37 functions as native C++. Six remain
-under `NONMATCHING` with retail assembly fallbacks. Raw draft comparisons use
+The matching build supplies 34 of the 37 functions from source, including
+the existing inline-assembly exceptions. Three remain under `NONMATCHING`
+with retail assembly fallbacks. Raw draft comparisons use
 the pinned deterministic compiler profile; promotion also requires complete
 object bytes, resolved relocations, and the inherited linked-image baseline.
 
@@ -140,12 +141,90 @@ passes `check_objects.py` with 357 resolved relocations.
 
 ## Other guarded remainders
 
-`MotionProc(float)` retains its original draft, 289/596 padded words and
-0x934 bytes against retail 0x950. Its first differences exchange the saved
-camera/key registers and retain a subtraction of key/next where retail
-materializes -1. Direct unsigned upper-bound subtraction removes a word
-and shifts later code; unsigned locals alone do not fix the difference.
+`MotionProc(float)` retains a 32/596-word guarded draft, 0x94C body bytes
+against the retail 0x950 padded extent. Its remaining differences exchange
+the saved camera/key registers and retain a subtraction of key/next where
+retail materializes -1. Direct unsigned upper-bound subtraction removes a
+word and shifts later code; unsigned locals alone do not fix the difference.
 Retail reads the motion type after `GetFrame`; m2c lifts this read in its
-pseudocode, so moving it before the call is incorrect. Sequential vertex
-time-region tests alone do not close the later control-flow differences. Reconsider
-with original index-lifetime and vertex-case control-flow evidence.
+pseudocode, so moving it before the call is incorrect.
+
+## October 8 guarded sweep: MotionProc(float)
+
+The refreshed baseline is 289/596 differing words, with a 0x934 native body.
+`decompile.sh MotionProc__FP8mgCFramefP8Mot_ListP9mgCCamera` recovers the
+binary search and three vertex-key time regions. The existing `Mot_List`
+layout, frame/visual/material fields, motion enum, SDK declarations and
+camera methods already describe the dependencies; no header change is needed.
+
+The search converts time to an unsigned frame number, finds the first key
+frame greater than that number, and uses its predecessor as the current key.
+The next key is clamped to the current key at the end of the key array. The
+blend uses unsigned key-frame values, including their unsigned-to-float
+conversion paths. Vertex keys consume consecutive list nodes for the same
+model frame; each target is a one-based vertex index. A null successor
+returns null, while a different frame returns that unconsumed node.
+
+The intermediate region is `!(t <= 0.001f) && t < 0.999f`. The lower and
+upper endpoint tests remain independent. This matters for unordered blends:
+NaN fails the lower test and takes the `!(t < 0.999f)` upper-key path.
+The retail camera-target case transforms the existing temporary vector
+without first interpolating it, unlike camera-position keys; the draft
+preserves that behavior. Neither observation warrants an added operation.
+
+In all three vertex loops, retail continues through the nonnull successor
+branch and returns null from its other arm. Expressing this as
+`if (list != NULL) { node = list; } else { return NULL; }` restores the
+loop joins and their padding, growing the body to the exact retail 0x94C
+bytes and reducing the positional difference to 32/596 words. The change
+uses the existing typed linked-list traversal and adds no helper, label,
+array-pointer induction or inline assembly.
+
+The remaining differences are fully localized. At +0x18/+0x1C, camera
+preservation uses s4 instead of retail s3 and swaps with the s2 save. Key
+uses s3 instead of retail s4, including the later key-array shifts; the
+vertex frame index reuses the camera register. At +0x9C/+0xA0, retail emits
+`li v0,-1` then computes next, while the draft computes next then
+`subu v0,key,next`. All call-relocation positions and kinds match.
+
+The following probes use the canonical SF adapter, flags and logical unit
+identity, with both draft macros. Only the positive successor arms are
+retained; the function stays guarded.
+
+| Probe family | Best differing words / extent | Evidence |
+| --- | ---: | --- |
+| Positive successor arms | 32/596 | Exact body size; retained. |
+| Positive successor plus explicit continue | 32/596 | Same result; simpler arms retained. |
+| Direct-list loop conditions | 289/596 | Removes useful loop padding; body 0x92C. |
+| Break on exhausted list | 283/596 | Body 0x91C; worse than the retained branch form. |
+| Separate successor local or returning list on exhaustion | 289/596 | No improvement. |
+| Both key/next indices unsigned | 32/596 | No improvement; one unsigned index alone gives 95 or 117 words. |
+| Direct count-minus-one clamp, either operand order | 312/596 | Immediate addition removes an early word; later positions shift. |
+| Search-local scope | 43/596 | Saved-register mapping remains different. |
+| Frame declaration at its call | 55/596 | Changes allocation without resolving the mapping. |
+| Reuse search lower bound as current key | Worse than 32/596 | Changes live ranges and grows the body. |
+| Scoped vertex index / vertex-pointer initialization first | 38/596, 36/596 | Changes vertex allocation only. |
+| Next from low, predecremented key, or search-result assignment | Worse than 32/596 | Different index lifetimes do not restore the prefix. |
+| Signed/long count and long-literal clamp variants | No improvement | No accepted type change. |
+| Measured GPR history 0x10 or 0x30, FPR zero | 32/596 | Same retained bytes; no profile row. |
+
+Private receipts are under `.private/sweep-midday/`: the m2c output is
+`gameutil-motion-m2c.cpp`; `gameutil-vertex-probes`, `gameutil-index-probes`
+and `gameutil-lifetime-probes` hold 14, 36 and 31 candidates respectively,
+with compiler logs and metrics. `gameutil-vertex-positive-diff.txt` records
+the retained instruction comparison. `gameutil-retained-native.log`
+preserves all 34 exact functions and the two other guarded remainders.
+The native preservation receipt records unchanged code bytes for the other
+36 functions; only compiler-local static-number suffixes in the guarded
+`MotionProc2` relocations advance, with identical offsets and kinds.
+
+The normal-build fingerprint comparison preserves all 149 objects' allocated
+sections and relocation identities. `gameutil-retained-objects.log` retains
+147/149 passes, including gameutil; the same actscript/nd_meswin failures
+remain. `gameutil-retained-build.log` retains only 0x26 PAL `.text` bytes
+different, first at 0x0015C5AD, with memory end 0x01F64A00 and every other
+file-backed section exact. No function is promoted.
+
+Reconsider this remainder only with new evidence that explains the camera/key
+register assignment and the last-key clamp together; the recorded lifetime,
+integer-type and helper-history variants do not close them.
