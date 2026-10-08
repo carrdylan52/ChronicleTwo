@@ -222,6 +222,11 @@ order. Ambiguous initialized literals can then be named through real
 R_MIPS_32 pointers in native data, subtracting the compiled addend and
 target-symbol offset; conflicting references reject the binding. Anonymous
 initialized templates retain the existing literal matcher and naming order.
+Equal declared initialized extents distinguish a literal from a larger object's
+byte prefix; established code or native-data destinations still reject competing
+identities. Discarding a fallback parent removes a compiler-owned child only when
+that child's retail storage also has a retained placeholder. Native children
+remain available for naming and comparison.
 
 VU microcode words that resemble addresses remain numeric when retail has no
 relocation. The splitter checks their emitted byte comments against retail
