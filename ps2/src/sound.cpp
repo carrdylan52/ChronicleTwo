@@ -148,7 +148,6 @@ int TransHdBd(int hd, int hd_size, int bd, int bd_size) {
     return 0;
 }
 
-#ifdef NONMATCHING
 int CSound::Init(int mode0, int mode1, int depth0, int depth1) {
     static int load_m_flg = 0;
     int        port;
@@ -280,12 +279,12 @@ int CSound::Init(int mode0, int mode1, int depth0, int depth1) {
         midi_state.port[11].spu_address = midi_state.port[11].spu_next_address = 0x1A82E0;
         midi_state.port[0].unk_98 = 0x3040;
         midi_state.port[3].unk_98 = 0x3040;
-        midi_state.port[2].unk_98 = 0x3039;
-        midi_state.port[14].unk_98 = 0x3039;
         midi_state.port[10].unk_98 = 0x3037;
         midi_state.port[8].unk_98 = 0x3035;
         midi_state.port[1].unk_98 = 0x3032;
         midi_state.port[15].unk_98 = 0x3031;
+        midi_state.port[2].unk_98 = 0x3039;
+        midi_state.port[14].unk_98 = 0x3039;
         midi_state.port[13].unk_98 = 0x3036;
         midi_state.port[7].unk_98 = 0x3010;
         midi_state.port[9].unk_98 = 0x3038;
@@ -294,9 +293,6 @@ int CSound::Init(int mode0, int mode1, int depth0, int depth1) {
     }
     return 0;
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/sound", Init__6CSoundFiiii);
-#endif
 
 int CSound::Exit() {
     int port;
