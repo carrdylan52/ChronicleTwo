@@ -30,19 +30,60 @@
 #include "scenesnd.hpp"
 #include "snd_mngr.hpp"
 #include "sound.hpp"
-extern CRunScript    EventScript;
-extern EventEditInfo g_info;
-extern CCameraPas    g_cmr_pas;
-extern CCharaPas     g_chara_pas;
-extern int           g_cp_mode;
-extern int           g_cp_cursor;
-extern int           g_cp_selno;
-extern int           g_chara_pas_mode;
-extern int           g_chara_pas_cursor;
-extern int           g_chara_pas_selno;
-extern char          at_1208[];
-extern char          at_1226__2[];
-extern char          at_1242__2[];
+/**
+ *
+ * Stores the active event editor mode, character and camera state.
+ *
+ */
+static EventEditInfo g_info;
+/**
+ *
+ * Stores and plays the camera path recorded by the event editor.
+ *
+ */
+CCameraPas g_cmr_pas;
+/**
+ *
+ * Stores and plays the character path recorded by the event editor.
+ *
+ */
+CCharaPas g_chara_pas;
+/**
+ *
+ * Selects the camera path editing operation.
+ *
+ */
+static int g_cp_mode;
+/**
+ *
+ * Selects the camera path editor control row.
+ *
+ */
+static int g_cp_cursor;
+/**
+ *
+ * Selects the camera path point being edited.
+ *
+ */
+static int g_cp_selno;
+/**
+ *
+ * Selects the character path editing operation.
+ *
+ */
+static int g_chara_pas_mode;
+/**
+ *
+ * Selects the character path editor control row.
+ *
+ */
+static int g_chara_pas_cursor;
+/**
+ *
+ * Selects the character path point being edited.
+ *
+ */
+static int g_chara_pas_selno;
 extern char          at_809__2[];
 extern char          at_810__2[];
 extern char          at_811__2[];
@@ -1278,9 +1319,6 @@ void DrawEventEdit(void) {
 }
 
 // Initialised data (.data)
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/eventedit", at_1208__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/eventedit", at_1226__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/eventedit", at_1242__2__DATA);
 
 // Constants (.rodata)
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/eventedit", at_809__2__DATA);
@@ -1343,14 +1381,5 @@ INCLUDE_RODATA("ps2/asm/pal/nonmatchings/eventedit", at_1402__2__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/eventedit", at_1403__2__DATA);
 
 // Small uninitialised data (.sbss)
-INCLUDE_BSS(g_cp_mode, 0x4);
-INCLUDE_BSS(g_cp_cursor, 0x4);
-INCLUDE_BSS(g_cp_selno, 0x4);
-INCLUDE_BSS(g_chara_pas_mode, 0x4);
-INCLUDE_BSS(g_chara_pas_cursor, 0x4);
-INCLUDE_BSS(g_chara_pas_selno, 0x4);
 
 // Uninitialised data (.bss)
-CCameraPas g_cmr_pas;
-CCharaPas  g_chara_pas;
-INCLUDE_BSS(g_info, 0x40);
