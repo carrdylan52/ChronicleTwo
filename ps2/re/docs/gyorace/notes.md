@@ -266,8 +266,9 @@ helper.
 
 All ten residual differences exchange the active lap counter (`s0` in
 retail, `s4` in native) and the five-digit row pointer (`s4` in retail,
-`s0` in native). They occur at +0x898, +0x8EC, +0xAB8, +0xAC0, +0xB14,
-+0xB74, +0xBD4, +0xC34, +0xC80 and +0xC84. Every other instruction word
+`s0` in native). Their actual byte offsets are +0x8B8, +0x90C, +0xAD8, +0xAE0, +0xB34,
++0xB94, +0xBF4, +0xC54, +0xCA0 and +0xCA4; the round-1 audit below
+corrects the earlier disassembly-row labels. Every other instruction word
 compares, including floating scheduling and sprite rectangles. The 12-byte
 tail is zero retail padding.
 
@@ -292,3 +293,63 @@ baseline hashes. Coverage is 6,687 matched functions, one above the base.
 Private receipts are `guarded-drafts-build.log`, `guarded-drafts-objects.log`,
 `guarded-drafts-object-hash-diff.json` and `attempt-word-metrics.json` under
 `.private/editloop-midday/`.
+
+
+## October 8 mid-day round 1
+
+The fresh `98f90fd` baseline and final active build both pass 147/149 units,
+retain the known PAL 0x26-byte `.text` difference and report 6,687 matched
+functions. All 149 game object file hashes remain unchanged. No gyorace
+source, header or profile row is changed and no function is promoted.
+
+### Lap display allocation
+
+`sgSysDrawGyoRace` remains at 10/1,172 differing words with a 0x1244 native
+body in the 0x1250 retail extent. The established five time digits are whole
+minutes, seconds tens/units and hundredths tens/units. Both row arrays are
+persistent function-local state; their retail symbol sizes are 0x28 for the
+two lap rows and 0x14 for the total row. The larger existing BSS marker
+extents include following storage/alignment and do not change those types.
+
+New natural-source probes do not recover the counter/pointer allocation:
+
+- Declaring rectangles at their Set calls, with or without pair scopes,
+  gives 143 words, primarily from changed stack-slot order.
+- Splitting or nesting the hundredths assignment, a typed five-field digit
+  record, enum-typed race mode, and true function-local lap arrays retain
+  ten words. Defining statics with natural or numbered names has the same
+  result; no storage migration is retained.
+- A row-local const pointer gives 36 words. Distinct fish/minute/lap indices
+  give 54; sharing the ready and active row counter gives 31. Removing the
+  separate array-row index from the scoped-index form still gives 54.
+- A switch over race mode gives 458 words. A long index exceeds the retail
+  extent (0x1258 versus 0x1250, 1,148/1,174 compared words).
+
+The earlier counter/pointer, helper-mask and loop-form trials are not replayed.
+The function stays guarded because every otherwise matching word still uses
+`s4` for the native lap counter and `s0` for the native digit-row pointer,
+while retail uses the opposite allocation.
+
+### Correct disassembly offsets
+
+`draft_check.show_diff` invokes objdump without `-z`. Objdump suppresses runs
+of zero instructions, but the helper labels rows using `row_index * 4`;
+after a suppressed run its printed offsets are too small. The old lap-loop
+labels are 0x20 bytes below their actual addresses.
+
+Raw section bytes and a private objdump `-z` diagnostic agree on the ten
+true offsets: +0x8B8, +0x90C, +0xAD8, +0xAE0, +0xB34, +0xB94, +0xBF4,
++0xC54, +0xCA0 and +0xCA4. The first is retail 0x30D5F8. The diagnostic also
+prints the complete 1,172-word extent and agrees with the raw-word score.
+The twelve-byte terminal padding is zero. This corrects the offset labels,
+not the previously established ten-word register swap.
+
+The tool is outside this lane's ownership. The exact proposed two-line fix,
+`.private/proposals/draft-check-zero-disassembly.patch`, adds `-z` to both
+retail and native objdump invocations. It remains unapplied.
+
+Receipts under `.private/editloop-r1/`: `sgSysDrawGyoRace.m2c.cpp`,
+`sys-natural-locals.log`, `sys-phase-lifetimes.log`, `sys-native-statics.log`,
+`retained-sys/{compare.log,diff-with-zeros.txt}`,
+`attempt-word-metrics.json`, `trial-ledger.tsv`, `final-objects.log` and
+`final-object-hash-diff.json`.
