@@ -139,3 +139,25 @@ Blocker: placement-new construction scheduling. Reconsider after the
 constructor lane validates the sprite/null-result sequence, then remeasure
 the arithmetic tail; the current positional count does not establish that
 all remaining differences have that single cause.
+
+## Mid-day sprite receiver/null-branch audit (October 8)
+
+`InitFirePowder__FiP6CSceneiP9mgCMemory` is still this unit's only guarded
+function. Canonical baseline compilation confirms 150/216 differing words,
+a 0x35C body versus the 0x360 retail extent, and the first substantive mismatch
+at the sprite allocation's result/null test.
+
+Direct assignment of native placement-new to `SpriteVis`, a scoped `created`
+local, a named quadword placement buffer, removal of the redundant placement
+buffer cast, and a positive load-success scope all produce that same count and
+size. The compiler still copies `v0` to `s0` at +0x108, tests `s0` at +0x10C,
+and moves the next allocation's memory receiver into the delay slot. Retail
+tests `v0` at +0x108 and copies it to `s0` in that branch's delay slot. This
+scheduling shifts the following constructor and allocation code.
+
+The guard and original typed source are unchanged. No new selector is inferred
+from the positional arithmetic differences after the constructor. Further work
+needs evidence for native inline-constructor result/null-test scheduling before
+using that tail to calibrate constants. Receipts:
+`.private/midday/probes/editexception/` and
+`.private/midday/m2c/InitFirePowder__FiP6CSceneiP9mgCMemory.txt`.
