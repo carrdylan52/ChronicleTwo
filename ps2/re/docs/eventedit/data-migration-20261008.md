@@ -35,3 +35,28 @@ Receipts: `eventedit-storage`, `eventedit-at_1208`,
 `eventedit-at_1226__2`, `eventedit-at_1242__2`, each with
 `-{build,objects,hashes}.log`. Every accepted step passes PAL,
 all 149 objects and all 148 unchanged other objects.
+
+## Inline editor strings
+
+All 58 remaining string markers now come from literals at their uses. This
+includes the character/camera path text written by `OutPutFile`, the path
+editing displays, operation names, script/debug labels and model frame names.
+The three naturally initialized label arrays preserve their independent
+aggregate templates while pooling identical strings at their original addresses.
+
+The four direct path-command writes use `const_cast<char *>` on their
+literals because the existing SDK `sceWrite` declaration takes `void *`.
+This only adapts the SDK's buffer qualifier; no type or representation changes.
+An unqualified literal fails MWCC's C++ overload check for this declaration.
+The accepted form retains all literal addresses, `strlen` calls and writes.
+
+Each string has its own receipt `eventedit-<retail name>-{build,objects,hashes}.log`.
+All accepted steps pass PAL, all 149 objects and all 148 other object hashes.
+
+## Final checkpoint
+
+Markers change from 61/7 to 0/0 (`INCLUDE_RODATA`/`INCLUDE_BSS`):
+all 68 markers are removed. Refreshed `matched_data` remains 3,676/5,036;
+all 13 native functions remain exact. Final receipts are
+`06-eventedit-final-{build,objects,hashes}.log`,
+`06-eventedit-refresh.log` and `06-eventedit-metrics.json`.
