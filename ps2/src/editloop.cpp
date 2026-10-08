@@ -4,7 +4,9 @@
 #include <cstring>
 
 #include "actionchara.hpp"
+#define CAMERA_CONTROL_USE_RETAIL_ASSIGNMENT
 #include "cameracontrol.hpp"
+#undef CAMERA_CONTROL_USE_RETAIL_ASSIGNMENT
 #include "character.hpp"
 #include "dataread.hpp"
 #include "dbg_font.hpp"
@@ -769,13 +771,26 @@ INCLUDE_ASM("ps2/asm/pal/nonmatchings/editloop", EditInit__F13INIT_LOOP_ARG);
 #endif
 /**
  *
- * Copies every camera distance and height limit from another parameter set.
+ * Copies the camera limits and ground-check setting from another parameter set.
  *
  * @mangled __as__15CameraCtrlParamFRC15CameraCtrlParam
  * @address 0x1ACEE0
  * @size 0x60
  */
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/editloop", __as__15CameraCtrlParamFRC15CameraCtrlParam);
+CameraCtrlParam &CameraCtrlParam::operator=(const CameraCtrlParam &source) {
+    min_dist = source.min_dist;
+    max_dist = source.max_dist;
+    near_height = source.near_height;
+    far_height = source.far_height;
+    height = source.height;
+    max_height = source.max_height;
+    min_height = source.min_height;
+    rest_max_height = source.rest_max_height;
+    rest_min_height = source.rest_min_height;
+    ground_space = source.ground_space;
+    no_check = source.no_check;
+    return *this;
+}
 #ifndef NONMATCHING
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/editloop", __ct__12CActionCharaFv);
 #endif

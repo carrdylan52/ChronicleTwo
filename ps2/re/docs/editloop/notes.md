@@ -5,8 +5,8 @@
 `EditInit`, `EditLoop`, and `EditDraw` retain typed C++ drafts under
 `NONMATCHING`; the matching build selects their `INCLUDE_ASM` gaps. Earlier
 active versions changed the unit's code and data layout and failed the object
-check. `CameraCtrlParam::operator=` also has an assembly gap at its retail
-address, with no hand-written assignment definition. The other game functions
+check. `CameraCtrlParam::operator=` is a native C++ definition at its retail
+address; the October 8 mid-day audit below supersedes the earlier emission blocker. The other game functions
 remain native C++ where the base source already matched.
 
 The town main-loop mode (walking and Georama editing). `LoopInit/LoopMain/LoopExit` in mainloop
@@ -101,3 +101,30 @@ several scene/map member names are stale; those bodies were not changed.
 Blocker: natural member emission depends on a guarded caller. Reconsider
 when `EditInit`'s owning lane restores its verified native assignment and
 character-array construction.
+
+
+## October 8 mid-day parameter assignment promotion
+
+`CameraCtrlParam::operator=` at `0x1ACEE0` is now a native member definition.
+It copies the ten float limits and the integer `no_check`, and returns the
+destination by reference. The existing `CAMERA_CONTROL_USE_RETAIL_ASSIGNMENT`
+header switch declares this real retail member, using the same include pattern
+as `cameracontrol.cpp`; no shared header or artificial caller is needed.
+The earlier small-member audit established the fields and the 24-word copy.
+The explicit member definition reproduces those 24 words and its complete
+object passes (0x6D9C allocated bytes, 2,067 relocations).
+
+Baseline and promotion verification both report 147/149 passing game units.
+The failures remain `nd_meswin/DrawMesWin` and `actscript/_SHOT`; the PAL
+verifier still differs by exactly 0x26 bytes in `.text`, with every other
+file-backed section and the memory-end check passing. All 148 other game
+object file hashes are unchanged. Coverage increases from 6,686 to 6,687
+matched functions; this is one actual assembly-gap removal.
+
+Private receipts: `.private/editloop-midday/assignment-only-full/check.log`,
+`assignment-build.log`, `assignment-objects.log`,
+`assignment-object-hash-diff.json`, and `assignment-coverage.txt`.
+
+The `CActionChara` constructor still needs the guarded `EditInit` array
+construction as its natural emission site. No synthetic construction site
+has been introduced.
