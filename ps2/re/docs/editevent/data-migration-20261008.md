@@ -29,3 +29,18 @@ Final acceptance: `.private/dataC-r2/editevent-native-data-fixed-{build,objects}
 and `editevent-native-data-fixed-metrics.json`. No markers remain and native
 data coverage is 324 / 324. The complete image, all 149 objects, and every
 unowned object hash pass. No data or tooling proposal is parked.
+
+## Event flag and point-number fields
+
+`StartEvent` now reads `data.event.flag` and writes
+`data.event.point_no` through the established event-data type, replacing
+integer-pointer views of its float-copy overlay. The field at +8 remains
+the event number consumed by the door branch of `Step`; closed doors set
+it to 0xF9. Existing `FUNC_EVENT_FLAG`, `EditEventState`, and `EditEventType`
+enums replace the redundant flag constants and raw state/type values.
+The group-by-group event copy remains unchanged.
+
+The typed accesses preserve all native instructions and resolved
+references. Acceptance: `.private/dataC-r2/editevent-start-fields-final-{build,objects}.log`.
+The complete image, all 149 objects, and all unowned hashes pass.
+Data coverage remains 324 / 324 and no marker is added.

@@ -32,11 +32,6 @@ int LoadIntNPC(GeoFuncParam *param, RS_STACKDATA *stack, int mode);
 int LoadGeoNPC(GeoFuncParam *param, int mode);
 
 const int kEventNumberF9 = 0xF9;
-const int kEventFlagTypeAB = 0x8;
-const int kEventFlagTypeA = 0x10;
-const int kEventFlagSetNumber = 0x80;
-const int kEventFlagTypeC = 0x200;
-const int kEventFlagTypeD = 0x400;
 
 #include <cmath>
 
@@ -58,15 +53,15 @@ int CEditEvent::StartEvent(CSceneEventData *event_data) {
         return 0;
     }
 
-    if (state == 1 || state == 2) {
+    if (state == EDIT_EVENT_STATE_RUNNING || state == EDIT_EVENT_STATE_UNK_2) {
         printf("now running!!!");
         return 0;
     }
 
-    state = 1;
+    state = EDIT_EVENT_STATE_RUNNING;
     count = 0;
     step = 0;
-    type = -1;
+    type = EDIT_EVENT_TYPE_NONE;
     data.head = event_data->head;
     data.group_1 = event_data->group_1;
     data.group_2 = event_data->group_2;
@@ -80,27 +75,27 @@ int CEditEvent::StartEvent(CSceneEventData *event_data) {
     data.gameobj_no = event_data->gameobj_no;
     data.unk_cc = event_data->unk_cc;
 
-    if (*(int *) &data.head.v[0] & kEventFlagTypeAB) {
-        if (*(int *) &data.head.v[0] & kEventFlagTypeA) {
-            type = 0;
+    if (data.event.flag & FUNC_EVENT_DOOR) {
+        if (data.event.flag & FUNC_EVENT_ED_DOOR) {
+            type = EDIT_EVENT_TYPE_HOUSE_DOOR;
         } else {
-            type = 1;
+            type = EDIT_EVENT_TYPE_DOOR;
         }
 
-        if (*(int *) &data.head.v[0] & kEventFlagSetNumber) {
-            *(int *) &data.head.v[2] = kEventNumberF9;
+        if (data.event.flag & FUNC_EVENT_CLOSE_DOOR) {
+            data.event.point_no = kEventNumberF9;
         }
     }
 
-    if (*(int *) &data.head.v[0] & kEventFlagTypeC) {
-        type = 2;
+    if (data.event.flag & FUNC_EVENT_TREASURE_BOX) {
+        type = EDIT_EVENT_TYPE_TREASURE_BOX;
     }
 
-    if (*(int *) &data.head.v[0] & kEventFlagTypeD) {
-        type = 3;
+    if (data.event.flag & FUNC_EVENT_BOOK) {
+        type = EDIT_EVENT_TYPE_BOOK;
     }
 
-    if (type == -1) {
+    if (type == EDIT_EVENT_TYPE_NONE) {
         return 0;
     }
 
