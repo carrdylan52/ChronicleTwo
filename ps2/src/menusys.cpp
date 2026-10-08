@@ -7964,9 +7964,6 @@ int CMenuItemInfo::PushKey(int pad, int trigger) {
     MENU_SWAPITEM_INFO swap;
     int                equip_slot;
     int                robo_equip_slot;
-    char              *item_name;
-    int                file_size;
-    int                fusion_file_size;
 
     if (MenuCommonInfo->key_enable == 0) {
         return 0;
@@ -8156,7 +8153,7 @@ int CMenuItemInfo::PushKey(int pad, int trigger) {
                     break;
                 case 7: {
                     signed char robo_slot = MenuRoboEquipTable[cursor];
-                    target = &MenuUserParam.robo->parts[0] + robo_slot;
+                    target = &MenuUserParam.robo->parts[robo_slot];
                     swap.Set(kAreaRobo, robo_slot, 2, 0);
                     area = kAreaRobo;
 
@@ -8499,10 +8496,10 @@ int CMenuItemInfo::PushKey(int pad, int trigger) {
                             if (over_item_no != 0) {
                                 msg->MakeMsg(0x99);
 
-                                *(float *) &item_name = at_7021;
-                                item_name = GetItemMessage(over_item_no);
+                                char *item_name[1] = {NULL};
+                                item_name[0] = GetItemMessage(over_item_no);
                                 CDataCommon *data = GetCommonItemData(over_item_no);
-                                msg->SetMsgItemNo(&item_name, 1);
+                                msg->SetMsgItemNo(item_name, 1);
                                 msg->SetMsgVolumeNoOne(data->max_num);
                             }
 
@@ -8555,9 +8552,10 @@ int CMenuItemInfo::PushKey(int pad, int trigger) {
                     if (this->equipped_model_no != model_no) {
                         char path[0x40];
                         char full_path[0x60];
+                        int file_size;
                         SetMenuEtcFlag(1);
                         MainCharaReadStackReadAdr =
-                            (u8 *) (MainCharaReadStack.stack + MainCharaReadStack.stack_used);
+                            (u8 *) MainCharaReadStack.stGetTop();
                         GetMainCharaModelName(chara_no, path, 0);
                         MainCharaReadBuffer.model = (u_int *) MainCharaReadStackReadAdr;
                         sprintf(full_path, at_7342, path);
@@ -8566,7 +8564,7 @@ int CMenuItemInfo::PushKey(int pad, int trigger) {
                         MainCharaReadStack.Alloc(blocks);
                         MainCharaReadStack.Align64();
                         MainCharaReadBuffer.skin =
-                            (u_int *) (MainCharaReadStack.stack + MainCharaReadStack.stack_used);
+                            (u_int *) MainCharaReadStack.stGetTop();
 
                         char *file = (*chr_ptr)->equip[4].GetDataPath();
 
@@ -8578,7 +8576,7 @@ int CMenuItemInfo::PushKey(int pad, int trigger) {
 
                         MainCharaReadStack.Align64();
                         MainCharaReadBuffer.outline =
-                            (u_int *) (MainCharaReadStack.stack + MainCharaReadStack.stack_used);
+                            (u_int *) MainCharaReadStack.stGetTop();
                         file = (*chr_ptr)->equip[3].GetDataPath();
 
                         if (file != NULL) {
@@ -8775,7 +8773,7 @@ int CMenuItemInfo::PushKey(int pad, int trigger) {
                             }
                         }
 
-                        (&MenuCommonInfo->cursor)[1] = MenuItem_ItemBoardTopLine;
+                        MenuCommonInfo->top_line = MenuItem_ItemBoardTopLine;
                         MenuItem_ItemBoardTopSelect = index;
                         MenuCommonInfo->select_pos[0] = (short) index;
                     }
@@ -8815,9 +8813,8 @@ int CMenuItemInfo::PushKey(int pad, int trigger) {
                         load_stack->Alloc(0x100);
                         MenuCommonInfo->FadeOutMenuBGMVol(-6, 0x18);
                         StartReadBG();
-                        LoadFileBG(at_7347,
-                                   (load_stack->stack + load_stack->stack_used),
-                                   &fusion_file_size);
+                        int fusion_file_size;
+                        LoadFileBG(at_7347, load_stack->stGetTop(), &fusion_file_size);
                         unsigned int blocks = QuadwordsFor(fusion_file_size);
                         load_stack->Alloc(blocks);
                         SpectolFusionTargetChara = NULL;
