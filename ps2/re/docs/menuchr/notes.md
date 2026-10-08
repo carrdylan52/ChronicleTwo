@@ -13,7 +13,7 @@ Only unguarded functions are active C++ decompilations. `MenuMemoryDivide` and
 The complete unit passes canonical verification. The merged October 8
 Satan's Fiddle base has independent PAL `.text` mismatches in `nd_meswin`
 and `actscript`. The current scores, retained drafts, and receipts are in
-[midday assessment](midday-assessment.md); the dated older assessments below
+[mid-day round-one assessment](midday-r1-assessment.md); the dated older assessments below
 record their earlier baselines.
 
 `MonsterBookDraw` draws the book, then draws a debug label when

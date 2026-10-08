@@ -2884,12 +2884,13 @@ void MenuCharaChangeStarDraw() {
     }
     mgTexManager.ReloadTexture(MenuCharaChangeBase_Tex->block, (sceVif1Packet *) NULL);
     CMenuChrCngMenu *menu = ChrChangMenuPt;
+    float            angle;
     float            size = menu->star_size;
     float            offset = size / 2.0f - 2.0f;
     RingCenter       center = at_2371__4;
     center.x = menu->star_x + offset;
     center.y = menu->star_y + 1.1538461f * offset;
-    float         angle = menu->star_angle;
+    angle = menu->star_angle;
     mgCDrawPrim  *prim = GetMenuPrim();
     mgRect<int>   baseRect(0x13F, 0xC0, 0x40, 0x40);
     QuadTexCoords crd = at_2372__4;
@@ -2915,9 +2916,9 @@ void MenuCharaChangeStarDraw() {
     prim->End();
 
     mgRect<int> wakuRect(0x121, 0xE1, 0x1E, 0x1E);
+    float       ringSize = 0.546875f * ChrChangMenuPt->star_size;
     float       wave = ChrChangMenuPt->star_wave;
     angle -= 0.15707964f;
-    float ringSize = 0.546875f * ChrChangMenuPt->star_size;
     float pulse = sinf(ChrChangMenuPt->star_pulse);
     if (pulse < 0.0f) {
         pulse = -pulse;
