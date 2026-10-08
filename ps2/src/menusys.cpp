@@ -6027,7 +6027,6 @@ void MenuMoveItemPos(int *item, int *pos, int phase) {
         }
     }
 }
-#ifdef NONMATCHING
 void CommonSetMoveItemClass(int (*table)[4]) {
     int                 goal[2];
     int                 start[2];
@@ -6036,16 +6035,15 @@ void CommonSetMoveItemClass(int (*table)[4]) {
     MENU_ITEM_MOVE_INFO info[2];
     for (int i = 0; i < 2; i++) {
         MENU_ITEM_MOVE_INFO *move = &info[i];
-        int                 *slot = table[i];
         move->active = 1;
         move->mode = MENU_MOVE_ITEM_COPY;
-        move->from[0] = slot[0];
-        move->from[1] = slot[1];
-        move->from[2] = slot[2];
-        move->from[3] = slot[3];
+        for (int j = 0; j < 4; j++) {
+            move->from[j] = table[i][j];
+        }
+        int *slot = table[i];
         if (move->from[0] == 0) {
             if (move->from[1] < 2) {
-                if (!move->from[2]) {
+                if (move->from[2] == 0) {
                     items[i] = &MenuUserParam.chara[slot[1]]->active_item[slot[3]];
                 } else if (move->from[2] == 1) {
                     items[i] = &MenuUserParam.chara[move->from[1]]->equip[move->from[3]];
@@ -6099,9 +6097,6 @@ void CommonSetMoveItemClass(int (*table)[4]) {
         }
     }
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/menusys", CommonSetMoveItemClass__FPA4_i);
-#endif
 void CMenuItemInfo::EnterDataMenu(unsigned int *pack) {
     int                sound_size;
     mgCTextureManager *textures;
