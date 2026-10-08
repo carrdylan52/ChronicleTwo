@@ -110,3 +110,21 @@ was declared.
   `actionchara.hpp`).
 - `CActiveMonster` / `CMonsterMan` are declared by the `monster` unit (no `monster.hpp` yet); the
   header forward-declares `CActiveMonster`.
+
+## ESM wrapper canonical checks (2026-10-07)
+
+The eight vector/target/user identifier wrappers were checked with `decompile.sh`
+and the deterministic compiler profile. The effect manager is at
+`ActiveMonster + 0xfff0`; the owner group is `nowMonster->chara_type` at `+0x670`.
+Retail identifier wrappers load `nowMonster` before `ActiveMonster`, then read
+`chara_type` before loading the effect manager. Native drafts reverse those
+loads. Named manager/group temporaries alone do not preserve retail scheduling.
+Canonical promotion checks report 24 problems, all confined to these eight
+wrappers; source fallbacks remain in place.
+
+Retail vector getters discard the manager status and call the float `SetStack`
+helper three times. The user identifier getter likewise discards manager status
+before calling integer `SetStack`. Their existing draft `return result` values
+therefore must not be preserved in a future native promotion. The vector getters
+and second vector setter return zero for an argument count other than four;
+the first vector setter and identifier wrappers have no such count guard.

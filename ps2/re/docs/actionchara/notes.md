@@ -199,3 +199,22 @@ order; MWCC folds the multiplication and the full actionchara object matches.
 `CalcCollision` and `GetSwEffectPtr` advance typed entries with `&entry[1]` and `&slot[1]`; `CheckEquipSetItem` and the corresponding item check advance with `&item[1]`. These forms keep the retail pointer increment instructions while making the array element type explicit. Effect selection uses `&BattleFX.hit[index]` and `&BattleFX.flush[index]`. In `HitEffectSet`, binding `hit_next` to a local integer before indexing preserves MWCC’s argument scheduling; direct indexing changes the function score to 96.83%. All affected functions compare exactly.
 
 `CActionChara::Step` can call the held `mgCFrame` and `CMapParts` members directly; their stored fields already have the needed types. Removing the three base/derived casts leaves its object code exact.
+
+## Stable floating-point compiler calibration
+
+GuardEffectSet__FP6CScenePf uses binary32 evaluate-first policies for
+`0x3DCCCCCD` (0.1) and `0x41F00000` (30), scoped to actionchara.cpp and
+that function. Both values are required to reproduce the PAL argument
+materialization order. Satan's Fiddle verifies the original type/value
+identity and initializes expression flags; no source value, argument
+order or pointer workaround was introduced for this calibration. The calibrated effect routines match; other movement and data-piece
+findings remain in the merged unit.
+
+## Gun movement rotation argument order
+
+`HumanGunMoveIF__12CActionCharaFPcPc` needs binary32 zero
+(`0x00000000`) evaluated first, before the nested rotation calculation.
+The stable function/type/value policy produces the complete retail
+736-byte body and resolves its five canonical findings. All other 135
+allocated sections retain identical bytes, geometry and resolved relocation
+targets; the unit's other existing findings remain unchanged.

@@ -13,11 +13,6 @@
 
 extern char at_356[];
 
-#pragma define_section dead ".dead" ".dead"
-__declspec(dead) static u_long PrimeLongDivision(u_long a, u_long b) {
-    return a / b;
-}
-
 #ifdef NONMATCHING
 
 #endif

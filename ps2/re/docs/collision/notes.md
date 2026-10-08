@@ -141,3 +141,31 @@ CreateBBox (+8).
 - Unsure drafts (DIFF): CColFrame::PickUpNearPoly builds the 8 box corners in a loop (retail
   stores them explicitly; corner i takes max on x/y/z for bits 1/2/4); LoadCollisionFile matrix
   copy loop shape; CreateCollisionMDT vertex copies.
+
+## Native loader comparison
+
+`LoadCollisionFile` was checked with typed MDTOBJ record advancement, indexed
+CColFrame access, and byte-indexed MDT file-offset lookup. This preserves the
+retail 0x230-byte size and all call relocations, but the original header, record
+cursor, memory allocator and frames receive different saved registers. The
+matrix column-copy loop and the call order are unchanged. Naming a captured
+object count, sharing or separating the frame index, and moving the original
+header declaration did not close the register difference. The fallback remains
+active; no unmatched trial is promoted.
+
+## Native MDT constructor comparison
+
+`CreateCollisionMDT` uses signed division for the index count divided by three;
+`FACES_ID::face_num` is declared unsigned, so its signed interpretation must be
+preserved in this query. The counted value represents vertex indices rather
+than triangles. Typed FACES_ID record advancement locates the next record at
+`&index[face_num]`. Serialized vertex, material and face tables are relative byte
+offsets from the original MDT header.
+The native candidate's CCollisionMDT construction has the same two base-bound
+clears and vtable transitions, but placement-new null-test scheduling differs.
+The counting pass and subsequent primitive walk also differ from retail.
+A class-body CCollisionMDT::Initialize with its constructor calling Initialize
+was tested and changed existing inline emission; it was reverted. Seeding helper
+masks for integer argument registers and float argument registers did not change
+the remaining native differences. The original constructor/header and assembly
+fallback remain in place while these source-shape issues are unresolved.

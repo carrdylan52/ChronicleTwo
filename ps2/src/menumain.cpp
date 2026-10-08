@@ -223,10 +223,6 @@ extern char              at_2345[];
 extern char              at_2450[];
 extern char             *filetbl_2141[];
 
-#pragma define_section dead ".dead" ".dead"
-__declspec(dead) static u_long PrimeLongDivision(u_long a, u_long b) {
-    return a / b;
-}
 
 // Code (.text)
 void MenuScreenBlackBeltSet(int enable) {

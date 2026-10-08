@@ -82,3 +82,21 @@ All 23 functions are global (only `__sinit_mapjump_cpp` is local). Return types:
 The door event tests this result for zero before fading back in. An `int`
 return type matches the retail function and its caller; declaring it `void`
 hides a value the caller uses.
+
+## MWCC 3.0 floating argument calibration
+
+`ExitInterior__FP6CScenePi` restores the player's rotation with
+`SetRotation(0.0f, mgAngleLimit(pi + OldRot[1]), 0.0f)`. Retail materializes
+zero early and preserves it across `mgAngleLimit`, using the saved floating
+register and an 80-byte stack frame. The deterministic false policy instead
+produced a 64-byte frame and a function 12 bytes shorter than retail.
+
+The verified profile row selects `mapjump.cpp`, `ExitInterior__FP6CScenePi`,
+`binary32`, IEEE bits `0x00000000`, and `evaluate_first: true`. It applies to
+both matching zero arguments without occurrence indices or a source change.
+The full mwccgap wrapper followed by section fixup and the canonical object
+checker restores all function bytes and resolved relocations. The unit returns
+to its original `0x1200` bytes and 372 relocations, with four existing data-layout
+issues: `MainMapInfo__2` and `SubMapInfo` symbol extents, and the following
+`SubMapInfo` and `at_912__4` BSS positions. This proves the function match,
+not resolution of those data issues. See [MWCC notes](../../../../docs/MWCC.md).

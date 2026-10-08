@@ -35,8 +35,10 @@ LoadGameObject/GetGameObjectEvent/DrawGameObject; 0xB40/0x50 = 36 rows.
 - +0x10 + i*0x10: x,y,z floats (copied to a vector with w=1.0) and rot_y (passed as Y of
   `SetRotation(0, ry, 0)`, vtable+0x20; values within +-pi). DrawGameObject raises y by 60 for
   types 1/2.
-  Typed `place[i]` access removes byte offsets in `DrawGameObject`; the PAL object currently differs
-  in register allocation (objdiff 98.26%).
+  `DrawGameObject` indexes `place[i]` directly for its two vector copies and rotation arguments.
+  Avoiding a retained pointer to the placement subobject reproduces the full 604-byte PAL
+  function, including relocations: the common base holds the entry plus the array-index
+  displacement, and member offsets remain in the loads.
 
 ## GAMEOBJ_TYPE (LoadGameObject)
 - 1: `effect/tg_maru_red.chr` -> slot 0x78, `effect/tg_sita_red.chr` -> slot 0x79.
@@ -100,3 +102,17 @@ adds a reload and lowers the score to 93.66%.
 - GetTalkEvent memsets a local `CSceneEventData` (0xD0) and writes `+0x8 = slot-8`,
   `chara_no`, `chara_slot` into the caller's.
 - No first-game counterpart for these types was identified.
+
+## Compiler calibration checkpoint
+
+`./decompile.sh GetNowVillagerTime__6CSceneFv` confirms that the result is
+`CheckTime(time, 21.0f, 6.0f) != 0`. The retail compiler materializes 6
+before 21. An LLDB snapshot at the MWCC 3.0 argument reader 0x4A4AE3 found
+both propagated locals remain kind-0x33 floating nodes with their original
+IEEE payload; 6's evaluation byte was uninitialized and nonzero while
+21's was zero. Initializer-only selectors did not control the fresh nodes.
+The consumer hook's binary32 evaluate-first selector for 6 (`0x40C00000`)
+now reproduces all instruction and relocation bytes. Whole-unit checks
+retain only the existing CharaObjectOnOff allocation constructor problems.
+`DrawGameObject` remains an exact native 604-byte function after the typed
+indexed-place change. No source workaround was introduced for time checking.

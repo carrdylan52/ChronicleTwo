@@ -63,3 +63,23 @@ The typed `this->grid[i]` lookup avoids the old byte offset cast. Reusing the
 preceding placed-parts loop index `i` for the river-grid loop preserves the
 retail register assignment; the complete function has a 100% object match.
 Using a new loop index instead exchanges two saved registers in the river pass.
+
+## GetEditPartsAlt native assessment
+
+The m2c output and retail body confirm that this overload transforms each
+`col_area1` triangle into each placed part's frame, computes its XZ normal,
+and queries the part's `col_floor` for overlap. Existing `CEditPartsInfo`,
+`CCPoly`, `CEditCollision`, and `mgVu0FBOX` declarations describe the accessed
+fields, including the 0x50-byte polygon stride and the floor collision at
+0x110. Position and rotation getters are virtual slots 0x18 and 0x24.
+
+The retail call to `OverlapPoly3XZ` retains the triangle address in argument
+register a1 across the preceding file-local VU0 helper. The helper's actual
+body preserves that register; m2c marks it unset because the generic call ABI
+clobbers it. A native candidate must preserve this call sequence and all
+existing unit failures under the canonical comparator before promotion.
+
+The existing native draft produces a shorter body and changes the
+`OverlapPoly3XZ` call location under the deterministic profile. It remains
+guarded; the baseline unit passes canonical comparison with that fallback.
+No native promotion is claimed for this function or the COP2-only helper.

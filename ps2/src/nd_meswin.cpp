@@ -178,10 +178,6 @@ extern char at_1124[];
 #include "common.h"
 #include "mw_runtime.h"
 
-#pragma define_section dead ".dead" ".dead"
-__declspec(dead) static float PrimeDoubleToFloat(double a) {
-    return a;
-}
 
 // Code (.text)
 void MySetPrim(mgCDrawPrim *prim, int mode, int bilinear) {

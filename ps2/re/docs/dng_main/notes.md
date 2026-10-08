@@ -60,14 +60,12 @@ the 0x30-byte BSS object `debug_event_stack_1106` at 0x01EF7380; the guard is
 both naturally from the local static declaration, but its generated ordinal
 differs from retail's source ordinal. The object postprocessor maps the pair
 to the retail symbol names without defining a compiler initializer manually.
-The current C++ draft of `InitDungeonMain` is 0x20D8 bytes, short of retail's
-0x2110-byte function, and changes the layout of later text. The default build
-uses the retail assembly while the draft is kept under `NONMATCHING`; its
-retail BSS storage and guard are supplied by the corresponding data placeholders.
-The draft also caused MWCC to emit `MoveCheckInfo::Initialize`, camera assignment,
-the active monster constructor, one data object, a treasure-box vtable, and
-49 read-only constants. The assembly fallback supplies these at their retail
-addresses until the C++ draft can reproduce the complete unit layout.
+The earlier isolated C++ checkpoint of `InitDungeonMain` was 0x20D8 bytes,
+short of retail's 0x2110-byte function, and changed later text layout. The
+merged source now selects the native body by default; that change does not
+establish an exact match. Historical assembly-fallback layout observations
+below describe the earlier checkpoint. Fresh integrated verification is
+required, including the naturally emitted local-static storage and helpers.
 
 ## Globals (types from __sinit, InitDungeonMain, CommonStageClassInit)
 Retail names with `__2` in main.symbols are these globals (other units have locals of the same
@@ -140,6 +138,92 @@ normal translation-unit configuration.
   MessageTaskManager, CStartupEpisodeTitle, BattleEffectMan, CAutoMapGen, CRandomCircle,
   CGeoStone, CCameraControl, CHealingEffectMan, CMiniEffPrimMan, CPot, CBPot) are declared
   with forward-declared classes; include their headers when they exist.
+
+## Isolated InitDungeonMain checkpoint
+
+The native body of `InitDungeonMain` remains unresolved. Its isolated
+section is 0x20D8 bytes, shorter than the retail 0x2110-byte function.
+The first differing region is the sequence of global vector copies;
+later instruction streams no longer align because of the shorter
+section. The unit also contains pre-existing local-data layout and
+symbol-resolution discrepancies in isolated object validation, so it
+requires the coordinator's integrated toolchain/data checkpoint before
+further matching claims. No source changes from this trial are retained.
+
+## Native local-static BSS binding
+
+`InitDungeonMain` declares one local `mgCMemory debug_event_stack` (0x30 bytes),
+and `DngMainKey` declares one local `sceVu0FVECTOR chk_pos` (0x10 bytes). The
+source also retains the explicit retail BSS markers `debug_event_stack_1106`
+(0x01EF7380) and `chk_pos_2870` (0x01EF7400). Their typed C++ objects and their
+retail storage therefore coexist before object postprocessing.
+
+MWCC gives a local static a generated numeric suffix. The compiler's current
+suffix depends on the source/header parse; its value is not the variable's
+identity. The retail split records an independently generated suffix. Matching
+these objects by the position of a relocation in retail code also fails when a
+native function has a different instruction sequence.
+
+`postprocess_object.py` binds these cases by the translation unit, a unique
+source static declaration, the variable's base name, and its exact storage
+extent. A matching target must be an explicit `INCLUDE_BSS` marker within that
+unit's retail BSS/SBSS ranges. Native storage must be a local, whole-section
+NOBITS object of the same BSS kind and exact size. Retail storage must have the
+same declared size and contain only zeroed storage. Interior symbols,
+initialized native objects, and ambiguous declarations, native names, or marker
+names are left alone. Simple typed declarations are recognized conservatively;
+more complex C++ declaration spellings are not guessed.
+
+Every relocation against the native object or its section aliases is retargeted
+to the explicit retail symbol. Both symbols denote the beginning of their
+storage, so the compiler's relocation addends stay unchanged. Only the resulting
+unreferenced native storage is marked `.dead`, then removed by the existing
+`fixup_sections.sh` step. Function instructions are never changed by this pass.
+
+### Verification
+
+A genuine MWCCgap `dng_main` object was compiled through Satan's Fiddle and
+processed both with and without this binding. The new final object differs only
+by removal of two native BSS copies and eight relocation targets: six references
+to the event stack in `InitDungeonMain`, and two references to the position
+vector in `DngMainKey`. Every remaining allocated section retains its bytes and
+extent, and the total relocation count stays 3647. The final BSS piece count is
+62, matching retail, instead of 64.
+
+The raw compiler object contains additional local statics which the existing
+instruction-position binder already resolves. Binding their names first
+produces the same final storage and references. The already processed object
+copy and raw object both pass `scripts/build/test_static_bss.py` checks; pure
+selection tests also cover suffix changes, missing declarations, different
+extents, and ambiguous native/retail names without creating compiler objects.
+
+Whole-unit checking still reports the existing `InitDungeonMain` length and code
+mismatch, BSS padding differences, and an unmatched SBSS piece. Correcting BSS
+piece recognition allows the checker to inspect more data and resolve formerly
+unknown targets; the lower total problem count is not a claim that those game
+functions became matched.
+
+## DngMainKey floating-point calibration
+
+`./decompile.sh DngMainKey__Fv` confirms the debug weapon-element call
+uses 10.0, and the tornado call uses size 20.0 alongside `fRand(255.0f)`.
+The argument-consumer default changed the optimized local 20's evaluation
+byte, materializing it after the nested random call; this altered the saved
+float register and shifted the first code region. The final source is
+unchanged. Binary32 evaluate-first policies for `0x41200000` (10) and
+`0x41A00000` (20), scoped to dng_main.cpp / DngMainKey__Fv, restore the
+complete 0x1E4C-byte function's instruction shape. Both initializer and
+consumer applications were verified by Satan's Fiddle diagnostics.
+
+Canonical wrapper plus section fixup gives zero nonrelocated instruction
+differences. Comparison with the assembled retail reference also gives
+zero differences across all 440 shared relocation tuples: function-relative
+offset, relocation type, normalized symbol identity and encoded addend.
+The native object additionally carries 128 GP-relative relocations where
+the reference encodes final GP offsets directly. Its known unresolved
+global data names remain a dng_main layout limitation; this calibration
+does not claim that those addresses or the complete unit are exact.
+
 # `MoveCheckInfo::Initialize`
 
 The 0x110-byte movement-query record is cleared with `memset`. Moving its

@@ -66,11 +66,6 @@ static char *GetLine(char **col, char *text, char *end);
 extern int EnableSndMngr;
 #endif
 
-#pragma define_section dead ".dead" ".dead"
-__declspec(dead) static u_long PrimeLongDivision(u_long a, u_long b) {
-    return a / b;
-}
-
 // Code (.text)
 int CLoopSeMngr::Create(int sequence_count, mgCMemory *memory) {
     unsigned int byte_count;

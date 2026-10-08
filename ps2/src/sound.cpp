@@ -32,11 +32,6 @@ extern MSIN_BUFFER   msinBf[MIDI_MSIN_PORT_COUNT];
 extern MIDI_BANK     gBank;
 #endif
 
-#pragma define_section dead ".dead" ".dead"
-__declspec(dead) static u_long PrimeLongDivision(u_long a, u_long b) {
-    return a / b;
-}
-
 // Code (.text)
 void CSound::StopVoice(int core) {
     sceSdRemote(1, rSdSetSwitch, core | SD_S_KOFF, 0xFFFFFF);
@@ -404,7 +399,7 @@ void CSound::SQ_Play(int port, int seq_no, int volume) {
     ezMidi(port + 0x40, (int)sequence);
     printf("###############PLAY SEQ_NO=%d PORT=%d#####################\n", seq_no, port);
     if (volume != 256) {
-        volume = (int)(volume * 2.015748f);
+        volume = static_cast<int>(2.015748f * volume);
     }
     ezMidi(port + 0xB0, volume);
     ezMidi(port + 0x30, 0);
@@ -871,9 +866,6 @@ INCLUDE_RODATA("ps2/asm/pal/nonmatchings/sound", at_475__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/sound", at_476__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/sound", at_477__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/sound", at_564__3__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/sound", at_576__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/sound", at_577__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/sound", at_578__2__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/sound", at_595__2__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/sound", at_613__2__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/sound", at_728__DATA);

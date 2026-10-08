@@ -15,7 +15,6 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[2]
 REPORT = ROOT / "progress/report.json"
 SOURCES = ROOT / "ps2/src"
-MATCHINGS = ROOT / "ps2/asm/pal/matchings"
 ASM = re.compile(r"\bINCLUDE_ASM\([^,]+,\s*([A-Za-z_][A-Za-z_0-9]*)\s*\)")
 
 
@@ -47,18 +46,13 @@ def rows(report: dict) -> list[tuple[str, str, str]]:
         guarded = guarded_symbols(source_text)
         for function in unit["functions"]:
             symbol = function["name"]
-            # Progress also lists internal branch targets emitted as local labels.
-            # They are part of their containing function, not separate work items.
+            # Internal branch labels are not independent function work items.
             if symbol.startswith(".L"):
                 continue
             match = function.get("fuzzy_match_percent")
-            # A switch jump table can split a matching function into local
-            # label rows, leaving the function's report row without a score.
-            if match == 100.0 or (MATCHINGS / name / f"{symbol}.s").is_file():
-                status = "matched"
-            elif symbol.startswith("__sinit_") and re.search(
-                rf'extern\s+"C"\s+void\s+{re.escape(symbol)}\s*\(', source_text
-            ):
+            # Generated assembly files describe the split, not matching success.
+            # Objdiff is the authority for exact and fuzzy function scores.
+            if match == 100.0:
                 status = "matched"
             elif match is not None:
                 status = "fuzzy"
@@ -89,6 +83,7 @@ def main() -> None:
     else:
         totals = Counter(status for _, _, status in functions)
         print("game functions:", len(functions))
+        print("outstanding:", len(functions) - totals["matched"])
         for status in ("matched", "guarded_draft", "asm_only", "fuzzy"):
             print(f"{status}: {totals[status]}")
         print("\nunit\tmatched\tguarded_draft\tasm_only\tfuzzy")

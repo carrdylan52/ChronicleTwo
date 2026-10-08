@@ -132,3 +132,7 @@ Name not retail. Only written: +0 = MenuArg.mes_tex_block, +4 = GetTexture("mnma
   In `MenuWorldTrans`, loading the camera speed into a separate local before
   passing the literal `-1.0f` preserves the retail register assignment for
   `mgCCamera::SetSpeed`.
+
+## Topic rectangle argument order
+
+The unscoped binary32 selector for `DrawMenuTopic__Fv`, `36.0f` (`0x42100000`), sets `evaluate_first: true`. It preserves the vertical-origin assignment through all four rectangle constructor calls. Canonical verification passes the complete unit: `0x4F98` allocated bytes and 1,389 relocations. The unused long-division primer is replaced by GPR helper mask `0x30`, FPR mask `0`, preserving all allocated bytes and relocation identities.

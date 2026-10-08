@@ -50,6 +50,21 @@ fi
 # mwcc's <> search list.
 : "${LIB_INCLUDE_DIRS:=ps2/include/std;ps2/include/sce}"
 
+# Both mwccgap passes use the same source identity, including its temporary .c.
+: "${SATANSFIDDLE:=satansfiddle}"
+: "${SATANSFIDDLE_CONFIG:=$(pwd)/scripts/build/satansfiddle.json}"
+export SATANSFIDDLE SATANSFIDDLE_CONFIG
+SATANSFIDDLE_TRANSLATION_UNIT=$(basename "$src")
+export SATANSFIDDLE_TRANSLATION_UNIT
+if ! command -v "$SATANSFIDDLE" >/dev/null 2>&1; then
+    echo "mwccgap.sh: Satan's Fiddle is unavailable; build it and set SATANSFIDDLE to its executable." >&2
+    exit 1
+fi
+if [ ! -f "$SATANSFIDDLE_CONFIG" ]; then
+    echo "mwccgap.sh: no Satan's Fiddle JSON profile at $SATANSFIDDLE_CONFIG" >&2
+    exit 1
+fi
+
 mkdir -p "$(dirname "$obj")"
 
 MWCIncludes=$LIB_INCLUDE_DIRS \
@@ -57,6 +72,7 @@ PYTHONPATH=$MWCCGAP_DIR \
 python3 "$MWCCGAP_DIR/mwccgap.py" "$src" "$obj" \
     --mwcc-path "$MW_DIR/mwccps2.exe" \
     --use-wibo \
+    --wibo-path scripts/build/satansfiddle-wibo.py \
     --as-path "${MIPS_TOOL_PREFIX}as" \
     --as-march r5900 \
     --as-mabi eabi \

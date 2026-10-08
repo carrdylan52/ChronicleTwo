@@ -188,3 +188,47 @@ indexing, but that spelling changes the adjacent `StepFishBoiledEffect`
 object diff, so it retains its explicit stride. The separate part lookup in
 the item board helper and the line-position initializer still need their
 byte-stride forms for exact MWCC register allocation.
+
+## Stable item-board interpolation argument order
+
+The `menudraw.cpp` profile row for `Func_MenuItemBrdPosStep__Fi` selects
+`binary32` `0x40000000` (2.0f) with `evaluate_first: true`. It applies to all
+identical literals in that function and has no occurrence counter or callee
+restriction. The function obtains the item board's origin, computes its
+vertical target from the top visible row, either interpolates or snaps the
+board position, and updates its scroll bar. At `CalcMenu1`, the flag
+materializes the 2.0f minimum movement argument before the 4.0f interpolation
+divisor, restoring retail's argument register order.
+
+The native 256-byte function has zero differing instruction words and
+relocation fields with the current annotation and direct-literal consumer
+hooks. Canonical wrapper compilation, `fixup_sections.sh`, and
+`check_objects.py` validate `0x14090` allocated unit bytes and 2,389
+relocations. The existing `CRepairManager::GeneratePoly` constructor/layout
+findings remain; this row introduces no additional failing function.
+
+## Native main-frame image drawing
+
+`MenuMainFrameImgDraw(int&)` draws the full-screen captured image and its
+lens-positioned copy. Modes 0 and 1 retain the configured image rectangle;
+mode 1 fixes opacity to 128. Other modes offset the rectangle from the lens
+centre. The opacity otherwise follows the display-mode counter, and the
+second destination gains one pixel of height. Grouping modes 0/1 in a switch
+preserves retail's compact mode block before the lens-offset block.
+
+The native function has zero canonical instruction and resolved-relocation
+differences using the standard profile. The isolated unit contains `0x1408C`
+allocated bytes and 2,397 relocations, with only the existing 16
+`CRepairManager::GeneratePoly` constructor/layout problems. No compiler
+profile override is needed. `PrimFillRect4` and `DrawMenuNumber` remain guarded
+drafts after unresolved entry-copy and texture-argument scheduling differences.
+The newer native `DrawMenuWakuStep` is retained in the merge; the earlier
+induction-scheduling trial does not describe its current status.
+
+The tile-pattern draft reproduces retail's outer column loop when the screen
+edge is tested within a bounded do-loop and columns advance by the destination
+width. Its row-loop branch delay and exit scheduling still differ, including
+with a direct label spelling, so its assembly fallback is retained.
+`GenarateRandamLine` has a complete matching point-generation phase when
+`sway` is declared before `progress`; the final periodic y-coordinate exchange
+still allocates different integer registers. Its fallback is retained too.

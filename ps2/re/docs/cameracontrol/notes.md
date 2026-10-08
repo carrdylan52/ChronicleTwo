@@ -46,10 +46,11 @@ four `CameraCtrlParam::no_check` initializations, discarded temporary, active
 parameter defaults, `InitStatus`, and copy to `default_param`. m2c's offset
 labels for the vtable and field stores are inaccurate because it loses the
 class layout; the header layout and retail disassembly resolve those stores.
-Writing the second and fourth `mgCCameraFollow` arguments as `float(30.0)` and
-`float(8.0)` for both calls makes MWCC load the four argument registers in the
-retail order. Plain float literals produce the same values but different
-instruction order.
+Both `mgCCameraFollow` calls use plain float literals. The Satan's Fiddle
+profile evaluates binary32 positive zero first within
+`__ct__14CCameraControlFv`, producing retail's argument load order without
+source-level double-to-float casts. The complete unit matches all 0x150C
+bytes and 128 relocations with this policy.
 
 ### Control (nested struct, size 0xC)
 MoveCamera(CPadControl*) builds it on the stack: +0 `rot` (analog 6 * -0.05, or +/-0.05

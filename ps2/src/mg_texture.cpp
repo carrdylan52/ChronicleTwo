@@ -37,20 +37,55 @@ static int Conv32To8(int width, int height, u_char *image);
 
 /**
  *
- * DMA chain flushing the GS texture cache, copied in front of and behind
- * every texture upload.
+ * DMA chain flushing the GS texture cache.
  *
  */
-extern u_char texflush_dma[0x30];
+static u_char texflush_dma[48] __attribute__((aligned(16))) = {
+    0x02, 0x00, 0x00, 0x10, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0x00, 0x00, 0x50,
+    0x01, 0x80, 0x00, 0x00, 0x00, 0x00, 0x00, 0x10, 0x0E, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x3F, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+};
 
 extern char   at_497[];
 extern char   at_866[];
 extern char   at_884[];
 extern char   at_867[];
 extern char   at_868[];
-extern u_char lut_1246[128];
-extern int    block_table8_1266[32];
-extern int    block_table32_1267[32];
+/**
+ *
+ * Maps texels in alternating 32-bit columns to their 8-bit block positions.
+ *
+ */
+static u_char lut_1246[128] __attribute__((aligned(16))) = {
+    0x00, 0x24, 0x08, 0x2C, 0x01, 0x25, 0x09, 0x2D, 0x02, 0x26, 0x0A, 0x2E, 0x03, 0x27, 0x0B, 0x2F,
+    0x04, 0x20, 0x0C, 0x28, 0x05, 0x21, 0x0D, 0x29, 0x06, 0x22, 0x0E, 0x2A, 0x07, 0x23, 0x0F, 0x2B,
+    0x10, 0x34, 0x18, 0x3C, 0x11, 0x35, 0x19, 0x3D, 0x12, 0x36, 0x1A, 0x3E, 0x13, 0x37, 0x1B, 0x3F,
+    0x14, 0x30, 0x1C, 0x38, 0x15, 0x31, 0x1D, 0x39, 0x16, 0x32, 0x1E, 0x3A, 0x17, 0x33, 0x1F, 0x3B,
+    0x04, 0x20, 0x0C, 0x28, 0x05, 0x21, 0x0D, 0x29, 0x06, 0x22, 0x0E, 0x2A, 0x07, 0x23, 0x0F, 0x2B,
+    0x00, 0x24, 0x08, 0x2C, 0x01, 0x25, 0x09, 0x2D, 0x02, 0x26, 0x0A, 0x2E, 0x03, 0x27, 0x0B, 0x2F,
+    0x14, 0x30, 0x1C, 0x38, 0x15, 0x31, 0x1D, 0x39, 0x16, 0x32, 0x1E, 0x3A, 0x17, 0x33, 0x1F, 0x3B,
+    0x10, 0x34, 0x18, 0x3C, 0x11, 0x35, 0x19, 0x3D, 0x12, 0x36, 0x1A, 0x3E, 0x13, 0x37, 0x1B, 0x3F,
+};
+
+/**
+ *
+ * Maps row-major 8-bit blocks to their GS page block numbers.
+ *
+ */
+static int block_table8_1266[32] __attribute__((aligned(16))) = {
+    0, 1, 4, 5, 16, 17, 20, 21, 2, 3, 6, 7, 18, 19, 22, 23,
+    8, 9, 12, 13, 24, 25, 28, 29, 10, 11, 14, 15, 26, 27, 30, 31,
+};
+
+/**
+ *
+ * Maps row-major 32-bit blocks to their GS page block numbers.
+ *
+ */
+static int block_table32_1267[32] __attribute__((aligned(16))) = {
+    0, 1, 4, 5, 16, 17, 20, 21, 2, 3, 6, 7, 18, 19, 22, 23,
+    8, 9, 12, 13, 24, 25, 28, 29, 10, 11, 14, 15, 26, 27, 30, 31,
+};
 extern u_char conv_work_1306[0x10000];
 
 static inline u_int align16_blocks(u_int n) {
@@ -359,35 +394,40 @@ int mgCTextureManager::hash(char *name) {
 #pragma global_optimizer off
 
 void mgCTextureManager::AddHash(mgCTexture *texture) {
-    mgTEXTURE_HASH *node;
-    mgTEXTURE_HASH *cur;
-    mgTEXTURE_HASH *following;
+    mgTEXTURE_HASH  *node;
+    mgTEXTURE_HASH  *cur;
+    mgTEXTURE_HASH  *following;
     mgTEXTURE_HASH **bucket;
+
     if (hash_num >= hash_max) {
         node = NULL;
     } else {
         node = hash_stack[hash_num++];
     }
+
     if (node != NULL) {
         node->next = NULL;
         node->texture = texture;
 
-        int index = hash((char *)texture + 8);
-        bucket = (mgTEXTURE_HASH **)((index << 2) + (int)this + 0x24);
+        int index = hash(texture->name);
+        bucket = &hash_table[index];
         cur = *bucket;
+
         if (cur == NULL) {
             *bucket = node;
-    } else {
+        } else {
             while (cur != NULL) {
                 following = cur->next;
+
                 if (following == NULL) {
                     cur->next = node;
-        return;
-    }
+                    return;
+                }
+
                 cur = following;
+            }
         }
     }
-}
 }
 
 #pragma global_optimizer reset
@@ -396,37 +436,42 @@ void mgCTextureManager::AddHash(mgCTexture *texture) {
 #pragma global_optimizer off
 
 void mgCTextureManager::DelHash(mgCTexture *texture) {
-    mgTEXTURE_HASH *cur;
-    mgTEXTURE_HASH *prev;
-    mgTEXTURE_HASH *found;
+    mgTEXTURE_HASH  *cur;
+    mgTEXTURE_HASH  *prev;
+    mgTEXTURE_HASH  *found;
     mgTEXTURE_HASH **bucket;
+
     if (texture != NULL) {
-        int index = hash((char *)texture + 8);
-        bucket = (mgTEXTURE_HASH **)((index << 2) + (int)this + 0x24);
+        int index = hash(texture->name);
+        bucket = &hash_table[index];
         cur = *bucket;
         prev = NULL;
         found = NULL;
+
         while (cur != NULL) {
             if (cur->texture == texture) {
                 found = cur;
-            break;
-        }
+                break;
+            }
+
             prev = cur;
             cur = cur->next;
-    }
+        }
+
         if (found != NULL) {
             if (prev == NULL) {
                 *bucket = found->next;
-    } else {
+            } else {
                 prev->next = found->next;
-    }
-    if (hash_num > 0) {
+            }
+
+            if (hash_num > 0) {
                 hash_num--;
                 hash_stack[hash_num] = found;
-    }
-}
+            }
         }
     }
+}
 
 #pragma global_optimizer reset
 #pragma schedule reset
@@ -435,16 +480,17 @@ void mgCTextureManager::DelHash(mgCTexture *texture) {
 
 mgCTexture *mgCTextureManager::SearchHash(char *name, int mode) {
     mgTEXTURE_HASH *node;
-    int bucket = hash(name);
+    int             bucket = hash(name);
 
-    for (node = *(mgTEXTURE_HASH **)((bucket << 2) + (int)this + 0x24); node != NULL;
+    for (node = hash_table[bucket]; node != NULL;
          node = node->next) {
-        if (strcmp(name, (char *)node->texture + 8) == 0) {
+        if (strcmp(name, node->texture->name) == 0) {
             if (mode < 0 || node->texture->block == mode) {
                 return node->texture;
             }
         }
     }
+
     return NULL;
 }
 
@@ -1772,12 +1818,6 @@ static int Conv32To8(int width, int height, u_char *image) {
 }
 #pragma optimization_level reset
 #pragma schedule reset
-
-// Initialised data (.data)
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mg_texture", texflush_dma__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mg_texture", lut_1246__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mg_texture", block_table8_1266__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mg_texture", block_table32_1267__DATA);
 
 // Constants (.rodata)
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mg_texture", at_497__DATA);

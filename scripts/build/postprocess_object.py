@@ -36,7 +36,10 @@ its own. Every reference a compiled function makes to such a copy is repointed
 at the placeholder holding the address retail's instruction refers to, and a
 copy nothing refers to any more is checked against retail's bytes and marked
 `.dead` for scripts/build/fixup_sections.sh to remove -- so a function can be
-compiled before the data it uses is migrated (`bind_local_data`).
+compiled before the data it uses is migrated (`bind_local_data`). Named local
+BSS statics are also bound by a unique source declaration and explicit retail
+marker with the same base name and exact extent (`bind_named_static_bss`),
+independently of their compiler-generated suffix or instruction positions.
 
 tools/mwccgap adds a symbol a datum's relocations refer to a second time, and
 a datum that refers to itself carries the assembler's section index rather
@@ -49,6 +52,7 @@ import bisect
 import re
 import struct
 import sys
+from collections import Counter
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -155,10 +159,17 @@ def rename_dng_main_local_static(elf, unit):
         return
     if len(storage) != 1:
         raise ValueError(f'dng_main: expected one debug event stack, found {len(storage)}')
-    old_name = storage[0].name
-    ordinal = int(old_name.rsplit('_', 1)[1])
-    guard = [symbol for symbol in symbols if symbol.name == f'init_{ordinal + 1}'
-             and symbol.st_size == 1]
+    owners = [symbol.st_shndx for symbol in symbols
+              if symbol.name == 'InitDungeonMain__F13INIT_LOOP_ARG']
+    referenced = {relocation.symbol_index for record in elf.relocations
+                  if record.sh_info in owners for relocation in record.relocations}
+    if not any(symbols[index] is storage[0] for index in referenced):
+        raise ValueError('dng_main: initializer does not reference its debug event stack')
+    guard = [symbol for index, symbol in enumerate(symbols)
+             if index in referenced and re.fullmatch(r'init_\d+', symbol.name)
+             and symbol.st_size == 1 and symbol.bind == STB_LOCAL
+             and 0 < symbol.st_shndx < len(elf.sections)
+             and elf.sections[symbol.st_shndx].sh_type == SHT_NOBITS]
     if len(guard) != 1:
         raise ValueError('dng_main: debug event stack initialization guard missing')
     for symbol, name in ((storage[0], 'debug_event_stack_1106'),
@@ -230,6 +241,128 @@ def rename_shared_names(elf, rows, address_of_section, retail, gp):
             if len(chosen) == 1:
                 symbol.name = chosen[0]
                 symbol.st_name = elf.strtab.add_symbol(symbol.name)
+
+
+def static_bss_pairs(source, native, held):
+    """Select unique source statics and explicit BSS markers with equal extents.
+
+    The inputs contain (symbol index, symbol name, size), not compiler objects.
+    Compiler-generated local-static suffixes identify no stable source property.
+    A repeated source name or object/marker base is deliberately left unbound.
+    """
+    source = re.sub(r'//[^\n]*|/\*.*?\*/|"(?:\\.|[^"\\])*"', '', source,
+                    flags=re.DOTALL)
+    declarations = Counter(re.findall(
+        r'\bstatic\s+(?:const\s+)?[A-Za-z_]\w*(?:\s+|\s*[*&]\s*)'
+        r'([A-Za-z_]\w*)\s*(?=[;=\[])', source))
+    markers = set(re.findall(r'\bINCLUDE_BSS\(\s*([A-Za-z_]\w*)\s*,', source))
+
+    def base(name):
+        # project_name converts MWCC's dollar separator to an underscore.
+        match = re.fullmatch(r'(.+?)[_$]\d+(?:__\d+)?', name)
+        return match.group(1) if match else None
+
+    natives = {}
+    placeholders = {}
+    for index, name, size in native:
+        key = base(name)
+        if key is not None:
+            natives.setdefault(key, []).append((index, size))
+    for index, name, size in held:
+        key = base(name)
+        if key is not None and name in markers:
+            placeholders.setdefault(key, []).append((index, size))
+    pairs = []
+    for key, options in natives.items():
+        targets = placeholders.get(key, [])
+        if declarations[key] != 1 or len(options) != 1 or len(targets) != 1:
+            continue
+        native_index, native_size = options[0]
+        held_index, held_size = targets[0]
+        if native_size and native_size == held_size:
+            pairs.append((native_index, held_index))
+    return pairs
+
+
+def bind_named_static_bss(elf, unit, placeholder_sections):
+    """Bind unambiguous native local BSS to its explicit retail storage.
+
+    This binding uses the unit, source declaration, base name and exact extent,
+    so instruction scheduling cannot move a reference onto the wrong datum.
+    It preserves all relocation addends and never binds initialized storage.
+    """
+    source_path = ROOT / 'ps2' / 'src' / (unit + '.cpp')
+    if not source_path.is_file():
+        return []
+    lay = layout.Layout(ROOT / layout.YAML)
+    ranges = [(lo, hi) for section, lo, hi in lay.sections(unit)
+              if section in ('.bss', '.sbss')]
+    rows = {name: (address, size) for address, name, size, function
+            in layout.read_symbols(ROOT / layout.SYMBOLS)
+            if not function and any(lo <= address < hi and address + size <= hi
+                                    for lo, hi in ranges)}
+    symbols = elf.symtab.symbols
+    sections = elf.sections
+    native, held = [], []
+    for index, symbol in enumerate(symbols):
+        section_index = symbol.st_shndx
+        if (symbol.type != STT_OBJECT or symbol.st_value != 0
+                or not 0 < section_index < len(sections)):
+            continue
+        section = sections[section_index]
+        if (section.name == DEAD or not section.sh_flags & SHF_ALLOC
+                or section.sh_flags & SHF_EXECINSTR):
+            continue
+        size = section_size(section)
+        # A section alias or interior symbol needs a different addend mapping.
+        if any(other.st_shndx == section_index and other.st_value != 0
+               for other in symbols):
+            continue
+        if (symbol.bind == STB_LOCAL and section.sh_type == SHT_NOBITS
+                and symbol.st_size == size
+                and sum(other.st_shndx == section_index and other.type == STT_OBJECT
+                        for other in symbols) == 1):
+            native.append((index, symbol.name, size))
+        expected = rows.get(symbol.name)
+        if (symbol.bind != STB_LOCAL and expected is not None
+                and expected[1] == symbol.st_size == size
+                and (section.sh_type == SHT_NOBITS or not any(section.data))
+                and not any(record.sh_info == section_index and record.relocations
+                            for record in elf.relocations)):
+            held.append((index, symbol.name, size))
+
+    pairs = static_bss_pairs(source_path.read_text(), native, held)
+    dropped = []
+    for native_index, held_index in pairs:
+        original, target = symbols[native_index], symbols[held_index]
+        section_index = original.st_shndx
+        if sections[section_index].name != layout.section_of(rows[target.name][0]):
+            continue
+        aliases = {index for index, symbol in enumerate(symbols)
+                   if symbol.st_shndx == section_index}
+        undefined = {index for index, symbol in enumerate(symbols)
+                     if symbol.st_shndx == 0 and symbol.name == original.name}
+        for record in elf.relocations:
+            for relocation in record.relocations:
+                if relocation.symbol_index in aliases or relocation.symbol_index in undefined:
+                    relocation.symbol_index = held_index
+        # Name the unresolved aliases too, so duplicate folding cannot send a
+        # later reference back to the dead native definition.
+        for index in undefined:
+            symbols[index].name = target.name
+            symbols[index].st_name = elf.strtab.add_symbol(target.name)
+            symbols[index].st_shndx = target.st_shndx
+            symbols[index].st_value = target.st_value
+        section = sections[section_index]
+        section.name = DEAD
+        section.sh_name = elf.add_sh_symbol(DEAD)
+        for record in elf.relocations:
+            if record.sh_info == section_index:
+                record.name = '.rel' + DEAD
+                record.sh_name = elf.add_sh_symbol(record.name)
+        placeholder_sections.add(target.st_shndx)
+        dropped.append(original.name)
+    return dropped
 
 
 def bind_local_data(elf, unit, placeholder_sections):
@@ -603,14 +736,7 @@ def name_literal_data(elf, unit, placeholders):
 
 def pad_data(elf, unit, placeholders):
     retail = layout.Retail()
-    references = []
-    for symbol in elf.symtab.symbols:
-        if (symbol.type == STT_OBJECT and 0 < symbol.st_shndx < len(elf.sections)
-                and elf.sections[symbol.st_shndx].sh_type == SHT_NOBITS):
-            match = INVENTED.fullmatch(symbol.name)
-            if match:
-                references.append(int(match.group(1), 16))
-    pieces = disassemble.Pieces(references=references)
+    pieces = disassemble.Pieces()
     runs = [(section, run) for section, run in pieces.unit(unit)
             if section in ('.data', '.sdata', '.rodata', '.bss', '.sbss')]
     cuts = {name: (start, end) for section, run in runs for name, start, end in run}
@@ -624,10 +750,15 @@ def pad_data(elf, unit, placeholders):
             continue
         start, end = cuts[symbol.name]
         section = elf.sections[index]
-        if symbol.name in declared_sizes and (section.sh_type != SHT_NOBITS
-                                               or (section.name, symbol.name) in trailing):
+        if symbol.name in declared_sizes and (section.name, symbol.name) in trailing:
             end = min(end, start + declared_sizes[symbol.name])
         size = section_size(section)
+        # Symbol sizes describe the object, whereas section pieces also own
+        # the following alignment gap. Do not hide an incorrect object size
+        # by filling it; only a correctly sized object may acquire padding.
+        declared_size = declared_sizes.get(symbol.name)
+        if declared_size is not None and size != declared_size:
+            continue
         if (section.sh_type == SHT_NOBITS and size and 0 < end - start - size < 16):
             section.sh_size = end - start
             continue
@@ -911,6 +1042,7 @@ def main():
             unit = '/'.join(parts[parts.index('obj') + 1:])[:-len('.cpp.o')]
         else:
             unit = name[:-len('.cpp.o')]
+        bind_named_static_bss(elf, unit, placeholder_sections)
         rename_dng_main_local_static(elf, unit)
         bind_local_data(elf, unit, placeholder_sections)
         name_literal_data(elf, unit, placeholder_sections)

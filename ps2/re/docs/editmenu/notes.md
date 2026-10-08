@@ -149,6 +149,26 @@ The local `divbyzerocheck on`/`reset` pair is redundant with the PS2 compiler
 flag. Removing it leaves every section and symbol in this unit's object diff
 unchanged.
 
+## Stable floating-point evaluation flags
+
+The `editmenu.cpp` rows in `scripts/build/satansfiddle.json` use `binary32`
+IEEE bits and set `evaluate_first` to `true` for every identical constant in
+the named function. They have no occurrence counter or callee restriction.
+
+| Function | IEEE bits | Value | Purpose |
+| --- | --- | --- | --- |
+| `MenuGeoramaTitleDraw__FRiPfi` | `0x3f333333` | 0.7f | Materializes the cursor scale before its negative rotation angle. |
+| `CalcTex__12CMenuGeoramaFv` | `0x00000000` | 0.0f | Materializes the zero minimum movement argument before the 4.0f interpolation divisor. |
+
+The title helper draws the active georama tab and its cursor. `CalcTex`
+positions the analysis progress indicator and list scroll bars before
+updating the selected map part. These flags preserve the retail argument
+register order without changing either function's calculations. With the
+current annotation and direct-literal consumer hooks, both native functions
+have zero differing instruction words and relocation fields. The canonical
+wrapper build followed by `fixup_sections.sh` and `check_objects.py` passes
+the whole unit: `0xC818` allocated bytes and 2,379 relocations.
+
 ## Outstanding guarded drafts
 
 `MenuGeoramaMessageMake` populates ten lines of the georama message window, positions two footer lines, and refreshes the window. Its current C++ draft differs in thirteen register uses in the second line loop: retail assigns the loop index to `s0` and the selected name to `s4`, while MWCC makes the opposite allocation. Separating the loop index, moving the name declaration, and changing declaration order did not reproduce retail's allocation.

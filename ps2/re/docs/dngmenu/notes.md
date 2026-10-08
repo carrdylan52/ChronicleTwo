@@ -11,11 +11,11 @@ functions; they do not assert retail enum names.
 
 ## Current assembly gaps
 
-`CDngFreeMap::Initialize`, `CheckIsViewMove`, `DrawRoot`, `DrawRoomOne`,
-`DrawTreeMap`, `DrawPlayer`, `Step`, `Draw`, and `LoadDngInfo` retain C++ drafts
+`CDngFreeMap::CheckIsViewMove`, `DrawRoot`, `DrawRoomOne`,
+`DrawTreeMap`, `Draw`, and `LoadDngInfo` retain C++ drafts
 under `NONMATCHING`; the matching build selects their retail `INCLUDE_ASM`
 gaps. The same applies to `CheckGeoramaMateria`, `DrawDngRoomInfo`,
-`DrawGeoramaMateria`, `MakeDngTreeMapJumpNo`, `CMenuTreeMap::InitEnd`,
+`DrawGeoramaMateria`, `CMenuTreeMap::InitEnd`,
 `MsgInit`, `Step`, and `Draw`, plus `DngTreeMapInit`. The `ClsMes::Init`
 body at the end of this unit is also an assembly gap. Match claims elsewhere
 in these notes apply only to the named unguarded C++ functions.
@@ -45,10 +45,7 @@ the scan. It then centres the requested room on `(256, 208)` and uses
 produces the retail saved-register and stack sequence; the C++ function
 passes full-image verification.
 
-`CDngFreeMap::Initialize` differs only in the load order of three constants
-passed to `view_rect.Set`. Splitting chained assignments to `next_pos` and
-`koma_path` removes its other instruction differences, but the guarded draft
-still differs by six bytes in `.text` when linked.
+`CDngFreeMap::Initialize` is native and exact with the accepted Satan's Fiddle binary32 286.0 (`0x438F0000`) evaluate-first selector. Separate assignments to `next_pos` and `koma_path` preserve the retail store order. The earlier six-byte constant-load ordering difference is resolved.
 
 `CMenuTreeMap::FadeInOutMenu` tests `draw_hidden` at offset 0x11A before
 checking the second fade step. Using that typed field instead of the old
@@ -362,6 +359,8 @@ so its placement needs further work during matching.
 
 `mgRect<float>::Set` stores its four arguments directly into the left, top,
 right and bottom fields. The explicit float specialization is a separate
+retail symbol from the generic template, emitted by a native specialization.
+
 retail symbol from the generic template. MWCC initially names its symbol
 `Set__9mgRect<f>Fffff`; the object postprocessor normalizes that name to
 retail's `Set__9mgRect_f_Fffff`. A candidate that leaves the assembly marker
@@ -378,3 +377,150 @@ that native function also matches the linked image.
 ## Native static initialization
 
 The light-circle and free-map number rectangles are zero-filled 0x10-byte data globals whose four-argument constructors call `mgRect<int>::Set`. The root placement rectangle uses the default `mgRect<float>` constructor; the floor-information rectangle uses four arguments. A native `mgCMemory MenuTreeMapStack` completes the same initialization order. Together these globals emit the 144-byte retail `__sinit_dngmenu_cpp` exactly and retain the original data/BSS section assignments after object postprocessing. This replaces the guarded handwritten initializer and assembly fallback.
+
+## Small floor-map functions: native assessment
+
+The m2c output confirms the existing drafts for `SetUserGlid`,
+`CalcGlidPutPos`, `SetTextureInfo`, `FadeIn`, `FadeOut`, `DeleteTexBlock`,
+and `Initialize`. Dependencies are already typed and documented:
+`CDngFreeMap` is 0x110 bytes, `GLID_INFO` grid coordinates are signed
+16-bit fields at offsets 2 and 4, and the texture block is signed 16-bit
+at 0xD0. Texture manager lookup takes a name and block number; deletion
+takes the sign-extended block. Fade duration and state are 32-bit integers
+with float alpha and step. Grid projection uses signed integer arithmetic
+before conversion to float; its null case leaves both output references
+unchanged. Initialization writes the Y scroll before X, X target before
+Y target, and current path pointer before path head.
+
+`mgRect<float>::Set` has four scalar float stores, confirmed by m2c. Its
+native specialization is assessed alongside the small functions because
+the assembly fallback coexists with an implicitly instantiated template
+body and creates an unnamed extra text section in the baseline object.
+
+### Canonical native result
+
+All eight assessed functions have zero byte and resolved-relocation
+differences: `Initialize`, `SetUserGlid`, `CalcGlidPutPos`, `SetTextureInfo`,
+`FadeIn`, `FadeOut`, `DeleteTexBlock`, and `mgRect<float>::Set`. The entire
+isolated wrapper object passes the canonical comparator (0x8C30 compared
+bytes and 1097 relocations). The assembly fallback for the float rectangle
+specialization creates an anonymous extra text section in the prior
+object, preventing text comparison; the native specialization resolves
+that section issue and the associated unresolved targets.
+
+Initialization requires the binary32 286.0 value (`0x438f0000`) in
+`Initialize__11CDngFreeMapFv` to evaluate first. This is an unscoped stable
+Satan's Fiddle identity. It restores the early f15 load without changing
+the rectangle arguments. Separate assignments preserve the target-scroll
+and path-pointer store order.
+
+MWCC emits retail's `slt` plus branch when the comparison operands are
+written `0 <= room_no` and `0 < frames`; writing the variable first emits
+the dedicated signed-zero branch. Grid X projection adds the negative
+row contribution (`x * 52 + y * -16`), preserving retail's negation
+before the shift. Texture deletion binds the manager before testing the
+block number so the manager address is available at the retail branch.
+
+## Scroll targeting and final overlay
+
+`SetNextRoomPos` projects the requested grid cell, converts X then Y to
+integer with the runtime conversion helper, and adds the clipping
+displacement to the current scroll. Dependencies and float reference
+outputs are already documented. `ResetDngMapPos` additionally walks every
+cell and projects cells on each outer grid boundary before projecting the
+selected room. These boundary results are unused, but the calls remain
+in retail. The boundary coordinates are the signed `glid_w` and `glid_h`
+fields of `CDngFloorManager`; cells have a 0x70-byte stride.
+`DrawLast` skips absent textures and event mode, then draws the 128 by
+128 source texture over the full screen using the menu primitive.
+
+`DrawDngName` uses an integer source rectangle and two by-value `PrimQuad`
+calls. Its shadow alpha converts one quarter of the integer opacity to
+integer through the runtime float conversion helper. `DrawBackPattern`
+converts opacity to float before testing against zero, and returns without
+drawing when event mode has negative opacity. Both routines use the
+existing documented `mgCDrawPrim` and `mgRect<int>` interfaces.
+
+`DngTreeMapDraw` reads `DngTreeMode` with a signed-halfword load, rather
+than the byte type in the guarded draft. Its source declaration is signed
+16-bit; the existing four-byte BSS reservation includes alignment padding.
+`CheckDngTreeMapFuncType` reads the documented signed-halfword opening
+mode and unsigned-byte sub-map flag. Both dispatch helpers have complete
+existing dependency interfaces.
+
+`SetNextRoomPos`, `ResetDngMapPos`, `DrawLast`, `DrawDngName`, and
+`DrawBackPattern` pass the canonical comparator as native bodies with the
+shared profile. The complete unit passes (0x8C10 bytes, 1101 relocations).
+`ResetDngMapPos` uses a two-element float array for the selected room's
+projection and int locals for sign-extended grid dimensions. Negative
+event opacity returns from `DrawBackPattern` immediately.
+
+`Step` converts each scroll delta to integer, calls the integer runtime
+`abs`, then converts that result to float for comparison with 1.0. The
+float comparison, rather than an integer comparison, is present in retail.
+Its selection-brightness global is a float. The fade and grid-scroll
+fields and runtime `abs(int)` interface are already typed and documented.
+
+`FadeInOutMenu` tests the signed-halfword field `draw_hidden` at offset 0x11A
+before checking the closing fade. The m2c type mapping incorrectly labels
+this read as the second message window's text offset; the actual retail
+load resolves the ambiguity. Both opening and closing
+menu state values are already documented by the base menu interface.
+`DrawGlid` draws a red outline with a by-value float rectangle: the lower
+edge is offset 20 down and 16 left, and the alpha converts to integer.
+
+`DrawGlidCheck` uses the four typed neighbour pointers, grid coordinate
+fields, room flags and visited byte already documented by `dngfloor`.
+The sub-floor and boss-floor flags are tested separately in retail before
+checking the visited byte. The returned bits encode adjoining room edges
+and directional visited-floor marks.
+
+`CheckDngTreeMapFuncType`, `DngTreeMapDraw`, `Step`, `DrawGlid`, and
+`FadeInOutMenu` also have zero canonical differences as native bodies.
+`DrawGlid` keeps named upper/right/lower coordinates live through the
+outline calls, reproducing retail's three preserved float registers.
+
+Viewport clipping retains its guarded draft: four instructions differ,
+consisting of two exchanged coordinate initializations and a subtraction
+scheduled into a branch delay slot. The earlier `DrawGlidCheck` candidate omitted a duplicate zero return assignment on the null path; master resolves this by initializing the mark mask after the null check, and that native implementation is retained in the merge.
+
+## Tree map drawing assessment
+
+`DrawTreeMap` retains the initial grid-table pointer across the highlight
+rendering calls and advances it by whole typed cells. The cell kind is
+loaded after `DrawGlidCheck`, and the blink flag is read as signed byte.
+The m2c output moves this load before the call; the actual disassembly
+establishes its position.
+The highlight starts at `(x - 8 - 30, -42 + 11 + y)` and contracts using
+`62 - 62 * rate` and `40 - 40 * rate`; these expressions retain the
+retail floating-point rounding sequence. The cell rectangle is constructed
+directly with `(0, 0, 52, 20)`, rather than constructed with zero edges
+and then reset. Existing grid, rectangle, primitive and drawing interfaces
+cover all dependencies.
+
+The improved `DrawTreeMap` candidate was saved outside the checkout; the original guarded draft is retained in source. The candidate's
+remaining canonical differences are the exchanged loop-index and mark
+register assignments (s19 versus s20); every other instruction and all
+resolved relocations agree. The private 52.0 evaluate-first trial did not
+improve this difference and no profile row is accepted.
+
+## Combined native merge checkpoint
+
+The merge preserves all eighteen locally validated promotions and master's additional native `DrawGlidCheck` and `DngTreeMapKey` implementations. Master's typed names `draw_hidden` and `battle_clear` are retained. These combined sources require integrated verification after the shared header and tool conflicts are resolved. No new calibration rows were introduced during resolution.
+
+## Native jump destination selection
+
+`MakeDngTreeMapJumpNo` selects special event destinations and otherwise uses
+the dungeon's first-floor name. For dungeon six, retail gets the current scene
+before looking up `d07f01`; retaining the scene in a typed local preserves this
+nested-call order. The combined dngmenu unit passes its canonical check
+with this native body:0x8BE0 bytes,1119 resolved relocations. No selector changes
+are needed.
+
+`DrawPlayer` projects into separate scalar coordinates, applies its four-pixel
+and thirty-pixel adjustments, then converts opacity to float. The later Color
+argument converts it back to integer, as retail does. A direct texture-rectangle
+constructor avoids an unnecessary default initialization. Together with the
+jump helper, the complete unit passes:0x8BD4 bytes,1129 relocations.
+No new floating selectors are required; initial 4/30 selector trials were
+ineffective and discarded.

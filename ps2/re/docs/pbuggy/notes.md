@@ -8,9 +8,10 @@ Buggy sub game (sub game 3 in `subgame`'s dispatchers `sgInitSubGame`, `sgLoopSu
 `sgDrawSubGameChara`, `sgDrawSubGameEffect`, `sgDrawSubGameCharaShadow`, `sgDrawSubGameSystem`).
 The player drives a buggy with a gun and bombs and defends a train.
 
-`CharaControl(CScene*, CPadControl*)` and `InitBomb(CScene*)` retain C++ drafts
-under `NONMATCHING`; the matching build uses their retail `INCLUDE_ASM` gaps.
-The other game functions in this unit are compiled from C++.
+`CharaControl(CScene*, CPadControl*)` retains a C++ draft under `NONMATCHING`.
+`InitBomb(CScene*)` uses the verified native body with the floating-point
+calibration described below. Other native promotions are retained separately
+from the construction fallback in `sgInitBuggy`.
 
 ## Types
 - The unit owns no classes (`class_units.tsv` has no `pbuggy` rows) and declares no structs.
@@ -63,3 +64,25 @@ An enum for these, if wanted, belongs in the .cpp since all users are file-local
 
 ## First game
 No counterpart in `/home/adubbz/development/chronicle`.
+
+## Bomb initialization calibration
+
+`InitBomb__FP6CScene` marks the bomb available, activates its scene object,
+positions the bomb and Starbull character, sets Starbull's rotation to
+`(0.0f, pi, 0.0f)`, and starts its motion.
+
+The verified MWCC 3.0 row selects `pbuggy.cpp`, `InitBomb__FP6CScene`,
+`binary32`, IEEE bits `0x40490fdb` (the float pi literal), and
+`evaluate_first: true`. It restores the retail order of the two differing
+instructions in rotation setup. The selector uses the mangled function and
+literal bits, with no occurrence indices or source edits.
+
+Validation used the full production mwccgap wrapper, normal section fixup,
+and the canonical object checker. All function bytes and resolved relocations
+match. The earlier unit comparison had two `PolVoice` alignment-tail issues
+(size 0x14 versus a 0x20 retail extent); the verified generic BSS padding now
+handles that tail without enlarging the class. Merged surrounding promotions
+need a fresh whole-unit comparison. The calibration's native body is preserved.
+
+See [MWCC matching notes](../../../../docs/MWCC.md) for the compiler-state
+rationale and verification workflow.

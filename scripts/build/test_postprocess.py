@@ -47,14 +47,31 @@ def test_dead_code_records():
 
 
 def test_dng_main_local_static():
-    symbols = [SimpleNamespace(name=name, st_size=size, st_name=0)
-               for name, size in (('debug_event_stack_393', 0x30), ('init_394', 1))]
+    symbols = [SimpleNamespace(name=name, st_size=size, st_name=0, st_shndx=1, bind=0)
+               for name, size in (('debug_event_stack_393', 0x30), ('init_912', 1),
+                                  ('InitDungeonMain__F13INIT_LOOP_ARG', 64))]
     elf = SimpleNamespace(symtab=SimpleNamespace(symbols=symbols),
+                          sections=[None, SimpleNamespace(sh_type=8)],
+                          relocations=[SimpleNamespace(sh_info=1, relocations=[
+                              SimpleNamespace(symbol_index=0), SimpleNamespace(symbol_index=1)])],
                           strtab=SimpleNamespace(add_symbol=lambda name: len(name)))
     rename_dng_main_local_static(elf, 'dng_main')
-    assert [(symbol.name, symbol.st_size) for symbol in symbols] == [
+    assert [(symbol.name, symbol.st_size) for symbol in symbols[:2]] == [
         ('debug_event_stack_1106', 0x30), ('init_1107', 1)]
-    assert [symbol.st_name for symbol in symbols] == [len(symbol.name) for symbol in symbols]
+    assert [symbol.st_name for symbol in symbols[:2]] == [len(symbol.name) for symbol in symbols[:2]]
+
+    # A second guard in the same owner must not be selected by suffix order.
+    symbols[0].name = 'debug_event_stack_393'
+    symbols[1].name = 'init_912'
+    symbols.append(SimpleNamespace(name='init_394', st_size=1, st_name=0,
+                                   st_shndx=1, bind=0))
+    elf.relocations[0].relocations.append(SimpleNamespace(symbol_index=3))
+    try:
+        rename_dng_main_local_static(elf, 'dng_main')
+    except ValueError:
+        pass
+    else:
+        raise AssertionError('ambiguous initializer guard selected by ordinal')
 
     retail_symbols = [SimpleNamespace(name='debug_event_stack_1106', st_size=0x30)]
     retail_elf = SimpleNamespace(symtab=SimpleNamespace(symbols=retail_symbols))

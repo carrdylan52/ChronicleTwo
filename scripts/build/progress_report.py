@@ -44,6 +44,8 @@ def print_summary(report):
     status = f"{green}OK{reset}" if image_matches() else f"{red}FAILED{reset}"
     print(f"{IMAGE}: {status} {gray}({perfect} perfect, {fuzzy} fuzzy, "
           f"{asm} asm, {unmatched} unmatched){reset}")
+    print(f"Outstanding functions: {measures['total_functions'] - perfect} "
+          f"({fuzzy} fuzzy + {asm} assembly + {unmatched} other)")
     print("\nCode, by byte")
     for label, color, share, count in (
         ("Perfect", green, perfect_share, perfect),

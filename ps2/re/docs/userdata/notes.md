@@ -300,3 +300,14 @@ arrays changes register allocation, so its offset-based loops remain.
 The local `divbyzerocheck on`/`reset` pair is redundant with the PS2
 compiler flag. Removing it leaves every section and symbol in the unit's
 object diff unchanged.
+
+## Stable floating-point compiler calibration
+
+SetRandamCircleStatus__FiRf uses binary32 evaluate-first policies for
+`0x00000000` (positive zero) and `0x3F800000` (1), scoped to userdata.cpp
+and that function. Selecting zero restores the kind-6 healing-parameter
+call order; selecting one as well preserves the kind-2 call. Identical
+values receive the same policy, using their exact IEEE bits. No source
+value, argument order or pointer workaround was introduced. Canonical
+wrapper plus section fixup validates the entire unit: 0xBC54 bytes and
+1076 relocations pass.

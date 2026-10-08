@@ -296,10 +296,6 @@ extern char            at_6834[];
 extern char            at_5726[];
 extern char            at_5736[];
 
-#pragma define_section dead ".dead" ".dead"
-__declspec(dead) static u_long PrimeLongDivision(u_long a, u_long b) {
-    return a / b;
-}
 
 // Code (.text)
 CEoh::CEoh() {

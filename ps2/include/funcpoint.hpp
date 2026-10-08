@@ -110,9 +110,6 @@ public:
  */
 class CObjAnime {
 public:
-    /** Selects construction without initializing animation links for list nodes. */
-    struct NoInit {};
-
     CFuncPoint   *func_point; /**< Animation point that describes the motion. */
     mgCFrame     *frame;      /**< Frame of the piece that is moved, or NULL to move the piece or part as a whole. */
     CMapPiece    *piece;      /**< Piece of the part that the point names, or NULL. */
@@ -139,9 +136,6 @@ public:
         back = 0;
         stop = 0;
     }
-
-    /** Constructs animation storage for initialization by its owning list node. */
-    CObjAnime(NoInit) {}
 
     /**
      *
@@ -186,41 +180,16 @@ public:
 
 STATIC_ASSERT(sizeof(CObjAnime) == 0x30);
 
-template <>
-class CList<CObjAnime>;
-
 /**
  *
- * Dispatch table used by a list node containing a map animation.
+ * Clears both links of an animation list node.
  *
- */
-struct CObjAnimeListVTable {
-    void *unk_0;
-    void *unk_4;
-    void (*initialize)(CList<CObjAnime> *);
-};
-
-/**
- *
- * Doubly linked list node containing one map animation.
- *
+ * @mangled Initialize__17CList_9CObjAnime_Fv
+ * @address 0x1696A0
+ * @size 0xC
  */
 template <>
-class CList<CObjAnime> {
-public:
-    CList<CObjAnime>    *next; /**< Next animation node, or NULL. */
-    CList<CObjAnime>    *prev; /**< Previous animation node, or NULL. */
-    u8                   unk_8[8];
-    CObjAnime            data;   /**< Animation owned by this node. */
-    CObjAnimeListVTable *vtable; /**< Dispatch table for list operations. */
-    u8                   unk_44[0xC];
-
-    /** Gives the animation held by this list node. */
-    CObjAnime *pGetData() { return &data; }
-
-    /** Clears both list links through the initialization dispatch entry. */
-    void Initialize() { vtable->initialize(this); }
-};
+void CList<CObjAnime>::Initialize();
 
 STATIC_ASSERT(sizeof(CList<CObjAnime>) == 0x50);
 

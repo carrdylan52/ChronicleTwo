@@ -1526,7 +1526,7 @@ s32 CNameRegiMenu::KeyStep() {
                     password[0x16] = 0;
                     strcpy((char *) key.bytes, Nameregi_Target.item->GetName(0));
                     key_text = key.bytes;
-                    password_valid = DecodePassword(password, (u8 *) decoded, 0x10, (u8 *) key_text, 0x14);
+                    password_valid = DecodePassword(password, (u8 *)decoded, 0x10, (u8 *)key_text, 0x14);
                     memcpy(header, decoded, 0xE);
 
                     if (password_valid == 0 || (header[0] & 0x1FF) < 0x136) {

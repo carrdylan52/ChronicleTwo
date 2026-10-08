@@ -112,6 +112,6 @@ int SVConvViewLoop();
  *
  * @mangled SaveDataConvertLoop__Fv
  * @address 0x325480
- * @size 0x800
+ * @size 0x7E0
  */
 int SaveDataConvertLoop();

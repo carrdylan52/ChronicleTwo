@@ -2,7 +2,7 @@
 
 The matching build uses retail gaps for the C++ drafts still guarded by
 `NONMATCHING`, including `CMenuChrCngMenu::LoadBGNPCModel`,
-`MenuCharaChangeInit`, `MenuCharaChangeDraw`, `CMenuCostumeSel::LoadMenuData`,
+`MenuCharaChangeInit`, `CMenuCostumeSel::LoadMenuData`,
 and `CMosBookMenu::KeyStep`. The current source also keeps gaps for
 `MenuMemoryDivide`, `EnterDataMenu`, `KeyChangeMain`,
 `MenuCharaChangeStarDraw`, `CMenuMosSelect::KeyStep`, `MenuMonsterLoadBG`,
@@ -35,18 +35,15 @@ returns the row. Both are active C++ functions. Their typed loops require compar
 the current object before a matching claim can be made; the unit also retains
 assembly gaps for the menu functions listed below.
 
-`MenuCharaChangeDraw` still differs at the `DrawMenuFillBox(20, 26, 280, 300, ...)`
-call: MWCC materializes the width and height constants in the reverse integer
-register order from retail, changing four instructions. Named float locals in
-either declaration order do not correct it and can change earlier instructions.
+`MenuCharaChangeDraw` matches as native C++ with the three stable
+floating-expression rows documented below. They restore the panel coordinates
+and dimensions to retail's argument materialization order.
 `CMenuMosSelect::CheckLoadBGMonster` has the same four-instruction reversal for
 the 16.0f and 1.0f arguments to `SetPosition`; binding the character pointer to
 a local also changes the adjacent zero argument setup. Writing the first
 argument as `float(16.0)` produces the retail register order, so this function
 now matches as C++, including the complete object and isolated linked image.
-The `MenuCharaChangeDraw` fallback remains: changing the float literal forms,
-using named locals, and inlining a wrapper preserve or increase its four-word
-difference at the 280.0f/300.0f argument setup.
+
 
 `CMenuChrCngMenu::LoadBGNPCModel` has a native placement-new draft whose
 compiled body differs in only two instructions: retail branches on the
@@ -230,7 +227,7 @@ array indexing and member calls use the declared C++ types.
 
 `SetMenuLoadItemNo` reads Max's or Monica's five `CHARA_DATA::equip` item numbers. For the ridepod, the displayed order is parts 3, 0, 1, an empty slot, and part 2. Typed access to `ROBO_DATA::parts` and `CGameDataUsed::item_no` preserves its exact PAL object code.
 
-`monster_progress_tbl` has 19 rows of five signed halfwords. Each row starts with a badge number and holds four monster forms. The search functions walk the row and form columns, while `get_monster_tbl_bajjilevel` filters a row by badge and level before gathering its next form. Typed indexing preserves the latter function's PAL code; two search loops currently differ in induction-variable code generation.
+`monster_progress_tbl` has 19 rows of five signed halfwords. Each row starts with a badge number and holds four monster forms. The search functions walk the row and form columns, while `get_monster_tbl_bajjilevel` filters a row by badge and level before gathering its next form. Typed indexing preserves the latter function's PAL code; both badge and form searches match PAL exactly. The badge search first selects a row pointer, then indexes its form column; the form search first offsets the table base by the selected column and then indexes successive five-halfword rows. These expression shapes retain the independent retail induction variables without byte-pointer arithmetic.
 
 `CMenuCostumeSel::UpdateCostumeList` reads the worn outfit IDs from equipment slots 2, 4, and 3. These are the `item_no` fields of `CHARA_DATA::equip`; typed member access matches PAL. `MenuNPCLoadCheck` writes a temporary texture manager name suffix while loading the party model, then clears its first character.
 
@@ -238,3 +235,39 @@ array indexing and member calls use the declared C++ types.
 `mgCFrameAttr::draw` field. The two anonymous offset structs previously used
 for this access are the existing `mgCFrame` and `mgCFrameAttr` types. Using
 those types and the literal name matches the 0x34-byte PAL function exactly.
+
+## Stable party-panel and monster-position argument order
+
+These `menuchr.cpp` rows in `scripts/build/satansfiddle.json` select
+`binary32` IEEE bits with `evaluate_first: true` for every identical literal
+in the named function. They use neither occurrence counters nor callee
+restrictions.
+
+| Function | IEEE bits | Value | Purpose |
+| --- | --- | --- | --- |
+| `MenuCharaChangeDraw__Fv` | `0x41a00000` | 20.0f | Keeps the panel's horizontal origin ahead of its remaining coordinates. |
+| `MenuCharaChangeDraw__Fv` | `0x41d00000` | 26.0f | Keeps the second panel's vertical origin ahead of its dimensions. |
+| `MenuCharaChangeDraw__Fv` | `0x43960000` | 300.0f | Materializes the second panel's height before its 280.0f width. |
+| `CheckLoadBGMonster__14CMenuMosSelectFv` | `0x3f800000` | 1.0f | Materializes the monster's vertical position before its 16.0f horizontal position. |
+
+All three panel rows are needed together: promoting only 300.0f changes the
+first `DrawMenuFillBox` call and moves the second panel's dimensions ahead
+of its origin. The complete set preserves both debug-panel calls. The
+monster row preserves `SetPosition(16.0f, 1.0f, 0.0f)` after background model
+loading and before attaching the monster to its menu form.
+
+With the current annotation and direct-literal consumer hooks, the native
+1,968-byte `MenuCharaChangeDraw` and 1,036-byte `CheckLoadBGMonster` bodies
+have zero differing instruction words and relocation fields. Canonical
+wrapper compilation, `fixup_sections.sh`, and `check_objects.py` check
+`0x11D00` allocated unit bytes and 3,723 relocations. Other existing unit
+findings remain; these rows preserve the matched monster-progress lookup
+functions and introduce no additional failing function.
+
+## Monster-book debug argument order
+
+Three unscoped binary32 selectors for `MonsterBookDraw__Fv` mark `40.0f` (`0x42200000`), `200.0f` (`0x43480000`), and `24.0f` (`0x41c00000`) as evaluated first. The debug rectangle materializes those values before `20.0f`, matching retail. The complete unit passes canonical verification: `0x11CF8` allocated bytes and 3,640 relocations. The unused long-division primer is replaced by translation-unit GPR helper mask `0x30`, FPR mask `0`, with identical allocated bytes and relocation identities.
+
+## Native monster-box draw
+
+`MenuMonsterBoxDraw` uses its existing typed native draft. The `sceVif1Packet*` null argument selects the texture reload overload. Its debug-label literal preserves the retail Shift-JIS bytes inline; the unused `at_3762` declaration and separate assembly data include are removed. Canonical verification passes the complete unit: `0x11CF4` allocated bytes and 3,651 relocations, with the accepted monster-book selectors and helper masks.

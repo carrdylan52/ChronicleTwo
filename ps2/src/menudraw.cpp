@@ -594,10 +594,6 @@ void InitInitBuildUpInfoEffectPos();
 
 #include "common.h"
 
-#pragma define_section dead ".dead" ".dead"
-__declspec(dead) static u_long PrimeLongDivision(u_long a, u_long b) {
-    return a / b;
-}
 
 // Code (.text)
 void AttachMessageForm() {
@@ -1781,7 +1777,7 @@ void CommonBoardDraw(float *pos, int &tex_block) {
     prim->Begin(MG_PRIM_SPRITE);
     prim->Texture(Tex_CommonBoard);
     prim->Color(0x80, 0x80, 0x80, 0x80);
-    
+
     for (pass = 0; pass < 4; pass++) {
         MENUFORM_MAKEBRD_LINE *line = BoardLine(pass);
         float line_x;
@@ -2220,16 +2216,16 @@ void MenuMainFrameImgDraw(int &loaded_tex_no) {
     int alpha = (int)(128.0f * (MenuMainFrame_Display_Mode_Cnt / 10.0f));
     dest = MenuMainIMG_PutRect;
     switch (MenuMainFrame_Display_Mode) {
-    case 0:
-    case 1:
-        if (MenuMainFrame_Display_Mode == 1) {
-            alpha = 0x80;
-        }
-        break;
-    default:
-        dest.left = (int)(MenuMainFrame_Lenze_Pos[0] - 194.0f);
-        dest.top = (int)(MenuMainFrame_Lenze_Pos[1] - 184.61539f);
-        break;
+        case 0:
+        case 1:
+            if (MenuMainFrame_Display_Mode == 1) {
+                alpha = 0x80;
+            }
+            break;
+        default:
+            dest.left = (int) (MenuMainFrame_Lenze_Pos[0] - 194.0f);
+            dest.top = (int) (MenuMainFrame_Lenze_Pos[1] - 184.61539f);
+            break;
     }
     mgRect<int> screen(0, 0, mgScreenWidth, mgScreenHeight);
     DrawMenuMainFrmImg(loaded_tex_no, screen, source, 0x80, 0x80, 0x80, alpha, 0);

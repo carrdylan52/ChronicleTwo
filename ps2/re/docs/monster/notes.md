@@ -1,57 +1,10 @@
 # monster: reverse-engineering notes
 
-`HitEffectSet` is active matching C++; `GuardEffectSet` retains a C++ draft
-under `NONMATCHING` and uses retail `INCLUDE_ASM` in the matching build.
-`CMonsterMan::ThinkHost` also has an active C++ definition.
-
-## Monster hit and guard effects
-
-Both functions return immediately when the scene has no active camera. They
-copy the supplied point, normalize the vector from it toward the camera,
-and offset the effect origin by 20 units along that vector. Their direction
-vectors are quadword copies of `at_2031` and `at_2079__2`, respectively.
-The hit pool has 0x60-byte `CHitEffectImage` entries, and the flash pool has
-0x40-byte `CFlushEffect` entries. Each acquisition advances the corresponding
-index, wrapping to zero when it reaches the pool count.
-
-`HitEffectSet` emits a kind-0 burst with spread/speed/power/gravity
-30/60/0.2/0.1, life 30 and count 32, then sets its texture rectangle to
-(32,0,32,32). It acquires a flash independently: flag bit 2 selects
-fade speed/size/growth 8/16/2, otherwise 10/15/1.5. Both variants have alpha
-160 and a 128-by-128 texture region at (128,128). Finally, a second acquired
-hit entry receives a kind-2 burst with 60/45/0/0, life 15 and count 16.
-Both hit bursts and the flash are skipped when their acquired entries are null.
-
-The first hit call matches when the local `spread` declaration precedes
-`speed`; reversing those declarations changes four constant-load/move
-instructions at +0xFC,+0x110,+0x118,+0x120. The matching function emits 0x334
-bytes of instructions within retail's padded 0x340-byte extent. The production
-unit's linked-image check passes with this function active and guard assembly
-retained.
-
-`GuardEffectSet` calls the acquired hit entry without a null check, using
-50/30/0/0.1, life 30 and count 32, and sets kind 1. Its optional flash uses
-fade speed/size/growth 16/10/3, alpha 160, and a 64-by-64 texture region at
-(64,192). Nonzero `play_script` starts `at_2100` and passes the shifted origin
-to script vector 1.
-
-The current direct-literal guard draft emits 0x21C bytes within a padded
-0x220-byte extent and differs in 8/136 words, all float argument setup:
-+0xF0,+0xF4,+0xF8,+0x100,+0x108,+0x110,+0x118,+0x11C. Retail starts by
-materializing gravity in v0 and spread in v1, then sets f15 and f14 before
-finishing f12/f13. The draft starts spread/speed in v0/v1, then finishes
-gravity/power. Control flow and all subsequent instructions match.
-Direct literals, an outer gravity assignment, a gravity reference, a nested
-call scope, entry-scope parameter initialization, and the single spread local
-used by the actionchara sibling all give this same schedule. Earlier
-five-local declaration permutations also failed isolated promotion; a
-whole-draft zero score from those experiments did not establish an isolated
-production match.
-
-Guard remains parked until a natural MWCC expression form reproduces the
-specific constant setup, or centrally integrated header/compiler work changes
-that lowering. No shared header or compiler-note edit is required by the hit
-match.
+`HitEffectSet` and `GuardEffectSet` use their verified native C++ bodies with
+four stable floating-point compiler selectors. Their pre-calibration scheduling
+differences and selector identities are documented below. `CMonsterMan::ThinkHost`
+also has an active C++ definition whose matching status depends on the integrated
+object comparison.
 
 No first-game counterpart: Dark Cloud has no `CActiveMonster`, `CMonsterMan` or `CMonsterLocateInfo`.
 `CActiveMonster` derives from `CActionChara` (actionchara.hpp, size 0x1030).
@@ -207,3 +160,46 @@ LoadReferMonsterFile int, SearchArea float, LoadMonsterLanguage void.
 The local `divbyzerocheck on`/`reset` pair is redundant with the PS2
 compiler flag. Removing it leaves every section and symbol in this unit's
 object diff unchanged.
+
+## Effect-call behavior and pre-calibration differences
+
+`HitEffectSet` offsets the hit position 20 units towards the camera, cycles
+through the hit-image and flash pools, chooses the flash settings from
+flag bit 2 and starts a second image of kind 2. `GuardEffectSet` performs
+the same camera offset, creates an image of kind 1 and optionally starts
+the guard effect script. The guard image dereference has no null guard in
+retail. Pool wrapping, image fields and flash fields match.
+
+Before consumer calibration, the isolated native `HitEffectSet` differed only at the first
+`SethitEffect` call: retail materializes spread 30 into f12 before speed
+60 into f13; the compiler reversed those two loads.
+`GuardEffectSet` materializes gravity 0.1, spread 50, power 0 and speed 30
+in retail, while the pre-calibration compiler ordered spread, speed, gravity,
+power. These are float evaluation/argument-order differences; no
+source-side literal or argument value change is justified.
+
+## Stable floating-point compiler policies
+
+The native effect routines now match with Satan's Fiddle consumer-level
+binary32 policies. HitEffectSet selects spread 30 (`0x41F00000`) and
+power 0.2 (`0x3E4CCCCD`) as evaluate-first. GuardEffectSet selects
+power 0 (`0x00000000`) and gravity 0.1 (`0x3DCCCCCD`) instead.
+`./decompile.sh GuardEffectSet__FP6CScenePfi` confirms the vector offset,
+image pool selection and effect parameters; the source body is unchanged.
+
+Local floats, including GuardEffectSet's const reference to its zero-power
+local, propagate into fresh floating argument nodes. The initializer-only
+hook could not preserve their ordering bytes. The argument consumer now
+uses their original type and IEEE bits, rather than source order or arena
+residue. Both effects have zero byte and relocation differences, and
+canonical wrapper plus section fixup validates the entire monster unit:
+0x16818 bytes and 571 relocations.
+
+## Integer helper history
+
+The non-retail `static u_long PrimeLongDivision(u_long a, u_long b)` function
+performed unsigned long division in a discarded `.dead` section. It served only
+to alter the compiler's helper-call argument-register history and is removed.
+Any required integer helper history must be represented by a verified Satan's
+Fiddle translation-unit mask. Its effect on the merged unit's new native bodies
+requires canonical validation after tool and header reconciliation.

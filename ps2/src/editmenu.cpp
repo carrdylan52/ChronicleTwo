@@ -472,10 +472,6 @@ int                           MenuGeoramaPushKey(int keys, int pushed);
 int                           MenuGeoramaBasePush(CMenuGeorama *menu, int buttons_held, int buttons_pressed);
 int                           MenuGeoramaPlacePush(CMenuGeorama *menu, int buttons_held, int buttons_pressed);
 
-#pragma define_section dead ".dead" ".dead"
-__declspec(dead) static u_long PrimeLongDivision(u_long a, u_long b) {
-    return a / b;
-}
 
 // Code (.text)
 void GetPenkiColor(int no, float *out_rgb) {

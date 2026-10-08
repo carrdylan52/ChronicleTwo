@@ -90,24 +90,25 @@ void CFireRaster::Step(void) {
     FireRasterParticle *free_slot = 0;
     int i = 0;
     FireRasterParticle *particle_slot;
-    int offset = 0;
-    int phase = 0;
-    for (; i < 20; i++, offset += sizeof(FireRasterParticle), phase += 2) {
-        particle_slot = (FireRasterParticle *)((u8 *)this + offset + 0x70);
+    int                 offset = 0;
+
+    for (; i < 20; offset++, i++) {
+        particle_slot = &particle[offset];
+
         if (particle_slot->life <= 0) {
             free_slot = particle_slot;
         } else if (particle_slot->time >= particle_slot->life) {
             memset(particle_slot, 0, sizeof(FireRasterParticle));
         } else {
             particle_slot->position[1] += 1.2f;
-            particle_slot->position[0] = 10.0f * sinf(3.1415927f * ((float)(particle_slot->time + phase) / 10.0f));
-            particle_slot->position[2] = 10.0f * sinf(3.1415927f * ((float)(particle_slot->time + phase + 10) / 8.0f));
+            particle_slot->position[0] = 10.0f * sinf(3.1415927f * ((float) (particle_slot->time + i * 2) / 10.0f));
+            particle_slot->position[2] = 10.0f * sinf(3.1415927f * ((float) (particle_slot->time + i * 2 + 10) / 8.0f));
             particle_slot->size -= 0.1f;
             particle_slot->time++;
         }
     }
     if (free_slot != 0) {
-        mgZeroVectorW((float *)free_slot);
+        mgZeroVectorW(free_slot->position);
         free_slot->size = 13.0f;
         free_slot->time = rand() % 20;
         free_slot->life = 30;

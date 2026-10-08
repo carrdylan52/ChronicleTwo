@@ -79,11 +79,6 @@ extern char                    at_1348[];
 extern char                    at_2529[];
 static MapJumpMapInfo          MainMapInfo;
 
-#pragma define_section dead ".dead" ".dead"
-__declspec(dead) static u_long PrimeLongDivision(u_long a, u_long b) {
-    return a / b;
-}
-
 // Code (.text)
 #ifdef NONMATCHING
 void CStartupEpisodeTitle::DrawEpisode(int mes_tex_block, int frame_tex_block) {

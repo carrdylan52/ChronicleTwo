@@ -174,3 +174,7 @@ register assignment. The complete function matches retail with the two initializ
 ## Compiler flag
 The local `divbyzerocheck on/reset` pair around `CMenuQuestView` is redundant with the
 unit's global flag: removing it produces an identical complete `menushop.cpp.o`.
+
+## Shop-list script handler
+
+`_SHOP_ANALYZE` ignores a script row unless its first integer identifies the currently selected shop. Matching rows set the remaining argument count as `Now_ShopListNum`, select robot-ABS selling for shop 23 or 28, medal selling for shop 32, and Donny selling for shop 33, then copy each following script integer into the typed item-number array. Ordinary shops retain the existing sell mode and use the local remaining argument count. One function-scoped item index is shared by the mutually exclusive copy loops; this preserves the PAL saved-register allocation in all four branches. The native 432-byte function now passes the object checker with zero instruction or relocation differences.

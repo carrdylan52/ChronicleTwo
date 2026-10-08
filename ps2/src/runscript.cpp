@@ -352,10 +352,6 @@ void CRunScript::skip() {
     skip_wait = 1;
     resume();
 }
-#pragma define_section dead ".dead" ".dead"
-__declspec(dead) static u_long PrimeLongDivision(u_long a, u_long b) {
-    return a / b;
-}
 void CRunScript::exe(vmcode_t *entry) {
     RS_STACKDATA  value;
     RS_STACKDATA  rhs;

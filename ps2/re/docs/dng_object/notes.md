@@ -135,13 +135,58 @@ draw loops' byte-offset addresses with `&rocket[i]` and `&laser[i]` changes
 MWCC's address calculation (92.58% for both), so those loops retain the exact
 byte-offset form pending a matching typed expression.
 
-`CMachineGun::Step` has a guarded C++ draft that scores 97.03% before typed-array changes. The
-remaining instruction differences are mostly the scheduling of literal float
+`CMachineGun::Step` scored 97.03% before consumer-hook calibration and typed-array changes. The
+pre-calibration instruction differences were mostly the scheduling of literal float
 arguments at the `SethitEffect` call: retail puts the zero for `power` into
 `fa2` before loading the speed and gravity constants, while MWCC schedules
 those constants earlier from the present C++ expression. Reordering the local
 float declarations does not affect it; inlining all four literals lowers the
 score to 91.43%. Typed `pos[i]` and `velocity[i]` lower it to 93.36% and were
-reverted. Inlining only the zero power argument leaves the score unchanged.
-The retail build uses `INCLUDE_ASM` until the argument schedule and raw slot
-alias can be replaced with an exact C++ form.
+reverted. Its existing slot alias remains; typed-array address trials still change register allocation.
+
+## Focused machine-gun effect checkpoint
+
+The pre-merge `CMachineGun::Step` candidate had the correct 0x2F0-byte
+instruction shape; its pre-calibration differences were the literal
+argument order at `SethitEffect` around +0x20C..+0x234. Retail places
+power 0 into f14 before speed 30 into f13 and gravity 0.1 into f15.
+The pre-calibration compiler materialized speed and gravity before power.
+The collision queries, shot expiry and pooled image selection retain
+the established behavior. Existing typed shot-array trials are
+documented above; no new unmatched replacement is retained.
+
+## Canonical compiler calibration checkpoint
+
+The exact CMake dng_object invocation, including `-MD`, the wrapper's
+`-lang c++`, and `fixup_sections.sh`, reproduces the integrated object byte
+for byte. Repeated private CMachineGun initializer policies were deterministic
+and identical; the extra CLaserGun difference came from compiler expression
+state rather than selector leakage or invocation flags.
+
+`./decompile.sh Step__9CLaserGunFv` confirms the effect arguments
+50/30/0/0.1. LLDB at the MWCC 3.0 argument reader 0x4A4AE3 found each
+propagated local remains a kind-0x33 floating node with its original
+IEEE value and type. Initializer-only overrides did not reach their fresh
+evaluation bytes. With consumer-level binary32 evaluate-first selectors
+for 0 and 0.1 (`0x00000000`, `0x3DCCCCCD`), CLaserGun Step is exact in
+canonical wrapper/fixup checks. A separate
+consumer-level selector for CMachineGun's zero argument (`0x00000000`)
+also makes its complete 0x2F0-byte function exact. Giving the spread
+constant an evaluate-first policy changes scheduling again; it remains
+false. The pre-merge calibration checkpoint passed the entire unit: 0x4B90 bytes and 654 relocations. The subsequent compliance guard described below supersedes its native status.
+
+## Merge checkpoint and compliance guard
+
+The newer master source retains `CMachineGun::Step` behind `NONMATCHING`
+because its draft still uses a raw slot alias. The compiler calibration
+above records the exact instruction and relocation result of that earlier
+body; it does not override the current assembly fallback or qualify that
+guarded draft as native decompilation. `CLaserGun::Step` remains native.
+Typed shot-array work is still required before restoring the machine-gun
+body as accepted source. The merged unit requires fresh integrated checks.
+
+The former binary32 zero evaluate-first calibration for `CMachineGun::Step`
+is retained as analysis evidence, but its active profile row is removed while
+the source stays guarded for raw field-offset aliases. Strict selector checking
+must not accept a calibration that no native function consumes. Restore a row
+only after the typed native body reaches zero byte and relocation differences.

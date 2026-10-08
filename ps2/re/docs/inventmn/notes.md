@@ -200,8 +200,8 @@ for `__construct_new_array` in PhotoNetaEnter. Size 0xC.
 - `GradationSet` reads two grade-part names from `invent_grade_fff`. Typed
   indexing converts the byte-offset loop to an element index, changing a
   shift and the loop increment; the typed version currently scores 99.096%.
-- `UpdataNetaMemoStr` indexes `PIC_NAME_INFO` records directly; its remaining
-  mismatch is the four-argument native `neta_sort` call sequence noted above.
+- `UpdataNetaMemoStr` indexes `PIC_NAME_INFO` records directly and matches
+  retail with the file-local `neta_sort` definition described below.
 - `CInventUserData::ResetAddress` unrolls eight photo pointers per iteration. A
   typed `photo_work` row pointer preserves the loop shape, but MWCC hoists its base
   calculation and chooses different constants for the unrolled addresses. Direct
@@ -216,4 +216,16 @@ for `__construct_new_array` in PhotoNetaEnter. Size 0xC.
 - LevelCheck / CheckMakeItem / LoadAnalyzeInventFile / GetPhotoNameStr look bool-returning in
   Ghidra; declared int.
 
-The remaining difference in `CMenuInvent::UpdataNetaMemoStr` begins at the second `neta_sort` call, offset 0x114. Retail leaves the fourth argument register `a3` holding the stack array address from the first call and uses the call delay slot for `a1 = standard_count`. MWCC recompilation of the typed C++ call instead rebuilds `a3` in that delay slot, placing the call one instruction later; the remaining reported differences are this shift. A named `int *keys` alias for the array increased the mismatch. The retail call depends on the callee preserving an ABI caller-saved argument register, which the ordinary four-argument C++ call does not express.
+## Invention memo sorting linkage
+
+`neta_sort` sorts one half-open range of the discovered idea list, exchanging each entry's name value, sort key and signed halfword idea identifier together. Both supported mode values currently use the same ascending key comparison, and the return flag records whether any pair was swapped. The helper is file-local and defined before `CMenuInvent::UpdataNetaMemoStr`. This linkage lets MWCC retain the unchanged sort-key pointer in the caller-saved argument register between the two range sorts. `UpdataNetaMemoStr` gathers known ideas, separates identifiers below 1000 from the other identifiers, repeatedly sorts both ranges until stable, and clears the unused list tail. Its native 404-byte body now has zero differing instruction or relocation fields in the PAL checker; no data or caller interfaces change.
+
+## Debug inventory floating argument calibration
+
+`MenuInventDebugDraw__Fv` uses stable binary32 selectors for 300.0f
+(`0x43960000`, evaluate first), 270.0f (`0x43870000`, evaluate last), and
+80.0f (`0x42a00000`, evaluate first). These preserve retail's materialization
+order for the debug panel rectangle without occurrence counters. With the
+artificial division primer removed and helper masks GPR `0x30` / FPR `0`, the
+complete unit passes canonical bytes and resolved relocations: `0xFF38` checked
+bytes and 2,786 relocations.

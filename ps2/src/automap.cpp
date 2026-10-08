@@ -76,11 +76,6 @@ struct ROOM_LINK_POINT {
     int y; /**< Vertical grid position. */
 };
 
-#pragma define_section dead ".dead" ".dead"
-__declspec(dead) static u_long PrimeLongDivision(u_long a, u_long b) {
-    return a / b;
-}
-
 // Code (.text)
 void CMiniMapSymbol::SetMapInfo(CMap *new_map, CAutoMapParts *new_auto_map_parts, int width, int height,
                                 float cell_width, float cell_depth) {

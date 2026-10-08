@@ -90,3 +90,9 @@ the return cast; both functions remain exact in objdiff.
 `mgCMemory::stGetTop()` already returns the first unused stack quadword.
 `InitSuccess` passes it directly to `FishStack.stSetBuffer`, eliminating the
 `u_char*` intermediate and its two pointer casts while retaining exact code.
+
+### GetUkiWaitTime — exact native width argument evaluation
+
+With the artificial PrimeLongDivision helper removed and an explicit translation-unit helper mask GPR 0x30/FPR 0, the unit originally retained one mismatch at retail 0x003080C2. The width call `GetRandamNumber(1.0f, 1.3f, float(0.6))` requires the stable Satan’s Fiddle binary32 selector 0x3fa66666 to evaluate first. Retail retains the 1.3f bits in $a0 while preparing 0.6f, then transfers all three arguments to the FPRs; the default ordering reused $v0 and transferred the width argument too early. No source register tricks or function body changes are required. The isolated unit passes all 0x85C0 allocated bytes and 1,778 resolved relocations.
+
+The primer migration separately preserves all 279 allocated section contents/sizes/alignments and all 1,778 relocation identities relative to its baseline, including the former width-call mismatch.

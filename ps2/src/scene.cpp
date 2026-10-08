@@ -39,11 +39,6 @@ extern char noname_1381[8];
 extern char noname_1692[8];
 extern char noname_1709[8];
 
-#pragma define_section dead ".dead" ".dead"
-__declspec(dead) static u_long PrimeLongDivision(u_long a, u_long b) {
-    return a / b;
-}
-
 // Code (.text)
 float f_rand(float min_value, float max_value) {
     return min_value + (((max_value - min_value) * (float) rand()) / 2147483648.0f);

@@ -1,10 +1,9 @@
 # event_func: reverse-engineering notes
 
 `_SET_CROSSFADE` captures the current screen, converts script frames from 60 Hz to 50 Hz
-with a minimum of one frame, then starts an incoming, outgoing, or ordinary crossfade. Its
-C++ draft matches in the all-drafts object, but an isolated promotion still schedules the
-incoming/outgoing branch differently and grows the function from 0x158 to 0x15C. The matching
-build uses the retail assembly gap while the draft remains under `NONMATCHING`.
+with a minimum of one frame, then starts an incoming, outgoing, or ordinary crossfade.
+The native function matches with the callee-scoped floating argument calibration
+documented below.
 
 Several decompiled functions in this unit compile to exact retail instruction matches. `CEoh`'s five
 typed pointer names occupy the same union word; its constructor clears each alias in succession.
@@ -220,3 +219,37 @@ C++ drafts under `NONMATCHING`. The default build uses retail assembly for
 these functions until their C++ object scores reach zero. The copy constructor
 gap is required while `_COPY_MONS2SCNCHR` uses retail assembly, since no active
 C++ use otherwise causes MWCC to emit that constructor.
+
+## Crossfade floating argument calibration
+
+`_SET_CROSSFADE__FP12RS_STACKDATAi` captures the screen, converts script frame
+counts from 60 Hz to 50 Hz with a minimum of one, and calls `CrossFadeIn` or
+`CrossFadeOut` for three arguments, otherwise `CrossFade`. Each native call
+passes `1.0f`, but retail evaluates that constant early only for
+`CrossFadeOut__10CFadeInOutFiif`. The `CrossFadeIn__10CFadeInOutFiif` and
+`CrossFade__10CFadeInOutFif` calls retain the false policy.
+
+The verified row selects `event_func.cpp`,
+`_SET_CROSSFADE__FP12RS_STACKDATAi`, `binary32`, IEEE bits `0x3f800000`,
+`callee: CrossFadeOut__10CFadeInOutFiif`, and `evaluate_first: true`.
+A value-only true row changes the sibling calls' register allocation; false
+for all three emits a function four bytes too long. The stable mangled callee
+distinguishes the argument at consumption without occurrence indices. Live
+compiler tracing found direct floating constant nodes at all three calls,
+including a freshly allocated node with an uninitialized evaluate-first byte.
+
+The production mwccgap wrapper, section fixup, and canonical object checker
+prove the `0x158`-byte function's exact bytes and resolved relocations. The unit
+returns to its original `0x22cc4` bytes, 6888 relocations, and 16 existing issues,
+with no crossfade failure. Those remaining issues include event object-copy
+functions and unrelated data/layout mismatches. This is a function match,
+not a whole-unit pass. See [MWCC notes](../../../../docs/MWCC.md).
+
+## LoadMovie floating argument calibration
+
+`LoadMovie__FPcP9mgCMemoryb` uses a stable binary32 `0x44000000` (512.0f)
+`evaluate_first: true` selector for caption centering. This prepares the
+horizontal extent before the zero origin in `CalcAutoPosSet`; caption behavior
+is unchanged. With the artificial division primer removed and translation-unit
+helper masks GPR `0x30` / FPR `0`, the complete unit passes canonical instruction
+bytes and resolved relocations: `0x22C7C` checked bytes and 6,920 relocations.

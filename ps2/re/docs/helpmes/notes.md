@@ -1,5 +1,14 @@
 # helpmes: reverse-engineering notes
 
+## Native storage and padding verification
+
+`HelpMes` has its declared 0x2958-byte `ClsMes` size. Its section piece also
+contains four unreferenced padding bytes up to the separately referenced
+`D_01F628BC` address. An explicit `D_01F628B8` object duplicates that padding
+and creates an extra section piece. Removing it and preserving the short
+alignment tail through the data postprocessor restores the unit's complete
+canonical match: 0x828 initialized bytes and 215 resolved relocations.
+
 No class is owned by this unit (`class_units.tsv` has none). The unit drives one `ClsMes`
 (`nd_meswin.hpp`) as a help/error message window.
 

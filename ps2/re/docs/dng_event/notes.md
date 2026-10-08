@@ -124,11 +124,28 @@ TREASURE_BOX structs and trap circles as MAP_TRAP_CIRCLE, a different layout.
 ## SearchMapFlatPosition draft
 `SearchMapFlatPosition` selects a placed map part that the automap has not hidden, samples vertical segments around its center, and accepts a floor polygon only when a short follow-up collision succeeds. It tries sixteen segments per part and reports failure after the retry count expires. Its guarded C++ draft differs in 33 of 260 instructions, primarily around the initial map and parts-table null checks and local stack slots. Splitting the initial map assignment from its null check changed the stack frame from 0x2BE0 to 0x2BD0 and increased the instruction differences, so the combined expression remains.
 
-## AutoSetTreasureBox draft
-The guarded no-argument draft reads the stage treasure table into a scratch memory region, places eight random boxes beyond 320 units from the event point, converts mimic monster entries into boxes, rolls up to three random circles, and places the geostone, random stones and key box where permitted. It compiles and differs from retail; the assembly fallback remains active.
+## AutoSetTreasureBox
+
+The no-argument native body reads the stage treasure table into scratch memory,
+places eight random boxes beyond 320 units from the event point, converts mimic
+monster entries into boxes, rolls up to three random circles, and places the
+geostone, random stones and key box where permitted. Its earlier rotation
+scheduling difference is resolved by the stable compiler selector below.
 
 ## Typed event slots
 
 `MessageTaskManager::Print` scans the six `task` slots for a free `message` pointer. `CRandomCircle` stores three vector positions and three active flags before its shared model; its drawing, hit checks, position access, and setup can use these typed fields directly. `CTreasureBoxManager` stores 24 `CTreasureBox` entries in `box`; placement, area checks, drawing, collision, mimic counting, and nearest-box checks index this array. `MimicCount` counts entries with `state == 1` and flag bit `0x100`. These typed accesses reproduce the retail code without byte offsets.
 
 `CTreasureBoxManager::SetLargeModel` writes `tex_block` and the shared model, then gives every box its lid and frame pointers. Direct `box[i]` indexing changed MWCC unrolling and scored 84.46%; a typed `CTreasureBox*` cursor advanced by one box preserves the retail loop and scores 100%.
+
+## Compiler helper history and treasure-box rotation
+
+The unused dead-section long-division primer is replaced by the per-unit
+Satan's Fiddle GPR helper mask 0x30 and FPR helper mask 0. Private normal
+wrapper/fixup checks preserve every allocated-section byte and resolved
+relocation from the primer baseline.
+
+`AutoSetTreasureBox()` evaluates the key-box rotation zero before the nested
+`GetKeyDoorIndex` call, retaining it in f20 for `PutTreasureBox`. The stable
+binary32 zero evaluate-first selector scoped to that latter callee reproduces
+the retail order. The complete unit checks exactly:0x5440 bytes,869 relocations.

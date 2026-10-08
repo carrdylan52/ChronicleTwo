@@ -1,4 +1,4 @@
-# The toolchain image, in three stages:
+# The toolchain image, with a separate compiler-wrapper build stage:
 #   docker build -t chronicletwo_dev --target dev .      # toolchain + diffing tools
 #   docker build -t chronicletwo_build --target build .  # one-shot build of the tree
 # build.sh, run.sh and dev.sh use the first, with the tree mounted; the second
@@ -12,6 +12,25 @@
 #
 # Debian for glibc (the toolchain binaries are glibc-linked), trixie because
 # binutils-mips-ps2-decompals needs glibc 2.38 and bookworm ships 2.36.
+# Build the pinned compiler wrapper separately from its runtime dependencies.
+FROM --platform=linux/amd64 debian:trixie-slim AS satansfiddle-build
+ARG SATANSFIDDLE_REV=365415fa2fd7bf69e899044b704b571a64ed4e6c
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends \
+        ca-certificates git cargo build-essential liblldb-19-dev \
+    && rm -rf /var/lib/apt/lists/*
+ENV LLDB_INCLUDE=/usr/lib/llvm-19/include
+ENV LLDB_LIB_DIR=/usr/lib/llvm-19/lib
+WORKDIR /satansfiddle
+RUN git init \
+    && git remote add origin https://github.com/Adubbz/SatansFiddle.git \
+    && git fetch --depth 1 origin ${SATANSFIDDLE_REV} \
+    && git checkout --detach FETCH_HEAD
+# Rust 1.85 can place native libraries before the LLDB C++ archive; repeat
+# them at the end of the link command so GNU ld resolves that archive.
+RUN cargo rustc --release --locked --jobs 3 -- \
+    -C link-arg=-llldb -C link-arg=-lstdc++
+
 FROM --platform=linux/amd64 debian:trixie-slim AS base
 
 # Tool versions
@@ -46,6 +65,7 @@ RUN apt-get update \
         cmake \
         ninja-build \
         gdb \
+        lldb-19 \
     && rm -rf /var/lib/apt/lists/*
 
 # The binutils built for PS2 decompilation projects: the assembler the split
@@ -58,7 +78,10 @@ RUN wget -O /tmp/binutils.tar.gz \
     && rm /tmp/binutils.tar.gz
 
 # wibo runs the Windows-hosted Metrowerks compiler and linker.
-COPY --from=ghcr.io/decompals/wibo:latest /usr/local/bin/wibo /usr/bin/
+# This image contains the unstripped loader symbols required by LLDB hooks.
+COPY --from=ghcr.io/decompals/wibo@sha256:3a89948cf841cd6ae2555eb9d8b8ba60c35700852afc5fd9bd62660ef3d201f5 /usr/local/bin/wibo /usr/bin/
+COPY --from=satansfiddle-build /satansfiddle/target/release/satansfiddle /usr/local/bin/
+ENV LLDB_DEBUGSERVER_PATH=/usr/lib/llvm-19/bin/lldb-server
 
 # splat is the disassembler; its MIPS support (spimdisasm, rabbitizer) is an
 # extra and has to be asked for by name. libclang turns the headers into the

@@ -146,11 +146,6 @@ int                  _LOD_MODEL_START(SPI_STACK *stack, int argc);
 int                  _LOD_MODEL_END(SPI_STACK *stack, int argc);
 #include <libvu0.h>
 
-#pragma define_section dead ".dead" ".dead"
-__declspec(dead) static u_long PrimeLongDivision(u_long a, u_long b) {
-    return a / b;
-}
-
 // Code (.text)
 void CCharacter2::SetPosition(float *pos) {
     mgCObject::SetPosition(pos);

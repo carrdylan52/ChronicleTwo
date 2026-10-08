@@ -1,7 +1,7 @@
 # objdiff's two objects per game unit, its configuration, and m2c's context.
 #
 # The target is retail: the unit's whole reference file, assembled as splat
-# wrote it. The base is the source alone, compiled by MWCC without
+# wrote it. The base is the source alone, compiled through Satan's Fiddle without
 # tools/mwccgap, so a function still behind INCLUDE_ASM is absent from it and
 # counts as not decompiled. A header changing recompiles every base: the set
 # is small, and scripts/build/globs.sh reconfigures when one is added.
@@ -16,6 +16,7 @@ file(GLOB_RECURSE PROJECT_HEADERS
      ${CMAKE_SOURCE_DIR}/${INCLUDE_DIR}/*.h)
 
 set(OBJDIFF_OBJS "")
+set(OBJDIFF_BASE_OBJS "")
 set(OBJDIFF_SOURCES "")
 foreach(row IN LISTS unit_rows)
     string(REPLACE "\t" ";" parts "${row}")
@@ -31,8 +32,13 @@ foreach(row IN LISTS unit_rows)
     add_custom_command(
         OUTPUT ${CMAKE_SOURCE_DIR}/${target}
         COMMAND ${AS} ${AS_FLAGS} -o ${target} ${reference}
+        COMMAND ${PYTHON} ${SCRIPTS_DIR}/build/prepare_objdiff_target.py
+                ${target} ${reference} --objcopy ${MIPS_TOOL_PREFIX}objcopy
         DEPENDS ${CMAKE_SOURCE_DIR}/${INCLUDE_DIR}/macro.inc
                 ${CMAKE_SOURCE_DIR}/${SPLIT_STAMP}
+                ${CMAKE_SOURCE_DIR}/${SCRIPTS_DIR}/build/prepare_objdiff_target.py
+                ${CMAKE_SOURCE_DIR}/${SCRIPTS_DIR}/build/layout.py
+                ${CMAKE_SOURCE_DIR}/${CONFIG_DIR}/main.symbols.txt
         WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
         COMMENT "AS (objdiff target) ${reference}"
         VERBATIM)
@@ -40,17 +46,23 @@ foreach(row IN LISTS unit_rows)
     # `-lang` is given because the linked object's compile gives it too
     # (scripts/build/mwccgap.sh).
     set(base ${OBJDIFF_DIR}/base/${unit}.cpp.o)
+    get_filename_component(logical_source "${source}" NAME)
     add_custom_command(
         OUTPUT ${CMAKE_SOURCE_DIR}/${base}
         COMMAND ${CMAKE_COMMAND} -E env "MWCIncludes=${INCLUDE_DIR}/std;${INCLUDE_DIR}/sce"
-                ${WIBO} ${MW_CC_DIR}/mwccps2.exe ${CC_FLAGS} -lang c++
+                SATANSFIDDLE=${SATANSFIDDLE} SATANSFIDDLE_CONFIG=${SATANSFIDDLE_CONFIG}
+                SATANSFIDDLE_TRANSLATION_UNIT=${logical_source}
+                ${PYTHON} ${SCRIPTS_DIR}/build/satansfiddle-wibo.py
+                ${MW_CC_DIR}/mwccps2.exe ${CC_FLAGS} -lang c++
                 -o ${base} ${source}
         DEPENDS ${CMAKE_SOURCE_DIR}/${source} ${PROJECT_HEADERS}
+                ${SATANSFIDDLE_DEPENDENCIES}
         WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
         COMMENT "CC (objdiff base) ${source}"
         VERBATIM)
 
     list(APPEND OBJDIFF_OBJS ${target} ${base})
+    list(APPEND OBJDIFF_BASE_OBJS ${CMAKE_SOURCE_DIR}/${base})
     list(APPEND OBJDIFF_SOURCES ${CMAKE_SOURCE_DIR}/${source})
 endforeach()
 make_object_dirs("${OBJDIFF_OBJS}")
@@ -68,6 +80,7 @@ add_custom_command(
     DEPENDS ${CMAKE_SOURCE_DIR}/${CONFIG_DIR}/main.yaml
             ${CMAKE_SOURCE_DIR}/${SCRIPTS_DIR}/build/objdiff_config.py
             ${CMAKE_SOURCE_DIR}/${SCRIPTS_DIR}/build/layout.py
+            ${OBJDIFF_BASE_OBJS}
     WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
     COMMENT "Generating ${OBJDIFF_CONFIG}"
     VERBATIM)

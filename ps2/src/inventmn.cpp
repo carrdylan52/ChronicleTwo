@@ -605,12 +605,6 @@ enum {
     kSceneAttrFlags = 0x18000
 };
 
-#pragma define_section dead ".dead" \
-                            ".dead"
-
-__declspec(dead) static u_long PrimeLongDivision(u_long a, u_long b) {
-    return a / b;
-}
 
 // Code (.text)
 CInventUserData *GetInventUserDataPtr() {
@@ -5230,7 +5224,12 @@ void CMenuInvent::GetNetaMemoCursorPosition(int slot, int *pos) {
     pos[1] += slot * 0x1A + 0x4E;
 }
 
-int neta_sort(int mode, int first, int last, int *keys) {
+/**
+ *
+ * Orders discovered invention ideas while keeping their names, identifiers and sort keys together.
+ *
+ */
+static int neta_sort(int mode, int first, int last, int *keys) {
     int swapped = 0;
     int i;
     int j;

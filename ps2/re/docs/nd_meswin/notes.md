@@ -171,3 +171,24 @@ bytes). Only the name and the idea of a laid-out character table carry over; no 
 The two local `divbyzerocheck on`/`reset` pairs are redundant with the PS2
 compiler flag. Removing them leaves every section and symbol in this unit's
 object diff unchanged.
+
+## Canonical native-promotion checks
+
+Under the deterministic Satan's Fiddle profile, the baseline has no native
+code failures, including `Preset`; its two canonical failures are the
+`MovieCCFont` BSS symbol size (`0xB8` versus retail `0xC0`) and the resulting
+padding gap before `MovieCCStart`.
+
+The existing drafts for `SetGoalCursorXY`, `DrawDigit`, `DrawEquipment`,
+`DrawCross`, and `DrawRightDelta` retain assembly fallbacks. Isolated canonical
+checks identify source scheduling differences rather than floating-constant
+selectors: the icon drafts first differ at their texture-rectangle argument
+loads (`0x0015B324`, `0x0015B4E4`, `0x0015B69C`). Explicit dimensions can recover
+the saved width/height registers for Equipment and Cross, but their x/y load
+order still differs. `SetGoalCursorXY` differs in initial integer allocation
+and line-count loop scheduling; `DrawDigit` differs in saved integer allocation.
+These trial native promotions were restored. No profile rows were accepted.
+
+## Compiler helper history
+
+The unused `PrimeDoubleToFloat` definition is removed. The translation-unit profile uses GPR helper mask `0x10` and FPR mask `0`; private baseline and candidate checks preserve all allocated bytes and resolved relocation identities. The existing `DrawMesWin` finding is unchanged. Its two `0.5f` calls require opposite retail schedules and share the current stable selector identity.

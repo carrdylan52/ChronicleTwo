@@ -119,11 +119,6 @@ GYORACE_FISH_INF      fish_inf[6];
 static int            old_cam_no = -1;
 #endif
 
-#pragma define_section dead ".dead" ".dead"
-__declspec(dead) static u_long PrimeLongDivision(u_long a, u_long b) {
-    return a / b;
-}
-
 // Code (.text)
 #ifdef NONMATCHING
 int sgInitGyoRace(SubGameInfo *info) {

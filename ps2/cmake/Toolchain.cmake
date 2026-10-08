@@ -8,6 +8,22 @@ set(AS ${MIPS_TOOL_PREFIX}as)
 set(AS_FLAGS -EL -march=r5900 -mabi=eabi -mno-pdr -non_shared -G0 -I ${INCLUDE_DIR})
 
 # MWCC, through tools/mwccgap (scripts/build/mwccgap.sh), for the game units.
+# Satan's Fiddle controls compiler state; MWLD below continues to use plain wibo.
+if(DEFINED ENV{SATANSFIDDLE})
+    set(SATANSFIDDLE_DEFAULT "$ENV{SATANSFIDDLE}")
+else()
+    set(SATANSFIDDLE_DEFAULT satansfiddle)
+endif()
+set(SATANSFIDDLE "${SATANSFIDDLE_DEFAULT}"
+    CACHE STRING "Satan's Fiddle executable or command")
+if(DEFINED ENV{SATANSFIDDLE_CONFIG})
+    set(SATANSFIDDLE_CONFIG_DEFAULT "$ENV{SATANSFIDDLE_CONFIG}")
+else()
+    set(SATANSFIDDLE_CONFIG_DEFAULT "${CMAKE_SOURCE_DIR}/scripts/build/satansfiddle.json")
+endif()
+set(SATANSFIDDLE_CONFIG "${SATANSFIDDLE_CONFIG_DEFAULT}"
+    CACHE FILEPATH "Satan's Fiddle JSON compiler profile")
+
 # `-MD` has it write the header dependencies the wrapper turns into a depfile.
 set(MW_CC_DIR ${TOOLS_DIR}/compilers/mw/3.0-011126
     CACHE STRING "Directory holding mwccps2.exe")

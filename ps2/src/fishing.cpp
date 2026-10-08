@@ -347,11 +347,6 @@ static inline u_long128 *FreeTop(mgCMemory *memory) {
 }
 
 
-#pragma define_section dead ".dead" ".dead"
-__declspec(dead) static u_long PrimeLongDivision(u_long a, u_long b) {
-    return a / b;
-}
-
 // Code (.text)
 /**
  *

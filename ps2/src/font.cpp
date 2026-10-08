@@ -473,17 +473,6 @@ int GetFontGaijiHankaku(u16 code) {
 
     return 0;
 }
-/**
- *
- * Reads a two-byte reserved-font code from the sorted lookup table.
- *
- */
-static inline u16 GetYoyakuCode(u8 *table, int no) {
-    u8 *pair = &table[no * 2];
-    int hi = *pair++;
-    return *pair + (hi << 8);
-}
-
 int GetFontNo(char *text) {
     if (text[0] == '\n') {
         return FONT_NO_NEWLINE;
@@ -500,13 +489,19 @@ int GetFontNo(char *text) {
     if (first == code) {
         return 0;
     }
-    u16 end = GetYoyakuCode(table, high);
+    u8 *pair = &table[high * 2];
+    u8 first_byte = pair[0];
+    u8 second_byte = pair[1];
+    u16 end = second_byte + (first_byte << 8);
     if (end == code) {
         return high;
     }
     while (1) {
         int mid = (low + high) / 2;
-        u16 entry = GetYoyakuCode(table, mid);
+        pair = &table[mid * 2];
+        first_byte = pair[0];
+        second_byte = pair[1];
+        u16 entry = second_byte + (first_byte << 8);
         if (code < entry) {
             high = mid;
         } else if (entry < code) {

@@ -1,0 +1,577 @@
+{
+  "compiler_path": "tools/compilers/mw/3.0-011126/mwccps2.exe",
+  "compiler_version": "3.0-011126",
+  "compiler_options": "-O3,p -strings readonly -c -Cpp_exceptions off -RTTI off -pragma 'divbyzerocheck on' -i ps2/include",
+  "default_gpr_helper_mask": 0,
+  "default_fpr_helper_mask": 0,
+  "translation_units": [
+    {
+      "name": "automap.cpp",
+      "gpr_helper_mask": 48,
+      "fpr_helper_mask": 0
+    },
+    {
+      "name": "character.cpp",
+      "gpr_helper_mask": 48,
+      "fpr_helper_mask": 0
+    },
+    {
+      "name": "dng_debug.cpp",
+      "gpr_helper_mask": 48,
+      "fpr_helper_mask": 0
+    },
+    {
+      "name": "dng_effect.cpp",
+      "gpr_helper_mask": 48,
+      "fpr_helper_mask": 0
+    },
+    {
+      "name": "dng_event.cpp",
+      "gpr_helper_mask": 48,
+      "fpr_helper_mask": 0
+    },
+    {
+      "name": "dng_status.cpp",
+      "gpr_helper_mask": 48,
+      "fpr_helper_mask": 0
+    },
+    {
+      "name": "editdebug.cpp",
+      "gpr_helper_mask": 48,
+      "fpr_helper_mask": 0
+    },
+    {
+      "name": "editmenu.cpp",
+      "gpr_helper_mask": 48,
+      "fpr_helper_mask": 0
+    },
+    {
+      "name": "editmode.cpp",
+      "gpr_helper_mask": 48,
+      "fpr_helper_mask": 0
+    },
+    {
+      "name": "effect.cpp",
+      "gpr_helper_mask": 48,
+      "fpr_helper_mask": 0
+    },
+    {
+      "name": "event_func.cpp",
+      "gpr_helper_mask": 48,
+      "fpr_helper_mask": 0
+    },
+    {
+      "name": "fishing.cpp",
+      "gpr_helper_mask": 48,
+      "fpr_helper_mask": 0
+    },
+    {
+      "name": "fishingobj.cpp",
+      "gpr_helper_mask": 48,
+      "fpr_helper_mask": 0
+    },
+    {
+      "name": "gyorace.cpp",
+      "gpr_helper_mask": 48,
+      "fpr_helper_mask": 0
+    },
+    {
+      "name": "gyoracesim.cpp",
+      "gpr_helper_mask": 48,
+      "fpr_helper_mask": 0
+    },
+    {
+      "name": "inventmn.cpp",
+      "gpr_helper_mask": 48,
+      "fpr_helper_mask": 0
+    },
+    {
+      "name": "menuaqua.cpp",
+      "gpr_helper_mask": 48,
+      "fpr_helper_mask": 0
+    },
+    {
+      "name": "menuchr.cpp",
+      "gpr_helper_mask": 48,
+      "fpr_helper_mask": 0
+    },
+    {
+      "name": "menucls1.cpp",
+      "gpr_helper_mask": 48,
+      "fpr_helper_mask": 0
+    },
+    {
+      "name": "menucommon.cpp",
+      "gpr_helper_mask": 48,
+      "fpr_helper_mask": 0
+    },
+    {
+      "name": "menudraw.cpp",
+      "gpr_helper_mask": 48,
+      "fpr_helper_mask": 0
+    },
+    {
+      "name": "menumain.cpp",
+      "gpr_helper_mask": 48,
+      "fpr_helper_mask": 0
+    },
+    {
+      "name": "menumap.cpp",
+      "gpr_helper_mask": 48,
+      "fpr_helper_mask": 0
+    },
+    {
+      "name": "menuop.cpp",
+      "gpr_helper_mask": 48,
+      "fpr_helper_mask": 0
+    },
+    {
+      "name": "menushop.cpp",
+      "gpr_helper_mask": 48,
+      "fpr_helper_mask": 0
+    },
+    {
+      "name": "menusys.cpp",
+      "gpr_helper_mask": 48,
+      "fpr_helper_mask": 0
+    },
+    {
+      "name": "monster.cpp",
+      "gpr_helper_mask": 48,
+      "fpr_helper_mask": 0
+    },
+    {
+      "name": "nd_meswin.cpp",
+      "gpr_helper_mask": 16,
+      "fpr_helper_mask": 0
+    },
+    {
+      "name": "outline.cpp",
+      "gpr_helper_mask": 48,
+      "fpr_helper_mask": 0
+    },
+    {
+      "name": "runscript.cpp",
+      "gpr_helper_mask": 48,
+      "fpr_helper_mask": 0
+    },
+    {
+      "name": "scene.cpp",
+      "gpr_helper_mask": 48,
+      "fpr_helper_mask": 0
+    },
+    {
+      "name": "sceneseq.cpp",
+      "gpr_helper_mask": 48,
+      "fpr_helper_mask": 0
+    },
+    {
+      "name": "scenesnd.cpp",
+      "gpr_helper_mask": 48,
+      "fpr_helper_mask": 0
+    },
+    {
+      "name": "screeneffect.cpp",
+      "gpr_helper_mask": 48,
+      "fpr_helper_mask": 0
+    },
+    {
+      "name": "snd_mngr.cpp",
+      "gpr_helper_mask": 48,
+      "fpr_helper_mask": 0
+    },
+    {
+      "name": "sound.cpp",
+      "gpr_helper_mask": 48,
+      "fpr_helper_mask": 0
+    },
+    {
+      "name": "swordeffect.cpp",
+      "gpr_helper_mask": 48,
+      "fpr_helper_mask": 0
+    },
+    {
+      "name": "title.cpp",
+      "gpr_helper_mask": 48,
+      "fpr_helper_mask": 0
+    }
+  ],
+  "floating_point": {
+    "default_evaluate_first": false,
+    "expression_overrides": [
+      {
+        "translation_unit": "actionchara.cpp",
+        "function": "GuardEffectSet__FP6CScenePf",
+        "value_type": "binary32",
+        "value_bits": "0x3dcccccd",
+        "evaluate_first": true
+      },
+      {
+        "translation_unit": "actionchara.cpp",
+        "function": "GuardEffectSet__FP6CScenePf",
+        "value_type": "binary32",
+        "value_bits": "0x41f00000",
+        "evaluate_first": true
+      },
+      {
+        "translation_unit": "actionchara.cpp",
+        "function": "HumanGunMoveIF__12CActionCharaFPcPc",
+        "value_type": "binary32",
+        "value_bits": "0x00000000",
+        "evaluate_first": true
+      },
+      {
+        "translation_unit": "cameracontrol.cpp",
+        "function": "__ct__14CCameraControlFv",
+        "value_type": "binary32",
+        "value_bits": "0x00000000",
+        "evaluate_first": true
+      },
+      {
+        "translation_unit": "dng_event.cpp",
+        "function": "AutoSetTreasureBox__Fv",
+        "value_type": "binary32",
+        "value_bits": "0x00000000",
+        "callee": "PutTreasureBox__19CTreasureBoxManagerFiPffiiiii",
+        "evaluate_first": true
+      },
+      {
+        "translation_unit": "dng_main.cpp",
+        "function": "DngMainKey__Fv",
+        "value_type": "binary32",
+        "value_bits": "0x41200000",
+        "evaluate_first": true
+      },
+      {
+        "translation_unit": "dng_main.cpp",
+        "function": "DngMainKey__Fv",
+        "value_type": "binary32",
+        "value_bits": "0x41A00000",
+        "evaluate_first": true
+      },
+      {
+        "translation_unit": "dng_object.cpp",
+        "function": "Step__9CLaserGunFv",
+        "value_type": "binary32",
+        "value_bits": "0x00000000",
+        "evaluate_first": true
+      },
+      {
+        "translation_unit": "dng_object.cpp",
+        "function": "Step__9CLaserGunFv",
+        "value_type": "binary32",
+        "value_bits": "0x3dcccccd",
+        "evaluate_first": true
+      },
+      {
+        "translation_unit": "dngmenu.cpp",
+        "function": "Initialize__11CDngFreeMapFv",
+        "value_type": "binary32",
+        "value_bits": "0x438f0000",
+        "evaluate_first": true
+      },
+      {
+        "translation_unit": "editmenu.cpp",
+        "function": "CalcTex__12CMenuGeoramaFv",
+        "value_type": "binary32",
+        "value_bits": "0x00000000",
+        "evaluate_first": true
+      },
+      {
+        "translation_unit": "editmenu.cpp",
+        "function": "MenuGeoramaTitleDraw__FRiPfi",
+        "value_type": "binary32",
+        "value_bits": "0x3f333333",
+        "evaluate_first": true
+      },
+      {
+        "translation_unit": "event_func.cpp",
+        "function": "LoadMovie__FPcP9mgCMemoryb",
+        "value_type": "binary32",
+        "value_bits": "0x44000000",
+        "evaluate_first": true
+      },
+      {
+        "translation_unit": "event_func.cpp",
+        "function": "_SET_CROSSFADE__FP12RS_STACKDATAi",
+        "value_type": "binary32",
+        "value_bits": "0x3f800000",
+        "callee": "CrossFadeOut__10CFadeInOutFiif",
+        "evaluate_first": true
+      },
+      {
+        "translation_unit": "fishing.cpp",
+        "function": "GetUkiWaitTime__FP9FISH_DATAP6CScenePfii",
+        "value_type": "binary32",
+        "value_bits": "0x3fa66666",
+        "evaluate_first": true
+      },
+      {
+        "translation_unit": "gyoracesim.cpp",
+        "function": "CharacterBonus__FP12grFISH_PARAMP15RACE_FISH_PARAMi",
+        "value_type": "binary32",
+        "value_bits": "0x00000000",
+        "evaluate_first": true
+      },
+      {
+        "translation_unit": "gyoracesim.cpp",
+        "function": "CharacterBonus__FP12grFISH_PARAMP15RACE_FISH_PARAMi",
+        "value_type": "binary32",
+        "value_bits": "0x3c23d70a",
+        "evaluate_first": true
+      },
+      {
+        "translation_unit": "inventmn.cpp",
+        "function": "MenuInventDebugDraw__Fv",
+        "value_type": "binary32",
+        "value_bits": "0x42a00000",
+        "evaluate_first": true
+      },
+      {
+        "translation_unit": "inventmn.cpp",
+        "function": "MenuInventDebugDraw__Fv",
+        "value_type": "binary32",
+        "value_bits": "0x43870000",
+        "evaluate_first": false
+      },
+      {
+        "translation_unit": "inventmn.cpp",
+        "function": "MenuInventDebugDraw__Fv",
+        "value_type": "binary32",
+        "value_bits": "0x43960000",
+        "evaluate_first": true
+      },
+      {
+        "translation_unit": "mapjump.cpp",
+        "function": "ExitInterior__FP6CScenePi",
+        "value_type": "binary32",
+        "value_bits": "0x00000000",
+        "evaluate_first": true
+      },
+      {
+        "translation_unit": "menuaqua.cpp",
+        "function": "MenuAquaInit__FP9mgCMemoryPii",
+        "value_type": "binary32",
+        "value_bits": "0x00000000",
+        "evaluate_first": true
+      },
+      {
+        "translation_unit": "menuaqua.cpp",
+        "function": "Step__9CFishFoodFv",
+        "value_type": "binary32",
+        "value_bits": "0x00000000",
+        "evaluate_first": true
+      },
+      {
+        "translation_unit": "menuchr.cpp",
+        "function": "CheckLoadBGMonster__14CMenuMosSelectFv",
+        "value_type": "binary32",
+        "value_bits": "0x3f800000",
+        "evaluate_first": true
+      },
+      {
+        "translation_unit": "menuchr.cpp",
+        "function": "MenuCharaChangeDraw__Fv",
+        "value_type": "binary32",
+        "value_bits": "0x41a00000",
+        "evaluate_first": true
+      },
+      {
+        "translation_unit": "menuchr.cpp",
+        "function": "MenuCharaChangeDraw__Fv",
+        "value_type": "binary32",
+        "value_bits": "0x41d00000",
+        "evaluate_first": true
+      },
+      {
+        "translation_unit": "menuchr.cpp",
+        "function": "MenuCharaChangeDraw__Fv",
+        "value_type": "binary32",
+        "value_bits": "0x43960000",
+        "evaluate_first": true
+      },
+      {
+        "translation_unit": "menuchr.cpp",
+        "function": "MonsterBookDraw__Fv",
+        "value_type": "binary32",
+        "value_bits": "0x41c00000",
+        "evaluate_first": true
+      },
+      {
+        "translation_unit": "menuchr.cpp",
+        "function": "MonsterBookDraw__Fv",
+        "value_type": "binary32",
+        "value_bits": "0x42200000",
+        "evaluate_first": true
+      },
+      {
+        "translation_unit": "menuchr.cpp",
+        "function": "MonsterBookDraw__Fv",
+        "value_type": "binary32",
+        "value_bits": "0x43480000",
+        "evaluate_first": true
+      },
+      {
+        "translation_unit": "menudraw.cpp",
+        "function": "Func_MenuItemBrdPosStep__Fi",
+        "value_type": "binary32",
+        "value_bits": "0x40000000",
+        "evaluate_first": true
+      },
+      {
+        "translation_unit": "menumain.cpp",
+        "function": "DrawMenuTopic__Fv",
+        "value_type": "binary32",
+        "value_bits": "0x42100000",
+        "evaluate_first": true
+      },
+      {
+        "translation_unit": "menumap.cpp",
+        "function": "Draw__13CWorldMapMenuFv",
+        "value_type": "binary32",
+        "value_bits": "0x42200000",
+        "evaluate_first": true
+      },
+      {
+        "translation_unit": "menumap.cpp",
+        "function": "SphidaMenuDraw__Fv",
+        "value_type": "binary32",
+        "value_bits": "0x404ccccd",
+        "evaluate_first": true
+      },
+      {
+        "translation_unit": "menumap.cpp",
+        "function": "SphidaMenuDraw__Fv",
+        "value_type": "binary32",
+        "value_bits": "0x40600000",
+        "evaluate_first": true
+      },
+      {
+        "translation_unit": "menumap.cpp",
+        "function": "SphidaScoreViewDraw__Fv",
+        "value_type": "binary32",
+        "value_bits": "0x42280000",
+        "evaluate_first": true
+      },
+      {
+        "translation_unit": "menumap.cpp",
+        "function": "SphidaScoreViewDraw__Fv",
+        "value_type": "binary32",
+        "value_bits": "0x43d70000",
+        "evaluate_first": true
+      },
+      {
+        "translation_unit": "monster.cpp",
+        "function": "GuardEffectSet__FP6CScenePfi",
+        "value_type": "binary32",
+        "value_bits": "0x00000000",
+        "evaluate_first": true
+      },
+      {
+        "translation_unit": "monster.cpp",
+        "function": "GuardEffectSet__FP6CScenePfi",
+        "value_type": "binary32",
+        "value_bits": "0x3dcccccd",
+        "evaluate_first": true
+      },
+      {
+        "translation_unit": "monster.cpp",
+        "function": "HitEffectSet__FP6CScenePfi",
+        "value_type": "binary32",
+        "value_bits": "0x3e4ccccd",
+        "evaluate_first": true
+      },
+      {
+        "translation_unit": "monster.cpp",
+        "function": "HitEffectSet__FP6CScenePfi",
+        "value_type": "binary32",
+        "value_bits": "0x41f00000",
+        "evaluate_first": true
+      },
+      {
+        "translation_unit": "nameregi.cpp",
+        "function": "DrawActiveFont__13CNameRegiMenuFv",
+        "value_type": "binary32",
+        "value_bits": "0x41a80000",
+        "evaluate_first": true
+      },
+      {
+        "translation_unit": "pbuggy.cpp",
+        "function": "InitBomb__FP6CScene",
+        "value_type": "binary32",
+        "value_bits": "0x40490fdb",
+        "evaluate_first": true
+      },
+      {
+        "translation_unit": "scene.cpp",
+        "function": "Birth__9CRainDropFi",
+        "value_type": "binary32",
+        "value_bits": "0x44480000",
+        "evaluate_first": true
+      },
+      {
+        "translation_unit": "scene.cpp",
+        "function": "ParticleBirth__5CRainFPfi",
+        "value_type": "binary32",
+        "value_bits": "0x40000000",
+        "evaluate_first": true
+      },
+      {
+        "translation_unit": "scene.cpp",
+        "function": "Start__5CRainFv",
+        "value_type": "binary32",
+        "value_bits": "0x3f490fdb",
+        "evaluate_first": true
+      },
+      {
+        "translation_unit": "scenesnd.cpp",
+        "function": "SePlayFoot__6CSceneFiiPf",
+        "value_type": "binary32",
+        "value_bits": "0x44960000",
+        "evaluate_first": true
+      },
+      {
+        "translation_unit": "scenevillager.cpp",
+        "function": "GetNowVillagerTime__6CSceneFv",
+        "value_type": "binary32",
+        "value_bits": "0x40c00000",
+        "evaluate_first": true
+      },
+      {
+        "translation_unit": "sphida.cpp",
+        "function": "Draw__8CPowGageFv",
+        "value_type": "binary32",
+        "value_bits": "0x41e00000",
+        "evaluate_first": true
+      },
+      {
+        "translation_unit": "title.cpp",
+        "function": "TitleModeDraw__Fv",
+        "value_type": "binary32",
+        "value_bits": "0x00000000",
+        "evaluate_first": true
+      },
+      {
+        "translation_unit": "title.cpp",
+        "function": "TitleModeDraw__Fv",
+        "value_type": "binary32",
+        "value_bits": "0x41c00000",
+        "evaluate_first": true
+      },
+      {
+        "translation_unit": "userdata.cpp",
+        "function": "SetRandamCircleStatus__FiRf",
+        "value_type": "binary32",
+        "value_bits": "0x00000000",
+        "evaluate_first": true
+      },
+      {
+        "translation_unit": "userdata.cpp",
+        "function": "SetRandamCircleStatus__FiRf",
+        "value_type": "binary32",
+        "value_bits": "0x3f800000",
+        "evaluate_first": true
+      }
+    ]
+  }
+}

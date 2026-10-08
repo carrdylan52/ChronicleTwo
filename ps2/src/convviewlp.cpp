@@ -27,19 +27,6 @@ extern char               at_1020__4[], at_1021__4[], at_1022__3[], at_1023__5[]
 extern char               at_1024__4[], at_1025__5[], at_1026__4[], at_1027__5[];
 extern char               at_1028__10[], at_1029__7[], at_1030__6[], at_1031__7[];
 
-/**
- *
- * Holds one save-directory name used while converting card data.
- *
- */
-struct SAVE_CONVERT_NAME {
-    char text[128]; /**< Directory name including its terminator. */
-};
-
-extern SAVE_CONVERT_NAME at_1072__4, at_1073__4, at_1074__5;
-extern char              at_1159__2[], at_1160__3[], at_1161__3[], at_1162__3[];
-extern char              at_1163__2[], at_1164__2[], at_1165__2[], at_1166__2[];
-extern char              at_1167__2[], at_1168[], at_1169[];
 extern MC_DIR_ENTRY     *SaveFileInfoTablePtr;
 extern int               SaveFileInfoTableSizeConvert[];
 extern int               FileListNum;
@@ -261,8 +248,8 @@ static void InitSaveFileInfoTablePtr() {
     }
 }
 int SaveDataConvertLoop() {
-    MC_DIR_ENTRY dir_entries[64];
-    struct { MC_DIR_ENTRY e[16]; char pad[1056]; } inside;
+    MC_DIR_ENTRY dir_entries[64] __attribute__((aligned(64)));
+    MC_DIR_ENTRY inside_entries[32] __attribute__((aligned(64)));
     char         path[128];
     int          card_type, free_size, formatted;
     int          command, result, existing_count;
@@ -284,7 +271,7 @@ int SaveDataConvertLoop() {
         }
         case SAVEDATA_CONVERT_PHASE_READ_DIR: {
             memset(dir_entries, 0, sizeof(dir_entries));
-            strcpy(path, at_1159__2);
+            strcpy(path, "BASCUS-97213*");
             memset(dir_entries, 0, sizeof(dir_entries));
             sceMcGetDir(SlotSelect, 1, path, 0, 64, dir_entries);
             sceMcSync(0, &command, &result);
@@ -300,15 +287,15 @@ int SaveDataConvertLoop() {
             break;
         }
         case SAVEDATA_CONVERT_PHASE_CONVERT: {
-            SAVE_CONVERT_NAME dkcl_name = at_1072__4;
-            SAVE_CONVERT_NAME album_name = at_1073__4;
-            SAVE_CONVERT_NAME omake_name = at_1074__5;
+            char              dkcl_name[128] = "BESCES-51190dkcl%d";
+            char              album_name[128] = "BESCES-51190dc2album";
+            char              omake_name[128] = "BESCES-51190dc2omake";
             char              existing_names[64][128];
             int               existing_numbers[64];
             char              previous_dir[128];
             char              new_name[128];
             for (int file = 0; file < FileListNum; file++) {
-                strcpy(path, at_1160__3);
+                strcpy(path, "BESCES-51190*");
                 memset(dir_entries, 0, sizeof(dir_entries));
                 sceMcGetDir(SlotSelect, 1, path, 0, 64, dir_entries);
                 existing_count = 0;
@@ -326,32 +313,32 @@ int SaveDataConvertLoop() {
                     } else {
                         existing_numbers[listed] = 32;
                     }
-                    printf(at_1161__3, listed, number);
+                    printf("file[%d] : %d\n", listed, number);
                     listed++;
                 }
-                printf(at_1162__3);
+                printf("\n");
                 int number = -1;
                 int type = SAVEDATA_CONVERT_TYPE_NONE;
-                if (strncmp(&SaveFileInfoTablePtr[file].name[12], at_1163__2, 4) == 0) {
+                if (strncmp(&SaveFileInfoTablePtr[file].name[12], "dkcl", 4) == 0) {
                     type = SAVEDATA_CONVERT_TYPE_GAME;
                 }
-                if (strncmp(&SaveFileInfoTablePtr[file].name[12], at_1164__2, 8) == 0) {
+                if (strncmp(&SaveFileInfoTablePtr[file].name[12], "dc2album", 8) == 0) {
                     type = SAVEDATA_CONVERT_TYPE_ALBUM;
                 }
-                if (strncmp(&SaveFileInfoTablePtr[file].name[12], at_1165__2, 8) == 0) {
+                if (strncmp(&SaveFileInfoTablePtr[file].name[12], "dc2omake", 8) == 0) {
                     type = SAVEDATA_CONVERT_TYPE_OMAKE;
                 }
                 if (type < 0) {
-                    printf(at_1166__2, SaveFileInfoTablePtr[file].name);
+                    printf("not convert type : %s\n", SaveFileInfoTablePtr[file].name);
                     continue;
                 }
                 bool  duplicate = false;
                 char *target = NULL;
                 if (type == SAVEDATA_CONVERT_TYPE_ALBUM) {
-                    target = album_name.text;
+                    target = album_name;
                 }
                 if (type == SAVEDATA_CONVERT_TYPE_OMAKE) {
-                    target = omake_name.text;
+                    target = omake_name;
                 }
                 if (type == SAVEDATA_CONVERT_TYPE_GAME) {
                     number = atoi(&SaveFileInfoTablePtr[file].name[16]);
@@ -372,41 +359,41 @@ int SaveDataConvertLoop() {
                     }
                 }
                 if (duplicate) {
-                    printf(at_1167__2, number);
+                    printf("error already exist ... convert no : %d\n", number);
                     continue;
                 }
                 sceMcChdir(SlotSelect, 1, SaveFileInfoTablePtr[file].name, previous_dir);
                 sceMcSync(0, NULL, NULL);
                 if (type == SAVEDATA_CONVERT_TYPE_GAME) {
                     strcpy(path, SaveFileInfoTablePtr[file].name);
-                    sceMcGetDir(SlotSelect, 1, path, 0, 16, inside.e);
+                    sceMcGetDir(SlotSelect, 1, path, 0, 16, inside_entries);
                     sceMcSync(0, &command, &result);
                     if (0 < result) {
-                        sprintf(new_name, dkcl_name.text, number);
+                        sprintf(new_name, dkcl_name, number);
                         sceMcRename(SlotSelect, 1, path, new_name);
                         sceMcSync(0, NULL, NULL);
-                        sceMcChdir(SlotSelect, 1, at_1168, NULL);
+                        sceMcChdir(SlotSelect, 1, "/", NULL);
                         sceMcSync(0, NULL, NULL);
                         sceMcRename(SlotSelect, 1, path, new_name);
                         sceMcSync(0, NULL, NULL);
                         ConvertFileNum++;
                     } else {
-                        printf(at_1169);
+                        printf("ERROR : not exist file,,,\n");
                     }
                 }
                 if (type == SAVEDATA_CONVERT_TYPE_ALBUM || type == SAVEDATA_CONVERT_TYPE_OMAKE) {
                     strcpy(path, SaveFileInfoTablePtr[file].name);
-                    sceMcGetDir(SlotSelect, 1, path, 0, 16, inside.e);
+                    sceMcGetDir(SlotSelect, 1, path, 0, 16, inside_entries);
                     sceMcSync(0, &command, &result);
                     sceMcRename(SlotSelect, 1, path, target);
                     sceMcSync(0, NULL, NULL);
-                    sceMcChdir(SlotSelect, 1, at_1168, NULL);
+                    sceMcChdir(SlotSelect, 1, "/", NULL);
                     sceMcSync(0, NULL, NULL);
                     sceMcRename(SlotSelect, 1, path, target);
                     sceMcSync(0, NULL, NULL);
                     ConvertFileNum++;
                 }
-                sceMcChdir(SlotSelect, 1, at_1168, NULL);
+                sceMcChdir(SlotSelect, 1, "/", NULL);
                 sceMcSync(0, NULL, NULL);
             }
             ConvertPhase = SAVEDATA_CONVERT_PHASE_END;

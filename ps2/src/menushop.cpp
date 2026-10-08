@@ -53,11 +53,6 @@ extern SPI_TAG_PARAM    menu_shop_tag[];
 extern CShopMenu       *CShopMenuPt;
 extern CMenuQuestView  *MenuQuestView;
 
-#pragma define_section dead ".dead" ".dead"
-__declspec(dead) static u_long PrimeLongDivision(u_long a, u_long b) {
-    return a / b;
-}
-
 // Code (.text)
 int GetDonyShopLineUp(int *item_list, int *status) {
     CInventUserData *invent_data = GetInventUserDataPtr();
@@ -283,56 +278,51 @@ int CShop::AddMoney(int amount) {
 
 int _SHOP_ANALYZE(SPI_STACK *stack, int argc) {
     int remaining;
+    int index;
     int shop_id = spiGetStackInt(stack++);
     remaining = argc - 1;
     int selected = 0;
+
     if (shop_id == Now_Shop_ID) {
         Now_ShopListNum = remaining;
         selected = 1;
     }
+
     if (selected == 0) {
         return 0;
     }
+
     GetUserDataMan();
+
     if (Now_Shop_ID == 0x17 || Now_Shop_ID == 0x1C) {
         NowSellMode = SHOP_SELL_MODE_ROBO_ABS;
-        for (int index = 0; index < Now_ShopListNum; index++) {
+
+        for (index = 0; index < Now_ShopListNum; index++) {
             Now_ShopDataReadPtr[index] = spiGetStackInt(stack++);
         }
     } else if (Now_Shop_ID == 0x20) {
         NowSellMode = SHOP_SELL_MODE_MEDAL;
-        int byte_offset;
-        int index = 0;
-        byte_offset = 0;
-        for (; index < Now_ShopListNum; index++) {
-            int item_number = spiGetStackInt(stack++);
-            *(int *)((u8 *)Now_ShopDataReadPtr + byte_offset) = item_number;
-            byte_offset += sizeof(int);
+
+        for (index = 0; index < Now_ShopListNum; index++) {
+            Now_ShopDataReadPtr[index] = spiGetStackInt(stack++);
         }
     } else if (Now_Shop_ID == 0x21) {
         NowSellMode = SHOP_SELL_MODE_DONY;
-        int byte_offset;
-        int index = 0;
-        byte_offset = 0;
-        for (; index < Now_ShopListNum; index++) {
-            int item_number = spiGetStackInt(stack++);
-            *(int *)((u8 *)Now_ShopDataReadPtr + byte_offset) = item_number;
-            byte_offset += sizeof(int);
+
+        for (index = 0; index < Now_ShopListNum; index++) {
+            Now_ShopDataReadPtr[index] = spiGetStackInt(stack++);
         }
     } else {
-        int byte_offset;
-        int index;
         if (0 < remaining) {
             index = 0;
-            byte_offset = 0;
+
             do {
-                int item_number = spiGetStackInt(stack++);
-                *(int *)((u8 *)Now_ShopDataReadPtr + byte_offset) = item_number;
+                Now_ShopDataReadPtr[index] = spiGetStackInt(stack++);
                 index++;
-                byte_offset += sizeof(int);
             } while (index < remaining);
         }
     }
+
     return 1;
 }
 

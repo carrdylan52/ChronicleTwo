@@ -14,7 +14,16 @@ Chronicle/Dark Cloud 2 for the PlayStation 2.
 
 1. Clone the repository with `git clone --recurse-submodules https://github.com/TheMoonPeople/ChronicleTwo.git`
 2. Place the PAL retail build named `Dark Chronicle (PAL).iso` in the `rom/pal/` folder at the root of the project.
-3. Run `build.sh`.
+3. Build [Satan's Fiddle](https://github.com/Adubbz/SatansFiddle) with its documented LLDB and unstripped `wibo` prerequisites. Set `SATANSFIDDLE` to the resulting executable, or place `satansfiddle` on `PATH`.
+4. Run `build.sh`.
 
 `build.sh` builds the game.
 `run.sh` builds the disc image and boots it in PCSX2.
+
+MWCC 3.0 compilation runs through Satan's Fiddle using
+[the JSON profile](scripts/build/satansfiddle.json). `SATANSFIDDLE_CONFIG` selects
+a different profile. CMake also accepts `-DSATANSFIDDLE=/absolute/path/satansfiddle`
+and `-DSATANSFIDDLE_CONFIG=/absolute/path/profile.json`; these cached settings
+take precedence over later environment changes. MWLD still runs under plain `wibo`.
+See [the compiler integration notes](scripts/build/SATANSFIDDLE.md) for the wrapper,
+selectors, and validation commands.

@@ -98,6 +98,23 @@ function-local statics (DrawFireEffect / GetLight area); `at_475`, `at_1118` are
 
 The unit-level `divbyzerocheck` pragma was redundant with the global MWCC flag; removing it left the full compiled object identical in objdiff.
 
+## Light-animation native candidate
+
+`GetLightAnimeWeight` reads the point-light flicker depth and period before checking
+its point type; even fire and flare points therefore perform the period conversion.
+Point-light mode zero returns one; random mode scales a random fraction between
+`1-depth` and one. The sine mode uses the signed frame remainder and a full-turn
+angle, while the saw mode falls linearly with that remainder. A nonpositive period
+returns one without performing a remainder operation. Fire and flare return a random
+weight between 0.7 and one; other point types return one.
+
+The original guarded candidate produced 0x228 bytes versus retail's 0x220.
+The native source now gives the signed remainder a named `phase` local before
+converting it to float in the sine and saw modes. The sine angle multiplies that
+phase by the full-turn constant before dividing by the period. Complete canonical
+verification of this merged native source remains necessary; size equality alone
+does not establish matching.
+
 ## `CFuncPointMngr::Add(int, mgCMemory*)` draft
 The typed placement-new draft differs only in the placement-new null branch: retail
 tests `v0` and copies the returned pointer into `s0` in the branch delay slot,

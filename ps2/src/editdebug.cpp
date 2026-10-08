@@ -327,10 +327,6 @@ void EndLightingEdit() {
 
 int IsLightingEditMode() { return LEditFlag; }
 #ifdef NONMATCHING
-#pragma define_section dead ".dead" ".dead"
-__declspec(dead) static u_long PrimeLongDivision(u_long a, u_long b) {
-    return a / b;
-}
 static inline float LightAbs(float value) {
     if (value < 0.0f) {
         return -value;

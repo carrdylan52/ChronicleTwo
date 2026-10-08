@@ -657,7 +657,6 @@ extern short            line_5595[12];
 extern short            wakutbl_5600[3][12];
 extern char            *monstere_file_template[];
 extern char            *tbl_3725[MOS_SELECT_BADGE_NUM];
-extern char             at_3762[];
 extern int              menu_debug_select__2;
 extern int              select_monster_save_3371;
 extern s8               init_3372__2;
@@ -777,10 +776,6 @@ extern u16                menu_robo_memorytbl[MENU_CHARA_LOAD_MAX];
 extern char               at_1078__2[];
 int                       ReadBGSync();
 
-#pragma define_section dead ".dead" ".dead"
-__declspec(dead) static u_long PrimeLongDivision(u_long a, u_long b) {
-    return a / b;
-}
 
 // Code (.text)
 void InitMenuBGReadInfo2(MENU_BGREAD_INFO2 *info) {
@@ -3040,7 +3035,6 @@ int MenuCharaChangeKey() {
     return result;
 }
 
-#ifdef NONMATCHING
 void MenuCharaChangeDraw() {
     int party_member;
 
@@ -3205,9 +3199,6 @@ void MenuCharaChangeDraw() {
         MenuMonsterBoxDraw();
     }
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/menuchr", MenuCharaChangeDraw__Fv);
-#endif
 
 char *GetMonsterName(int monster_no) {
     BASE_MONSTER_TBL *record = GetMonsterTable(monster_no);
@@ -3245,7 +3236,6 @@ int GetMonsterProgressTableNo(int column, int value) {
         if (value == monster_progress_tbl[row][column + 1]) {
             return row;
         }
-
         row++;
     } while (row < MONSTER_PROGRESS_NUM);
 
@@ -4458,7 +4448,6 @@ int MenuMonsterBoxKey() {
     return MenuMosSelectPtr->KeyStep();
 }
 
-#ifdef NONMATCHING
 void MenuMonsterBoxDraw() {
     MenuPosData->FormDraw();
     mgCTextureManager *tex_manager = &mgTexManager;
@@ -4485,7 +4474,7 @@ void MenuMonsterBoxDraw() {
         DrawMenuFillBox(350.0f, 100.0f, 100.0f, 260.0f, 0x40, 0, 0, 0);
         CMenuFont font;
         char      text[0x40];
-        font.SetStr(at_3762);
+        font.SetStr("Ctrl\x81\x46\x81\xaa\x81\xab\nChange\x81\x46\x81\x9b\x81\x7e");
         font.SetPos(350, y);
         font.DrawDirect(font.str, font.pos_x, font.pos_y);
         y += 40;
@@ -4511,9 +4500,6 @@ void MenuMonsterBoxDraw() {
         }
     }
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/menuchr", MenuMonsterBoxDraw__Fv);
-#endif
 
 void MenuTimeStepEnvFunc(CScene *scene, CActionChara *chara, int step) {
     mgCFrame *sun;
@@ -7389,7 +7375,6 @@ INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_3734__2__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_3735__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_3736__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_3737__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_3762__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_3779__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_3780__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_3790__DATA);

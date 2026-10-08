@@ -371,7 +371,7 @@ public:
      * @address 0x1EFD40
      * @size 0x40
      */
-    void FadeIn(int time);
+    void FadeIn(int frames);
 
     /**
      *
@@ -381,7 +381,7 @@ public:
      * @address 0x1EFD80
      * @size 0x40
      */
-    void FadeOut(int time);
+    void FadeOut(int frames);
 
     /**
      *

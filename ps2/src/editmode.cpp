@@ -90,11 +90,6 @@ extern mgCFrame                *EditCursor[3];
 extern "C" u8                   now_balance_h[16];
 extern "C" u8                   at_2213__3[10];
 
-#pragma define_section dead ".dead" ".dead"
-__declspec(dead) static u_long PrimeLongDivision(u_long a, u_long b) {
-    return a / b;
-}
-
 // Code (.text)
 /**
  *

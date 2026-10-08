@@ -165,3 +165,17 @@ CheckLoad*/IsActive/DeleteSky/CheckDrawChara/GetNowVillagerTime return compare r
 
 ## PlayBGM draft
 `PlayBGM` consumes `skip_play_bgm` once. It stops the previous play number when changing songs, resolves a negative requested volume from the bank default, clamps a negative limited volume to 1, starts the sound at voice 0, and clears `time_vol`. The guarded C++ draft compiles; isolated comparison differs, so the retail assembly remains active.
+
+## Deterministic floating-point compilation
+
+`SePlayFoot__6CSceneFiiPf` at `0x002AC5D0` materializes the far distance
+`1200.0f` before the near distance `160.0f` for `sndGetVolPan`. With MWCC
+3.0-011126 and `-O3,p`, Satan's Fiddle's default false evaluation flag reverses
+that order. The JSON profile selects this function's binary32 `0x44960000`
+constant and sets `evaluate_first` to true; the other constants retain the
+default. The selector covers every occurrence of that identity without an
+occurrence number or instruction address.
+
+After both mwccgap passes and the normal section fixup, the complete unit
+passes the retail checker: `0x2CB4` initialized bytes and 241 relocations. This was
+rechecked after enabling the call-argument consumer hook.

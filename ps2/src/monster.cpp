@@ -91,11 +91,6 @@ void                     HitScoreSet(float *pos, int type, int value);
 int                      CheckGiftPack(CActiveMonster *monster, CColPrim *prim);
 int                      _MONSTER_NAME(SPI_STACK *stack, int argument_count);
 
-#pragma define_section dead ".dead" ".dead"
-__declspec(dead) static u_long PrimeLongDivision(u_long a, u_long b) {
-    return a / b;
-}
-
 // Code (.text)
 int CActiveMonster::IsDraw(int view_state) {
     if (chara_kind != 2) {
@@ -1140,13 +1135,6 @@ float SearchArea(CScene *scene, float *from, float *to, float range) {
     return mgDistVector(hit, from);
 }
 
-/**
- * Creates the spark bursts and flash for a monster hit, shifted toward the camera.
- *
- * @mangled HitEffectSet__FP6CScenePfi
- * @address 0x001DEEA0
- * @size 0x340
- */
 void HitEffectSet(CScene *scene, float *point, int flags) {
     float            to_camera[4];
     float            pos[4];
@@ -1157,7 +1145,7 @@ void HitEffectSet(CScene *scene, float *point, int flags) {
     CFlushEffect    *flush;
     float            power;
 
-    camera = (CCameraControl *)scene->GetCamera(scene->active_camera);
+    camera = (CCameraControl *) scene->GetCamera(scene->active_camera);
 
     if (camera == NULL) {
         return;
@@ -1183,8 +1171,8 @@ void HitEffectSet(CScene *scene, float *point, int flags) {
     }
 
     if (hit != NULL) {
-        float spread = 30.0f;
         float speed = 60.0f;
+        float spread = 30.0f;
         float gravity = 0.1f;
         power = 0.2f;
         hit->SethitEffect(pos, dir.f, spread, speed, power, gravity, 30, 32);
@@ -1251,14 +1239,6 @@ void HitEffectSet(CScene *scene, float *point, int flags) {
     }
 }
 
-/**
- * Creates a guard spark burst and flash, optionally starting the guard effect script.
- *
- * @mangled GuardEffectSet__FP6CScenePfi
- * @address 0x001DF1E0
- * @size 0x220
- */
-#ifdef NONMATCHING
 void GuardEffectSet(CScene *scene, float *point, int play_script) {
     float            to_camera[4];
     float            pos[4];
@@ -1267,7 +1247,7 @@ void GuardEffectSet(CScene *scene, float *point, int play_script) {
     CHitEffectImage *hit;
     CFlushEffect    *flush;
 
-    camera = (CCameraControl *)scene->GetCamera(scene->active_camera);
+    camera = (CCameraControl *) scene->GetCamera(scene->active_camera);
 
     if (camera == NULL) {
         return;
@@ -1292,7 +1272,12 @@ void GuardEffectSet(CScene *scene, float *point, int play_script) {
         }
     }
 
-    hit->SethitEffect(pos, dir.f, 50.0f, 30.0f, 0.0f, 0.1f, 30, 32);
+    float        speed = 30.0f;
+    float        power_value = 0.0f;
+    const float &power = power_value;
+    float        spread = 50.0f;
+    float        gravity = 0.1f;
+    hit->SethitEffect(pos, dir.f, spread, speed, power, gravity, 30, 32);
     hit->kind = 1;
 
     if (BattleFX.flush == NULL) {
@@ -1324,9 +1309,6 @@ void GuardEffectSet(CScene *scene, float *point, int play_script) {
         FxScriptMan->SetScriptVect1(pos, 0, -1);
     }
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/monster", GuardEffectSet__FP6CScenePfi);
-#endif
 
 void HitScoreSet(float *pos, int type, int value) {
     int *no_score = no_score_uv[LanguageCode];
@@ -1635,7 +1617,7 @@ void CMonsterMan::CheckDamage() {
                 damage *= 0.01f * (float)prim->param->critical_rate;
             }
             calcWeaponParamWhp(monster, prim);
-            
+
             monster->life -= (int)damage;
             if (monster->life <= 0) {
                 monster->life = 0;

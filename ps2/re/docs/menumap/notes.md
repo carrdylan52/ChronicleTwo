@@ -144,3 +144,17 @@ at_1343 (sdata float[2]), at_1383 (int[4]), at_1218, at_1393, at_1764 (8-byte st
 - SphidaScreListUpdate copies 9 names into the CDC2Mes item strings at `+0x1E59 + 0x32*i`
   (`Mitouroku[LanguageCode]` for empty slots), then MakeMsg(0x13EE).
 - OmakeSfidaSelect: `MenuListSelectKeyCheck(key, 8)`; |move| > 2 sets SfidaMoveInitFlag.
+
+## Stable drawing argument order
+
+The following unscoped binary32 selectors set `evaluate_first: true`:
+
+| Function | IEEE bits | Value |
+| --- | --- | --- |
+| `Draw__13CWorldMapMenuFv` | `0x42200000` | 40.0f |
+| `SphidaMenuDraw__Fv` | `0x40600000` | 3.5f |
+| `SphidaMenuDraw__Fv` | `0x404ccccd` | 3.2f |
+| `SphidaScoreViewDraw__Fv` | `0x42280000` | 42.0f |
+| `SphidaScoreViewDraw__Fv` | `0x43d70000` | 430.0f |
+
+They preserve the debug box, movement constants, and score-label arguments. The complete unit passes canonical verification: `0x49AC` allocated bytes and 1,190 relocations, including `SphidaCursorY`. The unused long-division primer is replaced by GPR helper mask `0x30`, FPR mask `0`, preserving allocated bytes and relocation identities.

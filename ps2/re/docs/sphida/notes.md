@@ -83,7 +83,33 @@ No vtable of its own.
 The local `divbyzerocheck on`/`reset` pair is redundant with the PS2
 compiler flag. Removing it leaves every section and symbol in the unit's
 object diff unchanged.
-## Pending code matches
 
-`CSphida::SetUp` compiles to retail's bytes with the game compiler flags and
-passes an isolated whole-image check.
+## Full-section verification of SetUp
+
+`CSphida::SetUp` already reproduces the complete 0x480-byte PAL function,
+including all relocation targets, in the pre-merge isolated object. The progress
+report previously showed a 59.51% function row because exported switch labels
+split the cases into additional symbols. Localizing those labels in the
+objdiff target restores the complete 0x480-byte function and its 100% row
+with the project's relocation comparison setting. This is a reporting
+correction, not a new native match.
+After the required `fixup_sections.sh` object preparation,
+`check_objects.py` passes the entire unit: 0x313C bytes and 438
+relocations. Upstream also reports an isolated whole-image match. These checks
+precede the merge; the merged unit still requires canonical revalidation.
+Intermediate `.dead` sections are compiler data copies
+supplied by placeholders; the normal preparation stage removes them.
+
+`decompile.sh SetUp__7CSphidaFi` cannot resolve the named switch jump
+table at its indirect jump. Existing type analysis plus the full retail
+disassembly establishes the setup behavior. The function chooses pin
+and ball positions outside treasure-box/random-circle exclusion areas,
+settles the ball against collision polygons, chooses their colors,
+computes par from navigation distance on stages 0/3/4/5/6 or direct
+distance otherwise, clamps par to 99, copies the red-mark model and
+initializes status sprites. The second exclusion loop tests the pin
+against RandomCircle in retail, even though it is choosing the ball.
+
+## CPowGage::Draw floating argument order
+
+Merged source had one canonical mismatch at 0x002EE3A8. Retail prepares the sprite height 28.0f before the width 18.0f on the side caps. A stable Satan’s Fiddle selector for Draw__8CPowGageFv, binary32 bits 0x41e00000, evaluate_first true reproduces the argument order across all matching sprite calls without source changes, ordinals or compiler register tricks. The prepared isolated unit passes all 0x3134 allocated bytes and 438 resolved relocations.

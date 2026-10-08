@@ -83,19 +83,17 @@ Magic values seen (no enum declared here because they belong to other units):
   +0x84 flags (1 collision piece, 4 needs step), +0x68 flag bit 0 set when hidden by time
   (CheckTime with +0x94/+0x98), +0xA0 s16 col type, +0x8C material count. CMapPiece size 0xB0
   (CList<CMapPiece> node 0xD0, vptr at +0xC0).
-- CList<CObjAnime> node 0x50: data at +0x10 (CObjAnime 0x30), vptr at +0x40.
-  The node's dispatch table at 0x37B728 has two zero entries followed by
-  `Initialize__17CList_9CObjAnime_Fv`; both initialization calls load slot +8.
-  Its constructor writes the dispatch table, clears the animation's six link
-  and state fields, then calls `Initialize`. `AssignFuncAnime` calls
-  `Initialize` a second time before linking the node. MWCC's ordinary
-  `CList<CObjAnime>` instantiation emits a differently named dispatch table;
-  the retail table is a separate data symbol.
-  With a typed placement-new node and an explicit retail table pointer, the
-  allocation and field stores match. MWCC still moves the allocated pointer
-  into `s1` before the null branch; retail uses `v0` for the branch and moves
-  it into `s1` in the delay slot. Calling a typed function pointer in the
-  table uses `v0` for `jalr`; retail virtual dispatch uses `t9`.
+- `CList<CObjAnime>` uses the native list template from `mg_tanime.hpp`. Its next/prev
+  links occupy +0/+4; the aligned `CObjAnime` begins at +0x10; MWCC puts the
+  implicit vptr at +0x40 and rounds the node size to 0x50. The virtual
+  `Initialize` specialization at 0x1696A0 clears prev then next, and the
+  compiler emits the retail `__vt__17CList_9CObjAnime_` table naturally.
+  Construction uses `CObjAnime`'s default constructor, then calls virtual
+  `Initialize`; `AssignFuncAnime` calls the virtual method again before
+  linking the node. Both calls now use retail's `t9` dispatch register.
+  The remaining two instruction differences are the allocation-result copy
+  and null branch: retail branches on `v0` and copies to `s1` in its delay
+  slot, whereas the isolated compiler copies first and branches on `s1`.
 - COcclusion stride 0xC0 (InsideScreen).
 - DAT_003971e0 in InsideScreen: global view matrix (owned elsewhere).
 

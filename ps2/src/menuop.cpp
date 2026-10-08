@@ -215,11 +215,6 @@ extern short               MenuMapInfoSave_DngNo;
 
 static const int kDungeonNoOffset = 0x1C5B4;
 
-#pragma define_section dead ".dead" ".dead"
-__declspec(dead) static u_long PrimeLongDivision(u_long a, u_long b) {
-    return a / b;
-}
-
 // Code (.text)
 void InitMenuReturnMsg(mgCMemory *stack) {
     CDC2Mes *window;

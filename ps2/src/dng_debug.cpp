@@ -86,11 +86,6 @@ static void dngDebugExit();
  *
  */
 
-#pragma define_section dead ".dead" ".dead"
-__declspec(dead) static u_long PrimeLongDivision(u_long a, u_long b) {
-    return a / b;
-}
-
 // Code (.text)
 DNG_DEBUG_INFO *dngGetDebugInfo() { return &dbinfo; }
 

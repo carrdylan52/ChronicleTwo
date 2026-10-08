@@ -206,12 +206,6 @@ static inline u_int Align16Blocks(u_int size) {
     return size >> 4;
 }
 
-#pragma define_section dead ".dead" \
-                            ".dead"
-
-__declspec(dead) static u_long PrimeLongDivision(u_long a, u_long b) {
-    return a / b;
-}
 
 // Code (.text)
 /**

@@ -1,5 +1,14 @@
 # convviewlp: reverse-engineering notes
 
+## Constructor table ownership
+
+The native `DataBuffer__3` and `Stack_ReadBuff__3` globals emit the retail
+initializer and its constructor-table pointer. Retaining the old
+`D_0037B0A0__DATA` placeholder duplicates that pointer. Removing only the
+placeholder gives a canonical whole-unit pass (0x16B4 bytes, 338 relocations)
+with the conversion-loop fallback still selected. The initializer's two
+`mgCMemory::Init` calls were verified through `decompile.sh`.
+
 Main-loop mode `LOOP_SV_CONV_VIEW` (9) in `mainloop.hpp`: a "SaveData Convert" screen that
 renames North American (`BASCUS-97213...`) memory card save directories to this release's
 `BESCES-51190...` names. No first-game counterpart. The unit owns no classes
@@ -64,8 +73,8 @@ declares the object before writing bodies.
 - A 0x1000-byte `sceMcTblGetDir[64]` buffer, a `char[64][128]` name table, an `int[64]` number
   table filled with -1 (0x20 when the suffix is empty), `char[128]` path buffers.
 - Rename: `sceMcChdir(entry)`, `sceMcGetDir(entry, 0x10 entries)`, `sceMcRename(file -> new)`,
-  `sceMcChdir("/")`, `sceMcRename(dir -> new)`. Type 0's new name is `sprintf(buf, dkcl_fmt)` with
-  no number argument (retail bug/quirk; keep).
+  `sceMcChdir("/")`, `sceMcRename(dir -> new)`. Type 0's new name is `sprintf(buf, dkcl_fmt, number)`; the number argument is
+  confirmed in the native match.
 - String literals at_1016..at_1031 are the screen's English text, at_1159..at_1169 the search
   masks, suffixes, "/" and debug printf formats.
 
@@ -74,13 +83,35 @@ declares the object before writing bodies.
 - `ps2/src/convviewlp.cpp` with `#include "convviewlp.hpp"` compiles (6 NO DRAFT, as expected).
 
 ## Draft coverage
-All six game functions have named, typed C++ bodies. The C++ drafts use `SAVE_CONVERT_FILE_INFO` (a 0x40-byte directory entry with the name at +0x20) and `SAVE_CONVERT_WORK` (the save image at +0x80 of the conversion allocation). `sceMcEnd` and `sceMcRename` are declared in the SDK memory-card header.
+All six game functions have named, typed C++ bodies. The source uses `MC_DIR_ENTRY` (a 0x40-byte directory entry with the name at +0x20) and `SAVE_CONVERT_WORK` (the save image at +0x80 of the conversion allocation). `sceMcEnd` and `sceMcRename` are declared in the SDK memory-card header.
 
 The conversion loop preserves the four-phase progression, a maximum of 64 directory entries from each search, the North American to PAL directory rename, and the duplicate search for numbered game saves and the two special saves. The retail allocation holds 32 source directory records while the copy loop accepts up to 64; the draft keeps this bound exactly. `InitSaveFileInfoTablePtr` resets the counters and only the first 32 records of the size table, as the retail stores show.
 
-## Isolated promotion results
-`SVConvViewExit` and `InitSaveFileInfoTablePtr` passed exact linked-image checks and are active C++ source. The retail `__sinit_convviewlp_cpp` is emitted from native globals. `SVConvViewInit`, `SVConvViewLoop`, and `SaveDataConvertLoop` compiled as C++ but produced different linked images in their one isolated trial. They remain behind `NONMATCHING` with retail assembly in normal builds. The three differences include source text and object-layout changes; no matching claim is made for them.
+## Native coverage
+
+All game functions in this unit are active native C++, including the conversion
+loop. Earlier guarded drafts have been superseded by the canonical whole-unit
+match. The generated static initializer also matches; constructor registration
+is supplied only by the native globals.
 
 ## Native static initialization
 
 Native `DataBuffer__3` and `Stack_ReadBuff__3` globals emit the retail initializer calls in order. The generated 44-byte initializer matches exactly.
+
+## SaveDataConvertLoop native match
+
+The active native loop reproduces all 0x7E0 function bytes and all resolved
+relocations. Both directory arrays require 64-byte alignment; the inner array
+has 32 entries even though each read requests only 16. With these declarations,
+MWCC reproduces the 0x3CE0 stack frame and all buffer offsets observed through
+`decompile.sh`: directory buffers at 0xA0 and 0x10A0, path at 0x18C0, then the
+three 128-byte format/name arrays. Existing save numbers use the `listed`
+index, which advances independently from the directory scan counter. Strings
+are inline literals and the local name arrays are ordinary C++ initializers.
+
+Retail's declared function size is 0x7E0, ending after the return delay slot at
+0x325C60. The following 0x20 zero bytes precede `Vu_prog_3dsp` at 0x325C80 and
+are supplied by the generated linker script's alignment. The checker verifies
+that the native function ends exactly at the script's `contents_end` and the
+omitted retail tail is entirely zero. Objdiff's target function size now uses
+the declared retail extent, rather than absorbing that linker padding.

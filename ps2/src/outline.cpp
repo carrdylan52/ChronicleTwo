@@ -8,15 +8,6 @@
 #include "mglib.hpp"
 #include "outline.hpp"
 
-#pragma define_section dead ".dead" ".dead"
-__declspec(dead) static float PrimeDoubleToFloat(double a) {
-    return a;
-}
-
-__declspec(dead) static u_long PrimeLongDivision(u_long a, u_long b) {
-    return a / b;
-}
-
 // Code (.text)
 void COutLineDraw::Initialize() {
     mgZeroVector(unk_10.max);

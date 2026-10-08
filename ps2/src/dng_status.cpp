@@ -40,11 +40,6 @@ extern s8    init_1006;
 #include "scenesnd.hpp"
 #include "subgame.hpp"
 
-#pragma define_section dead ".dead" ".dead"
-__declspec(dead) static u_long PrimeLongDivision(u_long a, u_long b) {
-    return a / b;
-}
-
 // Code (.text)
 void PrintV(int x, int y, int value, mgCTexture *texture, mgRect<int> rect, int digit_count,
             int right_align, int spacing, SP_RGBA *color) {

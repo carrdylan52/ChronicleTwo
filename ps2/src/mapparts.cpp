@@ -44,20 +44,6 @@ extern char at_244[];
 
 #include "intersection.hpp"
 
-/**
- *
- * Provides list links and initialization for map animation nodes.
- *
- */
-class CList_9CObjAnime_ {
-public:
-    CList<CObjAnime> *next; /**< Next animation node. */
-    CList<CObjAnime> *prev; /**< Previous animation node. */
-
-    /** Clears the animation node's links. */
-    void Initialize();
-};
-
 // Code (.text)
 void CMapParts::Initialize() {
     int i;
@@ -911,7 +897,8 @@ INCLUDE_ASM("ps2/asm/pal/nonmatchings/mapparts", Copy__9CMapPartsFR9CMapPartsP9m
 
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/mapparts", AssignFuncAnime__9CMapPartsFP9mgCMemory);
 
-void CList_9CObjAnime_::Initialize() {
+template <>
+void CList<CObjAnime>::Initialize() {
     prev = NULL;
     next = NULL;
 }

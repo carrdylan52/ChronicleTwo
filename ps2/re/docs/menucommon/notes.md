@@ -130,3 +130,18 @@ The local `divbyzerocheck on/reset` directives are redundant with the unit's
 global flag: removing them produces an identical complete `menucommon.cpp.o`.
 The `fptosi` conversion used by this unit is the CodeWarrior runtime helper declared in
 `mw_runtime.h`; using that header preserves the complete object.
+
+## CalcScrlBarPutPos canonical check (2026-10-07)
+
+`decompile.sh CalcScrlBarPutPos__Fifif` confirms a signed pixel result, calculated
+as `top + length * (pos / pos_max)` in single precision and converted with
+`fptosi`; zero `pos_max` returns `top`. Retail is 0x50 bytes. The current C++
+draft compiles to 0x58 bytes: the result coalesces with the input `top` in `$a0`,
+requiring moves around the helper, whereas retail initializes `$v0` in the
+comparison branch delay slot and retains the helper result there. Inlining the
+ratio reduces the native function to 0x54 but also changes floating allocation
+and helper placement. Early return and explicit alternative-result assignment
+produce 0x5c. Ordinary C++ conversion and the explicit helper call have the same
+remaining differences. The fallback remains; no nonzero-score promotion was
+accepted. Reversing the zero comparison to `0.0f != pos_max` also retains
+the original 0x58-byte mismatch.

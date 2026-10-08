@@ -44,11 +44,6 @@ extern int  chill_tex_rect_910[6][3];
 extern char at_1051[];
 extern char at_1214__2[];
 
-#pragma define_section dead ".dead" ".dead"
-__declspec(dead) static u_long PrimeLongDivision(u_long a, u_long b) {
-    return a / b;
-}
-
 // Code (.text)
 /**
  *

@@ -240,3 +240,12 @@ This is the placement-new null-branch blocker assigned to the dedicated compiler
 lane. Further title-local experiments on this function are deferred. Reconsider
 when that lane supplies a validated natural placement-construction pattern;
 then address the other scheduling and local-layout differences.
+
+## Title drawing floating argument calibration
+
+`TitleModeDraw__Fv` uses stable binary32 selectors `0x41c00000` (24.0f) and
+`0x00000000` (0.0f), both evaluated first. This preserves the retained title
+coordinates and prepares them before alpha conversion. With the artificial
+division primer removed and helper masks GPR `0x30` / FPR `0`, the complete
+unit passes canonical bytes and resolved relocations: `0x68B8` checked bytes
+and 2,055 relocations.

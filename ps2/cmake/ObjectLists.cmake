@@ -67,6 +67,7 @@ function(add_cpp_object obj src)
         OUTPUT ${CMAKE_SOURCE_DIR}/${obj}
         COMMAND ${CMAKE_COMMAND} -E env
                 MW_DIR=${MW_CC_DIR} MIPS_TOOL_PREFIX=${MIPS_TOOL_PREFIX}
+                SATANSFIDDLE=${SATANSFIDDLE} SATANSFIDDLE_CONFIG=${SATANSFIDDLE_CONFIG}
                 sh ${SCRIPTS_DIR}/build/mwccgap.sh ${obj} ${obj}.d ${src}
                 ${CC_FLAGS} ${CC_DEP_FLAGS}
         COMMAND sh ${SCRIPTS_DIR}/build/fixup_sections.sh ${obj}
@@ -76,6 +77,7 @@ function(add_cpp_object obj src)
                 ${CMAKE_SOURCE_DIR}/${SCRIPTS_DIR}/build/postprocess_object.py
                 ${CMAKE_SOURCE_DIR}/${SCRIPTS_DIR}/build/fixup_sections.sh
                 ${MWCCGAP_SOURCES}
+                ${SATANSFIDDLE_DEPENDENCIES}
         DEPFILE ${CMAKE_SOURCE_DIR}/${obj}.d
         WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
         COMMENT "CC ${src}"

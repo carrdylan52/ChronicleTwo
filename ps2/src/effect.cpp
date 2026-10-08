@@ -24,11 +24,6 @@ extern int             g_eff_entry_flag;
 extern SPI_TAG_PARAM   effm_tag[];
 extern char            at_848__2[];
 
-#pragma define_section dead ".dead" ".dead"
-__declspec(dead) static u_long PrimeLongDivision(u_long a, u_long b) {
-    return a / b;
-}
-
 // Code (.text)
 /**
  *

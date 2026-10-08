@@ -108,3 +108,14 @@ runtime `fptosi` declaration now comes from `mw_runtime.h`.
 The text walkers in `CalcDrawWH` and `DrawDirect` also use `char *` with
 `&text[pos]` and `&cursor[2]`, removing signed-byte casts and pointer
 arithmetic while preserving both complete function matches.
+
+## Native reserved-font lookup
+
+`GetFontNo` now compiles natively with zero canonical byte and relocation
+differences across the entire font object (`0x2F84` bytes, 367 relocations).
+The binary-search endpoint and midpoint decode their high and low bytes into
+named byte locals before forming the big-endian code. This preserves the
+retail high-byte load before the low-byte load; a single combined expression
+reverses those loads and changes the pointer register. The newline, gaiji,
+endpoint shortcuts and adjacent-bound termination retain the documented
+behavior. No compiler-profile override is required.
