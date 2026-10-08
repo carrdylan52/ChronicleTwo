@@ -77,16 +77,11 @@ union message_draw_prim {
     u8          storage[0x120]; /**< Backing storage. */
 };
 
-extern u8 at_4574[];
 
 
-extern char at_4634[];
 
-extern char at_4635[];
 
-extern char at_4636[];
 
-extern char at_4637[];
 
 static const int mes_buffer_size = 0x200;
 
@@ -4500,7 +4495,7 @@ void MyStrCpyLineFeed(char *dst, char *src) {
     out = (signed char *) dst;
 loop:
     if (*in != 0xA) {
-        if (strncmp((char *) in, (char *) at_4574, 2) == 0) {
+        if (strncmp((char *) in, "\\n", 2) == 0) {
             in += 2;
             *out = 0xA;
             out += 1;
@@ -4582,20 +4577,20 @@ void MovieCCAnalyze(char *text, int size, int id) {
     slot = 0;
 
     while ((unsigned int) cursor < (unsigned int) (text + size)) {
-        if (strncmp(cursor, at_4634, 5) == 0) {
+        if (strncmp(cursor, "_STA ", 5) == 0) {
             cursor += 5;
             MovieCCStart[slot] = (int) (movie_ccframes_per_second * atof(cursor));
             GetNextLineTop(&cursor);
-        } else if (strncmp(cursor, at_4635, 5) == 0) {
+        } else if (strncmp(cursor, "_CLR ", 5) == 0) {
             cursor += 5;
             MovieCCClear[slot] = (int) (movie_ccframes_per_second * atof(cursor));
             GetNextLineTop(&cursor);
-        } else if (strncmp(cursor, at_4636, 5) == 0) {
+        } else if (strncmp(cursor, "_STR ", 5) == 0) {
             cursor += 5;
             MyStrCpyLineFeed(MovieCCStr[slot], cursor);
             slot++;
             GetNextLineTop(&cursor);
-        } else if (strncmp(cursor, at_4637, 4) == 0) {
+        } else if (strncmp(cursor, "_END", 4) == 0) {
             break;
         } else {
             cursor++;
@@ -4636,11 +4631,6 @@ INCLUDE_RODATA("ps2/asm/pal/nonmatchings/nd_meswin", at_1758__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/nd_meswin", at_2900__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/nd_meswin", at_4276__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/nd_meswin", at_4472__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/nd_meswin", at_4574__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/nd_meswin", at_4634__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/nd_meswin", at_4635__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/nd_meswin", at_4636__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/nd_meswin", at_4637__DATA);
 
 // Small uninitialised data (.sbss)
 

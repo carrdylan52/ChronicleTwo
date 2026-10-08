@@ -74,3 +74,11 @@ Each function has separate full-build, object and unowned-hash receipts:
 
 Every step passes PAL and all 149 objects, with unowned object hashes unchanged.
 Markers become 10/0. No placement expression or `DrawMesWin` body is edited.
+
+## Caption strings
+
+`MyStrCpyLineFeed` uses the literal `"\\n"` directly, and `MovieCCAnalyze`
+compares its four `_STA `, `_CLR `, `_STR ` and `_END` tags inline. The
+redundant literal cast disappears without changing parser code. Separate
+receipts `nd-linefeed-string` and `nd-caption-tag-strings` pass PAL, all
+149 objects and unowned hashes. Only the five switch-table markers remain.
