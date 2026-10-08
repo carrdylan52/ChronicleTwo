@@ -771,9 +771,23 @@ int                       GetDngMapNo(int dungeon_no);
 static int                MenuMemoryDivide(mgCMemory *memory, mgCMemory **list, int chara);
 static void               MenuItemCharaDataLoadPack(int chara_no, CActionChara *chara, CActionChara *body, int part,
                                                     u_int *pack, mgCMemory *stack, int tex_block, int blur_type);
-extern u16                menu_chr_memorytbl[MENU_CHARA_LOAD_MAX];
-extern u16                menu_robo_memorytbl[MENU_CHARA_LOAD_MAX];
-extern char               at_1078__2[];
+/**
+ *
+ * Quadword capacities of the ridepod menu work buffers.
+ *
+ */
+static const u16 menu_robo_memorytbl[MENU_CHARA_LOAD_MAX] = {
+    0x5240, 0x4514, 0x6E80, 0x1240, 0x05DC, 0, 0
+};
+
+/**
+ *
+ * Quadword capacities of the human character menu work buffers.
+ *
+ */
+static const u16 menu_chr_memorytbl[MENU_CHARA_LOAD_MAX] = {
+    0x1B80, 0x9AC0, 0x1C84, 0x11C0, 0x0BC0, 0x26C0, 0x0708
+};
 int                       ReadBGSync();
 
 
@@ -863,7 +877,6 @@ void SetMenuLoadItemNo(int who) {
         count++;
     }
 }
-#ifdef NONMATCHING
 /**
  *
  * Partitions character menu memory among its work buffers.
@@ -875,20 +888,20 @@ static int MenuMemoryDivide(mgCMemory *memory, mgCMemory **list, int chara) {
     u_long128 *buffer = memory->stGetTop();
     total = 0;
     switch (chara) {
-        case 0:
-        case 1:
-        case 2: {
-            u16 *table = menu_chr_memorytbl;
-            if (chara == 2) {
+        case USER_CHARA_MAX:
+        case USER_CHARA_MONICA:
+        case USER_CHARA_ROBO: {
+            const u16 *table = menu_chr_memorytbl;
+            if (chara == USER_CHARA_ROBO) {
                 table = menu_robo_memorytbl;
             }
             for (int i = 0; i < MENU_CHARA_LOAD_MAX; i++) {
                 char name[0x20];
-                int  size = table[i];
-                if (size % 64 != 0) {
-                    size += 64 - size % 64;
+                int size = table[i];
+                if (table[i] % 64 != 0) {
+                    size = (64 - table[i] % 64) + table[i];
                 }
-                sprintf(name, at_1078__2, i);
+                sprintf(name, "stack %d\n", i);
                 SetMemoryName(list[i], name);
                 list[i]->stSetBuffer(buffer, size);
                 total += size;
@@ -896,7 +909,7 @@ static int MenuMemoryDivide(mgCMemory *memory, mgCMemory **list, int chara) {
             }
             break;
         }
-        case 3:
+        case USER_CHARA_MONSTER:
             list[0]->stSetBuffer(buffer, 0x6400);
             list[5]->stSetBuffer(&buffer[0x6400], 0x3C0);
             total = 0x67C0;
@@ -904,9 +917,6 @@ static int MenuMemoryDivide(mgCMemory *memory, mgCMemory **list, int chara) {
     }
     return total;
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/menuchr", MenuMemoryDivide__FP9mgCMemoryPP9mgCMemoryi);
-#endif
 void MenuMemoryAdjust(mgCMemory *pool, mgCMemory *rest, mgCMemory *buffers, int chara) {
     int        free_blocks = pool->stack_size - pool->stack_used;
     MemoryList list = at_1083__2;
@@ -7152,8 +7162,6 @@ void mgRect_s_::Set(short x, short y, short w, short h) {
 // Initialised data (.data)
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", monster_progress_tbl__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", tbl_992__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", menu_robo_memorytbl__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", menu_chr_memorytbl__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", tbl_1233__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_1372__2__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", nextIDtbl_1594__DATA);
@@ -7197,7 +7205,6 @@ INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", wakutbl_5600__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", tbl_5848__DATA);
 
 // Constants (.rodata)
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_1078__2__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_1104__4__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_1131__3__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_1132__5__DATA);
