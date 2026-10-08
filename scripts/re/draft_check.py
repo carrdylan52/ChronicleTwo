@@ -188,7 +188,7 @@ def show_diff(unit, obj, wanted):
     address, extent = functions[wanted]
 
     retail = []
-    for line in objdump(["-d", "-j", "main", f"--start-address={address:#x}",
+    for line in objdump(["-d", "-z", "-j", "main", f"--start-address={address:#x}",
                          f"--stop-address={address + extent:#x}", str(layout.ELF_PATH)]):
         m = INSTRUCTION.match(line)
         if m:
@@ -197,7 +197,7 @@ def show_diff(unit, obj, wanted):
     draft = []
     relocation = {}
     inside = False
-    for line in objdump(["-d", "-r", str(obj)]):
+    for line in objdump(["-d", "-z", "-r", str(obj)]):
         header = re.match(r"^[0-9a-f]+ <(.+)>:$", line)
         if header:
             name = project_name(header.group(1))
