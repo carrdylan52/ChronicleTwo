@@ -211,3 +211,33 @@ another vector typedef or scratch aggregate has negative evidence. Receipts:
 `.private/receipts/nearmiss-probes/dng_event/n1/` through `n6/`, including
 `n5-corrected/`; the target-scoped 33-word candidate is `n6/`. No header or
 compiler-profile changes are proposed.
+
+## Mid-day receiver lifetime bounds (October 8)
+
+The refreshed queue contains only `SearchMapFlatPosition__FPfP11CAutoMapGen`
+in this unit; the no-argument treasure-box placement body is already native.
+The canonical source checkpoint remains 7/260 words and a 0x410 body, with
+its inherited helper wrappers and scalar alignment annotations. It is not
+promoted or changed by this lane.
+
+Private natural receiver variants confirm the previous 33-word bound when
+separate placement/collision pointers preserve the 0x2BE0 frame. Replacing the
+collision receiver with a reference raises that variant to 52 words. A direct
+assignment/null test, a reference to the scene or map, and scoped polygon count
+and collision-loop variables give 53 words and the smaller 0x2BD0 frame.
+Binding the active-map result to a const pointer reference emits 0x418 bytes
+and differs by 249 words. A condition-declaration or positive-assignment scope
+emits 0x40C bytes and differs by 247 words. None restores the entry result
+forwarding together with the three retail pointer spills.
+
+`attr` is loaded from the automap cell with `lh`, but making the local a short
+adds sign-extension/control scheduling and gives 196 words with a 0x418 body;
+the integer local is retained. An unsigned attempt counter adds one comparison
+word to the natural direct-call draft (54 versus 53). SDK vector typedefs do
+not change the direct-call result. These tests need no header or selector row.
+
+Remaining blocker: a natural receiver lifetime that preserves retail's
+sp+0xD8 map, sp+0xDC automap, sp+0xE0 output and 0x2BE0 frame without the
+existing wrappers/attributes. All trials are private and reverted. Receipts:
+`.private/midday/probes/dng_event/` and
+`.private/midday/m2c/SearchMapFlatPosition__FPfP11CAutoMapGen.txt`.
