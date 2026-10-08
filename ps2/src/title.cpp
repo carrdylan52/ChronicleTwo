@@ -416,8 +416,8 @@ static void TitleBootInit() {
     SetMainMapInfo(&main_map);
     GetLoadMapInfo(&load_info, map_no);
     load_info.sky_tex_block = 0x6B;
-    load_info.place_parts_max = 0x190;
     load_info.load_sky = 1;
+    load_info.place_parts_max = 0x190;
     TitleScene->DeleteMap(0, 1);
     TitleScene->LoadMap(0, &load_info, 0);
     TitleScene->SetNowMapNo(map_no);
