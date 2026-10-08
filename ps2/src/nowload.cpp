@@ -38,41 +38,177 @@ struct PauseState : PAUSE_INFO {
     }
 };
 
-extern int        PauseFlag__2;
-extern int        cancel_now_loading;
-extern int        InitFlag;
-extern PauseState PauseInfo;
-extern float      SeCoreVol;
-extern int        PauseEnableFlag;
-extern int        PauseCancelCnt;
-extern int        ProgBarCnt;
-extern int        LoopStep;
-extern int        EndFlag;
-extern int        TheadID__3;
-extern float      NextProgBarWidth;
 extern char       at_832__7[];
 extern char       at_863__5[];
 extern char       at_864__3[];
-extern float      ProgBarWidth;
-extern u8         ThreadStack__3[0x1000];
-extern int        load_skip_img;
 extern char       at_912__6[];
 extern char       at_913__5[];
-extern u8         SkipImage[];
-extern int        start_vcount;
-extern int        PauseTexb;
 extern char       at_920__7[];
-extern int        wave_status;
-extern int        play_time_count;
-NowLoadingInfo    LoadInfo;
-extern float      ProgBarWidthStep;
+
+/**
+ *
+ * Memory and progress settings of the active loading screen.
+ *
+ */
+static NowLoadingInfo LoadInfo;
 
 #ifdef NONMATCHING
 #include "mg_tanime.hpp"
 #endif
 
-extern int           bgm_status[7];
-extern unsigned char SkipImage[0x2800];
+/**
+ *
+ * Current stage of the loading-screen thread.
+ *
+ */
+static int LoopStep = NOW_LOADING_STEP_NONE;
+
+/**
+ *
+ * ID of the loading-screen thread.
+ *
+ */
+static int TheadID__3;
+
+/**
+ *
+ * Current loading progress bar width as a ratio.
+ *
+ */
+static float ProgBarWidth;
+
+/**
+ *
+ * Per-frame increase of the loading progress bar ratio.
+ *
+ */
+static float ProgBarWidthStep;
+
+/**
+ *
+ * Target loading progress bar width as a ratio.
+ *
+ */
+static float NextProgBarWidth;
+
+/**
+ *
+ * Number of completed loading progress steps.
+ *
+ */
+static int ProgBarCnt;
+
+/**
+ *
+ * Whether loading-screen shutdown has been requested.
+ *
+ */
+static int EndFlag;
+
+/**
+ *
+ * Whether the next loading-screen request is ignored.
+ *
+ */
+static int cancel_now_loading;
+
+/**
+ *
+ * Whether the pause skip image has been loaded.
+ *
+ */
+static int load_skip_img;
+
+/**
+ *
+ * Whether the pause screen is active.
+ *
+ */
+static int PauseFlag__2;
+
+/**
+ *
+ * Whether the game may enter the pause screen.
+ *
+ */
+static int PauseEnableFlag;
+
+/**
+ *
+ * Remaining frames before another pause is allowed.
+ *
+ */
+static int PauseCancelCnt;
+
+/**
+ *
+ * Texture block containing the pause screen images.
+ *
+ */
+static int PauseTexb;
+
+/**
+ *
+ * Scene and event-skip settings of the active pause screen.
+ *
+ */
+static PauseState PauseInfo;
+
+/**
+ *
+ * Elapsed pause-screen frames, capped at one thousand.
+ *
+ */
+static int InitFlag;
+
+/**
+ *
+ * Master sound volume saved when the game pauses.
+ *
+ */
+static float SeCoreVol;
+
+/**
+ *
+ * Play-time counting flag saved when the game pauses.
+ *
+ */
+static int play_time_count;
+
+/**
+ *
+ * Stream playback status saved when the game pauses.
+ *
+ */
+static int wave_status;
+
+/**
+ *
+ * VSync count recorded when the boot logo fades in.
+ *
+ */
+static int start_vcount;
+
+/**
+ *
+ * Stack memory for the loading-screen thread.
+ *
+ */
+static u8 ThreadStack__3[0x1000];
+
+/**
+ *
+ * Loaded skip-button image data for the pause screen.
+ *
+ */
+static u8 SkipImage[0x2800];
+
+/**
+ *
+ * Music status words whose first word controls pause-end replay.
+ *
+ */
+static int bgm_status[7];
 
 // Code (.text)
 void SwitchNowLoadingThread() {
@@ -609,8 +745,6 @@ void SCElogoFade(int fade_out, mgCMemory *memory) {
 
 #pragma opt_strength_reduction reset
 
-// Static initialiser (.init)
-
 // Constants (.rodata)
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/nowload", at_832__7__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/nowload", at_863__5__DATA);
@@ -621,33 +755,3 @@ INCLUDE_RODATA("ps2/asm/pal/nonmatchings/nowload", at_920__7__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/nowload", at_1003__5__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/nowload", at_1068__4__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/nowload", at_1069__6__DATA);
-
-// Static initialiser table (.ctor)
-
-// Small initialised data (.sdata)
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/nowload", LoopStep__DATA);
-
-// Small uninitialised data (.sbss)
-INCLUDE_BSS(TheadID__3, 0x4);
-INCLUDE_BSS(ProgBarWidth, 0x4);
-INCLUDE_BSS(ProgBarWidthStep, 0x4);
-INCLUDE_BSS(NextProgBarWidth, 0x4);
-INCLUDE_BSS(ProgBarCnt, 0x4);
-INCLUDE_BSS(EndFlag, 0x4);
-INCLUDE_BSS(cancel_now_loading, 0x4);
-INCLUDE_BSS(load_skip_img, 0x4);
-INCLUDE_BSS(PauseFlag__2, 0x4);
-INCLUDE_BSS(PauseEnableFlag, 0x4);
-INCLUDE_BSS(PauseCancelCnt, 0x4);
-INCLUDE_BSS(PauseTexb, 0x4);
-PauseState PauseInfo;
-INCLUDE_BSS(InitFlag, 0x4);
-INCLUDE_BSS(SeCoreVol, 0x4);
-INCLUDE_BSS(play_time_count, 0x4);
-INCLUDE_BSS(wave_status, 0x4);
-INCLUDE_BSS(start_vcount, 0x4);
-
-// Uninitialised data (.bss)
-INCLUDE_BSS(ThreadStack__3, 0x1000);
-INCLUDE_BSS(SkipImage, 0x2800);
-INCLUDE_BSS(bgm_status, 0x20);
