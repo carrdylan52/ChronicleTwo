@@ -348,6 +348,28 @@
         "evaluate_first": true
       },
       {
+        "translation_unit": "gyoracesim.cpp",
+        "function": "FishModifyParam__FP12grFISH_PARAMPff",
+        "value_type": "binary32",
+        "value_bits": "0x3e4ccccd",
+        "callee": "GetRandomNumber__Fff",
+        "control": {
+          "kind": "switch",
+          "values": [
+            1
+          ]
+        },
+        "evaluate_first": true
+      },
+      {
+        "translation_unit": "gyoracesim.cpp",
+        "function": "FishModifyParam__FP12grFISH_PARAMPff",
+        "value_type": "binary32",
+        "value_bits": "0x3e99999a",
+        "callee": "GetRandomNumber__Fff",
+        "evaluate_first": true
+      },
+      {
         "translation_unit": "inventmn.cpp",
         "function": "MenuInventDebugDraw__Fv",
         "value_type": "binary32",
