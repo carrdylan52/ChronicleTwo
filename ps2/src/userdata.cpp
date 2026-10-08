@@ -65,33 +65,158 @@ struct CharaBitTable {
  * Keeps the weapon to restore after the fishing game.
  */
 static CGameDataUsed *FishGamePreEquip;
-extern char           *magic_str_1462[8];
+/**
+ * Gives the primary and secondary effect scripts for each weapon element.
+ */
+static char *magic_str_1462[8] = {
+    "\x83\x82\x83j\x83J\x96\x82\x96@\x81|\x89\xCE",
+    "\x83\x82\x83j\x83J\x96\x82\x96@\x81|\x89\xCE\x83q\x83""b\x83g",
+    "\x83\x82\x83j\x83J\x96\x82\x96@\x81|\x95X",
+    "\x83\x82\x83j\x83J\x96\x82\x96@\x81|\x95X\x83q\x83""b\x83g",
+    "\x83\x82\x83j\x83J\x96\x82\x96@\x81|\x97\x8B",
+    "\x83\x82\x83j\x83J\x96\x82\x96@\x81|\x97\x8B\x83q\x83""b\x83g",
+    "\x83\x82\x83j\x83J\x96\x82\x96@\x81|\x95\x97",
+    "\x83\x82\x83j\x83J\x96\x82\x96@\x81|\x95\x97\x83q\x83""b\x83g",
+};
 /**
  * Holds the formatted name of an owned item.
  */
 static char word_1327[0x61];
-extern char           *symbol_tbl_1338[8][2][2];
+/**
+ * Gives the name prefix and suffix for each language and rename state.
+ */
+static char *symbol_tbl_1338[8][2][2] = {
+    {{"\x81w", "\x81x"}, {"\x81y", "\x81z"}},
+    {{"\"", "\""}, {"\x81y", "\x81z"}},
+    {{"\"", "\""}, {"'", "'"}},
+    {{"\"", "\""}, {"'", "'"}},
+    {{"\"", "\""}, {"'", "'"}},
+    {{"\"", "\""}, {"'", "'"}},
+    {{"\"", "\""}, {"'", "'"}},
+    {{"\"", "\""}, {"\x81y", "\x81z"}},
+};
 /**
  * Gives a weapon's random durability gain when it levels up.
  */
 static signed char htbl_1662[10] = {1, 1, 1, 1, 1, 2, 2, 2, 3, 3};
-extern char           *strtbl_1505[8];
+/**
+ * Gives the spectrum source description format for each language.
+ */
+static char *strtbl_1505[8] = {
+    "\x81w%s\x81x",
+    "\"%s\"",
+    "\"%s\"",
+    "\"%s\"",
+    "\"%s\"",
+    "\"%s\"",
+    "\"%s\"",
+    "\"%s\"",
+};
 /**
  * Holds an attachment's spectrum source description.
  */
 static char temp_1510[0x40];
-extern char           *f_2005[2];
-extern char           *basefish_1288[];
+/**
+ * Gives the model-name prefix for each human character.
+ */
+static char *f_2005[2] = {
+    "c01_base",
+    "c02_base",
+};
+/**
+ * Formats a cooked fish name for each language.
+ */
+static char *basefish_1288[7] = {
+    " ",
+    "Grilled %s",
+    "R[UNI00f4]tir %s",
+    "Ger[UNI00f6]steter %s",
+    "Cuoci %s",
+    "Asar %s",
+    "Roast %s",
+};
 /**
  * Gives the shield kit limit for each ridepod core.
  */
 static unsigned char use_limmit_table_2558[7] = {3, 6, 9, 12, 15, 18, 21};
-extern MOS_HENGE_PARAM mos_henge_param[];
+/**
+ * Gives the combat parameters and script names for monster transformations.
+ */
+static MOS_HENGE_PARAM mos_henge_param[57] = {
+    {0, 8, 4, {0, 0}, "f201a", {NULL, NULL, NULL, NULL}},
+    {1, 22, 12, {0, 0}, "f201a", {NULL, NULL, NULL, NULL}},
+    {2, 64, 24, {0, 0}, "f201a", {NULL, NULL, NULL, NULL}},
+    {3, 96, 42, {0, 0}, "f201a", {NULL, NULL, NULL, NULL}},
+    {8, 7, 3, {0, 0}, "f203a", {"\x93\xC5\x89tL", "\x93\xC5\x89tH", NULL, NULL}},
+    {9, 23, 11, {0, 0}, "f203a", {"\x93\xC5\x89tL", "\x93\xC5\x89tH", NULL, NULL}},
+    {10, 60, 23, {0, 0}, "f203a", {"\x93\xC5\x89tL", "\x93\xC5\x89tH", NULL, NULL}},
+    {11, 95, 41, {0, 0}, "f203a", {"\x93\xC5\x89tL", "\x93\xC5\x89tH", NULL, NULL}},
+    {22, 60, 20, {0, 0}, "f206a", {"fox_\x8F""e\x92""e", "\x83}\x83Y\x83\x8B\x83t\x83\x89\x83""b\x83V\x83\x85", NULL, NULL}},
+    {23, 88, 39, {0, 0}, "f206a", {"fox_\x8F""e\x92""e", "\x83}\x83Y\x83\x8B\x83t\x83\x89\x83""b\x83V\x83\x85", NULL, NULL}},
+    {24, 8, 3, {0, 0}, "f207a", {NULL, NULL, NULL, NULL}},
+    {25, 22, 10, {0, 0}, "f207a", {NULL, NULL, NULL, NULL}},
+    {26, 64, 21, {0, 0}, "f207a", {NULL, NULL, NULL, NULL}},
+    {27, 96, 39, {0, 0}, "f207a", {NULL, NULL, NULL, NULL}},
+    {44, 7, 3, {0, 0}, "f213a", {"\x89\xCE\x92""e\x82k\x82R", "\x89\xCE\x92""e\x82g", NULL, NULL}},
+    {45, 23, 10, {0, 0}, "f213a", {"\x95\x97\x92""e\x82k\x82Q", "\x95\x97\x92""e\x82g", NULL, NULL}},
+    {46, 60, 21, {0, 0}, "f213a", {"\x95X\x92""e\x82k\x82Q", "\x95X\x92""e\x82g", NULL, NULL}},
+    {47, 95, 39, {0, 0}, "f213a", {"\x97\x8B\x92""e\x82k\x82Q", "\x97\x8B\x92""e\x82g", NULL, NULL}},
+    {52, 9, 4, {0, 0}, "f216a", {"\x83q\x83}\x81[\x83\x89\x89\xF1\x93]\x8DU\x8C\x82", "\x82\xCB\x82\xCE\x82\xCB\x82\xCE\x82k", "\x82\xCB\x82\xCE\x82\xCB\x82\xCE\x82g", NULL}},
+    {53, 23, 12, {0, 0}, "f216a", {"\x83q\x83}\x81[\x83\x89\x89\xF1\x93]\x8DU\x8C\x82", "\x82\xCB\x82\xCE\x82\xCB\x82\xCE\x82k", "\x82\xCB\x82\xCE\x82\xCB\x82\xCE\x82g", NULL}},
+    {54, 65, 24, {0, 0}, "f216a", {"\x83q\x83}\x81[\x83\x89\x89\xF1\x93]\x8DU\x8C\x82", "\x82\xCB\x82\xCE\x82\xCB\x82\xCE\x82k", "\x82\xCB\x82\xCE\x82\xCB\x82\xCE\x82g", NULL}},
+    {55, 99, 42, {0, 0}, "f216a", {"\x83q\x83}\x81[\x83\x89\x89\xF1\x93]\x8DU\x8C\x82", "\x82\xCB\x82\xCE\x82\xCB\x82\xCE\x82k", "\x82\xCB\x82\xCE\x82\xCB\x82\xCE\x82g", NULL}},
+    {72, 7, 3, {0, 0}, "f221a", {"\x8E\xF4\x82\xA2\x92""e\x82""e", "\x8E\xF4\x82\xA2\x92""e\x82k", "\x8E\xF4\x82\xA2\x92""e\x82g", NULL}},
+    {73, 23, 11, {0, 0}, "f221a", {"\x8E\xF4\x82\xA2\x92""e\x82""e", "\x8E\xF4\x82\xA2\x92""e\x82k", "\x8E\xF4\x82\xA2\x92""e\x82g", NULL}},
+    {74, 60, 23, {0, 0}, "f221a", {"\x8E\xF4\x82\xA2\x92""e\x82""e", "\x8E\xF4\x82\xA2\x92""e\x82k", "\x8E\xF4\x82\xA2\x92""e\x82g", NULL}},
+    {75, 95, 41, {0, 0}, "f221a", {"\x8E\xF4\x82\xA2\x92""e\x82""e", "\x8E\xF4\x82\xA2\x92""e\x82k", "\x8E\xF4\x82\xA2\x92""e\x82g", NULL}},
+    {102, 59, 30, {0, 0}, "f10a", {"\x82\xA9\x82\xDA\x82\xBF\x82\xE1\x94\x9A\x92""e", "\x82l\x8F\xAC\x94\x9A\x94\xAD", NULL, NULL}},
+    {103, 88, 50, {0, 0}, "f10a", {"\x82\xA9\x82\xDA\x82\xBF\x82\xE1\x94\x9A\x92""e", "\x82l\x8F\xAC\x94\x9A\x94\xAD", NULL, NULL}},
+    {112, 80, 26, {0, 0}, "f114a", {"\x89\xCE\x92""e\x82""e", "\x89\xCE\x92""e\x82k\x82R", NULL, NULL}},
+    {116, 44, 22, {0, 0}, "f114a", {"\x95X\x92""e\x82""e", "\x95X\x92""e\x82k\x82Q", "\x95X\x92""e\x82g", NULL}},
+    {120, 55, 24, {0, 0}, "f114a", {"\x97\x8B\x92""e\x82""e", "\x97\x8B\x92""e\x82k\x82Q", "\x97\x8B\x92""e\x82g", NULL}},
+    {124, 33, 20, {0, 0}, "f114a", {"\x95\x97\x92""e\x82""e", "\x95\x97\x92""e\x82k\x82Q", "\x95\x97\x92""e\x82g", NULL}},
+    {128, 75, 28, {0, 0}, "f114a", {"\x90\xB9\x92""e\x82""e", "\x90\xB9\x92""e\x82k\x82Q", "\x90\xB9\x92""e\x82g", NULL}},
+    {136, 30, 12, {0, 0}, "f06a", {NULL, NULL, NULL, NULL}},
+    {137, 70, 24, {0, 0}, "f06a", {NULL, NULL, NULL, NULL}},
+    {139, 100, 34, {0, 0}, "f06a", {NULL, NULL, NULL, NULL}},
+    {150, 60, 23, {0, 0}, "f24a", {"\x82\xCB\x82\xCE\x82\xCB\x82\xCE\x82k\x82Q", "\x82\xCB\x82\xCE\x82\xCB\x82\xCE\x82g", NULL, NULL}},
+    {151, 95, 41, {0, 0}, "f24a", {"\x82\xCB\x82\xCE\x82\xCB\x82\xCE\x82k\x82Q", "\x82\xCB\x82\xCE\x82\xCB\x82\xCE\x82g", NULL, NULL}},
+    {154, 55, 30, {0, 0}, "f26a", {"\x90\xCE\x89\xBB\x92""e\x82k", "\x82\xCB\x82\xCE\x82\xCB\x82\xCE\x82g", NULL, NULL}},
+    {155, 88, 42, {0, 0}, "f26a", {"\x90\xCE\x89\xBB\x92""e\x82k", "\x82\xCB\x82\xCE\x82\xCB\x82\xCE\x82g", NULL, NULL}},
+    {166, 65, 40, {0, 0}, "f05a", {NULL, NULL, NULL, NULL}},
+    {167, 85, 60, {0, 0}, "f05a", {NULL, NULL, NULL, NULL}},
+    {176, 7, 3, {0, 0}, "f03a", {NULL, NULL, NULL, NULL}},
+    {177, 23, 11, {0, 0}, "f03a", {NULL, NULL, NULL, NULL}},
+    {180, 60, 23, {0, 0}, "f03a", {NULL, NULL, NULL, NULL}},
+    {183, 95, 41, {0, 0}, "f03a", {NULL, NULL, NULL, NULL}},
+    {186, 61, 25, {0, 0}, "f03a", {NULL, NULL, NULL, NULL}},
+    {187, 89, 38, {0, 0}, "f03a", {NULL, NULL, NULL, NULL}},
+    {220, 8, 3, {0, 0}, "f49a", {"\x83{\x83\x93\x83o\x83w\x8E\xA9\x94\x9A", NULL, NULL, NULL}},
+    {221, 22, 10, {0, 0}, "f49a", {"\x83{\x83\x93\x83o\x83w\x8E\xA9\x94\x9A", NULL, NULL, NULL}},
+    {222, 64, 21, {0, 0}, "f49a", {"\x83{\x83\x93\x83o\x83w\x8E\xA9\x94\x9A", NULL, NULL, NULL}},
+    {223, 96, 39, {0, 0}, "f49a", {"\x83{\x83\x93\x83o\x83w\x8E\xA9\x94\x9A", NULL, NULL, NULL}},
+    {224, 36, 20, {0, 0}, "f45a", {NULL, NULL, NULL, NULL}},
+    {228, 57, 24, {0, 0}, "f45a", {NULL, NULL, NULL, NULL}},
+    {232, 66, 40, {0, 0}, "f45a", {NULL, NULL, NULL, NULL}},
+    {236, 45, 22, {0, 0}, "f45a", {NULL, NULL, NULL, NULL}},
+    {240, 80, 20, {0, 0}, "f45a", {NULL, NULL, NULL, NULL}},
+};
 /**
  * Maps fish item numbers to the fishing record slots.
  */
 static short fish_record_dataindex_convert[19] = {320, 321, 322, 323, 324, 325, 326, 327, 328, 329, 330, 331, 332, 333, 334, 335, 336, 310, -1};
-extern char           *robo_nametable_3330[];
+/**
+ * Gives the default ridepod name for each language.
+ */
+static char *robo_nametable_3330[7] = {
+    "\x83\x89\x83""C\x83h\x83|\x83""b\x83h",
+    "Ridepod",
+    "Robomobil",
+    "Ridepod",
+    "Robomobile",
+    "Ridepod",
+    "Ridepod",
+};
 /**
  * Gives the initial health capacity of the two human characters.
  */
@@ -6293,12 +6418,6 @@ void DebugGetItem(CUserDataManager *user_data, int mode) {
 }
 
 // Initialised data (.data)
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/userdata", mos_henge_param__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/userdata", basefish_1288__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/userdata", symbol_tbl_1338__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/userdata", magic_str_1462__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/userdata", strtbl_1505__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/userdata", robo_nametable_3330__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/userdata", cureItemtable_5744__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/userdata", itemtbl_5745__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/userdata", start_tbl_5746__DATA);
@@ -6311,92 +6430,16 @@ INCLUDE_RODATA("ps2/asm/pal/nonmatchings/userdata", dbg_set3_5776__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/userdata", subgame1_5788__DATA);
 
 // Constants (.rodata)
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/userdata", at_896__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/userdata", at_897__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/userdata", at_898__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/userdata", at_899__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/userdata", at_900__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/userdata", at_901__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/userdata", at_902__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/userdata", at_903__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/userdata", at_904__3__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/userdata", at_905__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/userdata", at_906__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/userdata", at_907__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/userdata", at_908__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/userdata", at_909__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/userdata", at_910__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/userdata", at_911__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/userdata", at_912__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/userdata", at_913__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/userdata", at_914__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/userdata", at_915__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/userdata", at_916__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/userdata", at_917__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/userdata", at_918__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/userdata", at_919__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/userdata", at_920__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/userdata", at_921__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/userdata", at_922__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/userdata", at_923__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/userdata", at_924__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/userdata", at_925__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/userdata", at_926__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/userdata", at_927__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/userdata", at_928__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/userdata", at_929__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/userdata", at_930__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/userdata", at_931__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/userdata", at_932__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/userdata", at_933__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/userdata", at_934__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/userdata", at_935__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/userdata", at_936__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/userdata", at_937__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/userdata", at_938__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/userdata", at_939__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/userdata", at_940__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/userdata", at_941__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/userdata", at_1289__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/userdata", at_1290__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/userdata", at_1291__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/userdata", at_1292__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/userdata", at_1293__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/userdata", at_1294__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/userdata", at_1295__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/userdata", at_1339__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/userdata", at_1340__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/userdata", at_1341__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/userdata", at_1342__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/userdata", at_1343__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/userdata", at_1344__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/userdata", at_1378__2__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/userdata", at_1379__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/userdata", at_1463__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/userdata", at_1464__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/userdata", at_1465__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/userdata", at_1466__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/userdata", at_1467__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/userdata", at_1468__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/userdata", at_1469__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/userdata", at_1470__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/userdata", at_1506__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/userdata", at_1507__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/userdata", at_1623__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/userdata", at_1624__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/userdata", at_1637__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/userdata", at_2006__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/userdata", at_2007__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/userdata", at_2018__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/userdata", at_2019__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/userdata", at_3331__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/userdata", at_3332__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/userdata", at_3333__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/userdata", at_3334__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/userdata", at_4442__DATA);
 
 // Small initialised data (.sdata)
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/userdata", f_2005__DATA);
 /**
  * Gives the fish capacity of each aquarium tank.
  */

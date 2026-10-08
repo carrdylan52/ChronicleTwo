@@ -61,5 +61,32 @@ The completed group has 101 data markers and two BSS markers.
 `userdata-attributes-data-only-build.log` records PAL OK, its
 object receipt records 149 / 149, and every unowned object file hash
 is unchanged. The refreshed data measure remains 4 / 4,264 bytes:
-objdiff credits complete matching sections, so partial migrations
-do not necessarily increase that measure.
+partial migrations do not necessarily increase that measure.
+
+## Language and monster script tables
+
+The native `basefish_1288`, `symbol_tbl_1338`, `magic_str_1462`,
+`strtbl_1505`, `f_2005`, and `robo_nametable_3330` pointer arrays
+contain their literal strings at the definitions. Shared strings
+remain pooled by MWCC. No named literal objects or casts are needed.
+Every table has a full-build receipt named `userdata-<symbol>` in
+`.private/dataC/`.
+
+`mos_henge_param` is a native 57-entry `MOS_HENGE_PARAM` array.
+Each 0x1C-byte entry contains three signed halfwords, two unknown
+zero bytes, the monster script basename at +8, and four effect
+basenames at +0xC. All basename literals are inline in the table.
+The 0x63C-byte object has a four-byte alignment tail.
+
+`GetMonsterModelFile` uses the +8 pointer to form a `%s.stb` path;
+it is not padding. The header names it `script_name`, reduces
+`unk_6` to two bytes, and leaves `effect_name` at its existing
+offset. Existing callers' declarations and record layout remain
+compatible. Detailed m2c/disassembly evidence is in
+`.private/dataC/type-analysis/findings.md`.
+
+`userdata-monster-table-build.log` and
+`userdata-monster-table-objects.log` prove PAL OK and 149 / 149
+objects after rebuilding all header consumers. Every unowned object
+file hash equals the warm baseline. There are 19 data markers and
+two BSS markers after this group.

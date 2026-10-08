@@ -962,7 +962,8 @@ struct MOS_HENGE_PARAM {
     s16   monster_id; /**< Monster this row belongs to. */
     s16   attack;     /**< Base attack. */
     s16   defence;    /**< Base defence. */
-    u8    unk_6[6];
+    u8    unk_6[2];
+    char *script_name; /**< Monster script basename used to form its .stb path. */
     char *effect_name[4]; /**< Effect base names loaded for the monster. */
 };
 
