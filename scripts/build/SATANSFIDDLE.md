@@ -74,11 +74,57 @@ the `SetRotation` zero associated with `unitRotation`'s third argument 16.0f,
 while `RoboAirMoveIF` selects the zero associated with a local angle passed
 as `unitRotation`'s second argument.
 
+The subsequent `patches/satansfiddle-control-context.patch` adds two optional
+source identities for verified MWCC 3.0 statement lowering. `control` identifies
+the integer value set of an enclosing equality condition or grouped switch case;
+`argument` identifies a sibling floating constant by its formal position, type,
+and IEEE bits. Both require `callee`. For example, the two `_SHOT` alpha calls
+share their callee and 160.0f value, but only the attack-type-90 condition needs
+early evaluation:
+
+```json
+{
+  "translation_unit": "actscript.cpp",
+  "function": "_SHOT__FP12RS_STACKDATAi",
+  "value_type": "binary32",
+  "value_bits": "0x43200000",
+  "callee": "SetValue__16CEffectScriptManFifii",
+  "control": {"kind": "condition", "values": [90]},
+  "evaluate_first": true
+}
+```
+
+Condition values are reconstructed from forward equality-controlled statement
+regions, including short-circuit OR branches. Switch values group cases sharing
+their actual source label. Values are normalized as a set, and duplicate or empty
+sets fail validation. The implementation does not infer arbitrary optimized
+control flow: unsupported forms leave the row unconsumed. Neither statement
+position nor compiler pointers enter a selector. The two hooks are supported
+only on the hash-verified 3.0 compiler; other profiles reject these capabilities.
+
+Centered message placement additionally distinguishes screen-limit argument 1,
+512.0f for X and 480.0f for Y. Its optional `argument` uses the same fields as a
+nested constant selector except for the nested callee. Argument positions refer
+to the compiler's formal argument list, including an implicit receiver when one
+exists; `CalcAutoPosSet` has four ordinary scalar arguments.
+
+The optional `evaluate_before` policy names a formal sibling argument index and
+requires `evaluate_first: false`. It prioritizes the selected constant in the
+ordinary register-argument evaluation walk after formal slots have been assigned.
+The original list order is restored before transfers to those slots. This allows
+the centered-X half ratio to materialize before screen limit argument 1 while
+retaining both integer values until their later floating transfers. It changes
+compiler expression scheduling, without editing instructions or emitted objects.
+Missing siblings, self-dependencies, cycles, and incomplete restoration fail the
+compilation. The selector and lowering evidence is documented in
+[`selector-proposal-20261008.md`](../../ps2/re/docs/satansfiddle/selector-proposal-20261008.md).
+
 Unscoped rows apply during annotation and argument consumption. Callee-scoped
 rows apply at argument consumption, where a matching scoped row takes precedence
 over an unscoped row regardless of configuration order. Nested selectors take
-precedence over callee-only rows. The consumer hook also
-initializes fresh direct constant nodes that bypassed annotation. An explicit
+precedence over callee-only rows. Each additional nested, control, or argument
+identity increases the row's specificity. The consumer hook initializes fresh
+direct constant nodes that bypassed annotation. An explicit
 stable selector can adjust verified assignment wrappers and compiler-registered
 literal-pool loads; arbitrary variable expressions retain normal annotation.
 
@@ -117,3 +163,16 @@ Use
 adapter's argument, selector, and failure-path checks.
 Use `python3 -m unittest discover -s scripts/build -p test_objdiff_config.py`
 to check template, local-symbol, and literal-name mappings.
+
+The Docker wrapper stage also runs Satan's Fiddle's configuration and control
+tests. Development images include the CLI regression runner, so a mounted genuine
+3.0 compiler can exercise grouped cases, compound conditions, sibling arguments,
+ordinary evaluation priority, repeated builds, temporary filenames, and stale
+selector rejection:
+
+```sh
+export SATANSFIDDLE_TEST_COMPILER_300="$PWD/tools/compilers/mw/3.0-011126/mwccps2.exe"
+export SATANSFIDDLE_TEST_EXECUTABLE=/usr/local/bin/satansfiddle
+/usr/local/libexec/satansfiddle-tests/compiler_cli-* \
+  --ignored --exact real_control_regions_and_ordinary_argument_walk
+```
