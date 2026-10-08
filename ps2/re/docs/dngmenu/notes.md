@@ -615,3 +615,10 @@ The remaining differences and reconsideration triggers are recorded in
 `CheckGeoramaMateria` and `CMenuTreeMap::InitEnd`, refreshed SF measurements
 of every assigned guard, and the retained guarded corrections.
 [parks.md](parks.md) is the current remainder list and retry guide.
+
+## Midday round 1
+
+[round1.md](round1.md) records new MsgInit assignment forms and tree-opening
+condition, cursor-buffer type and optimizer probes. Their best results remain
+7/116 and 55/256. The conditional natural ClsMes::Init proposal remains
+inactive; no dungeon function, global type or profile row changes this round.
