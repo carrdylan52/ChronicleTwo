@@ -141,3 +141,21 @@ current-part-position,preview-offset,paint-colours,preview-scales,
 preview-depths}-*`. Every check reports PAL OK and 149/149 objects, with
 only the two owned unit hashes differing from baseline. This checkpoint
 removes seven initialized-data markers (146 remain).
+
+## Board and list tables
+
+The paint item identifiers, view-to-list indices, active/inactive board and
+scrollbar texture rectangles, language-specific analysis/house title offsets,
+resident labels, message-column positions and analysis topic-button origins
+now have typed initialized definitions. The existing drawing APIs consume
+flat short rectangle tables, so these retain their declared flat interface;
+two-dimensional tables retain rows with their actual dimensions.
+`offset_2176` contains seven language entries, not the eight entries in its
+former extern. `postbl_2175` has eight texture rectangles, including the
+extra retail row. `tbl_957` retains -1 for views without a part list.
+
+Each table was migrated separately and passed PAL and all object checks.
+Receipts: `editmenu-paint-items-*`, `editmenu-list-indexes-*`,
+`editmenu-active-board-*`, and `editmenu-table-<symbol>-*` beneath
+`.private/dataB/receipts/`. All other 147 object hashes remain identical.
+This group removes fourteen more markers (132 initialized markers remain).

@@ -103,8 +103,22 @@ enum {
     kRemovalNpcMax = 32
 };
 
-extern short     penki_item_no[8];
-extern "C" short tbl_957[];
+/**
+ *
+ * Inventory item identifiers for the eight Georama paint colours.
+ *
+ */
+static short penki_item_no[8] = {
+    237, 238, 242, 240, 241, 243, 244, 239,
+};
+/**
+ *
+ * Part-list index for each Georama view mode, or minus one when no list applies.
+ *
+ */
+static short tbl_957[7] = {
+    0, 1, 2, -1, 4, -1, 3,
+};
 void             MenuGeoramaMessageMake(int mode);
 
 /**
@@ -351,10 +365,45 @@ extern char                   at_4270[];
 extern char                   at_4271[];
 extern char                   at_4272[];
 extern signed char            viewmode_to_mode_convtable_1310[7];
-extern short                  brdtbl_active_1314[];
-extern short                  brdtbl_noneactive_1315[];
-extern short                  ScrlBarTable_1320[];
-extern short                  constant_msg_xyoffsettbl_2427[][4];
+/**
+ *
+ * Texture rectangles of the active Georama list board pieces.
+ *
+ */
+static short brdtbl_active_1314[12] = {
+    350, 460, 12, 22, 362, 460, 12, 22,
+    374, 460, 12, 22,
+};
+/**
+ *
+ * Texture rectangles of the inactive Georama list board pieces.
+ *
+ */
+static short brdtbl_noneactive_1315[12] = {
+    350, 438, 12, 22, 362, 438, 12, 22,
+    374, 438, 12, 22,
+};
+/**
+ *
+ * Texture rectangles of the Georama list scroll bar pieces.
+ *
+ */
+static short ScrlBarTable_1320[12] = {
+    356, 234, 8, 10, 356, 242, 8, 10,
+    356, 250, 8, 10,
+};
+/**
+ *
+ * Screen positions of the two message columns for each Georama list.
+ *
+ */
+static short constant_msg_xyoffsettbl_2427[5][4] = {
+    {40, 258, 40, 282},
+    {40, 258, 40, 282},
+    {54, 267, 0, 0},
+    {40, 261, 40, 285},
+    {54, 267, 0, 0},
+};
 /**
  *
  * Request source currently examined by the Georama analysis menu.
@@ -379,14 +428,83 @@ static signed char GeoramaReqMsgFontGyouNum[48];
  *
  */
 static signed char GeoramaReqMsgFontDrawFlag[48];
-extern short                  maintopicbtn_1568[2][2];
-extern float                  offsettable_1551[2][2];
-extern short                  brdtbl_noneactive_1547[];
-extern short                  brdtbl_1550[];
-extern short                  rectboxtbl_1555[];
-extern short                  postbl_2175[8][4];
-extern short                  offset_2176[8];
-extern short                  jyunintbl_2187[2][4];
+/**
+ *
+ * Texture origins of the two Georama analysis topic buttons.
+ *
+ */
+static short maintopicbtn_1568[2][2] = {
+    {356, 114},
+    {356, 152},
+};
+/**
+ *
+ * Georama analysis title position offsets for the two language layouts.
+ *
+ */
+static float offsettable_1551[2][2] = {
+    {59.0f, 11.0f},
+    {67.0f, 12.0f},
+};
+/**
+ *
+ * Texture rectangles of inactive Georama analysis board pieces.
+ *
+ */
+static short brdtbl_noneactive_1547[12] = {
+    350, 438, 12, 22, 362, 438, 12, 22,
+    374, 438, 12, 22,
+};
+/**
+ *
+ * Texture rectangles of active Georama analysis board pieces.
+ *
+ */
+static short brdtbl_1550[12] = {
+    350, 460, 12, 22, 362, 460, 12, 22,
+    374, 460, 12, 22,
+};
+/**
+ *
+ * Texture rectangles of the Georama analysis scroll bar pieces.
+ *
+ */
+static short rectboxtbl_1555[12] = {
+    356, 264, 8, 32, 364, 264, 2, 32,
+    366, 264, 8, 32,
+};
+/**
+ *
+ * Texture rectangles of the placed-house panel titles by language.
+ *
+ */
+static short postbl_2175[8][4] = {
+    {364, 674, 60, 18},
+    {280, 674, 100, 18},
+    {278, 674, 104, 18},
+    {280, 674, 100, 18},
+    {278, 674, 102, 18},
+    {280, 674, 98, 18},
+    {364, 674, 60, 18},
+    {364, 674, 60, 18},
+};
+/**
+ *
+ * Placed-house panel title position offset for each language.
+ *
+ */
+static short offset_2176[7] = {
+    82, 62, 62, 62, 64, 64, 62,
+};
+/**
+ *
+ * Texture rectangles of resident labels in the placed-house panel.
+ *
+ */
+static short jyunintbl_2187[2][4] = {
+    {466, 692, 32, 18},
+    {400, 606, 32, 20},
+};
 /**
  *
  * Frame counter of the placed-house scroll-arrow blinking animation.
@@ -5312,20 +5430,7 @@ void MenuRemovalDraw() {
 void CBaseMenuClass::InitEnd() {}
 
 // Initialised data (.data)
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editmenu", penki_item_no__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editmenu", tbl_957__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editmenu", brdtbl_active_1314__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editmenu", brdtbl_noneactive_1315__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editmenu", ScrlBarTable_1320__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editmenu", brdtbl_noneactive_1547__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editmenu", brdtbl_1550__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editmenu", offsettable_1551__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editmenu", rectboxtbl_1555__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editmenu", postbl_2175__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editmenu", offset_2176__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editmenu", jyunintbl_2187__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editmenu", at_2326__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editmenu", constant_msg_xyoffsettbl_2427__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editmenu", at_3361__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editmenu", at_3757__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editmenu", MenuGeoramaPushFunc__DATA);
@@ -5456,7 +5561,6 @@ INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editmenu", analyze_percent__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editmenu", GeoramaReqMakeFlag__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editmenu", fname_1013__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editmenu", viewmode_to_mode_convtable_1310__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editmenu", maintopicbtn_1568__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editmenu", at_1828__2__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editmenu", msgtbl_2587__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editmenu", DestroyNum_3583__DATA);
