@@ -220,9 +220,13 @@ member, while its reverse traversal retains the newly allocated node.
 A negative passage direction stops traversal. An unsupported cell type
 also stops traversal. No raw pointer induction is used.
 
-The passage-pointer table is twelve pointers (48 bytes), the room-pointer
-table eight pointers (32 bytes), and the direction tables contain signed
-bytes. Retail uses signed `lb` for both the room-table selector and room
+The passage-pointer reservation contains ten non-null pointers followed
+by two zero words (48 bytes total); the room-pointer reservation contains
+four non-null pointers followed by four zero words (32 bytes total). These
+trailing zeros do not establish additional usable curve entries. Direction
+tables contain signed bytes. The two eight-byte room selector/order tables
+contain selectors `0,1,2,3,1,0,3,2` and orders `1,0,1,0,0,1,0,1`; no
+disabled order occurs in those room tables. Retail uses signed `lb` for both the room-table selector and room
 point order. Their generated assembly placeholders currently expose byte
 arrays. A private canonical activation reports five declaration conflicts;
 these owned-unit tables must be migrated with their native types before a
@@ -324,3 +328,30 @@ pointer reduces size to 0x3FC but worsens the word comparison to 234/256.
 Those variants are rejected. Reconsider the title/column/page live ranges
 and the two dimension scratch pairs together. Receipts:
 `DrawGeoramaMateria.m2c.c`, `geo-baseline/`, and the `geo-*` directories.
+
+## Final acceptance
+
+The final canonical build retains the baseline retail-verifier difference:
+`.text` differs by 0x26 bytes beginning at 0x0015C5AD; all other sections
+pass, and memory ends at 0x01F64A00. The complete checker passes 147/149
+units, with the same sole failures in `nd_meswin::DrawMesWin` and
+`actscript::_SHOT`. Dngmenu passes 0x8BC0 bytes and 1,187 relocations;
+inventmn passes 0xFF2C bytes and 2,794 relocations.
+
+The allocated bytes and relocation identities of all 149 baseline objects
+are compared. Only `dngmenu.cpp.o` changes; no inventory or foreign object
+changes. Every allocated section of the linked PAL ELF agrees with the
+baseline in bytes, address and size, including BSS. Coverage is 6,738
+matched / 122 guarded / 10 asm-only / 2 fuzzy, exactly two guarded-to-native
+changes: the two Draw functions. Dngmenu is 39/8/1/0; inventmn is 109/7/0/0.
+The promotion audit retains ordinary typed locals and indexed arrays through
+each whole native function. No assembly, compiler-profile row, shared header
+or foreign source edit is made. `ClsMes::Init`'s marker remains intact.
+
+Private final receipts under `.private/dnginv-midday/` are
+`final-build.log`, `final-objects.log`, `final-owned-objects.log`,
+`final-compare.log`, `final-compare.json`, `final-progress.log`,
+`final-coverage.log`, and `final-functions.tsv`. The expected verifier and
+all-unit checker nonzero exits are the two baseline failures; they are not
+new lane failures. The source-only guarded improvements and their diagnostic
+receipts are recorded above and in the inventory midday record.

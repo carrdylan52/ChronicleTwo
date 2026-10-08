@@ -480,8 +480,8 @@ unsigned int CDngFreeMap::DrawGlidCheck(GLID_INFO *glid) {
  *
  */
 struct RoomGlyph {
-    s16 x; /**< Horizontal glyph offset within the room picture. */ /**< Horizontal texture origin of the glyph. */
-    s16 y; /**< Vertical glyph offset within the room picture. */ /**< Vertical texture origin of the glyph. */
+    s16 x; /**< Horizontal texture origin of the glyph. */
+    s16 y; /**< Vertical texture origin of the glyph. */
     s16 w; /**< Width of the glyph in texture pixels. */
     s16 h; /**< Height of the glyph in texture pixels. */
 };
@@ -492,13 +492,16 @@ struct RoomGlyph {
  *
  */
 struct RoomGlyphOffset {
-    s16 x;
-    s16 y;
+    s16 x; /**< Horizontal glyph offset within the room picture. */
+    s16 y; /**< Vertical glyph offset within the room picture. */
 };
 
-extern RoomGlyph       get_moji_tbl_1524[];
+/** Source rectangles of the room-kind glyphs. */
+extern RoomGlyph get_moji_tbl_1524[];
+/** Destination offsets of the room-kind glyphs. */
 extern RoomGlyphOffset put_moji_tbl_1525[];
-extern float           stepCntTbl_1501[2];
+/** Room-mark phase increment for menu and event maps. */
+extern float stepCntTbl_1501[2];
 
 void CDngFreeMap::DrawRoomOne(mgRect<float> rect, DNGMAP_ROOM_INFO *room, unsigned int unused, int opacity, float brightness) {
     if (room == NULL || rect.left > (float) (mgScreenWidth + 20) || rect.top > (float) (mgScreenHeight + 30)) {
@@ -1319,7 +1322,7 @@ extern const short *RoomHokanTablePtrTable_2245__DATA[];
 extern const signed char is_reverse_tbl_2246__DATA[];
 /** Room interpolation table selected by entry and exit direction. */
 extern const signed char old_hokantbl_useno_2247__DATA[];
-/** Point order of room interpolation tables, including disabled routes. */
+/** Point order of entry and exit room interpolation tables. */
 extern const signed char is_reverse_tbl_room_2248__DATA[];
 
 /**
