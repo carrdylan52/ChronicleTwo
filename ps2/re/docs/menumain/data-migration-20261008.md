@@ -21,3 +21,15 @@ guarded initializer remain defined and reachable. All guarded source and both
 SF-calibrated function bodies compare equal to the baseline text. Full PAL and
 149-object checks pass; the only changed object hashes are the two owned units
 worked so far. Receipts: `.private/dataD-r1/menumain-state-{build,objects,progress,metrics}.log`.
+
+## Inline caller strings
+
+Thirty-seven anonymous strings are inline at their matched uses: menu texture
+names, configuration paths and diagnostics, pack members, area/time board
+labels, top-menu forms and messages, active-item icon atlases and debug title.
+Original Shift-JIS bytes use hexadecimal escapes. Both SF-selected bodies
+already have their inline literals and remain textually unchanged.
+Each function group passes PAL and 149/149 objects. Receipts are
+`menumain-{image,next,config,message,img,poscfg,board,intern,base,inter-message,
+inter-key,item,icon,debug}` under `.private/dataD-r1/`; the refreshed checkpoint
+is `menumain-strings`.

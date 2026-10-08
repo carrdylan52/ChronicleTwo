@@ -131,47 +131,18 @@ extern MovePoint   at_1865;
 extern MovePoint   at_1866;
 extern MovePoint   at_1867;
 extern MovePoint   at_2209__3;
-extern char        at_1930[];
-extern char        at_1931[];
-extern char        at_1932[];
-extern char        at_1933[];
-extern char        at_1934[];
-extern char        at_1935[];
-extern char        at_1936[];
-extern char        at_1937[];
-extern char        at_1938[];
-extern char        at_2003[];
-extern char        at_1684[];
-extern char        at_2004__2[];
-extern char        at_2439[];
-extern char        at_2440[];
 extern int         loopnumtbl_2360[2];
-extern char        at_1028__4[];
-extern char        at_1630__3[12];
-extern char        at_1635__2[12];
-extern char        at_1640[12];
 extern mgCDrawPrim MenuPrimFix;
 extern mgCMemory   MenuMainStack;
 extern MenuKeyPageTable  at_1514__4;
-extern char              at_1598__2[];
-extern char              at_1599__2[];
 extern u8                menu_basedgRef[16];
 extern u8                menu_basedgCamPos[16];
-extern char              at_1624__3[9];
-extern char              at_1625__3[0x15];
 extern char             *menu_main_cfgname_1620[2];
 extern int               CommonMenuModeID[2][8];
 extern char             *acttbl_1682[2];
 extern AreaNameItems     at_1697__2;
 extern BoardPosition     at_1698__2;
 extern LanguageWidths    at_1699__2;
-extern char              at_1736__2[];
-extern char              at_1737[];
-extern char              at_1738[];
-extern char              at_1739[];
-extern char              at_1740[];
-extern char              at_1741[];
-extern char              at_1742[];
 extern float             menu_maintopic_colortbl[4][4];
 extern float             menu_maintopic_colortbl_shadow[4][4];
 extern int               MenuTopicAlpha;
@@ -179,12 +150,6 @@ extern char             *topic_tbl_1777[7][3];
 extern CMenuFont         TopicFont;
 extern MonsterTableEntry monster_table[];
 extern mgCMemory         MenuMainStack_Next;
-extern char              at_1956[];
-extern char              at_1957[];
-extern char              at_1958[];
-extern char              at_2344[];
-extern char              at_2345[];
-extern char              at_2450[];
 extern char             *filetbl_2141[];
 
 
@@ -648,7 +613,7 @@ void MenuMainImageDataEnter(int block) {
     if (image != NULL) {
         mgTexManager.EnterIMGFile(image,
                                   block, NULL, NULL);
-        MenuPosData->ResetTextureBlockNo(at_1028__4, block);
+        MenuPosData->ResetTextureBlockNo("mnmain", block);
     }
 }
 
@@ -1272,11 +1237,11 @@ int NextMenuInit(int menu, mgCMemory *memory, int *args) {
             if (TreeMapCallDungeonSubMap != 0) {
                 map_name = MenuMainScene->GetMapName(MenuMainScene->active_map);
 
-                if (strcmp(map_name, at_1598__2) == 0) {
+                if (strcmp(map_name, "s05") == 0) {
                     dungeon_mode = 1;
                 }
 
-                if (strcmp(map_name, at_1599__2) == 0) {
+                if (strcmp(map_name, "d04b01") == 0) {
                     dungeon_mode = 3;
                 }
             }
@@ -1348,24 +1313,24 @@ void MenuPolygonEnvReset() {
 char *GetMenuCfgFileName(int index, int unused) {
     int local;
 
-    sprintf(workchr_1622, at_1624__3, LanguageCode);
+    sprintf(workchr_1622, "menu/%d/", LanguageCode);
     strcat(workchr_1622, menu_main_cfgname_1620[index]);
-    printf(at_1625__3, &local);
+    printf("menu_stack ptr : %p\n", &local);
     return workchr_1622;
 }
 
 short *GetMenuMainMessageBuffer() {
     int size;
 
-    return (short *) GetPackFile(MenuArg.pack, at_1630__3, &size);
+    return (short *) GetPackFile(MenuArg.pack, "allmenu.mes", &size);
 }
 
 u_int *GetMenuMainIMGPtr() {
-    return GetPackFile(MenuArg.pack, at_1635__2, 0);
+    return GetPackFile(MenuArg.pack, "frametex.img", 0);
 }
 
 u_int *GetMenuMainPosCfgBuffer(int *size) {
-    return GetPackFile(MenuArg.pack, at_1640, size);
+    return GetPackFile(MenuArg.pack, "menu0.cfg", size);
 }
 
 void SetCommonMenuModeID() {
@@ -1463,27 +1428,27 @@ void MenuAreaBoardNameStep() {
                 day = 9999;
             }
 
-            MenuTimeBrdForm->SetNumber(at_1736__2, day);
+            MenuTimeBrdForm->SetNumber("\x93\xFA\x8A\xD4", day);
 
             if (MenuNowMapType == 5 || MenuNowMapType == 6) {
-                MenuTimeBrdForm->SetPartDrawFlag(at_1737, false);
-                MenuTimeBrdForm->SetPartDrawFlag(at_1738, false);
-                MenuTimeBrdForm->SetPartDrawFlag(at_1739, false);
-                MenuTimeBrdForm->SetPartDrawFlag(at_1740, false);
-                MenuTimeBrdForm->SetPartDrawFlag(at_1741, false);
+                MenuTimeBrdForm->SetPartDrawFlag("AM", false);
+                MenuTimeBrdForm->SetPartDrawFlag("PM", false);
+                MenuTimeBrdForm->SetPartDrawFlag("\x8E\x9E", false);
+                MenuTimeBrdForm->SetPartDrawFlag("\x95\xAA", false);
+                MenuTimeBrdForm->SetPartDrawFlag(";", false);
             } else {
-                MenuTimeBrdForm->SetPartDrawFlag(at_1742, false);
+                MenuTimeBrdForm->SetPartDrawFlag("\x96\xA2\x97\x88", false);
 
                 if (LanguageCode == 3) {
-                    MenuTimeBrdForm->SetPartDrawFlag(at_1737, false);
-                    MenuTimeBrdForm->SetPartDrawFlag(at_1738, false);
+                    MenuTimeBrdForm->SetPartDrawFlag("AM", false);
+                    MenuTimeBrdForm->SetPartDrawFlag("PM", false);
                 } else if (12.0f <= hours) {
-                    MenuTimeBrdForm->SetPartDrawFlag(at_1737, false);
-                    MenuTimeBrdForm->SetPartDrawFlag(at_1738, true);
+                    MenuTimeBrdForm->SetPartDrawFlag("AM", false);
+                    MenuTimeBrdForm->SetPartDrawFlag("PM", true);
                     hours -= 12.0f;
                 } else {
-                    MenuTimeBrdForm->SetPartDrawFlag(at_1737, true);
-                    MenuTimeBrdForm->SetPartDrawFlag(at_1738, false);
+                    MenuTimeBrdForm->SetPartDrawFlag("AM", true);
+                    MenuTimeBrdForm->SetPartDrawFlag("PM", false);
                 }
             }
 
@@ -1491,8 +1456,8 @@ void MenuAreaBoardNameStep() {
                 hours = 12.0f;
             }
 
-            MenuTimeBrdForm->SetNumber(at_1739, (int) hours);
-            MenuTimeBrdForm->SetNumber(at_1740, (int) minutes);
+            MenuTimeBrdForm->SetNumber("\x8E\x9E", (int) hours);
+            MenuTimeBrdForm->SetNumber("\x95\xAA", (int) minutes);
         }
     }
 }
@@ -1667,16 +1632,16 @@ int MenuInternInit(mgCMemory *stack, int open_type, int capture) {
     memcpy(script, config, script_size);
     MenuDataAnalyze(script, script_size, stack);
     AttachMessageForm();
-    MenuAreaBrdForm = MenuPosData->GetFormInfo(at_1930);
-    MenuTimeBrdForm = MenuPosData->GetFormInfo(at_1931);
+    MenuAreaBrdForm = MenuPosData->GetFormInfo("areaboard");
+    MenuTimeBrdForm = MenuPosData->GetFormInfo("timeboard");
     if (early_game != 0) {
         if (MenuTimeBrdForm != NULL) {
             MenuTimeBrdForm->draw_flag = 0;
             MenuTimeBrdForm = NULL;
         }
     }
-    MenuFormMI2 = MenuPosData->GetFormInfo(at_1932);
-    TopicTex = mgTexManager.GetTexture(at_1028__4, -1);
+    MenuFormMI2 = MenuPosData->GetFormInfo("mi2");
+    TopicTex = mgTexManager.GetTexture("mnmain", -1);
     MenuDCMsg[0]->MsgPreset(3);
     MenuDCMsg[1]->MsgPreset(5);
     MenuDCMsg[1]->value_sign = 0;
@@ -1722,17 +1687,17 @@ int MenuInternInit(mgCMemory *stack, int open_type, int capture) {
         }
         bool shown = true;
         bool hidden = false;
-        CMenuPosDataForm *form = MenuPosData->GetFormInfo(at_1933);
+        CMenuPosDataForm *form = MenuPosData->GetFormInfo("mi3");
         if (form != NULL) {
             if (HatumeiMenuOkFlag == 0) {
                 shown = false;
                 hidden = true;
             }
-            form->SetPartDrawFlag(at_1934, shown);
-            form->SetPartDrawFlag(at_1935, hidden);
+            form->SetPartDrawFlag("mi0", shown);
+            form->SetPartDrawFlag("mi1", hidden);
         }
         bool manual_hidden;
-        CMenuPosDataForm *manual_form = MenuPosData->GetFormInfo(at_1936);
+        CMenuPosDataForm *manual_form = MenuPosData->GetFormInfo("mi6");
         if (manual_form != NULL) {
             bool manual_shown = true;
             manual_hidden = false;
@@ -1740,11 +1705,11 @@ int MenuInternInit(mgCMemory *stack, int open_type, int capture) {
                 manual_shown = false;
                 manual_hidden = true;
             }
-            manual_form->SetPartDrawFlag(at_1934, manual_shown);
-            manual_form->SetPartDrawFlag(at_1935, manual_hidden);
+            manual_form->SetPartDrawFlag("mi0", manual_shown);
+            manual_form->SetPartDrawFlag("mi1", manual_hidden);
         }
         bool world_hidden;
-        CMenuPosDataForm *world_form = MenuPosData->GetFormInfo(at_1937);
+        CMenuPosDataForm *world_form = MenuPosData->GetFormInfo("mi4");
         if (world_form != NULL) {
             bool world_shown = true;
             world_hidden = false;
@@ -1752,14 +1717,14 @@ int MenuInternInit(mgCMemory *stack, int open_type, int capture) {
                 world_shown = false;
                 world_hidden = true;
             }
-            world_form->SetPartDrawFlag(at_1934, world_shown);
-            world_form->SetPartDrawFlag(at_1935, world_hidden);
+            world_form->SetPartDrawFlag("mi0", world_shown);
+            world_form->SetPartDrawFlag("mi1", world_hidden);
             if (GetMenuLoopType() == MENU_LOOP_DUNGEON) {
                 world_form->draw_flag = 0;
             }
         }
         bool floor_hidden;
-        CMenuPosDataForm *floor_form = MenuPosData->GetFormInfo(at_1938);
+        CMenuPosDataForm *floor_form = MenuPosData->GetFormInfo("mi9");
         if (floor_form != NULL) {
             bool floor_shown = true;
             floor_hidden = false;
@@ -1767,8 +1732,8 @@ int MenuInternInit(mgCMemory *stack, int open_type, int capture) {
                 floor_shown = false;
                 floor_hidden = true;
             }
-            floor_form->SetPartDrawFlag(at_1934, floor_shown);
-            floor_form->SetPartDrawFlag(at_1935, floor_hidden);
+            floor_form->SetPartDrawFlag("mi0", floor_shown);
+            floor_form->SetPartDrawFlag("mi1", floor_hidden);
             if (GetMenuLoopType() == MENU_LOOP_TOWN) {
                 floor_form->draw_flag = 0;
             }
@@ -1801,9 +1766,9 @@ void MenuCommonBaseDataEnter(mgCMemory *pallet_memory, unsigned int *pack, int p
     mgCTextureManager *tex = &mgTexManager;
     int                size;
     MenuMainTextureReadBuf.stSetBuffer((u_long128 *) pack, pack_size / 16);
-    mgTexManager.EnterIMGFile((u8 *) GetPackFile(pack, at_1956, 0), block, 0, 0);
-    mgTexManager.EnterIMGFile((u8 *) GetPackFile(pack, at_1957, &size), block, 0, 0);
-    u8 *image = (u8 *) GetPackFile(pack, at_1958, 0);
+    mgTexManager.EnterIMGFile((u8 *) GetPackFile(pack, "edmenu.img", 0), block, 0, 0);
+    mgTexManager.EnterIMGFile((u8 *) GetPackFile(pack, "allitem.img", &size), block, 0, 0);
+    u8 *image = (u8 *) GetPackFile(pack, "spectre.img", 0);
 
     if (image) {
         tex->EnterIMGFile(image, block, 0, 0);
@@ -1823,9 +1788,9 @@ void MenuBaseTextureReEnter() {
     MenuMainImageDataEnter(block);
     unsigned int *pack = (unsigned int *) MenuMainTextureReadBuf.stack;
     int           size;
-    tex->EnterIMGFile((u8 *) GetPackFile(pack, at_1956, 0), block, 0, 0);
-    tex->EnterIMGFile((u8 *) GetPackFile(pack, at_1957, &size), block, 0, 0);
-    u8 *image = (u8 *) GetPackFile(pack, at_1958, 0);
+    tex->EnterIMGFile((u8 *) GetPackFile(pack, "edmenu.img", 0), block, 0, 0);
+    tex->EnterIMGFile((u8 *) GetPackFile(pack, "allitem.img", &size), block, 0, 0);
+    u8 *image = (u8 *) GetPackFile(pack, "spectre.img", 0);
 
     if (image) {
         tex->EnterIMGFile(image, block, 0, 0);
@@ -1854,12 +1819,12 @@ void CMenuInter::InitEnd() {
     }
     MenuCommonInfo->CursorFadeIn(10.0f, 1);
     MenuCommonInfo->SetWakuType(-1);
-    CMenuPosDataForm *board = MenuPosData->GetFormInfo(at_2003);
+    CMenuPosDataForm *board = MenuPosData->GetFormInfo("mi00");
     if (board != NULL) {
         int pos[2] = {(int)(board->x - 30.0f), (int)(4.0f + board->y)};
         SetFormPoint(MenuCommonInfo->cursor_form, (int)(board->x - 30.0f), (int)(4.0f + board->y));
         MenuCommonInfo->cursor_form->SetNextMovePos(pos, 2);
-        CMenuPosDataForm *next_form = MenuPosData->GetFormInfo(at_2004__2);
+        CMenuPosDataForm *next_form = MenuPosData->GetFormInfo("cur_waku0");
         if (next_form != NULL) {
             pos[0] = (int)board->x;
             pos[1] = (int)(4.0f + board->y);
@@ -1869,7 +1834,7 @@ void CMenuInter::InitEnd() {
     }
     ReturnMenuIntern(0);
     MenuEtcInfo.tex_block = MenuArg.mes_tex_block;
-    MenuEtcInfo.tex = manager->GetTexture(at_1028__4, -1);
+    MenuEtcInfo.tex = manager->GetTexture("mnmain", -1);
 }
 void CMenuInter::PushOk() {
     int mode = mode_list[select_no];
@@ -2151,7 +2116,7 @@ int MenuInternSelectKey(void) {
             }
             ReturnMenuIntern(1);
             MenuMainFrameModeSet(1, 1);
-            MenuMesForm[0]->SetAction(at_1684);
+            MenuMesForm[0]->SetAction("\x8A\x4F\x82\xD6");
             MenuSePlay(5);
             break;
         }
@@ -2204,8 +2169,8 @@ void CopyActiveItemAndWeapon(int slot, int weapon_slot) {
     mgCTexture *textures[2];
 
     mgCTextureManager *manager = &mgTexManager;
-    textures[0] = manager->GetTexture(at_2344, -1);
-    textures[1] = manager->GetTexture(at_2345, -1);
+    textures[0] = manager->GetTexture("icon_dmy1", -1);
+    textures[1] = manager->GetTexture("icon_dmy2", -1);
 
     if (textures[0] == NULL || textures[1] == NULL) {
         return;
@@ -2223,8 +2188,8 @@ int CopyActiveIconTexture(mgCTexture **textures, int chara_no, u_int *unused) {
     mgCTextureManager *manager = &mgTexManager;
     u_long128 *icon_clut[2];
     mgCTexture *icon_sheet[2];
-    icon_sheet[0] = manager->GetTexture(at_2439, -1);
-    icon_sheet[1] = manager->GetTexture(at_2440, -1);
+    icon_sheet[0] = manager->GetTexture("itemicon", -1);
+    icon_sheet[1] = manager->GetTexture("wepicon", -1);
     icon_clut[0] = icon_sheet[0]->clut;
     icon_clut[1] = icon_sheet[1]->clut;
     int items[8] = {0, 0, 0, 0, 0, 0, 0, 0};
@@ -2300,7 +2265,7 @@ void MenuDebugModeDraw() {
     mgTexManager.ReloadTexture(MenuArg.mes_tex_block, (sceVif1Packet *) 0);
     DrawMenuFillBox(margin, margin, width, height, 0x5C, 0, 0, 0);
     CMenuFont menu_font;
-    menu_font.SetStr(at_2450);
+    menu_font.SetStr("MenuDebugMode");
     menu_font.SetPos(6, 6);
     menu_font.DrawDirect(menu_font.str, menu_font.pos_x, menu_font.pos_y);
 }
@@ -2382,25 +2347,9 @@ INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menumain", filetbl_2141__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menumain", monster_table__DATA);
 
 // Constants (.rodata)
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menumain", at_1028__4__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menumain", at_1440__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menumain", at_1598__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menumain", at_1599__2__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menumain", at_1621__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menumain", at_1624__3__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menumain", at_1625__3__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menumain", at_1630__3__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menumain", at_1635__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menumain", at_1640__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menumain", at_1683__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menumain", at_1684__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menumain", at_1736__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menumain", at_1737__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menumain", at_1738__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menumain", at_1739__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menumain", at_1740__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menumain", at_1741__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menumain", at_1742__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menumain", at_1778__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menumain", at_1779__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menumain", at_1780__2__DATA);
@@ -2414,30 +2363,11 @@ INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menumain", at_1787__2__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menumain", at_1788__4__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menumain", at_1789__2__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menumain", at_1859__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menumain", at_1930__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menumain", at_1931__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menumain", at_1932__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menumain", at_1933__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menumain", at_1934__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menumain", at_1935__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menumain", at_1936__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menumain", at_1937__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menumain", at_1938__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menumain", at_1956__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menumain", at_1957__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menumain", at_1958__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menumain", at_2003__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menumain", at_2004__2__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menumain", at_2142__2__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menumain", at_2143__2__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menumain", at_2144__2__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menumain", at_2145__2__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menumain", at_2146__3__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menumain", at_2344__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menumain", at_2345__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menumain", at_2439__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menumain", at_2440__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menumain", at_2450__DATA);
 
 // Small initialised data (.sdata)
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menumain", MenuPrim__DATA);
