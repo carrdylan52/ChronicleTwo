@@ -379,14 +379,3 @@ int EmergencyMessage(int error) {
         col %= 100;
     }
 }
-
-// Small uninitialised data (.sbss)
-INCLUDE_BSS(select_795, 0x4);
-INCLUDE_BSS(init_796, 0x4);
-INCLUDE_BSS(sel_map_798, 0x4);
-INCLUDE_BSS(init_799, 0x4);
-INCLUDE_BSS(col_962, 0x4);
-INCLUDE_BSS(init_963, 0x4);
-INCLUDE_BSS(txt_965, 0x4);
-
-// Uninitialised data (.bss)
