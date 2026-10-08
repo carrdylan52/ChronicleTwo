@@ -25,12 +25,6 @@ static const int kAnalyzeEntryCount = 16;
 
 extern SPI_TAG_PARAM tag__6[];
 
-extern char                at_1131__2[17];
-extern char                at_713__3[];
-extern char                at_714__2[];
-extern char                at_917__3[];
-extern char                at_1281__4[10];
-extern char                at_1282__4[26];
 extern mgCMemory           Stack_1272;
 extern s8                  init_1273;
 extern u_long128           buff_1271[0x300];
@@ -207,7 +201,7 @@ void CEditMap::SaveData(CEditData *data) {
             savedCount++;
             saved++;
             if (savedCount >= data->parts_max) {
-                printf(at_713__3);
+                printf("Parts Num Over!!!!\n");
                 exit(0);
                 break;
             }
@@ -253,7 +247,7 @@ void CEditMap::SaveData(CEditData *data) {
         }
     }
     if (out - data->grid >= kEditPlaceFlagCount) {
-        printf(at_714__2);
+        printf("grid data over!!!");
         for (int wait = 0; wait < 300; wait++) {
             sceGsSyncV(0);
         }
@@ -395,7 +389,7 @@ void CEditMap::LoadData(CEditData *data) {
                 break;
             }
             gridPos = (short *)in;
-            printf(at_917__3, gridPos[0], gridPos[1], gridPos[2]);
+            printf("%d %d %d\n", gridPos[0], gridPos[1], gridPos[2]);
             in += sizeof(EditDataGrid) - 2;
             for (int x = 0; x < river->num_x; ++x) {
                 for (int z = 0; z < river->num_z; ++z) {
@@ -592,7 +586,7 @@ s8 CEditData::Analyze(int entry, int area, int *pending, int depth) {
     s8                  flag_no;
 
     if (depth > kEditConditionCount) {
-        printf(at_1131__2);
+        printf("infinty loop!!!\n");
         return 0;
     }
 
@@ -792,13 +786,13 @@ void LoadEditAnalyzeData(int area_no, u_long128 *dest) {
     }
 
     Stack_1272.stSetBuffer(buff_1271, 0x300);
-    sprintf(path, at_1281__4, area_no);
+    sprintf(path, "geo%d.cfg", area_no);
 
     if (LoadFile2(path, dest, &size, 0) != 0) {
         LoadEditAnalyzeData((char *) dest, size, &Stack_1272);
     }
 
-    printf(at_1282__4, ((Stack_1272.stack_size - Stack_1272.stack_used) * 16) / 1024);
+    printf("GeoData Remain = %dkbyte\n", ((Stack_1272.stack_size - Stack_1272.stack_used) * 16) / 1024);
 }
 
 void LoadEditAnalyzeData(char *script, int size, mgCMemory *stack) {
@@ -1024,12 +1018,6 @@ EditAnalyzeSrc::EditAnalyzeSrc() {
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editdata", tag__6__DATA);
 
 // Constants (.rodata)
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editdata", at_713__3__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editdata", at_714__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editdata", at_917__3__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editdata", at_1131__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editdata", at_1281__4__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editdata", at_1282__4__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editdata", at_1290__3__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editdata", at_1291__4__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editdata", at_1292__4__DATA);
