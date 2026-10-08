@@ -23,12 +23,32 @@
 #include "scenesnd.hpp"
 #include "sphida.hpp"
 
-extern char at_1088[];
-extern char at_1089__2[];
 #include <cmath>
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
+
+/**
+ *
+ * Club properties for club numbers 9 through 14 and the empty terminal row.
+ *
+ */
+GOLF_CLUB_DEF GolfClubDef[7] = {
+    {38.0f, 0.2f, 6},
+    {40.0f, 1.6f, 4},
+    {42.0f, 2.6f, 5},
+    {46.0f, 2.6f, 3},
+    {44.0f, 4.0f, 2},
+    {50.0f, 1.2f, 1},
+    {0.0f, 0.0f, 0},
+};
+
+/**
+ *
+ * Sphida game of the current floor.
+ *
+ */
+CSphida *Sphida;
 
 // Code (.text)
 GOLF_CLUB_DEF *GetSphidaClubDef(int club) {
@@ -311,10 +331,10 @@ void CSphida::SetUp(int arg) {
 
             if (navi < 0.0f) {
                 this->par_count = (int) (mgDistVector(this->pin_pos, this->ball_pos) / 600.0f) + 1;
-                printf(at_1088, this->par_count);
+                printf("SETUP_SFIDA[DIST %d]\n", this->par_count);
             } else {
                 this->par_count = (int) (navi / 1000.0f) + 1;
-                printf(at_1089__2, this->par_count);
+                printf("SETUP_SFIDA[NAVI %d]\n", this->par_count);
             }
 
             break;
@@ -997,16 +1017,3 @@ void CSphida::DrawMiniMapSymbol(CMiniMapSymbol *symbol) {
         }
     }
 }
-
-// Initialised data (.data)
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/sphida", GolfClubDef__DATA);
-
-// Constants (.rodata)
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/sphida", at_940__4__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/sphida", at_1088__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/sphida", at_1089__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/sphida", at_1090__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/sphida", at_1138__2__DATA);
-
-// Small uninitialised data (.sbss)
-INCLUDE_BSS(Sphida, 0x4);
