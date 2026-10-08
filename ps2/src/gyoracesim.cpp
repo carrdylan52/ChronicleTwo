@@ -581,8 +581,11 @@ float GetCourseR(float pos, float unused) {
 
     return 1.0f;
 }
+
 /**
+ *
  * Builds race statistics from a fish's attributes, name, and tactics.
+ *
  */
 void FishModifyParam(grFISH_PARAM *source, float *output, float average) {
     int i;
