@@ -6,8 +6,7 @@ The matching build uses retail gaps for the C++ drafts still guarded by
 and `CMosBookMenu::KeyStep`. The current source also keeps gaps for
 `KeyChangeMain`,
 `MenuCharaChangeStarDraw`, `CMenuMosSelect::KeyStep`,
-`MenuItemCharaDataLoadEndCheckAfter`,
-`CMenuCostumeSel::Draw` and `MenuCostumeInit`.
+`MenuItemCharaDataLoadEndCheckAfter` and `MenuCostumeInit`.
 Only unguarded functions are active C++ decompilations. `MenuMemoryDivide` and
 `CMosBookMenu::Draw` are native, including their capacity and drawing tables.
 `CMenuChrCngMenu::EnterDataMenu` is native; its palette and command-loop
@@ -15,6 +14,8 @@ findings are in [the night assessment](night-20261008.md#enterdatamenu-match).
 `MenuCharaChangeStarDraw`'s guarded draft is the final source. It matches
 once `mgRect<short>` is the generic template; see
 [the star notes](night-20261008.md#character-change-star-drawing-round-1).
+`CMenuCostumeSel::Draw` is native with one scoped floating-argument row; see
+[the costume notes](night-20261008.md#costume-drawing-match-round-1).
 The complete unit passes canonical verification. The `63f7a9e5` baseline
 and the current lane pass all 149 object checks and the complete PAL
 verifier. Current scores and new probes are in

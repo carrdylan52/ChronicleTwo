@@ -487,6 +487,15 @@
         "evaluate_first": true
       },
       {
+        "translation_unit": "menuchr.cpp",
+        "function": "Draw__15CMenuCostumeSelFv",
+        "value_type": "binary32",
+        "value_bits": "0x42100000",
+        "callee": "DrawMenuFillBox__Fffffiiii",
+        "expected_matches": 1,
+        "evaluate_first": true
+      },
+      {
         "translation_unit": "menudraw.cpp",
         "function": "Func_MenuItemBrdPosStep__Fi",
         "value_type": "binary32",
