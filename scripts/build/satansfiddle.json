@@ -221,6 +221,22 @@
         "evaluate_first": true
       },
       {
+        "translation_unit": "actionchara.cpp",
+        "function": "RoboWalkMoveIF__12CActionCharaFi",
+        "value_type": "binary32",
+        "value_bits": "0x00000000",
+        "callee": "SetRotation__9mgCObjectFfff",
+        "evaluate_first": true
+      },
+      {
+        "translation_unit": "actionchara.cpp",
+        "function": "RoboAirMoveIF__12CActionCharaFii",
+        "value_type": "binary32",
+        "value_bits": "0x00000000",
+        "callee": "SetRotation__9mgCObjectFfff",
+        "evaluate_first": true
+      },
+      {
         "translation_unit": "cameracontrol.cpp",
         "function": "__ct__14CCameraControlFv",
         "value_type": "binary32",

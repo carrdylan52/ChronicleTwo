@@ -218,3 +218,32 @@ The stable function/type/value policy produces the complete retail
 736-byte body and resolves its five canonical findings. All other 135
 allocated sections retain identical bytes, geometry and resolved relocation
 targets; the unit's other existing findings remain unchanged.
+
+## Robo movement heading expressions
+
+`RoboWalkMoveIF` and `RoboAirMoveIF` keep the earlier turn results in local
+`heading` variables before applying the three-axis rotation. The non-lock-on
+Walk arm reset and Air body turn retain their nested `unitRotation` expressions.
+Both functions use binary32 zero (`0x00000000`) evaluated first, scoped to
+`SetRotation__9mgCObjectFfff`. The statement boundaries allow the earlier calls
+to materialize their neutral axes after computing the heading, while the nested
+calls preserve zero across `unitRotation`, as retail does.
+
+The complete wrapper/fixup object passes with 0x8F80 checked bytes and 1035
+relocations. Walk is 0x514 bytes and Air is 0x6F8, with zero masked instruction
+differences. Matching those bodies also restores the later literal-reference
+positions: the unit has the retail 43 rodata pieces, rather than six extra
+copies of the Walk and Air motion names.
+
+The full build retains identical raw hashes for the other 148 game objects.
+Canonical checks improve from 145/149 to 146/149 units, and source coverage
+from 6660 matched / 7 fuzzy to 6662 matched / 5 fuzzy. Main shrinks from
+0x27CE00 to retail's 0x27CD80 and the BSS end from 0x1F64A80 to 0x1F64A00.
+Every file-backed section except text matches; the remaining 0x2C text bytes
+belong to the unchanged mg_texture, nd_meswin and actscript findings.
+
+A reused `neutral_angle` float local was constant-folded and left both short
+bodies unchanged. Unsuffixed double zero at the earlier outer calls was
+converted to the same binary32 argument identity; a broad zero-first row still
+disturbed those calls. `unitRotation` and the three-axis `SetRotation` both take
+float parameters, so literal suffixes do not distinguish these consumers.
