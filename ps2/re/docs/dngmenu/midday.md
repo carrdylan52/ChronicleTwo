@@ -194,3 +194,47 @@ not resolve the remaining width/alpha/room/primitive register map. The panel
 and seal slots agree, but integer allocation and subsequent instruction
 scheduling still differ. Receipts: `DrawRoomInfo.m2c.c`, `info-row-live/`,
 `render-retained/`, and `render-format/`.
+
+## LoadDngInfo
+
+`LoadDngInfo__11CDngFreeMapFP9mgCMemoryiiii` remains guarded. The retained
+source improves the current baseline from 954/1016 differing words,
+0xDE0/0xFE0 bytes, to 914/1016, 0xF68/0xFE0. Its frame is 0x160. Four
+candidate room numbers are full integers, not halfwords: retail addresses
+sp120..sp12C with word stores, followed by candidate pointers at sp130..sp13C.
+That correction places the local arena at spB0 and the filename at spE0.
+The 64-byte filename occupies spE0..sp11F before those arrays. Direction and
+the four projection coordinates occupy sp14C..sp15C. Their defaults precede
+the first room lookup; projection can return without assigning coordinates.
+
+The six dungeon remapping groups are independent comparisons. Capacity is
+read before the arena top, file size is rounded with unsigned shifts, and
+the player Y correction adds -28.0f. A byte records whether the candidate
+search moves forward or backward through room order; retail masks this value
+with 0xFF. Explicit zero/one comparisons preserve that behavior.
+
+Passages contain twenty signed-halfword coordinate pairs; room curves
+contain ten. Each forward and reverse traversal has its own typed-index
+loop. Passage forward traversal advances through the just-stored `next`
+member, while its reverse traversal retains the newly allocated node.
+A negative passage direction stops traversal. An unsupported cell type
+also stops traversal. No raw pointer induction is used.
+
+The passage-pointer table is twelve pointers (48 bytes), the room-pointer
+table eight pointers (32 bytes), and the direction tables contain signed
+bytes. Retail uses signed `lb` for both the room-table selector and room
+point order. Their generated assembly placeholders currently expose byte
+arrays. A private canonical activation reports five declaration conflicts;
+these owned-unit tables must be migrated with their native types before a
+future promotion. They remain assembly-supplied while the function is guarded.
+
+The first instruction mismatch is the initial negative room test: retail
+uses an `slt` followed by a branch; MWCC emits a single `bltz`. The broad
+remapping branches, geometry evaluation and route-loop schedules also differ.
+Changing the next-room snapshot to int or short does not change the result.
+A literal m2c selector formula, a redundant target-null test and a retained
+adjacent-room reference worsen the result to 938, 926 and 944 words,
+respectively. The independent checks alone give 942, split point loops 916,
+and the byte direction 914. Those rejected forms are not retained.
+Receipts: `LoadDngInfo.m2c.c`, `load-direction-byte/`, `load-retained/`,
+`load-retained.log`, and `load-retained-canonical.log`.

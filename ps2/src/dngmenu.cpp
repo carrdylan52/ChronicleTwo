@@ -1311,11 +1311,24 @@ void CDngFreeMap::SetKomaMove(int moving) {
     }
 }
 #ifdef NONMATCHING
-extern const short        *RootHokanTablePtrTable_2240__DATA[];
-extern const short        *RoomHokanTablePtrTable_2245__DATA[];
-extern const signed char   is_reverse_tbl_2246__DATA[];
-extern const unsigned char old_hokantbl_useno_2247__DATA[];
-extern const unsigned char is_reverse_tbl_room_2248__DATA[];
+/** Passage interpolation point tables, indexed by passage shape. */
+extern const short *RootHokanTablePtrTable_2240__DATA[];
+/** Room interpolation point tables, indexed by entry and exit direction. */
+extern const short *RoomHokanTablePtrTable_2245__DATA[];
+/** Point order of passage routes, indexed by shape and direction. */
+extern const signed char is_reverse_tbl_2246__DATA[];
+/** Room interpolation table selected by entry and exit direction. */
+extern const signed char old_hokantbl_useno_2247__DATA[];
+/** Point order of room interpolation tables, including disabled routes. */
+extern const signed char is_reverse_tbl_room_2248__DATA[];
+
+/**
+ * Orders the interpolation points when tracing a dungeon map route.
+ */
+enum DNGMAP_PATH_ORDER {
+    DNGMAP_PATH_FORWARD = 0, /**< Reads a cell's interpolation points from first to last. */
+    DNGMAP_PATH_REVERSE = 1, /**< Reads a cell's interpolation points from last to first. */
+};
 
 int CDngFreeMap::LoadDngInfo(mgCMemory *stack, int block, int dungeon, int room, int next_room) {
     if (stack == NULL || stack->stGetRest() <= 0) {
@@ -1349,10 +1362,7 @@ int CDngFreeMap::LoadDngInfo(mgCMemory *stack, int block, int dungeon, int room,
         char filename[0x40];
         sprintf(filename, "dmap%d.img", dungeon);
         unsigned int size = LoadFileMenu(filename, buffer, 1);
-        unsigned int quadwords = size / sizeof(u_long128);
-        if (size % sizeof(u_long128) != 0) {
-            quadwords++;
-        }
+        unsigned int quadwords = (size & 15) ? (size >> 4) + 1 : size >> 4;
         memory.Alloc(quadwords);
         MenuEnterIMG(tex_block, (unsigned char *) buffer, "_dn");
         koma_tex = mgTexManager.GetTexture("dngop_dn", -1);
@@ -1367,15 +1377,16 @@ int CDngFreeMap::LoadDngInfo(mgCMemory *stack, int block, int dungeon, int room,
     koma_move = 0;
     CalcGlidPutPos(user_glid, dng_player_pos[0], dng_player_pos[1], 0);
     dng_player_pos[0] += 8.0f;
-    dng_player_pos[1] -= 28.0f;
-    if (next_room_no < 0) {
-        return memory.stGetUsed();
-    }
-
-    GLID_INFO *start = GetRoomGlid(user_room_no);
-    // Event jumps enter the first room of the branch between the two floors.
-    switch (dng_no) {
-        case 1:
+    dng_player_pos[1] += -28.0f;
+    if (next_room_no >= 0) {
+        int direction = -1;
+        float gx = 0.0f;
+        float gy = 0.0f;
+        float x = 0.0f;
+        float y = 0.0f;
+        GLID_INFO *start = GetRoomGlid(user_room_no);
+        // Event jumps enter the first room of the branch between the two floors.
+        if (dng_no == 1) {
             if (user_room_no == 8 && next_room_no >= 9) {
                 next_room_no = next_room_no < 13 ? 9 : 13;
             }
@@ -1385,8 +1396,8 @@ int CDngFreeMap::LoadDngInfo(mgCMemory *stack, int block, int dungeon, int room,
             if (user_room_no == 13) {
                 next_room_no = next_room_no < 14 ? 8 : 14;
             }
-            break;
-        case 2:
+        }
+        if (dng_no == 2) {
             if (user_room_no == 5 && next_room_no >= 6 && next_room_no < 9) {
                 next_room_no = 6;
             }
@@ -1405,8 +1416,8 @@ int CDngFreeMap::LoadDngInfo(mgCMemory *stack, int block, int dungeon, int room,
             if (user_room_no == 11) {
                 next_room_no = next_room_no < 11 ? 10 : (next_room_no < 12 ? 16 : (next_room_no < 16 ? 12 : 16));
             }
-            break;
-        case 3:
+        }
+        if (dng_no == 3) {
             if (user_room_no >= 11 && user_room_no < 14 && next_room_no >= 16) {
                 next_room_no = user_room_no - 1;
             }
@@ -1419,8 +1430,8 @@ int CDngFreeMap::LoadDngInfo(mgCMemory *stack, int block, int dungeon, int room,
             if (user_room_no >= 16 && next_room_no < user_room_no) {
                 next_room_no = user_room_no - 1;
             }
-            break;
-        case 4:
+        }
+        if (dng_no == 4) {
             if (user_room_no == 4 && next_room_no >= 5 && next_room_no < 9) {
                 next_room_no = 5;
             }
@@ -1433,8 +1444,8 @@ int CDngFreeMap::LoadDngInfo(mgCMemory *stack, int block, int dungeon, int room,
             if (user_room_no >= 10 && next_room_no < user_room_no) {
                 next_room_no = user_room_no - 1;
             }
-            break;
-        case 5:
+        }
+        if (dng_no == 5) {
             if (user_room_no == 4 && next_room_no >= 5 && next_room_no < 12) {
                 next_room_no = 5;
             }
@@ -1447,8 +1458,8 @@ int CDngFreeMap::LoadDngInfo(mgCMemory *stack, int block, int dungeon, int room,
             if (user_room_no >= 13 && next_room_no < user_room_no) {
                 next_room_no = user_room_no - 1;
             }
-            break;
-        case 6:
+        }
+        if (dng_no == 6) {
             if (user_room_no >= 8 && user_room_no < 11 && next_room_no >= 11) {
                 next_room_no = user_room_no - 1;
             }
@@ -1482,123 +1493,153 @@ int CDngFreeMap::LoadDngInfo(mgCMemory *stack, int block, int dungeon, int room,
             if (user_room_no == 35) {
                 next_room_no = next_room_no == 34 ? 34 : (next_room_no >= 36 ? 36 : 33);
             }
-            break;
-    }
-    GLID_INFO *target = GetRoomGlid(next_room_no);
-    if (target == NULL) {
-        return 0;
-    }
-    if (start != NULL && abs((int) start->room.order - (int) target->room.order) >= 2) {
-        GLID_INFO *candidate[4];
-        s16        candidate_room[4];
-        int        candidate_count = 0;
-        int        farthest = -1;
-        bool       reverse = start->room.order >= target->room.order;
-        for (int dir = 0; dir < GLID_DIR_NUM; ++dir) {
-            int adjacent = start->room.link[dir];
-            if (adjacent < 0) {
-                continue;
+        }
+        GLID_INFO *target = GetRoomGlid(next_room_no);
+        if (target == NULL) {
+            return 0;
+        }
+        if (start != NULL && abs((int) start->room.order - (int) target->room.order) >= 2) {
+            GLID_INFO *candidate[4];
+            int        candidate_room[4];
+            int        candidate_count = 0;
+            int        farthest = -1;
+            u8 reverse = DNGMAP_PATH_REVERSE;
+            if (start->room.order < target->room.order) {
+                reverse = DNGMAP_PATH_FORWARD;
             }
-            GLID_INFO *linked = GetRoomGlid(adjacent);
-            if (linked == NULL) {
-                continue;
-            }
-            if ((reverse && linked->room.order < start->room.order) || (!reverse && start->room.order < linked->room.order)) {
-                candidate[candidate_count] = linked;
-                candidate_room[candidate_count] = adjacent;
-                if (adjacent > farthest) {
-                    farthest = adjacent;
+            for (int dir = 0; dir < GLID_DIR_NUM; ++dir) {
+                int adjacent = start->room.link[dir];
+                if (adjacent < 0) {
+                    continue;
                 }
-                ++candidate_count;
+                GLID_INFO *linked = GetRoomGlid(adjacent);
+                if (linked == NULL) {
+                    continue;
+                }
+                if ((reverse == DNGMAP_PATH_REVERSE && linked->room.order < start->room.order) ||
+                    (reverse == DNGMAP_PATH_FORWARD && start->room.order < linked->room.order)) {
+                    candidate[candidate_count] = linked;
+                    candidate_room[candidate_count] = adjacent;
+                    if (adjacent > farthest) {
+                        farthest = adjacent;
+                    }
+                    ++candidate_count;
+                }
+            }
+            for (int i = 0; i < candidate_count; ++i) {
+                if (reverse == DNGMAP_PATH_REVERSE ||
+                    (reverse == DNGMAP_PATH_FORWARD &&
+                     ((target->room.floor_id < farthest && abs((int) target->room.floor_id - candidate_room[i]) <= 0) ||
+                      (farthest < target->room.floor_id && abs((int) target->room.floor_id - candidate_room[i]) > 0)))) {
+                    target = candidate[i];
+                    next_room_no = candidate_room[i];
+                    break;
+                }
             }
         }
-        for (int i = 0; i < candidate_count; ++i) {
-            if (reverse || (target->room.floor_id < farthest && abs((int) target->room.floor_id - candidate_room[i]) <= 0) || (farthest < target->room.floor_id && abs((int) target->room.floor_id - candidate_room[i]) > 0)) {
-                target = candidate[i];
-                next_room_no = candidate_room[i];
+
+        koma_path = (DNGMAP_KOMA_POS *) memory.Alloc(1);
+        koma_now = koma_path;
+        koma_now->next = NULL;
+        DNGMAP_KOMA_POS *tail = koma_now;
+        CalcGlidPutPos(target, x, y, 0);
+        tail->x = x;
+        tail->y = y;
+        for (int i = 0; i < GLID_DIR_NUM; ++i) {
+            if (target->room.link[i] == user_room_no) {
+                direction = i;
                 break;
             }
         }
-    }
-
-    koma_path = (DNGMAP_KOMA_POS *) memory.Alloc(1);
-    koma_now = koma_path;
-    koma_now->next = NULL;
-    DNGMAP_KOMA_POS *tail = koma_now;
-    float            x, y;
-    CalcGlidPutPos(target, x, y, 0);
-    tail->x = x;
-    tail->y = y;
-    int direction = -1;
-    for (int i = 0; i < GLID_DIR_NUM; ++i) {
-        if (target->room.link[i] == user_room_no) {
-            direction = i;
-            break;
+        if (direction < 0) {
+            return memory.stGetUsed();
         }
-    }
-    if (direction < 0) {
-        return memory.stGetUsed();
-    }
-    int table = old_hokantbl_useno_2247__DATA[direction];
-    if (is_reverse_tbl_room_2248__DATA[table] <= 1) {
-        bool reverse = is_reverse_tbl_room_2248__DATA[table] != 0;
-        for (int i = 0; i < 10; ++i) {
-            int              j = reverse ? 9 - i : i;
-            const short     *point = &RoomHokanTablePtrTable_2245__DATA[table][j * 2];
-            DNGMAP_KOMA_POS *node = (DNGMAP_KOMA_POS *) memory.Alloc(1);
-            node->x = x + (float) point[0];
-            node->y = y + (float) point[1];
-            tail->next = node;
-            tail = node;
-        }
-    }
-    GLID_INFO *glid = target->link_glid[direction];
-    while (glid != NULL) {
-        float gx, gy;
-        CalcGlidPutPos(glid, gx, gy, 0);
-        glid->blink = 1;
-        int          route_table = -1;
-        int          point_count = 0;
-        bool         reverse = false;
-        const short *points = NULL;
-        if (glid->type == GLID_TYPE_ROOT) {
-            route_table = glid->root.shape;
-            int value = is_reverse_tbl_2246__DATA[route_table * 4 + direction];
-            if (value >= 0) {
-                reverse = value == 1;
-                point_count = 20;
-                points = RootHokanTablePtrTable_2240__DATA[route_table];
+        int table = old_hokantbl_useno_2247__DATA[direction];
+        int reverse = is_reverse_tbl_room_2248__DATA[table];
+        const short *points = RoomHokanTablePtrTable_2245__DATA[table];
+        if (reverse == DNGMAP_PATH_FORWARD) {
+            for (int i = 0; i < 10; i++) {
+                DNGMAP_KOMA_POS *node = (DNGMAP_KOMA_POS *) memory.Alloc(1);
+                node->x = x + (float) points[i * 2];
+                node->y = y + (float) points[i * 2 + 1];
+                tail->next = node;
+                tail = node;
             }
-        } else if (glid->type == GLID_TYPE_ROOM) {
-            route_table = old_hokantbl_useno_2247__DATA[direction + 4];
-            int value = is_reverse_tbl_room_2248__DATA[route_table + 4];
-            if (value <= 1) {
-                reverse = value == 1;
-                point_count = 10;
-                points = RoomHokanTablePtrTable_2245__DATA[route_table];
+        } else if (reverse == DNGMAP_PATH_REVERSE) {
+            for (int i = 9; i >= 0; i--) {
+                DNGMAP_KOMA_POS *node = (DNGMAP_KOMA_POS *) memory.Alloc(1);
+                node->x = x + (float) points[i * 2];
+                node->y = y + (float) points[i * 2 + 1];
+                tail->next = node;
+                tail = node;
             }
         }
-        for (int i = 0; i < point_count; ++i) {
-            int              j = reverse ? point_count - 1 - i : i;
-            const short     *point = &points[j * 2];
-            DNGMAP_KOMA_POS *node = (DNGMAP_KOMA_POS *) memory.Alloc(1);
-            node->x = gx + (float) point[0];
-            node->y = gy + (float) point[1];
-            tail->next = node;
-            tail = node;
+        GLID_INFO *glid = target->link_glid[direction];
+        while (glid != NULL) {
+            CalcGlidPutPos(glid, gx, gy, 0);
+            glid->blink = 1;
+            if (glid->type == GLID_TYPE_ROOT) {
+                int route_table = glid->root.shape;
+                int reverse = is_reverse_tbl_2246__DATA[route_table * 4 + direction];
+                const short *points = RootHokanTablePtrTable_2240__DATA[route_table];
+                if (reverse < 0) {
+                    break;
+                }
+                if (reverse == DNGMAP_PATH_FORWARD) {
+                    for (int i = 0; i < 20; i++) {
+                        DNGMAP_KOMA_POS *node = (DNGMAP_KOMA_POS *) memory.Alloc(1);
+                        node->x = gx + (float) points[i * 2];
+                        node->y = gy + (float) points[i * 2 + 1];
+                        tail->next = node;
+                        tail = tail->next;
+                    }
+                } else if (reverse == DNGMAP_PATH_REVERSE) {
+                    for (int i = 19; i >= 0; i--) {
+                        DNGMAP_KOMA_POS *node = (DNGMAP_KOMA_POS *) memory.Alloc(1);
+                        node->x = gx + (float) points[i * 2];
+                        node->y = gy + (float) points[i * 2 + 1];
+                        tail->next = node;
+                        tail = node;
+                    }
+                }
+            } else if (glid->type == GLID_TYPE_ROOM) {
+                int route_table = old_hokantbl_useno_2247__DATA[direction + 4];
+                int reverse = is_reverse_tbl_room_2248__DATA[route_table + 4];
+                const short *points = RoomHokanTablePtrTable_2245__DATA[route_table];
+                if (reverse == DNGMAP_PATH_FORWARD) {
+                    for (int i = 0; i < 10; i++) {
+                        DNGMAP_KOMA_POS *node = (DNGMAP_KOMA_POS *) memory.Alloc(1);
+                        node->x = gx + (float) points[i * 2];
+                        node->y = gy + (float) points[i * 2 + 1];
+                        tail->next = node;
+                        tail = node;
+                    }
+                } else if (reverse == DNGMAP_PATH_REVERSE) {
+                    for (int i = 9; i >= 0; i--) {
+                        DNGMAP_KOMA_POS *node = (DNGMAP_KOMA_POS *) memory.Alloc(1);
+                        node->x = gx + (float) points[i * 2];
+                        node->y = gy + (float) points[i * 2 + 1];
+                        tail->next = node;
+                        tail = node;
+                    }
+                }
+            } else {
+                break;
+            }
+            if (glid == start) {
+                break;
+            }
+            glid = GetNextGlid(glid, &direction);
         }
-        if (glid == start) {
-            break;
+        tail->next = NULL;
+        if (koma_now->next != NULL) {
+            dng_player_pos[0] = koma_now->next->x;
+            dng_player_pos[1] = koma_now->next->y;
         }
-        glid = GetNextGlid(glid, &direction);
-    }
-    tail->next = NULL;
-    if (koma_now->next != NULL) {
-        dng_player_pos[0] = koma_now->next->x;
-        dng_player_pos[1] = koma_now->next->y;
     }
     return memory.stGetUsed();
 }
+
 #else
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/dngmenu", LoadDngInfo__11CDngFreeMapFP9mgCMemoryiiii);
 #endif
