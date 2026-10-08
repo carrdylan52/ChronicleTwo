@@ -436,3 +436,37 @@ Image: `chronicletwo_dev:sf-d8bf13c-proto`. Receipts:
 `.private/receipts/prototype/focused.log` and `message-word-diff.json`;
 `.private/sfproto/nd_meswin-reorder2-diff.json` records the isolated ordinary-walk
 probe rather than an accepted profile.
+
+## Placement selector validation, October 8 round 1
+
+Each of the four placement rows now requires `expected_matches: 1` per
+compiler invocation. Both `evaluate_before` and that assertion precede the
+final `evaluate_first` key; existing rows retain their order. The count never
+selects a call. The control value set omits the compared subject and the selected
+ratio's formal slot, so repeated projected identities receive the same policy
+and excess selected call arguments fail the assertion.
+
+Every switch case descriptor keeps its label, including unsupported bounds.
+Context reconstruction rejects oversized or nonrepresentable case ranges,
+missing targets and nonterminal defaults instead of extending another case's
+region. The descriptor's default target is a boundary, not a verified join.
+`DrawMesWin`'s no-op case 11 shares that terminal boundary and receives no
+switch context; the DQ case-9/10 region still ends before it. The later center
+condition supplies the separate `[11]` context used by the centered rows.
+
+Center X's selected argument and screen-limit target both pass the verified
+ordinary-walk checks: category 1/2, zero evaluated marker and false early flag.
+Targets already evaluated first are rejected. Genuine compiler regressions
+verify all six schedules and preserve the two unselected call preparations;
+a volatile nested assignment exercises two simultaneous saved orders and
+readback of both restored lists and heads. A separate fault-enabled test binary
+rejects an inner restoration write failure without publishing a new object.
+The production wrapper excludes that fault capability.
+
+With `chronicletwo_dev:sf-d8bf13c-proto2`, all four rows log
+`expected=1 actual=1` independently in each mwccgap pass. The `0xB80`
+`DrawMesWin` body has zero differing masked words, and the focused complete
+object passes `0xBF28` bytes and 1,364 resolved relocations. Source and headers
+remain unchanged. Receipts: `.private/receipts/proto2/focused.log` and
+`message-word-diff.json`; whole-project evidence and the deliberately coarse
+projection are documented in [the proposal](../satansfiddle/selector-proposal-20261008.md).
