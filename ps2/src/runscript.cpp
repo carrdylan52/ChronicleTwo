@@ -131,7 +131,7 @@ void CRunScript::push(RS_STACKDATA data) {
     RS_STACKDATA *slot = sp;
     sp++;
     slot->type = data.type;
-    *(float *) &slot->val.i = *(float *) &data.val.i;
+    slot->val = data.val;
 }
 
 void CRunScript::push_int(int value) {
@@ -406,7 +406,7 @@ void CRunScript::exe(vmcode_t *entry) {
                 value = pop();
                 target = pop().val.p;
                 target->type = value.type;
-                target->val.f = value.val.f;
+                target->val = value.val;
                 push(value);
                 break;
             case RS_OP_PUSH_CONST:

@@ -38,3 +38,21 @@ Final validation: `.private/dataC-r2/runscript-final-{build,objects}.log` and
 coverage is 1180 / 1180. The full image, all 149 objects, and all unowned
 object hashes pass. No marker is parked and no shared-tool proposal is
 needed for this unit.
+
+## Native stack-payload assignment
+
+`push` and the store opcode assign the `RS_STACKDATA::val` union directly.
+MWCC generates the same floating-point load/store pair for the union copy;
+the explicit cast through its integer field is unnecessary. This preserves
+all value kinds without choosing an inactive scalar member.
+
+Acceptance: `.private/dataC-r2/runscript-union-values-{build,objects}.log`
+and `runscript-union-values-metrics.json`. The complete PAL image, all 149
+objects, and every unowned object hash pass. No data count changes.
+
+An anonymous integer/float operand union in `vmcode_t` also preserves PAL
+bytes and passes all 149 canonical object checks, but changes metadata in
+three unowned objects (`eventedit`, `userdata`, `charasetup`). The existing
+header and float-operand access are retained to preserve their complete
+object hashes. Receipts: `runscript-typed-operands-{build,objects}.log` and
+`runscript-float-operand-unowned.log`, under `.private/dataC-r2/`.
