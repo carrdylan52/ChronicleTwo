@@ -73,3 +73,26 @@ Each table passes separately in `gamedata-command-table`,
 `gamedata-core-table`, and `gamedata-message-offsets` build/object/metrics
 receipts. PAL stays OK, all 149 objects pass, and unowned hashes remain
 unchanged. Markers become 17/1.
+
+## Inline paths and command switch
+
+Every ordinary string is inline at its existing use. The five separately
+verified functions and receipt prefixes are:
+
+| Function | Receipt prefix |
+| --- | --- |
+| `LoadGameDataAnalyze` | `gamedata-loader-string` |
+| `CGameData::LoadData` | `gamedata-config-strings` |
+| `CGameData::LoadItemSystemMes` | `gamedata-message-path` |
+| `GetItemFileName` | `gamedata-filename-strings` |
+| `GetItemFilePath` | `gamedata-filepath-strings` |
+
+The literal directory is `mainchr/`; the earlier `main/chr/` notes are
+inaccurate. Shared `.chr` literals pool naturally. No filename, path or
+format behavior changes.
+
+The existing `GetItemCmdMesList` switch supplies `at_1501` itself. Removing
+its marker and unused extern passes `gamedata-command-switch` separately.
+Each receipt includes a full build, all-object comparison, and unowned hash
+check: PAL OK, 149/149 passing, and no unowned changes. No RODATA markers
+remain; the name-buffer BSS marker is the only retained reservation.

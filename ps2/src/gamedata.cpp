@@ -534,23 +534,6 @@ static signed char ItemCmdMsgTbl[33][8] = {
     {19, 20, 9, 1, -1, 0, 0, 0},
     {48, -1, 0, 0, 0, 0, 0, 0},
 };
-extern char           at_1048[];
-extern char           at_1063[];
-extern char           at_1064__2[];
-extern char           at_1065[];
-extern char           at_1066[];
-extern char           at_1067[];
-extern char           at_1068[];
-extern char           at_1069__2[];
-extern char           at_1079[];
-extern char           at_1283__3[];
-extern char           at_1284__3[];
-extern char           at_1307__2[];
-extern char           at_1308__2[];
-extern char           at_1309__2[];
-extern char           at_1310__2[];
-extern char           at_1311__2[];
-extern char           at_1501[];
 
 // Code (.text)
 CGameData *GetGameDataPt() {
@@ -1133,7 +1116,7 @@ int LoadGameDataAnalyze(char *name) {
 
     script = (char *) MenuCalcBufAlignment((u_long128 *) buffer);
     SetCurrentDir(NULL);
-    sprintf(path, at_1048, name);
+    sprintf(path, "menu/cfg7/%s", name);
 
     if (LoadFile2(path, script, &size, 0) == 0) {
         return 0;
@@ -1153,13 +1136,13 @@ int CGameData::LoadData() {
     comdatapt = common_data;
     comdatapt_num = 0;
     memset(local_itemdatano_converttable, -1, 0x400);
-    LoadGameDataAnalyze(at_1063);
-    LoadGameDataAnalyze(at_1064__2);
-    LoadGameDataAnalyze(at_1065);
-    LoadGameDataAnalyze(at_1066);
-    LoadGameDataAnalyze(at_1067);
-    LoadGameDataAnalyze(at_1068);
-    LoadGameDataAnalyze(at_1069__2);
+    LoadGameDataAnalyze("comdat.cfg");
+    LoadGameDataAnalyze("wepdat.cfg");
+    LoadGameDataAnalyze("itemdat.cfg");
+    LoadGameDataAnalyze("atdat.cfg");
+    LoadGameDataAnalyze("robodat.cfg");
+    LoadGameDataAnalyze("fishdat.cfg");
+    LoadGameDataAnalyze("grddat.cfg");
     item_no = 0;
     common_num = comdatapt_num;
     max_item_no = 0;
@@ -1188,7 +1171,7 @@ int CGameData::LoadItemSystemMes(int language) {
     ((mgCMemory *) memory_storage)->Init();
     ((mgCMemory *) memory_storage)->stSetBuffer((u_long128 *) gamedata_sysword_buffer_1073, 0x280);
     gamedata_build_stack = (mgCMemory *) memory_storage;
-    sprintf(path, at_1079, language);
+    sprintf(path, "menu/cfg7/comdatmes%d.cfg", language);
 
     if (LoadFile2(path, script, &size, 0) != 0) {
         CScriptInterpreter interpreter;
@@ -1467,11 +1450,11 @@ char *GetItemFileName(int item_no, int variant) {
     u8         type = record->type;
 
     if ((type == 5 || type == 8) && save_data->GetBitFlag(0x31F) != 0) {
-        strcat(filename_1267, at_1283__3);
+        strcat(filename_1267, "t");
     }
 
     if (variant != 0 && variant == 1) {
-        strcat(filename_1267, at_1284__3);
+        strcat(filename_1267, ".chr");
     }
 
     return filename_1267;
@@ -1497,27 +1480,27 @@ char *GetItemFilePath(int item_no, int variant) {
         switch (type) {
             case 3:
             case 4:
-                strcpy(item_file_path_1288, at_1307__2);
+                strcpy(item_file_path_1288, "mainchr/");
                 break;
             case 5:
-                strcpy(item_file_path_1288, at_1308__2);
+                strcpy(item_file_path_1288, "dungeon/robo/");
                 break;
             default:
-                strcpy(item_file_path_1288, at_1309__2);
+                strcpy(item_file_path_1288, "item/");
                 break;
         }
 
         strcat(item_file_path_1288, name);
-        strcat(item_file_path_1288, at_1284__3);
+        strcat(item_file_path_1288, ".chr");
 
         if (variant == 1) {
             if (type == 3) {
-                sprintf(item_file_path_1288, at_1310__2, name);
+                sprintf(item_file_path_1288, "wep_t/%s_item.chr", name);
             }
         }
 
         if (variant == 1 && (record->type == 0xD || record->type == 0xE)) {
-            sprintf(item_file_path_1288, at_1311__2, name);
+            sprintf(item_file_path_1288, "wep_t/%s.chr", name);
         }
     }
 
@@ -1865,30 +1848,4 @@ void CItemUseTarget::SetPtr(int new_kind, void *new_ptr) {
     }
 }
 
-// Initialised data (.data)
-
-// Constants (.rodata)
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/gamedata", at_1048__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/gamedata", at_1063__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/gamedata", at_1064__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/gamedata", at_1065__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/gamedata", at_1066__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/gamedata", at_1067__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/gamedata", at_1068__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/gamedata", at_1069__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/gamedata", at_1079__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/gamedata", at_1283__3__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/gamedata", at_1284__3__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/gamedata", at_1307__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/gamedata", at_1308__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/gamedata", at_1309__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/gamedata", at_1310__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/gamedata", at_1311__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/gamedata", at_1501__DATA);
-
-// Small initialised data (.sdata)
-
-// Small uninitialised data (.sbss)
-
-// Uninitialised data (.bss)
 INCLUDE_BSS(gamedata_sysword_buffer_1073, 0x2800);
