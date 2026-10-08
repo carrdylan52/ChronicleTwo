@@ -509,40 +509,35 @@ int EditNowPlaceAnime() {
     return 0;
 }
 
-#ifdef NONMATCHING
 inline CMapParts::CMapParts() { Initialize(); }
 
 int EditSetPlaceAnime(int kind, CMapParts *parts) {
     CPlaceAnime *slot;
     CMapParts   *target;
-    int          oldest;
-    int          i;
-    int          offset;
-    CPlaceAnime *candidate;
 
-    if (parts == NULL || kind == 0) {
+    if (parts == NULL || kind == EDIT_PLACE_ANIME_NONE) {
         return 0;
     }
 
     slot = NULL;
     target = parts;
 
-    if (kind == 3) {
-        for (i = 0, offset = 0; i < place_anime_count; i++, offset += sizeof(CPlaceAnime)) {
-            candidate = (CPlaceAnime *) ((u8 *) PlaceAnime + offset);
+    if (kind == EDIT_PLACE_ANIME_REMOVE) {
+        for (int i = 0; i < place_anime_count; i++) {
+            CPlaceAnime *candidate = &PlaceAnime[i];
 
-            if (candidate->state == effect_idle) {
+            if (PlaceAnime[i].state == effect_idle) {
                 slot = candidate;
 
-                if (candidate->type == 3) {
+                if (candidate->type == EDIT_PLACE_ANIME_REMOVE) {
                     break;
                 }
             }
         }
 
         if (slot != NULL) {
-            slot->state = 0;
-            slot->type = 0;
+            slot->state = EDIT_EFFECT_STATE_FREE;
+            slot->type = EDIT_PLACE_ANIME_NONE;
             slot->parts = NULL;
             CurPartsBuff.stack_used = 0;
             CurPartsBuff.lock = 0;
@@ -556,12 +551,12 @@ int EditSetPlaceAnime(int kind, CMapParts *parts) {
             parts->Copy(*target, &CurPartsBuff);
         }
     } else {
-        oldest = 0;
+        int oldest = 0;
 
-        for (i = 0, offset = 0; i < place_anime_count; i++, offset += sizeof(CPlaceAnime)) {
-            candidate = (CPlaceAnime *) ((u8 *) PlaceAnime + offset);
+        for (int i = 0; i < place_anime_count; i++) {
+            CPlaceAnime *candidate = &PlaceAnime[i];
 
-            if (candidate->state == effect_idle) {
+            if (PlaceAnime[i].state == effect_idle) {
                 slot = &PlaceAnime[i];
                 break;
             }
@@ -577,7 +572,7 @@ int EditSetPlaceAnime(int kind, CMapParts *parts) {
         return 0;
     }
 
-    slot->state = 1;
+    slot->state = EDIT_EFFECT_STATE_PLAY;
     slot->type = kind;
     slot->parts = target;
     slot->parts->GetPosition(slot->position);
@@ -590,9 +585,6 @@ int EditSetPlaceAnime(int kind, CMapParts *parts) {
     slot->phase = 0;
     return 1;
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/editeff", EditSetPlaceAnime__FiP9CMapParts);
-#endif
 
 void EditPlaceAnime() {
     int i;
