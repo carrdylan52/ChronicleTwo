@@ -4,25 +4,25 @@ Unit: manual menu (`CManualMenu`, `MenuManual*`), option menu (`CMenuOption`, `M
 menu (`CSaveMenuClass`, `MenuSave*`, `SaveFileListDraw`, map-info save/restore), mini-game save menu
 (`SubGameSave*`). No first-game counterpart (Dark Cloud 1 has no `CBaseMenuClass` menus).
 
-## Header dependencies (unresolved at time of writing)
-- `menuop.hpp` includes `menusys.hpp` (base `CBaseMenuClass`), `savedata.hpp` (`SV_CONFIG_OPTION`, by
-  value x2 in CMenuOption) and `scenesnd.hpp` (`CScene::BGM_STATUS`, by value in CManualMenu and
-  CSaveMenuClass). `savedata.hpp` and `scenesnd.hpp` did not exist; `menusys.hpp` exists but pulls
-  in `memcard.hpp` (missing) via userdata/inventmn. So the header does not compile yet.
+## Header dependencies
+- `menuop.hpp` includes `menusys.hpp` (base `CBaseMenuClass`), `savedata.hpp`
+  (`SV_CONFIG_OPTION`, by value twice in CMenuOption), `scenesnd.hpp`
+  (`CScene::BGM_STATUS`, by value in CManualMenu and CSaveMenuClass), and
+  `memcard.hpp` (typed card and file information). These headers compile together.
 - Layout verified by compiling against stubs (CBaseMenuClass = 0x10C bytes + vptr at 0x10C, sizeof
   0x110; SV_CONFIG_OPTION 0x40; BGM_STATUS 0x1C) with every field offset asserted.
 - `SV_CONFIG_OPTION`: size 0x40 (`InitSV_CONFIG_OPTION` memsets 0x40, sets +0x14 = 1), owned by
   savedata. `CScene::BGM_STATUS`: 0x1C (GetActiveBgmStatus writes +0..+0x18; +4 is the BGM number,
   read as `bgm_status+4` for LoadBGM in MenuManualDraw / CSaveMenuClass::KeyStep).
-- `ps2/src/menuop.cpp` now has `#include "menuop.hpp"`; it compiles once those headers exist.
+- `ps2/src/menuop.cpp` includes `menuop.hpp`; the unit compiles with all drafts enabled.
 
 ## Vtables
 `__vt__11CManualMenu` 0x37C580, `__vt__11CMenuOption` 0x37C560, `__vt__14CSaveMenuClass` 0x37C540,
 each 0x20: 2 zero words + CBaseMenuClass's six (IsCreateObject, IsMakeObject, IsAskExtend,
 ItemCmdAfter, InitEnd, ExitEnd), none overridden. No out-of-line ctor/dtor exists for any of the
 three; the constructors are inlined into the *Init functions (`__nw__FUiP1(size, Alloc(...))`,
-`__ct__14CBaseMenuClassFv`, store vptr at 0x10C, then member inits). The next agent must add an
-inline constructor per class reproducing these stores in order (below).
+`__ct__14CBaseMenuClassFv`, store vptr at 0x10C, then member inits). The inline
+constructors reproduce these stores in the order documented below.
 
 ## CManualMenu (0x178) -- `__nw(0x178)` in MenuManualInit
 `MenuManualInit` keeps its typed C++ draft under `NONMATCHING`. The draft emits 0x518 bytes
@@ -116,19 +116,17 @@ scrlbar_parts[0..2]=0; scrlbar_pos={0,9}; card_ok=0; card_changed=0.
 - Local functions (static, keep in .cpp): InitMnOnePictTex, SetMCIconData, SubGameCFGAnalyze.
 
 ## Function notes
-- Typed `CMenuOption` and `CSaveMenuClass` constructors produce exact retail
-  `MenuOptionInit` and `MenuSaveInit` bodies, including their base construction and
-  initialization order. The typed `CManualMenu` constructor gives a 99.32% body;
-  MWCC moves the allocation pointer before its null branch, while retail places
-  the move in its delay slot, adding one nop later.
+- The typed `CMenuOption` constructor produces an exact retail `MenuOptionInit`.
+  `CManualMenu` and `CSaveMenuClass` reproduce the documented member initialization
+  order, but their guarded init functions still differ at the placement-new null
+  branch and subsequent scheduling. See the remaining-function classification
+  below; constructor store order alone does not establish an exact init body.
 - Init signature `(mgCMemory *stack, int *tex_block, int open_type)`; open_type is
   MenuCommonInfo+0x50 (MenuOpenType) from NextMenuInit/MenuMainInit, or 7 / 0x1E from
   DngTreeMapKey / GyoraceMenuKey.
 - *Key functions are `return Ptr->KeyStep();` (tail call), so they return int.
-- In `CManualMenu::KeyStep`, the `CalcMenuAdd` call in movie BGM phase 3
-  differs only in the order of two adjacent `mtc1` instructions: retail loads
-  the increment into `fa0` before zero into `fa1`; the current C++ sequence
-  loads `fa1` first. The surrounding call arguments and instructions match.
+- `CManualMenu::KeyStep` matches retail, including the float argument setup
+  for the movie BGM phase-3 `CalcMenuAdd` call.
 - LocalFunc_AdjustScrlBar(parts[3], pos[2], size[2], top, line_num, show_num, jump): uses pos[1],
   size[1]; part +0x20 y, +0x28 h. Also called by editmenu's CRemovalMenu::KeyStep.
 - SaveFileListDraw(int &tex_block, float *pos, int alpha): called from
@@ -136,10 +134,10 @@ scrlbar_parts[0..2]=0; scrlbar_pos={0,9}; card_ok=0; card_changed=0.
 - SetDlInfoMsg(load, show): msg 0xC09 if load else 0xC08 on MenuDCMsg[7]; MenuMesForm[?] +1 = show.
 
 ## LocalFunc_AdjustScrlBar draft
-The scrollbar helper divides the available height by total and visible lines, resizes the middle part, then positions the three parts in order. The guarded C++ draft compiles but differs from retail, so assembly remains active.
+The scrollbar helper divides the available height by total and visible lines, resizes the middle part, then positions the three parts in order. The typed C++ function matches retail.
 
 ## SaveFileListDraw draft
-The save list draws 13 card slots in one primitive batch, with an extra marker for occupied slots. It then positions message lines and formats each occupied file’s play time from frames into hours and minutes. Europe uses ASCII digits and `sprintf`; other regions build digits with `GetMenuBigNum`. The guarded C++ draft compiles and retains the assembly fallback.
+The save list draws 13 card slots in one primitive batch, with an extra marker for occupied slots. It then positions message lines and formats each occupied file’s play time from frames into hours and minutes. Europe uses ASCII digits and `sprintf`; other regions build digits with `GetMenuBigNum`. The typed C++ function matches retail.
 
 ## Save map and option indexing
 
@@ -155,3 +153,86 @@ only the saved-register pairing in the three-button loop: retail uses `s3`
 for the row base and `s2` for the byte offset, while MWCC assigns these in
 the opposite order. Reordering declarations and loop increments leaves the
 99.78% score unchanged.
+
+## Remaining-function classification at 0abce37
+
+The current unit has 36 functions: 33 match and these three retain their
+`NONMATCHING` guards. The comparison below uses relocation-masked instruction
+words over each manifest extent, not objdiff similarity percentages.
+
+### MenuManualInit__FP9mgCMemoryPii — placement-new null branch
+
+Retail is 0x510 bytes; the natural C++ draft is 0x518 bytes. At retail +0x98
+(0x2C4518), `beqz v0` skips construction and `move s2,v0` occupies its delay
+slot. The draft moves into s2 first, then branches on s2. Base construction,
+vtable emission, and the embedded mgCMemory initialization consequently have
+different scheduling. The current draft does not fit the retail extent.
+
+This is the placement-new branch category reserved for the dedicated compiler
+research lane. Keep the constructor and init guarded. Reconsider when that lane
+provides a natural C++ declaration or compiler explanation that reproduces
+branch-before-copy without hand-written vtable stores or instruction wrappers.
+
+### MenuSaveInit__FP9mgCMemoryPii — placement-new null branch
+
+The draft and retail extents are both 0x6A0; 245/424 masked words differ. The
+first differing pair is at +0x68/+0x6C (0x2C9B48/0x2C9B4C): retail uses
+`beqz v0` with `move s0,v0` in its delay slot; the draft copies into s0 and then
+branches on s0. This shifts the inline base/derived initialization sequence by
+one instruction through the allocation of CMemoryCardManager. The same store
+order therefore does not imply a matching function. The message-window loop
+has a separate placement-new call whose scheduling also differs.
+
+Stop on the shared placement-new category. Reconsider after the dedicated lane
+solves the branch/copy pattern, then compare the remaining allocation and loop
+scheduling before attempting manual promotion.
+
+### KeyStep__14CSaveMenuClassFv — control flow and stack layout
+
+Baseline: 1291/1692 words differ, draft 0x1A2C, retail 0x1A70. With the
+retained natural C++ corrections: 1189/1692 differ, draft 0x1A44. No guard has
+been removed. All other 33 unit functions still match.
+
+Retail loads MenuDCMsg[2] after CMemoryCardManager::Step. After FormStep, it
+captures messages 4, 5 and 6 before StepMsg and the position calls. Those load
+orders are significant across calls and are reflected in the draft. File-list
+phase 7 is an explicit idle switch arm: retail compares it between phases 2 and
+6 and branches to the shared page exit. Placing that arm after the phase-6
+notice body reproduces the dispatch order. LR page jumps modify the existing
+movement accumulator by two, and the file-read page clamps `top > 10` to 10.
+The latter spelling reproduces retail's `slti at` comparison.
+
+Entering the file list refreshes its messages in every menu mode. Expressing
+that assignment once after the conditional load messages restores the retail
+register allocation: Step result s7, error pointer s8, refresh s6, LR key spill
+at stack +0xDC. The comma assignment inside the mode test changes those live
+ranges despite giving the same boolean result.
+
+Remaining differences include:
+
+- Retail frame 0x1A0 versus draft 0x160. Both place the 13 file-info pointers
+  at +0xE0 and the form coordinates at +0x120/+0x124. Retail's temporary arrays
+  start at +0x168, while the draft's start at +0x128. The unreferenced interval
+  +0x128..+0x167 does not establish a legitimate extra array or its element type;
+  adding artificial padding or enlarging an array solely to reserve it is not
+  supported by the evidence.
+- The readiness tests after clamping the signed input-wait counter emit a
+  relational result followed by a branch in retail (for example `slt`/`bnez`
+  at +0xA18/+0xA1C); the draft emits `bgtz` directly. Changing only the ready
+  predicate from `<= 0` to `< 1` produces identical instructions.
+- Save/load message and page-exit blocks retain scheduling and branch-target
+  differences; the shorter draft displaces later blocks. Matching initial
+  register allocation is insufficient to establish a matching full body.
+
+Park under control-flow/stack-layout reconstruction. Reconsider when an actual
+local type or array extent explains the 64-byte stack interval, or when a
+natural counter-condition structure supported by retail produces its boolean
+materialization. Re-run the complete function diff after either finding;
+remaining page scheduling must also reach zero before removing the guard.
+
+For m2c, the generated retail function refers to two tables named
+`at_2517__2` and `at_2518__2`, which its jump-table recognizer does not accept.
+An analysis-only copy renaming those to `jtbl_at_2517__2` and
+`jtbl_at_2518__2`, with their exact `.word` destinations from the corresponding
+retail `__DATA.s` files expressed as local labels, allows the full function to
+be decompiled. Generated assembly and shared headers need no changes.

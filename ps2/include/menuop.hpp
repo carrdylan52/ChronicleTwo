@@ -72,6 +72,7 @@ enum SaveListPhase {
     SAVE_LIST_PHASE_SAVING       = 2,  /**< The save is written. */
     SAVE_LIST_PHASE_SAVE_DONE    = 3,  /**< The save has finished. */
     SAVE_LIST_PHASE_NOTICE       = 6,  /**< A message is shown until a button is pushed. */
+    SAVE_LIST_PHASE_UNK_7        = 7,  /**< The file list waits without changing state. */
     SAVE_LIST_PHASE_MAKING_DIR   = 10, /**< The directory for a new file is made. */
     SAVE_LIST_PHASE_CONFIRM_LOAD = 50, /**< The player is asked to load the chosen file. */
     SAVE_LIST_PHASE_LOADING      = 51, /**< The save is read. */

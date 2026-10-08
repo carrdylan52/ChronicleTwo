@@ -1731,7 +1731,6 @@ int CSaveMenuClass::KeyStep(void) {
     int                 lrKeys;
     int                 answer;
     int                 cursorPos;
-    int                 listMove;
     int                 fileNo;
     int                 index;
     MC_CARD_INFO       *card;
@@ -1746,8 +1745,8 @@ int CSaveMenuClass::KeyStep(void) {
     CMemoryCardManager *manager;
 
     finished = 0;
-    fileMes = MenuDCMsg[2];
     stepResult = MemoryCardPtr->Step();
+    fileMes = MenuDCMsg[2];
     titleMes = MenuDCMsg[3];
     error = &MemoryCardPtr->error;
     static int FormatCase = 0;
@@ -1894,7 +1893,7 @@ int CSaveMenuClass::KeyStep(void) {
                             }
                             select = index;
                             top = select;
-                            if (top >= 11) {
+                            if (top > 10) {
                                 top = 10;
                             }
                             InitMenuDl(NULL, 0);
@@ -1914,13 +1913,11 @@ int CSaveMenuClass::KeyStep(void) {
                         switch (phase) {
                             case SAVE_LIST_PHASE_SELECT:
                                 if ((lrKeys & 0x10) || (lrKeys & 0x40)) {
-                                    listMove = moveKey - 2;
+                                    moveKey -= 2;
                                 } else if ((lrKeys & 0x20) || (lrKeys & 0x80)) {
-                                    listMove = moveKey + 2;
-                                } else {
-                                    listMove = moveKey;
+                                    moveKey += 2;
                                 }
-                                if (MenuKeySelectCheck(listMove, &select, &top, 0, 0xD, 3, 0) != 0) {
+                                if (MenuKeySelectCheck(moveKey, &select, &top, 0, 0xD, 3, 0) != 0) {
                                     MenuSePlay(SYSTEM_SE_CURSOR);
                                     input_wait_counter = 4;
                                 }
@@ -2040,6 +2037,8 @@ int CSaveMenuClass::KeyStep(void) {
                                     next = SAVE_MENU_PAGE_FILE_LIST;
                                     ExeScript(at_2501);
                                 }
+                                break;
+                            case SAVE_LIST_PHASE_UNK_7:
                                 break;
                             case SAVE_LIST_PHASE_SAVING:
                                 StepMenuDl2(dl_base + MemoryCardPtr->total_transferred);
@@ -2373,12 +2372,12 @@ int CSaveMenuClass::KeyStep(void) {
                     fileMes->MakeMsg(0xBBE);
                     titleMes->MakeMsg(0xC1D);
                 }
-                if (mode == SAVE_MENU_MODE_LOAD || (refresh = 1, mode == SAVE_MENU_MODE_GYORACE_LOAD)) {
+                if (mode == SAVE_MENU_MODE_LOAD || mode == SAVE_MENU_MODE_GYORACE_LOAD) {
                     phase = 0;
                     fileMes->MsgPreset(0xB, LanguageCode);
                     titleMes->MakeMsg(0xC1E);
-                    refresh = 1;
                 }
+                refresh = 1;
                 list_jump = 1;
                 MenuMesForm[2]->draw_flag = 0;
                 cursor_form->draw_flag = 1;
@@ -2451,20 +2450,23 @@ int CSaveMenuClass::KeyStep(void) {
         CalcMenu1(listPos[1] - 80.0f * (float) top, &list_form->y, 4.0f, 4.0f, list_jump);
     }
     MenuPosData->FormStep();
+    CDC2Mes *slot1Mes = MenuDCMsg[4];
+    CDC2Mes *slot2Mes = MenuDCMsg[5];
+    CDC2Mes *helpMes = MenuDCMsg[6];
     if (title_form != NULL) {
         titleMes->StepMsg();
         title_form->GetPutPosXY(at_2513, formPos[0], formPos[1]);
         titleMes->SetMovePosCenteringGyou(0, formPos[0], formPos[1]);
         title_form->GetPutPosXY(at_2514, formPos[0], formPos[1]);
-        MenuDCMsg[6]->SetMovePosCenteringGyou(0, formPos[0], formPos[1]);
+        helpMes->SetMovePosCenteringGyou(0, formPos[0], formPos[1]);
     }
     if (slot_form[0] != NULL) {
         slot_form[0]->GetPutPosXY(at_2515, formPos[0], formPos[1]);
-        MenuDCMsg[4]->SetMovePosCenteringGyou(0, formPos[0], formPos[1]);
+        slot1Mes->SetMovePosCenteringGyou(0, formPos[0], formPos[1]);
     }
     if (slot_form[1] != NULL) {
         slot_form[1]->GetPutPosXY(at_2515, formPos[0], formPos[1]);
-        MenuDCMsg[5]->SetMovePosCenteringGyou(0, formPos[0], formPos[1]);
+        slot2Mes->SetMovePosCenteringGyou(0, formPos[0], formPos[1]);
     }
     int scrollRange[2] = {6, 250};
     LocalFunc_AdjustScrlBar(scrlbar_parts, scrlbar_pos, scrollRange, top, 13.0f, 3.0f, list_jump);
