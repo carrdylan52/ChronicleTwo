@@ -246,7 +246,12 @@ source comparison, including coincidental compiler copies. No fallback payload
 is imported. Function bytes, declared sizes and relocation fields remain intact;
 function names use the existing template/initializer projection. The build and
 GUI refresh these copies when inputs or preparation tools change. `matched_data`
-requires exact native section comparison and is independent of executable matching.
+credits complete aggregate sections whose native bytes, extents and relocations
+match retail exactly. It is a lower bound on migrated native data: an exact
+typed object receives no section credit while a reservation or unmapped piece
+leaves the same aggregate section incomplete. Removing the reservation preserves
+the native object but cannot restore credit until the section is complete.
+This metric is independent of executable matching.
 
 ## Natural C++ definitions
 
