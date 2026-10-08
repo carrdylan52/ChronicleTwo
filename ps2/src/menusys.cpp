@@ -7744,6 +7744,12 @@ extern char  at_6810[];
 extern char  at_6811[];
 extern char  at_6812[];
 extern char  at_6813[];
+
+/**
+ *
+ * Draws the debug item browser and the character and weapon information pages.
+ *
+ */
 void MenuItemDebugDraw(void) {
     CMenuFont          menu_font;
     mgCTextureManager *tex_manager = &mgTexManager;
@@ -9304,6 +9310,12 @@ extern char  at_7538[];
 extern char  at_7541[];
 extern float counter_7509;
 extern s8    init_7510;
+
+/**
+ *
+ * Updates the ridepod status form's health, capacity, defence and part warning colours.
+ *
+ */
 void MenuPosFormValueSetCharaRobo(ROBO_DATA *robo, int flag) {
     float               sway;
     MENUFORMPARTS_TYPE *hp_part;
