@@ -646,33 +646,38 @@ void CDngFreeMap::DrawGlid(mgRect<float> rect) {
  *
  */
 static int CheckGeoramaMateria(TRESURE_BOX_FLOOR_INFO *info, int floor_no, int *items) {
-    if (info == NULL || floor_no < 0) {
+    if (info == NULL) {
         return 0;
     }
+    if (floor_no < 0) {
+        return 0;
+    }
+    int floor_group;
     int                count = 0;
     TRESURE_BOX_FLOOR *floor = &info->floor[floor_no];
-    for (int floor_group = 0; floor_group < floor->group_num; floor_group++) {
+    for (floor_group = 0; floor_group < floor->group_num; floor_group++) {
+        int group_index;
         int group_id = floor->group_id[floor_group];
         if (group_id < 0) {
             break;
         }
         TRESURE_BOX_GROUP *group = NULL;
-        for (int i = 0; i < info->group_num; i++) {
-            if (info->group[i].group_id == group_id) {
-                group = &info->group[i];
+        for (group_index = 0; group_index < info->group_num; group_index++) {
+            if (group_id == info->group[group_index].group_id) {
+                group = &info->group[group_index];
                 break;
             }
         }
         if (group != NULL) {
-            for (int i = 0; i < group->item_num; i++) {
-                items[count++] = group->item[i].item_no;
+            for (int item_index = 0; item_index < group->item_num; item_index++) {
+                items[count++] = group->item[item_index].item_no;
             }
         }
     }
     for (int pass = 0; pass < 2; pass++) {
-        for (int i = 0; i < count; i++) {
-            if (!(GetItemDataAttribute(items[i]) & 0x10)) {
-                local_sort1(i, &count, items);
+        for (floor_group = 0; floor_group < count; floor_group++) {
+            if (!(GetItemDataAttribute(items[floor_group]) & 0x10)) {
+                local_sort1(floor_group, &count, items);
             }
         }
     }
@@ -918,7 +923,7 @@ INCLUDE_ASM("ps2/asm/pal/nonmatchings/dngmenu", DrawDngRoomInfo__FP16DNGMAP_ROOM
 #endif
 #ifdef NONMATCHING
 extern mgCTexture   *Floor_InfoTex;
-extern unsigned char GeoramaMateriaInfoDrawPage;
+extern s8            GeoramaMateriaInfoDrawPage;
 extern short         GeoramaMateriaNum;
 extern mgRect<int>   Floor_Info;
 extern short         dngboardbrdtbl[24];
@@ -943,12 +948,11 @@ void DrawGeoramaMateria(int top_y, char *title, int unused_count, int *items, in
     prim->Begin(6);
     prim->Texture(Floor_InfoTex);
     prim->Color(0x80, 0x80, 0x80, 0x80);
-    mgRect<int> panel(left, top_y, 0x1AE, 0x46);
-    Menu3DivideTextureDraw(prim, panel, dngboardbrdtbl, 1);
-    panel.Set(left, top_y + 0x46, 0x1AE, 0xD2 - dngboardbrdtbl[15]);
-    Menu3DivideTextureDraw(prim, panel, &dngboardbrdtbl[12], 1);
-    panel.Set(left, top_y + 0x118 - dngboardbrdtbl_2[3], 0x1AE, dngboardbrdtbl_2[3]);
-    Menu3DivideTextureDraw(prim, panel, dngboardbrdtbl_2, 1);
+    Menu3DivideTextureDraw(prim, mgRect<int>(left, top_y, 0x1AE, 0x46), dngboardbrdtbl, 1);
+    Menu3DivideTextureDraw(prim, mgRect<int>(left, top_y + 0x46, 0x1AE, 0xD2 - dngboardbrdtbl[15]),
+                           &dngboardbrdtbl[12], 1);
+    Menu3DivideTextureDraw(prim, mgRect<int>(left, top_y + 0x118 - dngboardbrdtbl_2[3], 0x1AE,
+                                          dngboardbrdtbl_2[3]), dngboardbrdtbl_2, 1);
     PrimQuad(prim, (float) ((mgScreenWidth >> 1) - (Floor_Info.right >> 1)) - 1.0f,
              (float) top_y + 10.0f, Floor_Info);
     prim->End();
@@ -972,9 +976,10 @@ void DrawGeoramaMateria(int top_y, char *title, int unused_count, int *items, in
             continue;
         }
         font.SetStr(name);
-        font.CalcDrawWH(font.str, &text_w, &text_h);
+        int item_w, item_h;
+        font.CalcDrawWH(font.str, &item_w, &item_h);
         int column = (index % 2 == 0) ? column_left : column_right;
-        font.SetPos(column - (text_w >> 1), row_y);
+        font.SetPos(column - (item_w >> 1), row_y);
         font.DrawDirect(font.str, font.pos_x, font.pos_y);
         if (index % 2 != 0) {
             row_y += 0x18;
@@ -1166,9 +1171,8 @@ void CDngFreeMap::Draw() {
         return;
     }
     char detail[256];
-    char line[256];
-    int  floor_id = select_glid->room.floor_id;
-    sprintf(detail, "Room ID : %d", floor_id);
+    char line[32];
+    sprintf(detail, "Room ID : %d", select_glid->room.floor_id);
     if (select_glid->room.flag & DNGMAP_ROOM_FLAG_START) {
         strcat(detail, ":START ");
     }
@@ -1186,15 +1190,15 @@ void CDngFreeMap::Draw() {
     font.SetPos(10, 112);
     font.DrawDirect(font.str, font.pos_x, font.pos_y);
     sprintf(line, "Normal:%d\nSun:%d\n Moon :%d\n Star :%d",
-            floor_manager->GetDngMapNextFloorID(floor_id, 0),
-            floor_manager->GetDngMapNextFloorID(floor_id, 1),
-            floor_manager->GetDngMapNextFloorID(floor_id, 2),
-            floor_manager->GetDngMapNextFloorID(floor_id, 3));
+            floor_manager->GetDngMapNextFloorID(select_glid->room.floor_id, 0),
+            floor_manager->GetDngMapNextFloorID(select_glid->room.floor_id, 1),
+            floor_manager->GetDngMapNextFloorID(select_glid->room.floor_id, 2),
+            floor_manager->GetDngMapNextFloorID(select_glid->room.floor_id, 3));
     font.SetStr(line);
     font.SetPos(20, 132);
     font.DrawDirect(font.str, font.pos_x, font.pos_y);
     strcpy(line, at_2184);
-    int links = floor_manager->GetDngMapNextRoot(floor_id);
+    int links = floor_manager->GetDngMapNextRoot(select_glid->room.floor_id);
     for (int i = 0; i < 4; i++) {
         if (links & (1 << i)) {
             strcat(line, RootTable_2119[i]);
@@ -1222,6 +1226,7 @@ void CDngFreeMap::Draw() {
         font.DrawDirect(font.str, font.pos_x, font.pos_y);
         y += 20;
     }
+    strcat(detail, "NONE");
 }
 #else
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/dngmenu", Draw__11CDngFreeMapFv);
@@ -1726,7 +1731,7 @@ extern u8              DngInfoSphidaOkFlag;
 extern u8              dngfloor_infoview;
 extern u8              dngfloor_backdraw;
 extern u8              GeoramaMateriaInfoDrawFlag;
-extern u8              GeoramaMateriaInfoDrawPage;
+extern s8              GeoramaMateriaInfoDrawPage;
 extern int             DngInfoDrawAlpha;
 extern DNG_FLOOR_SAVE *DngInfoFloorInfo;
 extern int             DngInfoRoomInfo;

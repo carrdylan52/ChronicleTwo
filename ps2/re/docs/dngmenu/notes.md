@@ -12,7 +12,7 @@ functions; they do not assert retail enum names.
 ## Current assembly gaps
 
 `CDngFreeMap::CheckIsViewMove`, `DrawRoot`, `DrawRoomOne`,
-`DrawTreeMap`, `Draw`, and `LoadDngInfo` retain C++ drafts
+`Draw`, and `LoadDngInfo` retain C++ drafts
 under `NONMATCHING`; the matching build selects their retail `INCLUDE_ASM`
 gaps. The same applies to `CheckGeoramaMateria`, `DrawDngRoomInfo`,
 `DrawGeoramaMateria`, `CMenuTreeMap::InitEnd`,
@@ -534,3 +534,34 @@ the separate float adjustments `x - 8 - 30`, `-42 + (11 + y)` and
 Declaring the mark mask before the loop index matches retail register reuse;
 the nonzero blink read uses a signed byte conversion. The function matches all
 198 nonpadding instructions.
+
+## Guarded draft findings
+
+`CheckGeoramaMateria` uses one addressable index for the floor-group walk and
+both removal passes. Declaring that index before `count` reproduces stack
+slots 0x38 and 0x3C; declaring the group-search index before the group ID
+reproduces the search registers. Separate input checks give retail's early
+returns. Six instruction words remain different: the item-loop counter and
+strength-reduced byte offset exchange registers a2 and a3 at offsets 0xCC,
+0xD4, 0xD8, 0xE0, 0xE4 and 0x10C. Changing declaration placement,
+initialization placement and postincrement syntax does not resolve the swap.
+
+`DrawGeoramaMateria` reads `GeoramaMateriaInfoDrawPage` as a signed byte at
+0x1EEE84 and 0x1EEF68. Both declarations in this unit therefore use `s8`.
+The three panel calls take separately constructed rectangle values, matching
+the three distinct retail temporaries. Title and item dimensions use separate
+locals. The page-end index remains an integer: narrowing it to a short adds
+sign-extension instructions absent from retail. These corrections retain a
+0x404-byte guarded function against 0x400 bytes in retail.
+
+`CDngFreeMap::Draw` has a 256-byte detail buffer and a 32-byte secondary line
+buffer (retail stack 0x140..0x240 and 0x240..0x260). It reloads the selected
+floor ID for each graph query. Retail also appends `"NONE"` to the detail
+buffer after the final debug row; the append is present at 0x1EFD00..0x1EFD0C,
+and the literal occupies 0x36DAE8. It is not followed by another draw call.
+Restoring these details gives the retail 0x280-byte frame, while instruction
+scheduling and branch structure remain different; the body stays guarded.
+
+The remaining differences and reconsideration triggers are recorded in
+[parks.md](parks.md). The standalone `ClsMes::Init` proposal is recorded in
+[clsmes-init-proposal.md](clsmes-init-proposal.md).
