@@ -815,6 +815,14 @@
         "expected_matches": 1
       },
       {
+        "translation_unit": "editeff.cpp",
+        "function": "EditSetPlaceAnime__FiP9CMapParts",
+        "allocator": "__nw__FUiP1",
+        "constructor": "__ct__9CMapPartsFv",
+        "conversion": "after_constructor_inline",
+        "expected_matches": 1
+      },
+      {
         "translation_unit": "editexception.cpp",
         "function": "InitFirePowder__FiP6CSceneiP9mgCMemory",
         "allocator": "__nw__FUiP1",
@@ -824,7 +832,7 @@
       },
       {
         "translation_unit": "editmap.cpp",
-        "function": "emapRIVER_PARTS_NAME__FP9SPI_STACKi",
+        "function": "emapMASK_PARTS_NAME__FP9SPI_STACKi",
         "allocator": "__nw__FUiP1",
         "constructor": "__ct__9CMapPieceFv",
         "conversion": "after_constructor_inline",
@@ -832,7 +840,7 @@
       },
       {
         "translation_unit": "editmap.cpp",
-        "function": "emapMASK_PARTS_NAME__FP9SPI_STACKi",
+        "function": "emapRIVER_PARTS_NAME__FP9SPI_STACKi",
         "allocator": "__nw__FUiP1",
         "constructor": "__ct__9CMapPieceFv",
         "conversion": "after_constructor_inline",
@@ -847,6 +855,22 @@
         "expected_matches": 1
       },
       {
+        "translation_unit": "editmode.cpp",
+        "function": "LoadEditCursor__FP9mgCMemoryi",
+        "allocator": "__nw__FUiP1",
+        "constructor": "__ct__11CCharacter2Fv",
+        "conversion": "after_constructor_inline",
+        "expected_matches": 3
+      },
+      {
+        "translation_unit": "effscript.cpp",
+        "function": "AssignCharacter__16CEffectScriptManFP11_EFF_SCRIPTi",
+        "allocator": "__nw__FUiP1",
+        "constructor": "__ct__11CCharacter2Fv",
+        "conversion": "after_constructor_inline",
+        "expected_matches": 1
+      },
+      {
         "translation_unit": "effscript.cpp",
         "function": "BuildBase__16CEffectScriptManFiP1iP1iP9mgCMemoryi",
         "allocator": "__nw__FUiP1",
@@ -855,8 +879,24 @@
         "expected_matches": 1
       },
       {
-        "translation_unit": "effscript.cpp",
-        "function": "AssignCharacter__16CEffectScriptManFP11_EFF_SCRIPTi",
+        "translation_unit": "event_func.cpp",
+        "function": "_COPY_CHARA__FP12RS_STACKDATAi",
+        "allocator": "__nw__FUiP1",
+        "constructor": "__ct__11CCharacter2Fv",
+        "conversion": "after_constructor_inline",
+        "expected_matches": 1
+      },
+      {
+        "translation_unit": "fishing.cpp",
+        "function": "StepDataLoading__FPv",
+        "allocator": "__nw__FUiP1",
+        "constructor": "__ct__11CCharacter2Fv",
+        "conversion": "after_constructor_inline",
+        "expected_matches": 7
+      },
+      {
+        "translation_unit": "fishing.cpp",
+        "function": "sgRestartFishing__FP11SubGameInfo",
         "allocator": "__nw__FUiP1",
         "constructor": "__ct__11CCharacter2Fv",
         "conversion": "after_constructor_inline",
@@ -892,6 +932,22 @@
         "allocator": "__nw__FUiP1",
         "constructor": "__ct__24CList<15mgCTexAnimeData>Fv",
         "conversion": "before_constructor_inline",
+        "expected_matches": 1
+      },
+      {
+        "translation_unit": "sceneload.cpp",
+        "function": "CopyChara__6CSceneFiiP9mgCMemory",
+        "allocator": "__nw__FUiP1",
+        "constructor": "__ct__11CCharacter2Fv",
+        "conversion": "after_constructor_inline",
+        "expected_matches": 1
+      },
+      {
+        "translation_unit": "sceneload.cpp",
+        "function": "LoadChara__6CSceneFiPUiPcP9mgCMemoryP9mgCMemoryP9mgCMemoryii",
+        "allocator": "__nw__FUiP1",
+        "constructor": "__ct__11CCharacter2Fv",
+        "conversion": "after_constructor_inline",
         "expected_matches": 1
       }
     ]
