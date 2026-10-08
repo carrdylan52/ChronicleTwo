@@ -147,7 +147,6 @@ extern EventScriptFunc   ext_func_info__2[];
  */
 static EventFunc ext_func[0x5DC];
 
-extern ExtensionTable    at_1084;
 extern VpkTable          at_6800__2;
 extern CEventSprite2     EventSprite2[0x30];
 extern CSceneObjSeq      ObjectSeq[32];
@@ -232,8 +231,6 @@ const int              request_door = EVENT_COMMAND_DOOR;
 const int              event_sprite2_size = 0x80;
 extern char            at_1333[];
 extern char            at_1357__3[];
-extern char            at_1103__2[];
-extern char            at_1104__3[];
 extern char            at_1245[];
 extern char            at_1246[];
 extern char            at_1346__2[];
@@ -1968,13 +1965,13 @@ int CEohMother::SetFootSeId(int slot, int stamp) {
 }
 
 void FileNameConvLanguage(char *name) {
-    ExtensionTable extension = at_1084;
+    ExtensionTable extension = {{"txt", "img", "stb", at_1083}};
     char           marker[32];
     char          *found;
     int            i;
 
     for (i = 0; i < 3; i++) {
-        sprintf(marker, at_1103__2, extension.name[i]);
+        sprintf(marker, "_1.%s", extension.name[i]);
 
         if ((found = strstr(name, marker)) != NULL) {
             switch (LanguageCode) {
@@ -1982,7 +1979,7 @@ void FileNameConvLanguage(char *name) {
                 case 3:
                 case 4:
                 case 5:
-                    sprintf(found, at_1104__3, LanguageCode, extension.name[i]);
+                    sprintf(found, "_%d.%s", LanguageCode, extension.name[i]);
                     break;
             }
         }
@@ -17168,7 +17165,6 @@ void SetEventFunc(CRunScript *script) {
 // Static initialiser (.init)
 
 // Initialised data (.data)
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/event_func", at_1084__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/event_func", esa_ext_func_info__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/event_func", at_3242__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/event_func", vv_3333__DATA);
@@ -17178,12 +17174,7 @@ INCLUDE_RODATA("ps2/asm/pal/nonmatchings/event_func", at_6800__2__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/event_func", ext_func_info__2__DATA);
 
 // Constants (.rodata)
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/event_func", at_1080__3__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/event_func", at_1081__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/event_func", at_1082__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/event_func", at_1083__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/event_func", at_1103__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/event_func", at_1104__3__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/event_func", at_1245__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/event_func", at_1246__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/event_func", at_1333__DATA);

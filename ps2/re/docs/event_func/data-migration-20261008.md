@@ -21,6 +21,20 @@ No guarded function or draft is edited.
 Receipts: `.private/dataA-r3/event-storage-{global,local}-{build,objects,hashes}.log`.
 Both stages pass PAL and 149/149 objects; every unowned object hash is unchanged.
 
+## Local language extensions
+
+`FileNameConvLanguage` initializes its four typed extension pointers at their
+use and inlines the two formatting strings. The three nonempty extensions
+are `txt`, `img`, and `stb`. The unused fourth pointer remains `at_1083`, the
+shared empty-string symbol. Inlining that pointer produces an anonymous
+empty literal that the stock mapper cannot identify through the initializer
+relocation; the native extension template and literal stay unnamed. Retaining
+the existing empty symbol lets the complete native pointer template match.
+This removes six initialized markers without altering function instructions.
+
+Receipts: `.private/dataA-r3/event-extensions-empty-symbol-{build,objects,hashes}.log`;
+the failed fully inline form is recorded in `event-extensions-failure.log`.
+
 ## Retained markers
 
 The initialized-data markers are pending the following migration topics.
