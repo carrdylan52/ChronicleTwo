@@ -289,3 +289,10 @@ the binary32 256.0f (`0x43800000`) X argument and computed Y argument to
 `PrimQuad__FP11mgCDrawPrimff9mgRect<i>` have the retail temporary registers.
 No new selector or source-body change is required. Removing only the guard
 passes all `0x1B0E8` allocated unit bytes and 5,764 resolved relocations.
+
+## October 8 near-miss wave
+
+[nearmiss-20261008.md](nearmiss-20261008.md) records the new linkage,
+width, initialization-order, indexed item-limit and compiler-control probes.
+LRCheck, CalcTex and CheckEnableHaveItemNum remain at 2/220, 7/832 and 13/212
+words; no source change or promotion is retained.
