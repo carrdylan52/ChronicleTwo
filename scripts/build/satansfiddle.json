@@ -734,6 +734,646 @@
         "evaluate_first": true
       },
       {
+        "translation_unit": "sphida.cpp",
+        "function": "DrawStatusSprite__7CSphidaFv",
+        "value_type": "binary32",
+        "value_bits": "0x42040000",
+        "callee": "DPrimEnterSprite__FP11mgCDrawPrimiiiiffff",
+        "argument": {
+          "argument_index": 5,
+          "value_type": "binary32",
+          "value_bits": "0x43db0000"
+        },
+        "expected_matches": 1,
+        "evaluate_first": true
+      },
+      {
+        "translation_unit": "sphida.cpp",
+        "function": "DrawStatusSprite__7CSphidaFv",
+        "value_type": "binary32",
+        "value_bits": "0x43db0000",
+        "callee": "DPrimEnterSprite__FP11mgCDrawPrimiiiiffff",
+        "argument": {
+          "argument_index": 6,
+          "value_type": "binary32",
+          "value_bits": "0x42040000"
+        },
+        "expected_matches": 1,
+        "evaluate_first": true
+      },
+      {
+        "translation_unit": "sphida.cpp",
+        "function": "DrawStatusSprite__7CSphidaFv",
+        "value_type": "binary32",
+        "value_bits": "0x41900000",
+        "callee": "DPrimEnterSprite__FP11mgCDrawPrimiiiiffff",
+        "argument": {
+          "argument_index": 5,
+          "value_type": "binary32",
+          "value_bits": "0x43db0000"
+        },
+        "expected_matches": 1,
+        "evaluate_first": true
+      },
+      {
+        "translation_unit": "sphida.cpp",
+        "function": "DrawStatusSprite__7CSphidaFv",
+        "value_type": "binary32",
+        "value_bits": "0x43e30000",
+        "callee": "DPrimEnterSprite__FP11mgCDrawPrimiiiiffff",
+        "argument": {
+          "argument_index": 6,
+          "value_type": "binary32",
+          "value_bits": "0x42040000"
+        },
+        "expected_matches": 1,
+        "evaluate_first": true
+      },
+      {
+        "translation_unit": "sphida.cpp",
+        "function": "DrawStatusSprite__7CSphidaFv",
+        "value_type": "binary32",
+        "value_bits": "0x41900000",
+        "callee": "DPrimEnterSprite__FP11mgCDrawPrimiiiiffff",
+        "argument": {
+          "argument_index": 5,
+          "value_type": "binary32",
+          "value_bits": "0x43e30000"
+        },
+        "expected_matches": 1,
+        "evaluate_first": true
+      },
+      {
+        "translation_unit": "sphida.cpp",
+        "function": "DrawStatusSprite__7CSphidaFv",
+        "value_type": "binary32",
+        "value_bits": "0x41b00000",
+        "callee": "DPrimEnterSprite__FP11mgCDrawPrimiiiiffff",
+        "argument": {
+          "argument_index": 5,
+          "value_type": "binary32",
+          "value_bits": "0x43be0000"
+        },
+        "expected_matches": 1,
+        "evaluate_first": false,
+        "evaluate_before": 7
+      },
+      {
+        "translation_unit": "sphida.cpp",
+        "function": "DrawStatusSprite__7CSphidaFv",
+        "value_type": "binary32",
+        "value_bits": "0x42700000",
+        "callee": "DPrimEnterSprite__FP11mgCDrawPrimiiiiffff",
+        "argument": {
+          "argument_index": 5,
+          "value_type": "binary32",
+          "value_bits": "0x43ed0000"
+        },
+        "expected_matches": 1,
+        "evaluate_first": true
+      },
+      {
+        "translation_unit": "sphida.cpp",
+        "function": "DrawStatusSprite__7CSphidaFv",
+        "value_type": "binary32",
+        "value_bits": "0x41b00000",
+        "callee": "DPrimEnterSprite__FP11mgCDrawPrimiiiiffff",
+        "argument": {
+          "argument_index": 5,
+          "value_type": "binary32",
+          "value_bits": "0x43ed0000"
+        },
+        "expected_matches": 2,
+        "evaluate_first": true
+      },
+      {
+        "translation_unit": "sphida.cpp",
+        "function": "DrawStatusSprite__7CSphidaFv",
+        "value_type": "binary32",
+        "value_bits": "0x42580000",
+        "callee": "DPrimEnterSprite__FP11mgCDrawPrimiiiiffff",
+        "argument": {
+          "argument_index": 6,
+          "value_type": "binary32",
+          "value_bits": "0x43980000"
+        },
+        "expected_matches": 1,
+        "evaluate_first": false,
+        "control": {
+          "kind": "condition",
+          "values": [
+            0
+          ]
+        },
+        "evaluate_before": 6
+      },
+      {
+        "translation_unit": "sphida.cpp",
+        "function": "DrawStatusSprite__7CSphidaFv",
+        "value_type": "binary32",
+        "value_bits": "0x41800000",
+        "callee": "DPrimEnterSprite__FP11mgCDrawPrimiiiiffff",
+        "argument": {
+          "argument_index": 6,
+          "value_type": "binary32",
+          "value_bits": "0x43980000"
+        },
+        "expected_matches": 1,
+        "evaluate_first": false,
+        "control": {
+          "kind": "condition",
+          "values": [
+            0
+          ]
+        },
+        "evaluate_before": 6
+      },
+      {
+        "translation_unit": "sphida.cpp",
+        "function": "DrawStatusSprite__7CSphidaFv",
+        "value_type": "binary32",
+        "value_bits": "0x43a80000",
+        "callee": "DPrimEnterSprite__FP11mgCDrawPrimiiiiffff",
+        "argument": {
+          "argument_index": 7,
+          "value_type": "binary32",
+          "value_bits": "0x41f00000"
+        },
+        "expected_matches": 1,
+        "evaluate_first": true
+      },
+      {
+        "translation_unit": "sphida.cpp",
+        "function": "DrawStatusSprite__7CSphidaFv",
+        "value_type": "binary32",
+        "value_bits": "0x41800000",
+        "callee": "DPrimEnterSprite__FP11mgCDrawPrimiiiiffff",
+        "argument": {
+          "argument_index": 7,
+          "value_type": "binary32",
+          "value_bits": "0x41f00000"
+        },
+        "expected_matches": 1,
+        "evaluate_first": true
+      },
+      {
+        "translation_unit": "sphida.cpp",
+        "function": "DrawStatusSprite__7CSphidaFv",
+        "value_type": "binary32",
+        "value_bits": "0x41800000",
+        "callee": "DPrimEnterSprite__FP11mgCDrawPrimiiiiffff",
+        "argument": {
+          "argument_index": 6,
+          "value_type": "binary32",
+          "value_bits": "0x43cb3333"
+        },
+        "expected_matches": 1,
+        "evaluate_first": false,
+        "control": {
+          "kind": "condition",
+          "values": [
+            0
+          ]
+        },
+        "evaluate_before": 6
+      },
+      {
+        "translation_unit": "sphida.cpp",
+        "function": "DrawStatusSprite__7CSphidaFv",
+        "value_type": "binary32",
+        "value_bits": "0x41c00000",
+        "callee": "DPrimEnterSprite__FP11mgCDrawPrimiiiiffff",
+        "argument": {
+          "argument_index": 5,
+          "value_type": "binary32",
+          "value_bits": "0x43a70000"
+        },
+        "expected_matches": 2,
+        "evaluate_first": true
+      },
+      {
+        "translation_unit": "sphida.cpp",
+        "function": "DrawStatusSprite__7CSphidaFv",
+        "value_type": "binary32",
+        "value_bits": "0x42080000",
+        "callee": "DPrimEnterSprite__FP11mgCDrawPrimiiiiffff",
+        "argument": {
+          "argument_index": 5,
+          "value_type": "binary32",
+          "value_bits": "0x43a70000"
+        },
+        "expected_matches": 1,
+        "evaluate_first": true
+      },
+      {
+        "translation_unit": "sphida.cpp",
+        "function": "DrawStatusSprite__7CSphidaFv",
+        "value_type": "binary32",
+        "value_bits": "0x41a00000",
+        "callee": "DPrimEnterSprite__FP11mgCDrawPrimiiiiffff",
+        "argument": {
+          "argument_index": 5,
+          "value_type": "binary32",
+          "value_bits": "0x43d70000"
+        },
+        "expected_matches": 1,
+        "evaluate_first": false,
+        "evaluate_before": 7
+      },
+      {
+        "translation_unit": "sphida.cpp",
+        "function": "DrawStatusSprite__7CSphidaFv",
+        "value_type": "binary32",
+        "value_bits": "0x43b18000",
+        "callee": "DPrimEnterSprite__FP11mgCDrawPrimiiiiffff",
+        "argument": {
+          "argument_index": 6,
+          "value_type": "binary32",
+          "value_bits": "0x42040000"
+        },
+        "expected_matches": 1,
+        "evaluate_first": true
+      },
+      {
+        "translation_unit": "sphida.cpp",
+        "function": "DrawStatusSprite__7CSphidaFv",
+        "value_type": "binary32",
+        "value_bits": "0x41a00000",
+        "callee": "DPrimEnterSprite__FP11mgCDrawPrimiiiiffff",
+        "argument": {
+          "argument_index": 5,
+          "value_type": "binary32",
+          "value_bits": "0x43b18000"
+        },
+        "expected_matches": 1,
+        "evaluate_first": true
+      },
+      {
+        "translation_unit": "sphida.cpp",
+        "function": "DrawStatusSprite__7CSphidaFv",
+        "value_type": "binary32",
+        "value_bits": "0x43b98000",
+        "callee": "DPrimEnterSprite__FP11mgCDrawPrimiiiiffff",
+        "argument": {
+          "argument_index": 6,
+          "value_type": "binary32",
+          "value_bits": "0x42040000"
+        },
+        "expected_matches": 1,
+        "evaluate_first": true
+      },
+      {
+        "translation_unit": "sphida.cpp",
+        "function": "DrawStatusSprite__7CSphidaFv",
+        "value_type": "binary32",
+        "value_bits": "0x41a00000",
+        "callee": "DPrimEnterSprite__FP11mgCDrawPrimiiiiffff",
+        "argument": {
+          "argument_index": 5,
+          "value_type": "binary32",
+          "value_bits": "0x43b98000"
+        },
+        "expected_matches": 1,
+        "evaluate_first": true
+      },
+      {
+        "translation_unit": "sphida.cpp",
+        "function": "DrawStatusSprite__7CSphidaFv",
+        "value_type": "binary32",
+        "value_bits": "0x42940000",
+        "callee": "DPrimEnterSprite__FP11mgCDrawPrimiiiiffff",
+        "argument": {
+          "argument_index": 5,
+          "value_type": "binary32",
+          "value_bits": "0x43dd0000"
+        },
+        "expected_matches": 1,
+        "evaluate_first": true
+      },
+      {
+        "translation_unit": "sphida.cpp",
+        "function": "DrawStatusSprite__7CSphidaFv",
+        "value_type": "binary32",
+        "value_bits": "0x41b00000",
+        "callee": "DPrimEnterSprite__FP11mgCDrawPrimiiiiffff",
+        "argument": {
+          "argument_index": 5,
+          "value_type": "binary32",
+          "value_bits": "0x43dd0000"
+        },
+        "expected_matches": 1,
+        "evaluate_first": true
+      },
+      {
+        "translation_unit": "sphida.cpp",
+        "function": "DrawStatusSprite__7CSphidaFv",
+        "value_type": "binary32",
+        "value_bits": "0x42080000",
+        "callee": "DPrimEnterSprite__FP11mgCDrawPrimiiiiffff",
+        "argument": {
+          "argument_index": 5,
+          "value_type": "binary32",
+          "value_bits": "0x42200000"
+        },
+        "expected_matches": 1,
+        "evaluate_first": true
+      },
+      {
+        "translation_unit": "sphida.cpp",
+        "function": "DrawStatusSprite__7CSphidaFv",
+        "value_type": "binary32",
+        "value_bits": "0x42500000",
+        "callee": "DPrimEnterSprite__FP11mgCDrawPrimiiiiffff",
+        "argument": {
+          "argument_index": 6,
+          "value_type": "binary32",
+          "value_bits": "0x43bf3333"
+        },
+        "expected_matches": 1,
+        "evaluate_first": true
+      },
+      {
+        "translation_unit": "sphida.cpp",
+        "function": "DrawStatusSprite__7CSphidaFv",
+        "value_type": "binary32",
+        "value_bits": "0x41800000",
+        "callee": "DPrimEnterSprite__FP11mgCDrawPrimiiiiffff",
+        "argument": {
+          "argument_index": 7,
+          "value_type": "binary32",
+          "value_bits": "0x42500000"
+        },
+        "expected_matches": 1,
+        "evaluate_first": true
+      },
+      {
+        "translation_unit": "sphida.cpp",
+        "function": "DrawStatusSprite__7CSphidaFv",
+        "value_type": "binary32",
+        "value_bits": "0x43c00000",
+        "callee": "DPrimEnterSprite__FP11mgCDrawPrimiiiiffff",
+        "argument": {
+          "argument_index": 7,
+          "value_type": "binary32",
+          "value_bits": "0x42680000"
+        },
+        "expected_matches": 1,
+        "evaluate_first": true
+      },
+      {
+        "translation_unit": "sphida.cpp",
+        "function": "DrawStatusSprite__7CSphidaFv",
+        "value_type": "binary32",
+        "value_bits": "0x42680000",
+        "callee": "DPrimEnterSprite__FP11mgCDrawPrimiiiiffff",
+        "argument": {
+          "argument_index": 6,
+          "value_type": "binary32",
+          "value_bits": "0x43c00000"
+        },
+        "expected_matches": 2,
+        "evaluate_first": true
+      },
+      {
+        "translation_unit": "sphida.cpp",
+        "function": "DrawStatusSprite__7CSphidaFv",
+        "value_type": "binary32",
+        "value_bits": "0x41800000",
+        "callee": "DPrimEnterSprite__FP11mgCDrawPrimiiiiffff",
+        "argument": {
+          "argument_index": 6,
+          "value_type": "binary32",
+          "value_bits": "0x43c00000"
+        },
+        "expected_matches": 1,
+        "evaluate_first": true,
+        "control": {
+          "kind": "condition",
+          "values": [
+            0
+          ]
+        }
+      },
+      {
+        "translation_unit": "sphida.cpp",
+        "function": "DrawStatusSprite__7CSphidaFv",
+        "value_type": "binary32",
+        "value_bits": "0x43cb3333",
+        "callee": "DPrimEnterSprite__FP11mgCDrawPrimiiiiffff",
+        "argument": {
+          "argument_index": 7,
+          "value_type": "binary32",
+          "value_bits": "0x42880000"
+        },
+        "expected_matches": 1,
+        "evaluate_first": true
+      },
+      {
+        "translation_unit": "sphida.cpp",
+        "function": "DrawStatusSprite__7CSphidaFv",
+        "value_type": "binary32",
+        "value_bits": "0x42880000",
+        "callee": "DPrimEnterSprite__FP11mgCDrawPrimiiiiffff",
+        "argument": {
+          "argument_index": 6,
+          "value_type": "binary32",
+          "value_bits": "0x43cb3333"
+        },
+        "expected_matches": 2,
+        "evaluate_first": true
+      },
+      {
+        "translation_unit": "sphida.cpp",
+        "function": "DrawStatusSprite__7CSphidaFv",
+        "value_type": "binary32",
+        "value_bits": "0x41e00000",
+        "callee": "DPrimEnterSprite__FP11mgCDrawPrimiiiiffff",
+        "argument": {
+          "argument_index": 7,
+          "value_type": "binary32",
+          "value_bits": "0x42880000"
+        },
+        "expected_matches": 1,
+        "evaluate_first": true
+      },
+      {
+        "translation_unit": "sphida.cpp",
+        "function": "DrawStatusSprite__7CSphidaFv",
+        "value_type": "binary32",
+        "value_bits": "0x43cb3333",
+        "callee": "DPrimEnterSprite__FP11mgCDrawPrimiiiiffff",
+        "argument": {
+          "argument_index": 5,
+          "value_type": "binary32",
+          "value_bits": "0x43f10000"
+        },
+        "expected_matches": 1,
+        "evaluate_first": true
+      },
+      {
+        "translation_unit": "sphida.cpp",
+        "function": "DrawStatusSprite__7CSphidaFv",
+        "value_type": "binary32",
+        "value_bits": "0x41b00000",
+        "callee": "DPrimEnterSprite__FP11mgCDrawPrimiiiiffff",
+        "argument": {
+          "argument_index": 5,
+          "value_type": "binary32",
+          "value_bits": "0x43f10000"
+        },
+        "expected_matches": 4,
+        "evaluate_first": true
+      },
+      {
+        "translation_unit": "sphida.cpp",
+        "function": "DrawStatusSprite__7CSphidaFv",
+        "value_type": "binary32",
+        "value_bits": "0x43bf3333",
+        "callee": "DPrimEnterSprite__FP11mgCDrawPrimiiiiffff",
+        "argument": {
+          "argument_index": 7,
+          "value_type": "binary32",
+          "value_bits": "0x42840000"
+        },
+        "expected_matches": 1,
+        "evaluate_first": true
+      },
+      {
+        "translation_unit": "sphida.cpp",
+        "function": "DrawStatusSprite__7CSphidaFv",
+        "value_type": "binary32",
+        "value_bits": "0x43c00000",
+        "callee": "DPrimEnterSprite__FP11mgCDrawPrimiiiiffff",
+        "argument": {
+          "argument_index": 7,
+          "value_type": "binary32",
+          "value_bits": "0x42680000"
+        },
+        "expected_matches": 1,
+        "evaluate_first": false,
+        "control": {
+          "kind": "condition",
+          "values": [
+            0
+          ]
+        }
+      },
+      {
+        "translation_unit": "sphida.cpp",
+        "function": "DrawStatusSprite__7CSphidaFv",
+        "value_type": "binary32",
+        "value_bits": "0x42700000",
+        "callee": "DPrimEnterSprite__FP11mgCDrawPrimiiiiffff",
+        "argument": {
+          "argument_index": 6,
+          "value_type": "binary32",
+          "value_bits": "0x43c00000"
+        },
+        "expected_matches": 1,
+        "evaluate_first": true,
+        "control": {
+          "kind": "condition",
+          "values": [
+            0
+          ]
+        }
+      },
+      {
+        "translation_unit": "sphida.cpp",
+        "function": "DrawStatusSprite__7CSphidaFv",
+        "value_type": "binary32",
+        "value_bits": "0x41a00000",
+        "callee": "DPrimEnterSprite__FP11mgCDrawPrimiiiiffff",
+        "argument": {
+          "argument_index": 6,
+          "value_type": "binary32",
+          "value_bits": "0x43cb3333"
+        },
+        "expected_matches": 1,
+        "evaluate_first": false,
+        "evaluate_before": 7
+      },
+      {
+        "translation_unit": "sphida.cpp",
+        "function": "DrawStatusSprite__7CSphidaFv",
+        "value_type": "binary32",
+        "value_bits": "0x41a00000",
+        "callee": "DPrimEnterSprite__FP11mgCDrawPrimiiiiffff",
+        "argument": {
+          "argument_index": 6,
+          "value_type": "binary32",
+          "value_bits": "0x43cb3333"
+        },
+        "expected_matches": 1,
+        "evaluate_first": false,
+        "control": {
+          "kind": "condition",
+          "values": [
+            0
+          ]
+        }
+      },
+      {
+        "translation_unit": "sphida.cpp",
+        "function": "DrawStatusSprite__7CSphidaFv",
+        "value_type": "binary32",
+        "value_bits": "0x43cb3333",
+        "callee": "DPrimEnterSprite__FP11mgCDrawPrimiiiiffff",
+        "argument": {
+          "argument_index": 7,
+          "value_type": "binary32",
+          "value_bits": "0x42880000"
+        },
+        "expected_matches": 1,
+        "evaluate_first": false,
+        "control": {
+          "kind": "condition",
+          "values": [
+            0
+          ]
+        }
+      },
+      {
+        "translation_unit": "sphida.cpp",
+        "function": "DrawStatusSprite__7CSphidaFv",
+        "value_type": "binary32",
+        "value_bits": "0x43cb3333",
+        "callee": "DPrimEnterSprite__FP11mgCDrawPrimiiiiffff",
+        "argument": {
+          "argument_index": 5,
+          "value_type": "binary32",
+          "value_bits": "0x43f10000"
+        },
+        "expected_matches": 1,
+        "evaluate_first": false,
+        "control": {
+          "kind": "condition",
+          "values": [
+            0
+          ]
+        }
+      },
+      {
+        "translation_unit": "sphida.cpp",
+        "function": "DrawStatusSprite__7CSphidaFv",
+        "value_type": "binary32",
+        "value_bits": "0x41e00000",
+        "callee": "DPrimEnterSprite__FP11mgCDrawPrimiiiiffff",
+        "argument": {
+          "argument_index": 7,
+          "value_type": "binary32",
+          "value_bits": "0x42880000"
+        },
+        "expected_matches": 1,
+        "evaluate_first": false,
+        "control": {
+          "kind": "condition",
+          "values": [
+            0
+          ]
+        }
+      },
+      {
         "translation_unit": "title.cpp",
         "function": "TitleModeDraw__Fv",
         "value_type": "binary32",
