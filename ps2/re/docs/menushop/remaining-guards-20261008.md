@@ -18,26 +18,30 @@ passes canonical compilation, section fixup, and the complete object checker:
 `0x5A68` allocated bytes, 1,304 relocations, zero byte or resolved-relocation
 differences. The drawing function is supplied by native C++.
 
-## MenuShopInit and MenuNPCQuestViewInit
+## Remaining initializer at c79e57c
 
-`MenuShopInit__FP9mgCMemoryPii` constructs the shop menu and records, initializes
-messages and common forms, and loads the shop pack. Its unchanged current SF
-draft has 281 of 312 words differing and emits `0x4DC` bytes against retail's
-padded `0x4E0` extent. The first gap is at offset `0x58`: retail tests `v0`
-after placement allocation and copies it to `s1` in the delay slot, while
-native construction copies first and tests `s1`.
+MenuShopInit is already native and matched: the genuine arrow_flash array loop
+documented in notes.md supplies its required constructor statement shape.
+Coverage now lists 29 matched functions and only one guarded draft in the
+30-function unit, with no asm-only functions.
 
-`MenuNPCQuestViewInit__FP9mgCMemoryPii` selects quest/scoop mode, constructs its
-menu and quest manager, attaches save-data records, and sets texture blocks.
-Its unchanged SF draft has 46 of 76 words differing and emits `0x128` bytes
-against retail's padded `0x130` extent. The first null-branch gap is at offset
-`0x70`. Independent canonical object measurements confirm both gaps; the
-instruction counts include downstream shifts, and supersede older percentages
-recorded under different compiler state.
+MenuNPCQuestViewInit__FP9mgCMemoryPii remains 46/76 differing masked words,
+with a 0x128-byte native body and a 0x130-byte retail extent. Its first
+placement-new branch/copy difference remains at +0x70. m2c confirms the
+menu's base-constructor call and derived vtable initialization, followed by
+a separate eight-byte quest-manager allocation and Initialize call.
 
-Both initializers remain guarded under the established
-[placement-new park](../funcpoint/placement-new.md). No new constructor
-experiment is justified in this lane. Reconsider after the dedicated
-compiler/constructor investigation validates natural lowering of the returned
-allocation pointer, then remeasure all subsequent differences rather than
-assuming every shifted instruction is fixed by that first branch.
+CMenuQuestView has an uninitialized photo_no array, rather than a homogeneous
+array initialization in its constructor. No constructor clear is supported
+by retail. Adding a loop over that array would add stores; moving initialization
+from InitEnd into the constructor would change the observed call/store order.
+Neither is a counterpart of the accepted CShopMenu change. The manual-menu
+constructor likewise has no supported member-array initialization to replace.
+The established [constructor park](../funcpoint/placement-new.md#constructor-inline-classification)
+therefore remains applicable without another spelling-only experiment.
+
+The complete matching-build menushop object passes: 0x5A5C allocated bytes,
+1,327 resolved relocations, zero byte or resolved-relocation problems. No
+source, header, or SF profile row is changed in this lane. Private receipts:
+`.private/menuui/native-before/menushop.o`, its comparison and quest diff,
+and `.private/menuui/quest.m2c.txt`.
