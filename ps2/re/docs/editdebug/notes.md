@@ -164,3 +164,40 @@ colour offset without an extra operation, then the whole-unit check and the
 required hashes of all other game objects if the shared header changes.
 Receipts: `.private/receipts/nearmiss-probes/editdebug/n1/` and `n2/`; the RGB
 header proposal existed only in a private include-tree copy.
+
+## Mid-day typed-colour expression bounds (October 8)
+
+The inherited raw-address `LightingEdit` draft still has zero differing words
+and passes the canonical complete object (0x296C bytes, 668 relocations), but
+remains guarded for source compliance. Its 0x1524 native body has twelve zero
+padding bytes within the 0x1530 extent.
+
+A private `mgFOG_PARAM` union overlays the existing RGBA byte fields with
+`u_char color[4]`. MWCC compile-time assertions verify sizeof 0x30, the array
+and red field at offset 8, green at 9, blue at 10 and alpha at 11. The exact
+layout-only proposal is `.private/proposals/mg_drawenv-fog-color-array.patch`;
+no shared header is modified or committed.
+
+Strict subscript access, either `&fog->color[row - 4]` or a reference to
+`fog->color[edit - 2]`, still emits one extra index subtraction and differs by
+873/1356 words with a 0x1528 body. Carrying a separate colour index and forming
+the switch index from it gives 915; switching on `edit - 2` while keeping the
+unbiased row gives 945. No variant passes the whole-unit check.
+
+A diagnostic typed-array pointer expression, `fog->color + edit - 2`, folds
+the rebase into the two retail +6 memory/address displacements, leaving only
+one differing instruction at +0x79C: `addu v0,s2,s1` instead of retail
+`addu v0,s1,s2`. Integer-first source spelling does not reverse the compiler's
+operand order. This diagnostic still uses explicit pointer arithmetic and is
+not retained or proposed as an active compliant body. An index-first subtraction
+returns to the 873-word result. The array never begins inside `far_dist`.
+
+Promotion remains blocked by the typed access/code-generation problem. The
+shared union proposal is only layout evidence, not a matching solution; its
+all-unit effects have not been validated. The installed source/header/profile
+are unchanged. Receipts: `.private/midday/probes/editdebug/`, including
+`color-row/` for the layout assertions, `color-base-index/` for the one-word
+bound and `baseline/` for the inherited complete-object match. The required
+m2c attempt is saved under `.private/midday/m2c/`; its existing jump-table
+limitation remains, so the documented retail switch disassembly supplies the
+case analysis.
