@@ -19,3 +19,15 @@ changes are required.
 `nd-movie-storage-{build,objects,metrics}.log` under `.private/dataC-r1/`
 accepts this step: PAL OK, 149/149 objects, no unowned hash changes. Markers
 become 71/0.
+
+## Outline ratios and frame margins
+
+`p` is a native 16-by-2 float table; `waku_data` is a native nine-by-four
+`s32` margin table. Their public declarations and every consumer remain
+unchanged. The outline's third X coordinate is exactly binary32
+`0x3DCCCCCC` (`0.099999994f`), one ULP below `0.1f`; that exact coordinate is
+preserved. All other ratios use round-tripping decimal literals.
+
+The independently rerun receipts `nd-outline-isolated` and
+`nd-frame-margins-isolated` verify one table at a time. Each records PAL OK,
+149/149 passing objects and unowned hashes unchanged. Markers become 69/0.

@@ -27,6 +27,37 @@
 #include "sound.hpp"
 #include "userdata.hpp"
 
+float p[16][2] = {
+    {0.5f, 0.5f},
+    {0.02f, 0.29f},
+    {0.099999994f, 0.14f},
+    {0.22f, 0.03f},
+    {0.51f, 0.06f},
+    {0.73f, 0.0f},
+    {0.92f, 0.1f},
+    {0.98f, 0.36f},
+    {0.98f, 0.74f},
+    {0.9f, 0.91f},
+    {0.7f, 0.99f},
+    {0.43f, 0.91f},
+    {0.2f, 0.97f},
+    {0.03f, 0.8f},
+    {0.0f, 0.52f},
+    {0.02f, 0.29f},
+};
+
+s32 waku_data[WAKU_DATA_MAX][4] = {
+    {0, 0, 0, 0},
+    {30, 24, 30, 24},
+    {12, 12, 12, 10},
+    {12, 12, 12, 10},
+    {28, 28, 28, 28},
+    {24, 27, 23, 63},
+    {16, 16, 16, 14},
+    {0, 0, 0, 0},
+    {16, 16, 16, 14},
+};
+
 /**
  *
  * Screen positions used to anchor message elements.
@@ -4620,14 +4651,12 @@ void MovieCCInit(char *text, int size, int id) {
 }
 
 // Initialised data (.data)
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/nd_meswin", p__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/nd_meswin", at_3748__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/nd_meswin", at_4057__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/nd_meswin", at_4100__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/nd_meswin", at_4143__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/nd_meswin", at_4185__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/nd_meswin", data_4206__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/nd_meswin", waku_data__DATA);
 
 // Constants (.rodata)
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/nd_meswin", at_1124__DATA);
