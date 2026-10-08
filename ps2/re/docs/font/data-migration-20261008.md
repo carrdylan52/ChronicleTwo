@@ -98,3 +98,22 @@ overlay is unnecessary; removing it changes no code or relocations.
 Final font markers are **0 RODATA / 4 BSS**, down from **97 / 4**. All 45
 functions remain matched, the full 149-object check passes, unowned objects
 remain unchanged, and the PAL verifier reports OK.
+
+## Combined tool-proposal validation
+
+A private integration copy applies the general anonymous-BSS naming, vtable
+padding, and unrelocated VU-word proposals, then removes all eight retained
+markers across this lane. Font passes its complete object comparison with
+0x2F84 bytes and 367 relocations. The private full PAL link reports
+`SCES_511.90: OK`, exact program bytes, and the retail loaded-memory extent.
+The corrected private VU object has zero inferred relocations and no external
+font-buffer dependency. All existing inputs and actual tools remain unchanged.
+
+This proves the natural static buffer and three local rectangle templates
+work together without the retained markers. Actual font keeps them until the
+tooling owner integrates the general fixes and validates a clean canonical
+build. The VU correction is not a font-symbol special case: it restores only
+unrelocated symbolic words whose emitted bytes agree with retail. Its nine
+focused tests and actual 0x46A0-byte VU comparison are in
+`.private/dataC/font-analysis/vu-splitter/`; complete private integration
+snapshots and receipts are in `.private/dataC/proposal-integration/`.
