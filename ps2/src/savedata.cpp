@@ -8,8 +8,6 @@
 #include "menusystemdata.hpp"
 #include "savedata.hpp"
 
-extern char at_453[0xB];
-
 // Code (.text)
 void InitSV_CONFIG_OPTION(SV_CONFIG_OPTION *config) {
     if (config != NULL) {
@@ -20,7 +18,7 @@ void InitSV_CONFIG_OPTION(SV_CONFIG_OPTION *config) {
 
 void CSaveData::Initialize() {
     int i;
-    printf(at_453, 0x40);
+    printf("size : %d\n", 0x40);
     memset(this, 0, sizeof(CSaveData));
     now_time = 12.0f;
     game_progress = 1;
@@ -491,6 +489,3 @@ CSphidaData *CSubGameData::GetSphidaData() {
 CGyoRaceData *CSubGameData::GetGyoRaceData() {
     return &this->gyorace;
 }
-
-// Constants (.rodata)
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/savedata", at_453__DATA);
