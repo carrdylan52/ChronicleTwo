@@ -22,18 +22,6 @@
 #include "scriptinterpreter.hpp"
 #include "water.hpp"
 
-extern CFuncPoint   *mapNowFuncPoint;
-extern int           mapCameraInfoIdx;
-extern int           mapCameraRectIdx;
-extern int           mapFuncPointIdx;
-extern float         mapFarDist;
-extern int           mapFarAlpha;
-extern int           mapShow;
-extern char          mapMapPartsName[0x100];
-extern char          mapPlacePartsName[0x100];
-extern CWaterFrame  *cfgWater;
-extern int           WaterIndex;
-extern int           ReserveFuncFlag;
 extern SPI_TAG_PARAM map_tag[];
 extern SPI_TAG_PARAM cfg_tag[];
 extern char          at_1064[];
@@ -124,58 +112,125 @@ s32                  cfgWATER_SHAKE(SPI_STACK *stack, int argc);
 int                  cfgWATER_SURFACE_END(SPI_STACK *stack, int argc);
 int                  cfgWATER_DRAW(SPI_STACK *stack, int argc);
 
-/** Non-zero when loading an additional map into the current map. */
-extern int mapAddMode;
-
 /**
- *
  * Map the map script is loading into.
- *
  */
-// Small uninitialised data (.sbss)
 static CMap *mapMap;
 
 /**
- *
  * Node of the map part the map script is building, or null outside a part.
- *
  */
 static CList<CMapParts> *mapNowMapParts;
 
 /**
- *
  * Node of the map piece the map script is building, or null outside a piece.
- *
  */
 static CList<CMapPiece> *mapNowMapPiece;
 
 /**
- *
  * Memory that everything the map script builds is taken from.
- *
  */
 static mgCMemory *mapStack;
 
 /**
- *
- * Non-zero while function points of the map script go to the current map part rather than the map.
- *
+ * Far clipping distance of the placed map part, or negative for no clipping.
  */
-static int mapPtsFunc;
+static float mapFarDist;
 
 /**
- *
- * Next entry of the current piece's materials that the map script fills in.
- *
+ * Far-distance fade mode of the placed map part.
+ */
+static int mapFarAlpha;
+
+/**
+ * Visibility setting of the placed map part.
+ */
+static int mapShow;
+
+/**
+ * Level of detail that the map script is giving pieces to.
+ */
+static int mapLOD_ID;
+
+/**
+ * Current fixed-camera information entry.
+ */
+static int mapCameraInfoIdx;
+
+/**
+ * Next rectangle of the current fixed-camera information entry.
+ */
+static int mapCameraRectIdx;
+
+/**
+ * Index of the function point being filled by script handlers.
+ */
+static int mapFuncPointIdx;
+
+/**
+ * Function point being filled by script handlers.
+ */
+static CFuncPoint *mapNowFuncPoint;
+
+/**
+ * Next entry of the current piece materials that the map script fills in.
  */
 static int mapMatIdx;
 
 /**
- *
- * Level of detail that the map script is giving pieces to.
- *
+ * Non-zero while map-script function points belong to the current map part.
  */
-static int mapLOD_ID;
+static int mapPtsFunc;
+
+/**
+ * Non-zero when loading an additional map into the current map.
+ */
+static int mapAddMode;
+
+/**
+ * Non-zero when configuration function-point storage is reserved.
+ */
+static int ReserveFuncFlag;
+
+/**
+ * Next water-surface entry being filled by configuration handlers.
+ */
+static int WaterIndex;
+
+/**
+ * Water frame being filled by configuration handlers.
+ */
+static CWaterFrame *cfgWater;
+
+/**
+ * Instance name of the placed map part.
+ */
+static char mapPlacePartsName[0x100];
+
+/**
+ * Definition name of the map part to place.
+ */
+static char mapMapPartsName[0x100];
+
+/**
+ * Group name of the placed map part.
+ */
+char mapMapPartsGroupName[0x100];
+
+/**
+ * Position of the placed map part.
+ */
+sceVu0FVECTOR mapPos;
+
+/**
+ * Rotation of the placed map part.
+ */
+sceVu0FVECTOR mapRot;
+
+/**
+ * Scale of the placed map part.
+ */
+sceVu0FVECTOR mapScale;
 
 // Code (.text)
 MAP_TIME_BAND GetTimeBand(float time) {
@@ -2546,22 +2601,5 @@ INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mapload", at_1544__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mapload", __vt__17CList_9CMapPiece___DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mapload", __vt__17CList_9CMapParts___DATA);
 
-INCLUDE_BSS(mapFarDist, 0x4);
-INCLUDE_BSS(mapFarAlpha, 0x4);
-INCLUDE_BSS(mapShow, 0x4);
-INCLUDE_BSS(mapCameraInfoIdx, 0x4);
-INCLUDE_BSS(mapCameraRectIdx, 0x4);
-INCLUDE_BSS(mapFuncPointIdx, 0x4);
-INCLUDE_BSS(mapNowFuncPoint, 0x4);
-INCLUDE_BSS(mapAddMode, 0x4);
-INCLUDE_BSS(ReserveFuncFlag, 0x4);
-INCLUDE_BSS(WaterIndex, 0x4);
-INCLUDE_BSS(cfgWater, 0x4);
 
 // Uninitialised data (.bss)
-INCLUDE_BSS(mapPlacePartsName, 0x100);
-INCLUDE_BSS(mapMapPartsName, 0x100);
-INCLUDE_BSS(mapMapPartsGroupName, 0x100);
-INCLUDE_BSS(mapPos, 0x10);
-INCLUDE_BSS(mapRot, 0x10);
-INCLUDE_BSS(mapScale, 0x10);
