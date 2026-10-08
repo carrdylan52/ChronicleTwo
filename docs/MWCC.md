@@ -69,6 +69,7 @@ therefore omits literal-reload policy settings.
 | `scenesnd.cpp`, `SePlayFoot__6CSceneFiiPf` | binary32 1200 (`0x44960000`) first emits it before 160, as retail does. |
 | `gyoracesim.cpp`, `CharacterBonus__FP12grFISH_PARAMP15RACE_FISH_PARAMi` | zero and 0.01 (`0x3c23d70a`) first preserve both the earlier zero/0.01 calls and the later call's 0.01-before-one materialization. |
 | `menuaqua.cpp`, `Draw__9CAquariumFv` | binary32 120 (`0x42f00000`) and 242 (`0x43720000`) evaluate first for `DrawMenuFillBox` only, preserving the retail debug-panel width/height preparation before its top coordinate. |
+| `menuchr.cpp`, `Draw__15CMenuCostumeSelFv` | binary32 36 (`0x42100000`) first for `DrawMenuFillBox` only emits the help box's X before its Y subtraction, as retail does; the whole unit passes. |
 | `actionchara.cpp`, `RoboWalkMoveIF__12CActionCharaFi` and `RoboAirMoveIF__12CActionCharaFii` | Nested `unitRotation` argument identity selects the zero load order for only the differing rotation calls; the complete unit passes. |
 
 These rows were accepted through the canonical object comparison. They establish
@@ -90,6 +91,20 @@ An early `mtc1`, changed saved register or changed stack frame can be a compiler
 state difference; test the deterministic profile before changing source to
 imitate incidental allocation. Use correctly typed literals and real field
 layouts rather than pointer arithmetic or instruction-shaped source.
+
+Declared locals are coloured in declaration order. Compiler temporaries,
+cached loads and later assignments of a reused variable are coloured after
+them, so retail's last-coloured value is often a reused variable or a
+common subexpression rather than a new local. Named class locals take frame
+slots in declaration order before call-argument temporaries.
+`x = x < 0.0f ? -x : x` and `if (x < 0.0f) x = -x;` schedule the
+surrounding loads differently. A no-op cast such as `((int)left)` on an
+`int` makes that variable coloured after the temporaries. A repeated
+expression written inline (`top + heights[row]`) becomes one temporary
+coloured after earlier temporaries, where a named local would be coloured
+with the declared locals. `MenuCharaChangeStarDraw` and
+`CMenuCostumeSel::Draw` (menuchr) and `CommonBoardDraw` (menudraw) show
+these between them.
 
 For each calibration, copy the profile privately, compile with the repository
 wrapper and canonical flags, run `scripts/build/fixup_sections.sh`, then run
@@ -279,3 +294,9 @@ function-specific compiler hooks.
 Compare complete objects as well as individual functions: emitted inline
 helpers, static initializers and data sizes can change the containing unit.
 The PAL executable verifier checks the final linked layout afterward.
+Relocation-masked word counts hide call-target changes: a constructor chain
+one level deeper than the inline depth calls an emitted WEAK constructor
+where retail calls its body. `MenuItemCharaDataLoadEndCheckAfter` (menuchr)
+needs scoped `inline_depth(8)` for its local `CScene`, and a single-case
+`switch` rather than an equivalent `if` for its early return. The `if` lets
+MWCC fill the next loop's branch delay slot from the following call setup.
