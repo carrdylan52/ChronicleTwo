@@ -21,32 +21,17 @@
 
 /**
  *
- * Path of a script used when changing maps.
+ * Map-slot and resource settings for the main map.
  *
  */
-struct ScriptPathBuffer {
-    char text[0x80]; /**< Script path text. */
-};
+static MapJumpMapInfo MainMapInfo__2;
 
-extern int                NowMainMapNo;
-extern int                NowSubMapNo;
-extern int                NowInteriorMapNo;
-extern int                OldInteriorMapNo;
-extern mgCMemory         *ScriptBuffer;
-extern int                InteriorFlag;
-static MapJumpMapInfo     MainMapInfo__2;
-static MapJumpMapInfo     SubMapInfo;
-extern ScriptPathBuffer   at_912__4;
-extern char               now_script_file[0x40];
-extern char               old_mapname[0x40];
-extern char               PrevInterior[0x40];
-extern char               NowInterior[0x40];
-extern int                old_bgm_no;
-extern sceVu0FVECTOR      OldPos;
-extern sceVu0FVECTOR      OldRot;
-extern sceVu0FVECTOR      OldCamPos;
-extern sceVu0FVECTOR      OldCamRef;
-extern CScene::BGM_STATUS OldBgmStatus;
+/**
+ *
+ * Map-slot and resource settings for the sub map.
+ *
+ */
+static MapJumpMapInfo SubMapInfo;
 extern char               at_1047__2[];
 extern char               at_863__3[];
 extern char               at_890__4[];
@@ -57,6 +42,118 @@ extern char               at_894__2[];
 extern char               at_914__4[];
 extern char               at_950__4[];
 extern char               at_1091__2[];
+
+/**
+ *
+ * Number of the loaded main map.
+ *
+ */
+static int NowMainMapNo;
+
+/**
+ *
+ * Number of the loaded sub map.
+ *
+ */
+static int NowSubMapNo;
+
+/**
+ *
+ * Number of the current interior map.
+ *
+ */
+static int NowInteriorMapNo;
+
+/**
+ *
+ * Number of the previous interior map.
+ *
+ */
+static int OldInteriorMapNo;
+
+/**
+ *
+ * Memory stack used to load map event scripts.
+ *
+ */
+static mgCMemory *ScriptBuffer;
+
+/**
+ *
+ * Whether the player is inside an interior.
+ *
+ */
+static int InteriorFlag;
+
+/**
+ *
+ * Music bank saved before entering an interior.
+ *
+ */
+static int old_bgm_no;
+
+/**
+ *
+ * Path of the most recently loaded map script.
+ *
+ */
+static char now_script_file[0x40];
+
+/**
+ *
+ * Sub-map name saved before entering an interior.
+ *
+ */
+static char old_mapname[0x40];
+
+/**
+ *
+ * Player position saved before entering an interior.
+ *
+ */
+static sceVu0FVECTOR OldPos;
+
+/**
+ *
+ * Player rotation saved before entering an interior.
+ *
+ */
+static sceVu0FVECTOR OldRot;
+
+/**
+ *
+ * Camera position saved before entering an interior.
+ *
+ */
+static sceVu0FVECTOR OldCamPos;
+
+/**
+ *
+ * Camera target saved before entering an interior.
+ *
+ */
+static sceVu0FVECTOR OldCamRef;
+
+/**
+ *
+ * Name of the interior exited when positioning its door.
+ *
+ */
+static char PrevInterior[0x40];
+
+/**
+ *
+ * Name of the current interior.
+ *
+ */
+static char NowInterior[0x40];
+
+/**
+ *
+ * Music playback state saved before entering an interior.
+ *
+ */
+static CScene::BGM_STATUS OldBgmStatus;
 
 // Code (.text)
 int GetMainMapNo() {
@@ -285,17 +382,17 @@ int LoadSubMap(CScene *scene, int sub_map_no, int flag) {
 
 void LoadMapScript(char *map_name) {
     char             map_path[0x80];
-    ScriptPathBuffer script = at_912__4;
+    char             script[0x80] = "";
     GetMapPath(map_path, map_name);
-    strcat(script.text, map_path);
-    strcat(script.text, at_914__4);
-    LoadScript(script.text);
-    strcpy((char *) now_script_file, script.text);
+    strcat(script, map_path);
+    strcat(script, at_914__4);
+    LoadScript(script);
+    strcpy(now_script_file, script);
 }
 
 void ReloadMapScript() {
     if (now_script_file[0] != 0) {
-        LoadScript((char *) now_script_file);
+        LoadScript(now_script_file);
     }
 }
 
@@ -585,24 +682,3 @@ INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mapjump", at_914__4__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mapjump", at_950__4__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mapjump", at_1047__2__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mapjump", at_1091__2__DATA);
-
-// Small uninitialised data (.sbss)
-INCLUDE_BSS(NowMainMapNo, 0x4);
-INCLUDE_BSS(NowSubMapNo, 0x4);
-INCLUDE_BSS(NowInteriorMapNo, 0x4);
-INCLUDE_BSS(OldInteriorMapNo, 0x4);
-INCLUDE_BSS(ScriptBuffer, 0x4);
-INCLUDE_BSS(InteriorFlag, 0x4);
-INCLUDE_BSS(old_bgm_no, 0x4);
-
-// Uninitialised data (.bss)
-INCLUDE_BSS(now_script_file, 0x40);
-INCLUDE_BSS(at_912__4, 0x80);
-INCLUDE_BSS(old_mapname, 0x40);
-INCLUDE_BSS(OldPos, 0x10);
-INCLUDE_BSS(OldRot, 0x10);
-INCLUDE_BSS(OldCamPos, 0x10);
-INCLUDE_BSS(OldCamRef, 0x10);
-INCLUDE_BSS(PrevInterior, 0x40);
-INCLUDE_BSS(NowInterior, 0x40);
-INCLUDE_BSS(OldBgmStatus, 0x20);
