@@ -46,7 +46,6 @@ struct SetupPartStack {
     int stacks[5]; /**< Stack slots for the parts. */
 };
 
-extern SetupPartStack at_919__3;
 /**
  *
  * Stores the memory stack capacities for each main character setup.
@@ -127,9 +126,22 @@ struct SetupPartOrder {
     int parts[4]; /**< Part order. */
 };
 
-extern SetupPartOrder at_1281__2;
-extern char          *fname_tbl_1291[6];
-extern char          *fname_tbl2_1298[6];
+/**
+ *
+ * Stores the ridepod rider model patterns for Max's costumes.
+ *
+ */
+static char *fname_tbl_1291[6] = {
+    "mints0%da.chr", "mints0%db.chr", "mints0%dc.chr", "mints0%dd.chr", "mints0%de.chr", "mints0%df.chr"
+};
+/**
+ *
+ * Stores the ridepod rider model patterns for Max's costumes.
+ *
+ */
+static char *fname_tbl2_1298[6] = {
+    "mints%da.chr", "mints%db.chr", "mints%dc.chr", "mints%dd.chr", "mints%de.chr", "mints%df.chr"
+};
 
 static int SetupRobo(CScene *scene, CUserDataManager *user_data, ROBO_INFO_DATA *robo_info);
 
@@ -289,7 +301,7 @@ int SetupMainUnit(u_long128 *read_buffer, mgCMemory *memory, mgCMemory *stacks, 
         LoadFile(path, read_buffer, NULL);
         parts[0]->LoadPack((unsigned int *)read_buffer, at_1002__3, stacks, stacks, stacks, texture, NULL);
         parts[0]->texture_block = texture;
-        SetupPartStack part_stack = at_919__3;
+        SetupPartStack part_stack = {{0, 1, 2, 2, 3}};
         for (int i = 1; i < 5; ++i) {
             parts[i]->Initialize(NULL);
             if (i != 3) sprintf(path, at_1013__2, robo_info->model_name[i]);
@@ -639,7 +651,7 @@ ROBO_INFO_DATA *GetRoboPartsInfo(CUserDataManager *user_data) {
     int            i;
     ROBO_DATA     *parts = &user_data->robo_data;
     CGameData     *game_data = GetGameDataPt();
-    SetupPartOrder part_order = at_1281__2;
+    SetupPartOrder part_order = {{3, 0, 1, 2}};
     CDataRoboPart *part_info[4];
 
     for (i = 0; i < 4; ++i) {
@@ -723,7 +735,6 @@ int SetupMonster(CScene *scene, CUserDataManager *user_data) {
 }
 
 // Initialised data (.data)
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/charasetup", at_919__3__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/charasetup", at_1110__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/charasetup", at_1113__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/charasetup", at_1161__DATA);
@@ -747,9 +758,6 @@ ROBO_INFO_BODY robo_info_body[11] = {
     {"body02.chr", "arm2"},
     {"body02.chr", "arm2"}
 };
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/charasetup", at_1281__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/charasetup", fname_tbl_1291__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/charasetup", fname_tbl2_1298__DATA);
 
 // Constants (.rodata)
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/charasetup", at_868__3__DATA);
@@ -794,18 +802,6 @@ INCLUDE_RODATA("ps2/asm/pal/nonmatchings/charasetup", at_1274__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/charasetup", at_1275__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/charasetup", at_1276__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/charasetup", at_1277__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/charasetup", at_1292__3__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/charasetup", at_1293__3__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/charasetup", at_1294__3__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/charasetup", at_1295__3__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/charasetup", at_1296__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/charasetup", at_1297__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/charasetup", at_1299__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/charasetup", at_1300__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/charasetup", at_1301__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/charasetup", at_1302__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/charasetup", at_1303__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/charasetup", at_1304__3__DATA);
 
 // Uninitialised data (.bss)
 /**

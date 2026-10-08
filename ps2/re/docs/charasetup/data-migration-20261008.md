@@ -29,3 +29,21 @@ alignment padding, not another row.
 Receipts: `charasetup-storage`, `charasetup-mem_table`, and
 `charasetup-robo_info_body`, each with `-{build,objects,hashes}.log`.
 All pass PAL, all 149 objects and 148 unchanged other objects.
+
+## Setup stack and filename data
+
+`SetupMainUnit` initializes its ridepod stack slots as `{0,1,2,2,3}`.
+`GetRoboPartsInfo` initializes its equipment traversal order as `{3,0,1,2}`.
+Both use their existing documented typed local aggregates, eliminating the
+anonymous external templates.
+
+The two costume filename catalogs are native file-local arrays of six
+pointers each, with patterns `mints0%da.chr` through `mints0%df.chr`
+and `mints%da.chr` through `mints%df.chr`. Each catalog's two following
+zero words belong to alignment padding. The six string markers are removed
+with each catalog, so the compiler emits its dependent literals directly.
+
+Receipts: `charasetup-at_919__3`, `charasetup-at_1281__2`,
+`charasetup-fname_tbl_1291`, and `charasetup-fname_tbl2_1298`, all with
+`-{build,objects,hashes}.log`. Every step passes PAL, all 149 objects and
+148 unchanged other objects.
