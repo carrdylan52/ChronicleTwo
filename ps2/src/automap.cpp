@@ -37,8 +37,6 @@ enum {
 extern char                at_1054[];
 extern char                at_1111[];
 extern char                at_2119__2[];
-extern char                at_2125__2[];
-extern char                at_2126__2[];
 extern char                at_2128__2[];
 extern char                at_2270[];
 extern char                at_2347[];
@@ -2044,10 +2042,8 @@ void CAutoMapGen::SetDummyMountain() {
 
     if (map != NULL) {
         mgCMemory *stack = DngMainScene->GetStack(2);
-        float      pos[4];
-        float      scale[4];
-        *(u_long128 *) pos = *(u_long128 *) at_2125__2;
-        *(u_long128 *) scale = *(u_long128 *) at_2126__2;
+        float      pos[4] = {0.0f, 0.0f, 0.0f, 1.0f};
+        float      scale[4] = {1.0f, 1.0f, 1.0f, 1.0f};
         map->PlaceParts(at_2128__2, pos, pos, scale, stack);
     }
 }
@@ -2900,12 +2896,6 @@ void CAutoMapGen::UpdateNaviMap(float *pos, int depth) {
 }
 
 // Initialised data (.data)
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/automap", at_2125__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/automap", at_2126__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/automap", at_2211__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/automap", at_2212__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/automap", at_2298__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/automap", at_2299__DATA);
 
 // Constants (.rodata)
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/automap", at_1054__DATA);

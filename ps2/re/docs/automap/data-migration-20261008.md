@@ -99,3 +99,18 @@ unchanged. The split-name suffix is handled by the existing postprocessor.
 Receipts: `05-tags-build.log`, `05-tags-objects.log`, `05-tags-metrics.log`.
 All 149 units pass; PAL is OK; all 148 other object hashes remain unchanged.
 Marker counts become 20/0.
+
+## Part placement vectors
+
+`SetDummyMountain` initializes its position/rotation and scale as native
+four-float local aggregates (`{0, 0, 0, 1}` and `{1, 1, 1, 1}`), removing
+the anonymous extern declarations and 128-bit type-punned copies. The existing
+corresponding aggregate initializers in `SetDummyTree` and `IndexToPartsPlace`
+now supply their own data as well. These are six separate 16-byte `.data`
+objects at `0x341D40` through `0x341D90`; the existing postprocessor maps
+each compiler object by its contents and the consuming code relocations.
+
+Each function's pair was removed and verified separately. Receipts:
+`06-mountain-vectors-*`, `07-tree-vectors-*`, `08-placement-vectors-*`.
+Every step passes all 149 objects and PAL; all 148 other object hashes are
+unchanged. Marker counts become 14/0.
