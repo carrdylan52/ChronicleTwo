@@ -24,3 +24,19 @@ or field interpretations are introduced.
 All twenty BSS markers and the `LoopStep` marker are removed. Receipt
 `.private/dataD/nowload-state-{build,objects,metrics}.log` records PAL OK,
 149/149 objects and unchanged unowned hashes. Interim data is 14,512/14,645.
+
+## Image paths and texture names
+
+The loading texture, language-directory prefix and image basename are inline
+in the loading thread/creator. Both skip-image paths and the pause capture
+texture name are inline at their existing uses. The already-native `"skip"`,
+logo-image format and `"moji"` expressions supply their own pieces once the
+three remaining markers are removed. No runtime behavior changes.
+
+Each group has a separate full receipt under `.private/dataD/`:
+`nowload-{loading-texture,loading-path,skip-path,pause-texture,skip-texture,logo}-{build,objects,metrics}.log`.
+Every step passes PAL and all 149 objects with unchanged unowned hashes.
+
+Final markers: **0 RODATA / 0 BSS**, from **10 / 20**. Refreshed
+`matched_data` increases from **4/14,645** to **14,645/14,645**.
+All 19 functions remain matched; none is promoted.

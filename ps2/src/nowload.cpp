@@ -38,12 +38,6 @@ struct PauseState : PAUSE_INFO {
     }
 };
 
-extern char       at_832__7[];
-extern char       at_863__5[];
-extern char       at_864__3[];
-extern char       at_912__6[];
-extern char       at_913__5[];
-extern char       at_920__7[];
 
 /**
  *
@@ -238,7 +232,7 @@ void NowLoadingLoop(void *unused) {
                 mgSetBackGround(0.0f, 0.0f, 0.0f, 0.0f);
                 mgBeginFrame(NULL);
                 mgTexManager.ReloadTexture(LoadInfo.tex_block, (sceVif1Packet *) NULL);
-                mgCTexture *loading = mgTexManager.GetTexture(at_832__7, LoadInfo.tex_block);
+                mgCTexture *loading = mgTexManager.GetTexture("loading", LoadInfo.tex_block);
                 mgCDrawPrim prim;
                 prim.Initialize(NULL, NULL);
                 prim.DepthTestEnable(0);
@@ -348,9 +342,9 @@ void CreateNowLoading(NowLoadingInfo *info) {
         language = 2;
     }
 
-    sprintf(name, at_863__5, language);
+    sprintf(name, "img/%d/", language);
     strcpy(path, name);
-    strcat(path, at_864__3);
+    strcat(path, "loading.img");
 
     if (LoadFile2(path, buffer, &size, 0) != 0) {
         u32 blocks;
@@ -429,12 +423,12 @@ int InitPauseData() {
     char path[0x40];
 
     if (LanguageCode > 1) {
-        sprintf(path, at_912__6, LanguageCode);
+        sprintf(path, "img/%d/skip.img", LanguageCode);
 
         if (LoadFile2(path, data, &size, 0) == 0) {
             return 0;
         }
-    } else if (LoadFile2(at_913__5, data, &size, 0) == 0) {
+    } else if (LoadFile2("img/skip.img", data, &size, 0) == 0) {
         return 0;
     }
 
@@ -454,7 +448,7 @@ int InitPause(int block) {
     InitFlag = 0;
     PauseCancelCnt = 0;
     tex->DeleteBlock(block);
-    tex->EnterTexture(block, at_920__7, 0, mgScreenWidth, mgScreenHeight, 0x20, 0, 0, 0);
+    tex->EnterTexture(block, "pause_work", 0, mgScreenWidth, mgScreenHeight, 0x20, 0, 0, 0);
 
     if (load_skip_img != 0) {
         tex->EnterIMGFile(SkipImage, block, 0, 0);
@@ -531,7 +525,7 @@ int PauseLoop() {
     mgCTextureManager *tex = &mgTexManager;
     mgBeginFrame(NULL);
     tex->ReloadTexture(PauseTexb, (sceVif1Packet *) NULL);
-    mgCTexture *backdrop = tex->GetTexture(at_920__7, -1);
+    mgCTexture *backdrop = tex->GetTexture("pause_work", -1);
 
     if (InitFlag == 0) {
         sndSePlay(GetSystemSndID(), 25, 0);
@@ -744,14 +738,3 @@ void SCElogoFade(int fade_out, mgCMemory *memory) {
 }
 
 #pragma opt_strength_reduction reset
-
-// Constants (.rodata)
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/nowload", at_832__7__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/nowload", at_863__5__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/nowload", at_864__3__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/nowload", at_912__6__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/nowload", at_913__5__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/nowload", at_920__7__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/nowload", at_1003__5__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/nowload", at_1068__4__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/nowload", at_1069__6__DATA);
