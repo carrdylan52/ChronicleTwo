@@ -875,7 +875,7 @@ public:
      *
      * @mangled SettingAqua__9CAquariumFv
      * @address 0x215350
-     * @size 0xBC0
+     * @size 0xBB4
      */
     void SettingAqua();
 
