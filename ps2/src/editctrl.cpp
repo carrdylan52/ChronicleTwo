@@ -1641,4 +1641,3 @@ INCLUDE_BSS(reference_1252, 0x4);
 INCLUDE_BSS(init_1253, 0x4);
 INCLUDE_BSS(camera_dist_mode_1317, 0x4);
 INCLUDE_BSS(init_1318, 0x4);
-

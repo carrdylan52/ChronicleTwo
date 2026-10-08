@@ -38,3 +38,6 @@ The completed changes pass all 149 object checks and `SCES_511.90: OK`.
 Final receipts: `.private/dataB-r2/editctrl-final-{build,check,progress}.log`.
 
 After the progress refresh: 612 / 1212 matched data bytes; markers 0 ROData, 6 BSS.
+
+The complete-object checksum audit after the shared header change finds no altered
+ELF object outside the four assigned units.
