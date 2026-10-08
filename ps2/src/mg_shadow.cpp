@@ -404,10 +404,3 @@ int mgCShadowMDT::CreateRenderInfoPacket(u_int *packet, float (*matrix)[4], mgRE
 
 // Initialised data (.data)
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mg_shadow", prog_vif_208__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mg_shadow", at_243__DATA);
-
-// Virtual tables (.vtables)
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mg_shadow", __vt__12mgCShadowMDT__DATA);
-
-// Uninitialised data (.bss)
-INCLUDE_BSS(at_353, 0x10);
