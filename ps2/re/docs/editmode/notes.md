@@ -101,3 +101,18 @@ stores to `PaintCursor2->attr->color[1]` and `[2]`: retail loads the global
 cursor before each colour value, while MWCC schedules that load after the
 value and delays the attribute load. Named cursor and converted-colour locals
 retain the same scheduling. The assembly fallback remains active.
+
+## October 8 merged-base cursor audit
+
+`LoadEditCursor` remains guarded at 270/368 positional differing words
+(0x5C0/0x5C0 bytes) under the pinned profile, including editmode's existing
+translation-unit row. Its first character construction at +0x170 has the
+known allocation-result mismatch: retail branches on `v0` and copies to
+`s1` in the delay slot; the draft copies first, branches on `s1` and inserts
+a nop. Three character-construction sites shift the later code.
+
+Blocker: placement-new construction scheduling. Reconsider after a natural
+inlined character construction with matching null-result flow is validated,
+then reassess any float-order remainder. No float selector is proposed:
+the constructor blocker prevents the required zero-difference complete-unit
+validation. The excluded `EditMode` body and compiler profile are unchanged.
