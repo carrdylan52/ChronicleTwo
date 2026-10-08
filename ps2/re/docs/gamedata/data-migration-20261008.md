@@ -96,3 +96,27 @@ its marker and unused extern passes `gamedata-command-switch` separately.
 Each receipt includes a full build, all-object comparison, and unowned hash
 check: PAL OK, 149/149 passing, and no unowned changes. No RODATA markers
 remain; the name-buffer BSS marker is the only retained reservation.
+
+## Typed allocator objects and buffers
+
+`LoadItemSystemMes` now constructs a real `mgCMemory` after clearing the name
+buffer, then installs that buffer and publishes `&memory`. Declaring the path
+array after the manager retains both objects' retail stack order. The first
+manager trial left five differing stack-offset words because its later
+declaration placed it after the path; no code or call-target changes were
+needed. Receipts are `gamedata-memory-object-build.log` (rejected),
+`gamedata-memory-object-check.log`, and the accepted
+`gamedata-memory-object-order-{build,objects,metrics}.log`.
+
+The manager's backing buffer is a native `u_long128[0x280]`, and both file
+scratch buffers are `u_long128[0x780]`. Their quadword types match the allocator
+and alignment APIs and remove the input-pointer casts. Redundant guard-data
+casts also disappear. `gamedata-quadword-buffers-{build,objects,metrics}.log`
+records PAL OK, 149/149 objects, and no unowned hash changes.
+
+Final markers are **0 RODATA / 1 BSS**, versus **46 / 16**. All 67 functions
+remain matched; none is promoted. Refreshed source-only matched data stays
+**36/47,820** because objdiff omits the linked object's data naming, ordering
+and verified padding normalization. Canonical object checks verify every
+migrated byte and relocation. Removing the final buffer marker awaits the
+shared VU-word splitter fix, with no tooling changes made in this lane.

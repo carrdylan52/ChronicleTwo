@@ -488,7 +488,7 @@ static short local_guarddata[35];
 static short local_itemdatano_converttable[512];
 
 /** Storage for loaded item display names. */
-static char gamedata_sysword_buffer_1073[0x2800];
+static u_long128 gamedata_sysword_buffer_1073[0x280];
 
 /** Scratch buffer for an item model filename. */
 static char filename_1267[0x20];
@@ -572,7 +572,7 @@ void CGameData::Initialize() {
     item_num = 0;
     weapon_data = local_weapondata;
     weapon_num = 0;
-    guard_data = (short *) local_guarddata;
+    guard_data = local_guarddata;
     guard_num = 0;
     attach_data = local_attachdata;
     attach_num = 0;
@@ -1059,7 +1059,7 @@ int _DATAGAURDNUM(SPI_STACK *stack, int arg_count) {
 int _DATAGAURD(SPI_STACK *stack, int arg_count) {
     short *guard;
 
-    guard = (short *) GameItemDataManage.GetGuardData(spiGetStackInt(stack++));
+    guard = GameItemDataManage.GetGuardData(spiGetStackInt(stack++));
 
     if (guard == NULL) {
         return 1;
@@ -1110,11 +1110,11 @@ static SPI_TAG_PARAM gamedata_tag[25] = {
  */
 int LoadGameDataAnalyze(char *name) {
     int   size;
-    u8    buffer[0x7800];
+    u_long128 buffer[0x780];
     char  path[0x40];
     char *script;
 
-    script = (char *) MenuCalcBufAlignment((u_long128 *) buffer);
+    script = (char *) MenuCalcBufAlignment(buffer);
     SetCurrentDir(NULL);
     sprintf(path, "menu/cfg7/%s", name);
 
@@ -1160,17 +1160,16 @@ int CGameData::LoadData() {
 
 int CGameData::LoadItemSystemMes(int language) {
     int   size;
-    u8    buffer[0x7800];
-    u8    memory_storage[0x30];
-    char  path[0x40];
+    u_long128 buffer[0x780];
     char *script;
 
-    script = (char *) MenuCalcBufAlignment((u_long128 *) buffer);
+    script = (char *) MenuCalcBufAlignment(buffer);
     memset(gamedata_sysword_buffer_1073, 0, 0x2800);
 
-    ((mgCMemory *) memory_storage)->Init();
-    ((mgCMemory *) memory_storage)->stSetBuffer((u_long128 *) gamedata_sysword_buffer_1073, 0x280);
-    gamedata_build_stack = (mgCMemory *) memory_storage;
+    mgCMemory memory;
+    char path[0x40];
+    memory.stSetBuffer(gamedata_sysword_buffer_1073, 0x280);
+    gamedata_build_stack = &memory;
     sprintf(path, "menu/cfg7/comdatmes%d.cfg", language);
 
     if (LoadFile2(path, script, &size, 0) != 0) {
