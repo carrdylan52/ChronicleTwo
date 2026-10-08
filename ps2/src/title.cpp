@@ -121,7 +121,7 @@ extern mgCTexture      *RushStart;
 extern s8               TitleBootEventNo;
 extern u8               GameBootInit;
 extern u8               TitleHDDCheckFlag;
-void                    TitleBootInit();
+static void             TitleBootInit();
 extern mgCMemory        DataBuffer;
 extern mgCMemory        TitleMapBuffer;
 extern mgCMemory        TitleWorkBuffer;
@@ -376,7 +376,7 @@ void TitleInit(INIT_LOOP_ARG arg) {
  * Loads the title scene, menu resources, sound, and boot-time memory card state.
  *
  */
-void TitleBootInit() {
+static void TitleBootInit() {
     RushMovie = new ((u_long128 *) DataBuffer.Alloc(0x2396)) CMovie;
     TitleMCFuncFlag = 1;
     TitleMCCheckNow = 0;
@@ -401,8 +401,10 @@ void TitleBootInit() {
     TitleScene->before_camera = 0;
     TitleScene->SetStack(1, &TitleMapBuffer);
     TitleScene->work_stack = &TitleWorkBuffer;
-    u8 *map_buffer = (u8 *) DataBuffer.stGetTop();
-    int map_no = SearchMapNo(at_1221__4);
+    int map_no;
+    u8 *map_buffer;
+    map_buffer = (u8 *) DataBuffer.stGetTop();
+    map_no = SearchMapNo(at_1221__4);
     TitleScene->active_map = 0;
     MapJumpMapInfo    main_map;
     SCN_LOADMAP_INFO2 load_info;
@@ -421,14 +423,17 @@ void TitleBootInit() {
     TitleScene->SetNowMapNo(map_no);
     TitleScene->SetActive(2, 0);
     TitleMap = TitleScene->GetMap(TitleScene->active_map);
-    u32 file_size;
-    if (LoadFile2(at_1222__4, DataBuffer.stAllocTest(1), (int *) &file_size, 0) != 0) {
-        textures->EnterIMGFile((u_char *) DataBuffer.Alloc(Align16Blocks(file_size)), 0x6A, NULL, NULL);
+    int file_size;
+    {
+        int logo_file_size;
+        if (LoadFile2(at_1222__4, DataBuffer.stAllocTest(1), &logo_file_size, 0) != 0) {
+            textures->EnterIMGFile((u_char *) DataBuffer.Alloc(Align16Blocks(logo_file_size)), 0x6A, NULL, NULL);
+        }
     }
     textures->EnterTexture(0x6A, at_1223__4, NULL, mgScreenWidth, mgScreenHeight, 0x20, 0, 0, 0);
     char lang_file[0x40];
     sprintf(lang_file, at_1224__4, LanguageCode);
-    LoadFile2(lang_file, map_buffer, (int *) &file_size, 0);
+    LoadFile2(lang_file, map_buffer, &file_size, 0);
     DataBuffer.Alloc(Align16Blocks(file_size));
     textures->EnterIMGFile(map_buffer, 0x40, NULL, NULL);
     Tex_TitleBG = textures->GetTexture(at_1225__4, -1);
@@ -455,7 +460,7 @@ void TitleBootInit() {
     RushWork = textures->EnterTexture(0x43, at_1234, NULL, mgScreenWidth, mgScreenHeight, mgScreenDepth, 0, 0, 0);
     DataBuffer.Align64();
     u_long128 *push_start_img = DataBuffer.stGetTop();
-    if (LoadFile2(at_1235, push_start_img, (int *) &file_size, 0) != 0) {
+    if (LoadFile2(at_1235, push_start_img, &file_size, 0) != 0) {
         textures->EnterIMGFile((u_char *) push_start_img, 0x43, NULL, NULL);
     }
     RushStart = textures->GetTexture(at_1236, 0x43);
@@ -484,11 +489,13 @@ void TitleBootInit() {
     TitleScene->LoadSound(0x1F4, sound_buffer);
     TitleScene->StopEnvBGM();
     sndWaitTransBd();
-    LoadFile2(at_1239__2, sound_buffer, (int *) &file_size, 0);
+    LoadFile2(at_1239__2, sound_buffer, &file_size, 0);
     sndInitPort(4);
     TitleEventSound = sndLoadSound(4, (u_int *) sound_buffer, &snd_memory);
     DataBuffer.Align64();
-    Stack_ReadBuff.stSetBuffer(DataBuffer.stGetTop(), DataBuffer.stGetRest());
+    int remaining = DataBuffer.stGetRest();
+    u_long128 *read_top = DataBuffer.stGetTop();
+    Stack_ReadBuff.stSetBuffer(read_top, remaining);
     read_buffer = Stack_ReadBuff.stGetTop();
     TitleScene->read_buff = read_buffer;
     TitleScene->fade.Initialize();
