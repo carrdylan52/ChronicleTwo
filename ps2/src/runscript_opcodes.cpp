@@ -46,9 +46,22 @@
 #include "snd_mngr.hpp"
 #include "sound.hpp"
 #include "userdata.hpp"
-extern CScene        *nowScene;
-extern ACTION_DAMAGE *LastCInfo2;
-extern int (*ext_func[256])(RS_STACKDATA *, int);
+/**
+ * Scene used by the active monster's script callbacks.
+ */
+static CScene *nowScene;
+
+CActiveMonster *nowMonster;
+
+/**
+ * Damage entry returned by the most recent monster damage callback.
+ */
+static ACTION_DAMAGE *LastCInfo2;
+
+/**
+ * Monster script callback dispatch table indexed by external function number.
+ */
+static int (*ext_func[256])(RS_STACKDATA *, int);
 
 /**
  *
@@ -4653,13 +4666,3 @@ INCLUDE_RODATA("ps2/asm/pal/nonmatchings/runscript_opcodes", at_1481__2__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/runscript_opcodes", at_1864__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/runscript_opcodes", at_2160__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/runscript_opcodes", ext_func_info__DATA);
-
-// Constants (.rodata)
-
-// Small uninitialised data (.sbss)
-INCLUDE_BSS(nowScene, 0x4);
-INCLUDE_BSS(nowMonster, 0x4);
-INCLUDE_BSS(LastCInfo2, 0x4);
-
-// Uninitialised data (.bss)
-INCLUDE_BSS(ext_func, 0x400);
