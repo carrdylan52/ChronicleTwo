@@ -1419,7 +1419,7 @@ public:
 
     /**
      *
-     * Turns the page on a shoulder button; returns non-zero when it turned.
+     * Turns the page on a shoulder button and returns zero.
      *
      * @mangled LRCheck__13CMenuItemInfoFi
      * @address 0x24FB50
@@ -1480,25 +1480,7 @@ public:
      * Creates the list of the items that can be chosen, placed at the bottom of the screen.
      *
      */
-#ifdef NONMATCHING
-    CItemSelect() {
-        list_rect.Set(0.0f, 0.0f, 0.0f, 0.0f);
-        item_rect.Set(0.0f, 0.0f, 0.0f, 0.0f);
-        alpha_step = 0;
-        alpha = 0;
-        bg_alpha = 0;
-        item_num = 0;
-        cursor_y = 0.0f;
-        cursor_x = 0.0f;
-        scroll = 0.0f;
-        texture = NULL;
-        top_line = 0;
-        cursor = 0;
-        line_num = 1.0f;
-    }
-#else
     CItemSelect();
-#endif
 
     /**
      *
@@ -1784,7 +1766,7 @@ CGameDataUsed *GetGameDataUsedForSWAPINFO(MENU_SWAPITEM_INFO *info);
 
 /**
  *
- * Works out how many items the inventory may hold.
+ * Marks inventory and active items whose owned totals reach their item limits.
  *
  * @mangled CheckEnableHaveItemNum__Fv
  * @address 0x2415A0
@@ -1931,7 +1913,7 @@ extern int trans_spectol_pos;
 /** Weapon repair effect of the item menu. */
 extern CRepairManager *MenuRepairMan;
 
-/** Data the code never refers to. */
+/** Per-character flags for active items whose owned totals reach the item limit. */
 extern u8 menu_chara_activeItem_limmit_check[6];
 
 /** Non-zero while the character status texture is not drawn. */

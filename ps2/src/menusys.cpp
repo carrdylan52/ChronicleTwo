@@ -5687,15 +5687,6 @@ int CMenuItemInfo::ItemCmdAfter(int cmd_ret, ITEMCMD_RET_PARA *ret) {
 }
 
 
-/**
- *
- * Constructs an action character in the menu memory stack.
- *
- */
-static inline CActionChara *NewMenuActionChara(mgCMemory *stack) {
-    return new ((u_long128 *) stack->Alloc(0x105)) CActionChara;
-}
-
 extern int  Effect_Counter_4682;
 extern s8   init_4683;
 extern u8   BuildEndFlag_4703;
@@ -5708,6 +5699,7 @@ extern char at_4955[];
 extern char at_4956[];
 extern char at_4957[];
 #ifdef NONMATCHING
+#pragma inline_depth(8)
 int CMenuItemInfo::IsAskExtend(int select_key, int push_button) {
     mgCMemory         *load_stack = &MenuCharaLoadStack;
     mgCMemory          work;
@@ -5868,7 +5860,7 @@ int CMenuItemInfo::IsAskExtend(int select_key, int push_button) {
                         load_stack->Align64();
                         int rest = load_stack->stGetRest();
                         work.stSetBuffer(load_stack->stGetTop(), rest);
-                        build_up_chara = NewMenuActionChara(&work);
+                        build_up_chara = new (work.Alloc(0x105)) CActionChara;
                         build_up_chara->Initialize(NULL);
                         build_up_chara->LoadPack((u_int *) model_file->buffer, at_4954, &work, &work, &work, tex_block[2], NULL);
                         build_up_chara->SetScale(1.5f, 1.5f, 1.5f);
@@ -5959,6 +5951,7 @@ int CMenuItemInfo::IsAskExtend(int select_key, int push_button) {
     }
     return 0;
 }
+#pragma inline_depth reset
 #else
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/menusys", IsAskExtend__13CMenuItemInfoFii);
 #endif
@@ -6318,6 +6311,7 @@ void CMenuItemInfo::AttachFormInfo() {
 }
 
 #ifdef NONMATCHING
+#pragma inline_depth(8)
 void CMenuItemInfo::MenuModeMalloc(mgCMemory *stack) {
     int             i;
     CMenuMoveItem  *move_item;
@@ -6329,7 +6323,7 @@ void CMenuItemInfo::MenuModeMalloc(mgCMemory *stack) {
                                 free_blocks);
 
     for (i = 0; i < 7; i++) {
-        MenuActionChara[i] = NewMenuActionChara(&MenuItemMemory2);
+        MenuActionChara[i] = new (MenuItemMemory2.Alloc(0x105)) CActionChara;
         MenuActionChara[i]->Initialize(NULL);
     }
 
@@ -6339,7 +6333,7 @@ void CMenuItemInfo::MenuModeMalloc(mgCMemory *stack) {
 
     MenuMoveItemPtr = move_item;
     MenuMoveItemPtr->AttachForm();
-    SpectolFrame = NewMenuActionChara(&MenuItemMemory2);
+    SpectolFrame = new (MenuItemMemory2.Alloc(0x105)) CActionChara;
 
     if ((effect = (CMenuEffect *) operator new(0x38, MenuItemMemory2.Alloc(6))) != NULL) {
         effect->Initialize();
@@ -6364,6 +6358,7 @@ void CMenuItemInfo::MenuModeMalloc(mgCMemory *stack) {
     MenuItemMemory.stSetBuffer(
         (MenuItemMemory2.stack + MenuItemMemory2.stack_used), free_blocks);
 }
+#pragma inline_depth reset
 #else
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/menusys", MenuModeMalloc__13CMenuItemInfoFP9mgCMemory);
 #endif
@@ -11501,29 +11496,51 @@ void CItemSelect::Draw() {
 extern char at_9215[];
 extern char at_9216[];
 #ifdef NONMATCHING
+/**
+ *
+ * Creates the inventory choice with its screen rectangles and available items.
+ *
+ */
+inline CItemSelect::CItemSelect() {
+    alpha_step = 0;
+    alpha = 0;
+    bg_alpha = 0;
+    item_num = 0;
+    cursor_y = 0.0f;
+    cursor_x = 0.0f;
+    scroll = 0.0f;
+    texture = NULL;
+    list_rect.Set(120.0f, (float) (mgScreenHeight - 0x10A), 0.0f, 200.0f);
+    item_rect.Set(20.0f + list_rect.left, 370.0f + list_rect.top, 44.0f, 55.0f);
+    top_line = 0;
+    cursor = 0;
+    line_num = 1.0f;
+    CheckEnableHaveItemNum();
+    SetPtrList();
+}
+
 void MenuItemSelectInit(mgCMemory *stack, int *tex_block, int mode) {
     MenuItemMainMemory.stSetBuffer(stack->stGetTop(), stack->stGetRest());
     ItemSelectPtr = new (MenuItemMainMemory.Alloc(0x47)) CItemSelect;
-    ItemSelectPtr->list_rect.Set(120.0f, (float) (mgScreenHeight - 0x10A), 0.0f, 200.0f);
-    ItemSelectPtr->item_rect.Set(20.0f + ItemSelectPtr->list_rect.left,
-                                 370.0f + ItemSelectPtr->list_rect.top, 44.0f, 55.0f);
-    CheckEnableHaveItemNum();
-    ItemSelectPtr->SetPtrList();
     ItemSelectPtr->SetTexBlock(tex_block);
-    MenuItemSelectMode = (mode == 0x16);
+    MenuItemSelectMode = 0;
+    if (mode == 0x16) {
+        MenuItemSelectMode = 1;
+    }
     MenuBGTextureBlock = ItemSelectPtr->tex_block[0];
     MenuCapture(MenuBGTextureBlock, &MenuItemMainMemory, 1);
     MenuPosData->AttachCommonTexInfo();
     MenuItemMainMemory.Align64();
     StartReadBG();
 
-    int size = 0;
+    int size;
     if (mode == 9) {
         size = LoadFileMenu(at_9215, MenuItemMainMemory.stGetTop(), 0);
-    } else if (mode == 0x16) {
+    }
+    if (mode == 0x16) {
         size = LoadFileMenu(at_9216, MenuItemMainMemory.stGetTop(), 0);
     }
-    MenuItemMainMemory.Alloc((size + 15) >> 4);
+    MenuItemMainMemory.Alloc(QuadwordsFor(size));
     MenuDCMsg[0]->MsgPreset(2);
     MenuDCMsg[0]->fuchi = 5;
     MenuDCMsg[0]->MakeMsg(0);
