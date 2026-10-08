@@ -21,12 +21,10 @@ extern char        at_887__2[];
 extern char        at_888__2[];
 extern char        at_889__3[];
 extern char        at_890__3[];
-extern char        at_958__2[];
 extern char        at_1116[];
 extern char        at_1117__2[];
 extern char        at_1118__2[];
 static const u_int timer0_count = 0x10000000;
-extern char        at_959__2[];
 
 // Code (.text)
 /**
@@ -194,7 +192,6 @@ void SCN_LOADMAP_INFO2::Initialize() {
 }
 
 
-#ifdef NONMATCHING
 int CScene::LoadChara(int index, u_int *pack, char *name, mgCMemory *model_stack, mgCMemory *motion_stack, mgCMemory *image_stack, int image_block, int no_outline) {
     u_int       *files[1];
     int          sizes[1];
@@ -205,7 +202,7 @@ int CScene::LoadChara(int index, u_int *pack, char *name, mgCMemory *model_stack
     }
 
     DeleteChara(index);
-    int slot = AssignChara(index, chara, at_958__2);
+    int slot = AssignChara(index, chara, "chara");
 
     if (slot < 0) {
         return -1;
@@ -220,7 +217,7 @@ int CScene::LoadChara(int index, u_int *pack, char *name, mgCMemory *model_stack
     scene_chara->status |= 1;
 
     if (name == NULL) {
-        GetPackFileExt(pack, at_959__2, files, 1, sizes, &name);
+        GetPackFileExt(pack, "cfg", files, 1, sizes, &name);
     }
 
     chara->Initialize();
@@ -236,9 +233,6 @@ int CScene::LoadChara(int index, u_int *pack, char *name, mgCMemory *model_stack
     chara->sound_info.foot_sound_id = 0;
     return slot;
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/sceneload", LoadChara__6CSceneFiPUiPcP9mgCMemoryP9mgCMemoryP9mgCMemoryii);
-#endif
 
 void CScene::DeleteChara(int index) {
     CSceneCharacter *chara;
@@ -250,7 +244,6 @@ void CScene::DeleteChara(int index) {
     }
 }
 
-#ifdef NONMATCHING
 int CScene::CopyChara(int index, int source_index, mgCMemory *memory) {
     float        position[4];
     float        rotation[4];
@@ -265,7 +258,7 @@ int CScene::CopyChara(int index, int source_index, mgCMemory *memory) {
 
     chara->Initialize();
     DeleteChara(index);
-    int slot = AssignChara(index, chara, at_958__2);
+    int slot = AssignChara(index, chara, "chara");
 
     if (slot < 0) {
         return -1;
@@ -298,9 +291,6 @@ int CScene::CopyChara(int index, int source_index, mgCMemory *memory) {
     original->SetScale(scale);
     return slot;
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/sceneload", CopyChara__6CSceneFiiP9mgCMemory);
-#endif
 
 int CScene::LoadMapFromMemory(int map_no, SCN_LOADMAP_INFO2 *info) {
     int step = 0;
@@ -595,8 +585,6 @@ INCLUDE_RODATA("ps2/asm/pal/nonmatchings/sceneload", at_887__2__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/sceneload", at_888__2__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/sceneload", at_889__3__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/sceneload", at_890__3__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/sceneload", at_958__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/sceneload", at_959__2__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/sceneload", at_1116__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/sceneload", at_1117__2__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/sceneload", at_1118__2__DATA);
