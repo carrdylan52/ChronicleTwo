@@ -254,11 +254,8 @@ struct MenuGeoramaSystemInfo {
  */
 static CEditMap *MenuMainMapInfo;
 extern "C" char          at_3774[];
-extern char              at_3419[];
 extern char              at_3420[];
 extern char              at_3421[];
-extern char              at_3422[];
-extern char              at_3423[];
 extern int               analyze_percent;
 /**
  *
@@ -943,43 +940,14 @@ static float GeoRequestBoardCheckPoint[4];
  */
 static int GeoRequestBoardCheckPoint_P[2];
 extern char                   at_1189__2[];
-extern char                   at_1860[];
 extern char                   at_2654[];
-extern char                   at_2655[];
 extern char                   at_2656[];
 extern char                   at_2657[];
-extern char                   at_2658[];
 extern char                   at_2659[];
-extern char                   at_2660[];
-extern char                   at_2661[];
-extern char                   at_2662[];
 extern char                   at_2663[];
-extern char                   at_2664[];
-extern char                   at_2665[];
-extern char                   at_2666[];
-extern char                   at_2667[];
-extern char                   at_2668[];
 extern char                   at_2986[];
-extern char                   at_3158[];
-extern char                   at_3159[];
-extern char                   at_3160[];
-extern char                   at_3161[];
 extern char                   at_3162[];
-extern char                   at_3163[];
-extern char                   at_3164__2[];
-extern char                   at_3165[];
-extern char                   at_3166[];
 extern char                   at_3167[];
-extern char                   at_3181[];
-extern char                   at_3182[];
-extern char                   at_3229[];
-extern char                   at_3291__2[];
-extern char                   at_3292[];
-extern char                   at_3293[];
-extern char                   at_3294[];
-extern char                   at_3295[];
-extern char                   at_3297[];
-extern char                   at_3329[];
 extern char                   at_3562[];
 extern char                   at_3563[];
 extern char                   at_3564[];
@@ -2906,20 +2874,20 @@ void CMenuGeorama::InitEnd() {
     AttachFormInfo();
     Init_MENUFORM_MAKEBRD_INFO(&make_brd);
     read_b_g = GetReadBGFile(0);
-    image = (u8 *) GetPackFile((unsigned int *) read_b_g->buffer, at_2654, NULL);
+    image = (u8 *) GetPackFile((unsigned int *) read_b_g->buffer, "g.img", NULL);
     tex_block = MenuCommonInfo->tex_block[3];
     mgTexManager.EnterIMGFile(image, tex_block, NULL, NULL);
-    script = (char *) GetPackFile((unsigned int *) read_b_g->buffer, at_2655, &script_size);
-    MenuPosData->ResetTextureBlockNo(at_1860, MenuArg.mes_tex_block);
+    script = (char *) GetPackFile((unsigned int *) read_b_g->buffer, "geo_com.cfg", &script_size);
+    MenuPosData->ResetTextureBlockNo("gaiji", MenuArg.mes_tex_block);
     MenuPosData->ResetTextureInfoAll();
-    Tex_Georama = mgTexManager.GetTexture(at_2656, tex_block);
+    Tex_Georama = mgTexManager.GetTexture("geo", tex_block);
     GetMenuMainMessageBuffer();
-    message_pack = (u8 *) GetPackFile((unsigned int *) read_b_g->buffer, at_2657, NULL);
+    message_pack = (u8 *) GetPackFile((unsigned int *) read_b_g->buffer, "npcmsg.mes", NULL);
     MenuCommandAnalyzeInfo.system_mes_buff[0] = GetSystemMesBuffer();
     MenuCommandAnalyzeInfo.system_mes_buff[1] = (short *) message_pack;
     MenuCommandAnalyzeInfo.mes_buff[0] = GetMenuMainMessageBuffer();
     MenuCommandAnalyzeInfo.mes_buff[1] = NULL;
-    ExeScript(at_2658);
+    ExeScript("MSG_BUFF");
 
     for (i = 0; i < 5; i++) {
         GeoramaMes[i]->MakeMesWin(msgtbl_2587[i] + 0x5DC);
@@ -2936,10 +2904,10 @@ void CMenuGeorama::InitEnd() {
         form++;
     } while (i < 0x46);
 
-    ExeScript(at_2659);
+    ExeScript("INIT_END");
 
     if (title_form != NULL) {
-        sprintf(part_name, at_2660, town_no);
+        sprintf(part_name, "Title%d", town_no);
         title_form->SetPartDrawFlag(part_name, 1);
     }
 
@@ -2959,14 +2927,14 @@ void CMenuGeorama::InitEnd() {
         }
 
         LoadGeoramaPart(GetNowModeLoadPartsID(), 0);
-        ExeScript(at_2661);
+        ExeScript("PLACE_INIT");
     } else if (MenuPrevEndCode == 8) {
         key_arg_no = 3;
         view_mode = kTabPaint;
         select = list_info[view_mode].select;
         top = list_info[view_mode].top;
         paint_return = 1;
-        ExeScript(at_2662);
+        ExeScript("PAINT_INIT");
     } else {
         key_arg_no = 0;
         view_mode = kTabStock;
@@ -2974,7 +2942,7 @@ void CMenuGeorama::InitEnd() {
     }
 
     MenuGeoramaCursorForceSetFlag = 1;
-    list_form[view_mode]->SetAction(at_2663);
+    list_form[view_mode]->SetAction("1");
 
     for (k = 0; k < 5; k++) {
         if (list_form[k] != NULL) {
@@ -2987,14 +2955,14 @@ void CMenuGeorama::InitEnd() {
     polygon_left = budget - MenuMainMapInfo->GetTotalPolyn(NULL, NULL);
 
     if (title_form != NULL) {
-        title_form->SetNumber(at_2664, polygon_left);
+        title_form->SetNumber("\203|\203\212\203\223\220\224", polygon_left);
     }
 
     if (town_no == 4) {
-        ExeScript(at_2665);
+        ExeScript("POLYOF");
     }
 
-    ExeScript(at_2666);
+    ExeScript("MSG_\217\211\212\372\211\273");
     MenuGeoramaMessageMake(0);
 
     if (LanguageCode > 0) {
@@ -3003,11 +2971,11 @@ void CMenuGeorama::InitEnd() {
 
     MenuGeoStoneDonwLoadFlag = 0;
     download_texture = NULL;
-    ExeScript(at_2667);
+    ExeScript("DL_OFF");
 
     if (0 < MenuGeoStoneDownLoad_Request + MenuGeoStoneDownLoad_PartsNum) {
         MenuGeoStoneDonwLoadFlag = 1;
-        ExeScript(at_2668);
+        ExeScript("DL_ON");
         MenuDCMsg[5]->fuchi = 5;
         MenuDCMsg[5]->put_centering = 1;
         download_texture = GetMenuDlTexture();
@@ -3262,7 +3230,7 @@ void CMenuGeorama::UpdateGeoramaPartsList() {
                 }
             }
 
-            cpview_form->SetNumber(at_2986, MenuMainMapInfo->CultureAnalyze(culture_arg));
+            cpview_form->SetNumber("CP", MenuMainMapInfo->CultureAnalyze(culture_arg));
         }
 
         if (kind == 0) {
@@ -3495,31 +3463,31 @@ void CMenuGeorama::AttachFormInfo() {
     char name[32];
     int  i;
     int  gekka_view;
-    title_form = (CMenuPosDataForm *) MenuPosData->GetFormInfo(at_3158);
+    title_form = (CMenuPosDataForm *) MenuPosData->GetFormInfo("field_title");
 
     if (title_form != NULL) {
         gekka_view = 0;
 
         if (CheckGekkaViewMode(town_no) != 0) {
             gekka_view = 1;
-            title_form->SetPartDrawFlag(at_3159, 0);
+            title_form->SetPartDrawFlag("index4", 0);
         }
 
-        title_form->SetPartDrawFlag(at_3160, gekka_view != 0);
+        title_form->SetPartDrawFlag("index14", gekka_view != 0);
     }
 
-    make_brd_form = (CMenuPosDataForm *) MenuPosData->GetFormInfo(at_3161);
-    cpview_form = (CMenuPosDataForm *) MenuPosData->GetFormInfo(at_3162);
-    free_color_form = (CMenuPosDataForm *) MenuPosData->GetFormInfo(at_3163);
+    make_brd_form = (CMenuPosDataForm *) MenuPosData->GetFormInfo("makebrd");
+    cpview_form = (CMenuPosDataForm *) MenuPosData->GetFormInfo("CPVIEW");
+    free_color_form = (CMenuPosDataForm *) MenuPosData->GetFormInfo("free_color");
 
     for (i = 0; i < 7; i++) {
-        sprintf(name, at_3164__2, i);
+        sprintf(name, "list_data%d", i);
         list_form[i] = (CMenuPosDataForm *) MenuPosData->GetFormInfo(name);
     }
 
-    analyze_form = (CMenuPosDataForm *) MenuPosData->GetFormInfo(at_3165);
-    analyze_percent_form = (CMenuPosDataForm *) MenuPosData->GetFormInfo(at_3166);
-    house_info_form = (CMenuPosDataForm *) MenuPosData->GetFormInfo(at_3167);
+    analyze_form = (CMenuPosDataForm *) MenuPosData->GetFormInfo("analyze0");
+    analyze_percent_form = (CMenuPosDataForm *) MenuPosData->GetFormInfo("analyze1");
+    house_info_form = (CMenuPosDataForm *) MenuPosData->GetFormInfo("\211\306\217\356\225\361");
     HouseInfoFormGrobal = house_info_form;
     AttachMessageForm();
 }
@@ -3534,11 +3502,11 @@ int CMenuGeorama::ReturnSelectMode(int exit_script) {
     CBaseMenuClass::key_arg_no = 0;
 
     if (exit_script == 0) {
-        ExeScript(at_3181);
+        ExeScript("RETURN_SELMODE");
     }
 
     if (exit_script == 1) {
-        ExeScript(at_3182);
+        ExeScript("RETURN_SELMODE2");
     }
 
     return 1;
@@ -3582,7 +3550,7 @@ int CMenuGeorama::LRCheck() {
 
 void MakeMsgPartsItemInfo(CDC2Mes *mes, CEditPartsInfo *info, MENUFORM_MAKEBRD_INFO *make_brd) {
     if (init_3208 == 0) {
-        dmychar_3207 = at_3229;
+        dmychar_3207 = "";
         init_3208 = 1;
     }
 
@@ -3646,10 +3614,10 @@ int CMenuGeorama::IsMakeObject(int buttons_held, int buttons_pressed) {
                             }
 
                             if (enough == 0) {
-                                ExeScript(at_3291__2);
+                                ExeScript("\215\336\227\277\225s\221\253");
                                 step = kMakeNeedMaterials;
                             } else {
-                                ExeScript(at_3292);
+                                ExeScript("MAKE_GEOPARTS\212m\224F");
                                 char *items[1];
 
                                 *(float *) items = at_3260;
@@ -3663,7 +3631,7 @@ int CMenuGeorama::IsMakeObject(int buttons_held, int buttons_pressed) {
                         break;
                     }
                 case 2:
-                    ExeScript(at_3293);
+                    ExeScript("NOT_MAKE_GEOPARTS");
                     mode = kStateBrowse;
                     step = kMakeChooseAmount;
                     break;
@@ -3673,7 +3641,7 @@ int CMenuGeorama::IsMakeObject(int buttons_held, int buttons_pressed) {
         }
         case kMakeDone:
             if (buttons_pressed != 0) {
-                ExeScript(at_3294);
+                ExeScript("MAKEMODE\217I\227\271");
                 make_parts = NULL;
                 mode = kStateBrowse;
                 step = kMakeChooseAmount;
@@ -3687,7 +3655,7 @@ int CMenuGeorama::IsMakeObject(int buttons_held, int buttons_pressed) {
                 GetSaveData()->AddBuildPartsNum(make_parts->id, CBaseMenuClass::make_num);
                 UpdateGeoramaPartsList();
                 GeoramaMesForceMakeFlag = 1;
-                ExeScript(at_3295);
+                ExeScript("MAKE_GEOPARTS");
                 char *items[1];
 
                 *(float *) items = at_3268;
@@ -3708,7 +3676,7 @@ int CMenuGeorama::IsMakeObject(int buttons_held, int buttons_pressed) {
             }
 
             if (answer == 2) {
-                ExeScript(at_3296);
+                ExeScript("MAKE_GEOPARTS?");
                 MakeMsgPartsItemInfo(MenuDCMsg[2], make_parts, &make_brd);
                 step = kMakeChooseAmount;
             }
@@ -3717,7 +3685,7 @@ int CMenuGeorama::IsMakeObject(int buttons_held, int buttons_pressed) {
         }
         default:
             if (buttons_pressed != 0) {
-                ExeScript(at_3297);
+                ExeScript("\220\273\215\354ERROR_OFF");
                 step = kMakeChooseAmount;
             }
 
@@ -3756,7 +3724,7 @@ void CMenuGeorama::CalcCursorPosition() {
                 pos[1] = (int)(pos[1] + (40.0f + 24.0f * (paint_select - paint_top)));
                 break;
             case 8:
-                sprintf(name, at_3329, free_color_select);
+                sprintf(name, "num%d", free_color_select);
                 form->GetPutPosXY(name, pos[0], pos[1]);
                 pos[0] -= 0x1A;
                 pos[1] -= 0xC;
@@ -3790,9 +3758,9 @@ void CMenuGeorama::CalcTex() {
 
             float target = 56.0f + analyze_form->y + scroll;
             CalcMenu1(target, &GeoAnalyzeCheckPointScrlBarY, 4.0f, 0.0f, 0);
-            MENUFORMPARTS_TYPE *bar_base = analyze_percent_form->GetPartInfo(at_3419);
-            MENUFORMPARTS_TYPE *bar_tip = analyze_percent_form->GetPartInfo(at_3420);
-            MENUFORMPARTS_TYPE *bar_body = analyze_percent_form->GetPartInfo(at_3421);
+            MENUFORMPARTS_TYPE *bar_base = analyze_percent_form->GetPartInfo("base");
+            MENUFORMPARTS_TYPE *bar_tip = analyze_percent_form->GetPartInfo("bar0");
+            MENUFORMPARTS_TYPE *bar_body = analyze_percent_form->GetPartInfo("bar1");
             float               body = 161.0f * analyze_percent / 100.0f;
             float               tip = 1.0f;
 
@@ -3810,7 +3778,7 @@ void CMenuGeorama::CalcTex() {
                 bar_tip->h = tip;
             }
 
-            analyze_percent_form->SetNumber(at_3422, analyze_percent);
+            analyze_percent_form->SetNumber("\212\256\220\254\223x", analyze_percent);
             show = 1;
         }
 
@@ -3820,7 +3788,7 @@ void CMenuGeorama::CalcTex() {
 
     if (title_form != NULL) {
         for (i = 0; i < 6; i++) {
-            sprintf(name, at_3423, i);
+            sprintf(name, "b%d", i);
             MENUFORMPARTS_TYPE *tab = title_form->GetPartInfo(name);
 
             if (tab != NULL) {
@@ -5425,50 +5393,18 @@ INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editmenu", at_4101__DATA);
 // Constants (.rodata)
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editmenu", at_1014__3__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editmenu", at_1189__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editmenu", at_1860__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editmenu", at_2654__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editmenu", at_2655__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editmenu", at_2656__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editmenu", at_2657__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editmenu", at_2658__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editmenu", at_2659__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editmenu", at_2660__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editmenu", at_2661__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editmenu", at_2662__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editmenu", at_2663__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editmenu", at_2664__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editmenu", at_2665__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editmenu", at_2666__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editmenu", at_2667__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editmenu", at_2668__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editmenu", at_2986__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editmenu", at_3158__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editmenu", at_3159__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editmenu", at_3160__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editmenu", at_3161__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editmenu", at_3162__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editmenu", at_3163__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editmenu", at_3164__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editmenu", at_3165__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editmenu", at_3166__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editmenu", at_3167__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editmenu", at_3181__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editmenu", at_3182__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editmenu", at_3229__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editmenu", at_3291__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editmenu", at_3292__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editmenu", at_3293__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editmenu", at_3294__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editmenu", at_3295__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editmenu", at_3296__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editmenu", at_3297__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editmenu", at_3329__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editmenu", at_3330__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editmenu", at_3419__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editmenu", at_3420__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editmenu", at_3421__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editmenu", at_3422__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editmenu", at_3423__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editmenu", at_3562__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editmenu", at_3563__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editmenu", at_3564__DATA);

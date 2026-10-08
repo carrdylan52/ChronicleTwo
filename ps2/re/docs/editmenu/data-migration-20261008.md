@@ -172,3 +172,15 @@ The ten function-sized steps from SetEditMenuEnv through
 MenuGeoramaMessageMake each pass the full PAL and 149-unit checks. Receipts
 are `editmenu-literals-<function>-*` in `.private/dataB/receipts/`.
 This checkpoint has 118 initialized markers and 16 BSS markers.
+
+## Inline strings: Georama class methods
+
+The eight function-sized steps from InitEnd through CalcTex replace native
+pack member names, Georama form and part names, cursor actions, build-dialog
+scripts and formatted colour-cell names with inline strings. File traversal
+still uses GetPackFile's typed serialized-buffer API. Literal contents,
+including the Japanese house-information form name, are byte-identical.
+
+Each step passes PAL and all 149 objects, with the other 147 object hashes
+unchanged. Receipts are `editmenu-literals-CMenuGeorama-<method>-*` and
+`editmenu-literals-MakeMsgPartsItemInfo-*`. Remaining initialized markers: 86.
