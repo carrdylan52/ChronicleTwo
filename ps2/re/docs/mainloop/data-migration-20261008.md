@@ -48,3 +48,31 @@ linkage. Each 0x28-byte table receives the retail eight-byte alignment tail.
 All three steps preserve the complete main-loop object and PAL executable;
 all 149 objects pass after the final table. Receipts:
 `.private/dataB-r2/mainloop-{init,main,exit}-table-{build,check}.log`.
+
+## Configuration and debug-menu tables
+
+The 23-entry `tag__3` script table uses `SPI_TAG_PARAM` with inline tag names.
+The menu labels are native file-private tables under their retail storage
+names: 15 pointers in `menu_1281` and 12 in `menu_1457`. The first ends at its
+empty string, removing the extra source NULL that emitted a 64-byte copy of
+the 60-byte retail table. `menu_sel_1452` is a native zero-initialized
+`int[11]`. These tables only serve their respective debug-menu functions.
+Their payloads and resolved references match retail after each migration.
+
+Language names, item-set names/numbers, extra-game names and the event cursor
+are produced by their natural local aggregate initializers. Menu format
+strings, boot file names, font file names, config messages and option tag
+names are inline literals. The complete PAL build and all 149 objects pass.
+Receipt: `.private/dataB-r2/mainloop-option-literals-{build,check}.log`.
+
+### Remaining debug cursor markers
+
+`at_1317__2` holds the two cursor pointers to `at_1315` (" ") and `at_1316`
+(">"). Their natural initializer is already in `MenuLoop`. Removing their
+markers leaves one unidentified ROData piece and one unidentified SData piece:
+the short space string has ambiguous byte matches, and its unresolved identity
+prevents the native aggregate from being recognized. The PAL image fails.
+The three markers are retained; restoring only this group resolves the full
+object check. Receipts:
+`.private/dataB-r2/mainloop-menu-literals-{build,check}.log` and
+`.private/dataB-r2/mainloop-menu-literals-restored-{build,check}.log`.

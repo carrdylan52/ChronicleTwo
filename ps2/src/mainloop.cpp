@@ -272,22 +272,96 @@ static mgCTexture *FontTex[1];
  * Texture image data for each font page.
  */
 static TM2_head   *FontDataAdr[1];
-extern char        at_1654[];
-extern char        at_1655[];
-extern char        at_1656[];
 /**
  * Image storage used when loading font texture pages.
  */
 u8                 font_buff[0xD000];
-extern char        at_1657[];
-extern char        at_1296[];
-extern char        at_1856[];
 
-extern SPI_TAG_PARAM tag__3[];
-extern char          at_2082[];
-extern char          at_2083[];
-extern char          at_2084[];
-extern char          at_2085[];
+
+static int gcMAP_NO(SPI_STACK *stack, int argument_count);
+static int gcPROGRESS(SPI_STACK *stack, int argument_count);
+static int gcBIT_FLAG_ON(SPI_STACK *stack, int argument_count);
+static int gcBIT_FLAG_OFF(SPI_STACK *stack, int argument_count);
+static int gcSTART_EVENT(SPI_STACK *stack, int argument_count);
+static int gcGEO_COMPLETE(SPI_STACK *stack, int argument_count);
+static int gcGEO_DEBUG(SPI_STACK *stack, int argument_count);
+static int gcITEM_SET(SPI_STACK *stack, int argument_count);
+static int gcGET_ITEM(SPI_STACK *stack, int argument_count);
+static int gcGET_N_ITEM(SPI_STACK *stack, int argument_count);
+static int gcEQUIP(SPI_STACK *stack, int argument_count);
+static int gcDEFENSE(SPI_STACK *stack, int argument_count);
+static int gcDEFENSE(SPI_STACK *stack, int argument_count);
+static int gcHP(SPI_STACK *stack, int argument_count);
+static int gcALL_GEO_PARTS(SPI_STACK *stack, int argument_count);
+static int gcPARAM_DRAW(SPI_STACK *stack, int argument_count);
+static int gcOPTION(SPI_STACK *stack, int argument_count);
+static int gcMONICA(SPI_STACK *stack, int argument_count);
+static int gcSTEVE(SPI_STACK *stack, int argument_count);
+static int gcMONSTER(SPI_STACK *stack, int argument_count);
+static int gcPARTY(SPI_STACK *stack, int argument_count);
+static int gcACTIVE_CHARA(SPI_STACK *stack, int argument_count);
+
+/**
+ * Tags accepted by the main game configuration parser.
+ */
+static SPI_TAG_PARAM tag__3[] = {
+    {"MAP_NO", gcMAP_NO},
+    {"PROGRESS", gcPROGRESS},
+    {"BIT_FLAG_ON", gcBIT_FLAG_ON},
+    {"BIT_FLAG_OFF", gcBIT_FLAG_OFF},
+    {"START_EVENT", gcSTART_EVENT},
+    {"GEO_COMPLETE", gcGEO_COMPLETE},
+    {"GEO_DEBUG", gcGEO_DEBUG},
+    {"ITEM_SET", gcITEM_SET},
+    {"GET_ITEM", gcGET_ITEM},
+    {"GET_N_ITEM", gcGET_N_ITEM},
+    {"EQUIP", gcEQUIP},
+    {"DEFENSE", gcDEFENSE},
+    {"DEFENCE", gcDEFENSE},
+    {"HP", gcHP},
+    {"ALL_GEO_PARTS", gcALL_GEO_PARTS},
+    {"PARAM_DRAW", gcPARAM_DRAW},
+    {"OPTION", gcOPTION},
+    {"MONICA", gcMONICA},
+    {"STEVE", gcSTEVE},
+    {"MONSTER", gcMONSTER},
+    {"PARTY", gcPARTY},
+    {"ACTIVE_CHARA", gcACTIVE_CHARA},
+    {NULL, NULL},
+};
+
+/**
+ * Rows displayed by the main debug menu.
+ */
+static char *menu_1281[] = {
+        "game start ", "map        ", "dungeon    ", "title      ",
+        "chrview    ", "texview    ", "mapview    ", "sound view ",
+        "movie view ", "Language   ", "Item       ", "Save Data  ",
+        "Load cfg   ", "Convert Save Data ", ""
+    };
+
+/**
+ * Rows displayed by the chapter and event debug menu.
+ */
+static char *menu_1457[12] = {
+        "It begins in the beginning:",
+        "From each chapter(normal) :",
+        "From each chapter(debug)  :",
+        "sub game                  :",
+        "PalmBrink's               :",
+        "event                     :",
+        "boss battle               :",
+        "future map                :",
+        "diorama map               :",
+        "HDD                       :",
+        "extra                     :",
+        ""
+    };
+
+/**
+ * Persistent row values selected by the chapter and event debug menu.
+ */
+static int menu_sel_1452[11] = {0};
 
 // Code (.text)
 CFont *GetDebugFont() {
@@ -851,12 +925,6 @@ static int MenuLoop() {
         }
         return 0;
     }
-    static char *menu[] = {
-        "game start ", "map        ", "dungeon    ", "title      ",
-        "chrview    ", "texview    ", "mapview    ", "sound view ",
-        "movie view ", "Language   ", "Item       ", "Save Data  ",
-        "Load cfg   ", "Convert Save Data ", "", NULL
-    };
     char *language[] = {
         "Japanese", "English", "French", "German",
         "Italian", "Spanish", "Chinese", "Korean"
@@ -938,15 +1006,15 @@ static int MenuLoop() {
     if (CaptureMode > CAPTURE_PLAY_SCREEN) {
         CaptureMode = CAPTURE_OFF;
     }
-    while (menu[row][0] != '\0') {
+    while (menu_1281[row][0] != '\0') {
         if (row == DEBUG_ROW_ITEM_SET) {
-            text_end += sprintf(text_end, "%s%s%s\n", cursor[row == select], menu[row], item_set[menu_arguments[row]]);
+            text_end += sprintf(text_end, "%s%s%s\n", cursor[row == select], menu_1281[row], item_set[menu_arguments[row]]);
         } else if (row == DEBUG_ROW_LANGUAGE) {
-            text_end += sprintf(text_end, "%s%s%s (now %s)\n", cursor[row == select], menu[row], language[menu_arguments[row]], language[LanguageCode]);
+            text_end += sprintf(text_end, "%s%s%s (now %s)\n", cursor[row == select], menu_1281[row], language[menu_arguments[row]], language[LanguageCode]);
         } else if (row <= 0) {
-            text_end += sprintf(text_end, "%s%s\n", cursor[row == select], menu[row]);
+            text_end += sprintf(text_end, "%s%s\n", cursor[row == select], menu_1281[row]);
         } else {
-            text_end += sprintf(text_end, "%s%s%d\n", cursor[row == select], menu[row], menu_arguments[row]);
+            text_end += sprintf(text_end, "%s%s%d\n", cursor[row == select], menu_1281[row], menu_arguments[row]);
         }
         if (++row >= DEBUG_ROW_NUM) {
             break;
@@ -1013,21 +1081,6 @@ void InitEventSelect() {
  *
  */
 static int EventSelect() {
-    static int   menu_sel[11];
-    static char *menu[12] = {
-        "It begins in the beginning:",
-        "From each chapter(normal) :",
-        "From each chapter(debug)  :",
-        "sub game                  :",
-        "PalmBrink's               :",
-        "event                     :",
-        "boss battle               :",
-        "future map                :",
-        "diorama map               :",
-        "HDD                       :",
-        "extra                     :",
-        ""
-    };
     int           result;
 
     if (event_view != 0) {
@@ -1086,61 +1139,61 @@ static int EventSelect() {
         select = 0;
     }
     if (GamePad__2.Down(PAD_RIGHT)) {
-        menu_sel[select]++;
+        menu_sel_1452[select]++;
     }
     if (GamePad__2.Down(PAD_LEFT)) {
-        menu_sel[select]--;
+        menu_sel_1452[select]--;
     }
     switch (select) {
         case 1:
         case 2:
-            if (menu_sel[select] < 0) {
-                menu_sel[select] = 0;
+            if (menu_sel_1452[select] < 0) {
+                menu_sel_1452[select] = 0;
             }
-            if (menu_sel[select] > 6) {
-                menu_sel[select] = 6;
+            if (menu_sel_1452[select] > 6) {
+                menu_sel_1452[select] = 6;
             }
             break;
         case 3:
-            if (menu_sel[select] < 0) {
-                menu_sel[select] = 0;
+            if (menu_sel_1452[select] < 0) {
+                menu_sel_1452[select] = 0;
             }
-            if (menu_sel[select] > 2) {
-                menu_sel[select] = 2;
+            if (menu_sel_1452[select] > 2) {
+                menu_sel_1452[select] = 2;
             }
             break;
         case 8:
-            if (menu_sel[select] < 0) {
-                menu_sel[select] = 0;
+            if (menu_sel_1452[select] < 0) {
+                menu_sel_1452[select] = 0;
             }
-            if (menu_sel[select] > 4) {
-                menu_sel[select] = 4;
+            if (menu_sel_1452[select] > 4) {
+                menu_sel_1452[select] = 4;
             }
             break;
         case 10:
-            if (menu_sel[select] < 0) {
-                menu_sel[select] = 0;
+            if (menu_sel_1452[select] < 0) {
+                menu_sel_1452[select] = 0;
             }
-            if (menu_sel[select] > 1) {
-                menu_sel[select] = 1;
+            if (menu_sel_1452[select] > 1) {
+                menu_sel_1452[select] = 1;
             }
             break;
     }
 
     text += sprintf(text, "\n\x83\x5F\x81\x5B\x83\x4E\x83\x4E\x83\x8D\x83\x6A\x83\x4E\x83\x8B\x83\x56\x83\x58\x83\x65\x83\x80\x92\xB2\x90\xAE" "ROM %s %s\n", "2003/07/29", "Ver0.334");
-    for (; menu[row][0] != '\0'; row++) {
-        text += sprintf(text, "%s%s", cursor[row == select], menu[row]);
+    for (; menu_1457[row][0] != '\0'; row++) {
+        text += sprintf(text, "%s%s", cursor[row == select], menu_1457[row]);
         switch (row) {
             case 1:
             case 2:
-                text += sprintf(text, "%d\x8F\xCD", menu_sel[row] + 1);
+                text += sprintf(text, "%d\x8F\xCD", menu_sel_1452[row] + 1);
                 break;
             case 3:
             case 10:
-                text += sprintf(text, "%s", subgame_name[menu_sel[row]]);
+                text += sprintf(text, "%s", subgame_name[menu_sel_1452[row]]);
                 break;
             case 8:
-                if (GetMapName(menu_sel[row], &map_name)) {
+                if (GetMapName(menu_sel_1452[row], &map_name)) {
                     text += sprintf(text, "%s", map_name);
                 }
                 break;
@@ -1179,7 +1232,7 @@ static int EventSelect() {
             case 1:
             case 2:
                 {
-                    switch (menu_sel[select]) {
+                    switch (menu_sel_1452[select]) {
                         case 0:
                             arg.floor_no = 1;
                             loop_no = LOOP_DUNGEON;
@@ -1210,19 +1263,19 @@ static int EventSelect() {
                             arg.event_no = 502;
                             break;
                     }
-                    if (menu_sel[select] >= 2) {
+                    if (menu_sel_1452[select] >= 2) {
                         monica = 1;
                     }
                     if (select == 1) {
-                        sprintf(config_name, "cap%d.cfg", menu_sel[select] + 1);
+                        sprintf(config_name, "cap%d.cfg", menu_sel_1452[select] + 1);
                     } else {
-                        sprintf(config_name, "db_cap%d.cfg", menu_sel[select] + 1);
+                        sprintf(config_name, "db_cap%d.cfg", menu_sel_1452[select] + 1);
                     }
                     break;
                 }
             case 3:
                 {
-                    int subgame = menu_sel[select];
+                    int subgame = menu_sel_1452[select];
                     switch (subgame) {
                         case 0:
                             arg.floor_no = 1;
@@ -1253,7 +1306,7 @@ static int EventSelect() {
                 future_sel = 1;
                 return 0;
             case 8:
-                arg.map_no = menu_sel[select];
+                arg.map_no = menu_sel_1452[select];
                 sprintf(config_name, "geo.cfg");
                 break;
             case 9:
@@ -1262,7 +1315,7 @@ static int EventSelect() {
                 return 0;
             case 10:
                 InitSaveData();
-                InitOmakeEnv(menu_sel[select], &arg, &loop_no);
+                InitOmakeEnv(menu_sel_1452[select], &arg, &loop_no);
                 NextLoop(loop_no, arg);
                 return 1;
         }
@@ -1308,16 +1361,16 @@ void LoadFontTexture() {
 
     do {
         if (LanguageCode == 0) {
-            sprintf(file_name, at_1654, page);
+            sprintf(file_name, "FontTex_%d.tm2", page);
         } else if (LanguageCode == 1) {
             if (page == 0) {
-                sprintf(file_name, at_1655, page);
+                sprintf(file_name, "FontTex_1_0.tm2", page);
             }
         } else if (page == 0) {
-            sprintf(file_name, at_1656);
+            sprintf(file_name, "FontTex_2_0.tm2");
         }
 
-        sprintf(path, at_1657, file_name);
+        sprintf(path, "meswin/%s", file_name);
 
         if (LoadFile2(path, buffer, &size, 0) != 0) {
             FontDataAdr[page] = (TM2_head *) font_buff;
@@ -1347,13 +1400,13 @@ void ReLoadFontTexture(int texture_no) {
 
         if (*font_data != NULL) {
             if (LanguageCode == 0) {
-                sprintf(file_name, at_1654, page);
+                sprintf(file_name, "FontTex_%d.tm2", page);
             } else if (LanguageCode == 1) {
                 if (page == 0) {
-                    sprintf(file_name, at_1655, page);
+                    sprintf(file_name, "FontTex_1_0.tm2", page);
                 }
             } else if (page == 0) {
-                sprintf(file_name, at_1656);
+                sprintf(file_name, "FontTex_2_0.tm2");
             }
 
             if (&mgTexManager == NULL) {
@@ -1485,9 +1538,9 @@ void LoadGameConfig(char *path) {
     int size;
 
     if (path == NULL) {
-        SetCurrentDir(at_1296);
+        SetCurrentDir("");
 
-        if (LoadFile2(at_1856, script, &size, 0) == 0) {
+        if (LoadFile2("game.cfg", script, &size, 0) == 0) {
             SetCurrentDir(NULL);
             return;
         }
@@ -1735,13 +1788,13 @@ int gcOPTION(SPI_STACK *stack, int arg) {
 
     options = &GetSaveData()->config;
 
-    if (strcmp(name, at_2082) == 0) {
+    if (strcmp(name, "MonsterName") == 0) {
         options->monster_name = spiGetStackInt(value);
-    } else if (strcmp(name, at_2083) == 0) {
+    } else if (strcmp(name, "Map") == 0) {
         options->map = spiGetStackInt(value);
-    } else if (strcmp(name, at_2084) == 0) {
+    } else if (strcmp(name, "EnemyHP") == 0) {
         options->enemy_hp = spiGetStackInt(value);
-    } else if (strcmp(name, at_2085) == 0) {
+    } else if (strcmp(name, "AngerCounter") == 0) {
         options->anger_counter = spiGetStackInt(value);
     }
 
@@ -1867,130 +1920,16 @@ CEditData::CEditData() {
 // Static initialiser (.init)
 
 // Initialised data (.data)
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mainloop", menu_1281__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mainloop", at_1305__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mainloop", at_1310__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mainloop", at_1311__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mainloop", menu_sel_1452__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mainloop", at_1456__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mainloop", menu_1457__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mainloop", tag__3__DATA);
 
 // Constants (.rodata)
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mainloop", at_1212__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mainloop", at_1213__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mainloop", at_1214__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mainloop", at_1215__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mainloop", at_1216__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mainloop", at_1282__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mainloop", at_1283__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mainloop", at_1284__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mainloop", at_1285__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mainloop", at_1286__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mainloop", at_1287__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mainloop", at_1288__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mainloop", at_1289__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mainloop", at_1290__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mainloop", at_1291__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mainloop", at_1292__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mainloop", at_1293__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mainloop", at_1294__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mainloop", at_1295__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mainloop", at_1296__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mainloop", at_1297__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mainloop", at_1298__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mainloop", at_1299__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mainloop", at_1300__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mainloop", at_1301__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mainloop", at_1302__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mainloop", at_1303__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mainloop", at_1304__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mainloop", at_1306__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mainloop", at_1307__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mainloop", at_1308__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mainloop", at_1309__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mainloop", at_1315__DATA);
+INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mainloop", at_1317__2__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mainloop", at_1316__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mainloop", at_1408__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mainloop", at_1409__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mainloop", at_1410__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mainloop", at_1411__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mainloop", at_1412__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mainloop", at_1413__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mainloop", at_1414__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mainloop", at_1415__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mainloop", at_1416__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mainloop", at_1417__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mainloop", at_1418__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mainloop", at_1453__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mainloop", at_1454__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mainloop", at_1455__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mainloop", at_1458__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mainloop", at_1459__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mainloop", at_1460__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mainloop", at_1461__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mainloop", at_1462__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mainloop", at_1463__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mainloop", at_1464__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mainloop", at_1465__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mainloop", at_1466__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mainloop", at_1467__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mainloop", at_1468__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mainloop", at_1472__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mainloop", at_1473__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mainloop", at_1582__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mainloop", at_1583__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mainloop", at_1584__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mainloop", at_1585__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mainloop", at_1586__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mainloop", at_1587__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mainloop", at_1588__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mainloop", at_1589__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mainloop", at_1590__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mainloop", at_1591__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mainloop", at_1592__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mainloop", at_1593__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mainloop", at_1594__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mainloop", at_1596__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mainloop", at_1595__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mainloop", at_1654__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mainloop", at_1655__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mainloop", at_1656__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mainloop", at_1657__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mainloop", at_1823__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mainloop", at_1824__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mainloop", at_1825__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mainloop", at_1826__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mainloop", at_1827__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mainloop", at_1828__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mainloop", at_1829__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mainloop", at_1830__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mainloop", at_1831__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mainloop", at_1832__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mainloop", at_1833__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mainloop", at_1834__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mainloop", at_1835__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mainloop", at_1836__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mainloop", at_1837__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mainloop", at_1838__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mainloop", at_1839__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mainloop", at_1840__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mainloop", at_1841__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mainloop", at_1842__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mainloop", at_1843__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mainloop", at_1844__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mainloop", at_1856__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mainloop", at_2082__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mainloop", at_2083__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mainloop", at_2084__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mainloop", at_2085__DATA);
+INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mainloop", at_1315__DATA);
 
 // Static initialiser table (.ctor)
 
 // Small initialised data (.sdata)
 int MainThreadPriority = 1;
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mainloop", at_1317__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mainloop", at_1474__DATA);
 
 // Small uninitialised data (.sbss)
 u_long128 *read_buffer;
