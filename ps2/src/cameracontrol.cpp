@@ -16,18 +16,6 @@
 #include "mglib.hpp"
 #include "padcontrol.hpp"
 
-/**
- *
- * Camera control vector viewed as floats or a quadword.
- *
- */
-union camera_control_vector {
-    float     values[4]; /**< Floating point components. */
-    u_long128 quadword;  /**< The same components as a quadword. */
-};
-
-extern "C" camera_control_vector at_373__3;
-
 // Code (.text)
 void CameraCtrlParam::SetFixHeight(float height) {
     max_height = height;
@@ -312,16 +300,14 @@ void CCameraControl::Rotate(float angle) {
 }
 
 void CCameraControl::SetRotate(float angle) {
-    camera_control_vector vector;
-    float                *offset = vector.values;
-    float                 matrix[4][4];
     float                 distance;
     float                 height;
 
     distance = mgDistVectorXZ(next_ref, next_pos);
 
     height = next_pos[1] - next_ref[1];
-    vector = at_373__3;
+    float offset[4] = {0.0f, 0.0f, 0.0f, 0.0f};
+    float matrix[4][4];
     offset[1] = height;
     offset[2] = distance;
     mgUnitMatrix(matrix);
@@ -655,6 +641,3 @@ void CCameraControl::CopyParam(CCameraControl &dest) {
 int CCameraControl::Iam() {
     return 1000;
 }
-
-// Uninitialised data (.bss)
-INCLUDE_BSS(at_373__3, 0x10);
