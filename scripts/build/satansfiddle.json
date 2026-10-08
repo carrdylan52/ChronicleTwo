@@ -803,5 +803,25 @@
         "evaluate_first": true
       }
     ]
+  },
+  "placement_new": {
+    "statement_conversions": [
+      {
+        "translation_unit": "funcpoint.cpp",
+        "function": "Add__14CFuncPointMngrFiP9mgCMemory",
+        "allocator": "__nw__FUiP1",
+        "constructor": "__ct__19CList<10CFuncPoint>Fv",
+        "conversion": "after_constructor_inline",
+        "expected_matches": 1
+      },
+      {
+        "translation_unit": "mg_tanime.cpp",
+        "function": "NewTexAnimeData__15mgCTextureAnimeFP9mgCMemory",
+        "allocator": "__nw__FUiP1",
+        "constructor": "__ct__24CList<15mgCTexAnimeData>Fv",
+        "conversion": "before_constructor_inline",
+        "expected_matches": 1
+      }
+    ]
   }
 }
