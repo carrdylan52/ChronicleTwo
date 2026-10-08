@@ -27,7 +27,6 @@ union camera_control_vector {
 };
 
 extern "C" camera_control_vector at_373__3;
-extern "C" u_char                at_396__3[];
 
 // Code (.text)
 void CameraCtrlParam::SetFixHeight(float height) {
@@ -358,9 +357,7 @@ void CCameraControl::SetCheckRef(float *ref) {
 }
 
 void CCameraControl::SetCheckRef(float x, float y, float z) {
-    float ref[4];
-
-    *(u_long128 *) ref = *(u_long128 *) at_396__3;
+    float ref[4] = {0.0f, 0.0f, 0.0f, 1.0f};
     ref[0] = x;
     ref[1] = y;
     ref[2] = z;
@@ -658,12 +655,6 @@ void CCameraControl::CopyParam(CCameraControl &dest) {
 int CCameraControl::Iam() {
     return 1000;
 }
-
-// Initialised data (.data)
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/cameracontrol", at_396__3__DATA);
-
-// Virtual tables (.vtables)
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/cameracontrol", __vt__14CCameraControl__DATA);
 
 // Uninitialised data (.bss)
 INCLUDE_BSS(at_373__3, 0x10);
