@@ -594,11 +594,7 @@ _EFF_SCRIPT *CEffectScriptMan::CreateEffSpt(int base_no, int group, int register
         return NULL;
     }
 
-    if ((script = (_EFF_SCRIPT *) operator new(
-             sizeof(_EFF_SCRIPT), work_memory->Alloc(0x17))) !=
-        NULL) {
-        new (reinterpret_cast<u_long128 *>(&script->run)) CRunScript;
-    }
+    script = new (work_memory->Alloc(0x17)) _EFF_SCRIPT;
 
     script->work = token;
     script->texb = base->texb;

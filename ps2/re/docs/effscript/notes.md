@@ -153,3 +153,34 @@ explicit vtable stores. The `CreateEffSpt` draft also constructs its
 `CRunScript` member through typed placement new and uses the named
 `RS_STACKDATA::val` union and `CMap::map_info` fields. These draft changes have
 not established byte matches.
+
+## Remaining constructor schedules
+
+`AssignCharacter` and `BuildBase(int, ...)` each differ by exactly two
+instruction words with the pinned compiler profile. At caller +0xB4/+0xB8
+and +0x258/+0x25C respectively, retail tests operator-new's v0 result and
+copies it to s2 in the branch delay slot; the compiler copies first and
+tests s2. The existing natural character constructors account for the
+remaining initialization. Both are parked for the dedicated placement-new
+investigation, with no new constructor/header changes.
+
+`SetCharacter` differs by 24/168 words, body 0x29C within retail 0x2A0.
+Both allocation paths exhibit the same null-test issue. In the registered
+path the compiler also exchanges the saved entry and character registers
+through initialization and copy. Storing the new-expression straight into
+the character member does not resolve this. Its existing guarded source
+remains pending a natural table-index form and allocation-result schedule.
+Reconsider when placement lowering is understood and a typed indexing form
+preserves the entry lifetime.
+
+`CreateEffSpt` constructs the whole `_EFF_SCRIPT` through its natural
+new-expression; the compiler constructs its `CRunScript` member at +0x50.
+The native draft is 0x500 bytes, retail's extent, and differs in 206/320
+words, closer than the previous 0x510-byte draft's 224/324 side-by-side
+words. The prior explicit operator-new plus member placement-new added an
+extra allocator call and null branch. The retained whole-object form still
+changes allocation-result branch placement and saved script/work-token
+registers, and its character allocation also has the known null-test
+remainder. It remains guarded. Reconsider with an admissible whole-object
+constructor schedule; explicit constructor calls or dummy wrappers are not
+solutions.
