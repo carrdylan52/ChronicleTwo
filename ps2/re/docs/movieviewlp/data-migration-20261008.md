@@ -69,3 +69,9 @@ Final canonical markers: **0 RODATA / 4 BSS**, from **14 / 20**. Final
 `matched_data` is **251/539**, from **4/539**. The unmatched 288-byte BSS
 section contains the four retained 48-byte managers and the two native 48-byte
 global buffers; objdiff's exact data credit applies to the complete section.
+
+A private PAL link replacing both this unit and scene with their proposed
+native-static objects passes every section and the final memory extent:
+`.private/dataD/bss-proposal-pair-pal.log`. The ready source follow-up is
+`.private/proposals/dataD-movieviewlp-native-statics.patch`; it requires the
+shared tool proposal first.
