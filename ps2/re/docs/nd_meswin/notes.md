@@ -228,3 +228,67 @@ function when
 retail-supported source evidence identifies a meaningful expression difference
 between these placement calls, or a separately verified stable expression
 policy can represent that difference without occurrence selectors.
+
+## Placement boundaries and proposed semantic identity
+
+All six `DrawMesWin` placement calls have four float arguments: zero minimum,
+screen limit 512 or 480, the integer member `text_w` or `text_h` converted to
+float, and ratio `0.5` or `0.95`. No argument contains another call or an
+existing header accessor. The retail code reads each extent immediately before
+its placement call. Fresh integer extent locals, first at center X and then
+at all six sites, distinguish member reads from the earlier float-conversion
+trials without preserving a height across the preceding width call. Under
+half-and-0.95-first they both reproduce the prior row-only object exactly:
+SHA-256 `9cf3f22a774e7cbc3ed78b51af6d06c9bdfbab39e8c8dee7b47048aaf509d76c`,
+12 differing words, `0xBF28` checked bytes, and 1364 relocations. Neither is
+retained.
+
+The source-local `BottomPos`, `CentrePos`, and `CentrePosX` helpers first appear
+in `810c9f05673c55b1fbda34367d3f01e26f549aee`, replacing direct placement
+expressions during draft promotion. There are no corresponding retail symbols
+or assembly references. Thus an identity keyed to those inline helper names
+would encode a distinction introduced by the decompilation, without evidence
+that retail used it.
+
+The complete eight-combination matrix in the existing receipts establishes
+these individual site requirements:
+
+- DQ bubble switch cases: X is `(0, 512, text_w, 0.5)` and needs half first;
+  Y is `(0, 480, text_h, 0.95)` and needs the default ratio policy.
+- The final bottom/DQ placement condition: X has the same arguments as DQ X
+  and needs both half and width at default; Y has the same arguments as DQ Y
+  and needs 0.95 first.
+- The final center condition: Y is `(0, 480, text_h, 0.5)` and needs half
+  first. X is `(0, 512, text_w, 0.5)` and has no exact schedule under the
+  recorded existing selectors.
+
+For the five representable schedules, the minimal proposed identity adds the
+real enclosing window-mode predicate and the extent member's semantic origin
+(`ClsMes::text_w` versus `ClsMes::text_h`) to the existing
+TU/function/type/bits/callee key. The predicate distinguishes initial DQ layout
+from the final bottom placement despite identical arguments; the member origin
+distinguishes the two centered axes. These predicates and members describe
+game behavior rather than call occurrence numbers. Their provenance would need
+to survive optimization, inline expansion, cloned constants, and both mwccgap
+passes. The current hook has no validated interface for that provenance; this
+is documentation of required research, not a supported row.
+
+Center X requires a separate lowering investigation. Retail `+0xA08/+0xA0C`
+loads half into `v1` and 512 into `v0`, then `+0xA14/+0xA18` transfers them
+to `f15` and `f13`. Default lowering loads the two constants in the opposite
+order. Half-first completes half materialization before beginning 512 instead
+of retaining both GPR values. Across all eight active selector combinations,
+center X still has three or four differing words. Extending selector identity
+alone cannot establish its match: the additional requirement is a verified
+source-expression/dependency or ordinary argument-walk behavior that emits
+that third schedule. No instruction-order patch or new Boolean row is claimed
+to provide it.
+
+The retained normal object remains byte-identical to round 2, with one finding
+at `0x0015C5AD` and 17 differing words in `DrawMesWin`. Reopen with a natural
+expression boundary that survives lowering, or with the separately verified
+semantic provenance and center-X lowering behavior above. No shared header,
+source, profile, wrapper, ordinal, source-line selector, or address selector
+changes are retained. New receipts:
+`.private/receipts/regress/round3/nd_meswin-*/`,
+`analysis/message-call-policy-matrix.json`, and `after-mg/`.
