@@ -25,3 +25,14 @@ After this group: **102 / 7 markers**, **64 / 1885 matched_data**.
 Full PAL verification is OK and all 149 objects pass; only menushop's object
 file hash changes from the warm baseline. Receipts:
 `.private/dataD-r1/menushop-state-{build,objects,progress,metrics}.log`.
+
+## Form, resource and message strings
+
+Sixty-one anonymous strings are inline in their matched callers: shop form and
+part names, resource pack members, purchase/sale commands and quantity labels,
+texture names, startup form exclusions, and quest/scoop configuration paths.
+Shift-JIS strings use hexadecimal escapes for each original byte. Repeated
+strings remain compiler pooled. Every function group passes the full build and
+149-object comparison independently, with unchanged unowned object hashes.
+Receipts are `menushop-{forms,scroll,resources,key,texture,shop-init,quest-init,quest-cursor}`
+under `.private/dataD-r1/`; the refreshed checkpoint is `menushop-strings`.
