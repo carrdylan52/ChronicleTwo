@@ -2294,7 +2294,6 @@ int CSaveMenuClass::KeyStep(void) {
             }
             break;
     }
-    bool no_page_change = next < 0;
     if (next == SAVE_MENU_PAGE_ERROR) {
         InitMenuDl(NULL, 0);
         MenuMesForm[7]->draw_flag = 0;
@@ -2337,9 +2336,8 @@ int CSaveMenuClass::KeyStep(void) {
                 fileMes->MakeMsg(0xBC6);
             }
         }
-        no_page_change = next < 0;
     }
-    if (!no_page_change || first_step != 0) {
+    if ((next < 0) == false || first_step != 0) {
         switch (next) {
             case SAVE_MENU_PAGE_SLOT_SELECT:
                 phase = 0;
@@ -2352,7 +2350,7 @@ int CSaveMenuClass::KeyStep(void) {
                 ExeScript(at_2510__2);
                 fileMes->push_button = 0;
                 slot_form[slot]->SetAction(at_2511);
-                slot_form[slot == 0]->SetRGBACalcParam(3, -8, 0);
+                slot_form[!(bool)slot]->SetRGBACalcParam(3, -8, 0);
                 if (slot == 0) {
                     MenuMesForm[5]->SetRGBACalcParam(3, -8, 0);
                 }
