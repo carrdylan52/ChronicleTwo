@@ -2,22 +2,21 @@
 
 Header: `ps2/include/sceneload.hpp`. Owns `SCN_LOADMAP_INFO2` (with nested `MapFiles`) and
 `mgCObjectStack<T>`; also declares `SCN_LOADMAP_FILES_MAX` and `SCN_LOADMAP_STEP`.
-Members emitted here but owned elsewhere: `CScene::*` (8, owner scenesnd, no header yet) and
+Members emitted here but owned elsewhere: `CScene::*` (8, owner `scenesnd.hpp`) and
 `CMap::CMap()` (map.hpp, already declared there). The CEditMap constructor is inlined into
 `CScene::LoadMapFromMemory(int,int,SCN_LOADMAP_INFO2*)`.
 
 `mgCObjectStack<CList<EMAP_MESSAGE>>::Initialize` is already an active C++
-specialization and matches retail. `CMap::CMap` remains under `NONMATCHING`:
-the normal draft differs in nine instructions at its start. Retail stores the
-`CMap` vtable pointer before calling `CMapInfo::Initialize`, while the current
-base-class model calls the `CMapInfo` constructor first. Moving the call into
-`CMap`'s body puts it after the automatically constructed members. This order
-suggests `CMapInfo` may be the first member at offset zero, but changing that
-model affects map-related units and needs a separate type analysis.
+specialization and matches retail. `CMap::CMap` is also active native C++ on
+the October 8 midday baseline `c79e57c` and matches retail. The current
+`map_info` member model in `map.hpp` supersedes the older base-class
+interpretation and its nine-word constructor miss; that is not a remaining
+placement-new target.
 
 `CScene::LoadChara` and `CScene::CopyChara` allocate `CCharacter2` objects.
-Their C++ drafts use the class constructor; retail assembly remains active
-until the construction and surrounding scene logic match byte for byte.
+Their C++ drafts construct the character directly in each caller; retail
+assembly remains active until the two-word null-branch difference matches
+byte for byte. See [the midday construction note](placement-new-20261008.md).
 
 ## Non-member functions and data
 - `LoadMapData(SCN_LOADMAP_INFO2&, int)` is LOCAL in retail (`local_symbols.tsv`): `static` in
