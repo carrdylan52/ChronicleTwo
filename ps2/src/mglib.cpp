@@ -11,6 +11,7 @@
 #include "mglib.hpp"
 #include <eekernel.h>
 #include <libdev.h>
+#include <sifdev.h>
 
 #include <cstdio>
 #include <cstring>
@@ -18,12 +19,188 @@
 #include "mg_tanime.hpp"
 #include "mg_visual.hpp"
 
+mgRENDER_INFO mgRenderInfo;
+mgCTextureManager mgTexManager;
+mgCDrawManager mgDrawManager;
+
+/**
+ * Packet-memory stacks alternated between frames.
+ */
+static mgCMemory packet_buf[2];
+
+/**
+ * Draw-data stacks alternated between frames.
+ */
+static mgCMemory data_buf[2];
+
+/**
+ * Texture description of the current frame buffer.
+ */
+static mgCTexture frame_tex;
+
+/**
+ * Texture descriptions laid over the depth buffer.
+ */
+static mgCTexture fixz_tex[2];
+
+/**
+ * Controls drawing of the frame performance meter.
+ */
+static int draw_performance_meter;
+
+/**
+ * Non-zero while the vertical-sync callback runs.
+ */
+static int call_back_active;
+
+/**
+ * Optional secondary callback invoked at vertical sync.
+ */
+static int (*VSyncCallBack2)(int);
+
+/**
+ * Vertical-sync count since graphics initialization.
+ */
+static int vcount;
+
+/**
+ * Ready-queue priority rotated while waiting for vertical sync.
+ */
+static int rot_priority = -1;
+
+/**
+ * Word buffers used by the two VIF1 packet cursors.
+ */
+static u_int *packetbuf[2];
+
+/**
+ * Packet cursors alternated between frames.
+ */
+static sceVif1Packet vifpacket[2];
+
+/**
+ * Capacity of each VIF1 packet buffer.
+ */
+static int packet_size;
+
+/**
+ * Index of the packet and data buffers used by the current frame.
+ */
+static int mgDataID;
+
+/**
+ * Index of the display environment used by the current frame.
+ */
+static int mgDBuffID;
+
+/**
+ * Root-counter value sampled when frame drawing begins.
+ */
+static int h_count;
+
+/**
+ * Non-zero when lighting changes require the render state to be flushed.
+ */
+static int mgChangeLight;
+
+/**
+ * Identifier of the last VU1 microprogram packet submitted.
+ */
+static int now_prog_id = -1;
+
+/**
+ * Upload packets for the built-in VU1 microprograms.
+ */
+static u_long128 *prog_adr[3] = {Vu_prog0, Vu_prog_sdw, Vu_prog_3dsp};
+
+/**
+ * Table of user-provided VU1 microprogram upload packets.
+ */
+static u_long128 **user_prog_adr;
+
+/**
+ * Number of entries in the user VU1 microprogram table.
+ */
+static int user_prog_num;
+
+/**
+ * Development-console handle, or -1 while it is closed.
+ */
+static int font_cons = -1;
+
+/**
+ * Non-zero when the development console should be drawn at frame end.
+ */
+static int font_draw_flag;
+
+/**
+ * Vertical-sync count saved at the end of the previous frame.
+ */
+static int old_vcount;
+
+/**
+ * Non-zero when the frame exceeds its requested vertical-sync interval.
+ */
+static int over_vsync;
+
+/**
+ * Requests a frame capture at the next frame end.
+ */
+static int capture_on;
+
+/**
+ * Frame-capture cadence counter used at the fastest frame rate.
+ */
+static int cap_ture_cnt;
+
+/**
+ * Base page of the first frame buffer in GS memory.
+ */
+static int frame_buf0;
+
+/**
+ * Base page of the second frame buffer in GS memory.
+ */
+static int frame_buf1;
+
+/**
+ * Packed GS dither matrix presets.
+ */
+static sceGsDimx mgDIMX[1];
+
+/**
+ * Zero vector used to initialize the temporary background colour.
+ */
+static sceVu0FVECTOR at_863;
+
+/**
+ * TIMER0 count register sampled for frame timing.
+ */
 static const u_int timer0_count = 0x10000000;
+/**
+ * TIMER0 mode register controlling the frame timer clock and counter enable.
+ */
+static const u_int timer0_mode = 0x10000010;
+/**
+ * GS status register sampled for the displayed interlace field.
+ */
 static const u_int gs_csr = 0x12001000;
+/**
+ * DMA CALL tag linking a VU1 microprogram upload packet.
+ */
 static const u_int dma_tag_call = 0x50000000;
+/**
+ * Number of built-in VU1 microprogram upload packets.
+ */
 static const int   builtin_vu_prog_count = 3;
+/**
+ * First identifier in the user VU1 microprogram table.
+ */
 static const int   user_vu_prog_base = 0x100;
 
+/**
+ * GS register addresses used by direct drawing packets.
+ */
 enum {
     gs_prim = 0x00,
     gs_rgbaq = 0x01,
@@ -37,50 +214,22 @@ enum {
     gs_zbuf1 = 0x4E
 };
 
-extern int           draw_performance_meter;
-extern int           call_back_active;
-extern u_int         VSyncCallBack2;
-extern int           vcount;
-extern int           rot_priority;
-extern u_int        *packetbuf[2];
-extern sceVif1Packet vifpacket[2];
-extern int           packet_size;
-extern mgCMemory     packet_buf[2];
-extern mgCMemory     data_buf[2];
-extern int           mgDataID;
-extern int           mgDBuffID;
-extern int           h_count;
-extern int           mgChangeLight;
-extern int           now_prog_id;
-extern u_long128    *prog_adr[3];
-extern u_long128   **user_prog_adr;
-extern int           user_prog_num;
-extern int           font_cons;
-extern int           font_draw_flag;
+/**
+ * DMA channel identifiers used by the graphics library.
+ */
+enum mgDMA_CHANNEL {
+    MG_DMA_CHANNEL_VIF1 = 1,     /**< VIF1 DMA channel for drawing and microprogram uploads. */
+    MG_DMA_CHANNEL_GIF = 2,      /**< GIF DMA channel for GS transfers. */
+    MG_DMA_CHANNEL_FROM_SPR = 8, /**< DMA channel transferring data from scratchpad memory. */
+};
 
-extern mgCTexture frame_tex;
-extern mgCTexture fixz_tex[2];
-extern float      at_863[4];
-extern float      at_1389[4];
-extern char       at_715[];
-extern char       at_716[];
 void              StoreImage(int front_buffer);
 int               VSyncCallBack(int field);
 
-#include <sifdev.h>
-extern sceGsStoreImage gs_simage;
-#ifdef NONMATCHING
-extern int       old_vcount;
-extern int       over_vsync;
-extern int       capture_on;
-extern int       cap_ture_cnt;
-extern int       frame_buf0;
-extern int       frame_buf1;
 /**
- * Packed GS dither matrix presets.
+ * Dither presets converted to signed three-bit GS coefficients.
  */
-extern sceGsDimx mgDIMX[1];
-#endif
+static signed char dimx_281[1][16] = {{10, 4, 6, 8, 12, 0, 2, 14, 7, 9, 11, 5, 3, 15, 13, 1}};
 
 // Code (.text)
 void mgPerformanceMeter(int enable) {
@@ -93,12 +242,19 @@ int mgGetPerformanceMeterFlag() {
 
 #pragma global_optimizer off
 #ifdef NONMATCHING
+/**
+ * Updates the displayed interlace field and vertical-sync count and invokes the secondary callback.
+ *
+ * @mangled VSyncCallBack__Fi
+ * @address 0x141870
+ * @size 0x7C
+ */
 int VSyncCallBack(int field) {
     call_back_active = 1;
     u_long csr = *(volatile u_long *) gs_csr;
     VSyncField = (((csr >> 13) & 1) == 0);
     if (VSyncCallBack2 != 0) {
-        ((int (*)(int)) VSyncCallBack2)(field);
+        VSyncCallBack2(field);
     }
     ++vcount;
     if (vcount < 0) {
@@ -113,13 +269,20 @@ INCLUDE_ASM("ps2/asm/pal/nonmatchings/mglib", VSyncCallBack__Fi);
 #pragma global_optimizer reset
 
 void mgInitVSyncCallBack(int (*callback)(int)) {
-    VSyncCallBack2 = (unsigned int) callback;
+    VSyncCallBack2 = callback;
 }
 
 void mgSetRotateThread(int priority) {
     rot_priority = priority;
 }
 
+/**
+ * Waits for the requested vertical-sync interval while rotating the selected ready queue.
+ *
+ * @mangled WaitVSync__Fii
+ * @address 0x141910
+ * @size 0x64
+ */
 void WaitVSync(int start, int frames) {
 wait:
     if ((mgGetVSyncCount() - start) < frames) {
@@ -170,12 +333,7 @@ static int GetScreenSize(int mode, int *width, int *height, int *left, int *top,
     *bottom = *height + *top;
     return mode;
 }
-#ifdef NONMATCHING
 void mgInit(int screen_mode, int video_mode) {
-    /**
-     * Dither presets converted to signed three-bit GS coefficients.
-     */
-    static signed char dimx[1][16] = {{10, 4, 6, 8, 12, 0, 2, 14, 7, 9, 11, 5, 3, 15, 13, 1}};
     sceDmaEnv          dma_env;
     u_long128          clear_pixels[8192];
     sceGsLoadImage     load_image;
@@ -196,9 +354,9 @@ void mgInit(int screen_mode, int video_mode) {
     mgDataID = 0;
     memset(&mgRenderInfo, 0, sizeof(mgRenderInfo));
     mgVif1Packet = vifpacket;
-    DmaCH1 = sceDmaGetChan(1);
-    DmaCH2 = sceDmaGetChan(2);
-    DmaCH8 = sceDmaGetChan(8);
+    DmaCH1 = sceDmaGetChan(MG_DMA_CHANNEL_VIF1);
+    DmaCH2 = sceDmaGetChan(MG_DMA_CHANNEL_GIF);
+    DmaCH8 = sceDmaGetChan(MG_DMA_CHANNEL_FROM_SPR);
     DmaCH1->chcr.TTE = 1;
     *(u_long128 *) &mgGiftagAD = 0;
     mgGiftagAD.EOP = 1;
@@ -274,11 +432,11 @@ void mgInit(int screen_mode, int video_mode) {
         sceDmaSend(DmaCH1, program);
         sceGsSyncPath(0, 0);
     }
-    *(volatile u_int *) 0x10000010 = 0x83;
+    *(volatile u_int *) timer0_mode = 0x83;
     mgFrameRate = 2;
     vcount = 0;
     over_vsync = 0;
-    sceGsSyncVCallback((int (*)(int)) VSyncCallBack);
+    sceGsSyncVCallback(VSyncCallBack);
     VSyncCallBack2 = 0;
     call_back_active = 0;
     FlushCache(0);
@@ -287,36 +445,34 @@ void mgInit(int screen_mode, int video_mode) {
     mgCreateSinTable();
     for (int preset = 0; preset < 1; preset++) {
         for (int cell = 0; cell < 16; cell++) {
-            dimx[preset][cell] = dimx[preset][cell] / 2 - 4;
+            dimx_281[preset][cell] = dimx_281[preset][cell] / 2 - 4;
         }
     }
     for (int preset = 0; preset < 1; preset++) {
         u_long packed_dimx = 0;
         for (int cell = 0; cell < 16; cell++) {
-            packed_dimx |= (dimx[preset][cell] & 0x7) << (cell * 4);
+            // The shift uses 32 bits, so cells 8-15 wrap onto the low word.
+            packed_dimx |= (dimx_281[preset][cell] & 0x7) << (cell * 4);
         }
         mgDIMX[preset].value = packed_dimx;
     }
-    mgDIMX[0].bits.dm00 = dimx[0][0];
-    mgDIMX[0].bits.dm01 = dimx[0][1];
-    mgDIMX[0].bits.dm02 = dimx[0][2];
-    mgDIMX[0].bits.dm03 = dimx[0][3];
-    mgDIMX[0].bits.dm10 = dimx[0][4];
-    mgDIMX[0].bits.dm11 = dimx[0][5];
-    mgDIMX[0].bits.dm12 = dimx[0][6];
-    mgDIMX[0].bits.dm13 = dimx[0][7];
-    mgDIMX[0].bits.dm20 = dimx[0][8];
-    mgDIMX[0].bits.dm21 = dimx[0][9];
-    mgDIMX[0].bits.dm22 = dimx[0][10];
-    mgDIMX[0].bits.dm23 = dimx[0][11];
-    mgDIMX[0].bits.dm30 = dimx[0][12];
-    mgDIMX[0].bits.dm31 = dimx[0][13];
-    mgDIMX[0].bits.dm32 = dimx[0][14];
-    mgDIMX[0].bits.dm33 = dimx[0][15];
+    mgDIMX[0].bits.dm00 = dimx_281[0][0];
+    mgDIMX[0].bits.dm01 = dimx_281[0][1];
+    mgDIMX[0].bits.dm02 = dimx_281[0][2];
+    mgDIMX[0].bits.dm03 = dimx_281[0][3];
+    mgDIMX[0].bits.dm10 = dimx_281[0][4];
+    mgDIMX[0].bits.dm11 = dimx_281[0][5];
+    mgDIMX[0].bits.dm12 = dimx_281[0][6];
+    mgDIMX[0].bits.dm13 = dimx_281[0][7];
+    mgDIMX[0].bits.dm20 = dimx_281[0][8];
+    mgDIMX[0].bits.dm21 = dimx_281[0][9];
+    mgDIMX[0].bits.dm22 = dimx_281[0][10];
+    mgDIMX[0].bits.dm23 = dimx_281[0][11];
+    mgDIMX[0].bits.dm30 = dimx_281[0][12];
+    mgDIMX[0].bits.dm31 = dimx_281[0][13];
+    mgDIMX[0].bits.dm32 = dimx_281[0][14];
+    mgDIMX[0].bits.dm33 = dimx_281[0][15];
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/mglib", mgInit__Fii);
-#endif
 void mgInitVif1Packet(u_long128 *buffer_a, u_long128 *buffer_b, int size) {
     packetbuf[0] = (u_int *) buffer_a;
     packetbuf[1] = (u_int *) buffer_b;
@@ -661,7 +817,7 @@ void mgEndFrame(mgCDrawManager *manager) {
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/mglib", mgEndFrame__FP14mgCDrawManager);
 #endif
 void mgSendPacket(mgCDrawManager *manager) {
-    DmaCH1 = sceDmaGetChan(1);
+    DmaCH1 = sceDmaGetChan(MG_DMA_CHANNEL_VIF1);
     DmaCH1->chcr.TTE = 1;
     FlushCache(0);
     sceDmaSend(DmaCH1, mgVif1Packet->pBase);
@@ -675,8 +831,8 @@ void mgEndPacket(mgCDrawManager *manager) {
 
 void mgWaitFrame() {
     if (sceGsSyncPath(0, 0) < 0) {
-        printf(at_715);
-        printf(at_716, *(int *) mgVif1Packet);
+        printf("******\n");
+        printf("base = %x,cuur = %x\n", *(int *) mgVif1Packet);
         Exit__2(-1);
     }
 }
@@ -1437,6 +1593,13 @@ mgCTexture *mgGetTextureZ(int index) {
     return &fixz_tex[index];
 }
 
+/**
+ * Tests a projected position against the screen and depth clipping bounds.
+ *
+ * @mangled prim_clip_check__FPf
+ * @address 0x145C70
+ * @size 0xB0
+ */
 static int prim_clip_check(float *vertex) {
     mgRENDER_INFO *info = &mgRenderInfo;
 
@@ -1497,8 +1660,7 @@ void mgTransWorldView(float *a, float *b) {
 }
 
 int mgTransZPrim(float z) {
-    float pos[4];
-    *(u_long128 *) pos = *(u_long128 *) at_1389;
+    float pos[4] = {0.0f, 0.0f, 0.0f, 1.0f};
     int screen[4];
     pos[2] = z;
     mgTransViewPrim(screen, pos);
@@ -1567,6 +1729,13 @@ int mgTransWorldPrim3DSprite(int *top_left, int *bottom_right, float *position, 
 
 #pragma global_optimizer off
 
+/**
+ * Tests whether a built-in or user VU1 microprogram identifier is available.
+ *
+ * @mangled CheckVuProgID__Fi
+ * @address 0x1461C0
+ * @size 0x94
+ */
 static int CheckVuProgID(int id) {
     if (id < user_vu_prog_base) {
         if (id <= -1) {
@@ -1651,6 +1820,13 @@ void mgSetUserVuProgAdr(int index, u_long128 *adr) {
 
 #pragma global_optimizer reset
 
+/**
+ * Writes the selected frame buffer to a numbered TGA image on the host device.
+ *
+ * @mangled StoreImage__Fi
+ * @address 0x146390
+ * @size 0x284
+ */
 void StoreImage(int front_buffer) {
     static int image_num = 0;
     u_char     tga[18] = {0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 24, 0};
@@ -1730,102 +1906,80 @@ void mgCloseFont() {
     font_draw_flag = 0;
 }
 
-// Initialised data (.data)
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mglib", dimx_281__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mglib", at_1389__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mglib", prog_adr__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mglib", at_1538__DATA);
-
-// Constants (.rodata)
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mglib", at_715__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mglib", at_716__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mglib", at_1568__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mglib", at_1569__DATA);
-
-// Small initialised data (.sdata)
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mglib", font_cons__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mglib", rot_priority__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mglib", now_prog_id__DATA);
-
 // Small uninitialised data (.sbss)
-INCLUDE_BSS(mgAntialiasing, 0x4);
-INCLUDE_BSS(mgFrameRate, 0x4);
-INCLUDE_BSS(mgNowFrameRate, 0x4);
-INCLUDE_BSS(DmaCH1, 0x4);
-INCLUDE_BSS(DmaCH2, 0x4);
-INCLUDE_BSS(DmaCH8, 0x4);
-INCLUDE_BSS(mgVif1Packet, 0x4);
-INCLUDE_BSS(mgClearBackFlag, 0x4);
-INCLUDE_BSS(mgScreenMode, 0x4);
-INCLUDE_BSS(mgScreenWidth, 0x4);
-INCLUDE_BSS(mgScreenHeight, 0x4);
-INCLUDE_BSS(mgScreenNX, 0x4);
-INCLUDE_BSS(mgScreenNY, 0x4);
-INCLUDE_BSS(mgScreenMX, 0x4);
-INCLUDE_BSS(mgScreenMY, 0x4);
-INCLUDE_BSS(mgScreenOffx, 0x4);
-INCLUDE_BSS(mgScreenOffy, 0x4);
-INCLUDE_BSS(mgScreenDepth, 0x4);
-INCLUDE_BSS(mgScreenZDepth, 0x4);
-INCLUDE_BSS(mgScreenLeft, 0x4);
-INCLUDE_BSS(mgScreenRight, 0x4);
-INCLUDE_BSS(mgScreenTop, 0x4);
-INCLUDE_BSS(mgScreenBottom, 0x4);
-INCLUDE_BSS(VSyncField, 0x8);
-INCLUDE_BSS(mgTEX1_1, 0x8);
-INCLUDE_BSS(mgTEX1_2, 0x8);
-INCLUDE_BSS(mgTEST_1, 0x8);
-INCLUDE_BSS(mgTEST_2, 0x8);
-INCLUDE_BSS(mgZBUF_1, 0x8);
-INCLUDE_BSS(mgZBUF_2, 0x8);
-INCLUDE_BSS(mgALPHA_1, 0x8);
-INCLUDE_BSS(mgALPHA_2, 0x8);
-INCLUDE_BSS(mgTEXA_1, 0x8);
-INCLUDE_BSS(mgTEXA_2, 0x8);
-INCLUDE_BSS(mgFRAME_1, 0x8);
-INCLUDE_BSS(mgDBuffID, 0x4);
-INCLUDE_BSS(mgDataID, 0x4);
-INCLUDE_BSS(mgChangeLight, 0x8);
-INCLUDE_BSS(packetbuf, 0x8);
-INCLUDE_BSS(packet_size, 0x4);
-INCLUDE_BSS(frame_buf0, 0x4);
-INCLUDE_BSS(frame_buf1, 0x4);
-INCLUDE_BSS(font_draw_flag, 0x4);
-INCLUDE_BSS(draw_performance_meter, 0x8);
-INCLUDE_BSS(mgDIMX, 0x8);
-INCLUDE_BSS(vcount, 0x4);
-INCLUDE_BSS(old_vcount, 0x4);
-INCLUDE_BSS(over_vsync, 0x4);
-INCLUDE_BSS(VSyncCallBack2, 0x4);
-INCLUDE_BSS(call_back_active, 0x4);
-INCLUDE_BSS(h_count, 0x4);
-INCLUDE_BSS(capture_on, 0x4);
-INCLUDE_BSS(cap_ture_cnt, 0x4);
-INCLUDE_BSS(count_580, 0x4);
-INCLUDE_BSS(init_581, 0x4);
-INCLUDE_BSS(cpu_ratio_583, 0x4);
-INCLUDE_BSS(init_584, 0x4);
-INCLUDE_BSS(free_ratio_586, 0x4);
-INCLUDE_BSS(init_587, 0x4);
-INCLUDE_BSS(ddraw_size, 0x4);
-INCLUDE_BSS(user_prog_adr, 0x4);
-INCLUDE_BSS(user_prog_num, 0x4);
+int mgAntialiasing;
+int mgFrameRate;
+float mgNowFrameRate;
+sceDmaChan * DmaCH1;
+sceDmaChan * DmaCH2;
+sceDmaChan * DmaCH8;
+sceVif1Packet * mgVif1Packet;
+int mgClearBackFlag;
+int mgScreenMode;
+int mgScreenWidth;
+int mgScreenHeight;
+int mgScreenNX;
+int mgScreenNY;
+int mgScreenMX;
+int mgScreenMY;
+int mgScreenOffx;
+int mgScreenOffy;
+int mgScreenDepth;
+int mgScreenZDepth;
+int mgScreenLeft;
+int mgScreenRight;
+int mgScreenTop;
+int mgScreenBottom;
+int VSyncField;
+sceGsTex1 mgTEX1_1;
+sceGsTex1 mgTEX1_2;
+sceGsTest mgTEST_1;
+sceGsTest mgTEST_2;
+sceGsZbuf mgZBUF_1;
+sceGsZbuf mgZBUF_2;
+sceGsAlpha mgALPHA_1;
+sceGsAlpha mgALPHA_2;
+sceGsTexa mgTEXA_1;
+sceGsTexa mgTEXA_2;
+sceGsFrame mgFRAME_1;
+/**
+ * Frame counter used by the frame-end performance meter.
+ */
+static int count_580;
+/**
+ * Initialization flag for the performance-meter frame counter.
+ */
+static u_char init_581;
+/**
+ * CPU utilization percentage recorded by the frame-end performance meter.
+ */
+static float cpu_ratio_583;
+/**
+ * Initialization flag for the CPU utilization percentage.
+ */
+static u_char init_584;
+/**
+ * Idle-time percentage recorded by the frame-end performance meter.
+ */
+static float free_ratio_586;
+/**
+ * Initialization flag for the idle-time percentage.
+ */
+static u_char init_587;
+int ddraw_size;
+/**
+ * Frame-capture sequence number initialized by StoreImage.
+ */
 INCLUDE_BSS(image_num_1535, 0x4);
+/**
+ * Initialization flag for the frame-capture sequence number.
+ */
 INCLUDE_BSS(init_1536, 0x4);
 
 // Uninitialised data (.bss)
-INCLUDE_BSS(mgGiftagAD, 0x10);
-mgRENDER_INFO mgRenderInfo;
-INCLUDE_BSS(mgBackColor, 0x10);
-mgCTextureManager mgTexManager;
-mgCDrawManager    mgDrawManager;
-INCLUDE_BSS(mgDBuff, 0x230);
-INCLUDE_BSS(mgPickZBuff, 0x40);
-INCLUDE_BSS(vifpacket, 0x40);
-mgCMemory  packet_buf[2];
-mgCMemory  data_buf[2];
-mgCTexture frame_tex;
-INCLUDE_BSS(store_data_614, 0x1000);
-INCLUDE_BSS(at_863, 0x10);
-mgCTexture fixz_tex[2];
+sceGifTag mgGiftagAD;
+sceVu0FVECTOR mgBackColor;
+sceGsDBuff mgDBuff;
+MG_PICKZ mgPickZBuff[4];
+u_long128 store_data_614[256];
 INCLUDE_BSS(gs_simage, 0xA0);

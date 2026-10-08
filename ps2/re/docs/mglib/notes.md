@@ -1,6 +1,13 @@
 # mglib notes
 
-The pinned Satan’s Fiddle baseline and current guarded-function findings are in
+Round 3 from `80c270c` promotes `mgInit` at 0/652 words and migrates all
+initialized assembly data to C++. The complete object passes `0x4DA8` checked
+bytes and 1,146 resolved relocations; all 148 other objects and all ten linked
+file-backed sections remain byte-identical to baseline. The remaining three
+C++ BSS reservations, dither alternatives, and unapplied terminal-padding
+checker proposal are documented in [mglib-r3-20261008.md](mglib-r3-20261008.md).
+
+The pinned Satan’s Fiddle baseline and current matching status are in
 [matching-20261008.md](matching-20261008.md). The older isolated draft counts
 below describe earlier source/compiler states.
 The preceding pass from `0c33a7e`, including the retail-local `GetScreenSize`,
@@ -13,8 +20,9 @@ store scheduling, initialization hygiene, packet reservation park and acceptance
 receipts are documented in [mglib-r1-20261008.md](mglib-r1-20261008.md).
 
 Round 2 from `529fb83` resolves the background/FRAME store scheduling and
-retains a 0/652 guarded `mgInit` draft. Five inherited register type-puns
-still block promotion; new typed-copy and intrinsic findings and unchanged
+retains a 0/652 guarded `mgInit` draft. Its register-cast review park is
+resolved by the round-3 coordinator ruling accepting the project's existing
+whole-register convention. The earlier typed-copy and intrinsic findings and
 baseline validation are in [mglib-r2-20261008.md](mglib-r2-20261008.md).
 
 The guarded frame-rotation draft uses the SDK's `sceGsDBuff::disp[2]`
@@ -92,9 +100,9 @@ slot. The same duplicate-entry pattern appeared in 21 other game units with nati
 
 ## Current source status
 
-The merged `sf-d8bf13c` build has 97 exact functions and four guarded drafts:
-`VSyncCallBack`, `mgInit`, `mgEndFrame`, and `mgSetPkFrameBuffer(int,int,int,int)`.
-The complete object passes `0x4DA8` checked bytes and 1,050 resolved
+The round-3 `sf-d8bf13c` build has 98 exact functions and three guarded drafts:
+`VSyncCallBack`, `mgEndFrame`, and `mgSetPkFrameBuffer(int,int,int,int)`.
+The complete object passes `0x4DA8` checked bytes and 1,146 resolved
 relocations. Upstream's
 native framebuffer copies and the local native shadow compositor coexist.
 The earlier 43-exact/31-isolated/27-differing inventory describes initial
@@ -126,6 +134,14 @@ The built ELF in `build/pal` marks everything GLOBAL; the retail ELF does not. U
 - Retail true sizes differ from the padded INCLUDE_BSS slots: VSyncField 4 (slot 8),
   mgChangeLight 4, draw_performance_meter 4, mgTexManager 0x21C (slot 0x220), gs_simage 0x70
   (slot 0xA0), prog_adr 12 (3 pointers).
+
+Round 3 restores these private globals as typed file statics. The stable
+`dimx_281` file-static table replaces the compiler-ordinal local spelling;
+the guarded frame-end local state remains at file scope while its retail
+assembly is active. `store_data_614` retains external linkage because an
+existing generated library-data expression references that symbol. The
+`gs_simage`, `image_num_1535`, and `init_1536` C++ BSS reservations remain for
+the checker/postprocessor limitations documented in the round-3 notes.
 
 ## Global types (evidence)
 - `DmaCH1/2/8` sceDmaChan* (sceDmaGetChan results; CH1 chcr.TTE set). DmaCH2 also used by movie,
