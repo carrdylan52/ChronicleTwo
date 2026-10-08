@@ -1731,7 +1731,6 @@ void CalcCommonBrdDrawInfo(float *pos, MENUFORM_MAKEBRD_INFO *info, ClsMes *mes)
     }
     memcpy(&CommonBoardDrawInfo, info, sizeof(MENUFORM_MAKEBRD_INFO));
 }
-#ifdef NONMATCHING
 void CommonBoardDraw(float *pos, int &tex_block) {
     mgCTexture *board_tex = Tex_CommonBoard;
     if (board_tex == NULL) {
@@ -1763,12 +1762,12 @@ void CommonBoardDraw(float *pos, int &tex_block) {
     prim->Begin(MG_PRIM_SPRITE);
     prim->Texture(Tex_CommonBoard);
     prim->Color(0x80, 0x80, 0x80, 0x80);
-    int row_bottom;
+    int left;
+    int top;
     int row;
     int pass;
-    int top;
     for (row = 0; row < 5; row++) {
-        int left = (int)(6.0f + pos[0]);
+        left = (int)(6.0f + pos[0]);
         top = (int)(6.0f + board_y);
         board_pass_color pass_color = at_1796;
         for (pass = 0; pass < 2; pass++) {
@@ -1777,18 +1776,17 @@ void CommonBoardDraw(float *pos, int &tex_block) {
             prim->TextureCrd(row_uv.uv[row][0][0], row_uv.uv[row][0][1]);
             prim->Vertex(left, top, 0);
             prim->TextureCrd(row_uv.uv[row][0][0] + row_uv.uv[row][0][2], row_uv.uv[row][0][1] + row_uv.uv[row][0][3]);
-            row_bottom = top + heights[row];
-            prim->Vertex(((int)left) + row_uv.uv[row][0][2], row_bottom, 0);
+            prim->Vertex(left + row_uv.uv[row][0][2], top + heights[row], 0);
             left += row_uv.uv[row][0][2];
             prim->TextureCrd(row_uv.uv[row][1][0], row_uv.uv[row][1][1]);
             prim->Vertex(left, top, 0);
             prim->TextureCrd(row_uv.uv[row][1][0] + row_uv.uv[row][1][2], row_uv.uv[row][1][1] + row_uv.uv[row][1][3]);
-            prim->Vertex(left + board_w, row_bottom, 0);
+            prim->Vertex(left + board_w, top + heights[row], 0);
             left += board_w;
             prim->TextureCrd(row_uv.uv[row][2][0], row_uv.uv[row][2][1]);
-            prim->Vertex(((int)left), top, 0);
+            prim->Vertex(left, top, 0);
             prim->TextureCrd(row_uv.uv[row][2][0] + row_uv.uv[row][2][2], row_uv.uv[row][2][1] + row_uv.uv[row][2][3]);
-            prim->Vertex(((int)left) + row_uv.uv[row][2][2], row_bottom, 0);
+            prim->Vertex(left + row_uv.uv[row][2][2], top + heights[row], 0);
             top -= 6;
             left = (int)pos[0];
         }
@@ -1822,11 +1820,11 @@ void CommonBoardDraw(float *pos, int &tex_block) {
         PrimQuad(prim, mgRect<int>((int)x, top = (int)line_top, brd[0][2], brd[0][3]),
                  mgRect<int>(brd[0][0], brd[0][1], brd[0][2], brd[0][3]));
         x += brd[0][2];
-        PrimQuad(prim, mgRect<int>((int)x, top, ((int)line_w), brd[1][3]),
+        PrimQuad(prim, mgRect<int>((int)x, top, line_w, brd[1][3]),
                  mgRect<int>(brd[1][0], brd[1][1], brd[1][2], brd[1][3]));
         int number_x;
         x += line_w;
-        PrimQuad(prim, mgRect<int>(number_x = (int)x, ((int)top), brd[2][2], brd[2][3]),
+        PrimQuad(prim, mgRect<int>(number_x = (int)x, top, brd[2][2], brd[2][3]),
                  mgRect<int>(brd[2][0], brd[2][1], brd[2][2], brd[2][3]));
         int number_y;
         PrimDrawNumber2(prim, line->num, 0, number_x, number_y = (int)(10.0f + line_top),
@@ -1879,9 +1877,6 @@ void CommonBoardDraw(float *pos, int &tex_block) {
     PrimDrawNumber(prim, CommonBoardDrawInfo.make_num, 1, count_x + 0x15, count_y + 5, mgRect<int>(number_uv.uv[0][0], number_uv.uv[0][1], 10, 13), 0, 0);
     prim->End();
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/menudraw", CommonBoardDraw__FPfRi);
-#endif
 void MenuCursorDraw(mgCTexture *tex, float *pos, float rot, int reverse, int alpha, float scale) {
     mgCDrawPrim *prim;
     float        sin_rot;
