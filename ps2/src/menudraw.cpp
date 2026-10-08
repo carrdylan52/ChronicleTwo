@@ -3561,9 +3561,6 @@ void Menu3DivideTextureDraw(mgCDrawPrim *prim, mgRect<int> rect, short *tex_tbl,
     }
 }
 #ifdef NONMATCHING
-static inline float PlusF(int v) { return v; }
-static inline MENUFORMPARTS_TYPE *FormPart(CMenuPosDataForm *f, int i) { return &f->parts[i]; }
-static inline mgCTexture *PartTex(MENUFORMPARTS_TYPE *p) { return p->tex; }
 void CMenuPosDataForm::MenuFormDrawNormal(int x, int y, float sway_x, float sway_y, int &tex_block) {
     mgCTextureManager *textures = &mgTexManager;
     mgCDrawPrim       *prim = GetMenuPrim();
@@ -3571,11 +3568,18 @@ void CMenuPosDataForm::MenuFormDrawNormal(int x, int y, float sway_x, float sway
     mgRect<float>              put(0.0f, 0.0f, 0.0f, 0.0f);
     mgRect<int>                uv(0, 0, 0, 0);
     mgCTexture                *effect_tex = MenuPosData->icon_effect_tex;
+    float                     *top_right;
+    float                     *bottom_left;
+    float                     *bottom_right;
     float                     *top_left;
     int                        block = -1;
     MENU_PARTS_EFFECT_STRUCT1 *item_effect = NULL;
+    float                      horizontal_offset;
     for (int i = 0; i < parts_num; i++) {
-        MENUFORMPARTS_TYPE *part = FormPart(this, i);
+        MENUFORMPARTS_TYPE *part;
+        MENU_BASETEXINFO   *info;
+        mgCTexture        *tex;
+        part = &parts[i];
         if (part->active == 0 || part->draw_flag == 0 || part->dtype == MENUFORMPARTS_DTYPE_FUNCINFO) {
             continue;
         }
@@ -3604,8 +3608,8 @@ void CMenuPosDataForm::MenuFormDrawNormal(int x, int y, float sway_x, float sway
             MenuReloadCLUT(part->etc_info[0]);
             continue;
         }
-        mgCTexture       *tex = PartTex(part);
-        MENU_BASETEXINFO *info = MenuPosData->GetTexGetInfo(part->tex_info_no);
+        tex = part->tex;
+        info = MenuPosData->GetTexGetInfo(part->tex_info_no);
         u8                dtype = part->dtype;
         if (dtype != MENUFORMPARTS_DTYPE_SQ_BETA && dtype != MENUFORMPARTS_DTYPE_FONT && tex == NULL) {
             continue;
@@ -3649,7 +3653,8 @@ void CMenuPosDataForm::MenuFormDrawNormal(int x, int y, float sway_x, float sway
                     prim->Color(0, 0, 0, color[3] / 3);
                     if (repeat == 0) {
                         s8          offset = part->shadow_offset;
-                        mgRect<int> shadow((int) (put.left + PlusF(offset)), (int) (put.top + offset), (int) put.right, (int) put.bottom);
+                        horizontal_offset = offset;
+                        mgRect<int> shadow((int) (put.left + horizontal_offset), (int) (put.top + offset), (int) put.right, (int) put.bottom);
                         PrimQuad(prim, shadow, uv);
                     }
                 }
@@ -3692,7 +3697,8 @@ void CMenuPosDataForm::MenuFormDrawNormal(int x, int y, float sway_x, float sway
                 prim->Texture(tex);
                 if (part->shadow != 0) {
                     s8  offset = part->shadow_offset;
-                    int shadow_x = (int) (put.left + PlusF(offset));
+                    horizontal_offset = offset;
+                    int shadow_x = (int) (put.left + horizontal_offset);
                     int shadow_y = (int) (put.top + offset);
                     prim->Color(0, 0, 0, color[3] / 3);
                     if (part->dtype == MENUFORMPARTS_DTYPE_NUMBER1) {
@@ -3768,9 +3774,6 @@ void CMenuPosDataForm::MenuFormDrawNormal(int x, int y, float sway_x, float sway
                     prim->DepthTestEnable(0);
                     alpha_rate = (u_int) color[3] / 128.0f;
                 }
-                float *top_right;
-                float *bottom_left;
-                float *bottom_right;
                 switch (part->etc_info[0]) {
                     case 0: {
                         top_left = top_right = bottom_left = bottom_right = part->effect->param;
