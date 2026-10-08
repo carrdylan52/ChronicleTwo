@@ -210,7 +210,7 @@ constructors install the list vtable and initialize the links. Their typed
 constructor drafts remain behind `NONMATCHING`; retail assembly supplies the
 active functions until those drafts compare byte for byte. The list vtables
 reference `CList<PartsGroupData>::Initialize` and `CList<CMapParts *>::Initialize`;
-these twelve-byte virtual methods currently also use retail assembly.
+these twelve-byte virtual methods now come from the natural template definition.
 The earlier native specialization trials reproduced their instruction bodies,
 but that does not establish a completed native constructor-backed implementation.
 
@@ -226,3 +226,34 @@ float arguments in `DrawWater` matched in that isolated build. Pointer
 declaration and redundant initialization trials did not correct those
 allocations and are absent from the source. These observations describe the
 pre-merge snapshot; the merged source requires canonical revalidation.
+
+## October 8 merged-base template instantiations
+
+The two list initialization functions are supplied by explicit class
+instantiations of the existing generic `CList<T>` definition. Their bodies
+clear `prev` and `next`; the compiler supplies their native template names.
+With both allocation callers still guarded, the canonical complete object
+has zero byte or resolved-relocation differences (0x4734 allocated bytes,
+418 relocations). No specialized method bodies or hand-emitted symbols are
+needed. MWCC rejects member-only explicit-instantiation syntax but accepts
+standard class-instantiation syntax.
+
+`AddPartsGroup` remains guarded: its original draft is 0x104 bytes against
+0x100 retail. It clears `data.parts` again after the natural data constructor
+already clears it. Removing that redundant caller clear produces 0xFC bytes
+but increases positional differences to 26/64 words through constructor
+scheduling and inserted nops, so that trial is not retained.
+`CreateDrawRect` remains guarded at 50/112 positional word differences;
+its construction moves the allocation result before the null branch and
+adds two nops, shifting the subsequent instructions. These counts supersede
+the older pre-merge percentage above.
+
+Blocker for both callers: placement-new allocation-result scheduling.
+Reconsider when the dedicated constructor investigation validates a natural
+form for the same list construction and null-result flow.
+
+The integrated build retains byte-identical allocated ELF contents and the
+merged-base verifier output. Both initializers are classified as matched by
+the refreshed objdiff coverage; map has 83 matched functions and two guarded
+callers. The checker counts eight fewer object bytes because the two native
+bodies omit their four-byte zero tails; the linked layout retains those gaps.
