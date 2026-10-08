@@ -649,12 +649,83 @@ extern s8               convtbl_5238[3];
 extern float            putw_5262[];
 extern char            *infomsg_5256[];
 extern s8               phasetbl_5119[COSTUME_LIST_NUM];
-extern short            tiletbl_5573[3][12];
-extern short            under_brdtbl_5576[12];
-extern short            put_under_offset_5577[16][2];
-extern short            ic_5580[7][2];
-extern short            line_5595[12];
-extern short            wakutbl_5600[3][12];
+/**
+ *
+ * Number of resistance or weakness icons that the monster book can display.
+ *
+ */
+enum { MOS_BOOK_AFFINITY_NUM = 8 };
+
+/**
+ *
+ * Texture rectangles of the three monster-book background strips.
+ *
+ */
+static short tiletbl_5573[3][12] = {
+    {0x77, 0xBD, 0x26, 0x24, 0x9C, 0xBD, 0x4, 0x24, 0xA1, 0xBD, 0x26, 0x24},
+    {0x77, 0xE1, 0x26, 0xC, 0x9C, 0xE1, 0x4, 0xC, 0xA1, 0xE1, 0x26, 0xC},
+    {0x77, 0xED, 0x26, 0x24, 0x9C, 0xED, 0x4, 0x24, 0xA1, 0xED, 0x26, 0x24}
+};
+/**
+ *
+ * Texture rectangles of the monster-book description underboards.
+ *
+ */
+static short under_brdtbl_5576[12] = {0x93, 0x2D, 0xA, 0x20, 0x9D, 0x2D, 0x2, 0x20, 0xA1, 0x2D, 0xA, 0x20};
+/**
+ *
+ * Positions of the monster-book headings and description panels.
+ *
+ */
+static short put_under_offset_5577[16][2] = {
+    {0xFE, 0xE},
+    {0xFE, 0x1E},
+    {0xFE, 0x40},
+    {0xFE, 0x50},
+    {0xFE, 0x72},
+    {0xFE, 0x82},
+    {0xFE, 0xA4},
+    {0xFE, 0xB4},
+    {0xFE, 0xD6},
+    {0xFE, 0xE6},
+    {0x20, 0x104},
+    {0x20, 0x116},
+    {0x20, 0x13C},
+    {0x20, 0x168},
+    {0x104, 0x118},
+    {0x0, 0x0}
+};
+/**
+ *
+ * Texture coordinates of the eight monster affinity icon slots.
+ *
+ */
+static const short ic_5580[MOS_BOOK_AFFINITY_NUM][2] = {
+    {0xA8, 0x0},
+    {0xBE, 0x0},
+    {0xD4, 0x0},
+    {0xEA, 0x0},
+    {0xBE, 0x16},
+    {0xD4, 0x16},
+    {0xEA, 0x16},
+    {0x0, 0x0}
+};
+/**
+ *
+ * Texture rectangles of the monster-book vertical divider.
+ *
+ */
+static short line_5595[12] = {0x0, 0x16, 0xC, 0x14, 0x0, 0x2A, 0xC, 0x4, 0x0, 0x2E, 0xC, 0x14};
+/**
+ *
+ * Texture rectangles of the three monster-model frame strips.
+ *
+ */
+static short wakutbl_5600[3][12] = {
+    {0x1E, 0xA5, 0x32, 0x36, 0x50, 0xA5, 0x2, 0x36, 0x54, 0xA5, 0x22, 0x36},
+    {0x1E, 0xDA, 0x32, 0x4, 0x50, 0xDA, 0x2, 0x4, 0x54, 0xDA, 0x22, 0x4},
+    {0x1E, 0xDF, 0x32, 0x32, 0x50, 0xDF, 0x2, 0x32, 0x54, 0xDF, 0x22, 0x32}
+};
 extern char            *monstere_file_template[];
 extern char            *tbl_3725[MOS_SELECT_BADGE_NUM];
 extern int              menu_debug_select__2;
@@ -6751,18 +6822,17 @@ void CMosBookMenu::InitEnd() {
     FadeInMenu(0x32, 0.0f);
 }
 
-#ifdef NONMATCHING
 void CMosBookMenu::Draw() {
     if (Tex_MBg == NULL || Tex_MBook == NULL || Tex_MBase == NULL) {
         return;
     }
-    mgTexManager.ReloadTexture(Tex_MBase->block, (sceVif1Packet *) NULL);
+    mgCTextureManager *tex_manager = &mgTexManager;
+    tex_manager->ReloadTexture(Tex_MBase->block, (sceVif1Packet *) NULL);
     mgCDrawPrim *prim = GetMenuPrim();
     SetSpriteEnv(prim, 0);
     DrawMenuTilePattern(prim, Tex_MBg, bg_scroll, bg_scroll,
                         mgRect<int>(0, 0, 0x100, 0x100), 0, NULL);
-
-    prim->Begin(6);
+    prim->Begin(MG_PRIM_SPRITE);
     prim->Texture(Tex_MBase);
     prim->Color(0, 0, 0, 0x40);
     Menu3DivideTextureDraw(prim, mgRect<int>(0x1A, 0x4B, 0x1CC, 0x24), tiletbl_5573[0], 1);
@@ -6773,137 +6843,163 @@ void CMosBookMenu::Draw() {
     Menu3DivideTextureDraw(prim, mgRect<int>(0x16, 0x6B, 0x1CC, 0x116), tiletbl_5573[1], 1);
     Menu3DivideTextureDraw(prim, mgRect<int>(0x16, 0x181, 0x1CC, 0x24), tiletbl_5573[2], 1);
     prim->End();
-    DrawMenuFillBox(52.0f, 101.0f, (float) (CheckNowEurope() ? 0xBE : 0xB6),
-                    220.0f, 0x80, 0xD, 0xD, 0xD);
-
+    int model_width = 0xB6;
+    if (CheckNowEurope()) {
+        model_width = 0xBE;
+    }
+    DrawMenuFillBox(52.0f, 101.0f, (float) model_width, 220.0f, 0x80, 0xD, 0xD, 0xD);
     SetSpriteEnv(prim, 0);
-    prim->Begin(6);
+    prim->Begin(MG_PRIM_SPRITE);
     prim->Texture(Tex_MBase);
     prim->Color(0x80, 0x80, 0x80, 0x80);
-    int box_width = CheckNowEurope() ? 0xB6 : 0xB0;
-    int box_shift = CheckNowEurope() ? 2 : 0;
-    for (int i = 0; i < 2; i++) {
-        Menu3DivideTextureDraw(prim,
-                               mgRect<int>(put_under_offset_5577[1][0] + 0x16 + i * 0x58,
-                                           put_under_offset_5577[1][1] + 0x47, 0x52, 0x20),
-                               under_brdtbl_5576, 1);
+    Menu3DivideTextureDraw(prim, mgRect<int>(put_under_offset_5577[1][0] + 0x16,
+        put_under_offset_5577[1][1] + 0x47, 0x52, 0x20), under_brdtbl_5576, 1);
+    Menu3DivideTextureDraw(prim, mgRect<int>(put_under_offset_5577[1][0] + 0x6E,
+        put_under_offset_5577[1][1] + 0x47, 0x52, 0x20), under_brdtbl_5576, 1);
+    int box_shift = 0;
+    int box_width = 0xB0;
+    int last_shift = 0;
+    int last_width = 0xB0;
+    if (CheckNowEurope()) {
+        box_shift = 2;
+        box_width = 0xB6;
+        last_shift = 4;
+        last_width = 0xBE;
     }
-    for (int i = 0; i < 4; i++) {
-        int index = 3 + i * 2;
-        Menu3DivideTextureDraw(prim,
-                               mgRect<int>(put_under_offset_5577[index][0] + 0x16 - box_shift,
-                                           put_under_offset_5577[index][1] + 0x47, box_width, 0x20),
-                               under_brdtbl_5576, 1);
-    }
-    for (int i = 0; i < 2; i++) {
-        Menu3DivideTextureDraw(prim,
-                               mgRect<int>(put_under_offset_5577[9][0] + 0x16 - box_shift,
-                                           put_under_offset_5577[9][1] + 0x69 + i * 0x22,
-                                           box_width, 0x20),
-                               under_brdtbl_5576, 1);
-    }
-    Menu3DivideTextureDraw(prim,
-                           mgRect<int>(put_under_offset_5577[11][0] + 0x16 - (CheckNowEurope() ? 4 : 0),
-                                       put_under_offset_5577[11][1] + 0x47,
-                                       CheckNowEurope() ? 0xBE : 0xB0, 0x20),
-                           under_brdtbl_5576, 1);
+    Menu3DivideTextureDraw(prim, mgRect<int>(put_under_offset_5577[3][0] + 0x16 - box_shift,
+        put_under_offset_5577[3][1] + 0x47, box_width, 0x20), under_brdtbl_5576, 1);
+    Menu3DivideTextureDraw(prim, mgRect<int>(put_under_offset_5577[5][0] + 0x16 - box_shift,
+        put_under_offset_5577[5][1] + 0x47, box_width, 0x20), under_brdtbl_5576, 1);
+    Menu3DivideTextureDraw(prim, mgRect<int>(put_under_offset_5577[7][0] + 0x16 - box_shift,
+        put_under_offset_5577[7][1] + 0x47, box_width, 0x20), under_brdtbl_5576, 1);
+    Menu3DivideTextureDraw(prim, mgRect<int>(put_under_offset_5577[9][0] + 0x16 - box_shift,
+        put_under_offset_5577[9][1] + 0x47, box_width, 0x20), under_brdtbl_5576, 1);
+    Menu3DivideTextureDraw(prim, mgRect<int>(put_under_offset_5577[9][0] + 0x16 - box_shift,
+        put_under_offset_5577[9][1] + 0x69, box_width, 0x20), under_brdtbl_5576, 1);
+    Menu3DivideTextureDraw(prim, mgRect<int>(put_under_offset_5577[9][0] + 0x16 - box_shift,
+        put_under_offset_5577[9][1] + 0x8B, box_width, 0x20), under_brdtbl_5576, 1);
+    Menu3DivideTextureDraw(prim, mgRect<int>(put_under_offset_5577[11][0] + 0x16 - last_shift,
+        put_under_offset_5577[11][1] + 0x47, last_width, 0x20), under_brdtbl_5576, 1);
     Menu3DivideTextureDraw(prim, mgRect<int>(0x140, 0x27, 0x9C, 0x20), under_brdtbl_5576, 1);
     prim->End();
-
-    prim->Begin(6);
-    prim->Texture(Tex_MBook);
+    prim->Begin(MG_PRIM_SPRITE);
     prim->Color(0x80, 0x80, 0x80, 0x80);
+    prim->Texture(Tex_MBook);
     PrimQuad(prim, 18.0f, 16.0f, mgRect<int>(0, 0, 0xA8, 0x16));
     int base_x = put_under_offset_5577[0][0] + 0x16;
     int base_y = put_under_offset_5577[0][1] + 0x47;
-    PrimQuad(prim, (float) base_x, (float) base_y, mgRect<int>(0, 0x82, 0xB0, 0x12));
-    PrimQuad(prim, (float) (base_x + 0xB), (float) (base_y + 0x19),
-             mgRect<int>(0xC, 0x2C, 0xC, 0x10));
-    PrimQuad(prim, (float) (base_x + 0x5E), (float) (base_y + 0x15),
-             mgRect<int>(0xC, 0x16, 0x14, 0x16));
-    for (int i = 0; i < 6; i++) {
-        PrimQuad(prim, (float) (put_under_offset_5577[2 + i * 2][0] + 0x16),
-                 (float) (put_under_offset_5577[2 + i * 2][1] + 0x47),
-                 mgRect<int>(0, 0x94 + i * 0x12, 0xB0, 0x12));
+    PrimQuad(prim, (float) base_x, (float) (put_under_offset_5577[0][1] + 0x47), mgRect<int>(0, 0x82, 0xB0, 0x12));
+    PrimQuad(prim, (float) (base_x + 0xB), (float) (base_y + 0x19), mgRect<int>(0xC, 0x2C, 0xC, 0x10));
+    PrimQuad(prim, (float) (base_x + 0x5E), (float) (base_y + 0x15), mgRect<int>(0xC, 0x16, 0x14, 0x16));
+    PrimQuad(prim, (float) (put_under_offset_5577[2][0] + 0x16),
+        (float) (put_under_offset_5577[2][1] + 0x47), mgRect<int>(0, 0x94, 0xB0, 0x12));
+    PrimQuad(prim, (float) (put_under_offset_5577[4][0] + 0x16),
+        (float) (put_under_offset_5577[4][1] + 0x47), mgRect<int>(0, 0xA6, 0xB0, 0x12));
+    PrimQuad(prim, (float) (put_under_offset_5577[6][0] + 0x16),
+        (float) (put_under_offset_5577[6][1] + 0x47), mgRect<int>(0, 0xB8, 0xB0, 0x12));
+    PrimQuad(prim, (float) (put_under_offset_5577[8][0] + 0x16),
+        (float) (put_under_offset_5577[8][1] + 0x47), mgRect<int>(0, 0xCA, 0xB0, 0x12));
+    PrimQuad(prim, (float) (put_under_offset_5577[10][0] + 0x16),
+        (float) (put_under_offset_5577[10][1] + 0x47), mgRect<int>(0, 0xDC, 0xB0, 0x12));
+    PrimQuad(prim, (float) (put_under_offset_5577[12][0] + 0x16),
+        (float) (put_under_offset_5577[12][1] + 0x47), mgRect<int>(0, 0xEE, 0xB0, 0x12));
+    int icon_x = put_under_offset_5577[4][0] + 0x1D;
+    int strong_y = put_under_offset_5577[4][1] + 0x5C;
+    for (int i = 0; i < MOS_BOOK_AFFINITY_NUM; i++) {
+        if (strong_bit & (1 << i)) {
+            PrimQuad(prim, (float) icon_x, (float) strong_y,
+                mgRect<int>(ic_5580[i][0], ic_5580[i][1], 0x16, 0x16));
+            icon_x += 0x16;
+        }
     }
-    for (int row = 0; row < 2; row++) {
-        u32 bits = row == 0 ? strong_bit : weak_bit;
-        int x = put_under_offset_5577[4][0] + 0x1D;
-        int y = put_under_offset_5577[4][1] + (row == 0 ? 0x5C : 0x8E);
-        for (int i = 0; i < 8; i++) {
-            if (bits & (1 << i)) {
-                int icon = i < 7 ? i : 0;
-                PrimQuad(prim, (float) x, (float) y,
-                         mgRect<int>(ic_5580[icon][0], ic_5580[icon][1], 0x16, 0x16));
-                x += 0x16;
-            }
+    int weak_i = 0;
+    icon_x = put_under_offset_5577[4][0] + 0x1D;
+    int weak_y = put_under_offset_5577[4][1] + 0x8E;
+    for (; weak_i < MOS_BOOK_AFFINITY_NUM; weak_i++) {
+        if (weak_bit & (1 << weak_i)) {
+            PrimQuad(prim, (float) icon_x, (float) weak_y,
+                mgRect<int>(ic_5580[weak_i][0], ic_5580[weak_i][1], 0x16, 0x16));
+            icon_x += 0x16;
         }
     }
     Menu3DivideTextureDraw(prim, mgRect<int>(0xFB, 0x55, 0xC, 0x13C), line_5595, 0);
     prim->End();
-
     sceVu0FMATRIX view;
     sceVu0FVECTOR eye;
     camera.GetCameraMatrix(view);
     camera.GetPos(eye);
     mgSetViewMatrix(view, eye);
-    if (monster != NULL && load_phase == 4 && show_wait >= 0x11) {
-        SetMenuScissor(mgRect<int>(0x20, 0x69, 0xE8, 0x135));
-        mgTexManager.ReloadTexture(tex_block_no, (sceVif1Packet *) NULL);
-        monster->Draw();
+    if (monster != NULL && load_phase == 4 && show_wait > 0x10) {
+        mgRect<int> scissor(0x20, 0x69, 0xE8, 0x135);
+        SetMenuScissor(scissor);
+        tex_manager->ReloadTexture(tex_block_no, (sceVif1Packet *) NULL);
+        monster->DrawDirect();
         ResetMenuScissor();
     }
-    mgTexManager.ReloadTexture(Tex_MBase->block, (sceVif1Packet *) NULL);
+    tex_manager->ReloadTexture(Tex_MBase->block, (sceVif1Packet *) NULL);
+    int frame_width = 0xD6;
+    if (CheckNowEurope()) {
+        frame_width = 0xDA;
+    }
     SetSpriteEnv(prim, 0);
-    prim->Begin(6);
+    prim->Begin(MG_PRIM_SPRITE);
     prim->Texture(Tex_MBase);
     prim->Color(0x80, 0x80, 0x80, 0x80);
-    Menu3DivideTextureDraw(prim, mgRect<int>(0x20, 0x55, CheckNowEurope() ? 0xDA : 0xD6, 0x36), wakutbl_5600[0], 1);
-    Menu3DivideTextureDraw(prim, mgRect<int>(0x20, 0x8B, CheckNowEurope() ? 0xDA : 0xD6, 0x92), wakutbl_5600[1], 1);
-    Menu3DivideTextureDraw(prim, mgRect<int>(0x20, 0x11D, CheckNowEurope() ? 0xDA : 0xD6, 0x32), wakutbl_5600[2], 1);
+    Menu3DivideTextureDraw(prim, mgRect<int>(0x20, 0x55, frame_width, 0x36), wakutbl_5600[0], 1);
+    Menu3DivideTextureDraw(prim, mgRect<int>(0x20, 0x8B, frame_width, 0x92), wakutbl_5600[1], 1);
+    Menu3DivideTextureDraw(prim, mgRect<int>(0x20, 0x11D, frame_width, 0x32), wakutbl_5600[2], 1);
     prim->End();
-
     mgRect<int> digit_rect(0, 0x14A, 0xC, 0xD);
-    prim->Begin(6);
+    prim->Begin(MG_PRIM_SPRITE);
     prim->Texture(Tex_MBase);
     prim->Color(0x80, 0x80, 0x80, 0x80);
     PrimDrawNumber(prim, hp, 0, 0x156, 0x6D, digit_rect, -1, 0);
     PrimDrawNumber(prim, abs, 0, 0x1AE, 0x6D, digit_rect, -1, 0);
     PrimDrawNumber(prim, kill_num, 0, 0xEC, 0x185, digit_rect, -2, 0);
     prim->End();
-
-    mgTexManager.ReloadTexture(MenuArg.mes_tex_block, (sceVif1Packet *) NULL);
+    tex_manager->ReloadTexture(MenuArg.mes_tex_block, (sceVif1Packet *) NULL);
     CMenuFont font;
-    int       width, height;
+    int name_height, name_width;
     font.SetStr(name);
-    font.CalcDrawWH(font.str, &width, &height);
-    font.SetPos(0x92 - width / 2, 0x6D);
+    font.CalcDrawWH(font.str, &name_width, &name_height);
+    int name_x = 0x92 - name_width / 2;
+    font.SetStr(name);
+    font.SetPos(name_x, 0x6D);
     font.DrawDirect(font.str, font.pos_x, font.pos_y);
+    font.SetStr(type_name);
     font.SetStr(type_name);
     font.SetPos(0x4E, 0x123);
     font.DrawDirect(font.str, font.pos_x, font.pos_y);
+    int area_height, area_width;
     font.SetStr(area_name);
-    font.CalcDrawWH(font.str, &width, &height);
-    font.SetPos(0x92 - width / 2, 0x163);
+    font.CalcDrawWH(font.str, &area_width, &area_height);
+    int area_x = 0x92 - area_width / 2;
+    font.SetStr(area_name);
+    font.SetPos(area_x, 0x163);
     font.DrawDirect(font.str, font.pos_x, font.pos_y);
+    font.SetStr(weak_name);
     font.SetStr(weak_name);
     font.SetPos(0x11E, 0x9D);
     font.DrawDirect(font.str, font.pos_x, font.pos_y);
-    for (int i = 0; i < MOS_BOOK_DROP_ITEM_NUM; i++) {
-        font.SetStr(drop_item[i]);
-        font.SetPos(0x11A, 0x131 + i * 0x22);
-        font.DrawDirect(font.str, font.pos_x, font.pos_y);
+    font.SetStr(drop_item[0]);
+    font.SetPos(0x11A, 0x131);
+    font.DrawDirect(font.str, font.pos_x, font.pos_y);
+    font.SetStr(drop_item[1]);
+    font.SetPos(0x11A, 0x153);
+    font.DrawDirect(font.str, font.pos_x, font.pos_y);
+    font.SetStr(drop_item[2]);
+    font.SetPos(0x11A, 0x175);
+    font.DrawDirect(font.str, font.pos_x, font.pos_y);
+    char position[0x80];
+    int number = select + 1;
+    if (list_num <= 0) {
+        number = 0;
     }
-    char position[0x40];
-    int  number = list_num > 0 ? select + 1 : 0;
     sprintf(position, monstere_file_template[LanguageCode], number, list_num);
     font.SetStr(position);
     font.SetPos(0x14C, 0x2D);
     font.DrawDirect(font.str, font.pos_x, font.pos_y);
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/menuchr", Draw__12CMosBookMenuFv);
-#endif
 
 #pragma inline_depth(8)
 
@@ -7196,12 +7292,6 @@ INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", monster_jyakuten__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", monstere_file_template__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_5452__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", stand_bit_5472__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", tiletbl_5573__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", under_brdtbl_5576__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", put_under_offset_5577__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", ic_5580__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", line_5595__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", wakutbl_5600__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", tbl_5848__DATA);
 
 // Constants (.rodata)
