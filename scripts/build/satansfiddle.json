@@ -552,6 +552,117 @@
         "evaluate_first": true
       },
       {
+        "translation_unit": "menusys.cpp",
+        "function": "MenuItemDebugDraw__Fv",
+        "value_type": "binary32",
+        "value_bits": "0x43480000",
+        "callee": "DrawMenuFillBox__Fffffiiii",
+        "control": {
+          "kind": "switch",
+          "values": [
+            2
+          ]
+        },
+        "argument": {
+          "argument_index": 1,
+          "value_type": "binary32",
+          "value_bits": "0x43a50000"
+        },
+        "evaluate_before": 2,
+        "expected_matches": 1,
+        "evaluate_first": false
+      },
+      {
+        "translation_unit": "menusys.cpp",
+        "function": "MenuItemDebugDraw__Fv",
+        "value_type": "binary32",
+        "value_bits": "0x42700000",
+        "callee": "DrawMenuFillBox__Fffffiiii",
+        "control": {
+          "kind": "switch",
+          "values": [
+            4
+          ]
+        },
+        "expected_matches": 1,
+        "evaluate_first": true
+      },
+      {
+        "translation_unit": "menusys.cpp",
+        "function": "MenuItemDebugDraw__Fv",
+        "value_type": "binary32",
+        "value_bits": "0x42700000",
+        "callee": "DrawMenuFillBox__Fffffiiii",
+        "control": {
+          "kind": "switch",
+          "values": [
+            6
+          ]
+        },
+        "expected_matches": 1,
+        "evaluate_first": true
+      },
+      {
+        "translation_unit": "menusys.cpp",
+        "function": "MenuItemDebugDraw__Fv",
+        "value_type": "binary32",
+        "value_bits": "0x43660000",
+        "callee": "DrawMenuFillBox__Fffffiiii",
+        "control": {
+          "kind": "switch",
+          "values": [
+            6
+          ]
+        },
+        "expected_matches": 1,
+        "evaluate_first": true
+      },
+      {
+        "translation_unit": "menusys.cpp",
+        "function": "MenuItemDebugDraw__Fv",
+        "value_type": "binary32",
+        "value_bits": "0x43820000",
+        "callee": "DrawMenuFillBox__Fffffiiii",
+        "control": {
+          "kind": "switch",
+          "values": [
+            6
+          ]
+        },
+        "expected_matches": 1,
+        "evaluate_first": true
+      },
+      {
+        "translation_unit": "menusys.cpp",
+        "function": "MenuItemDebugDraw__Fv",
+        "value_type": "binary32",
+        "value_bits": "0x43660000",
+        "callee": "DrawMenuFillBox__Fffffiiii",
+        "control": {
+          "kind": "switch",
+          "values": [
+            7
+          ]
+        },
+        "expected_matches": 1,
+        "evaluate_first": true
+      },
+      {
+        "translation_unit": "menusys.cpp",
+        "function": "MenuItemDebugDraw__Fv",
+        "value_type": "binary32",
+        "value_bits": "0x43820000",
+        "callee": "DrawMenuFillBox__Fffffiiii",
+        "control": {
+          "kind": "switch",
+          "values": [
+            7
+          ]
+        },
+        "expected_matches": 1,
+        "evaluate_first": true
+      },
+      {
         "translation_unit": "monster.cpp",
         "function": "GuardEffectSet__FP6CScenePfi",
         "value_type": "binary32",

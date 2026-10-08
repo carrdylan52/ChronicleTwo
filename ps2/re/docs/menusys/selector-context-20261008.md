@@ -36,7 +36,9 @@ three-name loop's s1/s2 counter and four-byte stride. No floating argument
 is consumed in either residual region. The prior source-form trials are
 not repeated under this promotion-only assignment.
 
-The function remains guarded and **none of the partial rows is committed**.
+The function then remained guarded and none of the partial rows was committed.
+The night run commits all seven rows with the native promotion; the two
+source residuals are resolved in [night-20261008.md](night-20261008.md).
 The complete-wrapper probe checks `0x1B0D0` bytes and 5,905 relocations,
 with only target bytes failing at `0x00249672`. All other unit bytes and
 resolved relocations pass.

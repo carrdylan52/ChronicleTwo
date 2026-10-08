@@ -7744,7 +7744,6 @@ extern char  at_6810[];
 extern char  at_6811[];
 extern char  at_6812[];
 extern char  at_6813[];
-#ifdef NONMATCHING
 void MenuItemDebugDraw(void) {
     CMenuFont          menu_font;
     mgCTextureManager *tex_manager = &mgTexManager;
@@ -8075,9 +8074,6 @@ void MenuItemDebugDraw(void) {
             break;
     }
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/menusys", MenuItemDebugDraw__Fv);
-#endif
 
 int CMenuItemInfo::PushKey(int pad, int trigger) {
     int               leaving = 0;
