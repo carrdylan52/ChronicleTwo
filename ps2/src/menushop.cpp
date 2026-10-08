@@ -1457,7 +1457,6 @@ extern char at_2117__2[];
 extern char at_2118__2[];
 
 
-#ifdef NONMATCHING
 void MenuShopInit(mgCMemory *stack, int *tex_block, int arg) {
     int               cfg_size;
     CMenuPosDataForm *form;
@@ -1558,9 +1557,6 @@ void MenuShopInit(mgCMemory *stack, int *tex_block, int arg) {
     CheckEnableHaveItemNum();
     CShopMenuPt->InitEnd();
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/menushop", MenuShopInit__FP9mgCMemoryPii);
-#endif
 
 int MenuShopKey() {
     return CShopMenuPt->KeyStep();

@@ -48,17 +48,14 @@ order: 0x1BC=0, 0x1C0=0, 0x1B4=0, 0x1B8=0, base 0x14(s16)=0, 0x1C8=0, 0x1C4=0, 0
 0x12C=0, 0x130=0, 0x134=0, 0x13C=0, 0x140=0, 0x144=0, 0x110..0x124=0, 0x138=0. The header
 declares `CShopMenu();`; define it inline (before MenuShopInit) so no out-of-line ctor is emitted.
 
-Native placement construction of `CShopMenu` and `CMenuQuestView` emits the expected base
-constructor calls and vtable stores without source-level byte offsets. MWCC schedules the returned
-allocation pointer into the saved register before its null branch, whereas the retail functions
-put that move in the branch delay slot. The resulting `MenuShopInit` and
-`MenuNPCQuestViewInit` scores are 99.29% and 97.74%; the remaining differences are allocation
-branch scheduling and one nop. In `MenuNPCQuestViewInit`, retail branches on `v0` immediately
+Native placement construction emits the expected base constructor calls and
+vtable stores without source-level byte offsets. `CShopMenu` clears its two
+`arrow_flash` entries in a constructor loop; that statement-shaped body takes
+MWCC's early inline conversion and gives an exact native `MenuShopInit`.
+`MenuNPCQuestViewInit` remains guarded. It branches on `v0` immediately
 after `__nw__FUiP1` and copies `v0` to `s1` in the delay slot. MWCC branches on `s1` after the
 copy and emits a nop in the delay slot for the native placement-new expression. Explicit
 value initialization and a named placement buffer produce the same instructions.
-Both initializers retain their C++ drafts under `NONMATCHING` and use retail assembly in
-matching builds.
 
 `CShop::AnalyzeShopList` constructs its `CScriptInterpreter` local after assigning the four
 shop globals. Declaring that local at the start of the function moves its constructor before
@@ -178,3 +175,29 @@ unit's global flag: removing it produces an identical complete `menushop.cpp.o`.
 ## Shop-list script handler
 
 `_SHOP_ANALYZE` ignores a script row unless its first integer identifies the currently selected shop. Matching rows set the remaining argument count as `Now_ShopListNum`, select robot-ABS selling for shop 23 or 28, medal selling for shop 32, and Donny selling for shop 33, then copy each following script integer into the typed item-number array. Ordinary shops retain the existing sell mode and use the local remaining argument count. One function-scoped item index is shared by the mutually exclusive copy loops; this preserves the PAL saved-register allocation in all four branches. The native 432-byte function now passes the object checker with zero instruction or relocation differences.
+
+## Constructor inline classification (2026-10-08)
+
+The constructor loop initializes the actual two-element `arrow_flash` array
+with the same two zero stores at object offsets 0x1D0 and 0x1D4. It fully
+unrolls, retaining all base/member constructor calls and other initialization
+operations. Signature-checked compiler observation reads inline class 3 for
+`CShopMenu`; the original IR puts allocation assignment inside the null
+conditional. The retail `beqz v0` at caller +0x58 now has `move s1,v0` in its
+delay slot. No wrapper, extra check, pragma or compiler policy is involved.
+
+Canonical native measurement has 0/312 differing words with identical
+relocation kinds (0x4D4 body and a zero tail to the retail 0x4E0 extent). The
+plain-wibo `draft.sh --diff` check also has zero differences. Only
+`MenuShopInit__FP9mgCMemoryPii` changes in the complete native draft object.
+Its guard and assembly fallback are removed manually.
+
+The shared-header build preserves all 149 final object hashes before
+promotion. After promotion, only `menushop.cpp.o` changes its full-file hash;
+all 149 allocated-section inventories remain identical. The full PAL
+verifier retains i15's 0x26-byte .text difference, other sections and BSS end
+are OK, and complete objects pass 147/149, failing only nd_meswin and
+actscript with their unchanged problem lists. Coverage increases from
+6,681/174/15/2 to 6,682 matched / 173 guarded / 15 asm-only / 2 fuzzy.
+Private receipts: `.private/receipts/ctor-final/{shop-loop,shop-promoted}/`.
+See [the classifier rules](../funcpoint/placement-new.md#constructor-inline-classification).
