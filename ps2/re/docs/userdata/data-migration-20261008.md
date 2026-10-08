@@ -49,13 +49,13 @@ emit `at_4196` and `at_4695` without assembly. The local party-bit
 initializer emits `at_3192` directly; its final entry shares Monica's
 party bit because monster form belongs to her.
 
-A direct `at_table_5400[bit]` trial, with the pair declared either
-before or after the mask, swaps the induction-offset and pair
-registers (`$9` / `$10`) relative to retail. The data definition
-matches independently; the existing byte-offset consumer remains
-until a natural indexed form reproduces those registers. Evidence:
-`userdata-attributes-failure.log`, `CheckWeaponAttribute.m2c.cpp`,
-and `userdata-native.dump` under `.private/dataC/`.
+`CheckWeaponAttribute` indexes the table through a local const word
+reference, `const unsigned int &pair = at_table_5400[bit]`. This keeps
+the retail induction-offset and pair registers and removes the byte
+offset, pointer arithmetic, and cast. Copying the indexed word into a
+value local swaps `$9` / `$10` and differs by seven words; the
+reference form has zero differences. Exact-function and complete-object
+evidence is in `.private/dataC/attribute-analysis/pair_reference/`.
 
 The completed group has 101 data markers and two BSS markers.
 `userdata-attributes-data-only-build.log` records PAL OK, its
@@ -152,3 +152,7 @@ After the explicit objdiff/progress refresh, `matched_data` remains
 linking postprocessor's native literal naming, piece padding, and
 retail section ordering; the exact linked-object checks prove the
 migration despite that source-side metric.
+
+`userdata-indexed-attributes-build.log` and its object receipt accept
+the final indexed ability-table consumer: PAL OK, 149 / 149 objects,
+and every unowned object hash unchanged.

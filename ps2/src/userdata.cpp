@@ -6042,10 +6042,8 @@ int CheckBadStatus(int attr) {
 
 unsigned int CheckWeaponAttribute(unsigned int mask_a, unsigned int mask_b) {
     int bit = 0;
-    int byte_offset = 0;
-
     do {
-        unsigned int pair = *(unsigned int *) ((u8 *) at_table_5400 + byte_offset);
+        const unsigned int &pair = at_table_5400[bit];
         unsigned int mask = 1 << bit;
 
         if (pair != 0 && (mask_a & mask) && (mask_b & pair)) {
@@ -6054,7 +6052,6 @@ unsigned int CheckWeaponAttribute(unsigned int mask_a, unsigned int mask_b) {
         }
 
         bit++;
-        byte_offset += 4;
     } while (bit < 12);
 
     mask_a |= mask_b;
