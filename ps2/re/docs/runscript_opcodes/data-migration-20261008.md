@@ -68,3 +68,21 @@ receipts for each callback are under `.private/dataC-r2/*-m2c.txt`; the
 acceptance receipts are `opcodes-callback-returns-{build,objects}.log`.
 This corrects the callback types before defining the table and introduces
 neither casts nor adapter callbacks.
+
+## Callback metadata
+
+`ext_func_info` is a file-local `RS_EXTFUNC_INFO[174]`: 173 callback/number
+pairs followed by `{NULL, -1}`. Its native definition preserves assembly
+order, its 0x570-byte extent, and every function-pointer relocation.
+`RS_MONSTER_EXTFUNC` names the exact assigned numbers and dispatch limit in
+the owned header; the existing row and public function declarations remain
+source-compatible. Callback purposes reuse the established native-function
+analysis, including the two effect vectors and target/user identifiers.
+`_SET_DEAD_OFF` emits death effects and weapon-experience pickups rather than
+the item/money drop behavior of `_SET_DEAD_START`.
+
+Final acceptance: `.private/dataC-r2/opcodes-native-table-{build,objects}.log`
+and `opcodes-native-table-metrics.json`. There are no rodata or BSS markers,
+and native data coverage is 2700 / 2700. The full image and all 149 objects
+pass, including units that include the owned header; every unowned object
+hash remains unchanged. No data marker or tooling proposal is parked.
