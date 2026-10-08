@@ -28,9 +28,9 @@ constructors reproduce these stores in the order documented below.
 `MenuManualInit` keeps its typed C++ draft under `NONMATCHING`. The draft emits 0x518 bytes
 where retail uses 0x510, moving the next function by 0x10 after alignment. The matching build
 uses the retail assembly gap; other menuop functions still prevent whole-unit matching.
-`MenuSaveInit` also retains its C++ draft under `NONMATCHING`; the retail gap restores the
-unit's byte and relocation layout. With both initializer gaps, the menuop object passes
-`check_objects.py`.
+`MenuSaveInit` is native and exact with a loop initializing the two slot-form
+pointers in `CSaveMenuClass`. The menuop object passes `check_objects.py` with
+the remaining `MenuManualInit` and save-menu `KeyStep` guards.
 Ctor order: vptr; `movie_stack.Init()`; select=0, top=0, list_y=400.0f (0x43C80000), cursor_jump=0,
 pict_mode=0, pict_num=0, base 0x14 (s16)=0; `movie_stack.stSetBuffer(NULL)`.
 - 0x110 select, 0x114 top: `MenuKeySelectCheck(.., &select, &top, 0, 0x2E, 10, 0)`; 46 entries, 10 lines.
@@ -117,10 +117,10 @@ scrlbar_parts[0..2]=0; scrlbar_pos={0,9}; card_ok=0; card_changed=0.
 
 ## Function notes
 - The typed `CMenuOption` constructor produces an exact retail `MenuOptionInit`.
-  `CManualMenu` and `CSaveMenuClass` reproduce the documented member initialization
-  order, but their guarded init functions still differ at the placement-new null
-  branch and subsequent scheduling. See the remaining-function classification
-  below; constructor store order alone does not establish an exact init body.
+  `CSaveMenuClass` also produces an exact `MenuSaveInit`, using a loop over its
+  actual slot-form array. `CManualMenu` reproduces the documented member stores
+  but its guarded init still differs at the placement-new null branch and
+  subsequent scheduling.
 - Init signature `(mgCMemory *stack, int *tex_block, int open_type)`; open_type is
   MenuCommonInfo+0x50 (MenuOpenType) from NextMenuInit/MenuMainInit, or 7 / 0x1E from
   DngTreeMapKey / GyoraceMenuKey.
@@ -236,3 +236,28 @@ An analysis-only copy renaming those to `jtbl_at_2517__2` and
 `jtbl_at_2518__2`, with their exact `.word` destinations from the corresponding
 retail `__DATA.s` files expressed as local labels, allows the full function to
 be decompiled. Generated assembly and shared headers need no changes.
+
+## Save-menu constructor inline classification (2026-10-08)
+
+`CSaveMenuClass` initializes its two actual `slot_form` entries in an ascending
+loop. The optimizer unrolls it to the same NULL stores at +0x17C and +0x180;
+all intervening form assignments and the three scrollbar-part assignments
+retain their existing order and values. No base/member constructor calls are
+added or removed. The constructor's inline-info classification is 3, verified
+with the hash-pinned trace driver. This puts allocation assignment inside the
+construction guard: `beqz v0` at caller +0x68, with `move s0,v0` at +0x6C.
+
+Canonical native `MenuSaveInit__FP9mgCMemoryPii` has 0/424 differing words,
+identical relocation kinds and the retail 0x6A0 size; plain-wibo
+`draft.sh --diff` also reports zero differences. Only that function changes
+in the full native draft comparison. Its guard/fallback are removed manually.
+`MenuManualInit` and `CSaveMenuClass::KeyStep` retain their independent parks.
+
+The full build retains i15's .text difference of 0x26 bytes, with every other
+section and BSS end OK. Complete objects pass 147/149; nd_meswin and actscript
+retain exactly their original single problem each. Against the accepted shop
+change, only `menuop.cpp.o` changes its full-file hash; all 149 allocated-section
+inventories stay identical. Coverage increases from 6,682/173/15/2 to
+6,683 matched / 172 guarded / 15 asm-only / 2 fuzzy, without any matched function
+losing its status. Receipts: `.private/receipts/ctor-final/save-promoted/`.
+See [the classifier rules](../funcpoint/placement-new.md#constructor-inline-classification).

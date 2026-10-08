@@ -2656,7 +2656,6 @@ void ResetMapInfo() {
 }
 
 
-#ifdef NONMATCHING
 void MenuSaveInit(mgCMemory *memory, int *tex_block, int mode) {
     CSaveMenuClass     *menu;
     CMemoryCardManager *card;
@@ -2793,9 +2792,6 @@ void MenuSaveInit(mgCMemory *memory, int *tex_block, int mode) {
         SaveMenuPtr->FadeInMenu(0x3C, 0.0f);
     }
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/menuop", MenuSaveInit__FP9mgCMemoryPii);
-#endif
 
 int MenuSaveKey() {
     return SaveMenuPtr->KeyStep();
