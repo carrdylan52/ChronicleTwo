@@ -31,9 +31,8 @@ with both dimensions lets MWCC produce those two induction variables while
 the source uses typed indices. `get_gajji_id_from_monster_progress_table`
 searches all forms and returns the badge ID with the form column, while
 `GetMonsterProgressTableNo` searches one form column for a monster ID and
-returns the row. Both are active C++ functions. Their typed loops require comparison against
-the current object before a matching claim can be made; the unit also retains
-assembly gaps for the menu functions listed below.
+returns the row. Both are active C++ functions. Their typed loops pass the
+current complete-object check; the unit retains assembly gaps for the menu functions listed below.
 
 `MenuCharaChangeDraw` matches as native C++ with the three stable
 floating-expression rows documented below. They restore the panel coordinates
@@ -51,13 +50,12 @@ allocation result in `v0` and moves it to `s1` in the delay slot, while MWCC
 currently moves first and branches on `s1`. Named locals, assignment chaining,
 parenthesized new expressions, and a same-type cast retain that difference.
 `MenuMemoryDivide` differs in 18 instructions, mostly saved-register choices
-for its buffer and loop indices. Its existing buffer increments also need a
-typed array representation before promotion. `MenuMonsterLoadBG` has a
-larger stack-frame and register-allocation difference in its guarded draft.
+for its buffer and loop indices. Its quadword buffers now use typed array
+indexing; allocation still differs. `MenuMonsterLoadBG` has a larger stack-frame and register-allocation difference in its guarded draft.
 `CMenuCostumeSel::LoadMenuData` and `CMosBookMenu::KeyStep` each differ by
 the same two placement-new branch/move instructions as `LoadBGNPCModel`.
 `MenuItemCharaDataLoadEndCheckAfter` differs by two instructions in the
-inlined `CScene` constructor: the address argument for `MdsListSet::Initialize`
+inlined `CScene` constructor: the address argument for `CMdsListSet::Initialize`
 is prepared before the call in the draft and in the call delay slot in retail.
 
 The seven `MenuActionCharaBuffer` stacks and the other eight `mgCMemory` globals use native
@@ -223,7 +221,15 @@ array indexing and member calls use the declared C++ types.
 
 `CMosBookMenu` initializes the camera, list, and description fields in its native constructor, as in the PR7 cleanup branch. `MonsterBookInit` constructs it in `MosBookStack` and then sets its texture block and boot mode.
 
-`CMenuMosSelect` initializes its badge and message window fields in its native constructor. Its member `CActionChara` objects contain `CCharaFrameMatching` objects whose default construction is trivial; an explicitly empty `CCharaFrameMatching` constructor introduces two calls to `Initialize__19CCharaFrameMatchingFv` in `MenuMonsterBoxInit` that are absent from PAL. The constructor is inlined into `MenuMonsterBoxInit` at inline depth 3, matching the PAL constructor sequence and null branch exactly.
+`CMenuMosSelect` initializes its badge and message window fields in its native
+constructor. Its two `CActionChara` members contain `CCharaFrameMatching`
+objects. The explicitly empty frame-matching constructor adds two constructor
+calls absent from PAL; each character also retains its explicit
+`Initialize__19CCharaFrameMatchingFv` call. The menu constructor is inlined
+into `MenuMonsterBoxInit` at inline depth 3. Removing the shared empty
+frame-matching constructor gives an exact function and isolated PAL image.
+The current shared header retains that constructor, so the function remains
+guarded in this lane.
 
 `SetMenuLoadItemNo` reads Max's or Monica's five `CHARA_DATA::equip` item numbers. For the ridepod, the displayed order is parts 3, 0, 1, an empty slot, and part 2. Typed access to `ROBO_DATA::parts` and `CGameDataUsed::item_no` preserves its exact PAL object code.
 
@@ -296,3 +302,15 @@ drafts; the nested switch in `KeyChangeMain` itself was well formed.
 This preserves the existing 18-word register-allocation difference. Moving
 the buffer declaration before alignment and reversing the explicit rounding
 addition operands do not correct the allocation.
+
+The guarded `EnterDataMenu` draft uses the texture block loaded from base
+menu offset 0x18 for texture registration, repair setup, and reload. Its
+script pointer and script length are base fields at 0x8 and 0xc, rather than
+the party-change state at 0x118/0x11c. The NPC reset includes offset 0x23c.
+Capturing the texture manager and initial texture block follows retail's
+reads before the pack lookup. These corrections reduce the draft difference
+from 370 to 331 of 388 words; the body remains guarded.
+
+See [the October 8 lane assessment](round2.md) for the remaining function
+scores, concrete park triggers, shared constructor proposal, and validation
+receipts.

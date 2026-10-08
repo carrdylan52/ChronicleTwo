@@ -1009,8 +1009,10 @@ void CMenuChrCngMenu::AttachForm() {
 #ifdef NONMATCHING
 void CMenuChrCngMenu::EnterDataMenu(u_char *pack) {
     u_int *files = (u_int *) pack;
-    mgTexManager.EnterIMGFile((u_char *) GetPackFile(files, at_1276__3, NULL),
-                              party_member, NULL, NULL);
+    mgCTextureManager *tex_manager = &mgTexManager;
+    int block = tex_block[0];
+    tex_manager->EnterIMGFile((u_char *) GetPackFile(files, at_1276__3, NULL),
+                              block, NULL, NULL);
     int    size;
     u_int *cfg = GetPackFile(files, at_1277__3, &size);
     if (MenuCharaChangePosDataCfgBuffer == 0 && cfg != NULL) {
@@ -1018,12 +1020,12 @@ void CMenuChrCngMenu::EnterDataMenu(u_char *pack) {
         MenuDataAnalyze((char *) cfg, size, &MenuChangeMemory);
     }
     MenuRepairMan->Initialize();
-    MenuRepairMan->SetRepairData(&MenuChangeMemory, party_member, files);
-    unk_118 = (int) GetPackFile(files, at_1278__3, (int *) &open_wait);
-    MenuCharaChangeStar_Tex = mgTexManager.GetTexture(at_1279__4, -1);
-    MenuCharaChangeBase_Tex = mgTexManager.GetTexture(at_1280__3, -1);
+    MenuRepairMan->SetRepairData(&MenuChangeMemory, block, files);
+    script = (char *) GetPackFile(files, at_1278__3, &script_size);
+    MenuCharaChangeStar_Tex = tex_manager->GetTexture(at_1279__4, -1);
+    MenuCharaChangeBase_Tex = tex_manager->GetTexture(at_1280__3, -1);
     MenuCharaChangeCLUT = palette.clut;
-    mgTexManager.ReloadTexture(party_member, (sceVif1Packet *) NULL);
+    tex_manager->ReloadTexture(block, (sceVif1Packet *) NULL);
     if (MenuCharaChangeCLUT_Tex == NULL) {
         MenuCharaChangeCLUT_Tex = new (MenuChangeMemory.Alloc(9)) mgCTexture;
     }
@@ -1085,6 +1087,7 @@ void CMenuChrCngMenu::EnterDataMenu(u_char *pack) {
     for (int i = 0; i < 4; i++) {
         npc_cmd_mes[i] = 0;
     }
+    unk_23C = 0;
     party_info = NULL;
     npc_data = NULL;
     npc_no = MenuUserDataManPtr->NowPartyCharaID();
