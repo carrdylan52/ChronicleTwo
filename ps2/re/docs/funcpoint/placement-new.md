@@ -2,10 +2,12 @@
 
 ## Result
 
-The tested natural constructor forms do not reproduce both retail allocation
-sequences. Keep `Add__14CFuncPointMngrFiP9mgCMemory` and
-`NewTexAnimeData__15mgCTextureAnimeFP9mgCMemory` guarded. No source transformation
-or shared-header patch is validated for other units.
+Keep `Add__14CFuncPointMngrFiP9mgCMemory` and
+`NewTexAnimeData__15mgCTextureAnimeFP9mgCMemory` guarded. Their constructor
+chains still lack an evidenced statement-shaped replacement preserving the
+retail operations. Natural initialization loops in `CShopMenu` and
+`CSaveMenuClass` now reproduce and promote their retail callers; see
+[Constructor inline classification](#constructor-inline-classification).
 
 The retained natural drafts are:
 
@@ -623,3 +625,198 @@ disassembly, decoded PCode layouts and breakpoint signatures. The private
 driver and readable `.frontend.txt` / `.pcode.txt` summaries accompany those
 receipts. Hypotheses and failures of private diagnostics are recorded in
 `.private/experiments-placenew-sf.md`.
+
+## Constructor inline classification
+
+The constructor lane starts at `9e85e5f8def6c50708e6dfd3bf5ce52551077e37`
+with i15 as its acceptance baseline. Compiler, SF profile and image remain
+unchanged. Static decoding of `0x465030`, signature-checked dynamic cases,
+and two accepted natural constructor loops establish the rules below.
+These are properties of the pinned MWCC 3.0-011126 image, not selectors for
+compiler hooks.
+
+### Exact classifier rule
+
+The signature gate returns **0**, rather than 3, for variadic functions,
+indirectly returned classes with a registered destructor, and by-value class parameters with a registered
+destructor. At `0x46503F`, `0x4590E0` tests the result-passing convention.
+`0x45EF30` searches the class members for the interned `__dt` name from
+`0x57AB54`. Variadic and terminal argument markers are checked at
+`0x465078` and `0x465086`. Classes with constructors but no destructor are
+not rejected by this test. The result-convention query is boolean: a true
+result rejects the return only when its type is kind 5 and destructor lookup
+succeeds. The dynamic corpus distinguishes both cases.
+
+For eligible signatures, the classifier starts at **6** and walks the
+already lowered linked statement list. The exact body rule is:
+
+```text
+class = 6
+for each statement:
+    if DWORD(statement + 0x12) != 0:
+        return 3
+    if kind == 4:                         # expression statement
+        continue
+    if kind == 8:                         # return statement
+        if next != NULL:
+            class = 3
+        else if expression == NULL and return_type != canonical_void:
+            class = 3
+        continue
+    class = 3
+return class
+```
+
+`0x4650B1` reads a **DWORD**, not a byte, at statement+0x12. The local-object
+case with a destructor has nonzero cleanup-associated metadata there;
+ordinary scalar, aggregate and constructor-only locals do not. Its full
+internal metadata layout is not required to distinguish the decision.
+The jump table at `0x5376E4` maps kinds 4/5/6/7/8 to
+`0x4650EC/0x4650EA/0x4650EA/0x4650EA/0x4650D3`. Thus expression statements
+are accepted, switch and conditional statements are not, and return has the
+special final-statement rule. Every other kind also selects 3, including
+labels (2), jumps (3) and any retained scope marker. The classifier does not
+recursively inspect expression kinds inside an ordinary expression statement.
+
+### Dynamically verified source forms
+
+The private corpus records classifier entry/exit, statement kinds, metadata,
+and inline-info reads. Its allocated code/data sections are identical to an
+independently compiled plain-wibo control. Each row describes retained
+frontend statements; source syntax can already have been simplified.
+
+| Body form | Class | Dynamic evidence |
+| --- | --- | --- |
+| Empty constructor; one assignment; several assignments | 6 | `Empty`, `Single`, `Sequence`: only kind 4 and the final synthesized kind 8. |
+| Scalar local, uninitialized scalar local, ordinary local array, nested braces/local scope | 6 | `LocalScalar`, `LocalUnused`, `LocalArray`, `NestedBlocks`, `LocalScope`: declarations introduce no rejected statement. |
+| Aggregate local initialization/copy; value-initialized aggregate member | 6 | `LocalAggregate`, `MemberAggregate`; generated assignment also remains class 6. |
+| Local with constructor but no destructor | 6 | `LocalCtorOnly`: constructor call and assignment are kind 4. |
+| Local requiring a destructor | 3 | `LocalLifetime`: a kind-4 statement has nonzero +0x12 metadata; returns through `0x4650BC`. |
+| One or multiple out-of-line void calls | 6 | `VoidCall`, `TwoVoidCalls`: kind 4. A call sequence alone is not sufficient. |
+| Final `return;` in void function or constructor; final value return | 6 | `FinalVoidReturn`, `BareReturn`, `FinalValueReturn`. Constructor return is lowered to a return of `this`. |
+| Multiple/early returns with retained control flow | 3 | `EarlyReturn`, `MultipleReturns`: conditional/label statements and nonfinal returns. |
+| `for`, `while`, `do` initialization loops | 3 | `ForLoop`, `WhileLoop`, `DoLoop`: kinds 2/3/6 in addition to expressions. |
+| `if`/`else`; `switch` | 3 | `IfBody` has kinds 7/2/3; `SwitchBody` has kind 5 and labels/jumps. |
+| Ternary or logical expression inside an assignment/expression statement | 6 | `Ternary`, `Logical`, `TernaryStatement`, `LogicalStatement`; their control is still inside expressions. |
+| Constructor calls inline method containing a loop | Constructor 6; method 3 | `NestedLoop::Initialize`: its class-3 read requests conversion of the enclosing new-expression. Original IR then has allocation assignment inside the guard. |
+| Constructor calls inline straight-line method | Both 6 | `NestedSequence` and its `Initialize`. |
+| Nontrivial member array, including declared extent 1 | 3 | `MemberArray`, `MemberArrayOne`: automatically generated element-construction loop. Scalar member (`MemberSingle`) stays 6. |
+| Uninitialized trivial member array | 6 | `MemberTrivialArray`: no generated element-construction statements. |
+| Variadic signature; by-value/returned class with destructor | 0 | `VaFunction`, `DestructorByValue`, `ReturnWithDestructor`: signature gate, not statement conversion. |
+| By-value/returned class with constructors but no destructor | 6 | `ConstructedByValue`, `ReturnConstructed`; destructor lookup, not mere nontrivial construction, controls this gate. |
+
+A `return;` followed by unreachable source statements is not automatically
+class 3: the `NonFinalVoidReturn` control loses those statements before the
+classifier and remains 6. Adding syntax without knowing the retained IR is
+not a reliable classification test.
+
+The constructor's initial class is not the only relevant input. An inlined
+callee's class-3 read at `0x462FA0` sets the conversion request even while an
+outer class-6 constructor is being expression-inlined. The statement walker
+then converts the entire enclosing expression. Conversely, a loop in an
+out-of-line or virtual initialization method does not automatically propagate
+that request. `CMenuMoveItem` is a real existing class-3 example: its two
+`CGameDataUsed` members produce a compiler-generated construction loop before
+its ordinary `Initialize()` call. No extra source-level control flow is needed.
+A scalar field must not be changed into an unsupported singleton array solely
+to obtain that compiler behavior.
+
+Private evidence: `.private/placenew-ctor/classifier.cpp`,
+`classifier-final/{trace.json,trace.o,plain.o,equivalence.json}`,
+`static/{classifier.txt,classifier-jump-table.txt}`, and the extended
+`trace_driver.py`. The predecessor's hash/signature checks and SF state seeds
+are retained; additional classifier hooks only observe memory. This does not
+justify a new compiler policy.
+
+### Accepted constructor changes
+
+Both changes replace genuine homogeneous member-array initialization, with
+no extra stores, calls, branches surviving optimization, or semantic no-ops.
+The source loops fully unroll to the retail stores; both constructors read
+class 3 and take early conversion.
+
+| Constructed type / header | Real initialization loop | Native caller / evidence | Promotion |
+| --- | --- | --- | --- |
+| `CShopMenu`, `menushop.hpp` | `arrow_flash[2] = 0`, ascending +0x1D0/+0x1D4 stores | `MenuShopInit`: 281/312 to 0/312 words, exact relocation kinds. Retail +0x58 `beqz v0`, +0x5C `move s1,v0`. Body 0x4D4 plus retail zero tail to 0x4E0. | `MenuShopInit__FP9mgCMemoryPii` |
+| `CSaveMenuClass`, `menuop.hpp` | `slot_form[2] = NULL`, ascending +0x17C/+0x180 stores | `MenuSaveInit`: 245/424 to 0/424 words, exact relocation kinds and 0x6A0 size. Retail +0x68 `beqz v0`, +0x6C `move s0,v0`. | `MenuSaveInit__FP9mgCMemoryPii` |
+
+The large baseline word counts include instruction shifts beyond the guard;
+they do not mean there were hundreds of independent semantic differences.
+Only the promoted caller changes in each complete native draft comparison.
+Plain-wibo `draft.sh --diff` checks also have zero differences; canonical
+full-unit/object and linked-image checks provide the acceptance evidence.
+Each header change and its manual guard removal are committed together.
+No promotion script or ledger mutation is used.
+
+### Small targets: constructor chains and parks
+
+| Target | Constructed type / chain | Retail construction and remaining trigger |
+| --- | --- | --- |
+| Funcpoint `Add(int, mgCMemory*)`, 2/40 | `CList<CFuncPoint>`; `CFuncPoint` in `mapload.hpp` contains `mgCFrame` | List vptr at node+0x1D0, frame constructor at node+0x80, virtual list initialization. Point initialization remains after the second caller null guard. No constructor array initialization to replace. Reconsider on evidenced statement-shaped list/data construction retaining these calls. |
+| Editmap WATER/MASK/RIVER, 2/72, 2/96, 2/104 | `CMapPiece : CObjectFrame : CObject : mgCObject` | Four vptr writes and virtual initialization calls, with no inline member-array stores. Reconsider on a real statement-shaped body preserving all four calls; do not move the material loop out of virtual initialization. |
+| Editeff `EditSetPlaceAnime`, 2/156 | `CMapParts : CObject : mgCObject`, embedded frame/point manager | Existing base/derived virtual initialization, frame construction, manager construction/initialization and check-time clear. No homogeneous inline array initialization. Reconsider on corresponding source/type evidence, retaining this order. |
+| Menuchr `KeyStep`, `LoadBGNPCModel`, `LoadMenuData`, 2/340, 2/120, 2/228 | `CActionChara : CCharacter2 : CObjectFrame : CObject : mgCObject` | Base vptr/virtual calls; shadow-link scalar clears +0x35C/+0x364/+0x360; character virtual initialization; action vptr, `CRunScript` constructor +0x6BC and `memset(move_check,0,0x110)` at +0x910. Reconsider on a real statement body preserving those operations. Aggregate shadow-link initialization remains class 6; the real move-check helper only wraps the same memset. |
+| Mg_tanime `NewTexAnimeData`, 6/32 | `CList<mgCTexAnimeData>` | Out-of-line data constructor and virtual list initialization; no genuine constructor array loop. Separate success-only saved-result lifetime remains unresolved. Reconsider on an evidenced early-conversion shape preserving both calls and the null-path result. |
+
+The DC1 checkout was read only. It has no exact `CList`, `CActionChara`,
+`CCharacter2` or `mgC*` definitions under these names. Its analogous
+`CCharacter`, `CObjectFrame`, `CObject`, `CFrame` and `CMapParts` constructors
+corroborate ordinary initialization calls, with array loops inside separate
+initialization methods. They do not establish hidden DC2 constructor loops.
+DC1's `CWater` has the same four color values and defaults, but a different
+class layout. A private DC2 color-loop replacement preserves every water
+function's text and leaves `CreateWaterFrame` at 82/104 words: that caller
+still calls `CWater` out of line. No water source change is retained.
+
+### Larger target map and reconsideration
+
+The shared-engine parks below have no supported header-loop replacement in
+this lane. A change needs real constructor operations/type evidence and then
+zero canonical differences; fixing one allocation guard alone is insufficient
+for the broader caller drafts.
+
+| Targets | Constructed types / remaining boundary |
+| --- | --- |
+| Inventmn `LoadCharaCheck`, `MenuInventInit`, `IsCreateObject`; menusys `MenuModeMalloc`, `IsAskExtend`; title `TitleBootInit`; menudraw `GeneratePoly` | `CActionChara` chain above. Inventory's `CMenuInvent`/`CMenuMoveItem` already use A; unrelated caller differences remain. |
+| Fishing's three parks; mdslist `CreateChara`/`Copy`; sceneload `LoadChara`/`CopyChara`; event_func character-copy and effscript character-allocation parks | `CCharacter2` chain. Existing virtual initialization calls preclude replacing their hidden array loops with inline stores. Sceneload's edit-map construction has a separate layout/order park. |
+| Menuop `MenuManualInit`; menushop `MenuNPCQuestViewInit` | `CManualMenu`/`CMenuQuestView` over `CBaseMenuClass`. No supported homogeneous ctor-array replacement; base construction calls remain. Save-menu `KeyStep` is a separate stack/control-flow park. |
+| Menuaqua `SettingAqua` | POD bubbles, `CCharacter2`, and delegated water creation. The genuine character construction has the same chain park. |
+| Dngmenu `DngTreeMapInit` | `CMenuTreeMap` over `CBaseMenuClass`, embedded `CDC2Mes[8]` and floor-map state. Its member-array construction already provides statement structure; owning lane must resolve its remaining caller/constructor details. |
+| Scenevillager allocation; mg_dataset `CreateFrameVisual` | `mgCFrameAttr`; the latter also constructs MDT visual/shadow subclasses of `mgCVisual`. Out-of-line/virtual initialization boundaries remain; moving loops into headers would alter the retail call sequence. |
+| Dynamicanime `dynCOLLISION` | `CDAColPipe : CDACollision`, virtual initialization calls. No inline array clear is evidenced. |
+| Water `CreateWaterFrame` | Inline `CWaterFrame : mgCFrame`, out-of-line `mgCFrameAttr`/`CWater`, trivial bound record. The private color loop cannot change the inlined frame guard. |
+| Menusys `MenuItemSelectInit` | `CItemSelect : CBaseMenuClass`, separate rectangle members. Constructor/caller operation boundaries need further evidence; no genuine homogeneous member array. |
+| Menumain `MenuMainInit` | `MENU_DRAW_ENV` with camera, `CMenuPosDataManage`, `CMenuKeyFunc`, `CDC2Mes`. No new ctor-array replacement; implicit member construction must preserve its existing calls. |
+| Menudraw constructor gaps; event_func effect-manager and effscript script parks | Existing rectangle/texture constructors, `CEffectScriptMan` with `mgC3DSprite : mgCVisual`, `CRunScript`, and POD script bases. Out-of-line calls and independent constructor/caller differences remain. |
+
+No menuchr or dngmenu guard removal is handed off from these two header
+changes. Their source files remain identical to lane entry, as do dng_main,
+the SF profile, and the promotion ledger.
+
+### Full acceptance and hash evidence
+
+| Receipt state | Coverage matched / guarded / asm-only / fuzzy | Full-file object hashes changed from previous accepted state | Allocated-section changes |
+| --- | --- | --- | --- |
+| i15 / lane baseline | 6681 / 174 / 15 / 2 | Baseline inventory of all 149 | Baseline |
+| Shop header, guards still active | 6681 / 174 / 15 / 2 | None of 149 | None |
+| Shop header + native promotion | 6682 / 173 / 15 / 2 | Only `menushop.cpp.o` | None of 149 |
+| Save header + native promotion | 6683 / 172 / 15 / 2 | Only `menuop.cpp.o` | None of 149 |
+
+Against lane baseline, exactly `menuop.cpp.o` and `menushop.cpp.o` change
+full-file SHA-256. All allocated sections remain identical in all 149 objects;
+the complete checker validates resolved relocations. Every old matched
+function remains matched, the two named guards become matched, and no other
+coverage row changes. Both accepted full builds retain i15's **0x26-byte .text
+difference**, with other sections, main and BSS/memory end OK. Complete
+objects remain **147/149**, with exactly the same single problems:
+`nd_meswin / DrawMesWin__6ClsMesFv` at 0x0015C5AD and
+`actscript / _SHOT__FP12RS_STACKDATAi` at 0x002D5DB2.
+
+All 149 full SHA-256 inventories, allocated-section inventories, build/check
+logs, coverage rows, and exact promotion diffs are under
+`.private/receipts/ctor-final/{baseline,shop-loop,shop-promoted,save-promoted}/`.
+`summary.json` records the two complete before/after hashes, unchanged problem
+lists, protected-file audit, zero lost matches and empty coordinator-removal
+list. Hypotheses and diagnostic failures are logged in
+`.private/experiments-placenew-ctor.md`. No private tools/artifacts or generated
+directories are part of the commits.

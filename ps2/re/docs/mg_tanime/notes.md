@@ -216,3 +216,21 @@ original/optimized/expanded IR, PCode and canonical text comparison) and
 The lane's canonical image retains i13's three unrelated object failures
 (146/149); all sections except the known 0x2c-byte .text difference pass,
 and coverage remains 6,677 matched / 175 guarded / 15 asm-only / 5 fuzzy.
+
+## Constructor-classification follow-up (2026-10-08)
+
+The constructor lane decodes the exact statement classifier and validates real
+array-initialization loops for `CShopMenu` and `CSaveMenuClass`. An inline
+callee with statement class 3 can also request conversion while its enclosing
+constructor still has class 6. Ordinary locals, aggregate initialization,
+void-call sequences and final `return;` remain class 6; locals requiring a
+destructor use cleanup metadata and select class 3, while destructible by-value
+signatures can instead be ineligible (class 0).
+
+No corresponding array initialization exists in `CList<mgCTexAnimeData>`'s
+retail construction sequence. Its data constructor and virtual list
+initialization must remain; adding a destructor-bearing local or artificial
+control flow supplies no original-source evidence. `NewTexAnimeData` therefore
+retains its existing guard and separate result-lifetime park. Full classifier
+cases, constructor-chain comparison and i15 acceptance receipts are in
+[Constructor inline classification](../funcpoint/placement-new.md#constructor-inline-classification).
