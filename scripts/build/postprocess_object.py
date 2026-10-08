@@ -925,8 +925,10 @@ def name_literal_data(elf, unit, placeholders, *, retail=None, pieces=None, addr
                 if actual == entries and start in cuts:
                     found.append(start)
                 offset = contents.find(data, offset + 1)
-        # Ambiguous literals use existing code or named-data reference evidence.
-        if len(found) != 1:
+        # Known consumers constrain identity even when extents would leave one
+        # byte candidate. Without reference evidence, exact declared sizes may
+        # distinguish a literal from the prefix of a larger initialized object.
+        if found:
             targets = set()
             for record in elf.relocations:
                 base = code_starts.get(record.sh_info)
@@ -972,9 +974,15 @@ def name_literal_data(elf, unit, placeholders, *, retail=None, pieces=None, addr
                         continue
                     addend = struct.unpack_from('<I', contents, entry.r_offset)[0]
                     targets.add(retail.word(base + entry.r_offset) - addend - target.st_value)
-            if len(targets) != 1 or not targets.issubset(found):
-                continue
-            found = list(targets)
+            if targets:
+                if len(targets) != 1 or not targets.issubset(found):
+                    continue
+                found = list(targets)
+            else:
+                found = [start for start in found
+                         if declared_sizes.get(cuts[start][0], len(data)) == len(data)]
+        if len(found) != 1:
+            continue
         start = found[0]
         name, end = cuts[start]
         if declared_sizes.get(name, len(data)) != len(data):
