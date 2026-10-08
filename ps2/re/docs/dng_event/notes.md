@@ -184,3 +184,30 @@ relocation from the primer baseline.
 `GetKeyDoorIndex` call, retaining it in f20 for `PutTreasureBox`. The stable
 binary32 zero evaluate-first selector scoped to that latter callee reproduces
 the retail order. The complete unit checks exactly:0x5440 bytes,869 relocations.
+
+## Nearmiss receiver and scratch trials
+
+Six new source hypotheses do not improve the retained 7/260 guarded draft.
+A named initial receiver with a separate assignment/null test gives 73/260;
+making the persistent map pointer const also gives 73/260. A collision-scratch
+aggregate follows retail's contiguous polygon/box/hit/result storage but emits
+0x418 bytes (retail extent 0x410), with a 0x2BD0 frame; it is reverted.
+
+Capturing the GetMap return separately, then using a combined assignment/null
+test for the persistent map and the captured pointer for GetPlacPartsTable,
+produces the retail 0x2BE0 frame without wrappers or scalar alignments. It
+still differs by 33/260 words: the entry gains a pointer spill/reload pair,
+map spills at sp+0xD0 instead of +0xD8, and the input pointers spill at
+sp+0xE8/+0xEC instead of +0xDC/+0xE0. Limiting the captured receiver to the
+initial lookup block leaves this 33-word result unchanged. Testing the fresh
+call directly and only then assigning the persistent receiver falls back to
+53/260 with the 0x2BD0 frame and one reload before GetPlacPartsTable.
+
+All trials are reverted. The natural frame-size remainder is now demonstrated
+as a pointer-lifetime effect, but promotion still requires retail return-value
+forwarding and all three pointer slots without the inherited wrappers or
+alignment attributes. Reconsider that narrower receiver-lifetime problem;
+another vector typedef or scratch aggregate has negative evidence. Receipts:
+`.private/receipts/nearmiss-probes/dng_event/n1/` through `n6/`, including
+`n5-corrected/`; the target-scoped 33-word candidate is `n6/`. No header or
+compiler-profile changes are proposed.
