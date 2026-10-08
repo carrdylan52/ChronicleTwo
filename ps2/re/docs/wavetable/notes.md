@@ -120,3 +120,23 @@ matching scalar remainder and materialization order while resolving the
 18 coefficient differences, then the nine seam differences. A zero function
 diff still requires the complete-unit linked check, full PAL verifier, and
 149-object check before promotion.
+
+## Effect compiler-policy exclusion
+
+`Effect__10CWaveTableFv` has no calls. The values 1.9216f (`0x3ff5f6fd`),
+0.0196f (`0x3ca0902e`), 0.0015f (`0x3ac49ba6`) and 0.5f (`0x3f000000`)
+feed arithmetic in the wave/seam loops, rather than a floating argument
+consumer. The evaluate-first argument policy therefore supplies no evidenced
+callee/argument correction for these differences.
+
+Canonical mwccgap builds with the default GPR `0` / FPR `0` history and with
+the measured GPR `0x30` / FPR `0` history both retain 27/324 differing words:
+18 coefficient-register differences and nine seam-addition operand reversals.
+Both check the same `0xB88` allocated bytes and 47 relocations, with Effect
+as the sole problem. There is no helper-mask improvement, and no new profile
+row is accepted.
+
+Blocker category: arithmetic expression/register allocation and bounded grid
+indexing. The guard and draft remain unchanged. Reconsider with a natural,
+bounded representation that retains retail's eight-cell/eight-row unrolling
+and explains the coefficient coloring and seam operand order together.
