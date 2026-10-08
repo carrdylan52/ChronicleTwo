@@ -107,3 +107,31 @@ identities still use reservations. Refreshed `matched_data` remains
 32,832/33,980; all 23 native functions remain exact. Final receipts are
 `07-mapselect-final-{build,objects,hashes}.log`,
 `07-mapselect-refresh.log` and `07-mapselect-metrics.json`.
+
+## Remaining guard identity and private tooling proposal
+
+Removing both guard reservations with stock tooling leaves two native
+anonymous `.sbss` pieces unidentified: the checker reports missing
+`select_1009`/`init_1010` and two unnamed pieces. The one-byte compiler guard
+occupies a four-byte retail piece; the selection is a four-byte integer.
+The natural static declaration already emits retail's exact instructions.
+The reservations preserve identity while stock postprocessing depends on
+markers. Receipt: `mapselect-guard-marker-removal-probe.log`.
+
+The shared metadata proposal is
+`.private/proposals/dataA-native-bss-identification.patch`, with the exact
+source-only removals in `mapselect-native-bss-source.patch`. Its conservative
+all-consumer validation is documented in the nameregi migration report.
+Using it on the complete private mapselect source leaves zero data markers
+and passes canonical comparison. Substituting both fully native mapselect
+and nameregi objects into a separate complete PAL link passes every section
+and BSS extent (`SCES_511.90: OK`). Receipts are
+`native-bss-both-proposal-check.log` and `native-bss-proposal-pal.log`.
+No shared tooling is modified or committed.
+
+The final refreshed coverage remains 6,752 matched, 110 guarded drafts,
+ten assembly-only and zero fuzzy functions. All 145 unowned object hashes
+match the original lane checkpoint, not merely the preceding step.
+Receipts: `08-final-refresh.log`, `08-final-coverage.log`, and
+`08-baseline-other-objects.log`. All 76 functions across this lane's four
+units remain matched. No functions are promoted by this data migration.
