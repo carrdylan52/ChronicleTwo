@@ -290,25 +290,6 @@ struct LoadWantedList {
 
 /**
  *
- * Stores the centre of a menu ring.
- *
- */
-struct RingCenter {
-    float x; /**< Horizontal centre coordinate. */
-    float y; /**< Vertical centre coordinate. */
-};
-
-/**
- *
- * Stores texture coordinates for a quadrilateral.
- *
- */
-struct QuadTexCoords {
-    float uv[4][2]; /**< Texture coordinates of its four corners. */
-};
-
-/**
- *
  * Stores a four-component camera point.
  *
  */
@@ -527,8 +508,6 @@ extern short              NowReadMainCharaMonsterNo;
 extern sceVu0FVECTOR      NowMainReadPosition;
 extern sceVu0FVECTOR      NowMainReadRotation;
 extern char               at_4868[];
-extern RingCenter         at_2371__4;
-extern QuadTexCoords      at_2372__4;
 extern char               at_1276__3[];
 extern char               at_1277__3[];
 extern char               at_1278__3[];
@@ -2859,67 +2838,69 @@ void CMenuChrCngMenu::UpdataLife() {
 }
 #ifdef NONMATCHING
 void MenuCharaChangeStarDraw() {
+    mgCTextureManager *tex_manager = &mgTexManager;
 
     if (MenuCharaChangeBase_Tex == NULL) {
         return;
     }
-    mgTexManager.ReloadTexture(MenuCharaChangeBase_Tex->block, (sceVif1Packet *) NULL);
+    tex_manager->ReloadTexture(MenuCharaChangeBase_Tex->block, (sceVif1Packet *) NULL);
+
     CMenuChrCngMenu *menu = ChrChangMenuPt;
     float            angle;
     float            size = menu->star_size;
     float            offset = size / 2.0f - 2.0f;
-    RingCenter       center = at_2371__4;
-    center.x = menu->star_x + offset;
-    center.y = menu->star_y + 1.1538461f * offset;
+    float            center[2] = {menu->star_x + offset, menu->star_y + 1.1538461f * offset};
     angle = menu->star_angle;
-    mgCDrawPrim  *prim = GetMenuPrim();
-    mgRect<int>   baseRect(0x13F, 0xC0, 0x40, 0x40);
-    QuadTexCoords crd = at_2372__4;
-    crd.uv[0][0] = baseRect.left;
-    crd.uv[3][0] = baseRect.left;
-    crd.uv[1][0] = baseRect.left + baseRect.right;
-    crd.uv[2][0] = baseRect.left + baseRect.right;
-    crd.uv[2][1] = baseRect.top + baseRect.bottom;
-    crd.uv[3][1] = baseRect.top + baseRect.bottom;
-    crd.uv[0][1] = baseRect.top;
-    crd.uv[1][1] = baseRect.top;
+    mgCDrawPrim *prim = GetMenuPrim();
+    int          i;
+
+    // The ring texture is drawn as a square fan rotated by the ring angle.
+    mgRect<int> base_rect(0x13F, 0xC0, 0x40, 0x40);
+    float       u1 = base_rect.left + base_rect.right;
+    float       v1 = base_rect.top + base_rect.bottom;
+    float       u0 = base_rect.left;
+    float       v0 = base_rect.top;
+    float       uv[4][2] = {{u0, v0}, {u1, v0}, {u1, v1}, {u0, v1}};
     SetSpriteEnv(prim, 4);
     prim->Bilinear(1);
     prim->Begin(MG_PRIM_TRIANGLE_FAN);
     prim->Texture(MenuCharaChangeBase_Tex);
     prim->Color(0x80, 0x80, 0x80, (int) ChrChangMenuPt->star_alpha);
-    for (int i = 0; i < 4; i++) {
-        prim->TextureCrd((int) crd.uv[i][0], (int) crd.uv[i][1]);
-        float x = 1.0f + (center.x + size * cosf(angle));
-        prim->Vertex(x, center.y + 1.1538461f * (size * sinf(angle)), 0.0f);
+    for (i = 0; i < 4; i++) {
+        prim->TextureCrd((int) uv[i][0], (int) uv[i][1]);
+        float x = 1.0f + (center[0] + size * cosf(angle));
+        prim->Vertex(x, center[1] + 1.1538461f * (size * sinf(angle)), 0.0f);
         angle += 1.5707964f;
     }
     prim->End();
 
-    mgRect<int> wakuRect(0x121, 0xE1, 0x1E, 0x1E);
-    float       ringSize = 0.546875f * ChrChangMenuPt->star_size;
-    float       wave = ChrChangMenuPt->star_wave;
+    // Two pairs of circles orbit opposite each other, the outer one of each pair pulsing.
+    mgRect<int> waku_rect(0x121, 0xE1, 0x1E, 0x1E);
+    float       circle;
+    float       alpha;
+    float       wave;
+    float       pulse_alpha;
+    float       y;
+    float       x;
+    size = 0.546875f * ChrChangMenuPt->star_size;
+    wave = ChrChangMenuPt->star_wave;
     angle -= 0.15707964f;
     float pulse = sinf(ChrChangMenuPt->star_pulse);
-    if (pulse < 0.0f) {
-        pulse = -pulse;
-    }
-    float pulseAlpha = 0.5f * ChrChangMenuPt->star_alpha * pulse;
-    for (int j = 0; j < 2; j++) {
-        float alpha = ChrChangMenuPt->star_alpha;
-        float circle = 60.0f + 3.0f * sinf(wave);
-        float x = ringSize * cosf(angle);
-        float y = ringSize * sinf(angle);
-        x = center.x + x;
-        mgRect<float> inner(x - 0.5f * circle, 6.0f + (center.y + 1.1538461f * (y - 0.5f * circle)), circle,
-                            circle);
-        DrawWakuCircle(prim, MenuCharaChangeBase_Tex, inner, wakuRect, wave, ringSize, (int) alpha, 0x80, 0x80,
-                       0x80);
+    pulse_alpha = 0.5f * ChrChangMenuPt->star_alpha * (pulse < 0.0f ? -pulse : pulse);
+    for (i = 0; i < 2; i++) {
+        alpha = ChrChangMenuPt->star_alpha;
+        circle = 60.0f + 3.0f * sinf(wave);
+        x = size * cosf(angle);
+        y = size * sinf(angle);
+        DrawWakuCircle(prim, MenuCharaChangeBase_Tex,
+                       mgRect<float>(center[0] + x - 0.5f * circle,
+                                     6.0f + (center[1] + 1.1538461f * (y - 0.5f * circle)), circle, circle),
+                       waku_rect, wave, size, (int) alpha, 0x80, 0x80, 0x80);
         circle *= 1.4f;
-        mgRect<float> outer(x - 0.5f * circle, 6.0f + (center.y + 1.1538461f * (y - 0.5f * circle)), circle,
-                            circle);
-        DrawWakuCircle(prim, MenuCharaChangeBase_Tex, outer, wakuRect, wave, ringSize, (int) pulseAlpha, 0x80, 0x80,
-                       0x80);
+        DrawWakuCircle(prim, MenuCharaChangeBase_Tex,
+                       mgRect<float>(center[0] + x - 0.5f * circle,
+                                     6.0f + (center[1] + 1.1538461f * (y - 0.5f * circle)), circle, circle),
+                       waku_rect, wave, size, (int) pulse_alpha, 0x80, 0x80, 0x80);
         angle += 3.1415927f;
         wave += 3.1415927f;
     }
@@ -2927,20 +2908,19 @@ void MenuCharaChangeStarDraw() {
     if (MenuCharaChangeStar_Tex == NULL) {
         return;
     }
-    mgTexManager.ReloadTexture(MenuCharaChangeStar_Tex->block, (sceVif1Packet *) NULL);
-    mgRect<short> starRect(0, 0x20, 8, 8);
+    tex_manager->ReloadTexture(MenuCharaChangeStar_Tex->block, (sceVif1Packet *) NULL);
+    mgRect<short> star_rect(0, 0x20, 8, 8);
     prim->Begin(MG_PRIM_SPRITE);
     prim->Texture(MenuCharaChangeStar_Tex);
-    for (int k = 0; k < CHR_CNG_STAR_NUM; k++) {
-        CHR_CNG_STAR *star = &ChrChangMenuPt->star[k];
-        if (star->alpha > 0.0f) {
-            float starX = star->x + ChrChangMenuPt->star_x;
-            float starY = star->y + ChrChangMenuPt->star_y;
-            prim->Color(0x80, 0x80, 0x80, (int) star->alpha);
-            prim->TextureCrd(starRect.left, starRect.top);
-            prim->Vertex(starX, starY, 0.0f);
-            prim->TextureCrd(starRect.left + starRect.right, starRect.top + starRect.bottom);
-            prim->Vertex(starX + starRect.right, starY + starRect.bottom, 0.0f);
+    for (i = 0; i < CHR_CNG_STAR_NUM; i++) {
+        if (0.0f < ChrChangMenuPt->star[i].alpha) {
+            float star_x = ChrChangMenuPt->star[i].x + ChrChangMenuPt->star_x;
+            float star_y = ChrChangMenuPt->star[i].y + ChrChangMenuPt->star_y;
+            prim->Color(0x80, 0x80, 0x80, (int) ChrChangMenuPt->star[i].alpha);
+            prim->TextureCrd(star_rect.left, star_rect.top);
+            prim->Vertex(star_x, star_y, 0.0f);
+            prim->TextureCrd(star_rect.left + star_rect.right, star_rect.top + star_rect.bottom);
+            prim->Vertex(star_x + star_rect.right, star_y + star_rect.bottom, 0.0f);
         }
     }
     prim->End();

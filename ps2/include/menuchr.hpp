@@ -887,7 +887,7 @@ void AdjustNPCTalk(CDC2Mes *mes, CCharacter2 *npc);
  *
  * @mangled MenuCharaChangeStarDraw__Fv
  * @address 0x2B8B90
- * @size 0x5C0
+ * @size 0x5BC
  */
 void MenuCharaChangeStarDraw();
 
