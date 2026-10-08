@@ -7758,7 +7758,6 @@ void MenuItemDebugDraw(void) {
     mgCDrawPrim        prim;
     CGameDataUsed     *weapon = CMenuItemInfoPt->view_weapon;
     char               text[0x100];
-    int                count;
     switch (CMenuItemInfoPt->key_arg_no) {
         case 2: {
             tex_manager->ReloadTexture(MenuCommonInfo->tex_block[1], (sceVif1Packet *) NULL);
@@ -7865,7 +7864,7 @@ void MenuItemDebugDraw(void) {
             }
             break;
         }
-        case 3: {
+        case 3:
             DrawMenuFillBox(236.0f, 60.0f, 230.0f, 200.0f, 0x80, 0, 0, 0);
             DebugPrint(font, at_6781, 236, 60);
             DebugPrint(font, at_6782, 236, 80);
@@ -7877,7 +7876,8 @@ void MenuItemDebugDraw(void) {
             int  attribute = MenuUserDataManPtr->GetCharaStatusAttirbute(CMenuItemInfoPt->sub_view);
             char status[0x100] = "Status : ";
             int  count = 0;
-            for (int i = 0; i < 6; i++) {
+            int  i;
+            for (i = 0; i < 6; i++) {
                 if (attribute & (1 << i)) {
                     if (count == 3) {
                         strcat(status, at_6788);
@@ -7888,7 +7888,6 @@ void MenuItemDebugDraw(void) {
             }
             DebugPrint(font, status, 236, 200);
             break;
-        }
         case 4: {
             DrawMenuFillBox(236.0f, 60.0f, float(230.0), 300.0f, 0x80, 0, 0, 0);
             DebugPrint(font, at_6789, 236, 60);
@@ -7901,7 +7900,7 @@ void MenuItemDebugDraw(void) {
                 sprintf(text, at_6793, (int) weapon->data.weapon.abs.now, (int) weapon->data.weapon.abs.max);
                 DebugPrint(font, text, 336, 120);
                 CheckBuildUp(weapon, NULL, build_item, NULL);
-                for (int i = 0; i < 3; i++) {
+                for (i = 0; i < 3; i++) {
                     build_name[i] = GetItemMessage(build_item[i]);
                 }
             }
@@ -7931,7 +7930,7 @@ void MenuItemDebugDraw(void) {
             DebugPrint(font, at_6805, 236, 120);
             char special[0x100];
             special[0] = '\0';
-            count = 0;
+            int count = 0;
             for (int i = 0; i < 12 && stchar_6508[i] != NULL; i++) {
                 if (weapon->data.weapon.special & (1 << i)) {
                     strcat(special, stchar_6508[i]);
