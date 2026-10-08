@@ -157,8 +157,10 @@ constructor body before changing its current inline request. Transitive latent
 constructions, unsupported indirect calls, body forms, and cleanup metadata reject
 conservatively. An empty void return is accepted only as a metadata-free latent
 body record with the canonical void return type. The audit treats its expression
-graph as empty. The ordinary statement-return copier has a verified NULL path;
-the generic expression-body copier does not.
+graph as empty. The ordinary statement-return copier has a verified NULL path.
+The ordinary expression inliner also tests a kind-8 return's expression for
+NULL before invoking its generic copier; the generic copier itself has no
+NULL guard. The retained empty-return regression exercises these caller checks.
 
 Internal pointer bookkeeping has compiler-arena epochs. A measured AST arena
 reset requires all active conversions and exact identity witnesses to have
@@ -205,3 +207,44 @@ Image build logs are `image-pnN.log`; the pinned original Git-fetch stage remain
 cached in each build. Only this lane's new pn1 through pn13 tags were created;
 none of the existing tags or remote Git refs was changed. Private global probes
 are retained as receipts and are not part of the committed production patch.
+
+## Retained-body and shared-ancestor regressions
+
+The pn14 patch adds genuine compiler fixtures for retained cleanup metadata
+and an empty void return, plus a pure AST test for a shared ancestor containing
+a construction. No production policy logic changes in this test extension.
+All 30 Rust unit/config tests pass during the image build. The genuine pinned
+3.0 suite passes 12 tests; the existing dual-compiler test remains excluded
+because this lane has no 2.3 executable. Receipt:
+`.private/pntc/receipts/semantic-pn14-tests.log` and `.exit`.
+
+The cleanup fixture has a class-6 selected constructor calling an inline
+helper with a real automatic object and destructor. Observational LLDB reads
+confirm nonzero cleanup metadata in its retained records. Both policy timings
+reject specifically at that metadata audit, preserve the destination sentinel
+and leave no temporary object. This tests the cleanup restriction directly,
+rather than reaching a class-3 eligibility failure first.
+
+The void fixture's class-6 constructor calls `notify()`, which retains a
+kind-4 direct side-effect expression followed by a kind-8 NULL return,
+metadata zero and canonical void result type 0x531F90. Both timings complete
+one selected construction and publish an ELF object. Raw dispatch table
+0x536F54 is indexed by record kind minus four and contains
+`[0x4630A3, 0x4630D4, 0x4630D4, 0x4630D4, 0x463040]`.
+Kind eight therefore takes the NULL-tested return path at 0x463040; earlier
+private review notes reversed this mapping and are corrected. The production
+audit remains consistent with the actual supported empty-return behavior.
+
+The AST test shares a unary ancestor containing a kind-3A construction,
+rather than sharing the construction node directly. It verifies propagation
+of construction-bearing status to ancestors. A matching graph with a leaf
+instead of the construction supplies the construction-free sharing control.
+Evidence and exact raw-body observations are indexed in
+`.private/pntc/selector-review/regression-notes.md`.
+
+pn14's production wrapper SHA-256 is
+`8f506132538b65e828c5677d21d218b898fe8206ee276075240ff1f653790f67`.
+Its hash differs from pn13 despite this being a test-only source extension;
+wrapper hash equality is not asserted. Real compiler behavior and complete
+game artifacts provide the equivalence checks. The image's pinned Git-fetch
+layer is cached; no Git network operation is executed.

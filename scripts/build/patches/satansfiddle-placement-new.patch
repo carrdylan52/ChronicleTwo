@@ -182,7 +182,7 @@
  #[path = "../tests/compile_sample/mod.rs"]
 --- a/src/placement.rs
 +++ b/src/placement.rs
-@@ -0,0 +1,556 @@
+@@ -0,0 +1,584 @@
 +//! A transactional, identity-checked request for MWCC's ordinary scalar-new
 +//! statement conversion. No constructor metadata or generated code is patched.
 +use crate::{compiler::Compiler, config::{self, PlacementConversion}, hooks};
@@ -738,10 +738,38 @@
 +        bytes[128+0x18..128+0x1c].copy_from_slice(&64u32.to_le_bytes());
 +        assert!(walk_constructions(64, |a,s| Ok(bytes[a as usize..a as usize+s].to_vec())).is_err());
 +    }
++
++
++    #[test]
++    fn shared_construction_ancestor_is_rejected_but_empty_ancestor_is_allowed() {
++        let mut bytes = vec![0u8; 2048];
++        let mut node = |address: usize, kind: u8, children: &[(usize, u32)]| {
++            bytes[address] = kind;
++            for &(offset, child) in children {
++                bytes[address + offset..address + offset + 4].copy_from_slice(&child.to_le_bytes());
++            }
++        };
++        // Both paths share the unary ancestor, rather than the construction itself.
++        node(64, 0x29, &[(0x18, 128), (0x1c, 128)]);
++        node(128, 0x00, &[(0x18, 256)]);
++        node(256, 0x3a, &[(0x18, 512), (0x1c, 768)]);
++        node(512, 0x38, &[]);
++        node(768, 0x32, &[]);
++        let error = walk_constructions(64,
++            |address, size| Ok(bytes[address as usize..address as usize + size].to_vec()))
++            .unwrap_err();
++        assert!(error.to_string().contains("shared construction-bearing placement expression subtree"));
++
++        // Sharing the same composite subtree is safe once it contains only a leaf.
++        bytes[256] = 0x32;
++        assert!(walk_constructions(64,
++            |address, size| Ok(bytes[address as usize..address as usize + size].to_vec()))
++            .unwrap().is_empty());
++    }
 +}
 --- a/tests/compiler_cli.rs
 +++ b/tests/compiler_cli.rs
-@@ -835,3 +835,265 @@
+@@ -835,3 +835,344 @@
              .then(|| code[index.saturating_sub(8) * 4..((index + 2) * 4).min(code.len())].to_vec())
      }).collect()
  }
@@ -1006,6 +1034,85 @@
 +    assert!(!result.status.success());
 +    assert!(String::from_utf8_lossy(&result.stderr).contains("matched 0"));
 +    assert_eq!(fs::read(&output).unwrap(),b"original object sentinel");
++}
++
++
++#[test]
++#[ignore = "requires SATANSFIDDLE_TEST_COMPILER_300 plus debug-symbol wibo"]
++fn real_placement_retained_cleanup_metadata_is_not_published() {
++    let compiler = PathBuf::from(env::var_os("SATANSFIDDLE_TEST_COMPILER_300").unwrap());
++    let work = Workspace::new();
++    let input = work.0.join("placement.cpp");
++    let config = work.0.join("config.json");
++    let source = r#"void *operator new(unsigned int, void *);
++extern void consume(void *);
++extern void side_effect();
++struct Life { Life(); ~Life(); };
++inline int clean(int v) { Life local; consume(&local); return v; }
++struct Thing { int value; Thing() : value(clean(7)) {} };
++
++int selected(void *p, int value) {
++    Thing *object = new(p) Thing;
++    consume(object);
++    return object->value + value;
++}
++"#;
++    fs::write(&input, source).unwrap();
++    // The selected Thing constructor is class 6. Its direct clean(int) callee
++    // is class 3 with retained cleanup records, so eligibility is not the failure.
++    for timing in ["before_constructor_inline", "after_constructor_inline"] {
++        let profile = placement_config(&compiler, "selected__FPvi", "__ct__5ThingFv", timing, 1);
++        fs::write(&config, serde_json::to_string(&profile).unwrap()).unwrap();
++        let output = work.0.join(format!("cleanup-{timing}.o"));
++        fs::write(&output, b"original object sentinel").unwrap();
++        let result = cli_command(&input, &output, &config).env("SATANSFIDDLE_VERIFY", "1")
++            .output().unwrap();
++        let trace = String::from_utf8_lossy(&result.stderr);
++        assert!(!result.status.success(), "published cleanup-bearing inline body under {timing}");
++        assert!(trace.contains("placement has unsupported inline-body cleanup metadata"),
++            "fixture failed outside the retained-body metadata guard: {trace}");
++        assert_eq!(fs::read(&output).unwrap(), b"original object sentinel");
++        assert!(fs::read_dir(&work.0).unwrap().all(|entry| !entry.unwrap().file_name()
++            .to_string_lossy().starts_with(".satansfiddle-")));
++    }
++}
++
++#[test]
++#[ignore = "requires SATANSFIDDLE_TEST_COMPILER_300 plus debug-symbol wibo"]
++fn real_placement_accepts_retained_empty_void_return() {
++    let compiler = PathBuf::from(env::var_os("SATANSFIDDLE_TEST_COMPILER_300").unwrap());
++    let work = Workspace::new();
++    let input = work.0.join("placement.cpp");
++    let config = work.0.join("config.json");
++    let source = r#"void *operator new(unsigned int, void *);
++extern void consume(void *);
++extern void side_effect();
++inline void notify() { side_effect(); return; }
++struct Thing { int value; Thing() { notify(); value = 7; } };
++
++int selected(void *p, int value) {
++    Thing *object = new(p) Thing;
++    consume(object);
++    return object->value + value;
++}
++"#;
++    fs::write(&input, source).unwrap();
++    // notify() retains a kind-8 NULL expression, zero cleanup metadata and
++    // canonical void return type in the pinned compiler's stored inline body.
++    for timing in ["before_constructor_inline", "after_constructor_inline"] {
++        let profile = placement_config(&compiler, "selected__FPvi", "__ct__5ThingFv", timing, 1);
++        fs::write(&config, serde_json::to_string(&profile).unwrap()).unwrap();
++        let output = work.0.join(format!("void-return-{timing}.o"));
++        fs::write(&output, b"original object sentinel").unwrap();
++        let result = cli_command(&input, &output, &config).env("SATANSFIDDLE_VERIFY", "1")
++            .output().unwrap();
++        assert_success(&result);
++        let trace = String::from_utf8_lossy(&result.stderr);
++        assert!(trace.contains("expected=1 actual=1"), "eligible construction was not completed: {trace}");
++        assert!(fs::read(&output).unwrap().starts_with(b"\x7fELF"));
++        assert!(fs::read_dir(&work.0).unwrap().all(|entry| !entry.unwrap().file_name()
++            .to_string_lossy().starts_with(".satansfiddle-")));
++    }
 +}
 --- a/tests/config/mod.rs
 +++ b/tests/config/mod.rs
