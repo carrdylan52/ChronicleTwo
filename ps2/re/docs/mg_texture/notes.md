@@ -175,24 +175,40 @@ node and appends it to its name's chain. `DelHash` unlinks the matching texture
 and returns that node to the free stack. `SearchHash` compares names and applies
 an optional texture-block filter.
 
-The preserved typed native implementations differ from retail by one commutative
-`addu` operand order when forming the bucket address. Retail adds scaled index
-then manager base; typed member-array indexing emits base then index. All other
-instructions and relocations match. Casts on the index, base, or member array,
-unsigned indices, swapped subscript syntax, local manager pointers, and direct
-bucket-load expressions did not produce the retail instruction. These functions
-remain fuzzy; no zero-difference match is claimed.
+All three hash functions now match retail. `AddHash` and `DelHash` keep the
+integer hash result and read or update the bucket head directly through
+`hash_table[index]`, rather than retaining a separate pointer to that member.
+The three functions use local optimization level 2, with their existing
+scheduling and global-optimizer pragmas retained. This source form emits retail's
+scaled-index-first `addu` at `AddHash+0x74`, `DelHash+0x30`, and
+`SearchHash+0x2C`, without pointer arithmetic or another helper.
 
-Explicit index-first addition over the actual inline bucket array, a C++ reference
-to each bucket head, and a layout-equivalent array of one-pointer bucket records
-all produce the same complete object as member-array indexing under the pinned
-MWCC/Satan's Fiddle settings. This rules out those typed representations as an
-operand-order solution. Enabling global optimization for the three functions
-changes loop code and introduces a `DelHash` size failure; it does not establish
-a match. DC1's texture manager has no corresponding hash table. Reconsider these
-three words when new retail-supported source/type evidence changes typed
-array-address lowering, or a separately verified compiler-state mechanism
-explains integer operand ordering.
+Both parts of this result were measured. At the default level, earlier direct
+member accesses, index/base casts, unsigned indices, swapped subscripts, manager
+locals, bucket-head references, and one-pointer bucket records did not resolve
+the operand order. Level 2 with the original bucket-pointer locals makes only
+`SearchHash` exact; a head reference at that level repeats the same partial
+object. Direct bucket-head accesses at level 2 pass the complete unit:
+`0x3674` bytes and all 160 relocations, with zero differing words in all three
+functions. Native body sizes remain `0xD8`, `0xE8`, and `0xB0` respectively.
+
+The private full-wrapper object and the normal build object are byte-identical,
+SHA-256 `2c51189689aee333b19190eeaad4c3217a826aadea3751bfbceac0ea76d2d4c4`.
+The normal PAL build reduces `.text` differences from 44 to 38 bytes and improves
+the canonical check from 146/149 to 147/149. Hashing all 149 objects shows that
+the other 148 are unchanged; the remaining `actscript` and `nd_meswin` finding
+lists equal round 2 and integration i12. All other PAL sections and the
+retail-sized main/BSS extents pass. No shared header or Satan's Fiddle profile
+row changes are needed. Receipts: `.private/receipts/regress/round3/after-mg/`
+and `mg_texture-level2-direct-head/` beside it.
+
+Useful rejected alternatives remain distinct from the accepted form. Directly
+nesting `hash()` in the subscript and changing its return type to `u_int`
+reproduce the default object. A `u_char` return adds normalization and new
+body/size/relocation failures. Local level 1 and the earlier global-optimizer-on
+trial change other instructions and fail the complete unit. The read-only DC1
+search finds only `CTextureManager` with fixed arrays, no corresponding hash
+table or bucket accessor; it supplies no helper to port.
 
 ## Native full-image conversion
 

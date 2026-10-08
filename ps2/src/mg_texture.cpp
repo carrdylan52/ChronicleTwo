@@ -393,11 +393,12 @@ int mgCTextureManager::hash(char *name) {
 #pragma schedule off
 #pragma global_optimizer off
 
+#pragma optimization_level 2
+
 void mgCTextureManager::AddHash(mgCTexture *texture) {
     mgTEXTURE_HASH  *node;
     mgTEXTURE_HASH  *cur;
     mgTEXTURE_HASH  *following;
-    mgTEXTURE_HASH **bucket;
 
     if (hash_num >= hash_max) {
         node = NULL;
@@ -410,11 +411,10 @@ void mgCTextureManager::AddHash(mgCTexture *texture) {
         node->texture = texture;
 
         int index = hash(texture->name);
-        bucket = &hash_table[index];
-        cur = *bucket;
+        cur = hash_table[index];
 
         if (cur == NULL) {
-            *bucket = node;
+            hash_table[index] = node;
         } else {
             while (cur != NULL) {
                 following = cur->next;
@@ -430,21 +430,23 @@ void mgCTextureManager::AddHash(mgCTexture *texture) {
     }
 }
 
+#pragma optimization_level reset
+
 #pragma global_optimizer reset
 #pragma schedule reset
 #pragma schedule off
 #pragma global_optimizer off
 
+#pragma optimization_level 2
+
 void mgCTextureManager::DelHash(mgCTexture *texture) {
     mgTEXTURE_HASH  *cur;
     mgTEXTURE_HASH  *prev;
     mgTEXTURE_HASH  *found;
-    mgTEXTURE_HASH **bucket;
 
     if (texture != NULL) {
         int index = hash(texture->name);
-        bucket = &hash_table[index];
-        cur = *bucket;
+        cur = hash_table[index];
         prev = NULL;
         found = NULL;
 
@@ -460,7 +462,7 @@ void mgCTextureManager::DelHash(mgCTexture *texture) {
 
         if (found != NULL) {
             if (prev == NULL) {
-                *bucket = found->next;
+                hash_table[index] = found->next;
             } else {
                 prev->next = found->next;
             }
@@ -473,10 +475,14 @@ void mgCTextureManager::DelHash(mgCTexture *texture) {
     }
 }
 
+#pragma optimization_level reset
+
 #pragma global_optimizer reset
 #pragma schedule reset
 #pragma schedule off
 #pragma global_optimizer off
+
+#pragma optimization_level 2
 
 mgCTexture *mgCTextureManager::SearchHash(char *name, int mode) {
     mgTEXTURE_HASH *node;
@@ -493,6 +499,8 @@ mgCTexture *mgCTextureManager::SearchHash(char *name, int mode) {
 
     return NULL;
 }
+
+#pragma optimization_level reset
 
 #pragma global_optimizer reset
 #pragma schedule reset
