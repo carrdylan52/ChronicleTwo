@@ -32,3 +32,23 @@ Validation: `.private/dataC-r2/opcodes-state-{build,objects}.log` and
 `opcodes-state-metrics.json`. All BSS markers are removed; all code bytes and
 relocations remain exact, the complete image passes, and unowned objects
 are unchanged.
+
+## Horizontal vector initializers
+
+`at_1480__2`, `at_1481__2`, `at_1864`, and `at_2160` each hold
+`{0.0f, 0.0f, 1.0f, 0.0f}`. The three callers now initialize SDK
+`sceVu0FVECTOR` locals directly; the quadword-view union and its four extern
+objects are removed.
+
+A first trial declared these locals after the scratch arrays. Its copy
+instructions and template data were correct, but MWCC assigned the vectors
+later stack slots: `_GET_ANGLE_INNER` used 0xB0/0xC0 instead of 0x30/0x40.
+Using the SDK alignment alone did not fix those offsets. Declaring the
+vectors before their scratch matrices/position arrays restores the retail
+stack slots without changing the time the initializers execute. Evidence:
+`opcodes-vector-m2c.txt`, `opcodes-vectors-native.txt`, and the two failed
+trial build logs under `.private/dataC-r2/`.
+
+Acceptance: `opcodes-ordered-vectors-{build,objects}.log`; the whole image,
+all 149 objects, and all unowned hashes pass. Only the named callback
+metadata table remains marker-backed.

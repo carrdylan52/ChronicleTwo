@@ -63,20 +63,6 @@ static ACTION_DAMAGE *LastCInfo2;
  */
 static int (*ext_func[256])(RS_STACKDATA *, int);
 
-/**
- *
- * Script vector viewed as four floats or a quadword.
- *
- */
-union ScriptVector {
-    float     f[4]; /**< Floating point components. */
-    u_long128 qw;   /**< The same components as one quadword. */
-};
-
-extern ScriptVector    at_1480__2;
-extern ScriptVector    at_1481__2;
-extern ScriptVector    at_1864;
-extern ScriptVector    at_2160;
 extern RS_EXTFUNC_INFO ext_func_info[];
 
 /**
@@ -1383,25 +1369,22 @@ int _ESM_ALL_CLEAR(RS_STACKDATA *stack, int argc) {
  *
  */
 int _GET_ANGLE_INNER(RS_STACKDATA *stack, int argc) {
-    ScriptVector first;
-    ScriptVector second;
-    float        matrix[4][4];
-    float        rotated[4][4];
-
     if (argc != 3) {
         return 0;
     }
 
     float angle_a = GetStackFloat(stack++);
     float angle_b = GetStackFloat(stack++);
-    first = at_1480__2;
-    second = at_1481__2;
+    sceVu0FVECTOR first = {0.0f, 0.0f, 1.0f, 0.0f};
+    sceVu0FVECTOR second = {0.0f, 0.0f, 1.0f, 0.0f};
+    float matrix[4][4];
+    float rotated[4][4];
     sceVu0UnitMatrix(matrix);
     sceVu0RotMatrixY(rotated, matrix, angle_a);
-    sceVu0ApplyMatrix(first.f, rotated, first.f);
+    sceVu0ApplyMatrix(first, rotated, first);
     sceVu0RotMatrixY(rotated, matrix, angle_b);
-    sceVu0ApplyMatrix(second.f, rotated, second.f);
-    SetStack(stack, sceVu0InnerProduct(first.f, second.f));
+    sceVu0ApplyMatrix(second, rotated, second);
+    SetStack(stack, sceVu0InnerProduct(first, second));
     return 1;
 }
 
@@ -2221,29 +2204,27 @@ int _SET_PLACE_POS(RS_STACKDATA *stack, int argc) {
  *
  */
 int _SEARCH_AREA(RS_STACKDATA *stack, int argc) {
-    ScriptVector dir;
-    float        pos[4];
-    float        rot[4];
-    float        matrix[4][4];
-
     if (argc != 3) {
         return 0;
     }
 
     float distance = GetStackFloat(stack++);
     float angle = GetStackFloat(stack++);
-    dir = at_1864;
+    sceVu0FVECTOR dir = {0.0f, 0.0f, 1.0f, 0.0f};
+    float pos[4];
+    float rot[4];
+    float matrix[4][4];
     ((CActionChara *) nowMonster)->GetPosition(pos);
     ((CActionChara *) nowMonster)->GetRotation(rot);
     rot[1] = mgAngleLimit(rot[1] + angle);
     sceVu0UnitMatrix(matrix);
     sceVu0RotMatrixY(matrix, matrix, rot[1]);
-    sceVu0ApplyMatrix(dir.f, matrix, dir.f);
-    sceVu0ScaleVector(dir.f, dir.f, distance);
-    sceVu0AddVector(dir.f, dir.f, pos);
+    sceVu0ApplyMatrix(dir, matrix, dir);
+    sceVu0ScaleVector(dir, dir, distance);
+    sceVu0AddVector(dir, dir, pos);
     pos[1] += 100.0f;
-    dir.f[1] += 100.0f;
-    SetStack(stack, SearchArea(nowScene, pos, dir.f, distance));
+    dir[1] += 100.0f;
+    SetStack(stack, SearchArea(nowScene, pos, dir, distance));
     return 1;
 }
 
@@ -2982,27 +2963,25 @@ int _GET_REF_ROT2(RS_STACKDATA *stack, int argc) {
  *
  */
 int _FLYING_SEARCH_AREA(RS_STACKDATA *stack, int argc) {
-    ScriptVector dir;
-    float        pos[4];
-    float        rot[4];
-    float        matrix[4][4];
-
     if (argc != 3) {
         return 0;
     }
 
     float distance = GetStackFloat(stack++);
     float angle = GetStackFloat(stack++);
-    dir = at_2160;
+    sceVu0FVECTOR dir = {0.0f, 0.0f, 1.0f, 0.0f};
+    float pos[4];
+    float rot[4];
+    float matrix[4][4];
     ((CActionChara *) nowMonster)->GetPosition(pos);
     ((CActionChara *) nowMonster)->GetRotation(rot);
     rot[1] = mgAngleLimit(angle);
     sceVu0UnitMatrix(matrix);
     sceVu0RotMatrixY(matrix, matrix, rot[1]);
-    sceVu0ApplyMatrix(dir.f, matrix, dir.f);
-    sceVu0ScaleVector(dir.f, dir.f, distance);
-    sceVu0AddVector(dir.f, dir.f, pos);
-    SetStack(stack, SearchArea(nowScene, pos, dir.f, distance));
+    sceVu0ApplyMatrix(dir, matrix, dir);
+    sceVu0ScaleVector(dir, dir, distance);
+    sceVu0AddVector(dir, dir, pos);
+    SetStack(stack, SearchArea(nowScene, pos, dir, distance));
     return 1;
 }
 
@@ -4661,8 +4640,4 @@ void SetMonsterExtendTable() {
 }
 
 // Initialised data (.data)
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/runscript_opcodes", at_1480__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/runscript_opcodes", at_1481__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/runscript_opcodes", at_1864__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/runscript_opcodes", at_2160__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/runscript_opcodes", ext_func_info__DATA);
