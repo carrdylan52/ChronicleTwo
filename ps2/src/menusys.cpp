@@ -7745,12 +7745,6 @@ extern char  at_6811[];
 extern char  at_6812[];
 extern char  at_6813[];
 #ifdef NONMATCHING
-static inline void DebugPrint(CMenuFont *font, char *text, int x, int y) {
-    font->SetStr(text);
-    font->SetPos(x, y);
-    font->DrawDirect(font->str, font->pos_x, font->pos_y);
-}
-
 void MenuItemDebugDraw(void) {
     CMenuFont          menu_font;
     mgCTextureManager *tex_manager = &mgTexManager;
@@ -7797,44 +7791,78 @@ void MenuItemDebugDraw(void) {
             CMenuItemInfo *info = CMenuItemInfoPt;
             sprintf(title, at_6760, CMenuItemInfoPt->debug_item_no, GetItemMessage(info->debug_item_no),
                     info->debug_item_count);
-            DebugPrint(font, title, 26, 40);
+            font->SetStr(title);
+            font->SetPos(26, 40);
+            font->DrawDirect(font->str, font->pos_x, font->pos_y);
             if (MenuDebugModelDrawFlag == 1) {
                 DrawMenuFillBox(0.0f, 0.0f, mgScreenWidth, mgScreenHeight, 0x80, 0, 0, 0);
             }
             DrawMenuFillBox(20.0f, 330.0f, 500.0f, 200.0f, 0x52, 0, 0, 0);
             if (MenuDebugModelDrawFlag == 0) {
-                DebugPrint(font, at_6761, 20, 350);
-                DebugPrint(font, at_6762, 20, 370);
-                DebugPrint(font, at_6763, 20, 390);
-                DebugPrint(font, at_6764, 170, 370);
+                font->SetStr(at_6761);
+                font->SetPos(20, 350);
+                font->DrawDirect(font->str, font->pos_x, font->pos_y);
+                font->SetStr(at_6762);
+                font->SetPos(20, 370);
+                font->DrawDirect(font->str, font->pos_x, font->pos_y);
+                font->SetStr(at_6763);
+                font->SetPos(20, 390);
+                font->DrawDirect(font->str, font->pos_x, font->pos_y);
+                font->SetStr(at_6764);
+                font->SetPos(170, 370);
+                font->DrawDirect(font->str, font->pos_x, font->pos_y);
                 char *file_name = GetItemFileName(CMenuItemInfoPt->debug_item_no, 0);
                 if (file_name != NULL) {
                     char file_text[0x80];
                     sprintf(file_text, at_6765, file_name);
-                    DebugPrint(font, file_text, 150, 330);
+                    font->SetStr(file_text);
+                    font->SetPos(150, 330);
+                    font->DrawDirect(font->str, font->pos_x, font->pos_y);
                 } else {
-                    DebugPrint(font, at_6766, 150, 330);
+                    font->SetStr(at_6766);
+                    font->SetPos(150, 330);
+                    font->DrawDirect(font->str, font->pos_x, font->pos_y);
                 }
-                DebugPrint(font, at_6767, 20, 330);
+                font->SetStr(at_6767);
+                font->SetPos(20, 330);
+                font->DrawDirect(font->str, font->pos_x, font->pos_y);
                 strcpy(text, at_6768);
                 if (debug_common_data != NULL) {
                     sprintf(text, at_6769, debug_common_data->max_num);
-                    DebugPrint(font, text, 300, 350);
+                    font->SetStr(text);
+                    font->SetPos(300, 350);
+                    font->DrawDirect(font->str, font->pos_x, font->pos_y);
                     sprintf(text, at_6770, debug_common_data->file_name);
-                    DebugPrint(font, text, 300, 370);
+                    font->SetStr(text);
+                    font->SetPos(300, 370);
+                    font->DrawDirect(font->str, font->pos_x, font->pos_y);
                     sprintf(text, at_6771, CheckGetItemRemainNum(debug_common_data->item_no));
-                    DebugPrint(font, text, 300, 390);
+                    font->SetStr(text);
+                    font->SetPos(300, 390);
+                    font->DrawDirect(font->str, font->pos_x, font->pos_y);
                 }
             } else {
-                DebugPrint(font, at_6772, 290, 60);
-                DebugPrint(font, at_6773, 290, 80);
-                DebugPrint(font, at_6774, 290, 100);
-                DebugPrint(font, at_6775, 290, 120);
+                font->SetStr(at_6772);
+                font->SetPos(290, 60);
+                font->DrawDirect(font->str, font->pos_x, font->pos_y);
+                font->SetStr(at_6773);
+                font->SetPos(290, 80);
+                font->DrawDirect(font->str, font->pos_x, font->pos_y);
+                font->SetStr(at_6774);
+                font->SetPos(290, 100);
+                font->DrawDirect(font->str, font->pos_x, font->pos_y);
+                font->SetStr(at_6775);
+                font->SetPos(290, 120);
+                font->DrawDirect(font->str, font->pos_x, font->pos_y);
                 char size_text[0x40];
                 sprintf(size_text, at_6776, MenuDebugSize);
-                DebugPrint(font, size_text, 290, 140);
+                font->SetStr(size_text);
+                font->SetPos(290, 140);
+                font->DrawDirect(font->str, font->pos_x, font->pos_y);
                 if (debug_common_data == NULL && MenuDebugItemModel != NULL) {
-                    DebugPrint(font, at_6777, 290, 20);
+                    font->SetStr(at_6777);
+                    font->SetPos(290, 20);
+                    font->DrawDirect(font->str, font->pos_x, font->pos_y);
                 }
             }
             if (MenuDebugModelDrawFlag != 0) {
@@ -7844,9 +7872,13 @@ void MenuItemDebugDraw(void) {
                     MenuDebugItemModel->GetRotation(rotation);
                     MenuDebugItemModel->GetScale(scale);
                     sprintf(text, at_6778, scale[0]);
-                    DebugPrint(font, text, 290, 260);
+                    font->SetStr(text);
+                    font->SetPos(290, 260);
+                    font->DrawDirect(font->str, font->pos_x, font->pos_y);
                     sprintf(text, at_6779, rotation[0], rotation[1], rotation[2]);
-                    DebugPrint(font, text, 290, 280);
+                    font->SetStr(text);
+                    font->SetPos(290, 280);
+                    font->DrawDirect(font->str, font->pos_x, font->pos_y);
                     sceVu0FVECTOR camera_pos;
                     sceVu0FMATRIX camera_matrix;
                     sceVu0FMATRIX world_matrix;
@@ -7859,20 +7891,36 @@ void MenuItemDebugDraw(void) {
                     MenuDebugItemModel->Step();
                     MenuDebugItemModel->DrawDirect();
                 } else {
-                    DebugPrint(font, at_6780, 290, 260);
+                    font->SetStr(at_6780);
+                    font->SetPos(290, 260);
+                    font->DrawDirect(font->str, font->pos_x, font->pos_y);
                 }
             }
             break;
         }
         case 3:
             DrawMenuFillBox(236.0f, 60.0f, 230.0f, 200.0f, 0x80, 0, 0, 0);
-            DebugPrint(font, at_6781, 236, 60);
-            DebugPrint(font, at_6782, 236, 80);
-            DebugPrint(font, at_6783, 236, 100);
-            DebugPrint(font, at_6784, 236, 120);
-            DebugPrint(font, at_6785, 236, 140);
-            DebugPrint(font, at_6786, 236, 160);
-            DebugPrint(font, at_6787, 236, 180);
+            font->SetStr(at_6781);
+            font->SetPos(236, 60);
+            font->DrawDirect(font->str, font->pos_x, font->pos_y);
+            font->SetStr(at_6782);
+            font->SetPos(236, 80);
+            font->DrawDirect(font->str, font->pos_x, font->pos_y);
+            font->SetStr(at_6783);
+            font->SetPos(236, 100);
+            font->DrawDirect(font->str, font->pos_x, font->pos_y);
+            font->SetStr(at_6784);
+            font->SetPos(236, 120);
+            font->DrawDirect(font->str, font->pos_x, font->pos_y);
+            font->SetStr(at_6785);
+            font->SetPos(236, 140);
+            font->DrawDirect(font->str, font->pos_x, font->pos_y);
+            font->SetStr(at_6786);
+            font->SetPos(236, 160);
+            font->DrawDirect(font->str, font->pos_x, font->pos_y);
+            font->SetStr(at_6787);
+            font->SetPos(236, 180);
+            font->DrawDirect(font->str, font->pos_x, font->pos_y);
             int  attribute = MenuUserDataManPtr->GetCharaStatusAttirbute(CMenuItemInfoPt->sub_view);
             char status[0x100] = "Status : ";
             int  count = 0;
@@ -7886,37 +7934,65 @@ void MenuItemDebugDraw(void) {
                     count++;
                 }
             }
-            DebugPrint(font, status, 236, 200);
+            font->SetStr(status);
+            font->SetPos(236, 200);
+            font->DrawDirect(font->str, font->pos_x, font->pos_y);
             break;
         case 4: {
             DrawMenuFillBox(236.0f, 60.0f, float(230.0), 300.0f, 0x80, 0, 0, 0);
-            DebugPrint(font, at_6789, 236, 60);
-            DebugPrint(font, at_6790, 236, 80);
-            DebugPrint(font, at_6791, 236, 100);
-            DebugPrint(font, at_6792, 236, 120);
+            font->SetStr(at_6789);
+            font->SetPos(236, 60);
+            font->DrawDirect(font->str, font->pos_x, font->pos_y);
+            font->SetStr(at_6790);
+            font->SetPos(236, 80);
+            font->DrawDirect(font->str, font->pos_x, font->pos_y);
+            font->SetStr(at_6791);
+            font->SetPos(236, 100);
+            font->DrawDirect(font->str, font->pos_x, font->pos_y);
+            font->SetStr(at_6792);
+            font->SetPos(236, 120);
+            font->DrawDirect(font->str, font->pos_x, font->pos_y);
             int   build_item[3];
             char *build_name[3];
             if (weapon != NULL) {
                 sprintf(text, at_6793, (int) weapon->data.weapon.abs.now, (int) weapon->data.weapon.abs.max);
-                DebugPrint(font, text, 336, 120);
+                font->SetStr(text);
+                font->SetPos(336, 120);
+                font->DrawDirect(font->str, font->pos_x, font->pos_y);
                 CheckBuildUp(weapon, NULL, build_item, NULL);
                 for (i = 0; i < 3; i++) {
                     build_name[i] = GetItemMessage(build_item[i]);
                 }
             }
-            DebugPrint(font, at_6794, 236, 140);
-            DebugPrint(font, at_6795, 236, 160);
-            DebugPrint(font, at_6796, 236, 180);
-            DebugPrint(font, at_6797, 236, 200);
-            DebugPrint(font, at_6798, 236, 220);
-            DebugPrint(font, at_6799, 236, 240);
-            DebugPrint(font, at_6800, 236, 260);
+            font->SetStr(at_6794);
+            font->SetPos(236, 140);
+            font->DrawDirect(font->str, font->pos_x, font->pos_y);
+            font->SetStr(at_6795);
+            font->SetPos(236, 160);
+            font->DrawDirect(font->str, font->pos_x, font->pos_y);
+            font->SetStr(at_6796);
+            font->SetPos(236, 180);
+            font->DrawDirect(font->str, font->pos_x, font->pos_y);
+            font->SetStr(at_6797);
+            font->SetPos(236, 200);
+            font->DrawDirect(font->str, font->pos_x, font->pos_y);
+            font->SetStr(at_6798);
+            font->SetPos(236, 220);
+            font->DrawDirect(font->str, font->pos_x, font->pos_y);
+            font->SetStr(at_6799);
+            font->SetPos(236, 240);
+            font->DrawDirect(font->str, font->pos_x, font->pos_y);
+            font->SetStr(at_6800);
+            font->SetPos(236, 260);
+            font->DrawDirect(font->str, font->pos_x, font->pos_y);
             for (int i = 0; i < 3; i++) {
                 sprintf(text, at_6801, i + 1, build_name[i]);
                 if (build_name[i] != NULL) {
                     sprintf(text, at_6802, i + 1, build_name[i]);
                 }
-                DebugPrint(font, text, 236, i * 20 + 280);
+                font->SetStr(text);
+                font->SetPos(236, i * 20 + 280);
+                font->DrawDirect(font->str, font->pos_x, font->pos_y);
             }
             break;
         }
@@ -7925,9 +8001,15 @@ void MenuItemDebugDraw(void) {
                 break;
             }
             DrawMenuFillBox(float(236.0), 60.0f, 230.0f, 260.0f, 0x80, 0, 0, 0);
-            DebugPrint(font, at_6803, 236, 60);
-            DebugPrint(font, at_6804, 236, 100);
-            DebugPrint(font, at_6805, 236, 120);
+            font->SetStr(at_6803);
+            font->SetPos(236, 60);
+            font->DrawDirect(font->str, font->pos_x, font->pos_y);
+            font->SetStr(at_6804);
+            font->SetPos(236, 100);
+            font->DrawDirect(font->str, font->pos_x, font->pos_y);
+            font->SetStr(at_6805);
+            font->SetPos(236, 120);
+            font->DrawDirect(font->str, font->pos_x, font->pos_y);
             char special[0x100];
             special[0] = '\0';
             int count = 0;
@@ -7940,27 +8022,47 @@ void MenuItemDebugDraw(void) {
                     }
                 }
             }
-            DebugPrint(font, at_6807, 236, 140);
-            DebugPrint(font, special, 236, 160);
+            font->SetStr(at_6807);
+            font->SetPos(236, 140);
+            font->DrawDirect(font->str, font->pos_x, font->pos_y);
+            font->SetStr(special);
+            font->SetPos(236, 160);
+            font->DrawDirect(font->str, font->pos_x, font->pos_y);
             break;
         }
         case 6:
             DrawMenuFillBox(float(236.0), float(60.0), 230.0f, 260.0f, 0x80, 0, 0, 0);
-            DebugPrint(font, at_6792, 236, 80);
-            DebugPrint(font, at_6808, 236, 100);
-            DebugPrint(font, at_6809, 236, 120);
-            DebugPrint(font, at_6810, 236, 140);
+            font->SetStr(at_6792);
+            font->SetPos(236, 80);
+            font->DrawDirect(font->str, font->pos_x, font->pos_y);
+            font->SetStr(at_6808);
+            font->SetPos(236, 100);
+            font->DrawDirect(font->str, font->pos_x, font->pos_y);
+            font->SetStr(at_6809);
+            font->SetPos(236, 120);
+            font->DrawDirect(font->str, font->pos_x, font->pos_y);
+            font->SetStr(at_6810);
+            font->SetPos(236, 140);
+            font->DrawDirect(font->str, font->pos_x, font->pos_y);
             break;
         case 7: {
             DrawMenuFillBox(float(236.0), 60.0f, float(230.0), float(260.0), 0x80, 0, 0, 0);
             int cursor = MenuCommonInfo->cursor;
             if (cursor == 0) {
-                DebugPrint(font, at_6811, 236, 60);
-                DebugPrint(font, at_6812, 236, 80);
+                font->SetStr(at_6811);
+                font->SetPos(236, 60);
+                font->DrawDirect(font->str, font->pos_x, font->pos_y);
+                font->SetStr(at_6812);
+                font->SetPos(236, 80);
+                font->DrawDirect(font->str, font->pos_x, font->pos_y);
             }
             if (cursor == 1) {
-                DebugPrint(font, at_6813, 236, 60);
-                DebugPrint(font, at_6812, 236, 80);
+                font->SetStr(at_6813);
+                font->SetPos(236, 60);
+                font->DrawDirect(font->str, font->pos_x, font->pos_y);
+                font->SetStr(at_6812);
+                font->SetPos(236, 80);
+                font->DrawDirect(font->str, font->pos_x, font->pos_y);
             }
             break;
         }
