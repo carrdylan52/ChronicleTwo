@@ -2038,7 +2038,7 @@ int CSaveMenuClass::KeyStep(void) {
                             case SAVE_LIST_PHASE_UNK_7:
                                 break;
                             case SAVE_LIST_PHASE_SAVING:
-                                StepMenuDl2(dl_base + MemoryCardPtr->total_transferred);
+                                StepMenuDl2(MemoryCardPtr->total_transferred + dl_base);
                                 if (stepResult != 0) {
                                     if (error->code != 0) {
                                         printf(at_2504__2, error->code);
@@ -2193,18 +2193,16 @@ int CSaveMenuClass::KeyStep(void) {
                                 if (stepResult != 0) {
                                     fileMes->MsgPreset(0xA, LanguageCode);
                                     fileMes->SetAbsPos(5);
-                                    if (card->formatted != 0 && McCheckMCPs2(card) != 0) {
-                                        if (FormatCase == 0) {
-                                            fileMes->MakeMsg(0xBE9);
-                                            phase = SAVE_FORMAT_PHASE_DONE;
-                                        } else {
-                                            page = SAVE_MENU_PAGE_FILE_LIST;
-                                            phase = SAVE_FORMAT_PHASE_FORMATTING;
-                                            EnvSetSave(1);
-                                        }
-                                    } else {
+                                    if (card->formatted == 0 || McCheckMCPs2(card) == 0) {
                                         fileMes->MakeMsg(0xBE5);
                                         phase = SAVE_FORMAT_PHASE_DONE;
+                                    } else if (FormatCase == 0) {
+                                        fileMes->MakeMsg(0xBE9);
+                                        phase = SAVE_FORMAT_PHASE_DONE;
+                                    } else {
+                                        page = SAVE_MENU_PAGE_FILE_LIST;
+                                        phase = SAVE_FORMAT_PHASE_FORMATTING;
+                                        EnvSetSave(1);
                                     }
                                 }
                                 break;
@@ -2266,7 +2264,8 @@ int CSaveMenuClass::KeyStep(void) {
                                 }
                                 switch (pushed) {
                                     case 1:
-                                        if (fileMes->mes_no == 0xBEB && (next = SAVE_MENU_PAGE_FORMAT, answer == 0)) {
+                                        if (fileMes->mes_no == 0xBEB && answer == 0) {
+                                            next = SAVE_MENU_PAGE_FORMAT;
                                             MenuSePlay(SYSTEM_SE_DECIDE);
                                             break;
                                         }
@@ -2295,6 +2294,7 @@ int CSaveMenuClass::KeyStep(void) {
             }
             break;
     }
+    bool no_page_change = next < 0;
     if (next == SAVE_MENU_PAGE_ERROR) {
         InitMenuDl(NULL, 0);
         MenuMesForm[7]->draw_flag = 0;
@@ -2337,8 +2337,9 @@ int CSaveMenuClass::KeyStep(void) {
                 fileMes->MakeMsg(0xBC6);
             }
         }
+        no_page_change = next < 0;
     }
-    if (next >= 0 || first_step != 0) {
+    if (!no_page_change || first_step != 0) {
         switch (next) {
             case SAVE_MENU_PAGE_SLOT_SELECT:
                 phase = 0;
@@ -2361,7 +2362,6 @@ int CSaveMenuClass::KeyStep(void) {
                 SetMenuReturnMsgCtrl(0);
                 break;
             case SAVE_MENU_PAGE_FILE_READ:
-            case SAVE_MENU_PAGE_UNK_5:
                 phase = 0;
                 break;
             case SAVE_MENU_PAGE_FILE_LIST:
@@ -2389,6 +2389,11 @@ int CSaveMenuClass::KeyStep(void) {
                     fileMes->SetMsgVolumeNoOne(slot + 1);
                 }
                 break;
+            case SAVE_MENU_PAGE_UNK_5:
+                phase = 0;
+                break;
+            case SAVE_MENU_PAGE_ERROR:
+                break;
         }
         first_step = 0;
         page = next;
@@ -2401,7 +2406,7 @@ int CSaveMenuClass::KeyStep(void) {
         }
         for (row = 0; row < 13; row++) {
             rowMes = SaveFileList[row];
-            rowMes->mes_no = -1;
+            rowMes->ClsMes::mes_no = -1;
             rowInfo[row] = &MemoryCardPtr->file_info[row];
             info = rowInfo[row];
             if (info->state != 0) {
@@ -2429,14 +2434,14 @@ int CSaveMenuClass::KeyStep(void) {
                 rowMes->SetMsgItemNo(title, 1);
                 rowMes->SetMsgItemNo(itemNo, 1);
                 int slotNumber[1] = {0};
-                int slotWidth[1] = {0};
                 slotNumber[0] = row + 1;
+                int slotWidth[1] = {0};
                 rowMes->SetMsgVolumeNo(slotNumber, slotWidth, 1);
                 rowMes->MakeMsg(0xC26);
             } else {
                 int slotNumber[1] = {0};
-                int slotWidth[1] = {0};
                 slotNumber[0] = row + 1;
+                int slotWidth[1] = {0};
                 rowMes->SetMsgVolumeNo(slotNumber, slotWidth, 1);
                 rowMes->MakeMsg(emptyMes);
             }

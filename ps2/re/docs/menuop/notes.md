@@ -383,4 +383,94 @@ baseline-progress}.log, coverage-before.txt, native-before/,
 save-shared-load-sound/, and save.m2c.txt. The complete m2c analysis uses the
 pre-existing private jump-table input; no assembly file is written or modified.
 
-The guarded-change build preserves the baseline PAL result. The complete\nmenuop object passes with 0x7DE4 allocated bytes and 2,075 relocations.\nAll 149 object file hashes and allocated-section inventories are identical\nto the refreshed baseline. Additional receipts are save-shared-build.log,\nsave-shared-objects.log and save-shared-hash-comparison.json in that directory.
+The guarded-change build preserves the baseline PAL result. The complete
+menuop object passes with 0x7DE4 allocated bytes and 2,075 relocations.
+All 149 object file hashes and allocated-section inventories are identical
+to the refreshed baseline. Additional receipts are save-shared-build.log,
+save-shared-objects.log and save-shared-hash-comparison.json in that directory.
+
+## Round-1 page transitions and message rows
+
+The next-page jump table has seven entries. FILE_READ (3) and UNK_5 (5)
+both reset phase but have distinct retail destinations, +0x15D8 and +0x16A0.
+Keeping these as separate switch cases, with the UNK_5 reset after FORMAT
+and an explicit empty ERROR case, restores the seven-entry table and the
+retail placement of the reset blocks. Combining cases 3 and 5 emits a
+six-entry table and displaces subsequent blocks.
+
+The retained reconstruction also expresses formatting completion with the
+failure predicate first, uses a real boolean for the absence of a pending
+page change, and preserves the loaded-transfer operand order in StepMenuDl2.
+The format-confirmation assignment follows both message and answer tests,
+rather than appearing in a comma expression inside the condition. Each
+message row initializes its slot number before initializing its digit width.
+These changes preserve the analyzed behavior and improve control flow and
+scheduling without artificial locals or new helpers.
+
+The row refresh at retail +0x1738 writes a 32-bit -1 to the documented
+ClsMes::mes_no field at +0x1E3C. CDC2Mes also has a distinct 16-bit mes_no
+at +0x295E, used for the existing error-message comparisons. The reset must
+therefore use `rowMes->ClsMes::mes_no = -1`; unqualified access selects the
+wrong field. Both fields and the class sizes are already documented in
+menucls1 and nd_meswin, so no shared-header change is necessary.
+
+| Canonical native KeyStep variant | Differing words / 1692 | Body bytes |
+| --- | --- | --- |
+| Shared load-confirmation sound, preceding retained draft | 522 | 0x1A4C |
+| Failure-first format completion only | 499 | 0x1A4C |
+| Transfer operand order only | 519 | 0x1A4C |
+| Format and transfer changes combined | 496 | 0x1A4C |
+| Combined plus bool negative-page flag compared to zero | 392 | 0x1A5C |
+| Combined plus int negative-page flag compared to zero | 319 | 0x1A54 |
+| Separate FILE_READ and UNK_5 reset cases | 98 | 0x1A64 |
+| Qualified base message-number reset | 97 | 0x1A64 |
+| Slot number initialized before digit width | 93 | 0x1A64 |
+| Format-confirmation assignment after both predicates | 95 | 0x1A64 |
+| Combined row/confirmation changes and bool flag negation, retained | 91 | 0x1A64 |
+
+Further predicate alternatives do not improve the retained draft. On the
+97-word version, a bool flag compared to zero gives 232 words, whereas
+negating the bool or int flag gives 97. Direct negative-predicate negation
+gives 494, comparison to zero gives 336, and a combined update-page boolean
+gives 212. Moving predicate recomputation, separating its branch-local
+assignments, or changing the int flag's declaration scope does not improve
+allocation. Private enum typing also leaves the measured predicate draft
+unchanged and supplies no reason for a header change.
+
+Normalizing the other-slot index through bool/u8 locals or casts gives
+233..391 words before the final two improvements; comparisons of a converted
+bool with false give 227 on the final draft. A named transfer-progress local
+produces 100 instead of 97 words. These variants are rejected. No compiler
+profile row is supported by the remaining integer differences.
+
+### Remaining boundaries and receipts
+
+The final guarded draft has 91/1692 differing words, a 0x1A64 body against
+retail's padded 0x1A70 extent, and a 0x160 frame against 0x1A0. The
+unreferenced 0x40 interval preceding the small initialized message buffers
+still has no supported source type or local extent. Buffer initialization,
+message values and row-number stores after that interval use stack addresses
+0x40 below retail. No dummy padding or overlapping array is added.
+
+The other differences are the commutative addition operand order at +0xABC,
+negative-page predicate allocation and duplicated materialization around
++0x12A4..+0x14BC, and the other-slot boolean lowering before +0x1568. The
+extra predicate instruction and shorter boolean sequence offset each other;
+most later instructions again align. All 34 other native functions remain
+exact, and MenuManualInit keeps its independent constructor park. The
+KeyStep guard stays active until the full function reaches zero.
+
+Private receipts: `.private/menuui-r1/save-variants2.log` through
+`save-variants8.log`, their `save-*` source/object/diff directories, and
+`retained-menuop/`. The final whole-build, complete-object and hash receipts
+are `final-build.log`, `final-objects.log` and `final-hash-comparison.json`
+in that directory. No assembly, header, compiler-profile or non-owned
+source edit is retained.
+
+The final complete menuop object passes with 0x7DE4 allocated bytes and
+2,075 relocations. Complete objects remain 147/149, with the unchanged
+nd_meswin and actscript failures. PAL retains exactly 0x26 .text bytes
+different, with all other sections and memory end 0x01F64A00 matching.
+All 149 file hashes and allocated-section inventories are identical to the
+refreshed baseline. Coverage remains 6,736 matched / 124 guarded /
+10 asm-only / 2 fuzzy, and no promotion is claimed.
