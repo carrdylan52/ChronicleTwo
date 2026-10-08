@@ -223,7 +223,7 @@ struct BREEDFISH_USED {
     u16   weight; /**< Weight of the fish. */
     int   unk_1c;
     int   hp;       /**< Health of the fish, 0 to 100. */
-    s16   fatigue;  /**< Fatigue of the fish. */
+    u16   fatigue;  /**< Race fatigue counter. */
     u16   param[5]; /**< Racing parameters of the fish. */
     u16   timer;    /**< Time left, counted down by the game clock. */
     u8    unk_32[3];

@@ -140,8 +140,10 @@ parts[0]+0x18.
 Tanks at +4 [6], +0x28C [4], +0x43C [2] (`Initialize`, `GetAquariumFishTop`, `FishIntoAquarium` bounds);
 `aquarium_fish_maxtbl` = the three counts. +0 and +2 zeroed. +0x518 u64 (`RefreshParam`: `%= 0x534`),
 +0x520 s64 last save-clock (save data +0x1A00), +0x528 int / +0x52C float day/hour of the last 6-hour
-step. Tank 1: with more than one fish, every 6 hours a fish with hp > 15 has +0x24 fatigue
-incremented and loses 5 hp. Tank 2 is the breeding tank (`CheckHaigouTankSex`). The size 0x530 is the end
+step. Tank 1: with more than one fish, every 6 hours a fish with hp > 15 has
+`param[4]` (battle strength, at BREEDFISH_USED +0x2E) incremented, loses 5 hp,
+and has its parameters clamped. This does not increment the race fatigue
+counter at +0x24. Tank 2 is the breeding tank (`CheckHaigouTankSex`). The size 0x530 is the end
 of the last field Initialize touches. 0x4E88..0x4EB0 (0x28 bytes) is never accessed, so it is
 `CUserDataManager::unk_4e88`. It could instead be the tail of CFishAquarium.
 
