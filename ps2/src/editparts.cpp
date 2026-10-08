@@ -15,18 +15,6 @@ const int kTerritoryRadiusOffset = 0x270;
 const int kTerritoryHeightOffset = 0x274;
 const int kNoTerritoryFlags = 0xAC2;
 
-/**
- *
- * Edit part position viewed as four floats or a quadword.
- *
- */
-union EditPartsPosition {
-    float     f[4]; /**< Position components. */
-    u_long128 qw;   /**< The same position as one quadword. */
-};
-
-extern EditPartsPosition at_418;
-
 // Code (.text)
 void CEditPartsInfo::Initialize() {
     id = -999;
@@ -180,8 +168,7 @@ void CEditParts::SetPosition(float *pos) {
 }
 
 void CEditParts::SetPosition(float x, float y, float z) {
-    float pos[4];
-    *(EditPartsPosition *) pos = at_418;
+    float pos[4] = {0.0f, 0.0f, 0.0f, 1.0f};
     pos[0] = x;
     pos[1] = y;
     pos[2] = z;
@@ -446,9 +433,3 @@ int EditPartsCmpColor(float *a, float *b) {
 
     return 0;
 }
-
-// Initialised data (.data)
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editparts", at_418__DATA);
-
-// Virtual tables (.vtables)
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editparts", __vt__10CEditParts__DATA);
