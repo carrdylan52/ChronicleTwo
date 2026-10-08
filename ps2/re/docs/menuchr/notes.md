@@ -5,8 +5,9 @@ The matching build uses retail gaps for the C++ drafts still guarded by
 `MenuCharaChangeInit`, `CMenuCostumeSel::LoadMenuData`,
 and `CMosBookMenu::KeyStep`. The current source also keeps gaps for
 `KeyChangeMain`,
-`MenuCharaChangeStarDraw`, `CMenuMosSelect::KeyStep`,
-`MenuItemCharaDataLoadEndCheckAfter` and `MenuCostumeInit`.
+`MenuCharaChangeStarDraw`, `CMenuMosSelect::KeyStep` and `MenuCostumeInit`.
+`MenuItemCharaDataLoadEndCheckAfter` is native; see
+[the temporary-scene notes](night-20261008.md#temporary-scene-initializer-match-round-1).
 Only unguarded functions are active C++ decompilations. `MenuMemoryDivide` and
 `CMosBookMenu::Draw` are native, including their capacity and drawing tables.
 `CMenuChrCngMenu::EnterDataMenu` is native; its palette and command-loop
@@ -69,9 +70,11 @@ font sequence and matches with its six native drawing tables; see
 [monster-book drawing](midday-book.md).
 `CMenuCostumeSel::LoadMenuData` and `CMosBookMenu::KeyStep` each differ by
 the same two placement-new branch/move instructions as `LoadBGNPCModel`.
-`MenuItemCharaDataLoadEndCheckAfter` differs by two instructions in the
-inlined `CScene` constructor: the address argument for `CMdsListSet::Initialize`
-is prepared before the call in the draft and in the call delay slot in retail.
+`MenuItemCharaDataLoadEndCheckAfter` returns early through a `switch` on the
+load mode. An equivalent `if` lets MWCC fill the inlined `CScene` constructor's
+message-loop branch delay slot with the `CMdsListSet::Initialize` address, which
+retail sets in the call's delay slot. The function is compiled at inline depth 8
+so that the game-object array's `CSceneData` base constructor is inlined.
 
 The seven `MenuActionCharaBuffer` stacks and the other eight `mgCMemory` globals use native
 C++ construction in BSS declaration order. MWCC generates the 148-byte retail
