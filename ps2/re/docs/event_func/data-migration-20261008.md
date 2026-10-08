@@ -35,6 +35,21 @@ This removes six initialized markers without altering function instructions.
 Receipts: `.private/dataA-r3/event-extensions-empty-symbol-{build,objects,hashes}.log`;
 the failed fully inline form is recorded in `event-extensions-failure.log`.
 
+## NPC and voice-pack initializer templates
+
+The three local aggregates now use direct initializers: twelve NPC positions
+and facing angles, 25 three-column NPC training rows, and 164 voice-pack
+lookup rows. `_GET_TRAIN_NPC_POS` selects x/y/z/yaw by zero-based row, with y
+forced to zero in map 120. `_GET_NPC_TRAIN_ETC` selects the requested column
+and the one-based NPC row. `VpkFileNameFromVoiceNo` matches group/kind and
+formats the selected resource id/subresource pair.
+The native templates preserve their .data contents and local-copy instructions;
+the integer training template's four-byte trailing alignment is supplied by
+the existing bounded padding policy.
+
+Receipts: `.private/dataA-r3/event-{train-pos,train-etc,voice-pack}-{build,objects,hashes}.log`.
+Each topic passes PAL, all 149 objects and every unowned object hash.
+
 ## Retained markers
 
 The initialized-data markers are pending the following migration topics.
