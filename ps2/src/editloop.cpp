@@ -1863,7 +1863,7 @@ int EditDraw() {
     CMap                  *map;
     mgCTexture            *screen;
     CEditMap              *edit_map;
-    int                    block_index;
+    int                    reverse_block_count;
     int                    idea_no;
     int                    exit_flag;
     int                    dof_off;
@@ -1960,9 +1960,9 @@ int EditDraw() {
         mgPreEndDraw(NULL);
         int texture_blocks[128];
         for (texture_group = 0; texture_group < 6; texture_group++) {
-            block_index = MainScene__2->mds_list_set.GetTextureBlockNo(texture_group, texture_blocks, 128);
-            for (block_count = 0; block_count < block_index; block_count++) {
-                int *entry = &texture_blocks[block_index - block_count - 1];
+            reverse_block_count = MainScene__2->mds_list_set.GetTextureBlockNo(texture_group, texture_blocks, 128);
+            for (block_count = 0; block_count < reverse_block_count; block_count++) {
+                int *entry = &texture_blocks[reverse_block_count - block_count - 1];
                 block = *entry;
                 if (mgEndDrawReloadTexture(block, NULL) != 0 && water_block == *entry) {
                     WaveTable.CreateTexture(water);
