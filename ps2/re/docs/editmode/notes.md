@@ -116,3 +116,38 @@ inlined character construction with matching null-result flow is validated,
 then reassess any float-order remainder. No float selector is proposed:
 the constructor blocker prevents the required zero-difference complete-unit
 validation. The excluded `EditMode` body and compiler profile are unchanged.
+
+## Mid-day EditMode source-boundary probes (2026-10-08)
+
+The unit retains the LoadEditCursor and EditMode guards. The canonical
+source-only baseline is 270/368 and 87/1912 differing words respectively.
+The three `mgAngleCmp` calls in EditMode need the binary32 quarter-turn
+tolerance (`0x3F490FDB`, 0.7853982f) evaluated first. A private callee-scoped
+row reduces EditMode to 74/1912 without changing its `0x1DDC` body, but
+does not fix the axis-register allocation or ground-query scheduling.
+It is not a complete match and is not added to the production profile.
+
+The documented `mgVu0FBOX` has `max` at +0 and `min` at +0x10. Replacing
+the two separate vector locals and their box cast with this complete type,
+either preserving or removing the lower-corner alias, emits `0x1DEC`,
+exceeding the `0x1DE0` retail extent. The existing draft is retained.
+Additional probes under the private angle row give:
+
+| Lower-corner pointer boundary | EditMode result |
+|---|---|
+| Reuse the pointer for the ground-query copy | `0x1DE4`, oversized |
+| Copy directly into the min vector at that site | 77/1912 words |
+| Initialize the pointer beside the vectors and reuse it | `0x1DE4`, oversized |
+| Initialize it there but retain the later assignment | 84/1912 words |
+| Remove unused axis float declarations | 74/1912 words, unchanged |
+
+No source trial improves the retained draft. The relevant angle calls have
+direct arguments; the nested CheckHit/GetGeoCheckCamCol expression has no
+floating literal argument for the new SF selectors to choose. New nested
+selectors therefore do not address this residual. m2c output, snapshots
+and word diffs are under `.private/floatsel/editmode/` and the adjacent
+unit-prefixed logs. LoadEditCursor construction work is not repeated.
+
+The fresh isolated production probe confirms the 74/1912 private-policy
+score and one complete-unit byte problem at `0x002DF805`; no sibling function
+changes. Receipt: `.private/floatsel/editmode/mode-best-production/`.
