@@ -137,3 +137,72 @@ The final `CLEAN=1 JOBS=4` proto build passes `SCES_511.90: OK` and
 149/149 complete objects. The production sphida object passes `0x3134`
 bytes and 438 relocations; its linked and source-only SHA-256 hashes
 equal the baseline. The sole promotion in this lane is FishModifyParam.
+
+## Proto2 round-1 cardinality and carry-priority audit
+
+Base `202d02d`, image `chronicletwo_dev:sf-d8bf13c-proto2`. All 36 private
+rows above have source-derived `expected_matches` assertions. The full
+wrapper reports **72 successful readbacks**, one per row in each compiler
+pass. Most rows select one argument. The repeated identities are:
+
+- 22 at screen X=474 and 24 at X=334 each select two equal-valued slots.
+- Y=384 selected by width=58, and width=58 selected by Y=384, each select
+  one slot in each language branch (two total).
+- Gauge Y=406.4, width=68, and height=28 each select two language calls.
+- Suffix Y=406.4 at X=482 selects two calls; suffix 22 at X=482 selects
+  both width and height in both calls (**four total**).
+
+The last count confirms the documented selector projection: the selected
+formal slot is absent from the identity. A count assertion validates these
+four arguments; it does not select a width-only subset. The Japanese
+condition `[0]` remains the available language context. No complement/else
+identity, source position, or conflicting broad/narrow policy is added.
+
+The candidate remains **20/1096 words**, body `0x111C` in extent `0x1120`,
+with matching relocation offsets. The single complete-unit problem is
+target bytes at `0x002EF854`; `0x3130` bytes and 439 relocations are checked.
+The four residual call regions and paired language schedules above are
+unchanged.
+
+Twenty new carry-digit priority probes use the real Y=406.4 sibling to
+isolate the two carry calls. Each adds an exact one- or two-argument count
+and uses either the Japanese context or both language branches. They keep
+all other best policies fixed; width substitutions replace the previous
+width row rather than creating competing policies. Their policy sets are
+compared against the saved round-0 candidates before compilation.
+
+| Selected value and priority | Both languages | Japanese only |
+| --- | ---: | ---: |
+| Height 20 before U/V/texture width (formal 1/2/3) | 45 words | 32 words |
+| Height 20 before screen width (7) | 28 words | 32 words |
+| Width 16 before U/V/texture width (1/2/3) | 34 words | 20 words |
+| Width 16 before screen height (8) | 37 words | 37 words |
+| Height 20 or width 16 before screen X (5) | Rejected | Rejected |
+
+Sixteen probes compile. The four X-target probes fail because argument 5
+does not participate in the ordinary walk, preserving proto2's validation
+rule. No trial improves 20; several move the Japanese relocation and are
+rejected as matching candidates. The shared width/height/Y identities and
+the absent else context still limit disjoint language policies. This is a
+bounded negative result, not an exhaustive impossibility claim.
+
+The source and guard remain unchanged; no partial row is committed.
+Receipts: `.private/ctxrows-r1/sphida/cardinal-best/`,
+`.private/ctxrows-r1/sphida-best-rows.json`,
+`.private/ctxrows-r1/carry-priority-ledger.json`, and per-probe profiles,
+compiler logs and scores under `.private/ctxrows-r1/sphida/`.
+
+## Proto2 round-1 final acceptance
+
+The `CLEAN=1 JOBS=4` build passes all ten initialized PAL sections, the
+`0x01F64A00` memory end, and `SCES_511.90: OK`. The complete checker passes
+**149/149 units**. All **149 linked game-object hashes**, all **149
+source-only object hashes**, and the complete linked ELF hash equal the
+`202d02d` baseline. Game source and headers are unchanged.
+
+Freshly regenerated `progress/report.json` and coverage retain **6,746
+matched / 116 guarded / 10 assembly-only / zero fuzzy**. No function is
+promoted in round 1; the only profile edits add count assertions to the
+two already accepted FishModifyParam rows. Receipts:
+`.private/ctxrows-r1/final/clean-build.log`, `check-objects.log`,
+`coverage.txt`, `hashes.json`, `report.json`, and `comparison.json`.
