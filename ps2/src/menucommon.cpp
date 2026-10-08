@@ -1,4 +1,3 @@
-extern signed char sort_table[0x24];
 #include "menucommon.hpp"
 #include "mw_runtime.h"
 
@@ -173,22 +172,113 @@ static char MenuSpiTextureName[0x20];
 
 MENU_COMMAND_ANALYZE_INFO MenuCommandAnalyzeInfo;
 
-extern MENU_SPI_ANALYZE_STRUCT1 tbl_1728[];
+/**
+ *
+ * Drawing-type keywords accepted by the menu form script.
+ *
+ */
+static MENU_SPI_ANALYZE_STRUCT1 tbl_1728[] = {
+    {"normal", MENUFORM_DTYPE_NORMAL},
+    {"itembrd", MENUFORM_DTYPE_ITEMBRD},
+    {"giftview", MENUFORM_DTYPE_GIFTVIEW},
+    {"msgform", MENUFORM_DTYPE_MSGFORM},
+    {"poly", MENUFORM_DTYPE_POLY},
+    {"mappart", MENUFORM_DTYPE_MAPPART},
+    {"combrd", MENUFORM_DTYPE_COMBRD},
+    {"createbrd", MENUFORM_DTYPE_CREATEBRD},
+    {"list", MENUFORM_DTYPE_LIST},
+    {"bg_tile", MENUFORM_DTYPE_BG_TILE},
+    {"dload", MENUFORM_DTYPE_DLOAD},
+    {"mainfrm", MENUFORM_DTYPE_MAINFRM},
+    {"mainimg", MENUFORM_DTYPE_MAINIMG},
+    {"chrstar", MENUFORM_DTYPE_CHRSTAR},
+    {"inv_card", MENUFORM_DTYPE_INV_CARD},
+    {"geolist", MENUFORM_DTYPE_GEOLIST},
+    {"geotitle", MENUFORM_DTYPE_GEOTITLE},
+    {"geoana", MENUFORM_DTYPE_GEOANA},
+    {"shoplist", MENUFORM_DTYPE_SHOPLIST},
+    {"clip", MENUFORM_DTYPE_CLIP},
+    {"wmap", MENUFORM_DTYPE_WMAP},
+    {"buildup", MENUFORM_DTYPE_BUILDUP},
+    {"mosbaji", MENUFORM_DTYPE_MOSBAJI},
+    {"savelist", MENUFORM_DTYPE_SAVELIST},
+    {"infocur", MENUFORM_DTYPE_INFOCUR},
+    {"house", MENUFORM_DTYPE_HOUSE},
+    {NULL, -1},
+};
 
-extern "C" char *tbl_1759[];
+/**
+ *
+ * Movement keywords ordered by their MENUFORM_MTYPE value plus one.
+ *
+ */
+static char *tbl_1759[6] = {"n", "d", "l", "i", "ir", NULL};
 
-extern MENU_SPI_ANALYZE_STRUCT1 tbl_2060[];
+/**
+ *
+ * Frame-image drawing keywords accepted by the menu script.
+ *
+ */
+static MENU_SPI_ANALYZE_STRUCT1 tbl_2060[] = {
+    {"bg", MENUFORMPARTS_DTYPE_BG},
+    {"beta", MENUFORMPARTS_DTYPE_BETA},
+    {NULL, -1},
+};
 
-extern MENU_SPI_ANALYZE_STRUCT1 tbl_2074[];
+/**
+ *
+ * Item-icon drawing keywords accepted by the menu script.
+ *
+ */
+static MENU_SPI_ANALYZE_STRUCT1 tbl_2074[] = {
+    {"trs", MENUFORMPARTS_DTYPE_TRS},
+    {"neta", MENUFORMPARTS_DTYPE_NETA},
+    {NULL, -1},
+};
 
-extern MENU_SPI_ANALYZE_STRUCT1 tbl_2144[];
-extern MENU_SPI_ANALYZE_STRUCT1 tbl_2090[];
+/**
+ *
+ * Animation-effect keywords accepted by the menu part script.
+ *
+ */
+static MENU_SPI_ANALYZE_STRUCT1 tbl_2144[] = {
+    {"blink", MENU_PARTS_EFFECT_BLINK},
+    {"rot", MENU_PARTS_EFFECT_ROT},
+    {"huriko", MENU_PARTS_EFFECT_HURIKO},
+    {"stretch", MENU_PARTS_EFFECT_STRETCH},
+    {"stretch_rep", MENU_PARTS_EFFECT_STRETCH_REP},
+    {"stretch_sin", MENU_PARTS_EFFECT_STRETCH_SIN},
+    {NULL, 0},
+};
+
+/**
+ *
+ * Filled-box drawing keywords accepted by the menu script.
+ *
+ */
+static MENU_SPI_ANALYZE_STRUCT1 tbl_2090[] = {
+    {"sq_beta", MENUFORMPARTS_DTYPE_SQ_BETA},
+    {NULL, -1},
+};
 
 extern "C" SPI_TAG_PARAM menu_analyze_tag[];
 
 extern "C" u8 at_2253__2[];
 
-extern MENU_SPI_ANALYZE_STRUCT1 tbl_1994[];
+/**
+ *
+ * Additional drawing-type keywords accepted by the menu part script.
+ *
+ */
+static MENU_SPI_ANALYZE_STRUCT1 tbl_1994[] = {
+    {"clut_reload", MENUFORMPARTS_DTYPE_CLUT_RELOAD},
+    {"\224\255\226\276\203l\203^", MENUFORMPARTS_DTYPE_IDEA_BOARD},
+    {"\203A\203\213\203o\203\200", MENUFORMPARTS_DTYPE_ALBUM},
+    {"\202\262\202\277\202\341\220\374", MENUFORMPARTS_DTYPE_RANDOM_LINE},
+    {"font", MENUFORMPARTS_DTYPE_FONT},
+    {"\203l\203^\222\240", MENUFORMPARTS_DTYPE_IDEA_MEMO},
+    {NULL, -1},
+};
 
 extern MENU_SPI_ANALYZE_STRUCT1 tbl_2369[];
 
@@ -202,14 +292,46 @@ extern "C" SPI_TAG_PARAM menu_execommand_analyze_tag[];
 
 static const int sort_type_count = 0x24;
 
+/**
+ *
+ * Sort rank of each item category, with an empty slot ordered last.
+ *
+ */
+static signed char sort_table[0x24] = {
+    sort_type_count, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10,
+    11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22,
+    23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 0
+};
+
 static const int default_etc_count = 0x60;
 
-extern short sort_top_type;
+/**
+ *
+ * First item category used by the next sorting pass.
+ *
+ */
+static short sort_top_type = 1;
 
-extern char at_1173[];
+/**
+ *
+ * Language-specific subdirectory used for menu files.
+ *
+ */
+static char *langdirpathTable_1161[8] = {
+    "0/", "1/", "2/", "3/", "4/", "5/", "1/", NULL
+};
 
-extern char *langdirpathTable_1161[7];
-extern s8    mes_cord_conv_1193[16][2];
+/**
+ *
+ * Hexadecimal digits and their nibble values for bracketed font codes.
+ *
+ */
+static s8 mes_cord_conv_1193[16][2] = {
+    {'0', 0}, {'1', 1}, {'2', 2}, {'3', 3},
+    {'4', 4}, {'5', 5}, {'6', 6}, {'7', 7},
+    {'8', 8}, {'9', 9}, {'a', 10}, {'b', 11},
+    {'c', 12}, {'d', 13}, {'e', 14}, {'f', 15}
+};
 
 static inline unsigned int align16_blocks(unsigned int n);
 
@@ -784,7 +906,7 @@ int LoadFileMenu(char *name, u_long128 *buffer, int mode) {
         return -1;
     }
 
-    strcpy(path, at_1173);
+    strcpy(path, "menu/");
     strcat(path, langdirpathTable_1161[LanguageCode]);
     strcat(path, name);
 
@@ -1570,7 +1692,7 @@ int menu_spi_analyze_func_strcut1(MENU_SPI_ANALYZE_STRUCT1 *table, char *name) {
 
         if (strcmp(entry_name, name) == 0) {
 
-            return ((MENU_SPI_ANALYZE_STRUCT1 *) ((i << 3) + (int) table))->value;
+            return table[i].value;
         }
 
         i++;
@@ -3190,16 +3312,6 @@ void MenuCommandAnalyze(char *script, int size, char *command_name) {
 }
 
 // Initialised data (.data)
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menucommon", sort_table__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menucommon", langdirpathTable_1161__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menucommon", mes_cord_conv_1193__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menucommon", tbl_1728__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menucommon", tbl_1759__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menucommon", tbl_1994__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menucommon", tbl_2060__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menucommon", tbl_2074__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menucommon", tbl_2090__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menucommon", tbl_2144__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menucommon", menu_analyze_tag__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menucommon", tbl_2369__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menucommon", tbl_2422__DATA);
@@ -3207,61 +3319,6 @@ INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menucommon", tbl_2516__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menucommon", menu_execommand_analyze_tag__DATA);
 
 // Constants (.rodata)
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menucommon", at_1162__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menucommon", at_1163__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menucommon", at_1164__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menucommon", at_1165__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menucommon", at_1166__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menucommon", at_1167__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menucommon", at_1173__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menucommon", at_1729__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menucommon", at_1730__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menucommon", at_1731__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menucommon", at_1732__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menucommon", at_1733__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menucommon", at_1734__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menucommon", at_1735__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menucommon", at_1736__3__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menucommon", at_1737__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menucommon", at_1738__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menucommon", at_1739__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menucommon", at_1740__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menucommon", at_1741__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menucommon", at_1742__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menucommon", at_1743__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menucommon", at_1744__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menucommon", at_1745__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menucommon", at_1746__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menucommon", at_1747__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menucommon", at_1748__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menucommon", at_1749__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menucommon", at_1750__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menucommon", at_1751__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menucommon", at_1752__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menucommon", at_1753__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menucommon", at_1754__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menucommon", at_1760__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menucommon", at_1761__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menucommon", at_1762__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menucommon", at_1763__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menucommon", at_1764__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menucommon", at_1995__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menucommon", at_1996__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menucommon", at_1997__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menucommon", at_1998__3__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menucommon", at_1999__3__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menucommon", at_2000__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menucommon", at_2061__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menucommon", at_2062__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menucommon", at_2075__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menucommon", at_2076__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menucommon", at_2091__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menucommon", at_2145__3__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menucommon", at_2146__4__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menucommon", at_2147__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menucommon", at_2148__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menucommon", at_2149__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menucommon", at_2150__2__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menucommon", at_2161__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menucommon", at_2162__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menucommon", at_2163__DATA);
@@ -3378,6 +3435,3 @@ INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menucommon", at_2566__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menucommon", at_2567__2__DATA);
 
 // Small initialised data (.sdata)
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menucommon", sort_top_type__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menucommon", at_2092__DATA);
-

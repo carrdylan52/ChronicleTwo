@@ -40,3 +40,44 @@ Validation: `.private/dataB/receipts/menucommon-bss-final-build.log` records
 148 file hashes equal the warm-built baseline. Refreshed objdiff keeps all
 129 functions exact. The marker counts become 186/0; initialized-data coverage
 remains 0/3,816 because BSS does not contribute to that measurement.
+
+## Item order, file paths, and layout keywords
+
+`sort_table` is a writable `signed char[0x24]`: the sorting pass rewrites its
+ranks, so it is not const. Its initializer preserves the empty category's
+last-place rank and the remaining retail rank bytes. `sort_top_type` is a
+`short` initialized to 1. `langdirpathTable_1161` is an eight-pointer table,
+including the repeated English directory and final null. `LoadFileMenu`
+uses the inline `"menu/"` prefix. `mes_cord_conv_1193` is the 16-pair
+signed-byte hexadecimal digit/nibble table documented by `ConvertFontCode`.
+
+The existing `MENU_SPI_ANALYZE_STRUCT1` layout supplies the form drawing,
+part drawing, frame, item-icon, filled-box, and animation-effect tables.
+Their values use `MENUFORM_DTYPE`, `MENUFORMPARTS_DTYPE`, and
+`MENU_PARTS_EFFECT_TYPE`. Japanese keyword bytes in `tbl_1994` are preserved
+with three-digit octal string escapes. All keywords are inline in the typed
+tables; their anonymous string markers are removed. A null-name row is the
+logical terminator. Zero words after the declared table size are piece
+padding, not extra entries. `tbl_1759` is a six-pointer movement-keyword
+array; its position maps to `MENUFORM_MTYPE` by subtracting one.
+
+`_MENU_FILLBOX` already declares its four-byte local effect-count array as
+`{1, 2, 2, 4}`. Removing the corresponding `at_2092` marker retains the native
+initializer. The keyword lookup now reads `table[i].value` directly instead
+of reconstructing the entry address with an integer cast.
+
+Each table was built and checked separately, with receipts named
+`menucommon-sort-table`, `menucommon-sort-top`, `menucommon-file-paths`,
+`menucommon-font-codes`, `menucommon-form-drawing-table`,
+`menucommon-part-drawing-table`, `menucommon-frame-drawing-table`,
+`menucommon-icon-drawing-table`, `menucommon-box-drawing-table`,
+`menucommon-part-effect-table`, `menucommon-movement-table`,
+`menucommon-box-effect-counts`, and `menucommon-keyword-lookup` under
+`.private/dataB/receipts/`. Every full object check passes 149/149 and PAL is
+OK; only the owned unit's object file changes from baseline.
+
+After the layout checkpoint: 119 `INCLUDE_RODATA`, zero `INCLUDE_BSS`, and
+8/3,816 matched data bytes in the refreshed report. That report has partially
+populated data sections while the remaining dispatch/message tables still
+come from assembly; marker removal and the canonical object check establish
+which definitions are native.
