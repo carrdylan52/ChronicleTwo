@@ -39,10 +39,12 @@ struct HankakuKanaTable {
     u8 code[63]; /**< Single byte kana codes. */
 };
 
-extern mgRect<int>          at_784__2;
 extern char                 at_812__3[];
 extern char                 at_813__3[];
-extern char                 FontTblBinBuff[];
+/**
+ * Holds the loaded font-code table and its character counts.
+ */
+static FONT_TBL_BIN FontTblBinBuff;
 extern char                 at_848__4[];
 extern char                 at_849__3[];
 extern char                 at_850__3[];
@@ -72,7 +74,6 @@ extern char                 at_995__3[];
 extern char                 at_996__3[];
 extern char                 at_997__3[];
 extern const unsigned char  at_1543[6];
-extern mgRect<int>          at_817__4;
 
 // Code (.text)
 int GetGaijiW(int code) {
@@ -106,15 +107,10 @@ RECT GetRectFontTex(int font_no, int *tex_no) {
         }
     }
 
-    struct {
-        int left;
-        int top;
-        int right;
-        int bottom;
-    } __attribute__((aligned(16))) rect = *(typeof(rect) *) &at_784__2;
+    RECT rect = {0, 0, 0, 0};
 
     if (font < 0) {
-        return *(RECT *) &rect;
+        return rect;
     }
 
     if (font < 0x260) {
@@ -129,16 +125,16 @@ RECT GetRectFontTex(int font_no, int *tex_no) {
         *tex_no = 3;
         font -= 0x720;
     } else {
-        return *(RECT *) &rect;
+        return rect;
     }
 
-    rect.left = font % 32;
-    rect.top = font / 32;
-    rect.left *= 16;
-    rect.top *= 20;
-    rect.right = 16;
-    rect.bottom = 20;
-    return *(RECT *) &rect;
+    rect.x = font % 32;
+    rect.y = font / 32;
+    rect.x *= 16;
+    rect.y *= 20;
+    rect.width = 16;
+    rect.height = 20;
+    return rect;
 }
 
 void MySetTexMini(int page, mgCDrawPrim *prim) {
@@ -152,7 +148,8 @@ void MySetTexMini(int page, mgCDrawPrim *prim) {
 }
 
 RECT GetRectFontTexMini(int code, int *page) {
-    return *(RECT *) &at_817__4;
+    RECT rect = {0, 0, 0, 0};
+    return rect;
 }
 
 #pragma global_optimizer off
@@ -183,17 +180,22 @@ char *My_strncpy(char *dst, const char *src, u32 count) {
 
 #pragma global_optimizer reset
 
+#pragma opt_propagation off
+
 u8 *GetYoyakuTblTop() {
-    return (u8 *) ((FONT_TBL_BIN *) FontTblBinBuff)->yoyaku_tbl;
+    FONT_TBL_BIN *table = &FontTblBinBuff;
+    return table->yoyaku_tbl[0];
 }
+
+#pragma opt_propagation reset
 
 int LoadFontTblBin() {
     int size;
 
     if (LanguageCode == 1) {
-        LoadFile(at_848__4, FontTblBinBuff, &size);
+        LoadFile(at_848__4, &FontTblBinBuff, &size);
     } else {
-        LoadFile(at_849__3, FontTblBinBuff, &size);
+        LoadFile(at_849__3, &FontTblBinBuff, &size);
     }
 
     if (size > 0x1000) {
@@ -204,18 +206,24 @@ int LoadFontTblBin() {
     return 1;
 }
 
+#pragma opt_propagation off
+
 int GetYoyakuTblNum() {
-    return ((FONT_TBL_BIN *) FontTblBinBuff)->yoyaku_num;
+    FONT_TBL_BIN *table = &FontTblBinBuff;
+    return table->yoyaku_num;
 }
 
 int GetKanjiTopNo() {
-    return ((FONT_TBL_BIN *) FontTblBinBuff)->kanji_top_no;
+    FONT_TBL_BIN *table = &FontTblBinBuff;
+    return table->kanji_top_no;
 }
 
 int GetHalfFontNum() {
-    u16 *p = (u16 *) FontTblBinBuff;
-    return *p;
+    FONT_TBL_BIN *table = &FontTblBinBuff;
+    return table->half_font_num;
 }
+
+#pragma opt_propagation reset
 
 int CFont::CheckKanjiFont(int font_no) {
     if (LanguageCode == 6) {
