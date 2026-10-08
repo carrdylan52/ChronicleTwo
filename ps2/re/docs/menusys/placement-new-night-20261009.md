@@ -36,3 +36,63 @@ matched / 89 guarded / 10 assembly-only / 0 fuzzy. Full receipts are
 `promote-twenty-four-progress.log`, and `promote-twenty-four-coverage.log`.
 The [toolchain proposal](../satansfiddle/placement-new-proposal-20261009.md)
 states the intentional policy and its evidence limits.
+
+## Natural inventory selector candidate
+
+`MenuItemSelectInit__FP9mgCMemoryPii` is at 0x002528e0 with actual retail
+GLOBAL/FUNC (info 0x12) size 0x288; its next-address layout extent is 0x290.
+The eight bytes at 0x00252b68..0x00252b70 are zero and have no relocations.
+The inherited header's extent-based @size has a private exact correction.
+Existing `notes.md`, `guarded-constructors.md` and the owning headers establish
+all dependent layouts and APIs before this source change.
+
+The 0x450-byte `CItemSelect` owns the base menu, 150 item pointers/flags,
+alpha state, two float rectangles, eased cursor/scroll, texture, grid cursor
+and row count. Its existing base/default rectangle constructors supply their
+initialization. The explicit constructor clears its state, sets the list
+rectangle (120, screen-height-266, 0, 200) and item rectangle
+(20+list.left, 370+list.top, 44, 55), refreshes item limits and builds the list.
+The compiler supplies its vtable and implicit member work.
+
+The caller snapshots the real remaining quadwords and typed top pointer,
+attaches that buffer to `MenuItemMainMemory`, and allocates
+`QuadwordsFor(sizeof(CItemSelect)) + 2` using the existing utility. It attaches
+the texture blocks, captures the first background block, attaches common
+textures, aligns the stack and starts background reading. Existing
+`MENU_OPEN_USE_ITEM` / `MENU_OPEN_USE_ITEM_B` modes select `itemsel.pac` /
+`fishsel.pac` and the latter's mode flag. The two file tests and existing
+unsigned size-rounding behavior are retained; no default size is added.
+The first message window uses preset 2, border 5 and message 0.
+
+Fresh pn15 canonical/scoped-after controls give 146/15 words. Real rest/top
+locals remove the initial stack evaluation difference. The exact class-6
+placement row uses `__nw__FUiP1`, `__ct__11CItemSelectFv`, after-inline
+conversion and expected count one. Two existing-capability float rows target
+`Set__9mgRect<f>Fffff`: binary32 200 (`0x43480000`) evaluate-first and binary32
+55 (`0x425c0000`) evaluate-before formal slot 3. Each asserts exactly one
+argument. Slot zero is the receiver and slot three is the 44-width sibling.
+The rows reproduce retail's 200-before-120 and 55-before-44 materialization.
+They select source identities and values, not addresses or ordinals.
+
+Each single float row leaves four words on the rest-first source; their
+combination is zero with the exact relocation map. Using sizeof plus the two
+reserve blocks, the existing load-mode enums, ordinary path literals, and
+removing the unconsumed declarations/markers preserves zero. All 164 other
+manifest rows preserve code and exact raw relocation references; all 166
+emitted nonselected native functions preserve code, size and binding.
+The existing `MenuModeMalloc` promotion remains unchanged.
+
+The 58 relocation entries and 43 resolved call/global/literal checks agree
+with retail. Each recovered path literal is twelve bytes plus four retail
+alignment bytes. The native weak float setter (info 0x22) reproduces its
+0x14-byte retail body at 0x001f3d50. The private data receipt separates exact
+ELF-symbol span, current/frozen manifest extent, next-address extent and
+independently measured padding; it preserves an earlier mislabeled span
+receipt as a historical input instead of treating it as padding evidence.
+
+Receipts, complete type/API evidence, isolated source/profile patches,
+compiler traces and nonselected audits are in
+`.private/pntc/menusys-residual/`; the final candidate is
+`sources/select-sized-literals/menusys.cpp` with `select-only-profile.json`.
+This diagnostic result requires full-wrapper, complete-object, PAL and
+unrelated-artifact acceptance before the guard or rows are committed.
