@@ -69,12 +69,11 @@ struct message_anchor_table {
 
 /**
  *
- * Message draw primitive and its backing storage.
+ * Primitive builder used to draw message elements.
  *
  */
 union message_draw_prim {
-    mgCDrawPrim prim;           /**< Draw primitive over the storage. */
-    u8          storage[0x120]; /**< Backing storage. */
+    mgCDrawPrim prim; /**< Message-element drawing primitive. */
 };
 
 
@@ -887,7 +886,7 @@ void ClsMes::Preset(int preset) {
 
     last_x = 0;
     last_y = 0;
-    *(int *) &fade = 0;
+    fade = 0.0f;
     open = 1;
     draw_speed = GetDrawSpeedDef();
     page_wait = 0;
@@ -4493,8 +4492,10 @@ void MyStrCpyLineFeed(char *dst, char *src) {
 
     in = (signed char *) src;
     out = (signed char *) dst;
-loop:
-    if (*in != 0xA) {
+    for (;;) {
+        if (*in == 0xA) {
+            break;
+        }
         if (strncmp((char *) in, "\\n", 2) == 0) {
             in += 2;
             *out = 0xA;
@@ -4505,7 +4506,6 @@ loop:
             out += 1;
         }
 
-        goto loop;
     }
     *out = 0;
 }

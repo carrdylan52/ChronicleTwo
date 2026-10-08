@@ -105,3 +105,24 @@ remain matched; none is promoted. Refreshed source-only matched data stays
 **20/9,068**. That report does not normalize source data identities, ordering
 and piece padding as the linked-object stage does; the canonical complete
 object verifies every migrated byte and resolved relocation.
+
+## Further source cleanup
+
+The remaining integer write through `&fade` becomes `fade = 0.0f`. The
+primitive union retains only its real `mgCDrawPrim` member; its redundant
+128-byte backing array is removed. `nd-typed-fade-reset` and
+`nd-primitive-storage` receipts pass PAL, all 149 objects, and unowned hashes.
+
+The inherited digit helper is retained after natural cleanup probes
+fail to match. Removing `Ident` from `DrawDigit` preserves its 0x150-byte size
+but changes integer scheduling: the direct expression differs by 15 masked
+words; a meaningful row local with compound assignment differs by 13. The
+plain compound expression also fails. Receipts are `nd-digit-expression`,
+`nd-digit-compound-expression`, `nd-digit-row-expression`, and
+`nd-digit-row-diff.log`. No new helper is introduced; the existing exact body
+is restored. Replacing `MyStrCpyLineFeed`'s label/backward branch with `while`
+also changes 21 masked words (`nd-linefeed-loop-build.log` and its word-diff
+receipt). A natural infinite `for` loop with an explicit newline break instead
+preserves the complete 0x80-byte parser. The accepted
+`nd-linefeed-break-loop` receipts pass PAL, all 149 objects and unowned hashes;
+the parser's `goto` is removed. These probes do not promote any function.
