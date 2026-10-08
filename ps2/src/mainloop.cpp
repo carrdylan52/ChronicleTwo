@@ -43,20 +43,53 @@
 
 extern INIT_LOOP_ARG NextInitArg;
 extern INIT_LOOP_ARG PrevInitArg;
-extern int           NextLoopNo;
-extern int           PrevLoopNo;
-extern int           CaptureScreen;
-extern int           PauseSel;
-extern int           PauseMenuMode;
-extern int           exit_start;
-extern float         BlackFade;
-extern float         BlackFade2;
+/**
+ * Mode entered after the current main loop finishes.
+ */
+static int           NextLoopNo;
+/**
+ * Mode active before the current main loop.
+ */
+static int           PrevLoopNo;
+/**
+ * Whether input replay also captures screen images.
+ */
+static int           CaptureScreen;
+/**
+ * Selected pause-menu command.
+ */
+static int           PauseSel;
+/**
+ * Stage of the pause menu.
+ */
+static int           PauseMenuMode;
+/**
+ * Whether leaving the pause menu has started.
+ */
+static int           exit_start;
+/**
+ * Opacity of the pause-menu screen fade.
+ */
+static float         BlackFade;
+/**
+ * Opacity of the pause-menu message fade.
+ */
+static float         BlackFade2;
 extern CSaveData     SaveData;
 extern ClsMes        PauseMes;
 extern mgCMemory     SystemSeStack;
-extern u_long128     main_buffer[0x1A0000];
-extern u_long128     SystemSeBuff[400];
-extern u_long128     InfoBuff[5000];
+/**
+ * Main memory arena for game resources.
+ */
+u_long128            main_buffer[0x1A0000];
+/**
+ * Memory backing the system sound-effect loader.
+ */
+u_long128            SystemSeBuff[400];
+/**
+ * Memory backing configuration and villager data.
+ */
+u_long128            InfoBuff[5000];
 static int           MenuLoop();
 static int           EventSelect();
 static int           gcALL_GEO_PARTS(SPI_STACK *stack, int argc);
@@ -69,19 +102,46 @@ extern ANALOG_TABLE_ENTRY analog_table[];
 
 extern CFont     Font;
 extern mgCMemory MainBuffer;
-extern int       menu_mode;
+/**
+ * Active page of the debug menu.
+ */
+static int       menu_mode;
 void             InitEventSelect();
 
 extern int SelectArg[32];
 
-extern CSaveData    *ActiveSaveData;
-extern int           CaptureMode;
-extern int           LoopNo;
-extern int           PlayTimeCountFlag;
-extern CSubGameData *SubGameSaveData;
-extern int           event_view;
-extern int           future_sel;
-extern int           hdd_sel;
+/**
+ * Save data used by the current game mode.
+ */
+static CSaveData    *ActiveSaveData;
+/**
+ * Selected input capture or replay mode.
+ */
+static int           CaptureMode;
+/**
+ * Currently active main-loop mode.
+ */
+static int           LoopNo;
+/**
+ * Whether vertical blank advances the saved play time.
+ */
+static int           PlayTimeCountFlag;
+/**
+ * Save-data arena for the active extra game.
+ */
+static CSubGameData *SubGameSaveData;
+/**
+ * Whether the event-selection sub-menu is open.
+ */
+static int           event_view;
+/**
+ * Whether the future-map sub-menu is open.
+ */
+static int           future_sel;
+/**
+ * Whether the hard-disk debug menu is open.
+ */
+static int           hdd_sel;
 extern CScene        MainScene;
 extern INIT_LOOP_ARG InitArg;
 extern mgCMemory     InfoStack;
@@ -95,12 +155,21 @@ extern s8          init_1225;
 extern s8          init_1228;
 extern s8          init_1231;
 extern s8          init_1234;
-extern mgCTexture *FontTex[1];
-extern TM2_head   *FontDataAdr[1];
+/**
+ * Font texture pages loaded for the current language.
+ */
+static mgCTexture *FontTex[1];
+/**
+ * Texture image data for each font page.
+ */
+static TM2_head   *FontDataAdr[1];
 extern char        at_1654[];
 extern char        at_1655[];
 extern char        at_1656[];
-extern u8          font_buff[];
+/**
+ * Image storage used when loading font texture pages.
+ */
+u8                 font_buff[0xD000];
 extern char        at_1657[];
 extern char        at_1296[];
 extern char        at_1856[];
@@ -1816,67 +1885,45 @@ INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mainloop", at_2085__DATA);
 // Static initialiser table (.ctor)
 
 // Small initialised data (.sdata)
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mainloop", MainThreadPriority__DATA);
+int MainThreadPriority = 1;
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mainloop", at_973__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mainloop", at_974__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mainloop", at_1317__2__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mainloop", at_1474__DATA);
 
 // Small uninitialised data (.sbss)
-INCLUDE_BSS(read_buffer, 0x4);
-INCLUDE_BSS(SystemSND_ID, 0x4);
-INCLUDE_BSS(DebugFlag, 0x4);
-INCLUDE_BSS(DefStartEventNo, 0x4);
-INCLUDE_BSS(LanguageCode, 0x4);
-INCLUDE_BSS(OmakeFlag, 0x4);
-INCLUDE_BSS(MasterDebugCode, 0x4);
-INCLUDE_BSS(LoopNo, 0x4);
-INCLUDE_BSS(NextLoopNo, 0x4);
-INCLUDE_BSS(PrevLoopNo, 0x4);
-INCLUDE_BSS(CaptureMode, 0x4);
-INCLUDE_BSS(CaptureScreen, 0x4);
-INCLUDE_BSS(CSnd, 0x4);
-INCLUDE_BSS(ActiveSaveData, 0x4);
-INCLUDE_BSS(SubGameSaveData, 0x4);
-INCLUDE_BSS(PlayTimeCountFlag, 0x4);
+u_long128 *read_buffer;
+u32 SystemSND_ID;
+int DebugFlag;
+int DefStartEventNo;
+int LanguageCode;
+int OmakeFlag;
+int MasterDebugCode;
+CSound CSnd;
 INCLUDE_BSS(pmeter_flag_1037, 0x4);
 INCLUDE_BSS(init_1038, 0x4);
 INCLUDE_BSS(pause_1108, 0x4);
 INCLUDE_BSS(init_1109, 0x4);
-INCLUDE_BSS(menu_mode, 0x4);
 INCLUDE_BSS(init_1225, 0x4);
 INCLUDE_BSS(init_1228, 0x4);
 INCLUDE_BSS(init_1231, 0x4);
 INCLUDE_BSS(init_1234, 0x4);
 INCLUDE_BSS(select_1312, 0x4);
 INCLUDE_BSS(init_1313, 0x4);
-INCLUDE_BSS(event_view, 0x4);
-INCLUDE_BSS(future_sel, 0x4);
-INCLUDE_BSS(hdd_sel, 0x4);
 INCLUDE_BSS(select_1469, 0x4);
 INCLUDE_BSS(init_1470, 0x4);
-INCLUDE_BSS(FontTex, 0x4);
-INCLUDE_BSS(FontDataAdr, 0x4);
-INCLUDE_BSS(BlackFade, 0x4);
-INCLUDE_BSS(BlackFade2, 0x4);
-INCLUDE_BSS(exit_start, 0x4);
-INCLUDE_BSS(PauseSel, 0x4);
-INCLUDE_BSS(PauseMenuMode, 0x4);
 
 // Uninitialised data (.bss)
-INCLUDE_BSS(GamePad__2, 0x480);
-INCLUDE_BSS(PadCtrl, 0x510);
+CGamePad GamePad__2;
+CPadControl PadCtrl;
 DEBUG_INFO    DebugInfo;
 CFont         Font;
 INIT_LOOP_ARG InitArg;
 INIT_LOOP_ARG NextInitArg;
 INIT_LOOP_ARG PrevInitArg;
-INCLUDE_BSS(main_buffer, 0x1A00000);
 static mgCMemory MainBuffer;
 CScene           MainScene;
-INCLUDE_BSS(SystemSeBuff, 0x1900);
 mgCMemory SystemSeStack;
-INCLUDE_BSS(InfoBuff, 0x13880);
 mgCMemory InfoStack;
 CSaveData SaveData;
 INCLUDE_BSS(vu_prog_1048, 0x40);
@@ -1886,5 +1933,4 @@ INCLUDE_BSS(buf1_1227, 0x30);
 INCLUDE_BSS(dbuf0_1230, 0x30);
 INCLUDE_BSS(dbuf1_1233, 0x30);
 INCLUDE_BSS(at_1529, 0x40);
-INCLUDE_BSS(font_buff, 0xD000);
 ClsMes PauseMes;
