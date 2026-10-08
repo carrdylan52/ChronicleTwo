@@ -565,9 +565,3 @@ void DrawTakePhotoSystem(int texture, CInventUserData *user_data) {
     Font__3.SetPos(0x1B8, y);
     Font__3.DrawDirect(Font__3.str, Font__3.pos_x, Font__3.pos_y);
 }
-
-// Constants (.rodata)
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/photo", at_817__6__DATA);
-
-// Small initialised data (.sdata)
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/photo", null_txt__DATA);

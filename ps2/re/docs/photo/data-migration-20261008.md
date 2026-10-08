@@ -29,3 +29,23 @@ and all 149 objects. Marker counts decrease from 30 `INCLUDE_RODATA` and
 The failed preliminary table probe is also retained privately; its
 Japanese literal bytes and ambiguous empty-string ownership were corrected
 before acceptance.
+
+## Native data marker completion (round 1)
+
+The existing `static char *null_txt = ""` supplies the native four-byte
+fallback pointer and its one-byte empty literal. The real R_MIPS_32 field
+in the named pointer identifies the otherwise ambiguous empty-string piece;
+compiled addends and target-symbol offsets are subtracted. Both markers are
+removed together without changing the pointer definition or message table.
+The round-0 pointer-owned literal support already handles this case.
+
+All initialized-data and BSS markers are now absent. Refreshed objdiff
+`matched_data` changes from 472 to 1,306/1,306 bytes. All existing
+native functions and code bytes remain matched; no function is promoted.
+
+Validation receipts in `.private/dtool-r1/`: `final-build.log`,
+`final-objects.log`, `final-hashes.json`, `final-refresh.log`,
+`resume-metrics.json`, `final-tests.log` and `all-test-scripts.log`. The PAL
+verifier and all 149 canonical object comparisons pass. All 142 unowned
+object file hashes match the warm baseline. The retained-fallback audit
+finds no assembly-supplied piece credited as native data.
