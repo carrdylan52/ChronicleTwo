@@ -5,6 +5,21 @@ existing pragmas, and `chronicletwo_dev:sf-d8bf13c`. Native-draft word counts
 mask relocation operands and check their identities separately. None of the
 four placement-new parks is promoted.
 
+## Bounding-box arguments
+
+`CreateFrameVisual` reads its vertex count from `MDT_HEADER::vertex_num`
+before deriving the vertex pointer from the serialized `vertex_ofs`. That
+source order reproduces retail's `lw t0,12(s2)` at `+0x1E4`, followed by
+the three output-vector argument addresses. The previous byte-offset cast
+and later count declaration materialize that load after those addresses.
+
+The native result improves from 10/444 to 6/444 differing words; its body
+remains 0x6E8 within retail's 0x6F0 extent. The only differences are six
+allocation null tests at `+0x180`, `+0x30C`, `+0x380`, `+0x414`, `+0x4C8`,
+and `+0x548`, each using the saved object register rather than retail `v0`.
+The guard remains. A typed count declared after the vertex pointer and a
+call with both arguments expressed directly each retain 10/444.
+
 ## Generated attribute assignment
 
 `CopyFrame` allocates an `mgCFrameAttr` when the source frame has attributes,
@@ -34,8 +49,8 @@ initializing its local at declaration, each retain 1/96. Disabling pointer
 analysis, propagation, or lifetime optimization individually around the four
 guarded functions leaves their native results unchanged. Disabling peephole
 optimization increases differences, including `End` to 4/96; no pragma is
-retained. The existing six visual-allocation branches and four query-argument
-scheduling words in `CreateFrameVisual` remain separate problems.
+retained. The six visual-allocation branches remain after the independent
+query-argument scheduling correction above.
 
 All other native functions in `mg_dataset` retain their match results. The
 normal complete build preserves all 149 object-file SHA-256 hashes, retains
@@ -43,7 +58,8 @@ normal complete build preserves all 149 object-file SHA-256 hashes, retains
 difference of 0x26 bytes. No shared header or compiler-profile row changes.
 
 Private receipts: `.private/placenew-midday/probes/copy-generated-assignment/`
-and the other named `copy-*`, `end-*`, and `dataset-*` directories under
+and `.private/placenew-midday/probes/dataset-vertex-first/`, plus the other
+named `copy-*`, `end-*`, and `dataset-*` directories under
 `.private/placenew-midday/probes/`. Complete validation is recorded in
 `draft-cleanup-build.log`, `draft-cleanup-objects.log`, and
 `draft-cleanup-hash-comparison.json` under `.private/placenew-midday/`.

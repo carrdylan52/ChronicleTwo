@@ -559,8 +559,8 @@ static int CreateFrameVisual(mgCFrame *input_frame, mgCMemory *input_memory, mgC
     }
 
     frame->bound = (mgCFrame::BoundInfo *) memory->Alloc(sizeof(mgCFrame::BoundInfo) / 16);
+    const int vertex_num = mdt->vertex_num;
     float (*vertices)[4] = (float (*)[4])((char *) mdt + mdt->vertex_ofs);
-    int vertex_num = ((int *) mdt)[3];
     mgCreateBBoxSphere(max, min, sphere, vertices, vertex_num);
 
     if (type == MG_VISUAL_CREATE_MDT) {
