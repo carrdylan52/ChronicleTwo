@@ -6522,9 +6522,7 @@ void CMenuCostumeSel::Draw() {
         PrimQuad(prim, 50.0f, (float) (y + 4), labelRect);
         PrimQuad(prim, 74.0f, (float) (lineY + 4), lineRect);
         float wave = 6.0f * sinf(line_wave[i]);
-        if (wave < 0.0f) {
-            wave = -wave;
-        }
+        wave = wave < 0.0f ? -wave : wave;
         float leftX;
         float rightX;
         float arrowY;
