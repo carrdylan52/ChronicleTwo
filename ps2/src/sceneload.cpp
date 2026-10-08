@@ -194,24 +194,11 @@ void SCN_LOADMAP_INFO2::Initialize() {
 }
 
 
-/**
- *
- * Allocates and initializes a scene character in the supplied memory stack.
- *
- */
-static inline CCharacter2 *NewSceneCharacter(mgCMemory *stack) {
-    CCharacter2 *chara;
-
-    chara = new (stack->Alloc(0x68)) CCharacter2;
-
-    return chara;
-}
-
 #ifdef NONMATCHING
 int CScene::LoadChara(int index, u_int *pack, char *name, mgCMemory *model_stack, mgCMemory *motion_stack, mgCMemory *image_stack, int image_block, int no_outline) {
     u_int       *files[1];
     int          sizes[1];
-    CCharacter2 *chara = NewSceneCharacter(model_stack);
+    CCharacter2 *chara = new (model_stack->Alloc(0x68)) CCharacter2;
 
     if (chara == NULL) {
         return -1;
@@ -270,7 +257,7 @@ int CScene::CopyChara(int index, int source_index, mgCMemory *memory) {
     float        scale[4];
     CCharacter2 *chara;
 
-    chara = NewSceneCharacter(memory);
+    chara = new (memory->Alloc(0x68)) CCharacter2;
 
     if (chara == NULL) {
         return -1;
