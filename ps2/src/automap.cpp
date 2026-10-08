@@ -34,18 +34,23 @@ enum {
     kDoorPartsLast = kDoorPartsEnd - 1
 };
 
-extern char                at_1054[];
-static int                        _ROOM_FIXED(SPI_STACK *stack, int arg_count);
-static int                        _GRID_SIZE(SPI_STACK *stack, int unused);
-static int                        _ROOM_ID(SPI_STACK *stack, int arg_count);
-static int                        _ROOM_SIZE(SPI_STACK *stack, int arg_count);
-static int                        _ROOM_RATE(SPI_STACK *stack, int arg_count);
-static int                        _RD(SPI_STACK *stack, int arg_count);
-static int                        _ROOM_END(SPI_STACK *stack, int arg_count);
+/**
+ *
+ * Empty name of the final generated-part catalog entry.
+ *
+ */
+extern char at_1054[];
+static int _ROOM_FIXED(SPI_STACK *stack, int arg_count);
+static int _GRID_SIZE(SPI_STACK *stack, int unused);
+static int _ROOM_ID(SPI_STACK *stack, int arg_count);
+static int _ROOM_SIZE(SPI_STACK *stack, int arg_count);
+static int _ROOM_RATE(SPI_STACK *stack, int arg_count);
+static int _RD(SPI_STACK *stack, int arg_count);
+static int _ROOM_END(SPI_STACK *stack, int arg_count);
 
 /**
  *
- * Parts, connection flags and auxiliary indices for generated dungeon cells.
+ * Names and connection flags of parts for generated dungeon cells.
  *
  */
 AUTOMAP_PARTS_INFO PartsInfoData[277] = {
@@ -2881,8 +2886,6 @@ void CAutoMapGen::UpdateNaviMap(float *pos, int depth) {
     } while (changed != 0);
     navi_valid = 1;
 }
-
-// Initialised data (.data)
 
 // Constants (.rodata)
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/automap", at_1054__DATA);

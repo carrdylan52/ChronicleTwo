@@ -80,7 +80,9 @@ Proposed shared-tool change, outside this lane's ownership:
 `.private/proposals/automap-empty-literal-data-relocation.patch`. It extends
 ambiguous-literal identification to existing R_MIPS_32 relocations in known
 named native data objects; it does not modify data or instruction bytes. The
-proposal is not applied or validated here. After accepting that tool change, the
+shared tool is unchanged; the proposal is validated on a private copy of the
+all-native automap object and in a private PAL link (see below). After accepting
+that tool change, the
 last row can use `""` and the `at_1054` declaration/marker can be removed.
 
 Accepted receipts: `04b-parts-build.log`, `04b-parts-objects.log`,
@@ -141,3 +143,90 @@ Each row above has a separate full build, all-object check and baseline hash
 receipt with `-build.log`, `-objects.log`, and `-metrics.log` suffixes. Every
 step passes all 149 units, PAL, and the unchanged-other-object check. Marker
 counts become 1/0. The sole remaining marker is the catalog's empty name.
+
+## Empty-literal proposal validation
+
+The proposed postprocessor extension identifies the literal through the real
+R_MIPS_32 pointer in `PartsInfoData`, subtracting the compiled addend and
+symbol offset from retail's relocated word. It accepts a target only when it
+already belongs to the exact-byte candidate set and all references select one
+address. This supplies identity for `""` without changing its bytes, creating
+data, or changing code.
+
+The fully inline source probe is saved as
+`.private/proposals/automap-empty-literal-source.patch`. Its compiled object
+receives the proposed processing only in `.private/dataA/proposal-obj/`; the
+shared postprocessor and generated linked-object tree are not patched. The
+private automap object passes the canonical comparison: 0xA3E0 bytes and 650
+resolved relocations, zero problems. A private object response file substitutes
+only that automap object into the normal linker inputs. The resulting private
+PAL image passes every section and its memory extent. Receipts:
+`20b-empty-proposal-objects.log`, `20b-empty-proposal-link.log`,
+`20b-empty-proposal-pal.log`. Thus accepting the tool and source proposals can
+remove the last marker; the committed lane retains the exact one-marker form.
+
+## Objdiff data-metric limitations
+
+The final official `matched_data` remains 28 of 21,300. It counts the fully
+matching `.sbss` section; the source-only `.data` and `.rodata` comparisons
+contain independent preparation defects. Canonical `check_objects` compares
+the prepared linked object against actual retail bytes and relocation metadata,
+and remains exact. The report's reference uses whole-unit splat assembly, while
+the linked objects use the stricter per-piece assembly from `disassemble.py`.
+
+| Object | `.data` bytes / R_MIPS_32 relocations | `.rodata` bytes / R_MIPS_32 relocations |
+|---|---:|---:|
+| Raw source-only base | 18,776 / 291 | 2,071 / 0 |
+| Canonical linked object | 18,784 / 291 | 2,488 / 0 |
+| Objdiff reference | 18,784 / 1,641 | 2,488 / 4 |
+
+The reference invents 1,350 `.data` pointer relocations by treating packed
+shorts as addresses: 376 in `PartsInfoData` and 974 in `MiniMapInfoData`.
+All 291 actual retail `.data` relocations are present. The four `.rodata`
+relocations are also fabricated; retail has none. These are comparison defects,
+not missing C++ initializers. For example, a packed value at `.data+0x18C`
+is represented as `D_80000`, and one at `.data+0x7E4` as `main_buffer`.
+
+The source-only compiler output also lacks the eight verified alignment bytes
+after `PartsInfoData` and all per-literal piece padding. It receives no linked
+postprocessing. Its shifted anonymous numbers are mapped by spelling alone:
+retail `at_1037__2` (`"door83"`) is incorrectly paired with native `@1037`
+(`"ERR:NotFound StartLinkPoint\n"`). Therefore anonymous number-based mapping
+cannot establish data identity.
+
+A read-only in-memory audit of the existing naming and padding routines gives
+18,784 `.data` bytes and 2,480 `.rodata` bytes with correct retail identities.
+It leaves `at_1054` undefined, correctly excluding the eight bytes still
+supplied by its marker. The relevant normalization calls are name projection,
+`name_literal_data`, `pad_data`, `bind_suffixed_references`, then `pad_data`
+again. A shared objdiff repair should apply this source-only data preparation
+without importing fallback payloads, and should remove fabricated target
+relocations while restoring the numeric bytes those relocations displaced.
+Those tooling files are outside this lane's ownership and remain unchanged.
+
+## Existing healing-point copy probe
+
+`SearchHealingPoint` still contains its inherited 128-bit copy of the function
+point position into a local float array. Replacing it with
+`memcpy(offset, point->position, sizeof(offset))` changes the function's code:
+the PAL comparison reports 88 differing `.text` bytes, first at
+`SearchHealingPoint+0x12`. The probe is rejected and restored; no nonmatching
+replacement or synthetic vector helper is committed. Receipt:
+`18-healing-copy-build.log`. The data-literal casts in `SetDummyMountain`
+are removed by the accepted native aggregate initialization.
+
+## Final lane checkpoint
+
+The committed source has one `INCLUDE_RODATA` marker and zero `INCLUDE_BSS`
+reservations, versus 307 and seven at baseline. All 43 functions remain matched;
+no functions are promoted. Refreshed official matched data is 28/21,300 before
+and after for the comparison reasons above. The canonical object supplies every
+byte and relocation correctly; only the eight-byte empty-name piece still comes
+from a marker. Thus 306 data markers and all seven reservations are removed.
+
+Final receipts: `22-final-build.log` (`SCES_511.90: OK`),
+`22-final-objects.log` (149/149), `22-final-refresh.log`,
+`22-final-coverage.log` (6,749 matched / 113 guarded / 10 asm-only / 0 fuzzy),
+and `22-final-metrics.log` (all 148 other object hashes unchanged). The shared
+tool/source proposals are kept private for the coordinator; no tooling change,
+network write, or generated artifact is committed.
