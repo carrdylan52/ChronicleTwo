@@ -13,7 +13,12 @@
 #include "savedata.hpp"
 #include "scriptinterpreter.hpp"
 
-void LoadEditAnalyzeData(char *script, int size, mgCMemory *stack);
+/**
+ *
+ * Runs a Georama analysis script using a caller's string allocation stack.
+ *
+ */
+static void LoadEditAnalyzeData(char *script, int size, mgCMemory *stack);
 
 static const int kEditConditionCount = 0x40;
 static const int kEditPartsCount = 300;
@@ -23,15 +28,44 @@ static const int kEditPlaceFlagCount = 0x400;
 static const int kAnalyzeSrcCount = 5;
 static const int kAnalyzeEntryCount = 16;
 
-extern SPI_TAG_PARAM tag__6[];
 
-extern mgCMemory           Stack_1272;
-extern s8                  init_1273;
-extern u_long128           buff_1271[0x300];
-EditAnalyzeSrc             AnalyzeSrc[kAnalyzeSrcCount];
-extern EditAnalyzeSrc     *eaAnaSrc;
-extern EditAnalyzeDataSrc *eaAnaData;
-extern mgCMemory          *eaStack;
+/**
+ *
+ * Conditions and requests loaded for the five Georama maps.
+ *
+ */
+static EditAnalyzeSrc AnalyzeSrc[kAnalyzeSrcCount];
+
+/**
+ *
+ * Analysis source receiving the current GEO_ANALYZE block.
+ *
+ */
+static EditAnalyzeSrc *eaAnaSrc;
+
+/**
+ *
+ * Request receiving the current ANALYZE block.
+ *
+ */
+static EditAnalyzeDataSrc *eaAnaData;
+
+/**
+ *
+ * String allocation stack for the current analysis script.
+ *
+ */
+static mgCMemory *eaStack;
+
+static int eaGEO_ANALYZE(SPI_STACK *stack, int argc);
+static int eaCONDITION(SPI_STACK *stack, int argc);
+static int eaANALYZE(SPI_STACK *stack, int argc);
+static int eaCON_NO(SPI_STACK *stack, int argc);
+static int eaON_PARTS(SPI_STACK *stack, int argc);
+static int eaOFF_PARTS(SPI_STACK *stack, int argc);
+static int eaPERCENT(SPI_STACK *stack, int argc);
+static int eaEND_ANALYZE(SPI_STACK *stack, int argc);
+static int eaEND_GEO_ANALYZE(SPI_STACK *stack, int argc);
 
 // Code (.text)
 void EditAnalyzeDataSrc::Init() {
@@ -114,6 +148,7 @@ void CEditData::InitPlaceData() {
         grid[i] = 0;
     }
 }
+
 static inline int EditHouseIndex(CEditHouse *base, CEditHouse *target) {
     return target - base;
 }
@@ -780,26 +815,53 @@ void LoadEditAnalyzeData(int area_no, u_long128 *dest) {
     char path[0x4C];
     int  size;
 
-    if (init_1273 == 0) {
-        Stack_1272.Init();
-        init_1273 = 1;
-    }
+    /**
+     *
+     * Quadword buffer for analysis-script strings.
+     *
+     */
+    static u_long128 buff[0x300];
 
-    Stack_1272.stSetBuffer(buff_1271, 0x300);
+    /**
+     *
+     * Memory manager reused while loading each map's analysis script.
+     *
+     */
+    static mgCMemory Stack;
+
+    Stack.stSetBuffer(buff, 0x300);
     sprintf(path, "geo%d.cfg", area_no);
 
     if (LoadFile2(path, dest, &size, 0) != 0) {
-        LoadEditAnalyzeData((char *) dest, size, &Stack_1272);
+        LoadEditAnalyzeData((char *) dest, size, &Stack);
     }
 
-    printf("GeoData Remain = %dkbyte\n", ((Stack_1272.stack_size - Stack_1272.stack_used) * 16) / 1024);
+    printf("GeoData Remain = %dkbyte\n", ((Stack.stack_size - Stack.stack_used) * 16) / 1024);
 }
 
-void LoadEditAnalyzeData(char *script, int size, mgCMemory *stack) {
+/**
+ *
+ * Georama analysis tags and their record handlers.
+ *
+ */
+static SPI_TAG_PARAM tag[] = {
+    {"GEO_ANALYZE", eaGEO_ANALYZE},
+    {"CONDITION", eaCONDITION},
+    {"ANALYZE", eaANALYZE},
+    {"CON_NO", eaCON_NO},
+    {"ON_PARTS", eaON_PARTS},
+    {"OFF_PARTS", eaOFF_PARTS},
+    {"PERCENT", eaPERCENT},
+    {"END_ANALYZE", eaEND_ANALYZE},
+    {"END_GEO_ANALYZE", eaEND_GEO_ANALYZE},
+    {NULL, NULL},
+};
+
+static void LoadEditAnalyzeData(char *script, int size, mgCMemory *stack) {
     eaStack = stack;
     eaAnaSrc = 0;
     CScriptInterpreter interpreter;
-    interpreter.SetTag(tag__6);
+    interpreter.SetTag(tag);
     interpreter.SetScript(script, size);
     interpreter.Run();
 }
@@ -1014,28 +1076,6 @@ EditAnalyzeSrc::EditAnalyzeSrc() {
     Init();
 }
 
-// Initialised data (.data)
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editdata", tag__6__DATA);
-
-// Constants (.rodata)
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editdata", at_1290__3__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editdata", at_1291__4__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editdata", at_1292__4__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editdata", at_1293__4__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editdata", at_1294__4__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editdata", at_1295__4__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editdata", at_1296__3__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editdata", at_1297__3__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editdata", at_1298__3__DATA);
-
-// Static initialiser table (.ctor)
-
-// Small uninitialised data (.sbss)
 INCLUDE_BSS(init_1273, 0x4);
-INCLUDE_BSS(eaAnaSrc, 0x4);
-INCLUDE_BSS(eaAnaData, 0x4);
-INCLUDE_BSS(eaStack, 0x4);
-
-// Uninitialised data (.bss)
 INCLUDE_BSS(buff_1271, 0x3000);
 INCLUDE_BSS(Stack_1272, 0x30);
