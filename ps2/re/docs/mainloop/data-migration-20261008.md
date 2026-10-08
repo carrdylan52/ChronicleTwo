@@ -136,4 +136,30 @@ outline counter. Constructor guards need additional support. Objdiff base
 objects need equivalent identity mapping separately; linked-object
 normalization alone will not fix the data coverage metric.
 
+### Anonymous data identities
+
+The additional unapplied proposal
+`.private/proposals/anonymous-data-extent-identity.patch` requires equal declared
+extents when matching native literals. The native two-byte space string
+(`20 00`) otherwise also matches the prefix of retail's eight-byte
+`at_973` controller-button pair (`20 00 00 00 40 00 00 00`). Exact extents
+identify `at_1315`, `at_1316` and the eight-byte `at_1317__2` cursor table.
+The proposal also preserves a native child of a removed parent when no retail
+placeholder for that child remains; the arrow-only failure supplies the
+evidence for this discard-path change.
+
+The anonymous 64-byte zero template has native name `@825` in the current raw
+object and retail name `@1529`. Both are NOBITS `.bss` objects referenced only
+by `EventSelect`. The proposal identifies them by section kind, declared
+extent and incoming mangled-function/relocation-kind graph. NOBITS implies
+zero storage; its reader buffer is not a stored payload. Literal and zero
+identity tests on genuine raw compiler output preserve instructions,
+relocation indices, offsets and types. Wrong extents, initialized storage,
+ambiguous graphs and retained markers are rejected. Both proposal patches
+pass a combined `git apply --check`; neither is applied or container-built.
+Their tests are included in the patches and were executed in memory, without
+writing separate test receipts. Constructor guards still need a separate
+semantic constructor/receiver extension. Source-only objdiff identity mapping
+is also separate from these linked-object proposals.
+
 After refreshing progress: 4 / 27902952 matched data bytes; markers 3 ROData, 17 BSS. Final receipts: `.private/dataB-r2/mainloop-final-{build,check,progress}.log`.
