@@ -544,8 +544,8 @@ int sgLoopGyoRace(SubGameInfo *info) {
                         state->time = 20.0f * race_cnt;
                         state->lap_time[fish_inf[hero].lap] = state->time - 20.0f * state->lap_start;
                     } else if ((unsigned char) progress.state == 3) {
-                        float *total;
-                        *(total = &state->time) = 20.0f * RaceInfo.goal_time[(int)fish] ;
+                        state->time = 20.0f * RaceInfo.goal_time[fish];
+                        const float *total = &state->time;
                         float time = state->lap_time[0];
                         float minutes = 3600.0f * (float) (int) (time / 3600.0f);
                         time -= minutes;
