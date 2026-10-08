@@ -81,3 +81,48 @@ After the layout checkpoint: 119 `INCLUDE_RODATA`, zero `INCLUDE_BSS`, and
 populated data sections while the remaining dispatch/message tables still
 come from assembly; marker removal and the canonical object check establish
 which definitions are native.
+
+## Script dispatch and command keywords
+
+Both dispatch tables are native `SPI_TAG_PARAM` arrays: 60 entries for
+`menu_analyze_tag` (59 tags and a null terminator), and 32 for
+`menu_execommand_analyze_tag` (31 tags and a null terminator). Every function
+pointer names its actual C++ handler. Tag aliases such as `TD`/`TEXDATA`,
+`NRL`/`NORMAL`, and the abbreviated part-visibility commands retain the retail
+handler identity. The shared `INIT_DRAWLIST` and `RESET_TEXINFO` strings still
+serve their distinct layout and command handlers.
+
+`tbl_2369` contains all twenty `CDC2Mes::MsgPreset` script presets and its
+terminator. The keyword/value pairs define the new `MenuScriptMessagePreset`
+enum in the owning header; the existing function declarations remain unchanged.
+The menucls1 notes and native `MsgPreset` implementation already document
+these values. `tbl_2422` uses the existing `FontFuchi` enum for `default`,
+`none`, and `ol2`; the shared `default` keyword points to the same literal as
+the message-preset table. `tbl_2516` uses `MenuScriptSound` for `OK` and
+`CANCEL`. The two diagnostic strings are inline at their `printf` calls.
+The command message buffers use their typed array members directly, and
+message-window member access uses the existing derived-class pointer.
+
+Definitions follow retail table order, with forward declarations for the
+handlers needed by the two dispatch arrays. No header declaration changes
+linkage or layout. No generated directory or toolchain file is edited.
+
+Final menucommon state: zero `INCLUDE_RODATA`, zero `INCLUDE_BSS`, and no
+data `extern` declarations in the source. All 129 functions remain exact.
+The normal complete-object check passes 149/149, PAL is OK, and all 148 other
+object file hashes equal baseline. Receipts:
+`.private/dataB/receipts/menucommon-native-data-order-*` and
+`menucommon-command-buffer-access-*`.
+
+The refreshed standard report gives **8/3,816 matched_data** despite all data
+being native. `ps2/cmake/Objdiff.cmake` compiles its source-only base directly
+through the compiler, without the section/literal naming and piece-padding
+postprocessor used for linked objects. Its remaining data-section differences
+therefore include symbol identities, order and alignment extents rather than
+assembly-backed definitions. To check the stronger claim independently,
+the compiler-only `objdiff/base/menucommon.cpp.o` was copied privately, passed
+through the existing postprocessor/fixup, and checked against retail. This
+source-only object passes the whole unit (0x5558 allocated bytes, 1,021
+relocations), with no assembly markers or transplants. Receipt:
+`.private/dataB/receipts/menucommon-native-only-object.log`. The quoted metric
+is the unmodified standard report; no tooling change is included.

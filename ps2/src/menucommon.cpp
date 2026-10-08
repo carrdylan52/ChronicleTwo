@@ -33,305 +33,19 @@
 #include "sysmes.hpp"
 #include "userdata.hpp"
 
-u8 MenuSePlayUsedFlag;
-
 /**
  *
- *Volume of the object sound port before the menu silences it.
+ * Number of item categories used by the menu sorting order.
  *
  */
-static float SndPortVol_Ob;
-
-/**
- *
- *Volume of the base sound port before the menu silences it.
- *
- */
-static float SndPortVol_Base;
-
-/**
- *
- *Volume of the event sound port before the menu silences it.
- *
- */
-static float SndPortVol_Event;
-
-/**
- *
- *Whether the menu also silences the event sound port.
- *
- */
-static int SndPortCheck_EventPort;
-
-/**
- *
- *Environment music volume before the menu silences it.
- *
- */
-static float SndPortVol_Env;
-
-/**
- *
- *First texture-information slot of the current script block.
- *
- */
-static u16 MenuTexPosNo;
-
-/**
- *
- *Texture-information offset within the current script block.
- *
- */
-static u16 MenuTexPosNo_local;
-
-/**
- *
- *Texture block assigned to the current script texture.
- *
- */
-static short menu_analyze_texblock;
-
-mgCMemory *MenuSpiStack;
-
-/**
- *
- *First miscellaneous-information slot of the current script block.
- *
- */
-static u16 Menu_Target_No;
-
-/**
- *
- *Miscellaneous-information offset within the current script block.
- *
- */
-static u16 Menu_Target_No_local;
-
-/**
- *
- *Form receiving the current menu layout script entries.
- *
- */
-static CMenuPosDataForm *menu_formPt;
-
-/**
- *
- *Part receiving the current menu layout script entries.
- *
- */
-static MENUFORMPARTS_TYPE *menu_form_part;
-
-/**
- *
- *Next effect entry receiving script parameters.
- *
- */
-static MENU_PARTS_EFFECT_STRUCT1 *menu_parts_effect_ptr;
-
-/**
- *
- *Form index selected by the layout script.
- *
- */
-static short menu_analyze_formno;
-
-/**
- *
- *Offset added to form indices in the current script block.
- *
- */
-static short menu_analyze_formno_offset;
-
-/**
- *
- *Next part index receiving a layout script entry.
- *
- */
-static int menu_form_partsno;
-
-/**
- *
- *Next action entry receiving layout script parameters.
- *
- */
-static MENU_FORM_ACTION *menu_spi_form_action_info;
-
-/**
- *
- *Whether the command interpreter is executing the selected command block.
- *
- */
-static u8 SpiMenuExeCommandFlag;
-
-/**
- *
- *Texture name copied into entries of the current texture-information block.
- *
- */
-static char MenuSpiTextureName[0x20];
-
-MENU_COMMAND_ANALYZE_INFO MenuCommandAnalyzeInfo;
-
-/**
- *
- * Drawing-type keywords accepted by the menu form script.
- *
- */
-static MENU_SPI_ANALYZE_STRUCT1 tbl_1728[] = {
-    {"normal", MENUFORM_DTYPE_NORMAL},
-    {"itembrd", MENUFORM_DTYPE_ITEMBRD},
-    {"giftview", MENUFORM_DTYPE_GIFTVIEW},
-    {"msgform", MENUFORM_DTYPE_MSGFORM},
-    {"poly", MENUFORM_DTYPE_POLY},
-    {"mappart", MENUFORM_DTYPE_MAPPART},
-    {"combrd", MENUFORM_DTYPE_COMBRD},
-    {"createbrd", MENUFORM_DTYPE_CREATEBRD},
-    {"list", MENUFORM_DTYPE_LIST},
-    {"bg_tile", MENUFORM_DTYPE_BG_TILE},
-    {"dload", MENUFORM_DTYPE_DLOAD},
-    {"mainfrm", MENUFORM_DTYPE_MAINFRM},
-    {"mainimg", MENUFORM_DTYPE_MAINIMG},
-    {"chrstar", MENUFORM_DTYPE_CHRSTAR},
-    {"inv_card", MENUFORM_DTYPE_INV_CARD},
-    {"geolist", MENUFORM_DTYPE_GEOLIST},
-    {"geotitle", MENUFORM_DTYPE_GEOTITLE},
-    {"geoana", MENUFORM_DTYPE_GEOANA},
-    {"shoplist", MENUFORM_DTYPE_SHOPLIST},
-    {"clip", MENUFORM_DTYPE_CLIP},
-    {"wmap", MENUFORM_DTYPE_WMAP},
-    {"buildup", MENUFORM_DTYPE_BUILDUP},
-    {"mosbaji", MENUFORM_DTYPE_MOSBAJI},
-    {"savelist", MENUFORM_DTYPE_SAVELIST},
-    {"infocur", MENUFORM_DTYPE_INFOCUR},
-    {"house", MENUFORM_DTYPE_HOUSE},
-    {NULL, -1},
-};
-
-/**
- *
- * Movement keywords ordered by their MENUFORM_MTYPE value plus one.
- *
- */
-static char *tbl_1759[6] = {"n", "d", "l", "i", "ir", NULL};
-
-/**
- *
- * Frame-image drawing keywords accepted by the menu script.
- *
- */
-static MENU_SPI_ANALYZE_STRUCT1 tbl_2060[] = {
-    {"bg", MENUFORMPARTS_DTYPE_BG},
-    {"beta", MENUFORMPARTS_DTYPE_BETA},
-    {NULL, -1},
-};
-
-/**
- *
- * Item-icon drawing keywords accepted by the menu script.
- *
- */
-static MENU_SPI_ANALYZE_STRUCT1 tbl_2074[] = {
-    {"trs", MENUFORMPARTS_DTYPE_TRS},
-    {"neta", MENUFORMPARTS_DTYPE_NETA},
-    {NULL, -1},
-};
-
-/**
- *
- * Animation-effect keywords accepted by the menu part script.
- *
- */
-static MENU_SPI_ANALYZE_STRUCT1 tbl_2144[] = {
-    {"blink", MENU_PARTS_EFFECT_BLINK},
-    {"rot", MENU_PARTS_EFFECT_ROT},
-    {"huriko", MENU_PARTS_EFFECT_HURIKO},
-    {"stretch", MENU_PARTS_EFFECT_STRETCH},
-    {"stretch_rep", MENU_PARTS_EFFECT_STRETCH_REP},
-    {"stretch_sin", MENU_PARTS_EFFECT_STRETCH_SIN},
-    {NULL, 0},
-};
-
-/**
- *
- * Filled-box drawing keywords accepted by the menu script.
- *
- */
-static MENU_SPI_ANALYZE_STRUCT1 tbl_2090[] = {
-    {"sq_beta", MENUFORMPARTS_DTYPE_SQ_BETA},
-    {NULL, -1},
-};
-
-extern "C" SPI_TAG_PARAM menu_analyze_tag[];
-
-extern "C" u8 at_2253__2[];
-
-/**
- *
- * Additional drawing-type keywords accepted by the menu part script.
- *
- */
-static MENU_SPI_ANALYZE_STRUCT1 tbl_1994[] = {
-    {"clut_reload", MENUFORMPARTS_DTYPE_CLUT_RELOAD},
-    {"\224\255\226\276\203l\203^", MENUFORMPARTS_DTYPE_IDEA_BOARD},
-    {"\203A\203\213\203o\203\200", MENUFORMPARTS_DTYPE_ALBUM},
-    {"\202\262\202\277\202\341\220\374", MENUFORMPARTS_DTYPE_RANDOM_LINE},
-    {"font", MENUFORMPARTS_DTYPE_FONT},
-    {"\203l\203^\222\240", MENUFORMPARTS_DTYPE_IDEA_MEMO},
-    {NULL, -1},
-};
-
-extern MENU_SPI_ANALYZE_STRUCT1 tbl_2369[];
-
-extern MENU_SPI_ANALYZE_STRUCT1 tbl_2422[];
-
-extern MENU_SPI_ANALYZE_STRUCT1 tbl_2516[];
-
-extern "C" u8 at_2538[];
-
-extern "C" SPI_TAG_PARAM menu_execommand_analyze_tag[];
-
 static const int sort_type_count = 0x24;
 
 /**
  *
- * Sort rank of each item category, with an empty slot ordered last.
+ * Default number of miscellaneous-information entries in a menu layout.
  *
  */
-static signed char sort_table[0x24] = {
-    sort_type_count, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10,
-    11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22,
-    23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 0
-};
-
 static const int default_etc_count = 0x60;
-
-/**
- *
- * First item category used by the next sorting pass.
- *
- */
-static short sort_top_type = 1;
-
-/**
- *
- * Language-specific subdirectory used for menu files.
- *
- */
-static char *langdirpathTable_1161[8] = {
-    "0/", "1/", "2/", "3/", "4/", "5/", "1/", NULL
-};
-
-/**
- *
- * Hexadecimal digits and their nibble values for bracketed font codes.
- *
- */
-static s8 mes_cord_conv_1193[16][2] = {
-    {'0', 0}, {'1', 1}, {'2', 2}, {'3', 3},
-    {'4', 4}, {'5', 5}, {'6', 6}, {'7', 7},
-    {'8', 8}, {'9', 9}, {'a', 10}, {'b', 11},
-    {'c', 12}, {'d', 13}, {'e', 14}, {'f', 15}
-};
 
 static inline unsigned int align16_blocks(unsigned int n);
 
@@ -514,6 +228,456 @@ int _MENU_DEBUG_PRINTF(SPI_STACK *stack, int argc);
  * Rounds a byte count up to the number of 16-byte allocation blocks.
  *
  */
+int _MENU_FORM_RGBA_BIT(SPI_STACK *stack, int argc);
+
+int _MENU_FILLBOX(SPI_STACK *stack, int argc);
+
+int _MENU_EXE_FORM_SETPOS(SPI_STACK *stack, int argc);
+
+int _MENU_EXE_MSGSETBUFF(SPI_STACK *stack, int argc);
+
+/**
+ *
+ * Sort rank of each item category, with an empty slot ordered last.
+ *
+ */
+static signed char sort_table[0x24] = {
+    sort_type_count, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10,
+    11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22,
+    23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 0
+};
+
+/**
+ *
+ * Language-specific subdirectory used for menu files.
+ *
+ */
+static char *langdirpathTable_1161[8] = {
+    "0/", "1/", "2/", "3/", "4/", "5/", "1/", NULL
+};
+
+/**
+ *
+ * Hexadecimal digits and their nibble values for bracketed font codes.
+ *
+ */
+static s8 mes_cord_conv_1193[16][2] = {
+    {'0', 0}, {'1', 1}, {'2', 2}, {'3', 3},
+    {'4', 4}, {'5', 5}, {'6', 6}, {'7', 7},
+    {'8', 8}, {'9', 9}, {'a', 10}, {'b', 11},
+    {'c', 12}, {'d', 13}, {'e', 14}, {'f', 15}
+};
+
+/**
+ *
+ * Drawing-type keywords accepted by the menu form script.
+ *
+ */
+static MENU_SPI_ANALYZE_STRUCT1 tbl_1728[] = {
+    {"normal", MENUFORM_DTYPE_NORMAL},
+    {"itembrd", MENUFORM_DTYPE_ITEMBRD},
+    {"giftview", MENUFORM_DTYPE_GIFTVIEW},
+    {"msgform", MENUFORM_DTYPE_MSGFORM},
+    {"poly", MENUFORM_DTYPE_POLY},
+    {"mappart", MENUFORM_DTYPE_MAPPART},
+    {"combrd", MENUFORM_DTYPE_COMBRD},
+    {"createbrd", MENUFORM_DTYPE_CREATEBRD},
+    {"list", MENUFORM_DTYPE_LIST},
+    {"bg_tile", MENUFORM_DTYPE_BG_TILE},
+    {"dload", MENUFORM_DTYPE_DLOAD},
+    {"mainfrm", MENUFORM_DTYPE_MAINFRM},
+    {"mainimg", MENUFORM_DTYPE_MAINIMG},
+    {"chrstar", MENUFORM_DTYPE_CHRSTAR},
+    {"inv_card", MENUFORM_DTYPE_INV_CARD},
+    {"geolist", MENUFORM_DTYPE_GEOLIST},
+    {"geotitle", MENUFORM_DTYPE_GEOTITLE},
+    {"geoana", MENUFORM_DTYPE_GEOANA},
+    {"shoplist", MENUFORM_DTYPE_SHOPLIST},
+    {"clip", MENUFORM_DTYPE_CLIP},
+    {"wmap", MENUFORM_DTYPE_WMAP},
+    {"buildup", MENUFORM_DTYPE_BUILDUP},
+    {"mosbaji", MENUFORM_DTYPE_MOSBAJI},
+    {"savelist", MENUFORM_DTYPE_SAVELIST},
+    {"infocur", MENUFORM_DTYPE_INFOCUR},
+    {"house", MENUFORM_DTYPE_HOUSE},
+    {NULL, -1},
+};
+
+/**
+ *
+ * Movement keywords ordered by their MENUFORM_MTYPE value plus one.
+ *
+ */
+static char *tbl_1759[6] = {"n", "d", "l", "i", "ir", NULL};
+
+/**
+ *
+ * Additional drawing-type keywords accepted by the menu part script.
+ *
+ */
+static MENU_SPI_ANALYZE_STRUCT1 tbl_1994[] = {
+    {"clut_reload", MENUFORMPARTS_DTYPE_CLUT_RELOAD},
+    {"\224\255\226\276\203l\203^", MENUFORMPARTS_DTYPE_IDEA_BOARD},
+    {"\203A\203\213\203o\203\200", MENUFORMPARTS_DTYPE_ALBUM},
+    {"\202\262\202\277\202\341\220\374", MENUFORMPARTS_DTYPE_RANDOM_LINE},
+    {"font", MENUFORMPARTS_DTYPE_FONT},
+    {"\203l\203^\222\240", MENUFORMPARTS_DTYPE_IDEA_MEMO},
+    {NULL, -1},
+};
+
+/**
+ *
+ * Frame-image drawing keywords accepted by the menu script.
+ *
+ */
+static MENU_SPI_ANALYZE_STRUCT1 tbl_2060[] = {
+    {"bg", MENUFORMPARTS_DTYPE_BG},
+    {"beta", MENUFORMPARTS_DTYPE_BETA},
+    {NULL, -1},
+};
+
+/**
+ *
+ * Item-icon drawing keywords accepted by the menu script.
+ *
+ */
+static MENU_SPI_ANALYZE_STRUCT1 tbl_2074[] = {
+    {"trs", MENUFORMPARTS_DTYPE_TRS},
+    {"neta", MENUFORMPARTS_DTYPE_NETA},
+    {NULL, -1},
+};
+
+/**
+ *
+ * Filled-box drawing keywords accepted by the menu script.
+ *
+ */
+static MENU_SPI_ANALYZE_STRUCT1 tbl_2090[] = {
+    {"sq_beta", MENUFORMPARTS_DTYPE_SQ_BETA},
+    {NULL, -1},
+};
+
+/**
+ *
+ * Animation-effect keywords accepted by the menu part script.
+ *
+ */
+static MENU_SPI_ANALYZE_STRUCT1 tbl_2144[] = {
+    {"blink", MENU_PARTS_EFFECT_BLINK},
+    {"rot", MENU_PARTS_EFFECT_ROT},
+    {"huriko", MENU_PARTS_EFFECT_HURIKO},
+    {"stretch", MENU_PARTS_EFFECT_STRETCH},
+    {"stretch_rep", MENU_PARTS_EFFECT_STRETCH_REP},
+    {"stretch_sin", MENU_PARTS_EFFECT_STRETCH_SIN},
+    {NULL, 0},
+};
+
+/**
+ *
+ * Dispatch table for texture, form, part and effect layout script tags.
+ *
+ */
+static SPI_TAG_PARAM menu_analyze_tag[] = {
+    {"ETCINFO_MALLOC", _ETCINFO_MALLOC},
+    {"ETCINFO_OFFSET", _MENU_ETCINFO_OFFSET},
+    {"ETCINFO", _MENU_ETCINFO},
+    {"ETCINFO_CLEAR", _MENU_ETCINFO_CLEAR},
+    {"ETCINFO2_MALLOC", _ETCINFO2_MALLOC},
+    {"ETCINFO2_OFFSET", _MENU_ETCINFO2_OFFSET},
+    {"ETCINFO2", _MENU_ETCINFO2},
+    {"ETCINFO2_CLEAR", _MENU_ETCINFO2_CLEAR},
+    {"RESET_TEXINFO", _MENU_RESET_TEXINFO},
+    {"INIT_DRAWLIST", _MENU_INIT_DRAWLIST},
+    {"TEXDATA_CLEAR", _MENU_TEXDATA_CLEAR},
+    {"TEXDATA_MALLOC", _MENU_TEXDATA_MALLOC},
+    {"TEXNAME", _MENU_TEXNAME},
+    {"TEXDATA_OFFSET", _MENU_TEXDATA_OFFSET},
+    {"TEXDATA", _MENU_TEXDATA},
+    {"TD", _MENU_TEXDATA},
+    {"FORM_CLEAR", _MENU_FORM_CLEAR},
+    {"FORM_MALLOC", _MENU_FORM_MALLOC},
+    {"FORM_OFFSET_NO", _MENU_FORM_OFFSET_NO},
+    {"FORM_SET", _MENU_FORM_SET},
+    {"FORM_PARTNUM", _MENU_FORM_PARTNUM},
+    {"FORM_DTYPE", _MENU_FORM_DTYPE},
+    {"FORM_MTYPE", _MENU_FORM_MTYPE},
+    {"FORM_DRAWFLG", _MENU_FORM_DRAWFLG},
+    {"FORM_VIBECNT", _MENU_FORM_VIBECNT},
+    {"FORM_MOVERATE", _MENU_FORM_MOVERATE},
+    {"FORM_PUTXY", _MENU_FORM_PUTXY},
+    {"FORM_RGBA", _MENU_FORM_RGBA},
+    {"FORM_RGBABIT", _MENU_FORM_RGBA_BIT},
+    {"FORM_ACTTBL", _MENU_ACTION_TABLE_NUM},
+    {"FORM_ACTDEF", _MENU_ACTION_DEF},
+    {"FORM_SETACT", _MENU_ACTION_SETACTION},
+    {"PARTVIBECNT", _MENU_PARTVIBECNT},
+    {"PARTVIBER", _MENU_PARTVIBER},
+    {"SHADOW", _MENU_SHADOW_ONOFF},
+    {"CLIP", _CLIP_WH},
+    {"PARTRGBA", _MENU_PARTRGBA},
+    {"PARTALP_BLEND", _MENU_PART_ALPHA_BLEND},
+    {"PART_ETCINFO", _MENU_PART_ETCINFO},
+    {"PART_BILINEAR", _MENU_PART_BILINEAR},
+    {"PART_DTYPE", _MENU_PART_DTYPE},
+    {"NORMAL", _MENU_NORMAL},
+    {"NRL", _MENU_NORMAL},
+    {"NORMAL2", _MENU_NORMAL2},
+    {"CURSOR", _MENU_CURSOR},
+    {"FUNCINFO", _MENU_FUNCINFO},
+    {"NUMBER1", _MENU_NUMBER1},
+    {"NUMBER2", _MENU_NUMBER2},
+    {"FRMIMG", _MENU_FRMIMG},
+    {"FORM", _MENU_FORM},
+    {"FORM_SETEND", _MENU_FORM_SETEND},
+    {"ITEM", _MENU_ITEM},
+    {"ITEM_MARK", _MENU_ITEM_CHECKMARK},
+    {"FILLBOX", _MENU_FILLBOX},
+    {"FILLBOXINFO", _MENU_FILLBOXINFO},
+    {"WAKU_RECT", _MENU_WAKU_RECT},
+    {"WAKU_CIRCLE", _MENU_WAKU_CIRCLE},
+    {"PARTS_EFF_NUM", _MENU_PARTS_EFF_NUM},
+    {"PARTS_EFFECT", _MENU_PARTS_EFFECT},
+    {NULL, NULL},
+};
+
+/**
+ *
+ * Message preset keywords accepted by menu command scripts.
+ *
+ */
+static MENU_SPI_ANALYZE_STRUCT1 tbl_2369[] = {
+    {"default", MENU_SCRIPT_MES_DEFAULT},
+    {"default_black", MENU_SCRIPT_MES_DEFAULT_BLACK},
+    {"no_win", MENU_SCRIPT_MES_NO_WIN},
+    {"system", MENU_SCRIPT_MES_SYSTEM},
+    {"name", MENU_SCRIPT_MES_NAME},
+    {"name_black", MENU_SCRIPT_MES_NAME_BLACK},
+    {"itemcmd", MENU_SCRIPT_MES_ITEMCMD},
+    {"invent", MENU_SCRIPT_MES_INVENT},
+    {"geo", MENU_SCRIPT_MES_GEO},
+    {"msgdic", MENU_SCRIPT_MES_MSGDIC},
+    {"general", MENU_SCRIPT_MES_GENERAL},
+    {"general_2", MENU_SCRIPT_MES_GENERAL_2},
+    {"yesno", MENU_SCRIPT_MES_YESNO},
+    {"brd3", MENU_SCRIPT_MES_BRD3},
+    {"helpwin", MENU_SCRIPT_MES_HELPWIN},
+    {"makebrd", MENU_SCRIPT_MES_MAKEBRD},
+    {"itemmsg", MENU_SCRIPT_MES_ITEMMSG},
+    {"itemmsg_defaultfuchi", MENU_SCRIPT_MES_ITEMMSG_DEFAULTFUCHI},
+    {"volmsg", MENU_SCRIPT_MES_VOLMSG},
+    {"talk", MENU_SCRIPT_MES_TALK},
+    {NULL, MENU_SCRIPT_MES_DEFAULT},
+};
+
+/**
+ *
+ * Font-outline keywords accepted by menu command scripts.
+ *
+ */
+static MENU_SPI_ANALYZE_STRUCT1 tbl_2422[] = {
+    {"default", FUCHI_SHADOW_BLACK_WIDE},
+    {"none", FUCHI_NONE},
+    {"ol2", FUCHI_OUTLINE_THICK},
+    {NULL, FUCHI_NONE},
+};
+
+/**
+ *
+ * System sound keywords accepted by menu command scripts.
+ *
+ */
+static MENU_SPI_ANALYZE_STRUCT1 tbl_2516[] = {
+    {"OK", 1},
+    {"CANCEL", MENU_SCRIPT_SOUND_CANCEL},
+    {NULL, -1},
+};
+
+/**
+ *
+ * Dispatch table for form, message, input, sound and debug menu command tags.
+ *
+ */
+static SPI_TAG_PARAM menu_execommand_analyze_tag[] = {
+    {"EXE_NAME", _MENU_EXE_COMMAND_NAME},
+    {"FRM_DRAWFLG", _MENU_EXE_FORM_DRAWFLAG},
+    {"FRM_RGBA", _MENU_EXE_FORM_RGBA},
+    {"FRM_CALCRGBA", _MENU_EXE_FORM_CALCRGBAPARAM},
+    {"FRM_FADE", _MENU_EXE_FORM_FADE},
+    {"FRM_SETPOS", _MENU_EXE_FORM_SETPOS},
+    {"FRM_SETACTION", _MENU_EXE_FORM_SETACTION},
+    {"FRM_PARTSONOFF", _MENU_EXE_FORM_PARTSONOFF},
+    {"FRM_PARTSONOFFG", _MENU_EXE_FORM_PARTSONOFF_GRP},
+    {"FRM_PTSONOFF", _MENU_EXE_FORM_PARTSONOFF},
+    {"FRM_PTSONOFFG", _MENU_EXE_FORM_PARTSONOFF_GRP},
+    {"FRM_SWAP", _MENU_EXE_FORM_SWAP},
+    {"FRM_SWAP_G", _MENU_EXE_FORM_GROUP_SWAP},
+    {"INIT_DRAWLIST", _MENU_EXE_INIT_DRAWLIST},
+    {"RESET_TEXINFO", _MENU_EXE_RESET_TEXINFO},
+    {"MSG_ENV", _MENU_EXE_MSGENV},
+    {"MSG_MAKEMSG", _MENU_EXE_MAKEMSG},
+    {"MSG_ABSPOS", _MENU_EXE_SETABSPOS},
+    {"MSG_SYSBUF", _MENU_EXE_MSGSETSYSTEMBUFF},
+    {"MSG_BUF", _MENU_EXE_MSGSETBUFF},
+    {"MSG_FUCHI", _MENU_EXE_MSGSETFUCHI},
+    {"MSG_SETCUR", _MENU_EXE_MSGSETCURSOR},
+    {"MSG_SETGYOU", _MENU_SET_QUESTIONGYOU},
+    {"MSG_SPD", _MENU_SET_OPENSPEED},
+    {"IN_KEY", _MENU_INPUT_KEY},
+    {"CURSOR_ONOFF", _MENU_CURSOR_ONOFF},
+    {"CURSOR_FADE", _MENU_CURSOR_FADE},
+    {"SET_WAKU", _MENU_WAKUTYPE},
+    {"SCN_FADE", _MENU_SCENE_FADE},
+    {"SE_ON", _MENU_SE_PLAY},
+    {"PRINT", _MENU_DEBUG_PRINTF},
+    {NULL, NULL},
+};
+
+/**
+ *
+ * First item category used by the next sorting pass.
+ *
+ */
+static short sort_top_type = 1;
+
+u8 MenuSePlayUsedFlag;
+
+/**
+ *
+ * Volume of the object sound port before the menu silences it.
+ *
+ */
+static float SndPortVol_Ob;
+
+/**
+ *
+ * Volume of the base sound port before the menu silences it.
+ *
+ */
+static float SndPortVol_Base;
+
+/**
+ *
+ * Volume of the event sound port before the menu silences it.
+ *
+ */
+static float SndPortVol_Event;
+
+/**
+ *
+ * Whether the menu also silences the event sound port.
+ *
+ */
+static int SndPortCheck_EventPort;
+
+/**
+ *
+ * Environment music volume before the menu silences it.
+ *
+ */
+static float SndPortVol_Env;
+
+/**
+ *
+ * First texture-information slot of the current script block.
+ *
+ */
+static u16 MenuTexPosNo;
+
+/**
+ *
+ * Texture-information offset within the current script block.
+ *
+ */
+static u16 MenuTexPosNo_local;
+
+/**
+ *
+ * Texture block assigned to the current script texture.
+ *
+ */
+static short menu_analyze_texblock;
+
+mgCMemory *MenuSpiStack;
+
+/**
+ *
+ * First miscellaneous-information slot of the current script block.
+ *
+ */
+static u16 Menu_Target_No;
+
+/**
+ *
+ * Miscellaneous-information offset within the current script block.
+ *
+ */
+static u16 Menu_Target_No_local;
+
+/**
+ *
+ * Form receiving the current menu layout script entries.
+ *
+ */
+static CMenuPosDataForm *menu_formPt;
+
+/**
+ *
+ * Part receiving the current menu layout script entries.
+ *
+ */
+static MENUFORMPARTS_TYPE *menu_form_part;
+
+/**
+ *
+ * Next effect entry receiving script parameters.
+ *
+ */
+static MENU_PARTS_EFFECT_STRUCT1 *menu_parts_effect_ptr;
+
+/**
+ *
+ * Form index selected by the layout script.
+ *
+ */
+static short menu_analyze_formno;
+
+/**
+ *
+ * Offset added to form indices in the current script block.
+ *
+ */
+static short menu_analyze_formno_offset;
+
+/**
+ *
+ * Next part index receiving a layout script entry.
+ *
+ */
+static int menu_form_partsno;
+
+/**
+ *
+ * Next action entry receiving layout script parameters.
+ *
+ */
+static MENU_FORM_ACTION *menu_spi_form_action_info;
+
+/**
+ *
+ * Whether the command interpreter is executing the selected command block.
+ *
+ */
+static u8 SpiMenuExeCommandFlag;
+
+/**
+ *
+ * Texture name copied into entries of the current texture-information block.
+ *
+ */
+static char MenuSpiTextureName[0x20];
+
+MENU_COMMAND_ANALYZE_INFO MenuCommandAnalyzeInfo;
+
 static inline unsigned int align16_blocks(unsigned int n) {
     if (n & 0xF) {
         return (n >> 4) + 1;
@@ -2670,7 +2834,7 @@ int _MENU_EXE_FORM_DRAWFLAG(SPI_STACK *stack, int argc) {
         if (form != NULL) {
             form->draw_flag = (draw != 0);
         } else {
-            printf((char *) at_2253__2, name);
+            printf("%s not found\n", name);
         }
     }
 
@@ -3021,13 +3185,13 @@ int _MENU_EXE_MSGSETSYSTEMBUFF(SPI_STACK *stack, int argc) {
     }
 
     message = spiGetStackInt(stack);
-    buffer = ((short **) &MenuCommandAnalyzeInfo.system_mes_buff)[spiGetStackInt(next_slot)];
+    buffer = MenuCommandAnalyzeInfo.system_mes_buff[spiGetStackInt(next_slot)];
 
     if (buffer == NULL) {
         buffer = GetSystemMesBuffer();
     }
 
-    ((ClsMes *) MenuDCMsg[message])->SetBuff_system(buffer);
+    MenuDCMsg[message]->SetBuff_system(buffer);
     return 1;
 }
 
@@ -3067,7 +3231,7 @@ int _MENU_EXE_MSGSETFUCHI(SPI_STACK *stack, int argc) {
     message = spiGetStackInt(stack);
     text = spiGetStackString(next_slot);
     type = menu_spi_analyze_func_strcut1(tbl_2422, text);
-    ((ClsMes *) MenuDCMsg[message])->fuchi = type;
+    MenuDCMsg[message]->fuchi = type;
     return 1;
 }
 
@@ -3105,7 +3269,7 @@ int _MENU_SET_QUESTIONGYOU(SPI_STACK *stack, int argc) {
     }
 
     msg_no = spiGetStackInt(stack);
-    ((ClsMes *) MenuDCMsg[msg_no])->select_top = spiGetStackInt(next_slot);
+    MenuDCMsg[msg_no]->select_top = spiGetStackInt(next_slot);
     return 1;
 }
 
@@ -3123,7 +3287,7 @@ int _MENU_SET_OPENSPEED(SPI_STACK *stack, int argc) {
     }
 
     message = spiGetStackInt(stack);
-    ((ClsMes *) MenuDCMsg[message])->fade_speed = spiGetStackFloat(next_slot);
+    MenuDCMsg[message]->fade_speed = spiGetStackFloat(next_slot);
     return 1;
 }
 
@@ -3297,7 +3461,7 @@ int _MENU_DEBUG_PRINTF(SPI_STACK *stack, int argc) {
     }
 
     printf(spiGetStackString(stack));
-    printf((char *) at_2538);
+    printf("\n");
     return 1;
 }
 
@@ -3310,128 +3474,3 @@ void MenuCommandAnalyze(char *script, int size, char *command_name) {
         interpreter.Run();
     }
 }
-
-// Initialised data (.data)
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menucommon", menu_analyze_tag__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menucommon", tbl_2369__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menucommon", tbl_2422__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menucommon", tbl_2516__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menucommon", menu_execommand_analyze_tag__DATA);
-
-// Constants (.rodata)
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menucommon", at_2161__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menucommon", at_2162__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menucommon", at_2163__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menucommon", at_2164__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menucommon", at_2165__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menucommon", at_2166__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menucommon", at_2167__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menucommon", at_2168__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menucommon", at_2169__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menucommon", at_2170__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menucommon", at_2171__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menucommon", at_2172__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menucommon", at_2173__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menucommon", at_2174__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menucommon", at_2175__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menucommon", at_2176__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menucommon", at_2177__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menucommon", at_2178__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menucommon", at_2179__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menucommon", at_2180__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menucommon", at_2181__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menucommon", at_2182__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menucommon", at_2183__4__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menucommon", at_2184__3__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menucommon", at_2185__3__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menucommon", at_2186__3__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menucommon", at_2187__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menucommon", at_2188__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menucommon", at_2189__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menucommon", at_2190__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menucommon", at_2191__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menucommon", at_2192__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menucommon", at_2193__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menucommon", at_2194__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menucommon", at_2195__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menucommon", at_2196__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menucommon", at_2197__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menucommon", at_2198__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menucommon", at_2199__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menucommon", at_2200__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menucommon", at_2201__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menucommon", at_2202__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menucommon", at_2203__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menucommon", at_2204__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menucommon", at_2205__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menucommon", at_2206__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menucommon", at_2207__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menucommon", at_2208__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menucommon", at_2209__4__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menucommon", at_2210__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menucommon", at_2211__3__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menucommon", at_2212__3__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menucommon", at_2213__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menucommon", at_2214__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menucommon", at_2215__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menucommon", at_2216__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menucommon", at_2217__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menucommon", at_2218__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menucommon", at_2219__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menucommon", at_2253__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menucommon", at_2370__3__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menucommon", at_2371__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menucommon", at_2372__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menucommon", at_2373__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menucommon", at_2374__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menucommon", at_2375__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menucommon", at_2376__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menucommon", at_2377__4__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menucommon", at_2378__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menucommon", at_2379__3__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menucommon", at_2380__3__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menucommon", at_2381__3__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menucommon", at_2382__3__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menucommon", at_2383__3__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menucommon", at_2384__3__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menucommon", at_2385__3__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menucommon", at_2386__3__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menucommon", at_2387__3__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menucommon", at_2388__3__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menucommon", at_2389__3__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menucommon", at_2423__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menucommon", at_2424__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menucommon", at_2517__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menucommon", at_2518__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menucommon", at_2538__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menucommon", at_2539__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menucommon", at_2540__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menucommon", at_2541__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menucommon", at_2542__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menucommon", at_2543__3__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menucommon", at_2544__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menucommon", at_2545__3__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menucommon", at_2546__3__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menucommon", at_2547__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menucommon", at_2548__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menucommon", at_2549__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menucommon", at_2550__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menucommon", at_2551__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menucommon", at_2552__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menucommon", at_2553__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menucommon", at_2554__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menucommon", at_2555__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menucommon", at_2556__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menucommon", at_2557__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menucommon", at_2558__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menucommon", at_2559__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menucommon", at_2560__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menucommon", at_2561__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menucommon", at_2562__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menucommon", at_2563__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menucommon", at_2564__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menucommon", at_2565__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menucommon", at_2566__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menucommon", at_2567__2__DATA);
-
-// Small initialised data (.sdata)
