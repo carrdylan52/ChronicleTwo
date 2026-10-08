@@ -40,13 +40,13 @@
 #include "sysmes.hpp"
 #include "userdata.hpp"
 
-extern int MenuCharaChangePosDataCfgBuffer;
+extern u_int *MenuCharaChangePosDataCfgBuffer;
 
 inline CMenuChrCngMenu::CMenuChrCngMenu() {
     change_phase = 0;
     change_chara = -1;
     change_ready = 0;
-    MenuCharaChangePosDataCfgBuffer = 0;
+    MenuCharaChangePosDataCfgBuffer = NULL;
     unk_118 = 0;
     select = 0;
     last_select = 0;
@@ -540,7 +540,7 @@ extern char               at_1283__4[];
 extern char               at_1284__4[];
 extern char               at_1285__2[];
 extern char              *tbl_1233[4];
-extern u32               *MenuCharaChangeCLUT;
+extern CHR_CNG_CLUT_COLOR *MenuCharaChangeCLUT;
 extern int                tbl_3186[MENU_CHARA_LOAD_MAX];
 extern sceVu0FVECTOR      posdef_3194;
 extern sceVu0FVECTOR      refdef_3195;
@@ -819,7 +819,7 @@ union MenuPositionVector {
 extern MenuPositionVector at_1372__2;
 extern char               at_1402__3[];
 extern CMenuChrCngMenu   *ChrChangMenuPt;
-extern int                MenuCharaChangePosDataCfgBuffer;
+extern u_int             *MenuCharaChangePosDataCfgBuffer;
 extern int                tbl_2483[];
 extern char               at_2595__2[];
 extern char               at_2596__3[];
@@ -1087,78 +1087,63 @@ void CMenuChrCngMenu::AttachForm() {
         cmd_part[j] = form->GetPartInfo(name);
     }
 }
-#ifdef NONMATCHING
 void CMenuChrCngMenu::EnterDataMenu(u_char *pack) {
-    mgCTextureManager *tex_manager = &mgTexManager;
-    int block = tex_block[0];
-    tex_manager->EnterIMGFile((u_char *) GetPackFile(reinterpret_cast<u_int *>(pack), "chr_bg.img", NULL),
-                              block, NULL, NULL);
-    int    size;
-    u_int *cfg = GetPackFile(reinterpret_cast<u_int *>(pack), "chrchg.cfg", &size);
-    if (MenuCharaChangePosDataCfgBuffer == 0 && cfg != NULL) {
-        MenuCharaChangePosDataCfgBuffer = (int) cfg;
+    int                 i;
+    mgCTextureManager  *tex_manager = &mgTexManager;
+    int                 block = tex_block[0];
+    int                 size;
+    int                 palette_index;
+    CHR_CNG_CLUT_COLOR *color;
+
+    tex_manager->EnterIMGFile((u_char *) GetPackFile(reinterpret_cast<u_int *>(pack), at_1276__3, NULL), block,
+                              NULL, NULL);
+    u_int *cfg = GetPackFile(reinterpret_cast<u_int *>(pack), at_1277__3, &size);
+    if (MenuCharaChangePosDataCfgBuffer == NULL && cfg != NULL) {
+        MenuCharaChangePosDataCfgBuffer = cfg;
         MenuDataAnalyze((char *) cfg, size, &MenuChangeMemory);
     }
     MenuRepairMan->Initialize();
     MenuRepairMan->SetRepairData(&MenuChangeMemory, block, reinterpret_cast<u_int *>(pack));
-    script = (char *) GetPackFile(reinterpret_cast<u_int *>(pack), "chr_com.cfg", &script_size);
-    MenuCharaChangeStar_Tex = tex_manager->GetTexture("menueff0", -1);
-    MenuCharaChangeBase_Tex = tex_manager->GetTexture("chr0", -1);
+    script = (char *) GetPackFile(reinterpret_cast<u_int *>(pack), at_1278__3, &script_size);
+    MenuCharaChangeStar_Tex = tex_manager->GetTexture(at_1279__4, -1);
+    MenuCharaChangeBase_Tex = tex_manager->GetTexture(at_1280__3, -1);
     MenuCharaChangeCLUT = palette.clut;
     tex_manager->ReloadTexture(block, (sceVif1Packet *) NULL);
     if (MenuCharaChangeCLUT_Tex == NULL) {
         MenuCharaChangeCLUT_Tex = new (MenuChangeMemory.Alloc(9)) mgCTexture;
     }
     memcpy(MenuCharaChangeCLUT_Tex, MenuCharaChangeBase_Tex, sizeof(mgCTexture));
-    memcpy(MenuCharaChangeCLUT, MenuCharaChangeBase_Tex->clut, 0x400);
+    memcpy(MenuCharaChangeCLUT, MenuCharaChangeBase_Tex->clut, sizeof(palette.clut));
     MenuCharaChangeCLUT_Tex->clut = (u_long128 *) MenuCharaChangeCLUT;
-    /**
-     *
-     * A byte-addressable RGBA colour in the copied character-change palette.
-     *
-     */
-    typedef u8 PaletteColor[4];
-    /**
-     *
-     * Components, quantization bands, and command slots of the character-change screen.
-     *
-     */
-    enum {
-        PALETTE_RED = 0,
-        PALETTE_GREEN = 1,
-        PALETTE_BLUE = 2,
-        PALETTE_BAND_NUM = 32,
-        NPC_COMMAND_NUM = 4
-    };
-    PaletteColor *colors = reinterpret_cast<PaletteColor *>(MenuCharaChangeCLUT);
-    for (int palette_index = 0; palette_index < CHR_CNG_CLUT_NUM; palette_index++) {
-        PaletteColor &color = colors[palette_index];
-        float         luminance = (float) ((color[PALETTE_RED] + color[PALETTE_GREEN] + color[PALETTE_BLUE]) / 3);
-        // Quantize brightness without changing the palette alpha byte.
-        int step = 1;
+
+    // Darken the copied palette into brightness bands, keeping each colour's alpha.
+    for (palette_index = 0, color = MenuCharaChangeCLUT; palette_index < CHR_CNG_CLUT_NUM; palette_index++, color++) {
+        float luminance = (float) ((color->r + color->g + color->b) / 3);
+        int   step = 1;
         do {
             if (8.0f * (float) (step - 1) <= luminance && luminance < 8.0f * (float) step) {
                 break;
             }
             step++;
-        } while (step < PALETTE_BAND_NUM + 1);
-        color[PALETTE_RED] = (u8) (7.75f * (float) step);
-        color[PALETTE_GREEN] = (u8) (5.625f * (float) step);
-        color[PALETTE_BLUE] = (u8) (4.6875f * (float) step);
+        } while (step < CHR_CNG_CLUT_BAND_NUM + 1);
+        color->r = (u8) (7.75f * (float) step);
+        color->g = (u8) (5.625f * (float) step);
+        color->b = (u8) (4.6875f * (float) step);
     }
+
     MenuPosData->InitDrawList();
     AttachForm();
     AttachMessageForm();
-    ExeScript("INIT_FORM");
+    ExeScript(at_1281__5);
     party_member = MenuUserDataManPtr->GetNowPartyMember();
     enable_change = MenuUserDataManPtr->GetEnableCharaChangeFlag();
-    for (int i = 0; i < USER_CHARA_NUM; i++) {
+    for (i = 0; i < USER_CHARA_NUM; i++) {
         char name[32];
-        sprintf(name, "clut%d", i);
+        sprintf(name, at_1282__5, i);
         MENUFORMPARTS_TYPE *locked = form->GetPartInfo(name);
-        sprintf(name, "clut0%d", i);
+        sprintf(name, at_1283__4, i);
         MENUFORMPARTS_TYPE *other = form->GetPartInfo(name);
-        sprintf(name, "fc%d", i);
+        sprintf(name, at_1284__4, i);
         MENUFORMPARTS_TYPE *face = form->GetPartInfo(name);
         locked->draw_flag = 1;
         if (party_member & (1 << i)) {
@@ -1175,7 +1160,7 @@ void CMenuChrCngMenu::EnterDataMenu(u_char *pack) {
         }
     }
     UpdataLife();
-    mes_data = (s16 *) GetPackFile(reinterpret_cast<u_int *>(pack), "npcmsg.mes", NULL);
+    mes_data = (s16 *) GetPackFile(reinterpret_cast<u_int *>(pack), at_1285__2, NULL);
     sys_mes = MenuDCMsg[0]->buff;
     MenuCommandAnalyzeInfo.system_mes_buff[0] = GetSystemMesBuffer();
     MenuCommandAnalyzeInfo.system_mes_buff[1] = mes_data;
@@ -1187,7 +1172,7 @@ void CMenuChrCngMenu::EnterDataMenu(u_char *pack) {
     npc_mes_talk = 0;
     npc_mes_cmd = 0;
     npc_mes_cancel = 0;
-    for (int i = 0; i < NPC_COMMAND_NUM; i++) {
+    for (i = 0; i < CHR_CNG_NPC_COMMAND_NUM; i++) {
         npc_cmd_mes[i] = 0;
     }
     unk_23C = 0;
@@ -1195,34 +1180,30 @@ void CMenuChrCngMenu::EnterDataMenu(u_char *pack) {
     npc_data = NULL;
     npc_no = MenuUserDataManPtr->NowPartyCharaID();
     if (npc_no > 0) {
-        party_info = (PARTY_CHARA_INFO *) MenuUserDataManPtr->GetPartyCharaInfo(npc_no);
+        party_info = MenuUserDataManPtr->GetPartyCharaInfo(npc_no);
         npc_data = GetPartyNPCData(npc_no);
         npc_mes_talk = GetPartyCharaMessage(npc_no, 1, 0);
         npc_mes_cmd = GetPartyCharaMessage(npc_no, 0, 0);
         npc_mes_cancel = GetPartyCharaMessage(npc_no, 3, 0);
         int first_message = GetPartyCharaMessage(npc_no, 5, 0);
-        int i = 0;
-        for (; i < npc_data->ability_num; i++) {
+        // Each ability's command takes the message after the previous one; unused slots stay empty.
+        for (i = 0; i < npc_data->ability_num; i++) {
             npc_cmd_mes[i] = first_message + i;
         }
-        for (; i < NPC_COMMAND_NUM; i++) {
+        for (; i < CHR_CNG_NPC_COMMAND_NUM; i++) {
             npc_cmd_mes[i] = 0;
         }
         if (npc_data->ability_num == 0) {
             npc_cmd_mes[0] = 10;
         }
-        i = 0;
-        for (; i < npc_data->ability_num; i++) {
+        for (i = 0; i < npc_data->ability_num; i++) {
             form->SetNumber(tbl_1233[i], npc_data->ability_cost[i]);
         }
-        for (; i < NPC_COMMAND_NUM; i++) {
+        for (; i < CHR_CNG_NPC_COMMAND_NUM; i++) {
             form->SetPartDrawFlag(tbl_1233[i], 0);
         }
     }
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/menuchr", EnterDataMenu__15CMenuChrCngMenuFPUc);
-#endif
 void CMenuChrCngMenu::LoadNPCFaceData(mgCMemory *memory, int mode) {
     char         path[0x40];
     unsigned int size;
