@@ -242,8 +242,9 @@ snapshot from before the lane base and includes the subsequently promoted
 `MenuWeaponBuildUpDraw`.
 
 The [night near-miss run](night-20261008.md) promotes `CommonSetMoveItemClass`,
-`MenuDataSwap`, `MenuPosFormValueSetCharaRobo`, `CMenuItemInfo::CalcTex` and
-`CMenuItemInfo::LRCheck`, and records the source facts that close each one.
+`MenuDataSwap`, `MenuPosFormValueSetCharaRobo`, `CMenuItemInfo::CalcTex`,
+`CMenuItemInfo::LRCheck` and `MenuItemDebugDraw` (with its seven control
+selectors), and records the source facts that close each one.
 The earlier residual descriptions of those functions in the dated notes are
 superseded.
 
