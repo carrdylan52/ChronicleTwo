@@ -55,10 +55,85 @@ static char NameRegiTopic[0x40];
  *
  */
 static s8 NameRegiCode;
-extern s8                   NameStrSelectModeTable[7][6];
-extern NAMEREGI_KANJI_INDEX NameRegiSearchKanjiIndexTable[0x2C];
-extern s8                   testchar[0x2C][2];
-extern s8                   txt_table[0x3B];
+/**
+ *
+ * Maps language and name entry button selection to a character set.
+ *
+ */
+static s8 NameStrSelectModeTable[7][6] = {
+    {NAMEREGI_FONT_MODE_KATA, NAMEREGI_FONT_MODE_HIRA, NAMEREGI_FONT_MODE_ALPHA, NAMEREGI_FONT_MODE_KIGOU, NAMEREGI_FONT_MODE_KANJI, -1},
+    {-1, -1, NAMEREGI_FONT_MODE_ALPHA, NAMEREGI_FONT_MODE_KIGOU, -1, -1},
+    {-1, -1, NAMEREGI_FONT_MODE_ALPHA, NAMEREGI_FONT_MODE_KIGOU, -1, -1},
+    {-1, -1, NAMEREGI_FONT_MODE_ALPHA, NAMEREGI_FONT_MODE_KIGOU, -1, -1},
+    {-1, -1, NAMEREGI_FONT_MODE_ALPHA, NAMEREGI_FONT_MODE_KIGOU, -1, -1},
+    {-1, -1, NAMEREGI_FONT_MODE_ALPHA, NAMEREGI_FONT_MODE_KIGOU, -1, -1},
+    {-1, -1, NAMEREGI_FONT_MODE_ALPHA, NAMEREGI_FONT_MODE_KIGOU, -1, -1}
+};
+/**
+ *
+ * Stores the initial Shift-JIS boundaries and generated kanji lists for each reading.
+ *
+ */
+static NAMEREGI_KANJI_INDEX NameRegiSearchKanjiIndexTable[46] = {
+    {{0x88, 0x9F}},
+    {{0x88, 0xC8}},
+    {{0x89, 0x45}},
+    {{0x89, 0x61}},
+    {{0x89, 0x98}},
+    {{0x89, 0xBA}},
+    {{0x8A, 0xE9}},
+    {{0x8B, 0xE3}},
+    {{0x8C, 0x54}},
+    {{0x8C, 0xC1}},
+    {{0x8D, 0xB1}},
+    {{0x8E, 0x64}},
+    {{0x90, 0x79}},
+    {{0x90, 0xA2}},
+    {{0x91, 0x58}},
+    {{0x91, 0xBC}},
+    {{0x92, 0x6C}},
+    {{0x92, 0xC3}},
+    {{0x92, 0xE0}},
+    {{0x93, 0x65}},
+    {{0x93, 0xDE}},
+    {{0x93, 0xF1}},
+    {{0x94, 0x47}},
+    {{0x94, 0x4B}},
+    {{0x94, 0x54}},
+    {{0x94, 0x62}},
+    {{0x94, 0xD9}},
+    {{0x95, 0x73}},
+    {{0x95, 0xB8}},
+    {{0x95, 0xDB}},
+    {{0x96, 0x80}},
+    {{0x96, 0xA1}},
+    {{0x96, 0xB1}},
+    {{0x96, 0xBB}},
+    {{0x96, 0xCC}},
+    {{0x96, 0xE7}},
+    {{0x96, 0xF9}},
+    {{0x97, 0x5C}},
+    {{0x97, 0x85}},
+    {{0x97, 0x98}},
+    {{0x97, 0xDA}},
+    {{0x97, 0xDF}},
+    {{0x98, 0x43}},
+    {{0x98, 0x60}},
+    {{0x98, 0x73}},
+    {{0x00, 0x00}}
+};
+/**
+ *
+ * Stores the Shift-JIS reading characters shown at the start of kanji groups.
+ *
+ */
+static s8 testchar[93] = "\202\240\202\242\202\244\202\246\202\250\202\251\202\253\202\255\202\257\202\261\202\263\202\265\202\267\202\271\202\273\202\275\202\277\202\302\202\304\202\306\202\310\202\311\202\312\202\313\202\314\202\315\202\320\202\323\202\326\202\331\202\334\202\335\202\336\202\337\202\340\202\342\202\344\202\346\202\347\202\350\202\351\202\352\202\353\202\355\202\360\202\361";
+/**
+ *
+ * Stores ASCII characters accepted by the name conversion table.
+ *
+ */
+static s8 txt_table[59] = "0123456789abcdefghijkmnpqrstuvwxyzABCDEFGHJKLMNPQRSTUVWXYZ";
 
 /**
  *
@@ -105,11 +180,231 @@ struct BoardPoint {
     s16 y; /**< Vertical coordinate. */
 };
 
-extern BoardColor     colt_1808[2];
-extern BoardRect      table_1819[][5];
-extern BoardRect      tex_commtbl_1822[][6];
-extern BoardPoint     nameregist_baseboard_upper_table[][12];
-extern s16            get_Htable_1806[3];
+/**
+ *
+ * Stores the two colours used to draw name entry board passes.
+ *
+ */
+static BoardColor colt_1808[2] = {
+    {0, 0, 0, 32},
+    {128, 128, 128, 128}
+};
+/**
+ *
+ * Stores character set button texture rectangles for each name entry board layout.
+ *
+ */
+static BoardRect table_1819[7][5] = {
+    {
+        {176, 324, 54, 30},
+        {88, 324, 88, 30},
+        {0, 324, 88, 30},
+        {188, 354, 70, 30},
+        {230, 324, 54, 30}
+    },
+    {
+        {0, 294, 132, 30},
+        {0, 0, 0, 0},
+        {0, 0, 0, 0},
+        {0, 0, 0, 0},
+        {132, 294, 132, 30}
+    },
+    {
+        {0, 294, 132, 30},
+        {0, 0, 0, 0},
+        {0, 0, 0, 0},
+        {0, 0, 0, 0},
+        {132, 294, 132, 30}
+    },
+    {
+        {0, 294, 132, 30},
+        {0, 0, 0, 0},
+        {0, 0, 0, 0},
+        {0, 0, 0, 0},
+        {132, 294, 132, 30}
+    },
+    {
+        {0, 294, 132, 30},
+        {0, 0, 0, 0},
+        {0, 0, 0, 0},
+        {0, 0, 0, 0},
+        {132, 294, 132, 30}
+    },
+    {
+        {0, 294, 132, 30},
+        {0, 0, 0, 0},
+        {0, 0, 0, 0},
+        {0, 0, 0, 0},
+        {132, 294, 132, 30}
+    },
+    {
+        {0, 294, 132, 30},
+        {0, 0, 0, 0},
+        {0, 0, 0, 0},
+        {0, 0, 0, 0},
+        {132, 294, 132, 30}
+    }
+};
+/**
+ *
+ * Stores editing command texture rectangles for each name entry board layout.
+ *
+ */
+static BoardRect tex_commtbl_1822[7][6] = {
+    {
+        {0, 354, 36, 30},
+        {36, 354, 36, 30},
+        {184, 294, 58, 30},
+        {72, 354, 58, 30},
+        {130, 354, 58, 30},
+        {0, 294, 92, 30}
+    },
+    {
+        {0, 354, 36, 30},
+        {36, 354, 36, 30},
+        {0, 324, 88, 30},
+        {72, 354, 88, 30},
+        {160, 354, 88, 30},
+        {0, 294, 92, 30}
+    },
+    {
+        {0, 354, 36, 30},
+        {36, 354, 36, 30},
+        {0, 324, 88, 30},
+        {72, 354, 88, 30},
+        {160, 354, 88, 30},
+        {0, 294, 92, 30}
+    },
+    {
+        {0, 354, 36, 30},
+        {36, 354, 36, 30},
+        {0, 324, 88, 30},
+        {72, 354, 88, 30},
+        {160, 354, 88, 30},
+        {0, 294, 92, 30}
+    },
+    {
+        {0, 354, 36, 30},
+        {36, 354, 36, 30},
+        {0, 324, 88, 30},
+        {72, 354, 88, 30},
+        {160, 354, 88, 30},
+        {0, 294, 92, 30}
+    },
+    {
+        {0, 354, 36, 30},
+        {36, 354, 36, 30},
+        {0, 324, 88, 30},
+        {72, 354, 88, 30},
+        {160, 354, 88, 30},
+        {0, 294, 92, 30}
+    },
+    {
+        {0, 354, 36, 30},
+        {36, 354, 36, 30},
+        {0, 324, 88, 30},
+        {72, 354, 88, 30},
+        {160, 354, 88, 30},
+        {0, 294, 92, 30}
+    }
+};
+/**
+ *
+ * Stores the screen positions of name entry commands for each board layout.
+ *
+ */
+static BoardPoint nameregist_baseboard_upper_table[6][12] = {
+    {
+        {21, 16},
+        {107, 16},
+        {193, 16},
+        {245, 16},
+        {297, 16},
+        {29, 44},
+        {66, 44},
+        {107, 44},
+        {163, 44},
+        {219, 44},
+        {275, 44},
+        {369, 22}
+    },
+    {
+        {21, 16},
+        {0, 0},
+        {0, 0},
+        {0, 0},
+        {150, 16},
+        {29, 44},
+        {66, 44},
+        {279, 44},
+        {107, 44},
+        {193, 44},
+        {279, 16},
+        {369, 22}
+    },
+    {
+        {21, 16},
+        {0, 0},
+        {0, 0},
+        {0, 0},
+        {150, 16},
+        {29, 44},
+        {66, 44},
+        {279, 44},
+        {107, 44},
+        {193, 44},
+        {279, 16},
+        {369, 22}
+    },
+    {
+        {21, 16},
+        {0, 0},
+        {0, 0},
+        {0, 0},
+        {150, 16},
+        {29, 44},
+        {66, 44},
+        {279, 44},
+        {107, 44},
+        {193, 44},
+        {279, 16},
+        {369, 22}
+    },
+    {
+        {21, 16},
+        {0, 0},
+        {0, 0},
+        {0, 0},
+        {150, 16},
+        {29, 44},
+        {66, 44},
+        {279, 44},
+        {107, 44},
+        {193, 44},
+        {279, 16},
+        {369, 22}
+    },
+    {
+        {21, 16},
+        {0, 0},
+        {0, 0},
+        {0, 0},
+        {150, 16},
+        {29, 44},
+        {66, 44},
+        {279, 44},
+        {107, 44},
+        {193, 44},
+        {279, 16},
+        {369, 22}
+    }
+};
+/**
+ *
+ * Stores the heights of the name entry board texture slices.
+ *
+ */
+static s16 get_Htable_1806[4] = {100, 16, 32, 0};
 extern char           KIGOU_TABLE_ASCII1[0x20];
 extern char           KIGOU_TABLE_ASCII2[0x100];
 extern char           KIGOU_TABLE1[4];
@@ -155,11 +450,46 @@ static CNameRegiMenu * NameRegiMenuPtr;
  *
  */
 static int OldReloadTexNumber;
-extern s16            LimmitTable_1360[5];
+/**
+ *
+ * Stores the number of cells in each name entry character set.
+ *
+ */
+static s16 LimmitTable_1360[5] = {65, 90, 90, 114, 90};
 extern PositionTable  at_1377__5;
-extern s8             NameRegistGyouLimmitTable[5];
-extern s8             Convtable2_1382[2][5][8];
-extern BoardTable     convtbl_1792;
+/**
+ *
+ * Stores the number of columns in each name entry character set.
+ *
+ */
+static s8 NameRegistGyouLimmitTable[5] = {13, 15, 15, 19, 15};
+/**
+ *
+ * Maps grid columns to name entry commands for each language and character set.
+ *
+ */
+static s8 Convtable2_1382[2][5][8] = {
+    {
+        {0, 1, 3, 5, 8, 11, 12, 0},
+        {1, 2, 5, 7, 9, 11, 13, 0},
+        {1, 2, 5, 7, 9, 11, 13, 0},
+        {1, 3, 5, 7, 11, 15, 20, 0},
+        {0, 1, 2, 3, 5, 7, 9, 14}
+    },
+    {
+        {0, 1, 3, 5, 8, 11, 12, 0},
+        {1, 2, 5, 7, 9, 11, 13, 0},
+        {1, 2, 5, 7, 9, 11, 13, 0},
+        {1, 3, 5, 7, 11, 15, 20, 0},
+        {0, 2, 5, 5, 9, 12, 9, 14}
+    }
+};
+/**
+ *
+ * Maps character sets to buttons on the Japanese name entry board.
+ *
+ */
+static BoardTable convtbl_1792 = {{2, 1, 0, 4, 3}};
 extern BoardTable     at_1795;
 /**
  *
@@ -174,7 +504,12 @@ static mgCTexture * NameRegiCursor;
  */
 static mgCTexture * NameRegiTex1;
 extern s16            NameRegistMax;
-extern s16            gettbl0_2012[12];
+/**
+ *
+ * Stores the three texture slices used to draw the selected name frame.
+ *
+ */
+static s16 gettbl0_2012[12] = {0, 148, 42, 64, 42, 148, 16, 64, 58, 148, 42, 64};
 extern s64            at_2031__3;
 
 // Code (.text)
@@ -374,8 +709,8 @@ int GetNameRegistFontKanjiList(int font_index, char *out) {
 
     do {
         if (position == font_index) {
-            out[0] = testchar[row][0];
-            out[1] = testchar[row][1];
+            out[0] = testchar[row * 2];
+            out[1] = testchar[row * 2 + 1];
             return 1;
         }
 
@@ -440,7 +775,12 @@ void AdjustWaku(CDC2Mes *message, RECT *frame) {
     frame->height = message->font_h + 36;
 }
 
-extern s8 txt_table2[0x3B][2];
+/**
+ *
+ * Stores the Shift-JIS counterparts of the ASCII name conversion characters.
+ *
+ */
+static s8 txt_table2[117] = "\202O\202P\202Q\202R\202S\202T\202U\202V\202W\202X\202\201\202\202\202\203\202\204\202\205\202\206\202\207\202\210\202\211\202\212\202\213\202\215\202\216\202\220\202\221\202\222\202\223\202\224\202\225\202\226\202\227\202\230\202\231\202\232\202`\202a\202b\202c\202d\202e\202f\202g\202i\202j\202k\202l\202m\202o\202p\202q\202r\202s\202t\202u\202v\202w\202x\202y";
 
 /**
  *
@@ -454,7 +794,7 @@ int search_txt_jis(char *text) {
     int index = 0;
 
     do {
-        if ((s8) text[0] == txt_table2[index][0] && (s8) text[1] == txt_table2[index][1]) {
+        if ((s8) text[0] == txt_table2[index * 2] && (s8) text[1] == txt_table2[index * 2 + 1]) {
             return index;
         }
 
@@ -521,8 +861,8 @@ void ConvertAscii2ShitJiss(char *src, char *dst) {
         int index = search_txt_asci(input);
 
         if (0 <= index) {
-            output[0] = txt_table2[index][0];
-            output[1] = txt_table2[index][1];
+            output[0] = txt_table2[index * 2];
+            output[1] = txt_table2[index * 2 + 1];
         }
 
         input++;
@@ -1018,8 +1358,24 @@ struct PasswordKey {
     u8 bytes[0x21]; /**< Password decoding key and its terminator. */
 };
 
-extern s16                  addTable_1510[8][4];
-extern s8                   convTbl_1579[4];
+/**
+ *
+ * Stores row and horizontal cursor steps for each name entry character set.
+ *
+ */
+static s16 addTable_1510[5][4] = {
+    {-13, 13, -1, 1},
+    {-15, 15, -1, 1},
+    {-15, 15, -1, 1},
+    {-19, 19, -1, 1},
+    {-15, 15, -1, 1}
+};
+/**
+ *
+ * Maps name entry character sets to command buttons.
+ *
+ */
+static s8 convTbl_1579[5] = {2, 1, 0, 4, 3};
 extern NameCommandTable     at_1513__6;
 extern NameCommandTable     at_1514__6;
 extern NameCommandTable     at_1534;
@@ -2212,24 +2568,11 @@ INCLUDE_RODATA("ps2/asm/pal/nonmatchings/nameregi", KIGOU_TABLE_ASCII1__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/nameregi", KIGOU_TABLE_ASCII2__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/nameregi", ascii_code_table__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/nameregi", NameRegistFont_Table__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/nameregi", NameStrSelectModeTable__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/nameregi", NameRegiSearchKanjiIndexTable__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/nameregi", testchar__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/nameregi", txt_table__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/nameregi", txt_table2__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/nameregi", at_1153__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/nameregi", LimmitTable_1360__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/nameregi", at_1377__5__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/nameregi", Convtable2_1382__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/nameregi", addTable_1510__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/nameregi", at_1513__6__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/nameregi", at_1514__6__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/nameregi", at_1534__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/nameregi", nameregist_baseboard_upper_table__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/nameregi", colt_1808__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/nameregi", table_1819__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/nameregi", tex_commtbl_1822__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/nameregi", gettbl0_2012__DATA);
 
 // Constants (.rodata)
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/nameregi", at_892__3__DATA);
@@ -2259,12 +2602,8 @@ INCLUDE_RODATA("ps2/asm/pal/nonmatchings/nameregi", KATA_TABLE3__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/nameregi", KIGOU_TABLE1__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/nameregi", KIGOU_TABLE2__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/nameregi", jis_ptr_table__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/nameregi", NameRegistGyouLimmitTable__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/nameregi", at_1081__4__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/nameregi", convTbl_1579__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/nameregi", convtbl_1792__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/nameregi", at_1795__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/nameregi", get_Htable_1806__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/nameregi", at_1807__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/nameregi", at_2031__3__DATA);
 
