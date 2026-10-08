@@ -87,6 +87,12 @@ def referenced_addresses(lay):
     paths = [(ROOT / lay.reference(u), lay.kinds[u] == "cpp") for u in lay.units()]
     paths += [(p, False) for p in sorted((ROOT / layout.ASM / "data").rglob("*.s"))]
     found = set()
+    # Explicit source identifiers also own boundaries. An accidental address
+    # expression in a VU instruction must not be their only source of identity.
+    for unit in lay.units('cpp'):
+        source = ROOT / lay.source(unit)
+        if source.is_file():
+            found.update(source_addresses(source.read_text(encoding='utf-8')))
     for path, code_only in paths:
         if not path.is_file():
             continue
@@ -103,6 +109,13 @@ def referenced_addresses(lay):
             for m in INVENTED.finditer(line):
                 found.add(int(m.group(1), 16))
     return found
+
+
+def source_addresses(source):
+    """Unnamed addresses explicitly present as source identifiers."""
+    source = re.sub(r'/\*.*?\*/|//[^\n]*|"(?:\\.|[^"\\])*"|\'(?:\\.|[^\'\\])*\'',
+                    ' ', source, flags=re.DOTALL)
+    return {int(match.group(1), 16) for match in INVENTED.finditer(source)}
 
 
 def local_twin(name):

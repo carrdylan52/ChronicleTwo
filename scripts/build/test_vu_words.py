@@ -64,6 +64,14 @@ class VuWordTests(unittest.TestCase):
             d.main()
         self.assertEqual(events, ['restore', 'pieces'])
 
+    def test_explicit_source_identifiers_keep_their_boundaries(self):
+        self.assertEqual(d.source_addresses('u8 D_01F628BC[4];\nuse(D_0034ABCD);'),
+                         {0x1f628bc, 0x34abcd})
+
+    def test_comments_and_strings_do_not_create_source_boundaries(self):
+        self.assertEqual(d.source_addresses('/* D_01F628BC */ // D_0034ABCD\n'
+                                            'print("D_00345678"); char c = \'x\';'), set())
+
 
 if __name__ == '__main__':
     unittest.main()
