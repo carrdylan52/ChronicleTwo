@@ -226,6 +226,20 @@
         "evaluate_first": true
       },
       {
+        "translation_unit": "actscript.cpp",
+        "function": "_SHOT__FP12RS_STACKDATAi",
+        "value_type": "binary32",
+        "value_bits": "0x43200000",
+        "callee": "SetValue__16CEffectScriptManFifii",
+        "control": {
+          "kind": "condition",
+          "values": [
+            90
+          ]
+        },
+        "evaluate_first": true
+      },
+      {
         "translation_unit": "cameracontrol.cpp",
         "function": "__ct__14CCameraControlFv",
         "value_type": "binary32",
@@ -545,6 +559,76 @@
         "function": "DrawActiveFont__13CNameRegiMenuFv",
         "value_type": "binary32",
         "value_bits": "0x41a80000",
+        "evaluate_first": true
+      },
+      {
+        "translation_unit": "nd_meswin.cpp",
+        "function": "DrawMesWin__6ClsMesFv",
+        "value_type": "binary32",
+        "value_bits": "0x3f000000",
+        "callee": "CalcAutoPosSet__Fffff",
+        "control": {
+          "kind": "switch",
+          "values": [
+            9,
+            10
+          ]
+        },
+        "evaluate_first": true
+      },
+      {
+        "translation_unit": "nd_meswin.cpp",
+        "function": "DrawMesWin__6ClsMesFv",
+        "value_type": "binary32",
+        "value_bits": "0x3f733333",
+        "callee": "CalcAutoPosSet__Fffff",
+        "control": {
+          "kind": "condition",
+          "values": [
+            7,
+            9,
+            10
+          ]
+        },
+        "evaluate_first": true
+      },
+      {
+        "translation_unit": "nd_meswin.cpp",
+        "function": "DrawMesWin__6ClsMesFv",
+        "value_type": "binary32",
+        "value_bits": "0x3f000000",
+        "callee": "CalcAutoPosSet__Fffff",
+        "control": {
+          "kind": "condition",
+          "values": [
+            11
+          ]
+        },
+        "argument": {
+          "argument_index": 1,
+          "value_type": "binary32",
+          "value_bits": "0x44000000"
+        },
+        "evaluate_first": false,
+        "evaluate_before": 1
+      },
+      {
+        "translation_unit": "nd_meswin.cpp",
+        "function": "DrawMesWin__6ClsMesFv",
+        "value_type": "binary32",
+        "value_bits": "0x3f000000",
+        "callee": "CalcAutoPosSet__Fffff",
+        "control": {
+          "kind": "condition",
+          "values": [
+            11
+          ]
+        },
+        "argument": {
+          "argument_index": 1,
+          "value_type": "binary32",
+          "value_bits": "0x43f00000"
+        },
         "evaluate_first": true
       },
       {
