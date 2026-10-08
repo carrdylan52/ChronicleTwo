@@ -16415,7 +16415,8 @@ int _COPY_MONS2SCNCHR(RS_STACKDATA *stack, int argc) {
 
     EventScene->SetStatus(1, slot, 5);
     CCharacter2 *dest = GetCharacter(dst_no);
-    CCharacter2(ActiveMonster->refer[monster_index].chara).Copy(*dest, memory);
+    CCharacter2 source = ActiveMonster->refer[monster_index].chara;
+    source.Copy(*dest, memory);
     EventScene->SetCharaTexb(dst_no, monster_index + 0x28);
     return 1;
 }

@@ -256,19 +256,32 @@ bytes and resolved relocations: `0x22C7C` checked bytes and 6,920 relocations.
 
 ## Remaining allocation checks on the integrated baseline
 
-With the pinned profile, `_COPY_CHARA`, `_ESM_INITIALIZE`, and
-`_COPY_MONS2SCNCHR` each differ by two instruction words. The generated
-bodies are 0x2B4, 0x128, and 0x754 within the padded retail extents 0x2C0,
-0x130, and 0x760 respectively. The difference is the documented
+With the pinned profile, `_COPY_CHARA` and `_ESM_INITIALIZE` each differ by
+two instruction words. The generated bodies are 0x2B4 and 0x128 within the
+padded retail extents 0x2C0 and 0x130 respectively. The difference is the documented
 placement-new result schedule: retail tests v0 and copies to the saved
 object register in its delay slot; MWCC copies first and tests that saved
 register. `_ESM_INITIALIZE` isolates the pair at +0x78/+0x7C. These remain
 parked for the dedicated placement-new investigation.
 
+The October 8 midday baseline `c79e57c` does not reproduce the previously
+reported two-word `_COPY_MONS2SCNCHR` miss. It has 248/472 differing words
+and a 0x758 native body in the retail 0x760 extent. Naming the copied
+`CCharacter2` source retains natural copy construction and improves the draft
+to 246/472 with a 0x750 body. The allocation branch at +0x94/+0x98 remains,
+and a separate aggregate-copy difference begins at +0x390. In particular,
+the implicit copy of `shadow_link` at source offsets +0x35C..+0x364 uses
+three FPR loads/stores and a destination-address temporary; retail copies
+the corresponding words individually through a GPR. No floating conversion
+is involved. This changes subsequent scheduling and instruction positions.
+The existing `CCharaFrameMatching` grouping therefore needs further type and
+copy-construction evidence in its owning header; it is not just a null-branch
+park. No shared-header patch or hand-written copy body is proposed here.
+
 The compiler-generated `CObject(const CObject&)` already matches in the
 all-drafts compilation with the current natural class definition. No shared
 header change is required for its bytes or relocations. Its actual emission
-here comes from the temporary character copy inside `_COPY_MONS2SCNCHR`.
+here comes from the character copy inside `_COPY_MONS2SCNCHR`.
 While that caller is guarded, the default build still requires the copy
 constructor assembly fallback. Reconsider its independent promotion when
 an active native caller naturally emits it; an explicit copy body or dummy
@@ -284,3 +297,12 @@ remainder. The default complete object still passes without Ident, but the
 lane's closer-draft rule leaves the original guarded source unchanged.
 An admissible source lifetime distinction is required before promoting this
 function, in addition to resolving the placement-new branch.
+
+Midday helper-free probes with named texture-buffer arguments, a named base
+texture buffer, a named offset, or direct assignment to `EventEffectScript`
+each retain 11/76. No new helper or source workaround is retained.
+
+Private receipts: `.private/placenew-midday/baseline-native/event_func/`,
+`.private/placenew-midday/probes/monster-copy-initialization/`,
+`monster-named-copy/`, `monster-source-reference/`, and the `effect-*`
+directories under `.private/placenew-midday/probes/`.
