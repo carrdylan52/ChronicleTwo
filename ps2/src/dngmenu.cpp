@@ -32,12 +32,16 @@
 extern float DngTreeMapActiveLightRate;
 
 /**
+ *
  * Draws the selected room's floor information and completion medals.
+ *
  */
 static void DrawDngRoomInfo(DNGMAP_ROOM_INFO *room);
 
 /**
+ *
  * Draws a paged list of georama materials for the dungeon room.
+ *
  */
 void DrawGeoramaMateria(int top_y, char *title, int unused_count, int *items, int tex_block);
 
@@ -1155,7 +1159,9 @@ extern char Table_2133[8][32];
 extern unsigned int bittable_2134[8];
 
 /**
+ *
  * Kinds of passages identified by the floor map's debug readout.
+ *
  */
 enum DNGMAP_ROOT_TYPE {
     DNGMAP_ROOT_NORMAL = 0, /**< Ordinary passage to the next floor. */
@@ -1326,7 +1332,9 @@ extern const signed char old_hokantbl_useno_2247__DATA[];
 extern const signed char is_reverse_tbl_room_2248__DATA[];
 
 /**
+ *
  * Orders the interpolation points when tracing a dungeon map route.
+ *
  */
 enum DNGMAP_PATH_ORDER {
     DNGMAP_PATH_FORWARD = 0, /**< Reads a cell's interpolation points from first to last. */
@@ -2547,7 +2555,9 @@ extern s16           TreeMapSaveDispCount;
 /** Dungeon used by the floor-information panel. */
 extern u8            DngInfoStageNo;
 /**
+ *
  * Carries the two file names read while opening the dungeon tree map.
+ *
  */
 struct DngTreeReadNames {
     char *name[2]; /**< Menu data file and optional second file. */
@@ -2559,7 +2569,9 @@ STATIC_ASSERT(sizeof(DngTreeReadNames) == 8);
 extern DngTreeReadNames at_3478;
 
 /**
+ *
  * Creates the tree map and attaches its floor-information message windows.
+ *
  */
 inline CMenuTreeMap::CMenuTreeMap() {
     draw_hidden = 0;
