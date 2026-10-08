@@ -253,3 +253,34 @@ horizontal extent before the zero origin in `CalcAutoPosSet`; caption behavior
 is unchanged. With the artificial division primer removed and translation-unit
 helper masks GPR `0x30` / FPR `0`, the complete unit passes canonical instruction
 bytes and resolved relocations: `0x22C7C` checked bytes and 6,920 relocations.
+
+## Remaining allocation checks on the integrated baseline
+
+With the pinned profile, `_COPY_CHARA`, `_ESM_INITIALIZE`, and
+`_COPY_MONS2SCNCHR` each differ by two instruction words. The generated
+bodies are 0x2B4, 0x128, and 0x754 within the padded retail extents 0x2C0,
+0x130, and 0x760 respectively. The difference is the documented
+placement-new result schedule: retail tests v0 and copies to the saved
+object register in its delay slot; MWCC copies first and tests that saved
+register. `_ESM_INITIALIZE` isolates the pair at +0x78/+0x7C. These remain
+parked for the dedicated placement-new investigation.
+
+The compiler-generated `CObject(const CObject&)` already matches in the
+all-drafts compilation with the current natural class definition. No shared
+header change is required for its bytes or relocations. Its actual emission
+here comes from the temporary character copy inside `_COPY_MONS2SCNCHR`.
+While that caller is guarded, the default build still requires the copy
+constructor assembly fallback. Reconsider its independent promotion when
+an active native caller naturally emits it; an explicit copy body or dummy
+use is not an acceptable way to force emission.
+
+`_ESM_INITIALIZE`'s inherited two-word draft score still includes the legacy
+identity-only `Ident` scaffold; that helper is not an acceptable promotion
+mechanism. Removing it leaves an 11/76-word helper-free draft at the same
+0x128-byte body size: the branch pair plus exchanged s0/s1 lifetimes.
+Initializing the stack number at declaration instead changes the stack frame
+and shortens the body; declaration reordering alone leaves the 11-word
+remainder. The default complete object still passes without Ident, but the
+lane's closer-draft rule leaves the original guarded source unchanged.
+An admissible source lifetime distinction is required before promoting this
+function, in addition to resolving the placement-new branch.
