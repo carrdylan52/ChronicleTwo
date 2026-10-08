@@ -90,8 +90,18 @@ static int now_no;
  *
  */
 static int SedSel;
-extern int              SedSelData[SED_ITEM_NUM];
-extern char            *config_str[1];
+/**
+ *
+ * Stores editable debug save-data values.
+ *
+ */
+static int SedSelData[SED_ITEM_NUM] = {0};
+/**
+ *
+ * Names the configuration value shown by the save data editor.
+ *
+ */
+static char *config_str[1] = {"Caption off"};
 /**
  *
  * Points to the memory stack used by the map selection menu.
@@ -140,7 +150,12 @@ static int top_event;
  *
  */
 char MapNameBuff[MAP_NAME_BUFF_SIZE * 16];
-extern char             SelectMapName[];
+/**
+ *
+ * Stores the map name selected for the next edit loop.
+ *
+ */
+static char SelectMapName[0x100] = "";
 /**
  *
  * Points to the map name lists for each selection category.
@@ -153,10 +168,18 @@ static char ** SelectMapList[MAP_SEL_TYPE_NUM];
  *
  */
 static int SelectMapNum[MAP_SEL_TYPE_NUM];
-extern char            *map_sel_type[8];
-extern int              select__1049[8];
-extern int              top__1050[8];
-extern SPI_TAG_PARAM    tag__7[];
+/**
+ *
+ * Stores the selected map row for each map category.
+ *
+ */
+static int select__1049[16] = {0};
+/**
+ *
+ * Stores the first visible map row for each map category.
+ *
+ */
+static int top__1050[16] = {0};
 extern EventListColors  at_1270__4;
 extern LineBreakPair    at_1377__2;
 extern char             at_1040__4[];
@@ -182,6 +205,15 @@ static MAP_NAME_INFO   *GetMapNameInfo(int map_no);
 int                     MapTypeSelect();
 int                     MapSelect();
 static char            *GetLine(char **columns, char *position, char *end);
+
+/**
+ *
+ * Names the map categories shown by the map selection menu.
+ *
+ */
+static char *map_sel_type[MAP_SEL_TYPE_NUM] = {
+    "New", "Georama", "PalmBlinks", "Submap", "Future", "Dungeon", "Event", "Special"
+};
 
 // Code (.text)
 /**
@@ -250,6 +282,17 @@ int mlMAP_NAME(SPI_STACK *stack, int argc) {
     return 1;
 }
 
+/**
+ *
+ * Dispatches the map name script commands.
+ *
+ */
+static SPI_TAG_PARAM tag[3] = {
+    {"MAP_NAME_NUM", mlMAP_NAME_NUM},
+    {"MAP_NAME", mlMAP_NAME},
+    {NULL, NULL}
+};
+
 void LoadMapName(int language, u_long128 *buffer) {
     char path[0x80];
     int  size;
@@ -258,7 +301,7 @@ void LoadMapName(int language, u_long128 *buffer) {
 
     if (LoadFile2(path, buffer, &size, 0)) {
         CScriptInterpreter interpreter;
-        interpreter.SetTag(tag__7);
+        interpreter.SetTag(tag);
         interpreter.SetScript((char *) buffer, size);
         interpreter.Run();
         pMapNameBuff += pCharBuff / 16 + 1;
@@ -1151,24 +1194,8 @@ void AtraMiriaOnOff(int mode, CCharacter2 *chara, int enable) {
 }
 
 // Initialised data (.data)
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mapselect", map_sel_type__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mapselect", SelectMapName__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mapselect", tag__7__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mapselect", select__1049__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mapselect", top__1050__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mapselect", SedSelData__DATA);
 
 // Constants (.rodata)
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mapselect", at_792__3__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mapselect", at_793__3__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mapselect", at_794__3__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mapselect", at_795__3__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mapselect", at_796__3__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mapselect", at_797__3__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mapselect", at_798__3__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mapselect", at_799__4__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mapselect", at_800__3__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mapselect", at_801__3__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mapselect", at_842__4__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mapselect", at_859__3__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mapselect", at_860__2__DATA);
@@ -1183,7 +1210,6 @@ INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mapselect", at_1045__3__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mapselect", at_1103__4__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mapselect", at_1104__6__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mapselect", at_1105__3__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mapselect", at_1117__3__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mapselect", at_1126__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mapselect", at_1127__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mapselect", at_1222__5__DATA);
@@ -1202,7 +1228,6 @@ INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mapselect", at_1470__3__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mapselect", at_1471__3__DATA);
 
 // Small initialised data (.sdata)
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mapselect", config_str__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mapselect", at_1125__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mapselect", at_1128__2__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mapselect", at_1270__4__DATA);

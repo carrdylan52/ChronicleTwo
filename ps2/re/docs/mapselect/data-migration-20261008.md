@@ -40,3 +40,25 @@ the two reservations remain pending native BSS identity support.
 Receipts: `mapselect-storage` and `mapselect-guard`, each with
 `-{build,objects,hashes}.log`. Both accepted steps pass PAL, all 149 objects
 and all 148 other object hashes. Markers are now 52/2.
+
+## Named menu data
+
+All seven named initialized objects now have documented native definitions.
+`map_sel_type[MAP_SEL_TYPE_NUM]` contains the eight exact category labels;
+its eight string markers are removed with the table. `SelectMapName[0x100]`
+is the initialized empty writable name buffer. `SPI_TAG_PARAM tag[3]`
+contains the two map script commands and its null terminator, with the two
+command string markers removed together.
+
+`select__1049[16]` and `top__1050[16]` are each 0x40 bytes, correcting the
+preceding extern declarations of only eight integers. Only the eight current
+categories index them; the retail object extents still contain sixteen rows.
+`SedSelData[SED_ITEM_NUM]` holds six zero-initialized integers, and
+`config_str[1]` contains the caption label. The extra eight bytes after the
+save editor values, eight after the tag table, and four after the config
+pointer are piece padding, not extra source elements. Native definitions use
+the declared extents and existing verified postprocessing supplies padding.
+
+Each object has a separate `mapselect-<name>-{build,objects,hashes}.log`
+receipt. All seven accepted steps pass PAL, all 149 objects and all 148 other
+object hashes. Markers are now 34/2.
