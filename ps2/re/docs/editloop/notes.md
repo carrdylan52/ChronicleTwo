@@ -247,3 +247,11 @@ not change either owned object's allocated content.
 
 Receipts: `.private/editloop-midday/guarded-drafts-build.log`,
 `guarded-drafts-objects.log` and `guarded-drafts-object-hash-diff.json`.
+
+### `CameraCtrlParam::operator=` stays assembly-backed
+
+A hand-written `operator=` reproduces all 24 words of `__as__15CameraCtrlParamFRC15CameraCtrlParam`,
+but retail gives that symbol the processor-specific binding 13 of a compiler-generated copy assignment
+(`readelf -s` on SCES_511.90), while the hand-written definition is `GLOBAL`. `docs/MWCC.md` ("Natural
+C++ definitions") rules out hand-writing generated assignments, so the function stays `INCLUDE_ASM`
+until the implicit assignment is emitted naturally from its genuine caller (`EditInit`).
