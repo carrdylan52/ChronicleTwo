@@ -91,3 +91,42 @@ Global (in header): `SetActionScript`, `SetActionExtendTable`, both called only 
 ## Division-check pragma
 
 The unit-level `divbyzerocheck` pragma was redundant with the global MWCC flag; removing it left the full compiled object identical in objdiff.
+
+## `_SHOT` floating argument schedule
+
+Both attack-type 40 and 90 branches finish their effect setup by calling
+`CEffectScriptMan::SetValue(int, float, int, int)` with value index 4 and
+160.0. m2c and retail assembly confirm the same overload and constant in both
+branches. `_SHOT` is 0x900 bytes; the deterministic default policy differs
+from retail only at +0x8B0/+0x8B4/+0x8B8/+0x8C4 in the later call. These four
+words exchange the v0/v1 registers used for the constant and `action_info`
+loads, without changing function size or relocation count.
+
+A binary32 160 (`0x43200000`) evaluate-first row, including one scoped to
+`SetValue__16CEffectScriptManFifii`, fixes the later call but creates the same
+four-word exchange at the earlier +0x6C0/+0x6C4/+0x6C8/+0x6D4 call. A local
+pointer or reference to the earlier effect manager does not resolve this
+conflict; verified consumer logging still identifies two binary32 160
+arguments to the same callee in each compiler pass.
+
+Natural source/type trials establish these boundaries:
+
+- Replacing the later `float(160.0)` with `float(160)` or `160.0f`, or passing
+  a named float or integer value converted to float, preserves the complete
+  default-policy object byte-for-byte.
+- A named integer value at the earlier call also preserves the conflict
+  under the binary32 evaluate-first row.
+- Inline `float(160.0)` and a named `const double` value narrowed to float
+  do not retain a selectable binary64 160 identity; that selector is rejected
+  as unconsumed.
+- A non-const double local does retain a binary64 identity, but the compiler
+  emits `dptofp`, growing `_SHOT` to 0x908 and the unit's checked size from
+  0x47FC to 0x4804, with 1112 rather than 1111 relocations. The extra call
+  remains under both the default policy and a binary64 evaluate-first row.
+
+No source form or policy above passes the complete unit. The remaining
+reconsideration trigger is retail-supported source evidence for a real
+expression distinction that survives optimization without a conversion call,
+or a separately validated stable compiler identity that distinguishes those
+expressions. Occurrence selectors and invented helper functions do not follow
+from this evidence.
