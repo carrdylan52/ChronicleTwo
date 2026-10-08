@@ -222,7 +222,7 @@
       },
       {
         "translation_unit": "actionchara.cpp",
-        "function": "RoboWalkMoveIF__12CActionCharaFi",
+        "function": "RoboAirMoveIF__12CActionCharaFii",
         "value_type": "binary32",
         "value_bits": "0x00000000",
         "callee": "SetRotation__9mgCObjectFfff",
@@ -230,7 +230,7 @@
       },
       {
         "translation_unit": "actionchara.cpp",
-        "function": "RoboAirMoveIF__12CActionCharaFii",
+        "function": "RoboWalkMoveIF__12CActionCharaFi",
         "value_type": "binary32",
         "value_bits": "0x00000000",
         "callee": "SetRotation__9mgCObjectFfff",
