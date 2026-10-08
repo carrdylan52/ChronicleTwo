@@ -8,7 +8,7 @@ Buggy sub game (sub game 3 in `subgame`'s dispatchers `sgInitSubGame`, `sgLoopSu
 `sgDrawSubGameChara`, `sgDrawSubGameEffect`, `sgDrawSubGameCharaShadow`, `sgDrawSubGameSystem`).
 The player drives a buggy with a gun and bombs and defends a train.
 
-`CharaControl(CScene*, CPadControl*)` retains a C++ draft under `NONMATCHING`.
+`CharaControl(CScene*, CPadControl*)` is supplied by matching native C++.
 `InitBomb(CScene*)` uses the verified native body with the floating-point
 calibration described below. Other native promotions are retained separately
 from the construction fallback in `sgInitBuggy`.
@@ -86,3 +86,78 @@ need a fresh whole-unit comparison. The calibration's native body is preserved.
 
 See [MWCC matching notes](../../../../docs/MWCC.md) for the compiler-state
 rationale and verification workflow.
+
+## Mid-day CharaControl promotion (2026-10-08)
+
+`CharaControl__FP6CSceneP11CPadControl__3` occupies retail address
+`0x00319DB0`, extent `0x9B0`; the native body is `0x9AC` followed by four
+zero alignment bytes. m2c through `decompile.sh` confirms the movement,
+pickup, carrying, throwing and camera logic. The function returns without
+work for a missing pad, player or control camera. Pickup occurs when the
+animation crosses frame 15; throwing occurs when it crosses frame 44.
+The direction and throw vectors retain their SDK vector types, and the
+placed bomb contributes 16 `CCPoly` entries through `CreateCharaCPoly`.
+
+`BuggyCharaState` names the five observed character states: free movement,
+pickup start, pickup animation, carrying and throwing. `BuggyBombState`
+names reload start (1), reloading (2), placed (3), carried (4), thrown (6)
+and exploding (7), as established by this function and the existing bomb
+control analysis. Their integer storage globals retain their existing types.
+
+The ten-word initial difference has three independent causes:
+
+- Four words at `+0x7B8..+0x7D4` prepare collision radius 1.0f before
+  height 20.0f; retail prepares height first.
+- Four words at `+0x83C..+0x84C` reverse the reload-start position's
+  height 134.0f and depth -340.0f. The exploding-state call needs the
+  opposite schedule despite using the same coordinates.
+- Two words at `+0x928/+0x930` prepare the bomb vector before the null
+  pad. Passing `&bomb_position`, the declared pointer-to-vector type,
+  restores their order without a cast.
+
+The reload-start branch resets the player's world transform through an
+`mgCObject` reference. `CCharacter2` inherits the object interface through
+`CObjectFrame` and `CObject`; the reference preserves virtual dispatch and
+uses the same vtable slots with no pointer adjustment. Both reset calls
+use this reference. The exploding branch retains its character interface.
+This gives the two position calls distinct real mangled callee identities.
+An initialized pointer view instead swaps the player's and camera's saved
+registers throughout the function (55 words); a scoped object reference
+preserves their retail allocation.
+
+Three accepted binary32 evaluate-first rows use compiler function name
+`CharaControl__FP6CSceneP11CPadControl` (without the manifest's local `__3`
+disambiguator):
+
+| IEEE bits | Callee | Purpose |
+|---|---|---|
+| `0x41A00000` | `CreateCharaCPoly__FP6CCPolyiPfPfff` | Prepare collision height 20.0f first. |
+| `0x00000000` | `SetPosition__9mgCObjectFfff` | Preserve zero's order in the reload-start transform reset. |
+| `0xC3AA0000` | `SetPosition__9mgCObjectFfff` | Prepare depth -340.0f before height in that reset. |
+
+No occurrence or address selector is used. The nested-call selectors are
+unnecessary here: the source interface boundary supplies an existing
+callee identity. The character-typed sibling call retains the default
+policy. Function-wide coordinate policies leave at least four differing
+words; named coordinate locals, assignments and double literal spelling
+also leave those four under the private collision-height policy.
+
+Both the source-only probe and the production mwccgap probe match all 620
+instruction words. After section fixup, the complete promoted unit passes
+`check_objects`: `0x34BC` bytes and 779 resolved relocations. This includes
+the unchanged assembly-backed `sgInitBuggy`; the simpler draft checker
+reports its split assembly relocations differently and is not the acceptance
+authority. Receipts are in `.private/floatsel/pbuggy/enum-production/` and
+`.private/floatsel/pbuggy/object-reference-production/`.
+
+The final canonical target rebuild compiles the promoted production object
+and its objdiff base with the checked-in profile. All 148 other game object
+files retain their baseline SHA-256 hashes; no header is changed. A normal
+PAL link with those objects has allocated sections byte-identical to the
+baseline image. The full checker remains 147/149, failing only the inherited
+nd_meswin and actscript bodies; the verifier retains exactly `0x26` differing
+text bytes, with all other sections and memory end unchanged. Coverage is
+6,687 matched / 168 guarded / 15 assembly-only / 2 fuzzy. Final receipts:
+`.private/floatsel/final-target-build.log`, `final-check.log`, `final-verify.log`,
+`final-coverage.txt`, `baseline-hashes.json`, `final-hashes.json` and
+`validation-summary.json`. Apply the profile and source commits together.

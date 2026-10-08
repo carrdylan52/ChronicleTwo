@@ -547,6 +547,30 @@
         "evaluate_first": true
       },
       {
+        "translation_unit": "pbuggy.cpp",
+        "function": "CharaControl__FP6CSceneP11CPadControl",
+        "value_type": "binary32",
+        "value_bits": "0x41a00000",
+        "callee": "CreateCharaCPoly__FP6CCPolyiPfPfff",
+        "evaluate_first": true
+      },
+      {
+        "translation_unit": "pbuggy.cpp",
+        "function": "CharaControl__FP6CSceneP11CPadControl",
+        "value_type": "binary32",
+        "value_bits": "0x00000000",
+        "callee": "SetPosition__9mgCObjectFfff",
+        "evaluate_first": true
+      },
+      {
+        "translation_unit": "pbuggy.cpp",
+        "function": "CharaControl__FP6CSceneP11CPadControl",
+        "value_type": "binary32",
+        "value_bits": "0xc3aa0000",
+        "callee": "SetPosition__9mgCObjectFfff",
+        "evaluate_first": true
+      },
+      {
         "translation_unit": "scene.cpp",
         "function": "Birth__9CRainDropFi",
         "value_type": "binary32",
