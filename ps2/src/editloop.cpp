@@ -380,16 +380,12 @@ void EditInit(INIT_LOOP_ARG arg) {
     u_long128           *script_data;
     u_long128           *image_data;
     CEffectScriptMan    *effects;
+    mgCTextureManager   *textures;
     CActionChara        *characters;
     CCameraControl      *debug_camera;
     CCharacter2         *player;
     CMap                *map;
     mgCTexture          *cross_texture;
-    mgCMDTBuilder        builder;
-    mgLoadData           load;
-    sceVu0FVECTOR        material = {0.5f, 0.0f, 0.0f, 0.2f};
-    sceVu0FVECTOR        position;
-    char                 system_image[64] = "img/esystem.img";
     char                *menu_file;
     int                  data_size;
     int                  image_size;
@@ -426,8 +422,7 @@ void EditInit(INIT_LOOP_ARG arg) {
     main_stack->stack_used = 0;
     main_stack->lock = 0;
     main_pkt1 = main_stack->stAlloc64(10000);
-    main_pkt2 = main_stack->stAlloc64(10000);
-    mgInitVif1Packet(main_pkt1, main_pkt2, 160000);
+    mgInitVif1Packet(main_pkt1, main_pkt2 = main_stack->stAlloc64(10000), 160000);
     buf0.stSetBuffer(main_stack->stAlloc64(35000), 35000);
     buf1.stSetBuffer(main_stack->stAlloc64(35000), 35000);
     mgSetPacketBuffer(&buf0, &buf1);
@@ -437,27 +432,27 @@ void EditInit(INIT_LOOP_ARG arg) {
     }
     ScriptBuffer__2.stSetBuffer(script_data, 20000);
     main_stack->Align64();
-    data_size = main_stack->stack_size - main_stack->stack_used - 210128;
-    TotalDataBuff.stSetBuffer(&main_stack->stack[main_stack->stack_used], data_size);
-    printf("data memory size = %d kbyte", data_size * 16 / 1024);
+    data_size = main_stack->stack_size - main_stack->stack_used;
+    TotalDataBuff.stSetBuffer(&main_stack->stack[main_stack->stack_used], data_size - 210128);
+    printf("data memory size = %d kbyte", (data_size - 210128) * 16 / 1024);
     if (strlen("Total Data Buffer") < 16) {
         strcpy(TotalDataBuff.name, "Total Data Buffer");
     }
     TotalDataBuff.stack_used = 0;
     TotalDataBuff.lock = 0;
-    main_stack->Alloc(data_size);
-    read_buffer = main_stack->stAlloc64(200000);
-    MenuBuffer__2.stSetBuffer(read_buffer, 200000);
+    main_stack->Alloc(data_size - 210128);
+    MenuBuffer__2.stSetBuffer(read_buffer = main_stack->stAlloc64(200000), 200000);
     read_buffer_end = read_buffer + 200000;
     WorkBuffer.stSetBuffer(main_stack->stAlloc64(10000), 10000);
-    mgTexManager.SetTableBuffer(350, 221, &TotalDataBuff);
-    mgTexManager.Initialize(GetVramTopAddress(), -1);
+    textures = &mgTexManager;
+    textures->SetTableBuffer(350, 221, &TotalDataBuff);
+    textures->Initialize(GetVramTopAddress(), -1);
     SetDataPacket(0);
 
     NowLoadingInfo loading;
     loading.tex_block = 206;
-    loading.step_count = 15;
     loading.unk_4 = 1;
+    loading.step_count = 15;
     loading.memory.stSetBuffer(read_buffer + 195000, 5000);
     CreateNowLoading(&loading);
     SetEnvUserDataMan(0);
@@ -470,6 +465,7 @@ void EditInit(INIT_LOOP_ARG arg) {
     }
     NowLoadingBarStep();
 
+    mgCMDTBuilder builder;
     builder.Begin(&TotalDataBuff);
     builder.BeginData(MG_MDT_DATA_VERTEX);
     builder.SetData(0.0f, 0.0f, 0.0f, 1.0f);
@@ -482,6 +478,7 @@ void EditInit(INIT_LOOP_ARG arg) {
     builder.SetData(1.0f, 1.0f, 1.0f, 1.0f);
     builder.EndData();
     builder.BeginData(MG_MDT_DATA_MATERIAL);
+    sceVu0FVECTOR material = {0.5f, 0.0f, 0.0f, 0.2f};
     builder.SetMaterial(material, "");
     builder.EndData();
     builder.BeginFaces();
@@ -507,6 +504,7 @@ void EditInit(INIT_LOOP_ARG arg) {
     builder.EndPrim();
     builder.EndFaces();
     TestFrame.mgCFrame::Initialize();
+    mgLoadData load;
     memset(&load, 0, sizeof(load));
     load.memory = &TotalDataBuff;
     load.work_memory = &WorkBuffer;
@@ -522,9 +520,9 @@ void EditInit(INIT_LOOP_ARG arg) {
         attr.billboard = MG_FRAME_BILLBOARD_Y;
         attr.no_light = 1;
         attr.color[3] = 128.0f;
-        attr.color[2] = 255.0f;
-        attr.color[1] = 255.0f;
         attr.color[0] = 255.0f;
+        attr.color[1] = 255.0f;
+        attr.color[2] = 255.0f;
         RedBicMark->SetAttrParam(attr, 1, 0);
     }
     LoadEditCursor(&TotalDataBuff, 163);
@@ -532,7 +530,7 @@ void EditInit(INIT_LOOP_ARG arg) {
     TreasureBox = NULL;
     if (LoadFile2("map/itembox.chr", read_buffer, NULL, 0) != 0) {
         TreasureBox = new (TotalDataBuff.Alloc(sizeof(CMapTreasureBox) / 16 + 2)) CMapTreasureBox;
-        mgTexManager.DeleteBlock(173);
+        textures->DeleteBlock(173);
         TreasureBox->LoadPackNoLine((u_int *) read_buffer, "info.cfg", &TotalDataBuff, &TotalDataBuff, &TotalDataBuff, 173, NULL);
     }
     ChrEffBuffer.SetHeapMem(TotalDataBuff.stAlloc64(6400), 6400);
@@ -542,11 +540,12 @@ void EditInit(INIT_LOOP_ARG arg) {
 
     TotalDataBuff.Align64();
     image_data = TotalDataBuff.stAllocTest(1);
+    char system_image[64] = "img/esystem.img";
     if (LanguageCode > 0) {
         sprintf(system_image, "img/esystem%d.img", LanguageCode);
     }
     if (LoadFile2(system_image, image_data, &image_size, 0) != 0) {
-        mgTexManager.EnterIMGFile((u_char *) image_data, 162, &TotalDataBuff, NULL);
+        textures->EnterIMGFile((u_char *) image_data, 162, &TotalDataBuff, NULL);
         TotalDataBuff.Alloc(image_size / 16 + 1);
         LoadTakePhoto(162, &TotalDataBuff, read_buffer);
     }
@@ -554,15 +553,15 @@ void EditInit(INIT_LOOP_ARG arg) {
     image_data = TotalDataBuff.stAllocTest(1);
     if (LoadFile2("effect/fire.img", image_data, &fire_size, 0) != 0) {
         TotalDataBuff.Alloc(fire_size / 16 + 1);
-        mgTexManager.EnterIMGFile((u_char *) image_data, 66, &TotalDataBuff, NULL);
+        textures->EnterIMGFile((u_char *) image_data, 66, &TotalDataBuff, NULL);
     }
 
     EventMes1.Init();
     EventMes1.Preset(0);
     EventMes1.texture_block = 154;
     ReLoadFontTexture(154);
-    mgTexManager.EnterIMGFile(GetGaijiImgPtr(), 154, NULL, NULL);
-    mgTexManager.EnterIMGFile(GetFontTex2ImgPtr(), 154, NULL, NULL);
+    textures->EnterIMGFile(GetGaijiImgPtr(), 154, NULL, NULL);
+    textures->EnterIMGFile(GetFontTex2ImgPtr(), 154, NULL, NULL);
     NowLoadingBarStep();
     MainScene__2->Initialize();
     MainScene__2->chara_texb = 70;
@@ -570,10 +569,10 @@ void EditInit(INIT_LOOP_ARG arg) {
     MainScene__2->villager_texb_num = 56;
     MainScene__2->event_texb = 160;
     MainScene__2->event_texb_num = 2;
-    MainScene__2->GetActiveBgmInfo()->unk_c = 1.0f;
+    MainScene__2->GetActiveBgmInfo()->master_volf = 1.0f;
     MainScene__2->SetVolfBGM(MainScene__2->GetActiveBgmInfo()->volf);
-    MainScene__2->unk_3e68 = 185;
-    MainScene__2->unk_3e6c = 21;
+    MainScene__2->tex_block_base = 185;
+    MainScene__2->tex_block_count = 21;
     effects = new (TotalDataBuff.Alloc(sizeof(CEffectScriptMan) / 16 + 2)) CEffectScriptMan;
     effects->Initialize(&TotalDataBuff, 174, 11);
     effects->load_buffer = read_buffer;
@@ -592,7 +591,7 @@ void EditInit(INIT_LOOP_ARG arg) {
         if (water_size & 0xF) {
             water_qwords++;
         }
-        mgTexManager.EnterIMGFile((u_char *) TotalDataBuff.Alloc(water_qwords), 158, NULL, NULL);
+        textures->EnterIMGFile((u_char *) TotalDataBuff.Alloc(water_qwords), 158, NULL, NULL);
     }
     NowLoadingBarStep();
 
@@ -608,12 +607,12 @@ void EditInit(INIT_LOOP_ARG arg) {
     GetSystemMessage(2)->texture_block = 154;
     MainScene__2->AssignMessage(3, GetSystemMessage(2), NULL);
     Camera = new (TotalDataBuff.Alloc(sizeof(CCameraControl) / 16 + 2)) CCameraControl;
-    editloop::EventCamera = new (TotalDataBuff.Alloc(sizeof(CCameraControl) / 16 + 2)) CCameraControl;
+    EventCamera = new (TotalDataBuff.Alloc(sizeof(CCameraControl) / 16 + 2)) CCameraControl;
     FixCamera = new (TotalDataBuff.Alloc(sizeof(CCameraControl) / 16 + 2)) CCameraControl;
     EditCamera = new (TotalDataBuff.Alloc(sizeof(CCameraControl) / 16 + 2)) CCameraControl;
     debug_camera = new (TotalDataBuff.Alloc(sizeof(CCameraControl) / 16 + 2)) CCameraControl;
     MainScene__2->AssignCamera(0, Camera, NULL);
-    MainScene__2->AssignCamera(1, editloop::EventCamera, NULL);
+    MainScene__2->AssignCamera(1, EventCamera, NULL);
     MainScene__2->AssignCamera(2, FixCamera, NULL);
     MainScene__2->AssignCamera(3, EditCamera, NULL);
     MainScene__2->AssignCamera(7, debug_camera, NULL);
@@ -625,14 +624,14 @@ void EditInit(INIT_LOOP_ARG arg) {
     Camera->default_param = *Camera->GetActiveParam();
     MainScene__2->player_chara = 0;
 
-    mgTexManager.EnterTexture(156, "work", NULL, mgScreenWidth, mgScreenHeight, 32, NULL, 0, 0);
-    mgTexManager.EnterTexture(159, "shadow_work", NULL, mgScreenWidth, mgScreenHeight, 32, NULL, 0, 0);
-    mgTexManager.EnterTexture(158, "water_work", NULL, mgScreenWidth, mgScreenHeight, 32, NULL, 0, 0);
-    mgTexManager.EnterTexture(66, "fire_work", NULL, mgScreenWidth, mgScreenHeight, 32, NULL, 0, 0);
-    mgTexManager.EnterTexture(213, "test4", NULL, 64, 64, 16, NULL, 0, 0);
-    mgTexManager.EnterTexture(157, "f_work", NULL, mgScreenWidth, mgScreenHeight, 32, NULL, 0, 0);
-    mgTexManager.EnterTexture(157, "f_work2", NULL, mgScreenWidth / 3, mgScreenHeight / 3, 32, NULL, 0, 0);
-    cross_texture = mgTexManager.EnterTexture(213, "cross_f", NULL, mgScreenWidth, mgScreenHeight, 32, NULL, 0, 0);
+    textures->EnterTexture(156, "work", NULL, mgScreenWidth, mgScreenHeight, 32, NULL, 0, 0);
+    textures->EnterTexture(159, "shadow_work", NULL, mgScreenWidth, mgScreenHeight, 32, NULL, 0, 0);
+    textures->EnterTexture(158, "water_work", NULL, mgScreenWidth, mgScreenHeight, 32, NULL, 0, 0);
+    textures->EnterTexture(66, "fire_work", NULL, mgScreenWidth, mgScreenHeight, 32, NULL, 0, 0);
+    textures->EnterTexture(213, "test4", NULL, 64, 64, 16, NULL, 0, 0);
+    textures->EnterTexture(157, "f_work", NULL, mgScreenWidth, mgScreenHeight, 32, NULL, 0, 0);
+    textures->EnterTexture(157, "f_work2", NULL, mgScreenWidth / 3, mgScreenHeight / 3, 32, NULL, 0, 0);
+    cross_texture = textures->EnterTexture(213, "cross_f", NULL, mgScreenWidth, mgScreenHeight, 32, NULL, 0, 0);
     InitPause(207);
     CrossFadeBuff = read_buffer + 131072;
     MainScene__2->fade.SetCrossTexture(cross_texture, CrossFadeBuff);
@@ -700,11 +699,12 @@ void EditInit(INIT_LOOP_ARG arg) {
     SubDataBuff.stack_used = 0;
     SubDataBuff.lock = 0;
     SetCurrentDir(NULL);
+    sceVu0FVECTOR position;
     *(u_long128 *) position = *(u_long128 *) initial_position;
     player = MainScene__2->GetCharacter(MainScene__2->player_chara);
     map = MainScene__2->GetMap(0);
     if (player != NULL && map != NULL) {
-        player->SetPosition(map->chara_pos);
+        player->SetPosition(map->map_info.chara_pos);
         player->GetPosition(position);
     }
     Camera->SetPos(0.0f, 0.0f, 100.0f);
@@ -946,7 +946,7 @@ int EditLoop() {
                 MainScene__2->TimeStep(time_rate);
             }
             time_map->now_time = MainScene__2->time;
-            if (light_check != 0 && light_band != time_map->GetNowTimeLightBand() && time_map->time_cfade != 0) {
+            if (light_check != 0 && light_band != time_map->GetNowTimeLightBand() && time_map->map_info.time_cfade != 0) {
                 MainScene__2->fade.CaptureScreen();
                 MainScene__2->fade.CrossFade(10, 0.8f);
             }
