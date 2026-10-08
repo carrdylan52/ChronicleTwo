@@ -86,3 +86,16 @@ last row can use `""` and the `at_1054` declaration/marker can be removed.
 Accepted receipts: `04b-parts-build.log`, `04b-parts-objects.log`,
 `04b-parts-metrics.log`. All 149 units pass; PAL is OK; all 148 other object
 hashes remain unchanged. Marker counts become 28/0.
+
+## Room script command table
+
+`tag` is a file-local, writable eight-row `SPI_TAG_PARAM` array at
+`0x341D00` (the split disambiguates its name as `tag__4`). Each of its seven
+command names is inline with its callback; the last row is `{NULL, NULL}`.
+The callbacks use `static` linkage, consistent with their retail LOCAL
+binding. The existing documented callback signatures and script behavior are
+unchanged. The split-name suffix is handled by the existing postprocessor.
+
+Receipts: `05-tags-build.log`, `05-tags-objects.log`, `05-tags-metrics.log`.
+All 149 units pass; PAL is OK; all 148 other object hashes remain unchanged.
+Marker counts become 20/0.

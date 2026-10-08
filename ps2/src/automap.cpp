@@ -35,7 +35,6 @@ enum {
 };
 
 extern char                at_1054[];
-extern SPI_TAG_PARAM       tag__4[];
 extern char                at_1111[];
 extern char                at_2119__2[];
 extern char                at_2125__2[];
@@ -51,13 +50,29 @@ extern char                at_2377__2[];
 extern char                at_1661[];
 extern char                at_2561[];
 extern char                at_2609[];
-int                        _ROOM_FIXED(SPI_STACK *stack, int arg_count);
-int                        _GRID_SIZE(SPI_STACK *stack, int unused);
-int                        _ROOM_ID(SPI_STACK *stack, int arg_count);
-int                        _ROOM_SIZE(SPI_STACK *stack, int arg_count);
-int                        _ROOM_RATE(SPI_STACK *stack, int arg_count);
-int                        _RD(SPI_STACK *stack, int arg_count);
-int                        _ROOM_END(SPI_STACK *stack, int arg_count);
+static int                        _ROOM_FIXED(SPI_STACK *stack, int arg_count);
+static int                        _GRID_SIZE(SPI_STACK *stack, int unused);
+static int                        _ROOM_ID(SPI_STACK *stack, int arg_count);
+static int                        _ROOM_SIZE(SPI_STACK *stack, int arg_count);
+static int                        _ROOM_RATE(SPI_STACK *stack, int arg_count);
+static int                        _RD(SPI_STACK *stack, int arg_count);
+static int                        _ROOM_END(SPI_STACK *stack, int arg_count);
+
+/**
+ *
+ * Commands accepted by the dungeon room preset script interpreter.
+ *
+ */
+static SPI_TAG_PARAM tag[] = {
+    {"ROOM_FIXED", _ROOM_FIXED},
+    {"GRID_SIZE", _GRID_SIZE},
+    {"ROOM_ID", _ROOM_ID},
+    {"ROOM_SIZE", _ROOM_SIZE},
+    {"ROOM_RATE", _ROOM_RATE},
+    {"RD", _RD},
+    {"ROOM_END", _ROOM_END},
+    {NULL, NULL}
+};
 
 /**
  *
@@ -1087,7 +1102,7 @@ void CHealingPoint::Step() {
  * Sets the fixed flag of the current automap room preset.
  *
  */
-int _ROOM_FIXED(SPI_STACK *stack, int arg_count) {
+static int _ROOM_FIXED(SPI_STACK *stack, int arg_count) {
     nowPriset->fixed = spiGetStackInt(stack);
     return 1;
 }
@@ -1097,7 +1112,7 @@ int _ROOM_FIXED(SPI_STACK *stack, int arg_count) {
  * Sets the automap cell width and depth from a script.
  *
  */
-int _GRID_SIZE(SPI_STACK *stack, int unused) {
+static int _GRID_SIZE(SPI_STACK *stack, int unused) {
     float        cell_size_x = spiGetStackFloat(stack++);
     float        cell_size_z = spiGetStackFloat(stack);
     CAutoMapGen *map = auto_map;
@@ -1111,7 +1126,7 @@ int _GRID_SIZE(SPI_STACK *stack, int unused) {
  * Sets the identifier of the current automap room preset.
  *
  */
-int _ROOM_ID(SPI_STACK *stack, int arg_count) {
+static int _ROOM_ID(SPI_STACK *stack, int arg_count) {
     nowPriset->id = spiGetStackInt(stack);
     return 1;
 }
@@ -1121,7 +1136,7 @@ int _ROOM_ID(SPI_STACK *stack, int arg_count) {
  * Allocates the cell table for the current automap room preset.
  *
  */
-int _ROOM_SIZE(SPI_STACK *stack, int arg_count) {
+static int _ROOM_SIZE(SPI_STACK *stack, int arg_count) {
     if (arg_count != 2) {
         return 0;
     }
@@ -1150,7 +1165,7 @@ int _ROOM_SIZE(SPI_STACK *stack, int arg_count) {
  * Sets the appearance rate of the current automap room preset.
  *
  */
-int _ROOM_RATE(SPI_STACK *stack, int arg_count) {
+static int _ROOM_RATE(SPI_STACK *stack, int arg_count) {
     nowPriset->rate = spiGetStackInt(stack);
     return 1;
 }
@@ -1160,7 +1175,7 @@ int _ROOM_RATE(SPI_STACK *stack, int arg_count) {
  * Appends one row of cell data to the current automap room preset.
  *
  */
-int _RD(SPI_STACK *stack, int arg_count) {
+static int _RD(SPI_STACK *stack, int arg_count) {
     if (arg_count != nowPriset->w * 2) {
         return 0;
     }
@@ -1178,7 +1193,7 @@ int _RD(SPI_STACK *stack, int arg_count) {
  * Advances to the next automap room preset.
  *
  */
-int _ROOM_END(SPI_STACK *stack, int arg_count) {
+static int _ROOM_END(SPI_STACK *stack, int arg_count) {
     nowPriset = nowPriset + 1;
     return 1;
 }
@@ -1201,7 +1216,7 @@ void CAutoMapGen::SetupRoomInfo(char *name, int length, mgCMemory *mem) {
     nowPriset = room_info;
     nowPrisetNum = 0;
     CScriptInterpreter interpreter;
-    interpreter.SetTag(tag__4);
+    interpreter.SetTag(tag);
     interpreter.SetScript(name, length);
     interpreter.Run();
     room_info_num = nowPrisetNum;
@@ -2885,7 +2900,6 @@ void CAutoMapGen::UpdateNaviMap(float *pos, int depth) {
 }
 
 // Initialised data (.data)
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/automap", tag__4__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/automap", at_2125__2__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/automap", at_2126__2__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/automap", at_2211__2__DATA);
@@ -2896,13 +2910,6 @@ INCLUDE_RODATA("ps2/asm/pal/nonmatchings/automap", at_2299__DATA);
 // Constants (.rodata)
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/automap", at_1054__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/automap", at_1111__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/automap", at_1304__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/automap", at_1305__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/automap", at_1306__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/automap", at_1307__3__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/automap", at_1308__3__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/automap", at_1309__3__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/automap", at_1310__3__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/automap", at_1661__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/automap", at_2119__2__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/automap", at_2128__2__DATA);
