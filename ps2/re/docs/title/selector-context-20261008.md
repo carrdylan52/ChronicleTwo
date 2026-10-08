@@ -45,3 +45,40 @@ The final `CLEAN=1 JOBS=4` proto build passes `SCES_511.90: OK` and
 149/149 complete objects. The production title object passes `0x68B8`
 bytes and 2,081 relocations; its linked and source-only SHA-256 hashes
 equal the baseline. The sole promotion in this lane is FishModifyParam.
+
+## Proto2 round-1 cardinality audit
+
+Base `202d02d`, image `chronicletwo_dev:sf-d8bf13c-proto2`, canonical
+MWCC flags and unchanged helper history. The existing fade candidate is
+checked with `expected_matches` counts **3, 1, 2, 1, 1**, in the order of
+the five-row table above. Phase 0 has three zero endpoints; phase 1 has
+one zero and two 128 endpoints; phase 10 has one endpoint of each selected
+value. Both mwccgap passes accept these exact source-argument counts.
+
+The complete-wrapper result remains **5/624 words**, body `0x9BC` in
+extent `0x9C0`, with matching relocation offsets. The only canonical error
+is target bytes at `0x002A521A`; `0x68B4` bytes and 2,200 relocations are
+checked. The five residual integer snapshot words are unchanged. No
+floating call argument is consumed in their load/mask/comparison region,
+so narrowing a float selector does not address that register permutation.
+The recorded source lifetime/type trials are not repeated.
+
+The function remains guarded and its source is unchanged. The five partial
+rows, including their count assertions, remain private. Receipt:
+`.private/ctxrows-r1/title/cardinal-best/`; exact candidate:
+`.private/ctxrows-r1/title-best-rows.json`.
+
+## Proto2 round-1 final acceptance
+
+The `CLEAN=1 JOBS=4` build passes all ten initialized PAL sections, the
+`0x01F64A00` memory end, and `SCES_511.90: OK`. The complete checker passes
+**149/149 units**. All **149 linked game-object hashes**, all **149
+source-only object hashes**, and the complete linked ELF hash equal the
+`202d02d` baseline. Game source and headers are unchanged.
+
+Freshly regenerated `progress/report.json` and coverage retain **6,746
+matched / 116 guarded / 10 assembly-only / zero fuzzy**. No function is
+promoted in round 1; the only profile edits add count assertions to the
+two already accepted FishModifyParam rows. Receipts:
+`.private/ctxrows-r1/final/clean-build.log`, `check-objects.log`,
+`coverage.txt`, `hashes.json`, `report.json`, and `comparison.json`.
