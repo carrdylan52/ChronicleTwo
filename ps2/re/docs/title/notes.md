@@ -249,3 +249,37 @@ coordinates and prepares them before alpha conversion. With the artificial
 division primer removed and helper masks GPR `0x30` / FPR `0`, the complete
 unit passes canonical bytes and resolved relocations: `0x68B8` checked bytes
 and 2,055 relocations.
+
+## TitleModeKey stable-selector limits
+
+The isolated canonical Satan's Fiddle build differs from the plain-wibo
+all-draft diagnostic: with only TitleModeKey native and no new selector, its
+body is `0x9B8` and the +0x2BC switch-branch delay slot absorbs the later
+`lui` for -8.0f. The resulting four-byte contraction produces 379/624
+aligned-word differences and displaced relocations through the menu tail.
+
+A callee-scoped binary32 zero (`0x00000000`) evaluate-first selector for
+`CalcMenuAdd__FPfff` restores the `0x9BC` body and leaves 23/624 differences.
+Adding the binary32 128.0f endpoint (`0x43000000`) at the same callee restores
+the menu/extras endpoint-first materialization and leaves 15/624 differences.
+Unscoped versions have the same result. The complete-unit check still has
+the target's byte problem and two displaced relocations at +0x7DC/+0x7E8;
+these are partial calibrations, not accepted profile rows.
+
+The remaining words comprise the five card-snapshot register differences,
+four words at +0x3F0..+0x3FC in `CalcMenuAdd(..., 8.0f, 128.0f)`, and six
+words at +0x7DC..+0x7F4 in the extras-menu -8.0f/zero call. Also selecting
+8.0f (`0x41000000`) first changes address/constant scheduling and leaves
+16 words; selecting -8.0f (`0xc1000000`) first instead permits the earlier
+four-byte contraction again and leaves 382 words. Explicit float literals
+and explicit zero endpoints do not remove the 15-word residual.
+
+GPR helper history `0x10` / FPR `0` leaves the target's snapshot allocation
+unchanged and breaks the already native `TitleModeDraw__Fv` and
+`DrawMenuDl__Fiiiif`. The existing `0x30` history is retained.
+
+Blocker category: card-snapshot register allocation plus context-dependent
+fade-argument scheduling. TitleModeKey remains guarded with its original
+source/profile. Reconsider with a natural lifetime/expression explanation
+covering both the snapshot allocation and the differing -8/zero and 8/128
+call schedules. TitleBootInit remains deferred to the placement-new lane.
