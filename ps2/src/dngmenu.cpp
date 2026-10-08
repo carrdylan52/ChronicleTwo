@@ -690,7 +690,7 @@ static int CheckGeoramaMateria(TRESURE_BOX_FLOOR_INFO *info, int floor_no, int *
     }
     for (int pass = 0; pass < 2; pass++) {
         for (floor_group = 0; floor_group < count; floor_group++) {
-            if (!(GetItemDataAttribute(items[floor_group]) & 0x10)) {
+            if (!(GetItemDataAttribute(items[floor_group]) & ITEM_ATTRIBUTE_GEORAMA_MATERIA)) {
                 local_sort1(floor_group, &count, items);
             }
         }

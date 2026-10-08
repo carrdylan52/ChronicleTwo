@@ -43,8 +43,9 @@ enum ITEM_DATA_TYPE {
  *
  */
 enum ITEM_ATTRIBUTE {
-    ITEM_ATTRIBUTE_TRUSH = 0x1,         /**< The item counts as rubbish. */
-    ITEM_ATTRIBUTE_SPECTOL_TRANS = 0x2, /**< The item can be turned into an attachment by spectrumising. */
+    ITEM_ATTRIBUTE_TRUSH = 0x1,            /**< The item counts as rubbish. */
+    ITEM_ATTRIBUTE_SPECTOL_TRANS = 0x2,    /**< The item can be turned into an attachment by spectrumising. */
+    ITEM_ATTRIBUTE_GEORAMA_MATERIA = 0x10, /**< The item is listed among a dungeon floor's georama materials. */
 };
 
 /**
