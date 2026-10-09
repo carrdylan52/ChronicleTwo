@@ -12575,7 +12575,7 @@ int _EOH_SYNC_EDIT_OBJ(RS_STACKDATA *stack, int argc) {
         case 4: {
             CMapPiece *piece;
 
-            if ((piece = ((CMapParts *) parts)->SearchPiece(GetStackString(stack++))) == NULL) {
+            if ((piece = parts->SearchPiece(GetStackString(stack++))) == NULL) {
                 return 0;
             }
 
