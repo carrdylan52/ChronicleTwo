@@ -1987,7 +1987,7 @@ void TitleMapDraw() {
                 mgPlightEnable(1);
 
                 for (int light = 0; light < 4; light++) {
-                    mgSetPlight(light, (mgPOINT_LIGHT *) &lighting->point_light[light]);
+                    mgSetPlight(light, &lighting->point_light[light]);
                 }
             }
 
