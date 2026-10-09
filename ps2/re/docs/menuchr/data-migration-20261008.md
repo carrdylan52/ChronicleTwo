@@ -357,3 +357,137 @@ or changing the caller's instructions.
 After this step: **56 / 13 markers**, **123 / 9726 matched_data**.
 PAL, all 149 objects, unowned hashes and frozen-source hashes pass; receipts
 are `.private/nmchr-r3/menuchr-scoped-party-table-{build,objects,progress,metrics}.log`.
+
+
+## Shared native and guarded script literal
+
+The native life-update consumer inlines the nine-byte Shift-JIS end-processing
+script label. Its literal receives the retail symbol `at_2307`, so the frozen
+monster-selection method's assembly and its existing C++ declaration still
+resolve that same object. The frozen body is unchanged.
+After this step: **55 / 13 markers**, **123 / 9726 matched_data**.
+PAL, all 149 objects, unowned hashes and frozen-source hashes pass; receipts
+are `.private/nmchr-r3/menuchr-shared-script-string-{build,objects,progress,metrics}.log`.
+
+## Tooling evidence and unapplied proposal
+
+Read-only object analysis identifies why the earlier debug-group and
+file-scope command-table probes lose the unrelated native `at_2232` template.
+The linked postprocessor initially projects raw compiler `@digits` names to
+`at_digits`. An unrelated initialized literal named `@2232` therefore appears
+to be a competing definition of the real eight-byte BSS template. The BSS
+naming pass rejects that template before the later literal pass assigns the
+string its correct retail name. In the command-table native snapshot the
+string is `"dungeon/robo/"` and the real BSS template is `@944`; in the debug
+snapshot the string is `"_menu"` and the BSS template is `@970`. The existing
+BSS selector identifies the right template on both later processed objects.
+`tbl_1233` itself has the exact four pointer destinations in the failed object.
+
+`.private/proposals/nmchr-native-data-provenance.patch` proposes preserving
+raw local `@digits` provenance before projection in linked postprocessing and
+objdiff preparation. Only compiler counters receive temporary matcher keys
+outside retail and explicit source names; all existing extent, byte, real
+consumer, relocation and competing-definition checks remain in place. Real
+source `at_N` identifiers and fallback storage retain their names. This is an
+**untested, unapplied proposal** for the tooling owner. Neither build script
+was changed. The companion `.txt` records evidence and scope. The final source
+conversions pass with the current tooling and do not tune compiler counters.
+
+Removing `D_01F3C7FC` was also rejected and restored. The canonical piece map
+keeps its unreferenced four-byte boundary distinct from the genuine 28-byte
+`MenuCharaBuild2` array. Omitting the marker shifts following BSS definitions;
+the native array cannot absorb that separate piece under the current policy.
+Adding an eighth pointer or a filler field would misrepresent the retail
+object. Receipts: `.private/nmchr-r3/menuchr-build-array-gap-*`.
+
+## Final retained-marker inventory
+
+Every remaining marker is listed below. Frozen methods require their existing
+compiler-generated strings, local aggregate templates, static state, guards
+and virtual tables under the same retail symbols. Emitting these naturally
+requires changing those bodies, which this round forbids. None has a remaining
+native C++ consumer. The explicit BSS boundary has the separate tooling reason
+above. No anonymous template is replaced with an invented file-global object.
+Identical text in a differently sized native buffer is not the same retail
+object: `at_2595__2` is a 12-byte filename literal rather than the native
+64-byte filename initializer, and `at_3692` is a nine-byte literal rather than
+the named ten-byte `menu_infocfgname` array.
+
+| Marker | Kind | Address | Declared bytes | Retention reason |
+| --- | --- | --- | ---: | --- |
+| `at_3481` | RODATA | `0x00359210` | 32 | Literal/local initializer in frozen MosSelect::KeyStep. |
+| `at_1361` | RODATA | `0x00374238` | 11 | Literal/local initializer in frozen ChrCng::LoadBGNPCModel. |
+| `at_2003__2` | RODATA | `0x00374258` | 10 | Literal/local initializer in frozen ChrCng::KeyChangeMain. |
+| `at_2004__3` | RODATA | `0x00374268` | 13 | Literal/local initializer in frozen ChrCng::KeyChangeMain. |
+| `at_2005__2` | RODATA | `0x00374278` | 14 | Literal/local initializer in frozen ChrCng::KeyChangeMain. |
+| `at_2006__2` | RODATA | `0x00374288` | 11 | Literal/local initializer in frozen ChrCng::KeyChangeMain. |
+| `at_2007__2` | RODATA | `0x00374298` | 11 | Literal/local initializer in frozen ChrCng::KeyChangeMain. |
+| `at_2008__2` | RODATA | `0x003742A8` | 4 | Literal/local initializer in frozen ChrCng::KeyChangeMain. |
+| `at_2009` | RODATA | `0x003742B0` | 4 | Literal/local initializer in frozen ChrCng::KeyChangeMain. |
+| `at_2010` | RODATA | `0x003742B8` | 8 | Literal/local initializer in frozen ChrCng::KeyChangeMain. |
+| `at_2011` | RODATA | `0x003742C0` | 14 | Literal/local initializer in frozen ChrCng::KeyChangeMain. |
+| `at_2012` | RODATA | `0x003742D0` | 9 | Literal/local initializer in frozen ChrCng::KeyChangeMain. |
+| `at_2013` | RODATA | `0x003742E0` | 8 | Literal/local initializer in frozen ChrCng::KeyChangeMain. |
+| `at_2014` | RODATA | `0x003742E8` | 10 | Literal/local initializer in frozen ChrCng::KeyChangeMain. |
+| `at_2015` | RODATA | `0x003742F8` | 12 | Literal/local initializer in frozen ChrCng::KeyChangeMain. |
+| `at_2016` | RODATA | `0x00374308` | 11 | Literal/local initializer in frozen ChrCng::KeyChangeMain. |
+| `at_2017` | RODATA | `0x00374320` | 19 | Literal/local initializer in frozen ChrCng::KeyChangeMain. |
+| `at_2018__2` | RODATA | `0x00374338` | 11 | Literal/local initializer in frozen ChrCng::KeyChangeMain. |
+| `at_2019__2` | RODATA | `0x00374348` | 7 | Literal/local initializer in frozen ChrCng::KeyChangeMain. |
+| `at_2020__2` | RODATA | `0x00374350` | 20 | Literal/local initializer in frozen ChrCng::KeyChangeMain. |
+| `at_2021__2` | RODATA | `0x00374368` | 11 | Literal/local initializer in frozen ChrCng::KeyChangeMain. |
+| `at_2022` | RODATA | `0x00374378` | 10 | Literal/local initializer in frozen ChrCng::KeyChangeMain. |
+| `at_2023` | RODATA | `0x00374388` | 15 | Literal/local initializer in frozen ChrCng::KeyChangeMain. |
+| `at_2595__2` | RODATA | `0x00374478` | 12 | Literal/local initializer in frozen MenuCharaChangeInit. |
+| `at_2596__3` | RODATA | `0x00374488` | 9 | Literal/local initializer in frozen MenuCharaChangeInit. |
+| `at_3685` | RODATA | `0x00374868` | 10 | Literal/local initializer in frozen MosSelect::KeyStep. |
+| `at_3686` | RODATA | `0x00374880` | 17 | Literal/local initializer in frozen MosSelect::KeyStep. |
+| `at_3687` | RODATA | `0x003748A0` | 19 | Literal/local initializer in frozen MosSelect::KeyStep. |
+| `at_3688` | RODATA | `0x003748C0` | 17 | Literal/local initializer in frozen MosSelect::KeyStep. |
+| `at_3689` | RODATA | `0x003748E0` | 19 | Literal/local initializer in frozen MosSelect::KeyStep. |
+| `at_3690` | RODATA | `0x00374900` | 21 | Literal/local initializer in frozen MosSelect::KeyStep. |
+| `at_3691` | RODATA | `0x00374920` | 19 | Literal/local initializer in frozen MosSelect::KeyStep. |
+| `at_3692` | RODATA | `0x00374938` | 9 | Literal/local initializer in frozen MosSelect::KeyStep. |
+| `at_3693` | RODATA | `0x00374948` | 15 | Literal/local initializer in frozen MosSelect::KeyStep. |
+| `at_3694` | RODATA | `0x00374960` | 22 | Literal/local initializer in frozen MosSelect::KeyStep. |
+| `at_3695` | RODATA | `0x00374980` | 17 | Literal/local initializer in frozen MosSelect::KeyStep. |
+| `at_3696` | RODATA | `0x003749A0` | 20 | Literal/local initializer in frozen MosSelect::KeyStep. |
+| `at_3697` | RODATA | `0x003749B8` | 9 | Literal/local initializer in frozen MosSelect::KeyStep. |
+| `at_3698` | RODATA | `0x003749D0` | 19 | Literal/local initializer in frozen MosSelect::KeyStep. |
+| `at_3699` | RODATA | `0x003749F0` | 17 | Literal/local initializer in frozen MosSelect::KeyStep. |
+| `at_3700` | RODATA | `0x00374A08` | 15 | Literal/local initializer in frozen MosSelect::KeyStep. |
+| `at_3701` | RODATA | `0x00374A18` | 9 | Literal/local initializer in frozen MosSelect::KeyStep. |
+| `at_3702` | RODATA | `0x00374A30` | 17 | Literal/local initializer in frozen MosSelect::KeyStep. |
+| `at_3703` | RODATA | `0x00374A50` | 16 | Literal/local initializer in frozen MosSelect::KeyStep. |
+| `at_3704` | RODATA | `0x00374A60` | 3 | Literal/local initializer in frozen MosSelect::KeyStep. |
+| `at_3705` | RODATA | `0x00374A68` | 5 | Literal/local initializer in frozen MosSelect::KeyStep. |
+| `at_3706` | RODATA | `0x00374A70` | 4 | Literal/local initializer in frozen MosSelect::KeyStep. |
+| `at_3707` | RODATA | `0x00374A78` | 5 | Literal/local initializer in frozen MosSelect::KeyStep. |
+| `at_3708` | RODATA | `0x00374A80` | 5 | Literal/local initializer in frozen MosSelect::KeyStep. |
+| `at_5051` | RODATA | `0x00374D28` | 12 | Literal/local initializer in frozen Costume::LoadMenuData. |
+| `at_5052` | RODATA | `0x00374D38` | 8 | Literal/local initializer in frozen Costume::LoadMenuData. |
+| `at_5053` | RODATA | `0x00374D40` | 7 | Literal/local initializer in frozen Costume::LoadMenuData. |
+| `at_5839` | RODATA | `0x00375248` | 5 | Literal/local initializer in frozen MosBook::KeyStep. |
+| `__vt__15CMenuCostumeSel` | RODATA | `0x0037C4E0` | 32 | Compiler-owned virtual table; its constructor use is frozen in MenuCostumeInit. |
+| `__vt__15CMenuChrCngMenu` | RODATA | `0x0037C520` | 32 | Compiler-owned virtual table; its constructor use is frozen in MenuCharaChangeInit. |
+| `SelectedCmdNo_1415` | BSS | `0x0037E244` | 1 | Local static/initialization guard in frozen ChrCng::KeyChangeMain. |
+| `init_1416` | BSS | `0x0037E248` | 1 | Local static/initialization guard in frozen ChrCng::KeyChangeMain. |
+| `at_1650__2` | BSS | `0x0037E24C` | 4 | Literal/local initializer in frozen ChrCng::KeyChangeMain. |
+| `at_1684__2` | BSS | `0x0037E250` | 8 | Literal/local initializer in frozen ChrCng::KeyChangeMain. |
+| `select_monster_save_3371` | BSS | `0x0037E298` | 4 | Local static/initialization guard in frozen MosSelect::KeyStep. |
+| `init_3372__2` | BSS | `0x0037E29C` | 1 | Local static/initialization guard in frozen MosSelect::KeyStep. |
+| `at_3412` | BSS | `0x0037E2A0` | 4 | Literal/local initializer in frozen MosSelect::KeyStep. |
+| `at_3440` | BSS | `0x0037E2A4` | 4 | Literal/local initializer in frozen MosSelect::KeyStep. |
+| `D_01F3C7FC` | BSS | `0x01F3C7FC` | 4-byte piece | Distinct four-byte BSS piece; omission shifts later objects (tooling). |
+| `at_1806__2` | BSS | `0x01F3CA40` | 32 | Literal/local initializer in frozen ChrCng::KeyChangeMain. |
+| `at_3511` | BSS | `0x01F3CD10` | 32 | Literal/local initializer in frozen MosSelect::KeyStep. |
+| `at_3529` | BSS | `0x01F3CD30` | 32 | Literal/local initializer in frozen MosSelect::KeyStep. |
+| `at_3554` | BSS | `0x01F3CD50` | 24 | Literal/local initializer in frozen MosSelect::KeyStep. |
+
+Final: **55 INCLUDE_RODATA / 13 INCLUDE_BSS**, **123 / 9726 matched_data**.
+This removes **300 RODATA and 66 BSS markers** from the baseline. Progress data
+is a lower bound: incomplete aggregate sections containing the frozen data or
+the retained boundary receive no credit for their independently exact native
+objects. The complete small initialized-data section and existing literal
+section account for the final 123 credited bytes. Native matched functions
+remain **81 / 88**; no function is promoted and no guarded code changes.

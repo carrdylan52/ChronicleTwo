@@ -3186,7 +3186,7 @@ int CMenuChrCngMenu::MenuLocalLoop() {
                 DeleteTexBlock();
                 (&MenuCommonInfo->cursor)[0] = 1;
                 MenuCursorReverseFlag = 0;
-                ExeScript(at_2307);
+                ExeScript("\x8F\x49\x97\xB9\x8F\x88\x97\x9D");
                 result = 1;
 
                 if (close_on_end != 0) {
@@ -7747,7 +7747,6 @@ INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_2020__2__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_2021__2__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_2022__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_2023__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_2307__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_2595__2__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_2596__3__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_3685__DATA);
