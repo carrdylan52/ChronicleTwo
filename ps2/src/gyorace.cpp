@@ -416,7 +416,7 @@ int sgInitGyoRace(SubGameInfo *info) {
         image->spark_max = 32;
         image->live_num = 0;
         image->spark_num = 0;
-        image->kind = 0;
+        image->kind = HIT_EFFECT_BOARD;
     }
     race_rank[0] = GetGyoRaceClass();
     race_rank[1] = GetGyoRaceNo();
@@ -558,7 +558,7 @@ int sgInitGyoRace(SubGameInfo *info) {
         state->rank = 1;
         int *character_no = &state->chara_no;
         scene->LoadChara(state->chara_no, (unsigned int *)buffer, "info.cfg", memory, memory, memory, CharaTexb, 0);
-        scene->SetActive(1, *character_no);
+        scene->SetActive(SCENE_DATA_CHARA, *character_no);
         scene->SetCharaTexb(*character_no, CharaTexb);
         CCharacter2 *character = scene->GetCharacter(*character_no);
         sceVu0FVECTOR position = {0.0f, -15.0f, 0.0f, 1.0f};
@@ -581,7 +581,7 @@ int sgInitGyoRace(SubGameInfo *info) {
     if (texture_buffer != NULL) {
         WindowTexb = CharaTexb;
         char image_path[0x20];
-        if (LanguageCode > 0) sprintf(image_path, "grttex_new6_%d.img", LanguageCode);
+        if (LanguageCode > LANG_JAPANESE) sprintf(image_path, "grttex_new6_%d.img", LanguageCode);
         else sprintf(image_path, "grttex_new6.img", LanguageCode);
         textures->DeleteBlock(WindowTexb);
         LoadFile(image_path, texture_buffer, &size);
@@ -602,7 +602,7 @@ int sgInitGyoRace(SubGameInfo *info) {
     camera0.SetSpeed(0.0f, 0.0f);
     camera0.SetRef(222.0f, 0.0f, 0.0f);
     camera0.SetNextRef(222.0f, 0.0f, 0.0f);
-    scene->ResetActive(1, 0);
+    scene->ResetActive(SCENE_DATA_CHARA, 0);
     sndSeAllStop(2);
     scene->fade.FadeIn(30);
     return 1;
