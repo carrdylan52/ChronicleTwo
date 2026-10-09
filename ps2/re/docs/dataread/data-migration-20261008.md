@@ -123,3 +123,16 @@ expression in the four failing library units only where the retail ELF has
 no relocation, preserving the exact commented word bytes. The complete
 scan covers 316 words in 18 files and leaves generated files untouched.
 Receipt: `.private/dataC-r2/library-word-proposal-check.log`.
+
+## Round-4 terminal marker removal
+
+The native `WriteFile` path template supplies the final 0x100-byte BSS object.
+Its declared end is the generated linker's `contents_end`; the following
+0x30-byte alignment tail is linker-owned. The canonical checker now verifies
+that exact boundary rather than limiting the gap to fifteen bytes. The
+`at_845` marker is removed without changing function bodies.
+
+Validation: `.private/dtool-r4/dataread-{build,objects,tests}.log`; PAL is
+byte-identical, all 149 objects pass, and every other game object hash and
+the code metric are unchanged. Markers are 0 rodata / 0 BSS.
+Native data coverage is recorded in `dataread-metrics.log`.
