@@ -219,8 +219,8 @@ u_int mgCShadowMDT::CreatePacket(mgCDrawManager *draw_manager) {
 
     GetTextureManager();
     mgFACE_GROUP *node = face_group;
-    mgCMemory    *packet_memory = (mgCMemory *) draw_manager->packet_memory;
-    mgCMemory    *face_memory = (mgCMemory *) draw_manager->data_memory;
+    mgCMemory    *packet_memory = draw_manager->packet_memory;
+    mgCMemory    *face_memory = draw_manager->data_memory;
     u_int        *packet_start = (u_int *) &packet_memory->stack[packet_memory->stack_used];
     int           face_start = (int) &face_memory->stack[face_memory->stack_used];
     int           face_cursor = face_start;
