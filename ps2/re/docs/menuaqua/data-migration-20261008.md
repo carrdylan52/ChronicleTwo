@@ -40,8 +40,9 @@ native global constructor objects remain in place.
 Markers: 153 / 3; matched data: 2128 / 8293 bytes.
 `aqua-state-core-{build,objects}.log` and
 `aqua-state-race-{build,objects}.log` verify PAL OK and 149/149 objects.
-The three remaining BSS markers are CAquarium::Step's frozen local statics
-and initialization guard; their body and retail references stay unchanged.
+At this migration checkpoint, three BSS markers still anchor the already
+native CAquarium::Step local statics and initialization guard. The review
+cleanup below removes them without changing the native declarations.
 
 ## Native literals
 
@@ -150,9 +151,9 @@ candidate. Markers: 26 / 3; matched data: 2260 / 8293 bytes.
 
 ## Retained markers
 
-All 26 initialized markers and three BSS markers are listed below.
-Both frozen bodies retain their exact checkpoint text and retail symbols.
-The headers and INCLUDE_ASM function selections are unchanged.
+The 23 initialized markers retained after review cleanup are listed below.
+SettingAqua remains guarded; Step is native and exact. The function
+selections are unchanged.
 
 | Marker | Reason |
 |---|---|
@@ -179,29 +180,23 @@ The headers and INCLUDE_ASM function selections are unchanged.
 | `at_3161__2__DATA` | Resource-name literal used only by frozen SettingAqua. |
 | `at_3163__2__DATA` | Resource-name literal used only by frozen SettingAqua. |
 | `at_3164__3__DATA` | Resource-name literal used only by frozen SettingAqua. |
-| `at_4300__DATA` | Format literal used only by frozen CAquarium::Step. |
-| `at_4299__DATA` | Format literal used only by frozen CAquarium::Step. |
-| `at_5500__DATA` | GyoraceMenuKey switch table; native emission differs in four target words and cannot acquire the retail identity. |
-| `sel_sift_fish_3638` (BSS) | Local static or its initialization guard used only by frozen CAquarium::Step. |
-| `init_3639` (BSS) | Local static or its initialization guard used only by frozen CAquarium::Step. |
-| `sel_sift_fish_select_3641` (BSS) | Local static or its initialization guard used only by frozen CAquarium::Step. |
 
-The final race-table probe removes only at_5500's marker. Retail's
-seven-word table has target offsets 0x334, 0x4A0, 0x3A0, 0x3A0, 0x3E4,
-0x410 and 0x474; the native compiler emits 0x334, 0x3E4, 0x3A0, 0x3A0,
-0x410, 0x474 and 0x4A0. Slots one, four, five and six differ. Its declared
-extent is 28 bytes, with four alignment bytes in the assembly piece.
-The canonical comparison cannot bind the differing native table to
-at_5500; the full build fails and the object check reports 148/149.
-The marker is restored without changing the function or profile.
-Receipts: `aqua-final-race-jump-build.log`,
-`aqua-final-race-jump-objects.log` and `aqua-jump-analysis.log`.
+The earlier race-table probe exposed a case-label error. Retail's seven
+target offsets are `0x334, 0x4A0, 0x3A0, 0x3A0, 0x3E4, 0x410, 0x474`;
+the old native table was `0x334, 0x3E4, 0x3A0, 0x3A0, 0x410, 0x474, 0x4A0`.
+Commit `d5d1ca77` restores the retail labels for slots one, four, five and
+six. The current native table equals retail and needs no assembly marker.
+The Step tables are jump tables, not format literals: `at_4299` dispatches
+18 mode slots and `at_4300` dispatches six command IDs. Their native
+targets also equal retail. The three switch markers and three BSS markers
+are removed with PAL OK and all 149 objects passing.
 
-Final markers: **178 / 99 -> 26 / 3**. Refreshed matched data:
+Migration checkpoint markers: **178 / 99 -> 26 / 3**.
+After review cleanup: **23 RODATA / 0 BSS markers**. Refreshed matched data:
 **4 / 8293 -> 2260 / 8293 bytes**. Coverage counts complete aggregate
 sections, so retained pieces prevent credit for some native data.
-No function is promoted, no profile row changes, and no foreign-file
-proposal is needed. The final accepted source is verified by
+This data cleanup changes no function selection or profile row and needs
+no foreign-file proposal. Step was already promoted before this migration. The final accepted source is verified by
 `.private/nminv-r2/final-build.log` and `final-objects.log`.
 
 Final validation uses the pinned image and original build tooling:

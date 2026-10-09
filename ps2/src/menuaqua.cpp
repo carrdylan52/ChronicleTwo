@@ -8360,18 +8360,12 @@ INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuaqua", at_3160__2__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuaqua", at_3161__2__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuaqua", at_3163__2__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuaqua", at_3164__3__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuaqua", at_4300__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuaqua", at_4299__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuaqua", at_5500__DATA);
 
 // Virtual tables (.vtables)
 
 // Small initialised data (.sdata)
 
 // Small uninitialised data (.sbss)
-INCLUDE_BSS(sel_sift_fish_3638, 0x4);
-INCLUDE_BSS(init_3639, 0x4);
-INCLUDE_BSS(sel_sift_fish_select_3641, 0x4);
 
 // Uninitialised data (.bss)
 mgCMemory Aquarium_NameregistStack;
