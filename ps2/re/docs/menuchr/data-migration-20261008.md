@@ -19,3 +19,20 @@ After this step: **355 / 70 markers**, **4 / 9726 matched_data**.
 The full build passes PAL verification and all 149 objects pass with resolved
 relocations. Only owned-unit raw object hashes change from the warm baseline.
 Receipts: `.private/nmchr-r3/menuchr-exported-{build,objects,progress,metrics}.log`.
+
+## File-local menu state
+
+Thirty-nine named reservations are documented file-local definitions with
+their existing consumer types. These hold party-menu palettes and selection
+state, monster-menu resources, background character load/slide state, costume
+state, book textures and pointers, and the four transformation-effect buffer
+arrays. One-byte and two-byte flags retain their exact retail declared sizes;
+the existing postprocessor supplies the larger reservation padding.
+`MenuMonsterBGInfo` has seven request pointers, matching its 28-byte retail
+symbol and the seven-slot initialization loop, rather than the old eight-entry
+declaration. Its four-byte piece tail is alignment.
+
+After this step: **355 / 31 markers**, **4 / 9726 matched_data**.
+PAL verification and all 149 object checks pass, with all unowned hashes
+unchanged. The guarded drafts still reference the same retail symbols.
+Receipts: `.private/nmchr-r3/menuchr-local-state-{build,objects,progress,metrics}.log`.

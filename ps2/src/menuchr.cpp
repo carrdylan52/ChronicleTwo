@@ -40,7 +40,13 @@
 #include "sysmes.hpp"
 #include "userdata.hpp"
 
-extern u_int *MenuCharaChangePosDataCfgBuffer;
+/**
+ *
+ * Configuration data for the party change layout.
+ *
+ */
+static u_int *MenuCharaChangePosDataCfgBuffer;
+
 
 inline CMenuChrCngMenu::CMenuChrCngMenu() {
     change_phase = 0;
@@ -210,8 +216,20 @@ enum {
 };
 
 extern short       tbl_992[];
-extern signed char MenuNPCLoadFlag;
-extern int         mos_effect_read_num;
+/**
+ *
+ * Non-zero while the party townsperson model is loading.
+ *
+ */
+static signed char MenuNPCLoadFlag;
+
+/**
+ *
+ * Number of transformation effect resource pairs read.
+ *
+ */
+static int         mos_effect_read_num;
+
 void               SetupUnitMan(CScene *scene, CUserDataManager *user_data, int unit, ROBO_INFO_DATA *robo);
 void               GetBajjiPosition(CMenuPosDataForm *form, int slot, int unused, int *pos);
 void               SetSwordBlurEffect(CCharacter2 *chara, mgCMemory *stack, int blur_type);
@@ -420,15 +438,51 @@ extern char               at_2941[];
 extern char               at_2942[];
 extern char               at_2943[];
 extern char               at_2944[];
-extern MOS_HENGE_PARAM   *mos_effect_henge_param;
-extern u8                *mos_effect_readbuff1[4];
-extern int                mos_effect_readbuff1_size[4];
-extern u8                *mos_effect_readbuff2[4];
-extern int                mos_effect_readbuff2_size[4];
+/**
+ *
+ * Transformation effect resources selected for the monster menu.
+ *
+ */
+static MOS_HENGE_PARAM   *mos_effect_henge_param;
+
+/**
+ *
+ * Script buffer for each loaded transformation effect.
+ *
+ */
+static u8                *mos_effect_readbuff1[4];
+
+/**
+ *
+ * Script byte count for each loaded transformation effect.
+ *
+ */
+static int                mos_effect_readbuff1_size[4];
+
+/**
+ *
+ * Pack buffer for each loaded transformation effect.
+ *
+ */
+static u8                *mos_effect_readbuff2[4];
+
+/**
+ *
+ * Pack byte count for each loaded transformation effect.
+ *
+ */
+static int                mos_effect_readbuff2_size[4];
+
 extern int                max_3170;
 extern int                viewnum_3171;
 extern int                overcode_3172[4];
-extern CMenuMosSelect    *MenuMosSelectPtr;
+/**
+ *
+ * Active monster selection menu.
+ *
+ */
+static CMenuMosSelect    *MenuMosSelectPtr;
+
 extern char               at_3779[];
 extern char               at_3780[];
 extern char               at_3790[];
@@ -438,24 +492,114 @@ extern char               at_4186__2[];
 extern char               at_4123[];
 extern char               at_4296[];
 extern u8                 at_4517__2[];
-extern mgCTexture        *NowMainCharaChngTex;
-extern mgCTexture        *NowMainCharaFrameImage;
-extern short              NowMainCharaChngStatusBit;
-extern int                NowMainCharaChngTexMovePhase;
-extern int                NowMainCharaChngTexMoveX;
+/**
+ *
+ * Texture sliding across the main character background.
+ *
+ */
+static mgCTexture        *NowMainCharaChngTex;
+
+/**
+ *
+ * Frame texture of the main character background.
+ *
+ */
+static mgCTexture        *NowMainCharaFrameImage;
+
+/**
+ *
+ * Status flags for the main character background transition.
+ *
+ */
+static short              NowMainCharaChngStatusBit;
+
+/**
+ *
+ * Current phase of the sliding character texture.
+ *
+ */
+static int                NowMainCharaChngTexMovePhase;
+
+/**
+ *
+ * Horizontal position of the sliding character texture.
+ *
+ */
+static int                NowMainCharaChngTexMoveX;
+
 extern short              NowReadMainCharaNo;
-extern u_int             *MenuPartyNPCModelReadBuffer;
-extern short              MenuCosutumeLoadPhase;
+/**
+ *
+ * Pack data read for the party townsperson model.
+ *
+ */
+static u_int             *MenuPartyNPCModelReadBuffer;
+
+/**
+ *
+ * Current phase of the costume menu model load.
+ *
+ */
+static short              MenuCosutumeLoadPhase;
+
 extern mgCMemory          MenuChangeMemory;
-extern unsigned long      CostumeAttr;
-extern CMenuCostumeSel   *MenuCosPtr;
+/**
+ *
+ * Bit mask of costumes available to the costume menu.
+ *
+ */
+static unsigned long      CostumeAttr;
+
+/**
+ *
+ * Active costume selection menu.
+ *
+ */
+static CMenuCostumeSel   *MenuCosPtr;
+
 extern mgCMemory          MosBookStack;
-extern CMosBookMenu      *MenuMosBookPtr;
-extern u8                *MonsterBookPtr;
-extern short              MonsterBookBootMode;
-extern mgCTexture        *Tex_MBase;
-extern mgCTexture        *Tex_MBook;
-extern mgCTexture        *Tex_MBg;
+/**
+ *
+ * Active monster book menu.
+ *
+ */
+static CMosBookMenu      *MenuMosBookPtr;
+
+/**
+ *
+ * Saved monster book records displayed by the menu.
+ *
+ */
+static u8                *MonsterBookPtr;
+
+/**
+ *
+ * Opening mode of the monster book.
+ *
+ */
+static short              MonsterBookBootMode;
+
+/**
+ *
+ * Panel texture of the monster book.
+ *
+ */
+static mgCTexture        *Tex_MBase;
+
+/**
+ *
+ * Heading texture of the monster book.
+ *
+ */
+static mgCTexture        *Tex_MBook;
+
+/**
+ *
+ * Background texture of the monster book.
+ *
+ */
+static mgCTexture        *Tex_MBg;
+
 extern u32                stand_bit_5472[];
 extern char              *monster_type_name[][12];
 extern char              *monster_jyakuten[][8];
@@ -491,7 +635,13 @@ extern char               at_3969[];
 extern s8                 convtbl_4621[][MENU_CHARA_LOAD_MAX];
 extern SceneCharaList     at_3054__2;
 extern mgCMemory          MenuMonChangeLoadStack;
-extern MENU_BGREAD_INFO2 *MenuMonsterBGInfo[8];
+/**
+ *
+ * Background read requests for the monster menu character slots.
+ *
+ */
+static MENU_BGREAD_INFO2 *MenuMonsterBGInfo[MENU_CHARA_LOAD_MAX];
+
 extern CharaPathKinds     at_3810;
 extern s8                 pathtbl_3836[2];
 extern char              *menu_chara_chrtbl[2];
@@ -502,11 +652,35 @@ extern LoadWantedList     at_4728__2;
 extern char               at_4789[];
 extern char               at_4790[];
 extern char               at_4791[];
-extern short              NowReadMainCharaPhase;
-extern CActionChara      *NowReadMainChara;
+/**
+ *
+ * Current phase of the main character background read.
+ *
+ */
+static short              NowReadMainCharaPhase;
+
+/**
+ *
+ * Main character model loaded for the menu background.
+ *
+ */
+static CActionChara      *NowReadMainChara;
+
 extern short              NowReadMainCharaMonsterNo;
-extern sceVu0FVECTOR      NowMainReadPosition;
-extern sceVu0FVECTOR      NowMainReadRotation;
+/**
+ *
+ * Position preserved while replacing the main character background model.
+ *
+ */
+static sceVu0FVECTOR      NowMainReadPosition;
+
+/**
+ *
+ * Rotation preserved while replacing the main character background model.
+ *
+ */
+static sceVu0FVECTOR      NowMainReadRotation;
+
 extern char               at_4868[];
 extern char               at_1276__3[];
 extern char               at_1277__3[];
@@ -519,7 +693,13 @@ extern char               at_1283__4[];
 extern char               at_1284__4[];
 extern char               at_1285__2[];
 extern char              *tbl_1233[4];
-extern CHR_CNG_CLUT_COLOR *MenuCharaChangeCLUT;
+/**
+ *
+ * Darkened palette used by the party change ring.
+ *
+ */
+static CHR_CNG_CLUT_COLOR *MenuCharaChangeCLUT;
+
 extern int                tbl_3186[MENU_CHARA_LOAD_MAX];
 extern sceVu0FVECTOR      posdef_3194;
 extern sceVu0FVECTOR      refdef_3195;
@@ -531,7 +711,13 @@ extern char               at_3273[];
 extern char               at_3274[];
 extern char               at_3275[];
 extern char               at_3276[];
-extern mgCTexture        *MenuMosTexture;
+/**
+ *
+ * Background texture of the monster selection menu.
+ *
+ */
+static mgCTexture        *MenuMosTexture;
+
 extern mgCMemory          MenuMosLoadStack;
 extern SceneCharaList     at_3974;
 extern SceneCharaList     at_3975;
@@ -562,10 +748,34 @@ extern char               at_2782[];
 extern char               at_2783[];
 extern char               at_2784[];
 extern char               at_2785[];
-extern short              MenuDebugChangeSelectMode;
-extern short              MenuDebugCharaChangeSelect;
-extern s8                 menu_debug_npc_decide;
-extern s8                 menu_debug_npcselect;
+/**
+ *
+ * Character category selected by the party change debug controls.
+ *
+ */
+static short              MenuDebugChangeSelectMode;
+
+/**
+ *
+ * Character index selected by the party change debug controls.
+ *
+ */
+static short              MenuDebugCharaChangeSelect;
+
+/**
+ *
+ * Non-zero when the debug townsperson selection is confirmed.
+ *
+ */
+static s8                 menu_debug_npc_decide;
+
+/**
+ *
+ * Townsperson selected by the party change debug controls.
+ *
+ */
+static s8                 menu_debug_npcselect;
+
 
 /**
  *
@@ -707,7 +917,13 @@ static short wakutbl_5600[3][12] = {
 };
 extern char            *monstere_file_template[];
 extern char            *tbl_3725[MOS_SELECT_BADGE_NUM];
-extern int              menu_debug_select__2;
+/**
+ *
+ * Monster selected by the monster menu debug controls.
+ *
+ */
+static int              menu_debug_select__2;
+
 extern int              select_monster_save_3371;
 extern s8               init_3372__2;
 extern MonsterNameList  at_3412;
@@ -751,7 +967,13 @@ extern char             at_2194__2[];
 extern char             at_2195__2[];
 extern char             at_2196__2[];
 extern char            *MonsterDataPath[];
-extern char             script_file_name[0x20];
+/**
+ *
+ * Script name associated with the monster model being read.
+ *
+ */
+static char             script_file_name[0x20];
+
 extern short            monster_load_id;
 extern char             at_4548[];
 extern char             at_3160__3[];
@@ -797,8 +1019,13 @@ union MenuPositionVector {
 
 extern MenuPositionVector at_1372__2;
 extern char               at_1402__3[];
-extern CMenuChrCngMenu   *ChrChangMenuPt;
-extern u_int             *MenuCharaChangePosDataCfgBuffer;
+/**
+ *
+ * Active party change menu.
+ *
+ */
+static CMenuChrCngMenu   *ChrChangMenuPt;
+
 extern int                tbl_2483[];
 extern char               at_2595__2[];
 extern char               at_2596__3[];
@@ -811,7 +1038,13 @@ extern char               at_2305[];
 extern char               at_2306[];
 extern char               at_2307[];
 extern u8                 cursor_revtbl_2237[5];
-extern u8                 MenuGetPartySeFlag;
+/**
+ *
+ * Non-zero after the party acquisition sound has played.
+ *
+ */
+static u8                 MenuGetPartySeFlag;
+
 extern mgCMemory          ChrChangeInitTextureStack;
 extern FileNameBuf        at_2629__3;
 extern char               at_2197__2[];
@@ -7613,50 +7846,19 @@ mgCTexture *MenuCharaChangeCLUT_Tex;
 
 mgCTexture *MenuCharaChangeStar_Tex;
 
-INCLUDE_BSS(MenuCharaChangeCLUT, 0x4);
-INCLUDE_BSS(MenuCharaChangePosDataCfgBuffer, 0x4);
-INCLUDE_BSS(menu_debug_npcselect, 0x4);
-INCLUDE_BSS(menu_debug_npc_decide, 0x4);
-INCLUDE_BSS(MenuDebugChangeSelectMode, 0x4);
-INCLUDE_BSS(MenuDebugCharaChangeSelect, 0x4);
 INCLUDE_BSS(SelectedCmdNo_1415, 0x4);
 INCLUDE_BSS(init_1416, 0x4);
 INCLUDE_BSS(at_1650__2, 0x4);
 INCLUDE_BSS(at_1684__2, 0x8);
-INCLUDE_BSS(MenuGetPartySeFlag, 0x8);
 INCLUDE_BSS(at_2232, 0x8);
 INCLUDE_BSS(at_2289__2, 0x8);
-INCLUDE_BSS(ChrChangMenuPt, 0x8);
 INCLUDE_BSS(at_2371__4, 0x8);
-INCLUDE_BSS(MenuMosTexture, 0x4);
 u32 *CharaSndBuffer;
 
-INCLUDE_BSS(mos_effect_henge_param, 0x4);
-INCLUDE_BSS(mos_effect_read_num, 0x4);
-INCLUDE_BSS(MenuMosSelectPtr, 0x4);
-INCLUDE_BSS(menu_debug_select__2, 0x4);
 INCLUDE_BSS(select_monster_save_3371, 0x4);
 INCLUDE_BSS(init_3372__2, 0x4);
 INCLUDE_BSS(at_3412, 0x4);
 INCLUDE_BSS(at_3440, 0x4);
-INCLUDE_BSS(NowReadMainCharaPhase, 0x4);
-INCLUDE_BSS(NowReadMainChara, 0x4);
-INCLUDE_BSS(NowMainCharaChngTex, 0x4);
-INCLUDE_BSS(NowMainCharaChngTexMoveX, 0x4);
-INCLUDE_BSS(NowMainCharaChngTexMovePhase, 0x4);
-INCLUDE_BSS(NowMainCharaFrameImage, 0x4);
-INCLUDE_BSS(NowMainCharaChngStatusBit, 0x4);
-INCLUDE_BSS(MenuNPCLoadFlag, 0x4);
-INCLUDE_BSS(MenuPartyNPCModelReadBuffer, 0x4);
-INCLUDE_BSS(MenuCosutumeLoadPhase, 0x4);
-INCLUDE_BSS(CostumeAttr, 0x8);
-INCLUDE_BSS(MenuCosPtr, 0x4);
-INCLUDE_BSS(MonsterBookPtr, 0x4);
-INCLUDE_BSS(Tex_MBook, 0x4);
-INCLUDE_BSS(Tex_MBase, 0x4);
-INCLUDE_BSS(Tex_MBg, 0x4);
-INCLUDE_BSS(MonsterBookBootMode, 0x4);
-INCLUDE_BSS(MenuMosBookPtr, 0x4);
 
 // Uninitialised data (.bss)
 MENU_BGREAD_INFO2 *MenuCharaBuild2[MENU_CHARA_LOAD_MAX];
@@ -7679,11 +7881,6 @@ INCLUDE_BSS(at_2676, 0x80);
 mgCMemory MenuMonChangeLoadStack;
 mgCMemory MenuMosBuildStack;
 mgCMemory MenuMosLoadStack;
-INCLUDE_BSS(MenuMonsterBGInfo, 0x20);
-INCLUDE_BSS(mos_effect_readbuff1, 0x10);
-INCLUDE_BSS(mos_effect_readbuff2, 0x10);
-INCLUDE_BSS(mos_effect_readbuff1_size, 0x10);
-INCLUDE_BSS(mos_effect_readbuff2_size, 0x10);
 INCLUDE_BSS(at_3054__2, 0x20);
 INCLUDE_BSS(at_3511, 0x20);
 INCLUDE_BSS(at_3529, 0x20);
@@ -7695,10 +7892,7 @@ INCLUDE_BSS(at_3993, 0x20);
 INCLUDE_BSS(at_4300__2, 0x20);
 INCLUDE_BSS(at_4328, 0x20);
 INCLUDE_BSS(at_4329, 0x20);
-INCLUDE_BSS(script_file_name, 0x20);
 INCLUDE_BSS(at_4565, 0x20);
 INCLUDE_BSS(at_4585, 0x10);
-INCLUDE_BSS(NowMainReadPosition, 0x10);
-INCLUDE_BSS(NowMainReadRotation, 0x10);
 mgCMemory MosBookStack;
 INCLUDE_BSS(at_5482, 0x20);
