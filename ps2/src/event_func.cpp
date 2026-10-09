@@ -228,8 +228,6 @@ const int              exit_map_jump = EVENT_REQUEST_MAP_JUMP;
 const int              request_menu = EVENT_COMMAND_SUB_MODE;
 const int              request_door = EVENT_COMMAND_DOOR;
 const int              event_sprite2_size = 0x80;
-extern char            at_1760__3[];
-extern char            at_1761__3[];
 extern char            at_2245__2[];
 extern char            at_2246__2[];
 extern char            at_2247__2[];
@@ -2860,16 +2858,16 @@ void EdEventInit() {
 
     BuffEventSnd.stSetBuffer(event_snd_buff, event_snd_buffer_size);
 
-    if (strlen(at_1760__3) < memory_name_max) {
-        strcpy((char *) &BuffEventSnd, at_1760__3);
+    if (strlen("Event Snd Buffer") < memory_name_max) {
+        strcpy(BuffEventSnd.name, "Event Snd Buffer");
     }
 
     BuffEventSnd.stack_used = 0;
     BuffEventSnd.lock = 0;
     BuffEventSnd2.stSetBuffer(event_snd2_buff, event_snd2_buffer_size);
 
-    if (strlen(at_1761__3) < memory_name_max) {
-        strcpy((char *) &BuffEventSnd2, at_1761__3);
+    if (strlen("Event Snd2 Buffer") < memory_name_max) {
+        strcpy(BuffEventSnd2.name, "Event Snd2 Buffer");
     }
 
     BuffEventSnd2.stack_used = 0;
@@ -18188,8 +18186,6 @@ INCLUDE_RODATA("ps2/asm/pal/nonmatchings/event_func", vv_3333__DATA);
 
 // Constants (.rodata)
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/event_func", at_1083__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/event_func", at_1760__3__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/event_func", at_1761__3__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/event_func", at_1904__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/event_func", at_1905__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/event_func", at_1906__DATA);
