@@ -294,7 +294,7 @@ void CCharacter2::AddOutLine(char *name, COutLineDraw *line) {
     if (name != NULL) {
         target = this->CObjectFrame::frame;
 
-        if (*(s8 *) name != 0) {
+        if (name[0] != 0) {
             target = target->SearchFrame(name);
 
             if (target == NULL) {
@@ -927,7 +927,7 @@ void CCharacter2::Step() {
                             break;
                     }
 
-                    SetMotionPara((char *) seq_step, now_flags, 1);
+                    SetMotionPara(seq_step->name, now_flags, 1);
                     blend_speed = seq_step->blend_speed;
 
                     if (!(blend_speed < 1.0f)) {
@@ -993,7 +993,7 @@ void CCharacter2::Step() {
         if (sequence_done != 0) {
             playing = seq_step;
 
-            if (*((s8 *) playing + sizeof(CHRINFO_SEQ)) == 0) {
+            if (playing[1].name[0] == 0) {
                 seq_state = 4;
                 return;
             }
@@ -1018,7 +1018,7 @@ void CCharacter2::Step() {
                         break;
                 }
 
-                SetMotionPara((char *) seq_step, now_flags, 1);
+                SetMotionPara(seq_step->name, now_flags, 1);
                 blend_speed = seq_step->blend_speed;
 
                 if (!(blend_speed < 1.0f)) {
@@ -1271,7 +1271,7 @@ CHRINFO_KEY_SET *CCharacter2::GetKeyListPtr(char *name, int *out_list) {
                     break;
                 }
 
-                if (strcmp((char *) entry->name, name) == 0) {
+                if (strcmp(entry->name, name) == 0) {
                     if (out_list != 0) {
                         *out_list = list;
                     }
@@ -1337,7 +1337,7 @@ void CCharacter2::DeleteExtMotion() {
         first = GetKeyListIndexPtr(0, 0);
 
         if (first != 0) {
-            SetMotion((char *) first, 4);
+            SetMotion(first->name, 4);
         }
 
         if (next_key != 0) {
@@ -1365,7 +1365,7 @@ void CCharacter2::DeleteExtMotion() {
             image = (mgIMG_HEADER *) (images + 1);
 
             for (k = 0; k < images->num3; k++) {
-                if (*(u8 *) image->name != '#') {
+                if ((u8) image->name[0] != '#') {
                     tex->DeleteTexture(image->name, texture_block);
                 }
 
@@ -1408,7 +1408,7 @@ void CCharacter2::DeleteImage() {
 
         while (i < images->num3) {
 
-            if (*(u8 *) image->name != '#') {
+            if ((u8) image->name[0] != '#') {
                 tex->DeleteTexture(image->name, texture_block);
             }
 
@@ -1522,7 +1522,7 @@ void CCharacter2::LoadChrFile(u32 *pack_file, char *name, mgCMemory *a, mgCMemor
         CHRINFO_KEY_SET *first = GetKeyListIndexPtr(0, 0);
 
         if (first != 0) {
-            SetMotion((char *) first, 4);
+            SetMotion(first->name, 4);
         }
 
         if (next_key != 0) {
@@ -1536,20 +1536,19 @@ void CCharacter2::LoadChrFile(u32 *pack_file, char *name, mgCMemory *a, mgCMemor
 void CCharacter2::Initialize() {
     int j;
     int i;
-    u8 *raw = (u8 *) this;
 
     CObjectFrame::Initialize();
-    *(int *) (raw + 0x88) = 0;
-    *(int *) (raw + 0x84) = 0;
-    *(int *) (raw + 0x80) = 0;
-    *(int *) (raw + 0x8C) = 0x3F800000;
+    velocity[2] = 0.0f;
+    velocity[1] = 0.0f;
+    velocity[0] = 0.0f;
+    velocity[3] = 1.0f;
     base_scale[3] = 1.0f;
     base_scale[2] = 1.0f;
     base_scale[1] = 1.0f;
     base_scale[0] = 1.0f;
-    *(int *) (raw + 0xA0) = 0;
-    *(int *) &alpha = 0x3F800000;
-    mgUnitMatrix((float (*)[4])(raw + 0xB0));
+    move_accel = 0.0f;
+    alpha = 1.0f;
+    mgUnitMatrix(entry_matrix);
     this->CObjectFrame::frame = 0;
     this->load_size = 0;
     this->copy_size = 0;
@@ -1559,7 +1558,7 @@ void CCharacter2::Initialize() {
     this->outline = 0;
     this->shadow_frame = 0;
     frame = 0;
-    *(int *) (raw + 0x500) = 0;
+    main_frame_info = 0;
     this->motion_status = 0;
     this->shape_anime = 0;
     this->sound_info.foot_sound_id = -1;
@@ -1592,7 +1591,7 @@ void CCharacter2::Initialize() {
 
     for (i = 0; i < 0x18; i++) {
         this->entry_object[i].frame = NULL;
-        *(int *) &this->entry_object[i].size = 0;
+        this->entry_object[i].size = 0.0f;
         this->entry_object[i].group = -1;
         this->entry_object[i].enable = 0;
     }
@@ -1609,8 +1608,8 @@ void CCharacter2::Initialize() {
         this->seq_list[i] = 0;
     }
 
-    memset(this->motion, 0, 0xA0);
-    memset(this->shadow_motion, 0, 0xA0);
+    memset(this->motion, 0, sizeof(this->motion));
+    memset(this->shadow_motion, 0, sizeof(this->shadow_motion));
     this->now_set = 0;
     this->next_set = 0;
     this->next_key = 0;
@@ -1618,8 +1617,8 @@ void CCharacter2::Initialize() {
     this->posed_key = 0;
     this->next_seq = 0;
     this->now_seq = 0;
-    *(int *) (raw + 0x3AC) = 0;
-    *(int *) (raw + 0x500) = 0;
+    seq_step = 0;
+    main_frame_info = 0;
     this->shadow_frame_info = 0;
     this->lod_num = 0;
     this->lod = 0;
@@ -2083,22 +2082,16 @@ int _OBJECT_NAME(SPI_STACK *stack, int argc) {
     int       object_slot;
     int       n;
     int       i;
-    int       offset;
+    int       j;
     mgCFrame *root;
     mgCFrame *found;
 
-    i = 0;
-    offset = 0;
-
-    do {
-        if (((CCharacter2 *) ((u8 *) nowChr + offset))->entry_frame[0] == 0) {
+    for (i = 0; i < 2; i++) {
+        if (nowChr->entry_frame[i] == 0) {
             frame_slot = i;
             break;
         }
-
-        i++;
-        offset += 4;
-    } while (i < 2);
+    }
 
     object_slot = -1;
 
@@ -2106,18 +2099,12 @@ int _OBJECT_NAME(SPI_STACK *stack, int argc) {
         return 0;
     }
 
-    i = 0;
-    offset = 0;
-
-    do {
-        if (((CCharacter2 *) ((u8 *) nowChr + offset))->entry_object[0].frame == 0) {
-            object_slot = i;
+    for (j = 0; j < 0x18; j++) {
+        if (nowChr->entry_object[j].frame == 0) {
+            object_slot = j;
             break;
         }
-
-        i++;
-        offset += 0x10;
-    } while (i < 0x18);
+    }
 
     if (object_slot == -1) {
         return 0;
@@ -2140,7 +2127,7 @@ int _OBJECT_NAME(SPI_STACK *stack, int argc) {
         if (found != 0) {
             nowChr->entry_frame[frame_slot++] = found;
             nowChr->entry_object[object_slot].frame = found;
-            *(int *) &nowChr->entry_object[object_slot].size = 0;
+            nowChr->entry_object[object_slot].size = 0.0f;
             nowChr->entry_object[object_slot].group = object_slot;
             nowChr->entry_object[object_slot++].enable = 1;
         }
@@ -2164,20 +2151,13 @@ int _OBJECT_NAME2(SPI_STACK *stack, int argc) {
     mgCFrame *found;
     float     value;
     int       i;
-    int       offset;
 
-    i = 0;
-    offset = 0;
-
-    do {
+    for (i = 0; i < 0x18; i++) {
         if (nowChr->entry_object[i].frame == 0) {
             object_slot = i;
             break;
         }
-
-        i++;
-        offset += 0x10;
-    } while (i < 0x18);
+    }
 
     if (object_slot == -1) {
         return 0;
@@ -2255,8 +2235,8 @@ int _MOTION(SPI_STACK *stack, int argc) {
         return 0;
     }
 
-    motion = (tagMOTION_TYPE *) ((u8 *) nowChr + (now_motion_id * 5 << 2) + 0x3C0);
-    memset(motion, 0, 0x14);
+    motion = &nowChr->motion[now_motion_id];
+    memset(motion, 0, sizeof(tagMOTION_TYPE));
     first_name = spiGetStackString(arg++);
     second_name = spiGetStackString(arg++);
     third_name = spiGetStackString(arg);
@@ -2324,8 +2304,8 @@ int _SHADOW_MOTION(SPI_STACK *stack, int argc) {
         return 0;
     }
 
-    motion = (tagMOTION_TYPE *) ((u8 *) nowChr + now_motion_id * 0x14 + 0x460);
-    memset(motion, 0, 0x14);
+    motion = &nowChr->shadow_motion[now_motion_id];
+    memset(motion, 0, sizeof(tagMOTION_TYPE));
     first_name = spiGetStackString(stack++);
     second_name = spiGetStackString(stack++);
     third_name = spiGetStackString(stack);
@@ -2339,11 +2319,11 @@ int _SHADOW_MOTION(SPI_STACK *stack, int argc) {
     entry[1].data = (char *) GetPackFile(pack_file, first_name, &entry[1].size);
     entry[2].data = (char *) GetPackFile(pack_file, third_name, &entry[2].size);
 
-    if (*(s8 *) second_name == 0) {
+    if (second_name[0] == 0) {
         entry[0].name = 0;
     }
 
-    if (*(s8 *) third_name == 0) {
+    if (third_name[0] == 0) {
         entry[2].name = 0;
     }
 
@@ -2360,7 +2340,7 @@ int _SHADOW_MOTION(SPI_STACK *stack, int argc) {
             (mgCFrame *) nowChr->shadow_frame, motion, base_stack, &nowChr->shadow_frame_info);
     }
 
-    *(tagFRAME_INF **) ((u8 *) motion + 0x10) = nowChr->shadow_frame_info;
+    motion->frame_info = nowChr->shadow_frame_info;
     return 1;
 }
 
@@ -2427,7 +2407,7 @@ int _KEY(SPI_STACK *stack, int argc) {
         return 0;
     }
 
-    strcpy((char *) now_key_ptr, spiGetStackString(stack));
+    strcpy(now_key_ptr->name, spiGetStackString(stack));
     now_key_ptr->start_frame = spiGetStackInt(arg++);
     now_key_ptr->end_frame = spiGetStackInt(arg++);
     now_key_ptr->step = spiGetStackFloat(arg);
@@ -3009,7 +2989,7 @@ void CCharacter2::ExecEntryEffect(CHRINFO_KEY_SET *key_set) {
 
     while (node != 0) {
 
-        if (strcmp((char *) node->effect + 0x1BC, (char *) now_key) == 0) {
+        if (strcmp(node->effect->motion_name, now_key->name) == 0) {
             entry_effect[count].effect = node->effect;
             entry_effect[count].active = 1;
             count++;
@@ -3029,12 +3009,12 @@ void CCharacter2::CtrlEffect() {
             continue;
         }
 
-        CEffectManager  *manager = entry_effect[i].effect;
-        CHRINFO_KEY_SET *motion = now_key;
-        float            progress = (frame - (float) motion->start_frame) /
-                                    ((float) motion->end_frame - (float) motion->start_frame);
+        CHARA_EFFECT_MANAGER *manager = entry_effect[i].effect;
+        CHRINFO_KEY_SET      *motion = now_key;
+        float                 progress = (frame - (float) motion->start_frame) /
+                                         ((float) motion->end_frame - (float) motion->start_frame);
 
-        if (progress > *(float *) ((u8 *) manager + 0x1DC)) {
+        if (progress > manager->start_ratio) {
             manager->Run();
             entry_effect[i].running = 1;
         }
@@ -3191,7 +3171,7 @@ mgCFrame *CreateChangeFrame(mgLoadData *data, mgCFrame *target) {
     mgCVisual *motion;
     mgCFrame **frame_list;
     float (*matrix)[4][4];
-    int                 offset;
+    int                 i;
     mgCreateVisualType *list;
     mgCFrame           *found;
     mgCreateVisualType *entry;
@@ -3202,12 +3182,12 @@ mgCFrame *CreateChangeFrame(mgLoadData *data, mgCFrame *target) {
     }
 
     list = data->visual_type;
-    offset = 0;
+    i = 0;
 
     for (;;) {
-        entry = (mgCreateVisualType *) ((u8 *) list + offset);
+        entry = &list[i];
 
-        if (entry->type == -1) {
+        if (entry->type == MG_VISUAL_CREATE_END) {
             break;
         }
 
@@ -3234,7 +3214,7 @@ mgCFrame *CreateChangeFrame(mgLoadData *data, mgCFrame *target) {
             }
         }
 
-        offset += 8;
+        i++;
     }
 
     return source;
