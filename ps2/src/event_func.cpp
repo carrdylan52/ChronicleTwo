@@ -207,7 +207,6 @@ const int              pack_file_max = 0x80;
 const int              type_loaded = 2;
 const int              event_func_slots = 0x5DC;
 const int              object_seq_num = 32;
-const int              invent_user_data_offset = 0x7F30;
 const int              exit_edit_mode = 17;
 const int              event_stream = 1;
 const int              stream_max_volume = 0x7FFF;
@@ -6526,8 +6525,8 @@ int _GET_INVENTION_ID(RS_STACKDATA *stack, int argc) {
         return 0;
     }
 
-    u8              *user_data = (u8 *) &save->user_data;
-    CInventUserData *invent_data = (CInventUserData *) (user_data + invent_user_data_offset);
+    CUserDataManager *user_data = &save->user_data;
+    CInventUserData  *invent_data = &user_data->invent_data;
 
     if (user_data == NULL) {
         return 0;
@@ -7465,7 +7464,7 @@ int _REGISTER_VILLAGER(RS_STACKDATA *stack, int argc) {
 }
 
 int _EYE_VIEW_DRAW_ON_OFF(RS_STACKDATA *stack, int argc) {
-    ((CScene *) EventScene)->EyeViewDrawOnOff(GetStackInt(stack));
+    EventScene->EyeViewDrawOnOff(GetStackInt(stack));
     return 1;
 }
 
@@ -12460,7 +12459,7 @@ int _EOH_SYNC_OBJ(RS_STACKDATA *stack, int argc) {
         return 0;
     }
 
-    map_count = ((CScene *) EventScene)->GetActiveMap(maps, 8);
+    map_count = EventScene->GetActiveMap(maps, 8);
 
     if (!(map_count > 0)) {
         return 0;
@@ -13541,7 +13540,7 @@ int _SPHIDA_GET_PRIZE(RS_STACKDATA *stack, int argc) {
     RS_STACKDATA     *next_slot;
     DNG_BATTLE_AREA  *dng_scene;
 
-    dng_scene = &((CScene *) EventScene)->battle_area;
+    dng_scene = &EventScene->battle_area;
     floor_manager = &dng_scene->floor_manager;
 
     if (dng_scene == 0) {
@@ -13843,7 +13842,7 @@ int _CREATE_SWORD_EFFECT(RS_STACKDATA *stack, int argc) {
     int               init_param2 = GetStackInt(stack);
     mgCMemory        *scene_stack;
     CSWordAfterImage *effect;
-    scene_stack = (mgCMemory *) ((CScene *) EventScene)->GetStack(stack_no);
+    scene_stack = (mgCMemory *) EventScene->GetStack(stack_no);
 
     if (scene_stack == NULL) {
         return 0;
@@ -13981,7 +13980,7 @@ int _POST_TREASURE_BOX(RS_STACKDATA *stack, int argc) {
         count = GetStackInt(stack);
     }
 
-    dng_scene = &((CScene *) EventScene)->battle_area;
+    dng_scene = &EventScene->battle_area;
 
     if (dng_scene == NULL) {
         return 0;
@@ -14089,7 +14088,7 @@ int _CTRLC_MOVE_CAMERA(RS_STACKDATA *stack, int argc) {
     chara->GetRotation(chara_pos);
     camera = GetCamera();
     distance = camera->GetDistance();
-    map = ((CScene *) EventScene)->GetMap(((CScene *) EventScene)->active_map);
+    map = EventScene->GetMap(EventScene->active_map);
     camera->GetRef(camera_ref);
     camera->SetCheckRef(camera_ref);
     box.max[0] = camera_ref[0] + 1.2f * distance;
@@ -14143,7 +14142,7 @@ int _GET_NEAR_TBOX_POS(RS_STACKDATA *stack, int argc) {
     float            dist;
     CTreasureBox    *box;
 
-    dng_scene = &((CScene *) EventScene)->battle_area;
+    dng_scene = &EventScene->battle_area;
 
     if (dng_scene == NULL) {
         return 0;
@@ -14158,7 +14157,7 @@ int _GET_NEAR_TBOX_POS(RS_STACKDATA *stack, int argc) {
     nearest = -1;
     GetStackVector(target, stack);
 
-    stack = (RS_STACKDATA *) ((int) stack + 0x18);
+    stack += 3;
     nearest_dist = 9999.0f;
 
     for (i = 0; i < 24; i++) {
@@ -14210,7 +14209,7 @@ int _SWE_INIT(RS_STACKDATA *stack, int argc) {
 
     mgCMemory *scene_stack;
 
-    if ((scene_stack = (mgCMemory *) ((CScene *) EventScene)->GetStack(stack_no)) == NULL) {
+    if ((scene_stack = (mgCMemory *) EventScene->GetStack(stack_no)) == NULL) {
         return 0;
     }
 
@@ -14380,14 +14379,14 @@ int _SET_CHARA_TYPE(RS_STACKDATA *stack, int argc) {
     int chara_no;
 
     chara_no = GetStackInt(stack++);
-    ((CScene *) EventScene)->SetType(1, chara_no, GetStackInt(stack));
+    EventScene->SetType(1, chara_no, GetStackInt(stack));
     return 1;
 }
 
 int _GET_EVENT_DATA(RS_STACKDATA *stack, int argc) {
     CSceneEventData *event_data;
 
-    event_data = &((CScene *) EventScene)->event_data;
+    event_data = &EventScene->event_data;
 
     if (event_data == NULL) {
         return 0;
@@ -14419,11 +14418,10 @@ int _GET_EVENT_DATA(RS_STACKDATA *stack, int argc) {
             SetStack(stack, event_data->map_event.event_no);
             break;
         case 8:
-            SetStack(stack++, ((float *) &event_data->vectors_b.v[0])[0]);
-            SetStack(stack++, ((float *) &event_data->vectors_b.v[0])[1]);
-            SetStack(stack++, ((float *) &event_data->vectors_b.v[0])[2]);
-            SetStack(stack,
-                     atan2f(((float *) &event_data->vectors_a.v[3])[0], ((float *) &event_data->vectors_a.v[3])[2]));
+            SetStack(stack++, event_data->map_event.matrix[3][0]);
+            SetStack(stack++, event_data->map_event.matrix[3][1]);
+            SetStack(stack++, event_data->map_event.matrix[3][2]);
+            SetStack(stack, atan2f(event_data->map_event.matrix[2][0], event_data->map_event.matrix[2][2]));
             break;
         case 9:
             SetStack(stack, event_data->map_event.parts_no);
@@ -14619,7 +14617,7 @@ int _GET_FLOOR_INFO(RS_STACKDATA *stack, int argc) {
 int _GET_NEXT_FLOOR(RS_STACKDATA *stack, int argc) {
     int              floor = GetStackInt(stack++);
     int              route = GetStackInt(stack++);
-    DNG_BATTLE_AREA *dng_scene = &((CScene *) EventScene)->battle_area;
+    DNG_BATTLE_AREA *dng_scene = &EventScene->battle_area;
 
     if (dng_scene == NULL) {
         return 0;
@@ -14652,7 +14650,7 @@ int _PAD_SET_AUTO_REPEAT(RS_STACKDATA *stack, int argc) {
 int _DNG_PAUSE(RS_STACKDATA *stack, int argc) {
     int              mask = GetStackInt(stack++);
     int              enable = GetStackInt(stack);
-    DNG_BATTLE_AREA *dng_scene = &((CScene *) EventScene)->battle_area;
+    DNG_BATTLE_AREA *dng_scene = &EventScene->battle_area;
 
     if (dng_scene == NULL) {
         return 0;
@@ -14669,7 +14667,7 @@ int _DNG_PAUSE(RS_STACKDATA *stack, int argc) {
 
 int _DNG_CHECK_PAUSE(RS_STACKDATA *stack, int argc) {
     int              mask = GetStackInt(stack++);
-    DNG_BATTLE_AREA *dng_scene = &((CScene *) EventScene)->battle_area;
+    DNG_BATTLE_AREA *dng_scene = &EventScene->battle_area;
 
     if (dng_scene == NULL) {
         return 0;
@@ -14683,7 +14681,7 @@ int _DNG_CHECK_PAUSE(RS_STACKDATA *stack, int argc) {
 int _DNG_RESET_TIMER(RS_STACKDATA *stack, int argc) {
     DNG_BATTLE_AREA *dng_scene;
 
-    dng_scene = &((CScene *) EventScene)->battle_area;
+    dng_scene = &EventScene->battle_area;
 
     if (dng_scene == NULL) {
         return 0;
@@ -14696,7 +14694,7 @@ int _DNG_RESET_TIMER(RS_STACKDATA *stack, int argc) {
 int _DNG_GET_TIMER(RS_STACKDATA *stack, int argc) {
     DNG_BATTLE_AREA *dng_scene;
 
-    dng_scene = &((CScene *) EventScene)->battle_area;
+    dng_scene = &EventScene->battle_area;
 
     if (dng_scene == NULL) {
         return 0;
@@ -14734,11 +14732,11 @@ int _LOAD_SKIN(RS_STACKDATA *stack, int argc) {
         return 0;
     }
 
-    if (0 > (image_block = ((CScene *) EventScene)->GetCharaTexb(chara_no))) {
+    if (0 > (image_block = EventScene->GetCharaTexb(chara_no))) {
         return 0;
     }
 
-    if ((scene_stack = (mgCMemory *) ((CScene *) EventScene)->GetStack(stack_no)) == NULL) {
+    if ((scene_stack = (mgCMemory *) EventScene->GetStack(stack_no)) == NULL) {
         return 0;
     }
 
@@ -14973,12 +14971,12 @@ int _GET_ROBO_MOVE_TYPE(RS_STACKDATA *stack, int argc) {
 }
 
 int _SET_EXIT_FLAG(RS_STACKDATA *stack, int argc) {
-    ((CScene *) EventScene)->exit_flag = GetStackInt(stack);
+    EventScene->exit_flag = GetStackInt(stack);
     return 1;
 }
 
 int _GET_EXIT_FLAG(RS_STACKDATA *stack, int argc) {
-    SetStack(stack, ((CScene *) EventScene)->exit_flag);
+    SetStack(stack, EventScene->exit_flag);
     return 1;
 }
 
@@ -15158,7 +15156,7 @@ int _GET_PARTS_POS(RS_STACKDATA *stack, int argc) {
     int        i;
     int        parts_id;
     char      *parts_name;
-    map_count = ((CScene *) EventScene)->GetActiveMap(maps, 8);
+    map_count = EventScene->GetActiveMap(maps, 8);
 
     if (!(map_count > 0)) {
         return 0;
@@ -15574,7 +15572,7 @@ int _CHECK_MC_LOAD(RS_STACKDATA *stack, int arg_count) {
 }
 
 int _SET_NOW_MAP_NO(RS_STACKDATA *stack, int argc) {
-    ((CScene *) EventScene)->SetNowMapNo(GetStackInt(stack));
+    EventScene->SetNowMapNo(GetStackInt(stack));
     return 1;
 }
 
@@ -15663,7 +15661,7 @@ int _ESM_INIT_FIX(RS_STACKDATA *stack, int argc) {
         heap_size = GetStackInt(stack);
     }
 
-    if ((scene_stack = (mgCMemory *) ((CScene *) EventScene)->GetStack(stack_no)) == NULL) {
+    if ((scene_stack = (mgCMemory *) EventScene->GetStack(stack_no)) == NULL) {
         return 0;
     }
 
@@ -16017,7 +16015,7 @@ int _ADD_HP_RATE(RS_STACKDATA *stack, int argc) {
 }
 
 int _GET_TIME(RS_STACKDATA *stack, int argc) {
-    SetStack(stack, ((CScene *) EventScene)->time);
+    SetStack(stack, EventScene->time);
     return 1;
 }
 
@@ -16059,7 +16057,7 @@ int _IS_CLEAR_DESTROY(RS_STACKDATA *stack, int argc) {
     CDngFloorManager *floor_manager;
     DNG_BATTLE_AREA  *dng_scene;
 
-    dng_scene = &((CScene *) EventScene)->battle_area;
+    dng_scene = &EventScene->battle_area;
 
     if (dng_scene == 0) {
         return 0;
@@ -16121,7 +16119,7 @@ int _IS_PLAY_SUB_GAME(RS_STACKDATA *stack, int argc) {
     CDngFloorManager *floor_manager;
     DNG_BATTLE_AREA  *dng_scene;
 
-    dng_scene = &((CScene *) EventScene)->battle_area;
+    dng_scene = &EventScene->battle_area;
 
     if (dng_scene == 0) {
         return 0;
@@ -16141,7 +16139,7 @@ int _RESET_SUBJECT_COUNTER(RS_STACKDATA *stack, int argc) {
     DNG_BATTLE_AREA *dng_scene;
     CSaveData       *save;
 
-    dng_scene = &((CScene *) EventScene)->battle_area;
+    dng_scene = &EventScene->battle_area;
 
     if (dng_scene == NULL) {
         return 0;
@@ -16190,7 +16188,7 @@ int _SET_MPCHARA_MOTION(RS_STACKDATA *stack, int argc) {
     CMapParts *parts;
     char      *parts_name;
     int        parts_id;
-    map_count = ((CScene *) EventScene)->GetActiveMap(maps, 8);
+    map_count = EventScene->GetActiveMap(maps, 8);
 
     if (!(map_count > 0)) {
         return 0;
@@ -16518,7 +16516,7 @@ int _DNG_CHECK_BOSS_MAP(RS_STACKDATA *stack, int argc) {
         return 0;
     }
 
-    dng_scene = &((CScene *) EventScene)->battle_area;
+    dng_scene = &EventScene->battle_area;
 
     if (dng_scene == NULL) {
         return 0;
@@ -16530,7 +16528,7 @@ int _DNG_CHECK_BOSS_MAP(RS_STACKDATA *stack, int argc) {
 
 int _DNG_RUN_EVENT(RS_STACKDATA *stack, int argc) {
     int              event_no = GetStackInt(stack);
-    DNG_BATTLE_AREA *scene = &((CScene *) EventScene)->battle_area;
+    DNG_BATTLE_AREA *scene = &EventScene->battle_area;
 
     if (scene == NULL) {
         return 0;
@@ -16603,7 +16601,7 @@ int _INIT_SEPIA(RS_STACKDATA *stack, int argc) {
     block_no = tex_base + block_offset;
 
     if (stack_no >= 0) {
-        if ((scene_stack = (mgCMemory *) ((CScene *) EventScene)->GetStack(stack_no)) == NULL) {
+        if ((scene_stack = (mgCMemory *) EventScene->GetStack(stack_no)) == NULL) {
             return 0;
         }
 
