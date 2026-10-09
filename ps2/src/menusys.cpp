@@ -8658,11 +8658,11 @@ void MenuItemDebugDraw(void) {
                         prim.End();
                         SetSpriteEnv(&prim, 0);
                     }
-                    DrawOneItem(&prim, mgRect<float>(col * 32 + 24, row * 32 + 60, float(32.0), 32.0f), item_no, 0, NULL, color, 0);
+                    DrawOneItem(&prim, mgRect<float>(col * 32 + 24, row * 32 + 60, 32.0f, 32.0f), item_no, 0, NULL, color, 0);
                 }
             }
             tex_manager->ReloadTexture(MenuArg.mes_tex_block, (sceVif1Packet *) NULL);
-            DrawMenuFillBox(20.0f, 40.0f, 340.0f, float(20.0), 0x60, 0, 0, 0);
+            DrawMenuFillBox(20.0f, 40.0f, 340.0f, 20.0f, 0x60, 0, 0, 0);
             char title[0x80];
             sprintf(title, "[%3d]%s :Now GetNum : %d", CMenuItemInfoPt->debug_item_no,
                     GetItemMessage(CMenuItemInfoPt->debug_item_no), CMenuItemInfoPt->debug_item_count);
@@ -8814,7 +8814,7 @@ void MenuItemDebugDraw(void) {
             font->DrawDirect(font->str, font->pos_x, font->pos_y);
             break;
         case 4: {
-            DrawMenuFillBox(236.0f, 60.0f, float(230.0), 300.0f, 0x80, 0, 0, 0);
+            DrawMenuFillBox(236.0f, 60.0f, 230.0f, 300.0f, 0x80, 0, 0, 0);
             font->SetStr("WHP control");
             font->SetPos(236, 60);
             font->DrawDirect(font->str, font->pos_x, font->pos_y);
@@ -8875,7 +8875,7 @@ void MenuItemDebugDraw(void) {
             if (weapon == NULL) {
                 break;
             }
-            DrawMenuFillBox(float(236.0), 60.0f, 230.0f, 260.0f, 0x80, 0, 0, 0);
+            DrawMenuFillBox(236.0f, 60.0f, 230.0f, 260.0f, 0x80, 0, 0, 0);
             font->SetStr("Change Status\n  Press AnalogR");
             font->SetPos(236, 60);
             font->DrawDirect(font->str, font->pos_x, font->pos_y);
@@ -8906,7 +8906,7 @@ void MenuItemDebugDraw(void) {
             break;
         }
         case 6:
-            DrawMenuFillBox(float(236.0), float(60.0), 230.0f, 260.0f, 0x80, 0, 0, 0);
+            DrawMenuFillBox(236.0f, 60.0f, 230.0f, 260.0f, 0x80, 0, 0, 0);
             font->SetStr("Change Abs");
             font->SetPos(236, 80);
             font->DrawDirect(font->str, font->pos_x, font->pos_y);
@@ -8921,7 +8921,7 @@ void MenuItemDebugDraw(void) {
             font->DrawDirect(font->str, font->pos_x, font->pos_y);
             break;
         case 7: {
-            DrawMenuFillBox(float(236.0), 60.0f, float(230.0), float(260.0), 0x80, 0, 0, 0);
+            DrawMenuFillBox(236.0f, 60.0f, 230.0f, 260.0f, 0x80, 0, 0, 0);
             int cursor = MenuCommonInfo->cursor;
             if (cursor == 0) {
                 font->SetStr("\x20\x43\x68\x61\x6E\x67\x65\x20\x28\x83\x6F\x83\x62\x83\x4F\x83\x70\x83\x62\x83\x4E\x29");

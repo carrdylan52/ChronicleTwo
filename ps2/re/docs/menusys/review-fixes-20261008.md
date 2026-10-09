@@ -64,3 +64,10 @@ The `info` alias is removed with identical function bytes and relocations;
 [the debug-display notes](night-20261008.md#debug-title-controller-accesses-review-finding-9d)
 record the private probe and production receipts. Finding 9(c)'s accepted
 unbraced case scope remains as documented.
+
+## Debug display float literals (finding 10)
+
+All nine functional casts are replaced by single-precision literals with
+identical bytes and resolved relocations. The per-call inventory and
+validation receipts are in the debug-display section of
+[night-20261008.md](night-20261008.md).
