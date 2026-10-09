@@ -1671,7 +1671,7 @@ void ScanInfoFile(CCharacter2 *chara, u32 *pack_file, char *info_name, mgCMemory
         return;
     }
 
-    interp.SetTag((SPI_TAG_PARAM *) tag);
+    interp.SetTag(tag);
     interp.SetScript(script, size);
     now_motion_id = 0;
     now_stack = memory;
@@ -2791,7 +2791,7 @@ int _MOTION_END(SPI_STACK *stack, int argc) {
  *
  */
 int _EFFECT_START(SPI_STACK *stack, int argc) {
-    eff_pack_ptr = (unsigned int *) GetPackFile(pack_file, spiGetStackString(stack), &eff_pack_size);
+    eff_pack_ptr = GetPackFile(pack_file, spiGetStackString(stack), &eff_pack_size);
     return eff_pack_ptr != 0;
 }
 
@@ -3105,7 +3105,7 @@ void ScanInfoSkinFile(CCharacter2 *chara, u32 *pack_file, char *info_name, char 
         return;
     }
 
-    interp.SetTag((SPI_TAG_PARAM *) skin_tag);
+    interp.SetTag(skin_tag);
     interp.SetScript(script, size);
     interp.Run();
 }
@@ -3165,7 +3165,7 @@ int _SKIN_MODEL(SPI_STACK *stack, int argc) {
  *
  */
 mgCFrame *CreateChangeFrame(mgLoadData *data, mgCFrame *target) {
-    mgCFrame  *source = (mgCFrame *) mgLoadMDSFile(data);
+    mgCFrame  *source = mgLoadMDSFile(data);
     char     **name;
     int        target_id;
     mgCVisual *motion;
@@ -3411,7 +3411,7 @@ static int _LOD_MODEL(SPI_STACK *stack, int count) {
     matrix_name = spiGetStackString(stack++);
     level->distance = spiGetStackFloat(stack++);
     model_file = (MDS_HEADER *) GetPackFile(pack_file, model_name, NULL);
-    weight_file = (unsigned int *) GetPackFile(pack_file, weight_name, NULL);
+    weight_file = GetPackFile(pack_file, weight_name, NULL);
     matrix_file = (float (*)[4][4]) GetPackFile(pack_file, matrix_name, NULL);
 
     if (model_file == NULL) {
