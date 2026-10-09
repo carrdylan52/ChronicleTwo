@@ -1265,7 +1265,7 @@ int EditLoop() {
         wait_for_map = 1;
     }
     map_name = MainScene__2->GetMapName(MainScene__2->active_map);
-    while (LoopCounter >= 3 && LoopMode == EDIT_LOOP_WALK && map_name != NULL && strcmp(map_name, "m01") == 0) {
+    while (LoopCounter > 2 && LoopMode == EDIT_LOOP_WALK && map_name != NULL && strcmp(map_name, "m01") == 0) {
         chara = MainScene__2->GetCharacter(MainScene__2->player_chara);
         if (chara != NULL) {
             chara->GetPosition(position);
@@ -1712,7 +1712,7 @@ int EditLoop() {
             if (LoopMode != EDIT_LOOP_EDIT && SubGameRunning() == 0 && EditOnGround() == 0) {
                 menu_enabled = 0;
             }
-            if (menu_enabled != 0 && LoopCounter >= 3 && ControlMode == EDIT_CONTROL_PLAYER &&
+            if (menu_enabled != 0 && LoopCounter > 2 && ControlMode == EDIT_CONTROL_PLAYER &&
                 (menu_requested != 0 || quick_change != 0 || menu_button != 0)) {
                 ShowOffOnceHelpMes();
                 if (LoopMode == EDIT_LOOP_WALK) {
