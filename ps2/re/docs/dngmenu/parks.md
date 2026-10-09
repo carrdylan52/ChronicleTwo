@@ -1,7 +1,7 @@
 # dngmenu remainder after r2 — October 8
 
-Current lane source: 39 native functions, 8 guarded drafts, 1 asm-only
-function. Upstream supplies the exact `CheckIsViewMove` implementation and
+Current lane source: 47 native functions and one guarded C++ draft,
+`CMenuTreeMap::Step`. The older scores below record the route to those matches. Upstream supplies the exact `CheckIsViewMove` implementation and
 its translation-unit helper seed; its former park is resolved.
 The r2 baseline at `2f71f10` was 34/13/1. All assigned targets were
 remeasured with the merged SF profile before experiments. Rows below use SF
@@ -10,14 +10,14 @@ when the body exceeds retail. Detailed disassemblies are saved privately.
 Only complete-unit canonical checks authorize the two native promotions;
 see [r2.md](r2.md).
 
-## Assigned targets
+## Assigned targets and historical scores
 
 | Target | SF baseline → retained result | Status and concrete reconsideration trigger |
 |---|---|---|
 | `CheckGeoramaMateria__FP22TRESURE_BOX_FLOOR_INFOiPi` | 6/112 → exact | Promoted. Reusing the completed group-search index for item traversal fixes the induction allocation. Complete-unit byte/relocation check passes. |
 | `MsgInit__12CMenuTreeMapFv` | 7/116 → **exact** (nmparked-r1) | Promoted. The first line's screen X and half line width are named values updated in place (`x >>= 2; width >>= 1;`), so they colour after the X temporaries and the height load keeps `v1`, whose reuse pins retail's schedule; see [night-20261008.md](night-20261008.md). |
 | `LoadDngInfo__11CDngFreeMapFP9mgCMemoryiiii` | 31/1016 → 10/1016 (nmparked) → 0/1016 (nmparked-r1) → **exact**, promoted (dngmenu-r0) | Promoted. Its pointer and direction tables are function statics; the 14 point tables stay at file scope because MWCC numbers native statics `$1522..` instead of retail's `$2230..`, and the postprocessor cannot identify a local table reached only through a pointer table. See [night-20261008.md](night-20261008.md). |
-| `DrawRoot__11CDngFreeMapF9mgRect_f_P16DNGMAP_ROOT_INFOiUii` | 781/844, 0xD08/0xD30 → 708/844, 0xCEC/0xD30 | Guarded. Event tints now share retail's single branch. Shapes 4 and 5 are excluded from the five-pixel adjustment, and dispatch is an ordered comparison chain. Root/marks/opacity and color/mark saved registers and individual shape loops still differ. Reconsider with a case-zero lifetime map and the default/event color register map before changing the other shapes. → 6/844 at 0xD2C → **exact**, promoted (see night-20261008.md). |
+| `DrawRoot__11CDngFreeMapF9mgRect_f_P16DNGMAP_ROOT_INFOiUii` | 781/844, 0xD08/0xD30 → 708/844, 0xCEC/0xD30 | Earlier guarded stage: event tints share retail's single branch. Shapes 4 and 5 are excluded from the five-pixel adjustment, and dispatch is an ordered comparison chain. Root/marks/opacity and color/mark saved registers and individual shape loops still differ. Reconsider with a case-zero lifetime map and the default/event color register map before changing the other shapes. → 6/844 at 0xD2C → **exact**, promoted (see night-20261008.md). |
 | `DrawRoomOne__11CDngFreeMapF9mgRect_f_P16DNGMAP_ROOM_INFOUiif` | 553/584, 0x8A8/0x920 → exact | Promoted in night round 1. The glyph table is read as flat halfwords with `[i << 2]` indexing, which shares the destination table's `i * 4` induction; a `tex_no` local read before the visited test fills the branch delay slot; the colour components are assigned `b = g = r`. Complete-unit byte/relocation check passes; see [night-20261008.md](night-20261008.md). |
 | `DrawDngRoomInfo__FP16DNGMAP_ROOM_INFO` | 506/712 → 65/712 (nmparked) → **0/712**, 0xB18 (nmparked-r1) | Exact. Separate icon X, inline `ix + width` right edges, board Y assigned in the first strip argument and both row counters chained from one conversion; see [night-20261008.md](night-20261008.md). |
 | `Step__12CMenuTreeMapFv` | 1506/1548, 0x1734/0x1830 → 1488/1548, same sizes | Guarded. Natural mode switch, question-message timing and integer selection-change flag improve the draft. Frame remains 0x110 versus retail 0x130, with one fewer saved GPR; the correctly sized 72-byte time-text buffer stays intact. Reconsider the key/message/result lifetimes and later state branches; see midday.md. |

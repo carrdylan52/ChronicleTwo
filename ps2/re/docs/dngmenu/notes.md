@@ -102,8 +102,10 @@ full-image verification. MWCC emits the retail comparison sequence for
 branch sequence. `SetKomaMove` starts at the second node of the
 path because `koma_path` itself is the piece's starting point.
 
-`CheckDngTreeMapFuncType` returns 2 when the menu's `open_type` is 3,
-1 when it is 1 or `TreeMapCallDungeonSubMap` is set, and 0 otherwise. The
+`CheckDngTreeMapFuncType` returns `DNG_TREE_MAP_FUNC_SAVE_POINT` for
+`MENU_OPEN_DNG_TREE_MAP`, `DNG_TREE_MAP_FUNC_DUNGEON` for
+`MENU_OPEN_MAIN_DUNGEON` or a requested dungeon sub map, and
+`DNG_TREE_MAP_FUNC_OTHER` otherwise. The
 flag is read as an unsigned byte even though the assembly reservation is
 four bytes. `DngTreeMapDraw` reads `DngTreeMode` as a signed halfword and
 dispatches modes 0 and 1 to the map or save menu. Both functions match retail
@@ -323,9 +325,9 @@ BG read finish), 2 closing, 0xC returning from the save menu. Base 0x14 is the s
   1 otherwise on close, 0 while open; DngTreeMapKey passes it through; menumap's WorldMoveKey
   tests 1 and 2.
 - `DNG_TREE_MODE`: `DngTreeMode` static, 0 tree map, 1 save menu (DngTreeMapKey/Draw).
-- `CheckDngTreeMapFuncType` gives 2 when `MenuCommonInfo+0x50 == 3` (menumain opens the tree
-  map with mode 3 from a save point, setting TreeMapSaveFlag), 1 when it is 1 or
-  `TreeMapCallDungeonSubMap`, else 0. No enum: the meaning of mode 1 is not established.
+- `DNG_TREE_MAP_FUNC` names `CheckDngTreeMapFuncType` results: SAVE_POINT
+  for the dedicated tree-map opening request, DUNGEON for the dungeon main
+  menu or its requested sub map, and OTHER for the remaining opening modes.
 
 ## Globals
 Only four of the unit's data symbols are global (others are LOCAL in retail, so `static` in the
@@ -379,15 +381,15 @@ uses a language-specific position.
 The completion overlay uses signed halfword X coordinates from
 `medal_xytbl_1736`, assigning only the highlight rectangle's left field.
 Offsets 0, 4, 6, and 8 supply X positions 168, 212, 234, and 146 for the
-timed-clear, fishing, spheda, and final medal rows. The guarded draft now
+timed-clear, fishing, spheda, and final medal rows. The native function
 contains these typed reads; the rectangle retains top 0 and size 22 by 22.
-See [r2.md](r2.md) for the resolved table interpretation and remaining work.
+See [night-20261008.md](night-20261008.md) for its exact body and validation.
 
 `mgRect<float>::Set` stores its four arguments directly into the left, top,
 right and bottom fields. The explicit float specialization is a separate
 retail symbol from the generic template, emitted by a native specialization.
 
-retail symbol from the generic template. MWCC initially names its symbol
+MWCC initially names its symbol
 `Set__9mgRect<f>Fffff`; the object postprocessor normalizes that name to
 retail's `Set__9mgRect_f_Fffff`. A candidate that leaves the assembly marker
 in the disabled branch fails mwccgap's raw-name lookup; removing the guard
@@ -506,9 +508,9 @@ and directional visited-floor marks.
 `DrawGlid` keeps named upper/right/lower coordinates live through the
 outline calls, reproducing retail's three preserved float registers.
 
-Viewport clipping retains its guarded draft: four instructions differ,
-consisting of two exchanged coordinate initializations and a subtraction
-scheduled into a branch delay slot. The earlier `DrawGlidCheck` candidate omitted a duplicate zero return assignment on the null path; master resolves this by initializing the mark mask after the null check, and that native implementation is retained in the merge.
+Viewport clipping is native and exact with the verified GPR helper-history
+seed `0x30`. Before that calibration, four instructions differed: two
+exchanged coordinate initializations and a subtraction in a branch delay slot. The earlier `DrawGlidCheck` candidate omitted a duplicate zero return assignment on the null path; master resolves this by initializing the mark mask after the null check, and that native implementation is retained in the merge.
 
 ## Tree map drawing assessment
 
@@ -524,10 +526,10 @@ directly with `(0, 0, 52, 20)`, rather than constructed with zero edges
 and then reset. Existing grid, rectangle, primitive and drawing interfaces
 cover all dependencies.
 
-The improved `DrawTreeMap` candidate was saved outside the checkout; the original guarded draft is retained in source. The candidate's
-remaining canonical differences are the exchanged loop-index and mark
-register assignments (s19 versus s20); every other instruction and all
-resolved relocations agree. The private 52.0 evaluate-first trial did not
+Before promotion, the improved `DrawTreeMap` candidate had only the
+exchanged loop-index and mark register assignments (s19 versus s20).
+Declaring the mark mask before the loop index resolves them; the native
+function is exact, as described under DrawTreeMap below. The private 52.0 evaluate-first trial did not
 improve this difference and no profile row is accepted.
 
 ## Combined native merge checkpoint
@@ -564,13 +566,14 @@ The comparison includes canonical section bytes and resolved relocations.
 |---|---:|---|
 | `CDngFreeMap::DrawRoot` | exact | Promoted on October 8 night; see [night-20261008.md](night-20261008.md). |
 | `CDngFreeMap::DrawRoomOne` | exact | Promoted on October 8 night; see [night-20261008.md](night-20261008.md). |
-| `DrawDngRoomInfo` | 48.992977% | 3052-byte native body; canonical check fails. |
+| `DrawDngRoomInfo` | exact | Native 0xB18-byte body; the complete object passes. See [night-20261008.md](night-20261008.md). |
 | `DrawGeoramaMateria` | exact | Native 0x400-byte body; the complete object passes. See [night-20261008.md](night-20261008.md). |
-| `CMenuTreeMap::MsgInit` | 97.836% | Correct 0x1D0 size; screen-coordinate load scheduling still differs. Naming the X coordinate in a local leaves output unchanged. |
+| `CMenuTreeMap::MsgInit` | exact | Native 0x1D0-byte body; staged screen X and line width preserve the retail load schedule. See [night-20261008.md](night-20261008.md). |
 | `DngTreeMapInit` | exact | Promoted on October 8 night; see [night-20261008.md](night-20261008.md). |
 
-The isolated `CDngFreeMap::Draw` promotion reaches object postprocessing but
-its generated `at_606` datum does not match the retail piece at 0x0036DA58.
+An earlier isolated `CDngFreeMap::Draw` promotion failed because its
+generated `at_606` datum did not match the retail piece at 0x0036DA58.
+The later native match and data migration supersede that trial.
 `LoadDngInfo` was blocked here by its typed `__DATA` route-table
 declarations conflicting with `INCLUDE_RODATA` placeholder types. The route
 tables are now native, and the function is native and exact; see
@@ -632,12 +635,14 @@ of every assigned guard, and the retained guarded corrections.
 ## Midday round 1
 
 [round1.md](round1.md) records new MsgInit assignment forms and tree-opening
-condition, cursor-buffer type and optimizer probes. Their best results remain
-7/116 and 55/256. The conditional natural ClsMes::Init proposal remains
-inactive; no dungeon function, global type or profile row changes this round.
+condition, cursor-buffer type and optimizer probes. Their historical best results were
+7/116 and 55/256. The later night run made both functions native and exact
+and removed the ClsMes::Init marker; this earlier round changed no function,
+global type or profile row.
 
 ## October 8 near-miss wave
 
 [nearmiss-20261008.md](nearmiss-20261008.md) records the new local-data,
-coordinate-width, input-order and compiler-control probes. MsgInit remains
-at 7/116 words, and the conditional ClsMes::Init proposal remains inactive.
+coordinate-width, input-order and compiler-control probes. MsgInit was
+7/116 words at that checkpoint; the later night run resolves the remainder
+and activates the natural ClsMes::Init emission.

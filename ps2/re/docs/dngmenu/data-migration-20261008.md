@@ -79,8 +79,9 @@ describes unavailable, forward, and reverse traversal in the direction data.
 
 All nineteen data definitions and the direction-enum cleanup pass separate
 full builds and canonical checks. The bare native names retain retail
-symbols used by the guarded `LoadDngInfo` assembly. That draft's existing
-`__DATA` declaration spellings remain untouched. Receipts use
+symbols used by the then-guarded `LoadDngInfo` assembly. Its later promotion
+uses the native definitions and removes the obsolete `__DATA` declarations,
+as described in the October 9 section below. Receipts use
 `dng-route-<symbol>` and `dng-route-orders` prefixes.
 
 Markers: 43 / 5; matched data: 36 / 3159 bytes.
