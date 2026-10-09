@@ -6727,7 +6727,7 @@ void CMenuEffect::SetTexInfo(mgCTexture *texture, int *params) {
     tex = texture;
 
     if (params != NULL) {
-        tex_block = *(short *) params;
+        tex_block = params[0];
     }
 }
 
