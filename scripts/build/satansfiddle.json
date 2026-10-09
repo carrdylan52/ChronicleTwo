@@ -1672,6 +1672,15 @@
           "argument_index": 1
         },
         "evaluate_first": true
+      },
+      {
+        "translation_unit": "editloop.cpp",
+        "function": "EditLoop__Fv",
+        "value_type": "binary32",
+        "value_bits": "0x46EA6000",
+        "callee": "mgSetRenderInfo__Ffff",
+        "evaluate_first": true,
+        "expected_matches": 1
       }
     ]
   }

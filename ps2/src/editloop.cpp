@@ -378,111 +378,6 @@ void editLoadSound(int map_no);
  */
 u_long128 *read_buffer_end;
 
-/**
- *
- * Whether automatic town time progression is enabled.
- *
- */
-static int time_step_1481;
-
-/**
- *
- * Initialization guard for the town time-progression toggle.
- *
- */
-static signed char init_1482;
-
-/**
- *
- * Frames remaining to display the time-progression toggle.
- *
- */
-static int show_time_step_1484;
-
-/**
- *
- * Initialization guard for the displayed town-time counter.
- *
- */
-static signed char init_1485;
-
-/**
- *
- * Control mode saved before entering the town debug editor.
- *
- */
-static int old_cm_1772;
-
-/**
- *
- * Persistent rain state tracked by the town loop.
- *
- */
-static int rain_flag_1849;
-
-/**
- *
- * Initialization guard for the town rain state.
- *
- */
-static signed char init_1850;
-
-/**
- *
- * Persistent battle-start counter of the town loop.
- *
- */
-static int start_bt_cnt_1865;
-
-/**
- *
- * Initialization guard for the town battle-start counter.
- *
- */
-static signed char init_1866;
-
-/**
- *
- * Persistent encounter state of the town loop.
- *
- */
-static int encount_flag_1868;
-
-/**
- *
- * Initialization guard for the town encounter state.
- *
- */
-static signed char init_1869;
-
-/**
- *
- * Persistent encounter-display counter of the town loop.
- *
- */
-static int show_encount_cnt_1871;
-
-/**
- *
- * Initialization guard for the town encounter-display counter.
- *
- */
-static signed char init_1872;
-
-/**
- *
- * Persistent next-encounter selection of the town loop.
- *
- */
-static int next_encount_1874;
-
-/**
- *
- * Initialization guard for the next town encounter selection.
- *
- */
-static signed char init_1875;
-
 // Code (.text)
 /**
  *
@@ -1149,7 +1044,6 @@ int SubMapLoadStep() {
 
     return 1;
 }
-#ifdef NONMATCHING
 int EditLoop() {
     static int       old_cm;
     CMap            *map;
@@ -1977,9 +1871,6 @@ int EditLoop() {
     }
     return 0;
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/editloop", EditLoop__Fv);
-#endif
 /**
  *
  * Resets edit event state and character control locks.
