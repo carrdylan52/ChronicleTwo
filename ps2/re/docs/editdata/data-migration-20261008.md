@@ -86,3 +86,40 @@ No new helper or dummy local is retained. The accepted source is restored.
 Receipts: `.private/dataC-r2/editdata-house-difference-build.log`,
 `editdata-house-difference.dump`, `owned-natural-fields-{build,objects}.log`,
 and `editdata-house-index-local-build.log`.
+
+## Declared function extents
+
+The header function-size annotations use the retail ELF's declared
+`STT_FUNC` extents. 18 annotations previously included the alignment
+gap up to the next function and are corrected without changing declarations
+or layouts. The symbol names and addresses remain exact.
+
+## Generic named-local tooling proposal validation
+
+`.private/proposals/dataC-r2-named-local-data.patch` extends the existing
+identity mapper to unique source static names and compiler constructor
+guards. Named storage requires exact declared size and matching real
+references, with the compiled member addends subtracted. Guard storage
+requires a one-byte declared object plus both opcode-matched byte loads and
+stores; every guard access must belong to that set. Ambiguous source names,
+duplicate native bases or retail targets, missing or conflicting references,
+incorrect opcodes, and coincident numeric suffixes remain explicitly
+unmapped in the linked and source-only pipelines. Numeric suffixes never
+select a target. Named-local incoming data pointers are conservatively
+rejected; the three loader objects use only matched code references.
+
+The private proposal runs 62 regression tests, including the older literal
+and source-only data cases. The genuine marker-free source-only object maps
+all three loader objects, including the manager's +0x28 and +0x24 references,
+without changing code snapshots or relocation addends. Following the normal
+external-constructor cleanup, the canonical checker accepts 0x22EC bytes
+and 186 resolved relocations. A private link with this and the marker-free
+`dataread` object, using every other normal input, is byte-identical to PAL.
+Receipts: `.private/dataC-r2/named-bss-proposal-check.log` and
+`proposals-{prepare,objects,link,pal}.log`.
+The shared scripts remain untouched, and the three committed markers stay
+until the tooling lane accepts this generic change.
+
+Header validation: `.private/dataC-r2/header-extents-final-{build,objects}.log`.
+The complete PAL image, all 149 objects, and every unowned object hash pass.
+The evidence audit is `header-metadata-corrections.json` in the same directory.
