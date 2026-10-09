@@ -2337,7 +2337,7 @@ int _SHADOW_MOTION(SPI_STACK *stack, int argc) {
 
     if (nowChr->shadow_frame_info == 0) {
         AnimeDataInit(
-            (mgCFrame *) nowChr->shadow_frame, motion, base_stack, &nowChr->shadow_frame_info);
+            nowChr->shadow_frame, motion, base_stack, &nowChr->shadow_frame_info);
     }
 
     motion->frame_info = nowChr->shadow_frame_info;
