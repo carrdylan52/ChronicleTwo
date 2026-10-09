@@ -393,6 +393,15 @@
         "evaluate_first": true
       },
       {
+        "translation_unit": "inventmn.cpp",
+        "function": "CalcTex__11CMenuInventFv",
+        "value_type": "binary32",
+        "value_bits": "0x40490fdb",
+        "callee": "CalcMenuAdd__FPfff",
+        "expected_matches": 1,
+        "evaluate_first": true
+      },
+      {
         "translation_unit": "mapjump.cpp",
         "function": "ExitInterior__FP6CScenePi",
         "value_type": "binary32",
