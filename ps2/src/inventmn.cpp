@@ -419,16 +419,6 @@ struct NetaEffectTarget {
 
 /**
  *
- * Stores the first visible row of two card lists.
- *
- */
-struct CardListTops {
-    int top[2]; /**< First visible row for each list. */
-};
-
-extern CardListTops at_5642;
-/**
- *
  * Localized label for an undiscovered invention card.
  *
  */
@@ -451,11 +441,6 @@ static int digit_tbl3_5641[8] = {
     3, 3, 3, 3, 3, 3, 3, 3
 };
 
-extern char         at_5742[];
-extern char         at_5743[];
-extern char         at_5744[];
-extern char         at_5745[];
-extern char         at_5746[];
 
 /**
  *
@@ -7355,7 +7340,6 @@ int MenuInventKey() {
     char        *names[MES_ITEM_MAX];
     int          number_pos[16];
     int          numbers[8];
-    CardListTops tops;
     int          count_x;
     int          count_y;
     MenuCommonInfo->CheckSelectKey();
@@ -7428,7 +7412,7 @@ int MenuInventKey() {
                 CMenuInventPt->SelectedNetaPhotoAlready(CMenuInventPt->photo_cursor);
             }
             if (CMenuInventPt->neta_board_form != NULL) {
-                CMenuInventPt->neta_board_form->GetPutPosXY(at_5742, item_pos[0], item_pos[1]);
+                CMenuInventPt->neta_board_form->GetPutPosXY("msgbrd", item_pos[0], item_pos[1]);
                 item_pos[1] += 5;
             }
             MakeMsgNetaName(list_message, MenuMesForm[2], photo, item_pos, 1);
@@ -7437,7 +7421,7 @@ int MenuInventKey() {
                 short key = CMenuInventPt->key_arg_no;
                 if (key == 4 || key == 5) {
                     if (CMenuInventPt->album_big_form != NULL && InventAlbumPtr != NULL) {
-                        CMenuInventPt->album_big_form->GetPutPosXY(at_5743, item_pos[0], item_pos[1]);
+                        CMenuInventPt->album_big_form->GetPutPosXY("msgpos", item_pos[0], item_pos[1]);
                         item_pos[1] += 5;
                         MenuMesForm[7]->draw_flag = 1;
                         name_message->line_pos_on[0] = 0;
@@ -7448,7 +7432,7 @@ int MenuInventKey() {
                     for (index = 0; index < 3; index++) {
                         CMenuPosDataForm *name_form = CMenuInventPt->neta_name_form[index];
                         if (name_form != NULL) {
-                            name_form->GetPutPosXY(at_5744, item_pos[0], item_pos[1]);
+                            name_form->GetPutPosXY("msg", item_pos[0], item_pos[1]);
                             int x = item_pos[0];
                             int y = item_pos[1];
                             if (index >= 0 && index < MES_LINE_MAX) {
@@ -7470,13 +7454,13 @@ int MenuInventKey() {
                 if (LanguageCode < 2) {
                     MenuMesForm[3]->SetPos(count_x, count_y);
                 } else {
-                    MenuPosData->GetEtcTblValue(at_5745, count_x, count_y);
+                    MenuPosData->GetEtcTblValue("msg3q", count_x, count_y);
                 }
                 int message_no = 619;
                 if (CMenuInventPt->neta_select_num < 3) {
                     number_message->SetMsgVolumeNoOne(3 - CMenuInventPt->neta_select_num);
                     message_no = 618;
-                    MenuPosData->GetEtcTblValue(at_5746, count_x, count_y);
+                    MenuPosData->GetEtcTblValue("msg3p", count_x, count_y);
                 }
                 if (LanguageCode >= 2) {
                     MenuMesForm[3]->SetPos(count_x, count_y);
@@ -7487,11 +7471,9 @@ int MenuInventKey() {
         }
         case 2:
         case 3: {
-            tops = at_5642;
+            int tops[2] = {CMenuInventPt->card_top, CMenuInventPt->card_top - 1};
             int line = 0;
-            tops.top[0] = CMenuInventPt->card_top;
-            tops.top[1] = CMenuInventPt->card_top - 1;
-            int top = tops.top[CMenuInventPt->card_scroll_dir];
+            int top = tops[CMenuInventPt->card_scroll_dir];
             InventUserDataPtr->GetHatsumeiNum();
             CMenuPosDataForm *list_form = CMenuInventPt->card_list_form;
             float             list_x = list_form->x;
@@ -7627,12 +7609,6 @@ INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_5013__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_5014__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_5015__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_5016__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_5742__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_5743__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_5744__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_5745__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_5746__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_5747__DATA);
 
 // Virtual tables (.vtables)
 
@@ -7642,7 +7618,6 @@ INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_5747__DATA);
 INCLUDE_BSS(at_3509, 0x8);
 INCLUDE_BSS(at_3739, 0x8);
 INCLUDE_BSS(at_3765, 0x8);
-INCLUDE_BSS(at_5642, 0x8);
 
 // Uninitialised data (.bss)
 static mgCMemory MenuInventStack;

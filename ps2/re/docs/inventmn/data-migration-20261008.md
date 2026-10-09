@@ -3,7 +3,8 @@
 Baseline: `7c7edc2f`; MWCC 3.0/Satan's Fiddle through
 `chronicletwo_dev:sf-63f7a9e`. Warm PAL OK and 149/149 objects.
 Initial markers: 261 RODATA / 51 BSS; matched data: 4 / 18656 bytes.
-Current markers: 72 / 5; matched data: 132 / 18656 bytes.
+Migration checkpoint markers: 72 / 5; matched data: 132 / 18656 bytes.
+The review cleanup below removes six more RODATA markers and one BSS marker.
 All headers, guarded bodies, INCLUDE_ASM selections and profile rows
 remain unchanged.
 
@@ -158,14 +159,19 @@ Each row names one remaining marker; marker suffix `__DATA` is omitted.
 | `at_5014` | Frozen `MenuInventInit__FP9mgCMemoryPii`: initializer/literal/switch cannot be emitted by editing its body. |
 | `at_5015` | Frozen `MenuInventInit__FP9mgCMemoryPii`: initializer/literal/switch cannot be emitted by editing its body. |
 | `at_5016` | Frozen `MenuInventInit__FP9mgCMemoryPii`: initializer/literal/switch cannot be emitted by editing its body. |
-| `at_5742` | Frozen `MenuInventKey__Fv`: initializer/literal/switch cannot be emitted by editing its body. |
-| `at_5743` | Frozen `MenuInventKey__Fv`: initializer/literal/switch cannot be emitted by editing its body. |
-| `at_5744` | Frozen `MenuInventKey__Fv`: initializer/literal/switch cannot be emitted by editing its body. |
-| `at_5745` | Frozen `MenuInventKey__Fv`: initializer/literal/switch cannot be emitted by editing its body. |
-| `at_5746` | Frozen `MenuInventKey__Fv`: initializer/literal/switch cannot be emitted by editing its body. |
-| `at_5747` | Frozen switch table; its switch body cannot be edited. |
 | `at_3509` (BSS) | Native gift initializer is preserved; marker anchors its identity against an unrelated compiler switch-name collision. |
 | `at_3739` (BSS) | Confirmation buffer template; natural scope/value-initialization probes fail matching. |
 | `at_3765` (BSS) | Confirmation buffer template; natural scope/value-initialization probes fail matching. |
-| `at_5642` (BSS) | Frozen local zero template. |
 | `at_2776` (BSS) | Frozen local zero template. |
+
+## Native MenuInventKey data
+
+MenuInventKey is native and exact after its promotion, so its form names
+are ordinary inline literals: `msgbrd`, `msgpos`, `msg`, `msg3q`, and
+`msg3p`. Its two list tops use `int tops[2] = {card_top, card_top - 1}`.
+MWCC emits the same eight-byte zero template before storing the runtime
+values; the separate `at_5642` BSS marker and CardListTops wrapper are
+unnecessary. The native switch also emits the complete `at_5747` jump
+table. Removing these seven markers preserves the complete PAL executable
+and all 149 object comparisons. The remaining marker rows describe only
+the retained assembly consumers or documented initializer failures.
