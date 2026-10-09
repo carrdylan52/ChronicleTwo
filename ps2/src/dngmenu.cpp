@@ -727,8 +727,9 @@ void DrawDngRoomInfo(DNGMAP_ROOM_INFO *room) {
                 height += 0x16;
             }
         }
-        float             top = 92.0f;
-        float             left = (float) ((0x200 - width) >> 1);
+        float left;
+        float top = 92.0f;
+        left = (float) ((0x200 - width) >> 1);
         int               center = mgScreenWidth >> 1;
         short            *bottom_table = dngboardbrdtbl_1;
         int               alpha = DngInfoDrawAlpha;
@@ -1611,22 +1612,22 @@ int CDngFreeMap::LoadDngInfo(mgCMemory *stack, int block, int dungeon, int room,
         if (direction < 0) {
             return memory.stGetUsed();
         }
-        int table = old_hokantbl_useno_2247__DATA[direction];
-        const short *points = RoomHokanTablePtrTable_2245__DATA[table];
-        int reverse = is_reverse_tbl_room_2248__DATA[table];
+        int index = old_hokantbl_useno_2247__DATA[direction];
+        const short *points = RoomHokanTablePtrTable_2245__DATA[index];
+        int reverse = is_reverse_tbl_room_2248__DATA[index];
         if (reverse == DNGMAP_PATH_FORWARD) {
-            for (int i = 0; i < 10; i++) {
+            for (index = 0; index < 10; index++) {
                 DNGMAP_KOMA_POS *node = (DNGMAP_KOMA_POS *) memory.Alloc(1);
-                node->x = x + (float) points[i * 2];
-                node->y = y + (float) points[i * 2 + 1];
+                node->x = x + (float) points[index * 2];
+                node->y = y + (float) points[index * 2 + 1];
                 tail->next = node;
                 tail = node;
             }
         } else if (reverse == DNGMAP_PATH_REVERSE) {
-            for (int i = 9; i >= 0; i--) {
+            for (index = 9; index >= 0; index--) {
                 DNGMAP_KOMA_POS *node = (DNGMAP_KOMA_POS *) memory.Alloc(1);
-                node->x = x + (float) points[i * 2];
-                node->y = y + (float) points[i * 2 + 1];
+                node->x = x + (float) points[index * 2];
+                node->y = y + (float) points[index * 2 + 1];
                 tail->next = node;
                 tail = node;
             }
