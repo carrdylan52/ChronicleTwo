@@ -403,6 +403,31 @@
         "evaluate_before": 2
       },
       {
+        "translation_unit": "inventmn.cpp",
+        "function": "LoadCharaCheck__11CMenuInventFv",
+        "callee": "SetPosition__11CCharacter2Ffff",
+        "value_type": "binary32",
+        "evaluate_first": false,
+        "value_bits": "0x41600000",
+        "evaluate_before": 1,
+        "expected_matches": 2
+      },
+      {
+        "translation_unit": "inventmn.cpp",
+        "function": "LoadCharaCheck__11CMenuInventFv",
+        "callee": "SetPosition__11CCharacter2Ffff",
+        "value_type": "binary32",
+        "evaluate_first": false,
+        "value_bits": "0xc1e80000",
+        "argument": {
+          "argument_index": 1,
+          "value_type": "binary32",
+          "value_bits": "0x41a00000"
+        },
+        "evaluate_before": 3,
+        "expected_matches": 1
+      },
+      {
         "translation_unit": "mapjump.cpp",
         "function": "ExitInterior__FP6CScenePi",
         "value_type": "binary32",
@@ -1087,10 +1112,26 @@
         "expected_matches": 2
       },
       {
+        "translation_unit": "inventmn.cpp",
+        "function": "LoadCharaCheck__11CMenuInventFv",
+        "allocator": "__nw__FUiP1",
+        "constructor": "__ct__12CActionCharaFv",
+        "conversion": "after_constructor_inline",
+        "expected_matches": 1
+      },
+      {
         "translation_unit": "map.cpp",
         "function": "AddPartsGroup__4CMapFPcP9CMapPartsP9mgCMemory",
         "allocator": "__nw__FUiP1",
         "constructor": "__ct__23CList<14PartsGroupData>Fv",
+        "conversion": "after_constructor_inline",
+        "expected_matches": 1
+      },
+      {
+        "translation_unit": "map.cpp",
+        "function": "CreateDrawRect__4CMapFP9mgCMemoryP9mgVu0FBOXP9mgVu0FBOXi",
+        "allocator": "__nw__FUiP1",
+        "constructor": "__ct__18CList<P9CMapParts>Fv",
         "conversion": "after_constructor_inline",
         "expected_matches": 1
       }
