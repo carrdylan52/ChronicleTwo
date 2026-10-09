@@ -312,10 +312,6 @@ struct aqua_wall_quad {
     float v[4][4]; /**< Position of each wall corner. */
 };
 
-extern "C" aqua_wall_quad at_4369__2;
-extern "C" aqua_wall_quad at_4370__2;
-extern "C" aqua_wall_quad at_4371__2;
-extern "C" aqua_wall_quad at_4372__2;
 extern float              v1orig_4373[4];
 extern float              v2orig_4374[4];
 extern float              v3orig_4375[4];
@@ -477,8 +473,6 @@ extern float            Gyoracemenu_CursorXY[2];
 extern u8               MenuLoadFishIsLoad;
 extern CGameDataUsed   *MenuLoadFishSelectData;
 extern int              vol_5253[6];
-extern "C" char         at_5229[];
-extern "C" char         at_5230[];
 extern "C" char         at_5487[];
 extern "C" char         at_5488[];
 extern "C" char         at_5489[];
@@ -7230,23 +7224,16 @@ INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuaqua", at_4306__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuaqua", at_4352__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuaqua", at_4363__2__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuaqua", at_4364__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuaqua", at_4369__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuaqua", at_4370__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuaqua", at_4371__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuaqua", at_4372__2__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuaqua", v1orig_4373__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuaqua", v2orig_4374__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuaqua", v3orig_4375__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuaqua", v4orig_4376__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuaqua", t_4408__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuaqua", at_4432__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuaqua", gyorace_tag__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuaqua", gyoprize_tag__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuaqua", GyoracerIndexNo__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuaqua", GyoracerTacticsNo__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuaqua", Mitouroku__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuaqua", at_5229__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuaqua", at_5230__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuaqua", vol_5253__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuaqua", pl_s_5630__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuaqua", pl_b_5631__DATA);
@@ -7258,7 +7245,6 @@ INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuaqua", pl_s_5699__DATA);
 // Constants (.rodata)
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuaqua", at_1323__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuaqua", at_1387__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuaqua", at_1388__2__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuaqua", at_2112__2__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuaqua", at_2183__3__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuaqua", at_2184__2__DATA);
@@ -7307,23 +7293,9 @@ INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuaqua", at_3162__2__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuaqua", at_3163__2__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuaqua", at_3164__3__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuaqua", at_3429__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuaqua", at_3430__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuaqua", at_4300__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuaqua", at_4299__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuaqua", at_4420__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuaqua", at_4421__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuaqua", at_4422__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuaqua", at_4423__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuaqua", at_4424__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuaqua", at_4425__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuaqua", at_4426__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuaqua", at_4427__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuaqua", at_4428__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuaqua", at_4429__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuaqua", at_4430__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuaqua", at_4431__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuaqua", at_4519__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuaqua", at_4629__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuaqua", at_4814__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuaqua", at_4815__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuaqua", at_4825__DATA);
@@ -7354,8 +7326,6 @@ INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuaqua", at_5499__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuaqua", at_5500__DATA);
 
 // Virtual tables (.vtables)
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuaqua", __vt__9CFishFood__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuaqua", __vt__9CAquaFish__DATA);
 
 // Small initialised data (.sdata)
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuaqua", ColChkPointNum__DATA);
@@ -7376,7 +7346,6 @@ INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuaqua", tbl_3505__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuaqua", another_aquarium_Notbl_3642__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuaqua", menu_max_tbl_3720__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuaqua", filename_4899__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuaqua", at_5309__DATA);
 
 // Small uninitialised data (.sbss)
 INCLUDE_BSS(AquaScene, 0x4);
@@ -7396,8 +7365,6 @@ INCLUDE_BSS(aquarium_paul_table, 0x4);
 INCLUDE_BSS(AquaBattleBubble, 0x4);
 INCLUDE_BSS(AquaBattleBubble_Generate_Wait, 0x4);
 INCLUDE_BSS(AquaBattleBubble_Generate_Counter, 0x4);
-INCLUDE_BSS(count_1612, 0x4);
-INCLUDE_BSS(init_1613, 0x4);
 INCLUDE_BSS(m_aquarium_para, 0x4);
 INCLUDE_BSS(m_aquarium_limmit_adr, 0x4);
 INCLUDE_BSS(AquaDeadCheck, 0x4);
@@ -7462,10 +7429,6 @@ INCLUDE_BSS(MenuLoadFishTopLine, 0x4);
 INCLUDE_BSS(MenuLoadFishSelectData, 0x4);
 INCLUDE_BSS(MenuLoadBoardTex, 0x4);
 INCLUDE_BSS(MenuLoadFishBoardX, 0x4);
-INCLUDE_BSS(local_gdata_5177, 0x4);
-INCLUDE_BSS(init_5178, 0x4);
-INCLUDE_BSS(save_now_space_racer_no_5180, 0x4);
-INCLUDE_BSS(init_5181, 0x4);
 
 // Uninitialised data (.bss)
 mgCMemory Aquarium_NameregistStack;
@@ -7473,10 +7436,6 @@ INCLUDE_BSS(AquaBubble, 0x10);
 INCLUDE_BSS(AquaFishBubble, 0x20);
 INCLUDE_BSS(AquaBattleBubble_Pos, 0x10);
 INCLUDE_BSS(AquaFishEff, 0x20);
-INCLUDE_BSS(at_2473, 0x20);
-INCLUDE_BSS(at_2474, 0x20);
-INCLUDE_BSS(at_2475, 0x20);
-INCLUDE_BSS(at_4433, 0x30);
 CAquarium Aquarium;
 mgCMemory GyoraceFishSelStack;
 INCLUDE_BSS(fish_save_present, 0x60);
