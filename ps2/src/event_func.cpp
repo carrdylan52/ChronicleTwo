@@ -4370,7 +4370,7 @@ int GetConfigCaptionOff() {
         SV_CONFIG_OPTION *config = &save->config;
 
         if (config != NULL) {
-            caption_off = (s8) config->caption_off;
+            caption_off = config->caption_off;
         }
     }
 
