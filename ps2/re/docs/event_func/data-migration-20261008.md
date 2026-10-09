@@ -23,17 +23,11 @@ Both stages pass PAL and 149/149 objects; every unowned object hash is unchanged
 
 ## Local language extensions
 
-`FileNameConvLanguage` initializes its four typed extension pointers at their
-use and inlines the two formatting strings. The three nonempty extensions
-are `txt`, `img`, and `stb`. The unused fourth pointer remains `at_1083`, the
-shared empty-string symbol. Inlining that pointer produces an anonymous
-empty literal that the stock mapper cannot identify through the initializer
-relocation; the native extension template and literal stay unnamed. Retaining
-the existing empty symbol lets the complete native pointer template match.
-This removes six initialized markers without altering function instructions.
+`FileNameConvLanguage` initializes its four typed extension pointers at their use and inlines the two formatting strings. The extensions are `txt`, `img`, `stb`, and the empty string. Its complete native pointer template matches.
 
-Receipts: `.private/dataA-r3/event-extensions-empty-symbol-{build,objects,hashes}.log`;
-the failed fully inline form is recorded in `event-extensions-failure.log`.
+An initial partial probe left other empty-string consumers external, so the mapper could not identify the newly anonymous fourth initializer target. Migrating all native empty-string consumers together supplies enough real code references to establish that identity; the final source needs neither the `at_1083` marker nor its external declaration. No guarded draft uses this datum.
+
+Initial receipts: `.private/dataA-r3/event-extensions-empty-symbol-{build,objects,hashes}.log`; the partial fully inline form is recorded in `event-extensions-failure.log`. Final receipts: `.private/dataA-r3/event-empty-all-native-{build,objects,hashes}.log`.
 
 ## NPC and voice-pack initializer templates
 
@@ -225,6 +219,48 @@ Each removal has independent full PAL, 149-object and unowned raw-object hash re
 
 All native users of the shared empty string now use `""`, including the fourth language-extension pointer. Migrating every consumer together supplies native code references that identify the formerly anonymous initializer target. The `at_1083` marker and external declaration are removed; guarded drafts remain unchanged. Receipt: `.private/dataA-r3/event-empty-all-native-{build,objects,hashes}.log`.
 
+## Switch ownership and extents
+
+| Retail table | Native switch owner | Declared bytes | Piece bytes |
+|---|---|---:|---:|
+| `at_1910` | `EventTimeDraw` | 24 | 32 |
+| `at_1909` | `EventTimeDraw` | 24 | 32 |
+| `at_3823__2` | `_CHK_INTERSECTION_POINT` | 32 | 32 |
+| `at_3884` | `_CHK_INTERSECTION_POINT_PIPE` | 32 | 32 |
+| `at_4274` | `_SET_GYORACE_ETC` | 40 | 48 |
+| `at_4273` | `_SET_GYORACE_ETC` | 40 | 48 |
+| `at_4272__2` | `_SET_GYORACE_ETC` | 32 | 32 |
+| `at_4291` | `_GET_GYORACE_ETC` | 24 | 32 |
+| `at_4360__2` | `_GET_SAVEDATA_ETC` | 28 | 32 |
+| `at_4573` | `_SET_EVENT_DATA` | 60 | 64 |
+| `at_5264__2` | `_SET_MES_ETC` | 44 | 48 |
+| `at_5424` | `_GET_FISHINGTOURNAMENT_ETC` | 40 | 48 |
+| `at_6703` | `_GET_SND_ID` | 24 | 24 |
+| `at_8406` | `_GET_EVENT_DATA` | 64 | 64 |
+| `at_8458` | `_SET_FLOOR_INFO` | 32 | 32 |
+| `at_8480` | `_GET_FLOOR_INFO` | 32 | 32 |
+
+The declared payload contains one relocated target per four bytes. Piece tails are verified zero alignment padding; interior branch targets remain associated with the enclosing native function.
+
 ## Retained markers
 
-The initialized-data markers are pending the following migration topics.
+Only `vv_3333` remains. It is the 48-byte mutable local static owned by `_SET_TALK_CAMERA`, already expressed naturally as `float vv[3][4]` in source. The pinned mapper cannot establish its native initialized-local identity after marker removal; the complete PAL still matches, but canonical checking fails as documented above. The source-only cleanup and tooling handoff are in `.private/proposals/event-func-native-camera-storage.{patch,md}`. No build scripts or SF profiles are edited.
+
+All 22 BSS markers and the other 115 initialized-data markers are removed. All guarded blocks remain text-identical to checkpoint `3221b488`. No functions are promoted; the 26 callback result corrections preserve their retail instruction words and resolved references.
+
+## Comparison section shape
+
+The compiler emits separate native `.data` pieces while the reference comparison object retains one monolithic `.data` section. Objdiff's current pairing associates only the first native section with that reference run; other native pieces have separate zero-score section entries. This is a comparison limitation, independent of the canonical object result. `.private/dataA-r3/final-data-pieces.log` verifies every native initialized piece in both units with identical bytes and all mapped R_MIPS_32 targets.
+
+The seven native initialized pieces total 8,760 bytes; the retained camera static owns the other 48 bytes of the 8,808-byte retail `.data` run. The aggregate `.data` score is 98.6675%, so the entire run lacks strict matched-byte credit. The native rodata, BSS, SBSS and constructor pointer sections receive their exact credit.
+
+## Final validated measures
+
+| Measure | Checkpoint 3221b488 | Final native source |
+|---|---:|---:|
+| `INCLUDE_RODATA` | 116 | 1 |
+| `INCLUDE_BSS` | 22 | 0 |
+| `matched_data` | 4 | 226556 |
+| `total_data` | 235364 | 235364 |
+
+Final pinned-image receipts: `.private/dataA-r3/final-{build,objects,hashes,refresh,coverage,data-pieces}.log` and `after.json`. PAL prints `SCES_511.90: OK`; all 149 canonical units pass; no unowned raw objects change. Source guards are unchanged and build scripts, SF profiles and dng_main remain untouched.
