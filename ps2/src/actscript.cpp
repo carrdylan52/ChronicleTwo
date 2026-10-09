@@ -2548,10 +2548,9 @@ static int _ESM_SET_VALUE(RS_STACKDATA *stack, int argc) {
  *
  */
 int SetActionScript(CRunScript *script, char *program, mgCMemory *memory) {
-    int stack = (int) memory->Alloc(0x40);
-    int call_data = (int) memory->Alloc(0x180);
-    script->load((RS_PROG_HEADER *) program, (RS_STACKDATA *) stack, 0x80, (RS_CALLDATA *) call_data,
-                 0x200);
+    RS_STACKDATA *stack = (RS_STACKDATA *) memory->Alloc(0x40);
+    RS_CALLDATA  *call_data = (RS_CALLDATA *) memory->Alloc(0x180);
+    script->load((RS_PROG_HEADER *) program, stack, 0x80, call_data, 0x200);
     script->ext_func(ext_func, 0x100);
     return 1;
 }
