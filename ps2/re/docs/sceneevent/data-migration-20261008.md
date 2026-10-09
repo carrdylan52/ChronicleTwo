@@ -18,8 +18,8 @@ allocation (`sceneevent-flare-vector`, `-aligned`, `-aggregate`, `-order`).
 Copying a native static union generates an extra implicit assignment
 function (`sceneevent-flare-vector-copy`), so it is rejected. Ordinary
 memcpy from a static native base-color array, with and without SDK vector
-alignment, preserves the function extent but emits an out-of-line memcpy call
-and changes argument/address setup: the best candidate differs in **29/156 relocation-masked
+alignment, preserves the function extent but changes source/destination
+address registers: the best candidate differs in **29/156 relocation-masked
 words**, native extent 0x26C within the retail 0x270-byte piece
 (`sceneevent-flare-vector-memcpy`, `-memcpy-aligned`). No failing source,
 new type pun, helper, dummy local, compiler pragma, or tool/profile edit is
@@ -29,6 +29,16 @@ retained. The existing marker/copy remains pending a natural exact form.
 reverted. The best-score and disassembly receipts are
 `sceneevent-flare-vector-best-score.log` and
 `sceneevent-flare-vector-memcpy-aligned-disassembly.log`.
+
+A follow-up typed CopyVector assignment with scoped `inline_depth(8)`
+suppresses the extra implicit assignment helper, but still produces a
+0x268-byte function versus retail's 0x26C declared extent and 0x270 piece.
+It differs in 106/155 relocation-masked words over the declared extent
+(106/156 over the padded piece), including stack/register allocation, and
+the named static base color remains unbound. The probe and pragma are
+reverted (`sceneevent-flare-copy-depth-build.log`, `-objects.log`,
+`-score.log`). `sceneevent-flare-copy-depth-source-restored` passes the full
+PAL and 149-object checks afterward.
 
 Final: 1 rodata / 0 BSS markers; matched_data
 66/146 after the standard objdiff/progress refresh.
