@@ -71,7 +71,7 @@ foreach(row IN LISTS unit_rows)
 endforeach()
 make_object_dirs("${OBJDIFF_OBJS}")
 
-# Source edits affect other units only when their explicit address cuts change.
+# Source cuts and function/fallback classification affect the global split.
 # Ninja's restat avoids rebuilding the split when this file keeps its timestamp.
 set(SOURCE_CUTS ${BUILD_DIR}/source_cuts.txt)
 add_custom_command(
@@ -83,7 +83,7 @@ add_custom_command(
             ${CMAKE_SOURCE_DIR}/${SCRIPTS_DIR}/build/disassemble.py
             ${CMAKE_SOURCE_DIR}/${SCRIPTS_DIR}/build/layout.py
     WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
-    COMMENT "Checking explicit source data cuts"
+    COMMENT "Checking source split inputs"
     VERBATIM)
 add_custom_command(
     OUTPUT ${CMAKE_SOURCE_DIR}/${SPLIT_STAMP}
