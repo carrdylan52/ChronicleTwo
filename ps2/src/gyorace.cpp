@@ -1517,12 +1517,7 @@ INCLUDE_RODATA("ps2/asm/pal/nonmatchings/gyorace", at_1701__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/gyorace", at_1702__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/gyorace", at_1703__DATA);
 
-// Small uninitialised data (.sbss)
-#ifndef NONMATCHING
-
 // Uninitialised data (.bss)
-INCLUDE_BSS(D_01F5971C, 0x4);
-#endif
 static mgCMemory BuffWorkData;
 
 mgCCamera        camera0(8.0f);

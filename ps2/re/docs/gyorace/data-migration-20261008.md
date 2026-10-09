@@ -221,3 +221,26 @@ The complete PAL is `SCES_511.90: OK` and all **149/149** canonical objects
 pass. Only the four migrated units change object hashes in this step; code
 metrics remain **6,780 functions / 1,854,796 bytes**. No function is promoted.
 Receipts: `.private/dtool-r5/data-fixed-{build,objects,tests,metrics}.log`.
+
+## Round-5 native ranking alignment boundary
+
+The existing six-int `fish_rank` and `old_fish_rank` arrays have 24-byte
+declared extents at `0x01F59700` and `0x01F59720`. Both native sections
+have 16-byte alignment. The eight-byte gap is therefore required by the
+compiler; its canonical reference at `0x01F5971C` separates the final four
+bytes. Verified native alignment now supplies that zero fragment under
+`D_01F5971C`, so the reservation marker is removed. The original
+`old_fish_rank` relocation and -4 addend remain intact.
+
+Only the data marker and its empty data guard are removed. All source
+functions, guarded drafts and INCLUDE_ASM lines remain unchanged. The
+remaining three BSS templates and 26 constants retain their markers.
+
+Markers: RODATA **26 → 26**, BSS **4 → 3**. Refreshed matched data remains
+**125 / 2729** because the other retained pieces leave their aggregate
+sections incomplete. PAL is `SCES_511.90: OK`, all **149/149** objects pass,
+and only `gyorace` and the simultaneously migrated `dngfloor` object change
+hashes. Code metrics remain **6,780 functions / 1,854,796 bytes**.
+Receipts: `.private/dtool-r5/alignment-data-{build,objects,tests,metrics}.log`.
+The missing-fragment regression before the tool fix is
+`.private/dtool-r5/alignment-tests-before.log`.
