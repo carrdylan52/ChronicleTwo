@@ -581,7 +581,7 @@ int mgCVisualMDT::Draw(u_int *tag, float (*matrix)[4], mgCDrawManager *draw_mana
     mgRENDER_INFO *info = draw_manager->render_info;
     self->texture_manager = (mgCTextureManager *) draw_manager->texture_manager;
     prev_tex = 0;
-    mgCMemory *memory = (mgCMemory *) draw_manager->data_memory;
+    mgCMemory *memory = draw_manager->data_memory;
     void      *buffer = (void *) (memory->stack + memory->stack_used);
     memory->stack_used += self->CreateRenderInfoPacket((u_int *) buffer, matrix, info);
     self->CreatePacket(draw_manager);
@@ -628,8 +628,8 @@ u_int mgCVisualMDT::CreatePacket(mgCDrawManager *manager) {
     mgRENDER_INFO *info;
     int            data_start;
     info = manager->render_info;
-    packet_memory = (mgCMemory *) manager->packet_memory;
-    data_memory = (mgCMemory *) manager->data_memory;
+    packet_memory = manager->packet_memory;
+    data_memory = manager->data_memory;
     node = model->face_group;
     u_int start = (u_int) (packet_memory->stack + packet_memory->stack_used);
     int   data_cursor;
@@ -700,8 +700,8 @@ u_int mgCVisualFixMDT::CreatePacket(mgCDrawManager *manager) {
     mgFACE_GROUP  *node;
     mgRENDER_INFO *info;
     int            data_start;
-    data_memory = (mgCMemory *) manager->data_memory;
-    packet_memory = (mgCMemory *) manager->packet_memory;
+    data_memory = manager->data_memory;
+    packet_memory = manager->packet_memory;
     node = face_group;
     info = manager->render_info;
 
