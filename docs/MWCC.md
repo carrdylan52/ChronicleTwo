@@ -227,7 +227,9 @@ only with no retail relocations and complete zero initialized bytes.
 Literal identity uses declared objects; padding additionally uses the canonical
 reference boundaries, so an alignment tail cannot swallow a separately referenced
 word. Referenced interior addresses and explicit `D_<address>` source identifiers
-remain separate piece boundaries.
+remain separate piece boundaries. A negative-addend table access cannot bind
+the table to a placeholder for the preceding word; its native identity and
+original addend remain intact.
 
 Native BSS templates, local statics and their guards need an exact declared
 extent and agreement from every live incoming code reference. Each reference

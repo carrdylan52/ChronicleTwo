@@ -490,6 +490,10 @@ def bind_local_data(elf, unit, placeholder_sections):
                 ours = ((word(hi) & 0xFFFF) << 16) + sext16(word(lo))
             else:
                 continue
+            # A negative member addend addresses storage before this native
+            # object. A retained preceding word cannot supply the table itself.
+            if ours + target.st_value < 0:
+                continue
             found = placeholder_at(theirs)
             if found is None:
                 continue

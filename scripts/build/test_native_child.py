@@ -45,6 +45,30 @@ class NativeChildTests(unittest.TestCase):
              patch.object(p, 'rename_shared_names'):
             return p.bind_local_data(elf, 'unit', held)
 
+    def test_negative_addend_does_not_bind_table_to_preceding_placeholder(self):
+        for kind in ('gp', 'hi_lo'):
+            with self.subTest(kind=kind):
+                fixture = self.fixture()
+                elf, held, _lay, _rows, retail = fixture
+                elf.sections[2].data = bytes(20)
+                elf.symtab.symbols[1].st_size = 20
+                elf.symtab.symbols[1].name = 'offset_99'
+                elf.relocations = elf.relocations[:1]
+                if kind == 'gp':
+                    code = struct.pack('<I', 0x2782fffc)
+                    retail.word = lambda address: 0x27821000
+                else:
+                    code = struct.pack('<II', 0x3c020000, 0x2442fffc)
+                    elf.relocations[0].relocations = [relocation(0, p.R_MIPS_HI16, 1),
+                                                     relocation(4, p.R_MIPS_LO16, 1)]
+                    retail.word = {0x1000: 0x3c020000, 0x1004: 0x24423000}.__getitem__
+                elf.sections[1].data = code
+                retail.bytes = lambda lo, hi: bytes(hi - lo)
+                self.assertEqual(self.apply(fixture), [])
+                self.assertEqual(elf.sections[2].name, '.data')
+                self.assertEqual(elf.sections[1].data, code)
+                self.assertTrue(all(ref.symbol_index == 1 for ref in elf.relocations[0].relocations))
+
     def test_native_child_without_marker_survives_discarded_parent(self):
         fixture = self.fixture()
         self.assertEqual(self.apply(fixture), ['at_99'])
