@@ -429,3 +429,15 @@ with a signed load, and its comparisons in LaneBattleStep keep `(u_char)`.
 record copy loads the byte signed. Making all three fields `u8` fails
 grGetFishProgress and StepFish on those loads; retyping only
 `grRACE_PROGRESS::state` passes SCES_511.90 and 149/149 objects.
+
+## Race-step function linkage
+
+Retail StepGyoRace__FP15RACE_FISH_PARAMP11grRACE_INFO is LOCAL at 0x323270,
+with declared size 0x32C (812 bytes). Both source prototypes and the definition
+now use static linkage. The complete isolated object preserves 0x3134 checked
+bytes and all 87 resolved relocations, with the native symbol also LOCAL and
+812 bytes. The production PAL build and all 149 objects remain exact; no
+function guard changes.
+
+Receipts: .private/fixes-r0/probes/gyoracesim-static/objects.log and
+.private/fixes-r0/gyoracesim-final-{build,objects}.log.

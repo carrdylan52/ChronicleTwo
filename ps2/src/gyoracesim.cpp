@@ -75,7 +75,7 @@ static grFISH_DATA fish_data[18] = {
 static void        irn55();
 static int         irnd();
 void               init_rnd(u_int seed);
-int                StepGyoRace(RACE_FISH_PARAM *fish, grRACE_INFO *race);
+static int                StepGyoRace(RACE_FISH_PARAM *fish, grRACE_INFO *race);
 int                GetRaceDivision(float distance);
 float              GetCourseR(float pos, float unused);
 void               SetRaceFishParam(RACE_FISH_PARAM *fish, grRACE_INFO *race);
@@ -94,7 +94,7 @@ void         CharacterBonus(grFISH_PARAM *source, RACE_FISH_PARAM *fish, int cou
 void         FishModifyParam(grFISH_PARAM *source, float *output, float average);
 static void  GetPaseRatio(int tactics, float *ratio);
 void         SetRaceFishParam(RACE_FISH_PARAM *fish, grRACE_INFO *race);
-int          StepGyoRace(RACE_FISH_PARAM *fish, grRACE_INFO *info);
+static int          StepGyoRace(RACE_FISH_PARAM *fish, grRACE_INFO *info);
 static void  CollisionFish(RACE_FISH_PARAM *fish, int count);
 void         LaneBattleStep(RACE_FISH_PARAM *fish, int count);
 grFISH_DATA *GetFishData(int fish_no);
@@ -504,7 +504,7 @@ static void CollisionFish(RACE_FISH_PARAM *fish, int count) {
  * @address 0x323270
  * @size 0x32C
  */
-int StepGyoRace(RACE_FISH_PARAM *fish, grRACE_INFO *info) {
+static int StepGyoRace(RACE_FISH_PARAM *fish, grRACE_INFO *info) {
     int i, j;
     int step;
     for (j = 0; j < 6; ++j) {
