@@ -63,6 +63,10 @@ class AdapterTests(unittest.TestCase):
                     "statement_conversions": [placement("unit.cpp"), placement("other.cpp")],
                 },
             }))
+            source_root = directory / "checkout"
+            (source_root / "ps2/src").mkdir(parents=True)
+            for unit in ("unit.cpp", "other.cpp"):
+                (source_root / "ps2/src" / unit).touch()
             observed = {}
 
             def run(command):
@@ -70,7 +74,7 @@ class AdapterTests(unittest.TestCase):
                 observed["configuration"] = json.loads(Path(command[2]).read_text())
                 return type("Completed", (), {"returncode": 7})()
 
-            with patch.dict(os.environ, {
+            with patch.object(adapter, "ROOT", source_root), patch.dict(os.environ, {
                 "SATANSFIDDLE": "fake-satansfiddle", "SATANSFIDDLE_CONFIG": str(profile),
                 "SATANSFIDDLE_TRANSLATION_UNIT": "ps2\\src\\unit.cpp",
             }), patch.object(adapter.shutil, "which", return_value="/tool/satansfiddle"), \
@@ -87,6 +91,42 @@ class AdapterTests(unittest.TestCase):
             self.assertEqual(selected["floating_point"]["expression_overrides"], [expression("unit.cpp")])
             self.assertEqual(selected["placement_new"]["statement_conversions"], [placement("unit.cpp")])
             self.assertFalse(Path(observed["arguments"][2]).exists())
+
+    def test_rejects_unknown_units_before_filtering_or_running_compiler(self):
+        tables = (
+            ("translation_units", None, "name"),
+            ("floating_point", "expression_overrides", "translation_unit"),
+            ("floating_point", "literal_overrides", "translation_unit"),
+            ("placement_new", "statement_conversions", "translation_unit"),
+        )
+        with tempfile.TemporaryDirectory() as directory:
+            directory = Path(directory)
+            source_root = directory / "checkout"
+            (source_root / "ps2/src").mkdir(parents=True)
+            (source_root / "ps2/src/unit.cpp").touch()
+            profile_path = directory / "profile.json"
+            output = directory / "output.o"
+            output.write_bytes(b"existing object")
+            for section, table, field in tables:
+                with self.subTest(section=section, table=table):
+                    rows = [{field: "unit.cpp"}, {field: "stale.cpp"}]
+                    profile = {section: rows if table is None else {table: rows}}
+                    profile_path.write_text(json.dumps(profile))
+                    with patch.object(adapter, "ROOT", source_root), patch.dict(os.environ, {
+                        "SATANSFIDDLE_CONFIG": str(profile_path),
+                        "SATANSFIDDLE_TRANSLATION_UNIT": "unit.cpp",
+                    }), patch.object(adapter.shutil, "which", return_value="/tool/satansfiddle"), \
+                            patch.object(adapter.subprocess, "run") as run:
+                        run.return_value.returncode = 0
+                        with self.assertRaisesRegex(ValueError, "unknown translation unit 'stale.cpp'"):
+                            adapter.main(["compiler.exe", "-c", "-o", str(output),
+                                          str(directory / "temporary.c")])
+                        run.assert_not_called()
+                    self.assertEqual(output.read_bytes(), b"existing object")
+
+    def test_checked_in_profile_names_existing_game_sources(self):
+        profile = json.loads((adapter.ROOT / "scripts/build/satansfiddle.json").read_text())
+        adapter.validate_profile_units(profile)
 
     def test_missing_binary_has_setup_error(self):
         with patch.object(adapter.shutil, "which", return_value=None):
