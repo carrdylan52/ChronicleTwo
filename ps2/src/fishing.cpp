@@ -4372,7 +4372,7 @@ static int fpFISH_MAP_NUM(SPI_STACK *args, int arg_count) {
     }
 
     u_long128 *block = fpStack->Alloc(blocks + 2);
-    FishPlaceMap = (FISH_PLACE_MAP *) operator new[](FishPlaceMapNum * sizeof(FISH_PLACE_MAP), block);
+    FishPlaceMap = new (block) FISH_PLACE_MAP[FishPlaceMapNum];
     fpNowFishPlaceMapNum = 0;
     fpNowFishPlaceMap = FishPlaceMap;
     return 1;
