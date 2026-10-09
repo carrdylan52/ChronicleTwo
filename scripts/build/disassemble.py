@@ -349,12 +349,37 @@ def raw_unrelocated_vu_words(text, retail):
     return ''.join(output)
 
 
+def raw_unrelocated_data_words(text, retail):
+    """Keep initialized data words numeric when retail has no pointer relocation."""
+    sections = {'.data', '.vudata', '.rodata', '.ctor', '.vtables', '.rdata', '.sdata'}
+    section = None
+    output = []
+    for line in text.splitlines(keepends=True):
+        match = SECTION_LINE.match(line)
+        if match:
+            section = match.group(1)
+        match = VU_WORD.match(line) if section in sections else None
+        if match and not NUMERIC_WORD.fullmatch(match.group('operand')):
+            address = int(match.group('address'), 16)
+            if layout.section_of(address) != section or address % 4:
+                raise ValueError(f'Data word 0x{address:08X} is outside {section} or unaligned')
+            if address not in retail.relocations:
+                word = retail.word(address)
+                if bytes.fromhex(match.group('bytes')) != retail.bytes(address, address + 4):
+                    raise ValueError(f'Data word 0x{address:08X} does not match retail bytes')
+                line = (match.group('prefix') + f'0x{word:08X}'
+                        + (match.group('newline') or ''))
+        output.append(line)
+    return ''.join(output)
+
+
+
 def restore_raw_vu_words(lay, retail):
-    """Remove splat's inferred address expressions from unrelocated VU words."""
+    """Remove splat's inferred pointers wherever retail has no relocation."""
     for _kind, reference, _object, _args in layout.assembled_objects(lay):
         path = ROOT / reference
         text = path.read_text()
-        restored = raw_unrelocated_vu_words(text, retail)
+        restored = raw_unrelocated_data_words(raw_unrelocated_vu_words(text, retail), retail)
         if restored != text:
             write_if_changed(path, restored)
 

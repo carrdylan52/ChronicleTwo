@@ -254,8 +254,8 @@ identities. Discarding a fallback parent removes a compiler-owned child only whe
 that child's retail storage also has a retained placeholder. Native children
 remain available for naming and comparison.
 
-VU microcode words that resemble addresses remain numeric when retail has no
-relocation. The splitter checks their emitted byte comments against retail
+VU instructions and initialized game or library words that resemble addresses
+remain numeric when retail has no relocation. The splitter checks their emitted byte comments against retail
 before replacing an inferred expression; real relocations remain intact.
 
 A terminal function may end before the next unit's address when the generated
