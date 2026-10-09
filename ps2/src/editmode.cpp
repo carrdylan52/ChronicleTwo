@@ -34,15 +34,6 @@ static void GetBalanceHeight(CScene *scene, float *balance);
 static int  GetGeoCheckCol(CMap *map, mgVu0FBOX &box, CCPoly *polys, int max);
 static int  GetGeoCheckCamCol(CMap *map, mgVu0FBOX &box, CCPoly *polys, int max);
 
-extern mgRect<int> data[];
-extern "C" char    at_1254__2[];
-extern "C" char    at_1284__5[];
-
-extern char                     at_1367[];
-extern char                     at_1377__3[];
-
-extern "C" {
-
 /**
  *
  * Georama tool selected from EditModeType.
@@ -413,8 +404,6 @@ static mgCFrame *EditCursor[3];
  *
  */
 static sceVu0FVECTOR now_balance_h;
-
-}
 
 /**
  *
@@ -1351,9 +1340,13 @@ static float GetGeoMapLimitHeight(int map_kind) {
     return -1.0f;
 }
 #ifdef NONMATCHING
-extern "C" float ePartsCurRot[4];
-extern "C" float ePartsCurNowRot[4];
-extern "C" float eDirCurRot[4];
+extern mgRect<int> data[];
+extern "C" char at_1254__2[];
+extern "C" char at_1284__5[];
+extern char at_1377__3[];
+extern float ePartsCurRot[4];
+extern float ePartsCurNowRot[4];
+extern float eDirCurRot[4];
 extern float eDirCurLen;
 extern char at_1835__2[];
 extern char at_1836__2[];
@@ -2952,30 +2945,18 @@ int CheckEditToWalk(CScene *scene, float *position) {
 
 // Constants (.rodata)
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editmode", at_1067__3__DATA);
-
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editmode", at_1068__3__DATA);
-
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editmode", at_1069__5__DATA);
-
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editmode", at_1070__3__DATA);
-
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editmode", at_1071__3__DATA);
-
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editmode", at_1072__3__DATA);
-
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editmode", at_1073__3__DATA);
-
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editmode", at_1074__3__DATA);
-
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editmode", at_1075__2__DATA);
-
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editmode", at_1076__2__DATA);
-
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editmode", at_1835__2__DATA);
-
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editmode", at_1836__2__DATA);
 
 // Uninitialised data (.bss)
 INCLUDE_BSS(at_1445__3, 0x10);
-
 INCLUDE_BSS(at_1579__2, 0x10);

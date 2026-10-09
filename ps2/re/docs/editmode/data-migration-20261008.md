@@ -38,9 +38,10 @@ The 36 named `.sbss` objects before the drawing statics are four-byte values:
 integer editor modes, flags, slot/definition IDs, inventory and frame counts;
 `PartsHeight`, `eDirCurLen`, and `eCameraDist` are floats; the texture, frame,
 and character handles are typed pointers. All use the documented retail names
-and `static` visibility. Their definitions retain C linkage for compatible
-redeclarations in the untouched guarded drafts. Each definition documents its
-purpose. `eCurRot` is an integer quarter-turn index: angle conversion APIs and
+and `static` visibility. Their definitions have ordinary C++ linkage; the
+redundant C-linkage wrapper is removed and the three draft float
+redeclarations use the same ordinary linkage. Each definition documents
+its purpose. `eCurRot` is an integer quarter-turn index: angle conversion APIs and
 the `%d` debug formatter consume it as an integer, and saving it into a float
 slot uses `cvt.s.w`. The old notes' float description is inaccurate.
 
@@ -155,12 +156,13 @@ sections receive no aggregate credit. Full validation remains PAL OK and
 names as inline Shift-JIS literals. The native pooled objects keep the retail
 identities `at_1254__2`, `at_1284__5`, and `at_1377__3`, including for the
 untouched guarded `EditMode` motion-name comparisons and its active assembly.
-Their existing external declarations remain available to that draft. No
+Their existing external declarations live inside that draft's guard. No
 unrelated copy of a literal or replacement symbol is introduced. Each migration
 is validated separately with exact resolved relocations and PAL verification.
 
 `DeleteKanketuParts` inlines the shared removal-effect name at all four
-`CreateEffSpt` calls, removing `at_1367`'s external declaration and marker.
+`CreateEffSpt` calls, removing `at_1367`'s marker. The round-2 cleanup also
+deletes its unused external declaration.
 Receipts: `literal-at_1254__2-*`, `literal-at_1284__5-*`,
 `literal-at_1377__3-*`, and `literal-at_1367-*`.
 
@@ -178,7 +180,7 @@ function-relative targets, including the common exit for help case 11.
 No hand-written label table is needed. `Font__2` now has retail-local visibility
 and remains a native `CFont`; its compiler-generated initializer still matches
 the retail `CFont::Init` call. Empty data-section captions are removed, and
-retained top-level markers are separated by blank lines.
+retained top-level markers are contiguous under their section headings.
 
 These steps each pass PAL and complete-object checks. Receipts:
 `debug-formats-*`, `geocheck-name-*`, `help-switch-*`, and `font-visibility-*`.
@@ -237,3 +239,16 @@ Final receipts: `.private/dataF-r1/final-build.log`, `final-objects.log`,
 `final-progress.log`, `final-coverage.log`, `final-metrics.json`, and
 `final-scope.json`. Complete object checks and PAL verification establish
 byte and resolved-relocation identity; data progress alone is not that proof.
+
+## Round-2 linkage cleanup validation
+
+The migrated statics use ordinary C++ linkage. The three guarded float
+redeclarations use plain `extern`, and the remaining draft-only declarations
+are inside the `NONMATCHING` guard. The unused `at_1367` declaration is
+removed. The constants and BSS markers are contiguous within their sections.
+
+The unit compiles with both `UNMATCHING` and `NONMATCHING` defined, checking
+the moved declarations as well as the active source. The default full build
+passes `SCES_511.90: OK` and all 149 canonical object checks. Every complete
+object hash equals the preceding validated step, including editmode.
+The existing draft guard and compiler profile remain unchanged.
