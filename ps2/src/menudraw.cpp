@@ -435,11 +435,8 @@ extern item_color at_5917;
 
 
 
-extern board_frame_parts at_2919;
 
-extern scroll_bar_heights at_2949__2;
 
-extern scroll_bar_layers at_2950__2;
 
 extern scroll_bar_parts at_2951__2;
 
@@ -462,11 +459,9 @@ extern board_number_uv at_1788__3;
 
 extern board_line_uv at_1790__2;
 
-extern board_row_height at_1791;
 
 extern board_pass_color at_1796;
 
-extern board_blink_color at_1803__2;
 
 extern board_button_color at_1814;
 
@@ -7709,34 +7704,27 @@ void PrimQuad_i_(mgCDrawPrim *prim, mgRect_i_ rect, mgRect_i_ tex_rect) {
 
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menudraw", at_1790__2__DATA);
 
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menudraw", at_1791__DATA);
 
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menudraw", at_1796__DATA);
 
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menudraw", at_1803__2__DATA);
 
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menudraw", at_1814__DATA);
 
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menudraw", at_1999__2__DATA);
 
 
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menudraw", at_2265__DATA);
 
 
 
 
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menudraw", at_2949__2__DATA);
 
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menudraw", at_2950__2__DATA);
 
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menudraw", at_2951__2__DATA);
 
 
 
 
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menudraw", at_4494__2__DATA);
 
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menudraw", at_4495__DATA);
 
 
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menudraw", at_5441__DATA);
@@ -7746,7 +7734,6 @@ INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menudraw", at_5450__DATA);
 // Constants (.rodata)
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menudraw", at_873__4__DATA);
 
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menudraw", at_975__3__DATA);
 
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menudraw", at_1622__2__DATA);
 
@@ -7765,7 +7752,6 @@ INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menudraw", at_1711__DATA);
 
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menudraw", at_1780__DATA);
 
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menudraw", at_2209__2__DATA);
 
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menudraw", at_2237__DATA);
 
@@ -7819,7 +7805,6 @@ INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menudraw", at_3658__DATA);
 
 
 
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menudraw", at_4442__2__DATA);
 
 // Small uninitialised data (.sbss)
 int MenuDrawItemInfoNum;
@@ -7840,13 +7825,11 @@ int *menu_randam_line_draw_postbl;
 
 INCLUDE_BSS(MenuCursorReverseFlag, 0x4);
 
-INCLUDE_BSS(at_2596__2, 0x8);
 
 s8 MenuItemBrdCalcManner;
 
 float MenuItemBrdUnderBrdPosXY[2];
 
-INCLUDE_BSS(at_3325, 0x8);
 
 INCLUDE_BSS(at_3612, 0x8);
 
@@ -7860,13 +7843,9 @@ INCLUDE_BSS(at_4526, 0x8);
 
 mgCTexture *MenuFrameTex;
 
-INCLUDE_BSS(at_4727, 0x4);
 
-INCLUDE_BSS(at_4728, 0x4);
 
-INCLUDE_BSS(at_4729, 0x4);
 
-INCLUDE_BSS(at_4730, 0x4);
 
 INCLUDE_BSS(at_5917, 0x4);
 
@@ -7911,8 +7890,5 @@ mgRect<int> ItemBoardScrlBar3(96, 140, 22, 12);
 
 mgRect<int> ItemBoardCursor(118, 128, 8, 30);
 
-INCLUDE_BSS(at_2919, 0x30);
 
-INCLUDE_BSS(at_3384, 0x20);
 
-INCLUDE_BSS(at_4496, 0x20);

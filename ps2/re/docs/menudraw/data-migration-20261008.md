@@ -137,3 +137,22 @@ record every successful candidate. The final table receipts are
 The rebuild after the header comment correction passes PAL and all 149
 objects; all 148 other object hashes equal the baseline. The header diff
 contains comments only.
+
+## Compiler-owned template checkpoint
+
+Nineteen markers are removed without changing their native owners:
+ten initialized templates or switch tables and nine BSS templates.
+Besides the twelve owner mappings above, `CommonBoardDraw` emits the
+five-int row-height initializer and four-int blink-colour initializer;
+`MenuItemBrdFrameDraw` emits the scroll-height and layer initializers
+and the 12-pointer frame-parts template. The switches in
+`SetPartEffectInfoRandFunc` and `MenuMainFrameStep` supply their own
+jump tables, retaining real pointer relocations to their case bodies.
+No replacement assembly, fake helper or additional state is introduced.
+
+Every marker-only candidate passes the full PAL build, all 149 object
+checks and the other-object hash comparison. Counts become 32 RODATA /
+13 BSS, while matched data remains 4 / 5,741 and native coverage remains
+197 / 198. `implicit-ledger.json` and the nineteen
+`implicit-<symbol>-{build,objects}.log` receipts record those checks;
+`implicit-metrics.json` captures the refreshed report after the last one.
