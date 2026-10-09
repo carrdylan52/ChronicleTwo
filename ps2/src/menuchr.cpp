@@ -439,11 +439,6 @@ struct NamePair {
     char *b; /**< Second name in the pair. */
 };
 
-extern char               at_2940[];
-extern char               at_2941[];
-extern char               at_2942[];
-extern char               at_2943[];
-extern char               at_2944[];
 /**
  *
  * Transformation effect resources selected for the monster menu.
@@ -730,13 +725,7 @@ extern char               at_5053[];
 extern int                tbl_5016[];
 extern u8                 at_5452[64];
 extern u8                 at_5482[32];
-extern char               at_5558__2[];
-extern char               at_5559__2[];
-extern char               at_3271[];
-extern char               at_5560__2[];
-extern char               at_5561[];
 extern char               at_5839[];
-extern char               at_5893[];
 extern int                tbl_5848[];
 extern CDC2Mes           *MenuDCMsg[9];
 extern char               at_1131__3[];
@@ -808,13 +797,6 @@ extern int                tbl_3186[MENU_CHARA_LOAD_MAX];
 extern sceVu0FVECTOR      posdef_3194;
 extern sceVu0FVECTOR      refdef_3195;
 extern char              *tbl_3196[];
-extern char               at_3269[];
-extern char               at_3270[];
-extern char               at_3272[];
-extern char               at_3273[];
-extern char               at_3274[];
-extern char               at_3275[];
-extern char               at_3276[];
 /**
  *
  * Background texture of the monster selection menu.
@@ -1094,25 +1076,11 @@ static char             script_file_name[0x20];
 
 extern short            monster_load_id;
 extern char             at_4548[];
-extern char             at_3160__3[];
-extern char             at_3161__3[];
-extern char             at_3162__3[];
-extern char             at_3163__3[];
-extern char             at_3164__4[];
-extern char             at_3165__2[];
-extern char             at_3166__2[];
 extern char             at_1304__6[15];
 extern char            *partt_2332[6];
 extern char             at_2363[14];
 extern char             at_2364[15];
 extern char             at_2365[13];
-extern char             at_2912[];
-extern char             at_2913__2[];
-extern char             at_2914[];
-extern char             at_2915[];
-extern char             at_2916[];
-extern char             at_2917[];
-extern char             at_2918[];
 
 /**
  *
@@ -3742,7 +3710,7 @@ int GetMonsterModelFile(int monster_id, int kind, char *file_name) {
     strcpy(file_name, base_name);
 
     if (kind == 0) {
-        strcat(file_name, at_2912);
+        strcat(file_name, ".chr");
     }
 
     if (kind == 1) {
@@ -3752,14 +3720,14 @@ int GetMonsterModelFile(int monster_id, int kind, char *file_name) {
             return 0;
         }
 
-        strcpy(file_name, at_2913__2);
+        strcpy(file_name, "snd2/mon/");
 
         if (number < 10) {
-            sprintf(suffix, at_2914, number);
+            sprintf(suffix, "EN_00%d.snd", number);
         } else if (number < 100) {
-            sprintf(suffix, at_2915, number);
+            sprintf(suffix, "EN_0%d.snd", number);
         } else {
-            sprintf(suffix, at_2916, number);
+            sprintf(suffix, "EN_%d.snd", number);
         }
 
         strcat(file_name, suffix);
@@ -3769,13 +3737,13 @@ int GetMonsterModelFile(int monster_id, int kind, char *file_name) {
         henge_param = (int *) GetMonsterHengeParam(monster_id);
 
         if (henge_param != NULL) {
-            sprintf(file_name, at_2917, henge_param[2]);
+            sprintf(file_name, "%s.stb", henge_param[2]);
         }
     }
 
     if (kind == 3) {
         strcpy(file_name, monster->model);
-        strcat(file_name, at_2918);
+        strcat(file_name, ".cfg");
     }
 
     return 1;
@@ -3785,10 +3753,10 @@ void CMenuMosSelect::AttachForm() {
     char              name[0x20];
     MOS_CHANGE_PARAM *base;
     int               i;
-    badge_form = (CMenuPosDataForm *) MenuPosData->GetFormInfo(at_2940);
-    model_form = (CMenuPosDataForm *) MenuPosData->GetFormInfo(at_2941);
-    info_form = (CMenuPosDataForm *) MenuPosData->GetFormInfo(at_2942);
-    Tex_BuildUpBoard = mgTexManager.GetTexture(at_2943, -1);
+    badge_form = (CMenuPosDataForm *) MenuPosData->GetFormInfo("\x83\x82\x83\x93\x83\x58\x83\x5E\x81\x5B\x83\x6F\x83\x62\x83\x57\x94\xA0");
+    model_form = (CMenuPosDataForm *) MenuPosData->GetFormInfo("\x83\x82\x83\x93\x83\x58\x83\x5E\x81\x5B\x83\x7C\x83\x8A");
+    info_form = (CMenuPosDataForm *) MenuPosData->GetFormInfo("\x83\x82\x83\x93\x83\x58\x83\x5E\x81\x5B\x83\x58\x83\x65\x81\x5B\x83\x5E\x83\x58");
+    Tex_BuildUpBoard = mgTexManager.GetTexture("itembrd", -1);
     GetUserDataMan();
 
     if (badge_form != NULL) {
@@ -3797,7 +3765,7 @@ void CMenuMosSelect::AttachForm() {
 
         do {
             MENUFORMPARTS_TYPE *part;
-            sprintf(name, at_2944, i);
+            sprintf(name, "B%d", i);
             part = badge_form->GetPartInfo(name);
 
             if (part != NULL) {
@@ -4026,7 +3994,7 @@ void GetBajjiPosition(CMenuPosDataForm *form, int slot, int unused, int *pos) {
     char name[0x20];
 
     if (form != NULL) {
-        sprintf(name, at_2944, slot);
+        sprintf(name, "B%d", slot);
         form->GetPutPosXY(name, pos[0], pos[1]);
     }
 }
@@ -4060,22 +4028,22 @@ void CMenuMosSelect::CalcTex() {
     CDC2Mes *ask = MenuDCMsg[7];
 
     if (info_form != NULL && ask != NULL) {
-        info_form->GetPutPosXY(at_3160__3, item_pos[0][0], item_pos[0][1]);
+        info_form->GetPutPosXY("\x96\xBC\x91\x4F", item_pos[0][0], item_pos[0][1]);
         int *choice = item_pos[1];
-        info_form->GetPutPosXY(at_3161__3, choice[0], choice[1]);
+        info_form->GetPutPosXY("\x8F\xCC\x8D\x86", choice[0], choice[1]);
         pos = item_pos[2];
-        info_form->GetPutPosXY(at_3162__3, pos[0], pos[1]);
+        info_form->GetPutPosXY("\x81\x9B", pos[0], pos[1]);
         pos = item_pos[3];
-        info_form->GetPutPosXY(at_3163__3, pos[0], pos[1]);
+        info_form->GetPutPosXY("\x81\xA1", pos[0], pos[1]);
         pos = item_pos[4];
-        info_form->GetPutPosXY(at_3164__4, pos[0], pos[1]);
+        info_form->GetPutPosXY("\x8B\x5A\x31", pos[0], pos[1]);
         pos = item_pos[5];
-        info_form->GetPutPosXY(at_3165__2, pos[0], pos[1]);
+        info_form->GetPutPosXY("\x8B\x5A\x32", pos[0], pos[1]);
         item_pos[0][0] -= ask->GetStrWidth(0) >> 1;
         int width = ask->GetMesWidth_system(ask->item_mes[1]);
         choice[0] -= width >> 1;
         ask->SetMsgItemPos(item_pos[0], 6);
-        info_form->GetPutPosXY(at_3166__2, win_pos[0], win_pos[1]);
+        info_form->GetPutPosXY("\x90\xE0\x96\xBE", win_pos[0], win_pos[1]);
         info_win.abs_win.x = win_pos[0];
         info_win.abs_win.y = win_pos[1];
     }
@@ -4213,14 +4181,14 @@ void MenuMonsterBoxInit(mgCMemory *stack, int *tex_block, int mode) {
     MenuDrawEnv->camera.SetRef(refdef_3195);
     stack->Align64();
     u_int *pack = (u_int *) stack->stGetTop();
-    size = LoadFileMenu(at_3269, (u_long128 *) pack, 1);
+    size = LoadFileMenu("mosbox.pac", (u_long128 *) pack, 1);
     stack->Alloc(blocks_for(size));
-    u_char *image = (u_char *) GetPackFile(pack, at_3270, NULL);
+    u_char *image = (u_char *) GetPackFile(pack, "mosbox.img", NULL);
     int     block = MenuMosSelectPtr->tex_block[0];
     mgTexManager.EnterIMGFile(image, block, NULL, NULL);
-    MenuMosTexture = mgTexManager.GetTexture(at_3271, block);
+    MenuMosTexture = mgTexManager.GetTexture("mosbox", block);
     MenuMosSelectPtr->mes_data = MenuDCMsg[0]->buff;
-    s16 *box_mes = (s16 *) GetPackFile(pack, at_3272, NULL);
+    s16 *box_mes = (s16 *) GetPackFile(pack, "menumos.mes", NULL);
     MenuCommandAnalyzeInfo.system_mes_buff[0] = GetSystemMesBuffer();
     MenuCommandAnalyzeInfo.system_mes_buff[1] = box_mes;
     MenuCommandAnalyzeInfo.mes_buff[0] = MenuMosSelectPtr->mes_data;
@@ -4229,12 +4197,12 @@ void MenuMonsterBoxInit(mgCMemory *stack, int *tex_block, int mode) {
     MenuMosSelectPtr->info_win.SetBuff_system(GetSystemMesBuffer());
     MenuMosSelectPtr->info_win.SetBuff(MenuMosSelectPtr->mes_data);
     MenuMosSelectPtr->info_win.MakeMesWin(tbl_3196[LanguageCode], 1, 1);
-    char *cfg = (char *) GetPackFile(pack, at_3273, &size);
+    char *cfg = (char *) GetPackFile(pack, "mosbox.cfg", &size);
     MenuDataAnalyze(cfg, size, stack);
-    MenuMosSelectPtr->script = (char *) GetPackFile(pack, at_3274, &MenuMosSelectPtr->script_size);
+    MenuMosSelectPtr->script = (char *) GetPackFile(pack, "mosbox_com.cfg", &MenuMosSelectPtr->script_size);
     MenuMosSelectPtr->AttachForm();
-    MenuMosSelectPtr->ExeScript(at_3275);
-    MenuMosSelectPtr->ExeScript(at_3276);
+    MenuMosSelectPtr->ExeScript("\x4D\x53\x47\x8F\x89\x8A\xFA\x89\xBB");
+    MenuMosSelectPtr->ExeScript("FORM_INIT");
     AttachMessageForm();
     stack->Align64();
     rest = stack->stGetRest();
@@ -7135,13 +7103,13 @@ void CMosBookMenu::InitEnd() {
     BASE_MONSTER_TBL *entry;
 
     buffer = memory_free_top(&MosBookStack);
-    size = LoadFileMenu(at_5558__2, (u_long128 *) buffer, 1);
+    size = LoadFileMenu("memomos.pac", (u_long128 *) buffer, 1);
     MosBookStack.Alloc(blocks_for(size));
-    mgTexManager.EnterIMGFile((u8 *) GetPackFile((unsigned int *) buffer, at_5559__2, NULL),
+    mgTexManager.EnterIMGFile((u8 *) GetPackFile((unsigned int *) buffer, "out.img", NULL),
                               this->tex_block[0], NULL, NULL);
-    Tex_MBase = mgTexManager.GetTexture(at_3271, -1);
-    Tex_MBook = mgTexManager.GetTexture(at_5560__2, -1);
-    Tex_MBg = mgTexManager.GetTexture(at_5561, -1);
+    Tex_MBase = mgTexManager.GetTexture("mosbox", -1);
+    Tex_MBook = mgTexManager.GetTexture("memomos", -1);
+    Tex_MBg = mgTexManager.GetTexture("mosbg", -1);
     this->tex_block_no = this->tex_block[4];
     mgCMemory scratch;
     free_size = memory_free_size(&MosBookStack);
@@ -7571,7 +7539,7 @@ void MonsterBookDraw() {
     if (menu_debug_flag) {
         DrawMenuFillBox(float(20.0), 40.0f, 200.0f, float(24.0), 0x40, 0, 0, 0);
         CMenuFont font;
-        font.SetStr(at_5893);
+        font.SetStr("(A):All Monster Beaten");
         font.SetPos(20, 40);
         font.DrawDirect(font.str, font.pos_x, font.pos_y);
     }
@@ -7708,39 +7676,12 @@ INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_2782__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_2783__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_2784__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_2785__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_2912__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_2913__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_2914__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_2915__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_2916__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_2917__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_2918__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_2940__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_2941__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_2942__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_2943__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_2944__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_3160__3__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_3161__3__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_3162__3__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_3163__3__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_3164__4__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_3165__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_3166__2__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_3197__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_3198__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_3199__2__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_3200__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_3201__2__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_3202__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_3269__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_3270__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_3271__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_3272__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_3273__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_3274__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_3275__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_3276__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_3558__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_3559__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_3560__DATA);
@@ -7816,12 +7757,7 @@ INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_5258__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_5259__2__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_5260__2__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_5261__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_5558__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_5559__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_5560__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_5561__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_5839__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_5893__DATA);
 
 // Virtual tables (.vtables)
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", __vt__15CMenuCostumeSel__DATA);

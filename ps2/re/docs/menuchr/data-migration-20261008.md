@@ -151,3 +151,14 @@ Both eight-byte objects match without padding or type reinterpretation.
 After this step: **239 / 25 markers**, **4 / 9726 matched_data**.
 PAL and 149/149 objects pass; receipts are
 `.private/nmchr-r3/menuchr-grid-{build,objects,progress,metrics}.log`.
+
+## Monster selection, model and book strings
+
+Thirty-two additional strings are inline in their native consumers: monster
+selection form/part names, box resource/configuration names, monster badge
+labels, monster model/sound filename formats, book resources, and its debug
+label. Every per-function group passes PAL and all 149 objects independently.
+Shared strings retain their single retail identity and all original references.
+After this group: **207 / 25 markers**, **4 / 9726 matched_data**.
+Receipts: `.private/nmchr-r3/menuchr-monster-strings-00` through `-07`,
+with `-{build,objects,progress,metrics}.log`, and `monster-string-batch.log`.
