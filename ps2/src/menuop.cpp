@@ -1926,7 +1926,6 @@ static inline MC_CARD_INFO *GetSaveMenuCard(int port) {
     }
     return NULL;
 }
-#ifdef NONMATCHING
 int CSaveMenuClass::KeyStep(void) {
     int                 transferred;
     int                 finished;
@@ -1954,7 +1953,7 @@ int CSaveMenuClass::KeyStep(void) {
     int                 chapter;
     SAVEDATA_INFO      *row_info[13];
     CDC2Mes            *row_mes;
-    int                 form_pos[2];
+    int                 form_pos[9][2];
     CMemoryCardManager *manager;
 
     finished = 0;
@@ -2691,18 +2690,18 @@ int CSaveMenuClass::KeyStep(void) {
     CDC2Mes *help_mes = MenuDCMsg[6];
     if (title_form != NULL) {
         title_mes->StepMsg();
-        title_form->GetPutPosXY(at_2513, form_pos[0], form_pos[1]);
-        title_mes->SetMovePosCenteringGyou(0, form_pos[0], form_pos[1]);
-        title_form->GetPutPosXY(at_2514, form_pos[0], form_pos[1]);
-        help_mes->SetMovePosCenteringGyou(0, form_pos[0], form_pos[1]);
+        title_form->GetPutPosXY(at_2513, form_pos[0][0], form_pos[0][1]);
+        title_mes->SetMovePosCenteringGyou(0, form_pos[0][0], form_pos[0][1]);
+        title_form->GetPutPosXY(at_2514, form_pos[0][0], form_pos[0][1]);
+        help_mes->SetMovePosCenteringGyou(0, form_pos[0][0], form_pos[0][1]);
     }
     if (slot_form[0] != NULL) {
-        slot_form[0]->GetPutPosXY(at_2515, form_pos[0], form_pos[1]);
-        slot1_mes->SetMovePosCenteringGyou(0, form_pos[0], form_pos[1]);
+        slot_form[0]->GetPutPosXY(at_2515, form_pos[0][0], form_pos[0][1]);
+        slot1_mes->SetMovePosCenteringGyou(0, form_pos[0][0], form_pos[0][1]);
     }
     if (slot_form[1] != NULL) {
-        slot_form[1]->GetPutPosXY(at_2515, form_pos[0], form_pos[1]);
-        slot2_mes->SetMovePosCenteringGyou(0, form_pos[0], form_pos[1]);
+        slot_form[1]->GetPutPosXY(at_2515, form_pos[0][0], form_pos[0][1]);
+        slot2_mes->SetMovePosCenteringGyou(0, form_pos[0][0], form_pos[0][1]);
     }
     int scroll_range[2] = {6, 250};
     LocalFunc_AdjustScrlBar(scrlbar_parts, scrlbar_pos, scroll_range, top, 13.0f, 3.0f, list_jump);
@@ -2711,9 +2710,6 @@ int CSaveMenuClass::KeyStep(void) {
     }
     return finished;
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/menuop", KeyStep__14CSaveMenuClassFv);
-#endif
 void SaveFileListDraw(int &tex_block, float *pos, int alpha) {
     ScreenPos linePos[13];
     SAVEDATA_INFO *info[13];
