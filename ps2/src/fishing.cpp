@@ -539,7 +539,7 @@ int sgRestartFishing(SubGameInfo *info) {
         LureFrame = NULL;
         if (lure_no >= 0) {
             strcat(lure_path, lure_file[lure_no]);
-            if (LoadFile2(lure_path, buffer, NULL, 0) != 0) {
+            if (LoadFile2(lure_path, buffer, NULL, LOAD_FILE_READ) != 0) {
                 Lure->LoadPackNoLine((u_int *)buffer, "info.cfg", &EsaStack, &EsaStack, &EsaStack, EsaTexb, NULL);
             }
             LureFrame = Lure->CObjectFrame::frame;
@@ -559,7 +559,7 @@ int sgRestartFishing(SubGameInfo *info) {
                 esa_chara = new (EsaStack.Alloc(0x68)) CCharacter2;
                 EsaChara = esa_chara;
                 EsaChara->Initialize();
-                if (LoadFile2(esa_path, buffer, NULL, 0) != 0) {
+                if (LoadFile2(esa_path, buffer, NULL, LOAD_FILE_READ) != 0) {
                     EsaChara->LoadPackNoLine((u_int *)buffer, "info.cfg", &EsaStack, &EsaStack, &EsaStack, EsaTexb, NULL);
                 } else {
                     EsaChara = NULL;
@@ -567,18 +567,18 @@ int sgRestartFishing(SubGameInfo *info) {
             }
         }
     }
-    sndSeAllStop(5);
-    sndSeAllStop(8);
+    sndSeAllStop(SND_PORT_ENEMY);
+    sndSeAllStop(SND_PORT_MENU);
     if (sndSeCheck(FanSnd, 0) == 0) {
         mgCMemory sound_memory;
         int sound_size = MotionBuff.stGetRest();
         sound_memory.stSetBuffer(MotionBuff.stGetTop(), sound_size);
         u_int *sound_buffer = (u_int *)sound_memory.stAlloc64(0x4000);
-        if (sound_buffer != NULL && LoadFile2("snd2/sp/SP_006.snd", sound_buffer, NULL, 0) != 0) {
-            sndInitPort(8);
+        if (sound_buffer != NULL && LoadFile2("snd2/sp/SP_006.snd", sound_buffer, NULL, LOAD_FILE_READ) != 0) {
+            sndInitPort(SND_PORT_MENU);
             SndStack.stack_used = 0;
             SndStack.lock = 0;
-            FanSnd = sndLoadSound(8, sound_buffer, &SndStack);
+            FanSnd = sndLoadSound(SND_PORT_MENU, sound_buffer, &SndStack);
         }
     }
     MardanEventMap = 0;
@@ -747,7 +747,7 @@ static void StepDataLoading(void *arg) {
     if (memory == NULL) {
         memory = scene->GetStack(5);
     }
-    if (LoadFile2("sg/fish/fishing.cfg", buffer, &file_size, 0) != 0) {
+    if (LoadFile2("sg/fish/fishing.cfg", buffer, &file_size, LOAD_FILE_READ) != 0) {
         LoadFishPlaceData((char *)buffer, file_size, memory);
     }
     StartReadBG();
@@ -885,18 +885,18 @@ static void StepDataLoading(void *arg) {
     FishSnd = -1;
     FanSnd = -1;
     SndStack.stSetBuffer(memory->Alloc(100), 100);
-    if (LoadFile2("snd2/mon/EN_901.snd", buffer, NULL, 0) != 0) {
-        sndInitPort(5);
-        FishSnd = sndLoadSound(5, (u_int *)buffer, memory);
+    if (LoadFile2("snd2/mon/EN_901.snd", buffer, NULL, LOAD_FILE_READ) != 0) {
+        sndInitPort(SND_PORT_ENEMY);
+        FishSnd = sndLoadSound(SND_PORT_ENEMY, (u_int *)buffer, memory);
     }
-    if (LoadFile2("snd2/sp/SP_006.snd", buffer, NULL, 0) != 0) {
-        sndInitPort(8);
+    if (LoadFile2("snd2/sp/SP_006.snd", buffer, NULL, LOAD_FILE_READ) != 0) {
+        sndInitPort(SND_PORT_MENU);
         SndStack.stack_used = 0;
         SndStack.lock = 0;
-        FanSnd = sndLoadSound(8, (u_int *)buffer, &SndStack);
+        FanSnd = sndLoadSound(SND_PORT_MENU, (u_int *)buffer, &SndStack);
     }
     if (info->dungeon != 0) {
-        if (LoadFile2("chara/c01_fishing.chr", buffer, NULL, 0) != 0) {
+        if (LoadFile2("chara/c01_fishing.chr", buffer, NULL, LOAD_FILE_READ) != 0) {
             MainChara->LoadPack((u_int *)buffer, "info.cfg", memory, memory, memory, 0, NULL);
         }
     }
