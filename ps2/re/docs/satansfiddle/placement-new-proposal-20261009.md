@@ -542,9 +542,8 @@ expected-one after-inline rows and two static scalar constructions. Both
 start as assembly-only callers; each genuine source-only control differs
 in just the allocation-result copy and null-guard pair, and each exact row
 resolves that pair. The production profile now has 33 manually promoted
-callers /43 eligible constructions across 21 units. No source/header compiler
-helper, hand-written constructor/member, dummy local, manual vtable or float
-selector supplies either zero.
+callers /43 eligible constructions across 21 units. Neither zero requires a new helper, handwritten generated special member,
+dummy local, manual vtable or float selector.
 
 Buggy uses the existing effect-manager/sprite constructor chain and actual
 resource/scene APIs; the model frame is the qualified +0x70 base member, the
