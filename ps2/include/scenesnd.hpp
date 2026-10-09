@@ -993,6 +993,11 @@ public:
      */
     void SetNowMapNo(int map_no);
 
+    /**
+     *
+     * Returns the scene's current main-map number.
+     *
+     */
     int GetNowMapNo() { return now_map_no; }
 
     /**
