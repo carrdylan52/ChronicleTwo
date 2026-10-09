@@ -96,3 +96,30 @@ that interpretation. The declaration therefore keeps its established
 external binding. Receipt:
 `.private/dataC-r2/dataread-static-header-build.log`; the shared-tool
 proposal is `.private/proposals/dataC-r2-library-numeric-words.patch`.
+
+## Terminal-tail tooling proposal validation
+
+The exact proposed checker change is
+`.private/proposals/dataC-r2-terminal-data-tail.patch`. It uses the generated
+linker's `contents_end` instead of a fixed padding-length limit. Declared
+retail size, absence of tail relocations, and zero initialized bytes remain
+required. The patch includes large-tail, wrong-size, wrong-end, relocation,
+truncation, and nonzero-tail regression cases plus the MWCC documentation
+clarification. Shared files remain untouched.
+
+Private copies of the proposed tooling normalize the marker-free source-only
+object with unchanged code snapshots. The canonical check accepts 0x1DD2
+initialized bytes and 281 resolved relocations; the last path remains a
+0x100-byte object with the 0x30-byte alignment tail supplied by the existing
+linker script. Linking both this object and the marker-free `editdata` object
+with every other normal input produces `SCES_511.90: OK`.
+Receipts: `.private/dataC-r2/proposals-{prepare,objects,link,pal}.log`.
+This validates the proposed tool behavior; the committed source retains its
+single marker until the tooling lane integrates the shared change.
+
+The numeric-library-word proposal was also exercised read-only against
+the current library inputs. It restores every inferred `header_buff`
+expression in the four failing library units only where the retail ELF has
+no relocation, preserving the exact commented word bytes. The complete
+scan covers 316 words in 18 files and leaves generated files untouched.
+Receipt: `.private/dataC-r2/library-word-proposal-check.log`.
