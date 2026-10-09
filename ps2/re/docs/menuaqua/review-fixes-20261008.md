@@ -28,3 +28,13 @@ switch tables. Its existing local `sel_sift_fish` and
 and the first object's initialization guard; their separate markers
 are unnecessary. All six removals preserve SCES_511.90 and 149/149
 canonical objects.
+
+## Signed fish and item fields
+
+Retail Step reads CGameDataUsed::rename_flag with `lb` at 0x2188EC
+(item offset 0x05), and BREEDFISH_USED::sex with `lb` at 0x218D80
+(fish offset 0x15, item offset 0x25). Other readers already explicitly
+interpret these fields as signed bytes. Both declarations now use s8,
+and Step reads them directly. Their widths and containing layouts stay
+the same. A complete rebuild confirms byte and resolved-relocation
+identity for every user, PAL OK and 149/149 canonical objects.

@@ -5599,7 +5599,7 @@ int CAquarium::Step() {
                 } else if ((key & 1) && fish[sel_fish] != NULL) {
                     Nameregi_Target.target = 0;
                     Nameregi_Target.item = fish[sel_fish]->data;
-                    if (Nameregi_Target.item != NULL && (s8) Nameregi_Target.item->rename_flag != 0) {
+                    if (Nameregi_Target.item != NULL && Nameregi_Target.item->rename_flag != 0) {
                         next = 8;
                         MenuSePlay(5);
                     } else {
@@ -5738,7 +5738,7 @@ int CAquarium::Step() {
 
                         if (m_aquarium_para->CheckHaigouTankSex(data) == 0) {
                             next = 0xD;
-                            menu->SetInfoMsgID((s8) data->data.fish.sex + 0x130);
+                            menu->SetInfoMsgID(data->data.fish.sex + 0x130);
                             MenuSePlay(5);
                             break;
                         }

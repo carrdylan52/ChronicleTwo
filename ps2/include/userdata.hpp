@@ -216,7 +216,7 @@ struct ROBOPART_USED {
  */
 struct BREEDFISH_USED {
     char  name[0x15]; /**< Name of the fish. */
-    u8    sex;        /**< Sex of the fish, 0 or 1. */
+    s8    sex;        /**< Sex of the fish, 0 or 1. */
     u8    kind; /**< Fish variety used to select its displayed name. */
     u8    unk_17;
     u16   size;   /**< Size of the fish. */
@@ -272,7 +272,7 @@ public:
     s16 used_type;   /**< Family of the item, a USED_ITEM_TYPE, or 0 for an empty place. */
     s16 item_no;     /**< Item number, or 0 for an empty place. */
     s8  item_type;   /**< Item type from the item's common data. */
-    u8  rename_flag; /**< Non-zero when the item's name differs from its item name. */
+    s8  rename_flag; /**< Non-zero when the item's name differs from its item name. */
     u8  unk_6[0xA];
 
     union {
