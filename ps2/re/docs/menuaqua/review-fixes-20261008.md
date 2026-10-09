@@ -38,3 +38,44 @@ interpret these fields as signed bytes. Both declarations now use s8,
 and Step reads them directly. Their widths and containing layouts stay
 the same. A complete rebuild confirms byte and resolved-relocation
 identity for every user, PAL OK and 149/149 canonical objects.
+
+## Aquarium state and result enums
+
+AQUARIUM_MODE names every used Step stage: view (0), commands (1),
+fish information (2), removal (3) and its restriction notice (4), rename
+selection/guide/restriction (6/7/8), transfer selection (10), viewed-tank
+selection (11), destination selection/restriction (12/13), food
+selection/position/wait (14/15/16), and outer transition wait (17).
+Retail at_4299 sends unused 5 and 9, and transition wait 17, to the
+common join; 5 and 9 have no source producers and receive no invented
+meaning. Clear uses view; reserved SettingAqua retains its raw zero.
+The enclosing MenuAquaKey states 0..9 control opening, active input,
+closing/clear, tank fades and name-entry fades as AQUA_MENU_MODE.
+
+AQUA_FISH_RESULT describes the combined producers ColCheck and ParamStep.
+Bit 1 means consumption of electric food 0x168, bit 2 is HP death, and
+bit 4 is battle damage. Bit 8 means a feeding after the fish already has
+flag 0x80, suppressing ordinary stat/growth/timer gains; that flag is set
+when the feeding-decremented life counter reaches zero. Bits 0x10 and
+0x20 change sex to zero and one via food 0x13B. Step clears each
+consumed notice bit and uses their combined 0x30 sex-change mask.
+
+AQUA_EVENT_PHASE separates the actual breeding path 5 -> 1/2/3/4
+(effect wait, white fade, CombineFish, fade-in wait, result message)
+from electric-food phases 10/11/12/13 (white fade, SettingAqua reload
+with saved transforms, fade-in wait, result message). Electric-food
+bit 1 starts the second path; it does not request breeding. All live
+phase assignments and outer menu state users use these names.
+
+GyoraceMenuMode now includes loading, the main menu, full-registration
+notice, race-start fade, and name-entry states. Command cursors map
+register/save/assign/delete/withdraw/tactics/start to 0..6. The 0x1E
+confirmation prompts `参加取消？` and clears entrants through
+GyoraceSubGameInitData; its name is WITHDRAW_CONFIRM. The 0x32
+confirmation prompts `競技開始？`, sets end_code 0x11 and fades toward
+the race, so its name is START_CONFIRM. The unproduced 0x1F handler
+only acknowledges a notice and returns to the main menu; its generic
+ACKNOWLEDGE name claims no unverified prompt. The decision sound uses
+the existing SYSTEM_SE_DECIDE; raw sound 5 has no shared enum value.
+
+Enum substitutions preserve the complete PAL image and all 149 objects.

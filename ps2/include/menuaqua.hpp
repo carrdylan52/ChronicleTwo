@@ -29,6 +29,81 @@ class CAquaFishEff;
 
 /**
  *
+ * Current command or prompt of CAquarium.
+ *
+ */
+enum AQUARIUM_MODE {
+    AQUARIUM_MODE_VIEW = 0, /**< Views the tank without an open command window. */
+    AQUARIUM_MODE_COMMAND = 1, /**< Chooses an aquarium command. */
+    AQUARIUM_MODE_FISH_INFO = 2, /**< Selects a fish and displays its parameters. */
+    AQUARIUM_MODE_TAKE_OUT = 3, /**< Moves the selected fish into carried inventory. */
+    AQUARIUM_MODE_TAKE_OUT_INFO = 4, /**< Shows why a selected fish cannot be taken out. */
+    AQUARIUM_MODE_RENAME_SELECT = 6, /**< Chooses the fish to rename. */
+    AQUARIUM_MODE_RENAME_GUIDE = 7, /**< Shows the introductory rename message. */
+    AQUARIUM_MODE_RENAME_BLOCKED = 8, /**< Shows why the selected fish cannot be renamed. */
+    AQUARIUM_MODE_MOVE_SELECT = 10, /**< Chooses the fish to transfer to another tank. */
+    AQUARIUM_MODE_SWITCH_TANK_SELECT = 11, /**< Chooses the tank to view. */
+    AQUARIUM_MODE_MOVE_TANK_SELECT = 12, /**< Chooses the destination of a fish transfer. */
+    AQUARIUM_MODE_MOVE_INFO = 13, /**< Shows why the selected transfer cannot proceed. */
+    AQUARIUM_MODE_FOOD_SELECT = 14, /**< Chooses food to drop into the tank. */
+    AQUARIUM_MODE_FOOD_POSITION = 15, /**< Positions the food above the water. */
+    AQUARIUM_MODE_FOOD_WAIT = 16, /**< Waits for the dropped food to disappear. */
+    AQUARIUM_MODE_TRANSITION_WAIT = 17, /**< Waits while the enclosing menu changes tank or opens name entry. */
+};
+
+/**
+ *
+ * Stage of an aquarium breeding or electric-food transition.
+ *
+ */
+enum AQUA_EVENT_PHASE {
+    AQUA_EVENT_NONE = 0, /**< No breeding or electric-food transition is pending. */
+    AQUA_EVENT_BREED_FADE_OUT = 1, /**< Starts the white fade before breeding. */
+    AQUA_EVENT_BREED_COMBINE = 2, /**< Combines the parent fish after the fade. */
+    AQUA_EVENT_BREED_FADE_IN_WAIT = 3, /**< Waits for the fade before showing the offspring. */
+    AQUA_EVENT_BREED_MESSAGE = 4, /**< Waits for acknowledgement of the offspring message. */
+    AQUA_EVENT_BREED_EFFECT_WAIT = 5, /**< Waits for the breeding effect before fading out. */
+    AQUA_EVENT_ELECTRIC_FADE_OUT = 10, /**< Starts the white fade after electric food is eaten. */
+    AQUA_EVENT_ELECTRIC_RELOAD = 11, /**< Reloads the aquarium while preserving the fish transforms. */
+    AQUA_EVENT_ELECTRIC_FADE_IN_WAIT = 12, /**< Waits for the fade before the electric-food message. */
+    AQUA_EVENT_ELECTRIC_MESSAGE = 13, /**< Waits for acknowledgement of the electric-food message. */
+};
+
+/**
+ *
+ * Stage of the enclosing aquarium menu and its fades.
+ *
+ */
+enum AQUA_MENU_MODE {
+    AQUA_MENU_INIT = 0, /**< Disables pad menu mode before opening the aquarium. */
+    AQUA_MENU_OPEN_FADE_WAIT = 1, /**< Waits for the opening fade while stepping the tank. */
+    AQUA_MENU_ACTIVE = 2, /**< Runs normal aquarium input and simulation. */
+    AQUA_MENU_CLOSE_FADE_WAIT = 3, /**< Waits for the closing fade. */
+    AQUA_MENU_CLEAR = 4, /**< Clears aquarium resources and restores the scene. */
+    AQUA_MENU_TANK_FADE_IN_WAIT = 5, /**< Waits for the fade after changing tanks. */
+    AQUA_MENU_TANK_FADE_OUT_WAIT = 6, /**< Waits for the fade before changing tanks. */
+    AQUA_MENU_RENAME_FADE_OUT_WAIT = 7, /**< Waits for the fade before opening fish name entry. */
+    AQUA_MENU_RENAME = 8, /**< Runs fish name entry. */
+    AQUA_MENU_RENAME_FADE_IN_WAIT = 9, /**< Waits for the fade after fish name entry. */
+};
+
+/**
+ *
+ * Events returned by fish parameter and aquarium collision updates.
+ *
+ */
+enum AQUA_FISH_RESULT {
+    AQUA_FISH_RESULT_ELECTRIC_FOOD_EATEN = 0x01, /**< A fish consumes electric food and requests its transition. */
+    AQUA_FISH_RESULT_DEAD = 0x02, /**< A fish has no remaining health. */
+    AQUA_FISH_RESULT_BATTLE_HIT = 0x04, /**< A fish takes damage from a battle collision. */
+    AQUA_FISH_RESULT_FEEDING_EXHAUSTED = 0x08, /**< Food is eaten after normal feeding gains have been exhausted. */
+    AQUA_FISH_RESULT_SEX_CHANGED_TO_0 = 0x10, /**< Special food changes the fish sex from one to zero. */
+    AQUA_FISH_RESULT_SEX_CHANGED_TO_1 = 0x20, /**< Special food changes the fish sex from zero to one. */
+    AQUA_FISH_RESULT_SEX_CHANGED = AQUA_FISH_RESULT_SEX_CHANGED_TO_0 | AQUA_FISH_RESULT_SEX_CHANGED_TO_1, /**< Special food changes either sex value. */
+};
+
+/**
+ *
  * What a fish of the aquarium is doing, as CAquaFish::think_mode holds it.
  *
  */
@@ -784,7 +859,7 @@ STATIC_ASSERT(sizeof(CAquaMes) == 0x64);
  */
 class CAquarium {
 public:
-    s32               mode;               /**< Stage of the menu that Step runs. */
+    s32               mode;               /**< Stage of the menu that Step runs. @see AQUARIUM_MODE */
     u_long128        *load_buf;           /**< Buffer that files are loaded into. */
     mgCMemory         load_stack;         /**< Memory over load_buf. */
     s32               tex_block[13];      /**< Texture blocks that the menu was given, ending in -1. */
@@ -823,7 +898,7 @@ public:
     u8                unk_344[0x40];
     u8                drop_root_draw; /**< Nonzero to draw the line below the held food. */
     s16               unk_386;
-    s16               love_phase;     /**< Stage of the pairing of two fish; 0 for none. */
+    s16               love_phase;     /**< Stage of the breeding or electric-food transition. @see AQUA_EVENT_PHASE */
     s16               love_time;      /**< Steps spent in love_phase. */
     s16               love_tex_block; /**< Texture block of love_chara's images. */
     CCharacter2      *love_chara;     /**< Effect shown when two fish pair; NULL outside the third aquarium. */
