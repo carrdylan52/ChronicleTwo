@@ -31,10 +31,6 @@
 #include "snd_mngr.hpp"
 #include "sound.hpp"
 
-
-
-
-
 /**
  *
  * Stores an inventory cursor position.
@@ -44,9 +40,6 @@ struct CursorPos {
     int x; /**< Horizontal cursor coordinate. */
     int y; /**< Vertical cursor coordinate. */
 };
-
-
-
 
 extern int                 menu_debug_flag;
 extern short               MenuItemCmdArgPos;
@@ -222,7 +215,6 @@ enum {
     K_COMMAND_QUIT = 110
 };
 
-
 extern char           at_2244[];
 extern char           at_2245[];
 extern char           at_2247[];
@@ -242,7 +234,6 @@ struct FoundSlots {
 };
 
 extern FoundSlots at_2776;
-
 
 /**
  *
@@ -309,10 +300,6 @@ enum INVENT_ASK_MODE {
     INVENT_ASK_DELETE_ALL = 7
 };
 
-
-
-
-
 /**
  *
  * Localized label for an undiscovered invention card.
@@ -336,8 +323,6 @@ static char *NewComer_5648[7] = {
 static int digit_tbl3_5641[8] = {
     3, 3, 3, 3, 3, 3, 3, 3
 };
-
-
 
 /**
  *
@@ -7221,6 +7206,7 @@ int MenuInventPushKey(int pad, int pushed) {
 
     return 1;
 }
+
 int MenuInventKey() {
     int          result = 0;
     int          index;
@@ -7412,6 +7398,7 @@ int MenuInventKey() {
     }
     return result;
 }
+
 void MenuInventDraw() {
     MenuPosData->FormDraw();
     MenuEffect[0]->Draw();
@@ -7491,10 +7478,6 @@ INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_5013__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_5014__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_5015__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_5016__DATA);
-
-// Virtual tables (.vtables)
-
-// Small initialised data (.sdata)
 
 // Small uninitialised data (.sbss)
 INCLUDE_BSS(at_3509, 0x8);

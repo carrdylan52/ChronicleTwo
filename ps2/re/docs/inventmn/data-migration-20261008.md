@@ -5,8 +5,10 @@ Baseline: `7c7edc2f`; MWCC 3.0/Satan's Fiddle through
 Initial markers: 261 RODATA / 51 BSS; matched data: 4 / 18656 bytes.
 Migration checkpoint markers: 72 / 5; matched data: 132 / 18656 bytes.
 The review cleanup below removes six more RODATA markers and one BSS marker.
-All headers, guarded bodies, INCLUDE_ASM selections and profile rows
-remain unchanged.
+The original migration preserves headers, guarded bodies, function
+selections and profile rows. Review cleanup below updates native data
+and guarded literal references; function selections and profile rows stay
+unchanged.
 
 ## Native storage and local initializers
 
