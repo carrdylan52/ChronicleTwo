@@ -204,6 +204,15 @@ static inline int MaxPageChars(ClsMes *mes) {
     return max_chars;
 }
 
+/**
+ *
+ * Returns the monster Monica is transformed into.
+ *
+ */
+static inline s16 TransformMonsterID(CUserDataManager *user) {
+    return user->monster_id;
+}
+
 const int kMonsterMemoCount = 0x119;
 const int kModelDelayFrames = 20;
 const int kModelFrameCap = 20;
@@ -4389,7 +4398,6 @@ void MenuMonsterBoxInit(mgCMemory *stack, int *tex_block, int mode) {
 }
 
 #pragma inline_depth reset
-#ifdef NONMATCHING
 int CMenuMosSelect::KeyStep() {
     int           size;
     int           i;
@@ -4683,12 +4691,12 @@ int CMenuMosSelect::KeyStep() {
                                     reward.used_type = 2;
                                     reward.item_type = 0x22;
                                     reward.data.attach.spectol_value = select_badge->class_level + 1;
+                                    s16 *param = reward.data.attach.status;
                                     if (select_badge->class_level == 3) {
                                         level_max = 1;
                                     }
-                                    s16 *param = reward.data.attach.status;
-                                    for (i = 0; i < 10; i++) {
-                                        param[i] = select_badge->class_level + 3;
+                                    for (int j = 0; j < 10; j++) {
+                                        param[j] = select_badge->class_level + 3;
                                     }
                                     param[convert_table_3430[badge_index]] += select_badge->class_level * 2;
                                     place->CopyGameData(&reward);
@@ -4723,8 +4731,8 @@ int CMenuMosSelect::KeyStep() {
                             view_monster = monster_progress_tbl[select_badge->progress][1 + cursor];
                             switch (buttons) {
                                 case 1:
-                                    if (GetUserDataMan()->active_chr_no == 3 &&
-                                        GetUserDataMan()->monster_id == view_monster) {
+                                    if (GetUserDataMan()->GetActiveChrNo() == USER_CHARA_MONSTER &&
+                                        TransformMonsterID(GetUserDataMan()) == view_monster) {
                                         MenuSePlay(5);
                                     } else {
                                         action = 10;
@@ -4843,8 +4851,8 @@ int CMenuMosSelect::KeyStep() {
                     MonsterNameTable names = at_3511;
                     for (int name_index = 0; name_index < select_badge->class_level + 1; name_index++) {
                         names.name[name_index] = GetMonsterName(monster_progress_tbl[select_badge->progress][1 + name_index]);
-                        if (GetUserDataMan()->active_chr_no == 3 &&
-                            GetUserDataMan()->monster_id == monster_progress_tbl[select_badge->progress][1 + name_index] &&
+                        if (GetUserDataMan()->GetActiveChrNo() == USER_CHARA_MONSTER &&
+                            TransformMonsterID(GetUserDataMan()) == monster_progress_tbl[select_badge->progress][1 + name_index] &&
                             name_index >= 0 && name_index < 20) {
                             info->line_color[name_index] = 0x80202020;
                         }
@@ -4874,7 +4882,7 @@ int CMenuMosSelect::KeyStep() {
                     chosen->monster_id = monsterNo;
                     view_monster = monsterNo;
                     load_monster = -1;
-                    MenuUserDataManPtr->SetActiveChrNo(3);
+                    MenuUserDataManPtr->SetActiveChrNo(USER_CHARA_MONSTER);
                     MenuUserDataManPtr->monster_id = monsterNo;
                     MenuSePlay(0x10);
                     break;
@@ -4995,9 +5003,7 @@ int CMenuMosSelect::KeyStep() {
     CalcCursorPosition();
     return 0;
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/menuchr", KeyStep__14CMenuMosSelectFv);
-#endif
+
 int MenuMonsterBoxKey() {
     return MenuMosSelectPtr->KeyStep();
 }
