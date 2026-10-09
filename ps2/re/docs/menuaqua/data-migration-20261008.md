@@ -82,3 +82,29 @@ existing runtime vector copy remains unchanged. `aqua-sdk-round-seed`
 verifies PAL OK and 149/149 objects. SDK-array forms for NextThink and
 Thinking retain the same five/thirteen-byte differences and are reverted.
 Current markers: 111 / 3; matched data: 2128 / 8293 bytes.
+
+## Fish and geometry tables
+
+Fourteen initialized tables now have documented native definitions:
+171 breeding combinations, ambient and directional lighting, three
+collision-point arrays, nine food records plus their sentinel, bubble
+origins/rise/wobble data, circling angles, fish effect durations, and
+18 fish-image records plus their sentinel. All retain mutable LOCAL
+storage and their exact retail dimensions.
+
+The verified model mapping contains f01 through f08 and f10 through f19;
+f09 is absent. f19 has item ID 310 and breeding code zero; the other
+models have IDs 320 through 336 and codes ten through twenty-six. New
+enums name these data identities without assigning unverified species names.
+
+Natural type padding replaces unused byte members: food has one byte at
++7 and size ten; image records have padding at +2 and +10 and size twelve;
+collision points use aligned sceVu0FVECTOR plus radius, with a natural
+12-byte tail and size 32. ColChkPoint2 has nine real array slots and seven
+active entries; its two unused slots are implicitly zero initialized.
+Static assertions preserve all three sizes. All existing code, including
+both frozen drafts, remains byte-identical.
+
+Fourteen `aqua-table-<symbol>-{build,objects}.log` receipts verify PAL OK
+and 149/149 objects. Eighteen image-string markers also come from the
+native pointer targets. Markers: 79 / 3; matched data: 2128 / 8293 bytes.

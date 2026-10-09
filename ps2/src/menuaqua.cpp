@@ -52,9 +52,10 @@ struct aqua_food_info {
     signed char add_param0; /**< Change to fish parameter zero. */
     signed char add_param1; /**< Change to fish parameter one. */
     signed char add_param2; /**< Change to fish parameter two. */
-    signed char unk_7;
-    u16         add_timer; /**< Duration added by the food. */
+    u16         add_timer;  /**< Duration added by the food. */
 };
+
+STATIC_ASSERT(sizeof(aqua_food_info) == 10);
 
 /**
  *
@@ -98,7 +99,6 @@ struct fish_breed_pair {
 
 STATIC_ASSERT(sizeof(fish_breed_pair) == 3);
 
-extern fish_breed_pair aquafish_mixTable[171];
 
 /**
  *
@@ -106,13 +106,13 @@ extern fish_breed_pair aquafish_mixTable[171];
  *
  */
 struct aqua_fish_info {
-    short       item_no; /**< Fish item number. */
-    u8          unk_2[2];
-    const char *img_path;     /**< Path to the fish image. */
+    short       item_no;      /**< Fish item number. */
+    const char *img_path;     /**< Filename prefix of the fish image. */
     signed char color_male;   /**< Colour index for a male fish. */
     signed char color_female; /**< Colour index for a female fish. */
-    u8          unk_a[2];
 };
+
+STATIC_ASSERT(sizeof(aqua_fish_info) == 12);
 
 /**
  *
@@ -172,26 +172,18 @@ struct fish_prize_record {
  *
  */
 struct aqua_col_point {
-    float pos[4]; /**< Centre position of the collision point. */
-    float radius; /**< Collision radius. */
-    u8    unk_14[0xC];
+    sceVu0FVECTOR pos;    /**< Centre position of the collision point. */
+    float        radius; /**< Collision radius. */
 };
 
 STATIC_ASSERT(sizeof(aqua_col_point) == 0x20);
 
-extern aqua_col_point ColChkPoint[9];
-extern aqua_col_point ColChkPoint2[9];
-extern aqua_col_point ColChkPoint3[6];
 extern s8             ColChkPointNum[3];
 extern u8             tbl_3505[2];
 
-extern int max_tbl_1484[];
 
-extern "C" float up_tbl_996[5];
 
-extern "C" float amptbl_997[5][2];
 
-extern "C" float dirtbl_1242[8];
 
 
 extern "C" aqua_vector at_1346;
@@ -241,7 +233,6 @@ struct aqua_bubble_counts {
 };
 
 extern "C" aqua_bubble_counts at_2935;
-extern float                  aqua_bubble_generate_pos[3][3][4];
 extern u16                    aqua_frame_sizetbl_2934[3];
 extern "C" aqua_quad          at_2975;
 extern "C" aqua_quad          at_2976;
@@ -279,7 +270,6 @@ extern float              v2orig_4374[4];
 extern float              v3orig_4375[4];
 extern float              v4orig_4376[4];
 extern short              t_4408[];
-extern float              ambient[4];
 extern int                menu_debug_flag;
 extern int                langTbl_3630[2][2];
 extern s8                 menu_max_tbl_3720[3];
@@ -331,17 +321,13 @@ static aqua_grid_cell *Get_aquarium_paul_table(int index);
 
 static aqua_grid_cell *Get_aquarium_paul_table_xz(int x, int z);
 
-extern "C" aqua_fish_info aquafish_info[];
 
-extern aqua_food_info esa_info[10];
 
 static int GetFishPath(int item_no, char *out);
 
 static aqua_food_info *GetEsaInfo(int item_no);
 
 extern CAquarium      Aquarium;
-extern float          light_dir[4][4];
-extern float          light_color[][4][4];
 
 static int local_aquarium_limmit_check(float *pos, float radius, int check_y, float height);
 
@@ -706,6 +692,431 @@ static SV_CONFIG_OPTION GyoraceMenuOptionBuff;
 
 /** Shared aquarium and race message windows. */
 CDC2Mes *MenuDCMsg[9];
+
+/**
+ *
+ * Identifies a fish species by its aquarium image model and breeding-table code.
+ *
+ */
+enum AquaFishBreedKind {
+    AQUA_FISH_KIND_F01 = 10, /**< Fish species using the f01a image. */
+    AQUA_FISH_KIND_F02 = 11, /**< Fish species using the f02a image. */
+    AQUA_FISH_KIND_F03 = 12, /**< Fish species using the f03a image. */
+    AQUA_FISH_KIND_F04 = 13, /**< Fish species using the f04a image. */
+    AQUA_FISH_KIND_F05 = 14, /**< Fish species using the f05a image. */
+    AQUA_FISH_KIND_F06 = 15, /**< Fish species using the f06a image. */
+    AQUA_FISH_KIND_F07 = 16, /**< Fish species using the f07a image. */
+    AQUA_FISH_KIND_F08 = 17, /**< Fish species using the f08a image. */
+    AQUA_FISH_KIND_F10 = 18, /**< Fish species using the f10a image. */
+    AQUA_FISH_KIND_F11 = 19, /**< Fish species using the f11a image. */
+    AQUA_FISH_KIND_F12 = 20, /**< Fish species using the f12a image. */
+    AQUA_FISH_KIND_F13 = 21, /**< Fish species using the f13a image. */
+    AQUA_FISH_KIND_F14 = 22, /**< Fish species using the f14a image. */
+    AQUA_FISH_KIND_F15 = 23, /**< Fish species using the f15a image. */
+    AQUA_FISH_KIND_F16 = 24, /**< Fish species using the f16a image. */
+    AQUA_FISH_KIND_F17 = 25, /**< Fish species using the f17a image. */
+    AQUA_FISH_KIND_F18 = 26, /**< Fish species using the f18a image. */
+    AQUA_FISH_KIND_F19 = 0, /**< Fish species using the f19a image. */
+};
+
+/**
+ *
+ * Identifies the fish items used by the aquarium image table.
+ *
+ */
+enum AquaFishItemNo {
+    AQUA_FISH_ITEM_F01 = 320, /**< Fish item using the f01a image. */
+    AQUA_FISH_ITEM_F02 = 321, /**< Fish item using the f02a image. */
+    AQUA_FISH_ITEM_F03 = 322, /**< Fish item using the f03a image. */
+    AQUA_FISH_ITEM_F04 = 323, /**< Fish item using the f04a image. */
+    AQUA_FISH_ITEM_F05 = 324, /**< Fish item using the f05a image. */
+    AQUA_FISH_ITEM_F06 = 325, /**< Fish item using the f06a image. */
+    AQUA_FISH_ITEM_F07 = 326, /**< Fish item using the f07a image. */
+    AQUA_FISH_ITEM_F08 = 327, /**< Fish item using the f08a image. */
+    AQUA_FISH_ITEM_F10 = 328, /**< Fish item using the f10a image. */
+    AQUA_FISH_ITEM_F11 = 329, /**< Fish item using the f11a image. */
+    AQUA_FISH_ITEM_F12 = 330, /**< Fish item using the f12a image. */
+    AQUA_FISH_ITEM_F13 = 331, /**< Fish item using the f13a image. */
+    AQUA_FISH_ITEM_F14 = 332, /**< Fish item using the f14a image. */
+    AQUA_FISH_ITEM_F15 = 333, /**< Fish item using the f15a image. */
+    AQUA_FISH_ITEM_F16 = 334, /**< Fish item using the f16a image. */
+    AQUA_FISH_ITEM_F17 = 335, /**< Fish item using the f17a image. */
+    AQUA_FISH_ITEM_F18 = 336, /**< Fish item using the f18a image. */
+    AQUA_FISH_ITEM_F19 = 310, /**< Fish item using the f19a image. */
+    AQUA_FISH_ITEM_END = -1, /**< End of the fish image table. */
+};
+
+/**
+ *
+ * Records the offspring species for each pair of breeding fish.
+ *
+ */
+static fish_breed_pair aquafish_mixTable[171] = {
+    {AQUA_FISH_KIND_F19, AQUA_FISH_KIND_F19, AQUA_FISH_KIND_F19},
+    {AQUA_FISH_KIND_F19, AQUA_FISH_KIND_F01, AQUA_FISH_KIND_F03},
+    {AQUA_FISH_KIND_F19, AQUA_FISH_KIND_F02, AQUA_FISH_KIND_F05},
+    {AQUA_FISH_KIND_F19, AQUA_FISH_KIND_F03, AQUA_FISH_KIND_F01},
+    {AQUA_FISH_KIND_F19, AQUA_FISH_KIND_F04, AQUA_FISH_KIND_F14},
+    {AQUA_FISH_KIND_F19, AQUA_FISH_KIND_F05, AQUA_FISH_KIND_F17},
+    {AQUA_FISH_KIND_F19, AQUA_FISH_KIND_F06, AQUA_FISH_KIND_F19},
+    {AQUA_FISH_KIND_F19, AQUA_FISH_KIND_F07, AQUA_FISH_KIND_F17},
+    {AQUA_FISH_KIND_F19, AQUA_FISH_KIND_F08, AQUA_FISH_KIND_F12},
+    {AQUA_FISH_KIND_F19, AQUA_FISH_KIND_F10, AQUA_FISH_KIND_F11},
+    {AQUA_FISH_KIND_F19, AQUA_FISH_KIND_F11, AQUA_FISH_KIND_F08},
+    {AQUA_FISH_KIND_F19, AQUA_FISH_KIND_F12, AQUA_FISH_KIND_F02},
+    {AQUA_FISH_KIND_F19, AQUA_FISH_KIND_F13, AQUA_FISH_KIND_F14},
+    {AQUA_FISH_KIND_F19, AQUA_FISH_KIND_F14, AQUA_FISH_KIND_F13},
+    {AQUA_FISH_KIND_F19, AQUA_FISH_KIND_F15, AQUA_FISH_KIND_F07},
+    {AQUA_FISH_KIND_F19, AQUA_FISH_KIND_F16, AQUA_FISH_KIND_F15},
+    {AQUA_FISH_KIND_F19, AQUA_FISH_KIND_F17, AQUA_FISH_KIND_F03},
+    {AQUA_FISH_KIND_F19, AQUA_FISH_KIND_F18, AQUA_FISH_KIND_F19},
+    {AQUA_FISH_KIND_F01, AQUA_FISH_KIND_F01, AQUA_FISH_KIND_F01},
+    {AQUA_FISH_KIND_F01, AQUA_FISH_KIND_F02, AQUA_FISH_KIND_F05},
+    {AQUA_FISH_KIND_F01, AQUA_FISH_KIND_F03, AQUA_FISH_KIND_F08},
+    {AQUA_FISH_KIND_F01, AQUA_FISH_KIND_F04, AQUA_FISH_KIND_F10},
+    {AQUA_FISH_KIND_F01, AQUA_FISH_KIND_F05, AQUA_FISH_KIND_F02},
+    {AQUA_FISH_KIND_F01, AQUA_FISH_KIND_F06, AQUA_FISH_KIND_F01},
+    {AQUA_FISH_KIND_F01, AQUA_FISH_KIND_F07, AQUA_FISH_KIND_F16},
+    {AQUA_FISH_KIND_F01, AQUA_FISH_KIND_F08, AQUA_FISH_KIND_F11},
+    {AQUA_FISH_KIND_F01, AQUA_FISH_KIND_F10, AQUA_FISH_KIND_F01},
+    {AQUA_FISH_KIND_F01, AQUA_FISH_KIND_F11, AQUA_FISH_KIND_F05},
+    {AQUA_FISH_KIND_F01, AQUA_FISH_KIND_F12, AQUA_FISH_KIND_F05},
+    {AQUA_FISH_KIND_F01, AQUA_FISH_KIND_F13, AQUA_FISH_KIND_F03},
+    {AQUA_FISH_KIND_F01, AQUA_FISH_KIND_F14, AQUA_FISH_KIND_F07},
+    {AQUA_FISH_KIND_F01, AQUA_FISH_KIND_F15, AQUA_FISH_KIND_F17},
+    {AQUA_FISH_KIND_F01, AQUA_FISH_KIND_F16, AQUA_FISH_KIND_F14},
+    {AQUA_FISH_KIND_F01, AQUA_FISH_KIND_F17, AQUA_FISH_KIND_F02},
+    {AQUA_FISH_KIND_F01, AQUA_FISH_KIND_F18, AQUA_FISH_KIND_F11},
+    {AQUA_FISH_KIND_F02, AQUA_FISH_KIND_F02, AQUA_FISH_KIND_F02},
+    {AQUA_FISH_KIND_F02, AQUA_FISH_KIND_F03, AQUA_FISH_KIND_F01},
+    {AQUA_FISH_KIND_F02, AQUA_FISH_KIND_F04, AQUA_FISH_KIND_F15},
+    {AQUA_FISH_KIND_F02, AQUA_FISH_KIND_F05, AQUA_FISH_KIND_F04},
+    {AQUA_FISH_KIND_F02, AQUA_FISH_KIND_F06, AQUA_FISH_KIND_F08},
+    {AQUA_FISH_KIND_F02, AQUA_FISH_KIND_F07, AQUA_FISH_KIND_F03},
+    {AQUA_FISH_KIND_F02, AQUA_FISH_KIND_F08, AQUA_FISH_KIND_F05},
+    {AQUA_FISH_KIND_F02, AQUA_FISH_KIND_F10, AQUA_FISH_KIND_F14},
+    {AQUA_FISH_KIND_F02, AQUA_FISH_KIND_F11, AQUA_FISH_KIND_F13},
+    {AQUA_FISH_KIND_F02, AQUA_FISH_KIND_F12, AQUA_FISH_KIND_F08},
+    {AQUA_FISH_KIND_F02, AQUA_FISH_KIND_F13, AQUA_FISH_KIND_F19},
+    {AQUA_FISH_KIND_F02, AQUA_FISH_KIND_F14, AQUA_FISH_KIND_F04},
+    {AQUA_FISH_KIND_F02, AQUA_FISH_KIND_F15, AQUA_FISH_KIND_F19},
+    {AQUA_FISH_KIND_F02, AQUA_FISH_KIND_F16, AQUA_FISH_KIND_F03},
+    {AQUA_FISH_KIND_F02, AQUA_FISH_KIND_F17, AQUA_FISH_KIND_F15},
+    {AQUA_FISH_KIND_F02, AQUA_FISH_KIND_F18, AQUA_FISH_KIND_F12},
+    {AQUA_FISH_KIND_F03, AQUA_FISH_KIND_F03, AQUA_FISH_KIND_F03},
+    {AQUA_FISH_KIND_F03, AQUA_FISH_KIND_F04, AQUA_FISH_KIND_F05},
+    {AQUA_FISH_KIND_F03, AQUA_FISH_KIND_F05, AQUA_FISH_KIND_F02},
+    {AQUA_FISH_KIND_F03, AQUA_FISH_KIND_F06, AQUA_FISH_KIND_F07},
+    {AQUA_FISH_KIND_F03, AQUA_FISH_KIND_F07, AQUA_FISH_KIND_F11},
+    {AQUA_FISH_KIND_F03, AQUA_FISH_KIND_F08, AQUA_FISH_KIND_F04},
+    {AQUA_FISH_KIND_F03, AQUA_FISH_KIND_F10, AQUA_FISH_KIND_F13},
+    {AQUA_FISH_KIND_F03, AQUA_FISH_KIND_F11, AQUA_FISH_KIND_F13},
+    {AQUA_FISH_KIND_F03, AQUA_FISH_KIND_F12, AQUA_FISH_KIND_F19},
+    {AQUA_FISH_KIND_F03, AQUA_FISH_KIND_F13, AQUA_FISH_KIND_F01},
+    {AQUA_FISH_KIND_F03, AQUA_FISH_KIND_F14, AQUA_FISH_KIND_F19},
+    {AQUA_FISH_KIND_F03, AQUA_FISH_KIND_F15, AQUA_FISH_KIND_F07},
+    {AQUA_FISH_KIND_F03, AQUA_FISH_KIND_F16, AQUA_FISH_KIND_F11},
+    {AQUA_FISH_KIND_F03, AQUA_FISH_KIND_F17, AQUA_FISH_KIND_F16},
+    {AQUA_FISH_KIND_F03, AQUA_FISH_KIND_F18, AQUA_FISH_KIND_F08},
+    {AQUA_FISH_KIND_F04, AQUA_FISH_KIND_F04, AQUA_FISH_KIND_F04},
+    {AQUA_FISH_KIND_F04, AQUA_FISH_KIND_F05, AQUA_FISH_KIND_F19},
+    {AQUA_FISH_KIND_F04, AQUA_FISH_KIND_F06, AQUA_FISH_KIND_F14},
+    {AQUA_FISH_KIND_F04, AQUA_FISH_KIND_F07, AQUA_FISH_KIND_F17},
+    {AQUA_FISH_KIND_F04, AQUA_FISH_KIND_F08, AQUA_FISH_KIND_F19},
+    {AQUA_FISH_KIND_F04, AQUA_FISH_KIND_F10, AQUA_FISH_KIND_F16},
+    {AQUA_FISH_KIND_F04, AQUA_FISH_KIND_F11, AQUA_FISH_KIND_F08},
+    {AQUA_FISH_KIND_F04, AQUA_FISH_KIND_F12, AQUA_FISH_KIND_F14},
+    {AQUA_FISH_KIND_F04, AQUA_FISH_KIND_F13, AQUA_FISH_KIND_F01},
+    {AQUA_FISH_KIND_F04, AQUA_FISH_KIND_F14, AQUA_FISH_KIND_F13},
+    {AQUA_FISH_KIND_F04, AQUA_FISH_KIND_F15, AQUA_FISH_KIND_F07},
+    {AQUA_FISH_KIND_F04, AQUA_FISH_KIND_F16, AQUA_FISH_KIND_F03},
+    {AQUA_FISH_KIND_F04, AQUA_FISH_KIND_F17, AQUA_FISH_KIND_F02},
+    {AQUA_FISH_KIND_F04, AQUA_FISH_KIND_F18, AQUA_FISH_KIND_F15},
+    {AQUA_FISH_KIND_F05, AQUA_FISH_KIND_F05, AQUA_FISH_KIND_F05},
+    {AQUA_FISH_KIND_F05, AQUA_FISH_KIND_F06, AQUA_FISH_KIND_F12},
+    {AQUA_FISH_KIND_F05, AQUA_FISH_KIND_F07, AQUA_FISH_KIND_F08},
+    {AQUA_FISH_KIND_F05, AQUA_FISH_KIND_F08, AQUA_FISH_KIND_F03},
+    {AQUA_FISH_KIND_F05, AQUA_FISH_KIND_F10, AQUA_FISH_KIND_F16},
+    {AQUA_FISH_KIND_F05, AQUA_FISH_KIND_F11, AQUA_FISH_KIND_F01},
+    {AQUA_FISH_KIND_F05, AQUA_FISH_KIND_F12, AQUA_FISH_KIND_F15},
+    {AQUA_FISH_KIND_F05, AQUA_FISH_KIND_F13, AQUA_FISH_KIND_F19},
+    {AQUA_FISH_KIND_F05, AQUA_FISH_KIND_F14, AQUA_FISH_KIND_F04},
+    {AQUA_FISH_KIND_F05, AQUA_FISH_KIND_F15, AQUA_FISH_KIND_F08},
+    {AQUA_FISH_KIND_F05, AQUA_FISH_KIND_F16, AQUA_FISH_KIND_F11},
+    {AQUA_FISH_KIND_F05, AQUA_FISH_KIND_F17, AQUA_FISH_KIND_F07},
+    {AQUA_FISH_KIND_F05, AQUA_FISH_KIND_F18, AQUA_FISH_KIND_F01},
+    {AQUA_FISH_KIND_F06, AQUA_FISH_KIND_F06, AQUA_FISH_KIND_F06},
+    {AQUA_FISH_KIND_F06, AQUA_FISH_KIND_F07, AQUA_FISH_KIND_F13},
+    {AQUA_FISH_KIND_F06, AQUA_FISH_KIND_F08, AQUA_FISH_KIND_F01},
+    {AQUA_FISH_KIND_F06, AQUA_FISH_KIND_F10, AQUA_FISH_KIND_F18},
+    {AQUA_FISH_KIND_F06, AQUA_FISH_KIND_F11, AQUA_FISH_KIND_F19},
+    {AQUA_FISH_KIND_F06, AQUA_FISH_KIND_F12, AQUA_FISH_KIND_F12},
+    {AQUA_FISH_KIND_F06, AQUA_FISH_KIND_F13, AQUA_FISH_KIND_F11},
+    {AQUA_FISH_KIND_F06, AQUA_FISH_KIND_F14, AQUA_FISH_KIND_F16},
+    {AQUA_FISH_KIND_F06, AQUA_FISH_KIND_F15, AQUA_FISH_KIND_F17},
+    {AQUA_FISH_KIND_F06, AQUA_FISH_KIND_F16, AQUA_FISH_KIND_F15},
+    {AQUA_FISH_KIND_F06, AQUA_FISH_KIND_F17, AQUA_FISH_KIND_F12},
+    {AQUA_FISH_KIND_F06, AQUA_FISH_KIND_F18, AQUA_FISH_KIND_F10},
+    {AQUA_FISH_KIND_F07, AQUA_FISH_KIND_F07, AQUA_FISH_KIND_F07},
+    {AQUA_FISH_KIND_F07, AQUA_FISH_KIND_F08, AQUA_FISH_KIND_F03},
+    {AQUA_FISH_KIND_F07, AQUA_FISH_KIND_F10, AQUA_FISH_KIND_F15},
+    {AQUA_FISH_KIND_F07, AQUA_FISH_KIND_F11, AQUA_FISH_KIND_F16},
+    {AQUA_FISH_KIND_F07, AQUA_FISH_KIND_F12, AQUA_FISH_KIND_F17},
+    {AQUA_FISH_KIND_F07, AQUA_FISH_KIND_F13, AQUA_FISH_KIND_F11},
+    {AQUA_FISH_KIND_F07, AQUA_FISH_KIND_F14, AQUA_FISH_KIND_F12},
+    {AQUA_FISH_KIND_F07, AQUA_FISH_KIND_F15, AQUA_FISH_KIND_F02},
+    {AQUA_FISH_KIND_F07, AQUA_FISH_KIND_F16, AQUA_FISH_KIND_F05},
+    {AQUA_FISH_KIND_F07, AQUA_FISH_KIND_F17, AQUA_FISH_KIND_F15},
+    {AQUA_FISH_KIND_F07, AQUA_FISH_KIND_F18, AQUA_FISH_KIND_F14},
+    {AQUA_FISH_KIND_F08, AQUA_FISH_KIND_F08, AQUA_FISH_KIND_F08},
+    {AQUA_FISH_KIND_F08, AQUA_FISH_KIND_F10, AQUA_FISH_KIND_F12},
+    {AQUA_FISH_KIND_F08, AQUA_FISH_KIND_F11, AQUA_FISH_KIND_F02},
+    {AQUA_FISH_KIND_F08, AQUA_FISH_KIND_F12, AQUA_FISH_KIND_F06},
+    {AQUA_FISH_KIND_F08, AQUA_FISH_KIND_F13, AQUA_FISH_KIND_F02},
+    {AQUA_FISH_KIND_F08, AQUA_FISH_KIND_F14, AQUA_FISH_KIND_F19},
+    {AQUA_FISH_KIND_F08, AQUA_FISH_KIND_F15, AQUA_FISH_KIND_F05},
+    {AQUA_FISH_KIND_F08, AQUA_FISH_KIND_F16, AQUA_FISH_KIND_F07},
+    {AQUA_FISH_KIND_F08, AQUA_FISH_KIND_F17, AQUA_FISH_KIND_F16},
+    {AQUA_FISH_KIND_F08, AQUA_FISH_KIND_F18, AQUA_FISH_KIND_F13},
+    {AQUA_FISH_KIND_F10, AQUA_FISH_KIND_F10, AQUA_FISH_KIND_F10},
+    {AQUA_FISH_KIND_F10, AQUA_FISH_KIND_F11, AQUA_FISH_KIND_F01},
+    {AQUA_FISH_KIND_F10, AQUA_FISH_KIND_F12, AQUA_FISH_KIND_F08},
+    {AQUA_FISH_KIND_F10, AQUA_FISH_KIND_F13, AQUA_FISH_KIND_F03},
+    {AQUA_FISH_KIND_F10, AQUA_FISH_KIND_F14, AQUA_FISH_KIND_F11},
+    {AQUA_FISH_KIND_F10, AQUA_FISH_KIND_F15, AQUA_FISH_KIND_F12},
+    {AQUA_FISH_KIND_F10, AQUA_FISH_KIND_F16, AQUA_FISH_KIND_F05},
+    {AQUA_FISH_KIND_F10, AQUA_FISH_KIND_F17, AQUA_FISH_KIND_F04},
+    {AQUA_FISH_KIND_F10, AQUA_FISH_KIND_F18, AQUA_FISH_KIND_F04},
+    {AQUA_FISH_KIND_F11, AQUA_FISH_KIND_F11, AQUA_FISH_KIND_F11},
+    {AQUA_FISH_KIND_F11, AQUA_FISH_KIND_F12, AQUA_FISH_KIND_F16},
+    {AQUA_FISH_KIND_F11, AQUA_FISH_KIND_F13, AQUA_FISH_KIND_F19},
+    {AQUA_FISH_KIND_F11, AQUA_FISH_KIND_F14, AQUA_FISH_KIND_F03},
+    {AQUA_FISH_KIND_F11, AQUA_FISH_KIND_F15, AQUA_FISH_KIND_F14},
+    {AQUA_FISH_KIND_F11, AQUA_FISH_KIND_F16, AQUA_FISH_KIND_F02},
+    {AQUA_FISH_KIND_F11, AQUA_FISH_KIND_F17, AQUA_FISH_KIND_F07},
+    {AQUA_FISH_KIND_F11, AQUA_FISH_KIND_F18, AQUA_FISH_KIND_F03},
+    {AQUA_FISH_KIND_F12, AQUA_FISH_KIND_F12, AQUA_FISH_KIND_F12},
+    {AQUA_FISH_KIND_F12, AQUA_FISH_KIND_F13, AQUA_FISH_KIND_F11},
+    {AQUA_FISH_KIND_F12, AQUA_FISH_KIND_F14, AQUA_FISH_KIND_F04},
+    {AQUA_FISH_KIND_F12, AQUA_FISH_KIND_F15, AQUA_FISH_KIND_F01},
+    {AQUA_FISH_KIND_F12, AQUA_FISH_KIND_F16, AQUA_FISH_KIND_F17},
+    {AQUA_FISH_KIND_F12, AQUA_FISH_KIND_F17, AQUA_FISH_KIND_F13},
+    {AQUA_FISH_KIND_F12, AQUA_FISH_KIND_F18, AQUA_FISH_KIND_F07},
+    {AQUA_FISH_KIND_F13, AQUA_FISH_KIND_F13, AQUA_FISH_KIND_F13},
+    {AQUA_FISH_KIND_F13, AQUA_FISH_KIND_F14, AQUA_FISH_KIND_F15},
+    {AQUA_FISH_KIND_F13, AQUA_FISH_KIND_F15, AQUA_FISH_KIND_F08},
+    {AQUA_FISH_KIND_F13, AQUA_FISH_KIND_F16, AQUA_FISH_KIND_F04},
+    {AQUA_FISH_KIND_F13, AQUA_FISH_KIND_F17, AQUA_FISH_KIND_F05},
+    {AQUA_FISH_KIND_F13, AQUA_FISH_KIND_F18, AQUA_FISH_KIND_F17},
+    {AQUA_FISH_KIND_F14, AQUA_FISH_KIND_F14, AQUA_FISH_KIND_F14},
+    {AQUA_FISH_KIND_F14, AQUA_FISH_KIND_F15, AQUA_FISH_KIND_F05},
+    {AQUA_FISH_KIND_F14, AQUA_FISH_KIND_F16, AQUA_FISH_KIND_F15},
+    {AQUA_FISH_KIND_F14, AQUA_FISH_KIND_F17, AQUA_FISH_KIND_F01},
+    {AQUA_FISH_KIND_F14, AQUA_FISH_KIND_F18, AQUA_FISH_KIND_F02},
+    {AQUA_FISH_KIND_F15, AQUA_FISH_KIND_F15, AQUA_FISH_KIND_F15},
+    {AQUA_FISH_KIND_F15, AQUA_FISH_KIND_F16, AQUA_FISH_KIND_F04},
+    {AQUA_FISH_KIND_F15, AQUA_FISH_KIND_F17, AQUA_FISH_KIND_F14},
+    {AQUA_FISH_KIND_F15, AQUA_FISH_KIND_F18, AQUA_FISH_KIND_F16},
+    {AQUA_FISH_KIND_F16, AQUA_FISH_KIND_F16, AQUA_FISH_KIND_F16},
+    {AQUA_FISH_KIND_F16, AQUA_FISH_KIND_F17, AQUA_FISH_KIND_F12},
+    {AQUA_FISH_KIND_F16, AQUA_FISH_KIND_F18, AQUA_FISH_KIND_F12},
+    {AQUA_FISH_KIND_F17, AQUA_FISH_KIND_F17, AQUA_FISH_KIND_F17},
+    {AQUA_FISH_KIND_F17, AQUA_FISH_KIND_F18, AQUA_FISH_KIND_F05},
+    {AQUA_FISH_KIND_F18, AQUA_FISH_KIND_F18, AQUA_FISH_KIND_F18}
+};
+
+/**
+ *
+ * Stores the three aquarium ambient-light colours.
+ *
+ */
+static float ambient[12] = {64.0f, 64.0f, 64.0f, 128.0f, 102.0f, 64.0f, 64.0f, 128.0f, 98.0f, 64.0f, 98.0f, 128.0f};
+
+/**
+ *
+ * Stores the directions of the aquarium lights.
+ *
+ */
+static float light_dir[4][4] = {
+    {0.0f, 0.0f, 0.0f, 0.0f},
+    {1.0f, 0.0f, 0.0f, 0.0f},
+    {0.0f, 0.0f, 0.0f, 0.0f},
+    {0.0f, 0.0f, 0.0f, 0.0f}
+};
+
+/**
+ *
+ * Stores the four light colours for each aquarium.
+ *
+ */
+static float light_color[3][4][4] = {
+    {
+        {128.0f, 128.0f, 128.0f, 128.0f},
+        {0.0f, 0.0f, 0.0f, 0.0f},
+        {0.0f, 0.0f, 0.0f, 0.0f},
+        {0.0f, 0.0f, 0.0f, 0.0f}
+    },
+    {
+        {146.0f, 100.0f, 100.0f, 128.0f},
+        {0.0f, 0.0f, 0.0f, 0.0f},
+        {0.0f, 0.0f, 0.0f, 0.0f},
+        {0.0f, 0.0f, 0.0f, 0.0f}
+    },
+    {
+        {146.0f, 66.0f, 144.0f, 128.0f},
+        {0.0f, 0.0f, 0.0f, 0.0f},
+        {0.0f, 0.0f, 0.0f, 0.0f},
+        {0.0f, 0.0f, 0.0f, 0.0f}
+    }
+};
+
+/**
+ *
+ * Stores the spherical collision points of an aquarium.
+ *
+ */
+static aqua_col_point ColChkPoint[9] = {
+    {{18.6299992f, 25.0f, 0.389999986f, 1.0f}, 5.80000019f},
+    {{18.6299992f, 20.0f, 0.389999986f, 1.0f}, 6.0f},
+    {{13.5f, 20.0f, -4.09000015f, 1.0f}, 6.0f},
+    {{-1.34000003f, 23.0f, -7.78999996f, 1.0f}, 8.0f},
+    {{-5.5f, 22.1499996f, -5.69999981f, 1.0f}, 6.0f},
+    {{-10.5f, 22.0f, -4.01999998f, 1.0f}, 6.0f},
+    {{-14.6599998f, 21.5f, -3.3599999f, 1.0f}, 6.0f},
+    {{-18.6599998f, 21.5f, -2.3599999f, 1.0f}, 6.0f},
+    {{-22.0f, 21.5f, -4.36000013f, 1.0f}, 5.5999999f}
+};
+
+/**
+ *
+ * Stores the spherical collision points of an aquarium.
+ *
+ */
+static aqua_col_point ColChkPoint2[9] = {
+    {{-23.6299992f, 40.0f, -12.8000002f, 1.0f}, 6.4000001f},
+    {{-23.6299992f, 33.0f, -12.8000002f, 1.0f}, 6.4000001f},
+    {{-23.6299992f, 26.0f, -12.8000002f, 1.0f}, 6.4000001f},
+    {{11.5f, 22.0f, -13.3000002f, 1.0f}, 4.0f},
+    {{20.5f, 30.0f, -8.19999981f, 1.0f}, 6.0f},
+    {{26.5f, 29.0f, -3.20000005f, 1.0f}, 6.0f},
+    {{23.5f, 23.0f, -5.5f, 1.0f}, 6.0f}
+};
+
+/**
+ *
+ * Stores the spherical collision points of an aquarium.
+ *
+ */
+static aqua_col_point ColChkPoint3[6] = {
+    {{-1.94000006f, 23.0f, -7.09000015f, 1.0f}, 8.0f},
+    {{-10.5f, 25.0f, -7.78999996f, 1.0f}, 6.0f},
+    {{13.5f, 21.0f, -4.09000015f, 1.0f}, 6.0f},
+    {{18.6299992f, 21.0f, 0.389999986f, 1.0f}, 6.0f},
+    {{24.3299999f, 21.0f, 3.3900001f, 1.0f}, 6.0f},
+    {{21.6299992f, 23.0f, -4.38999987f, 1.0f}, 6.0f}
+};
+
+/**
+ *
+ * Stores the fish-growth and parameter changes caused by aquarium food.
+ *
+ */
+static aqua_food_info esa_info[10] = {
+    {312, 1, 0, 0, 0, 1, 7200},
+    {313, 0, 0, 0, 1, 0, 7200},
+    {314, 1, 1, 0, 0, 0, 7200},
+    {315, 2, 0, 1, 0, 0, 7200},
+    {316, 1, 1, 0, 0, 0, 7200},
+    {317, 1, 0, 1, 0, 0, 7200},
+    {318, 1, 0, 0, 0, 1, 7200},
+    {319, 1, 0, 0, 1, 0, 7200},
+    {360, 2, 0, 0, 0, 0, 7200},
+    {-1}
+};
+
+/**
+ *
+ * Stores the three bubble-emitter origins in each aquarium.
+ *
+ */
+static float aqua_bubble_generate_pos[3][3][4] = {
+    {
+        {18.6299992f, 23.0f, 3.0f, 1.0f},
+        {-26.2299995f, 20.5f, -14.0f, 1.0f},
+        {0.0f, 20.5f, 12.0f, 1.0f}
+    },
+    {
+        {19.6299992f, 19.0f, 8.0f, 1.0f},
+        {-26.2299995f, 20.0f, 0.0f, 1.0f},
+        {-8.0f, 19.0f, -12.0f, 1.0f}
+    },
+    {
+        {18.6299992f, 23.0f, 3.0f, 1.0f},
+        {-26.2299995f, 20.5f, -14.0f, 1.0f},
+        {0.0f, 20.5f, 12.0f, 1.0f}
+    }
+};
+
+/**
+ *
+ * Stores the rise speeds selected by a bubble wobble pattern.
+ *
+ */
+static float up_tbl_996[5] = {0.0500000007f, 0.100000001f, 0.150000006f, 0.200000003f, 0.25f};
+
+/**
+ *
+ * Stores the horizontal wobble amplitudes selected by a bubble pattern.
+ *
+ */
+static float amptbl_997[5][2] = {
+    {0.0199999996f, 0.0199999996f},
+    {0.00999999978f, 0.0199999996f},
+    {0.0399999991f, 0.00999999978f},
+    {0.0199999996f, 0.00999999978f},
+    {0.00999999978f, 0.0399999991f}
+};
+
+/**
+ *
+ * Stores turn directions for the two aquarium circling orientations.
+ *
+ */
+static float dirtbl_1242[8] = {1.57079637f, -3.1101768f, 0.0f, -1.57079637f, 0.0f, 1.57079637f, -1.57079637f, -3.1101768f};
+
+/**
+ *
+ * Stores the duration of each aquarium fish effect.
+ *
+ */
+static int max_tbl_1484[6] = {0, 250, 250, 25000, 250, 0};
+
+/**
+ *
+ * Associates each fish item with its image model and sex-dependent colours.
+ *
+ */
+static aqua_fish_info aquafish_info[19] = {
+    {AQUA_FISH_ITEM_F01, "f01a", 2, 1},
+    {AQUA_FISH_ITEM_F02, "f02a", 3, 2},
+    {AQUA_FISH_ITEM_F03, "f03a", 4, 3},
+    {AQUA_FISH_ITEM_F04, "f04a", 5, 4},
+    {AQUA_FISH_ITEM_F05, "f05a", 6, 9},
+    {AQUA_FISH_ITEM_F06, "f06a", 7, 18},
+    {AQUA_FISH_ITEM_F07, "f07a", 8, 5},
+    {AQUA_FISH_ITEM_F08, "f08a", 9, 16},
+    {AQUA_FISH_ITEM_F10, "f10a", 10, 8},
+    {AQUA_FISH_ITEM_F11, "f11a", 11, 10},
+    {AQUA_FISH_ITEM_F12, "f12a", 12, 11},
+    {AQUA_FISH_ITEM_F13, "f13a", 13, 12},
+    {AQUA_FISH_ITEM_F14, "f14a", 14, 13},
+    {AQUA_FISH_ITEM_F15, "f15a", 15, 17},
+    {AQUA_FISH_ITEM_F16, "f16a", 16, 15},
+    {AQUA_FISH_ITEM_F17, "f17a", 17, 6},
+    {AQUA_FISH_ITEM_F18, "f18a", 18, 7},
+    {AQUA_FISH_ITEM_F19, "f19a", 1, 14},
+    {AQUA_FISH_ITEM_END}
+};
 
 // Code (.text)
 /**
@@ -7320,21 +7731,7 @@ void DrawSubGameUnderLine(mgCTexture *texture, int x, int y, int width) {
 }
 
 // Initialised data (.data)
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuaqua", aquafish_mixTable__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuaqua", ambient__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuaqua", light_dir__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuaqua", light_color__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuaqua", ColChkPoint__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuaqua", ColChkPoint2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuaqua", ColChkPoint3__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuaqua", esa_info__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuaqua", aqua_bubble_generate_pos__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuaqua", up_tbl_996__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuaqua", amptbl_997__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuaqua", dirtbl_1242__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuaqua", at_1346__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuaqua", max_tbl_1484__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuaqua", aquafish_info__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuaqua", u_brdtbl_2493__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuaqua", get_paraxtbl_2494__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuaqua", ptbl_2495__DATA);
@@ -7368,24 +7765,6 @@ INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuaqua", bart_5670__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuaqua", pl_s_5699__DATA);
 
 // Constants (.rodata)
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuaqua", at_2379__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuaqua", at_2380__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuaqua", at_2381__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuaqua", at_2382__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuaqua", at_2383__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuaqua", at_2384__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuaqua", at_2385__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuaqua", at_2386__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuaqua", at_2387__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuaqua", at_2388__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuaqua", at_2389__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuaqua", at_2390__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuaqua", at_2391__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuaqua", at_2392__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuaqua", at_2393__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuaqua", at_2394__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuaqua", at_2395__3__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuaqua", at_2396__3__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuaqua", at_3150__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuaqua", at_3151__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuaqua", at_3152__DATA);
