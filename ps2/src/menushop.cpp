@@ -1781,7 +1781,7 @@ void MenuShopInit(mgCMemory *stack, int *tex_block, int arg) {
 
     CShopMenuPt->no_price_mes_width = no_width;
     message->MakeMsg(0);
-    MenuDataAnalyze((char *) GetMenuMainPosCfgBuffer(&cfg_size), cfg_size, &MenuLocalStack);
+    MenuDataAnalyze(GetMenuMainPosCfgBuffer(&cfg_size), cfg_size, &MenuLocalStack);
     form = MenuPosData->GetFormInfo(0x50);
     form_num = MenuPosData->form_num;
 
