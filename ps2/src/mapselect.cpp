@@ -433,7 +433,7 @@ void InitMapSelect(mgCMemory *stack) {
     MenuStack = stack;
     SetCurrentDir(NULL);
     int list_size;
-    LoadFile((char *) "map/map.lst", read_buffer, &list_size);
+    LoadFile("map/map.lst", read_buffer, &list_size);
     input_str lines;
     lines.buffer = (char *) read_buffer;
     lines.size = list_size;
@@ -987,7 +987,7 @@ void LoadEventViewData(u_long128 *buffer, mgCMemory *stack) {
     int              floor_no;
     int              dungeon;
 
-    if (!LoadFile2((char *) "event/view_pal.txt", buffer, &file_size, 0)) {
+    if (!LoadFile2("event/view_pal.txt", buffer, &file_size, 0)) {
         return;
     }
 
