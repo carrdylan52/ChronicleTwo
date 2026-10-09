@@ -93,3 +93,13 @@ aggregate and uses the inline `"LOAD STACK"` name. These source forms supply
 After this step: **327 / 26 markers**, **4 / 9726 matched_data**.
 PAL and 149/149 objects pass; receipts are
 `.private/nmchr-r3/menuchr-adjust-{build,objects,progress,metrics}.log`.
+
+## Character equipment load phases
+
+`tbl_992` is a documented native signed-halfword array with twenty entries:
+five equipment phases for each `USER_CHARA`. Its exact forty-byte declared
+extent includes the observed unused zero entries for monster mode, without
+appended filler. `ConvertCharaLoadDataPhase` retains its existing typed indexing.
+After this step: **326 / 26 markers**, **4 / 9726 matched_data**.
+PAL and 149/149 objects pass; receipts are
+`.private/nmchr-r3/menuchr-phase-table-{build,objects,progress,metrics}.log`.

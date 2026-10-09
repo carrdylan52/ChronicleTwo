@@ -215,7 +215,13 @@ enum {
     kTimeBandNight = 2
 };
 
-extern short       tbl_992[];
+/**
+ *
+ * Loading phase of each playable character and equipment part.
+ *
+ */
+static short tbl_992[USER_CHARA_NUM * 5] = {2, 3, 4, 5, 1, 2, 3, 4, 5, 1, 1, 2, 4, 0, 0, 0, 0, 0, 0, 0};
+
 /**
  *
  * Non-zero while the party townsperson model is loading.
@@ -7469,7 +7475,6 @@ s16 monster_progress_tbl[MONSTER_PROGRESS_NUM][1 + MONSTER_PROGRESS_LEVEL_NUM] =
     {9, 224, 236, 228, 240},
 };
 
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", tbl_992__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", tbl_1233__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_1372__2__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", nextIDtbl_1594__DATA);
