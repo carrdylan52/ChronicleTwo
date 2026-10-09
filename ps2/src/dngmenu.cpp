@@ -2900,10 +2900,14 @@ int CMenuTreeMap::Step() {
                         MenuSePlay(MENU_SCRIPT_SOUND_CANCEL);
                     } else if (target_save != NULL && !(target_save->flag & DNG_FLOOR_FLAG_OPEN)) {
                         MenuSePlay(MENU_SCRIPT_SOUND_CANCEL);
-                    } else if (CheckDngTreeMapFuncType() == DNG_TREE_MAP_FUNC_OTHER && TreeMapCallDungeonSubMap == 1 &&
-                               (MakeDngTreeMapJumpNo(dng_no, NextFloorGlid->room.floor_id, &loop_no, &map_no), map_no == MenuMainScene->GetNowMapNo())) {
-                        MenuSePlay(MENU_SCRIPT_SOUND_CANCEL);
                     } else {
+                        if (CheckDngTreeMapFuncType() == DNG_TREE_MAP_FUNC_OTHER && TreeMapCallDungeonSubMap == 1) {
+                            MakeDngTreeMapJumpNo(dng_no, NextFloorGlid->room.floor_id, &loop_no, &map_no);
+                            if (map_no == MenuMainScene->GetNowMapNo()) {
+                                MenuSePlay(MENU_SCRIPT_SOUND_CANCEL);
+                                break;
+                            }
+                        }
                         selection_changed = 1;
                         DngAskMessageDrawFlag = 1;
                         if (CheckDngTreeMapFuncType() == DNG_TREE_MAP_FUNC_DUNGEON && !(NextFloorGlid->room.flag & DNGMAP_ROOM_FLAG_START)) {
