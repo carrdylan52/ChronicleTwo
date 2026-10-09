@@ -1266,7 +1266,7 @@ int MenuGeoramaInit(mgCMemory *stack, int arg) {
     MenuCapture(MenuCommonInfo->tex_block[0], &MenuGeoramaStack, 1);
     MenuMainImageDataEnter(MenuCommonInfo->tex_block[1]);
     MenuCommonInfo->now_mode = 3;
-    MenuDataAnalyze((char *) GetMenuMainPosCfgBuffer(&size), size, &MenuGeoramaStack);
+    MenuDataAnalyze(GetMenuMainPosCfgBuffer(&size), size, &MenuGeoramaStack);
     MenuDataAnalyze((char *) GetPackFile(MenuArg.pack, "geo.cfg", &size), size, &MenuGeoramaStack);
     InitDownLoadAnaunce(&MenuGeoramaStack);
     HouseInfoSelectMoveInit = 1;
@@ -5467,7 +5467,7 @@ void MenuRemovalInit(mgCMemory *stack, int *arg) {
     HouseInfoSelectLine = 0;
     HouseInfoSelectSelect = 0;
     HouseInfoFormGrobal = NULL;
-    MenuDataAnalyze((char *)GetMenuMainPosCfgBuffer(&size), size, &MenuGeoramaStack);
+    MenuDataAnalyze(GetMenuMainPosCfgBuffer(&size), size, &MenuGeoramaStack);
     u_long128 *top = MenuGeoramaStack.stGetTop();
     RemovalMenuPtr->data_stack.stSetBuffer(top, 0x1180);
     MenuGeoramaStack.Alloc(0x1180);
