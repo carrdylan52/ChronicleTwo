@@ -17,8 +17,10 @@ initializer and marker (`editmap2-river-position`).
 
 `UpdateHouse` uses the inline decimal suffix format and `npclive` prefix,
 and includes `mainloop.hpp` for `LanguageCode` instead of redeclaring it.
-The ten-byte `NpcLiveName` aggregate is initialized with `"npclive"` inside
-the model loop, where retail copies its initializer. Declaring its actual
+The ten-byte `char live_name[10] = "npclive";` is initialized inside the
+model loop, where retail copies its initializer; the former `NpcLiveName`
+wrapper struct is removed and the plain array compiles to the same copy
+(`.private/fixes-r3c/b1-*.log`). Declaring its actual
 suffix buffer immediately afterward preserves the existing stack order.
 The initializer has eight meaningful string bytes, two trailing zero bytes,
 and six piece-alignment bytes (`editmap2-npc-name-literals`,

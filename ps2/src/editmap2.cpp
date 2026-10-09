@@ -25,17 +25,6 @@ static const int   kPartsTypeRiver = 0xB;
 static const int   kNpcLiveLength = 7;
 static const int   kChildIdMax = 0x200;
 
-
-/**
- *
- * Holds a short live character name used for house occupants.
- *
- */
-struct NpcLiveName {
-    char text[10]; /**< Name text and terminator. */
-};
-
-
 // Code (.text)
 /**
  *
@@ -708,19 +697,19 @@ void CEditMap::UpdateHouse() {
             for (node = part->piece_list; node != NULL; node = node->next) {
                 node_name = node->data.name;
                 model = &node->data;
-                NpcLiveName live_name = {"npclive"};
+                char live_name[10] = "npclive";
                 char suffix[10];
                 live_length = kNpcLiveLength;
 
                 if (LanguageCode > 0) {
                     live_length += sprintf(suffix, "%d", LanguageCode);
-                    strcat(live_name.text, suffix);
+                    strcat(live_name, suffix);
                 }
 
                 if (node_name != NULL && strncmp(node_name, "npclive", kNpcLiveLength) == 0) {
                     model->Show(0);
 
-                    if (strncmp(node_name, live_name.text, live_length) == 0) {
+                    if (strncmp(node_name, live_name, live_length) == 0) {
                         model->Show(visible);
                     }
                 }
