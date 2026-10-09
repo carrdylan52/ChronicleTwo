@@ -4,7 +4,7 @@ Checkpoint `830e48ed` has **20 RODATA / 19 BSS** markers and
 **0/515 matched data bytes** after the warm
 progress refresh.
 
-Train-reaction, thunder, fire-texture and geyser-name strings are inlined at their native consumers. Five fire-sprite aggregate templates already exist in source. `CGeyserEffect::CreatePacket` now initializes its real `mgVec4` size, UV and colour aggregates directly, including the zero UV initializer.
+Animated Georama-part identifiers, thunder-part identifiers, fire-texture and geyser-name strings are inlined at their native consumers. Five fire-sprite aggregate templates already exist in source. `CGeyserEffect::CreatePacket` now initializes its real `mgVec4` size, UV and colour aggregates directly, including the zero UV initializer.
 
 Eighteen documented file-private words/pointers preserve the retail order of camera-reaction, thunder, fire-powder and geyser state. The assembly-backed fire initializer's GP slots remain present. No guarded draft is changed.
 

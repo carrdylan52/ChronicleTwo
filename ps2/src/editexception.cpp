@@ -42,7 +42,7 @@ static int rea_mtn_step;
 static int thunder_count;
 
 /**
- * Thunder-start state reset by the thunder initializer.
+ * Thunder-start state cleared when S51 lightning is initialized.
  */
 static int start_thunder;
 
@@ -107,12 +107,12 @@ static int GeyserEffectTexb;
 static mgCFrame * GeyserFrame;
 
 /**
- * Random state for geyser particles.
+ * Random seed stored when geyser effects are initialized.
  */
 static int GeyserRndSeed;
 
 /**
- * Geyser particle effect active in the scene.
+ * Array of geyser emitters shared by placed geyser parts.
  */
 static CGeyserEffect * GeyserEffect;
 
