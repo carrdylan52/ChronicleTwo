@@ -474,11 +474,11 @@ void LightingEdit(CScene *scene) {
     const char *pages[4] = {"<- BG & AMB  ->", "<-Dir Light ", "<-    Fog    ->", "<-   File    ->"};
     end = text;
     row = LightSel[LightType];
-    end += sprintf(end, "%sLightSet [%d]\n", cursor[row == 0], light_no);
-    if (LightType != LIGHTING_EDIT_PAGE_DIR_LIGHT) end += sprintf(end, "%s%s\n", cursor[row == 1], pages[LightType]);
-    else end += sprintf(end, "%s%s%d->\n", cursor[row == 1], pages[LightType], DirLightNo);
+    end += sprintf(end, "%sLightSet [%d]\n", cursor[row == LIGHTING_EDIT_ROW_LIGHT_SET], light_no);
+    if (LightType != LIGHTING_EDIT_PAGE_DIR_LIGHT) end += sprintf(end, "%s%s\n", cursor[row == LIGHTING_EDIT_ROW_PAGE], pages[LightType]);
+    else end += sprintf(end, "%s%s%d->\n", cursor[row == LIGHTING_EDIT_ROW_PAGE], pages[LightType], DirLightNo);
     if (LightType == LIGHTING_EDIT_PAGE_BG_AMBIENT) {
-        edit = row - 2;
+        edit = row - LIGHTING_EDIT_ROW_ITEM;
         float *colors[3] __attribute__((aligned(16))) = {light->bg_color, light->bg_color2, light->ambient};
         if (row > 10) row = 10;
         selected = colors[edit / 3];
@@ -494,12 +494,12 @@ void LightingEdit(CScene *scene) {
         end += sprintf(end, "   BG   BG2   AMB\n");
     }
     if (LightType == LIGHTING_EDIT_PAGE_DIR_LIGHT) {
-        int edit = row - 2;
-        if (edit >= 3 && edit < 6) {
+        int edit = row - LIGHTING_EDIT_ROW_ITEM;
+        if (edit >= LIGHTING_EDIT_DIR_ROTATE_X && edit < LIGHTING_EDIT_DIR_COUNT) {
             sceVu0FVECTOR angles;
             mgZeroVector(angles);
-            if (GamePad__2.Down2(PAD_RIGHT)) angles[edit - 3] = 0.04f;
-            if (GamePad__2.Down2(PAD_LEFT)) angles[edit - 3] = -0.04f;
+            if (GamePad__2.Down2(PAD_RIGHT)) angles[edit - LIGHTING_EDIT_DIR_ROTATE_X] = 0.04f;
+            if (GamePad__2.Down2(PAD_LEFT)) angles[edit - LIGHTING_EDIT_DIR_ROTATE_X] = -0.04f;
             if (!(mgDistVector(angles) <= 0.0f)) {
                 sceVu0FVECTOR vector;
                 vector[0] = light->light_dir[0][DirLightNo];
@@ -518,7 +518,7 @@ void LightingEdit(CScene *scene) {
             }
         }
         if (edit >= 0) {
-            if (edit < 3) {
+            if (edit < LIGHTING_EDIT_DIR_ROTATE_X) {
                 selected_index = edit;
                 selected = light->light_color[DirLightNo];
             }
@@ -528,39 +528,39 @@ void LightingEdit(CScene *scene) {
             end += sprintf(end, "%sCOL %s = %d%s\n", cursor[hit], channel[component],
                            (int)light->light_color[DirLightNo][component], tail[hit]);
         }
-        end += sprintf(end, "%sROTATE X <->%s\n", cursor[edit == 3], tail[edit == 3]);
-        end += sprintf(end, "%sROTATE Y <->%s\n", cursor[edit == 4], tail[edit == 4]);
-        end += sprintf(end, "%sROTATE Z <->%s\n", cursor[edit == 5], tail[edit == 5]);
+        end += sprintf(end, "%sROTATE X <->%s\n", cursor[edit == LIGHTING_EDIT_DIR_ROTATE_X], tail[edit == LIGHTING_EDIT_DIR_ROTATE_X]);
+        end += sprintf(end, "%sROTATE Y <->%s\n", cursor[edit == LIGHTING_EDIT_DIR_ROTATE_Y], tail[edit == LIGHTING_EDIT_DIR_ROTATE_Y]);
+        end += sprintf(end, "%sROTATE Z <->%s\n", cursor[edit == LIGHTING_EDIT_DIR_ROTATE_Z], tail[edit == LIGHTING_EDIT_DIR_ROTATE_Z]);
         for (int a = 0; a < 3; a++)
             end += sprintf(end, " DIR %s = %f\n", axis[a], light->light_dir[a][DirLightNo]);
     }
     if (LightType == LIGHTING_EDIT_PAGE_FOG) {
-        unsigned int edit = row - 2;
+        unsigned int edit = row - LIGHTING_EDIT_ROW_ITEM;
         mgFOG_PARAM *fog = &light->fog;
         int direction = 0;
         if (GamePad__2.Down2(PAD_RIGHT)) direction = 1;
         if (GamePad__2.Down2(PAD_LEFT)) direction = -1;
         if (direction != 0) {
             switch (edit) {
-            case 0:
+            case LIGHTING_EDIT_FOG_NEAR:
                 fog->near_dist += 10.0f * direction;
                 break;
-            case 1:
+            case LIGHTING_EDIT_FOG_FAR:
                 fog->far_dist += 10.0f * direction;
                 break;
-            case 2:
-            case 3:
-            case 4: {
-                int value = fog->color[edit - 2] + direction;
+            case LIGHTING_EDIT_FOG_R:
+            case LIGHTING_EDIT_FOG_G:
+            case LIGHTING_EDIT_FOG_B: {
+                int value = fog->color[edit - LIGHTING_EDIT_FOG_R] + direction;
                 if (value < 0) value = 0;
                 if (value > 255) value = 255;
-                fog->color[edit - 2] = value;
+                fog->color[edit - LIGHTING_EDIT_FOG_R] = value;
                 break;
             }
-            case 5:
+            case LIGHTING_EDIT_FOG_MIN:
                 fog->far_value = (int)fog->far_value + direction;
                 break;
-            case 6:
+            case LIGHTING_EDIT_FOG_MAX:
                 fog->near_value = (int)fog->near_value + direction;
                 break;
             }
@@ -571,16 +571,16 @@ void LightingEdit(CScene *scene) {
             if (fog->near_dist < 10.0f) fog->near_dist = 10.0f;
             if (fog->far_dist < fog->near_dist) fog->far_dist = fog->near_dist;
         }
-        end += sprintf(end, "%sNEAR = %f%s\n", cursor[edit == 0], fog->near_dist, tail[edit == 0]);
-        end += sprintf(end, "%sFAR  = %f%s\n", cursor[edit == 1], fog->far_dist, tail[edit == 1]);
-        end += sprintf(end, "%sR    = %d%s\n", cursor[edit == 2], fog->r, tail[edit == 2]);
-        end += sprintf(end, "%sG    = %d%s\n", cursor[edit == 3], fog->g, tail[edit == 3]);
-        end += sprintf(end, "%sB    = %d%s\n", cursor[edit == 4], fog->b, tail[edit == 4]);
-        end += sprintf(end, "%sMIN  = %d%s\n", cursor[edit == 5], (int)fog->far_value, tail[edit == 5]);
-        end += sprintf(end, "%sMAX  = %d%s\n", cursor[edit == 6], (int)fog->near_value, tail[edit == 6]);
+        end += sprintf(end, "%sNEAR = %f%s\n", cursor[edit == LIGHTING_EDIT_FOG_NEAR], fog->near_dist, tail[edit == LIGHTING_EDIT_FOG_NEAR]);
+        end += sprintf(end, "%sFAR  = %f%s\n", cursor[edit == LIGHTING_EDIT_FOG_FAR], fog->far_dist, tail[edit == LIGHTING_EDIT_FOG_FAR]);
+        end += sprintf(end, "%sR    = %d%s\n", cursor[edit == LIGHTING_EDIT_FOG_R], fog->r, tail[edit == LIGHTING_EDIT_FOG_R]);
+        end += sprintf(end, "%sG    = %d%s\n", cursor[edit == LIGHTING_EDIT_FOG_G], fog->g, tail[edit == LIGHTING_EDIT_FOG_G]);
+        end += sprintf(end, "%sB    = %d%s\n", cursor[edit == LIGHTING_EDIT_FOG_B], fog->b, tail[edit == LIGHTING_EDIT_FOG_B]);
+        end += sprintf(end, "%sMIN  = %d%s\n", cursor[edit == LIGHTING_EDIT_FOG_MIN], (int)fog->far_value, tail[edit == LIGHTING_EDIT_FOG_MIN]);
+        end += sprintf(end, "%sMAX  = %d%s\n", cursor[edit == LIGHTING_EDIT_FOG_MAX], (int)fog->near_value, tail[edit == LIGHTING_EDIT_FOG_MAX]);
     }
     if (LightType == LIGHTING_EDIT_PAGE_FILE) {
-        int edit = row - 2;
+        int edit = row - LIGHTING_EDIT_ROW_ITEM;
         sprintf(end, "%sSAVE <->%s\n", cursor[edit == 0], tail[edit == 0]);
         if (edit == 0 && (GamePad__2.Down2(PAD_LEFT) || GamePad__2.Down2(PAD_RIGHT))) {
             char script[0x5000];
@@ -609,7 +609,7 @@ void LightingEdit(CScene *scene) {
     previous = LightType;
     if (row >= LightListNum[LightType]) row = 0;
     LightSel[LightType] = row;
-    if (row == 1) {
+    if (row == LIGHTING_EDIT_ROW_PAGE) {
         if (previous == LIGHTING_EDIT_PAGE_DIR_LIGHT) {
             if (GamePad__2.Down2(PAD_RIGHT)) DirLightNo += 1;
             if (GamePad__2.Down2(PAD_LEFT)) DirLightNo -= 1;
@@ -629,9 +629,9 @@ void LightingEdit(CScene *scene) {
         if (LightType > LIGHTING_EDIT_PAGE_FILE) LightType = LIGHTING_EDIT_PAGE_FILE;
         if (LightType == LIGHTING_EDIT_PAGE_BG_AMBIENT) DirLightNo = 0;
         if (LightType == LIGHTING_EDIT_PAGE_FOG) DirLightNo = 3;
-        if (previous != LightType) LightSel[LightType] = 1;
+        if (previous != LightType) LightSel[LightType] = LIGHTING_EDIT_ROW_PAGE;
     }
-    if (row == 0) {
+    if (row == LIGHTING_EDIT_ROW_LIGHT_SET) {
         if (GamePad__2.Down2(PAD_RIGHT)) light_no += 1;
         if (GamePad__2.Down2(PAD_LEFT)) light_no -= 1;
         if (light_no < 0) light_no = 0;
