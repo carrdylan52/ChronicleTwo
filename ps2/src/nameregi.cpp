@@ -917,7 +917,7 @@ int search_txt_jis(char *text) {
  * @size 0x44
  */
 static int search_txt_asci(char *text) {
-    s8 *character = (s8 *) text;
+    s8 *character = text;
     int table_index = 0;
 
     do {
