@@ -14133,14 +14133,14 @@ int _CTRLC_MOVE_RANGE(RS_STACKDATA *stack, int argc) {
 
 int _GET_NEAR_TBOX_POS(RS_STACKDATA *stack, int argc) {
     float            target[4];
-    float            box_pos[4];
-    DNG_BATTLE_AREA *dng_scene;
-    int              nearest;
-    int              i;
-    u8              *box_manager;
-    float            nearest_dist;
-    float            dist;
-    CTreasureBox    *box;
+    float                box_pos[4];
+    DNG_BATTLE_AREA     *dng_scene;
+    int                  nearest;
+    int                  i;
+    CTreasureBoxManager *box_manager;
+    float                nearest_dist;
+    float                dist;
+    CTreasureBox        *box;
 
     dng_scene = &EventScene->battle_area;
 
@@ -14148,7 +14148,7 @@ int _GET_NEAR_TBOX_POS(RS_STACKDATA *stack, int argc) {
         return 0;
     }
 
-    box_manager = (u8 *) dng_scene->treasure_box;
+    box_manager = dng_scene->treasure_box;
 
     if (box_manager == NULL) {
         return 0;
@@ -14160,8 +14160,8 @@ int _GET_NEAR_TBOX_POS(RS_STACKDATA *stack, int argc) {
     stack += 3;
     nearest_dist = 9999.0f;
 
-    for (i = 0; i < 24; i++) {
-        box = (CTreasureBox *) (box_manager + i * 0x70 + 0x10);
+    for (i = 0; i < TREASURE_BOX_MAX; i++) {
+        box = &box_manager->box[i];
 
         if (box != NULL && (box == NULL || box->state != 0)) {
             box->GetPosition(box_pos);
@@ -14180,7 +14180,7 @@ int _GET_NEAR_TBOX_POS(RS_STACKDATA *stack, int argc) {
     box_pos[3] = 0.0f;
 
     if (nearest >= 0) {
-        box = (CTreasureBox *) (box_manager + nearest * 0x70 + 0x10);
+        box = &box_manager->box[nearest];
         box->GetPosition(box_pos);
     }
 
