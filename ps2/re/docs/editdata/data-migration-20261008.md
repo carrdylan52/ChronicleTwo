@@ -123,3 +123,17 @@ until the tooling lane accepts this generic change.
 Header validation: `.private/dataC-r2/header-extents-final-{build,objects}.log`.
 The complete PAL image, all 149 objects, and every unowned object hash pass.
 The evidence audit is `header-metadata-corrections.json` in the same directory.
+
+## Round-4 retained-marker checks
+
+The existing consumer-based BSS matcher identifies the native quadword buffer,
+`mgCMemory` static and one-byte constructor guard with their exact declared
+extents. Their three markers are removed; member addends and function bodies
+are unchanged. The older named-BSS proposal is unnecessary for this unit.
+
+Markers: rodata 0 → 0, BSS 3 → 0.
+Native data credit: 372 → 16884 / 16884.
+
+Validation: `.private/dtool-r4/editdata-{build,objects,tests}.log`.
+PAL is byte-identical and all 149 complete objects pass. Other game objects
+retain their baseline hashes, and the code metric is unchanged.

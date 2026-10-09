@@ -1076,6 +1076,3 @@ EditAnalyzeSrc::EditAnalyzeSrc() {
     Init();
 }
 
-INCLUDE_BSS(init_1273, 0x4);
-INCLUDE_BSS(buff_1271, 0x3000);
-INCLUDE_BSS(Stack_1272, 0x30);
