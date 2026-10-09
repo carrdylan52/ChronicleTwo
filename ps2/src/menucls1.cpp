@@ -148,8 +148,8 @@ CMenuFont::CMenuFont() {
     SetClearance(0x10, 0x14);
     SetFuchi(5);
     SetColor(0x80686A6BU);
-    *(int *) &offset_x = 0;
-    *(int *) &offset_y = 0;
+    offset_x = 0.0f;
+    offset_y = 0.0f;
 }
 
 void MenuMesInit(ClsMes *mes) {
@@ -169,12 +169,12 @@ void MenuMesInit(ClsMes *mes) {
 
         mes->last_x = 0;
         mes->last_y = 0;
-        *(int *) &mes->fade = 0;
+        mes->fade = 0.0f;
         mes->open = 1;
         mes->draw_speed = mes->GetDrawSpeedDef();
         mes->page_wait = 0;
         mes->scroll_wait = 0;
-        *(int *) &mes->reveal = 0;
+        mes->reveal = 0.0f;
         mes->reveal_num = 0;
         mes->page_top = 0;
         mes->unk_1f4 = 0;
@@ -282,8 +282,8 @@ void MenuMesInit(ClsMes *mes) {
 
         mes->draw_off_x = 0.0f;
         mes->draw_off_y = 0.0f;
-        *(int *) &mes->offset_x = 0;
-        *(int *) &mes->offset_y = 0;
+        mes->offset_x = 0.0f;
+        mes->offset_y = 0.0f;
     }
 }
 
@@ -1092,11 +1092,11 @@ int MenuUseItemCheckFunc(CGameDataUsed *item, CItemUseTarget *target, int apply)
         if (!(chara->status_attr & 0x40) || !(effect.status_flags & 0x10)) {
             if (((MenuUsedItemNo == 0x184 && weapon_type == 1) ||
                  (MenuUsedItemNo == 0x185 && weapon_type == 3)) &&
-                (u16)chara->defence < 0x80) {
+                chara->defence < 0x80) {
                 count++;
                 if (apply != 0) {
-                    (u16 &)chara->defence += 4;
-                    if ((u16)chara->defence > 0x80) {
+                    chara->defence += 4;
+                    if (chara->defence > 0x80) {
                         chara->defence = 0x80;
                     }
                     sound = 10;
