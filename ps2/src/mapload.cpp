@@ -1995,8 +1995,7 @@ int mapFUNC_EFFECT_NAME(SPI_STACK *stack, int argc) {
 
     if (effect_index >= 0) {
         mapNowFuncPoint->effect.index = effect_index;
-        mapNowFuncPoint->frame.SetBound((mgCFrame::BoundInfo *) operator new(
-            0xB0, mapStack->Alloc(algn16_size(0xB0) + 2)));
+        mapNowFuncPoint->frame.SetBound(new (mapStack->Alloc(algn16_size(0xB0) + 2)) mgCFrame::BoundInfo);
     } else {
         mapNowFuncPoint->type = 0;
     }
@@ -2381,9 +2380,8 @@ int cfgWATER_SURFACE_NUM(SPI_STACK *stack, int argc) {
     mapMap->water_surface_num = spiGetStackInt(stack);
 
     if (mapMap->water_surface_num > 0) {
-        mapMap->water_surface = (CWaterFrame **) operator new[](
-            mapMap->water_surface_num * 4,
-            mapStack->Alloc(algn16_size(mapMap->water_surface_num * 4) + 2));
+        mapMap->water_surface =
+            new (mapStack->Alloc(algn16_size(mapMap->water_surface_num * 4) + 2)) CWaterFrame *[mapMap->water_surface_num];
 
         if (mapMap->water_surface == NULL) {
             mapMap->water_surface_num = 0;
