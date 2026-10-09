@@ -751,7 +751,7 @@ int pcpMDS_END(SPI_STACK *stack, int argc) {
             pcpNowMdsInfo->chara = chara;
 
             if (chara != NULL) {
-                frame = (mgCFrame *) ((CObjectFrame *) chara)->frame;
+                frame = ((CObjectFrame *) chara)->frame;
             }
 
             break;
