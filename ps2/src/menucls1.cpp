@@ -1341,15 +1341,13 @@ int MenuUseItemCheckFunc(CGameDataUsed *item, CItemUseTarget *target, int apply)
     return 0;
 }
 int CMenuItemUse::CheckItemUseEnable(CGameDataUsed *item, int kind, void *ptr) {
-    int target_data[2];
-
     if (item == NULL || ptr == NULL) {
         return 0;
     }
 
-    target_data[0] = -1;
-    ((CItemUseTarget *) &target_data)->SetPtr(kind, ptr);
-    return MenuUseItemCheckFunc(item, (CItemUseTarget *) &target_data, 0);
+    CItemUseTarget target_data;
+    target_data.SetPtr(kind, ptr);
+    return MenuUseItemCheckFunc(item, &target_data, 0);
 }
 
 int CMenuItemUse::UseItem(CGameDataUsed *item, int kind, void *ptr) {
