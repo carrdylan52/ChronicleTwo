@@ -1,5 +1,4 @@
 #include "common.h"
-#include "mg_tanime_cabi.h"
 #include "mw_runtime.h"
 
 #include <cmath>
@@ -16,10 +15,134 @@
 #include "mglib.hpp"
 #include "scriptinterpreter.hpp"
 
+static int texTEX_ANIME(SPI_STACK *stack, int argc);
+
+static int texTEX_ANIME_DATA(SPI_STACK *stack, int argc);
+
+static int texSRC_TEX(SPI_STACK *stack, int argc);
+
+static int texDEST_TEX(SPI_STACK *stack, int argc);
+
+static int texSCROLL(SPI_STACK *stack, int argc);
+
+static int texCLUT_COPY(SPI_STACK *stack, int argc);
+
+static int texCOLOR(SPI_STACK *stack, int argc);
+
+static int texALPHA_BLEND(SPI_STACK *stack, int argc);
+
+static int texALPHA_TEST(SPI_STACK *stack, int argc);
+
+static int texWAIT(SPI_STACK *stack, int argc);
+
+static int texTEX_ANIME_DATA_END(SPI_STACK *stack, int argc);
+
+static int texTEX_ANIME_END(SPI_STACK *stack, int argc);
+
+static int texBUG_PATCH(SPI_STACK *stack, int argc);
+
+/**
+ *
+ * Commands accepted by the texture-animation script loader.
+ *
+ */
+static SPI_TAG_PARAM tex_tag[] = {
+    {"TEX_ANIME", texTEX_ANIME},
+    {"TEX_ANIME_DATA", texTEX_ANIME_DATA},
+    {"SRC_TEX", texSRC_TEX},
+    {"DEST_TEX", texDEST_TEX},
+    {"SCROLL", texSCROLL},
+    {"CLUT_COPY", texCLUT_COPY},
+    {"COLOR", texCOLOR},
+    {"ALPHA_BLEND", texALPHA_BLEND},
+    {"ALPHA_TEST", texALPHA_TEST},
+    {"WAIT", texWAIT},
+    {"TEX_ANIME_DATA_END", texTEX_ANIME_DATA_END},
+    {"TEX_ANIME_END", texTEX_ANIME_END},
+    {"BUG_PATCH", texBUG_PATCH},
+    {NULL, NULL},
+};
+
+/**
+ *
+ * Default timing patch applied to new texture-animation records.
+ *
+ */
+static int mgBugPatch;
+
+/**
+ *
+ * Pauses advancement of every texture-animation group.
+ *
+ */
+int mgCTextureAnime::stop_anime;
+
+/**
+ *
+ * Animation receiving the current script record.
+ *
+ */
+static mgCTextureAnime *pTexAnime;
+
+/**
+ *
+ * Animation supplied to the texture script loader.
+ *
+ */
+static mgCTextureAnime *pLoadTexAnime;
+
+/**
+ *
+ * Group receiving the current texture-animation record.
+ *
+ */
+static int now_group;
+
+/**
+ *
+ * Texture manager used by the animation script loader.
+ *
+ */
+static mgCTextureManager *TexManager;
+
+/**
+ *
+ * Memory pool used to allocate texture-animation records and names.
+ *
+ */
+static mgCMemory *TexAnimeStack;
+
+/**
+ *
+ * Name of the group being assembled by the animation script.
+ *
+ */
+static char *group_name;
+
+/**
+ *
+ * Initial enable state of the current animation group.
+ *
+ */
+static int ta_enable;
+
+/**
+ *
+ * Texture block shared by the current animation record.
+ *
+ */
+static int now_texb;
+
+/**
+ *
+ * Timing patch requested for subsequent animation records.
+ *
+ */
+static int texBugPatch;
+
 /** Record the script is building. */
 static mgCTexAnimeData nowTexData;
 
-extern char at_873[];
 // Code (.text)
 #pragma schedule off
 
@@ -793,7 +916,7 @@ int texSRC_TEX(SPI_STACK *stack, int argc) {
         if (now_texb < 0) {
             now_texb = nowTexData.src_tex->block;
         } else if (now_texb != nowTexData.src_tex->block) {
-            printf(at_873, nowTexData.src_tex->name);
+            printf("%s block is not match!!!\n", nowTexData.src_tex->name);
         }
     }
 
@@ -832,7 +955,7 @@ int texDEST_TEX(SPI_STACK *stack, int argc) {
         if (now_texb < 0) {
             now_texb = nowTexData.dest_tex->block;
         } else if (now_texb != nowTexData.dest_tex->block) {
-            printf(at_873, nowTexData.dest_tex->name);
+            printf("%s block is not match!!!\n", nowTexData.dest_tex->name);
         }
     }
 
@@ -1060,39 +1183,9 @@ void mgRect<int>::Set(int new_left, int new_top, int new_right, int new_bottom) 
 
 #pragma optimization_level 1
 
-// Initialised data (.data)
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mg_tanime", tex_tag__DATA);
-
-// Constants (.rodata)
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mg_tanime", at_831__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mg_tanime", at_832__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mg_tanime", at_833__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mg_tanime", at_834__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mg_tanime", at_835__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mg_tanime", at_836__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mg_tanime", at_837__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mg_tanime", at_838__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mg_tanime", at_839__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mg_tanime", at_840__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mg_tanime", at_841__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mg_tanime", at_842__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mg_tanime", at_843__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mg_tanime", at_873__DATA);
-
 // Virtual tables (.vtables)
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mg_tanime", __vt__24CList_15mgCTexAnimeData___DATA);
 
 // Small uninitialised data (.sbss)
-INCLUDE_BSS(mgBugPatch, 0x4);
-INCLUDE_BSS(stop_anime__15mgCTextureAnime, 0x4);
-INCLUDE_BSS(pTexAnime, 0x4);
-INCLUDE_BSS(pLoadTexAnime, 0x4);
-INCLUDE_BSS(now_group, 0x4);
-INCLUDE_BSS(TexManager, 0x4);
-INCLUDE_BSS(TexAnimeStack, 0x4);
-INCLUDE_BSS(group_name, 0x4);
-INCLUDE_BSS(ta_enable, 0x4);
-INCLUDE_BSS(now_texb, 0x4);
-INCLUDE_BSS(texBugPatch, 0x4);
 
 // Uninitialised data (.bss)
