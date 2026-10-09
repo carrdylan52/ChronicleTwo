@@ -7603,11 +7603,16 @@ INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", tilergba_5203__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", convtbl_5238__DATA);
 
 // Small uninitialised data (.sbss)
-INCLUDE_BSS(MorattaStack, 0x4);
-INCLUDE_BSS(MenuLoadInfo, 0x8);
-INCLUDE_BSS(MenuCharaChangeBase_Tex, 0x4);
-INCLUDE_BSS(MenuCharaChangeCLUT_Tex, 0x4);
-INCLUDE_BSS(MenuCharaChangeStar_Tex, 0x4);
+mgCMemory *MorattaStack;
+
+MENU_LOAD_INFO MenuLoadInfo;
+
+mgCTexture *MenuCharaChangeBase_Tex;
+
+mgCTexture *MenuCharaChangeCLUT_Tex;
+
+mgCTexture *MenuCharaChangeStar_Tex;
+
 INCLUDE_BSS(MenuCharaChangeCLUT, 0x4);
 INCLUDE_BSS(MenuCharaChangePosDataCfgBuffer, 0x4);
 INCLUDE_BSS(menu_debug_npcselect, 0x4);
@@ -7624,7 +7629,8 @@ INCLUDE_BSS(at_2289__2, 0x8);
 INCLUDE_BSS(ChrChangMenuPt, 0x8);
 INCLUDE_BSS(at_2371__4, 0x8);
 INCLUDE_BSS(MenuMosTexture, 0x4);
-INCLUDE_BSS(CharaSndBuffer, 0x4);
+u32 *CharaSndBuffer;
+
 INCLUDE_BSS(mos_effect_henge_param, 0x4);
 INCLUDE_BSS(mos_effect_read_num, 0x4);
 INCLUDE_BSS(MenuMosSelectPtr, 0x4);
@@ -7653,11 +7659,14 @@ INCLUDE_BSS(MonsterBookBootMode, 0x4);
 INCLUDE_BSS(MenuMosBookPtr, 0x4);
 
 // Uninitialised data (.bss)
-INCLUDE_BSS(MenuCharaBuild2, 0x1C);
+MENU_BGREAD_INFO2 *MenuCharaBuild2[MENU_CHARA_LOAD_MAX];
+
 INCLUDE_BSS(D_01F3C7FC, 0x4);
-INCLUDE_BSS(MenuActionChara, 0x20);
+CActionChara *MenuActionChara[MENU_CHARA_LOAD_MAX];
+
 mgCMemory MenuActionCharaBuffer[MENU_CHARA_LOAD_MAX];
-INCLUDE_BSS(MenuLoadItemNo, 0x20);
+s16 MenuLoadItemNo[MENU_LOAD_ITEM_MAX];
+
 INCLUDE_BSS(at_1083__2, 0x20);
 mgCMemory MenuChangeMemory;
 mgCMemory MenuChangeNpcMemory;
