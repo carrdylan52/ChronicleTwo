@@ -21,7 +21,8 @@ c. each relocation resolves to what retail encodes there: the symbol's
    spelling) plus the addend in place gives retail's word for R_MIPS_32, its
    jump target for R_MIPS_26, its offset from `_gp` for R_MIPS_GPREL16, and,
    for a R_MIPS_HI16 paired with the R_MIPS_LO16 after it, retail's two
-   halves. An unpaired R_MIPS_HI16 is not checked.
+   halves. Duplicate, misaligned or out-of-piece sites and unpaired
+   R_MIPS_HI16 entries are errors; standalone R_MIPS_LO16 entries are valid.
 
 A section of the object that belongs to none of the unit's runs is an error.
 Prints one line per unit and exits non-zero if any check fails.
@@ -244,6 +245,27 @@ def check_unit(ctx, unit, verbose):
         # The assembler puts each R_MIPS_HI16 just before the R_MIPS_LO16 it
         # pairs with, so the records stay in the order it wrote them.
         relocations = relocs.get(index, [])
+        seen = set()
+        invalid = False
+        for k, relocation in enumerate(relocations):
+            offset = relocation.r_offset
+            label = f"{starts.get(index)}+0x{offset:X}"
+            if offset in seen:
+                errors.append(f"{label}: duplicate relocation site")
+                invalid = True
+            seen.add(offset)
+            if offset % 4 or not 0 <= offset <= len(data) - 4:
+                errors.append(f"{label}: misaligned or out-of-piece relocation site")
+                invalid = True
+            if (relocation.reloc_type == R_MIPS_HI16
+                    and not any(later.reloc_type == R_MIPS_LO16
+                                and later.symbol_index == relocation.symbol_index
+                                for later in relocations[k + 1:])):
+                errors.append(f"{label}: unpaired HI16 relocation")
+                invalid = True
+        if invalid:
+            checked_bytes += len(data)
+            continue
         for relocation in relocations:
             mask = MASKS.get(relocation.reloc_type)
             if mask is None:
