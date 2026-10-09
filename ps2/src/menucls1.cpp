@@ -908,8 +908,8 @@ void CMenuMoveItem::Initialize() {
 }
 
 void CMenuMoveItem::AttachForm() {
-    form[0] = (CMenuPosDataForm *) MenuPosData->GetFormInfo("moveitem0");
-    form[1] = (CMenuPosDataForm *) MenuPosData->GetFormInfo("moveitem1");
+    form[0] = MenuPosData->GetFormInfo("moveitem0");
+    form[1] = MenuPosData->GetFormInfo("moveitem1");
 
     if (form[0] != NULL) {
         form[0]->draw_flag = 0;
