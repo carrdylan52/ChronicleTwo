@@ -46,7 +46,7 @@ enum DNGMAP_FADE {
 
 /**
  *
- * Orders in which a map route reads a cell's interpolation points.
+ * Directions in which a map route follows rooms and their interpolation points.
  *
  */
 enum DNGMAP_PATH_ORDER {
@@ -61,6 +61,8 @@ enum DNGMAP_PATH_ORDER {
  *
  */
 enum {
+    DNGMAP_ROOT_HOKAN_POINTS = 20, /**< Interpolation points in a passage path, excluding its terminator. */
+    DNGMAP_ROOM_HOKAN_POINTS = 10, /**< Interpolation points in a room path, excluding its terminator. */
     DNGMAP_MARK_MAX = 8,              /**< Room marks the map can queue in one frame. */
     DNGMAP_BLINK_CYCLE = 100,         /**< Frames one cycle of the map's blink counter lasts. */
     DNG_TREE_MAP_MES_MAX = 8,         /**< Message windows the tree map menu holds. */
@@ -423,7 +425,7 @@ public:
      * @address 0x1EFE20
      * @size 0xFE0
      */
-    int LoadDngInfo(mgCMemory *stack, int tex_block, int dng_no, int user_room_no, int next_room_no);
+    int LoadDngInfo(mgCMemory *stack, int block, int dungeon, int room, int next_room);
 };
 
 STATIC_ASSERT(sizeof(CDngFreeMap) == 0x110);

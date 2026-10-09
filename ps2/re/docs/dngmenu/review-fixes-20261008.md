@@ -54,3 +54,23 @@ remain exact: the complete PAL verifies and all 149 objects pass.
 The single documentation block stays on the source prototype.
 
 Receipts: `.private/fixes-r1b/receipts/material-static-{build,objects}.log`.
+
+## LoadDngInfo route data (round 2, finding 14)
+
+The route-pointer tables and their local bases point to signed-halfword
+coordinate pairs, read as `[index][0]` and `[index][1]`. The passage and room
+point counts are 20 and 10, excluding each table's final `{-1, -1}` pair;
+reverse traversal starts at the corresponding count minus one. Candidate
+arrays and direction-table widths use `GLID_DIR_NUM`, as do the offsets
+selecting the second half of the room selector and order tables.
+
+The signed-byte room orders promote to `int` before subtraction, so the
+explicit casts around those operands are unnecessary. Texture loading uses
+`MENU_FILE_LOAD_DIRECT`. The parameter names now agree between declaration
+and definition. Search and interpolation orders have distinct local names;
+each route selector remains its own point counter, and `curve` still precedes
+`tail`, preserving the documented register lifetimes.
+
+The typed-pair source passes the complete dngmenu check (0x8B98 bytes,
+1,277 resolved relocations). Full build: `SCES_511.90: OK`; all 149 objects
+pass. The same unit check and PAL result hold for the remaining scrub edits.
