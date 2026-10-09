@@ -242,7 +242,7 @@ static void DrawDivSprite(mgCDrawPrim *prim, mgRect<int> rect, mgCTexture *textu
             texcrd_end[1] = y_end;
             vertex_end[0] += offset_x;
             vertex_end[1] += offset_y;
-            u_long128 *packet = (u_long128 *)prim->DirectData(4);
+            u_long128 *packet = prim->DirectData(4);
             y = y_end;
             packet[0] = *(u_long128 *)texcrd_start;
             packet[1] = *(u_long128 *)vertex_start;
@@ -287,7 +287,7 @@ static void DrawDivSprite4(mgCDrawPrim *prim, mgRect<int> rect, mgCTexture *text
             if (bottom < y_end) {
                 y_end = bottom;
             }
-            u_long128 *packet = (u_long128 *)prim->DirectData(0x10);
+            u_long128 *packet = prim->DirectData(0x10);
             texcrd_start[0] = x - offset_x;
             texcrd_start[1] = y - offset_y;
             texcrd_end[0] = x_end - offset_x;
