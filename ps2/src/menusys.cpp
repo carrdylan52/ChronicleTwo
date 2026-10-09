@@ -7493,11 +7493,11 @@ void CMenuItemInfo::CalcTex() {
     }
     if (check_move != checkmoveFlag) {
         if (view_mode == 0) {
-            MenuItemCharaDataLoadEndCheckAfter(MenuCharaBuild2, 0);
+            MenuItemCharaDataLoadEndCheckAfter(MenuCharaBuild2, USER_CHARA_MAX);
         } else if (view_mode == 1) {
-            MenuItemCharaDataLoadEndCheckAfter(MenuCharaBuild2, 1);
+            MenuItemCharaDataLoadEndCheckAfter(MenuCharaBuild2, USER_CHARA_MONICA);
         } else if (view_mode == 3) {
-            MenuItemCharaDataLoadEndCheckAfter(MenuCharaBuild2, 2);
+            MenuItemCharaDataLoadEndCheckAfter(MenuCharaBuild2, USER_CHARA_ROBO);
         }
     }
     checkmoveFlag = check_move;
@@ -8459,7 +8459,7 @@ static void MenuItemDebugDraw(void) {
         case 2: {
             tex_manager->ReloadTexture(MenuCommonInfo->tex_block[1], (sceVif1Packet *) NULL);
             SetSpriteEnv(&prim, 2);
-            prim.Begin(6);
+            prim.Begin(MG_PRIM_SPRITE);
             prim.Color(0, 0, 0, 0x40);
             prim.Vertex(0, 0, 0);
             prim.Vertex(mgScreenWidth, mgScreenHeight, 0);
@@ -8478,7 +8478,7 @@ static void MenuItemDebugDraw(void) {
                         int x = col * 32 + 24;
                         int y = row * 32 + 60;
                         SetSpriteEnv(&prim, 2);
-                        prim.Begin(6);
+                        prim.Begin(MG_PRIM_SPRITE);
                         prim.Color(0x40, 0x40, 0x40, 0x94);
                         prim.Vertex(x, y, 0);
                         prim.Vertex(x + 32, y + 32, 0);
@@ -11086,7 +11086,7 @@ int CMenuItemInfo::LRCheck(int key) {
                     int load_chara = view_mode;
                     if (load_chara != 4) {
                         if (load_chara == 3) {
-                            load_chara = 2;
+                            load_chara = USER_CHARA_ROBO;
                         }
                         CheckLoadInfo(load_chara);
                     }
