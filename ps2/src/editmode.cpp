@@ -34,28 +34,15 @@ static void GetBalanceHeight(CScene *scene, float *balance);
 static int  GetGeoCheckCol(CMap *map, mgVu0FBOX &box, CCPoly *polys, int max);
 static int  GetGeoCheckCamCol(CMap *map, mgVu0FBOX &box, CCPoly *polys, int max);
 
-extern "C" UNDO_DATA            UndoData;
-extern "C" CEditParts::WallInfo WallInfo;
 
 extern mgRect<int> data[];
 extern "C" char    at_1254__2[];
 extern "C" char    at_1284__5[];
 
 extern CFont                    Font__2;
-extern "C" float                eCurPos[4];
-extern "C" float                ePartsCurNowPos[4];
-extern "C" float                ePartsCurPos[4];
-extern "C" float                eCurNowPos[4];
-extern "C" float                WallPutPos[4];
-extern "C" float                PlaceRiverPos[4];
 extern char                     at_1367[];
-extern "C" float                PaintColor[4];
 extern char                     at_1377__3[];
 extern "C" u8                   at_1268__3[16];
-extern "C" float                RemoveMtnPos[4];
-extern "C" u8                   RemoveMtnCurPos[16];
-extern mgCFrame                *EditCursor[3];
-extern "C" u8                   now_balance_h[16];
 extern "C" u8                   at_2213__3[10];
 
 extern "C" {
@@ -318,6 +305,118 @@ static int SysMesCnt;
  *
  */
 static int SysMesNo = -1;
+
+/**
+ *
+ * Record of the last placement available for undo.
+ *
+ */
+static UNDO_DATA UndoData;
+
+/**
+ *
+ * RGB components of the selected paint and its auxiliary component.
+ *
+ */
+static sceVu0FVECTOR PaintColor;
+
+/**
+ *
+ * Target position of the editor cursor.
+ *
+ */
+static sceVu0FVECTOR eCurPos;
+
+/**
+ *
+ * Smoothed display position of the editor cursor.
+ *
+ */
+static sceVu0FVECTOR eCurNowPos;
+
+/**
+ *
+ * Target position of the part preview.
+ *
+ */
+static sceVu0FVECTOR ePartsCurPos;
+
+/**
+ *
+ * Smoothed display position of the part preview.
+ *
+ */
+static sceVu0FVECTOR ePartsCurNowPos;
+
+/**
+ *
+ * Target rotation of the part preview.
+ *
+ */
+static sceVu0FVECTOR ePartsCurRot;
+
+/**
+ *
+ * Smoothed display rotation of the part preview.
+ *
+ */
+static sceVu0FVECTOR ePartsCurNowRot;
+
+/**
+ *
+ * Position at which the river placement animation places a part.
+ *
+ */
+static sceVu0FVECTOR PlaceRiverPos;
+
+/**
+ *
+ * Position of the part selected for removal.
+ *
+ */
+static sceVu0FVECTOR RemoveMtnPos;
+
+/**
+ *
+ * Cursor position associated with the removal animation.
+ *
+ */
+static sceVu0FVECTOR RemoveMtnCurPos;
+
+/**
+ *
+ * Rotation of the placement direction marker.
+ *
+ */
+static sceVu0FVECTOR eDirCurRot;
+
+/**
+ *
+ * Position across the selected wall and height above its center.
+ *
+ */
+sceVu0FVECTOR WallPutPos;
+
+/**
+ *
+ * Plane, center and bounds of the selected placement wall.
+ *
+ */
+CEditParts::WallInfo WallInfo;
+
+/**
+ *
+ * Frames used for the editor cursor and its direction markers.
+ *
+ */
+static mgCFrame *EditCursor[3];
+
+/**
+ *
+ * Smoothed display heights of the four ground-balance indicators.
+ *
+ */
+static sceVu0FVECTOR now_balance_h;
 
 }
 
@@ -1253,6 +1352,7 @@ static float GetGeoMapLimitHeight(int map_kind) {
 extern "C" float ePartsCurRot[4];
 extern "C" float ePartsCurNowRot[4];
 extern "C" float eDirCurRot[4];
+extern float eDirCurLen;
 extern char at_1835__2[];
 extern char at_1836__2[];
 static inline CMap *ActiveSceneMap(CScene *scene) {
@@ -1935,7 +2035,6 @@ INCLUDE_ASM("ps2/asm/pal/nonmatchings/editmode", EditMode__FP6CScene);
 #endif
 extern int       cnt_1857;
 extern s8        init_1858;
-extern "C" float ePartsCurNowRot[4];
 
 void DrawEditCursorParts(CScene *scene) {
     if (EditNowPlaceAnime() == 0 && PutSideMode != 1 && EditModeNo != EDIT_MODE_REMOVE) {
@@ -2332,7 +2431,7 @@ static void InitBalanceDraw(CScene *scene) {
         map->GroundBalance(0);
     }
 
-    GetBalanceHeight(scene, (float *) now_balance_h);
+    GetBalanceHeight(scene, now_balance_h);
 }
 
 /**
@@ -2450,7 +2549,7 @@ void DrawEditSystem(int block, CScene *scene, float *pos, int edit) {
                             prim.Color(color + 4);
                             focused = 1;
                         }
-                        float *now = (float *)now_balance_h + i;
+                        float *now = &now_balance_h[i];
                         float height = *now + (target[i] - *now) / 12.0f;
                         *now = height;
                         int height16 = (int)(16.0f * height);
@@ -2793,23 +2892,12 @@ INCLUDE_BSS(cnt_1939, 0x4);
 INCLUDE_BSS(init_1940, 0x4);
 
 // Uninitialised data (.bss)
-INCLUDE_BSS(UndoData, 0x30);
-INCLUDE_BSS(PaintColor, 0x10);
-INCLUDE_BSS(eCurPos, 0x10);
-INCLUDE_BSS(eCurNowPos, 0x10);
-INCLUDE_BSS(ePartsCurPos, 0x10);
-INCLUDE_BSS(ePartsCurNowPos, 0x10);
-INCLUDE_BSS(ePartsCurRot, 0x10);
-INCLUDE_BSS(ePartsCurNowRot, 0x10);
-INCLUDE_BSS(PlaceRiverPos, 0x10);
-INCLUDE_BSS(RemoveMtnPos, 0x10);
-INCLUDE_BSS(RemoveMtnCurPos, 0x10);
-INCLUDE_BSS(eDirCurRot, 0x10);
-INCLUDE_BSS(WallPutPos, 0x10);
-INCLUDE_BSS(WallInfo, 0x40);
-INCLUDE_BSS(EditCursor, 0x10);
+/**
+ *
+ * Font used to draw Georama help lines.
+ *
+ */
 CFont Font__2;
 INCLUDE_BSS(at_1445__3, 0x10);
 INCLUDE_BSS(at_1579__2, 0x10);
 INCLUDE_BSS(pos_save_1942, 0x10);
-INCLUDE_BSS(now_balance_h, 0x10);

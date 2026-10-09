@@ -50,3 +50,23 @@ code consumers are unchanged: control locking, mode initialization, placement,
 river/removal animation, painting, wall selection, system/help messages, and
 cursor drawing. Full validation passes `SCES_511.90: OK` and **149/149**.
 Receipts: `scalars-build.log` and `scalars-objects.log`.
+
+## Named aggregate state
+
+Sixteen further BSS markers become documented definitions: `UndoData`
+(`UNDO_DATA`, 48 bytes), the four-float position/rotation/color arrays,
+`WallInfo` (`CEditParts::WallInfo`, 64 bytes), `EditCursor` (three frame pointers,
+12 bytes), and `now_balance_h` (four floats). `WallPutPos` and `WallInfo` retain
+their public names, visibility and header declarations. Other definitions are
+local. `EditCursor` receives the existing four-byte piece padding rather than
+a fake fourth pointer. `RemoveMtnCurPos` and `now_balance_h` are now typed
+vectors; the latter's former byte-array casts become a direct call and typed
+indexed element access. The native `CFont` already produces its retail startup
+initializer; its definition now also documents the help-line purpose.
+
+The guarded draft blocks have exactly their baseline SHA-256 hashes after
+preserving their internal declarations. These definitions and the redundant
+cast cleanup pass `SCES_511.90: OK` and **149/149** complete objects. Receipts:
+`vectors-build.log`, `vectors-objects.log`, `vectors-cleanup-build.log`,
+`vectors-cleanup-objects.log`, `vectors-final-build.log`, and
+`vectors-final-objects.log`.
