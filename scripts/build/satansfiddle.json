@@ -393,6 +393,16 @@
         "evaluate_first": true
       },
       {
+        "translation_unit": "inventmn.cpp",
+        "function": "IsCreateObject__11CMenuInventFii",
+        "value_type": "binary32",
+        "value_bits": "0x41a00000",
+        "callee": "SetPosition__11CCharacter2Ffff",
+        "evaluate_first": false,
+        "expected_matches": 1,
+        "evaluate_before": 2
+      },
+      {
         "translation_unit": "mapjump.cpp",
         "function": "ExitInterior__FP6CScenePi",
         "value_type": "binary32",
@@ -819,6 +829,25 @@
           "argument_index": 1
         },
         "evaluate_first": true
+      },
+      {
+        "translation_unit": "menusys.cpp",
+        "function": "MenuItemSelectInit__FP9mgCMemoryPii",
+        "callee": "Set__9mgRect<f>Fffff",
+        "value_type": "binary32",
+        "value_bits": "0x43480000",
+        "evaluate_first": true,
+        "expected_matches": 1
+      },
+      {
+        "translation_unit": "menusys.cpp",
+        "function": "MenuItemSelectInit__FP9mgCMemoryPii",
+        "callee": "Set__9mgRect<f>Fffff",
+        "value_type": "binary32",
+        "value_bits": "0x425c0000",
+        "evaluate_first": false,
+        "evaluate_before": 3,
+        "expected_matches": 1
       }
     ]
   },
@@ -1001,6 +1030,14 @@
         "expected_matches": 2
       },
       {
+        "translation_unit": "menusys.cpp",
+        "function": "MenuItemSelectInit__FP9mgCMemoryPii",
+        "allocator": "__nw__FUiP1",
+        "constructor": "__ct__11CItemSelectFv",
+        "conversion": "after_constructor_inline",
+        "expected_matches": 1
+      },
+      {
         "translation_unit": "mg_tanime.cpp",
         "function": "NewTexAnimeData__15mgCTextureAnimeFP9mgCMemory",
         "allocator": "__nw__FUiP1",
@@ -1023,6 +1060,14 @@
         "constructor": "__ct__11CCharacter2Fv",
         "conversion": "after_constructor_inline",
         "expected_matches": 1
+      },
+      {
+        "translation_unit": "inventmn.cpp",
+        "function": "IsCreateObject__11CMenuInventFii",
+        "allocator": "__nw__FUiP1",
+        "constructor": "__ct__12CActionCharaFv",
+        "conversion": "after_constructor_inline",
+        "expected_matches": 2
       }
     ]
   }
