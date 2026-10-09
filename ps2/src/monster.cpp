@@ -3465,10 +3465,3 @@ int CMonsterMan::CheckPhoto(CScene::InScreenCharaInfo *info) {
 
     return -1;
 }
-
-// Small uninitialised data (.sbss)
-INCLUDE_BSS(dmg_sc_cnt_2104, 0x4);
-INCLUDE_BSS(init_2105, 0x4);
-
-// Uninitialised data (.bss)
-INCLUDE_BSS(at_1704, 0x10);

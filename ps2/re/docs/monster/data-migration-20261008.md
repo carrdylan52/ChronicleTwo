@@ -126,3 +126,20 @@ non-code consumers, duplicate relocation sites, orphan lows, wrong base names,
 object aliases, wrong sizes and sections, nonlocal bindings, and changed table
 pointers. The untouched canonical control passes; both initialized-local
 metadata counterexamples are rejected by the canonical checker.
+
+## Marker-free storage validation, tooling round 3
+
+The existing all-consumer BSS matcher names the native local statics, guards and zero initializer objects without any shared-tool changes.
+
+A fresh marker-free private compile passes the complete unit with the checkpoint
+tooling. The accepted source passes `SCES_511.90: OK`, all 149 object checks,
+and all 17 build regression scripts (116 discovered tests). The object hash
+audit changes only `monster.cpp.o`; code metrics remain 6,775 matched functions
+and 1,841,188 matched bytes. No function is promoted.
+
+Markers change from 0 initialized-data / 3 BSS to 0 / 0.
+Refreshed `matched_data` changes from 64899 to
+64920 / 64920 bytes. Receipts are
+`.private/dtool-r3/monster-{build,objects,tests,all-tests}.log`,
+`monster-object-hash-audit.json`, and `monster-report.json`; the independent
+existing-tooling probe is `probe/monster-check.log` in the same directory.
