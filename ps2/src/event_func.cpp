@@ -228,11 +228,6 @@ const int              exit_map_jump = EVENT_REQUEST_MAP_JUMP;
 const int              request_menu = EVENT_COMMAND_SUB_MODE;
 const int              request_door = EVENT_COMMAND_DOOR;
 const int              event_sprite2_size = 0x80;
-extern char            at_1333[];
-extern char            at_1357__3[];
-extern char            at_1245[];
-extern char            at_1246[];
-extern char            at_1346__2[];
 extern char            at_1760__3[];
 extern char            at_1761__3[];
 extern char            at_2245__2[];
@@ -2070,7 +2065,7 @@ void CEventScriptArg::BuildArgData(u32 *program) {
 
         for (j = 0; j < count; j++) {
             if (esa_ext_func_info[i].id == esa_ext_func_info[j].id) {
-                printf(at_1245);
+                printf("EvectScriptArg same ext_func_no!!!\n");
 
                 while (1) {
                 }
@@ -2078,7 +2073,7 @@ void CEventScriptArg::BuildArgData(u32 *program) {
         }
 
         if (esa_ext_func_info[i].id < 0 || esa_ext_func_info[i].id >= script_func_slots) {
-            printf(at_1246);
+            printf("EvectScriptArg ext func over!!\n");
         } else {
             func_table[esa_ext_func_info[i].id] = esa_ext_func_info[i].func;
         }
@@ -2185,7 +2180,7 @@ int _ID_OFFSET(RS_STACKDATA *stack, int arg_count) {
 
 int GetArgInt(ARG_DATA *arg) {
     if (arg == NULL) {
-        printf(at_1333);
+        printf("GetArgInt err[null_pointer]\n");
         return 0;
     }
 
@@ -2198,7 +2193,7 @@ int GetArgInt(ARG_DATA *arg) {
 
 float GetArgFloat(ARG_DATA *arg) {
     if (arg == NULL) {
-        printf(at_1346__2);
+        printf("GetArgFloat err[null_pointer]\n");
         return 0.0f;
     }
 
@@ -2211,7 +2206,7 @@ float GetArgFloat(ARG_DATA *arg) {
 
 char *GetArgString(ARG_DATA *arg) {
     if (arg == NULL) {
-        printf(at_1357__3);
+        printf("GetArgString err[null_pointer]\n");
         return 0;
     }
 
@@ -18193,11 +18188,6 @@ INCLUDE_RODATA("ps2/asm/pal/nonmatchings/event_func", vv_3333__DATA);
 
 // Constants (.rodata)
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/event_func", at_1083__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/event_func", at_1245__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/event_func", at_1246__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/event_func", at_1333__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/event_func", at_1346__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/event_func", at_1357__3__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/event_func", at_1760__3__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/event_func", at_1761__3__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/event_func", at_1904__DATA);

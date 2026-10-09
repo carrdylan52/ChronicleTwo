@@ -116,6 +116,15 @@ remains until the queued local-storage tooling supports this data family.
 Receipts: `.private/dataA-r3/event-talk-camera-{static,restored}-{build,objects,hashes}.log`;
 `event-talk-camera-unmarked-failure.log` records the naming-only blocker.
 
+## Inline event argument script diagnostics
+
+The following literals are inline at their native uses: `at_1245`, `at_1246`, `at_1333`, `at_1346__2`, `at_1357__3`.
+
+Each datum has a separate full PAL/object/hash receipt under
+`.private/dataA-r3/event-string-<symbol>-{build,objects,hashes}.log`.
+Every accepted form preserves instruction bytes, resolved addresses and all
+unowned object hashes. Shift-JIS characters use hexadecimal byte escapes.
+
 ## Retained markers
 
 The initialized-data markers are pending the following migration topics.
