@@ -250,20 +250,6 @@ static CDC2Mes *MenuDngMes[DNG_TREE_MAP_MES_MAX];
 
 /**
  *
- * Phase of the floor-seal opacity pulse.
- *
- */
-static float AlphaRate_1743;
-
-/**
- *
- * Indicates that the seal pulse phase has been initialized.
- *
- */
-static s8 init_1744;
-
-/**
- *
  * Previous tree-map navigation direction.
  *
  */
@@ -303,13 +289,6 @@ static GLID_INFO *NextFloorGlid_2836;
  *
  */
 static s8 init_2837;
-
-/**
- *
- * Texture X coordinates of the floor completion icons.
- *
- */
-static s16 medal_xytbl_1736[5] = { 168, 190, 212, 234, 146 };
 
 // Code (.text)
 void CDngFreeMap::Initialize() {
@@ -1057,6 +1036,13 @@ static short dngboardbrdtbl_2[12] = {
  *
  */
 void DrawDngRoomInfo(DNGMAP_ROOM_INFO *room) {
+    /**
+     *
+     * Texture X coordinates of the floor completion icons.
+     *
+     */
+    static s16 medal_xytbl[5] = { 168, 190, 212, 234, 146 };
+
     if (room != NULL && Floor_InfoTex != NULL) {
         if (dngfloor_infoview) {
             CalcMenuAdd(&DngInfoDrawAlpha, 6, 128);
@@ -1131,15 +1117,17 @@ void DrawDngRoomInfo(DNGMAP_ROOM_INFO *room) {
             MenuDngMes[0]->SetMovePosCenteringGyou(0, center, iy + 0x26);
         }
         if (DngInfoFloorInfo != NULL && !(DngInfoFloorInfo->flag & DNG_FLOOR_FLAG_SEAL_CLEAR) && 0 < room->seal) {
-            if (!init_1744) {
-                AlphaRate_1743 = 0.0f;
-                init_1744 = 1;
+            /**
+             *
+             * Phase of the floor-seal opacity pulse.
+             *
+             */
+            static float AlphaRate = 0.0f;
+            AlphaRate += 0.034906585f;
+            if (3.1415927f <= AlphaRate) {
+                AlphaRate -= 3.1415927f;
             }
-            AlphaRate_1743 += 0.034906585f;
-            if (3.1415927f <= AlphaRate_1743) {
-                AlphaRate_1743 -= 3.1415927f;
-            }
-            float seal_alpha = (float) alpha * sinf(AlphaRate_1743);
+            float seal_alpha = (float) alpha * sinf(AlphaRate);
             if (seal_alpha < 0.0f) {
                 seal_alpha = 0.0f;
             }
@@ -1168,7 +1156,7 @@ void DrawDngRoomInfo(DNGMAP_ROOM_INFO *room) {
         int text_x = icon_x + 0x1C;
         PrimQuad(prim, (float) icon_x, row_top, mark);
         if (DngInfoFloorInfo != NULL && (DngInfoFloorInfo->flag & DNG_FLOOR_FLAG_FAST_DESTROY_CLEAR)) {
-            highlight.left = medal_xytbl_1736[0];
+            highlight.left = medal_xytbl[0];
             PrimQuad(prim, (float) icon_x, (float) icon_row_y, highlight);
         }
         {
@@ -1185,7 +1173,7 @@ void DrawDngRoomInfo(DNGMAP_ROOM_INFO *room) {
         if (shown != NULL && shown->fishing) {
             PrimQuad(prim, (float) icon_x, (float) icon_row_y, mark);
             if (DngInfoFloorInfo->flag & DNG_FLOOR_FLAG_FISHING_CLEAR) {
-                highlight.left = medal_xytbl_1736[2];
+                highlight.left = medal_xytbl[2];
                 PrimQuad(prim, (float) icon_x, (float) icon_row_y, highlight);
             }
             MenuDngMes[3]->SetMovePosGyou(0, text_x, iy);
@@ -1208,7 +1196,7 @@ void DrawDngRoomInfo(DNGMAP_ROOM_INFO *room) {
                 if (CheckNowEurope()) {
                     prize_x = ix + width - MenuDngMes[4]->line_w[1] - 0x10;
                 }
-                highlight.left = medal_xytbl_1736[3];
+                highlight.left = medal_xytbl[3];
                 PrimQuad(prim, (float) icon_x, (float) icon_row_y, highlight);
             } else if (CheckBitFlagMenu(0x13D)) {
                 if (language > 0) {
@@ -1225,7 +1213,7 @@ void DrawDngRoomInfo(DNGMAP_ROOM_INFO *room) {
         }
         PrimQuad(prim, (float) icon_x, (float) icon_row_y, mark);
         if (DngInfoFloorInfo != NULL && (DngInfoFloorInfo->flag & DNG_FLOOR_FLAG_PRACTICE_CLEAR)) {
-            highlight.left = medal_xytbl_1736[4];
+            highlight.left = medal_xytbl[4];
             PrimQuad(prim, (float) icon_x, (float) icon_row_y, highlight);
         }
         if (language == 0) {
