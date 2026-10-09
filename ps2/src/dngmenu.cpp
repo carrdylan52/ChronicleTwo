@@ -1442,7 +1442,7 @@ static char Table_2133[8][32] = {
  */
 static unsigned int bittable_2134[8] = {
     DNG_FLOOR_FLAG_OPEN,
-    DNG_FLOOR_FLAG_UNK_2,
+    DNG_FLOOR_FLAG_CLEAR,
     DNG_FLOOR_FLAG_PRACTICE_CLEAR,
     DNG_FLOOR_FLAG_FAST_DESTROY_CLEAR,
     DNG_FLOOR_FLAG_FISHING_CLEAR,
@@ -2737,7 +2737,7 @@ int CMenuTreeMap::Step() {
                         static int bitTable[9] = {
                             DNG_FLOOR_FLAG_OPEN,
                             DNG_FLOOR_FLAG_OPEN,
-                            DNG_FLOOR_FLAG_UNK_2,
+                            DNG_FLOOR_FLAG_CLEAR,
                             DNG_FLOOR_FLAG_PRACTICE_CLEAR,
                             DNG_FLOOR_FLAG_FAST_DESTROY_CLEAR,
                             DNG_FLOOR_FLAG_FISHING_CLEAR,
@@ -2784,7 +2784,7 @@ int CMenuTreeMap::Step() {
                                 if (entry->visit_count < 30000) {
                                     ++entry->visit_count;
                                 }
-                                entry->flag = DNG_FLOOR_FLAG_OPEN | DNG_FLOOR_FLAG_UNK_2 | DNG_FLOOR_FLAG_PRACTICE_CLEAR |
+                                entry->flag = DNG_FLOOR_FLAG_OPEN | DNG_FLOOR_FLAG_CLEAR | DNG_FLOOR_FLAG_PRACTICE_CLEAR |
                                               DNG_FLOOR_FLAG_FAST_DESTROY_CLEAR | DNG_FLOOR_FLAG_FISHING_CLEAR |
                                               DNG_FLOOR_FLAG_TALK_MONSTER | DNG_FLOOR_FLAG_SPHEDA_CLEAR | DNG_FLOOR_FLAG_GEOSTONE_FOUND;
                             }
@@ -3011,7 +3011,7 @@ int CMenuTreeMap::Step() {
                                 message->select_top = -1;
                                 message->SetMsgCursor(-1);
                                 GeoramaMateriaNum = CheckGeoramaMateria(&tresure, select_glid->room.floor_id, georama_materia);
-                                if (!(target_save->flag & DNG_FLOOR_FLAG_UNK_2)) {
+                                if (!(target_save->flag & DNG_FLOOR_FLAG_CLEAR)) {
                                     GeoramaMateriaNum = 0;
                                 }
                                 if (GeoramaMateriaNum <= 0) {

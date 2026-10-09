@@ -888,7 +888,7 @@ void CDngFloorManager::CheckDrawGlidInfo() {
             floor = save->GetFloorInfoPtr(dng_no, room->floor_id);
             room->mark = 0;
 
-            if (floor != NULL && (floor->flag & DNG_FLOOR_FLAG_OPEN) && !(floor->flag & DNG_FLOOR_FLAG_UNK_2)) {
+            if (floor != NULL && (floor->flag & DNG_FLOOR_FLAG_OPEN) && !(floor->flag & DNG_FLOOR_FLAG_CLEAR)) {
                 room->mark = 1;
             }
         }
