@@ -1206,7 +1206,7 @@ void mgSetPkFrameBuffer(int fbp, int width, int height, int psm) {
     int            width_shift;
     int            height_shift;
     int            size;
-    short          bpp;
+    int            bpp;
     int            bit;
 
     default_frame = mgDBuffID != 0 ? &mgDBuff.draw0.frame1 : &mgDBuff.draw1.frame1;
@@ -1263,7 +1263,7 @@ void mgSetPkFrameBuffer(int fbp, int width, int height, int psm) {
     registers = (u_long *) &packet[8];
     registers[0] = 0;
     registers[1] = SCE_GS_TEXFLUSH;
-    registers[2] = frame.value;
+    registers[2] = *(u_long *) &frame;
     registers[3] = SCE_GS_FRAME_1;
     registers[4] = *(u_long *) &offset;
     registers[5] = SCE_GS_XYOFFSET_1;
@@ -1283,6 +1283,8 @@ void mgSetPkFrameBuffer(int fbp, int width, int height, int psm) {
             bpp = 24;
             break;
         case SCE_GS_PSMCT16:
+            bpp = 16;
+            break;
         case SCE_GS_PSMCT16S:
             bpp = 16;
             break;
@@ -1299,7 +1301,8 @@ void mgSetPkFrameBuffer(int fbp, int width, int height, int psm) {
     frame_tex.tex0.TBW = width / 64;
     frame_tex.tex0.PSM = psm;
     width_shift = 0;
-    for (size = width; size >= 2; size >>= 1) {
+    height_shift = 0;
+    for (size = width; size > 1; size >>= 1) {
         width_shift++;
     }
     size = 1;
@@ -1309,8 +1312,7 @@ void mgSetPkFrameBuffer(int fbp, int width, int height, int psm) {
     if (width != size) {
         width_shift++;
     }
-    height_shift = 0;
-    for (size = height; size >= 2; size >>= 1) {
+    for (size = height; size > 1; size >>= 1) {
         height_shift++;
     }
     size = 1;
