@@ -1957,25 +1957,6 @@ static short RootHokanTable9_2239[21][2] = {
 
 /**
  *
- * Interpolation point lists for the passage shapes.
- *
- */
-static short *RootHokanTablePtrTable_2240[11] = {
-    RootHokanTable0_2230[0],
-    RootHokanTable1_2231[0],
-    RootHokanTable2_2232[0],
-    RootHokanTable3_2233[0],
-    RootHokanTable4_2234[0],
-    RootHokanTable5_2235[0],
-    RootHokanTable6_2236[0],
-    RootHokanTable7_2237[0],
-    RootHokanTable8_2238[0],
-    RootHokanTable9_2239[0],
-    NULL
-};
-
-/**
- *
  * Interpolation points and terminator for room connection 0.
  *
  */
@@ -2050,58 +2031,77 @@ static short RoomHokanTable3_2244[11][2] = {
     {-1, -1}
 };
 
-/**
- *
- * Interpolation point lists for the four room connections.
- *
- */
-static short *RoomHokanTablePtrTable_2245[5] = {
-    RoomHokanTable0_2241[0],
-    RoomHokanTable1_2242[0],
-    RoomHokanTable2_2243[0],
-    RoomHokanTable3_2244[0],
-    NULL
-};
-
-/**
- *
- * Point traversal order for each passage shape and connection direction.
- *
- */
-static signed char is_reverse_tbl_2246[11][4] = {
-    {DNGMAP_PATH_REVERSE, DNGMAP_PATH_FORWARD, DNGMAP_PATH_NONE, DNGMAP_PATH_NONE},
-    {DNGMAP_PATH_NONE, DNGMAP_PATH_NONE, DNGMAP_PATH_REVERSE, DNGMAP_PATH_FORWARD},
-    {DNGMAP_PATH_FORWARD, DNGMAP_PATH_NONE, DNGMAP_PATH_NONE, DNGMAP_PATH_REVERSE},
-    {DNGMAP_PATH_REVERSE, DNGMAP_PATH_NONE, DNGMAP_PATH_NONE, DNGMAP_PATH_FORWARD},
-    {DNGMAP_PATH_NONE, DNGMAP_PATH_FORWARD, DNGMAP_PATH_REVERSE, DNGMAP_PATH_NONE},
-    {DNGMAP_PATH_NONE, DNGMAP_PATH_REVERSE, DNGMAP_PATH_NONE, DNGMAP_PATH_FORWARD},
-    {DNGMAP_PATH_REVERSE, DNGMAP_PATH_NONE, DNGMAP_PATH_FORWARD, DNGMAP_PATH_NONE},
-    {DNGMAP_PATH_REVERSE, DNGMAP_PATH_NONE, DNGMAP_PATH_NONE, DNGMAP_PATH_FORWARD},
-    {DNGMAP_PATH_NONE, DNGMAP_PATH_FORWARD, DNGMAP_PATH_REVERSE, DNGMAP_PATH_NONE},
-    {DNGMAP_PATH_NONE, DNGMAP_PATH_FORWARD, DNGMAP_PATH_NONE, DNGMAP_PATH_REVERSE},
-    {DNGMAP_PATH_NONE, DNGMAP_PATH_REVERSE, DNGMAP_PATH_NONE, DNGMAP_PATH_FORWARD}
-};
-
-/**
- *
- * Room interpolation list selected by direction and entry side.
- *
- */
-static signed char old_hokantbl_useno_2247[8] = {
-    0, 1, 2, 3, 1, 0, 3, 2
-};
-
-/**
- *
- * Traversal order of each room interpolation list.
- *
- */
-static signed char is_reverse_tbl_room_2248[8] = {
-    DNGMAP_PATH_REVERSE, DNGMAP_PATH_FORWARD, DNGMAP_PATH_REVERSE, DNGMAP_PATH_FORWARD,
-    DNGMAP_PATH_FORWARD, DNGMAP_PATH_REVERSE, DNGMAP_PATH_FORWARD, DNGMAP_PATH_REVERSE
-};
-
 int CDngFreeMap::LoadDngInfo(mgCMemory *stack, int block, int dungeon, int room, int next_room) {
+    /**
+     *
+     * Interpolation point lists for the passage shapes.
+     *
+     */
+    static short *RootHokanTablePtrTable[11] = {
+        RootHokanTable0_2230[0],
+        RootHokanTable1_2231[0],
+        RootHokanTable2_2232[0],
+        RootHokanTable3_2233[0],
+        RootHokanTable4_2234[0],
+        RootHokanTable5_2235[0],
+        RootHokanTable6_2236[0],
+        RootHokanTable7_2237[0],
+        RootHokanTable8_2238[0],
+        RootHokanTable9_2239[0],
+        NULL
+    };
+
+    /**
+     *
+     * Interpolation point lists for the four room connections.
+     *
+     */
+    static short *RoomHokanTablePtrTable[5] = {
+        RoomHokanTable0_2241[0],
+        RoomHokanTable1_2242[0],
+        RoomHokanTable2_2243[0],
+        RoomHokanTable3_2244[0],
+        NULL
+    };
+
+    /**
+     *
+     * Point traversal order for each passage shape and connection direction.
+     *
+     */
+    static signed char is_reverse_tbl[11][4] = {
+        {DNGMAP_PATH_REVERSE, DNGMAP_PATH_FORWARD, DNGMAP_PATH_NONE, DNGMAP_PATH_NONE},
+        {DNGMAP_PATH_NONE, DNGMAP_PATH_NONE, DNGMAP_PATH_REVERSE, DNGMAP_PATH_FORWARD},
+        {DNGMAP_PATH_FORWARD, DNGMAP_PATH_NONE, DNGMAP_PATH_NONE, DNGMAP_PATH_REVERSE},
+        {DNGMAP_PATH_REVERSE, DNGMAP_PATH_NONE, DNGMAP_PATH_NONE, DNGMAP_PATH_FORWARD},
+        {DNGMAP_PATH_NONE, DNGMAP_PATH_FORWARD, DNGMAP_PATH_REVERSE, DNGMAP_PATH_NONE},
+        {DNGMAP_PATH_NONE, DNGMAP_PATH_REVERSE, DNGMAP_PATH_NONE, DNGMAP_PATH_FORWARD},
+        {DNGMAP_PATH_REVERSE, DNGMAP_PATH_NONE, DNGMAP_PATH_FORWARD, DNGMAP_PATH_NONE},
+        {DNGMAP_PATH_REVERSE, DNGMAP_PATH_NONE, DNGMAP_PATH_NONE, DNGMAP_PATH_FORWARD},
+        {DNGMAP_PATH_NONE, DNGMAP_PATH_FORWARD, DNGMAP_PATH_REVERSE, DNGMAP_PATH_NONE},
+        {DNGMAP_PATH_NONE, DNGMAP_PATH_FORWARD, DNGMAP_PATH_NONE, DNGMAP_PATH_REVERSE},
+        {DNGMAP_PATH_NONE, DNGMAP_PATH_REVERSE, DNGMAP_PATH_NONE, DNGMAP_PATH_FORWARD}
+    };
+
+    /**
+     *
+     * Room interpolation list selected by direction and entry side.
+     *
+     */
+    static signed char old_hokantbl_useno[8] = {
+        0, 1, 2, 3, 1, 0, 3, 2
+    };
+
+    /**
+     *
+     * Traversal order of each room interpolation list.
+     *
+     */
+    static signed char is_reverse_tbl_room[8] = {
+        DNGMAP_PATH_REVERSE, DNGMAP_PATH_FORWARD, DNGMAP_PATH_REVERSE, DNGMAP_PATH_FORWARD,
+        DNGMAP_PATH_FORWARD, DNGMAP_PATH_REVERSE, DNGMAP_PATH_FORWARD, DNGMAP_PATH_REVERSE
+    };
+
     if (stack == NULL || stack->stGetRest() <= 0) {
         return 0;
     }
@@ -2398,9 +2398,9 @@ int CDngFreeMap::LoadDngInfo(mgCMemory *stack, int block, int dungeon, int room,
         if (direction < 0) {
             return memory.stGetUsed();
         }
-        int index = old_hokantbl_useno_2247[direction];
-        const short *points = RoomHokanTablePtrTable_2245[index];
-        int reverse = is_reverse_tbl_room_2248[index];
+        int index = old_hokantbl_useno[direction];
+        const short *points = RoomHokanTablePtrTable[index];
+        int reverse = is_reverse_tbl_room[index];
         if (reverse == DNGMAP_PATH_FORWARD) {
             for (index = 0; index < 10; index++) {
                 DNGMAP_KOMA_POS *node = (DNGMAP_KOMA_POS *) memory.Alloc(1);
@@ -2424,8 +2424,8 @@ int CDngFreeMap::LoadDngInfo(mgCMemory *stack, int block, int dungeon, int room,
             glid->blink = 1;
             if (glid->type == GLID_TYPE_ROOT) {
                 int index = glid->root.shape;
-                curve = RootHokanTablePtrTable_2240[index];
-                int reverse = is_reverse_tbl_2246[index][direction];
+                curve = RootHokanTablePtrTable[index];
+                int reverse = is_reverse_tbl[index][direction];
                 if (reverse < 0) {
                     break;
                 }
@@ -2447,9 +2447,9 @@ int CDngFreeMap::LoadDngInfo(mgCMemory *stack, int block, int dungeon, int room,
                     }
                 }
             } else if (glid->type == GLID_TYPE_ROOM) {
-                int index = old_hokantbl_useno_2247[direction + 4];
-                curve = RoomHokanTablePtrTable_2245[index];
-                int reverse = is_reverse_tbl_room_2248[index + 4];
+                int index = old_hokantbl_useno[direction + 4];
+                curve = RoomHokanTablePtrTable[index];
+                int reverse = is_reverse_tbl_room[index + 4];
                 if (reverse == DNGMAP_PATH_FORWARD) {
                     for (index = 0; index < 10; index++) {
                         DNGMAP_KOMA_POS *node = (DNGMAP_KOMA_POS *) memory.Alloc(1);
