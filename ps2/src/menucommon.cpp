@@ -1778,7 +1778,7 @@ int _MENU_FORM_SET(SPI_STACK *stack, int argc) {
         return 0;
     }
 
-    menu_formPt = (CMenuPosDataForm *) MenuPosData->GetFormInfo(form_no);
+    menu_formPt = MenuPosData->GetFormInfo(form_no);
 
     if (menu_formPt != NULL) {
         menu_formPt->Initialize();
@@ -1968,7 +1968,7 @@ int _MENU_FORM_DRAWFLG(SPI_STACK *stack, int argc) {
     }
 
     if (argc == 2) {
-        form = (CMenuPosDataForm *) MenuPosData->GetFormInfo(spiGetStackString(stack++));
+        form = MenuPosData->GetFormInfo(spiGetStackString(stack++));
         int value = spiGetStackInt(stack);
 
         if (form != NULL) {
@@ -2823,7 +2823,7 @@ int _MENU_EXE_FORM_DRAWFLAG(SPI_STACK *stack, int argc) {
 
     for (i = 0; i < count; i++) {
         name = spiGetStackString(stack++);
-        form = (CMenuPosDataForm *) MenuPosData->GetFormInfo(name);
+        form = MenuPosData->GetFormInfo(name);
 
         if (form != NULL) {
             form->draw_flag = (draw != 0);
@@ -2848,7 +2848,7 @@ int _MENU_EXE_FORM_RGBA(SPI_STACK *stack, int argc) {
         return 1;
     }
 
-    form = (CMenuPosDataForm *) MenuPosData->GetFormInfo(spiGetStackString(stack++));
+    form = MenuPosData->GetFormInfo(spiGetStackString(stack++));
 
     if (form == NULL) {
         return 1;
@@ -2895,7 +2895,7 @@ int _MENU_EXE_FORM_CALCRGBAPARAM(SPI_STACK *stack, int argc) {
         return 1;
     }
 
-    form = (CMenuPosDataForm *) MenuPosData->GetFormInfo(spiGetStackString(stack++));
+    form = MenuPosData->GetFormInfo(spiGetStackString(stack++));
 
     if (form == 0) {
         return 1;
@@ -2921,7 +2921,7 @@ int _MENU_EXE_FORM_FADE(SPI_STACK *stack, int argc) {
         return 1;
     }
 
-    form = (CMenuPosDataForm *) MenuPosData->GetFormInfo(spiGetStackString(stack++));
+    form = MenuPosData->GetFormInfo(spiGetStackString(stack++));
 
     if (form == 0) {
         return 1;
@@ -2988,7 +2988,7 @@ int _MENU_EXE_FORM_SETACTION(SPI_STACK *stack, int argc) {
         return 1;
     }
 
-    form = (CMenuPosDataForm *) MenuPosData->GetFormInfo(spiGetStackString(stack));
+    form = MenuPosData->GetFormInfo(spiGetStackString(stack));
 
     if (form == 0) {
         return 1;
@@ -3011,7 +3011,7 @@ int _MENU_EXE_FORM_PARTSONOFF(SPI_STACK *stack, int argc) {
         return 1;
     }
 
-    form = (CMenuPosDataForm *) MenuPosData->GetFormInfo(spiGetStackString(stack++));
+    form = MenuPosData->GetFormInfo(spiGetStackString(stack++));
 
     if (form == 0) {
         return 0;
@@ -3043,7 +3043,7 @@ int _MENU_EXE_FORM_PARTSONOFF_GRP(SPI_STACK *stack, int argc) {
         return 1;
     }
 
-    form = (CMenuPosDataForm *) MenuPosData->GetFormInfo(spiGetStackString(stack++));
+    form = MenuPosData->GetFormInfo(spiGetStackString(stack++));
 
     if (form == 0) {
         return 0;
