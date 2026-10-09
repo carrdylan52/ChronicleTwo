@@ -31,3 +31,22 @@ the existing postprocessor supplies its four-byte alignment gap.
 Validation receipts are under `.private/dataF-r1/`: `warm-build.log`,
 `baseline-objects.log`, `baseline-progress.log`, `baseline-metrics.json`,
 `templates-build.log`, and `templates-objects.log`.
+
+## Named scalar and pointer state
+
+The 36 named `.sbss` objects before the drawing statics are four-byte values:
+integer editor modes, flags, slot/definition IDs, inventory and frame counts;
+`PartsHeight`, `eDirCurLen`, and `eCameraDist` are floats; the texture, frame,
+and character handles are typed pointers. All use the documented retail names
+and `static` visibility. Their definitions retain C linkage for compatible
+redeclarations in the untouched guarded drafts. Each definition documents its
+purpose. `eCurRot` is an integer quarter-turn index: angle conversion APIs and
+the `%d` debug formatter consume it as an integer, and saving it into a float
+slot uses `cvt.s.w`. The old notes' float description is inaccurate.
+
+`SysMesNo` is a four-byte initialized integer whose retail value is `-1`;
+its typed initializer replaces the `.sdata` marker. The following existing
+code consumers are unchanged: control locking, mode initialization, placement,
+river/removal animation, painting, wall selection, system/help messages, and
+cursor drawing. Full validation passes `SCES_511.90: OK` and **149/149**.
+Receipts: `scalars-build.log` and `scalars-objects.log`.

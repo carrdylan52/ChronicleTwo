@@ -42,53 +42,284 @@ extern "C" char    at_1254__2[];
 extern "C" char    at_1284__5[];
 
 extern CFont                    Font__2;
-extern int                      PutSideMode;
-extern int                      NowSelectWallParts;
-extern int                      PuuSideRotCameraFlag;
-extern int                      PlacePartsNo;
-extern float                    PartsHeight;
-extern int                      MagnetPartsFlag;
-extern int                      SelectWallGroup;
-extern int                      CtrlLockFlag;
-extern int                      PartsInfoID;
-extern int                      PreMenuCount;
-extern int                      PreMenuMaxCount;
-extern int                      CursorLockCnt;
-extern int                      EditHelpMesNo;
-extern int                      EditHelpMesParam2;
-extern int                      EditHelpMesParam;
-extern int                      PlaceRiverCnt;
-extern int                      RemoveMtnCnt;
-extern int                      SysMesCnt;
-extern int                      SysMesNo;
-extern "C" int                  EditModeNo;
-extern "C" int                  HighSpeedMoveCnt;
-extern "C" int                  MagnetEnable;
-extern "C" float                eCameraDist;
 extern "C" float                eCurPos[4];
 extern "C" float                ePartsCurNowPos[4];
 extern "C" float                ePartsCurPos[4];
 extern "C" float                eCurNowPos[4];
-extern "C" int                  eCurRot;
-extern "C" int                  PlacePartsFlag;
-extern "C" int                  RemainPartsNum;
 extern "C" float                WallPutPos[4];
 extern "C" float                PlaceRiverPos[4];
 extern char                     at_1367[];
-extern CCharacter2             *PaintCurChr;
-extern mgCFrame                *PaintCursor2;
 extern "C" float                PaintColor[4];
-extern int                      PaintItemNo;
 extern char                     at_1377__3[];
-extern CCharacter2             *ShovelCurChr;
 extern "C" u8                   at_1268__3[16];
 extern "C" float                RemoveMtnPos[4];
 extern "C" u8                   RemoveMtnCurPos[16];
-extern CCharacter2             *RemoveCurChr;
-extern mgCFrame                *UnitCursor;
 extern mgCFrame                *EditCursor[3];
 extern "C" u8                   now_balance_h[16];
 extern "C" u8                   at_2213__3[10];
+
+extern "C" {
+
+/**
+ *
+ * Georama tool selected from EditModeType.
+ *
+ */
+static int EditModeNo;
+
+/**
+ *
+ * Whether cursor placement snaps to nearby parts.
+ *
+ */
+static int MagnetEnable;
+
+/**
+ *
+ * Consecutive cursor movement frames used to accelerate movement.
+ *
+ */
+static int HighSpeedMoveCnt;
+
+/**
+ *
+ * Wall-placement phase selected from EditPutSideMode.
+ *
+ */
+static int PutSideMode;
+
+/**
+ *
+ * Whether wall placement turns the editor camera.
+ *
+ */
+static int PuuSideRotCameraFlag;
+
+/**
+ *
+ * Slot of the part currently selected for placement.
+ *
+ */
+static int PlacePartsNo;
+
+/**
+ *
+ * Definition ID of the part currently selected for placement.
+ *
+ */
+static int PartsInfoID;
+
+/**
+ *
+ * Number of selected parts remaining in the inventory.
+ *
+ */
+static int RemainPartsNum;
+
+/**
+ *
+ * Whether the current cursor position allows placement.
+ *
+ */
+static int PlacePartsFlag;
+
+/**
+ *
+ * Height of the current placement above the ground.
+ *
+ */
+static float PartsHeight;
+
+/**
+ *
+ * Whether the current placement is attached to a nearby part.
+ *
+ */
+static int MagnetPartsFlag;
+
+/**
+ *
+ * Inventory item consumed by the selected paint.
+ *
+ */
+static int PaintItemNo;
+
+/**
+ *
+ * Frames remaining before the cursor can move again.
+ *
+ */
+static int CursorLockCnt;
+
+/**
+ *
+ * Frames remaining in the river placement animation.
+ *
+ */
+static int PlaceRiverCnt;
+
+/**
+ *
+ * Frames remaining in the removal animation.
+ *
+ */
+static int RemoveMtnCnt;
+
+/**
+ *
+ * Distance from the placement cursor to its direction marker.
+ *
+ */
+static float eDirCurLen;
+
+/**
+ *
+ * Slot of the part whose wall is selected for placement.
+ *
+ */
+static int NowSelectWallParts;
+
+/**
+ *
+ * Selected wall plane within the target part.
+ *
+ */
+static int SelectWallGroup;
+
+/**
+ *
+ * Current frame of the preview animation before opening the menu.
+ *
+ */
+static int PreMenuCount;
+
+/**
+ *
+ * Duration of the preview animation before opening the menu.
+ *
+ */
+static int PreMenuMaxCount;
+
+/**
+ *
+ * Number of outstanding editor control locks.
+ *
+ */
+static int CtrlLockFlag;
+
+/**
+ *
+ * Requested editor camera distance.
+ *
+ */
+static float eCameraDist;
+
+/**
+ *
+ * Integer quarter-turn orientation of the placement cursor.
+ *
+ */
+static int eCurRot;
+
+/**
+ *
+ * Texture containing the editor system icons.
+ *
+ */
+static mgCTexture *eSysTexture;
+
+/**
+ *
+ * Root frame of the paint cursor model.
+ *
+ */
+static mgCFrame *PaintCursor;
+
+/**
+ *
+ * Paint cursor frame whose material displays the selected color.
+ *
+ */
+static mgCFrame *PaintCursor2;
+
+/**
+ *
+ * Animated character for the paint cursor.
+ *
+ */
+static CCharacter2 *PaintCurChr;
+
+/**
+ *
+ * Root frame of the removal cursor model.
+ *
+ */
+static mgCFrame *RemoveCursor;
+
+/**
+ *
+ * Root frame of the shovel cursor model.
+ *
+ */
+static mgCFrame *ShovelCursor;
+
+/**
+ *
+ * Animated character for the shovel cursor.
+ *
+ */
+static CCharacter2 *ShovelCurChr;
+
+/**
+ *
+ * Animated character for the removal cursor.
+ *
+ */
+static CCharacter2 *RemoveCurChr;
+
+/**
+ *
+ * Grid-cell highlight model for the editor cursor.
+ *
+ */
+static mgCFrame *UnitCursor;
+
+/**
+ *
+ * Pending help line selected from EditHelpMes.
+ *
+ */
+static int EditHelpMesNo;
+
+/**
+ *
+ * Primary formatting parameter for the pending help line.
+ *
+ */
+static int EditHelpMesParam;
+
+/**
+ *
+ * Secondary formatting parameter for the pending help line.
+ *
+ */
+static int EditHelpMesParam2;
+
+/**
+ *
+ * Frames remaining before closing the editor system message.
+ *
+ */
+static int SysMesCnt;
+
+/**
+ *
+ * Open editor system message number, or -1 when none is open.
+ *
+ */
+static int SysMesNo = -1;
+
+}
 
 // Code (.text)
 /**
@@ -322,10 +553,6 @@ extern char at_1073__3[];
 extern char at_1074__3[];
 extern char at_1075__2[];
 extern char at_1076__2[];
-extern mgCFrame *PaintCursor;
-extern mgCFrame *RemoveCursor;
-extern mgCFrame *ShovelCursor;
-extern mgCTexture *eSysTexture;
 #ifdef NONMATCHING
 void LoadEditCursor(mgCMemory *memory, int block) {
     mgCTextureManager *textures = &mgTexManager;
@@ -1026,7 +1253,6 @@ static float GetGeoMapLimitHeight(int map_kind) {
 extern "C" float ePartsCurRot[4];
 extern "C" float ePartsCurNowRot[4];
 extern "C" float eDirCurRot[4];
-extern float eDirCurLen;
 extern char at_1835__2[];
 extern char at_1836__2[];
 static inline CMap *ActiveSceneMap(CScene *scene) {
@@ -2559,45 +2785,8 @@ INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editmode", at_2103__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editmode", at_2213__3__DATA);
 
 // Small initialised data (.sdata)
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editmode", SysMesNo__DATA);
 
 // Small uninitialised data (.sbss)
-INCLUDE_BSS(EditModeNo, 0x4);
-INCLUDE_BSS(MagnetEnable, 0x4);
-INCLUDE_BSS(HighSpeedMoveCnt, 0x4);
-INCLUDE_BSS(PutSideMode, 0x4);
-INCLUDE_BSS(PuuSideRotCameraFlag, 0x4);
-INCLUDE_BSS(PlacePartsNo, 0x4);
-INCLUDE_BSS(PartsInfoID, 0x4);
-INCLUDE_BSS(RemainPartsNum, 0x4);
-INCLUDE_BSS(PlacePartsFlag, 0x4);
-INCLUDE_BSS(PartsHeight, 0x4);
-INCLUDE_BSS(MagnetPartsFlag, 0x4);
-INCLUDE_BSS(PaintItemNo, 0x4);
-INCLUDE_BSS(CursorLockCnt, 0x4);
-INCLUDE_BSS(PlaceRiverCnt, 0x4);
-INCLUDE_BSS(RemoveMtnCnt, 0x4);
-INCLUDE_BSS(eDirCurLen, 0x4);
-INCLUDE_BSS(NowSelectWallParts, 0x4);
-INCLUDE_BSS(SelectWallGroup, 0x4);
-INCLUDE_BSS(PreMenuCount, 0x4);
-INCLUDE_BSS(PreMenuMaxCount, 0x4);
-INCLUDE_BSS(CtrlLockFlag, 0x4);
-INCLUDE_BSS(eCameraDist, 0x4);
-INCLUDE_BSS(eCurRot, 0x4);
-INCLUDE_BSS(eSysTexture, 0x4);
-INCLUDE_BSS(PaintCursor, 0x4);
-INCLUDE_BSS(PaintCursor2, 0x4);
-INCLUDE_BSS(PaintCurChr, 0x4);
-INCLUDE_BSS(RemoveCursor, 0x4);
-INCLUDE_BSS(ShovelCursor, 0x4);
-INCLUDE_BSS(ShovelCurChr, 0x4);
-INCLUDE_BSS(RemoveCurChr, 0x4);
-INCLUDE_BSS(UnitCursor, 0x4);
-INCLUDE_BSS(EditHelpMesNo, 0x4);
-INCLUDE_BSS(EditHelpMesParam, 0x4);
-INCLUDE_BSS(EditHelpMesParam2, 0x4);
-INCLUDE_BSS(SysMesCnt, 0x4);
 INCLUDE_BSS(cnt_1857, 0x4);
 INCLUDE_BSS(init_1858, 0x4);
 INCLUDE_BSS(cnt_1939, 0x4);
