@@ -12,10 +12,6 @@
 #include "mg_visual.hpp"
 #include "mglib.hpp"
 
-extern u_char texflush_dma__2[0x30];
-extern u_int prog_vif_730[4];
-extern u_int progf_vif_731[4];
-extern u_long128 *(*set_data_func__2[8])(int, int, int **, u_long128 *, u_long128 *, u_long128 *, u_long128 *, u_long128 *);
 /**
  *
  * Exposes the allocation state used while building a visual's packet.
@@ -63,6 +59,60 @@ static u_long128 *(*set_data_func[8])(int, int, int **, u_long128 *, u_long128 *
     SetData0, SetData1, SetData2, SetData3, SetData4, SetData5, SetData6, SetData7}; /**< Vertex upload writers selected by the face attributes. */
 
 #endif
+
+/**
+ * Mutable A+D tag shared by visual packet writers.
+ */
+mgVisualGifTag giftag __attribute__((aligned(16))) = {MG_GIFTAG_EOP, {1u << MG_GIFTAG_NREG_SHIFT, SCE_GIF_PACKED_AD, 0}};
+
+/**
+ * DMA chain flushing the GS texture cache.
+ */
+static u_char texflush_dma__2[0x30] __attribute__((aligned(16))) = {
+    0x02, 0x00, 0x00, MG_DMA_CNT >> 24, 0x00, 0x00, 0x00, 0x00,
+    0x00, 0x00, 0x00, 0x00, 0x02, 0x00, 0x00, MG_VIF_DIRECT >> 24,
+    0x01, MG_GIFTAG_EOP >> 8, 0x00, 0x00, 0x00, 0x00, 0x00, 1 << (MG_GIFTAG_NREG_SHIFT - 24),
+    SCE_GIF_PACKED_AD, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+    SCE_GS_TEXFLUSH, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00
+};
+
+/**
+ * Vertex upload writers selected by each face attribute combination.
+ */
+u_long128 *(*set_data_func__2[8])(int, int, int **, u_long128 *, u_long128 *, u_long128 *, u_long128 *, u_long128 *) = {
+    SetData0, SetData1, SetData2, SetData3, SetData4, SetData5, SetData6, SetData7
+};
+
+/**
+ * Starts the vertex transform program at entry two.
+ */
+static u_int prog_vif_730[4] __attribute__((aligned(16))) = {0, 0, 0, MG_VIF_MSCAL | 2};
+
+/**
+ * Continues the active vertex transform program.
+ */
+static u_int progf_vif_731[4] __attribute__((aligned(16))) = {0, 0, 0, MG_VIF_MSCNT};
+
+/**
+ * Whether the scratchpad DMA transfer is active.
+ */
+int start_dma;
+
+/**
+ * Scratchpad half selected for the next packet.
+ */
+int buff_id;
+
+/**
+ * Texture whose registers were most recently written.
+ */
+mgCTexture *prev_tex;
+
+/**
+ * Final control quadword of a material upload.
+ */
+u_long128 mat_pw = 3;
 
 // Code (.text)
 u_int *GetScrPad() {
@@ -1429,27 +1479,17 @@ int mgCVisualFixMDT::Iam() {
 }
 
 // Initialised data (.data)
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mg_visual", giftag__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mg_visual", set_tex0_dma__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mg_visual", set_tex0_giftag__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mg_visual", set_texa_dma__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mg_visual", set_texa_giftag__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mg_visual", texflush_dma__2__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mg_visual", mat_vif__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mg_visual", mat_vif_dif__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mg_visual", mat_vif_d__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mg_visual", mat_pw__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mg_visual", mat_vif_d_tex__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mg_visual", set_data_func__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mg_visual", prog_vif_730__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mg_visual", progf_vif_731__DATA);
 
 // Virtual tables (.vtables)
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mg_visual", __vt__13mgCVisualPrim__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mg_visual", __vt__15mgCVisualFixMDT__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mg_visual", __vt__12mgCVisualMDT__DATA);
 
 // Small uninitialised data (.sbss)
-INCLUDE_BSS(start_dma, 0x4);
-INCLUDE_BSS(buff_id, 0x4);
-INCLUDE_BSS(prev_tex, 0x4);
