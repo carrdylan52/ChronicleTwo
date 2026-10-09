@@ -83,6 +83,21 @@ the exact 0x3674-byte object and 160 resolved relocations.
 Unit-specific evidence is in the tracked mapjump and event_func RE notes and
 [pbuggy calibration notes](../ps2/re/docs/pbuggy/notes.md).
 
+## Optimization levels and deferred template code
+
+`optimization_level 2` enables global common-subexpression elimination without
+strength reduction or loop rotation, as observed in
+[mg_tanime](../ps2/re/docs/mg_tanime/nmmisc-20261008.md). Level 4 runs the IR
+optimizer twice. Second-round propagation can remove first-round constant
+temporaries; CSE recreates them with the lowest available virtual-register
+numbers, below the surviving temporaries
+([movie](../ps2/re/docs/movie/nmmisc-20261008.md)).
+
+Functions using class templates can be compiled when the next top-level
+declaration begins. Pragmas between their closing brace and that declaration
+therefore govern them; template-free functions in the same probe use the state
+at their definition ([mg_tanime](../ps2/re/docs/mg_tanime/nmmisc-20261008.md)).
+
 ## Source matching and verification
 
 Read unit documentation first and analyze retail with `./decompile.sh SYMBOL`
@@ -92,14 +107,15 @@ state difference; test the deterministic profile before changing source to
 imitate incidental allocation. Use correctly typed literals and real field
 layouts rather than pointer arithmetic or instruction-shaped source.
 
-Declared locals are coloured in declaration order. Compiler temporaries,
-cached loads and later assignments of a reused variable are coloured after
-them, so retail's last-coloured value is often a reused variable or a
-common subexpression rather than a new local. Named class locals take frame
+Virtual-register numbering and live-range webs determine colouring; declaration
+position alone does not predict a physical register. A later meaningful reuse
+of an existing variable or an optimizer common subexpression can account for a
+value coloured after the early locals. Named class locals take frame
 slots in declaration order before call-argument temporaries.
 `x = x < 0.0f ? -x : x` and `if (x < 0.0f) x = -x;` schedule the
-surrounding loads differently. A no-op cast such as `((int)left)` on an
-`int` makes that variable coloured after the temporaries. A repeated
+surrounding loads differently. Probes of `((int)left)` in `CommonBoardDraw`
+showed that a value-preserving cast can change virtual-register colouring. A
+repeated
 expression written inline (`top + heights[row]`) becomes one temporary
 coloured after earlier temporaries, where a named local would be coloured
 with the declared locals. `MenuCharaChangeStarDraw` and
@@ -137,6 +153,10 @@ also counts, and once filled it looks the same as an early return
 references. In LRCheck, four sparse case labels sharing one body compare in
 the reverse of their written order.
 
+The conditional absolute value `p = p < 0.0f ? -p : p;` reproduces retail's
+`nop` placement at the four `TexAnime` joins; equivalent `if` forms move those
+slots ([mg_tanime](../ps2/re/docs/mg_tanime/nmmisc-20261008.md)).
+
 ## Register colouring of loop and snapshot locals
 
 A loop's own index, or the first use of a variable, is coloured before the
@@ -147,6 +167,13 @@ this. Constant-indexed two-element local arrays kept in registers colour
 differently from separate scalars; `u8` snapshots compared after calls
 follow their uses rather than their declaration order. `MenuItemDebugDraw`
 (menusys) and `TitleModeKey` (title) are the references.
+
+A meaningful later assignment to an index can change its register web,
+including a strength-reduced loop web
+([dngmenu](../ps2/re/docs/dngmenu/night-20261008.md)). Direct indexing and
+reuse of a real pointer recover retail lifetimes; a named slot pointer can
+keep an address alive earlier than the corresponding indexed CSE
+([editloop](../ps2/re/docs/editloop/night-20261008.md)).
 
 ## Register allocation order
 
@@ -168,7 +195,8 @@ loop variable across disjoint loops is a natural way to move a counter below
 the optimizer's temporaries. Indexing an array directly, rather than through a
 named row pointer, makes the row address a low-numbered CSE temporary.
 `CollisionFish`, `StepGyoRace` and `sgSysDrawGyoRace` match only with these
-forms (see the gyoracesim and gyorace night notes).
+forms ([gyoracesim](../ps2/re/docs/gyoracesim/night-20261008.md),
+[gyorace](../ps2/re/docs/gyorace/night-20261008.md)).
 
 A value that retail keeps in a callee-saved register across calls but
 colours after the named locals can be a CSE of a repeated expression rather
@@ -176,7 +204,7 @@ than a local: writing a register expression in full at each use lets MWCC
 share its common left-associated prefix as a low-numbered temporary.
 `mgEndFrame` (mglib) matches only with its three DISPLAY values written out
 in full; a conditional expression for one of its locals (`a = c ? 4 : 3`)
-also numbers differently from `if`/`else` (see the mglib night notes).
+also numbers differently from `if`/`else` ([mglib](../ps2/re/docs/mglib/night-20261008.md)).
 
 Named locals take stack slots in declaration order, including block-scoped
 ones, before argument temporaries. Temporaries such as `mgRect<int>(…)`
@@ -192,8 +220,7 @@ register pressure it instead picks the smallest pressure change: a store that
 ends a value's live range beats a zero store, which beats a new constant.
 Constants therefore issue in source order, and independent stores move with
 the constants they consume. `CSound::Init` matches only when its configuration
-assignments follow the same port order as its other field groups (see the
-sound night notes).
+assignments follow the same port order as its other field groups ([sound](../ps2/re/docs/sound/night-20261008.md)).
 
 Assignment order inside a branch decides which values are still live when
 the branch joins, which changes register allocation and lets the scheduler
@@ -201,6 +228,10 @@ move later loads. `CDngFreeMap::DrawRoot` (dngmenu) matches only with the
 mark colour assigned before red in both branches. Satan's Fiddle
 evaluate-first rows apply to call arguments, not to plain assignment
 constants.
+
+Equivalent integer comparisons such as `value > 2` and `value >= 3` can
+change scratch-register allocation
+([editloop](../ps2/re/docs/editloop/night-20261008.md)).
 
 ## Copy propagation and spilled pointers
 
@@ -213,7 +244,7 @@ register and reads the return register directly. In `if ((map = f()) == NULL)`
 the test reads the return register, but later uses of a spilled `map` reload
 it. Retail code that tests and uses `v0` while storing a spill slot therefore
 comes from a separate `const` lookup local that is copied into the persistent
-pointer (`SearchMapFlatPosition`, see the dng_event night notes). A
+pointer (`SearchMapFlatPosition`, [dng_event](../ps2/re/docs/dng_event/night-20261008.md)). A
 `T *const p = array;` copy keeps an array's address in a base register, so
 `p[0]` and an indexed loop share it, where direct indexing folds `[0]` into a
 symbol load (`mgEndFrame`). `u_int x = load; x &= mask;` makes the AND result
@@ -221,95 +252,18 @@ share the load's register; `x = load & mask` lets the mask share it. A
 `sceVu0FVECTOR` parameter keeps its 16-byte alignment, so its spill slot takes
 16 bytes of the frame.
 
+After spills, a reloaded value's derived temporary receives a high backend
+virtual-register number; a declared block-local value retains an early, low
+number. This can change colouring after an otherwise matching first allocation
+([mg_tanime](../ps2/re/docs/mg_tanime/nmmisc-20261008.md)).
+
 ## Data extents and alignment
 
-Retail symbol sizes describe objects, while the split section pieces include
-the alignment gap before the next symbol or referenced address. Once data
-sections are assigned alignment one for linking, their bytes must retain that
-gap. The postprocessor extends a correctly sized native initialized object by
-fewer than 16 bytes to its piece boundary; initialized padding must be zero
-in retail. A native NOBITS object with its exact declared size owns its full
-reservation through the next canonical piece boundary, including larger gaps.
-Referenced interior addresses stop that reservation, and terminal tails remain
-linker-owned.
-An initialized object's original payload and symbol extent must both match its
-known declared retail size before naming or padding. Appended bytes must be
-complete zero retail bytes with no relocation fields. The linked literal pass
-can retain a larger verified terminal zero tail; comparison preparation trims
-it at the linker's `contents_end`. Internal initialized gaps stay below 16 bytes.
-An object with a size different from its declared retail size is not padded.
-The same policy covers compiler-generated vtables; their final section tail
-belongs to linker alignment.
-A terminal datum retains its declared extent when its end equals the generated
-linker script’s `contents_end`. The checker accepts larger linker-owned tails
-only with no retail relocations and complete zero initialized bytes.
-Literal identity uses declared objects; padding additionally uses the canonical
-reference boundaries, so an alignment tail cannot swallow a separately referenced
-word. Referenced interior addresses and explicit `D_<address>` source identifiers
-remain separate piece boundaries. A negative-addend table access cannot bind
-the table to a placeholder for the preceding word; its native identity and
-original addend remain intact. If the table itself has a retained placeholder,
-that exact base may supply it while preserving the negative addend. Rebinding computes addends from an immutable
-code snapshot, so rewriting a HI16 field cannot change the later LO16 decision.
-
-Native BSS templates, local statics and their guards need an exact declared
-extent and agreement from every live incoming code reference. Each reference
-must match the retail relocation kind and instruction operands outside the
-immediate. HI16/LO16 pairs follow ELF relocation order, which can differ from
-instruction order; orphan pairs, unknown consumers, out-of-object addends and
-competing live definitions reject naming. Zero contents and compiler counters
-alone establish no identity. Named local pointer tables can establish literal
-identities when their exact declared extent, all code consumers, nonpointer
-bytes, real relocation shape and native target bytes agree with retail. Their
-validated identities are available before names are written in native symbol
-order. Ambiguous initialized literals can then be named through real
-R_MIPS_32 pointers in native data, subtracting the compiled addend and
-target-symbol offset; conflicting references reject the binding. Anonymous
-initialized templates retain the existing literal matcher and naming order.
-Named initialized local tables without pointers additionally require the same
-source base name, exact declared size and section kind, and exact retail bytes.
-Locals sharing a consumer are inferred together; a rejected peer invalidates
-every remaining claim that depends on it. Every live consumer must be a complete
-retail function with the declared extent,
-all instruction operands and all resolved relocation targets matching. Unknown
-consumers, changed calls, duplicate relocation sites and orphan HI16/LO16 groups
-reject naming. This pass changes only the data identity; existing bounded padding
-supplies its alignment gap afterward.
-Equal declared initialized extents distinguish a literal from a larger object's
-byte prefix; established code or native-data destinations still reject competing
-identities. Discarding a fallback parent removes a compiler-owned child only when
-that child's retail storage also has a retained placeholder. Native children
-remain available for naming and comparison.
-
-VU instructions and initialized game or library words that resemble addresses
-remain numeric when retail has no relocation. The splitter checks their emitted byte comments against retail
-before replacing an inferred expression; real relocations remain intact.
-
-A terminal function may end before the next unit's address when the generated
-linker script supplies the intervening alignment. The canonical checker permits
-this only at the exact `contents_end` established by the script and only for an
-all-zero retail tail. Objdiff target symbol metadata records declared retail
-function sizes so the same linker padding is excluded from function scores.
-
-Objdiff uses separate comparison copies of the raw source-only and reference
-objects. Data references come from retail relocation metadata, never splat's
-address guesses; switch-table pointers use their enclosing function and interior
-addend. Native anonymous names are established by bytes and real references,
-not compiler numbering. Native pieces retain verified internal padding and both
-sides exclude terminal zero tails owned by the linker. BSS symbol extents include
-that verified piece padding consistently with initialized objects.
-
-Reservation arrays and every retained data-marker piece are excluded from the
-source comparison, including coincidental compiler copies. No fallback payload
-is imported. Function bytes, declared sizes and relocation fields remain intact;
-function names use the existing template/initializer projection. The build and
-GUI refresh these copies when inputs or preparation tools change. `matched_data`
-credits complete aggregate sections whose native bytes, extents and relocations
-match retail exactly. It is a lower bound on migrated native data: an exact
-typed object receives no section credit while a reservation or unmapped piece
-leaves the same aggregate section incomplete. Removing the reservation preserves
-the native object but cannot restore credit until the section is complete.
-This metric is independent of executable matching.
+MWCC gives native data objects their own extents and alignment; retail symbols
+exclude the gaps between objects. Keep natural definitions exactly sized and
+retain their original compiler alignment as evidence. See the split, padding
+and comparison rules in
+[Data layout](../scripts/build/DATA_LAYOUT.md).
 
 ## Natural C++ definitions
 
