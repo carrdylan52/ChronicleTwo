@@ -18095,7 +18095,6 @@ void SetEventFunc(CRunScript *script) {
 }
 
 // Initialised data (.data)
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/event_func", vv_3333__DATA);
 
 // Uninitialised data (.bss)
 ED_EVENT_INFO EdEventInfo;

@@ -264,3 +264,19 @@ The seven native initialized pieces total 8,760 bytes; the retained camera stati
 | `total_data` | 235364 | 235364 |
 
 Final pinned-image receipts: `.private/dataA-r3/final-{build,objects,hashes,refresh,coverage,data-pieces}.log` and `after.json`. PAL prints `SCES_511.90: OK`; all 149 canonical units pass; no unowned raw objects change. Source guards are unchanged and build scripts, SF profiles and dng_main remain untouched.
+
+
+## Round-5 native data completion
+
+The existing mutable `float vv[3][4]` local static now supplies
+`vv_3333` without its marker. The initialized-local mapper proves its source
+base name, exact extent, full payload and every complete retail consumer.
+The function body and all guarded blocks remain unchanged.
+
+Markers: RODATA **1 → 0**, BSS
+**0 → 0**. Refreshed matched data:
+**226556 → 226556 / 235364**.
+The complete PAL is `SCES_511.90: OK` and all **149/149** canonical objects
+pass. Only the four migrated units change object hashes in this step; code
+metrics remain **6,780 functions / 1,854,796 bytes**. No function is promoted.
+Receipts: `.private/dtool-r5/data-fixed-{build,objects,tests,metrics}.log`.
