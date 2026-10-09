@@ -28,8 +28,6 @@
 #include "sysmes.hpp"
 #include "userdata.hpp"
 
-/** Brightness of the active dungeon tree selection. */
-extern float DngTreeMapActiveLightRate;
 
 /**
  *
@@ -45,8 +43,93 @@ static void DrawDngRoomInfo(DNGMAP_ROOM_INFO *room);
  */
 void DrawGeoramaMateria(int top_y, char *title, int unused_count, int *items, int tex_block);
 
+
+/** Selected floor-save flag in the map debug panel. */
+static int MenuDngDebugFlagSelect;
+
+/** Floor map attached to the active dungeon menu. */
+static CDngFreeMap *MenuDngMap;
+
+/** Enables the selected floor information. */
+static u8 dngfloor_infoview;
+
+/** Enables the floor-information backdrop. */
+static u8 dngfloor_backdraw;
+
+/** Opacity of the floor-information backdrop. */
+static int dngfloor_backdraw_alpha;
+
+/** Texture used by the floor-information frame. */
+static mgCTexture *Floor_InfoTex;
+
+/** Indicates that fishing tests are unlocked. */
+static u8 DngInfoFishOkFlag;
+
+/** Indicates that spheda tests are unlocked. */
+static u8 DngInfoSphidaOkFlag;
+
+/** Controls the floor travel confirmation message. */
+static s8 DngAskMessageDrawFlag;
+
+/** Save record of the floor shown by the information panel. */
+static DNG_FLOOR_SAVE *DngInfoFloorInfo;
+
+/** Room shown by the floor-information panel. */
+static DNGMAP_ROOM_INFO *DngInfoRoomInfo;
+
+/** Opacity of the selected floor information. */
+static int DngInfoDrawAlpha;
+
+/** Position of the medal-count message. */
+static int DngInfoMedalMsgPutPos[2];
+
+/** Enables the georama material list. */
+static u8 GeoramaMateriaInfoDrawFlag;
+
+/** Page displayed by the georama material list. */
+static s8 GeoramaMateriaInfoDrawPage;
+
+/** Number of georama materials collected for the floor. */
+static short GeoramaMateriaNum;
+
+/** Brightness of the active dungeon tree selection. */
+static float DngTreeMapActiveLightRate;
+
+/** Animation counter of the player marker. */
+static int dng_player_blink_cnt;
+
+/** Selects the tree map or its save menu. */
+static short DngTreeMode;
+
+/** Indicates that the tree map is open for saving. */
+u8 TreeMapSaveFlag;
+
+/** Counts saves made through the tree map. */
+s16 TreeMapSaveNum;
+
+/** Animation timer of the tree-menu save prompt. */
+static short TreeMapSaveDispCount;
+
+/** Phase of the tree-menu save prompt hop. */
+static float TreeMapSaveHopCount;
+
+/** Vertical position of the tree-menu save prompt. */
+static short TreeMapSaveDispY;
+
+/** Requests the dungeon submap through the tree menu. */
+u8 TreeMapCallDungeonSubMap;
+
+/** Records that the world map opened the tree menu. */
+u8 TreeMapCalledWorldMap;
+
+/** Loaded image data for the tree-menu cursor. */
+static u8 *MenuCursorDataBuff;
+
 /** Tree map menu attached to the active dungeon screen. */
-extern CMenuTreeMap *CMenuTreePt;
+static CMenuTreeMap *CMenuTreePt;
+
+/** Message windows belonging to the active tree map. */
+static CDC2Mes *MenuDngMes[DNG_TREE_MAP_MES_MAX];
 
 // Code (.text)
 void CDngFreeMap::Initialize() {
@@ -923,9 +1006,6 @@ void DrawDngRoomInfo(DNGMAP_ROOM_INFO *room) {
 #else
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/dngmenu", DrawDngRoomInfo__FP16DNGMAP_ROOM_INFO);
 #endif
-extern mgCTexture   *Floor_InfoTex;
-extern s8            GeoramaMateriaInfoDrawPage;
-extern short         GeoramaMateriaNum;
 extern mgRect<int>   Floor_Info;
 extern short         dngboardbrdtbl[24];
 extern short         dngboardbrdtbl_2[12];
@@ -1050,7 +1130,6 @@ void CDngFreeMap::DrawTreeMap(int opacity) {
     }
 }
 extern float dng_player_pos[2];
-extern int   dng_player_blink_cnt;
 
 void CDngFreeMap::DrawPlayer(int opacity) {
     if (user_glid == NULL || koma_tex == NULL) {
@@ -1125,8 +1204,6 @@ void CDngFreeMap::Step() {
     }
     mark_num = 0;
 }
-/** Selected flag row in the dungeon map's debug readout. */
-extern int MenuDngDebugFlagSelect;
 /** Names of the passage kinds shown beside the debug room data. */
 extern char *RootTable_2119[4];
 /** Labels for the eight debug floor-save flags. */
@@ -1707,8 +1784,6 @@ int CDngFreeMap::LoadDngInfo(mgCMemory *stack, int block, int dungeon, int room,
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/dngmenu", LoadDngInfo__11CDngFreeMapFP9mgCMemoryiiii);
 #endif
 
-/** Screen currently drawn by the dungeon tree menu. */
-extern short DngTreeMode;
 
 int CheckDngTreeMapFuncType() {
     if (MenuCommonInfo->open_type == 3) {
@@ -1747,9 +1822,6 @@ void MakeDngTreeMapJumpNo(int dng_no, int floor_id, int *loop_no, int *map_no) {
         }
     }
 }
-extern CDngFreeMap *MenuDngMap;
-extern u8          *MenuCursorDataBuff;
-extern mgCTexture  *Floor_InfoTex;
 extern s8           maxidtable_2752[7];
 extern char         at_2681[];
 extern char         at_2786[];
@@ -1757,7 +1829,6 @@ extern char         at_2787__2[];
 extern char         at_2788[];
 extern char         at_2789[];
 extern char         at_2790[];
-extern int          DngInfoDrawAlpha;
 
 void CMenuTreeMap::InitEnd() {
     BG_READ_INFO *read = GetReadBGFile(0);
@@ -2409,30 +2480,6 @@ int CMenuTreeMap::Step() {
 #else
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/dngmenu", Step__12CMenuTreeMapFv);
 #endif
-/** Floor-information message windows attached to the tree map. */
-extern CDC2Mes *MenuDngMes[DNG_TREE_MAP_MES_MAX];
-/** Floor map drawn behind the tree-map menu. */
-extern CDngFreeMap *MenuDngMap;
-/** Non-zero while the selected floor's information is visible. */
-extern unsigned char dngfloor_infoview;
-/** Non-zero while the floor-information backdrop fades in. */
-extern unsigned char dngfloor_backdraw;
-/** Current opacity of the floor-information backdrop. */
-extern int dngfloor_backdraw_alpha;
-/** Non-zero while the selected floor's georama materials are visible. */
-extern unsigned char GeoramaMateriaInfoDrawFlag;
-/** Visibility state of the question about jumping to the selected floor. */
-extern s8 DngAskMessageDrawFlag;
-/** Resting vertical position of the animated save prompt. */
-extern short TreeMapSaveDispY;
-/** Number of georama materials available on the selected floor. */
-extern short GeoramaMateriaNum;
-/** Frame counter of the save prompt's animation. */
-extern short TreeMapSaveDispCount;
-/** Number displayed in the save prompt. */
-extern short TreeMapSaveNum;
-/** Sine phase of the save prompt's vertical animation. */
-extern float TreeMapSaveHopCount;
 
 void CMenuTreeMap::Draw() {
     if ((mode & 2) && draw_hidden == 1) {
@@ -2585,24 +2632,6 @@ int CMenuTreeMap::FadeInOutMenu() {
 }
 /** Arena used for tree-menu objects and files. */
 extern mgCMemory     MenuTreeMapStack;
-/** Tree map menu attached to the active dungeon screen. */
-extern CMenuTreeMap *CMenuTreePt;
-/** Floor map drawn and moved by the tree menu. */
-extern CDngFreeMap  *MenuDngMap;
-/** Message windows belonging to the active tree map. */
-extern CDC2Mes      *MenuDngMes[8];
-/** Loaded image data for the tree-menu cursor. */
-extern u8           *MenuCursorDataBuff;
-/** Room whose floor-information activities are being shown. */
-extern DNGMAP_ROOM_INFO *DngInfoRoomInfo;
-/** Opacity of the floor-information backdrop. */
-extern int           dngfloor_backdraw_alpha;
-/** Enables the selected floor information. */
-extern u8            dngfloor_infoview;
-/** Enables the floor-information backdrop. */
-extern u8            dngfloor_backdraw;
-/** Animation timer of the tree-menu save prompt. */
-extern s16           TreeMapSaveDispCount;
 /** Dungeon used by the floor-information panel. */
 extern u8            DngInfoStageNo;
 /**
@@ -2698,7 +2727,6 @@ void DngTreeMapInit(mgCMemory *stack, int *tex_block, int menu_mode, int dng_no)
     MenuCommonReadData(&MenuTreeMapStack, names.name, 0);
 }
 extern mgCMemory    MenuTreeMapStack;
-extern CDngFreeMap *MenuDngMap;
 
 int DngTreeMapKey() {
     int result = 0;
@@ -2869,36 +2897,8 @@ INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dngmenu", at_3043__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dngmenu", at_3164__DATA);
 
 // Small uninitialised data (.sbss)
-INCLUDE_BSS(MenuDngDebugFlagSelect, 0x4);
-INCLUDE_BSS(MenuDngMap, 0x4);
-INCLUDE_BSS(dngfloor_infoview, 0x4);
-INCLUDE_BSS(dngfloor_backdraw, 0x4);
-INCLUDE_BSS(dngfloor_backdraw_alpha, 0x4);
-INCLUDE_BSS(Floor_InfoTex, 0x4);
-INCLUDE_BSS(DngInfoFishOkFlag, 0x4);
-INCLUDE_BSS(DngInfoSphidaOkFlag, 0x4);
-INCLUDE_BSS(DngAskMessageDrawFlag, 0x4);
-INCLUDE_BSS(DngInfoFloorInfo, 0x4);
-INCLUDE_BSS(DngInfoRoomInfo, 0x4);
-INCLUDE_BSS(DngInfoDrawAlpha, 0x8);
-INCLUDE_BSS(DngInfoMedalMsgPutPos, 0x8);
 INCLUDE_BSS(AlphaRate_1743, 0x4);
 INCLUDE_BSS(init_1744, 0x4);
-INCLUDE_BSS(GeoramaMateriaInfoDrawFlag, 0x4);
-INCLUDE_BSS(GeoramaMateriaInfoDrawPage, 0x4);
-INCLUDE_BSS(GeoramaMateriaNum, 0x4);
-INCLUDE_BSS(DngTreeMapActiveLightRate, 0x4);
-INCLUDE_BSS(dng_player_blink_cnt, 0x4);
-INCLUDE_BSS(DngTreeMode, 0x4);
-INCLUDE_BSS(TreeMapSaveFlag, 0x4);
-INCLUDE_BSS(TreeMapSaveNum, 0x4);
-INCLUDE_BSS(TreeMapSaveDispCount, 0x4);
-INCLUDE_BSS(TreeMapSaveHopCount, 0x4);
-INCLUDE_BSS(TreeMapSaveDispY, 0x4);
-INCLUDE_BSS(TreeMapCallDungeonSubMap, 0x4);
-INCLUDE_BSS(TreeMapCalledWorldMap, 0x4);
-INCLUDE_BSS(MenuCursorDataBuff, 0x4);
-INCLUDE_BSS(CMenuTreePt, 0x4);
 INCLUDE_BSS(old_direction_2830, 0x4);
 INCLUDE_BSS(init_2831, 0x4);
 INCLUDE_BSS(old_glid_2833, 0x4);
@@ -2911,7 +2911,6 @@ INCLUDE_BSS(at_3199, 0x8);
 INCLUDE_BSS(at_3478, 0x8);
 
 // Uninitialised data (.bss)
-INCLUDE_BSS(MenuDngMes, 0x20);
 mgRect<float> treemap_root_put;
 mgRect<int>   Floor_Info(0, 238, 256, 18);
 mgCMemory     MenuTreeMapStack;
