@@ -231,22 +231,6 @@ const int              event_sprite2_size = 0x80;
 extern char            at_8902[];
 extern char            at_8903[];
 extern char            at_8904[];
-extern char            at_4437[];
-extern char            at_5262__2[];
-extern char            at_5263__2[];
-extern char            at_5410[];
-extern char            at_5411[];
-extern char            at_5412[];
-extern char            at_5413[];
-extern char            at_5414[];
-extern char            at_5415[];
-extern char            at_5416[];
-extern char            at_5417[];
-extern char            at_5418[];
-extern char            at_5419[];
-extern char            at_5420[];
-extern char            at_5421[];
-extern char            at_5422[];
 extern char            at_9744[];
 extern char            at_9745[];
 extern char            at_10100[];
@@ -7264,7 +7248,7 @@ int _SET_MENU_ETC(RS_STACKDATA *stack, int argc) {
 
         InitDownLoadAnaunce(memory);
         MakeDownLoadAnaunce(town_no, memory, NULL, NULL, NULL);
-        InitMenuDl3(mgTexManager.GetTexture(at_4437, -1));
+        InitMenuDl3(mgTexManager.GetTexture("eventdl", -1));
         return 1;
     }
 
@@ -8940,13 +8924,13 @@ int _SET_MES_ETC(RS_STACKDATA *stack, int argc) {
             mes->SetHalfFontWPercent(GetStackFloat(stack));
             break;
         case 3:
-            strcpy(text, at_5262__2);
+            strcpy(text, "\x8B\x9B\x82\xF0\x91\x49\x82\xD7");
 
             for (i = 0; i < 6; i++) {
                 char *fish_name = GetAquariumFish0(i);
 
                 if (fish_name != NULL) {
-                    strcat(text, at_5263__2);
+                    strcat(text, "\n");
                     strcat(text, fish_name);
                 }
             }
@@ -9207,42 +9191,42 @@ int _GET_FISHINGTOURNAMENT_ETC(RS_STACKDATA *stack, int argc) {
                         strcpy(itemName, name);
                         size = entry->size / 10.0f;
                         weight = entry->weight;
-                        sprintf(nameColumn, at_5410, itemName);
+                        sprintf(nameColumn, "%s", itemName);
                         padding = 0x16 - strlen(itemName);
                         for (j = 0; j < padding / 2; j++) {
-                            strcat(nameColumn, at_5411);
+                            strcat(nameColumn, "\x81\x40");
                         }
-                        sprintf(sizeColumn, at_5412, size, weight);
+                        sprintf(sizeColumn, "%4.1fcm\x81\x40%5dg", size, weight);
                         switch (shown) {
                             case 0:
-                                strcpy(text, at_5413);
+                                strcpy(text, "\x81\x40\x82\x50\x81\x41");
                                 break;
                             case 1:
-                                strcat(text, at_5414);
+                                strcat(text, "\x81\x40\x82\x51\x81\x41");
                                 break;
                             case 2:
-                                strcat(text, at_5415);
+                                strcat(text, "\x81\x40\x82\x52\x81\x41");
                                 break;
                             case 3:
-                                strcat(text, at_5416);
+                                strcat(text, "\x81\x40\x82\x53\x81\x41");
                                 break;
                             case 4:
-                                strcat(text, at_5417);
+                                strcat(text, "\x81\x40\x82\x54\x81\x41");
                                 break;
                             case 5:
-                                strcat(text, at_5418);
+                                strcat(text, "\x81\x40\x82\x55\x81\x41");
                                 break;
                             case 6:
-                                strcat(text, at_5419);
+                                strcat(text, "\x81\x40\x82\x56\x81\x41");
                                 break;
                             case 7:
-                                strcat(text, at_5420);
+                                strcat(text, "\x81\x40\x82\x57\x81\x41");
                                 break;
                             case 8:
-                                strcat(text, at_5421);
+                                strcat(text, "\x81\x40\x82\x58\x81\x41");
                                 break;
                             case 9:
-                                strcat(text, at_5422);
+                                strcat(text, "\x82\x50\x82\x4F\x81\x41");
                                 break;
                             default:
                                 return 0;
@@ -9251,7 +9235,7 @@ int _GET_FISHINGTOURNAMENT_ETC(RS_STACKDATA *stack, int argc) {
                         strcat(text, nameColumn);
                         strcat(text, sizeColumn);
                         if (i < 9) {
-                            strcat(text, at_5263__2);
+                            strcat(text, "\n");
                         }
                     }
                 }
@@ -18154,24 +18138,8 @@ INCLUDE_RODATA("ps2/asm/pal/nonmatchings/event_func", at_4273__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/event_func", at_4272__2__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/event_func", at_4291__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/event_func", at_4360__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/event_func", at_4437__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/event_func", at_4573__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/event_func", at_5262__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/event_func", at_5263__2__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/event_func", at_5264__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/event_func", at_5410__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/event_func", at_5411__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/event_func", at_5412__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/event_func", at_5413__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/event_func", at_5414__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/event_func", at_5415__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/event_func", at_5416__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/event_func", at_5417__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/event_func", at_5418__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/event_func", at_5419__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/event_func", at_5420__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/event_func", at_5421__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/event_func", at_5422__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/event_func", at_5424__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/event_func", at_5726__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/event_func", at_5736__DATA);
