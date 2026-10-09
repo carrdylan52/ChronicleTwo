@@ -339,8 +339,8 @@ menumap). Statics of note: `MenuDngMap` (CDngFreeMap*), `CMenuTreePt` (CMenuTree
 
 ## Non-members
 `CheckGeoramaMateria`, `DrawDngRoomInfo`, and `DrawGeoramaMateria` are LOCAL
-in retail and have no public header declarations. The first two have internal
-source linkage; `DrawGeoramaMateria` currently has external source linkage.
+in retail and have internal source linkage, with no public header declarations.
+`DrawGeoramaMateria` retains its exact 0x400-byte body when declared `static`.
 `ClsMes::Init` (0x1F38E0) is emitted natively from `nd_meswin.hpp` by the
 natural `CMenuTreeMap` constructor; its assembly marker is removed.
 

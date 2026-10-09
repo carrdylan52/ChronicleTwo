@@ -43,7 +43,7 @@ static void DrawDngRoomInfo(DNGMAP_ROOM_INFO *room);
  * @address 0x1EEC10
  * @size 0x400
  */
-void DrawGeoramaMateria(int top_y, char *title, int unused_count, int *items, int tex_block);
+static void DrawGeoramaMateria(int top_y, char *title, int unused_count, int *items, int tex_block);
 
 /**
  *
@@ -1711,7 +1711,7 @@ static short dngboardbrdtbl_2[12] = {
     58, 22, 24, 36, 82, 22, 8, 36, 90, 22, 24, 36
 };
 
-void DrawGeoramaMateria(int top_y, char *title, int unused_count, int *items, int tex_block) {
+static void DrawGeoramaMateria(int top_y, char *title, int unused_count, int *items, int tex_block) {
     int index;
     int x;
     int y;

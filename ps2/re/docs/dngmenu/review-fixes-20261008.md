@@ -44,3 +44,13 @@ no source-order or behavior change. Probe receipts:
 `.private/fixes-r1b/receipts/room-casts-probe-{build,objects}.log` and
 `room-casts-score.log` in the same directory. Restoration is verified by
 `room-calls-restored-{build,objects}.log`.
+
+## DrawGeoramaMateria linkage
+
+The retail ELF binds `DrawGeoramaMateria__FiPciPii` at `0x1EEC10` as
+LOCAL with size `0x400`. Declaring both the source prototype and definition
+`static` gives the same LOCAL binding and size. The function and its caller
+remain exact: the complete PAL verifies and all 149 objects pass.
+The single documentation block stays on the source prototype.
+
+Receipts: `.private/fixes-r1b/receipts/material-static-{build,objects}.log`.
