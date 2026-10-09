@@ -67,6 +67,7 @@ enum {
     DNGMAP_BLINK_CYCLE = 100,         /**< Frames one cycle of the map's blink counter lasts. */
     DNG_TREE_MAP_MES_MAX = 8,         /**< Message windows the tree map menu holds. */
     DNG_TREE_MAP_MATERIA_MAX = 0x103, /**< Georama parts the tree map can list for one floor. */
+    DNG_TREE_MAP_MATERIA_PAGE = 14,   /**< Georama parts one page of the material list shows. */
 };
 
 /**
@@ -99,6 +100,17 @@ enum DNG_TREE_MAP_FUNC {
 enum DNG_TREE_MODE {
     DNG_TREE_MODE_MAP = 0,  /**< The tree map menu itself. */
     DNG_TREE_MODE_SAVE = 1, /**< The save menu opened from the tree map. */
+};
+
+/**
+ *
+ * Screens of the tree map menu whose keys its step reads, as CBaseMenuClass::key_arg_no holds them.
+ *
+ */
+enum DNG_TREE_MAP_SCREEN {
+    DNG_TREE_MAP_SCREEN_MAP = 0,       /**< The cursor moves between the floors. */
+    DNG_TREE_MAP_SCREEN_FLOOR = 1,     /**< The selected floor's jump question or information is open. */
+    DNG_TREE_MAP_SCREEN_MATERIALS = 2, /**< The selected floor's georama material list is open. */
 };
 
 /**
