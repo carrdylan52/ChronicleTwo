@@ -216,47 +216,22 @@ struct MenuCharaReadBuffers {
     u_int *outline; /**< Loaded outline data. */
 };
 
-extern MenuCharaReadBuffers  MainCharaReadBuffer;
-extern CGameDataUsed        *NewViewWep;
-extern CGameDataUsed        *OldViewWep;
-extern u8                    view_weapon_flag;
 extern CDC2Mes              *MenuDCMsg[9];
 extern CGameDataUsed         SpectolTransBefore;
-extern CMenuEffect          *MenuEffect[2];
 extern CGameDataUsed         SpectolInfoStay;
 extern NamePair              at_1685;
 extern KeyPairTable          at_2328;
 extern KeyPairTable          at_2333__3;
 extern SpectolBreakTable     at_1557;
 extern char                  at_1493__2[];
-extern int                   MenuHowHaveMuchNum;
-extern short                 MenuTrushNum;
-extern short                 SpectolBreakNum;
-extern short                 SpectolBreakNum_Limit;
-extern short                 SpectolBreakSpPoint;
-extern short                 MenuItemCommand_RoboPackBreakFlag;
-extern short                 save_spectol_fusion_param[10];
-extern int                   save_spectol_fusion_spstatus;
 extern signed char           sndflag_1665;
 extern signed char           init_1666;
-extern ITEMCMD_RET_PARA      MenuItemCmdRet;
-extern CDC2Mes              *TrushMesCls[4];
-extern int                   FxScriptManPauseFlag;
 extern short                 MenuItemBoardTotalNum;
 extern short                 MenuItemBoardTotalLine;
-extern CActionChara         *MenuWeaponEnvSetChara;
 extern s16                   MenuWeaponEnvSetListNo;
 extern CMenuItemInfo         class_menu_item_info;
 void                         MenuWeaponStatusInfoFormSet(CGameDataUsed *item, CDataWeapon *data);
-extern s8                    TrushMesWindowFlag;
-extern CMenuPosDataForm     *MenuSpectolSatusCheckForm;
-extern CMenuPosDataForm     *MenuSpectolSatusCheckBGFadeForm;
-extern CItemSelect          *ItemSelectPtr;
-extern float                 MenuWeaponBasePos[4];
 extern float                 SpectolFramePosValue;
-extern float                 SpectolFrameFadeAlpha;
-extern float                 SpectolFrameScaleAngle;
-extern CActionChara         *SpectolFrame;
 extern NameList              at_1545;
 extern signed char           MenuRoboEquipTable[8];
 extern signed char           tbl_4094[2];
@@ -273,25 +248,15 @@ extern char                  at_7345[];
 extern char                  at_7346[];
 extern char                  at_7347[];
 extern MENU_INPUTKEY_ARG     item_menu_argtbl[];
-extern float                 ActiveMenuWeaponCharaRange;
 extern mgCMemory             MainCharaReadStack;
-extern u8                   *MainCharaReadStackReadAdr;
-extern CMenuItemInfo        *CMenuItemInfoPt;
-extern short                 MenuItem_ItemBoardTopLine;
-extern int                   MenuRepairTargetWeaponPos[2];
 extern char                  at_5265[];
 extern char                  at_5271[];
 extern char                  at_7540[];
-extern short                 MenuItem_ItemBoardTopSelect;
-extern u32                  *MenuItemSpectolTransSoundBuffer;
 extern void                 *Save_AskParamInfo_7099;
-extern short                 SpectolFusion_LeftOrRight;
 extern signed char           diffent_weapon_dispflag_7125;
 extern signed char           fusion_blinkcnt_7120;
 extern signed char           init_7121;
 extern signed char           init_7126;
-extern MENUFORMPARTS_TYPE   *BuildUpFormInfoIndex[12];
-extern MENUFORMPARTS_TYPE   *BuildUpFormInfoStatusVol[10];
 extern u8                    padtbl_3359[16];
 extern char                  at_2545__2[];
 extern char                  at_2546__2[];
@@ -323,12 +288,10 @@ extern char                  at_5131[];
 extern char                  at_5132[];
 extern char                  at_5133[];
 extern char                  at_5134[];
-extern CLevelUpEffectManager MenuLevelUpMan;
 extern char                  at_4954[];
 extern char                  at_3751[];
 extern char                  at_5210[];
 extern char                  at_5211[];
-extern int                   Robo_Sound_ID_Save;
 extern char                  at_4672[];
 extern int                   tbl_5293[];
 extern mgCMemory             MenuItemMemory;
@@ -366,6 +329,461 @@ int       CheckFishCondition();
 extern s8 menu_camera_reference_id;
 extern s8 menu_camera_reference_no;
 
+
+/**
+ *
+ * Next write address for character model data.
+ *
+ */
+static u8 *MainCharaReadStackReadAdr;
+
+/**
+ *
+ * Weapon repair effect of the item menu.
+ *
+ */
+CRepairManager *MenuRepairMan;
+
+/**
+ *
+ * Saved top row of the inventory board.
+ *
+ */
+static s16 MenuItem_ItemBoardTopLine;
+
+/**
+ *
+ * Saved selection on the inventory board.
+ *
+ */
+static s16 MenuItem_ItemBoardTopSelect;
+
+/**
+ *
+ * Owned-item limit flags for each character's three active slots.
+ *
+ */
+u8 menu_chara_activeItem_limmit_check[6];
+
+/**
+ *
+ * Status comparison form for a spectrum fusion.
+ *
+ */
+static CMenuPosDataForm *MenuSpectolSatusCheckForm;
+
+/**
+ *
+ * Background fade form behind the spectrum status comparison.
+ *
+ */
+static CMenuPosDataForm *MenuSpectolSatusCheckBGFadeForm;
+
+/**
+ *
+ * Visibility state of the discard message window.
+ *
+ */
+static s8 TrushMesWindowFlag;
+
+/**
+ *
+ * Motion range of the equipped weapon preview.
+ *
+ */
+static float ActiveMenuWeaponCharaRange;
+
+/**
+ *
+ * Character whose weapon preview environment is active.
+ *
+ */
+static CActionChara *MenuWeaponEnvSetChara;
+
+/**
+ *
+ * Non-zero while the character status texture is hidden.
+ *
+ */
+s8 MenuStatusMode;
+
+/**
+ *
+ * Texture of the character status display.
+ *
+ */
+mgCTexture *MenuStatusTex;
+
+/**
+ *
+ * Active item-menu controller.
+ *
+ */
+static CMenuItemInfo *CMenuItemInfoPt;
+
+/**
+ *
+ * Effects of the current spectrumisation or fusion.
+ *
+ */
+CMenuEffect *MenuEffect[2];
+
+/**
+ *
+ * Loaded spectrumisation sound data.
+ *
+ */
+static u32 *MenuItemSpectolTransSoundBuffer;
+
+/**
+ *
+ * Attachment and weapon participating in a spectrum fusion.
+ *
+ */
+CGameDataUsed *SpectolInfo[2];
+
+/**
+ *
+ * Selected side of the spectrum fusion view.
+ *
+ */
+static s16 SpectolFusion_LeftOrRight;
+
+/**
+ *
+ * Character model receiving the spectrum fusion effect.
+ *
+ */
+CCharacter2 *SpectolFusionTargetChara;
+
+/**
+ *
+ * Saved special-ability difference for the fusion status display.
+ *
+ */
+static int save_spectol_fusion_spstatus;
+
+/**
+ *
+ * Position of the item whose command list is open.
+ *
+ */
+s16 MenuItemCmdArgPos;
+
+/**
+ *
+ * Ridepod pack spectrumisation command variant.
+ *
+ */
+static s16 MenuItemCommand_RoboPackBreakFlag;
+
+/**
+ *
+ * Side of the screen used by the item command window.
+ *
+ */
+int MenuItemCommandDir;
+
+/**
+ *
+ * Quantity currently selected by the how-many question.
+ *
+ */
+static int MenuHowHaveMuchNum;
+
+/**
+ *
+ * Maximum number of items available to spectrumise.
+ *
+ */
+static s16 SpectolBreakNum_Limit;
+
+/**
+ *
+ * Number of items selected for spectrumisation.
+ *
+ */
+static s16 SpectolBreakNum;
+
+/**
+ *
+ * Synthesis points supplied by each spectrumised item.
+ *
+ */
+static s16 SpectolBreakSpPoint;
+
+/**
+ *
+ * Frame counter of the spectrumisation effect.
+ *
+ */
+float trans_spectol_cnt;
+
+/**
+ *
+ * Acquisition latch for the spectrumisation result.
+ *
+ */
+static s8 spegetflag;
+
+/**
+ *
+ * Model framing the spectrumisation preview.
+ *
+ */
+static CActionChara *SpectolFrame;
+
+/**
+ *
+ * Pending spectrumisation inventory position.
+ *
+ */
+static s16 MenuSpectolTransPos;
+
+/**
+ *
+ * Non-zero while the preview character rotates.
+ *
+ */
+u8 itemmenu_chr_rotflag;
+
+/**
+ *
+ * Number of items selected for discard.
+ *
+ */
+static s16 MenuTrushNum;
+
+/**
+ *
+ * Amplitude of the fusion preview colour oscillation.
+ *
+ */
+static float fusion_color_val;
+
+/**
+ *
+ * Phase of the spectrumisation frame scale oscillation.
+ *
+ */
+static float SpectolFrameScaleAngle;
+
+/**
+ *
+ * Opacity of the spectrumisation frame.
+ *
+ */
+static float SpectolFrameFadeAlpha;
+
+/**
+ *
+ * Non-zero while menu effect scripts are paused.
+ *
+ */
+static int FxScriptManPauseFlag;
+
+/**
+ *
+ * Item metadata displayed by the debug browser.
+ *
+ */
+static CDataCommon *debug_common_data;
+
+/**
+ *
+ * Non-zero when the viewed weapon needs refreshing.
+ *
+ */
+static u8 view_weapon_flag;
+
+/**
+ *
+ * Previous weapon used by the preview comparison.
+ *
+ */
+static CGameDataUsed *OldViewWep;
+
+/**
+ *
+ * Current weapon used by the preview comparison.
+ *
+ */
+static CGameDataUsed *NewViewWep;
+
+/**
+ *
+ * Screen coordinates of the weapon repair target.
+ *
+ */
+static int MenuRepairTargetWeaponPos[2];
+
+/**
+ *
+ * Texture of the weapon build-up board.
+ *
+ */
+mgCTexture *Tex_BuildUpBoard;
+
+/**
+ *
+ * Ridepod sound bank saved before a preview reload.
+ *
+ */
+static int Robo_Sound_ID_Save;
+
+/**
+ *
+ * Visibility state of the debug model preview.
+ *
+ */
+static s8 MenuDebugModelDrawFlag;
+
+/**
+ *
+ * Byte count of the loaded debug model data.
+ *
+ */
+static int MenuDebugSize;
+
+/**
+ *
+ * Character model displayed by the debug preview.
+ *
+ */
+static CActionChara *MenuDebugItemModel;
+
+/**
+ *
+ * Camera of the debug model preview.
+ *
+ */
+static mgCCamera *MenuDebugCamera;
+
+/**
+ *
+ * Phase of the weapon durability warning pulse.
+ *
+ */
+static float WeaponWarningCounter;
+
+/**
+ *
+ * Non-zero when Monica's saved preview rotation is valid.
+ *
+ */
+static u8 MonicaRotationFlag;
+
+/**
+ *
+ * Mode of the event-requested item selector.
+ *
+ */
+static s8 MenuItemSelectMode;
+
+/**
+ *
+ * Active event-requested item selector.
+ *
+ */
+static CItemSelect *ItemSelectPtr;
+
+/**
+ *
+ * Outcome of the most recent item command.
+ *
+ */
+static ITEMCMD_RET_PARA MenuItemCmdRet;
+
+/**
+ *
+ * Model, skin and outline buffers of the preview character.
+ *
+ */
+static MenuCharaReadBuffers MainCharaReadBuffer;
+
+/**
+ *
+ * Manager of the menu's weapon level-up effects.
+ *
+ */
+static CLevelUpEffectManager MenuLevelUpMan;
+
+/**
+ *
+ * Arrows and marks surrounding the item-menu cursor.
+ *
+ */
+MENU_ITEM_CURSOR_INFO MenuItemCursorInfo;
+
+/**
+ *
+ * Parameter-label parts of the weapon build-up display.
+ *
+ */
+static MENUFORMPARTS_TYPE *BuildUpFormInfoIndex[12];
+
+/**
+ *
+ * Parameter-value parts of the weapon build-up display.
+ *
+ */
+static MENUFORMPARTS_TYPE *BuildUpFormInfoStatusVol[12];
+
+/**
+ *
+ * Message windows of the discard menu.
+ *
+ */
+static CDC2Mes *TrushMesCls[4];
+
+/**
+ *
+ * State of the weapon build-up view.
+ *
+ */
+BUILDUP_WEAPON_INFO BuildUpWeaponInfo;
+
+/**
+ *
+ * Saved parameter differences for the spectrum fusion display.
+ *
+ */
+static s16 save_spectol_fusion_param[12];
+
+/**
+ *
+ * Ambient colour of the fusion preview model.
+ *
+ */
+static float fusion_ambient[4];
+
+/**
+ *
+ * Phase of each fusion preview colour component.
+ *
+ */
+static float fusion_color_ang[4];
+
+/**
+ *
+ * Base position of the equipped weapon preview.
+ *
+ */
+static float MenuWeaponBasePos[4];
+
+/**
+ *
+ * Screen position of each prospective build-up weapon name.
+ *
+ */
+s16 BuildUpNameXY[3][2];
+
+/**
+ *
+ * Saved rotation of Monica's preview model.
+ *
+ */
+static float MonicaRotationData[4];
 
 // Code (.text)
 /**
@@ -1254,8 +1672,6 @@ int CheckEquipFishRod(CGameDataUsed *item) {
 }
 
 extern int trans_spectol_rgb;
-extern s8  spegetflag;
-extern s16 MenuSpectolTransPos;
 void       TransSpectolDataSave(CGameDataUsed *item, int count);
 
 int CBaseMenuClass::IsSpectolTrans(int select_key, int push_button) {
@@ -2187,9 +2603,6 @@ int AfterSpectolFusion(CGameDataUsed *item, CGameDataUsed *part) {
 }
 
 extern float addtbl_2178[4];
-extern float fusion_color_val;
-extern float fusion_ambient[4];
-extern float fusion_color_ang[4];
 
 void FusionColor(int type, int step, float *color) {
     if (type == 1) {
@@ -7075,12 +7488,7 @@ int MenuItemInit(mgCMemory *stack, int *tex_block, int mode) {
 }
 
 extern mgCMemory     MenuDebugStack;
-extern int           MenuDebugSize;
-extern mgCCamera    *MenuDebugCamera;
-extern CActionChara *MenuDebugItemModel;
-extern s8            MenuDebugModelDrawFlag;
 extern s8            MenuDebugModel_AdjustFlag;
-extern CDataCommon  *debug_common_data;
 extern int           cnt_6161;
 extern s8            init_6162;
 extern int           testcnt_6298;
@@ -9111,7 +9519,6 @@ void local_item_infoview_set(MENUFORMPARTS_TYPE *part, CGameDataUsed *item) {
     }
 }
 
-extern float WeaponWarningCounter;
 extern char *whptbl_7376[2][2];
 extern char  at_7438[];
 extern char  at_7439[];
@@ -9886,8 +10293,6 @@ void CMenuItemInfo::CheckLoadItemNo() {
     }
 }
 
-extern u8    MonicaRotationFlag;
-extern float MonicaRotationData[4];
 extern char  at_8083[];
 
 int CMenuItemInfo::ModelReadStart(int mode, int check_item, int restart_read) {
@@ -11266,7 +11671,6 @@ void CItemSelect::CheckUse(CGameDataUsed *item) {
     }
 }
 
-extern s8    MenuItemSelectMode;
 extern char *imgtbl_8945[];
 extern char  at_9032[];
 extern char  at_9033[];
@@ -12072,67 +12476,20 @@ INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menusys", SameviewmodeTable_8406__DATA)
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menusys", at_9055__DATA);
 
 // Small uninitialised data (.sbss)
-INCLUDE_BSS(MainCharaReadStackReadAdr, 0x4);
-INCLUDE_BSS(MenuRepairMan, 0x4);
-INCLUDE_BSS(MenuItem_ItemBoardTopLine, 0x4);
-INCLUDE_BSS(MenuItem_ItemBoardTopSelect, 0x4);
-INCLUDE_BSS(menu_chara_activeItem_limmit_check, 0x8);
-INCLUDE_BSS(MenuSpectolSatusCheckForm, 0x4);
-INCLUDE_BSS(MenuSpectolSatusCheckBGFadeForm, 0x4);
-INCLUDE_BSS(TrushMesWindowFlag, 0x4);
-INCLUDE_BSS(ActiveMenuWeaponCharaRange, 0x4);
-INCLUDE_BSS(MenuWeaponEnvSetChara, 0x4);
-INCLUDE_BSS(MenuStatusMode, 0x4);
-INCLUDE_BSS(MenuStatusTex, 0x8);
-INCLUDE_BSS(CMenuItemInfoPt, 0x8);
-INCLUDE_BSS(MenuEffect, 0x8);
-INCLUDE_BSS(MenuItemSpectolTransSoundBuffer, 0x8);
-INCLUDE_BSS(SpectolInfo, 0x8);
-INCLUDE_BSS(SpectolFusion_LeftOrRight, 0x4);
-INCLUDE_BSS(SpectolFusionTargetChara, 0x4);
-INCLUDE_BSS(save_spectol_fusion_spstatus, 0x4);
-INCLUDE_BSS(MenuItemCmdArgPos, 0x4);
-INCLUDE_BSS(MenuItemCommand_RoboPackBreakFlag, 0x4);
 INCLUDE_BSS(cmd_counter_1048, 0x4);
 INCLUDE_BSS(init_1049, 0x4);
-INCLUDE_BSS(MenuItemCommandDir, 0x4);
-INCLUDE_BSS(MenuHowHaveMuchNum, 0x4);
-INCLUDE_BSS(SpectolBreakNum_Limit, 0x4);
-INCLUDE_BSS(SpectolBreakNum, 0x4);
-INCLUDE_BSS(SpectolBreakSpPoint, 0x4);
 INCLUDE_BSS(at_1545, 0x4);
-INCLUDE_BSS(trans_spectol_cnt, 0x4);
-INCLUDE_BSS(spegetflag, 0x4);
-INCLUDE_BSS(SpectolFrame, 0x4);
-INCLUDE_BSS(MenuSpectolTransPos, 0x4);
-INCLUDE_BSS(itemmenu_chr_rotflag, 0x4);
 INCLUDE_BSS(sndflag_1665, 0x4);
 INCLUDE_BSS(init_1666, 0x4);
 INCLUDE_BSS(at_1685, 0x8);
-INCLUDE_BSS(MenuTrushNum, 0x4);
-INCLUDE_BSS(fusion_color_val, 0x4);
-INCLUDE_BSS(SpectolFrameScaleAngle, 0x4);
-INCLUDE_BSS(SpectolFrameFadeAlpha, 0x4);
 INCLUDE_BSS(count_time_3839, 0x4);
 INCLUDE_BSS(init_3840, 0x4);
-INCLUDE_BSS(FxScriptManPauseFlag, 0x4);
-INCLUDE_BSS(debug_common_data, 0x4);
-INCLUDE_BSS(view_weapon_flag, 0x4);
-INCLUDE_BSS(OldViewWep, 0x4);
-INCLUDE_BSS(NewViewWep, 0x8);
-INCLUDE_BSS(MenuRepairTargetWeaponPos, 0x8);
 INCLUDE_BSS(Effect_Counter_4682, 0x4);
 INCLUDE_BSS(init_4683, 0x4);
 INCLUDE_BSS(BuildEndFlag_4703, 0x4);
 INCLUDE_BSS(init_4704, 0x4);
-INCLUDE_BSS(Tex_BuildUpBoard, 0x4);
-INCLUDE_BSS(Robo_Sound_ID_Save, 0x4);
 INCLUDE_BSS(checkmoveFlag_5411, 0x4);
 INCLUDE_BSS(init_5412, 0x4);
-INCLUDE_BSS(MenuDebugModelDrawFlag, 0x4);
-INCLUDE_BSS(MenuDebugSize, 0x4);
-INCLUDE_BSS(MenuDebugItemModel, 0x4);
-INCLUDE_BSS(MenuDebugCamera, 0x8);
 INCLUDE_BSS(at_6133, 0x8);
 INCLUDE_BSS(cnt_6161, 0x4);
 INCLUDE_BSS(init_6162, 0x4);
@@ -12148,48 +12505,30 @@ INCLUDE_BSS(fusion_blinkcnt_7120, 0x4);
 INCLUDE_BSS(init_7121, 0x4);
 INCLUDE_BSS(diffent_weapon_dispflag_7125, 0x4);
 INCLUDE_BSS(init_7126, 0x4);
-INCLUDE_BSS(WeaponWarningCounter, 0x4);
 INCLUDE_BSS(counter_7509, 0x4);
 INCLUDE_BSS(init_7510, 0x4);
 INCLUDE_BSS(count_7867, 0x4);
 INCLUDE_BSS(init_7868, 0x4);
-INCLUDE_BSS(MonicaRotationFlag, 0x4);
 INCLUDE_BSS(old_viewmode_8715, 0x4);
 INCLUDE_BSS(init_8716, 0x4);
 INCLUDE_BSS(old_chrid_8718, 0x4);
 INCLUDE_BSS(init_8719, 0x4);
-INCLUDE_BSS(MenuItemSelectMode, 0x8);
-INCLUDE_BSS(ItemSelectPtr, 0x4);
 
 // Uninitialised data (.bss)
-INCLUDE_BSS(MenuItemCmdRet, 0x20);
 MENU_ASKMODE_PARA MenuAskParam;
 CMENU_USERPARAM   MenuUserParam;
 mgCMemory         MainCharaReadStack;
 CItemUseTarget    MenuItemUseTarget;
-INCLUDE_BSS(MainCharaReadBuffer, 0x10);
-INCLUDE_BSS(MenuLevelUpMan, 0x190);
-INCLUDE_BSS(MenuItemCursorInfo, 0x10);
-INCLUDE_BSS(BuildUpFormInfoIndex, 0x30);
-INCLUDE_BSS(BuildUpFormInfoStatusVol, 0x30);
-INCLUDE_BSS(TrushMesCls, 0x10);
 mgCMemory MenuItemMainMemory;
 mgCMemory MenuItemBGDataMemory;
 mgCMemory MenuItemMemory;
 mgCMemory MenuItemMemory2;
 mgCMemory MenuCharaLoadStack;
-INCLUDE_BSS(BuildUpWeaponInfo, 0x50);
 CGameDataUsed SpectolInfoStay;
 CGameDataUsed SepectolFusionBeforeAfterCheck;
-INCLUDE_BSS(save_spectol_fusion_param, 0x20);
 CGameDataUsed SpectolTransBefore;
 INCLUDE_BSS(at_1557, 0x10);
-INCLUDE_BSS(fusion_ambient, 0x10);
-INCLUDE_BSS(fusion_color_ang, 0x10);
-INCLUDE_BSS(MenuWeaponBasePos, 0x10);
 INCLUDE_BSS(at_2333__3, 0x10);
 CGameDataUsed MenuMoveTempGameDataUsed;
-INCLUDE_BSS(BuildUpNameXY, 0x18);
 CMenuItemInfo class_menu_item_info;
 mgCMemory     MenuDebugStack;
-INCLUDE_BSS(MonicaRotationData, 0x10);

@@ -86,3 +86,14 @@ all 149 objects pass, and the four guards and compiler profile are unchanged.
 The step ledger is `.private/dataD-r2/generated-bss-ledger.log`; per-template
 receipts use `generated-<symbol>-{build,objects,metrics}.log`, with the first
 check recorded as `generated-at_1385`.
+
+### Named-state checkpoint
+
+All sixty-five ordinary named reservations have native, documented C++
+definitions. The native sizes and bindings pass PAL and all 149 object checks,
+including the twelve-element fusion and form-pointer arrays. The state groups
+are recorded by `named-bss-ledger.log` and
+`bss-state-{1,2,3,4}-{build,objects,metrics}.log`.
+Markers are **360 RODATA / 39 BSS** and data credit remains
+**4 / 10,332** while the remaining template pieces keep aggregate sections
+incomplete. The guarded drafts and unowned object hashes remain unchanged.
