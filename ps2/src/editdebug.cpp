@@ -475,7 +475,7 @@ void LightingEdit(CScene *scene) {
     end = text;
     row = LightSel[LightType];
     end += sprintf(end, "%sLightSet [%d]\n", cursor[row == 0], light_no);
-    if (LightType != 1) end += sprintf(end, "%s%s\n", cursor[row == 1], pages[LightType]);
+    if (LightType != LIGHTING_EDIT_PAGE_DIR_LIGHT) end += sprintf(end, "%s%s\n", cursor[row == 1], pages[LightType]);
     else end += sprintf(end, "%s%s%d->\n", cursor[row == 1], pages[LightType], DirLightNo);
     if (LightType == LIGHTING_EDIT_PAGE_BG_AMBIENT) {
         edit = row - 2;
@@ -610,7 +610,7 @@ void LightingEdit(CScene *scene) {
     if (row >= LightListNum[LightType]) row = 0;
     LightSel[LightType] = row;
     if (row == 1) {
-        if (previous == 1) {
+        if (previous == LIGHTING_EDIT_PAGE_DIR_LIGHT) {
             if (GamePad__2.Down2(PAD_RIGHT)) DirLightNo += 1;
             if (GamePad__2.Down2(PAD_LEFT)) DirLightNo -= 1;
             if (DirLightNo < 0) {
@@ -625,10 +625,10 @@ void LightingEdit(CScene *scene) {
             if (GamePad__2.Down2(PAD_RIGHT)) LightType += 1;
             if (GamePad__2.Down2(PAD_LEFT)) LightType -= 1;
         }
-        if (LightType < 0) LightType = 0;
-        if (LightType > 3) LightType = 3;
-        if (LightType == 0) DirLightNo = 0;
-        if (LightType == 2) DirLightNo = 3;
+        if (LightType < 0) LightType = LIGHTING_EDIT_PAGE_BG_AMBIENT;
+        if (LightType > LIGHTING_EDIT_PAGE_FILE) LightType = LIGHTING_EDIT_PAGE_FILE;
+        if (LightType == LIGHTING_EDIT_PAGE_BG_AMBIENT) DirLightNo = 0;
+        if (LightType == LIGHTING_EDIT_PAGE_FOG) DirLightNo = 3;
         if (previous != LightType) LightSel[LightType] = 1;
     }
     if (row == 0) {
