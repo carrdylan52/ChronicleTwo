@@ -283,11 +283,11 @@ row is added for this caller. The joint profile, including sgInitBuggy, has
 No shared header, float policy or existing vtable storage marker changes.
 
 The pn15 CLEAN build passes `SCES_511.90: OK`, and all 149 resolved units pass.
-All 306 assembled and149 source-only objects outside the21 promoted units
+All 306 assembled and 149 source-only objects outside the 21 promoted units
 remain byte-identical to upstream. Linked main bytes retain SHA-256
 `a103b0461a88e443a3af684cf150c05b5bd355e5a97ab2dc029c4d872bed0811`
-and the loaded memory end remains0x01f64a00; whole ELF metadata is separate.
-Explicit context/objdiff refresh followed by host coverage reports6,782
+and the loaded memory end remains 0x01f64a00; whole ELF metadata is separate.
+Explicit context/objdiff refresh followed by host coverage reports 6,782
 matched /82 guarded /8 assembly-only /0 fuzzy. This unit retains only the
 separate Copy assembly fallback.
 
@@ -295,6 +295,6 @@ Independent pre-activation review is frozen in
 `.private/pntc/promotion-review-33/`. Canonical receipts are
 `.private/pntc/receipts/promote-thirty-three-{clean-build,objects,artifacts,progress,coverage}`
 with logs and explicit zero exits, the artifact JSON and
-`.private/pntc/promote33/acceptance.json`. Full mapparts remains0x2310 bytes /
+`.private/pntc/promote33/acceptance.json`. Full mapparts remains 0x2310 bytes /
 264 resolved relocations. The shared annotation's actual-size correction
 remains `.private/proposals/mapparts-assign-body-size.patch`.

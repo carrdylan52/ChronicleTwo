@@ -534,3 +534,46 @@ The party-change machine-zero control likewise stays guarded because its
 transient cursor store lacks a supported source/default boundary; the legitimate
 initializer alternative retains 26 words. These results do not enlarge the
 accepted promotion count or alter the documented stronger global alternative.
+
+## Accepted thirty-three-caller source group
+
+Fresh typed `sgInitBuggy` and `CMapParts::AssignFuncAnime` add two witnessed
+expected-one after-inline rows and two static scalar constructions. Both
+start as assembly-only callers; each genuine source-only control differs
+in just the allocation-result copy and null-guard pair, and each exact row
+resolves that pair. The production profile now has 33 manually promoted
+callers /43 eligible constructions across 21 units. No source/header compiler
+helper, hand-written constructor/member, dummy local, manual vtable or float
+selector supplies either zero.
+
+Buggy uses the existing effect-manager/sprite constructor chain and actual
+resource/scene APIs; the model frame is the qualified +0x70 base member, the
+gun outline flags are 1, the message position is +0x158, and the image buffer
+is a real serialized-file view. Animation binding consumes the manager's
+actual Get result in its while condition and constructs/initializes the
+real CList<CObjAnime> payload before appending it through typed links.
+Actual function bodies are 0x994 and0x138; their 0x9a0/0x140 reservations
+include independently checked twelve/eight zero padding bytes. Shared
+header annotation corrections remain exact private proposals.
+
+Independent source/row/witness/private-wrapper review finds no blocking
+objection. The pn15 CLEAN build passes PAL verification and 149/149 resolved
+unit checks. Pbuggy is 0x34b0 bytes with 834 relocations; mapparts is 0x2310
+bytes with 264. All 306 assembled and 149 source-only objects outside the 21
+promoted units remain byte-identical to upstream. Linked main retains
+SHA-256 `a103b0461a88e443a3af684cf150c05b5bd355e5a97ab2dc029c4d872bed0811`
+and memory end 0x01f64a00; whole ELF metadata is a separate comparison.
+Explicit context/objdiff refresh followed by coverage reports 6,782 matched /
+82 guarded /8 assembly-only /0 fuzzy.
+
+Complete receipts are `.private/pntc/receipts/promote-thirty-three-{clean-build,objects,artifacts,progress,coverage}`,
+with logs/zero exits and artifact JSON, plus
+`.private/pntc/promote33/acceptance.json`. The independent review is frozen
+in `.private/pntc/promotion-review-33/`. Owning details are in the
+[Buggy initialization](../pbuggy/placement-new-init-natural-20261009.md) and
+[animation-list](../mapparts/placement-new-assign-natural-20261009.md) notes.
+Production image/patch semantics remain pn15; the 13 genuine compiler and 30
+Rust configuration tests already pass, and pn15's production wrapper remains
+byte-identical to pn14. The stronger global request4-all alternative above
+still records 25 guarded gains /0 matched regressions and its actual name
+filter limitation; the new scoped acceptance does not revise that result.
