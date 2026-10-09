@@ -5522,5 +5522,6 @@ void MenuRemovalDraw() {
 
 void CBaseMenuClass::InitEnd() {}
 
+// Small initialised data (.sdata)
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editmenu", DestroyNum_3583__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editmenu", DestroyPartsName_3587__DATA);

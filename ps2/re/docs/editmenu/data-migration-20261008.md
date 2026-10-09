@@ -1,5 +1,12 @@
 # editmenu data migration (October 8, 2026)
 
+Current source retains **2 RODATA / 0 BSS** markers:
+`DestroyNum_3583` and `DestroyPartsName_3587` supply guard-less zero
+scalars in `.sdata`. Commit 2d676960 restored them after the migration
+checkpoints below. The retained-section and local-static guard evidence
+is in [notes.md](notes.md#initialized-removal-state-markers).
+
+
 Baseline: `63f7a9e5`, 153 `INCLUDE_RODATA`, 101 `INCLUDE_BSS`,
 68/6,092 matched initialized data bytes. All 61 functions already match.
 Public header declarations and layouts remain source-compatible.
@@ -271,9 +278,10 @@ removed without writing a vtable or special member.
 
 Each of the nine marker removals passes PAL and all 149 object checks:
 `editmenu-native-<retail symbol>-*` beneath `.private/dataB/receipts/`.
-Initialized marker count is now zero. Sixteen anonymous BSS markers remain;
-every one has a natural local aggregate initializer, including the newly
-cleaned item-name arrays. The tooling limitation is documented below.
+At this migration checkpoint the initialized marker count reached zero,
+before 2d676960 restored the two `.sdata` scalars. Sixteen anonymous BSS
+markers remained, each with a natural local aggregate initializer,
+including the newly cleaned item-name arrays. The tooling limitation is documented below.
 
 ## Final source organization and exact cleanup
 
@@ -395,9 +403,12 @@ The existing arrays, rectangles, colours and pointer lists are unchanged.
 The anonymous-only private proposal is redundant with the round-0 support;
 round 1 strengthens all-consumer rejection and preserves native symbol order.
 
-All initialized-data and BSS markers are now absent. Refreshed objdiff
-`matched_data` changes from 3,450 to 6,086/6,086 bytes. All existing
-native functions and code bytes remain matched; no function is promoted.
+At this tooling checkpoint all initialized-data and BSS markers were absent,
+and refreshed objdiff `matched_data` changed from 3,450 to 6,086/6,086 bytes.
+That measurement predates 2d676960: the current source retains the two
+`.sdata` markers, so this is not a claim of complete current native data.
+All existing native functions and code bytes remain matched; no function
+is promoted.
 
 Validation receipts in `.private/dtool-r1/`: `final-build.log`,
 `final-objects.log`, `final-hashes.json`, `final-refresh.log`,

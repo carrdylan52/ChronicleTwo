@@ -290,6 +290,19 @@ also emits .sbss: canonical postprocessing rejects section 36 with
 retail state or initializer, and a wrapper/one-element array solely to change
 section placement would not express these scalar variables naturally.
 
+A zero-initialized function-local static does not avoid this difference:
+MWCC emits `.sbss` storage and an initialization guard. Retail's own
+`wavetable` pair `cnt$302` / `init$303` and `menuop` pair
+`ManualMovieFadeCount$1253` / `init$1254` show that pattern. The former
+has a four-byte counter and one-byte guard at 0x37D208 / 0x37D20C;
+the latter has a two-byte counter and one-byte guard at
+0x37E32C / 0x37E330. In contrast, `DestroyNum$3583` and
+`DestroyPartsName$3587` are guard-less four-byte zero objects in
+`.sdata` at 0x37C890 / 0x37C894. A local-static rewrite would therefore
+change both the section and generated initialization behavior. The only
+verified scalar spelling for that initialized section uses
+`explicit_zero_data`, which is not an accepted source accommodation.
+
 The unaccepted explicit_zero_data pragma is removed. The unit-owned extern
 declarations and original initialized-data markers preserve the scalar
 accesses and exact retail .sdata. These two values remain assembly-supplied
