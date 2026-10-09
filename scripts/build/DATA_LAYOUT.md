@@ -41,3 +41,15 @@ supplied. Held source markers remain authoritative and receive no native data
 credit. `test_data_padding.py` covers positive initialized/BSS and multiple-cut
 layouts, original extent evidence, unchanged code and rejection of incomplete,
 aliased, relocated, nonzero, misaligned or marker-held candidates.
+
+Source-only comparison keeps each function's original identity and serialized
+code relocations. When the existing local-name mapper identifies a duplicate
+retail suffix, an initialized callback table may instead reference an undefined
+canonical alias. This requires a uniquely named file-local native function,
+one in-unit retail function row, and a complete function-byte/relocation match.
+The table must be a uniquely owned native object with the original exact
+declared extent. Each changed pointer needs a real R_MIPS_32 site, zero addend
+and the exact retail callback address. Only data relocations change; aliases
+append without moving existing symbol indices. Unknown, ambiguous, incomplete,
+interior, competing or marker-held references retain their original form.
+`test_data_callbacks.py` checks this identity path and code preservation.

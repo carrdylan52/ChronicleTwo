@@ -199,6 +199,92 @@ def set_reference_data_symbols(elf, unit, ctx):
                 existing.type = p.STT_OBJECT
 
 
+def normalize_data_callbacks(elf, unit, ctx, function_identities, held, native_extents):
+    """Keep fully verified local callback identities in data, preserving raw code."""
+    ranges = [(lo, hi) for name, lo, hi in ctx.layout.sections(unit) if name in p.CODE]
+    rows = {}
+    for address, name, size, function in ctx.rows:
+        rows.setdefault(name, []).append((address, size, function))
+    code_rows = {name: values[0] for name, values in rows.items() if len(values) == 1}
+    extents = {id(symbol): size for symbol, size, _align, _type, _name in native_extents.values()}
+    identities = {}
+    for symbol in elf.symtab.symbols:
+        canonical = function_identities.get(id(symbol), symbol.name)
+        values = rows.get(canonical, [])
+        if (symbol.type != p.STT_FUNC or symbol.bind != p.STB_LOCAL
+                or canonical == symbol.name
+                or re.fullmatch(re.escape(symbol.name) + r'__\d+', canonical) is None
+                or sum(other.type == p.STT_FUNC and other.name == symbol.name
+                       for other in elf.symtab.symbols) != 1
+                or len(values) != 1 or not values[0][2]
+                or ctx.addresses.get(canonical) != values[0][0]
+                or not any(lo <= values[0][0] < values[0][0] + values[0][1] <= hi
+                           for lo, hi in ranges)):
+            continue
+        identities[id(symbol)] = canonical
+        code_rows[symbol.name] = values[0]
+
+    def address_of_symbol(symbol):
+        return ctx.addresses.get(identities.get(id(symbol), symbol.name))
+
+    verified = {id(symbol): identities[id(symbol)] for symbol in elf.symtab.symbols
+                if id(symbol) in identities and 0 < symbol.st_shndx < len(elf.sections)
+                and p.complete_code_consumer(elf, symbol.st_shndx, retail=ctx.retail,
+                                              rows=code_rows, address_of_symbol=address_of_symbol,
+                                              gp=ctx.addresses.get('_gp'))}
+    pending = {}
+    for record in elf.relocations:
+        index = record.sh_info
+        section = elf.sections[index]
+        if (section.name not in ('.data', '.sdata', '.rodata')
+                or section.sh_type != p.SHT_PROGBITS
+                or not section.sh_flags & p.SHF_ALLOC or section.sh_flags & p.SHF_EXECINSTR):
+            continue
+        owners = [symbol for symbol in elf.symtab.symbols
+                  if symbol.st_shndx == index and symbol.type != p.STT_SECTION]
+        if len(owners) != 1:
+            continue
+        owner = owners[0]
+        values = rows.get(owner.name, [])
+        if (owner.type != p.STT_OBJECT or owner.st_value or owner.name in held
+                or len(values) != 1 or values[0][2] or not values[0][1]
+                or extents.get(id(owner)) != values[0][1]
+                or not values[0][1] <= len(section.data)
+                or owner.st_size != len(section.data)
+                or ctx.addresses.get(owner.name) != values[0][0]):
+            continue
+        start, size, _function = values[0]
+        entries = [entry for other in elf.relocations if other.sh_info == index
+                   for entry in other.relocations]
+        if len({entry.r_offset for entry in entries}) != len(entries):
+            continue
+        for entry in entries:
+            target = elf.symtab.symbols[entry.symbol_index]
+            canonical = verified.get(id(target))
+            if (canonical is None or entry.reloc_type != p.R_MIPS_32 or entry.r_offset % 4
+                    or not 0 <= entry.r_offset <= size - 4
+                    or ctx.retail.relocations.get(start + entry.r_offset) != p.R_MIPS_32
+                    or struct.unpack_from('<I', section.data, entry.r_offset)[0] != 0
+                    or ctx.retail.word(start + entry.r_offset) != ctx.addresses[canonical]):
+                continue
+            pending.setdefault(canonical, []).append(entry)
+    for name, entries in pending.items():
+        existing = [(index, symbol) for index, symbol in enumerate(elf.symtab.symbols)
+                    if symbol.name == name]
+        if (len(existing) > 1 or any(symbol.st_shndx or symbol.st_value or symbol.st_size
+                                     or symbol.type not in (0, p.STT_FUNC)
+                                     for _index, symbol in existing)):
+            continue
+        if existing:
+            index = existing[0][0]
+        else:
+            alias = Symbol(0, 0, 0, 0x12, 0, 0)
+            alias.name = name
+            index = elf.add_symbol(alias)
+        for entry in entries:
+            entry.symbol_index = index
+
+
 def prepare_native_data(elf, unit, ctx, *, donors=()):
     """Normalize only compiler-emitted data; reservation arrays supply no credit."""
     before = code_snapshot(elf)
@@ -293,9 +379,11 @@ def prepare_native_data(elf, unit, ctx, *, donors=()):
     # projection objdiff already uses for template and initializer mappings.
     set_data_symbol_extents(elf, unit, ctx)
     order_data_sections(elf, ctx.addresses)
+    function_identities = {id(symbol): symbol.name for symbol, _name in function_names}
     for symbol, name in function_names:
         symbol.name = p.project_name(name)
         symbol.st_name = elf.strtab.add_symbol(symbol.name)
+    normalize_data_callbacks(elf, unit, ctx, function_identities, held, native_extents)
     # A retained data marker explicitly keeps that piece assembly-supplied,
     # even when the compiler happens to emit an otherwise identical copy.
     drop_sections(elf, {symbol.st_shndx for symbol in elf.symtab.symbols

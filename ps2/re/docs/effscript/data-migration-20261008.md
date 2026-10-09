@@ -1,5 +1,23 @@
 # effscript native data migration (2026-10-08)
 
+## Round-5 local callback comparison identities
+
+The general data comparison path now retains canonical local callback
+suffixes through undefined data-only aliases. Each alias requires a complete
+native function match and exact initialized-table extent, real relocation
+kind/site, zero addend and retail callback address. Original function names,
+code bytes and serialized code relocations remain unchanged. This resolves
+the duplicate callback identities in the native command definition table,
+allowing the complete 22,968-byte `.data` run to compare exactly.
+
+Matched data rises **1,052 → 24,020 / 25,232**. The 14 initialized markers
+for guarded assembly consumers remain; no source or guarded function changes.
+Every linked object hash is unchanged. PAL is `SCES_511.90: OK`, all
+**149/149** objects pass, and code metrics remain
+**6,780 functions / 1,854,796 bytes**. Receipts:
+`.private/dtool-r5/callback-{build,objects,tests,metrics,coverage}.log`.
+The pre-fix identity regression is `callback-tests-before.log` in that directory.
+
 The refreshed starting unit contains 33 initialized-data markers and five BSS markers. Strict objdiff measures are `matched_data = 0`, `total_data = 25232`; 181 of 185 functions match. The four guarded drafts and assembly functions remain unchanged. Existing type sizes, resource paths, linked-list ownership and command signatures are documented in `notes.md`.
 
 ## Migrate effect script resource catalog

@@ -280,3 +280,23 @@ The complete PAL is `SCES_511.90: OK` and all **149/149** canonical objects
 pass. Only the four migrated units change object hashes in this step; code
 metrics remain **6,780 functions / 1,854,796 bytes**. No function is promoted.
 Receipts: `.private/dtool-r5/data-fixed-{build,objects,tests,metrics}.log`.
+
+## Round-5 local callback comparison identities
+
+All eight native initialized pieces now match the complete 8,808-byte
+`.data` run. The comparison previously restored each native function's
+original name after mapping local duplicate suffixes; that also changed
+dispatch-table targets back to names belonging to callbacks in another unit.
+The general comparison path now uses canonical undefined aliases only for
+verified data pointers to complete, matching file-local functions. Function
+identities and every serialized code relocation retain their original form.
+The declared initializer extent, real pointer site, zero addend and exact
+retail callback address are all required. No table or game function changes.
+
+Matched data rises **226,556 → 235,364 / 235,364**; markers remain **0 / 0**.
+Every linked object hash is unchanged. PAL is `SCES_511.90: OK`, all
+**149/149** canonical objects pass, and code metrics remain
+**6,780 functions / 1,854,796 bytes**. Receipts:
+`.private/dtool-r5/callback-{build,objects,tests,metrics,coverage}.log`.
+The pre-fix identity regression is `callback-tests-before.log` in that
+directory; `callback-alias-proof.log` records complete native callback checks.
