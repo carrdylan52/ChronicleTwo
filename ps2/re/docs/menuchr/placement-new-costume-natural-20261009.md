@@ -142,3 +142,27 @@ four stage logs. The reviewed, applicable current-source proposals are
 `menuchr-costume-profile-validated.patch`. The earlier patches remain for
 provenance. Production stays at 31 accepted callers until the owning header
 can be changed and the whole game revalidated.
+
+
+## Private whole-game header impact against accepted34
+
+The reviewed Costume constructor/header/source candidate now has independent whole-game impact evidence under `.private/pntc/costume-whole-impact/`. The prior current31 source controls, class-6 rejection and complete-object receipt remain preserved. The current34 private source retains the five subsequently added purpose comments; no tracked source, shared header or production profile was edited during acceptance.
+
+The profile preserves all 34 placement rows and 44 construction sites and appends only the witnessed camera floating-expression row (expected 1 / actual 1 in both ordinary compiler passes). CMenuCostumeSel retains ordinary class-3 constructor lowering, with no Costume placement row. All 149 canonical private wrappers/postprocess/fixups and retail object checks pass, and all 148 complete raw objects outside menuchr equal frozen accepted34. Actual emitted dependency files confirm the nine menuchr.hpp consumers; only menuchr changed under the sole private header overlay.
+
+Menuchr's candidate raw object equals the earlier successful current31 wrapper SHA `66d1847f2e49dd35c6bd600f0859a22a8596a1f9f1a2d8ee1b7b8325da41009b`. The checker covers `0x11CB8` allocated bytes and 3,771 relocations (raw file 173,440 bytes). All 87 other code sections, 86 other named bodies/bindings, and 454 allocated noncode sections retain exact layout, payload, symbol metadata and named relocations. The complete Costume vtable is unchanged (global OBJECT, size 32, alignment 1 after normal wrapper fixup, six retail targets).
+
+The native selected body is 728 bytes within the 736-byte retail layout extent, with eight zero tail bytes supplied by layout padding. Its union-relocation-masked instructions equal the assembly control. Ten existing GP-relative global operands become explicit verified type-7 relocations, giving 44 selected targets versus 34 assembly records; this changes no loaded code or data. CostumeOptionEnv acquires the real owning-header undefined OBJECT declaration, without a new definition or data change.
+
+One private actual MWLD 2.4 link uses all 306 frozen inputs (149 private game plus 157 accepted34 SDK/runtime/data objects), canonical order/basenames/LCF and flags, with no source recompilation or canonical build-dir writes. PAL verification passes against immutable accepted34 ELF SHA `6352338ce8ff3fef0df4d54215ab1ca9348ae4db098c1a35cb7da359ba17b82d`. Main bytes are exact against accepted34 and retail: length 2,608,512, SHA `a103b0461a88e443a3af684cf150c05b5bd355e5a97ab2dc029c4d872bed0811`, loaded memory end `0x01F64A00`.
+
+Full raw ELF metadata differs and remains explicit: selected size 736→728, removal of its assembly `.mwcats` marker, ten added selected GP-relative relocation tuples and twelve reordered existing selected record positions. All 98,516 preexisting named tuples are preserved; the 98,482 nonselected records keep exact order and identities. Incoming selected-function/vtable consumers are exact. `link/linked-metadata-differences.json`, `link/linked-relocation-audit.json`, `SUMMARY.json`, `COMMANDS.md` and final hash manifests retain complete receipts and private audit/preflight negatives.
+
+The exact paired current34 source/header/profile proposals remain private under `proposals/`. This establishes Costume-alone whole-game impact evidence; it does not authorize shared-header activation. Composition with other unowned header overlays requires separate acceptance evidence.
+
+Root independently verifies all 1,909 regular files in the final whole-impact
+manifest with no size/hash mismatches; the 1,046 passthrough symlinks are not
+followed. `ALL-ARTIFACTS.json` has SHA-256
+`c087a63df0cede8f8eed478d3b624b3cbacaa958bb5e19360a9ff296c7b334d4`.
+The root receipt is
+`.private/pntc/receipts/costume-whole-impact-root-verification.json`.
