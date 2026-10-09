@@ -111,3 +111,15 @@ literal targets exactly. Each independent table and the dependent pair pass
 PAL and 149-object verification. Receipts: `help-rotate_str-*`,
 `help-sw_wall_str-*`, `help-magnet_str-*`, `help-onoff_str-*`, and
 `help-remove-wall-*`; the rejected isolated removal trial is `help-remove_str-*`.
+
+The eight paint, undo, house/fence painting, paint-count and original-color
+restoration tables are native too. Format placeholders and font escape tokens
+(such as `[UNI00fc]`) retain their retail bytes; Japanese punctuation, and the
+ideographic space inside the English fence-restoration message, use hex escapes.
+House painting formats two equal costs; whole-fence painting formats the single
+cost and five times that cost. These are table contents for the existing help
+formatter, whose code is unchanged. Each table passes the full checks before
+the next is changed. Receipts: `help-paint_str-*`, `help-undo_str-*`,
+`help-paint_house_str-*`, `help-paint_fence_str-*`, `help-paint_num_str-*`,
+`help-repaint_str-*`, `help-repaint_house_str-*`, and `help-repaint_fence_str-*`.
+All 16 pointer tables and their 91 distinct string markers are now migrated.

@@ -2378,14 +2378,118 @@ static const char *sel_wall_str[6] = {
     "(O):quitar",
 };
 
-extern char *paint_str[6];
-extern char *undo_str[6];
-extern char *paint_house_str[6];
-extern char *paint_fence_str[6];
-extern char *paint_num_str[6];
-extern char *repaint_str[6];
-extern char *repaint_house_str[6];
-extern char *repaint_fence_str[6];
+/**
+ *
+ * Single-part painting help with its paint cost for each supported language.
+ *
+ */
+static const char *paint_str[6] = {
+    "(O)\x81\x46\x90\x46\x82\xf0\x93\x68\x82\xe9(%d)",
+    "(O):paint(%d)",
+    "(O) : peindre(%d)",
+    "(O) : Bemalen(%d)",
+    "(O):dipingi(%d)",
+    "(O):pintar(%d)",
+};
+
+/**
+ *
+ * Placement undo button help for each supported language.
+ *
+ */
+static const char *undo_str[6] = {
+    "(X)\x81\x46\x82\xe2\x82\xe8\x82\xc8\x82\xa8\x82\xb7",
+    "(X):Undo",
+    "(X) : annuler",
+    "(X) : R[UNI00fc]ckg. machen",
+    "(X):Annulla",
+    "(X):deshacer",
+};
+
+/**
+ *
+ * Roof and wall painting help with their paint costs for each supported language.
+ *
+ */
+static const char *paint_house_str[6] = {
+    "(O)\x81\x46\x89\xae\x8d\xaa\x82\xf0\x93\x68\x82\xe9(%d)\x81\x40(#)\x81\x46\x82\xa9\x82\xd7\x82\xf0\x93\x68\x82\xe9(%d)",
+    "(O):paint roof(%d) (#):paint wall(%d)",
+    "(O) : peindre toit(%d)  (#) : peindre murs(%d)",
+    "(O) : Dach bemalen(%d)  (#) : Wand bemalen(%d)",
+    "(O):dipingi tetto(%d)  (#):dipingi muro(%d)",
+    "(O):pintar tejado(%d)  (#):pintar pared(%d)",
+};
+
+/**
+ *
+ * Individual and whole-fence painting help with their paint costs for each supported language.
+ *
+ */
+static const char *paint_fence_str[6] = {
+    "(O)\x81\x46\x90\x46\x82\xf0\x93\x68\x82\xe9(%d)\x81\x40(#)\x81\x46\x88\xea\x8a\x87\x93\x68\x82\xe8(%d)",
+    "(O):paint(%d) (#):paint all(%d)",
+    "(O) : peindre(%d)  (#) : tout peindre(%d)",
+    "(O) : Bemalen(%d)  (#) : Alles bemalen(%d)",
+    "(O):dipingi(%d)  (#):dipingi tutto(%d)",
+    "(O):pintar(%d)  (#):pintar todo(%d)",
+};
+
+/**
+ *
+ * Available paint count format for each supported language.
+ *
+ */
+static const char *paint_num_str[6] = {
+    "\x83\x79\x83\x93\x83\x4c:%d",
+    "paint:%d",
+    "peinture : %d",
+    "Bemalen : %d",
+    "vernice:%d",
+    "pintar:%d",
+};
+
+/**
+ *
+ * Original-color restoration help for each supported language.
+ *
+ */
+static const char *repaint_str[6] = {
+    "(O)\x81\x46\x8c\xb3\x82\xcc\x90\x46\x82\xc9\x96\xdf\x82\xb7",
+    "(O):undo color",
+    "(O) : annuler couleur",
+    "(O) : Farbe zur[UNI00fc]ck",
+    "(O):annulla colore",
+    "(O):deshacer color",
+};
+
+/**
+ *
+ * Roof and wall original-color restoration help for each supported language.
+ *
+ */
+static const char *repaint_house_str[6] = {
+    "(O)\x81\x46\x8c\xb3\x82\xcc\x90\x46\x82\xc9\x96\xdf\x82\xb7\x81\x69\x89\xae\x8d\xaa\x81\x6a\x81\x40(#)\x81\x46\x8c\xb3\x82\xcc\x90\x46\x82\xc9\x96\xdf\x82\xb7\x81\x69\x83\x4a\x83\x78\x81\x6a",
+    "(O):undo color (roof)  (#)undo color (wall)",
+    "(O) : annuler couleur toit  (#) : annuler couleur murs",
+    "(O) : Dachfarbe zur[UNI00fc]ck  (#) : Wandfarbe zur[UNI00fc]ck",
+    "(O):annulla colore (tetto)  (#)annulla colore (parete)",
+    "(O):deshacer color (tejado)  (#):deshacer color (pared)",
+};
+
+/**
+ *
+ * Individual and whole-fence original-color restoration help for each supported language.
+ *
+ */
+static const char *repaint_fence_str[6] = {
+    "(O)\x81\x46\x8c\xb3\x82\xcc\x90\x46\x82\xc9\x96\xdf\x82\xb7\x81\x40(#)\x81\x46\x8c\xb3\x82\xcc\x90\x46\x82\xc9\x96\xdf\x82\xb7\x81\x69\x88\xea\x8a\x87\x81\x6a",
+    "(O):undo color\x81\x40(#):undo color (all)",
+    "(O) : annuler couleur  (#) : annuler couleur tout",
+    "(O) : Farbe zur[UNI00fc]ck  (#) : Farbe zur[UNI00fc]ck (gesamt)",
+    "(O):annulla colore  (#):annulla colore (tutto)",
+    "(O):deshacer color  (#):deshacer color (todo)",
+};
+
 
 void DrawEditHelpMes() {
     int lang;
@@ -2857,14 +2961,6 @@ int CheckEditToWalk(CScene *scene, float *position) {
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editmode", at_1268__3__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editmode", at_1362__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editmode", at_1931__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editmode", paint_str__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editmode", undo_str__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editmode", paint_house_str__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editmode", paint_fence_str__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editmode", paint_num_str__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editmode", repaint_str__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editmode", repaint_house_str__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editmode", repaint_fence_str__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editmode", at_2188__3__DATA);
 
 // Constants (.rodata)
@@ -2887,54 +2983,6 @@ INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editmode", at_1836__2__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editmode", at_1961__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editmode", at_1962__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editmode", at_1963__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editmode", at_2007__3__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editmode", at_2008__3__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editmode", at_2009__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editmode", at_2010__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editmode", at_2011__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editmode", at_2012__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editmode", at_2013__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editmode", at_2014__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editmode", at_2015__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editmode", at_2016__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editmode", at_2017__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editmode", at_2018__3__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editmode", at_2019__3__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editmode", at_2020__3__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editmode", at_2021__3__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editmode", at_2022__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editmode", at_2023__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editmode", at_2024__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editmode", at_2025__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editmode", at_2026__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editmode", at_2027__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editmode", at_2028__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editmode", at_2029__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editmode", at_2030__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editmode", at_2031__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editmode", at_2032__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editmode", at_2033__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editmode", at_2034__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editmode", at_2035__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editmode", at_2036__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editmode", at_2037__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editmode", at_2038__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editmode", at_2039__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editmode", at_2040__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editmode", at_2041__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editmode", at_2042__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editmode", at_2043__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editmode", at_2044__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editmode", at_2045__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editmode", at_2046__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editmode", at_2047__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editmode", at_2048__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editmode", at_2049__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editmode", at_2050__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editmode", at_2051__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editmode", at_2052__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editmode", at_2053__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editmode", at_2054__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editmode", at_2103__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editmode", at_2213__3__DATA);
 
