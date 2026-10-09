@@ -1474,7 +1474,7 @@ int _RELEASE_OBJ(RS_STACKDATA *stack, int argc) {
                             action_info.chara->target_no);
 
                         if (target != NULL) {
-                            ((CCharacter2 *) target)->GetEntryObjectPos(0, 0, target_pos);
+                            target->GetEntryObjectPos(0, 0, target_pos);
                             start_pos[3] = 1.0f;
                             target_pos[3] = 1.0f;
                             distance = mgDistVector(start_pos, target_pos);
