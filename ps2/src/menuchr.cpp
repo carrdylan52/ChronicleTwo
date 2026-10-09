@@ -1831,12 +1831,12 @@ int CMenuChrCngMenu::KeyChangeMain() {
     keyFunc->SelDataInit();
     int            keys = keyFunc->CheckSelectKey();
     int            buttons = keyFunc->CheckPushButton();
-    int action = 0;
     CDC2Mes       *titleMes = MenuDCMsg[2];
     CDC2Mes       *answerMes = MenuDCMsg[3];
     CDC2Mes       *cmdMes = MenuDCMsg[4];
     CDC2Mes       *npcMes = MenuDCMsg[5];
     CDC2Mes       *repairMes = MenuDCMsg[7];
+    int            action = 0;
     CGameDataUsed *item = NULL;
     int            cancelled = 0;
 
