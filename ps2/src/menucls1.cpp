@@ -1380,30 +1380,3 @@ void CMenuItemUse::Initialize() {
 int CheckNowStateUseThisItem(CGameDataUsed *item, CItemUseTarget *target) {
     return MenuUseItemCheckFunc(item, target, 0);
 }
-
-// Initialised data (.data)
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menucls1", sn_944__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menucls1", st_bittable_1654__DATA);
-
-// Constants (.rodata)
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menucls1", at_945__3__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menucls1", at_946__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menucls1", at_947__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menucls1", at_948__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menucls1", at_949__3__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menucls1", at_950__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menucls1", at_951__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menucls1", at_952__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menucls1", at_953__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menucls1", at_954__2__DATA);
-
-// Small uninitialised data (.sbss)
-INCLUDE_BSS(MenuHatena_894, 0x4);
-INCLUDE_BSS(init_895, 0x4);
-INCLUDE_BSS(MenuHatena_1byte_897, 0x4);
-INCLUDE_BSS(init_898, 0x4);
-INCLUDE_BSS(at_1433__2, 0x4);
-
-// Uninitialised data (.bss)
-INCLUDE_BSS(at_1407__2, 0x10);
-INCLUDE_BSS(at_1436__3, 0x18);

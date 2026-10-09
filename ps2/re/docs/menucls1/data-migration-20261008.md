@@ -112,3 +112,31 @@ non-code consumers, duplicate relocation sites, orphan lows, wrong base names,
 object aliases, wrong sizes and sections, nonlocal bindings, and changed table
 pointers. The untouched canonical control passes; both initialized-local
 metadata counterexamples are rejected by the canonical checker.
+
+## Marker-free storage validation, tooling round 3
+
+The existing BSS and pointer-table matchers identify the native question-mark
+statics, their guards, all three zero initializers, the ASCII pointer table and
+its ten digit strings. The unchanged-tooling marker-free probe fails only on
+`st_bittable`: its unnamed initialized piece makes the surrounding `.data`
+references unresolved.
+
+The general initialized-local matcher requires its source base name, mutable
+`.data` storage, exact 0x1C-byte declared extent, exact bytes, and complete
+retail callers including all resolved relocations. The seven-test regression
+suite fails against the checkpoint mapper and passes after the fix; unsafe sizes,
+sections, names, aliases, truncated/changed functions, changed calls, unknown
+consumers and malformed relocation groups remain rejected. The tooling-only
+full rebuild changes none of the 306 linked object hashes or progress metrics.
+
+Removing all 12 initialized-data and 7 BSS markers now passes `SCES_511.90: OK`,
+149/149 objects, all 18 build test scripts and 123 discovered tests. Only
+`menucls1.cpp.o` changes in the removal's object hash audit. Code metrics remain
+6,775 matched functions and 1,841,188 matched bytes; no function is promoted.
+Refreshed `matched_data` changes from 12 to 529 / 529 bytes.
+
+Receipts: `.private/dtool-r3/probe/menucls1-check.log` (before),
+`menucls1-fixed-probe.log`, `initialized-locals-complete-before.log`,
+`tool-{build,objects}.log`, `tool-object-hash-audit.json`,
+`menucls1-{build,objects,tests,all-tests}.log`,
+`menucls1-object-hash-audit.json`, and `menucls1-report.json`.
