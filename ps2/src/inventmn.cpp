@@ -6990,6 +6990,7 @@ int MenuInventPushKey(int pad, int pushed) {
 
 int MenuInventKey() {
     int          result = 0;
+    int          index;
     int          item_pos[16];
     char        *names[MES_ITEM_MAX];
     int          number_pos[16];
@@ -7071,7 +7072,6 @@ int MenuInventKey() {
                 item_pos[1] += 5;
             }
             MakeMsgNetaName(list_message, MenuMesForm[2], photo, item_pos, 1);
-            int      line;
             CDC2Mes *name_message = MenuDCMsg[7];
             if (name_message != NULL) {
                 short key = CMenuInventPt->key_arg_no;
@@ -7085,16 +7085,16 @@ int MenuInventKey() {
                                         InventAlbumPtr->GetAlbumPhotoInfo(CMenuInventPt->album_cursor), item_pos, 1);
                     }
                 } else if (key != 6 && CMenuInventPt->unk_112 == 0 && CMenuInventPt->photo_only == 0) {
-                    for (line = 0; line < 3; line++) {
-                        CMenuPosDataForm *name_form = CMenuInventPt->neta_name_form[line];
+                    for (index = 0; index < 3; index++) {
+                        CMenuPosDataForm *name_form = CMenuInventPt->neta_name_form[index];
                         if (name_form != NULL) {
                             name_form->GetPutPosXY(at_5744, item_pos[0], item_pos[1]);
                             int x = item_pos[0];
                             int y = item_pos[1];
-                            if (line >= 0 && line < MES_LINE_MAX) {
-                                name_message->line_pos[line][0] = x;
-                                name_message->line_pos[line][1] = y;
-                                name_message->line_pos_on[line] = 1;
+                            if (index >= 0 && index < MES_LINE_MAX) {
+                                name_message->line_pos[index][0] = x;
+                                name_message->line_pos[index][1] = y;
+                                name_message->line_pos_on[index] = 1;
                             }
                         }
                     }
@@ -7137,9 +7137,9 @@ int MenuInventKey() {
             float             list_x = list_form->x;
             int               name_x = 74.0f + list_x;
             int               y = 13.0f + list_form->y + (float) (top * 46);
-            int               card = top;
             int               number_x = 11.0f + list_x;
-            for (; card < 0; card++) {
+            index = top;
+            for (; index < 0; index++) {
                 names[line] = NULL;
                 item_pos[line * 2] = name_x;
                 item_pos[line * 2 + 1] = y;
