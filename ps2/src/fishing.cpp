@@ -124,13 +124,9 @@ int              StepLoadThread();
 void             DeleteLoadThread();
 void             DrawNumber(mgCDrawPrim *prim, int digit, int x, int y);
 int              InitCasting(CScene *scene);
-extern Vec4      at_1631__3;
-extern Vec4      at_1490__2;
-extern Vec4      at_1491__2;
 extern mgCMemory EsaStack;
 extern mgCMemory SndStack;
 extern mgCMemory FishingBuff__2;
-extern Vec4      at_1536;
 
 enum {
     kPadButtonDebugJump = 1,
@@ -358,8 +354,6 @@ extern char               at_1316__2[];
 extern int                EsaInfo[18];
 extern char              *lure_file[4];
 extern CCameraControl     CameraInfo;
-extern Vec4               at_1681__2;
-extern Vec4               at_1689;
 
 enum {
     kCameraSettled = 1000
@@ -2046,8 +2040,6 @@ int sgSystemDrawFishing(SubGameInfo *info) {
                                                             SystemTexb);
 
     mgCDrawPrim prim;
-    float       tension_end[4];
-    float       tension_color[4];
 
     prim.Initialize(NULL, NULL);
     prim.AlphaBlendEnable(1);
@@ -2114,8 +2106,8 @@ int sgSystemDrawFishing(SubGameInfo *info) {
         prim.End();
         tension = LineTension;
         fill = 130.0f * (1.0f - (float) tension);
-        *(u_long128 *) tension_end = *(u_long128 *) &at_1490__2;
-        *(u_long128 *) tension_color = *(u_long128 *) &at_1491__2;
+        float tension_end[4] = {21.0f, 41.0f, 255.0f, 128.0f};
+        float tension_color[4] = {255.0f, 20.0f, 10.0f, 128.0f};
         sceVu0InterVectorXYZ(tension_color, tension_color, tension_end, tension);
         prim.Shading(1);
         prim.Begin(MG_PRIM_TRIANGLE_STRIP);
@@ -2209,8 +2201,6 @@ static void CharaControl(CScene *scene, CPadControl *pad) {
     float             turned_angle;
     float             turn_delta;
     float             stick_length;
-    float             cast_dir[4];
-    float             event_pos[4];
     int               can_cast;
 
     chara = scene->GetCharacter(scene->player_chara);
@@ -2295,7 +2285,7 @@ static void CharaControl(CScene *scene, CPadControl *pad) {
             memset(&move_info, 0, sizeof(move_info));
             EditMoveChara(scene, velocity, &move_info);
             EditCameraControl(scene, pad, NULL);
-            *(u_long128 *) cast_dir = *(u_long128 *) &at_1536;
+            float cast_dir[4] = {0.0f, 0.0f, 160.0f, 1.0f};
             sceVu0ApplyMatrix(cast_dir, matrix, cast_dir);
             can_cast = move_info.move_info.landed;
 
@@ -2312,6 +2302,7 @@ static void CharaControl(CScene *scene, CPadControl *pad) {
             }
 
             if (GetNowSubGameInfo()->no_map_event == 0) {
+                float event_pos[4];
                 chara->GetPosition(event_pos);
 
                 union {
@@ -2411,11 +2402,6 @@ void SelectCastingPoint(CScene *scene, CPadControl *pad) {
     float           matrix[4][4];
     float           rotation[4];
     float           position[4];
-    float           cast_dir[4];
-    float           target[4];
-    float           follow_offset[4];
-    float           camera_pos[4];
-    float           diff[4];
     float           angle_diff;
     float           turn;
     float           max_dist;
@@ -2479,14 +2465,18 @@ void SelectCastingPoint(CScene *scene, CPadControl *pad) {
     cast_distance = CastDist;
     CastDistSizeRate = (cast_distance - 160.0f) / 240.0f;
     CastDistSizeRate = 0.8f + 0.4f * CastDistSizeRate;
-    *(u_long128 *) cast_dir = *(u_long128 *) &at_1631__3;
+    float cast_dir[4] = {0.0f, 0.0f, 0.0f, 1.0f};
+    float target[4];
+    float follow_offset[4];
     cast_dir[2] = cast_distance;
     sceVu0ApplyMatrix(cast_dir, matrix, cast_dir);
     camera->GetFollowOffset(follow_offset);
     sceVu0AddVector(target, cast_dir, follow_offset);
+    float camera_pos[4];
     camera->GetPos(camera_pos);
     ratio = mgDistVectorXZ(camera_pos, position);
     ratio = ratio / mgDistVectorXZ(camera_pos, cast_dir);
+    float diff[4];
     sceVu0SubVector(diff, target, camera_pos);
     sceVu0ScaleVector(diff, diff, ratio);
     sceVu0AddVector(target, diff, camera_pos);
@@ -2560,7 +2550,7 @@ void SelectCastingPoint(CScene *scene, CPadControl *pad) {
 void DrawHamon(float *pos, float scale) {
     if (EffectMan != NULL) {
         float pos_vec[4];
-        Vec4  scale_vec = at_1681__2;
+        Vec4 scale_vec = {{0.0f, 0.0f, 0.0f, 0.0f}};
         scale_vec.v[0] = scale;
         scale_vec.v[1] = scale;
         scale_vec.v[2] = scale;
@@ -2580,7 +2570,7 @@ void DrawHamon(float *pos, float scale) {
 void DrawSplash(float *pos, float scale) {
     if (EffectMan != NULL) {
         float pos_vec[4];
-        Vec4  scale_vec = at_1689;
+        Vec4 scale_vec = {{0.0f, 0.0f, 0.0f, 0.0f}};
         scale_vec.v[0] = scale;
         scale_vec.v[1] = scale;
         scale_vec.v[2] = scale;
@@ -4462,10 +4452,6 @@ void LoadFishPlaceData(char *script, int size, mgCMemory *stack) {
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/fishing", lure_file__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/fishing", EsaInfo__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/fishing", at_993__4__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/fishing", at_1490__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/fishing", at_1491__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/fishing", at_1536__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/fishing", at_1631__3__DATA);
 
 // Constants (.rodata)
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/fishing", at_832__6__DATA);
@@ -4551,5 +4537,3 @@ static mgCMemory FishingBuff__2;
  *
  */
 static mgCMemory FishStack;
-INCLUDE_BSS(at_1681__2, 0x10);
-INCLUDE_BSS(at_1689, 0x10);

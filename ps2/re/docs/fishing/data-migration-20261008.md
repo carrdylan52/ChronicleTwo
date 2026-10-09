@@ -84,3 +84,61 @@ After this group: **29 / 2 markers**,
 bodies and unowned object hashes remain unchanged. Receipts:
 `.private/dataD-r1/fishing-tags-{build,objects,progress,metrics}.log` and
 `fishing-generated-{build,objects}.log`.
+
+## Local vector initializers
+
+The tension gauge uses local four-float endpoint colors
+`{21, 41, 255, 128}` and `{255, 20, 10, 128}`. Initializing them at the
+original battle-branch copy points retains both their execution timing and
+their stack slots. Walking initializes its cast direction as
+`{0, 0, 160, 1}` after camera control; the later event position is declared
+where its map-event branch first needs it. Casting-point selection starts with
+`{0, 0, 0, 1}`, then sets its Z distance. The associated camera/vector scratch
+arrays retain their relative declaration order. No dummy locals are added.
+
+The ripple and splash effects each use a natural zero-filled `Vec4` scale
+initializer. Their four-component extents and retail load/store references
+establish the two distinct anonymous BSS templates; zero contents alone are
+not used to identify them. The corresponding two BSS and four RODATA markers
+and their external declarations are removed. Existing unrelated vector copies
+remain unchanged.
+
+Each group passes PAL, 149/149 objects, protected bodies and unowned object
+hashes. After this group: **25 / 0 markers**,
+**1868 / 5145 matched_data**. Receipts under `.private/dataD-r1/`:
+`fishing-{tension,walk-vector,select-vector,ripple-template,splash-template}-{build,objects}.log`
+and `fishing-aggregates-{progress,metrics}.log`.
+
+## Retained markers
+
+These markers retain exact retail symbols needed by the active assembly
+fallbacks, or the strings referenced by their retained pointer table. No
+allocation draft or guarded body is changed.
+
+| Marker | Reason |
+| --- | --- |
+| `lure_file__DATA` | Four lure-model pointers indexed by guarded `sgRestartFishing`. |
+| `EsaInfo__DATA` | Eighteen bait item IDs scanned by that guarded function; its eight-byte piece tail is alignment. |
+| `at_993__4__DATA` | Its 0x40-byte local lure-path template starts with `sg/fish/`; the guarded function copies this exact symbol. |
+| `at_832__6__DATA` | `supina.chr`, referenced by the retained lure table. |
+| `at_833__4__DATA` | `kaeru.chr`, referenced by the retained lure table. |
+| `at_834__4__DATA` | `lure01.chr`, referenced by the retained lure table. |
+| `at_835__4__DATA` | `fork.chr`, referenced by the retained lure table. |
+| `at_917__6__DATA` | External-motion resource used by guarded `StepDataLoading` as well as native loading. |
+| `at_932__4__DATA` | Shared character-pack name used by all three guarded functions and native loading. |
+| `at_1058__3__DATA` | Sound resource used by guarded restart/loading functions. |
+| `at_1304__8__DATA` | Resource name used by guarded `StepDataLoading`. |
+| `at_1305__5__DATA` | Resource name used by guarded `StepDataLoading`. |
+| `at_1306__6__DATA` | Resource name used by guarded `StepDataLoading`. |
+| `at_1307__6__DATA` | Lure rod pack name used by guarded `StepDataLoading`. |
+| `at_1308__6__DATA` | Float rod pack name used by guarded `StepDataLoading`. |
+| `at_1309__5__DATA` | Cursor pack name used by guarded `StepDataLoading`. |
+| `at_1310__5__DATA` | System pack name used by guarded `StepDataLoading`. |
+| `at_1311__4__DATA` | Resource name used by guarded `StepDataLoading`. |
+| `at_1312__2__DATA` | Float pack name used by guarded `StepDataLoading`. |
+| `at_1313__2__DATA` | Hook pack name used by guarded `StepDataLoading`. |
+| `at_1314__2__DATA` | Resource name used by guarded `StepDataLoading`. |
+| `at_1315__4__DATA` | Resource name used by guarded `StepDataLoading`. |
+| `at_1316__2__DATA` | Resource name used by guarded `StepDataLoading`. |
+| `at_2197__3__DATA` | Caught-fish animation used by guarded `InitSuccess`. |
+| `at_2198__3__DATA` | Player success animation used by guarded `InitSuccess`. |
