@@ -2626,7 +2626,7 @@ void CNameRegiMenu::DrawMarkCursor() {
 void CNameRegiMenu::DrawSelectedWord() {
     mgRect<int> shadow;
     mgRect<int> frame;
-    MenuReloadTexture(OldReloadTexNumber, *(s16 *) NameRegiTex1);
+    MenuReloadTexture(OldReloadTexNumber, NameRegiTex1->block);
     int          box_width = NameRegistMax * 0xC + 0x3E;
     int          box_left = (mgScreenWidth - box_width) >> 1;
     mgCDrawPrim *prim = GetMenuPrim();
