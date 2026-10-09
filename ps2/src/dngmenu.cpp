@@ -2645,7 +2645,7 @@ int CMenuTreeMap::Step() {
 
     /**
      *
-     * Previous tree-map navigation direction.
+     * Navigation state reset when the map opens or the cursor moves.
      *
      */
     static int old_direction = -1;
