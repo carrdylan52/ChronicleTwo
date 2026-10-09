@@ -2270,8 +2270,34 @@ void DrawEditCursor(CScene *scene) {
     GetDebugFont()->DrawDirect(text, 0x100, 0xA);
 }
 
-extern char *space_str[6];
-extern char *place_str[6];
+/**
+ *
+ * Separators between editor help actions for each supported language.
+ *
+ */
+static const char *space_str[6] = {
+    "  ",
+    "  ",
+    "  ",
+    "  ",
+    "  ",
+    "  ",
+};
+
+/**
+ *
+ * Placement button help for each supported language.
+ *
+ */
+static const char *place_str[6] = {
+    "(O):\x94\x7a\x92\x75",
+    "(O):put",
+    "(O) : placer",
+    "(O) : Platzieren",
+    "(O):metti",
+    "(O):poner",
+};
+
 extern char *rotate_str[6];
 extern char *sw_wall_str[6];
 extern char *magnet_str[6];
@@ -2757,8 +2783,6 @@ int CheckEditToWalk(CScene *scene, float *position) {
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editmode", at_1268__3__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editmode", at_1362__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editmode", at_1931__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editmode", space_str__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editmode", place_str__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editmode", rotate_str__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editmode", sw_wall_str__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editmode", magnet_str__DATA);
@@ -2795,13 +2819,6 @@ INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editmode", at_1836__2__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editmode", at_1961__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editmode", at_1962__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editmode", at_1963__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editmode", at_1964__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editmode", at_1965__3__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editmode", at_1966__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editmode", at_1967__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editmode", at_1968__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editmode", at_1969__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editmode", at_1970__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editmode", at_1971__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editmode", at_1972__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editmode", at_1973__DATA);

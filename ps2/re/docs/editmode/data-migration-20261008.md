@@ -88,3 +88,14 @@ placeholders restores unambiguous exact live-consumer naming; the completed
 migration passes `SCES_511.90: OK` and **149/149** objects. No tool changes or
 artificial names are needed. Receipts: `preview-static-*` and
 `drawing-statics-build.log` / `drawing-statics-objects.log`.
+
+## Localized help tables
+
+`space_str` and `place_str` are native local arrays of six pointers to immutable
+strings, in Japanese, English, French, German, Italian and Spanish order.
+The arrays remain writable pointer tables in `.data`, matching retail's six
+R_MIPS_32 relocations per table. The literal separator and all six placement
+messages are inline at their table entries. Japanese bytes use `\x` escapes;
+no marker padding becomes part of a string or an extra array element.
+Both tables pass complete-object and PAL checks individually. Receipts:
+`help-space-*` and `help-place-*`.
