@@ -587,8 +587,8 @@ void mgCTextureAnime::SetGroupName(int group, char *group_name) {
 }
 
 int mgCTextureAnime::GetEmptyGroup() {
-    for (int i = 0; i < *(volatile int *) &group_num; i++) {
-        if (*(CList<mgCTexAnimeData> **) ((i << 2) + (int) this + 0x64) == NULL) {
+    for (int i = 0; i < group_num; i++) {
+        if (list[i] == NULL) {
             return i;
         }
     }
@@ -602,7 +602,7 @@ int mgCTextureAnime::SearchGroupName(char *group_name) {
     }
 
     for (int i = 0; i < group_num; i++) {
-        char *candidate = *(char **) ((i << 2) + (int) this + 0x124);
+        char *candidate = name[i];
 
         if (candidate != NULL && strcmp(candidate, group_name) == 0) {
             return i;
@@ -637,7 +637,7 @@ CList<mgCTexAnimeData> *mgCTextureAnime::NewTexAnimeGroupData(int group, mgCMemo
         return NULL;
     }
 
-    if (&node->data == NULL) {
+    if (node->pGetData() == NULL) {
         return NULL;
     }
 
