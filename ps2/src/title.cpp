@@ -41,7 +41,13 @@
 #include "userdata.hpp"
 #include "wavetable.hpp"
 
-extern s16              TitleOmakeFlag;
+/**
+ *
+ * Records whether an extra was selected during the current title session.
+ *
+ */
+static s16 TitleOmakeFlag;
+
 extern TITLE_INFO      *TitleInfo;
 extern float            TitleProjection;
 void                    TitleMCCheckDraw();
@@ -64,18 +70,86 @@ int                     GetSelectLanguageNo();
 extern char             at_1479__2[];
 void                    TitleHDDInstallDraw();
 extern CScene          *TitleScene;
-extern s16              TitlePhase;
-extern s16              TitleMCActivePort;
-extern int              E3Select;
-extern float            E3_Title_SpriteY;
-extern float            E3_Trial_SpriteY;
-extern int              E3ModeBoardDrawFlag;
-extern int              E3ModeBoardDrawAlpha;
+
+/**
+ *
+ * Selects the title screen input and transition phase.
+ *
+ */
+static s16 TitlePhase;
+
+/**
+ *
+ * Identifies the memory card port selected for the title save menu.
+ *
+ */
+static s16 TitleMCActivePort;
+
+/**
+ *
+ * Holds the E3 trial menu selection.
+ *
+ */
+static int E3Select;
+
+/**
+ *
+ * Holds the vertical position of the E3 title sprite.
+ *
+ */
+static float E3_Title_SpriteY;
+
+/**
+ *
+ * Holds the vertical position of the E3 trial sprite.
+ *
+ */
+static float E3_Trial_SpriteY;
+
+/**
+ *
+ * Controls drawing of the E3 trial information board.
+ *
+ */
+static int E3ModeBoardDrawFlag;
+
+/**
+ *
+ * Holds the E3 trial information board alpha.
+ *
+ */
+static int E3ModeBoardDrawAlpha;
+
 extern int              TitleRushWaitCount;
-extern int              Trial_TitleBlackFadeAlpha;
-extern s8               DCSelectedMovie;
-extern u8               TitleRushWaitCountBoot;
-extern int              TitleCameraPhase;
+
+/**
+ *
+ * Holds the trial title black overlay alpha.
+ *
+ */
+static int Trial_TitleBlackFadeAlpha;
+
+/**
+ *
+ * Selects the attract movie requested by the demo runner.
+ *
+ */
+static s8 DCSelectedMovie;
+
+/**
+ *
+ * Records whether the shortened first-boot attract delay has been applied.
+ *
+ */
+static u8 TitleRushWaitCountBoot;
+
+/**
+ *
+ * Selects the title map camera movement phase.
+ *
+ */
+static int TitleCameraPhase;
+
 extern u8               TitleMCFuncFlag;
 extern u8               TitleMCCheckNow;
 extern s16              TitleMainMCCheckPhase;
@@ -131,15 +205,47 @@ extern HDD_INFO         HDDINFO;
 extern mgCMemory        lang_stack;
 extern CMovie          *RushMovie;
 extern mgCTexture      *RushWork;
-extern RUSH_INFO        RushInfo;
-extern s8               debug_start_drawflag;
+
+/**
+ *
+ * Holds the attract movie playback, skip and fade state.
+ *
+ */
+static RUSH_INFO RushInfo;
+
+/**
+ *
+ * Records whether the attract movie START debug indicator is drawn.
+ *
+ */
+static s8 debug_start_drawflag;
+
 extern char             at_1517__2[];
 extern char             at_1234[];
 extern char             at_2281[];
 extern char             at_991__3[];
-extern s8               TitleCopyRightDispPhase;
-extern s16              TitleCopyRightDispCounter;
-extern s16              TitlePushStart_AlphaPlus;
+
+/**
+ *
+ * Selects the copyright and publisher logo display phase.
+ *
+ */
+static s8 TitleCopyRightDispPhase;
+
+/**
+ *
+ * Counts frames during the copyright and publisher logo display.
+ *
+ */
+static s16 TitleCopyRightDispCounter;
+
+/**
+ *
+ * Selects the rising or falling half of the PUSH START alpha pulse.
+ *
+ */
+static s16 TitlePushStart_AlphaPlus;
+
 extern s8               cnttbl_2026[2];
 
 extern char                at_1267[];
@@ -160,8 +266,21 @@ extern int                 HDDImageAlpha[12];
 extern char               *infomsg_2664[];
 extern int                 count_2647;
 extern s8                  init_2648;
-extern int                 TitleCameraPhaseCounter;
-extern float               TitleCameraAddAngle;
+
+/**
+ *
+ * Counts frames in the current title map camera phase.
+ *
+ */
+static int TitleCameraPhaseCounter;
+
+/**
+ *
+ * Accumulates the title map camera rotation.
+ *
+ */
+static float TitleCameraAddAngle;
+
 extern char                at_2020[];
 extern char                at_2021[];
 extern char                at_2369__3[];
@@ -172,14 +291,53 @@ extern char                at_2373__3[];
 extern char                at_2374__3[];
 extern char                at_2375__3[];
 extern char                at_2376__3[];
-extern s8                  TitleSkipLogoFlag;
+
+/**
+ *
+ * Records a request to skip the publisher logo display.
+ *
+ */
+static s8 TitleSkipLogoFlag;
+
 extern short               table_2611[3][12];
-extern ClsMes             *TitleMCCheckMes;
+
+/**
+ *
+ * Points to the title memory card check message window.
+ *
+ */
+static ClsMes *TitleMCCheckMes;
+
 extern CMemoryCardManager *TitleMCCheck;
-extern u8                  TitleMCCheckBootMode;
-extern s16                 TitleMCCheckPort;
-extern s16                 TitleMCCheckPhase;
-extern s32                 OmakePlayEnableAttr;
+
+/**
+ *
+ * Selects the boot-specific memory card check behavior.
+ *
+ */
+static u8 TitleMCCheckBootMode;
+
+/**
+ *
+ * Identifies the memory card port currently being checked.
+ *
+ */
+static s16 TitleMCCheckPort;
+
+/**
+ *
+ * Selects the current memory card check operation.
+ *
+ */
+static s16 TitleMCCheckPhase;
+
+/**
+ *
+ * Holds the extras and costume unlock bits collected from memory cards.
+ *
+ */
+static s32 OmakePlayEnableAttr;
+
 extern s16                 TitleMCCheckFileFind[2];
 extern u8                  TitleMCCheckInport[2];
 extern mgCTexture         *lang_tex;
@@ -206,6 +364,19 @@ static inline u_int Align16Blocks(u_int size) {
     return size >> 4;
 }
 
+/**
+ *
+ * Records whether a boot memory card contains the debug unlock code.
+ *
+ */
+u8 MasterDebugModeOn;
+
+/**
+ *
+ * Holds the costume bits unlocked by the memory cards.
+ *
+ */
+u_long CostumeOptionEnv;
 
 // Code (.text)
 /**
@@ -2989,36 +3160,20 @@ INCLUDE_RODATA("ps2/asm/pal/nonmatchings/title", cnttbl_2026__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/title", at_2646__2__DATA);
 
 // Small uninitialised data (.sbss)
-INCLUDE_BSS(TitleRushWaitCountBoot, 0x4);
 INCLUDE_BSS(TitleSelectInit, 0x4);
 INCLUDE_BSS(TitleMap, 0x4);
 INCLUDE_BSS(TitleCamera, 0x4);
 INCLUDE_BSS(TitleCamera2, 0x4);
 INCLUDE_BSS(WaveTable__3, 0x4);
-INCLUDE_BSS(TitleCameraPhase, 0x4);
-INCLUDE_BSS(TitleCameraPhaseCounter, 0x4);
-INCLUDE_BSS(TitleCameraAddAngle, 0x4);
 INCLUDE_BSS(GameBootInit, 0x4);
-INCLUDE_BSS(MasterDebugModeOn, 0x4);
 INCLUDE_BSS(TitleBootEventNo, 0x4);
 INCLUDE_BSS(DCRuncherMode, 0x4);
-INCLUDE_BSS(DCSelectedMovie, 0x4);
 INCLUDE_BSS(DCRuncherCounter, 0x4);
 INCLUDE_BSS(TitleInfo, 0x4);
-INCLUDE_BSS(OmakePlayEnableAttr, 0x4);
-INCLUDE_BSS(CostumeOptionEnv, 0x8);
 INCLUDE_BSS(TitleMCFuncFlag, 0x4);
-INCLUDE_BSS(TitleMCActivePort, 0x4);
 INCLUDE_BSS(TitleMCCheckNow, 0x4);
 INCLUDE_BSS(TitleMainMCCheckPhase, 0x4);
 INCLUDE_BSS(TitleMCCheck, 0x4);
-INCLUDE_BSS(TitleMCCheckMes, 0x4);
-INCLUDE_BSS(TitlePhase, 0x4);
-INCLUDE_BSS(TitlePushStart_AlphaPlus, 0x4);
-INCLUDE_BSS(Trial_TitleBlackFadeAlpha, 0x4);
-INCLUDE_BSS(TitleCopyRightDispPhase, 0x4);
-INCLUDE_BSS(TitleCopyRightDispCounter, 0x4);
-INCLUDE_BSS(TitleSkipLogoFlag, 0x4);
 INCLUDE_BSS(Tex_TitleBG, 0x4);
 INCLUDE_BSS(Tex_Chronicle, 0x4);
 INCLUDE_BSS(Tex_Logo, 0x4);
@@ -3032,12 +3187,6 @@ INCLUDE_BSS(RushStart, 0x4);
 INCLUDE_BSS(RushWork, 0x4);
 INCLUDE_BSS(TitleScene, 0x4);
 INCLUDE_BSS(TitleEventSound, 0x4);
-INCLUDE_BSS(E3Select, 0x4);
-INCLUDE_BSS(E3ModeBoardDrawFlag, 0x4);
-INCLUDE_BSS(E3ModeBoardDrawAlpha, 0x4);
-INCLUDE_BSS(E3_Title_SpriteY, 0x4);
-INCLUDE_BSS(E3_Trial_SpriteY, 0x4);
-INCLUDE_BSS(debug_start_drawflag, 0x4);
 INCLUDE_BSS(HDDPhase, 0x4);
 INCLUDE_BSS(HDDConfirmType, 0x4);
 INCLUDE_BSS(HDDnowDisplayImageNo, 0x4);
@@ -3050,10 +3199,6 @@ INCLUDE_BSS(HDDMes2, 0x4);
 INCLUDE_BSS(HDDBGTex, 0x4);
 INCLUDE_BSS(HDDSysImage, 0x4);
 INCLUDE_BSS(HDDModeSelect, 0x4);
-INCLUDE_BSS(TitleOmakeFlag, 0x4);
-INCLUDE_BSS(TitleMCCheckBootMode, 0x4);
-INCLUDE_BSS(TitleMCCheckPort, 0x4);
-INCLUDE_BSS(TitleMCCheckPhase, 0x4);
 INCLUDE_BSS(count_2647, 0x4);
 INCLUDE_BSS(init_2648, 0x4);
 INCLUDE_BSS(title_lang_select, 0x4);
@@ -3069,7 +3214,6 @@ mgCMemory TitleMapBuffer;
 mgCMemory TitleWorkBuffer;
 mgCMemory Stack_ReadBuff;
 mgCMemory Stack_MenuCharaBuff_Fix;
-INCLUDE_BSS(RushInfo, 0x20);
 INCLUDE_BSS(HDDImage, 0x30);
 INCLUDE_BSS(HDDImageAlpha, 0x30);
 HDD_INFO  HDDINFO;
