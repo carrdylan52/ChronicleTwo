@@ -251,119 +251,11 @@ void               SetSwordBlurEffect(CCharacter2 *chara, mgCMemory *stack, int 
 
 /**
  *
- * Groups the seven memory stacks used by the character menu.
- *
- */
-struct MemoryList {
-    mgCMemory *entry[7]; /**< Memory stack for each character slot. */
-};
-
-/**
- *
- * Groups character instances used by the character menu.
- *
- */
-struct SceneCharaList {
-    CActionChara *entry[7]; /**< Character in each scene slot. */
-};
-
-/**
- *
- * Lists the three character targets for loading.
- *
- */
-struct LoadTargetList {
-    CActionChara *entry[3]; /**< Character target in each load slot. */
-};
-
-/**
- *
- * Lists the three memory stacks used while loading characters.
- *
- */
-struct LoadStackList {
-    mgCMemory *entry[3]; /**< Memory stack in each load slot. */
-};
-
-/**
- *
- * Stores the path category for each character load.
- *
- */
-struct CharaPathKinds {
-    s8 kind[MENU_CHARA_LOAD_MAX]; /**< Path category for each load slot. */
-};
-
-/**
- *
- * Tracks the character data requested for loading.
- *
- */
-struct LoadWantedList {
-    int entry[9]; /**< Requested load entry for each slot. */
-};
-
-/**
- *
  * Stores a four-component camera point.
  *
  */
 struct CameraPoint {
     float xyzw[4]; /**< Camera-space point components. */
-};
-
-/**
- *
- * Lists eight character targets for loading.
- *
- */
-struct LoadTargetList8 {
-    CActionChara *entry[8]; /**< Character target in each load slot. */
-};
-
-/**
- *
- * Groups the six robot-part character instances.
- *
- */
-struct RoboCharaList {
-    CActionChara *entry[6]; /**< Character instance for each robot part. */
-};
-
-/**
- *
- * Groups the six memory stacks for robot parts.
- *
- */
-struct RoboStackList {
-    mgCMemory *entry[6]; /**< Memory stack for each robot part. */
-};
-
-/**
- *
- * Holds one line of character-menu debug text.
- *
- */
-struct DebugLine {
-    char text[0x80]; /**< Debug text line. */
-};
-
-/**
- *
- * Holds a character-menu debug text block.
- *
- */
-struct DebugText {
-    char text[0x200]; /**< Debug text block. */
-};
-
-/**
- *
- * Holds debug text for a non-player character.
- *
- */
-struct DebugNpcText {
-    char text[0x100]; /**< Non-player character debug text. */
 };
 
 /**
@@ -400,24 +292,6 @@ struct MonsterNameTable {
  */
 struct BadgeInfoValues {
     int value[6]; /**< Badge information values. */
-};
-
-/**
- *
- * Pairs two integer menu values.
- *
- */
-struct SmallPair {
-    int v[2]; /**< The two values in the pair. */
-};
-
-/**
- *
- * Holds a file name used while loading menu assets.
- *
- */
-struct FileNameBuf {
-    char text[0x40]; /**< Menu asset file name. */
 };
 
 /**
@@ -1425,15 +1299,15 @@ static int MenuMemoryDivide(mgCMemory *memory, mgCMemory **list, int chara) {
 }
 void MenuMemoryAdjust(mgCMemory *pool, mgCMemory *rest, mgCMemory *buffers, int chara) {
     int        free_blocks = pool->stack_size - pool->stack_used;
-    MemoryList list = {{NULL, NULL, NULL, NULL, NULL, NULL, NULL}};
-    list.entry[0] = buffers;
-    list.entry[1] = buffers + 1;
-    list.entry[2] = buffers + 2;
-    list.entry[3] = buffers + 3;
-    list.entry[4] = buffers + 4;
-    list.entry[5] = buffers + 5;
-    list.entry[6] = buffers + 6;
-    int used = MenuMemoryDivide(pool, list.entry, chara);
+    mgCMemory *list[7] = {NULL, NULL, NULL, NULL, NULL, NULL, NULL};
+    list[0] = buffers;
+    list[1] = buffers + 1;
+    list[2] = buffers + 2;
+    list[3] = buffers + 3;
+    list[4] = buffers + 4;
+    list[5] = buffers + 5;
+    list[6] = buffers + 6;
+    int used = MenuMemoryDivide(pool, list, chara);
     rest->stSetBuffer(buffers->stack + buffers->stack_used + used,
                       free_blocks - used);
 
@@ -3098,21 +2972,21 @@ int CMenuChrCngMenu::MenuLocalLoop() {
     int            width;
 
     KeyChangeMain();
-    SmallPair step = {{0, 0}};
+    int step[2] = {0, 0};
 
     if (npc_no == 1 && this->step == 0x14) {
         (MenuPosData)->GetPosMenuItemOnItemBrd(cursor, item_brd_select, 1);
         cursor[0] -= 8;
         cursor[1] -= 10;
-        step.v[0] = -0x2E;
-        step.v[1] = 0x12;
+        step[0] = -0x2E;
+        step[1] = 0x12;
     } else {
         sprintf(name, "cur%d", select);
         form->GetPutPosXY(name, cursor[0], cursor[1]);
         MenuCursorReverseFlag = cursor_revtbl_2237[select];
     }
 
-    MenuCommonInfo->MenuPosStep(cursor, step.v);
+    MenuCommonInfo->MenuPosStep(cursor, step);
 
     if (set_cursor != 0) {
         MenuCommonInfo->MenuSetPos(cursor[0], cursor[1]);
@@ -3212,17 +3086,17 @@ int CMenuChrCngMenu::MenuLocalLoop() {
 
         if (0 <= item_no && item_no < GetNowBagMax(0)) {
             char *item_names[2] = {" ", ""};
-            SmallPair item_volumes = {{0, 0}};
+            int item_volumes[2] = {0, 0};
             item = MenuDrawItemInfo[item_brd_select];
             mes = MenuDCMsg[7];
 
             if (item != NULL) {
                 item_names[0] = item->GetName(0);
-                item->GetWHp(item_volumes.v);
+                item->GetWHp(item_volumes);
             }
 
             mes->SetMsgItemNo(item_names, 1);
-            mes->SetMsgVolumeNo(item_volumes.v, 2);
+            mes->SetMsgVolumeNo(item_volumes, 2);
             mes->value_width[0] = 6;
             name_x = fptosi(MenuMesForm[7]->x + (float) (mes->abs_win.width >> 1));
             width = mes->GetStrWidth(0);
@@ -3524,8 +3398,8 @@ int MenuCharaChangeKey() {
                         MenuCharaLoadStack.stack_used = 0;
                         MenuCharaLoadStack.lock = 0;
                         texture = (u8 *) ChrChangeInitTextureStack.stack;
-                        FileNameBuf file_name = {"chrchg0.pac"};
-                        LoadFileMenu(file_name.text, (u_long128 *) texture, 1);
+                        char file_name[0x40] = "chrchg0.pac";
+                        LoadFileMenu(file_name, (u_long128 *) texture, 1);
                         ChrChangMenuPt->EnterDataMenu(texture);
                         ChrChangMenuPt->LoadNPCFaceData(&MenuChangeNpcMemory, 1);
                         ChrChangMenuPt->EnterNPCFaceData();
@@ -3590,9 +3464,9 @@ void MenuCharaChangeDraw() {
 
         if (ChrChangMenuPt->select != 4) {
             DrawMenuFillBox(20.0f, 20.0f, 300.0f, 220.0f, 0x60, 0, 0, 0);
-            DebugLine party = {{0}};
-            DebugLine change = {{0}};
-            DebugLine mask = {{0}};
+            char party[0x80] = {0};
+            char change[0x80] = {0};
+            char mask[0x80] = {0};
             party_member = MenuUserDataManPtr->GetNowPartyMember();
             int chara_change = MenuUserDataManPtr->chara_change;
             int change_mask = MenuUserDataManPtr->chara_change_mask;
@@ -3602,26 +3476,26 @@ void MenuCharaChangeDraw() {
                 int bit = 1 << i;
 
                 if (party_member & bit) {
-                    strcat(party.text, "\x81\x9B\x0A");
+                    strcat(party, "\x81\x9B\x0A");
                 } else {
-                    strcat(party.text, "\x81\x7E\x0A");
+                    strcat(party, "\x81\x7E\x0A");
                 }
 
                 if (chara_change & bit) {
-                    strcat(change.text, "\x81\x9B\x0A");
+                    strcat(change, "\x81\x9B\x0A");
                 } else {
-                    strcat(change.text, "\x81\x7E\x0A");
+                    strcat(change, "\x81\x7E\x0A");
                 }
 
                 if (change_mask & bit) {
-                    strcat(mask.text, "\x81\x9B\x0A");
+                    strcat(mask, "\x81\x9B\x0A");
                 } else {
-                    strcat(mask.text, "\x81\x7E\x0A");
+                    strcat(mask, "\x81\x7E\x0A");
                 }
             }
 
-            DebugText title = {"Max\nMonica\nRidepod\nMonster"};
-            font.SetStr(title.text);
+            char title[0x200] = "Max\nMonica\nRidepod\nMonster";
+            font.SetStr(title);
             font.SetPos(0x28, 0x3C);
             font.DrawDirect(font.str, font.pos_x, font.pos_y);
             int cursor_x = MenuDebugChangeSelectMode * 0x3C + 0x98;
@@ -3631,19 +3505,19 @@ void MenuCharaChangeDraw() {
             font.SetStr("Party");
             font.SetPos(0x98, 0x28);
             font.DrawDirect(font.str, font.pos_x, font.pos_y);
-            font.SetStr(party.text);
+            font.SetStr(party);
             font.SetPos(0x98, 0x3C);
             font.DrawDirect(font.str, font.pos_x, font.pos_y);
             font.SetStr("Shift");
             font.SetPos(0xD4, 0x28);
             font.DrawDirect(font.str, font.pos_x, font.pos_y);
-            font.SetStr(change.text);
+            font.SetStr(change);
             font.SetPos(0xD4, 0x3C);
             font.DrawDirect(font.str, font.pos_x, font.pos_y);
             font.SetStr("MASK");
             font.SetPos(0x110, 0x28);
             font.DrawDirect(font.str, font.pos_x, font.pos_y);
-            font.SetStr(mask.text);
+            font.SetStr(mask);
             font.SetPos(0x110, 0x3C);
             font.DrawDirect(font.str, font.pos_x, font.pos_y);
             int cursor_y = MenuDebugCharaChangeSelect * 0x14 + 0x3C;
@@ -3671,9 +3545,9 @@ void MenuCharaChangeDraw() {
         font.SetStr("                  Pa:Tr:Ge");
         font.SetPos(0x14, 0x1E);
         font.DrawDirect(font.str, font.pos_x, font.pos_y);
-        DebugNpcText npc_title = {"                           "};
-        strcpy(&npc_title.text[menu_debug_npc_decide * 3 + 0x11], "\x81\xAB");
-        font.SetStr(npc_title.text);
+        char npc_title[0x100] = "                           ";
+        strcpy(&npc_title[menu_debug_npc_decide * 3 + 0x11], "\x81\xAB");
+        font.SetStr(npc_title);
         font.SetPos(0x14, 0x32);
         font.DrawDirect(font.str, font.pos_x, font.pos_y);
 
@@ -4061,14 +3935,14 @@ int CMenuMosSelect::CheckLoadBGMonster() {
         }
         case 1:
             if (MenuMonsterBGInfo[0]->reading && ReadBGSync() == 0) {
-                SceneCharaList chara = {{NULL, NULL, NULL, NULL, NULL, NULL, NULL}};
-                chara.entry[0] = monster;
+                CActionChara *chara[7] = {NULL, NULL, NULL, NULL, NULL, NULL, NULL};
+                chara[0] = monster;
                 int tex_block = this->tex_block[1];
-                MenuMonsterLoadBGCheck(MenuMonsterBGInfo, chara.entry, tex_block, MenuArg.chara_tex_block);
+                MenuMonsterLoadBGCheck(MenuMonsterBGInfo, chara, tex_block, MenuArg.chara_tex_block);
 
                 if (MenuLoadInfo.unk_6[1] == 0) {
-                    MonsterScaleCheck(chara.entry[0]);
-                    chara.entry[0]->SetPosition(float(16.0), 1.0f, 0.0f);
+                    MonsterScaleCheck(chara[0]);
+                    chara[0]->SetPosition(float(16.0), 1.0f, 0.0f);
                     model_form->SetActionCharaPtr(monster, tex_block, -1);
                     model_form->counter = -14;
                     model_form->draw_flag = 1;
@@ -4082,8 +3956,8 @@ int CMenuMosSelect::CheckLoadBGMonster() {
                 if (MenuLoadInfo.unk_6[1] == 1) {
                     load_phase++;
                     MenuSoundCharaNo = 3;
-                    chara.entry[0] = (CActionChara *) MenuMainScene->GetCharacter(0);
-                    MenuCharaSoundEnter(MenuMainScene, chara.entry[0], 1);
+                    chara[0] = (CActionChara *) MenuMainScene->GetCharacter(0);
+                    MenuCharaSoundEnter(MenuMainScene, chara[0], 1);
                     mgCMemory *stack = MenuMainScene->GetStack(5);
                     stack->stReset();
                     StartReadBG();
@@ -5098,7 +4972,7 @@ int MenuItemCharaDataLoad(mgCMemory *stack, int chara_no, MENU_BGREAD_INFO2 **in
     }
 
     stack->Align64();
-    CharaPathKinds path_kind = {{0, 2, 1, 1, 2, 2, 3}};
+    s8 path_kind[MENU_CHARA_LOAD_MAX] = {0, 2, 1, 1, 2, 2, 3};
 
     for (u32 slot = 0; slot < MENU_CHARA_LOAD_MAX; slot++) {
         name[slot][0] = 0;
@@ -5138,15 +5012,15 @@ int MenuItemCharaDataLoad(mgCMemory *stack, int chara_no, MENU_BGREAD_INFO2 **in
 
             break;
         case 2:
-            path_kind.kind[0] = pathtbl_3836[MenuLoadInfo.alternate_model];
+            path_kind[0] = pathtbl_3836[MenuLoadInfo.alternate_model];
 
             if (MenuLoadInfo.alternate_model == 0) {
-                path_kind.kind[0] = 4;
+                path_kind[0] = 4;
                 GetMainCharaModelName(chara_no, name[0], 0);
             }
 
             if (MenuLoadInfo.alternate_model == 1) {
-                path_kind.kind[0] = 5;
+                path_kind[0] = 5;
                 GetMainCharaModelName(chara_no, name[0], 1);
             }
 
@@ -5188,7 +5062,7 @@ int MenuItemCharaDataLoad(mgCMemory *stack, int chara_no, MENU_BGREAD_INFO2 **in
         }
 
         if (MenuLoadInfo.load_all == 1 || (MenuLoadInfo.load_all == 0 && i == MenuLoadInfo.load_phase)) {
-            strcpy(info[i]->path, menu_load_chrpathtbl_3811[path_kind.kind[i]]);
+            strcpy(info[i]->path, menu_load_chrpathtbl_3811[path_kind[i]]);
             info[i]->chara = NULL;
             strcpy(info[i]->name, name[i]);
             strcat(info[i]->path, info[i]->name);
@@ -5284,47 +5158,47 @@ int MenuItemCharaDataLoadEndCheck(MENU_BGREAD_INFO2 **info, mgCMemory *stack, CA
     mgCTextureManager *tex_manager = &mgTexManager;
     CScene            *scene = MenuMainScene;
     CActionChara      *player = NULL;
-    SceneCharaList     scene_chara = {{NULL, NULL, NULL, NULL, NULL, NULL, NULL}};
-    SceneCharaList     menu_chara = {{NULL, NULL, NULL, NULL, NULL, NULL, NULL}};
+    CActionChara *scene_chara[7] = {NULL, NULL, NULL, NULL, NULL, NULL, NULL};
+    CActionChara *menu_chara[7] = {NULL, NULL, NULL, NULL, NULL, NULL, NULL};
 
     if (chara != NULL) {
-        menu_chara.entry[0] = chara[0];
-        menu_chara.entry[1] = NULL;
-        menu_chara.entry[2] = chara[1];
-        menu_chara.entry[3] = chara[2];
-        menu_chara.entry[4] = chara[3];
-        menu_chara.entry[5] = chara[4];
-        menu_chara.entry[6] = chara[5];
+        menu_chara[0] = chara[0];
+        menu_chara[1] = NULL;
+        menu_chara[2] = chara[1];
+        menu_chara[3] = chara[2];
+        menu_chara[4] = chara[3];
+        menu_chara[5] = chara[4];
+        menu_chara[6] = chara[5];
     }
 
     if (scene != NULL && MenuLoadInfo.unk_6[1] != 0) {
         for (i = 0; i < MENU_CHARA_LOAD_MAX; i++) {
-            scene_chara.entry[i] = (CActionChara *) scene->GetCharacter(i);
+            scene_chara[i] = (CActionChara *) scene->GetCharacter(i);
         }
 
-        player = scene_chara.entry[0];
+        player = scene_chara[0];
 
         if (MenuLoadInfo.mode == 0 || MenuLoadInfo.mode == 1) {
-            scene_chara.entry[0] = NULL;
+            scene_chara[0] = NULL;
         }
 
         if (MenuLoadInfo.alternate_model == 1) {
-            scene_chara.entry[1] = NULL;
+            scene_chara[1] = NULL;
 
             if (chara_no == 0) {
-                scene_chara.entry[2] = NULL;
+                scene_chara[2] = NULL;
             }
         }
     }
 
-    LoadTargetList8 scene_target = {{NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL}};
-    scene_target.entry[0] = scene_chara.entry[0];
-    scene_target.entry[1] = player;
-    scene_target.entry[2] = scene_chara.entry[1];
-    scene_target.entry[3] = scene_chara.entry[2];
-    scene_target.entry[4] = scene_chara.entry[3];
-    scene_target.entry[5] = scene_chara.entry[4];
-    scene_target.entry[6] = scene_chara.entry[5];
+    CActionChara *scene_target[8] = {NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL};
+    scene_target[0] = scene_chara[0];
+    scene_target[1] = player;
+    scene_target[2] = scene_chara[1];
+    scene_target[3] = scene_chara[2];
+    scene_target[4] = scene_chara[3];
+    scene_target[5] = scene_chara[4];
+    scene_target[6] = scene_chara[5];
 
     switch (MenuLoadInfo.mode) {
         case 2:
@@ -5340,8 +5214,8 @@ int MenuItemCharaDataLoadEndCheck(MENU_BGREAD_INFO2 **info, mgCMemory *stack, CA
                     tex_manager->DeleteBlock(tex_block);
 
                     for (int slot = 0; slot < 6; slot++) {
-                        if (menu_chara.entry[slot] != NULL) {
-                            menu_chara.entry[slot]->Initialize(NULL);
+                        if (menu_chara[slot] != NULL) {
+                            menu_chara[slot]->Initialize(NULL);
                         }
                     }
                 }
@@ -5361,7 +5235,7 @@ int MenuItemCharaDataLoadEndCheck(MENU_BGREAD_INFO2 **info, mgCMemory *stack, CA
             continue;
         }
 
-        info[i]->chara = menu_chara.entry[i];
+        info[i]->chara = menu_chara[i];
         mgCMemory *buffer = &MenuActionCharaBuffer[i];
 
         if (buffer != NULL) {
@@ -5386,13 +5260,13 @@ int MenuItemCharaDataLoadEndCheck(MENU_BGREAD_INFO2 **info, mgCMemory *stack, CA
         switch (MenuLoadInfo.mode) {
             case 0:
             case 2:
-                if (scene_target.entry[i] != NULL) {
+                if (scene_target[i] != NULL) {
                     mgCMemory *scene_stack = &MorattaStack[i];
                     scene_stack->stReset();
-                    MenuItemCharaDataLoadPack(chara_no, scene_target.entry[i], player, i, (u_int *) read->buffer,
+                    MenuItemCharaDataLoadPack(chara_no, scene_target[i], player, i, (u_int *) read->buffer,
                                               scene_stack, scene_tex_block, chara_no);
 
-                    if (i == 0 && scene_target.entry[0] != NULL) {
+                    if (i == 0 && scene_target[0] != NULL) {
                         player->SetPosition(menu_old_chara_position);
                     }
                 }
@@ -5431,8 +5305,8 @@ int MenuItemCharaDataLoadEndCheck(MENU_BGREAD_INFO2 **info, mgCMemory *stack, CA
             if (MenuLoadInfo.unk_6[1] != 0) {
                 MorattaStack[6].stReset();
 
-                if (scene_chara.entry[0] != NULL) {
-                    scene_chara.entry[0]->LoadActionFile((char *) script->buffer, script->size, &MorattaStack[6]);
+                if (scene_chara[0] != NULL) {
+                    scene_chara[0]->LoadActionFile((char *) script->buffer, script->size, &MorattaStack[6]);
                 }
             }
 
@@ -5717,13 +5591,13 @@ int MenuItemRoboDataLoadEndCheck(MENU_BGREAD_INFO2 **info, mgCMemory *stack, CAc
     CActionChara      *parent = NULL;
     mgCTextureManager *tex_manager = &mgTexManager;
     CScene            *scene = MenuMainScene;
-    RoboCharaList      scene_chara = {{NULL, NULL, NULL, NULL, NULL, NULL}};
+    CActionChara *scene_chara[6] = {NULL, NULL, NULL, NULL, NULL, NULL};
     int                i;
     mgCMemory         *part_stack;
 
     if (scene != NULL && MenuLoadInfo.unk_6[1] != 0) {
         for (i = 0; i < 6; i++) {
-            scene_chara.entry[i] = (CActionChara *) scene->GetCharacter(i);
+            scene_chara[i] = (CActionChara *) scene->GetCharacter(i);
         }
     }
 
@@ -5741,7 +5615,7 @@ int MenuItemRoboDataLoadEndCheck(MENU_BGREAD_INFO2 **info, mgCMemory *stack, CAc
 
     if (MenuLoadInfo.load_all == 0 && MenuLoadInfo.request_phase == 0) {
         if (MenuLoadInfo.unk_6[1] != 0) {
-            DeleteOutLineMenu(scene_chara.entry[0], 0);
+            DeleteOutLineMenu(scene_chara[0], 0);
         }
 
         if (chara[0] != NULL) {
@@ -5749,21 +5623,21 @@ int MenuItemRoboDataLoadEndCheck(MENU_BGREAD_INFO2 **info, mgCMemory *stack, CAc
         }
     }
 
-    RoboStackList menu_stack = {{&MenuActionCharaBuffer[0], &MenuActionCharaBuffer[1], &MenuActionCharaBuffer[2], &MenuActionCharaBuffer[2], &MenuActionCharaBuffer[3], &MenuActionCharaBuffer[2]}};
-    RoboStackList scene_stack = {{NULL, NULL, NULL, NULL, NULL, NULL}};
-    scene_stack.entry[1] = &MorattaStack[1];
-    scene_stack.entry[0] = &MorattaStack[0];
-    scene_stack.entry[2] = &MorattaStack[2];
-    scene_stack.entry[4] = &MorattaStack[3];
-    scene_stack.entry[3] = &MorattaStack[2];
-    scene_stack.entry[5] = &MorattaStack[2];
-    SceneCharaList menu_chara = {{NULL, NULL, NULL, NULL, NULL, NULL, NULL}};
-    menu_chara.entry[0] = chara[0];
-    menu_chara.entry[1] = chara[1];
-    menu_chara.entry[2] = chara[2];
-    menu_chara.entry[3] = chara[3];
-    menu_chara.entry[4] = chara[4];
-    menu_chara.entry[5] = chara[5];
+    mgCMemory *menu_stack[6] = {&MenuActionCharaBuffer[0], &MenuActionCharaBuffer[1], &MenuActionCharaBuffer[2], &MenuActionCharaBuffer[2], &MenuActionCharaBuffer[3], &MenuActionCharaBuffer[2]};
+    mgCMemory *scene_stack[6] = {NULL, NULL, NULL, NULL, NULL, NULL};
+    scene_stack[1] = &MorattaStack[1];
+    scene_stack[0] = &MorattaStack[0];
+    scene_stack[2] = &MorattaStack[2];
+    scene_stack[4] = &MorattaStack[3];
+    scene_stack[3] = &MorattaStack[2];
+    scene_stack[5] = &MorattaStack[2];
+    CActionChara *menu_chara[7] = {NULL, NULL, NULL, NULL, NULL, NULL, NULL};
+    menu_chara[0] = chara[0];
+    menu_chara[1] = chara[1];
+    menu_chara[2] = chara[2];
+    menu_chara[3] = chara[3];
+    menu_chara[4] = chara[4];
+    menu_chara[5] = chara[5];
 
     for (int part = 0; part < 6; part++) {
         if (info[part] == NULL || info[part]->reading == 0) {
@@ -5777,42 +5651,42 @@ int MenuItemRoboDataLoadEndCheck(MENU_BGREAD_INFO2 **info, mgCMemory *stack, CAc
         }
 
         u_int         *pack = (u_int *) read->buffer;
-        CActionChara **slot = &menu_chara.entry[part];
+        CActionChara **slot = &menu_chara[part];
         info[part]->chara = *slot;
 
         if (MenuLoadInfo.mode == 2) {
-            menu_chara.entry[part] = NULL;
+            menu_chara[part] = NULL;
         }
 
         if (MenuLoadInfo.mode != 2) {
             if (part == 2) {
                 strcpy(tex_manager->name_suffix, "_menu");
 
-                if (menu_chara.entry[2] != NULL) {
-                    menu_chara.entry[2]->DeleteImage();
+                if (menu_chara[2] != NULL) {
+                    menu_chara[2]->DeleteImage();
                 }
 
-                if (menu_chara.entry[3] != NULL) {
-                    menu_chara.entry[3]->DeleteImage();
+                if (menu_chara[3] != NULL) {
+                    menu_chara[3]->DeleteImage();
                 }
 
-                if (menu_chara.entry[5] != NULL) {
-                    menu_chara.entry[5]->DeleteImage();
+                if (menu_chara[5] != NULL) {
+                    menu_chara[5]->DeleteImage();
                 }
 
                 tex_manager->name_suffix[0] = 0;
 
                 if (MenuLoadInfo.unk_6[1] != 0) {
-                    if (scene_chara.entry[2] != NULL) {
-                        scene_chara.entry[2]->DeleteImage();
+                    if (scene_chara[2] != NULL) {
+                        scene_chara[2]->DeleteImage();
                     }
 
-                    if (scene_chara.entry[3] != NULL) {
-                        scene_chara.entry[3]->DeleteImage();
+                    if (scene_chara[3] != NULL) {
+                        scene_chara[3]->DeleteImage();
                     }
 
-                    if (scene_chara.entry[5] != NULL) {
-                        scene_chara.entry[5]->DeleteImage();
+                    if (scene_chara[5] != NULL) {
+                        scene_chara[5]->DeleteImage();
                     }
                 }
             } else if (part != 3 && part != 5) {
@@ -5824,8 +5698,8 @@ int MenuItemRoboDataLoadEndCheck(MENU_BGREAD_INFO2 **info, mgCMemory *stack, CAc
                     tex_manager->name_suffix[0] = 0;
                 }
 
-                if (MenuLoadInfo.unk_6[1] != 0 && scene_chara.entry[part] != NULL) {
-                    scene_chara.entry[part]->DeleteImage();
+                if (MenuLoadInfo.unk_6[1] != 0 && scene_chara[part] != NULL) {
+                    scene_chara[part]->DeleteImage();
                 }
             }
         }
@@ -5833,21 +5707,21 @@ int MenuItemRoboDataLoadEndCheck(MENU_BGREAD_INFO2 **info, mgCMemory *stack, CAc
         switch (MenuLoadInfo.mode) {
             case 2: {
                 if (part > 0) {
-                    parent = scene_chara.entry[0];
+                    parent = scene_chara[0];
                 }
 
-                part_stack = scene_stack.entry[part];
+                part_stack = scene_stack[part];
 
                 if (part != 3 && part != 5 && part_stack != NULL) {
                     part_stack->stReset();
                 }
 
                 if (part == 0) {
-                    scene_chara.entry[part]->AllDeleteDamage();
+                    scene_chara[part]->AllDeleteDamage();
                     tex_manager->DeleteTexAnime(tex_block);
                 }
 
-                CActionChara *model = scene_chara.entry[part];
+                CActionChara *model = scene_chara[part];
 
                 if (model != NULL) {
                     model->Initialize(NULL);
@@ -5866,14 +5740,14 @@ int MenuItemRoboDataLoadEndCheck(MENU_BGREAD_INFO2 **info, mgCMemory *stack, CAc
 
                 if (model != NULL) {
                     if (part > 0) {
-                        parent = menu_chara.entry[0];
+                        parent = menu_chara[0];
                     }
 
                     if (part == 0) {
                         tex_manager->DeleteTexAnime(tex_block);
                     }
 
-                    part_stack = menu_stack.entry[part];
+                    part_stack = menu_stack[part];
 
                     if (part != 3 && part != 5 && part_stack != NULL) {
                         part_stack->stReset();
@@ -5885,18 +5759,18 @@ int MenuItemRoboDataLoadEndCheck(MENU_BGREAD_INFO2 **info, mgCMemory *stack, CAc
                 }
 
                 tex_manager->name_suffix[0] = 0;
-                CActionChara *scene_model = scene_chara.entry[part];
+                CActionChara *scene_model = scene_chara[part];
 
                 if (scene_model != NULL && MenuLoadInfo.unk_6[1] != 0) {
                     if (part > 0) {
-                        parent = scene_chara.entry[0];
+                        parent = scene_chara[0];
                     }
 
                     if (part == 0) {
                         tex_manager->DeleteTexAnime(scene_tex_block);
                     }
 
-                    part_stack = scene_stack.entry[part];
+                    part_stack = scene_stack[part];
 
                     if (part != 3 && part != 5 && part_stack != NULL) {
                         part_stack->stReset();
@@ -5908,7 +5782,7 @@ int MenuItemRoboDataLoadEndCheck(MENU_BGREAD_INFO2 **info, mgCMemory *stack, CAc
 
                     if (CheckBattleLoop()) {
                         if (part == 0) {
-                            SetSwordBlurEffect(scene_chara.entry[0], part_stack, 2);
+                            SetSwordBlurEffect(scene_chara[0], part_stack, 2);
                         }
 
                         if (part == 1) {
@@ -5945,16 +5819,16 @@ int MenuItemRoboDataLoadEndCheck(MENU_BGREAD_INFO2 **info, mgCMemory *stack, CAc
 
         switch (MenuLoadInfo.mode) {
             case 2:
-                if (scene_chara.entry[0] != NULL) {
+                if (scene_chara[0] != NULL) {
                     script_stack->stReset();
-                    scene_chara.entry[0]->LoadActionFile((char *) script->buffer, script->size, script_stack);
+                    scene_chara[0]->LoadActionFile((char *) script->buffer, script->size, script_stack);
                 }
 
                 break;
             default:
-                if (scene_chara.entry[0] != NULL) {
+                if (scene_chara[0] != NULL) {
                     script_stack->stReset();
-                    scene_chara.entry[0]->LoadActionFile((char *) script->buffer, script->size, script_stack);
+                    scene_chara[0]->LoadActionFile((char *) script->buffer, script->size, script_stack);
                 }
 
                 info[6]->reading = 0;
@@ -6048,13 +5922,13 @@ int MenuMonsterLoadBGCheck(MENU_BGREAD_INFO2 **info, CActionChara **chara, int t
     }
 
     CScene *scene = MenuMainScene;
-    SceneCharaList scene_chara = {{NULL, NULL, NULL, NULL, NULL, NULL, NULL}};
+    CActionChara *scene_chara[7] = {NULL, NULL, NULL, NULL, NULL, NULL, NULL};
     char               path[0x80];
     char               name[0x20];
 
     if (MenuLoadInfo.unk_6[1] != 0 || MenuLoadInfo.mode == 2) {
         for (i = 0; i < 7; i++) {
-            scene_chara.entry[i] = (CActionChara *) scene->GetCharacter(i);
+            scene_chara[i] = (CActionChara *) scene->GetCharacter(i);
         }
     }
 
@@ -6085,11 +5959,11 @@ int MenuMonsterLoadBGCheck(MENU_BGREAD_INFO2 **info, CActionChara **chara, int t
         mgCMemory *stack = MorattaStack;
         stack->stReset();
 
-        if (scene_chara.entry[0] != NULL) {
-            scene_chara.entry[0]->AllDeleteDamage();
-            scene_chara.entry[0]->Initialize(NULL);
-            scene_chara.entry[0]->LoadPack(pack, name, stack, stack, stack, scene_tex_block, NULL);
-            SetSwordBlurEffect(scene_chara.entry[0], stack, 3);
+        if (scene_chara[0] != NULL) {
+            scene_chara[0]->AllDeleteDamage();
+            scene_chara[0]->Initialize(NULL);
+            scene_chara[0]->LoadPack(pack, name, stack, stack, stack, scene_tex_block, NULL);
+            SetSwordBlurEffect(scene_chara[0], stack, 3);
         }
     }
 
@@ -6099,14 +5973,14 @@ int MenuMonsterLoadBGCheck(MENU_BGREAD_INFO2 **info, CActionChara **chara, int t
     BG_READ_INFO *script = GetReadBGFile(path);
 
     if (script != NULL) {
-        LoadTargetList targets = {{NULL, NULL, NULL}};
-        targets.entry[0] = info[0]->chara;
-        targets.entry[1] = info[0]->chara;
-        targets.entry[2] = scene_chara.entry[0];
-        LoadStackList stacks = {{&MenuActionCharaBuffer[5], &MenuActionCharaBuffer[5], NULL}};
-        stacks.entry[2] = &MorattaStack[5];
-        mgCMemory    *stack = stacks.entry[MenuLoadInfo.mode];
-        CActionChara *target = targets.entry[MenuLoadInfo.mode];
+        CActionChara *targets[3] = {NULL, NULL, NULL};
+        targets[0] = info[0]->chara;
+        targets[1] = info[0]->chara;
+        targets[2] = scene_chara[0];
+        mgCMemory *stacks[3] = {&MenuActionCharaBuffer[5], &MenuActionCharaBuffer[5], NULL};
+        stacks[2] = &MorattaStack[5];
+        mgCMemory    *stack = stacks[MenuLoadInfo.mode];
+        CActionChara *target = targets[MenuLoadInfo.mode];
         stack->stReset();
 
         if (target != NULL) {
@@ -6180,8 +6054,8 @@ void InitMainCharaBG(int chara_no, mgCMemory *stack, int mode) {
     mgCMemory memory;
     int       rest = stack->stGetRest();
     memory.stSetBuffer(stack->stGetTop(), rest);
-    LoadWantedList wanted = {{1, 1, 1, 1, 1, 1, 1, 1, 1}};
-    MenuBGReadInfo2Malloc(&memory, wanted.entry);
+    int wanted[9] = {1, 1, 1, 1, 1, 1, 1, 1, 1};
+    MenuBGReadInfo2Malloc(&memory, wanted);
     memory.Alloc(0x100);
     memory.Align64();
     rest = memory.stGetRest();
