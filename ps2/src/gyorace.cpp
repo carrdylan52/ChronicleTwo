@@ -575,9 +575,8 @@ int sgInitGyoRace(SubGameInfo *info) {
         position.f[0] = 190.0f + 15.0f * (float)progress->lane;
         position.f[2] = character->body_height / 4.0f;
         RaceVector rotation = at_1028__9;
-        CGameDataUsed *fish_item = *item;
-        BREEDFISH_USED *data = &fish_item->data.fish;
-        CDataBreedFish *breed = GetBreedFishInfoData(fish_item->item_no);
+        BREEDFISH_USED *data = &(*item)->data.fish;
+        CDataBreedFish *breed = GetBreedFishInfoData((*item)->item_no);
         float scale = (float)data->size / breed->size;
         if (!(scale <= 2.0f)) scale = 2.0f;
         character->SetScale(scale, scale, scale);
