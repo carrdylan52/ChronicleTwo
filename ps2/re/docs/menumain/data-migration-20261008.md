@@ -99,3 +99,13 @@ is quoted; retained section pieces prevent credit for some other native data.
 All 52 native functions remain exact, no function is promoted, and guarded/SF
 source is unchanged. PAL is OK and 149/149 objects pass. Final receipts:
 `.private/dataD-r1/menumain-final-{build,objects,progress,metrics}.log`.
+
+## Storage definition order
+
+The six constructor-bearing objects precede their first use, eliminating
+external declarations before file-local definitions. Their definition and
+constructor order remains MenuMainStack, MenuMainStack_Next, MenuPrimFix,
+MenuMainTextureReadBuf, MenuSoundBuffer and TopicFont. The primitive pointer
+is initialized after its builder's declaration. The generated initializer and
+every caller remain exact, with unchanged guarded/SF source. Receipt:
+`.private/dataD-r1/menumain-storage-order-{build,objects}.log`.

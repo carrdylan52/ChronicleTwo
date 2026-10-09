@@ -42,7 +42,47 @@
 #include "sysmes.hpp"
 #include "userdata.hpp"
 
-extern mgCDrawPrim MenuPrimFix;
+/**
+ *
+ * Storage for the current menu forms and resources.
+ *
+ */
+static mgCMemory MenuMainStack;
+
+/**
+ *
+ * Storage prepared for the next sub-menu.
+ *
+ */
+static mgCMemory MenuMainStack_Next;
+
+/**
+ *
+ * Primitive builder used by menu drawing.
+ *
+ */
+static mgCDrawPrim MenuPrimFix;
+
+/**
+ *
+ * Memory over the shared menu texture pack.
+ *
+ */
+mgCMemory MenuMainTextureReadBuf;
+
+/**
+ *
+ * Memory used to read menu sounds.
+ *
+ */
+mgCMemory MenuSoundBuffer;
+
+/**
+ *
+ * Font used to draw the scrolling topic message.
+ *
+ */
+static CMenuFont TopicFont;
 
 /**
  *
@@ -240,7 +280,6 @@ static int loopnumtbl_2360[2] = {
     3, 2
 };
 
-extern mgCMemory   MenuMainStack;
 extern u8                menu_basedgRef[16];
 extern u8                menu_basedgCamPos[16];
 
@@ -322,7 +361,6 @@ static char *topic_tbl_1777[7][3] = {
     {"", "Concurso Pesca: %d h. para salir", "Finny Frenzy: %d h. para salir"}
 };
 
-extern CMenuFont         TopicFont;
 
 /**
  *
@@ -343,7 +381,6 @@ static MonsterTableEntry monster_table[11] = {
     {0, 0}
 };
 
-extern mgCMemory         MenuMainStack_Next;
 
 /**
  *
@@ -2574,37 +2611,3 @@ INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menumain", menu_basedgCamPos__DATA);
 
 // Constants (.rodata)
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menumain", at_1440__2__DATA);
-
-// Small initialised data (.sdata)
-
-// Small uninitialised data (.sbss)
-
-// Uninitialised data (.bss)
-/**
- *
- * Storage for the current menu forms and resources.
- *
- */
-static mgCMemory MenuMainStack;
-
-/**
- *
- * Storage prepared for the next sub-menu.
- *
- */
-static mgCMemory MenuMainStack_Next;
-
-/**
- *
- * Primitive builder used by menu drawing.
- *
- */
-static mgCDrawPrim MenuPrimFix;
-mgCMemory MenuMainTextureReadBuf;
-mgCMemory MenuSoundBuffer;
-/**
- *
- * Font used to draw the scrolling topic message.
- *
- */
-static CMenuFont TopicFont;
