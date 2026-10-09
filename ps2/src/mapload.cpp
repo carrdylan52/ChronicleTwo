@@ -1995,9 +1995,8 @@ int mapFUNC_EFFECT_NAME(SPI_STACK *stack, int argc) {
 
     if (effect_index >= 0) {
         mapNowFuncPoint->effect.index = effect_index;
-        ((mgCFrame *) &mapNowFuncPoint->frame)
-            ->SetBound((mgCFrame::BoundInfo *) operator new(
-                0xB0, mapStack->Alloc(algn16_size(0xB0) + 2)));
+        mapNowFuncPoint->frame.SetBound((mgCFrame::BoundInfo *) operator new(
+            0xB0, mapStack->Alloc(algn16_size(0xB0) + 2)));
     } else {
         mapNowFuncPoint->type = 0;
     }
@@ -2438,7 +2437,7 @@ int cfgWATER_POS(SPI_STACK *stack, int argc) {
     }
 
     spiGetStackVector(pos, stack);
-    ((mgCFrame *) cfgWater)->SetPosition(pos);
+    cfgWater->SetPosition(pos);
     return 1;
 }
 
