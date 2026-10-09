@@ -84,3 +84,12 @@ The two virtual tables referenced by guarded initializers remain fallbacks.
 After this step: **328 / 27 markers**, **4 / 9726 matched_data**.
 PAL and 149/149 objects pass; receipts are
 `.private/nmchr-r3/menuchr-generated-{build,objects,progress,metrics}.log`.
+
+## Work-stack adjustment data
+
+`MenuMemoryAdjust` initializes its seven real memory pointers with a null
+aggregate and uses the inline `"LOAD STACK"` name. These source forms supply
+`at_1083__2` and `at_1104__4` without external template/string declarations.
+After this step: **327 / 26 markers**, **4 / 9726 matched_data**.
+PAL and 149/149 objects pass; receipts are
+`.private/nmchr-r3/menuchr-adjust-{build,objects,progress,metrics}.log`.

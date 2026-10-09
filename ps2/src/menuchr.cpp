@@ -620,8 +620,6 @@ extern char               at_5839[];
 extern char               at_5893[];
 extern int                tbl_5848[];
 extern CDC2Mes           *MenuDCMsg[9];
-extern MemoryList         at_1083__2;
-extern char               at_1104__4[];
 extern char               at_1131__3[];
 extern char               at_1132__5[];
 extern char               at_1133__4[];
@@ -1178,7 +1176,7 @@ static int MenuMemoryDivide(mgCMemory *memory, mgCMemory **list, int chara) {
 }
 void MenuMemoryAdjust(mgCMemory *pool, mgCMemory *rest, mgCMemory *buffers, int chara) {
     int        free_blocks = pool->stack_size - pool->stack_used;
-    MemoryList list = at_1083__2;
+    MemoryList list = {{NULL, NULL, NULL, NULL, NULL, NULL, NULL}};
     list.entry[0] = buffers;
     list.entry[1] = buffers + 1;
     list.entry[2] = buffers + 2;
@@ -1190,8 +1188,8 @@ void MenuMemoryAdjust(mgCMemory *pool, mgCMemory *rest, mgCMemory *buffers, int 
     rest->stSetBuffer(buffers->stack + buffers->stack_used + used,
                       free_blocks - used);
 
-    if (strlen(at_1104__4) < 16) {
-        strcpy((char *) rest, at_1104__4);
+    if (strlen("LOAD STACK") < 16) {
+        strcpy((char *) rest, "LOAD STACK");
     }
 
     rest->stack_used = 0;
@@ -7509,7 +7507,6 @@ INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", stand_bit_5472__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", tbl_5848__DATA);
 
 // Constants (.rodata)
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_1104__4__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_1131__3__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_1132__5__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_1133__4__DATA);
@@ -7837,7 +7834,6 @@ CActionChara *MenuActionChara[MENU_CHARA_LOAD_MAX];
 mgCMemory MenuActionCharaBuffer[MENU_CHARA_LOAD_MAX];
 s16 MenuLoadItemNo[MENU_LOAD_ITEM_MAX];
 
-INCLUDE_BSS(at_1083__2, 0x20);
 mgCMemory MenuChangeMemory;
 mgCMemory MenuChangeNpcMemory;
 mgCMemory ChrChangeInitTextureStack;
