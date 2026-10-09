@@ -2657,7 +2657,6 @@ void CMenuTreeMap::MsgInit() {
     }
 }
 
-#ifdef NONMATCHING
 /**
  * Floor-save bits selected by the dungeon map's debug controls.
  */
@@ -2809,13 +2808,13 @@ int CMenuTreeMap::Step() {
                     GLID_INFO *next = NULL;
                     int        dir = -1;
                     if (directions & MENU_SELECT_KEY_UP) {
-                        dir = 0;
+                        dir = GLID_DIR_UP;
                     } else if (directions & MENU_SELECT_KEY_DOWN) {
-                        dir = 1;
+                        dir = GLID_DIR_DOWN;
                     } else if (directions & MENU_SELECT_KEY_LEFT) {
-                        dir = 2;
+                        dir = GLID_DIR_LEFT;
                     } else if (directions & MENU_SELECT_KEY_RIGHT) {
-                        dir = 3;
+                        dir = GLID_DIR_RIGHT;
                     }
                     if (0 <= dir) {
                         next = MenuDngMap->floor_manager->GetKeyNextRoom(select_glid->room.floor_id, dir, old_glid_2833);
@@ -2938,7 +2937,7 @@ int CMenuTreeMap::Step() {
                     } else if (target_save != NULL && !(target_save->flag & DNG_FLOOR_FLAG_OPEN)) {
                         MenuSePlay(MENU_SCRIPT_SOUND_CANCEL);
                     } else if (CheckDngTreeMapFuncType() == DNG_TREE_MAP_FUNC_OTHER && TreeMapCallDungeonSubMap == 1 &&
-                               (MakeDngTreeMapJumpNo(dng_no, NextFloorGlid_2836->room.floor_id, &loop_no, &map_no), MenuMainScene->now_map_no == map_no)) {
+                               (MakeDngTreeMapJumpNo(dng_no, NextFloorGlid_2836->room.floor_id, &loop_no, &map_no), map_no == MenuMainScene->GetNowMapNo())) {
                         MenuSePlay(MENU_SCRIPT_SOUND_CANCEL);
                     } else {
                         selection_changed = 1;
@@ -3304,9 +3303,6 @@ int CMenuTreeMap::Step() {
     }
     return result;
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/dngmenu", Step__12CMenuTreeMapFv);
-#endif
 
 void CMenuTreeMap::Draw() {
     if ((mode & 2) && draw_hidden == 1) {
