@@ -5699,8 +5699,7 @@ void CRepairEffect::Generate(mgCMemory *memory, int particle_count) {
         blocks = (size >> 4);
     }
 
-    particle = (REPAIR_EFFECT_PARTICLE *) operator new[](particle_num * sizeof(REPAIR_EFFECT_PARTICLE),
-                                                         memory->Alloc(blocks + 2));
+    particle = new (memory->Alloc(blocks + 2)) REPAIR_EFFECT_PARTICLE[particle_num];
     i = 0;
 
     for (; i < particle_num; i++) {
@@ -5963,7 +5962,7 @@ void CRepairManager::Generate(int x, int y) {
         memory = (mgCMemory *) (entry + 0x24);
         memory->stack_used = 0;
         memory->lock = 0;
-        this->effect[slot] = (CRepairEffect *) operator new(0x24, memory->Alloc(5));
+        this->effect[slot] = new (memory->Alloc(5)) CRepairEffect;
 
         if ((effect = this->effect[slot]) != NULL) {
             effect->Initialize();
