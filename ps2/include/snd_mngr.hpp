@@ -17,11 +17,17 @@
 
 class mgCMemory;
 class sndCSeSeqData;
-enum SYSTEM_SE {
-    SYSTEM_SE_CURSOR = 0,
-    SYSTEM_SE_DECIDE = 1,
-};
 
+/**
+ *
+ * System sound effects used by menu selections.
+ *
+ */
+enum SYSTEM_SE {
+    SYSTEM_SE_CURSOR = 0, /**< Moves the menu cursor. */
+    SYSTEM_SE_DECIDE = 1, /**< Accepts the current menu selection. */
+    SYSTEM_SE_CANCEL = 5, /**< Cancels or rejects the current menu selection. */
+};
 
 /**
  *

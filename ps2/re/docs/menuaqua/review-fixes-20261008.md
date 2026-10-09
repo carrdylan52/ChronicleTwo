@@ -76,7 +76,8 @@ confirmation prompts `競技開始？`, sets end_code 0x11 and fades toward
 the race, so its name is START_CONFIRM. The unproduced 0x1F handler
 only acknowledges a notice and returns to the main menu; its generic
 ACKNOWLEDGE name claims no unverified prompt. The decision sound uses
-the existing SYSTEM_SE_DECIDE; raw sound 5 has no shared enum value.
+the existing SYSTEM_SE_DECIDE; cancel or rejected selections use
+SYSTEM_SE_CANCEL (value 5).
 
 Enum substitutions preserve the complete PAL image and all 149 objects.
 

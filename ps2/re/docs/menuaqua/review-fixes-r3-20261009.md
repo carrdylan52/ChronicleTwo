@@ -39,3 +39,22 @@ note now uses that precise term. Its guarded block remains unchanged.
 
 Full pinned-image build: `SCES_511.90: OK`; canonical object comparison:
 149/149. Receipts: `.private/fixes-r3b/receipts/aqua-cleanup-{build,objects}.log`.
+
+## S7/S8: shared cancel sound and race-mode documentation
+
+`snd_mngr.hpp` adds `SYSTEM_SE_CANCEL = 5`, the value already named
+`MENU_SCRIPT_SOUND_CANCEL` by the menu script interface. Aquarium and
+saved-race callers use it for cancel buttons, declined confirmations and
+unavailable selections. All direct sound-five calls and `se = 5` assignments
+in this owned unit now use the shared sound ID. The unowned `menucommon.hpp`
+alias can be made explicit with
+`.private/proposals/menu-script-cancel-sound.patch`; it is not edited here.
+
+All 24 currently declared `GyoraceMenuMode` values have purpose comments.
+The review's count of 23 omits the draw-only `LOAD_BOARD` value 0x43, whose
+comment describes the board rendering without claiming an input transition.
+The command enum and the four recently added aquarium header enums follow
+the neighboring trailing-comment alignment. No enum number changes.
+
+The full pinned-image build verifies `SCES_511.90: OK`; all 149 canonical
+objects pass. Receipts: `.private/fixes-r3b/receipts/aqua-enums-{build,objects}.log`.

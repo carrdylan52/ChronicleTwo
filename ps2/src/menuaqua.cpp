@@ -47,30 +47,30 @@ extern float MenuItemBrdUnderBrdPosXY[];
  *
  */
 enum GyoraceMenuMode {
-    GYORACE_MENU_LOAD = 0,
-    GYORACE_MENU_MAIN = 1,
-    GYORACE_MENU_REGISTER_FULL = 2,
-    GYORACE_MENU_START_FADE = 6,
-    GYORACE_MENU_RENAME = 7,
-    GYORACE_MENU_RENAME_FADE = 8,
-    GYORACE_MENU_ASSIGN_FISH = 0xA,
-    GYORACE_MENU_SELECT_TACTICS = 0xB,
-    GYORACE_MENU_TACTICS_RESULT = 0xC,
-    GYORACE_MENU_DELETE_FISH = 0x14,
-    GYORACE_MENU_DELETE_CONFIRM = 0x15,
-    GYORACE_MENU_ALREADY_ASSIGNED = 0x16,
-    GYORACE_MENU_WITHDRAW_CONFIRM = 0x1E,
-    GYORACE_MENU_ACKNOWLEDGE = 0x1F,
-    GYORACE_MENU_VIEW_TACTICS = 0x28,
-    GYORACE_MENU_START_CONFIRM = 0x32,
-    GYORACE_MENU_SAVE_FADE = 0x3C,
-    GYORACE_MENU_SAVE = 0x3D,
-    GYORACE_MENU_RETURN_FROM_SAVE = 0x3E,
-    GYORACE_MENU_LOAD_FISH = 0x3F,
-    GYORACE_MENU_RESET_CONFIRM = 0x40,
-    GYORACE_MENU_ASSIGN_CONFIRM = 0x41,
-    GYORACE_MENU_ASSIGN_RESULT = 0x42,
-    GYORACE_MENU_LOAD_BOARD = 0x43,
+    GYORACE_MENU_LOAD = 0,                /**< Loads fish-race menu resources. */
+    GYORACE_MENU_MAIN = 1,                /**< Chooses a saved fish-race command. */
+    GYORACE_MENU_REGISTER_FULL = 2,       /**< Shows that no further fish can be registered. */
+    GYORACE_MENU_START_FADE = 6,          /**< Waits for the fade into the fish race. */
+    GYORACE_MENU_RENAME = 7,              /**< Runs name entry for a registered fish. */
+    GYORACE_MENU_RENAME_FADE = 8,         /**< Waits for the fade before fish name entry. */
+    GYORACE_MENU_ASSIGN_FISH = 0xA,       /**< Selects a saved fish for an entrant slot. */
+    GYORACE_MENU_SELECT_TACTICS = 0xB,    /**< Chooses the assigned entrant's tactics. */
+    GYORACE_MENU_TACTICS_RESULT = 0xC,    /**< Acknowledges the entrant's selected tactics. */
+    GYORACE_MENU_DELETE_FISH = 0x14,      /**< Selects a saved fish to delete. */
+    GYORACE_MENU_DELETE_CONFIRM = 0x15,   /**< Confirms deletion of the selected saved fish. */
+    GYORACE_MENU_ALREADY_ASSIGNED = 0x16, /**< Shows why an assigned fish cannot be deleted. */
+    GYORACE_MENU_WITHDRAW_CONFIRM = 0x1E, /**< Confirms withdrawal of all assigned entrants. */
+    GYORACE_MENU_ACKNOWLEDGE = 0x1F,      /**< Acknowledges a notice before returning to commands. */
+    GYORACE_MENU_VIEW_TACTICS = 0x28,     /**< Displays the assigned entrants and their tactics. */
+    GYORACE_MENU_START_CONFIRM = 0x32,    /**< Confirms starting the race with the assigned entrants. */
+    GYORACE_MENU_SAVE_FADE = 0x3C,        /**< Waits for the fade before opening the fish-load save menu. */
+    GYORACE_MENU_SAVE = 0x3D,             /**< Runs the save menu to load fish data. */
+    GYORACE_MENU_RETURN_FROM_SAVE = 0x3E, /**< Returns from the save menu and prepares the loaded fish list. */
+    GYORACE_MENU_LOAD_FISH = 0x3F,        /**< Selects a fish from loaded save data for registration. */
+    GYORACE_MENU_RESET_CONFIRM = 0x40,    /**< Confirms leaving fish loading and restoring the menu data. */
+    GYORACE_MENU_ASSIGN_CONFIRM = 0x41,   /**< Confirms registering the fish selected from the loaded save. */
+    GYORACE_MENU_ASSIGN_RESULT = 0x42,    /**< Acknowledges registration of the fish from the loaded save. */
+    GYORACE_MENU_LOAD_BOARD = 0x43,       /**< Draws the board shared by the fish-load screens. */
 };
 
 /**
@@ -80,12 +80,12 @@ enum GyoraceMenuMode {
  */
 enum GyoraceMenuCommand {
     GYORACE_COMMAND_REGISTER = 0, /**< Registers a new saved racer. */
-    GYORACE_COMMAND_SAVE = 1, /**< Opens the save and fish-load menu. */
-    GYORACE_COMMAND_ASSIGN = 2, /**< Assigns a saved fish to a race slot. */
-    GYORACE_COMMAND_DELETE = 3, /**< Deletes a saved fish. */
+    GYORACE_COMMAND_SAVE = 1,     /**< Opens the save and fish-load menu. */
+    GYORACE_COMMAND_ASSIGN = 2,   /**< Assigns a saved fish to a race slot. */
+    GYORACE_COMMAND_DELETE = 3,   /**< Deletes a saved fish. */
     GYORACE_COMMAND_WITHDRAW = 4, /**< Clears the assigned entrants. */
-    GYORACE_COMMAND_TACTICS = 5, /**< Displays the assigned racers and tactics. */
-    GYORACE_COMMAND_START = 6, /**< Starts a race with the assigned entrants. */
+    GYORACE_COMMAND_TACTICS = 5,  /**< Displays the assigned racers and tactics. */
+    GYORACE_COMMAND_START = 6,    /**< Starts a race with the assigned entrants. */
 };
 
 /**
@@ -5327,7 +5327,7 @@ int CAquarium::Step() {
         switch (mode) {
             case AQUARIUM_MODE_VIEW:
                 if (key & MENU_PUSH_BUTTON_CANCEL) {
-                    MenuSePlay(5);
+                    MenuSePlay(SYSTEM_SE_CANCEL);
                     return 1;
                 }
                 if (GamePad__2.Down(PAD_TRIANGLE)) {
@@ -5348,7 +5348,7 @@ int CAquarium::Step() {
                     MenuSePlay(SYSTEM_SE_CURSOR);
                 }
                 if (key & MENU_PUSH_BUTTON_CANCEL) {
-                    MenuSePlay(5);
+                    MenuSePlay(SYSTEM_SE_CANCEL);
                     next = AQUARIUM_MODE_VIEW;
                 } else if (key & MENU_PUSH_BUTTON_DECIDE) {
                     const s8 *ids = &menu_id_tbl_3721[aqua_no * 6];
@@ -5356,7 +5356,7 @@ int CAquarium::Step() {
                     switch (ids[i]) {
                         case 0:
                             if (InitSelFish() != 0) {
-                                MenuSePlay(5);
+                                MenuSePlay(SYSTEM_SE_CANCEL);
                             } else {
                                 next = AQUARIUM_MODE_FISH_INFO;
                                 MenuSePlay(SYSTEM_SE_DECIDE);
@@ -5368,7 +5368,7 @@ int CAquarium::Step() {
                             break;
                         case 2:
                             if (InitSelFish() != 0) {
-                                MenuSePlay(5);
+                                MenuSePlay(SYSTEM_SE_CANCEL);
                             } else {
                                 next = AQUARIUM_MODE_RENAME_GUIDE;
                                 MenuSePlay(SYSTEM_SE_DECIDE);
@@ -5376,7 +5376,7 @@ int CAquarium::Step() {
                             break;
                         case 3:
                             if (InitSelFish() != 0) {
-                                MenuSePlay(5);
+                                MenuSePlay(SYSTEM_SE_CANCEL);
                             } else {
                                 MenuSePlay(SYSTEM_SE_DECIDE);
                                 next = AQUARIUM_MODE_TAKE_OUT;
@@ -5384,7 +5384,7 @@ int CAquarium::Step() {
                             break;
                         case 4:
                             if (InitSelFish() != 0) {
-                                MenuSePlay(5);
+                                MenuSePlay(SYSTEM_SE_CANCEL);
                             } else {
                                 MenuSePlay(SYSTEM_SE_DECIDE);
                                 next = AQUARIUM_MODE_MOVE_SELECT;
@@ -5567,7 +5567,7 @@ int CAquarium::Step() {
                     int item_no = esa_info[i].item_no;
 
                     if (GetUserItemHaveNum(item_no) <= 0) {
-                        MenuSePlay(5);
+                        MenuSePlay(SYSTEM_SE_CANCEL);
                     } else {
                         int size;
 
@@ -5609,7 +5609,7 @@ int CAquarium::Step() {
                     Nameregi_Target.item = fish[sel_fish]->data;
                     if (Nameregi_Target.item != NULL && Nameregi_Target.item->rename_flag != 0) {
                         next = AQUARIUM_MODE_RENAME_BLOCKED;
-                        MenuSePlay(5);
+                        MenuSePlay(SYSTEM_SE_CANCEL);
                     } else {
                         AquaMode = AQUA_MENU_RENAME_FADE_OUT_WAIT;
                         next = AQUARIUM_MODE_TRANSITION_WAIT;
@@ -5621,7 +5621,7 @@ int CAquarium::Step() {
             case AQUARIUM_MODE_RENAME_BLOCKED:
                 if (key != 0) {
                     next = AQUARIUM_MODE_RENAME_SELECT;
-                    MenuSePlay(5);
+                    MenuSePlay(SYSTEM_SE_CANCEL);
                 }
                 break;
             case AQUARIUM_MODE_FOOD_POSITION: {
@@ -5641,7 +5641,7 @@ int CAquarium::Step() {
                 food->SetDropPosition(pos);
                 if (key & MENU_PUSH_BUTTON_CANCEL) {
                     next = AQUARIUM_MODE_FOOD_SELECT;
-                    MenuSePlay(5);
+                    MenuSePlay(SYSTEM_SE_CANCEL);
                 } else if (key & MENU_PUSH_BUTTON_DECIDE) {
                     next = AQUARIUM_MODE_FOOD_WAIT;
                     MenuSePlay(SYSTEM_SE_DECIDE);
@@ -5655,7 +5655,7 @@ int CAquarium::Step() {
 
                     food->GetPosition(pos);
                     if (pos[1] <= 21.6f && ((key & MENU_PUSH_BUTTON_DECIDE) || (key & MENU_PUSH_BUTTON_CANCEL))) {
-                        MenuSePlay(5);
+                        MenuSePlay(SYSTEM_SE_CANCEL);
                         food = NULL;
                     }
                 }
@@ -5679,7 +5679,7 @@ int CAquarium::Step() {
                     if (data->data.fish.flags & 2) {
                         next = AQUARIUM_MODE_TAKE_OUT_INFO;
                         menu->SetInfoMsgID(0x12D);
-                        MenuSePlay(5);
+                        MenuSePlay(SYSTEM_SE_CANCEL);
                     } else {
                         CGameDataUsed *space = user_data->SearchSpaceUsedDataPtr();
 
@@ -5696,7 +5696,7 @@ int CAquarium::Step() {
                         } else {
                             next = AQUARIUM_MODE_TAKE_OUT_INFO;
                             menu->SetInfoMsgID(0x12E);
-                            MenuSePlay(5);
+                            MenuSePlay(SYSTEM_SE_CANCEL);
                         }
                     }
                 }
@@ -5717,11 +5717,11 @@ int CAquarium::Step() {
                     CAquaFish *selected = fish[sel_fish];
 
                     if (selected == NULL) {
-                        MenuSePlay(5);
+                        MenuSePlay(SYSTEM_SE_CANCEL);
                     } else if (selected->data->data.fish.flags & 2) {
                         next = AQUARIUM_MODE_TAKE_OUT_INFO;
                         menu->SetInfoMsgID(0x12D);
-                        MenuSePlay(5);
+                        MenuSePlay(SYSTEM_SE_CANCEL);
                     } else {
                         MenuSePlay(SYSTEM_SE_DECIDE);
                         next = AQUARIUM_MODE_MOVE_TANK_SELECT;
@@ -5747,7 +5747,7 @@ int CAquarium::Step() {
                         if (m_aquarium_para->CheckHaigouTankSex(data) == 0) {
                             next = AQUARIUM_MODE_MOVE_INFO;
                             menu->SetInfoMsgID(data->data.fish.sex + 0x130);
-                            MenuSePlay(5);
+                            MenuSePlay(SYSTEM_SE_CANCEL);
                             break;
                         }
                         if (0 < data->data.fish.breed_feeds_remaining) {
@@ -5757,12 +5757,12 @@ int CAquarium::Step() {
                             info->values[0] = data->data.fish.breed_feeds_remaining;
                             info->value_width[0] = 0;
                             menu->SetInfoMsgID(0x133);
-                            MenuSePlay(5);
+                            MenuSePlay(SYSTEM_SE_CANCEL);
                             break;
                         }
                     }
                     if (space < 0) {
-                        MenuSePlay(5);
+                        MenuSePlay(SYSTEM_SE_CANCEL);
                     } else {
                         data = sel_sift_fish->data;
                         GetAquariumData()->FishIntoAquarium(tank, space, data);
@@ -5779,7 +5779,7 @@ int CAquarium::Step() {
                     }
                 } else if (key & MENU_PUSH_BUTTON_CANCEL) {
                     next = AQUARIUM_MODE_MOVE_SELECT;
-                    MenuSePlay(5);
+                    MenuSePlay(SYSTEM_SE_CANCEL);
                 }
                 break;
             case AQUARIUM_MODE_MOVE_INFO:
@@ -6680,7 +6680,7 @@ int MenuGyoraceFishSelKey() {
 
                 GyoraceFishSelectMode++;
             } else if (button & 2) {
-                MenuSePlay(5);
+                MenuSePlay(SYSTEM_SE_CANCEL);
                 MenuArg.result[1] = 0;
                 GyoraceFish = NULL;
                 MenuArg.result[0] = -1;
@@ -7485,7 +7485,7 @@ int GyoraceMenuKey() {
                             GyoraceQuestionMsgDrawFlag = se;
                             GyoraceMes->cursor_on = 0;
                             GyoraceCFGAnalyze("\x93\x6f\x98\x5e\x95\x73\x89\xc2");
-                            se = 5;
+                            se = SYSTEM_SE_CANCEL;
                         } else {
                             Nameregi_Target.target = 3;
                             local_gdata = &space->fish;
@@ -7511,7 +7511,7 @@ int GyoraceMenuKey() {
                         break;
                     case GYORACE_COMMAND_WITHDRAW:
                         if (racer_num <= 0) {
-                            se = 5;
+                            se = SYSTEM_SE_CANCEL;
                         } else {
                             GyoraceNowMode = GYORACE_MENU_WITHDRAW_CONFIRM;
                             GyoraceQuestionMsgDrawFlag = se;
@@ -7534,7 +7534,7 @@ int GyoraceMenuKey() {
                         break;
                     case GYORACE_COMMAND_START:
                         if (racer_num <= 0) {
-                            se = 5;
+                            se = SYSTEM_SE_CANCEL;
                         } else {
                             GyoraceNowMode = GYORACE_MENU_START_CONFIRM;
                             GyoraceQuestionMsgDrawFlag = se;
@@ -7548,7 +7548,7 @@ int GyoraceMenuKey() {
                 }
                 MenuSePlay(se);
             } else if (button & MENU_PUSH_BUTTON_CANCEL) {
-                MenuSePlay(5);
+                MenuSePlay(SYSTEM_SE_CANCEL);
                 return 2;
             } else if (DebugFlag == 1 && (button & MENU_PUSH_BUTTON_TRIANGLE)) {
                 char debug_name[20] = "AAAAAAAAAAaaaaaaaaa";
@@ -7563,7 +7563,7 @@ int GyoraceMenuKey() {
         case GYORACE_MENU_REGISTER_FULL:
             if (button != 0) {
                 next = GYORACE_MENU_MAIN;
-                MenuSePlay(5);
+                MenuSePlay(SYSTEM_SE_CANCEL);
             }
             break;
         case GYORACE_MENU_RENAME_FADE:
@@ -7595,9 +7595,9 @@ int GyoraceMenuKey() {
                 racer = GyoraceData->GetData(GyoraceFishHaveListSelect.cursor);
                 slot = SearchOmakeGyoracer(-1);
                 if (racer == NULL || slot < 0) {
-                    MenuSePlay(5);
+                    MenuSePlay(SYSTEM_SE_CANCEL);
                 } else if (racer->IsUsed() == 0 || 0 <= CheckSameRacerFish(GyoraceFishHaveListSelect.cursor)) {
-                    MenuSePlay(5);
+                    MenuSePlay(SYSTEM_SE_CANCEL);
                 } else {
                     save_now_space_racer_no = slot;
                     GyoracerIndexNo[slot] = GyoraceFishHaveListSelect.cursor;
@@ -7613,7 +7613,7 @@ int GyoraceMenuKey() {
                 }
             } else if (button & MENU_PUSH_BUTTON_CANCEL) {
                 next = GYORACE_MENU_MAIN;
-                MenuSePlay(5);
+                MenuSePlay(SYSTEM_SE_CANCEL);
             }
             break;
         case GYORACE_MENU_SELECT_TACTICS:
@@ -7634,7 +7634,7 @@ int GyoraceMenuKey() {
                 tactics_mes->SetWindowBgOpaqueFlg(0);
                 GyoraceNowMode = GYORACE_MENU_TACTICS_RESULT;
             } else if (button & MENU_PUSH_BUTTON_CANCEL) {
-                MenuSePlay(5);
+                MenuSePlay(SYSTEM_SE_CANCEL);
                 GyoraceFishTacMesDrawFlag = 0;
                 tactics_mes->SetWindowBgOpaqueFlg(0);
                 GyoraceNowMode = GYORACE_MENU_ASSIGN_FISH;
@@ -7659,9 +7659,9 @@ int GyoraceMenuKey() {
             if (button & MENU_PUSH_BUTTON_DECIDE) {
                 racer = GyoraceData->GetData(GyoraceFishHaveListSelect.cursor);
                 if (racer == NULL) {
-                    MenuSePlay(5);
+                    MenuSePlay(SYSTEM_SE_CANCEL);
                 } else if (racer->IsUsed() == 0) {
-                    MenuSePlay(5);
+                    MenuSePlay(SYSTEM_SE_CANCEL);
                 } else {
                     GyoraceQuestionMsgDrawFlag = 1;
                     name = racer->fish.GetName(0);
@@ -7681,7 +7681,7 @@ int GyoraceMenuKey() {
                 }
             } else if (button & MENU_PUSH_BUTTON_CANCEL) {
                 next = GYORACE_MENU_MAIN;
-                MenuSePlay(5);
+                MenuSePlay(SYSTEM_SE_CANCEL);
             }
             break;
         case GYORACE_MENU_DELETE_CONFIRM: {
@@ -7700,7 +7700,7 @@ int GyoraceMenuKey() {
             if (answer == 2) {
                 GyoraceNowMode = GYORACE_MENU_DELETE_FISH;
                 GyoraceQuestionMsgDrawFlag = 0;
-                MenuSePlay(5);
+                MenuSePlay(SYSTEM_SE_CANCEL);
             }
             break;
         }
@@ -7720,7 +7720,7 @@ int GyoraceMenuKey() {
                 MenuSePlay(SYSTEM_SE_DECIDE);
             }
             if (answer == 2) {
-                MenuSePlay(5);
+                MenuSePlay(SYSTEM_SE_CANCEL);
             }
             if (0 < answer) {
                 next = GYORACE_MENU_MAIN;
@@ -7743,7 +7743,7 @@ int GyoraceMenuKey() {
             }
             if (button & MENU_PUSH_BUTTON_CANCEL) {
                 next = GYORACE_MENU_MAIN;
-                MenuSePlay(5);
+                MenuSePlay(SYSTEM_SE_CANCEL);
             }
             int tactics[1] = {-1};
             if (GyoracerActive != NULL) {
@@ -7765,7 +7765,7 @@ int GyoraceMenuKey() {
             }
             if (answer == 2) {
                 next = GYORACE_MENU_MAIN;
-                MenuSePlay(5);
+                MenuSePlay(SYSTEM_SE_CANCEL);
             }
             break;
         }
@@ -7809,11 +7809,11 @@ int GyoraceMenuKey() {
                 GyoracerActive = item;
                 if (button & MENU_PUSH_BUTTON_CANCEL) {
                     next = GYORACE_MENU_RESET_CONFIRM;
-                    MenuSePlay(5);
+                    MenuSePlay(SYSTEM_SE_CANCEL);
                 } else if (button & MENU_PUSH_BUTTON_DECIDE) {
                     MenuLoadFishSelectData = item;
                     if (GyoraceData->SearchSpaceData(NULL) == NULL || MenuLoadFishSelectData == NULL) {
-                        MenuSePlay(5);
+                        MenuSePlay(SYSTEM_SE_CANCEL);
                     } else {
                         next = GYORACE_MENU_ASSIGN_CONFIRM;
                         MenuSePlay(SYSTEM_SE_DECIDE);
@@ -7849,7 +7849,7 @@ int GyoraceMenuKey() {
                 }
             }
             if (answer == 2) {
-                MenuSePlay(5);
+                MenuSePlay(SYSTEM_SE_CANCEL);
                 if (GyoraceNowMode == GYORACE_MENU_RESET_CONFIRM) {
                     next = GYORACE_MENU_LOAD_FISH;
                 }
