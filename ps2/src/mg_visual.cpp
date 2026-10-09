@@ -560,10 +560,10 @@ int mgCVisualFixMDT::DataAssignMDT(MDT_HEADER *header, mgCMemory *memory,
         cursor = self->CreateFace(cursor, memory, &scratch, &part);
         int address = (int) &memory->stack[memory->stack_used];
         int size = self->CreateFacePacket((u_int *) address, part);
-        ((u_int *) &part->packet_tag)[0] = size | 0x30000000;
-        ((u_int *) &part->packet_tag)[1] = address;
-        ((u_int *) &part->packet_tag)[2] = 0;
-        ((u_int *) &part->packet_tag)[3] = 0;
+        part->packet_tag_word[0] = size | MG_DMA_REF;
+        part->packet_tag_word[1] = address;
+        part->packet_tag_word[2] = 0;
+        part->packet_tag_word[3] = 0;
         memory->Alloc(size);
     }
 
