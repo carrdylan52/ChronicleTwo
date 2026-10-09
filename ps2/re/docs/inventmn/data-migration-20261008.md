@@ -49,5 +49,19 @@ unchanged. Literals used only by frozen drafts remain addressable under
 their retail symbols.
 
 Markers: 138 / 12; matched data: 36 / 18656 bytes. All twenty
-`invent-strings-<step>-build.log` / `-objects.log` receipts in
+`invent-string-<step>-build.log` / `-objects.log` receipts in
 `.private/nminv-r2/` verify PAL OK and 149/149 objects.
+
+## Local aggregate initializers
+
+Sixteen templates now come from their actual local aggregates: recipe
+match flags, record message types, grade rows and gradation steps, cursor
+coordinates, item board positions and names, gift position, blank name,
+card colour, grid overlay codes, and creation/exit message arguments.
+The record-message call uses the aggregate's typed array member.
+The cursor seed is four integers `{10, 10, 0, 0}`, not float data.
+
+Markers: 130 / 4; matched data: 36 / 18656 bytes. Eleven successful
+`invent-templates-<step>-build.log` / `-objects.log` receipts verify PAL OK
+and 149/149 objects. `at_3739` and `at_3765` require a separate scope check;
+`at_2776` and `at_5642` belong to frozen drafts.
