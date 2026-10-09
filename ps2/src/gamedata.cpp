@@ -442,13 +442,19 @@ s8 etcitem_spectol_table[0x352] = {
     1, 2,
 };
 
-/** Allocator for loaded item display names. */
+/**
+ * Allocator for loaded item display names.
+ */
 static mgCMemory *gamedata_build_stack;
 
-/** Common item entry receiving script values. */
+/**
+ * Common item entry receiving script values.
+ */
 static CDataCommon *comdatapt;
 
-/** Number of common item entries parsed. */
+/**
+ * Number of common item entries parsed.
+ */
 static int comdatapt_num;
 
 CDataWeapon *SpiWeaponPt;
@@ -463,42 +469,68 @@ CDataBreedFish *SpiFish;
 
 CGameData GameItemDataManage;
 
-/** Common records for the master item catalog. */
+/**
+ * Common records for the master item catalog.
+ */
 static CDataCommon local_com_itemdata[432];
 
-/** Usable item records loaded from item data scripts. */
+/**
+ * Usable item records loaded from item data scripts.
+ */
 static CDataItem local_itemdata[162];
 
-/** Weapon records loaded from weapon data scripts. */
+/**
+ * Weapon records loaded from weapon data scripts.
+ */
 static CDataWeapon local_weapondata[116];
 
-/** Attachment records loaded from attachment data scripts. */
+/**
+ * Attachment records loaded from attachment data scripts.
+ */
 static CDataAttach local_attachdata[38];
 
-/** Ridepod part records loaded from part data scripts. */
+/**
+ * Ridepod part records loaded from part data scripts.
+ */
 static CDataRoboPart local_robodata[68];
 
-/** Breedable fish records loaded from fish data scripts. */
+/**
+ * Breedable fish records loaded from fish data scripts.
+ */
 static CDataBreedFish local_fishdata[20];
 
-/** Guard values loaded from guard data scripts. */
+/**
+ * Guard values loaded from guard data scripts.
+ */
 static short local_guarddata[35];
 
-/** Lookup from item numbers to common-record indices. */
+/**
+ * Lookup from item numbers to common-record indices.
+ */
 static short local_itemdatano_converttable[512];
 
-/** Storage for loaded item display names. */
+/**
+ * Storage for loaded item display names.
+ */
 static u_long128 gamedata_sysword_buffer_1073[0x280];
 
-/** Scratch buffer for an item model filename. */
+/**
+ * Scratch buffer for an item model filename.
+ */
 static char filename_1267[0x20];
 
-/** Scratch buffer for an item model path. */
+/**
+ * Scratch buffer for an item model path.
+ */
 static char item_file_path_1288[0x80];
 
-/** Message-number bases for the three item message kinds. */
+/**
+ * Message-number bases for the three item message kinds.
+ */
 static short msg_offsettbl_1363[3] = {0, 10000, 0};
-/** Command-message offsets offered for each item command group. */
+/**
+ * Command-message offsets offered for each item command group.
+ */
 static signed char ItemCmdMsgTbl[33][8] = {
     {2, 3, 4, 9, 23, 26, 1, -1},
     {9, 3, 1, -1, 0, 0, 0, 0},
@@ -1074,7 +1106,9 @@ int _DATAGAURD(SPI_STACK *stack, int arg_count) {
     return 1;
 }
 
-/** Item-data script tags and their record loaders. */
+/**
+ * Item-data script tags and their record loaders.
+ */
 static SPI_TAG_PARAM gamedata_tag[25] = {
     {"COMINIT", _DATACOMINIT},
     {"COM", _DATACOM},
@@ -1782,7 +1816,9 @@ int SearchItemByName(char *name) {
     return -1;
 }
 
-/** Ridepod core item numbers in increasing capacity order. */
+/**
+ * Ridepod core item numbers in increasing capacity order.
+ */
 static s16 table_1553[8] = {0xF6, 0xF7, 0xF8, 0xF9, 0xFA, 0xFB, 0xFC, -1};
 
 int GetRidePodCore(int index) {
