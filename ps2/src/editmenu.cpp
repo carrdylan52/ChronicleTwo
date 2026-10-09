@@ -2400,7 +2400,7 @@ int MakeDownLoadAnaunce(int town_no, mgCMemory *stack, int *out_num, int *out_su
                 int dungeon_no = geo_floor / 100;
                 int floor_no = geo_floor % 100;
                 DNG_FLOOR_SAVE *floor = dungeon->GetFloorInfoPtr(dungeon_no, floor_no);
-                int was_open = (signed char)MenuAnalyzeData->data_open[no];
+                int was_open = MenuAnalyzeData->data_open[no];
                 if (floor != NULL && (floor->flag & DNG_FLOOR_FLAG_GEOSTONE_FOUND)) {
                     known = 1;
                     MenuAnalyzeData->data_open[no] = 1;
@@ -2408,7 +2408,7 @@ int MakeDownLoadAnaunce(int town_no, mgCMemory *stack, int *out_num, int *out_su
                     floors[floor_num][1] = floor_no;
                     floor_num++;
                 }
-                if (was_open != (signed char)MenuAnalyzeData->data_open[no]) {
+                if (was_open != MenuAnalyzeData->data_open[no]) {
                     names[MenuGeoStoneDownLoad_PartsNum + MenuGeoStoneDownLoad_Request] = src->message;
                     extras[MenuGeoStoneDownLoad_PartsNum + MenuGeoStoneDownLoad_Request] = 0;
                     MenuGeoStoneDownLoad_Request++;
@@ -2439,7 +2439,7 @@ int MakeDownLoadAnaunce(int town_no, mgCMemory *stack, int *out_num, int *out_su
                 int dungeon_no = geo_floor / 100;
                 int floor_no = geo_floor % 100;
                 DNG_FLOOR_SAVE *floor = dungeon->GetFloorInfoPtr(dungeon_no, floor_no);
-                int was_open = (signed char)MenuAnalyzeData->condition_open[condition];
+                int was_open = MenuAnalyzeData->condition_open[condition];
                 if (floor != NULL && (floor->flag & DNG_FLOOR_FLAG_GEOSTONE_FOUND)) {
                     known = 1;
                     MenuAnalyzeData->condition_open[condition] = 1;
@@ -2447,7 +2447,7 @@ int MakeDownLoadAnaunce(int town_no, mgCMemory *stack, int *out_num, int *out_su
                     floors[floor_num][1] = floor_no;
                     floor_num++;
                 }
-                if (was_open != (signed char)MenuAnalyzeData->condition_open[condition]) {
+                if (was_open != MenuAnalyzeData->condition_open[condition]) {
                     names[MenuGeoStoneDownLoad_PartsNum + MenuGeoStoneDownLoad_Request] = condition_name;
                     extras[MenuGeoStoneDownLoad_PartsNum + MenuGeoStoneDownLoad_Request] = 0;
                     if (town_no == 4) {
@@ -2506,7 +2506,7 @@ int MakeDownLoadAnaunce(int town_no, mgCMemory *stack, int *out_num, int *out_su
             height += *tex_h;
         }
     }
-    if (map_no == 0 && (signed char)MenuAnalyzeData->condition_open[5] != 0) {
+    if (map_no == 0 && MenuAnalyzeData->condition_open[5] != 0) {
         save->SetBitFlag(0x21, 1);
     }
     for (no = 0; no < floor_num; no++) {

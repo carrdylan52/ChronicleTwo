@@ -222,9 +222,9 @@ STATIC_ASSERT(sizeof(EditDataHouse) == 0x10);
  *
  */
 struct EditDataAnalyze {
-    u8 data_open[EDIT_ANALYZE_DATA_MAX];           /**< Non-zero for each request the player has been told about. */
+    s8 data_open[EDIT_ANALYZE_DATA_MAX];           /**< Non-zero for each request the player has been told about. */
     s8 condition[EDIT_ANALYZE_CONDITION_MAX];      /**< Non-zero for each condition the town meets. */
-    u8 condition_open[EDIT_ANALYZE_CONDITION_MAX]; /**< Non-zero for each condition the player has been told about. */
+    s8 condition_open[EDIT_ANALYZE_CONDITION_MAX]; /**< Non-zero for each condition the player has been told about. */
     u8 unk_90[0x40];
 
     /**
