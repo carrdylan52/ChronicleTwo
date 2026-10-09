@@ -514,34 +514,33 @@ int sgInitGyoRace(SubGameInfo *info) {
         }
         int fatigue;
         CGameDataUsed **item = &game_data[racer];
-        grRACE_INFO *entry = &RaceInfo;
-        char *name = entry->fish[racer].name;
+        char *name = RaceInfo.fish[racer].name;
         strcpy(name, (*item)->data.fish.name);
         CGameDataUsed *fish_item = *item;
-        entry->fish[racer].bonus_type = fish_item->data.fish.kind;
-        entry->fish[racer].power = fish_item->data.fish.param[4];
+        RaceInfo.fish[racer].bonus_type = fish_item->data.fish.kind;
+        RaceInfo.fish[racer].power = fish_item->data.fish.param[4];
         BREEDFISH_USED *data = &fish_item->data.fish;
         if (OmakeFlag == 0 && racer == 0) {
             if (race_rank[1] == 0) data->fatigue++;
             fish_item = *item;
             BREEDFISH_USED *stamina_data = &fish_item->data.fish;
             fatigue = (unsigned short)fish_item->data.fish.fatigue;
-            entry->fish[racer].stamina = (int)((float)stamina_data->param[3] - (0.1f * (float)(fatigue - 1) * (float)fish_item->data.fish.param[3]));
+            RaceInfo.fish[racer].stamina = (int)((float)stamina_data->param[3] - (0.1f * (float)(fatigue - 1) * (float)fish_item->data.fish.param[3]));
             printf(at_1377__4__DATA, fatigue);
         } else {
-            entry->fish[racer].stamina = data->param[3];
+            RaceInfo.fish[racer].stamina = data->param[3];
         }
         fish_item = *item;
-        entry->fish[racer].speed[0] = fish_item->data.fish.param[0];
-        entry->fish[racer].speed[1] = fish_item->data.fish.param[1];
-        entry->fish[racer].speed[2] = fish_item->data.fish.param[2];
-        entry->fish[racer].affinity = fish_item->data.fish.color;
-        entry->fish[racer].fish_no = fish_item->item_no;
-        entry->fish[racer].lane = lane;
+        RaceInfo.fish[racer].speed[0] = fish_item->data.fish.param[0];
+        RaceInfo.fish[racer].speed[1] = fish_item->data.fish.param[1];
+        RaceInfo.fish[racer].speed[2] = fish_item->data.fish.param[2];
+        RaceInfo.fish[racer].affinity = fish_item->data.fish.color;
+        RaceInfo.fish[racer].fish_no = fish_item->item_no;
+        RaceInfo.fish[racer].lane = lane;
         fish_inf[racer].lane = lane;
         lane++;
         if (lane >= 6) lane = 0;
-        printf(at_1378__3__DATA, name, entry->fish[racer].tactics);
+        printf(at_1378__3__DATA, name, RaceInfo.fish[racer].tactics);
         racer++;
     } while (racer < 6);
     time_max = grGyoRaceSimulate(&RaceInfo);
