@@ -3726,7 +3726,7 @@ void MakeMsgPartsItemInfo(CDC2Mes *mes, CEditPartsInfo *info, MENUFORM_MAKEBRD_I
         }
     }
 
-    ((ClsMes *) mes)->SetDefColor(0x80686A6B);
+    mes->SetDefColor(0x80686A6B);
     mes->MakeMsg(0x654);
     mes->StepMsg();
 }
