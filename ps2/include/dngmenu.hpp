@@ -291,7 +291,7 @@ public:
      * @address 0x1EC680
      * @size 0xD2C
      */
-    void DrawRoot(mgRect<float> rect, DNGMAP_ROOT_INFO *root, int shadow, unsigned int glid_check, int alpha);
+    void DrawRoot(mgRect<float> rect, DNGMAP_ROOT_INFO *root, int shadow, unsigned int marks, int opacity);
 
     /**
      *
@@ -311,7 +311,7 @@ public:
      * @address 0x1ED4E0
      * @size 0x914
      */
-    void DrawRoomOne(mgRect<float> rect, DNGMAP_ROOM_INFO *room, unsigned int glid_check, int alpha, float bright);
+    void DrawRoomOne(mgRect<float> rect, DNGMAP_ROOM_INFO *room, unsigned int unused, int opacity, float brightness);
 
     /**
      *

@@ -2664,9 +2664,6 @@ void CMenuTreeMap::InitEnd() {
     key_arg_no = 0;
 }
 
-extern short         TreeMapSaveDispY;
-extern unsigned char TreeMapSaveFlag;
-
 void CMenuTreeMap::MsgInit() {
     for (int i = 0; i < DNG_TREE_MAP_MES_MAX; i++) {
         mes[i].SetMessData(mes_data, mes_data);
@@ -3490,7 +3487,6 @@ void DngTreeMapInit(mgCMemory *stack, int *tex_block, int menu_mode, int dng_no)
     names.name[0] = filename;
     MenuCommonReadData(&MenuTreeMapStack, names.name, MENU_FILE_LOAD_BG);
 }
-extern mgCMemory    MenuTreeMapStack;
 
 int DngTreeMapKey() {
     int result = 0;
