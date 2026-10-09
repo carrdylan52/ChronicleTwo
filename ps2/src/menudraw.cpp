@@ -278,9 +278,15 @@ struct board_line_width {
     int width[4]; /**< Widths of the four line segments. */
 } __attribute__((aligned(16)));
 
-extern signed char MenuDrawNumberKeta;
+/**
+ * Selects the number of digit places used by menu number drawing.
+ */
+static signed char MenuDrawNumberKeta;
 
-extern u8 MenuMainFrame_ActionEndFlag;
+/**
+ * Marks completion of the main menu frame movement.
+ */
+static u8 MenuMainFrame_ActionEndFlag;
 
 extern "C" char at_873__4[];
 
@@ -304,17 +310,35 @@ extern "C" char at_1780[];
 
 extern "C" char at_3054[];
 
-extern mgCTexture *Tex_CommonBoard;
+/**
+ * Holds the common creation-board texture.
+ */
+static mgCTexture *Tex_CommonBoard;
 
-extern MENUFORM_MAKEBRD_INFO CommonBoardDrawInfo;
+/**
+ * Holds the material rows and controls drawn on the common creation board.
+ */
+static MENUFORM_MAKEBRD_INFO CommonBoardDrawInfo;
 
-extern short use_trans_rect;
+/**
+ * Selects the source item-icon texture and palette.
+ */
+static short use_trans_rect;
 
-extern float use_item_enable_alpha_angle;
+/**
+ * Tracks the phase of the enabled-item opacity pulse.
+ */
+static float use_item_enable_alpha_angle;
 
-extern int use_item_enable_alpha;
+/**
+ * Holds the current enabled-item opacity.
+ */
+static int use_item_enable_alpha;
 
-extern float *spectol_raster_xtbl;
+/**
+ * Holds horizontal offsets for the spectrum icon raster effect.
+ */
+static float *spectol_raster_xtbl;
 
 extern short MenuWindowHelpTable_1346[36];
 
@@ -322,11 +346,20 @@ extern "C" texture_pair at_1521__2;
 
 extern "C" char at_1622__2[];
 
-extern "C" mgCTexture *Tex_MenuDl;
+/**
+ * Holds the Geostone download panel texture.
+ */
+static mgCTexture *Tex_MenuDl;
 
-extern "C" int MenuDl_TotalSize;
+/**
+ * Holds the total size displayed by the Geostone download panel.
+ */
+static int MenuDl_TotalSize;
 
-extern "C" int MenuDl_ProcessSize;
+/**
+ * Holds the processed size displayed by the Geostone download panel.
+ */
+static int MenuDl_ProcessSize;
 
 extern short basepos_4190[2];
 
@@ -344,9 +377,15 @@ extern MENU_SHORT_RECT table_1650[3][3];
 
 extern u8 rgbatbl_1379[4];
 
-extern float curpos_1393;
+/**
+ * Tracks the interpolated gift-box cursor position.
+ */
+static float curpos_1393;
 
-extern signed char init_1394;
+/**
+ * Marks initialization of the gift-box cursor position.
+ */
+static signed char init_1394;
 
 extern int star_color_table[9];
 
@@ -354,11 +393,20 @@ extern "C" char at_1711[];
 
 extern char *tbl_1689[][2];
 
-extern float MenuMainFrame_LeftTop_Pos[2];
+/**
+ * Holds the top-left position of the main menu frame.
+ */
+static float MenuMainFrame_LeftTop_Pos[2];
 
-extern signed char MainFrameStepFlag_2092;
+/**
+ * Tracks the current main menu frame movement step.
+ */
+static signed char MainFrameStepFlag_2092;
 
-extern signed char init_2093;
+/**
+ * Marks initialization of the main menu frame step.
+ */
+static signed char init_2093;
 
 extern u8 static_rgba_table_3128[4];
 
@@ -394,7 +442,10 @@ extern int paint_color_table_1234[9][4];
 
 extern s8 spectol_y_addtbl_1245[40];
 
-extern float make_object_husoku_number_blink;
+/**
+ * Tracks the missing-material quantity blink phase.
+ */
+static float make_object_husoku_number_blink;
 
 extern board_number_uv at_1788__3;
 
@@ -412,7 +463,10 @@ extern s16 get_onoffbrdtbl_1789[2][3][4];
 
 extern s8 get_btntbl_1810[2][2];
 
-extern float menu_cursor_rotation_angle;
+/**
+ * Tracks the animated menu cursor rotation.
+ */
+static float menu_cursor_rotation_angle;
 
 /**
  *
@@ -435,38 +489,71 @@ static menu_line_origin at_3527;
  */
 static menu_memo_pos at_3531;
 
-extern float putpostbl_3410[8];
+/**
+ * Holds the repeated form-part quadrilateral screen coordinates.
+ */
+static float putpostbl_3410[8];
 
-extern int getpostbl_3411[8];
+/**
+ * Holds the repeated form-part quadrilateral texture coordinates.
+ */
+static int getpostbl_3411[8];
 
 extern u8 menu_prim_tbl[2][2];
 
 static void MenuFrameImageDraw(mgCDrawPrim *prim, mgCTexture *tex, mgRect<float> rect, mgRect<int> tex_rect, int gray,
                                int alpha, int dtype);
 
-extern u8 localrgba_3166[4];
+/**
+ * Holds the item-board icon drawing colour.
+ */
+static u8 localrgba_3166[4];
 
-extern float item_board_counter;
+/**
+ * Tracks the item-board effect animation phase.
+ */
+static float item_board_counter;
 
 extern float rottbl_3145[];
 
-extern short MenuMainFrame_Display_Mode;
+/**
+ * Selects the main menu frame display mode.
+ */
+static short MenuMainFrame_Display_Mode;
 
 extern float tbl_2072[];
 
-extern float MenuMainFrame_Display_Mode_Cnt;
+/**
+ * Tracks the main menu frame display transition.
+ */
+static float MenuMainFrame_Display_Mode_Cnt;
 
-extern float MenuMainFrame_Display_Mode_Cnt_Rate;
+/**
+ * Sets the main menu frame display transition speed.
+ */
+static float MenuMainFrame_Display_Mode_Cnt_Rate;
 
-extern float MenuMainFrame_Lenze_Pos[2];
+/**
+ * Holds the centre of the main menu frame lens.
+ */
+static float MenuMainFrame_Lenze_Pos[2];
 
-extern float MenuMainFrame_MoveRate[2];
+/**
+ * Holds horizontal and vertical main menu frame movement rates.
+ */
+static float MenuMainFrame_MoveRate[2];
 
-extern float MenuMainFrame_MoveRate_Cnt;
+/**
+ * Tracks the main menu frame movement interpolation.
+ */
+static float MenuMainFrame_MoveRate_Cnt;
 
 extern float MenuWakuPutXY[2];
 
-extern float MenuWakuRotCnt;
+/**
+ * Tracks the rotating circular menu frame phase.
+ */
+static float MenuWakuRotCnt;
 
 void SetPartEffectInfoRandFunc(MENU_PARTS_EFFECT_STRUCT1 *effect);
 
@@ -495,65 +582,148 @@ extern waku_edge_pos at_2292;
 
 extern waku_edge_pos at_2303;
 
-extern int MenuItemBrdMaxLine;
+/**
+ * Holds the total number of item-board rows.
+ */
+static int MenuItemBrdMaxLine;
 
-extern int MenuItemBrdViewLine;
+/**
+ * Holds the number of visible item-board rows.
+ */
+static int MenuItemBrdViewLine;
 
-extern float MenuItemBrdScrlCurLen;
+/**
+ * Holds the item-board scroll cursor length.
+ */
+static float MenuItemBrdScrlCurLen;
 
-extern float DrawItemCounter;
+/**
+ * Tracks the item icon animation phase.
+ */
+static float DrawItemCounter;
 
-extern signed char DrawItemDefCounter;
+/**
+ * Selects the current item icon animation frame.
+ */
+static signed char DrawItemDefCounter;
 
-extern float MenuItemBrdScrlBarY;
+/**
+ * Holds the current item-board scroll bar position.
+ */
+static float MenuItemBrdScrlBarY;
+
 extern char  at_4453[];
-extern float MenuItemBrdUnderBrdPosY_Next;
 
-extern mgCTexture *MenuVerticalLineTex;
+/**
+ * Holds the next vertical position of the item-board cells.
+ */
+static float MenuItemBrdUnderBrdPosY_Next;
 
-extern float MenuVerticalLineUpLimmit;
+/**
+ * Holds the weapon build-up line effect texture.
+ */
+static mgCTexture *MenuVerticalLineTex;
 
-extern CEffVerticalLine *MenuVerticalLine;
+/**
+ * Sets the upper limit of the weapon build-up line effect.
+ */
+static float MenuVerticalLineUpLimmit;
 
-extern int MenuVerticalLineNum;
+/**
+ * Holds the weapon build-up line effect particles.
+ */
+static CEffVerticalLine *MenuVerticalLine;
 
-extern int MenuVerticalLineChara;
+/**
+ * Holds the number of weapon build-up line effect particles.
+ */
+static int MenuVerticalLineNum;
 
-extern float MenuVerticalRange;
+/**
+ * Identifies the character followed by the weapon build-up effect.
+ */
+static int MenuVerticalLineChara;
 
-extern float MenuVerticalLineCharaPos[4];
+/**
+ * Holds the vertical range of the weapon build-up line effect.
+ */
+static float MenuVerticalRange;
 
-extern float MenuVerticalLineCharaPos2[4];
+/**
+ * Holds the current character position for weapon build-up effects.
+ */
+static float MenuVerticalLineCharaPos[4];
 
-extern float l_levelup_pos[32][3];
+/**
+ * Holds the secondary character position for weapon build-up effects.
+ */
+static float MenuVerticalLineCharaPos2[4];
 
-extern float l_levelup_vec[32][3];
+/**
+ * Holds the positions of the shared level-up sparks.
+ */
+static float l_levelup_pos[32][3];
 
-extern signed char l_levelup_counter[32];
+/**
+ * Holds the velocities of the shared level-up sparks.
+ */
+static float l_levelup_vec[32][3];
 
-extern signed char l_levelup_generate_counter[32];
+/**
+ * Tracks the lifetime of each shared level-up spark.
+ */
+static signed char l_levelup_counter[32];
+
+/**
+ * Tracks the generation interval of each shared level-up spark.
+ */
+static signed char l_levelup_generate_counter[32];
 
 extern int l_levelup_color[2][4];
 
-extern short fish_boiled_runflag;
+/**
+ * Marks the boiled-fish icon effect as active.
+ */
+static short fish_boiled_runflag;
 
-extern short fish_boiled_count;
+/**
+ * Tracks the boiled-fish icon effect duration.
+ */
+static short fish_boiled_count;
 
-extern float fish_boiled_positin[8][2];
+/**
+ * Holds the positions of the boiled-fish icon effect particles.
+ */
+static float fish_boiled_positin[8][2];
 
-extern float fish_boiled_amp_count[8];
+/**
+ * Tracks the sway phase of each boiled-fish icon effect particle.
+ */
+static float fish_boiled_amp_count[8];
 
-extern float fish_boiled_alpha[8];
+/**
+ * Holds the opacity of each boiled-fish icon effect particle.
+ */
+static float fish_boiled_alpha[8];
 
-extern float fish_boiled_streatch_rate[8];
+/**
+ * Holds the size multiplier of each boiled-fish icon effect particle.
+ */
+static float fish_boiled_streatch_rate[8];
 
-extern int fish_boiled_effect_tex;
+/**
+ * Holds the texture used by the boiled-fish icon effect.
+ */
+static mgCTexture *fish_boiled_effect_tex;
 
 extern menu_effect_preset at_5441;
 
 extern menu_effect_preset at_5450;
 
-extern "C" char temp_3925[32];
+/**
+ * Holds the generated item-icon texture name.
+ */
+static char temp_3925[32];
 
 extern "C" char at_3927[];
 
@@ -616,6 +786,7 @@ void MenuWindowHelp(mgCDrawPrim *prim, mgCTexture *texture, float x, float y, fl
                     short *table);
 
 static void SetMenuDrawNumberKeta(char value);
+
 int         DrawMenuNumber(mgCDrawPrim *prim, int number, int align, mgRect<int> rect, mgRect<int> texture_rect, int step_x,
                            int step_y);
 
@@ -6198,7 +6369,7 @@ void DrawBuildUpInfoEffect() {
 void InitFishBoiledEffect(int *position, mgCTexture *texture) {
     int i;
 
-    fish_boiled_effect_tex = (int) texture;
+    fish_boiled_effect_tex = texture;
     fish_boiled_runflag = 0;
 
     if (position != NULL) {
@@ -6260,7 +6431,7 @@ void DrawFishBoiledEffect() {
     prim = GetMenuPrim();
     SetSpriteEnv(prim, 4);
     prim->Begin(MG_PRIM_SPRITE);
-    prim->Texture((mgCTexture *) fish_boiled_effect_tex);
+    prim->Texture(fish_boiled_effect_tex);
 
     for (i = 0; i < 8; i++) {
         size = 32.0f * fish_boiled_streatch_rate[i];
@@ -7130,192 +7301,257 @@ void PrimQuad_i_(mgCDrawPrim *prim, mgRect_i_ rect, mgRect_i_ tex_rect) {
 
 // Initialised data (.data)
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menudraw", spectol_break_pos__DATA);
+
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menudraw", spectol_break_angle__DATA);
+
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menudraw", item_transtbl__DATA);
+
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menudraw", paint_color_table_1234__DATA);
+
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menudraw", spectol_y_addtbl_1245__DATA);
+
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menudraw", MenuWindowHelpTable_1346__DATA);
+
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menudraw", table_1650__DATA);
+
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menudraw", tbl_1689__DATA);
+
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menudraw", get_onoffbrdtbl_1789__DATA);
+
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menudraw", at_1790__2__DATA);
+
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menudraw", at_1791__DATA);
+
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menudraw", at_1796__DATA);
+
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menudraw", at_1803__2__DATA);
+
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menudraw", at_1814__DATA);
+
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menudraw", at_1999__2__DATA);
+
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menudraw", tbl_2072__DATA);
+
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menudraw", at_2265__DATA);
+
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menudraw", star_color_table__DATA);
+
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menudraw", frmtbl0_2922__DATA);
+
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menudraw", frmtbl1_2938__DATA);
+
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menudraw", at_2949__2__DATA);
+
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menudraw", at_2950__2__DATA);
+
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menudraw", at_2951__2__DATA);
+
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menudraw", rottbl_3145__DATA);
+
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menudraw", baseposoffset_tbl_4194__DATA);
+
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menudraw", actposoffsettbl1_4195__DATA);
+
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menudraw", at_4494__2__DATA);
+
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menudraw", at_4495__DATA);
+
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menudraw", l_levelup_color__DATA);
+
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menudraw", at_5441__DATA);
+
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menudraw", at_5450__DATA);
 
 // Constants (.rodata)
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menudraw", at_873__4__DATA);
+
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menudraw", at_975__3__DATA);
+
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menudraw", at_1622__2__DATA);
+
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menudraw", at_1690__DATA);
+
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menudraw", at_1691__DATA);
+
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menudraw", at_1692__DATA);
+
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menudraw", at_1693__DATA);
+
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menudraw", at_1694__DATA);
+
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menudraw", at_1695__DATA);
+
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menudraw", at_1696__DATA);
+
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menudraw", at_1697__DATA);
+
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menudraw", at_1698__DATA);
+
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menudraw", at_1699__DATA);
+
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menudraw", at_1700__DATA);
+
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menudraw", at_1711__DATA);
+
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menudraw", at_1780__DATA);
+
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menudraw", at_2209__2__DATA);
+
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menudraw", at_2237__DATA);
+
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menudraw", at_3054__DATA);
+
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menudraw", at_3721__DATA);
+
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menudraw", at_3927__DATA);
+
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menudraw", at_4182__DATA);
+
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menudraw", at_4183__DATA);
+
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menudraw", at_4184__DATA);
+
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menudraw", at_4185__2__DATA);
+
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menudraw", at_4186__DATA);
+
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menudraw", at_4453__DATA);
+
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menudraw", at_4522__DATA);
+
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menudraw", at_4877__DATA);
+
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menudraw", at_4888__DATA);
+
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menudraw", at_4889__DATA);
+
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menudraw", at_4890__DATA);
+
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menudraw", at_4933__DATA);
+
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menudraw", at_4934__DATA);
+
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menudraw", at_4935__DATA);
 
 // Small initialised data (.sdata)
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menudraw", rgbatbl_1379__DATA);
+
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menudraw", at_1788__3__DATA);
+
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menudraw", get_btntbl_1810__DATA);
+
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menudraw", at_1998__2__DATA);
+
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menudraw", MenuWakuPutXY__DATA);
+
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menudraw", static_rgba_table_3128__DATA);
+
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menudraw", menu_prim_tbl__DATA);
+
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menudraw", at_3658__DATA);
+
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menudraw", basepos_4190__DATA);
+
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menudraw", farleft_4191__DATA);
+
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menudraw", xyoffset_4192__DATA);
+
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menudraw", actpos_4193__DATA);
+
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menudraw", at_4442__2__DATA);
 
 // Small uninitialised data (.sbss)
-INCLUDE_BSS(use_trans_rect, 0x4);
-INCLUDE_BSS(item_board_counter, 0x4);
-INCLUDE_BSS(MenuDrawItemInfoNum, 0x4);
-INCLUDE_BSS(use_item_enable_alpha_angle, 0x4);
-INCLUDE_BSS(use_item_enable_alpha, 0x4);
-INCLUDE_BSS(spectol_raster_xtbl, 0x4);
-INCLUDE_BSS(DrawItemCounter, 0x4);
-INCLUDE_BSS(DrawItemDefCounter, 0x4);
-INCLUDE_BSS(NowGiftBoxPtr, 0x4);
-INCLUDE_BSS(GiftBoxViewForm, 0x4);
-INCLUDE_BSS(NowGiftBoxSelect, 0x4);
-INCLUDE_BSS(GiftBoxViewFlag, 0x4);
-INCLUDE_BSS(curpos_1393, 0x4);
-INCLUDE_BSS(init_1394, 0x4);
+int MenuDrawItemInfoNum;
+
+CGameDataUsed *NowGiftBoxPtr;
+
+CMenuPosDataForm *GiftBoxViewForm;
+
+int NowGiftBoxSelect;
+
+u8 GiftBoxViewFlag;
+
 INCLUDE_BSS(at_1400__2, 0x8);
-INCLUDE_BSS(MenuDrawNumberKeta, 0x8);
+
 INCLUDE_BSS(at_1521__2, 0x8);
-INCLUDE_BSS(menu_randam_line_draw_postbl, 0x4);
-INCLUDE_BSS(Tex_MenuDl, 0x4);
-INCLUDE_BSS(MenuDl_TotalSize, 0x4);
-INCLUDE_BSS(MenuDl_ProcessSize, 0x4);
-INCLUDE_BSS(Tex_CommonBoard, 0x4);
-INCLUDE_BSS(make_object_husoku_number_blink, 0x4);
+
+int *menu_randam_line_draw_postbl;
+
 INCLUDE_BSS(MenuCursorReverseFlag, 0x4);
-INCLUDE_BSS(menu_cursor_rotation_angle, 0x4);
-INCLUDE_BSS(MenuMainFrame_ActionEndFlag, 0x4);
-INCLUDE_BSS(MenuMainFrame_Display_Mode, 0x4);
-INCLUDE_BSS(MenuMainFrame_Display_Mode_Cnt, 0x4);
-INCLUDE_BSS(MenuMainFrame_Display_Mode_Cnt_Rate, 0x4);
-INCLUDE_BSS(MenuMainFrame_Lenze_Pos, 0x8);
-INCLUDE_BSS(MenuMainFrame_MoveRate, 0x8);
-INCLUDE_BSS(MenuMainFrame_MoveRate_Cnt, 0x8);
-INCLUDE_BSS(MenuMainFrame_LeftTop_Pos, 0x8);
-INCLUDE_BSS(MainFrameStepFlag_2092, 0x4);
-INCLUDE_BSS(init_2093, 0x4);
-INCLUDE_BSS(MenuWakuRotCnt, 0x8);
+
 INCLUDE_BSS(at_2596__2, 0x8);
-INCLUDE_BSS(MenuItemBrdCalcManner, 0x4);
-INCLUDE_BSS(MenuItemBrdMaxLine, 0x4);
-INCLUDE_BSS(MenuItemBrdViewLine, 0x4);
-INCLUDE_BSS(MenuItemBrdScrlCurLen, 0x4);
-INCLUDE_BSS(MenuItemBrdUnderBrdPosY_Next, 0x8);
-INCLUDE_BSS(MenuItemBrdUnderBrdPosXY, 0x8);
-INCLUDE_BSS(MenuItemBrdScrlBarY, 0x4);
-INCLUDE_BSS(localrgba_3166, 0x4);
+
+s8 MenuItemBrdCalcManner;
+
+float MenuItemBrdUnderBrdPosXY[2];
+
 INCLUDE_BSS(at_3325, 0x8);
+
 INCLUDE_BSS(at_3612, 0x8);
+
 INCLUDE_BSS(at_3651, 0x8);
-INCLUDE_BSS(MenuPosData, 0x8);
+
+CMenuPosDataManage *MenuPosData;
+
 INCLUDE_BSS(at_4205, 0x8);
+
 INCLUDE_BSS(at_4526, 0x8);
-INCLUDE_BSS(MenuFrameTex, 0x4);
+
+mgCTexture *MenuFrameTex;
+
 INCLUDE_BSS(at_4727, 0x4);
+
 INCLUDE_BSS(at_4728, 0x4);
+
 INCLUDE_BSS(at_4729, 0x4);
+
 INCLUDE_BSS(at_4730, 0x4);
-INCLUDE_BSS(MenuVerticalLineTex, 0x4);
-INCLUDE_BSS(MenuVerticalLine, 0x4);
-INCLUDE_BSS(MenuVerticalLineNum, 0x4);
-INCLUDE_BSS(MenuVerticalLineUpLimmit, 0x4);
-INCLUDE_BSS(MenuVerticalLineChara, 0x4);
-INCLUDE_BSS(MenuVerticalRange, 0x4);
-INCLUDE_BSS(fish_boiled_count, 0x4);
-INCLUDE_BSS(fish_boiled_runflag, 0x4);
-INCLUDE_BSS(fish_boiled_effect_tex, 0x4);
+
 INCLUDE_BSS(at_5917, 0x4);
 
 // Uninitialised data (.bss)
-INCLUDE_BSS(menu_limmit_displayflag, 0xA0);
-INCLUDE_BSS(MenuMesForm, 0x30);
+u8 menu_limmit_displayflag[0x9C];
+
+CMenuPosDataForm *MenuMesForm[9];
+
 INCLUDE_BSS(at_900__4, 0x10);
-INCLUDE_BSS(MenuDrawItemInfo, 0x260);
+
+CGameDataUsed *MenuDrawItemInfo[150];
+
 mgRect<int> GiftBoxWindowPutPos(0, 0, 0, 0);
-INCLUDE_BSS(Pos_ItemInGiftBox, 0x10);
-INCLUDE_BSS(MakeBoardDrawInfo, 0x20);
-INCLUDE_BSS(CommonBoardDrawInfo, 0x30);
+
+s16 Pos_ItemInGiftBox[3][2];
+
+float MakeBoardDrawInfo[5];
+
 INCLUDE_BSS(at_1720, 0x10);
+
 mgRect<int> menu_long_hand(62, 1, 40, 24);
+
 mgRect<int> MenuMainFrame_PutRect(0, 0, 0, 0);
+
 mgRect<int> MenuMainIMG_PutRect(0, 0, 0, 0);
+
 INCLUDE_BSS(at_2292, 0x10);
+
 INCLUDE_BSS(at_2303, 0x10);
+
 INCLUDE_BSS(at_2395__4, 0x20);
+
 mgRect<int> star_light(0, 32, 8, 8);
+
 mgRect<int> MenuItemBrdKomaRect(32, 32, 40, 50);
+
 mgRect<int> ItemBoardScrlBar1(96, 128, 22, 11);
+
 mgRect<int> ItemBoardScrlBar2(96, 138, 22, 4);
+
 mgRect<int> ItemBoardScrlBar3(96, 140, 22, 12);
+
 mgRect<int> ItemBoardCursor(118, 128, 8, 30);
+
 INCLUDE_BSS(at_2919, 0x30);
+
 INCLUDE_BSS(at_3384, 0x20);
-INCLUDE_BSS(putpostbl_3410, 0x20);
-INCLUDE_BSS(getpostbl_3411, 0x20);
-INCLUDE_BSS(temp_3925, 0x20);
+
 INCLUDE_BSS(at_4496, 0x20);
-INCLUDE_BSS(l_levelup_pos, 0x180);
-INCLUDE_BSS(l_levelup_vec, 0x180);
-INCLUDE_BSS(l_levelup_counter, 0x20);
-INCLUDE_BSS(l_levelup_generate_counter, 0x20);
-INCLUDE_BSS(MenuVerticalLineCharaPos, 0x10);
-INCLUDE_BSS(MenuVerticalLineCharaPos2, 0x10);
-INCLUDE_BSS(fish_boiled_positin, 0x40);
-INCLUDE_BSS(fish_boiled_amp_count, 0x20);
-INCLUDE_BSS(fish_boiled_streatch_rate, 0x20);
-INCLUDE_BSS(fish_boiled_alpha, 0x20);
