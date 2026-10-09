@@ -363,7 +363,7 @@ void MenuManualInit(mgCMemory *memory, int *tex_block, int mode) {
             window->values[item] = number + 1;
             window->value_width[item] = 2;
 
-            if (item >= 0 && item < MES_VALUE_MAX) {
+            if (item >= 0 && item < MES_ITEM_MAX) {
                 window->item_mes[item] = 0x50;
             }
 
@@ -375,11 +375,11 @@ void MenuManualInit(mgCMemory *memory, int *tex_block, int mode) {
             }
 
             if (unlocked != 0 || vtuto != 0) {
-                if (item >= 0 && item < MES_VALUE_MAX) {
+                if (item >= 0 && item < MES_ITEM_MAX) {
                     window->item_mes[item] = number + 0x1194;
                 }
 
-                if ((number == 0x15 || number == 0x16) && item >= 0 && item < 0x14) {
+                if ((number == 0x15 || number == 0x16) && item >= 0 && item < MES_LINE_MAX) {
                     window->line_color[item] = 0x80E0E060;
                 }
             }
