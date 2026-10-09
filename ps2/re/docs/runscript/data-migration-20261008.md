@@ -56,3 +56,23 @@ three unowned objects (`eventedit`, `userdata`, `charasetup`). The existing
 header and float-operand access are retained to preserve their complete
 object hashes. Receipts: `runscript-typed-operands-{build,objects}.log` and
 `runscript-float-operand-unowned.log`, under `.private/dataC-r2/`.
+
+## Declared function extents
+
+The header function-size annotations use the retail ELF's declared
+`STT_FUNC` extents. 14 annotations previously included the alignment
+gap up to the next function and are corrected without changing declarations
+or layouts. The symbol names and addresses remain exact.
+
+## Serialized float operand copy trial
+
+Copying the floating operand's four serialized bytes into a meaningful
+`float constant` local with `memcpy` avoids the cast but expands the stack
+frame and the function from its declared 0x145C bytes to 0x146C. The ensuing
+schedule and branch changes give 980 masked word differences. That trial is
+restored as well; receipts are `.private/dataC-r2/runscript-float-copy-build.log`
+and `runscript-float-copy-word-diff.log`.
+
+Header validation: `.private/dataC-r2/header-extents-final-{build,objects}.log`.
+The complete PAL image, all 149 objects, and every unowned object hash pass.
+The evidence audit is `header-metadata-corrections.json` in the same directory.
