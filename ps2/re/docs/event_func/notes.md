@@ -147,7 +147,7 @@ in the asm across all units (no other base+offset access exists; the addiu users
 | EventLocalFlag | 0x100 | global | `u32[64]` bit flags |
 | EventLocalCnt | 0x100 | global | `int[64]` |
 | EventRain | 0xABF0 | global | CRain (scene.hpp; also used by editloop) |
-| Hit_para | 0x6400 | global | `HIT_EFFECT_PARTICLE[5][0x40]`, one buffer per HitEffect (+0x20 para ptr, +0x2C max 0x40) |
+| Hit_para | 0x6400 | global | `BattleEffectPrim[5][0x40]`, one buffer per HitEffect (+0x20 para ptr, +0x2C max 0x40) |
 | HitEffect | 0x1E0 | global | `CHitEffectImage[5]` (__construct_array 0x60 x5) |
 | PakuAnimName(2), PakuMotionName(2) | 0x40 each | global | char[0x40] |
 | event_snd_buff / event_snd2_buff | 0x8010 / 0x1410 | local | u_long128 buffers for BuffEventSnd(2) |
@@ -165,10 +165,9 @@ in the asm across all units (no other base+offset access exists; the addiu users
 | esa_ext_func_info | 0x18 .data | local | `RS_EXTFUNC_INFO[3]` (argument-script functions, numbers 0..2) |
 | vv_3333 | 0x30 .data | local | function-local static |
 
-`HIT_EFFECT_PARTICLE` (0x50) is not retail-named; layout from dng_effect `CHitEffectImage::
-SethitEffect/Step/DrawSpark/DrawBord`: +0x10 pos, +0x20 dir, +0x30 float (rnd*200+32, never read),
-+0x34 speed, +0x38 slow, +0x3C life, +0x44 alpha, +0x48 alpha step. If dng_effect.hpp later declares
-this particle type, switch to it.
+`Hit_para` holds `BattleEffectPrim` (dng_effect.hpp, 0x50) sparks, the type `HitEffect[n].spark`
+points at: +0x10 pos, +0x20 velocity, +0x34 speed, +0x38 rate, +0x3C life, +0x44 alpha,
++0x48 alpha step.
 
 ## Functions
 - `_OBJS_SYNC_OBJ` and the eight object-sequence delay commands evaluate the slot first and

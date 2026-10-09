@@ -2808,14 +2808,14 @@ void EdEventInit() {
     }
 
     HitEffect[0].live_num = 0;
-    HitEffect[0].spark = (BattleEffectPrim *) Hit_para[0];
+    HitEffect[0].spark = Hit_para[0];
     HitEffect[0].spark_max = hit_spark_num;
-    HitEffect[1].spark = (BattleEffectPrim *) Hit_para[1];
+    HitEffect[1].spark = Hit_para[1];
     SwordEffect = NULL;
-    HitEffect[2].spark = (BattleEffectPrim *) Hit_para[2];
+    HitEffect[2].spark = Hit_para[2];
     EventEffectScript = 0;
-    HitEffect[3].spark = (BattleEffectPrim *) Hit_para[3];
-    HitEffect[4].spark = (BattleEffectPrim *) Hit_para[4];
+    HitEffect[3].spark = Hit_para[3];
+    HitEffect[4].spark = Hit_para[4];
     HitEffect[0].spark_num = 0;
     HitEffect[0].kind = 0;
     HitEffect[1].spark_max = hit_spark_num;
@@ -3107,13 +3107,13 @@ int EdEventFinish() {
     }
 
     HitEffect[0].live_num = 0;
-    HitEffect[0].spark = (BattleEffectPrim *) Hit_para[0];
+    HitEffect[0].spark = Hit_para[0];
     HitEffect[0].spark_max = hit_spark_num;
-    HitEffect[1].spark = (BattleEffectPrim *) Hit_para[1];
+    HitEffect[1].spark = Hit_para[1];
     EventEffectScript = 0;
-    HitEffect[2].spark = (BattleEffectPrim *) Hit_para[2];
-    HitEffect[3].spark = (BattleEffectPrim *) Hit_para[3];
-    HitEffect[4].spark = (BattleEffectPrim *) Hit_para[4];
+    HitEffect[2].spark = Hit_para[2];
+    HitEffect[3].spark = Hit_para[3];
+    HitEffect[4].spark = Hit_para[4];
     HitEffect[0].spark_num = 0;
     HitEffect[0].kind = 0;
     HitEffect[1].spark_max = hit_spark_num;
@@ -3318,14 +3318,14 @@ void EdEventMapInit() {
     InitSphida();
 
     HitEffect[0].live_num = 0;
-    HitEffect[0].spark = (BattleEffectPrim *) Hit_para[0];
+    HitEffect[0].spark = Hit_para[0];
     HitEffect[0].spark_max = hit_spark_num;
     SwordEffect = NULL;
-    HitEffect[1].spark = (BattleEffectPrim *) Hit_para[1];
+    HitEffect[1].spark = Hit_para[1];
     EventEffectScript = 0;
-    HitEffect[2].spark = (BattleEffectPrim *) Hit_para[2];
-    HitEffect[3].spark = (BattleEffectPrim *) Hit_para[3];
-    HitEffect[4].spark = (BattleEffectPrim *) Hit_para[4];
+    HitEffect[2].spark = Hit_para[2];
+    HitEffect[3].spark = Hit_para[3];
+    HitEffect[4].spark = Hit_para[4];
     HitEffect[0].spark_num = 0;
     HitEffect[0].kind = 0;
     HitEffect[1].spark_max = hit_spark_num;
@@ -18134,7 +18134,7 @@ int PakuMotionType;
 
 int PakuMotionType2;
 
-HIT_EFFECT_PARTICLE Hit_para[EVENT_HIT_EFFECT_NUM][EVENT_HIT_PARTICLE_NUM];
+BattleEffectPrim Hit_para[EVENT_HIT_EFFECT_NUM][EVENT_HIT_PARTICLE_NUM];
 
 CHitEffectImage HitEffect[5];
 

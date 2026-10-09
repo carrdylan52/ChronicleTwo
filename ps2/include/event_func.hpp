@@ -1680,27 +1680,6 @@ STATIC_ASSERT(sizeof(CScreenEffect) == 0x4C);
 
 /**
  *
- * One spark of a hit effect, taken from the event's spark buffers.
- *
- */
-struct HIT_EFFECT_PARTICLE {
-    u8            unk_0[0x10];
-    sceVu0FVECTOR pos; /**< Position of the spark. */
-    sceVu0FVECTOR dir; /**< Direction the spark flies in. */
-    float         unk_30;
-    float         speed; /**< Distance the spark flies each frame. */
-    float         slow;  /**< Amount the speed falls each frame. */
-    int           life;  /**< Frames left before the spark disappears. */
-    s32           unk_40;
-    float         alpha;      /**< Opacity of the spark. */
-    float         alpha_step; /**< Amount the opacity falls each frame. */
-    s32           unk_4c;
-};
-
-STATIC_ASSERT(sizeof(HIT_EFFECT_PARTICLE) == 0x50);
-
-/**
- *
  * Number of hit effects an event can show at once.
  *
  */
@@ -1809,7 +1788,7 @@ extern CRain EventRain;
  * Spark buffers of the event's hit effects.
  *
  */
-extern HIT_EFFECT_PARTICLE Hit_para[EVENT_HIT_EFFECT_NUM][EVENT_HIT_PARTICLE_NUM];
+extern BattleEffectPrim Hit_para[EVENT_HIT_EFFECT_NUM][EVENT_HIT_PARTICLE_NUM];
 
 /**
  *
