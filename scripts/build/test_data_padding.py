@@ -155,7 +155,7 @@ class AlignmentFragmentTests(unittest.TestCase):
 
 class DataPaddingTests(unittest.TestCase):
     def run_padding(self, size=12, declared=12, end=16, nobits=True, tail=b"\0" * 4,
-                    terminal=False, section_name=None, placeholder=False, relocations=()):
+                    terminal=False, section_name=None, retail_name=None, placeholder=False, relocations=()):
         section = SimpleNamespace(sh_type=p.SHT_NOBITS if nobits else 1,
                                   sh_size=size, data=b"x" * size,
                                   name=section_name or (".bss" if nobits else ".data"))
@@ -166,9 +166,11 @@ class DataPaddingTests(unittest.TestCase):
         run = [("object", 0, end)]
         if not terminal:
             run.append(("following", end, end + 4))
-        pieces = SimpleNamespace(unit=lambda unit: [(section.name, run)])
+        kind = retail_name or section.name
+        pieces = SimpleNamespace(unit=lambda unit: [(kind, run)])
         retail = SimpleNamespace(bytes=lambda start, end: tail, relocations=dict.fromkeys(relocations, 2))
-        with patch.object(p.disassemble, "Pieces", return_value=pieces), \
+        with patch.object(p.layout, "section_of", return_value=kind), \
+             patch.object(p.disassemble, "Pieces", return_value=pieces), \
              patch.object(p.layout, "Retail", return_value=retail), \
              patch.object(p.layout, "read_symbols", return_value=[(0, "object", declared, False)]):
             placeholders = {1} if placeholder else set()
@@ -196,7 +198,20 @@ class DataPaddingTests(unittest.TestCase):
         self.assertEqual(self.run_padding(end=52, terminal=True), 12)
 
     def test_referenced_boundary_limits_the_bss_piece(self):
-        self.assertEqual(self.run_padding(size=4, declared=4, end=20), 20)
+        rows = [(0x3000, "object", 4, False), (0x3040, "following", 4, False)]
+        lay = SimpleNamespace(sections=lambda unit: [(".bss", 0x3000, 0x3044)])
+        symbols = SimpleNamespace(rows=rows,
+                                  within=lambda lo, hi: [row for row in rows if lo <= row[0] < hi])
+        pieces = p.disassemble.Pieces(lay=lay, symbols=symbols, references=[0x3020])
+        section = SimpleNamespace(name=".bss", sh_type=p.SHT_NOBITS, sh_size=4, data=b"")
+        sym = SimpleNamespace(name="object", type=p.STT_OBJECT, st_value=0,
+                              st_shndx=1, st_size=4)
+        compiled = SimpleNamespace(sections=[None, section], symtab=SimpleNamespace(symbols=[sym]))
+        with patch.object(p.layout, "section_of", return_value=".bss"):
+            p.pad_data(compiled, "unit", set(), pieces=pieces, rows=rows,
+                       retail=SimpleNamespace(relocations={}))
+        self.assertEqual(pieces.unit("unit")[0][1][0], ("object", 0x3000, 0x3020))
+        self.assertEqual(section.sh_size, 0x20)
 
     def test_initialized_tail_must_be_retail_zero(self):
         self.assertEqual(self.run_padding(nobits=False), 16)
@@ -204,6 +219,10 @@ class DataPaddingTests(unittest.TestCase):
 
     def test_terminal_padding_belongs_to_linker(self):
         self.assertEqual(self.run_padding(terminal=True), 12)
+
+    def test_terminal_detection_uses_the_retail_section_kind(self):
+        self.assertEqual(self.run_padding(terminal=True, section_name=".sbss",
+                                          retail_name=".bss"), 12)
 
     def test_initialized_padding_cannot_contain_relocation_fields(self):
         self.assertEqual(self.run_padding(nobits=False, relocations=(12,)), 12)

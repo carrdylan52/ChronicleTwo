@@ -1377,7 +1377,8 @@ def pad_data(elf, unit, placeholders, *, retail=None, pieces=None, rows=None):
             continue
         start, end = cuts[symbol.name]
         section = elf.sections[index]
-        if symbol.name in declared_sizes and (section.name, symbol.name) in trailing:
+        kind = layout.section_of(start)
+        if symbol.name in declared_sizes and (kind, symbol.name) in trailing:
             end = min(end, start + declared_sizes[symbol.name])
         size = section_size(section)
         # Symbol sizes describe the object, whereas section pieces also own
