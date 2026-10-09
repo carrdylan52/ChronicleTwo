@@ -2373,7 +2373,7 @@ int CMemoryCardManager::GetSaveFileInfoFromMc(int index, int *step) {
 
                 int broken = 0;
 
-                if (strcmp((char *) save_buffer, "dc2Ver4") != 0) {
+                if (strcmp(save_buffer->version, "dc2Ver4") != 0) {
                     broken = 1;
                 }
 
