@@ -746,7 +746,18 @@ static int tbl_5848[MENU_CHARA_LOAD_MAX] = {1, 1, 1, 1, 1, 1, 1};
 
 extern CDC2Mes           *MenuDCMsg[9];
 extern char               at_1361[];
-extern s8                 convtbl_4621[][MENU_CHARA_LOAD_MAX];
+/**
+ *
+ * Scene character slot supplied by each party member loading slot.
+ *
+ */
+static s8 convtbl_4621[USER_CHARA_NUM][MENU_CHARA_LOAD_MAX] = {
+    {0, 2, 3, 4, 5, 6, -1},
+    {0, 2, 3, 4, 5, 6, -1},
+    {0, 1, 2, 3, 4, 5, -1},
+    {0, -1, -1, -1, -1, -1, -1}
+};
+
 extern mgCMemory          MenuMonChangeLoadStack;
 /**
  *
@@ -756,7 +767,13 @@ extern mgCMemory          MenuMonChangeLoadStack;
 static MENU_BGREAD_INFO2 *MenuMonsterBGInfo[MENU_CHARA_LOAD_MAX];
 
 extern CharaPathKinds     at_3810;
-extern s8                 pathtbl_3836[2];
+/**
+ *
+ * Character model path category selected by alternate model mode.
+ *
+ */
+static s8 pathtbl_3836[2] = {4, 5};
+
 extern char              *menu_chara_chrtbl[2];
 extern char              *menu_chara_cfg_chrtbl[2];
 extern char              *menu_load_chrpathtbl_3811[];
@@ -5516,7 +5533,13 @@ int MenuItemChrLoadEndCheck(MENU_BGREAD_INFO2 *info, CActionChara *chara, mgCMem
     return 0;
 }
 
-extern s8   convItoPhase_4229[6];
+/**
+ *
+ * Background loading phase associated with each ridepod part.
+ *
+ */
+static s8 convItoPhase_4229[6] = {0, 1, 2, 2, 4, 2};
+
 
 int MenuItemRoboDataLoad(mgCMemory *stack, MENU_BGREAD_INFO2 **info, int restart_read) {
     int i;
@@ -7631,7 +7654,6 @@ INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", menu_infocfgname__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_4327__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", MonsterDataPath__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_4586__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", convtbl_4621__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_4728__2__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_4967__2__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", infomsg_5256__DATA);
@@ -7749,9 +7771,7 @@ INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_2288__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", menu_chara_chrtbl__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", menu_chara_cfg_chrtbl__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_3810__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", pathtbl_3836__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_4158__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", convItoPhase_4229__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", monster_load_id__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", NowReadMainCharaNo__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", NowReadMainCharaMonsterNo__DATA);

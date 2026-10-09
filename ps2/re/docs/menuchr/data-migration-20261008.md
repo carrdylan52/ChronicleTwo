@@ -223,3 +223,14 @@ After this group: **135 / 25 markers**, **4 / 9726 matched_data**.
 Each table passes PAL and 149/149 objects independently; receipts are
 `.private/nmchr-r3/menuchr-costume-tables-00` through `-04`, with
 `-{build,objects,progress,metrics}.log`, and `costume-table-batch.log`.
+
+## Background load index tables
+
+Three native signed-byte tables supply alternate model directory selection,
+six ridepod load phases, and the four-by-seven mapping from party load slots
+to temporary scene character slots. The scene conversion table has a genuine
+28-byte declared payload, including its negative absent-slot sentinels.
+After this group: **132 / 25 markers**, **4 / 9726 matched_data**.
+Each table passes PAL and 149/149 objects independently; receipts are
+`.private/nmchr-r3/menuchr-loading-tables-00` through `-02`, with
+`-{build,objects,progress,metrics}.log`, and `loading-table-batch.log`.
