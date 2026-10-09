@@ -4413,7 +4413,7 @@ int CAquarium::Step() {
                     MenuSePlay(0x13);
                     next = 1;
                 } else if (key & 1) {
-                    int item_no = esa_info[menu->question_cursor].item_no;
+                    int item_no = esa_info[i = menu->question_cursor].item_no;
 
                     if (GetUserItemHaveNum(item_no) <= 0) {
                         MenuSePlay(5);
@@ -4585,7 +4585,7 @@ int CAquarium::Step() {
                     next = 0xA;
                     sel_sift_fish_select = -1;
                 } else if (key & 1) {
-                    int            tank = another_aquarium_Notbl_3642[m_aquarium_para->active_tank][menu->question_cursor];
+                    int            tank = another_aquarium_Notbl_3642[m_aquarium_para->active_tank][i = menu->question_cursor];
                     int            space = m_aquarium_para->SearchAqua1NotUsed(tank);
                     CGameDataUsed *data;
 
@@ -4644,7 +4644,7 @@ int CAquarium::Step() {
                     MenuSePlay(0x13);
                     next = 1;
                 } else if (key & 1) {
-                    m_next_aqua_no = another_aquarium_Notbl_3642[m_aquarium_para->active_tank][menu->question_cursor];
+                    m_next_aqua_no = another_aquarium_Notbl_3642[m_aquarium_para->active_tank][i = menu->question_cursor];
                     AquaMode = 6;
                     mes.menu_cursor = 0;
                     mes.cursor_snap = 1;
