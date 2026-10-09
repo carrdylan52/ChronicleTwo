@@ -55,3 +55,9 @@ Full receipts are `.private/pntc/receipts/promote-twenty-four-build.log` and
 `promote-twenty-four-progress.log` and `promote-twenty-four-coverage.log`.
 The [maintainer proposal](../satansfiddle/placement-new-proposal-20261009.md)
 records the intentional policy rather than claiming a compiler-state repair.
+
+## Current design reference
+
+This dated evidence retains its original measurement scope.
+[The consolidated placement-conversion design](../satansfiddle/placement-new.md) owns the current
+capability, activation rows, safety requirements, and accepted source status.

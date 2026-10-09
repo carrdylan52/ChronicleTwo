@@ -149,3 +149,9 @@ Complete raw receipts and the real-header implicit-constructor sentinel fixture
 are retained in `.private/pntc/mg-dataset-natural/`. This note records a
 capability boundary of the [proposal](../satansfiddle/placement-new-proposal-20261009.md),
 not an accepted source change or a class-3 exclusion.
+
+## Current design reference
+
+This dated evidence retains its original measurement scope.
+[The consolidated placement-conversion design](../satansfiddle/placement-new.md) owns the current
+capability, activation rows, safety requirements, and accepted source status.

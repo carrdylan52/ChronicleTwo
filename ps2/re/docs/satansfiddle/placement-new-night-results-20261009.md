@@ -144,3 +144,9 @@ The app restart cancelled the prior lane around 19:17 EDT, not a coordinator sto
 Finish the broader raw-constructor candidate comparisons and the global identity/state design review, then independently verify their frozen evidence. Keep unowned headers inactive, preserve negatives and stop new work at 06:15 EDT. The final checkpoint will state the stopping HEAD and update the complete commit ledger.
 
 The captured report and 104-commit ledger pass a separate read-only consistency audit:34 actual body/address/timing/count rows, baseline/reuse scopes and diagnostic/test limits agree with owning receipts. Root verifies all 77 audit members under `.private/pntc/night-report-consistency-audit/`. This audit pins the earlier report snapshot; the new native/activation/pn17 paragraphs above are later additions.
+
+## Current design reference
+
+This dated evidence retains its original measurement scope.
+[The consolidated placement-conversion design](placement-new.md) owns the current
+capability, activation rows, safety requirements, and accepted source status.

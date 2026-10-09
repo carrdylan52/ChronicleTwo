@@ -298,3 +298,9 @@ with logs and explicit zero exits, the artifact JSON and
 `.private/pntc/promote33/acceptance.json`. Full mapparts remains 0x2310 bytes /
 264 resolved relocations. The shared annotation's actual-size correction
 remains `.private/proposals/mapparts-assign-body-size.patch`.
+
+## Current design reference
+
+This dated evidence retains its original measurement scope.
+[The consolidated placement-conversion design](../satansfiddle/placement-new.md) owns the current
+capability, activation rows, safety requirements, and accepted source status.

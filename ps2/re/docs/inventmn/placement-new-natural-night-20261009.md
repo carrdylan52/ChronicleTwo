@@ -31,3 +31,9 @@ Receipts are `.private/pntc/inventmn-natural/report.md`, `notes.md`,
 `best/against-clean.patch`, `best/target-diff.txt`, and the
 `outputs/timing-*/count-receipt.json` files. Renamed compiler resource
 literals resolve to the same bytes. No inventmn placement row is committed.
+
+## Current design reference
+
+This dated evidence retains its original measurement scope.
+[The consolidated placement-conversion design](../satansfiddle/placement-new.md) owns the current
+capability, activation rows, safety requirements, and accepted source status.

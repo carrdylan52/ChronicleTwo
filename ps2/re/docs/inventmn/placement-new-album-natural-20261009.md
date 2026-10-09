@@ -243,3 +243,9 @@ acceptance; the result remains guarded and private.
   exact target-only source/profile patches, compiler logs, objects and scores.
 * `live-best/residual-storage-audit.json`, `live-best/data-symbol-audit.json`.
 * `comparisons.json`, command scripts/logs, `final.json`, `receipt-hashes.json`.
+
+## Current design reference
+
+This dated evidence retains its original measurement scope.
+[The consolidated placement-conversion design](../satansfiddle/placement-new.md) owns the current
+capability, activation rows, safety requirements, and accepted source status.

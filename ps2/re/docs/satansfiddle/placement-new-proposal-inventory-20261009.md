@@ -64,3 +64,9 @@ SHA-256 `0bedb5cb91759175e4c0916febe7484cf8e22dfed4099d1ab29e1fc86b3b4e72`.
 The scope table and original evidence are in
 `.private/pntc/final-report-audit/SUMMARY.md`; the root receipt is
 `.private/pntc/receipts/final-report-audit-root-verification.json`.
+
+## Current design reference
+
+This dated evidence retains its original measurement scope.
+[The consolidated placement-conversion design](placement-new.md) owns the current
+capability, activation rows, safety requirements, and accepted source status.

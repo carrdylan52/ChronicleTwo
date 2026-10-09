@@ -122,3 +122,9 @@ remain unchanged, and the initializer remains supplied by assembly. The global
 request4-all alternative remains measured separately in the
 [toolchain proposal](../satansfiddle/placement-new-proposal-20261009.md); this
 study does not replace its recorded whole-build results with a scoped success.
+
+## Current design reference
+
+This dated evidence retains its original measurement scope.
+[The consolidated placement-conversion design](../satansfiddle/placement-new.md) owns the current
+capability, activation rows, safety requirements, and accepted source status.

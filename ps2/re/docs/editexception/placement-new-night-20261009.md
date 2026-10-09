@@ -33,3 +33,9 @@ compiler-state repair; see the [proposal](../satansfiddle/placement-new-proposal
 Receipts: `.private/pntc/receipts/natural-first-cleanups-corrected.log`,
 `promote-eleven-accepted-build.log` and `.exit`,
 `promote-eleven-accepted-objects.log`, and `promote-eleven-accepted-artifacts.json`.
+
+## Current design reference
+
+This dated evidence retains its original measurement scope.
+[The consolidated placement-conversion design](../satansfiddle/placement-new.md) owns the current
+capability, activation rows, safety requirements, and accepted source status.

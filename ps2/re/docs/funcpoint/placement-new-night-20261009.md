@@ -32,3 +32,9 @@ Receipts: `.private/pntc/receipts/promote-first-two-build.log` and `.exit`,
 `promote-first-two-objects.log`, `promote-first-two-artifacts.json`, and
 `semantic12-score-comparison.json`. Source review covers the complete short
 caller, including its failure return and dispatch to the node overload.
+
+## Current design reference
+
+This dated evidence retains its original measurement scope.
+[The consolidated placement-conversion design](../satansfiddle/placement-new.md) owns the current
+capability, activation rows, safety requirements, and accepted source status.

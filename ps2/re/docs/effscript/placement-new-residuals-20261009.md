@@ -44,3 +44,9 @@ type/literal witnesses, all controls, exact residual classification and final
 audits are in `.private/pntc/effscript-setcharacter-natural/`. Its comment-only
 shared-header size correction and scoped row stay private. No approximate
 source or profile row is promoted.
+
+## Current design reference
+
+This dated evidence retains its original measurement scope.
+[The consolidated placement-conversion design](../satansfiddle/placement-new.md) owns the current
+capability, activation rows, safety requirements, and accepted source status.

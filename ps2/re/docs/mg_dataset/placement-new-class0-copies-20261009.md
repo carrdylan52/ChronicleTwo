@@ -79,3 +79,9 @@ full/image build is claimed or run. The coordinator owns any production
 application and final acceptance.
 
 Root independently verifies all 111 frozen artifact hashes/sizes. Exact coordinator copies are `.private/proposals/mg-dataset-local-copy-helper-bindings.patch` and the unowned comment-only `.private/proposals/mg-frame-constructor-body-size.patch`.
+
+## Current design reference
+
+This dated evidence retains its original measurement scope.
+[The consolidated placement-conversion design](../satansfiddle/placement-new.md) owns the current
+capability, activation rows, safety requirements, and accepted source status.

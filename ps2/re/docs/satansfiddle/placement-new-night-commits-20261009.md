@@ -108,3 +108,9 @@ Checkpoint at `1aabbcf7f15e2e0a5efa9acca829e046835f155d`: 104 commits after test
 | `0a0231d7c6fa29ec7610d1287104428db80c9486` | Correct frozen proposal inventory identity label |
 | `0d2727c82c640be5746e450606474a7f578b480f` | Record complete private Costume header impact |
 | `1aabbcf7f15e2e0a5efa9acca829e046835f155d` | Record final clean placement family acceptance |
+
+## Current design reference
+
+This dated evidence retains its original measurement scope.
+[The consolidated placement-conversion design](placement-new.md) owns the current
+capability, activation rows, safety requirements, and accepted source status.

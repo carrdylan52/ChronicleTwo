@@ -83,3 +83,9 @@ best-frozen.json and ARTIFACTS.json. The new typed source and paired cleanup
 header/source diffs remain private, with both matching assembly fallbacks.
 
 Root independently verifies all 132 frozen artifacts. The source/header cleanup stays private until the generated-member boundary and complete hygiene are satisfied.
+
+## Current design reference
+
+This dated evidence retains its original measurement scope.
+[The consolidated placement-conversion design](../satansfiddle/placement-new.md) owns the current
+capability, activation rows, safety requirements, and accepted source status.

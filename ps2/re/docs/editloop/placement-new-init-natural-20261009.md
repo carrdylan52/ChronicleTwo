@@ -181,3 +181,9 @@ stopped before any compiler ran. No tracked source, shared header, active
 profile, image, generated build, commit or network mutation occurred.
 
 Root independently verifies all 238 file hashes and 160 symlink targets. Exact coordinator copies are `.private/proposals/editloop-inline-map-treasure-box.patch` (the paired shared-header/existing-definition move), `editloop-init-natural-source.patch`, `editloop-init-natural-profile.patch`, `editloop-init-source-only-hygiene.patch`, and `editloop-init-source-only-effect-profile.patch`. All remain private; the nonzero candidate is not activated.
+
+## Current design reference
+
+This dated evidence retains its original measurement scope.
+[The consolidated placement-conversion design](../satansfiddle/placement-new.md) owns the current
+capability, activation rows, safety requirements, and accepted source status.

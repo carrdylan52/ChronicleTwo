@@ -185,3 +185,9 @@ diff logs, and each array candidate's `data-symbol-audit.json`.
 An inspection/scratch-path incident is recorded separately in
 `inspection-ledger.md`; no reserved dungeon file was inspected in this
 task and no existing or tracked file was altered by that incident.
+
+## Current design reference
+
+This dated evidence retains its original measurement scope.
+[The consolidated placement-conversion design](../satansfiddle/placement-new.md) owns the current
+capability, activation rows, safety requirements, and accepted source status.

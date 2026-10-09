@@ -52,3 +52,9 @@ preparation removed a same-named local in an unrelated function and failed;
 its stopped batch is preserved separately, and every subsequent edit is
 restricted to this factory. That failure is not a compiler matching result.
 The private one-word source and selector remain uncommitted.
+
+## Current design reference
+
+This dated evidence retains its original measurement scope.
+[The consolidated placement-conversion design](../satansfiddle/placement-new.md) owns the current
+capability, activation rows, safety requirements, and accepted source status.

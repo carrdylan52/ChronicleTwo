@@ -279,3 +279,9 @@ with logs/explicit zero exits, artifact JSON and
 accepted executable and image facts are in `promote34/SCES_511.90` and
 `image-snapshot.json`. The unowned actual-body annotation correction remains
 `.private/proposals/mapparts-copy-body-size.patch`; it is comment-only.
+
+## Current design reference
+
+This dated evidence retains its original measurement scope.
+[The consolidated placement-conversion design](../satansfiddle/placement-new.md) owns the current
+capability, activation rows, safety requirements, and accepted source status.

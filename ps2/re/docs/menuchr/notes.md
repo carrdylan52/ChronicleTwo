@@ -1,20 +1,21 @@
 # menuchr: reverse-engineering notes
 
-The matching build uses retail gaps for the C++ drafts still guarded by
-`NONMATCHING`, including `CMenuChrCngMenu::LoadBGNPCModel`,
-`MenuCharaChangeInit`, `CMenuCostumeSel::LoadMenuData`,
-and `CMosBookMenu::KeyStep`. The current source also keeps gaps for
-`EnterDataMenu`, `KeyChangeMain`,
-`MenuCharaChangeStarDraw`, `CMenuMosSelect::KeyStep`,
-`MenuItemCharaDataLoadEndCheckAfter`,
-`CMenuCostumeSel::Draw` and `MenuCostumeInit`.
-Only unguarded functions are active C++ decompilations. `MenuMemoryDivide` and
-`CMosBookMenu::Draw` are native, including their capacity and drawing tables.
-The complete unit passes canonical verification. The merged October 8
-Satan's Fiddle base has independent PAL `.text` mismatches in `nd_meswin`
-and `actscript`. The current scores, retained drafts, and receipts are in
-[mid-day round-one assessment](midday-r1-assessment.md); the dated older assessments below
-record their earlier baselines.
+`CMenuChrCngMenu::LoadBGNPCModel`, `CMenuCostumeSel::LoadMenuData` and
+`CMosBookMenu::KeyStep` are native C++ with three expected-one after-inline
+`CActionChara` rows. Complete-object and PAL verification pass; see
+[placement conversion](../satansfiddle/placement-new.md). `MenuMemoryDivide`
+and `CMosBookMenu::Draw` are already native with their capacity and drawing tables.
+
+Eight functions still use `NONMATCHING` assembly fallbacks: `EnterDataMenu`,
+`KeyChangeMain`, `MenuCharaChangeStarDraw`, `MenuCharaChangeInit`,
+`CMenuMosSelect::KeyStep`, `MenuItemCharaDataLoadEndCheckAfter`,
+`CMenuCostumeSel::Draw` and `MenuCostumeInit`. A private shared-header zero for
+`MenuCostumeInit` does not activate that guarded caller.
+
+An earlier October 8 Satan's Fiddle snapshot had independent PAL `.text`
+mismatches in `nd_meswin` and `actscript`. The
+[mid-day round-one assessment](midday-r1-assessment.md) and dated assessments
+below preserve those earlier source/profile measurements.
 
 `MonsterBookDraw` draws the book, then draws a debug label when
 `menu_debug_flag` is set. The retail float register setup for
@@ -49,11 +50,11 @@ argument as `float(16.0)` produces the retail register order, so this function
 now matches as C++, including the complete object and isolated linked image.
 
 
-`CMenuChrCngMenu::LoadBGNPCModel` has a native placement-new draft whose
-compiled body differs in only two instructions: retail branches on the
-allocation result in `v0` and moves it to `s1` in the delay slot, while MWCC
-currently moves first and branches on `s1`. Named locals, assignment chaining,
-parenthesized new expressions, and a same-type cast retain that difference.
+Before placement conversion, `CMenuChrCngMenu::LoadBGNPCModel` had a native
+draft differing in only two instructions: retail branched on allocation result
+`v0` and copied to `s1` in the delay slot, while the draft copied first and
+branched on `s1`. Named locals, assignment chaining, parenthesized new expressions
+and a same-type cast retained that difference. The current row resolves it.
 `MenuMemoryDivide` partitions aligned quadword storage with typed table and
 buffer indexing; its native function, capacity tables, and stack-name literal
 match retail. See [memory partitioning](midday-memory.md).
@@ -61,8 +62,9 @@ match retail. See [memory partitioning](midday-memory.md).
 `CMosBookMenu::Draw` preserves the explicit panel, heading, model, digit, and
 font sequence and matches with its six native drawing tables; see
 [monster-book drawing](midday-book.md).
-`CMenuCostumeSel::LoadMenuData` and `CMosBookMenu::KeyStep` each differ by
-the same two placement-new branch/move instructions as `LoadBGNPCModel`.
+Before their placement rows, `CMenuCostumeSel::LoadMenuData` and
+`CMosBookMenu::KeyStep` each differed by the same two branch/move instructions
+as `LoadBGNPCModel`. Both current bodies are accepted native C++.
 `MenuItemCharaDataLoadEndCheckAfter` differs by two instructions in the
 inlined `CScene` constructor: the address argument for `CMdsListSet::Initialize`
 is prepared before the call in the draft and in the call delay slot in retail.
@@ -145,12 +147,13 @@ that offsets 0x124/0x128 are `enable_change`/`party_member`, 0x140 is `form`, an
 are the NPC and message fields in `menuchr.hpp`. The draft compiles but differs from retail.
 
 ### CMosBookMenu (0x980)
-- Its guarded `Draw` draft draws the scrolling background, layered panels, attribute icons,
+- Its native `Draw` draws the scrolling background, layered panels, attribute icons,
   monster model, three numeric stats and the monster's names and item drops. The model is clipped
   to the central panel after load phase 4 and 17 frames of display. The list counter at offset
   0x7E8 supplies the final page indicator; m2c mislabels it as `abs`. The `ic_5580` table has
   seven entries although the retail loop tests eight attribute bits, so the last bit reads the
-  alignment bytes before `line_5595`. The draft compiles but differs from retail.
+  alignment bytes before `line_5595`. An earlier guarded draft compiled but differed;
+  the current drawing body and tables pass complete-unit verification.
 - Size: `__nw__FUiP1(0x980, ...)` in `MonsterBookInit`; instance in `MonsterBookPtr` /
   `MenuMosBookPtr`.
 - Inline ctor: `mgCCamera(8.0f)` at 0x110 (0x70 -> 0x180), `mgCMemory` Init at 0x184, zeroes
@@ -307,10 +310,11 @@ offset zero). The palette overlay's substructure is named `palette`, exposing
 constructor clear. These names repair compilation of all eighteen original
 drafts; the nested switch in `KeyChangeMain` itself was well formed.
 
-`MenuMemoryDivide` uses typed quadword-array indexing for its buffer movement.
-This preserves the existing 18-word register-allocation difference. Moving
-the buffer declaration before alignment and reversing the explicit rounding
-addition operands do not correct the allocation.
+An earlier `MenuMemoryDivide` draft used typed quadword-array indexing for
+buffer movement and retained an 18-word register-allocation difference. Moving
+the buffer declaration before alignment or reversing explicit rounding-addition
+operands did not correct that draft. The later native function and its capacity
+tables are documented in [memory partitioning](midday-memory.md).
 
 The guarded `EnterDataMenu` draft uses the texture block loaded from base
 menu offset 0x18 for texture registration, repair setup, and reload. Its

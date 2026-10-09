@@ -38,3 +38,9 @@ matched / 89 guarded / 10 assembly-only / 0 fuzzy. Full receipts are
 `promote-twenty-four-progress.log`, and `promote-twenty-four-coverage.log`.
 The [toolchain proposal](../satansfiddle/placement-new-proposal-20261009.md)
 states the intentional policy and its evidence limits.
+
+## Current design reference
+
+This dated evidence retains its original measurement scope.
+[The consolidated placement-conversion design](../satansfiddle/placement-new.md) owns the current
+capability, activation rows, safety requirements, and accepted source status.

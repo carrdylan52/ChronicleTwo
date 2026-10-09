@@ -86,3 +86,9 @@ frozen handoff's commit directives: SF rows belong in their own row-first
 commit, followed by per-unit/topic source commits. Semantic acceptance still
 covers the complete combination and coupled header/body changes. The
 original composition and activation manifests remain unchanged.
+
+## Current design reference
+
+This dated evidence retains its original measurement scope.
+[The consolidated placement-conversion design](placement-new.md) owns the current
+capability, activation rows, safety requirements, and accepted source status.

@@ -54,3 +54,9 @@ unchanged. The already matched title drawing function remains zero. Exact
 specimens, type/constructor witnesses, residual classification, input hashes
 and all twenty-three objects are under `.private/pntc/title-boot-natural/`.
 No guarded-only row or approximate source is activated.
+
+## Current design reference
+
+This dated evidence retains its original measurement scope.
+[The consolidated placement-conversion design](../satansfiddle/placement-new.md) owns the current
+capability, activation rows, safety requirements, and accepted source status.

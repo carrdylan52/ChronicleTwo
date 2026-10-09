@@ -43,3 +43,9 @@ Full specimen, measured matrix, calibrated backend evidence, type audit and
 `.private/pntc/event-esm-natural/resume-pn15/`; the report entry point is
 `.private/pntc/event-esm-natural/SUMMARY.md`. The already accepted `_COPY_CHARA`
 promotion remains independent and unchanged.
+
+## Current design reference
+
+This dated evidence retains its original measurement scope.
+[The consolidated placement-conversion design](../satansfiddle/placement-new.md) owns the current
+capability, activation rows, safety requirements, and accepted source status.

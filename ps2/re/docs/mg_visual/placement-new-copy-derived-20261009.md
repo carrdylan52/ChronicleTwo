@@ -110,3 +110,9 @@ regular frozen files. The
 owns the distinct baselines, composite 36-row/46-site evidence and receipts.
 These are private shared-header checks; production remains 34 accepted
 callers and neither visual Copy guard is removed in canonical source.
+
+## Current design reference
+
+This dated evidence retains its original measurement scope.
+[The consolidated placement-conversion design](../satansfiddle/placement-new.md) owns the current
+capability, activation rows, safety requirements, and accepted source status.

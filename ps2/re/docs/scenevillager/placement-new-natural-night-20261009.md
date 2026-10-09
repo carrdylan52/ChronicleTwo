@@ -73,3 +73,9 @@ objects, scores, diffs and nonselected audits are under
 `.private/pntc/scenevillager-onoff-natural/`. The fresh decompiler receipt is
 `.private/pntc/receipts/scenevillager-onoff-m2c.log`. No accepted natural zero
 is established and no production selector is proposed.
+
+## Current design reference
+
+This dated evidence retains its original measurement scope.
+[The consolidated placement-conversion design](../satansfiddle/placement-new.md) owns the current
+capability, activation rows, safety requirements, and accepted source status.

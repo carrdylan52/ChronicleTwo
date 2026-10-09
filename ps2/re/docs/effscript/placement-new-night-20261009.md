@@ -39,3 +39,9 @@ Receipts: `.private/pntc/receipts/natural-first-cleanups-corrected.log`,
 `promote-eleven-accepted-build.log` and `.exit`,
 `promote-eleven-accepted-objects.log`, and `promote-eleven-accepted-artifacts.json`.
 This note supersedes the earlier guarded status of these two callers only.
+
+## Current design reference
+
+This dated evidence retains its original measurement scope.
+[The consolidated placement-conversion design](../satansfiddle/placement-new.md) owns the current
+capability, activation rows, safety requirements, and accepted source status.

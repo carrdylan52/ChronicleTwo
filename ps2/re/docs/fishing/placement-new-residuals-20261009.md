@@ -41,3 +41,9 @@ classification and final nonselected audits are under
 `.private/pntc/fishing-success-natural/resume-pn15/`. Its incident record
 discloses one overbroad read-only header search; no reserved header was edited.
 The private construction row remains uncommitted because no zero is found.
+
+## Current design reference
+
+This dated evidence retains its original measurement scope.
+[The consolidated placement-conversion design](../satansfiddle/placement-new.md) owns the current
+capability, activation rows, safety requirements, and accepted source status.

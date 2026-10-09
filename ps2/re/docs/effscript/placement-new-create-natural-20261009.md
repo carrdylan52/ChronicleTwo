@@ -144,3 +144,9 @@ used a nonexistent enum spelling; its source and compiler rejection remain in
 `at_1340__2/` and are excluded from valid results. The corrected natural case
 uses the existing `EFF_SPT_STATE_RUN`. These harness failures are not source
 matching leads or native scores.
+
+## Current design reference
+
+This dated evidence retains its original measurement scope.
+[The consolidated placement-conversion design](../satansfiddle/placement-new.md) owns the current
+capability, activation rows, safety requirements, and accepted source status.

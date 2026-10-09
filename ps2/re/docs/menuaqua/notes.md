@@ -1,14 +1,15 @@
 # menuaqua: reverse-engineering notes
 
-`CAquarium::Draw` draws the fish, aquarium frames, bubbles, water reflection,
-and menu overlays in retail order. Its native body is exact.
-`CAquarium::SettingAqua` still uses a retail assembly gap.
-`GyoraceMenuDraw` is native and exact.
-The `SettingAqua` draft constructs its `love_chara` member as a `CCharacter2`.
+`CAquarium::SettingAqua` is accepted native C++ with one scoped placement row
+for its `CCharacter2` love model and two 47.0f argument rows for bubble
+initialization and object positioning. See
+[placement conversion](../satansfiddle/placement-new.md).
 
-`DrawFishParam`, `CAquarium::ColCheck`,
-`CAquarium::Step` retains a `NONMATCHING` draft with a retail `INCLUDE_ASM`
-fallback. `GyoraceMenuKey` is native and exact.
+`CAquarium::Draw` draws the fish, aquarium frames, bubbles, water reflection,
+and menu overlays in retail order. It, `GyoraceMenuDraw`, and `GyoraceMenuKey`
+are native and exact. Three guarded functions remain: `DrawFishParam`,
+`CAquarium::ColCheck`, and `CAquarium::Step`; the normal build uses their retail
+`INCLUDE_ASM` bodies.
 
 `CAquaFish::SetAdjustScale` (0x20F0E0, size 0x8C) is native and exact. It
 computes a size-dependent scale, applies it to all three axes, and derives the
@@ -289,13 +290,19 @@ Giving the fish, obstacle, and effect-clear loops distinct local indices scores 
 ColCheck (366 matching instructions, 80 argument mismatches); the whole unit still has the single
 ColCheck byte mismatch. This improves on the declaration-position swap but remains below baseline.
 
+## Earlier SettingAqua measurement
+
+Before the scoped conversion and floating-argument rows, `SettingAqua__9CAquariumFv`
+differed in **2/752 words**, with **0xBB4** compiled bytes in retail's **0xBC0**
+extent. At **+0xA00/+0xA04**, retail branched on `v0` and copied to `s3` in the
+delay slot; that earlier MWCC form copied first and branched on `s3`. The
+placement-new stop rule kept that source/profile baseline guarded. The current
+caller is native.
+
 ## Remaining guarded-function measurements
 
-- `SettingAqua__9CAquariumFv`: **2/752 words**, compiled **0xBB4**, retail extent
-  **0xBC0**. At **+0xA00/+0xA04**, placement new for `CCharacter2` branches on
-  `v0` and copies it to `s3` in the retail delay slot. MWCC instead copies first
-  and branches on `s3`. Parked under the placement-new stop rule; reconsider
-  when the dedicated constructor/null-branch lane supplies a natural solution.
+The following negative results describe the earlier measured drafts of the
+three functions that remain guarded.
 
 - `ColCheck__9CAquariumFi`: **60/448 words**, compiled **0x6F8**, retail extent
   **0x700**. The differing instructions exchange `s2` and `s3`: retail holds

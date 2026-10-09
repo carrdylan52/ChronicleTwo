@@ -189,3 +189,9 @@ four-slot message array and signed ability count preserved.
 The normalized coordinator copy is `.private/proposals/menuchr-enter-data-natural-source.patch`; the selected eleven-word function remains guarded and no production row is proposed.
 
 Root independently verifies all 30 entries in the frozen artifact-hash manifest.
+
+## Current design reference
+
+This dated evidence retains its original measurement scope.
+[The consolidated placement-conversion design](../satansfiddle/placement-new.md) owns the current
+capability, activation rows, safety requirements, and accepted source status.

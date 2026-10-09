@@ -1,9 +1,13 @@
 # fishing: reverse-engineering notes
 
-`sgRestartFishing`, `StepDataLoading`, and `InitSuccess` allocate `CCharacter2`
-objects for bait, rod, cursor, and caught-fish models. Their C++ drafts use the
-class constructor. The retail assembly remains active until those constructor
-call sites match byte for byte.
+`sgRestartFishing` and `StepDataLoading` are accepted native C++ callers with
+one and seven scoped `CCharacter2` placement sites respectively. The worker
+retains its retail LOCAL binding. See
+[placement conversion](../satansfiddle/placement-new.md).
+
+`InitSuccess` is the unit's only remaining guarded function. Its caught-fish
+allocation uses a natural `CCharacter2` constructor in the C++ draft; the normal
+build selects retail assembly for that function.
 
 Header: `ps2/include/fishing.hpp`. No first-game counterpart: Dark Cloud's `fishing.hpp`/`fish.hpp`
 (CFish, CCharacter Rod, line points) is a different design; nothing was carried over.

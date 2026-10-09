@@ -78,3 +78,9 @@ GLOBAL function size and all four LOCAL initializer templates, each 0x10
 bytes including the count array’s linker padding.
 The [toolchain proposal](../satansfiddle/placement-new-proposal-20261009.md)
 records the policy and its evidence limits.
+
+## Current design reference
+
+This dated evidence retains its original measurement scope.
+[The consolidated placement-conversion design](../satansfiddle/placement-new.md) owns the current
+capability, activation rows, safety requirements, and accepted source status.

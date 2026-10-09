@@ -99,3 +99,9 @@ Coordinator copies of the three exact shared-header diffs are
 pass `git apply --check` against the current tree. The functional rectangle
 initializer is necessary for this private result; the other two change only
 symbol-size documentation. Shared headers and production31 remain unchanged.
+
+## Current design reference
+
+This dated evidence retains its original measurement scope.
+[The consolidated placement-conversion design](../satansfiddle/placement-new.md) owns the current
+capability, activation rows, safety requirements, and accepted source status.

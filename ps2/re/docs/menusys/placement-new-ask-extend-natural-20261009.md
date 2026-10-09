@@ -96,3 +96,9 @@ The coordinator copy is
 current tree. The original diff requires `git apply -p0 --check`; the initial
 root default-strip path failure and corrected checks are preserved under the
 study directory. These are reviewable diagnostic proposals, not promotions.
+
+## Current design reference
+
+This dated evidence retains its original measurement scope.
+[The consolidated placement-conversion design](../satansfiddle/placement-new.md) owns the current
+capability, activation rows, safety requirements, and accepted source status.

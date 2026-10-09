@@ -199,3 +199,9 @@ The earlier request4 accepted-build snapshot at 2026-10-08T21:30:02.552532+00:00
 That was a full build with the original guards selecting retail assembly. No full build or promotion validation is claimed for constructors4, headers11 or headers-request11. This extension compares complete native all-drafts corpora, and preserves the previous assembled proof with its original timestamp instead of sampling an unrelated in-progress parent build.
 
 Private JSON includes full object SHA-256 maps for all seven corpora; section differences; every changed score/lost-zero/new-gain row; trace lines and hashes; header-list hash; probe-source hashes; corpus completion markers; and the prior assembled snapshot reference. The reproducible driver is `compare_global_extended.py`.
+
+## Current design reference
+
+This dated evidence retains its original measurement scope.
+[The consolidated placement-conversion design](placement-new.md) owns the current
+capability, activation rows, safety requirements, and accepted source status.

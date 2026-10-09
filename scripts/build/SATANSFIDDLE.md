@@ -14,11 +14,9 @@ assembly fallbacks remain absent from the native-code metric. The generated
 objdiff configuration reads actual base-object symbols and maps sanitized retail
 template identities to MWCC's original template spelling.
 
-This branch also carries an isolated placement-new lowering proposal. Its
-evidence and limitations are recorded in
-[the investigation](../../ps2/re/docs/satansfiddle/placement-new-proposal-20261009.md).
-It is an intentional frontend conversion policy, not a demonstrated repair of
-uninitialized compiler state.
+Scalar placement construction can request MWCC's ordinary statement conversion
+through an explicit frontend policy. Its mechanism, calibrated rows and limits
+are documented in [the design note](../../ps2/re/docs/satansfiddle/placement-new.md).
 
 ```sh
 export SATANSFIDDLE=/absolute/path/to/satansfiddle
@@ -155,8 +153,11 @@ direct constant nodes that bypassed annotation. An explicit
 stable selector can adjust verified assignment wrappers and compiler-registered
 literal-pool loads; arbitrary variable expressions retain normal annotation.
 
-The adapter selects only the current unit's override rows; Satan's Fiddle rejects
-stale selectors within that compilation. Callee-scoped rows can additionally set
+The adapter validates every helper, float and placement row's logical source
+identity against the C/C++ files under `ps2/src` before selecting the current
+unit's rows. An unknown or misspelled translation unit rejects the whole profile,
+even when that row belongs to another unit. Satan's Fiddle then rejects stale
+selectors within the selected compilation. Callee-scoped rows can additionally set
 `expected_matches` to a positive count of distinct selected call arguments per
 compiler invocation. Repeated callbacks for one call argument count once; two
 formal slots or two calls count separately. The assertion never changes identity,
@@ -299,7 +300,8 @@ the compiler and production/fault executable variables shown above:
   --ignored real_placement --nocapture --test-threads=1
 ```
 
-Rows stay private while a function remains guarded. A row becomes part of this
-branch only after natural-source cleanup, manual guard removal, resolved
+An activated row requires natural C++ source, manual guard removal, resolved
 complete-object checking, unchanged unrelated artifacts and PAL verification.
-Zero masked instruction words alone do not authorize a row or matching claim.
+Zero masked instruction words alone do not establish a matching decompilation.
+Rows and guard removal belong in the same buildable change because an
+assembly-backed caller has zero eligible constructions and fails its assertion.

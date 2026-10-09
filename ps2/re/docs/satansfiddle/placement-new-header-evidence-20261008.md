@@ -195,3 +195,9 @@ Retail constructor calls in JSON are exact assembly observations, but are not us
 ## Limitations
 
 This tests a conservative observed-identity subset of the header-defined hypothesis. It cannot establish how unobserved or synthesized constructors would respond to a complete TU/profile setting. PCH/prefix tests previously preserved constructor classes and object bytes; header-body location is a semantic filter for this experiment, not evidence of a compiler-state defect. The protected dng_main source/header was neither read nor edited.
+
+## Current design reference
+
+This dated evidence retains its original measurement scope.
+[The consolidated placement-conversion design](placement-new.md) owns the current
+capability, activation rows, safety requirements, and accepted source status.

@@ -109,3 +109,9 @@ and memory end equal baseline. Explicit context/objdiff refresh reports
 are `.private/pntc/receipts/promote-twenty-seven-{final-build,objects,artifacts,progress,coverage}`
 with explicit zero statuses. No shared header change is needed for this
 promotion; the actual 0x288 symbol-size comment remains a separate proposal.
+
+## Current design reference
+
+This dated evidence retains its original measurement scope.
+[The consolidated placement-conversion design](../satansfiddle/placement-new.md) owns the current
+capability, activation rows, safety requirements, and accepted source status.

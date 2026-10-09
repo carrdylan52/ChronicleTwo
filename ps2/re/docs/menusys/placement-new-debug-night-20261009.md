@@ -100,3 +100,9 @@ Receipts are `.private/pntc/receipts/promote-twenty-nine-clean-build.log`,
 statuses and artifact JSONs. The enum control's exact inputs and audit are
 identified by `.private/pntc/menusys-residual/debug-read-mode-handoff.json`.
 Manual guard removal is accepted after those complete checks.
+
+## Current design reference
+
+This dated evidence retains its original measurement scope.
+[The consolidated placement-conversion design](../satansfiddle/placement-new.md) owns the current
+capability, activation rows, safety requirements, and accepted source status.

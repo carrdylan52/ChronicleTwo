@@ -136,3 +136,9 @@ A new private production-engine prototype is authorized only for preparation
 and review. No build, test, corpus, new image or canonical activation is
 authorized for that implementation yet. Accepted scoped production34 and
 the separate broad-driver measurements remain the established results.
+
+## Current design reference
+
+This dated evidence retains its original measurement scope.
+[The consolidated placement-conversion design](placement-new.md) owns the current
+capability, activation rows, safety requirements, and accepted source status.

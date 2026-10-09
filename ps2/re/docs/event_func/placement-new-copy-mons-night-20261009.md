@@ -61,3 +61,9 @@ for this guarded caller.
 Full controls, actual constructor witnesses, type/size/binding/data audits,
 exact source/profile diffs and commands, failed setup receipts and hashes are
 in `.private/pntc/event-copy-mons-natural/`, entry point `SUMMARY.md`.
+
+## Current design reference
+
+This dated evidence retains its original measurement scope.
+[The consolidated placement-conversion design](../satansfiddle/placement-new.md) owns the current
+capability, activation rows, safety requirements, and accepted source status.

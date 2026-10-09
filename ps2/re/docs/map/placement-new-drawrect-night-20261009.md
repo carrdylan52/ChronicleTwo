@@ -67,3 +67,9 @@ fuzzy. Receipts are
 `.private/pntc/receipts/promote-thirty-one-{clean-build,objects,artifacts,progress,coverage}`
 with logs, explicit zero statuses and the artifact JSON. The map unit now
 has no guarded functions.
+
+## Current design reference
+
+This dated evidence retains its original measurement scope.
+[The consolidated placement-conversion design](../satansfiddle/placement-new.md) owns the current
+capability, activation rows, safety requirements, and accepted source status.

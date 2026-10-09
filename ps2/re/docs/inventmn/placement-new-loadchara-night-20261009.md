@@ -128,3 +128,9 @@ receipts are `.private/pntc/receipts/promote-thirty-one-{clean-build,objects,art
 including logs, explicit zero statuses and the artifact JSON. The initial
 successful incremental build used the same selectors before their final
 unit grouping; clean acceptance uses the final grouped profile.
+
+## Current design reference
+
+This dated evidence retains its original measurement scope.
+[The consolidated placement-conversion design](../satansfiddle/placement-new.md) owns the current
+capability, activation rows, safety requirements, and accepted source status.

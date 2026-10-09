@@ -105,3 +105,9 @@ m2c log/exit pairs. The guarded hygiene proposal is
 shared-header proposal `.private/proposals/menuaqua-step-body-size.patch`
 corrects the actual symbol size to `0x1B04`. Both apply checks pass. Production
 retains all31 accepted placement rows and the existing canonical fallback.
+
+## Current design reference
+
+This dated evidence retains its original measurement scope.
+[The consolidated placement-conversion design](../satansfiddle/placement-new.md) owns the current
+capability, activation rows, safety requirements, and accepted source status.

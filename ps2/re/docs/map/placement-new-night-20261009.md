@@ -68,3 +68,9 @@ Receipts are `.private/pntc/receipts/promote-twenty-nine-clean-build.log`,
 with explicit zero exit files. The exact owning-header size correction
 remains `.private/proposals/map-addpartsgroup-symbol-size.patch`; the header
 is unchanged. Incidental comment-only size corrections are also private.
+
+## Current design reference
+
+This dated evidence retains its original measurement scope.
+[The consolidated placement-conversion design](../satansfiddle/placement-new.md) owns the current
+capability, activation rows, safety requirements, and accepted source status.

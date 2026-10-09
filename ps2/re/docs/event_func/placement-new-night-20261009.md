@@ -38,3 +38,9 @@ Final marker-order validation also passes `promote-eighteen-final-build.log`,
 `promote-eighteen-final-artifacts.json`. Resolved game bytes and all objects outside the accepted units still agree.
 Refreshed native coverage is 6,767 matched / 95 guarded / 10 assembly-only /
 0 fuzzy, recorded in `promote-eighteen-coverage.log`.
+
+## Current design reference
+
+This dated evidence retains its original measurement scope.
+[The consolidated placement-conversion design](../satansfiddle/placement-new.md) owns the current
+capability, activation rows, safety requirements, and accepted source status.

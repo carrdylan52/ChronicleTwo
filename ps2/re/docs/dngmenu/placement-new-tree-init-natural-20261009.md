@@ -97,3 +97,9 @@ Reproduction and exact source/profile/object hashes are in
 `final-audit-3`, and the explicit `selected-equality` log/exit receipts. Initial copied-auditor path and source-symbol
 lookup failures remain saved; the corrected audits succeed without any game
 code or assembly change.
+
+## Current design reference
+
+This dated evidence retains its original measurement scope.
+[The consolidated placement-conversion design](../satansfiddle/placement-new.md) owns the current
+capability, activation rows, safety requirements, and accepted source status.

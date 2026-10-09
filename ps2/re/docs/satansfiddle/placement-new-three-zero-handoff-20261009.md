@@ -80,3 +80,9 @@ Root receipts are
 `.private/pntc/receipts/three-zero-activation-{proposal,erratum}-root-verification.json`.
 No prior frozen proposal, canonical source/header/profile or remote state
 changes. Shared-header review remains a future owner action under the brief.
+
+## Current design reference
+
+This dated evidence retains its original measurement scope.
+[The consolidated placement-conversion design](placement-new.md) owns the current
+capability, activation rows, safety requirements, and accepted source status.

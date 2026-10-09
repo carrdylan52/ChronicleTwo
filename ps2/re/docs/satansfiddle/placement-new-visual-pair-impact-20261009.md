@@ -79,3 +79,9 @@ remain available for review. The private36 profile SHA-256 is
 subtracting the exact two rows recovers the accepted34 profile unchanged.
 No canonical shared-header/source/profile, generated build directory, image
 or compiler implementation changes in these private impact stages.
+
+## Current design reference
+
+This dated evidence retains its original measurement scope.
+[The consolidated placement-conversion design](placement-new.md) owns the current
+capability, activation rows, safety requirements, and accepted source status.

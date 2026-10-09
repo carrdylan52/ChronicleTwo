@@ -37,3 +37,9 @@ Receipts: `.private/pntc/receipts/promote-first-two-build.log` and `.exit`,
 `promote-first-two-objects.log`, `promote-first-two-artifacts.json`,
 `semantic12-score-comparison.json`, and the genuine compiler tests in
 `semantic-pn13-tests.log`.
+
+## Current design reference
+
+This dated evidence retains its original measurement scope.
+[The consolidated placement-conversion design](../satansfiddle/placement-new.md) owns the current
+capability, activation rows, safety requirements, and accepted source status.

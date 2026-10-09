@@ -131,3 +131,9 @@ The 149 source-only objdiff base objects have 147 identical whole-file hashes. `
 The build receipt shows a CLEAN rebuild, all ten file-backed sections OK, BSS/memory end OK at `0x01f64a00`, and `SCES_511.90: OK`. Its refreshed progress remains 6,749 perfect / 0 fuzzy / 123 assembly. The canonical-object receipt ends `149/149 units pass`. These establish preservation with the original guards still selecting retail assembly. They do not validate any newly native gain until its guard is removed. The logs themselves do not save an explicit process exit code; the report cites their observed completion markers instead.
 
 Receipts: `.private/pntc/receipts/global-request-clean-build.log`, `.private/pntc/receipts/global-request-objects.log`, native corpus `scores.json` and `.o` files, `.private/pntc/baseline/obj`, and `.private/pntc/baseline/base`. Input receipt hashes, all object hashes, exact changed score rows, lost-zero rows and source guard hashes are in `global-comparison.json`.
+
+## Current design reference
+
+This dated evidence retains its original measurement scope.
+[The consolidated placement-conversion design](placement-new.md) owns the current
+capability, activation rows, safety requirements, and accepted source status.

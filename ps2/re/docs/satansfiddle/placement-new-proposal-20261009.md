@@ -729,3 +729,9 @@ The separately frozen critique distinguishes these obligations, identifies
 unknown allocator witness timing/type metadata and preserves all original
 design files. Broad-driver RAW/ELF equality does not supply strict safety
 or a new original-compiler-option explanation.
+
+## Current design reference
+
+This dated evidence retains its original measurement scope.
+[The consolidated placement-conversion design](placement-new.md) owns the current
+capability, activation rows, safety requirements, and accepted source status.

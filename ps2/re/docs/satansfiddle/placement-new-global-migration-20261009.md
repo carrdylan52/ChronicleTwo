@@ -109,3 +109,9 @@ and exact-identity guarantees and has no production global schema.
 A maintainable global capability must resolve those real gaps and preserve
 the before-inline exception. No original compiler option or state defect
 is established by either preservation result.
+
+## Current design reference
+
+This dated evidence retains its original measurement scope.
+[The consolidated placement-conversion design](placement-new.md) owns the current
+capability, activation rows, safety requirements, and accepted source status.

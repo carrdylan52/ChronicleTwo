@@ -166,3 +166,9 @@ followed. `ALL-ARTIFACTS.json` has SHA-256
 `c087a63df0cede8f8eed478d3b624b3cbacaa958bb5e19360a9ff296c7b334d4`.
 The root receipt is
 `.private/pntc/receipts/costume-whole-impact-root-verification.json`.
+
+## Current design reference
+
+This dated evidence retains its original measurement scope.
+[The consolidated placement-conversion design](../satansfiddle/placement-new.md) owns the current
+capability, activation rows, safety requirements, and accepted source status.

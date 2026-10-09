@@ -438,3 +438,9 @@ boundaries. The six `m2c/*.txt` outputs were generated through the required
 `chronicletwo_dev:sf-63f7a9e` image and container wrapper. All artifacts live
 under `.private/pntc/census/`; no game source/header or tracked document
 was edited by this census subagent.
+
+## Current design reference
+
+This dated evidence retains its original measurement scope.
+[The consolidated placement-conversion design](placement-new.md) owns the current
+capability, activation rows, safety requirements, and accepted source status.

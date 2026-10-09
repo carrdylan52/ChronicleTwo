@@ -70,3 +70,9 @@ Receipts: `exceptions-{on,on-deferred}/`, `exceptions-side-evidence.json`, `rtti
 These controls rule out the tested PCH/prefix configurations, inliner options, header orderings, debug settings, ISO template setting, exceptions and RTTI switches as a remedy for unchanged funcpoint Add. They do not rule out a different original constructor/source structure, an untested compiler option, a different compiler image, a different prefix containing additional real declarations/definitions, or a presently unobserved compiler-state defect. The PCH specimen's unchanged A/B distinction supports the existing statement-vs-expression inline explanation rather than a PCH serialization defect.
 
 No symbol was promoted, no own image tag was built, and no full-tree acceptance claim is made here. `results.json` is the complete structured experiment inventory with commands, exit/output receipts, per-function scores, changed function identities, and lost baseline matches. `run.py` and the small companion drivers reproduce the controls within this private directory.
+
+## Current design reference
+
+This dated evidence retains its original measurement scope.
+[The consolidated placement-conversion design](placement-new.md) owns the current
+capability, activation rows, safety requirements, and accepted source status.

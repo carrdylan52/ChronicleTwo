@@ -18,3 +18,9 @@ does the whole accepted-34 ELF. The shared
 [source audit](../satansfiddle/placement-new-source-hygiene-20261009.md)
 indexes the independent review and explicit identity receipts. The
 [accepted caller note](placement-new-night-20261009.md) owns the behavior.
+
+## Current design reference
+
+This dated evidence retains its original measurement scope.
+[The consolidated placement-conversion design](../satansfiddle/placement-new.md) owns the current
+capability, activation rows, safety requirements, and accepted source status.

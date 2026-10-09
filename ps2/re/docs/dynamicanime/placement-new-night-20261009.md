@@ -27,3 +27,9 @@ Receipts: `.private/pntc/receipts/promote-eleven-accepted-build.log` and `.exit`
 `promote-eleven-accepted-objects.log`, `promote-eleven-accepted-artifacts.json`,
 and `semantic12-score-comparison.json`. This note supersedes the older
 guarded status for this caller alone.
+
+## Current design reference
+
+This dated evidence retains its original measurement scope.
+[The consolidated placement-conversion design](../satansfiddle/placement-new.md) owns the current
+capability, activation rows, safety requirements, and accepted source status.

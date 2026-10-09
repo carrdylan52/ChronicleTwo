@@ -123,3 +123,9 @@ proves all 149 normal wrapped objects and the entire accepted34 executable
 are byte-identical under this historical hybrid. Neither result supplies
 strict global allocator/implicit-constructor eligibility or implements the
 proposed global schema. Canonical scoped production34 is unchanged.
+
+## Current design reference
+
+This dated evidence retains its original measurement scope.
+[The consolidated placement-conversion design](placement-new.md) owns the current
+capability, activation rows, safety requirements, and accepted source status.

@@ -41,3 +41,9 @@ zero-status receipts are
 `.private/pntc/receipts/source-hygiene-34-{build,objects,identity,progress,coverage}.log`
 and matching `.exit` files. These checks preserve the accepted production
 boundary; private shared-header proposals remain inactive.
+
+## Current design reference
+
+This dated evidence retains its original measurement scope.
+[The consolidated placement-conversion design](placement-new.md) owns the current
+capability, activation rows, safety requirements, and accepted source status.

@@ -40,3 +40,9 @@ Receipts: `.private/pntc/receipts/m2c-mdspiece-copy.log`,
 `natural-mdspiece-record.log`, `promote-eleven-accepted-build.log` and `.exit`,
 `promote-eleven-accepted-objects.log`, and `promote-eleven-accepted-artifacts.json`.
 The previous guarded status for these two callers is superseded by this note.
+
+## Current design reference
+
+This dated evidence retains its original measurement scope.
+[The consolidated placement-conversion design](../satansfiddle/placement-new.md) owns the current
+capability, activation rows, safety requirements, and accepted source status.

@@ -190,3 +190,9 @@ acceptance receipts are `.private/pntc/receipts/promote-thirty-three-` with
 `clean-build`, `objects`, `artifacts`, `progress` and `coverage` logs/zero exit
 statuses, the artifact JSON, and `.private/pntc/promote33/acceptance.json`.
 The comment-only owning-header size correction remains an unowned proposal.
+
+## Current design reference
+
+This dated evidence retains its original measurement scope.
+[The consolidated placement-conversion design](../satansfiddle/placement-new.md) owns the current
+capability, activation rows, safety requirements, and accepted source status.

@@ -102,3 +102,9 @@ controls and the initial private driver setup failure are retained; no new
 quadword helper was introduced.
 
 The exact coordinator source copy is `.private/proposals/gyorace-init-natural-source.patch`; its NONMATCHING fallback remains intact. No selector delta is proposed.
+
+## Current design reference
+
+This dated evidence retains its original measurement scope.
+[The consolidated placement-conversion design](../satansfiddle/placement-new.md) owns the current
+capability, activation rows, safety requirements, and accepted source status.
