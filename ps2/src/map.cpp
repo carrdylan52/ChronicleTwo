@@ -25,12 +25,6 @@ enum {
     kMapPartsSize = 0x310
 };
 
-extern s8   init_1249;
-extern char at_1352[];
-extern char at_1353[];
-extern char at_574[];
-extern char at_2008[];
-extern char at_1927[];
 
 #include <cmath>
 #include <cstdio>
@@ -40,6 +34,11 @@ extern char at_1927[];
 #include "mg_camera.hpp"
 #include "mg_drawprim.hpp"
 #include "water.hpp"
+
+/**
+ * Class name returned by the map object.
+ */
+char *CMapName = "CMap";
 
 // Code (.text)
 int CMapFlagData::SetFlag(int no, int on) {
@@ -348,7 +347,7 @@ CMdsInfo *CMap::SearchMDS(char *name) {
 }
 
 void CMap::CreateEffect(unsigned int *pack, int tex_block, mgCMemory *stack) {
-    effect_list.LoadEFPFile(at_574, pack, tex_block, stack);
+    effect_list.LoadEFPFile("test", pack, tex_block, stack);
 }
 
 int CMap::SaerchEffectIndex(char *name) {
@@ -1100,8 +1099,8 @@ void CMap::DrawFireEffect(int tex_block) {
     check.time = 0;
     CreateFuncCheck(&check);
     mgTexManager.ReloadTexture(tex_block, (sceVif1Packet *) 0);
-    fire_texture = mgTexManager.GetTexture(at_1352, tex_block);
-    light_texture = mgTexManager.GetTexture(at_1353, tex_block);
+    fire_texture = mgTexManager.GetTexture("fire_wrk", tex_block);
+    light_texture = mgTexManager.GetTexture("lightling", tex_block);
     mgUnitMatrix(matrix);
 
     ::DrawFireEffect((float (*)[4]) matrix, &func_point, &check, 1.0f, fire_texture, light_texture);
@@ -1903,7 +1902,7 @@ void CMap::CreateTrBox(CMapTreasureBox *model, int tex_block, mgCMemory *stack) 
         return;
     }
 
-    top_frame = model->CObjectFrame::frame->SearchFrame(at_1927);
+    top_frame = model->CObjectFrame::frame->SearchFrame("top");
 
     if (top_frame != NULL) {
         top_frame->SetRotType(2);
@@ -2051,7 +2050,7 @@ void CMap::LoadData(unsigned int *pcp_pack, unsigned int *img_pack, int *tex_blo
             }
 
             file = GetPackFile(img_pack, name, NULL);
-            printf(at_2008, file, name);
+            printf("%x %s\n", file, name);
 
             if (file != NULL) {
                 first_block = block;
@@ -2155,26 +2154,13 @@ int CObject::Draw() { return 0; }
 int CObject::DrawDirect() { return 0; }
 
 // Constants (.rodata)
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/map", at_327__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/map", at_574__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/map", at_1352__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/map", at_1353__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/map", at_1927__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/map", at_2008__DATA);
 
 // Virtual tables (.vtables)
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/map", __vt__4CMap__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/map", __vt__18CList_P9CMapParts___DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/map", __vt__23CList_14PartsGroupData___DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/map", __vt__9CMapWater__DATA);
 
 // Small initialised data (.sdata)
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/map", CMapName__DATA);
 
 // Small uninitialised data (.sbss)
-INCLUDE_BSS(init_1249, 0x4);
-INCLUDE_BSS(init_1301, 0x4);
 
 // Uninitialised data (.bss)
-INCLUDE_BSS(ft_1248, 0xE00);
-INCLUDE_BSS(attr_1300, 0x90);
