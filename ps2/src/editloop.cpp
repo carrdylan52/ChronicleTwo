@@ -2711,14 +2711,14 @@ int EditMapJump(int map_no) {
         strcat(path, size_text);
         strcat(path, ".gpi");
 
-        if (LoadFile2(path, (void *) read_buffer, &file_size, 0) != 0) {
+        if (LoadFile2(path, read_buffer, &file_size, 0) != 0) {
             map->info_mngr.LoadEditInfo((char *) read_buffer, file_size, main_data);
         }
 
         GetMapPath(path, map_name);
         strcat(path, ".cfg");
 
-        if (LoadFile2(path, (void *) read_buffer, &file_size, 0) != 0) {
+        if (LoadFile2(path, read_buffer, &file_size, 0) != 0) {
             map->LoadEditInfo((char *) read_buffer, file_size, main_data);
         }
 
