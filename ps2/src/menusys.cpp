@@ -11520,9 +11520,6 @@ void CItemSelect::Draw() {
     }
 }
 
-extern char at_9215[];
-extern char at_9216[];
-#ifdef NONMATCHING
 /**
  *
  * Creates the inventory choice with its screen rectangles and available items.
@@ -11547,11 +11544,13 @@ inline CItemSelect::CItemSelect() {
 }
 
 void MenuItemSelectInit(mgCMemory *stack, int *tex_block, int mode) {
-    MenuItemMainMemory.stSetBuffer(stack->stGetTop(), stack->stGetRest());
-    ItemSelectPtr = new (MenuItemMainMemory.Alloc(0x47)) CItemSelect;
+    int rest = stack->stGetRest();
+    u_long128 *top = stack->stGetTop();
+    MenuItemMainMemory.stSetBuffer(top, rest);
+    ItemSelectPtr = new (MenuItemMainMemory.Alloc(QuadwordsFor(sizeof(CItemSelect)) + 2)) CItemSelect;
     ItemSelectPtr->SetTexBlock(tex_block);
     MenuItemSelectMode = 0;
-    if (mode == 0x16) {
+    if (mode == MENU_OPEN_USE_ITEM_B) {
         MenuItemSelectMode = 1;
     }
     MenuBGTextureBlock = ItemSelectPtr->tex_block[0];
@@ -11561,20 +11560,17 @@ void MenuItemSelectInit(mgCMemory *stack, int *tex_block, int mode) {
     StartReadBG();
 
     int size;
-    if (mode == 9) {
-        size = LoadFileMenu(at_9215, MenuItemMainMemory.stGetTop(), 0);
+    if (mode == MENU_OPEN_USE_ITEM) {
+        size = LoadFileMenu("itemsel.pac", MenuItemMainMemory.stGetTop(), MENU_FILE_LOAD_BG);
     }
-    if (mode == 0x16) {
-        size = LoadFileMenu(at_9216, MenuItemMainMemory.stGetTop(), 0);
+    if (mode == MENU_OPEN_USE_ITEM_B) {
+        size = LoadFileMenu("fishsel.pac", MenuItemMainMemory.stGetTop(), MENU_FILE_LOAD_BG);
     }
     MenuItemMainMemory.Alloc(QuadwordsFor(size));
     MenuDCMsg[0]->MsgPreset(2);
     MenuDCMsg[0]->fuchi = 5;
     MenuDCMsg[0]->MakeMsg(0);
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/menusys", MenuItemSelectInit__FP9mgCMemoryPii);
-#endif
 int MenuItemSelectKey() {
     int result;
 
@@ -11939,8 +11935,6 @@ INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menusys", at_8948__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menusys", at_9032__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menusys", at_9033__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menusys", at_9179__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menusys", at_9215__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menusys", at_9216__DATA);
 
 // Virtual tables (.vtables)
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menusys", __vt__11CItemSelect__DATA);

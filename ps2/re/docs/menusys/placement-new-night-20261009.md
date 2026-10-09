@@ -96,3 +96,16 @@ compiler traces and nonselected audits are in
 `sources/select-sized-literals/menusys.cpp` with `select-only-profile.json`.
 This diagnostic result requires full-wrapper, complete-object, PAL and
 unrelated-artifact acceptance before the guard or rows are committed.
+
+## MenuItemSelectInit complete acceptance
+
+The selector's manually removed guard is accepted in the final 27-caller
+pn15 group: PAL matches retail, all 149 complete object checks pass, and all
+306 assembled objects plus 149 source-only objects outside the eighteen
+promoted units retain baseline hashes. The selector's complete menusys
+object covers 0x1b0cc bytes and 5,885 resolved relocations. Linked main bytes
+and memory end equal baseline. Explicit context/objdiff refresh reports
+6,776 matched, 86 guarded drafts, ten assembly-only and zero fuzzy. Receipts
+are `.private/pntc/receipts/promote-twenty-seven-{final-build,objects,artifacts,progress,coverage}`
+with explicit zero statuses. No shared header change is needed for this
+promotion; the actual 0x288 symbol-size comment remains a separate proposal.
