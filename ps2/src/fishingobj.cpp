@@ -268,7 +268,6 @@ static sceVu0FVECTOR    ChanceBarPos;
 #include "gameutil.hpp"
 #include "scenesnd.hpp"
 
-
 // Code (.text)
 void SetFishingMode(int value) {
     NowMode = value;
@@ -379,7 +378,6 @@ float GetNowLineLength() {
 float GetMinLineLength() {
     return 25.0f;
 }
-
 
 void InitRodPoint(mgCFrame *reference, mgCFrame *rod) {
     int i;

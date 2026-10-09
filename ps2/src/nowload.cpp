@@ -38,7 +38,6 @@ struct PauseState : PAUSE_INFO {
     }
 };
 
-
 /**
  *
  * Memory and progress settings of the active loading screen.

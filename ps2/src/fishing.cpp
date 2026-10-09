@@ -411,7 +411,6 @@ static int fpFISH(SPI_STACK *args, int arg_count);
  */
 static int fpFISH_MAP_END(SPI_STACK *args, int arg_count);
 
-
 /**
  *
  * Dispatches the fishing place script tags to their definition handlers.
@@ -443,7 +442,6 @@ static inline int FreeSize(mgCMemory *memory) {
 static inline u_long128 *FreeTop(mgCMemory *memory) {
     return memory->stGetTop();
 }
-
 
 /**
  *

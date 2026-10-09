@@ -11,7 +11,6 @@
 #include "mg_texture.hpp"
 #include "mglib.hpp"
 
-
 static const float paint_color_max = 255.0f;
 const int          color_channels = 3;
 const int          star_particle_max = 0x40;
@@ -25,7 +24,6 @@ const int          star_effect_count = 3;
 const int          paint_effect_count = 1;
 const int          paint_particle_count = 24;
 const int          place_anime_count = 3;
-
 
 /**
  * Effect types enabled for the current edit operation.

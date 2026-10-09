@@ -22,7 +22,6 @@
 #include "villagermngr.hpp"
 #include "vlgr_info.hpp"
 
-
 /**
  * Villager motion names indexed by VILLAGER_MOTION.
  */

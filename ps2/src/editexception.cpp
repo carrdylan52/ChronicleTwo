@@ -24,8 +24,6 @@
 
 extern char   at_1143__2[];
 
-
-
 /**
  * Character reacting to the camera.
  */
@@ -160,7 +158,6 @@ static inline u32 align16_blocks(u32 bytes) {
 #include "savedata.hpp"
 #include "scenesnd.hpp"
 #include "snd_mngr.hpp"
-
 
 // Code (.text)
 void EditExceptionStep(int map_no, CScene *scene) {

@@ -11,7 +11,6 @@
 #include "scenesnd.hpp"
 #include "sound.hpp"
 
-
 /**
  *
  * Pair of characters used to break a line of scene text.

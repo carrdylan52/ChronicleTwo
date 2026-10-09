@@ -1928,7 +1928,6 @@ s32 CNameRegiMenu::KeyStep() {
             if (Nameregi_Target.target == NAMEREGI_TARGET_FISH) {
                 MenuSePlay(5);
             } else {
-                
                 mode = NAMEREGI_MODE_MESSAGE;
                 message_open = 1;
                 message_type = 0x14;
@@ -1983,8 +1982,8 @@ s32 CNameRegiMenu::KeyStep() {
 
             break;
         case 0x1FE: {
-            char                 final_name[0x80];
-            
+            char final_name[0x80];
+
             strcpy(final_name, name);
 
             if (Nameregi_Target.target == NAMEREGI_TARGET_ITEM) {
@@ -2057,12 +2056,11 @@ s32 CNameRegiMenu::KeyStep() {
                 message_id = 0x1010;
 
                 if (password_input != 0) {
-                    char        password[0x30];
-                    u8          decoded[0x20];
-                    
-                    u16         header[7];
-                    u8         *key_text;
-                    s32         password_valid;
+                    char password[0x30];
+                    u8   decoded[0x20];
+                    u16  header[7];
+                    u8  *key_text;
+                    s32  password_valid;
                     ConvertShitJiss2Ascii(name, password);
                     PasswordKey key = {{0}};
                     password[0x16] = 0;
@@ -2171,7 +2169,6 @@ s32 CNameRegiMenu::KeyStep() {
                 message->MakeMsg(0xFB4);
                 MenuSePlay(5);
             } else {
-                
                 mode = NAMEREGI_MODE_MESSAGE;
                 message_type = 0xA;
                 message_open = 1;

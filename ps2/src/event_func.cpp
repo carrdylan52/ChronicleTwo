@@ -149,7 +149,6 @@ static CEffectScriptMan *EventEffectScript;
  */
 static CSWordAfterImage *SwordEffect;
 
-
 /**
  * Copies a scene character for an event script.
  */
@@ -228,7 +227,6 @@ const int              exit_map_jump = EVENT_REQUEST_MAP_JUMP;
 const int              request_menu = EVENT_COMMAND_SUB_MODE;
 const int              request_door = EVENT_COMMAND_DOOR;
 const int              event_sprite2_size = 0x80;
-
 
 // Code (.text)
 CEoh::CEoh() {

@@ -40,7 +40,6 @@ static int mapCHARA_LIGHT_ADJUST(SPI_STACK *stack, int argument_count);
 static int amapIMG(SPI_STACK *stack, int argument_count);
 static int amapPCP(SPI_STACK *stack, int argument_count);
 
-
 /**
  *
  * Tags of a map's configuration script and the routines that read them.

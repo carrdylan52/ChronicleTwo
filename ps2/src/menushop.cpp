@@ -235,7 +235,6 @@ static CMenuQuestView *MenuQuestView;
  */
 static CDC2Mes *QuestCommentMes[3];
 
-
 /**
  *
  * Donny's goods and their required recruitment levels.
@@ -616,7 +615,6 @@ int CShopMenu::IsCancelNoneLoadItem() {
     MenuSePlay(5);
     return 1;
 }
-
 
 void CShopMenu::UpdataScrlBar() {
     if (item_brd != NULL) {
@@ -1721,7 +1719,6 @@ void ShopSellListDraw(int &tex_block, float *pos) {
     }
 }
 
-
 void MenuShopInit(mgCMemory *stack, int *tex_block, int arg) {
     int               cfg_size;
     CMenuPosDataForm *form;
@@ -1831,7 +1828,6 @@ void MenuShopDraw() {
     MenuPosData->FormDraw();
 }
 
-
 void CMenuQuestView::UnderMsg(int type) {
     int position[2];
     QuestMenuMes->MsgPreset(2);
@@ -1851,7 +1847,6 @@ void CMenuQuestView::UnderMsg(int type) {
     QuestMenuMes->SetPutPos(position);
     QuestMenuMes->SetWindowMode(4);
 }
-
 
 int CMenuQuestView::SelectMax() {
     if (Menu_Memo_ViewMode == QUEST_VIEW_MODE_QUEST) {

@@ -40,7 +40,6 @@ const int kInfoFixedFlag = 0x1;
 const int kInfoRiverRelatedFlag = 0x80000;
 const int kRiverPartsType = 0xB;
 
-
 extern EditVector     at_1837__2;
 extern EditVector     at_426;
 
@@ -2044,7 +2043,6 @@ int CEditMap::DrawSub(int mode) {
 int emapEDIT_RIVER(SPI_STACK *stack, int argc) {
     return 1;
 }
-
 
 /**
  *

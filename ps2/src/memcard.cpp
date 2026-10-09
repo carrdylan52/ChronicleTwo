@@ -14,7 +14,6 @@
 #include "menusys.hpp"
 #include "mg_memory.hpp"
 
-
 /**
  *
  * Holds album data and the check digits written with it.

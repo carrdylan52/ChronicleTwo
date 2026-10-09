@@ -20,7 +20,6 @@
 #include "scene.hpp"
 #include "scenesnd.hpp"
 
-
 #include <cmath>
 #include <cstdio>
 #include <cstdlib>
@@ -273,15 +272,6 @@ int                    SetEffectScript(CRunScript *script, char *program, mgCMem
 void                   SetEffectScriptFunc();
 static void            DrawEffSptSprite(_EFF_SCRIPT *script, mgCTexture *texture, float *offset, mgC3DSprite *renderer, CMapLightingInfo *lighting);
 
-
-
-
-
-
-
-
-
-
 extern char at_1336__2[];
 
 extern char at_1337__2[];
@@ -294,13 +284,9 @@ extern char at_1340__2[];
 
 extern char at_1341__2[];
 
-
 extern char at_1705[];
 
 extern char at_2025__3[];
-
-
-
 
 /**
  *
@@ -314,7 +300,6 @@ static inline u_int align16_blocks(u_int size) {
 
     return size >> 4;
 }
-
 
 // Code (.text)
 void CEffectScriptMan::Initialize(mgCMemory *memory, int texb_start, int texb_num) {

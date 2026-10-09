@@ -361,7 +361,6 @@ static char *topic_tbl_1777[7][3] = {
     {"", "Concurso Pesca: %d h. para salir", "Finny Frenzy: %d h. para salir"}
 };
 
-
 /**
  *
  * Monster names and descriptions displayed by bookshelves.
@@ -380,7 +379,6 @@ static MonsterTableEntry monster_table[11] = {
     {236, 189},
     {0, 0}
 };
-
 
 /**
  *
@@ -406,7 +404,6 @@ static char *filetbl_2141[17] = {
     "",
     ""
 };
-
 
 /**
  *

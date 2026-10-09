@@ -65,11 +65,6 @@ static int pcpAllScissor;
 
 CCharacter2         *CreateChara(u_int *pack, char *config, mgCMemory *memory);
 
-
-
-
-
-
 /**
  *
  * Rounds a byte count up to the number of 16-byte allocation blocks.

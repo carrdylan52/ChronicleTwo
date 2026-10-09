@@ -205,7 +205,6 @@ static ANALOG_TABLE_ENTRY analog_table[] = {
     {-1, -1},
 };
 
-
 extern CFont     Font;
 extern mgCMemory MainBuffer;
 /**
@@ -268,7 +267,6 @@ static TM2_head   *FontDataAdr[1];
  * Image storage used when loading font texture pages.
  */
 u8                 font_buff[0xD000];
-
 
 static int gcMAP_NO(SPI_STACK *stack, int argument_count);
 static int gcPROGRESS(SPI_STACK *stack, int argument_count);

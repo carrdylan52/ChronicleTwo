@@ -58,7 +58,6 @@ static int dynBBoxCount;
  */
 static int dynColCount;
 
-
 /**
  *
  * Rounds a byte count up to a number of 16-byte allocation blocks.

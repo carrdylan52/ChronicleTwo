@@ -46,7 +46,6 @@
 #include "userdata.hpp"
 #include "mainloop.hpp"
 
-
 /**
  *
  * Holds one effect direction as four floats or one quadword.

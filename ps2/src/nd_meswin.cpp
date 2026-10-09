@@ -76,12 +76,6 @@ union message_draw_prim {
     mgCDrawPrim prim; /**< Message-element drawing primitive. */
 };
 
-
-
-
-
-
-
 static const int mes_buffer_size = 0x200;
 
 static const int min_centered_width = 0x2D;
@@ -118,7 +112,6 @@ static const int mes_win_inset_x = 0x1E;
 
 static const int mes_win_inset_y = 0x18;
 
-
 const int mes_newline = 0xFF00;
 
 const int mes_end = 0xFF01;
@@ -127,28 +120,8 @@ const int mes_space = 0xFF02;
 
 const int mes_page_break = 0xFF03;
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 #include "common.h"
 #include "mw_runtime.h"
-
 
 // Code (.text)
 void MySetPrim(mgCDrawPrim *prim, int mode, int bilinear) {

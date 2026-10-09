@@ -25,7 +25,6 @@ enum {
     kMapPartsSize = 0x310
 };
 
-
 #include <cmath>
 #include <cstdio>
 #include <cstdlib>
@@ -141,7 +140,6 @@ CPartsGroup *CMap::GetPartsGroup(int no) {
 
     return &parts_group[no];
 }
-
 
 #ifdef NONMATCHING
 int CMap::AddPartsGroup(char *name, CMapParts *parts, mgCMemory *memory) {
@@ -403,7 +401,6 @@ CMapParts *CMap::GetParts(char *name) {
 
     return NULL;
 }
-
 
 #ifdef NONMATCHING
 void CMap::CreateDrawRect(mgCMemory *memory, mgVu0FBOX *rect, mgVu0FBOX *clip, int outside) {

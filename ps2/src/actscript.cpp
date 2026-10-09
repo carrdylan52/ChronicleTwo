@@ -65,7 +65,6 @@ struct CanonObjectNames {
     char *name[4][2]; /**< Names grouped by cannon variant. */
 };
 
-
 /**
  *
  * RGB colours used by the action script's rings.

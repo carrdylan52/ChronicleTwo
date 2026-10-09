@@ -82,7 +82,6 @@ static sceVu0FMATRIX tmp_BaseSkinMatrix_921;
  */
 static sceVu0FMATRIX tmp_BaseSkinMatrix_inv_922;
 
-
 static mgCFrame *OldSkinFrame;
 
 struct FrameLinkRecord {
@@ -95,7 +94,6 @@ struct CCPolyCopy {
     float normal[4];
     float attr[4];
 };
-
 
 float def_vrtx[800][4];
 

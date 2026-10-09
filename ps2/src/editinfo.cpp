@@ -77,7 +77,6 @@ static int emapFixNum__2;
  */
 static int emapFixIdx__2;
 
-
 /**
  *
  * Rounds a byte count up to a number of 16-byte allocation blocks.

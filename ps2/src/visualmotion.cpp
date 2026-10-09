@@ -29,7 +29,6 @@ void mgCVisualMotionMDT::Initialize() {
     frame_id = 0;
 }
 
-
 /**
  *
  * Header of a vertex weight block in motion data.

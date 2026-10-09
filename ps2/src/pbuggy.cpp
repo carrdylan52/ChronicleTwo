@@ -1098,7 +1098,6 @@ void BuggyControl(CScene *scene) {
     PolVoice.Step();
 }
 
-
 /**
  *
  * Places the bomb and its carrier in their initial state.
@@ -1115,7 +1114,6 @@ void InitBomb(CScene *scene) {
     StarbullChara->SetRotation(0.0f, 3.1415927f, 0.0f);
     StarbullChara->SetMotion("\x97\xa7\x82\xbf", 0);
 }
-
 
 /**
  *

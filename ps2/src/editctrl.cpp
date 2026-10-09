@@ -30,8 +30,6 @@ const int kFirstEventChara = 8;
 const int kEventCharaEnd = 0x40;
 const int kCharaTypeEffect = 4;
 
-
-
 /**
  *
  * Clears the editor's persistent movement query when it is constructed.
