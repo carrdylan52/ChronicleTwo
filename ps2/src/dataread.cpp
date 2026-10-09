@@ -1268,5 +1268,3 @@ void DivPathNameExt(char *path, char *out_dir, char *out_name, char *out_ext) {
 
     strcpy(out_ext, cursor);
 }
-
-
