@@ -140,3 +140,14 @@ English fallbacks as retail.
 After this step: **241 / 25 markers**, **4 / 9726 matched_data**.
 PAL and 149/149 objects pass; receipts are
 `.private/nmchr-r3/menuchr-book-weakness-{build,objects,progress,metrics}.log`.
+
+## Monster grid dimensions
+
+`max_3170` and `viewnum_3171` are two-integer arrays, rather than scalars.
+Their values are four columns and three rows for both total and visible
+badge-grid size. Documented grid dimension enums name those values, and
+`KeyNormalMode` passes the arrays directly to the existing pointer interface.
+Both eight-byte objects match without padding or type reinterpretation.
+After this step: **239 / 25 markers**, **4 / 9726 matched_data**.
+PAL and 149/149 objects pass; receipts are
+`.private/nmchr-r3/menuchr-grid-{build,objects,progress,metrics}.log`.

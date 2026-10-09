@@ -479,8 +479,30 @@ static u8                *mos_effect_readbuff2[4];
  */
 static int                mos_effect_readbuff2_size[4];
 
-extern int                max_3170;
-extern int                viewnum_3171;
+/**
+ *
+ * Dimensions of the monster badge grid.
+ *
+ */
+enum {
+    MOS_SELECT_GRID_COLUMNS = 4, /**< Columns of monster badges. */
+    MOS_SELECT_GRID_ROWS = 3     /**< Rows of monster badges. */
+};
+
+/**
+ *
+ * Total columns and rows of the monster badge grid.
+ *
+ */
+static int max_3170[2] = {MOS_SELECT_GRID_COLUMNS, MOS_SELECT_GRID_ROWS};
+
+/**
+ *
+ * Visible columns and rows of the monster badge grid.
+ *
+ */
+static int viewnum_3171[2] = {MOS_SELECT_GRID_COLUMNS, MOS_SELECT_GRID_ROWS};
+
 extern int                overcode_3172[4];
 /**
  *
@@ -4091,7 +4113,7 @@ void CMenuMosSelect::CalcTex() {
 
 int CMenuMosSelect::KeyNormalMode(int keys, int a, int b) {
     int old_cursor = select;
-    MenuGlidKeyCheck(keys, &select, &top, &max_3170, &viewnum_3171, overcode_3172,
+    MenuGlidKeyCheck(keys, &select, &top, max_3170, viewnum_3171, overcode_3172,
                      0xC);
 
     if (old_cursor != select) {
@@ -7811,8 +7833,6 @@ INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", msgtbl1_1732__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", se_sndtbl_1749__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", cursor_revtbl_2237__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_2288__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", max_3170__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", viewnum_3171__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", menu_chara_chrtbl__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", menu_chara_cfg_chrtbl__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_3810__DATA);
