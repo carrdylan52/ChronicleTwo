@@ -108,3 +108,15 @@ both frozen drafts, remains byte-identical.
 Fourteen `aqua-table-<symbol>-{build,objects}.log` receipts verify PAL OK
 and 149/149 objects. Eighteen image-string markers also come from the
 native pointer targets. Markers: 79 / 3; matched data: 2128 / 8293 bytes.
+
+## Menu and reflection tables
+
+Eleven further tables now use native initializers: aquarium menu border
+strips, seven parameter-gauge layouts, parameter labels, character-frame
+rectangles, regional accept/cancel mappings, menu action IDs, four wall
+origins and the title-frame strips. Each retains the retail element width,
+array dimensions and mutable LOCAL linkage. The regional table uses the
+existing PAD_CIRCLE and PAD_CROSS names.
+
+Eleven `aqua-table-<symbol>-{build,objects}.log` receipts verify PAL OK
+and 149/149 objects. Markers: 68 / 3; matched data: 2128 / 8293 bytes.

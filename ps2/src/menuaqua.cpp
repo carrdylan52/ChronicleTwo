@@ -265,15 +265,8 @@ struct aqua_wall_quad {
     float v[4][4]; /**< Position of each wall corner. */
 };
 
-extern float              v1orig_4373[4];
-extern float              v2orig_4374[4];
-extern float              v3orig_4375[4];
-extern float              v4orig_4376[4];
-extern short              t_4408[];
 extern int                menu_debug_flag;
-extern int                langTbl_3630[2][2];
 extern s8                 menu_max_tbl_3720[3];
-extern s8                 menu_id_tbl_3721[18];
 extern s8                 another_aquarium_Notbl_3642[3][2];
 
 /**
@@ -294,10 +287,6 @@ extern u8              htbl_2471[5];
 extern u8              coltbl_2472[2][4];
 extern s8              offtbl_2496[2];
 extern s8              poffset_2511[8];
-extern s16             ptbl_2495[][6];
-extern short           u_brdtbl_2493[];
-extern u8              chrtbl_2503[][4][2];
-extern aqua_param_icon get_paraxtbl_2494[][10];
 
 enum {
     short_flag_tour_count = 0x15,
@@ -1117,6 +1106,144 @@ static aqua_fish_info aquafish_info[19] = {
     {AQUA_FISH_ITEM_F19, "f19a", 1, 14},
     {AQUA_FISH_ITEM_END}
 };
+
+/**
+ *
+ * Stores the three texture strips of the fish parameter board.
+ *
+ */
+static short u_brdtbl_2493[12] = {226, 76, 10, 24, 236, 76, 10, 24, 246, 76, 10, 24};
+
+/**
+ *
+ * Stores the translated texture rectangles of fish parameter labels and units.
+ *
+ */
+static aqua_param_icon get_paraxtbl_2494[7][10] = {
+    {{58, 166, 58}, {116, 166, 58}, {174, 166, 58}, {0, 184, 58}, {58, 184, 58}, {116, 184, 58}, {174, 184, 58}, {186, 202, 58}, {232, 184, 12}, {186, 220, 12}},
+    {{58, 166, 58}, {116, 166, 58}, {174, 166, 58}, {0, 184, 60}, {58, 184, 56}, {116, 184, 62}, {178, 184, 70}, {0, 148, 58}, {204, 202, 12}, {204, 220, 12}},
+    {{58, 166, 58}, {116, 166, 58}, {174, 166, 58}, {0, 184, 58}, {58, 184, 58}, {116, 184, 58}, {174, 184, 58}, {0, 148, 58}, {204, 202, 12}, {204, 220, 12}},
+    {{58, 166, 58}, {116, 166, 58}, {174, 166, 58}, {0, 184, 58}, {58, 184, 58}, {116, 184, 58}, {174, 184, 58}, {0, 148, 58}, {204, 202, 12}, {204, 220, 12}},
+    {{58, 166, 58}, {116, 166, 58}, {174, 166, 58}, {0, 184, 58}, {58, 184, 58}, {116, 184, 58}, {174, 184, 58}, {0, 148, 58}, {204, 202, 12}, {204, 220, 12}},
+    {{58, 166, 58}, {116, 166, 58}, {174, 166, 58}, {0, 184, 58}, {58, 184, 58}, {116, 184, 58}, {174, 184, 58}, {0, 148, 58}, {204, 202, 12}, {204, 220, 12}},
+    {{58, 166, 58}, {116, 166, 58}, {174, 166, 58}, {0, 184, 58}, {58, 184, 58}, {116, 184, 58}, {174, 184, 58}, {186, 202, 58}, {232, 184, 12}, {204, 220, 12}}
+};
+
+/**
+ *
+ * Stores translated fish name and sex-label positions and widths.
+ *
+ */
+static s16 ptbl_2495[6][6] = {
+    {242, 56, 252, 34, 34, 34},
+    {232, 64, 239, 52, 52, 18},
+    {235, 64, 242, 52, 52, 18},
+    {235, 64, 242, 52, 52, 18},
+    {235, 64, 242, 52, 52, 18},
+    {235, 64, 242, 52, 52, 21}
+};
+
+/**
+ *
+ * Stores the translated texture positions of the four fish-kind labels.
+ *
+ */
+static u8 chrtbl_2503[7][4][2] = {
+    {
+        {34, 202},
+        {110, 202},
+        {34, 220},
+        {110, 220}
+    },
+    {
+        {52, 202},
+        {128, 202},
+        {52, 220},
+        {128, 220}
+    },
+    {
+        {52, 202},
+        {128, 202},
+        {52, 220},
+        {128, 220}
+    },
+    {
+        {52, 202},
+        {128, 202},
+        {52, 220},
+        {128, 220}
+    },
+    {
+        {52, 202},
+        {128, 202},
+        {52, 220},
+        {128, 220}
+    },
+    {
+        {52, 202},
+        {128, 202},
+        {52, 220},
+        {128, 220}
+    },
+    {
+        {52, 202},
+        {128, 202},
+        {52, 220},
+        {128, 220}
+    }
+};
+
+/**
+ *
+ * Stores confirm and cancel button masks for Japanese and other languages.
+ *
+ */
+static int langTbl_3630[2][2] = {
+    {PAD_CIRCLE, PAD_CROSS},
+    {PAD_CROSS, PAD_CIRCLE}
+};
+
+/**
+ *
+ * Stores the aquarium menu command for each tank and cursor slot.
+ *
+ */
+static s8 menu_id_tbl_3721[18] = {0, 1, 2, 3, 4, 5, 0, 3, 4, 5, -1, -1, 0, 3, 4, 5, -1, -1};
+
+/**
+ *
+ * Stores the reference position of an aquarium reflection wall.
+ *
+ */
+static float v1orig_4373[4] = {0.0f, 16.5f, 21.0f, 1.0f};
+
+/**
+ *
+ * Stores the reference position of an aquarium reflection wall.
+ *
+ */
+static float v2orig_4374[4] = {0.0f, 16.5f, -21.0f, 1.0f};
+
+/**
+ *
+ * Stores the reference position of an aquarium reflection wall.
+ *
+ */
+static float v3orig_4375[4] = {34.0f, 16.5f, 0.0f, 1.0f};
+
+/**
+ *
+ * Stores the reference position of an aquarium reflection wall.
+ *
+ */
+static float v4orig_4376[4] = {-34.0f, 16.5f, 0.0f, 1.0f};
+
+/**
+ *
+ * Stores the three texture strips of the aquarium title frame.
+ *
+ */
+static short t_4408[12] = {170, 0, 36, 76, 206, 0, 14, 76, 220, 0, 36, 76};
 
 // Code (.text)
 /**
@@ -7732,10 +7859,6 @@ void DrawSubGameUnderLine(mgCTexture *texture, int x, int y, int width) {
 
 // Initialised data (.data)
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuaqua", at_1346__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuaqua", u_brdtbl_2493__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuaqua", get_paraxtbl_2494__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuaqua", ptbl_2495__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuaqua", chrtbl_2503__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuaqua", at_2935__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuaqua", at_2975__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuaqua", at_2976__DATA);
@@ -7744,13 +7867,6 @@ INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuaqua", at_3290__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuaqua", at_3291__3__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuaqua", at_3310__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuaqua", at_3311__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuaqua", langTbl_3630__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuaqua", menu_id_tbl_3721__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuaqua", v1orig_4373__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuaqua", v2orig_4374__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuaqua", v3orig_4375__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuaqua", v4orig_4376__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuaqua", t_4408__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuaqua", gyorace_tag__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuaqua", gyoprize_tag__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuaqua", GyoracerIndexNo__DATA);
