@@ -606,7 +606,56 @@ static mgCTexture        *Tex_MBook;
 static mgCTexture        *Tex_MBg;
 
 extern u32                stand_bit_5472[];
-extern char              *monster_type_name[][12];
+/**
+ *
+ * Monster family names displayed by the book for each supported language.
+ *
+ */
+static char *monster_type_name[LANG_CHINESE + 1][12] = {
+    {
+        "", "", "",
+        "", "", "",
+        "", "", "",
+        "", "", "",
+    },
+    {
+        "???", "Beast", "Windup",
+        "Aquatic", "Flora", "Magical Creature",
+        "Darkling", "Reptile Family", "Spirit",
+        "Undead", "Card", "???",
+    },
+    {
+        "???", "Animal", "Robotis[UNI00e9]",
+        "Aquatique", "V[UNI00e9]g[UNI00e9]tal", "Cr[UNI00e9]ature magique",
+        "Cr[UNI00e9]ature obscure", "Reptile", "Esprit",
+        "Mort-vivant", "Carte", "???",
+    },
+    {
+        "???", "Tier", "Aufzieh-Figur",
+        "Wassertier", "Flora", "Zauberwesen",
+        "D[UNI00fc]sterling", "Reptil", "Geist",
+        "Untoter", "Karte", "???",
+    },
+    {
+        "???", "Bestia", "Robot",
+        "Acquatico", "Flora", "Creatura magica",
+        "Oscuro", "Rettile", "Spirito",
+        "Nonmorto", "Carta", "???",
+    },
+    {
+        "???", "Bestia", "Broma",
+        "Acu[UNI00e1]tico", "Flora", "Criatura m[UNI00e1]gica",
+        "Misterioso", "Familia de reptiles", "Esp[UNI00ed]ritu",
+        "Muerto Viviente", "Carta", "???",
+    },
+    {
+        "???", "Beast", "Windup",
+        "Aquatic", "Flora", "Magical Creature",
+        "Darkling", "Reptile Family", "Spirit",
+        "Undead", "Card", "???",
+    },
+};
+
 extern char              *monster_jyakuten[][8];
 extern char               at_4950__2[];
 extern char               menu_infocfgname[];
@@ -633,7 +682,6 @@ extern char               at_1134__3[];
 extern char               at_1135__3[];
 extern char               at_1319[11];
 extern char               at_1361[];
-extern char               at_2287[];
 extern char               at_3969[];
 extern s8                 convtbl_4621[][MENU_CHARA_LOAD_MAX];
 extern mgCMemory          MenuMonChangeLoadStack;
@@ -5020,7 +5068,7 @@ static void MenuItemCharaDataLoadPack(int chara_no, CActionChara *chara, CAction
                 break;
             case 1:
                 tex_manager->DeleteTexAnime(tex_block);
-                body->LoadSkin(pack, menu_infocfgname, at_2287, stack, tex_block);
+                body->LoadSkin(pack, menu_infocfgname, "", stack, tex_block);
                 break;
             case 2:
             case 3:
@@ -7517,7 +7565,6 @@ INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_4967__2__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", tbl_5016__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", infomsg_5256__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", putw_5262__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", monster_type_name__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", monster_jyakuten__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_5452__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", stand_bit_5472__DATA);
@@ -7565,7 +7612,6 @@ INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_2194__2__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_2195__2__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_2196__2__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_2197__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_2287__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_2303__2__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_2304__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_2305__DATA);
@@ -7707,52 +7753,6 @@ INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_5258__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_5259__2__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_5260__2__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_5261__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_5356__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_5357__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_5358__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_5359__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_5360__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_5361__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_5362__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_5363__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_5364__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_5365__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_5366__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_5367__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_5368__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_5369__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_5370__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_5371__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_5372__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_5373__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_5374__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_5375__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_5376__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_5377__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_5378__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_5379__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_5380__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_5381__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_5382__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_5383__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_5384__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_5385__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_5386__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_5387__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_5388__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_5389__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_5390__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_5391__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_5392__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_5393__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_5394__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_5395__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_5396__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_5397__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_5398__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_5399__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_5400__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_5401__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_5402__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_5403__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_5404__DATA);

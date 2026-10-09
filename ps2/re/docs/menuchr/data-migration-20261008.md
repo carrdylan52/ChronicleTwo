@@ -121,3 +121,13 @@ probe recorded in `midday-book.md`. All seven resolved pointers match retail.
 After this step: **320 / 25 markers**, **4 / 9726 matched_data**.
 PAL and 149/149 objects pass; receipts are
 `.private/nmchr-r3/menuchr-book-format-{build,objects,progress,metrics}.log`.
+
+`monster_type_name` is a native seven-by-twelve pointer table of monster
+family labels, with every string inline in its initializer. Japanese has
+twelve empty labels; English, French, German, and Spanish have their retail
+labels; Italian and Chinese reuse English. The 336-byte declared extent,
+all 84 pointers, and all 47 former child-string pieces match. Shared native
+empty-string consumers now use the inline empty literal as well.
+After this step: **272 / 25 markers**, **4 / 9726 matched_data**.
+PAL and 149/149 objects pass; receipts are
+`.private/nmchr-r3/menuchr-book-types-{build,objects,progress,metrics}.log`.
