@@ -1542,32 +1542,30 @@ void EditMode(CScene *scene) {
             CMap *maps[8];
             map_count = scene->GetActiveMap(maps, 8);
             eCurPos[1] = 0.0f;
-            sceVu0FVECTOR box_max;
-            sceVu0FVECTOR box_min;
-            float *box_low;
+            mgVu0FBOX box;
             float new_pos[4];
             float ground[4];
             float start_pos[4];
             float move[4];
             CCPoly polys[0x800];
             MoveCheckInfo move_info;
-            *(u_long128 *)box_max = *(u_long128 *)eCurPos;
-            *(u_long128 *)(box_low = box_min) = *(u_long128 *)eCurPos;
+            *(u_long128 *)box.max = *(u_long128 *)eCurPos;
+            *(u_long128 *)box.min = *(u_long128 *)eCurPos;
             *(u_long128 *)new_pos = *(u_long128 *)eCurPos;
             *(u_long128 *)start_pos = *(u_long128 *)old_pos;
             new_pos[1] = 20.0f;
             start_pos[1] = 20.0f;
             sceVu0SubVector(move, new_pos, start_pos);
             int poly_count = 0;
-            box_max[0] += 100.0f;
-            box_max[1] = 100.0f;
-            box_max[2] += 100.0f;
-            box_low[0] -= 100.0f;
-            box_min[1] = -100.0f;
-            box_min[2] -= 100.0f;
+            box.max[0] += 100.0f;
+            box.max[1] = 100.0f;
+            box.max[2] += 100.0f;
+            box.min[0] -= 100.0f;
+            box.min[1] = -100.0f;
+            box.min[2] -= 100.0f;
             int poly_rest = 0x800;
             if (maps[0] != NULL) {
-                poly_count = GetGeoCheckCol(maps[0], *(mgVu0FBOX *)box_max, polys, poly_rest);
+                poly_count = GetGeoCheckCol(maps[0], box, polys, poly_rest);
             }
             memset(&move_info, 0, sizeof(move_info));
             move_info.radius = 50.0f;
@@ -1623,14 +1621,14 @@ void EditMode(CScene *scene) {
             sceVu0Normalize(camera_dir, camera_dir);
             sceVu0ScaleVector(camera_dir, camera_dir, 20.0f);
             mgAddVector(camera_pos, camera_dir);
-            mgVectorMaxMin(box_max, box_low, camera_pos, camera_ref);
-            box_max[0] += 10.0f;
-            box_max[1] = 100.0f;
-            box_max[2] += 10.0f;
-            box_low[0] -= 10.0f;
-            box_min[1] = -100.0f;
-            box_min[2] -= 10.0f;
-            if (CheckHit(polys, GetGeoCheckCamCol(map, *(mgVu0FBOX *)box_max, polys, 0x800), camera_ref, camera_pos, camera_hit, 1, 0) >= 0) {
+            mgVectorMaxMin(box.max, box.min, camera_pos, camera_ref);
+            box.max[0] += 10.0f;
+            box.max[1] = 100.0f;
+            box.max[2] += 10.0f;
+            box.min[0] -= 10.0f;
+            box.min[1] = -100.0f;
+            box.min[2] -= 10.0f;
+            if (CheckHit(polys, GetGeoCheckCamCol(map, box, polys, 0x800), camera_ref, camera_pos, camera_hit, 1, 0) >= 0) {
                 float dist = mgDistVectorXZ(camera_ref, camera_hit);
                 camera->SetDistance(dist);
                 if (dist < 500.0f) {
@@ -1652,28 +1650,28 @@ void EditMode(CScene *scene) {
             }
             *(u_long128 *)ePartsCurPos = *(u_long128 *)eCurPos;
             ePartsCurRot[1] = map->GetEditAngle(eCurRot);
-            int ground_count = 0;
+            poly_count = 0;
             next_poly = polys;
-            *(u_long128 *)box_max = *(u_long128 *)eCurPos;
-            *(u_long128 *)(box_low = box_min) = *(u_long128 *)eCurPos;
+            *(u_long128 *)box.max = *(u_long128 *)eCurPos;
+            *(u_long128 *)box.min = *(u_long128 *)eCurPos;
             *(u_long128 *)new_pos = *(u_long128 *)eCurPos;
             new_pos[1] = 1000.0f;
-            box_max[0] += 10.0f;
-            box_max[1] = 10000.0f;
-            box_max[2] += 10.0f;
-            box_min[0] -= 10.0f;
-            box_min[1] = -10000.0f;
-            box_min[2] -= 10.0f;
+            box.max[0] += 10.0f;
+            box.max[1] = 10000.0f;
+            box.max[2] += 10.0f;
+            box.min[0] -= 10.0f;
+            box.min[1] = -10000.0f;
+            box.min[2] -= 10.0f;
             for (i = 0; i < map_count; i++) {
-                int added = maps[i]->GetColPoly(next_poly, *(mgVu0FBOX *)box_max, poly_rest);
-                ground_count += added;
+                int added = maps[i]->GetColPoly(next_poly, box, poly_rest);
+                poly_count += added;
                 next_poly += added;
                 poly_rest -= added;
                 if (poly_rest < 0) {
                     break;
                 }
             }
-            if (CheckHitVertical(polys, ground_count, new_pos, -2000.0f, ground, 1) >= 0) {
+            if (CheckHitVertical(polys, poly_count, new_pos, -2000.0f, ground, 1) >= 0) {
                 *(u_long128 *)eCurPos = *(u_long128 *)ground;
                 ePartsCurPos[1] = ground[1];
             }
