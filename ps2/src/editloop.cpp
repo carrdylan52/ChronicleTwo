@@ -2218,7 +2218,7 @@ int EditDraw() {
         edit_map->DrawRiverMask();
     }
     ghost_visible = GhostPhotoTiming();
-    if (CheckTime(MainScene__2->time, float(0), float(4)) == 0) {
+    if (CheckTime(MainScene__2->time, 0.0f, 4.0f) == 0) {
         ghost_visible = 0;
     }
     for (map_index = 0; map_index < map_count; map_index++) {
