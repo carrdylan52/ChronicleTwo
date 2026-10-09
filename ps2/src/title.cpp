@@ -388,8 +388,8 @@ static void TitleBootInit() {
     WaveTable__3 = new ((u_long128 *) DataBuffer.Alloc(0x123)) CWaveTable;
     mgCTextureManager *textures = &mgTexManager;
     DataBuffer.Align64();
-    u_long128 *map_top;
-    TitleMapBuffer.stSetBuffer(map_top = DataBuffer.stGetTop(), 0x40000);
+    u_long128 *map_top = DataBuffer.stGetTop();
+    TitleMapBuffer.stSetBuffer(DataBuffer.stGetTop(), 0x40000);
     DataBuffer.Alloc(0x60000);
     TitleWorkBuffer.stSetBuffer(DataBuffer.stGetTop(), 0x2800);
     DataBuffer.Alloc(0x2800);
@@ -446,11 +446,14 @@ static void TitleBootInit() {
     Tex_TitleBG2 = textures->GetTexture(at_1232__2, -1);
     DataBuffer.Align64();
     u_long128 *save_pack = &DataBuffer.stGetTop()[0x4100];
+    int    i;
+    u_int *icon_file;
+    int   *size;
     if (LoadFileMenu(at_1233, save_pack, MENU_FILE_LOAD_DIRECT) != 0) {
-        for (int i = 0; i < 3; i++) {
+        for (i = 0; i < 3; i++) {
             MC_ICON_DATA *icon = &MC_ICON_Data[i];
-            u_int        *icon_file = GetPackFile((u_int *) save_pack, icon->name, &icon->size);
-            int          *size = &icon->size;
+            icon_file = GetPackFile((u_int *) save_pack, icon->name, &icon->size);
+            size = &icon->size;
             icon->data = DataBuffer.Alloc(Align16Blocks(icon->size));
             memcpy(icon->data, icon_file, *size);
         }
@@ -474,9 +477,9 @@ static void TitleBootInit() {
     textures->EnterIMGFile(GetFontTex2ImgPtr(), 0x46, NULL, NULL);
     DataBuffer.Align64();
     MenuArg.mes_tex_block = 0x46;
+    MenuArg.scene = TitleScene;
     MenuArg.tex_block_top = 0x54;
     MenuArg.tex_block_num = 0x10;
-    MenuArg.scene = TitleScene;
     MenuArg.pack = (u_int *) DataBuffer.stGetTop();
     file_size = LoadFileMenu(at_1237__2, (u_long128 *) MenuArg.pack, MENU_FILE_LOAD_DIRECT);
     DataBuffer.Alloc(Align16Blocks(file_size));
