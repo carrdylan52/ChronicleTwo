@@ -1345,39 +1345,6 @@ static float GetGeoMapLimitHeight(int map_kind) {
 
 /**
  *
- * Logical pad buttons used by the Georama cursor and camera.
- *
- */
-enum EditCursorButton {
-    EDIT_BTN_CAMERA_DECREASE = 2,  /**< Holds R1 to decrease the camera angle. */
-    EDIT_BTN_CAMERA_INCREASE = 3,  /**< Holds L1 to increase the camera angle. */
-    EDIT_BTN_UP = 7,               /**< Steps the cursor with the up button. */
-    EDIT_BTN_DOWN = 8,             /**< Steps the cursor with the down button. */
-    EDIT_BTN_TURN_DECREASE = 100,  /**< Turns the selected part with R2. */
-    EDIT_BTN_TURN_INCREASE = 101,  /**< Turns the selected part with L2. */
-    EDIT_BTN_PLACE = 102,          /**< Places a part or selects a wall. */
-    EDIT_BTN_REMOVE = 103,         /**< Starts digging out the selected part. */
-    EDIT_BTN_PAINT = 104,          /**< Paints the selected surface. */
-    EDIT_BTN_WALL_NEXT = 105,      /**< Selects the next wall with R2. */
-    EDIT_BTN_WALL_PREVIOUS = 106,  /**< Selects the previous wall with L2. */
-    EDIT_BTN_PAINT_ALL = 107,      /**< Paints the roof or the whole fence with square. */
-    EDIT_BTN_MAGNET = 109,         /**< Toggles part snapping with square. */
-};
-
-/**
- *
- * Logical stick axes bound to the two controller sticks in Georama mode.
- *
- */
-enum EditCursorAnalog {
-    EDIT_ANALOG_LEFT_X = 0,  /**< Left stick horizontal movement. */
-    EDIT_ANALOG_LEFT_Y = 1,  /**< Left stick vertical movement. */
-    EDIT_ANALOG_RIGHT_X = 2, /**< Right stick camera rotation. */
-    EDIT_ANALOG_RIGHT_Y = 3, /**< Right stick camera distance. */
-};
-
-/**
- *
  * Part attributes that control cursor placement, snapping and help.
  *
  */
@@ -1479,11 +1446,11 @@ void EditMode(CScene *scene) {
             float angle = camera->GetAngle();
             float stick_x = 0.0f;
             if (pad != NULL) {
-                stick_x = pad->Analog(EDIT_ANALOG_LEFT_X);
+                stick_x = pad->Analog(PAD_ANALOG_LEFT_X);
             }
             float stick_y = 0.0f;
             if (pad != NULL) {
-                stick_y = pad->Analog(EDIT_ANALOG_LEFT_Y);
+                stick_y = pad->Analog(PAD_ANALOG_LEFT_Y);
             }
             float move_x = stick_x * cosf(angle) + stick_y * sinf(angle);
             float move_z = -stick_x * sinf(angle) + stick_y * cosf(angle);
@@ -1521,8 +1488,8 @@ void EditMode(CScene *scene) {
             if (pad != NULL) {
                 key_right = pad->Btn(PAD_BTN_RIGHT);
                 key_left = pad->Btn(PAD_BTN_LEFT);
-                key_up = pad->Btn(EDIT_BTN_UP);
-                key_down = pad->Btn(EDIT_BTN_DOWN);
+                key_up = pad->Btn(PAD_BTN_UP);
+                key_down = pad->Btn(PAD_BTN_DOWN);
             }
             if (key_right || key_left || key_up || key_down) {
                 map->GetEditPos(eCurPos, eCurPos);
@@ -1592,10 +1559,10 @@ void EditMode(CScene *scene) {
             }
             river = (attr & EDIT_PARTS_ATR_RIVER) != 0;
             any_height = (attr & EDIT_CURSOR_ATTR_ANY_HEIGHT) != 0;
-            if (pad != NULL && pad->Btn(EDIT_BTN_TURN_DECREASE)) {
+            if (pad != NULL && pad->Btn(PAD_BTN_EDIT_TURN_DECREASE)) {
                 eCurRot -= turn_step;
             }
-            if (pad != NULL && pad->Btn(EDIT_BTN_TURN_INCREASE)) {
+            if (pad != NULL && pad->Btn(PAD_BTN_EDIT_TURN_INCREASE)) {
                 eCurRot += turn_step;
             }
             eCurRot = map->AngleLimit(eCurRot);
@@ -1612,8 +1579,8 @@ void EditMode(CScene *scene) {
                     PutSideMode = EDIT_PUT_SIDE_SELECT;
                 }
                 if (PutSideMode == EDIT_PUT_SIDE_MOVE) {
-                    WallPutPos[0] += 2.0f * pad->Analog(EDIT_ANALOG_LEFT_X);
-                    WallPutPos[1] -= 2.0f * pad->Analog(EDIT_ANALOG_LEFT_Y);
+                    WallPutPos[0] += 2.0f * pad->Analog(PAD_ANALOG_LEFT_X);
+                    WallPutPos[1] -= 2.0f * pad->Analog(PAD_ANALOG_LEFT_Y);
                     if (WallPutPos[0] < WallInfo.box.min[0]) {
                         WallPutPos[0] = WallInfo.box.min[0];
                     }
@@ -1673,7 +1640,7 @@ void EditMode(CScene *scene) {
                 }
             }
             if (pad != NULL) {
-                eCameraDist += 15.0f * pad->Analog(EDIT_ANALOG_RIGHT_Y);
+                eCameraDist += 15.0f * pad->Analog(PAD_ANALOG_RIGHT_Y);
                 if (eCameraDist < 400.0f) {
                     eCameraDist = 400.0f;
                 }
@@ -1682,13 +1649,13 @@ void EditMode(CScene *scene) {
                 }
                 camera->SetFollowOffset(0.0f, 0.0f, 0.0f);
                 camera->SetFollow(target[0], target[1], target[2]);
-                if (pad->Btn(EDIT_BTN_CAMERA_DECREASE)) {
+                if (pad->Btn(PAD_BTN_R1_HELD)) {
                     camera->AddAngle(-0.1f);
                 }
-                if (pad->Btn(EDIT_BTN_CAMERA_INCREASE)) {
+                if (pad->Btn(PAD_BTN_L1_HELD)) {
                     camera->AddAngle(0.1f);
                 }
-                camera->AddAngle(0.1f * -pad->Analog(EDIT_ANALOG_RIGHT_X));
+                camera->AddAngle(0.1f * -pad->Analog(PAD_ANALOG_RIGHT_X));
                 float height = eCameraDist;
                 if (height < 500.0f) {
                     height = 500.0f;
@@ -1859,7 +1826,7 @@ void EditMode(CScene *scene) {
                                         ePartsCurPos[1] = floor_y;
                                     }
                                 }
-                                if (pad->Btn(EDIT_BTN_PLACE) && RemainPartsNum > 0) {
+                                if (pad->Btn(PAD_BTN_EDIT_PLACE) && RemainPartsNum > 0) {
                                     if (PlacePartsFlag != 0) {
                                         if (river) {
                                             if (!NowPlaceRiver()) {
@@ -1874,7 +1841,7 @@ void EditMode(CScene *scene) {
                                         OpenSystemMes(scene, EDIT_SYSTEM_MES_PLACE_BLOCKED, 40);
                                     }
                                 }
-                                if (pad->Btn(EDIT_BTN_MAGNET)) {
+                                if (pad->Btn(PAD_BTN_EDIT_MAGNET)) {
                                     MagnetPartsFlag = 0;
                                     MagnetEnable = !MagnetEnable;
                                 }
@@ -1893,7 +1860,7 @@ void EditMode(CScene *scene) {
                         if (remove_info != NULL && !(remove_info->attr & EDIT_CURSOR_ATTR_NO_REMOVE_FOCUS)) {
                             map->focus_parts = parts_no;
                         }
-                        if (pad->Btn(EDIT_BTN_REMOVE)) {
+                        if (pad->Btn(PAD_BTN_EDIT_REMOVE)) {
                             eCurNowPos[1] = eCurPos[1];
                             RemoveMtnStart(map, probe, eCurPos);
                         }
@@ -1920,7 +1887,7 @@ void EditMode(CScene *scene) {
                                         } else {
                                             SetHelpMes(EDIT_HELP_PAINT, paint_info->paint_used, paint_held);
                                         }
-                                        if (pad->Btn(EDIT_BTN_PAINT)) {
+                                        if (pad->Btn(PAD_BTN_EDIT_PAINT)) {
                                             color_no = 0;
                                         }
                                     }
@@ -1930,10 +1897,10 @@ void EditMode(CScene *scene) {
                                         } else {
                                             SetHelpMes(EDIT_HELP_PAINT_HOUSE, paint_info->paint_used, paint_held);
                                         }
-                                        if (pad->Btn(EDIT_BTN_PAINT_ALL)) {
+                                        if (pad->Btn(PAD_BTN_EDIT_PAINT_ALL)) {
                                             color_no = 0;
                                         }
-                                        if (pad->Btn(EDIT_BTN_PAINT)) {
+                                        if (pad->Btn(PAD_BTN_EDIT_PAINT)) {
                                             color_no = 1;
                                         }
                                     }
@@ -1943,10 +1910,10 @@ void EditMode(CScene *scene) {
                                     } else {
                                         SetHelpMes(EDIT_HELP_PAINT_FENCE, paint_info->paint_used, paint_held);
                                     }
-                                    if (pad->Btn(EDIT_BTN_PAINT)) {
+                                    if (pad->Btn(PAD_BTN_EDIT_PAINT)) {
                                         color_no = 0;
                                     }
-                                    if (pad->Btn(EDIT_BTN_PAINT_ALL)) {
+                                    if (pad->Btn(PAD_BTN_EDIT_PAINT_ALL)) {
                                         color_no = EDIT_PAINT_ALL_FENCE;
                                     }
                                 }
@@ -2007,7 +1974,7 @@ void EditMode(CScene *scene) {
                     int side_mode = PutSideMode;
                     if (side_mode == EDIT_PUT_SIDE_SELECT) {
                         SetHelpMes(EDIT_HELP_SELECT_WALL, 0, 0);
-                        if (pad->Btn(EDIT_BTN_PLACE)) {
+                        if (pad->Btn(PAD_BTN_EDIT_PLACE)) {
                             float probe[4];
                             CEditParts::WallInfo wall;
                             *(u_long128 *) probe = *(u_long128 *) eCurPos;
@@ -2044,7 +2011,7 @@ void EditMode(CScene *scene) {
                         PlacePartsFlag = 0;
                         if (placeable) {
                             PlacePartsFlag = 1;
-                            if (pad->Btn(EDIT_BTN_PLACE)) {
+                            if (pad->Btn(PAD_BTN_EDIT_PLACE)) {
                                 float wall_rot[4];
                                 mgZeroVector(wall_rot);
                                 wall_rot[1] = wall_pos[3];
@@ -2058,10 +2025,10 @@ void EditMode(CScene *scene) {
                             CEditParts::WallInfo wall;
                             SetHelpMes(EDIT_HELP_PLACE_WALL, base->GetWallGroupNum(), UndoEnable());
                             int old_group = SelectWallGroup;
-                            if (pad->Btn(EDIT_BTN_WALL_NEXT)) {
+                            if (pad->Btn(PAD_BTN_EDIT_WALL_NEXT)) {
                                 SelectWallGroup++;
                             }
-                            if (pad->Btn(EDIT_BTN_WALL_PREVIOUS)) {
+                            if (pad->Btn(PAD_BTN_EDIT_WALL_PREVIOUS)) {
                                 SelectWallGroup--;
                             }
                             if (SelectWallGroup < 0) {

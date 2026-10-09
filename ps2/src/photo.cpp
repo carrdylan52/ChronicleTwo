@@ -204,7 +204,7 @@ int GhostPhotoTiming() {
 void LoopTakePhoto(CPadControl *pad, CInventUserData *user_data) {
     if (user_data != NULL) {
         if (TakePhotoMode == TAKE_PHOTO_AIM) {
-            AddProj__2 += 10.0f * -pad->Analog(3);
+            AddProj__2 += 10.0f * -pad->Analog(PAD_ANALOG_RIGHT_Y);
 
             if (!(AddProj__2 <= 200.0f)) {
                 AddProj__2 = 200.0f;

@@ -147,11 +147,11 @@ void CCameraControl::MoveCamera(CPadControl *pad, float *target, CCPoly *polys, 
         }
 
         if (!(rot_cancel & 1)) {
-            if (pad->Btn(3) != 0) {
+            if (pad->Btn(PAD_BTN_L1_HELD) != 0) {
                 turn = 0.05f;
             }
 
-            if (pad->Btn(2) != 0) {
+            if (pad->Btn(PAD_BTN_R1_HELD) != 0) {
                 turn = -0.05f;
             }
         }
