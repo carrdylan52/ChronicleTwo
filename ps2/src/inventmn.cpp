@@ -130,7 +130,8 @@ static int viewnum_5172[2] = {
  *
  */
 static short nextmodetbl_5183[12] = {
-    1, -1, -1, -1, INVENT_MODE_ALBUM_VIEW, -1, 7, -1, -1, -1, -1, INVENT_MODE_THINK
+    INVENT_MODE_THINK_ALBUM_BUTTON, -1, -1, -1, INVENT_MODE_ALBUM_VIEW, -1,
+    INVENT_MODE_PHOTO_ALBUM_BUTTON, -1, -1, -1, -1, INVENT_MODE_THINK
 };
 
 /**
@@ -7347,15 +7348,15 @@ int MenuInventKey() {
     int button = MenuCommonInfo->CheckPushButton();
     MenuCommonInfo->CheckKeyInput();
     switch (CMenuInventPt->mode) {
-        case 1:
+        case MENU_ASK_MODE_OPEN:
             if (ReadBGSync() == 0 && CMenuInventPt->opened == 0) {
                 CMenuInventPt->InitEnd();
-                CMenuInventPt->mode = 0;
+                CMenuInventPt->mode = MENU_ASK_MODE_NONE;
                 CMenuInventPt->opened = 1;
                 CMenuInventPt->unk_10 = 0x80;
             }
             break;
-        case 2:
+        case MENU_ASK_MODE_CLOSE:
             if ((CMenuInventPt->photo_only == 0 && GetMenuMainFrameEndFlag() != 0) ||
                 (CMenuInventPt->photo_only == 1 && CalcMenuAdd(&CMenuInventPt->unk_10, -8, 0) != 0)) {
                 CMenuInventPt->ExitEnd();
@@ -7365,17 +7366,17 @@ int MenuInventKey() {
                 }
             }
             break;
-        case 0:
+        case MENU_ASK_MODE_NONE:
             MenuMoveItemPtr->CheckMove();
             if (MenuMoveItemPtr->move_on != 0) {
                 button = 0;
             }
             MenuInventPushKey(lr_key, button);
             break;
-        case 14:
+        case MENU_ASK_MODE_ALBUM_ACCESS:
             CMenuInventPt->IsAccessAlbum();
             break;
-        case 13:
+        case MENU_ASK_MODE_PHOTO_NETA:
             CMenuInventPt->PhotoNetaEnter(lr_key, button);
             break;
         default:
@@ -7385,7 +7386,7 @@ int MenuInventKey() {
     CMenuInventPt->LoadCharaCheck();
     if (CMenuInventPt->photo_only == 0) {
         int icon_mode = 2;
-        if (CMenuInventPt->mode == 2) {
+        if (CMenuInventPt->mode == MENU_ASK_MODE_CLOSE) {
             icon_mode = 0;
         }
         MenuPosData->StepMainMenuIconMove(GetCommonMenuModeID(), 5, icon_mode);
@@ -7419,7 +7420,7 @@ int MenuInventKey() {
             CDC2Mes *name_message = MenuDCMsg[7];
             if (name_message != NULL) {
                 short key = CMenuInventPt->key_arg_no;
-                if (key == 4 || key == 5) {
+                if (key == 4 || key == INVENT_MODE_ALBUM_VIEW) {
                     if (CMenuInventPt->album_big_form != NULL && InventAlbumPtr != NULL) {
                         CMenuInventPt->album_big_form->GetPutPosXY("msgpos", item_pos[0], item_pos[1]);
                         item_pos[1] += 5;
@@ -7428,18 +7429,12 @@ int MenuInventKey() {
                         MakeMsgNetaName(name_message, MenuMesForm[7],
                                         InventAlbumPtr->GetAlbumPhotoInfo(CMenuInventPt->album_cursor), item_pos, 1);
                     }
-                } else if (key != 6 && CMenuInventPt->unk_112 == 0 && CMenuInventPt->photo_only == 0) {
+                } else if (key != INVENT_MODE_PHOTO_VIEW && CMenuInventPt->unk_112 == 0 && CMenuInventPt->photo_only == 0) {
                     for (index = 0; index < 3; index++) {
                         CMenuPosDataForm *name_form = CMenuInventPt->neta_name_form[index];
                         if (name_form != NULL) {
                             name_form->GetPutPosXY("msg", item_pos[0], item_pos[1]);
-                            int x = item_pos[0];
-                            int y = item_pos[1];
-                            if (index >= 0 && index < MES_LINE_MAX) {
-                                name_message->line_pos[index][0] = x;
-                                name_message->line_pos[index][1] = y;
-                                name_message->line_pos_on[index] = 1;
-                            }
+                            name_message->SetMovePosGyou(index, item_pos[0], item_pos[1]);
                         }
                     }
                 }
@@ -7447,11 +7442,11 @@ int MenuInventKey() {
             if (MenuMesForm[3] != NULL) {
                 count_x = 370;
                 count_y = 16;
-                if (LanguageCode == 1) {
+                if (LanguageCode == LANG_ENGLISH) {
                     count_x = 336;
                     count_y = 14;
                 }
-                if (LanguageCode < 2) {
+                if (LanguageCode < LANG_FRENCH) {
                     MenuMesForm[3]->SetPos(count_x, count_y);
                 } else {
                     MenuPosData->GetEtcTblValue("msg3q", count_x, count_y);
@@ -7462,7 +7457,7 @@ int MenuInventKey() {
                     message_no = 618;
                     MenuPosData->GetEtcTblValue("msg3p", count_x, count_y);
                 }
-                if (LanguageCode >= 2) {
+                if (LanguageCode >= LANG_FRENCH) {
                     MenuMesForm[3]->SetPos(count_x, count_y);
                 }
                 number_message->MakeMsg(message_no);
@@ -7520,7 +7515,7 @@ int MenuInventKey() {
             number_message->SetMsgVolumeNo(numbers, digit_tbl3_5641, 6);
             number_message->SetMsgItemPos(number_pos, 6);
             CGameDataUsed *item = CMenuInventPt->SearchNowPosItemExist();
-            if (CMenuInventPt->key_arg_no == 2 && InventUserDataPtr->GetCreateItemID(CMenuInventPt->card_cursor) <= 0) {
+            if (CMenuInventPt->key_arg_no == INVENT_MODE_CARD_LIST && InventUserDataPtr->GetCreateItemID(CMenuInventPt->card_cursor) <= 0) {
                 item_message->MakeMsg(617);
             } else {
                 item_message->MakeMsg(item);

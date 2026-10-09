@@ -49,3 +49,20 @@ does not compile (MWCC reports a redeclaration from `char` to `unsigned char`),
 so the definition, the declaration and the consumer change together; every
 object stays byte-identical.
 
+
+## MenuInventKey enums and message positioning
+
+The shared `CBaseMenuClass::mode` values 0, 1 and 2 mean idle, opening
+and closing. Inventory extensions 13 and 14 call PhotoNetaEnter and
+IsAccessAlbum, respectively. These values now use `MENU_ASK_MODE_*`;
+English and the first continental language threshold use LANG_ENGLISH
+and LANG_FRENCH. The existing SetMovePosGyou inline supplies the bounded
+name-line position writes and enabled flag with identical code.
+
+The photo navigation table's 1 and 7 lead to the album-access button
+beside the idea board and photo-only board. CalcCursorPosition places
+both on `album_sw_form`; MenuInventPushKey runs `IS_MCACCESS` from both
+and returns to the idea or photo board on left navigation. They are
+INVENT_MODE_THINK_ALBUM_BUTTON and INVENT_MODE_PHOTO_ALBUM_BUTTON.
+INVENT_MENU_MODE describes key_arg_no, independently of the shared
+mode field. The complete executable and all 149 objects remain exact.
