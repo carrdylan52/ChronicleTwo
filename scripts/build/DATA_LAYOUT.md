@@ -173,8 +173,10 @@ source comparison, including coincidental compiler copies. No fallback payload
 is imported. Function bytes, declared sizes and relocation fields remain intact;
 function names use the existing template/initializer projection. CMake tracks
 both raw sides, sources, retail metadata and preparation tools; comparison copies
-and receipts are declared byproducts. Missing raw inputs fail, and a failed
-refresh removes the stale configuration. Cache fingerprints include the ELF
+and receipts are declared byproducts. Linked C++ objects also track the
+postprocessor's shared data proofs in `objdiff_data.py` and linker extents in
+`lcf.py`. Missing raw inputs fail, and a failed refresh removes the stale
+configuration. Cache fingerprints include the ELF
 reader, length-delimited proof inputs, global cuts, raw objects and source
 provenance. A malformed receipt or mismatched output hash requires preparation
 from the raw inputs.
