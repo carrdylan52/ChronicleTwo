@@ -26,17 +26,23 @@ const int          paint_particle_count = 24;
 const int          place_anime_count = 3;
 
 /**
+ *
  * Effect types enabled for the current edit operation.
+ *
  */
 static u32 EffectFlag;
 
 /**
+ *
  * Progress of the active edit effect.
+ *
  */
 static u32 EffectState;
 
 /**
+ *
  * Paint-particle effect used by the current edit operation.
+ *
  */
 static CPaintEffect *PaintEffect;
 
@@ -772,6 +778,8 @@ CStarEffect _StarEffect[star_effect_count];
 mgCMemory   CurPartsBuff;
 
 /**
+ *
  * Placement animations for the three edit-operation slots.
+ *
  */
 CPlaceAnime PlaceAnime[EDIT_PLACE_ANIME_MAX];
