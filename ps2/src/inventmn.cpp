@@ -219,7 +219,6 @@ struct NetaFoundFlags {
     s8 flag[3]; /**< Found flag for each idea. */
 };
 
-extern NetaFoundFlags at_1965;
 extern char           at_2124__2[];
 extern char           at_2125__3[];
 extern char           at_2126__3[];
@@ -412,7 +411,6 @@ struct ScreenPoint {
 };
 
 extern CursorPos   at_3509;
-extern ScreenPoint at_4493;
 
 /**
  *
@@ -435,7 +433,6 @@ struct NetaEffectTarget {
     float y; /**< Vertical target coordinate. */
 };
 
-extern NetaEffectTarget at_4638;
 extern char             at_4775[];
 extern char             at_5066[];
 extern char             at_5067[];
@@ -7410,7 +7407,6 @@ INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_3260__2__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_3261__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_3262__2__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_3263__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_3264__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_3348__2__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_3349__2__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_3350__2__DATA);
@@ -7441,8 +7437,6 @@ INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_3866__2__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_3867__2__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_3868__2__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_3869__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_3871__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_3870__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_3932__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_3933__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_3934__DATA);
@@ -7484,7 +7478,6 @@ INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_5015__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_5016__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_5066__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_5067__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_5068__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_5153__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_5154__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_5155__DATA);
@@ -7499,8 +7492,6 @@ INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_5556__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_5557__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_5558__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_5559__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_5562__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_5560__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_5649__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_5650__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_5651__DATA);
@@ -7515,7 +7506,6 @@ INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_5746__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_5747__DATA);
 
 // Virtual tables (.vtables)
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", __vt__11CMenuInvent__DATA);
 
 // Small initialised data (.sdata)
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", invent_grade_fff__DATA);
@@ -7534,16 +7524,11 @@ INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", viewnum_album_5224__DATA);
 
 // Small uninitialised data (.sbss)
 INCLUDE_BSS(at_1788__2, 0x4);
-INCLUDE_BSS(at_1965, 0x4);
 INCLUDE_BSS(at_3202, 0x8);
 INCLUDE_BSS(at_3317, 0x8);
-INCLUDE_BSS(at_3363, 0x8);
-INCLUDE_BSS(at_3379, 0x8);
 INCLUDE_BSS(at_3509, 0x8);
 INCLUDE_BSS(at_3739, 0x8);
 INCLUDE_BSS(at_3765, 0x8);
-INCLUDE_BSS(at_4493, 0x8);
-INCLUDE_BSS(at_4638, 0x8);
 INCLUDE_BSS(at_5448, 0x4);
 INCLUDE_BSS(at_5457, 0x8);
 INCLUDE_BSS(at_5642, 0x8);

@@ -24,3 +24,17 @@ Markers: 261 / 17. Matched data remains 4 / 18656 because the aggregate
 sections still contain reservations. `invent-state-build.log` and
 `invent-state-objects.log` under `.private/nminv-r2/` pass the full PAL
 verifier and 149/149 objects.
+
+## Naturally emitted templates and tables
+
+The existing `found[3]`, CalcTex background and clipping arrays, card-origin
+pair, and picture-position pair generate their own zero templates. Six
+matched switch tables and the CMenuInvent vtable also come from existing
+C++. Nine separately validated steps remove their markers without changing
+any function body. `at_1965` is three bytes, while the four coordinate and
+clip templates are eight bytes each. Pointer casts and dummy storage are
+not needed.
+
+Markers: 254 / 12; matched data: 36 / 18656 bytes. Each
+`invent-emitted-<step>-build.log` / `-objects.log` in
+`.private/nminv-r2/` reports PAL OK and 149/149 objects.
