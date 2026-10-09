@@ -99,7 +99,7 @@ int EditLoop();
  *
  * @mangled EditStep__Fv
  * @address 0x1AF4C0
- * @size 0x340
+ * @size 0x33C
  */
 int EditStep();
 
