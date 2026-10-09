@@ -706,10 +706,9 @@ int GetNextChanceCnt() {
 }
 
 int InitFishBattle() {
-    volatile u_long128 *last = (volatile u_long128 *) &LinePoint[kLinePointNum - 1];
-    *(u_long128 *) BattleStartPos = *last;
-    *(u_long128 *) &FishPoint.pos = *last;
-    *(u_long128 *) &FishPoint.old_pos = *last;
+    *(u_long128 *) BattleStartPos = *(u_long128 *) LinePoint[kLinePointNum - 1].pos;
+    *(u_long128 *) FishPoint.pos = *(u_long128 *) LinePoint[kLinePointNum - 1].pos;
+    *(u_long128 *) FishPoint.old_pos = *(u_long128 *) LinePoint[kLinePointNum - 1].pos;
     mgZeroVector(FishPoint.velo);
     float dist = mgDistVector(LinePoint[kLinePointNum - 1].pos, RodPoint[kRodTipIndex].pos);
     NowFishSpeed = 0;
@@ -829,9 +828,8 @@ int FishBattle(CScene *scene, CCPoly *poly_buffer, int poly_max) {
 }
 
 void GetFishPosVelo(float *pos, float *velo) {
-    u_long128 v = *(volatile u_long128 *) &FishPoint.pos;
-    *(u_long128 *) pos = v;
-    *(u_long128 *) velo = *(volatile u_long128 *) &FishPoint.velo;
+    *(u_long128 *) pos = *(u_long128 *) FishPoint.pos;
+    *(u_long128 *) velo = *(u_long128 *) FishPoint.velo;
 }
 
 /**
