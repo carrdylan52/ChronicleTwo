@@ -12975,7 +12975,7 @@ int _EOH_SET_SHADOW_FRAME_STATUS(RS_STACKDATA *stack, int argc) {
  * Attaches an event handle to a geostone and returns the update status.
  */
 int _EOH_SYNC_GEOSTONE(RS_STACKDATA *stack, int argc) {
-    return EventObjHandleMother.Set(GetStackInt(stack), 0, -1, (CCharacter2 *) &GeoStone);
+    return EventObjHandleMother.Set(GetStackInt(stack), 0, -1, &GeoStone);
 }
 
 int _EOH_SYNC_SEARCH_CHARA(RS_STACKDATA *stack, int argc) {
