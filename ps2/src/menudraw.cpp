@@ -1014,7 +1014,7 @@ void AttachMessageForm() {
 
     for (int i = 0; i < 9; i++) {
         sprintf(name, "msg%d", i);
-        MenuMesForm[i] = (CMenuPosDataForm *) MenuPosData->GetFormInfo(name);
+        MenuMesForm[i] = MenuPosData->GetFormInfo(name);
     }
 }
 
