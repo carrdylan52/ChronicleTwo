@@ -3951,7 +3951,9 @@ void ClsMes::DrawDigit(mgCDrawPrim *prim, int digit, int x, int y, int alpha, RG
     set2DSpriteEasy(prim, xy, uv, color);
 }
 /**
+ *
  * Texture rectangles for the message advance button animations.
+ *
  */
 static RECT data_4206[10] = {
     {56, 198, 24, 18},
