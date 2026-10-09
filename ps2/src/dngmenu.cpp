@@ -3499,10 +3499,6 @@ INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dngmenu", at_3141__DATA);
 // Constants (.rodata)
 const mgRect<int> dng_light_circle(388, 304, 124, 80);
 const mgRect<int> dngfreemap_num(0, 0, 12, 18);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dngmenu", at_2682__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dngmenu", at_2683__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dngmenu", at_2684__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dngmenu", at_2685__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dngmenu", at_2826__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dngmenu", at_3342__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dngmenu", at_3343__DATA);
