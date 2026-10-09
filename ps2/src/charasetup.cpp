@@ -386,35 +386,26 @@ int GetCharaMemAllocPtr(mgCMemory *memory, mgCMemory *stacks, int chara_type, in
 
     memory->stack_used = 0;
     memory->lock = 0;
-    int index = 0;
+    int index;
     int size;
 
-    if (index < count) {
-        int table_offset = 0;
-        int stack_offset = 0;
+    for (index = 0; index < count; index++) {
+        size = mem_table[row][index];
 
-        do {
-            size = *(int *) (table_offset + (int) mem_table[row]);
+        if (size < 0) {
+            break;
+        }
 
-            if (size < 0) {
-                break;
-            }
+        u_long128 *buffer = memory->stAllocTest(size);
 
-            u_long128 *buffer = memory->stAllocTest(size);
-            mgCMemory *stack = (mgCMemory *) ((u8 *) stacks + stack_offset);
+        if (buffer == NULL) {
+            return 0;
+        }
 
-            if (buffer == NULL) {
-                return 0;
-            }
-
-            stack->stSetBuffer(buffer, size);
-            stack->stack_used = 0;
-            stack->lock = 0;
-            memory->stAlloc64(size);
-            index++;
-            table_offset += 4;
-            stack_offset += 0x30;
-        } while (index < count);
+        stacks[index].stSetBuffer(buffer, size);
+        stacks[index].stack_used = 0;
+        stacks[index].lock = 0;
+        memory->stAlloc64(size);
     }
 
     return 1;
