@@ -153,6 +153,49 @@ class AlignmentFragmentTests(unittest.TestCase):
                 self.assertEqual(d.code_snapshot(compiled), before)
 
 
+class BssReservationCutTests(unittest.TestCase):
+    def fixture(self):
+        rows = [(0x3000, 'object', 24, False), (0x3020, 'following', 4, False)]
+        run = [('object', 0x3000, 0x301a), ('D_0000301A', 0x301a, 0x301c),
+               ('D_0000301C', 0x301c, 0x3020), ('following', 0x3020, 0x3024)]
+        section = SimpleNamespace(name='.bss', sh_type=p.SHT_NOBITS, sh_size=24, data=b'')
+        sym = SimpleNamespace(name='object', type=p.STT_OBJECT, st_value=0,
+                              st_shndx=1, st_size=24)
+        compiled = SimpleNamespace(sections=[None, section], symtab=SimpleNamespace(symbols=[sym]))
+        return compiled, section, rows, run
+
+    def apply(self, compiled, rows, run):
+        with patch.object(p.layout, 'section_of', return_value='.bss'):
+            p.pad_data(compiled, 'unit', set(), rows=rows,
+                       pieces=SimpleNamespace(unit=lambda unit: [('.bss', run)]),
+                       retail=SimpleNamespace(relocations={}))
+
+    def test_alignment_proof_crosses_canonical_cuts_without_absorbing_them(self):
+        compiled, section, rows, run = self.fixture()
+        self.apply(compiled, rows, run)
+        self.assertEqual(section.sh_size, 26)
+        self.assertEqual(compiled.symtab.symbols[0].st_size, 24)
+        self.assertEqual(run[1:], [('D_0000301A', 0x301a, 0x301c),
+                                  ('D_0000301C', 0x301c, 0x3020),
+                                  ('following', 0x3020, 0x3024)])
+
+    def test_incomplete_gap_proofs_cannot_reserve_an_unaligned_cut(self):
+        for invalid in ('unknown', 'noncontiguous', 'backwards', 'declared', 'terminal', 'unaligned'):
+            with self.subTest(invalid=invalid):
+                compiled, section, rows, run = self.fixture()
+                if invalid == 'unknown': run[1] = ('unknown', 0x301a, 0x301c)
+                elif invalid == 'noncontiguous': run[1] = ('D_0000301B', 0x301b, 0x301c)
+                elif invalid == 'backwards': run[1] = ('D_0000301A', 0x301a, 0x3018)
+                elif invalid == 'declared': rows.append((0x301a, 'D_0000301A', 0, False))
+                elif invalid == 'terminal': run.pop()
+                else:
+                    run[2] = ('D_0000301C', 0x301c, 0x3024)
+                    run[3] = ('following', 0x3024, 0x3028)
+                    rows[1] = (0x3024, 'following', 4, False)
+                self.apply(compiled, rows, run)
+                self.assertEqual(section.sh_size, 24)
+
+
 class DataPaddingTests(unittest.TestCase):
     def run_padding(self, size=12, declared=12, end=16, nobits=True, tail=b"\0" * 4,
                     terminal=False, section_name=None, retail_name=None, placeholder=False, relocations=()):
@@ -182,15 +225,19 @@ class DataPaddingTests(unittest.TestCase):
 
     def test_exact_object_acquires_only_its_piece_tail(self):
         self.assertEqual(self.run_padding(), 16)
-        self.assertEqual(self.run_padding(end=14, tail=b"\0" * 2), 14)
+        self.assertEqual(self.run_padding(end=14, nobits=False, tail=b"\0" * 2), 14)
 
     def test_wrong_object_size_is_not_hidden(self):
         self.assertEqual(self.run_padding(size=8), 8)
         self.assertEqual(self.run_padding(size=13), 13)
 
-    def test_large_bss_piece_tails_are_owned_reservations(self):
-        self.assertEqual(self.run_padding(size=4, declared=4, end=52), 52)
-        self.assertEqual(self.run_padding(end=28), 28)
+    def test_bss_reservations_require_bounded_power_of_two_alignment(self):
+        self.assertEqual(self.run_padding(size=4, declared=4, end=64), 64)
+        self.assertEqual(self.run_padding(size=4, declared=4, end=52), 4)
+        self.assertEqual(self.run_padding(size=4, declared=4, end=8192), 4)
+        self.assertEqual(self.run_padding(end=14), 12)
+        self.assertEqual(self.run_padding(end=32), 32)
+        self.assertEqual(self.run_padding(end=28), 12)
         self.assertEqual(self.run_padding(end=28, nobits=False), 12)
         self.assertEqual(self.run_padding(end=8), 12)
         self.assertEqual(self.run_padding(size=8, end=52), 8)

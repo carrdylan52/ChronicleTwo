@@ -1372,6 +1372,22 @@ def pad_data(elf, unit, placeholders, *, retail=None, pieces=None, rows=None):
     trailing = {(section, run[-1][0]) for section, run in runs if run}
     declared_sizes = {name: size for _address, name, size, _is_function
                       in rows if size}
+    declared_names = {name for _address, name, _size, _function in rows}
+    reservation_ends = {}
+    for _kind, run in runs:
+        for position, (name, _start, end) in enumerate(run):
+            limits = [end]
+            cursor = end
+            for fragment, lo, hi in run[position + 1:]:
+                if lo != cursor or hi <= lo:
+                    break
+                if fragment == f'D_{lo:08X}' and fragment not in declared_names:
+                    cursor = hi
+                    continue
+                if cursor > end and fragment in declared_sizes:
+                    limits.append(cursor)
+                break
+            reservation_ends[name] = limits
     for symbol in elf.symtab.symbols:
         index = symbol.st_shndx
         if (symbol.type != STT_OBJECT or symbol.st_value or index in placeholders
@@ -1390,7 +1406,10 @@ def pad_data(elf, unit, placeholders, *, retail=None, pieces=None, rows=None):
         if declared_size is not None and size != declared_size:
             continue
         if (section.name in layout.NOBITS and section.sh_type == SHT_NOBITS
-                and declared_size is not None and size and end - start > size):
+                and declared_size is not None and size and end - start > size
+                and any(((start + size + alignment - 1) & -alignment) == limit
+                        for limit in reservation_ends[symbol.name]
+                        for alignment in (1 << shift for shift in range(1, 13)))):
             section.sh_size = end - start
             continue
         if (section.name in ('.data', '.sdata', '.rodata', '.vtables') and size
