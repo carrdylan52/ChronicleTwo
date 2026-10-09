@@ -8355,8 +8355,8 @@ int _MES_MAKE(RS_STACKDATA *stack, int argc) {
                     return 0;
                 }
 
-                mes->text_ptr = (s32) text;
-                mes->MakeMesWin((char *) mes->text_ptr, 0, 1);
+                mes->text_ptr = text;
+                mes->MakeMesWin(mes->text_ptr, 0, 1);
             } else if (id == 0 && EdEventInfo.npc_talk_text != NULL) {
                 if (EdEventInfo.npc_talk_text == NULL) {
                     return 0;
@@ -8372,8 +8372,8 @@ int _MES_MAKE(RS_STACKDATA *stack, int argc) {
                     return 0;
                 }
 
-                mes->text_ptr = (s32) text;
-                mes->MakeMesWin((char *) mes->text_ptr, 0, 1);
+                mes->text_ptr = text;
+                mes->MakeMesWin(mes->text_ptr, 0, 1);
             } else {
                 mes->MakeMesWin(no);
             }
