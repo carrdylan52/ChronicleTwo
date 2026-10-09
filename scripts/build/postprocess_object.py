@@ -17,11 +17,11 @@ objects may retain verified zero initialized padding and canonical BSS
 reservations. Independently cut alignment fragments require both neighboring
 objects' original extents and compiler alignments, with complete zero contents.
 
-External weak functions use retail ownership without a body comparison;
-vtable discards require complete original declared extents, bytes and relocations.
-Duplicate global symbols are folded into live definitions; unused literals and dead compiler records are
-removed without changing code. Canonical object and final PAL verification
-remain the acceptance checks for every normalized object.
+External weak functions use retail ownership; unverified bodies are reported.
+Vtable discards require complete original declared extents, bytes and relocations.
+Duplicate global symbols are folded into live definitions; unused literals and
+dead compiler records are removed without changing code. Canonical object and
+final PAL verification remain the acceptance checks for every normalized object.
 """
 
 import argparse
@@ -627,8 +627,12 @@ def discard_external_vtables(elf, unit, placeholder_sections):
 
 
 def discard_external_functions(elf, unit):
+    """Discard non-owning weak bodies, reporting any without an exact retail proof."""
     ranges = layout.Layout(ROOT / layout.YAML).sections(unit)
     addresses = retail_addresses()
+    rows = {name: (start, size, function)
+            for start, name, size, function in layout.read_symbols(ROOT / layout.SYMBOLS)}
+    retail = layout.Retail(ROOT / layout.ELF_PATH)
     for symbol in elf.symtab.symbols:
         index = symbol.st_shndx
         address = addresses.get(symbol.name)
@@ -636,6 +640,12 @@ def discard_external_functions(elf, unit):
                 or not 0 < index < len(elf.sections) or address is None
                 or any(lo <= address < hi for section, lo, hi in ranges)):
             continue
+        if not complete_code_consumer(
+                elf, index, retail=retail, rows=rows,
+                address_of_symbol=lambda target: address_of(project_name(target.name), addresses),
+                gp=addresses.get('_gp')):
+            print(f'{unit}: discarding external function {symbol.name} at {address:#010x}; '
+                  'native body not verified against retail', file=sys.stderr)
         elf.sections[index].sh_name = elf.add_sh_symbol(DEAD)
         elf.sections[index].name = DEAD
         for record in elf.relocations:

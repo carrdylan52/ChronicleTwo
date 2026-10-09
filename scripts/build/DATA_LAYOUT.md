@@ -121,6 +121,12 @@ are zero. Initialized copies additionally require the whole object's resolved
 native bytes and complete real relocation shape to equal retail. Invalid copies
 remain live. A rejected parent also prevents discarding its dependent child.
 
+External weak function copies are discarded according to retail ownership.
+Their complete body extent, instruction bytes and resolved relocation targets
+are checked against the retail owner; any copy without that proof is reported.
+A report records an unverified discarded compiler emission, while the owning
+unit remains subject to the canonical object check.
+
 Native BSS templates, local statics and their guards need an exact declared
 extent and agreement from every live incoming code reference. Each reference
 must match the retail relocation kind and instruction operands outside the
