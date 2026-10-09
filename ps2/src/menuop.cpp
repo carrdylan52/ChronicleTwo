@@ -36,12 +36,12 @@
 
 /**
  *
- * Pairs two integer values used by menu operations.
+ * Stores the horizontal and vertical components of a menu position, size or velocity.
  *
  */
 struct IntPair {
-    int a; /**< First value in the pair. */
-    int b; /**< Second value in the pair. */
+    int x; /**< Horizontal component. */
+    int y; /**< Vertical component. */
 };
 
 /**
@@ -76,18 +76,6 @@ static float MoviePreBattleBGMVol_Save;
  */
 static float MoviePreBattleBGMVol;
 
-extern char               at_1430__3[];
-extern char               at_1431__3[];
-extern char               at_1432__2[];
-extern char               at_1433__3[];
-extern char               at_1434__2[];
-extern char               at_1435__2[];
-extern char               at_1436__4[];
-extern char               at_1437__3[];
-extern char               at_1438__3[];
-extern char               at_1439__3[];
-extern char               at_1440__3[];
-extern char               at_1441__2[];
 
 /**
  *
@@ -117,11 +105,6 @@ static signed char manual_list_mesclstbl[5] = {2, 4, 5, 6, 8};
  */
 static float config_option_num_f = 16.0f;
 
-extern char               at_1512__5[];
-extern char               at_1513__5[];
-extern char               at_1517__3[];
-extern char               at_1518__2[];
-extern char               at_1519__2[];
 
 /**
  *
@@ -175,17 +158,6 @@ static signed char MovieBattleBGMPhase;
  */
 static float config_option_num_i = 16.0f;
 
-extern char               at_1428__4[];
-extern char               at_1429__3[];
-extern char               at_1648__2[];
-extern char               at_1649[];
-extern char               at_1650__3[];
-extern char               at_1651__2[];
-extern char               at_1652__2[];
-extern char               at_1653__2[];
-extern char               at_1654__3[];
-extern char               at_1655__4[];
-extern char               at_1656__4[];
 
 /**
  *
@@ -194,16 +166,10 @@ extern char               at_1656__4[];
  */
 static CMenuPosDataForm *OptionButtonForm;
 
-extern char               at_1900[];
-extern char               at_1901[];
-extern char               at_1902[];
-extern char               at_1903[];
-extern char               at_1904__2[];
 extern char               at_1905__3[];
 extern char               at_2603[];
 extern char               at_2604[];
 extern char               at_2605[];
-extern char               at_1906__2[];
 /**
  *
  * Event flags unlocking each manual entry, followed by the end sentinel.
@@ -237,8 +203,6 @@ extern char               at_1106__2[];
 extern char               at_1107__3[];
 extern char               at_1108[];
 extern char               at_1109__2[];
-extern char               at_1237__4[];
-extern char               at_1238__2[];
 /**
  *
  * Picture-page help box width for each language.
@@ -786,7 +750,7 @@ void MenuManualDraw() {
                 chara->Step();
                 SetMenuEtcFlag(1);
                 MenuMainTextureReadBuf.stReset();
-                LoadFileMenu(at_1237__4, MenuMainTextureReadBuf.stGetTop(), 1);
+                LoadFileMenu("mb2.pac", MenuMainTextureReadBuf.stGetTop(), 1);
                 MenuBaseTextureReEnter();
                 closed = 1;
             }
@@ -800,7 +764,7 @@ void MenuManualDraw() {
     if (menu_debug_flag != 0) {
         DrawMenuFillBox(300.0f, 10.0f, 310.0f, 24.0f, 0x40, 0, 0, 0);
         CMenuFont menuFont;
-        menuFont.DrawDirect(at_1238__2, 0x12C, 0xA);
+        menuFont.DrawDirect("(#):All Open", 0x12C, 0xA);
     }
     if (closed != 0) {
         SetMenuFrameRate(1);
@@ -881,13 +845,16 @@ int CManualMenu::KeyStep() {
             break;
         case 2:
             if (frame_end != 0) {
-                ExeScript(at_1428__4);
+                ExeScript("\x8FI\x97\xB9\x8F\x88\x97\x9D");
                 MenuCommonInfo->SetMoveMethod(2);
                 finished = 1;
             }
 
             break;
         case 0:
+            /**
+             * Counts playback frames before the manual movie fades in.
+             */
             static short ManualMovieFadeCount = 0;
 
             MenuCommonInfo->CheckSelectKey();
@@ -926,7 +893,7 @@ int CManualMenu::KeyStep() {
                         ReturnMenuIntern(0);
                         MenuMainFrameModeSet(9, 0);
                         MenuCommonInfo->SetMoveMethod(-1);
-                        ExeScript(at_1429__3);
+                        ExeScript("PREEND");
                         mode = 2;
                     } else if (menu_debug_flag != 0 && (pressed & 8)) {
                         for (i = 0; i < (event_no = manual_boot_event_no[i]); i++) {
@@ -980,11 +947,11 @@ int CManualMenu::KeyStep() {
                             buffer = StaticMenuLocalStack2.stack + StaticMenuLocalStack2.stack_used;
 
                             if (movie_no == 0x16) {
-                                data_size = LoadFileMenu(at_1430__3, buffer, 1);
+                                data_size = LoadFileMenu("mntx.pac", buffer, 1);
                             }
 
                             if (movie_no == 0x17) {
-                                data_size = LoadFileMenu(at_1431__3, buffer, 1);
+                                data_size = LoadFileMenu("mntx2.pac", buffer, 1);
                             }
 
                             if ((data_size & 0xF) != 0) {
@@ -994,7 +961,7 @@ int CManualMenu::KeyStep() {
                             }
 
                             StaticMenuLocalStack2.Alloc(blocks);
-                            img_data = (u_char *) GetPackFile((u_int *) buffer, at_1432__2, NULL);
+                            img_data = (u_char *) GetPackFile((u_int *) buffer, "mntx.img", NULL);
                             textures->DeleteBlock(tex_block[2]);
                             textures->DeleteBlock(tex_block[3]);
                             textures->EnterIMGFile(img_data, tex_block[2], NULL, NULL);
@@ -1006,12 +973,12 @@ int CManualMenu::KeyStep() {
                                 pict_num = 3;
                             }
 
-                            MnOnePictTex[0] = textures->GetTexture(at_1433__3, -1);
-                            MnOnePictTex[1] = textures->GetTexture(at_1434__2, -1);
-                            MnOnePictTex[2] = textures->GetTexture(at_1435__2, -1);
-                            MnOnePictTex[3] = textures->GetTexture(at_1436__4, -1);
-                            MnOnePictTex[4] = textures->GetTexture(at_1437__3, -1);
-                            MnOnePictTex[5] = textures->GetTexture(at_1438__3, -1);
+                            MnOnePictTex[0] = textures->GetTexture("mntx0", -1);
+                            MnOnePictTex[1] = textures->GetTexture("mntx1", -1);
+                            MnOnePictTex[2] = textures->GetTexture("mntx2", -1);
+                            MnOnePictTex[3] = textures->GetTexture("mntx3", -1);
+                            MnOnePictTex[4] = textures->GetTexture("mntx4", -1);
+                            MnOnePictTex[5] = textures->GetTexture("mntx5", -1);
                             int first_page[2] = {0, 0};
                             first_page[0] = pict_page + 1;
                             first_page[1] = pict_num;
@@ -1037,7 +1004,7 @@ int CManualMenu::KeyStep() {
                             buffer = chara->stack + chara->stack_used;
                             file_size = 0;
                             char name[0x40];
-                            sprintf(name, at_1439__3, LanguageCode);
+                            sprintf(name, "menu/%d/help.cfg", LanguageCode);
                             LoadFile2(name, buffer, &file_size, 0);
                             chara->Alloc(file_size / 16 + 1);
                             chara->Align64();
@@ -1052,14 +1019,14 @@ int CManualMenu::KeyStep() {
                             char       movie_name[0x28];
 
                             if (movie_no > 0x16) {
-                                sprintf(movie_name, at_1440__3, movie_no);
+                                sprintf(movie_name, "TUTO2\\VTUTO%d.PSS", movie_no);
                             } else {
-                                sprintf(movie_name, at_1441__2, movie_no);
+                                sprintf(movie_name, "TUTO\\VTUTO%d.PSS", movie_no);
                             }
 
                             ManualMovie->Load(movie_name, streams, 0x200, 0x1A0, true, false,
                                               false);
-                            ManualMovie->Play(at_1104__5);
+                            ManualMovie->Play("manumoviework");
                             ManualMovie->SwitchThread();
 
                             while (ManualMovie->IsStarted() == 0) {
@@ -1222,7 +1189,7 @@ void CManualMenu::CalcTex() {
         bg_form->x = (float) xy[0];
     }
 
-    bg_form->GetPutPosXY(at_1512__5, xy[0], xy[1]);
+    bg_form->GetPutPosXY("base_msg", xy[0], xy[1]);
     speed = 3.5f;
 
     if (mode == 2 || mode == 1) {
@@ -1266,7 +1233,7 @@ void CManualMenu::CalcTex() {
         }
     }
 
-    bg_form->GetPutPosXY(at_1513__5, xy[0], xy[1]);
+    bg_form->GetPutPosXY("info_msg", xy[0], xy[1]);
     form = MenuMesForm[3];
 
     if (form != NULL) {
@@ -1277,8 +1244,8 @@ void CManualMenu::CalcTex() {
     bar[0] = bg_form->GetPartInfo("bar0");
     bar[1] = bg_form->GetPartInfo("bar1");
     bar[2] = bg_form->GetPartInfo("bar2");
-    bg_form->GetPutPosXY(at_1517__3, item_pos[0][0], item_pos[0][1]);
-    MenuPosData->GetEtcTblValue(at_1518__2, scroll_range[0], scroll_range[1]);
+    bg_form->GetPutPosXY("scrlbase", item_pos[0][0], item_pos[0][1]);
+    MenuPosData->GetEtcTblValue("manualbarwh", scroll_range[0], scroll_range[1]);
 
     if (slide_in_flag == 0) {
         visible_top = top;
@@ -1287,7 +1254,7 @@ void CManualMenu::CalcTex() {
     }
 
     if (LocalMenuClipForm != NULL) {
-        LocalMenuBGForm->GetPutPosXY(at_1519__2, xy[0], xy[1]);
+        LocalMenuBGForm->GetPutPosXY("msg_clip", xy[0], xy[1]);
         form = LocalMenuClipForm;
         form->x = (float) xy[0];
         form->y = (float) xy[1];
@@ -1304,15 +1271,15 @@ void CManualMenu::CalcCursorPosition() {
     }
 
     if (LocalMenuBGForm != NULL) {
-        LocalMenuBGForm->GetPutPosXY(at_1512__5, position.a, position.b);
+        LocalMenuBGForm->GetPutPosXY("base_msg", position.x, position.y);
     }
 
-    position.a -= 50;
-    position.b += (select - top) * 24;
-    MenuCommonInfo->MenuPosStep(&position.a, NULL);
+    position.x -= 50;
+    position.y += (select - top) * 24;
+    MenuCommonInfo->MenuPosStep(&position.x, NULL);
 
     if (cursor_jump != 0) {
-        MenuCommonInfo->MenuSetPos(position.a, position.b);
+        MenuCommonInfo->MenuSetPos(position.x, position.y);
         cursor_jump = 0;
     }
 }
@@ -1350,10 +1317,10 @@ int CMenuOption::KeyStep() {
                 MenuCommonInfo->SetMoveMethod(2);
                 cursor_jump = 1;
                 mode = 0;
-                CBaseMenuClass::ExeScript(at_1648__2);
+                CBaseMenuClass::ExeScript("INITEND");
 
                 if (MenuArg.open_type == MENU_OPEN_OPTION) {
-                    CBaseMenuClass::ExeScript(at_1649);
+                    CBaseMenuClass::ExeScript("TITLE_INITEND");
                     this->step = 1;
                     mode = 1;
                 }
@@ -1375,11 +1342,11 @@ int CMenuOption::KeyStep() {
             }
 
             if (frame_end != 0) {
-                CBaseMenuClass::ExeScript(at_1428__4);
+                CBaseMenuClass::ExeScript("\x8FI\x97\xB9\x8F\x88\x97\x9D");
 
                 if (MenuConfigPtr != NULL) {
-                    printf(at_1650__3, MenuConfigPtr->eye_reverse);
-                    printf(at_1651__2, MenuConfigPtr->rot_normal);
+                    printf("cam_ctrl[0]  : %d\n", MenuConfigPtr->eye_reverse);
+                    printf("cam_ctrl[1]  : %d\n", MenuConfigPtr->rot_normal);
 
                     if (MenuConfigPtr->sound_mode != 0) {
                         CSnd.SetStereoMode(0);
@@ -1464,12 +1431,12 @@ int CMenuOption::KeyStep() {
                     MenuCommonInfo->SetWakuType(-1);
 
                     if (MenuArg.open_type == MENU_OPEN_OPTION) {
-                        CBaseMenuClass::ExeScript(at_1652__2);
+                        CBaseMenuClass::ExeScript("PREEND_T");
                     } else {
                         MenuMainFrameModeSet(9, 0);
                         ReturnMenuIntern(0);
                         MenuCommonInfo->SetWakuType(-1);
-                        CBaseMenuClass::ExeScript(at_1429__3);
+                        CBaseMenuClass::ExeScript("PREEND");
                     }
 
                     break;
@@ -1499,33 +1466,33 @@ int CMenuOption::KeyStep() {
                 choice_no = choice;
 
                 if (row_no < 10) {
-                    sprintf(name, at_1653__2, row_no, choice_no);
+                    sprintf(name, "INDEX0%d%d", row_no, choice_no);
                 } else {
-                    sprintf(name, at_1654__3, row_no, choice_no);
+                    sprintf(name, "INDEX%d%d", row_no, choice_no);
                 }
 
-                OptionButtonForm->GetPutPosXY(name, pos.a, pos.b);
-                pos.a -= 2;
-                pos.b -= 3;
-                sprintf(name, at_1655__4, select);
-                MenuPosData->GetEtcTblValue(name, size.a, size.b);
-                MenuCommonInfo->SetWakuWH(0, size.a, size.b);
-                MenuPosData->GetEtcTblValue(at_1656__4, limit[0], limit[1]);
+                OptionButtonForm->GetPutPosXY(name, pos.x, pos.y);
+                pos.x -= 2;
+                pos.y -= 3;
+                sprintf(name, "op_waku%d", select);
+                MenuPosData->GetEtcTblValue(name, size.x, size.y);
+                MenuCommonInfo->SetWakuWH(0, size.x, size.y);
+                MenuPosData->GetEtcTblValue("op_cursorlimmit", limit[0], limit[1]);
 
-                if (pos.b < limit[0]) {
-                    pos.b = limit[0];
+                if (pos.y < limit[0]) {
+                    pos.y = limit[0];
                 }
 
-                if (limit[1] < pos.b) {
-                    pos.b = limit[1];
+                if (limit[1] < pos.y) {
+                    pos.y = limit[1];
                 }
 
-                MenuCommonInfo->MenuPosStep(&pos.a, &velocity.a);
+                MenuCommonInfo->MenuPosStep(&pos.x, &velocity.x);
                 break;
         }
 
         if (cursor_jump != 0) {
-            MenuCommonInfo->MenuSetPos(pos.a, pos.b);
+            MenuCommonInfo->MenuSetPos(pos.x, pos.y);
             cursor_jump = 0;
         }
     }
@@ -1571,7 +1538,7 @@ void CMenuOption::CalcTex() {
         bg_form->x = (float) xy[0];
     }
 
-    bg_form->GetPutPosXY(at_1512__5, xy[0], xy[1]);
+    bg_form->GetPutPosXY("base_msg", xy[0], xy[1]);
     speed = 3.5f;
 
     if (mode == 2) {
@@ -1606,7 +1573,7 @@ void CMenuOption::CalcTex() {
         form->y = (float) xy[1];
     }
 
-    bg_form->GetPutPosXY(at_1513__5, xy[0], xy[1]);
+    bg_form->GetPutPosXY("info_msg", xy[0], xy[1]);
     mes_form = MenuMesForm[3];
 
     if (mes_form != NULL) {
@@ -1617,8 +1584,8 @@ void CMenuOption::CalcTex() {
     bar[0] = bg_form->GetPartInfo("bar0");
     bar[1] = bg_form->GetPartInfo("bar1");
     bar[2] = bg_form->GetPartInfo("bar2");
-    bg_form->GetPutPosXY(at_1517__3, item_pos[0][0], item_pos[0][1]);
-    MenuPosData->GetEtcTblValue(at_1518__2, scroll_range[0], scroll_range[1]);
+    bg_form->GetPutPosXY("scrlbase", item_pos[0][0], item_pos[0][1]);
+    MenuPosData->GetEtcTblValue("manualbarwh", scroll_range[0], scroll_range[1]);
 
     if (slide_in_flag == 0) {
         LocalFunc_AdjustScrlBar(
@@ -1626,7 +1593,7 @@ void CMenuOption::CalcTex() {
     }
 
     if (LocalMenuClipForm != NULL) {
-        bg_form->GetPutPosXY(at_1519__2, xy[0], xy[1]);
+        bg_form->GetPutPosXY("msg_clip", xy[0], xy[1]);
         clip_form = LocalMenuClipForm;
         clip_form->x = (float) xy[0];
         clip_form->y = (float) xy[1];
@@ -1822,29 +1789,29 @@ void MenuOptionInit(mgCMemory *memory, int *tex_block, int mode) {
     textures = &mgTexManager;
     block = CMenuOptionPtr->tex_block[0];
     textures->DeleteBlock(block);
-    textures->EnterIMGFile((u_char *) GetPackFile(pack, at_1102, NULL), block, NULL, NULL);
-    textures->EnterIMGFile((u_char *) GetPackFile(pack, at_1900, NULL), block, NULL, NULL);
+    textures->EnterIMGFile((u_char *) GetPackFile(pack, "op_bg.img", NULL), block, NULL, NULL);
+    textures->EnterIMGFile((u_char *) GetPackFile(pack, "option.img", NULL), block, NULL, NULL);
 
     if (MenuArg.open_type == 0x12) {
         textures->EnterIMGFile((u_char *) GetMenuMainIMGPtr(), block, NULL, NULL);
     }
 
-    menu_data = (u_char *) GetPackFile(pack, at_1901, &menu_data_size);
+    menu_data = (u_char *) GetPackFile(pack, "option.cfg", &menu_data_size);
 
     if (menu_data != NULL) {
         MenuDataAnalyze((char *) menu_data, menu_data_size, &StaticMenuLocalStack);
     }
 
     AttachMessageForm();
-    LocalMenuBGForm = (CMenuPosDataForm *) MenuPosData->GetFormInfo(at_1106__2);
-    LocalMenuClipForm = (CMenuPosDataForm *) MenuPosData->GetFormInfo(at_1107__3);
-    OptionButtonForm = (CMenuPosDataForm *) MenuPosData->GetFormInfo(at_1902);
+    LocalMenuBGForm = (CMenuPosDataForm *) MenuPosData->GetFormInfo("op_bg");
+    LocalMenuClipForm = (CMenuPosDataForm *) MenuPosData->GetFormInfo("clip0");
+    OptionButtonForm = (CMenuPosDataForm *) MenuPosData->GetFormInfo("Op_Switch");
 
     for (option = 0; option < OPTION_ITEM_MAX; option++) {
         if (option < 10) {
-            sprintf(prefix, at_1903, option);
+            sprintf(prefix, "INDEX0%d", option);
         } else {
-            sprintf(prefix, at_1904__2, option);
+            sprintf(prefix, "INDEX%d", option);
         }
 
         for (choice = 0; choice < OPTION_BUTTON_NUM; choice++) {
@@ -1852,7 +1819,7 @@ void MenuOptionInit(mgCMemory *memory, int *tex_block, int mode) {
 
             if (OptionButtonForm != NULL) {
                 strcpy(name, prefix);
-                strcat(name, at_1905__3);
+                strcat(name, "%d");
                 sprintf(name, name, choice);
                 CMenuOptionPtr->button[option][choice] = OptionButtonForm->GetPartInfo(name);
             }
@@ -1861,7 +1828,7 @@ void MenuOptionInit(mgCMemory *memory, int *tex_block, int mode) {
 
     memcpy(&CMenuOptionPtr->config, MenuConfigPtr, 0x40);
     memcpy(&CMenuOptionPtr->config_backup, MenuConfigPtr, 0x40);
-    CMenuOptionPtr->script = (char *) GetPackFile(pack, at_1906__2, &CMenuOptionPtr->script_size);
+    CMenuOptionPtr->script = (char *) GetPackFile(pack, "opt_com.cfg", &CMenuOptionPtr->script_size);
     CMenuOptionPtr->value[0] = &CMenuOptionPtr->config.cursor_save;
     CMenuOptionPtr->value[1] = &CMenuOptionPtr->config.vibration;
     CMenuOptionPtr->value[2] = &CMenuOptionPtr->config.message_speed;
@@ -1886,7 +1853,7 @@ void MenuOptionInit(mgCMemory *memory, int *tex_block, int mode) {
     MenuCommandAnalyzeInfo.mes_buff[1] = main_messages;
     MenuCommandAnalyzeInfo.system_mes_buff[0] = GetSystemMesBuffer();
     MenuCommandAnalyzeInfo.system_mes_buff[1] = main_messages;
-    CMenuOptionPtr->ExeScript(at_1109__2);
+    CMenuOptionPtr->ExeScript("MSG\x8F\x89\x8A\xFA\x89\xBB");
     MenuMainFrameModeSet(8, 1);
     MenuCommonInfo->SetMoveMethod(-1);
 }
@@ -3712,43 +3679,7 @@ INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuop", at_1106__2__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuop", at_1107__3__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuop", at_1108__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuop", at_1109__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuop", at_1237__4__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuop", at_1238__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuop", at_1428__4__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuop", at_1429__3__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuop", at_1430__3__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuop", at_1431__3__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuop", at_1432__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuop", at_1433__3__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuop", at_1434__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuop", at_1435__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuop", at_1436__4__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuop", at_1437__3__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuop", at_1438__3__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuop", at_1439__3__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuop", at_1440__3__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuop", at_1441__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuop", at_1512__5__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuop", at_1513__5__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuop", at_1517__3__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuop", at_1518__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuop", at_1519__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuop", at_1648__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuop", at_1649__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuop", at_1650__3__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuop", at_1651__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuop", at_1652__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuop", at_1653__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuop", at_1654__3__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuop", at_1655__4__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuop", at_1656__4__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuop", at_1900__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuop", at_1901__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuop", at_1902__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuop", at_1903__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuop", at_1904__2__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuop", at_1905__3__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuop", at_1906__2__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuop", at_2498__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuop", at_2499__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuop", at_2500__DATA);

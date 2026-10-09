@@ -101,3 +101,21 @@ retail anonymous 0x78-byte template is emitted by that initializer.
 receipts each show PAL OK and 149/149 exact objects. All nine initialized-data
 markers are now removed. RODATA / BSS markers are 101 / 14, and the refreshed
 data comparison is 732/3,027 bytes (`tables-complete-metrics.json`).
+
+## Manual and option literals
+
+Native manual drawing/playback/layout/cursor functions and option key/layout/
+initialization functions now pass their archive filenames, texture names,
+form names, action names, format strings and debug labels as literal arguments.
+Repeated strings pool at their original retail addresses. Shift-JIS text uses
+hexadecimal escapes, with no generated named literal stand-ins. The integer
+component pair's fields are `x` and `y`, identifying their horizontal/vertical
+purposes without changing its layout.
+
+Shared manual-initialization strings retain their assembly markers and extern
+declarations for the untouched guarded draft; native consumers use literals.
+The compiler's native copies do not replace those guarded identities.
+Each individual function step passes PAL and all 149 objects. Receipts are
+`literal-manual-draw`, `literal-CManualMenu-{KeyStep,CalcTex,CalcCursorPosition}`,
+`literal-CMenuOption-{KeyStep,CalcTex}`, `literal-MenuOptionInit`, and the
+combined `manual-option-literals` check. RODATA / BSS markers are 65 / 14.
