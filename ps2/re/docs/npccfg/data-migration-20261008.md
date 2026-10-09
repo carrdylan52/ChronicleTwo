@@ -4,8 +4,7 @@ Baseline: `d56248a7`; 11 `INCLUDE_RODATA` / 4
 `INCLUDE_BSS` markers; matched_data 0/9983.
 
 `NpcBaseDataTotalNum`, `NpcBaseData[180]`, and `npc_spi_count_num` are
-native, typed file-local storage (`npccfg-resume-storage` revalidates the
-step interrupted by the app restart). `NPC_BASE_DATA` retains its 0x36-byte
+native, typed file-local storage (`npccfg-resume-storage`). `NPC_BASE_DATA` retains its 0x36-byte
 stride; the table has the retail 0x25F8-byte extent and the existing tool
 retains its eight-byte piece tail.
 
@@ -21,8 +20,10 @@ missing `typetbl_853`, unexpected unnamed piece. Retaining the retail name
 on the file-local native definition resolves the complete object without a
 shared-tool change.
 
-The model-path buffer is `static char path_885[0x40]`; `infocfg_886` is a
-native nine-byte writable string (`npccfg-model-path-storage`). Diagnostic,
+The model-path buffer `static char path[0x40]` and the nine-byte writable
+`static char infocfg[] = "info.cfg"` are function statics of
+`GetPartyCharaModelName` (retail `path$885`, `infocfg$886`;
+`npccfg-model-path-storage`, `.private/fixes-r3c/b1-*.log`). Diagnostic,
 configuration, directory and format strings are inline at their uses
 (`npccfg-script-diagnostics`, `npccfg-model-path-literals`). The existing
 NpcModelPathType enum names the four model-path branches. No instructions

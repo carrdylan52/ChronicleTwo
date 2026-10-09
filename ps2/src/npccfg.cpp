@@ -30,20 +30,6 @@ static NPC_BASE_DATA NpcBaseData[180] __attribute__((aligned(16)));
  */
 static u8 npc_spi_count_num;
 
-/**
- *
- * Buffer holding the requested party-character model path.
- *
- */
-static char path_885[0x40];
-
-/**
- *
- * Character information script name.
- *
- */
-static char infocfg_886[] = "info.cfg";
-
 // Code (.text)
 
 /**
@@ -166,35 +152,49 @@ char *GetNPCName(int chara_no) {
 }
 
 char *GetPartyCharaModelName(int chara_no, int type) {
+    /**
+     *
+     * Buffer holding the requested party-character model path.
+     *
+     */
+    static char path[0x40];
+
+    /**
+     *
+     * Character information script name.
+     *
+     */
+    static char infocfg[] = "info.cfg";
+
     char *model;
 
     if (chara_no <= 0 || chara_no > 0x20) {
         return 0;
     }
 
-    path_885[0] = 0;
+    path[0] = 0;
     model = GetNPCModelName(chara_no);
 
     if (model != 0) {
         if (type == NPC_MODEL_PATH_CHARA) {
-            strcpy(path_885, "chara/");
-            strcat(path_885, model);
-            strcat(path_885, ".chr");
-            return path_885;
+            strcpy(path, "chara/");
+            strcat(path, model);
+            strcat(path, ".chr");
+            return path;
         }
 
         if (type == NPC_MODEL_PATH_INFO) {
-            return infocfg_886;
+            return infocfg;
         }
 
         if (type == NPC_MODEL_PATH_EVENT_TRAIN) {
-            sprintf(path_885, "event/train/t%s.chr", model);
-            return path_885;
+            sprintf(path, "event/train/t%s.chr", model);
+            return path;
         }
 
         if (type == NPC_MODEL_PATH_MENU) {
-            sprintf(path_885, "menu/npc/t%s.chr", model);
-            return path_885;
+            sprintf(path, "menu/npc/t%s.chr", model);
+            return path;
         }
     }
 
