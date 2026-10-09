@@ -157,10 +157,16 @@ class BssReservationCutTests(unittest.TestCase):
         rows = [(0x3000, 'object', 24, False), (0x3020, 'following', 4, False)]
         run = [('object', 0x3000, 0x301a), ('D_0000301A', 0x301a, 0x301c),
                ('D_0000301C', 0x301c, 0x3020), ('following', 0x3020, 0x3024)]
-        section = SimpleNamespace(name='.bss', sh_type=p.SHT_NOBITS, sh_size=24, data=b'')
+        section = SimpleNamespace(name='.bss', sh_type=p.SHT_NOBITS, sh_size=24, data=b'',
+                                  sh_flags=p.FLAGS['.bss'], sh_addralign=16)
         sym = SimpleNamespace(name='object', type=p.STT_OBJECT, st_value=0,
                               st_shndx=1, st_size=24)
-        compiled = SimpleNamespace(sections=[None, section], symtab=SimpleNamespace(symbols=[sym]))
+        following = SimpleNamespace(name='.bss', sh_type=p.SHT_NOBITS, sh_size=4, data=b'',
+                                    sh_flags=p.FLAGS['.bss'], sh_addralign=16)
+        next_sym = SimpleNamespace(name='following', type=p.STT_OBJECT, st_value=0,
+                                   st_shndx=2, st_size=4)
+        compiled = SimpleNamespace(sections=[None, section, following],
+                                   symtab=SimpleNamespace(symbols=[sym, next_sym]))
         return compiled, section, rows, run
 
     def apply(self, compiled, rows, run):
@@ -197,7 +203,8 @@ class BssReservationCutTests(unittest.TestCase):
 
 class DataPaddingTests(unittest.TestCase):
     def run_padding(self, size=12, declared=12, end=16, nobits=True, tail=b"\0" * 4,
-                    terminal=False, section_name=None, retail_name=None, placeholder=False, relocations=()):
+                    terminal=False, section_name=None, retail_name=None, placeholder=False, relocations=(),
+                    next_alignment=16):
         section = SimpleNamespace(sh_type=p.SHT_NOBITS if nobits else 1,
                                   sh_size=size, data=b"x" * size,
                                   name=section_name or (".bss" if nobits else ".data"))
@@ -205,16 +212,27 @@ class DataPaddingTests(unittest.TestCase):
                                  name="object", st_size=size)
         elf = SimpleNamespace(sections=[None, section],
                               symtab=SimpleNamespace(symbols=[symbol]))
+        section.sh_flags = p.FLAGS[section.name]
+        section.sh_addralign = 4
+        rows = [(0, "object", declared, False)]
         run = [("object", 0, end)]
         if not terminal:
             run.append(("following", end, end + 4))
+            following = SimpleNamespace(name=section.name, sh_type=section.sh_type,
+                                        sh_flags=section.sh_flags, sh_addralign=next_alignment,
+                                        sh_size=4, data=bytes(4))
+            next_sym = SimpleNamespace(name="following", type=p.STT_OBJECT, st_value=0,
+                                       st_shndx=2, st_size=4)
+            elf.sections.append(following)
+            elf.symtab.symbols.append(next_sym)
+            rows.append((end, "following", 4, False))
         kind = retail_name or section.name
         pieces = SimpleNamespace(unit=lambda unit: [(kind, run)])
         retail = SimpleNamespace(bytes=lambda start, end: tail, relocations=dict.fromkeys(relocations, 2))
         with patch.object(p.layout, "section_of", return_value=kind), \
              patch.object(p.disassemble, "Pieces", return_value=pieces), \
              patch.object(p.layout, "Retail", return_value=retail), \
-             patch.object(p.layout, "read_symbols", return_value=[(0, "object", declared, False)]):
+             patch.object(p.layout, "read_symbols", return_value=rows):
             placeholders = {1} if placeholder else set()
             p.pad_data(elf, "test", placeholders)
             once = p.section_size(section)
@@ -230,15 +248,16 @@ class DataPaddingTests(unittest.TestCase):
         self.assertEqual(self.run_padding(size=8), 8)
         self.assertEqual(self.run_padding(size=13), 13)
 
-    def test_bss_reservations_require_bounded_power_of_two_alignment(self):
-        self.assertEqual(self.run_padding(size=4, declared=4, end=64), 64)
+    def test_bss_reservations_require_bounded_original_next_alignment(self):
+        self.assertEqual(self.run_padding(size=4, declared=4, end=64), 4)
+        self.assertEqual(self.run_padding(size=4, declared=4, end=64, next_alignment=64), 64)
         self.assertEqual(self.run_padding(size=4, declared=4, end=52), 4)
         self.assertEqual(self.run_padding(size=4, declared=4, end=8192), 4)
         for end in (256, 4096):
             with self.subTest(end=end):
                 self.assertEqual(self.run_padding(size=4, declared=4, end=end), 4)
         self.assertEqual(self.run_padding(end=14), 12)
-        self.assertEqual(self.run_padding(end=32), 32)
+        self.assertEqual(self.run_padding(end=32), 12)
         self.assertEqual(self.run_padding(end=28), 12)
         self.assertEqual(self.run_padding(end=28, nobits=False), 12)
         self.assertEqual(self.run_padding(end=8), 12)
@@ -252,10 +271,16 @@ class DataPaddingTests(unittest.TestCase):
         symbols = SimpleNamespace(rows=rows,
                                   within=lambda lo, hi: [row for row in rows if lo <= row[0] < hi])
         pieces = p.disassemble.Pieces(lay=lay, symbols=symbols, references=[0x3020])
-        section = SimpleNamespace(name=".bss", sh_type=p.SHT_NOBITS, sh_size=4, data=b"")
+        section = SimpleNamespace(name=".bss", sh_type=p.SHT_NOBITS, sh_size=4, data=b"",
+                                  sh_flags=p.FLAGS['.bss'], sh_addralign=4)
         sym = SimpleNamespace(name="object", type=p.STT_OBJECT, st_value=0,
                               st_shndx=1, st_size=4)
-        compiled = SimpleNamespace(sections=[None, section], symtab=SimpleNamespace(symbols=[sym]))
+        following = SimpleNamespace(name=".bss", sh_type=p.SHT_NOBITS, sh_size=4, data=b"",
+                                    sh_flags=p.FLAGS['.bss'], sh_addralign=64)
+        next_sym = SimpleNamespace(name="following", type=p.STT_OBJECT, st_value=0,
+                                   st_shndx=2, st_size=4)
+        compiled = SimpleNamespace(sections=[None, section, following],
+                                   symtab=SimpleNamespace(symbols=[sym, next_sym]))
         with patch.object(p.layout, "section_of", return_value=".bss"):
             p.pad_data(compiled, "unit", set(), pieces=pieces, rows=rows,
                        retail=SimpleNamespace(relocations={}))

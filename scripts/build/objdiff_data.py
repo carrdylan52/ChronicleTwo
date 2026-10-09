@@ -309,9 +309,11 @@ def prepare_native_data(elf, unit, ctx):
         if symbol.name.startswith('at_') and int(symbol.name.split('__')[0][3:]) >= 1 << 64:
             symbol.name = '.unmapped_' + symbol.name
             symbol.st_name = elf.strtab.add_symbol(symbol.name)
-    p.pad_data(elf, unit, set(), retail=ctx.retail, pieces=ctx.pieces, rows=ctx.rows)
+    p.pad_data(elf, unit, set(), retail=ctx.retail, pieces=ctx.pieces, rows=ctx.rows,
+               native_extents=native_extents, held=held)
     p.bind_suffixed_references(elf, unit)
-    p.pad_data(elf, unit, set(), retail=ctx.retail, pieces=ctx.pieces, rows=ctx.rows)
+    p.pad_data(elf, unit, set(), retail=ctx.retail, pieces=ctx.pieces, rows=ctx.rows,
+               native_extents=native_extents, held=held)
     renamed = p.retail_sections(elf, ctx.addresses, unit)
     own = [(lo, hi) for _name, lo, hi in ctx.layout.sections(unit)]
     for index, section in enumerate(elf.sections):

@@ -73,18 +73,43 @@ the alignment gap before the next symbol or referenced address. Once data
 sections are assigned alignment one for linking, their bytes must retain that
 gap. The postprocessor extends a correctly sized native initialized object by
 fewer than 16 bytes to its piece boundary; initialized padding must be zero
-in retail. An exactly sized native NOBITS object reserves storage only when
-its canonical piece ends at a power-of-two alignment of at most 128 bytes.
-A reference cut may divide an alignment gap before that end. For an unaligned
-cut, the check follows contiguous canonical `D_<address>` fragments with no
-retail declaration to the next declared object and checks that object's start
-against the same alignment bound. Only storage through the original cut is
-reserved; the fragments remain separate. Missing, malformed, declared or
-unaligned gap evidence allows no additional reservation. This bounded
-reservation policy does not establish the following object's original compiler
-alignment; some retail BSS gaps still need that independent proof. Terminal
-detection uses the retail section kind, so a compiler section name cannot
-bypass the declared terminal extent.
+in retail. A native NOBITS object keeps its original compiler extent; a reservation
+requires unique, exactly sized native ownership and a unique next retail object.
+The ordinary alignment path uses that following native object's original
+`sh_addralign`, captured before naming or padding. Its declared extent, section
+kind and flags must agree with retail. Rounding the current object's end to
+this measured power-of-two alignment (at most 128 bytes) must give the exact
+next retail start. Searching for an alignment that happens to fit an address
+supplies no proof.
+
+Unresolved retail storage is listed separately in
+`postprocess_object.py:BSS_RETAIL_RESERVATIONS`: 154 exact placements across
+23 units. Every entry fixes the unit, owner, section kind, address, declared
+size and following object's name, address and declared size. These exceptions
+preserve existing retail piece extents; they do not establish compiler alignment,
+provide a following object's payload or authorize other gaps. Changes to any
+listed identity or extent require new evidence. Missing or malformed native
+ownership and changed retail tuples allow no reservation.
+Each entry also fixes the measured following native alignment or an explicit
+retained-marker state. A present native object must pass the same ownership,
+extent, kind and alignment checks as the ordinary path. Only a retained source
+marker permits an absent or valid placeholder-backed following definition;
+rejected live native evidence cannot be treated as missing marker storage.
+Same-name, zero-offset declarations may alias that one retained placeholder
+when their extents equal its declared object or complete piece. A distinct
+name, offset, section, type or extent rejects the placeholder evidence.
+
+Both paths reject declarations and retail/native relocation fields inside the
+gap. A reference cut may divide it only through contiguous canonical
+`D_<address>` fragments without declarations. Only storage through the original
+cut is reserved; fragments remain separate. Terminal detection uses the retail
+section kind, so a compiler section name cannot bypass the declared terminal
+extent. See [BSS reservation evidence](BSS_RESERVATIONS.md) for classification,
+measured compiler/linker behavior and the remaining unresolved causes.
+Current section storage cannot exceed its original object or canonical piece
+extent. A live object at a canonical gap cut rejects traversal; only a uniquely
+owned, exact alignment-address fragment may already occupy such a cut.
+
 Anonymous initialized literal naming requires both the original payload and
 symbol extent to equal the declared retail size. Appended bytes must be
 complete zero retail bytes with no relocation fields. The linked literal pass
@@ -187,7 +212,10 @@ trimmed only when the original compiler symbol size equals the declared retail
 size and every removed byte is zero with no relocation fields; oversized native
 objects remain visible. Both sides exclude the verified terminal tails owned by
 the linker. BSS symbol extents include
-that verified piece padding consistently with initialized objects.
+accepted piece reservations consistently with initialized objects. The explicit
+unresolved BSS list preserves the existing data metric, including previously
+credited reservation storage; unchanged credit is not independent proof of
+those gaps' compiler or linker cause.
 
 Reservation arrays and every retained data-marker piece are excluded from the
 source comparison, including coincidental compiler copies. No fallback payload

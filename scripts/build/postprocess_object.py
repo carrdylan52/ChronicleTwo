@@ -13,8 +13,8 @@ Native identity passes use their required extent, section-kind, byte,
 relocation and consumer evidence. Source-family gates apply to selected named
 passes; anonymous BSS and pointer-table naming use references and content.
 Local duplicate suffixes are resolved within the owning unit. Exact native
-objects may retain verified zero initialized padding and canonical BSS
-reservations. Independently cut alignment fragments require both neighboring
+objects may retain verified zero initialized padding and BSS alignment gaps or
+explicitly listed unresolved retail reservations. Independently cut alignment fragments require both neighboring
 objects' original extents and compiler alignments, with complete zero contents.
 
 External weak functions use retail ownership; unverified bodies are reported.
@@ -80,6 +80,322 @@ FLAGS = {
     ".bss": SHF_WRITE | SHF_ALLOC,
 }
 CODE = (".text", ".init")
+
+
+# Unresolved retail storage: exact placements only, never inferred alignments.
+# Values fix (kind, start, size, next name/start/size, measured next alignments).
+# None permits only a retained following marker, absent or placeholder-backed.
+# See BSS_RESERVATIONS.md for the measured classification and remaining gaps.
+BSS_RETAIL_RESERVATIONS = {
+    ('convviewlp', 'ConvertResultDispTime'):
+        ('.sbss', 0x0037ea8c, 0x4, 'SaveFileInfoTablePtr', 0x0037eac0, 0x4, (4,)),
+    ('convviewlp', 'init_817'):
+        ('.sbss', 0x0037eac8, 0x1, 'init_820', 0x0037eacc, 0x1, (1,)),
+    ('convviewlp', 'init_820'):
+        ('.sbss', 0x0037eacc, 0x1, 'init_823', 0x0037ead0, 0x1, (1,)),
+    ('convviewlp', 'init_823'):
+        ('.sbss', 0x0037ead0, 0x1, 'init_826', 0x0037ead4, 0x1, (1,)),
+    ('dng_debug', 'dbFont'):
+        ('.bss', 0x01ecdc30, 0xb8, 'dbinfo', 0x01ecdcf0, 0x20, (None,)),
+    ('dng_main', 'init_1107'):
+        ('.sbss', 0x0037d470, 0x1, 'init_1824', 0x0037d474, 0x1, (None, 1)),
+    ('dng_main', 'nowload'):
+        ('.bss', 0x01ee5210, 0x3c, 'at_941__2', 0x01ee5250, 0xc, (None,)),
+    ('dngmenu', 'dngfloor_infoview'):
+        ('.sbss', 0x0037d52c, 0x1, 'dngfloor_backdraw', 0x0037d530, 0x1, (1,)),
+    ('dngmenu', 'DngInfoFishOkFlag'):
+        ('.sbss', 0x0037d53c, 0x1, 'DngInfoSphidaOkFlag', 0x0037d540, 0x1, (1,)),
+    ('dngmenu', 'DngInfoSphidaOkFlag'):
+        ('.sbss', 0x0037d540, 0x1, 'DngAskMessageDrawFlag', 0x0037d544, 0x1, (1,)),
+    ('dngmenu', 'init_1744'):
+        ('.sbss', 0x0037d564, 0x1, 'GeoramaMateriaInfoDrawFlag', 0x0037d568, 0x1, (1,)),
+    ('dngmenu', 'GeoramaMateriaInfoDrawFlag'):
+        ('.sbss', 0x0037d568, 0x1, 'GeoramaMateriaInfoDrawPage', 0x0037d56c, 0x1, (1,)),
+    ('dngmenu', 'GeoramaMateriaInfoDrawPage'):
+        ('.sbss', 0x0037d56c, 0x1, 'GeoramaMateriaNum', 0x0037d570, 0x2, (2,)),
+    ('dngmenu', 'DngTreeMode'):
+        ('.sbss', 0x0037d57c, 0x2, 'TreeMapSaveFlag', 0x0037d580, 0x1, (1,)),
+    ('dngmenu', 'TreeMapSaveFlag'):
+        ('.sbss', 0x0037d580, 0x1, 'TreeMapSaveNum', 0x0037d584, 0x2, (2,)),
+    ('dngmenu', 'TreeMapSaveNum'):
+        ('.sbss', 0x0037d584, 0x2, 'TreeMapSaveDispCount', 0x0037d588, 0x2, (2,)),
+    ('dngmenu', 'TreeMapSaveDispY'):
+        ('.sbss', 0x0037d590, 0x2, 'TreeMapCallDungeonSubMap', 0x0037d594, 0x1, (1,)),
+    ('dngmenu', 'TreeMapCallDungeonSubMap'):
+        ('.sbss', 0x0037d594, 0x1, 'TreeMapCalledWorldMap', 0x0037d598, 0x1, (1,)),
+    ('editmenu', 'HouseInfoSelectLine'):
+        ('.sbss', 0x0037d5e4, 0x2, 'HouseInfoSelectSelect', 0x0037d5e8, 0x2, (2,)),
+    ('editmenu', 'HouseInfoSelectSelect'):
+        ('.sbss', 0x0037d5e8, 0x2, 'HouseInfoSelectMoveInit', 0x0037d5ec, 0x1, (1,)),
+    ('editmenu', 'DownLoadInfoEndFlag'):
+        ('.sbss', 0x0037d60c, 0x1, 'DownLoadInfoDrawFlag', 0x0037d610, 0x1, (1,)),
+    ('editmenu', 'DownLoadDispNum'):
+        ('.sbss', 0x0037d620, 0x2, 'DownLoadProgress', 0x0037d624, 0x2, (2,)),
+    ('editmenu', 'DownLoadProgress'):
+        ('.sbss', 0x0037d624, 0x2, 'DownLoadMesMakeProgress', 0x0037d628, 0x1, (1,)),
+    ('editmenu', 'DownLoadMesUpY'):
+        ('.sbss', 0x0037d638, 0x2, 'old_menuparts_pos_flag', 0x0037d63c, 0x1, (1,)),
+    ('editmenu', 'old_menuparts_pos_flag'):
+        ('.sbss', 0x0037d63c, 0x1, 'NowPolyGonFormMoveFlag', 0x0037d640, 0x1, (1,)),
+    ('editmenu', 'MenuGeoramaCursorForceSetFlag'):
+        ('.sbss', 0x0037d64c, 0x1, 'MenuGeoStoneDonwLoadFlag', 0x0037d650, 0x1, (1,)),
+    ('editmenu', 'MenuGeoStoneDonwLoadFlag'):
+        ('.sbss', 0x0037d650, 0x1, 'MenuGeoStoneDownLoad_PartsNum', 0x0037d654, 0x2, (2,)),
+    ('editmenu', 'MenuGeoStoneDownLoad_PartsNum'):
+        ('.sbss', 0x0037d654, 0x2, 'MenuGeoStoneDownLoad_Request', 0x0037d658, 0x2, (2,)),
+    ('editmenu', 'GeoramaParts_DrawWaitCnt'):
+        ('.sbss', 0x0037d6a4, 0x2, 'GeoramaMesPosForceSetFlag', 0x0037d6a8, 0x1, (1,)),
+    ('editmenu', 'GeoramaMesMakeManner'):
+        ('.sbss', 0x0037d6b0, 0x5, 'GeoramaReqMakeLine', 0x0037d6b8, 0x2, (2,)),
+    ('editmenu', 'GeoramaReqMakeLine'):
+        ('.sbss', 0x0037d6b8, 0x2, 'GeoramaReqMakeManner', 0x0037d6bc, 0x2, (2,)),
+    ('editmenu', 'GeoramaReqMakeManner'):
+        ('.sbss', 0x0037d6bc, 0x2, 'GeoramaMesForceMakeFlag', 0x0037d6c0, 0x1, (1,)),
+    ('editmenu', 'GeoramaMesForceMakeFlag'):
+        ('.sbss', 0x0037d6c0, 0x1, 'GeoramaMesForceMakeFlag_PaintVer', 0x0037d6c4, 0x1, (1,)),
+    ('editmenu', 'cnt_2177'):
+        ('.sbss', 0x0037d6f0, 0x1, 'init_2178', 0x0037d6f4, 0x1, (1,)),
+    ('editmenu', 'init_3581'):
+        ('.sbss', 0x0037d71c, 0x1, 'DestroyMaxNum_3584', 0x0037d720, 0x2, (2,)),
+    ('editmenu', 'DestroyMaxNum_3584'):
+        ('.sbss', 0x0037d720, 0x2, 'init_3585', 0x0037d724, 0x1, (1,)),
+    ('funcpoint', 'init_1175'):
+        ('.sbss', 0x0037dfc8, 0x1, 'init_1204', 0x0037dfcc, 0x1, (1,)),
+    ('funcpoint', 'init_1204'):
+        ('.sbss', 0x0037dfcc, 0x1, 'init_1208', 0x0037dfd0, 0x1, (1,)),
+    ('gamepad', 'rpad_256'):
+        ('.sbss', 0x0037cf30, 0x2, 'init_257', 0x0037cf34, 0x1, (1,)),
+    ('inventmn', 'pic_name_info_num'):
+        ('.sbss', 0x0037d778, 0x2, 'pic_name_info_num_count', 0x0037d77c, 0x2, (2,)),
+    ('inventmn', 'InventInNetaEffectFlag'):
+        ('.sbss', 0x0037d7e8, 0x1, 'InventInNetaEffectNum', 0x0037d7ec, 0x1, (1,)),
+    ('inventmn', 'InventInNetaEffectNum'):
+        ('.sbss', 0x0037d7ec, 0x1, 'InventInNetaEffectNum4', 0x0037d7f0, 0x2, (2,)),
+    ('inventmn', 'ActiveSlot_3949'):
+        ('.sbss', 0x0037d7f8, 0x1, 'init_3950', 0x0037d7fc, 0x1, (1,)),
+    ('mainloop', 'init_1225'):
+        ('.sbss', 0x0037d18c, 0x1, 'init_1228', 0x0037d190, 0x1, (1,)),
+    ('mainloop', 'init_1228'):
+        ('.sbss', 0x0037d190, 0x1, 'init_1231', 0x0037d194, 0x1, (1,)),
+    ('mainloop', 'init_1231'):
+        ('.sbss', 0x0037d194, 0x1, 'init_1234', 0x0037d198, 0x1, (1,)),
+    ('map', 'init_1249'):
+        ('.sbss', 0x0037cf88, 0x1, 'init_1301', 0x0037cf8c, 0x1, (1,)),
+    ('menuaqua', 'menu_debug_select'):
+        ('.sbss', 0x0037d860, 0x2, 'aquarium_xz_table', 0x0037d870, 0x4, (4,)),
+    ('menuaqua', 'aquarium_xz_table'):
+        ('.sbss', 0x0037d870, 0x4, 'aquarium_y_table', 0x0037d880, 0x4, (4,)),
+    ('menuaqua', 'init_3639'):
+        ('.sbss', 0x0037d8ac, 0x1, 'sel_sift_fish_select_3641', 0x0037d8b0, 0x2, (2,)),
+    ('menuaqua', 'GyoraceFishSelectMode'):
+        ('.sbss', 0x0037d8bc, 0x1, 'GyoraceFishSelectNo', 0x0037d8c0, 0x2, (2,)),
+    ('menuaqua', 'GyoraceFishSelectNo'):
+        ('.sbss', 0x0037d8c0, 0x2, 'GyoraceFishSelTexBk', 0x0037d8c4, 0x2, (2,)),
+    ('menuaqua', 'GyoraceFishSelTexBk'):
+        ('.sbss', 0x0037d8c4, 0x2, 'GyoraceFishFrameImgTexNo', 0x0037d8c8, 0x2, (2,)),
+    ('menuaqua', 'GyoraceFishFrameImgTexNo'):
+        ('.sbss', 0x0037d8c8, 0x2, 'GyoraceFishSelNum', 0x0037d8cc, 0x1, (1,)),
+    ('menuaqua', 'GyoraceFishSel'):
+        ('.sbss', 0x0037d8d0, 0x6, 'GyoRaceFishReadPhase', 0x0037d8d8, 0x1, (1,)),
+    ('menuaqua', 'GyoRaceFishReadPhase'):
+        ('.sbss', 0x0037d8d8, 0x1, 'GyoRaceAquariumNo', 0x0037d8dc, 0x1, (1,)),
+    ('menuaqua', 'GyoRaceAquariumNo'):
+        ('.sbss', 0x0037d8dc, 0x1, 'GyoRaceClass', 0x0037d8e0, 0x1, (1,)),
+    ('menuaqua', 'GyoRaceClass'):
+        ('.sbss', 0x0037d8e0, 0x1, 'GyoRaceProgressNum', 0x0037d8e4, 0x1, (1,)),
+    ('menuaqua', 'GyoRaceProgressNum'):
+        ('.sbss', 0x0037d8e4, 0x1, 'GyoRaceRankingData', 0x0037d8e8, 0x1, (1,)),
+    ('menuaqua', 'spi_nowanalyze_gyorace_limmit'):
+        ('.sbss', 0x0037d8f8, 0x2, 'spi_gyorace_counter', 0x0037d8fc, 0x2, (2,)),
+    ('menuaqua', 'FishTournamentGoodsNum'):
+        ('.sbss', 0x0037d908, 0x2, 'FishTournamentGoodsType', 0x0037d90c, 0x1, (1,)),
+    ('menuaqua', 'GyoraceMesDrawFlag'):
+        ('.sbss', 0x0037d92c, 0x1, 'GyoraceFishInfoDrawFlag', 0x0037d930, 0x1, (1,)),
+    ('menuaqua', 'GyoraceNowMode'):
+        ('.sbss', 0x0037d958, 0x2, 'GyoraceNowPhase', 0x0037d95c, 0x2, (2,)),
+    ('menuaqua', 'GyoraceNowPhase'):
+        ('.sbss', 0x0037d95c, 0x2, 'GyoraceQuestionMsgDrawFlag', 0x0037d960, 0x1, (1,)),
+    ('menuaqua', 'GyoraceQuestionMsgDrawFlag'):
+        ('.sbss', 0x0037d960, 0x1, 'GyoraceHaveFishCursorDrawFlag', 0x0037d964, 0x1, (1,)),
+    ('menuaqua', 'init_5178'):
+        ('.sbss', 0x0037d9ac, 0x1, 'save_now_space_racer_no_5180', 0x0037d9b0, 0x1, (1,)),
+    ('menuaqua', 'save_now_space_racer_no_5180'):
+        ('.sbss', 0x0037d9b0, 0x1, 'init_5181', 0x0037d9b4, 0x1, (1,)),
+    ('menuchr', 'menu_debug_npcselect'):
+        ('.sbss', 0x0037e234, 0x1, 'menu_debug_npc_decide', 0x0037e238, 0x1, (1,)),
+    ('menuchr', 'menu_debug_npc_decide'):
+        ('.sbss', 0x0037e238, 0x1, 'MenuDebugChangeSelectMode', 0x0037e23c, 0x2, (2,)),
+    ('menuchr', 'MenuDebugChangeSelectMode'):
+        ('.sbss', 0x0037e23c, 0x2, 'MenuDebugCharaChangeSelect', 0x0037e240, 0x2, (2,)),
+    ('menuchr', 'MenuDebugCharaChangeSelect'):
+        ('.sbss', 0x0037e240, 0x2, 'SelectedCmdNo_1415', 0x0037e244, 0x1, (None,)),
+    ('menuchr', 'NowMainCharaChngStatusBit'):
+        ('.sbss', 0x0037e2c0, 0x2, 'MenuNPCLoadFlag', 0x0037e2c4, 0x1, (1,)),
+    ('menucommon', 'MenuTexPosNo'):
+        ('.sbss', 0x0037de3c, 0x2, 'MenuTexPosNo_local', 0x0037de40, 0x2, (2,)),
+    ('menucommon', 'MenuTexPosNo_local'):
+        ('.sbss', 0x0037de40, 0x2, 'menu_analyze_texblock', 0x0037de44, 0x2, (2,)),
+    ('menucommon', 'Menu_Target_No'):
+        ('.sbss', 0x0037de4c, 0x2, 'Menu_Target_No_local', 0x0037de50, 0x2, (2,)),
+    ('menucommon', 'menu_analyze_formno'):
+        ('.sbss', 0x0037de60, 0x2, 'menu_analyze_formno_offset', 0x0037de64, 0x2, (2,)),
+    ('menudraw', 'MenuMainFrame_ActionEndFlag'):
+        ('.sbss', 0x0037da50, 0x1, 'MenuMainFrame_Display_Mode', 0x0037da54, 0x2, (2,)),
+    ('menudraw', 'MainFrameStepFlag_2092'):
+        ('.sbss', 0x0037da80, 0x1, 'init_2093', 0x0037da84, 0x1, (1,)),
+    ('menudraw', 'fish_boiled_count'):
+        ('.sbss', 0x0037db34, 0x2, 'fish_boiled_runflag', 0x0037db38, 0x2, (2,)),
+    ('menumain', 'MenuNowMapNo'):
+        ('.sbss', 0x0037db60, 0x2, 'MenuNowMapType', 0x0037db64, 0x2, (2,)),
+    ('menumain', 'HatumeiMenuOkFlag'):
+        ('.sbss', 0x0037dbc8, 0x1, 'WorldMapOkFlag', 0x0037dbcc, 0x1, (1,)),
+    ('menumain', 'WorldMapOkFlag'):
+        ('.sbss', 0x0037dbcc, 0x1, 'ManualMenuOkFlag', 0x0037dbd0, 0x1, (1,)),
+    ('menumain', 'ManualMenuOkFlag'):
+        ('.sbss', 0x0037dbd0, 0x1, 'DngMoveMenuOkFlag', 0x0037dbd4, 0x1, (1,)),
+    ('menumain', 'DngMoveMenuOkFlag'):
+        ('.sbss', 0x0037dbd4, 0x1, 'MenuDoubleDrawCheck', 0x0037dbd8, 0x1, (1,)),
+    ('menumain', 'MenuDoubleDrawCheck'):
+        ('.sbss', 0x0037dbd8, 0x1, 'refresh_cnt_1523', 0x0037dbdc, 0x1, (1,)),
+    ('menumain', 'refresh_cnt_1523'):
+        ('.sbss', 0x0037dbdc, 0x1, 'init_1524', 0x0037dbe0, 0x1, (1,)),
+    ('menumain', 'MenuTopicType'):
+        ('.sbss', 0x0037dbf8, 0x2, 'MenuTopicLength', 0x0037dbfc, 0x2, (2,)),
+    ('menumap', 'MapEnableNum'):
+        ('.sbss', 0x0037e188, 0x2, 'WorldMapMenuType', 0x0037e18c, 0x1, (1,)),
+    ('menumap', 'WorldMapMenuType'):
+        ('.sbss', 0x0037e18c, 0x1, 'WorldMap_NextLoopNo', 0x0037e190, 0x2, (2,)),
+    ('menumap', 'WorldMap_NextLoopNo'):
+        ('.sbss', 0x0037e190, 0x2, 'WorldMap_MapNo', 0x0037e194, 0x2, (2,)),
+    ('menumap', 'WorldMap_MapNo'):
+        ('.sbss', 0x0037e194, 0x2, 'WorldMap_DngFloor', 0x0037e198, 0x2, (2,)),
+    ('menumap', 'SphidaMenuPhase'):
+        ('.sbss', 0x0037e1f8, 0x2, 'SfidaMakeLine', 0x0037e1fc, 0x2, (2,)),
+    ('menumap', 'SfidaMakeLine'):
+        ('.sbss', 0x0037e1fc, 0x2, 'SfidaMoveInitFlag', 0x0037e200, 0x1, (1,)),
+    ('menuop', 'MenuReturnMsgDrawFlag'):
+        ('.sbss', 0x0037e308, 0x1, 'MovieBattleBGMPhase', 0x0037e30c, 0x1, (1,)),
+    ('menuop', 'Movie_DungeonFlag'):
+        ('.sbss', 0x0037e318, 0x2, 'Movie_BossFlag', 0x0037e31c, 0x2, (2,)),
+    ('menuop', 'Movie_BossFlag'):
+        ('.sbss', 0x0037e31c, 0x2, 'MovieBgmBattleCheckStopFlag', 0x0037e320, 0x2, (2,)),
+    ('menuop', 'MovieViewFlag'):
+        ('.sbss', 0x0037e328, 0x1, 'ManualMovieFadeCount_1253', 0x0037e32c, 0x2, (2,)),
+    ('menuop', 'ManualMovieFadeCount_1253'):
+        ('.sbss', 0x0037e32c, 0x2, 'init_1254', 0x0037e330, 0x1, (1,)),
+    ('menuop', 'init_2005'):
+        ('.sbss', 0x0037e380, 0x1, 'input_wait_counter_2067', 0x0037e384, 0x1, (1,)),
+    ('menuop', 'input_wait_counter_2067'):
+        ('.sbss', 0x0037e384, 0x1, 'init_2068', 0x0037e388, 0x1, (1,)),
+    ('menuop', 'init_2550'):
+        ('.sbss', 0x0037e3c0, 0x1, 'MenuMapInfoSave_DngNo', 0x0037e3c4, 0x2, (2,)),
+    ('menuop', 'MenuMapInfoSave_DngNo'):
+        ('.sbss', 0x0037e3c4, 0x2, 'SubGameSaveOrLoad', 0x0037e3c8, 0x1, (1,)),
+    ('menuop', 'SubGameSaveOrLoad'):
+        ('.sbss', 0x0037e3c8, 0x1, 'SubGameSaveOrLoadPhase', 0x0037e3cc, 0x2, (2,)),
+    ('menuop', 'SubGameSaveOrLoadPhase'):
+        ('.sbss', 0x0037e3cc, 0x2, 'SubGameSaveLoadStatus', 0x0037e3d0, 0x2, (2,)),
+    ('menuop', 'SubGameSaveLoadStatus'):
+        ('.sbss', 0x0037e3d0, 0x2, 'SubGameMCPort', 0x0037e3d4, 0x1, (1,)),
+    ('menushop', 'shop_mode_prev_1326'):
+        ('.sbss', 0x0037def4, 0x2, 'init_1327', 0x0037def8, 0x1, (1,)),
+    ('menushop', 'QuestViewCommentFlag'):
+        ('.sbss', 0x0037df60, 0x1, 'QuestReactionCommentGyouNum', 0x0037df64, 0x2, (2,)),
+    ('menusys', 'MenuItem_ItemBoardTopLine'):
+        ('.sbss', 0x0037dc20, 0x2, 'MenuItem_ItemBoardTopSelect', 0x0037dc24, 0x2, (2,)),
+    ('menusys', 'MenuItemCmdArgPos'):
+        ('.sbss', 0x0037dc84, 0x2, 'MenuItemCommand_RoboPackBreakFlag', 0x0037dc88, 0x2, (2,)),
+    ('menusys', 'MenuItemCommand_RoboPackBreakFlag'):
+        ('.sbss', 0x0037dc88, 0x2, 'cmd_counter_1048', 0x0037dc8c, 0x1, (1,)),
+    ('menusys', 'cmd_counter_1048'):
+        ('.sbss', 0x0037dc8c, 0x1, 'init_1049', 0x0037dc90, 0x1, (1,)),
+    ('menusys', 'SpectolBreakNum_Limit'):
+        ('.sbss', 0x0037dca4, 0x2, 'SpectolBreakNum', 0x0037dca8, 0x2, (2,)),
+    ('menusys', 'SpectolBreakNum'):
+        ('.sbss', 0x0037dca8, 0x2, 'SpectolBreakSpPoint', 0x0037dcac, 0x2, (2,)),
+    ('menusys', 'MenuSpectolTransPos'):
+        ('.sbss', 0x0037dcc0, 0x2, 'itemmenu_chr_rotflag', 0x0037dcc4, 0x1, (1,)),
+    ('menusys', 'itemmenu_chr_rotflag'):
+        ('.sbss', 0x0037dcc4, 0x1, 'sndflag_1665', 0x0037dcc8, 0x1, (1,)),
+    ('menusys', 'sndflag_1665'):
+        ('.sbss', 0x0037dcc8, 0x1, 'init_1666', 0x0037dccc, 0x1, (1,)),
+    ('menusys', 'count_time_3839'):
+        ('.sbss', 0x0037dd08, 0x1, 'init_3840', 0x0037dd0c, 0x1, (1,)),
+    ('menusys', 'init_4683'):
+        ('.sbss', 0x0037dd3c, 0x1, 'BuildEndFlag_4703', 0x0037dd40, 0x1, (1,)),
+    ('menusys', 'BuildEndFlag_4703'):
+        ('.sbss', 0x0037dd40, 0x1, 'init_4704', 0x0037dd44, 0x1, (1,)),
+    ('menusys', 'checkmoveFlag_5411'):
+        ('.sbss', 0x0037dd58, 0x1, 'init_5412', 0x0037dd5c, 0x1, (1,)),
+    ('menusys', 'MenuDebugCamera'):
+        ('.sbss', 0x0037dd88, 0x4, 'at_6133', 0x0037dd90, 0x8, (None,)),
+    ('menusys', 'init_6162'):
+        ('.sbss', 0x0037dd9c, 0x1, 'at_6176', 0x0037dda0, 0x8, (None,)),
+    ('menusys', 'fusion_blinkcnt_7120'):
+        ('.sbss', 0x0037ddd8, 0x1, 'init_7121', 0x0037dddc, 0x1, (1,)),
+    ('menusys', 'init_7121'):
+        ('.sbss', 0x0037dddc, 0x1, 'diffent_weapon_dispflag_7125', 0x0037dde0, 0x1, (1,)),
+    ('menusys', 'diffent_weapon_dispflag_7125'):
+        ('.sbss', 0x0037dde0, 0x1, 'init_7126', 0x0037dde4, 0x1, (1,)),
+    ('menusys', 'init_7510'):
+        ('.sbss', 0x0037ddf0, 0x1, 'count_7867', 0x0037ddf4, 0x1, (1,)),
+    ('menusys', 'count_7867'):
+        ('.sbss', 0x0037ddf4, 0x1, 'init_7868', 0x0037ddf8, 0x1, (1,)),
+    ('menusys', 'init_7868'):
+        ('.sbss', 0x0037ddf8, 0x1, 'MonicaRotationFlag', 0x0037ddfc, 0x1, (1,)),
+    ('menusys', 'init_8719'):
+        ('.sbss', 0x0037de0c, 0x1, 'MenuItemSelectMode', 0x0037de10, 0x1, (1,)),
+    ('movie', 'isWithAudio'):
+        ('.sbss', 0x0037df90, 0x1, 'isStarted', 0x0037df94, 0x1, (1,)),
+    ('movie', 'isStarted'):
+        ('.sbss', 0x0037df94, 0x1, 'isStrFileInit', 0x0037df98, 0x1, (1,)),
+    ('movie', 'isStrFileInit'):
+        ('.sbss', 0x0037df98, 0x1, 'Loop', 0x0037df9c, 0x1, (1,)),
+    ('movie', 'isCountVblank'):
+        ('.sbss', 0x0037dfa8, 0x1, 'isFrameEnd', 0x0037dfac, 0x1, (1,)),
+    ('movieviewlp', 'MovieLine'):
+        ('.sbss', 0x0037e420, 0x2, 'MovieSelect', 0x0037e424, 0x2, (2,)),
+    ('movieviewlp', 'init_792'):
+        ('.sbss', 0x0037e43c, 0x1, 'init_795', 0x0037e440, 0x1, (1,)),
+    ('movieviewlp', 'init_795'):
+        ('.sbss', 0x0037e440, 0x1, 'init_798', 0x0037e444, 0x1, (1,)),
+    ('movieviewlp', 'init_798'):
+        ('.sbss', 0x0037e444, 0x1, 'init_801', 0x0037e448, 0x1, (1,)),
+    ('sound', 'msinBfCtx'):
+        ('.bss', 0x003f3f80, 0x48, 'msinBf', 0x003f4000, 0x1200, (16,)),
+    ('title', 'TitleRushWaitCountBoot'):
+        ('.sbss', 0x0037dfd4, 0x1, 'TitleSelectInit', 0x0037dfd8, 0x4, (None,)),
+    ('title', 'MasterDebugModeOn'):
+        ('.sbss', 0x0037dffc, 0x1, 'TitleBootEventNo', 0x0037e000, 0x1, (None,)),
+    ('title', 'DCSelectedMovie'):
+        ('.sbss', 0x0037e008, 0x1, 'DCRuncherCounter', 0x0037e00c, 0x4, (None,)),
+    ('title', 'TitleMCActivePort'):
+        ('.sbss', 0x0037e024, 0x2, 'TitleMCCheckNow', 0x0037e028, 0x1, (None,)),
+    ('title', 'TitlePhase'):
+        ('.sbss', 0x0037e038, 0x2, 'TitlePushStart_AlphaPlus', 0x0037e03c, 0x2, (2,)),
+    ('title', 'TitleCopyRightDispPhase'):
+        ('.sbss', 0x0037e044, 0x1, 'TitleCopyRightDispCounter', 0x0037e048, 0x2, (2,)),
+    ('title', 'TitleCopyRightDispCounter'):
+        ('.sbss', 0x0037e048, 0x2, 'TitleSkipLogoFlag', 0x0037e04c, 0x1, (1,)),
+    ('title', 'TitleSkipLogoFlag'):
+        ('.sbss', 0x0037e04c, 0x1, 'Tex_TitleBG', 0x0037e050, 0x4, (None,)),
+    ('title', 'debug_start_drawflag'):
+        ('.sbss', 0x0037e098, 0x1, 'HDDPhase', 0x0037e09c, 0x2, (2,)),
+    ('title', 'HDDPhase'):
+        ('.sbss', 0x0037e09c, 0x2, 'HDDConfirmType', 0x0037e0a0, 0x2, (2,)),
+    ('title', 'HDDConfirmType'):
+        ('.sbss', 0x0037e0a0, 0x2, 'HDDnowDisplayImageNo', 0x0037e0a4, 0x2, (2,)),
+    ('title', 'HDDnowDisplayImageNo'):
+        ('.sbss', 0x0037e0a4, 0x2, 'HDDDlBarDrawFlag', 0x0037e0a8, 0x1, (1,)),
+    ('title', 'HDDModeSelect'):
+        ('.sbss', 0x0037e0c8, 0x2, 'TitleOmakeFlag', 0x0037e0cc, 0x2, (2,)),
+    ('title', 'TitleOmakeFlag'):
+        ('.sbss', 0x0037e0cc, 0x2, 'TitleMCCheckBootMode', 0x0037e0d0, 0x1, (1,)),
+    ('title', 'TitleMCCheckBootMode'):
+        ('.sbss', 0x0037e0d0, 0x1, 'TitleMCCheckPort', 0x0037e0d4, 0x2, (2,)),
+    ('title', 'TitleMCCheckPort'):
+        ('.sbss', 0x0037e0d4, 0x2, 'TitleMCCheckPhase', 0x0037e0d8, 0x2, (2,)),
+}
 
 INVENTED = re.compile(r"D_([0-9A-F]{8})")
 
@@ -1399,7 +1715,9 @@ def materialize_alignment_fragments(elf, unit, placeholders, native_extents, *,
             symbol.type, symbol.bind = 0, 1
 
 
-def pad_data(elf, unit, placeholders, *, retail=None, pieces=None, rows=None):
+def pad_data(elf, unit, placeholders, *, retail=None, pieces=None, rows=None,
+             native_extents=None, held=frozenset()):
+    """Retain proved alignment or an explicitly listed unresolved retail reservation."""
     retail = layout.Retail() if retail is None else retail
     pieces = disassemble.Pieces() if pieces is None else pieces
     rows = layout.read_symbols(ROOT / layout.SYMBOLS) if rows is None else rows
@@ -1409,22 +1727,75 @@ def pad_data(elf, unit, placeholders, *, retail=None, pieces=None, rows=None):
     trailing = {(section, run[-1][0]) for section, run in runs if run}
     declared_sizes = {name: size for _address, name, size, _is_function
                       in rows if size}
-    declared_names = {name for _address, name, _size, _function in rows}
-    reservation_ends = {}
-    for _kind, run in runs:
+    declarations = {}
+    for address, name, size, function in rows:
+        declarations.setdefault(name, []).append((address, size, function))
+    if native_extents is None:
+        native_extents = native_data_extents(elf, placeholders)
+    definitions = {}
+    for symbol in elf.symtab.symbols:
+        if symbol.type != STT_SECTION and 0 < symbol.st_shndx < len(elf.sections):
+            definitions.setdefault(symbol.name, []).append(symbol)
+
+    def native(name, start, kind, piece_end):
+        symbols = definitions.get(name, [])
+        if len(symbols) != 1:
+            return None
+        symbol = symbols[0]
+        index = symbol.st_shndx
+        original = native_extents.get(index)
+        if original is None or index in placeholders:
+            return None
+        owner, size, alignment, section_type, section_name = original
+        section = elf.sections[index]
+        if (owner is not symbol or symbol.type != STT_OBJECT or symbol.st_value
+                or declarations.get(name) != [(start, size, False)]
+                or section_type != SHT_NOBITS or section_name != kind
+                or section.name != kind or section.sh_type != SHT_NOBITS
+                or section.sh_flags != FLAGS[kind]
+                or section_size(section) < size or symbol.st_size != size
+                or section_size(section) > max(size, piece_end - start)
+                or alignment <= 0 or alignment > MAX_DATA_ALIGNMENT
+                or alignment & (alignment - 1) or start % alignment
+                or any(other is not symbol and other.type != STT_SECTION and other.st_shndx == index
+                       for other in elf.symtab.symbols)):
+            return None
+        return size, alignment
+
+    following_objects = {}
+    for kind, run in runs:
+        if kind not in layout.NOBITS:
+            continue
         for position, (name, _start, end) in enumerate(run):
-            limits = [end]
             cursor = end
             for fragment, lo, hi in run[position + 1:]:
                 if lo != cursor or hi <= lo:
                     break
-                if fragment == f'D_{lo:08X}' and fragment not in declared_names:
+                if fragment == f'D_{lo:08X}' and fragment not in declarations:
+                    entries = definitions.get(fragment, [])
+                    if entries:
+                        if len(entries) != 1:
+                            break
+                        label = entries[0]
+                        index = label.st_shndx
+                        section = elf.sections[index]
+                        if (label.type != 0 or label.st_value or label.st_size != hi - lo
+                                or index in placeholders or section.name != kind
+                                or section.sh_type != SHT_NOBITS or section.sh_flags != FLAGS[kind]
+                                or section.sh_addralign != 1
+                                or section_size(section) != hi - lo
+                                or any(other is not label and other.type != STT_SECTION
+                                       and other.st_shndx == index for other in elf.symtab.symbols)
+                                or any(record.sh_info == index and record.relocations
+                                       for record in getattr(elf, 'relocations', ()))):
+                            break
                     cursor = hi
                     continue
-                if cursor > end and fragment in declared_sizes:
-                    limits.append(cursor)
+                next_rows = declarations.get(fragment, [])
+                if (len(next_rows) == 1 and next_rows[0][0] == lo
+                        and next_rows[0][1] and not next_rows[0][2]):
+                    following_objects[name] = (kind, fragment, lo, next_rows[0][1], hi)
                 break
-            reservation_ends[name] = limits
     for symbol in elf.symtab.symbols:
         index = symbol.st_shndx
         if (symbol.type != STT_OBJECT or symbol.st_value or index in placeholders
@@ -1442,13 +1813,52 @@ def pad_data(elf, unit, placeholders, *, retail=None, pieces=None, rows=None):
         declared_size = declared_sizes.get(symbol.name)
         if declared_size is not None and size != declared_size:
             continue
-        if (section.name in layout.NOBITS and section.sh_type == SHT_NOBITS
-                and declared_size is not None and size and end - start > size
-                and any(((start + size + alignment - 1) & -alignment) == limit
-                        for limit in reservation_ends[symbol.name]
-                        for alignment in (1 << shift for shift in range(1, MAX_DATA_ALIGNMENT.bit_length())))):
-            section.sh_size = end - start
-            continue
+        following = following_objects.get(symbol.name)
+        if (following and section.name in layout.NOBITS and section.sh_type == SHT_NOBITS
+                and size and end - start > size and native(symbol.name, start, kind, end)):
+            next_kind, next_name, limit, next_size, next_end = following
+            right = native(next_name, limit, kind, next_end)
+            alignment = right[1] if right else 0
+            proved = alignment and ((start + size + alignment - 1) & -alignment) == limit
+            reservation = BSS_RETAIL_RESERVATIONS.get((unit, symbol.name))
+            listed = False
+            if reservation and reservation[:6] == (kind, start, size, next_name, limit, next_size):
+                if right:
+                    listed = alignment in reservation[6]
+                elif None in reservation[6] and next_name in held:
+                    entries = definitions.get(next_name, [])
+                    if not entries:
+                        listed = True
+                    elif (len({entry.st_shndx for entry in entries}) == 1
+                          and entries[0].st_shndx in placeholders):
+                        marker = entries[0]
+                        marker_section = elf.sections[marker.st_shndx]
+                        marker_size = section_size(marker_section)
+                        aliases = [other for other in elf.symtab.symbols
+                                   if other.type != STT_SECTION and other.st_shndx == marker.st_shndx]
+                        # Declarations may reference the same retained payload at offset zero.
+                        listed = (marker.type == STT_OBJECT and not marker.st_value
+                                  and next_size <= marker_size <= max(next_size, next_end - limit)
+                                  and marker_section.name == kind
+                                  and marker_section.sh_type == SHT_NOBITS
+                                  and marker_section.sh_flags == FLAGS[kind]
+                                  and 0 < marker_section.sh_addralign <= MAX_DATA_ALIGNMENT
+                                  and not marker_section.sh_addralign & (marker_section.sh_addralign - 1)
+                                  and all(other.name == next_name and other.type == STT_OBJECT
+                                          and not other.st_value
+                                          and other.st_size in (next_size, marker_size)
+                                          for other in aliases)
+                                  and any(other.st_size == marker_size for other in aliases)
+                                  and not any(record.sh_info == marker.st_shndx and record.relocations
+                                              for record in getattr(elf, 'relocations', ())))
+            if (next_kind == kind and end <= limit and (proved or listed)
+                    and not any(start + size <= address < limit for address, _name, _size, _function in rows)
+                    and not any(start + size <= address < limit for address in retail.relocations)
+                    and not any(size <= entry.r_offset < limit - start
+                                for record in getattr(elf, 'relocations', ()) if record.sh_info == index
+                                for entry in record.relocations)):
+                section.sh_size = end - start
+                continue
         if (section.name in ('.data', '.sdata', '.rodata', '.vtables') and size
                 and 0 < end - start - size < 16):
             padding = retail.bytes(start + size, end)
@@ -1744,11 +2154,12 @@ def main():
                           padding_pieces=disassemble.Pieces())
         source = (ROOT / layout.Layout().source(unit)).read_text()
         import objdiff_data
+        held = objdiff_data.fallback_data_names(source)
         materialize_alignment_fragments(elf, unit, placeholder_sections, native_extents,
-                                        held=objdiff_data.fallback_data_names(source))
-        pad_data(elf, unit, placeholder_sections)
+                                        held=held)
+        pad_data(elf, unit, placeholder_sections, native_extents=native_extents, held=held)
         bind_suffixed_references(elf, unit)
-        pad_data(elf, unit, placeholder_sections)
+        pad_data(elf, unit, placeholder_sections, native_extents=native_extents, held=held)
         discard_external_vtables(elf, unit, placeholder_sections)
         discard_external_functions(elf, unit)
     discard_shadow_vtables(elf, placeholder_sections, native_sizes=vtable_sizes)
