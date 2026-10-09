@@ -3132,7 +3132,7 @@ int EdEventFinish() {
     HitEffect[4].live_num = 0;
     HitEffect[4].spark_num = 0;
     HitEffect[4].kind = 0;
-    camera = (mgCCamera *) EventScene->GetCamera(EventScene->active_camera);
+    camera = EventScene->GetCamera(EventScene->active_camera);
 
     if (camera == NULL) {
         return 0;
@@ -3556,7 +3556,7 @@ int _LOAD_CHARA_sub(int stack_no, char **name, int chara_no, u32 *pack, int mode
     int                result;
     mgCTextureManager *manager;
 
-    stack = (mgCMemory *) EventScene->GetStack(stack_no);
+    stack = EventScene->GetStack(stack_no);
 
     if (*name == NULL) {
         if (GetPackFileExt(pack, "cfg", files, pack_file_max, sizes, name) <= 0) {
@@ -3817,7 +3817,7 @@ int _DELETE_CHARA(RS_STACKDATA *stack, int argc) {
 
 int _LOAD_MOTION_sub(int stack_no, char *name, int chara_no, u32 *pack) {
     char         label[0x20];
-    mgCMemory   *stack = (mgCMemory *) EventScene->GetStack(stack_no);
+    mgCMemory   *stack = EventScene->GetStack(stack_no);
     CCharacter2 *chara = EventScene->GetCharacter(chara_no);
 
     if (chara == NULL) {
@@ -4010,7 +4010,7 @@ int _LOAD_IMG(RS_STACKDATA *stack, int argc) {
     if (file == NULL) {
         return 0;
     }
-    mgCMemory *memory = (mgCMemory *)EventScene->GetStack(stackNo);
+    mgCMemory *memory = EventScene->GetStack(stackNo);
     memory->Align64();
     u_char *image = (u_char *)memory->stAllocTest(size / 16 + 1);
     if (image == NULL) {
@@ -4517,7 +4517,7 @@ int LoadMovie(char *name, mgCMemory *memory, bool skip) {
 int _LOAD_MOVIE(RS_STACKDATA *stack, int argc) {
     int        stack_no = GetStackInt(stack++);
     char      *name = GetStackString(stack++);
-    mgCMemory *memory = (mgCMemory *) EventScene->GetStack(stack_no);
+    mgCMemory *memory = EventScene->GetStack(stack_no);
     int        skip = 1;
 
     if (argc >= 3) {
@@ -4841,13 +4841,13 @@ int _SET_PAKU_MOTION(RS_STACKDATA *stack, int argc) {
     }
 
     PakuMotionEohNo = eoh_no;
-    strcpy((char *) PakuMotionName, name);
+    strcpy(PakuMotionName, name);
     PakuMotionType = type;
 
     if (name2 != NULL) {
-        strcpy((char *) PakuMotionName2, name2);
+        strcpy(PakuMotionName2, name2);
     } else {
-        strcpy((char *) PakuMotionName2, "");
+        strcpy(PakuMotionName2, "");
     }
 
     PakuMotionType2 = type2;
@@ -5793,7 +5793,7 @@ int _LOAD_EQUIP(RS_STACKDATA *stack, int argc) {
     if (equip_kind >= 3 || equip_kind >= 4) {
         mgCMemory *memory;
 
-        if ((memory = (mgCMemory *) EventScene->GetStack(stack_no)) == NULL) {
+        if ((memory = EventScene->GetStack(stack_no)) == NULL) {
             return 0;
         }
 
@@ -5927,7 +5927,7 @@ int _SET_BEFORE_CMRID(RS_STACKDATA *stack, int argc) {
 int _DNGMAP_LOAD(RS_STACKDATA *stack, int argc) {
     int           tex_base;
     RS_STACKDATA *arg = stack + 1;
-    mgCMemory    *memory = (mgCMemory *) EventScene->GetStack(GetStackInt(stack));
+    mgCMemory    *memory = EventScene->GetStack(GetStackInt(stack));
     int           file_index = GetStackInt(arg++);
     int           tex_count = EventScene->event_texb_num;
     tex_base = EventScene->event_texb;
@@ -7379,7 +7379,7 @@ int _GET_DIORAMA_PERCENT(RS_STACKDATA *stack, int argc) {
 int _GEORAMA_FUNC(RS_STACKDATA *stack, int argc) {
     GeoFuncParam param;
 
-    param.scene = (CScene *) EventScene;
+    param.scene = EventScene;
     return GeoramaFunc(&param, stack, argc);
 }
 
@@ -7447,7 +7447,7 @@ int _REGISTER_VILLAGER(RS_STACKDATA *stack, int argc) {
     int chara_no = GetStackInt(stack++);
 
     if (argc == 2) {
-        mgCMemory *memory = (mgCMemory *) EventScene->GetStack(4);
+        mgCMemory *memory = EventScene->GetStack(4);
 
         if (memory == NULL) {
             return 0;
@@ -9029,7 +9029,7 @@ int _LOAD_MES_sub(char *file_name, int stack_no, ClsMes *mes) {
         return 0;
     }
 
-    mem = (mgCMemory *) EventScene->GetStack(stack_no);
+    mem = EventScene->GetStack(stack_no);
     mem->Align64();
     dst = (char *) mem->stAllocTest(size / 16 + 1);
 
@@ -9486,7 +9486,7 @@ static int _SET_CAMERA_SPEED(RS_STACKDATA *stack, int argc) {
 }
 
 int _CAMERA_STEP(RS_STACKDATA *stack, int argc) {
-    mgCCameraFollow *camera = (mgCCameraFollow *) GetCamera();
+    mgCCameraFollow *camera = GetCamera();
 
     if (camera == NULL) {
         return 0;
@@ -12383,7 +12383,7 @@ int _REGISTER_VILLAGER2(RS_STACKDATA *stack, int argc) {
 
     villager_no = GetStackInt(stack++);
     mode = GetStackInt(stack++);
-    memory = (mgCMemory *) EventScene->GetStack(GetStackInt(stack));
+    memory = EventScene->GetStack(GetStackInt(stack));
 
     if (memory == NULL) {
         return 0;
@@ -12569,7 +12569,7 @@ int _EOH_SYNC_EDIT_OBJ(RS_STACKDATA *stack, int argc) {
 
     switch (argc) {
         case 2:
-            EventObjHandleMother.Set(slot, 1, (CObject *) parts, 1);
+            EventObjHandleMother.Set(slot, 1, parts, 1);
             break;
         case 3:
         case 4: {
@@ -13518,7 +13518,7 @@ int _SPHIDA_SET_COL_MODEL(RS_STACKDATA *stack, int argc) {
 
     int        stack_no = GetStackInt(stack++);
     char      *name = GetStackString(stack);
-    mgCMemory *memory = (mgCMemory *) EventScene->GetStack(stack_no);
+    mgCMemory *memory = EventScene->GetStack(stack_no);
 
     if (memory == NULL) {
         return 0;
@@ -14209,7 +14209,7 @@ int _SWE_INIT(RS_STACKDATA *stack, int argc) {
 
     mgCMemory *scene_stack;
 
-    if ((scene_stack = (mgCMemory *) EventScene->GetStack(stack_no)) == NULL) {
+    if ((scene_stack = EventScene->GetStack(stack_no)) == NULL) {
         return 0;
     }
 
@@ -14736,7 +14736,7 @@ int _LOAD_SKIN(RS_STACKDATA *stack, int argc) {
         return 0;
     }
 
-    if ((scene_stack = (mgCMemory *) EventScene->GetStack(stack_no)) == NULL) {
+    if ((scene_stack = EventScene->GetStack(stack_no)) == NULL) {
         return 0;
     }
 
@@ -15479,7 +15479,7 @@ int _LOAD_ARG(RS_STACKDATA *stack, int argc) {
     char      *file_name = GetStackString(stack);
     mgCMemory *memory;
 
-    if ((memory = (mgCMemory *) EventScene->GetStack(stack_no)) == NULL) {
+    if ((memory = EventScene->GetStack(stack_no)) == NULL) {
         return 0;
     }
 
@@ -15606,7 +15606,7 @@ int _GET_TBOX_PARAM(RS_STACKDATA *stack, int argc) {
 }
 
 int _CANCEL_LOAD_VILLAGER(RS_STACKDATA *stack, int argc) {
-    CScene *scene = (CScene *) EventScene;
+    CScene *scene = EventScene;
     scene->skip_load_sub_villager = 1;
     scene->skip_load_villager = 1;
     return 1;
@@ -15661,7 +15661,7 @@ int _ESM_INIT_FIX(RS_STACKDATA *stack, int argc) {
         heap_size = GetStackInt(stack);
     }
 
-    if ((scene_stack = (mgCMemory *) EventScene->GetStack(stack_no)) == NULL) {
+    if ((scene_stack = EventScene->GetStack(stack_no)) == NULL) {
         return 0;
     }
 
@@ -15692,7 +15692,7 @@ int _ESM_CLEAR(RS_STACKDATA *stack, int argc) {
 
     EventEffectScript->ClearBaseFromLevel(0, cleared_blocks, 64);
     EventEffectScript->AllClearEffSpt();
-    work_buffer = (mgCMemory *) EventEffectScript->work_memory;
+    work_buffer = EventEffectScript->work_memory;
 
     if (work_buffer != NULL) {
         work_buffer->stack_used = 0;
@@ -16590,7 +16590,7 @@ int _INIT_SEPIA(RS_STACKDATA *stack, int argc) {
         block_offset = GetStackInt(stack);
     }
 
-    scene = (CScene *) EventScene;
+    scene = EventScene;
     tex_count = scene->event_texb_num;
     tex_base = scene->event_texb;
 
@@ -16601,7 +16601,7 @@ int _INIT_SEPIA(RS_STACKDATA *stack, int argc) {
     block_no = tex_base + block_offset;
 
     if (stack_no >= 0) {
-        if ((scene_stack = (mgCMemory *) EventScene->GetStack(stack_no)) == NULL) {
+        if ((scene_stack = EventScene->GetStack(stack_no)) == NULL) {
             return 0;
         }
 
