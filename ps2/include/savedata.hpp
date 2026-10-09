@@ -110,6 +110,7 @@
 enum SAVE_BIT_FLAG {
     SAVE_FLAG_ROBO_BIKE_EVENT_SEEN = 0x35,
     SAVE_FLAG_ITEM_BOARD_EXPANDED  = 254,
+    SAVE_FLAG_SPHEDA_UNLOCKED      = 0x13D, /**< Enables floor spheda challenges and unrestricted club commands. */
     SAVE_FLAG_TOURNAMENT_STARTED   = 0x158,
     SAVE_FLAG_TOURNAMENT_CYCLE     = 0x1A8,
     SAVE_FLAG_EDIT_BLOCKED         = 0x208,

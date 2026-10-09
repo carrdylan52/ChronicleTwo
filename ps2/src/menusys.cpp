@@ -4329,7 +4329,7 @@ int GetItemCommandMsg(CGameDataUsed *item, int *cmds, u32 *colors, short *values
     int trush_ng = 0;
     int spectol_ng = 0;
 
-    if (item_no == 9 && CheckBitFlagMenu(0x138) == 1 && CheckBitFlagMenu(0x13D) == 0) {
+    if (item_no == 9 && CheckBitFlagMenu(0x138) == 1 && CheckBitFlagMenu(SAVE_FLAG_SPHEDA_UNLOCKED) == 0) {
         trush_ng = 1;
         spectol_ng = trush_ng;
     }

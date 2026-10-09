@@ -1152,7 +1152,7 @@ void DrawDngRoomInfo(DNGMAP_ROOM_INFO *room) {
                 }
                 highlight.left = medal_xytbl[3];
                 PrimQuad(prim, (float) icon_x, (float) icon_row_y, highlight);
-            } else if (CheckBitFlagMenu(0x13D)) {
+            } else if (CheckBitFlagMenu(SAVE_FLAG_SPHEDA_UNLOCKED)) {
                 if (language > 0) {
                     prize_x -= 0x20;
                 }
