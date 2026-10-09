@@ -770,7 +770,7 @@ int CScene::LoadVillager(int map_no, int texb) {
             continue;
         }
 
-        u_long128 *buffer = read_buff;
+        u_int     *buffer = (u_int *) read_buff;
         int        rest_before;
         int        block = texb + loaded;
         int        slot;
@@ -789,7 +789,7 @@ int CScene::LoadVillager(int map_no, int texb) {
                 continue;
             }
 
-            int chr_size = GetChrFileSize((u_int *) buffer, file_size);
+            int chr_size = GetChrFileSize(buffer, file_size);
             rest_before = stack->stGetRest();
 
             if (rest_before < chr_size / 16 + 1) {
@@ -799,7 +799,7 @@ int CScene::LoadVillager(int map_no, int texb) {
 
             sprintf(suffix, "%d", loaded + SCENE_VILLAGER_SLOT_TOP);
             strcpy(tex_manager->name_suffix, suffix);
-            slot = LoadChara(loaded + SCENE_VILLAGER_SLOT_TOP, (u_int *) buffer, "info.cfg", stack, stack, stack, texb + loaded, 0);
+            slot = LoadChara(loaded + SCENE_VILLAGER_SLOT_TOP, buffer, "info.cfg", stack, stack, stack, texb + loaded, 0);
             tex_manager->name_suffix[0] = 0;
             printf("used : %dkb (%dkb)\n", (rest_before - stack->stGetRest()) * 16 / 1024, chr_size / 1024);
         }
@@ -847,7 +847,7 @@ int CScene::LoadSubVillager(int map_no, int texb) {
             continue;
         }
 
-        u_long128 *buffer = read_buff;
+        u_int     *buffer = (u_int *) read_buff;
         int        rest_before;
         int        block = texb + loaded;
         int        slot;
@@ -866,7 +866,7 @@ int CScene::LoadSubVillager(int map_no, int texb) {
                 continue;
             }
 
-            int chr_size = GetChrFileSize((u_int *) buffer, file_size);
+            int chr_size = GetChrFileSize(buffer, file_size);
             rest_before = stack->stGetRest();
 
             if (rest_before < chr_size / 16 + 1) {
@@ -876,7 +876,7 @@ int CScene::LoadSubVillager(int map_no, int texb) {
 
             sprintf(suffix, "%d", loaded + SCENE_SUB_VILLAGER_SLOT_TOP);
             strcpy(tex_manager->name_suffix, suffix);
-            slot = LoadChara(loaded + SCENE_SUB_VILLAGER_SLOT_TOP, (u_int *) buffer, "info.cfg", stack, stack, stack, texb + loaded, 0);
+            slot = LoadChara(loaded + SCENE_SUB_VILLAGER_SLOT_TOP, buffer, "info.cfg", stack, stack, stack, texb + loaded, 0);
             tex_manager->name_suffix[0] = 0;
             printf("used : %dkb (%dkb)\n", (rest_before - stack->stGetRest()) * 16 / 1024, chr_size / 1024);
         }
