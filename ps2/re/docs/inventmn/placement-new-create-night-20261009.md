@@ -137,3 +137,22 @@ diffs, initializer/table evidence and nonselected audits are under
 `.private/pntc/inventmn-create-natural/`. A diagnostic zero is not complete
 unit acceptance. The guard and profile rows require the full wrapper,
 resolved-object, unrelated-artifact and PAL checks before promotion.
+
+## Complete data-piece check
+
+The complete wrapper needs the existing `at_2776` storage marker and both
+the `D_003532DF` one-byte alignment piece and the Japanese table's storage
+marker. The typed source has no reference to the shifted alias. Its generated
+table address has a -1 addend, so the existing local-data binder resolves that
+reference through the preceding retail piece and discards the checked native
+copy. Removing the table marker then leaves its storage absent. The automatic
+match initializer similarly binds to the original zero storage, whose full
+piece includes the following twelve-byte gap. Retaining these proven pieces
+introduces no padding array, data alias in the function, or substitute type.
+
+The first complete build caught these missing pieces despite zero function
+instructions. After restoring their storage, the resolved object check passes
+the entire invention unit: 0xff24 bytes and 2,822 relocations. The matching
+inventory selector unit also passes. Receipts are
+`.private/pntc/receipts/promote-twenty-seven-layout2.log` and its explicit zero
+status. Full PAL and unrelated-artifact acceptance remain separate checks.
