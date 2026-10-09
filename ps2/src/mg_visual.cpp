@@ -14,20 +14,6 @@
 
 /**
  *
- * Exposes the allocation state used while building a visual's packet.
- *
- */
-struct VisualScratchMemory {
-    u_char pad_00[0x1C];
-    int    lock;        /**< Prevents allocation while the stack is locked. */
-    int    stack;       /**< Base address of the packet scratch stack. */
-    int    stack_used;  /**< Number of occupied quadwords. */
-    int    stack_size;  /**< Capacity of the scratch stack. */
-    int    stack_block; /**< Address of the heap block holding the stack. */
-};
-
-/**
- *
  * Copies a material's four float channels together.
  *
  */
@@ -403,7 +389,7 @@ void mgCVisualMDT::CopyMDTDataPointer(MDT_HEADER *header, mgCMemory *memory) {
     colour_num = header->colour_num;
     uv_num = header->uv_num;
     material_num = header->material_num;
-    vertex = (float (*)[4]) vertex_address;
+    vertex = (sceVu0FVECTOR *) vertex_address;
     normal = (sceVu0FVECTOR *) normal_address;
     colour = (sceVu0FVECTOR *) colour_address;
     uv = (sceVu0FVECTOR *) uv_address;
@@ -538,9 +524,9 @@ int mgCVisualMDT::DataAssignMDT(MDT_HEADER *header, mgCMemory *memory,
     self->texture_manager = textures;
     CopyMDTData(header, memory);
     face_group = 0;
-    u_char   *table = (u_char *) header + header->faces_ofs;
-    FACES_ID *cursor = (FACES_ID *) (table + 0x10);
-    int       count = *(int *) (table + 8);
+    MDT_FACES *faces = (MDT_FACES *) ((u_char *) header + header->faces_ofs);
+    FACES_ID  *cursor = (FACES_ID *) (faces + 1);
+    int        count = faces->prim_num;
 
     for (int i = 0; i < count; i++) {
         cursor = self->CreateFace(cursor, memory, memory, 0);
@@ -554,9 +540,8 @@ int mgCVisualFixMDT::DataAssignMDT(MDT_HEADER *header, mgCMemory *memory,
     mgCVisualMDT       *self = this;
     mgCFace            *part;
     int                 scratch_buffer[0x12C00];
-    VisualScratchMemory scratch;
-    ((mgCMemory *) &scratch)->Init();
-    ((mgCMemory *) &scratch)->stSetBuffer((u_long128 *) scratch_buffer, 0x4B00);
+    mgCMemory           scratch;
+    scratch.stSetBuffer((u_long128 *) scratch_buffer, 0x4B00);
 
     if (textures == NULL) {
         textures = &mgTexManager;
@@ -565,20 +550,20 @@ int mgCVisualFixMDT::DataAssignMDT(MDT_HEADER *header, mgCMemory *memory,
     self->texture_manager = textures;
     CopyMDTDataPointer(header, memory);
     face_group = 0;
-    u_char   *table = (u_char *) header + header->faces_ofs;
-    int       count = *(int *) (table + 8);
-    FACES_ID *cursor = (FACES_ID *) (table + 0x10);
+    MDT_FACES *faces = (MDT_FACES *) ((u_char *) header + header->faces_ofs);
+    int        count = faces->prim_num;
+    FACES_ID  *cursor = (FACES_ID *) (faces + 1);
 
     for (int i = 0; i < count; i++) {
         scratch.stack_used = 0;
         scratch.lock = 0;
-        cursor = self->CreateFace(cursor, memory, (mgCMemory *) &scratch, &part);
-        int address = ((VisualScratchMemory *) memory)->stack + ((VisualScratchMemory *) memory)->stack_used * 16;
+        cursor = self->CreateFace(cursor, memory, &scratch, &part);
+        int address = (int) &memory->stack[memory->stack_used];
         int size = self->CreateFacePacket((u_int *) address, part);
-        ((int *) part)[8] = size | 0x30000000;
-        ((int *) part)[9] = address;
-        ((int *) part)[10] = 0;
-        ((int *) part)[11] = 0;
+        ((u_int *) &part->packet_tag)[0] = size | 0x30000000;
+        ((u_int *) &part->packet_tag)[1] = address;
+        ((u_int *) &part->packet_tag)[2] = 0;
+        ((u_int *) &part->packet_tag)[3] = 0;
         memory->Alloc(size);
     }
 
