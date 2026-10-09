@@ -591,7 +591,7 @@ int CIMGList::LoadIMGFile(char *name, mgCEnterIMGInfo *info, mgCMemory *memory) 
     u_int            length;
     u_int            blocks;
 
-    slot = (CIMGList *) this;
+    slot = this;
 
     if (name == NULL) {
         return 0;
