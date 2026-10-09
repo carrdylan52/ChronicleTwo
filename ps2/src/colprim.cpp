@@ -510,41 +510,21 @@ int CColPrim::Step() {
 
     if (coord_type & 2) {
         if (step_count == 0) {
-            int j = 0;
-            int frame_offset = 0;
-            int vec_offset = 0;
-
-            do {
-                mgCFrame *frame = *(mgCFrame **) ((u8 *) this + frame_offset + 0x38);
-
-                if (frame != 0) {
-                    frame->GetWorldPosition0((float *) ((u8 *) this + vec_offset + 0x40));
+            for (int j = 0; j < 2; j++) {
+                if (frame[j] != 0) {
+                    frame[j]->GetWorldPosition0(pos[j]);
                 }
 
-                sceVu0CopyVector((float *) ((u8 *) this + vec_offset + 0x60),
-                                 (float *) ((u8 *) this + vec_offset + 0x40));
-                j++;
-                frame_offset += 4;
-                vec_offset += 0x10;
-            } while (j < 2);
+                sceVu0CopyVector(old_pos[j], pos[j]);
+            }
         } else {
-            int i = 0;
-            int vec_offset = 0;
-            int frame_offset = 0;
+            for (int i = 0; i < 2; i++) {
+                sceVu0CopyVector(old_pos[i], pos[i]);
 
-            do {
-                float *cur = (float *) ((u8 *) this + vec_offset + 0x40);
-                sceVu0CopyVector((float *) ((u8 *) this + vec_offset + 0x60), cur);
-                mgCFrame *frame = *(mgCFrame **) ((u8 *) this + frame_offset + 0x38);
-
-                if (frame != 0) {
-                    frame->GetWorldPosition0(cur);
+                if (frame[i] != 0) {
+                    frame[i]->GetWorldPosition0(pos[i]);
                 }
-
-                i++;
-                vec_offset += 0x10;
-                frame_offset += 4;
-            } while (i < 2);
+            }
         }
     }
 
