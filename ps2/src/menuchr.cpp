@@ -4392,7 +4392,7 @@ int CMenuMosSelect::KeyStep() {
                                 MenuSePlay(0);
                             }
                             switch (buttons) {
-                                case MENU_PUSH_BUTTON_DECIDE:
+                                case MENU_PUSH_BUTTON_DECIDE: {
                                     select_monster_save_3371 = BuildUpWeaponInfo.select_no;
                                     step = 11;
                                     ExeScript("\x83\x4E\x83\x89\x83\x58\x83\x60\x83\x46\x83\x93\x83\x57\x81\x48");
@@ -4407,6 +4407,7 @@ int CMenuMosSelect::KeyStep() {
                                     mes.MakeMsg(0x1D8);
                                     mes.SetMsgCursor(1);
                                     break;
+                                }
                                 case MENU_PUSH_BUTTON_CANCEL:
                                     step = 0;
                                     ExeScript("\x83\x4E\x83\x89\x83\x58\x83\x60\x83\x46\x83\x93\x83\x57\x32\x4F\x46\x46");
