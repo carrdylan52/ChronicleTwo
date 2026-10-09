@@ -3563,10 +3563,3 @@ void GuardEffectSet(CScene *scene, float *point) {
         FxScriptMan->SetScriptVect1(position, 0, -1);
     }
 }
-
-// Small uninitialised data (.sbss)
-INCLUDE_BSS(ang_3371, 0x4);
-INCLUDE_BSS(init_3372, 0x4);
-
-// Uninitialised data (.bss)
-INCLUDE_BSS(at_3107, 0x10);
