@@ -662,3 +662,30 @@ The snapshot and direct accepted34 raw-artifact comparison are
 `final-clean-identity.json`. Subsequent documentation-only commits require
 no source rebuild. Private shared-header/global experiments remain separate
 from these production acceptance counts.
+
+## Stronger alternative: current34 native migration evidence
+
+The reconstructed historical hybrid now removes all 34 placement rows in
+a private profile while preserving all 149 raw accepted34 objects. After-
+inline global request applies in 148 units; before-template conversion
+remains the separately measured mg_tanime exception. One separate actual
+MWLD/PAL link reproduces the entire immutable accepted34 ELF, including
+all 98,516 named and raw-indexed relocation tuples. This strengthens the
+global alternative beyond the historical 25 guarded diagnostic gains /
+zero prior-zero losses. It does not establish a pure global-after policy,
+an original compiler switch, a state defect or production activation.
+
+Root verifies the frozen 1,627-file corpus and 345-file link stage. The
+[migration note](placement-new-global-migration-20261009.md) owns exact
+source/profile/driver provenance, 281 successful compiler passes plus the
+two preserved PATH-setup passes, legacy float consumption/count scope,
+private pn16 packaging/test limits and broad-name-filter availability.
+The production scoped engine and final CLEAN34 acceptance remain unchanged.
+
+The independent [three-zero header composition](placement-new-three-zero-composition-20261009.md)
+also passes one fresh two-overlay menuchr wrapper and one composed private
+306-input PAL link. Its 36 placement rows /46 sites plus one camera float
+represent 37 hypothetical native callers, with explicit seven-name ELF
+metadata and selected relocation additions/order changes. All shared
+headers and three source guards remain inactive; this is separate complete
+private evidence with documented reuse, not three canonical promotions.
