@@ -809,10 +809,10 @@ void mgCreateBBoxSphere(float *max, float *min, float *sphere, float (*vertex)[4
     }
 
     s32        i;
-    float     *point = (float *) vertex;
+    float     *point = vertex[0];
     float      center[4] = {0.0f, 0.0f, 0.0f, 0.0f};
-    sceVu0CopyVector(max, (float *) vertex);
-    sceVu0CopyVector(min, (float *) vertex);
+    sceVu0CopyVector(max, vertex[0]);
+    sceVu0CopyVector(min, vertex[0]);
 
     for (i = 0; i < vertex_num; i++) {
         mgVectorMaxMin(max, min, max, min, point);
@@ -823,7 +823,7 @@ void mgCreateBBoxSphere(float *max, float *min, float *sphere, float (*vertex)[4
     sceVu0ScaleVector(sphere, center, 0.5f);
     float radius = 0.0f;
     sphere[3] = 0;
-    point = (float *) vertex;
+    point = vertex[0];
 
     for (i = 0; i < vertex_num; i++) {
         float distance = mgDistVector(sphere, point);
