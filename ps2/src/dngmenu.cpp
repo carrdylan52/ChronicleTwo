@@ -2188,7 +2188,6 @@ int CDngFreeMap::LoadDngInfo(mgCMemory *stack, int block, int dungeon, int room,
     dng_player_pos[0] += 8.0f;
     dng_player_pos[1] += -28.0f;
     if (0 <= next_room_no) {
-        int i;
         int direction = -1;
         float gx = 0.0f;
         float gy = 0.0f;
@@ -2420,6 +2419,7 @@ int CDngFreeMap::LoadDngInfo(mgCMemory *stack, int block, int dungeon, int room,
         koma_path = (DNGMAP_KOMA_POS *) memory.Alloc(1);
         koma_now = koma_path;
         koma_now->next = NULL;
+        const short *curve;
         DNGMAP_KOMA_POS *tail = koma_now;
         CalcGlidPutPos(target, x, y, 0);
         tail->x = x;
@@ -2456,52 +2456,51 @@ int CDngFreeMap::LoadDngInfo(mgCMemory *stack, int block, int dungeon, int room,
                 tail = node;
             }
         }
-        const short *curve;
         GLID_INFO *glid = target->link_glid[direction];
         while (glid != NULL) {
             CalcGlidPutPos(glid, gx, gy, 0);
             glid->blink = 1;
             if (glid->type == GLID_TYPE_ROOT) {
-                int route_table = glid->root.shape;
-                curve = RootHokanTablePtrTable_2240__DATA[route_table];
-                int reverse = is_reverse_tbl_2246__DATA[route_table][direction];
+                int index = glid->root.shape;
+                curve = RootHokanTablePtrTable_2240__DATA[index];
+                int reverse = is_reverse_tbl_2246__DATA[index][direction];
                 if (reverse < 0) {
                     break;
                 }
                 if (reverse == DNGMAP_PATH_FORWARD) {
-                    for (i = 0; i < 20; i++) {
+                    for (index = 0; index < 20; index++) {
                         DNGMAP_KOMA_POS *node = (DNGMAP_KOMA_POS *) memory.Alloc(1);
-                        node->x = gx + (float) curve[i * 2];
-                        node->y = gy + (float) curve[i * 2 + 1];
+                        node->x = gx + (float) curve[index * 2];
+                        node->y = gy + (float) curve[index * 2 + 1];
                         tail->next = node;
                         tail = tail->next;
                     }
                 } else if (reverse == DNGMAP_PATH_REVERSE) {
-                    for (i = 19; i >= 0; i--) {
+                    for (index = 19; index >= 0; index--) {
                         DNGMAP_KOMA_POS *node = (DNGMAP_KOMA_POS *) memory.Alloc(1);
-                        node->x = gx + (float) curve[i * 2];
-                        node->y = gy + (float) curve[i * 2 + 1];
+                        node->x = gx + (float) curve[index * 2];
+                        node->y = gy + (float) curve[index * 2 + 1];
                         tail->next = node;
                         tail = node;
                     }
                 }
             } else if (glid->type == GLID_TYPE_ROOM) {
-                int route_table = old_hokantbl_useno_2247__DATA[direction + 4];
-                curve = RoomHokanTablePtrTable_2245__DATA[route_table];
-                int reverse = is_reverse_tbl_room_2248__DATA[route_table + 4];
+                int index = old_hokantbl_useno_2247__DATA[direction + 4];
+                curve = RoomHokanTablePtrTable_2245__DATA[index];
+                int reverse = is_reverse_tbl_room_2248__DATA[index + 4];
                 if (reverse == DNGMAP_PATH_FORWARD) {
-                    for (i = 0; i < 10; i++) {
+                    for (index = 0; index < 10; index++) {
                         DNGMAP_KOMA_POS *node = (DNGMAP_KOMA_POS *) memory.Alloc(1);
-                        node->x = gx + (float) curve[i * 2];
-                        node->y = gy + (float) curve[i * 2 + 1];
+                        node->x = gx + (float) curve[index * 2];
+                        node->y = gy + (float) curve[index * 2 + 1];
                         tail->next = node;
                         tail = node;
                     }
                 } else if (reverse == DNGMAP_PATH_REVERSE) {
-                    for (i = 9; i >= 0; i--) {
+                    for (index = 9; index >= 0; index--) {
                         DNGMAP_KOMA_POS *node = (DNGMAP_KOMA_POS *) memory.Alloc(1);
-                        node->x = gx + (float) curve[i * 2];
-                        node->y = gy + (float) curve[i * 2 + 1];
+                        node->x = gx + (float) curve[index * 2];
+                        node->y = gy + (float) curve[index * 2 + 1];
                         tail->next = node;
                         tail = node;
                     }
