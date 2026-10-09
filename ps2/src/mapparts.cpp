@@ -436,7 +436,7 @@ int CMapParts::DrawSub(int direct) {
 
         if (node != NULL) {
             do {
-                piece = (CMapPiece *) ((u_char *) node + 0x10);
+                piece = &node->data;
 
                 if (CheckTime(func_check.time, piece->time_start, piece->time_end)) {
                     piece->draw_off &= ~1;
