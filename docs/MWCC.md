@@ -115,8 +115,7 @@ slots in declaration order before call-argument temporaries.
 `x = x < 0.0f ? -x : x` and `if (x < 0.0f) x = -x;` schedule the
 surrounding loads differently. Probes of `((int)left)` in `CommonBoardDraw`
 showed that a value-preserving cast can change virtual-register colouring. A
-repeated
-expression written inline (`top + heights[row]`) becomes one temporary
+repeated expression written inline (`top + heights[row]`) becomes one temporary
 coloured after earlier temporaries, where a named local would be coloured
 with the declared locals. `MenuCharaChangeStarDraw` and
 `CMenuCostumeSel::Draw` (menuchr) and `CommonBoardDraw` (menudraw) show
