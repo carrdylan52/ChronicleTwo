@@ -1,21 +1,24 @@
 #!/usr/bin/env python3
 """Normalize native object identities and verified layout for the retail link.
 
+    postprocess_object.py OBJECT [--order-only]
+
 MWCC emits one section per function or datum. Retail addresses select each
 section's name, flags, alignment and order. Placeholder aliases identify the
 assembly-supplied pieces; binding a native copy to one preserves instruction
 fields and requires consistent references, equal declared object extents and
 resolved initialized bytes plus real relocation shapes, or NOBITS storage.
 
-Native data naming checks declared extents, section kinds, byte and relocation
-evidence, source-name families and all consumers needed by the identity pass.
+Native identity passes use their required extent, section-kind, byte,
+relocation and consumer evidence. Source-family gates apply to selected named
+passes; anonymous BSS and pointer-table naming use references and content.
 Local duplicate suffixes are resolved within the owning unit. Exact native
 objects may retain verified zero initialized padding and canonical BSS
 reservations. Independently cut alignment fragments require both neighboring
 objects' original extents and compiler alignments, with complete zero contents.
 
-External compiler-generated functions and vtables are removed only through
-their dedicated ownership and verification rules. Duplicate global symbols are
+External weak functions use retail ownership without a body comparison;
+vtable discards use their dedicated byte and relocation checks. Duplicate global symbols are
 folded into live definitions; unused literals and dead compiler records are
 removed without changing code. Canonical object and final PAL verification
 remain the acceptance checks for every normalized object.
@@ -61,6 +64,9 @@ DEAD = ".dead"
 
 # The least alignment retail gives a compiler-generated literal of `.rodata`.
 RODATA_ALIGNMENT = 8
+
+# Shared cap for the address-derived bounds on retail data padding.
+MAX_DATA_ALIGNMENT = 128
 
 FLAGS = {
     ".text": SHF_ALLOC | SHF_EXECINSTR,
@@ -1206,13 +1212,14 @@ def name_literal_data(elf, unit, placeholders, *, retail=None, pieces=None, addr
         end = min(end, padding_ends.get((start, name), end))
         if declared_sizes.get(name, len(data)) != len(data):
             continue
-        # Complete linked pieces retain verified terminal tails; comparison
-        # copies trim them at the linker's contents_end. Internal gaps must
-        # be alignment, never missing object contents.
-        terminal_tail = start in trailing and name in declared_sizes
+        # A terminal tail uses the same address-derived cap as the checker.
+        # Reference-only cuts inside that tail remain bounded internal pieces.
+        terminal_tail = (start in trailing and name in declared_sizes
+                         and end == cuts[start][1])
+        padding_limit = min(end & -end, MAX_DATA_ALIGNMENT) if terminal_tail else 16
         if start + len(data) > end:
             continue
-        if ((end - start - len(data) >= 16 and not terminal_tail)
+        if ((end - start - len(data) >= padding_limit)
                 or any(start + len(data) <= address < end for address in retail.relocations)):
             continue
         padding = retail.bytes(start + len(data), end)

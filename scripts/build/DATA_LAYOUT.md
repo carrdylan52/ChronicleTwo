@@ -86,14 +86,18 @@ bypass the declared terminal extent.
 Anonymous initialized literal naming requires both the original payload and
 symbol extent to equal the declared retail size. Appended bytes must be
 complete zero retail bytes with no relocation fields. The linked literal pass
-can retain a larger verified terminal zero tail; comparison preparation trims
-it at the linker's `contents_end`. Internal initialized gaps stay below 16 bytes.
+can retain a terminal zero tail only below the checker's address-derived
+alignment bound, capped at 128 bytes; comparison preparation trims it at the
+linker's `contents_end`. A reference-only cut inside that tail remains an
+internal piece, with padding below 16 bytes. Internal initialized gaps stay below 16 bytes.
 An object with a size different from its declared retail size is not padded.
 The same policy covers compiler-generated vtables; their final section tail
 belongs to linker alignment.
 A terminal datum retains its declared extent when its end equals the generated
 linker script’s `contents_end`. The checker accepts larger linker-owned tails
-only with no retail relocations and complete zero initialized bytes.
+only with no retail relocations, complete zero initialized bytes and a length
+below `min(end & -end, 128)`. This is an upper bound from the following run's
+address, rather than a proof of its original compiler or linker alignment.
 Literal identity uses declared objects; padding additionally uses the canonical
 reference boundaries, so an alignment tail cannot swallow a separately
 referenced word. Referenced interior addresses and explicit `D_<address>` source identifiers

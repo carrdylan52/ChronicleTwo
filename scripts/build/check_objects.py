@@ -11,7 +11,7 @@ a. its pieces -- the object's sections of that name, in object order -- are
    order, and their sizes add up to exactly the run. A function's section
    may stop short of the next function by the padding its 16-byte alignment
    adds; a datum's may not stop short at all, except that a run's last datum
-   may leave the zeros the linker pads up to the next run's alignment.
+   may leave a zero tail below an address-derived alignment bound.
 b. each piece's bytes equal retail's at its address, once the fields its
    relocations fill in are masked: the low 26 bits for R_MIPS_26, the low 16
    for R_MIPS_HI16, R_MIPS_LO16 and R_MIPS_GPREL16, the whole word for
@@ -57,8 +57,7 @@ MASKS = {R_MIPS_32: 0xFFFFFFFF, R_MIPS_26: 0x03FFFFFF, R_MIPS_HI16: 0xFFFF,
          R_MIPS_LO16: 0xFFFF, R_MIPS_GPREL16: 0xFFFF}
 
 FUNCTION_ALIGNMENT = 16
-# The largest alignment retail's linker gives a unit's section run; some
-# library units' runs start on 128-byte boundaries.
+# Cap on the address-derived possible alignment; the original is not known.
 MAX_RUN_ALIGNMENT = 128
 NAMED_ADDRESS = re.compile(r"(?:D_|\.L)([0-9A-F]{8})")
 
@@ -108,15 +107,15 @@ def word(data, offset):
 
 
 def next_run_alignment(address):
-    """The largest alignment the run that starts at `address` can have."""
+    """Bound possible run alignment from its address; no original alignment is inferred."""
     return min(address & -address, MAX_RUN_ALIGNMENT)
 
 
 def is_retail_tail_padding(ctx, name, section_name, start, end, size, contents_end):
     """Recognize zero linker padding after the last datum of a unit run.
 
-    The linker pads only up to the alignment of the run that starts at `end`,
-    so a longer tail is storage the source omits or declares too small.
+    A tail must stay below the address-derived alignment bound, capped at 128.
+    This does not prove the next run's original compiler or linker alignment.
     """
     symbol = ctx.pieces.symbols.by_name.get(name)
     if symbol is None or symbol[2] != size:

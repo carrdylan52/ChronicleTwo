@@ -85,11 +85,20 @@ class LiteralExtentTests(unittest.TestCase):
         fixture = self.fixture(gap=31)
         self.assertEqual(self.apply(fixture), 'at_999')
 
-    def test_verified_terminal_tail_retains_complete_linked_piece(self):
+    def test_terminal_zero_tail_beyond_the_run_bound_stays_unnamed(self):
         fixture = self.fixture(gap=1023, terminal=True)
-        self.assertEqual(self.apply(fixture), 'at_2')
-        self.assertEqual(fixture[0].sections[1].data, bytes(1024))
-        self.assertEqual(fixture[0].symtab.symbols[0].st_size, 1024)
+        self.assertEqual(self.apply(fixture), 'at_999')
+        self.assertEqual(fixture[0].sections[1].data, bytes(1))
+        self.assertEqual(fixture[0].symtab.symbols[0].st_size, 1)
+
+    def test_terminal_padding_is_bounded_by_the_following_address_and_cap(self):
+        for native, gap, accepted in ((1, 7, True), (97, 127, True),
+                                      (96, 128, False), (1, 39, False)):
+            with self.subTest(native=native, gap=gap):
+                fixture = self.fixture(native=native, declared=native, gap=gap, terminal=True)
+                self.assertEqual(self.apply(fixture), 'at_2' if accepted else 'at_999')
+                self.assertEqual(len(fixture[0].sections[1].data),
+                                 native + gap if accepted else native)
 
     def test_terminal_tail_stops_at_a_real_reference_only_cut(self):
         fixture = self.fixture(native=8, declared=8, gap=1024, terminal=True)
