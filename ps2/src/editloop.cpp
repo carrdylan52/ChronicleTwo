@@ -380,21 +380,21 @@ u_long128 *read_buffer_end;
 
 /**
  *
- * Persistent counter for town time progression.
+ * Whether automatic town time progression is enabled.
  *
  */
 static int time_step_1481;
 
 /**
  *
- * Initialization guard for the town time-progression counter.
+ * Initialization guard for the town time-progression toggle.
  *
  */
 static signed char init_1482;
 
 /**
  *
- * Persistent counter for the displayed town time.
+ * Frames remaining to display the time-progression toggle.
  *
  */
 static int show_time_step_1484;
@@ -1200,7 +1200,17 @@ int EditLoop() {
     if (LoopCounter > 10000) {
         LoopCounter = 10000;
     }
+    /**
+     *
+     * Whether automatic town time progression is enabled.
+     *
+     */
     static int time_step = 1;
+    /**
+     *
+     * Frames remaining to display the time-progression toggle.
+     *
+     */
     static int show_time_step = 0;
     if (PauseFlag == 0 && IsLightingEditMode() == 0) {
         CMap *time_map = MainScene__2->GetMap(MainScene__2->active_map);
@@ -1862,6 +1872,11 @@ int EditLoop() {
                 }
             }
         }
+        /**
+         *
+         * Whether the debug rain effect is enabled.
+         *
+         */
         static int rain_flag = 0;
         if (GamePad__2.Down2(PAD_R2) != 0) {
             if (rain_flag == 0) {
@@ -1886,9 +1901,29 @@ int EditLoop() {
     DrawEventEdit();
     FadeOutForE3();
     if (DebugFlag != 0) {
+        /**
+         *
+         * Persistent debug battle-start counter.
+         *
+         */
         static int start_bt_cnt = 0;
+        /**
+         *
+         * Whether debug encounters are enabled.
+         *
+         */
         static int encount_flag = 1;
+        /**
+         *
+         * Frames remaining to display the encounter toggle.
+         *
+         */
         static int show_encount_cnt = 0;
+        /**
+         *
+         * Selection of the next debug encounter, or -1 for none.
+         *
+         */
         static int next_encount = -1;
         if (show_time_step > 0 || show_encount_cnt > 0) {
             mgCDrawPrim prim;

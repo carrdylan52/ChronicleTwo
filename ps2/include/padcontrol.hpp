@@ -31,6 +31,11 @@ enum PadCtrlTrigger {
     PAD_CTRL_BUTTON_MASK  = 0x0FFFF, /**< Bits of PAD_CTRL_BTN::config holding the buttons. */
 };
 
+/**
+ *
+ * Logical button actions bound by the main loop and sampled each frame.
+ *
+ */
 enum PadCtrlButton {
     PAD_BTN_CONFIRM            = 0,
     PAD_BTN_CANCEL             = 1,
@@ -51,9 +56,9 @@ enum PadCtrlButton {
     PAD_BTN_ACTION_HELD        = 0x38,
     PAD_BTN_EDIT_TURN_DECREASE = 0x64, /**< R2: turns the selected Georama part one way. */
     PAD_BTN_EDIT_TURN_INCREASE = 0x65, /**< L2: turns the selected Georama part the other way. */
-    PAD_BTN_EDIT_PLACE         = 0x66, /**< Circle: places a Georama part or selects a wall. */
-    PAD_BTN_EDIT_REMOVE        = 0x67, /**< Circle: starts digging out the selected Georama part. */
-    PAD_BTN_EDIT_PAINT         = 0x68, /**< Circle: paints the selected Georama surface. */
+    PAD_BTN_EDIT_PLACE         = 0x66, /**< Confirm button: places a Georama part or selects a wall. */
+    PAD_BTN_EDIT_REMOVE        = 0x67, /**< Confirm button: starts digging out the selected Georama part. */
+    PAD_BTN_EDIT_PAINT         = 0x68, /**< Confirm button: paints the selected Georama surface. */
     PAD_BTN_EDIT_WALL_NEXT     = 0x69, /**< R2: selects the next wall. */
     PAD_BTN_EDIT_WALL_PREVIOUS = 0x6A, /**< L2: selects the previous wall. */
     PAD_BTN_EDIT_PAINT_ALL     = 0x6B, /**< Square: paints the roof or the whole fence. */
@@ -62,12 +67,6 @@ enum PadCtrlButton {
 };
 // clang-format on
 
-/**
- *
- * Stick axes a logical stick axis can read, as PAD_CTRL_ANALOG::axis holds
- * them.
- *
- */
 /**
  *
  * Logical stick axes, as the main loop binds them to the pad's sticks.
@@ -80,6 +79,12 @@ enum PadCtrlAnalog {
     PAD_ANALOG_RIGHT_Y = 3, /**< Right stick vertical position. */
 };
 
+/**
+ *
+ * Stick axes a logical stick axis can read, as PAD_CTRL_ANALOG::axis holds
+ * them.
+ *
+ */
 // clang-format off
 enum PadCtrlAxis {
     PAD_CTRL_AXIS_NONE = 0, /**< Unbound; the value is left as it is. */

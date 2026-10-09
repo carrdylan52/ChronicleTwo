@@ -190,7 +190,7 @@ static float eCameraDist;
 
 /**
  *
- * Integer quarter-turn orientation of the placement cursor.
+ * Integer 15-degree turn index of the placement cursor.
  *
  */
 static int eCurRot;
@@ -2265,7 +2265,7 @@ void DrawEditCursor(CScene *scene) {
 
     /**
      *
-     * Saved debug cursor position with its quarter-turn orientation in the last component.
+     * Saved debug cursor position with its 15-degree turn index in the last component.
      *
      */
     static sceVu0FVECTOR pos_save;
