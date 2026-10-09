@@ -144,7 +144,8 @@ def config(build_dir):
             "scripts/build/*.{py,sh,json}",
             "ps2/cmake/*.cmake",
         ],
-        "options": {"demangler": "codewarrior", "functionRelocDiffs": "none"},
+        "options": {"demangler": "codewarrior", "functionRelocDiffs": "none",
+                    "combineDataSections": True},
         "name": "chronicletwo",
         "units": units,
     }

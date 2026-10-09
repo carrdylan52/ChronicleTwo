@@ -30,6 +30,13 @@ class ObjdiffInputTests(unittest.TestCase):
                     with self.assertRaisesRegex(FileNotFoundError, 'unit'):
                         c.config('out')
 
+    def test_data_sections_are_explicitly_combined_for_aggregate_scores(self):
+        lay = NS(units=lambda kind: [])
+        with patch.object(c.layout, 'Layout', return_value=lay), \
+             patch.object(c.layout, 'read_symbols', return_value=[]), \
+             patch.object(c.objdiff_data, 'Context'):
+            self.assertIs(c.config('out')['options'].get('combineDataSections'), True)
+
     def test_failed_refresh_removes_the_old_config(self):
         with tempfile.TemporaryDirectory() as directory:
             output = Path(directory) / 'objdiff.json'
