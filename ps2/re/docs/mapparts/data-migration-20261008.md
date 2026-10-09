@@ -30,3 +30,21 @@ Final markers are **2 RODATA / 0 BSS**; matched data is **16/420**.
 The vtable section remains incomplete in source-only coverage, so the
 native treasure-box table does not earn aggregate section credit.
 No function is promoted and no shared-file proposal is made.
+
+
+## Round-5 native data completion
+
+The raw source-only `map.cpp` producer supplies the exact 132-byte
+`__vt__9CMapParts` table through the shared native-table importer. Its native
+constructor is verified as a complete retail consumer. The owner marker is
+removed; class declarations, constructors, guarded Copy and assembly-only
+AssignFuncAnime remain unchanged. The `CList<CObjAnime>` marker remains
+because no accepted active native producer supplies that table.
+
+Markers: RODATA **2 → 1**, BSS
+**0 → 0**. Refreshed matched data:
+**16 → 16 / 420**.
+The complete PAL is `SCES_511.90: OK` and all **149/149** canonical objects
+pass. Only the four migrated units change object hashes in this step; code
+metrics remain **6,780 functions / 1,854,796 bytes**. No function is promoted.
+Receipts: `.private/dtool-r5/data-fixed-{build,objects,tests,metrics}.log`.

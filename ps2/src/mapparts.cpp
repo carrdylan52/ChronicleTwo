@@ -960,7 +960,6 @@ void CCharacter2::SetPosition(float x, float y, float z) {
 
 // Virtual tables (.vtables)
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mapparts", __vt__17CList_9CObjAnime___DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mapparts", __vt__9CMapParts__DATA);
 
 int CMapPiece::DrawDirect() {
     return DrawSub(1);
