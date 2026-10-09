@@ -3180,8 +3180,8 @@ int CMenuTreeMap::Step() {
         DngInfoFloorInfo = MenuSaveDataDungeonPtr->GetFloorInfoPtr(dng_no, select_glid->room.floor_id);
         if (selection_changed) {
             GLID_INFO        *glid = select_glid;
-            int               messages[8] = {glid->room.floor_id + (dng_no + 1) * 1000, 0x96, 0x97, 0x98,
-                                             0x99, glid->room.practice_type + 100, 0x9B, 0x46};
+            int               messages[DNG_TREE_MAP_MES_MAX] = {glid->room.floor_id + (dng_no + 1) * 1000, 0x96, 0x97, 0x98,
+                                                                0x99, glid->room.practice_type + 100, 0x9B, 0x46};
             int               practice_items[4] = {0, 0, 0, 0};
             char              time_text[72];
             DNGMAP_ROOM_INFO *room = &glid->room;
@@ -3285,7 +3285,7 @@ int CMenuTreeMap::Step() {
             if (!room->geostone) {
                 messages[7] = 2;
             }
-            for (int i = 0; i < 8; ++i) {
+            for (int i = 0; i < DNG_TREE_MAP_MES_MAX; ++i) {
                 mes[i].MakeMsg(messages[i]);
                 mes[i].line_pos[0][0] = 600;
                 mes[i].line_pos[0][1] = 10;
