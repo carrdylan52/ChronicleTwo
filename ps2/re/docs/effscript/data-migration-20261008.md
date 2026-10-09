@@ -14,3 +14,9 @@ Accepted steps: `base-definitions`. Each has full PAL, 149-object and unowned ra
 
 Accepted steps: `storage`. Each has full PAL, 149-object and unowned raw-object hash receipts under `.private/dataA-r3/eff-<topic>-{build,objects,hashes}.log`.
 
+## Initialize effect direction vectors naturally
+
+`_GET_DIR_VECTOR` and `_CHR_GET_DIR_VECTOR` each initialize a four-float local direction as `{0.0f, 0.0f, 1.0f, 1.0f}` before transforming it. These initializers reproduce the two mutable 16-byte compiler templates (`at_2311` and `at_2498__2`) without the former quadword casts.
+
+Accepted steps: `vector:at_2311`, `vector:at_2498__2`. Each has full PAL, 149-object and unowned raw-object hash receipts under `.private/dataA-r3/eff-<topic>-{build,objects,hashes}.log`.
+

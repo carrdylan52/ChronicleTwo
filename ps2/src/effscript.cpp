@@ -286,9 +286,7 @@ extern RS_EXTFUNC_INFO ext_func_info__4[];
 extern char            at_3644[];
 extern char            at_3645[];
 
-extern float at_2311[];
 
-extern float at_2498__2[];
 
 extern char at_943__3[];
 
@@ -2358,8 +2356,7 @@ int _GET_DIR_VECTOR(RS_STACKDATA *stack, int argument_count) {
 
     float matrix[4][4];
     float rot[4];
-    float dir[4];
-    *(EffectVector *) dir = *(EffectVector *) at_2311;
+    float dir[4] = {0.0f, 0.0f, 1.0f, 1.0f};
     GetStackVector(rot, stack);
     stack += 3;
     rot[0] = mgAngleLimit(rot[0]);
@@ -2838,8 +2835,7 @@ int _CHR_GET_DIR_VECTOR(RS_STACKDATA *stack, int argument_count) {
 
     float matrix[4][4];
     float rot[4];
-    float dir[4];
-    *(EffectVector *) dir = *(EffectVector *) at_2498__2;
+    float dir[4] = {0.0f, 0.0f, 1.0f, 1.0f};
     sceVu0UnitMatrix(matrix);
     now_script->chara->GetRotation(rot);
     sceVu0RotMatrixX(matrix, matrix, rot[0]);
@@ -5708,8 +5704,6 @@ void SetEffectScriptFunc() {
 }
 
 // Initialised data (.data)
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/effscript", at_2311__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/effscript", at_2498__2__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/effscript", ext_func_info__4__DATA);
 
 // Constants (.rodata)
