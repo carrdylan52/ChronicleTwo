@@ -823,96 +823,42 @@ void CScene::InitAllData() {
 }
 
 void CScene::Initialize(void) {
+    int index;
+
     stack_num = 12;
     stack_no = 0;
-    for (int index = 0; index < stack_num; index++) {
+    for (index = 0; index < stack_num; index++) {
         stack[index] = NULL;
     }
     work_stack = NULL;
     read_buff = NULL;
     chara_num = 128;
-    {
-        int byte_offset;
-        int index = 0;
-        byte_offset = 0;
-        for (; index < chara_num; index++) {
-            CSceneCharacter *character = (CSceneCharacter *)((char *)this + byte_offset +
-                offsetof(CScene, chara));
-            character->Initialize();
-            byte_offset += sizeof(CSceneCharacter);
-        }
+    for (index = 0; index < chara_num; index++) {
+        chara[index].Initialize();
     }
     camera_num = 8;
-    {
-        int byte_offset;
-        int index = 0;
-        byte_offset = 0;
-        for (; index < camera_num; index++) {
-            CSceneCamera *camera = (CSceneCamera *)((char *)this + byte_offset +
-                offsetof(CScene, camera));
-            camera->Initialize();
-            byte_offset += sizeof(CSceneCamera);
-        }
+    for (index = 0; index < camera_num; index++) {
+        camera[index].Initialize();
     }
     message_num = 8;
-    {
-        int byte_offset;
-        int index = 0;
-        byte_offset = 0;
-        for (; index < message_num; index++) {
-            CSceneMessage *message = (CSceneMessage *)((char *)this + byte_offset +
-                offsetof(CScene, message));
-            message->Initialize();
-            byte_offset += sizeof(CSceneMessage);
-        }
+    for (index = 0; index < message_num; index++) {
+        message[index].Initialize();
     }
     map_num = 4;
-    {
-        int byte_offset;
-        int index = 0;
-        byte_offset = 0;
-        for (; index < map_num; index++) {
-            CSceneMap *map = (CSceneMap *)((char *)this + byte_offset +
-                offsetof(CScene, map));
-            map->Initialize();
-            byte_offset += sizeof(CSceneMap);
-        }
+    for (index = 0; index < map_num; index++) {
+        map[index].Initialize();
     }
     sky_num = 4;
-    {
-        int byte_offset;
-        int index = 0;
-        byte_offset = 0;
-        for (; index < sky_num; index++) {
-            CSceneSky *sky = (CSceneSky *)((char *)this + byte_offset +
-                offsetof(CScene, sky));
-            sky->Initialize();
-            byte_offset += sizeof(CSceneSky);
-        }
+    for (index = 0; index < sky_num; index++) {
+        sky[index].Initialize();
     }
     gameobj_num = 4;
-    {
-        int byte_offset;
-        int index = 0;
-        byte_offset = 0;
-        for (; index < sky_num; index++) {
-            CSceneGameObj *object = (CSceneGameObj *)((char *)this + byte_offset +
-                offsetof(CScene, gameobj));
-            object->Initialize();
-            byte_offset += sizeof(CSceneGameObj);
-        }
+    for (index = 0; index < sky_num; index++) {
+        gameobj[index].Initialize();
     }
     effect_num = 8;
-    {
-        int byte_offset;
-        int index = 0;
-        byte_offset = 0;
-        for (; index < effect_num; index++) {
-            CSceneEffect *effect = (CSceneEffect *)((char *)this + byte_offset +
-                offsetof(CScene, effect));
-            effect->Initialize();
-            byte_offset += sizeof(CSceneEffect);
-        }
+    for (index = 0; index < effect_num; index++) {
+        effect[index].Initialize();
     }
     bg_load_step = 0;
     mds_list_set.Initialize();
@@ -1912,7 +1858,7 @@ void CScene::SetWind(float strength, float *direction) {
 }
 
 void CScene::ResetWind() {
-    *(int *) &wind_power = 0;
+    wind_power = 0.0f;
 }
 
 float CScene::GetWind(float *direction) {
