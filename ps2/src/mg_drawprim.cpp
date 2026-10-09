@@ -262,9 +262,7 @@ void mgCDrawPrim::Data4(float *data) {
 
 void mgCDrawPrim::Data(int *data) {
     u_long128 quad = *(u_long128 *) data;
-    data = (int *) write;
-    write = (u_long128 *) data + 1;
-    *(u_long128 *) data = quad;
+    *write++ = quad;
 }
 
 u_long128 *mgCDrawPrim::DirectData(int count) {
