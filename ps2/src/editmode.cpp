@@ -634,6 +634,8 @@ void EditPreMenuAnime(int max_count) {
     PreMenuMaxCount = max_count;
     PreMenuCount = 0;
 }
+
+#ifdef NONMATCHING
 extern char at_1067__3[];
 extern char at_1068__3[];
 extern char at_1069__5[];
@@ -644,7 +646,6 @@ extern char at_1073__3[];
 extern char at_1074__3[];
 extern char at_1075__2[];
 extern char at_1076__2[];
-#ifdef NONMATCHING
 void LoadEditCursor(mgCMemory *memory, int block) {
     mgCTextureManager *textures = &mgTexManager;
     if (LoadFile2(at_1067__3, read_buffer, NULL, 0) != 0) {
@@ -741,6 +742,7 @@ void LoadEditCursor(mgCMemory *memory, int block) {
 #else
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/editmode", LoadEditCursor__FP9mgCMemoryi);
 #endif
+
 int GetSelPartsInfoID() {
     return PartsInfoID;
 }
@@ -1339,10 +1341,11 @@ static float GetGeoMapLimitHeight(int map_kind) {
 
     return -1.0f;
 }
+
 #ifdef NONMATCHING
 extern mgRect<int> data[];
-extern "C" char at_1254__2[];
-extern "C" char at_1284__5[];
+extern char at_1254__2[];
+extern char at_1284__5[];
 extern char at_1377__3[];
 extern float ePartsCurRot[4];
 extern float ePartsCurNowRot[4];
@@ -2104,10 +2107,6 @@ void DrawEditCursorParts(CScene *scene) {
         }
     }
 }
-
-extern char      at_1961[];
-extern char      at_1962[];
-extern char      at_1963[];
 
 void DrawEditCursor(CScene *scene) {
     mgCFrame       *cursor;

@@ -252,3 +252,12 @@ the moved declarations as well as the active source. The default full build
 passes `SCES_511.90: OK` and all 149 canonical object checks. Every complete
 object hash equals the preceding validated step, including editmode.
 The existing draft guard and compiler profile remain unchanged.
+
+## Draft-only literal names (2026-10-09)
+
+The `at_1067__3` .. `at_1076__2` declarations are used only by the guarded
+`LoadEditCursor` draft, so they sit inside its `#ifdef NONMATCHING` block, as
+the large draft's own declarations do; those use plain `extern char` (variables
+have no C++ mangling under MWCC, so `extern "C"` added nothing). The
+`at_1961`..`at_1963` declarations, unused since their formats were inlined, are
+removed. The compiled object is unchanged.
