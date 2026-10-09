@@ -23,7 +23,7 @@
 sceVu0FVECTOR * vert_845;
 
 /**
- * World transform of the skinning frame.
+ * Scratch transform of the skinning frame.
  */
 sceVu0FMATRIX tmp_SkinMatrix_847;
 
@@ -33,7 +33,7 @@ sceVu0FMATRIX tmp_SkinMatrix_847;
 sceVu0FMATRIX tmp_SkinMatrix_inv_848;
 
 /**
- * World transform of the character frame.
+ * World transform of the animation root.
  */
 sceVu0FMATRIX tmp_ChrMatrix_849;
 
@@ -58,7 +58,7 @@ static sceVu0FVECTOR * vert_915;
 static sceVu0FVECTOR * nml_916;
 
 /**
- * World transform of the skinning frame.
+ * Scratch transform of the skinning frame.
  */
 static sceVu0FMATRIX tmp_SkinMatrix_917;
 
@@ -68,7 +68,7 @@ static sceVu0FMATRIX tmp_SkinMatrix_917;
 static sceVu0FMATRIX tmp_SkinMatrix_inv_918;
 
 /**
- * World transform of the character frame.
+ * World transform of the animation root.
  */
 static sceVu0FMATRIX tmp_ChrMatrix_919;
 
