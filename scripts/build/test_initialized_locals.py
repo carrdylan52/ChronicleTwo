@@ -46,6 +46,38 @@ class InitializedLocalTests(unittest.TestCase):
         p.name_literal_data(elf, 'unit', set(placeholders), **kwargs)
         return elf.symtab.symbols[0].name
 
+    def paired_fixture(self):
+        elf, kwargs = self.fixture()
+        elf.sections.append(copy.deepcopy(elf.sections[1]))
+        elf.symtab.symbols.append(symbol('more_888', 3, 8))
+        elf.sections[2].data += struct.pack('<II', 0x3c030000, 0x24630000)
+        elf.symtab.symbols[1].st_size = 24
+        elf.relocations[0].relocations.extend([relocation(16, 5, 3), relocation(20, 6, 3)])
+        expected = kwargs['retail'].bytes(0x1000, 0x1010) + struct.pack('<II', 0x3c030000, 0x24633010)
+        old_bytes = kwargs['retail'].bytes
+        payload = bytes(elf.sections[3].data)
+        kwargs['retail'].bytes = lambda lo, hi: expected[lo - 0x1000:hi - 0x1000] \
+            if 0x1000 <= lo <= hi <= 0x1018 else payload[lo - 0x3010:hi - 0x3010] \
+            if 0x3010 <= lo <= hi <= 0x3018 else old_bytes(lo, hi)
+        kwargs['retail'].relocations.update({0x1010: 5, 0x1014: 6})
+        kwargs['rows'][0] = (0x1000, 'caller', 24, True)
+        kwargs['rows'].append((0x3010, 'more_7', 8, False))
+        kwargs['addresses']['more_7'] = 0x3010
+        previous = kwargs['pieces'].unit
+        kwargs['pieces'].unit = lambda unit: previous(unit) + [('.data', [('more_7', 0x3010, 0x3018)])]
+        return elf, kwargs
+
+    def test_local_pair_sharing_a_consumer_is_verified_collectively(self):
+        fixture = self.paired_fixture()
+        self.assertEqual(self.apply(fixture), 'bits_12')
+        self.assertEqual(fixture[0].symtab.symbols[3].name, 'more_7')
+
+    def test_invalid_peer_rejects_both_shared_consumer_claims(self):
+        fixture = self.paired_fixture()
+        fixture[0].sections[3].data = bytes(8)
+        self.assertEqual(self.apply(fixture), 'bits_999')
+        self.assertEqual(fixture[0].symtab.symbols[3].name, 'more_888')
+
     def test_exact_named_local_is_named_without_rewriting_bytes_or_relocations(self):
         fixture = self.fixture()
         elf, _kwargs = fixture

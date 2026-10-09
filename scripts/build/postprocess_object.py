@@ -980,36 +980,43 @@ def name_initialized_locals(elf, unit, placeholders, *, retail, pieces, addresse
                        and 0 < other.st_shndx < len(elf.sections)
                        and elf.sections[other.st_shndx].name != DEAD for other in symbols)):
             continue
+        assignments.append((symbol, name, start))
+    counts = Counter(name for _symbol, name, _start in assignments)
+    pending = {symbol.st_shndx: (symbol, name, start)
+               for symbol, name, start in assignments if counts[name] == 1}
+    # Several locals may share one function. Verify all proposed identities
+    # together, then remove dependent claims until every remaining consumer
+    # is complete without relying on a rejected peer.
+    while pending:
         section_bases = {}
         for other in symbols:
             address = source_address(other.name)
             if address is not None and 0 < other.st_shndx < len(elf.sections):
                 section_bases.setdefault(other.st_shndx, set()).add(address - other.st_value)
-        section_bases[index] = {start}
+        section_bases.update((index, {entry[2]}) for index, entry in pending.items())
 
         def symbol_address(target):
-            if target.st_shndx == index:
-                return start + target.st_value
-            address = source_address(target.name)
-            if address is not None:
-                return address
             bases = section_bases.get(target.st_shndx, set())
-            return next(iter(bases)) + target.st_value if len(bases) == 1 else None
+            if len(bases) == 1:
+                return next(iter(bases)) + target.st_value
+            return source_address(target.name)
 
-        consumers = {record.sh_info for record in elf.relocations
-                     if elf.sections[record.sh_info].name != DEAD
-                     and any(symbols[entry.symbol_index].st_shndx == index
-                             for entry in record.relocations)}
-        if not all(complete_code_consumer(elf, consumer, retail=retail, rows=code_rows,
-                                          address_of_symbol=symbol_address,
-                                          gp=addresses.get('_gp')) for consumer in consumers):
-            continue
-        assignments.append((symbol, name))
-    counts = Counter(name for _symbol, name in assignments)
-    for symbol, name in assignments:
-        if counts[name] == 1:
-            symbol.name = name
-            symbol.st_name = elf.strtab.add_symbol(name)
+        rejected = set()
+        for index in pending:
+            consumers = {record.sh_info for record in elf.relocations
+                         if elf.sections[record.sh_info].name != DEAD
+                         and any(symbols[entry.symbol_index].st_shndx == index
+                                 for entry in record.relocations)}
+            if not all(complete_code_consumer(elf, consumer, retail=retail, rows=code_rows,
+                                              address_of_symbol=symbol_address,
+                                              gp=addresses.get('_gp')) for consumer in consumers):
+                rejected.add(index)
+        if not rejected:
+            break
+        pending = {index: entry for index, entry in pending.items() if index not in rejected}
+    for symbol, name, _start in pending.values():
+        symbol.name = name
+        symbol.st_name = elf.strtab.add_symbol(name)
 
 
 def name_literal_data(elf, unit, placeholders, *, retail=None, pieces=None, addresses=None, rows=None):
