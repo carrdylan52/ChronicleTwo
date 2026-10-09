@@ -183,7 +183,6 @@ void mgCTexAnimeData::Initialize() {
     r = 0x80;
 }
 
-#ifdef NONMATCHING
 void mgCTextureAnime::TexAnime(int texb, sceVif1Packet *packet) {
     int                      i;
     int                      group;
@@ -541,7 +540,8 @@ void mgCTextureAnime::TexAnime(int texb, sceVif1Packet *packet) {
         } else if (data->bug_patch != 0) {
             if (wait <= frame[group]) {
                 frame[group] = 0;
-                now[group] = node->next;
+                CList<mgCTexAnimeData> *next = node->next;
+                now[group] = next;
                 if (now[group] == NULL) {
                     now[group] = list[group];
                 }
@@ -549,7 +549,8 @@ void mgCTextureAnime::TexAnime(int texb, sceVif1Packet *packet) {
         } else {
             if (frame[group] > wait) {
                 frame[group] = 0;
-                now[group] = node->next;
+                CList<mgCTexAnimeData> *next = node->next;
+                now[group] = next;
                 if (now[group] == NULL) {
                     now[group] = list[group];
                 }
@@ -564,10 +565,6 @@ void mgCTextureAnime::TexAnime(int texb, sceVif1Packet *packet) {
     sceVif1PkCloseGifTag(packet);
     sceVif1PkCloseDirectCode(packet);
 }
-
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/mg_tanime", TexAnime__15mgCTextureAnimeFiP13sceVif1Packet);
-#endif
 
 void mgCTextureAnime::Initialize() {
     group_num = MG_TEX_ANIME_GROUP_MAX;
