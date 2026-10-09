@@ -57,3 +57,10 @@ Those seven constants remain until the shared enum is updated and validated.
 
 `enums-build.log` and `enums-objects.log` record PAL OK and 149/149 objects
 for the substitutions using existing enums.
+
+## Debug title controller alias (finding 9(d))
+
+The `info` alias is removed with identical function bytes and relocations;
+[the debug-display notes](night-20261008.md#debug-title-controller-accesses-review-finding-9d)
+record the private probe and production receipts. Finding 9(c)'s accepted
+unbraced case scope remains as documented.

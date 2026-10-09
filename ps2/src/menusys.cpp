@@ -8663,10 +8663,9 @@ void MenuItemDebugDraw(void) {
             }
             tex_manager->ReloadTexture(MenuArg.mes_tex_block, (sceVif1Packet *) NULL);
             DrawMenuFillBox(20.0f, 40.0f, 340.0f, float(20.0), 0x60, 0, 0, 0);
-            char           title[0x80];
-            CMenuItemInfo *info = CMenuItemInfoPt;
-            sprintf(title, "[%3d]%s :Now GetNum : %d", CMenuItemInfoPt->debug_item_no, GetItemMessage(info->debug_item_no),
-                    info->debug_item_count);
+            char title[0x80];
+            sprintf(title, "[%3d]%s :Now GetNum : %d", CMenuItemInfoPt->debug_item_no,
+                    GetItemMessage(CMenuItemInfoPt->debug_item_no), CMenuItemInfoPt->debug_item_count);
             font->SetStr(title);
             font->SetPos(26, 40);
             font->DrawDirect(font->str, font->pos_x, font->pos_y);
