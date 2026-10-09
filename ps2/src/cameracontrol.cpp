@@ -300,8 +300,8 @@ void CCameraControl::Rotate(float angle) {
 }
 
 void CCameraControl::SetRotate(float angle) {
-    float                 distance;
-    float                 height;
+    float distance;
+    float height;
 
     distance = mgDistVectorXZ(next_ref, next_pos);
 

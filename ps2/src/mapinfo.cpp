@@ -47,30 +47,30 @@ static int amapPCP(SPI_STACK *stack, int argument_count);
  */
 // Initialised data (.data)
 static SPI_TAG_PARAM mapinfo_tag[] = {
-    {"IMG",    mapIMG               },
-    {"PCP",    mapPCP               },
-    {"ACTIVE_LIGHT_SET",    mapACTIVE_LIGHT_SET  },
-    {"LIGHT_SET",    mapLIGHT_SET         },
-    {"FOV",    mapFOV               },
-    {"BGCOLOR",    mapBGCOLOR           },
-    {"BGCOLOR2",    mapBGCOLOR2          },
-    {"AMBIENT",    mapAMBIENT           },
-    {"LIGHT",    mapLIGHT             },
-    {"PLIGHT", mapPLIGHT            },
-    {"FOG_ENABLE", mapFOG_ENABLE        },
-    {"FOG",    mapFOG               },
-    {"LIGHT_SET_END",    mapLIGHT_SET_END     },
-    {"FLOOR",    mapFLOOR             },
-    {"CHARA_POS",    mapCHARA_POS         },
-    {"TIME_FLAG",    mapTIME_FLAG         },
-    {"TIME_LIGHT_NUM",    mapTIME_LIGHT_NUM    },
-    {"DEF_FOOT",    mapDEF_FOOT          },
-    {"SKY_INFO",    mapSKY_INFO          },
-    {"LENS_FLARE",    mapLENS_FLARE        },
-    {"TIME_CFADE",    mapTIME_CFADE        },
-    {"ALL_SCISSOR",    mapALL_SCISSOR       },
+    {"IMG",                mapIMG               },
+    {"PCP",                mapPCP               },
+    {"ACTIVE_LIGHT_SET",   mapACTIVE_LIGHT_SET  },
+    {"LIGHT_SET",          mapLIGHT_SET         },
+    {"FOV",                mapFOV               },
+    {"BGCOLOR",            mapBGCOLOR           },
+    {"BGCOLOR2",           mapBGCOLOR2          },
+    {"AMBIENT",            mapAMBIENT           },
+    {"LIGHT",              mapLIGHT             },
+    {"PLIGHT",             mapPLIGHT            },
+    {"FOG_ENABLE",         mapFOG_ENABLE        },
+    {"FOG",                mapFOG               },
+    {"LIGHT_SET_END",      mapLIGHT_SET_END     },
+    {"FLOOR",              mapFLOOR             },
+    {"CHARA_POS",          mapCHARA_POS         },
+    {"TIME_FLAG",          mapTIME_FLAG         },
+    {"TIME_LIGHT_NUM",     mapTIME_LIGHT_NUM    },
+    {"DEF_FOOT",           mapDEF_FOOT          },
+    {"SKY_INFO",           mapSKY_INFO          },
+    {"LENS_FLARE",         mapLENS_FLARE        },
+    {"TIME_CFADE",         mapTIME_CFADE        },
+    {"ALL_SCISSOR",        mapALL_SCISSOR       },
     {"CHARA_LIGHT_ADJUST", mapCHARA_LIGHT_ADJUST},
-    {NULL,      NULL                 },
+    {NULL,                 NULL                 },
 };
 
 /**
@@ -81,7 +81,7 @@ static SPI_TAG_PARAM mapinfo_tag[] = {
 static SPI_TAG_PARAM add_mapinfo_tag[] = {
     {"IMG", amapIMG},
     {"PCP", amapPCP},
-    {NULL,   NULL   },
+    {NULL,  NULL   },
 };
 
 /**

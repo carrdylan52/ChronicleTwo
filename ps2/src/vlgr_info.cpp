@@ -20,11 +20,11 @@ static CVillagerPlaceInfo *PlaceInfo;
 /**
  * Number of loaded villager model records.
  */
-static int                           VlgrInfoNum;
+static int VlgrInfoNum;
 /**
  * Loaded villager model and appearance records.
  */
-static CVillagerInfo                *VlgrInfo;
+static CVillagerInfo *VlgrInfo;
 /**
  * Villager placement schedules indexed by villager number.
  */
@@ -32,27 +32,27 @@ CVillagerPlace VlgrPlace[VLGR_PLACE_MAX];
 /**
  * Memory used to allocate villager schedule records.
  */
-static mgCMemory                    *niStack;
+static mgCMemory *niStack;
 /**
  * Villager schedule currently being parsed.
  */
-static CVillagerPlace               *niVlgr;
+static CVillagerPlace *niVlgr;
 /**
  * Number of progress conditions in the current schedule.
  */
-static int                           niProgNum;
+static int niProgNum;
 /**
  * Progress-time state of the current schedule.
  */
-static int                           niProgTime;
+static int niProgTime;
 /**
  * Alternative placement selected by the current progress condition.
  */
-static int                           niProgDupliID;
+static int niProgDupliID;
 /**
  * Whether the current condition applies from its progress point onward.
  */
-static int                           niProgCon;
+static int niProgCon;
 /**
  * Temporary progress conditions for the current villager.
  */
@@ -64,39 +64,39 @@ static CVillagerPlace::ProgressInfo *niNowProgInfo;
 /**
  * Place records available to the schedule parser.
  */
-static CVillagerPlaceInfo           *niPlaceInfo;
+static CVillagerPlaceInfo *niPlaceInfo;
 /**
  * Number of places available to the schedule parser.
  */
-static int                           niPlaceInfoNum;
+static int niPlaceInfoNum;
 /**
  * Next villager model record to fill.
  */
-static int                           niVlgrInfoIdx;
+static int niVlgrInfoIdx;
 /**
  * Memory used to allocate villager place records.
  */
-static mgCMemory                    *vpiStack;
+static mgCMemory *vpiStack;
 /**
  * Villager place currently being parsed.
  */
-static CVillagerPlaceInfo           *vpiInfo;
+static CVillagerPlaceInfo *vpiInfo;
 /**
  * Number of story progress points.
  */
-static int                           ProgressNum;
+static int ProgressNum;
 /**
  * Story progress points loaded from the configuration script.
  */
-GAME_PROGRESS_INFO                   ProgressInfo[GAME_PROGRESS_MAX];
+GAME_PROGRESS_INFO ProgressInfo[GAME_PROGRESS_MAX];
 /**
  * Story progress records available to the game-info parser.
  */
-static GAME_PROGRESS_INFO           *giGamePI;
+static GAME_PROGRESS_INFO *giGamePI;
 /**
  * Memory used to allocate story progress names.
  */
-static mgCMemory                    *giStack;
+static mgCMemory *giStack;
 
 static int niNPC(SPI_STACK *stack, int argument_count);
 static int niNPC_END(SPI_STACK *stack, int argument_count);
@@ -112,16 +112,16 @@ static int niNPC_INFO(SPI_STACK *stack, int argument_count);
  * Tags accepted by the villager schedule and appearance parser.
  */
 static SPI_TAG_PARAM ni_tag[] = {
-    {"NPC", niNPC},
-    {"NPC_END", niNPC_END},
-    {"PROGRESS", niPROGRESS},
+    {"NPC",          niNPC         },
+    {"NPC_END",      niNPC_END     },
+    {"PROGRESS",     niPROGRESS    },
     {"PROGRESS_END", niPROGRESS_END},
-    {"PLACE", niPLACE},
-    {"NOON_PLACE", niNOON_PLACE},
-    {"NIGHT_PLACE", niNIGHT_PLACE},
+    {"PLACE",        niPLACE       },
+    {"NOON_PLACE",   niNOON_PLACE  },
+    {"NIGHT_PLACE",  niNIGHT_PLACE },
     {"NPC_INFO_NUM", niNPC_INFO_NUM},
-    {"NPC_INFO", niNPC_INFO},
-    {NULL, NULL},
+    {"NPC_INFO",     niNPC_INFO    },
+    {NULL,           NULL          },
 };
 
 static int vpiNPC_PLACE_NUM(SPI_STACK *stack, int argument_count);
@@ -141,17 +141,17 @@ static int vpiSHADOW(SPI_STACK *stack, int argument_count);
  */
 static SPI_TAG_PARAM tag__9[] = {
     {"NPC_PLACE_NUM", vpiNPC_PLACE_NUM},
-    {"NPC_PLACE", vpiNPC_PLACE},
+    {"NPC_PLACE",     vpiNPC_PLACE    },
     {"NPC_PLACE_END", vpiNPC_PLACE_END},
-    {"PLACE_POS", vpiPLACE_POS},
-    {"MOTION", vpiMOTION},
-    {"MOVE_TO", vpiMOVE_TO},
-    {"WAIT", vpiWAIT},
-    {"TALK_OFFSET", vpiTALK_OFFSET},
-    {"MOVE_MOTION", vpiMOVE_MOTION},
-    {"MOVE_SPEED", vpiMOVE_SPEED},
-    {"SHADOW", vpiSHADOW},
-    {NULL, NULL},
+    {"PLACE_POS",     vpiPLACE_POS    },
+    {"MOTION",        vpiMOTION       },
+    {"MOVE_TO",       vpiMOVE_TO      },
+    {"WAIT",          vpiWAIT         },
+    {"TALK_OFFSET",   vpiTALK_OFFSET  },
+    {"MOVE_MOTION",   vpiMOVE_MOTION  },
+    {"MOVE_SPEED",    vpiMOVE_SPEED   },
+    {"SHADOW",        vpiSHADOW       },
+    {NULL,            NULL            },
 };
 
 static int giPROG_INFO(SPI_STACK *stack, int argument_count);
@@ -161,7 +161,7 @@ static int giPROG_INFO(SPI_STACK *stack, int argument_count);
  */
 static SPI_TAG_PARAM gi_tag[] = {
     {"PROG_INFO", giPROG_INFO},
-    {NULL, NULL},
+    {NULL,        NULL       },
 };
 
 // Code (.text)

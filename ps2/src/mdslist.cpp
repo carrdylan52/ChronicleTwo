@@ -36,34 +36,34 @@ static int max_mds_num;
 /**
  * Model-list owner receiving pack commands.
  */
-static CMdsList     * pcpMdsList;
+static CMdsList *pcpMdsList;
 
 /**
  * Model entries receiving pack commands.
  */
-static CMdsInfo     * pcpMdsInfo;
+static CMdsInfo *pcpMdsInfo;
 
 /**
  * Model entry receiving attribute commands.
  */
-static CMdsInfo     * pcpNowMdsInfo;
+static CMdsInfo *pcpNowMdsInfo;
 
 /**
  * Memory used to load the model pack.
  */
-static mgCMemory    * pcpStack;
+static mgCMemory *pcpStack;
 
 /**
  * Packed file being interpreted.
  */
-static u_int        * pcp_file;
+static u_int *pcp_file;
 
 /**
  * Scissor setting applied to all model entries.
  */
 static int pcpAllScissor;
 
-CCharacter2         *CreateChara(u_int *pack, char *config, mgCMemory *memory);
+CCharacter2 *CreateChara(u_int *pack, char *config, mgCMemory *memory);
 
 /**
  *
@@ -775,11 +775,11 @@ int pcpMDS_END(SPI_STACK *stack, int argc) {
  * Script tags that select models and configure pack entries.
  */
 static SPI_TAG_PARAM pcp_tag[] = {
-    {"MDS", pcpMDS},
-    {"TYPE", pcpTYPE},
+    {"MDS",      pcpMDS     },
+    {"TYPE",     pcpTYPE    },
     {"FAR_CLIP", pcpFAR_CLIP},
-    {"MDS_END", pcpMDS_END},
-    {NULL, NULL}
+    {"MDS_END",  pcpMDS_END },
+    {NULL,       NULL       }
 };
 
 void CMdsList::LoadPCPFile(char *name, u_int *pack, mgCMemory *memory, int type) {

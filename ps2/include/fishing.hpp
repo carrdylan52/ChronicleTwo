@@ -55,24 +55,24 @@ enum FISH_PLACE_AREA {
  *
  */
 enum FISH_ITEM_ID {
-    FISH_ITEM_NONE = 0, /**< No caught fish item. */
-    FISH_ITEM_HAGUHAGU = 310, /**< Haguhagu fish item. */
-    FISH_ITEM_BOUBOU = 320, /**< Boubou fish item. */
-    FISH_ITEM_GABURA = 321, /**< Gabura fish item. */
-    FISH_ITEM_NONKII = 322, /**< Nonkii fish item. */
-    FISH_ITEM_KAJII = 323, /**< Kajii fish item. */
-    FISH_ITEM_BAKUBAKU = 324, /**< Bakubaku fish item. */
-    FISH_ITEM_MAADANGARAYAN = 325, /**< Maadangarayan fish item. */
-    FISH_ITEM_GUMII = 326, /**< Gumii fish item. */
-    FISH_ITEM_NIIRAA = 327, /**< Niiraa fish item. */
-    FISH_ITEM_UMADAKARA = 328, /**< Umadakara fish item. */
-    FISH_ITEM_TAATON = 329, /**< Taaton fish item. */
-    FISH_ITEM_PIKKORII = 330, /**< Pikkorii fish item. */
-    FISH_ITEM_BON = 331, /**< Bon fish item. */
-    FISH_ITEM_HAMAHAMA = 332, /**< Hamahama fish item. */
-    FISH_ITEM_NEJII = 333, /**< Nejii fish item. */
-    FISH_ITEM_DEN = 334, /**< Den fish item. */
-    FISH_ITEM_HIIRA = 335, /**< Hiira fish item. */
+    FISH_ITEM_NONE = 0,               /**< No caught fish item. */
+    FISH_ITEM_HAGUHAGU = 310,         /**< Haguhagu fish item. */
+    FISH_ITEM_BOUBOU = 320,           /**< Boubou fish item. */
+    FISH_ITEM_GABURA = 321,           /**< Gabura fish item. */
+    FISH_ITEM_NONKII = 322,           /**< Nonkii fish item. */
+    FISH_ITEM_KAJII = 323,            /**< Kajii fish item. */
+    FISH_ITEM_BAKUBAKU = 324,         /**< Bakubaku fish item. */
+    FISH_ITEM_MAADANGARAYAN = 325,    /**< Maadangarayan fish item. */
+    FISH_ITEM_GUMII = 326,            /**< Gumii fish item. */
+    FISH_ITEM_NIIRAA = 327,           /**< Niiraa fish item. */
+    FISH_ITEM_UMADAKARA = 328,        /**< Umadakara fish item. */
+    FISH_ITEM_TAATON = 329,           /**< Taaton fish item. */
+    FISH_ITEM_PIKKORII = 330,         /**< Pikkorii fish item. */
+    FISH_ITEM_BON = 331,              /**< Bon fish item. */
+    FISH_ITEM_HAMAHAMA = 332,         /**< Hamahama fish item. */
+    FISH_ITEM_NEJII = 333,            /**< Nejii fish item. */
+    FISH_ITEM_DEN = 334,              /**< Den fish item. */
+    FISH_ITEM_HIIRA = 335,            /**< Hiira fish item. */
     FISH_ITEM_DANSHAKU_GARAYAN = 336, /**< Danshaku garayan fish item. */
 };
 

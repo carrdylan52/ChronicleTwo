@@ -20,7 +20,7 @@ static char txt_table__2[] = "0123456789abcdefghijkmnpqrstuvwxyzABCDEFGHJKLMNPQR
  *
  */
 // Small initialised data (.sdata)
-static unsigned int        random_seed = 1;
+static unsigned int random_seed = 1;
 
 #pragma optimization_level 0
 // Code (.text)

@@ -16,19 +16,18 @@
 #include "menusys.hpp"
 #include "mg_drawprim.hpp"
 #include "mg_math.hpp"
+#include "mg_memory.hpp"
+#include "mg_tanime.hpp"
 #include "mg_texture.hpp"
 #include "mglib.hpp"
 #include "prespr.hpp"
 #include "savedata.hpp"
 #include "scenesnd.hpp"
 #include "scriptinterpreter.hpp"
+#include "snd_mngr.hpp"
 #include "sound.hpp"
 #include "sysmes.hpp"
 #include "userdata.hpp"
-
-#include "mg_memory.hpp"
-#include "mg_tanime.hpp"
-#include "snd_mngr.hpp"
 
 /**
  *

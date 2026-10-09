@@ -16,8 +16,8 @@
 
 /** Vertical blanks counted since start-up, kept non-negative. */
 // Small uninitialised data (.sbss)
-static volatile int        vcount__2;
-static int                 VSyncCallBack(int event);
+static volatile int vcount__2;
+static int          VSyncCallBack(int event);
 
 // Code (.text)
 /**

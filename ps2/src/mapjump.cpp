@@ -371,8 +371,8 @@ int LoadSubMap(CScene *scene, int sub_map_no, int flag) {
 }
 
 void LoadMapScript(char *map_name) {
-    char             map_path[0x80];
-    char             script[0x80] = "";
+    char map_path[0x80];
+    char script[0x80] = "";
     GetMapPath(map_path, map_name);
     strcat(script, map_path);
     strcat(script, ".stb");

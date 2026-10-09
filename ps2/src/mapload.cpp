@@ -22,71 +22,71 @@
 #include "scriptinterpreter.hpp"
 #include "water.hpp"
 
-int                  mapDummy(SPI_STACK *stack, int argument_count);
-static int           IsAddMode();
-int                  mapPARTS(SPI_STACK *stack, int argument_count);
-int                  mapFAR_CLIP(SPI_STACK *stack, int argument_count);
-int                  mapLIGHT_FLAG(SPI_STACK *stack, int argument_count);
-int                  mapMOVE_FLAG(SPI_STACK *stack, int argument_count);
-int                  mapLOD_START(SPI_STACK *stack, int argument_count);
-int                  mapLOD_BLEND(SPI_STACK *stack, int argument_count);
-int                  mapLOD_PIECE(SPI_STACK *stack, int argument_count);
-int                  mapLOD_END(SPI_STACK *stack, int argument_count);
-int                  mapPIECE(SPI_STACK *stack, int argument_count);
-int                  mapPIECE_NAME(SPI_STACK *stack, int argument_count);
-int                  mapPIECE_POS(SPI_STACK *stack, int argument_count);
-int                  mapPIECE_ROT(SPI_STACK *stack, int argument_count);
-int                  mapPIECE_SCALE(SPI_STACK *stack, int argument_count);
-int                  mapPIECE_MATERIAL_START(SPI_STACK *stack, int argument_count);
-int                  mapPIECE_MATERIAL(SPI_STACK *stack, int argc);
-s32                  mapPIECE_MATERIAL_END(SPI_STACK *stack, int argc);
-int                  mapPIECE_COL_TYPE(SPI_STACK *stack, int argc);
-int                  mapPIECE_TIME(SPI_STACK *stack, int argc);
-int                  mapPIECE_END(SPI_STACK *stack, int argc);
-int                  mapPARTS_END(SPI_STACK *stack, int argc);
-int                  mapMAP_PARTS(SPI_STACK *stack, int argc);
-int                  mapMAP_FAR_CLIP(SPI_STACK *stack, int argc);
-int                  mapPARTS_NAME(SPI_STACK *stack, int argc);
-int                  mapPARTS_GROUP(SPI_STACK *stack, int argc);
-int                  mapPARTS_POS(SPI_STACK *stack, int argc);
-int                  mapPARTS_ROT(SPI_STACK *stack, int argc);
-int                  mapPARTS_SCALE(SPI_STACK *stack, int argc);
-int                  mapMAP_PARTS_END(SPI_STACK *stack, int argc);
-s32                  map_MAP_INFO_TOP(SPI_STACK *stack, int argc);
-int                  mapCAMERA_INFO(SPI_STACK *stack, int argc);
-int                  mapFIX_CAMERA(SPI_STACK *stack, int argc);
-int                  mapFIX_CAMERA_POS(SPI_STACK *stack, int argc);
-int                  mapFIX_CAMERA_POS2(SPI_STACK *stack, int argc);
-int                  mapFIX_CAMERA_RECT(SPI_STACK *stack, int argc);
-int                  mapFIX_CAMERA_END(SPI_STACK *stack, int argc);
-s32                  mapCAMERA_INFO_END(SPI_STACK *stack, s32 argument_count);
-int                  mapFUNC_POINT(SPI_STACK *stack, int argc);
-int                  mapFUNC_DATA(SPI_STACK *stack, int argc);
-int                  mapFUNC_NAME(SPI_STACK *stack, int argc);
-int                  mapFUNC_FLAG(SPI_STACK *stack, int argc);
-int                  mapFUNC_FIRE_DATA(SPI_STACK *stack, int argc);
-int                  mapFUNC_PLIGHT_DATA(SPI_STACK *stack, int argc);
-int                  mapFUNC_ANIME_DATA(SPI_STACK *stack, int argc);
-int                  mapFUNC_INVENT_DATA(SPI_STACK *stack, int argc);
-int                  mapFUNC_EVENT_DATA(SPI_STACK *stack, int argc);
-int                  mapFUNC_SOUND_DATA(SPI_STACK *stack, int argc);
-int                  mapFUNC_EFFECT_NAME(SPI_STACK *stack, int argc);
-int                  mapFUNC_POS(SPI_STACK *stack, int argc);
-int                  mapFUNC_DATA_END(SPI_STACK *stack, int argc);
-int                  mapFUNC_POINT_END(SPI_STACK *stack, int argc);
-int                  cfgDRAW_OFF_RECT(SPI_STACK *stack, int argc);
-int                  cfgOCCLUSION_PLANE(SPI_STACK *stack, int argc);
-int                  cfgFUNC_DATA(SPI_STACK *stack, int argc);
-int                  cfgFUNC_EVENT_DATA(SPI_STACK *stack, int argc);
-int                  cfgFUNC_DATA_END(SPI_STACK *stack, int argc);
-int                  cfgWATER_SURFACE_NUM(SPI_STACK *stack, int argc);
-s32                  cfgWATER_SURFACE_START(SPI_STACK *stack, int argc);
-int                  cfgWATER_VERTEX(SPI_STACK *stack, int argc);
-int                  cfgWATER_POS(SPI_STACK *stack, int argc);
-int                  cfgWATER_PARAM(SPI_STACK *stack, int argc);
-s32                  cfgWATER_SHAKE(SPI_STACK *stack, int argc);
-int                  cfgWATER_SURFACE_END(SPI_STACK *stack, int argc);
-int                  cfgWATER_DRAW(SPI_STACK *stack, int argc);
+int        mapDummy(SPI_STACK *stack, int argument_count);
+static int IsAddMode();
+int        mapPARTS(SPI_STACK *stack, int argument_count);
+int        mapFAR_CLIP(SPI_STACK *stack, int argument_count);
+int        mapLIGHT_FLAG(SPI_STACK *stack, int argument_count);
+int        mapMOVE_FLAG(SPI_STACK *stack, int argument_count);
+int        mapLOD_START(SPI_STACK *stack, int argument_count);
+int        mapLOD_BLEND(SPI_STACK *stack, int argument_count);
+int        mapLOD_PIECE(SPI_STACK *stack, int argument_count);
+int        mapLOD_END(SPI_STACK *stack, int argument_count);
+int        mapPIECE(SPI_STACK *stack, int argument_count);
+int        mapPIECE_NAME(SPI_STACK *stack, int argument_count);
+int        mapPIECE_POS(SPI_STACK *stack, int argument_count);
+int        mapPIECE_ROT(SPI_STACK *stack, int argument_count);
+int        mapPIECE_SCALE(SPI_STACK *stack, int argument_count);
+int        mapPIECE_MATERIAL_START(SPI_STACK *stack, int argument_count);
+int        mapPIECE_MATERIAL(SPI_STACK *stack, int argc);
+s32        mapPIECE_MATERIAL_END(SPI_STACK *stack, int argc);
+int        mapPIECE_COL_TYPE(SPI_STACK *stack, int argc);
+int        mapPIECE_TIME(SPI_STACK *stack, int argc);
+int        mapPIECE_END(SPI_STACK *stack, int argc);
+int        mapPARTS_END(SPI_STACK *stack, int argc);
+int        mapMAP_PARTS(SPI_STACK *stack, int argc);
+int        mapMAP_FAR_CLIP(SPI_STACK *stack, int argc);
+int        mapPARTS_NAME(SPI_STACK *stack, int argc);
+int        mapPARTS_GROUP(SPI_STACK *stack, int argc);
+int        mapPARTS_POS(SPI_STACK *stack, int argc);
+int        mapPARTS_ROT(SPI_STACK *stack, int argc);
+int        mapPARTS_SCALE(SPI_STACK *stack, int argc);
+int        mapMAP_PARTS_END(SPI_STACK *stack, int argc);
+s32        map_MAP_INFO_TOP(SPI_STACK *stack, int argc);
+int        mapCAMERA_INFO(SPI_STACK *stack, int argc);
+int        mapFIX_CAMERA(SPI_STACK *stack, int argc);
+int        mapFIX_CAMERA_POS(SPI_STACK *stack, int argc);
+int        mapFIX_CAMERA_POS2(SPI_STACK *stack, int argc);
+int        mapFIX_CAMERA_RECT(SPI_STACK *stack, int argc);
+int        mapFIX_CAMERA_END(SPI_STACK *stack, int argc);
+s32        mapCAMERA_INFO_END(SPI_STACK *stack, s32 argument_count);
+int        mapFUNC_POINT(SPI_STACK *stack, int argc);
+int        mapFUNC_DATA(SPI_STACK *stack, int argc);
+int        mapFUNC_NAME(SPI_STACK *stack, int argc);
+int        mapFUNC_FLAG(SPI_STACK *stack, int argc);
+int        mapFUNC_FIRE_DATA(SPI_STACK *stack, int argc);
+int        mapFUNC_PLIGHT_DATA(SPI_STACK *stack, int argc);
+int        mapFUNC_ANIME_DATA(SPI_STACK *stack, int argc);
+int        mapFUNC_INVENT_DATA(SPI_STACK *stack, int argc);
+int        mapFUNC_EVENT_DATA(SPI_STACK *stack, int argc);
+int        mapFUNC_SOUND_DATA(SPI_STACK *stack, int argc);
+int        mapFUNC_EFFECT_NAME(SPI_STACK *stack, int argc);
+int        mapFUNC_POS(SPI_STACK *stack, int argc);
+int        mapFUNC_DATA_END(SPI_STACK *stack, int argc);
+int        mapFUNC_POINT_END(SPI_STACK *stack, int argc);
+int        cfgDRAW_OFF_RECT(SPI_STACK *stack, int argc);
+int        cfgOCCLUSION_PLANE(SPI_STACK *stack, int argc);
+int        cfgFUNC_DATA(SPI_STACK *stack, int argc);
+int        cfgFUNC_EVENT_DATA(SPI_STACK *stack, int argc);
+int        cfgFUNC_DATA_END(SPI_STACK *stack, int argc);
+int        cfgWATER_SURFACE_NUM(SPI_STACK *stack, int argc);
+s32        cfgWATER_SURFACE_START(SPI_STACK *stack, int argc);
+int        cfgWATER_VERTEX(SPI_STACK *stack, int argc);
+int        cfgWATER_POS(SPI_STACK *stack, int argc);
+int        cfgWATER_PARAM(SPI_STACK *stack, int argc);
+s32        cfgWATER_SHAKE(SPI_STACK *stack, int argc);
+int        cfgWATER_SURFACE_END(SPI_STACK *stack, int argc);
+int        cfgWATER_DRAW(SPI_STACK *stack, int argc);
 
 /**
  * Map the map script is loading into.
@@ -2144,94 +2144,94 @@ update:
  *
  */
 static SPI_TAG_PARAM map_tag[] = {
-    {"d", mapDummy},
-    {"d", mapDummy},
-    {"d", mapDummy},
-    {"d", mapDummy},
-    {"d", mapDummy},
-    {"d", mapDummy},
-    {"d", mapDummy},
-    {"d", mapDummy},
-    {"d", mapDummy},
-    {"d", mapDummy},
-    {"d", mapDummy},
-    {"d", mapDummy},
-    {"d", mapDummy},
-    {"d", mapDummy},
-    {"d", mapDummy},
-    {"d", mapDummy},
-    {"d", mapDummy},
-    {"d", mapDummy},
-    {"d", mapDummy},
-    {"d", mapDummy},
-    {"d", mapDummy},
-    {"d", mapDummy},
-    {"d", mapDummy},
-    {"d", mapDummy},
-    {"d", mapDummy},
-    {"d", mapDummy},
-    {"d", mapDummy},
-    {"d", mapDummy},
-    {"d", mapDummy},
-    {"d", mapDummy},
-    {"d", mapDummy},
-    {"d", mapDummy},
-    {"d", mapDummy},
-    {"d", mapDummy},
-    {"d", mapDummy},
-    {"PARTS", mapPARTS},
-    {"FAR_CLIP", mapFAR_CLIP},
-    {"LIGHT_FLAG", mapLIGHT_FLAG},
-    {"MOVE_FLAG", mapMOVE_FLAG},
-    {"LOD_START", mapLOD_START},
-    {"LOD_BLEND", mapLOD_BLEND},
-    {"LOD_PIECE", mapLOD_PIECE},
-    {"LOD_END", mapLOD_END},
-    {"PIECE", mapPIECE},
-    {"PIECE_POS", mapPIECE_POS},
-    {"PIECE_NAME", mapPIECE_NAME},
-    {"PIECE_ROT", mapPIECE_ROT},
-    {"PIECE_SCALE", mapPIECE_SCALE},
+    {"d",                    mapDummy               },
+    {"d",                    mapDummy               },
+    {"d",                    mapDummy               },
+    {"d",                    mapDummy               },
+    {"d",                    mapDummy               },
+    {"d",                    mapDummy               },
+    {"d",                    mapDummy               },
+    {"d",                    mapDummy               },
+    {"d",                    mapDummy               },
+    {"d",                    mapDummy               },
+    {"d",                    mapDummy               },
+    {"d",                    mapDummy               },
+    {"d",                    mapDummy               },
+    {"d",                    mapDummy               },
+    {"d",                    mapDummy               },
+    {"d",                    mapDummy               },
+    {"d",                    mapDummy               },
+    {"d",                    mapDummy               },
+    {"d",                    mapDummy               },
+    {"d",                    mapDummy               },
+    {"d",                    mapDummy               },
+    {"d",                    mapDummy               },
+    {"d",                    mapDummy               },
+    {"d",                    mapDummy               },
+    {"d",                    mapDummy               },
+    {"d",                    mapDummy               },
+    {"d",                    mapDummy               },
+    {"d",                    mapDummy               },
+    {"d",                    mapDummy               },
+    {"d",                    mapDummy               },
+    {"d",                    mapDummy               },
+    {"d",                    mapDummy               },
+    {"d",                    mapDummy               },
+    {"d",                    mapDummy               },
+    {"d",                    mapDummy               },
+    {"PARTS",                mapPARTS               },
+    {"FAR_CLIP",             mapFAR_CLIP            },
+    {"LIGHT_FLAG",           mapLIGHT_FLAG          },
+    {"MOVE_FLAG",            mapMOVE_FLAG           },
+    {"LOD_START",            mapLOD_START           },
+    {"LOD_BLEND",            mapLOD_BLEND           },
+    {"LOD_PIECE",            mapLOD_PIECE           },
+    {"LOD_END",              mapLOD_END             },
+    {"PIECE",                mapPIECE               },
+    {"PIECE_POS",            mapPIECE_POS           },
+    {"PIECE_NAME",           mapPIECE_NAME          },
+    {"PIECE_ROT",            mapPIECE_ROT           },
+    {"PIECE_SCALE",          mapPIECE_SCALE         },
     {"PIECE_MATERIAL_START", mapPIECE_MATERIAL_START},
-    {"PIECE_MATERIAL", mapPIECE_MATERIAL},
-    {"PIECE_MATERIAL_END", mapPIECE_MATERIAL_END},
-    {"PIECE_COL_TYPE", mapPIECE_COL_TYPE},
-    {"PIECE_TIME", mapPIECE_TIME},
-    {"PIECE_END", mapPIECE_END},
-    {"PARTS_END", mapPARTS_END},
-    {"MAP_PARTS", mapMAP_PARTS},
-    {"MAP_FAR_CLIP", mapMAP_FAR_CLIP},
-    {"PARTS_NAME", mapPARTS_NAME},
-    {"PARTS_GROUP", mapPARTS_GROUP},
-    {"PARTS_POS", mapPARTS_POS},
-    {"PARTS_ROT", mapPARTS_ROT},
-    {"PARTS_SCALE", mapPARTS_SCALE},
-    {"MAP_PARTS_END", mapMAP_PARTS_END},
-    {"_MAP_INFO_TOP", map_MAP_INFO_TOP},
-    {"CAMERA_INFO", mapCAMERA_INFO},
-    {"FIX_CAMERA", mapFIX_CAMERA},
-    {"FIX_CAMERA_POS", mapFIX_CAMERA_POS},
-    {"FIX_CAMERA_POS2", mapFIX_CAMERA_POS2},
+    {"PIECE_MATERIAL",       mapPIECE_MATERIAL      },
+    {"PIECE_MATERIAL_END",   mapPIECE_MATERIAL_END  },
+    {"PIECE_COL_TYPE",       mapPIECE_COL_TYPE      },
+    {"PIECE_TIME",           mapPIECE_TIME          },
+    {"PIECE_END",            mapPIECE_END           },
+    {"PARTS_END",            mapPARTS_END           },
+    {"MAP_PARTS",            mapMAP_PARTS           },
+    {"MAP_FAR_CLIP",         mapMAP_FAR_CLIP        },
+    {"PARTS_NAME",           mapPARTS_NAME          },
+    {"PARTS_GROUP",          mapPARTS_GROUP         },
+    {"PARTS_POS",            mapPARTS_POS           },
+    {"PARTS_ROT",            mapPARTS_ROT           },
+    {"PARTS_SCALE",          mapPARTS_SCALE         },
+    {"MAP_PARTS_END",        mapMAP_PARTS_END       },
+    {"_MAP_INFO_TOP",        map_MAP_INFO_TOP       },
+    {"CAMERA_INFO",          mapCAMERA_INFO         },
+    {"FIX_CAMERA",           mapFIX_CAMERA          },
+    {"FIX_CAMERA_POS",       mapFIX_CAMERA_POS      },
+    {"FIX_CAMERA_POS2",      mapFIX_CAMERA_POS2     },
     {"FIX_CAMERA_OFF_GROUP", mapFIX_CAMERA_OFF_GROUP},
-    {"FIX_CAMERA_RECT", mapFIX_CAMERA_RECT},
-    {"FIX_CAMERA_END", mapFIX_CAMERA_END},
-    {"CAMERA_INFO_END", mapCAMERA_INFO_END},
-    {"FUNC_POINT", mapFUNC_POINT},
-    {"FUNC_DATA", mapFUNC_DATA},
-    {"FUNC_NAME", mapFUNC_NAME},
-    {"FUNC_FLAG", mapFUNC_FLAG},
-    {"FUNC_FIRE_DATA", mapFUNC_FIRE_DATA},
-    {"FUNC_EFFECT_NAME", mapFUNC_EFFECT_NAME},
-    {"FUNC_FIRE_DATA", mapFUNC_EFFECT_NAME},
-    {"FUNC_PLIGHT_DATA", mapFUNC_PLIGHT_DATA},
-    {"FUNC_ANIME_DATA", mapFUNC_ANIME_DATA},
-    {"FUNC_INVENT_DATA", mapFUNC_INVENT_DATA},
-    {"FUNC_EVENT_DATA", mapFUNC_EVENT_DATA},
-    {"FUNC_POS", mapFUNC_POS},
-    {"FUNC_DATA_END", mapFUNC_DATA_END},
-    {"FUNC_POINT_END", mapFUNC_POINT_END},
-    {"FUNC_SOUND_DATA", mapFUNC_SOUND_DATA},
-    {NULL, NULL},
+    {"FIX_CAMERA_RECT",      mapFIX_CAMERA_RECT     },
+    {"FIX_CAMERA_END",       mapFIX_CAMERA_END      },
+    {"CAMERA_INFO_END",      mapCAMERA_INFO_END     },
+    {"FUNC_POINT",           mapFUNC_POINT          },
+    {"FUNC_DATA",            mapFUNC_DATA           },
+    {"FUNC_NAME",            mapFUNC_NAME           },
+    {"FUNC_FLAG",            mapFUNC_FLAG           },
+    {"FUNC_FIRE_DATA",       mapFUNC_FIRE_DATA      },
+    {"FUNC_EFFECT_NAME",     mapFUNC_EFFECT_NAME    },
+    {"FUNC_FIRE_DATA",       mapFUNC_EFFECT_NAME    },
+    {"FUNC_PLIGHT_DATA",     mapFUNC_PLIGHT_DATA    },
+    {"FUNC_ANIME_DATA",      mapFUNC_ANIME_DATA     },
+    {"FUNC_INVENT_DATA",     mapFUNC_INVENT_DATA    },
+    {"FUNC_EVENT_DATA",      mapFUNC_EVENT_DATA     },
+    {"FUNC_POS",             mapFUNC_POS            },
+    {"FUNC_DATA_END",        mapFUNC_DATA_END       },
+    {"FUNC_POINT_END",       mapFUNC_POINT_END      },
+    {"FUNC_SOUND_DATA",      mapFUNC_SOUND_DATA     },
+    {NULL,                   NULL                   },
 };
 
 void CMap::LoadMapFile(char *script, int length, mgCMemory *memory, int add_mode) {
@@ -2571,23 +2571,23 @@ int cfgWATER_DRAW(SPI_STACK *stack, int argc) {
  *
  */
 static SPI_TAG_PARAM cfg_tag[] = {
-    {"DRAW_OFF_RECT", cfgDRAW_OFF_RECT},
-    {"OCCLUSION_PLANE", cfgOCCLUSION_PLANE},
-    {"FUNC_DATA", cfgFUNC_DATA},
-    {"FUNC_NAME", mapFUNC_NAME},
-    {"FUNC_EVENT_DATA", cfgFUNC_EVENT_DATA},
-    {"FUNC_POS", mapFUNC_POS},
-    {"FUNC_DATA", cfgFUNC_DATA_END},
-    {"WATER_SURFACE_NUM", cfgWATER_SURFACE_NUM},
+    {"DRAW_OFF_RECT",       cfgDRAW_OFF_RECT      },
+    {"OCCLUSION_PLANE",     cfgOCCLUSION_PLANE    },
+    {"FUNC_DATA",           cfgFUNC_DATA          },
+    {"FUNC_NAME",           mapFUNC_NAME          },
+    {"FUNC_EVENT_DATA",     cfgFUNC_EVENT_DATA    },
+    {"FUNC_POS",            mapFUNC_POS           },
+    {"FUNC_DATA",           cfgFUNC_DATA_END      },
+    {"WATER_SURFACE_NUM",   cfgWATER_SURFACE_NUM  },
     {"WATER_SURFACE_START", cfgWATER_SURFACE_START},
-    {"WATER_VERTEX", cfgWATER_VERTEX},
-    {"WATER_POS", cfgWATER_POS},
-    {"WATER_PARAM", cfgWATER_PARAM},
-    {"WATER_SHAKE", cfgWATER_SHAKE},
-    {"WATER_SURFACE_END", cfgWATER_SURFACE_END},
-    {"WATER_DRAW_NUM", cfgWATER_DRAW_NUM},
-    {"WATER_DRAW", cfgWATER_DRAW},
-    {NULL, NULL},
+    {"WATER_VERTEX",        cfgWATER_VERTEX       },
+    {"WATER_POS",           cfgWATER_POS          },
+    {"WATER_PARAM",         cfgWATER_PARAM        },
+    {"WATER_SHAKE",         cfgWATER_SHAKE        },
+    {"WATER_SURFACE_END",   cfgWATER_SURFACE_END  },
+    {"WATER_DRAW_NUM",      cfgWATER_DRAW_NUM     },
+    {"WATER_DRAW",          cfgWATER_DRAW         },
+    {NULL,                  NULL                  },
 };
 
 void CMap::LoadCfgFile(char *script, int length, mgCMemory *memory) {
