@@ -1180,30 +1180,30 @@ void mgCMDTBuilder::SetMaterial(float *colour, char *texture) {
 
 void mgCMDTBuilder::EndData() {
     switch (data_type) {
-        case 1:
-            ((int *) header)[4] = cursor - (s32) header;
-            ((int *) header)[3] = data_num;
+        case MG_MDT_DATA_VERTEX:
+            header->vertex_ofs = cursor - (s32) header;
+            header->vertex_num = data_num;
             break;
-        case 4:
-            ((int *) header)[8] = cursor - (s32) header;
-            ((int *) header)[7] = data_num;
+        case MG_MDT_DATA_COLOUR:
+            header->colour_ofs = cursor - (s32) header;
+            header->colour_num = data_num;
             break;
-        case 2:
-            ((int *) header)[6] = cursor - (s32) header;
-            ((int *) header)[5] = data_num;
+        case MG_MDT_DATA_NORMAL:
+            header->normal_ofs = cursor - (s32) header;
+            header->normal_num = data_num;
             break;
-        case 3:
-            ((int *) header)[12] = cursor - (s32) header;
-            ((int *) header)[11] = data_num;
+        case MG_MDT_DATA_UV:
+            header->uv_ofs = cursor - (s32) header;
+            header->uv_num = data_num;
             break;
-        case 5:
-            ((int *) header)[14] = cursor - (s32) header;
-            ((int *) header)[13] = data_num;
+        case MG_MDT_DATA_MATERIAL:
+            header->material_ofs = cursor - (s32) header;
+            header->material_num = data_num;
             break;
     }
 
     cursor = section_start;
-    data_type = 0;
+    data_type = MG_MDT_DATA_NONE;
 }
 
 #pragma schedule reset
@@ -1224,7 +1224,7 @@ void mgCMDTBuilder::BeginFaces() {
 #pragma schedule off
 
 void mgCMDTBuilder::EndFaces() {
-    ((int *) header)[9] = face_end - face_block_addr;
+    header->faces_size = face_end - face_block_addr;
     s32 misalign = face_end & 0xF;
 
     if (misalign > 0) {
