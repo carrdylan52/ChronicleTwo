@@ -1354,13 +1354,17 @@ extern float eDirCurRot[4];
 extern float eDirCurLen;
 extern char at_1835__2[];
 extern char at_1836__2[];
-static inline CMap *ActiveSceneMap(CScene *scene) {
-    return scene->GetMap(scene->active_map);
-}
-static inline mgCCameraFollow *ActiveSceneCamera(CScene *scene) {
-    return (mgCCameraFollow *)scene->GetCamera(scene->active_camera);
-}
 void EditMode(CScene *scene) {
+    CPadControl *pad;
+    int key_up;
+    int key_down;
+    int key_left;
+    int key_right;
+    u32 attr;
+    int poly_rest;
+    CEditMap *map;
+    mgCCameraFollow *camera;
+
     CCPoly *next_poly;
     int i;
     int moving;
@@ -1370,9 +1374,9 @@ void EditMode(CScene *scene) {
     int map_no;
     char *edit_name;
     int wall_parts;
-    CEditMap *map = (CEditMap *)ActiveSceneMap(scene);
+    map = static_cast<CEditMap *>(scene->GetMap(scene->active_map));
     if (map != NULL && strcmp(map->Iam(), at_1835__2) == 0 && map != NULL) {
-        CPadControl *pad = &PadCtrl;
+        pad = &PadCtrl;
         if (CursorLockCnt > 0) {
             pad = NULL;
         }
@@ -1383,7 +1387,7 @@ void EditMode(CScene *scene) {
         SystemMesStep(scene);
         map_no = scene->now_map_no;
         map->area_no = map_no;
-        mgCCameraFollow *camera = ActiveSceneCamera(scene);
+        camera = static_cast<mgCCameraFollow *>(scene->GetCamera(scene->active_camera));
         if (camera != NULL) {
             float old_pos[4];
             *(u_long128 *)old_pos = *(u_long128 *)eCurPos;
@@ -1425,10 +1429,10 @@ void EditMode(CScene *scene) {
             if (HighSpeedMoveCnt < 0) {
                 HighSpeedMoveCnt = 0;
             }
-            int key_up = 0;
-            int key_down = 0;
-            int key_left = 0;
-            int key_right = 0;
+            key_up = 0;
+            key_down = 0;
+            key_left = 0;
+            key_right = 0;
             if (pad != NULL) {
                 key_up = pad->Btn(9);
                 key_down = pad->Btn(10);
@@ -1494,7 +1498,7 @@ void EditMode(CScene *scene) {
             }
             edit_name = NULL;
             int turn_step = 1;
-            u32 attr = 0;
+            attr = 0;
             if (info != NULL) {
                 attr = info->attr;
             }
@@ -1563,7 +1567,7 @@ void EditMode(CScene *scene) {
             box.min[0] -= 100.0f;
             box.min[1] = -100.0f;
             box.min[2] -= 100.0f;
-            int poly_rest = 0x800;
+            poly_rest = 0x800;
             if (maps[0] != NULL) {
                 poly_count = GetGeoCheckCol(maps[0], box, polys, poly_rest);
             }
