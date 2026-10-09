@@ -2125,7 +2125,7 @@ int _LOAD_RESERV_IMG(RS_STACKDATA *stack, int argc) {
         return 0;
     }
 
-    mgCMemory *memory = (mgCMemory *) nowScene->GetStack(3);
+    mgCMemory *memory = nowScene->GetStack(3);
 
     if (memory == NULL) {
         return 0;
@@ -3120,7 +3120,7 @@ int _GET_ENTRY_OBJ_POS(RS_STACKDATA *stack, int argc) {
             return 0;
         }
     } else {
-        monster = (CCharacter2 *) nowMonster;
+        monster = nowMonster;
     }
 
     monster->GetEntryObjectPos(entry_index, pos);
@@ -3970,7 +3970,7 @@ int _LOAD_EFFECT_SCRIPT(RS_STACKDATA *stack, int argc) {
     mgCMemory *memory;
     FxScriptMan->level = 3;
     level = -1;
-    memory = (mgCMemory *) nowScene->GetStack(3);
+    memory = nowScene->GetStack(3);
 
     switch (stack->type) {
         case 0: {
