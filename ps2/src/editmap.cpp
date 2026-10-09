@@ -783,7 +783,7 @@ int CEditMap::BuildEditParts(char *name) {
 
     model->Copy(*part, &parts_heap);
     parts_heap.EndStackMode();
-    part->allocation_address = (int) memory;
+    part->allocation_address = memory;
     part->info = info;
     part->SetPosition(0.0f, 0.0f, 0.0f);
     part->SetRotation(0.0f, 0.0f, 0.0f);
@@ -810,8 +810,8 @@ int CEditMap::DeleteEditParts(int index) {
         memset(edit_parts->house, 0, 0x10);
     }
 
-    if (edit_parts->allocation_address != 0) {
-        parts_heap.Free((u_long128 *) edit_parts->allocation_address);
+    if (edit_parts->allocation_address != NULL) {
+        parts_heap.Free(edit_parts->allocation_address);
     }
 
     edit_parts->Initialize();
