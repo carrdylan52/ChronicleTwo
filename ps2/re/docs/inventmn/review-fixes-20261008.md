@@ -27,3 +27,14 @@ header is present in that table, and the complete size audit has no mismatch.
 
 The documentation changes preserve `SCES_511.90: OK` and 149/149 objects.
 Receipts: `.private/fixes-r1b/receipts/header-sizes-{build,objects}.log`.
+
+## Start and Select button bits
+
+`MenuCheckPushButton` maps `PAD_START` (`0x0800`) to `0x10` and
+`PAD_SELECT` (`0x0100`) to `0x20`. The shared enum names now describe those
+values. The inventory debug case remains `0x20` through
+`MENU_PUSH_BUTTON_SELECT`; the title's start check remains `0x10` through
+`MENU_PUSH_BUTTON_START`.
+
+Both uses and the enum names preserve `SCES_511.90: OK` and 149/149 objects.
+Receipts: `.private/fixes-r1b/receipts/start-select-{build,objects}.log`.

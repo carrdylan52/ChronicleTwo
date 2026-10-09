@@ -1612,7 +1612,7 @@ static int TitleModeKey() {
     if (TitlePhase <= TITLE_PHASE_PUSH_START) {
         TitleInfo->idle_count++;
     }
-    start = push & 0x10;
+    start = push & MENU_PUSH_BUTTON_START;
     start_pushed = 0;
     if (start != 0) {
         start_pushed = 1;

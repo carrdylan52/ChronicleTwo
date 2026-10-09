@@ -115,8 +115,8 @@ enum MENU_PUSH_BUTTON {
     MENU_PUSH_BUTTON_CANCEL   = 0x2,  /**< The button that cancels, which depends on the language. */
     MENU_PUSH_BUTTON_TRIANGLE = 0x4,  /**< The triangle button. */
     MENU_PUSH_BUTTON_SQUARE   = 0x8,  /**< The square button. */
-    MENU_PUSH_BUTTON_SELECT   = 0x10, /**< The select button. */
-    MENU_PUSH_BUTTON_START    = 0x20, /**< The start button. */
+    MENU_PUSH_BUTTON_START    = 0x10, /**< The start button. */
+    MENU_PUSH_BUTTON_SELECT   = 0x20, /**< The select button. */
     MENU_PUSH_BUTTON_R3       = 0x40, /**< The right stick button. */
     MENU_PUSH_BUTTON_L3       = 0x80, /**< The left stick button. */
 };

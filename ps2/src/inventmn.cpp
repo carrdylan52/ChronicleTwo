@@ -6443,7 +6443,7 @@ int MenuInventDebugKey() {
             }
 
             switch (button) {
-                case MENU_PUSH_BUTTON_START:
+                case MENU_PUSH_BUTTON_SELECT:
                     debug_invent_successflag ^= 1;
                     break;
                 case MENU_PUSH_BUTTON_DECIDE: {
