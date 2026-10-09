@@ -741,9 +741,40 @@ static MENU_BGREAD_INFO2 *MenuMonsterBGInfo[MENU_CHARA_LOAD_MAX];
  */
 static s8 pathtbl_3836[2] = {4, 5};
 
-extern char              *menu_chara_chrtbl[2];
-extern char              *menu_chara_cfg_chrtbl[2];
-extern char              *menu_load_chrpathtbl_3811[];
+/**
+ *
+ * Main character model archive names.
+ *
+ */
+static char *menu_chara_chrtbl[2] = {
+    "c01b_menu.chr",
+    "c02a_menu.chr",
+};
+
+/**
+ *
+ * Main character animation configuration names.
+ *
+ */
+static char *menu_chara_cfg_chrtbl[2] = {
+    "c01.stb",
+    "c02.stb",
+};
+
+/**
+ *
+ * Model directories indexed by character background path category.
+ *
+ */
+static char *menu_load_chrpathtbl_3811[6] = {
+    "menu/chara4/",
+    "mainchr/",
+    "mainchr/",
+    "mainchr/",
+    "mainchr/",
+    "chara/",
+};
+
 /**
  *
  * Current phase of the main character background read.
@@ -790,7 +821,21 @@ static int tbl_3186[MENU_CHARA_LOAD_MAX] = {1, 0, 0, 0, 0, 1, 0};
 
 extern sceVu0FVECTOR      posdef_3194;
 extern sceVu0FVECTOR      refdef_3195;
-extern char              *tbl_3196[];
+/**
+ *
+ * Localized help messages for monster transformation selection.
+ *
+ */
+static char *tbl_3196[LANG_CHINESE + 1] = {
+    ":",
+    "[l1][r1]:View same type of monster",
+    "[l1][r1]: voir m[UNI00ea]me type de monstre",
+    "[l1][r1]: Selbe Monster anzeigen.",
+    "[l1][r1]: Vis. stesso tipo di mostro",
+    "[l1][r1]: Ver mismo tipo de monstruo",
+    "[l1][r1]:View same type of monster",
+};
+
 /**
  *
  * Background texture of the monster selection menu.
@@ -935,7 +980,21 @@ static s8 convtbl_5238[COSTUME_LIST_NUM] = {2, 4, 3};
  */
 static float putw_5262[LANG_CHINESE + 1] = {246.0f, 206.0f, 270.0f, 234.0f, 236.0f, 246.0f, 256.0f};
 
-extern char            *infomsg_5256[];
+/**
+ *
+ * Localized costume selection help text.
+ *
+ */
+static char *infomsg_5256[LANG_CHINESE + 1] = {
+    " ",
+    "(R)L/R:Turn (R)U/D:Zoom",
+    "(R)G/D: tourner (R)H/B: avancer",
+    "(R)L/R: drehen (R)O/U: bew.",
+    "(R)S/D: gira (R)S/G: sposta",
+    "(R)I/D: girar (R)A/AB: zoom",
+    "(R)L/R:Turn (R)U/D:Zoom",
+};
+
 /**
  *
  * Background load phase associated with each costume list.
@@ -1035,7 +1094,26 @@ static char *monstere_file_template[LANG_CHINESE + 1] = {
     "  File  %3d/%3d",
 };
 
-extern char            *tbl_3725[MOS_SELECT_BADGE_NUM];
+/**
+ *
+ * Monster badge item-number label part names.
+ *
+ */
+static char *tbl_3725[MOS_SELECT_BADGE_NUM] = {
+    "  %d:Beast   %d",
+    "  %d:Machine %d",
+    "  %d:Aquatic %d",
+    "  %d:Plant   %d",
+    "  %d:Magical %d",
+    "  %d:Devil   %d",
+    "  %d:Dragon  %d",
+    "  %d:Element %d",
+    "  %d:Undead  %d",
+    "  %d:Card    %d",
+    "  %d:Sun     %d",
+    "  %d:Moon    %d",
+};
+
 /**
  *
  * Monster selected by the monster menu debug controls.
@@ -1065,7 +1143,18 @@ static s8 convert_table_3430[10] = {8, 4, 9, 2, 3, 5, 0, 6, 7, 1};
  */
 static short ghobitbl_3437[10] = {186, 187, 188, 189, 190, 191, 192, 193, 194, 196};
 
-extern char            *get_stringtbl_3557[4];
+/**
+ *
+ * Monster badge health and growth number part names.
+ *
+ */
+static char *get_stringtbl_3557[4] = {
+    "\x82\xD6\x82\xF1\x82\xB0\x8D\xA1",
+    "\x82\xD6\x82\xF1\x82\xB0\x8D\xC5\x91\xE5",
+    "\x8F\x6E\x97\xFB\x8D\xA1",
+    "\x8F\x6E\x97\xFB\x8D\xC5\x91\xE5",
+};
+
 extern char             at_3685[];
 extern char             at_3686[];
 extern char             at_3687[];
@@ -1091,7 +1180,17 @@ extern char             at_3706[];
 extern char             at_3707[];
 extern char             at_3708[];
 int                     CosutmeSelDefaultSet(int costume_id, short *costume_list);
-extern char            *MonsterDataPath[];
+/**
+ *
+ * Monster resource directories indexed by model file category.
+ *
+ */
+static char *MonsterDataPath[3] = {
+    "menu/mhenge/",
+    "dungeon/monster/",
+    "menu/monster/",
+};
+
 /**
  *
  * Script name associated with the monster model being read.
@@ -1100,7 +1199,20 @@ extern char            *MonsterDataPath[];
 static char             script_file_name[0x20];
 
 extern short            monster_load_id;
-extern char            *partt_2332[6];
+/**
+ *
+ * Current and maximum gauge label part names of the party menu.
+ *
+ */
+static char *partt_2332[6] = {
+    "hp_now0",
+    "hp_max0",
+    "hp_now1",
+    "hp_max1",
+    "hp_now2",
+    "hp_max2",
+};
+
 
 /**
  *
@@ -7574,19 +7686,12 @@ s16 monster_progress_tbl[MONSTER_PROGRESS_NUM][1 + MONSTER_PROGRESS_LEVEL_NUM] =
 };
 
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", tbl_1233__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", partt_2332__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_2691__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_2696__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", posdef_3194__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", refdef_3195__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", tbl_3196__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_3481__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", get_stringtbl_3557__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", tbl_3725__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", menu_load_chrpathtbl_3811__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", menu_infocfgname__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", MonsterDataPath__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", infomsg_5256__DATA);
 
 // Constants (.rodata)
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_1234__2__DATA);
@@ -7616,24 +7721,8 @@ INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_2021__2__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_2022__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_2023__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_2307__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_2333__5__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_2334__4__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_2335__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_2336__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_2337__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_2338__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_2595__2__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_2596__3__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_3197__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_3198__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_3199__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_3200__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_3201__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_3202__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_3558__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_3559__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_3560__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_3561__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_3685__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_3686__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_3687__DATA);
@@ -7658,36 +7747,9 @@ INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_3705__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_3706__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_3707__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_3708__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_3726__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_3727__3__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_3728__3__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_3729__3__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_3730__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_3731__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_3732__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_3733__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_3734__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_3735__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_3736__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_3737__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_3791__3__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_3792__3__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_3793__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_3794__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_3812__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_3813__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_3814__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_4518__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_4519__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_4520__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_5051__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_5052__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_5053__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_5257__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_5258__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_5259__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_5260__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_5261__2__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_5839__DATA);
 
 // Virtual tables (.vtables)
@@ -7697,8 +7759,6 @@ INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", __vt__15CMenuChrCngMenu__DATA
 // Small initialised data (.sdata)
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", MenuSoundCharaNo__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_2288__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", menu_chara_chrtbl__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", menu_chara_cfg_chrtbl__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", monster_load_id__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", NowReadMainCharaNo__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", NowReadMainCharaMonsterNo__DATA);

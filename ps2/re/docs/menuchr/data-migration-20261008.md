@@ -283,3 +283,24 @@ snapshots, focused object checks, PAL section differences and instruction
 comparisons are under `menuchr-debug-templates-*` and
 `menuchr-party-name-pair-*`. Native consumer word differences are zero;
 whole-object acceptance fails on the unnamed data pieces.
+
+## Named pointer tables and their child literals
+
+Nine native pointer tables supply the party gauge label parts, localized
+monster-selection help, badge numeric and item-number label parts, character
+and monster resource directories, localized costume help, and the two main
+characters' model/configuration filenames. Forty-three child string markers
+are also absent; their bytes and `R_MIPS_32` destinations come from the native
+inline initializers. The badge tables remain reachable under their retail
+symbols from the frozen monster-selection method.
+After this group: **71 / 16 markers**, **4 / 9726 matched_data**.
+Each accepted table passes PAL and 149/149 independently, and the restored
+final state passes. Receipts are `.private/nmchr-r3/menuchr-pointer-tables-01`
+through `-09`, with `-{build,objects,progress,metrics}.log`, plus
+`menuchr-pointer-tables-final` and `pointer-table-batch.log`.
+
+The four-pointer townsperson command-cost table `tbl_1233` is restored.
+Its natural file-scope definition leaves all native instruction words intact,
+but reproduces the unnamed `at_2232` BSS template seen in the debug-buffer
+attempt. Receipt `menuchr-pointer-tables-00-*` records the original source,
+linked/native objects, section differences and the focused object check.
