@@ -650,14 +650,13 @@ void CEditMap::GetInversMatrix(float (*a)[4], float (*b)[4]) {
 }
 
 int CEditMap::ConvertParts(CEditParts *part) {
-    return ((int) part - (int) edit_parts) / 816;
+    return part - edit_parts;
 }
 
 int CEditMap::GetSameParts(int index) {
     CEditParts *target = GetePlaceParts(index);
     void       *info;
     int         i;
-    int         offset;
 
     if (target == 0) {
         return -1;
@@ -669,22 +668,16 @@ int CEditMap::GetSameParts(int index) {
         return -1;
     }
 
-    i = 0;
-    offset = 0;
-
-    for (; i < edit_parts_max; i++) {
-        CEditParts *slot = (CEditParts *) ((char *) edit_parts + offset);
-        int         is_free = slot->name[0] == 0;
+    for (i = 0; i < edit_parts_max; i++) {
+        int is_free = edit_parts[i].name[0] == 0;
 
         if (!is_free) {
-            if (slot->state == 0) {
-                if (slot->info == info) {
+            if (edit_parts[i].state == 0) {
+                if (edit_parts[i].info == info) {
                     return i;
                 }
             }
         }
-
-        offset += 0x330;
     }
 
     return -1;
@@ -831,12 +824,11 @@ int CEditMap::RemoveEditParts(int index, float *pos, RemoveInfo *remove_info_opa
     float           parts_pos[4];
     float           parts_rot[4];
     CEditParts     *candidate;
-    int            *extra;
+    CEditHouse     *house;
     int             id;
     int             n;
     EditPlaceLog   *other;
     CEditPartsInfo *candidate_info;
-    int             color_offset;
     int             c;
     CEditPartsInfo *river_info;
     int             j;
@@ -862,10 +854,10 @@ int CEditMap::RemoveEditParts(int index, float *pos, RemoveInfo *remove_info_opa
             remove_info->parts_num[id] += 1;
         }
 
-        extra = (int *) part->house;
+        house = part->house;
 
-        if (extra != 0) {
-            extra_value = extra[1];
+        if (house != 0) {
+            extra_value = house->npc_no[0];
 
             if (extra_value > 0 && remove_info != 0) {
                 int slot = remove_info->house_num;
@@ -878,10 +870,8 @@ int CEditMap::RemoveEditParts(int index, float *pos, RemoveInfo *remove_info_opa
             if (part->IsFence() == 0) {
                 for (c = 0; c < part->info->paint_num; c++) {
                     if (((CMapParts *) part)->GetColor(c, color) != 0) {
-                        for (j = 0, color_offset = 0; j < remove_info->color_num;
-                             color_offset += 0x10, j++) {
-                            if (EditPartsCmpColor(
-                                    color, (float *) ((u8 *) remove_info->color + color_offset)) != 0) {
+                        for (j = 0; j < remove_info->color_num; j++) {
+                            if (EditPartsCmpColor(color, remove_info->color[j]) != 0) {
                                 remove_info->paint_num[j] += RePaintNum(part->info->paint_used);
                                 break;
                             }
@@ -1081,7 +1071,7 @@ CEditParts *CEditMap::PlaceEditParts(int index, EP_PLACE_INFO *place, float *pos
 
     if (area_no == 1) {
         if (place != 0) {
-            CEditParts *other = GetePlaceParts(((int *) place)[1]);
+            CEditParts *other = GetePlaceParts(place->base[0]);
 
             if (other != 0) {
                 edit_parts->ground = other->ground;
@@ -1193,7 +1183,6 @@ int CEditMap::GetNearParts(CEditPartsInfo *info, float *pos, float angle, CEditP
     int         i;
     int         count;
     float      *bounds;
-    int         out_offset;
     float      *info_bounds;
 
     if (info == 0) {
@@ -1212,7 +1201,6 @@ int CEditMap::GetNearParts(CEditPartsInfo *info, float *pos, float angle, CEditP
     area_min[2] -= 55.0f;
     count = 0;
     i = 0;
-    out_offset = 0;
 
     for (; i < edit_parts_max; i++, part++) {
         int is_free = part->name[0] == 0;
@@ -1240,9 +1228,7 @@ int CEditMap::GetNearParts(CEditPartsInfo *info, float *pos, float angle, CEditP
             break;
         }
 
-        count++;
-        *(CEditParts **) ((u8 *) out + out_offset) = part;
-        out_offset += 4;
+        out[count++] = part;
     }
 
     return count;
@@ -1258,9 +1244,7 @@ int CEditMap::GetNearParts(mgVu0FBOX &box, CEditParts **out, int max) {
     int         count;
     CEditParts *part;
     float      *bounds;
-    int         out_offset;
     count = 0;
-    out_offset = 0;
     part = edit_parts;
 
     for (i = 0; i < edit_parts_max; i++, part++) {
@@ -1304,9 +1288,7 @@ int CEditMap::GetNearParts(mgVu0FBOX &box, CEditParts **out, int max) {
             break;
         }
 
-        count++;
-        *(CEditParts **) ((u8 *) out + out_offset) = part;
-        out_offset += 4;
+        out[count++] = part;
     }
 
     return count;
