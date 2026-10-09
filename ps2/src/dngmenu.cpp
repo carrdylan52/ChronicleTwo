@@ -525,6 +525,9 @@ static signed char is_reverse_tbl_room_2248[8] = {
     DNG_ROUTE_REVERSE, DNG_ROUTE_FORWARD, DNG_ROUTE_REVERSE, DNG_ROUTE_FORWARD, DNG_ROUTE_FORWARD, DNG_ROUTE_REVERSE, DNG_ROUTE_FORWARD, DNG_ROUTE_REVERSE
 };
 
+/** Texture X coordinates of the floor completion icons. */
+static s16 medal_xytbl_1736[5] = { 168, 190, 212, 234, 146 };
+
 // Code (.text)
 void CDngFreeMap::Initialize() {
     active = 1;
@@ -1445,7 +1448,6 @@ static short dngboardbrdtbl_2[12] = {
     58, 22, 24, 36, 82, 22, 8, 36, 90, 22, 24, 36
 };
 
-extern char          at_1993[];
 
 /**
  *
@@ -1515,7 +1517,7 @@ void DrawGeoramaMateria(int top_y, char *title, int unused_count, int *items, in
     x = left + 0x186;
     y = top_y + 0xEF;
     char page[32];
-    sprintf(page, at_1993, GeoramaMateriaInfoDrawPage + 1, GeoramaMateriaNum / 14 + 1);
+    sprintf(page, "%d/%d", GeoramaMateriaInfoDrawPage + 1, GeoramaMateriaNum / 14 + 1);
     font.SetStr(page);
     font.SetPos(x, y);
     font.DrawDirect(font.str, font.pos_x, font.pos_y);
@@ -1644,12 +1646,38 @@ void CDngFreeMap::Step() {
     }
     mark_num = 0;
 }
-/** Names of the passage kinds shown beside the debug room data. */
-extern char *RootTable_2119[4];
-/** Labels for the eight debug floor-save flags. */
-extern char Table_2133[8][32];
-/** Floor-save flag masks corresponding to the debug flag labels. */
-extern unsigned int bittable_2134[8];
+/** Names of the four passage types in the map debug display. */
+static char *RootTable_2119[4] = {
+    "Nrm,",
+    "Sun,",
+    "Moon,",
+    "Star,"
+};
+
+/** Labels of the floor-save flags in the map debug display. */
+static char Table_2133[8][32] = {
+    "  go enable :",
+    "  Clear \x81\x40  :",
+    "  Mission Clr:",
+    "  FastestTime:",
+    "  Fish     :",
+    "  TalkMons :",
+    "  Spheda:",
+    "  GeoStone:"
+};
+
+/** Save-flag masks corresponding to the floor debug labels. */
+static unsigned int bittable_2134[8] = {
+    DNG_FLOOR_FLAG_OPEN,
+    DNG_FLOOR_FLAG_UNK_2,
+    DNG_FLOOR_FLAG_PRACTICE_CLEAR,
+    DNG_FLOOR_FLAG_FAST_DESTROY_CLEAR,
+    DNG_FLOOR_FLAG_FISHING_CLEAR,
+    0x40,
+    DNG_FLOOR_FLAG_SPHEDA_CLEAR,
+    DNG_FLOOR_FLAG_GEOSTONE_FOUND
+};
+
 
 /**
  *
@@ -2234,7 +2262,17 @@ int CheckDngTreeMapFuncType() {
     }
     return 0;
 }
-extern char *name_tbl_2728[8];
+/** First-floor map names for the seven dungeons. */
+static char *name_tbl_2728[7] = {
+    "d01e01",
+    "s02",
+    "g02",
+    "g03",
+    "g04",
+    "d06e01",
+    "m05"
+};
+
 
 void MakeDngTreeMapJumpNo(int dng_no, int floor_id, int *loop_no, int *map_no) {
     if (dng_no == 0 && floor_id == 8) {
@@ -2267,31 +2305,25 @@ static s8 maxidtable_2752[7] = {
     8, 15, 24, 20, 22, 28, 38
 };
 
-extern char         at_2681[];
-extern char         at_2786[];
-extern char         at_2787__2[];
-extern char         at_2788[];
-extern char         at_2789[];
-extern char         at_2790[];
 
 void CMenuTreeMap::InitEnd() {
     BG_READ_INFO *read = GetReadBGFile(0);
     char          map_name[32];
-    sprintf(map_name, at_2681, dng_no);
+    sprintf(map_name, "dmap%d.img", dng_no);
     int block;
     mgCTextureManager *textures;
     u8 *map_img = (u8 *) GetPackFile((u_int *) read->buffer, map_name, NULL);
     block = tex_block[0];
     textures = &mgTexManager;
-    MenuWorkTextureEnter(block, at_2786, 0x200, 0x100, 0x18);
+    MenuWorkTextureEnter(block, "dngmnwork2", 0x200, 0x100, 0x18);
     textures->EnterIMGFile(map_img, block, NULL, NULL);
     if (CheckDngTreeMapFuncType() == 2) {
         textures->EnterIMGFile(MenuCursorDataBuff, block, NULL, NULL);
     }
     MenuDngMap->SetTextureInfo();
-    Floor_InfoTex = textures->GetTexture(at_2787__2, -1);
+    Floor_InfoTex = textures->GetTexture("dngfibrd", -1);
     if (read != NULL) {
-        script = (char *) GetPackFile((u_int *) read->buffer, at_2788, &script_size);
+        script = (char *) GetPackFile((u_int *) read->buffer, "dtmap_com.cfg", &script_size);
         MenuDngMap->floor_manager->CheckDrawGlidInfo();
         int room_no = MenuSaveDataDungeonPtr->floor_id[dng_no];
         if (room_no < 1) {
@@ -2333,12 +2365,12 @@ void CMenuTreeMap::InitEnd() {
         cursor_pos[0] = position[0];
         cursor_pos[1] = position[1];
         FadeInMenu(40, 0.0f);
-        mes_data = (short *) GetPackFile((u_int *) read->buffer, at_2789, NULL);
+        mes_data = (short *) GetPackFile((u_int *) read->buffer, "systree.mes", NULL);
         MsgInit();
         u_long128  buffer[0xA000 / sizeof(u_long128)];
         u_long128 *aligned = MenuCalcBufAlignment(buffer);
         char       treasure_name[64];
-        sprintf(treasure_name, at_2790, dng_no + 1);
+        sprintf(treasure_name, "dungeon/cfg_file/tbox_d0%d.cfg", dng_no + 1);
         int size;
         if (LoadFile2(treasure_name, aligned, &size, 0)) {
             CreatTresuarBoxInfo(&tresure, (char *) aligned, size);
@@ -3092,8 +3124,6 @@ struct DngTreeReadNames {
 
 STATIC_ASSERT(sizeof(DngTreeReadNames) == 8);
 
-/** Empty filename pair used to initialize the menu data request. */
-extern DngTreeReadNames at_3478;
 
 /**
  *
@@ -3169,7 +3199,7 @@ void DngTreeMapInit(mgCMemory *stack, int *tex_block, int menu_mode, int dng_no)
     DngInfoStageNo = dng_no;
     char filename[40];
     sprintf(filename, "dmap%d.pac", dng_no);
-    DngTreeReadNames names = at_3478;
+    DngTreeReadNames names = {{NULL, NULL}};
     names.name[0] = filename;
     MenuCommonReadData(&MenuTreeMapStack, names.name, 0);
 }
@@ -3237,39 +3267,16 @@ void mgRect<float>::Set(float new_left, float new_top, float new_right, float ne
 // Initialised data (.data)
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dngmenu", DngInfoMedalNumMsg__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dngmenu", dngboardbrdtbl_1__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dngmenu", medal_xytbl_1736__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dngmenu", RootTable_2119__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dngmenu", Table_2133__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dngmenu", bittable_2134__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dngmenu", name_tbl_2728__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dngmenu", bitTable_2900__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dngmenu", at_3141__DATA);
 
 // Constants (.rodata)
 const mgRect<int> dng_light_circle(388, 304, 124, 80);
 const mgRect<int> dngfreemap_num(0, 0, 12, 18);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dngmenu", at_1993__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dngmenu", at_2120__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dngmenu", at_2121__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dngmenu", at_2122__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dngmenu", at_2123__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dngmenu", at_2681__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dngmenu", at_2682__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dngmenu", at_2683__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dngmenu", at_2684__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dngmenu", at_2685__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dngmenu", at_2729__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dngmenu", at_2730__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dngmenu", at_2731__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dngmenu", at_2732__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dngmenu", at_2733__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dngmenu", at_2734__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dngmenu", at_2735__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dngmenu", at_2786__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dngmenu", at_2787__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dngmenu", at_2788__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dngmenu", at_2789__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dngmenu", at_2790__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dngmenu", at_2826__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dngmenu", at_3342__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dngmenu", at_3343__DATA);
@@ -3291,7 +3298,6 @@ INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dngmenu", at_3164__DATA);
 INCLUDE_BSS(at_3040__2, 0x4);
 INCLUDE_BSS(at_3145, 0x8);
 INCLUDE_BSS(at_3199, 0x8);
-INCLUDE_BSS(at_3478, 0x8);
 
 // Uninitialised data (.bss)
 mgRect<float> treemap_root_put;

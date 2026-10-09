@@ -84,3 +84,41 @@ symbols used by the guarded `LoadDngInfo` assembly. That draft's existing
 `dng-route-<symbol>` and `dng-route-orders` prefixes.
 
 Markers: 43 / 5; matched data: 36 / 3159 bytes.
+
+## Names and remaining native initializers
+
+The page format, loader filenames, four passage names, eight fixed-width
+debug labels, eight debug flag masks, and seven first-floor map names now
+use literal initializers at their actual uses or typed table definitions.
+Shift-JIS bytes use hexadecimal escapes. Pointer-table data retains each
+retail literal target, including the separate `d07f01` literal used by the
+map-name table. The tree-opening filename pair uses a real null aggregate
+initializer, replacing its eight-byte BSS seed. Five medal-icon X
+coordinates now have a signed-halfword definition used by guarded assembly.
+
+Seven cleanup steps and the medal table each pass PAL verification and
+149/149 canonical object checks. Receipts use `dng-native-<step>` and
+`dng-medal-coordinates` prefixes.
+
+## Retained markers
+
+The following 20 initialized markers and four BSS markers remain.
+All frozen guarded blocks equal the checkpoint source verbatim.
+
+| Marker | Reason |
+|---|---|
+| `DngInfoMedalNumMsg__DATA` | Retail has twelve halfwords; frozen DrawDngRoomInfo declares sixteen. A correctly sized native definition conflicts with that declaration. |
+| `dngboardbrdtbl_1__DATA` | Retail has twelve halfwords; frozen DrawDngRoomInfo declares sixteen. |
+| `bitTable_2900__DATA` | Retail has nine words; frozen Step declares twelve. |
+| `at_3141__DATA` | Step-only compiler initializer; its body cannot generate native data in the matching build. |
+| `at_2682__DATA`, `at_2683__DATA`, `at_2684__DATA`, `at_2685__DATA` | Resource-name literals used only by frozen LoadDngInfo. |
+| `at_2826__DATA` | MSG_INIT literal used only by frozen MsgInit. |
+| `at_3342__DATA`, `at_3343__DATA`, `at_3344__DATA`, `at_3345__DATA`, `at_3346__DATA`, `at_3347__DATA`, `at_3348__DATA`, `at_3349__DATA`, `at_3350__DATA` | Script and time-text literals used only by frozen Step. |
+| `at_3043__DATA`, `at_3164__DATA` | Step-only compiler initializer data; natural use-site replacement requires editing that draft. |
+| `at_3040__2`, `at_3145`, `at_3199`, `at_3142` | Step-only zero initializer templates; native use-site emission is unavailable while the draft remains guarded. |
+
+Final markers: **99 / 42 -> 20 / 4**. Refreshed matched data:
+**4 / 3159 -> 36 / 3159 bytes**. The metric requires entire aggregate
+sections, so retained pieces prevent credit for the otherwise native data.
+No function is promoted, no profile row changes, and no foreign-file
+proposal is needed.
