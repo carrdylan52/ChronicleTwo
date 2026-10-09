@@ -224,8 +224,10 @@ belongs to linker alignment.
 A terminal datum retains its declared extent when its end equals the generated
 linker script’s `contents_end`. The checker accepts larger linker-owned tails
 only with no retail relocations and complete zero initialized bytes.
-Referenced interior addresses and explicit
-`D_<address>` source identifiers remain separate piece boundaries.
+Literal identity uses declared objects; padding additionally uses the canonical
+reference boundaries, so an alignment tail cannot swallow a separately referenced
+word. Referenced interior addresses and explicit `D_<address>` source identifiers
+remain separate piece boundaries.
 
 Native BSS templates, local statics and their guards need an exact declared
 extent and agreement from every live incoming code reference. Each reference

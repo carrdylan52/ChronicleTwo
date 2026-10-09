@@ -35,6 +35,28 @@ class LiteralExtentTests(unittest.TestCase):
                             addresses={'table': 0x4000}, rows=rows)
         return elf.symtab.symbols[0].name
 
+    def test_reference_boundary_limits_padding_without_changing_identity(self):
+        fixture = self.fixture(native=8, declared=8, gap=8)
+        elf, pieces, retail, rows = fixture
+        start = 0x3020
+        canonical = NS(unit=lambda unit: [('.rodata', [
+            ('at_1', 0x3000, start), ('at_2', start, start + 12),
+            ('D_0000302C', start + 12, start + 16)])])
+        p.name_literal_data(elf, 'unit', set(), retail=retail, pieces=pieces,
+                            padding_pieces=canonical, addresses={'table': 0x4000}, rows=rows)
+        self.assertEqual(elf.symtab.symbols[0].name, 'at_2')
+        self.assertEqual(len(elf.sections[1].data), 12)
+        self.assertEqual(elf.symtab.symbols[0].st_size, 12)
+
+    def test_boundary_inside_declared_payload_rejects_literal(self):
+        fixture = self.fixture(native=8, declared=8, gap=8)
+        elf, pieces, retail, rows = fixture
+        canonical = NS(unit=lambda unit: [('.rodata', [('at_2', 0x3020, 0x3024)])])
+        p.name_literal_data(elf, 'unit', set(), retail=retail, pieces=pieces,
+                            padding_pieces=canonical, addresses={'table': 0x4000}, rows=rows)
+        self.assertEqual(elf.symtab.symbols[0].name, 'at_999')
+        self.assertEqual(len(elf.sections[1].data), 8)
+
     def test_exact_declared_empty_string_owns_internal_eight_byte_piece(self):
         fixture = self.fixture()
         self.assertEqual(self.apply(fixture), 'at_2')

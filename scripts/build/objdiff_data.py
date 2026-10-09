@@ -224,7 +224,7 @@ def prepare_native_data(elf, unit, ctx):
         symbol.name = f'at_{(1 << 64) + index}'
         symbol.st_name = elf.strtab.add_symbol(symbol.name)
     p.name_literal_data(elf, unit, set(), retail=ctx.retail, pieces=ctx.literal_pieces,
-                        addresses=ctx.addresses, rows=ctx.rows)
+                        addresses=ctx.addresses, rows=ctx.rows, padding_pieces=ctx.pieces)
     for symbol in anonymous:
         if symbol.name.startswith('at_') and int(symbol.name.split('__')[0][3:]) >= 1 << 64:
             symbol.name = '.unmapped_' + symbol.name

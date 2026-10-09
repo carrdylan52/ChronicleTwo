@@ -1019,11 +1019,15 @@ def name_initialized_locals(elf, unit, placeholders, *, retail, pieces, addresse
         symbol.st_name = elf.strtab.add_symbol(name)
 
 
-def name_literal_data(elf, unit, placeholders, *, retail=None, pieces=None, addresses=None, rows=None):
+def name_literal_data(elf, unit, placeholders, *, retail=None, pieces=None, addresses=None, rows=None,
+                      padding_pieces=None):
     retail = layout.Retail() if retail is None else retail
     pieces = disassemble.Pieces(references=[]) if pieces is None else pieces
     addresses = retail_addresses() if addresses is None else addresses
     rows = layout.read_symbols(ROOT / layout.SYMBOLS) if rows is None else rows
+    padding_pieces = pieces if padding_pieces is None else padding_pieces
+    padding_ends = {(start, name): end for _kind, run in padding_pieces.unit(unit)
+                    for name, start, end in run}
     regions = [(lo, retail.bytes(lo, hi)) for name, lo, hi in pieces.layout.sections(unit)
                if name in ('.rodata', '.sdata', '.data', '.ctor')]
     cuts = {start: (name, end) for section, run in pieces.unit(unit)
@@ -1158,6 +1162,7 @@ def name_literal_data(elf, unit, placeholders, *, retail=None, pieces=None, addr
             continue
         start = found[0]
         name, end = cuts[start]
+        end = min(end, padding_ends.get((start, name), end))
         if declared_sizes.get(name, len(data)) != len(data):
             continue
         # Complete linked pieces retain verified terminal tails; comparison
@@ -1497,7 +1502,8 @@ def main():
         bind_named_static_bss(elf, unit, placeholder_sections)
         rename_dng_main_local_static(elf, unit)
         bind_local_data(elf, unit, placeholder_sections)
-        name_literal_data(elf, unit, placeholder_sections)
+        name_literal_data(elf, unit, placeholder_sections,
+                          padding_pieces=disassemble.Pieces())
         pad_data(elf, unit, placeholder_sections)
         shadowed = bind_suffixed_references(elf, unit)
         pad_data(elf, unit, placeholder_sections)
