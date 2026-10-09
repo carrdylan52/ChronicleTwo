@@ -176,7 +176,7 @@ int grGetFishProgress(grRACE_INFO *race, int fish, float time, grRACE_PROGRESS *
 
     *(RaceProgressCopy *) out = *(RaceProgressCopy *) &progress[index];
 
-    if (out->state == 0) {
+    if (out->state == GR_RACE_STATE_NONE) {
         return 0;
     }
 
@@ -274,7 +274,7 @@ int StepFish(int index, RACE_FISH_PARAM *fish) {
     sample->lane_pos = fish->lane;
 
     if (!(sample->pos < 16.0f)) {
-        sample->state = 3;
+        sample->state = GR_RACE_STATE_GOAL;
         return 1;
     }
 
@@ -878,7 +878,7 @@ void SetRaceFishParam(RACE_FISH_PARAM *fish, grRACE_INFO *race) {
         slot->battle_time = 0;
         slot->pos = 0;
         slot->lane = param_ptr->lane;
-        slot->state = 1;
+        slot->state = GR_RACE_STATE_SWIM;
         slot->battle = 0;
         slot->progress_num = race->step_max;
         slot->progress = race->progress[i];
