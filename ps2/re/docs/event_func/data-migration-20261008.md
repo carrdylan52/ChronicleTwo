@@ -66,6 +66,29 @@ its documented eight-byte layout in `event_func.hpp`; both handlers receive
 file-local declarations. Native padding retains the original .data piece.
 Receipt: `.private/dataA-r3/event-arg-dispatch-{build,objects,hashes}.log`.
 
+## External callback result types
+
+`CRunScript::ext` tests each callback's integer result and diagnoses zero.
+Twenty-two callbacks now explicitly return their final dependency call's
+existing integer status; their previous void declarations hid that result:
+
+`_FINISH`, `_IMG_SET_DRAW`, `_IMG_SET_GET`, `_IMG_SET_PUT`, `_IMG_SET_MOVE`, `_IMG_SET_FADE`, `_IMG_SET_COLOR`, `_GEORAMA_FUNC`, `_EOH_SET_STEP`, `_EOH_SET_SHOW`, `_EOH_SET_FRAME_SHOW`, `_EOH_SET_SHADOW`, `_EOH_SET_FOOT_SOUND_ID`, `_EOH_SET_FRAME_STATUS`, `_EOH_SET_SOUND_ID`, `_EOH_SET_FADE_FLAG`, `_EOH_RESET_DA_POSITION`, `_EOH_SET_SHADOW_FRAME_STATUS`, `_EOH_SYNC_GEOSTONE`, `_EOH_NORMAL_DRIVE`, `_EOH_SET_FOOT_SE_ID`, `_MT_TEST`.
+
+`_EOH_GET_POS`, `_EOH_GET_ROT`, `_EOH_GET_SHOW`, and `_EOH_GET_FRAME_POS`
+return the handle lookup's integer result. Their stack-output calls preserve
+v0 in retail and in the native object. A named result expresses that live
+status, with no extra instructions. The frame-position getter needs the
+positive `if (result != 0)` body and one common return: the early-return form
+shortens the native body by four bytes and changes branch/call placement.
+Every retained result correction passes the whole-object and PAL checks.
+No callback pointer cast or undefined missing return is used.
+
+m2c receipts: `.private/dataA-r3/_EOH_GET_{POS,ROT,SHOW,FRAME_POS}-m2c.txt`
+and `_FINISH-m2c.txt`. Canonical receipts are
+`event-results-wrappers`, `event-results-_EOH_GET_{POS,ROT,SHOW}`, and
+`event-results-frame-branch`, each with build/object/hash logs. The rejected
+frame early-return form is in `event-results-_EOH_GET_FRAME_POS-failure.log`.
+
 ## Retained markers
 
 The initialized-data markers are pending the following migration topics.

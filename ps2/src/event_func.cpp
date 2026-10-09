@@ -4035,8 +4035,11 @@ int _SET_WORLD_COORD(RS_STACKDATA *stack, int argc) {
     return 0;
 }
 
-void _FINISH(RS_STACKDATA *stack, int argc) {
-    EdEventFinish();
+/**
+ * Finishes the running event and returns its completion status.
+ */
+int _FINISH(RS_STACKDATA *stack, int argc) {
+    return EdEventFinish();
 }
 
 int _GET_DUN_WORLD_COORD(RS_STACKDATA *stack, int argc) {
@@ -7441,11 +7444,14 @@ int _GET_DIORAMA_PERCENT(RS_STACKDATA *stack, int argc) {
     return 1;
 }
 
-void _GEORAMA_FUNC(RS_STACKDATA *stack, int argc) {
+/**
+ * Runs a georama script command and returns its status.
+ */
+int _GEORAMA_FUNC(RS_STACKDATA *stack, int argc) {
     GeoFuncParam param;
 
     param.scene = (CScene *) EventScene;
-    GeoramaFunc(&param, stack, argc);
+    return GeoramaFunc(&param, stack, argc);
 }
 
 int _GET_CHARA_ID(RS_STACKDATA *stack, int arg_count) {
@@ -9667,27 +9673,36 @@ int _ASQ_SE_PLAY(RS_STACKDATA *stack, int argc) {
     return 1;
 }
 
-void _IMG_SET_DRAW(RS_STACKDATA *stack, int argc) {
+/**
+ * Sets an event text sprite visibility and returns the update status.
+ */
+int _IMG_SET_DRAW(RS_STACKDATA *stack, int argc) {
     int draw;
 
     draw = GetStackInt(stack++);
-    esMother.SetDraw(GetStackInt(stack), draw);
+    return esMother.SetDraw(GetStackInt(stack), draw);
 }
 
-void _IMG_SET_GET(RS_STACKDATA *stack, int argc) {
+/**
+ * Sets an event text sprite source rectangle and returns the update status.
+ */
+int _IMG_SET_GET(RS_STACKDATA *stack, int argc) {
     int index = GetStackInt(stack++);
     int a = GetStackInt(stack++);
     int b = GetStackInt(stack++);
     int c = GetStackInt(stack++);
-    esMother.SetGet(index, a, b, c, GetStackInt(stack));
+    return esMother.SetGet(index, a, b, c, GetStackInt(stack));
 }
 
-void _IMG_SET_PUT(RS_STACKDATA *stack, int argc) {
+/**
+ * Sets an event text sprite destination rectangle and returns the update status.
+ */
+int _IMG_SET_PUT(RS_STACKDATA *stack, int argc) {
     int index = GetStackInt(stack++);
     int a = GetStackInt(stack++);
     int b = GetStackInt(stack++);
     int c = GetStackInt(stack++);
-    esMother.SetPut(index, a, b, c, GetStackInt(stack));
+    return esMother.SetPut(index, a, b, c, GetStackInt(stack));
 }
 
 int _IMG_SET_NAME(RS_STACKDATA *stack, int argc) {
@@ -9696,25 +9711,34 @@ int _IMG_SET_NAME(RS_STACKDATA *stack, int argc) {
     return esMother.SetName(no, name);
 }
 
-void _IMG_SET_MOVE(RS_STACKDATA *stack, int argc) {
+/**
+ * Sets an event text sprite movement and returns the update status.
+ */
+int _IMG_SET_MOVE(RS_STACKDATA *stack, int argc) {
     int index = GetStackInt(stack++);
     int x = GetStackInt(stack++);
     int y = GetStackInt(stack++);
-    esMother.SetMove(index, x, y, GetStackInt(stack));
+    return esMother.SetMove(index, x, y, GetStackInt(stack));
 }
 
-void _IMG_SET_FADE(RS_STACKDATA *stack, int argc) {
+/**
+ * Sets an event text sprite fade and returns the update status.
+ */
+int _IMG_SET_FADE(RS_STACKDATA *stack, int argc) {
     int index = GetStackInt(stack++);
     int from = GetStackInt(stack++);
-    esMother.SetFade(index, from, GetStackInt(stack));
+    return esMother.SetFade(index, from, GetStackInt(stack));
 }
 
-void _IMG_SET_COLOR(RS_STACKDATA *stack, int argc) {
+/**
+ * Sets an event text sprite color and returns the update status.
+ */
+int _IMG_SET_COLOR(RS_STACKDATA *stack, int argc) {
     int index = GetStackInt(stack++);
     int r = GetStackInt(stack++);
     int g = GetStackInt(stack++);
     int b = GetStackInt(stack++);
-    esMother.SetColor(index, r, g, b, GetStackInt(stack));
+    return esMother.SetColor(index, r, g, b, GetStackInt(stack));
 }
 
 static CEventSprite2 *GetEventSprite(int index) {
@@ -12725,24 +12749,38 @@ int _EOH_SET_ROT(RS_STACKDATA *stack, int argc) {
     return EventObjHandleMother.SetRot(slot, rot[0], rot[1], rot[2]);
 }
 
-void _EOH_GET_POS(RS_STACKDATA *stack, int argc) {
+/**
+ * Writes an event object position to the script stack and returns the lookup status.
+ */
+int _EOH_GET_POS(RS_STACKDATA *stack, int argc) {
     float pos[3];
 
-    if (EventObjHandleMother.GetPos(GetStackInt(stack++), pos) != 0) {
+    int result = EventObjHandleMother.GetPos(GetStackInt(stack++), pos);
+
+    if (result != 0) {
         SetStack(stack++, pos[0]);
         SetStack(stack++, pos[1]);
         SetStack(stack, pos[2]);
     }
+
+    return result;
 }
 
-void _EOH_GET_ROT(RS_STACKDATA *stack, int argc) {
+/**
+ * Writes an event object rotation to the script stack and returns the lookup status.
+ */
+int _EOH_GET_ROT(RS_STACKDATA *stack, int argc) {
     float rot[3];
 
-    if (EventObjHandleMother.GetRot(GetStackInt(stack++), rot) != 0) {
+    int result = EventObjHandleMother.GetRot(GetStackInt(stack++), rot);
+
+    if (result != 0) {
         SetStack(stack++, rot[0]);
         SetStack(stack++, rot[1]);
         SetStack(stack, rot[2]);
     }
+
+    return result;
 }
 
 int _EOH_SET_MOTION(RS_STACKDATA *stack, int argc) {
@@ -12794,9 +12832,12 @@ int _EOH_SET_MOTION(RS_STACKDATA *stack, int argc) {
     return EventObjHandleMother.SetMotion(index, name, type, blend);
 }
 
-void _EOH_SET_STEP(RS_STACKDATA *stack, int argc) {
+/**
+ * Sets an event object motion step and returns the update status.
+ */
+int _EOH_SET_STEP(RS_STACKDATA *stack, int argc) {
     argc = GetStackInt(stack++);
-    EventObjHandleMother.SetStep(argc, GetStackFloat(stack));
+    return EventObjHandleMother.SetStep(argc, GetStackFloat(stack));
 }
 int _EOH_SET_TEX_ANIM(RS_STACKDATA *stack, int argc) {
     int no = GetStackInt(stack);
@@ -12829,39 +12870,55 @@ int _EOH_SET_SCALE(RS_STACKDATA *stack, int argc) {
     return EventObjHandleMother.SetScale(no, x, y, z);
 }
 
-void _EOH_SET_SHOW(RS_STACKDATA *stack, int argc) {
+/**
+ * Sets an event object visibility and returns the update status.
+ */
+int _EOH_SET_SHOW(RS_STACKDATA *stack, int argc) {
     int slot;
 
     slot = GetStackInt(stack++);
-    EventObjHandleMother.SetShow(slot, GetStackInt(stack));
+    return EventObjHandleMother.SetShow(slot, GetStackInt(stack));
 }
 
-void _EOH_GET_SHOW(RS_STACKDATA *stack, int argc) {
+/**
+ * Writes an event object visibility to the script stack and returns the lookup status.
+ */
+int _EOH_GET_SHOW(RS_STACKDATA *stack, int argc) {
     RS_STACKDATA *next_slot;
 
     next_slot = stack + 1;
 
     int show;
 
-    if (EventObjHandleMother.GetShow(GetStackInt(stack), &show) != 0) {
+    int result = EventObjHandleMother.GetShow(GetStackInt(stack), &show);
+
+    if (result != 0) {
         SetStack(next_slot, show);
     }
+
+    return result;
 }
 
-void _EOH_SET_FRAME_SHOW(RS_STACKDATA *stack, int argc) {
+/**
+ * Sets an event object frame visibility and returns the update status.
+ */
+int _EOH_SET_FRAME_SHOW(RS_STACKDATA *stack, int argc) {
     int   slot;
     char *frame_name;
 
     slot = GetStackInt(stack++);
     frame_name = GetStackString(stack++);
-    EventObjHandleMother.SetFrameShow(slot, frame_name, GetStackInt(stack) != 0 ? 1 : 0);
+    return EventObjHandleMother.SetFrameShow(slot, frame_name, GetStackInt(stack) != 0 ? 1 : 0);
 }
 
-void _EOH_SET_SHADOW(RS_STACKDATA *stack, int argc) {
+/**
+ * Sets an event object shadow and returns the update status.
+ */
+int _EOH_SET_SHADOW(RS_STACKDATA *stack, int argc) {
     int slot;
 
     slot = GetStackInt(stack++);
-    EventObjHandleMother.SetShadow(slot, GetStackInt(stack));
+    return EventObjHandleMother.SetShadow(slot, GetStackInt(stack));
 }
 
 int _EOH_SET_TRANSLATE(RS_STACKDATA *stack, int argc) {
@@ -12874,41 +12931,55 @@ int _EOH_SET_TRANSLATE(RS_STACKDATA *stack, int argc) {
     return EventObjHandleMother.SetTranslate(no, translate);
 }
 
-void _EOH_SET_FOOT_SOUND_ID(RS_STACKDATA *stack, int argc) {
+/**
+ * Sets an event object footstep sound identifier and returns the update status.
+ */
+int _EOH_SET_FOOT_SOUND_ID(RS_STACKDATA *stack, int argc) {
     int slot;
 
     slot = GetStackInt(stack++);
-    EventObjHandleMother.SetFootSoundID(slot, GetStackInt(stack));
+    return EventObjHandleMother.SetFootSoundID(slot, GetStackInt(stack));
 }
 
-void _EOH_SET_FRAME_STATUS(RS_STACKDATA *stack, int argc) {
+/**
+ * Sets an event object frame visibility and returns the update status.
+ */
+int _EOH_SET_FRAME_STATUS(RS_STACKDATA *stack, int argc) {
     int   slot;
     char *frame_name;
 
     slot = GetStackInt(stack++);
     frame_name = GetStackString(stack++);
-    EventObjHandleMother.SetFrameShow(slot, frame_name, GetStackInt(stack));
+    return EventObjHandleMother.SetFrameShow(slot, frame_name, GetStackInt(stack));
 }
 
-void _EOH_GET_FRAME_POS(RS_STACKDATA *stack, int argc) {
+/**
+ * Writes an event object frame position to the script stack and returns the lookup status.
+ */
+int _EOH_GET_FRAME_POS(RS_STACKDATA *stack, int argc) {
     float pos[4];
     int   no = GetStackInt(stack++);
     char *name = GetStackString(stack++);
 
-    if (EventObjHandleMother.GetFramePos(no, name, pos) == 0) {
-        return;
+    int result = EventObjHandleMother.GetFramePos(no, name, pos);
+
+    if (result != 0) {
+        SetStack(stack++, pos[0]);
+        SetStack(stack++, pos[1]);
+        SetStack(stack, pos[2]);
     }
 
-    SetStack(stack++, pos[0]);
-    SetStack(stack++, pos[1]);
-    SetStack(stack, pos[2]);
+    return result;
 }
 
-void _EOH_SET_SOUND_ID(RS_STACKDATA *stack, int argc) {
+/**
+ * Sets an event object sound identifier and returns the update status.
+ */
+int _EOH_SET_SOUND_ID(RS_STACKDATA *stack, int argc) {
     int slot;
 
     slot = GetStackInt(stack++);
-    EventObjHandleMother.SetSoundID(slot, GetStackInt(stack));
+    return EventObjHandleMother.SetSoundID(slot, GetStackInt(stack));
 }
 
 int _EOH_GET_FRAME_STATUS(RS_STACKDATA *stack, int argc) {
@@ -12942,28 +13013,40 @@ int _EOH_SYNC_CHROBJ(RS_STACKDATA *stack, int argc) {
     return EventObjHandleMother.Set(slot, 3, frame);
 }
 
-void _EOH_SET_FADE_FLAG(RS_STACKDATA *stack, int argc) {
+/**
+ * Sets an event object fade flag and returns the update status.
+ */
+int _EOH_SET_FADE_FLAG(RS_STACKDATA *stack, int argc) {
     int slot;
 
     slot = GetStackInt(stack++);
-    EventObjHandleMother.SetFadeFlag(slot, GetStackInt(stack));
+    return EventObjHandleMother.SetFadeFlag(slot, GetStackInt(stack));
 }
 
-void _EOH_RESET_DA_POSITION(RS_STACKDATA *stack, int argc) {
-    EventObjHandleMother.ResetDAPosition(GetStackInt(stack));
+/**
+ * Resets an event object animation position and returns the update status.
+ */
+int _EOH_RESET_DA_POSITION(RS_STACKDATA *stack, int argc) {
+    return EventObjHandleMother.ResetDAPosition(GetStackInt(stack));
 }
 
-void _EOH_SET_SHADOW_FRAME_STATUS(RS_STACKDATA *stack, int argc) {
+/**
+ * Sets an event object shadow frame visibility and returns the update status.
+ */
+int _EOH_SET_SHADOW_FRAME_STATUS(RS_STACKDATA *stack, int argc) {
     int   slot;
     char *frame_name;
 
     slot = GetStackInt(stack++);
     frame_name = GetStackString(stack++);
-    EventObjHandleMother.SetShadowFrameShow(slot, frame_name, GetStackInt(stack));
+    return EventObjHandleMother.SetShadowFrameShow(slot, frame_name, GetStackInt(stack));
 }
 
-void _EOH_SYNC_GEOSTONE(RS_STACKDATA *stack, int argc) {
-    EventObjHandleMother.Set(GetStackInt(stack), 0, -1, (CCharacter2 *) &GeoStone);
+/**
+ * Attaches an event handle to a geostone and returns the update status.
+ */
+int _EOH_SYNC_GEOSTONE(RS_STACKDATA *stack, int argc) {
+    return EventObjHandleMother.Set(GetStackInt(stack), 0, -1, (CCharacter2 *) &GeoStone);
 }
 
 int _EOH_SYNC_SEARCH_CHARA(RS_STACKDATA *stack, int argc) {
@@ -12983,8 +13066,11 @@ int _EOH_SYNC_SEARCH_CHARA(RS_STACKDATA *stack, int argc) {
     return EventObjHandleMother.Set(slot, 0, -1, (CCharacter2 *) player->SearchChara(name));
 }
 
-void _EOH_NORMAL_DRIVE(RS_STACKDATA *stack, int argc) {
-    EventObjHandleMother.NormalDrive(GetStackInt(stack));
+/**
+ * Updates an event character and returns the update status.
+ */
+int _EOH_NORMAL_DRIVE(RS_STACKDATA *stack, int argc) {
+    return EventObjHandleMother.NormalDrive(GetStackInt(stack));
 }
 
 int _EOH_SET_FRAME_ALPHA(RS_STACKDATA *stack, int argc) {
@@ -13046,11 +13132,14 @@ int _EOH_SYNC_FUNCP(RS_STACKDATA *stack, int argc) {
     return 0;
 }
 
-void _EOH_SET_FOOT_SE_ID(RS_STACKDATA *stack, int argc) {
+/**
+ * Sets an event object footstep effect identifier and returns the update status.
+ */
+int _EOH_SET_FOOT_SE_ID(RS_STACKDATA *stack, int argc) {
     int slot;
 
     slot = GetStackInt(stack++);
-    EventObjHandleMother.SetFootSeId(slot, GetStackInt(stack));
+    return EventObjHandleMother.SetFootSeId(slot, GetStackInt(stack));
 }
 
 int _EOH_SYNC_DOOR_PARTS(RS_STACKDATA *stack, int argc) {
@@ -13656,8 +13745,11 @@ int _TEST(RS_STACKDATA *stack, int argc) {
     return 1;
 }
 
-void _MT_TEST(RS_STACKDATA *stack, int argc) {
-    mt_test(stack, argc);
+/**
+ * Runs the monster test script command and returns its status.
+ */
+int _MT_TEST(RS_STACKDATA *stack, int argc) {
+    return mt_test(stack, argc);
 }
 
 int _ZERO_VECTOR(RS_STACKDATA *stack, int arg_count) {
