@@ -186,6 +186,24 @@ static inline unsigned int blocks_for(unsigned int size) {
     return (size & 0xF) != 0 ? (size >> 4) + 1 : size >> 4;
 }
 
+/**
+ *
+ * Returns the character count of a message's longest page.
+ *
+ */
+static inline int MaxPageChars(ClsMes *mes) {
+    if (mes->page_num <= 0) {
+        return 0;
+    }
+    int max_chars = 0;
+    for (int i = 0; i < mes->page_num; i++) {
+        if (max_chars < mes->page_chars[i]) {
+            max_chars = mes->page_chars[i];
+        }
+    }
+    return max_chars;
+}
+
 const int kMonsterMemoCount = 0x119;
 const int kModelDelayFrames = 20;
 const int kModelFrameCap = 20;
@@ -933,15 +951,15 @@ extern NpcCmdMesList    at_1684__2;
 extern GiftVolumeList   at_1806__2;
 /**
  *
- * Townsperson command cursor transitions.
+ * Townsperson command cursor transitions, eight input directions per command.
  *
  */
-static s8 nextIDtbl_1594[5][8] = {
-    {0, 0, 2, 2, 2, 1, 1, 0},
-    {3, 0, 0, 1, 4, 4, 3, 3},
-    {0, 0, 2, 2, 2, 2, 0, 0},
-    {3, 3, 1, 1, 1, 3, 3, 3},
-    {1, 1, 1, 1, 4, 4, 4, 4}
+static s8 nextIDtbl_1594[40] = {
+    0, 0, 2, 2, 2, 1, 1, 0,
+    3, 0, 0, 1, 4, 4, 3, 3,
+    0, 0, 2, 2, 2, 2, 0, 0,
+    3, 3, 1, 1, 1, 3, 3, 3,
+    1, 1, 1, 1, 4, 4, 4, 4
 };
 
 /**
@@ -1924,19 +1942,7 @@ int CMenuChrCngMenu::KeyChangeMain() {
                 case 3:
                     break;
                 case 10: {
-                    int widest;
-                    if (npcMes->page_num <= 0) {
-                        widest = 0;
-                    } else {
-                        int i;
-                        int max_chars = 0;
-                        for (i = 0; i < npcMes->page_num; i++) {
-                            if (max_chars < npcMes->page_chars[i]) {
-                                max_chars = npcMes->page_chars[i];
-                            }
-                        }
-                        widest = max_chars;
-                    }
+                    int widest = MaxPageChars(npcMes);
                     int cursor = npcMes->AddMsgCursor2(widest - 2, widest - 1, 1);
                     switch (buttons) {
                         case 1:
@@ -2169,7 +2175,7 @@ int CMenuChrCngMenu::KeyChangeMain() {
                     }
                     int next = -1;
                     if (dir >= 0) {
-                        next = nextIDtbl_1594[select][dir];
+                        next = nextIDtbl_1594[select * 8 + dir];
                     }
                     if (next >= 0) {
                         select = next;
@@ -2560,19 +2566,7 @@ int CMenuChrCngMenu::KeyChangeMain() {
             {
                 npcMes->MakeMsg(GetPartyCharaMessage(npc_no, 6, 0) + SelectedCmdNo_1415);
                 npcMes->StepMsg();
-                int widest;
-                if (npcMes->page_num <= 0) {
-                    widest = 0;
-                } else {
-                    int i;
-                    int max_chars = 0;
-                    for (i = 0; i < npcMes->page_num; i++) {
-                        if (max_chars < npcMes->page_chars[i]) {
-                            max_chars = npcMes->page_chars[i];
-                        }
-                    }
-                    widest = max_chars;
-                }
+                int widest = MaxPageChars(npcMes);
                 npcMes->SetMsgCursor(widest - 1);
                 npcMes->draw_speed = 0.0f;
                 AdjustNPCTalk(npcMes, npc_chara);
