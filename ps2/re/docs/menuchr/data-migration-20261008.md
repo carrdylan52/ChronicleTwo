@@ -131,3 +131,12 @@ empty-string consumers now use the inline empty literal as well.
 After this step: **272 / 25 markers**, **4 / 9726 matched_data**.
 PAL and 149/149 objects pass; receipts are
 `.private/nmchr-r3/menuchr-book-types-{build,objects,progress,metrics}.log`.
+
+`monster_jyakuten` is a native seven-by-eight pointer table of weakness
+labels. Its 224 bytes and all 56 pointers match retail, and thirty additional
+child-string markers are absent. Non-ASCII strings preserve every retail
+byte with hexadecimal escapes. Unsupported translated rows use the same
+English fallbacks as retail.
+After this step: **241 / 25 markers**, **4 / 9726 matched_data**.
+PAL and 149/149 objects pass; receipts are
+`.private/nmchr-r3/menuchr-book-weakness-{build,objects,progress,metrics}.log`.

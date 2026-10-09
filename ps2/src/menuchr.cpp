@@ -656,7 +656,49 @@ static char *monster_type_name[LANG_CHINESE + 1][12] = {
     },
 };
 
-extern char              *monster_jyakuten[][8];
+/**
+ *
+ * Weakness names displayed by the book for each supported language.
+ *
+ */
+static char *monster_jyakuten[LANG_CHINESE + 1][8] = {
+    {
+        "", "", "",
+        "", "", "",
+        "", "",
+    },
+    {
+        "Fl.", "Ch.", "Li.",
+        "Cy.", "Sm.", "Ex.",
+        "Be.", "Sc.",
+    },
+    {
+        "Fe.", "Fr.", "[UNI00c9]c.",
+        "Cy.", "Ma.", "Ex.",
+        "An.", "[UNI00c9]c.",
+    },
+    {
+        "Hi.", "K[UNI00e4].", "Bl.",
+        "To.", "Ze.", "Ex.",
+        "Ti.", "Sc.",
+    },
+    {
+        "Fu.", "Gh.", "Li.",
+        "Ci.", "Di.", "Es.",
+        "Be.", "Sq.",
+    },
+    {
+        "Ll.", "Fr.", "Ra.",
+        "Ci.", "Ap.", "Ex.",
+        "Co.", "De.",
+    },
+    {
+        "Fl.", "Ch.", "Li.",
+        "Cy.", "Sm.", "Ex.",
+        "Be.", "Sc.",
+    },
+};
+
 extern char               at_4950__2[];
 extern char               menu_infocfgname[];
 extern u8                 at_4967__2[16];
@@ -7565,7 +7607,6 @@ INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_4967__2__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", tbl_5016__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", infomsg_5256__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", putw_5262__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", monster_jyakuten__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_5452__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", stand_bit_5472__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", tbl_5848__DATA);
@@ -7753,36 +7794,6 @@ INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_5258__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_5259__2__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_5260__2__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_5261__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_5402__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_5403__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_5404__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_5405__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_5406__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_5407__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_5408__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_5409__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_5410__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_5411__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_5412__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_5413__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_5414__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_5415__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_5416__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_5417__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_5418__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_5419__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_5420__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_5421__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_5422__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_5423__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_5424__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_5425__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_5426__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_5427__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_5428__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_5429__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_5430__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_5431__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_5558__2__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_5559__2__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_5560__2__DATA);
