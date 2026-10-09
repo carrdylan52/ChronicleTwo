@@ -275,7 +275,7 @@ void ParabolicInitialVector(float *result, float *from, float *to, float gravity
  *
  */
 static int GetStackInt(RS_STACKDATA *slot) {
-    if (slot->type == 1) {
+    if (slot->type == RS_FLOAT) {
         return (int) slot->val.f;
     }
 
@@ -288,11 +288,11 @@ static int GetStackInt(RS_STACKDATA *slot) {
  *
  */
 static float GetStackFloat(RS_STACKDATA *slot) {
-    if (slot->type == 0) {
+    if (slot->type == RS_INT) {
         return (float) slot->val.i;
     }
 
-    return *(float *) &slot->val.i;
+    return slot->val.f;
 }
 
 /**
@@ -301,7 +301,7 @@ static float GetStackFloat(RS_STACKDATA *slot) {
  *
  */
 static char *GetStackString(RS_STACKDATA *slot) {
-    return (char *) slot->val.i;
+    return slot->val.s;
 }
 
 /**
@@ -310,8 +310,8 @@ static char *GetStackString(RS_STACKDATA *slot) {
  *
  */
 static void SetStack(RS_STACKDATA *slot, int value) {
-    if (slot->type == 3) {
-        ((RS_STACKDATA *) slot->val.i)->val.i = value;
+    if (slot->type == RS_PTR) {
+        slot->val.p->val.i = value;
     }
 }
 
@@ -321,8 +321,8 @@ static void SetStack(RS_STACKDATA *slot, int value) {
  *
  */
 static void SetStack(RS_STACKDATA *slot, float value) {
-    if (slot->type == 3) {
-        *(float *) &((RS_STACKDATA *) slot->val.i)->val.i = value;
+    if (slot->type == RS_PTR) {
+        slot->val.p->val.f = value;
     }
 }
 
