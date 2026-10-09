@@ -14,8 +14,12 @@
 #include "main.hpp"
 #include "mainloop.hpp"
 
-/** Vertical blanks counted since start-up, kept non-negative. */
 // Small uninitialised data (.sbss)
+/**
+ *
+ * Vertical blanks counted since start-up, kept non-negative.
+ *
+ */
 static volatile int vcount__2;
 static int          VSyncCallBack(int event);
 
