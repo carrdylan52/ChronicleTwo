@@ -3,16 +3,21 @@
 
 #include <cmath>
 #include <cstdio>
+#include <cstring>
 
 #include "actionchara.hpp"
 #include "cameracontrol.hpp"
+#include "character.hpp"
 #include "dataread.hpp"
 #include "dng_effect.hpp"
+#include "dng_main.hpp"
 #include "gyorace.hpp"
 #include "gyoracesim.hpp"
 #include "mainloop.hpp"
+#include "maintex.hpp"
 #include "mapparts.hpp"
 #include "mdslist.hpp"
+#include "menuaqua.hpp"
 #include "menudraw.hpp"
 #include "mg_drawenv.hpp"
 #include "mg_drawprim.hpp"
@@ -30,6 +35,7 @@
 #include "snd_seseq.hpp"
 #include "subgame.hpp"
 #include "sysmes.hpp"
+#include "userdata.hpp"
 
 /**
  *
@@ -74,16 +80,6 @@ static mgCTexture *wind_tex;
  *
  */
 static int WindowTexb;
-
-#include <cstring>
-
-#include "character.hpp"
-#include "dng_effect.hpp"
-#include "menuaqua.hpp"
-#include "userdata.hpp"
-#include "dng_main.hpp"
-#include "maintex.hpp"
-
 
 /**
  *
