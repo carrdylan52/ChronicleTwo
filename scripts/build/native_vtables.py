@@ -10,8 +10,9 @@ from typing import NamedTuple
 import postprocess_object as p
 
 
-# A table's retail owner need not be the translation unit whose constructors
-# make MWCC emit it. The source-only producer has no assembly replacements.
+# A retail table's owner, mapped to the raw source-only unit that emits it.
+# MWCC emits a vtable where its class's first non-inline virtual is defined,
+# and every owner's source does so; no producer is declared.
 TABLE_PRODUCERS = {}
 
 
