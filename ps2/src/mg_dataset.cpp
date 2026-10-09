@@ -44,13 +44,13 @@ int conv_new_text(char *dst, char *src) {
     out = dst;
     more = 1;
 
-    while ((c = *(s8 *) src) != 0) {
+    while ((c = *src) != 0) {
         if (c == 0) {
             more = 0;
             break;
         }
 
-        if (c == '_' && ((s8 *) src)[1] == '_') {
+        if (c == '_' && src[1] == '_') {
             src += 2;
             out[0] = '-';
             out[1] = '-';
@@ -64,7 +64,7 @@ int conv_new_text(char *dst, char *src) {
     }
 
     while (more != 0) {
-        c = *(s8 *) src;
+        c = *src;
 
         if (c == 0) {
             break;
@@ -86,9 +86,9 @@ int conv_new_text(char *dst, char *src) {
             case 'a':
             case 'A':
                 out[0] = 'a';
-                out[1] = ((s8 *) src)[1];
+                out[1] = src[1];
                 src += 2;
-                out[2] = *(s8 *) src;
+                out[2] = *src;
                 out += 3;
                 break;
             case 'z':
@@ -120,7 +120,7 @@ int conv_new_text(char *dst, char *src) {
                 out[0] = 'b';
                 out++;
                 src++;
-                c = *(s8 *) src;
+                c = *src;
 
                 if (c == 0) {
                     src--;
@@ -169,7 +169,7 @@ int conv_new_text(char *dst, char *src) {
 #pragma global_optimizer off
 
 static int htoi(char *text) {
-    s8 *end = (s8 *)text;
+    char *end = text;
     s32 length = 0;
     s32 value = 0;
     while (*end++ != 0) {
@@ -240,12 +240,12 @@ void mgSetFrameAttr(mgCFrame *input_frame, int input_recursive) {
 
     text = cursor;
 
-    while ((current = *(s8 *) text) != 0) {
+    while ((current = *text) != 0) {
         if (current == 0) {
             apply = 0;
             break;
         } else {
-            if (current == '-' && ((s8 *) text)[1] == '-') {
+            if (current == '-' && text[1] == '-') {
                 text += 2;
                 break;
             }
