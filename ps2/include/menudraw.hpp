@@ -2187,7 +2187,7 @@ void Menu3DivideTextureDraw(mgCDrawPrim *prim, mgRect<int> rect, short *tex_tbl,
  * @address 0x22D060
  * @size 0x40
  */
-void *GetMenuMainIconChar(int no);
+char *GetMenuMainIconChar(int no);
 
 /**
  *

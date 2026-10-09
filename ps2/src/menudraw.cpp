@@ -4606,7 +4606,7 @@ void CPosDataManage::EtcTbl2Clear(int from, int to) {
     }
 }
 
-void *GetMenuMainIconChar(int icon_no) {
+char *GetMenuMainIconChar(int icon_no) {
     sprintf(temp_3925, "mi%d", icon_no - 2);
     return temp_3925;
 }
@@ -4927,7 +4927,7 @@ int CMenuPosDataManage::StepMainMenuIconMove(int *icons, int select, int mode) {
     slot = 0;
 
     for (i = 0; (icon = icons[i]) >= 0 && count < 19; i++, count++) {
-        form = GetFormInfo((char *) GetMenuMainIconChar(icon));
+        form = GetFormInfo(GetMenuMainIconChar(icon));
 
         if (form != NULL) {
             icon_move_pos target = {{0, 0}};

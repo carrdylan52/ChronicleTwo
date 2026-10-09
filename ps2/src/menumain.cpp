@@ -1949,7 +1949,7 @@ int MenuInternInit(mgCMemory *stack, int open_type, int capture) {
         MovePoint pos = {-260, 0};
         MovePoint step = {20, 40};
         for (int icon = 0; icon < icon_count; icon++) {
-            char *name = (char *)GetMenuMainIconChar(CMenuInterPt->mode_list[icon]);
+            char *name = GetMenuMainIconChar(CMenuInterPt->mode_list[icon]);
             pos.y = origin.y + step.y * icon;
             MenuPosData->SetFormPos(name, &pos.x);
         }
@@ -2280,7 +2280,7 @@ int MenuInternSelectKey(void) {
     if ((next_mode != MENU_MODE_DNG_TREE_MAP && next_mode != MENU_MODE_WORLD_MOVE) || GetMenuMainFrameEndFlag() == 0) {
         MenuPosData->StepMainMenuIconMove(mode_list, mode, closing);
     }
-    CMenuPosDataForm *icon_form = MenuPosData->GetFormInfo((char *)GetMenuMainIconChar(mode));
+    CMenuPosDataForm *icon_form = MenuPosData->GetFormInfo(GetMenuMainIconChar(mode));
     if (old_select != CMenuInterPt->select_no && abs(old_select - CMenuInterPt->select_no) > 1) {
         CMenuInterPt->cursor_jump = 1;
     }
