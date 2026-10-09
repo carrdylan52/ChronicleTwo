@@ -1127,7 +1127,6 @@ static int tbl_2483[MENU_CHARA_LOAD_MAX] = {1, 1, 1, 1, 1, 1, 1};
 
 extern char               at_2595__2[];
 extern char               at_2596__3[];
-extern char               at_2307[];
 /**
  *
  * Cursor reversal flag for each party menu selection.
@@ -4281,7 +4280,7 @@ int CMenuMosSelect::KeyStep() {
                 MenuDrawEnv->camera.SetRef(camera_ref);
                 *(CameraPoint *) MenuDrawEnv->pos = *(CameraPoint *) camera_pos;
                 *(CameraPoint *) MenuDrawEnv->ref = *(CameraPoint *) camera_ref;
-                ExeScript(at_2307);
+                ExeScript("\x8F\x49\x97\xB9\x8F\x88\x97\x9D");
                 MenuPosData->TexGetInfoClear(0xAA, 0x100);
                 MenuPosData->FormInfoClear(0x3C, 0x4F);
                 return result;
@@ -4368,7 +4367,7 @@ int CMenuMosSelect::KeyStep() {
                             int cursor = command->CommandMsgCursor();
                             switch (buttons) {
                                 case 1:
-                                case 4:
+                                case 4: {
                                     int mes = command->item_mes[cursor];
                                     if (mes == 0x14B7) {
                                         action = 20;
@@ -4383,6 +4382,7 @@ int CMenuMosSelect::KeyStep() {
                                         action = 5;
                                     }
                                     break;
+                                }
                                 case 2:
                                     action = 500;
                                     break;
