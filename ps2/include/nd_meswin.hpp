@@ -1059,7 +1059,7 @@ public:
      *
      * @mangled Init__6ClsMesFv
      * @address 0x1F38E0
-     * @size 0x2C0
+     * @size 0x2B8
      */
     void Init() {
         int name_count;

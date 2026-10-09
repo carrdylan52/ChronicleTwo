@@ -109,7 +109,7 @@ int EditStep();
  *
  * @mangled EditDraw__Fv
  * @address 0x1AF800
- * @size 0xD70
+ * @size 0xD6C
  */
 int EditDraw();
 
