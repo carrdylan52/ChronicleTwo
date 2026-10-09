@@ -522,9 +522,9 @@ int sgInitGyoRace(SubGameInfo *info) {
         if (OmakeFlag == 0 && racer == 0) {
             if (race_rank[1] == 0) data->fatigue++;
             fish_item = *item;
-            BREEDFISH_USED *stamina_data = &fish_item->data.fish;
+            data = &fish_item->data.fish;
             fatigue = (unsigned short)fish_item->data.fish.fatigue;
-            RaceInfo.fish[racer].stamina = (int)((float)stamina_data->param[3] - (0.1f * (float)(fatigue - 1) * (float)fish_item->data.fish.param[3]));
+            RaceInfo.fish[racer].stamina = (int)((float)data->param[3] - (0.1f * (float)(fatigue - 1) * (float)fish_item->data.fish.param[3]));
             printf(at_1377__4__DATA, fatigue);
         } else {
             RaceInfo.fish[racer].stamina = data->param[3];
