@@ -1075,4 +1075,3 @@ int GetMaxDrawMem(int map_no) {
 EditAnalyzeSrc::EditAnalyzeSrc() {
     Init();
 }
-
