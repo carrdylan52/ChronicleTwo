@@ -75,3 +75,10 @@ Those logs are `aqua-template-{next-think,thinking-vectors,round-copy}-build.log
 Markers at this checkpoint: 112 / 3; matched data: 2128 / 8293 bytes.
 The subsequent full `invent-pointer-anchor-{build,objects}.log` also
 verifies the restored aquarium source: PAL OK and 149/149 objects.
+
+The circling direction seed also matches as a local sceVu0FVECTOR
+initializer, removing its external template and seed-copy cast. The
+existing runtime vector copy remains unchanged. `aqua-sdk-round-seed`
+verifies PAL OK and 149/149 objects. SDK-array forms for NextThink and
+Thinking retain the same five/thirteen-byte differences and are reverted.
+Current markers: 111 / 3; matched data: 2128 / 8293 bytes.

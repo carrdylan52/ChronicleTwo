@@ -197,7 +197,6 @@ extern "C" float dirtbl_1242[8];
 extern "C" aqua_vector at_1346;
 
 
-extern "C" aqua_vector at_1241__3;
 
 
 
@@ -1285,12 +1284,11 @@ void CAquaFish::NextRootNormal() {
 
 void CAquaFish::MoveActionRound() {
     float  pos[4];
-    float  dir[4];
     float *turn;
     float  yaw;
 
     GetPosition(pos);
-    *(aqua_quad *) dir = *(aqua_quad *) &at_1241__3;
+    sceVu0FVECTOR dir = {0.0f, 0.0f, 0.0f, 1.0f};
     yaw = target_rot[1];
     turn = &dirtbl_1242[round.dir * 4];
 
@@ -7333,7 +7331,6 @@ INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuaqua", esa_info__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuaqua", aqua_bubble_generate_pos__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuaqua", up_tbl_996__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuaqua", amptbl_997__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuaqua", at_1241__3__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuaqua", dirtbl_1242__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuaqua", at_1346__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuaqua", max_tbl_1484__DATA);
