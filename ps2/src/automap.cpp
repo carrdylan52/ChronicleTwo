@@ -1185,7 +1185,7 @@ static SPI_TAG_PARAM tag[] = {
 void CAutoMapGen::SetupRoomInfo(char *name, int length, mgCMemory *mem) {
     int i;
 
-    room_info = (AUTOMAP_ROOM_INFO *) operator new[](0x600, mem->Alloc(0x62));
+    room_info = new (mem->Alloc(0x62)) AUTOMAP_ROOM_INFO[64];
 
     for (i = 0; i < 64; i++) {
         AUTOMAP_ROOM_INFO *preset = room_info + i;
