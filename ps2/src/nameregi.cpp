@@ -1086,7 +1086,7 @@ void NameRegistInit(mgCMemory *stack, int *tex_block, int open_type) {
         NameRegiWaku = textures->GetTexture("menueff0m", -1);
     }
 
-    u8 *cursor_img = (u8 *) GetMenuMainIMGPtr();
+    u8 *cursor_img = GetMenuMainIMGPtr();
 
     if (cursor_img != NULL) {
         MenuEnterIMG(NameRegiMenuPtr->tex_block[0], cursor_img, "m");
