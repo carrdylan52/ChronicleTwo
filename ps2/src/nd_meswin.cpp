@@ -4537,7 +4537,7 @@ void MovieCCAnalyze(char *text, int size, int id) {
     InitMovieCC();
     slot = 0;
 
-    while ((unsigned int) cursor < (unsigned int) (text + size)) {
+    while (cursor < text + size) {
         if (strncmp(cursor, "_STA ", 5) == 0) {
             cursor += 5;
             MovieCCStart[slot] = (int) (movie_ccframes_per_second * atof(cursor));
