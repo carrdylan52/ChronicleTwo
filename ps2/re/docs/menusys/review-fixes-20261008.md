@@ -21,3 +21,17 @@ The promoted functions singled out by the review have declared sizes
 The before/after inventories are `size-audit-before.json` and
 `size-audit-after.json`; full acceptance is recorded in `sizes-build.log` and
 `sizes-objects.log` (PAL OK, 149/149 objects).
+
+## File-local function identities (finding 3)
+
+Each of the three source-defined helpers has one documentation block on its
+definition, with the retail identity and declared extent:
+
+| Function | Retail address | Declared size |
+| --- | --- | --- |
+| `MenuDataSwap__FP13CGameDataUsedP13CGameDataUsedi` | 0x23DD80 | 0x38C |
+| `MenuItemDebugDraw__Fv` | 0x2494E0 | 0x13A4 |
+| `MenuPosFormValueSetCharaRobo__FP9ROBO_DATAi` | 0x24CB20 | 0x498 |
+
+The existing purpose descriptions remain. `identities-build.log` and
+`identities-objects.log` record PAL OK and 149/149 objects.

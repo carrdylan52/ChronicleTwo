@@ -3695,6 +3695,9 @@ MenuSwapResultTable at_2512 = {{MENU_SWAP_RESULT_FAILED, MENU_SWAP_RESULT_DESTIN
  *
  * Exchanges menu items through gift-box, bait, stacking and aquarium handling.
  *
+ * @mangled MenuDataSwap__FP13CGameDataUsedP13CGameDataUsedi
+ * @address 0x23DD80
+ * @size 0x38C
  */
 int MenuDataSwap(CGameDataUsed *destination, CGameDataUsed *source, int quantity) {
     int          dst_type;
@@ -8614,6 +8617,9 @@ INCLUDE_ASM("ps2/asm/pal/nonmatchings/menusys", MenuItemDebugKey__Fv);
  *
  * Draws the debug item browser and the character and weapon information pages.
  *
+ * @mangled MenuItemDebugDraw__Fv
+ * @address 0x2494E0
+ * @size 0x13A4
  */
 void MenuItemDebugDraw(void) {
     CMenuFont          menu_font;
@@ -10162,6 +10168,9 @@ void MenuItemCharaViewCheck(CHARA_DATA *chara, int chara_no, int flag) {
  *
  * Updates the ridepod status form's health, capacity, defence and part warning colours.
  *
+ * @mangled MenuPosFormValueSetCharaRobo__FP9ROBO_DATAi
+ * @address 0x24CB20
+ * @size 0x498
  */
 void MenuPosFormValueSetCharaRobo(ROBO_DATA *robo, int flag) {
     float               sway;
