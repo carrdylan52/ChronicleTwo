@@ -23,12 +23,6 @@ import objdiff_data  # noqa: E402
 ROOT = Path(__file__).resolve().parents[2]
 
 
-def suffixed_names(lay, unit, rows):
-    ranges = [(lo, hi) for _s, lo, hi in lay.sections(unit)]
-    return {name: re.sub(r"__\d+$", "", name) for address, name, _size, _func in rows
-            if re.fullmatch(r".+__\d+", name) and any(lo <= address < hi for lo, hi in ranges)}
-
-
 def project_name(name):
     """Use the same punctuation normalization as the split/postprocessor."""
     name = re.sub(r"[,<>.$]", "_", name)

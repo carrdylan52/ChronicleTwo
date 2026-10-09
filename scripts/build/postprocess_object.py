@@ -1,50 +1,24 @@
 #!/usr/bin/env python3
-"""Give each section of a compiled game unit retail's name, type, flags and alignment.
+"""Normalize native object identities and verified layout for the retail link.
 
-    postprocess_object.py <object>
+MWCC emits one section per function or datum. Retail addresses select each
+section's name, flags, alignment and order. Placeholder aliases identify the
+assembly-supplied pieces; binding a native copy to one preserves instruction
+fields and requires consistent references plus exact bytes or NOBITS extents.
 
-MWCC emits every function and every datum in a section of its own, named for
-what the compiler made of it: a datum tools/mwccgap supplies is a `const`
-array to the compiler, so it lands in `.rodata` whatever retail's section is.
-Each allocated section here is looked up by the symbol it defines -- in
-main.symbols.txt, or by the address an invented `D_<ADDR8>` name spells -- and
-given the section retail holds that address in:
+Native data naming checks declared extents, section kinds, byte and relocation
+evidence, source-name families and all consumers needed by the identity pass.
+Local duplicate suffixes are resolved within the owning unit. Exact native
+objects may retain verified zero initialized padding and canonical BSS
+reservations. Independently cut alignment fragments require both neighboring
+objects' original extents and compiler alignments, with complete zero contents.
 
-- the name `layout.section_of` gives, and the matching `.rel<name>` for its
-  relocations;
-- NOBITS for `.sbss` and `.bss`, PROGBITS otherwise;
-- the flags of that kind of section, `.sdata` and `.sbss` carrying the MIPS
-  gp-relative flag as MWCC sets it, `.init` being code;
-- alignment 1 for a datum, whose extent already runs to the next symbol, so
-  no padding is added between pieces; a function keeps the compiler's.
-
-A section whose symbol retail does not name -- a compiler-generated one, in a
-decompiled function's future -- is left as the compiler emitted it, but for
-the alignment of a `.rodata` one: retail has every compiler-generated literal
-of `.rodata` on a multiple of eight, and this compiler gives one of four
-bytes or fewer, such as the string "BIN", a multiple of four, so its
-alignment is raised to eight.
-
-A datum's placeholder is defined under an alias (`layout.PLACEHOLDER_SUFFIX`),
-so that the source can also see the datum's typed declaration; the alias is
-dropped here, before anything is looked up by name.
-
-A compiled function may use data the unit still supplies through a
-placeholder: a string or floating-point literal, a function-local static, a
-file-local variable. The compiler emits its own copy of each, under a name of
-its own. Every reference a compiled function makes to such a copy is repointed
-at the placeholder holding the address retail's instruction refers to, and a
-copy nothing refers to any more is checked against retail's bytes and marked
-`.dead` for scripts/build/fixup_sections.sh to remove -- so a function can be
-compiled before the data it uses is migrated (`bind_local_data`). Named local
-BSS statics are also bound by a unique source declaration and explicit retail
-marker with the same base name and exact extent (`bind_named_static_bss`),
-independently of their compiler-generated suffix or instruction positions.
-
-tools/mwccgap adds a symbol a datum's relocations refer to a second time, and
-a datum that refers to itself carries the assembler's section index rather
-than the object's. Every such duplicate is folded into the symbol the object
-already defines, so a reference resolves to the unit's own definition.
+External compiler-generated functions and vtables are removed only through
+their dedicated ownership and verification rules. Native vtable imports use raw
+source-only producers and checked provenance. Duplicate global symbols are
+folded into live definitions; unused literals and dead compiler records are
+removed without changing code. Canonical object and final PAL verification
+remain the acceptance checks for every normalized object.
 """
 
 import argparse
@@ -1473,9 +1447,10 @@ def discard_shadow_vtables(elf, placeholder_sections):
 
 
 def bind_suffixed_references(elf, unit):
+    """Bind unique in-unit duplicate names and preserve their reference addends."""
     lay = layout.Layout(ROOT / layout.YAML)
     if lay.kinds.get(unit) != "cpp":
-        return set()
+        return
     ranges = [(lo, hi) for _s, lo, hi in lay.sections(unit)]
     names = {name for address, name, _size, _func in layout.read_symbols(ROOT / layout.SYMBOLS)
              if any(lo <= address < hi for lo, hi in ranges)}
@@ -1487,7 +1462,6 @@ def bind_suffixed_references(elf, unit):
                 and elf.sections[symbol.st_shndx].name != DEAD):
             defined.setdefault(symbol.name, index)
     remap = {}
-    shadowed = set()
     for name in sorted(own - set(defined)):
         plain = re.sub(r"__\d+$", "", name)
         if plain not in defined:
@@ -1515,7 +1489,6 @@ def bind_suffixed_references(elf, unit):
         for relocation in record.relocations:
             if relocation.symbol_index in remap:
                 relocation.symbol_index = remap[relocation.symbol_index]
-    return shadowed
 
 
 def fold_duplicates(elf):
@@ -1617,13 +1590,11 @@ def discard_dead_code_records(elf):
             record.name = '.rel' + DEAD
 
 
-def retail_sections(elf, addresses, unit=None, shadowed=frozenset()):
+def retail_sections(elf, addresses, unit=None):
     """{section index: retail section name} for every section retail names."""
     out = {}
     ranges = layout.Layout(ROOT / layout.YAML).sections(unit) if unit else []
     for symbol in elf.symtab.symbols:
-        if symbol.name in shadowed and symbol.bind != STB_LOCAL:
-            continue
         index = symbol.st_shndx
         if not symbol.name or symbol.type == STT_SECTION or not (0 < index < len(elf.sections)):
             continue
@@ -1666,7 +1637,6 @@ def main():
         if symbol.type != STT_SECTION and not symbol.name.startswith('.'):
             symbol.name = project_name(symbol.name)
             symbol.st_name = elf.strtab.add_symbol(symbol.name)
-    shadowed = set()
     name = args.object.name
     unit = None
     if name.endswith(".cpp.o"):
@@ -1695,7 +1665,7 @@ def main():
         materialize_alignment_fragments(elf, unit, placeholder_sections, native_extents,
                                         held=objdiff_data.fallback_data_names(source))
         pad_data(elf, unit, placeholder_sections)
-        shadowed = bind_suffixed_references(elf, unit)
+        bind_suffixed_references(elf, unit)
         pad_data(elf, unit, placeholder_sections)
         discard_external_vtables(elf, unit, placeholder_sections)
         discard_external_functions(elf, unit)
@@ -1704,7 +1674,7 @@ def main():
     discard_unused_literals(elf)
     discard_dead_code_records(elf)
     addresses = retail_addresses()
-    renamed = retail_sections(elf, addresses, unit, shadowed)
+    renamed = retail_sections(elf, addresses, unit)
 
     for index, name in renamed.items():
         section = elf.sections[index]
