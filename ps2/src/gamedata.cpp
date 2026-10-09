@@ -1846,5 +1846,3 @@ void CItemUseTarget::SetPtr(int new_kind, void *new_ptr) {
         target.data = new_ptr;
     }
 }
-
-INCLUDE_BSS(gamedata_sysword_buffer_1073, 0x2800);

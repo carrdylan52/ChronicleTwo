@@ -120,3 +120,20 @@ remain matched; none is promoted. Refreshed source-only matched data stays
 and verified padding normalization. Canonical object checks verify every
 migrated byte and relocation. Removing the final buffer marker awaits the
 shared VU-word splitter fix, with no tooling changes made in this lane.
+
+## Marker-free storage validation, tooling round 3
+
+The existing raw-VU-word splitter retains numeric microcode words, so removing the local name-buffer marker creates no public VU-symbol dependency.
+
+A fresh marker-free private compile passes the complete unit with the checkpoint
+tooling. The accepted source passes `SCES_511.90: OK`, all 149 object checks,
+and all 17 build regression scripts (116 discovered tests). The object hash
+audit changes only `gamedata.cpp.o`; code metrics remain 6,775 matched functions
+and 1,841,188 matched bytes. No function is promoted.
+
+Markers change from 0 initialized-data / 1 BSS to 0 / 0.
+Refreshed `matched_data` changes from 2090 to
+47818 / 47818 bytes. Receipts are
+`.private/dtool-r3/gamedata-{build,objects,tests,all-tests}.log`,
+`gamedata-object-hash-audit.json`, and `gamedata-report.json`; the independent
+existing-tooling probe is `probe/gamedata-check.log` in the same directory.
