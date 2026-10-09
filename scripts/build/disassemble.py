@@ -78,11 +78,13 @@ def invented_address(name):
     return int(m.group(1), 16) if m else None
 
 
-def referenced_addresses(lay):
+def referenced_addresses(lay, *, retail=None):
     """Every unnamed address splat's assembly refers to.
 
     A game unit's own data is written here rather than taken from splat, so
-    only its code is read; every other unit's file is read whole.
+    only its code is read; every other unit's file is read whole. Data words
+    establish a reference only at a real retail pointer relocation, with their
+    emitted byte comments verified. Splat's numeric address guesses own no data.
     """
     paths = [(ROOT / lay.reference(u), lay.kinds[u] == "cpp") for u in lay.units()]
     paths += [(p, False) for p in sorted((ROOT / layout.ASM / "data").rglob("*.s"))]
@@ -106,6 +108,18 @@ def referenced_addresses(lay):
                 continue
             if GLABEL.match(line):
                 continue
+            if section not in CODE_SECTIONS and INVENTED.search(line):
+                word = VU_WORD.match(line)
+                if word is None:
+                    raise ValueError(f'{path}: unsupported data reference: {line.strip()}')
+                address = int(word.group('address'), 16)
+                retail = layout.Retail() if retail is None else retail
+                kind = retail.relocations.get(address)
+                if kind is None:
+                    continue
+                if (kind != R_MIPS_32 or address % 4 or layout.section_of(address) != section
+                        or bytes.fromhex(word.group('bytes')) != retail.bytes(address, address + 4)):
+                    raise ValueError(f'{path}: invalid retail data reference at 0x{address:08X}')
             for m in INVENTED.finditer(line):
                 found.add(int(m.group(1), 16))
     return found
