@@ -502,7 +502,7 @@ int _SET_SCALE(RS_STACKDATA *stack, int argc) {
     scale[1] = GetStackFloat(stack++);
     scale[2] = GetStackFloat(stack);
     scale[3] = 1.0f;
-    ((CActionChara *) nowMonster)->SetScale(scale);
+    nowMonster->SetScale(scale);
     return 1;
 }
 
@@ -1309,7 +1309,7 @@ int _MY_SE_PLAY(RS_STACKDATA *stack, int argc) {
     float pan;
     int   se_id = GetStackInt(stack);
     u32   se_handle = nowMonster->sound_info.se_bank;
-    ((CActionChara *) nowMonster)->GetPosition(pos);
+    nowMonster->GetPosition(pos);
 
     float far = 1200.0f;
     float near = 160.0f;
@@ -1849,7 +1849,7 @@ int _GET_DIST(RS_STACKDATA *stack, int argc) {
     target[0] = GetStackFloat(stack++);
     target[1] = GetStackFloat(stack++);
     target[2] = GetStackFloat(stack++);
-    ((CActionChara *) nowMonster)->GetPosition(self_pos);
+    nowMonster->GetPosition(self_pos);
     SetStack(stack, mgDistVector(target, self_pos));
     return 1;
 }
@@ -1866,7 +1866,7 @@ int _SET_OBJ(RS_STACKDATA *stack, int argc) {
 
     int   index = GetStackInt(stack++);
     char *name = GetStackString(stack);
-    return ((CActionChara *) nowMonster)->EntryObject(name, index) != 0;
+    return nowMonster->EntryObject(name, index) != 0;
 }
 
 /**
@@ -1932,9 +1932,7 @@ int _SET_DMG2(RS_STACKDATA *stack, int argc) {
         }
     }
 
-    LastCInfo2 =
-        ((CActionChara *) nowMonster)
-            ->EntryDamage2(frame_a, frame_b, hit_name, power, motion, start_ratio, end_ratio, NULL);
+    LastCInfo2 = nowMonster->EntryDamage2(frame_a, frame_b, hit_name, power, motion, start_ratio, end_ratio, NULL);
     return LastCInfo2 != NULL;
 }
 
@@ -1962,13 +1960,13 @@ int _GET_OBJ_POS(RS_STACKDATA *stack, int argc) {
     }
 
     if (argc == 5) {
-        chara = ((CActionChara *) nowMonster)->SearchChara(chara_name);
+        chara = nowMonster->SearchChara(chara_name);
 
         if (chara != NULL) {
             object = chara->SearchObject(object_name);
         }
     } else {
-        object = ((CActionChara *) nowMonster)->SearchObject(object_name);
+        object = nowMonster->SearchObject(object_name);
     }
 
     if (object == NULL) {
@@ -2213,8 +2211,8 @@ int _SEARCH_AREA(RS_STACKDATA *stack, int argc) {
     float pos[4];
     float rot[4];
     float matrix[4][4];
-    ((CActionChara *) nowMonster)->GetPosition(pos);
-    ((CActionChara *) nowMonster)->GetRotation(rot);
+    nowMonster->GetPosition(pos);
+    nowMonster->GetRotation(rot);
     rot[1] = mgAngleLimit(rot[1] + angle);
     sceVu0UnitMatrix(matrix);
     sceVu0RotMatrixY(matrix, matrix, rot[1]);
@@ -2372,7 +2370,7 @@ int _GET_POS(RS_STACKDATA *stack, int argc) {
         return 0;
     }
 
-    ((CActionChara *) nowMonster)->GetPosition(pos);
+    nowMonster->GetPosition(pos);
     SetStack(stack++, pos[0]);
     SetStack(stack++, pos[1]);
     SetStack(stack, pos[2]);
@@ -2392,7 +2390,7 @@ int _SET_POS(RS_STACKDATA *stack, int argc) {
     float x = GetStackFloat(stack++);
     float y = GetStackFloat(stack++);
     float z = GetStackFloat(stack);
-    ((CActionChara *) nowMonster)->SetPosition(x, y, z);
+    nowMonster->SetPosition(x, y, z);
     return 1;
 }
 
@@ -2418,7 +2416,7 @@ int _GET_ROT(RS_STACKDATA *stack, int argc) {
 
         chara->GetRotation(rot);
     } else {
-        ((CActionChara *) nowMonster)->GetRotation(rot);
+        nowMonster->GetRotation(rot);
     }
 
     SetStack(stack++, rot[0]);
@@ -2440,7 +2438,7 @@ int _SET_ROT(RS_STACKDATA *stack, int argc) {
     float x = GetStackFloat(stack++);
     float y = GetStackFloat(stack++);
     float z = GetStackFloat(stack);
-    ((CActionChara *) nowMonster)->SetRotation(x, y, z);
+    nowMonster->SetRotation(x, y, z);
     nowMonster->rot_speed = 0.0f;
     return 1;
 }
@@ -2486,7 +2484,7 @@ int _SET_NEXT_POS(RS_STACKDATA *stack, int argc) {
         nowMonster->arrive_dist = GetStackFloat(stack);
     }
 
-    ((CActionChara *) nowMonster)->GetPosition(pos);
+    nowMonster->GetPosition(pos);
 
     if (mgDistVector(target, pos) < nowMonster->arrive_dist) {
         nowMonster->move_speed = 0.0f;
@@ -2509,7 +2507,7 @@ int _CHK_MOVE_END(RS_STACKDATA *stack, int argc) {
     }
 
     arrived = 0;
-    ((CActionChara *) nowMonster)->GetPosition(pos);
+    nowMonster->GetPosition(pos);
 
     if (mgDistVector(pos, nowMonster->next_pos) < nowMonster->arrive_dist) {
         arrived = 1;
@@ -2554,7 +2552,7 @@ int _GET_TARGET_POS(RS_STACKDATA *stack, int argc) {
     SetStack(stack++, pos[2]);
 
     if (argc == 4) {
-        ((CActionChara *) nowMonster)->GetPosition(self_pos);
+        nowMonster->GetPosition(self_pos);
         SetStack(stack, mgDistVector(self_pos, pos));
     }
 
@@ -2581,7 +2579,7 @@ int _GET_TARGET_DIST(RS_STACKDATA *stack, int argc) {
     }
 
     target->GetPosition(target_pos);
-    ((CActionChara *) nowMonster)->GetPosition(self_pos);
+    nowMonster->GetPosition(self_pos);
     SetStack(stack, mgDistVector(target_pos, self_pos));
     return 1;
 }
@@ -2606,7 +2604,7 @@ int _GET_TARGET_ANGLE(RS_STACKDATA *stack, int argc) {
     }
 
     target->GetPosition(delta);
-    ((CActionChara *) nowMonster)->GetPosition(self_pos);
+    nowMonster->GetPosition(self_pos);
     sceVu0SubVector(delta, delta, self_pos);
     SetStack(stack, atan2f(delta[0], delta[2]));
     return 1;
@@ -2728,7 +2726,7 @@ int _GET_REFANGLE_POS(RS_STACKDATA *stack, int argc) {
 
     float angle = GetStackFloat(stack++);
     float distance = GetStackFloat(stack++);
-    ((CActionChara *) nowMonster)->GetPosition(pos);
+    nowMonster->GetPosition(pos);
     sceVu0CopyVector(offset, nowMonster->front_vec);
     sceVu0Normalize(offset, offset);
     sceVu0UnitMatrix(matrix);
@@ -2759,7 +2757,7 @@ int _GET_REF_ANGLE(RS_STACKDATA *stack, int argc) {
     target[1] = GetStackFloat(stack++);
     target[2] = GetStackFloat(stack++);
     target[3] = 1.0f;
-    ((CActionChara *) nowMonster)->GetPosition(self_pos);
+    nowMonster->GetPosition(self_pos);
     sceVu0SubVector(target, target, self_pos);
     SetStack(stack, atan2f(target[0], target[2]));
     return 1;
@@ -2814,7 +2812,7 @@ int _GET_ACTIVE_MONS_POS(RS_STACKDATA *stack, int argc) {
     SetStack(stack++, pos[2]);
 
     if (argc == 5) {
-        ((CActionChara *) nowMonster)->GetPosition(self_pos);
+        nowMonster->GetPosition(self_pos);
         SetStack(stack, mgDistVector(pos, self_pos));
     }
 
@@ -2869,7 +2867,7 @@ int _GET_ACTIVE_MONS_DIST(RS_STACKDATA *stack, int argc) {
         return 0;
     }
 
-    ((CActionChara *) nowMonster)->GetPosition(self_pos);
+    nowMonster->GetPosition(self_pos);
     other->GetPosition(other_pos);
     SetStack(stack, mgDistVector(other_pos, self_pos));
     return 1;
@@ -2915,7 +2913,7 @@ int _GET_REF_ROT(RS_STACKDATA *stack, int argc) {
     }
 
     GetStackVector(target, &stack);
-    ((CActionChara *) nowMonster)->GetPosition(self_pos);
+    nowMonster->GetPosition(self_pos);
     sceVu0SubVector(target, target, self_pos);
     sceVu0Normalize(target, target);
     rot[1] = atan2f(target[0], target[2]);
@@ -2972,8 +2970,8 @@ int _FLYING_SEARCH_AREA(RS_STACKDATA *stack, int argc) {
     float pos[4];
     float rot[4];
     float matrix[4][4];
-    ((CActionChara *) nowMonster)->GetPosition(pos);
-    ((CActionChara *) nowMonster)->GetRotation(rot);
+    nowMonster->GetPosition(pos);
+    nowMonster->GetRotation(rot);
     rot[1] = mgAngleLimit(angle);
     sceVu0UnitMatrix(matrix);
     sceVu0RotMatrixY(matrix, matrix, rot[1]);
@@ -3172,7 +3170,7 @@ int _SET_INT_FLAG(RS_STACKDATA *stack, int argc) {
     }
 
     int flag = GetStackInt(stack++);
-    ((CActionChara *) nowMonster)->SetMaskFlag(flag, GetStackInt(stack));
+    nowMonster->SetMaskFlag(flag, GetStackInt(stack));
     return 1;
 }
 
@@ -3485,10 +3483,10 @@ int _SET_MOS(RS_STACKDATA *stack, int argc) {
         return 0;
     }
 
-    ((CActionChara *) nowMonster)->SetMotion(name, flag, 1);
+    nowMonster->SetMotion(name, flag, 1);
 
     if (step > 0.0f) {
-        ((CActionChara *) nowMonster)->SetStep(step);
+        nowMonster->SetStep(step);
     }
 
     return 1;
@@ -3504,7 +3502,7 @@ int _CHECK_MOS_END(RS_STACKDATA *stack, int argc) {
     char *name;
 
     if (argc == 1) {
-        result = ((CActionChara *) nowMonster)->CheckMotionEnd(0);
+        result = nowMonster->CheckMotionEnd(0);
     }
 
     if (argc == 2) {
@@ -3514,7 +3512,7 @@ int _CHECK_MOS_END(RS_STACKDATA *stack, int argc) {
             return 0;
         }
 
-        result = ((CActionChara *) nowMonster)->CheckMotionEnd(name);
+        result = nowMonster->CheckMotionEnd(name);
     }
 
     SetStack(stack, result);
@@ -3530,7 +3528,7 @@ int _NOW_MOS_WAIT(RS_STACKDATA *stack, int argc) {
     float wait;
 
     if (argc == 1) {
-        wait = ((CActionChara *) nowMonster)->GetNowFrameWait(NULL);
+        wait = nowMonster->GetNowFrameWait(NULL);
     }
 
     if (argc == 2) {
@@ -3540,7 +3538,7 @@ int _NOW_MOS_WAIT(RS_STACKDATA *stack, int argc) {
             return 0;
         }
 
-        wait = ((CActionChara *) nowMonster)->GetNowFrameWait(name);
+        wait = nowMonster->GetNowFrameWait(name);
     }
 
     SetStack(stack, wait);
@@ -3745,7 +3743,7 @@ int _GET_SCALE(RS_STACKDATA *stack, int argc) {
         return 0;
     }
 
-    ((CActionChara *) nowMonster)->GetScale(scale);
+    nowMonster->GetScale(scale);
     SetStackVector(scale, &stack);
     return 1;
 }
@@ -4020,7 +4018,7 @@ int _SW_EFFECT(RS_STACKDATA *stack, int argc) {
         return 0;
     }
 
-    ACTION_SW_EFFECT *effect = ((CActionChara *) nowMonster)->GetSwEffectPtr();
+    ACTION_SW_EFFECT *effect = nowMonster->GetSwEffectPtr();
 
     if (effect == NULL) {
         return 0;
