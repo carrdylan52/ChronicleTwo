@@ -318,13 +318,6 @@ STATIC_ASSERT(sizeof(CSphida) == 0x240);
 
 /**
  *
- * Clubs of the sphida game, for club numbers 9 to 14, closed by an empty entry.
- *
- */
-extern GOLF_CLUB_DEF GolfClubDef[7];
-
-/**
- *
  * Sphida game of the current floor; NULL while none is played.
  *
  */

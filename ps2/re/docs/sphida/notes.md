@@ -75,7 +75,8 @@ No vtable of its own.
 - `_SPHIDA_SET_UP` mode 0 -> `SetUp(tex_bank)`, 1 -> `s17_SetUp(tex_bank)`, 2 -> `Omake_SetUp(course, tex_bank)`.
 
 ## Globals
-- `GolfClubDef` (.data, 0x54 = 7 x GOLF_CLUB_DEF): clubs 9..14 then a zero row.
+- `GolfClubDef` (.data, 0x54 = 7 x GOLF_CLUB_DEF, retail LOCAL): clubs 9..14 then a zero row.
+  It is `static` in sphida.cpp and not declared in the header.
   power = 38, 40, 42, 46, 44, 50; unk_4 = 0.2, 1.6, 2.6, 2.6, 4.0, 1.2; unk_8 = 6, 4, 5, 3, 2, 1.
   `_SPHIDA_GET_CULB_DEF` returns all three to scripts; only `power` is used in this unit.
 - `Sphida` (.sbss, 4): `CSphida*`; `InitSphida` clears it, `GetSphidaPtr` returns it.

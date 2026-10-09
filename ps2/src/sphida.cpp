@@ -33,7 +33,7 @@
  * Club properties for club numbers 9 through 14 and the empty terminal row.
  *
  */
-GOLF_CLUB_DEF GolfClubDef[7] = {
+static GOLF_CLUB_DEF GolfClubDef[7] = {
     {38.0f, 0.2f, 6},
     {40.0f, 1.6f, 4},
     {42.0f, 2.6f, 5},
