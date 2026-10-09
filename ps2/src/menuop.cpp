@@ -103,13 +103,22 @@ static CMenuPosDataForm *LocalMenuBGForm;
  */
 static CMenuPosDataForm *LocalMenuClipForm;
 
-extern signed char        manual_list_mesclstbl[5];
-extern float              config_option_num_f;
+/**
+ *
+ * Message classes displaying the five manual and option list columns.
+ *
+ */
+static signed char manual_list_mesclstbl[5] = {2, 4, 5, 6, 8};
+
+/**
+ *
+ * Number of option rows used to size the scrollbar.
+ *
+ */
+static float config_option_num_f = 16.0f;
+
 extern char               at_1512__5[];
 extern char               at_1513__5[];
-extern char               at_1514__5[];
-extern char               at_1515__2[];
-extern char               at_1516__2[];
 extern char               at_1517__3[];
 extern char               at_1518__2[];
 extern char               at_1519__2[];
@@ -159,7 +168,13 @@ static short MovieBgmBattleCheckStopFlag;
  */
 static signed char MovieBattleBGMPhase;
 
-extern float              config_option_num_i;
+/**
+ *
+ * Number of selectable option rows, converted to an integer for navigation.
+ *
+ */
+static float config_option_num_i = 16.0f;
+
 extern char               at_1428__4[];
 extern char               at_1429__3[];
 extern char               at_1648__2[];
@@ -189,8 +204,31 @@ extern char               at_2603[];
 extern char               at_2604[];
 extern char               at_2605[];
 extern char               at_1906__2[];
-extern short              manual_boot_event_no[];
-extern char              *submap_table_1022[];
+/**
+ *
+ * Event flags unlocking each manual entry, followed by the end sentinel.
+ *
+ */
+static short manual_boot_event_no[47] = {
+    100, 100, 100, 100, 100, 100, 100, 100, 100, 100,
+    100, 100, 100, 100, 100, 100, 100, 100, 100, 100,
+    100, 100, 104, 108, 277, 277, 105, 105, 207, 207,
+    207, 207, 220, 48, 344, 314, 314, 250, 250, 250,
+    250, 250, 250, 424, 424, 424, -1
+};
+
+/**
+ *
+ * Map names treated as boss areas when the manual menu pauses dungeon music.
+ *
+ */
+static char *submap_table_1022[22] = {
+    "s06", "d01b01", "d02b01", "d02b03", "s17", "s56", "d03b01",
+    "d03b02", "s19", "s20", "d05b01", "s52", "s54", "s61",
+    "s62", "s63", "s69", "s13", "s14", "s15", "s16",
+    NULL
+};
+
 extern char               at_1102[];
 extern char               at_1103__3[];
 extern char               at_1104__5[];
@@ -201,7 +239,13 @@ extern char               at_1108[];
 extern char               at_1109__2[];
 extern char               at_1237__4[];
 extern char               at_1238__2[];
-extern short              fillw_1125[];
+/**
+ *
+ * Picture-page help box width for each language.
+ *
+ */
+static short fillw_1125[8] = {310, 356, 356, 356, 356, 356, 356, 310};
+
 extern char               at_2895[];
 
 /**
@@ -220,7 +264,15 @@ mgCMemory                 SaveMenuStack;
  */
 static CDC2Mes *SaveFileList[13];
 
-extern char              *b_2715[3];
+/**
+ *
+ * Names of the three save-menu scrollbar parts.
+ *
+ */
+static char *b_2715[3] = {
+    "bar0", "bar1", "bar2"
+};
+
 extern char               at_2764[];
 extern char               at_2765[];
 extern char               at_2766[];
@@ -387,7 +439,15 @@ static u8 MenuReturnMsgDrawFlag;
  */
 static mgCTexture *MnOnePictTex[8];
 
-extern char               *dngmap_2627[];
+/**
+ *
+ * Entrance map names for the seven dungeons.
+ *
+ */
+static char *dngmap_2627[7] = {
+    "d01f01", "d02f01", "d03f01", "d04f01", "d05f01", "d06f01", "d07f01"
+};
+
 
 /**
  *
@@ -1197,9 +1257,9 @@ void CManualMenu::CalcTex() {
         form->y = (float) xy[1];
     }
 
-    bar[0] = bg_form->GetPartInfo(at_1514__5);
-    bar[1] = bg_form->GetPartInfo(at_1515__2);
-    bar[2] = bg_form->GetPartInfo(at_1516__2);
+    bar[0] = bg_form->GetPartInfo("bar0");
+    bar[1] = bg_form->GetPartInfo("bar1");
+    bar[2] = bg_form->GetPartInfo("bar2");
     bg_form->GetPutPosXY(at_1517__3, item_pos[0][0], item_pos[0][1]);
     MenuPosData->GetEtcTblValue(at_1518__2, scroll_range[0], scroll_range[1]);
 
@@ -1537,9 +1597,9 @@ void CMenuOption::CalcTex() {
         mes_form->y = (float) xy[1];
     }
 
-    bar[0] = bg_form->GetPartInfo(at_1514__5);
-    bar[1] = bg_form->GetPartInfo(at_1515__2);
-    bar[2] = bg_form->GetPartInfo(at_1516__2);
+    bar[0] = bg_form->GetPartInfo("bar0");
+    bar[1] = bg_form->GetPartInfo("bar1");
+    bar[2] = bg_form->GetPartInfo("bar2");
     bg_form->GetPutPosXY(at_1517__3, item_pos[0][0], item_pos[0][1]);
     MenuPosData->GetEtcTblValue(at_1518__2, scroll_range[0], scroll_range[1]);
 
@@ -3621,37 +3681,11 @@ void SubGameSaveDraw() {
 }
 
 // Initialised data (.data)
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuop", manual_boot_event_no__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuop", submap_table_1022__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuop", fillw_1125__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuop", tp_2083__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuop", conv_2316__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuop", at_2609__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuop", dngmap_2627__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuop", b_2715__DATA);
 
 // Constants (.rodata)
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuop", at_1023__4__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuop", at_1024__3__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuop", at_1025__4__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuop", at_1026__3__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuop", at_1027__3__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuop", at_1028__7__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuop", at_1029__5__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuop", at_1030__4__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuop", at_1031__4__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuop", at_1032__5__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuop", at_1033__6__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuop", at_1034__4__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuop", at_1035__4__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuop", at_1036__4__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuop", at_1037__4__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuop", at_1038__5__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuop", at_1039__3__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuop", at_1040__3__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuop", at_1041__3__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuop", at_1042__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuop", at_1043__2__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuop", at_1102__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuop", at_1103__3__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuop", at_1104__5__DATA);
@@ -3678,9 +3712,6 @@ INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuop", at_1440__3__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuop", at_1441__2__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuop", at_1512__5__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuop", at_1513__5__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuop", at_1514__5__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuop", at_1515__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuop", at_1516__2__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuop", at_1517__3__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuop", at_1518__2__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuop", at_1519__2__DATA);
@@ -3728,13 +3759,6 @@ INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuop", at_2517__2__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuop", at_2603__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuop", at_2604__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuop", at_2605__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuop", at_2628__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuop", at_2629__4__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuop", at_2630__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuop", at_2631__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuop", at_2632__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuop", at_2633__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuop", at_2634__2__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuop", at_2764__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuop", at_2765__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuop", at_2766__DATA);
@@ -3770,9 +3794,6 @@ INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuop", at_3207__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuop", __vt__11CManualMenu__DATA);
 
 // Small initialised data (.sdata)
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuop", manual_list_mesclstbl__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuop", config_option_num_i__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuop", config_option_num_f__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuop", tbl_2023__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuop", at_2335__3__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuop", at_2342__DATA);

@@ -55,3 +55,25 @@ virtual table remains.
 This step removes 11 BSS and four RODATA markers: 149 RODATA / 14 BSS remain.
 `native-initializers-{build,objects}.log` proves PAL OK and 149/149 exact
 objects. No guarded draft is edited.
+
+## Menu lookup tables
+
+The manual unlock table is 47 signed 16-bit event IDs, including its terminal
+-1. The boss-area table is 21 map names followed by NULL; it remains exported
+locally under `submap_table_1022`, the name used by the guarded manual init.
+The seven-entry `dngmap_2627` table contains each dungeon's entrance map name.
+Its exact declared size is 28 bytes, with the following zero word belonging
+to alignment rather than an eighth entry. The scrollbar-name table contains
+three pointers, with its following zero word likewise outside the object.
+All table strings are literals in their initializers, including the scrollbar
+strings shared with native manual/option layout calls.
+
+The picture-page help width table contains eight language widths. The five
+manual list message-class IDs retain their signed-byte representation. Both
+option row counters have retail initial value 16.0f; initialization later
+selects 14.0f or 16.0f according to language. These are mutable variables,
+not folded constants.
+
+Each table step passes the complete build and all 149 canonical objects:
+`scalar-tables`, `boss-maps`, `dungeon-maps`, and `scrollbar-names` receipts.
+After these steps: 110 RODATA / 14 BSS markers.
