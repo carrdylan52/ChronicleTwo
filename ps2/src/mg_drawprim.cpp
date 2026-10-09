@@ -352,38 +352,35 @@ void mgCDrawPrim::Direct(unsigned long reg, unsigned long data) {
 
 /**
  *
- * Copies the texture state cached in a drawing primitive.
+ * Texture state of a drawing primitive, copied from a texture as plain data.
  *
  */
 struct mgCTextureFields {
-    short  block;
-    short  width;
-    short  height;
-    short  bpp;
-    char   name[32]; /**< Texture name copied with its register state. */
-    int    vram_size;
-    int    image_blocks;
-    int    clut_size;
-    u_long tex0_bits;
-    u_long tex1_bits;
-    u_long clamp_bits;
-    float  image[4];
-    int    clut;
-    int    swizzled;
-    int    next;
+    short       block;                       /**< Texture block the texture belongs to. */
+    short       width;                       /**< Width of the base level, in pixels. */
+    short       height;                      /**< Height of the base level, in pixels. */
+    short       bpp;                         /**< Bits per pixel. */
+    char        name[32];                    /**< Name the texture is registered under. */
+    int         vram_size;                   /**< GS blocks of VRAM reserved for the pixels. */
+    int         image_blocks;                /**< GS blocks the pixels of every mip level occupy. */
+    int         clut_size;                   /**< GS blocks the palette occupies. */
+    u_long      tex0_bits;                   /**< Packed GS TEX0 register value. */
+    u_long      tex1_bits;                   /**< Packed GS TEX1 register value. */
+    u_long      clamp_bits;                  /**< Packed GS CLAMP register value. */
+    u_long128  *image[MG_TEXTURE_LEVEL_MAX]; /**< Pixels of each mip level in main memory. */
+    u_long128  *clut;                        /**< Palette in main memory. */
+    int         swizzled;                    /**< Non-zero when the 8-bit pixels are stored in 32-bit page order. */
+    mgCTexture *next;                        /**< Following texture of the same texture block. */
 };
 
 /**
  *
- * Exposes the texture cache and packet cursor of a drawing primitive.
+ * Exposes the texture cache of a drawing primitive.
  *
  */
 struct mgCDrawPrimTexture {
-    u_char           pad0[0x58];
-    mgCTextureFields texture;  /**< Texture state copied for this primitive. */
-    int              bilinear; /**< Filter mode applied before drawing. */
-    u_char           pad_cc[0x10];
-    u_long          *command_write; /**< Next GS command word in the packet. */
+    u_char           unk_0[0x58];
+    mgCTextureFields texture; /**< Texture state copied for this primitive. */
 };
 
 void mgCDrawPrim::Texture(mgCTexture *source) {
@@ -391,15 +388,15 @@ void mgCDrawPrim::Texture(mgCTexture *source) {
 
     if (source != 0) {
         self->texture = *(mgCTextureFields *) source;
-        ((mgCTexture *) &self->texture)->Bilinear(self->bilinear);
-        u_long *packet = self->command_write;
+        texture.Bilinear(bilinear);
+        u_long *packet = command_write;
         packet[0] = 0;
         packet[1] = SCE_GS_TEXFLUSH;
-        packet[2] = self->texture.tex1_bits;
+        packet[2] = texture.tex1_bits;
         packet[3] = SCE_GS_TEX1_1;
-        packet[4] = self->texture.tex0_bits;
+        packet[4] = texture.tex0_bits;
         packet[5] = SCE_GS_TEX0_1;
-        self->command_write = packet + 6;
+        command_write = packet + 6;
     }
 }
 
