@@ -4992,7 +4992,7 @@ int CheckItemUseVariable(CGameDataUsed *item, CItemUseTarget *target) {
     state = CheckNowStateUseThisItem(item, target);
     result = state;
 
-    if (CheckBuildUp((CGameDataUsed *) target->target.data, NULL, NULL, NULL) != 0) {
+    if (CheckBuildUp(target->target.item, NULL, NULL, NULL) != 0) {
         result = state | 2;
     }
 
@@ -5232,7 +5232,7 @@ void CheckItemBoardFunc_MenuIconDrawPrepare(CUserDataManager *manager, MENUFORMP
     int            i;
 
     need_item = NowUseNeedItemCheck(manager);
-    item = (CGameDataUsed *) manager->GetUsedDataPtr(0);
+    item = manager->GetUsedDataPtr(0);
     count = GetNowBagMax(1);
 
     for (i = 0; i < count; i++) {
