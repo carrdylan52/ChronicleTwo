@@ -1030,12 +1030,12 @@ char *CGameDataUsed::GetName(int name_type) {
                 if (digits > 0) {
                     do {
                         if (digits == 1) {
-                            strcat(word_1327, (char *) MenuBigNum[weapon_level]);
+                            strcat(word_1327, MenuBigNum[weapon_level]);
                             digits -= 1;
                         } else {
                             divisor = (int) pow(10.0, (double) (digits - 1));
                             digit = weapon_level / divisor;
-                            strcat(word_1327, (char *) MenuBigNum[digit]);
+                            strcat(word_1327, MenuBigNum[digit]);
                             digits -= 1;
                             weapon_level -= digit * divisor;
                         }
@@ -4916,7 +4916,7 @@ void CBattleCharaInfo::SetChrNo(int new_chara_no) {
         chara_type = 0;
         chara_data = manager->GetCharaDataPtr(chr_no);
         active_item = ((CHARA_DATA *) chara_data)->active_item;
-        equip = (CGameDataUsed *) ((CHARA_DATA *) chara_data)->equip;
+        equip = ((CHARA_DATA *) chara_data)->equip;
         hp = &((CHARA_DATA *) chara_data)->hp;
         disp_hp = hp->now;
         disp_hp_max = hp->max;
@@ -4926,7 +4926,7 @@ void CBattleCharaInfo::SetChrNo(int new_chara_no) {
         chara_type = 1;
         chara_data = &manager->robo_data;
         active_item = 0;
-        equip = (CGameDataUsed *) &((ROBO_DATA *) chara_data)->parts[0];
+        equip = &((ROBO_DATA *) chara_data)->parts[0];
         hp = &((ROBO_DATA *) chara_data)->hp;
         disp_hp = hp->now;
         disp_hp_max = hp->max;
