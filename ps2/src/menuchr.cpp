@@ -1364,12 +1364,12 @@ int CMenuChrCngMenu::KeyChangeMain() {
     keyFunc->SelDataInit();
     int            keys = keyFunc->CheckSelectKey();
     int            buttons = keyFunc->CheckPushButton();
+    int action = 0;
     CDC2Mes       *titleMes = MenuDCMsg[2];
     CDC2Mes       *answerMes = MenuDCMsg[3];
     CDC2Mes       *cmdMes = MenuDCMsg[4];
     CDC2Mes       *npcMes = MenuDCMsg[5];
     CDC2Mes       *repairMes = MenuDCMsg[7];
-    int            action = 0;
     CGameDataUsed *item = NULL;
     int            cancelled = 0;
 
@@ -1465,10 +1465,10 @@ int CMenuChrCngMenu::KeyChangeMain() {
                             }
                         }
                     }
-                    int cursor = npcMes->AddMsgCursor2(widest - 2, widest - 1, 1);
+                    int cursor = npcMes->AddMsgCursor2(widest - 2, widest - 1, 1) - (widest - 2);
                     switch (buttons) {
                         case 1:
-                            if (cursor == widest - 2) {
+                            if (cursor == 0) {
                                 action = 0x5A;
                                 if (npc_no == 1) {
                                     if (SelectedCmdNo_1415 == 0) {
@@ -1501,8 +1501,8 @@ int CMenuChrCngMenu::KeyChangeMain() {
                             }
                             break;
                         case 2:
-                            ExeScript(at_2004__3);
                             action = 0x1E;
+                            ExeScript(at_2004__3);
                             MenuCommonInfo->SetWakuType(-1);
                             break;
                     }
@@ -1715,15 +1715,19 @@ int CMenuChrCngMenu::KeyChangeMain() {
                     }
                     switch (buttons) {
                         case 1:
-                            if (select == 3) {
-                                action = 0x32;
-                            } else if (select == 4) {
-                                action = 5;
-                                if (MenuCommonInfo->open_type != 0xE && 0 < npc_no) {
-                                    action = 0x22;
-                                }
-                            } else {
-                                action = 0x46;
+                            switch (select) {
+                                case 3:
+                                    action = 0x32;
+                                    break;
+                                case 4:
+                                    action = 5;
+                                    if (MenuCommonInfo->open_type != 0xE && 0 < npc_no) {
+                                        action = 0x22;
+                                    }
+                                    break;
+                                default:
+                                    action = 0x46;
+                                    break;
                             }
                             break;
                         case 2:
@@ -1944,11 +1948,12 @@ int CMenuChrCngMenu::KeyChangeMain() {
                 InitMenuBGReadInfo2(MenuCharaBuild2[i]);
             }
             change_chara = select;
-            MenuLoadInfo.chara_no = select;
-            MenuLoadInfo.mode = 2;
-            MenuLoadInfo.request_phase = -1;
-            MenuLoadInfo.load_phase = 0;
-            MenuLoadInfo.unk_6[1] = 1;
+            MENU_LOAD_INFO *load_info = &MenuLoadInfo;
+            load_info->chara_no = select;
+            load_info->mode = 2;
+            load_info->request_phase = -1;
+            load_info->load_phase = 0;
+            load_info->unk_6[1] = 1;
             ReEquipFishingGameWeapon();
             MenuCharaLoadStack.stack_used = 0;
             MenuCharaLoadStack.lock = 0;
@@ -1957,12 +1962,12 @@ int CMenuChrCngMenu::KeyChangeMain() {
             switch (change_chara) {
                 case 0:
                 case 1:
-                    MenuLoadInfo.load_all = 1;
-                    MenuLoadInfo.request_phase = -1;
+                    load_info->load_all = 1;
+                    load_info->request_phase = -1;
                     MenuItemCharaDataLoad(&MenuCharaLoadStack, change_chara, MenuCharaBuild2, 1);
                     break;
                 case 2:
-                    MenuLoadInfo.load_all = 1;
+                    load_info->load_all = 1;
                     MenuCharaLoadStack.Alloc(blocks_for(MenuItemRoboDataLoad(&MenuCharaLoadStack, MenuCharaBuild2, 1)));
                     break;
             }
@@ -2009,16 +2014,18 @@ int CMenuChrCngMenu::KeyChangeMain() {
             }
             break;
         }
-        case 0x28:
+        case 0x28: {
             mode = 2;
             ReturnMenuIntern(0);
             ExeScript(at_2019__2);
             MenuMainFrameModeSet(5, 0);
-            if (MenuFormMI2 != NULL) {
-                MenuFormMI2->rate_x = 4.0f;
-                MenuFormMI2->rate_y = 9.0f;
+            CMenuPosDataForm *main_form = MenuFormMI2;
+            if (main_form != NULL) {
+                main_form->rate_x = 4.0f;
+                main_form->rate_y = 9.0f;
             }
             break;
+        }
         case 0x32:
             if (!GetMenuMainFrameEndFlag()) {
                 break;
@@ -2104,6 +2111,7 @@ int CMenuChrCngMenu::KeyChangeMain() {
             MenuMesForm[6]->draw_flag = 0;
             npcMes->push_button = 0;
             npcMes->SetMsgCursor(-1);
+            int soundMode = 0;
             if (party_info->point - npc_data->ability_cost[SelectedCmdNo_1415] < 0) {
                 step = 1;
                 ExeScript(at_2022);
@@ -2112,7 +2120,6 @@ int CMenuChrCngMenu::KeyChangeMain() {
             }
             int se = 5;
             int used = 0;
-            int soundMode = 0;
             int inDungeon = 0;
             if (GetMenuLoopType() == 1) {
                 inDungeon = 1;
@@ -2139,20 +2146,20 @@ int CMenuChrCngMenu::KeyChangeMain() {
             switch (npc_no) {
                 case 1:
                     if (SelectedCmdNo_1415 == 2) {
-                        if (MenuUserDataManPtr->robo_data.AddPoint(0.0f) >= 1.0f) {
+                        if (1.0f <= MenuUserDataManPtr->robo_data.AddPoint(0.0f)) {
                             used = 0;
                             message = GetPartyCharaMessage(1, 8, 0);
                         } else {
                             MenuUserDataManPtr->robo_data.AddPoint(999.0f);
-                            UpdataLife();
                             se = 10;
+                            UpdataLife();
                             used = 1;
                         }
                     } else {
                         int pos[2];
                         item->Repair(999);
-                        MenuPosData->GetPosMenuItemBrdKoma(pos, item_brd_select, 0);
                         se = 10;
+                        MenuPosData->GetPosMenuItemBrdKoma(pos, item_brd_select, 0);
                         MenuRepairMan->Generate(pos[0], pos[1]);
                         UpdataLife();
                         used = 1;
@@ -2174,10 +2181,11 @@ int CMenuChrCngMenu::KeyChangeMain() {
                     used = 0;
                     if (inDungeon) {
                         used = 1;
+                        area = &MenuMainScene->battle_area;
                         if (bitCtrl & 1) {
                             used = 0;
                         }
-                        if (MenuMainScene->battle_area.boss_map && MenuMainScene->battle_area.battle_clear) {
+                        if (area->boss_map && area->battle_clear) {
                             used = 0;
                         }
                     }
@@ -2227,8 +2235,8 @@ int CMenuChrCngMenu::KeyChangeMain() {
                     }
                     if (used) {
                         soundMode = 1;
-                        UpdataLife();
                         se = 0x56;
+                        UpdataLife();
                     } else {
                         message = GetPartyCharaMessage(0x12, 8, 0);
                     }
@@ -2238,7 +2246,7 @@ int CMenuChrCngMenu::KeyChangeMain() {
                         used = 0;
                         for (int chara = 0; chara < 2; chara++) {
                             if (MenuUserDataManPtr->GetNowPartyMember() & (1 << chara) &&
-                                MenuUserDataManPtr->GetHp(chara) >= 1.0f) {
+                                1.0f <= MenuUserDataManPtr->GetHp(chara)) {
                                 MenuUserDataManPtr->SetCharaStatusAttirbuteVol(chara, 0x10, 750);
                                 used = 1;
                             }
@@ -2298,8 +2306,8 @@ int CMenuChrCngMenu::KeyChangeMain() {
                     } else {
                         used = 1;
                         got_item = 1;
-                        MenuUserDataManPtr->GetItem(gift_item, gift_num);
                         se = 0x12;
+                        MenuUserDataManPtr->GetItem(gift_item, gift_num);
                     }
                     break;
                 }
@@ -2348,8 +2356,6 @@ int CMenuChrCngMenu::KeyChangeMain() {
                 }
             }
             break;
-        default:
-            return 0;
     }
     return 0;
 }
@@ -3919,7 +3925,6 @@ void MenuMonsterBoxInit(mgCMemory *stack, int *tex_block, int mode) {
 #pragma inline_depth reset
 #ifdef NONMATCHING
 int CMenuMosSelect::KeyStep() {
-    sceVu0FVECTOR effectPos;
     int           size;
     int           i;
     int           keys = MenuCommonInfo->CheckSelectKey();
@@ -4139,7 +4144,7 @@ int CMenuMosSelect::KeyStep() {
                             }
                             break;
                         }
-                        case 12:
+                        case 12: {
                             change_wait++;
                             if (ReadBGSync() == 0 && effect_show == 0) {
                                 if (effect_sound != NULL) {
@@ -4153,6 +4158,7 @@ int CMenuMosSelect::KeyStep() {
                                 effect.LoadPack((u_int *) effect_data, at_3692, &effect_stack, &effect_stack, &effect_stack,
                                                 tex_block[2], NULL);
                                 effect.SetScale(1.5f, 1.5f, 1.5f);
+                                sceVu0FVECTOR effectPos;
                                 monster->GetPosition(effectPos);
                                 effectPos[1] += 10.2f;
                                 effectPos[0] -= 3.4f;
@@ -4192,6 +4198,7 @@ int CMenuMosSelect::KeyStep() {
                                 info->SetMsgItemNo(grown.name, 1);
                             }
                             break;
+                        }
                         case 13:
                         case 14:
                         case 15:
@@ -4205,6 +4212,7 @@ int CMenuMosSelect::KeyStep() {
                                 if (place != NULL) {
                                     CGameDataUsed reward;
                                     reward.Init();
+                                    int badge_index = select;
                                     reward.item_no = 0x17F;
                                     reward.used_type = 2;
                                     reward.item_type = 0x22;
@@ -4216,7 +4224,7 @@ int CMenuMosSelect::KeyStep() {
                                     for (i = 0; i < 10; i++) {
                                         param[i] = select_badge->class_level + 3;
                                     }
-                                    param[convert_table_3430[select]] += select_badge->class_level * 2;
+                                    param[convert_table_3430[badge_index]] += select_badge->class_level * 2;
                                     place->CopyGameData(&reward);
                                     ExeScript(at_3695);
                                 } else {
@@ -4245,12 +4253,12 @@ int CMenuMosSelect::KeyStep() {
                             }
                             break;
                         case 20: {
-                            int cursor = info->AddMsgCursor2(0, select_badge->class_level, 0);
+                            int cursor = info->AddMsgCursor2(0, select_badge->class_level, 1);
                             view_monster = monster_progress_tbl[select_badge->progress][1 + cursor];
                             switch (buttons) {
                                 case 1:
                                     if (GetUserDataMan()->active_chr_no == 3 &&
-                                        view_monster == GetUserDataMan()->monster_id) {
+                                        GetUserDataMan()->monster_id == view_monster) {
                                         MenuSePlay(5);
                                     } else {
                                         action = 10;
@@ -4321,8 +4329,9 @@ int CMenuMosSelect::KeyStep() {
                 case 600: {
                     ExeScript(at_3700);
                     int             commandNum = 3;
-                    int             row = 0;
+                    int             row;
                     MenuCommandList commands = at_3481;
+                    row = 0;
                     for (; row < commandNum; row++) {
                         if (commands.mes[row] == 0x14B6) {
                             if (MenuCommonInfo->now_mode == 2 || GetMenuLoopType() == 0) {
@@ -4331,12 +4340,14 @@ int CMenuMosSelect::KeyStep() {
                                 if (MenuUserDataManPtr->CheckEnableCharaChange(3, NULL) == 0 && row >= 0 && row < 20) {
                                     command->line_color[row] = 0x80202020;
                                 }
-                                if (select_badge != NULL && select_badge->hp.GetRate() <= 0.0f && row >= 0 && row < 20) {
-                                    command->line_color[row] = 0x80202020;
-                                }
-                                int attr = MenuUserDataManPtr->GetCharaStatusAttirbute(MenuUserDataManPtr->active_chr_no);
-                                if (((attr & 4) || (attr & 8) || (attr & 0x20)) && row >= 0 && row < 20) {
-                                    command->line_color[row] = 0x80202020;
+                                if (select_badge != NULL) {
+                                    if (select_badge->hp.GetRate() <= 0.0f && row >= 0 && row < 20) {
+                                        command->line_color[row] = 0x80202020;
+                                    }
+                                    int attr = MenuUserDataManPtr->GetCharaStatusAttirbute(MenuUserDataManPtr->active_chr_no);
+                                    if (((attr & 4) || (attr & 8) || (attr & 0x20)) && row >= 0 && row < 20) {
+                                        command->line_color[row] = 0x80202020;
+                                    }
                                 }
                             }
                         }
@@ -4360,17 +4371,17 @@ int CMenuMosSelect::KeyStep() {
                     MenuSePlay(5);
                     break;
                 case 12: {
-                    step = 2;
+                    step = 20;
                     MenuMesForm[6]->draw_flag = 1;
                     MenuSePlay(1);
                     info->MsgPreset(6);
                     MonsterNameTable names = at_3511;
-                    for (i = 0; i < select_badge->class_level + 1; i++) {
-                        names.name[i] = GetMonsterName(monster_progress_tbl[select_badge->progress][1 + i]);
+                    for (int name_index = 0; name_index < select_badge->class_level + 1; name_index++) {
+                        names.name[name_index] = GetMonsterName(monster_progress_tbl[select_badge->progress][1 + name_index]);
                         if (GetUserDataMan()->active_chr_no == 3 &&
-                            monster_progress_tbl[select_badge->progress][1 + i] == GetUserDataMan()->monster_id &&
-                            i >= 0 && i < 20) {
-                            info->line_color[i] = 0x80202020;
+                            GetUserDataMan()->monster_id == monster_progress_tbl[select_badge->progress][1 + name_index] &&
+                            name_index >= 0 && name_index < 20) {
+                            info->line_color[name_index] = 0x80202020;
                         }
                     }
                     info->SetMsgItemNo(names.name, select_badge->class_level + 1);
@@ -4426,8 +4437,8 @@ int CMenuMosSelect::KeyStep() {
                     ExeScript(at_3703);
                     names.name[0] = at_3704;
                     names.name[1] = GetMonsterName(monsterNo);
-                    for (i = 0; i < level_num; i++) {
-                        names.name[2 + i] = GetMonsterName(level_monster[i]);
+                    for (int name_index = 0; name_index < level_num; name_index++) {
+                        names.name[2 + name_index] = GetMonsterName(level_monster[name_index]);
                     }
                     info->MakeMsg(level_num + 0x33);
                     info->SetMsgItemNo(names.name, level_num + 2);
@@ -4446,30 +4457,32 @@ int CMenuMosSelect::KeyStep() {
         load_phase = 0;
         pick_monster = view_monster;
     }
-    if (select_badge != NULL && select_badge->enable == 1 && select_badge->class_level > 0) {
-        if (key_arg_no == 2) {
-            info_win.alpha += 8;
-            if (info_win.alpha > 0x80) {
-                info_win.alpha = 0x80;
+    if (select_badge != NULL) {
+        if (select_badge->enable == 1 && select_badge->class_level > 0) {
+            if (key_arg_no == 2) {
+                info_win.alpha += 8;
+                if (info_win.alpha > 0x80) {
+                    info_win.alpha = 0x80;
+                }
+            } else {
+                int alpha = info_win.alpha - 8;
+                if (alpha < 0) {
+                    alpha = 0;
+                }
+                info_win.alpha = alpha;
             }
         } else {
-            int alpha = info_win.alpha - 8;
-            if (alpha < 0) {
-                alpha = 0;
-            }
-            info_win.alpha = alpha;
+            info_win.alpha = 0;
         }
-    } else {
-        info_win.alpha = 0;
     }
     if (showInfo && select_badge != NULL) {
         BadgeInfoValues values = at_3554;
         int             base = view_monster * 10 + 10000;
-        int             degree = select_badge->GetDegreeLevel();
+        int             degree = select_badge->GetDegreeLevel() + 1;
+        values.value[1] = select * 20 + degree;
         values.value[2] = base + 10;
         values.value[3] = base + 11;
         values.value[4] = -1;
-        values.value[1] = select * 20 + degree + 1;
         CDC2Mes *desc = MenuDCMsg[7];
         desc->ClsMes::mes_no = -1;
         desc->value_zero = 1;
