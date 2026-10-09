@@ -2080,10 +2080,8 @@ int sgSystemDrawFishing(SubGameInfo *info) {
     mgTexManager.ReloadTexture(SystemTexb, (sceVif1Packet *) NULL);
     DrawFishingActionChance();
     scene = info->scene;
-    system_texture = (mgCTexture *) mgTexManager.GetTexture("linetens",
-                                                            SystemTexb);
-    banner_texture = (mgCTexture *) mgTexManager.GetTexture("turi_hit",
-                                                            SystemTexb);
+    system_texture = mgTexManager.GetTexture("linetens", SystemTexb);
+    banner_texture = mgTexManager.GetTexture("turi_hit", SystemTexb);
 
     mgCDrawPrim prim;
 
