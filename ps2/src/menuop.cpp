@@ -3682,31 +3682,13 @@ INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuop", at_2512__2__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuop", at_2513__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuop", at_2514__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuop", at_2515__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuop", at_2518__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuop", at_2517__2__DATA);
 
 // Virtual tables (.vtables)
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuop", __vt__11CManualMenu__DATA);
 
 // Small initialised data (.sdata)
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuop", at_2335__3__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuop", at_2342__DATA);
 
 // Small uninitialised data (.sbss)
-INCLUDE_BSS(FormatCase_1968, 0x4);
-INCLUDE_BSS(init_1969, 0x4);
-INCLUDE_BSS(DarkClonicleFileMax_2004, 0x4);
-INCLUDE_BSS(init_2005, 0x4);
-INCLUDE_BSS(input_wait_counter_2067, 0x4);
-INCLUDE_BSS(init_2068, 0x8);
-INCLUDE_BSS(at_2115__3, 0x8);
-INCLUDE_BSS(at_2276, 0x8);
-INCLUDE_BSS(at_2319, 0x4);
-INCLUDE_BSS(at_2326__2, 0x4);
-INCLUDE_BSS(at_2327, 0x4);
-INCLUDE_BSS(at_2328__2, 0x4);
-INCLUDE_BSS(at_2330__2, 0x4);
-INCLUDE_BSS(at_2331__2, 0x4);
 
 // Uninitialised data (.bss)
 /**

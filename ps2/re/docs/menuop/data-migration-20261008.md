@@ -226,3 +226,45 @@ Final receipts: `.private/menuop-data-r4/final-{build,objects,progress}.log`,
 prints `SCES_511.90: OK`; all 149 canonical objects pass. Guarded source and
 the public header are unchanged. No function is attempted or promoted, and no
 unowned-file proposal or build-tooling change is needed.
+
+## October 9 follow-up: native KeyStep storage
+
+The accepted nine-pair coordinate-array decision and promotion are documented
+in [the menuop lane notes](menuop-r0-20261009.md). KeyStep now compiles natively;
+`MenuManualInit` remains guarded and untouched. The preceding retained-marker
+tables describe the pre-promotion checkpoint, rather than the current source.
+
+Four initialized markers are replaced by data already emitted from KeyStep:
+
+| Removed marker | Native owner |
+| --- | --- |
+| `at_2517__2` | Current-page `switch (page)`, seven destinations. |
+| `at_2518__2` | Transition `switch (next)`, seven destinations. |
+| `at_2335__3` | Local `float list_pos[2] = {76.0f, 164.0f}`. |
+| `at_2342` | Local `int scroll_range[2] = {6, 250}`. |
+
+The fourteen BSS markers are replaced by native function-local storage:
+
+| Removed marker(s) | Native owner |
+| --- | --- |
+| `FormatCase_1968`, `init_1969` | `static int format_case = 0` and its compiler-generated one-time guard. |
+| `DarkClonicleFileMax_2004`, `init_2005` | `static int dark_clonicle_file_max = 0` and its one-time guard. |
+| `input_wait_counter_2067`, `init_2068` | `static signed char input_wait_counter = 0` and its one-time guard. |
+| `at_2115__3` | Zero-initialized quest-confirmation `values[2]` template. |
+| `at_2276` | Zero-initialized space-error `values[2]` template. |
+| `at_2319` | NULL-initialized `title[1]` template. |
+| `at_2326__2` | Zero-initialized chapter `item_no[1]` template. |
+| `at_2327`, `at_2328__2` | Occupied-row `slot_number[1]` and `slot_width[1]` templates. |
+| `at_2330__2`, `at_2331__2` | Empty-row `slot_number[1]` and `slot_width[1]` templates. |
+
+The statics retain their actual four/four/one-byte declarations and one-byte
+guards. The existing canonical padding supplies each reservation's alignment
+gap. No named template copies, fabricated guards or source padding are added.
+The unused file-count value retains its observed one-time initialization.
+
+After this step, menuop has 27 RODATA / 0 BSS markers and 1,056/3,027 matched
+data bytes. PAL verification is `SCES_511.90: OK`; complete comparison passes
+149/149, with menuop at `0x7DD4` allocated bytes and 2,175 resolved
+relocations. Only menuop's raw object hash changes; all other 148 are unchanged.
+Receipts are `.private/menuop-r0/native-data-{build,objects}.log`,
+`native-data-metrics.json`, and `native-data-object-equality.json`.
