@@ -2014,7 +2014,7 @@ int sgDrawFishing(SubGameInfo *info) {
     if (CharaMode == 1) {
         char *cursor_motion[2] = {"NG", "OK"};
         CursorChara[0]->SetMotion(cursor_motion[CastOKFlag], 0);
-        CursorChara[0]->SetPosition((float *)&CastPointCur);
+        CursorChara[0]->SetPosition(CastPointCur.v);
         CursorChara[0]->Step();
         CursorChara[0]->DrawDirect();
     }
@@ -3396,12 +3396,12 @@ float GetFishDist(CScene *scene) {
     float        chara_pos[4];
     float        fish_pos[4];
     float        fish_velo[4];
-    float        matrix[16];
+    float        matrix[4][4];
     CCharacter2 *chara = scene->GetCharacter(scene->player_chara);
     ((mgCObject *) chara)->GetPosition(chara_pos);
     ((mgCObject *) chara)->GetRotation(chara_rot);
-    mgUnitMatrix((float (*)[4]) matrix);
-    sceVu0RotMatrixY((float (*)[4]) matrix, (float (*)[4]) matrix, chara_rot[1]);
+    mgUnitMatrix(matrix);
+    sceVu0RotMatrixY(matrix, matrix, chara_rot[1]);
     GetFishPosVelo(fish_pos, fish_velo);
     return mgDistVectorXZ(chara_pos, fish_pos);
 }
