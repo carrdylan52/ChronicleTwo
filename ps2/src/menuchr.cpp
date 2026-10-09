@@ -1168,8 +1168,20 @@ static char *tbl_3725[MOS_SELECT_BADGE_NUM] = {
  */
 static int              menu_debug_select__2;
 
-extern int              select_monster_save_3371;
-extern s8               init_3372__2;
+/**
+ *
+ * Class-change monster chosen in the monster menu's growth list.
+ *
+ */
+static int select_monster_save_3371;
+
+/**
+ *
+ * Indicates that the class-change monster choice has been initialized.
+ *
+ */
+static s8 init_3372__2;
+
 /**
  *
  * Reward parameter index of each displayed monster badge.
@@ -7748,9 +7760,6 @@ INCLUDE_BSS(init_1416, 0x4);
 INCLUDE_BSS(at_1650__2, 0x4);
 INCLUDE_BSS(at_1684__2, 0x8);
 u32 *CharaSndBuffer;
-
-INCLUDE_BSS(select_monster_save_3371, 0x4);
-INCLUDE_BSS(init_3372__2, 0x4);
 
 // Uninitialised data (.bss)
 MENU_BGREAD_INFO2 *MenuCharaBuild2[MENU_CHARA_LOAD_MAX];
