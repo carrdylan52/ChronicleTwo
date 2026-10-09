@@ -6,9 +6,11 @@
 matching build selects their `INCLUDE_ASM` gaps. `EditDraw` is native matched
 C++; [night-20261008.md](night-20261008.md) records its promotion. Earlier
 active versions changed the unit's code and data layout and failed the object
-check. `CameraCtrlParam::operator=` is a native C++ definition at its retail
-address; the October 8 mid-day audit below supersedes the earlier emission blocker. The other game functions
-remain native C++ where the base source already matched.
+check. `CameraCtrlParam::operator=` at 0x1ACEE0 is currently an
+`INCLUDE_ASM` gap. Its compiler-generated copy matches in an isolated caller,
+but the active unit lacks a natural emission site while `EditInit` remains
+guarded; the historical mid-day explicit-member promotion below is superseded.
+The other game functions remain native C++ where the base source already matched.
 
 The town main-loop mode (walking and Georama editing). `LoopInit/LoopMain/LoopExit` in mainloop
 hold `EditInit`, `EditLoop`, `EditExit`. No class is owned by this unit (`class_units.tsv`).
@@ -17,7 +19,8 @@ hold `EditInit`, `EditLoop`, `EditExit`. No class is owned by this unit (`class_
 ## Classes emitted here but owned elsewhere
 - `CameraCtrlParam::operator=` (0x1ACEE0): owned by cameracontrol; caller `CCameraControl::CCameraControl`.
 - `CActionChara::CActionChara()` (0x1ACF40): owned by actionchara; caller `InitDungeonMain` (dng_main).
-  `CameraCtrlParam` has its explicit retail assignment definition in this unit;
+  Both retail bodies remain assembly gaps in this unit. `CameraCtrlParam`
+  has an optional retail-assignment declaration in `cameracontrol.hpp`;
   the `CActionChara` constructor is defined in `actionchara.hpp`.
 
 ## INIT_LOOP_ARG (declared in mainloop.hpp)
@@ -104,7 +107,11 @@ when `EditInit`'s owning lane restores its verified native assignment and
 character-array construction.
 
 
-## October 8 mid-day parameter assignment promotion
+## October 8 mid-day parameter assignment promotion (superseded)
+
+This records a historical explicit-member trial. The current unit retains
+the assembly gap and relies on natural compiler emission when the owning
+`EditInit` caller can be promoted.
 
 `CameraCtrlParam::operator=` at `0x1ACEE0` is now a native member definition.
 It copies the ten float limits and the integer `no_check`, and returns the

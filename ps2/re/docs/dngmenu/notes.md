@@ -9,10 +9,11 @@ functions; they do not assert retail enum names.
 
 `dng_light_circle` and `dngfreemap_num` are const `mgRect<int>` globals: MWCC emits their zero-initialized storage in retail's `.rodata` section and still runs their constructors from the exact 144-byte static initializer. Declaring them without `const` places the storage in `.bss` and breaks the section mapping.
 
-## Current assembly gaps
+## Current native source
 
-`CMenuTreeMap::Step` is the unit's only remaining C++ draft under
-`NONMATCHING`; the matching build selects its retail `INCLUDE_ASM` gap.
+All 48 functions are native and exact. `CMenuTreeMap::Step` now uses
+natural function statics and native data, with no remaining assembly gaps;
+see [stepclean-20261009.md](stepclean-20261009.md).
 `CDngFreeMap::LoadDngInfo`, `DrawRoomOne`, `CDngFreeMap::DrawRoot`,
 `DrawDngRoomInfo` and `CMenuTreeMap::MsgInit` are native and exact; see
 [night-20261008.md](night-20261008.md).
@@ -368,8 +369,9 @@ value is the number of quadwords consumed from the temporary arena.
 
 `CMenuTreeMap::Step` handles cursor navigation, floor detail messages,
 confirmation of travel to a floor, the save-menu handoff, and debug controls.
-Its persistent static state records the previous direction and selected
-cell so movement can distinguish a held key from a new selection.
+Its persistent statics record the previous selected cell and pending jump
+destination. `old_direction` is initialized/reset to -1 but never read; its
+retail stores remain without claiming a held-direction purpose.
 
 `DrawDngRoomInfo` draws the floor detail panel only when a room and its
 texture are available. Its height varies with the language and whether the
@@ -577,9 +579,10 @@ The later native match and data migration supersede that trial.
 `LoadDngInfo` was blocked here by its typed `__DATA` route-table
 declarations conflicting with `INCLUDE_RODATA` placeholder types. The route
 tables are now native, and the function is native and exact; see
-[night-20261008.md](night-20261008.md). The isolated `CMenuTreeMap::Step` draft
-also has declaration/type compilation failures, so its guard cannot simply
-be removed. These results distinguish buildable drafts from native matches.
+[night-20261008.md](night-20261008.md). The later Step work resolves its
+earlier declaration/type failures and promotes its exact 0x1828-byte native
+body after complete-unit verification; see that file and
+[stepclean-20261009.md](stepclean-20261009.md).
 
 ## DrawTreeMap
 
@@ -621,8 +624,9 @@ Restoring these details gives the retail 0x280-byte frame, while instruction
 scheduling and branch structure initially remained different. The midday pass resolves
 those differences and promotes the function; see [midday.md](midday.md).
 
-The remaining differences and reconsideration triggers are recorded in
-[parks.md](parks.md). The standalone `ClsMes::Init` proposal is recorded in
+The earlier differences and reconsideration triggers are recorded in
+[parks.md](parks.md); all listed targets are now native. The historical
+standalone `ClsMes::Init` proposal is recorded in
 [clsmes-init-proposal.md](clsmes-init-proposal.md).
 
 ## Merged SF second pass
@@ -630,7 +634,8 @@ The remaining differences and reconsideration triggers are recorded in
 [The r2 record](r2.md) documents exact native promotions of
 `CheckGeoramaMateria` and `CMenuTreeMap::InitEnd`, refreshed SF measurements
 of every assigned guard, and the retained guarded corrections.
-[parks.md](parks.md) is the current remainder list and retry guide.
+[parks.md](parks.md) preserves the historical remainder list and retry
+evidence; the later Step promotion resolves its last assembly gap.
 
 ## Midday round 1
 

@@ -14,9 +14,10 @@ Retail has six LOCAL Step statics in `.sbss`: `old_direction$2830`
 `init$2834` (0x37D5B0, 1), `NextFloorGlid$2836` (0x37D5B4, 4) and
 `init$2837` (0x37D5B8, 1). Step tests the first two guards at +0x2C and
 +0x4C, beside the `MenuCommonInfo` load and before `MenuDCMsg[3]` and
-`FadeInOutMenu`, and the third at +0x84, after `ReadBGSync`. All three statics are used only inside Step, at function scope, so
-none needs an explicit guard (unlike menuchr's `select_monster_save`, which
-is read outside the block that holds its guard).
+`FadeInOutMenu`, and the third at +0x84, after `ReadBGSync`. All three
+statics are used only inside Step, at function scope, so none needs an
+explicit guard. Menuchr's `select_monster_save` likewise uses a natural
+static, placed directly in the step-switch scope so later cases can read it.
 
 The natural declarations sit where retail tests the guards:
 

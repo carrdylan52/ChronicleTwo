@@ -49,7 +49,7 @@ and character handles are typed pointers. All use the documented retail names
 and `static` visibility. Their definitions have ordinary C++ linkage; the
 redundant C-linkage wrapper is removed and the three draft float
 redeclarations use the same ordinary linkage. Each definition documents
-its purpose. `eCurRot` is an integer quarter-turn index: angle conversion APIs and
+its purpose. `eCurRot` is an integer 15-degree turn index: angle conversion APIs and
 the `%d` debug formatter consume it as an integer, and saving it into a float
 slot uses `cvt.s.w`. The old notes' float description is inaccurate.
 

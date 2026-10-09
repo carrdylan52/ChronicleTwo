@@ -1,7 +1,8 @@
 # dngmenu remainder after r2 — October 8
 
-Current lane source: 47 native functions and one guarded C++ draft,
-`CMenuTreeMap::Step`. The older scores below record the route to those matches. Upstream supplies the exact `CheckIsViewMove` implementation and
+Current source: all 48 functions are native and exact; Step's later
+promotion resolves the last assembly gap. The older scores below record
+the route to those matches. Upstream supplies the exact `CheckIsViewMove` implementation and
 its translation-unit helper seed; its former park is resolved.
 The r2 baseline at `2f71f10` was 34/13/1. All assigned targets were
 remeasured with the merged SF profile before experiments. Rows below use SF
@@ -20,7 +21,7 @@ see [r2.md](r2.md).
 | `DrawRoot__11CDngFreeMapF9mgRect_f_P16DNGMAP_ROOT_INFOiUii` | 781/844, 0xD08/0xD30 → 708/844, 0xCEC/0xD30 | Earlier guarded stage: event tints share retail's single branch. Shapes 4 and 5 are excluded from the five-pixel adjustment, and dispatch is an ordered comparison chain. Root/marks/opacity and color/mark saved registers and individual shape loops still differ. Reconsider with a case-zero lifetime map and the default/event color register map before changing the other shapes. → 6/844 at 0xD2C → **exact**, promoted (see night-20261008.md). |
 | `DrawRoomOne__11CDngFreeMapF9mgRect_f_P16DNGMAP_ROOM_INFOUiif` | 553/584, 0x8A8/0x920 → exact | Promoted in night round 1. The glyph table is read as flat halfwords with `[i << 2]` indexing, which shares the destination table's `i * 4` induction; a `tex_no` local read before the visited test fills the branch delay slot; the colour components are assigned `b = g = r`. Complete-unit byte/relocation check passes; see [night-20261008.md](night-20261008.md). |
 | `DrawDngRoomInfo__FP16DNGMAP_ROOM_INFO` | 506/712 → 65/712 (nmparked) → **0/712**, 0xB18 (nmparked-r1) | Exact. Separate icon X, inline `ix + width` right edges, board Y assigned in the first strip argument and both row counters chained from one conversion; see [night-20261008.md](night-20261008.md). |
-| `Step__12CMenuTreeMapFv` | 1506/1548, 0x1734/0x1830 → 1488/1548, same sizes | Guarded. Natural mode switch, question-message timing and integer selection-change flag improve the draft. Frame remains 0x110 versus retail 0x130, with one fewer saved GPR; the correctly sized 72-byte time-text buffer stays intact. Reconsider the key/message/result lifetimes and later state branches; see midday.md. |
+| `Step__12CMenuTreeMapFv` | 1506/1548, 0x1734/0x1830 → 1488/1548 → **0/1548**, 0x1828 body | Promoted after complete-unit validation. Natural mode switch, question-message timing, selection-change flag and later key/message/result lifetimes recover the retail body and frame. Its statics and data are native; see [night-20261008.md](night-20261008.md) and [stepclean-20261009.md](stepclean-20261009.md). |
 | `InitEnd__12CMenuTreeMapFv` | 198/224, 0x364/0x380 → exact | Promoted. Cached floor bound, loader locals, sequential bounds, separate sub/boss checks, coordinate pair updates, output-size lifetime, and cursor state now match all 224 words and the complete unit. |
 | `DrawGeoramaMateria__FiPciPii` | 0x404/0x400 → exact | Promoted in night round 1. One `x`/`y` pair shared by the title, list rows and page counter moves the spill to the right column like retail; the item width is read into `x` before the column test. Complete-unit byte/relocation check passes; see [night-20261008.md](night-20261008.md). |
 | `Draw__11CDngFreeMapFv` | 0x628/0x610 (353/394 detailed words) → exact | Promoted in the midday lane. Retained texture/manager, temporary mark rectangle, local-font access, typed room pointer, positive conditions, debug Y base, ordered query calls with moon/sun/normal declarations, and separate ON/OFF calls reproduce the complete unit; see [midday.md](midday.md). |
