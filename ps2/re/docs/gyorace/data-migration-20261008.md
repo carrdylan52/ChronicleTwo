@@ -19,11 +19,18 @@ definitions under their retail symbols. File-local state remains static;
 the published symbols retain their header declarations. In particular,
 `battle_EffectPara` points to arrays of 32 BattleEffectPrim objects.
 
-The existing draft's `game_data[8]` agrees with the retail 0x20-byte symbol;
-the older six-pointer claim in notes.md is superseded. Only six entrants are
-used by this race, while the allocated pointer array has eight slots. The
-result, simulation and fish-display arrays retain their established element
-types and six-entry counts. Alignment gaps do not become source fields.
+Retail `game_data` is a six-pointer array: readelf gives its declared
+symbol size as 0x18 at 0x01F59740. The 0x20-byte reservation includes eight
+alignment bytes. The inactive draft's eight-entry declaration is not its
+retail type; the native definition follows the six-entry layout already
+recorded in notes.md. The result, simulation and fish-display arrays retain
+their established element types and six-entry counts. Alignment gaps do not
+become source fields.
+
+The initial migration used the draft's eight-entry declaration and still
+passed PAL/object checks, so those checks alone do not validate this source
+extent. The final declaration is corrected to the ELF size and validated
+again. This supersedes the initial migration's eight-entry note.
 
 ## Retained assembly-owned constants
 
@@ -60,13 +67,14 @@ not a reason to change flags, the profile or the retail function.
 | Retained BSS marker | Reason |
 |---|---|
 | `at_1765__2` | The existing origin-array initialization alone does not preserve the unit initializer's reference: removing the marker changes `__sinit_gyorace_cpp+0x10`. Retained pending template identity handling. |
-| `at_1775`, `at_1776` | SDK integer-vector zero initializers with memcpy of the origin compile, but change the strip helper and linked initializer layout. The exact original body is restored; no new pun or copy helper is retained. |
+| `at_1775`, `at_1776` | SDK integer-vector zero initializers with memcpy of the origin change the strip helper and linked initializer layout. A typed aggregate containing an SDK integer vector, with ordinary value assignment, also changes linked code. Keeping these markers restores its startup initializer but leaves a text mismatch. The exact original body is restored; no new pun or copy helper is retained. |
 | `D_01F5971C` | This four-byte explicit boundary follows the fish-rank reservation. Removing it changes the linked unit initializer reference at +0x10. No filler object is introduced to preserve the boundary. |
 | `lap_inf2_1799` | The natural five-int local has a 0x14-byte payload and a 0x50-byte terminal reservation. The PAL image matches without its marker, but check_objects rejects the BSS run ending at 0x01F599C4 instead of 0x01F59A00. The 0x3C-byte terminal gap requires tooling support. |
 
 All failed variants and their receipts remain in `.private/dataB-r4/gyorace-*`.
 The retained source uses neither a new alignment filler nor an artificial
 initializer/vtable helper. No header or other unit is changed.
+
 
 ## Measurement and validation
 

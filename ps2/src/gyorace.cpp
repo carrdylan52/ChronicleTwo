@@ -340,7 +340,7 @@ static int old_fish_rank[6];
  * Game inventory records selected for the race entrants.
  *
  */
-static CGameDataUsed *game_data[8];
+static CGameDataUsed *game_data[6];
 
 /**
  *
