@@ -318,7 +318,7 @@ extern mgCFrame *ShovelCursor;
 extern mgCTexture *eSysTexture;
 void LoadEditCursor(mgCMemory *memory, int block) {
     mgCTextureManager *textures = &mgTexManager;
-    if (LoadFile2("etc/gsys.pak", read_buffer, NULL, 0) != 0) {
+    if (LoadFile2("etc/gsys.pak", read_buffer, NULL, LOAD_FILE_READ) != 0) {
         u_int *pack = (u_int *)read_buffer;
         int size;
         u_int *image = GetPackFile(pack, (char *)"etc/g_edit.img", &size);
