@@ -14132,7 +14132,7 @@ int _CTRLC_MOVE_RANGE(RS_STACKDATA *stack, int argc) {
 }
 
 int _GET_NEAR_TBOX_POS(RS_STACKDATA *stack, int argc) {
-    float            target[4];
+    float                target[4];
     float                box_pos[4];
     DNG_BATTLE_AREA     *dng_scene;
     int                  nearest;

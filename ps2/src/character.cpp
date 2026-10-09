@@ -768,8 +768,8 @@ void CCharacter2::SetDAnimeEnable(int enable) {
 }
 
 CHRINFO_SE *CCharacter2::GetSoundInfoCopy(mgCMemory *memory) {
-    u32   bytes;
-    u32   blocks;
+    u32         bytes;
+    u32         blocks;
     u_long128  *block;
     CHRINFO_SE *copy;
 
