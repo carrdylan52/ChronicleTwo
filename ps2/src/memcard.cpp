@@ -27,12 +27,16 @@ struct AlbumFile {
 };
 
 /**
+ *
  * Number of costumes tracked by the persistent costume flags.
+ *
  */
 enum { MC_COSTUME_COUNT = 34 };
 
 /**
+ *
  * Costume item numbers and their persistent costume-bit indices.
+ *
  */
 static COSBIT_INFO cosbit_table[MC_COSTUME_COUNT] = {
     {0x6F, 0, 0},
@@ -74,7 +78,9 @@ extern const unsigned char at_1315__3[5];
 extern unsigned char       at_1954[0x2B];
 
 /**
+ *
  * Browser titles for save, album, bonus, and formatted save entries by region.
+ *
  */
 static const char *MCBrowsetName[3][4] = {
     {"\x83_\x81[\x83N\x83N\x83\x8D\x83j\x83N\x83\x8B", "\x83_\x81[\x83N\x83N\x83\x8D\x83j\x83N\x83\x8B\x83" "A\x83\x8B\x83o\x83\x80\x83" "f\x81[\x83^", "\x83_\x81[\x83N\x83N\x83\x8D\x83j\x83N\x83\x8B\x82\xA8\x82\xDC\x82\xAF\x83" "f\x81[\x83^", "\x83_\x81[\x83N\x83N\x83\x8D\x83j\x83N\x83\x8B\x81m%s\x81n"},
@@ -83,7 +89,9 @@ static const char *MCBrowsetName[3][4] = {
 };
 
 /**
+ *
  * Byte offsets of the second title line for each region and save category.
+ *
  */
 static u16 MCBrowserName_Offset[3][4] = {
     {0x20, 0x10, 0x10, 0x20},
@@ -92,7 +100,9 @@ static u16 MCBrowserName_Offset[3][4] = {
 };
 
 /**
+ *
  * Whether dungeon-tree state is included in the next save.
+ *
  */
 static short DngTreeSaveFlag;
 
