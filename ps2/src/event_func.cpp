@@ -239,18 +239,6 @@ extern char            at_1083[];
 extern char            at_9148[];
 extern char            at_9622[];
 extern char            at_8230[];
-extern char            at_6773__2[];
-extern char            at_6774__2[];
-extern char            at_6775__2[];
-extern char            at_6776__2[];
-extern char            at_6781__2[];
-extern char            at_6782__2[];
-extern char            at_6816[];
-extern char            at_6839[];
-extern char            at_7117[];
-extern char            at_6834[];
-extern char            at_5726[];
-extern char            at_5736[];
 
 
 // Code (.text)
@@ -9782,7 +9770,7 @@ int _SPRITE_SET_POS(RS_STACKDATA *stack, int argc) {
         pos[1] += sprite_ground_offset;
     }
 
-    printf(at_5726, pos[0], pos[1]);
+    printf("_SPRITE_SET_POS:%f,%f\n", pos[0], pos[1]);
     sprite->SetPosition(pos);
     return 1;
 }
@@ -9802,7 +9790,7 @@ int _SPRITE_SET_PUTSIZE(RS_STACKDATA *stack, int argc) {
     }
 
     sprite->SetPutSize(width, height);
-    printf(at_5736, width, height);
+    printf("_SPRITE_SET_PUTSIZE:%d,%d\n", width, height);
     return 1;
 }
 
@@ -11624,13 +11612,13 @@ int CommandStreamOpenFromFPL(int stream, char *name, char *base) {
     char path[64];
     char base_name[64];
 
-    strcpy(path, at_6773__2);
+    strcpy(path, "cdrom0:\\V\\");
     strncat(path, name, 3);
-    strcat(path, (char *) &at_6774__2);
+    strcat(path, "\\V");
     strcat(path, name);
-    strcat(path, (char *) &at_6775__2);
+    strcat(path, ".VPK;1");
     strcpy(base_name, base);
-    strcat(base_name, (char *) &at_6776__2);
+    strcat(base_name, ".wav");
     CSnd.StreamOpenFromFPLFast(stream, path, base_name);
     return 1;
 }
@@ -11638,9 +11626,9 @@ int CommandStreamOpenFromFPL(int stream, char *name, char *base) {
 int CommandStreamOpen(int stream, char *name) {
     char path[64];
 
-    strcpy(path, (char *) at_6781__2);
+    strcpy(path, "cdrom0:\\VOICE\\");
     strcat(path, name);
-    strcat(path, (char *) at_6782__2);
+    strcat(path, ".WV;1");
     CSnd.StreamOpenFast(stream, path);
     return 1;
 }
@@ -11842,7 +11830,7 @@ int VpkFileNameFromVoiceNo(char *name, int voice_no) {
 
     for (int i = 0; i < vpk_entry_count; i++) {
         if (group == table.entry[i].group && kind == table.entry[i].kind) {
-            sprintf(name, (char *) at_6816, table.entry[i].id, table.entry[i].sub);
+            sprintf(name, "%03d_%03d", table.entry[i].id, table.entry[i].sub);
             return 1;
         }
     }
@@ -11862,7 +11850,7 @@ int _STREAM_OPEN(RS_STACKDATA *stack, int argc) {
                     if (VpkFileNameFromVoiceNo(voicePack, voiceNo) == 0) {
                         return 0;
                     }
-                    sprintf(voicePath, at_6834, voiceNo);
+                    sprintf(voicePath, "%07d", voiceNo);
                     CommandStreamOpenFromFPL(1, voicePack, voicePath);
                 }
                 case RS_STR:
@@ -11881,7 +11869,7 @@ int _STREAM_OPEN(RS_STACKDATA *stack, int argc) {
 int CommandStreamPlay(int stream, int volume) {
     int reverb = sndGetReverbDepth(1);
     int scaled = (int) ((double) volume - 256.0 * (1.5 * (double) reverb));
-    printf((char *) at_6839, scaled, volume);
+    printf("vol=%d,vol_0=%d\n", scaled, volume);
     EdEventInfo.stream_volume = volume;
     CSnd.StreamSetVol(stream, scaled, scaled);
     CSnd.StreamPlay(stream);
@@ -12184,9 +12172,9 @@ int _STREAM_CLOSE(RS_STACKDATA *stack, int argc) {
 
 int CommandStreamOpen2(int stream, char *name) {
     char path[64];
-    strcpy(path, (char *) at_6781__2);
+    strcpy(path, "cdrom0:\\VOICE\\");
     strcat(path, name);
-    strcat(path, (char *) at_6782__2);
+    strcat(path, ".WV;1");
     return 1;
 }
 
@@ -12289,7 +12277,7 @@ int _STREAM_OPEN3(RS_STACKDATA *stack, int argc) {
 
     GetStackInt(stack++);
     EdEventInfo.stream_from_fpl = 2;
-    sprintf(name, at_7117, GetStackInt(stack));
+    sprintf(name, "%07d.wav", GetStackInt(stack));
     CSnd.StreamOpenFast(event_stream, name);
     EdEventInfo.stream_reading = 1;
     return 1;
@@ -18141,19 +18129,7 @@ INCLUDE_RODATA("ps2/asm/pal/nonmatchings/event_func", at_4360__2__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/event_func", at_4573__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/event_func", at_5264__2__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/event_func", at_5424__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/event_func", at_5726__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/event_func", at_5736__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/event_func", at_6703__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/event_func", at_6773__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/event_func", at_6774__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/event_func", at_6775__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/event_func", at_6776__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/event_func", at_6781__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/event_func", at_6782__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/event_func", at_6816__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/event_func", at_6834__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/event_func", at_6839__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/event_func", at_7117__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/event_func", at_8230__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/event_func", at_8406__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/event_func", at_8458__DATA);
