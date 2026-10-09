@@ -581,11 +581,11 @@ CDataItem::CDataItem() {
 }
 
 CDataAttach::CDataAttach() {
-    memset(this, 0, 0x18);
+    memset(this, 0, sizeof(CDataAttach));
 }
 
 CDataWeapon::CDataWeapon() {
-    memset(this, 0, 0x4C);
+    memset(this, 0, sizeof(CDataWeapon));
     durability = 0x14;
     levelup_exp = 0x14;
 }
@@ -593,7 +593,7 @@ CDataWeapon::CDataWeapon() {
 int CDataRoboPart::GetOffsetNo() { return this->offset_no; }
 
 CDataBreedFish::CDataBreedFish() {
-    memset(this, 0, 0x14);
+    memset(this, 0, sizeof(CDataBreedFish));
 }
 
 void CGameData::Initialize() {

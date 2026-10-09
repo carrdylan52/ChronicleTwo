@@ -240,11 +240,11 @@ class CDataBreedFish {
 public:
     float size; /**< Standard size of the fish. */
     s16   unk_4;
-    s16   battle; /**< Base battle ability of the fish. */
-    s16   stamina; /**< Base stamina of the fish. */
-    s16   boost; /**< Base boost ability of the fish. */
-    s16   endurance; /**< Base endurance of the fish. */
-    s16   tenacity; /**< Base tenacity of the fish. */
+    u16   battle; /**< Base battle ability of the fish. */
+    u16   stamina; /**< Base stamina of the fish. */
+    u16   boost; /**< Base boost ability of the fish. */
+    u16   endurance; /**< Base endurance of the fish. */
+    u16   tenacity; /**< Base tenacity of the fish. */
     s16   unk_10;
     s16   unk_12;
 
