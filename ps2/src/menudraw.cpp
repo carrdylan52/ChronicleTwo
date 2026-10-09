@@ -494,9 +494,9 @@ static CEffVerticalLine *MenuVerticalLine;
 static int MenuVerticalLineNum;
 
 /**
- * Identifies the character followed by the weapon build-up effect.
+ * Character followed by the weapon build-up effect, or NULL.
  */
-static int MenuVerticalLineChara;
+static CCharacter2 *MenuVerticalLineChara;
 
 /**
  * Holds the vertical range of the weapon build-up line effect.
@@ -6469,7 +6469,7 @@ void InitBuildUpInfoEffect(mgCMemory *memory, mgCTexture *texture, int num, floa
     MenuVerticalLineUpLimmit = up_limit;
     MenuVerticalLine = NULL;
     MenuVerticalLineNum = num;
-    MenuVerticalLineChara = 0;
+    MenuVerticalLineChara = NULL;
 
     if (memory != NULL) {
         size = num << 6;
@@ -6485,12 +6485,12 @@ void SetBuildUpInfoChara(CCharacter2 *chara, float range) {
 
     same = 1;
 
-    if (MenuVerticalLineChara != (int) chara) {
+    if (MenuVerticalLineChara != chara) {
         same = 0;
     }
 
     MenuVerticalRange = range;
-    MenuVerticalLineChara = (int) chara;
+    MenuVerticalLineChara = chara;
 
     if (chara != NULL) {
         chara->GetPosition(MenuVerticalLineCharaPos);
@@ -6521,7 +6521,7 @@ void StepBuildUpInfoEffect() {
 void DrawBuildUpInfoEffect() {
     int i;
 
-    if (MenuVerticalLineChara == 0 || MenuVerticalLine == NULL) {
+    if (MenuVerticalLineChara == NULL || MenuVerticalLine == NULL) {
         return;
     }
 
