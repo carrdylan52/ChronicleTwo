@@ -1440,25 +1440,20 @@ void EditMode(CScene *scene) {
             }
             if (key_up || key_down || key_left || key_right) {
                 map->GetEditPos(eCurPos, eCurPos);
-                float unused_a;
-                float unused_b;
                 float axis_cos;
                 float axis_sin;
-                float key_z;
-                float key_x;
-                key_z = 0.0f;
-                key_x = key_z;
+                stick_x = stick_y = 0.0f;
                 if (key_left) {
-                    key_z = -1.0f;
+                    stick_y = -1.0f;
                 }
                 if (key_up) {
-                    key_x = 1.0f;
+                    stick_x = 1.0f;
                 }
                 if (key_right) {
-                    key_z = 1.0f;
+                    stick_y = 1.0f;
                 }
                 if (key_down) {
-                    key_x = -1.0f;
+                    stick_x = -1.0f;
                 }
                 axis_sin = 0.0f;
                 axis_cos = 1.0f;
@@ -1474,9 +1469,8 @@ void EditMode(CScene *scene) {
                     axis_sin = -1.0f;
                     axis_cos = 0.0f;
                 }
-                float unused_e;
-                move_x = key_x * axis_cos + key_z * axis_sin;
-                move_z = -key_x * axis_sin + key_z * axis_cos;
+                move_x = stick_x * axis_cos + stick_y * axis_sin;
+                move_z = -stick_x * axis_sin + stick_y * axis_cos;
             }
             if (pad != NULL && pad->Btn(1)) {
                 UndoPlaceParts(scene);
