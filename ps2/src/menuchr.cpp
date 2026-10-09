@@ -4552,7 +4552,7 @@ int CMenuMosSelect::KeyStep() {
                             if (BuildUpWeaponInfo.select_no < 0) {
                                 BuildUpWeaponInfo.select_no = 0;
                             }
-                            if (!(BuildUpWeaponInfo.select_no < BuildUpWeaponInfo.select_num)) {
+                            if (BuildUpWeaponInfo.select_num <= BuildUpWeaponInfo.select_no) {
                                 BuildUpWeaponInfo.select_no = BuildUpWeaponInfo.select_num - 1;
                             }
                             if (oldSelect != BuildUpWeaponInfo.select_no) {
@@ -4740,11 +4740,10 @@ int CMenuMosSelect::KeyStep() {
                     break;
                 case 2: {
                     s16 *row = monster_progress_tbl[select_badge->progress];
-                    int  count = select_badge->class_level + 1;
                     int  level = -1;
-                    for (i = 0; i < count; i++) {
-                        if (view_monster == row[1 + i]) {
-                            level = i;
+                    for (int j = 0; j < select_badge->class_level + 1; j++) {
+                        if (view_monster == row[1 + j]) {
+                            level = j;
                             break;
                         }
                     }
@@ -4765,7 +4764,7 @@ int CMenuMosSelect::KeyStep() {
                     }
                     if (level != oldLevel) {
                         showInfo = 1;
-                        view_monster = row[1 + level];
+                        view_monster = monster_progress_tbl[select_badge->progress][1 + level];
                         pick_monster = view_monster;
                         load_wait = 0;
                         load_phase = 0;
@@ -4861,9 +4860,9 @@ int CMenuMosSelect::KeyStep() {
                         DeleteMonsterEffect();
                     }
                     GetCharaMemAllocPtr(MenuArg.chara_stack, MorattaStack, 3, 0);
-                    MenuMosLoadStack.stReset();
                     MenuLoadInfo.mode = 2;
                     MenuLoadInfo.unk_6[1] = 1;
+                    MenuMosLoadStack.stReset();
                     result = MOS_SELECT_RESULT_CHANGE;
                     monster->Initialize(NULL);
                     load_wait = 0;
@@ -4944,8 +4943,7 @@ int CMenuMosSelect::KeyStep() {
     if (showInfo && select_badge != NULL) {
         BadgeInfoValues values = at_3554;
         int             base = view_monster * 10 + 10000;
-        int             degree = select_badge->GetDegreeLevel() + 1;
-        values.value[1] = select * 20 + degree;
+        values.value[1] = select_badge->GetDegreeLevel() + 1 + select * 20;
         values.value[2] = base + 10;
         values.value[3] = base + 11;
         values.value[4] = -1;
