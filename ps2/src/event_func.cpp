@@ -149,7 +149,6 @@ static CEffectScriptMan *EventEffectScript;
  */
 static CSWordAfterImage *SwordEffect;
 
-extern float             vv_3333[12];
 
 /**
  * Copies a scene character for an event script.
@@ -5446,6 +5445,15 @@ int _LOAD_SCRIPT(RS_STACKDATA *stack, int argc) {
 }
 
 int _SET_TALK_CAMERA(RS_STACKDATA *stack, int argc) {
+    /**
+     * Camera offsets available to the scripted conversation camera.
+     */
+    static float vv[3][4] = {
+        {-94.0f, 35.5f, -106.5f, 1.0f},
+        {105.0f, 32.5f, -28.5f, 1.0f},
+        {113.0f, 34.5f, 82.5f, 1.0f},
+    };
+
     float middle[4];
     float offset[4];
     float rotation[4][4];
@@ -5470,7 +5478,7 @@ int _SET_TALK_CAMERA(RS_STACKDATA *stack, int argc) {
     *middle_y += 30.0f;
     sceVu0UnitMatrix(rotation);
     sceVu0RotMatrixY(rotation, rotation, angle);
-    sceVu0ApplyMatrix(offset, rotation, &vv_3333[4]);
+    sceVu0ApplyMatrix(offset, rotation, vv[1]);
     sceVu0AddVector(offset, middle, offset);
     SetStack(stack++, offset[0]);
     SetStack(stack++, offset[1]);

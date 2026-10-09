@@ -102,6 +102,20 @@ Receipt: `.private/dataA-r3/event-dispatch-table-prototypes-{build,objects,hashe
 The source-only table retains references to assembly handlers without claiming
 their code as native coverage.
 
+## Conversation camera static offsets
+
+`_SET_TALK_CAMERA` now owns the original mutable `float vv[3][4]` static
+initializer. It transforms `vv[1]`; the other two retail rows remain in the
+48-byte object. The external `vv_3333` declaration and flattened indexing
+are removed. Keeping the marker passes the complete object and PAL.
+Removing it also passes PAL, but the canonical checker reports an unnamed
+.data piece: the compiler emits `vv_3159`, and the stock mapper cannot assign
+the initialized local static's retail identity. The `vv_3333` marker therefore
+remains until the queued local-storage tooling supports this data family.
+
+Receipts: `.private/dataA-r3/event-talk-camera-{static,restored}-{build,objects,hashes}.log`;
+`event-talk-camera-unmarked-failure.log` records the naming-only blocker.
+
 ## Retained markers
 
 The initialized-data markers are pending the following migration topics.
