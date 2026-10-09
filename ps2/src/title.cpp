@@ -119,8 +119,6 @@ static int E3ModeBoardDrawFlag;
  */
 static int E3ModeBoardDrawAlpha;
 
-extern int              TitleRushWaitCount;
-
 /**
  *
  * Holds the trial title black overlay alpha.
@@ -242,9 +240,6 @@ static s16 TitleCopyRightDispCounter;
  */
 static s16 TitlePushStart_AlphaPlus;
 
-extern s8               cnttbl_2026[2];
-
-
 /**
  *
  * Points to the installation progress bar texture.
@@ -343,8 +338,6 @@ static mgCTexture *HDDImage[10];
  */
 static int HDDImageAlpha[10];
 
-extern char               *infomsg_2664[];
-
 /**
  *
  * Counts frames in the current title map camera phase.
@@ -359,15 +352,12 @@ static int TitleCameraPhaseCounter;
  */
 static float TitleCameraAddAngle;
 
-
 /**
  *
  * Records a request to skip the publisher logo display.
  *
  */
 static s8 TitleSkipLogoFlag;
-
-extern short               table_2611[3][12];
 
 /**
  *
@@ -406,9 +396,6 @@ static s16 TitleMCCheckPhase;
  */
 static s32 OmakePlayEnableAttr;
 
-extern s16                 TitleMCCheckFileFind[2];
-extern u8                  TitleMCCheckInport[2];
-
 /**
  *
  * Points to the language menu row and cursor texture.
@@ -444,16 +431,12 @@ static int title_lang_phase;
  */
 static int title_lang_select;
 
-
 /**
  *
  * Holds the eased language menu cursor coordinates.
  *
  */
 static float title_lang_curxy[2];
-
-extern MENU_SHORT_RECT     start_button_tbl_1826[];
-extern s16                 btn_tblxy_1830[][2];
 
 /**
  *
@@ -481,6 +464,88 @@ u8 MasterDebugModeOn;
  *
  */
 u_long CostumeOptionEnv;
+
+/**
+ *
+ * PUSH START texture rectangles indexed by the selected language.
+ *
+ */
+static MENU_SHORT_RECT start_button_tbl_1826[7] = {
+    {0, 22, 196, 18},
+    {0, 22, 196, 18},
+    {0, 18, 196, 22},
+    {0, 18, 196, 22},
+    {0, 20, 196, 20},
+    {0, 18, 196, 22},
+    {0, 22, 196, 18},
+};
+
+/**
+ *
+ * Texture origins for the five title menu rows.
+ *
+ */
+static s16 btn_tblxy_1830[5][2] = {
+    {302, 40},
+    {302, 94},
+    {302, 256},
+    {302, 204},
+    {302, 148},
+};
+
+/**
+ *
+ * Left, center and right texture rectangles for the three installation panel rows.
+ *
+ */
+static short table_2611[3][12] = {
+    {0, 0, 32, 32, 32, 0, 32, 32, 64, 0, 32, 32},
+    {0, 32, 32, 16, 32, 32, 32, 16, 64, 32, 32, 16},
+    {0, 48, 32, 76, 32, 48, 32, 76, 64, 48, 32, 76},
+};
+
+/**
+ *
+ * Installation progress captions indexed by the selected language.
+ *
+ */
+static char *infomsg_2664[7] = {
+    " ",
+    "Now installing.",
+    "Installing...",
+    "Installing...",
+    "Installing...",
+    "Installing...",
+    "Installing...",
+};
+
+/**
+ *
+ * Sets the number of idle title frames before the attract movie starts.
+ *
+ */
+static int TitleRushWaitCount = 750;
+
+/**
+ *
+ * Holds the number of save files found on each memory card.
+ *
+ */
+static s16 TitleMCCheckFileFind[2] = {0, 0};
+
+/**
+ *
+ * Holds the inserted-card state captured for each memory card port.
+ *
+ */
+static u8 TitleMCCheckInport[2] = {0, 0};
+
+/**
+ *
+ * Sets the rising alpha pulse speed for the title and attract movie prompts.
+ *
+ */
+static s8 cnttbl_2026[2] = {2, 4};
 
 // Code (.text)
 /**
@@ -3200,10 +3265,6 @@ void TitleLangSelDraw() {
 
 // Initialised data (.data)
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/title", MC_ICON_Data__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/title", start_button_tbl_1826__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/title", btn_tblxy_1830__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/title", table_2611__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/title", infomsg_2664__DATA);
 
 // Constants (.rodata)
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/title", at_1221__4__DATA);
@@ -3225,17 +3286,10 @@ INCLUDE_RODATA("ps2/asm/pal/nonmatchings/title", at_1236__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/title", at_1237__2__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/title", at_1238__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/title", at_1239__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/title", at_2665__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/title", at_2666__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/title", at_2667__2__DATA);
 
 // Small initialised data (.sdata)
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/title", TitleRushWaitCount__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/title", TitleProjection__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/title", TitleHDDCheckFlag__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/title", TitleMCCheckFileFind__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/title", TitleMCCheckInport__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/title", cnttbl_2026__DATA);
 
 // Small uninitialised data (.sbss)
 INCLUDE_BSS(TitleSelectInit, 0x4);

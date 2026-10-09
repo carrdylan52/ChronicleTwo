@@ -114,3 +114,124 @@ instruction and resolved data reference. Their receipts are
 corresponding `-audit.json`; `string-steps.log` lists all eight steps.
 RODATA / BSS markers after this group are **33 / 27**; data measures
 remain **468 / 2064**.
+
+## Typed initialized tables
+
+The four initialized menu tables are defined in retail order with their actual
+object extents, followed by the eligible small initialized data:
+
+| Definition | Declared extent and purpose |
+|---|---|
+| `start_button_tbl_1826[7]` | Seven existing MENU_SHORT_RECT records, 0x38 bytes, indexed by LanguageCode. |
+| `btn_tblxy_1830[5][2]` | Five short texture-origin pairs, 0x14 bytes, in title menu row order. |
+| `table_2611[3][12]` | Three rows of three four-short rectangles, 0x48 bytes, for the installation panel. |
+| `infomsg_2664[7]` | Seven caption pointers, 0x1C bytes, with three inline string payloads; five rows share `Installing...`. |
+| `TitleRushWaitCount` | Four-byte idle-frame limit initialized to 750. |
+| `TitleMCCheckFileFind[2]` | Two short save-file counts initialized to zero, four bytes. |
+| `TitleMCCheckInport[2]` | Two inserted-card bytes initialized to zero, two bytes. |
+| `cnttbl_2026[2]` | Signed-byte prompt pulse speeds `{2, 4}`, two bytes. |
+
+The rectangular tables remain mutable, matching their existing interfaces and
+the short-pointer drawing API. MENU_SHORT_RECT remains the existing shared
+type; title.hpp is unchanged. Initialization uses only actual elements, with
+no padding entries or filler definitions. The postprocessor supplies the
+verified zero gaps to the next retail piece. The pointer table reproduces every
+R_MIPS_32 field and its pooled-string target.
+
+Per-table receipts are `.private/dataB-r5/table-<name>-{build,objects}.log`
+and `-audit.json`; the pointer-caption group is `table-infomsg-*`.
+`table-steps.log` records all eight successful steps. `tables-order-*` verifies
+the final definition order.
+
+## Retained markers
+
+Every marker below is retained because the round-5 brief freezes every
+TitleBootInit data declaration and marker while the nmmenu lane owns its
+improvement. Its guarded draft and retail assembly reference this exact set.
+No eligible marker remains; none requires a tooling change or shared-header
+proposal. Shared boot strings used by other title functions keep their existing
+extern declarations and references.
+
+### Protected initialized data
+
+| Retained RODATA marker | Retention reason |
+|---|---|
+| `MC_ICON_Data` | Direct TitleBootInit data reference; declaration and marker frozen by the brief. |
+| `at_1221__4` | Direct TitleBootInit data reference; declaration and marker frozen by the brief. |
+| `at_1222__4` | Direct TitleBootInit data reference; declaration and marker frozen by the brief. |
+| `at_1223__4` | Direct TitleBootInit data reference; declaration and marker frozen by the brief. |
+| `at_1224__4` | Direct TitleBootInit data reference; declaration and marker frozen by the brief. |
+| `at_1225__4` | Direct TitleBootInit data reference; declaration and marker frozen by the brief. |
+| `at_1226__4` | Direct TitleBootInit data reference; declaration and marker frozen by the brief. |
+| `at_1227__3` | Direct TitleBootInit data reference; declaration and marker frozen by the brief. |
+| `at_1228__3` | Direct TitleBootInit data reference; declaration and marker frozen by the brief. |
+| `at_1229__2` | Direct TitleBootInit data reference; declaration and marker frozen by the brief. |
+| `at_1230__2` | Direct TitleBootInit data reference; declaration and marker frozen by the brief. |
+| `at_1231__2` | Direct TitleBootInit data reference; declaration and marker frozen by the brief. |
+| `at_1232__2` | Direct TitleBootInit data reference; declaration and marker frozen by the brief. |
+| `at_1233` | Direct TitleBootInit data reference; declaration and marker frozen by the brief. |
+| `at_1234` | Direct TitleBootInit data reference; declaration and marker frozen by the brief. |
+| `at_1235` | Direct TitleBootInit data reference; declaration and marker frozen by the brief. |
+| `at_1236` | Direct TitleBootInit data reference; declaration and marker frozen by the brief. |
+| `at_1237__2` | Direct TitleBootInit data reference; declaration and marker frozen by the brief. |
+| `at_1238` | Direct TitleBootInit data reference; declaration and marker frozen by the brief. |
+| `at_1239__2` | Direct TitleBootInit data reference; declaration and marker frozen by the brief. |
+| `TitleProjection` | Direct TitleBootInit data reference; declaration and marker frozen by the brief. |
+| `TitleHDDCheckFlag` | Direct TitleBootInit data reference; declaration and marker frozen by the brief. |
+
+### Protected uninitialized data
+
+| Retained BSS marker | Retention reason |
+|---|---|
+| `TitleSelectInit` | Direct TitleBootInit data reference; declaration and marker frozen by the brief. |
+| `TitleMap` | Direct TitleBootInit data reference; declaration and marker frozen by the brief. |
+| `TitleCamera` | Direct TitleBootInit data reference; declaration and marker frozen by the brief. |
+| `TitleCamera2` | Direct TitleBootInit data reference; declaration and marker frozen by the brief. |
+| `WaveTable__3` | Direct TitleBootInit data reference; declaration and marker frozen by the brief. |
+| `GameBootInit` | Direct TitleBootInit data reference; declaration and marker frozen by the brief. |
+| `TitleBootEventNo` | Direct TitleBootInit data reference; declaration and marker frozen by the brief. |
+| `DCRuncherMode` | Direct TitleBootInit data reference; declaration and marker frozen by the brief. |
+| `DCRuncherCounter` | Direct TitleBootInit data reference; declaration and marker frozen by the brief. |
+| `TitleInfo` | Direct TitleBootInit data reference; declaration and marker frozen by the brief. |
+| `TitleMCFuncFlag` | Direct TitleBootInit data reference; declaration and marker frozen by the brief. |
+| `TitleMCCheckNow` | Direct TitleBootInit data reference; declaration and marker frozen by the brief. |
+| `TitleMainMCCheckPhase` | Direct TitleBootInit data reference; declaration and marker frozen by the brief. |
+| `TitleMCCheck` | Direct TitleBootInit data reference; declaration and marker frozen by the brief. |
+| `Tex_TitleBG` | Direct TitleBootInit data reference; declaration and marker frozen by the brief. |
+| `Tex_Chronicle` | Direct TitleBootInit data reference; declaration and marker frozen by the brief. |
+| `Tex_Logo` | Direct TitleBootInit data reference; declaration and marker frozen by the brief. |
+| `Tex_Plate` | Direct TitleBootInit data reference; declaration and marker frozen by the brief. |
+| `Tex_TitleLight` | Direct TitleBootInit data reference; declaration and marker frozen by the brief. |
+| `Tex_TitleCursor` | Direct TitleBootInit data reference; declaration and marker frozen by the brief. |
+| `Tex_TrialMsg` | Direct TitleBootInit data reference; declaration and marker frozen by the brief. |
+| `Tex_TitleBG2` | Direct TitleBootInit data reference; declaration and marker frozen by the brief. |
+| `RushMovie` | Direct TitleBootInit data reference; declaration and marker frozen by the brief. |
+| `RushStart` | Direct TitleBootInit data reference; declaration and marker frozen by the brief. |
+| `RushWork` | Direct TitleBootInit data reference; declaration and marker frozen by the brief. |
+| `TitleScene` | Direct TitleBootInit data reference; declaration and marker frozen by the brief. |
+| `TitleEventSound` | Direct TitleBootInit data reference; declaration and marker frozen by the brief. |
+
+## Final measurement and validation
+
+- RODATA / BSS markers: **61 / 76 → 22 / 27**.
+- Native markers removed: **39 RODATA and 49 BSS**.
+- Fresh objdiff matched_data / total_data: **4 / 2064 → 468 / 2064**.
+- PAL verifier: **SCES_511.90: OK**.
+- Complete object comparison: **149/149**.
+- All 148 objects outside title retain their baseline file hashes.
+- TitleBootInit's complete guarded block, all 49 protected markers and their
+  existing declarations are unchanged. Both SF-controlled function bodies and
+  title.hpp are unchanged.
+- Functions promoted or matching attempts: **none**. Shared-file proposals:
+  **none**. No failed migration probe is retained or required.
+
+Data credit is a section-level lower bound: protected pieces leave the
+initialized and small-BSS aggregate sections incomplete, despite the remaining
+eligible objects now having native definitions. The final large BSS section
+accounts for the 464-byte increase.
+
+Final source validation receipts are `.private/dataB-r5/tables-order-build.log`,
+`tables-order-objects.log` and `tables-order-audit.json`. Fresh metric/coverage
+receipts are `final-progress.log`, `final-metrics.json` and `final-coverage.log`.
+The complete inventory and protection audit are `inventory.json`,
+`boot-retail-references.json`, `final-marker-audit.json` and `final-audit.json`.
