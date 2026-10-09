@@ -1420,7 +1420,7 @@ void CActiveMonster::Initialize() {
 BASE_MONSTER_TBL *GetMonsterTable(int monster_id) {
     BASE_MONSTER_TBL *entry = base_monster_define;
 
-    while (((s8 *) entry->name)[0] != 0) {
+    while (entry->name[0] != 0) {
         if (entry->id == monster_id) {
             return entry;
         }
@@ -1653,7 +1653,7 @@ int CMonsterMan::GetMonsterNum(float limit) {
 BASE_MONSTER_TBL *CMonsterMan::GetReferPtr2(int monster_id) {
     BASE_MONSTER_TBL *entry = base_monster_define;
 
-    while (((s8 *) entry->name)[0] != 0) {
+    while (entry->name[0] != 0) {
         if (entry->id == monster_id) {
             return entry;
         }
