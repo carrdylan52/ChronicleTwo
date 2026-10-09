@@ -17,18 +17,6 @@ const int info_fence = 0x2F;
 const int analyze_slots = 64;
 const int parts_list_max = 0x200;
 
-
-/**
- *
- * Four house information identifiers stored as a quadword.
- *
- */
-union HouseInfoIds {
-    int       id[4]; /**< House information identifiers. */
-    u_long128 qw;    /**< The same identifiers as one quadword. */
-};
-
-
 // Code (.text)
 void AnalyzeEditMap(int chara_no, CEditMap *map) {
     CEditData *data;
@@ -142,11 +130,11 @@ int GetTreeNum(CEditMap *map) {
 }
 
 int GetHouseParts(CEditMap *map, int *out, int max) {
-    HouseInfoIds ids = {{1, 9, 0x16, 0x1F}};
-    int          total = 0;
+    int ids[4] = {1, 9, 0x16, 0x1F};
+    int total = 0;
 
     for (int i = 0; i < 4; i++) {
-        int found = map->GetePlacePartsAtInfoID(ids.id[i], out, max);
+        int found = map->GetePlacePartsAtInfoID(ids[i], out, max);
         out += found;
         total += found;
         max -= found;

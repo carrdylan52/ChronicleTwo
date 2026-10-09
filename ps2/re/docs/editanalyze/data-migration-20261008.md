@@ -8,10 +8,10 @@ EditMapInitEvent emits both inline map/part names; AnalyzeMoonFlower emits
 its zero center-vector BSS template (`editanalyze-native-pieces`). Their
 markers and the unused zero-template extern are removed independently.
 
-GetHouseParts initializes its existing HouseInfoIds aggregate directly with
-`{{1, 9, 0x16, 0x1F}}`, retaining the exact 16-byte template and active integer
-array member (`editanalyze-house-identifiers`). No alternate-member read or
-new copy helper is introduced.
+GetHouseParts initializes a plain `int ids[4] = {1, 9, 0x16, 0x1F};`
+(`editanalyze-house-identifiers`); the former `HouseInfoIds` wrapper union is
+removed, and the plain array keeps the exact 16-byte template and copy
+(`.private/fixes-r3c/b1-*.log`).
 
 AnalyzeSharlot initializes a native sceVu0FVECTOR with `{0, 0, 0, -1}` at the
 river-query point (`editanalyze-river-center-local-order`). The following
