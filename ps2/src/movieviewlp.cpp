@@ -16,11 +16,6 @@
 #include "scriptinterpreter.hpp"
 #include "snd_mngr.hpp"
 
-extern mgCMemory buf0_791;
-extern mgCMemory buf1_794;
-extern mgCMemory dbuf0_797;
-extern mgCMemory dbuf1_800;
-
 /**
  *
  * Scene used to display movies and play their music.
@@ -107,34 +102,6 @@ static int MovieMode;
 
 /**
  *
- * Whether the first packet buffer manager has been initialized.
- *
- */
-static signed char init_792;
-
-/**
- *
- * Whether the second packet buffer manager has been initialized.
- *
- */
-static signed char init_795;
-
-/**
- *
- * Whether the first draw-data buffer manager has been initialized.
- *
- */
-static signed char init_798;
-
-/**
- *
- * Whether the second draw-data buffer manager has been initialized.
- *
- */
-static signed char init_801;
-
-/**
- *
  * Texture data buffer used by the movie viewer.
  *
  */
@@ -206,36 +173,36 @@ void MovieViewInit(INIT_LOOP_ARG arg) {
     main_stack->stack_used = 0;
     main_stack->lock = 0;
 
-    if (init_792 == 0) {
-        buf0_791.Init();
-        init_792 = 1;
-    }
+    /**
+     * First packet buffer manager.
+     */
+    static mgCMemory buf0;
 
-    if (init_795 == 0) {
-        buf1_794.Init();
-        init_795 = 1;
-    }
+    /**
+     * Second packet buffer manager.
+     */
+    static mgCMemory buf1;
 
-    if (init_798 == 0) {
-        dbuf0_797.Init();
-        init_798 = 1;
-    }
+    /**
+     * First draw-data buffer manager.
+     */
+    static mgCMemory dbuf0;
 
-    if (init_801 == 0) {
-        dbuf1_800.Init();
-        init_801 = 1;
-    }
+    /**
+     * Second draw-data buffer manager.
+     */
+    static mgCMemory dbuf1;
 
     packet_a = main_stack->stAlloc64(0x2710);
     packet_b = main_stack->stAlloc64(0x2710);
     mgInitVif1Packet(packet_a, packet_b, 0x27100);
-    buf0_791.stSetBuffer(main_stack->stAlloc64(0x7530), 0x7530);
-    buf1_794.stSetBuffer(main_stack->stAlloc64(0x7530), 0x7530);
-    dbuf0_797.stSetBuffer(main_stack->stAlloc64(0xEA60), 0xEA60);
-    dbuf1_800.stSetBuffer(main_stack->stAlloc64(0xEA60), 0xEA60);
+    buf0.stSetBuffer(main_stack->stAlloc64(0x7530), 0x7530);
+    buf1.stSetBuffer(main_stack->stAlloc64(0x7530), 0x7530);
+    dbuf0.stSetBuffer(main_stack->stAlloc64(0xEA60), 0xEA60);
+    dbuf1.stSetBuffer(main_stack->stAlloc64(0xEA60), 0xEA60);
     DataBuffer__2.stSetBuffer(main_stack->stAlloc64(0x186A0), 0x186A0);
-    mgSetPacketBuffer(&buf0_791, &buf1_794);
-    mgSetDataBuffer(&dbuf0_797, &dbuf1_800, 1);
+    mgSetPacketBuffer(&buf0, &buf1);
+    mgSetDataBuffer(&dbuf0, &dbuf1, 1);
     mgSetBackGround(0.0f, 0.0f, 0.0f, 128.0f);
     SetTextureTable(0x64, 0x14, &DataBuffer__2);
     textures = &mgTexManager;
@@ -476,9 +443,3 @@ int MovieViewLoop() {
 
     return 0;
 }
-
-// Uninitialised data (.bss)
-INCLUDE_BSS(buf0_791, 0x30);
-INCLUDE_BSS(buf1_794, 0x30);
-INCLUDE_BSS(dbuf0_797, 0x30);
-INCLUDE_BSS(dbuf1_800, 0x30);

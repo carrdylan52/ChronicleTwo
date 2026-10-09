@@ -75,3 +75,20 @@ native-static objects passes every section and the final memory extent:
 `.private/dataD/bss-proposal-pair-pal.log`. The ready source follow-up is
 `.private/proposals/dataD-movieviewlp-native-statics.patch`; it requires the
 shared tool proposal first.
+
+## Marker-free storage validation, tooling round 3
+
+The four packet/draw buffers are native function-local `mgCMemory` statics; the compiler generates their constructor guards. The four old file-scope guard definitions and explicit initialization blocks are removed.
+
+A fresh marker-free private compile passes the complete unit with the checkpoint
+tooling. The accepted source passes `SCES_511.90: OK`, all 149 object checks,
+and all 17 build regression scripts (116 discovered tests). The object hash
+audit changes only `movieviewlp.cpp.o`; code metrics remain 6,775 matched functions
+and 1,841,188 matched bytes. No function is promoted.
+
+Markers change from 0 initialized-data / 4 BSS to 0 / 0.
+Refreshed `matched_data` changes from 251 to
+539 / 539 bytes. Receipts are
+`.private/dtool-r3/movieviewlp-{build,objects,tests,all-tests}.log`,
+`movieviewlp-object-hash-audit.json`, and `movieviewlp-report.json`; the independent
+existing-tooling probe is `probe/movieviewlp-check.log` in the same directory.
