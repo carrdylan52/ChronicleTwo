@@ -12,8 +12,7 @@ import postprocess_object as p
 
 # A table's retail owner need not be the translation unit whose constructors
 # make MWCC emit it. The source-only producer has no assembly replacements.
-TABLE_PRODUCERS = {'object': {'__vt__7CObject': 'map'},
-                   'mapparts': {'__vt__9CMapParts': 'map'}}
+TABLE_PRODUCERS = {}
 
 
 class Donor(NamedTuple):

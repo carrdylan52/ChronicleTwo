@@ -15,10 +15,8 @@ Two vtable markers remain:
 - `__vt__17CList_9CObjAnime___DATA`: assembly-only `AssignFuncAnime`
   explicitly relocates against this list vtable. The current native source
   does not emit the table.
-- `__vt__9CMapParts__DATA`: the current native source does not emit this
-  class vtable. Its retail table remains required by constructors in other
-  units; creating a synthetic constructor or hand-written table would not
-  be a natural replacement.
+- `__vt__9CMapParts__DATA`: retained at this step; the native table is
+  described under *Native `CMapParts` vtable* below.
 
 Both accepted steps pass PAL and all 149 object comparisons. Only migrated
 units change their object-file hashes from the warm baseline.
@@ -32,19 +30,23 @@ native treasure-box table does not earn aggregate section credit.
 No function is promoted and no shared-file proposal is made.
 
 
-## Round-5 native data completion
+## Native `CMapParts` vtable
 
-The raw source-only `map.cpp` producer supplies the exact 132-byte
-`__vt__9CMapParts` table through the shared native-table importer. Its native
-constructor is verified as a complete retail consumer. The owner marker is
-removed; class declarations, constructors, guarded Copy and assembly-only
-AssignFuncAnime remain unchanged. The `CList<CObjAnime>` marker remains
-because no accepted active native producer supplies that table.
+MWCC emits a class's vtable in the translation unit that defines its first
+non-inline virtual function. Retail binds `Draw__9CMapPartsFv` (0x15F7E0)
+and `DrawDirect__9CMapPartsFv` (0x15F7F0) weak (binding 13) inside map's
+`.text`, so both are inline in the class body in `mapparts.hpp`, tail
+calling `DrawSub(0)` and `DrawSub(1)`. `CMapParts`'s first non-inline virtual
+is then `Initialize` (0x167660, the first function of this unit's `.text`),
+and `mapparts.cpp` emits the exact 132-byte `__vt__9CMapParts` (0x37B740)
+from its own compile. `map.o` keeps only weak copies of the two inline
+bodies. Class layout, constructors, guarded `Copy` and assembly-only
+`AssignFuncAnime` are unchanged. The `CList<CObjAnime>` marker remains
+because no active native code emits that table.
 
-Markers: RODATA **2 → 1**, BSS
-**0 → 0**. Refreshed matched data:
-**16 → 16 / 420**.
-The complete PAL is `SCES_511.90: OK` and all **149/149** canonical objects
-pass. Only the four migrated units change object hashes in this step; code
-metrics remain **6,780 functions / 1,854,796 bytes**. No function is promoted.
-Receipts: `.private/dtool-r5/data-fixed-{build,objects,tests,metrics}.log`.
+Markers: RODATA **2 → 1**, BSS **0 → 0**. Refreshed matched data:
+**16 / 420** (the `.vtables` run stays incomplete while the list table is
+a marker). PAL is `SCES_511.90: OK`, all **149/149** canonical objects pass,
+and code metrics are unchanged (**6,787** perfect functions). No function is
+promoted. Receipts: `.private/vtable-r0/src-{build,check,tests}.log` and
+`src-report.json`.

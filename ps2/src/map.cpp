@@ -1014,10 +1014,6 @@ int CMap::DrawSub(int direct) {
     return total;
 }
 
-int CMapParts::Draw() { return DrawSub(0); }
-
-int CMapParts::DrawDirect() { return DrawSub(1); }
-
 void CMap::DrawEffect() {
     CMapParts **list;
     CMapParts  *parts;
@@ -2131,10 +2127,6 @@ int CheckFuncEvent(CFuncPoint *point, float *pos, int check_type, MapEventInfo *
 
     return 1;
 }
-
-int CObject::Draw() { return 0; }
-
-int CObject::DrawDirect() { return 0; }
 
 // Virtual tables (.vtables)
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/map", __vt__18CList_P9CMapParts___DATA);
