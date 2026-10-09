@@ -682,16 +682,6 @@ static sceVu0FVECTOR      NowMainReadPosition;
 static sceVu0FVECTOR      NowMainReadRotation;
 
 extern char               at_4868[];
-extern char               at_1276__3[];
-extern char               at_1277__3[];
-extern char               at_1278__3[];
-extern char               at_1279__4[];
-extern char               at_1280__3[];
-extern char               at_1281__5[];
-extern char               at_1282__5[];
-extern char               at_1283__4[];
-extern char               at_1284__4[];
-extern char               at_1285__2[];
 extern char              *tbl_1233[4];
 /**
  *
@@ -1307,18 +1297,18 @@ void CMenuChrCngMenu::EnterDataMenu(u_char *pack) {
     int                 palette_index;
     CHR_CNG_CLUT_COLOR *color;
 
-    tex_manager->EnterIMGFile((u_char *) GetPackFile(reinterpret_cast<u_int *>(pack), at_1276__3, NULL), block,
+    tex_manager->EnterIMGFile((u_char *) GetPackFile(reinterpret_cast<u_int *>(pack), "chr_bg.img", NULL), block,
                               NULL, NULL);
-    u_int *cfg = GetPackFile(reinterpret_cast<u_int *>(pack), at_1277__3, &size);
+    u_int *cfg = GetPackFile(reinterpret_cast<u_int *>(pack), "chrchg.cfg", &size);
     if (MenuCharaChangePosDataCfgBuffer == NULL && cfg != NULL) {
         MenuCharaChangePosDataCfgBuffer = cfg;
         MenuDataAnalyze((char *) cfg, size, &MenuChangeMemory);
     }
     MenuRepairMan->Initialize();
     MenuRepairMan->SetRepairData(&MenuChangeMemory, block, reinterpret_cast<u_int *>(pack));
-    script = (char *) GetPackFile(reinterpret_cast<u_int *>(pack), at_1278__3, &script_size);
-    MenuCharaChangeStar_Tex = tex_manager->GetTexture(at_1279__4, -1);
-    MenuCharaChangeBase_Tex = tex_manager->GetTexture(at_1280__3, -1);
+    script = (char *) GetPackFile(reinterpret_cast<u_int *>(pack), "chr_com.cfg", &script_size);
+    MenuCharaChangeStar_Tex = tex_manager->GetTexture("menueff0", -1);
+    MenuCharaChangeBase_Tex = tex_manager->GetTexture("chr0", -1);
     MenuCharaChangeCLUT = palette.clut;
     tex_manager->ReloadTexture(block, (sceVif1Packet *) NULL);
     if (MenuCharaChangeCLUT_Tex == NULL) {
@@ -1346,16 +1336,16 @@ void CMenuChrCngMenu::EnterDataMenu(u_char *pack) {
     MenuPosData->InitDrawList();
     AttachForm();
     AttachMessageForm();
-    ExeScript(at_1281__5);
+    ExeScript("INIT_FORM");
     party_member = MenuUserDataManPtr->GetNowPartyMember();
     enable_change = MenuUserDataManPtr->GetEnableCharaChangeFlag();
     for (i = 0; i < USER_CHARA_NUM; i++) {
         char name[32];
-        sprintf(name, at_1282__5, i);
+        sprintf(name, "clut%d", i);
         MENUFORMPARTS_TYPE *locked = form->GetPartInfo(name);
-        sprintf(name, at_1283__4, i);
+        sprintf(name, "clut0%d", i);
         MENUFORMPARTS_TYPE *other = form->GetPartInfo(name);
-        sprintf(name, at_1284__4, i);
+        sprintf(name, "fc%d", i);
         MENUFORMPARTS_TYPE *face = form->GetPartInfo(name);
         locked->draw_flag = 1;
         if (party_member & (1 << i)) {
@@ -1372,7 +1362,7 @@ void CMenuChrCngMenu::EnterDataMenu(u_char *pack) {
         }
     }
     UpdataLife();
-    mes_data = (s16 *) GetPackFile(reinterpret_cast<u_int *>(pack), at_1285__2, NULL);
+    mes_data = (s16 *) GetPackFile(reinterpret_cast<u_int *>(pack), "npcmsg.mes", NULL);
     sys_mes = MenuDCMsg[0]->buff;
     MenuCommandAnalyzeInfo.system_mes_buff[0] = GetSystemMesBuffer();
     MenuCommandAnalyzeInfo.system_mes_buff[1] = mes_data;
@@ -2659,7 +2649,7 @@ void CMenuChrCngMenu::CalcTex() {
         cursor_wave -= 6.2831855f;
     }
 
-    sprintf(name, at_1284__4, last_select);
+    sprintf(name, "fc%d", last_select);
     MENUFORMPARTS_TYPE *ring = form->GetPartInfo(name);
 
     if (ring != NULL && (star_spawn != 0 || star_fade == 0 || mode == 2)) {
@@ -7554,16 +7544,6 @@ INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_1234__2__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_1235__2__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_1236__2__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_1237__3__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_1276__3__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_1277__3__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_1278__3__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_1279__4__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_1280__3__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_1281__5__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_1282__5__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_1283__4__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_1284__4__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_1285__2__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_1304__6__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_1319__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_1361__DATA);

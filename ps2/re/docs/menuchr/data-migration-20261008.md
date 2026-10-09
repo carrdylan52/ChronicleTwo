@@ -46,3 +46,13 @@ two-byte piece tail remains alignment. The existing consumers are unchanged.
 After this step: **354 / 31 markers**, **4 / 9726 matched_data**.
 PAL and 149/149 objects pass with unchanged unowned hashes; receipts are
 `.private/nmchr-r3/menuchr-progress-table-{build,objects,progress,metrics}.log`.
+
+## Party-menu resource and layout strings
+
+The ten resource, form, palette-part, and message-file strings in
+`CMenuChrCngMenu::EnterDataMenu` are inline at their uses. Their external
+literal declarations and data markers are absent. Every string retains its
+retail bytes and references, including shared uses in other native functions.
+After this step: **344 / 31 markers**, **4 / 9726 matched_data**.
+PAL and all 149 objects pass; receipts are
+`.private/nmchr-r3/menuchr-enter-strings-{build,objects,progress,metrics}.log`.
