@@ -18,6 +18,7 @@ import layout
 import lcf
 import postprocess_object as p
 import native_vtables
+from mwccgap import elf as mwccgap_elf
 from mwccgap.elf import Relocation, RelocationRecord, Symbol
 
 
@@ -37,10 +38,12 @@ class Context:
         self.linker = lcf.Generator()
         inputs = [Path(__file__), Path(p.__file__), Path(native_vtables.__file__), Path(disassemble.__file__),
                   Path(layout.__file__), Path(lcf.__file__), layout.YAML,
-                  layout.SYMBOLS, layout.ELF_PATH]
+                  layout.SYMBOLS, layout.ELF_PATH, Path(mwccgap_elf.__file__)]
         digest = hashlib.sha256()
         for path in inputs:
-            digest.update(path.read_bytes())
+            contents = path.read_bytes()
+            digest.update(len(contents).to_bytes(8, 'big'))
+            digest.update(contents)
         digest.update(json.dumps(defined).encode())
         self.fingerprint = digest.hexdigest()
 
@@ -476,13 +479,19 @@ def comparison_copy(source, output, unit, ctx, native):
     cpp = Path(ctx.layout.source(unit)).read_bytes()
     donors = (native_vtables.donor_inputs(unit, cpp.decode('utf-8'), source.parent,
                                           lay=ctx.layout) if native else ())
-    fingerprint = hashlib.sha256(raw + ctx.fingerprint.encode()
-                                 + cpp + native_vtables.donor_fingerprint(donors)
-                                 + unit.encode() + str(native).encode()).hexdigest()
+    digest = hashlib.sha256()
+    for contents in (raw, ctx.fingerprint.encode(), cpp,
+                     native_vtables.donor_fingerprint(donors), unit.encode(), str(native).encode()):
+        digest.update(len(contents).to_bytes(8, 'big'))
+        digest.update(contents)
+    fingerprint = digest.hexdigest()
     receipt = output.with_suffix(output.suffix + '.json')
     if output.is_file() and receipt.is_file():
-        saved = json.loads(receipt.read_text())
-        if (saved.get('input') == fingerprint
+        try:
+            saved = json.loads(receipt.read_text())
+        except (OSError, ValueError):
+            saved = None
+        if (isinstance(saved, dict) and saved.get('input') == fingerprint
                 and saved.get('output') == hashlib.sha256(output.read_bytes()).hexdigest()):
             return
     elf = p.Elf(raw)
