@@ -907,7 +907,7 @@ void ChangeWeight(Mot_List *list, mgCMemory *memory, u8 *data, int frame_no, tag
             frame_info[frame_no].vertex_refs[i][0] = 0;
         }
 
-        node = (mgFACE_GROUP *) mesh->face_group;
+        node = mesh->face_group;
 
         if (node != NULL) {
             do {
@@ -1106,7 +1106,7 @@ int AnimeDataInit(mgCFrame *frame, tagMOTION_TYPE *motion, mgCMemory *memory,
                             frame_info[channel->frame].vertex_refs[j][0] = 0;
                         }
 
-                        node = (mgFACE_GROUP *) mesh->face_group;
+                        node = mesh->face_group;
 
                         if (node != NULL) {
                             do {
