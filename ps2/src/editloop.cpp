@@ -2035,7 +2035,7 @@ void RestartEditEvent() {
 
 int EditStep() {
     CEditMap        *maps[8];
-    float            viewer[24];
+    CObjAnimeEnv     viewer;
     int              event_no;
     int              map_count;
     int              index;
@@ -2107,8 +2107,8 @@ int EditStep() {
     map_count = MainScene__2->GetActiveMap((CMap **) maps, 8);
 
     if (WalkChara != NULL) {
-        *(u_long128 *) viewer = *(u_long128 *) WalkChara->position;
-        viewer[4] = MainScene__2->time;
+        *(u_long128 *) viewer.chara_pos = *(u_long128 *) WalkChara->position;
+        viewer.time = MainScene__2->time;
         index = 0;
 
         if (0 < map_count) {
@@ -2116,7 +2116,7 @@ int EditStep() {
                 map = maps[index];
 
                 if (map != NULL) {
-                    map->AnimeStep((CObjAnimeEnv *) viewer);
+                    map->AnimeStep(&viewer);
                     maps[index]->Step();
                 }
 
