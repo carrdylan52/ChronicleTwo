@@ -465,7 +465,7 @@ FACES_ID *mgCVisualMDT::CreateFace(FACES_ID *faces, mgCMemory *memory, mgCMemory
     face->next = NULL;
     previous = face_group;
     if (previous == NULL) {
-        if ((group = (mgFACE_GROUP *)operator new(sizeof(mgFACE_GROUP), memory->Alloc(4))) != NULL) {
+        if ((group = new (memory->Alloc(4)) mgFACE_GROUP) != NULL) {
             memset(group, 0, sizeof(mgFACE_GROUP));
         }
         group->next = NULL;
@@ -480,7 +480,7 @@ FACES_ID *mgCVisualMDT::CreateFace(FACES_ID *faces, mgCMemory *memory, mgCMemory
             previous = previous->next;
         }
         if (previous->next == NULL) {
-            if ((group = (mgFACE_GROUP *)operator new(sizeof(mgFACE_GROUP), memory->Alloc(4))) != NULL) {
+            if ((group = new (memory->Alloc(4)) mgFACE_GROUP) != NULL) {
                 memset(group, 0, sizeof(mgFACE_GROUP));
             }
             previous->next = group;
