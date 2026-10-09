@@ -146,4 +146,70 @@ native pointer initializer.
 
 All eighteen `aqua-table-<symbol>-{build,objects}.log` receipts verify
 PAL OK and 149/149 objects. The complete 55-table migration has no failed
-candidate. Markers: 26 / 3; matched data: 2128 / 8293 bytes.
+candidate. Markers: 26 / 3; matched data: 2260 / 8293 bytes.
+
+## Retained markers
+
+All 26 initialized markers and three BSS markers are listed below.
+Both frozen bodies retain their exact checkpoint text and retail symbols.
+The headers and INCLUDE_ASM function selections are unchanged.
+
+| Marker | Reason |
+|---|---|
+| `at_1346__DATA` | NextThink vector seed; natural aggregate and SDK-array initializers change five text bytes and are reverted. |
+| `at_2935__DATA` | Bubble-count template used only by frozen SettingAqua. |
+| `at_2975__DATA` | Vector template used only by frozen SettingAqua. |
+| `at_2976__DATA` | Vector template used only by frozen SettingAqua. |
+| `at_3016__DATA` | Vector template used only by frozen SettingAqua. |
+| `at_3290__DATA` | Thinking vector seed; natural aggregate and SDK-array initializers change thirteen text bytes and are reverted. |
+| `at_3291__3__DATA` | Thinking vector seed; natural aggregate and SDK-array initializers change thirteen text bytes and are reverted. |
+| `at_3310__DATA` | Thinking vector seed; natural aggregate and SDK-array initializers change thirteen text bytes and are reverted. |
+| `at_3311__DATA` | Thinking vector seed; natural aggregate and SDK-array initializers change thirteen text bytes and are reverted. |
+| `at_3150__DATA` | Resource-name literal used only by frozen SettingAqua. |
+| `at_3151__DATA` | Resource-name literal used only by frozen SettingAqua. |
+| `at_3152__DATA` | Resource-name literal used only by frozen SettingAqua. |
+| `at_3153__DATA` | Resource-name literal used only by frozen SettingAqua. |
+| `at_3154__DATA` | Resource-name literal used only by frozen SettingAqua. |
+| `at_3155__DATA` | Resource-name literal used only by frozen SettingAqua. |
+| `at_3156__DATA` | Resource-name literal used only by frozen SettingAqua. |
+| `at_3157__DATA` | Resource-name literal used only by frozen SettingAqua. |
+| `at_3158__2__DATA` | Resource-name literal used only by frozen SettingAqua. |
+| `at_3159__2__DATA` | Resource-name literal used only by frozen SettingAqua. |
+| `at_3160__2__DATA` | Resource-name literal used only by frozen SettingAqua. |
+| `at_3161__2__DATA` | Resource-name literal used only by frozen SettingAqua. |
+| `at_3163__2__DATA` | Resource-name literal used only by frozen SettingAqua. |
+| `at_3164__3__DATA` | Resource-name literal used only by frozen SettingAqua. |
+| `at_4300__DATA` | Format literal used only by frozen CAquarium::Step. |
+| `at_4299__DATA` | Format literal used only by frozen CAquarium::Step. |
+| `at_5500__DATA` | GyoraceMenuKey switch table; native emission differs in four target words and cannot acquire the retail identity. |
+| `sel_sift_fish_3638` (BSS) | Local static or its initialization guard used only by frozen CAquarium::Step. |
+| `init_3639` (BSS) | Local static or its initialization guard used only by frozen CAquarium::Step. |
+| `sel_sift_fish_select_3641` (BSS) | Local static or its initialization guard used only by frozen CAquarium::Step. |
+
+The final race-table probe removes only at_5500's marker. Retail's
+seven-word table has target offsets 0x334, 0x4A0, 0x3A0, 0x3A0, 0x3E4,
+0x410 and 0x474; the native compiler emits 0x334, 0x3E4, 0x3A0, 0x3A0,
+0x410, 0x474 and 0x4A0. Slots one, four, five and six differ. Its declared
+extent is 28 bytes, with four alignment bytes in the assembly piece.
+The canonical comparison cannot bind the differing native table to
+at_5500; the full build fails and the object check reports 148/149.
+The marker is restored without changing the function or profile.
+Receipts: `aqua-final-race-jump-build.log`,
+`aqua-final-race-jump-objects.log` and `aqua-jump-analysis.log`.
+
+Final markers: **178 / 99 -> 26 / 3**. Refreshed matched data:
+**4 / 8293 -> 2260 / 8293 bytes**. Coverage counts complete aggregate
+sections, so retained pieces prevent credit for some native data.
+No function is promoted, no profile row changes, and no foreign-file
+proposal is needed. The final accepted source is verified by
+`.private/nminv-r2/final-build.log` and `final-objects.log`.
+
+Final validation uses the pinned image and original build tooling:
+`final-build.log` verifies SCES_511.90 OK; `final-objects.log` reports
+149/149 objects. `final-refresh.log` refreshes ctx/objdiff/progress before
+`final-coverage.log` records 6779 matched, 84 guarded, nine assembly-only
+and zero fuzzy functions. `final-audit.log` verifies frozen source and
+headers, lane-only changes and the required commit author. Of 150 raw
+object hashes, only the three owned units differ from the warm baseline;
+all 147 unowned objects are unchanged. All receipts are under
+`.private/nminv-r2/` in this lane's worktree.
