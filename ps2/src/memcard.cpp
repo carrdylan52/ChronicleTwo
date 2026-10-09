@@ -74,8 +74,8 @@ static COSBIT_INFO cosbit_table[MC_COSTUME_COUNT] = {
     {0x10A, 32, 0},
     {0x10B, 33, 0},
 };
-extern const unsigned char at_1315__3[5];
-extern unsigned char       at_1954[0x2B];
+extern const char at_1315__3[5];
+extern char       at_1954[0x2B];
 
 /**
  *
@@ -712,7 +712,7 @@ int CMemoryCardManager::Convert() {
 }
 
 int CMemoryCardManager::MakeDir(int file_no) {
-    unsigned char path[0x80];
+    char          path[0x80];
     char          browser_name[0x40];
     char          number[0x14];
     u16           nl_offset;
@@ -725,15 +725,15 @@ int CMemoryCardManager::MakeDir(int file_no) {
     /** Icon file currently being written during directory creation. */
     static int iconNo = -1;
 
-    strcpy((char *) path, "/BESCES-51190dkcl%d");
-    sprintf((char *) path, (char *) path, file_no);
+    strcpy(path, "/BESCES-51190dkcl%d");
+    sprintf(path, path, file_no);
 
     if (file_no == -1) {
-        strcpy((char *) path, "/BESCES-51190dc2album");
+        strcpy(path, "/BESCES-51190dc2album");
     }
 
     if (file_no == -2) {
-        strcpy((char *) path, "/BESCES-51190dc2omake");
+        strcpy(path, "/BESCES-51190dc2omake");
     }
 
     if (port == 0 || port == 1) {
@@ -767,7 +767,7 @@ int CMemoryCardManager::MakeDir(int file_no) {
                     return 1;
                 }
 
-                strcat((char *) path, "/icon.sys");
+                strcat(path, "/icon.sys");
 
                 if (sceMcOpen(port, 1, path, 0x202) == 0) {
                     iconNo = -1;
@@ -904,8 +904,8 @@ int CMemoryCardManager::MakeDir(int file_no) {
                 iconNo++;
 
                 if (iconNo < 3) {
-                    strcat((char *) path, "/");
-                    strcat((char *) path, icon[iconNo].name);
+                    strcat(path, "/");
+                    strcat(path, icon[iconNo].name);
                     command = sceMcOpen(port, 1, path, 0x203);
 
                     if (command == 0) {
@@ -978,12 +978,12 @@ int GetCostumeList(unsigned long mask, int type, short *list) {
 }
 
 int CMemoryCardManager::SaveToMc(int file_no) {
-    unsigned char path[0x80];
+    char          path[0x80];
     int           result;
     int           command;
     MC_CARD_INFO *card;
 
-    MakeMemoryCardFileName(file_no, (char *) path);
+    MakeMemoryCardFileName(file_no, path);
 
     if (port == 0 || port == 1) {
         card = &this->card[port];
@@ -1172,7 +1172,7 @@ int CMemoryCardManager::SaveToMc(int file_no) {
 }
 
 int CMemoryCardManager::LoadFromMc(int file_no) {
-    unsigned char path[0x80];
+    char          path[0x80];
     int           result;
     int           command;
     MC_CARD_INFO *card;
@@ -1197,7 +1197,7 @@ int CMemoryCardManager::LoadFromMc(int file_no) {
                 transferred = 0;
                 total_transferred = 0;
                 read_buffer = (char *) save_buffer;
-                MakeMemoryCardFileName(file_no, (char *) path);
+                MakeMemoryCardFileName(file_no, path);
                 int opened = sceMcOpen(port, 1, path, 1);
                 step++;
 
@@ -1333,7 +1333,7 @@ int CMemoryCardManager::LoadFromMc(int file_no) {
 }
 
 int CMemoryCardManager::SaveAlbum() {
-    unsigned char album_name[0x80];
+    char          album_name[0x80];
     int           command;
     int           result;
     MC_CARD_INFO *card;
@@ -1359,7 +1359,7 @@ int CMemoryCardManager::SaveAlbum() {
                 album->checksum = MakeCheckDigit(0, album->digit_data, sizeof(album->digit_data));
                 album->trailer = MakeCheckDigit(0, album->digit_data, sizeof(album->digit_data));
                 write_buffer = album_buffer;
-                MakeMemoryCardAlbumName((char *) album_name, 1);
+                MakeMemoryCardAlbumName(album_name, 1);
                 int opened = sceMcOpen(port, 1, album_name, 0x202);
                 step++;
 
@@ -1477,7 +1477,7 @@ int CMemoryCardManager::LoadAlbum() {
                 total_transferred = 0;
                 read_buffer = album_buffer;
                 MakeMemoryCardAlbumName(album_name, 1);
-                int opened = sceMcOpen(port, 1, (const unsigned char *) album_name, 1);
+                int opened = sceMcOpen(port, 1, album_name, 1);
                 step++;
 
                 if (opened != 0) {
@@ -1655,7 +1655,7 @@ int CMemoryCardManager::CheckAlbum() {
 }
 
 int CMemoryCardManager::SaveOamkeFile() {
-    unsigned char path[0x80];
+    char          path[0x80];
     int           result;
     int           command;
     MC_CARD_INFO *card;
@@ -1680,8 +1680,8 @@ int CMemoryCardManager::SaveOamkeFile() {
 
             if (synced != 0) {
                 InitError();
-                strcpy((char *) path, "/BESCES-51190dc2omake/");
-                strcat((char *) path, icon[2].name);
+                strcpy(path, "/BESCES-51190dc2omake/");
+                strcat(path, icon[2].name);
 
                 if (sceMcOpen(port, 1, path, 1) == 0) {
                     step++;
@@ -2283,7 +2283,7 @@ int CMemoryCardManager::GetSaveFileInfoFromMc(int index, int *step) {
 
                 MakeMemoryCardFileName(index, file_name);
 
-                if (sceMcOpen(port, 1, (const unsigned char *) file_name, 1) == 0) {
+                if (sceMcOpen(port, 1, file_name, 1) == 0) {
                     *step += 1;
                     break;
                 }
