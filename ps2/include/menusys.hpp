@@ -29,6 +29,29 @@ enum MENU_SWAP_TYPE {
     MENU_SWAP_TYPE_ACTIVE_ESA = 10,
 };
 
+/**
+ *
+ * Weapon ability bits displayed by the item-menu status icons and debug labels.
+ *
+ */
+// clang-format off
+enum MENU_WEAPON_ABILITY {
+    MENU_WEAPON_ABILITY_RICH        = 0x001, /**< Rich ability flag. */
+    MENU_WEAPON_ABILITY_POOR        = 0x002, /**< Poor ability flag. */
+    MENU_WEAPON_ABILITY_POISON      = 0x004, /**< Poison ability flag. */
+    MENU_WEAPON_ABILITY_STOP        = 0x008, /**< Stop ability flag. */
+    MENU_WEAPON_ABILITY_STEAL       = 0x010, /**< Steal ability flag. */
+    MENU_WEAPON_ABILITY_BREAK_EASY  = 0x020, /**< Break easy ability flag. */
+    MENU_WEAPON_ABILITY_BREAK_HARD  = 0x040, /**< Break hard ability flag. */
+    MENU_WEAPON_ABILITY_DRAIN       = 0x080, /**< Drain ability flag. */
+    MENU_WEAPON_ABILITY_HEAL        = 0x100, /**< Heal ability flag. */
+    MENU_WEAPON_ABILITY_DARK        = 0x200, /**< Dark ability flag. */
+    MENU_WEAPON_ABILITY_CRITICAL    = 0x400, /**< Critical ability flag. */
+    MENU_WEAPON_ABILITY_ABS2        = 0x800, /**< ABS2 ability flag. */
+};
+
+// clang-format on
+
 class CActionChara;
 class CCharacter2;
 class CDC2Mes;

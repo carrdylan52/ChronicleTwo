@@ -447,3 +447,48 @@ Markers are **91 RODATA / 6 BSS**, with **2,884 / 10,332 matched_data**.
 All four retries pass PAL, all 149 objects, protected guards and unowned
 hashes. Receipts are `table-retry-ledger.log` and
 `table-retry-<symbol>-{build,objects,metrics}.log`.
+
+### Status and selector tables checkpoint
+
+Nineteen initialized definitions pass independently: `attrtable_6472`, `whptbl_7376`, `backboard_table_x_7625`, `mos_repeat_table_x_7694`, `strtbl_7727`, `argtblno_7927`, `sel_7928`, `conv_7932`, `robo_stand_pos_8151`, `effparamtbl_8275`, `status_table_8427`, `xytable_8428`, `xytable_wep_8429`, `draw_tbl_8453`, `imgtbl_8945`, `menu_item_swap_sndtbl`, `MenuRoboEquipTable`, `MenuItemBoardTotalNum`, `MenuItemBoardTotalLine`.
+The typed palette table records colour, pulse count and duration, while the
+preview position table stores eleven three-component positions. Status masks
+use the existing `CHARA_STATUS_ATTR` values. The weapon ability label table
+`stchar_6508` fails its initial candidate, shifts resolved BSS references in
+menusys and an external caller, and is restored for a later identity check.
+
+Markers are **57 RODATA / 6 BSS**, with **2,884 / 10,332 matched_data**.
+Receipts are `table-group-2-ledger.log` and
+`table-<symbol>-{build,objects,metrics}.log`; the rejected label-table binary
+and word differences are `table-stchar_6508-failed-*` and
+`table-stchar_6508-worddiff.log`.
+
+### Weapon ability flag names
+
+The additive `MENU_WEAPON_ABILITY` enum names the twelve flags without
+changing any existing header declaration or the `u32` icon-mask storage.
+Retail `stchar_6508` at `0x355800` contains these labels in index order.
+The already-matched debug display selects label `i` with
+`weapon.special & (1 << i)`; retail instructions at `0x24A544` through
+`0x24A550` establish the shift and mask. `MenuCharaStatusDraw` tests the
+same field against `draw_tbl_8453` at `0x355A20`. The names specify labels,
+without asserting unverified gameplay effects; `ABS2` remains unexpanded.
+
+| Flag | Enum suffix |
+| --- | --- |
+| `0x001` | `RICH` |
+| `0x002` | `POOR` |
+| `0x004` | `POISON` |
+| `0x008` | `STOP` |
+| `0x010` | `STEAL` |
+| `0x020` | `BREAK_EASY` |
+| `0x040` | `BREAK_HARD` |
+| `0x080` | `DRAIN` |
+| `0x100` | `HEAL` |
+| `0x200` | `DARK` |
+| `0x400` | `CRITICAL` |
+| `0x800` | `ABS2` |
+
+The enum substitution passes PAL and all 149 object checks. Every unowned
+object hash remains identical, including the rebuilt header consumers.
+Receipts are `weapon-enum-{build,objects,metrics}.log`.

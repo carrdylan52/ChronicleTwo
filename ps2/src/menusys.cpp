@@ -185,13 +185,10 @@ extern CDC2Mes              *MenuDCMsg[9];
 extern CGameDataUsed         SpectolTransBefore;
 extern CGameDataUsed         SpectolInfoStay;
 extern char                  at_1493__2[];
-extern short                 MenuItemBoardTotalNum;
-extern short                 MenuItemBoardTotalLine;
 extern s16                   MenuWeaponEnvSetListNo;
 extern CMenuItemInfo         class_menu_item_info;
 void                         MenuWeaponStatusInfoFormSet(CGameDataUsed *item, CDataWeapon *data);
 extern float                 SpectolFramePosValue;
-extern signed char           MenuRoboEquipTable[8];
 extern signed char           tbl_4094[2];
 extern signed char           SameviewmodeTable_8406[4];
 extern signed char           menuitem_initmenumode[4];
@@ -1066,6 +1063,193 @@ static char *local_over_flow_baseposname[3] = {"item0", "item1", "item2"};
  *
  */
 static char *plist_4982[3] = {"item%d", "wep%d", "esa0"};
+
+/**
+ *
+ * Character-status labels of the debug preview.
+ *
+ */
+static char *attrtable_6472[7] = {"Poison,", "Slowly,", "Curse,", "Stop,", "Binbin,", "Stone", "Dry"};
+
+/**
+ *
+ * Durability and warning-mark parts for each active weapon.
+ *
+ */
+static char *whptbl_7376[3][2] = {
+    {"whp00", "whp01"},
+    {"whp10", "whp11"},
+    {"batu0", "batu1"}
+};
+
+/**
+ *
+ * Horizontal texture coordinates of the build-up board tiles.
+ *
+ */
+static s16 backboard_table_x_7625[5] = {150, 176, 204, 238, 266};
+
+/**
+ *
+ * Horizontal tile repeats of the monster build-up board.
+ *
+ */
+static s16 mos_repeat_table_x_7694[5] = {1, 3, 1, 3, 1};
+
+/**
+ *
+ * Enemy requirement messages for each menu language.
+ *
+ */
+static char *strtbl_7727[7] = {" ", "Defeat these enemies.", "Tu dois tuer les\nennemis ci-avant.", "T[UNI00f6]te obige Gegner.", "Devi uccidere questi nemici.", "Mata a estos enemigos.", "Defeat these enemies."};
+
+/**
+ *
+ * Destination key layout for each preview page and inventory row.
+ *
+ */
+static s8 argtblno_7927[6][6] = {
+    {0, 3, 3, 3, 3, 3},
+    {0, 3, 3, 3, 3, 3},
+    {4, 4, 4, 5, 5, 5},
+    {6, 6, 6, 6, 7, 7},
+    {8, 8, 8, 8, 8, 8},
+    {9, 9, 9, 10, 10, 10}
+};
+
+/**
+ *
+ * Destination cursor selection for each preview page and inventory row.
+ *
+ */
+static s8 sel_7928[6][6] = {
+    {2, 2, 0, 0, 1, 1},
+    {2, 2, 0, 0, 1, 1},
+    {0, 0, 0, 1, 1, 3},
+    {0, 0, 0, 1, 1, 1},
+    {0, 0, 0, 0, 0, 0},
+    {0, 0, 0, 0, 0, 0}
+};
+
+/**
+ *
+ * Inventory row offset associated with each previous key layout.
+ *
+ */
+static s8 conv_7932[12] = {0, 4, 1, 2, 2, 3, 2, 4, 2, 2, 3, 0};
+
+/**
+ *
+ * Ridepod preview position for each core height offset.
+ *
+ */
+static float robo_stand_pos_8151[11][3] = {
+    {-44.0f, -20.0f, -180.0f},
+    {-44.0f, -20.0f, -180.0f},
+    {-44.0f, -22.0f, -180.0f},
+    {-44.0f, -29.0f, -180.0f},
+    {-44.0f, -24.0f, -180.0f},
+    {-44.0f, -21.0f, -180.0f},
+    {-44.0f, -21.0f, -180.0f},
+    {-44.0f, -21.0f, -180.0f},
+    {-44.0f, -26.0f, -180.0f},
+    {-44.0f, -26.0f, -180.0f},
+    {-44.0f, -20.0f, -180.0f}
+};
+
+/**
+ *
+ * Colour, pulse count and duration of the cure and power-up palette effects.
+ *
+ */
+static int effparamtbl_8275[2][5] = {
+    {96, 180, 255, 1, 45},
+    {250, 220, 64, 1, 45}
+};
+
+/**
+ *
+ * Character-status masks controlling the displayed icons.
+ *
+ */
+static u32 status_table_8427[7] = {CHARA_STATUS_POISON, CHARA_STATUS_UNK_2, CHARA_STATUS_UNK_4, CHARA_STATUS_UNK_8, CHARA_STATUS_POWER, CHARA_STATUS_UNK_20, CHARA_STATUS_UNK_40};
+
+/**
+ *
+ * Texture coordinates of the character-status icons.
+ *
+ */
+static s8 xytable_8428[7][2] = {
+    {0, 0},
+    {24, 24},
+    {48, 0},
+    {0, 24},
+    {24, 0},
+    {48, 24},
+    {72, 0}
+};
+
+/**
+ *
+ * Texture coordinates of the weapon special-ability icons.
+ *
+ */
+static s8 xytable_wep_8429[12][2] = {
+    {0, 48},
+    {20, 48},
+    {40, 48},
+    {60, 48},
+    {80, 48},
+    {100, 48},
+    {0, 68},
+    {20, 68},
+    {40, 68},
+    {60, 68},
+    {80, 68},
+    {100, 68}
+};
+
+/**
+ *
+ * Weapon special-ability masks controlling the displayed icons.
+ *
+ */
+static u32 draw_tbl_8453[12] = {MENU_WEAPON_ABILITY_RICH, MENU_WEAPON_ABILITY_POOR, MENU_WEAPON_ABILITY_POISON, MENU_WEAPON_ABILITY_STOP, MENU_WEAPON_ABILITY_STEAL, MENU_WEAPON_ABILITY_BREAK_EASY, MENU_WEAPON_ABILITY_BREAK_HARD, MENU_WEAPON_ABILITY_DRAIN, MENU_WEAPON_ABILITY_HEAL, MENU_WEAPON_ABILITY_DARK, MENU_WEAPON_ABILITY_CRITICAL, MENU_WEAPON_ABILITY_ABS2};
+
+/**
+ *
+ * Texture package entries of the item selector.
+ *
+ */
+static char *imgtbl_8945[4] = {"img.img", "allitem.img", "edmenu.img", NULL};
+
+/**
+ *
+ * Sound effect for each item exchange result.
+ *
+ */
+s16 menu_item_swap_sndtbl[8] = {-1, 3, 3, 4, 1, 4, 3, 6};
+
+/**
+ *
+ * Inventory equipment slots associated with ridepod commands.
+ *
+ */
+static s8 MenuRoboEquipTable[4] = {2, 0, -1, -1};
+
+/**
+ *
+ * Number of inventory slots shown by the item board.
+ *
+ */
+static s16 MenuItemBoardTotalNum = 144;
+
+/**
+ *
+ * Number of inventory rows shown by the item board.
+ *
+ */
+static s16 MenuItemBoardTotalLine = 90;
 
 // Code (.text)
 /**
@@ -8287,7 +8471,6 @@ void MenuItemDebugKey(void) {
 #else
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/menusys", MenuItemDebugKey__Fv);
 #endif
-extern char *attrtable_6472[7];
 extern char *stchar_6508[13];
 
 /**
@@ -9669,7 +9852,6 @@ void local_item_infoview_set(MENUFORMPARTS_TYPE *part, CGameDataUsed *item) {
     }
 }
 
-extern char *whptbl_7376[2][2];
 
 /**
  *
@@ -10037,13 +10219,10 @@ void BuildUpWeaponNameBoardDraw(mgCDrawPrim *prim, float x, float y, int width) 
     PrimQuad(prim, x + width - 8.0f, y, right_rect);
 }
 
-extern s16   backboard_table_x_7625[5];
 extern u8    backboard_table_y_7626[3];
 extern s8    backboard_table_w_7627[5];
 extern s8    backboard_x_repeat_drawnum_7628[5];
 extern s8    backboard_y_repeat_drawnum_7629[3];
-extern s16   mos_repeat_table_x_7694[5];
-extern char *strtbl_7727[7];
 
 void MenuWeaponBuildUpDraw(int &tex_block) {
     if (BuildUpWeaponInfo.mode == 0) {
@@ -10322,9 +10501,6 @@ void MenuWeaponStatusInfoFormSet(CGameDataUsed *item, CDataWeapon *data) {
     }
 }
 
-extern s8 argtblno_7927[][6];
-extern s8 sel_7928[][6];
-extern s8 conv_7932[];
 int MenuItemSelectDiffer(int select) {
     if (CMenuItemInfoPt->viewing_weapon) {
         return 0;
@@ -10580,7 +10756,6 @@ void CMenuItemInfo::WeaponBuildCheck(CActionChara *chara, int chara_no, int tex_
 }
 
 extern s8    cnttbl_8130[6];
-extern float robo_stand_pos_8151[][3];
 
 int CMenuItemInfo::ModelReadEndCheck() {
     int loaded = MenuLoadFileCheck(MenuCharaBuild2);
@@ -10750,7 +10925,6 @@ void CMenuItemInfo::SearchEffectDisplayPosition(int *position, CGameDataUsed *it
     }
 }
 
-extern int  effparamtbl_8275[2][5];
 
 void CMenuItemInfo::SetItemEffect() {
     CCharacter2 *field_chara = MenuMainScene->GetCharacter(0);
@@ -11012,10 +11186,6 @@ void MenuItemInfoCursorSet(int mode) {
     }
 }
 
-extern u32 status_table_8427[7];
-extern s8  xytable_8428[7][2];
-extern s8  xytable_wep_8429[12][2];
-extern u32 draw_tbl_8453[12];
 
 void MenuCharaStatusDraw(int &tex_block) {
     if (MenuStatusTex == NULL) {
@@ -11794,7 +11964,6 @@ void CItemSelect::CheckUse(CGameDataUsed *item) {
     }
 }
 
-extern char *imgtbl_8945[];
 
 int CItemSelect::KeyStep() {
     int end = 0;
@@ -12227,23 +12396,7 @@ void MenuItemSelectDraw() {
 }
 
 // Initialised data (.data)
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menusys", attrtable_6472__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menusys", stchar_6508__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menusys", whptbl_7376__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menusys", backboard_table_x_7625__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menusys", mos_repeat_table_x_7694__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menusys", strtbl_7727__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menusys", argtblno_7927__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menusys", sel_7928__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menusys", conv_7932__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menusys", robo_stand_pos_8151__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menusys", effparamtbl_8275__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menusys", status_table_8427__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menusys", xytable_8428__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menusys", xytable_wep_8429__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menusys", draw_tbl_8453__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menusys", imgtbl_8945__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menusys", menu_item_swap_sndtbl__DATA);
 
 // Constants (.rodata)
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menusys", at_1493__2__DATA);
@@ -12264,13 +12417,6 @@ INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menusys", at_4973__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menusys", at_5882__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menusys", at_5883__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menusys", at_6424__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menusys", at_6473__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menusys", at_6474__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menusys", at_6475__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menusys", at_6476__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menusys", at_6477__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menusys", at_6478__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menusys", at_6479__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menusys", at_6509__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menusys", at_6510__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menusys", at_6511__DATA);
@@ -12283,14 +12429,6 @@ INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menusys", at_6517__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menusys", at_6518__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menusys", at_6519__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menusys", at_6520__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menusys", at_7728__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menusys", at_7729__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menusys", at_7730__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menusys", at_7731__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menusys", at_7732__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menusys", at_8946__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menusys", at_8947__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menusys", at_8948__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menusys", at_9215__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menusys", at_9216__DATA);
 
@@ -12300,9 +12438,6 @@ INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menusys", __vt__13CMenuItemInfo__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menusys", __vt__14CBaseMenuClass__DATA);
 
 // Small initialised data (.sdata)
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menusys", MenuRoboEquipTable__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menusys", MenuItemBoardTotalNum__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menusys", MenuItemBoardTotalLine__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menusys", MenuWeaponEnvSetListNo__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menusys", wakutbl_1411__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menusys", tartbl_1412__DATA);
