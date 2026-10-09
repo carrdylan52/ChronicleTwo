@@ -754,7 +754,7 @@ void mgEndFrame(mgCDrawManager *manager) {
                 mgPickZBuff[sample].z = -1;
             } else {
                 sceGsStoreImage store_image;
-                sceGsSetDefStoreImage(&store_image, mgZBUF_1.bits.zbp * 2048 / 64, mgScreenWidth / 64, 0x30, mgPickZBuff[sample].x - 4, mgPickZBuff[sample].y - 4, 8, 8);
+                sceGsSetDefStoreImage(&store_image, mgZBUF_1.bits.zbp * 2048 / 64, mgScreenWidth / 64, SCE_GS_PSMZ32, mgPickZBuff[sample].x - 4, mgPickZBuff[sample].y - 4, 8, 8);
                 FlushCache(0);
                 sceGsExecStoreImage(&store_image, (u_long128 *) store_data);
                 sceGsSyncPath(0, 0);
@@ -1577,7 +1577,7 @@ int mgStoreZBuffImage(mgRect<int> &rect, u_long128 *buffer) {
         return 0;
     }
 
-    sceGsSetDefStoreImage(&image, mgZBUF_1.bits.zbp * 2048 / 64, mgScreenWidth / 64, 0x30, rect.left, rect.top, width, height);
+    sceGsSetDefStoreImage(&image, mgZBUF_1.bits.zbp * 2048 / 64, mgScreenWidth / 64, SCE_GS_PSMZ32, rect.left, rect.top, width, height);
     FlushCache(0);
     sceGsExecStoreImage(&image, buffer);
     sceGsSyncPath(0, 0);
