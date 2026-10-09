@@ -88,4 +88,25 @@ Root independently verifies all 263 native receipt-manifest files and all 16
 exact frozen pair artifacts. The coordinator's combined applicable proposal
 is `.private/proposals/visual-copies-generated-assignment-pair.patch`, with
 independent `visual-copies-row-delta.json`; no shared-header activation is
-authorized in this lane. Current 33 whole-wrapper impact is separate work.
+authorized in this lane.
+
+## Complete private wrapper and PAL impact
+
+The separate impact stages now pass all 149 canonical wrappers and complete
+object checks against accepted33, preserving all 147 outside raw objects.
+Private35 links and verifies every retail section and memory extent against
+the actual immutable accepted33 executable. The accepted34 compatibility
+extension compiles only mapparts: its whole object remains raw-identical,
+including the newly promoted Copy body. Private36 reuses the other 148 game
+objects and same 157 SDK/runtime/data objects, then passes link/PAL checks
+against the actual accepted34 executable.
+
+Both linked candidates retain exact game bytes and all 98,516 named linked
+relocation tuples. The generated assignment binding, actual MDT table size
+and compiler attribute ownership differences remain explicitly recorded;
+whole ELF identity is not claimed. Root independently verifies all 1,932
+regular frozen files. The
+[joint impact note](../satansfiddle/placement-new-visual-pair-impact-20261009.md)
+owns the distinct baselines, composite 36-row/46-site evidence and receipts.
+These are private shared-header checks; production remains 34 accepted
+callers and neither visual Copy guard is removed in canonical source.

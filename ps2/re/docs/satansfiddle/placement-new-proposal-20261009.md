@@ -611,8 +611,16 @@ The separate derived Fix/Motion Copy pair also has genuine private zeros
 and passes 149 canonical private wrappers, preserving all 147 raw objects
 outside its two owning units against the accepted production33 snapshot.
 Its shared-header declaration removal remains unowned and private; neither
-caller is counted in production34. Independent private linking and a
-current34 single-unit compatibility bridge are subsequent validation work.
+caller is counted in production34. Independent private linking now passes
+PAL against the actual immutable accepted33 executable. A current34
+single-unit mapparts compatibility bridge is raw-identical to the accepted
+object; the resulting private36 link passes PAL against the actual immutable
+accepted34 executable. Both candidates retain exact game bytes and all
+98,516 named linked relocation tuples. Complete ELF metadata differences
+are recorded explicitly. Root verifies all 1,932 frozen regular files; the
+[joint impact note](placement-new-visual-pair-impact-20261009.md) owns the
+separate baseline provenance and documented reuse, rather than claiming
+a second whole-149 wrapper run.
 See the [Motion](../visualmotion/placement-new-copy-derived-20261009.md) and
 [Fix follow-up](../mg_visual/placement-new-copy-derived-20261009.md) notes.
 The original explicit-base97 negative remains preserved.
