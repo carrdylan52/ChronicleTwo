@@ -1011,8 +1011,15 @@ static int CheckGeoramaMateria(TRESURE_BOX_FLOOR_INFO *info, int floor_no, int *
 }
 
 extern mgRect<int> Floor_Info;
-extern short       dngboardbrdtbl_1[16];
-extern short       DngInfoMedalNumMsg[16];
+
+/**
+ *
+ * Screen position of the medal-count message for each language, as X/Y pairs.
+ *
+ */
+static short DngInfoMedalNumMsg[12] = {
+    330, 10, 330, 10, 330, 10, 330, 10, 330, 20, 330, 20
+};
 
 /**
  *
@@ -1021,6 +1028,15 @@ extern short       DngInfoMedalNumMsg[16];
  */
 static short dngboardbrdtbl[24] = {
     0, 0, 24, 70, 24, 0, 8, 70, 32, 0, 24, 70, 58, 2, 24, 4, 82, 2, 8, 4, 90, 2, 24, 4
+};
+
+/**
+ *
+ * Texture rectangles of the floor-information frame with a geostone row.
+ *
+ */
+static short dngboardbrdtbl_1[12] = {
+    58, 6, 24, 50, 82, 6, 8, 50, 90, 6, 24, 50
 };
 
 /**
@@ -3491,8 +3507,6 @@ void mgRect<float>::Set(float new_left, float new_top, float new_right, float ne
 }
 
 // Initialised data (.data)
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dngmenu", DngInfoMedalNumMsg__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dngmenu", dngboardbrdtbl_1__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dngmenu", bitTable_2900__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dngmenu", at_3141__DATA);
 
