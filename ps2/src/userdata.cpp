@@ -1007,7 +1007,7 @@ char *CGameDataUsed::GetName(int name_type) {
 
     if (name != NULL) {
         if (name_type == 2) {
-            strcpy(word_1327, symbol_tbl_1338[LanguageCode][(signed char) rename_flag][0]);
+            strcpy(word_1327, symbol_tbl_1338[LanguageCode][rename_flag][0]);
             strcat(word_1327, name);
         }
 
@@ -1046,7 +1046,7 @@ char *CGameDataUsed::GetName(int name_type) {
     }
 
     if (name != NULL && name_type == 2) {
-        strcat(word_1327, symbol_tbl_1338[LanguageCode][(signed char) rename_flag][1]);
+        strcat(word_1327, symbol_tbl_1338[LanguageCode][rename_flag][1]);
     }
 
     return word_1327;
@@ -1067,7 +1067,7 @@ void CGameDataUsed::TransToPassword(char *data, int length) {
                 body = &item->data.fish;
                 memset(&buffer, 0, 14);
                 buffer.fish.item_no = item->item_no;
-                buffer.fish.sex = static_cast<s8>(body->sex);
+                buffer.fish.sex = body->sex;
                 buffer.fish.color = body->color;
                 buffer.fish.battle = body->param[4];
                 buffer.fish.stamina = body->param[3];
@@ -2507,7 +2507,7 @@ int CFishAquarium::CheckHaigouTankSex(CGameDataUsed *fish) {
 
     for (; i < 2; i++) {
         if (breed_tank[i].item_no > 0 &&
-            (s8) breed_tank[i].data.fish.sex == (s8) fish->data.fish.sex) {
+            breed_tank[i].data.fish.sex == fish->data.fish.sex) {
             return 0;
         }
     }
