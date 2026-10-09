@@ -255,7 +255,7 @@ int CColPrim::SetDamage(char *name, int owner_id) {
     DAMAGE_PARAM *param = Damage_Param_Table;
 
     for (;;) {
-        if (((signed char *) param->name)[0] == 0) {
+        if (param->name[0] == 0) {
             return 0;
         }
 
