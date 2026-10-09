@@ -265,26 +265,26 @@ int CBPot::SetObject2(int kind, CMapParts *map_parts) {
     this->parts = map_parts;
 
     if (kind == 0) {
-        type = 1;
+        type = BPOT_TYPE_BOX;
     } else if (kind == 5) {
-        type = 3;
+        type = BPOT_TYPE_ROCK1;
     } else if (kind > 0 && kind < 5) {
-        type = 2;
+        type = BPOT_TYPE_ROCK0;
     } else if (kind == 6) {
-        type = 2;
+        type = BPOT_TYPE_ROCK0;
     } else {
         return 0;
     }
 
-    if (type == 1) {
+    if (type == BPOT_TYPE_BOX) {
         fragment_num = 12;
         prefix = "box";
         offset = box_offset;
-    } else if (type == 2) {
+    } else if (type == BPOT_TYPE_ROCK0) {
         fragment_num = 10;
         prefix = "rock";
         offset = iwa0_offset;
-    } else if (type == 3) {
+    } else if (type == BPOT_TYPE_ROCK1) {
         fragment_num = 9;
         prefix = "rock";
         offset = iwa1_offset;
@@ -332,7 +332,7 @@ void CBPot::Init() {
     this->frame = NULL;
     InitVector(position);
     timer = 0;
-    type = 0;
+    type = BPOT_TYPE_NONE;
     fragment_num = 0;
 
     for (i = 0; i < BPOT_FRAGMENT_MAX; i++) {
@@ -474,14 +474,13 @@ void CPot::Clear() {
 
 void CPot::Bakuhatsu(float *position_, float *normal) {
     if (parts != NULL) {
-
         u32 se_handle = GetMainScene()->se_battle_id;
 
-        if (BTsubo2.type == 1) {
+        if (BTsubo2.type == BPOT_TYPE_BOX) {
             sndSePlay(se_handle, 0x39, 0);
-        } else if (BTsubo2.type == 2) {
+        } else if (BTsubo2.type == BPOT_TYPE_ROCK0) {
             sndSePlay(se_handle, 0x3A, 0);
-        } else if (BTsubo2.type == 3) {
+        } else if (BTsubo2.type == BPOT_TYPE_ROCK1) {
             sndSePlay(se_handle, 0x3B, 0);
         }
 
@@ -622,5 +621,3 @@ float iwa1_offset[9][4] __attribute__((aligned(16))) = {
     {1.562f, 1.33f, 0.49199998f, 1.0f},
     {-1.768f, 4.292f, -1.7939999f, 1.0f}
 };
-
-// Constants (.rodata)
