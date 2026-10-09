@@ -844,7 +844,7 @@ void mgEndPacket(mgCDrawManager *manager) {
 void mgWaitFrame() {
     if (sceGsSyncPath(0, 0) < 0) {
         printf("******\n");
-        printf("base = %x,cuur = %x\n", *(int *) mgVif1Packet);
+        printf("base = %x,cuur = %x\n", mgVif1Packet->pCurrent);
         Exit__2(-1);
     }
 }
@@ -874,7 +874,7 @@ int mgDrawDirect(mgCVisual *visual, float (*matrix)[4]) {
     }
 
     sceVif1PkTerminate(mgVif1Packet);
-    int size = visual->Draw((u_int *) *(int *) mgVif1Packet, matrix, 0);
+    int size = visual->Draw(mgVif1Packet->pCurrent, matrix, 0);
     sceVif1PkReserve(mgVif1Packet, size * 4);
     return size;
 }
@@ -889,8 +889,7 @@ int mgDrawDirect2(mgCFrame *frame) {
         return 0;
     }
 
-    int offset = ddraw_size << 4;
-    int size = frame->Draw((u_int *) (*(int *) mgVif1Packet + offset));
+    int size = frame->Draw(mgVif1Packet->pCurrent + ddraw_size * 4);
     ddraw_size += size;
     return size;
 }
