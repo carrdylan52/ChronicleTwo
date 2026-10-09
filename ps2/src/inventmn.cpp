@@ -418,16 +418,6 @@ extern char          at_3353[];
 
 /**
  *
- * Defines the vertical clipping range for invention ideas.
- *
- */
-struct NetaClipRange {
-    float top;    /**< Upper clipping boundary. */
-    float bottom; /**< Lower clipping boundary. */
-};
-
-/**
- *
  * Stores a point on the inventory screen.
  *
  */
@@ -435,10 +425,8 @@ struct ScreenPoint {
     int xy[2]; /**< Horizontal and vertical screen coordinates. */
 };
 
-extern ScreenPoint   at_3363;
-extern NetaClipRange at_3379;
-extern CursorPos     at_3509;
-extern ScreenPoint   at_4493;
+extern CursorPos   at_3509;
+extern ScreenPoint at_4493;
 
 /**
  *
@@ -3740,22 +3728,19 @@ extern char at_3630[];
 extern char at_3631[];
 extern char at_3632[];
 
-#ifdef NONMATCHING
 void CMenuInvent::CalcTex() {
     if (bg_form != NULL) {
         float *left_top = GetMenuMainFrameLeftTopPos(0);
-        int    bg_pos[2] = {0, 0};
-        bg_pos[0] = (int) left_top[0];
-        bg_pos[1] = (int) (left_top[1] - 480.0f);
-        bg_form->x = bg_pos[0];
-        bg_form->y = bg_pos[1];
+        int    bg_pos[2] = {(int) left_top[0], (int) (left_top[1] - 480.0f)};
+        bg_form->SetPos(bg_pos[0], bg_pos[1]);
     }
     blink_count++;
     blink_count %= 50;
     if (blink_count >= 180000) {
         blink_count = 0;
     }
-    float shade = 128.0f + 64.0f * sinf(mgAngleLimit(3.1415927f * blink_count / 50.0f));
+    float wave = sinf(mgAngleLimit(3.1415927f * blink_count / 50.0f));
+    float shade = 128.0f + 64.0f * wave;
     neta_color[0] = shade;
     neta_color[1] = shade;
     neta_color[2] = 128.0f;
@@ -3780,9 +3765,7 @@ void CMenuInvent::CalcTex() {
         if (neta_circle_angle >= 3.1415927f) {
             neta_circle_angle -= 6.2831855f;
         }
-        NetaClipRange clip = at_3379;
-        clip.top = neta_board_form->y;
-        clip.bottom = neta_board_form->y + 6.0f + 270.0f;
+        float clip[2] = {neta_board_form->y, neta_board_form->y + 6.0f + 270.0f};
         for (int i = 0; i < 3; i++) {
             CMenuPosDataForm *form = neta_form[i];
             if (form == NULL || form->draw_flag == 0) {
@@ -3793,7 +3776,7 @@ void CMenuInvent::CalcTex() {
             form->rgba_bit = 8;
             int target[2];
             if (neta_select_state[i] == 1) {
-                clip.top = neta_board_form->y;
+                clip[0] = neta_board_form->y;
                 float angle = neta_circle_angle + slot_angle * i;
                 target[0] = (int) (center[0] + neta_circle_radius * cosf(angle));
                 target[1] = (int) (center[1] + neta_circle_radius * sinf(angle));
@@ -3819,12 +3802,12 @@ void CMenuInvent::CalcTex() {
                     }
                 }
             } else if (neta_select_state[i] == 0) {
-                clip.top = neta_board_form->y + 6.0f + 54.0f;
+                clip[0] = neta_board_form->y + 6.0f + 54.0f;
                 if (neta_select_type[i] == 0) {
                     GetNetaBoardCursorPosition(neta_select_index[i], target);
                     form->SetNextMovePos(target, 2);
-                    if ((target[1] < clip.top && form->y < clip.top) ||
-                        (target[1] > clip.bottom && form->y > clip.top) || target[0] < 0) {
+                    if ((target[1] < clip[0] && form->y < clip[0]) ||
+                        (target[1] > clip[1] && form->y > clip[0]) || target[0] < 0) {
                         form->SetRGBACalcParam(3, -0x1C, 0);
                     }
                 } else if (neta_select_type[i] == 1) {
@@ -3832,8 +3815,8 @@ void CMenuInvent::CalcTex() {
                     target[0] += 200;
                     form->SetNextMovePos(target, 2);
                     form->SetRGBACalcParam(3, -0x10, 0);
-                    if ((target[1] < clip.top && form->y < clip.top) ||
-                        (target[1] > clip.bottom && form->y > clip.top)) {
+                    if ((target[1] < clip[0] && form->y < clip[0]) ||
+                        (target[1] > clip[1] && form->y > clip[0])) {
                         form->SetRGBACalcParam(3, -0x1C, 0);
                     }
                 }
@@ -3852,7 +3835,7 @@ void CMenuInvent::CalcTex() {
         CalcMenu1(neta_memo_form->y + 76.0f + 2.0f - memo_top * 26, &memo_scroll, 4.0f, 0.0f, memo_scroll_reset);
         float bar_step = 0.0f;
         if (pic_name_info_num > 9) {
-            bar_step = 108.0f / (pic_name_info_num - 9.0f);
+            bar_step = 216.0f / (pic_name_info_num - 9.0f);
         }
         CalcMenu1(neta_memo_form->y + 76.0f + 1.0f + bar_step * memo_top, &memo_bar, 4.0f, 0.0f, memo_scroll_reset);
         memo_scroll_reset = 0;
@@ -3889,9 +3872,10 @@ void CMenuInvent::CalcTex() {
         if (frame != NULL && bar != NULL) {
             bar[0].x = bar[1].x = bar[2].x = frame[0].x + 2.0f;
             float length = bar[0].h + bar[1].h + bar[2].h;
+            float scroll_step = (frame[1].h + 4.0f - length) / 20.0f;
+            float scroll_target = frame[0].y + 4.0f + scroll_step * album_top;
             float bar_y = bar[0].y;
-            CalcMenu1(frame[0].y + 4.0f + (frame[1].h + 4.0f - length) / 20.0f * album_top, &bar_y, 4.0f, 0.0f,
-                      album_scroll_reset);
+            CalcMenu1(scroll_target, &bar_y, 4.0f, 0.0f, album_scroll_reset);
             length = bar[0].h + bar[1].h + bar[2].h;
             float mid_scale = (6.0f + (length - bar[0].h - bar[2].h)) / 40.0f;
             bar[0].y = bar_y;
@@ -3922,9 +3906,9 @@ void CMenuInvent::CalcTex() {
         MENUFORMPARTS_TYPE *bar_mid = title->GetPartInfo(at_2129__2);
         MENUFORMPARTS_TYPE *bar_end = title->GetPartInfo(at_2130__2);
         int                 card_max = EnableSelectMaxCardList();
-        float               bar_step = 0.0f;
         float               knob = bar_size[1] * (5.0f / card_max);
         float               hidden = card_max - 5;
+        float               bar_step = 0.0f;
         if (1.0f <= hidden) {
             bar_step = (bar_size[1] - knob) / hidden;
         }
@@ -4063,9 +4047,6 @@ void CMenuInvent::CalcTex() {
     MenuEffect[1]->Step();
 }
 
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/inventmn", CalcTex__11CMenuInventFv);
-#endif
 void CMenuInvent::BootExtendCommand() {
     menu_invent_command_info_ptr = &modecmdtbl_3636[key_arg_no];
 

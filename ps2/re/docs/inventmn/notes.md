@@ -8,8 +8,9 @@ retail uses 0x4D8, 0x1588, and 0x1048. Their shorter code shifts the following
 linked text by 0xA0 after function alignment. These drafts remain guarded by
 `NONMATCHING` and the matching build uses their retail assembly. `UpdataNetaMemoStr` matches with the sorting helper declared local, as in retail.
 
-The matching build also selects retail gaps for `ResetAddress`, `CalcTex`,
+The matching build also selects retail gaps for `ResetAddress`,
 `IsAccessAlbum`, and `MenuInventKey`; those functions have guarded C++ drafts.
+`CalcTex` is native and exact (see [night-20261008.md](night-20261008.md)).
 The other invention-menu functions remain native C++ where already matched.
 
 Invention menu ("Invent"): camera photos, ideas ("neta", id < 1000) and scoops (id >= 1000),
@@ -294,16 +295,14 @@ extent, including alignment padding. The following functions remain guarded.
   copies to `s1` at offset 0x32C, then branches at 0x330 and inserts a nop.
   Its stack frame is 0x140 bytes rather than retail's 0x150. Reconsider after
   the dedicated placement-new result, then recheck local lifetimes and scheduling.
-- `CalcTex__11CMenuInventFv`: removing the draft's `opt_common_subs off`
-  override reduces native text from 0x1438 to 0x13B0 bytes, against retail's
-  0x13A0 extent. It remains oversized and guarded. The default-optimization
-  draft uses a 0x160-byte stack frame and saves `s8`; retail uses a 0x150-byte
-  frame and saves through `s7`. A retained address for the clip's bottom field
-  changes the circle loop, and album-scroll expression scheduling differs.
-  Replacing the background coordinate array with `CursorPos` leaves the size
-  unchanged. Reconsider when typed local lifetimes eliminate the extra saved
-  clipping pointer and the album-scroll expression matches retail's evaluation
-  order. Retail calls the three SDK vector routines rather than inlining COP2.
+- `CalcTex__11CMenuInventFv`: exact. The background position and clip range
+  are two-element arrays with non-constant initialisers. The compiler copies
+  their zero templates (`at_3363`, `at_3379`) and stores the elements
+  directly. The memo bar step divides 216.0f. The album scroll target and its
+  step are computed before the `bar_y` copy. One callee-scoped SF row
+  evaluates pi first for `CalcMenuAdd`. Retail calls the three SDK vector
+  routines rather than inlining COP2. Details and probes are in
+  [night-20261008.md](night-20261008.md).
 
 `decompile.sh` cannot recover the jump tables in `MenuInventKey` and
 `IsCreateObject` at assembly lines 176 and 861, respectively. The instruction
@@ -314,8 +313,8 @@ assembly was modified.
 
 [midday.md](midday.md) records the retained ResetAddress and MenuInventKey
 improvements, rejected CalcTex local-layout probes, and the natural-constructor
-condition for revisiting the four placement-new remainders. All seven guards
-and the complete canonical inventory object remain intact.
+condition for revisiting the four placement-new remainders. CalcTex has
+since been matched; six guards remain.
 
 ## Midday round 1
 
