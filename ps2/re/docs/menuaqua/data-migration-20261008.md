@@ -20,3 +20,25 @@ Ten separately validated steps remove 25 RODATA and ten BSS markers.
 Markers: 153 / 89; matched data: 508 / 8293 bytes. Every
 `aqua-emitted-<step>-build.log` / `-objects.log` receipt in
 `.private/nminv-r2/` verifies PAL OK and 149/149 objects.
+
+## Named zero storage
+
+Eighty-six named reservations now have documented native definitions:
+25 aquarium objects and 61 race-menu objects. They retain retail linkage,
+existing pointer types, byte/halfword flags, arrays and save-state records.
+Public GyoraceFish, GyoraceData, AquaDeadCheck and MenuDCMsg definitions
+remain compatible with the existing header declarations. No constructor
+objects or initialization order are added.
+
+Actual object extents exclude reservation gaps: the six race selection
+flags occupy six bytes, the three tank bubble pointers twelve bytes,
+the six fish bubble/effect pointers twenty-four bytes, and MenuDCMsg's
+nine pointers thirty-six bytes. Camera and position-table state are
+pointers, not storage for the pointed-to objects. The four existing
+native global constructor objects remain in place.
+
+Markers: 153 / 3; matched data: 2128 / 8293 bytes.
+`aqua-state-core-{build,objects}.log` and
+`aqua-state-race-{build,objects}.log` verify PAL OK and 149/149 objects.
+The three remaining BSS markers are CAquarium::Step's frozen local statics
+and initialization guard; their body and retail references stay unchanged.

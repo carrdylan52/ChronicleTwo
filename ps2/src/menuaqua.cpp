@@ -164,9 +164,7 @@ struct fish_prize_record {
     FISH_PRIZE_INFO rank[3]; /**< Prize information for each rank. */
 };
 
-extern CAquaFishEff *AquaFishEff[];
 
-extern CBubble *AquaFishBubble[6];
 
 /**
  *
@@ -185,7 +183,6 @@ extern aqua_col_point ColChkPoint[9];
 extern aqua_col_point ColChkPoint2[9];
 extern aqua_col_point ColChkPoint3[6];
 extern s8             ColChkPointNum[3];
-extern float          AquaBattleBubble_Pos[4];
 extern u8             tbl_3505[2];
 
 extern int max_tbl_1484[];
@@ -232,7 +229,6 @@ extern "C" int AQUA_TITLE_W;
 
 extern "C" int AQUA_TITLE_H;
 
-extern "C" mgCCameraFollow *Camera__2;
 
 /**
  *
@@ -246,16 +242,7 @@ struct aqua_light_env {
     int           plight_enable;     /**< Whether the point light is enabled. */
 };
 
-extern CScene         *AquaScene;
-extern float           Auqa_Bgm_Volf;
-extern int             AquaCameraCtrlMode;
-extern aqua_light_env *aqua_old_env;
 extern short           m_next_aqua_no;
-extern s16             Aqua_SpSndBattleCount;
-extern u_long128      *m_aquarium_limmit_adr;
-extern float (*aquarium_xz_table)[4];
-extern float (*aquarium_y_table)[4];
-extern CBubble        *AquaBubble[3];
 extern "C" aqua_vector at_2742__2;
 extern "C" char        at_2871[];
 extern "C" char        at_2874[];
@@ -272,9 +259,6 @@ struct aqua_bubble_counts {
 extern "C" aqua_bubble_counts at_2935;
 extern float                  aqua_bubble_generate_pos[3][3][4];
 extern u16                    aqua_frame_sizetbl_2934[3];
-extern s16                    AquaBattleBubble_Generate_Wait;
-extern int                    AquaBattleBubble_Generate_Counter;
-extern CBubble               *AquaBattleBubble;
 extern "C" aqua_quad          at_2975;
 extern "C" aqua_quad          at_2976;
 extern "C" aqua_quad          at_3016;
@@ -320,7 +304,6 @@ extern short              t_4408[];
 extern "C" char           at_4519[];
 extern float              ambient[4];
 extern int                menu_debug_flag;
-extern s16                menu_debug_select;
 extern int                langTbl_3630[2][2];
 extern s8                 menu_max_tbl_3720[3];
 extern s8                 menu_id_tbl_3721[18];
@@ -348,7 +331,6 @@ extern s16             ptbl_2495[][6];
 extern short           u_brdtbl_2493[];
 extern u8              chrtbl_2503[][4][2];
 extern aqua_param_icon get_paraxtbl_2494[][10];
-extern int            *Aquarium_NameregistBlock;
 
 enum {
     short_flag_tour_count = 0x15,
@@ -367,7 +349,6 @@ enum {
 
 static const int max_fish_fatigue = 10000000;
 
-extern "C" aqua_grid_cell *aquarium_paul_table;
 
 static aqua_grid_cell *Get_aquarium_paul_table(int index);
 
@@ -381,12 +362,7 @@ static int GetFishPath(int item_no, char *out);
 
 static aqua_food_info *GetEsaInfo(int item_no);
 
-extern int            Aqua_SpSndID;
-extern CDC2Mes       *GyoraceFishMes;
-extern int            GyoraceHaveFishListScrlInit;
-extern int            AquaMode;
 extern CAquarium      Aquarium;
-extern CFishAquarium *m_aquarium_para;
 extern float          light_dir[4][4];
 extern float          light_color[][4][4];
 
@@ -404,39 +380,24 @@ extern "C" short bart_5670[12];
 
 extern "C" short pl_s_5699[12];
 
-extern signed char GyoRaceAquariumNo;
 
-extern signed char GyoRaceClass;
 
-extern signed char GyoRaceProgressNum;
 
-extern signed char GyoRaceRankingData;
 
-extern short FishTournamentGoodsNum;
 
-extern fish_prize_group *FishTournamentGoods;
 
-extern mgCMemory *fish_prize_buildstack;
 
-extern fish_prize_record *spi_fish_prize_info;
 
-extern signed char FishTournamentGoodsType;
 
 extern gyoracer_index_data GyoracerIndexNo;
 
 extern gyoracer_tactics_data GyoracerTacticsNo;
 
-extern mgCMemory *spi_gyorace_stack;
 
-extern CGyoraceFishData *spi_gyorace_data;
 
-extern CGameDataUsed *spi_nowanalyze_gyorace_data;
 
-extern short spi_nowanalyze_gyorace_limmit;
 
-extern short spi_gyorace_counter;
 
-extern fish_prize_group *spiFishTournamentGoods;
 
 extern SPI_TAG_PARAM gyorace_tag[4];
 
@@ -446,13 +407,9 @@ extern char at_4825[];
 
 extern char *filename_4899[2];
 
-extern char *GyoraceExeCfgBuffer;
 
-extern int GyoraceExeCfgBufferSize;
 
-extern mgCTexture *Tex_Aqualium;
 
-extern mgCTexture *Tex_FishEffect;
 
 extern "C" char at_2929__2[];
 
@@ -461,17 +418,6 @@ extern "C" char at_2930__2[];
 extern mgCMemory Aquarium_NameregistStack;
 extern mgCMemory GyoraceStack;
 
-extern CSubGameData    *SubSaveData;
-extern CGameDataUsed   *GyoracerActive;
-extern mgCTexture      *GyoraceFishTex;
-extern mgCTexture      *GyoraceCursor;
-extern float            GyoraceHaveFishListScrlBarY;
-extern int              MenuLoadFishTopLine;
-extern int              MenuLoadFishSelect;
-extern int              MenuLoadFishBoardX;
-extern float            Gyoracemenu_CursorXY[2];
-extern u8               MenuLoadFishIsLoad;
-extern CGameDataUsed   *MenuLoadFishSelectData;
 extern int              vol_5253[6];
 extern "C" char         at_5487[];
 extern "C" char         at_5488[];
@@ -486,46 +432,18 @@ extern "C" char         at_5496[];
 extern "C" char         at_5497[];
 extern "C" char         at_5498[];
 extern "C" char         at_5499[];
-extern mgCTexture      *MenuLoadBoardTex;
-extern u8               GyoraceQuestionMsgDrawFlag;
-extern CDC2Mes         *GyoraceMes;
-extern u8               GyoraceMesDrawFlag;
-extern CDC2Mes         *GyoraceFishHave;
-extern CDC2Mes         *GyoraceFishTacMes;
-extern u8               GyoraceFishHaveDrawFlag;
-extern float            GyoraceHaveFishListTopY;
-extern u8               GyoraceFishTacMesDrawFlag;
-extern u8               GyoraceFishInfoDrawFlag;
-extern s16              GyoraceHaveFishListMakeLine;
-extern int              Gyoracemenu_long_hand_count;
-extern u8               GyoraceHaveFishCursorDrawFlag;
-extern float            GyoraceHaveFishCursor;
-extern s16              GyoraceNowMode;
-extern s16              GyoraceNowPhase;
-extern int              GyoraceTexBlock[16];
-extern SV_CONFIG_OPTION GyoraceMenuOptionBuff;
 extern "C" char         at_5140[];
 
-extern short       GyoraceFishSelTexBk;
 extern mgCMemory   GyoraceFishSelStack;
-extern short       GyoraceFishFrameImgTexNo;
-extern signed char GyoraceFishSelNum;
-extern signed char GyoRaceFishReadPhase;
 extern char        at_2872[];
 
-extern signed char GyoraceFishSelectMode;
 
-extern s8 GyoraceFishSel[6];
 
-extern s16 GyoraceFishSelectNo;
 
 extern "C" char at_2873[];
 
-extern gyorace_list_select GyoraceFishHaveListSelect;
 
-extern fish_prize_record *save_fish_prize_list;
 
-extern FISH_PRIZE_INFO fish_save_present[4][3];
 
 static int local_aquarium_limmit_check(float *pos, float radius, int check_y, float height);
 
@@ -572,6 +490,264 @@ static inline unsigned int align16_blocks(unsigned int bytes) {
 
 #include "common.h"
 
+
+/** Scene used to draw and animate the aquarium. */
+static CScene         *AquaScene;
+
+/** Mode of the active aquarium menu. */
+static int            AquaMode;
+
+/** Texture blocks reserved for aquarium fish name registration. */
+static int            *Aquarium_NameregistBlock;
+
+/** Sound-bank identifier used by aquarium effects. */
+static int            Aqua_SpSndID;
+
+/** Counter used to space aquarium battle sounds. */
+static s16             Aqua_SpSndBattleCount;
+
+/** Camera control mode of the aquarium. */
+static int             AquaCameraCtrlMode;
+
+/** Camera that follows the aquarium view. */
+static mgCCameraFollow *Camera__2;
+
+/** Lighting state saved before drawing the aquarium. */
+static aqua_light_env *aqua_old_env;
+
+/** Texture used for the aquarium menu. */
+static mgCTexture *Tex_Aqualium;
+
+/** Texture used by fish effects. */
+static mgCTexture *Tex_FishEffect;
+
+/** Selected aquarium debug parameter. */
+static s16                menu_debug_select;
+
+/** Horizontal position vectors of the aquarium grid. */
+static float (*aquarium_xz_table)[4];
+
+/** Height vectors of the aquarium grid. */
+static float (*aquarium_y_table)[4];
+
+/** Position and height references of the aquarium grid cells. */
+static aqua_grid_cell *aquarium_paul_table;
+
+/** Bubble emitters used by aquarium battles. */
+static CBubble               *AquaBattleBubble;
+
+/** Delay before emitting the next battle bubble. */
+static s16                    AquaBattleBubble_Generate_Wait;
+
+/** Battle bubble emitter selected for the next emission. */
+static int                    AquaBattleBubble_Generate_Counter;
+
+/** Saved aquarium parameters used by the active tank. */
+static CFishAquarium *m_aquarium_para;
+
+/** Loaded boundary data of the aquarium. */
+static u_long128      *m_aquarium_limmit_adr;
+
+/** Indicates that a fish died during the aquarium step. */
+int AquaDeadCheck;
+
+/** Saved background-music volume of the aquarium menu. */
+static float           Auqa_Bgm_Volf;
+
+/** Bubble emitter of each aquarium group. */
+static CBubble        *AquaBubble[3];
+
+/** Bubble emitter attached to each aquarium fish. */
+static CBubble *AquaFishBubble[6];
+
+/** Position of the aquarium battle bubble emitter. */
+static float          AquaBattleBubble_Pos[4];
+
+/** Effect controller attached to each aquarium fish. */
+static CAquaFishEff *AquaFishEff[6];
+
+/** Fish data used by the race menus. */
+CGameDataUsed *GyoraceFish;
+
+/** Mode of the race fish selector. */
+static signed char GyoraceFishSelectMode;
+
+/** Fish selected for the race. */
+static s16 GyoraceFishSelectNo;
+
+/** Texture block used by the race fish selector. */
+static short       GyoraceFishSelTexBk;
+
+/** Texture block of the fish-selection frame image. */
+static short       GyoraceFishFrameImgTexNo;
+
+/** Number of fish marked in the race selector. */
+static signed char GyoraceFishSelNum;
+
+/** Selection flags of the six race fish slots. */
+static s8 GyoraceFishSel[6];
+
+/** Phase of loading the race fish selection data. */
+static signed char GyoRaceFishReadPhase;
+
+/** Aquarium selected for the race. */
+static signed char GyoRaceAquariumNo;
+
+/** Class of the selected race. */
+static signed char GyoRaceClass;
+
+/** Progress through the race tournament. */
+static signed char GyoRaceProgressNum;
+
+/** Ranking selected by the race menu. */
+static signed char GyoRaceRankingData;
+
+/** Arena used while parsing race fish definitions. */
+static mgCMemory *spi_gyorace_stack;
+
+/** Fish definitions populated by the race script. */
+static CGyoraceFishData *spi_gyorace_data;
+
+/** Race fish record currently populated by the script. */
+static CGameDataUsed *spi_nowanalyze_gyorace_data;
+
+/** Number of fish records expected by the race script. */
+static short spi_nowanalyze_gyorace_limmit;
+
+/** Fish record index advanced by the race script. */
+static short spi_gyorace_counter;
+
+/** Arena used while parsing fish tournament prizes. */
+static mgCMemory *fish_prize_buildstack;
+
+/** Prize groups available to the fish tournament. */
+static fish_prize_group *FishTournamentGoods;
+
+/** Number of fish tournament prize groups. */
+static short FishTournamentGoodsNum;
+
+/** Type of the fish tournament prize list. */
+static signed char FishTournamentGoodsType;
+
+/** Prize group currently populated by the script. */
+static fish_prize_group *spiFishTournamentGoods;
+
+/** Prize record currently populated by the script. */
+static fish_prize_record *spi_fish_prize_info;
+
+/** Prize records saved for the race menu. */
+static fish_prize_record *save_fish_prize_list;
+
+/** Subgame save data used by the race menu. */
+static CSubGameData    *SubSaveData;
+
+/** Saved race participant data. */
+CGyoRaceData *GyoraceData;
+
+/** Fish record of the active race participant. */
+static CGameDataUsed   *GyoracerActive;
+
+/** Main message window of the race menu. */
+static CDC2Mes         *GyoraceMes;
+
+/** Enables drawing of the main race message. */
+static u8               GyoraceMesDrawFlag;
+
+/** Enables drawing of the selected race fish parameters. */
+static u8               GyoraceFishInfoDrawFlag;
+
+/** Message window used for race fish information. */
+static CDC2Mes       *GyoraceFishMes;
+
+/** Message window listing available race fish. */
+static CDC2Mes         *GyoraceFishHave;
+
+/** Enables drawing of the available race fish list. */
+static u8               GyoraceFishHaveDrawFlag;
+
+/** Message window used for race tactics. */
+static CDC2Mes         *GyoraceFishTacMes;
+
+/** Enables drawing of the race tactics window. */
+static u8               GyoraceFishTacMesDrawFlag;
+
+/** Cursor and first visible row of the available race fish list. */
+static gyorace_list_select GyoraceFishHaveListSelect;
+
+/** Cursor texture of the race menu. */
+static mgCTexture      *GyoraceCursor;
+
+/** Texture used to draw fish in the race menu. */
+static mgCTexture      *GyoraceFishTex;
+
+/** Current race menu screen. */
+static s16              GyoraceNowMode;
+
+/** Phase of the current race menu screen. */
+static s16              GyoraceNowPhase;
+
+/** Enables drawing of the race confirmation question. */
+static u8               GyoraceQuestionMsgDrawFlag;
+
+/** Enables drawing of the available-fish cursor. */
+static u8               GyoraceHaveFishCursorDrawFlag;
+
+/** Animated position of the available-fish cursor. */
+static float            GyoraceHaveFishCursor;
+
+/** Animation counter of the race menu pointer. */
+static int              Gyoracemenu_long_hand_count;
+
+/** Position of the race menu cursor. */
+static float            Gyoracemenu_CursorXY[2];
+
+/** Loaded race configuration script. */
+static char *GyoraceExeCfgBuffer;
+
+/** Byte size of the loaded race configuration script. */
+static int GyoraceExeCfgBufferSize;
+
+/** Number of rows in the available race fish list. */
+static s16              GyoraceHaveFishListMakeLine;
+
+/** Animated vertical origin of the available race fish list. */
+static float            GyoraceHaveFishListTopY;
+
+/** Animated position of the available-fish scroll bar. */
+static float            GyoraceHaveFishListScrlBarY;
+
+/** Requests initialization of the available-fish scrolling state. */
+static int            GyoraceHaveFishListScrlInit;
+
+/** Tracks loading of the selected aquarium fish. */
+static u8               MenuLoadFishIsLoad;
+
+/** Selected row of the aquarium fish load list. */
+static int              MenuLoadFishSelect;
+
+/** First visible row of the aquarium fish load list. */
+static int              MenuLoadFishTopLine;
+
+/** Fish record selected for loading into the aquarium. */
+static CGameDataUsed   *MenuLoadFishSelectData;
+
+/** Texture used for the aquarium fish load board. */
+static mgCTexture      *MenuLoadBoardTex;
+
+/** Horizontal position of the aquarium fish load board. */
+static int              MenuLoadFishBoardX;
+
+/** Saved prize information for four tournament groups and three ranks. */
+static FISH_PRIZE_INFO fish_save_present[4][3];
+
+/** Texture blocks allocated to the race menu. */
+static int              GyoraceTexBlock[16];
+
+/** Options saved while the race menu changes sound settings. */
+static SV_CONFIG_OPTION GyoraceMenuOptionBuff;
+
+/** Shared aquarium and race message windows. */
+CDC2Mes *MenuDCMsg[9];
 
 // Code (.text)
 /**
@@ -7348,98 +7524,12 @@ INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuaqua", menu_max_tbl_3720__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuaqua", filename_4899__DATA);
 
 // Small uninitialised data (.sbss)
-INCLUDE_BSS(AquaScene, 0x4);
-INCLUDE_BSS(AquaMode, 0x4);
-INCLUDE_BSS(Aquarium_NameregistBlock, 0x4);
-INCLUDE_BSS(Aqua_SpSndID, 0x4);
-INCLUDE_BSS(Aqua_SpSndBattleCount, 0x4);
-INCLUDE_BSS(AquaCameraCtrlMode, 0x4);
-INCLUDE_BSS(Camera__2, 0x4);
-INCLUDE_BSS(aqua_old_env, 0x4);
-INCLUDE_BSS(Tex_Aqualium, 0x4);
-INCLUDE_BSS(Tex_FishEffect, 0x4);
-INCLUDE_BSS(menu_debug_select, 0x10);
-INCLUDE_BSS(aquarium_xz_table, 0x10);
-INCLUDE_BSS(aquarium_y_table, 0x4);
-INCLUDE_BSS(aquarium_paul_table, 0x4);
-INCLUDE_BSS(AquaBattleBubble, 0x4);
-INCLUDE_BSS(AquaBattleBubble_Generate_Wait, 0x4);
-INCLUDE_BSS(AquaBattleBubble_Generate_Counter, 0x4);
-INCLUDE_BSS(m_aquarium_para, 0x4);
-INCLUDE_BSS(m_aquarium_limmit_adr, 0x4);
-INCLUDE_BSS(AquaDeadCheck, 0x4);
 INCLUDE_BSS(sel_sift_fish_3638, 0x4);
 INCLUDE_BSS(init_3639, 0x4);
 INCLUDE_BSS(sel_sift_fish_select_3641, 0x4);
-INCLUDE_BSS(Auqa_Bgm_Volf, 0x4);
-INCLUDE_BSS(GyoraceFish, 0x4);
-INCLUDE_BSS(GyoraceFishSelectMode, 0x4);
-INCLUDE_BSS(GyoraceFishSelectNo, 0x4);
-INCLUDE_BSS(GyoraceFishSelTexBk, 0x4);
-INCLUDE_BSS(GyoraceFishFrameImgTexNo, 0x4);
-INCLUDE_BSS(GyoraceFishSelNum, 0x4);
-INCLUDE_BSS(GyoraceFishSel, 0x8);
-INCLUDE_BSS(GyoRaceFishReadPhase, 0x4);
-INCLUDE_BSS(GyoRaceAquariumNo, 0x4);
-INCLUDE_BSS(GyoRaceClass, 0x4);
-INCLUDE_BSS(GyoRaceProgressNum, 0x4);
-INCLUDE_BSS(GyoRaceRankingData, 0x4);
-INCLUDE_BSS(spi_gyorace_stack, 0x4);
-INCLUDE_BSS(spi_gyorace_data, 0x4);
-INCLUDE_BSS(spi_nowanalyze_gyorace_data, 0x4);
-INCLUDE_BSS(spi_nowanalyze_gyorace_limmit, 0x4);
-INCLUDE_BSS(spi_gyorace_counter, 0x4);
-INCLUDE_BSS(fish_prize_buildstack, 0x4);
-INCLUDE_BSS(FishTournamentGoods, 0x4);
-INCLUDE_BSS(FishTournamentGoodsNum, 0x4);
-INCLUDE_BSS(FishTournamentGoodsType, 0x4);
-INCLUDE_BSS(spiFishTournamentGoods, 0x4);
-INCLUDE_BSS(spi_fish_prize_info, 0x4);
-INCLUDE_BSS(save_fish_prize_list, 0x4);
-INCLUDE_BSS(SubSaveData, 0x4);
-INCLUDE_BSS(GyoraceData, 0x4);
-INCLUDE_BSS(GyoracerActive, 0x4);
-INCLUDE_BSS(GyoraceMes, 0x4);
-INCLUDE_BSS(GyoraceMesDrawFlag, 0x4);
-INCLUDE_BSS(GyoraceFishInfoDrawFlag, 0x4);
-INCLUDE_BSS(GyoraceFishMes, 0x4);
-INCLUDE_BSS(GyoraceFishHave, 0x4);
-INCLUDE_BSS(GyoraceFishHaveDrawFlag, 0x4);
-INCLUDE_BSS(GyoraceFishTacMes, 0x4);
-INCLUDE_BSS(GyoraceFishTacMesDrawFlag, 0x4);
-INCLUDE_BSS(GyoraceFishHaveListSelect, 0x8);
-INCLUDE_BSS(GyoraceCursor, 0x4);
-INCLUDE_BSS(GyoraceFishTex, 0x4);
-INCLUDE_BSS(GyoraceNowMode, 0x4);
-INCLUDE_BSS(GyoraceNowPhase, 0x4);
-INCLUDE_BSS(GyoraceQuestionMsgDrawFlag, 0x4);
-INCLUDE_BSS(GyoraceHaveFishCursorDrawFlag, 0x4);
-INCLUDE_BSS(GyoraceHaveFishCursor, 0x4);
-INCLUDE_BSS(Gyoracemenu_long_hand_count, 0x4);
-INCLUDE_BSS(Gyoracemenu_CursorXY, 0x8);
-INCLUDE_BSS(GyoraceExeCfgBuffer, 0x4);
-INCLUDE_BSS(GyoraceExeCfgBufferSize, 0x4);
-INCLUDE_BSS(GyoraceHaveFishListMakeLine, 0x4);
-INCLUDE_BSS(GyoraceHaveFishListTopY, 0x4);
-INCLUDE_BSS(GyoraceHaveFishListScrlBarY, 0x4);
-INCLUDE_BSS(GyoraceHaveFishListScrlInit, 0x4);
-INCLUDE_BSS(MenuLoadFishIsLoad, 0x4);
-INCLUDE_BSS(MenuLoadFishSelect, 0x4);
-INCLUDE_BSS(MenuLoadFishTopLine, 0x4);
-INCLUDE_BSS(MenuLoadFishSelectData, 0x4);
-INCLUDE_BSS(MenuLoadBoardTex, 0x4);
-INCLUDE_BSS(MenuLoadFishBoardX, 0x4);
 
 // Uninitialised data (.bss)
 mgCMemory Aquarium_NameregistStack;
-INCLUDE_BSS(AquaBubble, 0x10);
-INCLUDE_BSS(AquaFishBubble, 0x20);
-INCLUDE_BSS(AquaBattleBubble_Pos, 0x10);
-INCLUDE_BSS(AquaFishEff, 0x20);
 CAquarium Aquarium;
 mgCMemory GyoraceFishSelStack;
-INCLUDE_BSS(fish_save_present, 0x60);
 mgCMemory GyoraceStack;
-INCLUDE_BSS(GyoraceTexBlock, 0x40);
-INCLUDE_BSS(GyoraceMenuOptionBuff, 0x40);
-INCLUDE_BSS(MenuDCMsg, 0x28);
