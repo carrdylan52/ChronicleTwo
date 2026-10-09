@@ -71,11 +71,23 @@ foreach(row IN LISTS unit_rows)
 endforeach()
 make_object_dirs("${OBJDIFF_OBJS}")
 
-# Explicit D_<ADDR8> source identities affect the global piece boundaries.
-# Refresh the split before any unit consumes cuts changed by another source.
+# Source edits affect other units only when their explicit address cuts change.
+# Ninja's restat avoids rebuilding the split when this file keeps its timestamp.
+set(SOURCE_CUTS ${BUILD_DIR}/source_cuts.txt)
+add_custom_command(
+    OUTPUT ${CMAKE_SOURCE_DIR}/${SOURCE_CUTS}
+    COMMAND ${PYTHON} ${SCRIPTS_DIR}/build/source_cuts.py
+            ${SOURCE_CUTS} ${OBJDIFF_SOURCES}
+    DEPENDS ${OBJDIFF_SOURCES}
+            ${CMAKE_SOURCE_DIR}/${SCRIPTS_DIR}/build/source_cuts.py
+            ${CMAKE_SOURCE_DIR}/${SCRIPTS_DIR}/build/disassemble.py
+            ${CMAKE_SOURCE_DIR}/${SCRIPTS_DIR}/build/layout.py
+    WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+    COMMENT "Checking explicit source data cuts"
+    VERBATIM)
 add_custom_command(
     OUTPUT ${CMAKE_SOURCE_DIR}/${SPLIT_STAMP}
-    APPEND DEPENDS ${OBJDIFF_SOURCES})
+    APPEND DEPENDS ${CMAKE_SOURCE_DIR}/${SOURCE_CUTS})
 
 set(OBJDIFF_ABS_OBJS "")
 foreach(obj IN LISTS OBJDIFF_OBJS)

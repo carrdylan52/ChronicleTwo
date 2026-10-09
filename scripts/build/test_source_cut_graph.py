@@ -24,6 +24,20 @@ output.write_bytes(pathlib.Path('out/split').read_bytes())
         self.write('CMakeLists.txt', cmake)
         self.run_command('cmake', '-S', '.', '-B', 'out', '-G', 'Ninja')
 
+    def test_ordinary_edit_rebuilds_only_its_base(self):
+        self.build()
+        split = self.root / 'out/split'
+        other = self.root / 'out/objdiff/target/second.s.o'
+        split_time, other_time = split.stat().st_mtime_ns, other.stat().st_mtime_ns
+        self.touch('src/first.cpp')
+        self.write('src/first.cpp', 'void changed_function() {}\n')
+        output = self.build()
+        self.assertIn('CC (objdiff base) src/first.cpp', output)
+        self.assertNotIn('Splitting fixture', output)
+        self.assertNotIn('AS (objdiff target)', output)
+        self.assertEqual(split.stat().st_mtime_ns, split_time)
+        self.assertEqual(other.stat().st_mtime_ns, other_time)
+
     def test_added_and_removed_cuts_rebuild_other_units_like_a_clean_build(self):
         self.build()
         other = self.root / 'out/objdiff/target/second.s.o'

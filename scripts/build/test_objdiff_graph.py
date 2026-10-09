@@ -1,12 +1,15 @@
 """Exercise comparison dependencies and byproducts through CMake and Ninja."""
 
 from pathlib import Path
+import inspect
 import shutil
 import subprocess
 import sys
 import tempfile
 import time
 import unittest
+
+import disassemble
 
 ROOT = Path(__file__).resolve().parents[2]
 
@@ -23,6 +26,10 @@ class ObjdiffGraphFixture(unittest.TestCase):
                      'scripts/build/lcf.py',
                      'rom/SCES_511.90', 'tools/mwccgap/elf.py'):
             self.write(name, '')
+        self.write('scripts/build/source_cuts.py', (ROOT / 'scripts/build/source_cuts.py').read_text())
+        self.write('scripts/build/disassemble.py',
+                   'import re\nINVENTED = re.compile(r"\\bD_([0-9A-F]{8})\\b")\n'
+                   + inspect.getsource(disassemble.source_addresses))
         for unit in ('first', 'second'):
             self.write(f'src/{unit}.cpp', '')
             self.write(f'asm/{unit}.s', '')
