@@ -2075,7 +2075,7 @@ int mapFUNC_POS(SPI_STACK *stack, int argc) {
             offset[2] = -12.0f;
         }
 
-        mgUnitMatrix((float (*)[4]) matrix);
+        mgUnitMatrix(matrix);
         sceVu0RotMatrixY(matrix, matrix, rot[1]);
         sceVu0ApplyMatrix(offset, matrix, offset);
         mgAddVector(pos, offset);
