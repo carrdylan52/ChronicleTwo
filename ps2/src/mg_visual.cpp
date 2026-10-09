@@ -679,7 +679,7 @@ u_int mgCVisualMDT::CreatePacket(mgCDrawManager *manager) {
 
         cursor += mgSetPkTexFlush_TagCnt((u_int *) cursor) * 16;
         u_int *end_tag = (u_int *) cursor;
-        cursor = (u_char *) (end_tag + 4);
+        cursor += 16;
         end_tag[0] = 0x60000000;
         end_tag[1] = 0;
         end_tag[2] = 0;
@@ -745,7 +745,7 @@ u_int mgCVisualFixMDT::CreatePacket(mgCDrawManager *manager) {
 
         cursor += mgSetPkTexFlush_TagCnt((u_int *) cursor) * 16;
         u_int *end_tag = (u_int *) cursor;
-        cursor = (u_char *) (end_tag + 4);
+        cursor += 16;
         end_tag[0] = 0x60000000;
         end_tag[1] = 0;
         end_tag[2] = 0;
