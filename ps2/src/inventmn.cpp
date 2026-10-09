@@ -294,16 +294,6 @@ extern char           at_2735__2[];
 extern char           at_2736[];
 extern char           at_2737[];
 
-/**
- *
- * Marks the three invention idea slots that match a recipe.
- *
- */
-struct FoundSlots {
-    int v[3]; /**< Match flag for each idea slot. */
-};
-
-extern FoundSlots at_2776;
 extern CursorPos  at_3202;
 
 /**
@@ -2865,53 +2855,22 @@ int CMenuInvent::ItemCmdAfter(int command, ITEMCMD_RET_PARA *para) {
     return 1;
 }
 
-extern CGamePad GamePad__2;
 
-/**
- *
- * Stores the path prefix used for an inventory asset.
- *
- */
-struct PathPrefix {
-    u_long128 chunk[4]; /**< Four quadwords containing the prefix. */
-};
-
-extern PathPrefix  at_2913;
-extern char        at_3113[];
-extern char        at_3114[];
-extern char        at_3115[];
-extern char        at_3116[];
-extern char        at_3117[];
-extern char        at_3118[];
-extern char        at_3119[];
-extern char        at_3120[];
-extern char        at_3121[];
-extern char        at_3122[];
-extern char        at_3123[];
-extern char        at_3124[];
-extern char        at_3125[];
-extern char        at_3126[];
-extern char        at_3127[];
-extern char        at_3128[];
-extern char        at_3129[];
-extern char        at_3130[];
-extern char        at_3131[];
-extern char        at_3132[];
-extern char        at_3133[];
-extern char        at_3134[];
-extern char        at_3135[];
-extern char        at_2820[];
 extern char       *Tb_2819[7];
 extern char       *gobitbl_2847[2];
 extern char       *getfilename_2928[2];
 extern char       *sndfileName_2951[2];
 extern char       *wavname_2960[3];
 extern short       sndtimetbl_2868[2];
-extern signed char D_003532DF[];
+/**
+ *
+ * Gives the byte offset of a masked Japanese character for each name length.
+ *
+ */
+static s8 jp_conv_lentbl_2835[12] = {2, 2, 2, 4, 4, 8, 6, 4, 6, 14, 10, 6};
 extern float       eff_light_2927[4];
 
 #pragma inline_depth(5)
-#ifdef NONMATCHING
 int CMenuInvent::IsCreateObject(int mode, int keys) {
     CActionChara      *action_chara = MenuActionChara[0];
     CDC2Mes           *message_window = MenuDCMsg[4];
@@ -2936,18 +2895,16 @@ int CMenuInvent::IsCreateObject(int mode, int keys) {
                             InventUserDataPtr->SetCreateItemFlag(this->card_cursor, this->create_item_id);
                         } else {
                             s32 recipe_index;
-                            s32 recipe_offset;
                             this->create_partial_match = 0;
                             InventUserDataPtr->GetPhotoInfo(0);
                             recipe_index = 0;
-                            recipe_offset = 0;
                             while (InventManagePt->num != 0) {
                                 INVENT_DATA_INFO  *recipe;
                                 CInventDataManage *table = InventManagePt;
                                 if (recipe_index < 0 || table->num <= recipe_index) {
                                     recipe = NULL;
                                 } else {
-                                    recipe = (INVENT_DATA_INFO *) ((u8 *) table->table + recipe_offset);
+                                    recipe = &table->table[recipe_index];
                                 }
                                 if (recipe == NULL) {
                                     break;
@@ -2956,7 +2913,7 @@ int CMenuInvent::IsCreateObject(int mode, int keys) {
                                     s32        matched = 0;
                                     s32        index;
                                     s32        need;
-                                    FoundSlots found = at_2776;
+                                    int found[3] = {0, 0, 0};
                                     for (index = 0; index < 3; index++) {
                                         need = recipe->neta_id[index];
                                         s32 slot;
@@ -2965,7 +2922,7 @@ int CMenuInvent::IsCreateObject(int mode, int keys) {
                                             s32 id = this->GetNowSelectNetaID(slot);
                                             if (id == need) {
                                                 this->create_photo_neta[index] = 0;
-                                                found.v[slot] = 1;
+                                                found[slot] = 1;
                                                 matched++;
                                                 break;
                                             }
@@ -2975,31 +2932,30 @@ int CMenuInvent::IsCreateObject(int mode, int keys) {
                                         s32 slot_index;
                                         this->create_partial_match = 1;
                                         for (slot_index = 0; slot_index < 3; slot_index++) {
-                                            if (found.v[slot_index] == 0) {
+                                            if (found[slot_index] == 0) {
                                                 this->create_missing_slot = slot_index;
                                             }
                                         }
                                         break;
                                     }
                                 }
-                                recipe_offset += sizeof(INVENT_DATA_INFO);
                                 recipe_index++;
                             }
                         }
                         this->create_wait_time = 0x7C;
-                        this->ExeScript(at_3113);
+                        this->ExeScript("\224\255\226\276\215l\202\246\212J\216n");
                         this->GradationSet(1);
                         this->step = kCreateWaitStart;
                         load_stack->stack_used = 0;
                         load_stack->lock = 0;
                         StartReadBG();
                         s32 sound_message_size;
-                        LoadFileBG(at_3114, load_stack->stGetTop(), &sound_message_size);
+                        LoadFileBG("snd2/sp/SP_003.snd", load_stack->stGetTop(), &sound_message_size);
                         this->create_load_state = kLoadSoundMsg;
                         break;
                     }
                 case kCreateKeyCancel:
-                    this->ExeScript(at_3115);
+                    this->ExeScript("\224\255\226\276\202\342\202\337");
                     this->mode = 0;
                     break;
             }
@@ -3017,7 +2973,7 @@ int CMenuInvent::IsCreateObject(int mode, int keys) {
             if (this->create_load_state >= 5 && motion == 3) {
                 this->step++;
                 action_chara->seq_advance = 1;
-                action_chara->SetMotion(at_3116, 4, 1);
+                action_chara->SetMotion("\214\213\211\312", 4, 1);
                 this->jingle_state = 1;
                 this->jingle_pending = 1;
                 this->jingle_time = 0;
@@ -3029,7 +2985,7 @@ int CMenuInvent::IsCreateObject(int mode, int keys) {
                 this->create_show_phase = 0;
                 this->create_scale_in = 0.0f;
                 if (this->create_step != 0) {
-                    this->ExeScript(at_3117);
+                    this->ExeScript("\224\255\226\276\220\254\214\367");
                     if (this->create_chara != NULL) {
                         INVENT_DATA_INFO *recipe;
                         mgCFrame         *frame = this->create_chara->CObjectFrame::frame;
@@ -3051,7 +3007,7 @@ int CMenuInvent::IsCreateObject(int mode, int keys) {
                     }
                 } else if (this->create_partial_match != 0) {
                     s32 index;
-                    this->ExeScript(at_3118);
+                    this->ExeScript("\224\255\226\276\220\311\202\265\202\242");
                     for (index = 0; index < 3; index++) {
                         if (this->create_photo_neta[index] > 0) {
                             USER_PICTURE_INFO info;
@@ -3069,7 +3025,7 @@ int CMenuInvent::IsCreateObject(int mode, int keys) {
                             if (length > 2) {
                                 s32 half_length = length >> 1;
                                 if (LanguageCode == 0) {
-                                    s8 cut = D_003532DF[half_length];
+                                    s8 cut = jp_conv_lentbl_2835[half_length - 1];
                                     this->create_photo_name[cut] = -0x7F;
                                     this->create_photo_name[cut + 1] = -0x66;
                                 } else if (LanguageCode > 0) {
@@ -3082,16 +3038,16 @@ int CMenuInvent::IsCreateObject(int mode, int keys) {
                                     }
                                 }
                             } else if (name != NULL) {
-                                sprintf((char *) this->create_photo_name, at_3119, name, gobitbl_2847[GetRandI(2)]);
+                                sprintf((char *) this->create_photo_name, "\202\340\202\265\202\251\202\265\202\275\202\347%s%s", name, gobitbl_2847[GetRandI(2)]);
                             } else {
-                                strcpy((char *) this->create_photo_name, at_2820);
+                                strcpy((char *) this->create_photo_name, "\202\244\201[\202\361");
                             }
                             break;
                         }
                     }
                     this->neta_circle_snap = 1;
                 } else {
-                    this->ExeScript(at_3120);
+                    this->ExeScript("\224\255\226\276\216\270\224s");
                 }
                 MenuSePlay(0, this->create_sound_buffer, &MenuSoundBuffer);
             }
@@ -3112,8 +3068,7 @@ int CMenuInvent::IsCreateObject(int mode, int keys) {
                             break;
                         case 1:
                             scale[0] = this->create_scale + this->create_wobble_amp * sinf(0.10471976f * this->create_wobble_phase);
-                            float step = -0.02f;
-                            CalcMenuAdd(&this->create_wobble_amp, float(-0.02), 0.0f);
+                            CalcMenuAdd(&this->create_wobble_amp, -0.02f, 0.0f);
                             CalcMenuAdd(&this->create_spin_angle, 0.15707964f, 15.707964f);
                             CalcMenuAdd(&this->create_wobble_phase, 1.0f, 600.0f);
                             if (menu_debug_flag != 0) {
@@ -3148,7 +3103,7 @@ int CMenuInvent::IsCreateObject(int mode, int keys) {
                         s16 jingle_length = sndtimetbl_2868[this->create_step];
                         if (this->jingle_time > jingle_length / 2) {
                             this->jingle_pending = 0;
-                            this->ExeScript(at_3121);
+                            this->ExeScript("MSG_WARNING");
                             if (this->create_step != 0) {
                                 char *message = GetItemMessage(this->create_item_id);
                                 if (message != NULL) {
@@ -3206,7 +3161,7 @@ int CMenuInvent::IsCreateObject(int mode, int keys) {
                 } else {
                     this->InitNetaCircle(1);
                 }
-                this->ExeScript(at_3122);
+                this->ExeScript("\224\255\226\276\214\343\217\210\227\235");
                 this->create_step = 0;
                 CDC2Mes *color_window = MenuDCMsg[7];
                 if (this->create_missing_slot >= 0 && this->create_missing_slot < 0x14) {
@@ -3221,7 +3176,7 @@ int CMenuInvent::IsCreateObject(int mode, int keys) {
         }
         case kCreateAfter:
             if (keys != 0) {
-                this->ExeScript(at_3115);
+                this->ExeScript("\224\255\226\276\202\342\202\337");
                 this->step = 0;
                 this->mode = 0;
             }
@@ -3247,32 +3202,32 @@ int CMenuInvent::IsCreateObject(int mode, int keys) {
             }
             break;
         case kLoadModel: {
-            PathPrefix path;
             s32        model_blocks;
             s32        motion_size;
-            action_chara->SetMotion(at_3123, 0, 1);
+            action_chara->SetMotion("\224\255\226\276\215l\202\246\222\206", 0, 1);
             load_stack->stack_used = 0;
             load_stack->lock = 0;
             load_stack->Align64();
-            path = at_2913;
+            char path[64] = "menu/chara4/";
             model_blocks = kItemModelBlocks;
             if (this->create_step != 0) {
-                strcat((char *) &path, at_3124);
+                strcat(path, "c01_success.chr");
             } else {
                 if (this->create_partial_match != 0) {
-                    strcat((char *) &path, at_3125);
+                    strcat(path, "c01_regret.chr");
                 } else {
-                    strcat((char *) &path, at_3126);
+                    strcat(path, "c01_failure.chr");
                 }
                 model_blocks = kPhotoModelBlocks;
             }
             this->chara_stack.stSetBuffer(load_stack->stGetTop(), model_blocks);
-            load_stack->Alloc((model_blocks * 16 & 15) != 0 ? ((unsigned int) (model_blocks * 16) >> 4) + 1 : (unsigned int) (model_blocks * 16) >> 4);
+            unsigned int model_bytes = model_blocks * sizeof(u_long128);
+            load_stack->Alloc((model_bytes & 15) != 0 ? (model_bytes >> 4) + 1 : model_bytes >> 4);
             this->create_model_file = (u8 *) load_stack->stGetTop();
             StartReadBG();
-            LoadFileBG((char *) &path, (u_long128 *) this->create_model_file, &motion_size);
+            LoadFileBG(path, (u_long128 *) this->create_model_file, &motion_size);
             this->create_motion_file = this->create_model_file + motion_size / 16 * 16;
-            LoadFileBG(at_3127, (u_long128 *) this->create_motion_file, &motion_size);
+            LoadFileBG("menu/inventsub.pac", (u_long128 *) this->create_motion_file, &motion_size);
             this->create_load_state = kLoadModelDone;
             break;
         }
@@ -3287,42 +3242,40 @@ int CMenuInvent::IsCreateObject(int mode, int keys) {
                 GetReadBGFile(0);
                 action_chara->GetPosition(pos);
                 action_chara->GetRotation(rot);
-                strcpy(texture_manager->name_suffix, at_3128);
-                action_chara->LoadPack((unsigned int *) this->create_model_file, at_2249, &this->chara_stack,
+                strcpy(texture_manager->name_suffix, "_menu");
+                action_chara->LoadPack((unsigned int *) this->create_model_file, "info.cfg", &this->chara_stack,
                                        &this->chara_stack, &this->chara_stack, this->tex_block[1], 0);
                 texture_manager->name_suffix[0] = 0;
                 action_chara->SetPosition(pos);
                 action_chara->SetRotation(rot);
                 if (this->create_step != 0) {
-                    texture_manager->TexAnimeOn(this->tex_block[1], at_3129);
-                    texture_manager->TexAnimeOn(this->tex_block[1], at_3130);
+                    texture_manager->TexAnimeOn(this->tex_block[1], "\226\332\203p\203`");
+                    texture_manager->TexAnimeOn(this->tex_block[1], "\202\355\202\347\202\242\214\373\202\240\202\257");
                 } else {
-                    texture_manager->TexAnimeOn(this->tex_block[1], at_3131);
-                    texture_manager->TexAnimeOn(this->tex_block[1], at_3132);
+                    texture_manager->TexAnimeOn(this->tex_block[1], "\202\255\202\342\202\265\226\332\203p\203`");
+                    texture_manager->TexAnimeOn(this->tex_block[1], "\202\255\202\342\202\265\212\347");
                 }
                 pack_bg = GetReadBGFile(1);
                 pack_file = NULL;
                 if (pack_bg != NULL) {
                     pack_file = (MDS_HEADER *) GetPackFile((u32 *) pack_bg->buffer, getfilename_2928[this->create_step], NULL);
                 }
-                this->create_effect = NewInventActionChara(load_stack);
+                this->create_effect = new (load_stack->Alloc(StackBlocks(sizeof(CActionChara)))) CActionChara;
                 this->create_effect->Initialize(0);
                 frame = mgLoadMDSFile(pack_file, load_stack, NULL, NULL);
                 this->create_effect->CObjectFrame::frame = frame;
-                float effect_y = -20.0f;
                 if (frame != NULL) {
-                    mgCFrameAttr *attr = (mgCFrameAttr *) frame->attr;
+                    mgCFrameAttr *attr = frame->attr;
                     attr->no_light = 1;
                     attr->color[0] = eff_light_2927[0];
                     attr->color[1] = eff_light_2927[1];
                     attr->color[2] = eff_light_2927[2];
                     attr->color[3] = eff_light_2927[3];
-                    float y = -20.0f;
-                    this->create_effect->SetPosition(18.0f, y, 20.0f);
+                    this->create_effect->SetPosition(18.0f, -20.0f, 20.0f);
                     this->create_effect->SetRotation(0.0f, 0.15707964f, 0.0f);
                     frame->SetAttrParam(*attr, 1, kSceneAttrFlags);
                 }
-                form = MenuPosData->GetFormInfo(at_3133);
+                form = MenuPosData->GetFormInfo("thinkin_ef1");
                 if (form != NULL) {
                     form->SetActionCharaPtr(this->create_effect, -1, -1);
                     form->counter = 0;
@@ -3336,7 +3289,7 @@ int CMenuInvent::IsCreateObject(int mode, int keys) {
                     char *item_path;
                     s32   item_size;
                     this->create_timer = 200;
-                    this->create_chara = NewInventActionChara(load_stack);
+                    this->create_chara = new (load_stack->Alloc(StackBlocks(sizeof(CActionChara)))) CActionChara;
                     this->create_chara->Initialize(0);
                     this->item_model_memory.stSetBuffer(load_stack->stGetTop(), 0x35C0);
                     this->item_model_memory.stack_used = 0;
@@ -3348,7 +3301,7 @@ int CMenuInvent::IsCreateObject(int mode, int keys) {
                     if (item_path != NULL) {
                         if (*item_path != 0) {
                             StartReadBG();
-                            LoadFileBG((char *) item_path, (u_long128 *) item_file, &item_size);
+                            LoadFileBG(item_path, (u_long128 *) item_file, &item_size);
                         }
                     }
                     this->create_load_state = kLoadItemModel;
@@ -3360,9 +3313,9 @@ int CMenuInvent::IsCreateObject(int mode, int keys) {
                 BG_READ_INFO *item_bg = GetReadBGFile(0);
                 if (item_bg != NULL && this->create_chara != NULL) {
                     texture_manager->DeleteBlock(this->tex_block[2]);
-                    strcpy(texture_manager->name_suffix, at_3134);
+                    strcpy(texture_manager->name_suffix, "_i");
                     this->create_chara->Initialize(0);
-                    this->create_chara->LoadPack((unsigned int *) item_bg->buffer, at_2249, &this->item_model_memory,
+                    this->create_chara->LoadPack((unsigned int *) item_bg->buffer, "info.cfg", &this->item_model_memory,
                                                  &this->item_model_memory, &this->item_model_memory, this->tex_block[2], 0);
                     texture_manager->name_suffix[0] = 0;
                 }
@@ -3393,7 +3346,7 @@ int CMenuInvent::IsCreateObject(int mode, int keys) {
                 if (wave == 1) {
                     wave = GetRandI(2) + 1;
                 }
-                sprintf(wave_name, at_3135, wavname_2960[wave]);
+                sprintf(wave_name, "8500%s.wav", wavname_2960[wave]);
                 CSnd.StreamOpenFast(1, wave_name);
             }
             if (this->create_timer <= 0) {
@@ -3420,9 +3373,6 @@ int CMenuInvent::IsCreateObject(int mode, int keys) {
     return 1;
 }
 
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/inventmn", IsCreateObject__11CMenuInventFii);
-#endif
 #pragma inline_depth reset
 
 void CMenuInvent::CalcMakeBrd(int message_index) {
@@ -7232,7 +7182,6 @@ INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_2639__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", Tb_2819__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", D_003532DF__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", jp_conv_lentbl_2835__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_2913__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", eff_light_2927__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", wavname_2960__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_3201__DATA);
@@ -7325,7 +7274,6 @@ INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_2734__2__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_2735__2__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_2736__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_2737__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_2820__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_2821__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_2848__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_2849__DATA);
@@ -7336,29 +7284,6 @@ INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_2953__2__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_2961__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_2962__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_2963__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_3113__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_3114__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_3115__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_3116__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_3117__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_3118__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_3119__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_3120__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_3121__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_3122__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_3123__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_3124__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_3125__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_3126__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_3127__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_3128__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_3129__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_3130__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_3131__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_3132__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_3133__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_3134__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_3135__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_3138__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_3257__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_3258__DATA);
