@@ -2378,7 +2378,7 @@ static void CharaControl(CScene *scene, CPadControl *pad) {
  */
 int InitSelectCastingPoint(CScene *scene) {
     CCharacter2     *chara = scene->GetCharacter(scene->player_chara);
-    mgCCamera       *camera;
+    CCameraControl  *camera;
     float            position[4];
     CameraCtrlParam *param;
 
@@ -2386,15 +2386,15 @@ int InitSelectCastingPoint(CScene *scene) {
         return 0;
     }
 
-    camera = scene->GetCamera(scene->active_camera);
+    camera = (CCameraControl *) scene->GetCamera(scene->active_camera);
 
     if (camera == NULL || camera->Iam() != kCameraSettled) {
         return 0;
     }
 
     chara->GetRotation(position);
-    ((CCameraControl *) camera)->CopyParam(CameraInfo);
-    param = ((CCameraControl *) camera)->GetActiveParam();
+    camera->CopyParam(CameraInfo);
+    param = camera->GetActiveParam();
     param->max_dist = 120.0f;
     param->min_dist = 120.0f;
     param->near_height = 12.0f;
@@ -3136,7 +3136,7 @@ void UkiWaitLoop(CScene *scene, CPadControl *pad) {
  */
 int InitBattle(CScene *scene) {
     CCharacter2     *chara;
-    mgCCamera       *camera;
+    CCameraControl  *camera;
     CameraCtrlParam *param;
     float            chara_rot[4];
     float            chara_pos[4];
@@ -3146,7 +3146,7 @@ int InitBattle(CScene *scene) {
         return 0;
     }
 
-    camera = scene->GetCamera(scene->active_camera);
+    camera = (CCameraControl *) scene->GetCamera(scene->active_camera);
 
     if (camera == NULL || camera->Iam() != kFishCameraState) {
         return 0;
@@ -3154,12 +3154,12 @@ int InitBattle(CScene *scene) {
 
     chara->GetPosition(chara_pos);
     chara->GetRotation(chara_rot);
-    param = ((CCameraControl *) camera)->GetActiveParam();
+    param = camera->GetActiveParam();
     param->max_dist = 80.0f;
     param->min_dist = 80.0f;
     param->near_height = 12.0f;
     param->far_height = 12.0f;
-    ((CCameraControl *) camera)->RotBack(mgAngleLimit(3.1415927f + chara_rot[1] - 0.2f));
+    camera->RotBack(mgAngleLimit(3.1415927f + chara_rot[1] - 0.2f));
     camera->Step(-1);
     InitFishBattle();
     LineTension = 0;
@@ -3468,7 +3468,7 @@ int InitFalse(CScene *scene) {
  */
 void FalseLoop(CScene *scene, CPadControl *pad) {
     CCharacter2     *chara;
-    mgCCamera       *camera;
+    CCameraControl  *camera;
     CameraCtrlParam *param;
     float            chara_rot[4];
     float            chara_pos[4];
@@ -3485,7 +3485,7 @@ void FalseLoop(CScene *scene, CPadControl *pad) {
         return;
     }
 
-    camera = scene->GetCamera(scene->active_camera);
+    camera = (CCameraControl *) scene->GetCamera(scene->active_camera);
 
     if (camera == NULL) {
         return;
@@ -3501,18 +3501,18 @@ void FalseLoop(CScene *scene, CPadControl *pad) {
     chara->GetPosition(chara_pos);
     chara->GetPosition(ref_pos);
     chara->GetRotation(chara_rot);
-    param = ((CCameraControl *) camera)->GetActiveParam();
+    param = camera->GetActiveParam();
     param->max_dist = 80.0f;
     param->min_dist = 80.0f;
     param->near_height = -5.0f;
     param->far_height = -5.0f;
     param->min_height = -5.0f;
     ref_pos[1] += 15.0f;
-    ((CCameraControl *) camera)->GetPos(cam_pos);
+    camera->GetPos(cam_pos);
     cam_pos[1] = 5.0f + ref_pos[1];
-    ((CCameraControl *) camera)->SetRef(ref_pos);
-    ((CCameraControl *) camera)->SetPos(cam_pos);
-    ((CCameraControl *) camera)->SetRotate(mgAngleLimit(chara_rot[1] - 0.2f));
+    camera->SetRef(ref_pos);
+    camera->SetPos(cam_pos);
+    camera->SetRotate(mgAngleLimit(chara_rot[1] - 0.2f));
     camera->Step(-1);
     FalseMotionCount -= 1;
 
@@ -3527,7 +3527,7 @@ void FalseLoop(CScene *scene, CPadControl *pad) {
         ResetLineVelo();
         EndSelectCastingPoint(scene);
         SetNextMode(0);
-        ((CCameraControl *) camera)->RotBack(mgAngleLimit(3.1415927f + chara_rot[1]));
+        camera->RotBack(mgAngleLimit(3.1415927f + chara_rot[1]));
         scene->PlayBGM(0, -1, 1.0f);
     }
 }
@@ -3651,7 +3651,7 @@ INCLUDE_ASM("ps2/asm/pal/nonmatchings/fishing", InitSuccess__FP6CScene);
 void SuccessLoop(CScene *scene, CPadControl *pad) {
     ClsMes          *message;
     CCharacter2     *chara;
-    mgCCamera       *camera;
+    CCameraControl  *camera;
     CameraCtrlParam *param;
     float            chara_rot[4];
     float            chara_pos[4];
@@ -3668,7 +3668,7 @@ void SuccessLoop(CScene *scene, CPadControl *pad) {
         return;
     }
 
-    camera = scene->GetCamera(scene->active_camera);
+    camera = (CCameraControl *) scene->GetCamera(scene->active_camera);
 
     if (camera == NULL) {
         return;
@@ -3685,18 +3685,18 @@ void SuccessLoop(CScene *scene, CPadControl *pad) {
     chara->GetPosition(chara_pos);
     chara->GetPosition(ref_pos);
     chara->GetRotation(chara_rot);
-    param = ((CCameraControl *) camera)->GetActiveParam();
+    param = camera->GetActiveParam();
     param->max_dist = 80.0f;
     param->min_dist = 80.0f;
     param->near_height = -5.0f;
     param->far_height = -5.0f;
     param->min_height = -5.0f;
     ref_pos[1] += 15.0f;
-    ((CCameraControl *) camera)->GetPos(cam_pos);
+    camera->GetPos(cam_pos);
     cam_pos[1] = 5.0f + ref_pos[1];
-    ((CCameraControl *) camera)->SetRef(ref_pos);
-    ((CCameraControl *) camera)->SetPos(cam_pos);
-    ((CCameraControl *) camera)->SetRotate(mgAngleLimit(chara_rot[1] - 0.2f));
+    camera->SetRef(ref_pos);
+    camera->SetPos(cam_pos);
+    camera->SetRotate(mgAngleLimit(chara_rot[1] - 0.2f));
     camera->Step(-1);
     FalseMotionCount -= 1;
 
@@ -3823,7 +3823,7 @@ void SuccessLoop(CScene *scene, CPadControl *pad) {
         SetNextMode(0);
         FishChara = NULL;
         mgTexManager.DeleteBlock(FishTexb);
-        ((CCameraControl *) camera)->RotBack(mgAngleLimit(3.1415927f + chara_rot[1]));
+        camera->RotBack(mgAngleLimit(3.1415927f + chara_rot[1]));
         SetShowHari(1);
         scene->PlayBGM(0, -1, 1.0f);
 
