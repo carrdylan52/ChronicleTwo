@@ -5155,7 +5155,7 @@ int NowUseNeedItemCheck(CUserDataManager *manager) {
         }
     } else if (active_chara == 2) {
 
-        if (((CGameDataUsed *) &((ROBO_DATA *) &manager->robo_data)->parts[0])->GetWHp(NULL) < 0.2f) {
+        if (((ROBO_DATA *) &manager->robo_data)->parts[0].GetWHp(NULL) < 0.2f) {
             needs |= 0x8000;
         }
     } else if (active_chara == 3) {
