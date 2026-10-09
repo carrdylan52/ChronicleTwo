@@ -185,7 +185,8 @@ Stride from `InitStarInfo`/`CalcTex`/`MenuCharaChangeStarDraw`; 0x10/0x14 unreso
 
 ### mgRect<short>
 Declared by the `mgRect<T>` template in `mg_tanime.hpp`; `Set__9mgRect_s_Fssss` is its inline
-`Set` instantiated here. Size 0x8 is asserted in the header.
+`Set` instantiated here. Its four halfword fields use 16-byte class alignment,
+so `sizeof(mgRect<short>)` is `0x10`, including eight bytes of trailing padding.
 
 ## Enums
 - `CHR_CNG_PHASE` (change_phase 0x120): 0..3 from `CheckChrChange`.
@@ -355,3 +356,25 @@ complete-unit checker accept `0x11CDC` allocated bytes and 3,734 resolved
 relocations. The native loader body is `0x1E4` bytes inside its `0x1F0` retail
 extent. See [remaining guards on the merged base](remaining-sf-r2.md) for
 per-target measurements, useful negative experiments, and final receipts.
+
+## Review cleanup and scene-update load flag
+
+CMenuCostumeSel::Draw uses snake_case local names and USER_CHARA_MONICA for
+its character comparison. MenuItemCharaDataLoadEndCheckAfter's case label
+uses the surrounding switch indentation. The MenuDCMsg and CostumeOptionEnv
+source redeclarations are unnecessary: menuaqua.hpp and title.hpp own them.
+MenuCharaChangePosDataCfgBuffer already has one static definition at this
+checkpoint (introduced by fb857059); the duplicated extern finding is resolved.
+
+MENU_LOAD_INFO byte +7, currently unk_6[1], selects main-scene model updates:
+CheckLoadBGMonster uses the main scene's stack and character when it is set,
+the character/ridepod loaders collect and reload the main scene's characters,
+and MenuItemCharaDataLoadEndCheckAfter calls SetupUnitMan for MenuMainScene.
+The appropriate field name is update_scene. Renaming it also requires changes
+in menusys.cpp and inventmn.cpp, excluded from this lane, so the complete
+proposed field/access diff is in
+.private/proposals/menuchr-menu-load-info-scene-flag.patch. Byte +6 remains
+unidentified. No compatibility alias or helper is introduced.
+
+Receipts: .private/fixes-r0/menuchr-final-{build,objects}.log:
+SCES_511.90: OK and 149/149 objects.

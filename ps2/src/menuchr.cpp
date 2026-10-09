@@ -38,6 +38,7 @@
 #include "snd_mngr.hpp"
 #include "sound.hpp"
 #include "sysmes.hpp"
+#include "title.hpp"
 #include "userdata.hpp"
 
 /**
@@ -720,7 +721,6 @@ extern char               at_5839[];
  */
 static int tbl_5848[MENU_CHARA_LOAD_MAX] = {1, 1, 1, 1, 1, 1, 1};
 
-extern CDC2Mes           *MenuDCMsg[9];
 extern char               at_1361[];
 /**
  *
@@ -6154,8 +6154,8 @@ void MenuItemCharaDataLoadEndCheckAfter(MENU_BGREAD_INFO2 **info, int chara_no) 
         SetupUnitMan(MenuMainScene, userData, chara_no, robo);
     }
     switch (MenuLoadInfo.mode) {
-    case 2:
-        return;
+        case 2:
+            return;
     }
     CScene       scene;
     CCharacter2 *chara;
@@ -6967,95 +6967,95 @@ void CMenuCostumeSel::Draw() {
     camera.GetCameraMatrix(view);
     camera.GetPos(eye);
     mgSetViewMatrix(view, eye);
-    mgCTextureManager *texManager = &mgTexManager;
-    texManager->ReloadTexture(tile_tex->block, (sceVif1Packet *) NULL);
+    mgCTextureManager *tex_manager = &mgTexManager;
+    tex_manager->ReloadTexture(tile_tex->block, (sceVif1Packet *) NULL);
     mgCDrawPrim *prim = GetMenuPrim();
     DrawMenuTilePattern(prim, tile_tex, tile_scroll, tile_scroll, mgRect<int>(0x100, 0, 0x100, 0x100), 0,
                         tilergba_5203);
     PrimQuad(prim, tile_tex, 24.0f, 24.0f, mgRect<int>(0, 0xEA, 0xC8, 0x16), 0x80, 0x80, 0x80, 0x80);
     if (MenuCosutumeLoadPhase == 4) {
-        texManager->ReloadTexture(tex_block[3], (sceVif1Packet *) NULL);
+        tex_manager->ReloadTexture(tex_block[3], (sceVif1Packet *) NULL);
         MenuActionChara[0]->DrawDirect();
     }
-    texManager->ReloadTexture(tile_tex->block, (sceVif1Packet *) NULL);
-    mgRect<int> lineRect(0, 0, 0xB0, 0x20);
-    mgRect<int> labelRect(0, 0xB6, 0x38, 0x1A);
-    mgRect<int> charaRect(0, 0xD0, 0x78, 0x1A);
-    mgRect<int> leftRect(0, 0x20, 0x10, 0x16);
-    mgRect<int> rightRect(0x10, 0x20, 0x10, 0x16);
+    tex_manager->ReloadTexture(tile_tex->block, (sceVif1Packet *) NULL);
+    mgRect<int> line_rect(0, 0, 0xB0, 0x20);
+    mgRect<int> label_rect(0, 0xB6, 0x38, 0x1A);
+    mgRect<int> chara_rect(0, 0xD0, 0x78, 0x1A);
+    mgRect<int> left_rect(0, 0x20, 0x10, 0x16);
+    mgRect<int> right_rect(0x10, 0x20, 0x10, 0x16);
     int         i;
-    int         cursorY = select * 0x42 + 0x6E;
+    int         cursor_y_pos = select * 0x42 + 0x6E;
     int         y = 0x50;
     SetSpriteEnv(prim, 0);
     prim->Begin(MG_PRIM_SPRITE);
     prim->Texture(tile_tex);
     for (i = 0; i < COSTUME_LIST_NUM; i++) {
-        int lineY = y + 0x1E;
+        int line_y = y + 0x1E;
         prim->Color(0, 0, 0, 0x30);
-        PrimQuad(prim, 50.0f, (float) (y + 4), labelRect);
-        PrimQuad(prim, 74.0f, (float) (lineY + 4), lineRect);
+        PrimQuad(prim, 50.0f, (float) (y + 4), label_rect);
+        PrimQuad(prim, 74.0f, (float) (line_y + 4), line_rect);
         float wave = 6.0f * sinf(line_wave[i]);
         wave = wave < 0.0f ? -wave : wave;
-        float leftX;
-        float rightX;
-        float arrowY;
-        rightX = wave + (float) (lineRect.right + 0x49);
-        leftX = 55.0f - wave;
-        arrowY = (float) (lineY + 3);
-        PrimQuad(prim, 4.0f + leftX, 4.0f + arrowY, leftRect);
-        PrimQuad(prim, 4.0f + rightX, 4.0f + arrowY, rightRect);
+        float left_x;
+        float right_x;
+        float arrow_y;
+        right_x = wave + (float) (line_rect.right + 0x49);
+        left_x = 55.0f - wave;
+        arrow_y = (float) (line_y + 3);
+        PrimQuad(prim, 4.0f + left_x, 4.0f + arrow_y, left_rect);
+        PrimQuad(prim, 4.0f + right_x, 4.0f + arrow_y, right_rect);
         if (i == select) {
             prim->Color(0xA4, 0xA4, 0xA4, 0x80);
         } else {
             prim->Color(0x80, 0x80, 0x80, 0x80);
         }
-        PrimQuad(prim, 46.0f, (float) y, labelRect);
-        PrimQuad(prim, 70.0f, (float) lineY, lineRect);
-        PrimQuad(prim, leftX, arrowY, leftRect);
-        PrimQuad(prim, rightX, arrowY, rightRect);
-        labelRect.left += labelRect.right;
+        PrimQuad(prim, 46.0f, (float) y, label_rect);
+        PrimQuad(prim, 70.0f, (float) line_y, line_rect);
+        PrimQuad(prim, left_x, arrow_y, left_rect);
+        PrimQuad(prim, right_x, arrow_y, right_rect);
+        label_rect.left += label_rect.right;
         y += 0x42;
     }
-    int charaY = y + 0xA;
-    int exitY = charaY + 0x28;
+    int chara_y = y + 0xA;
+    int exit_y = chara_y + 0x28;
     if (mode == 0 && (step == 0 || step == 3)) {
         prim->Color(0, 0, 0, 0x30);
-        PrimQuad(prim, 116.0f, (float) (charaY + 4), charaRect);
+        PrimQuad(prim, 116.0f, (float) (chara_y + 4), chara_rect);
         if (select == 3) {
             prim->Color(0xA4, 0xA4, 0xA4, 0x80);
         } else {
             prim->Color(0x80, 0x80, 0x80, 0x80);
         }
-        PrimQuad(prim, 112.0f, (float) charaY, charaRect);
-        if (chara == 1) {
-            mgRect<int> exitRect(0, 0x9C, 0xAA, 0x1A);
+        PrimQuad(prim, 112.0f, (float) chara_y, chara_rect);
+        if (chara == USER_CHARA_MONICA) {
+            mgRect<int> exit_rect(0, 0x9C, 0xAA, 0x1A);
             prim->Color(0, 0, 0, 0x30);
-            PrimQuad(prim, 78.0f, (float) (exitY + 4), exitRect);
+            PrimQuad(prim, 78.0f, (float) (exit_y + 4), exit_rect);
             if (select == 4) {
                 prim->Color(0xA4, 0xA4, 0xA4, 0x80);
             } else {
                 prim->Color(0x80, 0x80, 0x80, 0x80);
             }
-            PrimQuad(prim, 74.0f, (float) exitY, exitRect);
+            PrimQuad(prim, 74.0f, (float) exit_y, exit_rect);
         }
     }
     prim->End();
-    float cursorX = 0.0f;
+    float cursor_x_pos = 0.0f;
     if (select == 3) {
-        cursorX = 70.0f;
-        cursorY = charaY;
+        cursor_x_pos = 70.0f;
+        cursor_y_pos = chara_y;
     }
     if (select == 4) {
-        cursorX = 32.0f;
-        cursorY = exitY;
+        cursor_x_pos = 32.0f;
+        cursor_y_pos = exit_y;
     }
-    CalcMenu1(cursorX, &cursor_x, 4.0f, 0.0f, 0);
-    CalcMenu1((float) cursorY, &cursor_y, 4.0f, 0.0f, 0);
+    CalcMenu1(cursor_x_pos, &cursor_x, 4.0f, 0.0f, 0);
+    CalcMenu1((float) cursor_y_pos, &cursor_y, 4.0f, 0.0f, 0);
     if (cursor_tex != NULL && cursor_show) {
-        float cursorPos[2];
-        cursorPos[0] = cursor_x + 6.0f * cosf(cursor_wave);
-        cursorPos[1] = cursor_y + 4.0f * sinf(cursor_wave_y);
-        MenuCursorDraw(cursor_tex, cursorPos, 0.0f, 0, 0x80, 1.0f);
+        float cursor_pos[2];
+        cursor_pos[0] = cursor_x + 6.0f * cosf(cursor_wave);
+        cursor_pos[1] = cursor_y + 4.0f * sinf(cursor_wave_y);
+        MenuCursorDraw(cursor_tex, cursor_pos, 0.0f, 0, 0x80, 1.0f);
         cursor_wave += 0.05235988f;
         cursor_wave_y += 0.10471976f;
         if (!(cursor_wave < 3.1415927f)) {
@@ -7065,18 +7065,18 @@ void CMenuCostumeSel::Draw() {
             cursor_wave_y -= 6.2831855f;
         }
     }
-    texManager->ReloadTexture(MenuArg.mes_tex_block, (sceVif1Packet *) NULL);
-    int nameY = 0x72;
+    tex_manager->ReloadTexture(MenuArg.mes_tex_block, (sceVif1Packet *) NULL);
+    int name_y = 0x72;
     if (chara_data != NULL) {
         CMenuFont font;
         for (i = 0; i < COSTUME_LIST_NUM; i++) {
             char *name = chara_data->equip[convtbl_5238[i]].GetName(1);
             if (name != NULL) {
                 font.SetStr(name);
-                font.SetPos(0x4E, nameY);
+                font.SetPos(0x4E, name_y);
                 font.DrawDirect(font.str, font.pos_x, font.pos_y);
             }
-            nameY += 0x42;
+            name_y += 0x42;
         }
     }
     if (loading) {
@@ -7094,7 +7094,6 @@ void CMenuCostumeSel::Draw() {
         help.DrawDirect(infomsg_5256[LanguageCode], 0x28, mgScreenHeight - 0x28);
     }
 }
-extern u_long CostumeOptionEnv;
 #ifdef NONMATCHING
 void MenuCostumeInit(mgCMemory *stack, int *tex_block, int mode) {
     MenuChangeMemory.stSetBuffer(stack->stGetTop(), stack->stGetRest());
