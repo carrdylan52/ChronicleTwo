@@ -101,21 +101,26 @@ Seven cleanup steps and the medal table each pass PAL verification and
 149/149 canonical object checks. Receipts use `dng-native-<step>` and
 `dng-medal-coordinates` prefixes.
 
-## Retained markers
+## Step markers
 
-The following 13 initialized markers and four BSS markers remain after the
-October 9 round below. Every one is referenced only by the guarded
-`CMenuTreeMap::Step` assembly; the small-data ones are reached through
-numeric `$gp` offsets rather than symbols (`-0x7EA0`, `-0x7E98`, `-0x7134`,
-`-0x7130`, `-0x7128`).
+The 13 initialized and four BSS markers left after the October 9 dngmenu-r0
+round were all referenced only by `CMenuTreeMap::Step`. While Step was
+assembly, the small-data ones were reached through numeric `$gp` offsets
+(`-0x7EA0`, `-0x7E98`, `-0x7134`, `-0x7130`, `-0x7128`). With Step native,
+each comes from its natural source form and every marker is gone
+(**13 / 4 -> 0 / 0**); see [stepclean-20261009.md](stepclean-20261009.md).
 
-| Marker | Reason |
-|---|---|
-| `bitTable_2900__DATA` | Retail has nine words; frozen Step declares twelve. |
-| `at_3141__DATA` | Step-only compiler initializer; its body cannot generate native data in the matching build. |
-| `at_3342__DATA`, `at_3343__DATA`, `at_3344__DATA`, `at_3345__DATA`, `at_3346__DATA`, `at_3347__DATA`, `at_3348__DATA`, `at_3349__DATA`, `at_3350__DATA` | Script and time-text literals used only by frozen Step. |
-| `at_3043__DATA`, `at_3164__DATA` | Step-only compiler initializer data; natural use-site replacement requires editing that draft. |
-| `at_3040__2`, `at_3145`, `at_3199`, `at_3142` | Step-only zero initializer templates; native use-site emission is unavailable while the draft remains guarded. |
+| Marker | Retail placement | Native form |
+|---|---|---|
+| `bitTable_2900__DATA` | `bitTable$2900`, `.data` 0x352780, 36 bytes | `static int bitTable[9]` in Step's debug block. |
+| `at_3141__DATA` | `.data` 0x3527B0, 32 bytes | Template of the `messages[8]` initializer. |
+| `at_3342__DATA` | `.rodata` 0x36DC00 | `ExeScript("MSG_END")`. |
+| `at_3343__DATA`, `at_3344__DATA` | `.rodata` 0x36DC08, 0x36DC18 | Shift-JIS and European `99:99` overflow strings. |
+| `at_3345__DATA` to `at_3348__DATA` | `.rodata` 0x36DC20 to 0x36DC40 | The four European `sprintf` time formats. |
+| `at_3349__DATA`, `at_3350__DATA` | `.rodata` 0x36DC48, 0x36DC50 | Full-width zero and colon. |
+| `at_3043__DATA`, `at_3164__DATA` | `.sdata` 0x37C850, 0x37C858 | `put_pos` `{0x3C, 0x118}` and `prize_no` `{41}` initializers. |
+| `at_3040__2`, `at_3145`, `at_3199` | `.sbss` 0x37D5BC, 0x37D5C0, 0x37D5C8 | Zero templates of the `name_id`, `challenge_values` and `time_ptr` initializers. |
+| `at_3142` | `.bss` 0x1EF7950, 16 bytes | Zero template of `practice_items[4]`. |
 
 The first round ended at **99 / 42 -> 20 / 4** markers with matched data
 **4 / 3159 -> 36 / 3159 bytes**. The metric requires entire aggregate
