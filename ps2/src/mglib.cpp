@@ -1193,6 +1193,7 @@ void mgSetPkFrameBuffer(mgCTexture *texture) {
     mgSetPkFrameBuffer(texture->tex0.TBP0 / 32, texture->tex0.TBW << 6, texture->height,
                        texture->tex0.PSM);
 }
+
 void mgSetPkFrameBuffer(int fbp, int width, int height, int psm) {
     sceGsFrame    *default_frame;
     sceVif1Packet *vif;
@@ -1326,6 +1327,7 @@ void mgSetPkFrameBuffer(int fbp, int width, int height, int psm) {
     frame_tex.tex0.bits.tfx = 0;
     *(u_long *) &frame_tex.tex1 = 0x261;
 }
+
 void mgGetFrameBuffer(mgCTexture *texture) {
     *texture = frame_tex;
 }

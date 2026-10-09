@@ -1083,14 +1083,15 @@ void mgSetPkTextureRepeat(sceGsClamp clamp);
  *
  * @mangled mgSetPkFrameBuffer__FP10mgCTexture
  * @address 0x144410
- * @size 0x80
+ * @size 0x7C
  */
 void mgSetPkFrameBuffer(mgCTexture *texture);
 
 /**
  *
  * Makes an area of video memory the frame buffer drawn into, with its
- * viewport and scissor; -1 in every argument restores the screen.
+ * viewport and scissor; negative frame or format values use the current
+ * draw frame, and negative dimensions use the screen size.
  *
  * @mangled mgSetPkFrameBuffer__Fiiii
  * @address 0x144490
