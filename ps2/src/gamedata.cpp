@@ -704,23 +704,23 @@ int _DATACOM(SPI_STACK *stack, int arg_count) {
  *
  */
 int _MES_SYS(SPI_STACK *stack, int arg_count) {
-    u8           converted[0x100];
+    char         converted[0x100];
     int          item_no;
     char        *copy;
-    signed char *text;
+    char        *text;
     CDataCommon *record;
 
     item_no = spiGetStackInt(stack++);
-    text = (signed char *) (spiGetStackString(stack));
+    text = spiGetStackString(stack);
     record = GameItemDataManage.GetCommonData(item_no);
 
     if (record != NULL) {
         if ((LanguageCode >= 2) && (LanguageCode < 6)) {
             memset(converted, 0, 0x100);
-            ConvertFontCode((char *) text, (char *) converted);
-            copy = mgCopyString((char *) converted, gamedata_build_stack);
+            ConvertFontCode(text, converted);
+            copy = mgCopyString(converted, gamedata_build_stack);
         } else {
-            copy = mgCopyString((char *) text, gamedata_build_stack);
+            copy = mgCopyString(text, gamedata_build_stack);
         }
 
         record->name = copy;
