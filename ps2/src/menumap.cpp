@@ -371,7 +371,7 @@ int CWorldMapMenu::KeyStep() {
         WorldMapStack.Align64();
         char *script = (char *)WorldMapStack.stGetTop();
         unsigned int size;
-        size = LoadFileMenu("wldmap.cfg", (u_long128 *)script, 1);
+        size = LoadFileMenu("wldmap.cfg", (u_long128 *)script, MENU_FILE_LOAD_DIRECT);
         unsigned int blocks;
         if (size & 0xF) {
             blocks = (size >> 4) + 1;
@@ -1076,7 +1076,7 @@ int WorldMoveInit(mgCMemory *stack, int *tex_block, int open_type) {
 
     StartReadBG();
     sprintf(path, "wmap%d.pac", WorldMapPtr->map_type);
-    size = LoadFileMenu(path, buffer, 0);
+    size = LoadFileMenu(path, buffer, MENU_FILE_LOAD_BG);
 
     if (size & 0xF) {
         blocks = (size >> 4) + 1;
@@ -1220,7 +1220,7 @@ void SphidaMenuInit(mgCMemory *stack, int *tex_block, int open_type) {
         MenuPosData->AttachCommonTexInfo();
         MenuCommonInfo->key_enable = 1;
         u_long128   *buffer = SphidaStack.stGetTop();
-        unsigned int size = LoadFileMenu("omake.img", buffer, 1);
+        unsigned int size = LoadFileMenu("omake.img", buffer, MENU_FILE_LOAD_DIRECT);
         unsigned int blocks;
 
         if (size & 15) {
@@ -1654,7 +1654,7 @@ void SphidaScoreViewInit(mgCMemory *memory, int *tex_block, int) {
         SubSphidaData = SubSaveData__2->GetSphidaData();
         SphidaStack.Align64();
         u_long128   *buffer = SphidaStack.stGetTop();
-        unsigned int size = LoadFileMenu("omake.img", buffer, 1);
+        unsigned int size = LoadFileMenu("omake.img", buffer, MENU_FILE_LOAD_DIRECT);
         unsigned int blocks;
 
         if (size & 15) {
