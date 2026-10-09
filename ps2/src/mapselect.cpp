@@ -236,7 +236,7 @@ int mlMAP_NAME(SPI_STACK *stack, int argc) {
     int length;
 
     for (i = 0; i < 3; i++) {
-        if (args[i] == NULL || *(s8 *) args[i] == 0) {
+        if (args[i] == NULL || args[i][0] == 0) {
             copies[i] = NULL;
         } else {
             length = strlen(args[i]);
