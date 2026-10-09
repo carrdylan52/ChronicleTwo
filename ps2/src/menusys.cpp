@@ -7184,7 +7184,7 @@ static void MenuItemDebugKey(void) {
                     CheckEnableHaveItemNum();
                 }
 
-                if (buttons & 1) {
+                if (buttons & MENU_PUSH_BUTTON_DECIDE) {
                     if (debug_common_data != NULL) {
                         MenuUserDataManPtr->GetItemNotOver(
                             CMenuItemInfoPt->debug_item_no,
@@ -7205,10 +7205,10 @@ static void MenuItemDebugKey(void) {
                         item_menu_argtbl[2].rows = MenuItemBoardTotalLine;
                         CheckEnableHaveItemNum();
                     }
-                } else if (buttons & 0x80) {
+                } else if (buttons & MENU_PUSH_BUTTON_L3) {
                     GameItemDataManage.LoadData();
                     GameItemDataManage.LoadItemSystemMes(LanguageCode);
-                } else if (buttons & 8) {
+                } else if (buttons & MENU_PUSH_BUTTON_SQUARE) {
                     MenuDebugStack.stack_used = 0;
                     MenuDebugStack.lock = 0;
                     MenuDebugCamera = NULL;
@@ -7313,11 +7313,11 @@ static void MenuItemDebugKey(void) {
                     MenuDebugItemModel->SetScale(rotation[0], rotation[0], rotation[0]);
                 }
                 MenuDebugCamera->Step(1);
-                if (buttons & 4) {
+                if (buttons & MENU_PUSH_BUTTON_TRIANGLE) {
                     MenuDebugItemModel->SetScale(1.0f, 1.0f, 1.0f);
                     MenuDebugItemModel->SetRotation(0.0f, 0.0f, 0.0f);
                     MenuDebugModel_AdjustFlag = 0;
-                } else if (buttons & 8) {
+                } else if (buttons & MENU_PUSH_BUTTON_SQUARE) {
                     if (MenuDebugItemModel != NULL) {
                         MenuDebugModel_AdjustFlag ^= 1;
                         if (MenuDebugModel_AdjustFlag != 0) {
@@ -7328,7 +7328,7 @@ static void MenuItemDebugKey(void) {
                             MenuDebugItemModel->SetScale(1.0f, 1.0f, 1.0f);
                         }
                     }
-                } else if (buttons & 2) {
+                } else if (buttons & MENU_PUSH_BUTTON_CANCEL) {
                     MenuDebugModelDrawFlag = 0;
                     MenuDebugItemModel = NULL;
                     MenuDebugCamera = NULL;
@@ -7384,12 +7384,12 @@ static void MenuItemDebugKey(void) {
                     chara->defence = count - 1;
                 }
             }
-            if (buttons & 4) {
+            if (buttons & MENU_PUSH_BUTTON_TRIANGLE) {
                 MenuUserDataManPtr->AddMoney(1000);
                 CMenuItemInfoPt->money_form->SetNumber(
                     "num", MenuUserDataManPtr->AddMoney(0));
             }
-            if (buttons & 8) {
+            if (buttons & MENU_PUSH_BUTTON_SQUARE) {
                 if (init_6162 == 0) {
                     cnt_6161 = 0;
                     init_6162 = 1;
@@ -7469,16 +7469,16 @@ static void MenuItemDebugKey(void) {
                         item->data.weapon.abs.now = item->data.weapon.abs.max;
                     }
                 }
-                if (buttons & 1) {
+                if (buttons & MENU_PUSH_BUTTON_DECIDE) {
                     item->AddFusionPoint(1);
                 }
-                if (buttons & 2) {
+                if (buttons & MENU_PUSH_BUTTON_CANCEL) {
                     item->AddFusionPoint(-1);
                 }
-                if (buttons & 8) {
+                if (buttons & MENU_PUSH_BUTTON_SQUARE) {
                     item->AddFusionPoint(500);
                 }
-                if (buttons & 4) {
+                if (buttons & MENU_PUSH_BUTTON_TRIANGLE) {
                     item->LevelUp();
                     MenuSePlay(SYSTEM_SE_DECIDE);
                 }
@@ -7634,7 +7634,7 @@ static void MenuItemDebugKey(void) {
             if (item != NULL) {
                 CDataWeapon *info = GetWeaponInfoData(item->item_no);
 
-                if (buttons & 4) {
+                if (buttons & MENU_PUSH_BUTTON_TRIANGLE) {
                     item->data.weapon.status[0] = info->status_max[0];
                     item->data.weapon.status[1] = info->status_max[1];
                     item->data.weapon.attribute[0] = info->attribute_max[0];
@@ -7646,7 +7646,7 @@ static void MenuItemDebugKey(void) {
                     item->data.weapon.attribute[6] = info->attribute_max[6];
                     item->data.weapon.attribute[7] = info->attribute_max[7];
                 }
-                if (buttons & 8) {
+                if (buttons & MENU_PUSH_BUTTON_SQUARE) {
                     item->data.weapon.status[0] = info->status[0];
                     item->data.weapon.status[1] = info->status[1];
                     item->data.weapon.attribute[0] = info->attribute[0];
