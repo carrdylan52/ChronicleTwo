@@ -263,12 +263,6 @@ extern char            at_9744[];
 extern char            at_9745[];
 extern char            at_10100[];
 extern char            at_10101[];
-extern char            at_3631__2[];
-extern char            at_3632__2[];
-extern char            at_3633[];
-extern char            at_3634[];
-extern char            at_3635[];
-extern char            at_3636[];
 extern char            at_1083[];
 extern char            at_9148[];
 extern char            at_9622[];
@@ -283,8 +277,6 @@ extern char            at_6782__2[];
 extern char            at_6816[];
 extern char            at_6839[];
 extern char            at_7117[];
-extern char            at_3328[];
-extern char            at_3329__2[];
 extern char            at_6834[];
 extern char            at_5726[];
 extern char            at_5736[];
@@ -5406,9 +5398,9 @@ int _LOAD_SCRIPT(RS_STACKDATA *stack, int argc) {
 
     strcpy(EdEventInfo.script_name, name);
 
-    if (strstr(EdEventInfo.script_name, at_3328) == NULL) {
+    if (strstr(EdEventInfo.script_name, "_1") == NULL) {
         EdEventInfo.script_name[strlen(EdEventInfo.script_name) - 4] = 0;
-        strcat(EdEventInfo.script_name, at_3329__2);
+        strcat(EdEventInfo.script_name, "_1.stb");
     }
 
     FileNameConvLanguage(EdEventInfo.script_name);
@@ -5883,25 +5875,25 @@ int _LOAD_EQUIP(RS_STACKDATA *stack, int argc) {
         if (member_kind == 0) {
             switch (equip_kind) {
                 case 0:
-                    strcpy(bone_name, at_3631__2);
+                    strcpy(bone_name, "ef00");
                     break;
                 case 1:
-                    strcpy(bone_name, at_3632__2);
+                    strcpy(bone_name, "gun_hand");
                     break;
                 case 2:
-                    strcpy(bone_name, at_3633);
+                    strcpy(bone_name, "hat");
                     break;
             }
         } else if (member_kind == 1) {
             switch (equip_kind) {
                 case 0:
-                    strcpy(bone_name, at_3634);
+                    strcpy(bone_name, "sword_hand");
                     break;
                 case 1:
-                    strcpy(bone_name, at_3635);
+                    strcpy(bone_name, "wr");
                     break;
                 case 2:
-                    strcpy(bone_name, at_3636);
+                    strcpy(bone_name, "ac");
                     break;
             }
         }
@@ -18168,14 +18160,6 @@ INCLUDE_RODATA("ps2/asm/pal/nonmatchings/event_func", vv_3333__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/event_func", at_1083__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/event_func", at_1910__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/event_func", at_1909__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/event_func", at_3328__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/event_func", at_3329__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/event_func", at_3631__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/event_func", at_3632__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/event_func", at_3633__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/event_func", at_3634__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/event_func", at_3635__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/event_func", at_3636__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/event_func", at_3822__2__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/event_func", at_3823__2__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/event_func", at_3884__DATA);

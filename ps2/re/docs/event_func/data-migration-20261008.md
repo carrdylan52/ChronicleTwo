@@ -161,6 +161,15 @@ Each datum has a separate full PAL/object/hash receipt under
 Every accepted form preserves instruction bytes, resolved addresses and all
 unowned object hashes. Shift-JIS characters use hexadecimal byte escapes.
 
+## Inline event script and equipment names
+
+The following literals are inline at their native uses: `at_3328`, `at_3329__2`, `at_3631__2`, `at_3632__2`, `at_3633`, `at_3634`, `at_3635`, `at_3636`.
+
+Each datum has a separate full PAL/object/hash receipt under
+`.private/dataA-r3/event-string-<symbol>-{build,objects,hashes}.log`.
+Every accepted form preserves instruction bytes, resolved addresses and all
+unowned object hashes. Shift-JIS characters use hexadecimal byte escapes.
+
 ## Retained markers
 
 The initialized-data markers are pending the following migration topics.
