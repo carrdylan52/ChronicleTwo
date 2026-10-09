@@ -35,3 +35,14 @@ Validation receipts are under `.private/dataE/`, with the step prefixes
 listed above and `-build.log`, `-objects.log`, and `-hashes.log` suffixes.
 Final refresh: `gamepad-final-progress.log`, `gamepad-final-coverage.log`,
 and `gamepad-final-metrics.json`.
+
+## Function statics (2026-10-09)
+
+`rpad` and `cnt` are now written as the natural `static u16 rpad = 0;` in
+`pad_button_read` and `static int cnt = 0;` in `CGamePad::UpDate`. MWCC emits
+the retail `rpad$256`/`init$257` and `cnt$374`/`init$375` pairs itself, so the
+four file-scope definitions and the two hand-written guards are gone. With the
+current postprocessor the object is exact (0x15BC bytes, 104 relocations) and
+the PAL link is unchanged; the earlier piece-identity failure described above
+no longer occurs. `old_vsync` uses its retail name. Receipts:
+`.private/fixes-r3c/b1-build.log`, `b1-check.log`.

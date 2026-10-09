@@ -15,7 +15,7 @@
  * VSync count at the preceding controller-thread update.
  *
  */
-static int old_vsync__2;
+static int old_vsync;
 
 /**
  *
@@ -45,41 +45,12 @@ static u8 pad_dma_buf2[0x400] __attribute__((aligned(64)));
  */
 static u8 ThreadStack[0x400] __attribute__((aligned(16)));
 
-
 /**
  *
  * Controller manager the controller thread steps.
  *
  */
-static CGamePad * GamePad;
-
-/**
- *
- * Last button word read from a connected controller.
- *
- */
-static u16 rpad_256;
-
-/**
- *
- * Whether the saved button word has been initialized.
- *
- */
-static char init_257;
-
-/**
- *
- * Alternating controller-update counter.
- *
- */
-static int cnt_374;
-
-/**
- *
- * Whether the controller-update counter has been initialized.
- *
- */
-static char init_375;
+static CGamePad *GamePad;
 
 static int read_pad(PAD_STATUS *status, int port, int slot);
 
@@ -159,10 +130,12 @@ static int pad_button_read(PAD_STATUS *status, int port, int slot) {
     int         extended_id;
     int         button;
 
-    if (init_257 == 0) {
-        rpad_256 = 0;
-        init_257 = 1;
-    }
+    /**
+     *
+     * Last button word read from a connected controller.
+     *
+     */
+    static u16 rpad = 0;
 
     extended_id = 0;
 
@@ -178,7 +151,7 @@ static int pad_button_read(PAD_STATUS *status, int port, int slot) {
         status->right_y = data[5];
         status->left_x = data[6];
         status->left_y = data[7];
-        rpad_256 = button;
+        rpad = button;
         extended_id = data[1] >> 4;
     }
 
@@ -365,10 +338,12 @@ void CGamePad::UpDate() {
     int         i;
     int         j;
 
-    if (!init_375) {
-        cnt_374 = 0;
-        init_375 = 1;
-    }
+    /**
+     *
+     * Alternating controller-update counter.
+     *
+     */
+    static int cnt = 0;
 
     previous_pad[0] = pad[0];
     read_pad(&pad[0], 0, 0);
@@ -458,7 +433,7 @@ void CGamePad::UpDate() {
         previous_pad[1].left_y = 0x80;
     }
 
-    cnt_374 = !cnt_374;
+    cnt = !cnt;
     SwitchGamePadThread();
 }
 
@@ -845,7 +820,7 @@ void SwitchGamePadThread() {
 static void GamePadStep(void *arg) {
     while (true) {
         int now = mgGetVSyncCount();
-        int elapsed = now - old_vsync__2;
+        int elapsed = now - old_vsync;
 
         if (elapsed < 0) {
             elapsed = 1;
@@ -856,7 +831,7 @@ static void GamePadStep(void *arg) {
         }
 
         SwitchGamePadThread();
-        old_vsync__2 = now;
+        old_vsync = now;
     }
 }
 
