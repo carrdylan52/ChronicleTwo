@@ -57,6 +57,15 @@ after reading the position. The `{0, 1, 0, 1}` local array replaces the external
 template and quadword type-pun. Its bytes and all caller instructions match.
 Receipt: `.private/dataA-r3/event-hit-direction-corrected-{build,objects,hashes}.log`.
 
+## Argument script dispatch definitions
+
+The argument interpreter's three records are native mutable `EventScriptFunc`
+rows, with typed `_DATA` and `_ID_OFFSET` function pointers and the null sentinel.
+`EventArgumentCommand` names the two command numbers. The shared row type has
+its documented eight-byte layout in `event_func.hpp`; both handlers receive
+file-local declarations. Native padding retains the original .data piece.
+Receipt: `.private/dataA-r3/event-arg-dispatch-{build,objects,hashes}.log`.
+
 ## Retained markers
 
 The initialized-data markers are pending the following migration topics.

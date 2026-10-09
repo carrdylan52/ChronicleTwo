@@ -84,16 +84,6 @@ struct ExtensionTable {
 
 /**
  *
- * Event script function and its numeric identifier.
- *
- */
-struct EventScriptFunc {
-    int (*func)(RS_STACKDATA *, int); /**< Function called by the script. */
-    int id;                           /**< Script function identifier. */
-};
-
-/**
- *
  * Group, kind and identifiers of one VPK resource.
  *
  */
@@ -138,7 +128,6 @@ typedef int (*EventFunc)(RS_STACKDATA *, int);
 static CEventScriptArg *nowScriptArg;
 
 extern CEventScriptArg   EventScriptArg;
-extern EventScriptFunc   esa_ext_func_info[];
 extern EventScriptFunc   ext_func_info__2[];
 /**
  * Dispatch slots for event script external commands.
@@ -2027,6 +2016,25 @@ static void SetStack(RS_STACKDATA *stack, float value) {
         stack->val.p->val.f = value;
     }
 }
+
+/**
+ * Records the argument entries supplied by an argument script.
+ */
+static int _DATA(RS_STACKDATA *stack, int argc);
+
+/**
+ * Sets the next argument-list identifier supplied by an argument script.
+ */
+static int _ID_OFFSET(RS_STACKDATA *stack, int argc);
+
+/**
+ * External handlers available to event argument scripts.
+ */
+static EventScriptFunc esa_ext_func_info[3] = {
+    {_DATA, EVENT_ARG_DATA},
+    {_ID_OFFSET, EVENT_ARG_ID_OFFSET},
+    {NULL, EVENT_ARG_DATA},
+};
 
 void CEventScriptArg::BuildArgData(u32 *program) {
     RS_STACKDATA stack[script_stack_slots];
@@ -17364,7 +17372,6 @@ void SetEventFunc(CRunScript *script) {
 // Static initialiser (.init)
 
 // Initialised data (.data)
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/event_func", esa_ext_func_info__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/event_func", vv_3333__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/event_func", ext_func_info__2__DATA);
 

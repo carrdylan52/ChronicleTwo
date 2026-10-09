@@ -33,6 +33,26 @@ class mgCTexture;
 class ClsMes;
 
 /**
+ * Numeric identifiers of commands in event argument scripts.
+ */
+enum EventArgumentCommand {
+    EVENT_ARG_DATA = 0, /**< Records one argument list. */
+    EVENT_ARG_ID_OFFSET = 1, /**< Selects the next argument-list identifier. */
+};
+
+/**
+ *
+ * Event script function and its numeric identifier.
+ *
+ */
+struct EventScriptFunc {
+    int (*func)(RS_STACKDATA *, int); /**< Function called by the script. */
+    int id;                           /**< Script function identifier. */
+};
+
+STATIC_ASSERT(sizeof(EventScriptFunc) == 8);
+
+/**
  *
  * Kinds of game thing an event object handle refers to, as CEoh::type holds them.
  *
