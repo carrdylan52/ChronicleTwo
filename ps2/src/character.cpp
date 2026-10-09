@@ -344,7 +344,7 @@ void CCharacter2::AddOutLine(char *name, COutLineDraw *line) {
 
 void CCharacter2::CopyOutLine(CCharacter2 *other) {
     COutLineDraw *line;
-    int           enabled;
+    mgCTexture   *texture;
 
     if (other == NULL) {
         return;
@@ -354,14 +354,14 @@ void CCharacter2::CopyOutLine(CCharacter2 *other) {
         return;
     }
 
-    enabled = (int) other->outline->texture;
+    texture = other->outline->texture;
 
-    if (enabled == 0) {
+    if (texture == NULL) {
         return;
     }
 
     for (line = outline; line != NULL; line = line->next) {
-        line->texture = (mgCTexture *) enabled;
+        line->texture = texture;
     }
 }
 
