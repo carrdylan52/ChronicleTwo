@@ -48,7 +48,6 @@ union RaceVector {
     u_long128 q;    /**< The same components as a quadword. */
 };
 
-extern RaceVector  at_1765__2;
 extern RaceVector  at_1775;
 extern RaceVector  at_1776;
 /**
@@ -1522,7 +1521,6 @@ static mgCMemory BuffWorkData;
 
 mgCCamera        camera0(8.0f);
 #ifndef NONMATCHING
-INCLUDE_BSS(at_1765__2, 0x10);
 INCLUDE_BSS(at_1775, 0x10);
 INCLUDE_BSS(at_1776, 0x10);
 #endif

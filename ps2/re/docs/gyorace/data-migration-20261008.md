@@ -244,3 +244,30 @@ hashes. Code metrics remain **6,780 functions / 1,854,796 bytes**.
 Receipts: `.private/dtool-r5/alignment-data-{build,objects,tests,metrics}.log`.
 The missing-fragment regression before the tool fix is
 `.private/dtool-r5/alignment-tests-before.log`.
+
+## Round-5 native origin zero template
+
+The existing four-int origin initializer emits a native 16-byte anonymous
+BSS template. Its consumer is the file-local `DivSpriteScreen`, whose retail
+function name has a duplicate suffix. The native zero-template mapper now
+requires that unique local identity and the consumer's complete matching
+instruction bytes, extent and resolved relocations. Its second pass runs
+after the step-vector literal identity is established. This supplies
+`at_1765__2` naturally; its marker and unused external declaration are removed.
+The function body, all drafts and all INCLUDE_ASM lines remain unchanged.
+
+The new suffix path applies only to anonymous compiler templates. Named
+statics retain their established mapper order, preserving the exact baseline
+object bytes in every non-target unit. Unmatched, ambiguous, incomplete or
+additional unknown consumers reject the candidate. The two remaining zero
+templates still require natural vector-copy source work; no union-based
+initializer or new type-pun is introduced to force their data emission.
+
+Markers: RODATA **26 → 26**, BSS **3 → 2**. Refreshed matched data remains
+**125 / 2729**. PAL is `SCES_511.90: OK`, all **149/149** objects pass,
+and only `gyorace.cpp.o` changes from the preceding accepted step. Code
+metrics remain **6,780 functions / 1,854,796 bytes**. Receipts:
+`.private/dtool-r5/bss-anonymous-{build,objects,tests-after,metrics}.log`.
+The pre-fix identity and named-static-scope regressions are
+`bss-consumer-tests-before.log` and `bss-anonymous-tests-before.log` in
+the same directory.
