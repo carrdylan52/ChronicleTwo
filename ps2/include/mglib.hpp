@@ -636,7 +636,7 @@ void mgStoreFrameImage();
  *
  * @mangled mgEndFrame__FP14mgCDrawManager
  * @address 0x142C20
- * @size 0xA80
+ * @size 0xA74
  */
 void mgEndFrame(mgCDrawManager *manager);
 

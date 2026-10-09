@@ -691,7 +691,7 @@ void mgEndFrame(mgCDrawManager *manager) {
     static int       count = 1;
     static float     cpu_ratio = 0.0f;
     static float     free_ratio = 0.0f;
-    static u_int     store_data[1024];
+    static u_int     store_data[1024] __attribute__((aligned(16)));
     sceGsFrame      *frame;
     float            packet_free;
     float            data_free;

@@ -270,3 +270,15 @@ into the `mgRENDER_INFO` class (first game: `RenderInfo` struct, 0x350). The fir
 
 ## VSyncCallBack draft
 The guarded C++ draft samples GS CSR bit 13, stores the inverse in `VSyncField`, calls an installed secondary callback, increments the non-negative frame counter and clears the active flag. Retail ends with `sync; ei`, which MWCC does not emit from this C++ representation; the retail assembly remains active.
+
+## Frame-end buffer alignment and symbol extent
+
+`mgEndFrame__FP14mgCDrawManager` has retail symbol size `0xA74`; `0xA80`
+is its padded section extent. Its 1024-word `store_data` DMA readback buffer
+now explicitly requires 16-byte alignment, matching the quadword pointer
+accepted by `sceGsExecStoreImage`. The aligned declaration preserves all
+allocated object bytes and resolved relocations; the retained retail marker
+still supplies the exported identity required by library data.
+
+Receipts: `.private/fixes-r0/mglib-probe-{build,objects}.log` and
+`mglib-final-{build,objects}.log`: `SCES_511.90: OK`, 149/149 objects.
