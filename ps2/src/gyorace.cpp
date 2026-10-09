@@ -65,7 +65,12 @@ static float ras_off_1762;
  */
 static signed char init_1763;
 
-extern mgCMemory        BuffTextureData;
+/**
+ *
+ * Stack memory holding fish-race commentary and texture resources.
+ *
+ */
+static mgCMemory BuffTextureData;
 
 /**
  *
@@ -1524,8 +1529,8 @@ INCLUDE_RODATA("ps2/asm/pal/nonmatchings/gyorace", at_1703__DATA);
 // Uninitialised data (.bss)
 INCLUDE_BSS(D_01F5971C, 0x4);
 #endif
-mgCMemory        BuffTextureData;
 static mgCMemory BuffWorkData;
+
 mgCCamera        camera0(8.0f);
 #ifndef NONMATCHING
 INCLUDE_BSS(at_1765__2, 0x10);

@@ -166,3 +166,41 @@ The other 148 object hashes and all function source remain identical to
 the warm baseline. Receipts under `.private/dataB-r6/` are
 `strings-build.log`, `strings-objects.log`, `strings-progress.log`,
 `strings-snapshot.json` and `strings-hash-audit.json`.
+
+## Round 6: texture allocator and retained BSS
+
+Retail `BuffTextureData` is a LOCAL object at `0x1F59770`, with declared
+size 0x30 and the established `mgCMemory` layout. One documented
+`static mgCMemory BuffTextureData` definition replaces its early extern;
+the late global definition is removed. It holds the commentary buffer
+and loaded texture resources. No header declaration is appropriate for
+this file-local object. Native symbol binding and declared size now both
+agree with retail.
+
+Its relative construction order remains Texture, Work, then camera.
+The generated unit initializer, its relocations and every game function
+remain byte-identical. The guarded Loop block and every declaration,
+extern and marker for its data remain exactly as before this lane.
+
+Init's promotion frees none of the five BSS markers. The round-4 negative
+experiments are not repeated, and no tooling or function body is changed:
+
+| Retained BSS | Current consumer and blocker |
+|---|---|
+| `D_01F5971C` | Explicit boundary before `old_fish_rank`; retail Jikkyou +0x4A8/+0x4B0 uses this address as `old_fish_rank - 4`. Native Jikkyou already has that correct negative addend. There is no independent retail object or Loop consumer; a filler definition would be artificial. Earlier deletion changed the initializer reference. |
+| `at_1765__2` | Native DivSpriteScreen origin-array template; removing its marker previously changed the initializer reference at +0x10. Anonymous BSS identity requires tooling support. |
+| `at_1775`, `at_1776` | Native DivSpriteScreen vector templates; the documented natural SDK/aggregate replacements changed helper or initializer code. Their function body remains frozen. |
+| `lap_inf2_1799` | Native SysDraw total-time digit array has a real 0x14-byte payload and a 0x50-byte terminal reservation. Earlier marker removal passed PAL but failed the object extent; no fake extra digits fill the 0x3C-byte tail. |
+
+Final markers are **13 RODATA / 5 BSS**, from **26 / 5** at `c935aa16`.
+Fresh objdiff `matched_data / total_data` is **125 / 2729 → 125 / 2729**.
+The full PAL build and all **149/149** complete objects pass. Only
+gyorace's object file changes hash; the other 148 equal the warm baseline.
+Coverage remains **6,782 matched / 81 guarded / 9 assembly-only / 0 fuzzy**.
+No function is promoted or attempted and no shared-file proposal is needed.
+
+Final receipts under `.private/dataB-r6/`: `texture-build.log`,
+`texture-symbol-audit.json`, `final-objects.log`, `final-progress.log`,
+`final-coverage.txt`, `final-snapshot.json` and `final-hash-audit.json`.
+The original source and full marker/retail-data inventories are also saved
+there for the coordinator's audit.
