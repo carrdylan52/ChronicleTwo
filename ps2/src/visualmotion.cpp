@@ -29,8 +29,6 @@ void mgCVisualMotionMDT::Initialize() {
     frame_id = 0;
 }
 
-extern const char at_357[];
-extern const char at_358[];
 
 /**
  *
@@ -114,7 +112,7 @@ void mgCVisualMotionMDT::CreateVertexWeight(u_int *data, int selected_frame, mgC
                 }
 
                 if (bone_index == 32) {
-                    printf(at_357);
+                    printf("Bone Num Over!!!\n");
                     weight = NULL;
                     weight_num = 0;
                     return;
@@ -141,7 +139,7 @@ void mgCVisualMotionMDT::CreateVertexWeight(u_int *data, int selected_frame, mgC
                     vertex_weight->weight[1] /= total;
                     vertex_weight->weight[2] /= total;
                     vertex_weight->weight[3] /= total;
-                    printf(at_358, frame[selected_frame]->name, entry->vertex_id);
+                    printf("Weight Num Over!!! %s vert=%d\n", frame[selected_frame]->name, entry->vertex_id);
                 }
             }
         }
@@ -849,14 +847,9 @@ int mgCVisualMotionMDT::Iam() {
 }
 
 // Initialised data (.data)
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/visualmotion", set_data_func__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/visualmotion", prog_vif_532__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/visualmotion", progf_vif_533__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/visualmotion", at_571__3__DATA);
 
 // Constants (.rodata)
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/visualmotion", at_357__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/visualmotion", at_358__DATA);
 
 // Virtual tables (.vtables)
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/visualmotion", __vt__18mgCVisualMotionMDT__DATA);
