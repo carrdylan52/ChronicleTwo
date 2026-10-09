@@ -895,7 +895,41 @@ void CMapParts::CopyFuncPointCheck(CFuncPointCheck &check) {
 
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/mapparts", Copy__9CMapPartsFR9CMapPartsP9mgCMemory);
 
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/mapparts", AssignFuncAnime__9CMapPartsFP9mgCMemory);
+int CMapParts::AssignFuncAnime(mgCMemory *memory) {
+    CFuncPoint *point;
+    CList<CObjAnime> *node;
+
+    func_point_mngr.GetStart(FUNC_POINT_ANIME);
+    while ((point = func_point_mngr.Get()) != NULL) {
+        node = new (memory->Alloc((sizeof(CList<CObjAnime>) + 15) / 16 + 2)) CList<CObjAnime>;
+        if (node == NULL) {
+            return 0;
+        }
+        node->Initialize();
+
+        CList<CObjAnime> *last = anime_list;
+        if (last == NULL) {
+            anime_list = node;
+        } else {
+            CList<CObjAnime> *next;
+            if (last != NULL) {
+                do {
+                    next = last->next;
+                    if (next == NULL) {
+                        break;
+                    }
+                    last = next;
+                } while (next);
+            }
+            last->next = node;
+            if (node != NULL) {
+                node->prev = last;
+            }
+        }
+        node->pGetData()->AssignFuncAnime(point, this);
+    }
+    return 1;
+}
 
 template <>
 void CList<CObjAnime>::Initialize() {

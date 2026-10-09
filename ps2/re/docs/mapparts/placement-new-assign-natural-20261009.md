@@ -1,4 +1,4 @@
-# AssignFuncAnime natural placement proposal
+# AssignFuncAnime accepted natural placement
 
 `CMapParts::AssignFuncAnime(mgCMemory *)`,
 `AssignFuncAnime__9CMapPartsFP9mgCMemory`, has a private natural C++ zero under
@@ -7,11 +7,11 @@ witnessed placement statement row. Retail address is `0x169560`; its actual
 function symbol size is `0x138`, and its reservation up to the existing list
 initializer at `0x1696A0` is `0x140`. Those quantities are distinct.
 
-This is a private proposal. The guarded source was measured with canonical
+The private proposal established the following evidence. The guarded source was measured with canonical
 native diagnostic flags; an otherwise identical privately unguarded source
 passed all three standard object-wrapper stages. No tracked source, header,
 production profile, stage, image or commit was changed. The full PAL build and
-promotion decision remain with root.
+promotion decision were subsequent root acceptance steps, recorded below.
 
 Receipt prefix: `.private/pntc/inventmn-init-second-natural/assign-func-anime/`.
 Paths below are relative to that prefix. Captured input head is
@@ -266,7 +266,35 @@ MWCC binary SHA256:
 
 The existing header's AssignFuncAnime `@size 0x140` describes its reservation;
 the actual symbol size is `0x138`. This note records the correction without
-editing that shared header. No production activation or PAL acceptance is
-claimed by this private lane.
+editing that shared header. The private study supplies complete-unit evidence; the canonical acceptance
+below supplies the production/PAL result.
 
-Root independently reviewed the exact native source and private whole-object evidence. Production activation and the joint whole-game acceptance are separate follow-up steps. The shared size annotation correction remains a private proposal.
+Root independently reviewed the exact native source and private whole-object evidence. The shared size annotation correction remains a private proposal.
+
+## Canonical production33 acceptance
+
+The guard is removed by hand and the exact validated natural source is active.
+Source `bf5385a9bfa5e8a41062a9fbeebb20c70df10e6f1fa9fdc48b0595ee50f9e7cf`
+and complete object `edac37ef4813c95febe748ecdcd325839422a15d3379ca868ca806688e4566f0`
+match the canonical clean outputs. Only the witnessed expected-one after-inline
+row is added for this caller. The joint profile, including sgInitBuggy, has
+33 callers /43 static sites, SHA-256
+`1a86ec615aca8b4ded2e9173a059dcb3572188b4a3db721801f426c33c8bf099`.
+No shared header, float policy or existing vtable storage marker changes.
+
+The pn15 CLEAN build passes `SCES_511.90: OK`, and all 149 resolved units pass.
+All 306 assembled and149 source-only objects outside the21 promoted units
+remain byte-identical to upstream. Linked main bytes retain SHA-256
+`a103b0461a88e443a3af684cf150c05b5bd355e5a97ab2dc029c4d872bed0811`
+and the loaded memory end remains0x01f64a00; whole ELF metadata is separate.
+Explicit context/objdiff refresh followed by host coverage reports6,782
+matched /82 guarded /8 assembly-only /0 fuzzy. This unit retains only the
+separate Copy assembly fallback.
+
+Independent pre-activation review is frozen in
+`.private/pntc/promotion-review-33/`. Canonical receipts are
+`.private/pntc/receipts/promote-thirty-three-{clean-build,objects,artifacts,progress,coverage}`
+with logs and explicit zero exits, the artifact JSON and
+`.private/pntc/promote33/acceptance.json`. Full mapparts remains0x2310 bytes /
+264 resolved relocations. The shared annotation's actual-size correction
+remains `.private/proposals/mapparts-assign-body-size.patch`.
