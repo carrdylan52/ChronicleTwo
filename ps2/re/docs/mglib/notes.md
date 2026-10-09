@@ -100,10 +100,11 @@ slot. The same duplicate-entry pattern appeared in 21 other game units with nati
 
 ## Current source status
 
-The round-3 `sf-d8bf13c` build has 98 exact functions and three guarded drafts:
-`VSyncCallBack`, `mgEndFrame`, and `mgSetPkFrameBuffer(int,int,int,int)`.
-The complete object passes `0x4DA8` checked bytes and 1,146 resolved
-relocations. Upstream's
+The source has 100 exact functions and one guarded draft, `VSyncCallBack`
+(its `sync`/`ei` pair has no native compiler expression). `mgEndFrame` and
+`mgSetPkFrameBuffer(int,int,int,int)` are exact; see
+[night-20261008.md](night-20261008.md). The complete object passes `0x4D9C`
+checked bytes and 1,248 resolved relocations. Upstream's
 native framebuffer copies and the local native shadow compositor coexist.
 The earlier 43-exact/31-isolated/27-differing inventory describes initial
 source drafting rather than this merged state. Remaining draft measurements

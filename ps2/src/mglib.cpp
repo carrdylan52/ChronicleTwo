@@ -1194,7 +1194,6 @@ void mgSetPkFrameBuffer(mgCTexture *texture) {
     mgSetPkFrameBuffer(texture->tex0.TBP0 / 32, texture->tex0.TBW << 6, texture->height,
                        texture->tex0.PSM);
 }
-#ifdef NONMATCHING
 void mgSetPkFrameBuffer(int fbp, int width, int height, int psm) {
     sceGsFrame    *default_frame;
     sceVif1Packet *vif;
@@ -1273,7 +1272,7 @@ void mgSetPkFrameBuffer(int fbp, int width, int height, int psm) {
     registers[9] = SCE_GS_SCANMSK;
     registers[10] = 0;
     registers[11] = SCE_GS_TEXFLUSH;
-    sceVif1PkReserve(vif, 32);
+    sceVif1PkReserve(vif, (u_int *) &registers[12] - packet);
     bpp = 0;
     switch (psm) {
         case SCE_GS_PSMCT32:
@@ -1328,9 +1327,6 @@ void mgSetPkFrameBuffer(int fbp, int width, int height, int psm) {
     frame_tex.tex0.bits.tfx = 0;
     *(u_long *) &frame_tex.tex1 = 0x261;
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/mglib", mgSetPkFrameBuffer__Fiiii);
-#endif
 void mgGetFrameBuffer(mgCTexture *texture) {
     *texture = frame_tex;
 }
