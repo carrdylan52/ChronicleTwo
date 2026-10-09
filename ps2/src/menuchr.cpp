@@ -270,6 +270,17 @@ enum MOS_SELECT_COMMAND_MSG {
 
 /**
  *
+ * Page of the monster box shown, as CBaseMenuClass::key_arg_no holds it.
+ *
+ */
+enum MOS_SELECT_PAGE {
+    MOS_SELECT_PAGE_BADGE = 0,   /**< The cursor moves over the badges. */
+    MOS_SELECT_PAGE_COMMAND = 1, /**< A command of the chosen badge is picked and run. */
+    MOS_SELECT_PAGE_STATUS = 2   /**< The status of the badge's monster forms is shown. */
+};
+
+/**
+ *
  * Transformation effect resources selected for the monster menu.
  *
  */
@@ -4239,13 +4250,13 @@ int CMenuMosSelect::KeyStep() {
     int           action;
 
     switch (mode) {
-        case 1:
+        case MENU_ASK_MODE_OPEN:
             if (fadeEnd) {
-                mode = 0;
+                mode = MENU_ASK_MODE_NONE;
                 select_badge = NULL;
             }
             break;
-        case 2:
+        case MENU_ASK_MODE_CLOSE:
             if (fadeEnd && (result == MOS_SELECT_RESULT_CLOSE || (result == MOS_SELECT_RESULT_CHANGE && load_phase == 4))) {
                 if (result == MOS_SELECT_RESULT_CHANGE) {
                     CActionChara *player = (CActionChara *) MenuMainScene->GetCharacter(0);
@@ -4254,7 +4265,7 @@ int CMenuMosSelect::KeyStep() {
                         player->InitScript();
                     }
                     MenuArg.end_code = 1;
-                    MenuArg.result[0] = 3;
+                    MenuArg.result[0] = USER_CHARA_MONSTER;
                 }
                 MenuDrawEnv->camera.SetPos(camera_pos);
                 MenuDrawEnv->camera.SetRef(camera_ref);
@@ -4266,7 +4277,7 @@ int CMenuMosSelect::KeyStep() {
                 return result;
             }
             break;
-        case 0: {
+        case MENU_ASK_MODE_NONE: {
             action = 0;
             if (menu_debug_flag) {
                 if (keys & MENU_SELECT_KEY_UP) {
@@ -4298,7 +4309,7 @@ int CMenuMosSelect::KeyStep() {
                         } else {
                             GetUserDataMan()->monster_box.EnableChange(menu_debug_select__2 + 1);
                         }
-                        MenuSePlay(1);
+                        MenuSePlay(SYSTEM_SE_DECIDE);
                     }
                     if (buttons & MENU_PUSH_BUTTON_TRIANGLE) {
                         if (debugBadge->enable) {
@@ -4318,7 +4329,7 @@ int CMenuMosSelect::KeyStep() {
             }
             CDC2Mes *info = MenuDCMsg[6];
             switch (key_arg_no) {
-                case 0:
+                case MOS_SELECT_PAGE_BADGE:
                     KeyNormalMode(keys, lrKeys, buttons);
                     switch (buttons) {
                         case MENU_PUSH_BUTTON_DECIDE:
@@ -4328,7 +4339,7 @@ int CMenuMosSelect::KeyStep() {
                             } else {
                                 select_badge = &badge[select];
                                 if (select_badge == NULL || (select_badge != NULL && !select_badge->enable)) {
-                                    MenuSePlay(5);
+                                    MenuSePlay(SYSTEM_SE_CANCEL);
                                     select_badge = NULL;
                                 } else {
                                     action = 600;
@@ -4341,7 +4352,7 @@ int CMenuMosSelect::KeyStep() {
                             break;
                     }
                     break;
-                case 1:
+                case MOS_SELECT_PAGE_COMMAND:
                     switch (step) {
                         case 0: {
                             int cursor = command->CommandMsgCursor();
@@ -4398,7 +4409,7 @@ int CMenuMosSelect::KeyStep() {
                                     BuildUpWeaponInfo.select_no = BuildUpWeaponInfo.select_num - 1;
                                 }
                                 if (oldSelect != BuildUpWeaponInfo.select_no) {
-                                    MenuSePlay(0);
+                                    MenuSePlay(SYSTEM_SE_CURSOR);
                                 }
                                 switch (buttons) {
                                     case MENU_PUSH_BUTTON_DECIDE: {
@@ -4406,7 +4417,7 @@ int CMenuMosSelect::KeyStep() {
                                         step = 11;
                                         ExeScript("\x83\x4E\x83\x89\x83\x58\x83\x60\x83\x46\x83\x93\x83\x57\x81\x48");
                                         mes_show = 1;
-                                        mes.MsgPreset(0xB);
+                                        mes.MsgPreset(MENU_SCRIPT_MES_YESNO);
                                         mes.ClsMes::mes_no = -1;
                                         char *name = GetMonsterName(level_monster[select_monster_save]);
                                         if (name != NULL) {
@@ -4420,7 +4431,7 @@ int CMenuMosSelect::KeyStep() {
                                     case MENU_PUSH_BUTTON_CANCEL:
                                         step = 0;
                                         ExeScript("\x83\x4E\x83\x89\x83\x58\x83\x60\x83\x46\x83\x93\x83\x57" "2OFF");
-                                        MenuSePlay(5);
+                                        MenuSePlay(SYSTEM_SE_CANCEL);
                                         BuildUpWeaponInfo.mode = 0;
                                         break;
                                 }
@@ -4428,7 +4439,7 @@ int CMenuMosSelect::KeyStep() {
                             }
                         case 11: {
                             int answer = mes.YesNoCursor2(0);
-                            if (answer == 1 && ReadBGSync() == 0) {
+                            if (answer == MES_YESNO_YES && ReadBGSync() == 0) {
                                 mes_show = 0;
                                 BuildUpWeaponInfo.mode = 0;
                                 change_wait = 0;
@@ -4445,7 +4456,7 @@ int CMenuMosSelect::KeyStep() {
                                 LoadFileBG("snd2/sp/SP_045.snd", (u_long128 *) effect_sound, &size);
                                 LoadFileBG("menu/eff/mos_chn.chr", effect_data, &size);
                             }
-                            if (answer == 2) {
+                            if (answer == MES_YESNO_NO) {
                                 mes_show = 0;
                                 BuildUpWeaponInfo.mode = 1;
                                 step = 10;
@@ -4568,7 +4579,7 @@ int CMenuMosSelect::KeyStep() {
                                 case MENU_PUSH_BUTTON_DECIDE:
                                     if (GetUserDataMan()->GetActiveChrNo() == USER_CHARA_MONSTER &&
                                         GetUserDataMan()->GetMonsterID() == view_monster) {
-                                        MenuSePlay(5);
+                                        MenuSePlay(SYSTEM_SE_CANCEL);
                                     } else {
                                         action = 10;
                                     }
@@ -4581,7 +4592,7 @@ int CMenuMosSelect::KeyStep() {
                         }
                     }
                     break;
-                case 2: {
+                case MOS_SELECT_PAGE_STATUS: {
                     s16 *row = monster_progress_tbl[select_badge->progress];
                     int  level = -1;
                     for (int j = 0; j < select_badge->class_level + 1; j++) {
@@ -4611,7 +4622,7 @@ int CMenuMosSelect::KeyStep() {
                         pick_monster = view_monster;
                         load_wait = 0;
                         load_phase = 0;
-                        MenuSePlay(0);
+                        MenuSePlay(SYSTEM_SE_CURSOR);
                     }
                     switch (buttons) {
                         case MENU_PUSH_BUTTON_DECIDE:
@@ -4627,12 +4638,12 @@ int CMenuMosSelect::KeyStep() {
             }
             switch (action) {
                 case 5:
-                    MenuSePlay(5);
+                    MenuSePlay(SYSTEM_SE_CANCEL);
                     break;
                 case 500:
                     ExeScript("\x83\x6F\x83\x62\x83\x57\x91\x49\x91\xF0\x82\xC9\x96\xDF\x82\xE9");
                     model_side = 0;
-                    key_arg_no = 0;
+                    key_arg_no = MOS_SELECT_PAGE_BADGE;
                     break;
                 case 600: {
                     ExeScript("\x83\x6F\x83\x62\x83\x57\x83\x52\x83\x7D\x83\x93\x83\x68");
@@ -4642,10 +4653,10 @@ int CMenuMosSelect::KeyStep() {
                     row = 0;
                     for (; row < commandNum; row++) {
                         if (commands[row] == MOS_SELECT_CMD_TRANSFORM) {
-                            if (MenuCommonInfo->now_mode == 2 || GetMenuLoopType() == 0) {
+                            if (MenuCommonInfo->now_mode == MENU_MODE_ITEM || GetMenuLoopType() == MENU_LOOP_TOWN) {
                                 local_sort1(row, &commandNum, commands);
                             } else {
-                                if (MenuUserDataManPtr->CheckEnableCharaChange(3, NULL) == 0 && row >= 0 && row < MES_LINE_MAX) {
+                                if (MenuUserDataManPtr->CheckEnableCharaChange(USER_CHARA_MONSTER, NULL) == 0 && row >= 0 && row < MES_LINE_MAX) {
                                     command->line_color[row] = MES_COLOR_DARK;
                                 }
                                 if (select_badge != NULL) {
@@ -4668,21 +4679,21 @@ int CMenuMosSelect::KeyStep() {
                     command->SetMsgCursor(0);
                     MenuMesForm[6]->draw_flag = 0;
                     step = 0;
-                    key_arg_no = 1;
-                    MenuSePlay(0x13);
+                    key_arg_no = MOS_SELECT_PAGE_COMMAND;
+                    MenuSePlay(SYSTEM_SE_WINDOW);
                     break;
                 }
                 case 1000:
-                    mode = 2;
+                    mode = MENU_ASK_MODE_CLOSE;
                     result = MOS_SELECT_RESULT_CLOSE;
                     FadeOutMenu(40, 0.0f);
-                    MenuSePlay(5);
+                    MenuSePlay(SYSTEM_SE_CANCEL);
                     break;
                 case 12: {
                     step = 20;
                     MenuMesForm[6]->draw_flag = 1;
-                    MenuSePlay(1);
-                    info->MsgPreset(6);
+                    MenuSePlay(SYSTEM_SE_DECIDE);
+                    info->MsgPreset(MENU_SCRIPT_MES_ITEMCMD);
                     char *names[8] = {NULL};
                     for (int name_index = 0; name_index < select_badge->class_level + 1; name_index++) {
                         names[name_index] = GetMonsterName(monster_progress_tbl[select_badge->progress][1 + name_index]);
@@ -4702,7 +4713,7 @@ int CMenuMosSelect::KeyStep() {
                     if (MenuLoadInfo.update_scene == 1 && FxScriptMan != NULL) {
                         DeleteMonsterEffect();
                     }
-                    GetCharaMemAllocPtr(MenuArg.chara_stack, MorattaStack, 3, 0);
+                    GetCharaMemAllocPtr(MenuArg.chara_stack, MorattaStack, USER_CHARA_MONSTER, 0);
                     MenuLoadInfo.mode = 2;
                     MenuLoadInfo.update_scene = 1;
                     MenuMosLoadStack.stReset();
@@ -4711,7 +4722,7 @@ int CMenuMosSelect::KeyStep() {
                     load_wait = 0;
                     load_phase = 0;
                     FadeOutMenu(40, 0.0f);
-                    mode = 2;
+                    mode = MENU_ASK_MODE_CLOSE;
                     MOS_CHANGE_PARAM *chosen = select_badge;
                     s16               monsterNo = monster_progress_tbl[chosen->progress][1 + info->GetMsgCursor()];
                     chosen->monster_id = monsterNo;
@@ -4727,7 +4738,7 @@ int CMenuMosSelect::KeyStep() {
                     step = 1;
                     break;
                 case 20:
-                    key_arg_no = 2;
+                    key_arg_no = MOS_SELECT_PAGE_STATUS;
                     ExeScript("\x83\x58\x83\x65\x81\x5B\x83\x5E\x83\x58\x82\xF0\x8C\xA9\x82\xE9");
                     view_monster = select_badge->monster_id;
                     if (select_badge != NULL) {
@@ -4767,7 +4778,7 @@ int CMenuMosSelect::KeyStep() {
     }
     if (select_badge != NULL) {
         if (select_badge->enable == 1 && select_badge->class_level > 0) {
-            if (key_arg_no == 2) {
+            if (key_arg_no == MOS_SELECT_PAGE_STATUS) {
                 info_win.alpha += 8;
                 if (info_win.alpha > 0x80) {
                     info_win.alpha = 0x80;
@@ -6859,7 +6870,7 @@ void CMenuCostumeSel::Draw() {
     }
     int chara_y = y + 0xA;
     int exit_y = chara_y + 0x28;
-    if (mode == 0 && (step == 0 || step == 3)) {
+    if (mode == MENU_ASK_MODE_NONE && (step == 0 || step == 3)) {
         prim->Color(0, 0, 0, 0x30);
         PrimQuad(prim, 116.0f, (float) (chara_y + 4), chara_rect);
         if (select == 3) {
