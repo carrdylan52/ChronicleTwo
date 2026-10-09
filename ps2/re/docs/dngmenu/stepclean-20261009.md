@@ -61,7 +61,7 @@ Coverage stays 6,790 matched / 73 guarded / 9 asm-only / 0 fuzzy.
 | Raw value | Name | Evidence |
 |---|---|---|
 | `SetBitFlag`/`CheckBitFlagMenu` `0xDC` | `SAVE_FLAG_FISHING_OPEN` (`savedata.hpp`) | Sets `DngInfoFishOkFlag`; while clear the fishing row shows message 2. The debug R1 key sets it. |
-| `0x13D` | `SAVE_FLAG_SPHEDA_OPEN` | Same for `DngInfoSphidaOkFlag` and the spheda row. |
+| `0x13D` | `SAVE_FLAG_SPHEDA_UNLOCKED` | Same for `DngInfoSphidaOkFlag` and the spheda row. |
 | `MenuSePlay(0x13)` | `SYSTEM_SE_WINDOW` (`snd_mngr.hpp`) | Played as the floor question or information opens; menusys, menumain, menuaqua and menuchr play it on window and panel changes. |
 | `MakeMsg` `0x3C`, `0x3D` | `TREE_MAP_MES_JUMP`, `TREE_MAP_MES_JUMP_NAMED` | Floor question; the second form inserts the start, sub, exit or boss floor's name (`floor_id + (dng_no + 1) * 1000`). |
 | `mes_no += 2` | `TREE_MAP_MES_PAY` | Paid jump variant (`jump_pay`, which also shows the money). |
