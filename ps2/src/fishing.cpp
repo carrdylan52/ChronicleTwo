@@ -49,7 +49,6 @@ struct Vec4 {
     float v[4]; /**< Vector components. */
 };
 
-extern SPI_TAG_PARAM    tag__8[];
 void                    StepDataLoading(void *arg);
 extern CCameraControl   UkiCameraInfo;
 extern mgCMemory        FishStack;
@@ -391,11 +390,55 @@ void        BattleLoop(CScene *scene, CPadControl *pad);
 void        FalseLoop(CScene *scene, CPadControl *pad);
 void        SuccessLoop(CScene *scene, CPadControl *pad);
 int         CheckFishing(float *pos, CCPoly *polys, int count);
-int         fpFISH_MAP_NUM(SPI_STACK *args, int arg_count);
-int         fpFISH_MAP(SPI_STACK *args, int arg_count);
-int         fpFISH_PLACE(SPI_STACK *args, int arg_count);
-int         fpFISH(SPI_STACK *args, int arg_count);
-int         fpFISH_MAP_END(SPI_STACK *args, int arg_count);
+/**
+ *
+ * Allocates the scripted fishing place map table.
+ *
+ */
+static int fpFISH_MAP_NUM(SPI_STACK *args, int arg_count);
+
+/**
+ *
+ * Starts a scripted fishing place map definition.
+ *
+ */
+static int fpFISH_MAP(SPI_STACK *args, int arg_count);
+
+/**
+ *
+ * Sets the area and location of the current fishing place map.
+ *
+ */
+static int fpFISH_PLACE(SPI_STACK *args, int arg_count);
+
+/**
+ *
+ * Adds a fish appearance entry to the current fishing place map.
+ *
+ */
+static int fpFISH(SPI_STACK *args, int arg_count);
+
+/**
+ *
+ * Finishes the current fishing place map definition.
+ *
+ */
+static int fpFISH_MAP_END(SPI_STACK *args, int arg_count);
+
+
+/**
+ *
+ * Dispatches the fishing place script tags to their definition handlers.
+ *
+ */
+static SPI_TAG_PARAM tag__8[6] = {
+    {"FISH_MAP_NUM", fpFISH_MAP_NUM},
+    {"FISH_MAP", fpFISH_MAP},
+    {"FISH_PLACE", fpFISH_PLACE},
+    {"FISH", fpFISH},
+    {"FISH_MAP_END", fpFISH_MAP_END},
+    {NULL, NULL}
+};
 
 /**
  *
@@ -4284,7 +4327,7 @@ int FISH_PLACE_MAP::CheckFishPlace(float *pos) {
  * Allocates the scripted fishing place map table.
  *
  */
-int fpFISH_MAP_NUM(SPI_STACK *args, int arg_count) {
+static int fpFISH_MAP_NUM(SPI_STACK *args, int arg_count) {
     FishPlaceMapNum = spiGetStackInt(args);
     u_int blocks;
 
@@ -4307,7 +4350,7 @@ int fpFISH_MAP_NUM(SPI_STACK *args, int arg_count) {
  * Starts a scripted fishing place map definition.
  *
  */
-int fpFISH_MAP(SPI_STACK *args, int arg_count) {
+static int fpFISH_MAP(SPI_STACK *args, int arg_count) {
     fpNowFishPlaceMap = NULL;
 
     if ((int) fpNowFishPlaceMapNum >= FishPlaceMapNum) {
@@ -4330,7 +4373,7 @@ int fpFISH_MAP(SPI_STACK *args, int arg_count) {
  * Sets the area and location of the current fishing place map.
  *
  */
-int fpFISH_PLACE(SPI_STACK *args, int arg_count) {
+static int fpFISH_PLACE(SPI_STACK *args, int arg_count) {
     int   area_type;
     char *name;
     int   i;
@@ -4364,7 +4407,7 @@ int fpFISH_PLACE(SPI_STACK *args, int arg_count) {
  * Adds a fish appearance entry to the current fishing place map.
  *
  */
-int fpFISH(SPI_STACK *args, int arg_count) {
+static int fpFISH(SPI_STACK *args, int arg_count) {
     FISH_PLACE *entry;
     int         index;
     int        *count_ptr;
@@ -4396,7 +4439,7 @@ int fpFISH(SPI_STACK *args, int arg_count) {
  * Finishes the current fishing place map definition.
  *
  */
-int fpFISH_MAP_END(SPI_STACK *args, int arg_count) {
+static int fpFISH_MAP_END(SPI_STACK *args, int arg_count) {
     if (fpNowFishPlaceMap == 0) {
         return 0;
     }
@@ -4419,12 +4462,10 @@ void LoadFishPlaceData(char *script, int size, mgCMemory *stack) {
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/fishing", lure_file__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/fishing", EsaInfo__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/fishing", at_993__4__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/fishing", at_1430__4__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/fishing", at_1490__2__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/fishing", at_1491__2__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/fishing", at_1536__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/fishing", at_1631__3__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/fishing", tag__8__DATA);
 
 // Constants (.rodata)
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/fishing", at_832__6__DATA);
@@ -4447,15 +4488,8 @@ INCLUDE_RODATA("ps2/asm/pal/nonmatchings/fishing", at_1313__2__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/fishing", at_1314__2__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/fishing", at_1315__4__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/fishing", at_1316__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/fishing", at_1399__3__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/fishing", at_1398__4__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/fishing", at_2197__3__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/fishing", at_2198__3__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/fishing", at_2670__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/fishing", at_2671__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/fishing", at_2672__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/fishing", at_2673__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/fishing", at_2674__2__DATA);
 
 // Small initialised data (.sdata)
 

@@ -69,3 +69,18 @@ PAL, 149/149 objects, protected-body comparison and unowned object hashes.
 Receipts: `.private/dataD-r1/fishing-param-{build,objects}.log`,
 `fishing-param-enums-{build,objects}.log`, and
 `fishing-param-{progress,metrics}.log`.
+
+## Script dispatch and existing native templates
+
+The file-local `tag__8[6]` contains five fishing-place tag/handler pairs and
+the null terminator. Its strings are inline ASCII literals, and the handler
+prototypes and definitions now carry their documented retail local binding.
+The existing native hook offset supplies `at_1430__4`; the two switches in
+`sgLoopFishing` supply `at_1399__3` and `at_1398__4`. Their markers are removed
+without changing those function bodies.
+
+After this group: **29 / 2 markers**,
+**412 / 5145 matched_data**. PAL and 149/149 objects pass; protected
+bodies and unowned object hashes remain unchanged. Receipts:
+`.private/dataD-r1/fishing-tags-{build,objects,progress,metrics}.log` and
+`fishing-generated-{build,objects}.log`.
