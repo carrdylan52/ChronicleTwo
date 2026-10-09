@@ -45,6 +45,28 @@ class NativeChildTests(unittest.TestCase):
              patch.object(p, 'rename_shared_names'):
             return p.bind_local_data(elf, 'unit', held)
 
+    def test_pair_rewrite_uses_original_addend_when_low_half_is_signed(self):
+        fixture = self.fixture()
+        elf, held, lay, rows, retail = fixture
+        elf.sections[2].sh_type = p.SHT_NOBITS
+        elf.sections[2].sh_size = 0xabf0
+        elf.sections[2].data = b''
+        elf.symtab.symbols[1].st_size = 0xabf0
+        elf.sections.append(NS(name='.bss', sh_flags=2, sh_name=0,
+                               sh_type=p.SHT_NOBITS, sh_size=0xabf0, data=b''))
+        elf.symtab.symbols.append(symbol('array', 5, 0xabf0, bind=1))
+        held.add(5)
+        rows[2] = (0xebf0, 'table', 4, False)
+        rows.append((0x4000, 'array', 0xabf0, False))
+        lay.sections = lambda unit: [('.text', 0x1000, 0x1008), ('.bss', 0x4000, 0xebf4)]
+        elf.sections[1].data = struct.pack('<II', 0x3c020001, 0x2442abf0)
+        elf.relocations = [NS(sh_info=1, sh_name=0, name='.rel.text', relocations=[
+            relocation(0, p.R_MIPS_HI16, 1), relocation(4, p.R_MIPS_LO16, 1)])]
+        retail.word = {0x1000: 0x3c020001, 0x1004: 0x2442ebf0}.__getitem__
+        self.assertEqual(self.apply(fixture), ['at_99'])
+        self.assertEqual(elf.sections[1].data, struct.pack('<II', 0x3c020000, 0x24420000))
+        self.assertEqual([ref.symbol_index for ref in elf.relocations[0].relocations], [3, 3])
+
     def test_negative_addend_does_not_bind_table_to_preceding_placeholder(self):
         for kind in ('gp', 'hi_lo'):
             with self.subTest(kind=kind):

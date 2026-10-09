@@ -453,6 +453,7 @@ def bind_local_data(elf, unit, placeholder_sections):
         # Pairs are found by the symbols the compiler wrote, which the loop
         # below replaces as it goes.
         original = [r.symbol_index for r in relocations]
+        original_data = bytes(data)
 
         def word(offset):
             return struct.unpack_from("<I", data, offset)[0]
@@ -480,14 +481,15 @@ def bind_local_data(elf, unit, placeholder_sections):
             offset = relocation.r_offset
             if kind == R_MIPS_GPREL16:
                 theirs = gp + sext16(retail.word(base + offset))
-                ours = sext16(word(offset))
+                ours = sext16(struct.unpack_from("<I", original_data, offset)[0])
             elif kind in (R_MIPS_HI16, R_MIPS_LO16):
                 other = partner(k, R_MIPS_LO16 if kind == R_MIPS_HI16 else R_MIPS_HI16)
                 if other is None:
                     continue
                 hi, lo = (offset, other.r_offset) if kind == R_MIPS_HI16 else (other.r_offset, offset)
                 theirs = ((retail.word(base + hi) & 0xFFFF) << 16) + sext16(retail.word(base + lo))
-                ours = ((word(hi) & 0xFFFF) << 16) + sext16(word(lo))
+                ours = ((struct.unpack_from("<I", original_data, hi)[0] & 0xFFFF) << 16)
+                ours += sext16(struct.unpack_from("<I", original_data, lo)[0])
             else:
                 continue
             # A negative member addend addresses storage before this native
