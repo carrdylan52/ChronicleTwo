@@ -1779,7 +1779,7 @@ int EditLoop() {
             debug_move = DebugInfo.chara_move > 0;
             chara = MainScene__2->GetCharacter(MainScene__2->player_chara);
             if (debug_move == 0) {
-                if ((GetSaveData()->GetBitCtrl() & 0x2) != 0) {
+                if ((GetSaveData()->GetBitCtrl() & MENU_DEBUG_BIT_CTRL_NO_GEORAMA) != 0) {
                     edit_enabled = 0;
                 }
                 main_map_no = MainScene__2->GetMainMapNo();
@@ -2469,7 +2469,7 @@ int EditDraw() {
         }
     }
     show_system = !DebugInfo.param_off;
-    if ((GetSaveData()->GetBitCtrl() & 0x2) != 0) {
+    if ((GetSaveData()->GetBitCtrl() & MENU_DEBUG_BIT_CTRL_NO_GEORAMA) != 0) {
         show_system = 0;
     }
     main_map_no = MainScene__2->GetMainMapNo();
