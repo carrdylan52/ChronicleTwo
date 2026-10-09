@@ -246,10 +246,6 @@ extern char            at_8904[];
 extern char            at_4437[];
 extern char            at_5262__2[];
 extern char            at_5263__2[];
-extern char            at_2836[];
-extern char            at_2837[];
-extern char            at_2838[];
-extern char            at_2839[];
 extern char            at_5410[];
 extern char            at_5411[];
 extern char            at_5412[];
@@ -4458,23 +4454,23 @@ int LoadMovie(char *name, mgCMemory *memory, bool skip) {
     int frame;
 
     movie.Load(name, memory, 0x200, 0x1A0, true, false, skip);
-    printf(at_2836, (memory->stack_size - memory->stack_used) * 0x10 / 0x400);
+    printf("/////////////////// SIZE REMAIN = %dn /////////////////", (memory->stack_size - memory->stack_used) * 0x10 / 0x400);
     movieBlock = EventScene->event_texb;
     if (EventScene->event_texb_num <= 0) {
         return 0;
     }
     mgCTextureManager *textures = &mgTexManager;
     textures->DeleteBlock(movieBlock);
-    textures->EnterTexture(movieBlock, at_2837, NULL, mgScreenWidth, mgScreenHeight, mgScreenDepth, 0, 0LL, 0);
+    textures->EnterTexture(movieBlock, "moviework", NULL, mgScreenWidth, mgScreenHeight, mgScreenDepth, 0, 0LL, 0);
     captionBlock = movieBlock + 1;
     captionOff = GetConfigCaptionOff();
     fontBlock = -1;
     if (EdEventInfo.caption_enable != 0 && captionOff == 0) {
-        mgCTexture *fontTexture = textures->GetTexture(at_2838, fontBlock);
+        mgCTexture *fontTexture = textures->GetTexture("gaiji", fontBlock);
         if (fontTexture != NULL) {
             fontBlock = fontTexture->block;
             textures->DeleteBlock(fontBlock);
-            textures->EnterTexture(captionBlock, at_2839, NULL, mgScreenWidth, mgScreenHeight, mgScreenDepth, 0, 0LL, 0);
+            textures->EnterTexture(captionBlock, "movieworkte", NULL, mgScreenWidth, mgScreenHeight, mgScreenDepth, 0, 0LL, 0);
             ReLoadFontTexture(captionBlock);
             textures->EnterIMGFile(GetFontTex2ImgPtr(), captionBlock, NULL, NULL);
         } else {
@@ -4482,8 +4478,8 @@ int LoadMovie(char *name, mgCMemory *memory, bool skip) {
         }
     }
     textures->ReloadTexture(movieBlock, (sceVif1Packet *)NULL);
-    movieTexture = textures->GetTexture(at_2837, movieBlock);
-    movie.Play(at_2837);
+    movieTexture = textures->GetTexture("moviework", movieBlock);
+    movie.Play("moviework");
     movie.SwitchThread();
     while (movie.IsStarted() == 0) {
         movie.SwitchThread();
@@ -18172,10 +18168,6 @@ INCLUDE_RODATA("ps2/asm/pal/nonmatchings/event_func", vv_3333__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/event_func", at_1083__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/event_func", at_1910__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/event_func", at_1909__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/event_func", at_2836__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/event_func", at_2837__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/event_func", at_2838__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/event_func", at_2839__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/event_func", at_3328__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/event_func", at_3329__2__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/event_func", at_3631__2__DATA);
