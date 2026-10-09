@@ -4221,7 +4221,7 @@ void CAquarium::SettingAqua() {
     }
 
     textures->name_suffix[0] = 0;
-    mgCTexture *screen = textures->EnterTexture(water_tex_block, at_3162__2, NULL, mgScreenWidth, mgScreenHeight, 0x20, NULL, 0, 0);
+    mgCTexture *screen = textures->EnterTexture(water_tex_block, "AQUA_WATER_WORK", NULL, mgScreenWidth, mgScreenHeight, 0x20, NULL, 0, 0);
     water_min = at_2975;
     water_max = at_2976;
     water = CreateWaterFrame(24, 16, water_min.v, water_max.v, &aqua_stack);
@@ -4327,7 +4327,7 @@ void CAquarium::SettingAqua() {
 
         love_chara = chara;
         love_chara->Initialize();
-        love_chara->LoadPack((unsigned int *) load_buf, at_2930__2, &love_stack, &love_stack, &love_stack, love_tex_block, NULL);
+        love_chara->LoadPack((unsigned int *) load_buf, "info.cfg", &love_stack, &love_stack, &love_stack, love_tex_block, NULL);
         love_chara->SetPosition(0.0f, -66.0f, 0.0f);
         mgCFrame *frame = love_chara->GetFrame();
 
