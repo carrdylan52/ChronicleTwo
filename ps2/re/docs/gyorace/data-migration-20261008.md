@@ -1,7 +1,10 @@
 # Fish-race data migration, October 8 night
 
-The round-4 state below is historical; the round-6 sections record the
-data ownership after native race initialization.
+The current source has **13 RODATA / 2 BSS** markers. Only
+`sgLoopGyoRace` remains guarded. Its thirteen constants and the two
+`DivSpriteScreen` vector templates (`at_1775`, `at_1776`) remain supplied
+by assembly. The round-4 and round-6 tables below describe earlier
+checkpoints; the final three completion sections supersede their BSS lists.
 
 Baseline: `9eb8f660`, pinned SF image, canonical flags and unchanged profile.
 The existing race, camera, effect and fish layouts supply the types. Neither
@@ -35,7 +38,7 @@ passed PAL/object checks, so those checks alone do not validate this source
 extent. The final declaration is corrected to the ELF size and validated
 again. This supersedes the initial migration's eight-entry note.
 
-## Retained assembly-owned constants
+## Round-4 assembly-owned constants (historical)
 
 The following markers remain because the guarded assembly functions access
 their retail symbols directly. Compiler-generated anonymous identities from
@@ -53,7 +56,7 @@ renamed, exported artificially or moved into a dummy object.
 the native commentary path. Their assembly consumers still require the
 retail symbols even where a native caller already uses an inline literal.
 
-## Drawing data and retained BSS markers
+## Round-4 drawing data and retained BSS markers (historical)
 
 The existing `float step[4] = {0, 0, 0, 1}` supplies `at_1766__3` without
 its marker. The existing `lap_inf[2][5]` supplies its BSS template and verified
@@ -178,11 +181,15 @@ this file-local object. Native symbol binding and declared size now both
 agree with retail.
 
 Its relative construction order remains Texture, Work, then camera.
-The generated unit initializer, its relocations and every game function
-remain byte-identical. The guarded Loop block and every declaration,
-extern and marker for its data remain exactly as before this lane.
+At this data-migration checkpoint the generated unit initializer, its
+relocations and every game function remained byte-identical. Later Loop
+draft edits are recorded in [night-20261008.md](night-20261008.md); its
+assembly fallback and retained data markers remain active.
 
-Init's promotion frees none of the five BSS markers. The round-4 negative
+At the round-6 checkpoint, Init's promotion freed none of the five BSS
+markers. The completion sections below subsequently remove `lap_inf2_1799`,
+`D_01F5971C` and `at_1765__2`, leaving only `at_1775` and `at_1776`.
+The round-4 negative
 experiments are not repeated, and no tooling or function body is changed:
 
 | Retained BSS | Current consumer and blocker |
@@ -214,7 +221,7 @@ the existing canonical checker verifies the linker's 0x3C-byte zero tail at
 the exact contents end. No drawing code, guarded draft, INCLUDE_ASM line,
 array extent, or constructor changes.
 
-Markers: RODATA **26 → 26**, BSS
+Markers: RODATA **13 → 13**, BSS
 **5 → 4**. Refreshed matched data:
 **125 → 125 / 2729**.
 The complete PAL is `SCES_511.90: OK` and all **149/149** canonical objects
@@ -234,9 +241,9 @@ bytes. Verified native alignment now supplies that zero fragment under
 
 Only the data marker and its empty data guard are removed. All source
 functions, guarded drafts and INCLUDE_ASM lines remain unchanged. The
-remaining three BSS templates and 26 constants retain their markers.
+remaining three BSS templates and thirteen Loop constants retain their markers.
 
-Markers: RODATA **26 → 26**, BSS **4 → 3**. Refreshed matched data remains
+Markers: RODATA **13 → 13**, BSS **4 → 3**. Refreshed matched data remains
 **125 / 2729** because the other retained pieces leave their aggregate
 sections incomplete. PAL is `SCES_511.90: OK`, all **149/149** objects pass,
 and only `gyorace` and the simultaneously migrated `dngfloor` object change
@@ -263,7 +270,7 @@ additional unknown consumers reject the candidate. The two remaining zero
 templates still require natural vector-copy source work; no union-based
 initializer or new type-pun is introduced to force their data emission.
 
-Markers: RODATA **26 → 26**, BSS **3 → 2**. Refreshed matched data remains
+Markers: RODATA **13 → 13**, BSS **3 → 2**. Refreshed matched data remains
 **125 / 2729**. PAL is `SCES_511.90: OK`, all **149/149** objects pass,
 and only `gyorace.cpp.o` changes from the preceding accepted step. Code
 metrics remain **6,780 functions / 1,854,796 bytes**. Receipts:

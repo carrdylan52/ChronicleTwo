@@ -89,9 +89,9 @@ grRACE_PROGRESS (0x18): `+0` float course position (0..16, 8 per lap), `+8` floa
 
 ## Current matching status (2026-10-08)
 
-Eight of the ten functions are source supplied. Only `sgInitGyoRace` and
-`sgLoopGyoRace` remain guarded; `sgSysDrawGyoRace` is native (see
-[night-20261008.md](night-20261008.md)). The earlier partial-draft
+Nine of the ten functions are source supplied. Only `sgLoopGyoRace`
+remains guarded; `sgInitGyoRace` and `sgSysDrawGyoRace` are native and exact
+(see [night-20261008.md](night-20261008.md)). The earlier partial-draft
 and initializer promotion descriptions are obsolete; the current initializer
 and drawing/commentary helpers already match. Fresh receipts supersede the
 previous claims of ten/twelve-word Init/Draw differences.
@@ -118,6 +118,10 @@ not recover the retail lifetimes. Reconsider with a natural loop form that
 accounts for these saved-register identities.
 
 ### Race initialization
+
+This historical draft analysis is superseded by the native initialization
+and camera calibration in [night-20261008.md](night-20261008.md). The shared
+fatigue field is now `u16`, and the complete native function matches.
 
 The untouched Init draft emits a 0x1210-byte section against retail's 0x1200
 extent and differs in 437 disassembled instructions. Direct fish pointers
@@ -162,7 +166,8 @@ independent mismatches. The guarded assembly remains active.
 
 ## October 8 mid-day matching audit
 
-The retained source still guards all three large functions. All probes use
+At this historical mid-day checkpoint all three large functions were guarded;
+Init and SysDraw have since become native. All probes below use
 MWCC 3.0-011126 with canonical flags and the checked-in profile, unless a
 private diagnostic profile or header overlay is explicitly named. The
 following measurements supersede earlier draft scores and alias conclusions.
