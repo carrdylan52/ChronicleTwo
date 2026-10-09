@@ -374,9 +374,27 @@ extern char               at_2512__2[];
 extern char               at_2513[];
 extern char               at_2514[];
 extern char               at_2515[];
-extern char              *tbl_2023[2];
-extern char              *tp_2083[4];
-extern unsigned char      conv_2316[];
+/**
+ *
+ * Cursor actions selecting the two memory card slots.
+ *
+ */
+static char *tbl_2023[2] = {"slot1", "slot2"};
+
+/**
+ *
+ * Cursor actions selecting the three visible save file rows.
+ *
+ */
+static char *tp_2083[3] = {"list0", "list1", "list2"};
+
+/**
+ *
+ * Dungeon map numbers used in save file location messages.
+ *
+ */
+static unsigned char conv_2316[9] = {55, 57, 58, 64, 79, 97, 160};
+
 extern short              TreeMapSaveNum;
 extern char               at_3198__2[];
 extern char               at_3199__3[];
@@ -463,7 +481,6 @@ static char *SubGameSaveCFGBuffer;
  */
 static int SubGameSaveCFGBufferSize;
 
-extern SaveIconSet         at_2609__2;
 
 /**
  *
@@ -2875,7 +2892,11 @@ void SaveFileListDraw(int &tex_block, float *pos, int alpha) {
     }
 }
 void SetMCIconData(u_int *pack, int slot) {
-    SaveIconSet icons = at_2609__2;
+    SaveIconSet icons = {{
+        {"dc2_ic.ico"},
+        {"dc2_ic_c.ico"},
+        {"dc2_ic_d.ico"}
+    }};
 
     for (int i = 0; i < 3; i++) {
         MC_ICON_DATA *icon = &icons.file[i];
@@ -3681,9 +3702,6 @@ void SubGameSaveDraw() {
 }
 
 // Initialised data (.data)
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuop", tp_2083__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuop", conv_2316__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuop", at_2609__2__DATA);
 
 // Constants (.rodata)
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuop", at_1102__DATA);
@@ -3731,11 +3749,6 @@ INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuop", at_1903__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuop", at_1904__2__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuop", at_1905__3__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuop", at_1906__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuop", at_2024__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuop", at_2025__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuop", at_2084__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuop", at_2085__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuop", at_2086__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuop", at_2498__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuop", at_2499__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuop", at_2500__DATA);
@@ -3794,7 +3807,6 @@ INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuop", at_3207__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuop", __vt__11CManualMenu__DATA);
 
 // Small initialised data (.sdata)
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuop", tbl_2023__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuop", at_2335__3__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuop", at_2342__DATA);
 

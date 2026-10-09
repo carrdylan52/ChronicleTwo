@@ -77,3 +77,27 @@ not folded constants.
 Each table step passes the complete build and all 149 canonical objects:
 `scalar-tables`, `boss-maps`, `dungeon-maps`, and `scrollbar-names` receipts.
 After these steps: 110 RODATA / 14 BSS markers.
+
+## Save resources and guarded consumers
+
+`tbl_2023` is a two-pointer slot cursor action table in small initialized data.
+`tp_2083` is a three-pointer visible-row action table in initialized data.
+Its former four-entry source declaration included the alignment word, whereas
+retail declares only 12 bytes. The native definitions retain both exact
+normalized retail names so the guarded save-menu draft and retail fallback
+resolve them without source changes. Their five action strings are now
+initializer literals.
+
+The nine-byte dungeon-location map conversion table keeps its seven mapped
+IDs and two implicit zero entries under `conv_2316`; the larger 24-byte marker
+was its declared extent plus alignment. No padding array is introduced.
+The icon metadata is a local `SaveIconSet` aggregate initialized by the three
+resource filenames. Each existing 0x28-byte `MC_ICON_DATA` entry contains a
+32-byte filename, loaded-data pointer and size; omitted members initialize
+the pointer and size to zero before the resource lookup fills them. The
+retail anonymous 0x78-byte template is emitted by that initializer.
+
+`save-map-conversion`, `slot-actions`, `row-actions`, and `save-icons`
+receipts each show PAL OK and 149/149 exact objects. All nine initialized-data
+markers are now removed. RODATA / BSS markers are 101 / 14, and the refreshed
+data comparison is 732/3,027 bytes (`tables-complete-metrics.json`).
