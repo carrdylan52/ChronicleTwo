@@ -1240,6 +1240,3 @@ int CheckFishingRecord(float size) {
 
     return 0;
 }
-
-
-// Constants (.rodata)

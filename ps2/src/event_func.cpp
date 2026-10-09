@@ -18094,8 +18094,6 @@ void SetEventFunc(CRunScript *script) {
     script->ext_func(ext_func, event_func_slots);
 }
 
-// Initialised data (.data)
-
 // Uninitialised data (.bss)
 ED_EVENT_INFO EdEventInfo;
 

@@ -230,5 +230,3 @@ void CObjectFrame::Initialize() {
     frame = NULL;
     CObject::Initialize();
 }
-
-// Virtual tables (.vtables)

@@ -898,5 +898,3 @@ void CSound::StreamStandBy(int channel) {
 int CSound::TransBdState(int channel) {
     return sceSdRemote(1, rSdVoiceTransStatus, channel, SD_TRANS_STATUS_CHECK);
 }
-
-// Uninitialised data (.bss)
