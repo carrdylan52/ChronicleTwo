@@ -1702,7 +1702,7 @@ static int TitleModeKey() {
                         TitleScene->fade.FadeOut(0x1E, 0.0f, 0.0f, 0.0f);
                         MenuSePlay(SYSTEM_SE_DECIDE);
                     } else {
-                        MenuSePlay(5);
+                        MenuSePlay(SYSTEM_SE_CANCEL);
                     }
                 } else if (TitleInfo->select == TITLE_MENU_OPTION) {
                     TitlePhase = TITLE_PHASE_OPTION;
@@ -1725,11 +1725,11 @@ static int TitleModeKey() {
                     }
                     MenuSePlay(SYSTEM_SE_DECIDE);
                 } else {
-                    MenuSePlay(5);
+                    MenuSePlay(SYSTEM_SE_CANCEL);
                 }
             } else if (push & MENU_PUSH_BUTTON_CANCEL) {
                 TitlePhase = TITLE_PHASE_PUSH_START;
-                MenuSePlay(5);
+                MenuSePlay(SYSTEM_SE_CANCEL);
             }
             break;
         }
@@ -1792,7 +1792,7 @@ static int TitleModeKey() {
             } else if (push & MENU_PUSH_BUTTON_CANCEL) {
                 TitlePhase = TITLE_PHASE_MENU;
                 TitleInfo->omake_alpha = 0.0f;
-                MenuSePlay(5);
+                MenuSePlay(SYSTEM_SE_CANCEL);
             }
             break;
         }
@@ -1800,7 +1800,7 @@ static int TitleModeKey() {
             if ((push & MENU_PUSH_BUTTON_CANCEL) || (push & MENU_PUSH_BUTTON_DECIDE)) {
                 TitlePhase = TITLE_PHASE_MENU;
                 TitleMCCheckMes = NULL;
-                MenuSePlay(5);
+                MenuSePlay(SYSTEM_SE_CANCEL);
             }
             break;
     }
