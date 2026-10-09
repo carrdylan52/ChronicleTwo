@@ -729,7 +729,7 @@ mgCFrame *mgLoadMDSFile(mgLoadData *load) {
         blocks = (mds->object_num * 4) >> 4;
     }
 
-    frame_table = (mgCFrame **) operator new[](mds->object_num * 4, memory->Alloc(blocks + 2));
+    frame_table = new (memory->Alloc(blocks + 2)) mgCFrame *[mds->object_num];
     matrix_table = NULL;
 
     if (weight != NULL) {
@@ -739,7 +739,7 @@ mgCFrame *mgLoadMDSFile(mgLoadData *load) {
             blocks = ((mds->object_num + 2) * 0x40) >> 4;
         }
 
-        matrix_table = (float (*)[4][4]) operator new[]((mds->object_num + 2) * 0x40, memory->Alloc(blocks + 2));
+        matrix_table = new (memory->Alloc(blocks + 2)) sceVu0FMATRIX[mds->object_num + 2];
     }
 
     for (i = 0; i < mds->object_num; i++) {
