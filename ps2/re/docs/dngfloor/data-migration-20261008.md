@@ -53,3 +53,24 @@ Every accepted incremental step passes `SCES_511.90: OK` and 149/149 full object
 checks including resolved relocations. Receipts are
 `.private/dataB-r3/dngfloor-*-build.log` and `dngfloor-*-objects.log`;
 `dngfloor-progress.log` records the required source-only refresh.
+
+## Round-4 retained-marker checks
+
+Literal padding now stops at canonical reference boundaries, so the native
+40-byte room-option initializer owns a 44-byte piece instead of overlapping
+`D_0036178C`. Its four keyword markers and initializer marker are removed.
+The negative-addend texture-table access preserves its native table identity
+and original -4 addend instead of binding the table to the preceding word;
+its marker is also removed.
+
+`D_0036178C` remains a separate four-byte padding marker. The compiler emits
+no object for that independently referenced boundary, and naming or padding
+the neighboring objects does not supply its own section. No source padding
+variable or relaxed object check is introduced.
+
+Markers: rodata 7 → 1, BSS 0 → 0.
+Native data credit: 38 → 324 / 836.
+
+Validation: `.private/dtool-r4/dngfloor-{build,objects,tests}.log`.
+PAL is byte-identical and all 149 complete objects pass. Other game objects
+retain their baseline hashes, and the code metric is unchanged.
