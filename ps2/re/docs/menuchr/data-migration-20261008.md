@@ -183,3 +183,16 @@ literal. Each group passes PAL and all 149 object checks independently.
 After this group: **151 / 25 markers**, **4 / 9726 matched_data**.
 Receipts: `.private/nmchr-r3/menuchr-loading-strings-00` through `-11`,
 with `-{build,objects,progress,metrics}.log`, and `loading-string-batch.log`.
+
+## Party menu numeric tables
+
+Five native tables replace their fallbacks: seven background-request flags,
+five cursor reversal bytes, the five-by-eight command transition table, four
+signed-halfword character message numbers, and three outcome sound IDs.
+The transition, message and sound tables remain reachable by their exact
+retail names from the frozen character-change draft. All declared extents,
+payloads and resolved relocations match without source padding.
+After this group: **146 / 25 markers**, **4 / 9726 matched_data**.
+Each table passes PAL and 149/149 objects independently; receipts are
+`.private/nmchr-r3/menuchr-party-tables-00` through `-04`, with
+`-{build,objects,progress,metrics}.log`, and `party-table-batch.log`.

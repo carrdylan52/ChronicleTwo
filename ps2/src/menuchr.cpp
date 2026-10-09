@@ -860,9 +860,33 @@ extern s8               init_1416;
 extern NpcNameList      at_1650__2;
 extern NpcCmdMesList    at_1684__2;
 extern GiftVolumeList   at_1806__2;
-extern s8               nextIDtbl_1594[5][8];
-extern s16              msgtbl1_1732[4];
-extern s8               se_sndtbl_1749[3];
+/**
+ *
+ * Townsperson command cursor transitions.
+ *
+ */
+static s8 nextIDtbl_1594[5][8] = {
+    {0, 0, 2, 2, 2, 1, 1, 0},
+    {3, 0, 0, 1, 4, 4, 3, 3},
+    {0, 0, 2, 2, 2, 2, 0, 0},
+    {3, 3, 1, 1, 1, 3, 3, 3},
+    {1, 1, 1, 1, 4, 4, 4, 4}
+};
+
+/**
+ *
+ * Party character message numbers used by character change commands.
+ *
+ */
+static s16 msgtbl1_1732[USER_CHARA_NUM] = {410, 411, 412, 413};
+
+/**
+ *
+ * Sounds selected by the party change action outcome.
+ *
+ */
+static s8 se_sndtbl_1749[3] = {1, 1, 15};
+
 extern char             at_2003__2[];
 extern char             at_2004__3[];
 extern char             at_2005__2[];
@@ -1054,12 +1078,24 @@ extern MenuPositionVector at_1372__2;
  */
 static CMenuChrCngMenu   *ChrChangMenuPt;
 
-extern int                tbl_2483[];
+/**
+ *
+ * Character slots that require party menu background read requests.
+ *
+ */
+static int tbl_2483[MENU_CHARA_LOAD_MAX] = {1, 1, 1, 1, 1, 1, 1};
+
 extern char               at_2595__2[];
 extern char               at_2596__3[];
 extern NamePair           at_2288;
 extern char               at_2307[];
-extern u8                 cursor_revtbl_2237[5];
+/**
+ *
+ * Cursor reversal flag for each party menu selection.
+ *
+ */
+static u8 cursor_revtbl_2237[USER_CHARA_NUM + 1] = {1, 0, 0, 0, 0};
+
 /**
  *
  * Non-zero after the party acquisition sound has played.
@@ -7514,9 +7550,7 @@ s16 monster_progress_tbl[MONSTER_PROGRESS_NUM][1 + MONSTER_PROGRESS_LEVEL_NUM] =
 
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", tbl_1233__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_1372__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", nextIDtbl_1594__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", partt_2332__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", tbl_2483__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_2629__3__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_2691__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_2696__DATA);
@@ -7653,9 +7687,6 @@ INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", __vt__15CMenuChrCngMenu__DATA
 
 // Small initialised data (.sdata)
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", MenuSoundCharaNo__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", msgtbl1_1732__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", se_sndtbl_1749__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", cursor_revtbl_2237__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_2288__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", menu_chara_chrtbl__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", menu_chara_cfg_chrtbl__DATA);
