@@ -536,7 +536,7 @@ int EditSetPlaceAnime(int kind, CMapParts *parts) {
         for (int i = 0; i < place_anime_count; i++) {
             CPlaceAnime *candidate = &PlaceAnime[i];
 
-            if (PlaceAnime[i].state == effect_idle) {
+            if (PlaceAnime[i].state == EDIT_EFFECT_STATE_FREE) {
                 slot = candidate;
 
                 if (candidate->type == EDIT_PLACE_ANIME_REMOVE) {
@@ -566,7 +566,7 @@ int EditSetPlaceAnime(int kind, CMapParts *parts) {
         for (int i = 0; i < place_anime_count; i++) {
             CPlaceAnime *candidate = &PlaceAnime[i];
 
-            if (PlaceAnime[i].state == effect_idle) {
+            if (PlaceAnime[i].state == EDIT_EFFECT_STATE_FREE) {
                 slot = &PlaceAnime[i];
                 break;
             }
