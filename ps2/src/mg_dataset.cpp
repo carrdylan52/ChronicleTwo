@@ -1181,28 +1181,28 @@ void mgCMDTBuilder::SetMaterial(float *colour, char *texture) {
 void mgCMDTBuilder::EndData() {
     switch (data_type) {
         case MG_MDT_DATA_VERTEX:
-            header->vertex_ofs = cursor - (s32) header;
+            header->vertex_ofs = end - (char *) header;
             header->vertex_num = data_num;
             break;
         case MG_MDT_DATA_COLOUR:
-            header->colour_ofs = cursor - (s32) header;
+            header->colour_ofs = end - (char *) header;
             header->colour_num = data_num;
             break;
         case MG_MDT_DATA_NORMAL:
-            header->normal_ofs = cursor - (s32) header;
+            header->normal_ofs = end - (char *) header;
             header->normal_num = data_num;
             break;
         case MG_MDT_DATA_UV:
-            header->uv_ofs = cursor - (s32) header;
+            header->uv_ofs = end - (char *) header;
             header->uv_num = data_num;
             break;
         case MG_MDT_DATA_MATERIAL:
-            header->material_ofs = cursor - (s32) header;
+            header->material_ofs = end - (char *) header;
             header->material_num = data_num;
             break;
     }
 
-    cursor = section_start;
+    end = data;
     data_type = MG_MDT_DATA_NONE;
 }
 
