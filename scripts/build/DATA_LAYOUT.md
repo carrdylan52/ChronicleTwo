@@ -106,10 +106,12 @@ retained placeholder, that base may supply it while preserving the negative
 addend. Binding only repoints equal-offset symbols; native instruction fields
 remain unchanged.
 Every incoming reference must infer the same exact placeholder base, with the
-retail relocation kind and non-immediate operands. Initialized copies require
-resolved native bytes and the complete real relocation shape to equal retail;
-NOBITS copies require the exact declared extent. Invalid copies remain live.
-A rejected parent also prevents discarding its dependent child.
+retail relocation kind and non-immediate operands. Both initialized and NOBITS
+copies require an exact declared retail object extent; a missing declaration or
+shorter native prefix supplies no binding proof, even when its omitted bytes
+are zero. Initialized copies additionally require the whole object's resolved
+native bytes and complete real relocation shape to equal retail. Invalid copies
+remain live. A rejected parent also prevents discarding its dependent child.
 
 Native BSS templates, local statics and their guards need an exact declared
 extent and agreement from every live incoming code reference. Each reference

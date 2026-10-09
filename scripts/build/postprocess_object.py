@@ -4,7 +4,8 @@
 MWCC emits one section per function or datum. Retail addresses select each
 section's name, flags, alignment and order. Placeholder aliases identify the
 assembly-supplied pieces; binding a native copy to one preserves instruction
-fields and requires consistent references plus exact bytes or NOBITS extents.
+fields and requires consistent references, equal declared object extents and
+resolved initialized bytes plus real relocation shapes, or NOBITS storage.
 
 Native data naming checks declared extents, section kinds, byte and relocation
 evidence, source-name families and all consumers needed by the identity pass.
@@ -367,6 +368,7 @@ def bind_local_data(elf, unit, placeholder_sections):
     """Point compiled code at verified placeholders for the data it uses.
 
     Every incoming reference must agree with any established native identity.
+    Both initialized and NOBITS copies need the complete declared object extent.
     Returns the names of the compiler's copies that were dropped.
     """
     lay = layout.Layout(ROOT / layout.YAML)
@@ -495,7 +497,8 @@ def bind_local_data(elf, unit, placeholder_sections):
                              for kind, lo, hi in lay.sections(unit)))
         elif section.sh_type == SHT_PROGBITS:
             actual = {entry.r_offset: entry.reloc_type for entry in entries}
-            valid = len(actual) == len(entries) and actual == expected
+            valid = (declared.get(start) == size
+                     and len(actual) == len(entries) and actual == expected)
             data = bytearray(section.data)
             for entry in entries:
                 if (not valid or entry.reloc_type != R_MIPS_32 or entry.r_offset % 4

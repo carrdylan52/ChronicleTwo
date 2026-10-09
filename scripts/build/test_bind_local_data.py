@@ -122,6 +122,36 @@ class LocalDataTests(unittest.TestCase):
         fixture[0].symtab.symbols[1].st_size = 20
         self.reject(fixture)
 
+    def test_truncated_initialized_copy_with_relocated_tail_stays_live(self):
+        fixture = self.fixture()
+        elf, _rows, _words, retail, _lay = fixture
+        elf.sections[2].data = bytes(12)
+        elf.symtab.symbols[1].st_size = 12
+        image = bytes(12) + struct.pack('<I', 0x4000)
+        retail.bytes = lambda lo, hi: image[lo - 0x3000:hi - 0x3000]
+        retail.relocations[0x300c] = p.R_MIPS_32
+        self.reject(fixture)
+
+    def test_truncated_unrelocated_initialized_copy_stays_live(self):
+        fixture = self.fixture()
+        elf, _rows, _words, retail, _lay = fixture
+        elf.sections[2].data = bytes(12)
+        elf.symtab.symbols[1].st_size = 12
+        image = bytes(12) + struct.pack('<I', 0x100c)
+        retail.bytes = lambda lo, hi: image[lo - 0x3000:hi - 0x3000]
+        self.reject(fixture)
+
+    def test_zero_suffix_does_not_prove_a_short_declared_copy(self):
+        fixture = self.fixture()
+        fixture[0].sections[2].data = bytes(12)
+        fixture[0].symtab.symbols[1].st_size = 12
+        self.reject(fixture)
+
+    def test_missing_initialized_extent_supplies_no_binding_proof(self):
+        fixture = self.fixture()
+        fixture[1][-1] = (0x3000, 'datum', 0, False)
+        self.reject(fixture)
+
     def test_relocated_payload_and_relocation_shape_must_match(self):
         for invalid in ('payload', 'missing', 'kind', 'duplicate', 'destination'):
             with self.subTest(invalid=invalid):
