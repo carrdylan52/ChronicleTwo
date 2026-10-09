@@ -142,3 +142,13 @@ allocation draft or guarded body is changed.
 | `at_1316__2__DATA` | Resource name used by guarded `StepDataLoading`. |
 | `at_2197__3__DATA` | Caught-fish animation used by guarded `InitSuccess`. |
 | `at_2198__3__DATA` | Player success animation used by guarded `InitSuccess`. |
+
+## Storage definition order
+
+The eight constructor-bearing resource objects now precede their first use,
+removing the old external declarations that preceded file-local definitions.
+Their definition and constructor order remains EsaStack, SndStack, CameraInfo,
+UkiCameraInfo, MotionBuff, ReadStack, FishingBuff and FishStack. The complete
+initializer and every caller remain byte-identical. No storage or runtime
+initialization branch is added. Receipt:
+`.private/dataD-r1/fishing-storage-order-{build,objects}.log`.

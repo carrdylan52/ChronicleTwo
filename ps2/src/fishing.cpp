@@ -42,7 +42,7 @@
 
 /**
  *
- * Four floating point components copied as one fishing vector.
+ * Stores a four-component fishing position, direction or scale.
  *
  */
 struct Vec4 {
@@ -50,9 +50,6 @@ struct Vec4 {
 };
 
 void                    StepDataLoading(void *arg);
-extern CCameraControl   UkiCameraInfo;
-extern mgCMemory        FishStack;
-extern mgCMemory        MotionBuff;
 extern char             at_932__4[];
 extern char             at_2197__3[];
 extern char             at_2198__3[];
@@ -124,9 +121,6 @@ int              StepLoadThread();
 void             DeleteLoadThread();
 void             DrawNumber(mgCDrawPrim *prim, int digit, int x, int y);
 int              InitCasting(CScene *scene);
-extern mgCMemory EsaStack;
-extern mgCMemory SndStack;
-extern mgCMemory FishingBuff__2;
 
 enum {
     kPadButtonDebugJump = 1,
@@ -335,7 +329,6 @@ static FISH_PARAM FishParam[19] = {
     }
 };
 
-extern mgCMemory          ReadStack;
 extern char               at_917__6[];
 extern char               at_1058__3[];
 extern char               at_1304__8[];
@@ -353,7 +346,6 @@ extern char               at_1315__4[];
 extern char               at_1316__2[];
 extern int                EsaInfo[18];
 extern char              *lure_file[4];
-extern CCameraControl     CameraInfo;
 
 enum {
     kCameraSettled = 1000
@@ -1180,6 +1172,62 @@ static int snd_cnt_2495;
  *
  */
 static signed char init_2496;
+
+/**
+ *
+ * Storage for bait and lure resources.
+ *
+ */
+static mgCMemory EsaStack;
+
+/**
+ *
+ * Storage for fishing sound resources.
+ *
+ */
+static mgCMemory SndStack;
+
+/**
+ *
+ * Camera state used while entering fishing.
+ *
+ */
+static CCameraControl CameraInfo;
+
+/**
+ *
+ * Camera state used while watching the fishing float.
+ *
+ */
+static CCameraControl UkiCameraInfo;
+
+/**
+ *
+ * Storage for external fishing character motion.
+ *
+ */
+static mgCMemory MotionBuff;
+
+/**
+ *
+ * Memory stack used to read fishing resources.
+ *
+ */
+static mgCMemory ReadStack;
+
+/**
+ *
+ * Storage for the fishing subgame resources.
+ *
+ */
+static mgCMemory FishingBuff__2;
+
+/**
+ *
+ * Storage for the hooked fish model.
+ *
+ */
+static mgCMemory FishStack;
 
 // Code (.text)
 /**
@@ -4476,64 +4524,3 @@ INCLUDE_RODATA("ps2/asm/pal/nonmatchings/fishing", at_1315__4__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/fishing", at_1316__2__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/fishing", at_2197__3__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/fishing", at_2198__3__DATA);
-
-// Small initialised data (.sdata)
-
-// Small uninitialised data (.sbss)
-
-// Uninitialised data (.bss)
-/**
- *
- * Storage for bait and lure resources.
- *
- */
-static mgCMemory EsaStack;
-
-/**
- *
- * Storage for fishing sound resources.
- *
- */
-static mgCMemory SndStack;
-
-/**
- *
- * Camera state used while entering fishing.
- *
- */
-static CCameraControl CameraInfo;
-
-/**
- *
- * Camera state used while watching the fishing float.
- *
- */
-static CCameraControl UkiCameraInfo;
-
-/**
- *
- * Storage for external fishing character motion.
- *
- */
-static mgCMemory MotionBuff;
-
-/**
- *
- * Memory stack used to read fishing resources.
- *
- */
-static mgCMemory ReadStack;
-
-/**
- *
- * Storage for the fishing subgame resources.
- *
- */
-static mgCMemory FishingBuff__2;
-
-/**
- *
- * Storage for the hooked fish model.
- *
- */
-static mgCMemory FishStack;
