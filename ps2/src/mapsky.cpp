@@ -51,7 +51,7 @@ static void LoadSkyPack(MAP_SKY_INFO *info, char *script, int size);
  * Sky configuration commands and their script callbacks.
  *
  */
-static SPI_TAG_PARAM tag__2[8] = {
+static SPI_TAG_PARAM tag[8] = {
     {"SKY_IMG", _SKY_IMG},
     {"SKY_MDS", _SKY_MDS},
     {"SKY_ANIME", _SKY_ANIME},
@@ -319,7 +319,7 @@ static void LoadSkyPack(MAP_SKY_INFO *info, char *script, int size) {
     }
 
     CScriptInterpreter interpreter;
-    interpreter.SetTag(tag__2);
+    interpreter.SetTag(tag);
     interpreter.SetScript(script, size);
     interpreter.Run();
 }
