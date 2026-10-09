@@ -1388,13 +1388,13 @@ int EditLoop() {
         }
         break;
     }
-    PAUSE_INFO menu_pause;
-    PAUSE_INFO pause;
     if (SubMapLoadStep() != 0) {
         while (wait_for_map != 0 && SubMapLoadStep() != 0) {
         }
     }
     if (LoopMode == EDIT_LOOP_WALK_MENU || LoopMode == EDIT_LOOP_EDIT_MENU) {
+        PAUSE_INFO menu_pause;
+        menu_pause.scene = NULL;
         menu_pause.scene = MainScene__2;
         menu_pause.event_skip = 0;
         if (PadCtrl.Btn(PAD_BTN_PAUSE) != 0) {
@@ -1407,63 +1407,58 @@ int EditLoop() {
                 if (MenuInfo->end_code != 11 && SubGameRunning() != 0 && GetSubGameNo() == SUBGAME_FISHING) {
                     sgExitSubGame();
                 }
-                switch (MenuInfo->end_code) {
-                    case 1:
-                    case 21:
-                        if (MenuInfo->end_code == 21) {
-                            MainScene__2->fade.CaptureScreen();
-                            MainScene__2->fade.CrossFade(20, 1.0f);
-                        }
-                        ActiveCharaNo = MenuInfo->result[0];
-                        ActiveCharaNo = GetUserData()->active_chr_no;
-                        chara = MainScene__2->GetCharacter(MainScene__2->player_chara);
-                        if (chara != NULL) {
-                            chara->UpdatePosition();
-                            chara->ResetDAPosition();
-                        }
-                        EditControlStatusInit(MainScene__2);
-                        break;
-                    case 11: {
-                        SubGameInfo fishing;
-                        fishing.scene = MainScene__2;
-                        fishing.rod_no = MenuInfo->result[0];
-                        fishing.esa_no = MenuInfo->result[1];
-                        FishingBuff.stSetBuffer(CharaBufs[0].stack + CharaBufs[0].stack_used,
-                                                CharaBufs[0].stack_size - CharaBufs[0].stack_used);
-                        fishing.menu_buff = &MenuBuffer__2;
-                        fishing.load_buff = &FishingBuff;
-                        MenuInfo->end_code = 0;
-                        current_subgame = GetNowSubGameInfo();
-                        if (SubGameRunning() != 0 && current_subgame->rod_no != fishing.rod_no) {
-                            fishing.keep_bgm = 1;
-                        }
-                        if ((GetMenuEtcFlag() & 0x1) != 0 || SubGameRunning() == 0 || current_subgame->rod_no != fishing.rod_no) {
-                            ResetViewMode(MainScene__2);
-                            sgInitSubGame(SUBGAME_FISHING, &fishing);
-                        } else {
-                            sgRestartSubGame(&fishing);
-                        }
-                        break;
+                int end_code = MenuInfo->end_code;
+                if (end_code == 21 || end_code == 1) {
+                    if (end_code == 21) {
+                        MainScene__2->fade.CaptureScreen();
+                        MainScene__2->fade.CrossFade(20, 1.0f);
                     }
-                    case 6:
-                        SetEventScript(NULL, NULL, NULL);
-                        if (ControlMode == EDIT_CONTROL_EVENT) {
-                            MainScene__2->active_camera = MainScene__2->before_camera;
-                            ControlMode = EDIT_CONTROL_PLAYER;
-                        }
-                        if (MenuInfo->result[0] != LOOP_EDIT) {
-                            finish = 1;
-                            INIT_LOOP_ARG next_loop;
-                            next_loop.map_no = MenuInfo->result[1];
-                            next_loop.floor_no = MenuInfo->result[2];
-                            next_loop.event_no = 1010;
-                            NextLoop(MenuInfo->result[0], next_loop);
-                        } else {
-                            BurnEditParts();
-                            EditMapJump(MenuInfo->result[1]);
-                            MainScene__2->RunEvent(100, NULL);
-                        }
-                        break;
+                    ActiveCharaNo = MenuInfo->result[0];
+                    ActiveCharaNo = GetUserData()->active_chr_no;
+                    chara = MainScene__2->GetCharacter(MainScene__2->player_chara);
+                    if (chara != NULL) {
+                        chara->UpdatePosition();
+                        chara->ResetDAPosition();
+                    }
+                    EditControlStatusInit(MainScene__2);
+                } else if (end_code == 11) {
+                    SubGameInfo fishing;
+                    fishing.scene = MainScene__2;
+                    fishing.rod_no = MenuInfo->result[0];
+                    fishing.esa_no = MenuInfo->result[1];
+                    FishingBuff.stSetBuffer(CharaBufs[0].stack + CharaBufs[0].stack_used,
+                                            CharaBufs[0].stack_size - CharaBufs[0].stack_used);
+                    fishing.menu_buff = &MenuBuffer__2;
+                    fishing.load_buff = &FishingBuff;
+                    MenuInfo->end_code = 0;
+                    current_subgame = GetNowSubGameInfo();
+                    if (SubGameRunning() != 0 && current_subgame->rod_no != fishing.rod_no) {
+                        fishing.keep_bgm = 1;
+                    }
+                    if ((GetMenuEtcFlag() & 0x1) != 0 || SubGameRunning() == 0 || current_subgame->rod_no != fishing.rod_no) {
+                        ResetViewMode(MainScene__2);
+                        sgInitSubGame(SUBGAME_FISHING, &fishing);
+                    } else {
+                        sgRestartSubGame(&fishing);
+                    }
+                } else if (end_code == 6) {
+                    SetEventScript(NULL, NULL, NULL);
+                    if (ControlMode == EDIT_CONTROL_EVENT) {
+                        MainScene__2->active_camera = MainScene__2->before_camera;
+                        ControlMode = EDIT_CONTROL_PLAYER;
+                    }
+                    if (MenuInfo->result[0] != LOOP_EDIT) {
+                        finish = 1;
+                        INIT_LOOP_ARG next_loop;
+                        next_loop.map_no = MenuInfo->result[1];
+                        next_loop.floor_no = MenuInfo->result[2];
+                        next_loop.event_no = 1010;
+                        NextLoop(MenuInfo->result[0], next_loop);
+                    } else {
+                        BurnEditParts();
+                        EditMapJump(MenuInfo->result[1]);
+                        MainScene__2->RunEvent(100, NULL);
+                    }
                 }
             } else if (LoopMode == EDIT_LOOP_EDIT_MENU) {
                 MainScene__2->GetMap(MainScene__2->active_map);
@@ -1510,6 +1505,8 @@ int EditLoop() {
     change_mode = 0;
     return_to_player = 0;
     start_event = -1;
+    PAUSE_INFO pause;
+    pause.scene = NULL;
     pause.scene = MainScene__2;
     pause.event_skip = 0;
     pause_enabled = 0;
@@ -1584,7 +1581,7 @@ int EditLoop() {
                 break;
             case EDIT_CONTROL_EVENT:
                 pause.event_skip = 1;
-                if (CheckEventSkip() == 0) {
+                if (!CheckEventSkip()) {
                     pause.event_skip = 0;
                 }
                 pause_enabled = 1;
