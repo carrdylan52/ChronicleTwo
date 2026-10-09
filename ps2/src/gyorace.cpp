@@ -48,8 +48,9 @@ union RaceVector {
     u_long128 q;    /**< The same components as a quadword. */
 };
 
-extern RaceVector  at_1775;
-extern RaceVector  at_1776;
+extern RaceVector at_1775;
+extern RaceVector at_1776;
+
 /**
  *
  * Angular phase of the underwater raster effect.
@@ -606,6 +607,7 @@ int sgInitGyoRace(SubGameInfo *info) {
     scene->fade.FadeIn(30);
     return 1;
 }
+
 #ifdef NONMATCHING
 int sgLoopGyoRace(SubGameInfo *info) {
     extern char                at_1380__2__DATA[];
@@ -1006,6 +1008,7 @@ int sgLoopGyoRace(SubGameInfo *info) {
 #else
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/gyorace", sgLoopGyoRace__FP11SubGameInfo);
 #endif
+
 void AutoCam(SubGameInfo *info) {
     CScene *scene = info->scene;
     CCharacter2 *hero = scene->GetCharacter(fish_inf[hero_no].chara_no);
@@ -1343,6 +1346,7 @@ int sgSysDrawGyoRace(SubGameInfo *info) {
     }
     return 0;
 }
+
 int Jikkyou(SubGameInfo *info) {
     CFont           font;
     grRACE_PROGRESS lead;
@@ -1529,8 +1533,12 @@ INCLUDE_RODATA("ps2/asm/pal/nonmatchings/gyorace", at_1702__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/gyorace", at_1703__DATA);
 
 // Uninitialised data (.bss)
-
-mgCCamera        camera0(8.0f);
+/**
+ *
+ * Camera the fish race scene is viewed through.
+ *
+ */
+mgCCamera camera0(8.0f);
 #ifndef NONMATCHING
 INCLUDE_BSS(at_1775, 0x10);
 INCLUDE_BSS(at_1776, 0x10);
