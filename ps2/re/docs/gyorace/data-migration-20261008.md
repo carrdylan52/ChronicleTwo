@@ -120,3 +120,49 @@ Receipts are in `.private/dataB-r6/`: `warm-build.log`, `warm-objects.log`,
 `warm-gyorace-object.log`, `before-progress.log`, `before-snapshot.json`,
 `vectors-build.log`, `vectors-objects.log`, `vectors-progress.log` and
 `vectors-snapshot.json`.
+
+## Round 6: native initialization strings
+
+The eleven freed string markers have these existing inline source forms:
+
+| Retail symbol | Address | Declared size | Purpose or literal |
+|---|---:|---:|---|
+| `at_1373__3` | 0x3785B0 | 0x14 | `snd2/mon/EN_902.snd` sound bank |
+| `at_1374__2` | 0x3785C8 | 0x9 | `/sg/gyo/` resource directory |
+| `at_1375__2` | 0x3785D8 | 0xC | `gyore%d.mes` localized commentary filename |
+| `at_1376__2` | 0x3785F0 | 0x37 | Simulation-seed diagnostic |
+| `at_1377__4` | 0x378630 | 0x35 | Player-fish fatigue diagnostic |
+| `at_1378__3` | 0x378670 | 0x4B | Entrant-name and tactics diagnostic |
+| `at_1379__3` | 0x3786C0 | 0x9 | `info.cfg` character configuration |
+| `at_1381` | 0x3786E0 | 0x13 | `grttex_new6_%d.img` localized atlas filename |
+| `at_1382__2` | 0x378700 | 0x10 | `grttex_new6.img` fallback atlas filename |
+| `at_1383__3` | 0x378710 | 0x9 | `grt_moji` time-digit texture |
+| `at_1384__2` | 0x378720 | 0x5 | `grt1` window texture, shared with native SysDraw |
+
+No remaining assembly or guarded-draft code uses these eleven objects.
+Removing their markers leaves each literal inline, with verified native
+identity and retail alignment padding. The `grt1` string remains shared
+between both native callers. The Shift-JIS motion string `at_1380__2`
+still has a Loop consumer and keeps its exact marker and draft declaration.
+
+The thirteen retained RODATA markers are all required by Loop:
+
+| Objects | Purpose |
+|---|---|
+| `at_1481__4`, `at_1524__2`, `at_1547`, `at_1548` | Direction, rotation, ambient-colour and camera-position templates |
+| `at_1380__2`, `at_1700__2` | Ordinary-swim and battle motion names |
+| `at_1696__2`, `at_1697__3`, `at_1698__3`, `at_1699__3` | Gate map part, piece and left/right frame names |
+| `at_1701`, `at_1702` | Blank result name and result diagnostic |
+| `at_1703` | Six-entry switch jump table, not a diagnostic string |
+
+`at_1703` occupies 0x18 bytes at `0x3787C0`. Loop uses its base at
+offsets +0x4C/+0x54; its targets are Loop offsets 0x68, 0x2B4, 0x4B8,
+0x4B8, 0x1028 and 0x1598. Its marker remains unchanged with the other
+twelve Loop markers; no function or draft declaration changes.
+
+PAL and 149/149 objects pass. The unit now has **13 RODATA / 5 BSS**
+markers; fresh objdiff `matched_data / total_data` remains **125 / 2729**.
+The other 148 object hashes and all function source remain identical to
+the warm baseline. Receipts under `.private/dataB-r6/` are
+`strings-build.log`, `strings-objects.log`, `strings-progress.log`,
+`strings-snapshot.json` and `strings-hash-audit.json`.
