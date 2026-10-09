@@ -54,3 +54,16 @@ nonselected-object audits, all controls, commands and hashes are under
 `.private/pntc/map-drawrect-natural/`. Tracked promotion still requires the
 complete wrapper, game build, all object checks, baseline artifact comparison
 and refreshed progress.
+
+The manually unguarded source passes the pn15 clean 31-caller acceptance
+group: exact PAL, 149/149 complete units, and map's entire 0x4728 bytes with
+418 resolved relocations. All 306 assembled objects and 149 native base
+objects outside the nineteen promoted units retain their baseline hashes.
+Linked main bytes retain SHA-256
+`a103b0461a88e443a3af684cf150c05b5bd355e5a97ab2dc029c4d872bed0811`; the
+loaded memory end remains 0x01f64a00. Explicit context/objdiff refresh and
+host coverage report 6,780 matched / 82 guarded / ten assembly-only / zero
+fuzzy. Receipts are
+`.private/pntc/receipts/promote-thirty-one-{clean-build,objects,artifacts,progress,coverage}`
+with logs, explicit zero statuses and the artifact JSON. The map unit now
+has no guarded functions.

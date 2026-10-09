@@ -400,7 +400,6 @@ CMapParts *CMap::GetParts(char *name) {
 }
 
 
-#ifdef NONMATCHING
 void CMap::CreateDrawRect(mgCMemory *memory, mgVu0FBOX *rect, mgVu0FBOX *clip, int outside) {
     mgVu0FBOX           parts_box;
     MapDrawOffRect     *slot;
@@ -428,9 +427,8 @@ void CMap::CreateDrawRect(mgCMemory *memory, mgVu0FBOX *rect, mgVu0FBOX *clip, i
         slot->used = 1;
         slot->area = *rect;
         slot->outside = outside;
-        CMapParts *placed_parts = place_parts;
-        for (j = 0; j < place_parts_max; j++) {
-            parts = &placed_parts[j];
+        parts = place_parts;
+        for (j = 0; j < place_parts_max; j++, parts = &parts[1]) {
             u8 unused = parts->name[0] == 0;
 
             if (unused) {
@@ -445,7 +443,7 @@ void CMap::CreateDrawRect(mgCMemory *memory, mgVu0FBOX *rect, mgVu0FBOX *clip, i
                 continue;
             }
 
-            node = new ((u_long128 *) memory->Alloc(3)) CList<CMapParts *>;
+            node = new (memory->Alloc(sizeof(CList<CMapParts *>) / 16 + 2)) CList<CMapParts *>;
 
             node->data = parts;
             last = slot->parts;
@@ -474,9 +472,6 @@ void CMap::CreateDrawRect(mgCMemory *memory, mgVu0FBOX *rect, mgVu0FBOX *clip, i
         }
     }
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/map", CreateDrawRect__4CMapFP9mgCMemoryP9mgVu0FBOXP9mgVu0FBOXi);
-#endif
 template <>
 void CList<CMapParts *>::Initialize() {
     prev = 0;
