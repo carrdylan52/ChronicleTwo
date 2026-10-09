@@ -3321,7 +3321,7 @@ int CMenuInvent::IsCreateObject(int mode, int keys) {
         }
         case kLoadSoundPort:
             if (read_done == 0) {
-                sndInitPort(8);
+                sndInitPort(SND_PORT_MENU);
                 this->create_load_state++;
             }
             break;
