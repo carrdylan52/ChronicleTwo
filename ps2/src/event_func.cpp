@@ -18107,22 +18107,6 @@ INCLUDE_RODATA("ps2/asm/pal/nonmatchings/event_func", vv_3333__DATA);
 
 // Constants (.rodata)
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/event_func", at_1083__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/event_func", at_1910__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/event_func", at_1909__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/event_func", at_3823__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/event_func", at_3884__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/event_func", at_4274__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/event_func", at_4273__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/event_func", at_4272__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/event_func", at_4291__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/event_func", at_4360__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/event_func", at_4573__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/event_func", at_5264__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/event_func", at_5424__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/event_func", at_6703__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/event_func", at_8406__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/event_func", at_8458__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/event_func", at_8480__DATA);
 
 // Static initialiser table (.ctor)
 

@@ -215,6 +215,12 @@ Each datum has a separate full PAL/object/hash receipt under
 Every accepted form preserves instruction bytes, resolved addresses and all
 unowned object hashes. Shift-JIS characters use hexadecimal byte escapes.
 
+## Native event switch tables
+
+The existing native switches supply the following compiler-generated jump tables without assembly data markers: `at_1910`, `at_1909`, `at_3823__2`, `at_3884`, `at_4274`, `at_4273`, `at_4272__2`, `at_4291`, `at_4360__2`, `at_4573`, `at_5264__2`, `at_5424`, `at_6703`, `at_8406`, `at_8458`, `at_8480`.
+
+Each removal has independent full PAL, 149-object and unowned raw-object hash receipts under `.private/dataA-r3/event-switch-<symbol>-{build,objects,hashes}.log`.
+
 ## Retained markers
 
 The initialized-data markers are pending the following migration topics.
