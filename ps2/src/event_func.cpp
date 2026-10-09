@@ -228,17 +228,7 @@ const int              exit_map_jump = EVENT_REQUEST_MAP_JUMP;
 const int              request_menu = EVENT_COMMAND_SUB_MODE;
 const int              request_door = EVENT_COMMAND_DOOR;
 const int              event_sprite2_size = 0x80;
-extern char            at_8902[];
-extern char            at_8903[];
-extern char            at_8904[];
-extern char            at_9744[];
-extern char            at_9745[];
-extern char            at_10100[];
-extern char            at_10101[];
 extern char            at_1083[];
-extern char            at_9148[];
-extern char            at_9622[];
-extern char            at_8230[];
 
 
 // Code (.text)
@@ -14123,7 +14113,7 @@ int _CTRLC_MOVE_CAMERA(RS_STACKDATA *stack, int argc) {
     }
 
     if (poly_count > 0x100) {
-        printf(at_8230, poly_count);
+        printf("EVENT ERROR <CTRLC_MOVE_CAMERA camera poly over %d>\n", poly_count);
         return 0;
     }
 
@@ -15310,10 +15300,10 @@ int _DNG_SETUP_MAIN_UNIT(RS_STACKDATA *stack, int argc) {
         return 0;
     }
 
-    LoadFile(at_8902, read_buffer, NULL);
+    LoadFile("img/allitem.img", read_buffer, NULL);
     manager->EnterIMGFile((u_char *) read_buffer, 0x50, NULL, NULL);
-    icons[0] = manager->GetTexture(at_8903, -1);
-    icons[1] = manager->GetTexture(at_8904, -1);
+    icons[0] = manager->GetTexture("icon_dmy1", -1);
+    icons[1] = manager->GetTexture("icon_dmy2", -1);
     CopyActiveIconTexture(icons, chara_no, NULL);
     manager->DeleteBlock(0x50);
     chara->sound_info.foot_se_bank = EventScene->se_base_id;
@@ -15722,7 +15712,7 @@ int _ESM_CLEAR(RS_STACKDATA *stack, int argc) {
     EventEffectScript = 0;
 
     for (i = 0; i < 64; i++) {
-        printf(at_9148, cleared_blocks[i]);
+        printf("[ESM_CLEAR] DEL TEXB = %d\n", cleared_blocks[i]);
 
         if (cleared_blocks[i] <= -1) {
             break;
@@ -16634,7 +16624,7 @@ int _INIT_SEPIA(RS_STACKDATA *stack, int argc) {
 
     mgTexManager.DeleteBlock(block_no);
     EventScreenEffect.SetSepiaTexture(mgTexManager.EnterTexture(
-                                          block_no, at_9622, NULL, mgScreenWidth,
+                                          block_no, "event sepia", NULL, mgScreenWidth,
                                           mgScreenHeight, mgScreenDepth, 0, 0LL, 0),
                                       buffer);
     return 1;
@@ -16809,9 +16799,9 @@ int _INIT_MONO_FLASH(RS_STACKDATA *stack, int argc) {
     mgTexManager.DeleteBlock(tex_base);
     mgTexManager.DeleteBlock(tex_base + 1);
     textures[0] = (mgCTexture *) mgTexManager.EnterTexture(
-        tex_base, at_9744, NULL, mgScreenWidth, mgScreenHeight, mgScreenDepth, 0, 0, 0);
+        tex_base, "mono_flash1", NULL, mgScreenWidth, mgScreenHeight, mgScreenDepth, 0, 0, 0);
     textures[1] = (mgCTexture *) mgTexManager.EnterTexture(
-        tex_base + 1, at_9745, NULL, mgScreenWidth, mgScreenHeight, mgScreenDepth, 0, 0,
+        tex_base + 1, "mono_flash2", NULL, mgScreenWidth, mgScreenHeight, mgScreenDepth, 0, 0,
         0);
     EventScreenEffect.SetMonoFlashTexture(textures, buffers);
     return 1;
@@ -18091,7 +18081,7 @@ void SetEventFunc(CRunScript *script) {
 
         for (j = 0; j < i; j++) {
             if (ext_func_info[i].id == ext_func_info[j].id) {
-                printf(at_10100);
+                printf("same ext_func_no!!!\n");
 
                 while (1) {
                 }
@@ -18099,7 +18089,7 @@ void SetEventFunc(CRunScript *script) {
         }
 
         if (ext_func_info[i].id < 0 || ext_func_info[i].id >= event_func_slots) {
-            printf(at_10101);
+            printf("ext func over!!");
         } else {
             ext_func[ext_func_info[i].id] = ext_func_info[i].func;
         }
@@ -18130,19 +18120,9 @@ INCLUDE_RODATA("ps2/asm/pal/nonmatchings/event_func", at_4573__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/event_func", at_5264__2__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/event_func", at_5424__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/event_func", at_6703__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/event_func", at_8230__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/event_func", at_8406__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/event_func", at_8458__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/event_func", at_8480__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/event_func", at_8902__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/event_func", at_8903__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/event_func", at_8904__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/event_func", at_9148__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/event_func", at_9622__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/event_func", at_9744__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/event_func", at_9745__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/event_func", at_10100__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/event_func", at_10101__DATA);
 
 // Static initialiser table (.ctor)
 
