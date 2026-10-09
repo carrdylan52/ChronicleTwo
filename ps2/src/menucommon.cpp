@@ -2622,7 +2622,7 @@ int _MENU_ITEM_CHECKMARK(SPI_STACK *stack, int argc) {
     MENUFORMPARTS_TYPE *part = menu_formPt->GetEnableEnterPart();
     menu_form_part = part;
     part->dtype = 0x39;
-    part->tex_info_no = *(signed char *) &MenuCommonInfo->tex_block[0];
+    part->tex_info_no = (s8) MenuCommonInfo->tex_block[0];
     MakePartsName(stack++, part);
     part->x = spiGetStackInt(stack++);
     part->y = spiGetStackInt(stack++);
