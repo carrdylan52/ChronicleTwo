@@ -1,6 +1,7 @@
 """Missing raw inputs must never expose raw or stale data comparisons."""
 
 from pathlib import Path
+import re
 import tempfile
 from types import SimpleNamespace as NS
 import unittest
@@ -35,7 +36,12 @@ class ObjdiffInputTests(unittest.TestCase):
         with patch.object(c.layout, 'Layout', return_value=lay), \
              patch.object(c.layout, 'read_symbols', return_value=[]), \
              patch.object(c.objdiff_data, 'Context'):
-            self.assertIs(c.config('out')['options'].get('combineDataSections'), True)
+            config = c.config('out')
+            self.assertIs(config['options'].get('combineDataSections'), True)
+            version = re.fullmatch(r'(\d+)\.(\d+)\.(\d+)(?:[-+].*)?', config['min_version'])
+            self.assertIsNotNone(version)
+            self.assertGreaterEqual(tuple(map(int, version.groups())), (3, 7, 3),
+                                    'Data comparison requires the validated combineDataSections CLI')
 
     def test_failed_refresh_removes_the_old_config(self):
         with tempfile.TemporaryDirectory() as directory:

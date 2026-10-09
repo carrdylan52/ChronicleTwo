@@ -199,7 +199,8 @@ reader, length-delimited proof inputs, global cuts, raw objects and source
 provenance. A malformed receipt or mismatched output hash requires preparation
 from the raw inputs.
 
-`objdiff.json` explicitly sets `combineDataSections: true`. The pinned CLI
+`objdiff.json` explicitly sets `combineDataSections: true` and requires at least
+the validated 3.7.3 CLI release. The pinned CLI
 combines automap's 297 raw `.rodata` sections into one with this option, versus
 297 with it disabled. In a raw self-comparison, changing one `.rodata` byte
 removes all 2,468 bytes of that combined section from data credit while code

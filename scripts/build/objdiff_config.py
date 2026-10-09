@@ -131,7 +131,7 @@ def config(build_dir):
             },
         })
     return {
-        "min_version": "2.0.0-beta.5",
+        "min_version": "3.7.3",
         "custom_make": "sh",
         "custom_args": ["-c", "exec scripts/build/build_objdiff.sh"],
         "build_target": False,
