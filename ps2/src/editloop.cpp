@@ -1155,10 +1155,7 @@ static inline bool IsCrossFading(CScene *scene) {
 }
 
 int EditLoop() {
-    static int       time_step;
-    static int       show_time_step;
     static int       old_cm;
-    static int       rain_flag;
     CMap            *map;
     CCharacter2     *chara;
     CCameraControl  *camera;
@@ -1207,20 +1204,8 @@ int EditLoop() {
     if (LoopCounter > 10000) {
         LoopCounter = 10000;
     }
-    {
-        static char init;
-        if (init == 0) {
-            time_step = 1;
-            init = 1;
-        }
-    }
-    {
-        static char init;
-        if (init == 0) {
-            show_time_step = 0;
-            init = 1;
-        }
-    }
+    static int time_step = 1;
+    static int show_time_step = 0;
     if (PauseFlag == 0 && IsLightingEditMode() == 0) {
         CMap *time_map = MainScene__2->GetMap(MainScene__2->active_map);
         if (time_map != NULL) {
@@ -1237,8 +1222,8 @@ int EditLoop() {
                 MainScene__2->SetTime(((int) MainScene__2->time / 2) * 2 + 2);
             }
             if (GamePad__2.Down2(PAD_DOWN) != 0) {
-                show_time_step = 30;
                 time_step = !time_step;
+                show_time_step = 30;
             }
             if (LoopMode == EDIT_LOOP_WAIT_READ) {
                 if (ReadBGSync() == 0) {
@@ -1271,8 +1256,8 @@ int EditLoop() {
             chara->GetPosition(position);
             *(u_long128 *) ground_position = *(u_long128 *) position;
             ground_position[1] = 0.0f;
-            line_start[3] = 1.0f;
             line_end[3] = 1.0f;
+            line_start[3] = 1.0f;
             sceVu0FVECTOR load_position = {1400.0f, -6.0f, -218.0f, 1.0f};
             next_sub_map = -1;
             if (MainScene__2->LoadMapBGStep(NULL) == 0) {
@@ -1866,7 +1851,8 @@ int EditLoop() {
         if (open_menu != 0) {
             EditDrawFlag &= ~0x1;
             if (!(0 < MainScene__2->bg_load_step)) {
-                if (IsCrossFading(MainScene__2)) {
+                bool cross_fading = MainScene__2->fade.NowFade() && MainScene__2->fade.cross;
+                if (cross_fading) {
                     MainScene__2->fade.FadeIn(0);
                 }
                 MenuInfo->scene = MainScene__2;
@@ -1879,13 +1865,7 @@ int EditLoop() {
                 }
             }
         }
-        {
-            static char init;
-            if (init == 0) {
-                rain_flag = 0;
-                init = 1;
-            }
-        }
+        static int rain_flag = 0;
         if (GamePad__2.Down2(PAD_R2) != 0) {
             if (rain_flag == 0) {
                 EventRain.Start();
@@ -1909,38 +1889,10 @@ int EditLoop() {
     DrawEventEdit();
     FadeOutForE3();
     if (DebugFlag != 0) {
-        static int start_bt_cnt;
-        static int encount_flag;
-        static int show_encount_cnt;
-        static int next_encount;
-        {
-            static char init;
-            if (init == 0) {
-                start_bt_cnt = 0;
-                init = 1;
-            }
-        }
-        {
-            static char init;
-            if (init == 0) {
-                encount_flag = 1;
-                init = 1;
-            }
-        }
-        {
-            static char init;
-            if (init == 0) {
-                show_encount_cnt = 0;
-                init = 1;
-            }
-        }
-        {
-            static char init;
-            if (init == 0) {
-                next_encount = -1;
-                init = 1;
-            }
-        }
+        static int start_bt_cnt = 0;
+        static int encount_flag = 1;
+        static int show_encount_cnt = 0;
+        static int next_encount = -1;
         if (show_time_step > 0 || show_encount_cnt > 0) {
             mgCDrawPrim prim;
             prim.Initialize(NULL, NULL);

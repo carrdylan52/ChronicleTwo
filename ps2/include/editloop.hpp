@@ -69,7 +69,7 @@ void SetDataPacket(int mode);
  *
  * @mangled EditInit__F13INIT_LOOP_ARG
  * @address 0x1AB320
- * @size 0x1BC0
+ * @size 0x1BB8
  */
 void EditInit(INIT_LOOP_ARG arg);
 
@@ -89,7 +89,7 @@ void EditExit();
  *
  * @mangled EditLoop__Fv
  * @address 0x1AD120
- * @size 0x22D0
+ * @size 0x22CC
  */
 int EditLoop();
 
