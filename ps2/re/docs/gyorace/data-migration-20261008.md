@@ -204,3 +204,20 @@ Final receipts under `.private/dataB-r6/`: `texture-build.log`,
 `final-coverage.txt`, `final-snapshot.json` and `final-hash-audit.json`.
 The original source and full marker/retail-data inventories are also saved
 there for the coordinator's audit.
+
+
+## Round-5 native data completion
+
+The existing five-int `lap_inf2` local now supplies its terminal BSS
+piece without a reservation marker. Its 0x14-byte declared payload is unchanged;
+the existing canonical checker verifies the linker's 0x3C-byte zero tail at
+the exact contents end. No drawing code, guarded draft, INCLUDE_ASM line,
+array extent, or constructor changes.
+
+Markers: RODATA **26 → 26**, BSS
+**5 → 4**. Refreshed matched data:
+**125 → 125 / 2729**.
+The complete PAL is `SCES_511.90: OK` and all **149/149** canonical objects
+pass. Only the four migrated units change object hashes in this step; code
+metrics remain **6,780 functions / 1,854,796 bytes**. No function is promoted.
+Receipts: `.private/dtool-r5/data-fixed-{build,objects,tests,metrics}.log`.

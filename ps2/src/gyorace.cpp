@@ -1530,5 +1530,4 @@ mgCCamera        camera0(8.0f);
 INCLUDE_BSS(at_1765__2, 0x10);
 INCLUDE_BSS(at_1775, 0x10);
 INCLUDE_BSS(at_1776, 0x10);
-INCLUDE_BSS(lap_inf2_1799, 0x50);
 #endif
