@@ -1930,78 +1930,83 @@ static inline MC_CARD_INFO *GetSaveMenuCard(int port) {
 int CSaveMenuClass::KeyStep(void) {
     int                 transferred;
     int                 finished;
-    CDC2Mes            *fileMes;
-    CDC2Mes            *titleMes;
-    int                 stepResult;
+    CDC2Mes            *file_mes;
+    CDC2Mes            *title_mes;
+    int                 step_result;
     MC_ERROR_INFO      *error;
     int                 next;
     int                 refresh;
-    int                 openDone;
-    int                 moveKey;
-    int                 selectKeys;
+    int                 open_done;
+    int                 move_key;
+    int                 select_keys;
     bool                input_waiting;
     int                 pushed;
-    int                 lrKeys;
+    int                 lr_keys;
     int                 answer;
-    int                 cursorPos;
-    int                 fileNo;
+    int                 cursor_pos;
+    int                 file_no;
     int                 index;
     MC_CARD_INFO       *card;
     SAVEDATA_INFO      *info;
-    int                 emptyMes;
+    int                 empty_mes;
     int                 row;
-    int                 mapNo;
+    int                 map_no;
     int                 chapter;
-    SAVEDATA_INFO      *rowInfo[13];
-    CDC2Mes            *rowMes;
-    int                 formPos[2];
+    SAVEDATA_INFO      *row_info[13];
+    CDC2Mes            *row_mes;
+    int                 form_pos[2];
     CMemoryCardManager *manager;
 
     finished = 0;
-    stepResult = MemoryCardPtr->Step();
-    fileMes = MenuDCMsg[2];
-    titleMes = MenuDCMsg[3];
+    step_result = MemoryCardPtr->Step();
+    file_mes = MenuDCMsg[2];
+    title_mes = MenuDCMsg[3];
     error = &MemoryCardPtr->error;
-    static int FormatCase = 0;
+    /**
+     *
+     * Records whether formatting continues into the pending save.
+     *
+     */
+    static int format_case = 0;
     if (DebugFlag != 0 && menu_debug_flag != 0) {
         GamePad__2.Down(PAD_L1);
     }
     refresh = 0;
-    next = -1;
+    next = SAVE_MENU_PAGE_NONE;
     switch (CBaseMenuClass::mode) {
-        case 1:
-            openDone = 0;
-            if (step == 0) {
+        case MENU_ASK_MODE_OPEN:
+            open_done = 0;
+            if (step == SAVE_MENU_STEP_READY) {
                 if (first_step != 0) {
-                    next = 0;
+                    next = SAVE_MENU_PAGE_SLOT_SELECT;
                 }
                 if (FadeCheckMenu() != 0) {
                     MenuCommonInfo->key_enable = 1;
-                    save_kb = MemoryCardPtr->GetSaveDataSize(0) / 1024;
+                    save_kb = MemoryCardPtr->GetSaveDataSize(MC_SIZE_SAVE_TOTAL) / 1024;
                     check_kb = save_kb + 3;
                     need_kb = save_kb + 4;
-                    FormatCase = 0;
+                    format_case = 0;
                     chapter8_start = CheckStartChapter8(GetSaveData());
                     if (mode == SAVE_MENU_MODE_LOAD || mode == SAVE_MENU_MODE_GYORACE_LOAD) {
                         chapter8_start = 0;
                     }
                     if (chapter8_start == 1) {
                         ExeScript(at_2498);
-                        step = 1;
+                        step = SAVE_MENU_STEP_NOTICE;
                     } else {
-                        openDone = 1;
+                        open_done = 1;
                     }
                 }
-            } else if (step == 1 && MenuCommonInfo->CheckPushButton() != 0) {
-                openDone = 1;
+            } else if (step == SAVE_MENU_STEP_NOTICE && MenuCommonInfo->CheckPushButton() != 0) {
+                open_done = 1;
                 ExeScript(at_2499);
             }
-            if (openDone != 0) {
-                CBaseMenuClass::mode = 0;
-                step = 0;
+            if (open_done != 0) {
+                CBaseMenuClass::mode = MENU_ASK_MODE_NONE;
+                step = SAVE_MENU_STEP_READY;
             }
             break;
-        case 2:
+        case MENU_ASK_MODE_CLOSE:
             if (FadeCheckMenu() != 0) {
                 MemoryCardPtr->FinishForMC();
                 if (mode == SAVE_MENU_MODE_SAVE) {
@@ -2016,68 +2021,73 @@ int CSaveMenuClass::KeyStep(void) {
             }
             break;
         default:
-            static int DarkClonicleFileMax = 0;
-            moveKey = 0;
-            selectKeys = MenuCommonInfo->CheckSelectKey();
+            /**
+             *
+             * Stores the file-count value for the save-menu pages.
+             *
+             */
+            static int dark_clonicle_file_max = 0;
+            move_key = 0;
+            select_keys = MenuCommonInfo->CheckSelectKey();
             pushed = MenuCommonInfo->CheckPushButton();
-            lrKeys = MenuCommonInfo->CheckLRKey();
-            if (selectKeys & 1) {
-                moveKey -= 1;
+            lr_keys = MenuCommonInfo->CheckLRKey();
+            if (select_keys & MENU_SELECT_KEY_UP) {
+                move_key -= 1;
             }
-            if (selectKeys & 2) {
-                moveKey += 1;
+            if (select_keys & MENU_SELECT_KEY_DOWN) {
+                move_key += 1;
             }
             switch (page) {
                 case SAVE_MENU_PAGE_SLOT_SELECT:
-                    if (step == 0) {
-                        int prevSlot = slot;
-                        slot = prevSlot + moveKey;
+                    if (step == SAVE_MENU_STEP_READY) {
+                        int prev_slot = slot;
+                        slot = prev_slot + move_key;
                         if (slot < 0) {
                             slot = 0;
                         }
                         if (slot > 1) {
                             slot = 1;
                         }
-                        if (slot != prevSlot) {
+                        if (slot != prev_slot) {
                             MenuSePlay(SYSTEM_SE_CURSOR);
                         }
                         if (cursor_form != NULL) {
                             cursor_form->SetAction(tbl_2023[slot]);
                         }
                         switch (ConvertCheckPushButton(pushed)) {
-                            case 1:
+                            case MENU_PUSH_BUTTON_DECIDE:
                                 MenuSePlay(SYSTEM_SE_DECIDE);
                                 MemoryCardPtr->InitPlayDataInfo();
                                 next = SAVE_MENU_PAGE_CARD_INFO;
                                 MemoryCardPtr->port = slot;
                                 break;
-                            case 2:
-                                MenuSePlay(5);
+                            case MENU_PUSH_BUTTON_CANCEL:
+                                MenuSePlay(MENU_SCRIPT_SOUND_CANCEL);
                                 if (save_count <= 0 && chapter8_start == 1) {
-                                    step = 1;
+                                    step = SAVE_MENU_STEP_NOTICE;
                                     ExeScript(at_2500);
                                 } else {
                                     FadeOutMenu(0x28, 0.0f);
-                                    CBaseMenuClass::mode = 2;
+                                    CBaseMenuClass::mode = MENU_ASK_MODE_CLOSE;
                                 }
                                 break;
                         }
-                    } else if (step == 1) {
-                        answer = fileMes->YesNoCursor2(0);
-                        if (answer == 1) {
+                    } else if (step == SAVE_MENU_STEP_NOTICE) {
+                        answer = file_mes->YesNoCursor2(0);
+                        if (answer == MES_YESNO_YES) {
                             FadeOutMenu(0x28, 0.0f);
-                            CBaseMenuClass::mode = 2;
+                            CBaseMenuClass::mode = MENU_ASK_MODE_CLOSE;
                             MenuSePlay(SYSTEM_SE_DECIDE);
                         }
-                        if (answer == 2) {
-                            step = 0;
+                        if (answer == MES_YESNO_NO) {
+                            step = SAVE_MENU_STEP_READY;
                             ExeScript(at_2501);
                         }
                     }
                     break;
                 case SAVE_MENU_PAGE_CARD_INFO:
                     card = GetSaveMenuCard(slot);
-                    if (stepResult != 0) {
+                    if (step_result != MC_STEP_BUSY) {
                         if (McCheckMCPs2(card) == 0) {
                             next = SAVE_MENU_PAGE_ERROR;
                         } else {
@@ -2091,7 +2101,7 @@ int CSaveMenuClass::KeyStep(void) {
                     transferred = MemoryCardPtr->total_transferred;
                     StepMenuDl2(transferred);
                     card = GetSaveMenuCard(slot);
-                    if (stepResult != 0) {
+                    if (step_result != MC_STEP_BUSY) {
                         if (McCheckMCPs2(card) == 0) {
                             next = SAVE_MENU_PAGE_ERROR;
                         } else if (mode == SAVE_MENU_MODE_LOAD && card->formatted == 0) {
@@ -2122,15 +2132,20 @@ int CSaveMenuClass::KeyStep(void) {
                         card_changed = 1;
                         phase = SAVE_LIST_PHASE_SELECT;
                     } else {
+                        /**
+                         *
+                         * Delays confirmation after the file or yes/no cursor moves.
+                         *
+                         */
                         static signed char input_wait_counter = 0;
                         switch (phase) {
                             case SAVE_LIST_PHASE_SELECT:
-                                if ((lrKeys & 0x10) || (lrKeys & 0x40)) {
-                                    moveKey -= 2;
-                                } else if ((lrKeys & 0x20) || (lrKeys & 0x80)) {
-                                    moveKey += 2;
+                                if ((lr_keys & MENU_SELECT_KEY_L1) || (lr_keys & MENU_SELECT_KEY_L2)) {
+                                    move_key -= 2;
+                                } else if ((lr_keys & MENU_SELECT_KEY_R1) || (lr_keys & MENU_SELECT_KEY_R2)) {
+                                    move_key += 2;
                                 }
-                                if (MenuKeySelectCheck(moveKey, &select, &top, 0, 0xD, 3, 0) != 0) {
+                                if (MenuKeySelectCheck(move_key, &select, &top, 0, 13, 3, 0) != 0) {
                                     MenuSePlay(SYSTEM_SE_CURSOR);
                                     input_wait_counter = 4;
                                 }
@@ -2146,39 +2161,39 @@ int CSaveMenuClass::KeyStep(void) {
                                 if (!input_waiting) {
                                     card_ok = McCheckMCPs2(card);
                                     switch (ConvertCheckPushButton(pushed)) {
-                                        case 1:
+                                        case MENU_PUSH_BUTTON_DECIDE:
                                             ExeScript(at_2502);
                                             if (McCheckMCPs2(card) == 0) {
                                                 phase = SAVE_LIST_PHASE_SELECT;
                                                 next = SAVE_MENU_PAGE_ERROR;
                                                 MenuSePlay(SYSTEM_SE_DECIDE);
                                             } else {
-                                                fileNo = select + 1;
+                                                file_no = select + 1;
                                                 if (mode == SAVE_MENU_MODE_SAVE) {
                                                     if (card->formatted == 0) {
                                                         next = SAVE_MENU_PAGE_FORMAT;
-                                                        FormatCase = 1;
+                                                        format_case = 1;
                                                         phase = SAVE_LIST_PHASE_SELECT;
                                                         MenuSePlay(SYSTEM_SE_DECIDE);
                                                     } else {
                                                         input_wait_counter = 0;
                                                         if (info->state == 1) {
-                                                            save_kind = 0;
-                                                            fileMes->SetMsgVolumeNoOne(fileNo);
-                                                            fileMes->MakeMsg(0xBC4);
-                                                            fileMes->SetMsgCursor(1);
+                                                            save_kind = SAVE_FILE_OVERWRITE;
+                                                            file_mes->SetMsgVolumeNoOne(file_no);
+                                                            file_mes->MakeMsg(0xBC4);
+                                                            file_mes->SetMsgCursor(1);
                                                             if (chapter8_start == 1) {
-                                                                fileMes->MakeMsg(0xC44);
+                                                                file_mes->MakeMsg(0xC44);
                                                             }
                                                             phase = SAVE_LIST_PHASE_CONFIRM_SAVE;
                                                         } else {
-                                                            save_kind = 1;
+                                                            save_kind = SAVE_FILE_NEW;
                                                             if (card->free_size <= check_kb) {
                                                                 next = SAVE_MENU_PAGE_ERROR;
                                                             } else {
-                                                                fileMes->SetMsgVolumeNoOne(need_kb);
-                                                                fileMes->MakeMsg(0xBC3);
-                                                                fileMes->SetMsgCursor(1);
+                                                                file_mes->SetMsgVolumeNoOne(need_kb);
+                                                                file_mes->MakeMsg(0xBC3);
+                                                                file_mes->SetMsgCursor(1);
                                                                 phase = SAVE_LIST_PHASE_CONFIRM_SAVE;
                                                             }
                                                         }
@@ -2189,20 +2204,20 @@ int CSaveMenuClass::KeyStep(void) {
                                                     if (mode == SAVE_MENU_MODE_GYORACE_LOAD) {
                                                         if (info->fish_num <= 0) {
                                                             ExeScript(at_2503);
-                                                            fileMes->SetMsgVolumeNoOne(fileNo);
+                                                            file_mes->SetMsgVolumeNoOne(file_no);
                                                             phase = SAVE_LIST_PHASE_NOTICE;
                                                             break;
                                                         }
                                                         int values[2] = {0, 0};
-                                                        values[0] = fileNo;
+                                                        values[0] = file_no;
                                                         values[1] = info->fish_num;
-                                                        fileMes->SetMsgCursor(1);
-                                                        fileMes->SetMsgVolumeNo(values, MES_VALUE_MAX);
-                                                        fileMes->MakeMsg(0x13A9);
+                                                        file_mes->SetMsgCursor(1);
+                                                        file_mes->SetMsgVolumeNo(values, MES_VALUE_MAX);
+                                                        file_mes->MakeMsg(0x13A9);
                                                     } else {
-                                                        fileMes->SetMsgCursor(1);
-                                                        fileMes->SetMsgVolumeNoOne(fileNo);
-                                                        fileMes->MakeMsg(0xBE0);
+                                                        file_mes->SetMsgCursor(1);
+                                                        file_mes->SetMsgVolumeNoOne(file_no);
+                                                        file_mes->MakeMsg(0xBE0);
                                                     }
                                                     MenuSePlay(SYSTEM_SE_DECIDE);
                                                 } else {
@@ -2210,18 +2225,18 @@ int CSaveMenuClass::KeyStep(void) {
                                                 }
                                             }
                                             break;
-                                        case 2:
+                                        case MENU_PUSH_BUTTON_CANCEL:
                                             next = SAVE_MENU_PAGE_SLOT_SELECT;
                                             MenuMesForm[2]->draw_flag = 0;
-                                            MenuSePlay(5);
+                                            MenuSePlay(MENU_SCRIPT_SOUND_CANCEL);
                                             break;
                                     }
                                 }
                                 break;
                             case SAVE_LIST_PHASE_CONFIRM_SAVE:
-                                cursorPos = fileMes->GetMsgCursor();
-                                answer = fileMes->YesNoCursor();
-                                if (answer != cursorPos) {
+                                cursor_pos = file_mes->GetMsgCursor();
+                                answer = file_mes->YesNoCursor();
+                                if (answer != cursor_pos) {
                                     input_wait_counter = 6;
                                 }
                                 input_wait_counter--;
@@ -2231,17 +2246,17 @@ int CSaveMenuClass::KeyStep(void) {
                                 input_waiting = input_wait_counter > 0;
                                 if (!input_waiting) {
                                     switch (pushed) {
-                                        case 1:
+                                        case MENU_PUSH_BUTTON_DECIDE:
                                             if (answer == 0) {
                                                 EnvSetSave(save_kind);
                                                 MenuSePlay(SYSTEM_SE_DECIDE);
                                                 break;
                                             }
-                                        case 2:
+                                        case MENU_PUSH_BUTTON_CANCEL:
                                             next = SAVE_MENU_PAGE_FILE_LIST;
                                             MenuMesForm[2]->draw_flag = 0;
                                             cursor_form->draw_flag = 0;
-                                            MenuSePlay(5);
+                                            MenuSePlay(MENU_SCRIPT_SOUND_CANCEL);
                                             break;
                                     }
                                 }
@@ -2257,20 +2272,20 @@ int CSaveMenuClass::KeyStep(void) {
                             case SAVE_LIST_PHASE_SAVING:
                                 transferred = MemoryCardPtr->total_transferred;
                                 StepMenuDl2(dl_base + transferred);
-                                if (stepResult != 0) {
-                                    if (error->code != 0) {
+                                if (step_result != MC_STEP_BUSY) {
+                                    if (error->code != MC_ERROR_NONE) {
                                         printf(at_2504__2, error->code);
                                         next = SAVE_MENU_PAGE_ERROR;
                                     } else {
                                         save_count++;
                                         phase = SAVE_LIST_PHASE_SAVE_DONE;
                                         InitMenuDl(NULL, 0);
-                                        fileMes->push_button = 1;
-                                        fileMes->MakeMsg(0xBC0);
+                                        file_mes->push_button = 1;
+                                        file_mes->MakeMsg(0xBC0);
                                         if (chapter8_start == 1) {
-                                            fileMes->MakeMsg(0xC45);
+                                            file_mes->MakeMsg(0xC45);
                                         }
-                                        fileMes->SetAbsPos(5);
+                                        file_mes->SetAbsPos(5);
                                         refresh = 1;
                                         SetDlInfoMsg(0, 0);
                                         MenuSePlay(0x1F);
@@ -2292,11 +2307,11 @@ int CSaveMenuClass::KeyStep(void) {
                             case SAVE_LIST_PHASE_MAKING_DIR:
                                 transferred = MemoryCardPtr->total_transferred;
                                 StepMenuDl2(transferred);
-                                if (stepResult != 0) {
+                                if (step_result != MC_STEP_BUSY) {
                                     card = GetSaveMenuCard(slot);
                                     if (McCheckMCPs2(card) == 0) {
                                         next = SAVE_MENU_PAGE_ERROR;
-                                        error->code = 6;
+                                        error->code = MC_ERROR_FILE;
                                     } else {
                                         dl_base = MemoryCardPtr->total_transferred;
                                         MemoryCardPtr->SetFuncNo(MC_FUNC_SAVE);
@@ -2305,13 +2320,13 @@ int CSaveMenuClass::KeyStep(void) {
                                 }
                                 break;
                             case SAVE_LIST_PHASE_CONFIRM_LOAD:
-                                cursorPos = fileMes->GetMsgCursor();
-                                answer = fileMes->YesNoCursor();
+                                cursor_pos = file_mes->GetMsgCursor();
+                                answer = file_mes->YesNoCursor();
                                 if (McCheckMCPs2(card) == 0 || card->formatted == 0) {
                                     next = SAVE_MENU_PAGE_ERROR;
-                                    MenuSePlay(5);
+                                    MenuSePlay(MENU_SCRIPT_SOUND_CANCEL);
                                 } else {
-                                    if (answer != cursorPos) {
+                                    if (answer != cursor_pos) {
                                         input_wait_counter = 6;
                                     }
                                     input_wait_counter--;
@@ -2321,21 +2336,21 @@ int CSaveMenuClass::KeyStep(void) {
                                     input_waiting = input_wait_counter > 0;
                                     if (!input_waiting) {
                                         switch (pushed) {
-                                            case 1:
+                                            case MENU_PUSH_BUTTON_DECIDE:
                                                 if (answer == 0) {
                                                     MemoryCardPtr->file_no = select;
                                                     MemoryCardPtr->SetFuncNo(MC_FUNC_LOAD);
                                                     phase = SAVE_LIST_PHASE_LOADING;
                                                     ExeScript(at_2506__2);
-                                                    fileMes->SetMsgVolumeNoOne(slot + 1);
-                                                    fileMes->push_button = 0;
-                                                    InitMenuDl(dl_tex, MemoryCardPtr->GetSaveDataSize(1));
+                                                    file_mes->SetMsgVolumeNoOne(slot + 1);
+                                                    file_mes->push_button = 0;
+                                                    InitMenuDl(dl_tex, MemoryCardPtr->GetSaveDataSize(MC_SIZE_SAVE_FILE));
                                                     SetDlInfoMsg(1, 1);
                                                     break;
                                                 }
-                                            case 2:
+                                            case MENU_PUSH_BUTTON_CANCEL:
                                                 next = SAVE_MENU_PAGE_FILE_LIST;
-                                                MenuSePlay(5);
+                                                MenuSePlay(MENU_SCRIPT_SOUND_CANCEL);
                                                 break;
                                         }
                                     }
@@ -2344,18 +2359,18 @@ int CSaveMenuClass::KeyStep(void) {
                             case SAVE_LIST_PHASE_LOADING:
                                 transferred = MemoryCardPtr->total_transferred;
                                 StepMenuDl2(transferred);
-                                if (stepResult != 0) {
+                                if (step_result != MC_STEP_BUSY) {
                                     card = GetSaveMenuCard(slot);
-                                    if (error->code != 0) {
+                                    if (error->code != MC_ERROR_NONE) {
                                         next = SAVE_MENU_PAGE_ERROR;
                                     } else if (McCheckMCPs2(card) == 0) {
                                         next = SAVE_MENU_PAGE_ERROR;
                                     } else {
                                         phase = SAVE_LIST_PHASE_LOAD_DONE;
                                         InitMenuDl(NULL, 0);
-                                        fileMes->push_button = 1;
-                                        fileMes->MakeMsg(0xBE2);
-                                        fileMes->SetAbsPos(5);
+                                        file_mes->push_button = 1;
+                                        file_mes->MakeMsg(0xBE2);
+                                        file_mes->SetAbsPos(5);
                                         SetDlInfoMsg(1, 0);
                                         MenuSePlay(0x1F);
                                     }
@@ -2365,9 +2380,9 @@ int CSaveMenuClass::KeyStep(void) {
                                 if (pushed != 0) {
                                     phase = SAVE_LIST_PHASE_CONFIRM_LOAD;
                                     ExeScript(at_2507__2);
-                                    CBaseMenuClass::mode = 2;
+                                    CBaseMenuClass::mode = MENU_ASK_MODE_CLOSE;
                                     manager = MemoryCardPtr;
-                                    MenuArg.end_code = 0xA;
+                                    MenuArg.end_code = SAVE_MENU_END_LOAD;
                                     MenuArg.result[0] = manager->load_program_loop_no;
                                     MenuArg.result[1] = manager->load_map_no;
                                     MenuArg.result[2] = manager->load_dungeon_no;
@@ -2392,37 +2407,37 @@ int CSaveMenuClass::KeyStep(void) {
                     } else {
                         switch (phase) {
                             case SAVE_FORMAT_PHASE_ASK:
-                                answer = fileMes->YesNoCursor2(0);
-                                if (answer == 1) {
+                                answer = file_mes->YesNoCursor2(0);
+                                if (answer == MES_YESNO_YES) {
                                     refresh = 1;
                                     MemoryCardPtr->InitPlayDataInfo();
                                     MemoryCardPtr->SetFuncNo(MC_FUNC_FORMAT);
-                                    fileMes->MsgPreset(0x12, LanguageCode);
-                                    fileMes->SetMsgVolumeNoOne(slot + 1);
-                                    fileMes->MakeMsg(0xBE8);
-                                    fileMes->SetAbsPos(5);
+                                    file_mes->MsgPreset(MENU_SCRIPT_MES_GENERAL_2, LanguageCode);
+                                    file_mes->SetMsgVolumeNoOne(slot + 1);
+                                    file_mes->MakeMsg(0xBE8);
+                                    file_mes->SetAbsPos(5);
                                     MenuSePlay(SYSTEM_SE_DECIDE);
                                     phase = SAVE_FORMAT_PHASE_FORMATTING;
                                 }
-                                if (answer == 2) {
+                                if (answer == MES_YESNO_NO) {
                                     next = SAVE_MENU_PAGE_FILE_LIST;
-                                    MenuSePlay(5);
+                                    MenuSePlay(MENU_SCRIPT_SOUND_CANCEL);
                                 }
                                 break;
                             case SAVE_FORMAT_PHASE_FORMATTING:
-                                if (stepResult != 0) {
-                                    fileMes->MsgPreset(0xA, LanguageCode);
-                                    fileMes->SetAbsPos(5);
+                                if (step_result != MC_STEP_BUSY) {
+                                    file_mes->MsgPreset(MENU_SCRIPT_MES_GENERAL, LanguageCode);
+                                    file_mes->SetAbsPos(5);
                                     if (card->formatted == 0 || McCheckMCPs2(card) == 0) {
-                                        fileMes->MakeMsg(0xBE5);
+                                        file_mes->MakeMsg(0xBE5);
                                         phase = SAVE_FORMAT_PHASE_DONE;
-                                    } else if (FormatCase == 0) {
-                                        fileMes->MakeMsg(0xBE9);
+                                    } else if (format_case == 0) {
+                                        file_mes->MakeMsg(0xBE9);
                                         phase = SAVE_FORMAT_PHASE_DONE;
                                     } else {
                                         page = SAVE_MENU_PAGE_FILE_LIST;
                                         phase = SAVE_FORMAT_PHASE_FORMATTING;
-                                        EnvSetSave(1);
+                                        EnvSetSave(SAVE_FILE_NEW);
                                     }
                                 }
                                 break;
@@ -2438,18 +2453,18 @@ int CSaveMenuClass::KeyStep(void) {
                 case SAVE_MENU_PAGE_UNK_5:
                     switch (phase) {
                         case SAVE_FORMAT_PHASE_ASK:
-                            if (pushed & 1) {
+                            if (pushed & MENU_PUSH_BUTTON_DECIDE) {
                                 MemoryCardPtr->port = 0;
                                 MemoryCardPtr->SetFuncNo(MC_FUNC_UNFORMAT);
                                 MenuMesForm[2]->draw_flag = 1;
-                                fileMes->MakeMsg(0xBF5);
+                                file_mes->MakeMsg(0xBF5);
                                 phase = SAVE_FORMAT_PHASE_FORMATTING;
                             }
                             break;
                         case SAVE_FORMAT_PHASE_FORMATTING:
-                            if (stepResult != 0) {
+                            if (step_result != MC_STEP_BUSY) {
                                 phase = SAVE_FORMAT_PHASE_DONE;
-                                fileMes->MakeMsg(0xBF6);
+                                file_mes->MakeMsg(0xBF6);
                             }
                             break;
                         case SAVE_FORMAT_PHASE_DONE:
@@ -2468,46 +2483,46 @@ int CSaveMenuClass::KeyStep(void) {
                     } else if (McCheckMCPs2(card) == 0) {
                         if (pushed != 0) {
                             next = SAVE_MENU_PAGE_SLOT_SELECT;
-                            MenuSePlay(5);
+                            MenuSePlay(MENU_SCRIPT_SOUND_CANCEL);
                         }
-                    } else if (card->type == 2) {
+                    } else if (card->type == sceMcTypePS2) {
                         if (card->formatted == 0) {
                             if (mode == SAVE_MENU_MODE_LOAD) {
                                 if (pushed != 0) {
                                     next = SAVE_MENU_PAGE_SLOT_SELECT;
-                                    MenuSePlay(5);
+                                    MenuSePlay(MENU_SCRIPT_SOUND_CANCEL);
                                 }
                             } else {
                                 answer = 0;
-                                if (fileMes->mes_no == 0xBEB) {
-                                    answer = fileMes->YesNoCursor();
+                                if (file_mes->mes_no == 0xBEB) {
+                                    answer = file_mes->YesNoCursor();
                                 }
                                 switch (pushed) {
-                                    case 1:
-                                        if (fileMes->mes_no == 0xBEB && answer == 0) {
+                                    case MENU_PUSH_BUTTON_DECIDE:
+                                        if (file_mes->mes_no == 0xBEB && answer == 0) {
                                             next = SAVE_MENU_PAGE_FORMAT;
                                             MenuSePlay(SYSTEM_SE_DECIDE);
                                             break;
                                         }
-                                    case 2:
+                                    case MENU_PUSH_BUTTON_CANCEL:
                                         next = SAVE_MENU_PAGE_SLOT_SELECT;
-                                        MenuSePlay(5);
+                                        MenuSePlay(MENU_SCRIPT_SOUND_CANCEL);
                                         break;
                                 }
                             }
                         } else if (mode == SAVE_MENU_MODE_LOAD && MemoryCardPtr->CheckDataFileNum() <= 0) {
                             if (pushed != 0) {
                                 next = SAVE_MENU_PAGE_SLOT_SELECT;
-                                MenuSePlay(5);
+                                MenuSePlay(MENU_SCRIPT_SOUND_CANCEL);
                             }
                         } else if (card->free_size <= check_kb) {
                             if (pushed != 0) {
                                 next = SAVE_MENU_PAGE_SLOT_SELECT;
-                                MenuSePlay(5);
+                                MenuSePlay(MENU_SCRIPT_SOUND_CANCEL);
                             }
                         } else if (pushed != 0) {
                             next = SAVE_MENU_PAGE_SLOT_SELECT;
-                            MenuSePlay(5);
+                            MenuSePlay(MENU_SCRIPT_SOUND_CANCEL);
                         }
                     }
                     break;
@@ -2519,41 +2534,41 @@ int CSaveMenuClass::KeyStep(void) {
         MenuMesForm[7]->draw_flag = 0;
         card = GetSaveMenuCard(slot);
         if (card_changed == 1) {
-            phase = 0;
+            phase = SAVE_LIST_PHASE_SELECT;
             next = SAVE_MENU_PAGE_CARD_INFO;
             card_changed = 0;
         } else {
             if (McCheckMCPs2(card) == 0) {
                 MenuMesForm[2]->draw_flag = 1;
-                fileMes->MsgPreset(0xA, LanguageCode);
-                fileMes->SetAbsPos(5);
-                fileMes->MakeMsg(0xBE7);
+                file_mes->MsgPreset(MENU_SCRIPT_MES_GENERAL, LanguageCode);
+                file_mes->SetAbsPos(5);
+                file_mes->MakeMsg(0xBE7);
                 if (error->code == MC_ERROR_FILE) {
-                    fileMes->MakeMsg(0xBC1);
+                    file_mes->MakeMsg(0xBC1);
                 }
             } else if (card->formatted == 0) {
-                fileMes->MsgPreset(0xA, LanguageCode);
-                fileMes->SetAbsPos(5);
-                fileMes->MakeMsg(0xBED);
-                fileMes->SetMsgVolumeNoOne(slot + 1);
+                file_mes->MsgPreset(MENU_SCRIPT_MES_GENERAL, LanguageCode);
+                file_mes->SetAbsPos(5);
+                file_mes->MakeMsg(0xBED);
+                file_mes->SetMsgVolumeNoOne(slot + 1);
             } else if (mode == SAVE_MENU_MODE_LOAD && MemoryCardPtr->CheckDataFileNum() <= 0) {
-                fileMes->MsgPreset(0xA, LanguageCode);
-                fileMes->SetAbsPos(5);
-                fileMes->MakeMsg(0xBE3);
-                fileMes->SetMsgVolumeNoOne(slot + 1);
+                file_mes->MsgPreset(MENU_SCRIPT_MES_GENERAL, LanguageCode);
+                file_mes->SetAbsPos(5);
+                file_mes->MakeMsg(0xBE3);
+                file_mes->SetMsgVolumeNoOne(slot + 1);
             } else if (card->free_size <= check_kb) {
                 ExeScript(at_2508__2);
                 int values[2] = {0, 0};
                 values[0] = slot + 1;
                 values[1] = need_kb;
-                fileMes->SetMsgVolumeNo(values, 2);
+                file_mes->SetMsgVolumeNo(values, 2);
             }
             if (error->code == MC_ERROR_LOAD) {
                 MenuMesForm[7]->draw_flag = 0;
                 MenuMesForm[2]->draw_flag = 1;
-                fileMes->MsgPreset(0xA, LanguageCode);
-                fileMes->SetAbsPos(5);
-                fileMes->MakeMsg(0xBC6);
+                file_mes->MsgPreset(MENU_SCRIPT_MES_GENERAL, LanguageCode);
+                file_mes->SetAbsPos(5);
+                file_mes->MakeMsg(0xBC6);
             }
         }
     }
@@ -2568,7 +2583,7 @@ int CSaveMenuClass::KeyStep(void) {
                 MemoryCardPtr->SetFuncNo(MC_FUNC_SEARCH_TYPE);
                 phase = 0;
                 ExeScript(at_2510__2);
-                fileMes->push_button = 0;
+                file_mes->push_button = 0;
                 slot_form[slot]->SetAction(at_2511);
                 slot_form[!(bool)slot]->SetRGBACalcParam(3, -8, 0);
                 if (slot == 0) {
@@ -2584,14 +2599,14 @@ int CSaveMenuClass::KeyStep(void) {
                 break;
             case SAVE_MENU_PAGE_FILE_LIST:
                 if (mode == SAVE_MENU_MODE_SAVE) {
-                    phase = 0;
-                    fileMes->MakeMsg(0xBBE);
-                    titleMes->MakeMsg(0xC1D);
+                    phase = SAVE_LIST_PHASE_SELECT;
+                    file_mes->MakeMsg(0xBBE);
+                    title_mes->MakeMsg(0xC1D);
                 }
                 if (mode == SAVE_MENU_MODE_LOAD || mode == SAVE_MENU_MODE_GYORACE_LOAD) {
-                    phase = 0;
-                    fileMes->MsgPreset(0xB, LanguageCode);
-                    titleMes->MakeMsg(0xC1E);
+                    phase = SAVE_LIST_PHASE_SELECT;
+                    file_mes->MsgPreset(MENU_SCRIPT_MES_YESNO, LanguageCode);
+                    title_mes->MakeMsg(0xC1E);
                 }
                 refresh = 1;
                 list_jump = 1;
@@ -2601,14 +2616,14 @@ int CSaveMenuClass::KeyStep(void) {
                 scrlbar_form->draw_flag = 1;
                 break;
             case SAVE_MENU_PAGE_FORMAT:
-                phase = 0;
+                phase = SAVE_FORMAT_PHASE_ASK;
                 ExeScript(at_2512__2);
-                if (fileMes != NULL) {
-                    fileMes->SetMsgVolumeNoOne(slot + 1);
+                if (file_mes != NULL) {
+                    file_mes->SetMsgVolumeNoOne(slot + 1);
                 }
                 break;
             case SAVE_MENU_PAGE_UNK_5:
-                phase = 0;
+                phase = SAVE_FORMAT_PHASE_ASK;
                 break;
             case SAVE_MENU_PAGE_ERROR:
                 break;
@@ -2618,25 +2633,25 @@ int CSaveMenuClass::KeyStep(void) {
     }
     if (refresh != 0) {
         card = GetSaveMenuCard(MemoryCardPtr->port);
-        emptyMes = 0xC27;
+        empty_mes = 0xC27;
         if (card != NULL && card->formatted != 0 && card->free_size <= check_kb) {
-            emptyMes = 0xC28;
+            empty_mes = 0xC28;
         }
         for (row = 0; row < 13; row++) {
-            rowMes = SaveFileList[row];
-            rowMes->ClsMes::mes_no = -1;
-            rowInfo[row] = &MemoryCardPtr->file_info[row];
-            info = rowInfo[row];
+            row_mes = SaveFileList[row];
+            row_mes->ClsMes::mes_no = -1;
+            row_info[row] = &MemoryCardPtr->file_info[row];
+            info = row_info[row];
             if (info->state != 0) {
-                mapNo = info->map_no;
-                if (info->program_loop_no == 2) {
-                    mapNo = conv_2316[info->dungeon_no];
+                map_no = info->map_no;
+                if (info->program_loop_no == LOOP_DUNGEON) {
+                    map_no = conv_2316[info->dungeon_no];
                 }
-                if (mapNo == 0x29) {
-                    mapNo = 0xB;
+                if (map_no == 0x29) {
+                    map_no = 0xB;
                 }
                 char *title[1] = {NULL};
-                title[0] = GetMapTitle(mapNo);
+                title[0] = GetMapTitle(map_no);
                 chapter = 0;
                 if (info->progress >= 2) {
                     chapter = 1;
@@ -2647,50 +2662,50 @@ int CSaveMenuClass::KeyStep(void) {
                 if (info->progress == 100) {
                     chapter = 0xB;
                 }
-                int itemNo[1] = {0};
-                itemNo[0] = chapter + 0xC7F;
-                rowMes->SetMsgItemNo(title, 1);
-                rowMes->SetMsgItemNo(itemNo, 1);
-                int slotNumber[1] = {0};
-                slotNumber[0] = row + 1;
-                int slotWidth[1] = {0};
-                rowMes->SetMsgVolumeNo(slotNumber, slotWidth, 1);
-                rowMes->MakeMsg(0xC26);
+                int item_no[1] = {0};
+                item_no[0] = chapter + 0xC7F;
+                row_mes->SetMsgItemNo(title, 1);
+                row_mes->SetMsgItemNo(item_no, 1);
+                int slot_number[1] = {0};
+                slot_number[0] = row + 1;
+                int slot_width[1] = {0};
+                row_mes->SetMsgVolumeNo(slot_number, slot_width, 1);
+                row_mes->MakeMsg(0xC26);
             } else {
-                int slotNumber[1] = {0};
-                slotNumber[0] = row + 1;
-                int slotWidth[1] = {0};
-                rowMes->SetMsgVolumeNo(slotNumber, slotWidth, 1);
-                rowMes->MakeMsg(emptyMes);
+                int slot_number[1] = {0};
+                slot_number[0] = row + 1;
+                int slot_width[1] = {0};
+                row_mes->SetMsgVolumeNo(slot_number, slot_width, 1);
+                row_mes->MakeMsg(empty_mes);
             }
-            rowMes->StepMsg();
+            row_mes->StepMsg();
         }
     }
     if (list_form != NULL) {
-        float listPos[2] = {76.0f, 164.0f};
-        CalcMenu1(listPos[1] - 80.0f * (float) top, &list_form->y, 4.0f, 4.0f, list_jump);
+        float list_pos[2] = {76.0f, 164.0f};
+        CalcMenu1(list_pos[1] - 80.0f * (float) top, &list_form->y, 4.0f, 4.0f, list_jump);
     }
     MenuPosData->FormStep();
-    CDC2Mes *slot1Mes = MenuDCMsg[4];
-    CDC2Mes *slot2Mes = MenuDCMsg[5];
-    CDC2Mes *helpMes = MenuDCMsg[6];
+    CDC2Mes *slot1_mes = MenuDCMsg[4];
+    CDC2Mes *slot2_mes = MenuDCMsg[5];
+    CDC2Mes *help_mes = MenuDCMsg[6];
     if (title_form != NULL) {
-        titleMes->StepMsg();
-        title_form->GetPutPosXY(at_2513, formPos[0], formPos[1]);
-        titleMes->SetMovePosCenteringGyou(0, formPos[0], formPos[1]);
-        title_form->GetPutPosXY(at_2514, formPos[0], formPos[1]);
-        helpMes->SetMovePosCenteringGyou(0, formPos[0], formPos[1]);
+        title_mes->StepMsg();
+        title_form->GetPutPosXY(at_2513, form_pos[0], form_pos[1]);
+        title_mes->SetMovePosCenteringGyou(0, form_pos[0], form_pos[1]);
+        title_form->GetPutPosXY(at_2514, form_pos[0], form_pos[1]);
+        help_mes->SetMovePosCenteringGyou(0, form_pos[0], form_pos[1]);
     }
     if (slot_form[0] != NULL) {
-        slot_form[0]->GetPutPosXY(at_2515, formPos[0], formPos[1]);
-        slot1Mes->SetMovePosCenteringGyou(0, formPos[0], formPos[1]);
+        slot_form[0]->GetPutPosXY(at_2515, form_pos[0], form_pos[1]);
+        slot1_mes->SetMovePosCenteringGyou(0, form_pos[0], form_pos[1]);
     }
     if (slot_form[1] != NULL) {
-        slot_form[1]->GetPutPosXY(at_2515, formPos[0], formPos[1]);
-        slot2Mes->SetMovePosCenteringGyou(0, formPos[0], formPos[1]);
+        slot_form[1]->GetPutPosXY(at_2515, form_pos[0], form_pos[1]);
+        slot2_mes->SetMovePosCenteringGyou(0, form_pos[0], form_pos[1]);
     }
-    int scrollRange[2] = {6, 250};
-    LocalFunc_AdjustScrlBar(scrlbar_parts, scrlbar_pos, scrollRange, top, 13.0f, 3.0f, list_jump);
+    int scroll_range[2] = {6, 250};
+    LocalFunc_AdjustScrlBar(scrlbar_parts, scrlbar_pos, scroll_range, top, 13.0f, 3.0f, list_jump);
     if (list_jump != 0) {
         list_jump = 0;
     }
