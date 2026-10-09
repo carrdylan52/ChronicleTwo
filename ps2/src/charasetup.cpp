@@ -457,13 +457,13 @@ void SetupUnitMan(CScene *scene, CUserDataManager *user_data, int unit, ROBO_INF
  */
 int SetupMints(CScene *scene, CUserDataManager *user_data) {
     CGameDataUsed *equip = user_data->GetCharaDataPtr(0)->equip;
-    CCharacter2   *characters[5];
+    CActionChara  *characters[5];
 
     for (int slot = 0; slot < 5; slot++) {
-        characters[slot] = scene->GetCharacter(slot);
+        characters[slot] = (CActionChara *) scene->GetCharacter(slot);
 
         if (characters[slot] != NULL) {
-            ((CActionChara *) characters[slot])->ResetParent();
+            characters[slot]->ResetParent();
         }
     }
 
@@ -481,8 +481,7 @@ int SetupMints(CScene *scene, CUserDataManager *user_data) {
             if (characters[part + 1] != NULL) {
                 char *attach_name = attach_names.names[part];
 
-                if (((CActionChara *) characters[0])
-                        ->SetRef((CActionChara *) characters[part + 1], attach_name) == 0) {
+                if (characters[0]->SetRef(characters[part + 1], attach_name) == 0) {
                     printf("setref failed : %s\n", attach_name);
                 } else {
                     strcpy(characters[part + 1]->name, part_names.names[part]);
@@ -492,9 +491,9 @@ int SetupMints(CScene *scene, CUserDataManager *user_data) {
         }
     }
 
-    ((CActionChara *) characters[0])->move_type = 0;
-    ((CActionChara *) characters[0])->attack_type = 0;
-    ((CActionChara *) characters[0])->chara_type = 0;
+    characters[0]->move_type = 0;
+    characters[0]->attack_type = 0;
+    characters[0]->chara_type = 0;
     return 1;
 }
 
@@ -505,13 +504,13 @@ int SetupMints(CScene *scene, CUserDataManager *user_data) {
  */
 int SetupMonica(CScene *scene, CUserDataManager *user_data) {
     CGameDataUsed *equip = user_data->GetCharaDataPtr(1)->equip;
-    CCharacter2   *characters[5];
+    CActionChara  *characters[5];
 
     for (int slot = 0; slot < 5; slot++) {
-        characters[slot] = scene->GetCharacter(slot);
+        characters[slot] = (CActionChara *) scene->GetCharacter(slot);
 
         if (characters[slot] != NULL) {
-            ((CActionChara *) characters[slot])->ResetParent();
+            characters[slot]->ResetParent();
         }
     }
 
@@ -529,8 +528,7 @@ int SetupMonica(CScene *scene, CUserDataManager *user_data) {
             if (characters[part + 1] != NULL) {
                 char *attach_name = attach_names.names[part];
 
-                if (((CActionChara *) characters[0])
-                        ->SetRef((CActionChara *) characters[part + 1], attach_name) == 0) {
+                if (characters[0]->SetRef(characters[part + 1], attach_name) == 0) {
                     printf("setref failed : %s\n", attach_name);
                 } else {
                     strcpy(characters[part + 1]->name, part_names.names[part]);
@@ -540,8 +538,8 @@ int SetupMonica(CScene *scene, CUserDataManager *user_data) {
         }
     }
 
-    ((CActionChara *) characters[0])->move_type = 0;
-    ((CActionChara *) characters[0])->chara_type = ACTION_CHARA_MONICA;
+    characters[0]->move_type = 0;
+    characters[0]->chara_type = ACTION_CHARA_MONICA;
     return 1;
 }
 
@@ -691,13 +689,13 @@ ROBO_INFO_DATA *GetRoboPartsInfo(CUserDataManager *user_data) {
  *
  */
 int SetupMonster(CScene *scene, CUserDataManager *user_data) {
-    CCharacter2 *characters[5];
+    CActionChara *characters[5];
 
     for (int slot = 0; slot < 5; slot++) {
-        characters[slot] = scene->GetCharacter(slot);
+        characters[slot] = (CActionChara *) scene->GetCharacter(slot);
 
         if (characters[slot] != NULL) {
-            ((CActionChara *) characters[slot])->ResetParent();
+            characters[slot]->ResetParent();
         }
     }
 
@@ -705,8 +703,8 @@ int SetupMonster(CScene *scene, CUserDataManager *user_data) {
         strcpy(characters[0]->name, "body");
     }
 
-    ((CActionChara *) characters[0])->move_type = 3;
-    ((CActionChara *) characters[0])->chara_type = ACTION_CHARA_MONSTER;
+    characters[0]->move_type = 3;
+    characters[0]->chara_type = ACTION_CHARA_MONSTER;
     return 1;
 }
 
