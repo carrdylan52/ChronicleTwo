@@ -18,7 +18,6 @@
 #include "sound.hpp"
 #include "dng_main.hpp"
 
-
 // Code (.text)
 void CalcReflectionVector(float *incoming, float *surface, float *reflected) {
     float normal[4];

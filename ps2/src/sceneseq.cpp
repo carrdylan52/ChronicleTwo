@@ -17,7 +17,6 @@
 #include "scenesnd.hpp"
 #include "sound.hpp"
 
-
 #define CONVERT_TO_PAL_FRAMES(frames)    \
     if ((frames) > 0) {                  \
         (frames) = ((frames) * 50) / 60; \
