@@ -104,6 +104,5 @@ DNG_FLOOR_FLAG_OPEN, [4] |= same. [0..2] from _ROOT_INFO args. Signedness of [1]
 - CheckDrawGlidInfo uses `at_1259` = floors per dungeon {9,16,25,21,23,29,39}.
 
 ## Unresolved
-- GLID_INFO 0x6/0x8, room 0x0 string, 0x44, 0x4C meaning; root [1]/[2] signedness.
-- What DNG_FLOOR_FLAG_UNK_2 means (affects `mark`).
+- GLID_INFO 0x6/0x8, room 0x0 string, 0x4C meaning; root [1]/[2] signedness (0x44 is `selectable`).
 - DNGMAP_FLOOR_SPECIAL (100) meaning beyond the two special cases above.
