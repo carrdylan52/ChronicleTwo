@@ -2817,7 +2817,7 @@ void MenuPosDataTypeInit(MENUFORMPARTS_TYPE *part) {
     part->alpha_blend = 1;
     part->bilinear = 0;
     part->item_flag = 0;
-    *(int *) &part->tex = 0;
+    part->tex = NULL;
     part->shadow = 0;
 }
 
@@ -2834,7 +2834,6 @@ void MenuFormPartsPresetItem(MENUFORMPARTS_TYPE *part, int visible, int value34,
 
 void CMenuPosDataForm::Initialize() {
     int i;
-    u8 *bytes = (u8 *) this;
     name = NULL;
     active = 0;
     draw_flag = 1;
@@ -2845,31 +2844,31 @@ void CMenuPosDataForm::Initialize() {
     vibe_cnt[0] = 0;
     clip_h = -1;
     clip_w = -1;
-    *(int *) &bytes[0x28] = 0;
-    *(int *) &bytes[0x24] = 0;
+    next_y = 0;
+    next_x = 0;
     rate_y = 1.1f;
     rate_x = 1.1f;
-    bytes[0x20] = 0xFF;
-    bytes[0x50] = 0;
+    mtype = MENUFORM_MTYPE_N;
+    rgba_bit = 0;
 
     for (i = 0; i < 4; i++) {
-        bytes[0x51 + i] = 0;
-        bytes[0x55 + i] = 0x80;
-        bytes[0x59 + i] = 0x80;
+        rgba_add[i] = 0;
+        rgba[i] = 0x80;
+        rgba_target[i] = 0x80;
     }
 
-    *(int *) &bytes[0x18] = 0;
+    counter = 0;
     parts_num = 0;
     parts = NULL;
-    *(int *) &bytes[0x38] = 0;
-    *(short *) &bytes[0x34] = 0;
-    *(short *) &bytes[0x36] = 0;
+    chara = NULL;
+    chara_tex_block = 0;
+    unk_36 = 0;
     step_stop = 0;
-    *(short *) &bytes[0x5E] = -1;
-    *(short *) &bytes[0x60] = -1;
+    action_no = -1;
+    action_state = -1;
     action_num = 0;
     action = NULL;
-    bytes[0x1C] = 0;
+    sub_no = 0;
     prev = NULL;
     next = NULL;
 }
@@ -2943,9 +2942,8 @@ void CMenuPosDataForm::SetRGBACalcParam(int index, int from, int to) {
         return;
     }
 
-    u8 *p = (u8 *) index + (int) this;
-    p[0x51] = from;
-    p[0x59] = to;
+    rgba_add[index] = from;
+    rgba_target[index] = to;
 }
 
 void CMenuPosDataForm::FormFadeIn(int frames, int reset) {
@@ -3077,21 +3075,12 @@ void CMenuPosDataForm::GetPutPosXY(char *part_name, float &out_x, float &out_y) 
 }
 
 MENUFORMPARTS_TYPE *CMenuPosDataForm::GetEnableEnterPart() {
-    int                 i = 0;
-    int                 offset = 0;
-    MENUFORMPARTS_TYPE *part;
-    MENUFORMPARTS_TYPE *base;
+    int i;
 
-    while (i < parts_num) {
-        base = parts;
-        part = (MENUFORMPARTS_TYPE *) ((u8 *) base + offset);
-
-        if (part->name == NULL && part->active == 0) {
-            return base + i;
+    for (i = 0; i < parts_num; i++) {
+        if (parts[i].name == NULL && parts[i].active == 0) {
+            return &parts[i];
         }
-
-        offset += 0x48;
-        i++;
     }
 
     return NULL;
@@ -3796,26 +3785,19 @@ int CMenuPosDataForm::MenuFormStep() {
         action_state = 4;
     }
 
-    i = 0;
-
-    do {
-        u8          *channel = (u8 *) this + i;
-        signed char  step = channel[0x51];
-        signed char *step_ptr = (signed char *) &channel[0x51];
+    for (i = 0; i < 4; i++) {
+        s8 step = rgba_add[i];
 
         if (step != 0) {
-            calc = channel[0x55];
-            u8 *value_ptr = &channel[0x55];
+            calc = rgba[i];
 
-            if (CalcMenuAdd(&calc, step, channel[0x59]) != 0) {
-                *step_ptr = 0;
+            if (CalcMenuAdd(&calc, step, rgba_target[i]) != 0) {
+                rgba_add[i] = 0;
             }
 
-            *value_ptr = calc;
+            rgba[i] = calc;
         }
-
-        i++;
-    } while (i < 4);
+    }
 
     x = (float) next[0];
     y = (float) next[1];
@@ -5244,33 +5226,23 @@ void Func_MenuIconDrawPrepare(MENUFORMPARTS_TYPE *part, CGameDataUsed *item, int
 }
 
 void CheckItemBoardFunc_MenuIconDrawPrepare(CUserDataManager *manager, MENUFORMPARTS_TYPE *parts) {
-    int                 need_item;
-    CGameDataUsed      *item;
-    int                 count;
-    int                 i;
-    int                 offset;
-    MENUFORMPARTS_TYPE *part;
+    int            need_item;
+    CGameDataUsed *item;
+    int            count;
+    int            i;
 
     need_item = NowUseNeedItemCheck(manager);
     item = (CGameDataUsed *) manager->GetUsedDataPtr(0);
     count = GetNowBagMax(1);
-    i = 0;
 
-    if (0 < count) {
-        offset = 0;
+    for (i = 0; i < count; i++) {
+        Func_MenuIconDrawPrepare(&parts[i], item, need_item);
 
-        do {
-            part = (MENUFORMPARTS_TYPE *) ((u8 *) parts + offset);
-            Func_MenuIconDrawPrepare(part, item, need_item);
+        if (CheckBuildUp(item, NULL, NULL, NULL) != 0) {
+            parts[i].item_flag |= 2;
+        }
 
-            if (CheckBuildUp(item, NULL, NULL, NULL) != 0) {
-                part->item_flag |= 2;
-            }
-
-            i++;
-            item++;
-            offset += 0x48;
-        } while (i < count);
+        item++;
     }
 }
 
@@ -5376,25 +5348,13 @@ void Func_MenuItemIconSetEffectOne(MENUFORMPARTS_TYPE *part) {
 }
 
 void MenuItemBrdItemIconEffectMalloc(mgCMemory *memory, MENUFORMPARTS_TYPE *parts, int count) {
-    int                 i;
-    int                 offset;
-    MENUFORMPARTS_TYPE *part;
+    int i;
 
-    i = 0;
-
-    if (0 < count) {
-
-        offset = 0;
-
-        do {
-            part = (MENUFORMPARTS_TYPE *) ((u8 *) parts + offset);
-            MenuPosDataTypeInit(part);
-            part->active = 1;
-            Func_MallocPartEffectInfo(part, memory, 8);
-            Func_MenuItemIconSetEffectOne(part);
-            i++;
-            offset += 0x48;
-        } while (i < count);
+    for (i = 0; i < count; i++) {
+        MenuPosDataTypeInit(&parts[i]);
+        parts[i].active = 1;
+        Func_MallocPartEffectInfo(&parts[i], memory, 8);
+        Func_MenuItemIconSetEffectOne(&parts[i]);
     }
 
     parts->name = (char *) memory->Alloc(1);
@@ -5902,7 +5862,7 @@ void CRepairManager::LoadDataBG(mgCMemory *memory) {
         memory->lock = 0;
         memory->Align64();
         size = 0;
-        data = (unsigned int *) (*(int *) &memory->stack + (memory->stack_used << 4));
+        data = (unsigned int *) &memory->stack[memory->stack_used];
         StartReadBG();
         LoadFileBG("menu/eff/repair.chr", (u_long128 *) data, &size);
 
@@ -6493,15 +6453,11 @@ void CEffVerticalLine::Draw() {
  */
 void InitInitBuildUpInfoEffectPos() {
     int i;
-    int offset = 0;
 
-    for (i = 0; i < MenuVerticalLineNum; i++, offset += sizeof(CEffVerticalLine)) {
-        CEffVerticalLine *lines = MenuVerticalLine;
-        ((CEffVerticalLine *) ((u8 *) lines + offset))
-            ->Generate(MenuVerticalLineCharaPos, MenuVerticalRange, 20.0f);
-        ((CEffVerticalLine *) ((u8 *) MenuVerticalLine + offset))->pos[1] =
-            MenuVerticalLineCharaPos[1] + GetRandF(8.0f);
-        ((CEffVerticalLine *) ((u8 *) MenuVerticalLine + offset))->angle = GetRandF(3.1415927f);
+    for (i = 0; i < MenuVerticalLineNum; i++) {
+        MenuVerticalLine[i].Generate(MenuVerticalLineCharaPos, MenuVerticalRange, 20.0f);
+        MenuVerticalLine[i].pos[1] = MenuVerticalLineCharaPos[1] + GetRandF(8.0f);
+        MenuVerticalLine[i].angle = GetRandF(3.1415927f);
     }
 }
 
@@ -6564,7 +6520,6 @@ void StepBuildUpInfoEffect() {
 
 void DrawBuildUpInfoEffect() {
     int i;
-    int offset;
 
     if (MenuVerticalLineChara == 0 || MenuVerticalLine == NULL) {
         return;
@@ -6573,8 +6528,8 @@ void DrawBuildUpInfoEffect() {
     if (MenuVerticalLineTex != NULL) {
         mgTexManager.ReloadTexture(MenuVerticalLineTex->block, (sceVif1Packet *) NULL);
 
-        for (i = 0, offset = 0; i < MenuVerticalLineNum; offset += sizeof(CEffVerticalLine), i++) {
-            ((CEffVerticalLine *) ((u8 *) MenuVerticalLine + offset))->Draw();
+        for (i = 0; i < MenuVerticalLineNum; i++) {
+            MenuVerticalLine[i].Draw();
         }
     }
 }
