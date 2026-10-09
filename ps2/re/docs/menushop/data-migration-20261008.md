@@ -89,3 +89,8 @@ Final canonical state: **1 INCLUDE_RODATA / 0 INCLUDE_BSS**, from **102 / 35**;
 **1821 / 1885 matched_data**, from **4 / 1885**. PAL and 149/149 objects pass;
 all guarded/SF bodies and unowned object hashes remain unchanged. Receipts:
 `.private/dataD-r1/menushop-persistent-state-{build,objects,progress,metrics}.log`.
+
+The final data-marker ending has no trailing blank line. The final formatting
+check again passes PAL, 149/149 objects, protected bodies and unowned hashes:
+`.private/dataD-r1/menushop-final-format-{build,objects}.log`.
+The final three-unit refresh is in `dataD-final-{progress,metrics}.log`.
