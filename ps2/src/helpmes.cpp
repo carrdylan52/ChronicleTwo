@@ -34,19 +34,12 @@ static char HelpMesBuff[0x1000];
 /**
  * Message window used to display help and error messages.
  */
-ClsMes HelpMes __attribute__((aligned(4)));
-
-/**
- *
- * Reserves four bytes before the help message request state.
- *
- */
-u8 D_01F628BC[4];
+static ClsMes HelpMes;
 
 /**
  * State of the current help or error message request.
  */
-HELP_MES_INFO HelpMesInfo;
+static HELP_MES_INFO HelpMesInfo;
 
 // Code (.text)
 void LoadHelpMes(u_long128 *scratch) {
