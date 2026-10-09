@@ -54,44 +54,127 @@ extern EditDebugInfo EdDebugInfo;
 extern CEditEvent    EditEvent;
 
 static const int kEventNoMapJump = 0x1869F;
-static const int kEventDataCallFlag = 8;
-static const int kKeyOpenEvent = 0x96;
-static const int kCameraKindEvent = 0x3E8;
 
-extern char at_2948[];
-extern char at_2949[];
-extern char at_2950[];
-extern char at_2951[];
-extern char at_2952[];
-extern char at_2953[];
-extern char at_2954[];
-extern char at_2955[];
-extern char at_2956[];
-extern char at_2957[];
-extern char at_2958[];
-extern char at_2261[];
-extern char at_2262[];
+static const int kEventDataCallFlag = 8;
+
+static const int kKeyOpenEvent = 0x96;
+
+static const int kCameraKindEvent = 0x3E8;
 
 extern mgCMemory        ControlCharaBuff;
 extern mgCMemory        MainDataBuff;
-extern int              EditDrawCancelFlag;
-extern int              LoopCounter;
-extern CScene          *MainScene__2;
-extern int              SubMapLoadBG;
-extern int              now_load_map_no;
-extern int              MapNo;
-extern int              DelMainNPCflag;
-extern CMapTreasureBox *TreasureBox;
-extern int              beforeAnalyze[16];
-extern float            at_3041[4];
-extern CCharacter2     *WalkChara;
-extern int              ControlMode;
-extern int              LoopMode;
-extern char             at_2747[9];
-extern int              LockChara;
-extern int              EditModeChgCnt;
-extern int              EditModeChgEvent;
-extern int              EditModeChgFlag;
+
+/**
+ *
+ * Request to skip the next town draw.
+ *
+ */
+static int EditDrawCancelFlag;
+
+/**
+ *
+ * Frame counter of the town loop.
+ *
+ */
+static int LoopCounter;
+
+/**
+ *
+ * Scene used by the town loop.
+ *
+ */
+static CScene *MainScene__2;
+
+/**
+ *
+ * Background submap loading state.
+ *
+ */
+static int SubMapLoadBG;
+
+/**
+ *
+ * Map number selected by the current submap load.
+ *
+ */
+static int now_load_map_no;
+
+/**
+ *
+ * Map number currently loaded by the town loop.
+ *
+ */
+static int MapNo;
+
+/**
+ *
+ * Whether the main-map villagers require reloading.
+ *
+ */
+static int DelMainNPCflag;
+
+/**
+ *
+ * Treasure-box character shared by the town maps.
+ *
+ */
+static CMapTreasureBox *TreasureBox;
+
+/**
+ *
+ * Saved Georama analysis flags used to detect changes.
+ *
+ */
+static int beforeAnalyze[16];
+
+/**
+ *
+ * Character controlled while walking around the town.
+ *
+ */
+static CCharacter2 *WalkChara;
+
+/**
+ *
+ * Current player, event or debug control mode.
+ *
+ */
+static int ControlMode;
+
+/**
+ *
+ * Current walking, editing or menu stage of the town loop.
+ *
+ */
+static int LoopMode;
+
+/**
+ *
+ * Nesting count of town character control locks.
+ *
+ */
+static int LockChara;
+
+/**
+ *
+ * Frames remaining before the Georama mode change.
+ *
+ */
+static int EditModeChgCnt;
+
+/**
+ *
+ * Event started when the Georama mode change completes.
+ *
+ */
+static int EditModeChgEvent;
+
+/**
+ *
+ * Whether a Georama mode change is pending.
+ *
+ */
+static int EditModeChgFlag;
 
 #include <libvu0.h>
 
@@ -112,26 +195,147 @@ extern int              EditModeChgFlag;
 #include "photo.hpp"
 #include "screeneffect.hpp"
 #include "snd_mngr.hpp"
-extern mgCFrame       *WaterFrame;
-extern mgCFrame       *RedBicMark;
-extern mgCFrame       *BlueBicMark;
-extern CCameraControl *Camera;
-extern CCameraControl *FixCamera;
-extern CCameraControl *EditCamera;
-extern int             ActiveCharaNo;
-extern int             ControlCharaID;
-extern int             EventSquareJump;
-extern int             EditDrawFlag;
-extern int             PauseFlag;
-extern int             PreEditMenuCnt;
-extern u_long128      *main_pkt1;
-extern u_long128      *main_pkt2;
-extern u_long128      *MenuDataBuf;
-extern int             MenuDataSize;
-extern int             FixCharaBuffSize;
-extern u_long128      *CrossFadeBuff;
-extern MENU_INIT_ARG  *MenuInfo;
-extern int             DataPktMode;
+
+/**
+ *
+ * Frame used to render the town water surface.
+ *
+ */
+static mgCFrame *WaterFrame;
+
+/**
+ *
+ * Red marker frame used by town editing.
+ *
+ */
+static mgCFrame *RedBicMark;
+
+/**
+ *
+ * Blue marker frame used by town editing.
+ *
+ */
+static mgCFrame *BlueBicMark;
+
+/**
+ *
+ * Player camera controller used by the town loop.
+ *
+ */
+static CCameraControl *Camera;
+
+/**
+ *
+ * Fixed camera controller used by the town loop.
+ *
+ */
+static CCameraControl *FixCamera;
+
+/**
+ *
+ * Camera controller used during Georama editing.
+ *
+ */
+static CCameraControl *EditCamera;
+
+/**
+ *
+ * Active town character number.
+ *
+ */
+static int ActiveCharaNo;
+
+/**
+ *
+ * Character identifier selected for player control.
+ *
+ */
+static int ControlCharaID;
+
+/**
+ *
+ * Town event transition flag.
+ *
+ */
+static int EventSquareJump;
+
+/**
+ *
+ * Whether the town loop permits scene drawing.
+ *
+ */
+static int EditDrawFlag;
+
+/**
+ *
+ * Pause state of the town loop.
+ *
+ */
+static int PauseFlag;
+
+/**
+ *
+ * Frames waited before opening the Georama menu.
+ *
+ */
+static int PreEditMenuCnt;
+
+/**
+ *
+ * First half of the town rendering packet buffer.
+ *
+ */
+static u_long128 *main_pkt1;
+
+/**
+ *
+ * Second half of the town rendering packet buffer.
+ *
+ */
+static u_long128 *main_pkt2;
+
+/**
+ *
+ * Data buffer allocated to the town menu.
+ *
+ */
+static u_long128 *MenuDataBuf;
+
+/**
+ *
+ * Byte size of the loaded town menu data.
+ *
+ */
+static int MenuDataSize;
+
+/**
+ *
+ * Quadword capacity reserved for fixed town characters.
+ *
+ */
+static int FixCharaBuffSize;
+
+/**
+ *
+ * Buffer used for town crossfade images.
+ *
+ */
+static u_long128 *CrossFadeBuff;
+
+/**
+ *
+ * Shared menu parameters used by the town loop.
+ *
+ */
+static MENU_INIT_ARG *MenuInfo = &MenuArg;
+
+/**
+ *
+ * Current allocation mode of the town data packet buffers.
+ *
+ */
+static int DataPktMode = -1;
+
 extern CWaveTable      WaveTable;
 extern sceVu0FVECTOR   CharaOldPos;
 extern mgCMemory       buf0;
@@ -152,7 +356,12 @@ extern mgCMemory       SkyBuff;
 extern mgCVisualMDT    TestVisual;
 extern mgCFrame        TestFrame;
 
-extern CCameraControl *EventCamera;
+/**
+ *
+ * Camera controller used for town events.
+ *
+ */
+static CCameraControl *EventCamera;
 
 void InitSubMapLoadStep();
 void LoadMap();
@@ -161,6 +370,118 @@ void ResetEditEvent();
 void RestartEditEvent();
 void UpdateTrBoxFlag(int map_no);
 void editLoadSound(int map_no);
+
+/**
+ *
+ * End of the town file-loading buffer.
+ *
+ */
+u_long128 *read_buffer_end;
+
+/**
+ *
+ * Persistent counter for town time progression.
+ *
+ */
+static int time_step_1481;
+
+/**
+ *
+ * Initialization guard for the town time-progression counter.
+ *
+ */
+static signed char init_1482;
+
+/**
+ *
+ * Persistent counter for the displayed town time.
+ *
+ */
+static int show_time_step_1484;
+
+/**
+ *
+ * Initialization guard for the displayed town-time counter.
+ *
+ */
+static signed char init_1485;
+
+/**
+ *
+ * Control mode saved before entering the town debug editor.
+ *
+ */
+static int old_cm_1772;
+
+/**
+ *
+ * Persistent rain state tracked by the town loop.
+ *
+ */
+static int rain_flag_1849;
+
+/**
+ *
+ * Initialization guard for the town rain state.
+ *
+ */
+static signed char init_1850;
+
+/**
+ *
+ * Persistent battle-start counter of the town loop.
+ *
+ */
+static int start_bt_cnt_1865;
+
+/**
+ *
+ * Initialization guard for the town battle-start counter.
+ *
+ */
+static signed char init_1866;
+
+/**
+ *
+ * Persistent encounter state of the town loop.
+ *
+ */
+static int encount_flag_1868;
+
+/**
+ *
+ * Initialization guard for the town encounter state.
+ *
+ */
+static signed char init_1869;
+
+/**
+ *
+ * Persistent encounter-display counter of the town loop.
+ *
+ */
+static int show_encount_cnt_1871;
+
+/**
+ *
+ * Initialization guard for the town encounter-display counter.
+ *
+ */
+static signed char init_1872;
+
+/**
+ *
+ * Persistent next-encounter selection of the town loop.
+ *
+ */
+static int next_encount_1874;
+
+/**
+ *
+ * Initialization guard for the next town encounter selection.
+ *
+ */
+static signed char init_1875;
 
 // Code (.text)
 /**
@@ -1734,7 +2055,7 @@ int EditStep() {
 
     if (MainScene__2->event_run != 0) {
         event_no = MainScene__2->event_no;
-        printf(at_2261, event_no);
+        printf("event = %d\n", event_no);
         event_data = &MainScene__2->event_data;
 
         if (event_no == kEventNoMapJump) {
@@ -1749,7 +2070,7 @@ int EditStep() {
                     event_no = event_data->event.arg3;
 
                     if (event_no > 0) {
-                        printf(at_2262, event_no);
+                        printf("   event = %d\n", event_no);
 
                         if (RunEvent(event_data->event.arg3, MainScene__2) > 0) {
                             ResetViewMode(MainScene__2);
@@ -2327,7 +2648,7 @@ int EditMapJump(int map_no) {
     map_name = GetMapName(map_no, NULL);
 
     if (map_name == NULL) {
-        printf(at_2948, map_no);
+        printf("not found map %d\n", map_no);
         return 0;
     }
 
@@ -2349,7 +2670,7 @@ int EditMapJump(int map_no) {
                              free_quads - ControlCharaBuff.stack_used);
     MainDataBuff.stack_used = 0;
     MainDataBuff.lock = 0;
-    printf(at_2949, MainDataBuff.stack + MainDataBuff.stack_used);
+    printf("MAP DATA %x\n", MainDataBuff.stack + MainDataBuff.stack_used);
     SCN_LOADMAP_INFO2 load_info;
     char              path[0x88];
 
@@ -2357,11 +2678,11 @@ int EditMapJump(int map_no) {
         return 0;
     }
 
-    if (map_no == SearchMapNo(at_2950) &&
+    if (map_no == SearchMapNo("f01") &&
         (GetSaveData()->GetEditData(0))->GetAnalyzeFlag(0, 3) == 0) {
-        strcat(load_info.files[0].map_name, at_2951);
-        strcat(load_info.files[0].mpk_name, at_2951);
-        strcat(load_info.files[0].ipk_name, at_2951);
+        strcat(load_info.files[0].map_name, "_2");
+        strcat(load_info.files[0].mpk_name, "_2");
+        strcat(load_info.files[0].ipk_name, "_2");
     }
 
     MainScene__2->DeleteVillager();
@@ -2386,16 +2707,16 @@ int EditMapJump(int map_no) {
         map = (CEditMap *) MainScene__2->GetMap(0);
         map->CreateTable(main_data, 0x100, 0xA000);
         GetMapPath(path, map_name);
-        sprintf(size_text, at_2952, LanguageCode);
+        sprintf(size_text, "%d", LanguageCode);
         strcat(path, size_text);
-        strcat(path, at_2953);
+        strcat(path, ".gpi");
 
         if (LoadFile2(path, (void *) read_buffer, &file_size, 0) != 0) {
             map->info_mngr.LoadEditInfo((char *) read_buffer, file_size, main_data);
         }
 
         GetMapPath(path, map_name);
-        strcat(path, at_2954);
+        strcat(path, ".cfg");
 
         if (LoadFile2(path, (void *) read_buffer, &file_size, 0) != 0) {
             map->LoadEditInfo((char *) read_buffer, file_size, main_data);
@@ -2405,7 +2726,7 @@ int EditMapJump(int map_no) {
         map->ClearAllParts();
         used_quads = main_data->stack_used - used_before;
         used_kb = (used_quads * 0x10) / 0x400;
-        printf(at_2955, used_kb);
+        printf("edit data %dKB\n", used_kb);
         EditDataLoad();
 
         if (map_no == 0) {
@@ -2418,17 +2739,17 @@ int EditMapJump(int map_no) {
 
     if (GetMapType(MapNo) == 5) {
         area_no = 0;
-        SearchMapNo(at_2950);
+        SearchMapNo("f01");
 
-        if (map_no == SearchMapNo(at_2956)) {
+        if (map_no == SearchMapNo("f02")) {
             area_no = 1;
         }
 
-        if (map_no == SearchMapNo(at_2957)) {
+        if (map_no == SearchMapNo("f03")) {
             area_no = 2;
         }
 
-        if (map_no == SearchMapNo(at_2958)) {
+        if (map_no == SearchMapNo("f04")) {
             area_no = 3;
         }
 
@@ -2479,19 +2800,19 @@ int EditMapJump(int map_no) {
 
     area_no = MapNo;
 
-    if (area_no == SearchMapNo(at_2950)) {
+    if (area_no == SearchMapNo("f01")) {
         area_no = 0;
     }
 
-    if (MapNo == SearchMapNo(at_2956)) {
+    if (MapNo == SearchMapNo("f02")) {
         area_no = 1;
     }
 
-    if (MapNo == SearchMapNo(at_2957)) {
+    if (MapNo == SearchMapNo("f03")) {
         area_no = 2;
     }
 
-    if (MapNo == SearchMapNo(at_2958)) {
+    if (MapNo == SearchMapNo("f04")) {
         area_no = 3;
     }
 
@@ -2614,7 +2935,7 @@ void EditDataSave() {
         if (edit_data != NULL) {
             map = (CEditMap *) (MainScene__2->GetMap(MainScene__2->active_map));
 
-            if ((map != NULL) && (strcmp(map->Iam(), at_2747) == 0) && (map != NULL)) {
+            if ((map != NULL) && (strcmp(map->Iam(), "CEditMap") == 0) && (map != NULL)) {
                 map->SaveData(edit_data);
                 GetSaveData()->GetBitFlag(0x208);
                 edit_data->culture_point = map->CultureAnalyze(0);
@@ -2725,12 +3046,8 @@ void LoadMap() {
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editloop", at_1045__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editloop", at_1053__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editloop", at_1528__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editloop", at_2271__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editloop", at_3040__DATA);
 
 // Constants (.rodata)
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editloop", at_1032__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editloop", at_1033__2__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editloop", at_1395__2__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editloop", at_1396__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editloop", at_1397__DATA);
@@ -2770,91 +3087,14 @@ INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editloop", at_2132__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editloop", at_2133__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editloop", at_2134__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editloop", at_2136__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editloop", at_2261__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editloop", at_2262__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editloop", at_2747__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editloop", at_2748__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editloop", at_2749__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editloop", at_2750__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editloop", at_2751__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editloop", at_2752__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editloop", at_2753__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editloop", at_2948__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editloop", at_2949__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editloop", at_2950__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editloop", at_2951__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editloop", at_2952__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editloop", at_2953__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editloop", at_2954__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editloop", at_2955__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editloop", at_2956__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editloop", at_2957__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editloop", at_2958__DATA);
 
 // Static initialiser table (.ctor)
 
 // Small initialised data (.sdata)
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editloop", MenuInfo__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editloop", DataPktMode__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editloop", at_2346__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editloop", at_2352__DATA);
 
 // Small uninitialised data (.sbss)
-INCLUDE_BSS(WaterFrame, 0x4);
-INCLUDE_BSS(RedBicMark, 0x4);
-INCLUDE_BSS(BlueBicMark, 0x4);
-INCLUDE_BSS(TreasureBox, 0x4);
-INCLUDE_BSS(MapNo, 0x4);
-INCLUDE_BSS(Camera, 0x4);
-static INCLUDE_BSS(EventCamera, 0x4);
-INCLUDE_BSS(FixCamera, 0x4);
-INCLUDE_BSS(EditCamera, 0x4);
-INCLUDE_BSS(ActiveCharaNo, 0x4);
-INCLUDE_BSS(ControlCharaID, 0x4);
-INCLUDE_BSS(WalkChara, 0x4);
-INCLUDE_BSS(LoopCounter, 0x4);
-INCLUDE_BSS(LoopMode, 0x4);
-INCLUDE_BSS(ControlMode, 0x4);
-INCLUDE_BSS(SubMapLoadBG, 0x4);
-INCLUDE_BSS(now_load_map_no, 0x4);
-INCLUDE_BSS(EventSquareJump, 0x4);
-INCLUDE_BSS(EditDrawFlag, 0x4);
-INCLUDE_BSS(EditDrawCancelFlag, 0x4);
-INCLUDE_BSS(PauseFlag, 0x4);
-INCLUDE_BSS(LockChara, 0x4);
-INCLUDE_BSS(PreEditMenuCnt, 0x4);
-INCLUDE_BSS(EditModeChgFlag, 0x4);
-INCLUDE_BSS(EditModeChgCnt, 0x4);
-INCLUDE_BSS(EditModeChgEvent, 0x4);
-INCLUDE_BSS(MainScene__2, 0x4);
-INCLUDE_BSS(main_pkt1, 0x4);
-INCLUDE_BSS(main_pkt2, 0x4);
-INCLUDE_BSS(read_buffer_end, 0x4);
-INCLUDE_BSS(MenuDataBuf, 0x4);
-INCLUDE_BSS(MenuDataSize, 0x4);
-INCLUDE_BSS(FixCharaBuffSize, 0x4);
-INCLUDE_BSS(CrossFadeBuff, 0x4);
-INCLUDE_BSS(time_step_1481, 0x4);
-INCLUDE_BSS(init_1482, 0x4);
-INCLUDE_BSS(show_time_step_1484, 0x4);
-INCLUDE_BSS(init_1485, 0x4);
-INCLUDE_BSS(old_cm_1772, 0x4);
-INCLUDE_BSS(rain_flag_1849, 0x4);
-INCLUDE_BSS(init_1850, 0x4);
-INCLUDE_BSS(start_bt_cnt_1865, 0x4);
-INCLUDE_BSS(init_1866, 0x4);
-INCLUDE_BSS(encount_flag_1868, 0x4);
-INCLUDE_BSS(init_1869, 0x4);
-INCLUDE_BSS(show_encount_cnt_1871, 0x4);
-INCLUDE_BSS(init_1872, 0x4);
-INCLUDE_BSS(next_encount_1874, 0x4);
-INCLUDE_BSS(init_1875, 0x4);
-INCLUDE_BSS(flag_2408, 0x4);
-INCLUDE_BSS(init_2409, 0x4);
-INCLUDE_BSS(DelMainNPCflag, 0x4);
 
 // Uninitialised data (.bss)
-INCLUDE_BSS(at_949, 0x10);
 CWaveTable    WaveTable;
 sceVu0FVECTOR CharaOldPos;
 ClsMes        EventMes1;
@@ -2881,5 +3121,3 @@ EditDebugInfo EdDebugInfo;
 mgCVisualMDT  TestVisual;
 mgCFrame      TestFrame;
 INCLUDE_BSS(at_1077, 0x10);
-INCLUDE_BSS(at_3041, 0x10);
-INCLUDE_BSS(beforeAnalyze, 0x40);
