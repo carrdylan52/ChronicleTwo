@@ -1558,7 +1558,7 @@ void CCharacter2::Initialize() {
     this->outline = 0;
     this->shadow_frame = 0;
     frame = 0;
-    main_frame_info = 0;
+    main_frame_info = NULL;
     this->motion_status = 0;
     this->shape_anime = 0;
     this->sound_info.foot_sound_id = -1;
@@ -1618,7 +1618,7 @@ void CCharacter2::Initialize() {
     this->next_seq = 0;
     this->now_seq = 0;
     seq_step = 0;
-    main_frame_info = 0;
+    main_frame_info = NULL;
     this->shadow_frame_info = 0;
     this->lod_num = 0;
     this->lod = 0;

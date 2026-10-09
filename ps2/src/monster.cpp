@@ -1808,7 +1808,7 @@ CActiveMonster *CMonsterMan::SetActiveMonster(int refer_no, float pos[], sceVu0F
         refer[refer_no].chara.Copy(*monster, &memory[slot]);
     } else {
         *monster = refer[refer_no].chara;
-        monster->main_frame_info = (s32)monster->motion[0].frame_info;
+        monster->main_frame_info = monster->motion[0].frame_info;
         monster->shadow_frame_info = monster->shadow_motion[0].frame_info;
         monster->now_key = 0;
     }
