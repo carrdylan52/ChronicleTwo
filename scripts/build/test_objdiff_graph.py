@@ -20,7 +20,7 @@ class ObjdiffGraphFixture(unittest.TestCase):
         for name in ('main.yaml', 'main.symbols.txt', 'include/macro.inc', 'compiler/mwccps2.exe',
                      'scripts/build/layout.py', 'scripts/build/objdiff_data.py',
                      'scripts/build/postprocess_object.py', 'scripts/build/disassemble.py',
-                     'scripts/build/lcf.py', 'scripts/build/native_vtables.py',
+                     'scripts/build/lcf.py',
                      'rom/SCES_511.90', 'tools/mwccgap/elf.py'):
             self.write(name, '')
         for unit in ('first', 'second'):
@@ -113,7 +113,7 @@ class ObjdiffGraphTests(ObjdiffGraphFixture):
         self.build()
         for name in ('out/objdiff/target/first.s.o', 'scripts/build/objdiff_data.py',
                      'scripts/build/postprocess_object.py', 'scripts/build/disassemble.py',
-                     'scripts/build/lcf.py', 'scripts/build/native_vtables.py',
+                     'scripts/build/lcf.py',
                      'main.symbols.txt', 'rom/SCES_511.90', 'tools/mwccgap/elf.py'):
             with self.subTest(name=name):
                 self.touch(name)

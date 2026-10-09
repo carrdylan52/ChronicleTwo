@@ -21,7 +21,6 @@ class ComparisonCacheTests(unittest.TestCase):
             ctx = NS(fingerprint='tools', layout=NS(source=lambda unit: cpp))
             compiled = NS(sections=[], relocations=[], symtab=NS(symbols=[]), pack=lambda: b'prepared')
             with patch.object(d.p, 'Elf', return_value=compiled), patch.object(d.p, 'name_sections'), \
-                 patch.object(d.native_vtables, 'donor_inputs', return_value=()), \
                  patch.object(d, 'prepare_native_data') as prepare:
                 def copy():
                     d.comparison_copy(source, output, 'unit', ctx, True)
@@ -58,7 +57,6 @@ class ComparisonCacheTests(unittest.TestCase):
             ctx = NS(fingerprint='tools', layout=NS(source=lambda unit: cpp))
             compiled = NS(sections=[], relocations=[], symtab=NS(symbols=[]), pack=lambda: b'prepared')
             with patch.object(d.p, 'Elf', return_value=compiled), patch.object(d.p, 'name_sections'), \
-                 patch.object(d.native_vtables, 'donor_inputs', return_value=()), \
                  patch.object(d, 'prepare_native_data') as prepare:
                 d.comparison_copy(source, output, 'unit', ctx, True)
                 source.write_bytes(b'rawtools')
@@ -78,7 +76,6 @@ class ComparisonCacheTests(unittest.TestCase):
                 ctx = NS(fingerprint='tools', layout=NS(source=lambda unit: cpp))
                 compiled = NS(sections=[], relocations=[], symtab=NS(symbols=[]), pack=lambda: b'prepared')
                 with patch.object(d.p, 'Elf', return_value=compiled), patch.object(d.p, 'name_sections'), \
-                     patch.object(d.native_vtables, 'donor_inputs', return_value=()), \
                      patch.object(d, 'prepare_native_data') as prepare:
                     d.comparison_copy(source, output, 'unit', ctx, True)
                 self.assertEqual(output.read_bytes(), b'prepared')

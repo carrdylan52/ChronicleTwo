@@ -97,7 +97,6 @@ add_custom_command(
             ${CMAKE_SOURCE_DIR}/${SCRIPTS_DIR}/build/postprocess_object.py
             ${CMAKE_SOURCE_DIR}/${SCRIPTS_DIR}/build/disassemble.py
             ${CMAKE_SOURCE_DIR}/${SCRIPTS_DIR}/build/lcf.py
-            ${CMAKE_SOURCE_DIR}/${SCRIPTS_DIR}/build/native_vtables.py
             ${MWCCGAP_SOURCES}
             ${OBJDIFF_ABS_OBJS} ${OBJDIFF_SOURCES}
     WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}

@@ -9,8 +9,7 @@ from unittest.mock import patch
 
 import objdiff_data as d
 from mwccgap.elf import Section
-from test_native_tables import elf, record
-from test_objdiff_data import symbol
+from test_objdiff_data import elf, record, symbol
 
 
 class DataCallbackTests(unittest.TestCase):

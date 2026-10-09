@@ -17,6 +17,36 @@ def symbol(name, index=0, size=0, value=0, info=0x10):
     return entry
 
 
+def elf(sections, symbols, records=()):
+    table = NS(symbols=symbols)
+    table.get_symbol_by_name = lambda name: next(
+        ((index, entry) for index, entry in enumerate(symbols) if entry.name == name), (None, None))
+    result = NS(sections=sections, symtab=table, relocations=list(records), symtab_index=0,
+                strtab=NS(add_symbol=lambda name: len(name)), add_sh_symbol=lambda name: len(name))
+
+    def add_symbol(entry):
+        index, _existing = table.get_symbol_by_name(entry.name)
+        if index is None:
+            index = len(symbols)
+            symbols.append(entry)
+        return index
+
+    def add_section(section):
+        sections.append(section)
+        if isinstance(section, RelocationRecord):
+            result.relocations.append(section)
+        return len(sections) - 1
+
+    result.add_symbol, result.add_section = add_symbol, add_section
+    return result
+
+
+def record(index, entries):
+    result = RelocationRecord(0, 9, 0, 0, 0, 0, 0, index, 4, 8, b'')
+    result.relocations = [Relocation(offset, (target << 8) | kind) for offset, kind, target in entries]
+    return result
+
+
 class ReferenceDataTests(unittest.TestCase):
     def fixture(self):
         symbols = [symbol('packed_short_guess'), symbol('real_pointer')]

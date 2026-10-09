@@ -8,8 +8,7 @@ from unittest.mock import patch
 import postprocess_object as p
 import objdiff_data as d
 from mwccgap.elf import BssSection, Section
-from test_native_tables import elf, record
-from test_objdiff_data import symbol
+from test_objdiff_data import elf, record, symbol
 
 
 class AlignmentFragmentTests(unittest.TestCase):

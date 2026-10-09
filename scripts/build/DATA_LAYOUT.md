@@ -173,7 +173,7 @@ function names use the existing template/initializer projection. CMake tracks
 both raw sides, sources, retail metadata and preparation tools; comparison copies
 and receipts are declared byproducts. Missing raw inputs fail, and a failed
 refresh removes the stale configuration. Cache fingerprints include the ELF
-reader, length-delimited proof inputs, global cuts, raw objects, source and donor
+reader, length-delimited proof inputs, global cuts, raw objects and source
 provenance. A malformed receipt or mismatched output hash requires preparation
 from the raw inputs.
 

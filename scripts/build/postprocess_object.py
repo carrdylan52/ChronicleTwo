@@ -14,8 +14,7 @@ reservations. Independently cut alignment fragments require both neighboring
 objects' original extents and compiler alignments, with complete zero contents.
 
 External compiler-generated functions and vtables are removed only through
-their dedicated ownership and verification rules. Native vtable imports use raw
-source-only producers and checked provenance. Duplicate global symbols are
+their dedicated ownership and verification rules. Duplicate global symbols are
 folded into live definitions; unused literals and dead compiler records are
 removed without changing code. Canonical object and final PAL verification
 remain the acceptance checks for every normalized object.
@@ -1669,8 +1668,6 @@ def main():
     ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     ap.add_argument("object", type=Path)
     ap.add_argument("--order-only", action="store_true")
-    ap.add_argument("--native-base-dir", type=Path,
-                    help="raw objdiff/base directory for verified native vtable producers")
     args = ap.parse_args()
 
     elf = Elf(args.object.read_bytes())
@@ -1696,15 +1693,7 @@ def main():
         bind_local_data(elf, unit, placeholder_sections)
         name_literal_data(elf, unit, placeholder_sections,
                           padding_pieces=disassemble.Pieces())
-        import native_vtables
-        base_dir = args.native_base_dir
-        if base_dir is None:
-            obj_dir = next((parent for parent in object_path.parents if parent.name == 'obj'),
-                           ROOT / layout.BUILD / 'obj')
-            base_dir = obj_dir.parent / 'objdiff' / 'base'
         source = (ROOT / layout.Layout().source(unit)).read_text()
-        donors = native_vtables.donor_inputs(unit, source, base_dir)
-        native_vtables.import_vtables(elf, unit, donors)
         import objdiff_data
         materialize_alignment_fragments(elf, unit, placeholder_sections, native_extents,
                                         held=objdiff_data.fallback_data_names(source))
