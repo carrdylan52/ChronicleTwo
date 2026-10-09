@@ -163,17 +163,17 @@ FACES_ID *mgCShadowMDT::CreateFace(FACES_ID *source, mgCMemory *face_memory, mgC
     face->index_num = face->vertex_num * face->index_stride;
     // Only the position index of each of a triangle's three vertices is kept.
     face->material = source->material;
-    u_char *vertex;
-    source = (FACES_ID *) (vertex = (u_char *) source->index);
+    int *vertex;
+    source = (FACES_ID *) (vertex = source->index);
     int *index = (int *) index_memory->Alloc(face->index_num * 4 / 16 + 0x10);
     face->index = index;
 
     for (int i = 0; i < face->vertex_num; i++) {
-        index[0] = *(int *) (vertex + 0x0);
-        index[1] = *(int *) (vertex + 0xC);
-        index[2] = *(int *) (vertex + 0x18);
+        index[0] = vertex[0];
+        index[1] = vertex[3];
+        index[2] = vertex[6];
         index += 3;
-        vertex += 0x24;
+        vertex += 9;
     }
 
     face->next = NULL;
@@ -280,9 +280,9 @@ int mgCShadowMDT::DataAssignMDT(MDT_HEADER *header, mgCMemory *memory,
     header->normal_num = 0;
     mgCVisualMDT::CopyMDTData(header, memory);
     face_group = 0;
-    u_char   *table = (u_char *) header + header->faces_ofs;
-    FACES_ID *cursor = (FACES_ID *) (table + 0x10);
-    int       count = *(int *) (table + 8);
+    MDT_FACES *faces = (MDT_FACES *) ((u_char *) header + header->faces_ofs);
+    FACES_ID  *cursor = (FACES_ID *) (faces + 1);
+    int        count = faces->prim_num;
 
     for (int i = 0; i < count; i++) {
         cursor = CreateFace(cursor, memory, memory, 0);
