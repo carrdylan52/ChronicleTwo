@@ -105,3 +105,26 @@ smaller policy is `promotion/wrapper-two-rows.log` and its zero status, with
 the four stages recorded in `outputs/promotion-two-rows/wrapped/provenance.json`.
 Tracked promotion still requires the game build, all object checks, baseline
 artifact comparison and refreshed progress.
+
+## Promotion acceptance
+
+The final private binding audit also preserves all 115 other owned function
+symbol shapes and the one emitted vtable, including size, binding, value,
+section type/flags/alignment, bytes and named vtable relocations. It is saved
+as `binding-audit.json` with its explicit zero status.
+
+The manually unguarded source and grouped two-float/one-placement policy pass
+the pn15 clean game build, PAL verifier and all 149 complete object checks.
+The inventory unit retains the privately checked 0xff1c bytes and 2,826
+relocations. Across the 31-caller group, all 306 assembled objects and 149
+native base objects outside the nineteen promoted units retain their exact
+baseline hashes. Linked main bytes retain SHA-256
+`a103b0461a88e443a3af684cf150c05b5bd355e5a97ab2dc029c4d872bed0811`, and
+loaded memory ends at 0x01f64a00. Whole ELF metadata is allowed to differ.
+
+The explicit context/objdiff refresh, followed by host coverage, reports
+6,780 matched / 82 guarded / ten assembly-only / zero fuzzy. Acceptance
+receipts are `.private/pntc/receipts/promote-thirty-one-{clean-build,objects,artifacts,progress,coverage}`,
+including logs, explicit zero statuses and the artifact JSON. The initial
+successful incremental build used the same selectors before their final
+unit grouping; clean acceptance uses the final grouped profile.

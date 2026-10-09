@@ -260,15 +260,7 @@ extern char           at_2149[];
 extern char           at_2150[];
 extern char           at_2151[];
 extern char           at_2152[];
-extern char           at_2244[];
-extern char           at_2245[];
 extern char           at_2246[];
-extern char           at_2247[];
-extern char           at_2248[];
-extern char           at_2249[];
-extern char           at_2250[];
-extern char           at_2251[];
-extern char           at_2252[];
 extern char           at_2253[];
 extern char           at_2313[];
 extern char           at_2395__2[];
@@ -2071,7 +2063,6 @@ static inline CActionChara *NewInventActionChara(mgCMemory *stack) {
     return new (stack->Alloc(StackBlocks(sizeof(CActionChara)))) CActionChara;
 }
 
-#ifdef NONMATCHING
 void CMenuInvent::LoadCharaCheck() {
     CActionChara *chara = MenuActionChara[0];
     mgCMemory    *load_stack = &MenuCharaLoadStack;
@@ -2092,9 +2083,9 @@ void CMenuInvent::LoadCharaCheck() {
             chara_load_step = 1;
             sub_chara = NULL;
             if (photo_only == 1) {
-                LoadFileBG(at_2244, load_stack->stack + load_stack->stack_used, &size);
+                LoadFileBG("menu/chara4/camera.pac", load_stack->stGetTop(), &size);
                 load_stack->Alloc(((u_int) size & 0xF) ? ((u_int) size >> 4) + 1 : (u_int) size >> 4);
-                chara_read_info = GetReadBGInfo(at_2244);
+                chara_read_info = GetReadBGInfo("menu/chara4/camera.pac");
             }
             break;
         case 1:
@@ -2104,7 +2095,7 @@ void CMenuInvent::LoadCharaCheck() {
             MenuItemCharaDataLoadEndCheck(MenuCharaBuild2, NULL, MenuActionChara, 0, tex_block[1], -1);
             chara->ResetParent();
             if (MenuActionChara[3] != NULL && MenuUserParam.chara[0]->equip[2].item_no > 0) {
-                chara->SetRef(MenuActionChara[3], at_2245);
+                chara->SetRef(MenuActionChara[3], "hat");
                 chara->CopyOutLine(MenuActionChara[3]);
             }
             if (chara->CObjectFrame::frame != NULL) {
@@ -2113,40 +2104,34 @@ void CMenuInvent::LoadCharaCheck() {
                 attr->no_light = 1;
                 frame->SetAttrParam(*attr, 1, kSceneAttrFlags);
             }
-            chara->SetMotion(at_2246, 0, 1);
+            chara->SetMotion("\227\247\202\277", 0, 1);
             if (chara_read_info != NULL) {
                 BG_READ_INFO            *read_info = chara_read_info;
-                u_int                   *model_file = GetPackFile((u_int *) read_info->buffer, at_2247, &size);
+                u_int                   *model_file = GetPackFile((u_int *) read_info->buffer, "c01_camera.chr", &size);
                 mgCTextureManager *const tex_manager = &mgTexManager;
                 chara_stack.stack_used = 0;
                 chara_stack.lock = 0;
-                strcpy(tex_manager->name_suffix, at_2248);
+                strcpy(tex_manager->name_suffix, "_mn");
                 if (model_file != NULL) {
-                    chara->LoadPack(model_file, at_2249, &chara_stack, &chara_stack, &chara_stack, tex_block[1], NULL);
+                    chara->LoadPack(model_file, "info.cfg", &chara_stack, &chara_stack, &chara_stack, tex_block[1], NULL);
                 }
-                u_int *sub_file = GetPackFile((u_int *) read_info->buffer, at_2250, &size);
-                sub_chara = NewInventActionChara(&chara_stack);
+                u_int *sub_file = GetPackFile((u_int *) read_info->buffer, "camera.chr", &size);
+                sub_chara = new (chara_stack.Alloc(StackBlocks(sizeof(CActionChara)))) CActionChara;
                 sub_chara->Initialize(0);
-                sub_chara->LoadPack(sub_file, at_2249, &chara_stack, &chara_stack, &chara_stack, tex_block[1], chara);
+                sub_chara->LoadPack(sub_file, "info.cfg", &chara_stack, &chara_stack, &chara_stack, tex_block[1], chara);
                 tex_manager->name_suffix[0] = 0;
-                chara->SetRef(sub_chara, at_2251);
+                chara->SetRef(sub_chara, "ef00");
                 chara->CopyOutLine(sub_chara);
-                chara->SetMotion(at_2252, 0, 1);
+                chara->SetMotion("\203J\203\201\203\211\227\247\202\277", 0, 1);
             }
             if (album_enable == 0 && photo_only == 1) {
-                float z = 14.0f;
-                float y = -29.0f;
-                float x = float(15);
-                chara->SetPosition(x, y, z);
+                chara->SetPosition(15.0f, -29.0f, 14.0f);
             } else {
-                float z = float(14);
-                float x = 20.0f;
-                float y = float(-29);
-                chara->SetPosition(x, y, z);
+                chara->SetPosition(20.0f, -29.0f, 14.0f);
             }
             chara->SetRotation(0.0f, -0.56f, 0.0f);
             chara->Step();
-            ExeScript(at_2253);
+            ExeScript("\215l\202\246\203\202\201[\203h0");
             chara_load_step = 2;
             poly_chr_form[0]->SetActionCharaPtr(chara, tex_block[1], -1);
             unk_642 = 0;
@@ -2158,9 +2143,6 @@ void CMenuInvent::LoadCharaCheck() {
             break;
     }
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/inventmn", LoadCharaCheck__11CMenuInventFv);
-#endif
 
 USER_PICTURE_INFO *CMenuInvent::GetNowSelectedPictInfo() {
     USER_PICTURE_INFO *info = 0;
@@ -7237,15 +7219,7 @@ INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_2149__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_2150__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_2151__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_2152__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_2244__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_2245__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_2246__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_2247__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_2248__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_2249__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_2250__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_2251__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_2252__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_2253__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_2313__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_2368__2__DATA);
