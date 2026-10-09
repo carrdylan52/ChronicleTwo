@@ -1,10 +1,11 @@
 """Vtable copies must supply the entire declared retail object before discarding."""
 
+import struct
 from types import SimpleNamespace as NS
 import unittest
 from unittest.mock import patch
 import postprocess_object as p
-from test_literal_data import symbol
+from test_literal_data import symbol, relocation
 
 
 class VtableExtentTests(unittest.TestCase):
@@ -79,3 +80,64 @@ class VtableExtentTests(unittest.TestCase):
         fx[0].sections[1].data = fx[0].sections[2].data = bytes(24)
         self.apply(fx, held=True, native_sizes={id(owner):16})
         self.assertEqual(fx[0].sections[1].name, p.DEAD)
+
+    def relocated_fixture(self, held=False):
+        fx = self.fixture(held=held)
+        elf, rows, _lay, retail = fx
+        method = len(elf.symtab.symbols)
+        elf.symtab.symbols.append(symbol('method', 0, bind=1, kind=p.STT_FUNC))
+        rows.append((0x4000, 'method', 4, True))
+        image = struct.pack('<I', 0x4000) + bytes(12)
+        retail.bytes = lambda lo, hi: image[lo - 0x3000:hi - 0x3000]
+        retail.relocations[0x3000] = p.R_MIPS_32
+        elf.relocations = [NS(sh_info=index, sh_name=0, name='.rel.vtables',
+                             relocations=[relocation(0, p.R_MIPS_32, method)])
+                           for index in ((1, 2) if held else (1,))]
+        return fx
+
+    def test_complete_relocated_external_vtable_is_discarded(self):
+        fx = self.relocated_fixture()
+        self.apply(fx)
+        self.assertEqual(fx[0].sections[1].name, p.DEAD)
+
+    def test_external_relocation_shape_must_match_retail(self):
+        for invalid in ('missing_native', 'missing_retail', 'kind', 'duplicate'):
+            with self.subTest(invalid=invalid):
+                fx = self.relocated_fixture()
+                elf, _rows, _lay, retail = fx
+                if invalid == 'missing_native':
+                    elf.sections[1].data = struct.pack('<I', 0x4000) + bytes(12)
+                    elf.relocations.clear()
+                elif invalid == 'missing_retail':
+                    retail.relocations.clear()
+                elif invalid == 'kind':
+                    retail.relocations[0x3000] = p.R_MIPS_26
+                else:
+                    # Applying both native entries yields the retail word, so
+                    # a byte-only verifier misses this extra relocation site.
+                    elf.sections[1].data = struct.pack('<I', 0xFFFFC000) + bytes(12)
+                    elf.relocations[0].relocations.append(relocation(0, p.R_MIPS_32, 1))
+                with self.assertRaisesRegex(ValueError, 'relocation shape'):
+                    self.apply(fx)
+                self.assertNotEqual(elf.sections[1].name, p.DEAD)
+
+    def test_shadow_relocation_sites_must_be_unique_on_both_sides(self):
+        for record_index in (0, 1):
+            with self.subTest(record_index=record_index):
+                fx = self.relocated_fixture(held=True)
+                fx[0].relocations[record_index].relocations.append(relocation(0, p.R_MIPS_32, 2))
+                with self.assertRaisesRegex(ValueError, 'duplicate vtable relocation'):
+                    self.apply(fx, held=True)
+                self.assertNotEqual(fx[0].sections[1].name, p.DEAD)
+
+    def test_shadow_relocation_cannot_occupy_verified_piece_padding(self):
+        fx = self.relocated_fixture(held=True)
+        elf = fx[0]
+        owner = elf.symtab.symbols[0]
+        owner.st_size = 24
+        elf.sections[1].data = elf.sections[2].data = bytes(24)
+        for record in elf.relocations:
+            record.relocations[0].r_offset = 20
+        with self.assertRaisesRegex(ValueError, 'vtable relocation site'):
+            self.apply(fx, held=True, native_sizes={id(owner): 16})
+        self.assertNotEqual(elf.sections[1].name, p.DEAD)

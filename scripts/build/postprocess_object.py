@@ -604,6 +604,15 @@ def discard_external_vtables(elf, unit, placeholder_sections):
         data = bytearray(elf.sections[index].data)
         if symbol.st_size != declared.get(project_name(symbol.name)) or len(data) != symbol.st_size:
             raise ValueError(f'{symbol.name}: external vtable extent differs from retail')
+        entries = [entry for record in elf.relocations if record.sh_info == index
+                   for entry in record.relocations]
+        actual = {entry.r_offset: entry.reloc_type for entry in entries}
+        expected = {address - start: kind for address, kind in retail.relocations.items()
+                    if start <= address < start + symbol.st_size}
+        if (len(actual) != len(entries) or actual != expected
+                or any(entry.r_offset % 4 or not 0 <= entry.r_offset <= symbol.st_size - 4
+                       for entry in entries)):
+            raise ValueError(f'{symbol.name}: external vtable relocation shape differs from retail')
         for record in elf.relocations:
             if record.sh_info != index:
                 continue
@@ -1511,6 +1520,9 @@ def discard_shadow_vtables(elf, placeholder_sections, *, native_sizes=None):
             data = original if record.sh_info == section_index else expected
             for relocation in record.relocations:
                 offset = relocation.r_offset
+                if (offset in destination or offset % 4
+                        or not 0 <= offset <= original_size - 4):
+                    raise ValueError(f'{symbol.name}: invalid or duplicate vtable relocation site')
                 name = project_name(symbols[relocation.symbol_index].name)
                 destination[offset] = (relocation.reloc_type, name, struct.unpack_from('<I', data, offset)[0])
                 struct.pack_into('<I', data, offset, 0)
