@@ -42,7 +42,6 @@ extern "C" char    at_1284__5[];
 extern CFont                    Font__2;
 extern char                     at_1367[];
 extern char                     at_1377__3[];
-extern "C" u8                   at_1268__3[16];
 extern "C" u8                   at_2213__3[10];
 
 extern "C" {
@@ -1065,7 +1064,6 @@ void PlaceRiverStart(CEditMap *map, float *pos) {
 
 int PlaceRiverStep(CEditMap *map) {
     float rotation[4];
-    float color[4];
 
     if (PlaceRiverCnt <= 0) {
         return 0;
@@ -1085,7 +1083,7 @@ int PlaceRiverStep(CEditMap *map) {
         mgZeroVector(rotation);
 
         if (PlaceEditParts(map, PlaceRiverPos, rotation, NULL) != 0) {
-            *(u_long128 *) color = *(u_long128 *) at_1268__3;
+            float color[4] = {128.0f, 128.0f, 128.0f, 128.0f};
             EditPaintEffect(NULL, PlaceRiverPos, color, 1);
         }
     }
@@ -2740,11 +2738,9 @@ void DrawEditSystem(int block, CScene *scene, float *pos, int edit) {
                     prim.Begin(MG_PRIM_SPRITE);
                     prim.Texture(eSysTexture);
                     int x = 0x12C;
-                    float colors[4][4] = {
-                        {90.0f, 20.0f, 10.0f, 48.0f},
-                        {180.0f, 40.0f, 20.0f, 77.0f},
-                        {30.0f, 60.0f, 90.0f, 48.0f},
-                        {60.0f, 120.0f, 180.0f, 77.0f},
+                    float colors[2][2][4] = {
+                        {{90.0f, 20.0f, 10.0f, 48.0f}, {180.0f, 40.0f, 20.0f, 77.0f}},
+                        {{30.0f, 60.0f, 90.0f, 48.0f}, {60.0f, 120.0f, 180.0f, 77.0f}},
                     };
                     int balance = map->BalanceCheck();
                     float target[4];
@@ -2753,10 +2749,10 @@ void DrawEditSystem(int block, CScene *scene, float *pos, int edit) {
                     *(u_long128 *)cursor = *(u_long128 *)eCurPos;
                     int focused = 0;
                     for (int i = 0; i < 4; i++) {
-                        float *color = colors[balance * 2];
-                        prim.Color(color);
+                        float (*color)[4] = colors[balance];
+                        prim.Color(color[0]);
                         if (!focused && CheckFocusBalanceParts(map, i, cursor)) {
-                            prim.Color(color + 4);
+                            prim.Color(color[1]);
                             focused = 1;
                         }
                         float *now = &now_balance_h[i];
@@ -2958,10 +2954,6 @@ int CheckEditToWalk(CScene *scene, float *position) {
 }
 
 // Initialised data (.data)
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editmode", at_1268__3__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editmode", at_1362__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editmode", at_1931__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editmode", at_2188__3__DATA);
 
 // Constants (.rodata)
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editmode", at_1067__3__DATA);

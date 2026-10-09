@@ -123,3 +123,28 @@ the next is changed. Receipts: `help-paint_str-*`, `help-undo_str-*`,
 `help-paint_house_str-*`, `help-paint_fence_str-*`, `help-paint_num_str-*`,
 `help-repaint_str-*`, `help-repaint_house_str-*`, and `help-repaint_fence_str-*`.
 All 16 pointer tables and their 91 distinct string markers are now migrated.
+
+## Effect and drawing color templates
+
+| Retail symbol | Bytes | Natural initializer and purpose |
+| --- | ---: | --- |
+| `at_1268__3` | 16 | Four 128.0f components of `PlaceRiverStep`'s paint-effect color. |
+| `at_1362` | 16 | `DeleteKanketuParts`'s `{8, 8, 8, 0}` removal-effect vector. |
+| `at_1931__2` | 16 | `DrawEditCursor`'s `{128, 64, 64, 48}` grid highlight color. |
+| `at_2188__3` | 64 | `DrawEditSystem`'s normal/highlight RGBA pairs for its two balance states. |
+
+The river color now uses a local float aggregate initializer in the successful
+placement branch, replacing the external byte-array declaration and vector-copy
+type-pun. The other three already have natural initializers; removing their
+markers makes those native compiler templates own the retail pieces.
+The balance palette is `float colors[2][2][4]` and the selected pair is a
+pointer to four-float arrays. Indexing its normal and highlighted entries
+replaces the cross-row `color + 4` expression and matches exactly. Recomputing
+`colors[balance * 2 + 1]` from a flat four-row palette changes code generation;
+that form is rejected. No steering local or helper is introduced.
+
+All `.data` objects are now native, so refreshed `matched_data` is **805 / 4,855**:
+640 `.data`, 157 `.sbss`, 4 `.sdata`, and 4 `.ctor` bytes. BSS/rodata partial
+sections receive no aggregate credit. Full validation remains PAL OK and
+149/149. Receipts: `color-templates-*`, `river-color-*`,
+`balance-color-pairs-*`; rejected probe: `balance-color-access-build.log`.
