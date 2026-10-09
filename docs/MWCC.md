@@ -220,7 +220,11 @@ can retain a larger verified terminal zero tail; comparison preparation trims
 it at the linker's `contents_end`. Internal initialized gaps stay below 16 bytes.
 An object with a size different from its declared retail size is not padded.
 The same policy covers compiler-generated vtables; their final section tail
-belongs to linker alignment. Referenced interior addresses and explicit
+belongs to linker alignment.
+A terminal datum retains its declared extent when its end equals the generated
+linker script’s `contents_end`. The checker accepts larger linker-owned tails
+only with no retail relocations and complete zero initialized bytes.
+Referenced interior addresses and explicit
 `D_<address>` source identifiers remain separate piece boundaries.
 
 Native BSS templates, local statics and their guards need an exact declared

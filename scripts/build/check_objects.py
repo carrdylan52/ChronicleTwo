@@ -103,13 +103,13 @@ def word(data, offset):
     return struct.unpack_from("<I", data, offset)[0]
 
 
-def is_retail_tail_padding(ctx, name, section_name, start, end, size):
+def is_retail_tail_padding(ctx, name, section_name, start, end, size, contents_end):
     """Recognize zero linker padding after the last datum of a unit run."""
     symbol = ctx.pieces.symbols.by_name.get(name)
     if symbol is None or symbol[2] != size:
         return False
     pad_start = start + size
-    if not (0 < end - pad_start < 16):
+    if pad_start != contents_end or pad_start >= end:
         return False
     if any(pad_start <= address < end for address in ctx.retail.relocations):
         return False
@@ -193,7 +193,9 @@ def check_unit(ctx, unit, verbose):
                 if section.sh_addralign > 1:
                     errors.append(f"{name}: alignment {section.sh_addralign}")
                 tail_pad = (index == indices[-1] and
-                            is_retail_tail_padding(ctx, name, section_name, start, end, size))
+                            is_retail_tail_padding(
+                                ctx, name, section_name, start, end, size,
+                                ctx.linker.contents_end(unit, lo, hi)))
                 if size != end - start and not tail_pad:
                     errors.append(f"{name}: size 0x{size:X}, retail 0x{end - start:X}")
             want_nobits = section_name in layout.NOBITS

@@ -90,7 +90,7 @@ class LiteralExtentTests(unittest.TestCase):
             section.sh_addralign = 1
         retail.bytes = lambda lo, hi: struct.pack('<I', 0x3020) if lo == 0x4000 else bytes(hi - lo)
         runs = dict(pieces.unit('unit'))
-        ctx = NS(obj_dir=Path('/unused'),
+        ctx = NS(obj_dir=Path('/unused'), linker=NS(contents_end=lambda unit, lo, hi: hi),
                  layout=NS(sections=lambda unit: [('.rodata', 0x3000, 0x3040),
                                                    ('.data', 0x4000, 0x4004)]),
                  pieces=NS(of=lambda unit, kind, lo, hi: runs[kind],
