@@ -341,10 +341,10 @@ int sgLoopBuggy(SubGameInfo *info) {
         }
 
         EditCameraControl(scene, NULL, NULL);
-        void *camera = scene->GetCamera(scene->active_camera);
+        mgCCamera *camera = scene->GetCamera(scene->active_camera);
 
         if (camera != NULL) {
-            ((mgCCamera *) camera)->Step(-1);
+            camera->Step(-1);
         }
     } else {
         CharaControl(scene, pad);
