@@ -6178,7 +6178,7 @@ void CMenuCostumeSel::LoadMenuData(mgCMemory *stack, int *tex_block) {
 
     tex_manager = &mgTexManager;
     buffer = (u8 *) stack->stGetTop();
-    size = LoadFileMenu("fukusel.img", (u_long128 *) buffer, 1);
+    size = LoadFileMenu("fukusel.img", (u_long128 *) buffer, MENU_FILE_LOAD_DIRECT);
     stack->Alloc((int) size / 16 + 0x10);
     stack->Align64();
     mgTexManager.EnterIMGFile(buffer, *tex_block, NULL, NULL);
