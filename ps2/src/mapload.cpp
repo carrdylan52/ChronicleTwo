@@ -1075,7 +1075,7 @@ int mapPIECE_MATERIAL(SPI_STACK *stack, int argc) {
         return 0;
     }
 
-    frame = (mgCFrame *) ((CObjectFrame *) piece)->GetFrame();
+    frame = piece->GetFrame();
     name = spiGetStackString(stack++);
 
     if (name == NULL || frame == NULL) {
