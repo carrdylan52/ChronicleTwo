@@ -101,3 +101,14 @@ Each helper/reference group was validated independently. Acceptance:
 Every instruction and resolved relocation stays exact, and the complete
 image, all 149 objects, and all unowned hashes pass. Native data remains
 2700 / 2700 with no markers.
+
+## Declared function extents
+
+The header function-size annotations use the retail ELF's declared
+`STT_FUNC` extents. 2 annotations previously included the alignment
+gap up to the next function and are corrected without changing declarations
+or layouts. The symbol names and addresses remain exact.
+
+Header validation: `.private/dataC-r2/header-extents-final-{build,objects}.log`.
+The complete PAL image, all 149 objects, and every unowned object hash pass.
+The evidence audit is `header-metadata-corrections.json` in the same directory.

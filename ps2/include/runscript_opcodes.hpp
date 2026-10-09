@@ -225,7 +225,7 @@ extern CActiveMonster *nowMonster;
  *
  * @mangled SetMonsterScript__FP10CRunScriptPcP9mgCMemory
  * @address 0x1E90A0
- * @size 0x90
+ * @size 0x88
  */
 int SetMonsterScript(CRunScript *script, char *program, mgCMemory *memory);
 
@@ -236,6 +236,6 @@ int SetMonsterScript(CRunScript *script, char *program, mgCMemory *memory);
  *
  * @mangled SetMonsterExtendTable__Fv
  * @address 0x1E9130
- * @size 0x130
+ * @size 0x12C
  */
 void SetMonsterExtendTable();
