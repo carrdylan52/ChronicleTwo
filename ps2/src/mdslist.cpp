@@ -32,7 +32,7 @@ extern mgCMemory    *pcpStack;
 extern u_int        *pcp_file;
 extern int           pcpAllScissor;
 extern SPI_TAG_PARAM pcp_tag[];
-CCharacter2         *CreateChara(u_int *pack, char *config, mgCMemory *memory);
+static CCharacter2  *CreateChara(u_int *pack, char *config, mgCMemory *memory);
 
 extern char at_754[];
 
@@ -780,7 +780,7 @@ CMdsInfo::CMdsInfo() {
  * Constructs a character and loads its visual data from a model pack.
  *
  */
-CCharacter2 *CreateChara(u_int *pack, char *config, mgCMemory *memory) {
+static CCharacter2 *CreateChara(u_int *pack, char *config, mgCMemory *memory) {
     CCharacter2 *chara;
 
     chara = new (memory->Alloc(0x68)) CCharacter2;
