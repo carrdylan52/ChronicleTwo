@@ -560,7 +560,7 @@ found:
 int CMdsList::GetListID(char *name) {
     int i;
 
-    if (name == NULL || *(signed char *) name == 0) {
+    if (name == NULL || *name == 0) {
         return -1;
     }
 
