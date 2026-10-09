@@ -61,8 +61,6 @@ struct ScreenPos {
  */
 static signed char MovieViewFlag;
 
-extern signed char        init_1254;
-extern short              ManualMovieFadeCount_1253;
 
 /**
  *
@@ -162,10 +160,6 @@ static short MovieBgmBattleCheckStopFlag;
 static signed char MovieBattleBGMPhase;
 
 extern float              config_option_num_i;
-extern IntPair            at_1614__2;
-extern IntPair            at_1615__3;
-extern IntPair            at_1616__2;
-extern IntPair            at_1523__2;
 extern char               at_1428__4[];
 extern char               at_1429__3[];
 extern char               at_1648__2[];
@@ -226,8 +220,6 @@ mgCMemory                 SaveMenuStack;
  */
 static CDC2Mes *SaveFileList[13];
 
-extern char              *space_2549;
-extern char               init_2550;
 extern char              *b_2715[3];
 extern char               at_2764[];
 extern char               at_2765[];
@@ -819,10 +811,7 @@ int CManualMenu::KeyStep() {
 
             break;
         case 0:
-            if (init_1254 == 0) {
-                ManualMovieFadeCount_1253 = 0;
-                init_1254 = 1;
-            }
+            static short ManualMovieFadeCount = 0;
 
             MenuCommonInfo->CheckSelectKey();
             pushed = MenuCommonInfo->CheckPushButton();
@@ -1004,15 +993,15 @@ int CManualMenu::KeyStep() {
                         }
 
                         key_arg_no = MANUAL_STEP_PLAY;
-                        ManualMovieFadeCount_1253 = 0;
+                        ManualMovieFadeCount = 0;
                     }
 
                     break;
                 case MANUAL_STEP_PLAY:
-                    if (ManualMovieFadeCount_1253 < 3) {
-                        ManualMovieFadeCount_1253++;
+                    if (ManualMovieFadeCount < 3) {
+                        ManualMovieFadeCount++;
 
-                        if (ManualMovieFadeCount_1253 == 3) {
+                        if (ManualMovieFadeCount == 3) {
                             MenuMainScene->fade.FadeIn(0x14);
                         }
                     } else if (pict_mode != 0) {
@@ -1229,7 +1218,7 @@ void CManualMenu::CalcTex() {
 }
 
 void CManualMenu::CalcCursorPosition() {
-    IntPair position = at_1523__2;
+    IntPair position = {0, 0};
 
     switch (key_arg_no) {
         case MANUAL_STEP_SELECT:
@@ -1415,9 +1404,9 @@ int CMenuOption::KeyStep() {
     CalcTex();
     MenuPosData->FormStep();
     {
-        IntPair pos = at_1614__2;
-        IntPair size = at_1615__3;
-        IntPair velocity = at_1616__2;
+        IntPair pos = {0, 0};
+        IntPair size = {0, 0};
+        IntPair velocity = {-48, 0};
         int     limit[2];
         char    name[0x20];
         int     row_no;
@@ -3635,7 +3624,6 @@ void SubGameSaveDraw() {
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuop", manual_boot_event_no__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuop", submap_table_1022__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuop", fillw_1125__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuop", at_1315__2__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuop", tp_2083__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuop", conv_2316__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuop", at_2609__2__DATA);
@@ -3779,27 +3767,17 @@ INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuop", at_3206__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuop", at_3207__DATA);
 
 // Virtual tables (.vtables)
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuop", __vt__14CSaveMenuClass__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuop", __vt__11CMenuOption__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuop", __vt__11CManualMenu__DATA);
 
 // Small initialised data (.sdata)
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuop", manual_list_mesclstbl__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuop", config_option_num_i__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuop", config_option_num_f__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuop", at_1616__2__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuop", tbl_2023__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuop", at_2335__3__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuop", at_2342__DATA);
 
 // Small uninitialised data (.sbss)
-INCLUDE_BSS(ManualMovieFadeCount_1253, 0x4);
-INCLUDE_BSS(init_1254, 0x8);
-INCLUDE_BSS(at_1306__5, 0x8);
-INCLUDE_BSS(at_1342__3, 0x8);
-INCLUDE_BSS(at_1523__2, 0x8);
-INCLUDE_BSS(at_1614__2, 0x8);
-INCLUDE_BSS(at_1615__3, 0x8);
 INCLUDE_BSS(FormatCase_1968, 0x4);
 INCLUDE_BSS(init_1969, 0x4);
 INCLUDE_BSS(DarkClonicleFileMax_2004, 0x4);
@@ -3814,10 +3792,6 @@ INCLUDE_BSS(at_2327, 0x4);
 INCLUDE_BSS(at_2328__2, 0x4);
 INCLUDE_BSS(at_2330__2, 0x4);
 INCLUDE_BSS(at_2331__2, 0x4);
-INCLUDE_BSS(space_2549, 0x4);
-INCLUDE_BSS(init_2550, 0x4);
-INCLUDE_BSS(at_3070, 0x8);
-INCLUDE_BSS(at_3091, 0x8);
 
 // Uninitialised data (.bss)
 /**

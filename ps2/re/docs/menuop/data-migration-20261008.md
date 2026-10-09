@@ -34,3 +34,24 @@ After this step: 153 RODATA / 25 BSS markers.
 
 The refreshed metric after named storage is 288/3,027 matched data bytes
 (`named-storage-metrics.json`). Only `menuop.cpp.o` changes its raw file hash.
+
+## Native initializer storage
+
+The manual-movie fade counter is a genuine function-local `static short`
+initialized to zero, so MWCC emits its variable and one-time guard naturally.
+The manual cursor and option cursor/size pairs use `{0, 0}` initializers, and
+the option cursor velocity uses `{-48, 0}`. Their anonymous native templates
+replace the assembly reservations without adding source globals.
+
+The existing first-page, turned-page, and mini-game message-value arrays
+already generate their own zero templates. The existing `streams[6]` initializer
+generates the global/local pointer template at `at_1315__2`; its runtime local
+pointers retain the original stores. The save time formatter's existing
+function-local `space` pointer generates its own BSS storage and guard.
+The native option/save constructors generate their virtual tables directly.
+Only their corresponding markers are removed; the guarded manual constructor's
+virtual table remains.
+
+This step removes 11 BSS and four RODATA markers: 149 RODATA / 14 BSS remain.
+`native-initializers-{build,objects}.log` proves PAL OK and 149/149 exact
+objects. No guarded draft is edited.
