@@ -368,3 +368,18 @@ Markers are **283 RODATA / 6 BSS**, with **2,884 / 10,332 matched_data**.
 Every accepted definition passes PAL, all 149 objects, protected guards and
 unowned hashes. Receipts are `table-group-1-ledger.log` and
 `table-<symbol>-{build,objects,metrics}.log` under `.private/dataD-r2/`.
+
+### Shared cursor strings checkpoint
+
+Nine aliases become inline literals in the cursor, held-item, build-up and
+form callers: `at_2545__2`, `at_2546__2`, `at_2547`, `at_2548`, `at_2549`,
+`at_2550`, `at_2584`, `at_2585`, and `at_2651`. This establishes one native
+pooled copy of each shared value. With those external aliases removed,
+`n_2667[4]` passes as a typed pointer table initialized with the same literals.
+The earlier isolated table candidate duplicated shared literal storage; its
+failed source is not active.
+
+Markers are **273 RODATA / 6 BSS**, with **2,884 / 10,332 matched_data**.
+Both accepted steps pass PAL, all 149 objects, protected guards and unowned
+hashes. Receipts are `inline-cursor-*` and `table-n_2667-after-cursor-*`,
+with ledgers `string-cursor-ledger.log` and `cursor-table-retry-ledger.log`.

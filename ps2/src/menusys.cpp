@@ -209,16 +209,6 @@ extern mgCMemory             MainCharaReadStack;
 extern char                  at_5265[];
 extern char                  at_5271[];
 extern char                  at_7540[];
-extern char                  at_2545__2[];
-extern char                  at_2546__2[];
-extern char                  at_2584[];
-extern char                  at_2585[];
-extern char                  at_2651[];
-extern char                  at_2547[];
-extern char                  at_2548[];
-extern char                  at_2549[];
-extern char                  at_2550[];
-extern char                 *n_2667[4];
 extern char                 *focusnametbl[21];
 extern char                  at_3774__2[];
 extern char                  at_3775__2[];
@@ -1076,6 +1066,13 @@ static char dbox_path_6083[15] = "item/d_box.chr";
  *
  */
 static u32 table_6164[7] = {CHARA_STATUS_POISON, CHARA_STATUS_UNK_2, CHARA_STATUS_UNK_4, CHARA_STATUS_UNK_8, CHARA_STATUS_POWER, CHARA_STATUS_UNK_20, CHARA_STATUS_UNK_40};
+
+/**
+ *
+ * Held-item cursor, count, icon and shadow parts.
+ *
+ */
+static char *n_2667[4] = {"cursor0", "item0num", "item0", "item0sdw"};
 
 // Code (.text)
 /**
@@ -3485,17 +3482,17 @@ void CMenuKeyFunc::Initialize() {
 }
 
 void CMenuKeyFunc::AttachFuncData() {
-    cursor_form = (CMenuPosDataForm *) MenuPosData->GetFormInfo(at_2545__2);
+    cursor_form = (CMenuPosDataForm *) MenuPosData->GetFormInfo("cursor0");
 
     if (cursor_form != NULL) {
-        have_icon = cursor_form->GetPartInfo(at_2546__2);
-        have_shadow = cursor_form->GetPartInfo(at_2547);
-        have_num = cursor_form->GetPartInfo(at_2548);
+        have_icon = cursor_form->GetPartInfo("item0");
+        have_shadow = cursor_form->GetPartInfo("item0sdw");
+        have_num = cursor_form->GetPartInfo("item0num");
         have_num->etc_info[2] = 1;
     }
 
-    waku_form = (CMenuPosDataForm *) MenuPosData->GetFormInfo(at_2549);
-    how_much_form = (CMenuPosDataForm *) MenuPosData->GetFormInfo(at_2550);
+    waku_form = (CMenuPosDataForm *) MenuPosData->GetFormInfo("cur_waku0");
+    how_much_form = (CMenuPosDataForm *) MenuPosData->GetFormInfo("howmachbrd");
 }
 
 int CMenuKeyFunc::GetActiveCharaNo() {
@@ -3520,7 +3517,7 @@ int CMenuKeyFunc::MenuPosStep(int *pos, int *offset) {
 
     cursor_form->SetNextMovePos(next, 2);
     int end = cursor_form->CheckMoveEnd(next[0], next[1]);
-    cursor_form->GetPutPosXY(at_2545__2, put[0], put[1]);
+    cursor_form->GetPutPosXY("cursor0", put[0], put[1]);
     CMenuPosDataForm *form = how_much_form;
 
     if (form != NULL) {
@@ -3534,16 +3531,16 @@ int CMenuKeyFunc::MenuPosStep(int *pos, int *offset) {
         SetHaveItemInfo(1, 0);
     }
 
-    how_much_form->SetPartRGBA(at_2584, 0x60, 0x60, 0x60, 0x80);
-    how_much_form->SetPartRGBA(at_2585, 0x60, 0x60, 0x60, 0x80);
+    how_much_form->SetPartRGBA("up", 0x60, 0x60, 0x60, 0x80);
+    how_much_form->SetPartRGBA("down", 0x60, 0x60, 0x60, 0x80);
 
     if (0 < up_arrow_cnt) {
-        how_much_form->SetPartRGBA(at_2584, 0x80, 0x80, 0x80, 0x80);
+        how_much_form->SetPartRGBA("up", 0x80, 0x80, 0x80, 0x80);
         up_arrow_cnt--;
     }
 
     if (0 < down_arrow_cnt) {
-        how_much_form->SetPartRGBA(at_2585, 0x80, 0x80, 0x80, 0x80);
+        how_much_form->SetPartRGBA("down", 0x80, 0x80, 0x80, 0x80);
         down_arrow_cnt--;
     }
 
@@ -3581,7 +3578,7 @@ void CMenuKeyFunc::SetWakuMoveMethod(int method) {
 }
 
 void CMenuKeyFunc::GetItemPos(int *pos) {
-    cursor_form->GetPutPosXY(at_2546__2, pos[0], pos[1]);
+    cursor_form->GetPutPosXY("item0", pos[0], pos[1]);
 }
 
 void CMenuKeyFunc::SetWakuType(int type) {
@@ -3595,7 +3592,7 @@ void CMenuKeyFunc::SetWakuType(int type) {
         i = 0;
 
         do {
-            sprintf(name, at_2651, i);
+            sprintf(name, "waku%d", i);
             part = waku_form->GetPartInfo(name);
 
             if (part != NULL) {
@@ -3621,7 +3618,7 @@ void CMenuKeyFunc::SetWakuWH(int part, int width, int height) {
     char                name[0x20];
     MENUFORMPARTS_TYPE *info;
 
-    sprintf(name, at_2651, part);
+    sprintf(name, "waku%d", part);
     info = waku_form->GetPartInfo(name);
 
     if (info != NULL) {
@@ -3631,7 +3628,7 @@ void CMenuKeyFunc::SetWakuWH(int part, int width, int height) {
 }
 
 void CMenuKeyFunc::SetVibeCnt(int count, int rate) {
-    MENUFORMPARTS_TYPE *part = cursor_form->GetPartInfo(at_2545__2);
+    MENUFORMPARTS_TYPE *part = cursor_form->GetPartInfo("cursor0");
     part->vibe_cnt[0] = count;
     part->vibe_cnt[1] = rate;
 }
@@ -3658,7 +3655,7 @@ void CMenuKeyFunc::SetVibeR(int strength, int speed) {
 }
 
 void CMenuKeyFunc::GetCursorPos(int *pos) {
-    cursor_form->GetPutPosXY(at_2545__2, pos[0], pos[1]);
+    cursor_form->GetPutPosXY("cursor0", pos[0], pos[1]);
 }
 
 void CMenuKeyFunc::CursorFadeIn(float speed, int steps) {
@@ -6791,7 +6788,7 @@ void CMenuItemInfo::EnterDataMenu(unsigned int *pack) {
     textures->EnterIMGFile(item_image, block, NULL, NULL);
     MenuPosData->ResetTextureInfoAll();
     money_form->SetNumber(at_1493__2, MenuUserDataManPtr->money);
-    Tex_BuildUpBoard = textures->GetTexture(at_2546__2, -1);
+    Tex_BuildUpBoard = textures->GetTexture("item0", -1);
     MenuItemSpectolTransSoundBuffer = GetPackFile(pack, at_5131, &sound_size);
 
     if (MenuDCMsg[3] != NULL) {
@@ -6984,7 +6981,7 @@ void CMenuItemInfo::AttachFormInfo() {
         item_parts[i][0] = form->GetPartInfo(local_over_flow_baseposname[0]);
         item_parts[i][1] = form->GetPartInfo(local_over_flow_baseposname[1]);
         item_parts[i][2] = form->GetPartInfo(local_over_flow_baseposname[2]);
-        item_num[i][0] = form->GetPartInfo(at_2548);
+        item_num[i][0] = form->GetPartInfo("item0num");
         item_num[i][1] = form->GetPartInfo(at_5273);
         item_num[i][2] = form->GetPartInfo(at_5274);
     }
@@ -12370,7 +12367,6 @@ void MenuItemSelectDraw() {
 }
 
 // Initialised data (.data)
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menusys", n_2667__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menusys", focusnametbl__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menusys", exename_4332__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menusys", local_over_flow_baseposname__DATA);
@@ -12395,15 +12391,6 @@ INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menusys", menu_item_swap_sndtbl__DATA);
 
 // Constants (.rodata)
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menusys", at_1493__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menusys", at_2545__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menusys", at_2546__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menusys", at_2547__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menusys", at_2548__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menusys", at_2549__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menusys", at_2550__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menusys", at_2584__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menusys", at_2585__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menusys", at_2651__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menusys", at_3744__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menusys", at_3745__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menusys", at_3746__DATA);
