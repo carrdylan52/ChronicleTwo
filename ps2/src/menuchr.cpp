@@ -1019,9 +1019,7 @@ static CMenuChrCngMenu   *ChrChangMenuPt;
 extern int                tbl_2483[];
 extern char               at_2595__2[];
 extern char               at_2596__3[];
-extern SmallPair          at_2232;
 extern NamePair           at_2288;
-extern SmallPair          at_2289__2;
 extern char               at_2303__2[];
 extern char               at_2304[];
 extern char               at_2305[];
@@ -2872,7 +2870,7 @@ int CMenuChrCngMenu::MenuLocalLoop() {
     int            width;
 
     KeyChangeMain();
-    SmallPair step = at_2232;
+    SmallPair step = {{0, 0}};
 
     if (npc_no == 1 && this->step == 0x14) {
         (MenuPosData)->GetPosMenuItemOnItemBrd(cursor, item_brd_select, 1);
@@ -2986,7 +2984,7 @@ int CMenuChrCngMenu::MenuLocalLoop() {
 
         if (0 <= item_no && item_no < GetNowBagMax(0)) {
             NamePair  item_names = at_2288;
-            SmallPair item_volumes = at_2289__2;
+            SmallPair item_volumes = {{0, 0}};
             item = MenuDrawItemInfo[item_brd_select];
             mes = MenuDCMsg[7];
 
@@ -7851,9 +7849,6 @@ INCLUDE_BSS(SelectedCmdNo_1415, 0x4);
 INCLUDE_BSS(init_1416, 0x4);
 INCLUDE_BSS(at_1650__2, 0x4);
 INCLUDE_BSS(at_1684__2, 0x8);
-INCLUDE_BSS(at_2232, 0x8);
-INCLUDE_BSS(at_2289__2, 0x8);
-INCLUDE_BSS(at_2371__4, 0x8);
 u32 *CharaSndBuffer;
 
 INCLUDE_BSS(select_monster_save_3371, 0x4);
@@ -7875,7 +7870,6 @@ mgCMemory MenuChangeMemory;
 mgCMemory MenuChangeNpcMemory;
 mgCMemory ChrChangeInitTextureStack;
 INCLUDE_BSS(at_1806__2, 0x20);
-INCLUDE_BSS(at_2372__4, 0x20);
 INCLUDE_BSS(at_2674, 0x80);
 INCLUDE_BSS(at_2675, 0x80);
 INCLUDE_BSS(at_2676, 0x80);

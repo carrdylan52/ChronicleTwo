@@ -56,3 +56,13 @@ retail bytes and references, including shared uses in other native functions.
 After this step: **344 / 31 markers**, **4 / 9726 matched_data**.
 PAL and all 149 objects pass; receipts are
 `.private/nmchr-r3/menuchr-enter-strings-{build,objects,progress,metrics}.log`.
+
+## Party-menu zero aggregate templates
+
+The two `SmallPair` locals in the party key handler now initialize their real
+integer arrays with `{{0, 0}}`, supplying `at_2232` and `at_2289__2` naturally.
+The star draw's existing center and UV aggregate initializers also supply
+`at_2371__4` and `at_2372__4`, so those two fallbacks are removed.
+After this step: **344 / 27 markers**, **4 / 9726 matched_data**.
+PAL and 149/149 objects pass with unchanged unowned hashes; receipts are
+`.private/nmchr-r3/menuchr-party-zero-{build,objects,progress,metrics}.log`.
