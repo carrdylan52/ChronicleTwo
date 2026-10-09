@@ -3217,11 +3217,8 @@ void TitleLangSelDraw() {
 
 // Initialised data (.data)
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/title", MC_ICON_Data__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/title", at_1594__3__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/title", at_1595__4__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/title", start_button_tbl_1826__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/title", btn_tblxy_1830__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/title", at_1924__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/title", table_2611__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/title", infomsg_2664__DATA);
 
@@ -3248,15 +3245,10 @@ INCLUDE_RODATA("ps2/asm/pal/nonmatchings/title", at_1238__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/title", at_1239__2__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/title", at_1267__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/title", at_1479__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/title", at_1481__3__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/title", at_1480__3__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/title", at_1495__3__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/title", at_1517__2__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/title", at_2020__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/title", at_2021__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/title", at_2182__3__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/title", at_2281__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/title", at_2310__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/title", at_2369__3__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/title", at_2370__4__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/title", at_2371__3__DATA);
@@ -3265,8 +3257,6 @@ INCLUDE_RODATA("ps2/asm/pal/nonmatchings/title", at_2373__3__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/title", at_2374__3__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/title", at_2375__3__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/title", at_2376__3__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/title", at_2607__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/title", at_2606__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/title", at_2665__2__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/title", at_2666__2__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/title", at_2667__2__DATA);
@@ -3280,7 +3270,6 @@ INCLUDE_RODATA("ps2/asm/pal/nonmatchings/title", TitleHDDCheckFlag__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/title", TitleMCCheckFileFind__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/title", TitleMCCheckInport__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/title", cnttbl_2026__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/title", at_2646__2__DATA);
 
 // Small uninitialised data (.sbss)
 INCLUDE_BSS(TitleSelectInit, 0x4);

@@ -66,3 +66,27 @@ measures are **468 / 2064**. The large BSS section is now fully native.
 Receipts: `.private/dataB-r5/bss-hdd-steps.log`, `bss-lang-steps.log`,
 `cursor-static-{build,objects}.log`, `storage-final-{build,objects}.log`
 and `storage-metrics.json`.
+
+## Native initializer and switch data
+
+The existing natural local initializers supply these exact templates without
+reservations:
+
+| Marker removed | Native owner and payload |
+|---|---|
+| `at_1594__3` | TitleModeInit camera position: `{1.2f, 2.3f, 550.0f, 1.0f}`. |
+| `at_1595__4` | TitleModeInit camera follow target: `{-70.1f, 280.8f, -493.0f, 1.0f}`. |
+| `at_1924` | TitleMapDraw origin: `{0.0f, 0.0f, 0.0f, 1.0f}`. |
+| `at_2646__2` | TitleHDDInstallDraw cursor coordinates: `{160.0f, 180.0f}`. |
+
+The existing switches supply all seven table pieces, including every
+R_MIPS_32 target and interior function addend: TitleLoop (`at_1481__3`,
+`at_1480__3`), TitleDraw (`at_1495__3`), TitleMCCheckKey (`at_2182__3`),
+TitleCopyRightDraw (`at_2310`) and TitleHDDInstallKey (`at_2607`, `at_2606`).
+No function body changes for this group.
+
+RODATA / BSS markers: **61 / 27 → 50 / 27**. Data measures remain
+**468 / 2064** because protected pieces still make the initialized aggregate
+sections incomplete. Per-piece receipts are
+`.private/dataB-r5/native-<name>-{build,objects}.log` and the corresponding
+`-audit.json`; the group ledger is `native-steps.log`.
