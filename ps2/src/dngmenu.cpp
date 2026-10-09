@@ -757,8 +757,8 @@ void DrawDngRoomInfo(DNGMAP_ROOM_INFO *room) {
         prim->Begin(6);
         prim->Texture(Floor_InfoTex);
         prim->Color(128, 128, 128, alpha);
-        int         ix = fptosi(left);
-        int         iy = fptosi(top);
+        int         ix = (int) left;
+        int         iy = (int) top;
         Menu3DivideTextureDraw(prim, mgRect<int>(ix, iy, width, 0x46), dngboardbrdtbl, 1);
         Menu3DivideTextureDraw(prim, mgRect<int>(ix, iy + 0x46, width, height - 0x46 - dngboardbrdtbl[15]),
                                &dngboardbrdtbl[12], 1);
@@ -819,8 +819,8 @@ void DrawDngRoomInfo(DNGMAP_ROOM_INFO *room) {
             PrimQuad(prim, seal_x, seal_y, *seal);
             prim->Color(128, 128, 128, alpha);
         }
-        ix = fptosi(left + 20.0f);
-        iy = fptosi(2.0f + (68.0f + (float) iy));
+        ix = (int) (left + 20.0f);
+        iy = (int) (2.0f + (68.0f + (float) iy));
         int text_x = ix + 0x1C;
         PrimQuad(prim, (float) ix, row_top, mark);
         if (DngInfoFloorInfo != NULL && (DngInfoFloorInfo->flag & DNG_FLOOR_FLAG_FAST_DESTROY_CLEAR)) {
