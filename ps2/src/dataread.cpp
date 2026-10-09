@@ -570,7 +570,7 @@ static int GetDevType(char *path, char *out_name) {
     char *scan;
     char *out;
 
-    if (*(s8 *) (path + 1) == ':') {
+    if (path[1] == ':') {
         strcpy(out_name, path);
         return -1;
     }
