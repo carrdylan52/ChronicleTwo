@@ -4763,8 +4763,8 @@ int CMenuMosSelect::KeyStep() {
                         level = 0;
                     }
                     if (level != oldLevel) {
-                        showInfo = 1;
                         view_monster = monster_progress_tbl[select_badge->progress][1 + level];
+                        showInfo = 1;
                         pick_monster = view_monster;
                         load_wait = 0;
                         load_phase = 0;
