@@ -48,7 +48,6 @@
  */
 static u_int *MenuCharaChangePosDataCfgBuffer;
 
-
 inline CMenuChrCngMenu::CMenuChrCngMenu() {
     change_phase = 0;
     change_chara = -1;
@@ -790,7 +789,6 @@ static s8                 menu_debug_npc_decide;
  */
 static s8                 menu_debug_npcselect;
 
-
 /**
  *
  * Holds the selected non-player character name.
@@ -1113,7 +1111,6 @@ static char *partt_2332[6] = {
     "hp_max2",
 };
 
-
 /**
  *
  * Active party change menu.
@@ -1169,7 +1166,6 @@ static const u16 menu_chr_memorytbl[MENU_CHARA_LOAD_MAX] = {
     0x1B80, 0x9AC0, 0x1C84, 0x11C0, 0x0BC0, 0x26C0, 0x0708
 };
 int                       ReadBGSync();
-
 
 // Code (.text)
 void InitMenuBGReadInfo2(MENU_BGREAD_INFO2 *info) {
@@ -1257,6 +1253,7 @@ void SetMenuLoadItemNo(int who) {
         count++;
     }
 }
+
 /**
  *
  * Partitions character menu memory among its work buffers.
@@ -1297,6 +1294,7 @@ static int MenuMemoryDivide(mgCMemory *memory, mgCMemory **list, int chara) {
     }
     return total;
 }
+
 void MenuMemoryAdjust(mgCMemory *pool, mgCMemory *rest, mgCMemory *buffers, int chara) {
     int        free_blocks = pool->stack_size - pool->stack_used;
     mgCMemory *list[7] = {NULL, NULL, NULL, NULL, NULL, NULL, NULL};
@@ -1396,6 +1394,7 @@ void CMenuChrCngMenu::AttachForm() {
         cmd_part[j] = form->GetPartInfo(name);
     }
 }
+
 void CMenuChrCngMenu::EnterDataMenu(u_char *pack) {
     /**
      *
@@ -1525,6 +1524,7 @@ void CMenuChrCngMenu::EnterDataMenu(u_char *pack) {
         }
     }
 }
+
 void CMenuChrCngMenu::LoadNPCFaceData(mgCMemory *memory, int mode) {
     char         path[0x40];
     unsigned int size;
@@ -1699,6 +1699,7 @@ void EditCharaPrepare() {
         chara->Initialize(NULL);
     }
 }
+
 #ifdef NONMATCHING
 int CMenuChrCngMenu::KeyChangeMain() {
     CMenuKeyFunc *keyFunc = MenuCommonInfo;
@@ -2685,6 +2686,7 @@ int CMenuChrCngMenu::KeyChangeMain() {
 #else
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/menuchr", KeyChangeMain__15CMenuChrCngMenuFv);
 #endif
+
 void CMenuChrCngMenu::CalcTex() {
     char                name[0x20];
     int                 item_pos[10][2];
@@ -3165,6 +3167,7 @@ void CMenuChrCngMenu::UpdataLife() {
         ExeScript("ROBO_OFFLIFE");
     }
 }
+
 void MenuCharaChangeStarDraw() {
     mgCTextureManager *tex_manager = &mgTexManager;
 
@@ -3253,6 +3256,7 @@ void MenuCharaChangeStarDraw() {
     }
     prim->End();
 }
+
 #ifdef NONMATCHING
 int MenuCharaChangeInit(mgCMemory *stack, int *tex_block, int mode) {
     u_long128       *buffer;
@@ -4243,7 +4247,6 @@ void MenuMonsterBoxInit(mgCMemory *stack, int *tex_block, int mode) {
         MenuMosSelectPtr->view_monster = MenuMosSelectPtr->badge[MenuMosSelectPtr->select].monster_id;
     }
 }
-
 #pragma inline_depth reset
 int CMenuMosSelect::KeyStep() {
     int           size;
@@ -5483,7 +5486,6 @@ int MenuItemChrLoadEndCheck(MENU_BGREAD_INFO2 *info, CActionChara *chara, mgCMem
  */
 static s8 convItoPhase_4229[6] = {0, 1, 2, 2, 4, 2};
 
-
 int MenuItemRoboDataLoad(mgCMemory *stack, MENU_BGREAD_INFO2 **info, int restart_read) {
     int i;
     int size;
@@ -5863,6 +5865,7 @@ void MenuRoboPartsLightOff(mgCFrame *frame) {
         }
     }
 }
+
 int MenuMonsterLoadBG(mgCMemory *stack, MENU_BGREAD_INFO2 **info, int monster_no, int restart_read) {
     char model_buffer[0x40];
     char script_buffer[0x40];
@@ -6021,7 +6024,6 @@ void MenuItemCharaDataLoadEndCheckAfter(MENU_BGREAD_INFO2 **info, int chara_no) 
     }
     SetupUnitMan(&scene, userData, chara_no, robo);
 }
-
 #pragma inline_depth reset
 
 void InitMainCharaBG(int chara_no, mgCMemory *stack, int mode) {
@@ -6120,6 +6122,7 @@ void InitMainCharaBG(int chara_no, mgCMemory *stack, int mode) {
             break;
     }
 }
+
 int ReadMainCharaBG() {
     char model[0x48];
     int  size;
@@ -6808,6 +6811,7 @@ int CMenuCostumeSel::KeyStep() {
 
     return 0;
 }
+
 void CMenuCostumeSel::Draw() {
     sceVu0FMATRIX view;
     sceVu0FVECTOR eye;
@@ -6945,6 +6949,7 @@ void CMenuCostumeSel::Draw() {
         help.DrawDirect(infomsg_5256[LanguageCode], 0x28, mgScreenHeight - 0x28);
     }
 }
+
 #ifdef NONMATCHING
 void MenuCostumeInit(mgCMemory *stack, int *tex_block, int mode) {
     MenuChangeMemory.stSetBuffer(stack->stGetTop(), stack->stGetRest());
@@ -6968,6 +6973,7 @@ void MenuCostumeInit(mgCMemory *stack, int *tex_block, int mode) {
 #else
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/menuchr", MenuCostumeInit__FP9mgCMemoryPii);
 #endif
+
 int MenuCostumeKey() {
     return MenuCosPtr->KeyStep();
 }
@@ -7606,8 +7612,6 @@ INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_5839__DATA);
 // Virtual tables (.vtables)
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", __vt__15CMenuCostumeSel__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", __vt__15CMenuChrCngMenu__DATA);
-
-// Small initialised data (.sdata)
 
 // Small uninitialised data (.sbss)
 mgCMemory *MorattaStack;

@@ -8,7 +8,7 @@
 member expressions retain the existing loads, stores and string calls.
 
 The `tbl_992` character/phase table stays flat. The reviewed two-dimensional
-form changes three complete-object checks in `ConvertCharaLoadDataPhase`,
+form produces three complete-object check problems in `ConvertCharaLoadDataPhase`,
 including its address calculations and relocated destinations.
 `MenuItemChrLoad` retains `(char *) &info->path` at its two path uses:
 replacing it with `info->path` changes six instruction bytes at function
@@ -82,3 +82,17 @@ superseded by this compatible field definition.
 The compatible field definition and all twenty-three renamed accesses pass
 the full build: `SCES_511.90: OK`, 149/149 complete objects, 6,787 perfect
 functions and zero fuzzy. Both protected method blocks remain unchanged.
+
+## Source spacing and current documentation (findings 8 and 17)
+
+Repeated empty lines are reduced to one; function definitions have blank
+separators, including the outer boundaries after the protected methods.
+The empty `.sdata` heading is removed. Both guarded method blocks and all
+of `night-20261008.md` remain unchanged. Older score assessments are marked
+historical, current native matches are named accurately, and the migration
+notes distinguish Italian label rows, weakness markup and badge-table
+consumers.
+
+The final spacing source passes `SCES_511.90: OK` and 149/149 complete
+objects. The protected-block comparison and the unchanged night-note file
+both pass, and no function gap changes.

@@ -2,7 +2,7 @@
 
 Baseline `860067a4`, image `chronicletwo_dev:sf-63f7a9e`:
 **355 INCLUDE_RODATA / 79 INCLUDE_BSS**, **4 / 9726 matched_data**.
-The seven guarded drafts and all Satan's Fiddle rows remain unchanged.
+The seven guarded drafts and all Satan's Fiddle rows are unchanged by this migration.
 Header declarations remain source-compatible; menudraw is outside this lane.
 
 ## Exported character-menu state
@@ -59,8 +59,10 @@ PAL and all 149 objects pass; receipts are
 
 ## Party-menu zero aggregate templates
 
-The two `SmallPair` locals in the party key handler now initialize their real
-integer arrays with `{{0, 0}}`, supplying `at_2232` and `at_2289__2` naturally.
+The two party-key integer pairs supply `at_2232` and `at_2289__2` naturally.
+Their earlier `SmallPair` wrappers used `{{0, 0}}`; the October 9 cleanup uses
+plain arrays with `{0, 0}`, retaining both retail templates. See
+[review-fixes-r2-20261009.md](review-fixes-r2-20261009.md).
 The star draw's existing center and UV aggregate initializers also supply
 `at_2371__4` and `at_2372__4`, so those two fallbacks are removed.
 After this step: **344 / 27 markers**, **4 / 9726 matched_data**.
@@ -124,8 +126,9 @@ PAL and 149/149 objects pass; receipts are
 
 `monster_type_name` is a native seven-by-twelve pointer table of monster
 family labels, with every string inline in its initializer. Japanese has
-twelve empty labels; English, French, German, and Spanish have their retail
-labels; Italian and Chinese reuse English. The 336-byte declared extent,
+twelve empty labels; English, French, German, Italian, and Spanish have their retail
+labels, including a distinct Italian row; only Chinese repeats English.
+The 336-byte declared extent,
 all 84 pointers, and all 47 former child-string pieces match. Shared native
 empty-string consumers now use the inline empty literal as well.
 After this step: **272 / 25 markers**, **4 / 9726 matched_data**.
@@ -134,9 +137,9 @@ PAL and 149/149 objects pass; receipts are
 
 `monster_jyakuten` is a native seven-by-eight pointer table of weakness
 labels. Its 224 bytes and all 56 pointers match retail, and thirty additional
-child-string markers are absent. Non-ASCII strings preserve every retail
-byte with hexadecimal escapes. Unsupported translated rows use the same
-English fallbacks as retail.
+child-string markers are absent. Accented labels use the retail ASCII
+`[UNI00xx]` markup. Japanese has empty labels, Italian has its own abbreviated
+labels, and only Chinese repeats the English row.
 After this step: **241 / 25 markers**, **4 / 9726 matched_data**.
 PAL and 149/149 objects pass; receipts are
 `.private/nmchr-r3/menuchr-book-weakness-{build,objects,progress,metrics}.log`.
@@ -168,7 +171,7 @@ with `-{build,objects,progress,metrics}.log`, and `monster-string-batch.log`.
 Thirty-nine party-menu form, resource, part, and debug strings are inline in
 native consumers. This includes the character display resources and shared
 empty-page state labels. Ten per-function groups independently pass PAL and
-all 149 object checks; guarded draft bodies are unchanged.
+all 149 object checks; guarded draft bodies are unchanged by this migration.
 After this group: **168 / 25 markers**, **4 / 9726 matched_data**.
 Receipts: `.private/nmchr-r3/menuchr-party-strings-00` through `-09`,
 with `-{build,objects,progress,metrics}.log`, and `party-string-batch.log`.
@@ -291,8 +294,9 @@ monster-selection help, badge numeric and item-number label parts, character
 and monster resource directories, localized costume help, and the two main
 characters' model/configuration filenames. Forty-three child string markers
 are also absent; their bytes and `R_MIPS_32` destinations come from the native
-inline initializers. The badge tables remain reachable under their retail
-symbols from the frozen monster-selection method.
+inline initializers. `get_stringtbl_3557` remains reachable under its retail
+symbol from the guarded monster-selection method; `tbl_3725` is consumed only
+by the native `MenuMonsterBoxDraw` function.
 After this group: **71 / 16 markers**, **4 / 9726 matched_data**.
 Each accepted table passes PAL and 149/149 independently, and the restored
 final state passes. Receipts are `.private/nmchr-r3/menuchr-pointer-tables-01`
@@ -490,7 +494,8 @@ is a lower bound: incomplete aggregate sections containing the frozen data or
 the retained boundary receive no credit for their independently exact native
 objects. The complete small initialized-data section and existing literal
 section account for the final 123 credited bytes. Native matched functions
-remain **81 / 88**; no function is promoted and no guarded code changes.
+remain **81 / 88**; this migration promotes no function and changes no
+guarded code. Later guarded-body work is documented separately.
 
 ## KeyStep script strings and templates (regsim-r0, October 9)
 

@@ -143,21 +143,23 @@ Slot order is the base's: `IsCreateObject`, `IsMakeObject`, `IsAskExtend`, `Item
 
 ### CMenuChrCngMenu::EnterDataMenu
 
-The guarded draft registers the ring image, parses the menu layout once, installs repair data,
+The native function registers the ring image, parses the menu layout once, installs repair data,
 then clones the base texture and darkens its 256 palette entries using a 32-step warm colour
 scale. It attaches forms, shows the party members and available characters, installs the two
 message buffers, and loads the current townsperson's command messages and ability costs. The
 m2c output mislabels several fields after offset 0x110 as `star` members; disassembly confirms
 that offsets 0x124/0x128 are `enable_change`/`party_member`, 0x140 is `form`, and 0x21C–0x248
-are the NPC and message fields in `menuchr.hpp`. The draft compiles but differs from retail.
+are the NPC and message fields in `menuchr.hpp`. The exact native match is
+recorded in [night-20261008.md](night-20261008.md).
 
 ### CMosBookMenu (0x980)
-- Its guarded `Draw` draft draws the scrolling background, layered panels, attribute icons,
+- Its native `Draw` function draws the scrolling background, layered panels, attribute icons,
   monster model, three numeric stats and the monster's names and item drops. The model is clipped
   to the central panel after load phase 4 and 17 frames of display. The list counter at offset
   0x7E8 supplies the final page indicator; m2c mislabels it as `abs`. The `ic_5580` table has
-  seven entries although the retail loop tests eight attribute bits, so the last bit reads the
-  alignment bytes before `line_5595`. The draft compiles but differs from retail.
+  eight coordinate pairs: seven explicit icon positions and a final zero pair
+  used for the eighth attribute bit. The exact match and declared table extent
+  are documented in [midday-book.md](midday-book.md).
 - Size: `__nw__FUiP1(0x980, ...)` in `MonsterBookInit`; instance in `MonsterBookPtr` /
   `MenuMosBookPtr`.
 - Inline ctor: `mgCCamera(8.0f)` at 0x110 (0x70 -> 0x180), `mgCMemory` Init at 0x184, zeroes
@@ -316,17 +318,19 @@ constructor clear. These names repair compilation of all eighteen original
 drafts; the nested switch in `KeyChangeMain` itself was well formed.
 
 `MenuMemoryDivide` uses typed quadword-array indexing for its buffer movement.
-This preserves the existing 18-word register-allocation difference. Moving
+The earlier round-two draft retained an 18-word register-allocation difference.
+The native match in [midday-memory.md](midday-memory.md) supersedes that score. Moving
 the buffer declaration before alignment and reversing the explicit rounding
 addition operands do not correct the allocation.
 
-The guarded `EnterDataMenu` draft uses the texture block loaded from base
+The earlier guarded `EnterDataMenu` draft used the texture block loaded from base
 menu offset 0x18 for texture registration, repair setup, and reload. Its
 script pointer and script length are base fields at 0x8 and 0xc, rather than
 the party-change state at 0x118/0x11c. The NPC reset includes offset 0x23c.
 Capturing the texture manager and initial texture block follows retail's
 reads before the pack lookup. These corrections reduce the draft difference
-from 370 to 331 of 388 words; the body remains guarded.
+from 370 to 331 of 388 words at that checkpoint. The subsequent exact native
+match is recorded in [night-20261008.md](night-20261008.md).
 
 See [the October 8 lane assessment](round2.md) for the remaining function
 scores, concrete park triggers, shared constructor proposal, and validation
@@ -366,15 +370,15 @@ source redeclarations are unnecessary: menuaqua.hpp and title.hpp own them.
 MenuCharaChangePosDataCfgBuffer already has one static definition at this
 checkpoint (introduced by fb857059); the duplicated extern finding is resolved.
 
-MENU_LOAD_INFO byte +7, currently unk_6[1], selects main-scene model updates:
+MENU_LOAD_INFO byte +7, update_scene, selects main-scene model updates:
 CheckLoadBGMonster uses the main scene's stack and character when it is set,
 the character/ridepod loaders collect and reload the main scene's characters,
 and MenuItemCharaDataLoadEndCheckAfter calls SetupUnitMan for MenuMainScene.
-The appropriate field name is update_scene. Renaming it also requires changes
-in menusys.cpp and inventmn.cpp, excluded from this lane, so the complete
-proposed field/access diff is in
-.private/proposals/menuchr-menu-load-info-scene-flag.patch. Byte +6 remains
-unidentified. No compatibility alias or helper is introduced.
+The signed-byte field shares a union with the old unk_6 array, retaining the
+eight-byte layout and existing accesses in protected methods and inventmn.
+All unprotected menuchr and menusys accesses use the named field. Byte +6
+remains unidentified. The earlier cross-unit full-rename proposal is
+superseded; see [the October 9 fixes](review-fixes-r2-20261009.md).
 
 Receipts: .private/fixes-r0/menuchr-final-{build,objects}.log:
 SCES_511.90: OK and 149/149 objects.
