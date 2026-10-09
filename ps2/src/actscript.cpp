@@ -2611,12 +2611,3 @@ void ParabolicInitialVector(float *result, float *from, float *to, float gravity
     result[3] = 1.0f;
     result[1] *= -1.0f;
 }
-
-// Small uninitialised data (.sbss)
-INCLUDE_BSS(sw_1617, 0x4);
-INCLUDE_BSS(init_1618, 0x4);
-INCLUDE_BSS(canon_slot_1620, 0x4);
-INCLUDE_BSS(init_1621, 0x4);
-INCLUDE_BSS(cnt_1661, 0x4);
-INCLUDE_BSS(init_1662, 0x4);
-
