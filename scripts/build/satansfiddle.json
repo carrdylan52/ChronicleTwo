@@ -848,6 +848,15 @@
         "evaluate_first": false,
         "evaluate_before": 3,
         "expected_matches": 1
+      },
+      {
+        "translation_unit": "menusys.cpp",
+        "function": "MenuItemDebugKey__Fv",
+        "callee": "__ct__15mgCCameraFollowFffff",
+        "value_type": "binary32",
+        "value_bits": "0x00000000",
+        "evaluate_first": true,
+        "expected_matches": 1
       }
     ]
   },
@@ -1038,6 +1047,14 @@
         "expected_matches": 1
       },
       {
+        "translation_unit": "menusys.cpp",
+        "function": "MenuItemDebugKey__Fv",
+        "allocator": "__nw__FUiP1",
+        "constructor": "__ct__12CActionCharaFv",
+        "conversion": "after_constructor_inline",
+        "expected_matches": 1
+      },
+      {
         "translation_unit": "mg_tanime.cpp",
         "function": "NewTexAnimeData__15mgCTextureAnimeFP9mgCMemory",
         "allocator": "__nw__FUiP1",
@@ -1068,6 +1085,14 @@
         "constructor": "__ct__12CActionCharaFv",
         "conversion": "after_constructor_inline",
         "expected_matches": 2
+      },
+      {
+        "translation_unit": "map.cpp",
+        "function": "AddPartsGroup__4CMapFPcP9CMapPartsP9mgCMemory",
+        "allocator": "__nw__FUiP1",
+        "constructor": "__ct__23CList<14PartsGroupData>Fv",
+        "conversion": "after_constructor_inline",
+        "expected_matches": 1
       }
     ]
   }
