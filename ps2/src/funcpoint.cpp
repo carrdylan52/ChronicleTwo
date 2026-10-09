@@ -713,7 +713,7 @@ CFuncPoint *CFuncPointMngr::Search(char *name) {
 
         if (first != NULL) {
             do {
-                if (strcasecmp(*(char **) point, name) == 0) {
+                if (strcasecmp(point->name, name) == 0) {
                     return point;
                 }
 
