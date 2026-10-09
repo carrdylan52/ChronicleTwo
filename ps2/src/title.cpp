@@ -249,23 +249,106 @@ static s16 TitlePushStart_AlphaPlus;
 extern s8               cnttbl_2026[2];
 
 extern char                at_1267[];
-extern mgCTexture         *HDDDlBar;
-extern s16                 HDDPhase;
-extern s16                 HDDConfirmType;
-extern s16                 HDDnowDisplayImageNo;
-extern u8                  HDDDlBarDrawFlag;
-extern u8                  HDDMesDrawFlag;
-extern s16                *HDDMesDataBuff;
-extern CDC2Mes            *HDDMes;
-extern CDC2Mes            *HDDMes2;
-extern mgCTexture         *HDDBGTex;
-extern mgCTexture         *HDDSysImage;
-extern s16                 HDDModeSelect;
-extern mgCTexture         *HDDImage[12];
-extern int                 HDDImageAlpha[12];
+
+/**
+ *
+ * Points to the installation progress bar texture.
+ *
+ */
+static mgCTexture *HDDDlBar;
+
+/**
+ *
+ * Selects the hard disk installation screen phase.
+ *
+ */
+static s16 HDDPhase;
+
+/**
+ *
+ * Selects the hard disk installation confirmation action.
+ *
+ */
+static s16 HDDConfirmType;
+
+/**
+ *
+ * Identifies the current hard disk installation slideshow image.
+ *
+ */
+static s16 HDDnowDisplayImageNo;
+
+/**
+ *
+ * Enables drawing of the installation progress bar.
+ *
+ */
+static u8 HDDDlBarDrawFlag;
+
+/**
+ *
+ * Selects the installation dialog in place of the slideshow overlay.
+ *
+ */
+static u8 HDDMesDrawFlag;
+
+/**
+ *
+ * Points to the loaded installation message data.
+ *
+ */
+static s16 *HDDMesDataBuff;
+
+/**
+ *
+ * Points to the installation confirmation and status dialog.
+ *
+ */
+static CDC2Mes *HDDMes;
+
+/**
+ *
+ * Points to the installation progress caption dialog.
+ *
+ */
+static CDC2Mes *HDDMes2;
+
+/**
+ *
+ * Points to the installation screen background texture.
+ *
+ */
+static mgCTexture *HDDBGTex;
+
+/**
+ *
+ * Points to the installation screen controls and cursor texture.
+ *
+ */
+static mgCTexture *HDDSysImage;
+
+/**
+ *
+ * Holds the installation menu selection.
+ *
+ */
+static s16 HDDModeSelect;
+
+/**
+ *
+ * Holds the ten installation slideshow textures.
+ *
+ */
+static mgCTexture *HDDImage[10];
+
+/**
+ *
+ * Holds the alpha of each installation slideshow image.
+ *
+ */
+static int HDDImageAlpha[10];
+
 extern char               *infomsg_2664[];
-extern int                 count_2647;
-extern s8                  init_2648;
 
 /**
  *
@@ -340,14 +423,52 @@ static s32 OmakePlayEnableAttr;
 
 extern s16                 TitleMCCheckFileFind[2];
 extern u8                  TitleMCCheckInport[2];
-extern mgCTexture         *lang_tex;
-extern int                 title_lang_cursor_cnt;
-extern int                 title_lang_fadealpha;
-extern int                 title_lang_phase;
-extern int                 title_lang_select;
+
+/**
+ *
+ * Points to the language menu row and cursor texture.
+ *
+ */
+static mgCTexture *lang_tex;
+
+/**
+ *
+ * Counts frames for the language menu cursor wobble.
+ *
+ */
+static int title_lang_cursor_cnt;
+
+/**
+ *
+ * Holds the black overlay alpha for language menu transitions.
+ *
+ */
+static int title_lang_fadealpha;
+
+/**
+ *
+ * Selects the language menu fade and input phase.
+ *
+ */
+static int title_lang_phase;
+
+/**
+ *
+ * Holds the selected language menu row.
+ *
+ */
+static int title_lang_select;
+
 extern char                at_2723[];
 extern char                at_2724[];
-extern float               title_lang_curxy[2];
+
+/**
+ *
+ * Holds the eased language menu cursor coordinates.
+ *
+ */
+static float title_lang_curxy[2];
+
 extern MENU_SHORT_RECT     start_button_tbl_1826[];
 extern s16                 btn_tblxy_1830[][2];
 
@@ -2885,21 +3006,23 @@ void TitleHDDInstallDraw() {
         float       cursor[2] = {160.0f, 180.0f};
         PrimQuad(HDDSysImage, cursor[0], cursor[1], mgRect<int>(0x12E, 0x94, 0xD2, 0x36), 0x80, 0x80, 0x80, 0x80);
 
-        if (init_2648 == 0) {
-            count_2647 = 0;
-            init_2648 = 1;
-        }
+        /**
+         *
+         * Counts animation frames while the installation controls are shown.
+         *
+         */
+        static int count = 0;
 
-        count_2647 += 1.0f;
+        count += 1.0f;
 
-        if (1000000.0f < (float) count_2647) {
-            count_2647 = 0;
+        if (1000000.0f < (float) count) {
+            count = 0;
         }
 
         cursor[0] -= 30.0f;
         cursor[1] += 12.0f;
-        cursor[0] += 6.0f * cosf(0.05235988f * (float) count_2647);
-        cursor[1] += 4.0f * sinf(0.10471976f * (float) count_2647);
+        cursor[0] += 6.0f * cosf(0.05235988f * (float) count);
+        cursor[1] += 4.0f * sinf(0.10471976f * (float) count);
         PrimQuad(HDDSysImage, cursor[0], cursor[1], mgRect<int>(0, 0x28, 0x28, 0x20), 0x80, 0x80, 0x80, 0x80);
     }
 
@@ -3187,26 +3310,6 @@ INCLUDE_BSS(RushStart, 0x4);
 INCLUDE_BSS(RushWork, 0x4);
 INCLUDE_BSS(TitleScene, 0x4);
 INCLUDE_BSS(TitleEventSound, 0x4);
-INCLUDE_BSS(HDDPhase, 0x4);
-INCLUDE_BSS(HDDConfirmType, 0x4);
-INCLUDE_BSS(HDDnowDisplayImageNo, 0x4);
-INCLUDE_BSS(HDDDlBarDrawFlag, 0x4);
-INCLUDE_BSS(HDDDlBar, 0x4);
-INCLUDE_BSS(HDDMesDrawFlag, 0x4);
-INCLUDE_BSS(HDDMesDataBuff, 0x4);
-INCLUDE_BSS(HDDMes, 0x4);
-INCLUDE_BSS(HDDMes2, 0x4);
-INCLUDE_BSS(HDDBGTex, 0x4);
-INCLUDE_BSS(HDDSysImage, 0x4);
-INCLUDE_BSS(HDDModeSelect, 0x4);
-INCLUDE_BSS(count_2647, 0x4);
-INCLUDE_BSS(init_2648, 0x4);
-INCLUDE_BSS(title_lang_select, 0x4);
-INCLUDE_BSS(title_lang_phase, 0x8);
-INCLUDE_BSS(title_lang_curxy, 0x8);
-INCLUDE_BSS(title_lang_fadealpha, 0x4);
-INCLUDE_BSS(title_lang_cursor_cnt, 0x4);
-INCLUDE_BSS(lang_tex, 0x4);
 
 // Uninitialised data (.bss)
 mgCMemory DataBuffer;
@@ -3214,7 +3317,5 @@ mgCMemory TitleMapBuffer;
 mgCMemory TitleWorkBuffer;
 mgCMemory Stack_ReadBuff;
 mgCMemory Stack_MenuCharaBuff_Fix;
-INCLUDE_BSS(HDDImage, 0x30);
-INCLUDE_BSS(HDDImageAlpha, 0x30);
 HDD_INFO  HDDINFO;
 mgCMemory lang_stack;

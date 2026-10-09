@@ -42,3 +42,27 @@ remaining title reservations are present. No function is promoted.
 
 Receipts: `.private/dataB-r5/state-final-{build,objects}.log`,
 `state-final-audit.json`, `state-progress.log` and `state-metrics.json`.
+
+## Installer and language storage
+
+Fourteen typed installer definitions supply the phase, confirmation action,
+slideshow selection, drawing flags, texture and message pointers, menu
+selection, ten texture pointers and ten image alphas. Both arrays have the
+retail 0x28-byte declared extent; the eight bytes through each 0x30-byte piece
+are alignment. No extra array entries or filler objects are declared.
+
+Six definitions supply the language selection, phase, cursor position, fade
+alpha, cursor animation count and texture pointer. The language phase is an
+int, even though its marker reserves eight bytes. Its exact four-byte declared
+extent owns the verified gap to the next piece.
+
+TitleHDDInstallDraw uses a natural `static int count = 0` inside the controls
+branch. MWCC emits both the counter and its one-time initialization guard,
+replacing count_2647/init_2648 and their manual initialization scaffolding.
+All function bytes and resolved relocation targets remain exact.
+
+RODATA / BSS markers after this group: **61 / 27**. Fresh objdiff data
+measures are **468 / 2064**. The large BSS section is now fully native.
+Receipts: `.private/dataB-r5/bss-hdd-steps.log`, `bss-lang-steps.log`,
+`cursor-static-{build,objects}.log`, `storage-final-{build,objects}.log`
+and `storage-metrics.json`.
