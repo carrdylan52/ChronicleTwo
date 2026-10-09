@@ -2086,7 +2086,7 @@ int _OBJECT_NAME(SPI_STACK *stack, int argc) {
     mgCFrame *root;
     mgCFrame *found;
 
-    for (i = 0; i < 2; i++) {
+    for (i = 0; i < CHARA_ENTRY_FRAME_MAX; i++) {
         if (nowChr->entry_frame[i] == 0) {
             frame_slot = i;
             break;
@@ -2099,7 +2099,7 @@ int _OBJECT_NAME(SPI_STACK *stack, int argc) {
         return 0;
     }
 
-    for (j = 0; j < 0x18; j++) {
+    for (j = 0; j < CHARA_ENTRY_OBJECT_MAX; j++) {
         if (nowChr->entry_object[j].frame == 0) {
             object_slot = j;
             break;
@@ -2152,7 +2152,7 @@ int _OBJECT_NAME2(SPI_STACK *stack, int argc) {
     float     value;
     int       i;
 
-    for (i = 0; i < 0x18; i++) {
+    for (i = 0; i < CHARA_ENTRY_OBJECT_MAX; i++) {
         if (nowChr->entry_object[i].frame == 0) {
             object_slot = i;
             break;
