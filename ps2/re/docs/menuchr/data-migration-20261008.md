@@ -273,16 +273,16 @@ restored state also passes. Receipts use `.private/nmchr-r3/menuchr-` plus
 `-{build,objects,progress,metrics}.log`. The group receipt is
 `aggregate-batch.log`; the final receipt is `menuchr-aggregates-final`.
 
-The grouped debug-buffer conversion and the native two-name pointer array
-both preserve native instruction words but fail data naming. The debug group
-leaves an eight-byte `at_970` template unnamed where `at_2232` is required.
-The pointer pair emits an eight-byte `at_1024` containing two `R_MIPS_32`
-references to the correct `at_2287` empty literal, but it is not named
-`at_2288`. Both attempts are restored. Failed source checkpoints, object
-snapshots, focused object checks, PAL section differences and instruction
-comparisons are under `menuchr-debug-templates-*` and
-`menuchr-party-name-pair-*`. Native consumer word differences are zero;
-whole-object acceptance fails on the unnamed data pieces.
+The grouped debug-buffer conversion preserves native instruction words but
+fails BSS data naming: an eight-byte `at_970` template stays unnamed where
+`at_2232` is required. The first two-name pointer-array probe also leaves
+instructions unchanged, but its first pointer is wrong: retail requires a
+single-space string (`at_2286`), followed by the empty string (`at_2287`);
+the probe incorrectly uses two empty strings. Both attempts are restored.
+Failed source checkpoints, object snapshots, focused checks, PAL section
+differences and instruction comparisons are under `menuchr-debug-templates-*`
+and `menuchr-party-name-pair-*`. Instruction masking cannot validate data
+pointer destinations; the resolved-relocation check rejects the wrong pair.
 
 ## Named pointer tables and their child literals
 
@@ -304,3 +304,18 @@ Its natural file-scope definition leaves all native instruction words intact,
 but reproduces the unnamed `at_2232` BSS template seen in the debug-buffer
 attempt. Receipt `menuchr-pointer-tables-00-*` records the original source,
 linked/native objects, section differences and the focused object check.
+
+
+## Initialized menu state and camera defaults
+
+Four native scalar definitions retain their signed `-1` sentinel: the current
+sound character, pending monster model, pending main character, and pending
+main-character monster. The monster selection camera position and reference
+are native SDK vectors `{0.0f, 0.0f, 100.0f, 1.0f}` and
+`{0.0f, 9.0f, 0.0f, 1.0f}`. The named information configuration buffer has
+its genuine ten-byte declared capacity and inline `"info.cfg"` initializer.
+All seven definitions keep the existing interfaces and retail symbol names.
+After this group: **64 / 16 markers**, **4 / 9726 matched_data**.
+Every definition independently passes PAL and 149/149; receipts use
+`.private/nmchr-r3/menuchr-named-` plus its symbol name, with
+`-{build,objects,progress,metrics}.log`, and `named-data-batch.log`.

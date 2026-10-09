@@ -484,7 +484,13 @@ static int overcode_3172[4] = {0, 0, 0, 0};
  */
 static CMenuMosSelect    *MenuMosSelectPtr;
 
-extern int                MenuSoundCharaNo;
+/**
+ *
+ * Character whose menu sound archive is loaded.
+ *
+ */
+static int MenuSoundCharaNo = -1;
+
 /**
  *
  * Texture sliding across the main character background.
@@ -520,7 +526,13 @@ static int                NowMainCharaChngTexMovePhase;
  */
 static int                NowMainCharaChngTexMoveX;
 
-extern short              NowReadMainCharaNo;
+/**
+ *
+ * Main character whose quick-change background load is pending.
+ *
+ */
+static short NowReadMainCharaNo = -1;
+
 /**
  *
  * Pack data read for the party townsperson model.
@@ -693,7 +705,13 @@ static char *monster_jyakuten[LANG_CHINESE + 1][8] = {
     },
 };
 
-extern char               menu_infocfgname[];
+/**
+ *
+ * Character model information configuration filename.
+ *
+ */
+static char menu_infocfgname[10] = "info.cfg";
+
 extern char               at_5051[];
 extern char               at_5052[];
 extern char               at_5053[];
@@ -789,7 +807,13 @@ static short              NowReadMainCharaPhase;
  */
 static CActionChara      *NowReadMainChara;
 
-extern short              NowReadMainCharaMonsterNo;
+/**
+ *
+ * Monster used by the pending main character background load.
+ *
+ */
+static short NowReadMainCharaMonsterNo = -1;
+
 /**
  *
  * Position preserved while replacing the main character background model.
@@ -819,8 +843,20 @@ static CHR_CNG_CLUT_COLOR *MenuCharaChangeCLUT;
  */
 static int tbl_3186[MENU_CHARA_LOAD_MAX] = {1, 0, 0, 0, 0, 1, 0};
 
-extern sceVu0FVECTOR      posdef_3194;
-extern sceVu0FVECTOR      refdef_3195;
+/**
+ *
+ * Default camera position for the monster selection menu.
+ *
+ */
+static sceVu0FVECTOR posdef_3194 = {0.0f, 0.0f, 100.0f, 1.0f};
+
+/**
+ *
+ * Default camera target for the monster selection menu.
+ *
+ */
+static sceVu0FVECTOR refdef_3195 = {0.0f, 9.0f, 0.0f, 1.0f};
+
 /**
  *
  * Localized help messages for monster transformation selection.
@@ -1198,7 +1234,13 @@ static char *MonsterDataPath[3] = {
  */
 static char             script_file_name[0x20];
 
-extern short            monster_load_id;
+/**
+ *
+ * Monster whose menu model background load is pending.
+ *
+ */
+static short monster_load_id = -1;
+
 /**
  *
  * Current and maximum gauge label part names of the party menu.
@@ -7688,10 +7730,7 @@ s16 monster_progress_tbl[MONSTER_PROGRESS_NUM][1 + MONSTER_PROGRESS_LEVEL_NUM] =
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", tbl_1233__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_2691__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_2696__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", posdef_3194__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", refdef_3195__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_3481__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", menu_infocfgname__DATA);
 
 // Constants (.rodata)
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_1234__2__DATA);
@@ -7757,11 +7796,7 @@ INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", __vt__15CMenuCostumeSel__DATA
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", __vt__15CMenuChrCngMenu__DATA);
 
 // Small initialised data (.sdata)
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", MenuSoundCharaNo__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_2288__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", monster_load_id__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", NowReadMainCharaNo__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", NowReadMainCharaMonsterNo__DATA);
 
 // Small uninitialised data (.sbss)
 mgCMemory *MorattaStack;
