@@ -401,5 +401,3 @@ int mgCShadowMDT::CreateRenderInfoPacket(u_int *packet, float (*matrix)[4], mgRE
 }
 #pragma global_optimizer reset
 #pragma schedule reset
-
-// Initialised data (.data)
