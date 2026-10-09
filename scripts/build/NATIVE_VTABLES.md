@@ -2,7 +2,8 @@
 
 `native_vtables.py` declares a retail table's owner and its raw source-only
 producer in `TABLE_PRODUCERS`. `object` receives `__vt__7CObject` from the
-normal `map.cpp` objdiff compile. `ObjectLists.cmake` makes that raw producer
+normal `map.cpp` objdiff compile; `mapparts` receives `__vt__9CMapParts` from
+the same compile. `ObjectLists.cmake` makes that raw producer
 a dependency of the linked owner; the existing source-only rule tracks source,
 headers, compiler and SF profile. Keep the dependency and manifest together
 when adding a producer. No constructor or table initializer is synthesized.

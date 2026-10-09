@@ -63,11 +63,12 @@ endfunction()
 # source has an INCLUDE_ASM or INCLUDE_RODATA marker, reading the per-symbol
 # files the split wrote, so every object depends on the split.
 function(add_cpp_object obj src)
-    # Constructors in the raw source-only map compile emit CObject's table.
+    # Constructors in the raw source-only map compile emit these base tables.
     # That compiler input must be fresh before the owner's verified import.
     set(native_data_dependencies "")
-    if(src STREQUAL "ps2/src/object.cpp")
+    if(src STREQUAL "ps2/src/object.cpp" OR src STREQUAL "ps2/src/mapparts.cpp")
         list(APPEND native_data_dependencies
+             ${CMAKE_SOURCE_DIR}/${SCRIPTS_DIR}/build/native_vtables.py
              ${CMAKE_SOURCE_DIR}/${BUILD_DIR}/objdiff/base/map.cpp.o)
     endif()
     add_custom_command(
@@ -82,7 +83,6 @@ function(add_cpp_object obj src)
                 ${CMAKE_SOURCE_DIR}/${SPLIT_STAMP}
                 ${CMAKE_SOURCE_DIR}/${SCRIPTS_DIR}/build/mwccgap.sh
                 ${CMAKE_SOURCE_DIR}/${SCRIPTS_DIR}/build/postprocess_object.py
-                ${CMAKE_SOURCE_DIR}/${SCRIPTS_DIR}/build/native_vtables.py
                 ${CMAKE_SOURCE_DIR}/${SCRIPTS_DIR}/build/fixup_sections.sh
                 ${MWCCGAP_SOURCES}
                 ${SATANSFIDDLE_DEPENDENCIES}
