@@ -1054,13 +1054,13 @@ int _SET_DAMAGE_SCORE(RS_STACKDATA *stack, int argc) {
 
     if (id != -1) {
         id -= 24;
-        monster = (CActionChara *) ActiveMonster->active[id];
+        monster = ActiveMonster->active[id];
 
         if (monster == NULL) {
             return 0;
         }
     } else {
-        monster = (CActionChara *) nowMonster;
+        monster = nowMonster;
     }
 
     value = GetStackInt(stack++);
@@ -2034,8 +2034,7 @@ int _LINK_MAP_TO_OBJECT(RS_STACKDATA *stack, int argc) {
         return 0;
     }
 
-    nowMonster->link_parts =
-        (CMapParts *) DngMainMap->GetPlaceParts(GetStackString(stack));
+    nowMonster->link_parts = DngMainMap->GetPlaceParts(GetStackString(stack));
 
     if (nowMonster->link_parts == NULL) {
         return 0;
@@ -2061,7 +2060,7 @@ int _LINK_OBJECT_TO_PIECE(RS_STACKDATA *stack, int argc) {
 
     char *part_name = GetStackString(stack++);
     char *piece_name = GetStackString(stack);
-    nowMonster->link_parts = (CMapParts *) DngMainMap->GetPlaceParts(part_name);
+    nowMonster->link_parts = DngMainMap->GetPlaceParts(part_name);
 
     if (nowMonster->link_parts == NULL) {
         return 0;
@@ -2131,7 +2130,7 @@ int _LOAD_RESERV_IMG(RS_STACKDATA *stack, int argc) {
         return 0;
     }
 
-    void *image = (void *) memory->Alloc(file_size / 16 + 1);
+    void *image = memory->Alloc(file_size / 16 + 1);
 
     if (image == NULL) {
         return 0;
@@ -2800,7 +2799,7 @@ int _GET_ACTIVE_MONS_POS(RS_STACKDATA *stack, int argc) {
 
     int id = GetStackInt(stack++);
     id -= 24;
-    CActionChara *monster = (CActionChara *) ActiveMonster->active[id];
+    CActionChara *monster = ActiveMonster->active[id];
 
     if (monster == NULL) {
         return 0;
@@ -2833,7 +2832,7 @@ int _GET_ACTIVE_MONS_ROT(RS_STACKDATA *stack, int argc) {
 
     int id = GetStackInt(stack++);
     id -= 24;
-    CActionChara *monster = (CActionChara *) ActiveMonster->active[id];
+    CActionChara *monster = ActiveMonster->active[id];
 
     if (monster == NULL) {
         return 0;
@@ -2861,7 +2860,7 @@ int _GET_ACTIVE_MONS_DIST(RS_STACKDATA *stack, int argc) {
 
     int id = GetStackInt(stack++);
     id -= 24;
-    CActionChara *other = (CActionChara *) ActiveMonster->active[id];
+    CActionChara *other = ActiveMonster->active[id];
 
     if (other == NULL) {
         return 0;
@@ -2887,7 +2886,7 @@ int _GET_ACTIVE_MONS_ANGLE(RS_STACKDATA *stack, int argc) {
 
     int id = GetStackInt(stack++);
     id -= 24;
-    CActionChara *monster = (CActionChara *) ActiveMonster->active[id];
+    CActionChara *monster = ActiveMonster->active[id];
 
     if (monster == NULL) {
         return 0;
@@ -3114,7 +3113,7 @@ int _GET_ENTRY_OBJ_POS(RS_STACKDATA *stack, int argc) {
     if (id != -1) {
         id -= 24;
         CActiveMonster **slots = ActiveMonster->active;
-        monster = (CCharacter2 *) ActiveMonster->active[id];
+        monster = ActiveMonster->active[id];
 
         if (monster == NULL) {
             return 0;
@@ -4592,7 +4591,7 @@ int _SET_MAPOBJ_SHOW(RS_STACKDATA *stack, int argument_count) {
     show = GetStackInt(stack);
 
     for (i = 0; i < map_count; i++) {
-        parts = (CMapParts *) maps[i]->GetPlaceParts(parts_name);
+        parts = maps[i]->GetPlaceParts(parts_name);
 
         if (parts != NULL) {
             break;
