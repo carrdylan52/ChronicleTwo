@@ -739,7 +739,7 @@ int pcpMDS_END(SPI_STACK *stack, int argc) {
 
     switch (pcpNowMdsInfo->type) {
         case 0:
-            frame = (mgCFrame *) mgLoadMDSFile((MDS_HEADER *) file, pcpStack, NULL, NULL);
+            frame = mgLoadMDSFile((MDS_HEADER *) file, pcpStack, NULL, NULL);
             break;
 
         case 3:
