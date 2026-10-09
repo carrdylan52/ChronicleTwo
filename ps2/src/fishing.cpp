@@ -2890,7 +2890,7 @@ void UkiWaitLoop(CScene *scene, CPadControl *pad) {
     }
 
     GetHariPos(hari_pos, hari_prev);
-    ((mgCObject *) chara)->GetPosition(chara_pos);
+    chara->GetPosition(chara_pos);
 
     if (!(hari_pos[1] <= GetWaterLevel() - 3.0f)) {
         if (GetFishingMode() == kFishingModeFloat) {
@@ -2910,7 +2910,7 @@ void UkiWaitLoop(CScene *scene, CPadControl *pad) {
     caught = 0;
     GetHariPos(hari_now, hari_now_prev);
     GetUkiPos(uki_pos, uki_prev);
-    ((mgCObject *) chara)->GetPosition(chara_now);
+    chara->GetPosition(chara_now);
     dist = mgDistVectorXZ(chara_now, hari_now);
 
     if (dist < 160.0f) {
@@ -3152,8 +3152,8 @@ int InitBattle(CScene *scene) {
         return 0;
     }
 
-    ((mgCObject *) chara)->GetPosition(chara_pos);
-    ((mgCObject *) chara)->GetRotation(chara_rot);
+    chara->GetPosition(chara_pos);
+    chara->GetRotation(chara_rot);
     param = ((CCameraControl *) camera)->GetActiveParam();
     param->max_dist = 80.0f;
     param->min_dist = 80.0f;
@@ -3398,8 +3398,8 @@ float GetFishDist(CScene *scene) {
     float        fish_velo[4];
     float        matrix[4][4];
     CCharacter2 *chara = scene->GetCharacter(scene->player_chara);
-    ((mgCObject *) chara)->GetPosition(chara_pos);
-    ((mgCObject *) chara)->GetRotation(chara_rot);
+    chara->GetPosition(chara_pos);
+    chara->GetRotation(chara_rot);
     mgUnitMatrix(matrix);
     sceVu0RotMatrixY(matrix, matrix, chara_rot[1]);
     GetFishPosVelo(fish_pos, fish_velo);
@@ -3498,9 +3498,9 @@ void FalseLoop(CScene *scene, CPadControl *pad) {
             return;
     }
 
-    ((mgCObject *) chara)->GetPosition(chara_pos);
-    ((mgCObject *) chara)->GetPosition(ref_pos);
-    ((mgCObject *) chara)->GetRotation(chara_rot);
+    chara->GetPosition(chara_pos);
+    chara->GetPosition(ref_pos);
+    chara->GetRotation(chara_rot);
     param = ((CCameraControl *) camera)->GetActiveParam();
     param->max_dist = 80.0f;
     param->min_dist = 80.0f;
@@ -3682,9 +3682,9 @@ void SuccessLoop(CScene *scene, CPadControl *pad) {
     }
 
     message = scene->GetMessage(1);
-    ((mgCObject *) chara)->GetPosition(chara_pos);
-    ((mgCObject *) chara)->GetPosition(ref_pos);
-    ((mgCObject *) chara)->GetRotation(chara_rot);
+    chara->GetPosition(chara_pos);
+    chara->GetPosition(ref_pos);
+    chara->GetRotation(chara_rot);
     param = ((CCameraControl *) camera)->GetActiveParam();
     param->max_dist = 80.0f;
     param->min_dist = 80.0f;
