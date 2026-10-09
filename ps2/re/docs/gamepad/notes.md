@@ -14,7 +14,7 @@ access fits `PAD_STATUS` directly, so `PAD_DATA` is a plain struct.
   `ThreadStack` (0x400), `pad_dma_buf`, `pad_dma_buf2` (0x400 each, scePadPortOpen DMA
   buffers, need 64-byte alignment), `old_vsync` (file-scope static read and written by
   GamePadStep; retail names it `old_vsync` with no numbered suffix, and the symbol list's
-  `old_vsync__2` only tells it apart from snd_mngr's own `old_vsync`), `rpad$256`/`init$257`
+  `old_vsync__2` only tells it apart from dataread's own `old_vsync`), `rpad$256`/`init$257`
   (function-local `static u16 rpad = 0` in pad_button_read), `cnt$374`/`init$375`
   (function-local `static int cnt = 0` in UpDate, toggled 0/1 each frame, never read
   elsewhere).
