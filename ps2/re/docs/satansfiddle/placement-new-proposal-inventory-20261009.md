@@ -49,3 +49,18 @@ Root's independent receipt is
 status; the first spelling-lookup receipt remains separate. The inventory is
 a frozen snapshot, so later private acceptance is reported in owning notes
 rather than rewriting its original proposals or hashes.
+
+The frozen inventory JSON's MDT-assignment dependency label omits the const
+source marker: its `__as__12mgCVisualMDTFR12mgCVisualMDT` labels refer to actual
+`__as__12mgCVisualMDTFRC12mgCVisualMDT`, as recorded in the native retail-symbol
+facts and linked proofs. This provenance typo changes no selector dictionary,
+source/header proposal, symbol-size correction or acceptance result; the frozen
+JSON and its manifest remain preserved unchanged.
+
+The independent seven-part report audit at committed snapshot `2dee539d`
+finds this as the sole material provenance correction. Root verifies all
+42 frozen regular files, with no size/hash mismatches, against manifest
+SHA-256 `0bedb5cb91759175e4c0916febe7484cf8e22dfed4099d1ab29e1fc86b3b4e72`.
+The scope table and original evidence are in
+`.private/pntc/final-report-audit/SUMMARY.md`; the root receipt is
+`.private/pntc/receipts/final-report-audit-root-verification.json`.
