@@ -2538,13 +2538,5 @@ void CEditMap::LoadEditInfo(char *script, int size, mgCMemory *stack) {
 // Initialised data (.data)
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editmap", at_1837__2__DATA);
 
-// Constants (.rodata)
-
-// Virtual tables (.vtables)
-
-// Small initialised data (.sdata)
-
-// Small uninitialised data (.sbss)
-
 // Uninitialised data (.bss)
 INCLUDE_BSS(at_426, 0x10);

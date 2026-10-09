@@ -5811,8 +5811,6 @@ void SetEffectScriptFunc() {
     }
 }
 
-// Initialised data (.data)
-
 // Constants (.rodata)
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/effscript", at_1099__2__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/effscript", at_1100__DATA);
@@ -5833,5 +5831,3 @@ INCLUDE_RODATA("ps2/asm/pal/nonmatchings/effscript", at_2025__3__DATA);
 CScene *now_scene;
 
 CEffectScriptMan *EffScriptMan;
-
-// Uninitialised data (.bss)

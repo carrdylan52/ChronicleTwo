@@ -1406,10 +1406,6 @@ INCLUDE_RODATA("ps2/asm/pal/nonmatchings/pbuggy", at_962__4__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/pbuggy", at_963__3__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/pbuggy", at_964__3__DATA);
 
-// Small initialised data (.sdata)
-
-// Small uninitialised data (.sbss)
-
 // Uninitialised data (.bss)
 mgCMemory EffectBuff;
 sgCPlayVoice PolVoice __attribute__((aligned(16)));

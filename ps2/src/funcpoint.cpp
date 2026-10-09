@@ -1305,7 +1305,3 @@ float GetLightAnimeWeight(CFuncPoint *point, int frame) {
     return weight;
 }
 #pragma divbyzerocheck reset
-
-// Constants (.rodata)
-
-// Virtual tables (.vtables)

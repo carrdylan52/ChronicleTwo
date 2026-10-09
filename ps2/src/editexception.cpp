@@ -780,11 +780,5 @@ void DrawGeyserEffect(CScene *scene) {
     }
 }
 
-// Initialised data (.data)
-
 // Constants (.rodata)
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editexception", at_1143__2__DATA);
-
-// Small uninitialised data (.sbss)
-
-// Uninitialised data (.bss)

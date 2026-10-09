@@ -1185,7 +1185,3 @@ void mgRect<int>::Set(int new_left, int new_top, int new_right, int new_bottom) 
 
 // Virtual tables (.vtables)
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mg_tanime", __vt__24CList_15mgCTexAnimeData___DATA);
-
-// Small uninitialised data (.sbss)
-
-// Uninitialised data (.bss)

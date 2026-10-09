@@ -1324,11 +1324,5 @@ int CDAColPipe::CheckHit(float *point) {
     return 1;
 }
 
-// Initialised data (.data)
-
 // Constants (.rodata)
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dynamicanime", at_1074__DATA);
-
-// Virtual tables (.vtables)
-
-// Small uninitialised data (.sbss)

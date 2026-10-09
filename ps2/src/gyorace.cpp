@@ -1500,8 +1500,6 @@ int Jikkyou(SubGameInfo *info) {
     return 0;
 }
 
-// Static initialiser (.init)
-
 // Initialised data (.data)
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/gyorace", at_1481__4__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/gyorace", at_1524__2__DATA);
@@ -1518,10 +1516,6 @@ INCLUDE_RODATA("ps2/asm/pal/nonmatchings/gyorace", at_1700__2__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/gyorace", at_1701__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/gyorace", at_1702__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/gyorace", at_1703__DATA);
-
-// Static initialiser table (.ctor)
-
-// Small initialised data (.sdata)
 
 // Small uninitialised data (.sbss)
 #ifndef NONMATCHING

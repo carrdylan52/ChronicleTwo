@@ -1827,14 +1827,6 @@ int mgCObject::Draw() {
     return 0;
 }
 
-// Static initialiser (.init)
-
-// Initialised data (.data)
-
-// Static initialiser table (.ctor)
-
-// Virtual tables (.vtables)
-
 // Uninitialised data (.bss)
 INCLUDE_BSS(at_1118, 0x10);
 INCLUDE_BSS(at_1119, 0x10);

@@ -958,8 +958,6 @@ void CCharacter2::SetPosition(float x, float y, float z) {
     SetPosition(new_position);
 }
 
-// Initialised data (.data)
-
 // Virtual tables (.vtables)
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mapparts", __vt__17CList_9CObjAnime___DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mapparts", __vt__9CMapParts__DATA);

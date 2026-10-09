@@ -849,7 +849,3 @@ int mgCVisualMotionMDT::Iam() {
 // Initialised data (.data)
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/visualmotion", prog_vif_532__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/visualmotion", progf_vif_533__DATA);
-
-// Constants (.rodata)
-
-// Virtual tables (.vtables)

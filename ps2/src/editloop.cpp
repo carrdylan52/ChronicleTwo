@@ -3040,8 +3040,6 @@ void LoadMap() {
     LoadComVillaager();
 }
 
-// Static initialiser (.init)
-
 // Initialised data (.data)
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editloop", at_1045__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editloop", at_1053__DATA);
@@ -3087,12 +3085,6 @@ INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editloop", at_2132__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editloop", at_2133__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editloop", at_2134__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editloop", at_2136__DATA);
-
-// Static initialiser table (.ctor)
-
-// Small initialised data (.sdata)
-
-// Small uninitialised data (.sbss)
 
 // Uninitialised data (.bss)
 CWaveTable    WaveTable;

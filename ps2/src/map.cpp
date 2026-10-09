@@ -2153,14 +2153,6 @@ int CObject::Draw() { return 0; }
 
 int CObject::DrawDirect() { return 0; }
 
-// Constants (.rodata)
-
 // Virtual tables (.vtables)
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/map", __vt__18CList_P9CMapParts___DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/map", __vt__23CList_14PartsGroupData___DATA);
-
-// Small initialised data (.sdata)
-
-// Small uninitialised data (.sbss)
-
-// Uninitialised data (.bss)

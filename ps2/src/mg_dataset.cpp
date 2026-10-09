@@ -1387,7 +1387,3 @@ INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mg_dataset", at_550__DATA);
 
 // Virtual tables (.vtables)
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mg_dataset", __vt__15mgCShadowFixMDT__DATA);
-
-// Small uninitialised data (.sbss)
-
-// Uninitialised data (.bss)

@@ -18099,16 +18099,8 @@ void SetEventFunc(CRunScript *script) {
     script->ext_func(ext_func, event_func_slots);
 }
 
-// Static initialiser (.init)
-
 // Initialised data (.data)
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/event_func", vv_3333__DATA);
-
-// Constants (.rodata)
-
-// Static initialiser table (.ctor)
-
-// Small uninitialised data (.sbss)
 
 // Uninitialised data (.bss)
 ED_EVENT_INFO EdEventInfo;

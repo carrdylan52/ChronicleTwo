@@ -3709,5 +3709,3 @@ void CCharacter2::Copy(CCharacter2 &dest, mgCMemory *memory) {
         }
     }
 }
-
-// Local-static storage (.sbss)

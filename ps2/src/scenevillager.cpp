@@ -1617,9 +1617,3 @@ void CScene::DrawGameObject(int now_map_no) {
         entry++;
     }
 }
-
-// Initialised data (.data)
-
-// Constants (.rodata)
-
-// Uninitialised data (.bss)

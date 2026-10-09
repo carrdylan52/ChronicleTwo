@@ -1925,8 +1925,6 @@ CEditData::CEditData() {
     Initialize();
 }
 
-// Constants (.rodata)
-
 // Small initialised data (.sdata)
 int MainThreadPriority = 1;
 

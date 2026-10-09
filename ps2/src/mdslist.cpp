@@ -856,11 +856,3 @@ CCharacter2 *CreateChara(u_int *pack, char *config, mgCMemory *memory) {
 #else
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/mdslist", CreateChara__FPUiPcP9mgCMemory);
 #endif
-
-// Initialised data (.data)
-
-// Constants (.rodata)
-
-// Virtual tables (.vtables)
-
-// Small uninitialised data (.sbss)

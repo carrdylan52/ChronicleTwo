@@ -7512,8 +7512,6 @@ void PrimQuad_i_(mgCDrawPrim *prim, mgRect_i_ rect, mgRect_i_ tex_rect) {
     }
 }
 
-// Initialised data (.data)
-
 // Constants (.rodata)
 
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menudraw", at_4933__DATA);
@@ -7521,8 +7519,6 @@ INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menudraw", at_4933__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menudraw", at_4934__DATA);
 
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menudraw", at_4935__DATA);
-
-// Small initialised data (.sdata)
 
 // Small uninitialised data (.sbss)
 int MenuDrawItemInfoNum;

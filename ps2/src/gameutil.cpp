@@ -2526,9 +2526,3 @@ s32 CalcIntersectionPoint2PAnd2P(float ax0, float ay0, float ax1, float ay1, flo
 
     return CheckPosInOutFor2P(bx0, by0, bx1, by1, *out_x, *out_y) != 0;
 }
-
-// Constants (.rodata)
-
-// Small uninitialised data (.sbss)
-
-// Uninitialised data (.bss)

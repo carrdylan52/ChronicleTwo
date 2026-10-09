@@ -776,14 +776,6 @@ int EditPlaceAnimeEndCheck() {
 
 CStarEffect::CStarEffect() {}
 
-// Initialised data (.data)
-
-// Constants (.rodata)
-
-// Virtual tables (.vtables)
-
-// Small uninitialised data (.sbss)
-
 // Uninitialised data (.bss)
 CStarEffect _StarEffect[star_effect_count];
 mgCMemory   CurPartsBuff;
