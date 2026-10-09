@@ -112,8 +112,8 @@ enum SAVE_BIT_FLAG {
     SAVE_FLAG_FISHING_OPEN         = 0xDC, /**< Enables the fishing row of the tree map's floor information. */
     SAVE_FLAG_ITEM_BOARD_EXPANDED  = 254,
     SAVE_FLAG_SPHEDA_UNLOCKED      = 0x13D, /**< Enables floor spheda challenges and unrestricted club commands. */
-    SAVE_FLAG_TOURNAMENT_STARTED   = 0x158,
-    SAVE_FLAG_TOURNAMENT_CYCLE     = 0x1A8,
+    SAVE_FLAG_FISHING_CONTEST_UNLOCKED = 0x158, /**< Enables Fishing Contest tournaments. */
+    SAVE_FLAG_FINNY_FRENZY_UNLOCKED = 0x1A8, /**< Enables Finny Frenzy tournaments and the fish-race bonus. */
     SAVE_FLAG_EDIT_BLOCKED         = 0x208,
     SAVE_FLAG_COSTUME_UNLOCK       = 0x31F,
 };

@@ -1016,7 +1016,7 @@ int CMemoryCardManager::SaveToMc(int file_no) {
                 save_buffer->incomplete = 1;
                 save_buffer->omake_flag = 0;
 
-                if (save->GetBitFlag(0x1A8)) {
+                if (save->GetBitFlag(SAVE_FLAG_FINNY_FRENZY_UNLOCKED)) {
                     save_buffer->omake_flag |= 1;
                 }
 
@@ -1313,7 +1313,7 @@ int CMemoryCardManager::LoadFromMc(int file_no) {
                     SAVE_TOUR_INFO *tour = &save->tour;
 
                     if (tour != NULL) {
-                        if (tour->base_day <= 0 && save->GetBitFlag(0x158)) {
+                        if (tour->base_day <= 0 && save->GetBitFlag(SAVE_FLAG_FISHING_CONTEST_UNLOCKED)) {
                             tour->base_day = 7;
                         }
                     }

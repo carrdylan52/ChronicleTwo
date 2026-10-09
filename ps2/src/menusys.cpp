@@ -4283,10 +4283,10 @@ int GetItemCommandMsg(CGameDataUsed *item, int *cmds, u32 *colors, short *values
         item_166 = 1;
     }
 
-    int flag_1a8 = 0;
+    int finny_frenzy_unlocked = 0;
 
-    if (CheckBitFlagMenu(0x1A8)) {
-        flag_1a8 = 1;
+    if (CheckBitFlagMenu(SAVE_FLAG_FINNY_FRENZY_UNLOCKED)) {
+        finny_frenzy_unlocked = 1;
     }
 
     int trush_ok = 1;
@@ -4612,7 +4612,7 @@ int GetItemCommandMsg(CGameDataUsed *item, int *cmds, u32 *colors, short *values
             }
         }
 
-        if (cmds[i] == 0x13B5 && !flag_1a8) {
+        if (cmds[i] == 0x13B5 && !finny_frenzy_unlocked) {
             local_sort1(i, &num, cmds);
             continue;
         }

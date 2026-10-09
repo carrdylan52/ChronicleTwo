@@ -2359,8 +2359,8 @@ int MenuInternSelectKey(void) {
             }
             if (GamePad__2.Down(PAD_TRIANGLE) != 0) {
                 MenuActiveSaveData->SetBitFlag(0x36, 1);
-                MenuActiveSaveData->SetBitFlag(SAVE_FLAG_TOURNAMENT_STARTED, 1);
-                MenuActiveSaveData->SetBitFlag(SAVE_FLAG_TOURNAMENT_CYCLE, 1);
+                MenuActiveSaveData->SetBitFlag(SAVE_FLAG_FISHING_CONTEST_UNLOCKED, 1);
+                MenuActiveSaveData->SetBitFlag(SAVE_FLAG_FINNY_FRENZY_UNLOCKED, 1);
                 MenuActiveSaveData->ForceBootTour(MenuActiveSaveData->day, 1);
             }
             GamePad__2.Down(PAD_SQUARE);
