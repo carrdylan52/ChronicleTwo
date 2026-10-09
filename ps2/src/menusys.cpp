@@ -185,17 +185,11 @@ extern CDC2Mes              *MenuDCMsg[9];
 extern CGameDataUsed         SpectolTransBefore;
 extern CGameDataUsed         SpectolInfoStay;
 extern char                  at_1493__2[];
-extern s16                   MenuWeaponEnvSetListNo;
 extern CMenuItemInfo         class_menu_item_info;
 void                         MenuWeaponStatusInfoFormSet(CGameDataUsed *item, CDataWeapon *data);
-extern float                 SpectolFramePosValue;
-extern signed char           tbl_4094[2];
-extern signed char           SameviewmodeTable_8406[4];
-extern signed char           menuitem_initmenumode[4];
 extern mgCMemory             MainCharaReadStack;
 extern char                  at_3924[];
 extern CGamePad              GamePad__2;
-extern char                 *OverFlowFormName;
 extern char                  at_4954[];
 extern char                  at_4672[];
 extern mgCMemory             MenuItemMemory;
@@ -220,8 +214,6 @@ void      MenuItemCharaViewCheck(CHARA_DATA *chara, int chara_no, int flag);
 void      MenuPosFormValueSetCharaRobo(ROBO_DATA *robo, int flag);
 void      MenuPosFormValueSetMonster(MOS_CHANGE_PARAM *monster, CHARA_DATA *chara);
 int       CheckFishCondition();
-extern s8 menu_camera_reference_id;
-extern s8 menu_camera_reference_no;
 
 
 /**
@@ -919,6 +911,13 @@ static KeyPairTable at_2328 = {{{MENU_SELECT_KEY_UP, MENU_SELECT_KEY_DOWN}, {MEN
 
 /**
  *
+ * Held-item cursor, count, icon and shadow parts.
+ *
+ */
+static char *n_2667[4] = {"cursor0", "item0num", "item0", "item0sdw"};
+
+/**
+ *
  * Paired item-use command offsets for each target character.
  *
  */
@@ -949,6 +948,13 @@ static int MenuCheckKey[4] = {MENU_SELECT_KEY_UP, MENU_SELECT_KEY_DOWN, MENU_SEL
 
 /**
  *
+ * Preview-camera attachment names for character equipment.
+ *
+ */
+static char *focusnametbl[21] = {"ef00", "gun_hand", "hat", "R_foot", "sword_hand", "wr", "ac", "R_foot", "", "", "", "", "", "", "", "", "", "", "", "", ""};
+
+/**
+ *
  * Cursor limits and edge transitions of each item-menu layout.
  *
  */
@@ -969,6 +975,13 @@ static MENU_INPUTKEY_ARG item_menu_argtbl[12] = {
 
 /**
  *
+ * Item-use status scripts for each character preview.
+ *
+ */
+static char *exename_4332[4] = {NULL, "\x8E\xF4\x82\xA2", "\x92\xE2\x8E\x7E", "\x90\xCE\x89\xBB"};
+
+/**
+ *
  * Forms of the item-menu preview pages.
  *
  */
@@ -976,10 +989,24 @@ static char *ItemMenuFormNameTbl[6] = {"form_view00", "form_view01", "form_view1
 
 /**
  *
+ * Part names positioning overflow items.
+ *
+ */
+static char *local_over_flow_baseposname[3] = {"item0", "item1", "item2"};
+
+/**
+ *
  * Forms displaying the two characters and the ridepod during item movement.
  *
  */
 static char *tbl_4981[3] = {"form_view00", "form_view01", "form_view2"};
+
+/**
+ *
+ * Part-name formats for item movement slots.
+ *
+ */
+static char *plist_4982[3] = {"item%d", "wep%d", "esa0"};
 
 /**
  *
@@ -1028,41 +1055,6 @@ static char dbox_path_6083[15] = "item/d_box.chr";
  *
  */
 static u32 table_6164[7] = {CHARA_STATUS_POISON, CHARA_STATUS_UNK_2, CHARA_STATUS_UNK_4, CHARA_STATUS_UNK_8, CHARA_STATUS_POWER, CHARA_STATUS_UNK_20, CHARA_STATUS_UNK_40};
-
-/**
- *
- * Held-item cursor, count, icon and shadow parts.
- *
- */
-static char *n_2667[4] = {"cursor0", "item0num", "item0", "item0sdw"};
-
-/**
- *
- * Preview-camera attachment names for character equipment.
- *
- */
-static char *focusnametbl[21] = {"ef00", "gun_hand", "hat", "R_foot", "sword_hand", "wr", "ac", "R_foot", "", "", "", "", "", "", "", "", "", "", "", "", ""};
-
-/**
- *
- * Item-use status scripts for each character preview.
- *
- */
-static char *exename_4332[4] = {NULL, "\x8E\xF4\x82\xA2", "\x92\xE2\x8E\x7E", "\x90\xCE\x89\xBB"};
-
-/**
- *
- * Part names positioning overflow items.
- *
- */
-static char *local_over_flow_baseposname[3] = {"item0", "item1", "item2"};
-
-/**
- *
- * Part-name formats for item movement slots.
- *
- */
-static char *plist_4982[3] = {"item%d", "wep%d", "esa0"};
 
 /**
  *
@@ -1250,6 +1242,153 @@ static s16 MenuItemBoardTotalNum = 144;
  *
  */
 static s16 MenuItemBoardTotalLine = 90;
+
+/**
+ *
+ * Weapon-list entry used by the preview environment.
+ *
+ */
+static s16 MenuWeaponEnvSetListNo = -1;
+
+/**
+ *
+ * Message pointer horizontal position for each equipment cursor.
+ *
+ */
+static s8 wakutbl_1411[2] = {16, 30};
+
+/**
+ *
+ * Message box horizontal offset for each equipment cursor.
+ *
+ */
+static s8 tartbl_1412[2] = {16, 0};
+
+/**
+ *
+ * Inventory slot of the item being spectrumised.
+ *
+ */
+int trans_spectol_pos = -1;
+
+/**
+ *
+ * Previous inventory slot used by spectrumisation.
+ *
+ */
+static s16 trans_spectol_posold = -1;
+
+/**
+ *
+ * Alpha of the spectrumisation item icon.
+ *
+ */
+static int trans_spectol_rgb = 128;
+
+/**
+ *
+ * Position oscillation amplitude of the spectrumisation frame.
+ *
+ */
+static float SpectolFramePosValue = 1.39999998f;
+
+/**
+ *
+ * Character attachment category selected by the preview camera.
+ *
+ */
+static s8 menu_camera_reference_id = -1;
+
+/**
+ *
+ * Equipment attachment selected by the preview camera.
+ *
+ */
+static s8 menu_camera_reference_no = -1;
+
+/**
+ *
+ * Ridepod equipment slots eligible for spectrum fusion.
+ *
+ */
+static s8 tbl_4094[2] = {2, 0};
+
+/**
+ *
+ * Initial preview page for each player-character selection.
+ *
+ */
+static s8 menuitem_initviewtbl[4] = {0, 1, 3, 4};
+
+/**
+ *
+ * Initial cursor layout for each player-character selection.
+ *
+ */
+static s8 menuitem_initmenumode[4] = {3, 3, 6, 8};
+
+/**
+ *
+ * Form displaying inventory overflow items.
+ *
+ */
+static char *OverFlowFormName = "overitem";
+
+/**
+ *
+ * View-page number associated with each preview form.
+ *
+ */
+static u8 itemmenu_calcmode_tbl_5410[6] = {0, 1, 2, 3, 4, 5};
+
+/**
+ *
+ * Non-zero when debug model adjustments are enabled.
+ *
+ */
+static s8 MenuDebugModel_AdjustFlag = 1;
+
+/**
+ *
+ * Vertical texture coordinates of the build-up board tiles.
+ *
+ */
+static u8 backboard_table_y_7626[3] = {150, 178, 206};
+
+/**
+ *
+ * Widths of the build-up board tiles.
+ *
+ */
+static s8 backboard_table_w_7627[5] = {26, 28, 34, 28, 26};
+
+/**
+ *
+ * Horizontal repeat count of each build-up board tile column.
+ *
+ */
+static s8 backboard_x_repeat_drawnum_7628[5] = {1, 7, 1, 7, 1};
+
+/**
+ *
+ * Vertical repeat count of each build-up board tile row.
+ *
+ */
+static s8 backboard_y_repeat_drawnum_7629[3] = {1, 5, 1};
+
+/**
+ *
+ * Preview-form animation counter for each view page.
+ *
+ */
+static s8 cnttbl_8130[6] = {-10, -10, -10, -7, -7, -7};
+
+/**
+ *
+ * Preview page associated with each cursor character command.
+ *
+ */
+static s8 SameviewmodeTable_8406[4] = {0, 1, 3, 4};
 
 // Code (.text)
 /**
@@ -1764,8 +1903,6 @@ int CBaseMenuClass::MenuItemCommandSelect(int select_key, int push_button) {
     }
     return ret;
 }
-extern s8 wakutbl_1411[2];
-extern s8 tartbl_1412[2];
 
 void CBaseMenuClass::SetItemCmdMsgPos(int *item_pos) {
     int pos[2] = {item_pos[0] + 4, item_pos[1] + 0x2A};
@@ -2135,7 +2272,6 @@ int CheckEquipFishRod(CGameDataUsed *item) {
     return result;
 }
 
-extern int trans_spectol_rgb;
 void       TransSpectolDataSave(CGameDataUsed *item, int count);
 
 int CBaseMenuClass::IsSpectolTrans(int select_key, int push_button) {
@@ -7207,7 +7343,6 @@ void CMenuItemInfo::MenuModeMalloc(mgCMemory *stack) {
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/menusys", MenuModeMalloc__13CMenuItemInfoFP9mgCMemory);
 #endif
 
-extern u8   itemmenu_calcmode_tbl_5410[6];
 void CMenuItemInfo::CalcTex() {
     int slot;
     Func_MenuItemBrdPosStep(MenuItem_ItemBoardTopLine);
@@ -7671,7 +7806,6 @@ void CMenuItemInfo::CalcCursorPosition() {
     }
 }
 
-extern s16 trans_spectol_posold;
 
 void CBaseMenuClass::EffectDrawCheck(CMenuPosDataForm *form) {
     MENUFORMPARTS_TYPE *part = &form->parts[trans_spectol_pos];
@@ -7734,7 +7868,6 @@ void CBaseMenuClass::EffectDrawCheck(CMenuPosDataForm *form) {
     }
 }
 
-extern s8   menuitem_initviewtbl[4];
 
 int MenuItemInit(mgCMemory *stack, int *tex_block, int mode) {
     FxScriptManPauseFlag = 0;
@@ -7882,7 +8015,6 @@ int MenuItemInit(mgCMemory *stack, int *tex_block, int mode) {
 }
 
 extern mgCMemory     MenuDebugStack;
-extern s8            MenuDebugModel_AdjustFlag;
 extern u64           at_6133;
 extern u64           at_6176;
 extern u64           at_6220;
@@ -10219,10 +10351,6 @@ void BuildUpWeaponNameBoardDraw(mgCDrawPrim *prim, float x, float y, int width) 
     PrimQuad(prim, x + width - 8.0f, y, right_rect);
 }
 
-extern u8    backboard_table_y_7626[3];
-extern s8    backboard_table_w_7627[5];
-extern s8    backboard_x_repeat_drawnum_7628[5];
-extern s8    backboard_y_repeat_drawnum_7629[3];
 
 void MenuWeaponBuildUpDraw(int &tex_block) {
     if (BuildUpWeaponInfo.mode == 0) {
@@ -10755,7 +10883,6 @@ void CMenuItemInfo::WeaponBuildCheck(CActionChara *chara, int chara_no, int tex_
     SetBuildUpInfoChara((CCharacter2 *) build_chara, ActiveMenuWeaponCharaRange);
 }
 
-extern s8    cnttbl_8130[6];
 
 int CMenuItemInfo::ModelReadEndCheck() {
     int loaded = MenuLoadFileCheck(MenuCharaBuild2);
@@ -11815,8 +11942,6 @@ int MenuItemKey() {
 }
 
 int       CheckFishCondition();
-extern s8 menu_camera_reference_id;
-extern s8 menu_camera_reference_no;
 
 void MenuItemDraw() {
     DrawMenuFillBox(0x80, 0, 0, 0);
@@ -12413,7 +12538,6 @@ INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menusys", at_4955__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menusys", at_4956__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menusys", at_4957__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menusys", at_4958__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menusys", at_4973__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menusys", at_5882__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menusys", at_5883__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menusys", at_6424__DATA);
@@ -12438,27 +12562,6 @@ INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menusys", __vt__13CMenuItemInfo__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menusys", __vt__14CBaseMenuClass__DATA);
 
 // Small initialised data (.sdata)
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menusys", MenuWeaponEnvSetListNo__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menusys", wakutbl_1411__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menusys", tartbl_1412__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menusys", trans_spectol_pos__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menusys", trans_spectol_posold__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menusys", trans_spectol_rgb__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menusys", SpectolFramePosValue__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menusys", menu_camera_reference_id__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menusys", menu_camera_reference_no__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menusys", tbl_4094__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menusys", menuitem_initviewtbl__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menusys", menuitem_initmenumode__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menusys", OverFlowFormName__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menusys", itemmenu_calcmode_tbl_5410__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menusys", MenuDebugModel_AdjustFlag__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menusys", backboard_table_y_7626__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menusys", backboard_table_w_7627__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menusys", backboard_x_repeat_drawnum_7628__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menusys", backboard_y_repeat_drawnum_7629__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menusys", cnttbl_8130__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menusys", SameviewmodeTable_8406__DATA);
 
 // Small uninitialised data (.sbss)
 INCLUDE_BSS(at_6133, 0x8);

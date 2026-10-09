@@ -492,3 +492,18 @@ without asserting unverified gameplay effects; `ABS2` remains unexpanded.
 The enum substitution passes PAL and all 149 object checks. Every unowned
 object hash remains identical, including the rebuilt header consumers.
 Receipts are `weapon-enum-{build,objects,metrics}.log`.
+
+### Initialized state checkpoint
+
+All twenty-one remaining initialized state definitions pass independently: `MenuWeaponEnvSetListNo`, `wakutbl_1411`, `tartbl_1412`, `trans_spectol_pos`, `trans_spectol_posold`, `trans_spectol_rgb`, `SpectolFramePosValue`, `menu_camera_reference_id`, `menu_camera_reference_no`, `tbl_4094`, `menuitem_initviewtbl`, `menuitem_initmenumode`, `OverFlowFormName`, `itemmenu_calcmode_tbl_5410`, `MenuDebugModel_AdjustFlag`, `backboard_table_y_7626`, `backboard_table_w_7627`, `backboard_x_repeat_drawnum_7628`, `backboard_y_repeat_drawnum_7629`, `cnttbl_8130`, `SameviewmodeTable_8406`.
+Their existing mutability and runtime writes are preserved; the public
+`trans_spectol_pos` definition remains header-compatible. The complete
+native `.sdata` section adds 152 bytes of data credit.
+
+The sixty active initialized definitions are arranged by retail address.
+This source-order cleanup also passes PAL and all 149 objects, with the
+guards, profile and unowned object hashes unchanged. Markers are
+**35 RODATA / 6 BSS**, and **3,036 / 10,332 matched_data**.
+Receipts are `table-group-3-ledger.log`,
+`table-<symbol>-{build,objects,metrics}.log`, and
+`data-initialized-order-{build,objects,metrics}.log`.
