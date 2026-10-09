@@ -78,7 +78,7 @@ enum RS_ADDR_MODE {
 // clang-format off
 enum RS_CONST_TYPE {
     RS_CONST_INT   = 1, /**< Integer held in vmcode_t::arg2. */
-    RS_CONST_FLOAT = 2, /**< Float whose bits vmcode_t::arg2 holds. */
+    RS_CONST_FLOAT = 2, /**< Float held in vmcode_t::arg2_float. */
     RS_CONST_STR   = 3, /**< String at the code-section offset vmcode_t::arg2 holds. */
 };
 
