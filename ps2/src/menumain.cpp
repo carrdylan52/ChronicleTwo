@@ -1245,7 +1245,7 @@ int MenuMainExit() {
     int          active_chara;
     int          is_fishing_menu;
     CScene      *scene;
-    CScene      *camera;
+    mgCCamera   *camera;
     float        view_matrix[4][4];
     float        pos[4];
     float        world_matrix[4][4];
@@ -1337,11 +1337,11 @@ int MenuMainExit() {
     EdEventMenuExit();
     mgSetProjection(MenuDrawEnv->old_projection);
     scene = (CScene *) GetMainScene();
-    camera = (CScene *) scene->GetCamera(scene->active_camera);
+    camera = scene->GetCamera(scene->active_camera);
 
     if (camera != NULL) {
-        ((mgCCamera *) camera)->GetCameraMatrix(view_matrix);
-        ((mgCCamera *) camera)->GetPos(pos);
+        camera->GetCameraMatrix(view_matrix);
+        camera->GetPos(pos);
         sceVu0UnitMatrix(identity);
         sceVu0MulMatrix(world_matrix, identity, view_matrix);
         mgSetViewMatrix(world_matrix, pos);
