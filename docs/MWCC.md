@@ -113,12 +113,12 @@ class initializers must be generated naturally by the compiler.
 
 - GPR simplify pushes nodes of degree below 25 in increasing virtual-register
   order, then the lowest cost/degree node; colouring pops into the first free
-  of `v0 v1 a0–a3 t0–t7 t8 t9 s0–s7`, so a later push gets the lower register
+  of `v0 v1 a0–a3 t0–t7 t8 t9 s0–s7`; later pushes get first choice
   ([gyoracesim](../ps2/re/docs/gyoracesim/night-20261008.md)).
-- Numbering, highest first: single-web locals (reverse declaration order),
-  induction and invariant temporaries, extra webs of reused variables, load
-  CSE temporaries, constants. Reusing a loop variable across disjoint loops,
-  or indexing instead of naming a row pointer, numbers a value low
+- Captured [gyoracesim graphs](../ps2/re/docs/gyoracesim/night-20261008.md)
+  place single-web locals (reverse declaration order) above induction and
+  invariant temporaries, then extra webs of reused variables. Direct indexing
+  can make a row address a low-numbered CSE temporary rather than a named local
   ([gyorace](../ps2/re/docs/gyorace/night-20261008.md)).
 - A loop's own index or a variable's first use is coloured before the loop
   optimizer's offsets and a later use after them, wherever the variable is
@@ -142,7 +142,8 @@ class initializers must be generated naturally by the compiler.
   (a store ending a live range beats a zero store, which beats a new constant),
   so constants issue in source order and stores follow them
   ([sound](../ps2/re/docs/sound/night-20261008.md)); splitting a statement or
-  reusing a variable reorders them (gyorace).
+  reusing a variable reorders them
+  ([gyorace](../ps2/re/docs/gyorace/night-20261008.md)).
 - After allocation it orders by critical path, successors unblocked, height,
   then source order (`MsgInit`, dngmenu). An identical schedule can still
   change interference: assignment order in a branch decides what is live at
@@ -150,7 +151,8 @@ class initializers must be generated naturally by the compiler.
 - A target block's first instruction fills only the first delay slot that
   claims it, a jump's included (`b exit; move v0,zero`), so a `switch`
   default's jump can take a shared `return 0` and leave retail's later `nop`
-  (`LRCheck`, menusys). Sparse `case` labels compare in reverse written order.
+  (`LRCheck`, menusys). LRCheck's four sparse labels sharing one body compare
+  in reverse written order.
 - A single-case `switch` and the equivalent `if`, or `x = x < 0.0f ? -x : x`
   and `if (x < 0.0f) x = -x;`, fill delay slots differently
   ([menuchr](../ps2/re/docs/menuchr/night-20261008.md),
@@ -164,17 +166,19 @@ class initializers must be generated naturally by the compiler.
 - `p + i` and `i + p` both put the pointer first in the `addu`
   ([mg_dataset](../ps2/re/docs/mg_dataset/natural-20261008.md)).
 - A same-type local copy propagates unless the source is redefined or `const`
-  differs; a once-assigned local is substituted. A call result used before the
+  differs; a local assigned once and used once is substituted. A call result used before the
   next call stays in `v0`, so a `v0` test beside a spill store needs a separate
   `const` lookup local ([dng_event](../ps2/re/docs/dng_event/night-20261008.md)).
 - `T *const p = array;` keeps a base register; `x = load; x &= mask;` gives
   the AND result the load's register (`mgEndFrame`, mglib).
 - `*write++ = q;` reuses the dead argument register; a separate cursor local
   does not ([mg_drawprim](../ps2/re/docs/mg_drawprim/natural-20261008.md)).
-- `new (p) T` with an inline constructor tests the copied register and
-  `new (p) T[n]` recomputes `n * sizeof(T)`; retail that tests `v0` or keeps
-  the byte count calls `operator new` or `operator new[]`
+- Placement new can test the copied register (`CMapSky`), and array new
+  can recompute `n * sizeof(T)` instead of retaining a precomputed byte count.
+  The cited probes therefore keep their matching explicit `operator new` or
+  `operator new[]` forms
   ([sceneload](../ps2/re/docs/sceneload/natural-20261008.md),
+  [mg_dataset](../ps2/re/docs/mg_dataset/natural-20261008.md),
   [menucommon](../ps2/re/docs/menucommon/natural-20261008.md)).
 - Named locals (block-scoped ones too) take frame slots in declaration order;
   argument temporaries, built right to left, and spills follow. A
