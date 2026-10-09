@@ -706,7 +706,7 @@ int _DATACOM(SPI_STACK *stack, int arg_count) {
 int _MES_SYS(SPI_STACK *stack, int arg_count) {
     u8           converted[0x100];
     int          item_no;
-    int          copy;
+    char        *copy;
     signed char *text;
     CDataCommon *record;
 
@@ -718,12 +718,12 @@ int _MES_SYS(SPI_STACK *stack, int arg_count) {
         if ((LanguageCode >= 2) && (LanguageCode < 6)) {
             memset(converted, 0, 0x100);
             ConvertFontCode((char *) text, (char *) converted);
-            copy = (int) mgCopyString((char *) converted, gamedata_build_stack);
+            copy = mgCopyString((char *) converted, gamedata_build_stack);
         } else {
-            copy = (int) (mgCopyString((char *) text, gamedata_build_stack));
+            copy = mgCopyString((char *) text, gamedata_build_stack);
         }
 
-        record->name = (char *) copy;
+        record->name = copy;
     }
 
     return 1;
