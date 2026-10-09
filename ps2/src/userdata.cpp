@@ -2827,14 +2827,12 @@ void CFishingTournament::ResetRecord() {
     memset(entry, 0, sizeof(entry));
 }
 
-int CFishingTournament::EntryFish(int entrant, int fish, int weight) {
+int CFishingTournament::EntryFish(int item_no, int size, int weight) {
     for (int i = 0; i < 10; i++) {
         if (entry[i].item_no <= 0) {
-
-            short *slot = (short *) ((i << 3) + (int) this);
-            slot[16] = entrant;
-            slot[17] = fish;
-            slot[18] = weight;
+            entry[i].item_no = item_no;
+            entry[i].size = size;
+            entry[i].weight = weight;
             break;
         }
     }
@@ -5046,10 +5044,7 @@ int CBattleCharaInfo::UseActiveItem(CGameDataUsed *item) {
 u32 CBattleCharaInfo::GetSpecialStatus(int slot) {
     if (chara_type == 0) {
         if (slot == 0 || slot == 1) {
-
-            int  offset = ((slot << 3) - slot) << 2;
-            int *entry = (int *) (offset + (int) this);
-            return entry[0x12];
+            return weapon_param[slot].special;
         }
     }
 
@@ -5059,10 +5054,7 @@ u32 CBattleCharaInfo::GetSpecialStatus(int slot) {
 int CBattleCharaInfo::GetPalletNo(int slot) {
     if (chara_type == 0) {
         if (slot == 0 || slot == 1) {
-
-            int    offset = ((slot << 3) - slot) << 2;
-            short *entry = (short *) (offset + (int) this);
-            return entry[0x26];
+            return weapon_param[slot].pallet_no;
         }
     }
 

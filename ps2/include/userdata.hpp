@@ -1334,7 +1334,7 @@ public:
      * @address 0x19C470
      * @size 0x48
      */
-    int EntryFish(int entrant, int fish, int weight);
+    int EntryFish(int item_no, int size, int weight);
 
     /**
      *
