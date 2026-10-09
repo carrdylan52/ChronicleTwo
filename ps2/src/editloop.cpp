@@ -2411,7 +2411,7 @@ int EditDraw() {
             }
             if (idea_no > 0) {
                 picture->neta_id = idea_no;
-                sndSePlay(GetSystemSndID(), 14, 0);
+                sndSePlay(GetSystemSndID(), SYSTEM_SE_IDEA, 0);
                 printf("invent_no = %d\n", picture->neta_id);
             }
             SetTookPhotoData(picture);
