@@ -693,12 +693,12 @@ int sgLoopGyoRace(SubGameInfo *info) {
                 grRACE_PROGRESS progress;
                 grGetFishProgress(&RaceInfo, fish, race_cnt, &progress);
                 int rank = 1;
-                if ((unsigned char) progress.state != 3) {
+                if (progress.state != 3) {
                     for (int other = 0; other < 6; other++) {
                         if (other != fish) {
                             grRACE_PROGRESS other_progress;
                             grGetFishProgress(&RaceInfo, other, race_cnt, &other_progress);
-                            if ((unsigned char) other_progress.state != 3) {
+                            if (other_progress.state != 3) {
                                 if (progress.pos < other_progress.pos) {
                                     rank++;
                                 }
@@ -720,7 +720,7 @@ int sgLoopGyoRace(SubGameInfo *info) {
                 CCharacter2      *character = scene->GetCharacter(state->chara_no);
                 grRACE_PROGRESS   progress;
                 grGetFishProgress(&RaceInfo, fish, race_cnt, &progress);
-                if ((unsigned char) progress.state == 3) {
+                if (progress.state == 3) {
                     unfinished--;
                 }
                 if (!(progress.pos < 8.0f)) {
@@ -740,10 +740,10 @@ int sgLoopGyoRace(SubGameInfo *info) {
                 GetSaveData();
                 int hero = hero_no;
                 if (fish == hero) {
-                    if ((unsigned char) progress.state != 3) {
+                    if (progress.state != 3) {
                         state->time = 20.0f * race_cnt;
                         state->lap_time[fish_inf[hero].lap] = state->time - 20.0f * state->lap_start;
-                    } else if ((unsigned char) progress.state == 3) {
+                    } else if (progress.state == 3) {
                         state->time = 20.0f * RaceInfo.goal_time[fish];
                         const float *total = &state->time;
                         float time = state->lap_time[0];
@@ -806,7 +806,7 @@ int sgLoopGyoRace(SubGameInfo *info) {
                 sceVu0Normalize(hit_dir, hit_dir);
                 direction.f[0] = hit_dir[0];
                 direction.f[2] = hit_dir[2];
-                if ((unsigned char) progress.state == 2) {
+                if (progress.state == 2) {
                     image->SethitEffect(position, direction.f, 150.0f, 30.0f, 0.4f, -0.05f, 20, 32);
                     image->sprite_size = 1.2f + 0.1f * (10.0f * mgRnd());
                     character->SetMotion((char *) at_1700__2__DATA, 0);
@@ -1232,14 +1232,14 @@ int sgSysDrawGyoRace(SubGameInfo *info) {
         mgRect<int> icon((int) (31.0f + (float) (int) (326.0f * (progress.pos / 16.0f))), (RaceInfo.fish[i].lane * 10) + 28, 0x12, 0xC);
         if ((i == hero_no) && (OmakeFlag == 0)) {
             mgRect<int> hero_icon(0x1EE, 0xC, 0x12, 0xC);
-            if ((u_char) progress.state != GR_RACE_STATE_GOAL) {
+            if (progress.state != GR_RACE_STATE_GOAL) {
                 PrimQuad(wind_tex, icon, hero_icon, 0x80, 0x80, 0x80, 0x80);
             } else {
                 PrimQuad(wind_tex, icon, hero_icon, 0x80, 0x80, 0x80, 0);
             }
         } else {
             mgRect<int> rival_icon(0x1EE, 0, 0x12, 0xC);
-            if ((u_char) progress.state != GR_RACE_STATE_GOAL) {
+            if (progress.state != GR_RACE_STATE_GOAL) {
                 PrimQuad(wind_tex, icon, rival_icon, 0x80, 0x80, 0x80, 0x80);
             } else {
                 PrimQuad(wind_tex, icon, rival_icon, 0x80, 0x80, 0x80, 0);
@@ -1323,7 +1323,7 @@ int sgSysDrawGyoRace(SubGameInfo *info) {
     grRACE_PROGRESS hero_progress;
     scene->GetCharacter(fish_inf[hero_no].chara_no);
     grGetFishProgress(&RaceInfo, hero_no, race_cnt, &hero_progress);
-    if ((u_char) hero_progress.state == GR_RACE_STATE_GOAL) {
+    if (hero_progress.state == GR_RACE_STATE_GOAL) {
         DrawRaceSprite(0x178, 0x1C, 0xC, 0xC, 0xD8, 0x62, 0xC, 0xC, 0x80);
         DrawRaceSprite(0x187, 0x1C, 0xC, 0xC, 0xD8, 0x62, 0xC, 0xC, 0x80);
     } else {
@@ -1395,7 +1395,7 @@ int Jikkyou(SubGameInfo *info) {
             do {
                 grGetFishProgress(&RaceInfo, index, race_cnt, &fish);
 
-                if ((u_char) fish.state == 2) {
+                if (fish.state == 2) {
                     int lane = RaceInfo.fish[index].lane + 1;
                     message = gyo_mes;
                     message->values[0] = lane;

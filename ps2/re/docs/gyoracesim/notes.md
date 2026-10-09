@@ -77,7 +77,7 @@ Jikkyou tests ==2 for push commentary), 0xD battle u8, 0xE pad, 0x10 battle_targ
   v -= 0.01. Initial N(0.02,0.02) clamped 0.
 - 0x54 pos: += v*GetCourseR(); goal at >= 16.0 (state set 3 in the record).
 - 0x58 lane: int 0..5 (CollisionFish buckets by it into 6 lanes).
-- 0x5C state u8 (1 init, 2 push, back to 1), 0x5D battle u8 (1 during push).
+- 0x5C state s8 (1 init, 2 push, back to 1), 0x5D battle u8 (1 during push).
 - 0x60 battle_target, 0x64 battle_hits (incremented on rand_prob win), 0x68 power (out[4]),
   0x6C aggression (out[5]), 0x70 battle_urge (+= aggression*crowd, >1 starts push),
   0x74 battle_time (set 5.0, -1 per step), 0x78 boost (clamped +-1, decays 0.05/step; push winner
@@ -418,3 +418,14 @@ objects, and 6,746 matched / zero fuzzy functions. Every other linked and
 source-only object hash equals the `24d3d21` baseline. Full selector,
 hygiene and validation evidence is in
 [selector-context-20261008.md](selector-context-20261008.md).
+
+## Race state signedness
+
+Every read of `grRACE_PROGRESS::state` in gyorace and gyoracesim is an
+unsigned byte load, so the field is `u8` and its comparisons need no cast.
+`RACE_FISH_PARAM::state` stays `s8`: StepFish copies it into the record
+with a signed load, and its comparisons in LaneBattleStep keep `(u_char)`.
+`RaceProgressCopy::state` also stays `s8`, because grGetFishProgress's
+record copy loads the byte signed. Making all three fields `u8` fails
+grGetFishProgress and StepFish on those loads; retyping only
+`grRACE_PROGRESS::state` passes SCES_511.90 and 149/149 objects.

@@ -176,7 +176,7 @@ int grGetFishProgress(grRACE_INFO *race, int fish, float time, grRACE_PROGRESS *
 
     *(RaceProgressCopy *) out = *(RaceProgressCopy *) &progress[index];
 
-    if ((u_char) out->state == 0) {
+    if (out->state == 0) {
         return 0;
     }
 
