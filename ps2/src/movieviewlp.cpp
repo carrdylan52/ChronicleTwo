@@ -206,9 +206,9 @@ void MovieViewInit(INIT_LOOP_ARG arg) {
     mgSetBackGround(0.0f, 0.0f, 0.0f, 128.0f);
     SetTextureTable(0x64, 0x14, &DataBuffer__2);
     textures = &mgTexManager;
-    textures->EnterIMGFile((u8 *) GetGaijiImgPtr(), 0, NULL, NULL);
+    textures->EnterIMGFile(GetGaijiImgPtr(), 0, NULL, NULL);
     ReLoadFontTexture(0);
-    textures->EnterIMGFile((u8 *) GetFontTex2ImgPtr(), 0, NULL, NULL);
+    textures->EnterIMGFile(GetFontTex2ImgPtr(), 0, NULL, NULL);
     MovieView = new (main_stack->Alloc(0x2396)) CMovie;
     MovieListNum = 0;
     MovieList = new (main_stack->Alloc(0x32)) MOVIE_LIST_ENTRY[64];
