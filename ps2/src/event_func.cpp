@@ -228,14 +228,6 @@ const int              exit_map_jump = EVENT_REQUEST_MAP_JUMP;
 const int              request_menu = EVENT_COMMAND_SUB_MODE;
 const int              request_door = EVENT_COMMAND_DOOR;
 const int              event_sprite2_size = 0x80;
-extern char            at_2245__2[];
-extern char            at_2246__2[];
-extern char            at_2247__2[];
-extern char            at_2248__2[];
-extern char            at_2249__2[];
-extern char            at_2291[];
-extern char            at_2292__2[];
-extern char            at_2333__4[];
 extern char            at_3822__2[];
 extern char            at_4261__2[];
 extern char            at_4262__2[];
@@ -271,7 +263,6 @@ extern char            at_5419[];
 extern char            at_5420[];
 extern char            at_5421[];
 extern char            at_5422[];
-extern char            at_2334__3[];
 extern char            at_9744[];
 extern char            at_9745[];
 extern char            at_10100[];
@@ -286,8 +277,6 @@ extern char            at_1083[];
 extern char            at_9148[];
 extern char            at_9622[];
 extern char            at_8230[];
-extern char            at_2393__3[];
-extern char            at_2664__2[];
 extern char            at_4072[];
 extern char            at_6773__2[];
 extern char            at_6774__2[];
@@ -3534,14 +3523,14 @@ u32 *GetLoadBGBuff(char *name, int *size) {
     buffer = CheckLoadedBGFile(path, &loaded_size);
 
     if (buffer != NULL) {
-        printf(at_2245__2, path);
+        printf("---- EVENT LOAD BG [%s] ----\n", path);
 
         if (size != NULL) {
             *size = loaded_size;
         }
     } else {
         if (EdEventInfo.pack_loaded == 1) {
-            printf(at_2246__2, path);
+            printf("---- EVENT LOAD PACK [%s] ----\n", path);
             buffer = GetPackFile((u32 *) read_buffer, path, &loaded_size);
 
             if (buffer != NULL) {
@@ -3555,15 +3544,15 @@ u32 *GetLoadBGBuff(char *name, int *size) {
 
         if (EdEventInfo.pack_loaded != 1) {
             if (EdEventInfo.stream_reading == 1) {
-                printf(at_2247__2);
-                printf(at_2248__2);
-                printf(at_2247__2);
+                printf("\n-------------------------------------------------------------------\n");
+                printf("EVENT ERR [NOW STREAM OPEN!!! <FILE ACCESS ERROR>]\n");
+                printf("\n-------------------------------------------------------------------\n");
 
                 while (1) {
                 }
             }
 
-            printf(at_2249__2, path);
+            printf("---- EVENT LOAD FILE [%s] ----\n", path);
 
             if (LoadFile2(path, read_buffer, &loaded_size, 0) == 0) {
                 buffer = NULL;
@@ -3640,7 +3629,7 @@ int _LOAD_CHARA_sub(int stack_no, char **name, int chara_no, u32 *pack, int mode
     stack = (mgCMemory *) EventScene->GetStack(stack_no);
 
     if (*name == NULL) {
-        if (GetPackFileExt(pack, at_2291, files, pack_file_max, sizes, name) <= 0) {
+        if (GetPackFileExt(pack, "cfg", files, pack_file_max, sizes, name) <= 0) {
             return 0;
         }
     }
@@ -3653,7 +3642,7 @@ int _LOAD_CHARA_sub(int stack_no, char **name, int chara_no, u32 *pack, int mode
 
     manager = &mgTexManager;
     manager->DeleteBlock(tex_block);
-    sprintf(label, at_2292__2, chara_no);
+    sprintf(label, "ev%d", chara_no);
 
     if (chara_no >= 8) {
         strcpy(manager->name_suffix, label);
@@ -3721,9 +3710,9 @@ int _LOAD_CHARA(RS_STACKDATA *stack, int argc) {
             if (result > 0) {
                 CCharacter2 *chara = GetCharacter(charaNo);
                 DivPathName(path, directory, fileName);
-                if (strcmp(fileName, at_2333__4) == 0) {
+                if (strcmp(fileName, "c01_base.chr") == 0) {
                     AtraMiriaOnOff(0, chara, 0);
-                } else if (strcmp(fileName, at_2334__3) == 0) {
+                } else if (strcmp(fileName, "c02_base.chr") == 0) {
                     AtraMiriaOnOff(1, chara, 0);
                 }
             }
@@ -3834,7 +3823,7 @@ int _SET_CURRENT_DIR(RS_STACKDATA *stack, int argc) {
         dir = GetStackString(stack);
     }
 
-    if (dir == NULL || strcmp(dir, at_2393__3) == 0 || strcmp(dir, at_1083) == 0) {
+    if (dir == NULL || strcmp(dir, "DEFAULT") == 0 || strcmp(dir, at_1083) == 0) {
         SetCurrentDir(NULL);
     } else {
         SetCurrentDir(dir);
@@ -3850,7 +3839,7 @@ int _CHANGE_DIR(RS_STACKDATA *stack, int argc) {
         dir = GetStackString(stack);
     }
 
-    if (dir == NULL || strcmp(dir, at_2393__3) == 0 || strcmp(dir, at_1083) == 0) {
+    if (dir == NULL || strcmp(dir, "DEFAULT") == 0 || strcmp(dir, at_1083) == 0) {
         SetCurrentDir(NULL);
     } else {
         ChangeDir(dir);
@@ -3911,7 +3900,7 @@ int _LOAD_MOTION_sub(int stack_no, char *name, int chara_no, u32 *pack) {
         return 0;
     }
 
-    sprintf(label, at_2292__2, chara_no);
+    sprintf(label, "ev%d", chara_no);
     mgCTextureManager *manager = &mgTexManager;
 
     if (chara_no >= 8) {
@@ -4262,9 +4251,9 @@ int _SET_LOADBG_FILE(RS_STACKDATA *stack, int argc) {
     EdEventInfo.pack_loaded = 0;
 
     if (EdEventInfo.stream_reading == 1) {
-        printf(at_2247__2);
-        printf(at_2248__2);
-        printf(at_2247__2);
+        printf("\n-------------------------------------------------------------------\n");
+        printf("EVENT ERR [NOW STREAM OPEN!!! <FILE ACCESS ERROR>]\n");
+        printf("\n-------------------------------------------------------------------\n");
 
         while (1) {
         }
@@ -4278,7 +4267,7 @@ int _SET_LOADBG_FILE_MONS_TALK(RS_STACKDATA *stack, int argc) {
     int        size;
     u_long128 *buffer = read_buffer;
     StartReadBG();
-    sprintf(path, at_2664__2, DngStatus.dungeon_no, LanguageCode);
+    sprintf(path, "dungeon/msg/mostalk%d_%d.txt", DngStatus.dungeon_no, LanguageCode);
 
     if (LoadFileBG(path, buffer, &size) == 0) {
         return 0;
@@ -5878,7 +5867,7 @@ int _LOAD_EQUIP(RS_STACKDATA *stack, int argc) {
             return 0;
         }
 
-        sprintf(label, at_2292__2, chara_no);
+        sprintf(label, "ev%d", chara_no);
         mgCTextureManager *manager = &mgTexManager;
 
         if (chara_no >= 8) {
@@ -9158,7 +9147,7 @@ int _LOAD_MES_MONS_TALK(RS_STACKDATA *stack, int argc) {
     }
 
     int stack_no = GetStackInt(stack);
-    sprintf(path, at_2664__2, DngStatus.dungeon_no, LanguageCode);
+    sprintf(path, "dungeon/msg/mostalk%d_%d.txt", DngStatus.dungeon_no, LanguageCode);
     return _LOAD_MES_sub(path, stack_no, mes);
 }
 
@@ -14826,7 +14815,7 @@ int _LOAD_SKIN(RS_STACKDATA *stack, int argc) {
         return 0;
     }
 
-    sprintf(name, at_2292__2, chara_no);
+    sprintf(name, "ev%d", chara_no);
     tex_manager = &mgTexManager;
 
     if (chara_no >= 8) {
@@ -18183,17 +18172,6 @@ INCLUDE_RODATA("ps2/asm/pal/nonmatchings/event_func", vv_3333__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/event_func", at_1083__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/event_func", at_1910__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/event_func", at_1909__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/event_func", at_2245__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/event_func", at_2246__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/event_func", at_2247__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/event_func", at_2248__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/event_func", at_2249__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/event_func", at_2291__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/event_func", at_2292__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/event_func", at_2333__4__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/event_func", at_2334__3__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/event_func", at_2393__3__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/event_func", at_2664__2__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/event_func", at_2836__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/event_func", at_2837__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/event_func", at_2838__DATA);
