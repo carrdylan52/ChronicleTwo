@@ -23,6 +23,20 @@ extern/marker gives a complete-unit match and permits the native aggregate,
 configuration literal, command table and all other keyword strings to stay.
 No arbitrary string or table-name padding is introduced.
 
+The exact private shared-tool proposal is
+`.private/proposals/dataE-anonymous-initializer-graph.patch`. It validates
+anonymous initializer graphs rooted in consistent opcode-checked code
+references, including the actual R_MIPS_32 fields and each child's declared
+size, fixed bytes, and zero alignment tail. It binds the native 16-byte
+visual initializer and its one-byte empty string together; cycles and
+conflicts remain unresolved. A copied marker-free object passes all bytes
+and 137 resolved relocations
+(`anonymous-initializer-graph-proposal-objects.log`). Negative tests reject
+missing root references, changed fixed bytes, changed child content, missing
+retail pointer relocation metadata, and wrong child size
+(`anonymous-initializer-graph-proposal-check.log`). The shared scripts and
+canonical source retain their accepted forms pending tooling integration.
+
 Final: 1 rodata / 0 BSS markers; matched_data
 92/195 after the standard objdiff/progress refresh.
 Every accepted step passes the full PAL build (`SCES_511.90: OK`) and
