@@ -3966,7 +3966,7 @@ void CMenuInvent::CalcTex() {
     if (balloon != NULL) {
         float center[2];
         balloon->GetPutPosXY("o", center[0], center[1]);
-        if (mode == 5 && step > 0 && step < 3) {
+        if (mode == MENU_ASK_MODE_CREATE && step > 0 && step < 3) {
             neta_circle_radius -= 0.44444445f;
             if (neta_circle_radius < 0.0f) {
                 neta_circle_radius = 0.0f;
@@ -4067,7 +4067,7 @@ void CMenuInvent::CalcTex() {
             neta_board_bar[1]->h = 23.2f;
             neta_board_bar[2]->y = neta_board_bar[1]->y + neta_board_bar[1]->h;
         }
-        if (mode != 13) {
+        if (mode != MENU_ASK_MODE_PHOTO_NETA) {
             arrow_count++;
         }
         if (arrow_count >= 50) {
@@ -4161,7 +4161,7 @@ void CMenuInvent::CalcTex() {
                 chara->GetPosition(pos);
                 float *target = chara_pos;
                 switch (mode) {
-                    case 5:
+                    case MENU_ASK_MODE_CREATE:
                         if (step > 0 && step < 4) {
                             target = chara_make_pos;
                         }
@@ -4177,7 +4177,7 @@ void CMenuInvent::CalcTex() {
                     frame = create_effect->GetFrame();
                 }
                 if (frame != NULL) {
-                    if (mode == 5 && step == 3) {
+                    if (mode == MENU_ASK_MODE_CREATE && step == 3) {
                         if (create_step != 0) {
                             pos[0] += 3.0f;
                             frame->GetScale(scale);
@@ -4225,7 +4225,7 @@ void CMenuInvent::CalcTex() {
     }
     GradationStep();
     if (kakudai_pic_form != NULL && kakudai_pic != NULL) {
-        if (mode == 12) {
+        if (mode == MENU_ASK_MODE_EXTEND) {
             if (ask_para.ask_mode == INVENT_ASK_ZOOM) {
                 CalcMenuAdd(&kakudai_pic->picture_scale, 0.025f, 1.3f);
             } else if (CalcMenuAdd(&kakudai_pic->picture_scale, -0.025f, 0.7f)) {
@@ -4244,7 +4244,7 @@ void CMenuInvent::CalcTex() {
         CMenuPosDataForm *gift_form = GiftBoxViewForm;
         gift_form->x = gift_pos[0];
         gift_form->y = gift_pos[1];
-        if (mode == 2) {
+        if (mode == MENU_ASK_MODE_CLOSE) {
             NowGiftBoxPtr = NULL;
         }
     }
@@ -4252,7 +4252,7 @@ void CMenuInvent::CalcTex() {
         Func_MenuItemBrdPosStep(item_top);
         Func_MenuItemBrdPrepare(itembrd_form->GetPartInfo("icon"), MenuUserParam.used_data, NULL, 1);
     }
-    if (mode == 6 && step == 1) {
+    if (mode == MENU_ASK_MODE_MAKE && step == 1) {
         int effect_pos[2];
         MenuPosData->GetPosMenuItemBrdForEffect(effect_pos, make_space_no, 0);
         MenuEffect[0]->base_info[0] = effect_pos[0];
@@ -7266,7 +7266,7 @@ int MenuInventKey() {
         if (CMenuInventPt->mode == MENU_ASK_MODE_CLOSE) {
             icon_mode = 0;
         }
-        MenuPosData->StepMainMenuIconMove(GetCommonMenuModeID(), 5, icon_mode);
+        MenuPosData->StepMainMenuIconMove(GetCommonMenuModeID(), MENU_MODE_INVENT, icon_mode);
     }
     MenuPosData->FormStep();
     CMenuInventPt->CalcTex();
