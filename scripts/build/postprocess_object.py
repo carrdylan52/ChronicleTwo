@@ -1192,6 +1192,10 @@ def name_literal_data(elf, unit, placeholders, *, retail=None, pieces=None, addr
             continue
         start = found[0]
         name, end = cuts[start]
+        if any(other is not symbol and other.name == name
+               and 0 < other.st_shndx < len(elf.sections)
+               and elf.sections[other.st_shndx].name != DEAD for other in elf.symtab.symbols):
+            continue
         end = min(end, padding_ends.get((start, name), end))
         if declared_sizes.get(name, len(data)) != len(data):
             continue
