@@ -2042,10 +2042,10 @@ void DrawMenuDl(int alpha) {
 
         DrawMenuDl(loaded_tex_no, 0, 0x72, panel_width, alpha);
         int    language = LanguageCode;
-        short *texture = (short *) mgTexManager.GetTexture("gaiji", -1);
+        mgCTexture *texture = mgTexManager.GetTexture("gaiji", -1);
 
         if (texture != 0) {
-            MenuReloadTexture(loaded_tex_no, *texture);
+            MenuReloadTexture(loaded_tex_no, texture->block);
             int step = StepMenuDl(0);
             memset(text, 0, 0x80);
             ConvertFontCode(tbl_1689[language][step], text);
