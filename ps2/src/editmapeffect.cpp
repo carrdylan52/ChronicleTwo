@@ -126,7 +126,3 @@ void CEditMap::AnimeStep(CObjAnimeEnv *env) {
         }
     }
 }
-
-// Small uninitialised data (.sbss)
-
-// Uninitialised data (.bss)
