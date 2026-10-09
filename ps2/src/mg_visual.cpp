@@ -579,10 +579,10 @@ int mgCVisualMDT::Draw(u_int *tag, float (*matrix)[4], mgCDrawManager *draw_mana
     }
 
     mgRENDER_INFO *info = draw_manager->render_info;
-    self->texture_manager = (mgCTextureManager *) draw_manager->texture_manager;
+    self->texture_manager = draw_manager->texture_manager;
     prev_tex = 0;
     mgCMemory *memory = draw_manager->data_memory;
-    void      *buffer = (void *) (memory->stack + memory->stack_used);
+    void      *buffer = memory->stack + memory->stack_used;
     memory->stack_used += self->CreateRenderInfoPacket((u_int *) buffer, matrix, info);
     self->CreatePacket(draw_manager);
 
@@ -642,7 +642,7 @@ u_int mgCVisualMDT::CreatePacket(mgCDrawManager *manager) {
         node->packet = (u_long128 *) cursor;
         int    size = SetMaterialRef((u_long128 *) (data_cursor | 0x20000000),
                                      model->material + node->material,
-                                     ((mgCFrameAttr *) info->attr)->program_mode);
+                                     info->attr->program_mode);
         u_int *tag = (u_int *) cursor;
         cursor += 16;
         tag[0] = size | 0x30000000;
@@ -716,7 +716,7 @@ u_int mgCVisualFixMDT::CreatePacket(mgCDrawManager *manager) {
         node->packet = (u_long128 *) cursor;
         int size =
             SetMaterialRef((u_long128 *) (data_cursor | 0x20000000), material + node->material,
-                           ((mgCFrameAttr *) info->attr)->program_mode);
+                           info->attr->program_mode);
         u_int *tag = (u_int *) cursor;
         cursor += 16;
         tag[0] = size | 0x30000000;
