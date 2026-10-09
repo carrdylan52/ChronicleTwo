@@ -405,6 +405,7 @@ static u_int             *MenuPartyNPCModelReadBuffer;
 static short              MenuCosutumeLoadPhase;
 
 extern mgCMemory          MenuChangeMemory;
+
 /**
  *
  * Bit mask of costumes available to the costume menu.
@@ -420,6 +421,7 @@ static unsigned long      CostumeAttr;
 static CMenuCostumeSel   *MenuCosPtr;
 
 extern mgCMemory          MosBookStack;
+
 /**
  *
  * Active monster book menu.
@@ -572,6 +574,7 @@ static char menu_infocfgname[10] = "info.cfg";
 extern char               at_5051[];
 extern char               at_5052[];
 extern char               at_5053[];
+
 /**
  *
  * Character slots that require costume menu background read requests.
@@ -580,6 +583,7 @@ extern char               at_5053[];
 static int tbl_5016[MENU_CHARA_LOAD_MAX] = {1, 1, 0, 0, 1, 1, 1};
 
 extern char               at_5839[];
+
 /**
  *
  * Character slots that require monster book background read requests.
@@ -588,6 +592,7 @@ extern char               at_5839[];
 static int tbl_5848[MENU_CHARA_LOAD_MAX] = {1, 1, 1, 1, 1, 1, 1};
 
 extern char               at_1361[];
+
 /**
  *
  * Scene character slot supplied by each party member loading slot.
@@ -601,6 +606,7 @@ static s8 convtbl_4621[USER_CHARA_NUM][MENU_CHARA_LOAD_MAX] = {
 };
 
 extern mgCMemory          MenuMonChangeLoadStack;
+
 /**
  *
  * Background read requests for the monster menu character slots.
@@ -736,6 +742,7 @@ static mgCTexture        *MenuMosTexture;
 
 extern mgCMemory          MenuMosLoadStack;
 extern sceVu0FVECTOR      menu_old_chara_position;
+
 /**
  *
  * Character category selected by the party change debug controls.
@@ -796,6 +803,7 @@ extern s8               init_1416;
 extern NpcNameList      at_1650__2;
 extern NpcCmdMesList    at_1684__2;
 extern GiftVolumeList   at_1806__2;
+
 /**
  *
  * Townsperson command cursor transitions, eight input directions per command.
@@ -844,6 +852,7 @@ extern char             at_2020__2[];
 extern char             at_2021__2[];
 extern char             at_2022[];
 extern char             at_2023[];
+
 /**
  *
  * Red, green, blue and alpha of the costume menu background tiles.
@@ -904,12 +913,14 @@ static short tiletbl_5573[3][12] = {
     {0x77, 0xE1, 0x26, 0xC, 0x9C, 0xE1, 0x4, 0xC, 0xA1, 0xE1, 0x26, 0xC},
     {0x77, 0xED, 0x26, 0x24, 0x9C, 0xED, 0x4, 0x24, 0xA1, 0xED, 0x26, 0x24}
 };
+
 /**
  *
  * Texture rectangles of the monster-book description underboards.
  *
  */
 static short under_brdtbl_5576[12] = {0x93, 0x2D, 0xA, 0x20, 0x9D, 0x2D, 0x2, 0x20, 0xA1, 0x2D, 0xA, 0x20};
+
 /**
  *
  * Positions of the monster-book headings and description panels.
@@ -933,6 +944,7 @@ static short put_under_offset_5577[16][2] = {
     {0x104, 0x118},
     {0x0, 0x0}
 };
+
 /**
  *
  * Texture coordinates of the eight monster affinity icon slots.
@@ -948,12 +960,14 @@ static const short ic_5580[MOS_BOOK_AFFINITY_NUM][2] = {
     {0xEA, 0x16},
     {0x0, 0x0}
 };
+
 /**
  *
  * Texture rectangles of the monster-book vertical divider.
  *
  */
 static short line_5595[12] = {0x0, 0x16, 0xC, 0x14, 0x0, 0x2A, 0xC, 0x4, 0x0, 0x2E, 0xC, 0x14};
+
 /**
  *
  * Texture rectangles of the three monster-model frame strips.
@@ -964,6 +978,7 @@ static short wakutbl_5600[3][12] = {
     {0x1E, 0xDA, 0x32, 0x4, 0x50, 0xDA, 0x2, 0x4, 0x54, 0xDA, 0x22, 0x4},
     {0x1E, 0xDF, 0x32, 0x32, 0x50, 0xDF, 0x2, 0x32, 0x54, 0xDF, 0x22, 0x32}
 };
+
 /**
  *
  * Page counter format of the monster book for each supported language.
@@ -1021,6 +1036,7 @@ static int select_monster_save_3371;
 static s8 init_3372__2;
 
 int                     CosutmeSelDefaultSet(int costume_id, short *costume_list);
+
 /**
  *
  * Monster resource directories indexed by model file category.
@@ -1076,6 +1092,7 @@ static int tbl_2483[MENU_CHARA_LOAD_MAX] = {1, 1, 1, 1, 1, 1, 1};
 
 extern char               at_2595__2[];
 extern char               at_2596__3[];
+
 /**
  *
  * Cursor reversal flag for each party menu selection.
@@ -4004,9 +4021,9 @@ void CMenuMosSelect::CalcTex() {
         pos = item_pos[3];
         info_form->GetPutPosXY("\x81\xA1", pos[0], pos[1]);
         pos = item_pos[4];
-        info_form->GetPutPosXY("\x8B\x5A\x31", pos[0], pos[1]);
+        info_form->GetPutPosXY("\x8B\x5A" "1", pos[0], pos[1]);
         pos = item_pos[5];
-        info_form->GetPutPosXY("\x8B\x5A\x32", pos[0], pos[1]);
+        info_form->GetPutPosXY("\x8B\x5A" "2", pos[0], pos[1]);
         item_pos[0][0] -= ask->GetStrWidth(0) >> 1;
         int width = ask->GetMesWidth_system(ask->item_mes[1]);
         choice[0] -= width >> 1;
@@ -4169,7 +4186,7 @@ void MenuMonsterBoxInit(mgCMemory *stack, int *tex_block, int mode) {
     MenuDataAnalyze(cfg, size, stack);
     MenuMosSelectPtr->script = (char *) GetPackFile(pack, "mosbox_com.cfg", &MenuMosSelectPtr->script_size);
     MenuMosSelectPtr->AttachForm();
-    MenuMosSelectPtr->ExeScript("\x4D\x53\x47\x8F\x89\x8A\xFA\x89\xBB");
+    MenuMosSelectPtr->ExeScript("MSG\x8F\x89\x8A\xFA\x89\xBB");
     MenuMosSelectPtr->ExeScript("FORM_INIT");
     AttachMessageForm();
     stack->Align64();
@@ -4195,7 +4212,9 @@ void MenuMonsterBoxInit(mgCMemory *stack, int *tex_block, int mode) {
         MenuMosSelectPtr->view_monster = MenuMosSelectPtr->badge[MenuMosSelectPtr->select].monster_id;
     }
 }
+
 #pragma inline_depth reset
+
 int CMenuMosSelect::KeyStep() {
     /**
      *
@@ -4410,7 +4429,7 @@ int CMenuMosSelect::KeyStep() {
                                 }
                                 case MENU_PUSH_BUTTON_CANCEL:
                                     step = 0;
-                                    ExeScript("\x83\x4E\x83\x89\x83\x58\x83\x60\x83\x46\x83\x93\x83\x57\x32\x4F\x46\x46");
+                                    ExeScript("\x83\x4E\x83\x89\x83\x58\x83\x60\x83\x46\x83\x93\x83\x57" "2OFF");
                                     MenuSePlay(5);
                                     BuildUpWeaponInfo.mode = 0;
                                     break;
@@ -4491,7 +4510,7 @@ int CMenuMosSelect::KeyStep() {
                                 effect_show = 0;
                                 effect.Initialize(NULL);
                                 step = 13;
-                                ExeScript("\x83\x4E\x83\x89\x83\x58\x83\x60\x83\x46\x83\x93\x83\x57\x8F\x49\x97\xB9\x4D\x53\x47");
+                                ExeScript("\x83\x4E\x83\x89\x83\x58\x83\x60\x83\x46\x83\x93\x83\x57\x8F\x49\x97\xB9MSG");
                                 MenuSePlay(0x1E);
                                 char *grown[1] = {NULL};
                                 grown[0] = GetMonsterName(level_monster[select_monster_save_3371]);
@@ -4528,7 +4547,7 @@ int CMenuMosSelect::KeyStep() {
                                     place->CopyGameData(&reward);
                                     ExeScript("\x83\x82\x83\x93\x83\x58\x83\x5E\x81\x5B\x82\xB5\x82\xB8\x82\xAD");
                                 } else {
-                                    ExeScript("\x83\x82\x83\x93\x83\x58\x83\x5E\x81\x5B\x82\xB5\x82\xB8\x82\xAD\x4E\x4F\x54");
+                                    ExeScript("\x83\x82\x83\x93\x83\x58\x83\x5E\x81\x5B\x82\xB5\x82\xB8\x82\xADNOT");
                                 }
                             } else if (step == 14) {
                                 if (level_max) {
@@ -4714,7 +4733,7 @@ int CMenuMosSelect::KeyStep() {
                     break;
                 }
                 case 11:
-                    ExeScript("\x4E\x4F\x54\x5F\x95\xCF\x89\xBB");
+                    ExeScript("NOT_\x95\xCF\x89\xBB");
                     step = 1;
                     break;
                 case 20:
@@ -4733,7 +4752,7 @@ int CMenuMosSelect::KeyStep() {
                     int monsterNo = monster_progress_tbl[select_badge->progress][1 + select_badge->class_level];
                     level_num = get_monster_tbl_bajjilevel(level_monster, select, monsterNo, select_badge->class_level + 1);
                     char *names[8] = {NULL};
-                    ExeScript("\x83\x4E\x83\x89\x83\x58\x83\x60\x83\x46\x83\x93\x83\x57\x32");
+                    ExeScript("\x83\x4E\x83\x89\x83\x58\x83\x60\x83\x46\x83\x93\x83\x57" "2");
                     names[0] = "  ";
                     names[1] = GetMonsterName(monsterNo);
                     for (int name_index = 0; name_index < level_num; name_index++) {
@@ -6000,6 +6019,7 @@ void MenuItemCharaDataLoadEndCheckAfter(MENU_BGREAD_INFO2 **info, int chara_no) 
     }
     SetupUnitMan(&scene, userData, chara_no, robo);
 }
+
 #pragma inline_depth reset
 
 void InitMainCharaBG(int chara_no, mgCMemory *stack, int mode) {
@@ -7553,7 +7573,6 @@ s16 monster_progress_tbl[MONSTER_PROGRESS_NUM][1 + MONSTER_PROGRESS_LEVEL_NUM] =
     {6, 124, 116, 120, 128},
     {9, 224, 236, 228, 240},
 };
-
 
 // Constants (.rodata)
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_1361__DATA);
