@@ -106,3 +106,39 @@ as entry points. The concrete coordinator proposals are
 `menuchr-costume-source.patch` and `menuchr-costume-profile-delta.json`.
 Shared-header review and complete postprocessed-object/PAL acceptance are
 still required before guard removal.
+
+## Complete private unit check against the 31-caller profile
+
+The privately unguarded source is now checked with the current production
+31 placement rows and the sole additional camera float row. It uses the
+normal `menuchr.hpp` include, with the proposed header's private directory
+placed first in this isolated compiler invocation. The actual game header
+retains SHA-256
+`092b6046cc875a9c1477c474cb684bd0e50721c5ab9886144d109898b91101b8`.
+No shared-header or production source/profile change is activated.
+
+The final source expresses the existing 0x2f allocation as
+`sizeof(CMenuCostumeSel) / 16 + 2` and uses `USER_CHARA_MONICA` for the actual
+character-selection argument. The genuine compiler reports expected/actual
+one for the camera row. The complete wrapper, postprocessing, section fixup
+and resolved object check pass: 0x11cb8 bytes and 3,771 relocations. The
+resulting fixed object has SHA-256
+`66d1847f2e49dd35c6bd600f0859a22a8596a1f9f1a2d8ee1b7b8325da41009b`.
+This validates the complete proposed unit, beyond the earlier native score.
+It is not full PAL acceptance of the shared-header proposal.
+
+The attempted absolute private header include failed lookup in the complete
+wrapper. Its exact source/header/profile inputs and compiler receipt are
+preserved separately; the corrected run uses the standard owning include
+and explicit private search directory. No field or constructor was changed
+to resolve that harness failure.
+
+New receipts are `promotion/{inputs,header-search-inputs}.json`,
+`promotion/wrapper-header-search.log` and its zero status, plus
+`outputs/promotion-header-search-current31/wrapped/provenance.json` and the
+four stage logs. The reviewed, applicable current-source proposals are
+`.private/proposals/menuchr-costume-constructor.patch`,
+`menuchr-costume-source-validated.patch` and
+`menuchr-costume-profile-validated.patch`. The earlier patches remain for
+provenance. Production stays at 31 accepted callers until the owning header
+can be changed and the whole game revalidated.
