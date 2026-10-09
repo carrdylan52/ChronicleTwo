@@ -259,42 +259,6 @@ struct CameraPoint {
 
 /**
  *
- * Holds a monster name used by the menu.
- *
- */
-struct MonsterNameList {
-    char *name[1]; /**< Name of the monster. */
-};
-
-/**
- *
- * Stores message numbers for menu commands.
- *
- */
-struct MenuCommandList {
-    int mes[8]; /**< Message number for each command. */
-};
-
-/**
- *
- * Stores names shown in the monster menu.
- *
- */
-struct MonsterNameTable {
-    char *name[8]; /**< Monster name in each table slot. */
-};
-
-/**
- *
- * Stores values displayed for badge information.
- *
- */
-struct BadgeInfoValues {
-    int value[6]; /**< Badge information values. */
-};
-
-/**
- *
  * Transformation effect resources selected for the monster menu.
  *
  */
@@ -4517,9 +4481,9 @@ int CMenuMosSelect::KeyStep() {
                                 step = 13;
                                 ExeScript("\x83\x4E\x83\x89\x83\x58\x83\x60\x83\x46\x83\x93\x83\x57\x8F\x49\x97\xB9\x4D\x53\x47");
                                 MenuSePlay(0x1E);
-                                MonsterNameList grown = {{NULL}};
-                                grown.name[0] = GetMonsterName(level_monster[select_monster_save_3371]);
-                                info->SetMsgItemNo(grown.name, 1);
+                                char *grown[1] = {NULL};
+                                grown[0] = GetMonsterName(level_monster[select_monster_save_3371]);
+                                info->SetMsgItemNo(grown, 1);
                             }
                             break;
                         }
@@ -4559,9 +4523,9 @@ int CMenuMosSelect::KeyStep() {
                                     int got = MenuUserDataManPtr->GetItem(ghobitbl_3437[select], 5);
                                     if (0 < got) {
                                         ExeScript("GET_LAST");
-                                        MonsterNameList item = {{NULL}};
-                                        item.name[0] = GetItemMessage(ghobitbl_3437[select]);
-                                        MenuDCMsg[6]->SetMsgItemNo(item.name, 1);
+                                        char *item[1] = {NULL};
+                                        item[0] = GetItemMessage(ghobitbl_3437[select]);
+                                        MenuDCMsg[6]->SetMsgItemNo(item, 1);
                                         MenuDCMsg[6]->SetMsgVolumeNoOne(got);
                                     } else {
                                         ExeScript("\x83\x4E\x83\x89\x83\x58\x83\x60\x83\x46\x83\x93\x83\x57\x8F\x49\x97\xB9");
@@ -4653,12 +4617,12 @@ int CMenuMosSelect::KeyStep() {
                     ExeScript("\x83\x6F\x83\x62\x83\x57\x83\x52\x83\x7D\x83\x93\x83\x68");
                     int             commandNum = 3;
                     int             row;
-                    MenuCommandList commands = {{0x14B6, 0x14B7, 0x14B8, -1, -1, -1}};
+                    int             commands[8] = {0x14B6, 0x14B7, 0x14B8, -1, -1, -1};
                     row = 0;
                     for (; row < commandNum; row++) {
-                        if (commands.mes[row] == 0x14B6) {
+                        if (commands[row] == 0x14B6) {
                             if (MenuCommonInfo->now_mode == 2 || GetMenuLoopType() == 0) {
-                                local_sort1(row, &commandNum, commands.mes);
+                                local_sort1(row, &commandNum, commands);
                             } else {
                                 if (MenuUserDataManPtr->CheckEnableCharaChange(3, NULL) == 0 && row >= 0 && row < 20) {
                                     command->line_color[row] = 0x80202020;
@@ -4674,12 +4638,12 @@ int CMenuMosSelect::KeyStep() {
                                 }
                             }
                         }
-                        if (commands.mes[row] == 0x14B8 && select_badge != NULL && !select_badge->CheckClassChange()) {
-                            local_sort1(row, &commandNum, commands.mes);
+                        if (commands[row] == 0x14B8 && select_badge != NULL && !select_badge->CheckClassChange()) {
+                            local_sort1(row, &commandNum, commands);
                         }
                     }
                     command->MakeMsg(commandNum);
-                    command->SetMsgItemNo(commands.mes, commandNum);
+                    command->SetMsgItemNo(commands, commandNum);
                     command->SetMsgCursor(0);
                     MenuMesForm[6]->draw_flag = 0;
                     step = 0;
@@ -4698,16 +4662,16 @@ int CMenuMosSelect::KeyStep() {
                     MenuMesForm[6]->draw_flag = 1;
                     MenuSePlay(1);
                     info->MsgPreset(6);
-                    MonsterNameTable names = {{NULL}};
+                    char *names[8] = {NULL};
                     for (int name_index = 0; name_index < select_badge->class_level + 1; name_index++) {
-                        names.name[name_index] = GetMonsterName(monster_progress_tbl[select_badge->progress][1 + name_index]);
+                        names[name_index] = GetMonsterName(monster_progress_tbl[select_badge->progress][1 + name_index]);
                         if (GetUserDataMan()->GetActiveChrNo() == USER_CHARA_MONSTER &&
                             GetUserDataMan()->GetMonsterID() == monster_progress_tbl[select_badge->progress][1 + name_index] &&
                             name_index >= 0 && name_index < 20) {
                             info->line_color[name_index] = 0x80202020;
                         }
                     }
-                    info->SetMsgItemNo(names.name, select_badge->class_level + 1);
+                    info->SetMsgItemNo(names, select_badge->class_level + 1);
                     info->MakeMsg(select_badge->class_level + 0x32);
                     info->SetMsgCursor(0);
                     break;
@@ -4756,15 +4720,15 @@ int CMenuMosSelect::KeyStep() {
                     step = 10;
                     int monsterNo = monster_progress_tbl[select_badge->progress][1 + select_badge->class_level];
                     level_num = get_monster_tbl_bajjilevel(level_monster, select, monsterNo, select_badge->class_level + 1);
-                    MonsterNameTable names = {{NULL}};
+                    char *names[8] = {NULL};
                     ExeScript("\x83\x4E\x83\x89\x83\x58\x83\x60\x83\x46\x83\x93\x83\x57\x32");
-                    names.name[0] = "  ";
-                    names.name[1] = GetMonsterName(monsterNo);
+                    names[0] = "  ";
+                    names[1] = GetMonsterName(monsterNo);
                     for (int name_index = 0; name_index < level_num; name_index++) {
-                        names.name[2 + name_index] = GetMonsterName(level_monster[name_index]);
+                        names[2 + name_index] = GetMonsterName(level_monster[name_index]);
                     }
                     info->MakeMsg(level_num + 0x33);
-                    info->SetMsgItemNo(names.name, level_num + 2);
+                    info->SetMsgItemNo(names, level_num + 2);
                     info->StepMsg();
                     BuildUpWeaponInfo.select_no = 0;
                     BuildUpWeaponInfo.mode = 1;
@@ -4799,12 +4763,12 @@ int CMenuMosSelect::KeyStep() {
         }
     }
     if (showInfo && select_badge != NULL) {
-        BadgeInfoValues values = {{0}};
+        int             values[6] = {0};
         int             base = view_monster * 10 + 10000;
-        values.value[1] = select_badge->GetDegreeLevel() + 1 + select * 20;
-        values.value[2] = base + 10;
-        values.value[3] = base + 11;
-        values.value[4] = -1;
+        values[1] = select_badge->GetDegreeLevel() + 1 + select * 20;
+        values[2] = base + 10;
+        values[3] = base + 11;
+        values[4] = -1;
         CDC2Mes *desc = MenuDCMsg[7];
         desc->ClsMes::mes_no = -1;
         desc->value_zero = 1;
@@ -4814,7 +4778,7 @@ int CMenuMosSelect::KeyStep() {
             desc->value_half = 1;
             desc->value_space = 1;
         }
-        desc->SetMsgItemNo(values.value, 4);
+        desc->SetMsgItemNo(values, 4);
         desc->SetMsgVolumeNoOne(select_badge->level + 1);
         char *name = GetMonsterName(view_monster);
         if (name != NULL) {
