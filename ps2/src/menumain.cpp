@@ -1336,7 +1336,7 @@ int MenuMainExit() {
     menu_debug_flag = 0;
     EdEventMenuExit();
     mgSetProjection(MenuDrawEnv->old_projection);
-    scene = (CScene *) GetMainScene();
+    scene = GetMainScene();
     camera = scene->GetCamera(scene->active_camera);
 
     if (camera != NULL) {
