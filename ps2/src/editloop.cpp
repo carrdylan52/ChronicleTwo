@@ -1150,10 +1150,6 @@ int SubMapLoadStep() {
     return 1;
 }
 #ifdef NONMATCHING
-static inline bool IsCrossFading(CScene *scene) {
-    return scene->fade.NowFade() && scene->fade.cross;
-}
-
 int EditLoop() {
     static int       old_cm;
     CMap            *map;
@@ -1174,13 +1170,13 @@ int EditLoop() {
     float            distance;
     float            camera_angle;
     int              game_progress;
-    int              light_band;
-    int              next_sub_map;
-    int              finish;
     int              light_check;
+    int              light_band;
+    int              finish;
     int              wait_for_map;
-    int              menu_mode;
+    int              next_sub_map;
     int              open_menu;
+    int              menu_mode;
     int              change_mode;
     int              return_to_player;
     int              start_event;
@@ -1192,7 +1188,7 @@ int EditLoop() {
     int              quick_change;
     int              next_chara;
     int              menu_enabled;
-    int              debug_closed;
+    bool             debug_closed;
     int              debug_move;
     int              edit_enabled;
     int              main_map_no;
@@ -1659,9 +1655,10 @@ int EditLoop() {
         if (pause_enabled != 0 && (PadCtrl.Btn(PAD_BTN_PAUSE) != 0 || GamePad__2.Connect() == 0)) {
             PauseStart(&pause);
         }
-        WalkChara = MainScene__2->GetCharacter(MainScene__2->player_chara);
-        if (WalkChara != NULL) {
-            WalkChara->sound_info.foot_se_bank = MainScene__2->se_base_id;
+        CCharacter2 *const walk_chara = MainScene__2->GetCharacter(MainScene__2->player_chara);
+        WalkChara = walk_chara;
+        if (walk_chara != NULL) {
+            walk_chara->sound_info.foot_se_bank = MainScene__2->se_base_id;
         }
         EditStep();
         int           stay[32];
@@ -1680,7 +1677,9 @@ int EditLoop() {
             menu_requested = PadCtrl.Btn(PAD_BTN_MENU) != 0 || sgGetItemOver() != 0;
             menu_button = PadCtrl.Btn(PAD_BTN_MENU);
             quick_change = EditOnGround() != 0 && PadCtrl.Btn(PAD_BTN_QUICK_CHANGE) != 0 && !SubGameRunning();
-            if (IsCrossFading(MainScene__2)) {
+            CScene *const fade_scene = MainScene__2;
+            int cross_fading = fade_scene->fade.NowFade() && fade_scene->fade.cross;
+            if (cross_fading) {
                 quick_change = 0;
             }
             next_chara = !GetUserData()->active_chr_no;
@@ -1848,7 +1847,8 @@ int EditLoop() {
         if (open_menu != 0) {
             EditDrawFlag &= ~0x1;
             if (!(0 < MainScene__2->bg_load_step)) {
-                bool cross_fading = MainScene__2->fade.NowFade() && MainScene__2->fade.cross;
+                CScene *const fade_scene = MainScene__2;
+                int cross_fading = fade_scene->fade.NowFade() && fade_scene->fade.cross;
                 if (cross_fading) {
                     MainScene__2->fade.FadeIn(0);
                 }
