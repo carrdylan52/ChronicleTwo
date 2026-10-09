@@ -41,3 +41,20 @@ After the progress refresh: 612 / 1212 matched data bytes; markers 0 ROData, 6 B
 
 The complete-object checksum audit after the shared header change finds no altered
 ELF object outside the four assigned units.
+
+## Marker-free storage validation, tooling round 3
+
+The existing all-consumer BSS matcher names the native local statics, guards and zero initializer objects without any shared-tool changes.
+
+A fresh marker-free private compile passes the complete unit with the checkpoint
+tooling. The accepted source passes `SCES_511.90: OK`, all 149 object checks,
+and all 17 build regression scripts (116 discovered tests). The object hash
+audit changes only `editctrl.cpp.o`; code metrics remain 6,775 matched functions
+and 1,841,188 matched bytes. No function is promoted.
+
+Markers change from 0 initialized-data / 6 BSS to 0 / 0.
+Refreshed `matched_data` changes from 1080 to
+1200 / 1200 bytes. Receipts are
+`.private/dtool-r3/editctrl-{build,objects,tests,all-tests}.log`,
+`editctrl-object-hash-audit.json`, and `editctrl-report.json`; the independent
+existing-tooling probe is `probe/editctrl-check.log` in the same directory.
