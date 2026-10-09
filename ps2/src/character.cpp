@@ -770,8 +770,8 @@ void CCharacter2::SetDAnimeEnable(int enable) {
 CHRINFO_SE *CCharacter2::GetSoundInfoCopy(mgCMemory *memory) {
     u32   bytes;
     u32   blocks;
-    void *block;
-    void *copy;
+    u_long128 *block;
+    void      *copy;
 
     if (se_num[0] <= 0) {
         return NULL;
@@ -786,7 +786,7 @@ CHRINFO_SE *CCharacter2::GetSoundInfoCopy(mgCMemory *memory) {
     }
 
     block = memory->Alloc(blocks + 2);
-    copy = operator new[](se_num[0] * (int) sizeof(CHRINFO_SE), (u_long128 *) block);
+    copy = operator new[](se_num[0] * (int) sizeof(CHRINFO_SE), block);
     memcpy(copy, se_list[0], se_num[0] * (int) sizeof(CHRINFO_SE));
     return (CHRINFO_SE *) copy;
 }
@@ -2531,8 +2531,8 @@ int _CLOTH_START(SPI_STACK *stack, int argc) {
         return 0;
     }
 
-    void *block = (void *) now_stack->Alloc(DynAnimeAlign16Blocks((u32) count * 0x90) + 2);
-    nowChr->dynamic_anime = new ((u_long128 *) block) CDynamicAnime[count];
+    u_long128 *block = now_stack->Alloc(DynAnimeAlign16Blocks((u32) count * 0x90) + 2);
+    nowChr->dynamic_anime = new (block) CDynamicAnime[count];
 
     if (nowChr->dynamic_anime == 0) {
         return 0;
@@ -3352,8 +3352,8 @@ int _LOD_MODEL_START(SPI_STACK *stack, int argc) {
         return 0;
     }
 
-    void *block = (void *) base_stack->Alloc(DynAnimeAlign16Blocks((u32) count * 0x18) + 2);
-    nowChr->lod = new ((u_long128 *) block) CCharaLOD[count];
+    u_long128 *block = base_stack->Alloc(DynAnimeAlign16Blocks((u32) count * 0x18) + 2);
+    nowChr->lod = new (block) CCharaLOD[count];
 
     if (nowChr->lod != 0) {
         nowChr->lod_num = count;
