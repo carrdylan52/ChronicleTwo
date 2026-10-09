@@ -78,3 +78,11 @@ The independent receipt is
 `.private/pntc/receipts/private-three-zero-composition-root-verification.json`.
 Owner acceptance and coordinated source/header/profile application remain
 prerequisites for canonical activation.
+
+The [exact owner handoff](placement-new-three-zero-handoff-20261009.md)
+now provides a current34 five-file source/header patch and portable two-
+placement/one-floating row additions. Its separate erratum corrects the
+frozen handoff's commit directives: SF rows belong in their own row-first
+commit, followed by per-unit/topic source commits. Semantic acceptance still
+covers the complete combination and coupled header/body changes. The
+original composition and activation manifests remain unchanged.
