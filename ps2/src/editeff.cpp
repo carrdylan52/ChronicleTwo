@@ -70,8 +70,7 @@ void EditSetEffectBuffer(mgCMemory *memory) {
             blocks = bytes >> 4;
         }
 
-        _StarEffect[i].particle = (EditStarParticle *) operator new[](
-            *count << 5, memory->Alloc(blocks + 2));
+        _StarEffect[i].particle = new (memory->Alloc(blocks + 2)) EditStarParticle[*count];
         _StarEffect[i].texture = texture;
     }
 
