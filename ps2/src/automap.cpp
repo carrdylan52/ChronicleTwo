@@ -826,7 +826,7 @@ void CMiniMapSymbol::SetMapInfo(CMap *new_map, CAutoMapParts *new_auto_map_parts
     CMapParts *part = parts_table;
     parts_num = 0;
 
-    while ((*(s8 *) part->name == 0) == 0) {
+    while ((part->name[0] == 0) == 0) {
         part++;
         parts_num++;
     }
@@ -996,7 +996,7 @@ void CMiniMapSymbol::Draw(float *pos) {
     sprite.Color(0x80, 0x80, 0x80, 0x60);
     sprite.SetScirror(x - w / 2, y - h / 2, w, h);
     for (int i = 0; i < parts_num; i++) {
-        if ((*(s8 *)parts->name == 0) == 0) {
+        if ((parts->name[0] == 0) == 0) {
             int tile = parts->minimap_tile;
             if (tile == -1) {
                 parts++;
@@ -2583,7 +2583,7 @@ void CAutoMapGen::Build() {
         place_parts_num = 0;
 
         if (place_parts_num > 0) {
-            while ((*(s8 *) parts->name == 0) == 0) {
+            while ((parts->name[0] == 0) == 0) {
                 parts++;
                 place_parts_num++;
             }
