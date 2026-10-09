@@ -3058,8 +3058,7 @@ void CAquarium::SettingAqua() {
 
     if (water != NULL) {
         water->SetTexture(screen);
-        float water_x = -34.0f;
-        water->SetPosition(water_x, 47.0f, -21.5f);
+        water->SetPosition(-34.0f, 47.0f, -21.5f);
     }
 
     naka_stack.stack_used = 0;
