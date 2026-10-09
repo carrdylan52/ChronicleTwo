@@ -1738,7 +1738,7 @@ int _SCALE(SPI_STACK *stack, int argc) {
     }
 
     if (nowChr->shadow_frame != 0) {
-        ((mgCFrame *) nowChr->shadow_frame)->SetScale(nowChr->base_scale);
+        nowChr->shadow_frame->SetScale(nowChr->base_scale);
     }
 
     return 1;
