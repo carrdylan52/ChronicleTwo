@@ -371,7 +371,6 @@ public:
 
     union {
         MDT_FACES *faces;           /**< Face section header. */
-        int       *face_block;      /**< Face section viewed as words. */
         int        face_block_addr; /**< Face section address viewed as an integer. */
     }; /**< Header of the face section. */
 
