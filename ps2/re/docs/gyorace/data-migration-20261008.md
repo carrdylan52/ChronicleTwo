@@ -1,4 +1,7 @@
-# Fish-race data migration, October 8 night, round 4
+# Fish-race data migration, October 8 night
+
+The round-4 state below is historical; the round-6 sections record the
+data ownership after native race initialization.
 
 Baseline: `9eb8f660`, pinned SF image, canonical flags and unchanged profile.
 The existing race, camera, effect and fish layouts supply the types. Neither
@@ -86,3 +89,34 @@ passes 149/149 objects. These receipts, the incremental checks, baseline
 measurements and object-hash audit are under `.private/dataB-r4/`.
 All objects outside the seven owned units retain their baseline file hashes.
 No function is promoted and no assembly fallback or guarded function body changes.
+
+## Round 6: native initialization vectors
+
+Baseline `c935aa16` has native `sgInitGyoRace`, with documented SDK
+`sceVu0FVECTOR` local initializers for position `{0, -15, 0, 1}` and
+rotation `{0, 3.1415927f, 0, 1}`. They supply the two 0x10-byte templates
+at `0x3621F0` (`at_1027__4`) and `0x362200` (`at_1028__9`). Neither has
+an assembly or guarded-draft consumer now, so both markers are removed.
+The initializers and every function body remain unchanged.
+
+With a marker present, `postprocess_object.py::bind_local_data` redirects
+native relocations to that marker's retail address, checks the redundant
+native payload against retail and marks the unused copy `.dead`.
+`fixup_sections.sh` removes it. This explains the matching baseline despite
+the source containing both native literals and their markers. Without a
+marker, `name_literal_data` names the native template through its payload
+and real consumers; verified piece padding preserves the retail extent.
+No replacement named template, filler or artificial initializer is needed.
+
+The warm build passes PAL and 149/149 complete objects; gyorace checks
+0x4FF8 bytes and 1,114 resolved relocations. Removing these two markers
+also passes PAL and 149/149 objects. Marker counts become **24 RODATA /
+5 BSS**, from **26 / 5**. Fresh objdiff `matched_data / total_data` remains
+**125 / 2729**; marker removal does not change the existing native source
+forms measured by objdiff. All other 148 object hashes equal the warm
+baseline, and all function source is identical.
+
+Receipts are in `.private/dataB-r6/`: `warm-build.log`, `warm-objects.log`,
+`warm-gyorace-object.log`, `before-progress.log`, `before-snapshot.json`,
+`vectors-build.log`, `vectors-objects.log`, `vectors-progress.log` and
+`vectors-snapshot.json`.

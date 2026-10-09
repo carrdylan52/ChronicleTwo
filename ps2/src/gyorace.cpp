@@ -1498,8 +1498,6 @@ int Jikkyou(SubGameInfo *info) {
 // Static initialiser (.init)
 
 // Initialised data (.data)
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/gyorace", at_1027__4__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/gyorace", at_1028__9__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/gyorace", at_1481__4__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/gyorace", at_1524__2__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/gyorace", at_1547__DATA);
