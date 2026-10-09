@@ -3,6 +3,13 @@
 Baseline `860067a4`, image `chronicletwo_dev:sf-63f7a9e`:
 **355 INCLUDE_RODATA / 79 INCLUDE_BSS**, **4 / 9726 matched_data**.
 The seven guarded drafts and all Satan's Fiddle rows are unchanged by this migration.
+
+Current state (October 9): `CMenuMosSelect::KeyStep` is no longer guarded.
+It was promoted after this migration, and all of its data is now native
+source; see the last two sections and
+[the round-three review fixes](review-fixes-r3-20261009.md). Where the
+sections below call it "frozen" or "guarded", they describe its state at
+that step.
 Header declarations remain source-compatible; menudraw is outside this lane.
 
 ## Exported character-menu state
@@ -207,8 +214,9 @@ flags, four badge-grid edge overrides, ten parameter display indices, ten
 growth title message numbers, and fourteen resistance/weakness display masks.
 The zero-valued override array retains the retail initialized section. The
 mask table's fourteen entries are its declared 56-byte payload; its separate
-eight-byte tail remains alignment. Frozen monster-selection code still
-resolves the parameter and title tables under their retail names.
+eight-byte tail remains alignment. The monster-selection code then
+resolved the parameter and title tables under their retail names; both are
+now function statics of `CMenuMosSelect::KeyStep`.
 After this group: **140 / 25 markers**, **4 / 9726 matched_data**.
 Each table independently passes PAL and 149/149 objects; receipts are
 `.private/nmchr-r3/menuchr-monster-tables-00` through `-05`, with
@@ -294,8 +302,9 @@ monster-selection help, badge numeric and item-number label parts, character
 and monster resource directories, localized costume help, and the two main
 characters' model/configuration filenames. Forty-three child string markers
 are also absent; their bytes and `R_MIPS_32` destinations come from the native
-inline initializers. `get_stringtbl_3557` remains reachable under its retail
-symbol from the guarded monster-selection method; `tbl_3725` is consumed only
+inline initializers. `get_stringtbl_3557` then stayed reachable under its retail
+symbol from the guarded monster-selection method (it is now the function
+static `get_stringtbl` of `CMenuMosSelect::KeyStep`); `tbl_3725` is consumed only
 by the native `MenuMonsterBoxDraw` function.
 After this group: **71 / 16 markers**, **4 / 9726 matched_data**.
 Each accepted table passes PAL and 149/149 independently, and the restored
@@ -366,9 +375,10 @@ are `.private/nmchr-r3/menuchr-scoped-party-table-{build,objects,progress,metric
 ## Shared native and guarded script literal
 
 The native life-update consumer inlines the nine-byte Shift-JIS end-processing
-script label. Its literal receives the retail symbol `at_2307`, so the frozen
-monster-selection method's assembly and its existing C++ declaration still
-resolve that same object. The frozen body is unchanged.
+script label. Its literal receives the retail symbol `at_2307`, so the then
+frozen monster-selection method's assembly and its C++ declaration resolved
+that same object. `CMenuMosSelect::KeyStep` now writes the same literal
+inline; MWCC pools the two uses into the one `at_2307` object.
 After this step: **55 / 13 markers**, **123 / 9726 matched_data**.
 PAL, all 149 objects, unowned hashes and frozen-source hashes pass; receipts
 are `.private/nmchr-r3/menuchr-shared-script-string-{build,objects,progress,metrics}.log`.
@@ -416,6 +426,9 @@ Identical text in a differently sized native buffer is not the same retail
 object: `at_2595__2` is a 12-byte filename literal rather than the native
 64-byte filename initializer, and `at_3692` is a nine-byte literal rather than
 the named ten-byte `menu_infocfgname` array.
+
+Every row naming MosSelect::KeyStep is gone since: its literals, templates,
+static and guard are native (see the last two sections).
 
 | Marker | Kind | Address | Declared bytes | Retention reason |
 | --- | --- | --- | ---: | --- |
@@ -511,6 +524,10 @@ native source at their uses; their extern declarations and markers are gone.
 - `at_3412`, `at_3440` (`MonsterNameList`), `at_3511`, `at_3529`
   (`MonsterNameTable`) and `at_3554` (`BadgeInfoValues`) are zero aggregate
   initializers (`{{NULL}}` / `{{0}}`), supplied as `.bss` templates.
+- The four wrapper types are since replaced by plain local arrays
+  (`int commands[8]`, `char *grown[1]`, `char *names[8]`, `int values[6]`)
+  with the same templates; see
+  [the round-three review fixes](review-fixes-r3-20261009.md).
 
 After this step: **38 markers** in menuchr (from 68), menuchr matched data
 2,999 / 9,726 bytes. Whole build `SCES_511.90: OK` (6,788 perfect), 149/149
@@ -520,8 +537,10 @@ objects (`menuchr: 0x11C9F bytes, 3835 relocations`); coverage 6,788 matched /
 
 KeyStep's function static `select_monster_save$3371` (4 bytes) and its guard
 `init$3372` (1 byte, `0x37E29C`) then become documented file-scope statics
-ahead of the function, in the project's explicit-guard spelling (as
-dngmenu's `AlphaRate_1743`/`init_1744`), and their two BSS markers are gone.
+ahead of the function with the guard written out in step 10, and their two
+BSS markers are gone. They stay at file scope because steps 12 and 13 read
+the static outside step 10's block, where retail's guard sits (see
+[the round-three review fixes](review-fixes-r3-20261009.md)).
 The unit's BSS layout is unchanged: whole build `SCES_511.90: OK`, 149/149
 (`menuchr: 0x11C9F bytes, 3835 relocations`). Markers: **36**. Receipts:
 `.private/regsim-r0/ks-static-{build,objects}.log`.

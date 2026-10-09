@@ -4,7 +4,9 @@ The matching build uses retail gaps for the C++ drafts still guarded by
 `NONMATCHING`, including `CMenuChrCngMenu::LoadBGNPCModel`,
 `MenuCharaChangeInit`, `CMenuCostumeSel::LoadMenuData`,
 and `CMosBookMenu::KeyStep`. The current source also keeps gaps for
-`KeyChangeMain`, `CMenuMosSelect::KeyStep` and `MenuCostumeInit`.
+`KeyChangeMain` and `MenuCostumeInit`. `CMenuMosSelect::KeyStep` is native;
+see [the KeyStep promotion](night-20261008.md#keystep-promoted) and
+[the round-three review fixes](review-fixes-r3-20261009.md).
 `MenuItemCharaDataLoadEndCheckAfter` is native; see
 [the temporary-scene notes](night-20261008.md#temporary-scene-initializer-match-round-1).
 Only unguarded functions are active C++ decompilations. `MenuMemoryDivide` and
