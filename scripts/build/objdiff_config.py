@@ -110,16 +110,23 @@ def config(build_dir):
     lay = layout.Layout()
     rows = layout.read_symbols(layout.SYMBOLS)
     units = []
+    game_units = list(lay.units("cpp"))
+    # Preflight every input before preparing any comparison. A missing target
+    # must never expose reservation-bearing raw objects or an older copy.
+    for unit in game_units:
+        for kind, suffix in (("base", "cpp.o"), ("target", "s.o")):
+            path = ROOT / f"{build_dir}/objdiff/{kind}/{unit}.{suffix}"
+            if not path.is_file():
+                raise FileNotFoundError(f"{unit}: missing objdiff input {path}")
     context = objdiff_data.Context()
-    for unit in lay.units("cpp"):
+    for unit in game_units:
         base_path = f"{build_dir}/objdiff/base/{unit}.cpp.o"
         target_path = f"{build_dir}/objdiff/target/{unit}.s.o"
-        if (ROOT / base_path).is_file() and (ROOT / target_path).is_file():
-            prepared_base = f"{build_dir}/objdiff/compare/base/{unit}.cpp.o"
-            prepared_target = f"{build_dir}/objdiff/compare/target/{unit}.s.o"
-            objdiff_data.comparison_copy(ROOT / base_path, ROOT / prepared_base, unit, context, True)
-            objdiff_data.comparison_copy(ROOT / target_path, ROOT / prepared_target, unit, context, False)
-            base_path, target_path = prepared_base, prepared_target
+        prepared_base = f"{build_dir}/objdiff/compare/base/{unit}.cpp.o"
+        prepared_target = f"{build_dir}/objdiff/compare/target/{unit}.s.o"
+        objdiff_data.comparison_copy(ROOT / base_path, ROOT / prepared_base, unit, context, True)
+        objdiff_data.comparison_copy(ROOT / target_path, ROOT / prepared_target, unit, context, False)
+        base_path, target_path = prepared_base, prepared_target
         units.append({
             "name": unit,
             "target_path": target_path,
@@ -155,7 +162,12 @@ def main():
     ap.add_argument("--build-dir", default=os.environ.get("BUILD_DIR", str(layout.BUILD)))
     ap.add_argument("-o", "--output", default="objdiff.json")
     args = ap.parse_args()
-    Path(args.output).write_text(json.dumps(config(args.build_dir), indent=2) + "\n")
+    output = Path(args.output)
+    try:
+        output.write_text(json.dumps(config(args.build_dir), indent=2) + "\n")
+    except Exception:
+        output.unlink(missing_ok=True)
+        raise
     return 0
 
 

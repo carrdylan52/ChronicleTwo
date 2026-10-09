@@ -125,12 +125,3 @@ fi
 [ $# -gt 0 ] || set -- build
 
 build "$@"
-
-# Refresh comparison copies when their data-preparation tools change, even if
-# the raw compiler/assembler objects and CMake's configuration are current.
-for target in "$@"; do
-    if [ "$target" = objdiff ]; then
-        python3 scripts/build/objdiff_config.py --build-dir "$BUILD_DIR"
-        break
-    fi
-done
