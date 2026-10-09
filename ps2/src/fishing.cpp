@@ -49,81 +49,11 @@ struct Vec4 {
     float v[4]; /**< Vector components. */
 };
 
-extern FISHING_ROD_DATA RodData;
-extern FISH_DATA        FishData;
-extern mgCMemory       *fpStack;
-extern FISH_PLACE_MAP  *fpNowFishPlaceMap;
-extern FISH_PLACE_MAP  *FishPlaceMap;
-extern int              FishPlaceMapNum;
-extern u_int            fpNowFishPlaceMapNum;
 extern SPI_TAG_PARAM    tag__8[];
 void                    StepDataLoading(void *arg);
-extern int              RodActFlag;
-extern int              UkiCameraFlag;
-extern int              UkiMode;
-extern int              UkiModeCnt;
-extern u_int            FishSnd;
-extern int              CastStep;
-extern int              CastCount;
-extern int              CastTime;
-extern int              CastMotionCnt;
-extern Vec4             CastPoint;
-extern float            UkiCamOldRot;
 extern CCameraControl   UkiCameraInfo;
-extern int              DrawHit;
-extern float            LineTension;
-extern float            addLineTension;
-extern float            MinLineTension;
-extern float            LineMaxLen;
-extern float            LineMinLen;
-extern float            FishMinLen;
-extern float            FishMaxLen;
-extern int              RodStatus;
-extern int              RodStatusCnt;
-extern int              ActionCount;
-extern int              ActionDecCount;
-extern int              WindReel;
-extern int              BattleBgmCnt;
-extern int              BattleCount;
-extern int              FalseStep;
-extern int              FalseMotionCount;
-extern int              FavoredEsa;
-extern CCharacter2     *EsaChara;
-extern int              FalseStep2;
-extern int              FishMesNo;
-extern int              font_h_2216;
-extern signed char      init_2217;
-extern float            oldPadRx;
-extern float            oldPadRy;
-extern int              RunEventNo;
-extern int              MardanEventMap;
-extern int              MardanEventPlace;
-extern signed char      init_1961;
-extern signed char      init_2496;
-extern int              snd_cnt_2495;
-extern int              snd_cnt_1960;
-extern float            CastDistSizeRate;
-extern int              RodNo;
-extern int              LocalEsaNo;
-extern int              RodActionPoint;
-extern int              hamon_count_1798;
-extern signed char      init_1799;
-extern int              boze_cnt_1801;
-extern int              pull_uki_cnt_1808;
-extern int              act_count_1838;
-extern int              charge_point_1839;
-extern int              act_interval_1840;
-extern int              LoadFishFlag;
-extern int              FishFontH;
-extern CCharacter2     *FishChara;
-extern CCharacter2     *MainChara;
-extern int              FishTexb;
-extern u_long128       *ReadBuffer;
 extern mgCMemory        FishStack;
 extern mgCMemory        MotionBuff;
-extern int              GetItemRet;
-extern int              DrawCongra;
-extern u_int            FanSnd;
 extern char             at_932__4[];
 extern char             at_2197__3[];
 extern char             at_2198__3[];
@@ -209,8 +139,6 @@ int              StepLoadThread();
 void             DeleteLoadThread();
 void             DrawNumber(mgCDrawPrim *prim, int digit, int x, int y);
 int              InitCasting(CScene *scene);
-extern float     CastDist;
-extern Vec4      CastPointCur;
 extern Vec4      at_1631__3;
 extern char      at_1576__2[];
 extern Vec4      at_1490__2;
@@ -232,38 +160,7 @@ enum {
 int                       InitSelectCastingPoint(CScene *scene);
 int                       CheckCasting(CScene *scene, float *position, float *direction);
 extern FISH_PARAM         FishParam[];
-extern CCharacter2       *Lure;
-extern mgCFrame          *LureFrame;
-extern mgCFrame          *UkiFrame;
-extern mgCFrame          *HariFrame;
-extern CCharacter2       *CursorChara[2];
-extern int                EsaNo;
-extern int                LureNo;
-extern int                NextCharaMode;
-extern int                CharaMode;
-extern int                RetCode;
-extern int                CastOKFlag;
-extern int                fgLoopMode;
-extern mgCFrame          *RodHand;
-extern CCharacter2       *UkiRod;
-extern CCharacter2       *LureRod;
-extern CCharacter2       *Uki;
-extern CCharacter2       *Hari;
-extern CScene::BGM_STATUS BgmStatus;
-extern int                FishingTexb;
-extern int                SystemTexb;
-extern int                EsaTexb;
 extern mgCMemory          ReadStack;
-extern int                fgLoopStep;
-extern int                fgLoopCnt;
-extern int                BgmReadFlag;
-extern int                LoadExMotionFlag;
-extern u_long128         *ex_mtn_buff;
-extern int                ThreadRunning;
-extern int                step_end_flag;
-extern CEffectScriptMan  *EffectMan;
-extern int                ThreadStack__2;
-extern int                TheadID__2;
 extern char               at_917__6[];
 extern char               at_979__6[];
 extern char               at_980__4[];
@@ -346,6 +243,734 @@ static inline u_long128 *FreeTop(mgCMemory *memory) {
     return memory->stGetTop();
 }
 
+
+/**
+ *
+ * Water effects used by the fishing subgame.
+ *
+ */
+static CEffectScriptMan *EffectMan;
+
+/**
+ *
+ * Loaded fishing sound bank.
+ *
+ */
+static u_int FishSnd;
+
+/**
+ *
+ * Loaded catch fanfare sound bank.
+ *
+ */
+static u_int FanSnd;
+
+/**
+ *
+ * Character model of the float fishing rod.
+ *
+ */
+static CCharacter2 *UkiRod;
+
+/**
+ *
+ * Character model of the lure fishing rod.
+ *
+ */
+static CCharacter2 *LureRod;
+
+/**
+ *
+ * Character model of the fishing float.
+ *
+ */
+static CCharacter2 *Uki;
+
+/**
+ *
+ * Character model of the equipped lure.
+ *
+ */
+static CCharacter2 *Lure;
+
+/**
+ *
+ * Character model of the fishing hook.
+ *
+ */
+static CCharacter2 *Hari;
+
+/**
+ *
+ * Texture block for fishing equipment.
+ *
+ */
+static int FishingTexb;
+
+/**
+ *
+ * Texture block for the caught fish.
+ *
+ */
+static int FishTexb;
+
+/**
+ *
+ * Texture block for the fishing interface.
+ *
+ */
+static int SystemTexb;
+
+/**
+ *
+ * Texture block for bait and lures.
+ *
+ */
+static int EsaTexb;
+
+/**
+ *
+ * Player character controlled by the fishing subgame.
+ *
+ */
+static CCharacter2 *MainChara;
+
+/**
+ *
+ * Character model of the landed fish.
+ *
+ */
+static CCharacter2 *FishChara;
+
+/**
+ *
+ * Character model of the equipped bait.
+ *
+ */
+static CCharacter2 *EsaChara;
+
+/**
+ *
+ * Character models used by the casting cursor.
+ *
+ */
+static CCharacter2 *CursorChara[2];
+
+/**
+ *
+ * Player hand frame carrying the fishing rod.
+ *
+ */
+static mgCFrame *RodHand;
+
+/**
+ *
+ * Frame of the fishing float.
+ *
+ */
+static mgCFrame *UkiFrame;
+
+/**
+ *
+ * Frame of the equipped lure.
+ *
+ */
+static mgCFrame *LureFrame;
+
+/**
+ *
+ * Frame of the fishing hook.
+ *
+ */
+static mgCFrame *HariFrame;
+
+/**
+ *
+ * Previous horizontal rod input.
+ *
+ */
+static float oldPadRx;
+
+/**
+ *
+ * Previous vertical rod input.
+ *
+ */
+static float oldPadRy;
+
+/**
+ *
+ * Whether the selected casting point is valid.
+ *
+ */
+static int CastOKFlag;
+
+/**
+ *
+ * Event to run after the fishing fade completes.
+ *
+ */
+static int RunEventNo;
+
+/**
+ *
+ * Whether the current map permits the Mardan fishing event.
+ *
+ */
+static int MardanEventMap;
+
+/**
+ *
+ * Whether the selected fishing place triggers the Mardan event.
+ *
+ */
+static int MardanEventPlace;
+
+/**
+ *
+ * Current fishing character mode.
+ *
+ */
+static int CharaMode;
+
+/**
+ *
+ * Requested next fishing character mode.
+ *
+ */
+static int NextCharaMode;
+
+/**
+ *
+ * Whether fishing resource loading has completed.
+ *
+ */
+static int fgLoopMode;
+
+/**
+ *
+ * Current fishing resource loading step.
+ *
+ */
+static int fgLoopStep;
+
+/**
+ *
+ * Frames elapsed during fishing initialization.
+ *
+ */
+static int fgLoopCnt;
+
+/**
+ *
+ * Equipped fishing rod item number.
+ *
+ */
+static int RodNo;
+
+/**
+ *
+ * Equipped bait item number.
+ *
+ */
+static int EsaNo;
+
+/**
+ *
+ * Equipped bait's index in the fishing bait table.
+ *
+ */
+static int LocalEsaNo;
+
+/**
+ *
+ * Selected fish's affinity for the equipped bait.
+ *
+ */
+static int FavoredEsa;
+
+/**
+ *
+ * Equipped lure model index.
+ *
+ */
+static int LureNo;
+
+/**
+ *
+ * Selected casting distance.
+ *
+ */
+static float CastDist;
+
+/**
+ *
+ * Fish size multiplier derived from casting distance.
+ *
+ */
+static float CastDistSizeRate;
+
+/**
+ *
+ * Current float or lure waiting state.
+ *
+ */
+static int UkiMode;
+
+/**
+ *
+ * Frames remaining in the float or lure waiting state.
+ *
+ */
+static int UkiModeCnt;
+
+/**
+ *
+ * Lure action points remaining before a bite.
+ *
+ */
+static int RodActionPoint;
+
+/**
+ *
+ * Shared buffer used to read fishing resources.
+ *
+ */
+static u_long128 *ReadBuffer;
+
+/**
+ *
+ * Whether the hooked fish model has been loaded.
+ *
+ */
+static int LoadFishFlag;
+
+/**
+ *
+ * Whether external fishing motion loading is pending.
+ *
+ */
+static int LoadExMotionFlag;
+
+/**
+ *
+ * Current fishing line tension.
+ *
+ */
+static float LineTension;
+
+/**
+ *
+ * Change in line tension during the current frame.
+ *
+ */
+static float addLineTension;
+
+/**
+ *
+ * Minimum line tension reached during the fish battle.
+ *
+ */
+static float MinLineTension;
+
+/**
+ *
+ * Line length at the start of the fish battle.
+ *
+ */
+static float LineMaxLen;
+
+/**
+ *
+ * Minimum line length at the start of the fish battle.
+ *
+ */
+static float LineMinLen;
+
+/**
+ *
+ * Fish distance at the start of the fish battle.
+ *
+ */
+static float FishMaxLen;
+
+/**
+ *
+ * Distance at which the fish can be landed.
+ *
+ */
+static float FishMinLen;
+
+/**
+ *
+ * Frames elapsed during the fish battle.
+ *
+ */
+static int BattleCount;
+
+/**
+ *
+ * Whether the player is winding the reel.
+ *
+ */
+static int WindReel;
+
+/**
+ *
+ * Rod action state during the fish battle.
+ *
+ */
+static int RodStatus;
+
+/**
+ *
+ * Frames remaining in the rod action state.
+ *
+ */
+static int RodStatusCnt;
+
+/**
+ *
+ * Recent player rod actions.
+ *
+ */
+static int ActionCount;
+
+/**
+ *
+ * Frames until recent rod actions begin to decay.
+ *
+ */
+static int ActionDecCount;
+
+/**
+ *
+ * Fishing subgame exit result.
+ *
+ */
+static int RetCode;
+
+/**
+ *
+ * Frames remaining for the hit banner.
+ *
+ */
+static int DrawHit;
+
+/**
+ *
+ * Frames remaining for the catch banner.
+ *
+ */
+static int DrawCongra;
+
+/**
+ *
+ * Whether fishing replaced the scene's loaded music.
+ *
+ */
+static int BgmReadFlag;
+
+/**
+ *
+ * Frames before the fish battle music starts.
+ *
+ */
+static int BattleBgmCnt;
+
+/**
+ *
+ * Loaded external fishing motion buffer.
+ *
+ */
+static u_long128 *ex_mtn_buff;
+
+/**
+ *
+ * Fishing loading thread stack size in bytes.
+ *
+ */
+int stack_size;
+
+/**
+ *
+ * Aligned address of the fishing loading thread stack.
+ *
+ */
+static int ThreadStack__2;
+
+/**
+ *
+ * Fishing loading thread identifier.
+ *
+ */
+static int TheadID__2;
+
+/**
+ *
+ * Whether the fishing loading thread is active.
+ *
+ */
+static int ThreadRunning;
+
+/**
+ *
+ * Whether the fishing loading thread has completed.
+ *
+ */
+static int step_end_flag;
+
+/**
+ *
+ * Current casting animation stage.
+ *
+ */
+static int CastStep;
+
+/**
+ *
+ * Frames elapsed during the current casting stage.
+ *
+ */
+static int CastCount;
+
+/**
+ *
+ * Duration of the tackle's casting flight.
+ *
+ */
+static int CastTime;
+
+/**
+ *
+ * Frames remaining in the casting character motion.
+ *
+ */
+static int CastMotionCnt;
+
+/**
+ *
+ * Whether the player has performed a rod action.
+ *
+ */
+static int RodActFlag;
+
+/**
+ *
+ * Whether the camera is watching the float.
+ *
+ */
+static int UkiCameraFlag;
+
+/**
+ *
+ * Camera angle restored after watching the float.
+ *
+ */
+static float UkiCamOldRot;
+
+/**
+ *
+ * Current failure or success presentation stage.
+ *
+ */
+static int FalseStep;
+
+/**
+ *
+ * Current catch result message stage.
+ *
+ */
+static int FalseStep2;
+
+/**
+ *
+ * Frames remaining in the failure or success motion.
+ *
+ */
+static int FalseMotionCount;
+
+/**
+ *
+ * Result of adding the caught fish to the aquarium.
+ *
+ */
+static int GetItemRet;
+
+/**
+ *
+ * Catch result message number.
+ *
+ */
+static int FishMesNo;
+
+/**
+ *
+ * Caught fish message font height.
+ *
+ */
+static int FishFontH;
+
+/**
+ *
+ * Number of fish appearance maps.
+ *
+ */
+static int FishPlaceMapNum;
+
+/**
+ *
+ * Fish appearance map table.
+ *
+ */
+static FISH_PLACE_MAP *FishPlaceMap;
+
+/**
+ *
+ * Memory stack used to parse fish appearance data.
+ *
+ */
+static mgCMemory *fpStack;
+
+/**
+ *
+ * Fish appearance map currently being parsed.
+ *
+ */
+static FISH_PLACE_MAP *fpNowFishPlaceMap;
+
+/**
+ *
+ * Number of the fish appearance map currently being parsed.
+ *
+ */
+static u_int fpNowFishPlaceMapNum;
+
+/**
+ *
+ * Selected world position to cast toward.
+ *
+ */
+static Vec4 CastPoint;
+
+/**
+ *
+ * World position of the casting cursor.
+ *
+ */
+static Vec4 CastPointCur;
+
+/**
+ *
+ * Attributes of the equipped fishing rod.
+ *
+ */
+static FISHING_ROD_DATA RodData;
+
+/**
+ *
+ * Selected fish and its battle state.
+ *
+ */
+static FISH_DATA FishData;
+
+/**
+ *
+ * Scene music status restored after fishing.
+ *
+ */
+static CScene::BGM_STATUS BgmStatus;
+
+/**
+ *
+ * Frames until the next waiting-state ripple.
+ *
+ */
+static int hamon_count_1798;
+
+/**
+ *
+ * Whether the waiting-state ripple counter is initialized.
+ *
+ */
+static signed char init_1799;
+
+/**
+ *
+ * Elapsed waiting time before a no-bite response.
+ *
+ */
+static int boze_cnt_1801;
+
+/**
+ *
+ * Frames remaining for the float pull action.
+ *
+ */
+static int pull_uki_cnt_1808;
+
+/**
+ *
+ * Frames remaining in the current lure action.
+ *
+ */
+static int act_count_1838;
+
+/**
+ *
+ * Charge accumulated for the next lure action.
+ *
+ */
+static int charge_point_1839;
+
+/**
+ *
+ * Frames between accepted lure actions.
+ *
+ */
+static int act_interval_1840;
+
+/**
+ *
+ * Cooldown between fishing reel sounds.
+ *
+ */
+static int snd_cnt_1960;
+
+/**
+ *
+ * Whether the fish battle sound counter is initialized.
+ *
+ */
+static signed char init_1961;
+
+/**
+ *
+ * Font-height state for the catch presentation.
+ *
+ */
+static int font_h_2216;
+
+/**
+ *
+ * Whether the fishing result font height is initialized.
+ *
+ */
+static signed char init_2217;
+
+/**
+ *
+ * Cooldown between high-tension warning sounds.
+ *
+ */
+static int snd_cnt_2495;
+
+/**
+ *
+ * Whether the line-tension sound counter is initialized.
+ *
+ */
+static signed char init_2496;
 
 // Code (.text)
 /**
@@ -3729,119 +4354,62 @@ INCLUDE_RODATA("ps2/asm/pal/nonmatchings/fishing", at_2674__2__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/fishing", at_1444__3__DATA);
 
 // Small uninitialised data (.sbss)
-INCLUDE_BSS(EffectMan, 0x4);
-INCLUDE_BSS(FishSnd, 0x4);
-INCLUDE_BSS(FanSnd, 0x4);
-INCLUDE_BSS(UkiRod, 0x4);
-INCLUDE_BSS(LureRod, 0x4);
-INCLUDE_BSS(Uki, 0x4);
-INCLUDE_BSS(Lure, 0x4);
-INCLUDE_BSS(Hari, 0x4);
-INCLUDE_BSS(FishingTexb, 0x4);
-INCLUDE_BSS(FishTexb, 0x4);
-INCLUDE_BSS(SystemTexb, 0x4);
-INCLUDE_BSS(EsaTexb, 0x4);
-static INCLUDE_BSS(MainChara, 0x4);
-INCLUDE_BSS(FishChara, 0x4);
-INCLUDE_BSS(EsaChara, 0x4);
-INCLUDE_BSS(CursorChara, 0x8);
-INCLUDE_BSS(RodHand, 0x4);
-INCLUDE_BSS(UkiFrame, 0x4);
-INCLUDE_BSS(LureFrame, 0x4);
-INCLUDE_BSS(HariFrame, 0x4);
-INCLUDE_BSS(oldPadRx, 0x4);
-INCLUDE_BSS(oldPadRy, 0x4);
-INCLUDE_BSS(CastOKFlag, 0x4);
-INCLUDE_BSS(RunEventNo, 0x4);
-INCLUDE_BSS(MardanEventMap, 0x4);
-INCLUDE_BSS(MardanEventPlace, 0x4);
-INCLUDE_BSS(CharaMode, 0x4);
-INCLUDE_BSS(NextCharaMode, 0x4);
-INCLUDE_BSS(fgLoopMode, 0x4);
-INCLUDE_BSS(fgLoopStep, 0x4);
-INCLUDE_BSS(fgLoopCnt, 0x4);
-INCLUDE_BSS(RodNo, 0x4);
-INCLUDE_BSS(EsaNo, 0x4);
-INCLUDE_BSS(LocalEsaNo, 0x4);
-INCLUDE_BSS(FavoredEsa, 0x4);
-INCLUDE_BSS(LureNo, 0x4);
-INCLUDE_BSS(CastDist, 0x4);
-INCLUDE_BSS(CastDistSizeRate, 0x4);
-INCLUDE_BSS(UkiMode, 0x4);
-INCLUDE_BSS(UkiModeCnt, 0x4);
-INCLUDE_BSS(RodActionPoint, 0x4);
-INCLUDE_BSS(ReadBuffer, 0x4);
-INCLUDE_BSS(LoadFishFlag, 0x4);
-INCLUDE_BSS(LoadExMotionFlag, 0x4);
-INCLUDE_BSS(LineTension, 0x4);
-INCLUDE_BSS(addLineTension, 0x4);
-INCLUDE_BSS(MinLineTension, 0x4);
-INCLUDE_BSS(LineMaxLen, 0x4);
-INCLUDE_BSS(LineMinLen, 0x4);
-INCLUDE_BSS(FishMaxLen, 0x4);
-INCLUDE_BSS(FishMinLen, 0x4);
-INCLUDE_BSS(BattleCount, 0x4);
-INCLUDE_BSS(WindReel, 0x4);
-INCLUDE_BSS(RodStatus, 0x4);
-INCLUDE_BSS(RodStatusCnt, 0x4);
-INCLUDE_BSS(ActionCount, 0x4);
-INCLUDE_BSS(ActionDecCount, 0x4);
-INCLUDE_BSS(RetCode, 0x4);
-INCLUDE_BSS(DrawHit, 0x4);
-INCLUDE_BSS(DrawCongra, 0x4);
-INCLUDE_BSS(BgmReadFlag, 0x4);
-INCLUDE_BSS(BattleBgmCnt, 0x4);
-INCLUDE_BSS(ex_mtn_buff, 0x4);
-INCLUDE_BSS(stack_size, 0x4);
-INCLUDE_BSS(ThreadStack__2, 0x4);
-INCLUDE_BSS(TheadID__2, 0x4);
-INCLUDE_BSS(ThreadRunning, 0x4);
-INCLUDE_BSS(step_end_flag, 0x4);
-INCLUDE_BSS(CastStep, 0x4);
-INCLUDE_BSS(CastCount, 0x4);
-INCLUDE_BSS(CastTime, 0x4);
-INCLUDE_BSS(CastMotionCnt, 0x4);
-INCLUDE_BSS(RodActFlag, 0x4);
-INCLUDE_BSS(UkiCameraFlag, 0x4);
-INCLUDE_BSS(UkiCamOldRot, 0x4);
-INCLUDE_BSS(hamon_count_1798, 0x4);
-INCLUDE_BSS(init_1799, 0x4);
-INCLUDE_BSS(boze_cnt_1801, 0x4);
-INCLUDE_BSS(pull_uki_cnt_1808, 0x4);
-INCLUDE_BSS(act_count_1838, 0x4);
-INCLUDE_BSS(charge_point_1839, 0x4);
-INCLUDE_BSS(act_interval_1840, 0x4);
-INCLUDE_BSS(snd_cnt_1960, 0x4);
-INCLUDE_BSS(init_1961, 0x4);
-INCLUDE_BSS(FalseStep, 0x4);
-INCLUDE_BSS(FalseStep2, 0x4);
-INCLUDE_BSS(FalseMotionCount, 0x4);
-INCLUDE_BSS(GetItemRet, 0x4);
-INCLUDE_BSS(FishMesNo, 0x4);
-INCLUDE_BSS(FishFontH, 0x4);
-INCLUDE_BSS(font_h_2216, 0x4);
-INCLUDE_BSS(init_2217, 0x4);
-INCLUDE_BSS(snd_cnt_2495, 0x4);
-INCLUDE_BSS(init_2496, 0x4);
-INCLUDE_BSS(FishPlaceMapNum, 0x4);
-INCLUDE_BSS(FishPlaceMap, 0x4);
-INCLUDE_BSS(fpStack, 0x4);
-INCLUDE_BSS(fpNowFishPlaceMap, 0x4);
-INCLUDE_BSS(fpNowFishPlaceMapNum, 0x4);
 
 // Uninitialised data (.bss)
-mgCMemory      EsaStack;
-mgCMemory      SndStack;
-CCameraControl CameraInfo;
-CCameraControl UkiCameraInfo;
-INCLUDE_BSS(CastPoint, 0x10);
-INCLUDE_BSS(CastPointCur, 0x10);
-INCLUDE_BSS(RodData, 0x20);
-INCLUDE_BSS(FishData, 0x30);
-mgCMemory MotionBuff;
-mgCMemory ReadStack;
-mgCMemory FishingBuff__2;
-mgCMemory FishStack;
-INCLUDE_BSS(BgmStatus, 0x20);
+/**
+ *
+ * Storage for bait and lure resources.
+ *
+ */
+static mgCMemory EsaStack;
+
+/**
+ *
+ * Storage for fishing sound resources.
+ *
+ */
+static mgCMemory SndStack;
+
+/**
+ *
+ * Camera state used while entering fishing.
+ *
+ */
+static CCameraControl CameraInfo;
+
+/**
+ *
+ * Camera state used while watching the fishing float.
+ *
+ */
+static CCameraControl UkiCameraInfo;
+
+/**
+ *
+ * Storage for external fishing character motion.
+ *
+ */
+static mgCMemory MotionBuff;
+
+/**
+ *
+ * Memory stack used to read fishing resources.
+ *
+ */
+static mgCMemory ReadStack;
+
+/**
+ *
+ * Storage for the fishing subgame resources.
+ *
+ */
+static mgCMemory FishingBuff__2;
+
+/**
+ *
+ * Storage for the hooked fish model.
+ *
+ */
+static mgCMemory FishStack;
 INCLUDE_BSS(at_1681__2, 0x10);
 INCLUDE_BSS(at_1689, 0x10);
