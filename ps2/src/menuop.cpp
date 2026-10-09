@@ -7,6 +7,7 @@
 #include "actionchara.hpp"
 #include "charasetup.hpp"
 #include "dataread.hpp"
+#include "dngmenu.hpp"
 #include "event_func.hpp"
 #include "font.hpp"
 #include "gamedata.hpp"
@@ -337,26 +338,6 @@ static mgCTexture *Tex_SaveFile;
  */
 static float SubSaveTileXY;
 
-extern char               at_2498[];
-extern char               at_2499[];
-extern char               at_2500[];
-extern char               at_2501[];
-extern char               at_2502[];
-extern char               at_2503[];
-extern char               at_2504__2[];
-extern char               at_2505__2[];
-extern char               at_2506__2[];
-extern char               at_2507__2[];
-extern char               at_2508__2[];
-extern char               at_2509__2[];
-extern char               at_2510__2[];
-extern char               at_2511[];
-extern char               at_2512__2[];
-extern char               at_2513[];
-extern char               at_2514[];
-extern char               at_2515[];
-
-extern short              TreeMapSaveNum;
 void                      InitMnOnePictTex();
 
 /**
@@ -1990,7 +1971,7 @@ int CSaveMenuClass::KeyStep(void) {
                         chapter8_start = 0;
                     }
                     if (chapter8_start == 1) {
-                        ExeScript(at_2498);
+                        ExeScript("CLR_SV_INITMSG");
                         step = SAVE_MENU_STEP_NOTICE;
                     } else {
                         open_done = 1;
@@ -1998,7 +1979,7 @@ int CSaveMenuClass::KeyStep(void) {
                 }
             } else if (step == SAVE_MENU_STEP_NOTICE && MenuCommonInfo->CheckPushButton() != 0) {
                 open_done = 1;
-                ExeScript(at_2499);
+                ExeScript("CLR_SV_ENDMSG");
             }
             if (open_done != 0) {
                 CBaseMenuClass::mode = MENU_ASK_MODE_NONE;
@@ -2064,7 +2045,7 @@ int CSaveMenuClass::KeyStep(void) {
                                 MenuSePlay(MENU_SCRIPT_SOUND_CANCEL);
                                 if (save_count <= 0 && chapter8_start == 1) {
                                     step = SAVE_MENU_STEP_NOTICE;
-                                    ExeScript(at_2500);
+                                    ExeScript("CLR_SV_CONFIRM");
                                 } else {
                                     FadeOutMenu(0x28, 0.0f);
                                     CBaseMenuClass::mode = MENU_ASK_MODE_CLOSE;
@@ -2080,7 +2061,7 @@ int CSaveMenuClass::KeyStep(void) {
                         }
                         if (answer == MES_YESNO_NO) {
                             step = SAVE_MENU_STEP_READY;
-                            ExeScript(at_2501);
+                            ExeScript("MES2_CNL");
                         }
                     }
                     break;
@@ -2161,7 +2142,7 @@ int CSaveMenuClass::KeyStep(void) {
                                     card_ok = McCheckMCPs2(card);
                                     switch (ConvertCheckPushButton(pushed)) {
                                         case MENU_PUSH_BUTTON_DECIDE:
-                                            ExeScript(at_2502);
+                                            ExeScript("FILE_OKBTN");
                                             if (McCheckMCPs2(card) == 0) {
                                                 phase = SAVE_LIST_PHASE_SELECT;
                                                 next = SAVE_MENU_PAGE_ERROR;
@@ -2202,7 +2183,7 @@ int CSaveMenuClass::KeyStep(void) {
                                                     phase = SAVE_LIST_PHASE_CONFIRM_LOAD;
                                                     if (mode == SAVE_MENU_MODE_GYORACE_LOAD) {
                                                         if (info->fish_num <= 0) {
-                                                            ExeScript(at_2503);
+                                                            ExeScript("NOT_FISH");
                                                             file_mes->SetMsgVolumeNoOne(file_no);
                                                             phase = SAVE_LIST_PHASE_NOTICE;
                                                             break;
@@ -2220,7 +2201,7 @@ int CSaveMenuClass::KeyStep(void) {
                                                     }
                                                     MenuSePlay(SYSTEM_SE_DECIDE);
                                                 } else {
-                                                    ExeScript(at_2501);
+                                                    ExeScript("MES2_CNL");
                                                 }
                                             }
                                             break;
@@ -2263,7 +2244,7 @@ int CSaveMenuClass::KeyStep(void) {
                             case SAVE_LIST_PHASE_NOTICE:
                                 if (pushed != 0) {
                                     next = SAVE_MENU_PAGE_FILE_LIST;
-                                    ExeScript(at_2501);
+                                    ExeScript("MES2_CNL");
                                 }
                                 break;
                             case SAVE_LIST_PHASE_UNK_7:
@@ -2273,7 +2254,7 @@ int CSaveMenuClass::KeyStep(void) {
                                 StepMenuDl2(dl_base + transferred);
                                 if (step_result != MC_STEP_BUSY) {
                                     if (error->code != MC_ERROR_NONE) {
-                                        printf(at_2504__2, error->code);
+                                        printf("mc_err_info->info : %d\n", error->code);
                                         next = SAVE_MENU_PAGE_ERROR;
                                     } else {
                                         save_count++;
@@ -2300,7 +2281,7 @@ int CSaveMenuClass::KeyStep(void) {
                                 } else if (pushed != 0) {
                                     phase = SAVE_LIST_PHASE_SELECT;
                                     refresh = 1;
-                                    ExeScript(at_2505__2);
+                                    ExeScript("SAVEEND");
                                 }
                                 break;
                             case SAVE_LIST_PHASE_MAKING_DIR:
@@ -2340,7 +2321,7 @@ int CSaveMenuClass::KeyStep(void) {
                                                     MemoryCardPtr->file_no = select;
                                                     MemoryCardPtr->SetFuncNo(MC_FUNC_LOAD);
                                                     phase = SAVE_LIST_PHASE_LOADING;
-                                                    ExeScript(at_2506__2);
+                                                    ExeScript("LOADSTART");
                                                     file_mes->SetMsgVolumeNoOne(slot + 1);
                                                     file_mes->push_button = 0;
                                                     InitMenuDl(dl_tex, MemoryCardPtr->GetSaveDataSize(MC_SIZE_SAVE_FILE));
@@ -2378,7 +2359,7 @@ int CSaveMenuClass::KeyStep(void) {
                             case SAVE_LIST_PHASE_LOAD_DONE:
                                 if (pushed != 0) {
                                     phase = SAVE_LIST_PHASE_CONFIRM_LOAD;
-                                    ExeScript(at_2507__2);
+                                    ExeScript("LOADEND");
                                     CBaseMenuClass::mode = MENU_ASK_MODE_CLOSE;
                                     manager = MemoryCardPtr;
                                     MenuArg.end_code = SAVE_MENU_END_LOAD;
@@ -2556,7 +2537,7 @@ int CSaveMenuClass::KeyStep(void) {
                 file_mes->MakeMsg(0xBE3);
                 file_mes->SetMsgVolumeNoOne(slot + 1);
             } else if (card->free_size <= check_kb) {
-                ExeScript(at_2508__2);
+                ExeScript("SIZE_NOT");
                 int values[2] = {0, 0};
                 values[0] = slot + 1;
                 values[1] = need_kb;
@@ -2575,15 +2556,15 @@ int CSaveMenuClass::KeyStep(void) {
         switch (next) {
             case SAVE_MENU_PAGE_SLOT_SELECT:
                 phase = 0;
-                ExeScript(at_2509__2);
+                ExeScript("NEXT_SLOT");
                 SetMenuReturnMsgCtrl(1);
                 break;
             case SAVE_MENU_PAGE_CARD_INFO:
                 MemoryCardPtr->SetFuncNo(MC_FUNC_SEARCH_TYPE);
                 phase = 0;
-                ExeScript(at_2510__2);
+                ExeScript("GET_CARDINFO");
                 file_mes->push_button = 0;
-                slot_form[slot]->SetAction(at_2511);
+                slot_form[slot]->SetAction("\x8F\xE3\x82\xD6");
                 slot_form[!(bool)slot]->SetRGBACalcParam(3, -8, 0);
                 if (slot == 0) {
                     MenuMesForm[5]->SetRGBACalcParam(3, -8, 0);
@@ -2616,7 +2597,7 @@ int CSaveMenuClass::KeyStep(void) {
                 break;
             case SAVE_MENU_PAGE_FORMAT:
                 phase = SAVE_FORMAT_PHASE_ASK;
-                ExeScript(at_2512__2);
+                ExeScript("FORMAT");
                 if (file_mes != NULL) {
                     file_mes->SetMsgVolumeNoOne(slot + 1);
                 }
@@ -2690,17 +2671,17 @@ int CSaveMenuClass::KeyStep(void) {
     CDC2Mes *help_mes = MenuDCMsg[6];
     if (title_form != NULL) {
         title_mes->StepMsg();
-        title_form->GetPutPosXY(at_2513, form_pos[0][0], form_pos[0][1]);
+        title_form->GetPutPosXY("msgpos", form_pos[0][0], form_pos[0][1]);
         title_mes->SetMovePosCenteringGyou(0, form_pos[0][0], form_pos[0][1]);
-        title_form->GetPutPosXY(at_2514, form_pos[0][0], form_pos[0][1]);
+        title_form->GetPutPosXY("msgpos_sub0", form_pos[0][0], form_pos[0][1]);
         help_mes->SetMovePosCenteringGyou(0, form_pos[0][0], form_pos[0][1]);
     }
     if (slot_form[0] != NULL) {
-        slot_form[0]->GetPutPosXY(at_2515, form_pos[0][0], form_pos[0][1]);
+        slot_form[0]->GetPutPosXY("msg_b", form_pos[0][0], form_pos[0][1]);
         slot1_mes->SetMovePosCenteringGyou(0, form_pos[0][0], form_pos[0][1]);
     }
     if (slot_form[1] != NULL) {
-        slot_form[1]->GetPutPosXY(at_2515, form_pos[0][0], form_pos[0][1]);
+        slot_form[1]->GetPutPosXY("msg_b", form_pos[0][0], form_pos[0][1]);
         slot2_mes->SetMovePosCenteringGyou(0, form_pos[0][0], form_pos[0][1]);
     }
     int scroll_range[2] = {6, 250};
@@ -3664,31 +3645,9 @@ INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuop", at_1106__2__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuop", at_1107__3__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuop", at_1108__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuop", at_1109__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuop", at_2498__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuop", at_2499__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuop", at_2500__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuop", at_2501__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuop", at_2502__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuop", at_2503__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuop", at_2504__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuop", at_2505__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuop", at_2506__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuop", at_2507__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuop", at_2508__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuop", at_2509__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuop", at_2510__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuop", at_2511__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuop", at_2512__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuop", at_2513__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuop", at_2514__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuop", at_2515__DATA);
 
 // Virtual tables (.vtables)
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuop", __vt__11CManualMenu__DATA);
-
-// Small initialised data (.sdata)
-
-// Small uninitialised data (.sbss)
 
 // Uninitialised data (.bss)
 /**

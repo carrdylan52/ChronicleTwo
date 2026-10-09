@@ -268,3 +268,67 @@ data bytes. PAL verification is `SCES_511.90: OK`; complete comparison passes
 relocations. Only menuop's raw object hash changes; all other 148 are unchanged.
 Receipts are `.private/menuop-r0/native-data-{build,objects}.log`,
 `native-data-metrics.json`, and `native-data-object-equality.json`.
+
+## October 9 follow-up: KeyStep literals and remaining markers
+
+All eighteen KeyStep literal markers (`at_2498` through `at_2515`, with their
+existing disambiguating suffixes) and their extern declarations are removed.
+The native function passes the script actions, error format, slot action and
+form-position names as inline literals. `at_2511` contains Shift-JIS bytes
+`8F E3 82 D6` (the slot's upward action); the source spells those exact bytes
+as hexadecimal escapes. The error format retains its trailing newline.
+Repeated cancellation and slot-position strings remain repeated literal uses.
+
+`TreeMapSaveNum` uses the existing declaration in its owning `dngmenu.hpp`;
+menuop's duplicate source extern is removed. No dngmenu source/header or other
+translation unit is changed.
+
+The following nine markers remain, all required by the unchanged guarded
+`MenuManualInit`. There are no remaining KeyStep or BSS markers.
+
+| Retained marker | Payload / declared size | Concrete dependency |
+| --- | --- | --- |
+| `at_1102` | `op_bg.img`, 10 bytes. | The manual-init assembly's `GetPackFile` call supplies the background image to `EnterIMGFile`. |
+| `at_1103__3` | `manumovieworkdm`, 16 bytes. | Its texture allocation names the 256-by-512, eight-bit movie-work texture. |
+| `at_1104__5` | `manumoviework`, 14 bytes. | Its screen-sized movie texture allocation stores `ManualMovieTex`. |
+| `at_1105__2` | `manual.cfg`, 11 bytes. | Its `GetPackFile` call loads the manual form data for `MenuDataAnalyze`. |
+| `at_1106__2` | `op_bg`, 6 bytes. | Its `GetFormInfo` lookup sets `LocalMenuBGForm`. |
+| `at_1107__3` | `clip0`, 6 bytes. | Its `GetFormInfo` lookup sets `LocalMenuClipForm`. |
+| `at_1108` | `manual_com.cfg`, 15 bytes. | Its archive lookup sets the manual menu's script and script size. |
+| `at_1109__2` | `MSG初期化`, 10 bytes in Shift-JIS including NUL. | Its `ExeScript` call runs the manual's initial-message action. |
+| `__vt__11CManualMenu` | Derived-class vtable, 32 bytes. | Its inlined manual constructor stores this vtable; no active native construction emits it. |
+
+The fallback requires these exact retail identities while the only native
+constructor/string-owning function is excluded. Manual string globals,
+hand-written vtables and artificial guard definitions are not introduced.
+The excluded manual init's own source, guard and fallback remain identical to
+lane entry.
+
+Final lane accounting:
+
+| Measure | Lane entry `dd142f10` | Final |
+| --- | ---: | ---: |
+| RODATA markers | 31 | 9 |
+| BSS markers | 14 | 0 |
+| Total markers | 45 | 9 |
+| `matched_data` | 732 | 1,056 |
+| `total_data` | 3,027 | 3,027 |
+| menuop matched / guarded functions | 34 / 2 | 35 / 1 |
+| Global matched / guarded / assembly-only / fuzzy | 6,787 / 76 / 9 / 0 | 6,788 / 75 / 9 / 0 |
+
+Thirty-six assembly-backed data markers are removed. The remaining manual
+markers prevent complete `.rodata` and `.vtables` section credit; the newly
+native KeyStep strings do not increase the aggregate section metric while
+those sections are incomplete. Whole-object checks independently establish
+their exact bytes, extents and resolved references.
+
+Validation receipts are under `.private/menuop-r0/`:
+`literals-build.log`, `final-{build,objects,progress}.log`,
+`final-coverage.txt`, `final-metrics.json`, `final-preservation.json`, and
+`key-literals.json`.
+
+The final full build prints `SCES_511.90: OK`, and all 149 complete object
+checks pass. Menuop remains exact at `0x7DD4` allocated bytes and 2,175
+resolved relocations; its KeyStep body is 6,756 bytes with zero differences.
+The other 148 raw object hashes and the complete guarded manual-init source
+block are unchanged from baseline.
