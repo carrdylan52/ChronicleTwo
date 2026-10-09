@@ -66,3 +66,9 @@ The star draw's existing center and UV aggregate initializers also supply
 After this step: **344 / 27 markers**, **4 / 9726 matched_data**.
 PAL and 149/149 objects pass with unchanged unowned hashes; receipts are
 `.private/nmchr-r3/menuchr-party-zero-{build,objects,progress,metrics}.log`.
+
+The eleven party form/part strings in `SetFormPointInfo` are also inline,
+including the health gauges, model panels, and formatted command/name parts.
+After this step: **333 / 27 markers**, **4 / 9726 matched_data**.
+Validation remains PAL OK and 149/149; receipts are
+`.private/nmchr-r3/menuchr-party-parts-{build,objects,progress,metrics}.log`.

@@ -978,17 +978,6 @@ extern char            *partt_2332[6];
 extern char             at_2363[14];
 extern char             at_2364[15];
 extern char             at_2365[13];
-extern char             at_1171__2[];
-extern char             at_1172[];
-extern char             at_1173__2[];
-extern char             at_1174[];
-extern char             at_1175[];
-extern char             at_1176[];
-extern char             at_1177[];
-extern char             at_1178[];
-extern char             at_1179[];
-extern char             at_1180[];
-extern char             at_1181__2[];
 extern char             at_2912[];
 extern char             at_2913__2[];
 extern char             at_2914[];
@@ -1261,29 +1250,29 @@ void CMenuChrCngMenu::AttachForm() {
     int  i;
     int  j;
 
-    form = (CMenuPosDataForm *) MenuPosData->GetFormInfo(at_1171__2);
+    form = (CMenuPosDataForm *) MenuPosData->GetFormInfo("chr_bg");
 
     if (form != NULL) {
-        gauge_part[0] = form->GetPartInfo(at_1172);
-        gauge_part[1] = form->GetPartInfo(at_1173__2);
-        gauge_part[2] = form->GetPartInfo(at_1174);
+        gauge_part[0] = form->GetPartInfo("hpfill0");
+        gauge_part[1] = form->GetPartInfo("hpfill1");
+        gauge_part[2] = form->GetPartInfo("hpfill2");
     }
 
-    (&npc_mes_form)[0] = (CMenuPosDataForm *) MenuPosData->GetFormInfo(at_1175);
-    (&npc_mes_form)[1] = (CMenuPosDataForm *) MenuPosData->GetFormInfo(at_1176);
-    (&npc_mes_form)[2] = (CMenuPosDataForm *) MenuPosData->GetFormInfo(at_1177);
-    (&npc_mes_form)[3] = (CMenuPosDataForm *) MenuPosData->GetFormInfo(at_1178);
+    (&npc_mes_form)[0] = (CMenuPosDataForm *) MenuPosData->GetFormInfo("polywin");
+    (&npc_mes_form)[1] = (CMenuPosDataForm *) MenuPosData->GetFormInfo("polywin_bg");
+    (&npc_mes_form)[2] = (CMenuPosDataForm *) MenuPosData->GetFormInfo("polychr");
+    (&npc_mes_form)[3] = (CMenuPosDataForm *) MenuPosData->GetFormInfo("polywin_chrhide");
     (&npc_mes_form)[2]->SetActionCharaPtr(NULL, 0, -1);
 
     for (i = 0; i < 5; i++) {
-        sprintf(name, at_1179, i);
+        sprintf(name, "namep%d", i);
         chara_pos[i] = MenuPosData->GetEtcTbl(name);
     }
 
-    point_gauge_part = form->GetPartInfo(at_1180);
+    point_gauge_part = form->GetPartInfo("stbar");
 
     for (j = 0; j < 4; j++) {
-        sprintf(name, at_1181__2, j);
+        sprintf(name, "cmd%d", j);
         cmd_part[j] = form->GetPartInfo(name);
     }
 }
@@ -2730,7 +2719,7 @@ void CMenuChrCngMenu::CalcTex() {
     }
 
     if (npc_mes_form != NULL && 0 < npc_no) {
-        form->GetPutPosXY(at_1175, pos[0], pos[1]);
+        form->GetPutPosXY("polywin", pos[0], pos[1]);
         SetFormPoint(npc_mes_form, pos[0], pos[1]);
         SetFormPoint(npc_sub_form, pos[0], pos[1]);
         SetFormPoint(npc_sub_form2, pos[0], pos[1]);
@@ -7527,17 +7516,6 @@ INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_1132__5__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_1133__4__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_1134__3__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_1135__3__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_1171__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_1172__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_1173__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_1174__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_1175__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_1176__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_1177__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_1178__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_1179__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_1180__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_1181__2__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_1234__2__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_1235__2__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_1236__2__DATA);
