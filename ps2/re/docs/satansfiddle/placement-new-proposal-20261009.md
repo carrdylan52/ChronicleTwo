@@ -480,3 +480,44 @@ defect. Exact source/header/profile proposals remain private because the
 owning header is outside this lane; complete object/PAL acceptance is still
 required. The evidence is in
 [the costume constructor note](../menuchr/placement-new-costume-natural-20261009.md).
+
+## Accepted thirty-one-caller source group
+
+`CMenuInvent::LoadCharaCheck` and `CMap::CreateDrawRect` add two after-inline
+rows and two static constructions. The complete production profile now has
+31 manually promoted callers / 41 eligible constructions across nineteen
+units. LoadCharaCheck uses a direct existing action-character placement
+expression, removing an extra helper inline level, plus two semantic
+SetPosition dependencies with asserted counts two and one. CreateDrawRect
+walks the real typed placed-parts array and constructs the existing list node
+with its genuine sizeof-based reservation. Neither requires a shared-header
+change. The map unit has no guarded functions remaining.
+
+The pn15 clean game build passes PAL verification and 149/149 resolved unit
+checks. The complete inventory unit is 0xff1c bytes with 2,826 relocations;
+map is 0x4728 bytes with 418 relocations. All 306 assembled objects and 149
+source-only base objects outside the nineteen promoted units remain
+byte-identical to baseline. Linked main bytes retain SHA-256
+`a103b0461a88e443a3af684cf150c05b5bd355e5a97ab2dc029c4d872bed0811` and
+loaded memory ends at 0x01f64a00. Whole ELF metadata may differ.
+Explicit context/objdiff refresh followed by host coverage reports
+6,780 matched / 82 guarded / ten assembly-only / zero fuzzy.
+
+Receipts are `.private/pntc/receipts/promote-thirty-one-{clean-build,objects,artifacts,progress,coverage}`
+with logs, explicit zero statuses and the artifact JSON. The owning
+[loader](../inventmn/placement-new-loadchara-night-20261009.md) and
+[visibility-list](../map/placement-new-drawrect-night-20261009.md) notes record
+native symbol sizes, data and nonselected checks, actual policy counts and
+complete acceptance. The smaller two-float loader policy and a three-row
+control produce an identical complete native object. Production patch/image
+semantics are unchanged.
+
+The separate effect-script investigation confirms another conservative normal
+identity limit: a selected caller also contains an implicit script constructor
+with no ordinary mangled witness. Its character-scoped row fails closed before
+producing an object. No constructor name or eligibility is fabricated to bypass
+that rejection; see [the effect-script note](../effscript/placement-new-create-natural-20261009.md).
+The party-change machine-zero control likewise stays guarded because its
+transient cursor store lacks a supported source/default boundary; the legitimate
+initializer alternative retains 26 words. These results do not enlarge the
+accepted promotion count or alter the documented stronger global alternative.
