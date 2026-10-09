@@ -361,7 +361,7 @@ public:
      * @address 0x135180
      * @size 0x20
      */
-    u_char *DirectData(int count);
+    u_long128 *DirectData(int count);
 
     /**
      *

@@ -267,8 +267,8 @@ void mgCDrawPrim::Data(int *data) {
     *(u_long128 *) data = quad;
 }
 
-u_char *mgCDrawPrim::DirectData(int count) {
-    u_char *p = (u_char *) write;
+u_long128 *mgCDrawPrim::DirectData(int count) {
+    u_long128 *p = write;
     write += count;
     return p;
 }
