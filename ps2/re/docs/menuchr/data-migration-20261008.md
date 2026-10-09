@@ -196,3 +196,17 @@ After this group: **146 / 25 markers**, **4 / 9726 matched_data**.
 Each table passes PAL and 149/149 objects independently; receipts are
 `.private/nmchr-r3/menuchr-party-tables-00` through `-04`, with
 `-{build,objects,progress,metrics}.log`, and `party-table-batch.log`.
+
+## Monster numeric tables
+
+Six native definitions supply monster-selection and book background-request
+flags, four badge-grid edge overrides, ten parameter display indices, ten
+growth title message numbers, and fourteen resistance/weakness display masks.
+The zero-valued override array retains the retail initialized section. The
+mask table's fourteen entries are its declared 56-byte payload; its separate
+eight-byte tail remains alignment. Frozen monster-selection code still
+resolves the parameter and title tables under their retail names.
+After this group: **140 / 25 markers**, **4 / 9726 matched_data**.
+Each table independently passes PAL and 149/149 objects; receipts are
+`.private/nmchr-r3/menuchr-monster-tables-00` through `-05`, with
+`-{build,objects,progress,metrics}.log`, and `monster-table-batch.log`.

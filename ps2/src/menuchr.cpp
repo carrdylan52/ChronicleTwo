@@ -498,7 +498,13 @@ static int max_3170[2] = {MOS_SELECT_GRID_COLUMNS, MOS_SELECT_GRID_ROWS};
  */
 static int viewnum_3171[2] = {MOS_SELECT_GRID_COLUMNS, MOS_SELECT_GRID_ROWS};
 
-extern int                overcode_3172[4];
+/**
+ *
+ * Directional edge overrides of the monster badge grid.
+ *
+ */
+static int overcode_3172[4] = {0, 0, 0, 0};
+
 /**
  *
  * Active monster selection menu.
@@ -616,7 +622,13 @@ static mgCTexture        *Tex_MBook;
  */
 static mgCTexture        *Tex_MBg;
 
-extern u32                stand_bit_5472[];
+/**
+ *
+ * Resistance and weakness display bits of each monster property.
+ *
+ */
+static u32 stand_bit_5472[14] = {1, 4, 16, 8, 2, 32, 64, 64, 64, 64, 0, 0, 0, 0};
+
 /**
  *
  * Monster family names displayed by the book for each supported language.
@@ -719,7 +731,13 @@ extern int                tbl_5016[];
 extern u8                 at_5452[64];
 extern u8                 at_5482[32];
 extern char               at_5839[];
-extern int                tbl_5848[];
+/**
+ *
+ * Character slots that require monster book background read requests.
+ *
+ */
+static int tbl_5848[MENU_CHARA_LOAD_MAX] = {1, 1, 1, 1, 1, 1, 1};
+
 extern CDC2Mes           *MenuDCMsg[9];
 extern char               at_1361[];
 extern s8                 convtbl_4621[][MENU_CHARA_LOAD_MAX];
@@ -774,7 +792,13 @@ extern char              *tbl_1233[4];
  */
 static CHR_CNG_CLUT_COLOR *MenuCharaChangeCLUT;
 
-extern int                tbl_3186[MENU_CHARA_LOAD_MAX];
+/**
+ *
+ * Character slots that require monster menu background read requests.
+ *
+ */
+static int tbl_3186[MENU_CHARA_LOAD_MAX] = {1, 0, 0, 0, 0, 1, 0};
+
 extern sceVu0FVECTOR      posdef_3194;
 extern sceVu0FVECTOR      refdef_3195;
 extern char              *tbl_3196[];
@@ -1021,8 +1045,20 @@ extern MenuCommandList  at_3481;
 extern MonsterNameTable at_3511;
 extern MonsterNameTable at_3529;
 extern BadgeInfoValues  at_3554;
-extern s8               convert_table_3430[];
-extern short            ghobitbl_3437[];
+/**
+ *
+ * Reward parameter index of each displayed monster badge.
+ *
+ */
+static s8 convert_table_3430[10] = {8, 4, 9, 2, 3, 5, 0, 6, 7, 1};
+
+/**
+ *
+ * Growth title message number of each monster badge family.
+ *
+ */
+static short ghobitbl_3437[10] = {186, 187, 188, 189, 190, 191, 192, 193, 194, 196};
+
 extern char            *get_stringtbl_3557[4];
 extern char             at_3685[];
 extern char             at_3686[];
@@ -7554,13 +7590,9 @@ INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", partt_2332__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_2629__3__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_2691__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_2696__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", overcode_3172__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", tbl_3186__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", posdef_3194__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", refdef_3195__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", tbl_3196__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", convert_table_3430__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", ghobitbl_3437__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_3481__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", get_stringtbl_3557__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", tbl_3725__DATA);
@@ -7576,8 +7608,6 @@ INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", tbl_5016__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", infomsg_5256__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", putw_5262__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_5452__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", stand_bit_5472__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", tbl_5848__DATA);
 
 // Constants (.rodata)
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_1234__2__DATA);
