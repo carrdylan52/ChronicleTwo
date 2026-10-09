@@ -2611,11 +2611,6 @@ void CMenuTreeMap::MsgInit() {
     }
 }
 
-/**
- * Floor-save bits selected by the dungeon map's debug controls.
- */
-extern int bitTable_2900[12];
-
 int CMenuTreeMap::Step() {
     /**
      * Actions requested by the map, confirmation and material-list keys.
@@ -2719,6 +2714,23 @@ int CMenuTreeMap::Step() {
             switch (key_arg_no) {
                 case 0: {
                     if (menu_debug_flag) {
+                        /**
+                         *
+                         * Floor-save flag toggled by each debug selector row; row zero edits the visit count instead.
+                         *
+                         */
+                        static int bitTable[9] = {
+                            DNG_FLOOR_FLAG_OPEN,
+                            DNG_FLOOR_FLAG_OPEN,
+                            DNG_FLOOR_FLAG_UNK_2,
+                            DNG_FLOOR_FLAG_PRACTICE_CLEAR,
+                            DNG_FLOOR_FLAG_FAST_DESTROY_CLEAR,
+                            DNG_FLOOR_FLAG_FISHING_CLEAR,
+                            DNG_FLOOR_FLAG_TALK_MONSTER,
+                            DNG_FLOOR_FLAG_SPHEDA_CLEAR,
+                            DNG_FLOOR_FLAG_GEOSTONE_FOUND
+                        };
+
                         DNG_FLOOR_SAVE *floor = MenuSaveDataDungeonPtr->GetFloorInfoPtr(dng_no, select_glid->room.floor_id);
                         if (directions & MENU_SELECT_KEY_UP) {
                             --MenuDngDebugFlagSelect;
@@ -2742,10 +2754,10 @@ int CMenuTreeMap::Step() {
                         }
                         if (MenuDngDebugFlagSelect != 0) {
                             if ((buttons & MENU_PUSH_BUTTON_DECIDE) || (directions & MENU_SELECT_KEY_RIGHT)) {
-                                floor->flag |= bitTable_2900[MenuDngDebugFlagSelect];
+                                floor->flag |= bitTable[MenuDngDebugFlagSelect];
                             }
                             if ((buttons & MENU_PUSH_BUTTON_CANCEL) || (directions & MENU_SELECT_KEY_LEFT)) {
-                                floor->flag &= ~bitTable_2900[MenuDngDebugFlagSelect];
+                                floor->flag &= ~bitTable[MenuDngDebugFlagSelect];
                             }
                         }
                         if (buttons & MENU_PUSH_BUTTON_TRIANGLE) {
@@ -3586,34 +3598,11 @@ void mgRect<float>::Set(float new_left, float new_top, float new_right, float ne
     bottom = new_bottom;
 }
 
-// Initialised data (.data)
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dngmenu", bitTable_2900__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dngmenu", at_3141__DATA);
-
 // Constants (.rodata)
 const mgRect<int> dng_light_circle(388, 304, 124, 80);
 const mgRect<int> dngfreemap_num(0, 0, 12, 18);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dngmenu", at_3342__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dngmenu", at_3343__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dngmenu", at_3344__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dngmenu", at_3345__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dngmenu", at_3346__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dngmenu", at_3347__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dngmenu", at_3348__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dngmenu", at_3349__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dngmenu", at_3350__DATA);
-
-// Small initialised data (.sdata)
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dngmenu", at_3043__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dngmenu", at_3164__DATA);
-
-// Small uninitialised data (.sbss)
-INCLUDE_BSS(at_3040__2, 0x4);
-INCLUDE_BSS(at_3145, 0x8);
-INCLUDE_BSS(at_3199, 0x8);
 
 // Uninitialised data (.bss)
 mgRect<float> treemap_root_put;
 mgRect<int>   Floor_Info(0, 238, 256, 18);
 mgCMemory     MenuTreeMapStack;
-INCLUDE_BSS(at_3142, 0x10);
