@@ -1,5 +1,13 @@
 # editmode data migration — October 8, 2026
 
+Current status after the October 9 EditMode promotion: **10 INCLUDE_RODATA
+markers and zero INCLUDE_BSS markers remain**. All ten retained strings
+belong to the still-guarded `LoadEditCursor`. EditMode's two strings are
+inline native literals, and its two zero-vector templates come from its
+existing aggregate initializers. The dated measurements below record the
+earlier data-only migration; the promotion follow-up at the end owns the
+current consumer audit and validation.
+
 Lane dataF starts at validated checkpoint `50d58c2a`, using
 `chronicletwo_dev:sf-63f7a9e` and the canonical MWCC/Satan's Fiddle profile.
 The warm build passes `SCES_511.90: OK` and all 149 complete objects.
@@ -261,3 +269,52 @@ the large draft's own declarations do; those use plain `extern char` (variables
 have no C++ mangling under MWCC, so `extern "C"` added nothing). The
 `at_1961`..`at_1963` declarations, unused since their formats were inlined, are
 removed. The compiled object is unchanged.
+
+
+## EditMode promotion follow-up (2026-10-09)
+
+EditMode is now active exact C++. The consumer audit scans relocation
+records in all 149 target objects and finds no cross-unit reference to
+any of the fourteen previously retained markers. Ten strings have only
+LoadEditCursor consumers and remain assembly-backed. The following four
+pieces have only EditMode consumers and are now native:
+
+| Retail identity | Section/address | Declared bytes | Owning source expression |
+| --- | --- | ---: | --- |
+| `at_1835__2` | `.rodata`, 0x00376688 | 9 | `strcmp(map->Iam(), "CEditMap")` |
+| `at_1836__2` | `.rodata`, 0x003766A0 | 17 | `printf("penki item = %d\n", ...)` |
+| `at_1445__3` | `.bss`, 0x01F58010 | 16 | The analog magnitude's zero-initialized `stick[4]`. |
+| `at_1579__2` | `.bss`, 0x01F58020 | 16 | The part-placement zero-initialized `rot[4]`. |
+
+The string consumers are EditMode HI16/LO16 pairs at offsets
+`+0x70/+0x7C` and `+0x16B8/+0x16C4`. Their old assembly pieces reserve
+24 and 32 bytes, but the inline strings retain only their actual
+9- and 17-byte contents. Existing bounded native-data padding supplies
+the alignment; no padded string or stand-in global is introduced.
+The BSS consumer pairs are `+0x1F4/+0x1FC` and HI16 `+0x1374`,
+LO16 `+0xEF0`; the latter's source initializer is reached through the
+placement loop's latch, so instruction order differs from relocation
+pairing order. Both templates were already emitted by the preceding
+exact native draft. Removing their markers activates those same natural
+aggregate templates without changing the initializers.
+
+The saved-position vector and both drawing counters/guards were already
+native natural function statics; there is no additional EditMode static
+or manual guard to migrate. All other existing data definitions and the
+LoadEditCursor guard are preserved. Marker counts are **12 -> 10 rodata**
+and **2 -> 0 BSS**.
+
+Receipts: `.private/editmode-r0/data-build.log`, `data-objects.log`,
+`data-hash-comparison.json`, `data-coverage.log` and `data-symbols.log`.
+Full-object and PAL checks, rather than aggregate data credit, establish
+matching of the migrated identities and resolved relocations.
+
+Final validation passes **149/149** complete objects and
+`SCES_511.90: OK`; all 148 other units retain all three baseline object
+hashes. LoadEditCursor's guarded block remains byte-for-byte unchanged.
+Refreshed coverage is **55 matched / 1 guarded** for editmode. Removing
+the last BSS markers makes its entire **1120-byte .bss** section native,
+so aggregate matched-data credit rises **805 -> 1925 / 4855 bytes**.
+This credit includes earlier native definitions that had shared the
+partially marker-backed section; it is not the size of the four new
+migrations. The ten cursor strings still prevent full rodata credit.

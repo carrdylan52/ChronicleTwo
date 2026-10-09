@@ -4,7 +4,9 @@
 0/1912 differing words, GLOBAL symbol size 0x1DDC. The production profile
 evaluates its three `mgAngleCmp` quarter-turn tolerances first and asserts
 three matches. `LoadEditCursor` is the unit's only remaining guarded function.
-The dated probes below describe earlier source snapshots; the current result
+EditMode-owned literals and zero-vector templates are native; the only ten
+data markers are LoadEditCursor strings. The dated probes below describe
+earlier source snapshots; the current result
 and its complete-object/PAL validation are in
 [night-20261008.md](night-20261008.md).
 

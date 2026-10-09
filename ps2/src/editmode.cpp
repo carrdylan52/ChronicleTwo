@@ -1439,8 +1439,6 @@ enum EditCursorCapacity {
     EDIT_CURSOR_POLY_MAX = 0x800, /**< Collision polygons held by the cursor queries. */
 };
 
-extern char at_1835__2[];
-extern char at_1836__2[];
 void EditMode(CScene *scene) {
     CPadControl     *pad;
     int              key_right;
@@ -1462,7 +1460,7 @@ void EditMode(CScene *scene) {
     char   *edit_name;
     int     wall_parts;
     map = static_cast<CEditMap *>(scene->GetMap(scene->active_map));
-    if (map != NULL && strcmp(map->Iam(), at_1835__2) == 0 && map != NULL) {
+    if (map != NULL && strcmp(map->Iam(), "CEditMap") == 0 && map != NULL) {
         pad = &PadCtrl;
         if (CursorLockCnt > 0) {
             pad = NULL;
@@ -1968,7 +1966,7 @@ void EditMode(CScene *scene) {
                                         if (EditPartsCmpColor(now_color, def_color)) {
                                             break;
                                         }
-                                        printf(at_1836__2, emGetPenkiItemNo(now_color));
+                                        printf("penki item = %d\n", emGetPenkiItemNo(now_color));
                                         if (PaintEditParts(map, parts_no, color_no, def_color)) {
                                             CursorLockCnt = 30;
                                         }
@@ -3042,9 +3040,3 @@ INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editmode", at_1073__3__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editmode", at_1074__3__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editmode", at_1075__2__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editmode", at_1076__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editmode", at_1835__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editmode", at_1836__2__DATA);
-
-// Uninitialised data (.bss)
-INCLUDE_BSS(at_1445__3, 0x10);
-INCLUDE_BSS(at_1579__2, 0x10);
