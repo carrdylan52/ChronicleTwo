@@ -356,3 +356,25 @@ Receipts under `.private/editloop-r1/`: `sgSysDrawGyoRace.m2c.cpp`,
 `retained-sys/{compare.log,diff-with-zeros.txt}`,
 `attempt-word-metrics.json`, `trial-ledger.tsv`, `final-objects.log` and
 `final-object-hash-diff.json`.
+
+## Race sprite helper forms
+
+The canonical isolated baseline passes the complete gyorace object. Replacing
+DrawRaceSprite with a static inline function that takes the atlas texture and
+nine integer arguments grows sgSysDrawGyoRace's section from 0x1244 to 0x1304;
+1,136/1,172 relocation-masked words differ within the padded retail extent.
+An inline function reading the file-static wind_tex directly still grows the
+section to 0x1274 and differs in 640/1,172 words. Both fail the complete object
+check, including its local-static data identities. The first stack-frame and
+rectangle-slot instructions already differ, so neither form preserves the
+retail call-site layout. No inline-depth pragma or other steering is added.
+
+The macro remains, with an explicit texture argument at every call. It no
+longer captures wind_tex from the caller's scope. This form passes the full
+isolated object check (0x4FF8 bytes, 1,114 resolved relocations), PAL, and all
+149 production objects. TEX_SystemEffect1 already comes from maintex.hpp;
+the duplicate source extern was removed by 43560dbd before this checkpoint.
+
+Probes: .private/fixes-r0/probes/gyorace-{baseline,inline,inline-global,macro-texture}/
+(compile.log, objects.log, and score.log for the two inline forms).
+Production receipts: .private/fixes-r0/gyorace-final-{build,objects}.log.
