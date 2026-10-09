@@ -31,6 +31,16 @@ its marker and existing extern remain until tooling removes those inferred
 library references. No exported replacement or raw-offset workaround is
 introduced.
 
+A follow-up copied object with the native file-static aligned workspace
+passes every byte and all 160 resolved relocations
+(`mg-texture-workspace-proposal-objects.log`). Its canonical link still
+reports only the inferred external library dependency, as expected
+(`mg-texture-workspace-proposal-input-build.log`). The exact source
+follow-up is `.private/proposals/dataE-mg_texture-after-tooling.patch`; it
+is not applied to the accepted source. The workspace is restored afterward
+and all 149 objects plus the full PAL pass
+(`mg-texture-workspace-proposal-source-restored`).
+
 Final: 0 rodata / 1 BSS markers; matched_data
 540/66076 after the standard objdiff/progress refresh.
 Every accepted step passes the full PAL build (`SCES_511.90: OK`) and
