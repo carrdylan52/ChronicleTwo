@@ -2597,11 +2597,11 @@ int GetLocalFlag(int index) {
         return 0;
     }
 
-    in_range = word < event_local_num;
+    in_range = word < EVENT_LOCAL_NUM;
 
     if (index < 0) {
         word = (index + 0x1F) >> 5;
-        in_range = word < event_local_num;
+        in_range = word < EVENT_LOCAL_NUM;
     }
 
     bit = index & 0x1F;
@@ -2634,11 +2634,11 @@ int SetLocalFlag(int index, int value) {
         return 0;
     }
 
-    in_range = word < event_local_num;
+    in_range = word < EVENT_LOCAL_NUM;
 
     if (index < 0) {
         word = (index + 0x1F) >> 5;
-        in_range = word < event_local_num;
+        in_range = word < EVENT_LOCAL_NUM;
     }
 
     bit = index & 0x1F;
@@ -2665,7 +2665,7 @@ int SetLocalFlag(int index, int value) {
 }
 
 int GetLocalCnt(int index) {
-    if (index < 0 || index >= event_local_num) {
+    if (index < 0 || index >= EVENT_LOCAL_NUM) {
         return -1;
     }
 
@@ -2673,7 +2673,7 @@ int GetLocalCnt(int index) {
 }
 
 int SetLocalCnt(int index, int value) {
-    if (index < 0 || index >= event_local_num) {
+    if (index < 0 || index >= EVENT_LOCAL_NUM) {
         return 0;
     }
 
@@ -2684,7 +2684,7 @@ int SetLocalCnt(int index, int value) {
 int GetLocalCnt2(int value) {
     int i;
 
-    for (i = 0; i < event_local_num; i++) {
+    for (i = 0; i < EVENT_LOCAL_NUM; i++) {
         if (value == EventLocalCnt[i]) {
             return i;
         }
@@ -2696,7 +2696,7 @@ int GetLocalCnt2(int value) {
 void InitLocalCnt() {
     int i;
 
-    for (i = 0; i < event_local_num; i++) {
+    for (i = 0; i < EVENT_LOCAL_NUM; i++) {
         EventLocalCnt[i] = 0;
     }
 }
@@ -2747,11 +2747,11 @@ void EventSeqInit() {
         handle->func_point = 0;
     }
 
-    CameraSeq.Initialize(cmr_seq_tbl, seq_node_num);
+    CameraSeq.Initialize(cmr_seq_tbl, SEQ_NODE_NUM);
     int j;
 
     for (j = 0; j < object_seq_num; j++) {
-        ObjectSeq[j].Initialize(obj_seq_tbl, seq_node_num);
+        ObjectSeq[j].Initialize(obj_seq_tbl, SEQ_NODE_NUM);
     }
 
     int k;
@@ -2793,12 +2793,12 @@ void EdEventInit() {
     InitWorldCoord();
     EventScene->map_event_no = 0;
     PakuAnimEohNo = -1;
-    memset(PakuAnimName, 0, paku_name_size);
-    memset(PakuAnimName2, 0, paku_name_size);
+    memset(PakuAnimName, 0, PAKU_NAME_SIZE);
+    memset(PakuAnimName2, 0, PAKU_NAME_SIZE);
     PakuMotionEohNo = -1;
-    memset(PakuMotionName, 0, paku_name_size);
+    memset(PakuMotionName, 0, PAKU_NAME_SIZE);
     PakuMotionType = 0;
-    memset(PakuMotionName2, 0, paku_name_size);
+    memset(PakuMotionName2, 0, PAKU_NAME_SIZE);
     PakuMotionType2 = 0;
     EdEventInfoCommandInitialize();
     EventSeqInit();
@@ -3096,10 +3096,10 @@ int EdEventFinish() {
     int        j;
     int        k;
 
-    CameraSeq.Initialize(cmr_seq_tbl, seq_node_num);
+    CameraSeq.Initialize(cmr_seq_tbl, SEQ_NODE_NUM);
 
     for (i = 0; i < object_seq_num; i++) {
-        ObjectSeq[i].Initialize(obj_seq_tbl, seq_node_num);
+        ObjectSeq[i].Initialize(obj_seq_tbl, SEQ_NODE_NUM);
     }
 
     for (j = 0; j < event_sprite2_num; j++) {
@@ -3153,12 +3153,12 @@ int EdEventFinish() {
     }
 
     PakuAnimEohNo = -1;
-    memset(PakuAnimName, 0, paku_name_size);
-    memset(PakuAnimName2, 0, paku_name_size);
+    memset(PakuAnimName, 0, PAKU_NAME_SIZE);
+    memset(PakuAnimName2, 0, PAKU_NAME_SIZE);
     PakuMotionEohNo = -1;
-    memset(PakuMotionName, 0, paku_name_size);
+    memset(PakuMotionName, 0, PAKU_NAME_SIZE);
     PakuMotionType = 0;
-    memset(PakuMotionName2, 0, paku_name_size);
+    memset(PakuMotionName2, 0, PAKU_NAME_SIZE);
     PakuMotionType2 = 0;
     InitWorldCoord();
     EdEventInfo.skip_state = 0;
@@ -3272,7 +3272,7 @@ void EdEventMapInit() {
         message->Preset(5);
     }
 
-    for (i = 0; i < event_local_num; i++) {
+    for (i = 0; i < EVENT_LOCAL_NUM; i++) {
         EventLocalFlag[i] = 0;
     }
 
@@ -18114,9 +18114,9 @@ CEohMother         EventObjHandleMother;
 
 CEventSpriteMother esMother;
 
-u32 EventLocalFlag[event_local_num];
+u32 EventLocalFlag[EVENT_LOCAL_NUM];
 
-int EventLocalCnt[event_local_num];
+int EventLocalCnt[EVENT_LOCAL_NUM];
 
 CRain   EventRain;
 
@@ -18138,13 +18138,13 @@ HIT_EFFECT_PARTICLE Hit_para[EVENT_HIT_EFFECT_NUM][EVENT_HIT_PARTICLE_NUM];
 
 CHitEffectImage HitEffect[5];
 
-char PakuAnimName[paku_name_size];
+char PakuAnimName[PAKU_NAME_SIZE];
 
-char PakuAnimName2[paku_name_size];
+char PakuAnimName2[PAKU_NAME_SIZE];
 
-char PakuMotionName[paku_name_size];
+char PakuMotionName[PAKU_NAME_SIZE];
 
-char PakuMotionName2[paku_name_size];
+char PakuMotionName2[PAKU_NAME_SIZE];
 
 mgCMemory BuffEventSnd;
 
@@ -18152,11 +18152,11 @@ mgCMemory   BuffEventSnd2;
 
 CDngFreeMap EventDngMap;
 
-_SEN_CMR_SEQ cmr_seq_tbl[seq_node_num];
+_SEN_CMR_SEQ cmr_seq_tbl[SEQ_NODE_NUM];
 
 CSceneCmrSeq CameraSeq;
 
-_SEN_OBJ_SEQ obj_seq_tbl[seq_node_num];
+_SEN_OBJ_SEQ obj_seq_tbl[SEQ_NODE_NUM];
 
 CSceneObjSeq    ObjectSeq[32];
 

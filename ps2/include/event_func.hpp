@@ -38,9 +38,9 @@ class ClsMes;
  *
  */
 enum EventStorageExtent {
-    event_local_num = 0x40, /**< Words in each event-local flag and counter array. */
-    paku_name_size = 0x40,  /**< Bytes in each mouth-animation or motion name. */
-    seq_node_num = 0x100,   /**< Command entries in each event sequence table. */
+    EVENT_LOCAL_NUM = 0x40, /**< Words in each event-local flag and counter array. */
+    PAKU_NAME_SIZE = 0x40,  /**< Bytes in each mouth-animation or motion name. */
+    SEQ_NODE_NUM = 0x100,   /**< Command entries in each event sequence table. */
 };
 
 /**
@@ -1788,14 +1788,14 @@ extern CEventSpriteMother esMother;
  * Flags local to the running event, 32 to a word.
  *
  */
-extern u32 EventLocalFlag[event_local_num];
+extern u32 EventLocalFlag[EVENT_LOCAL_NUM];
 
 /**
  *
  * Counters local to the running event.
  *
  */
-extern int EventLocalCnt[event_local_num];
+extern int EventLocalCnt[EVENT_LOCAL_NUM];
 
 /**
  *
@@ -1823,42 +1823,42 @@ extern CHitEffectImage HitEffect[EVENT_HIT_EFFECT_NUM];
  * Name of the texture animation that follows the voice stream's mouth movement.
  *
  */
-extern char PakuAnimName[paku_name_size];
+extern char PakuAnimName[PAKU_NAME_SIZE];
 
 /**
  *
  * Name of the second texture animation that follows the voice stream's mouth movement.
  *
  */
-extern char PakuAnimName2[paku_name_size];
+extern char PakuAnimName2[PAKU_NAME_SIZE];
 
 /**
  *
  * Name of the motion that follows the voice stream's mouth movement.
  *
  */
-extern char PakuMotionName[paku_name_size];
+extern char PakuMotionName[PAKU_NAME_SIZE];
 
 /**
  *
  * Name of the second motion that follows the voice stream's mouth movement.
  *
  */
-extern char PakuMotionName2[paku_name_size];
+extern char PakuMotionName2[PAKU_NAME_SIZE];
 
 /**
  *
  * Command entries of the event's camera sequence.
  *
  */
-extern _SEN_CMR_SEQ cmr_seq_tbl[seq_node_num];
+extern _SEN_CMR_SEQ cmr_seq_tbl[SEQ_NODE_NUM];
 
 /**
  *
  * Command entries shared by the event's object sequences.
  *
  */
-extern _SEN_OBJ_SEQ obj_seq_tbl[seq_node_num];
+extern _SEN_OBJ_SEQ obj_seq_tbl[SEQ_NODE_NUM];
 
 /**
  *

@@ -310,7 +310,7 @@ directories under `.private/placenew-midday/probes/`.
 ## Shared native storage extents
 
 EventStorageExtent exposes the existing source extents in event_func.hpp:
-event_local_num is 0x40 words, paku_name_size is 0x40 bytes, and seq_node_num
+EVENT_LOCAL_NUM is 0x40 words, PAKU_NAME_SIZE is 0x40 bytes, and SEQ_NODE_NUM
 is 0x100 command entries. EventLocalFlag/EventLocalCnt, the four mouth-name
 arrays, and cmr_seq_tbl/obj_seq_tbl use the same identifiers in declarations
 and definitions. The header enum replaces only the three source-local const
