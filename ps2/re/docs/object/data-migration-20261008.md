@@ -51,3 +51,27 @@ Receipts: `.private/dtool-r4/vtable-transfer-proof.py`,
 the verified donor transfer and the dataE/dataF candidates and reports
 `SCES_511.90: OK`. Accepted source markers remain **1 ROData / 0 BSS** and
 matched_data remains **0 / 244**.
+
+
+## Round-5 verified native base table
+
+The general native-table importer and its CMake dependency now replace the
+base-table marker. The raw source-only `map.cpp` producer emits the exact
+116-byte `__vt__7CObject` table. Both native constructor consumers match
+their complete retail functions and resolved relocations. The importer
+checks the declared extent, whole-section storage, alignment, callback
+identities, real relocation metadata and complete initializer before
+copying only data. Retained markers remain authoritative; no table
+initializer, constructor, or special member is written by hand.
+
+Linked and comparison objects use the same verified donor. Producer bytes,
+source provenance and the manifest participate in comparison cache inputs.
+Every recipient code byte and serialized code relocation is preserved.
+
+Markers: RODATA **1 → 0**, BSS **0 → 0**. Refreshed matched data:
+**0 → 244 / 244**. Only `object.cpp.o` changes relative to the preceding
+accepted step. PAL is `SCES_511.90: OK`, all **149/149** objects pass, and
+code metrics remain **6,780 functions / 1,854,796 bytes**. No function is
+promoted. Receipts: `.private/dtool-r5/object-{build,objects,tests,metrics}.log`.
+The pre-fix failure is `.private/dtool-r5/vtable-before.log`; cache regression
+receipts are `vtable-tests-{before,after}.log` in the same directory.
