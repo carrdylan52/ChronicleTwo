@@ -7,6 +7,7 @@
 #include "actionchara.hpp"
 #include "cameracontrol.hpp"
 #include "dataread.hpp"
+#include "dng_effect.hpp"
 #include "gyorace.hpp"
 #include "gyoracesim.hpp"
 #include "mainloop.hpp"
@@ -42,23 +43,22 @@ union RaceVector {
 };
 
 extern RaceVector  at_1765__2;
-extern RaceVector  at_1766__3;
 extern RaceVector  at_1775;
 extern RaceVector  at_1776;
-extern float       ras_off_1762;
-extern signed char init_1763;
-
-struct CHitEffectImage;
+/**
+ *
+ * Angular phase of the underwater raster effect.
+ *
+ */
+static float ras_off_1762;
 
 /**
  *
- * Texture flags stored in a race frame's image data.
+ * Whether the underwater raster phase has been initialized.
  *
  */
+static signed char init_1763;
 
-extern int              EffectTexb;
-extern u_char           water_cam;
-extern CHitEffectImage *battle_effect;
 extern mgCMemory        BuffTextureData;
 
 /**
@@ -75,19 +75,6 @@ static mgCTexture *wind_tex;
  */
 static int WindowTexb;
 
-#ifndef NONMATCHING
-extern unsigned int gyore_snd_id;
-extern int          hero_no;
-extern int          cam_no;
-extern int          old_cam_no;
-extern float        win_alpha;
-extern int          rank_count;
-extern int          mes_count;
-extern int          jyunkai_flg;
-extern int          fish_rank[6];
-extern int          old_fish_rank[6];
-#endif
-
 #ifdef NONMATCHING
 #include <cstring>
 
@@ -97,42 +84,277 @@ extern int          old_fish_rank[6];
 #include "userdata.hpp"
 #include "dng_main.hpp"
 
-static unsigned int     gyore_snd_id;
-float                   race_cnt;
-int                     race_proc_cnt;
-int                     race_mode;
-int                     time_max;
-static int              rank_count;
-static mgCTexture      *EffectTex;
-static mgCTexture      *EffectTex2;
-static int              hero_no;
-static u_char           water_cam;
-static int              cam_no;
-static float            win_alpha;
-static int              effect_cnt;
-static int              mes_count;
-static int              jyunkai_flg;
-static int              hantei_flg;
-static int              goal_cnt;
-static CHitEffectImage *battle_effect;
-static BattleEffectPrim (*battle_EffectPara)[32];
-int                   camera_id;
-int                   race_rank[2];
-ClsMes               *gyo_mes;
-static int            CharaTexb;
-static int            EffectTexb;
-static float          raster_offset;
-static bool           raster_initialized;
-GYORACE_RESULT        fish_game_data[6];
-grRACE_INFO           RaceInfo;
-grRACE_PROGRESS       old_prog[6];
-static int            fish_rank[6];
-static int            old_fish_rank[6];
-static CGameDataUsed *game_data[8];
-static float          old_ambient[4];
-GYORACE_FISH_INF      fish_inf[6];
-static int            old_cam_no = -1;
 #endif
+
+/**
+ *
+ * Character model files selected for each racing fish species.
+ *
+ */
+char *fish_name[18] = {
+    "f1a.chr",
+    "f2a.chr",
+    "f3a.chr",
+    "f4a.chr",
+    "f5a.chr",
+    "f6a.chr",
+    "f7a.chr",
+    "f8a.chr",
+    "f10a.chr",
+    "f11a.chr",
+    "f12a.chr",
+    "f13a.chr",
+    "f14a.chr",
+    "f15a.chr",
+    "f16a.chr",
+    "f17a.chr",
+    "f18a.chr",
+    "f19a.chr",
+};
+
+/**
+ *
+ * Fixed race camera positions around the fish course.
+ *
+ */
+sceVu0FVECTOR cam_pos[5] = {
+    {275.0f, 58.0f, -167.0f, 1.0f},
+    {255.0f, -18.0f, 267.0f, 1.0f},
+    {66.0f, 100.0f, -666.0f, 1.0f},
+    {-180.0f, -18.0f, 100.0f, 1.0f},
+    {-66.0f, 80.0f, 666.0f, 1.0f},
+};
+
+/**
+ *
+ * Previously selected fixed race camera, or -1 before selection.
+ *
+ */
+static int old_cam_no = -1;
+
+/**
+ *
+ * Sound identifier used for fish-race effects.
+ *
+ */
+static unsigned int gyore_snd_id;
+
+/**
+ *
+ * Current replay time of the simulated fish race.
+ *
+ */
+float race_cnt;
+
+/**
+ *
+ * Frame counter for the current race stage.
+ *
+ */
+int race_proc_cnt;
+
+/**
+ *
+ * Current fish-race stage.
+ *
+ */
+int race_mode;
+
+/**
+ *
+ * Number of steps produced by the race simulation.
+ *
+ */
+int time_max;
+
+/**
+ *
+ * Rank being announced by the race commentary.
+ *
+ */
+static int rank_count;
+
+/**
+ *
+ * Primary texture of the fish-race splash effects.
+ *
+ */
+static mgCTexture *EffectTex;
+
+/**
+ *
+ * Secondary texture of the fish-race splash effects.
+ *
+ */
+static mgCTexture *EffectTex2;
+
+/**
+ *
+ * Index of the player's entrant in the fish race.
+ *
+ */
+static int hero_no;
+
+/**
+ *
+ * Whether the race camera is underwater.
+ *
+ */
+static u_char water_cam;
+
+/**
+ *
+ * Fixed race camera point currently selected.
+ *
+ */
+static int cam_no;
+
+/**
+ *
+ * Opacity of the race display window.
+ *
+ */
+static float win_alpha;
+
+/**
+ *
+ * Next slot in the race splash-effect ring.
+ *
+ */
+static int effect_cnt;
+
+/**
+ *
+ * Frames remaining before race commentary can advance.
+ *
+ */
+static int mes_count;
+
+/**
+ *
+ * Whether battle commentary has been scanned during the current commentary cycle.
+ *
+ */
+static int jyunkai_flg;
+
+/**
+ *
+ * Race initialization flag reset before playback.
+ *
+ */
+static int hantei_flg;
+
+/**
+ *
+ * Race initialization counter reset before playback.
+ *
+ */
+static int goal_cnt;
+
+/**
+ *
+ * Race splash effects used when fish battle.
+ *
+ */
+static CHitEffectImage *battle_effect;
+
+/**
+ *
+ * Primitive work blocks used by each race splash effect.
+ *
+ */
+static BattleEffectPrim (*battle_EffectPara)[32];
+
+/**
+ *
+ * Scene camera identifier assigned to the fish race.
+ *
+ */
+int camera_id;
+
+/**
+ *
+ * Race class and race number selected for this run.
+ *
+ */
+int race_rank[2];
+
+/**
+ *
+ * Message window used for fish-race commentary.
+ *
+ */
+ClsMes *gyo_mes;
+
+/**
+ *
+ * First texture block allocated for the racing fish.
+ *
+ */
+static int CharaTexb;
+
+/**
+ *
+ * Texture block allocated for the race splash effects.
+ *
+ */
+static int EffectTexb;
+
+/**
+ *
+ * Ordered results retained from the most recent fish race.
+ *
+ */
+GYORACE_RESULT fish_game_data[6];
+
+/**
+ *
+ * Entrants and recorded progress of the simulated race.
+ *
+ */
+grRACE_INFO RaceInfo;
+
+/**
+ *
+ * Previous displayed progress of every racing fish.
+ *
+ */
+grRACE_PROGRESS old_prog[6];
+
+/**
+ *
+ * Entrant indices ordered by current place.
+ *
+ */
+static int fish_rank[6];
+
+/**
+ *
+ * Entrant order from the previous race update.
+ *
+ */
+static int old_fish_rank[6];
+
+/**
+ *
+ * Game inventory records selected for the race entrants.
+ *
+ */
+static CGameDataUsed *game_data[8];
+
+/**
+ *
+ * Scene ambient colour saved before entering the fish race.
+ *
+ */
+static float old_ambient[4];
+
+/**
+ *
+ * Display, lap and result state of every racing fish.
+ *
+ */
+GYORACE_FISH_INF fish_inf[6];
 
 // Code (.text)
 #ifdef NONMATCHING
@@ -1303,35 +1525,14 @@ int Jikkyou(SubGameInfo *info) {
 // Static initialiser (.init)
 
 // Initialised data (.data)
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/gyorace", fish_name__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/gyorace", cam_pos__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/gyorace", at_1027__4__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/gyorace", at_1028__9__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/gyorace", at_1481__4__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/gyorace", at_1524__2__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/gyorace", at_1547__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/gyorace", at_1548__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/gyorace", at_1766__3__DATA);
 
 // Constants (.rodata)
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/gyorace", at_903__4__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/gyorace", at_904__6__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/gyorace", at_905__6__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/gyorace", at_906__6__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/gyorace", at_907__5__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/gyorace", at_908__5__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/gyorace", at_909__5__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/gyorace", at_910__5__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/gyorace", at_911__4__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/gyorace", at_912__5__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/gyorace", at_913__4__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/gyorace", at_914__5__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/gyorace", at_915__4__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/gyorace", at_916__5__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/gyorace", at_917__7__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/gyorace", at_918__5__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/gyorace", at_919__7__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/gyorace", at_920__6__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/gyorace", at_1373__3__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/gyorace", at_1374__2__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/gyorace", at_1375__2__DATA);
@@ -1356,55 +1557,19 @@ INCLUDE_RODATA("ps2/asm/pal/nonmatchings/gyorace", at_1703__DATA);
 // Static initialiser table (.ctor)
 
 // Small initialised data (.sdata)
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/gyorace", old_cam_no__DATA);
 
 // Small uninitialised data (.sbss)
 #ifndef NONMATCHING
-INCLUDE_BSS(gyore_snd_id, 0x4);
-INCLUDE_BSS(race_cnt, 0x4);
-INCLUDE_BSS(race_proc_cnt, 0x4);
-INCLUDE_BSS(race_mode, 0x4);
-INCLUDE_BSS(time_max, 0x4);
-INCLUDE_BSS(rank_count, 0x4);
-INCLUDE_BSS(EffectTex, 0x4);
-INCLUDE_BSS(EffectTex2, 0x4);
-INCLUDE_BSS(hero_no, 0x4);
-INCLUDE_BSS(water_cam, 0x4);
-INCLUDE_BSS(cam_no, 0x4);
-INCLUDE_BSS(win_alpha, 0x4);
-INCLUDE_BSS(effect_cnt, 0x4);
-INCLUDE_BSS(mes_count, 0x4);
-INCLUDE_BSS(jyunkai_flg, 0x4);
-INCLUDE_BSS(hantei_flg, 0x4);
-INCLUDE_BSS(goal_cnt, 0x4);
-INCLUDE_BSS(battle_effect, 0x4);
-INCLUDE_BSS(battle_EffectPara, 0x4);
-INCLUDE_BSS(camera_id, 0x8);
-INCLUDE_BSS(race_rank, 0x8);
-INCLUDE_BSS(gyo_mes, 0x4);
-INCLUDE_BSS(CharaTexb, 0x4);
-INCLUDE_BSS(EffectTexb, 0x4);
-INCLUDE_BSS(ras_off_1762, 0x4);
-INCLUDE_BSS(init_1763, 0x4);
 
 // Uninitialised data (.bss)
-INCLUDE_BSS(fish_game_data, 0xE0);
-INCLUDE_BSS(RaceInfo, 0x1E0);
-INCLUDE_BSS(old_prog, 0x90);
-INCLUDE_BSS(fish_rank, 0x1C);
 INCLUDE_BSS(D_01F5971C, 0x4);
-INCLUDE_BSS(old_fish_rank, 0x20);
-INCLUDE_BSS(game_data, 0x20);
-INCLUDE_BSS(old_ambient, 0x10);
 #endif
 mgCMemory        BuffTextureData;
 static mgCMemory BuffWorkData;
 mgCCamera        camera0(8.0f);
 #ifndef NONMATCHING
-INCLUDE_BSS(fish_inf, 0x110);
 INCLUDE_BSS(at_1765__2, 0x10);
 INCLUDE_BSS(at_1775, 0x10);
 INCLUDE_BSS(at_1776, 0x10);
-INCLUDE_BSS(lap_inf_1798, 0x30);
 INCLUDE_BSS(lap_inf2_1799, 0x50);
 #endif
