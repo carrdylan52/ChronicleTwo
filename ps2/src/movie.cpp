@@ -281,7 +281,7 @@ void CMovie::Play(char *path) {
 
     if (is_playing == 0) {
         TexName = path;
-        param.entry = (void (*)(void *)) defMain;
+        param.entry = defMain;
         param.stack = def_stack;
         param.stackSize = 0x800;
         param.initPriority = 10;
@@ -298,7 +298,7 @@ void CMovie::Play(char *path) {
         video_thread = CreateThread(&param);
         StartThread(video_thread, &videoDec);
         stepMainExitFlag = 0;
-        param.entry = (void (*)(void *)) stepMain;
+        param.entry = stepMain;
         param.stack = step_stack;
         param.stackSize = 0x4000;
         param.initPriority = 10;
@@ -469,7 +469,7 @@ int CMovie::videoDecFlush(VideoDec *dec) {
     return 1;
 }
 
-int defMain(void *) {
+void defMain(void *) {
     for (;;) {
         switchThread();
     }

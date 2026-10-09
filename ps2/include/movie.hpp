@@ -540,7 +540,7 @@ void videoDecMain(void *arg);
  * @address 0x0029d0c0
  * @size 0x18
  */
-int defMain(void *arg);
+void defMain(void *arg);
 
 /**
  *
