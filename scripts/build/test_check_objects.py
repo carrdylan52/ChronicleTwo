@@ -29,7 +29,7 @@ def test_final_datum_padding():
     assert not is_retail_tail_padding(context(bytes(4), declared_size=8), "datum", ".sdata", 0x1000, 0x1008, 4, 0x1004)
     assert not is_retail_tail_padding(context(bytes(4), relocations={0x1006: 2}),
                                       "datum", ".sdata", 0x1000, 0x1008, 4, 0x1004)
-    assert is_retail_tail_padding(context(bytes(16)), "datum", ".sdata", 0x1000, 0x1014, 4, 0x1004)
+    assert not is_retail_tail_padding(context(bytes(16)), "datum", ".sdata", 0x1000, 0x1014, 4, 0x1004)
 
 
 def test_script_supplies_large_final_tail():
