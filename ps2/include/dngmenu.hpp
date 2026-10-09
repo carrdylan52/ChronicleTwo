@@ -46,6 +46,17 @@ enum DNGMAP_FADE {
 
 /**
  *
+ * Orders in which a map route reads a cell's interpolation points.
+ *
+ */
+enum DNGMAP_PATH_ORDER {
+    DNGMAP_PATH_NONE = -1,   /**< The cell has no interpolation path in this direction. */
+    DNGMAP_PATH_FORWARD = 0, /**< Reads a cell's interpolation points from first to last. */
+    DNGMAP_PATH_REVERSE = 1, /**< Reads a cell's interpolation points from last to first. */
+};
+
+/**
+ *
  * Sizes of the floor map's tables.
  *
  */

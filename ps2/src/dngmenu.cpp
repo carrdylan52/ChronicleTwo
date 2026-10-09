@@ -306,452 +306,6 @@ static s8 init_2837;
 
 /**
  *
- * Interpolation points and terminator for passage shape 0.
- *
- */
-static short RootHokanTable0_2230[21][2] = {
-    {14, -38},
-    {13, -37},
-    {12, -36},
-    {11, -35},
-    {10, -34},
-    {9, -33},
-    {9, -32},
-    {8, -31},
-    {7, -30},
-    {6, -29},
-    {5, -28},
-    {5, -27},
-    {4, -26},
-    {3, -25},
-    {2, -24},
-    {1, -23},
-    {1, -22},
-    {0, -21},
-    {0, -20},
-    {-1, -19},
-    {-1, -1}
-};
-
-/**
- *
- * Interpolation points and terminator for passage shape 1.
- *
- */
-static short RootHokanTable1_2231[21][2] = {
-    {-20, -28},
-    {-17, -28},
-    {-14, -28},
-    {-12, -28},
-    {-9, -28},
-    {-7, -28},
-    {-4, -28},
-    {-1, -28},
-    {0, -28},
-    {3, -28},
-    {5, -28},
-    {8, -28},
-    {11, -28},
-    {13, -28},
-    {16, -28},
-    {18, -28},
-    {21, -28},
-    {24, -28},
-    {26, -28},
-    {29, -28},
-    {-1, -1}
-};
-
-/**
- *
- * Interpolation points and terminator for passage shape 2.
- *
- */
-static short RootHokanTable2_2232[21][2] = {
-    {-1, -1},
-    {-1, -19},
-    {0, -20},
-    {0, -21},
-    {1, -22},
-    {1, -23},
-    {2, -24},
-    {3, -25},
-    {4, -26},
-    {5, -27},
-    {5, -28},
-    {8, -28},
-    {11, -28},
-    {13, -28},
-    {16, -28},
-    {18, -28},
-    {21, -28},
-    {24, -28},
-    {26, -28},
-    {29, -28},
-    {-1, -1}
-};
-
-/**
- *
- * Interpolation points and terminator for passage shape 3.
- *
- */
-static short RootHokanTable3_2233[21][2] = {
-    {-20, -28},
-    {-17, -28},
-    {-14, -28},
-    {-12, -28},
-    {-9, -28},
-    {-7, -28},
-    {-4, -28},
-    {-1, -28},
-    {0, -28},
-    {3, -28},
-    {5, -28},
-    {5, -27},
-    {4, -26},
-    {3, -25},
-    {2, -24},
-    {1, -23},
-    {1, -22},
-    {0, -21},
-    {0, -20},
-    {-1, -19},
-    {-1, -1}
-};
-
-/**
- *
- * Interpolation points and terminator for passage shape 4.
- *
- */
-static short RootHokanTable4_2234[21][2] = {
-    {14, -38},
-    {13, -37},
-    {12, -36},
-    {11, -35},
-    {10, -34},
-    {9, -33},
-    {9, -32},
-    {8, -31},
-    {7, -30},
-    {6, -29},
-    {5, -28},
-    {8, -28},
-    {11, -28},
-    {13, -28},
-    {16, -28},
-    {18, -28},
-    {21, -28},
-    {24, -28},
-    {26, -28},
-    {29, -28},
-    {-1, -1}
-};
-
-/**
- *
- * Interpolation points and terminator for passage shape 5.
- *
- */
-static short RootHokanTable5_2235[21][2] = {
-    {-20, -28},
-    {-17, -28},
-    {-14, -28},
-    {-12, -28},
-    {-9, -28},
-    {-7, -28},
-    {-4, -28},
-    {-1, -28},
-    {0, -28},
-    {3, -28},
-    {5, -28},
-    {6, -29},
-    {7, -30},
-    {8, -31},
-    {9, -32},
-    {9, -33},
-    {10, -34},
-    {11, -35},
-    {12, -36},
-    {13, -37},
-    {-1, -1}
-};
-
-/**
- *
- * Interpolation points and terminator for passage shape 6.
- *
- */
-static short RootHokanTable6_2236[21][2] = {
-    {32, -28},
-    {30, -27},
-    {28, -27},
-    {26, -26},
-    {25, -26},
-    {23, -25},
-    {21, -25},
-    {20, -24},
-    {18, -24},
-    {16, -23},
-    {14, -23},
-    {13, -22},
-    {11, -22},
-    {9, -21},
-    {8, -21},
-    {6, -20},
-    {4, -20},
-    {3, -19},
-    {1, -19},
-    {0, -18},
-    {-1, -1}
-};
-
-/**
- *
- * Interpolation points and terminator for passage shape 7.
- *
- */
-static short RootHokanTable7_2237[21][2] = {
-    {-20, -28},
-    {-19, -27},
-    {-18, -27},
-    {-17, -26},
-    {-16, -26},
-    {-15, -25},
-    {-14, -25},
-    {-13, -24},
-    {-12, -24},
-    {-11, -23},
-    {-11, -23},
-    {-10, -22},
-    {-9, -22},
-    {-8, -21},
-    {-7, -21},
-    {-6, -20},
-    {-5, -20},
-    {-4, -19},
-    {-3, -19},
-    {-2, -18},
-    {-1, -1}
-};
-
-/**
- *
- * Interpolation points and terminator for passage shape 8.
- *
- */
-static short RootHokanTable8_2238[21][2] = {
-    {14, -38},
-    {14, -37},
-    {15, -37},
-    {16, -36},
-    {17, -36},
-    {18, -35},
-    {19, -35},
-    {20, -34},
-    {21, -34},
-    {22, -33},
-    {22, -33},
-    {23, -32},
-    {24, -32},
-    {25, -31},
-    {26, -31},
-    {27, -30},
-    {28, -30},
-    {29, -29},
-    {30, -29},
-    {31, -28},
-    {-1, -1}
-};
-
-/**
- *
- * Interpolation points and terminator for passage shape 9.
- *
- */
-static short RootHokanTable9_2239[21][2] = {
-    {14, -38},
-    {12, -37},
-    {10, -37},
-    {8, -36},
-    {7, -36},
-    {5, -35},
-    {3, -35},
-    {2, -34},
-    {0, -34},
-    {-1, -33},
-    {-3, -33},
-    {-4, -32},
-    {-6, -32},
-    {-8, -31},
-    {-9, -31},
-    {-11, -30},
-    {-13, -30},
-    {-14, -29},
-    {-16, -29},
-    {-18, -28},
-    {-1, -1}
-};
-
-/**
- *
- * Interpolation point lists for the passage shapes.
- *
- */
-static short *RootHokanTablePtrTable_2240[11] = {
-    RootHokanTable0_2230[0],
-    RootHokanTable1_2231[0],
-    RootHokanTable2_2232[0],
-    RootHokanTable3_2233[0],
-    RootHokanTable4_2234[0],
-    RootHokanTable5_2235[0],
-    RootHokanTable6_2236[0],
-    RootHokanTable7_2237[0],
-    RootHokanTable8_2238[0],
-    RootHokanTable9_2239[0],
-    NULL
-};
-
-/**
- *
- * Interpolation points and terminator for room connection 0.
- *
- */
-static short RoomHokanTable0_2241[11][2] = {
-    {14, -38},
-    {13, -37},
-    {12, -36},
-    {11, -35},
-    {10, -34},
-    {9, -33},
-    {9, -32},
-    {8, -31},
-    {7, -30},
-    {6, -29},
-    {-1, -1}
-};
-
-/**
- *
- * Interpolation points and terminator for room connection 1.
- *
- */
-static short RoomHokanTable1_2242[11][2] = {
-    {6, -28},
-    {5, -27},
-    {4, -26},
-    {3, -25},
-    {2, -24},
-    {1, -23},
-    {1, -22},
-    {0, -21},
-    {0, -20},
-    {-1, -19},
-    {-1, -1}
-};
-
-/**
- *
- * Interpolation points and terminator for room connection 2.
- *
- */
-static short RoomHokanTable2_2243[11][2] = {
-    {-20, -28},
-    {-17, -28},
-    {-14, -28},
-    {-12, -28},
-    {-9, -28},
-    {-7, -28},
-    {-4, -28},
-    {-1, -28},
-    {0, -28},
-    {3, -28},
-    {-1, -1}
-};
-
-/**
- *
- * Interpolation points and terminator for room connection 3.
- *
- */
-static short RoomHokanTable3_2244[11][2] = {
-    {6, -28},
-    {8, -28},
-    {11, -28},
-    {13, -28},
-    {16, -28},
-    {18, -28},
-    {21, -28},
-    {24, -28},
-    {26, -28},
-    {29, -28},
-    {-1, -1}
-};
-
-/**
- *
- * Interpolation point lists for the four room connections.
- *
- */
-static short *RoomHokanTablePtrTable_2245[5] = {
-    RoomHokanTable0_2241[0],
-    RoomHokanTable1_2242[0],
-    RoomHokanTable2_2243[0],
-    RoomHokanTable3_2244[0],
-    NULL
-};
-
-/**
- *
- * Selects how a connection traverses its interpolation points.
- *
- */
-enum DngRoutePointOrder {
-    DNG_ROUTE_UNAVAILABLE = -1, /**< The connection has no interpolation path. */
-    DNG_ROUTE_FORWARD = 0,      /**< Reads the interpolation points from the first point. */
-    DNG_ROUTE_REVERSE = 1       /**< Reads the interpolation points from the last point. */
-};
-
-/**
- *
- * Point traversal order for each passage shape and connection direction.
- *
- */
-static signed char is_reverse_tbl_2246[11][4] = {
-    {DNG_ROUTE_REVERSE, DNG_ROUTE_FORWARD, DNG_ROUTE_UNAVAILABLE, DNG_ROUTE_UNAVAILABLE},
-    {DNG_ROUTE_UNAVAILABLE, DNG_ROUTE_UNAVAILABLE, DNG_ROUTE_REVERSE, DNG_ROUTE_FORWARD},
-    {DNG_ROUTE_FORWARD, DNG_ROUTE_UNAVAILABLE, DNG_ROUTE_UNAVAILABLE, DNG_ROUTE_REVERSE},
-    {DNG_ROUTE_REVERSE, DNG_ROUTE_UNAVAILABLE, DNG_ROUTE_UNAVAILABLE, DNG_ROUTE_FORWARD},
-    {DNG_ROUTE_UNAVAILABLE, DNG_ROUTE_FORWARD, DNG_ROUTE_REVERSE, DNG_ROUTE_UNAVAILABLE},
-    {DNG_ROUTE_UNAVAILABLE, DNG_ROUTE_REVERSE, DNG_ROUTE_UNAVAILABLE, DNG_ROUTE_FORWARD},
-    {DNG_ROUTE_REVERSE, DNG_ROUTE_UNAVAILABLE, DNG_ROUTE_FORWARD, DNG_ROUTE_UNAVAILABLE},
-    {DNG_ROUTE_REVERSE, DNG_ROUTE_UNAVAILABLE, DNG_ROUTE_UNAVAILABLE, DNG_ROUTE_FORWARD},
-    {DNG_ROUTE_UNAVAILABLE, DNG_ROUTE_FORWARD, DNG_ROUTE_REVERSE, DNG_ROUTE_UNAVAILABLE},
-    {DNG_ROUTE_UNAVAILABLE, DNG_ROUTE_FORWARD, DNG_ROUTE_UNAVAILABLE, DNG_ROUTE_REVERSE},
-    {DNG_ROUTE_UNAVAILABLE, DNG_ROUTE_REVERSE, DNG_ROUTE_UNAVAILABLE, DNG_ROUTE_FORWARD}
-};
-
-/**
- *
- * Room interpolation list selected by direction and entry side.
- *
- */
-static signed char old_hokantbl_useno_2247[8] = {
-    0, 1, 2, 3, 1, 0, 3, 2
-};
-
-/**
- *
- * Traversal order of each room interpolation list.
- *
- */
-static signed char is_reverse_tbl_room_2248[8] = {
-    DNG_ROUTE_REVERSE, DNG_ROUTE_FORWARD, DNG_ROUTE_REVERSE, DNG_ROUTE_FORWARD, DNG_ROUTE_FORWARD, DNG_ROUTE_REVERSE, DNG_ROUTE_FORWARD, DNG_ROUTE_REVERSE
-};
-
-/**
- *
  * Texture X coordinates of the floor completion icons.
  *
  */
@@ -2094,26 +1648,441 @@ void CDngFreeMap::SetKomaMove(int moving) {
         koma_now = koma_now->next;
     }
 }
-#ifdef NONMATCHING
-/** Passage interpolation point tables, indexed by passage shape. */
-extern const short *RootHokanTablePtrTable_2240__DATA[];
-/** Room interpolation point tables, indexed by entry and exit direction. */
-extern const short *RoomHokanTablePtrTable_2245__DATA[];
-/** Point order of passage routes, indexed by shape and direction. */
-extern const signed char is_reverse_tbl_2246__DATA[][4];
-/** Room interpolation table selected by entry and exit direction. */
-extern signed char old_hokantbl_useno_2247__DATA[8];
-/** Point order of entry and exit room interpolation tables. */
-extern signed char is_reverse_tbl_room_2248__DATA[8];
 
 /**
  *
- * Orders the interpolation points when tracing a dungeon map route.
+ * Interpolation points and terminator for passage shape 0.
  *
  */
-enum DNGMAP_PATH_ORDER {
-    DNGMAP_PATH_FORWARD = 0, /**< Reads a cell's interpolation points from first to last. */
-    DNGMAP_PATH_REVERSE = 1, /**< Reads a cell's interpolation points from last to first. */
+static short RootHokanTable0_2230[21][2] = {
+    {14, -38},
+    {13, -37},
+    {12, -36},
+    {11, -35},
+    {10, -34},
+    {9, -33},
+    {9, -32},
+    {8, -31},
+    {7, -30},
+    {6, -29},
+    {5, -28},
+    {5, -27},
+    {4, -26},
+    {3, -25},
+    {2, -24},
+    {1, -23},
+    {1, -22},
+    {0, -21},
+    {0, -20},
+    {-1, -19},
+    {-1, -1}
+};
+
+/**
+ *
+ * Interpolation points and terminator for passage shape 1.
+ *
+ */
+static short RootHokanTable1_2231[21][2] = {
+    {-20, -28},
+    {-17, -28},
+    {-14, -28},
+    {-12, -28},
+    {-9, -28},
+    {-7, -28},
+    {-4, -28},
+    {-1, -28},
+    {0, -28},
+    {3, -28},
+    {5, -28},
+    {8, -28},
+    {11, -28},
+    {13, -28},
+    {16, -28},
+    {18, -28},
+    {21, -28},
+    {24, -28},
+    {26, -28},
+    {29, -28},
+    {-1, -1}
+};
+
+/**
+ *
+ * Interpolation points and terminator for passage shape 2.
+ *
+ */
+static short RootHokanTable2_2232[21][2] = {
+    {-1, -1},
+    {-1, -19},
+    {0, -20},
+    {0, -21},
+    {1, -22},
+    {1, -23},
+    {2, -24},
+    {3, -25},
+    {4, -26},
+    {5, -27},
+    {5, -28},
+    {8, -28},
+    {11, -28},
+    {13, -28},
+    {16, -28},
+    {18, -28},
+    {21, -28},
+    {24, -28},
+    {26, -28},
+    {29, -28},
+    {-1, -1}
+};
+
+/**
+ *
+ * Interpolation points and terminator for passage shape 3.
+ *
+ */
+static short RootHokanTable3_2233[21][2] = {
+    {-20, -28},
+    {-17, -28},
+    {-14, -28},
+    {-12, -28},
+    {-9, -28},
+    {-7, -28},
+    {-4, -28},
+    {-1, -28},
+    {0, -28},
+    {3, -28},
+    {5, -28},
+    {5, -27},
+    {4, -26},
+    {3, -25},
+    {2, -24},
+    {1, -23},
+    {1, -22},
+    {0, -21},
+    {0, -20},
+    {-1, -19},
+    {-1, -1}
+};
+
+/**
+ *
+ * Interpolation points and terminator for passage shape 4.
+ *
+ */
+static short RootHokanTable4_2234[21][2] = {
+    {14, -38},
+    {13, -37},
+    {12, -36},
+    {11, -35},
+    {10, -34},
+    {9, -33},
+    {9, -32},
+    {8, -31},
+    {7, -30},
+    {6, -29},
+    {5, -28},
+    {8, -28},
+    {11, -28},
+    {13, -28},
+    {16, -28},
+    {18, -28},
+    {21, -28},
+    {24, -28},
+    {26, -28},
+    {29, -28},
+    {-1, -1}
+};
+
+/**
+ *
+ * Interpolation points and terminator for passage shape 5.
+ *
+ */
+static short RootHokanTable5_2235[21][2] = {
+    {-20, -28},
+    {-17, -28},
+    {-14, -28},
+    {-12, -28},
+    {-9, -28},
+    {-7, -28},
+    {-4, -28},
+    {-1, -28},
+    {0, -28},
+    {3, -28},
+    {5, -28},
+    {6, -29},
+    {7, -30},
+    {8, -31},
+    {9, -32},
+    {9, -33},
+    {10, -34},
+    {11, -35},
+    {12, -36},
+    {13, -37},
+    {-1, -1}
+};
+
+/**
+ *
+ * Interpolation points and terminator for passage shape 6.
+ *
+ */
+static short RootHokanTable6_2236[21][2] = {
+    {32, -28},
+    {30, -27},
+    {28, -27},
+    {26, -26},
+    {25, -26},
+    {23, -25},
+    {21, -25},
+    {20, -24},
+    {18, -24},
+    {16, -23},
+    {14, -23},
+    {13, -22},
+    {11, -22},
+    {9, -21},
+    {8, -21},
+    {6, -20},
+    {4, -20},
+    {3, -19},
+    {1, -19},
+    {0, -18},
+    {-1, -1}
+};
+
+/**
+ *
+ * Interpolation points and terminator for passage shape 7.
+ *
+ */
+static short RootHokanTable7_2237[21][2] = {
+    {-20, -28},
+    {-19, -27},
+    {-18, -27},
+    {-17, -26},
+    {-16, -26},
+    {-15, -25},
+    {-14, -25},
+    {-13, -24},
+    {-12, -24},
+    {-11, -23},
+    {-11, -23},
+    {-10, -22},
+    {-9, -22},
+    {-8, -21},
+    {-7, -21},
+    {-6, -20},
+    {-5, -20},
+    {-4, -19},
+    {-3, -19},
+    {-2, -18},
+    {-1, -1}
+};
+
+/**
+ *
+ * Interpolation points and terminator for passage shape 8.
+ *
+ */
+static short RootHokanTable8_2238[21][2] = {
+    {14, -38},
+    {14, -37},
+    {15, -37},
+    {16, -36},
+    {17, -36},
+    {18, -35},
+    {19, -35},
+    {20, -34},
+    {21, -34},
+    {22, -33},
+    {22, -33},
+    {23, -32},
+    {24, -32},
+    {25, -31},
+    {26, -31},
+    {27, -30},
+    {28, -30},
+    {29, -29},
+    {30, -29},
+    {31, -28},
+    {-1, -1}
+};
+
+/**
+ *
+ * Interpolation points and terminator for passage shape 9.
+ *
+ */
+static short RootHokanTable9_2239[21][2] = {
+    {14, -38},
+    {12, -37},
+    {10, -37},
+    {8, -36},
+    {7, -36},
+    {5, -35},
+    {3, -35},
+    {2, -34},
+    {0, -34},
+    {-1, -33},
+    {-3, -33},
+    {-4, -32},
+    {-6, -32},
+    {-8, -31},
+    {-9, -31},
+    {-11, -30},
+    {-13, -30},
+    {-14, -29},
+    {-16, -29},
+    {-18, -28},
+    {-1, -1}
+};
+
+/**
+ *
+ * Interpolation point lists for the passage shapes.
+ *
+ */
+static short *RootHokanTablePtrTable_2240[11] = {
+    RootHokanTable0_2230[0],
+    RootHokanTable1_2231[0],
+    RootHokanTable2_2232[0],
+    RootHokanTable3_2233[0],
+    RootHokanTable4_2234[0],
+    RootHokanTable5_2235[0],
+    RootHokanTable6_2236[0],
+    RootHokanTable7_2237[0],
+    RootHokanTable8_2238[0],
+    RootHokanTable9_2239[0],
+    NULL
+};
+
+/**
+ *
+ * Interpolation points and terminator for room connection 0.
+ *
+ */
+static short RoomHokanTable0_2241[11][2] = {
+    {14, -38},
+    {13, -37},
+    {12, -36},
+    {11, -35},
+    {10, -34},
+    {9, -33},
+    {9, -32},
+    {8, -31},
+    {7, -30},
+    {6, -29},
+    {-1, -1}
+};
+
+/**
+ *
+ * Interpolation points and terminator for room connection 1.
+ *
+ */
+static short RoomHokanTable1_2242[11][2] = {
+    {6, -28},
+    {5, -27},
+    {4, -26},
+    {3, -25},
+    {2, -24},
+    {1, -23},
+    {1, -22},
+    {0, -21},
+    {0, -20},
+    {-1, -19},
+    {-1, -1}
+};
+
+/**
+ *
+ * Interpolation points and terminator for room connection 2.
+ *
+ */
+static short RoomHokanTable2_2243[11][2] = {
+    {-20, -28},
+    {-17, -28},
+    {-14, -28},
+    {-12, -28},
+    {-9, -28},
+    {-7, -28},
+    {-4, -28},
+    {-1, -28},
+    {0, -28},
+    {3, -28},
+    {-1, -1}
+};
+
+/**
+ *
+ * Interpolation points and terminator for room connection 3.
+ *
+ */
+static short RoomHokanTable3_2244[11][2] = {
+    {6, -28},
+    {8, -28},
+    {11, -28},
+    {13, -28},
+    {16, -28},
+    {18, -28},
+    {21, -28},
+    {24, -28},
+    {26, -28},
+    {29, -28},
+    {-1, -1}
+};
+
+/**
+ *
+ * Interpolation point lists for the four room connections.
+ *
+ */
+static short *RoomHokanTablePtrTable_2245[5] = {
+    RoomHokanTable0_2241[0],
+    RoomHokanTable1_2242[0],
+    RoomHokanTable2_2243[0],
+    RoomHokanTable3_2244[0],
+    NULL
+};
+
+/**
+ *
+ * Point traversal order for each passage shape and connection direction.
+ *
+ */
+static signed char is_reverse_tbl_2246[11][4] = {
+    {DNGMAP_PATH_REVERSE, DNGMAP_PATH_FORWARD, DNGMAP_PATH_NONE, DNGMAP_PATH_NONE},
+    {DNGMAP_PATH_NONE, DNGMAP_PATH_NONE, DNGMAP_PATH_REVERSE, DNGMAP_PATH_FORWARD},
+    {DNGMAP_PATH_FORWARD, DNGMAP_PATH_NONE, DNGMAP_PATH_NONE, DNGMAP_PATH_REVERSE},
+    {DNGMAP_PATH_REVERSE, DNGMAP_PATH_NONE, DNGMAP_PATH_NONE, DNGMAP_PATH_FORWARD},
+    {DNGMAP_PATH_NONE, DNGMAP_PATH_FORWARD, DNGMAP_PATH_REVERSE, DNGMAP_PATH_NONE},
+    {DNGMAP_PATH_NONE, DNGMAP_PATH_REVERSE, DNGMAP_PATH_NONE, DNGMAP_PATH_FORWARD},
+    {DNGMAP_PATH_REVERSE, DNGMAP_PATH_NONE, DNGMAP_PATH_FORWARD, DNGMAP_PATH_NONE},
+    {DNGMAP_PATH_REVERSE, DNGMAP_PATH_NONE, DNGMAP_PATH_NONE, DNGMAP_PATH_FORWARD},
+    {DNGMAP_PATH_NONE, DNGMAP_PATH_FORWARD, DNGMAP_PATH_REVERSE, DNGMAP_PATH_NONE},
+    {DNGMAP_PATH_NONE, DNGMAP_PATH_FORWARD, DNGMAP_PATH_NONE, DNGMAP_PATH_REVERSE},
+    {DNGMAP_PATH_NONE, DNGMAP_PATH_REVERSE, DNGMAP_PATH_NONE, DNGMAP_PATH_FORWARD}
+};
+
+/**
+ *
+ * Room interpolation list selected by direction and entry side.
+ *
+ */
+static signed char old_hokantbl_useno_2247[8] = {
+    0, 1, 2, 3, 1, 0, 3, 2
+};
+
+/**
+ *
+ * Traversal order of each room interpolation list.
+ *
+ */
+static signed char is_reverse_tbl_room_2248[8] = {
+    DNGMAP_PATH_REVERSE, DNGMAP_PATH_FORWARD, DNGMAP_PATH_REVERSE, DNGMAP_PATH_FORWARD,
+    DNGMAP_PATH_FORWARD, DNGMAP_PATH_REVERSE, DNGMAP_PATH_FORWARD, DNGMAP_PATH_REVERSE
 };
 
 int CDngFreeMap::LoadDngInfo(mgCMemory *stack, int block, int dungeon, int room, int next_room) {
@@ -2413,9 +2382,9 @@ int CDngFreeMap::LoadDngInfo(mgCMemory *stack, int block, int dungeon, int room,
         if (direction < 0) {
             return memory.stGetUsed();
         }
-        int index = old_hokantbl_useno_2247__DATA[direction];
-        const short *points = RoomHokanTablePtrTable_2245__DATA[index];
-        int reverse = is_reverse_tbl_room_2248__DATA[index];
+        int index = old_hokantbl_useno_2247[direction];
+        const short *points = RoomHokanTablePtrTable_2245[index];
+        int reverse = is_reverse_tbl_room_2248[index];
         if (reverse == DNGMAP_PATH_FORWARD) {
             for (index = 0; index < 10; index++) {
                 DNGMAP_KOMA_POS *node = (DNGMAP_KOMA_POS *) memory.Alloc(1);
@@ -2439,8 +2408,8 @@ int CDngFreeMap::LoadDngInfo(mgCMemory *stack, int block, int dungeon, int room,
             glid->blink = 1;
             if (glid->type == GLID_TYPE_ROOT) {
                 int index = glid->root.shape;
-                curve = RootHokanTablePtrTable_2240__DATA[index];
-                int reverse = is_reverse_tbl_2246__DATA[index][direction];
+                curve = RootHokanTablePtrTable_2240[index];
+                int reverse = is_reverse_tbl_2246[index][direction];
                 if (reverse < 0) {
                     break;
                 }
@@ -2462,9 +2431,9 @@ int CDngFreeMap::LoadDngInfo(mgCMemory *stack, int block, int dungeon, int room,
                     }
                 }
             } else if (glid->type == GLID_TYPE_ROOM) {
-                int index = old_hokantbl_useno_2247__DATA[direction + 4];
-                curve = RoomHokanTablePtrTable_2245__DATA[index];
-                int reverse = is_reverse_tbl_room_2248__DATA[index + 4];
+                int index = old_hokantbl_useno_2247[direction + 4];
+                curve = RoomHokanTablePtrTable_2245[index];
+                int reverse = is_reverse_tbl_room_2248[index + 4];
                 if (reverse == DNGMAP_PATH_FORWARD) {
                     for (index = 0; index < 10; index++) {
                         DNGMAP_KOMA_POS *node = (DNGMAP_KOMA_POS *) memory.Alloc(1);
@@ -2500,11 +2469,6 @@ int CDngFreeMap::LoadDngInfo(mgCMemory *stack, int block, int dungeon, int room,
     }
     return memory.stGetUsed();
 }
-
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/dngmenu", LoadDngInfo__11CDngFreeMapFP9mgCMemoryiiii);
-#endif
-
 
 int CheckDngTreeMapFuncType() {
     if (MenuCommonInfo->open_type == 3) {
