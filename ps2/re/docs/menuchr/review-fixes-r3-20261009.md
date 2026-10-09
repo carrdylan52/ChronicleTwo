@@ -43,9 +43,18 @@ lie outside step 10's braced block. A block-local static declared inside
 step 10's block is not visible there, and a static at the top of
 `KeyStep` moves the guard test to the function entry. The file-scope
 `select_monster_save_3371` / `init_3372__2` pair with the guard written out
-in step 10 is therefore kept. A static declared directly in the
-`switch (step)` scope ahead of step 10's block (legal: jumps may bypass a
-static's declaration) is the remaining natural candidate; it is unprobed.
+in step 10 is kept in this round.
+
+A third placement does work: `case 10:` followed by
+`static int select_monster_save = 0;` directly in the `switch (step)` scope,
+then step 10's body as a nested block. The static is then in scope for steps
+12 and 13, and its guard runs where retail's does. C++ allows a jump to bypass
+a static's declaration (only automatic variables are protected), and clang
+accepts it. Probe: file-scope `select_monster_save_3371`/`init_3372__2` and
+the written-out guard deleted, all uses renamed: `SCES_511.90: OK (6789
+perfect)`, 149/149 (`menuchr: 0x11C9F bytes, 3835 relocations`). It is not
+applied here; the patch (with a doc block added after the probe, a
+comment-only difference) is handed to the coordinator with the lane report.
 
 ## Plain local arrays instead of initializer wrappers (S3)
 
