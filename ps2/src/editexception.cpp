@@ -352,7 +352,7 @@ void S51Thunder(CScene *scene) {
 
                     for (CList<CMapPiece> *node = parts->piece_list; node != NULL;
                          node = node->next) {
-                        CObject *piece = (CObject *) &node->data;
+                        CObject *piece = &node->data;
                         piece->fade = 1;
                         piece->fade_alpha = fade;
                     }
