@@ -322,7 +322,7 @@ void dbgCJISFont::__putc(unsigned long serno) {
         x += 2;
     }
 }
-extern "C" int vsprintf(char *, const char *, char *);
+
 void dbgCJISFont::PrintDirect(int start_x, int start_y, char *format, ...) {
     char text[0x408];
     char escape[8];
