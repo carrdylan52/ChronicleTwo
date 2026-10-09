@@ -2284,7 +2284,7 @@ int CMenuChrCngMenu::KeyChangeMain() {
             load_info->mode = 2;
             load_info->request_phase = -1;
             load_info->load_phase = 0;
-            load_info->unk_6[1] = 1;
+            load_info->update_scene = 1;
             ReEquipFishingGameWeapon();
             MenuCharaLoadStack.stack_used = 0;
             MenuCharaLoadStack.lock = 0;
@@ -4713,13 +4713,13 @@ int CMenuMosSelect::KeyStep() {
                     break;
                 }
                 case 10: {
-                    MenuLoadInfo.unk_6[1] = 1;
-                    if (MenuLoadInfo.unk_6[1] == 1 && FxScriptMan != NULL) {
+                    MenuLoadInfo.update_scene = 1;
+                    if (MenuLoadInfo.update_scene == 1 && FxScriptMan != NULL) {
                         DeleteMonsterEffect();
                     }
                     GetCharaMemAllocPtr(MenuArg.chara_stack, MorattaStack, 3, 0);
                     MenuLoadInfo.mode = 2;
-                    MenuLoadInfo.unk_6[1] = 1;
+                    MenuLoadInfo.update_scene = 1;
                     MenuMosLoadStack.stReset();
                     result = MOS_SELECT_RESULT_CHANGE;
                     monster->Initialize(NULL);
@@ -6073,7 +6073,7 @@ void InitMainCharaBG(int chara_no, mgCMemory *stack, int mode) {
     MenuLoadInfo.chara_no = NowReadMainCharaNo;
     MenuLoadInfo.request_phase = -1;
     MenuLoadInfo.load_phase = 0;
-    MenuLoadInfo.unk_6[0] = 0;
+    MenuLoadInfo.unk_6 = 0;
     MenuLoadInfo.update_scene = 1;
     NowReadMainChara = (CActionChara *) MenuMainScene->GetCharacter(0);
     if (NowReadMainChara != NULL) {
@@ -6486,7 +6486,7 @@ void CMenuCostumeSel::LoadMenuData(mgCMemory *stack, int *tex_block) {
     MenuLoadInfo.request_phase = -1;
     MenuLoadInfo.chara_no = 0;
     MenuLoadInfo.update_scene = 0;
-    MenuLoadInfo.unk_6[0] = 1;
+    MenuLoadInfo.unk_6 = 1;
     free_size = memory_free_size(stack);
     this->stack.stSetBuffer((u_long128 *) memory_free_top(stack), free_size);
     MenuMemoryAdjust(&this->stack, &MenuCharaLoadStack, MenuActionCharaBuffer, 0);

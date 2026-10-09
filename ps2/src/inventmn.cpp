@@ -2247,7 +2247,7 @@ void CMenuInvent::LoadCharaCheck() {
             MenuLoadInfo.mode = 1;
             MenuLoadInfo.load_all = 1;
             MenuLoadInfo.chara_no = 0;
-            MenuLoadInfo.unk_6[1] = 0;
+            MenuLoadInfo.update_scene = 0;
             SetMenuLoadItemNo(0);
             size = MenuItemCharaDataLoad(load_stack, 0, MenuCharaBuild2, 0);
             chara_load_step = 1;

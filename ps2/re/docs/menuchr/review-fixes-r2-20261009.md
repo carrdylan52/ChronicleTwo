@@ -71,17 +71,10 @@ byte before assigning/using main-scene stack 5, loading character sound and
 retrieving the main-scene character. The character and ridepod loaders use
 it when collecting and reloading main-scene model/stack lists.
 
-The named scalar shares an anonymous union with the original two-byte
-`unk_6` array. This retains the eight-byte structure and signed-byte access
-while preserving the old member syntax in the protected methods and the
-unowned `inventmn` consumer. Nineteen unprotected menuchr accesses and four
-menusys accesses use `update_scene`; the four protected menuchr accesses
-remain byte-for-byte unchanged. The earlier full-rename proposal is
-superseded by this compatible field definition.
-
-The compatible field definition and all twenty-three renamed accesses pass
-the full build: `SCES_511.90: OK`, 149/149 complete objects, 6,787 perfect
-functions and zero fuzzy. Both protected method blocks remain unchanged.
+Bytes `+6` and `+7` are separate signed-char fields, `unk_6` and
+`update_scene`; every access, including the guarded menuchr and inventmn
+drafts, uses the field name. The layout stays eight bytes, and the full build
+gives `SCES_511.90: OK` with 149/149 complete objects.
 
 ## Source spacing and current documentation (findings 8 and 17)
 
