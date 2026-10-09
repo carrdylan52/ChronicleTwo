@@ -812,7 +812,7 @@ void CCharacter2::SePlay() {
     }
     float now = frame;
     passed = 1.6f * (1.2f * step);
-    key = (CHRINFO_SE *)se_list[now_set];
+    key = se_list[now_set];
     low = now - passed;
     high = now + passed;
     if (key == NULL) {
