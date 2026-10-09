@@ -229,10 +229,10 @@ void mgCTextureAnime::TexAnime(int texb, sceVif1Packet *packet) {
         if (enable[group] == 0) {
             continue;
         }
-        node = now[group];
-        if (node == NULL) {
+        if (now[group] == NULL) {
             continue;
         }
+        node = now[group];
         data = node->pGetData();
         if (data == NULL || data->src_tex == NULL || data->dest_tex == NULL) {
             continue;
