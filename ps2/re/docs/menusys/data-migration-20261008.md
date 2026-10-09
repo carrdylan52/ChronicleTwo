@@ -521,3 +521,91 @@ Markers are **22 RODATA / 6 BSS**, with **5,260 / 10,332 matched_data**.
 PAL, all 149 objects, protected guards and unowned hashes pass. Receipts
 are `table-final-stchar_6508-{build,objects,metrics}.log` and
 `table-final-label-ledger.log`. The earlier rejected table source is absent.
+
+## Final retained-marker inventory
+
+The completed typed layout allows `at_3894` to become an inline literal on
+retry. A total of 174 of the 178 direct string aliases are now native literals.
+The four other isolated retries fail and are restored. Their final receipts
+are `inline-final-<symbol>-build.log`, `-failed-*`, and `-worddiff.log`,
+with `string-final-retry-ledger.log` recording all five outcomes.
+
+| Retained RODATA marker | Declared bytes | Reason |
+| --- | ---: | --- |
+| `at_1493__2` | 4 | Shared number-part literal referenced by the frozen MenuItemDebugKey draft. |
+| `at_3895` | 5 | Attachment or weapon icon part name, "item"; the isolated inline literal loses the native 48-byte at_5774 BSS identity and changes resolved code references under the fixed postprocessor. |
+| `at_3924` | 6 | Fishing rod parameter part-name format, "fps%d"; the isolated inline literal loses the native 48-byte at_5774 BSS identity and changes resolved code references under the fixed postprocessor. |
+| `at_4672` | 9 | Effect-part literal referenced by the frozen CMenuItemInfo::MenuModeMalloc draft. |
+| `at_4950` | 15 | Compiler literal referenced by the frozen CMenuItemInfo::IsAskExtend draft. |
+| `at_4951` | 15 | Compiler literal referenced by the frozen CMenuItemInfo::IsAskExtend draft. |
+| `at_4952` | 21 | Compiler literal referenced by the frozen CMenuItemInfo::IsAskExtend draft. |
+| `at_4953` | 19 | Compiler literal referenced by the frozen CMenuItemInfo::IsAskExtend draft. |
+| `at_4954` | 9 | Compiler literal referenced by the frozen CMenuItemInfo::IsAskExtend draft and MenuItemDebugKey. |
+| `at_4955` | 5 | Compiler literal referenced by the frozen CMenuItemInfo::IsAskExtend draft. |
+| `at_4956` | 4 | Compiler literal referenced by the frozen CMenuItemInfo::IsAskExtend draft. |
+| `at_4957` | 17 | Compiler literal referenced by the frozen CMenuItemInfo::IsAskExtend draft. |
+| `at_4958` | 24 | Six-entry dispatch jump table of the frozen CMenuItemInfo::IsAskExtend draft; no active native switch supplies it. |
+| `at_5882` | 5 | Message-position part for cursor layout 11, "esac"; the isolated inline literal loses the native 48-byte at_5774 BSS identity and changes resolved code references under the fixed postprocessor. |
+| `at_5883` | 10 | Cursor offset table-name format, "cur_off%d"; the isolated inline literal loses the native 48-byte at_5774 BSS identity and changes resolved code references under the fixed postprocessor. |
+| `at_6424` | 48 | Twelve-entry dispatch jump table of the frozen MenuItemDebugKey draft; no active native switch supplies it. |
+| `at_9215` | 12 | Item-selector package path referenced by the frozen MenuItemSelectInit draft. |
+| `at_9216` | 12 | Fishing-selector package path referenced by the frozen MenuItemSelectInit draft. |
+| `__vt__11CItemSelect` | 32 | Compiler-owned vtable has no owning native definition in this source-only unit; forcing storage would require an artificial object, manual vtable data or changes outside this data lane. |
+| `__vt__13CMenuItemInfo` | 32 | Compiler-owned vtable has no owning native definition in this source-only unit; forcing storage would require an artificial object, manual vtable data or changes outside this data lane. |
+| `__vt__14CBaseMenuClass` | 32 | Compiler-owned vtable has no owning native definition in this source-only unit; forcing storage would require an artificial object, manual vtable data or changes outside this data lane. |
+
+The native caller references to shared frozen literals continue to use their
+retail aliases. No substitute alias object or disguised `LIT_*` definition is
+introduced. The ordinary tables referenced by those drafts have native typed
+definitions under their retail names; only compiler-owned literals, jump
+tables and vtables remain explicit.
+
+| Retained BSS marker | Declared bytes | Reason |
+| --- | ---: | --- |
+| `at_6133` | 8 | Two-float zero initializer used through the frozen MenuItemDebugKey draft's existing 64-bit copy; natural local initialization would require editing that protected body. |
+| `at_6176` | 8 | Two-float zero initializer used through the frozen MenuItemDebugKey draft's existing 64-bit copy; natural local initialization would require editing that protected body. |
+| `at_6220` | 8 | Two-float zero initializer used through the frozen MenuItemDebugKey draft's existing 64-bit copy; natural local initialization would require editing that protected body. |
+| `at_6234` | 8 | Two-float zero initializer used through the frozen MenuItemDebugKey draft's existing 64-bit copy; natural local initialization would require editing that protected body. |
+| `at_6256` | 8 | Two-float zero initializer used through the frozen MenuItemDebugKey draft's existing 64-bit copy; natural local initialization would require editing that protected body. |
+| `at_6265` | 8 | Two-float zero initializer used through the frozen MenuItemDebugKey draft's existing 64-bit copy; natural local initialization would require editing that protected body. |
+
+The six eight-byte templates occupy `.sbss`. The native `.bss`, `.sdata`,
+`.data` and `.ctor` sections together receive 5,260 bytes of data credit;
+remaining aggregate sections still include the documented suppliers.
+Empty initialized-data footer headings are absent, and native footer objects
+retain their declaration order with blank lines between definitions.
+
+## Final validation
+
+The final restored source passes `SCES_511.90: OK` and **149/149 units**.
+The normal build and explicit context/objdiff/progress refresh agree on:
+
+| Measure | Warm baseline | Final |
+| --- | ---: | ---: |
+| INCLUDE_RODATA markers | 360 | 21 |
+| INCLUDE_BSS markers | 126 | 6 |
+| matched_data / total_data | 4 / 10,332 | 5,260 / 10,332 |
+| Native menusys functions | 161 / 165 | 161 / 165 |
+
+The migration removes 339 RODATA and 120 BSS suppliers. No functions are
+promoted or independently matched. Global coverage remains **6,776 matched /
+87 guarded / 9 asm-only / 0 fuzzy**. All four guarded drafts are verbatim, the
+SF profile is unchanged, and the only header change is the additive weapon
+ability enum; every prior header declaration remains verbatim. SHA-256
+comparison finds **zero changed unowned objects**. `dng_main.cpp`,
+`dng_main.hpp` and AGENTS.md retain their baseline hashes.
+
+Each final rejected direct-literal candidate changes 55 resolved instruction
+words in the completed data context; the earlier isolated forms change 45.
+Their allocation/identity failures remain documented above, with no rejected
+source active. The native table candidates that initially failed all pass
+after their literal dependencies and the complete typed layout are present.
+No toolchain or profile changes, artificial objects, manual vtables, inline
+assembly, codegen helpers or dummy locals are introduced. No unowned-file
+proposal is needed.
+
+Final receipts in `.private/dataD-r2/` are `final-build.log`,
+`final-objects.log`, `final-metrics.log`, `final-summary.log`,
+`final-refresh.log`, `final-refresh-metrics.log`, and `final-coverage.log`.
+The warm comparison receipts are `warm-build.log`, `warm-objects.log`,
+`baseline-metrics.log`, `baseline-report.json` and `baseline-hashes.json`.

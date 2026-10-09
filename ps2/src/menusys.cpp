@@ -5475,7 +5475,6 @@ void MenuPosFormValueSetWeapon(CGameDataUsed *item) {
     }
 }
 
-extern char  at_3894[];
 extern char  at_3895[];
 
 /**
@@ -5533,10 +5532,10 @@ void MenuFormUpdataAttachInfo(CMenuPosDataForm *form, CGameDataUsed *item, int i
         }
 
         form->SetPartDrawFlag(WepStatusInfoStatusVolStrTable[0], true);
-        form->SetPartDrawFlag(at_3894, false);
+        form->SetPartDrawFlag("\x81\x48", false);
 
         if ((s8) item->data.attach.spectol_type == SPECTOL_TYPE_WEAPON) {
-            form->SetPartDrawFlag(at_3894, true);
+            form->SetPartDrawFlag("\x81\x48", true);
             form->SetPartDrawFlag(WepStatusInfoStatusVolStrTable[0], false);
         }
 
@@ -12526,11 +12525,8 @@ void MenuItemSelectDraw() {
     }
 }
 
-// Initialised data (.data)
-
 // Constants (.rodata)
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menusys", at_1493__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menusys", at_3894__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menusys", at_3895__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menusys", at_3924__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menusys", at_4672__DATA);
@@ -12554,8 +12550,6 @@ INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menusys", __vt__11CItemSelect__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menusys", __vt__13CMenuItemInfo__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menusys", __vt__14CBaseMenuClass__DATA);
 
-// Small initialised data (.sdata)
-
 // Small uninitialised data (.sbss)
 INCLUDE_BSS(at_6133, 0x8);
 INCLUDE_BSS(at_6176, 0x8);
@@ -12566,17 +12560,31 @@ INCLUDE_BSS(at_6265, 0x8);
 
 // Uninitialised data (.bss)
 MENU_ASKMODE_PARA MenuAskParam;
+
 CMENU_USERPARAM   MenuUserParam;
+
 mgCMemory         MainCharaReadStack;
+
 CItemUseTarget    MenuItemUseTarget;
+
 mgCMemory MenuItemMainMemory;
+
 mgCMemory MenuItemBGDataMemory;
+
 mgCMemory MenuItemMemory;
+
 mgCMemory MenuItemMemory2;
+
 mgCMemory MenuCharaLoadStack;
+
 CGameDataUsed SpectolInfoStay;
+
 CGameDataUsed SepectolFusionBeforeAfterCheck;
+
 CGameDataUsed SpectolTransBefore;
+
 CGameDataUsed MenuMoveTempGameDataUsed;
+
 CMenuItemInfo class_menu_item_info;
+
 mgCMemory     MenuDebugStack;
