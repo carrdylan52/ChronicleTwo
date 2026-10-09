@@ -1939,9 +1939,3 @@ void CScene::SetNowSubMapNo(int now_sub_map_no) {
 
     this->now_sub_map_no = now_sub_map_no;
 }
-
-// Small uninitialised data (.sbss)
-INCLUDE_BSS(init_1519, 0x4);
-
-// Uninitialised data (.bss)
-INCLUDE_BSS(sun_func_1518, 0x1C0);
