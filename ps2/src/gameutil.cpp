@@ -1062,7 +1062,7 @@ int AnimeDataInit(mgCFrame *frame, tagMOTION_TYPE *motion, mgCMemory *memory,
 
     if (i < frame_num) {
         do {
-            int frame_no = frame->GetFrame(i)->parent - frame;
+            int frame_no = ((int) frame->GetFrame(i)->parent - (int) frame) / (int) sizeof(mgCFrame);
             tagFRAME_INF *info = &frame_info[i];
             i++;
             info->parent = frame_no;
