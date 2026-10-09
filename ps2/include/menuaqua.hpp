@@ -135,7 +135,7 @@ public:
      *
      * @mangled Generate__7CBubbleFi
      * @address 0x20E6B0
-     * @size 0x110
+     * @size 0x104
      */
     void Generate(int index);
 
@@ -145,7 +145,7 @@ public:
      *
      * @mangled Generate__7CBubbleFPf
      * @address 0x20E7C0
-     * @size 0x90
+     * @size 0x88
      */
     int Generate(float *pos);
 
@@ -165,7 +165,7 @@ public:
      *
      * @mangled Step__7CBubbleFv
      * @address 0x20E860
-     * @size 0x2C0
+     * @size 0x2B4
      */
     void Step();
 
@@ -175,7 +175,7 @@ public:
      *
      * @mangled Draw__7CBubbleFv
      * @address 0x20EB20
-     * @size 0x160
+     * @size 0x154
      */
     void Draw();
 
@@ -195,7 +195,7 @@ public:
      *
      * @mangled RunOff__7CBubbleFv
      * @address 0x20ED70
-     * @size 0x10
+     * @size 0xC
      */
     void RunOff();
 };
@@ -226,7 +226,7 @@ public:
      *
      * @mangled Initialize__20CAquaFishActionParamFv
      * @address 0x20EEB0
-     * @size 0x10
+     * @size 0xC
      */
     void Initialize();
 };
@@ -307,7 +307,7 @@ public:
      *
      * @mangled __ct__9CAquaFishFv
      * @address 0x20EEC0
-     * @size 0xE0
+     * @size 0xD4
      */
     CAquaFish();
 
@@ -317,7 +317,7 @@ public:
      *
      * @mangled Initialize__9CAquaFishFv
      * @address 0x20EFA0
-     * @size 0xC0
+     * @size 0xB4
      */
     virtual void Initialize();
 
@@ -327,7 +327,7 @@ public:
      *
      * @mangled SetLiveParam__9CAquaFishFP13CGameDataUsed
      * @address 0x20F060
-     * @size 0x80
+     * @size 0x7C
      */
     void SetLiveParam(CGameDataUsed *item);
 
@@ -337,7 +337,7 @@ public:
      *
      * @mangled SetAdjustScale__9CAquaFishFv
      * @address 0x20F0E0
-     * @size 0x90
+     * @size 0x8C
      */
     void SetAdjustScale();
 
@@ -367,7 +367,7 @@ public:
      *
      * @mangled GetDirVect__9CAquaFishFPf
      * @address 0x20F250
-     * @size 0x80
+     * @size 0x74
      */
     void GetDirVect(float *out);
 
@@ -377,7 +377,7 @@ public:
      *
      * @mangled NormalGetNextVelo__9CAquaFishFf
      * @address 0x20F2D0
-     * @size 0x80
+     * @size 0x7C
      */
     void NormalGetNextVelo(float speed);
 
@@ -387,7 +387,7 @@ public:
      *
      * @mangled NormalGetNextRotY__9CAquaFishFv
      * @address 0x20F350
-     * @size 0x70
+     * @size 0x64
      */
     void NormalGetNextRotY();
 
@@ -397,7 +397,7 @@ public:
      *
      * @mangled NormalGetNextRot__9CAquaFishFv
      * @address 0x20F3C0
-     * @size 0x100
+     * @size 0xF4
      */
     void NormalGetNextRot();
 
@@ -427,7 +427,7 @@ public:
      *
      * @mangled MoveActionRound__9CAquaFishFv
      * @address 0x20F960
-     * @size 0x2E0
+     * @size 0x2D4
      */
     void MoveActionRound();
 
@@ -437,7 +437,7 @@ public:
      *
      * @mangled MoveActionBattle__9CAquaFishFv
      * @address 0x20FC40
-     * @size 0x320
+     * @size 0x318
      */
     void MoveActionBattle();
 
@@ -447,7 +447,7 @@ public:
      *
      * @mangled NextThink__9CAquaFishFiP16NEXT_THINK_PARAM
      * @address 0x20FF60
-     * @size 0x6B0
+     * @size 0x6AC
      */
     void NextThink(int think, NEXT_THINK_PARAM *param);
 
@@ -467,7 +467,7 @@ public:
      *
      * @mangled FishDraw__9CAquaFishFv
      * @address 0x210A00
-     * @size 0x90
+     * @size 0x88
      */
     void FishDraw();
 };
@@ -492,7 +492,7 @@ public:
      *
      * @mangled Initialize__12CAquaFishEffFv
      * @address 0x210A90
-     * @size 0x20
+     * @size 0x14
      */
     void Initialize();
 
@@ -502,7 +502,7 @@ public:
      *
      * @mangled StartFishEffect__12CAquaFishEffFi
      * @address 0x210AB0
-     * @size 0x30
+     * @size 0x24
      */
     void StartFishEffect(int effect_kind);
 
@@ -561,7 +561,7 @@ public:
      *
      * @mangled SetDropPosition__9CFishFoodFPf
      * @address 0x210F50
-     * @size 0x20
+     * @size 0x1C
      */
     void SetDropPosition(float *pos);
 
@@ -571,7 +571,7 @@ public:
      *
      * @mangled Drop__9CFishFoodFv
      * @address 0x210F70
-     * @size 0xC0
+     * @size 0xB4
      */
     void Drop();
 
@@ -581,7 +581,7 @@ public:
      *
      * @mangled Step__9CFishFoodFv
      * @address 0x211030
-     * @size 0x420
+     * @size 0x414
      */
     virtual void Step();
 };
@@ -629,7 +629,7 @@ public:
      *
      * @mangled __ct__8CAquaMesFv
      * @address 0x211640
-     * @size 0x30
+     * @size 0x2C
      */
     CAquaMes();
 
@@ -639,7 +639,7 @@ public:
      *
      * @mangled Initialize__8CAquaMesFP9mgCMemory
      * @address 0x211670
-     * @size 0x16B0
+     * @size 0x16A8
      */
     void Initialize(mgCMemory *memory);
 
@@ -649,7 +649,7 @@ public:
      *
      * @mangled SettingAquaMes__8CAquaMesFi
      * @address 0x212D20
-     * @size 0xA0
+     * @size 0x9C
      */
     void SettingAquaMes(int kind);
 
@@ -659,7 +659,7 @@ public:
      *
      * @mangled SetTitleId__8CAquaMesFi
      * @address 0x212DC0
-     * @size 0xA0
+     * @size 0x9C
      */
     void SetTitleId(int id);
 
@@ -669,7 +669,7 @@ public:
      *
      * @mangled AddMenuCursor__8CAquaMesFii
      * @address 0x212E60
-     * @size 0x50
+     * @size 0x48
      */
     int AddMenuCursor(int step, int count);
 
@@ -679,7 +679,7 @@ public:
      *
      * @mangled SetQuestionId__8CAquaMesFiii
      * @address 0x212EB0
-     * @size 0x240
+     * @size 0x234
      */
     void SetQuestionId(int id, int top, int num);
 
@@ -689,7 +689,7 @@ public:
      *
      * @mangled AddQuestionCursor__8CAquaMesFv
      * @address 0x2130F0
-     * @size 0xF0
+     * @size 0xE8
      */
     int AddQuestionCursor();
 
@@ -699,7 +699,7 @@ public:
      *
      * @mangled SetCtrlHelpId__8CAquaMesFi
      * @address 0x2131E0
-     * @size 0x90
+     * @size 0x88
      */
     void SetCtrlHelpId(int id);
 
@@ -709,7 +709,7 @@ public:
      *
      * @mangled SetInfoMsgID__8CAquaMesFi
      * @address 0x213270
-     * @size 0x40
+     * @size 0x3C
      */
     void SetInfoMsgID(int id);
 
@@ -719,7 +719,7 @@ public:
      *
      * @mangled EatMessage__8CAquaMesFiP9CAquaFish
      * @address 0x2132B0
-     * @size 0xA0
+     * @size 0x98
      */
     void EatMessage(int id, CAquaFish *fish);
 
@@ -749,7 +749,7 @@ public:
      *
      * @mangled Step__8CAquaMesFv
      * @address 0x2134A0
-     * @size 0x1B0
+     * @size 0x1AC
      */
     void Step();
 
@@ -769,7 +769,7 @@ public:
      *
      * @mangled DrawTitleMes__8CAquaMesFv
      * @address 0x2137B0
-     * @size 0x60
+     * @size 0x58
      */
     void DrawTitleMes();
 };
@@ -835,7 +835,7 @@ public:
      *
      * @mangled __ct__9CAquariumFv
      * @address 0x214570
-     * @size 0x100
+     * @size 0xF8
      */
     CAquarium();
 
@@ -845,7 +845,7 @@ public:
      *
      * @mangled Clear__9CAquariumFv
      * @address 0x214670
-     * @size 0x190
+     * @size 0x184
      */
     void Clear();
 
@@ -855,7 +855,7 @@ public:
      *
      * @mangled Initialize__9CAquariumFP9mgCMemoryPi
      * @address 0x214800
-     * @size 0x800
+     * @size 0x7FC
      */
     void Initialize(mgCMemory *memory, int *blocks);
 
@@ -865,7 +865,7 @@ public:
      *
      * @mangled LoadFish__9CAquariumFiP13CGameDataUsed
      * @address 0x215000
-     * @size 0x350
+     * @size 0x344
      */
     int LoadFish(int no, CGameDataUsed *data);
 
@@ -885,7 +885,7 @@ public:
      *
      * @mangled CombineFish__9CAquariumFii
      * @address 0x215FE0
-     * @size 0x460
+     * @size 0x45C
      */
     void CombineFish(int no1, int no2);
 
@@ -905,7 +905,7 @@ public:
      *
      * @mangled Thinking__9CAquariumFi
      * @address 0x2164E0
-     * @size 0xD10
+     * @size 0xD0C
      */
     void Thinking(int no);
 
@@ -935,7 +935,7 @@ public:
      *
      * @mangled SelectFish__9CAquariumFi
      * @address 0x217980
-     * @size 0x120
+     * @size 0x114
      */
     void SelectFish(int force);
 
@@ -945,7 +945,7 @@ public:
      *
      * @mangled SelFishSetCursor__9CAquariumFv
      * @address 0x217AA0
-     * @size 0xE0
+     * @size 0xDC
      */
     void SelFishSetCursor();
 
@@ -965,7 +965,7 @@ public:
      *
      * @mangled Draw__9CAquariumFv
      * @address 0x219690
-     * @size 0xE80
+     * @size 0xE78
      */
     void Draw();
 };
@@ -989,7 +989,7 @@ public:
      *
      * @mangled LoadData__16CGyoraceFishDataFP9mgCMemoryP1
      * @address 0x21B7D0
-     * @size 0xE0
+     * @size 0xD4
      */
     int LoadData(mgCMemory *memory, u_long128 *buffer);
 
@@ -999,7 +999,7 @@ public:
      *
      * @mangled GetRaceFish__16CGyoraceFishDataFii
      * @address 0x21B8B0
-     * @size 0x80
+     * @size 0x74
      */
     CGameDataUsed *GetRaceFish(int race_class, int index);
 };
@@ -1023,7 +1023,7 @@ STATIC_ASSERT(sizeof(FISH_PRIZE_INFO) == 0x8);
  *
  * @mangled GetUseableEsaNo__FPi
  * @address 0x20E5C0
- * @size 0x90
+ * @size 0x84
  */
 int GetUseableEsaNo(int *out);
 
@@ -1034,7 +1034,7 @@ int GetUseableEsaNo(int *out);
  *
  * @mangled SetFishAdjustScale__Fiiff
  * @address 0x20EE30
- * @size 0x80
+ * @size 0x74
  */
 float SetFishAdjustScale(int length, int item_no, float scale, float max);
 
@@ -1045,7 +1045,7 @@ float SetFishAdjustScale(int length, int item_no, float scale, float max);
  *
  * @mangled DrawEsaDropRoot__FP9CFishFoodf
  * @address 0x211450
- * @size 0x140
+ * @size 0x13C
  */
 void DrawEsaDropRoot(CFishFood *food, float bottom);
 
@@ -1055,7 +1055,7 @@ void DrawEsaDropRoot(CFishFood *food, float bottom);
  *
  * @mangled AquaMesDispAdjustPos__FP6ClsMesPi
  * @address 0x211590
- * @size 0xB0
+ * @size 0xA8
  */
 void AquaMesDispAdjustPos(ClsMes *window, int *pos);
 
@@ -1066,7 +1066,7 @@ void AquaMesDispAdjustPos(ClsMes *window, int *pos);
  *
  * @mangled GetFishImgPath__FPciP14BREEDFISH_USED
  * @address 0x213870
- * @size 0x90
+ * @size 0x84
  */
 int GetFishImgPath(char *out, int item_no, BREEDFISH_USED *fish);
 
@@ -1076,7 +1076,7 @@ int GetFishImgPath(char *out, int item_no, BREEDFISH_USED *fish);
  *
  * @mangled GetFishImageColor__Fii
  * @address 0x213900
- * @size 0x70
+ * @size 0x64
  */
 int GetFishImageColor(int item_no, int sex);
 
@@ -1086,7 +1086,7 @@ int GetFishImageColor(int item_no, int sex);
  *
  * @mangled FishIMGReplace__FP1P11CCharacter2iP14BREEDFISH_USED
  * @address 0x213970
- * @size 0x100
+ * @size 0xFC
  */
 int FishIMGReplace(u_long128 *data, CCharacter2 *chara, int item_no, BREEDFISH_USED *fish);
 
@@ -1096,7 +1096,7 @@ int FishIMGReplace(u_long128 *data, CCharacter2 *chara, int item_no, BREEDFISH_U
  *
  * @mangled DrawFishParam__FiiP10mgCTextureP13CGameDataUsed
  * @address 0x213A70
- * @size 0xB00
+ * @size 0xAF8
  */
 void DrawFishParam(int x, int y, mgCTexture *tex, CGameDataUsed *data);
 
@@ -1116,7 +1116,7 @@ int CalcFishParam(BREEDFISH_USED *fish);
  *
  * @mangled MenuAquaInit__FP9mgCMemoryPii
  * @address 0x21A510
- * @size 0x240
+ * @size 0x234
  */
 void MenuAquaInit(mgCMemory *memory, int *tex_block, int arg);
 
@@ -1126,7 +1126,7 @@ void MenuAquaInit(mgCMemory *memory, int *tex_block, int arg);
  *
  * @mangled MenuAquaKey__Fv
  * @address 0x21A750
- * @size 0x520
+ * @size 0x514
  */
 int MenuAquaKey();
 
@@ -1157,7 +1157,7 @@ void MenuGyoraceFishSelInit(mgCMemory *memory, int *tex_block, int arg);
  *
  * @mangled MenuGyoraceFishSelKey__Fv
  * @address 0x21AE30
- * @size 0x4E0
+ * @size 0x4D8
  */
 int MenuGyoraceFishSelKey();
 
@@ -1177,7 +1177,7 @@ void MenuGyoraceFishSelDraw();
  *
  * @mangled GetGyoRaceFish__Fv
  * @address 0x21B410
- * @size 0x10
+ * @size 0x8
  */
 CGameDataUsed *GetGyoRaceFish();
 
@@ -1187,7 +1187,7 @@ CGameDataUsed *GetGyoRaceFish();
  *
  * @mangled SetGyoRaceAquariumNo__Fi
  * @address 0x21B420
- * @size 0x10
+ * @size 0x8
  */
 void SetGyoRaceAquariumNo(int value);
 
@@ -1197,7 +1197,7 @@ void SetGyoRaceAquariumNo(int value);
  *
  * @mangled GetGyoRaceAquariumNo__Fv
  * @address 0x21B430
- * @size 0x10
+ * @size 0x8
  */
 int GetGyoRaceAquariumNo();
 
@@ -1207,7 +1207,7 @@ int GetGyoRaceAquariumNo();
  *
  * @mangled SetGyoRaceClass__Fi
  * @address 0x21B440
- * @size 0x10
+ * @size 0x8
  */
 void SetGyoRaceClass(int value);
 
@@ -1217,7 +1217,7 @@ void SetGyoRaceClass(int value);
  *
  * @mangled GetGyoRaceClass__Fv
  * @address 0x21B450
- * @size 0x10
+ * @size 0x8
  */
 int GetGyoRaceClass();
 
@@ -1227,7 +1227,7 @@ int GetGyoRaceClass();
  *
  * @mangled SetGyoRaceNo__Fi
  * @address 0x21B460
- * @size 0x20
+ * @size 0x1C
  */
 void SetGyoRaceNo(int value);
 
@@ -1237,7 +1237,7 @@ void SetGyoRaceNo(int value);
  *
  * @mangled GetGyoRaceNo__Fv
  * @address 0x21B480
- * @size 0x10
+ * @size 0x8
  */
 int GetGyoRaceNo();
 
@@ -1248,7 +1248,7 @@ int GetGyoRaceNo();
  *
  * @mangled SetGyoRaceRanking__Fi
  * @address 0x21B490
- * @size 0x130
+ * @size 0x124
  */
 void SetGyoRaceRanking(int rank);
 
@@ -1258,7 +1258,7 @@ void SetGyoRaceRanking(int rank);
  *
  * @mangled GetGyoRaceRanking__Fv
  * @address 0x21B5C0
- * @size 0x10
+ * @size 0x8
  */
 int GetGyoRaceRanking();
 
@@ -1268,7 +1268,7 @@ int GetGyoRaceRanking();
  *
  * @mangled InitFishPrize__Fv
  * @address 0x21BB60
- * @size 0x20
+ * @size 0x14
  */
 void InitFishPrize();
 
@@ -1290,7 +1290,7 @@ int LoadFishPrize(int type);
  *
  * @mangled LoadFishPrize__FiP9mgCMemory
  * @address 0x21BBD0
- * @size 0xD0
+ * @size 0xC4
  */
 int LoadFishPrize(int type, mgCMemory *pool);
 
@@ -1332,7 +1332,7 @@ void TuriTourCount();
  *
  * @mangled CheckSameRacerFish__Fi
  * @address 0x21BFE0
- * @size 0x50
+ * @size 0x44
  */
 int CheckSameRacerFish(int fish_no);
 
@@ -1342,7 +1342,7 @@ int CheckSameRacerFish(int fish_no);
  *
  * @mangled GetOmakeGyoracer2__Fi
  * @address 0x21C030
- * @size 0x70
+ * @size 0x64
  */
 CGameDataUsed *GetOmakeGyoracer2(int slot);
 
@@ -1352,7 +1352,7 @@ CGameDataUsed *GetOmakeGyoracer2(int slot);
  *
  * @mangled GetOmakeGyoracerTactics__Fi
  * @address 0x21C0A0
- * @size 0x40
+ * @size 0x3C
  */
 int GetOmakeGyoracerTactics(int slot);
 
@@ -1362,7 +1362,7 @@ int GetOmakeGyoracerTactics(int slot);
  *
  * @mangled SetOmakeGyoracerTactics__Fii
  * @address 0x21C0E0
- * @size 0x40
+ * @size 0x38
  */
 void SetOmakeGyoracerTactics(int slot, int tactics);
 
@@ -1372,7 +1372,7 @@ void SetOmakeGyoracerTactics(int slot, int tactics);
  *
  * @mangled GyoraceSubGameInitData__Fv
  * @address 0x21C220
- * @size 0x70
+ * @size 0x68
  */
 void GyoraceSubGameInitData();
 
@@ -1382,7 +1382,7 @@ void GyoraceSubGameInitData();
  *
  * @mangled GyoraceMenuInit__FP9mgCMemoryPii
  * @address 0x21C290
- * @size 0x3D0
+ * @size 0x3C4
  */
 void GyoraceMenuInit(mgCMemory *memory, int *tex_block, int arg);
 
@@ -1393,7 +1393,7 @@ void GyoraceMenuInit(mgCMemory *memory, int *tex_block, int arg);
  *
  * @mangled GyoraceMenuKey__Fv
  * @address 0x21C790
- * @size 0x12B0
+ * @size 0x12AC
  */
 int GyoraceMenuKey();
 
@@ -1403,7 +1403,7 @@ int GyoraceMenuKey();
  *
  * @mangled GyoraceMenuDraw__Fv
  * @address 0x21DA40
- * @size 0x9C0
+ * @size 0x9B4
  */
 void GyoraceMenuDraw();
 
@@ -1414,7 +1414,7 @@ void GyoraceMenuDraw();
  *
  * @mangled DrawSubGameTitle__FP10mgCTextureiiii
  * @address 0x21E400
- * @size 0x130
+ * @size 0x12C
  */
 void DrawSubGameTitle(mgCTexture *tex, int large, int x, int y, int w);
 
@@ -1424,7 +1424,7 @@ void DrawSubGameTitle(mgCTexture *tex, int large, int x, int y, int w);
  *
  * @mangled DrawSubGameListFix__FP10mgCTextureiiii
  * @address 0x21E530
- * @size 0x230
+ * @size 0x224
  */
 void DrawSubGameListFix(mgCTexture *tex, int x, int y, int w, int h);
 
@@ -1435,7 +1435,7 @@ void DrawSubGameListFix(mgCTexture *tex, int x, int y, int w, int h);
  *
  * @mangled DrawSubGameScrlList__FP10mgCTexturePiPi
  * @address 0x21E760
- * @size 0x2A0
+ * @size 0x298
  */
 void DrawSubGameScrlList(mgCTexture *tex, int *box, int *thumb);
 
@@ -1445,7 +1445,7 @@ void DrawSubGameScrlList(mgCTexture *tex, int *box, int *thumb);
  *
  * @mangled DrawSubGameUnderLine__FP10mgCTextureiii
  * @address 0x21EA00
- * @size 0xD0
+ * @size 0xCC
  */
 void DrawSubGameUnderLine(mgCTexture *tex, int x, int y, int w);
 
