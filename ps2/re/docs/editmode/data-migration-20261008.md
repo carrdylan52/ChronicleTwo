@@ -148,3 +148,18 @@ All `.data` objects are now native, so refreshed `matched_data` is **805 / 4,855
 sections receive no aggregate credit. Full validation remains PAL OK and
 149/149. Receipts: `color-templates-*`, `river-color-*`,
 `balance-color-pairs-*`; rejected probe: `balance-color-access-build.log`.
+
+## Inline motion and effect names
+
+`PlaceRiverStart`, `RemoveMtnStart`, and `PaintEditParts` pass their motion
+names as inline Shift-JIS literals. The native pooled objects keep the retail
+identities `at_1254__2`, `at_1284__5`, and `at_1377__3`, including for the
+untouched guarded `EditMode` motion-name comparisons and its active assembly.
+Their existing external declarations remain available to that draft. No
+unrelated copy of a literal or replacement symbol is introduced. Each migration
+is validated separately with exact resolved relocations and PAL verification.
+
+`DeleteKanketuParts` inlines the shared removal-effect name at all four
+`CreateEffSpt` calls, removing `at_1367`'s external declaration and marker.
+Receipts: `literal-at_1254__2-*`, `literal-at_1284__5-*`,
+`literal-at_1377__3-*`, and `literal-at_1367-*`.

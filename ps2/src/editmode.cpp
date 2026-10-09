@@ -1058,7 +1058,7 @@ void PlaceRiverStart(CEditMap *map, float *pos) {
     CursorLockCnt = 5;
 
     if (ShovelCurChr != NULL) {
-        ShovelCurChr->SetMotion(at_1254__2, 6);
+        ShovelCurChr->SetMotion("\x8c\x40\x82\xe8", 6);
     }
 }
 
@@ -1107,7 +1107,7 @@ void RemoveMtnStart(CEditMap *map, float *pos, float *cursor_pos) {
 
     if (RemoveCurChr != NULL) {
         RemoveCurChr->ResetMotion();
-        RemoveCurChr->SetMotion(at_1284__5, 6);
+        RemoveCurChr->SetMotion("\x82\xa9\x82\xbd\x82\xc3\x82\xaf", 6);
     }
 }
 
@@ -1218,24 +1218,24 @@ int DeleteKanketuParts(CScene *scene, CEditMap *map, float *position, int parts_
             float effect_vector[4] = {8.0f, 8.0f, 8.0f, 0.0f};
             float effect_position[4];
             *(u_long128 *) effect_position = *(u_long128 *) removed_position;
-            effects->CreateEffSpt(at_1367, -1, -1);
+            effects->CreateEffSpt("\x8d\xbb\x89\x8c\x32", -1, -1);
             effects->SetScriptVect1(effect_position, -1, -1);
             effects->SetScriptVect2(effect_vector, -1, -1);
             *(u_long128 *) effect_position = *(u_long128 *) removed_position;
             effect_position[0] += 50.0f;
-            effects->CreateEffSpt(at_1367, -1, -1);
+            effects->CreateEffSpt("\x8d\xbb\x89\x8c\x32", -1, -1);
             effects->SetScriptVect1(effect_position, -1, -1);
             effects->SetScriptVect2(effect_vector, -1, -1);
             *(u_long128 *) effect_position = *(u_long128 *) removed_position;
             effect_position[0] -= 24.0f;
             effect_position[2] -= 30.0f;
-            effects->CreateEffSpt(at_1367, -1, -1);
+            effects->CreateEffSpt("\x8d\xbb\x89\x8c\x32", -1, -1);
             effects->SetScriptVect1(effect_position, -1, -1);
             effects->SetScriptVect2(effect_vector, -1, -1);
             *(u_long128 *) effect_position = *(u_long128 *) removed_position;
             effect_position[0] -= 36.0f;
             effect_position[2] += 40.0f;
-            effects->CreateEffSpt(at_1367, -1, -1);
+            effects->CreateEffSpt("\x8d\xbb\x89\x8c\x32", -1, -1);
             effects->SetScriptVect1(effect_position, -1, -1);
             effects->SetScriptVect2(effect_vector, -1, -1);
         }
@@ -1261,7 +1261,7 @@ int PaintEditParts(CEditMap *map, int parts_no, int color_no, float *color) {
     if (PaintCurChr != NULL) {
         sceVu0ScaleVector(effect_color, color, 128.0f);
         PaintCurChr->GetPosition(position);
-        PaintCurChr->SetMotion(at_1377__3, 6);
+        PaintCurChr->SetMotion("\x93\x68\x82\xe8", 6);
         EditPaintEffect(part, position, effect_color, 0);
     }
 
@@ -2966,10 +2966,6 @@ INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editmode", at_1073__3__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editmode", at_1074__3__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editmode", at_1075__2__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editmode", at_1076__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editmode", at_1254__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editmode", at_1284__5__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editmode", at_1367__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editmode", at_1377__3__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editmode", at_1835__2__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editmode", at_1836__2__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editmode", at_1961__DATA);
