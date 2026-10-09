@@ -1097,8 +1097,7 @@ void CameraControl(CScene *scene, CPadControl *pad) {
                                     camera->ControlOff();
                                     camera->FollowOff();
                                     InitEyeCamera(chara, camera);
-                                    EyeCamera(
-                                        (mgCCameraFollow *) camera, chara, 0);
+                                    EyeCamera(camera, chara, 0);
                                     scene->SetStatus(1, scene->player_chara, 0x10);
                                     scene->EyeViewDrawOnOff(1);
                                     goto done;
@@ -1125,8 +1124,7 @@ void CameraControl(CScene *scene, CPadControl *pad) {
                                 scene->EyeViewDrawOnOff(0);
                             } else {
                                 camera->FollowOff();
-                                EyeCamera(
-                                    (mgCCameraFollow *) camera, chara, 0);
+                                EyeCamera(camera, chara, 0);
                                 user_data = NULL;
 
                                 if (GetUserData() != 0) {
