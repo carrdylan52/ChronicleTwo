@@ -1760,7 +1760,7 @@ int CMonsterMan::LoadReferMonsterFile(int id, BASE_MONSTER_TBL *tbl, mgCMemory *
     }
     entry->chara.sound_info.se_bank = sound;
     for (i = 0; i < tbl->sw_effect_num; i++) {
-        entry->chara.sword_effect[i] = new ((u_long128 *)memory->Alloc(0xC)) CSWordAfterEffect;
+        entry->chara.sword_effect[i] = new (memory->Alloc(0xC)) CSWordAfterEffect;
         entry->chara.sword_effect[i]->Initialize(memory, 0xC, 8);
         entry->chara.sword_effect[i]->SetTexture(0x4A, TEX_SystemEffectSw, 0, 0x20, 0x40, 0x20);
     }
