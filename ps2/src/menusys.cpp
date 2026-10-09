@@ -4267,13 +4267,12 @@ short CMenuKeyFunc::StepMenuBGM() {
 
     return bgm_fading;
 }
-#ifdef NONMATCHING
 void CheckEnableHaveItemNum(void) {
     CGameData        *item_data = &GameItemDataManage;
     int               i;
     CUserDataManager *user_data = GetUserDataMan();
     int               have_num[512];
-    int               j, gift_no;
+    int               j, k, gift_no;
     s16               full[512];
 
     memset(have_num, 0, sizeof(have_num));
@@ -4281,12 +4280,12 @@ void CheckEnableHaveItemNum(void) {
     CGameDataUsed *used = user_data->GetUsedDataPtr(0);
     int            bag_max = GetNowBagMax(1);
     for (i = 0; i < bag_max; i++, used++) {
-        s16 item_no = used->item_no;
+        int item_no = used->item_no;
         if (item_no > 0) {
             have_num[item_no] += used->GetNum();
             if (0 < used->GetGiftBoxItemNum()) {
-                for (j = 0; j < 3; j = j + 1) {
-                    int gift_no = used->GetGiftBoxItemNo(j);
+                for (j = 0; j < 3; j++) {
+                    gift_no = used->GetGiftBoxItemNo(j);
                     if (gift_no > 0) {
                         have_num[gift_no]++;
                     }
@@ -4296,15 +4295,15 @@ void CheckEnableHaveItemNum(void) {
     }
     CHARA_DATA *chara = user_data->GetCharaDataPtr(0);
     for (i = 0; i < 2; i++) {
-        chara = chara + i;
-        for (int k = 0; k < 3; k++) {
+        chara = &chara[i];
+        for (k = 0; k < 3; k++) {
             CGameDataUsed *active = &chara->active_item[k];
             int            item_no = active->item_no;
             if (item_no > 0) {
-                have_num[item_no] += (&chara->active_item[k])->GetNum();
+                have_num[item_no] += active->GetNum();
                 if (0 < active->GetGiftBoxItemNum()) {
-                    for (int j = 0; j < 3; j++) {
-                        gift_no = (&chara->active_item[k])->GetGiftBoxItemNo(j);
+                    for (int gift_slot = 0; gift_slot < 3; gift_slot++) {
+                        gift_no = active->GetGiftBoxItemNo(gift_slot);
                         if (gift_no > 0) {
                             have_num[gift_no]++;
                         }
@@ -4336,9 +4335,6 @@ void CheckEnableHaveItemNum(void) {
         }
     }
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/menusys", CheckEnableHaveItemNum__Fv);
-#endif
 /**
  *
  * Positions the equipment preview camera around a character or its selected part.
