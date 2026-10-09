@@ -73,7 +73,6 @@ enum GyoraceMenuMode {
     GYORACE_MENU_LOAD_BOARD = 0x43,
 };
 
-
 /**
  *
  * Entry selected by the saved fish-race menu cursor.
@@ -88,8 +87,6 @@ enum GyoraceMenuCommand {
     GYORACE_COMMAND_TACTICS = 5, /**< Displays the assigned racers and tactics. */
     GYORACE_COMMAND_START = 6, /**< Starts a race with the assigned entrants. */
 };
-
-
 
 /**
  *
@@ -174,8 +171,6 @@ struct gyorace_list_select {
     int top;    /**< First visible list row. */
 };
 
-
-
 /**
  *
  * Groups the prize records for a fish contest.
@@ -255,7 +250,6 @@ extern "C" aqua_vector        at_3290;
 extern "C" aqua_vector        at_3291__3;
 extern "C" aqua_vector        at_3310;
 extern "C" aqua_vector        at_3311;
-
 
 extern int                menu_debug_flag;
 
@@ -976,7 +970,6 @@ enum AquaFishBreedKind {
     AQUA_FISH_KIND_F18 = 26, /**< Fish species using the f18a image. */
     AQUA_FISH_KIND_F19 = 0, /**< Fish species using the f19a image. */
 };
-
 
 /**
  *
@@ -5075,6 +5068,7 @@ int CAquarium::ColCheck(int no) {
     me->SetPosition(pos);
     return result;
 }
+
 int CAquarium::InitSelFish() {
     int i;
     sel_fish = -1;
@@ -6360,6 +6354,7 @@ void CAquarium::Draw() {
         }
     }
 }
+
 void MenuAquaInit(mgCMemory *memory, int *tex_block, int) {
     AquaScene = GetMainScene();
     Auqa_Bgm_Volf = AquaScene->GetTimeBgmVolf();
@@ -7988,6 +7983,7 @@ int GyoraceMenuKey() {
               &GyoraceHaveFishCursor, 3.6f, 3.0f, scroll_init);
     return 0;
 }
+
 void GyoraceMenuDraw() {
     mgCTextureManager *textures;
     mgCDrawPrim       *prim;
@@ -8219,6 +8215,7 @@ void GyoraceMenuDraw() {
 
     GyoraceHaveFishListScrlInit = 0;
 }
+
 void DrawSubGameTitle(mgCTexture *texture, int large, int x, int y, int width) {
     mgRect<int> shadow;
     mgRect<int> frame;
@@ -8349,12 +8346,6 @@ INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuaqua", at_3160__2__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuaqua", at_3161__2__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuaqua", at_3163__2__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuaqua", at_3164__3__DATA);
-
-// Virtual tables (.vtables)
-
-// Small initialised data (.sdata)
-
-// Small uninitialised data (.sbss)
 
 // Uninitialised data (.bss)
 mgCMemory Aquarium_NameregistStack;

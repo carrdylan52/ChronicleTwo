@@ -110,3 +110,11 @@ bytes. Those recorded failures are retained without repetition. The
 reserved guarded SettingAqua block is unchanged.
 
 The normal full build preserves SCES_511.90 and all 149 canonical objects.
+
+## Current status and source spacing
+
+The main notes distinguish current native functions from their historical
+guarded measurements and link the accepted promotions. Empty section
+headings, repeated blank lines and missing function separators are removed
+without reflowing the source. The full PAL verifier and 149 object
+comparisons remain exact.

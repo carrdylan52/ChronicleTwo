@@ -53,8 +53,7 @@ and reflection/screen texture names. Shift-JIS bytes use hex escapes.
 The two fish path formats now have ordinary char-string arguments without
 casting their former byte-array declarations.
 
-The shared `info.cfg` and screen texture literals also pass with both
-frozen bodies intact; generated native data retains their exact retail
+The shared `info.cfg` and screen texture literals also pass with guarded SettingAqua and native Step intact; generated native data retains their exact retail
 identities for the assembly consumers. Draw's existing profile selectors
 and resulting code remain unchanged.
 
@@ -82,7 +81,7 @@ initializer, removing its external template and seed-copy cast. The
 existing runtime vector copy remains unchanged. `aqua-sdk-round-seed`
 verifies PAL OK and 149/149 objects. SDK-array forms for NextThink and
 Thinking retain the same five/thirteen-byte differences and are reverted.
-Current markers: 111 / 3; matched data: 2128 / 8293 bytes.
+Checkpoint markers: 111 / 3; matched data: 2128 / 8293 bytes.
 
 ## Fish and geometry tables
 
@@ -103,8 +102,7 @@ Natural type padding replaces unused byte members: food has one byte at
 collision points use aligned sceVu0FVECTOR plus radius, with a natural
 12-byte tail and size 32. ColChkPoint2 has nine real array slots and seven
 active entries; its two unused slots are implicitly zero initialized.
-Static assertions preserve all three sizes. All existing code, including
-both frozen drafts, remains byte-identical.
+Static assertions preserve all three sizes. All existing code, including the guarded SettingAqua draft and native Step, remains byte-identical.
 
 Fourteen `aqua-table-<symbol>-{build,objects}.log` receipts verify PAL OK
 and 149/149 objects. Eighteen image-string markers also come from the
@@ -199,7 +197,7 @@ This data cleanup changes no function selection or profile row and needs
 no foreign-file proposal. Step was already promoted before this migration. The final accepted source is verified by
 `.private/nminv-r2/final-build.log` and `final-objects.log`.
 
-Final validation uses the pinned image and original build tooling:
+Data-migration checkpoint validation uses the pinned image and original build tooling:
 `final-build.log` verifies SCES_511.90 OK; `final-objects.log` reports
 149/149 objects. `final-refresh.log` refreshes ctx/objdiff/progress before
 `final-coverage.log` records 6779 matched, 84 guarded, nine assembly-only
