@@ -79,3 +79,17 @@ joint source facts that resolve its active-slot register allocation. The
 round-zero, round-one and near-miss scores are explicitly historical; the
 current remaining list has the four constructor-backed guarded functions.
 `notes-build.log` and `notes-objects.log` record PAL OK and 149/149 objects.
+
+## Internal helper linkage (finding 16)
+
+Retail `readelf -sW rom/pal/extracted/iso/SCES_511.90` identifies
+MenuDataSwap, MenuItemDebugDraw and MenuPosFormValueSetCharaRobo as LOCAL
+functions, with declared sizes 908, 5,028 and 1,176 bytes respectively.
+Their C++ declarations and definitions now use `static`. Each helper retains
+its existing symbol spelling, function bytes and resolved relocation targets;
+only symbol binding metadata changes from GLOBAL to LOCAL.
+
+`linkage-build.log` and `linkage-objects.log` record PAL OK and 149/149
+objects. `linkage-symbols.txt` records the native bindings, and
+`final-audit.json` compares allocated sections and relocation identities with
+the warm baseline, as well as the guarded bodies, data markers and scope.

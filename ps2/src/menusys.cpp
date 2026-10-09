@@ -208,10 +208,10 @@ int       MenuNPCQuestViewKey();
 void      MenuAquaDraw();
 void      NameRegistDraw();
 void      MenuNPCQuestViewDraw();
-void      MenuItemDebugDraw();
+static void MenuItemDebugDraw();
 void      MenuItemInfoCursorSet(int mode);
 void      MenuItemCharaViewCheck(CHARA_DATA *chara, int chara_no, int flag);
-void      MenuPosFormValueSetCharaRobo(ROBO_DATA *robo, int flag);
+static void MenuPosFormValueSetCharaRobo(ROBO_DATA *robo, int flag);
 void      MenuPosFormValueSetMonster(MOS_CHANGE_PARAM *monster, CHARA_DATA *chara);
 int       CheckFishCondition();
 
@@ -3699,7 +3699,7 @@ MenuSwapResultTable at_2512 = {{MENU_SWAP_RESULT_FAILED, MENU_SWAP_RESULT_DESTIN
  * @address 0x23DD80
  * @size 0x38C
  */
-int MenuDataSwap(CGameDataUsed *destination, CGameDataUsed *source, int quantity) {
+static int MenuDataSwap(CGameDataUsed *destination, CGameDataUsed *source, int quantity) {
     int          dst_type;
     int          dst_no;
     CDataCommon *src_common;
@@ -4981,7 +4981,7 @@ int CMenuKeyFunc::GetDebugInputKey(int &held, int &pressed) {
     return 1;
 }
 
-int MenuDataSwap(CGameDataUsed *destination, CGameDataUsed *source, int quantity);
+static int MenuDataSwap(CGameDataUsed *destination, CGameDataUsed *source, int quantity);
 
 int CMenuKeyFunc::MenuSwapItem(CGameDataUsed *item, MENU_SWAPITEM_INFO *swap, int quantity, bool flag) {
     if (item == NULL) {
@@ -8621,7 +8621,7 @@ INCLUDE_ASM("ps2/asm/pal/nonmatchings/menusys", MenuItemDebugKey__Fv);
  * @address 0x2494E0
  * @size 0x13A4
  */
-void MenuItemDebugDraw(void) {
+static void MenuItemDebugDraw(void) {
     CMenuFont          menu_font;
     mgCTextureManager *tex_manager = &mgTexManager;
     CMenuFont         *font = &menu_font;
@@ -10171,7 +10171,7 @@ void MenuItemCharaViewCheck(CHARA_DATA *chara, int chara_no, int flag) {
  * @address 0x24CB20
  * @size 0x498
  */
-void MenuPosFormValueSetCharaRobo(ROBO_DATA *robo, int flag) {
+static void MenuPosFormValueSetCharaRobo(ROBO_DATA *robo, int flag) {
     float               sway;
     MENUFORMPARTS_TYPE *hp_part;
     float               rate;
