@@ -1232,7 +1232,7 @@ void SphidaMenuInit(mgCMemory *stack, int *tex_block, int open_type) {
         SphidaStack.Alloc(blocks);
         mgTexManager.EnterIMGFile((u8 *) buffer, SphidaMenuTexbk[1], NULL, NULL);
         SphidaTex = mgTexManager.GetTexture("omaketx", -1);
-        mgTexManager.EnterIMGFile((u8 *) GetMenuMainIMGPtr(), SphidaMenuTexbk[1], NULL, NULL);
+        mgTexManager.EnterIMGFile(GetMenuMainIMGPtr(), SphidaMenuTexbk[1], NULL, NULL);
         SphidaCursor = mgTexManager.GetTexture("mnmain", -1);
         SphidaCursorY = 300.0f;
         SphidaCursorDrawFlag = 0;
