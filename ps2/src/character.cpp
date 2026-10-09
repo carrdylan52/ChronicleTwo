@@ -3711,5 +3711,3 @@ void CCharacter2::Copy(CCharacter2 &dest, mgCMemory *memory) {
 }
 
 // Local-static storage (.sbss)
-INCLUDE_BSS(outline_num_1499, 0x4);
-INCLUDE_BSS(init_1500, 0x4);
