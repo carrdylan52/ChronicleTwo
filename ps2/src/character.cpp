@@ -770,8 +770,8 @@ void CCharacter2::SetDAnimeEnable(int enable) {
 CHRINFO_SE *CCharacter2::GetSoundInfoCopy(mgCMemory *memory) {
     u32   bytes;
     u32   blocks;
-    u_long128 *block;
-    void      *copy;
+    u_long128  *block;
+    CHRINFO_SE *copy;
 
     if (se_num[0] <= 0) {
         return NULL;
@@ -786,9 +786,9 @@ CHRINFO_SE *CCharacter2::GetSoundInfoCopy(mgCMemory *memory) {
     }
 
     block = memory->Alloc(blocks + 2);
-    copy = operator new[](se_num[0] * (int) sizeof(CHRINFO_SE), block);
+    copy = new (block) CHRINFO_SE[se_num[0]];
     memcpy(copy, se_list[0], se_num[0] * (int) sizeof(CHRINFO_SE));
-    return (CHRINFO_SE *) copy;
+    return copy;
 }
 
 int CCharacter2::CheckFootEffect() {
@@ -2656,9 +2656,8 @@ int _SE_START(SPI_STACK *stack, int argc) {
     }
 
     nowChr->se_num[now_motion_id] = spiGetStackInt(stack);
-    nowChr->se_list[now_motion_id] = (CHRINFO_SE *) operator new[](
-        nowChr->se_num[now_motion_id] * 16,
-        now_stack->Alloc(DynAnimeAlign16Blocks(nowChr->se_num[now_motion_id] * 16) + 2));
+    nowChr->se_list[now_motion_id] = new (now_stack->Alloc(DynAnimeAlign16Blocks(nowChr->se_num[now_motion_id] * 16) + 2))
+        CHRINFO_SE[nowChr->se_num[now_motion_id]];
     now_se_header = nowChr->se_list[now_motion_id];
     return 1;
 }
