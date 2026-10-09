@@ -70,11 +70,22 @@ t_offxy_1832,cursor_offsetxy_1836,cursor-local,QuestMoveRate}` under
 | Marker | Reason |
 | --- | --- |
 | `__vt__14CMenuQuestView__DATA` | Guarded `MenuNPCQuestViewInit` directly references the exact retail vtable symbol; its assembly-backed data remains explicit. |
-| `shop_mode_prev_1326` | Function-local persistent previous shop mode; natural local-static identity binding depends on the queued shared tooling work. |
-| `init_1327` | One-byte guard for that local mode, with a seven-byte piece tail; retained with the local static it guards. |
 
-Final canonical state: **1 INCLUDE_RODATA / 2 INCLUDE_BSS**, from **102 / 35**;
+Table checkpoint: **1 INCLUDE_RODATA / 2 INCLUDE_BSS**, from **102 / 35**;
 **1653 / 1885 matched_data**, from **4 / 1885**. All 29 native functions remain
 exact and the guarded initializer is unchanged. PAL is OK, 149/149 objects
 pass, and the other 148 object file hashes equal the warm baseline. Final
 receipts: `.private/dataD-r1/menushop-final-{build,objects,progress,metrics}.log`.
+
+## Persistent primitive state
+
+The prior panel and its one-byte initialization flag use documented file-local
+primitive definitions under their retail names, following the accepted
+menucapt counter/guard form. Their existing runtime initialization remains
+unchanged. Primitive storage does not need the queued constructor-bearing
+local-static binder proposal. The flag's seven-byte piece tail remains padding.
+
+Final canonical state: **1 INCLUDE_RODATA / 0 INCLUDE_BSS**, from **102 / 35**;
+**1821 / 1885 matched_data**, from **4 / 1885**. PAL and 149/149 objects pass;
+all guarded/SF bodies and unowned object hashes remain unchanged. Receipts:
+`.private/dataD-r1/menushop-persistent-state-{build,objects,progress,metrics}.log`.

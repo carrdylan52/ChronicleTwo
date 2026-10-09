@@ -742,8 +742,19 @@ void CShopMenu::InitEnd() {
     shop_name_ofs_x = message->GetMesWidth_system(shop_name_no) >> 1;
     shop_name_ofs_y = 2;
 }
-extern s16 shop_mode_prev_1326;
-extern s8 init_1327;
+/**
+ *
+ * Shop list mode restored after a quantity selection or error message.
+ *
+ */
+static s16 shop_mode_prev_1326;
+
+/**
+ *
+ * Whether the previous shop list mode is initialized.
+ *
+ */
+static s8 init_1327;
 /**
  *
  * Purchase setup script selected by currency.
@@ -2471,6 +2482,3 @@ void MenuNPCQuestViewDraw() {
 // Virtual tables (.vtables)
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menushop", __vt__14CMenuQuestView__DATA);
 
-// Small uninitialised data (.sbss)
-INCLUDE_BSS(shop_mode_prev_1326, 0x4);
-INCLUDE_BSS(init_1327, 0x8);
