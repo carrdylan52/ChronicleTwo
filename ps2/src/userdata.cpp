@@ -2389,15 +2389,15 @@ void CFishAquarium::Initialize() {
     unk_2 = 0;
 
     for (i = 0; i < 6; i++) {
-        ((CGameDataUsed *) &fish_tank[i])->Init();
+        fish_tank[i].Init();
     }
 
     for (i = 0; i < 4; i++) {
-        ((CGameDataUsed *) &sub_tank[i])->Init();
+        sub_tank[i].Init();
     }
 
     for (i = 0; i < 2; i++) {
-        ((CGameDataUsed *) &breed_tank[i])->Init();
+        breed_tank[i].Init();
     }
 
     unk_518 = 0;
@@ -5019,7 +5019,6 @@ CGameDataUsed *CBattleCharaInfo::GetActiveItemInfo(int index) {
 
 int CBattleCharaInfo::UseActiveItem(CGameDataUsed *item) {
 
-    int target[2];
     int item_no;
 
     if (item == 0) {
@@ -5027,18 +5026,18 @@ int CBattleCharaInfo::UseActiveItem(CGameDataUsed *item) {
     }
 
     item_no = item->item_no;
-    target[0] = -1;
-    ((CItemUseTarget *) target)->SetPtr(0, chara_data);
+    CItemUseTarget target;
+    target.SetPtr(0, chara_data);
 
     if (item_no == 294) {
-        ((CItemUseTarget *) target)->SetPtr(1, GetEquipTablePtr(0));
+        target.SetPtr(1, GetEquipTablePtr(0));
     }
 
     if (item_no == 298 || item_no == 352) {
-        ((CItemUseTarget *) target)->SetPtr(1, GetEquipTablePtr(1));
+        target.SetPtr(1, GetEquipTablePtr(1));
     }
 
-    return MenuUseItemCheckFunc(item, (CItemUseTarget *) target, 1);
+    return MenuUseItemCheckFunc(item, &target, 1);
 }
 
 u32 CBattleCharaInfo::GetSpecialStatus(int slot) {
