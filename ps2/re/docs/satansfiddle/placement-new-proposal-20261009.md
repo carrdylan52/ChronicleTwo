@@ -708,3 +708,24 @@ separate from the already frozen normal-wrapper and whole-ELF preservation.
 The [paired native note](placement-new-current34-native-comparison-20261009.md)
 owns exact flags, masking/bounds, missing native records, recorded source
 status and the root-verified 1,824-file manifest. Production34 remains exact.
+
+## Global capability design and corrected identity scope
+
+The [global design note](placement-new-global-design-20261009.md) records an
+inactive schema: exact supported allocator allowlist, one exact NewTex
+before exception, and33 audit-only assertions retaining43 after sites.
+Global selection and timing must become independent of count rows while
+preserving measured root, bounded-region, cleanup, conversion and arena
+checks. A private implementation is being prepared; it has no build/test
+or production acceptance yet.
+
+The original design's universal mangled caller/ctor-name requirement was
+an extra conservative choice. Actual captured scalar/direct objects,
+original class6 and the exact root INLINE_READ already establish semantic
+ownership. An unasserted global implicit ctor may lack a mangled name;
+allocator ABI and every possible exact override/assertion association still
+must resolve. Current scoped implicit-name rejection remains correct.
+The separately frozen critique distinguishes these obligations, identifies
+unknown allocator witness timing/type metadata and preserves all original
+design files. Broad-driver RAW/ELF equality does not supply strict safety
+or a new original-compiler-option explanation.
