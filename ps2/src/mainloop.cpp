@@ -1602,9 +1602,9 @@ int gcSTART_EVENT(SPI_STACK *stack, int arg_count) {
 }
 
 int gcGEO_COMPLETE(SPI_STACK *stack, int count) {
-    int   i;
-    int   index;
-    void *edit_data;
+    int        i;
+    int        index;
+    CEditData *edit_data;
 
     DebugInfo.georama_debug = 1;
 
@@ -1613,7 +1613,7 @@ int gcGEO_COMPLETE(SPI_STACK *stack, int count) {
         edit_data = GetSaveData()->GetEditData(index);
 
         if (edit_data != 0) {
-            ((CEditData *) edit_data)->dbgSetAllContintionFlag(index, 1);
+            edit_data->dbgSetAllContintionFlag(index, 1);
         }
     }
 
