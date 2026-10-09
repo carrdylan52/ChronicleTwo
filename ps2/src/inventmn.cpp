@@ -561,6 +561,11 @@ extern INVENT_DATA_INFO  *inventSpiDataTblTop;
 extern short              invent_num_counter;
 extern SPI_TAG_PARAM      invent_teigi_func[];
 
+/**
+ *
+ * Values used by invention preview states, controls, loading, messages and visual settings.
+ *
+ */
 enum {
     kCreateAsk = 0,
     kCreateWaitStart = 1,
