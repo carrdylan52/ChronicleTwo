@@ -1438,7 +1438,7 @@ void MenuMemoryAdjust(mgCMemory *pool, mgCMemory *rest, mgCMemory *buffers, int 
                       free_blocks - used);
 
     if (strlen("LOAD STACK") < 16) {
-        strcpy((char *) rest, "LOAD STACK");
+        strcpy(rest->name, "LOAD STACK");
     }
 
     rest->stack_used = 0;
@@ -5553,10 +5553,10 @@ unsigned int MenuItemChrLoad(mgCMemory *stack, int item_no, int variant, MENU_BG
     GetGameDataPt();
     info->reading = 1;
     info->chara = 0;
-    strcpy((char *) info, GetItemFileName(item_no, 0));
+    strcpy(info->name, GetItemFileName(item_no, 0));
 
     if (variant == 1) {
-        strcat((char *) info, "_item.chr");
+        strcat(info->name, "_item.chr");
     }
 
     strcpy((char *) &info->path, GetItemFilePath(item_no, 1));
