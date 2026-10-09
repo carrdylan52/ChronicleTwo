@@ -340,7 +340,7 @@ static int use_item_enable_alpha;
  */
 static float *spectol_raster_xtbl;
 
-extern short MenuWindowHelpTable_1346[36];
+
 
 extern "C" texture_pair at_1521__2;
 
@@ -361,21 +361,21 @@ static int MenuDl_TotalSize;
  */
 static int MenuDl_ProcessSize;
 
-extern short basepos_4190[2];
 
-extern short farleft_4191[2];
 
-extern short xyoffset_4192[2];
 
-extern short actpos_4193[2];
 
-extern short baseposoffset_tbl_4194[23][2];
 
-extern short actposoffsettbl1_4195[3][18][2];
 
-extern MENU_SHORT_RECT table_1650[3][3];
 
-extern u8 rgbatbl_1379[4];
+
+
+
+
+
+
+
+
 
 /**
  * Tracks the interpolated gift-box cursor position.
@@ -387,11 +387,22 @@ static float curpos_1393;
  */
 static signed char init_1394;
 
-extern int star_color_table[9];
+
 
 extern "C" char at_1711[];
 
-extern char *tbl_1689[][2];
+/**
+ * Gives the Geostone download and completion text for each language.
+ */
+static char *tbl_1689[7][2] = {
+    {" ", " "},
+    {"Downloading Geostone...", "Geostone downloading complete."},
+    {"T[UNI00e9]l[UNI00e9]chargement de la g[UNI00e9]opierre...", "T[UNI00e9]l[UNI00e9]chargement de la g[UNI00e9]opierre fini"},
+    {"Geostein-Download ...", "Geostein-Download beendet."},
+    {"Scaricamento Geopietra in corso...", "Scaricamento Geopietra completato."},
+    {"Descargando Geopiedra...", "Descarga de Geopiedra finalizada."},
+    {"Downloading Geostone...", "Geostone downloading complete."}
+};
 
 /**
  * Holds the top-left position of the main menu frame.
@@ -408,7 +419,7 @@ static signed char MainFrameStepFlag_2092;
  */
 static signed char init_2093;
 
-extern u8 static_rgba_table_3128[4];
+
 
 extern menu_put_pos at_3612;
 
@@ -420,9 +431,9 @@ extern "C" char at_3721[];
 
 extern item_color at_5917;
 
-extern s16 spectol_break_pos[16][3][2];
 
-extern float spectol_break_angle[16][6];
+
+
 
 extern board_frame_parts at_2919;
 
@@ -432,15 +443,15 @@ extern scroll_bar_layers at_2950__2;
 
 extern scroll_bar_parts at_2951__2;
 
-extern s16 frmtbl0_2922[16];
 
-extern s16 frmtbl1_2938[10];
 
-extern MENU_SHORT_RECT item_transtbl[2];
 
-extern int paint_color_table_1234[9][4];
 
-extern s8 spectol_y_addtbl_1245[40];
+
+
+
+
+
 
 /**
  * Tracks the missing-material quantity blink phase.
@@ -459,9 +470,9 @@ extern board_blink_color at_1803__2;
 
 extern board_button_color at_1814;
 
-extern s16 get_onoffbrdtbl_1789[2][3][4];
 
-extern s8 get_btntbl_1810[2][2];
+
+
 
 /**
  * Tracks the animated menu cursor rotation.
@@ -499,7 +510,7 @@ static float putpostbl_3410[8];
  */
 static int getpostbl_3411[8];
 
-extern u8 menu_prim_tbl[2][2];
+
 
 static void MenuFrameImageDraw(mgCDrawPrim *prim, mgCTexture *tex, mgRect<float> rect, mgRect<int> tex_rect, int gray,
                                int alpha, int dtype);
@@ -514,14 +525,14 @@ static u8 localrgba_3166[4];
  */
 static float item_board_counter;
 
-extern float rottbl_3145[];
+
 
 /**
  * Selects the main menu frame display mode.
  */
 static short MenuMainFrame_Display_Mode;
 
-extern float tbl_2072[];
+
 
 /**
  * Tracks the main menu frame display transition.
@@ -544,11 +555,11 @@ static float MenuMainFrame_Lenze_Pos[2];
 static float MenuMainFrame_MoveRate[2];
 
 /**
- * Tracks the main menu frame movement interpolation.
+ * Tracks the main menu frame movement phase.
  */
 static float MenuMainFrame_MoveRate_Cnt;
 
-extern float MenuWakuPutXY[2];
+
 
 /**
  * Tracks the rotating circular menu frame phase.
@@ -603,7 +614,7 @@ static float MenuItemBrdScrlCurLen;
 static float DrawItemCounter;
 
 /**
- * Selects the current item icon animation frame.
+ * Tracks the item icon blink cycle.
  */
 static signed char DrawItemDefCounter;
 
@@ -679,7 +690,7 @@ static signed char l_levelup_counter[32];
  */
 static signed char l_levelup_generate_counter[32];
 
-extern int l_levelup_color[2][4];
+
 
 /**
  * Marks the boiled-fish icon effect as active.
@@ -801,6 +812,393 @@ void InitInitBuildUpInfoEffectPos();
 
 #include "common.h"
 
+
+/**
+ * Defines the three texture-coordinate vertices of each spectrum fragment.
+ */
+static s16 spectol_break_pos[16][3][2] = {
+    {
+        {0, 0},
+        {16, 0},
+        {8, 8}
+    },
+    {
+        {0, 0},
+        {8, 8},
+        {0, 16}
+    },
+    {
+        {16, 0},
+        {32, 0},
+        {24, 8}
+    },
+    {
+        {16, 0},
+        {24, 8},
+        {16, 16}
+    },
+    {
+        {16, 0},
+        {32, 0},
+        {24, 8}
+    },
+    {
+        {16, 0},
+        {24, 8},
+        {16, 16}
+    },
+    {
+        {32, 0},
+        {32, 16},
+        {24, 8}
+    },
+    {
+        {16, 16},
+        {24, 8},
+        {32, 16}
+    },
+    {
+        {0, 16},
+        {16, 16},
+        {8, 24}
+    },
+    {
+        {0, 16},
+        {8, 24},
+        {0, 32}
+    },
+    {
+        {16, 16},
+        {32, 16},
+        {24, 24}
+    },
+    {
+        {16, 16},
+        {24, 24},
+        {16, 32}
+    },
+    {
+        {16, 16},
+        {32, 16},
+        {24, 24}
+    },
+    {
+        {16, 16},
+        {24, 24},
+        {16, 32}
+    },
+    {
+        {32, 16},
+        {32, 32},
+        {24, 24}
+    },
+    {
+        {16, 32},
+        {24, 24},
+        {32, 32}
+    }
+};
+
+/**
+ * Defines the direction angles associated with each spectrum fragment.
+ */
+static float spectol_break_angle[16][6] = {
+    {0.0f, 0.0f, 0.0f, 0.0f, -0.785398006f, -0.785398006f},
+    {0.0f, 0.0f, -1.57079995f, -1.57079995f, -0.785398006f, -0.785398006f},
+    {0.0f, 0.0f, 0.0f, 0.0f, -0.785398006f, -0.785398006f},
+    {0.0f, 0.0f, -1.57079995f, -1.57079995f, -0.785398006f, -0.785398006f},
+    {0.0f, 0.0f, 0.0f, 0.0f, -0.785398006f, -0.785398006f},
+    {0.0f, 0.0f, -1.57079995f, -1.57079995f, -0.785398006f, -0.785398006f},
+    {0.0f, 0.0f, -2.35618997f, -2.35618997f, -1.57079995f, -1.57079995f},
+    {0.0f, 0.0f, 0.785398006f, 0.785398006f, 0.0f, 0.0f},
+    {0.0f, 0.0f, 0.0f, 0.0f, -0.785398006f, -0.785398006f},
+    {0.0f, 0.0f, -1.57079995f, -1.57079995f, -0.785398006f, -0.785398006f},
+    {0.0f, 0.0f, 0.0f, 0.0f, -0.785398006f, -0.785398006f},
+    {0.0f, 0.0f, -1.57079995f, -1.57079995f, -0.785398006f, -0.785398006f},
+    {0.0f, 0.0f, 0.0f, 0.0f, -0.785398006f, -0.785398006f},
+    {0.0f, 0.0f, -1.57079995f, -1.57079995f, -0.785398006f, -0.785398006f},
+    {0.0f, 0.0f, -2.35618997f, -2.35618997f, -1.57079995f, -1.57079995f},
+    {0.0f, 0.0f, 0.785398006f, 0.785398006f, 0.0f, 0.0f}
+};
+
+/**
+ * Gives the item icon texture rectangles for the two source textures.
+ */
+static MENU_SHORT_RECT item_transtbl[2] = {
+    {224, 736, 32, 32},
+    {224, 736, 32, 32}
+};
+
+/**
+ * Gives the RGBA overlays for the nine paint item icons.
+ */
+static int paint_color_table_1234[9][4] = {
+    {233, 0, 0, 64},
+    {0, 0, 233, 64},
+    {0, 0, 0, 64},
+    {0, 233, 0, 64},
+    {233, 150, 60, 64},
+    {250, 250, 70, 64},
+    {169, 12, 210, 64},
+    {250, 160, 210, 64},
+    {233, 0, 0, 64}
+};
+
+/**
+ * Gives the vertical offsets of the spectrum icon raster lines.
+ */
+static s8 spectol_y_addtbl_1245[40] = {1, 1, 2, 1, 1, 1, 1, 2, 1, 1, 1, 1, 2, 1, 1, 1, 1, 2, 1, 1, 1, 1, 2, 1, 1, 1, 1, 2, 1, 1, 1, 1, 2, 1, 1, 1, 1, 2, 1, 1};
+
+/**
+ * Gives the texture rectangles used by the gift-box window frame.
+ */
+static short MenuWindowHelpTable_1346[36] = {0, 0, 22, 24, 23, 0, 2, 24, 24, 0, 22, 24, 0, 25, 22, 1, 22, 25, 2, 1, 24, 25, 22, 1, 0, 68, 22, 24, 22, 68, 2, 24, 24, 68, 22, 24};
+
+/**
+ * Gives the left, centre and right texture rectangles of each download-panel row.
+ */
+static MENU_SHORT_RECT table_1650[3][3] = {
+    {
+        {0, 0, 32, 32},
+        {32, 0, 32, 32},
+        {64, 0, 32, 32}
+    },
+    {
+        {0, 32, 32, 16},
+        {32, 32, 32, 16},
+        {64, 32, 32, 16}
+    },
+    {
+        {0, 48, 32, 76},
+        {32, 48, 32, 76},
+        {64, 48, 32, 76}
+    }
+};
+
+/**
+ * Gives the three texture rectangles of active and inactive material-board rows.
+ */
+static s16 get_onoffbrdtbl_1789[2][3][4] = {
+    {
+        {66, 72, 6, 30},
+        {72, 72, 2, 30},
+        {74, 72, 6, 30}
+    },
+    {
+        {54, 20, 6, 30},
+        {60, 20, 2, 30},
+        {62, 20, 6, 30}
+    }
+};
+
+/**
+ * Gives the target movement counts for each main menu frame mode.
+ */
+static float tbl_2072[8] = {10.0f, 14.0f, 24.0f, 27.0f, 24.0f, 24.0f, 24.0f, 24.0f};
+
+/**
+ * Gives the RGB colours used by the menu star particles.
+ */
+static int star_color_table[9] = {255, 111, 111, 34, 230, 23, 0, 0, 128};
+
+/**
+ * Identifies the texture rectangles used by the item-board frame.
+ */
+enum MENU_ITEM_FRAME_PART {
+    MENU_ITEM_FRAME_TOP_LEFT = 0, /**< Top-left corner. */
+    MENU_ITEM_FRAME_TOP = 1, /**< First top-edge tile. */
+    MENU_ITEM_FRAME_TOP_ALT = 2, /**< Second top-edge tile. */
+    MENU_ITEM_FRAME_TOP_RIGHT = 3, /**< Top-right corner. */
+    MENU_ITEM_FRAME_LEFT = 4, /**< First left-edge tile. */
+    MENU_ITEM_FRAME_RIGHT = 5, /**< First right-edge tile. */
+    MENU_ITEM_FRAME_LEFT_ALT = 6, /**< Second left-edge tile. */
+    MENU_ITEM_FRAME_RIGHT_ALT = 7, /**< Second right-edge tile. */
+    MENU_ITEM_FRAME_BOTTOM_LEFT = 8, /**< Bottom-left corner. */
+    MENU_ITEM_FRAME_BOTTOM = 9, /**< First bottom-edge tile. */
+    MENU_ITEM_FRAME_BOTTOM_ALT = 10, /**< Second bottom-edge tile. */
+    MENU_ITEM_FRAME_BOTTOM_RIGHT = 11, /**< Bottom-right corner. */
+};
+
+/**
+ * Selects texture rectangles for the top and bottom item-board frame segments.
+ */
+static s16 frmtbl0_2922[16] = {
+    MENU_ITEM_FRAME_TOP_LEFT, MENU_ITEM_FRAME_TOP, MENU_ITEM_FRAME_TOP_ALT,
+    MENU_ITEM_FRAME_TOP, MENU_ITEM_FRAME_TOP_ALT, MENU_ITEM_FRAME_TOP,
+    MENU_ITEM_FRAME_TOP_ALT, MENU_ITEM_FRAME_TOP_RIGHT, MENU_ITEM_FRAME_BOTTOM_LEFT,
+    MENU_ITEM_FRAME_BOTTOM, MENU_ITEM_FRAME_BOTTOM_ALT, MENU_ITEM_FRAME_BOTTOM,
+    MENU_ITEM_FRAME_BOTTOM_ALT, MENU_ITEM_FRAME_BOTTOM, MENU_ITEM_FRAME_BOTTOM_ALT,
+    MENU_ITEM_FRAME_BOTTOM_RIGHT,
+};
+
+/**
+ * Selects texture rectangles for the side item-board frame segments.
+ */
+static s16 frmtbl1_2938[10] = {
+    MENU_ITEM_FRAME_LEFT, MENU_ITEM_FRAME_LEFT_ALT, MENU_ITEM_FRAME_LEFT,
+    MENU_ITEM_FRAME_LEFT_ALT, MENU_ITEM_FRAME_LEFT, MENU_ITEM_FRAME_RIGHT,
+    MENU_ITEM_FRAME_RIGHT_ALT, MENU_ITEM_FRAME_RIGHT, MENU_ITEM_FRAME_RIGHT_ALT,
+    MENU_ITEM_FRAME_RIGHT_ALT,
+};
+
+/**
+ * Gives the oscillation rates for each remaining fish bounce count.
+ */
+static float rottbl_3145[3] = {0.130899698f, 0.112199739f, 0.0872664675f};
+
+/**
+ * Gives the base position offsets for the main menu icons.
+ */
+static short baseposoffset_tbl_4194[23][2] = {
+    {0, 0},
+    {0, 0},
+    {-40, 0},
+    {0, 0},
+    {-20, 0},
+    {-4, 0},
+    {0, 0},
+    {0, 0},
+    {0, 0},
+    {0, 0},
+    {0, 0},
+    {0, 0},
+    {0, 0},
+    {0, 0},
+    {0, 0},
+    {0, 0},
+    {0, 0},
+    {0, 0},
+    {0, 0},
+    {0, 0},
+    {0, 0},
+    {0, 0},
+    {0, 0}
+};
+
+/**
+ * Gives language-specific destination offsets for main menu icon movement.
+ */
+static short actposoffsettbl1_4195[3][18][2] = {
+    {
+        {0, 0},
+        {0, 0},
+        {50, 0},
+        {0, 0},
+        {0, 0},
+        {0, 0},
+        {0, 0},
+        {0, 0},
+        {0, 0},
+        {0, 0},
+        {0, 0},
+        {0, 0},
+        {0, 0},
+        {0, 0},
+        {0, 0},
+        {0, 0},
+        {0, 0},
+        {0, 0}
+    },
+    {
+        {0, 0},
+        {0, 0},
+        {40, 3},
+        {0, 0},
+        {-12, 0},
+        {0, 0},
+        {0, 0},
+        {0, -5},
+        {0, -5},
+        {0, 0},
+        {0, 0},
+        {0, 0},
+        {0, 0},
+        {0, 0},
+        {0, 0},
+        {0, 0},
+        {0, 0},
+        {0, 0}
+    },
+    {
+        {0, 0},
+        {0, 0},
+        {40, 0},
+        {0, 0},
+        {-12, 0},
+        {0, 0},
+        {0, 0},
+        {0, -5},
+        {0, -5},
+        {0, 0},
+        {0, 0},
+        {0, 0},
+        {0, 0},
+        {0, 0},
+        {0, 0},
+        {0, 0},
+        {0, 0},
+        {0, 0}
+    }
+};
+
+/**
+ * Gives the RGBA colours of the two level-up spark kinds.
+ */
+static int l_levelup_color[2][4] = {
+    {79, 125, 75, 128},
+    {125, 90, 100, 128}
+};
+
+/**
+ * Gives the normal gift-box item icon colour.
+ */
+static u8 rgbatbl_1379[4] = {128, 128, 128, 128};
+
+/**
+ * Gives the glyph coordinates for active and inactive creation-board buttons.
+ */
+static s8 get_btntbl_1810[2][2] = {
+    {80, 88},
+    {80, 72}
+};
+
+/**
+ * Holds the centre position used by circular menu frames.
+ */
+static float MenuWakuPutXY[2] = {0.0f, 0.0f};
+
+/**
+ * Gives the normal item-board icon colour.
+ */
+static u8 static_rgba_table_3128[4] = {128, 128, 128, 128};
+
+/**
+ * Selects the primitive kind and vertex count for repeated form-part drawing.
+ */
+static u8 menu_prim_tbl[2][2] = {
+    {MG_PRIM_SPRITE, 2},
+    {MG_PRIM_TRIANGLE_STRIP, 4}
+};
+
+/**
+ * Holds the main menu icon base position.
+ */
+static short basepos_4190[2] = {44, 96};
+
+/**
+ * Holds the main menu icon left boundary position.
+ */
+static short farleft_4191[2] = {-260, 0};
+
+/**
+ * Holds the shared main menu icon movement offset.
+ */
+static short xyoffset_4192[2] = {20, 43};
+
+/**
+ * Holds the main menu icon action destination position.
+ */
+static short actpos_4193[2] = {44, 16};
 
 // Code (.text)
 void AttachMessageForm() {
@@ -7300,23 +7698,14 @@ void PrimQuad_i_(mgCDrawPrim *prim, mgRect_i_ rect, mgRect_i_ tex_rect) {
 }
 
 // Initialised data (.data)
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menudraw", spectol_break_pos__DATA);
 
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menudraw", spectol_break_angle__DATA);
 
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menudraw", item_transtbl__DATA);
 
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menudraw", paint_color_table_1234__DATA);
 
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menudraw", spectol_y_addtbl_1245__DATA);
 
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menudraw", MenuWindowHelpTable_1346__DATA);
 
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menudraw", table_1650__DATA);
 
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menudraw", tbl_1689__DATA);
 
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menudraw", get_onoffbrdtbl_1789__DATA);
 
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menudraw", at_1790__2__DATA);
 
@@ -7330,15 +7719,11 @@ INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menudraw", at_1814__DATA);
 
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menudraw", at_1999__2__DATA);
 
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menudraw", tbl_2072__DATA);
 
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menudraw", at_2265__DATA);
 
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menudraw", star_color_table__DATA);
 
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menudraw", frmtbl0_2922__DATA);
 
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menudraw", frmtbl1_2938__DATA);
 
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menudraw", at_2949__2__DATA);
 
@@ -7346,17 +7731,13 @@ INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menudraw", at_2950__2__DATA);
 
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menudraw", at_2951__2__DATA);
 
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menudraw", rottbl_3145__DATA);
 
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menudraw", baseposoffset_tbl_4194__DATA);
 
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menudraw", actposoffsettbl1_4195__DATA);
 
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menudraw", at_4494__2__DATA);
 
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menudraw", at_4495__DATA);
 
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menudraw", l_levelup_color__DATA);
 
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menudraw", at_5441__DATA);
 
@@ -7369,27 +7750,16 @@ INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menudraw", at_975__3__DATA);
 
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menudraw", at_1622__2__DATA);
 
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menudraw", at_1690__DATA);
 
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menudraw", at_1691__DATA);
 
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menudraw", at_1692__DATA);
 
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menudraw", at_1693__DATA);
 
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menudraw", at_1694__DATA);
 
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menudraw", at_1695__DATA);
 
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menudraw", at_1696__DATA);
 
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menudraw", at_1697__DATA);
 
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menudraw", at_1698__DATA);
 
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menudraw", at_1699__DATA);
 
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menudraw", at_1700__DATA);
 
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menudraw", at_1711__DATA);
 
@@ -7434,29 +7804,20 @@ INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menudraw", at_4934__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menudraw", at_4935__DATA);
 
 // Small initialised data (.sdata)
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menudraw", rgbatbl_1379__DATA);
 
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menudraw", at_1788__3__DATA);
 
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menudraw", get_btntbl_1810__DATA);
 
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menudraw", at_1998__2__DATA);
 
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menudraw", MenuWakuPutXY__DATA);
 
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menudraw", static_rgba_table_3128__DATA);
 
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menudraw", menu_prim_tbl__DATA);
 
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menudraw", at_3658__DATA);
 
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menudraw", basepos_4190__DATA);
 
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menudraw", farleft_4191__DATA);
 
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menudraw", xyoffset_4192__DATA);
 
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menudraw", actpos_4193__DATA);
 
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menudraw", at_4442__2__DATA);
 

@@ -91,3 +91,49 @@ one byte, while the shared header exposes `extern int`. Other units use
 that declaration. Defining an int would lose the exact declared extent;
 changing the public declaration would exceed this lane's source-
 compatibility constraint. No unowned header or caller is edited.
+
+## Named initialized tables
+
+The numeric tables use native static definitions in retail order. The
+spectrum tables retain 16 triples of short coordinate pairs and 16 rows
+of six exact binary32 direction angles. The two item-icon rectangles and
+the download-panel's 3-by-3 rectangles use the existing 8-byte
+`MENU_SHORT_RECT`; their final two shorts are width and height. The
+header's comments describe those dimensions without changing any name,
+type, declaration, size or alignment.
+
+The paint table retains nine integer RGBA rows, and the spectrum raster
+retains 40 signed-byte offsets. Gift-box window texture coordinates retain
+36 shorts. Material-board row rectangles retain two groups of three
+four-short rectangles; the button glyph coordinates retain signed bytes,
+as retail uses `lb`. The frame-mode count table retains eight floats, the
+star colour table nine RGB components, and the fish-bounce rate table
+three floats. Icon base offsets retain 23 pairs of shorts; language-group
+movement offsets retain three groups of 18 pairs.
+
+`MENU_ITEM_FRAME_PART` names the twelve rectangles constructed by
+`MenuItemBrdFrameDraw`: the four corners and paired tiles for each edge.
+The top/bottom and side index tables retain 16 and 10 short entries.
+The repeated-part primitive table uses `MG_PRIM_SPRITE` and
+`MG_PRIM_TRIANGLE_STRIP`, with their existing two- and four-vertex counts.
+Level-up colours, gift-box/item-board icon colours, frame centre and main
+icon coordinate arrays retain their documented component widths and
+counts. Float literals preserve retail's actual approximations rather
+than replacing them with ideal angles.
+
+The Geostone text table contains seven pairs of string pointers. Its
+native definition owns the exact download/completion literals, including
+the `[UNI00e9]` notation, shared space string, and shared English strings.
+Native pointer relocations identify each compiler-owned string without
+manual pointer words, padding fields or separately named literal objects.
+
+The table checkpoint removes 37 RODATA markers: 25 numeric tables and
+the Geostone pointer table plus its eleven strings. Counts are now
+42 RODATA / 22 BSS, with matched data still 4 / 5,741 and 197 / 198
+native functions. `numeric-ledger.json` and `localization-result.json`
+record every successful candidate. The final table receipts are
+`tables-final-{build,objects}.log`, `tables-final-summary.txt`,
+`tables-progress.log`, `tables-coverage.txt` and `tables-metrics.json`.
+The rebuild after the header comment correction passes PAL and all 149
+objects; all 148 other object hashes equal the baseline. The header diff
+contains comments only.

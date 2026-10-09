@@ -141,14 +141,14 @@ enum MENU_PARTS_EFFECT_TYPE {
 
 /**
  *
- * Rectangle of short edges as packed in the menu drawing tables.
+ * Texture rectangle with short coordinates and dimensions.
  *
  */
 struct MENU_SHORT_RECT {
-    short left;   /**< Left edge. */
-    short top;    /**< Top edge. */
-    short right;  /**< Right edge, inclusive. */
-    short bottom; /**< Bottom edge, inclusive. */
+    short left;   /**< Left texture coordinate. */
+    short top;    /**< Top texture coordinate. */
+    short right;  /**< Texture rectangle width. */
+    short bottom; /**< Texture rectangle height. */
 };
 
 STATIC_ASSERT(sizeof(MENU_SHORT_RECT) == 0x8);
