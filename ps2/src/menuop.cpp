@@ -1907,6 +1907,7 @@ static inline MC_CARD_INFO *GetSaveMenuCard(int port) {
     }
     return NULL;
 }
+
 int CSaveMenuClass::KeyStep(void) {
     int                 transferred;
     int                 finished;
@@ -2691,6 +2692,7 @@ int CSaveMenuClass::KeyStep(void) {
     }
     return finished;
 }
+
 void SaveFileListDraw(int &tex_block, float *pos, int alpha) {
     ScreenPos linePos[13];
     SAVEDATA_INFO *info[13];
