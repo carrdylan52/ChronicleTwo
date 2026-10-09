@@ -1912,7 +1912,7 @@ int _SET_DMG2(RS_STACKDATA *stack, int argc) {
     }
 
     frame_b = NULL;
-    object = ((CCharacter2 *) nowMonster)->GetEntryObjectPos(3, index_a, pos);
+    object = nowMonster->GetEntryObjectPos(3, index_a, pos);
 
     if (object == NULL) {
         return 0;
@@ -1925,7 +1925,7 @@ int _SET_DMG2(RS_STACKDATA *stack, int argc) {
     }
 
     if (index_b >= 0) {
-        object = ((CCharacter2 *) nowMonster)->GetEntryObjectPos(3, index_b, pos);
+        object = nowMonster->GetEntryObjectPos(3, index_b, pos);
 
         if (object != NULL) {
             frame_b = object->frame;
@@ -4339,7 +4339,7 @@ int _GET_STS_ATTR(RS_STACKDATA *stack, int argument_count) {
  */
 int _SET_PIYORI_MARK(RS_STACKDATA *stack, int argument_count) {
     nowMonster->piyori_mark = nowMonster->piyori_time;
-    nowMonster->piyori.Set((mgCObject *) nowMonster, nowMonster->piyori_mark);
+    nowMonster->piyori.Set(nowMonster, nowMonster->piyori_mark);
     return 1;
 }
 
