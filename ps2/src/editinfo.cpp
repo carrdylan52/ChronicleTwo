@@ -231,19 +231,19 @@ static int emapID(SPI_STACK *stack, int argument_count) {
  */
 static int emapPARTS_NAME(SPI_STACK *stack, int argument_count) {
     char *text;
-    int   buffer;
+    char *buffer;
 
     if (emapNowInfo__2 == NULL) {
         return 0;
     }
 
     text = spiGetStackString(stack);
-    buffer = (int) emapStack__2->Alloc(align16_blocks(strlen(text) + 1));
+    buffer = (char *) emapStack__2->Alloc(align16_blocks(strlen(text) + 1));
 
-    if (text != 0) {
-        if (buffer != 0) {
-            strcpy((char *) buffer, text);
-            emapNowInfo__2->parts_name = (char *) buffer;
+    if (text != NULL) {
+        if (buffer != NULL) {
+            strcpy(buffer, text);
+            emapNowInfo__2->parts_name = buffer;
         }
     }
 
@@ -297,19 +297,19 @@ static int emapPARTS_MATERIAL(SPI_STACK *stack, int argument_count) {
  */
 static int emapPARTS_COMMENT(SPI_STACK *stack, int argument_count) {
     char *text;
-    int   buffer;
+    char *buffer;
 
     if (emapNowInfo__2 == NULL) {
         return 0;
     }
 
     text = spiGetStackString(stack);
-    buffer = (int) emapStack__2->Alloc(align16_blocks(strlen(text) + 1));
+    buffer = (char *) emapStack__2->Alloc(align16_blocks(strlen(text) + 1));
 
-    if (text != 0) {
-        if (buffer != 0) {
-            strcpy((char *) buffer, text);
-            emapNowInfo__2->comment = (char *) buffer;
+    if (text != NULL) {
+        if (buffer != NULL) {
+            strcpy(buffer, text);
+            emapNowInfo__2->comment = buffer;
         }
     }
 
