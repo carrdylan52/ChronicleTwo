@@ -26,19 +26,28 @@ const int          paint_effect_count = 1;
 const int          paint_particle_count = 24;
 const int          place_anime_count = 3;
 
-extern char          at_821__5[];
-extern sceVu0FVECTOR at_1112__3;
 
-extern u32               EffectFlag;
-extern u32               EffectState;
-extern CPaintEffect     *PaintEffect;
+/**
+ * Effect types enabled for the current edit operation.
+ */
+static u32 EffectFlag;
+
+/**
+ * Progress of the active edit effect.
+ */
+static u32 EffectState;
+
+/**
+ * Paint-particle effect used by the current edit operation.
+ */
+static CPaintEffect * PaintEffect;
+
 extern CStarEffect       _StarEffect[star_effect_count];
 extern mgCMemory         CurPartsBuff;
-extern CPlaceAnime       PlaceAnime[place_anime_count];
 
 // Code (.text)
 void EditSetEffectBuffer(mgCMemory *memory) {
-    mgCTexture *texture = mgTexManager.GetTexture(at_821__5, -1);
+    mgCTexture *texture = mgTexManager.GetTexture("haichi_eff", -1);
     int         i;
     int         offset;
 
@@ -168,7 +177,7 @@ int EditPaintEffect(CEditParts *parts, float *position, float *color, int shape)
         return 0;
     }
 
-    texture = mgTexManager.GetTexture(at_821__5, -1);
+    texture = mgTexManager.GetTexture("haichi_eff", -1);
     size = 1.0f;
 
     if (shape != 0) {
@@ -464,11 +473,10 @@ int CPaintEffect::Draw() {
 
     for (int index = 0; index < paint_particle_count; ++index) {
         float drop_position[4];
-        float drop_size[4];
         float drop_scale = drop[index][3];
         *(u_long128 *) drop_position = *(u_long128 *) drop[index];
         drop_position[3] = 1.0f;
-        *(u_long128 *) drop_size = *(u_long128 *) at_1112__3;
+        float drop_size[4] = {0.0f, 0.0f, 0.0f, 0.0f};
         drop_size[0] = 10.0f * drop_scale;
         drop_size[1] = drop_size[0];
         billboard->CPSetSprite(drop_position, drop_size, drop_color, uv_start[shape], uv_end[shape]);
@@ -769,27 +777,18 @@ int EditPlaceAnimeEndCheck() {
 CStarEffect::CStarEffect() {}
 
 // Initialised data (.data)
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editeff", at_1038__6__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editeff", at_1039__4__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editeff", at_1040__5__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editeff", at_1106__3__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editeff", at_1107__4__DATA);
 
 // Constants (.rodata)
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editeff", at_821__5__DATA);
 
 // Virtual tables (.vtables)
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editeff", __vt__12CPaintEffect__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editeff", __vt__11CStarEffect__DATA);
 
 // Small uninitialised data (.sbss)
-INCLUDE_BSS(EffectFlag, 0x4);
-INCLUDE_BSS(EffectState, 0x4);
-INCLUDE_BSS(PaintEffect, 0x4);
 
 // Uninitialised data (.bss)
 CStarEffect _StarEffect[star_effect_count];
 mgCMemory   CurPartsBuff;
-INCLUDE_BSS(at_1037__6, 0x20);
-INCLUDE_BSS(at_1112__3, 0x10);
-INCLUDE_BSS(PlaceAnime, 0x1B0);
+
+/**
+ * Placement animations for the three edit-operation slots.
+ */
+CPlaceAnime PlaceAnime[place_anime_count];
