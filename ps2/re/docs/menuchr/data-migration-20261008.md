@@ -162,3 +162,13 @@ Shared strings retain their single retail identity and all original references.
 After this group: **207 / 25 markers**, **4 / 9726 matched_data**.
 Receipts: `.private/nmchr-r3/menuchr-monster-strings-00` through `-07`,
 with `-{build,objects,progress,metrics}.log`, and `monster-string-batch.log`.
+
+## Party menu strings
+
+Thirty-nine party-menu form, resource, part, and debug strings are inline in
+native consumers. This includes the character display resources and shared
+empty-page state labels. Ten per-function groups independently pass PAL and
+all 149 object checks; guarded draft bodies are unchanged.
+After this group: **168 / 25 markers**, **4 / 9726 matched_data**.
+Receipts: `.private/nmchr-r3/menuchr-party-strings-00` through `-09`,
+with `-{build,objects,progress,metrics}.log`, and `party-string-batch.log`.

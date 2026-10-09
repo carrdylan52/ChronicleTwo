@@ -728,12 +728,6 @@ extern u8                 at_5482[32];
 extern char               at_5839[];
 extern int                tbl_5848[];
 extern CDC2Mes           *MenuDCMsg[9];
-extern char               at_1131__3[];
-extern char               at_1132__5[];
-extern char               at_1133__4[];
-extern char               at_1134__3[];
-extern char               at_1135__3[];
-extern char               at_1319[11];
 extern char               at_1361[];
 extern char               at_3969[];
 extern s8                 convtbl_4621[][MENU_CHARA_LOAD_MAX];
@@ -818,22 +812,6 @@ extern DebugLine          at_2675;
 extern DebugLine          at_2676;
 extern DebugText          at_2691;
 extern DebugNpcText       at_2696;
-extern char               at_2770[];
-extern char               at_2771[];
-extern char               at_2772[];
-extern char               at_2773[];
-extern char               at_2774[];
-extern char               at_2775[];
-extern char               at_2776__2[];
-extern char               at_2777[];
-extern char               at_2778[];
-extern char               at_2779[];
-extern char               at_2780[];
-extern char               at_2781[];
-extern char               at_2782[];
-extern char               at_2783[];
-extern char               at_2784[];
-extern char               at_2785[];
 /**
  *
  * Character category selected by the party change debug controls.
@@ -1060,12 +1038,6 @@ extern char             at_3706[];
 extern char             at_3707[];
 extern char             at_3708[];
 int                     CosutmeSelDefaultSet(int costume_id, short *costume_list);
-extern char             at_2191__2[];
-extern char             at_2192__2[];
-extern char             at_2193__2[];
-extern char             at_2194__2[];
-extern char             at_2195__2[];
-extern char             at_2196__2[];
 extern char            *MonsterDataPath[];
 /**
  *
@@ -1076,11 +1048,7 @@ static char             script_file_name[0x20];
 
 extern short            monster_load_id;
 extern char             at_4548[];
-extern char             at_1304__6[15];
 extern char            *partt_2332[6];
-extern char             at_2363[14];
-extern char             at_2364[15];
-extern char             at_2365[13];
 
 /**
  *
@@ -1093,7 +1061,6 @@ union MenuPositionVector {
 };
 
 extern MenuPositionVector at_1372__2;
-extern char               at_1402__3[];
 /**
  *
  * Active party change menu.
@@ -1105,10 +1072,6 @@ extern int                tbl_2483[];
 extern char               at_2595__2[];
 extern char               at_2596__3[];
 extern NamePair           at_2288;
-extern char               at_2303__2[];
-extern char               at_2304[];
-extern char               at_2305[];
-extern char               at_2306[];
 extern char               at_2307[];
 extern u8                 cursor_revtbl_2237[5];
 /**
@@ -1120,8 +1083,6 @@ static u8                 MenuGetPartySeFlag;
 
 extern mgCMemory          ChrChangeInitTextureStack;
 extern FileNameBuf        at_2629__3;
-extern char               at_2197__2[];
-extern char               at_2662__2[];
 short                     GetCostumeList(unsigned long chara_flag, int kind, short *list);
 int                       GetDngMapNo(int dungeon_no);
 static int                MenuMemoryDivide(mgCMemory *memory, mgCMemory **list, int chara);
@@ -1312,15 +1273,15 @@ void SetMessagePositionNPCForm(CMenuPosDataForm *form, CDC2Mes *mes) {
 
     int  pos[10];
     int *point;
-    form->GetPutPosXY(at_1131__3, pos[0], pos[1]);
+    form->GetPutPosXY("pname", pos[0], pos[1]);
     point = &pos[2];
-    form->GetPutPosXY(at_1132__5, point[0], point[1]);
+    form->GetPutPosXY("setu0", point[0], point[1]);
     point = &pos[4];
-    form->GetPutPosXY(at_1133__4, point[0], point[1]);
+    form->GetPutPosXY("setu1", point[0], point[1]);
     point = &pos[6];
-    form->GetPutPosXY(at_1134__3, point[0], point[1]);
+    form->GetPutPosXY("setu2", point[0], point[1]);
     point = &pos[8];
-    form->GetPutPosXY(at_1135__3, point[0], point[1]);
+    form->GetPutPosXY("setu3", point[0], point[1]);
     mes->SetMsgItemPos(pos, 5);
     mes->SetMovePosCenteringGyou(0, pos[0], pos[1]);
 }
@@ -1513,7 +1474,7 @@ void CMenuChrCngMenu::LoadNPCFaceData(mgCMemory *memory, int mode) {
             face_chara = 26;
         }
 
-        sprintf(path, at_1304__6, face_chara);
+        sprintf(path, "npcface/%d.img", face_chara);
         memory->Align64();
         face_img = reinterpret_cast<u8 *>(memory->stGetTop());
         size = LoadFileMenu(path, (u_long128 *) face_img, mode);
@@ -1528,7 +1489,7 @@ void CMenuChrCngMenu::EnterNPCFaceData() {
                               ((load_state == 0) && (ReadBGSync() == 0)))) {
         mgTexManager.EnterIMGFile(face_img, tex_block[0], NULL, NULL);
         face_state = 1;
-        ExeScript(at_1319);
+        ExeScript("NPCFACEEND");
     }
 }
 
@@ -1616,7 +1577,7 @@ int CMenuChrCngMenu::CheckBGNPCModel() {
         ((CCharacter2 *) npc_chara)->Step();
 
         if ((&npc_mes_form)[2]->counter >= 0xF && (&npc_mes_form)[1]->y < 60.0f) {
-            ExeScript(at_1402__3);
+            ExeScript("CHRFADEIN");
         }
 
         if (npc_wait < 0x15) {
@@ -2698,9 +2659,9 @@ void CMenuChrCngMenu::CalcTex() {
     }
 
     for (i = 0; i < icon_num; i++) {
-        sprintf(name, at_2191__2, i);
+        sprintf(name, "fc%dname", i);
         icon = form->GetPartInfo(name);
-        strcat(name, at_2192__2);
+        strcat(name, "sh");
         shadow = form->GetPartInfo(name);
         shadow->draw_flag = 0;
 
@@ -2819,8 +2780,8 @@ void CMenuChrCngMenu::CalcTex() {
         SetFormPoint(npc_mes_form, pos[0], pos[1]);
         SetFormPoint(npc_sub_form, pos[0], pos[1]);
         SetFormPoint(npc_sub_form2, pos[0], pos[1]);
-        form->GetPutPosXY(at_2193__2, item_pos[0][0], item_pos[0][1]);
-        form->GetPutPosXY(at_2194__2, item_pos[1][0], item_pos[1][1]);
+        form->GetPutPosXY("stpt", item_pos[0][0], item_pos[0][1]);
+        form->GetPutPosXY("dousuru", item_pos[1][0], item_pos[1][1]);
         MenuDCMsg[2]->SetMsgItemPos(item_pos[0], 2);
 
         for (i = 0; i < 4; i++) {
@@ -2837,8 +2798,8 @@ void CMenuChrCngMenu::CalcTex() {
         SetMessagePositionNPCForm(npc_mes_form, MenuDCMsg[3]);
 
         if (party_info != NULL && npc_data != NULL) {
-            form->SetNumber(at_2195__2, party_info->point);
-            form->SetNumber(at_2196__2, npc_data->max_npc_point);
+            form->SetNumber("sp_n", party_info->point);
+            form->SetNumber("sp_m", npc_data->max_npc_point);
 
             if (point_gauge_part != NULL) {
                 float rate = 0.0f;
@@ -2859,7 +2820,7 @@ void CMenuChrCngMenu::CalcTex() {
     Func_MenuItemBrdPosStep(item_brd_pos);
 
     if (MenuFormMI2 != NULL) {
-        form->GetPutPosXY(at_2197__2, frame_pos[0], frame_pos[1]);
+        form->GetPutPosXY("mi2", frame_pos[0], frame_pos[1]);
 
         if (abs((int) ((float) frame_pos[0] - MenuFormMI2->x)) < 8) {
             item_brd_arrived = 1;
@@ -2964,7 +2925,7 @@ int CMenuChrCngMenu::MenuLocalLoop() {
         step.v[0] = -0x2E;
         step.v[1] = 0x12;
     } else {
-        sprintf(name, at_2303__2, select);
+        sprintf(name, "cur%d", select);
         form->GetPutPosXY(name, cursor[0], cursor[1]);
         MenuCursorReverseFlag = cursor_revtbl_2237[select];
     }
@@ -3006,13 +2967,13 @@ int CMenuChrCngMenu::MenuLocalLoop() {
                     star_spawn = 1;
                     open_wait = 0;
                     set_cursor = 1;
-                    ExeScript(at_2304);
+                    ExeScript("INI0");
                     key_mode = MenuCommonInfo->open_type;
 
                     if (key_mode == 4) {
-                        ExeScript(at_2305);
+                        ExeScript("INIT1");
                     } else if (key_mode == 0xE) {
-                        ExeScript(at_2306);
+                        ExeScript("INIT2");
                     }
 
                     LoadBGNPCModel(1);
@@ -3137,15 +3098,15 @@ void CMenuChrCngMenu::UpdataLife() {
     } while (i < 3);
 
     if (!(party_member & 1)) {
-        ExeScript(at_2363);
+        ExeScript("YURIS_OFFLIFE");
     }
 
     if (!(party_member & 2)) {
-        ExeScript(at_2364);
+        ExeScript("MONICA_OFFLIFE");
     }
 
     if (!(party_member & 4)) {
-        ExeScript(at_2365);
+        ExeScript("ROBO_OFFLIFE");
     }
 }
 void MenuCharaChangeStarDraw() {
@@ -3406,9 +3367,9 @@ int MenuCharaChangeKey() {
                         ChrChangMenuPt->InitStarInfo();
                         ChrChangMenuPt->star_fade = 0;
                         ChrChangMenuPt->set_cursor = 1;
-                        ChrChangMenuPt->form->GetPutPosXY(at_2662__2, pos[0], pos[1]);
+                        ChrChangMenuPt->form->GetPutPosXY("cur3", pos[0], pos[1]);
                         MenuCommonInfo->MenuSetPos(pos[0], pos[1]);
-                        ChrChangMenuPt->form->GetPutPosXY(at_2197__2, pos[0], pos[1]);
+                        ChrChangMenuPt->form->GetPutPosXY("mi2", pos[0], pos[1]);
                         cursor_form = MenuFormMI2;
                         cursor_form->x = (float) pos[0];
                         cursor_form->y = (float) pos[1];
@@ -3460,21 +3421,21 @@ void MenuCharaChangeDraw() {
                 int bit = 1 << i;
 
                 if (party_member & bit) {
-                    strcat(party.text, at_2770);
+                    strcat(party.text, "\x81\x9B\x0A");
                 } else {
-                    strcat(party.text, at_2771);
+                    strcat(party.text, "\x81\x7E\x0A");
                 }
 
                 if (chara_change & bit) {
-                    strcat(change.text, at_2770);
+                    strcat(change.text, "\x81\x9B\x0A");
                 } else {
-                    strcat(change.text, at_2771);
+                    strcat(change.text, "\x81\x7E\x0A");
                 }
 
                 if (change_mask & bit) {
-                    strcat(mask.text, at_2770);
+                    strcat(mask.text, "\x81\x9B\x0A");
                 } else {
-                    strcat(mask.text, at_2771);
+                    strcat(mask.text, "\x81\x7E\x0A");
                 }
             }
 
@@ -3483,40 +3444,40 @@ void MenuCharaChangeDraw() {
             font.SetPos(0x28, 0x3C);
             font.DrawDirect(font.str, font.pos_x, font.pos_y);
             int cursor_x = MenuDebugChangeSelectMode * 0x3C + 0x98;
-            font.SetStr(at_2772);
+            font.SetStr("NowMode");
             font.SetPos(cursor_x, 0x14);
             font.DrawDirect(font.str, font.pos_x, font.pos_y);
-            font.SetStr(at_2773);
+            font.SetStr("Party");
             font.SetPos(0x98, 0x28);
             font.DrawDirect(font.str, font.pos_x, font.pos_y);
             font.SetStr(party.text);
             font.SetPos(0x98, 0x3C);
             font.DrawDirect(font.str, font.pos_x, font.pos_y);
-            font.SetStr(at_2774);
+            font.SetStr("Shift");
             font.SetPos(0xD4, 0x28);
             font.DrawDirect(font.str, font.pos_x, font.pos_y);
             font.SetStr(change.text);
             font.SetPos(0xD4, 0x3C);
             font.DrawDirect(font.str, font.pos_x, font.pos_y);
-            font.SetStr(at_2775);
+            font.SetStr("MASK");
             font.SetPos(0x110, 0x28);
             font.DrawDirect(font.str, font.pos_x, font.pos_y);
             font.SetStr(mask.text);
             font.SetPos(0x110, 0x3C);
             font.DrawDirect(font.str, font.pos_x, font.pos_y);
             int cursor_y = MenuDebugCharaChangeSelect * 0x14 + 0x3C;
-            font.SetStr(at_2776__2);
+            font.SetStr("\x81\xA8");
             font.SetPos(0x14, cursor_y);
             font.DrawDirect(font.str, font.pos_x, font.pos_y);
 
             if (LanguageCode == 0) {
-                font.SetStr(at_2777);
+                font.SetStr("Control \nL1 R1:Mode Change\n(O):Join or Shift Enable\n(X):Leave or Shift Disable");
                 font.SetPos(0x28, 0xA0);
                 font.DrawDirect(font.str, font.pos_x, font.pos_y);
                 return;
             }
 
-            font.SetStr(at_2778);
+            font.SetStr("Control \nL1 R1:Mode Change\n(X):Join or Shift Enable\n(O):Leave or Shift Disable");
             font.SetPos(0x28, 0xA0);
             font.DrawDirect(font.str, font.pos_x, font.pos_y);
             return;
@@ -3526,11 +3487,11 @@ void MenuCharaChangeDraw() {
         CUserDataManager *user_data = GetUserDataMan();
         mgTexManager.ReloadTexture(MenuArg.mes_tex_block, (sceVif1Packet *) NULL);
         int y = 0x46;
-        font.SetStr(at_2779);
+        font.SetStr("                  Pa:Tr:Ge");
         font.SetPos(0x14, 0x1E);
         font.DrawDirect(font.str, font.pos_x, font.pos_y);
         DebugNpcText npc_title = at_2696;
-        strcpy(&npc_title.text[menu_debug_npc_decide * 3 + 0x11], at_2780);
+        strcpy(&npc_title.text[menu_debug_npc_decide * 3 + 0x11], "\x81\xAB");
         font.SetStr(npc_title.text);
         font.SetPos(0x14, 0x32);
         font.DrawDirect(font.str, font.pos_x, font.pos_y);
@@ -3555,24 +3516,24 @@ void MenuCharaChangeDraw() {
             }
 
             char line[0x100];
-            sprintf(line, at_2781, name);
+            sprintf(line, "  :%14s", name);
 
             if (info->status & 1) {
-                strcat(line, at_2782);
+                strcat(line, "o:");
             } else {
-                strcat(line, at_2783);
+                strcat(line, "x:");
             }
 
             if (info->status & 2) {
-                strcat(line, at_2782);
+                strcat(line, "o:");
             } else {
-                strcat(line, at_2783);
+                strcat(line, "x:");
             }
 
             if (info->status & 4) {
-                strcat(line, at_2784);
+                strcat(line, "o");
             } else {
-                strcat(line, at_2785);
+                strcat(line, "x");
             }
 
             font.SetStr(line);
@@ -3585,7 +3546,7 @@ void MenuCharaChangeDraw() {
             }
         }
 
-        font.SetStr(at_2776__2);
+        font.SetStr("\x81\xA8");
         font.SetPos(0x14, 0x46);
         font.DrawDirect(font.str, font.pos_x, font.pos_y);
     } else if (ChrChangMenuPt->sub_menu == CHR_CNG_SUB_MENU_MONSTER_BOX) {
@@ -7602,19 +7563,11 @@ INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", stand_bit_5472__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", tbl_5848__DATA);
 
 // Constants (.rodata)
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_1131__3__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_1132__5__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_1133__4__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_1134__3__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_1135__3__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_1234__2__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_1235__2__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_1236__2__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_1237__3__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_1304__6__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_1319__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_1361__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_1402__3__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_2003__2__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_2004__3__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_2005__2__DATA);
@@ -7636,17 +7589,6 @@ INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_2020__2__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_2021__2__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_2022__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_2023__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_2191__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_2192__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_2193__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_2194__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_2195__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_2196__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_2197__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_2303__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_2304__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_2305__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_2306__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_2307__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_2333__5__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_2334__4__DATA);
@@ -7654,28 +7596,8 @@ INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_2335__2__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_2336__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_2337__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_2338__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_2363__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_2364__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_2365__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_2595__2__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_2596__3__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_2662__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_2770__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_2771__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_2772__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_2773__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_2774__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_2775__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_2776__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_2777__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_2778__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_2779__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_2780__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_2781__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_2782__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_2783__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_2784__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_2785__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_3197__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_3198__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_3199__2__DATA);
