@@ -882,7 +882,3 @@ void CWaterFrame::Initialize() {
     stop = 0;
     mgCFrame::Initialize();
 }
-
-// Initialised data (.data)
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/water", prog_vif_351__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/water", progf_vif_352__DATA);

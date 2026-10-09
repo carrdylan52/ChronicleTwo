@@ -25,3 +25,18 @@ Final refresh, coverage and hash receipts are
 `water-final-{refresh,coverage,metrics}.log` in that directory.
 Final markers are **2 RODATA / 0 BSS**; refreshed
 matched data is **168/200**.
+
+
+## Round-5 initialized-local identities
+
+The existing aligned `prog_vif` and `progf_vif` arrays now supply both VIF
+command templates without markers. The shared initialized-local mapper uses
+the source base names, exact declared extents and bytes, and complete retail
+consumers; compiler-generated numeric suffixes do not establish identity.
+No function body, guarded draft, type, or compiler profile changes.
+
+Markers: RODATA **2 → 0**, BSS **0 → 0**. Refreshed native data credit:
+**168 → 200 / 200**. Full PAL verification is `SCES_511.90: OK`, and
+all **149/149** canonical objects pass. Other game objects retain their warm
+baseline hashes, and code metrics remain **6,780 functions / 1,854,796 bytes**.
+Receipts: `.private/dtool-r5/vif-{build,objects,tests,metrics}.log`.
