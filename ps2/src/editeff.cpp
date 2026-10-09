@@ -17,6 +17,11 @@ const int          color_channels = 3;
 const int          star_particle_max = 0x40;
 const int          paint_effects_size = 0x400;
 const int          parts_buffer_size = 0x5DC;
+/**
+ *
+ * State of a placement animation slot available for reuse.
+ *
+ */
 const int          effect_idle = 0;
 const int          effect_started = 1;
 const int          effect_falling = 2;
@@ -24,6 +29,11 @@ const int          effect_finished = 3;
 const int          star_effect_count = 3;
 const int          paint_effect_count = 1;
 const int          paint_particle_count = 24;
+/**
+ *
+ * Number of placement animation slots.
+ *
+ */
 const int          place_anime_count = 3;
 
 extern char          at_821__5[];
