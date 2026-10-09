@@ -133,6 +133,19 @@ metadata unchanged. Its allocator-name filter accepts `__nw__FUiP1` and the
 provisional `__nw` alias. This is a measured global experiment, not a supported
 global switch in the production patch.
 
+The historical driver also requires the captured constructor name to start
+with `__ct__`. This excludes a raw, unmangled `__ct` even when its measured
+class is 6. The actual `request4-all/menushop.log` records the implicit
+`CMenuQuestView` root as `ctor=__ct class=6 selected=false`; its initializer
+remains 46 words in that corpus. This is the measured scope of the 25-gain
+alternative, not evidence that every implicit constructor was converted.
+The exact predicate is preserved in `.private/pntc/tools/make_probe4.py` and
+`.private/pntc/receipts/satansfiddle-placement-probe-pn11.patch`. A new
+[quest-view observation](../menushop/placement-new-quest-view-natural-20261009.md)
+confirms that this implicit constructor still has no normal link-name witness;
+the scoped production capability rejects such a caller rather than silently
+skipping an unresolved eligible root.
+
 | Measurement against the canonical all-drafts corpus | request4-all |
 | --- | ---: |
 | Successful native translation units | 149 / 149 |
