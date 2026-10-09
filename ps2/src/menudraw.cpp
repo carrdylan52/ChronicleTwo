@@ -6078,7 +6078,7 @@ void CLevelUpEffect::Generate(mgCTexture *spark_texture, int param, CCharacter2 
     kind = param;
     chara = target;
     tex = spark_texture;
-    ((CCharacter2 *) chara)->GetPosition(pos);
+    chara->GetPosition(pos);
 
     for (i = 0; i < 0x20; i++) {
         l_levelup_pos[i][0] = (pos[0] + GetRandF(14.0f)) - 7.0f;
