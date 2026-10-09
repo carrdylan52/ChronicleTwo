@@ -184,7 +184,6 @@ struct MenuCharaReadBuffers {
 extern CDC2Mes              *MenuDCMsg[9];
 extern CGameDataUsed         SpectolTransBefore;
 extern CGameDataUsed         SpectolInfoStay;
-extern KeyPairTable          at_2328;
 extern char                  at_1493__2[];
 extern short                 MenuItemBoardTotalNum;
 extern short                 MenuItemBoardTotalLine;
@@ -206,12 +205,10 @@ extern char                  at_7344[];
 extern char                  at_7345[];
 extern char                  at_7346[];
 extern char                  at_7347[];
-extern MENU_INPUTKEY_ARG     item_menu_argtbl[];
 extern mgCMemory             MainCharaReadStack;
 extern char                  at_5265[];
 extern char                  at_5271[];
 extern char                  at_7540[];
-extern u8                    padtbl_3359[16];
 extern char                  at_2545__2[];
 extern char                  at_2546__2[];
 extern char                  at_2584[];
@@ -222,7 +219,6 @@ extern char                  at_2548[];
 extern char                  at_2549[];
 extern char                  at_2550[];
 extern char                 *n_2667[4];
-extern int                   MenuCheckKey[4];
 extern char                 *focusnametbl[21];
 extern char                  at_3774__2[];
 extern char                  at_3775__2[];
@@ -231,7 +227,6 @@ extern char                  at_3829[];
 extern CGamePad              GamePad__2;
 extern char                  at_5022[];
 extern char                  at_4985[];
-extern char                 *tbl_4981[3];
 extern char                 *plist_4982[3];
 extern char                 *local_over_flow_baseposname[3];
 extern char                 *OverFlowFormName;
@@ -245,7 +240,6 @@ extern char                  at_3751[];
 extern char                  at_5210[];
 extern char                  at_5211[];
 extern char                  at_4672[];
-extern int                   tbl_5293[];
 extern mgCMemory             MenuItemMemory;
 extern mgCMemory             MenuItemMemory2;
 extern mgCMemory             MenuItemMainMemory;
@@ -942,6 +936,146 @@ static s8 init_8719;
  *
  */
 static KeyPairTable at_2333__3;
+
+/**
+ *
+ * Weapon parameter label parts.
+ *
+ */
+static char *WepStatusInfoStrTable[10] = {"index0", "index1", "index2", "index3", "index4", "index5", "index6", "index7", "index8", "index9"};
+
+/**
+ *
+ * Weapon parameter value parts.
+ *
+ */
+static char *WepStatusInfoStatusVolStrTable[10] = {"st0", "st1", "el0", "el1", "el2", "el3", "el4", "el5", "el6", "el7"};
+
+/**
+ *
+ * Phase increments of the fusion preview colour oscillation.
+ *
+ */
+static float addtbl_2178[4] = {0.0981747732f, 0.0897597894f, 0.08267349f, 0.0668423995f};
+
+/**
+ *
+ * Directional key pairs used by the item cursor.
+ *
+ */
+static KeyPairTable at_2328 = {{{MENU_SELECT_KEY_UP, MENU_SELECT_KEY_DOWN}, {MENU_SELECT_KEY_LEFT, MENU_SELECT_KEY_RIGHT}}};
+
+/**
+ *
+ * Paired item-use command offsets for each target character.
+ *
+ */
+static s8 human_tbl_2871[5][2] = {
+    {15, 16},
+    {16, 15},
+    {17, -1},
+    {16, 15},
+    {-1, -1}
+};
+
+/**
+ *
+ * Confirm and cancel actions for each language button layout.
+ *
+ */
+static int padtbl_3359[2][2] = {
+    {MENU_PUSH_BUTTON_DECIDE, MENU_PUSH_BUTTON_CANCEL},
+    {MENU_PUSH_BUTTON_CANCEL, MENU_PUSH_BUTTON_DECIDE}
+};
+
+/**
+ *
+ * Direction bits associated with the four cursor movements.
+ *
+ */
+static int MenuCheckKey[4] = {MENU_SELECT_KEY_UP, MENU_SELECT_KEY_DOWN, MENU_SELECT_KEY_LEFT, MENU_SELECT_KEY_RIGHT};
+
+/**
+ *
+ * Cursor limits and edge transitions of each item-menu layout.
+ *
+ */
+static MENU_INPUTKEY_ARG item_menu_argtbl[12] = {
+    {{0, 102, -1, 1}, MENU_INPUTKEY_TYPE_LINE, 0, 3, 1, 3, 1, 3, {2, 2, 0, 2}, {-1, 3, -1, 2}},
+    {{101, 102, -1, 1}, MENU_INPUTKEY_TYPE_GLID, 0, 2, 1, 2, 1, 2, {2, 2, 0, 2}, {3, 11, -1, 2}},
+    {{-1, 1, -1, 1}, MENU_INPUTKEY_TYPE_GLID, 0, 144, 5, 6, 24, 6, {0, 0, 2, 0}, {-1, -1, 0, -1}},
+    {{-101, 102, -1, 104}, MENU_INPUTKEY_TYPE_LINE, 0, 1, 1, 1, 1, 1, {2, 2, 0, 2}, {0, 1, -1, 2}},
+    {{0, 102, 0, 104}, MENU_INPUTKEY_TYPE_LINE, 0, 1, 1, 1, 1, 1, {0, 2, 0, 2}, {-1, 5, -1, 2}},
+    {{-1, 1, -1, 1}, MENU_INPUTKEY_TYPE_GLID, 0, 10, 5, 2, 5, 2, {2, 0, 0, 2}, {4, -1, -1, 2}},
+    {{-101, 102, -103, 104}, MENU_INPUTKEY_TYPE_LINE, 0, 1, 1, 1, 1, 1, {0, 2, 0, 2}, {-1, 7, -1, 2}},
+    {{-101, 102, -1, 1}, MENU_INPUTKEY_TYPE_LINE, 0, 2, 1, 2, 1, 2, {2, 0, 0, 2}, {6, -1, -1, 2}},
+    {{0, 102, 0, 104}, MENU_INPUTKEY_TYPE_LINE, 0, 1, 1, 1, 1, 1, {0, 0, 0, 2}, {-1, -1, -1, 2}},
+    {{0, 102, 0, 104}, MENU_INPUTKEY_TYPE_LINE, 0, 1, 1, 1, 1, 1, {0, 2, 0, 2}, {-1, 10, -1, 2}},
+    {{-1, 1, -1, 104}, MENU_INPUTKEY_TYPE_GLID, 0, 5, 5, 1, 5, 1, {2, 0, 0, 2}, {9, -1, -1, 2}},
+    {{101, 0, 103, 104}, MENU_INPUTKEY_TYPE_LINE, 0, 1, 1, 1, 1, 1, {2, 0, 0, 2}, {1, -1, 1, 1}}
+};
+
+/**
+ *
+ * Forms of the item-menu preview pages.
+ *
+ */
+static char *ItemMenuFormNameTbl[6] = {"form_view00", "form_view01", "form_view1", "form_view2", "form_view3", "form_view4"};
+
+/**
+ *
+ * Forms displaying the two characters and the ridepod during item movement.
+ *
+ */
+static char *tbl_4981[3] = {"form_view00", "form_view01", "form_view2"};
+
+/**
+ *
+ * Background-read reservation mode for each menu memory area.
+ *
+ */
+static int tbl_5293[7] = {1, 1, 1, 1, 1, 1, 1};
+
+/**
+ *
+ * Cursor frame width and height for each key layout.
+ *
+ */
+static s8 waku_infotbl_5836[12][2] = {
+    {72, 72},
+    {82, 82},
+    {36, 42},
+    {0, 0},
+    {0, 0},
+    {80, 40},
+    {0, 0},
+    {72, 72},
+    {0, 0},
+    {0, 0},
+    {0, 0},
+    {66, 66}
+};
+
+/**
+ *
+ * Cursor frame type for each key layout.
+ *
+ */
+static s8 wakutypeTbl_5837[12] = {1, 1, 0, -1, -1, -1, -1, 1, -1, -1, -1, 1};
+
+/**
+ *
+ * Model path of the debug gift box.
+ *
+ */
+static char dbox_path_6083[15] = "item/d_box.chr";
+
+/**
+ *
+ * Character-status flags offered by the debug preview.
+ *
+ */
+static u32 table_6164[7] = {CHARA_STATUS_POISON, CHARA_STATUS_UNK_2, CHARA_STATUS_UNK_4, CHARA_STATUS_UNK_8, CHARA_STATUS_POWER, CHARA_STATUS_UNK_20, CHARA_STATUS_UNK_40};
 
 // Code (.text)
 /**
@@ -2758,7 +2892,6 @@ int AfterSpectolFusion(CGameDataUsed *item, CGameDataUsed *part) {
     return raised;
 }
 
-extern float addtbl_2178[4];
 
 void FusionColor(int type, int step, float *color) {
     if (type == 1) {
@@ -3804,7 +3937,6 @@ int GetItemCommandMsg(CGameDataUsed *item, MENU_ASKMODE_PARA *param, int slot, i
     return GetItemCommandMsg(item, param->cmd_msg, param->cmd_color, param->cmd_shade, param->cmd_mark, slot, arg);
 }
 
-extern s8 human_tbl_2871[5][2];
 
 /**
  *
@@ -4399,10 +4531,10 @@ int MenuCheckPushButton() {
     int *table;
 
     pushed = 0;
-    table = (int *) padtbl_3359;
+    table = padtbl_3359[0];
 
     if (LanguageCode > 0) {
-        table = (int *) (padtbl_3359 + 8);
+        table = padtbl_3359[1];
     }
 
     if (GamePad__2.Down(0x20) != 0) {
@@ -4963,7 +5095,6 @@ extern char  at_3825[];
 extern char  at_3826[];
 extern char  at_3827[];
 extern char  at_3828[];
-extern char *WepStatusInfoStatusVolStrTable[10];
 
 /**
  *
@@ -5034,7 +5165,6 @@ void MenuPosFormValueSetWeapon(CGameDataUsed *item) {
 extern char  at_3893[];
 extern char  at_3894[];
 extern char  at_3895[];
-extern char *WepStatusInfoStrTable[10];
 
 /**
  *
@@ -6824,7 +6954,6 @@ extern char  at_5279[];
 extern char  at_5280[];
 extern char  at_5282[];
 extern char  at_5283[];
-extern char *ItemMenuFormNameTbl[6];
 
 void CMenuItemInfo::AttachFormInfo() {
     int i;
@@ -7276,8 +7405,6 @@ extern char at_5880[];
 extern char at_5881[];
 extern char at_5882[];
 extern char at_5883[];
-extern s8   waku_infotbl_5836[][2];
-extern s8   wakutypeTbl_5837[];
 
 void CMenuItemInfo::CalcCursorPosition() {
     if (mode == MENU_ASK_MODE_CLOSE) {
@@ -7635,8 +7762,6 @@ int MenuItemInit(mgCMemory *stack, int *tex_block, int mode) {
 
 extern mgCMemory     MenuDebugStack;
 extern s8            MenuDebugModel_AdjustFlag;
-extern u32           table_6164[7];
-extern char          dbox_path_6083[];
 extern u64           at_6133;
 extern u64           at_6176;
 extern u64           at_6220;
@@ -12245,26 +12370,11 @@ void MenuItemSelectDraw() {
 }
 
 // Initialised data (.data)
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menusys", WepStatusInfoStrTable__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menusys", WepStatusInfoStatusVolStrTable__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menusys", addtbl_2178__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menusys", at_2328__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menusys", n_2667__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menusys", human_tbl_2871__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menusys", padtbl_3359__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menusys", MenuCheckKey__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menusys", focusnametbl__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menusys", item_menu_argtbl__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menusys", exename_4332__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menusys", ItemMenuFormNameTbl__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menusys", local_over_flow_baseposname__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menusys", tbl_4981__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menusys", plist_4982__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menusys", tbl_5293__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menusys", waku_infotbl_5836__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menusys", wakutypeTbl_5837__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menusys", dbox_path_6083__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menusys", table_6164__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menusys", attrtable_6472__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menusys", stchar_6508__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menusys", whptbl_7376__DATA);
@@ -12284,26 +12394,6 @@ INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menusys", imgtbl_8945__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menusys", menu_item_swap_sndtbl__DATA);
 
 // Constants (.rodata)
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menusys", at_919__4__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menusys", at_920__3__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menusys", at_921__3__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menusys", at_922__3__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menusys", at_923__4__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menusys", at_924__3__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menusys", at_925__3__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menusys", at_926__3__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menusys", at_927__3__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menusys", at_928__3__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menusys", at_929__4__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menusys", at_930__4__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menusys", at_931__3__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menusys", at_932__3__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menusys", at_933__4__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menusys", at_934__3__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menusys", at_935__3__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menusys", at_936__4__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menusys", at_937__3__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menusys", at_938__3__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menusys", at_1493__2__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menusys", at_2545__2__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menusys", at_2546__2__DATA);
@@ -12363,12 +12453,6 @@ INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menusys", at_4955__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menusys", at_4956__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menusys", at_4957__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menusys", at_4958__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menusys", at_4967__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menusys", at_4968__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menusys", at_4969__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menusys", at_4970__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menusys", at_4971__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menusys", at_4972__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menusys", at_4973__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menusys", at_4974__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menusys", at_4975__2__DATA);
