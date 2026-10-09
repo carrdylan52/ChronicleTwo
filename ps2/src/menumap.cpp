@@ -305,11 +305,11 @@ void worldmap_analyze(mgCMemory *stack, char *script, int size) {
 void CWorldMapMenu::SetMsgBuffer() {
     MenuDCMsg[4]->SetMessData(menu_mes_data, menu_mes_data);
     MenuDCMsg[4]->MsgPreset(15);
-    ((ClsMes *) MenuDCMsg[4])->fuchi = 5;
+    MenuDCMsg[4]->fuchi = 5;
     MenuDCMsg[2]->SetMessData(mes_data, menu_mes_data);
     MenuDCMsg[3]->SetMessData(mes_data, menu_mes_data);
-    ((ClsMes *) MenuDCMsg[3])->push_button = 0;
-    ((ClsMes *) MenuDCMsg[3])->fade_speed = 1.0f;
+    MenuDCMsg[3]->push_button = 0;
+    MenuDCMsg[3]->fade_speed = 1.0f;
 }
 int CWorldMapMenu::KeyStep() {
     int result = WORLD_MOVE_CONTINUE;
