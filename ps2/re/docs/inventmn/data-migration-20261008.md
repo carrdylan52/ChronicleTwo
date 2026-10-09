@@ -38,3 +38,16 @@ not needed.
 Markers: 254 / 12; matched data: 36 / 18656 bytes. Each
 `invent-emitted-<step>-build.log` / `-objects.log` in
 `.private/nminv-r2/` reports PAL OK and 149/149 objects.
+
+## String literals
+
+Twenty function groups now use 116 native literals, including the photo
+parser paths, form/texture identifiers, Shift-JIS prompts, debug formats,
+and item-menu messages. Shared strings were replaced at all unguarded
+uses together. CalcTex's profile selectors and generated code remain
+unchanged. Literals used only by frozen drafts remain addressable under
+their retail symbols.
+
+Markers: 138 / 12; matched data: 36 / 18656 bytes. All twenty
+`invent-strings-<step>-build.log` / `-objects.log` receipts in
+`.private/nminv-r2/` verify PAL OK and 149/149 objects.

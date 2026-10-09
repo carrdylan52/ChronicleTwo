@@ -208,7 +208,6 @@ enum {
     K_COMMAND_QUIT = 110
 };
 
-extern char at_1046__2[];
 
 /**
  *
@@ -219,35 +218,6 @@ struct NetaFoundFlags {
     s8 flag[3]; /**< Found flag for each idea. */
 };
 
-extern char           at_2124__2[];
-extern char           at_2125__3[];
-extern char           at_2126__3[];
-extern char           at_2127__2[];
-extern char           at_2128__3[];
-extern char           at_2129__2[];
-extern char           at_2130__2[];
-extern char           at_2131__2[];
-extern char           at_2132__2[];
-extern char           at_2133__2[];
-extern char           at_2134__2[];
-extern char           at_2135[];
-extern char           at_2136__2[];
-extern char           at_2137[];
-extern char           at_2138[];
-extern char           at_2139[];
-extern char           at_2140[];
-extern char           at_2141[];
-extern char           at_2142[];
-extern char           at_2143[];
-extern char           at_2144[];
-extern char           at_2145[];
-extern char           at_2146__2[];
-extern char           at_2147[];
-extern char           at_2148[];
-extern char           at_2149[];
-extern char           at_2150[];
-extern char           at_2151[];
-extern char           at_2152[];
 extern char           at_2244[];
 extern char           at_2245[];
 extern char           at_2246[];
@@ -258,29 +228,6 @@ extern char           at_2250[];
 extern char           at_2251[];
 extern char           at_2252[];
 extern char           at_2253[];
-extern char           at_2313[];
-extern char           at_2395__2[];
-extern char           at_2396__2[];
-extern char           at_2520[];
-extern char           at_2521[];
-extern char           at_2522[];
-extern char           at_2523[];
-extern char           at_2524[];
-extern char           at_2525[];
-extern char           at_2526[];
-extern char           at_2527[];
-extern char           at_2528[];
-extern char           at_2543__2[];
-extern char           at_2544[];
-extern char           at_2712[];
-extern char           at_2713__2[];
-extern char           at_2720__2[];
-extern char           at_2732__2[];
-extern char           at_2733__2[];
-extern char           at_2734__2[];
-extern char           at_2735__2[];
-extern char           at_2736[];
-extern char           at_2737[];
 
 /**
  *
@@ -305,13 +252,6 @@ struct InventCursorPos {
 
 extern InventCursorPos at_3201;
 extern s8              wakutype_3203[];
-extern char            at_3257[];
-extern char            at_3258[];
-extern char            at_3259[];
-extern char            at_3260__2[];
-extern char            at_3261[];
-extern char            at_3262__2[];
-extern char            at_3263__2[];
 
 /**
  *
@@ -355,18 +295,6 @@ extern char                at_4380[];
 extern ItemNameList2       at_3739;
 extern ItemNameList2       at_3765;
 extern s8                  convtbl_3726[7];
-extern char                at_3858[];
-extern char                at_3859[];
-extern char                at_3860[];
-extern char                at_3861[];
-extern char                at_3862[];
-extern char                at_3863__2[];
-extern char                at_3864__2[];
-extern char                at_3865__2[];
-extern char                at_3866__2[];
-extern char                at_3867__2[];
-extern char                at_3868__2[];
-extern char                at_3869[];
 
 /**
  *
@@ -394,12 +322,6 @@ struct ItemBoardKoma {
 };
 
 extern ItemBoardKoma at_3306;
-extern char          at_3348__2[];
-extern char          at_3349__2[];
-extern char          at_3350__2[];
-extern char          at_3351[];
-extern char          at_3352[];
-extern char          at_3353[];
 
 /**
  *
@@ -433,19 +355,6 @@ struct NetaEffectTarget {
     float y; /**< Vertical target coordinate. */
 };
 
-extern char             at_4775[];
-extern char             at_5066[];
-extern char             at_5067[];
-extern char             at_5550[];
-extern char             at_5551[];
-extern char             at_5552[];
-extern char             at_5553[];
-extern char             at_5554[];
-extern char             at_5555[];
-extern char             at_5556[];
-extern char             at_5557[];
-extern char             at_5558[];
-extern char             at_5559[];
 
 /**
  *
@@ -476,10 +385,6 @@ struct NetaNameBlank {
 
 extern NetaNameBlank at_4470;
 
-extern char              at_5153[];
-extern char              at_5154[];
-extern char              at_5155[];
-extern char              at_5156[];
 
 /**
  *
@@ -508,19 +413,10 @@ struct InventCommandList {
 };
 
 extern InventCommandList  modecmdtbl_3636[12];
-extern char               at_2368__2[];
-extern char               at_2369__2[];
-extern char               at_3932[];
-extern char               at_3933[];
-extern char               at_3934[];
-extern char               at_3935[];
-extern char               at_3936[];
 int                       MenuInventDebugKey();
 void                      MenuInventDebugDraw();
-extern char               at_2005[];
 
 extern SPI_TAG_PARAM  menu_scoop_str_tag[];
-extern char           at_1664[];
 extern SPI_TAG_PARAM  pic_tag[];
 extern char          *addstringtable_1722[];
 
@@ -839,7 +735,7 @@ void AttachPictTex(int block, mgCTexture **textures, USER_PICTURE_INFO *info, in
     }
 
     for (i = 0; i < count; i++) {
-        sprintf(name, at_1046__2, i + base);
+        sprintf(name, "neta%d", i + base);
         manager->DeleteTexture(name, block);
         manager->EnterTexture(block, name, NULL, (64), (64), (0x10), 0, 0, 0);
         textures[i] = manager->GetTexture(name, -1);
@@ -1528,7 +1424,7 @@ void LoadFilePictureName() {
     stack.stSetBuffer((u_long128 *) pic_name_text_buff_1660, 0x248);
     PicNameStack = &stack;
     buffer = (char *) MenuCalcBufAlignment((u_long128 *) align_buffer);
-    size = LoadFileMenu(at_1664, (u_long128 *) buffer, 1);
+    size = LoadFileMenu("neta2.lst", (u_long128 *) buffer, 1);
     CScriptInterpreter interpreter;
     interpreter.SetTag(pic_tag);
     interpreter.SetScript(buffer, size);
@@ -1889,7 +1785,7 @@ int CheckInventItem(int item_id) {
     manage.num = 0;
     manage.table = NULL;
     buffer = (char *) MenuCalcBufAlignment((u_long128 *) align_buffer);
-    LoadFile2(at_2005, buffer, &file_size, 0);
+    LoadFile2("menu/inv6.lst", buffer, &file_size, 0);
     InventTeigiStack.stSetBuffer((u_long128 *) teigi_buffer, 0x400);
     manage.LoadAnalyzeInventFile(buffer, file_size);
     InventUserDataPtr = GetInventUserDataPtr();
@@ -1958,7 +1854,7 @@ int CheckItemTable(int item_id, int *values) {
     manage.table = NULL;
     buffer = (char *) MenuCalcBufAlignment((u_long128 *) align_buffer);
 
-    if (LoadFile2(at_2005, buffer, &file_size, 0) != 0) {
+    if (LoadFile2("menu/inv6.lst", buffer, &file_size, 0) != 0) {
         InventTeigiStack.stSetBuffer((u_long128 *) teigi_buffer, 0x400);
         manage.LoadAnalyzeInventFile(buffer, file_size);
         record = manage.GetInventDataInfoByItemID(item_id);
@@ -2056,9 +1952,9 @@ int CMenuInvent::CheckRecoverPhotoNum() {
 }
 
 void CMenuInvent::AttachFormInfo() {
-    bg_form = MenuPosData->GetFormInfo(at_2124__2);
-    itembrd_form = MenuPosData->GetFormInfo(at_2125__3);
-    neta_board_form = MenuPosData->GetFormInfo(at_2126__3);
+    bg_form = MenuPosData->GetFormInfo("inv_bg");
+    itembrd_form = MenuPosData->GetFormInfo("itembrd");
+    neta_board_form = MenuPosData->GetFormInfo("\x83\x6c\x83\x5e\x94\xc2");
     neta_board_bar[0] = 0;
     neta_board_bar[1] = 0;
     neta_board_bar[2] = 0;
@@ -2066,49 +1962,49 @@ void CMenuInvent::AttachFormInfo() {
     neta_memo_arrow = 0;
 
     if (neta_board_form != 0) {
-        neta_board_form->SetNumber(at_2127__2, 30);
-        neta_board_bar[0] = neta_board_form->GetPartInfo(at_2128__3);
-        neta_board_bar[1] = neta_board_form->GetPartInfo(at_2129__2);
-        neta_board_bar[2] = neta_board_form->GetPartInfo(at_2130__2);
-        neta_board_arrow = neta_board_form->GetPartInfo(at_2131__2);
-        neta_memo_arrow = neta_board_form->GetPartInfo(at_2132__2);
+        neta_board_form->SetNumber("maxnum", 30);
+        neta_board_bar[0] = neta_board_form->GetPartInfo("bar0");
+        neta_board_bar[1] = neta_board_form->GetPartInfo("bar1");
+        neta_board_bar[2] = neta_board_form->GetPartInfo("bar2");
+        neta_board_arrow = neta_board_form->GetPartInfo("\x81\xaa");
+        neta_memo_arrow = neta_board_form->GetPartInfo("\x83\x6c\x83\x5e\x92\xa0\x96\xee\x88\xf3\x8a\xee\x96\x7b");
     }
 
-    neta_memo_form = MenuPosData->GetFormInfo(at_2133__2);
+    neta_memo_form = MenuPosData->GetFormInfo("\x83\x6c\x83\x5e\x92\xa0");
     photo_scroll_reset = 1;
-    makebrd_form = MenuPosData->GetFormInfo(at_2134__2);
+    makebrd_form = MenuPosData->GetFormInfo("makebrd");
     card_scroll_reset = 1;
-    card_list_title_form = MenuPosData->GetFormInfo(at_2135);
-    card_list_form = MenuPosData->GetFormInfo(at_2136__2);
-    album_sw_form = MenuPosData->GetFormInfo(at_2137);
+    card_list_title_form = MenuPosData->GetFormInfo("\x83\x4a\x81\x5b\x83\x68\x83\x8a\x83\x58\x83\x67");
+    card_list_form = MenuPosData->GetFormInfo("cardlist");
+    album_sw_form = MenuPosData->GetFormInfo("Album_sw");
 
     if (album_sw_form != 0) {
         album_sw_form->rgba_bit = 8;
     }
 
-    album_big_form = MenuPosData->GetFormInfo(at_2138);
-    GiftBoxViewForm = MenuPosData->GetFormInfo(at_2139);
-    neta_form[0] = MenuPosData->GetFormInfo(at_2140);
-    neta_form[1] = MenuPosData->GetFormInfo(at_2141);
-    neta_form[2] = MenuPosData->GetFormInfo(at_2142);
-    neta_name_form[0] = MenuPosData->GetFormInfo(at_2143);
-    neta_name_form[1] = MenuPosData->GetFormInfo(at_2144);
-    neta_name_form[2] = MenuPosData->GetFormInfo(at_2145);
-    recbrd_form = MenuPosData->GetFormInfo(at_2146__2);
-    poly_chr_form[0] = MenuPosData->GetFormInfo(at_2147);
-    poly_chr_form[1] = MenuPosData->GetFormInfo(at_2148);
+    album_big_form = MenuPosData->GetFormInfo("Album_Big");
+    GiftBoxViewForm = MenuPosData->GetFormInfo("giftview");
+    neta_form[0] = MenuPosData->GetFormInfo("neta0");
+    neta_form[1] = MenuPosData->GetFormInfo("neta1");
+    neta_form[2] = MenuPosData->GetFormInfo("neta2");
+    neta_name_form[0] = MenuPosData->GetFormInfo("neta0name");
+    neta_name_form[1] = MenuPosData->GetFormInfo("neta1name");
+    neta_name_form[2] = MenuPosData->GetFormInfo("neta2name");
+    recbrd_form = MenuPosData->GetFormInfo("recbrd");
+    poly_chr_form[0] = MenuPosData->GetFormInfo("poly_chr0");
+    poly_chr_form[1] = MenuPosData->GetFormInfo("poly_chr1");
 
     if (poly_chr_form[0] != 0) {
         poly_chr_form[0]->SetActionCharaPtr(0, -1, -1);
     }
 
-    invent_okeff_form = MenuPosData->GetFormInfo(at_2149);
-    dload_form = MenuPosData->GetFormInfo(at_2150);
-    kakudai_pic_form = MenuPosData->GetFormInfo(at_2151);
+    invent_okeff_form = MenuPosData->GetFormInfo("invent_okeff");
+    dload_form = MenuPosData->GetFormInfo("DLOAD");
+    kakudai_pic_form = MenuPosData->GetFormInfo("kakudai_pic");
     kakudai_pic = 0;
 
     if (kakudai_pic_form != 0) {
-        kakudai_pic = kakudai_pic_form->GetPartInfo(at_2152);
+        kakudai_pic = kakudai_pic_form->GetPartInfo("pic");
     }
 
     AttachMessageForm();
@@ -2286,7 +2182,7 @@ void CMenuInvent::InitNetaCircle(int show) {
                 CMenuPosDataForm *label = neta_name_form[i];
 
                 if (label != 0) {
-                    label->SetAction(at_2313);
+                    label->SetAction("\x92\x86\x82\xd6");
                 }
             }
         }
@@ -2360,7 +2256,7 @@ int CMenuInvent::SetNetaCircle(int type, int index) {
         }
 
         form->SetRGBACalcParam(3, 8, 0x80);
-        MENUFORMPARTS_TYPE *ring = form->GetPartInfo(at_2368__2);
+        MENUFORMPARTS_TYPE *ring = form->GetPartInfo("neta");
         ring->draw_flag = 1;
 
         if (neta_select_type[neta_select_num] == 0) {
@@ -2391,7 +2287,7 @@ int CMenuInvent::SetNetaCircle(int type, int index) {
     label = neta_name_form[neta_select_num];
 
     if (label != NULL) {
-        label->SetAction(at_2313);
+        label->SetAction("\x92\x86\x82\xd6");
     }
 
     SetNetaName(MenuDCMsg[7], neta_select_num, name);
@@ -2400,7 +2296,7 @@ int CMenuInvent::SetNetaCircle(int type, int index) {
     neta_select_num++;
 
     if (neta_select_num == 1 && MenuActionChara[0] != NULL) {
-        MenuActionChara[0]->SetMotion(at_2369__2, 0, 1);
+        MenuActionChara[0]->SetMotion("\x8d\x6c\x82\xa6", 0, 1);
     }
 
     neta_circle_angle += 0.05235988f;
@@ -2430,7 +2326,7 @@ int CMenuInvent::CancelNetaCircle(int mode) {
     CMenuPosDataForm *label = neta_name_form[neta_select_num];
 
     if (label != 0) {
-        label->SetAction(at_2395__2);
+        label->SetAction("\x8a\x4f\x82\xd6");
     }
 
     if (neta_select_num <= 0) {
@@ -2443,7 +2339,7 @@ int CMenuInvent::CancelNetaCircle(int mode) {
         }
 
         if (mode == 5) {
-            ExeScript(at_2396__2);
+            ExeScript("\x8d\x6c\x82\xa6\x83\x82\x81\x5b\x83\x68" "5");
         }
     }
 
@@ -2556,12 +2452,12 @@ void CMenuInvent::PrepareNextMode(int next_mode) {
     neta_form[2]->parts->etc_info[0] = -1;
     MenuPosData->InitDrawList();
     ExeScript(at_2253);
-    ExeScript(at_2520);
+    ExeScript("\x83\x74\x83\x48\x81\x5b\x83\x80\x8f\x89\x8a\xfa\x89\xbb");
 
     switch (key_arg_no) {
         case 0:
-            ExeScript(at_2521);
-            ExeScript(at_2522);
+            ExeScript("MSG\x8d\x6c\x8e\x40\x83\x82\x81\x5b\x83\x68");
+            ExeScript("NextToThink");
 
             if (LanguageCode > 0) {
                 MenuDCMsg[7]->font_w = 0xE;
@@ -2569,9 +2465,9 @@ void CMenuInvent::PrepareNextMode(int next_mode) {
 
             break;
         case 2:
-            ExeScript(at_2523);
+            ExeScript("MSG\x94\xad\x96\xbe\x90\xbb\x8d\xec\x83\x82\x81\x5b\x83\x68");
             CreateModeSwapForm(0);
-            ExeScript(at_2524);
+            ExeScript("NextToCardList");
             MenuDCMsg[2]->font_w = 0xD;
             MenuDCMsg[3]->value_space = -7;
 
@@ -2586,25 +2482,25 @@ void CMenuInvent::PrepareNextMode(int next_mode) {
 
             break;
         case 5:
-            ExeScript(at_2525);
+            ExeScript("NextToAlbumView");
 
             do {
             } while (CancelNetaCircle(0) >= 0);
 
             break;
         case 6:
-            ExeScript(at_2521);
-            ExeScript(at_2526);
+            ExeScript("MSG\x8d\x6c\x8e\x40\x83\x82\x81\x5b\x83\x68");
+            ExeScript("NextToPhotoView");
             UpdataRecordBoard();
             break;
     }
 
     if (photo_only == 1) {
-        ExeScript(at_2527);
+        ExeScript("picmodeonly");
     }
 
     if (album_enable == 0) {
-        ExeScript(at_2528);
+        ExeScript("ALBUM_OFF");
     }
 }
 
@@ -2628,11 +2524,11 @@ CGameDataUsed *CMenuInvent::SearchNowPosItemExist() {
 
 void CMenuInvent::CreateModeSwapForm(int side) {
     if (side == 0) {
-        ExeScript(at_2543__2);
+        ExeScript("FORMSWAP0");
         return;
     }
 
-    ExeScript(at_2544);
+    ExeScript("FORMSWAP1");
 }
 
 void CMenuInvent::GradationSet(int mode) {
@@ -2830,12 +2726,12 @@ void CMenuInvent::InitEnd() {
     if (photo_only == 1) {
         EnterDataMenu((u8 *) read_info->buffer);
         ExeScript(at_2253);
-        ExeScript(at_2712);
+        ExeScript("\x8e\xca\x90\x5e\x8a\x6d\x94\x46\x83\x82\x81\x5b\x83\x68\x8f\x89\x8a\xfa\x89\xbb");
         PrepareNextMode((int) key_arg_no);
     }
 
     cursor_snap = 1;
-    ExeScript(at_2713__2);
+    ExeScript("INIT_END");
     MenuItemBrdCalcManner = 0;
 }
 
@@ -2857,22 +2753,22 @@ void CMenuInvent::ExitEnd() {
     }
 
     InventUserDataPtr->PhotoCheckEnd();
-    ExeScript(at_2720__2);
+    ExeScript("\x96\x7b\x8f\x49\x97\xb9\x8f\x88\x97\x9d");
 }
 
 void CMenuInvent::EnterDataMenu(u8 *pack) {
     mgCTextureManager *tex_manager = &mgTexManager;
-    u_int             *file = GetPackFile((unsigned int *) pack, at_2732__2, 0);
+    u_int             *file = GetPackFile((unsigned int *) pack, "inv_bg.img", 0);
 
     if (file != 0) {
         int image_block = this->tex_block[3];
 
         if (file != 0) {
             tex_manager->EnterIMGFile((u8 *) file, image_block, 0, 0);
-            Tex_Hatsumei = tex_manager->GetTexture(at_2733__2, -1);
+            Tex_Hatsumei = tex_manager->GetTexture("inv0", -1);
         }
 
-        file = GetPackFile((unsigned int *) pack, at_2734__2, 0);
+        file = GetPackFile((unsigned int *) pack, "edmenu.img", 0);
 
         if (file != 0) {
             tex_manager->EnterIMGFile((u8 *) file, MenuCommonInfo->tex_block[1], 0, 0);
@@ -2880,16 +2776,16 @@ void CMenuInvent::EnterDataMenu(u8 *pack) {
         }
 
         int size = 0;
-        MenuDataAnalyze((char *) GetPackFile((unsigned int *) pack, at_2735__2, &size), size, &data_stack);
+        MenuDataAnalyze((char *) GetPackFile((unsigned int *) pack, "invent.cfg", &size), size, &data_stack);
         MenuInventStack.Align64();
 
         icon_data[0].data = GetPackFile((u_int *) pack, icon_data[0].name, &icon_data[0].size);
         icon_data[1].data = GetPackFile((u_int *) pack, icon_data[1].name, &icon_data[1].size);
         icon_data[2].data = GetPackFile((u_int *) pack, icon_data[2].name, &icon_data[2].size);
         AttachPictTex(tex_block[3], photo_tex, InventUserDataPtr->GetPhotoInfo(0), 0x1E);
-        script = (char *) GetPackFile((unsigned int *) pack, at_2736, &script_size);
+        script = (char *) GetPackFile((unsigned int *) pack, "inv_com.cfg", &script_size);
         int size2 = 0;
-        InventManagePt->LoadAnalyzeInventFile((char *) GetPackFile((unsigned int *) pack, at_2737, &size2),
+        InventManagePt->LoadAnalyzeInventFile((char *) GetPackFile((unsigned int *) pack, "inv6.lst", &size2),
                                               size2);
     }
 
@@ -3545,9 +3441,9 @@ void CMenuInvent::CalcCursorPosition() {
     CursorPos       offset = at_3202;
     CursorPos       waku;
     CursorPos       command_pos;
-    sprintf(text, at_3257, key_arg_no);
+    sprintf(text, "wakuwh%d", key_arg_no);
     MenuPosData->GetEtcTblValue(text, waku.x, waku.y);
-    sprintf(text, at_3258, key_arg_no);
+    sprintf(text, "c_of%d", key_arg_no);
     MenuPosData->GetEtcTblValue(text, offset.x, offset.y);
     MenuCommonInfo->SetWakuWH(wakutype_3203[key_arg_no], waku.x, waku.y);
     MenuCommonInfo->SetWakuType(wakutype_3203[key_arg_no]);
@@ -3569,7 +3465,7 @@ void CMenuInvent::CalcCursorPosition() {
             break;
         case 1:
         case 7:
-            album_sw_form->GetPutPosXY(at_3259, cursor.pos[0], cursor.pos[1]);
+            album_sw_form->GetPutPosXY("cur", cursor.pos[0], cursor.pos[1]);
             break;
         case 2:
             cursor.pos[0] = card_list_form->x - 40.0f;
@@ -3589,19 +3485,19 @@ void CMenuInvent::CalcCursorPosition() {
             command_pos.y = cursor.pos[1];
             break;
         case 5:
-            sprintf(text, at_3260__2, album_cursor - album_top * 2);
+            sprintf(text, "cur%d", album_cursor - album_top * 2);
             album_big_form->GetPutPosXY(text, cursor.pos[0], cursor.pos[1]);
             command_pos.x = cursor.pos[0];
             command_pos.y = cursor.pos[1];
             break;
         case 8:
-            neta_board_form->GetPutPosXY(at_3261, cursor.pos[0], cursor.pos[1]);
+            neta_board_form->GetPutPosXY("\x83\x6c\x83\x5e\x92\xa0\x88\xca\x92\x75", cursor.pos[0], cursor.pos[1]);
             break;
         case 11:
-            neta_memo_form->GetPutPosXY(at_3262__2, cursor.pos[0], cursor.pos[1]);
+            neta_memo_form->GetPutPosXY("\x83\x52\x83\x8b\x83\x4e", cursor.pos[0], cursor.pos[1]);
             break;
         case 10:
-            neta_board_form->GetPutPosXY(at_3263__2, cursor.pos[0], cursor.pos[1]);
+            neta_board_form->GetPutPosXY("\x83\x6c\x83\x5e\x92\xa0\x96\xee\x88\xf3", cursor.pos[0], cursor.pos[1]);
             break;
         case 9:
             GetNetaMemoCursorPosition(memo_cursor - memo_top, cursor.pos);
@@ -3648,10 +3544,10 @@ int CMenuInvent::IsMakeObject(int keys, int button) {
 
                         if (enough == 0) {
                             step = 3;
-                            ExeScript(at_3348__2);
+                            ExeScript("ITEM\x95\x73\x91\xab");
                         } else if (make_space_no < 0) {
                             step = 3;
-                            ExeScript(at_3349__2);
+                            ExeScript("\x8b\xf3\x82\xab\x96\xb3\x82\xb5");
                         } else {
                             if (make_item_no == 0xA5) {
                                 GetSaveData()->SetBitFlag(13, 1);
@@ -3683,7 +3579,7 @@ int CMenuInvent::IsMakeObject(int keys, int button) {
                             load_sound_buffer = MenuCharaLoadStack.stack + MenuCharaLoadStack.stack_used;
                             StartReadBG();
                             int size;
-                            LoadFileBG(at_3350__2, (u_long128 *) load_sound_buffer, &size);
+                            LoadFileBG("snd2/sp/SP_001.snd", (u_long128 *) load_sound_buffer, &size);
                             u_int bytes = size + 16;
                             MenuCharaLoadStack.Alloc((bytes & 0xF) ? (bytes >> 4) + 1 : bytes >> 4);
                         }
@@ -3692,7 +3588,7 @@ int CMenuInvent::IsMakeObject(int keys, int button) {
                     }
                 case 2:
                     mode = 0;
-                    ExeScript(at_3351);
+                    ExeScript("\x8d\xec\x90\xac\x83\x7b\x81\x5b\x83\x68OFF");
                     MenuSePlay(5);
                     MenuCommonInfo->SetVibeR(6, 4);
                     break;
@@ -3717,7 +3613,7 @@ int CMenuInvent::IsMakeObject(int keys, int button) {
                     MenuCommonInfo->cursor_form->draw_flag = 0;
                 }
 
-                ExeScript(at_3351);
+                ExeScript("\x8d\xec\x90\xac\x83\x7b\x81\x5b\x83\x68OFF");
                 MenuSePlay(0, (u_int *) load_sound_buffer, &MenuSoundBuffer);
                 CreateModeSwapForm(1);
                 step = 1;
@@ -3738,7 +3634,7 @@ int CMenuInvent::IsMakeObject(int keys, int button) {
 
             if (MenuEffect[1]->run == 0) {
                 step++;
-                ExeScript(at_3352);
+                ExeScript("MSG_ITEMMAKE");
                 ItemNameList2 names = at_3317;
                 names.name[0] = GetItemMessage(make_item_no);
                 CDC2Mes *message = MenuDCMsg[4];
@@ -3750,7 +3646,7 @@ int CMenuInvent::IsMakeObject(int keys, int button) {
         case 2:
             if (button != 0) {
                 CreateModeSwapForm(0);
-                ExeScript(at_3353);
+                ExeScript("ERRMSGOFF0");
                 MenuSePlay(1);
                 mode = 0;
                 step = 0;
@@ -3760,7 +3656,7 @@ int CMenuInvent::IsMakeObject(int keys, int button) {
             break;
         case 3:
             if (button != 0) {
-                ExeScript(at_3353);
+                ExeScript("ERRMSGOFF0");
                 MenuCommonInfo->SetVibeR(6, 4);
                 MenuSePlay(5);
                 mode = 0;
@@ -3779,18 +3675,6 @@ int CMenuInvent::IsMakeObject(int keys, int button) {
     return 1;
 }
 
-extern char at_3621[];
-extern char at_3622[];
-extern char at_3623[];
-extern char at_3624[];
-extern char at_3625[];
-extern char at_3626[];
-extern char at_3627[];
-extern char at_3628[];
-extern char at_3629[];
-extern char at_3630[];
-extern char at_3631[];
-extern char at_3632[];
 
 void CMenuInvent::CalcTex() {
     if (bg_form != NULL) {
@@ -3809,10 +3693,10 @@ void CMenuInvent::CalcTex() {
     neta_color[1] = shade;
     neta_color[2] = 128.0f;
     scoop_color[0] = scoop_color[1] = shade;
-    CMenuPosDataForm *balloon = MenuPosData->GetFormInfo(at_3621);
+    CMenuPosDataForm *balloon = MenuPosData->GetFormInfo("\x90\x81\x8f\x6f\x82\xb5" "0");
     if (balloon != NULL) {
         float center[2];
-        balloon->GetPutPosXY(at_3622, center[0], center[1]);
+        balloon->GetPutPosXY("o", center[0], center[1]);
         if (mode == 5 && step > 0 && step < 3) {
             neta_circle_radius -= 0.44444445f;
             if (neta_circle_radius < 0.0f) {
@@ -3924,15 +3808,15 @@ void CMenuInvent::CalcTex() {
             neta_board_arrow->x = neta_memo_arrow->x;
             neta_board_arrow->y = neta_memo_arrow->y + 6.0f * sinf(3.1415927f / 25.0f * arrow_count);
         }
-        neta_board_form->SetNumber(at_3623, InventUserDataPtr->GetNowHavePictureNum());
+        neta_board_form->SetNumber("nownum", InventUserDataPtr->GetNowHavePictureNum());
     }
     if (album_big_form != NULL && album_big_form->draw_flag != 0) {
         int cursor[2];
-        album_big_form->GetPutPosXY(at_3624, cursor[0], cursor[1]);
+        album_big_form->GetPutPosXY("cur0", cursor[0], cursor[1]);
         album_scroll_x = cursor[0] - 2;
         CalcMenu1(cursor[1] - 2 - album_top * 0x36, &album_scroll_y, 4.0f, 1.0f, album_scroll_reset);
-        MENUFORMPARTS_TYPE *frame = album_big_form->GetPartInfo(at_3625);
-        MENUFORMPARTS_TYPE *bar = album_big_form->GetPartInfo(at_3626);
+        MENUFORMPARTS_TYPE *frame = album_big_form->GetPartInfo("b0");
+        MENUFORMPARTS_TYPE *bar = album_big_form->GetPartInfo("c0");
         if (frame != NULL && bar != NULL) {
             bar[0].x = bar[1].x = bar[2].x = frame[0].x + 2.0f;
             float length = bar[0].h + bar[1].h + bar[2].h;
@@ -3957,18 +3841,18 @@ void CMenuInvent::CalcTex() {
             card_scroll_reset = 0;
             reset = 1;
         }
-        CMenuPosDataForm *clip = MenuPosData->GetFormInfo(at_3627);
+        CMenuPosDataForm *clip = MenuPosData->GetFormInfo("\x94\xad\x96\xbe\x83\x4a\x81\x5b\x83\x68\x83\x4e\x83\x8a\x83\x62\x83\x76" "1");
         clip->x = title->x;
         int card_pos[2];
-        title->GetPutPosXY(at_3628, card_pos[0], card_pos[1]);
+        title->GetPutPosXY("basecard", card_pos[0], card_pos[1]);
         int bar_size[2];
-        title->GetPutPosXY(at_3629, bar_size[0], bar_size[1]);
+        title->GetPutPosXY("barlong", bar_size[0], bar_size[1]);
         card_list_form->x = title->x + 10.0f;
         CalcMenu1(card_pos[1] - card_top * 46, &card_list_form->y, 4.0f, 2.0f, reset);
-        MENUFORMPARTS_TYPE *base_bar = title->GetPartInfo(at_3630);
-        MENUFORMPARTS_TYPE *bar_top = title->GetPartInfo(at_2128__3);
-        MENUFORMPARTS_TYPE *bar_mid = title->GetPartInfo(at_2129__2);
-        MENUFORMPARTS_TYPE *bar_end = title->GetPartInfo(at_2130__2);
+        MENUFORMPARTS_TYPE *base_bar = title->GetPartInfo("basebar");
+        MENUFORMPARTS_TYPE *bar_top = title->GetPartInfo("bar0");
+        MENUFORMPARTS_TYPE *bar_mid = title->GetPartInfo("bar1");
+        MENUFORMPARTS_TYPE *bar_end = title->GetPartInfo("bar2");
         int                 card_max = EnableSelectMaxCardList();
         float               knob = bar_size[1] * (5.0f / card_max);
         float               hidden = card_max - 5;
@@ -3987,7 +3871,7 @@ void CMenuInvent::CalcTex() {
     if (recbrd_form != NULL && recbrd_form->draw_flag != 0 && recbrd_form->rgba[3] > 0 && MenuDCMsg[7] != NULL) {
         for (int i = 0; i < 10; i++) {
             char name[0x20];
-            sprintf(name, at_3631, i);
+            sprintf(name, "n%d", i);
             int line_pos[2];
             recbrd_form->GetPutPosXY(name, line_pos[0], line_pos[1]);
             line_pos[0] += rec_board_offset_xtbl[i];
@@ -4097,7 +3981,7 @@ void CMenuInvent::CalcTex() {
     }
     if (itembrd_form != NULL && itembrd_form->draw_flag != 0) {
         Func_MenuItemBrdPosStep(item_top);
-        Func_MenuItemBrdPrepare(itembrd_form->GetPartInfo(at_3632), MenuUserParam.used_data, NULL, 1);
+        Func_MenuItemBrdPrepare(itembrd_form->GetPartInfo("icon"), MenuUserParam.used_data, NULL, 1);
     }
     if (mode == 6 && step == 1) {
         int effect_pos[2];
@@ -4267,7 +4151,7 @@ int CMenuInvent::IsAskExtend(int keys, int button) {
                                 picture = photo_cursor;
                                 break;
                             case 5:
-                                sprintf(text, at_3260__2, album_cursor - album_top * 2);
+                                sprintf(text, "cur%d", album_cursor - album_top * 2);
                                 album_big_form->GetPutPosXY(text, pos[0], pos[1]);
                                 pos[0]--;
                                 pos[1]--;
@@ -4283,7 +4167,7 @@ int CMenuInvent::IsAskExtend(int keys, int button) {
                         break;
                     }
                     case INVENT_ASK_DELETE: {
-                        ExeScript(at_3858);
+                        ExeScript("\x8e\xca\x90\x5e\x8f\xc1\x82\xb5\x82\xdc\x82\xb7\x82\xa9\x81\x48");
                         names = at_3739;
                         names.name[0] = GetPhotoName(menu_invent_command_info_pict_info);
                         yesno_message->SetMsgItemNo(names.name, se);
@@ -4291,28 +4175,28 @@ int CMenuInvent::IsAskExtend(int keys, int button) {
                     }
                     case INVENT_ASK_DELETE_UNUSED:
                         if (key_arg_no == 5) {
-                            ExeScript(at_3859);
+                            ExeScript("\x8e\xca\x90\x5e\x82\xcc\x88\xea\x8a\x87\x8f\xc1\x8b\x8e\x81\x48" "Album");
                         } else {
-                            ExeScript(at_3860);
+                            ExeScript("\x8e\xca\x90\x5e\x82\xcc\x88\xea\x8a\x87\x8f\xc1\x8b\x8e\x81\x48\x83\x6c\x83\x5e");
                         }
 
                         break;
                     case INVENT_ASK_DELETE_ALL:
                         if (key_arg_no == 5) {
-                            ExeScript(at_3861);
+                            ExeScript("\x8e\xca\x90\x5e\x91\x53\x8f\xc1\x8b\x8e\x81\x48" "Album");
                         } else {
-                            ExeScript(at_3862);
+                            ExeScript("\x8e\xca\x90\x5e\x91\x53\x8f\xc1\x8b\x8e\x81\x48\x83\x6c\x83\x5e");
                         }
 
                         break;
                     case INVENT_ASK_TO_ALBUM: {
-                        ExeScript(at_3863__2);
+                        ExeScript("\x83\x41\x83\x8b\x83\x6f\x83\x80\x88\xda\x82\xb7\x81\x48");
                         names.name[0] = GetPhotoName(menu_invent_command_info_pict_info);
                         yesno_message->SetMsgItemNo(names.name, se);
                         break;
                     }
                     case INVENT_ASK_FROM_ALBUM: {
-                        ExeScript(at_3864__2);
+                        ExeScript("\x83\x6c\x83\x5e\x82\xc9\x88\xda\x82\xb7\x81\x48");
                         names.name[0] = GetPhotoName(menu_invent_command_info_pict_info);
                         yesno_message->SetMsgItemNo(names.name, se);
                         break;
@@ -4346,7 +4230,7 @@ int CMenuInvent::IsAskExtend(int keys, int button) {
                 switch (button) {
                     case 1:
                         if (answer == 0) {
-                            ExeScript(at_3865__2);
+                            ExeScript("\x8e\xca\x90\x5e\x8f\xc1\x82\xb5\x82\xdc\x82\xb5\x82\xbd");
                             delete_names = at_3765;
                             delete_names.name[0] = GetPhotoName(menu_invent_command_info_pict_info);
                             yesno_message->SetMsgItemNo(delete_names.name, 1);
@@ -4436,10 +4320,10 @@ int CMenuInvent::IsAskExtend(int keys, int button) {
                             MenuSePlay(13);
 
                             if (key_arg_no == 5) {
-                                ExeScript(at_3866__2);
+                                ExeScript("\x8e\xca\x90\x5e\x82\xcc\x88\xea\x8a\x87\x8f\xc1\x8b\x8e\x83\x41\x83\x8b\x83\x6f\x83\x80");
                                 InitPhotoNetaBoardToAlbum(1);
                             } else {
-                                ExeScript(at_3867__2);
+                                ExeScript("\x8e\xca\x90\x5e\x82\xcc\x88\xea\x8a\x87\x8f\xc1\x8b\x8e");
                             }
 
                             step = 1;
@@ -4475,10 +4359,10 @@ int CMenuInvent::IsAskExtend(int keys, int button) {
                                 MenuSePlay(13);
 
                                 if (key_arg_no == 5) {
-                                    ExeScript(at_3868__2);
+                                    ExeScript("\x8e\xca\x90\x5e\x91\x53\x8f\xc1\x8b\x8e" "Album");
                                     InitPhotoNetaBoardToAlbum(0);
                                 } else {
-                                    ExeScript(at_3869);
+                                    ExeScript("\x8e\xca\x90\x5e\x91\x53\x8f\xc1\x8b\x8e\x83\x6c\x83\x5e");
                                 }
 
                                 break;
@@ -4520,7 +4404,7 @@ void CMenuInvent::PhotoNetaEnter(int index, int button) {
                     if (answer == 0) {
                         neta_effect_time = 0;
                         InventInNetaEffectFlag = 1;
-                        ExeScript(at_3932);
+                        ExeScript("\x83\x6c\x83\x5e\x93\x6f\x98\x5e\x8a\x4a\x8e\x6e");
                         MenuSePlay(0x20);
                         MenuCharaLoadStack.stack_used = 0;
                         MenuCharaLoadStack.lock = 0;
@@ -4559,13 +4443,13 @@ void CMenuInvent::PhotoNetaEnter(int index, int button) {
                 MenuSePlay(0x21);
                 InventInNetaEffectFlag = 0;
                 step = 2;
-                ExeScript(at_3933);
+                ExeScript("\x83\x6c\x83\x5e\x93\x6f\x98\x5e");
             }
 
             break;
         case 2:
             if (button != 0) {
-                ExeScript(at_3934);
+                ExeScript("\x93\x6f\x98\x5e\x8e\xca\x90\x5e\x8f\xc1\x82\xb7\x81\x48");
                 step = 3;
             }
 
@@ -4576,7 +4460,7 @@ void CMenuInvent::PhotoNetaEnter(int index, int button) {
             switch (button) {
                 case 1:
                     if (answer == 0) {
-                        ExeScript(at_3935);
+                        ExeScript("\x93\x6f\x98\x5e\x8e\xca\x90\x5e\x8f\xc1\x82\xb7");
 
                         for (int i = 0; i < 30; i++) {
                             if (new_neta_photo[i] != 0) {
@@ -4611,7 +4495,7 @@ void CMenuInvent::PhotoNetaEnter(int index, int button) {
     if (cancel) {
         mode = 0;
         step = 0;
-        ExeScript(at_3936);
+        ExeScript("\x83\x6c\x83\x5e\x93\x6f\x98\x5e\x8f\x49\x97\xb9");
         MenuSePlay(5);
     }
 }
@@ -5794,7 +5678,7 @@ void MenuInventNetaMemoDraw(float *origin, int &loaded_tex) {
                         prefix = gaiji_table_4737[2];
                     }
 
-                    sprintf(text, at_4775, prefix, name);
+                    sprintf(text, "%s%s", prefix, name);
                     menu_font.SetStr(text);
                     menu_font.SetPos(text_x, text_y);
                     menu_font.DrawDirect(menu_font.str, menu_font.pos_x, menu_font.pos_y);
@@ -6074,14 +5958,14 @@ void CMenuInvent::NextDifferentMode(int next, int arg) {
             }
 
             if (this->key_arg_no == 3) {
-                MenuMesForm[0]->SetAction(at_5066);
+                MenuMesForm[0]->SetAction("\x8d\xb6\x89\xba\x82\xd6");
                 this->CreateModeSwapForm(0);
             }
 
             break;
         case 3:
             this->CreateModeSwapForm(1);
-            MenuMesForm[0]->SetAction(at_2313);
+            MenuMesForm[0]->SetAction("\x92\x86\x82\xd6");
             this->item_cursor = (this->item_top + (this->card_cursor - this->card_top)) * 6;
             break;
         case 4: {
@@ -6103,7 +5987,7 @@ void CMenuInvent::NextDifferentMode(int next, int arg) {
         case 7:
             break;
         case 8:
-            this->ExeScript(at_5067);
+            this->ExeScript("\x83\x6c\x83\x5e\x92\x50\x8c\xea\x83\x8a\x83\x58\x83\x67OFF");
             break;
         case 9:
             break;
@@ -6216,7 +6100,7 @@ void MenuInventDebugDraw() {
 
             for (int i = 0; i < pic_name_info_num; i++) {
                 if (y >= 80) {
-                    sprintf(line, at_5153, pic_name_info_top[i].neta_id, pic_name_info_top[i].name);
+                    sprintf(line, "%3d: %s", pic_name_info_top[i].neta_id, pic_name_info_top[i].name);
                     font.SetStr(line);
                     font.SetPos(270, y);
                     font.DrawDirect(font.str, font.pos_x, font.pos_y);
@@ -6229,12 +6113,12 @@ void MenuInventDebugDraw() {
                 }
             }
 
-            font.SetStr(at_5154);
+            font.SetStr("\x81\xa8");
             font.SetPos(250, 80);
             font.DrawDirect(font.str, font.pos_x, font.pos_y);
 
             if (debug_invent_successflag != 0) {
-                font.SetStr(at_5155);
+                font.SetStr("Force Success Mode");
                 font.SetPos(20, 60);
                 font.DrawDirect(font.str, font.pos_x, font.pos_y);
             }
@@ -6242,7 +6126,7 @@ void MenuInventDebugDraw() {
             if (CMenuInventPt->create_chara != NULL) {
                 CMenuInventPt->create_chara->GetScale(scale);
                 CMenuInventPt->create_chara->GetPosition(position);
-                sprintf(model_text, at_5156, scale[0], position[0], position[1], position[2]);
+                sprintf(model_text, "scale:%f\npos  :%f\n      %f\n      %f\n", scale[0], position[0], position[1], position[2]);
                 font.SetStr(model_text);
                 font.SetPos(40, 340);
                 font.DrawDirect(font.str, font.pos_x, font.pos_y);
@@ -6677,7 +6561,7 @@ int MenuInventPushKey(int pad, int pushed) {
                                 CMenuInventPt->step = 201;
                                 CMenuInventPt->album_save_mode = 1;
                                 command = K_COMMAND_HANDLED;
-                                CMenuInventPt->ExeScript(at_5550);
+                                CMenuInventPt->ExeScript("SAVE_SLOTSEL");
                             }
 
                             break;
@@ -6845,10 +6729,10 @@ int MenuInventPushKey(int pad, int pushed) {
                 } while (i < 30);
 
                 if (InventInNetaEffectNum <= 0) {
-                    CMenuInventPt->ExeScript(at_5551);
+                    CMenuInventPt->ExeScript("\x83\x6c\x83\x5e\x8a\xf9\x93\x6f\x98\x5e");
                     CMenuInventPt->step = 10;
                 } else {
-                    CMenuInventPt->ExeScript(at_5552);
+                    CMenuInventPt->ExeScript("\x83\x6c\x83\x5e\x93\x6f\x98\x5e\x81\x48");
                     CMenuInventPt->step = 0;
                 }
 
@@ -6934,12 +6818,12 @@ int MenuInventPushKey(int pad, int pushed) {
 
                 if (InventUserDataPtr->IsAlreadyCreatedItem(CMenuInventPt->create_item_id) >= 0) {
                     CMenuInventPt->step = 4;
-                    CMenuInventPt->ExeScript(at_5553);
+                    CMenuInventPt->ExeScript("\x94\xad\x96\xbe\x8d\xcf\x82\xdd");
                     ItemNameList1 item_name = at_5448;
                     item_name.name[0] = GetItemMessage(CMenuInventPt->create_item_id);
                     message->SetMsgItemNo(item_name.name, 1);
                 } else {
-                    CMenuInventPt->ExeScript(at_5554);
+                    CMenuInventPt->ExeScript("\x94\xad\x96\xbe\x82\xb7\x82\xe9\x81\x48");
                 }
 
                 break;
@@ -6970,7 +6854,7 @@ int MenuInventPushKey(int pad, int pushed) {
 
                     if (CMenuInventPt->make_num_max <= 0) {
                         CMenuInventPt->step = 3;
-                        CMenuInventPt->ExeScript(at_5555);
+                        CMenuInventPt->ExeScript("\x8d\xc5\x91\xe5\x83\x60\x83\x46\x83\x62\x83\x4e");
                         ItemNameList1 item_name = at_5457;
                         item_name.name[0] = GetItemMessage(CMenuInventPt->make_item_no);
                         MenuDCMsg[4]->SetMsgItemNo(item_name.name, 1);
@@ -6988,7 +6872,7 @@ int MenuInventPushKey(int pad, int pushed) {
                                 GetItemMessage(CMenuInventPt->make_material->material[i].item_id);
                         }
 
-                        CMenuInventPt->ExeScript(at_5556);
+                        CMenuInventPt->ExeScript("\x8d\xec\x82\xe9\x81\x48");
                         message->SetMsgItemNo(names.name, 5);
                         message->StepMsg();
                         MenuCommonInfo->SetVibeR(0, 0);
@@ -7001,19 +6885,19 @@ int MenuInventPushKey(int pad, int pushed) {
                 CMenuInventPt->BootExtendCommand();
                 break;
             case K_COMMAND_OPEN_MEMO:
-                CMenuInventPt->ExeScript(at_5557);
+                CMenuInventPt->ExeScript("\x83\x6c\x83\x5e\x92\x50\x8c\xea\x83\x8a\x83\x58\x83\x67");
                 CMenuInventPt->UpdataNetaMemoStr();
                 CMenuInventPt->key_arg_no = 11;
                 break;
             case K_COMMAND_CLOSE_MEMO:
-                CMenuInventPt->ExeScript(at_5067);
+                CMenuInventPt->ExeScript("\x83\x6c\x83\x5e\x92\x50\x8c\xea\x83\x8a\x83\x58\x83\x67OFF");
                 CMenuInventPt->key_arg_no = 8;
                 break;
             case K_COMMAND_QUIT:
                 CMenuInventPt->mode = 14;
                 CMenuInventPt->step = 201;
                 CMenuInventPt->album_save_mode = 1;
-                CMenuInventPt->ExeScript(at_5550);
+                CMenuInventPt->ExeScript("SAVE_SLOTSEL");
                 MenuSePlay(5);
                 break;
         }
@@ -7022,7 +6906,7 @@ int MenuInventPushKey(int pad, int pushed) {
             CMenuInventPt->mode = 2;
 
             if (CMenuInventPt->photo_only == 1) {
-                CMenuInventPt->ExeScript(at_5558);
+                CMenuInventPt->ExeScript("\x8e\xca\x90\x5e\x83\x81\x83\x6a\x83\x85\x81\x5b\x8f\x49\x97\xb9");
                 ModelTriple hidden = at_5474;
                 hidden.model[0] = MenuActionChara[0];
                 hidden.model[1] = MenuActionChara[3];
@@ -7041,7 +6925,7 @@ int MenuInventPushKey(int pad, int pushed) {
                     i += 1;
                 } while (i < 3);
             } else {
-                CMenuInventPt->ExeScript(at_5559);
+                CMenuInventPt->ExeScript("\x91\x4f\x8f\x49\x97\xb9\x8f\x88\x97\x9d");
                 MenuMainFrameModeSet(7, 0);
                 ReturnMenuIntern(0);
             }
@@ -7288,46 +7172,14 @@ INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", digit_tbl3_5641__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", NewComer_5648__DATA);
 
 // Constants (.rodata)
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_1046__2__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_1537__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_1655__2__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_1656__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_1664__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_1723__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_1724__3__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_1725__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_1947__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_1948__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_2005__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_2124__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_2125__3__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_2126__3__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_2127__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_2128__3__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_2129__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_2130__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_2131__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_2132__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_2133__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_2134__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_2135__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_2136__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_2137__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_2138__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_2139__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_2140__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_2141__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_2142__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_2143__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_2144__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_2145__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_2146__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_2147__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_2148__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_2149__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_2150__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_2151__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_2152__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_2244__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_2245__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_2246__DATA);
@@ -7338,33 +7190,8 @@ INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_2250__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_2251__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_2252__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_2253__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_2313__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_2368__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_2369__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_2395__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_2396__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_2520__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_2521__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_2522__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_2523__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_2524__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_2525__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_2526__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_2527__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_2528__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_2543__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_2544__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_2545__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_2546__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_2712__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_2713__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_2720__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_2732__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_2733__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_2734__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_2735__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_2736__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_2737__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_2820__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_2821__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_2848__DATA);
@@ -7400,48 +7227,6 @@ INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_3133__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_3134__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_3135__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_3138__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_3257__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_3258__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_3259__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_3260__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_3261__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_3262__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_3263__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_3348__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_3349__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_3350__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_3351__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_3352__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_3353__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_3621__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_3622__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_3623__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_3624__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_3625__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_3626__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_3627__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_3628__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_3629__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_3630__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_3631__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_3632__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_3858__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_3859__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_3860__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_3861__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_3862__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_3863__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_3864__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_3865__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_3866__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_3867__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_3868__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_3869__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_3932__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_3933__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_3934__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_3935__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_3936__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_4354__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_4355__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_4356__DATA);
@@ -7469,29 +7254,12 @@ INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_4377__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_4378__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_4379__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_4380__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_4775__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_5011__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_5012__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_5013__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_5014__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_5015__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_5016__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_5066__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_5067__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_5153__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_5154__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_5155__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_5156__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_5550__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_5551__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_5552__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_5553__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_5554__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_5555__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_5556__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_5557__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_5558__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_5559__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_5649__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_5650__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_5651__DATA);
