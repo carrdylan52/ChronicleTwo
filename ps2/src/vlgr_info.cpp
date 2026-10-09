@@ -503,8 +503,8 @@ int vpiNPC_PLACE_NUM(SPI_STACK *stack, int argc) {
         blocks = ((u32) count * sizeof(CVillagerPlaceInfo)) >> 4;
     }
 
-    void               *block = vpiStack->Alloc(blocks + 2);
-    CVillagerPlaceInfo *places = new ((u_long128 *) block) CVillagerPlaceInfo[count];
+    u_long128          *block = vpiStack->Alloc(blocks + 2);
+    CVillagerPlaceInfo *places = new (block) CVillagerPlaceInfo[count];
 
     if (places == NULL) {
         return 0;
