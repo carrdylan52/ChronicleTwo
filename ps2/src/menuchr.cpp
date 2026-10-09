@@ -871,11 +871,6 @@ static mgCTexture        *MenuMosTexture;
 
 extern mgCMemory          MenuMosLoadStack;
 extern sceVu0FVECTOR      menu_old_chara_position;
-extern DebugLine          at_2674;
-extern DebugLine          at_2675;
-extern DebugLine          at_2676;
-extern DebugText          at_2691;
-extern DebugNpcText       at_2696;
 /**
  *
  * Character category selected by the party change debug controls.
@@ -3602,9 +3597,9 @@ void MenuCharaChangeDraw() {
 
         if (ChrChangMenuPt->select != 4) {
             DrawMenuFillBox(20.0f, 20.0f, 300.0f, 220.0f, 0x60, 0, 0, 0);
-            DebugLine party = at_2674;
-            DebugLine change = at_2675;
-            DebugLine mask = at_2676;
+            DebugLine party = {{0}};
+            DebugLine change = {{0}};
+            DebugLine mask = {{0}};
             party_member = MenuUserDataManPtr->GetNowPartyMember();
             int chara_change = MenuUserDataManPtr->chara_change;
             int change_mask = MenuUserDataManPtr->chara_change_mask;
@@ -3632,7 +3627,7 @@ void MenuCharaChangeDraw() {
                 }
             }
 
-            DebugText title = at_2691;
+            DebugText title = {"Max\nMonica\nRidepod\nMonster"};
             font.SetStr(title.text);
             font.SetPos(0x28, 0x3C);
             font.DrawDirect(font.str, font.pos_x, font.pos_y);
@@ -3683,7 +3678,7 @@ void MenuCharaChangeDraw() {
         font.SetStr("                  Pa:Tr:Ge");
         font.SetPos(0x14, 0x1E);
         font.DrawDirect(font.str, font.pos_x, font.pos_y);
-        DebugNpcText npc_title = at_2696;
+        DebugNpcText npc_title = {"                           "};
         strcpy(&npc_title.text[menu_debug_npc_decide * 3 + 0x11], "\x81\xAB");
         font.SetStr(npc_title.text);
         font.SetPos(0x14, 0x32);
@@ -7717,8 +7712,6 @@ s16 monster_progress_tbl[MONSTER_PROGRESS_NUM][1 + MONSTER_PROGRESS_LEVEL_NUM] =
 };
 
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", tbl_1233__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_2691__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_2696__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_3481__DATA);
 
 // Constants (.rodata)
@@ -7821,9 +7814,6 @@ mgCMemory MenuChangeMemory;
 mgCMemory MenuChangeNpcMemory;
 mgCMemory ChrChangeInitTextureStack;
 INCLUDE_BSS(at_1806__2, 0x20);
-INCLUDE_BSS(at_2674, 0x80);
-INCLUDE_BSS(at_2675, 0x80);
-INCLUDE_BSS(at_2676, 0x80);
 mgCMemory MenuMonChangeLoadStack;
 mgCMemory MenuMosBuildStack;
 mgCMemory MenuMosLoadStack;

@@ -331,3 +331,18 @@ After this step: **63 / 16 markers**, **123 / 9726 matched_data**.
 The complete small initialized-data section now receives progress credit.
 PAL and all 149 objects pass; receipts are
 `.private/nmchr-r3/menuchr-party-pair-corrected-{build,objects,progress,metrics}.log`.
+
+## Debug text buffer initializers
+
+The three 128-byte debug lines use nested zero initializers `{{0}}`. The
+512-byte character-name block and 256-byte townsperson text block initialize
+with their actual inline text and retain their full declared buffer capacities.
+All five fallback templates are absent. The zero buffers were checked one at
+a time, separately from the earlier grouped string-spelling probe.
+After this group: **61 / 13 markers**, **123 / 9726 matched_data**.
+PAL, all 149 objects, unchanged unowned hashes and frozen-source hashes pass.
+Receipts: `.private/nmchr-r3/menuchr-debug-one-at_2674`, `-at_2675`,
+`-at_2676`, and `-at_2691`, plus `menuchr-debug-complete`, with
+`-{build,objects,progress,metrics}.log`. The last text conversion's original
+checks also pass; its validation-summary command failed independently, so
+`menuchr-debug-complete` supplies the complete final receipt.
