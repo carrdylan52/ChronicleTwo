@@ -2,8 +2,9 @@
 
 ## Current source status
 
-`EditInit`, `EditLoop`, and `EditDraw` retain typed C++ drafts under
-`NONMATCHING`; the matching build selects their `INCLUDE_ASM` gaps. Earlier
+`EditInit` and `EditLoop` retain typed C++ drafts under `NONMATCHING`; the
+matching build selects their `INCLUDE_ASM` gaps. `EditDraw` is native matched
+C++; [night-20261008.md](night-20261008.md) records its promotion. Earlier
 active versions changed the unit's code and data layout and failed the object
 check. `CameraCtrlParam::operator=` is a native C++ definition at its retail
 address; the October 8 mid-day audit below supersedes the earlier emission blocker. The other game functions
@@ -301,7 +302,8 @@ The exact probe scores, including excess words, are in the private ledger;
 these trials should not be repeated without a new source hypothesis.
 
 The complete wrapper/fixup check of the helper-free draft also fails only
-`EditDraw`, first at retail 0x1AFC28. The function stays guarded. Receipts:
+`EditDraw`, first at retail 0x1AFC28. The function stayed guarded until the
+promotion in [night-20261008.md](night-20261008.md). Receipts:
 `.private/editloop-r1/draw-base-full/{check.log,diff.txt}`,
 `retained-draw/{compare.log,diff.txt}`, `draw-new-shapes.log`,
 `draw-induction.log`, `draw-count-lifetimes.log`,
