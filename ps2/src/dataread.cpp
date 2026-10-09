@@ -1098,8 +1098,8 @@ u_int *GetPackFile(u_int *pack, char *name, int *out_size) {
         return 0;
     }
 
-    base = (s8 *) name;
-    scan = (s8 *) name;
+    base = name;
+    scan = name;
 
     while ((c = *scan) != 0) {
         if (c == '/') {
@@ -1111,7 +1111,7 @@ u_int *GetPackFile(u_int *pack, char *name, int *out_size) {
 
     for (entry = (PACK_ENTRY *) pack; entry->name[0] != 0;
          entry = (PACK_ENTRY *) ((u8 *) entry + entry->next)) {
-        if (strcasecmp(entry->name, (char *) base) == 0) {
+        if (strcasecmp(entry->name, base) == 0) {
             u_int *data = (u_int *) ((u8 *) entry + entry->offset);
 
             if (out_size != NULL) {
