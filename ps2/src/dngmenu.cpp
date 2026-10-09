@@ -28,7 +28,6 @@
 #include "sysmes.hpp"
 #include "userdata.hpp"
 
-
 /**
  *
  * Draws the selected room's floor information and completion medals.
@@ -43,119 +42,270 @@ static void DrawDngRoomInfo(DNGMAP_ROOM_INFO *room);
  */
 void DrawGeoramaMateria(int top_y, char *title, int unused_count, int *items, int tex_block);
 
-
-/** Selected floor-save flag in the map debug panel. */
+/**
+ *
+ * Selected floor-save flag in the map debug panel.
+ *
+ */
 static int MenuDngDebugFlagSelect;
 
-/** Floor map attached to the active dungeon menu. */
+/**
+ *
+ * Floor map attached to the active dungeon menu.
+ *
+ */
 static CDngFreeMap *MenuDngMap;
 
-/** Enables the selected floor information. */
+/**
+ *
+ * Enables the selected floor information.
+ *
+ */
 static u8 dngfloor_infoview;
 
-/** Enables the floor-information backdrop. */
+/**
+ *
+ * Enables the floor-information backdrop.
+ *
+ */
 static u8 dngfloor_backdraw;
 
-/** Opacity of the floor-information backdrop. */
+/**
+ *
+ * Opacity of the floor-information backdrop.
+ *
+ */
 static int dngfloor_backdraw_alpha;
 
-/** Texture used by the floor-information frame. */
+/**
+ *
+ * Texture used by the floor-information frame.
+ *
+ */
 static mgCTexture *Floor_InfoTex;
 
-/** Indicates that fishing tests are unlocked. */
+/**
+ *
+ * Indicates that fishing tests are unlocked.
+ *
+ */
 static u8 DngInfoFishOkFlag;
 
-/** Indicates that spheda tests are unlocked. */
+/**
+ *
+ * Indicates that spheda tests are unlocked.
+ *
+ */
 static u8 DngInfoSphidaOkFlag;
 
-/** Controls the floor travel confirmation message. */
+/**
+ *
+ * Controls the floor travel confirmation message.
+ *
+ */
 static s8 DngAskMessageDrawFlag;
 
-/** Save record of the floor shown by the information panel. */
+/**
+ *
+ * Save record of the floor shown by the information panel.
+ *
+ */
 static DNG_FLOOR_SAVE *DngInfoFloorInfo;
 
-/** Room shown by the floor-information panel. */
+/**
+ *
+ * Room shown by the floor-information panel.
+ *
+ */
 static DNGMAP_ROOM_INFO *DngInfoRoomInfo;
 
-/** Opacity of the selected floor information. */
+/**
+ *
+ * Opacity of the selected floor information.
+ *
+ */
 static int DngInfoDrawAlpha;
 
-/** Position of the medal-count message. */
+/**
+ *
+ * Position of the medal-count message.
+ *
+ */
 static int DngInfoMedalMsgPutPos[2];
 
-/** Enables the georama material list. */
+/**
+ *
+ * Enables the georama material list.
+ *
+ */
 static u8 GeoramaMateriaInfoDrawFlag;
 
-/** Page displayed by the georama material list. */
+/**
+ *
+ * Page displayed by the georama material list.
+ *
+ */
 static s8 GeoramaMateriaInfoDrawPage;
 
-/** Number of georama materials collected for the floor. */
+/**
+ *
+ * Number of georama materials collected for the floor.
+ *
+ */
 static short GeoramaMateriaNum;
 
-/** Brightness of the active dungeon tree selection. */
+/**
+ *
+ * Brightness of the active dungeon tree selection.
+ *
+ */
 static float DngTreeMapActiveLightRate;
 
-/** Animation counter of the player marker. */
+/**
+ *
+ * Animation counter of the player marker.
+ *
+ */
 static int dng_player_blink_cnt;
 
-/** Selects the tree map or its save menu. */
+/**
+ *
+ * Selects the tree map or its save menu.
+ *
+ */
 static short DngTreeMode;
 
-/** Indicates that the tree map is open for saving. */
+/**
+ *
+ * Indicates that the tree map is open for saving.
+ *
+ */
 u8 TreeMapSaveFlag;
 
-/** Counts saves made through the tree map. */
+/**
+ *
+ * Counts saves made through the tree map.
+ *
+ */
 s16 TreeMapSaveNum;
 
-/** Animation timer of the tree-menu save prompt. */
+/**
+ *
+ * Animation timer of the tree-menu save prompt.
+ *
+ */
 static short TreeMapSaveDispCount;
 
-/** Phase of the tree-menu save prompt hop. */
+/**
+ *
+ * Phase of the tree-menu save prompt hop.
+ *
+ */
 static float TreeMapSaveHopCount;
 
-/** Vertical position of the tree-menu save prompt. */
+/**
+ *
+ * Vertical position of the tree-menu save prompt.
+ *
+ */
 static short TreeMapSaveDispY;
 
-/** Requests the dungeon submap through the tree menu. */
+/**
+ *
+ * Requests the dungeon submap through the tree menu.
+ *
+ */
 u8 TreeMapCallDungeonSubMap;
 
-/** Records that the world map opened the tree menu. */
+/**
+ *
+ * Records that the world map opened the tree menu.
+ *
+ */
 u8 TreeMapCalledWorldMap;
 
-/** Loaded image data for the tree-menu cursor. */
+/**
+ *
+ * Loaded image data for the tree-menu cursor.
+ *
+ */
 static u8 *MenuCursorDataBuff;
 
-/** Tree map menu attached to the active dungeon screen. */
+/**
+ *
+ * Tree map menu attached to the active dungeon screen.
+ *
+ */
 static CMenuTreeMap *CMenuTreePt;
 
-/** Message windows belonging to the active tree map. */
+/**
+ *
+ * Message windows belonging to the active tree map.
+ *
+ */
 static CDC2Mes *MenuDngMes[DNG_TREE_MAP_MES_MAX];
 
-/** Phase of the floor-seal opacity pulse. */
+/**
+ *
+ * Phase of the floor-seal opacity pulse.
+ *
+ */
 static float AlphaRate_1743;
 
-/** Indicates that the seal pulse phase has been initialized. */
+/**
+ *
+ * Indicates that the seal pulse phase has been initialized.
+ *
+ */
 static s8 init_1744;
 
-/** Previous tree-map navigation direction. */
+/**
+ *
+ * Previous tree-map navigation direction.
+ *
+ */
 static int old_direction_2830;
 
-/** Indicates that the previous navigation direction has been initialized. */
+/**
+ *
+ * Indicates that the previous navigation direction has been initialized.
+ *
+ */
 static s8 init_2831;
 
-/** Previously selected tree-map cell. */
+/**
+ *
+ * Previously selected tree-map cell.
+ *
+ */
 static GLID_INFO *old_glid_2833;
 
-/** Indicates that the previous selected cell has been initialized. */
+/**
+ *
+ * Indicates that the previous selected cell has been initialized.
+ *
+ */
 static s8 init_2834;
 
-/** Destination cell selected for floor travel. */
+/**
+ *
+ * Destination cell selected for floor travel.
+ *
+ */
 static GLID_INFO *NextFloorGlid_2836;
 
-/** Indicates that the destination cell has been initialized. */
+/**
+ *
+ * Indicates that the destination cell has been initialized.
+ *
+ */
 static s8 init_2837;
 
-/** Interpolation points and terminator for passage shape 0. */
+/**
+ *
+ * Interpolation points and terminator for passage shape 0.
+ *
+ */
 static short RootHokanTable0_2230[21][2] = {
     {14, -38},
     {13, -37},
@@ -180,7 +330,11 @@ static short RootHokanTable0_2230[21][2] = {
     {-1, -1}
 };
 
-/** Interpolation points and terminator for passage shape 1. */
+/**
+ *
+ * Interpolation points and terminator for passage shape 1.
+ *
+ */
 static short RootHokanTable1_2231[21][2] = {
     {-20, -28},
     {-17, -28},
@@ -205,7 +359,11 @@ static short RootHokanTable1_2231[21][2] = {
     {-1, -1}
 };
 
-/** Interpolation points and terminator for passage shape 2. */
+/**
+ *
+ * Interpolation points and terminator for passage shape 2.
+ *
+ */
 static short RootHokanTable2_2232[21][2] = {
     {-1, -1},
     {-1, -19},
@@ -230,7 +388,11 @@ static short RootHokanTable2_2232[21][2] = {
     {-1, -1}
 };
 
-/** Interpolation points and terminator for passage shape 3. */
+/**
+ *
+ * Interpolation points and terminator for passage shape 3.
+ *
+ */
 static short RootHokanTable3_2233[21][2] = {
     {-20, -28},
     {-17, -28},
@@ -255,7 +417,11 @@ static short RootHokanTable3_2233[21][2] = {
     {-1, -1}
 };
 
-/** Interpolation points and terminator for passage shape 4. */
+/**
+ *
+ * Interpolation points and terminator for passage shape 4.
+ *
+ */
 static short RootHokanTable4_2234[21][2] = {
     {14, -38},
     {13, -37},
@@ -280,7 +446,11 @@ static short RootHokanTable4_2234[21][2] = {
     {-1, -1}
 };
 
-/** Interpolation points and terminator for passage shape 5. */
+/**
+ *
+ * Interpolation points and terminator for passage shape 5.
+ *
+ */
 static short RootHokanTable5_2235[21][2] = {
     {-20, -28},
     {-17, -28},
@@ -305,7 +475,11 @@ static short RootHokanTable5_2235[21][2] = {
     {-1, -1}
 };
 
-/** Interpolation points and terminator for passage shape 6. */
+/**
+ *
+ * Interpolation points and terminator for passage shape 6.
+ *
+ */
 static short RootHokanTable6_2236[21][2] = {
     {32, -28},
     {30, -27},
@@ -330,7 +504,11 @@ static short RootHokanTable6_2236[21][2] = {
     {-1, -1}
 };
 
-/** Interpolation points and terminator for passage shape 7. */
+/**
+ *
+ * Interpolation points and terminator for passage shape 7.
+ *
+ */
 static short RootHokanTable7_2237[21][2] = {
     {-20, -28},
     {-19, -27},
@@ -355,7 +533,11 @@ static short RootHokanTable7_2237[21][2] = {
     {-1, -1}
 };
 
-/** Interpolation points and terminator for passage shape 8. */
+/**
+ *
+ * Interpolation points and terminator for passage shape 8.
+ *
+ */
 static short RootHokanTable8_2238[21][2] = {
     {14, -38},
     {14, -37},
@@ -380,7 +562,11 @@ static short RootHokanTable8_2238[21][2] = {
     {-1, -1}
 };
 
-/** Interpolation points and terminator for passage shape 9. */
+/**
+ *
+ * Interpolation points and terminator for passage shape 9.
+ *
+ */
 static short RootHokanTable9_2239[21][2] = {
     {14, -38},
     {12, -37},
@@ -405,7 +591,11 @@ static short RootHokanTable9_2239[21][2] = {
     {-1, -1}
 };
 
-/** Interpolation point lists for the passage shapes. */
+/**
+ *
+ * Interpolation point lists for the passage shapes.
+ *
+ */
 static short *RootHokanTablePtrTable_2240[11] = {
     RootHokanTable0_2230[0],
     RootHokanTable1_2231[0],
@@ -420,7 +610,11 @@ static short *RootHokanTablePtrTable_2240[11] = {
     NULL
 };
 
-/** Interpolation points and terminator for room connection 0. */
+/**
+ *
+ * Interpolation points and terminator for room connection 0.
+ *
+ */
 static short RoomHokanTable0_2241[11][2] = {
     {14, -38},
     {13, -37},
@@ -435,7 +629,11 @@ static short RoomHokanTable0_2241[11][2] = {
     {-1, -1}
 };
 
-/** Interpolation points and terminator for room connection 1. */
+/**
+ *
+ * Interpolation points and terminator for room connection 1.
+ *
+ */
 static short RoomHokanTable1_2242[11][2] = {
     {6, -28},
     {5, -27},
@@ -450,7 +648,11 @@ static short RoomHokanTable1_2242[11][2] = {
     {-1, -1}
 };
 
-/** Interpolation points and terminator for room connection 2. */
+/**
+ *
+ * Interpolation points and terminator for room connection 2.
+ *
+ */
 static short RoomHokanTable2_2243[11][2] = {
     {-20, -28},
     {-17, -28},
@@ -465,7 +667,11 @@ static short RoomHokanTable2_2243[11][2] = {
     {-1, -1}
 };
 
-/** Interpolation points and terminator for room connection 3. */
+/**
+ *
+ * Interpolation points and terminator for room connection 3.
+ *
+ */
 static short RoomHokanTable3_2244[11][2] = {
     {6, -28},
     {8, -28},
@@ -480,7 +686,11 @@ static short RoomHokanTable3_2244[11][2] = {
     {-1, -1}
 };
 
-/** Interpolation point lists for the four room connections. */
+/**
+ *
+ * Interpolation point lists for the four room connections.
+ *
+ */
 static short *RoomHokanTablePtrTable_2245[5] = {
     RoomHokanTable0_2241[0],
     RoomHokanTable1_2242[0],
@@ -500,7 +710,11 @@ enum DngRoutePointOrder {
     DNG_ROUTE_REVERSE = 1       /**< Reads the interpolation points from the last point. */
 };
 
-/** Point traversal order for each passage shape and connection direction. */
+/**
+ *
+ * Point traversal order for each passage shape and connection direction.
+ *
+ */
 static signed char is_reverse_tbl_2246[11][4] = {
     {DNG_ROUTE_REVERSE, DNG_ROUTE_FORWARD, DNG_ROUTE_UNAVAILABLE, DNG_ROUTE_UNAVAILABLE},
     {DNG_ROUTE_UNAVAILABLE, DNG_ROUTE_UNAVAILABLE, DNG_ROUTE_REVERSE, DNG_ROUTE_FORWARD},
@@ -515,17 +729,29 @@ static signed char is_reverse_tbl_2246[11][4] = {
     {DNG_ROUTE_UNAVAILABLE, DNG_ROUTE_REVERSE, DNG_ROUTE_UNAVAILABLE, DNG_ROUTE_FORWARD}
 };
 
-/** Room interpolation list selected by direction and entry side. */
+/**
+ *
+ * Room interpolation list selected by direction and entry side.
+ *
+ */
 static signed char old_hokantbl_useno_2247[8] = {
     0, 1, 2, 3, 1, 0, 3, 2
 };
 
-/** Traversal order of each room interpolation list. */
+/**
+ *
+ * Traversal order of each room interpolation list.
+ *
+ */
 static signed char is_reverse_tbl_room_2248[8] = {
     DNG_ROUTE_REVERSE, DNG_ROUTE_FORWARD, DNG_ROUTE_REVERSE, DNG_ROUTE_FORWARD, DNG_ROUTE_FORWARD, DNG_ROUTE_REVERSE, DNG_ROUTE_FORWARD, DNG_ROUTE_REVERSE
 };
 
-/** Texture X coordinates of the floor completion icons. */
+/**
+ *
+ * Texture X coordinates of the floor completion icons.
+ *
+ */
 static s16 medal_xytbl_1736[5] = { 168, 190, 212, 234, 146 };
 
 // Code (.text)
@@ -744,9 +970,17 @@ struct RootMarkOffset {
     s16 y; /**< Vertical position of the mark inside its grid cell. */
 };
 
-/** Destination rectangle used while drawing passage lines. */
+/**
+ *
+ * Destination rectangle used while drawing passage lines.
+ *
+ */
 extern mgRect<float> treemap_root_put;
-/** Offsets of the passage marks within each passage shape. */
+/**
+ *
+ * Offsets of the passage marks within each passage shape.
+ *
+ */
 static RootMarkOffset markOffsetTable_1092[10] = {
     {6, -2},
     {4, -2},
@@ -760,12 +994,20 @@ static RootMarkOffset markOffsetTable_1092[10] = {
     {4, -2}
 };
 
-/** Offset of the special passage mark in dungeon six. */
+/**
+ *
+ * Offset of the special passage mark in dungeon six.
+ *
+ */
 static RootMarkOffset zerumaito_offset_1110 = {
     13, -11
 };
 
-/** Texture coordinates of the passage-type marks. */
+/**
+ *
+ * Texture coordinates of the passage-type marks.
+ *
+ */
 static s16 root_type_texturecrd_1216[5][2] = {
     {0, 0},
     {490, 0},
@@ -773,7 +1015,6 @@ static s16 root_type_texturecrd_1216[5][2] = {
     {490, 44},
     {294, 18}
 };
-
 
 void CDngFreeMap::DrawRoot(mgRect<float> rect, DNGMAP_ROOT_INFO *root, int shadow, unsigned int marks, int opacity) {
     if (root == NULL || (float) mgScreenWidth < rect.left || rect.top > (float) (mgScreenHeight + 20)) {
@@ -986,12 +1227,20 @@ struct RoomGlyphOffset {
     s16 y; /**< Vertical glyph offset within the room picture. */
 };
 
-/** Texture rectangles of the visited-room labels. */
+/**
+ *
+ * Texture rectangles of the visited-room labels.
+ *
+ */
 static s16 get_moji_tbl_1524[16] = {
     0, 172, 62, 22, 0, 194, 62, 20, 0, 216, 62, 20, -1, 0, 0, 0
 };
 
-/** Destination offsets of the visited-room labels. */
+/**
+ *
+ * Destination offsets of the visited-room labels.
+ *
+ */
 static RoomGlyphOffset put_moji_tbl_1525[4] = {
     {20, -7},
     {20, -7},
@@ -999,11 +1248,14 @@ static RoomGlyphOffset put_moji_tbl_1525[4] = {
     {10, 10}
 };
 
-/** Room-mark animation speed in menu and event modes. */
+/**
+ *
+ * Room-mark animation speed in menu and event modes.
+ *
+ */
 static float stepCntTbl_1501[2] = {
     0.0628318563f, 0.125663713f
 };
-
 
 void CDngFreeMap::DrawRoomOne(mgRect<float> rect, DNGMAP_ROOM_INFO *room, unsigned int unused, int opacity, float brightness) {
     if (room == NULL || rect.left > (float) (mgScreenWidth + 20) || rect.top > (float) (mgScreenHeight + 30)) {
@@ -1438,16 +1690,23 @@ void DrawDngRoomInfo(DNGMAP_ROOM_INFO *room) {
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/dngmenu", DrawDngRoomInfo__FP16DNGMAP_ROOM_INFO);
 #endif
 extern mgRect<int>   Floor_Info;
-/** Texture rectangles of the upper and middle floor-information frame. */
+/**
+ *
+ * Texture rectangles of the upper and middle floor-information frame.
+ *
+ */
 static short dngboardbrdtbl[24] = {
     0, 0, 24, 70, 24, 0, 8, 70, 32, 0, 24, 70, 58, 2, 24, 4, 82, 2, 8, 4, 90, 2, 24, 4
 };
 
-/** Texture rectangles of the floor-information frame without a geostone row. */
+/**
+ *
+ * Texture rectangles of the floor-information frame without a geostone row.
+ *
+ */
 static short dngboardbrdtbl_2[12] = {
     58, 22, 24, 36, 82, 22, 8, 36, 90, 22, 24, 36
 };
-
 
 /**
  *
@@ -1522,7 +1781,11 @@ void DrawGeoramaMateria(int top_y, char *title, int unused_count, int *items, in
     font.SetPos(x, y);
     font.DrawDirect(font.str, font.pos_x, font.pos_y);
 }
-/** Source rectangle of the selected floor highlight. */
+/**
+ *
+ * Source rectangle of the selected floor highlight.
+ *
+ */
 extern const mgRect<int> dng_light_circle;
 
 void CDngFreeMap::DrawTreeMap(int opacity) {
@@ -1567,11 +1830,14 @@ void CDngFreeMap::DrawTreeMap(int opacity) {
         }
     }
 }
-/** Last player-marker position during event movement. */
+/**
+ *
+ * Last player-marker position during event movement.
+ *
+ */
 static float dng_player_pos[2] = {
     0.0f, 0.0f
 };
-
 
 void CDngFreeMap::DrawPlayer(int opacity) {
     if (user_glid == NULL || koma_tex == NULL) {
@@ -1646,7 +1912,11 @@ void CDngFreeMap::Step() {
     }
     mark_num = 0;
 }
-/** Names of the four passage types in the map debug display. */
+/**
+ *
+ * Names of the four passage types in the map debug display.
+ *
+ */
 static char *RootTable_2119[4] = {
     "Nrm,",
     "Sun,",
@@ -1654,7 +1924,11 @@ static char *RootTable_2119[4] = {
     "Star,"
 };
 
-/** Labels of the floor-save flags in the map debug display. */
+/**
+ *
+ * Labels of the floor-save flags in the map debug display.
+ *
+ */
 static char Table_2133[8][32] = {
     "  go enable :",
     "  Clear \x81\x40  :",
@@ -1666,7 +1940,11 @@ static char Table_2133[8][32] = {
     "  GeoStone:"
 };
 
-/** Save-flag masks corresponding to the floor debug labels. */
+/**
+ *
+ * Save-flag masks corresponding to the floor debug labels.
+ *
+ */
 static unsigned int bittable_2134[8] = {
     DNG_FLOOR_FLAG_OPEN,
     DNG_FLOOR_FLAG_UNK_2,
@@ -1677,7 +1955,6 @@ static unsigned int bittable_2134[8] = {
     DNG_FLOOR_FLAG_SPHEDA_CLEAR,
     DNG_FLOOR_FLAG_GEOSTONE_FOUND
 };
-
 
 /**
  *
@@ -2262,7 +2539,11 @@ int CheckDngTreeMapFuncType() {
     }
     return 0;
 }
-/** First-floor map names for the seven dungeons. */
+/**
+ *
+ * First-floor map names for the seven dungeons.
+ *
+ */
 static char *name_tbl_2728[7] = {
     "d01e01",
     "s02",
@@ -2272,7 +2553,6 @@ static char *name_tbl_2728[7] = {
     "d06e01",
     "m05"
 };
-
 
 void MakeDngTreeMapJumpNo(int dng_no, int floor_id, int *loop_no, int *map_no) {
     if (dng_no == 0 && floor_id == 8) {
@@ -2300,11 +2580,14 @@ void MakeDngTreeMapJumpNo(int dng_no, int floor_id, int *loop_no, int *map_no) {
         }
     }
 }
-/** Maximum floor number for each dungeon. */
+/**
+ *
+ * Maximum floor number for each dungeon.
+ *
+ */
 static s8 maxidtable_2752[7] = {
     8, 15, 24, 20, 22, 28, 38
 };
-
 
 void CMenuTreeMap::InitEnd() {
     BG_READ_INFO *read = GetReadBGFile(0);
@@ -3106,9 +3389,17 @@ int CMenuTreeMap::FadeInOutMenu() {
     }
     return done;
 }
-/** Arena used for tree-menu objects and files. */
+/**
+ *
+ * Arena used for tree-menu objects and files.
+ *
+ */
 extern mgCMemory     MenuTreeMapStack;
-/** Dungeon used by the floor-information panel. */
+/**
+ *
+ * Dungeon used by the floor-information panel.
+ *
+ */
 static u8 DngInfoStageNo = {
     1
 };
@@ -3123,7 +3414,6 @@ struct DngTreeReadNames {
 };
 
 STATIC_ASSERT(sizeof(DngTreeReadNames) == 8);
-
 
 /**
  *

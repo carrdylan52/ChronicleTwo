@@ -106,52 +106,88 @@ struct GradeRows {
 
 extern int                 menu_debug_flag;
 extern short               MenuItemCmdArgPos;
-/** Column and row counts of the inventory photo grid. */
+/**
+ *
+ * Column and row counts of the inventory photo grid.
+ *
+ */
 static int maxtbl_5171[2] = {
     15, 2
 };
 
-/** Visible column and row counts of the inventory photo grid. */
+/**
+ *
+ * Visible column and row counts of the inventory photo grid.
+ *
+ */
 static int viewnum_5172[2] = {
     3, 2
 };
 
-/** Inventory mode reached when leaving each photo menu. */
+/**
+ *
+ * Inventory mode reached when leaving each photo menu.
+ *
+ */
 static short nextmodetbl_5183[12] = {
     1, -1, -1, -1, INVENT_MODE_ALBUM_VIEW, -1, 7, -1, -1, -1, -1, INVENT_MODE_THINK
 };
 
-/** Icon prefixes used by the invention memo list. */
+/**
+ *
+ * Icon prefixes used by the invention memo list.
+ *
+ */
 static char *gaiji_table_4737[3] = {
     "[bulb2]",
     "[bulb3]",
     "[heart]"
 };
 
-/** Column and row counts of the photo album grid. */
+/**
+ *
+ * Column and row counts of the photo album grid.
+ *
+ */
 static int maxtbl_album_5223[2] = {
     25, 2
 };
 
-/** Visible column and row counts of the photo album grid. */
+/**
+ *
+ * Visible column and row counts of the photo album grid.
+ *
+ */
 static int viewnum_album_5224[2] = {
     5, 2
 };
 
-/** Grid overlay codes used while navigating the album. */
+/**
+ *
+ * Grid overlay codes used while navigating the album.
+ *
+ */
 static int overcode_album_5225[4] = {
     0, 0, 2, 0
 };
 
 extern short               menu_item_swap_sndtbl[];
-/** Colours used by the two invention success strips. */
+/**
+ *
+ * Colours used by the two invention success strips.
+ *
+ */
 static u8 invent_color_tbl[3][2][4] = {
     {{0, 0, 0, 0}, {0, 0, 255, 128}},
     {{240, 140, 80, 80}, {255, 255, 0, 128}},
     {{0, 0, 0, 0}, {128, 128, 128, 128}}
 };
 
-/** Form names for the two invention grade effect rows. */
+/**
+ *
+ * Form names for the two invention grade effect rows.
+ *
+ */
 static char *invent_grade_fff[2] = {
     "f0",
     "f1"
@@ -241,7 +277,6 @@ enum {
     K_COMMAND_QUIT = 110
 };
 
-
 /**
  *
  * Tracks whether each of three invention ideas was found.
@@ -280,11 +315,14 @@ struct InventCursorPos {
     int pos[4]; /**< Coordinates used by the inventory cursor. */
 } __attribute__((aligned(16)));
 
-/** Cursor frame type for each inventory menu mode. */
+/**
+ *
+ * Cursor frame type for each inventory menu mode.
+ *
+ */
 static s8 wakutype_3203[12] = {
     0, -1, -1, 0, 0, 0, 0, -1, 0, -1, -1, 0
 };
-
 
 /**
  *
@@ -351,7 +389,6 @@ struct ItemBoardKoma {
     int pos[10]; /**< Position for each board piece. */
 };
 
-
 /**
  *
  * Stores a point on the inventory screen.
@@ -361,7 +398,6 @@ struct ScreenPoint {
     int xy[2]; /**< Horizontal and vertical screen coordinates. */
 };
 
-
 /**
  *
  * Stores an inventory menu colour.
@@ -370,7 +406,6 @@ struct ScreenPoint {
 struct MenuColor {
     u8 rgba[4]; /**< Red, green, blue, and alpha channels. */
 };
-
 
 /**
  *
@@ -382,7 +417,6 @@ struct NetaEffectTarget {
     float y; /**< Vertical target coordinate. */
 };
 
-
 /**
  *
  * Stores the first visible row of two card lists.
@@ -393,7 +427,11 @@ struct CardListTops {
 };
 
 extern CardListTops at_5642;
-/** Localized label for an undiscovered invention card. */
+/**
+ *
+ * Localized label for an undiscovered invention card.
+ *
+ */
 static char *NewComer_5648[7] = {
     "     ",
     "New Invention",
@@ -404,7 +442,11 @@ static char *NewComer_5648[7] = {
     "New Invention"
 };
 
-/** Decimal widths used to display the invention count. */
+/**
+ *
+ * Decimal widths used to display the invention count.
+ *
+ */
 static int digit_tbl3_5641[8] = {
     3, 3, 3, 3, 3, 3, 3, 3
 };
@@ -423,8 +465,6 @@ extern char         at_5746[];
 struct NetaNameBlank {
     char text[2]; /**< Blank name marker. */
 };
-
-
 
 /**
  *
@@ -455,13 +495,16 @@ struct InventCommandList {
 int                       MenuInventDebugKey();
 void                      MenuInventDebugDraw();
 
-/** Icon prefixes used by invention idea names. */
+/**
+ *
+ * Icon prefixes used by invention idea names.
+ *
+ */
 static char *addstringtable_1722[3] = {
     "[bulb2]",
     "[bulb3]",
     "[heart]"
 };
-
 
 extern mgCMemory          InventTeigiStack;
 
@@ -492,115 +535,258 @@ enum {
     kSceneAttrFlags = 0x18000
 };
 
-
-/** Enables forced invention success in the debug menu. */
+/**
+ *
+ * Enables forced invention success in the debug menu.
+ *
+ */
 static short debug_invent_successflag;
 
-/** Invention records of the active user. */
+/**
+ *
+ * Invention records of the active user.
+ *
+ */
 static CInventUserData *InventUserDataPtr;
 
-/** Photo album used by the inventory menu. */
+/**
+ *
+ * Photo album used by the inventory menu.
+ *
+ */
 static CDC2AlbumData *InventAlbumPtr;
 
-/** Recipe manager used while inventing an item. */
+/**
+ *
+ * Recipe manager used while inventing an item.
+ *
+ */
 static CInventDataManage *InventManagePt;
 
-/** Memory-card manager used for photo album transfers. */
+/**
+ *
+ * Memory-card manager used for photo album transfers.
+ *
+ */
 static CMemoryCardManager *MCManagerPtr;
 
-/** Selects the ordering applied to the photo list. */
+/**
+ *
+ * Selects the ordering applied to the photo list.
+ *
+ */
 static signed char pict_seiton_case;
 
-/** Arena that stores the scoop name strings. */
+/**
+ *
+ * Arena that stores the scoop name strings.
+ *
+ */
 static mgCMemory *scoop_str_stack;
 
-/** Arena that stores photo name definitions. */
+/**
+ *
+ * Arena that stores photo name definitions.
+ *
+ */
 static mgCMemory *PicNameStack;
 
-/** First parsed photo name record. */
+/**
+ *
+ * First parsed photo name record.
+ *
+ */
 static PIC_NAME_INFO *pic_name_info_top;
 
-/** Number of parsed photo name records. */
+/**
+ *
+ * Number of parsed photo name records.
+ *
+ */
 static short pic_name_info_num;
 
-/** Photo name records counted while sizing the list. */
+/**
+ *
+ * Photo name records counted while sizing the list.
+ *
+ */
 static short pic_name_info_num_count;
 
-/** First recipe record populated by the invention script. */
+/**
+ *
+ * First recipe record populated by the invention script.
+ *
+ */
 static INVENT_DATA_INFO *inventSpiDataTblTop;
 
-/** Recipe index advanced by the invention script. */
+/**
+ *
+ * Recipe index advanced by the invention script.
+ *
+ */
 static short invent_num_counter;
 
-/** Number of discovered idea names in the notebook. */
+/**
+ *
+ * Number of discovered idea names in the notebook.
+ *
+ */
 static short NetaMemoStrNum;
 
-/** Texture used for the invention display. */
+/**
+ *
+ * Texture used for the invention display.
+ *
+ */
 static mgCTexture *Tex_Hatsumei;
 
-/** Background data-read handle of the inventory submenu. */
+/**
+ *
+ * Background data-read handle of the inventory submenu.
+ *
+ */
 static unsigned int InventSubDataReadBGInfo;
 
-/** Photo selected by the active inventory command. */
+/**
+ *
+ * Photo selected by the active inventory command.
+ *
+ */
 static USER_PICTURE_INFO *menu_invent_command_info_pict_info;
 
-/** Command list of the current inventory screen. */
+/**
+ *
+ * Command list of the current inventory screen.
+ *
+ */
 static InventCommandList *menu_invent_command_info_ptr;
 
-/** Photo moved between album spaces. */
+/**
+ *
+ * Photo moved between album spaces.
+ *
+ */
 static USER_PICTURE_INFO *menu_invent_command_info_move_album_Space_info;
 
-/** Destination position of a photo moved between album spaces. */
+/**
+ *
+ * Destination position of a photo moved between album spaces.
+ *
+ */
 static int menu_invent_command_info_move_album_Space_pos;
 
-/** Controls the effect for a newly added idea. */
+/**
+ *
+ * Controls the effect for a newly added idea.
+ *
+ */
 static u8 InventInNetaEffectFlag;
 
-/** Number of ideas displayed by the addition effect. */
+/**
+ *
+ * Number of ideas displayed by the addition effect.
+ *
+ */
 static signed char InventInNetaEffectNum;
 
-/** Counter used by the idea addition effect. */
+/**
+ *
+ * Counter used by the idea addition effect.
+ *
+ */
 static short InventInNetaEffectNum4;
 
-/** Particle effect used when adding an idea. */
+/**
+ *
+ * Particle effect used when adding an idea.
+ *
+ */
 static CStarDust *InventInNetaEffect;
 
-/** Memory-card slot selected for album operations. */
+/**
+ *
+ * Memory-card slot selected for album operations.
+ *
+ */
 static s8 ActiveSlot_3949;
 
-/** Indicates that the album memory-card slot has been initialized. */
+/**
+ *
+ * Indicates that the album memory-card slot has been initialized.
+ *
+ */
 static s8 init_3950;
 
-/** Active inventory menu. */
+/**
+ *
+ * Active inventory menu.
+ *
+ */
 static CMenuInvent *CMenuInventPt;
 
-/** Recipe manager owned by the inventory menu. */
+/**
+ *
+ * Recipe manager owned by the inventory menu.
+ *
+ */
 static CInventDataManage InventManageMan;
 
-/** Selected row of the inventory debug display. */
+/**
+ *
+ * Selected row of the inventory debug display.
+ *
+ */
 static short debug_invent_select;
 
-/** Work buffer for photo name definitions. */
+/**
+ *
+ * Work buffer for photo name definitions.
+ *
+ */
 static char pic_name_text_buff_1660[0x2480];
 
-/** Scratch string used while resolving a scoop name. */
+/**
+ *
+ * Scratch string used while resolving a scoop name.
+ *
+ */
 static char temp_1728[0x21];
 
-/** Names of discovered ideas displayed in the notebook. */
+/**
+ *
+ * Names of discovered ideas displayed in the notebook.
+ *
+ */
 static char *NetaMemoStr[512];
 
-/** Idea identifiers displayed in the notebook. */
+/**
+ *
+ * Idea identifiers displayed in the notebook.
+ *
+ */
 static short NetaMemoID[512];
 
-/** Horizontal offsets of the inventory record-board entries. */
+/**
+ *
+ * Horizontal offsets of the inventory record-board entries.
+ *
+ */
 static int rec_board_offset_xtbl[10];
 
-/** Confirmation mode selected by each photo command. */
+/**
+ *
+ * Confirmation mode selected by each photo command.
+ *
+ */
 static s8 convtbl_3726[7] = {
     INVENT_ASK_ZOOM, INVENT_ASK_DELETE, INVENT_ASK_TO_ALBUM, INVENT_ASK_FROM_ALBUM, INVENT_ASK_DELETE_UNUSED, INVENT_ASK_SET_BOARD, INVENT_ASK_DELETE_ALL
 };
 
-/** Defines each scoop and the event flag that reveals it. */
+/**
+ *
+ * Defines each scoop and the event flag that reveals it.
+ *
+ */
 static SCOOP_DATA scoop_table[53] = {
     {1000, 300, 1},
     {1001, 300, 2},
@@ -657,7 +843,11 @@ static SCOOP_DATA scoop_table[53] = {
     {1015, 209, 55},
 };
 
-/** Lists the commands available for each inventory layout. */
+/**
+ *
+ * Lists the commands available for each inventory layout.
+ *
+ */
 static InventCommandList modecmdtbl_3636[12] = {
     {1, 5, {INVENT_CMD_SET_BOARD, INVENT_CMD_ZOOM, INVENT_CMD_DELETE, INVENT_CMD_DELETE_UNUSED, INVENT_CMD_DELETE_ALL}},
     {0, 5, {INVENT_CMD_ZOOM, INVENT_CMD_DELETE, INVENT_CMD_FROM_ALBUM, INVENT_CMD_DELETE_UNUSED, INVENT_CMD_DELETE_ALL}},
@@ -669,7 +859,11 @@ static InventCommandList modecmdtbl_3636[12] = {
     {0, 5, {INVENT_CMD_ZOOM, INVENT_CMD_DELETE, INVENT_CMD_FROM_ALBUM, INVENT_CMD_DELETE_UNUSED, INVENT_CMD_DELETE_ALL}},
 };
 
-/** Byte lengths of the proposed Japanese invention name endings. */
+/**
+ *
+ * Byte lengths of the proposed Japanese invention name endings.
+ *
+ */
 static u8 jp_conv_lentbl_2835[12] = {
     2, 2, 2, 4, 4, 8, 6, 4, 6, 14, 10, 6
 };
@@ -1363,7 +1557,11 @@ int _SCOOP_STR(SPI_STACK *stack, int unused) {
     return 1;
 }
 
-/** Script handlers used to load scoop descriptions. */
+/**
+ *
+ * Script handlers used to load scoop descriptions.
+ *
+ */
 static SPI_TAG_PARAM menu_scoop_str_tag[2] = {
     {"STR", _SCOOP_STR},
     {NULL, NULL}
@@ -1541,7 +1739,11 @@ int _PIC_NAME(SPI_STACK *stack, int unused) {
     return 1;
 }
 
-/** Script handlers used to load photo subject names. */
+/**
+ *
+ * Script handlers used to load photo subject names.
+ *
+ */
 static SPI_TAG_PARAM pic_tag[3] = {
     {"PIC_INFO", _PIC_INFO},
     {"PIC_NAME", _PIC_NAME},
@@ -1890,7 +2092,11 @@ int _INVENT_DATASET(SPI_STACK *stack, int argument_count) {
     return 1;
 }
 
-/** Script handlers used to load invention recipes. */
+/**
+ *
+ * Script handlers used to load invention recipes.
+ *
+ */
 static SPI_TAG_PARAM invent_teigi_func[3] = {
     {"DATATABLESET", _INVENT_DATATABLESET},
     {"DATASET", _INVENT_DATASET},
@@ -2987,7 +3193,11 @@ extern char        at_3132[];
 extern char        at_3133[];
 extern char        at_3134[];
 extern char        at_3135[];
-/** Prefix used for an automatically proposed invention name. */
+/**
+ *
+ * Prefix used for an automatically proposed invention name.
+ *
+ */
 static char *Tb_2819[7] = {
     "\x82\xa4\x81\x5b\x82\xf1",
     "Ummm",
@@ -2998,40 +3208,63 @@ static char *Tb_2819[7] = {
     "Ummm"
 };
 
-/** Question endings appended to a proposed Japanese invention name. */
+/**
+ *
+ * Question endings appended to a proposed Japanese invention name.
+ *
+ */
 static char *gobitbl_2847[2] = {
     "\x82\xa9\x82\xe0\x81\x48",
     "\x82\xa9\x82\xc8\x81\x48"
 };
 
-/** Item model assets selected for invention outcomes. */
+/**
+ *
+ * Item model assets selected for invention outcomes.
+ *
+ */
 static char *getfilename_2928[2] = {
     "inv_ng.mds",
     "inv_ok.mds"
 };
 
-/** Sound banks selected for invention outcomes. */
+/**
+ *
+ * Sound banks selected for invention outcomes.
+ *
+ */
 static char *sndfileName_2951[2] = {
     "snd2/sp/SP_008.snd",
     "snd2/sp/SP_009.snd"
 };
 
-/** Wave names used during the invention sound sequence. */
+/**
+ *
+ * Wave names used during the invention sound sequence.
+ *
+ */
 static char *wavname_2960[3] = {
     "200",
     "190",
     "180"
 };
 
-/** Sound-bank time limits of the two invention stages. */
+/**
+ *
+ * Sound-bank time limits of the two invention stages.
+ *
+ */
 static short sndtimetbl_2868[2] = {
     210, 280
 };
 
 extern signed char D_003532DF[];
-/** Lighting colour used for the invented item model. */
+/**
+ *
+ * Lighting colour used for the invented item model.
+ *
+ */
 static float eff_light_2927[4] = {255.0f, 255.0f, 255.0f, 128.0f};
-
 
 #pragma inline_depth(5)
 #ifdef NONMATCHING
@@ -3849,7 +4082,6 @@ int CMenuInvent::IsMakeObject(int keys, int button) {
 
     return 1;
 }
-
 
 void CMenuInvent::CalcTex() {
     if (bg_form != NULL) {
@@ -5872,7 +6104,11 @@ void MenuInventNetaMemoDraw(float *origin, int &loaded_tex) {
     }
 }
 
-/** Background allocation selections for the inventory character assets. */
+/**
+ *
+ * Background allocation selections for the inventory character assets.
+ *
+ */
 static int tbl_4782[7] = {
     1, 1, 0, 0, 1, 1, 0
 };
