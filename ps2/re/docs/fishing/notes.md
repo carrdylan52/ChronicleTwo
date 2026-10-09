@@ -13,11 +13,13 @@ Header: `ps2/include/fishing.hpp`. No first-game counterpart: Dark Cloud's `fish
   sgLoopFishing, sgLoopFishing2, sgDrawFishing, sgSystemDrawFishing, ResetUkiCamera,
   GetAppearFish, FISH_PLACE_MAP::SetFishPlace, FISH_PLACE_MAP::CheckFishPlace, LoadFishPlaceData.
   All sg* return int (subgame's sgInitSubGame/sgDrawSubGameSystem use the results).
-- Every other function is LOCAL in retail (`static` in the .cpp), including SetNextMode,
+- Every other function is LOCAL in retail (intended C++ linkage: `static`), including SetNextMode,
   GetRandamNumber, GetFishParam, the fp* script tag handlers and `CharaControl` (retail symbol
   `CharaControl__FP6CSceneP11CPadControl__2`; another unit has a global of the same name).
   `FishLoadBG__FP9FISH_DATAP1` and `LoadExMotionBG__FP11SubGameInfoP1` are truncated retail
   names (last parameter type unknown from the symbol).
+  `StepDataLoading` retains an inherited non-static C++ declaration and GLOBAL
+  native/assembled binding; its accepted caller note labels the retail binding.
 - Data: only `stack_size` (int, 0x4, set to 0x40000 in CreateLoadThread) is global. Every named
   datum in .data/.sbss/.bss is local.
 
