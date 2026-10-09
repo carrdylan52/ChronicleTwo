@@ -33,13 +33,18 @@ struct BG_READ_INFO;
  *
  */
 enum INVENT_MENU_MODE {
-    INVENT_MODE_THINK      = 0, /**< Idea board, on which three ideas are combined into an invention. */
-    INVENT_MODE_THINK_ALBUM_BUTTON = 1, /**< Album-access button beside the idea board. */
-    INVENT_MODE_CARD_LIST  = 2, /**< List of the invention cards made so far. */
-    INVENT_MODE_ITEM_LIST  = 3, /**< List of the items the player carries. */
-    INVENT_MODE_ALBUM_VIEW = 5, /**< Album of photos kept on the memory card. */
-    INVENT_MODE_PHOTO_VIEW = 6, /**< Photos carried by the player. */
-    INVENT_MODE_PHOTO_ALBUM_BUTTON = 7 /**< Album-access button beside the photo-only board. */
+    INVENT_MODE_THINK              = 0,  /**< Idea board, on which three ideas are combined into an invention. */
+    INVENT_MODE_THINK_ALBUM_BUTTON = 1,  /**< Album-access button beside the idea board. */
+    INVENT_MODE_CARD_LIST          = 2,  /**< List of the invention cards made so far. */
+    INVENT_MODE_ITEM_LIST          = 3,  /**< List of the items the player carries. */
+    INVENT_MODE_THINK_WITH_ALBUM   = 4,  /**< Idea board while the album is open beside it. */
+    INVENT_MODE_ALBUM_VIEW         = 5,  /**< Album of photos kept on the memory card. */
+    INVENT_MODE_PHOTO_VIEW         = 6,  /**< Photos carried by the player. */
+    INVENT_MODE_PHOTO_ALBUM_BUTTON = 7,  /**< Album-access button beside the photo-only board. */
+    INVENT_MODE_MEMO_BUTTON        = 8,  /**< Closed idea notebook above the idea board. */
+    INVENT_MODE_MEMO_LIST          = 9,  /**< Idea words listed in the opened idea notebook. */
+    INVENT_MODE_MEMO_ARROW         = 10, /**< Arrow between the idea board and the idea notebook. */
+    INVENT_MODE_MEMO_CORK          = 11  /**< Cork tab above the opened idea notebook's word list. */
 };
 
 /**
@@ -48,8 +53,8 @@ enum INVENT_MENU_MODE {
  *
  */
 enum INVENT_MENU_ASK_MODE {
-    MENU_ASK_MODE_PHOTO_NETA = 13, /**< Adds a selected photo to the idea board. */
-    MENU_ASK_MODE_ALBUM_ACCESS = 14 /**< Runs the memory-card album access flow. */
+    MENU_ASK_MODE_PHOTO_NETA   = 13, /**< Adds a selected photo to the idea board. */
+    MENU_ASK_MODE_ALBUM_ACCESS = 14  /**< Runs the memory-card album access flow. */
 };
 
 /**

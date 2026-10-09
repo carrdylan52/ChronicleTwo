@@ -339,3 +339,30 @@ local-data, index-width, initialization-order and compiler-control probes.
 That near-miss wave retained 8/524 for MenuInventKey and 13/48 for
 ResetAddress without a promotion. MenuInventKey is now native; the
 ResetAddress remainder remains current.
+
+## Layout modes held in key_arg_no
+
+`INVENT_MENU_MODE` names all twelve layouts; `wakutype_3203`, `modecmdtbl_3636`
+and `nextmodetbl_5183` have one row each. The values without an earlier name:
+
+- 4 `INVENT_MODE_THINK_WITH_ALBUM`: the idea board while the album is open. The
+  board's down move from the arrow returns here instead of 0 when `unk_112` is 1;
+  its right edge leads to the album (`nextmodetbl_5183[4]` = 5) and the album's
+  left edge back to 4; MenuInventKey places the photo name with the album's
+  `msgpos` as for 5; its command row offers `INVENT_CMD_TO_ALBUM`.
+- 8 `INVENT_MODE_MEMO_BUTTON`: cursor on the closed idea notebook
+  (`neta_board_form` part ネタ帳位置); closing the notebook selects it and down
+  leads to 10.
+- 9 `INVENT_MODE_MEMO_LIST`: the notebook's word list (`memo_cursor`,
+  `GetNetaMemoCursorPosition`); moving above the first word leads to 11, and
+  `K_COMMAND_SET_CIRCLE` takes the circled idea from the notebook here.
+- 10 `INVENT_MODE_MEMO_ARROW`: the arrow between board and notebook
+  (ネタ帳矢印), reached by moving up from the board's top row; up leads to 8,
+  down back to the board.
+- 11 `INVENT_MODE_MEMO_CORK`: the opened notebook's cork tab (`neta_memo_form`
+  part コルク); opening the notebook selects it and down leads to 9.
+
+Every matched function uses these enumerators in its `key_arg_no` switches,
+comparisons and `NextDifferentMode`/`PrepareNextMode` targets; the object
+is unchanged (`.private/fixes-r3c/b3-*.log`). The guarded drafts keep their
+numbers.
