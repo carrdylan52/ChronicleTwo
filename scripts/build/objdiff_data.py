@@ -301,21 +301,7 @@ def prepare_native_data(elf, unit, ctx, *, donors=()):
     function_names = [(symbol, symbol.name) for symbol in elf.symtab.symbols
                       if 0 < symbol.st_shndx < len(elf.sections)
                       and elf.sections[symbol.st_shndx].sh_flags & p.SHF_EXECINSTR]
-    anonymous = []
-    for symbol in elf.symtab.symbols:
-        if symbol.type == p.STT_SECTION or symbol.name.startswith('.'):
-            continue
-        symbol.name = p.project_name(symbol.name)
-        symbol.st_name = elf.strtab.add_symbol(symbol.name)
-        if (symbol.type == p.STT_OBJECT and re.fullmatch(r'at_\d+', symbol.name)
-                and 0 < symbol.st_shndx < len(elf.sections)):
-            anonymous.append(symbol)
-    # A compiler's anonymous number has no relation to retail's. Use names
-    # outside the retail name set until the existing byte/reference matcher
-    # establishes identity, including when the original spellings coincide.
-    for index, symbol in enumerate(anonymous):
-        symbol.name = f'at_{(1 << 64) + index}'
-        symbol.st_name = elf.strtab.add_symbol(symbol.name)
+    anonymous = p.project_native_names(elf)
     p.name_literal_data(elf, unit, set(), retail=ctx.retail, pieces=ctx.literal_pieces,
                         addresses=ctx.addresses, rows=ctx.rows, padding_pieces=ctx.pieces)
     native_vtables.import_vtables(elf, unit, donors, retail=ctx.retail, pieces=ctx.pieces,

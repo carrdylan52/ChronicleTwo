@@ -122,6 +122,30 @@ def project_name(name):
     return "at_" + name[1:] if name.startswith("@") else name
 
 
+def project_native_names(elf):
+    """Keep raw compiler counters separate from explicit source identities."""
+    occupied = set(retail_addresses())
+    occupied.update(project_name(symbol.name) for symbol in elf.symtab.symbols)
+    anonymous = []
+    number = 1 << 64
+    for symbol in elf.symtab.symbols:
+        if symbol.type == STT_SECTION or symbol.name.startswith('.'):
+            continue
+        generated = (symbol.bind == STB_LOCAL and symbol.type == STT_OBJECT
+                     and re.fullmatch(r'@\d+', symbol.name) is not None
+                     and 0 < symbol.st_shndx < len(elf.sections))
+        symbol.name = project_name(symbol.name)
+        symbol.st_name = elf.strtab.add_symbol(symbol.name)
+        if generated:
+            while f'at_{number}' in occupied:
+                number += 1
+            symbol.name = f'at_{number}'
+            occupied.add(symbol.name)
+            number += 1
+            anonymous.append(symbol)
+    return anonymous
+
+
 def rename_dng_main_local_static(elf, unit):
     """Use retail names for InitDungeonMain's C++ local static and its guard."""
     if unit != 'dng_main':
@@ -1633,10 +1657,7 @@ def main():
         args.object.write_bytes(elf.pack())
         return 0
     placeholder_sections = drop_placeholder_aliases(elf)
-    for symbol in elf.symtab.symbols:
-        if symbol.type != STT_SECTION and not symbol.name.startswith('.'):
-            symbol.name = project_name(symbol.name)
-            symbol.st_name = elf.strtab.add_symbol(symbol.name)
+    anonymous = project_native_names(elf)
     name = args.object.name
     unit = None
     if name.endswith(".cpp.o"):
@@ -1673,6 +1694,11 @@ def main():
     fold_duplicates(elf)
     discard_unused_literals(elf)
     discard_dead_code_records(elf)
+    # Temporary identities do not leave unused strings in discarded records.
+    for symbol in anonymous:
+        if (symbol in elf.symtab.symbols and 0 < symbol.st_shndx < len(elf.sections)
+                and elf.sections[symbol.st_shndx].name != DEAD):
+            symbol.st_name = elf.strtab.add_symbol(symbol.name)
     addresses = retail_addresses()
     renamed = retail_sections(elf, addresses, unit)
 
