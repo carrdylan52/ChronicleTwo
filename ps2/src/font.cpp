@@ -274,7 +274,7 @@ void CFont::SetStr(char *text) {
     memset(this->str, 0, 0x80);
 
     if (strlen(text) >= 0x80U) {
-        printf("ERR:\225\266\216\232\220\224\202\252\221\275\202\267\202\254\202\334\202\267\201B\n");
+        printf("ERR:\x95\xB6\x8E\x9A\x90\x94\x82\xAA\x91\xBD\x82\xB7\x82\xAC\x82\xDC\x82\xB7\x81" "B\n");
         return;
     }
 
@@ -527,43 +527,43 @@ int GetHalfFontNo(char c) {
 }
 
 int CFont::GetDigitNo(int font_no) {
-    if (font_no == GetFontNo("\202P")) {
+    if (font_no == GetFontNo("\x82P")) {
         return 1;
     }
 
-    if (font_no == GetFontNo("\202Q")) {
+    if (font_no == GetFontNo("\x82Q")) {
         return 2;
     }
 
-    if (font_no == GetFontNo("\202R")) {
+    if (font_no == GetFontNo("\x82R")) {
         return 3;
     }
 
-    if (font_no == GetFontNo("\202S")) {
+    if (font_no == GetFontNo("\x82S")) {
         return 4;
     }
 
-    if (font_no == GetFontNo("\202T")) {
+    if (font_no == GetFontNo("\x82T")) {
         return 5;
     }
 
-    if (font_no == GetFontNo("\202U")) {
+    if (font_no == GetFontNo("\x82U")) {
         return 6;
     }
 
-    if (font_no == GetFontNo("\202V")) {
+    if (font_no == GetFontNo("\x82V")) {
         return 7;
     }
 
-    if (font_no == GetFontNo("\202W")) {
+    if (font_no == GetFontNo("\x82W")) {
         return 8;
     }
 
-    if (font_no == GetFontNo("\202X")) {
+    if (font_no == GetFontNo("\x82X")) {
         return 9;
     }
 
-    if (font_no == GetFontNo("\202O")) {
+    if (font_no == GetFontNo("\x82O")) {
         return 0;
     }
 
@@ -1124,30 +1124,30 @@ FCONV_CODE FconvCodeTbl[FCONV_CODE_NUM] = {
  * Converts encoded font tags to language-specific glyph codes.
  */
 FCONV_CODE FontGaijiConvTbl[FONT_GAIJI_CONV_NUM] = {
-    {"\201\233", 2, 0xFDE0},
-    {"\201\234", 2, 0xFDE1},
-    {"\201\252", 2, 0xFDE2},
-    {"\201\253", 2, 0xFDE3},
-    {"\201\251", 2, 0xFDE4},
-    {"\201\250", 2, 0xFDE5},
-    {"\202O", 2, 0xFDE6},
-    {"\202P", 2, 0xFDE7},
-    {"\202Q", 2, 0xFDE8},
-    {"\202R", 2, 0xFDE9},
-    {"\202S", 2, 0xFDEA},
-    {"\202T", 2, 0xFDEB},
-    {"\202U", 2, 0xFDEC},
-    {"\202V", 2, 0xFDED},
-    {"\202W", 2, 0xFDEE},
-    {"\202X", 2, 0xFDEF},
-    {"\201F", 2, 0xFDF0},
-    {"\201{", 2, 0xFDF1},
-    {"\201|", 2, 0xFDF2},
-    {"\201E", 2, 0xFDF3},
-    {"\201g", 2, 0xFDF4},
-    {"\201h", 2, 0xFDF5},
-    {"\201e", 2, 0xFDF6},
-    {"\201f", 2, 0xFDF7},
+    {"\x81\x9B", 2, 0xFDE0},
+    {"\x81\x9C", 2, 0xFDE1},
+    {"\x81\xAA", 2, 0xFDE2},
+    {"\x81\xAB", 2, 0xFDE3},
+    {"\x81\xA9", 2, 0xFDE4},
+    {"\x81\xA8", 2, 0xFDE5},
+    {"\x82O", 2, 0xFDE6},
+    {"\x82P", 2, 0xFDE7},
+    {"\x82Q", 2, 0xFDE8},
+    {"\x82R", 2, 0xFDE9},
+    {"\x82S", 2, 0xFDEA},
+    {"\x82T", 2, 0xFDEB},
+    {"\x82U", 2, 0xFDEC},
+    {"\x82V", 2, 0xFDED},
+    {"\x82W", 2, 0xFDEE},
+    {"\x82X", 2, 0xFDEF},
+    {"\x81" "F", 2, 0xFDF0},
+    {"\x81{", 2, 0xFDF1},
+    {"\x81|", 2, 0xFDF2},
+    {"\x81" "E", 2, 0xFDF3},
+    {"\x81g", 2, 0xFDF4},
+    {"\x81h", 2, 0xFDF5},
+    {"\x81" "e", 2, 0xFDF6},
+    {"\x81" "f", 2, 0xFDF7},
 };
 /**
  * Gives the alphabetical tag payload for each half-width glyph.

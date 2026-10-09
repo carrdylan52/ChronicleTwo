@@ -2426,11 +2426,11 @@ void MenuInternSelectDraw(void) {
             strcat(text, "Boot Treemap\n");
         }
         if (bit_ctrl == 0) {
-            strcpy(text, "\211\275\202\340\213\326\216\176\012\202\263\202\352\202\304\202\242\202\334\202\271\202\361");
+            strcpy(text, "\x89\xBD\x82\xE0\x8B\xD6\x8E~\n\x82\xB3\x82\xEA\x82\xC4\x82\xA2\x82\xDC\x82\xB9\x82\xF1");
         }
         font.DrawDirect(text, 360, 60);
         DrawMenuFillBox(300.0f, 350.0f, 190.0f, 60.0f, 0x40, 0, 0, 0);
-        font.DrawDirect("\201\233\072\101\144\144\040\104\141\171\012\201\176\072\126\151\145\167\040\117\160\145\156\151\156\147\012\201\242\201\106\102\157\157\164\040\106\151\163\150\105\166\145\156\164", 300, 350);
+        font.DrawDirect("\x81\x9B:Add Day\n\x81~:View Opening\n\x81\xA2\x81" "FBoot FishEvent", 300, 350);
     }
 }
 

@@ -127,7 +127,7 @@ static NAMEREGI_KANJI_INDEX NameRegiSearchKanjiIndexTable[46] = {
  * Stores the Shift-JIS reading characters shown at the start of kanji groups.
  *
  */
-static s8 testchar[93] = "\202\240\202\242\202\244\202\246\202\250\202\251\202\253\202\255\202\257\202\261\202\263\202\265\202\267\202\271\202\273\202\275\202\277\202\302\202\304\202\306\202\310\202\311\202\312\202\313\202\314\202\315\202\320\202\323\202\326\202\331\202\334\202\335\202\336\202\337\202\340\202\342\202\344\202\346\202\347\202\350\202\351\202\352\202\353\202\355\202\360\202\361";
+static s8 testchar[93] = "\x82\xA0\x82\xA2\x82\xA4\x82\xA6\x82\xA8\x82\xA9\x82\xAB\x82\xAD\x82\xAF\x82\xB1\x82\xB3\x82\xB5\x82\xB7\x82\xB9\x82\xBB\x82\xBD\x82\xBF\x82\xC2\x82\xC4\x82\xC6\x82\xC8\x82\xC9\x82\xCA\x82\xCB\x82\xCC\x82\xCD\x82\xD0\x82\xD3\x82\xD6\x82\xD9\x82\xDC\x82\xDD\x82\xDE\x82\xDF\x82\xE0\x82\xE2\x82\xE4\x82\xE6\x82\xE7\x82\xE8\x82\xE9\x82\xEA\x82\xEB\x82\xED\x82\xF0\x82\xF1";
 /**
  *
  * Stores ASCII characters accepted by the name conversion table.
@@ -884,7 +884,7 @@ void AdjustWaku(CDC2Mes *message, RECT *frame) {
  * Stores the Shift-JIS counterparts of the ASCII name conversion characters.
  *
  */
-static s8 txt_table2[117] = "\202O\202P\202Q\202R\202S\202T\202U\202V\202W\202X\202\201\202\202\202\203\202\204\202\205\202\206\202\207\202\210\202\211\202\212\202\213\202\215\202\216\202\220\202\221\202\222\202\223\202\224\202\225\202\226\202\227\202\230\202\231\202\232\202`\202a\202b\202c\202d\202e\202f\202g\202i\202j\202k\202l\202m\202o\202p\202q\202r\202s\202t\202u\202v\202w\202x\202y";
+static s8 txt_table2[117] = "\x82O\x82P\x82Q\x82R\x82S\x82T\x82U\x82V\x82W\x82X\x82\x81\x82\x82\x82\x83\x82\x84\x82\x85\x82\x86\x82\x87\x82\x88\x82\x89\x82\x8A\x82\x8B\x82\x8D\x82\x8E\x82\x90\x82\x91\x82\x92\x82\x93\x82\x94\x82\x95\x82\x96\x82\x97\x82\x98\x82\x99\x82\x9A\x82`\x82" "a\x82" "b\x82" "c\x82" "d\x82" "e\x82" "f\x82g\x82i\x82j\x82k\x82l\x82m\x82o\x82p\x82q\x82r\x82s\x82t\x82u\x82v\x82w\x82x\x82y";
 
 /**
  *
@@ -1514,7 +1514,7 @@ struct NameCommandEvents {
  *
  */
 static char *Sfida_default_Name[7] = {
-    "\203\206\203\212\203X", "Max", "Max", "Max", "Max", "Max", "Max"
+    "\x83\x86\x83\x8A\x83X", "Max", "Max", "Max", "Max", "Max", "Max"
 };
 
 s32 CNameRegiMenu::KeyStep() {

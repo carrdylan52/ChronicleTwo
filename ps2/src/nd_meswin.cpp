@@ -1501,55 +1501,55 @@ void ClsMes::MakeMesWinTbl_value(int *x, int *y) {
                 font_no = GetHalfFontNo(text[i]);
             } else {
                 if (text[i] == '+') {
-                    font_no = GetFontNo("\201{");
+                    font_no = GetFontNo("\x81{");
                 }
 
                 if (text[i] == '-') {
-                    font_no = GetFontNo("\201|");
+                    font_no = GetFontNo("\x81|");
                 }
 
                 if (text[i] == '1') {
-                    font_no = GetFontNo("\202P");
+                    font_no = GetFontNo("\x82P");
                 }
 
                 if (text[i] == '2') {
-                    font_no = GetFontNo("\202Q");
+                    font_no = GetFontNo("\x82Q");
                 }
 
                 if (text[i] == '3') {
-                    font_no = GetFontNo("\202R");
+                    font_no = GetFontNo("\x82R");
                 }
 
                 if (text[i] == '4') {
-                    font_no = GetFontNo("\202S");
+                    font_no = GetFontNo("\x82S");
                 }
 
                 if (text[i] == '5') {
-                    font_no = GetFontNo("\202T");
+                    font_no = GetFontNo("\x82T");
                 }
 
                 if (text[i] == '6') {
-                    font_no = GetFontNo("\202U");
+                    font_no = GetFontNo("\x82U");
                 }
 
                 if (text[i] == '7') {
-                    font_no = GetFontNo("\202V");
+                    font_no = GetFontNo("\x82V");
                 }
 
                 if (text[i] == '8') {
-                    font_no = GetFontNo("\202W");
+                    font_no = GetFontNo("\x82W");
                 }
 
                 if (text[i] == '9') {
-                    font_no = GetFontNo("\202X");
+                    font_no = GetFontNo("\x82X");
                 }
 
                 if (text[i] == '0') {
-                    font_no = GetFontNo("\202O");
+                    font_no = GetFontNo("\x82O");
                 }
 
-                printf("0_fontno=%d\n", GetFontNo("\202O"));
-                printf("9_fontno=%d\n", GetFontNo("\202X"));
+                printf("0_fontno=%d\n", GetFontNo("\x82O"));
+                printf("9_fontno=%d\n", GetFontNo("\x82X"));
             }
 
             if (font_no >= 0) {
@@ -1591,51 +1591,51 @@ void ClsMes::MakeMesWinTbl_value(int value_no, int *x, int *y) {
                 font_no = GetHalfFontNo(text[i]);
             } else {
                 if (text[i] == '+') {
-                    font_no = GetFontNo("\201{");
+                    font_no = GetFontNo("\x81{");
                 }
 
                 if (text[i] == '-') {
-                    font_no = GetFontNo("\201|");
+                    font_no = GetFontNo("\x81|");
                 }
 
                 if (text[i] == '1') {
-                    font_no = GetFontNo("\202P");
+                    font_no = GetFontNo("\x82P");
                 }
 
                 if (text[i] == '2') {
-                    font_no = GetFontNo("\202Q");
+                    font_no = GetFontNo("\x82Q");
                 }
 
                 if (text[i] == '3') {
-                    font_no = GetFontNo("\202R");
+                    font_no = GetFontNo("\x82R");
                 }
 
                 if (text[i] == '4') {
-                    font_no = GetFontNo("\202S");
+                    font_no = GetFontNo("\x82S");
                 }
 
                 if (text[i] == '5') {
-                    font_no = GetFontNo("\202T");
+                    font_no = GetFontNo("\x82T");
                 }
 
                 if (text[i] == '6') {
-                    font_no = GetFontNo("\202U");
+                    font_no = GetFontNo("\x82U");
                 }
 
                 if (text[i] == '7') {
-                    font_no = GetFontNo("\202V");
+                    font_no = GetFontNo("\x82V");
                 }
 
                 if (text[i] == '8') {
-                    font_no = GetFontNo("\202W");
+                    font_no = GetFontNo("\x82W");
                 }
 
                 if (text[i] == '9') {
-                    font_no = GetFontNo("\202X");
+                    font_no = GetFontNo("\x82X");
                 }
 
                 if (text[i] == '0') {
-                    font_no = GetFontNo("\202O");
+                    font_no = GetFontNo("\x82O");
                 }
             }
 
@@ -1673,38 +1673,38 @@ void ClsMes::MakeMesWinTbl_str(char *str, int *x, int *y) {
             }
             continue;
         }
-        if (strncmp(&str[position], "[\220\224\222l", 5) == 0) {
+        if (strncmp(&str[position], "[\x90\x94\x92l", 5) == 0) {
             position += 5;
             tag_no = 0;
             suffix = &str[position];
-            if (strncmp(suffix, "\202P]", 3) == 0) {
+            if (strncmp(suffix, "\x82P]", 3) == 0) {
                 tag_no = 1;
             }
-            if (strncmp(suffix, "\202Q]", 3) == 0) {
+            if (strncmp(suffix, "\x82Q]", 3) == 0) {
                 tag_no = 2;
             }
-            if (strncmp(suffix, "\202R]", 3) == 0) {
+            if (strncmp(suffix, "\x82R]", 3) == 0) {
                 tag_no = 3;
             }
-            if (strncmp(suffix, "\202S]", 3) == 0) {
+            if (strncmp(suffix, "\x82S]", 3) == 0) {
                 tag_no = 4;
             }
-            if (strncmp(suffix, "\202T]", 3) == 0) {
+            if (strncmp(suffix, "\x82T]", 3) == 0) {
                 tag_no = 5;
             }
-            if (strncmp(suffix, "\202U]", 3) == 0) {
+            if (strncmp(suffix, "\x82U]", 3) == 0) {
                 tag_no = 6;
             }
-            if (strncmp(suffix, "\202V]", 3) == 0) {
+            if (strncmp(suffix, "\x82V]", 3) == 0) {
                 tag_no = 7;
             }
-            if (strncmp(suffix, "\202W]", 3) == 0) {
+            if (strncmp(suffix, "\x82W]", 3) == 0) {
                 tag_no = 8;
             }
-            if (strncmp(suffix, "\202X]", 3) == 0) {
+            if (strncmp(suffix, "\x82X]", 3) == 0) {
                 tag_no = 9;
             }
-            if (strncmp(suffix, "\202P\202O]", 5) == 0) {
+            if (strncmp(suffix, "\x82P\x82O]", 5) == 0) {
                 tag_no = 10;
             }
             if (tag_no != 0) {
@@ -1761,71 +1761,71 @@ void ClsMes::MakeMesWinTbl_str(char *str, int *x, int *y) {
                 continue;
             }
         }
-        if (strncmp(&str[position], "[\203A\203C\203e\203\200", 9) == 0) {
+        if (strncmp(&str[position], "[\x83" "A\x83" "C\x83" "e\x83\x80", 9) == 0) {
             position += 9;
             tag_no = 0;
             suffix = &str[position];
-            if (strncmp(suffix, "\202P]", 3) == 0) {
+            if (strncmp(suffix, "\x82P]", 3) == 0) {
                 tag_no = 1;
                 MakeMesWinTbl_item(MES_CODE_ITEM_FIRST, x, y);
             }
-            if (strncmp(suffix, "\202Q]", 3) == 0) {
+            if (strncmp(suffix, "\x82Q]", 3) == 0) {
                 tag_no = 2;
                 MakeMesWinTbl_item(0xFBFD, x, y);
             }
-            if (strncmp(suffix, "\202R]", 3) == 0) {
+            if (strncmp(suffix, "\x82R]", 3) == 0) {
                 tag_no = 3;
                 MakeMesWinTbl_item(0xFBFC, x, y);
             }
-            if (strncmp(suffix, "\202S]", 3) == 0) {
+            if (strncmp(suffix, "\x82S]", 3) == 0) {
                 tag_no = 4;
                 MakeMesWinTbl_item(0xFBFB, x, y);
             }
-            if (strncmp(suffix, "\202T]", 3) == 0) {
+            if (strncmp(suffix, "\x82T]", 3) == 0) {
                 tag_no = 5;
                 MakeMesWinTbl_item(0xFBF2, x, y);
             }
-            if (strncmp(suffix, "\202U]", 3) == 0) {
+            if (strncmp(suffix, "\x82U]", 3) == 0) {
                 tag_no = 6;
                 MakeMesWinTbl_item(0xFBF1, x, y);
             }
-            if (strncmp(suffix, "\202V]", 3) == 0) {
+            if (strncmp(suffix, "\x82V]", 3) == 0) {
                 tag_no = 7;
                 MakeMesWinTbl_item(0xFBF0, x, y);
             }
-            if (strncmp(suffix, "\202W]", 3) == 0) {
+            if (strncmp(suffix, "\x82W]", 3) == 0) {
                 tag_no = 8;
                 MakeMesWinTbl_item(0xFBEF, x, y);
             }
-            if (strncmp(suffix, "\202X]", 3) == 0) {
+            if (strncmp(suffix, "\x82X]", 3) == 0) {
                 tag_no = 9;
                 MakeMesWinTbl_item(0xFBEE, x, y);
             }
-            if (strncmp(suffix, "\202P\202O]", 5) == 0) {
+            if (strncmp(suffix, "\x82P\x82O]", 5) == 0) {
                 tag_no = 10;
                 MakeMesWinTbl_item(0xFBED, x, y);
             }
-            if (strncmp(suffix, "\202P\202P]", 5) == 0) {
+            if (strncmp(suffix, "\x82P\x82P]", 5) == 0) {
                 tag_no = 11;
                 MakeMesWinTbl_item(0xFBEC, x, y);
             }
-            if (strncmp(suffix, "\202P\202Q]", 5) == 0) {
+            if (strncmp(suffix, "\x82P\x82Q]", 5) == 0) {
                 tag_no = 12;
                 MakeMesWinTbl_item(0xFBEB, x, y);
             }
-            if (strncmp(suffix, "\202P\202R]", 5) == 0) {
+            if (strncmp(suffix, "\x82P\x82R]", 5) == 0) {
                 tag_no = 13;
                 MakeMesWinTbl_item(0xFBEA, x, y);
             }
-            if (strncmp(suffix, "\202P\202S]", 5) == 0) {
+            if (strncmp(suffix, "\x82P\x82S]", 5) == 0) {
                 tag_no = 14;
                 MakeMesWinTbl_item(0xFBE9, x, y);
             }
-            if (strncmp(suffix, "\202P\202T]", 5) == 0) {
+            if (strncmp(suffix, "\x82P\x82T]", 5) == 0) {
                 tag_no = 15;
                 MakeMesWinTbl_item(0xFBE8, x, y);
             }
-            if (strncmp(suffix, "\202P\202U]", 5) == 0) {
+            if (strncmp(suffix, "\x82P\x82U]", 5) == 0) {
                 tag_no = 16;
                 MakeMesWinTbl_item(MES_CODE_ITEM_LAST, x, y);
             }
@@ -1838,56 +1838,56 @@ void ClsMes::MakeMesWinTbl_str(char *str, int *x, int *y) {
                 continue;
             }
         }
-        if (strncmp(&str[position], "[\225\266\216\232\227\361", 7) == 0) {
+        if (strncmp(&str[position], "[\x95\xB6\x8E\x9A\x97\xF1", 7) == 0) {
             position += 7;
             tag_no = 0;
             suffix = &str[position];
-            if (strncmp(suffix, "\202P]", 3) == 0) {
+            if (strncmp(suffix, "\x82P]", 3) == 0) {
                 tag_no = 1;
             }
-            if (strncmp(suffix, "\202Q]", 3) == 0) {
+            if (strncmp(suffix, "\x82Q]", 3) == 0) {
                 tag_no = 2;
             }
-            if (strncmp(suffix, "\202R]", 3) == 0) {
+            if (strncmp(suffix, "\x82R]", 3) == 0) {
                 tag_no = 3;
             }
-            if (strncmp(suffix, "\202S]", 3) == 0) {
+            if (strncmp(suffix, "\x82S]", 3) == 0) {
                 tag_no = 4;
             }
-            if (strncmp(suffix, "\202T]", 3) == 0) {
+            if (strncmp(suffix, "\x82T]", 3) == 0) {
                 tag_no = 5;
             }
-            if (strncmp(suffix, "\202U]", 3) == 0) {
+            if (strncmp(suffix, "\x82U]", 3) == 0) {
                 tag_no = 6;
             }
-            if (strncmp(suffix, "\202V]", 3) == 0) {
+            if (strncmp(suffix, "\x82V]", 3) == 0) {
                 tag_no = 7;
             }
-            if (strncmp(suffix, "\202W]", 3) == 0) {
+            if (strncmp(suffix, "\x82W]", 3) == 0) {
                 tag_no = 8;
             }
-            if (strncmp(suffix, "\202X]", 3) == 0) {
+            if (strncmp(suffix, "\x82X]", 3) == 0) {
                 tag_no = 9;
             }
-            if (strncmp(suffix, "\202P\202O]", 5) == 0) {
+            if (strncmp(suffix, "\x82P\x82O]", 5) == 0) {
                 tag_no = 10;
             }
-            if (strncmp(suffix, "\202P\202P]", 5) == 0) {
+            if (strncmp(suffix, "\x82P\x82P]", 5) == 0) {
                 tag_no = 11;
             }
-            if (strncmp(suffix, "\202P\202Q]", 5) == 0) {
+            if (strncmp(suffix, "\x82P\x82Q]", 5) == 0) {
                 tag_no = 12;
             }
-            if (strncmp(suffix, "\202P\202R]", 5) == 0) {
+            if (strncmp(suffix, "\x82P\x82R]", 5) == 0) {
                 tag_no = 13;
             }
-            if (strncmp(suffix, "\202P\202S]", 5) == 0) {
+            if (strncmp(suffix, "\x82P\x82S]", 5) == 0) {
                 tag_no = 14;
             }
-            if (strncmp(suffix, "\202P\202T]", 5) == 0) {
+            if (strncmp(suffix, "\x82P\x82T]", 5) == 0) {
                 tag_no = 15;
             }
-            if (strncmp(suffix, "\202P\202U]", 5) == 0) {
+            if (strncmp(suffix, "\x82P\x82U]", 5) == 0) {
                 tag_no = 16;
             }
             if (tag_no != 0) {
@@ -1946,7 +1946,7 @@ void ClsMes::MakeMesWinTbl_str(char *str, int *x, int *y) {
         } else {
             font_no = GetFontNo(suffix);
             if (font_no == -1) {
-                font_no = GetFontNo("\201H");
+                font_no = GetFontNo("\x81H");
             }
             SetMesWinTbl(font_no, *x, *y);
             if (CheckKanjiFont(font_no) != 0) {
@@ -2088,7 +2088,7 @@ int ClsMes::MakeMesWinTbl_item(int ref_code, int *x, int *y) {
                         }
                     }
                 } else if (code >= 0xFAEA && code < 0xFAFA) {
-                    printf("\203L\203`\203\203\203_\203\201\201[\201[\201[\201[\201[\201[\201[\201[\201[\201[\201[\201[\201[\201[\201[\201[\201[\201[\201[\201[\201[\201[\201[\201[\201[\201[\201[\201[\201[\201[\201[\201[\201[\201[\201[\201[\201[\201[\201[\201[\201[\201[\n");
+                    printf("\x83L\x83`\x83\x83\x83_\x83\x81\x81[\x81[\x81[\x81[\x81[\x81[\x81[\x81[\x81[\x81[\x81[\x81[\x81[\x81[\x81[\x81[\x81[\x81[\x81[\x81[\x81[\x81[\x81[\x81[\x81[\x81[\x81[\x81[\x81[\x81[\x81[\x81[\x81[\x81[\x81[\x81[\x81[\x81[\x81[\x81[\x81[\x81[\n");
                 } else if (code >= 0xFFA0 && code < 0x10000) {
                     SetMesWinTbl(GetAlphabeticalFontNo_us(code) & 0xFFFF, *x, *y);
                     *x += fptosi((float) font_w * half_font_w_percent);
@@ -2838,39 +2838,39 @@ void ClsMes::NeedMesWinWH(char *text) {
                 continue;
             }
 
-            if (strncmp(message + position, "[\220\224\222l", 5) == 0) {
+            if (strncmp(message + position, "[\x90\x94\x92l", 5) == 0) {
                 position += 5;
                 tag_text = message + position;
                 index = -1;
 
-                if (strncmp(tag_text, "\202P]", 3) == 0) {
+                if (strncmp(tag_text, "\x82P]", 3) == 0) {
                     position += 3;
                     index = 0;
-                } else if (strncmp(tag_text, "\202Q]", 3) == 0) {
+                } else if (strncmp(tag_text, "\x82Q]", 3) == 0) {
                     position += 3;
                     index = 1;
-                } else if (strncmp(tag_text, "\202R]", 3) == 0) {
+                } else if (strncmp(tag_text, "\x82R]", 3) == 0) {
                     position += 3;
                     index = 2;
-                } else if (strncmp(tag_text, "\202S]", 3) == 0) {
+                } else if (strncmp(tag_text, "\x82S]", 3) == 0) {
                     position += 3;
                     index = 3;
-                } else if (strncmp(tag_text, "\202T]", 3) == 0) {
+                } else if (strncmp(tag_text, "\x82T]", 3) == 0) {
                     position += 3;
                     index = 4;
-                } else if (strncmp(tag_text, "\202U]", 3) == 0) {
+                } else if (strncmp(tag_text, "\x82U]", 3) == 0) {
                     position += 3;
                     index = 5;
-                } else if (strncmp(tag_text, "\202V]", 3) == 0) {
+                } else if (strncmp(tag_text, "\x82V]", 3) == 0) {
                     position += 3;
                     index = 6;
-                } else if (strncmp(tag_text, "\202W]", 3) == 0) {
+                } else if (strncmp(tag_text, "\x82W]", 3) == 0) {
                     position += 3;
                     index = 7;
-                } else if (strncmp(tag_text, "\202X]", 3) == 0) {
+                } else if (strncmp(tag_text, "\x82X]", 3) == 0) {
                     position += 3;
                     index = 8;
-                } else if (strncmp(tag_text, "\202P\202O]", 5) == 0) {
+                } else if (strncmp(tag_text, "\x82P\x82O]", 5) == 0) {
                     position += 5;
                     index = 9;
                 }
@@ -2954,57 +2954,57 @@ void ClsMes::NeedMesWinWH(char *text) {
                 }
             }
 
-            if (strncmp(message + position, "[\203A\203C\203e\203\200", 9) == 0) {
+            if (strncmp(message + position, "[\x83" "A\x83" "C\x83" "e\x83\x80", 9) == 0) {
                 position += 9;
                 tag_text = message + position;
                 code = -1;
 
-                if (strncmp(tag_text, "\202P]", 3) == 0) {
+                if (strncmp(tag_text, "\x82P]", 3) == 0) {
                     position += 3;
                     code = 0xfbfe;
-                } else if (strncmp(tag_text, "\202Q]", 3) == 0) {
+                } else if (strncmp(tag_text, "\x82Q]", 3) == 0) {
                     position += 3;
                     code = 0xfbfd;
-                } else if (strncmp(tag_text, "\202R]", 3) == 0) {
+                } else if (strncmp(tag_text, "\x82R]", 3) == 0) {
                     position += 3;
                     code = 0xfbfc;
-                } else if (strncmp(tag_text, "\202S]", 3) == 0) {
+                } else if (strncmp(tag_text, "\x82S]", 3) == 0) {
                     position += 3;
                     code = 0xfbfb;
-                } else if (strncmp(tag_text, "\202T]", 3) == 0) {
+                } else if (strncmp(tag_text, "\x82T]", 3) == 0) {
                     position += 3;
                     code = 0xfbf2;
-                } else if (strncmp(tag_text, "\202U]", 3) == 0) {
+                } else if (strncmp(tag_text, "\x82U]", 3) == 0) {
                     position += 3;
                     code = 0xfbf1;
-                } else if (strncmp(tag_text, "\202V]", 3) == 0) {
+                } else if (strncmp(tag_text, "\x82V]", 3) == 0) {
                     position += 3;
                     code = 0xfbf0;
-                } else if (strncmp(tag_text, "\202W]", 3) == 0) {
+                } else if (strncmp(tag_text, "\x82W]", 3) == 0) {
                     position += 3;
                     code = 0xfbef;
-                } else if (strncmp(tag_text, "\202X]", 3) == 0) {
+                } else if (strncmp(tag_text, "\x82X]", 3) == 0) {
                     position += 3;
                     code = 0xfbee;
-                } else if (strncmp(tag_text, "\202P\202O]", 5) == 0) {
+                } else if (strncmp(tag_text, "\x82P\x82O]", 5) == 0) {
                     position += 5;
                     code = 0xfbed;
-                } else if (strncmp(tag_text, "\202P\202P]", 5) == 0) {
+                } else if (strncmp(tag_text, "\x82P\x82P]", 5) == 0) {
                     position += 5;
                     code = 0xfbec;
-                } else if (strncmp(tag_text, "\202P\202Q]", 5) == 0) {
+                } else if (strncmp(tag_text, "\x82P\x82Q]", 5) == 0) {
                     position += 5;
                     code = 0xfbeb;
-                } else if (strncmp(tag_text, "\202P\202R]", 5) == 0) {
+                } else if (strncmp(tag_text, "\x82P\x82R]", 5) == 0) {
                     position += 5;
                     code = 0xfbea;
-                } else if (strncmp(tag_text, "\202P\202S]", 5) == 0) {
+                } else if (strncmp(tag_text, "\x82P\x82S]", 5) == 0) {
                     position += 5;
                     code = 0xfbe9;
-                } else if (strncmp(tag_text, "\202P\202T]", 5) == 0) {
+                } else if (strncmp(tag_text, "\x82P\x82T]", 5) == 0) {
                     position += 5;
                     code = 0xfbe8;
-                } else if (strncmp(tag_text, "\202P\202U]", 5) == 0) {
+                } else if (strncmp(tag_text, "\x82P\x82U]", 5) == 0) {
                     position += 5;
                     code = 0xfbe7;
                 }
@@ -3030,86 +3030,86 @@ void ClsMes::NeedMesWinWH(char *text) {
                 }
             }
 
-            if (strncmp(message + position, "[\225\266\216\232\227\361", 7) == 0) {
+            if (strncmp(message + position, "[\x95\xB6\x8E\x9A\x97\xF1", 7) == 0) {
                 position += 7;
                 index = 0;
 
-                if (strncmp(message + position, "\202P]", 3) == 0) {
+                if (strncmp(message + position, "\x82P]", 3) == 0) {
                     index = 1;
                     position += 3;
                 }
 
-                if (strncmp(message + position, "\202Q]", 3) == 0) {
+                if (strncmp(message + position, "\x82Q]", 3) == 0) {
                     index = 2;
                     position += 3;
                 }
 
-                if (strncmp(message + position, "\202R]", 3) == 0) {
+                if (strncmp(message + position, "\x82R]", 3) == 0) {
                     index = 3;
                     position += 3;
                 }
 
-                if (strncmp(message + position, "\202S]", 3) == 0) {
+                if (strncmp(message + position, "\x82S]", 3) == 0) {
                     index = 4;
                     position += 3;
                 }
 
-                if (strncmp(message + position, "\202T]", 3) == 0) {
+                if (strncmp(message + position, "\x82T]", 3) == 0) {
                     index = 5;
                     position += 3;
                 }
 
-                if (strncmp(message + position, "\202U]", 3) == 0) {
+                if (strncmp(message + position, "\x82U]", 3) == 0) {
                     index = 6;
                     position += 3;
                 }
 
-                if (strncmp(message + position, "\202V]", 3) == 0) {
+                if (strncmp(message + position, "\x82V]", 3) == 0) {
                     index = 7;
                     position += 3;
                 }
 
-                if (strncmp(message + position, "\202W]", 3) == 0) {
+                if (strncmp(message + position, "\x82W]", 3) == 0) {
                     index = 8;
                     position += 3;
                 }
 
-                if (strncmp(message + position, "\202X]", 3) == 0) {
+                if (strncmp(message + position, "\x82X]", 3) == 0) {
                     index = 9;
                     position += 3;
                 }
 
-                if (strncmp(message + position, "\202P\202O]", 5) == 0) {
+                if (strncmp(message + position, "\x82P\x82O]", 5) == 0) {
                     index = 10;
                     position += 5;
                 }
 
-                if (strncmp(message + position, "\202P\202P]", 5) == 0) {
+                if (strncmp(message + position, "\x82P\x82P]", 5) == 0) {
                     index = 11;
                     position += 5;
                 }
 
-                if (strncmp(message + position, "\202P\202Q]", 5) == 0) {
+                if (strncmp(message + position, "\x82P\x82Q]", 5) == 0) {
                     index = 12;
                     position += 5;
                 }
 
-                if (strncmp(message + position, "\202P\202R]", 5) == 0) {
+                if (strncmp(message + position, "\x82P\x82R]", 5) == 0) {
                     index = 13;
                     position += 5;
                 }
 
-                if (strncmp(message + position, "\202P\202S]", 5) == 0) {
+                if (strncmp(message + position, "\x82P\x82S]", 5) == 0) {
                     index = 14;
                     position += 5;
                 }
 
-                if (strncmp(message + position, "\202P\202T]", 5) == 0) {
+                if (strncmp(message + position, "\x82P\x82T]", 5) == 0) {
                     index = 15;
                     position += 5;
                 }
 
-                if (strncmp(message + position, "\202P\202U]", 5) == 0) {
+                if (strncmp(message + position, "\x82P\x82U]", 5) == 0) {
                     index = 16;
                     position += 5;
                 }

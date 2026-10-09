@@ -285,7 +285,7 @@ int niPROGRESS(SPI_STACK *stack, int argument_count) {
     niProgCon = 0;
     char *condition = spiGetStackString(stack);
 
-    if (condition != NULL && strcmp(condition, "\210\310\214\343") == 0) {
+    if (condition != NULL && strcmp(condition, "\x88\xC8\x8C\xE3") == 0) {
         niProgCon = 1;
     }
 

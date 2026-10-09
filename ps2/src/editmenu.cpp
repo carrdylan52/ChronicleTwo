@@ -1405,22 +1405,22 @@ int MenuGeoramaInit(mgCMemory *stack, int arg) {
         }
     }
 
-    MenuPosData->GetEtcTblValue("\202\302\202\255\202\352\202\351\202\340\202\314", GeoBoardListTitlePutOffset[0][0], GeoBoardListTitlePutOffset[0][1]);
-    MenuPosData->GetEtcTblValue("\214\232\202\304\202\352\202\351\202\340\202\314", GeoBoardListTitlePutOffset[1][0], GeoBoardListTitlePutOffset[1][1]);
-    MenuPosData->GetEtcTblValue("\203y\203C\203\223\203g\202\305\202\253\202\351\202\340\202\314", GeoBoardListTitlePutOffset[3][0], GeoBoardListTitlePutOffset[3][1]);
-    MenuPosData->GetEtcTblValue("\203y\203C\203\223\203g\202\314\220F", GeoBoardListTitlePutOffset[2][0], GeoBoardListTitlePutOffset[2][1]);
-    MenuPosData->GetEtcTblValue("\224z\222u\202\265\202\304\202\242\202\351\202\340\202\314", GeoBoardListTitlePutOffset[4][0], GeoBoardListTitlePutOffset[4][1]);
+    MenuPosData->GetEtcTblValue("\x82\xC2\x82\xAD\x82\xEA\x82\xE9\x82\xE0\x82\xCC", GeoBoardListTitlePutOffset[0][0], GeoBoardListTitlePutOffset[0][1]);
+    MenuPosData->GetEtcTblValue("\x8C\x9A\x82\xC4\x82\xEA\x82\xE9\x82\xE0\x82\xCC", GeoBoardListTitlePutOffset[1][0], GeoBoardListTitlePutOffset[1][1]);
+    MenuPosData->GetEtcTblValue("\x83y\x83" "C\x83\x93\x83g\x82\xC5\x82\xAB\x82\xE9\x82\xE0\x82\xCC", GeoBoardListTitlePutOffset[3][0], GeoBoardListTitlePutOffset[3][1]);
+    MenuPosData->GetEtcTblValue("\x83y\x83" "C\x83\x93\x83g\x82\xCC\x90" "F", GeoBoardListTitlePutOffset[2][0], GeoBoardListTitlePutOffset[2][1]);
+    MenuPosData->GetEtcTblValue("\x94z\x92u\x82\xB5\x82\xC4\x82\xA2\x82\xE9\x82\xE0\x82\xCC", GeoBoardListTitlePutOffset[4][0], GeoBoardListTitlePutOffset[4][1]);
 
     if (LanguageCode >= 2) {
-        MenuPosData->GetEtcTblValue("\203`\203F\203b\203N\203|\203C\203\223\203g", GeoRequestBoardCheckPoint_P[0], GeoRequestBoardCheckPoint_P[1]);
+        MenuPosData->GetEtcTblValue("\x83`\x83" "F\x83" "b\x83N\x83|\x83" "C\x83\x93\x83g", GeoRequestBoardCheckPoint_P[0], GeoRequestBoardCheckPoint_P[1]);
     }
 
-    MenuPosData->GetEtcTbl2Value("\202\302\202\255\202\352\202\351\202\340\202\314", GeoBoardListTitleTexRect[0], 4);
-    MenuPosData->GetEtcTbl2Value("\214\232\202\304\202\352\202\351\202\340\202\314", GeoBoardListTitleTexRect[1], 4);
-    MenuPosData->GetEtcTbl2Value("\203y\203C\203\223\203g\202\305\202\253\202\351\202\340\202\314", GeoBoardListTitleTexRect[3], 4);
-    MenuPosData->GetEtcTbl2Value("\203y\203C\203\223\203g\202\314\220F", GeoBoardListTitleTexRect[2], 4);
-    MenuPosData->GetEtcTbl2Value("\224z\222u\202\265\202\304\202\242\202\351\202\340\202\314", GeoBoardListTitleTexRect[4], 4);
-    MenuPosData->GetEtcTbl2Value("\203`\203F\203b\203N\203|\203C\203\223\203g", GeoRequestBoardCheckPoint, 4);
+    MenuPosData->GetEtcTbl2Value("\x82\xC2\x82\xAD\x82\xEA\x82\xE9\x82\xE0\x82\xCC", GeoBoardListTitleTexRect[0], 4);
+    MenuPosData->GetEtcTbl2Value("\x8C\x9A\x82\xC4\x82\xEA\x82\xE9\x82\xE0\x82\xCC", GeoBoardListTitleTexRect[1], 4);
+    MenuPosData->GetEtcTbl2Value("\x83y\x83" "C\x83\x93\x83g\x82\xC5\x82\xAB\x82\xE9\x82\xE0\x82\xCC", GeoBoardListTitleTexRect[3], 4);
+    MenuPosData->GetEtcTbl2Value("\x83y\x83" "C\x83\x93\x83g\x82\xCC\x90" "F", GeoBoardListTitleTexRect[2], 4);
+    MenuPosData->GetEtcTbl2Value("\x94z\x92u\x82\xB5\x82\xC4\x82\xA2\x82\xE9\x82\xE0\x82\xCC", GeoBoardListTitleTexRect[4], 4);
+    MenuPosData->GetEtcTbl2Value("\x83`\x83" "F\x83" "b\x83N\x83|\x83" "C\x83\x93\x83g", GeoRequestBoardCheckPoint, 4);
     CMenuGeoPt->UpdateGeoramaPartsList();
     MenuKeySelectCheck(0, &CMenuGeoPt->list_info[0].select, &CMenuGeoPt->list_info[0].top, 0,
                        CMenuGeoPt->GetNowViewModeMax(0) + 1, GEORAMA_LIST_LINE_NUM, 0);
@@ -1650,10 +1650,10 @@ void MenuGeoramaDraw() {
             tex_manager->ReloadTexture(mes_block, (sceVif1Packet *) NULL);
             CMenuFont font;
             DrawMenuFillBox(340.0f, 98.0f, 160.0f, 100.0f, 0x48, 0, 0, 0);
-            font.SetStr("(#)\201FAll GeoramaParts On");
+            font.SetStr("(#)\x81" "FAll GeoramaParts On");
             font.SetPos(0x156, 0x64);
             font.DrawDirect(font.str, font.pos_x, font.pos_y);
-            font.SetStr("(A)\201FOmit Download");
+            font.SetStr("(A)\x81" "FOmit Download");
             font.SetPos(0x156, 0x78);
             font.DrawDirect(font.str, font.pos_x, font.pos_y);
         }
@@ -3111,14 +3111,14 @@ void CMenuGeorama::InitEnd() {
     polygon_left = budget - MenuMainMapInfo->GetTotalPolyn(NULL, NULL);
 
     if (title_form != NULL) {
-        title_form->SetNumber("\203|\203\212\203\223\220\224", polygon_left);
+        title_form->SetNumber("\x83|\x83\x8A\x83\x93\x90\x94", polygon_left);
     }
 
     if (town_no == 4) {
         ExeScript("POLYOF");
     }
 
-    ExeScript("MSG_\217\211\212\372\211\273");
+    ExeScript("MSG_\x8F\x89\x8A\xFA\x89\xBB");
     MenuGeoramaMessageMake(0);
 
     if (LanguageCode > 0) {
@@ -3643,7 +3643,7 @@ void CMenuGeorama::AttachFormInfo() {
 
     analyze_form = (CMenuPosDataForm *) MenuPosData->GetFormInfo("analyze0");
     analyze_percent_form = (CMenuPosDataForm *) MenuPosData->GetFormInfo("analyze1");
-    house_info_form = (CMenuPosDataForm *) MenuPosData->GetFormInfo("\211\306\217\356\225\361");
+    house_info_form = (CMenuPosDataForm *) MenuPosData->GetFormInfo("\x89\xC6\x8F\xEE\x95\xF1");
     HouseInfoFormGrobal = house_info_form;
     AttachMessageForm();
 }
@@ -3770,10 +3770,10 @@ int CMenuGeorama::IsMakeObject(int buttons_held, int buttons_pressed) {
                             }
 
                             if (enough == 0) {
-                                ExeScript("\215\336\227\277\225s\221\253");
+                                ExeScript("\x8D\xDE\x97\xBF\x95s\x91\xAB");
                                 step = kMakeNeedMaterials;
                             } else {
-                                ExeScript("MAKE_GEOPARTS\212m\224F");
+                                ExeScript("MAKE_GEOPARTS\x8Am\x94" "F");
                                 char *items[1] = {make_parts->edit_name};
                                 mes->SetMsgItemNo(items, 1);
                                 mes->SetMsgVolumeNoOne(CBaseMenuClass::make_num);
@@ -3794,7 +3794,7 @@ int CMenuGeorama::IsMakeObject(int buttons_held, int buttons_pressed) {
         }
         case kMakeDone:
             if (buttons_pressed != 0) {
-                ExeScript("MAKEMODE\217I\227\271");
+                ExeScript("MAKEMODE\x8FI\x97\xB9");
                 make_parts = NULL;
                 mode = kStateBrowse;
                 step = kMakeChooseAmount;
@@ -3835,7 +3835,7 @@ int CMenuGeorama::IsMakeObject(int buttons_held, int buttons_pressed) {
         }
         default:
             if (buttons_pressed != 0) {
-                ExeScript("\220\273\215\354ERROR_OFF");
+                ExeScript("\x90\xBB\x8D\xEC" "ERROR_OFF");
                 step = kMakeChooseAmount;
             }
 
@@ -3928,7 +3928,7 @@ void CMenuGeorama::CalcTex() {
                 bar_tip->h = tip;
             }
 
-            analyze_percent_form->SetNumber("\212\256\220\254\223x", analyze_percent);
+            analyze_percent_form->SetNumber("\x8A\xAE\x90\xAC\x93x", analyze_percent);
             show = 1;
         }
 
@@ -4151,10 +4151,10 @@ int MenuGeoramaBasePush(CMenuGeorama *menu, int buttons_held, int buttons_presse
         }
 
         if (CheckGekkaViewMode(menu->town_no) != 0) {
-            menu->ExeScript("\214\216\211\324\217\210\227\235");
+            menu->ExeScript("\x8C\x8E\x89\xD4\x8F\x88\x97\x9D");
 
             if (menu->view_mode == kTabHouse) {
-                menu->ExeScript("\214\216\211\324\217\210\227\2352");
+                menu->ExeScript("\x8C\x8E\x89\xD4\x8F\x88\x97\x9D" "2");
                 NowPolyGonFormMoveFlag = 1;
             }
         }
@@ -4197,7 +4197,7 @@ int MenuGeoramaBasePush(CMenuGeorama *menu, int buttons_held, int buttons_presse
                     menu->step = 0;
                     MenuGeoramaViewNowPicNo = 0;
                     MenuGeoramaViewWallPic = NULL;
-                    menu->ExeScript("GO_\214\216\211\324");
+                    menu->ExeScript("GO_\x8C\x8E\x89\xD4");
                 } else if (0 < menu->GetPartsIDListNum(-1) || menu->view_mode == 5) {
                     menu->key_arg_no = menu->view_mode + 1;
                     menu->top = menu->list_info[menu->view_mode].top;
@@ -4205,9 +4205,9 @@ int MenuGeoramaBasePush(CMenuGeorama *menu, int buttons_held, int buttons_presse
                     MenuGeoramaCursorForceSetFlag = 1;
 
                     if (menu->view_mode == 5) {
-                        menu->ExeScript("GO_\225\252\220\315");
+                        menu->ExeScript("GO_\x95\xAA\x90\xCD");
                     } else {
-                        menu->ExeScript("GO_\225\252\220\315\210\310\212O");
+                        menu->ExeScript("GO_\x95\xAA\x90\xCD\x88\xC8\x8AO");
                     }
                 } else {
                     MenuSePlay(5);
@@ -4443,7 +4443,7 @@ int MenuGeoramaPlacePush(CMenuGeorama *menu, int buttons_held, int buttons_press
                         int poly_left = menu->polygon_left;
 
                         if (edparts_info_3580 != NULL && poly_left < edparts_info_3580->polyn[0]) {
-                            menu->ExeScript("\203|\203\212\203\223\225s\221\253");
+                            menu->ExeScript("\x83|\x83\x8A\x83\x93\x95s\x91\xAB");
                             menu->sub_step = 3;
                             MenuArg.end_code = 0;
                             break;
@@ -4455,7 +4455,7 @@ int MenuGeoramaPlacePush(CMenuGeorama *menu, int buttons_held, int buttons_press
                             menu->stock_list[selected].num;
 
                         if (MenuArg.result[1] <= 0) {
-                            menu->ExeScript("\224z\222uERROR");
+                            menu->ExeScript("\x94z\x92uERROR");
                             menu->sub_step = 3;
                             MenuArg.end_code = 0;
                             break;
@@ -4473,7 +4473,7 @@ int MenuGeoramaPlacePush(CMenuGeorama *menu, int buttons_held, int buttons_press
                         } else {
                             form->draw_flag = 0;
                             menu->sub_step = 2;
-                            menu->ExeScript("\202\261\202\355\202\267\201H");
+                            menu->ExeScript("\x82\xB1\x82\xED\x82\xB7\x81H");
                             msg->SetMsgItemNo(&DestroyPartsName_3587, 1);
                             msg->SetMsgVolumeNoOne(DestroyNum_3583);
                         }
@@ -4519,7 +4519,7 @@ int MenuGeoramaPlacePush(CMenuGeorama *menu, int buttons_held, int buttons_press
                 MenuSePlay(0x17);
                 CheckMenuLine(&menu->list_info[1].select, &menu->list_info[1].top,
                               menu->GetNowViewModeMax(1) + 1, 8);
-                menu->ExeScript("\215\336\227\277BACK");
+                menu->ExeScript("\x8D\xDE\x97\xBF" "BACK");
                 menu->sub_step = 3;
             }
 
@@ -4531,7 +4531,7 @@ int MenuGeoramaPlacePush(CMenuGeorama *menu, int buttons_held, int buttons_press
             break;
         case 3:
             if (buttons_pressed != 0) {
-                menu->ExeScript("\224z\222uERROROFF");
+                menu->ExeScript("\x94z\x92uERROROFF");
                 menu->sub_step = 0;
 
                 if (GetSaveData()->GetBuildPartsNum(edparts_info_3580->id) <= 0) {
@@ -4624,7 +4624,7 @@ int MenuGeoramaMakePush(CMenuGeorama *menu, int keys, int pushed) {
                         }
 
                         if (menu->make_num_max <= 0) {
-                            menu->ExeScript("\214\300\212E\220\224\215\354\220\254");
+                            menu->ExeScript("\x8C\xC0\x8A" "E\x90\x94\x8D\xEC\x90\xAC");
                             MenuDCMsg[2]->SetMsgVolumeNoOne(count);
                             menu->step = 1;
                         } else {
@@ -4650,7 +4650,7 @@ int MenuGeoramaMakePush(CMenuGeorama *menu, int keys, int pushed) {
             break;
         case 1:
             if (pushed != 0) {
-                menu->ExeScript("\203p\201[\203c1\202\302\202\276\202\257OFF");
+                menu->ExeScript("\x83p\x81[\x83" "c1\x82\xC2\x82\xBE\x82\xAFOFF");
                 menu->step = 0;
             }
 
@@ -4687,7 +4687,7 @@ int MenuGeoramaCheckPointPush(CMenuGeorama *menu, int keys, int pushed) {
                     }
 
                     MenuGeoramaViewWallPic = tex_manager->GetTexture(name, -1);
-                    menu->ExeScript("\214\216\211\324\212G");
+                    menu->ExeScript("\x8C\x8E\x89\xD4\x8AG");
                     MenuDCMsg[2]->SetMsgVolumeNoOne(MenuGeoramaViewNowPicNo + 1);
                     menu->step = 2;
                 }
@@ -4728,7 +4728,7 @@ int MenuGeoramaCheckPointPush(CMenuGeorama *menu, int keys, int pushed) {
             case 3:
                 if (menu->FadeCheckMenu() != 0) {
                     menu->step = 0;
-                    menu->ExeScript("\214\216\211\324\212GEND");
+                    menu->ExeScript("\x8C\x8E\x89\xD4\x8AGEND");
                     MenuGeoramaViewWallPic = NULL;
                     tex_manager->DeleteBlock(MenuCommonInfo->tex_block[5]);
                     menu->ReturnSelectMode(1);
@@ -4969,7 +4969,7 @@ int MenuGeoramaPushKey(int keys, int pushed) {
 
     if (MenuGeoramaPushFunc[CMenuGeoPt->key_arg_no](CMenuGeoPt, keys, pushed) == 1) {
         CMenuGeoPt->mode = 2;
-        CMenuGeoPt->ExeScript("\217I\227\271\217\210\227\235");
+        CMenuGeoPt->ExeScript("\x8FI\x97\xB9\x8F\x88\x97\x9D");
         CMenuGeoPt->LoadGeoramaPart(-1, 0);
     }
 
@@ -5046,9 +5046,9 @@ int CRemovalMenu::KeyStep() {
                     script = (char *)GetPackFile((unsigned int *)read_b_g->buffer, "npcmove_com.cfg", &script_size);
                     AttachMessageForm();
                     MenuMesForm[0]->rgba_bit = 8;
-                    house_form = MenuPosData->GetFormInfo("\211\306\217\356\225\361");
+                    house_form = MenuPosData->GetFormInfo("\x89\xC6\x8F\xEE\x95\xF1");
                     HouseInfoFormGrobal = house_form;
-                    list_form = MenuPosData->GetFormInfo("\214\363\225\342\203\212\203X\203g");
+                    list_form = MenuPosData->GetFormInfo("\x8C\xF3\x95\xE2\x83\x8A\x83X\x83g");
                     clip_form = MenuPosData->GetFormInfo("ListClip");
                     npc_win_form = MenuPosData->GetFormInfo("polywin");
                     npc_chr_form = MenuPosData->GetFormInfo("polychr");
@@ -5239,7 +5239,7 @@ int CRemovalMenu::KeyStep() {
                         }
                         case 2:
                             if (push != 0) {
-                                ExeScript("NOT_\210\332\217ZEND");
+                                ExeScript("NOT_\x88\xDA\x8FZEND");
                                 step = 0;
                             }
                             break;
@@ -5257,7 +5257,7 @@ int CRemovalMenu::KeyStep() {
                         live = 1;
                     }
                     if (live == 0) {
-                        ExeScript("NOT_\210\332\217Z");
+                        ExeScript("NOT_\x88\xDA\x8FZ");
                         MenuDCMsg[6]->MakeMsg(GetPartyCharaMessage(npc, 10, 0));
                         MenuDCMsg[6]->StepMsg();
                         AdjustNPCTalk(MenuDCMsg[6], &chara);
@@ -5299,7 +5299,7 @@ int CRemovalMenu::KeyStep() {
                     break;
                 case REMOVAL_ACTION_CLOSE:
                     mode = 2;
-                    ExeScript("\217I\227\271\217\210\227\235");
+                    ExeScript("\x8FI\x97\xB9\x8F\x88\x97\x9D");
                     exit_wait = 0;
                     if (MenuArg.end_code != 9 && house != NULL && first_npc != house->npc_no[0]) {
                         MenuArg.end_code = 0xD;
@@ -5345,7 +5345,7 @@ int CRemovalMenu::KeyStep() {
                     MenuAdjustPolygonScale(&chara, 6.96f);
                 }
                 chara.SetRotation(0.0f, -0.07853982f, 0.0f);
-                chara.SetMotion("\227\247\202\277", 0, 1);
+                chara.SetMotion("\x97\xA7\x82\xBF", 0, 1);
                 npc_chr_form->SetActionCharaPtr(&chara, MenuCommonInfo->tex_block[4], -1);
                 npc_chr_form->counter = -14;
                 model_state = 3;

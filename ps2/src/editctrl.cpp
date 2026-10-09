@@ -93,9 +93,9 @@ static EditFootEffect name_id_982[30] = {
  */
 static char *name_978[4] = {
     NULL,
-    "\221\253\215\273\211\214",
-    "\221\253\220\205\203p\203V\203\203",
-    "\221\253\216\305\220\266",
+    "\x91\xAB\x8D\xBB\x89\x8C",
+    "\x91\xAB\x90\x85\x83p\x83V\x83\x83",
+    "\x91\xAB\x8E\xC5\x90\xB6",
 };
 
 #include <libvu0.h>
@@ -310,7 +310,7 @@ void EditControlStatusInit(CScene *scene) {
     chara = scene->GetCharacter(scene->player_chara);
 
     if (chara != NULL) {
-        chara->SetMotion("\227\247\202\277", 4);
+        chara->SetMotion("\x97\xA7\x82\xBF", 4);
 
         chara->velocity[1] = 0.0f;
         chara->Step();

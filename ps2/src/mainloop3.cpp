@@ -22,11 +22,11 @@
  * Messages for an unrecoverable hard-disk read error in Japanese and English.
  */
 static char *emergency_mes[2] = {
-    "\223\307\202\335\215\236\202\335\203G\203\211\201[\202\252\224\255\220\266\202\265\202\334\202\265\202\275\201B\n"
+    "\x93\xC7\x82\xDD\x8D\x9E\x82\xDD\x83G\x83\x89\x81[\x82\xAA\x94\xAD\x90\xB6\x82\xB5\x82\xDC\x82\xB5\x82\xBD\x81" "B\n"
     "\n"
-    "\201hPlayStation 2\201h\220\352\227p\203n\201[\203h\203f\203B\203X\203N\203h\203\211\203C\203u\202\311\225t\221\256\202\314\216\346\210\265\220\340\226\276\217\221\202\314\n"
-    "\216w\216\246\202\311\217]\202\301\202\304\201A\201hPlayStation 2\201h\220\352\227p\203n\201[\203h\203f\203B\203X\203N\203h\203\211\203C\203u\202\314\217C\225\234\n"
-    "\202\360\215s\202\301\202\304\202\255\202\276\202\263\202\242\201B",
+    "\x81hPlayStation 2\x81h\x90\xEA\x97p\x83n\x81[\x83h\x83" "f\x83" "B\x83X\x83N\x83h\x83\x89\x83" "C\x83u\x82\xC9\x95t\x91\xAE\x82\xCC\x8E\xE6\x88\xB5\x90\xE0\x96\xBE\x8F\x91\x82\xCC\n"
+    "\x8Ew\x8E\xA6\x82\xC9\x8F]\x82\xC1\x82\xC4\x81" "A\x81hPlayStation 2\x81h\x90\xEA\x97p\x83n\x81[\x83h\x83" "f\x83" "B\x83X\x83N\x83h\x83\x89\x83" "C\x83u\x82\xCC\x8F" "C\x95\x9C\n"
+    "\x82\xF0\x8Ds\x82\xC1\x82\xC4\x82\xAD\x82\xBE\x82\xB3\x82\xA2\x81" "B",
     "error.",
 };
 /**
