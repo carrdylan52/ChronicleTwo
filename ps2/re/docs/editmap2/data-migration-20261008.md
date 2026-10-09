@@ -35,6 +35,17 @@ manual initialization guard is introduced. Both markers remain pending a
 shared mapper change (`editmap2-native-counter-guard`,
 `editmap2-counter-guard-failed-objects`).
 
+The exact private shared-tool proposal is
+`.private/proposals/dataE-named-local-bss.patch`. It extends the existing
+anonymous-BSS matcher to numeric-suffixed LOCAL names, requiring matching
+source bases, declared sizes, section kinds, and consistent opcode-checked
+code references. The native guard is one byte, with three bytes of trailing
+piece alignment. A copied marker-free object passes all bytes and 143
+resolved relocations (`named-local-bss-proposal-objects.log`). Negative
+checks reject absent references, a different base name, GLOBAL storage, and
+a conflicting reference (`named-local-bss-proposal-check.log`). The shared
+script is unchanged; full tool integration remains with the tooling lane.
+
 Final: 0 rodata / 2 BSS markers; matched_data
 118/123 after the standard objdiff/progress refresh.
 Every accepted step passes the full PAL build (`SCES_511.90: OK`) and
