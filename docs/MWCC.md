@@ -137,15 +137,16 @@ class initializers must be generated naturally by the compiler.
 
 ## Scheduling and delay slots
 
-- The list scheduler issues critical nodes first, then nodes that unblock more
-  successors, then greater height, then source order. Under register pressure
-  it takes the smallest pressure change (a store ending a live range beats a
-  zero store, which beats a new constant), so constants issue in source order
-  and stores follow them ([sound](../ps2/re/docs/sound/night-20261008.md)).
-- Scheduling precedes allocation, so an identical schedule can still change
-  interference: assignment order in a branch decides what is live at the join
-  (`CDngFreeMap::DrawRoot`, dngmenu). Evaluate-first rows cover only call
-  arguments.
+- Before allocation the list scheduler takes the first ready instruction in
+  emission order and switches only to one with a strictly lower pressure score
+  (a store ending a live range beats a zero store, which beats a new constant),
+  so constants issue in source order and stores follow them
+  ([sound](../ps2/re/docs/sound/night-20261008.md)); splitting a statement or
+  reusing a variable reorders them (gyorace).
+- After allocation it orders by critical path, successors unblocked, height,
+  then source order (`MsgInit`, dngmenu). An identical schedule can still
+  change interference: assignment order in a branch decides what is live at
+  the join (`DrawRoot`). Evaluate-first rows cover only call arguments.
 - A target block's first instruction fills only the first delay slot that
   claims it, a jump's included (`b exit; move v0,zero`), so a `switch`
   default's jump can take a shared `return 0` and leave retail's later `nop`
@@ -157,16 +158,27 @@ class initializers must be generated naturally by the compiler.
 
 ## Source forms
 
+- Explicitly cast call arguments are set up first, even with the same type:
+  `f(a, (u8 *) b)` sets `a1` before `a0`
+  ([nameregi](../ps2/re/docs/nameregi/natural-20261008.md), actscript).
+- `p + i` and `i + p` both put the pointer first in the `addu`
+  ([mg_dataset](../ps2/re/docs/mg_dataset/natural-20261008.md)).
 - A same-type local copy propagates unless the source is redefined or `const`
-  differs. A call result used before the next call stays in `v0`, so a `v0`
-  test beside a spill store needs a separate `const` lookup local
-  ([dng_event](../ps2/re/docs/dng_event/night-20261008.md)).
+  differs; a once-assigned local is substituted. A call result used before the
+  next call stays in `v0`, so a `v0` test beside a spill store needs a separate
+  `const` lookup local ([dng_event](../ps2/re/docs/dng_event/night-20261008.md)).
 - `T *const p = array;` keeps a base register; `x = load; x &= mask;` gives
   the AND result the load's register (`mgEndFrame`, mglib).
-- Named locals, block-scoped ones included, take frame slots in declaration
-  order; argument temporaries (built right to left) and spills follow, and a
-  `sceVu0FVECTOR` parameter's spill keeps 16-byte alignment (gyorace,
-  dng_event).
+- `*write++ = q;` reuses the dead argument register; a separate cursor local
+  does not ([mg_drawprim](../ps2/re/docs/mg_drawprim/natural-20261008.md)).
+- `new (p) T` with an inline constructor tests the copied register and
+  `new (p) T[n]` recomputes `n * sizeof(T)`; retail that tests `v0` or keeps
+  the byte count calls `operator new` or `operator new[]`
+  ([sceneload](../ps2/re/docs/sceneload/natural-20261008.md),
+  [menucommon](../ps2/re/docs/menucommon/natural-20261008.md)).
+- Named locals (block-scoped ones too) take frame slots in declaration order;
+  argument temporaries, built right to left, and spills follow. A
+  `sceVu0FVECTOR` parameter's spill keeps 16-byte alignment (gyorace, dng_event).
 - `optimization_level 2` is global CSE without strength reduction or loop
   rotation; level 4 runs the IR optimizer twice and CSE renumbers recreated
   constants lowest ([movie](../ps2/re/docs/movie/nmmisc-20261008.md)).
@@ -202,4 +214,6 @@ Compare complete objects as well as individual functions: emitted inline
 helpers, static initializers and data sizes can change the containing unit.
 The PAL executable verifier checks the final linked layout afterward.
 Word scores mask relocations and so hide calls to a WEAK constructor emitted
-past the inline depth (`MenuItemCharaDataLoadEndCheckAfter`, menuchr).
+past the inline depth (`MenuItemCharaDataLoadEndCheckAfter`, menuchr). An
+inline function taking a class by value in a widely included header renumbers
+MWCC's generated locals, and so the `at_NNN` symbols, in every includer (gyorace).
