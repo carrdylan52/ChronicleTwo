@@ -178,11 +178,11 @@ CFuncPoint::CFuncPoint (0x15F5D0), CObjAnime::CObjAnime (0x1616B0), CMapTreasure
 
 ## Trivial CObject draws
 `CObject::Draw` and `CObject::DrawDirect` each return 0 without changing state.
-Both C++ bodies match their retail instruction bytes. `DrawDirect` links into a
-byte-identical image. The isolated `Draw` promotion trial could not link because
-the rebuilt unit also emitted `mgCObject::UseParam` and `ChangeParam`, which the
-existing `mg_frame` object already defines; `Draw` therefore retains its assembly
-fallback.
+Both C++ bodies match their retail instruction bytes. An earlier isolated
+`Draw` trial could not link because that rebuilt unit also emitted
+`mgCObject::UseParam` and `ChangeParam`, already defined by `mg_frame`; that trial
+retained assembly. The current `CObject::Draw` body is native, and the complete
+current object and PAL image pass verification.
 
 ## Typed array access and matching
 - `PreDraw` indexes the `COcclusion` member array directly; `CreateTrBox` indexes
