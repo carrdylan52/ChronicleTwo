@@ -1188,7 +1188,7 @@ int EditLoop() {
     int              quick_change;
     int              next_chara;
     int              menu_enabled;
-    bool             debug_closed;
+    int              debug_closed;
     int              debug_move;
     int              edit_enabled;
     int              main_map_no;
@@ -1432,8 +1432,8 @@ int EditLoop() {
                     fishing.scene = MainScene__2;
                     fishing.rod_no = MenuInfo->result[0];
                     fishing.esa_no = MenuInfo->result[1];
-                    FishingBuff.stSetBuffer(CharaBufs[0].stack + CharaBufs[0].stack_used,
-                                            CharaBufs[0].stack_size - CharaBufs[0].stack_used);
+                    const int &fishing_size = CharaBufs[0].stack_size - CharaBufs[0].stack_used;
+                    FishingBuff.stSetBuffer(CharaBufs[0].stack + CharaBufs[0].stack_used, fishing_size);
                     fishing.menu_buff = &MenuBuffer__2;
                     fishing.load_buff = &FishingBuff;
                     MenuInfo->end_code = 0;
@@ -1456,8 +1456,8 @@ int EditLoop() {
                     if (MenuInfo->result[0] != LOOP_EDIT) {
                         finish = 1;
                         INIT_LOOP_ARG next_loop;
-                        next_loop.map_no = MenuInfo->result[1];
                         next_loop.floor_no = MenuInfo->result[2];
+                        next_loop.map_no = MenuInfo->result[1];
                         next_loop.event_no = 1010;
                         NextLoop(MenuInfo->result[0], next_loop);
                     } else {
@@ -1513,8 +1513,8 @@ int EditLoop() {
     start_event = -1;
     PAUSE_INFO pause;
     pause.scene = NULL;
-    pause.scene = MainScene__2;
     pause.event_skip = 0;
+    pause.scene = MainScene__2;
     pause_enabled = 0;
     if (PauseFlag == 0) {
         switch (ControlMode) {
@@ -1592,29 +1592,29 @@ int EditLoop() {
                 }
                 pause_enabled = 1;
                 switch (EventLoop()) {
-                    case 17:
+                    case EVENT_REQUEST_EDIT_MODE:
                         change_mode = 1;
                         return_to_player = 1;
                         break;
-                    case 18:
+                    case EVENT_REQUEST_RESET_EDIT:
                         ResetEditEvent();
                         return_to_player = 1;
                         break;
-                    case 19:
+                    case EVENT_REQUEST_RESTART_EDIT:
                         RestartEditEvent();
                         return_to_player = 1;
                         break;
-                    case 1:
+                    case EVENT_REQUEST_END:
                         return_to_player = 1;
                         break;
-                    case 2:
+                    case EVENT_REQUEST_SUB_MODE:
                         menu_mode = EDIT_LOOP_WALK_MENU;
                         open_menu = 1;
                         break;
-                    case 3:
+                    case EVENT_REQUEST_GOTO:
                         finish = 1;
                         break;
-                    case 8:
+                    case EVENT_REQUEST_MAP_JUMP:
                         BurnEditParts();
                         EditMapJump(SearchMapNo(EdEventInfo.jump_map_name));
                         start_event = EdEventInfo.event_no;
@@ -1624,7 +1624,7 @@ int EditLoop() {
                         printf("start_event = %d\n", start_event);
                         EdEventInfo.event_no = -1;
                         break;
-                    case 4:
+                    case EVENT_REQUEST_INTERIOR:
                         EditGotoInterior(SearchMapNo(EdEventInfo.jump_map_name), EdEventInfo.interior_entrance);
                         start_event = EdEventInfo.event_no;
                         if (start_event < 0) {
@@ -1633,7 +1633,7 @@ int EditLoop() {
                         printf("start_event = %d\n", start_event);
                         EdEventInfo.event_no = -1;
                         break;
-                    case 7:
+                    case EVENT_REQUEST_OUTSIDE:
                         EditExitInterior(0);
                         start_event = EdEventInfo.event_no;
                         if (start_event < 0) {
@@ -1752,10 +1752,10 @@ int EditLoop() {
     if (DebugFlag != 0) {
         if (EditDebugMode() != 0 && EditDebugLoop(MainScene__2, &EdDebugInfo) != 0) {
             ControlMode = old_cm;
-            debug_closed = 1;
             if (ControlMode == EDIT_CONTROL_DEBUG) {
                 ControlMode = EDIT_CONTROL_PLAYER;
             }
+            debug_closed = 1;
         }
         if (ControlMode != EDIT_CONTROL_DEBUG && GamePad__2.Down(PAD_R3) != 0 && debug_closed == 0) {
             EditDebugStart(215, &MenuBuffer__2);
