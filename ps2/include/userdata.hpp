@@ -161,7 +161,7 @@ struct ITEM_USED {
 struct ATTACH_USED {
     u8   spectol_type;    /**< What a spectrumised attachment came from, a SPECTOL_TYPE. */
     u8   spectol_value;   /**< Count, level or strength of what a spectrumised attachment came from. */
-    s16  status[2];       /**< First two parameters the attachment adds to a weapon. */
+    s16  status[2];       /**< First two parameters the attachment adds to a weapon; ten-parameter writes continue into attribute. */
     s16  attribute[8];    /**< Attribute parameters the attachment adds to a weapon. */
     s16  spectol_item_no; /**< Item number a spectrumised attachment came from. */
     s16  level;           /**< Level of the weapon a spectrumised attachment came from. */
@@ -2160,6 +2160,11 @@ public:
      */
     void SetActiveChrNo(int chara);
 
+    /**
+     *
+     * Gives the character being played.
+     *
+     */
     s16 GetActiveChrNo() {
         return active_chr_no;
     }
