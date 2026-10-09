@@ -71,6 +71,12 @@ foreach(row IN LISTS unit_rows)
 endforeach()
 make_object_dirs("${OBJDIFF_OBJS}")
 
+# Explicit D_<ADDR8> source identities affect the global piece boundaries.
+# Refresh the split before any unit consumes cuts changed by another source.
+add_custom_command(
+    OUTPUT ${CMAKE_SOURCE_DIR}/${SPLIT_STAMP}
+    APPEND DEPENDS ${OBJDIFF_SOURCES})
+
 set(OBJDIFF_ABS_OBJS "")
 foreach(obj IN LISTS OBJDIFF_OBJS)
     list(APPEND OBJDIFF_ABS_OBJS ${CMAKE_SOURCE_DIR}/${obj})
