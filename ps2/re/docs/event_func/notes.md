@@ -306,3 +306,16 @@ Private receipts: `.private/placenew-midday/baseline-native/event_func/`,
 `.private/placenew-midday/probes/monster-copy-initialization/`,
 `monster-named-copy/`, `monster-source-reference/`, and the `effect-*`
 directories under `.private/placenew-midday/probes/`.
+
+## Shared native storage extents
+
+EventStorageExtent exposes the existing source extents in event_func.hpp:
+event_local_num is 0x40 words, paku_name_size is 0x40 bytes, and seq_node_num
+is 0x100 command entries. EventLocalFlag/EventLocalCnt, the four mouth-name
+arrays, and cmr_seq_tbl/obj_seq_tbl use the same identifiers in declarations
+and definitions. The header enum replaces only the three source-local const
+integers; the existing range checks, initialization calls and native data
+retain their values and layouts.
+
+Receipts: .private/fixes-r0/event-func-final-{build,objects}.log:
+SCES_511.90: OK and 149/149 objects.

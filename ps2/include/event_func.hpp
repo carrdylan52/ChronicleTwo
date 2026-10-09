@@ -33,6 +33,17 @@ class mgCTexture;
 class ClsMes;
 
 /**
+ *
+ * Extents of the running event's local state, mouth-animation names and sequence tables.
+ *
+ */
+enum EventStorageExtent {
+    event_local_num = 0x40, /**< Words in each event-local flag and counter array. */
+    paku_name_size = 0x40,  /**< Bytes in each mouth-animation or motion name. */
+    seq_node_num = 0x100,   /**< Command entries in each event sequence table. */
+};
+
+/**
  * Numeric identifiers of external event script commands.
  */
 enum EventExternalCommand {
@@ -1777,14 +1788,14 @@ extern CEventSpriteMother esMother;
  * Flags local to the running event, 32 to a word.
  *
  */
-extern u32 EventLocalFlag[0x40];
+extern u32 EventLocalFlag[event_local_num];
 
 /**
  *
  * Counters local to the running event.
  *
  */
-extern int EventLocalCnt[0x40];
+extern int EventLocalCnt[event_local_num];
 
 /**
  *
@@ -1812,42 +1823,42 @@ extern CHitEffectImage HitEffect[EVENT_HIT_EFFECT_NUM];
  * Name of the texture animation that follows the voice stream's mouth movement.
  *
  */
-extern char PakuAnimName[0x40];
+extern char PakuAnimName[paku_name_size];
 
 /**
  *
  * Name of the second texture animation that follows the voice stream's mouth movement.
  *
  */
-extern char PakuAnimName2[0x40];
+extern char PakuAnimName2[paku_name_size];
 
 /**
  *
  * Name of the motion that follows the voice stream's mouth movement.
  *
  */
-extern char PakuMotionName[0x40];
+extern char PakuMotionName[paku_name_size];
 
 /**
  *
  * Name of the second motion that follows the voice stream's mouth movement.
  *
  */
-extern char PakuMotionName2[0x40];
+extern char PakuMotionName2[paku_name_size];
 
 /**
  *
  * Command entries of the event's camera sequence.
  *
  */
-extern _SEN_CMR_SEQ cmr_seq_tbl[0x100];
+extern _SEN_CMR_SEQ cmr_seq_tbl[seq_node_num];
 
 /**
  *
  * Command entries shared by the event's object sequences.
  *
  */
-extern _SEN_OBJ_SEQ obj_seq_tbl[0x100];
+extern _SEN_OBJ_SEQ obj_seq_tbl[seq_node_num];
 
 /**
  *
