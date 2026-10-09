@@ -4424,7 +4424,7 @@ static int fpFISH_PLACE(SPI_STACK *args, int arg_count) {
     fpNowFishPlaceMap->area_type = area_type;
     name = spiGetStackString(args++);
 
-    if (name != 0 && *(signed char *) name != 0) {
+    if (name != 0 && *name != 0) {
         fpNowFishPlaceMap->name = mgCopyString(name, fpStack);
     }
 
