@@ -46,7 +46,7 @@ struct texture_pair {
  *
  */
 struct icon_texture_info {
-    int value[4]; /**< Texture pointers represented as integer values. */
+    mgCTexture *tex[4]; /**< Icon texture variants for the selected source texture. */
 };
 
 /**
@@ -130,6 +130,9 @@ struct menu_tile_color {
     u8 rgba[4]; /**< Red, green, blue, and alpha channels. */
 };
 
+/**
+ * Provides a rectangle initialized with zero coordinates and dimensions.
+ */
 struct ZeroedRect : mgRect<int> {
     ZeroedRect() { Set(0, 0, 0, 0); }
 };
@@ -141,33 +144,6 @@ struct ZeroedRect : mgRect<int> {
  */
 struct item_color {
     u8 rgba[4]; /**< Red, green, blue, and alpha channels. */
-};
-
-/**
- *
- * Groups the rectangles that form a board frame.
- *
- */
-struct board_frame_parts {
-    mgRect<int> *rect[12]; /**< Rectangles used by the board frame. */
-} __attribute__((aligned(16)));
-
-/**
- *
- * Stores the heights of the scroll bar sections.
- *
- */
-struct scroll_bar_heights {
-    int height[3]; /**< Heights of the three scroll bar sections. */
-};
-
-/**
- *
- * Stores layer values for both scroll bar states.
- *
- */
-struct scroll_bar_layers {
-    int layer[2][5]; /**< Layer values for the two states. */
 };
 
 /**
@@ -199,29 +175,11 @@ struct board_line_uv {
 
 /**
  *
- * Stores the heights of board rows.
- *
- */
-struct board_row_height {
-    int height[5]; /**< Heights of the board rows. */
-};
-
-/**
- *
  * Stores colours for two board pass states.
  *
  */
 struct board_pass_color {
     int rgba[2][4]; /**< Colour channels for the two states. */
-};
-
-/**
- *
- * Stores the colour used when a board element blinks.
- *
- */
-struct board_blink_color {
-    int rgba[4]; /**< Red, green, blue, and alpha channels. */
 };
 
 /**
@@ -288,28 +246,6 @@ static signed char MenuDrawNumberKeta;
  */
 static u8 MenuMainFrame_ActionEndFlag;
 
-extern "C" char at_873__4[];
-
-extern icon_texture_info at_900__4;
-
-extern quad_uv at_2395__4;
-
-extern cursor_hand at_1999__2;
-
-extern cursor_width at_1998__2;
-
-extern icon_move_pos at_4205;
-
-extern cursor_put_pos at_1400__2;
-
-extern texture_pair at_4526;
-
-extern board_line_width at_1720;
-
-extern "C" char at_1780[];
-
-extern "C" char at_3054[];
-
 /**
  * Holds the common creation-board texture.
  */
@@ -340,12 +276,6 @@ static int use_item_enable_alpha;
  */
 static float *spectol_raster_xtbl;
 
-
-
-extern "C" texture_pair at_1521__2;
-
-extern "C" char at_1622__2[];
-
 /**
  * Holds the Geostone download panel texture.
  */
@@ -361,22 +291,6 @@ static int MenuDl_TotalSize;
  */
 static int MenuDl_ProcessSize;
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 /**
  * Tracks the interpolated gift-box cursor position.
  */
@@ -386,10 +300,6 @@ static float curpos_1393;
  * Marks initialization of the gift-box cursor position.
  */
 static signed char init_1394;
-
-
-
-extern "C" char at_1711[];
 
 /**
  * Gives the Geostone download and completion text for each language.
@@ -419,55 +329,10 @@ static signed char MainFrameStepFlag_2092;
  */
 static signed char init_2093;
 
-
-
-extern menu_put_pos at_3612;
-
-extern menu_board_pos at_3651;
-
-extern menu_tile_color at_3658;
-
-extern "C" char at_3721[];
-
-extern item_color at_5917;
-
-
-
-
-
-
-
-
-extern scroll_bar_parts at_2951__2;
-
-
-
-
-
-
-
-
-
-
-
 /**
  * Tracks the missing-material quantity blink phase.
  */
 static float make_object_husoku_number_blink;
-
-extern board_number_uv at_1788__3;
-
-extern board_line_uv at_1790__2;
-
-
-extern board_pass_color at_1796;
-
-
-extern board_button_color at_1814;
-
-
-
-
 
 /**
  * Tracks the animated menu cursor rotation.
@@ -505,8 +370,6 @@ static float putpostbl_3410[8];
  */
 static int getpostbl_3411[8];
 
-
-
 static void MenuFrameImageDraw(mgCDrawPrim *prim, mgCTexture *tex, mgRect<float> rect, mgRect<int> tex_rect, int gray,
                                int alpha, int dtype);
 
@@ -520,14 +383,10 @@ static u8 localrgba_3166[4];
  */
 static float item_board_counter;
 
-
-
 /**
  * Selects the main menu frame display mode.
  */
 static short MenuMainFrame_Display_Mode;
-
-
 
 /**
  * Tracks the main menu frame display transition.
@@ -554,8 +413,6 @@ static float MenuMainFrame_MoveRate[2];
  */
 static float MenuMainFrame_MoveRate_Cnt;
 
-
-
 /**
  * Tracks the rotating circular menu frame phase.
  */
@@ -564,9 +421,6 @@ static float MenuWakuRotCnt;
 void SetPartEffectInfoRandFunc(MENU_PARTS_EFFECT_STRUCT1 *effect);
 
 void SetPartEffectInfoRandFunc(MENU_PARTS_EFFECT_STRUCT1 *effect, short *values, int count);
-
-extern "C" char at_2237[];
-
 
 extern mgRect<int> MenuMainFrame_PutRect;
 
@@ -583,10 +437,6 @@ extern mgRect<int> ItemBoardScrlBar2;
 extern mgRect<int> ItemBoardScrlBar3;
 
 extern mgRect<int> ItemBoardCursor;
-
-extern waku_edge_pos at_2292;
-
-extern waku_edge_pos at_2303;
 
 /**
  * Holds the total number of item-board rows.
@@ -617,8 +467,6 @@ static signed char DrawItemDefCounter;
  * Holds the current item-board scroll bar position.
  */
 static float MenuItemBrdScrlBarY;
-
-extern char  at_4453[];
 
 /**
  * Holds the next vertical position of the item-board cells.
@@ -685,8 +533,6 @@ static signed char l_levelup_counter[32];
  */
 static signed char l_levelup_generate_counter[32];
 
-
-
 /**
  * Marks the boiled-fish icon effect as active.
  */
@@ -722,36 +568,10 @@ static float fish_boiled_streatch_rate[8];
  */
 static mgCTexture *fish_boiled_effect_tex;
 
-extern menu_effect_preset at_5441;
-
-extern menu_effect_preset at_5450;
-
 /**
  * Holds the generated item-icon texture name.
  */
 static char temp_3925[32];
-
-extern "C" char at_3927[];
-
-extern "C" char at_4182[];
-
-extern "C" char at_4183[];
-
-extern "C" char at_4184[];
-
-extern "C" char at_4185__2[];
-
-extern "C" char at_4186[];
-
-extern char at_4522[];
-
-extern "C" u8 at_4877[];
-
-extern "C" u8 at_4888[20];
-
-extern "C" u8 at_4889[];
-
-extern "C" char at_4890[11];
 
 extern "C" char at_4933[];
 
@@ -760,7 +580,6 @@ extern "C" char at_4934[];
 extern "C" char at_4935[];
 
 void MENU_BASETEXINFO_Init(MENU_BASETEXINFO *info);
-
 
 /**
  *
@@ -798,15 +617,9 @@ int         DrawMenuNumber(mgCDrawPrim *prim, int number, int align, mgRect<int>
 
 void DrawRandamLine(mgCDrawPrim *prim, int *points, int smoothing, int count, u8 *color);
 
-
-
-
-
 void InitInitBuildUpInfoEffectPos();
 
-
 #include "common.h"
-
 
 /**
  * Defines the three texture-coordinate vertices of each spectrum fragment.
@@ -1200,7 +1013,7 @@ void AttachMessageForm() {
     char name[32];
 
     for (int i = 0; i < 9; i++) {
-        sprintf(name, at_873__4, i);
+        sprintf(name, "msg%d", i);
         MenuMesForm[i] = (CMenuPosDataForm *) MenuPosData->GetFormInfo(name);
     }
 }
@@ -1230,14 +1043,14 @@ mgCTexture *GetMenuItemIconTexInfo(int item_no, int index) {
         use_trans_rect = common->icon_texture_no;
 
         if (0 <= use_trans_rect) {
-            icon_texture_info info = at_900__4;
-            int              *words = (int *) MenuPosData;
-            int               n = use_trans_rect;
-            info.value[0] = words[n + 0x15];
-            info.value[1] = words[n + 0x17];
-            info.value[2] = words[n + 0x19];
-            info.value[3] = words[n + 0x1B];
-            return (mgCTexture *) info.value[index];
+            icon_texture_info info = {{NULL, NULL, NULL, NULL}};
+            CMenuPosDataManage *data = MenuPosData;
+            int                n = use_trans_rect;
+            info.tex[0] = data->item_icon_tex[0][n];
+            info.tex[1] = data->item_icon_tex[1][n];
+            info.tex[2] = data->item_icon_tex[2][n];
+            info.tex[3] = data->item_icon_tex[3][n];
+            return info.tex[index];
         }
     }
 
@@ -1900,7 +1713,7 @@ void MenuPresentBoxView(int x, int y, int &tex_block, mgCTexture *tex, mgCTextur
             }
 
             MenuReloadTexture(tex_block, cursor_tex->block);
-            cursor_put_pos cursor = at_1400__2;
+            cursor_put_pos cursor = {{0.0f, 0.0f}};
             cursor.pos[0] = curpos_1393 - 32.0f;
             cursor.pos[1] = Pos_ItemInGiftBox[NowGiftBoxSelect][1];
             MenuCursorDraw(cursor_tex, cursor.pos, 0.0f, 0x80);
@@ -2009,7 +1822,7 @@ void MenuReloadTexture(int &loaded_tex, int tex_no) {
 }
 
 void MenuReloadCLUT(int index) {
-    texture_pair t = at_1521__2;
+    texture_pair t = {{NULL, NULL}};
     t.tex[0] = MenuCharaChangeCLUT_Tex;
     t.tex[1] = MenuCharaChangeBase_Tex;
 
@@ -2118,7 +1931,7 @@ void DrawRandamLine(mgCDrawPrim *prim, int *points, int smoothing, int count, u8
 }
 
 mgCTexture *GetMenuDlTexture() {
-    return mgTexManager.GetTexture(at_1622__2, -1);
+    return mgTexManager.GetTexture("menudl", -1);
 }
 
 void InitMenuDl(mgCTexture *texture, int total_size) {
@@ -2229,7 +2042,7 @@ void DrawMenuDl(int alpha) {
 
         DrawMenuDl(loaded_tex_no, 0, 0x72, panel_width, alpha);
         int    language = LanguageCode;
-        short *texture = (short *) mgTexManager.GetTexture(at_1711, -1);
+        short *texture = (short *) mgTexManager.GetTexture("gaiji", -1);
 
         if (texture != 0) {
             MenuReloadTexture(loaded_tex_no, *texture);
@@ -2257,12 +2070,12 @@ void CalcCommonBrdDrawInfo(float *pos, MENUFORM_MAKEBRD_INFO *info, ClsMes *mes)
         Tex_CommonBoard = NULL;
         return;
     }
-    Tex_CommonBoard = mgTexManager.GetTexture(at_1780, -1);
+    Tex_CommonBoard = mgTexManager.GetTexture("makebrd", -1);
     board_w = 188.0f;
     if (LanguageCode > 0) {
         board_w = 208.0f;
     }
-    board_line_width line_w = at_1720;
+    board_line_width line_w = {{0, 0, 0, 0}};
     for (i = 0; i < 4; i++) {
         if (mes->name[i + 1][0] != 0) {
             line_w.width[i] = mes->GetStrWidth(mes->name[i + 1]);
@@ -2306,8 +2119,15 @@ void CommonBoardDraw(float *pos, int &tex_block) {
     }
     MenuReloadTexture(tex_block, board_tex->block);
     mgCDrawPrim *prim = GetMenuPrim();
-    board_number_uv number_uv = at_1788__3;
-    board_line_uv row_uv = at_1790__2;
+    board_number_uv number_uv = {{{0, 116, 10, 12}, {0, 104, 10, 12}}};
+    board_line_uv row_uv = {{
+        {{0, 0, 22, 25}, {23, 0, 2, 25}, {24, 0, 22, 25}},
+        {{0, 25, 22, 2}, {23, 25, 2, 2}, {24, 25, 22, 2}},
+        {{0, 27, 22, 14}, {23, 27, 2, 14}, {24, 27, 22, 14}},
+        {{0, 41, 22, 2}, {23, 41, 2, 2}, {24, 41, 22, 2}},
+        {{0, 43, 22, 24}, {23, 43, 2, 24}, {24, 43, 22, 24}},
+        {{0, 66, 22, 24}, {23, 66, 2, 24}, {24, 66, 22, 24}},
+    }};
     int heights[5] = {row_uv.uv[0][0][3], 200, row_uv.uv[2][0][3], 54, row_uv.uv[4][0][3]};
     int board_w = (int)MakeBoardDrawInfo[4];
     float board_x = pos[0];
@@ -2333,7 +2153,7 @@ void CommonBoardDraw(float *pos, int &tex_block) {
     for (row = 0; row < 5; row++) {
         left = (int)(6.0f + pos[0]);
         top = (int)(6.0f + board_y);
-        board_pass_color pass_color = at_1796;
+        board_pass_color pass_color = {{{0, 0, 0, 46}, {128, 128, 128, 128}}};
         for (pass = 0; pass < 2; pass++) {
             int *rgba = pass_color.rgba[pass];
             prim->Color(rgba[0], rgba[1], rgba[2], rgba[3]);
@@ -2412,7 +2232,10 @@ void CommonBoardDraw(float *pos, int &tex_block) {
     MakeBoardDrawInfo[1] = yes_y;
     MakeBoardDrawInfo[0] = MakeBoardDrawInfo[2] = (mgScreenWidth >> 1) - MakeBoardDrawInfo[4] / 3.0f;
     MakeBoardDrawInfo[3] = 28.0f + yes_y;
-    board_button_color button_color = at_1814;
+    board_button_color button_color = {{
+        {{192, 192, 192, 128}, {128, 128, 128, 128}},
+        {{128, 128, 128, 128}, {192, 192, 192, 128}},
+    }};
     mgRect<int> yes_uv(0x44, 0x14, 0x3C, 0x1A);
     mgRect<int> no_uv(0x44, 0x2E, 0x3C, 0x1A);
     int (*rgba)[4] = button_color.rgba[CommonBoardDrawInfo.make_cursor];
@@ -2448,8 +2271,8 @@ void MenuCursorDraw(mgCTexture *tex, float *pos, float rot, int reverse, int alp
 
     if (tex != NULL) {
         prim = GetMenuPrim();
-        cursor_width width = at_1998__2;
-        cursor_hand  hand = at_1999__2;
+        cursor_width width = {{40.0f, -40.0f}};
+        cursor_hand  hand = {{{40.0f, 0.0f}, {40.0f, 24.0f}, {0.0f, 24.0f}}};
         SetSpriteEnv(prim, 0);
         hand.corner[0][0] = scale * width.width[reverse];
         hand.corner[0][1] *= scale;
@@ -2733,7 +2556,7 @@ void MenuMainFrameDraw(int &loaded_tex, int unused) {
     mgRect<int>        screen_rect;
     float              alpha, radius_x, radius_y, turn, scale, x0, y0, x1, y1, x3, y3, x2, y2, x4, size, y4, angle;
     mgCTextureManager *textures = &mgTexManager;
-    mgCTexture        *background = textures->GetTexture(at_2237, -1);
+    mgCTexture        *background = textures->GetTexture("bg16", -1);
 
     if (background == NULL) {
         return;
@@ -2865,7 +2688,7 @@ void DrawMenuWakuRect(mgCTexture *tex, mgRect<float> rect, mgRect<int> tex_rect,
             sign = 1.0f;
             piece_w = tex_rect.right;
             count = (int) (3.0f + rect.right / piece_w);
-            waku_edge_pos edge = at_2292;
+            waku_edge_pos edge = {{{0, 0}, {0, 0}}};
             edge.pos[0][0] = outer.right - 3;
             edge.pos[0][1] = outer.top - 5;
             edge.pos[1][0] = outer.left;
@@ -2887,13 +2710,11 @@ void DrawMenuWakuRect(mgCTexture *tex, mgRect<float> rect, mgRect<int> tex_rect,
             }
 
             prim->End();
-            waku_edge_pos side_edge;
-            mgRect<int>   side(0, scissor.top + 1, mgScreenWidth - 1, scissor.bottom - 1);
-            SetMenuScissor(side);
+            SetMenuScissor(mgRect<int>(0, scissor.top + 1, mgScreenWidth - 1, scissor.bottom - 1));
             SetSpriteEnv(prim, 4);
             prim->Begin(MG_PRIM_TRIANGLE_FAN);
             count = (int) (3.0f + rect.bottom / piece_w);
-            side_edge = at_2303;
+            waku_edge_pos side_edge = {{{0, 0}, {0, 0}}};
             side_edge.pos[0][0] = outer.left - 5;
             side_edge.pos[0][1] = outer.top - 13;
             side_edge.pos[1][0] = outer.right - 8;
@@ -2931,7 +2752,7 @@ void DrawWakuCircle(mgCDrawPrim *prim, mgCTexture *tex, mgRect<float> rect, mgRe
     float         center_x = rect.left + rect.right / 2.0f;
     float         center_y = rect.top + rect.bottom / 2.0f;
     sceVu0FVECTOR pos;
-    quad_uv       uv = at_2395__4;
+    quad_uv       uv = {{{0.0f, 0.0f}, {0.0f, 0.0f}, {0.0f, 0.0f}, {0.0f, 0.0f}}};
     int           i;
 
     uv.corner[0][0] = tex_rect.left;
@@ -3563,7 +3384,7 @@ void MenuItemBrdFrameDraw(int x, int y, int &tex_block, int a, int r, int g, int
     int i;
     float put_x;
     float put_y;
-    mgCTexture *tex = mgTexManager.GetTexture(at_3054, -1);
+    mgCTexture *tex = mgTexManager.GetTexture("mt0", -1);
     if (tex != NULL) {
         MenuReloadTexture(tex_block, tex->block);
         put.right = 40;
@@ -3634,7 +3455,7 @@ void MenuItemBrdFrameDraw(int x, int y, int &tex_block, int a, int r, int g, int
         float bar_x = x + 260;
         int heights[3] = {ItemBoardScrlBar1.bottom, 0x102, ItemBoardScrlBar3.bottom};
         int layers[10] = {4, 0, 0, 0, shadow_alpha, 0, r, g, b, a};
-        scroll_bar_parts bars = at_2951__2;
+        scroll_bar_parts bars = {{&ItemBoardScrlBar1, &ItemBoardScrlBar2, &ItemBoardScrlBar3}};
         prim->Begin(MG_PRIM_SPRITE);
         prim->Texture(tex);
         for (int i = 0; i < 2; i++) {
@@ -3676,7 +3497,7 @@ void MenuItemBrdDraw(float *pos, mgRect<int> clip_rect, int &tex_block, int a, i
 
     prim = GetMenuPrim();
     koma = MenuItemBrdKomaRect;
-    tex = mgTexManager.GetTexture(at_3054, -1);
+    tex = mgTexManager.GetTexture("mt0", -1);
 
     if (tex != NULL && !(mgScreenWidth < pos[0])) {
         scissor.left = clip_rect.left;
@@ -4454,7 +4275,7 @@ void CMenuPosDataForm::MenuFormDraw(int x, int y, int &tex_block) {
             MenuReloadTexture(tex_block, texture_block);
 
             mes->StepMsg();
-            menu_put_pos put = at_3612;
+            menu_put_pos put = {{0, 0}};
             put.pos[0] = (int) (draw_x);
             put.pos[1] = (int) (draw_y);
             mes->SetPutPos(put.pos);
@@ -4474,7 +4295,7 @@ void CMenuPosDataForm::MenuFormDraw(int x, int y, int &tex_block) {
         mgRect<int> clip(clip_left, clip_top, clip_right, (int) (board_y + 250.0f + 2.0f));
 
         if (mgScreenWidth > draw_x && clip.bottom > 0) {
-            MENU_BASETEXINFO *num_info = MenuPosData->GetTexGetInfo(at_3721);
+            MENU_BASETEXINFO *num_info = MenuPosData->GetTexGetInfo("num0");
             mgCTexture       *num_tex = textures->GetTexture("mnmain", -1);
             mgRect<int>       num_rect = num_info->rect;
             MenuItemBrdUnderBrdPosXY[0] = board_x;
@@ -4483,7 +4304,7 @@ void CMenuPosDataForm::MenuFormDraw(int x, int y, int &tex_block) {
             MenuItemBrdFrameDraw((int) (draw_x), (int) (draw_y), tex_block, rgba[3], rgba[0], rgba[1], rgba[2]);
         }
     } else if (type == MENUFORM_DTYPE_GIFTVIEW) {
-        mgCTexture *board_tex = textures->GetTexture(at_1780, -1);
+        mgCTexture *board_tex = textures->GetTexture("makebrd", -1);
         mgCTexture *cursor_tex = textures->GetTexture("mnmain", -1);
 
         if (board_tex != NULL) {
@@ -4516,7 +4337,7 @@ void CMenuPosDataForm::MenuFormDraw(int x, int y, int &tex_block) {
             mgSetAmbient(saved_ambient);
         }
     } else if (type == MENUFORM_DTYPE_CREATEBRD) {
-        menu_board_pos pos = at_3651;
+        menu_board_pos pos = {{0.0f, 0.0f}};
         pos.pos[0] = x;
         pos.pos[1] = y;
         CommonBoardDraw(pos.pos, tex_block);
@@ -4526,7 +4347,7 @@ void CMenuPosDataForm::MenuFormDraw(int x, int y, int &tex_block) {
         MENU_BASETEXINFO *info = MenuPosData->GetTexGetInfo(parts->tex_info_no);
         mgCTexture       *tex = textures->GetTexture(info->tex_name, info->tex_block);
         MenuReloadTexture(tex_block, info->tex_block);
-        menu_tile_color color = at_3658;
+        menu_tile_color color = {{128, 128, 128, 0}};
         color.rgba[3] = rgba[3];
         DrawMenuTilePattern(prim, tex, this->x, this->y, info->rect, 0, color.rgba);
     } else if (type == MENUFORM_DTYPE_CHRSTAR) {
@@ -4804,7 +4625,7 @@ void CPosDataManage::EtcTbl2Clear(int from, int to) {
 }
 
 void *GetMenuMainIconChar(int icon_no) {
-    sprintf(temp_3925, at_3927, icon_no - 2);
+    sprintf(temp_3925, "mi%d", icon_no - 2);
     return temp_3925;
 }
 
@@ -5092,12 +4913,12 @@ void CPosDataManage::ClearPos() {
 }
 
 void CMenuPosDataManage::AttachCommonTexInfo() {
-    common_tex = (&mgTexManager)->GetTexture(at_4182, -1);
+    common_tex = (&mgTexManager)->GetTexture("menuwork2", -1);
     unk_40 = NULL;
-    icon_effect_tex = (&mgTexManager)->GetTexture(at_4183, -1);
-    effect_tex = (&mgTexManager)->GetTexture(at_4184, -1);
-    item_icon_tex[0][0] = (&mgTexManager)->GetTexture(at_4185__2, -1);
-    item_icon_tex[0][1] = (&mgTexManager)->GetTexture(at_4186, -1);
+    icon_effect_tex = (&mgTexManager)->GetTexture("menueff0", -1);
+    effect_tex = (&mgTexManager)->GetTexture("spectre", -1);
+    item_icon_tex[0][0] = (&mgTexManager)->GetTexture("wepicon", -1);
+    item_icon_tex[0][1] = (&mgTexManager)->GetTexture("itemicon", -1);
 }
 
 int CMenuPosDataManage::StepMainMenuIconMove(int *icons, int select, int mode) {
@@ -5127,7 +4948,7 @@ int CMenuPosDataManage::StepMainMenuIconMove(int *icons, int select, int mode) {
         form = GetFormInfo((char *) GetMenuMainIconChar(icon));
 
         if (form != NULL) {
-            icon_move_pos target = at_4205;
+            icon_move_pos target = {{0, 0}};
 
             if (mode == 0) {
                 target.pos[0] = (int) ((float) baseposoffset_tbl_4194[icon][0] +
@@ -5468,7 +5289,7 @@ void MenuItemBrdScrlBarStep(int line, int height, int mode) {
 
 void Func_MenuItemBrdPosStep(int top_line) {
     int               pos[2] = {0, 24};
-    CMenuPosDataForm *form = MenuPosData->GetFormInfo(at_4453);
+    CMenuPosDataForm *form = MenuPosData->GetFormInfo("itembrd");
 
     if (form != NULL) {
         form->GetPutPosXY(NULL, pos[0], pos[1]);
@@ -5491,7 +5312,7 @@ void Func_MenuItemBrdPosStep(int top_line) {
 }
 
 void CMenuPosDataManage::GetPosMenuItemBrdKoma(int *position, int item_index, int clip) {
-    CMenuPosDataForm *form = GetFormInfo(at_4453);
+    CMenuPosDataForm *form = GetFormInfo("itembrd");
 
     if (form != NULL) {
         form->GetNextMovePos(position);
@@ -5577,7 +5398,7 @@ void MenuItemBrdItemIconEffectMalloc(mgCMemory *memory, MENUFORMPARTS_TYPE *part
     }
 
     parts->name = (char *) memory->Alloc(1);
-    strcpy(parts->name, at_4522);
+    strcpy(parts->name, "icon");
     parts->w = 32.0f;
     parts->h = 40.0f;
 }
@@ -5589,7 +5410,7 @@ void CMenuPosDataManage::MallocPallet(mgCMemory *stack) {
     int j;
 
     stack->Align64();
-    texture_pair icon_tex = at_4526;
+    texture_pair icon_tex = {{NULL, NULL}};
     mgTexManager.ReloadTexture(-1, (sceVif1Packet *)NULL);
     mgTexManager.ReloadTexture(MenuItemIconTextureBlock, (sceVif1Packet *)NULL);
     icon_tex.tex[0] = item_icon_tex[0][0];
@@ -5734,7 +5555,7 @@ int MenuCapture(int block, mgCMemory *stack, int draw) {
         tex_h += 64 - pad_h;
     }
     tex_manager->DeleteBlock(block);
-    MenuFrameTex = tex_manager->EnterTexture(block, at_4182, NULL, tex_w, tex_h, 32, NULL, 0, 0);
+    MenuFrameTex = tex_manager->EnterTexture(block, "menuwork2", NULL, tex_w, tex_h, 32, NULL, 0, 0);
     if (MenuFrameTex != NULL) {
         MenuFrameTex->tex0.bits.tcc = 0;
         MenuFrameTex->image[0] = (u_long128 *)dst;
@@ -6083,7 +5904,7 @@ void CRepairManager::LoadDataBG(mgCMemory *memory) {
         size = 0;
         data = (unsigned int *) (*(int *) &memory->stack + (memory->stack_used << 4));
         StartReadBG();
-        LoadFileBG((char *) at_4877, (u_long128 *) data, &size);
+        LoadFileBG("menu/eff/repair.chr", (u_long128 *) data, &size);
 
         if (((unsigned int) size & 0xF) != 0) {
             blocks = ((unsigned int) size >> 4) + 1;
@@ -6103,8 +5924,8 @@ void CRepairManager::CheckDataBG(int block) {
     if (data_ready == 0) {
         (&mgTexManager)->DeleteBlock(block);
         tex_block = (short) block;
-        MenuEnterIMG(block, (u8 *) GetPackFile(data, (char *) &at_4888, &pack_size), (char *) &at_4889);
-        tex = (&mgTexManager)->GetTexture(at_4890, -1);
+        MenuEnterIMG(block, (u8 *) GetPackFile(data, "repair_powder2d.img", &pack_size), "_2");
+        tex = (&mgTexManager)->GetTexture("menueff0_2", -1);
         data_ready = 1;
         bg_load = 0;
     }
@@ -6115,14 +5936,13 @@ void CRepairManager::SetRepairData(mgCMemory *memory, int block, unsigned int *p
 
     tex_block = (short) block;
     data = pack;
-    MenuEnterIMG(block, (u8 *) GetPackFile(pack, (char *) &at_4888, &pack_size), (char *) &at_4889);
-    tex = (&mgTexManager)->GetTexture(at_4890, -1);
+    MenuEnterIMG(block, (u8 *) GetPackFile(pack, "repair_powder2d.img", &pack_size), "_2");
+    tex = (&mgTexManager)->GetTexture("menueff0_2", -1);
     data_ready = 1;
     bg_load = 0;
     SetStack(memory, 1);
     keep = 1;
 }
-
 
 #ifdef NONMATCHING
 void CRepairManager::GeneratePoly(float *pos, int block) {
@@ -6842,7 +6662,7 @@ void DrawFishBoiledEffect() {
 void SetEffectSpectolBreak(mgCMemory *memory, CMenuEffect *effect, int item_no) {
     memory->stack_used = 0;
     memory->lock = 0;
-    menu_effect_preset params = at_5441;
+    menu_effect_preset params = {{120, 175, 0, 0, 100, 100, 100, 100, 0, 0}};
     mgRect<int>        rect;
 
     rect.Set(0, 0, 0, 0);
@@ -6858,7 +6678,7 @@ void SetEffectSpectolBreak(mgCMemory *memory, CMenuEffect *effect, int item_no) 
 
 void SetEffectSpectolFusion(mgCMemory *memory, CMenuEffect **effects, CGameDataUsed *item,
                             int is_fusion) {
-    menu_effect_preset params = at_5450;
+    menu_effect_preset params = {{120, 175, 100, 100, 0, 0, 0, 0, 0, 0}};
     mgCTexture        *icon_texture;
 
     trans_spectol_pos = GetSameAdrressUserData(item, 0);
@@ -7598,7 +7418,7 @@ void CMenuEffect::Draw() {
             }
             case 21: {
                 rect.Set(particle->x, particle->y, 32.0f, 40.0f);
-                item_color item_rgba = at_5917;
+                item_color item_rgba = {{0, 0, 0, 0}};
                 item_rgba.rgba[0] = particle->unk_1c;
                 item_rgba.rgba[1] = particle->unk_20;
                 item_rgba.rgba[2] = particle->unk_20;
@@ -7694,94 +7514,7 @@ void PrimQuad_i_(mgCDrawPrim *prim, mgRect_i_ rect, mgRect_i_ tex_rect) {
 
 // Initialised data (.data)
 
-
-
-
-
-
-
-
-
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menudraw", at_1790__2__DATA);
-
-
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menudraw", at_1796__DATA);
-
-
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menudraw", at_1814__DATA);
-
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menudraw", at_1999__2__DATA);
-
-
-
-
-
-
-
-
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menudraw", at_2951__2__DATA);
-
-
-
-
-
-
-
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menudraw", at_5441__DATA);
-
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menudraw", at_5450__DATA);
-
 // Constants (.rodata)
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menudraw", at_873__4__DATA);
-
-
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menudraw", at_1622__2__DATA);
-
-
-
-
-
-
-
-
-
-
-
-
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menudraw", at_1711__DATA);
-
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menudraw", at_1780__DATA);
-
-
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menudraw", at_2237__DATA);
-
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menudraw", at_3054__DATA);
-
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menudraw", at_3721__DATA);
-
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menudraw", at_3927__DATA);
-
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menudraw", at_4182__DATA);
-
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menudraw", at_4183__DATA);
-
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menudraw", at_4184__DATA);
-
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menudraw", at_4185__2__DATA);
-
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menudraw", at_4186__DATA);
-
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menudraw", at_4453__DATA);
-
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menudraw", at_4522__DATA);
-
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menudraw", at_4877__DATA);
-
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menudraw", at_4888__DATA);
-
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menudraw", at_4889__DATA);
-
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menudraw", at_4890__DATA);
 
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menudraw", at_4933__DATA);
 
@@ -7790,21 +7523,6 @@ INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menudraw", at_4934__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menudraw", at_4935__DATA);
 
 // Small initialised data (.sdata)
-
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menudraw", at_1788__3__DATA);
-
-
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menudraw", at_1998__2__DATA);
-
-
-
-
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menudraw", at_3658__DATA);
-
-
-
-
-
 
 // Small uninitialised data (.sbss)
 int MenuDrawItemInfoNum;
@@ -7817,44 +7535,22 @@ int NowGiftBoxSelect;
 
 u8 GiftBoxViewFlag;
 
-INCLUDE_BSS(at_1400__2, 0x8);
-
-INCLUDE_BSS(at_1521__2, 0x8);
-
 int *menu_randam_line_draw_postbl;
 
 INCLUDE_BSS(MenuCursorReverseFlag, 0x4);
-
 
 s8 MenuItemBrdCalcManner;
 
 float MenuItemBrdUnderBrdPosXY[2];
 
-
-INCLUDE_BSS(at_3612, 0x8);
-
-INCLUDE_BSS(at_3651, 0x8);
-
 CMenuPosDataManage *MenuPosData;
 
-INCLUDE_BSS(at_4205, 0x8);
-
-INCLUDE_BSS(at_4526, 0x8);
-
 mgCTexture *MenuFrameTex;
-
-
-
-
-
-INCLUDE_BSS(at_5917, 0x4);
 
 // Uninitialised data (.bss)
 u8 menu_limmit_displayflag[0x9C];
 
 CMenuPosDataForm *MenuMesForm[9];
-
-INCLUDE_BSS(at_900__4, 0x10);
 
 CGameDataUsed *MenuDrawItemInfo[150];
 
@@ -7864,31 +7560,44 @@ s16 Pos_ItemInGiftBox[3][2];
 
 float MakeBoardDrawInfo[5];
 
-INCLUDE_BSS(at_1720, 0x10);
-
 mgRect<int> menu_long_hand(62, 1, 40, 24);
 
+/**
+ * Holds the destination rectangle of the main menu lens frame.
+ */
 mgRect<int> MenuMainFrame_PutRect(0, 0, 0, 0);
 
+/**
+ * Holds the destination rectangle of the captured main menu image.
+ */
 mgRect<int> MenuMainIMG_PutRect(0, 0, 0, 0);
 
-INCLUDE_BSS(at_2292, 0x10);
-
-INCLUDE_BSS(at_2303, 0x10);
-
-INCLUDE_BSS(at_2395__4, 0x20);
-
+/**
+ * Gives the texture rectangle used by menu sparkles.
+ */
 mgRect<int> star_light(0, 32, 8, 8);
 
+/**
+ * Gives the texture rectangle of an item-board cell.
+ */
 mgRect<int> MenuItemBrdKomaRect(32, 32, 40, 50);
 
+/**
+ * Gives the upper item-board scroll bar texture rectangle.
+ */
 mgRect<int> ItemBoardScrlBar1(96, 128, 22, 11);
 
+/**
+ * Gives the middle item-board scroll bar texture rectangle.
+ */
 mgRect<int> ItemBoardScrlBar2(96, 138, 22, 4);
 
+/**
+ * Gives the lower item-board scroll bar texture rectangle.
+ */
 mgRect<int> ItemBoardScrlBar3(96, 140, 22, 12);
 
+/**
+ * Gives the item-board selection cursor texture rectangle.
+ */
 mgRect<int> ItemBoardCursor(118, 128, 8, 30);
-
-
-

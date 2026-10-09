@@ -156,3 +156,80 @@ checks and the other-object hash comparison. Counts become 32 RODATA /
 197 / 198. `implicit-ledger.json` and the nineteen
 `implicit-<symbol>-{build,objects}.log` receipts record those checks;
 `implicit-metrics.json` captures the refreshed report after the last one.
+
+## Inline literals and aggregate owners
+
+Nineteen remaining strings are inlined in their matched consumers,
+including message/icon format strings, menu texture names and repair
+background-resource names. Casts from the old unsigned-byte string
+objects are removed. Twenty explicit aggregate copies become local
+initializers of the documented position, UV, colour, texture-pair,
+scroll-bar and effect-preset types. Their declared extents remain exact;
+the scroll-bar pointer initializer refers directly to the three typed
+rectangle objects. Five unused aggregate declaration types are removed
+because their owners already use natural arrays.
+
+`icon_texture_info` contains four `mgCTexture *` entries, retaining its
+16-byte PS2 extent. `GetMenuItemIconTexInfo` reads the manager's actual
+`item_icon_tex[4][2]` members and returns the selected pointer directly.
+The old integer-word view of the manager and integer-to-pointer return
+cast are gone. The four null pointers in its local initializer emit the
+retail `at_900__4` template naturally. Complete-object comparison remains
+exact.
+
+`DrawMenuWakuRect` initializes both two-by-two edge-coordinate records
+locally. Merely moving the second initializer to its use preserves the
+0x518-byte body but exchanges the named edge and rectangle stack slots,
+producing eight differing masked instruction words. Value initialization
+produces a 0x538-byte body and 118 differences over the retail body;
+that trial is rejected. Passing the scissor rectangle directly to
+`SetMenuScissor` makes it a call-argument temporary after the named edge
+record, restoring retail's stack layout. The final 0x518-byte body has
+zero differences across all 326 instruction words and all resolved
+relocations. No added storage, helper, special member or compiler-profile
+row is involved. `side-edge-ledger.json` and
+`side-edge-direct-rectangle-result.json` record those trials; their failed
+source/object copies and build logs are retained privately.
+
+## Retained markers
+
+Every remaining marker is retained for an explicit ownership or API
+constraint:
+
+- `at_4933__DATA`: the 18-byte `"repair_powder.chr"` literal used by the
+  guarded `CRepairManager::GeneratePoly` and its assembly fallback.
+- `at_4934__DATA`: the nine-byte `"info.cfg"` literal used by that same
+  protected owner.
+- `at_4935__DATA`: the five-byte Shift-JIS motion name
+  `94 AD 93 AE 00` used by that same protected owner.
+- `MenuCursorReverseFlag`: the one-byte retail flag whose public
+  declaration remains `extern int`; its four-byte reservation includes
+  three bytes of alignment gap.
+
+The three literal markers and existing declarations preserve their exact
+retail symbols. Their natural source form is a literal at the call in
+`GeneratePoly`, which this lane is explicitly forbidden to edit. No
+separate stand-in literal objects or aliases are introduced. The flag's
+public type and callers stay source-compatible. No unowned-file proposal
+is required, and no tooling file or image is changed.
+
+## Final result
+
+RODATA markers: **79 -> 3**. BSS markers: **93 -> 1**.
+Matched data: **4 -> 4,596 / 5,741 bytes**. The complete native `.data`
+(2,112 bytes), `.sdata` (80), `.bss` (2,400) and `.ctor` (4) receive
+credit; the remaining markers keep `.rodata` and `.sbss` incomplete.
+The byte-identical linked object still includes all retail data.
+
+Native function coverage stays **197 / 198** in menudraw and
+**6,776 matched / 87 guarded / 9 assembly-only / 0 fuzzy** overall.
+No function is promoted, and the guarded `GeneratePoly` block is unchanged.
+The header changes comments only. Every candidate not matching retail is
+restored before continuing.
+
+Final receipts: `.private/dataC-r3/final-build.log`,
+`final-objects.log`, `final-progress.log`, `final-coverage.txt`,
+`final-metrics.json`, `final-validation.json` and `final-summary.txt`.
+They require **SCES_511.90: OK**, **149 / 149 complete objects**, and
+unchanged hashes for every one of the 148 other objects. The string,
+aggregate and typed-icon ledgers retain each individual validation.
