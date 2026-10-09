@@ -2065,7 +2065,7 @@ int CDngFreeMap::LoadDngInfo(mgCMemory *stack, int block, int dungeon, int room,
     int remaining = stack->stGetRest();
     memory.stSetBuffer(stack->stGetTop(), remaining);
     memory.Align64();
-    floor_manager = &((DNG_BATTLE_AREA *) menu_GetBattleAreaScene())->floor_manager;
+    floor_manager = &menu_GetBattleAreaScene()->floor_manager;
     dng_no = dungeon;
     floor_manager->CheckDrawGlidInfo();
     user_room_no = room;
@@ -3505,7 +3505,7 @@ void DngTreeMapInit(mgCMemory *stack, int *tex_block, int menu_mode, int dng_no)
     CMenuTreePt->SetTexBlock(tex_block);
     MenuDngMap = new (MenuTreeMapStack.Alloc(0x13)) CDngFreeMap;
     MenuDngMap->save_dungeon = MenuSaveDataDungeonPtr;
-    DNG_BATTLE_AREA *area = (DNG_BATTLE_AREA *) menu_GetBattleAreaScene();
+    DNG_BATTLE_AREA *area = menu_GetBattleAreaScene();
     MenuDngMap->floor_manager = &area->floor_manager;
     DngTreeMode = DNG_TREE_MODE_MAP;
     DngInfoRoomInfo = 0;

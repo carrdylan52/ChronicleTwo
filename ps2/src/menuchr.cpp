@@ -6443,7 +6443,7 @@ void CMenuCostumeSel::LoadMenuData(mgCMemory *stack, int *tex_block) {
     stack->Align64();
     mgTexManager.EnterIMGFile(buffer, *tex_block, NULL, NULL);
     this->tile_tex = mgTexManager.GetTexture(at_5052, -1);
-    icons = (u8 *) GetMenuMainIMGPtr();
+    icons = GetMenuMainIMGPtr();
 
     if (icons != NULL) {
         tex_manager->EnterIMGFile(icons, *tex_block, NULL, NULL);

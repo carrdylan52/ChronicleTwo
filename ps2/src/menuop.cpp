@@ -1676,7 +1676,7 @@ void CMenuOption::UpdateOptionForm() {
 
             if (row != NULL) {
                 DefaultButton(row);
-                EnableButton(row[(signed char) config->unk_35]);
+                EnableButton(row[config->unk_35]);
             }
 
             row = this->button[14];
@@ -1737,7 +1737,7 @@ void MenuOptionInit(mgCMemory *memory, int *tex_block, int mode) {
     textures->EnterIMGFile((u_char *) GetPackFile(pack, "option.img", NULL), block, NULL, NULL);
 
     if (MenuArg.open_type == 0x12) {
-        textures->EnterIMGFile((u_char *) GetMenuMainIMGPtr(), block, NULL, NULL);
+        textures->EnterIMGFile(GetMenuMainIMGPtr(), block, NULL, NULL);
     }
 
     menu_data = (u_char *) GetPackFile(pack, "option.cfg", &menu_data_size);

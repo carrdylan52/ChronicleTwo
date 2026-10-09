@@ -2853,7 +2853,7 @@ int CheckFishCondition() {
     int              result;
 
     scene = GetMainScene();
-    battle_scene = (DNG_BATTLE_AREA *) menu_GetBattleAreaScene();
+    battle_scene = menu_GetBattleAreaScene();
     map_no = scene->now_map_no;
     enabled = 1;
 
@@ -4603,7 +4603,7 @@ int GetItemCommandMsg(CGameDataUsed *item, int *cmds, u32 *colors, short *values
             if (GetMenuLoopType() == 0) {
                 colors[i] = 0x80202020;
             } else {
-                DNG_BATTLE_AREA *battle = (DNG_BATTLE_AREA *) menu_GetBattleAreaScene();
+                DNG_BATTLE_AREA *battle = menu_GetBattleAreaScene();
 
                 if (battle != NULL && !(battle->floor_status & 1) && !(battle->floor_status & 2) &&
                     !(battle->floor_status & 4)) {
@@ -6421,7 +6421,7 @@ int CMenuItemInfo::ItemCmdAfter(int cmd_ret, ITEMCMD_RET_PARA *ret) {
                         StartReadBG();
                         int size;
                         LoadFileBG("snd2/sp/SP_053.snd", load_stack->stGetTop(), &size);
-                        DNG_BATTLE_AREA *battle_scene = (DNG_BATTLE_AREA *) menu_GetBattleAreaScene();
+                        DNG_BATTLE_AREA *battle_scene = menu_GetBattleAreaScene();
                         ask_para.item->DeleteNum(1);
 
                         if (battle_scene != NULL) {
