@@ -1527,8 +1527,8 @@ void DrawDngRoomInfo(DNGMAP_ROOM_INFO *room) {
         prim->Texture(Floor_InfoTex);
         prim->Color(128, 128, 128, alpha);
         int         ix = (int) left;
-        int         iy = (int) top;
-        Menu3DivideTextureDraw(prim, mgRect<int>(ix, iy, width, 0x46), dngboardbrdtbl, 1);
+        int         iy;
+        Menu3DivideTextureDraw(prim, mgRect<int>(ix, iy = (int) top, width, 0x46), dngboardbrdtbl, 1);
         Menu3DivideTextureDraw(prim, mgRect<int>(ix, iy + 0x46, width, height - 0x46 - dngboardbrdtbl[15]),
                                &dngboardbrdtbl[12], 1);
         Menu3DivideTextureDraw(prim, mgRect<int>(ix, iy + height - bottom_table[3], width, bottom_table[3]),
@@ -1540,11 +1540,10 @@ void DrawDngRoomInfo(DNGMAP_ROOM_INFO *room) {
         PrimQuad(prim, (float) (center - (Floor_Info.right >> 1)) - 1.0f, top + 10.0f, Floor_Info);
         prim->End();
 
-        int   right = ix + width;
-        int   right_text = right - 0x48;
+        int   right_text = ix + width - 0x48;
         float row_top = top + 68.0f;
         if (CheckNowEurope()) {
-            right_text = right - 0x54;
+            right_text = ix + width - 0x54;
         }
         mgRect<int> mark(0x7C, 0, 0x16, 0x16);
         mgRect<int> highlight(0x92, 0, 0x16, 0x16);
@@ -1588,18 +1587,17 @@ void DrawDngRoomInfo(DNGMAP_ROOM_INFO *room) {
             PrimQuad(prim, seal_x, seal_y, *seal);
             prim->Color(128, 128, 128, alpha);
         }
-        ix = (int) (left + 20.0f);
-        iy = (int) (2.0f + (68.0f + (float) iy));
-        int text_x = ix + 0x1C;
-        PrimQuad(prim, (float) ix, row_top, mark);
+        int icon_x = (int) (left + 20.0f);
+        int icon_row_y = iy = (int) (2.0f + (68.0f + (float) iy));
+        int text_x = icon_x + 0x1C;
+        PrimQuad(prim, (float) icon_x, row_top, mark);
         if (DngInfoFloorInfo != NULL && (DngInfoFloorInfo->flag & DNG_FLOOR_FLAG_FAST_DESTROY_CLEAR)) {
             highlight.left = medal_xytbl_1736[0];
-            PrimQuad(prim, (float) ix, (float) iy, highlight);
+            PrimQuad(prim, (float) icon_x, (float) icon_row_y, highlight);
         }
-        int icon_row_y = iy;
         {
             MenuDngMes[1]->SetMovePosGyou(0, text_x, iy);
-            int line_right = right - MenuDngMes[1]->line_w[1] - 0xE;
+            int line_right = ix + width - MenuDngMes[1]->line_w[1] - 0xE;
             if (CheckNowEurope()) {
                 line_right -= 8;
             }
@@ -1609,13 +1607,13 @@ void DrawDngRoomInfo(DNGMAP_ROOM_INFO *room) {
         iy += 0x16;
         shown = DngInfoRoomInfo;
         if (shown != NULL && shown->fishing) {
-            PrimQuad(prim, (float) ix, (float) icon_row_y, mark);
+            PrimQuad(prim, (float) icon_x, (float) icon_row_y, mark);
             if (DngInfoFloorInfo->flag & DNG_FLOOR_FLAG_FISHING_CLEAR) {
                 highlight.left = medal_xytbl_1736[2];
-                PrimQuad(prim, (float) ix, (float) icon_row_y, highlight);
+                PrimQuad(prim, (float) icon_x, (float) icon_row_y, highlight);
             }
             MenuDngMes[3]->SetMovePosGyou(0, text_x, iy);
-            MenuDngMes[3]->SetMovePosGyou(1, right - MenuDngMes[3]->line_w[1] - 0x10, iy);
+            MenuDngMes[3]->SetMovePosGyou(1, ix + width - MenuDngMes[3]->line_w[1] - 0x10, iy);
             if (MenuDngMes[3]->ClsMes::mes_no == 2) {
                 MenuDngMes[3]->SetMovePosGyou(1, right_text, iy);
             }
@@ -1625,23 +1623,23 @@ void DrawDngRoomInfo(DNGMAP_ROOM_INFO *room) {
         }
         shown = DngInfoRoomInfo;
         if (shown != NULL && shown->spheda) {
-            PrimQuad(prim, (float) ix, (float) icon_row_y, mark);
+            PrimQuad(prim, (float) icon_x, (float) icon_row_y, mark);
             int prize_x = right_text;
             if (DngInfoFloorInfo->flag & DNG_FLOOR_FLAG_SPHEDA_CLEAR) {
                 if (language > 0) {
                     prize_x -= 9;
                 }
                 if (CheckNowEurope()) {
-                    prize_x = right - MenuDngMes[4]->line_w[1] - 0x10;
+                    prize_x = ix + width - MenuDngMes[4]->line_w[1] - 0x10;
                 }
                 highlight.left = medal_xytbl_1736[3];
-                PrimQuad(prim, (float) ix, (float) icon_row_y, highlight);
+                PrimQuad(prim, (float) icon_x, (float) icon_row_y, highlight);
             } else if (CheckBitFlagMenu(0x13D)) {
                 if (language > 0) {
                     prize_x -= 0x20;
                 }
                 if (CheckNowEurope()) {
-                    prize_x = right - MenuDngMes[4]->line_w[1] - 0x10;
+                    prize_x = ix + width - MenuDngMes[4]->line_w[1] - 0x10;
                 }
             }
             MenuDngMes[4]->SetMovePosGyou(0, text_x, iy);
@@ -1649,10 +1647,10 @@ void DrawDngRoomInfo(DNGMAP_ROOM_INFO *room) {
             icon_row_y += 0x16;
             iy += 0x16;
         }
-        PrimQuad(prim, (float) ix, (float) icon_row_y, mark);
+        PrimQuad(prim, (float) icon_x, (float) icon_row_y, mark);
         if (DngInfoFloorInfo != NULL && (DngInfoFloorInfo->flag & DNG_FLOOR_FLAG_PRACTICE_CLEAR)) {
             highlight.left = medal_xytbl_1736[4];
-            PrimQuad(prim, (float) ix, (float) icon_row_y, highlight);
+            PrimQuad(prim, (float) icon_x, (float) icon_row_y, highlight);
         }
         if (language == 0) {
             MenuDngMes[5]->SetMovePosGyou(0, text_x, iy);
@@ -1661,17 +1659,17 @@ void DrawDngRoomInfo(DNGMAP_ROOM_INFO *room) {
         } else {
             MenuDngMes[5]->SetMovePosGyou(0, text_x, iy);
             if (MenuDngMes[5]->ClsMes::mes_no == 0x6C) {
-                MenuDngMes[5]->SetMovePosGyou(1, right - MenuDngMes[5]->line_w[1] - 0x10, iy);
+                MenuDngMes[5]->SetMovePosGyou(1, ix + width - MenuDngMes[5]->line_w[1] - 0x10, iy);
                 iy += 0x16;
             } else {
                 MenuDngMes[5]->SetMovePosGyou(1, text_x, iy + 0x16);
-                MenuDngMes[5]->SetMovePosGyou(2, right - MenuDngMes[5]->line_w[2] - 0x10, iy + 0x12);
+                MenuDngMes[5]->SetMovePosGyou(2, ix + width - MenuDngMes[5]->line_w[2] - 0x10, iy + 0x12);
                 iy += 0x2C;
             }
         }
         prim->End();
         MenuDngMes[6]->SetMovePosGyou(0, text_x, iy);
-        MenuDngMes[6]->SetMovePosGyou(1, right - MenuDngMes[6]->line_w[1] - 0x1A, iy);
+        MenuDngMes[6]->SetMovePosGyou(1, ix + width - MenuDngMes[6]->line_w[1] - 0x1A, iy);
 
         shown = DngInfoRoomInfo;
         if (shown != NULL && shown->geostone) {
