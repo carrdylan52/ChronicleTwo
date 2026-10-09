@@ -102,23 +102,53 @@ Seven cleanup steps and the medal table each pass PAL verification and
 
 ## Retained markers
 
-The following 20 initialized markers and four BSS markers remain.
-All frozen guarded blocks equal the checkpoint source verbatim.
+The following 13 initialized markers and four BSS markers remain after the
+October 9 round below. Every one is referenced only by the guarded
+`CMenuTreeMap::Step` assembly; the small-data ones are reached through
+numeric `$gp` offsets rather than symbols (`-0x7EA0`, `-0x7E98`, `-0x7134`,
+`-0x7130`, `-0x7128`).
 
 | Marker | Reason |
 |---|---|
-| `DngInfoMedalNumMsg__DATA` | Retail has twelve halfwords; frozen DrawDngRoomInfo declares sixteen. A correctly sized native definition conflicts with that declaration. |
-| `dngboardbrdtbl_1__DATA` | Retail has twelve halfwords; frozen DrawDngRoomInfo declares sixteen. |
 | `bitTable_2900__DATA` | Retail has nine words; frozen Step declares twelve. |
 | `at_3141__DATA` | Step-only compiler initializer; its body cannot generate native data in the matching build. |
-| `at_2682__DATA`, `at_2683__DATA`, `at_2684__DATA`, `at_2685__DATA` | Resource-name literals used only by frozen LoadDngInfo. |
-| `at_2826__DATA` | MSG_INIT literal used only by frozen MsgInit. |
 | `at_3342__DATA`, `at_3343__DATA`, `at_3344__DATA`, `at_3345__DATA`, `at_3346__DATA`, `at_3347__DATA`, `at_3348__DATA`, `at_3349__DATA`, `at_3350__DATA` | Script and time-text literals used only by frozen Step. |
 | `at_3043__DATA`, `at_3164__DATA` | Step-only compiler initializer data; natural use-site replacement requires editing that draft. |
 | `at_3040__2`, `at_3145`, `at_3199`, `at_3142` | Step-only zero initializer templates; native use-site emission is unavailable while the draft remains guarded. |
 
-Final markers: **99 / 42 -> 20 / 4**. Refreshed matched data:
+The first round ended at **99 / 42 -> 20 / 4** markers with matched data
 **4 / 3159 -> 36 / 3159 bytes**. The metric requires entire aggregate
 sections, so retained pieces prevent credit for the otherwise native data.
-No function is promoted, no profile row changes, and no foreign-file
-proposal is needed.
+That round promoted no function and changed no profile row.
+
+## October 9 (dngmenu-r0): data freed by promotions
+
+Base `423524f3` (DrawDngRoomInfo and MsgInit native). `LoadDngInfo` is
+promoted in the same round; see [night-20261008.md](night-20261008.md).
+
+| Step | Markers removed | Native form |
+|---|---|---|
+| LoadDngInfo resource names | `at_2682`, `at_2683`, `at_2684`, `at_2685` | The draft's own `"_dn"`, `"dngop_dn"`, `"dt_dn"` and `"dtname_dn"` literals. |
+| MsgInit script name | `at_2826` | `ExeScript("MSG_INIT")` in the native `MsgInit`. |
+| Floor-information frame tables | `DngInfoMedalNumMsg`, `dngboardbrdtbl_1` | Static `short[12]` definitions beside `dngboardbrdtbl` and `dngboardbrdtbl_2`, in retail order; their `[16]` externs are gone. |
+
+`DngInfoMedalNumMsg` holds the medal-count message position for each
+language as X/Y pairs: `(330, 10)` for languages 0–3 and `(330, 20)` for
+4–5. `DrawDngRoomInfo` reads `[language * 2]` and `[language * 2 + 1]`.
+`dngboardbrdtbl_1` holds three `(u, v, w, h)` texture rectangles for the
+frame's lower part when the room has a geostone row, `(58, 6, 24, 50)`,
+`(82, 6, 8, 50)` and `(90, 6, 24, 50)`; `dngboardbrdtbl_2` is the shorter
+variant without the row. Both retail symbols are LOCAL, 24 bytes; the native
+objects are 24 bytes and the postprocessor supplies the eight-byte alignment
+tail of each 0x20 piece.
+
+The route-order enum `DngRoutePointOrder` is replaced by `DNGMAP_PATH_ORDER`
+in `dngmenu.hpp` (`DNGMAP_PATH_NONE = -1`, `FORWARD = 0`, `REVERSE = 1`). It
+merges the draft's forward/reverse enum with the direction data's values.
+
+Each step passes a full build (`SCES_511.90: OK`) and 149/149 canonical
+object checks (`dngmenu: 0x8B98 bytes, 1277 relocations`). Receipts:
+`.private/dngmenu-r0/{lit,msginit,frame}-{build,objects}.log`.
+
+Markers: **20 / 4 -> 13 / 4**. Refreshed matched data stays **36 / 3159
+bytes**, because Step's retained pieces still hold every affected section.

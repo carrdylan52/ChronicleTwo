@@ -11,11 +11,11 @@ functions; they do not assert retail enum names.
 
 ## Current assembly gaps
 
-`LoadDngInfo` retains a C++ draft under `NONMATCHING`; the matching build
-selects its retail `INCLUDE_ASM` gap. `DrawRoomOne` and `CDngFreeMap::DrawRoot`
-are native and exact; see
-[night-20261008.md](night-20261008.md). The same applies to `DrawDngRoomInfo`,
-`CMenuTreeMap::MsgInit` and `Step`.
+`CMenuTreeMap::Step` is the unit's only remaining C++ draft under
+`NONMATCHING`; the matching build selects its retail `INCLUDE_ASM` gap.
+`CDngFreeMap::LoadDngInfo`, `DrawRoomOne`, `CDngFreeMap::DrawRoot`,
+`DrawDngRoomInfo` and `CMenuTreeMap::MsgInit` are native and exact; see
+[night-20261008.md](night-20261008.md).
 `CheckGeoramaMateria` and `CMenuTreeMap::InitEnd` are native and exact;
 see [r2.md](r2.md). Both classes' `Draw` functions are now native and exact;
 see [midday.md](midday.md) for complete-unit and baseline acceptance.
@@ -571,13 +571,11 @@ The comparison includes canonical section bytes and resolved relocations.
 
 The isolated `CDngFreeMap::Draw` promotion reaches object postprocessing but
 its generated `at_606` datum does not match the retail piece at 0x0036DA58.
-`LoadDngInfo` (31/1016 after night round 1; see
-[night-20261008.md](night-20261008.md)) cannot pass mwccgap's placeholder compile while its three typed
-`RootHokanTablePtrTable_2240__DATA`, `RoomHokanTablePtrTable_2245__DATA`, and
-`is_reverse_tbl_2246__DATA` declarations conflict with `INCLUDE_RODATA`
-placeholder types. Those tables require native typed data definitions before
-that draft can be compared. Isolated `CMenuTreeMap::Step` and `Draw` drafts
-also have declaration/type compilation failures; their guards cannot simply
+`LoadDngInfo` was blocked here by its typed `__DATA` route-table
+declarations conflicting with `INCLUDE_RODATA` placeholder types. The route
+tables are now native, and the function is native and exact; see
+[night-20261008.md](night-20261008.md). The isolated `CMenuTreeMap::Step` draft
+also has declaration/type compilation failures, so its guard cannot simply
 be removed. These results distinguish buildable drafts from native matches.
 
 ## DrawTreeMap
