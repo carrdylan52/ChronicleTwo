@@ -51,3 +51,20 @@ Exact source/profile/header proposals, direct mangler witnesses, native
 objects, ordered-section and target audits are under
 `.private/pntc/map-addparts-natural/`. Full wrapper, PAL and unrelated-artifact
 acceptance are still required before this zero counts as promoted.
+
+## Complete promotion acceptance
+
+The manual guard removal is accepted in the pn15 clean 29-caller group.
+The PAL verifier prints `SCES_511.90: OK`; all 149 complete objects pass,
+including map's 0x4730 checked bytes and 418 resolved relocations. The 306
+assembled objects and 149 source-only objects retain baseline whole-file
+hashes outside the nineteen promoted units. Linked game bytes and the
+loaded memory end remain baseline-identical. Explicit context/objdiff
+refresh reports 6,778 matched / 84 guarded / 10 assembly-only / zero fuzzy.
+
+Receipts are `.private/pntc/receipts/promote-twenty-nine-clean-build.log`,
+`promote-twenty-nine-objects.log`, `promote-twenty-nine-artifacts.json`,
+`promote-twenty-nine-progress.log` and `promote-twenty-nine-coverage.log`,
+with explicit zero exit files. The exact owning-header size correction
+remains `.private/proposals/map-addpartsgroup-symbol-size.patch`; the header
+is unchanged. Incidental comment-only size corrections are also private.

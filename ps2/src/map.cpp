@@ -144,7 +144,6 @@ CPartsGroup *CMap::GetPartsGroup(int no) {
 }
 
 
-#ifdef NONMATCHING
 int CMap::AddPartsGroup(char *name, CMapParts *parts, mgCMemory *memory) {
     int                    group_no;
     char                  *new_name;
@@ -168,17 +167,12 @@ int CMap::AddPartsGroup(char *name, CMapParts *parts, mgCMemory *memory) {
         group->name = new_name;
     }
 
-    if ((node = new ((u_long128 *) memory->Alloc(3)) CList<PartsGroupData>) != 0) {
-        node->data.parts = 0;
-    }
+    node = new (memory->Alloc(sizeof(CList<PartsGroupData>) / 16 + 2)) CList<PartsGroupData>;
 
     node->data.parts = parts;
     group->Add(node);
     return group_no;
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/map", AddPartsGroup__4CMapFPcP9CMapPartsP9mgCMemory);
-#endif
 template <>
 void CList<PartsGroupData>::Initialize() {
     prev = 0;
