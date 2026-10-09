@@ -126,7 +126,7 @@ void CScene::SoundAllStop() {
 }
 
 void CScene::InitLooSeMngr() {
-    loop_se_stack.stSetBuffer((u_long128 *) loop_se_buff, 0x200);
+    loop_se_stack.stSetBuffer(loop_se_buff, 0x200);
     loop_se.Initialize();
     loop_se.Create(0x30, &loop_se_stack);
     loop_se.Clear();
