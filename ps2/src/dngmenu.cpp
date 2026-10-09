@@ -373,12 +373,34 @@ struct RootMarkOffset {
 
 /** Destination rectangle used while drawing passage lines. */
 extern mgRect<float> treemap_root_put;
-/** Passage mark offsets selected by shape. */
-extern RootMarkOffset markOffsetTable_1092[];
-/** Mark offset of the final dungeon's diagonal passage. */
-extern RootMarkOffset zerumaito_offset_1110;
-/** Texture origins of the passage-type icons. */
-extern s16 root_type_texturecrd_1216[][2];
+/** Offsets of the passage marks within each passage shape. */
+static RootMarkOffset markOffsetTable_1092[10] = {
+    {6, -2},
+    {4, -2},
+    {4, -2},
+    {4, -2},
+    {4, -2},
+    {4, -2},
+    {4, -2},
+    {4, -2},
+    {4, -2},
+    {4, -2}
+};
+
+/** Offset of the special passage mark in dungeon six. */
+static RootMarkOffset zerumaito_offset_1110 = {
+    13, -11
+};
+
+/** Texture coordinates of the passage-type marks. */
+static s16 root_type_texturecrd_1216[5][2] = {
+    {0, 0},
+    {490, 0},
+    {490, 22},
+    {490, 44},
+    {294, 18}
+};
+
 
 void CDngFreeMap::DrawRoot(mgRect<float> rect, DNGMAP_ROOT_INFO *root, int shadow, unsigned int marks, int opacity) {
     if (root == NULL || (float) mgScreenWidth < rect.left || rect.top > (float) (mgScreenHeight + 20)) {
@@ -591,12 +613,24 @@ struct RoomGlyphOffset {
     s16 y; /**< Vertical glyph offset within the room picture. */
 };
 
-/** Source rectangles of the room-kind glyphs as x, y, width and height halfwords. */
-extern s16 get_moji_tbl_1524[];
-/** Destination offsets of the room-kind glyphs. */
-extern RoomGlyphOffset put_moji_tbl_1525[];
-/** Room-mark phase increment for menu and event maps. */
-extern float stepCntTbl_1501[2];
+/** Texture rectangles of the visited-room labels. */
+static s16 get_moji_tbl_1524[16] = {
+    0, 172, 62, 22, 0, 194, 62, 20, 0, 216, 62, 20, -1, 0, 0, 0
+};
+
+/** Destination offsets of the visited-room labels. */
+static RoomGlyphOffset put_moji_tbl_1525[4] = {
+    {20, -7},
+    {20, -7},
+    {20, 0},
+    {10, 10}
+};
+
+/** Room-mark animation speed in menu and event modes. */
+static float stepCntTbl_1501[2] = {
+    0.0628318563f, 0.125663713f
+};
+
 
 void CDngFreeMap::DrawRoomOne(mgRect<float> rect, DNGMAP_ROOM_INFO *room, unsigned int unused, int opacity, float brightness) {
     if (room == NULL || rect.left > (float) (mgScreenWidth + 20) || rect.top > (float) (mgScreenHeight + 30)) {
@@ -1031,8 +1065,16 @@ void DrawDngRoomInfo(DNGMAP_ROOM_INFO *room) {
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/dngmenu", DrawDngRoomInfo__FP16DNGMAP_ROOM_INFO);
 #endif
 extern mgRect<int>   Floor_Info;
-extern short         dngboardbrdtbl[24];
-extern short         dngboardbrdtbl_2[12];
+/** Texture rectangles of the upper and middle floor-information frame. */
+static short dngboardbrdtbl[24] = {
+    0, 0, 24, 70, 24, 0, 8, 70, 32, 0, 24, 70, 58, 2, 24, 4, 82, 2, 8, 4, 90, 2, 24, 4
+};
+
+/** Texture rectangles of the floor-information frame without a geostone row. */
+static short dngboardbrdtbl_2[12] = {
+    58, 22, 24, 36, 82, 22, 8, 36, 90, 22, 24, 36
+};
+
 extern char          at_1993[];
 
 /**
@@ -1153,7 +1195,11 @@ void CDngFreeMap::DrawTreeMap(int opacity) {
         }
     }
 }
-extern float dng_player_pos[2];
+/** Last player-marker position during event movement. */
+static float dng_player_pos[2] = {
+    0.0f, 0.0f
+};
+
 
 void CDngFreeMap::DrawPlayer(int opacity) {
     if (user_glid == NULL || koma_tex == NULL) {
@@ -1846,7 +1892,11 @@ void MakeDngTreeMapJumpNo(int dng_no, int floor_id, int *loop_no, int *map_no) {
         }
     }
 }
-extern s8           maxidtable_2752[7];
+/** Maximum floor number for each dungeon. */
+static s8 maxidtable_2752[7] = {
+    8, 15, 24, 20, 22, 28, 38
+};
+
 extern char         at_2681[];
 extern char         at_2786[];
 extern char         at_2787__2[];
@@ -2657,7 +2707,10 @@ int CMenuTreeMap::FadeInOutMenu() {
 /** Arena used for tree-menu objects and files. */
 extern mgCMemory     MenuTreeMapStack;
 /** Dungeon used by the floor-information panel. */
-extern u8            DngInfoStageNo;
+static u8 DngInfoStageNo = {
+    1
+};
+
 /**
  *
  * Carries the two file names read while opening the dungeon tree map.
@@ -2812,14 +2865,8 @@ void mgRect<float>::Set(float new_left, float new_top, float new_right, float ne
 }
 
 // Initialised data (.data)
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dngmenu", markOffsetTable_1092__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dngmenu", root_type_texturecrd_1216__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dngmenu", get_moji_tbl_1524__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dngmenu", put_moji_tbl_1525__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dngmenu", DngInfoMedalNumMsg__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dngmenu", dngboardbrdtbl__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dngmenu", dngboardbrdtbl_1__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dngmenu", dngboardbrdtbl_2__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dngmenu", medal_xytbl_1736__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dngmenu", RootTable_2119__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dngmenu", Table_2133__DATA);
@@ -2884,13 +2931,8 @@ INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dngmenu", at_3350__DATA);
 // Virtual tables (.vtables)
 
 // Small initialised data (.sdata)
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dngmenu", zerumaito_offset_1110__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dngmenu", stepCntTbl_1501__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dngmenu", DngInfoStageNo__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dngmenu", dng_player_pos__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dngmenu", old_hokantbl_useno_2247__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dngmenu", is_reverse_tbl_room_2248__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dngmenu", maxidtable_2752__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dngmenu", at_3043__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dngmenu", at_3164__DATA);
 

@@ -47,3 +47,21 @@ matched data 36 / 3159 bytes. Receipts use
 `dng-textures`, `dng-debug-literals`, `dng-jump-literals`,
 `dng-opening-literals`, `dng-cursor-literal`, and `dng-vtable` prefixes
 under `.private/nminv-r2/`.
+
+## Drawing tables
+
+The passage mark offsets, passage icon coordinates, flat visited-room glyph
+rectangles and their destination offsets, special dungeon-six mark offset,
+mark animation speeds, dungeon number, player position, floor limits, and
+two floor-frame texture tables now have typed native definitions.
+Their declared extents match retail, including the five icon coordinate
+rows, sixteen glyph halfwords, and seven floor-limit bytes. The flat glyph
+layout preserves the matched shared induction in `DrawRoomOne`.
+
+Each of these eleven definitions passes a separate full build and 149/149
+object check; receipts use `dng-table-<symbol>` prefixes. The first private
+mark-offset trial placed its definition before its source-local row type;
+placing definitions at their existing declaration sites resolves that
+compile-only issue. No unmatched candidate is retained.
+
+Markers: 62 / 5; matched data: 36 / 3159 bytes.
