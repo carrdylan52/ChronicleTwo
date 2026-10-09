@@ -492,11 +492,15 @@ def bind_local_data(elf, unit, placeholder_sections):
                 ours += sext16(struct.unpack_from("<I", original_data, lo)[0])
             else:
                 continue
-            # A negative member addend addresses storage before this native
-            # object. A retained preceding word cannot supply the table itself.
+            # Negative addends may use the object's own placeholder, but
+            # storage for a preceding word cannot supply the native table.
             if ours + target.st_value < 0:
-                continue
-            found = placeholder_at(theirs)
+                native_base = (theirs - ours - target.st_value) & 0xFFFFFFFF
+                found = placeholder_at(native_base)
+                if found is None or found[0] != native_base:
+                    continue
+            else:
+                found = placeholder_at(theirs)
             if found is None:
                 continue
             start, index = found

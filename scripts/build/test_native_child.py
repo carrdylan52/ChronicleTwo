@@ -67,6 +67,35 @@ class NativeChildTests(unittest.TestCase):
         self.assertEqual(elf.sections[1].data, struct.pack('<II', 0x3c020000, 0x24420000))
         self.assertEqual([ref.symbol_index for ref in elf.relocations[0].relocations], [3, 3])
 
+    def test_negative_addend_can_bind_to_the_tables_own_placeholder(self):
+        for kind in ('gp', 'hi_lo'):
+            with self.subTest(kind=kind):
+                fixture = self.fixture()
+                elf, held, lay, rows, retail = fixture
+                elf.sections[2].data = bytes(20)
+                elf.symtab.symbols[1].st_size = 20
+                elf.symtab.symbols[1].name = 'offset_99'
+                elf.sections.append(NS(name='.data', sh_flags=2, sh_name=0,
+                                       sh_type=1, data=bytes(20)))
+                elf.symtab.symbols.append(symbol('offset', 5, 20, bind=1))
+                held.add(5)
+                rows.append((0x3004, 'offset', 20, False))
+                lay.sections = lambda unit: [('.text', 0x1000, 0x1008), ('.data', 0x3000, 0x3018)]
+                if kind == 'gp':
+                    code = struct.pack('<I', 0x2782fffc)
+                    refs = [relocation(0, p.R_MIPS_GPREL16, 1)]
+                    retail.word = lambda address: 0x27821000
+                else:
+                    code = struct.pack('<II', 0x3c020000, 0x2442fffc)
+                    refs = [relocation(0, p.R_MIPS_HI16, 1), relocation(4, p.R_MIPS_LO16, 1)]
+                    retail.word = {0x1000: 0x3c020000, 0x1004: 0x24423000}.__getitem__
+                elf.sections[1].data = code
+                elf.relocations = [NS(sh_info=1, sh_name=0, name='.rel.text', relocations=refs)]
+                retail.bytes = lambda lo, hi: bytes(hi - lo)
+                self.assertEqual(self.apply(fixture), ['offset_99'])
+                self.assertEqual(elf.sections[1].data, code)
+                self.assertTrue(all(ref.symbol_index == 4 for ref in refs))
+
     def test_negative_addend_does_not_bind_table_to_preceding_placeholder(self):
         for kind in ('gp', 'hi_lo'):
             with self.subTest(kind=kind):

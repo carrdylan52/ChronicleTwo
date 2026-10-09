@@ -229,7 +229,8 @@ reference boundaries, so an alignment tail cannot swallow a separately reference
 word. Referenced interior addresses and explicit `D_<address>` source identifiers
 remain separate piece boundaries. A negative-addend table access cannot bind
 the table to a placeholder for the preceding word; its native identity and
-original addend remain intact. Rebinding computes addends from an immutable
+original addend remain intact. If the table itself has a retained placeholder,
+that exact base may supply it while preserving the negative addend. Rebinding computes addends from an immutable
 code snapshot, so rewriting a HI16 field cannot change the later LO16 decision.
 
 Native BSS templates, local statics and their guards need an exact declared
