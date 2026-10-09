@@ -271,7 +271,7 @@ public:
      *
      * @mangled TexAnime__15mgCTextureAnimeFiP13sceVif1Packet
      * @address 0x13C400
-     * @size 0x1460
+     * @size 0x1458
      */
     void TexAnime(int texb, sceVif1Packet *packet);
 
