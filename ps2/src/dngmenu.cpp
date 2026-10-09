@@ -39,6 +39,9 @@ static void DrawDngRoomInfo(DNGMAP_ROOM_INFO *room);
  *
  * Draws a paged list of georama materials for the dungeon room.
  *
+ * @mangled DrawGeoramaMateria__FiPciPii
+ * @address 0x1EEC10
+ * @size 0x400
  */
 void DrawGeoramaMateria(int top_y, char *title, int unused_count, int *items, int tex_block);
 
@@ -1708,11 +1711,6 @@ static short dngboardbrdtbl_2[12] = {
     58, 22, 24, 36, 82, 22, 8, 36, 90, 22, 24, 36
 };
 
-/**
- *
- * Draws a paged list of georama materials for the dungeon room.
- *
- */
 void DrawGeoramaMateria(int top_y, char *title, int unused_count, int *items, int tex_block) {
     int index;
     int x;
