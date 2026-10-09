@@ -135,3 +135,44 @@ The complete native `.bss` section now receives data credit: markers are
 **358 RODATA / 6 BSS**, and **2,884 / 10,332 matched_data**.
 Receipts are `natural-copy-ledger.log`, `copy-<group>-{build,objects,metrics}.log`,
 and `copy-final-{build,objects,metrics}.log`. No guarded draft changes.
+
+### Native generated tables checkpoint
+
+Thirty-three RODATA markers are redundant with the existing native C++
+aggregate initializers and switches. Removing them leaves the emitted bytes
+and resolved relocation targets unchanged, without new source objects or
+changes to the functions. The generated debug buffer and colour template are
+also emitted by the matched debug display function under its unchanged SF
+profile. The two dispatch tables belonging to guarded drafts remain explicit.
+
+| Removed retail aliases | Native source purpose |
+| --- | --- |
+| `at_1232` | Automatic command cursor layout initializer. |
+| `at_1462__3` | Command message dispatch jump table. |
+| `at_3316` | Inventory information dispatch jump table. |
+| `at_4350`, `at_4369__3`, `at_4410`, `at_4414`, `at_4485`, `at_4495__2`, `at_4509`, `at_4469` | Automatic cursor-transition layouts for item commands. |
+| `at_4674` | Item command dispatch jump table. |
+| `at_5458`, `at_5531`, `at_5534`, `at_5556__2`, `at_5563` | Automatic texture-preview layout initializers. |
+| `at_5763`, `at_5760` | Texture-preview page dispatch jump tables. |
+| `at_6480`, `at_6438`, `at_6814` | Automatic debug text buffer and RGBA initializers, and debug page dispatch jump table. |
+| `at_7349`, `at_7348` | Inventory key dispatch jump tables. |
+| `at_7695` | Automatic monster build-up board row counts. |
+| `at_7968` | Inventory preview selection dispatch jump table. |
+| `at_8084` | Preview model loading dispatch jump table. |
+| `at_8201`, `at_8200` | Preview model cleanup dispatch jump tables. |
+| `at_8421` | Cursor information dispatch jump table. |
+| `at_8825`, `at_8824` | Main item-menu input dispatch jump tables. |
+| `at_8869` | Main item-menu drawing dispatch jump table. |
+
+All sixteen groups pass PAL, 149/149 objects, protected guard checks and
+unowned hashes separately. Markers are **325 RODATA / 6 BSS**, and
+matched data remains **2,884 / 10,332**. Receipts are
+`generated-rodata-ledger.log` and
+`generated-<group>-{build,objects,metrics}.log` in `.private/dataD-r2/`.
+
+`CItemSelect::Draw` uses an automatic `ItemSelectColor` initialized to
+`{{0x80, 0x80, 0x80, 0}}`, then replaces the alpha byte with the current fade.
+Its native four-byte initializer replaces the external `at_9055` copy and
+marker without changing the object. The final generated-data checkpoint is
+**324 RODATA / 6 BSS** and **2,884 / 10,332 matched_data**, with the same
+PAL and 149-object guarantees (`generated-selector-color-*` receipts).
