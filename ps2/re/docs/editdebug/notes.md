@@ -207,3 +207,8 @@ case analysis.
 `GetLightingInfo` and `OutputLightData` through `map->map_info` (CMap's first
 member) and names its pages with `LIGHTING_EDIT_PAGE`; both forms compile to
 the same object.
+
+The `aligned(16)` attribute on the background page's `colors` pointer array
+fixes its stack slot. Without it, the frame offset of the local that retail
+addresses at `0x6430($sp)` (`addiu $13, $29, 0x6430` at 0x1A9994) changes,
+and LightingEdit no longer matches.
