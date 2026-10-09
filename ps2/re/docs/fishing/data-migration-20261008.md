@@ -152,3 +152,19 @@ UkiCameraInfo, MotionBuff, ReadStack, FishingBuff and FishStack. The complete
 initializer and every caller remain byte-identical. No storage or runtime
 initialization branch is added. Receipt:
 `.private/dataD-r1/fishing-storage-order-{build,objects}.log`.
+
+## Final acceptance
+
+Final state: **25 INCLUDE_RODATA / 0 INCLUDE_BSS**, from **104 / 106**;
+**1868 / 5145 matched_data**, from **4 / 5145**. All 57 native functions
+remain exact, no function is promoted, and all three guarded drafts and the
+SF-selected function are unchanged. Every retained marker is listed above.
+No shared-header or toolchain proposal is needed for these accepted changes.
+
+The final full build reports `SCES_511.90: OK`; canonical object checks pass
+149/149. Only the three owned object file hashes differ from the warm baseline,
+with their allocated bytes and resolved relocations still exact. Final refresh,
+coverage and measures use the required objdiff/progress pipeline. Receipts:
+`.private/dataD-r1/dataD-final-{build,objects,progress,coverage,metrics}.log`.
+The ownership, author and retained-marker audit passes. The expected dirty
+`tools/mwccgap` gitlink is unstaged and is not part of any lane commit.
