@@ -319,18 +319,6 @@ void S51Thunder(CScene *scene) {
 }
 
 void InitFirePowder(int map_no, CScene *scene, int texb, mgCMemory *memory) {
-    /**
-     *
-     * Fog colours selected by a frame's visual attributes.
-     *
-     */
-    enum FrameFogMode {
-        FRAME_FOG_OFF = 0,   /**< Disable fog. */
-        FRAME_FOG_SCENE = 1, /**< Use the scene fog colour. */
-        FRAME_FOG_BLACK = 2, /**< Blend toward black. */
-        FRAME_FOG_WHITE = 3  /**< Blend toward white. */
-    };
-
     int          i;
     FirePowder  *particle;
     mgC3DSprite *created;
@@ -348,7 +336,7 @@ void InitFirePowder(int map_no, CScene *scene, int texb, mgCMemory *memory) {
 
     u_char *buffer = (u_char *) scene->read_buff;
 
-    if (LoadFile2("effect/firerain.img", buffer, &size, 0) == 0) {
+    if (LoadFile2("effect/firerain.img", buffer, &size, LOAD_FILE_READ) == 0) {
         return;
     }
 
@@ -366,7 +354,7 @@ void InitFirePowder(int map_no, CScene *scene, int texb, mgCMemory *memory) {
     FirePowFrame = new ((u_long128 *) memory->Alloc(0x13)) mgCFrame;
     mgCFrameAttr *attr = new ((u_long128 *) memory->Alloc(0xB)) mgCFrameAttr;
     FirePowFrame->attr = attr;
-    attr->fog = FRAME_FOG_BLACK;
+    attr->fog = 2;
     attr->z_write = MG_ZBUF_NO_WRITE;
     FirePowFrame->SetVisual(SpriteVis);
 

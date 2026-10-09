@@ -161,3 +161,12 @@ needs evidence for native inline-constructor result/null-test scheduling before
 using that tail to calibrate constants. Receipts:
 `.private/midday/probes/editexception/` and
 `.private/midday/m2c/InitFirePowder__FiP6CSceneiP9mgCMemory.txt`.
+
+## Frame fog modes
+
+`mgCFrameAttr::fog` uses the frame renderer's shared mode values: zero
+turns fog off, one uses the scene colour, two selects black and three
+selects white. These modes belong in `mg_frame.hpp` beside the other frame
+attribute enums. `InitFirePowder` uses the established value two without a
+function-local enum until that owning-header proposal is adopted. The
+literal fallback preserves the complete object and PAL executable match.
