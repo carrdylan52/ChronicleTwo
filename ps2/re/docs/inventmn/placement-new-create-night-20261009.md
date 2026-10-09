@@ -164,6 +164,6 @@ SHA-256 `a103b0461a88e443a3af684cf150c05b5bd355e5a97ab2dc029c4d872bed0811`,
 and the memory end remains 0x01f64a00. Whole ELF metadata differs, as expected
 when native definitions replace assembly. Explicit context/objdiff refresh
 reports 6,776 matched, 86 guarded drafts, ten assembly-only and zero fuzzy.
-The guard is removed only after those checks. Acceptance receipts are
+The manually removed guard is accepted only after those checks. Receipts are
 `.private/pntc/receipts/promote-twenty-seven-{final-build,objects,artifacts,progress,coverage}`
 with logs, explicit zero statuses and the artifact JSON.
