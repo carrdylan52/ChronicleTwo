@@ -1856,7 +1856,7 @@ int EditLoop() {
         }
         if (LoopMode == EDIT_LOOP_EDIT_PRE_MENU) {
             PreEditMenuCnt++;
-            if (MenuInfo->param[0] < 0 || PreEditMenuCnt >= 25) {
+            if (MenuInfo->param[0] < 0 || PreEditMenuCnt > 24) {
                 menu_mode = EDIT_LOOP_EDIT_MENU;
                 MenuInfo->open_type = MENU_OPEN_GEORAMA;
                 open_menu = 1;
