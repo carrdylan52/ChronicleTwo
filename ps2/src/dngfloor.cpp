@@ -1241,7 +1241,5 @@ int CheckFishingRecord(float size) {
     return 0;
 }
 
-// Initialised data (.data)
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dngfloor", D_0036178C__DATA);
 
 // Constants (.rodata)

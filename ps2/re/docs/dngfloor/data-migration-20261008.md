@@ -74,3 +74,27 @@ Native data credit: 38 → 324 / 836.
 Validation: `.private/dtool-r4/dngfloor-{build,objects,tests}.log`.
 PAL is byte-identical and all 149 complete objects pass. Other game objects
 retain their baseline hashes, and the code metric is unchanged.
+
+## Round-5 native alignment boundary
+
+The native room-option template has a 40-byte declared extent at
+`0x00361760`. MWCC aligns the next native five-int `offsetTable_911` to
+16 bytes at `0x00361790`, requiring eight zero bytes after the template.
+The canonical reference cut at `0x0036178C` divides that alignment tail
+into two four-byte pieces. The verified native alignment path now supplies
+the latter piece under its original address label, so its marker is removed.
+Neither object changes type, initializer, size, or consumer code.
+
+The tooling retains original compiler extents before literal padding,
+requires both exact neighboring native objects and the complete zero tail,
+and rejects declared, relocated, aliased or marker-held gap contents. The
+padding label is not a source variable. All code relocation fields remain
+unchanged, including the negative-addend table access.
+
+Markers: RODATA **1 → 0**, BSS **0 → 0**. Refreshed matched data:
+**324 → 836 / 836**. PAL is `SCES_511.90: OK` and all **149/149** objects
+pass; only `dngfloor` and the simultaneously migrated `gyorace` object
+change hashes. Code metrics remain **6,780 functions / 1,854,796 bytes**.
+Receipts: `.private/dtool-r5/alignment-data-{build,objects,tests,metrics}.log`.
+The missing-fragment regression before the tool fix is
+`.private/dtool-r5/alignment-tests-before.log`.
