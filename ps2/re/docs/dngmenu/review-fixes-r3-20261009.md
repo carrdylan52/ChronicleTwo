@@ -27,11 +27,11 @@ record already distinguish the promoted functions from historical probes at
 m72, so their round-two stale-status findings need no further status edits.
 Q/R's negative first-assignment result is recorded without repeating it.
 
-Step's second message-alpha loop remains untouched because bigdraft-r0 owns
-the guarded block. `.private/proposals/dng-step-message-count.patch` supplies
-that one-line enum substitution for the coordinator. Shared save-flag naming
-likewise requires the unowned `savedata.hpp`; the unapplied proposal is
-`.private/proposals/save-spheda-flag.patch`.
+The lane left Step's second message-alpha loop to bigdraft-r0. Step is now
+native, and the Step cleanup uses `DNG_TREE_MAP_MES_MAX` for the loop.
+Shared save-flag naming is integrated in `savedata.hpp` and the
+DrawDngRoomInfo consumer; Step's two consumers also use
+`SAVE_FLAG_SPHEDA_UNLOCKED` after the Step cleanup.
 
 Full pinned-image build: `SCES_511.90: OK`; canonical objects: 149/149.
 Receipts: `.private/fixes-r3b/receipts/dng-cleanup-final-{build,objects}.log`.

@@ -23,9 +23,8 @@ Adding `[2]` changed inventmn's object and PAL layout, so that probe is not
 repeated. The defense casts mentioned in the review belong to a guarded
 block and are out of scope here.
 
-The shared `0x13D` save flag needs an addition to the unowned `savedata.hpp`
-enum; `.private/proposals/save-spheda-flag.patch` includes the native
-menusys consumer. It remains unapplied pending integration by that owner.
+The shared `0x13D` save-flag proposal is integrated: `savedata.hpp` defines
+`SAVE_FLAG_SPHEDA_UNLOCKED`, and the native menusys consumer uses it.
 
 The normal full pinned-image build verifies `SCES_511.90: OK`, and all 149
 canonical objects pass. Receipts:

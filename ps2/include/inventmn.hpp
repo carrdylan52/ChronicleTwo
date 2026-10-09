@@ -9,7 +9,6 @@
 #include "mg_tanime.hpp"
 #include "userdata.hpp"
 
-
 /**
  * @file
  * Declares the invention menu: the photos the player takes with the camera,

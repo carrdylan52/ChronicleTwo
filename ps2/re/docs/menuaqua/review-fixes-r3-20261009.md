@@ -46,9 +46,8 @@ Full pinned-image build: `SCES_511.90: OK`; canonical object comparison:
 `MENU_SCRIPT_SOUND_CANCEL` by the menu script interface. Aquarium and
 saved-race callers use it for cancel buttons, declined confirmations and
 unavailable selections. All direct sound-five calls and `se = 5` assignments
-in this owned unit now use the shared sound ID. The unowned `menucommon.hpp`
-alias can be made explicit with
-`.private/proposals/menu-script-cancel-sound.patch`; it is not edited here.
+in this owned unit now use the shared sound ID. The later integration also
+sets `MENU_SCRIPT_SOUND_CANCEL = SYSTEM_SE_CANCEL` in `menucommon.hpp`.
 
 All 24 currently declared `GyoraceMenuMode` values have purpose comments.
 The review's count of 23 omits the draw-only `LOAD_BOARD` value 0x43, whose
