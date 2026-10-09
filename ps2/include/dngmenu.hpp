@@ -61,8 +61,8 @@ enum DNGMAP_PATH_ORDER {
  *
  */
 enum {
-    DNGMAP_ROOT_HOKAN_POINTS = 20, /**< Interpolation points in a passage path, excluding its terminator. */
-    DNGMAP_ROOM_HOKAN_POINTS = 10, /**< Interpolation points in a room path, excluding its terminator. */
+    DNGMAP_ROOT_HOKAN_POINTS = 20,    /**< Interpolation points in a passage path, excluding its terminator. */
+    DNGMAP_ROOM_HOKAN_POINTS = 10,    /**< Interpolation points in a room path, excluding its terminator. */
     DNGMAP_MARK_MAX = 8,              /**< Room marks the map can queue in one frame. */
     DNGMAP_BLINK_CYCLE = 100,         /**< Frames one cycle of the map's blink counter lasts. */
     DNG_TREE_MAP_MES_MAX = 8,         /**< Message windows the tree map menu holds. */

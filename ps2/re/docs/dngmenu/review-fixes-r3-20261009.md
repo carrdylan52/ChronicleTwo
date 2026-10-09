@@ -11,3 +11,27 @@ form verified by the round-two review.
 The full pinned-image build verifies `SCES_511.90: OK` and the canonical
 checker passes 149/149 objects. Function selection and profile rows are
 unchanged. Receipts: `.private/fixes-r3b/receipts/dng-statics-{build,objects}.log`.
+
+## S2 and source nits: room drawing and route access
+
+Sprite batches use `MG_PRIM_SPRITE`. The room-info alpha loop uses
+`DNG_TREE_MAP_MES_MAX`. The forward declaration documents the LOCAL retail
+symbol at `0x1EE0F0`, size `0xB18`; the definition has no duplicate block.
+The redundant scope around `line_right`, same-width image cast spelling,
+and explicit float casts on signed-halfword route points are removed.
+Implicit conversion by the existing floating addition preserves each value.
+
+The current native frame tables and pointer-to-coordinate-pair route tables
+are described accurately in the night notes. `notes.md` and the data-migration
+record already distinguish the promoted functions from historical probes at
+m72, so their round-two stale-status findings need no further status edits.
+Q/R's negative first-assignment result is recorded without repeating it.
+
+Step's second message-alpha loop remains untouched because bigdraft-r0 owns
+the guarded block. `.private/proposals/dng-step-message-count.patch` supplies
+that one-line enum substitution for the coordinator. Shared save-flag naming
+likewise requires the unowned `savedata.hpp`; the unapplied proposal is
+`.private/proposals/save-spheda-flag.patch`.
+
+Full pinned-image build: `SCES_511.90: OK`; canonical objects: 149/149.
+Receipts: `.private/fixes-r3b/receipts/dng-cleanup-final-{build,objects}.log`.

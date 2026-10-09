@@ -32,6 +32,9 @@
  *
  * Draws the selected room's floor information and completion medals.
  *
+ * @mangled DrawDngRoomInfo__FP16DNGMAP_ROOM_INFO
+ * @address 0x1EE0F0
+ * @size 0xB18
  */
 static void DrawDngRoomInfo(DNGMAP_ROOM_INFO *room);
 
@@ -449,7 +452,7 @@ void CDngFreeMap::DrawBackPattern(int opacity) {
         SetSpriteEnv(prim, 2);
         prim->Bilinear(1);
         prim->AntiAliasing(1);
-        prim->Begin(6);
+        prim->Begin(MG_PRIM_SPRITE);
         prim->Color(0, 0, 0, 32);
         prim->Vertex(0, 0, 0);
         prim->Vertex(mgScreenWidth, mgScreenHeight, 0);
@@ -471,7 +474,7 @@ void CDngFreeMap::DrawDngName(int opacity) {
         tex_rect.Set(0, 0, 256, 96);
         mgCDrawPrim *prim = GetMenuPrim();
         SetSpriteEnv(prim, 0);
-        prim->Begin(6);
+        prim->Begin(MG_PRIM_SPRITE);
         prim->Texture(name_tex);
         prim->Color(10, 10, 10, static_cast<int>(0.25f * static_cast<float>(opacity)));
         PrimQuad(prim, 4.0f, 4.0f, tex_rect);
@@ -487,7 +490,7 @@ void CDngFreeMap::DrawLast() {
     mgCDrawPrim *prim = GetMenuPrim();
     SetSpriteEnv(prim, 4);
     prim->AlphaBlend(1);
-    prim->Begin(6);
+    prim->Begin(MG_PRIM_SPRITE);
     prim->Texture(last_tex);
     prim->Color(128, 128, 128, 128);
     prim->TextureCrd(0, 0);
@@ -1030,11 +1033,6 @@ static short dngboardbrdtbl_2[12] = {
     58, 22, 24, 36, 82, 22, 8, 36, 90, 22, 24, 36
 };
 
-/**
- *
- * Draws the dungeon room information panel and its available activities.
- *
- */
 void DrawDngRoomInfo(DNGMAP_ROOM_INFO *room) {
     /**
      *
@@ -1085,7 +1083,7 @@ void DrawDngRoomInfo(DNGMAP_ROOM_INFO *room) {
                         fill_alpha, 12, 12, 12);
         mgCDrawPrim *prim = GetMenuPrim();
         SetSpriteEnv(prim, 0);
-        prim->Begin(6);
+        prim->Begin(MG_PRIM_SPRITE);
         prim->Texture(Floor_InfoTex);
         prim->Color(128, 128, 128, alpha);
         int         ix = (int) left;
@@ -1096,7 +1094,7 @@ void DrawDngRoomInfo(DNGMAP_ROOM_INFO *room) {
         Menu3DivideTextureDraw(prim, mgRect<int>(ix, iy + height - bottom_table[3], width, bottom_table[3]),
                                bottom_table, 1);
         prim->End();
-        prim->Begin(6);
+        prim->Begin(MG_PRIM_SPRITE);
         prim->Texture(Floor_InfoTex);
         prim->Color(128, 128, 128, alpha);
         PrimQuad(prim, (float) (center - (Floor_Info.right >> 1)) - 1.0f, top + 10.0f, Floor_Info);
@@ -1110,7 +1108,7 @@ void DrawDngRoomInfo(DNGMAP_ROOM_INFO *room) {
         mgRect<int> mark(0x7C, 0, 0x16, 0x16);
         mgRect<int> highlight(0x92, 0, 0x16, 0x16);
         prim->Bilinear(1);
-        prim->Begin(6);
+        prim->Begin(MG_PRIM_SPRITE);
         prim->Texture(Floor_InfoTex);
         prim->Color(128, 128, 128, alpha);
         if (MenuDngMes[0] != NULL) {
@@ -1159,14 +1157,12 @@ void DrawDngRoomInfo(DNGMAP_ROOM_INFO *room) {
             highlight.left = medal_xytbl[0];
             PrimQuad(prim, (float) icon_x, (float) icon_row_y, highlight);
         }
-        {
-            MenuDngMes[1]->SetMovePosGyou(0, text_x, iy);
-            int line_right = ix + width - MenuDngMes[1]->line_w[1] - 0xE;
-            if (CheckNowEurope()) {
-                line_right -= 8;
-            }
-            MenuDngMes[1]->SetMovePosGyou(1, line_right, iy);
+        MenuDngMes[1]->SetMovePosGyou(0, text_x, iy);
+        int line_right = ix + width - MenuDngMes[1]->line_w[1] - 0xE;
+        if (CheckNowEurope()) {
+            line_right -= 8;
         }
+        MenuDngMes[1]->SetMovePosGyou(1, line_right, iy);
         icon_row_y += 0x16;
         iy += 0x16;
         shown = DngInfoRoomInfo;
@@ -1239,7 +1235,7 @@ void DrawDngRoomInfo(DNGMAP_ROOM_INFO *room) {
         if (shown != NULL && shown->geostone) {
             MenuDngMes[7]->SetMovePosGyou(0, center - (MenuDngMes[7]->line_w[0] >> 1), iy + 0x24);
         }
-        for (int i = 0; i < 8; ++i) {
+        for (int i = 0; i < DNG_TREE_MAP_MES_MAX; ++i) {
             MenuDngMes[i]->SetMsgAlpha(alpha);
         }
         if (MenuDCMsg[5] != NULL) {
@@ -1340,7 +1336,7 @@ void CDngFreeMap::DrawTreeMap(int opacity) {
         float reach_y = 40.0f - 40.0f * DngTreeMapActiveLightRate;
         SetSpriteEnv(prim, 4);
         prim->Bilinear(0);
-        prim->Begin(6);
+        prim->Begin(MG_PRIM_SPRITE);
         prim->Texture(map_tex);
         prim->Color(128, 128, 128, (int) (0.5f * (float) opacity));
         prim->TextureCrd(dng_light_circle.left, dng_light_circle.top);
@@ -1411,7 +1407,7 @@ void CDngFreeMap::DrawPlayer(int opacity) {
     mgCDrawPrim *prim = GetMenuPrim();
     SetSpriteEnv(prim, 0);
     prim->Bilinear(1);
-    prim->Begin(6);
+    prim->Begin(MG_PRIM_SPRITE);
     prim->Texture(koma_tex);
     int level = (int) brightness;
     prim->Color(level, level, level, static_cast<int>(sprite_alpha));
@@ -1532,7 +1528,7 @@ void CDngFreeMap::Draw() {
             mgCDrawPrim *prim = GetMenuPrim();
             SetSpriteEnv(prim, 0);
             prim->Bilinear(1);
-            prim->Begin(6);
+            prim->Begin(MG_PRIM_SPRITE);
             prim->Texture(name_tex);
             prim->Color(128, 128, 128, opacity);
             for (int i = 0; i < mark_num; i++) {
@@ -2132,7 +2128,7 @@ int CDngFreeMap::LoadDngInfo(mgCMemory *stack, int block, int dungeon, int room,
         unsigned int size = LoadFileMenu(filename, buffer, MENU_FILE_LOAD_DIRECT);
         unsigned int quadwords = (size & 15) ? (size >> 4) + 1 : size >> 4;
         memory.Alloc(quadwords);
-        MenuEnterIMG(tex_block, (unsigned char *) buffer, "_dn");
+        MenuEnterIMG(tex_block, (u8 *) buffer, "_dn");
         koma_tex = mgTexManager.GetTexture("dngop_dn", -1);
         map_tex = mgTexManager.GetTexture("dt_dn", -1);
         name_tex = mgTexManager.GetTexture("dtname_dn", -1);
@@ -2401,16 +2397,16 @@ int CDngFreeMap::LoadDngInfo(mgCMemory *stack, int block, int dungeon, int room,
         if (room_order == DNGMAP_PATH_FORWARD) {
             for (room_index = 0; room_index < DNGMAP_ROOM_HOKAN_POINTS; room_index++) {
                 DNGMAP_KOMA_POS *node = (DNGMAP_KOMA_POS *) memory.Alloc(1);
-                node->x = x + (float) points[room_index][0];
-                node->y = y + (float) points[room_index][1];
+                node->x = x + points[room_index][0];
+                node->y = y + points[room_index][1];
                 tail->next = node;
                 tail = node;
             }
         } else if (room_order == DNGMAP_PATH_REVERSE) {
             for (room_index = DNGMAP_ROOM_HOKAN_POINTS - 1; room_index >= 0; room_index--) {
                 DNGMAP_KOMA_POS *node = (DNGMAP_KOMA_POS *) memory.Alloc(1);
-                node->x = x + (float) points[room_index][0];
-                node->y = y + (float) points[room_index][1];
+                node->x = x + points[room_index][0];
+                node->y = y + points[room_index][1];
                 tail->next = node;
                 tail = node;
             }
@@ -2429,16 +2425,16 @@ int CDngFreeMap::LoadDngInfo(mgCMemory *stack, int block, int dungeon, int room,
                 if (passage_order == DNGMAP_PATH_FORWARD) {
                     for (passage_index = 0; passage_index < DNGMAP_ROOT_HOKAN_POINTS; passage_index++) {
                         DNGMAP_KOMA_POS *node = (DNGMAP_KOMA_POS *) memory.Alloc(1);
-                        node->x = gx + (float) curve[passage_index][0];
-                        node->y = gy + (float) curve[passage_index][1];
+                        node->x = gx + curve[passage_index][0];
+                        node->y = gy + curve[passage_index][1];
                         tail->next = node;
                         tail = tail->next;
                     }
                 } else if (passage_order == DNGMAP_PATH_REVERSE) {
                     for (passage_index = DNGMAP_ROOT_HOKAN_POINTS - 1; passage_index >= 0; passage_index--) {
                         DNGMAP_KOMA_POS *node = (DNGMAP_KOMA_POS *) memory.Alloc(1);
-                        node->x = gx + (float) curve[passage_index][0];
-                        node->y = gy + (float) curve[passage_index][1];
+                        node->x = gx + curve[passage_index][0];
+                        node->y = gy + curve[passage_index][1];
                         tail->next = node;
                         tail = node;
                     }
@@ -2450,16 +2446,16 @@ int CDngFreeMap::LoadDngInfo(mgCMemory *stack, int block, int dungeon, int room,
                 if (through_room_order == DNGMAP_PATH_FORWARD) {
                     for (through_room_index = 0; through_room_index < DNGMAP_ROOM_HOKAN_POINTS; through_room_index++) {
                         DNGMAP_KOMA_POS *node = (DNGMAP_KOMA_POS *) memory.Alloc(1);
-                        node->x = gx + (float) curve[through_room_index][0];
-                        node->y = gy + (float) curve[through_room_index][1];
+                        node->x = gx + curve[through_room_index][0];
+                        node->y = gy + curve[through_room_index][1];
                         tail->next = node;
                         tail = node;
                     }
                 } else if (through_room_order == DNGMAP_PATH_REVERSE) {
                     for (through_room_index = DNGMAP_ROOM_HOKAN_POINTS - 1; through_room_index >= 0; through_room_index--) {
                         DNGMAP_KOMA_POS *node = (DNGMAP_KOMA_POS *) memory.Alloc(1);
-                        node->x = gx + (float) curve[through_room_index][0];
-                        node->y = gy + (float) curve[through_room_index][1];
+                        node->x = gx + curve[through_room_index][0];
+                        node->y = gy + curve[through_room_index][1];
                         tail->next = node;
                         tail = node;
                     }
@@ -3356,7 +3352,7 @@ void CMenuTreeMap::Draw() {
             textures->ReloadTexture(Floor_InfoTex->block, (sceVif1Packet *) NULL);
             int alpha = dngfloor_backdraw_alpha * 2;
             SetSpriteEnv(prim, 0);
-            prim->Begin(6);
+            prim->Begin(MG_PRIM_SPRITE);
             prim->Texture(Floor_InfoTex);
             prim->Color(0, 0, 0, alpha / 3);
             PrimQuad(prim, 289.0f, 25.0f, mgRect<int>(0, 182, 164, 56));
@@ -3419,7 +3415,7 @@ void CMenuTreeMap::Draw() {
         textures->ReloadTexture(Floor_InfoTex->block, (sceVif1Packet *) NULL);
         SetSpriteEnv(prim, 0);
         int y_money = mgScreenHeight - 76;
-        prim->Begin(6);
+        prim->Begin(MG_PRIM_SPRITE);
         prim->Texture(Floor_InfoTex);
         prim->Color(128, 128, 128, 128);
         PrimQuad(prim, 302.0f, (float) y_money, mgRect<int>(0, 144, 184, 36));

@@ -379,7 +379,7 @@ then places four challenge rows and their message windows; the medal message
 uses a language-specific position.
 
 The completion overlay uses signed halfword X coordinates from
-`medal_xytbl_1736`, assigning only the highlight rectangle's left field.
+the function-local `medal_xytbl`, assigning only the highlight rectangle's left field.
 Offsets 0, 4, 6, and 8 supply X positions 168, 212, 234, and 146 for the
 timed-clear, fishing, spheda, and final medal rows. The native function
 contains these typed reads; the rectangle retains top 0 and size 22 by 22.
