@@ -584,7 +584,7 @@ void CShopMenu::AttachForm() {
         list_y += 48.0f;
     }
 
-    GiftBoxViewForm = (CMenuPosDataForm *) MenuPosData->GetFormInfo("giftview");
+    GiftBoxViewForm = MenuPosData->GetFormInfo("giftview");
 }
 
 int CShopMenu::IsCancelNoneLoadItem() {
