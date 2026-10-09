@@ -97,3 +97,135 @@ The confirmation buffer scope probe changes 15 linked text bytes in
 IsAskExtend, beginning at the prologue, and is reverted. It adds no accepted
 source changes. `invent-templates-ask-scopes-{build,objects}.log` records
 that rejection.
+
+## Final inventory verification
+
+Native-only inlining of shared motion, stop, album and constructor-icon
+literals fails identity validation with their frozen consumers retained.
+The four `invent-shared-<step>-build.log` probes are reverted. Value
+initialization of the two confirmation aggregates also fails matching and
+is reverted (`invent-templates-ask-valueinit-build.log`). Neither probe
+introduces accepted helpers or dummy locals.
+
+Final inventory markers: 106 RODATA / 4 BSS (initially 261 / 51).
+Matched data: 36 / 18656 bytes (initially 4 / 18656). Existing enum names
+identify the known next-mode values. `invent-final-{build,objects}.log`
+verifies PAL OK and 149/149 objects after all reverts. All guarded blocks
+and headers remain identical to the checkpoint.
+
+## Retained markers
+
+Each row names one remaining marker; marker suffix `__DATA` is omitted.
+
+| Symbol | Reason |
+|---|---|
+| `menu_scoop_str_tag` | Native pointer-table identity probe fails; retain exact table and literal targets. |
+| `pic_tag` | Native pointer-table identity probe fails; retain exact table and literal targets. |
+| `invent_teigi_func` | Native pointer-table identity probe fails; retain exact table and literal targets. |
+| `Tb_2819` | Separately referenced interior address at the table alignment boundary; frozen consumer must remain unchanged. |
+| `D_003532DF` | Separately referenced interior address at the table alignment boundary; frozen consumer must remain unchanged. |
+| `at_2913` | Frozen `IsCreateObject__11CMenuInventFii`: initializer/literal/switch cannot be emitted by editing its body. |
+| `wavname_2960` | Native pointer-table identity probe fails; retain exact table and literal targets. |
+| `NewComer_5648` | Native pointer-table identity probe fails; retain exact table and literal targets. |
+| `at_1537` | Literal target of retained `menu_scoop_str_tag`. |
+| `at_1655__2` | Literal target of retained `pic_tag`. |
+| `at_1656__2` | Literal target of retained `pic_tag`. |
+| `at_1947` | Literal target of retained `invent_teigi_func`. |
+| `at_1948` | Literal target of retained `invent_teigi_func`. |
+| `at_2244` | Frozen `LoadCharaCheck__11CMenuInventFv`: initializer/literal/switch cannot be emitted by editing its body. |
+| `at_2245` | Frozen `LoadCharaCheck__11CMenuInventFv`: initializer/literal/switch cannot be emitted by editing its body. |
+| `at_2246` | Frozen `LoadCharaCheck__11CMenuInventFv`: initializer/literal/switch cannot be emitted by editing its body. |
+| `at_2247` | Frozen `LoadCharaCheck__11CMenuInventFv`: initializer/literal/switch cannot be emitted by editing its body. |
+| `at_2248` | Frozen `LoadCharaCheck__11CMenuInventFv`: initializer/literal/switch cannot be emitted by editing its body. |
+| `at_2249` | Frozen `LoadCharaCheck__11CMenuInventFv`, `IsCreateObject__11CMenuInventFii`: initializer/literal/switch cannot be emitted by editing its body. |
+| `at_2250` | Frozen `LoadCharaCheck__11CMenuInventFv`: initializer/literal/switch cannot be emitted by editing its body. |
+| `at_2251` | Frozen `LoadCharaCheck__11CMenuInventFv`: initializer/literal/switch cannot be emitted by editing its body. |
+| `at_2252` | Frozen `LoadCharaCheck__11CMenuInventFv`: initializer/literal/switch cannot be emitted by editing its body. |
+| `at_2253` | Frozen `LoadCharaCheck__11CMenuInventFv`, `MenuInventInit__FP9mgCMemoryPii`: initializer/literal/switch cannot be emitted by editing its body. |
+| `at_2820` | Literal target of retained `Tb_2819`. |
+| `at_2821` | Literal target of retained `Tb_2819`, `Tb_2819`, `Tb_2819`, `Tb_2819`, `Tb_2819`, `Tb_2819`. |
+| `at_2848` | Literal target of retained `gobitbl_2847`. |
+| `at_2849` | Literal target of retained `gobitbl_2847`. |
+| `at_2929` | Literal target of retained `getfilename_2928`. |
+| `at_2930` | Literal target of retained `getfilename_2928`. |
+| `at_2952__2` | Literal target of retained `sndfileName_2951`. |
+| `at_2953__2` | Literal target of retained `sndfileName_2951`. |
+| `at_2961` | Literal target of retained `wavname_2960`. |
+| `at_2962` | Literal target of retained `wavname_2960`. |
+| `at_2963` | Literal target of retained `wavname_2960`. |
+| `at_3113` | Frozen `IsCreateObject__11CMenuInventFii`: initializer/literal/switch cannot be emitted by editing its body. |
+| `at_3114` | Frozen `IsCreateObject__11CMenuInventFii`: initializer/literal/switch cannot be emitted by editing its body. |
+| `at_3115` | Frozen `IsCreateObject__11CMenuInventFii`: initializer/literal/switch cannot be emitted by editing its body. |
+| `at_3116` | Frozen `IsCreateObject__11CMenuInventFii`: initializer/literal/switch cannot be emitted by editing its body. |
+| `at_3117` | Frozen `IsCreateObject__11CMenuInventFii`: initializer/literal/switch cannot be emitted by editing its body. |
+| `at_3118` | Frozen `IsCreateObject__11CMenuInventFii`: initializer/literal/switch cannot be emitted by editing its body. |
+| `at_3119` | Frozen `IsCreateObject__11CMenuInventFii`: initializer/literal/switch cannot be emitted by editing its body. |
+| `at_3120` | Frozen `IsCreateObject__11CMenuInventFii`: initializer/literal/switch cannot be emitted by editing its body. |
+| `at_3121` | Frozen `IsCreateObject__11CMenuInventFii`: initializer/literal/switch cannot be emitted by editing its body. |
+| `at_3122` | Frozen `IsCreateObject__11CMenuInventFii`: initializer/literal/switch cannot be emitted by editing its body. |
+| `at_3123` | Frozen `IsCreateObject__11CMenuInventFii`: initializer/literal/switch cannot be emitted by editing its body. |
+| `at_3124` | Frozen `IsCreateObject__11CMenuInventFii`: initializer/literal/switch cannot be emitted by editing its body. |
+| `at_3125` | Frozen `IsCreateObject__11CMenuInventFii`: initializer/literal/switch cannot be emitted by editing its body. |
+| `at_3126` | Frozen `IsCreateObject__11CMenuInventFii`: initializer/literal/switch cannot be emitted by editing its body. |
+| `at_3127` | Frozen `IsCreateObject__11CMenuInventFii`: initializer/literal/switch cannot be emitted by editing its body. |
+| `at_3128` | Frozen `IsCreateObject__11CMenuInventFii`: initializer/literal/switch cannot be emitted by editing its body. |
+| `at_3129` | Frozen `IsCreateObject__11CMenuInventFii`: initializer/literal/switch cannot be emitted by editing its body. |
+| `at_3130` | Frozen `IsCreateObject__11CMenuInventFii`: initializer/literal/switch cannot be emitted by editing its body. |
+| `at_3131` | Frozen `IsCreateObject__11CMenuInventFii`: initializer/literal/switch cannot be emitted by editing its body. |
+| `at_3132` | Frozen `IsCreateObject__11CMenuInventFii`: initializer/literal/switch cannot be emitted by editing its body. |
+| `at_3133` | Frozen `IsCreateObject__11CMenuInventFii`: initializer/literal/switch cannot be emitted by editing its body. |
+| `at_3134` | Frozen `IsCreateObject__11CMenuInventFii`: initializer/literal/switch cannot be emitted by editing its body. |
+| `at_3135` | Frozen `IsCreateObject__11CMenuInventFii`: initializer/literal/switch cannot be emitted by editing its body. |
+| `at_3138` | Jump table generated by a frozen switch; removing it requires changing its frozen body. |
+| `at_4354` | Frozen `IsAccessAlbum__11CMenuInventFv`: initializer/literal/switch cannot be emitted by editing its body. |
+| `at_4355` | Frozen `IsAccessAlbum__11CMenuInventFv`: initializer/literal/switch cannot be emitted by editing its body. |
+| `at_4356` | Frozen `IsAccessAlbum__11CMenuInventFv`: initializer/literal/switch cannot be emitted by editing its body. |
+| `at_4357` | Frozen `IsAccessAlbum__11CMenuInventFv`: initializer/literal/switch cannot be emitted by editing its body. |
+| `at_4358` | Frozen `IsAccessAlbum__11CMenuInventFv`: initializer/literal/switch cannot be emitted by editing its body. |
+| `at_4359` | Frozen `IsAccessAlbum__11CMenuInventFv`: initializer/literal/switch cannot be emitted by editing its body. |
+| `at_4360` | Frozen `IsAccessAlbum__11CMenuInventFv`: initializer/literal/switch cannot be emitted by editing its body. |
+| `at_4361` | Frozen `IsAccessAlbum__11CMenuInventFv`: initializer/literal/switch cannot be emitted by editing its body. |
+| `at_4362` | Frozen `IsAccessAlbum__11CMenuInventFv`: initializer/literal/switch cannot be emitted by editing its body. |
+| `at_4363` | Frozen `IsAccessAlbum__11CMenuInventFv`: initializer/literal/switch cannot be emitted by editing its body. |
+| `at_4364` | Frozen `IsAccessAlbum__11CMenuInventFv`: initializer/literal/switch cannot be emitted by editing its body. |
+| `at_4365` | Frozen `IsAccessAlbum__11CMenuInventFv`: initializer/literal/switch cannot be emitted by editing its body. |
+| `at_4366` | Frozen `IsAccessAlbum__11CMenuInventFv`: initializer/literal/switch cannot be emitted by editing its body. |
+| `at_4367__2` | Frozen `IsAccessAlbum__11CMenuInventFv`: initializer/literal/switch cannot be emitted by editing its body. |
+| `at_4368__2` | Frozen `IsAccessAlbum__11CMenuInventFv`: initializer/literal/switch cannot be emitted by editing its body. |
+| `at_4369` | Frozen `IsAccessAlbum__11CMenuInventFv`: initializer/literal/switch cannot be emitted by editing its body. |
+| `at_4370` | Frozen `IsAccessAlbum__11CMenuInventFv`: initializer/literal/switch cannot be emitted by editing its body. |
+| `at_4371` | Frozen `IsAccessAlbum__11CMenuInventFv`: initializer/literal/switch cannot be emitted by editing its body. |
+| `at_4372` | Frozen `IsAccessAlbum__11CMenuInventFv`: initializer/literal/switch cannot be emitted by editing its body. |
+| `at_4373` | Frozen `IsAccessAlbum__11CMenuInventFv`: initializer/literal/switch cannot be emitted by editing its body. |
+| `at_4374` | Frozen `IsAccessAlbum__11CMenuInventFv`: initializer/literal/switch cannot be emitted by editing its body. |
+| `at_4375` | Frozen `IsAccessAlbum__11CMenuInventFv`: initializer/literal/switch cannot be emitted by editing its body. |
+| `at_4376` | Frozen `IsAccessAlbum__11CMenuInventFv`: initializer/literal/switch cannot be emitted by editing its body. |
+| `at_4377` | Frozen `IsAccessAlbum__11CMenuInventFv`: initializer/literal/switch cannot be emitted by editing its body. |
+| `at_4378` | Frozen `IsAccessAlbum__11CMenuInventFv`: initializer/literal/switch cannot be emitted by editing its body. |
+| `at_4379` | Frozen `IsAccessAlbum__11CMenuInventFv`: initializer/literal/switch cannot be emitted by editing its body. |
+| `at_4380` | Frozen `IsAccessAlbum__11CMenuInventFv`: initializer/literal/switch cannot be emitted by editing its body. |
+| `at_5011` | Shared constructor/MenuInventInit literal; native-only inlining fails identity validation while frozen references remain. |
+| `at_5012` | Shared constructor/MenuInventInit literal; native-only inlining fails identity validation while frozen references remain. |
+| `at_5013` | Shared constructor/MenuInventInit literal; native-only inlining fails identity validation while frozen references remain. |
+| `at_5014` | Frozen `MenuInventInit__FP9mgCMemoryPii`: initializer/literal/switch cannot be emitted by editing its body. |
+| `at_5015` | Frozen `MenuInventInit__FP9mgCMemoryPii`: initializer/literal/switch cannot be emitted by editing its body. |
+| `at_5016` | Frozen `MenuInventInit__FP9mgCMemoryPii`: initializer/literal/switch cannot be emitted by editing its body. |
+| `at_5649` | Literal target of retained `NewComer_5648`. |
+| `at_5650` | Literal target of retained `NewComer_5648`, `NewComer_5648`. |
+| `at_5651` | Literal target of retained `NewComer_5648`. |
+| `at_5652` | Literal target of retained `NewComer_5648`. |
+| `at_5653` | Literal target of retained `NewComer_5648`. |
+| `at_5654` | Literal target of retained `NewComer_5648`. |
+| `at_5742` | Frozen `MenuInventKey__Fv`: initializer/literal/switch cannot be emitted by editing its body. |
+| `at_5743` | Frozen `MenuInventKey__Fv`: initializer/literal/switch cannot be emitted by editing its body. |
+| `at_5744` | Frozen `MenuInventKey__Fv`: initializer/literal/switch cannot be emitted by editing its body. |
+| `at_5745` | Frozen `MenuInventKey__Fv`: initializer/literal/switch cannot be emitted by editing its body. |
+| `at_5746` | Frozen `MenuInventKey__Fv`: initializer/literal/switch cannot be emitted by editing its body. |
+| `at_5747` | Jump table generated by a frozen switch; removing it requires changing its frozen body. |
+| `gobitbl_2847` | Native pointer-table identity probe fails; retain exact table and literal targets. |
+| `getfilename_2928` | Native pointer-table identity probe fails; retain exact table and literal targets. |
+| `sndfileName_2951` | Native pointer-table identity probe fails; retain exact table and literal targets. |
+| `at_3739` (BSS) | Confirmation buffer template; natural scope/value-initialization probes fail matching. |
+| `at_3765` (BSS) | Confirmation buffer template; natural scope/value-initialization probes fail matching. |
+| `at_5642` (BSS) | Frozen local zero template. |
+| `at_2776` (BSS) | Frozen local zero template. |

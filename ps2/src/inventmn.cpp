@@ -118,7 +118,7 @@ static int viewnum_5172[2] = {
 
 /** Inventory mode reached when leaving each photo menu. */
 static short nextmodetbl_5183[12] = {
-    1, -1, -1, -1, 5, -1, 7, -1, -1, -1, -1, 0
+    1, -1, -1, -1, INVENT_MODE_ALBUM_VIEW, -1, 7, -1, -1, -1, -1, INVENT_MODE_THINK
 };
 
 /** Icon prefixes used by the invention memo list. */
