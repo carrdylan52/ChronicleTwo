@@ -1487,12 +1487,12 @@ void ClsMes::MakeMesWinTbl_value(int *x, int *y) {
 
     if (value_zero != 0 || value != 0) {
         if (value_sign != 0 && value > 0) {
-            sprintf((char *) text, "+%d\n", value);
+            sprintf(text, "+%d\n", value);
         } else {
-            sprintf((char *) text, "%d\n", value);
+            sprintf(text, "%d\n", value);
         }
 
-        length = strlen((char *) text);
+        length = strlen(text);
 
         for (i = 0; i < length; i++) {
             font_no = -1;
@@ -1573,12 +1573,12 @@ void ClsMes::MakeMesWinTbl_value(int value_no, int *x, int *y) {
 
     if (value_zero != 0 || values[value_no] != 0) {
         if (value_sign != 0 && values[value_no] > 0) {
-            sprintf((char *) text, "+%d\n", values[value_no]);
+            sprintf(text, "+%d\n", values[value_no]);
         } else {
-            sprintf((char *) text, "%d\n", values[value_no]);
+            sprintf(text, "%d\n", values[value_no]);
         }
 
-        length = strlen((char *) text);
+        length = strlen(text);
 
         if (value_width[value_no] > 0) {
             *x += (value_width[value_no] - length) * (font_w + value_space);
@@ -2195,22 +2195,14 @@ int ClsMes::GetMesWidth_system(int mes_no) {
 }
 short *ClsMes::GetTextLineDataTop(int line_id) {
     short *table = buff;
-    int    i = 0;
+    int    i;
     int    count = *table;
     short *entries = table + 1;
-    int    off;
 
-    if (0 < count) {
-        off = 0;
-
-        do {
-            if (line_id == *(u16 *) ((u8 *) entries + off + 2)) {
-                return entries + count + *(u16 *) ((i << 2) + (int) entries + 4);
-            }
-
-            i++;
-            off += 4;
-        } while (i < count);
+    for (i = 0; i < count; i++) {
+        if (line_id == (u16) entries[i * 2 + 1]) {
+            return entries + count + (u16) entries[i * 2 + 2];
+        }
     }
 
     return 0;
@@ -2218,22 +2210,14 @@ short *ClsMes::GetTextLineDataTop(int line_id) {
 
 short *ClsMes::GetTextLineDataTop_system(int line_id) {
     short *table = buff_system;
-    int    i = 0;
+    int    i;
     int    count = *table;
     short *entries = table + 1;
-    int    off;
 
-    if (0 < count) {
-        off = 0;
-
-        do {
-            if (line_id == *(u16 *) ((u8 *) entries + off + 2)) {
-                return entries + count + *(u16 *) ((i << 2) + (int) entries + 4);
-            }
-
-            i++;
-            off += 4;
-        } while (i < count);
+    for (i = 0; i < count; i++) {
+        if (line_id == (u16) entries[i * 2 + 1]) {
+            return entries + count + (u16) entries[i * 2 + 2];
+        }
     }
 
     return 0;
