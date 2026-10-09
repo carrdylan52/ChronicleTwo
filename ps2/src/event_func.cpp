@@ -6468,7 +6468,7 @@ int _DNG_GET_STAGE_ID(RS_STACKDATA *stack, int argc) {
 }
 
 int _SET_CAMERA_CTRL(RS_STACKDATA *stack, int argc) {
-    mgCCameraFollow *camera = (mgCCameraFollow *) EventScene->GetCamera(EventScene->active_camera);
+    CCameraControl *camera = (CCameraControl *) EventScene->GetCamera(EventScene->active_camera);
 
     if (camera == NULL) {
         return 0;
@@ -6476,10 +6476,10 @@ int _SET_CAMERA_CTRL(RS_STACKDATA *stack, int argc) {
 
     if (GetStackInt(stack) != 0) {
         camera->FollowOn();
-        ((CCameraControl *) camera)->ControlOn();
+        camera->ControlOn();
     } else {
         camera->FollowOff();
-        ((CCameraControl *) camera)->ControlOff();
+        camera->ControlOff();
     }
 
     return 1;
