@@ -106,16 +106,57 @@ struct GradeRows {
 
 extern int                 menu_debug_flag;
 extern short               MenuItemCmdArgPos;
-extern int                 maxtbl_5171;
-extern int                 viewnum_5172;
-extern short               nextmodetbl_5183[];
-extern char               *gaiji_table_4737[3];
-extern int                 maxtbl_album_5223;
-extern int                 viewnum_album_5224;
-extern int                 overcode_album_5225[];
+/** Column and row counts of the inventory photo grid. */
+static int maxtbl_5171[2] = {
+    15, 2
+};
+
+/** Visible column and row counts of the inventory photo grid. */
+static int viewnum_5172[2] = {
+    3, 2
+};
+
+/** Inventory mode reached when leaving each photo menu. */
+static short nextmodetbl_5183[12] = {
+    1, -1, -1, -1, 5, -1, 7, -1, -1, -1, -1, 0
+};
+
+/** Icon prefixes used by the invention memo list. */
+static char *gaiji_table_4737[3] = {
+    "[bulb2]",
+    "[bulb3]",
+    "[heart]"
+};
+
+/** Column and row counts of the photo album grid. */
+static int maxtbl_album_5223[2] = {
+    25, 2
+};
+
+/** Visible column and row counts of the photo album grid. */
+static int viewnum_album_5224[2] = {
+    5, 2
+};
+
+/** Grid overlay codes used while navigating the album. */
+static int overcode_album_5225[4] = {
+    0, 0, 2, 0
+};
+
 extern short               menu_item_swap_sndtbl[];
-extern unsigned char       invent_color_tbl[3][2][4];
-extern char               *invent_grade_fff[2];
+/** Colours used by the two invention success strips. */
+static u8 invent_color_tbl[3][2][4] = {
+    {{0, 0, 0, 0}, {0, 0, 255, 128}},
+    {{240, 140, 80, 80}, {255, 255, 0, 128}},
+    {{0, 0, 0, 0}, {128, 128, 128, 128}}
+};
+
+/** Form names for the two invention grade effect rows. */
+static char *invent_grade_fff[2] = {
+    "f0",
+    "f1"
+};
+
 extern mgCMemory           MenuInventStack;
 extern CActionChara       *MenuActionChara[7];
 extern CMenuPosDataForm   *GiftBoxViewForm;
@@ -241,7 +282,11 @@ struct InventCursorPos {
     int pos[4]; /**< Coordinates used by the inventory cursor. */
 } __attribute__((aligned(16)));
 
-extern s8              wakutype_3203[];
+/** Cursor frame type for each inventory menu mode. */
+static s8 wakutype_3203[12] = {
+    0, -1, -1, 0, 0, 0, 0, -1, 0, -1, -1, 0
+};
+
 
 /**
  *
@@ -283,7 +328,6 @@ extern char                at_4379[];
 extern char                at_4380[];
 extern ItemNameList2       at_3739;
 extern ItemNameList2       at_3765;
-extern s8                  convtbl_3726[7];
 
 /**
  *
@@ -353,7 +397,11 @@ struct CardListTops {
 
 extern CardListTops at_5642;
 extern char        *NewComer_5648[];
-extern int          digit_tbl3_5641[];
+/** Decimal widths used to display the invention count. */
+static int digit_tbl3_5641[8] = {
+    3, 3, 3, 3, 3, 3, 3, 3
+};
+
 extern char         at_5742[];
 extern char         at_5743[];
 extern char         at_5744[];
@@ -397,15 +445,19 @@ struct InventCommandList {
     int cmd[5];  /**< Command codes for this mode. */
 };
 
-extern InventCommandList  modecmdtbl_3636[12];
 int                       MenuInventDebugKey();
 void                      MenuInventDebugDraw();
 
 extern SPI_TAG_PARAM  menu_scoop_str_tag[];
 extern SPI_TAG_PARAM  pic_tag[];
-extern char          *addstringtable_1722[];
+/** Icon prefixes used by invention idea names. */
+static char *addstringtable_1722[3] = {
+    "[bulb2]",
+    "[bulb3]",
+    "[heart]"
+};
 
-extern SCOOP_DATA         scoop_table[53];
+
 extern mgCMemory          InventTeigiStack;
 extern SPI_TAG_PARAM      invent_teigi_func[];
 
@@ -538,6 +590,85 @@ static short NetaMemoID[512];
 
 /** Horizontal offsets of the inventory record-board entries. */
 static int rec_board_offset_xtbl[10];
+
+/** Confirmation mode selected by each photo command. */
+static s8 convtbl_3726[7] = {
+    INVENT_ASK_ZOOM, INVENT_ASK_DELETE, INVENT_ASK_TO_ALBUM, INVENT_ASK_FROM_ALBUM, INVENT_ASK_DELETE_UNUSED, INVENT_ASK_SET_BOARD, INVENT_ASK_DELETE_ALL
+};
+
+/** Defines each scoop and the event flag that reveals it. */
+static SCOOP_DATA scoop_table[53] = {
+    {1000, 300, 1},
+    {1001, 300, 2},
+    {1002, 300, 3},
+    {1003, 300, 4},
+    {1004, 300, 5},
+    {1005, 500, 6},
+    {1006, 100, 7},
+    {1007, 201, 8},
+    {1009, 300, 9},
+    {1010, 300, 10},
+    {1011, 201, 11},
+    {1012, 201, 12},
+    {1013, 54, 13},
+    {1014, 54, 14},
+    {1016, 408, 15},
+    {1017, 520, 16},
+    {1018, 100, 17},
+    {1019, 201, 18},
+    {1021, 300, 19},
+    {1022, 201, 20},
+    {1023, 500, 21},
+    {1024, 804, 22},
+    {1026, 600, 24},
+    {1027, 438, 25},
+    {2000, 250, 26},
+    {2001, 250, 27},
+    {2002, 348, 28},
+    {2003, 456, 29},
+    {2004, 556, 30},
+    {2005, 54, 31},
+    {2006, 402, 32},
+    {2007, 408, 33},
+    {2008, 54, 34},
+    {2009, 209, 35},
+    {2010, 340, 36},
+    {2011, 500, 37},
+    {2012, 448, 38},
+    {2013, 708, 39},
+    {2014, 604, 40},
+    {2015, 616, 41},
+    {2016, 556, 42},
+    {2017, 616, 43},
+    {2018, 616, 44},
+    {2019, 616, 45},
+    {2020, 616, 46},
+    {2021, 700, 47},
+    {2022, 700, 48},
+    {2023, 524, 49},
+    {2025, 520, 51},
+    {2026, 300, 52},
+    {2027, 400, 53},
+    {2028, 500, 54},
+    {1015, 209, 55},
+};
+
+/** Lists the commands available for each inventory layout. */
+static InventCommandList modecmdtbl_3636[12] = {
+    {1, 5, {INVENT_CMD_SET_BOARD, INVENT_CMD_ZOOM, INVENT_CMD_DELETE, INVENT_CMD_DELETE_UNUSED, INVENT_CMD_DELETE_ALL}},
+    {0, 5, {INVENT_CMD_ZOOM, INVENT_CMD_DELETE, INVENT_CMD_FROM_ALBUM, INVENT_CMD_DELETE_UNUSED, INVENT_CMD_DELETE_ALL}},
+    {0, 0, {INVENT_CMD_ZOOM, 0, 0, -1, -1}},
+    {0, 0, {INVENT_CMD_ZOOM, 0, 0, -1, -1}},
+    {1, 5, {INVENT_CMD_ZOOM, INVENT_CMD_DELETE, INVENT_CMD_TO_ALBUM, INVENT_CMD_DELETE_UNUSED, INVENT_CMD_DELETE_ALL}},
+    {1, 5, {INVENT_CMD_ZOOM, INVENT_CMD_DELETE, INVENT_CMD_FROM_ALBUM, INVENT_CMD_DELETE_UNUSED, INVENT_CMD_DELETE_ALL}},
+    {1, 4, {INVENT_CMD_ZOOM, INVENT_CMD_DELETE, INVENT_CMD_DELETE_UNUSED, INVENT_CMD_DELETE_ALL, -1}},
+    {0, 5, {INVENT_CMD_ZOOM, INVENT_CMD_DELETE, INVENT_CMD_FROM_ALBUM, INVENT_CMD_DELETE_UNUSED, INVENT_CMD_DELETE_ALL}},
+};
+
+/** Byte lengths of the proposed Japanese invention name endings. */
+static u8 jp_conv_lentbl_2835[12] = {
+    2, 2, 2, 4, 4, 8, 6, 4, 6, 14, 10, 6
+};
 
 // Code (.text)
 CInventUserData *GetInventUserDataPtr() {
@@ -2838,9 +2969,15 @@ extern char       *gobitbl_2847[2];
 extern char       *getfilename_2928[2];
 extern char       *sndfileName_2951[2];
 extern char       *wavname_2960[3];
-extern short       sndtimetbl_2868[2];
+/** Sound-bank time limits of the two invention stages. */
+static short sndtimetbl_2868[2] = {
+    210, 280
+};
+
 extern signed char D_003532DF[];
-extern float       eff_light_2927[4];
+/** Lighting colour used for the invented item model. */
+static float eff_light_2927[4] = {255.0f, 255.0f, 255.0f, 128.0f};
+
 
 #pragma inline_depth(5)
 #ifdef NONMATCHING
@@ -5681,7 +5818,11 @@ void MenuInventNetaMemoDraw(float *origin, int &loaded_tex) {
     }
 }
 
-extern int  tbl_4782[];
+/** Background allocation selections for the inventory character assets. */
+static int tbl_4782[7] = {
+    1, 1, 0, 0, 1, 1, 0
+};
+
 extern char at_5011[];
 extern char at_5012[];
 extern char at_5013[];
@@ -6157,7 +6298,7 @@ int MenuInventPushKey(int pad, int pushed) {
                 } else {
                     int result =
                         MenuGlidKeyCheck(pad, &CMenuInventPt->photo_cursor, &CMenuInventPt->photo_top,
-                                         &maxtbl_5171, &viewnum_5172, overcode.value, 30);
+                                         maxtbl_5171, viewnum_5172, overcode.value, 30);
 
                     if (old_cursor != CMenuInventPt->photo_cursor) {
                         MenuSePlay(0);
@@ -6256,8 +6397,8 @@ int MenuInventPushKey(int pad, int pushed) {
             case 5: {
                 int old_cursor = CMenuInventPt->album_cursor;
                 int result = MenuGlidKeyCheck(pad, &CMenuInventPt->album_cursor,
-                                              &CMenuInventPt->album_top, &maxtbl_album_5223,
-                                              &viewnum_album_5224, overcode_album_5225, 50);
+                                              &CMenuInventPt->album_top, maxtbl_album_5223,
+                                              viewnum_album_5224, overcode_album_5225, 50);
 
                 if (old_cursor != CMenuInventPt->album_cursor) {
                     MenuSePlay(0);
@@ -7129,34 +7270,19 @@ void MenuInventDraw() {
 }
 
 // Initialised data (.data)
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", scoop_table__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", menu_scoop_str_tag__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", pic_tag__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", addstringtable_1722__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", invent_teigi_func__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", invent_color_tbl__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", Tb_2819__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", D_003532DF__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", jp_conv_lentbl_2835__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_2913__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", eff_light_2927__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", wavname_2960__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", wakutype_3203__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", modecmdtbl_3636__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", gaiji_table_4737__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", tbl_4782__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", nextmodetbl_5183__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", overcode_album_5225__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", digit_tbl3_5641__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", NewComer_5648__DATA);
 
 // Constants (.rodata)
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_1537__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_1655__2__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_1656__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_1723__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_1724__3__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_1725__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_1947__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_1948__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_2244__DATA);
@@ -7169,8 +7295,6 @@ INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_2250__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_2251__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_2252__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_2253__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_2545__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_2546__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_2820__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_2821__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_2848__DATA);
@@ -7255,16 +7379,9 @@ INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_5747__DATA);
 // Virtual tables (.vtables)
 
 // Small initialised data (.sdata)
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", invent_grade_fff__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", gobitbl_2847__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", sndtimetbl_2868__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", getfilename_2928__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", sndfileName_2951__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", convtbl_3726__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", maxtbl_5171__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", viewnum_5172__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", maxtbl_album_5223__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", viewnum_album_5224__DATA);
 
 // Small uninitialised data (.sbss)
 INCLUDE_BSS(at_3739, 0x8);

@@ -65,3 +65,35 @@ Markers: 130 / 4; matched data: 36 / 18656 bytes. Eleven successful
 `invent-templates-<step>-build.log` / `-objects.log` receipts verify PAL OK
 and 149/149 objects. `at_3739` and `at_3765` require a separate scope check;
 `at_2776` and `at_5642` belong to frozen drafts.
+
+## Named initialized tables
+
+Nineteen tables now use typed native definitions with LOCAL linkage:
+icon prefixes, grade form names, cursor frames, confirmation modes,
+next-mode selections, album overlays, message digit widths, four grid
+dimension pairs, the 53 mutable scoop records, twelve photo-command rows,
+effect colours, allocation options, model lighting, sound timings, and
+Japanese name lengths. Command/confirmation IDs use the existing enums.
+The scoop record order and gaps are retained, including scoop 1015 last;
+its zero trailing runtime state uses ordinary aggregate initialization.
+The four grid dimensions are actual two-integer arrays, passed directly
+to MoveCursor instead of taking the address of scalar declarations.
+
+Markers: 106 / 4; matched data: 36 / 18656 bytes. Twelve successful
+`invent-table-<step>` and seven successful `invent-more-<step>` receipt
+pairs verify PAL OK and 149/149 objects.
+
+The three native handler-table probes and five frozen-only pointer-table
+probes failed canonical data identity/layout validation. In particular,
+the scoop-handler probe leaves the native `at_3509` zero template unmapped,
+then reports unresolved small-data targets (340 object-check problems).
+The table definitions have the correct retail extents and relocations;
+no tooling change, fake use, or draft edit is made to bypass the rejection.
+Their markers and literal children remain intact. The rejected natural
+probes are logged as `invent-table-{scoop-tags,photo-tags,recipe-tags}` and
+`invent-more-{model-assets,sound-banks,sound-waves,question-endings,newcomer-labels}`.
+
+The confirmation buffer scope probe changes 15 linked text bytes in
+IsAskExtend, beginning at the prologue, and is reverted. It adds no accepted
+source changes. `invent-templates-ask-scopes-{build,objects}.log` records
+that rejection.
