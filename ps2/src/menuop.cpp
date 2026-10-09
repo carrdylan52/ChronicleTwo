@@ -2268,7 +2268,7 @@ int CSaveMenuClass::KeyStep() {
                                         file_mes->SetAbsPos(5);
                                         refresh = 1;
                                         SetDlInfoMsg(0, 0);
-                                        MenuSePlay(0x1F);
+                                        MenuSePlay(SYSTEM_SE_COMPLETE);
                                         TreeMapSaveNum++;
                                     }
                                 }
@@ -2352,7 +2352,7 @@ int CSaveMenuClass::KeyStep() {
                                         file_mes->MakeMsg(0xBE2);
                                         file_mes->SetAbsPos(5);
                                         SetDlInfoMsg(1, 0);
-                                        MenuSePlay(0x1F);
+                                        MenuSePlay(SYSTEM_SE_COMPLETE);
                                     }
                                 }
                                 break;
