@@ -1102,7 +1102,7 @@ void CGameDataUsed::TransToData(char *data, int length) {
                 dst = buffer.bytes;
 
                 for (i = 0; i < 14 && i < length; i++) {
-                    dst[i] = ((signed char *) data)[i];
+                    dst[i] = data[i];
                 }
 
                 item->item_no = buffer.fish.item_no;
