@@ -1177,8 +1177,7 @@ int MenuCommonReadData(mgCMemory *memory, char **names, int mode) {
     i = 0;
 
     while (*(char **) ((u8 *) names + i) != NULL) {
-        size = LoadFileMenu(*(char **) ((u8 *) names + i),
-                            (u_long128 *) (memory->stack_bytes + memory->stack_used * 16), mode);
+        size = LoadFileMenu(*(char **) ((u8 *) names + i), memory->stack + memory->stack_used, mode);
         memory->Alloc(align16_blocks(size));
         total += size;
         i += 4;
