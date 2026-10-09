@@ -1307,18 +1307,5 @@ float GetLightAnimeWeight(CFuncPoint *point, int frame) {
 #pragma divbyzerocheck reset
 
 // Constants (.rodata)
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/funcpoint", at_475__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/funcpoint", at_1118__3__DATA);
 
 // Virtual tables (.vtables)
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/funcpoint", __vt__14CFuncPointMngr__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/funcpoint", __vt__19CList_10CFuncPoint___DATA);
-
-INCLUDE_BSS(init_1175, 0x4);
-INCLUDE_BSS(init_1204, 0x4);
-INCLUDE_BSS(init_1208, 0x4);
-
-INCLUDE_BSS(sp_3d_1174, 0x50);
-INCLUDE_BSS(frame_1203, 0x110);
-INCLUDE_BSS(Bound_1206, 0xB0);
-INCLUDE_BSS(attr_1207, 0x90);
