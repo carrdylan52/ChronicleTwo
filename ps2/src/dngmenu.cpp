@@ -251,48 +251,6 @@ static CMenuTreeMap *CMenuTreePt;
  */
 static CDC2Mes *MenuDngMes[DNG_TREE_MAP_MES_MAX];
 
-/**
- *
- * Previous tree-map navigation direction.
- *
- */
-static int old_direction_2830;
-
-/**
- *
- * Indicates that the previous navigation direction has been initialized.
- *
- */
-static s8 init_2831;
-
-/**
- *
- * Previously selected tree-map cell.
- *
- */
-static GLID_INFO *old_glid_2833;
-
-/**
- *
- * Indicates that the previous selected cell has been initialized.
- *
- */
-static s8 init_2834;
-
-/**
- *
- * Destination cell selected for floor travel.
- *
- */
-static GLID_INFO *NextFloorGlid_2836;
-
-/**
- *
- * Indicates that the destination cell has been initialized.
- *
- */
-static s8 init_2837;
-
 // Code (.text)
 void CDngFreeMap::Initialize() {
     active = 1;
@@ -2674,23 +2632,33 @@ int CMenuTreeMap::Step() {
 
     int           result = DNG_TREE_MAP_CONTINUE;
     CMenuKeyFunc *keys = MenuCommonInfo;
-    if (!init_2831) {
-        old_direction_2830 = -1;
-        init_2831 = 1;
-    }
-    if (!init_2834) {
-        old_glid_2833 = NULL;
-        init_2834 = 1;
-    }
+
+    /**
+     *
+     * Previous tree-map navigation direction.
+     *
+     */
+    static int old_direction = -1;
+
+    /**
+     *
+     * Room the cursor last moved away from, passed back to GetKeyNextRoom.
+     *
+     */
+    static GLID_INFO *old_glid = NULL;
+
     CDC2Mes *message = MenuDCMsg[3];
     int      fade_done = FadeInOutMenu();
     MenuDngMap->Step();
     int read_busy = ReadBGSync();
     int selection_changed = 0;
-    if (!init_2837) {
-        NextFloorGlid_2836 = NULL;
-        init_2837 = 1;
-    }
+
+    /**
+     *
+     * Destination cell selected for floor travel.
+     *
+     */
+    static GLID_INFO *NextFloorGlid = NULL;
 
     switch (mode) {
         case MENU_ASK_MODE_OPEN: {
@@ -2698,8 +2666,8 @@ int CMenuTreeMap::Step() {
                 InitEnd();
                 selection_changed = 1;
                 cursor_reset = 1;
-                old_direction_2830 = -1;
-                old_glid_2833 = NULL;
+                old_direction = -1;
+                old_glid = NULL;
             }
             break;
         }
@@ -2728,8 +2696,8 @@ int CMenuTreeMap::Step() {
                         area->floor_status &= 0xFFF8;
                     }
                 }
-                old_glid_2833 = NULL;
-                old_direction_2830 = -1;
+                old_glid = NULL;
+                old_direction = -1;
             }
             break;
         }
@@ -2813,12 +2781,12 @@ int CMenuTreeMap::Step() {
                         dir = GLID_DIR_RIGHT;
                     }
                     if (0 <= dir) {
-                        next = MenuDngMap->floor_manager->GetKeyNextRoom(select_glid->room.floor_id, dir, old_glid_2833);
+                        next = MenuDngMap->floor_manager->GetKeyNextRoom(select_glid->room.floor_id, dir, old_glid);
                     }
                     if (next != NULL && next != select_glid && (s8) next->room.unk_44 == 1) {
                         MenuSePlay(SYSTEM_SE_CURSOR);
-                        old_glid_2833 = select_glid;
-                        old_direction_2830 = -1;
+                        old_glid = select_glid;
+                        old_direction = -1;
                         select_glid = next;
                         MenuDngMap->SetNextRoomPos(select_glid);
                         DngTreeMapActiveLightRate = 0.0f;
@@ -2828,11 +2796,11 @@ int CMenuTreeMap::Step() {
                     switch (buttons) {
                         case MENU_PUSH_BUTTON_DECIDE: {
                             action = TREE_MAP_ACTION_SELECT;
-                            NextFloorGlid_2836 = MenuDngMap->GetEntranceRoomGlid();
+                            NextFloorGlid = MenuDngMap->GetEntranceRoomGlid();
                             if (select_glid != NULL) {
-                                NextFloorGlid_2836 = select_glid;
+                                NextFloorGlid = select_glid;
                             }
-                            GLID_INFO *target = NextFloorGlid_2836;
+                            GLID_INFO *target = NextFloorGlid;
                             int        current_map = MenuMainScene->now_map_no;
                             if (target == MenuDngMap->GetEntranceRoomGlid() &&
                                 ((0 <= current_map && current_map < 11 &&
@@ -2848,7 +2816,7 @@ int CMenuTreeMap::Step() {
                         case MENU_PUSH_BUTTON_CANCEL: {
                             if (CheckDngTreeMapFuncType() == DNG_TREE_MAP_FUNC_SAVE_POINT) {
                                 action = TREE_MAP_ACTION_SELECT;
-                                NextFloorGlid_2836 = MenuDngMap->GetEntranceRoomGlid();
+                                NextFloorGlid = MenuDngMap->GetEntranceRoomGlid();
                             } else {
                                 action = TREE_MAP_ACTION_CLOSE;
                             }
@@ -2857,7 +2825,7 @@ int CMenuTreeMap::Step() {
                         case MENU_PUSH_BUTTON_SQUARE: {
                             if (CheckDngTreeMapFuncType() != DNG_TREE_MAP_FUNC_OTHER) {
                                 action = TREE_MAP_ACTION_SELECT;
-                                NextFloorGlid_2836 = MenuDngMap->GetEntranceRoomGlid();
+                                NextFloorGlid = MenuDngMap->GetEntranceRoomGlid();
                             } else {
                                 action = TREE_MAP_ACTION_CLOSE;
                             }
@@ -2924,34 +2892,34 @@ int CMenuTreeMap::Step() {
                     break;
                 }
             }
-            DNG_FLOOR_SAVE *target_save = NextFloorGlid_2836 ? MenuSaveDataDungeonPtr->GetFloorInfoPtr(dng_no, NextFloorGlid_2836->room.floor_id) : NULL;
+            DNG_FLOOR_SAVE *target_save = NextFloorGlid ? MenuSaveDataDungeonPtr->GetFloorInfoPtr(dng_no, NextFloorGlid->room.floor_id) : NULL;
             switch (action) {
                 case TREE_MAP_ACTION_SELECT: {
                     int loop_no, map_no;
-                    if (NextFloorGlid_2836 == NULL) {
+                    if (NextFloorGlid == NULL) {
                         MenuSePlay(MENU_SCRIPT_SOUND_CANCEL);
                     } else if (target_save != NULL && !(target_save->flag & DNG_FLOOR_FLAG_OPEN)) {
                         MenuSePlay(MENU_SCRIPT_SOUND_CANCEL);
                     } else if (CheckDngTreeMapFuncType() == DNG_TREE_MAP_FUNC_OTHER && TreeMapCallDungeonSubMap == 1 &&
-                               (MakeDngTreeMapJumpNo(dng_no, NextFloorGlid_2836->room.floor_id, &loop_no, &map_no), map_no == MenuMainScene->GetNowMapNo())) {
+                               (MakeDngTreeMapJumpNo(dng_no, NextFloorGlid->room.floor_id, &loop_no, &map_no), map_no == MenuMainScene->GetNowMapNo())) {
                         MenuSePlay(MENU_SCRIPT_SOUND_CANCEL);
                     } else {
                         selection_changed = 1;
                         DngAskMessageDrawFlag = 1;
-                        if (CheckDngTreeMapFuncType() == DNG_TREE_MAP_FUNC_DUNGEON && !(NextFloorGlid_2836->room.flag & DNGMAP_ROOM_FLAG_START)) {
+                        if (CheckDngTreeMapFuncType() == DNG_TREE_MAP_FUNC_DUNGEON && !(NextFloorGlid->room.flag & DNGMAP_ROOM_FLAG_START)) {
                             DngAskMessageDrawFlag = 2;
                         }
                         if ((DngAskMessageDrawFlag == 0 || DngAskMessageDrawFlag == 2) &&
-                            ((NextFloorGlid_2836->room.flag & DNGMAP_ROOM_FLAG_SUB) ||
-                             (NextFloorGlid_2836->room.flag & DNGMAP_ROOM_FLAG_BOSS) ||
-                             (NextFloorGlid_2836->room.flag & DNGMAP_ROOM_FLAG_EXIT))) {
+                            ((NextFloorGlid->room.flag & DNGMAP_ROOM_FLAG_SUB) ||
+                             (NextFloorGlid->room.flag & DNGMAP_ROOM_FLAG_BOSS) ||
+                             (NextFloorGlid->room.flag & DNGMAP_ROOM_FLAG_EXIT))) {
                             MenuSePlay(MENU_SCRIPT_SOUND_CANCEL);
                             message->SetAbsPos(5);
                         } else {
                             MenuSePlay(0x13);
                             dngfloor_infoview = 1;
                             dngfloor_backdraw = 1;
-                            DngInfoRoomInfo = &NextFloorGlid_2836->room;
+                            DngInfoRoomInfo = &NextFloorGlid->room;
                             DngInfoFloorInfo = target_save;
                             int mes_no = 0x3C;
                             GetSaveData()->GetBitCtrl();
@@ -2963,10 +2931,10 @@ int CMenuTreeMap::Step() {
                             if (TreeMapCallDungeonSubMap) {
                                 jump_pay = 0;
                             }
-                            u32 flags = NextFloorGlid_2836->room.flag;
+                            u32 flags = NextFloorGlid->room.flag;
                             if ((flags & DNGMAP_ROOM_FLAG_START) || (flags & DNGMAP_ROOM_FLAG_SUB) || (flags & DNGMAP_ROOM_FLAG_EXIT) || (flags & DNGMAP_ROOM_FLAG_BOSS)) {
                                 mes_no = 0x3D;
-                                int name_id[1] = {NextFloorGlid_2836->room.floor_id + (dng_no + 1) * 1000};
+                                int name_id[1] = {NextFloorGlid->room.floor_id + (dng_no + 1) * 1000};
                                 message->SetMsgItemNo(name_id, 1);
                             }
                             if (jump_pay) {
@@ -2982,7 +2950,7 @@ int CMenuTreeMap::Step() {
                             for (int i = 0; i < 3; ++i) {
                                 message->line_pos_on[i] = 0;
                             }
-                            flags = NextFloorGlid_2836->room.flag;
+                            flags = NextFloorGlid->room.flag;
                             if ((flags & DNGMAP_ROOM_FLAG_EXIT) || (flags & DNGMAP_ROOM_FLAG_START) || (flags & DNGMAP_ROOM_FLAG_SUB) || (flags & DNGMAP_ROOM_FLAG_BOSS)) {
                                 message->abs_win.x = -1;
                                 message->abs_win.y = -1;
@@ -3057,11 +3025,11 @@ int CMenuTreeMap::Step() {
                         MenuSaveDataDungeonPtr->stage_id = dng_no;
                         MenuArg.result[1] = MenuSaveDataDungeonPtr->prev_floor_id[MenuSaveDataDungeonPtr->stage_id];
                     }
-                    MenuArg.result[2] = NextFloorGlid_2836->room.floor_id;
+                    MenuArg.result[2] = NextFloorGlid->room.floor_id;
                     int jump_event = 0;
-                    u32 room_flags = NextFloorGlid_2836->room.flag;
+                    u32 room_flags = NextFloorGlid->room.flag;
                     if ((room_flags & DNGMAP_ROOM_FLAG_SUB) || (room_flags & DNGMAP_ROOM_FLAG_BOSS)) {
-                        if (CMenuTreePt->dng_no == 1 && NextFloorGlid_2836->room.floor_id == 6) {
+                        if (CMenuTreePt->dng_no == 1 && NextFloorGlid->room.floor_id == 6) {
                             MenuMainScene->skip_play_bgm = 1;
                         } else {
                             jump_event = 1;
