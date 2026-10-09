@@ -160,6 +160,11 @@ enum {
     kUkiBite = 6,
 };
 
+/**
+ *
+ * Fishing modes selected for float bait and lures.
+ *
+ */
 enum {
     kFishingModeFloat = 1,
     kFishingModeLure = 2
