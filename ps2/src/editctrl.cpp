@@ -328,7 +328,7 @@ int EditControl(CScene *scene, CPadControl *pad) {
         CharaControl(scene, pad);
 
         if (scene->event_run != 0) {
-            camera_pad = (CPadControl *) NULL;
+            camera_pad = NULL;
         }
 
         CameraControl(scene, camera_pad);
