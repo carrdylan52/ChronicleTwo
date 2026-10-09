@@ -1801,8 +1801,5 @@ static int Conv32To8(int width, int height, u_char *image) {
 #pragma optimization_level reset
 #pragma schedule reset
 
-// Constants (.rodata)
-
 // Uninitialised data (.bss)
-
 INCLUDE_BSS(conv_work_1306, 0x10000);

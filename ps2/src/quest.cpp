@@ -227,9 +227,3 @@ int CMonsterBook::CountKill(int monster, int amount) {
 
     return entry[monster].kill_count;
 }
-
-// Initialised data (.data)
-
-// Constants (.rodata)
-
-// Small uninitialised data (.sbss)

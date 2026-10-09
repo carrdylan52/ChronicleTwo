@@ -718,7 +718,3 @@ void CEditGrid::GetGridBox(mgVu0FBOX *box, float *pos) {
     box->max[0] += step_x;
     box->max[2] += step_z;
 }
-
-// Initialised data (.data)
-
-// Uninitialised data (.bss)

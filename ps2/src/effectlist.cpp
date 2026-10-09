@@ -508,11 +508,3 @@ void CFadeInOut::Draw() {
         prim2.End();
     }
 }
-
-// Initialised data (.data)
-
-// Constants (.rodata)
-
-// Small initialised data (.sdata)
-
-// Uninitialised data (.bss)
