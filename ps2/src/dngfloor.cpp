@@ -206,8 +206,7 @@ static int _TREE_MAPINFO(SPI_STACK *stack, int argc) {
         blocks = bytes >> 4;
     }
 
-    tree_dngmap->glid_info =
-        (GLID_INFO *) operator new[](bytes, (tree_spi_stack)->Alloc(blocks + 2));
+    tree_dngmap->glid_info = new (tree_spi_stack->Alloc(blocks + 2)) GLID_INFO[room_count];
     tree_dngmap->glid_num = room_count;
     tree_glid_info = tree_dngmap->glid_info;
     return 1;
