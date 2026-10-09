@@ -31,3 +31,10 @@ Validation receipts are under `.private/dataE/`, with the step prefixes
 listed above and `-build.log`, `-objects.log`, and `-hashes.log` suffixes.
 Final refresh: `event-final-progress.log`, `event-final-coverage.log`,
 and `event-final-metrics.json`.
+
+## Function statics (2026-10-09)
+
+`cnt` and `vv` are real function statics of `EventLoop` and `EventDoorLoop`
+(retail `cnt$1056`, `vv$984`), replacing the file-scope `cnt_1056` and
+`vv_984`; `EventScript` is defined after the includes. The event object stays
+exact and the PAL link is unchanged (`.private/fixes-r3c/b1-*.log`).
