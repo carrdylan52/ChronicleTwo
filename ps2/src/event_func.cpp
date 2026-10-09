@@ -4094,7 +4094,7 @@ int _LOAD_ITEM(RS_STACKDATA *stack, int argc) {
 int _GOTO_USE_ITEM(RS_STACKDATA *stack, int argc) {
     int arg_no;
 
-    if (stack->type != 3) {
+    if (stack->type != RS_PTR) {
         return 0;
     }
 
@@ -13690,9 +13690,9 @@ int _ZERO_VECTOR(RS_STACKDATA *stack, int arg_count) {
 
 static int _NORMAL_VECTOR(RS_STACKDATA *stack, int argc) {
     float vec[4];
-    vec[0] = ((RS_STACKDATA *) stack[0].val.i)->val.f;
-    vec[1] = ((RS_STACKDATA *) stack[1].val.i)->val.f;
-    vec[2] = ((RS_STACKDATA *) stack[2].val.i)->val.f;
+    vec[0] = stack[0].val.p->val.f;
+    vec[1] = stack[1].val.p->val.f;
+    vec[2] = stack[2].val.p->val.f;
     vec[3] = 1.0f;
     sceVu0Normalize(vec, vec);
     SetStack(stack++, vec[0]);
@@ -13791,7 +13791,7 @@ static int _ANGLE_CMP(RS_STACKDATA *stack, int argc) {
 }
 
 static int _ANGLE_LIMIT(RS_STACKDATA *stack, int argc) {
-    RS_STACKDATA *angle = (RS_STACKDATA *) stack->val.i;
+    RS_STACKDATA *angle = stack->val.p;
     SetStack(stack, mgAngleLimit(angle->val.f));
     return 1;
 }
@@ -16913,11 +16913,11 @@ int _PLACE_PARTS_NAME_STRCMP(RS_STACKDATA *stack, int argc) {
 int _GOTO_USE_ITEM2(RS_STACKDATA *stack, int argc) {
     int i;
 
-    if (stack->type != 3) {
+    if (stack->type != RS_PTR) {
         return 0;
     }
 
-    p_use_item = (RS_STACKDATA *) stack->val.i;
+    p_use_item = stack->val.p;
     stack++;
     MenuArg.open_type = 9;
     MenuArg.param[0] = GetStackInt(stack++);
