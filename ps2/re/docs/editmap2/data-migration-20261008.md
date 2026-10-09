@@ -46,6 +46,15 @@ checks reject absent references, a different base name, GLOBAL storage, and
 a conflicting reference (`named-local-bss-proposal-check.log`). The shared
 script is unchanged; full tool integration remains with the tooling lane.
 
+The corrected graph and named-BSS proposals pass the complete comparator
+on copies of all 149 objects, including marker-free mapsky/editmap2 and
+the native texture-workspace copy (`combined-mapper-proposals-objects.log`).
+Retail, symbol, and piece inputs are shared immutably through the existing
+explicit function parameters, retaining separate default-reference and
+no-reference piece contexts. The actual canonical scripts and objects are
+unchanged; linked PAL acceptance of tooling integration remains with the
+tooling lane.
+
 Final: 0 rodata / 2 BSS markers; matched_data
 118/123 after the standard objdiff/progress refresh.
 Every accepted step passes the full PAL build (`SCES_511.90: OK`) and
