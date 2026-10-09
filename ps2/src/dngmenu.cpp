@@ -1456,24 +1456,27 @@ static int CheckGeoramaMateria(TRESURE_BOX_FLOOR_INFO *info, int floor_no, int *
     return count;
 }
 
-#ifdef NONMATCHING
-extern mgCTexture     *Floor_InfoTex;
-extern mgRect<int>     Floor_Info;
-extern short           dngboardbrdtbl[24];
-extern short           dngboardbrdtbl_1[16];
-extern short           dngboardbrdtbl_2[12];
-extern short           DngInfoMedalNumMsg[16];
-extern int             DngInfoMedalMsgPutPos[2];
-extern CDC2Mes        *MenuDngMes[8];
-/** Room whose floor-information activities are being shown. */
-extern DNGMAP_ROOM_INFO *DngInfoRoomInfo;
-extern DNG_FLOOR_SAVE *DngInfoFloorInfo;
-extern int             DngInfoDrawAlpha;
-extern u8              dngfloor_infoview;
-/** Texture X coordinates of the room-info completion icons. */
-extern s16             medal_xytbl_1736[];
-extern float           AlphaRate_1743;
-extern s8              init_1744;
+extern mgRect<int> Floor_Info;
+extern short       dngboardbrdtbl_1[16];
+extern short       DngInfoMedalNumMsg[16];
+
+/**
+ *
+ * Texture rectangles of the upper and middle floor-information frame.
+ *
+ */
+static short dngboardbrdtbl[24] = {
+    0, 0, 24, 70, 24, 0, 8, 70, 32, 0, 24, 70, 58, 2, 24, 4, 82, 2, 8, 4, 90, 2, 24, 4
+};
+
+/**
+ *
+ * Texture rectangles of the floor-information frame without a geostone row.
+ *
+ */
+static short dngboardbrdtbl_2[12] = {
+    58, 22, 24, 36, 82, 22, 8, 36, 90, 22, 24, 36
+};
 
 /**
  *
@@ -1686,28 +1689,6 @@ void DrawDngRoomInfo(DNGMAP_ROOM_INFO *room) {
         }
     }
 }
-
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/dngmenu", DrawDngRoomInfo__FP16DNGMAP_ROOM_INFO);
-#endif
-extern mgRect<int>   Floor_Info;
-/**
- *
- * Texture rectangles of the upper and middle floor-information frame.
- *
- */
-static short dngboardbrdtbl[24] = {
-    0, 0, 24, 70, 24, 0, 8, 70, 32, 0, 24, 70, 58, 2, 24, 4, 82, 2, 8, 4, 90, 2, 24, 4
-};
-
-/**
- *
- * Texture rectangles of the floor-information frame without a geostone row.
- *
- */
-static short dngboardbrdtbl_2[12] = {
-    58, 22, 24, 36, 82, 22, 8, 36, 90, 22, 24, 36
-};
 
 static void DrawGeoramaMateria(int top_y, char *title, int unused_count, int *items, int tex_block) {
     int index;
