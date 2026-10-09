@@ -1928,8 +1928,9 @@ int CMenuChrCngMenu::KeyChangeMain() {
                     if (npcMes->page_num <= 0) {
                         widest = 0;
                     } else {
+                        int i;
                         int max_chars = 0;
-                        for (int i = 0; i < npcMes->page_num; i++) {
+                        for (i = 0; i < npcMes->page_num; i++) {
                             if (max_chars < npcMes->page_chars[i]) {
                                 max_chars = npcMes->page_chars[i];
                             }
@@ -2563,8 +2564,9 @@ int CMenuChrCngMenu::KeyChangeMain() {
                 if (npcMes->page_num <= 0) {
                     widest = 0;
                 } else {
+                    int i;
                     int max_chars = 0;
-                    for (int i = 0; i < npcMes->page_num; i++) {
+                    for (i = 0; i < npcMes->page_num; i++) {
                         if (max_chars < npcMes->page_chars[i]) {
                             max_chars = npcMes->page_chars[i];
                         }
