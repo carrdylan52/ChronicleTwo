@@ -265,7 +265,7 @@ static int _ROOM_INFO(SPI_STACK *stack, int argc) {
         tree_spi_roominfo->unk_0 = mgCopyString(spiGetStackString(stack), tree_spi_stack);
     }
 
-    tree_spi_roominfo->unk_44 = 0;
+    tree_spi_roominfo->selectable = 0;
     tree_spi_roominfo->visited = 0;
     tree_spi_roominfo->flag = 1;
     tree_spi_roominfo->offset_y = 0;
@@ -884,7 +884,7 @@ void CDngFloorManager::CheckDrawGlidInfo() {
                 }
             }
 
-            room->unk_44 = 1;
+            room->selectable = 1;
             floor = save->GetFloorInfoPtr(dng_no, room->floor_id);
             room->mark = 0;
 

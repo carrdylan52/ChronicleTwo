@@ -2810,7 +2810,7 @@ int CMenuTreeMap::Step() {
                     if (0 <= dir) {
                         next = MenuDngMap->floor_manager->GetKeyNextRoom(select_glid->room.floor_id, dir, old_glid);
                     }
-                    if (next != NULL && next != select_glid && (s8) next->room.unk_44 == 1) {
+                    if (next != NULL && next != select_glid && next->room.selectable == 1) {
                         MenuSePlay(SYSTEM_SE_CURSOR);
                         old_glid = select_glid;
                         old_direction = -1;

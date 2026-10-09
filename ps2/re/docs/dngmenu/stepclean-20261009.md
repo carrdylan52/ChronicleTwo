@@ -81,12 +81,10 @@ existing names for 0x158 and 0x1A8, `SAVE_FLAG_TOURNAMENT_STARTED`/`CYCLE`,
 come from menumain's fishing-tournament debug key and do not describe this
 use. Naming the family needs event-script evidence, so none is named here.
 
-`DNGMAP_ROOM_INFO::unk_44` (byte 0x44) is cleared by `_ROOM_INFO`, set to 1
-for every room by `CheckDrawGlidInfo`, and read signed by Step: the cursor
-moves only onto rooms where it is 1. The rename touches dngfloor's header and
-source, so it is a proposal: `.private/proposals/dngfloor-room-selectable.patch`
-(`s8 selectable`, dropping Step's `(s8)` cast). It was built and checked
-before being reverted: PAL OK, 149/149, `dngfloor: 0x1FC4 bytes, 257 relocations`.
+`DNGMAP_ROOM_INFO::selectable` (byte 0x44, formerly `unk_44`) is cleared by
+`_ROOM_INFO`, set to 1 for every room by `CheckDrawGlidInfo`, and read signed
+by Step: the cursor moves only onto rooms where it is 1. As an `s8` field Step
+reads it without a cast (dngfloor and dngmenu objects unchanged).
 
 ## Jump-map test
 
