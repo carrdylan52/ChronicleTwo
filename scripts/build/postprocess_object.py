@@ -59,7 +59,7 @@ ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT / "tools" / "mwccgap"))
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
-from mwccgap.elf import Elf, Symbol, RelocationRecord, SHT_NOBITS, BssSection  # noqa: E402
+from mwccgap.elf import Elf, Symbol, Section, RelocationRecord, SHT_NOBITS, BssSection  # noqa: E402
 
 import layout  # noqa: E402
 import disassemble
@@ -1196,6 +1196,139 @@ def name_literal_data(elf, unit, placeholders, *, retail=None, pieces=None, addr
                             addresses=addresses, rows=rows)
 
 
+def native_data_extents(elf, placeholders):
+    """Capture whole compiler objects before any naming or padding changes."""
+    defined = {}
+    for symbol in elf.symtab.symbols:
+        if symbol.type != STT_SECTION and 0 < symbol.st_shndx < len(elf.sections):
+            defined.setdefault(symbol.st_shndx, []).append(symbol)
+    result = {}
+    for index, symbols in defined.items():
+        section = elf.sections[index]
+        if (index in placeholders or len(symbols) != 1
+                or section.name not in ('.data', '.sdata', '.rodata', '.bss', '.sbss')
+                or section.sh_flags != FLAGS[section.name]
+                or section.sh_type not in (SHT_PROGBITS, SHT_NOBITS)):
+            continue
+        symbol = symbols[0]
+        size = section_size(section)
+        if symbol.type == STT_OBJECT and symbol.st_value == 0 and symbol.st_size == size and size:
+            result[index] = (symbol, size, section.sh_addralign, section.sh_type, section.name)
+    return result
+
+
+def materialize_alignment_fragments(elf, unit, placeholders, native_extents, *,
+                                   held=frozenset(), retail=None, pieces=None, rows=None):
+    """Split only zero storage required by two verified native object alignments."""
+    retail = layout.Retail() if retail is None else retail
+    pieces = disassemble.Pieces() if pieces is None else pieces
+    rows = layout.read_symbols(ROOT / layout.SYMBOLS) if rows is None else rows
+    declared = {name: (start, size) for start, name, size, function in rows if not function}
+    row_addresses = {start for start, _name, _size, _function in rows}
+    definitions = {}
+    for symbol in elf.symtab.symbols:
+        if symbol.type != STT_SECTION and 0 < symbol.st_shndx < len(elf.sections):
+            definitions.setdefault(symbol.name, []).append(symbol)
+
+    def native(name, start, kind):
+        entries = definitions.get(name, [])
+        if len(entries) != 1 or name in held:
+            return None
+        symbol = entries[0]
+        index = symbol.st_shndx
+        original = native_extents.get(index)
+        if original is None or index in placeholders:
+            return None
+        owner, size, alignment, section_type, section_name = original
+        section = elf.sections[index]
+        if (owner is not symbol or symbol.type != STT_OBJECT or symbol.st_value
+                or declared.get(name) != (start, size) or section_name != kind
+                or section.name != kind or section.sh_type != section_type
+                or section.sh_flags != FLAGS[kind]
+                or alignment <= 0 or alignment > 16 or alignment & (alignment - 1)
+                or start % alignment or section_size(section) < size
+                or any(other is not symbol and other.type != STT_SECTION and other.st_shndx == index
+                       for other in elf.symtab.symbols)):
+            return None
+        return symbol, size, alignment, section
+
+    pending = []
+    for kind, run in pieces.unit(unit):
+        if kind not in ('.data', '.sdata', '.rodata', '.bss', '.sbss'):
+            continue
+        for position, (name, start, end) in enumerate(run):
+            left = native(name, start, kind)
+            if left is None:
+                continue
+            fragments = []
+            following = position + 1
+            while following < len(run):
+                fragment, lo, hi = run[following]
+                if fragment != f'D_{lo:08X}' or fragment in declared:
+                    break
+                fragments.append((fragment, lo, hi))
+                following += 1
+            if not fragments or following >= len(run):
+                continue
+            next_name, next_start, next_end = run[following]
+            right = native(next_name, next_start, kind)
+            if right is None:
+                continue
+            symbol, size, _alignment, section = left
+            _next_symbol, next_size, alignment, next_section = right
+            gap_start = start + size
+            if (not 0 < next_start - gap_start < 16 or end < gap_start
+                    or section_size(section) > end - start
+                    or section_size(next_section) > next_end - next_start
+                    or next_size > next_end - next_start
+                    or ((gap_start + alignment - 1) & -alignment) != next_start
+                    or any(gap_start <= address < next_start for address in row_addresses)
+                    or any(gap_start <= address < next_start for address in retail.relocations)
+                    or any(size <= entry.r_offset < next_start - start
+                           for record in elf.relocations if record.sh_info == symbol.st_shndx
+                           for entry in record.relocations)):
+                continue
+            cursor = end
+            valid = True
+            for fragment, lo, hi in fragments:
+                existing = [entry for entry in elf.symtab.symbols if entry.name == fragment]
+                if (lo != cursor or not lo < hi <= next_start or fragment in held
+                        or len(existing) > 1 or any(entry.st_shndx or entry.st_value or entry.st_size
+                                                  for entry in existing)):
+                    valid = False
+                    break
+                cursor = hi
+            if not valid or cursor != next_start:
+                continue
+            nobits = kind in layout.NOBITS
+            if nobits != (section.sh_type == SHT_NOBITS) or nobits != (next_section.sh_type == SHT_NOBITS):
+                continue
+            if not nobits:
+                padding = retail.bytes(gap_start, next_start)
+                if (len(padding) != next_start - gap_start or any(padding)
+                        or any(section.data[size:])):
+                    continue
+            pending.extend((kind, fragment, hi - lo, nobits) for fragment, lo, hi in fragments)
+
+    if len({name for _kind, name, _size, _nobits in pending}) != len(pending):
+        raise ValueError(f'{unit}: ambiguous native alignment fragments')
+    for kind, name, size, nobits in pending:
+        cls = BssSection if nobits else Section
+        section = cls(elf.add_sh_symbol(kind), SHT_NOBITS if nobits else SHT_PROGBITS,
+                      FLAGS[kind], 0, 0, size, 0, 0, 1, 0, b'' if nobits else bytes(size))
+        section.name = kind
+        index = elf.add_section(section)
+        # Address labels describe alignment storage, not invented C++ objects.
+        _position, symbol = elf.symtab.get_symbol_by_name(name)
+        if symbol is None:
+            symbol = Symbol(0, 0, size, 0x10, 0, index)
+            symbol.name = name
+            elf.add_symbol(symbol)
+        else:
+            symbol.st_shndx, symbol.st_size = index, size
+            symbol.type, symbol.bind = 0, 1
+
+
 def pad_data(elf, unit, placeholders, *, retail=None, pieces=None, rows=None):
     retail = layout.Retail() if retail is None else retail
     pieces = disassemble.Pieces() if pieces is None else pieces
@@ -1511,6 +1644,7 @@ def main():
             unit = '/'.join(parts[parts.index('obj') + 1:])[:-len('.cpp.o')]
         else:
             unit = name[:-len('.cpp.o')]
+        native_extents = native_data_extents(elf, placeholder_sections)
         bind_named_static_bss(elf, unit, placeholder_sections)
         rename_dng_main_local_static(elf, unit)
         bind_local_data(elf, unit, placeholder_sections)
@@ -1525,6 +1659,9 @@ def main():
         source = (ROOT / layout.Layout().source(unit)).read_text()
         donors = native_vtables.donor_inputs(unit, source, base_dir)
         native_vtables.import_vtables(elf, unit, donors)
+        import objdiff_data
+        materialize_alignment_fragments(elf, unit, placeholder_sections, native_extents,
+                                        held=objdiff_data.fallback_data_names(source))
         pad_data(elf, unit, placeholder_sections)
         shadowed = bind_suffixed_references(elf, unit)
         pad_data(elf, unit, placeholder_sections)

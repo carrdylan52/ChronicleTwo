@@ -21,3 +21,23 @@ identities. Initialized-byte emission is separately covered by
 `test_raw_data_words.py`. Canonical object checks and whole PAL verification
 remain necessary; layout normalization must preserve code and every resolved
 relocation.
+
+The native-data pipeline also preserves independently referenced cuts inside a
+compiler-required alignment gap. It snapshots the original whole-object sizes
+and section alignments before identity mapping can append padding. Both
+neighboring native objects must have unique, exact declared retail extents,
+compatible section kinds and valid alignments. Rounding the first object's end
+to the second object's original alignment must give its exact retail start.
+Only a gap smaller than 16 bytes with no declared object, relocation field or
+live competing definition can supply fragments. Initialized gaps must have
+complete zero retail bytes and zero existing native prefix padding; BSS gaps
+must be NOBITS. Every cut must be the contiguous canonical `D_<address>` label.
+
+Such fragments contain only the zero storage the native alignment requires.
+Their symbols are address labels rather than C++ objects. Existing undefined
+labels keep their symbol indices, preserving every serialized code relocation.
+No terminal reservation, missing object contents or nonzero initializer is
+supplied. Held source markers remain authoritative and receive no native data
+credit. `test_data_padding.py` covers positive initialized/BSS and multiple-cut
+layouts, original extent evidence, unchanged code and rejection of incomplete,
+aliased, relocated, nonzero, misaligned or marker-held candidates.

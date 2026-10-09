@@ -206,6 +206,9 @@ def prepare_native_data(elf, unit, ctx, *, donors=()):
                     if symbol.name.endswith(layout.PLACEHOLDER_SUFFIX)
                     and 0 < symbol.st_shndx < len(elf.sections)}
     drop_sections(elf, placeholders)
+    native_extents = p.native_data_extents(elf, set())
+    source = Path(ctx.layout.source(unit)).read_text()
+    held = fallback_data_names(source)
     function_names = [(symbol, symbol.name) for symbol in elf.symtab.symbols
                       if 0 < symbol.st_shndx < len(elf.sections)
                       and elf.sections[symbol.st_shndx].sh_flags & p.SHF_EXECINSTR]
@@ -228,6 +231,8 @@ def prepare_native_data(elf, unit, ctx, *, donors=()):
                         addresses=ctx.addresses, rows=ctx.rows, padding_pieces=ctx.pieces)
     native_vtables.import_vtables(elf, unit, donors, retail=ctx.retail, pieces=ctx.pieces,
                                   rows=ctx.rows, addresses=ctx.addresses)
+    p.materialize_alignment_fragments(elf, unit, set(), native_extents, held=held,
+                                     retail=ctx.retail, pieces=ctx.pieces, rows=ctx.rows)
     for symbol in anonymous:
         if symbol.name.startswith('at_') and int(symbol.name.split('__')[0][3:]) >= 1 << 64:
             symbol.name = '.unmapped_' + symbol.name
@@ -293,8 +298,6 @@ def prepare_native_data(elf, unit, ctx, *, donors=()):
         symbol.st_name = elf.strtab.add_symbol(symbol.name)
     # A retained data marker explicitly keeps that piece assembly-supplied,
     # even when the compiler happens to emit an otherwise identical copy.
-    source = Path(ctx.layout.source(unit)).read_text()
-    held = fallback_data_names(source)
     drop_sections(elf, {symbol.st_shndx for symbol in elf.symtab.symbols
                         if symbol.name in held and 0 < symbol.st_shndx < len(elf.sections)})
     if code_snapshot(elf) != before:
