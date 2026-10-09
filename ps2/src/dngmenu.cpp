@@ -1837,7 +1837,6 @@ void CMenuTreeMap::InitEnd() {
     key_arg_no = 0;
 }
 
-#ifdef NONMATCHING
 extern short         TreeMapSaveDispY;
 extern unsigned char TreeMapSaveFlag;
 
@@ -1864,7 +1863,11 @@ void CMenuTreeMap::MsgInit() {
     }
     message->StepMsg();
     int y = mgScreenHeight - 50;
-    message->line_pos[0][0] = (mgScreenWidth >> 2) - (message->line_w[0] >> 1);
+    int x = mgScreenWidth;
+    int width = message->line_w[0];
+    x >>= 2;
+    width >>= 1;
+    message->line_pos[0][0] = x - width;
     message->line_pos[0][1] = y;
     message->line_pos_on[0] = 1;
     message->line_pos[1][0] = ((mgScreenWidth >> 2) * 3) - (message->line_w[1] >> 1);
@@ -1877,9 +1880,6 @@ void CMenuTreeMap::MsgInit() {
         message->line_pos_on[1] = 1;
     }
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/dngmenu", MsgInit__12CMenuTreeMapFv);
-#endif
 #ifdef NONMATCHING
 extern int             old_direction_2830;
 extern s8              init_2831;
