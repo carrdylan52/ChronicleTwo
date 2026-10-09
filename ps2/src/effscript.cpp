@@ -3135,7 +3135,7 @@ int _CHR_GET_FRAME_POS(RS_STACKDATA *stack, int argument_count) {
     mgCFrame     *frame;
     char         *name = GetStackString(stack);
 
-    if ((character_frame = ((CObjectFrame *) now_script->chara)->frame) == 0) {
+    if ((character_frame = now_script->chara->CObjectFrame::frame) == 0) {
         return 0;
     }
 
@@ -3164,7 +3164,7 @@ int _CHR_SET_FRAME_SHOW(RS_STACKDATA *stack, int argument_count) {
     char     *name = GetStackString(stack++);
     int       show = GetStackInt(stack++);
     int       attr_mask = GetStackInt(stack);
-    mgCFrame *character_frame = ((CObjectFrame *) now_script->chara)->frame;
+    mgCFrame *character_frame = now_script->chara->CObjectFrame::frame;
 
     if (character_frame == 0) {
         return 0;
@@ -3219,7 +3219,7 @@ int _CHR_SET_LIGHT_COLOR(RS_STACKDATA *stack, int argument_count) {
     }
 
     int       flags;
-    mgCFrame *frame = ((CObjectFrame *) now_script->chara)->frame;
+    mgCFrame *frame = now_script->chara->CObjectFrame::frame;
 
     if (frame == 0) {
         return 0;
@@ -4612,11 +4612,11 @@ int _SCN_GET_CHR_FRM_POS(RS_STACKDATA *stack, int argc) {
         return 0;
     }
 
-    if (((CObjectFrame *) chara)->frame == NULL) {
+    if (chara->CObjectFrame::frame == NULL) {
         return 0;
     }
 
-    frame = ((CObjectFrame *) chara)->frame->SearchFrame(frame_name);
+    frame = chara->CObjectFrame::frame->SearchFrame(frame_name);
 
     if (frame == NULL) {
         return 0;
@@ -5234,7 +5234,7 @@ int _COLPRIM_SET_COORD(RS_STACKDATA *stack, int argc) {
 
             start_name = GetStackString(stack++);
             radius = GetStackFloat(stack);
-            root = ((CObjectFrame *) now_script->chara)->frame;
+            root = now_script->chara->CObjectFrame::frame;
 
             if (root == NULL) {
                 return 0;
@@ -5256,7 +5256,7 @@ int _COLPRIM_SET_COORD(RS_STACKDATA *stack, int argc) {
             start_name = GetStackString(stack++);
             end_name = GetStackString(stack++);
             radius = GetStackFloat(stack);
-            root = ((CObjectFrame *) now_script->chara)->frame;
+            root = now_script->chara->CObjectFrame::frame;
 
             if (root == NULL) {
                 return 0;
