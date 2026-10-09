@@ -11,9 +11,9 @@ functions; they do not assert retail enum names.
 
 ## Current assembly gaps
 
-`CDngFreeMap::DrawRoot` and `LoadDngInfo` retain C++ drafts
-under `NONMATCHING`; the matching build selects their retail `INCLUDE_ASM`
-gaps. `DrawRoomOne` is native and exact; see
+`LoadDngInfo` retains a C++ draft under `NONMATCHING`; the matching build
+selects its retail `INCLUDE_ASM` gap. `DrawRoomOne` and `CDngFreeMap::DrawRoot`
+are native and exact; see
 [night-20261008.md](night-20261008.md). The same applies to `DrawDngRoomInfo`,
 `CMenuTreeMap::MsgInit` and `Step`.
 `CheckGeoramaMateria` and `CMenuTreeMap::InitEnd` are native and exact;
@@ -560,7 +560,7 @@ The comparison includes canonical section bytes and resolved relocations.
 
 | Native draft | Objdiff | Result |
 |---|---:|---|
-| `CDngFreeMap::DrawRoot` | 81.85545% | 3332-byte native body; canonical check fails. |
+| `CDngFreeMap::DrawRoot` | exact | Promoted on October 8 night; see [night-20261008.md](night-20261008.md). |
 | `CDngFreeMap::DrawRoomOne` | exact | Promoted on October 8 night; see [night-20261008.md](night-20261008.md). |
 | `DrawDngRoomInfo` | 48.992977% | 3052-byte native body; canonical check fails. |
 | `DrawGeoramaMateria` | 79.984% | 0x404 bytes rather than 0x400; canonical check fails. |

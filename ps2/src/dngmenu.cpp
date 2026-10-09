@@ -254,7 +254,6 @@ void CDngFreeMap::DrawLast() {
     prim->Vertex(mgScreenWidth, mgScreenHeight, 0);
     prim->End();
 }
-#ifdef NONMATCHING
 /**
  *
  * Offset of a passage mark from its grid cell.
@@ -284,16 +283,16 @@ void CDngFreeMap::DrawRoot(mgRect<float> rect, DNGMAP_ROOT_INFO *root, int shado
         put.left += 8.0f;
         put.top += 8.0f;
     }
-    float red = 212.0f;
     float mark_color = 128.0f;
+    float red = 212.0f;
     float green = 192.0f;
-    RootMarkOffset *mark = markOffsetTable_1092;
     float blue = 144.0f;
+    RootMarkOffset *mark = markOffsetTable_1092;
     if (mode == DNGMAP_MODE_EVENT) {
-        red = 128.0f;
         mark_color = 64.0f;
-        blue = 0.0f;
+        red = 128.0f;
         green = 111.0f;
+        blue = 0.0f;
     }
     mgCDrawPrim    *prim = GetMenuPrim();
     SetSpriteEnv(prim, 2);
@@ -420,7 +419,7 @@ void CDngFreeMap::DrawRoot(mgRect<float> rect, DNGMAP_ROOT_INFO *root, int shado
         prim->Color(0, 0, 0, (int) (0.05f * (float) opacity));
     }
     prim->Texture(map_tex);
-    if (root->type != 0 && root->opened != 0 && root->show_mark != 0 && mark != NULL) {
+    if (root->type != 0 && (u8) root->opened != 0 && root->show_mark != 0 && mark != NULL) {
         prim->Color((int) mark_color, (int) mark_color, (int) mark_color, opacity);
         if (shadow != 0) {
             prim->Color(0, 0, 0, (int) (0.05f * (float) opacity));
@@ -433,10 +432,6 @@ void CDngFreeMap::DrawRoot(mgRect<float> rect, DNGMAP_ROOT_INFO *root, int shado
     }
     prim->End();
 }
-
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/dngmenu", DrawRoot__11CDngFreeMapF9mgRect_f_P16DNGMAP_ROOT_INFOiUii);
-#endif
 unsigned int CDngFreeMap::DrawGlidCheck(GLID_INFO *glid) {
     unsigned int marks;
     if (glid == NULL) {
