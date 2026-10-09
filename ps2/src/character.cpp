@@ -2219,8 +2219,8 @@ int _MOTION(SPI_STACK *stack, int argc) {
     char            *second_name;
     char            *third_name;
     MOTION_FILE_INFO entry[3];
-    int             *source;
-    int             *dest;
+    tagMOTION_TYPE  *source;
+    tagMOTION_TYPE  *dest;
 
     root = nowChr->CObjectFrame::frame;
     arg = stack + 1;
@@ -2273,12 +2273,12 @@ int _MOTION(SPI_STACK *stack, int argc) {
     CreateAnimeDataEX(motion, ext_stack, entry);
 
     if (now_motion_id > 0) {
-        source = (int *) &nowChr->shadow_motion[0];
-        dest = (int *) &nowChr->shadow_motion[now_motion_id];
-        dest[0] = source[0];
-        dest[1] = source[1];
-        dest[2] = source[2];
-        dest[3] = source[3];
+        source = &nowChr->shadow_motion[0];
+        dest = &nowChr->shadow_motion[now_motion_id];
+        dest->base_matrices = source->base_matrices;
+        dest->motion_list = source->motion_list;
+        dest->skin_list = source->skin_list;
+        dest->unk_0C = source->unk_0C;
     }
 
     return 1;
