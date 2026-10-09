@@ -636,7 +636,6 @@ extern char               at_1361[];
 extern char               at_2287[];
 extern char               at_3969[];
 extern s8                 convtbl_4621[][MENU_CHARA_LOAD_MAX];
-extern SceneCharaList     at_3054__2;
 extern mgCMemory          MenuMonChangeLoadStack;
 /**
  *
@@ -3826,7 +3825,7 @@ int CMenuMosSelect::CheckLoadBGMonster() {
         }
         case 1:
             if (MenuMonsterBGInfo[0]->reading && ReadBGSync() == 0) {
-                SceneCharaList chara = at_3054__2;
+                SceneCharaList chara = {{NULL, NULL, NULL, NULL, NULL, NULL, NULL}};
                 chara.entry[0] = monster;
                 int tex_block = this->tex_block[1];
                 MenuMonsterLoadBGCheck(MenuMonsterBGInfo, chara.entry, tex_block, MenuArg.chara_tex_block);
@@ -7849,7 +7848,6 @@ INCLUDE_BSS(at_2676, 0x80);
 mgCMemory MenuMonChangeLoadStack;
 mgCMemory MenuMosBuildStack;
 mgCMemory MenuMosLoadStack;
-INCLUDE_BSS(at_3054__2, 0x20);
 INCLUDE_BSS(at_3511, 0x20);
 INCLUDE_BSS(at_3529, 0x20);
 INCLUDE_BSS(at_3554, 0x20);

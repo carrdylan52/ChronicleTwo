@@ -103,3 +103,9 @@ appended filler. `ConvertCharaLoadDataPhase` retains its existing typed indexing
 After this step: **326 / 26 markers**, **4 / 9726 matched_data**.
 PAL and 149/149 objects pass; receipts are
 `.private/nmchr-r3/menuchr-phase-table-{build,objects,progress,metrics}.log`.
+
+`CMenuMosSelect::CheckLoadBGMonster` now initializes its seven-pointer local
+character-target array directly with null pointers, supplying `at_3054__2`.
+After this step: **326 / 25 markers**, **4 / 9726 matched_data**.
+PAL and 149/149 objects pass; receipts are
+`.private/nmchr-r3/menuchr-monster-target-{build,objects,progress,metrics}.log`.
