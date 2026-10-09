@@ -320,17 +320,6 @@ extern CAquarium      Aquarium;
 
 static int local_aquarium_limmit_check(float *pos, float radius, int check_y, float height);
 
-extern "C" short pl_s_5630[12];
-
-extern "C" short pl_b_5631[12];
-
-extern "C" short tbl_5644[36];
-
-extern "C" short tbl_5669[36];
-
-extern "C" short bart_5670[12];
-
-extern "C" short pl_s_5699[12];
 
 
 
@@ -341,9 +330,6 @@ extern "C" short pl_s_5699[12];
 
 
 
-extern gyoracer_index_data GyoracerIndexNo;
-
-extern gyoracer_tactics_data GyoracerTacticsNo;
 
 
 
@@ -351,9 +337,13 @@ extern gyoracer_tactics_data GyoracerTacticsNo;
 
 
 
-extern SPI_TAG_PARAM gyorace_tag[4];
 
-extern SPI_TAG_PARAM gyoprize_tag[4];
+
+
+
+
+
+
 
 
 extern char *filename_4899[2];
@@ -367,7 +357,6 @@ extern char *filename_4899[2];
 extern mgCMemory Aquarium_NameregistStack;
 extern mgCMemory GyoraceStack;
 
-extern int              vol_5253[6];
 
 extern mgCMemory   GyoraceFishSelStack;
 
@@ -1244,6 +1233,107 @@ static float v4orig_4376[4] = {-34.0f, 16.5f, 0.0f, 1.0f};
  *
  */
 static short t_4408[12] = {170, 0, 36, 76, 206, 0, 14, 76, 220, 0, 36, 76};
+
+/**
+ *
+ * Maps fish-race script tags to their handlers.
+ *
+ */
+static SPI_TAG_PARAM gyorace_tag[3] = {
+    {"NUM", _GYORACE_LISTNUM},
+    {"DAT", _GYORACE_DATA},
+    {NULL, NULL}
+};
+
+/**
+ *
+ * Maps fish-prize script tags to their handlers.
+ *
+ */
+static SPI_TAG_PARAM gyoprize_tag[4] = {
+    {"NUM", _PRIZE_LISTNUM},
+    {"GRP", _PRIZE_GROUP},
+    {"PRIZE", _PRIZE},
+    {NULL, NULL}
+};
+
+/**
+ *
+ * Stores the six saved-racer data indices.
+ *
+ */
+static gyoracer_index_data GyoracerIndexNo = {{-1, -1, -1, -1, -1, -1}};
+
+/**
+ *
+ * Stores the six saved-racer tactics numbers.
+ *
+ */
+static gyoracer_tactics_data GyoracerTacticsNo = {{-1, -1, -1, -1, -1, -1}};
+
+/**
+ *
+ * Stores the translated labels of an empty saved-racer slot.
+ *
+ */
+char * Mitouroku[7] = {
+    "  ",
+    "  None",
+    "  Aucun",
+    "  Leer",
+    "  Nessuno",
+    "  Ninguno",
+    "  None"
+};
+
+/**
+ *
+ * Stores the six tactics message-item numbers of a saved racer.
+ *
+ */
+static int vol_5253[6] = {5020, 5021, 5022, 5023, 5024, 5025};
+
+/**
+ *
+ * Stores texture strips for a small subgame title.
+ *
+ */
+static short pl_s_5630[12] = {172, 54, 24, 46, 196, 54, 10, 46, 206, 54, 24, 46};
+
+/**
+ *
+ * Stores texture strips for a large subgame title.
+ *
+ */
+static short pl_b_5631[12] = {172, 0, 24, 54, 196, 0, 10, 54, 206, 0, 24, 54};
+
+/**
+ *
+ * Stores texture strips for a fixed subgame list frame.
+ *
+ */
+static short tbl_5644[36] = {0, 0, 28, 28, 28, 0, 10, 28, 38, 0, 28, 28, 0, 28, 28, 10, 28, 28, 10, 10, 38, 28, 28, 10, 0, 38, 28, 28, 28, 38, 10, 28, 38, 38, 28, 28};
+
+/**
+ *
+ * Stores texture strips for a scrolling subgame list frame.
+ *
+ */
+static short tbl_5669[36] = {0, 0, 28, 28, 28, 0, 10, 28, 66, 0, 40, 28, 0, 28, 28, 10, 28, 28, 10, 10, 66, 28, 40, 10, 0, 38, 28, 28, 28, 38, 10, 28, 66, 38, 40, 28};
+
+/**
+ *
+ * Stores texture strips for a subgame scrollbar thumb.
+ *
+ */
+static short bart_5670[12] = {248, 0, 8, 10, 248, 10, 8, 10, 248, 20, 8, 10};
+
+/**
+ *
+ * Stores texture strips for a subgame underline.
+ *
+ */
+static short pl_s_5699[12] = {0, 66, 10, 6, 10, 66, 10, 6, 20, 66, 10, 6};
 
 // Code (.text)
 /**
@@ -7867,18 +7957,6 @@ INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuaqua", at_3290__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuaqua", at_3291__3__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuaqua", at_3310__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuaqua", at_3311__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuaqua", gyorace_tag__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuaqua", gyoprize_tag__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuaqua", GyoracerIndexNo__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuaqua", GyoracerTacticsNo__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuaqua", Mitouroku__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuaqua", vol_5253__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuaqua", pl_s_5630__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuaqua", pl_b_5631__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuaqua", tbl_5644__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuaqua", tbl_5669__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuaqua", bart_5670__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuaqua", pl_s_5699__DATA);
 
 // Constants (.rodata)
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuaqua", at_3150__DATA);
@@ -7897,18 +7975,8 @@ INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuaqua", at_3163__2__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuaqua", at_3164__3__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuaqua", at_4300__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuaqua", at_4299__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuaqua", at_4814__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuaqua", at_4815__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuaqua", at_4884__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuaqua", at_4885__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuaqua", at_4900__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuaqua", at_4901__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuaqua", at_4975__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuaqua", at_4976__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuaqua", at_4977__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuaqua", at_4978__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuaqua", at_4979__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuaqua", at_4980__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuaqua", at_5500__DATA);
 
 // Virtual tables (.vtables)

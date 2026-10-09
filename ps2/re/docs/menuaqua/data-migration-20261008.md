@@ -120,3 +120,16 @@ existing PAD_CIRCLE and PAD_CROSS names.
 
 Eleven `aqua-table-<symbol>-{build,objects}.log` receipts verify PAL OK
 and 149/149 objects. Markers: 68 / 3; matched data: 2128 / 8293 bytes.
+
+## Race script and drawing tables
+
+Twelve race tables now use native definitions: the three-entry race tag
+list, four-entry prize tag list, six saved-racer indices, six tactics
+numbers, seven translated empty-slot labels, six tactics message IDs,
+and six subgame texture-strip arrays. Tag lists retain real null
+terminators and typed function pointers. Mitouroku remains externally
+visible; both English slots still share their retail literal target.
+Ten child-literal markers are also supplied by the native tables.
+
+Each `aqua-table-<symbol>-{build,objects}.log` receipt verifies PAL OK
+and 149/149 objects. Markers: 46 / 3; matched data: 2128 / 8293 bytes.
