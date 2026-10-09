@@ -579,7 +579,7 @@ void CDC2Mes::SetPutPos(int x, int y, int w, int h) {
     abs_win.width = w;
     abs_win.height = h;
 
-    if (*(signed char *) &put_centering != 0) {
+    if (put_centering != 0) {
         abs_win.x = (int) ((unsigned int) mgScreenWidth - text_w) >> 1;
     }
 }
@@ -588,7 +588,7 @@ void CDC2Mes::SetPutPos(int *pos) {
     abs_win.x = pos[0];
     abs_win.y = pos[1];
 
-    if ((s8) put_centering != 0) {
+    if (put_centering != 0) {
         abs_win.x = (int) ((unsigned int) mgScreenWidth - text_w) >> 1;
     }
 
