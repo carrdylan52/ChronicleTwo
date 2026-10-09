@@ -36,6 +36,11 @@ static char HelpMesBuff[0x1000];
  */
 ClsMes HelpMes __attribute__((aligned(4)));
 
+/**
+ *
+ * Reserves four bytes before the help message request state.
+ *
+ */
 u8 D_01F628BC[4];
 
 /**
