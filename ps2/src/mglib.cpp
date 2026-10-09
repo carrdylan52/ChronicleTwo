@@ -656,7 +656,7 @@ void mgEndDraw(mgCDrawManager *manager) {
         manager = &mgDrawManager;
     }
 
-    manager->EndDraw((sceVif1Packet *) mgVif1Packet);
+    manager->EndDraw(mgVif1Packet);
 }
 
 void mgPreEndDraw(mgCDrawManager *manager) {
