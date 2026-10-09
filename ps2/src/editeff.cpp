@@ -47,18 +47,16 @@ extern mgCMemory         CurPartsBuff;
 void EditSetEffectBuffer(mgCMemory *memory) {
     mgCTexture *texture = mgTexManager.GetTexture("haichi_eff", -1);
     int         i;
-    int         offset;
 
-    for (i = 0, offset = 0; i < star_effect_count; offset += sizeof(CStarEffect), i++) {
-        CStarEffect *star = (CStarEffect *) ((u8 *) _StarEffect + offset);
+    for (i = 0; i < star_effect_count; i++) {
         u32          bytes;
         int         *count;
         u32          blocks;
-        star->CObject::Initialize();
-        star->particle_max = star_particle_max;
-        star->particle_num = 0;
-        bytes = star->particle_max << 5;
-        count = &star->particle_max;
+        _StarEffect[i].CObject::Initialize();
+        _StarEffect[i].particle_max = star_particle_max;
+        _StarEffect[i].particle_num = 0;
+        bytes = _StarEffect[i].particle_max << 5;
+        count = &_StarEffect[i].particle_max;
 
         if (bytes & 0xF) {
             blocks = (bytes >> 4) + 1;
@@ -66,9 +64,9 @@ void EditSetEffectBuffer(mgCMemory *memory) {
             blocks = bytes >> 4;
         }
 
-        star->particle = (EditStarParticle *) operator new[](
+        _StarEffect[i].particle = (EditStarParticle *) operator new[](
             *count << 5, memory->Alloc(blocks + 2));
-        star->texture = texture;
+        _StarEffect[i].texture = texture;
     }
 
     PaintEffect = new (memory->Alloc(0x42)) CPaintEffect[1];
@@ -100,19 +98,16 @@ int EditPlaceEffect(CEditParts *parts, float *position) {
     CStarEffect *effect = NULL;
     int          oldest_frame = 0;
     int          index = 0;
-    int          byte_offset = 0;
 
-    for (; index < star_effect_count; ++index, byte_offset += sizeof(CStarEffect)) {
-        CStarEffect *candidate = (CStarEffect *) ((u8 *) _StarEffect + byte_offset);
-
-        if (candidate->state == effect_idle) {
+    for (; index < star_effect_count; ++index) {
+        if (_StarEffect[index].state == effect_idle) {
             effect = &_StarEffect[index];
             break;
         }
 
-        if (candidate->frame > oldest_frame) {
-            oldest_frame = candidate->frame;
-            effect = candidate;
+        if (_StarEffect[index].frame > oldest_frame) {
+            oldest_frame = _StarEffect[index].frame;
+            effect = &_StarEffect[index];
         }
     }
 
@@ -269,7 +264,6 @@ void CStarEffect::ParamInit(float *spread, int count) {
     float         radius;
     float         theta;
     sceVu0FVECTOR p;
-    u_long128     q;
 
     sceVu0ScaleVector(spread, spread, 0.12f);
     state = effect_started;
@@ -282,8 +276,7 @@ void CStarEffect::ParamInit(float *spread, int count) {
         p[2] = radius * cosf(theta);
         p[3] = 1.0f;
 
-        q = *(volatile u_long128 *) &p;
-        *(u_long128 *) particle[i].position = q;
+        *(u_long128 *) particle[i].position = *(u_long128 *) p;
         particle[i].shape = i % 2;
     }
 
