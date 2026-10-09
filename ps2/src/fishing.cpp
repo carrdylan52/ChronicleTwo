@@ -2255,7 +2255,7 @@ static void CharaControl(CScene *scene, CPadControl *pad) {
         camera = (mgCCameraFollow *) scene->GetCamera(scene->active_camera);
 
         if (camera != NULL) {
-            switch (((mgCCamera *) camera)->Iam()) {
+            switch (camera->Iam()) {
                 case kCameraSettled:
                     break;
                 default:
@@ -2474,7 +2474,7 @@ void SelectCastingPoint(CScene *scene, CPadControl *pad) {
         return;
     }
 
-    switch (((mgCCamera *) camera)->Iam()) {
+    switch (camera->Iam()) {
         case kCameraSettled:
             break;
         default:
