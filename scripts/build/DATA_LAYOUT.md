@@ -74,13 +74,15 @@ sections are assigned alignment one for linking, their bytes must retain that
 gap. The postprocessor extends a correctly sized native initialized object by
 fewer than 16 bytes to its piece boundary; initialized padding must be zero
 in retail. An exactly sized native NOBITS object reserves storage only when
-its canonical piece ends at a power-of-two alignment of at most 4,096 bytes.
+its canonical piece ends at a power-of-two alignment of at most 128 bytes.
 A reference cut may divide an alignment gap before that end. For an unaligned
-cut, the proof follows contiguous canonical `D_<address>` fragments with no
+cut, the check follows contiguous canonical `D_<address>` fragments with no
 retail declaration to the next declared object and checks that object's start
 against the same alignment bound. Only storage through the original cut is
 reserved; the fragments remain separate. Missing, malformed, declared or
-unaligned gap evidence supplies no additional reservation proof. Terminal
+unaligned gap evidence allows no additional reservation. This bounded
+reservation policy does not establish the following object's original compiler
+alignment; some retail BSS gaps still need that independent proof. Terminal
 detection uses the retail section kind, so a compiler section name cannot
 bypass the declared terminal extent.
 Anonymous initialized literal naming requires both the original payload and

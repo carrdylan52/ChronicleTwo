@@ -234,6 +234,9 @@ class DataPaddingTests(unittest.TestCase):
         self.assertEqual(self.run_padding(size=4, declared=4, end=64), 64)
         self.assertEqual(self.run_padding(size=4, declared=4, end=52), 4)
         self.assertEqual(self.run_padding(size=4, declared=4, end=8192), 4)
+        for end in (256, 4096):
+            with self.subTest(end=end):
+                self.assertEqual(self.run_padding(size=4, declared=4, end=end), 4)
         self.assertEqual(self.run_padding(end=14), 12)
         self.assertEqual(self.run_padding(end=32), 32)
         self.assertEqual(self.run_padding(end=28), 12)

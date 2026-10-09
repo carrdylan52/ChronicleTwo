@@ -1437,7 +1437,7 @@ def pad_data(elf, unit, placeholders, *, retail=None, pieces=None, rows=None):
                 and declared_size is not None and size and end - start > size
                 and any(((start + size + alignment - 1) & -alignment) == limit
                         for limit in reservation_ends[symbol.name]
-                        for alignment in (1 << shift for shift in range(1, 13)))):
+                        for alignment in (1 << shift for shift in range(1, MAX_DATA_ALIGNMENT.bit_length())))):
             section.sh_size = end - start
             continue
         if (section.name in ('.data', '.sdata', '.rodata', '.vtables') and size
