@@ -881,7 +881,7 @@ mgCDrawPrim *GetMenuPrim() {
 void MenuMainImageDataEnter(int block) {
     u8 *image;
 
-    image = (u8 *) GetMenuMainIMGPtr();
+    image = GetMenuMainIMGPtr();
 
     if (image != NULL) {
         mgTexManager.EnterIMGFile(image,
@@ -1597,12 +1597,12 @@ short *GetMenuMainMessageBuffer() {
     return (short *) GetPackFile(MenuArg.pack, "allmenu.mes", &size);
 }
 
-u_int *GetMenuMainIMGPtr() {
-    return GetPackFile(MenuArg.pack, "frametex.img", 0);
+u_char *GetMenuMainIMGPtr() {
+    return (u_char *) GetPackFile(MenuArg.pack, "frametex.img", 0);
 }
 
-u_int *GetMenuMainPosCfgBuffer(int *size) {
-    return GetPackFile(MenuArg.pack, "menu0.cfg", size);
+char *GetMenuMainPosCfgBuffer(int *size) {
+    return (char *) GetPackFile(MenuArg.pack, "menu0.cfg", size);
 }
 
 void SetCommonMenuModeID() {
@@ -1895,7 +1895,7 @@ int MenuInternInit(mgCMemory *stack, int open_type, int capture) {
     MenuMainImageDataEnter(MenuCommonInfo->tex_block[1]);
     MenuInterMes = new (stack->Alloc(0x2A7)) CDC2Mes;
     int script_size;
-    char *config = (char *)GetMenuMainPosCfgBuffer(&script_size);
+    char *config = GetMenuMainPosCfgBuffer(&script_size);
     char *script = (char *)(stack->stack + stack->stack_used) + (stack->stack_size - stack->stack_used) * 16 - 0x32000;
     memcpy(script, config, script_size);
     MenuDataAnalyze(script, script_size, stack);

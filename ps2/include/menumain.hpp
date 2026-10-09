@@ -550,7 +550,7 @@ short *GetMenuMainMessageBuffer();
  * @address 0x236A10
  * @size 0x20
  */
-u_int *GetMenuMainIMGPtr();
+u_char *GetMenuMainIMGPtr();
 
 /**
  *
@@ -560,7 +560,7 @@ u_int *GetMenuMainIMGPtr();
  * @address 0x236A30
  * @size 0x20
  */
-u_int *GetMenuMainPosCfgBuffer(int *size);
+char *GetMenuMainPosCfgBuffer(int *size);
 
 /**
  *
