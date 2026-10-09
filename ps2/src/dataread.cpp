@@ -1081,10 +1081,10 @@ int WriteFile(char *path, void *buffer, int size) {
 }
 
 u_int *GetPackFile(u_int *pack, char *name, int *out_size) {
-    s8         *base;
+    char       *base;
     PACK_ENTRY *entry;
-    s8         *scan;
-    s8          c;
+    char       *scan;
+    char        c;
 
     if (pack == NULL) {
         return 0;
