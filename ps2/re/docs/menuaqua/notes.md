@@ -297,14 +297,14 @@ ColCheck byte mismatch. This improves on the declaration-position swap but remai
   and branches on `s3`. Parked under the placement-new stop rule; reconsider
   when the dedicated constructor/null-branch lane supplies a natural solution.
 
-- `ColCheck__9CAquariumFi`: **60/448 words**, compiled **0x6F8**, retail extent
-  **0x700**. The differing instructions exchange `s2` and `s3`: retail holds
-  the selected fish in `s3` and uses `s2` for the fish-loop offset and obstacle
-  count; draft allocates those registers oppositely. All other instructions
-  and relocations agree. Giving each loop its own index produces **76**
-  differing words; initializing the selected-fish pointer before the
-  temporary declarations produces **89**. Reconsider with evidence for a
-  natural local lifetime or type correction that yields the retail allocation.
+- `ColCheck__9CAquariumFi` is native and exact: its declared retail and
+  native symbol sizes are **0x6F8** in a **0x700** aligned reservation. The
+  slot null check before binding the selected fish resolves the old `s2`/`s3`
+  exchange; the typed collision-point element walk preserves the exact body.
+  See [night-20261008.md](night-20261008.md) for promotion and complete-object
+  verification. Earlier guarded probes gave **60/448** words, **76** with
+  separate loop indices, and **89** with early pointer initialization; these
+  historical negative results do not describe the current implementation.
 
 - `DrawFishParam__FiiP10mgCTextureP13CGameDataUsed` (now exact; the forms that
   match are in [night-20261008.md](night-20261008.md)). Earlier state: **652/704 words**, compiled

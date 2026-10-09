@@ -338,9 +338,11 @@ menumap). Statics of note: `MenuDngMap` (CDngFreeMap*), `CMenuTreePt` (CMenuTree
 `GeoramaMateriaNum` (s16), `DngInfoStageNo` (u8).
 
 ## Non-members
-`CheckGeoramaMateria`, `DrawDngRoomInfo`, `DrawGeoramaMateria` are LOCAL in retail -> static in
-the .cpp, not in the header. `ClsMes::Init` (0x1F38E0) belongs to this unit and is
-currently supplied by `INCLUDE_ASM`; its C++ declaration is in `nd_meswin.hpp`.
+`CheckGeoramaMateria`, `DrawDngRoomInfo`, and `DrawGeoramaMateria` are LOCAL
+in retail and have no public header declarations. The first two have internal
+source linkage; `DrawGeoramaMateria` currently has external source linkage.
+`ClsMes::Init` (0x1F38E0) is emitted natively from `nd_meswin.hpp` by the
+natural `CMenuTreeMap` constructor; its assembly marker is removed.
 
 ## GLID_INFO / DNGMAP_ROOM_INFO as seen from here (for dngfloor's header)
 GLID_INFO stride 0x70 (CDngFloorManager +4 array, +8 count, +0xC/+0xE grid width/height):
@@ -563,7 +565,7 @@ The comparison includes canonical section bytes and resolved relocations.
 | `CDngFreeMap::DrawRoot` | exact | Promoted on October 8 night; see [night-20261008.md](night-20261008.md). |
 | `CDngFreeMap::DrawRoomOne` | exact | Promoted on October 8 night; see [night-20261008.md](night-20261008.md). |
 | `DrawDngRoomInfo` | 48.992977% | 3052-byte native body; canonical check fails. |
-| `DrawGeoramaMateria` | 79.984% | 0x404 bytes rather than 0x400; canonical check fails. |
+| `DrawGeoramaMateria` | exact | Native 0x400-byte body; the complete object passes. See [night-20261008.md](night-20261008.md). |
 | `CMenuTreeMap::MsgInit` | 97.836% | Correct 0x1D0 size; screen-coordinate load scheduling still differs. Naming the X coordinate in a local leaves output unchanged. |
 | `DngTreeMapInit` | exact | Promoted on October 8 night; see [night-20261008.md](night-20261008.md). |
 
@@ -604,8 +606,10 @@ removed after complete-unit byte and relocation validation; see [r2.md](r2.md).
 The three panel calls take separately constructed rectangle values, matching
 the three distinct retail temporaries. Title and item dimensions use separate
 locals. The page-end index remains an integer: narrowing it to a short adds
-sign-extension instructions absent from retail. These corrections retain a
-0x404-byte guarded function against 0x400 bytes in retail.
+sign-extension instructions absent from retail. Those earlier corrections
+left a 0x404-byte guarded draft. Sharing the title, list, and page text
+coordinates subsequently yields the exact native 0x400-byte body; see
+[night-20261008.md](night-20261008.md).
 
 `CDngFreeMap::Draw` has a 256-byte detail buffer and a 32-byte secondary line
 buffer (retail stack 0x140..0x240 and 0x240..0x260). It reloads the selected
