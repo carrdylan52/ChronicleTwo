@@ -269,22 +269,19 @@ INCLUDE_ASM("ps2/asm/pal/nonmatchings/mdslist", Copy__9CMapPieceFR9CMapPieceP9mg
 
 void CMapPiece::Initialize() {
     int i;
-    int offset;
 
     CObjectFrame::Initialize();
     type = 0;
     chara = NULL;
     i = 0;
     draw_enable = 1;
-    offset = 0;
     name = NULL;
     material_num = 0;
     col_type = 0;
     col_param = 0;
 
     for (; i < material_num; i++) {
-        memset((u_char *) material + offset, 0, 0x20);
-        offset += 0x20;
+        memset(&material[i], 0, sizeof(PieceMaterial));
     }
 
     time_end = 0;
