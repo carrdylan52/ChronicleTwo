@@ -1343,7 +1343,6 @@ static float GetGeoMapLimitHeight(int map_kind) {
     return -1.0f;
 }
 
-#ifdef NONMATCHING
 extern mgRect<int> data[];
 extern char at_1254__2[];
 extern char at_1284__5[];
@@ -2025,9 +2024,6 @@ void EditMode(CScene *scene) {
         }
     }
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/editmode", EditMode__FP6CScene);
-#endif
 
 void DrawEditCursorParts(CScene *scene) {
     if (EditNowPlaceAnime() == 0 && PutSideMode != 1 && EditModeNo != EDIT_MODE_REMOVE) {

@@ -312,6 +312,15 @@
         "evaluate_first": true
       },
       {
+        "translation_unit": "editmode.cpp",
+        "function": "EditMode__FP6CScene",
+        "value_type": "binary32",
+        "value_bits": "0x3f490fdb",
+        "callee": "mgAngleCmp__Ffff",
+        "evaluate_first": true,
+        "expected_matches": 3
+      },
+      {
         "translation_unit": "event_func.cpp",
         "function": "LoadMovie__FPcP9mgCMemoryb",
         "value_type": "binary32",
