@@ -463,7 +463,7 @@ void LightingEdit(CScene *scene) {
     prim.Vertex(150, 300, 0);
     prim.End();
     light_no = map->map_info.active_light_no;
-    light = ((CMapInfo *)map)->GetLightingInfo(light_no);
+    light = map->map_info.GetLightingInfo(light_no);
     selected = NULL;
     selected_index = 0;
     const char *channel[3] = {"R", "G", "B"};
@@ -584,7 +584,7 @@ void LightingEdit(CScene *scene) {
         sprintf(end, "%sSAVE <->%s\n", cursor[edit == 0], tail[edit == 0]);
         if (edit == 0 && (GamePad__2.Down2(PAD_LEFT) || GamePad__2.Down2(PAD_RIGHT))) {
             char script[0x5000];
-            int size = ((CMapInfo *)map)->OutputLightData(script);
+            int size = map->map_info.OutputLightData(script);
             if (size > 0) {
                 char host[16] = "host:";
                 char path[128];
