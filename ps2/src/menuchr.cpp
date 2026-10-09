@@ -907,7 +907,21 @@ static short wakutbl_5600[3][12] = {
     {0x1E, 0xDA, 0x32, 0x4, 0x50, 0xDA, 0x2, 0x4, 0x54, 0xDA, 0x22, 0x4},
     {0x1E, 0xDF, 0x32, 0x32, 0x50, 0xDF, 0x2, 0x32, 0x54, 0xDF, 0x22, 0x32}
 };
-extern char            *monstere_file_template[];
+/**
+ *
+ * Page counter format of the monster book for each supported language.
+ *
+ */
+static char *monstere_file_template[LANG_CHINESE + 1] = {
+    " ",
+    "  File  %3d/%3d",
+    "Fichier %3d/%3d",
+    "  Datei %3d/%3d",
+    "  File  %3d/%3d",
+    "Archivo %3d/%3d",
+    "  File  %3d/%3d",
+};
+
 extern char            *tbl_3725[MOS_SELECT_BADGE_NUM];
 /**
  *
@@ -7505,7 +7519,6 @@ INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", infomsg_5256__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", putw_5262__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", monster_type_name__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", monster_jyakuten__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", monstere_file_template__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_5452__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", stand_bit_5472__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", tbl_5848__DATA);
@@ -7552,7 +7565,6 @@ INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_2194__2__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_2195__2__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_2196__2__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_2197__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_2286__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_2287__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_2303__2__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_2304__DATA);
@@ -7771,10 +7783,6 @@ INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_5428__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_5429__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_5430__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_5431__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_5432__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_5433__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_5434__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_5435__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_5558__2__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_5559__2__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_5560__2__DATA);

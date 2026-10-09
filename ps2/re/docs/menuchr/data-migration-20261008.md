@@ -109,3 +109,15 @@ character-target array directly with null pointers, supplying `at_3054__2`.
 After this step: **326 / 25 markers**, **4 / 9726 matched_data**.
 PAL and 149/149 objects pass; receipts are
 `.private/nmchr-r3/menuchr-monster-target-{build,objects,progress,metrics}.log`.
+
+## Localized monster-book page formats
+
+`monstere_file_template` is a native seven-pointer table with inline space,
+English, French, German, and Spanish strings. Japanese uses one space;
+Italian and Chinese reuse English. The declared 28-byte extent excludes its
+four-byte alignment tail. The current named-pointer-table literal binding
+accepts the table and all five child strings, unlike the earlier rejected
+probe recorded in `midday-book.md`. All seven resolved pointers match retail.
+After this step: **320 / 25 markers**, **4 / 9726 matched_data**.
+PAL and 149/149 objects pass; receipts are
+`.private/nmchr-r3/menuchr-book-format-{build,objects,progress,metrics}.log`.
