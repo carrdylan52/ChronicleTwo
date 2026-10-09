@@ -577,12 +577,6 @@ extern "C" u8 at_4889[];
 
 extern "C" char at_4890[11];
 
-extern "C" char at_4933[];
-
-extern "C" char at_4934[];
-
-extern "C" char at_4935[];
-
 void MENU_BASETEXINFO_Init(MENU_BASETEXINFO *info);
 
 
@@ -7198,9 +7192,6 @@ INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menudraw", at_4877__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menudraw", at_4888__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menudraw", at_4889__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menudraw", at_4890__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menudraw", at_4933__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menudraw", at_4934__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menudraw", at_4935__DATA);
 
 // Small initialised data (.sdata)
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menudraw", rgbatbl_1379__DATA);
