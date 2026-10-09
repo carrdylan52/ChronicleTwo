@@ -228,7 +228,6 @@ const int              exit_map_jump = EVENT_REQUEST_MAP_JUMP;
 const int              request_menu = EVENT_COMMAND_SUB_MODE;
 const int              request_door = EVENT_COMMAND_DOOR;
 const int              event_sprite2_size = 0x80;
-extern char            at_1083[];
 
 
 // Code (.text)
@@ -1877,7 +1876,7 @@ int CEohMother::SetFootSeId(int slot, int stamp) {
 }
 
 void FileNameConvLanguage(char *name) {
-    ExtensionTable extension = {{"txt", "img", "stb", at_1083}};
+    ExtensionTable extension = {{"txt", "img", "stb", ""}};
     char           marker[32];
     char          *found;
     int            i;
@@ -3760,7 +3759,7 @@ int _SET_CURRENT_DIR(RS_STACKDATA *stack, int argc) {
         dir = GetStackString(stack);
     }
 
-    if (dir == NULL || strcmp(dir, "DEFAULT") == 0 || strcmp(dir, at_1083) == 0) {
+    if (dir == NULL || strcmp(dir, "DEFAULT") == 0 || strcmp(dir, "") == 0) {
         SetCurrentDir(NULL);
     } else {
         SetCurrentDir(dir);
@@ -3776,7 +3775,7 @@ int _CHANGE_DIR(RS_STACKDATA *stack, int argc) {
         dir = GetStackString(stack);
     }
 
-    if (dir == NULL || strcmp(dir, "DEFAULT") == 0 || strcmp(dir, at_1083) == 0) {
+    if (dir == NULL || strcmp(dir, "DEFAULT") == 0 || strcmp(dir, "") == 0) {
         SetCurrentDir(NULL);
     } else {
         ChangeDir(dir);
@@ -4627,7 +4626,7 @@ int _SET_PAKU_ANIM(RS_STACKDATA *stack, int argc) {
     if (name2 != NULL) {
         strcpy(PakuAnimName2, name2);
     } else {
-        strcpy(PakuAnimName2, at_1083);
+        strcpy(PakuAnimName2, "");
     }
 
     return 1;
@@ -4642,7 +4641,7 @@ int _RESET_PAKU_ANIM(RS_STACKDATA *stack, int argc) {
 
 int _TRG_PAKU_ANIM(RS_STACKDATA *stack, int argc) {
     if (GetStackInt(stack) != 0) {
-        if (strcmp(PakuAnimName2, at_1083) != 0) {
+        if (strcmp(PakuAnimName2, "") != 0) {
             EventObjHandleMother.SetTexAnim(PakuAnimEohNo, 0, PakuAnimName2);
         }
 
@@ -4650,7 +4649,7 @@ int _TRG_PAKU_ANIM(RS_STACKDATA *stack, int argc) {
     } else {
         EventObjHandleMother.SetTexAnim(PakuAnimEohNo, 0, PakuAnimName);
 
-        if (strcmp(PakuAnimName2, at_1083) != 0) {
+        if (strcmp(PakuAnimName2, "") != 0) {
             EventObjHandleMother.SetTexAnim(PakuAnimEohNo, 1, PakuAnimName2);
         }
     }
@@ -4854,7 +4853,7 @@ int _SET_PAKU_MOTION(RS_STACKDATA *stack, int argc) {
     if (name2 != NULL) {
         strcpy((char *) PakuMotionName2, name2);
     } else {
-        strcpy((char *) PakuMotionName2, at_1083);
+        strcpy((char *) PakuMotionName2, "");
     }
 
     PakuMotionType2 = type2;
@@ -4877,7 +4876,7 @@ int _TRG_PAKU_MOTION(RS_STACKDATA *stack, int argc) {
         return 1;
     }
 
-    if (strcmp(PakuMotionName2, at_1083) == 0) {
+    if (strcmp(PakuMotionName2, "") == 0) {
         return 1;
     }
 
@@ -5562,7 +5561,7 @@ int _FUNC_POINT_SHOW(RS_STACKDATA *stack, int argc) {
             char *place_name = GetStackString(stack++);
             char *name = GetStackString(stack++);
 
-            if (strcmp(place_name, at_1083) != 0) {
+            if (strcmp(place_name, "") != 0) {
                 CMapParts *parts = map->GetPlaceParts(place_name);
 
                 if (parts == NULL) {
@@ -5811,7 +5810,7 @@ int _LOAD_EQUIP(RS_STACKDATA *stack, int argc) {
             strcpy(manager->name_suffix, label);
         }
 
-        chara->LoadSkin(pack, name, at_1083, memory, tex_block);
+        chara->LoadSkin(pack, name, "", memory, tex_block);
 
         if (chara_no >= 8) {
             manager->name_suffix[0] = 0;
@@ -13045,7 +13044,7 @@ int _EOH_SYNC_FUNCP(RS_STACKDATA *stack, int argc) {
             char *place_name = GetStackString(stack++);
             char *name = GetStackString(stack++);
 
-            if (strcmp(place_name, at_1083) != 0) {
+            if (strcmp(place_name, "") != 0) {
                 CMapParts *parts = map->GetPlaceParts(place_name);
 
                 if (parts == NULL) {
@@ -14759,7 +14758,7 @@ int _LOAD_SKIN(RS_STACKDATA *stack, int argc) {
         strcpy(tex_manager->name_suffix, name);
     }
 
-    chara->LoadSkin((u32 *) pack_file, info_name, at_1083, scene_stack, image_block);
+    chara->LoadSkin((u32 *) pack_file, info_name, "", scene_stack, image_block);
 
     if (chara_no >= 8) {
         tex_manager->name_suffix[0] = 0;
@@ -16279,7 +16278,7 @@ int _FUNC_POINT_POS(RS_STACKDATA *stack, int argc) {
             char *place_name = GetStackString(stack++);
             char *name = GetStackString(stack++);
 
-            if (strcmp(place_name, at_1083) != 0) {
+            if (strcmp(place_name, "") != 0) {
                 CMapParts *parts = map->GetPlaceParts(place_name);
 
                 if (parts == NULL) {
@@ -16361,7 +16360,7 @@ int _FUNC_POINT_GET_POS(RS_STACKDATA *stack, int argc) {
             char *place_name = GetStackString(stack++);
             char *name = GetStackString(stack++);
 
-            if (strcmp(place_name, at_1083) != 0) {
+            if (strcmp(place_name, "") != 0) {
                 CMapParts *parts = map->GetPlaceParts(place_name);
 
                 if (parts == NULL) {
@@ -16412,7 +16411,7 @@ int _FUNC_POINT_GET_ROT(RS_STACKDATA *stack, int argc) {
         case RS_STR: {
             char *placeName = GetStackString(stack++);
             char *name = GetStackString(stack++);
-            if (strcmp(placeName, at_1083) != 0) {
+            if (strcmp(placeName, "") != 0) {
                 CMapParts *parts = map->GetPlaceParts(placeName);
                 if (parts == NULL) {
                     return 0;
@@ -18106,7 +18105,6 @@ void SetEventFunc(CRunScript *script) {
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/event_func", vv_3333__DATA);
 
 // Constants (.rodata)
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/event_func", at_1083__DATA);
 
 // Static initialiser table (.ctor)
 

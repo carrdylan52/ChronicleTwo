@@ -221,6 +221,10 @@ The existing native switches supply the following compiler-generated jump tables
 
 Each removal has independent full PAL, 149-object and unowned raw-object hash receipts under `.private/dataA-r3/event-switch-<symbol>-{build,objects,hashes}.log`.
 
+## Shared event empty literal
+
+All native users of the shared empty string now use `""`, including the fourth language-extension pointer. Migrating every consumer together supplies native code references that identify the formerly anonymous initializer target. The `at_1083` marker and external declaration are removed; guarded drafts remain unchanged. Receipt: `.private/dataA-r3/event-empty-all-native-{build,objects,hashes}.log`.
+
 ## Retained markers
 
 The initialized-data markers are pending the following migration topics.
