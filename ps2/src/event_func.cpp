@@ -460,7 +460,7 @@ int CEohMother::SetPos(int slot, float x, float y, float z) {
             x = pos[0];
             y = pos[1];
             z = pos[2];
-            mgCObject *chara = (mgCObject *) eoh[slot].object;
+            mgCObject *chara = eoh[slot].object;
 
             if (chara == NULL) {
                 return 0;
@@ -482,7 +482,7 @@ int CEohMother::SetPos(int slot, float x, float y, float z) {
                 z = pos[2];
             }
 
-            mgCObject *object = (mgCObject *) eoh[slot].object;
+            mgCObject *object = eoh[slot].object;
 
             if (object == NULL) {
                 return 0;
@@ -520,7 +520,7 @@ int CEohMother::SetPos(int slot, float x, float y, float z) {
             pos[1] = y;
             pos[2] = z;
             pos[3] = 1.0f;
-            mgCObject *frame = (mgCObject *) handle->object;
+            mgCObject *frame = handle->object;
 
             if (frame == NULL) {
                 return 0;
@@ -594,7 +594,7 @@ int CEohMother::SetRot(int slot, float x, float y, float z) {
             return 1;
         }
         case EOH_TYPE_FRAME: {
-            mgCObject *frame = (mgCObject *) handle->object;
+            mgCObject *frame = handle->object;
 
             if (frame == NULL) {
                 return 0;
@@ -648,7 +648,7 @@ int CEohMother::GetPos(int slot, float *pos) {
 
     switch (handle->type) {
         case EOH_TYPE_CHARA: {
-            mgCObject *chara = (mgCObject *) handle->object;
+            mgCObject *chara = handle->object;
 
             if (chara == NULL) {
                 return 0;
@@ -659,7 +659,7 @@ int CEohMother::GetPos(int slot, float *pos) {
             return 1;
         }
         case EOH_TYPE_OBJECT: {
-            mgCObject *object = (mgCObject *) handle->object;
+            mgCObject *object = handle->object;
 
             if (object == NULL) {
                 return 0;
@@ -691,7 +691,7 @@ int CEohMother::GetPos(int slot, float *pos) {
             return 1;
         }
         case EOH_TYPE_FRAME: {
-            mgCObject *frame = (mgCObject *) handle->object;
+            mgCObject *frame = handle->object;
 
             if (frame == NULL) {
                 return 0;
@@ -725,7 +725,7 @@ int CEohMother::GetRot(int slot, float *rot) {
 
     switch (handle->type) {
         case EOH_TYPE_CHARA: {
-            mgCObject *chara = (mgCObject *) handle->object;
+            mgCObject *chara = handle->object;
 
             if (chara == NULL) {
                 return 0;
@@ -737,7 +737,7 @@ int CEohMother::GetRot(int slot, float *rot) {
             return 1;
         }
         case EOH_TYPE_OBJECT: {
-            mgCObject *object = (mgCObject *) handle->object;
+            mgCObject *object = handle->object;
 
             if (object == NULL) {
                 return 0;
@@ -753,7 +753,7 @@ int CEohMother::GetRot(int slot, float *rot) {
             return 1;
         }
         case EOH_TYPE_FRAME: {
-            mgCObject *frame = (mgCObject *) handle->object;
+            mgCObject *frame = handle->object;
 
             if (frame == NULL) {
                 return 0;
@@ -1032,7 +1032,7 @@ int CEohMother::SetScale(int slot, float x, float y, float z) {
 
     switch (handle->type) {
         case EOH_TYPE_CHARA: {
-            mgCObject *chara = (mgCObject *) handle->object;
+            mgCObject *chara = handle->object;
 
             if (chara == NULL) {
                 return 0;
@@ -1042,7 +1042,7 @@ int CEohMother::SetScale(int slot, float x, float y, float z) {
             return 1;
         }
         case EOH_TYPE_OBJECT: {
-            mgCObject *object = (mgCObject *) handle->object;
+            mgCObject *object = handle->object;
 
             if (object == NULL) {
                 return 0;
@@ -1088,7 +1088,7 @@ int CEohMother::GetScale(int slot, float *scale) {
 
     switch (handle->type) {
         case EOH_TYPE_CHARA: {
-            mgCObject *chara = (mgCObject *) handle->object;
+            mgCObject *chara = handle->object;
 
             if (chara == NULL) {
                 return 0;
@@ -1098,7 +1098,7 @@ int CEohMother::GetScale(int slot, float *scale) {
             return 1;
         }
         case EOH_TYPE_OBJECT: {
-            mgCObject *object = (mgCObject *) handle->object;
+            mgCObject *object = handle->object;
 
             if (object == NULL) {
                 return 0;
@@ -1329,7 +1329,7 @@ int CEohMother::SetShadowFrameShow(int slot, char *name, int show) {
                 return 0;
             }
 
-            mgCFrame *shadow = (mgCFrame *) chara->shadow_frame;
+            mgCFrame *shadow = chara->shadow_frame;
 
             if (shadow == NULL) {
                 return 0;
@@ -12992,7 +12992,7 @@ int _EOH_SYNC_SEARCH_CHARA(RS_STACKDATA *stack, int argc) {
         return 0;
     }
 
-    return EventObjHandleMother.Set(slot, 0, -1, (CCharacter2 *) player->SearchChara(name));
+    return EventObjHandleMother.Set(slot, 0, -1, player->SearchChara(name));
 }
 
 /**
@@ -16790,9 +16790,9 @@ int _INIT_MONO_FLASH(RS_STACKDATA *stack, int argc) {
 
     mgTexManager.DeleteBlock(tex_base);
     mgTexManager.DeleteBlock(tex_base + 1);
-    textures[0] = (mgCTexture *) mgTexManager.EnterTexture(
+    textures[0] = mgTexManager.EnterTexture(
         tex_base, "mono_flash1", NULL, mgScreenWidth, mgScreenHeight, mgScreenDepth, 0, 0, 0);
-    textures[1] = (mgCTexture *) mgTexManager.EnterTexture(
+    textures[1] = mgTexManager.EnterTexture(
         tex_base + 1, "mono_flash2", NULL, mgScreenWidth, mgScreenHeight, mgScreenDepth, 0, 0,
         0);
     EventScreenEffect.SetMonoFlashTexture(textures, buffers);
