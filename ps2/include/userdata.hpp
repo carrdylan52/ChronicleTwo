@@ -901,7 +901,7 @@ STATIC_ASSERT(sizeof(CGameDataUsed) == 0x6C);
 struct CHARA_DATA {
     COMMON_GAGE   hp;             /**< Health gauge. */
     u16           status_attr;    /**< Conditions, CHARA_STATUS_ATTR bits. */
-    s16           defence;        /**< Defence of the character. */
+    u16           defence;        /**< Defence of the character. */
     s16           status_time[4]; /**< Time left of the CHARA_STATUS_POWER, 0x2, 0x8 and 0x20 conditions. */
     u8            unk_14[0x17];
     u8            keep_costume_on_equip_change; /**< Keeps the selected costume when equipment changes. */

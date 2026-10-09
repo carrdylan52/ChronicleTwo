@@ -2284,11 +2284,11 @@ int CGameDataUsed::CopyDataFish(int item_no) {
     fish->data.fish.kind = GetRandI(4);
     fish->data.fish.hp = 100;
     fish->data.fish.fatigue = 0;
-    fish->data.fish.param[4] = *(u16 *) &record->battle;
-    fish->data.fish.param[0] = *(u16 *) &record->boost;
-    fish->data.fish.param[1] = *(u16 *) &record->endurance;
-    fish->data.fish.param[2] = *(u16 *) &record->tenacity;
-    fish->data.fish.param[3] = *(u16 *) &record->stamina;
+    fish->data.fish.param[4] = record->battle;
+    fish->data.fish.param[0] = record->boost;
+    fish->data.fish.param[1] = record->endurance;
+    fish->data.fish.param[2] = record->tenacity;
+    fish->data.fish.param[3] = record->stamina;
     fish->data.fish.life = GetRandI(0x33) + 0xC8;
     fish->data.fish.breed_feeds_remaining = 0;
     fish->data.fish.timer = 0;
@@ -3656,7 +3656,7 @@ int CUserDataManager::GetDefenceVol(int chara_no) {
             return 0;
         }
 
-        return *(u16 *) &chara->defence;
+        return chara->defence;
     }
 
     if (chara_no == 2) {
@@ -3667,7 +3667,7 @@ int CUserDataManager::GetDefenceVol(int chara_no) {
         CHARA_DATA *monster = &chara_data[1];
 
         if (monster != 0) {
-            return *(u16 *) &monster->defence;
+            return monster->defence;
         }
     }
 
@@ -3791,14 +3791,14 @@ PARTY_CHARA_INFO *CUserDataManager::GetPartyCharaInfo(int chara_no) {
 int CUserDataManager::UseNpcAbility(int npc_no, int ability_no, int consume) {
     int               usable = 0;
     PARTY_CHARA_INFO *member = GetPartyCharaInfo(npc_no);
-    u8               *npc_data = (u8 *) GetPartyNPCData(npc_no);
+    NPC_BASE_DATA    *npc_data = GetPartyNPCData(npc_no);
 
     if (member == 0 || npc_data == 0) {
         return 0;
     }
 
     short gauge = member->point;
-    u8    cost = npc_data[ability_no + 0x32];
+    u8    cost = npc_data->ability_cost[ability_no];
 
     if (cost <= gauge) {
         usable = 1;
@@ -4141,62 +4141,31 @@ int CUserDataManager::SetChrEquipDirect(int chara_no, int item_no) {
 CGameDataUsed *CUserDataManager::SearchEquip(int chara_no, int item_no) {
     CGameDataUsed *found = 0;
     int            i;
-    int            offset;
-    int            equip_offset;
-    CHARA_DATA    *entry;
-    CHARA_DATA    *equip_entry;
-    ROBO_DATA     *robot;
-    int            part_offset;
-    ROBO_DATA     *part_entry;
-    int            k;
 
     if (chara_no == 0 || chara_no == 1) {
-        int         j;
         CHARA_DATA *chara = GetCharaDataPtr(chara_no);
-        i = 0;
-        offset = 0;
 
-        do {
-            entry = (CHARA_DATA *) ((u8 *) chara + offset);
-
-            if (item_no == entry->active_item[0].item_no) {
-                found = &entry->active_item[0];
+        for (i = 0; i < 3; i++) {
+            if (item_no == chara->active_item[i].item_no) {
+                found = &chara->active_item[i];
             }
+        }
 
-            i++;
-            offset += sizeof(CGameDataUsed);
-        } while (i < 3);
-
-        j = 0;
-        equip_offset = 0;
-
-        do {
-            equip_entry = (CHARA_DATA *) ((u8 *) chara + equip_offset);
-
-            if (item_no == equip_entry->equip[0].item_no) {
-                found = &equip_entry->equip[0];
+        for (i = 0; i < 5; i++) {
+            if (item_no == chara->equip[i].item_no) {
+                found = &chara->equip[i];
             }
-
-            j++;
-            equip_offset += sizeof(CGameDataUsed);
-        } while (j < 5);
+        }
     }
 
     if (chara_no == 2) {
-        robot = &robo_data;
-        k = 0;
-        part_offset = 0;
+        ROBO_DATA *robot = &robo_data;
 
-        do {
-            part_entry = (ROBO_DATA *) ((u8 *) robot + part_offset);
-
-            if (item_no == part_entry->parts[0].item_no) {
-                found = &part_entry->parts[0];
+        for (i = 0; i < 3; i++) {
+            if (item_no == robot->parts[i].item_no) {
+                found = &robot->parts[i];
             }
-
-            k++;
-            part_offset += sizeof(CGameDataUsed);
-        } while (k < 3);
+        }
     }
 
     return found;
@@ -4398,88 +4367,46 @@ int CUserDataManager::CheckElectricFish() {
 }
 
 int CUserDataManager::GetNumSameItem(int item_no) {
-    int            i;
-    int            equip_offset;
-    int            bag_size;
-    int            j;
-    int            total;
-    int            slot;
-    int            bag_offset;
-    int            chara_offset;
-    int            offset;
-    CHARA_DATA    *entry;
-    int            chara;
-    CGameDataUsed *item;
-    CHARA_DATA    *data;
-    int            part_offset;
-    int            part;
+    int         i;
+    int         bag_size;
+    int         j;
+    int         total;
+    CHARA_DATA *data;
+
     total = 0;
     bag_size = GetNowBagMax(1);
-    i = 0;
 
-    if (0 < bag_size) {
-        bag_offset = 0;
-
-        do {
-            item = (CGameDataUsed *) ((u8 *) this + bag_offset);
-
-            if (item_no == item->item_no) {
-                total += item->GetNum();
-            }
-
-            total += item->GetGiftBoxSameItemNum(item_no);
-            i++;
-            bag_offset += sizeof(CGameDataUsed);
-        } while (i < bag_size);
-    }
-
-    chara = 0;
-    chara_offset = 0;
-
-    do {
-        data = (CHARA_DATA *) ((u8 *) this + chara_offset + 0x3F48);
-        j = 0;
-        offset = 0;
-
-        do {
-            entry = (CHARA_DATA *) ((u8 *) data + offset);
-
-            if (item_no == entry->active_item[0].item_no) {
-                total += entry->active_item[0].GetNum();
-            }
-
-            total += entry->active_item[0].GetGiftBoxSameItemNum(item_no);
-            j++;
-            offset += sizeof(CGameDataUsed);
-        } while (j < 3);
-
-        slot = 0;
-        equip_offset = 0;
-
-        do {
-            if (item_no == ((CHARA_DATA *) ((u8 *) data + equip_offset))->equip[0].item_no) {
-                total += 1;
-            }
-
-            slot++;
-            equip_offset += sizeof(CGameDataUsed);
-        } while (slot < 5);
-
-        chara++;
-        chara_offset += sizeof(CHARA_DATA);
-    } while (chara < 2);
-
-    part = 0;
-    part_offset = 0;
-
-    do {
-        if (item_no == ((CGameDataUsed *) ((u8 *) this + part_offset + 0x4690))->item_no) {
-            total += 1;
+    for (i = 0; i < bag_size; i++) {
+        if (item_no == used_data[i].item_no) {
+            total += used_data[i].GetNum();
         }
 
-        part++;
-        part_offset += sizeof(CGameDataUsed);
-    } while (part < 4);
+        total += used_data[i].GetGiftBoxSameItemNum(item_no);
+    }
+
+    for (i = 0; i < 2; i++) {
+        data = &chara_data[i];
+
+        for (j = 0; j < 3; j++) {
+            if (item_no == data->active_item[j].item_no) {
+                total += data->active_item[j].GetNum();
+            }
+
+            total += data->active_item[j].GetGiftBoxSameItemNum(item_no);
+        }
+
+        for (j = 0; j < 5; j++) {
+            if (item_no == data->equip[j].item_no) {
+                total += 1;
+            }
+        }
+    }
+
+    for (i = 0; i < 4; i++) {
+        if (item_no == robo_data.parts[i].item_no) {
+            total += 1;
+        }
+    }
 
     return total;
 }
@@ -4957,7 +4884,7 @@ void CheckEquipChange(int chara_no) {
 }
 
 void CBattleCharaInfo::Initialize() {
-    memset(this, 0, 0x90);
+    memset(this, 0, sizeof(CBattleCharaInfo));
     chr_no = 0;
     chara_type = -1;
     chara_data = 0;
@@ -5162,7 +5089,7 @@ void CBattleCharaInfo::RefreshParamater() {
             weapon_rate[0] = 1.5f;
             weapon_rate[1] = 1.5f;
         }
-        defence = (u16 &)((CHARA_DATA *)chara_data)->defence;
+        defence = ((CHARA_DATA *)chara_data)->defence;
         int i = 0;
         while (i < 2) {
             WEAPON_USED *weapon0 = &equipment[i].data.weapon;
@@ -6147,8 +6074,6 @@ int IsCheckParty(int chara_no) {
 
 char *GetAquariumFish0(int slot) {
     CFishAquarium *aquarium = GetAquariumData();
-    u8            *entry;
-    int            offset;
 
     if (aquarium == NULL) {
         return 0;
@@ -6158,11 +6083,8 @@ char *GetAquariumFish0(int slot) {
         return 0;
     }
 
-    offset = slot * sizeof(CGameDataUsed);
-    entry = (u8 *) (offset + (int) aquarium);
-
-    if (0 < *(short *) (entry + 6)) {
-        return ((CGameDataUsed *) (entry + 4))->GetName(1);
+    if (0 < aquarium->fish_tank[slot].item_no) {
+        return aquarium->fish_tank[slot].GetName(1);
     }
 
     return 0;
@@ -6358,8 +6280,6 @@ void DeleteErekiFish() {
     CFishAquarium *aquarium;
     CGameDataUsed *fish;
     int            i;
-    int            off;
-    CGameDataUsed *entry;
 
     aquarium = GetAquariumData();
 
@@ -6369,20 +6289,12 @@ void DeleteErekiFish() {
 
     fish = aquarium->GetAquariumFishTop(0);
 
-    i = 0;
-    off = 0;
-
-    do {
-        entry = (CGameDataUsed *) ((u8 *) fish + off);
-
-        if ((entry->item_no > 0) && (entry->data.fish.flags & 2)) {
-            ((fish + i))->Init();
+    for (i = 0; i < 6; i++) {
+        if (fish[i].item_no > 0 && (fish[i].data.fish.flags & 2)) {
+            fish[i].Init();
             return;
         }
-
-        i += 1;
-        off += sizeof(CGameDataUsed);
-    } while (i < 6);
+    }
 }
 
 int GetNowBagMax(int board) {
@@ -6397,24 +6309,17 @@ void LeaveMonicaItemCheck() {
     int               item_no;
     CGameDataUsed    *bag_item;
     CGameDataUsed    *free_slot;
-    int               off;
-    CGameDataUsed    *active;
     CHARA_DATA       *monica;
 
     user_data = GetUserDataMan();
 
     if (user_data != NULL) {
         monica = user_data->GetCharaDataPtr(1);
-        i = 0;
 
         if (monica != 0) {
-            off = 0;
-
-            do {
-
-                item_no = ((CGameDataUsed *) ((u8 *) monica + off + 0x2C))->item_no;
-                active = (CGameDataUsed *) ((u8 *) monica + off + 0x2C);
-                num = active->GetNum();
+            for (i = 0; i < 3; i++) {
+                item_no = monica->active_item[i].item_no;
+                num = monica->active_item[i].GetNum();
 
                 if ((item_no > 0) && (num > 0)) {
                     bag_item = user_data->SearchItemOnItemBrd(item_no, 0);
@@ -6423,22 +6328,19 @@ void LeaveMonicaItemCheck() {
                     if (bag_item != NULL) {
                         if (bag_item->CheckTypeEnableStack() == 0) {
                             if (free_slot != NULL) {
-                                free_slot->CopyGameData(active);
-                                active->Init();
+                                free_slot->CopyGameData(&monica->active_item[i]);
+                                monica->active_item[i].Init();
                             }
                         } else {
                             bag_item->AddNum(num, 1);
-                            active->Init();
+                            monica->active_item[i].Init();
                         }
                     } else if (free_slot != NULL) {
-                        free_slot->CopyGameData(active);
-                        active->Init();
+                        free_slot->CopyGameData(&monica->active_item[i]);
+                        monica->active_item[i].Init();
                     }
                 }
-
-                i += 1;
-                off += sizeof(CGameDataUsed);
-            } while (i < 3);
+            }
         }
     }
 }
