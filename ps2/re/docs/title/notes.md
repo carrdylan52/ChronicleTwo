@@ -392,3 +392,16 @@ coverage is unchanged. The verifier retains exactly `0x26` text bytes and
 passes all other sections and the memory-end check. Receipts:
 `.private/round1/final-build.log`, `final-check.log`, `final-coverage.txt`,
 `final-hashes.json` and `validation-summary.json`.
+
+## Title input source cleanup
+
+Retail `TitleModeKey__Fv` is a LOCAL function at `0x2A5150`, with declared
+size `0x9BC` (2492 bytes), rather than its padded `0x9C0` section extent.
+Static linkage, the existing memory-card function and menu/button enums,
+and binary32 literals for the former `float(N.0)` arguments preserve the
+complete unit's bytes and resolved relocations. The `338.0f` argument in
+TitleModeDraw is also identical. The `0x10` START mask remains numeric until
+the shared START/SELECT enum names are corrected by the header owner.
+
+Receipts: `.private/fixes-r0/title-probe-{build,objects}.log` and
+`title-final-{build,objects}.log`: `SCES_511.90: OK`, 149/149 objects.
