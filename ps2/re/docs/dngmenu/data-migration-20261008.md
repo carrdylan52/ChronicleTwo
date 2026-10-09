@@ -32,3 +32,18 @@ storage. They retain their retail symbol spellings because guarded assembly
 refers to those symbols directly. This removes eight more BSS markers;
 99 / 5 remain. `dng-local-state-build.log` and
 `dng-local-state-objects.log` confirm the full PAL and 149/149 objects.
+
+## Naturally emitted literals and vtable
+
+The four texture names in `SetTextureInfo`, fourteen debug strings in
+`CDngFreeMap::Draw`, four special map destinations, two tree-opening
+filenames, the tree cursor name, and the tree-menu vtable now come solely
+from their existing C++ definitions. No function body changes are needed.
+Each function's marker group and the vtable were built and checked
+separately; all six receipts report PAL OK and 149/149 objects.
+
+Markers are now 73 / 5, with
+matched data 36 / 3159 bytes. Receipts use
+`dng-textures`, `dng-debug-literals`, `dng-jump-literals`,
+`dng-opening-literals`, `dng-cursor-literal`, and `dng-vtable` prefixes
+under `.private/nminv-r2/`.
