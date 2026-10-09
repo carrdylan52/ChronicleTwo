@@ -128,7 +128,7 @@ No anonymous suffix alias mapping is required.
 All 14 Motion and 11 Fix Copy relocation offset/type maps and actual named
 target values match retail. Copy definitions have actual GLOBAL1 binding.
 The actual Motion table at 0x37C260 has size0x50 and all18 exact targets;
-the actual Fix table at 0x37B3B0 has size0x48 and all16 exact targets. Each
+the actual Fix table at 0x37B3B0 has size0x48 and all 16 exact targets. Each
 consumes its Copy at slot0x18. The complete wrappers additionally prove
 every target of all four present tables: 43 mg_visual targets and18 Motion
 targets, with exact payload, padding, addresses and binding.
@@ -192,8 +192,8 @@ network write, reserved dungeon inspection or hand-authored generated
 member in this lane. Root owns later shared-header authorization and full
 acceptance; whole-149 validation is separate work.
 
-Root independently verifies all263 native receipt-manifest files and all16
+Root independently verifies all 263 native receipt-manifest files and all 16
 exact frozen pair artifacts. The coordinator's combined applicable proposal
 is `.private/proposals/visual-copies-generated-assignment-pair.patch`, with
 independent `visual-copies-row-delta.json`; no shared-header activation is
-authorized in this lane. Current33 whole-wrapper impact is separate work.
+authorized in this lane. Current 33 whole-wrapper impact is separate work.

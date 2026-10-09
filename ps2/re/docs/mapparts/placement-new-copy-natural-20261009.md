@@ -247,7 +247,7 @@ tuning, dead steering store or repeated old source negative was used. No
 tracked source/profile/header, generated canonical output or production state
 was changed by this study. Complete PAL acceptance remains root's next step.
 
-Root independently verifies all145 frozen receipt files. Exact coordinator
+Root independently verifies all 145 frozen receipt files. Exact coordinator
 copies are `.private/proposals/mapparts-copy-{guarded-natural,validated-native,profile}.patch`
 and `mapparts-copy-row-delta.json`. The comment-only unowned actual-body
 annotation correction is `mapparts-copy-body-size.patch`; no ABI/header

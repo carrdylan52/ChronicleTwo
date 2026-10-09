@@ -43,7 +43,7 @@ and45 other allocated sections, including all six data sections, are exact
 against fresh current31 assembly-only control. All11 Copy relocation
 consumers resolve to actual retail target values; Copy GLOBAL1 binding
 and0x190 body/extent match. Its actual0x48 GLOBAL Fix vtable at0x37B3B0
-has all16 exact targets and Copy at slot0x18. No alias renumbering is needed.
+has all 16 exact targets and Copy at slot0x18. No alias renumbering is needed.
 
 The complete proposed mg_visual wrapper passes the strict retail checker:
 12108 bytes,200 relocations,42 functions,63 allocated sections,0 errors.
@@ -84,8 +84,8 @@ complete-wrapper-audit.json, all-symbol-binding-audit.json and ARTIFACTS.json
 provide the reproducible receipts. The original explicit-base97 report
 stays preserved as a different source boundary, not an erased failure.
 
-Root independently verifies all263 native receipt-manifest files and all16
+Root independently verifies all 263 native receipt-manifest files and all 16
 exact frozen pair artifacts. The coordinator's combined applicable proposal
 is `.private/proposals/visual-copies-generated-assignment-pair.patch`, with
 independent `visual-copies-row-delta.json`; no shared-header activation is
-authorized in this lane. Current33 whole-wrapper impact is separate work.
+authorized in this lane. Current 33 whole-wrapper impact is separate work.
