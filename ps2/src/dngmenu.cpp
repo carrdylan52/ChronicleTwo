@@ -1604,7 +1604,10 @@ int CDngFreeMap::LoadDngInfo(mgCMemory *stack, int block, int dungeon, int room,
         tail->x = x;
         tail->y = y;
         for (int i = 0; i < GLID_DIR_NUM; ++i) {
-            if (target != NULL && target->room.link[i] == user_room_no) {
+            if (target == NULL) {
+                break;
+            }
+            if (target->room.link[i] == user_room_no) {
                 direction = i;
                 break;
             }
@@ -1682,8 +1685,6 @@ int CDngFreeMap::LoadDngInfo(mgCMemory *stack, int block, int dungeon, int room,
                         tail = node;
                     }
                 }
-            } else {
-                break;
             }
             if (glid == start) {
                 break;
