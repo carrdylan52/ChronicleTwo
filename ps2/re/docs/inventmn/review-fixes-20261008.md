@@ -66,3 +66,16 @@ and returns to the idea or photo board on left navigation. They are
 INVENT_MODE_THINK_ALBUM_BUTTON and INVENT_MODE_PHOTO_ALBUM_BUTTON.
 INVENT_MENU_MODE describes key_arg_no, independently of the shared
 mode field. The complete executable and all 149 objects remain exact.
+
+## Guarded draft literal references
+
+LoadCharaCheck and MenuInventInit use the same standing-motion and
+idea-mode script literals as native callers. IsAccessAlbum uses the
+inline `IS_MCACCESS` script name. IsCreateObject's final unnamed-photo
+fallback uses the exact Japanese `うーん` bytes from the former at_2820
+marker (`82 A4 81 5B 82 F1 00`); the localized Tb_2819 table remains
+its earlier fallback. These draft references now compile after the
+shared literal migration, without restoring deleted externs or markers.
+The guards and retail fallbacks are unchanged. The draft checker compiles
+all five guarded functions; the normal PAL image and 149 objects remain
+exact.

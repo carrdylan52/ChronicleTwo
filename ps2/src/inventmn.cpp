@@ -2402,7 +2402,7 @@ void CMenuInvent::LoadCharaCheck() {
                 attr->no_light = 1;
                 frame->SetAttrParam(*attr, 1, kSceneAttrFlags);
             }
-            chara->SetMotion(at_2246, 0, 1);
+            chara->SetMotion("\x97\xa7\x82\xbf", 0, 1);
             if (chara_read_info != NULL) {
                 BG_READ_INFO            *read_info = chara_read_info;
                 u_int                   *model_file = GetPackFile((u_int *) read_info->buffer, at_2247, &size);
@@ -2435,7 +2435,7 @@ void CMenuInvent::LoadCharaCheck() {
             }
             chara->SetRotation(0.0f, -0.56f, 0.0f);
             chara->Step();
-            ExeScript(at_2253);
+            ExeScript("\x8d\x6c\x82\xa6\x83\x82\x81\x5b\x83\x68" "0");
             chara_load_step = 2;
             poly_chr_form[0]->SetActionCharaPtr(chara, tex_block[1], -1);
             unk_642 = 0;
@@ -3426,7 +3426,7 @@ int CMenuInvent::IsCreateObject(int mode, int keys) {
                             } else if (name != NULL) {
                                 sprintf((char *) this->create_photo_name, at_3119, name, gobitbl_2847[GetRandI(2)]);
                             } else {
-                                strcpy((char *) this->create_photo_name, at_2820);
+                                strcpy((char *) this->create_photo_name, "\x82\xa4\x81\x5b\x82\xf1");
                             }
                             break;
                         }
@@ -5469,7 +5469,7 @@ void CMenuInvent::IsAccessAlbum() {
         step = 6;
         if (loaded < 0) {
             step = 0;
-            ExeScript(at_4378);
+            ExeScript("IS_MCACCESS");
             if (LanguageCode > 0 && LanguageCode < 6) {
                 MenuDCMsg[4]->SetMsgCursor(1);
                 MenuDCMsg[4]->select_top = 1;
@@ -6305,7 +6305,7 @@ int MenuInventInit(mgCMemory *memory, int *tex_block, int arg) {
             CMenuInventPt->key_arg_no = 2;
             CMenuInventPt->ExeScript(at_5016);
             CMenuInventPt->poly_chr_form[0]->counter = 0;
-            CMenuInventPt->ExeScript(at_2253);
+            CMenuInventPt->ExeScript("\x8d\x6c\x82\xa6\x83\x82\x81\x5b\x83\x68" "0");
             CMenuInventPt->PrepareNextMode(CMenuInventPt->key_arg_no);
             CMenuInventPt->GradationSet(0);
             MenuMainFrameModeSet(6, 1);
