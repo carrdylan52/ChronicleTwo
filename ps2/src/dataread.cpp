@@ -504,26 +504,26 @@ void BreakReadBG() {
 }
 
 void InitCDFile() {
-    int file[9];
+    sceCdlFILE file;
     int fd;
     int header_size;
     int base;
     int i;
     int offset;
-    s8 *name;
-    s8  c;
+    char *name;
+    s8    c;
     packfile_buff = 0;
 
     do {
-        if (sceCdSearchFile((sceCdlFILE *) file, "\\DATA.DAT;1") == 0) {
-            while (sceCdSearchFile((sceCdlFILE *) file, "\\DATA.DAT;1") == 0) {
+        if (sceCdSearchFile(&file, "\\DATA.DAT;1") == 0) {
+            while (sceCdSearchFile(&file, "\\DATA.DAT;1") == 0) {
             }
         }
 
         sceCdSync(0);
     } while (sceCdGetError() != 0);
 
-    data_sector = file[0];
+    data_sector = file.lsn;
     fd = sceOpen("cdrom0:\\DATA.HD4;1", 1);
 
     if (fd < 0) {
@@ -544,7 +544,7 @@ void InitCDFile() {
     while (i < header_num) {
         DATA_HEADER *entry = (DATA_HEADER *) (base + offset);
         entry->name += base;
-        name = (s8 *) entry->name;
+        name = entry->name;
 
         while ((c = *name) != 0) {
             if (c == '\\') {
