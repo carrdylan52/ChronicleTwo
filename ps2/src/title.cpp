@@ -446,16 +446,11 @@ static void TitleBootInit() {
     Tex_TitleBG2 = textures->GetTexture(at_1232__2, -1);
     DataBuffer.Align64();
     u_long128 *save_pack = &DataBuffer.stGetTop()[0x4100];
-    int    i;
-    u_int *icon_file;
-    int   *size;
     if (LoadFileMenu(at_1233, save_pack, MENU_FILE_LOAD_DIRECT) != 0) {
-        for (i = 0; i < 3; i++) {
-            MC_ICON_DATA *icon = &MC_ICON_Data[i];
-            icon_file = GetPackFile((u_int *) save_pack, icon->name, &icon->size);
-            size = &icon->size;
-            icon->data = DataBuffer.Alloc(Align16Blocks(icon->size));
-            memcpy(icon->data, icon_file, *size);
+        for (int i = 0; i < 3; i++) {
+            u_int *icon_file = GetPackFile((u_int *) save_pack, MC_ICON_Data[i].name, &MC_ICON_Data[i].size);
+            MC_ICON_Data[i].data = DataBuffer.Alloc(Align16Blocks(MC_ICON_Data[i].size));
+            memcpy(MC_ICON_Data[i].data, icon_file, MC_ICON_Data[i].size);
         }
     }
     TitleMCCheck->SetIconData(MC_ICON_Data, 0);
