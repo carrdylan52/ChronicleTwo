@@ -247,8 +247,8 @@ The fourteen BSS markers are replaced by native function-local storage:
 
 | Removed marker(s) | Native owner |
 | --- | --- |
-| `FormatCase_1968`, `init_1969` | `static int format_case = 0` and its compiler-generated one-time guard. |
-| `DarkClonicleFileMax_2004`, `init_2005` | `static int dark_clonicle_file_max = 0` and its one-time guard. |
+| `FormatCase_1968`, `init_1969` | `static int FormatCase = 0` and its compiler-generated one-time guard. |
+| `DarkClonicleFileMax_2004`, `init_2005` | `static int DarkClonicleFileMax = 0` and its one-time guard. |
 | `input_wait_counter_2067`, `init_2068` | `static signed char input_wait_counter = 0` and its one-time guard. |
 | `at_2115__3` | Zero-initialized quest-confirmation `values[2]` template. |
 | `at_2276` | Zero-initialized space-error `values[2]` template. |

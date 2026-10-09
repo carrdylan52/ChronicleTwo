@@ -89,13 +89,6 @@ static short fillw_1125[8] = {310, 356, 356, 356, 356, 356, 356, 310};
 
 /**
  *
- * Cursor actions selecting the three visible save file rows.
- *
- */
-static char *tp_2083[3] = {"list0", "list1", "list2"};
-
-/**
- *
  * Dungeon map numbers used in save file location messages.
  *
  */
@@ -139,13 +132,6 @@ static float config_option_num_i = 16.0f;
  *
  */
 static float config_option_num_f = 16.0f;
-
-/**
- *
- * Cursor actions selecting the two memory card slots.
- *
- */
-static char *tbl_2023[2] = {"slot1", "slot2"};
 
 /**
  *
@@ -338,7 +324,7 @@ static mgCTexture *Tex_SaveFile;
  */
 static float SubSaveTileXY;
 
-void                      InitMnOnePictTex();
+void InitMnOnePictTex();
 
 /**
  *
@@ -487,7 +473,6 @@ void InitMnOnePictTex() {
     MnOnePictTex[6] = 0;
     MnOnePictTex[7] = 0;
 }
-
 
 #ifdef NONMATCHING
 void MenuManualInit(mgCMemory *memory, int *tex_block, int mode) {
@@ -810,7 +795,9 @@ int CManualMenu::KeyStep() {
             break;
         case 0:
             /**
+             *
              * Counts playback frames before the manual movie fades in.
+             *
              */
             static short ManualMovieFadeCount = 0;
 
@@ -1682,7 +1669,7 @@ void CMenuOption::UpdateOptionForm() {
 
             if (row != NULL) {
                 DefaultButton(row);
-                EnableButton(row[(signed char) config->caption_off]);
+                EnableButton(row[config->caption_off]);
             }
 
             row = this->button[13];
@@ -1908,7 +1895,7 @@ static inline MC_CARD_INFO *GetSaveMenuCard(int port) {
     return NULL;
 }
 
-int CSaveMenuClass::KeyStep(void) {
+int CSaveMenuClass::KeyStep() {
     int                 transferred;
     int                 finished;
     CDC2Mes            *file_mes;
@@ -1948,7 +1935,7 @@ int CSaveMenuClass::KeyStep(void) {
      * Records whether formatting continues into the pending save.
      *
      */
-    static int format_case = 0;
+    static int FormatCase = 0;
     if (DebugFlag != 0 && menu_debug_flag != 0) {
         GamePad__2.Down(PAD_L1);
     }
@@ -1966,7 +1953,7 @@ int CSaveMenuClass::KeyStep(void) {
                     save_kb = MemoryCardPtr->GetSaveDataSize(MC_SIZE_SAVE_TOTAL) / 1024;
                     check_kb = save_kb + 3;
                     need_kb = save_kb + 4;
-                    format_case = 0;
+                    FormatCase = 0;
                     chapter8_start = CheckStartChapter8(GetSaveData());
                     if (mode == SAVE_MENU_MODE_LOAD || mode == SAVE_MENU_MODE_GYORACE_LOAD) {
                         chapter8_start = 0;
@@ -2007,7 +1994,7 @@ int CSaveMenuClass::KeyStep(void) {
              * Stores the file-count value for the save-menu pages.
              *
              */
-            static int dark_clonicle_file_max = 0;
+            static int DarkClonicleFileMax = 0;
             move_key = 0;
             select_keys = MenuCommonInfo->CheckSelectKey();
             pushed = MenuCommonInfo->CheckPushButton();
@@ -2032,8 +2019,14 @@ int CSaveMenuClass::KeyStep(void) {
                         if (slot != prev_slot) {
                             MenuSePlay(SYSTEM_SE_CURSOR);
                         }
+                        /**
+                         *
+                         * Cursor actions selecting the two memory card slots.
+                         *
+                         */
+                        static char *tbl[2] = {"slot1", "slot2"};
                         if (cursor_form != NULL) {
-                            cursor_form->SetAction(tbl_2023[slot]);
+                            cursor_form->SetAction(tbl[slot]);
                         }
                         switch (ConvertCheckPushButton(pushed)) {
                             case MENU_PUSH_BUTTON_DECIDE:
@@ -2130,8 +2123,14 @@ int CSaveMenuClass::KeyStep(void) {
                                     MenuSePlay(SYSTEM_SE_CURSOR);
                                     input_wait_counter = 4;
                                 }
+                                /**
+                                 *
+                                 * Cursor actions selecting the three visible save file rows.
+                                 *
+                                 */
+                                static char *tp[3] = {"list0", "list1", "list2"};
                                 if (cursor_form != NULL) {
-                                    cursor_form->SetAction(tp_2083[select - top]);
+                                    cursor_form->SetAction(tp[select - top]);
                                 }
                                 info = &MemoryCardPtr->file_info[select];
                                 input_wait_counter--;
@@ -2153,7 +2152,7 @@ int CSaveMenuClass::KeyStep(void) {
                                                 if (mode == SAVE_MENU_MODE_SAVE) {
                                                     if (card->formatted == 0) {
                                                         next = SAVE_MENU_PAGE_FORMAT;
-                                                        format_case = 1;
+                                                        FormatCase = 1;
                                                         phase = SAVE_LIST_PHASE_SELECT;
                                                         MenuSePlay(SYSTEM_SE_DECIDE);
                                                     } else {
@@ -2412,7 +2411,7 @@ int CSaveMenuClass::KeyStep(void) {
                                     if (card->formatted == 0 || McCheckMCPs2(card) == 0) {
                                         file_mes->MakeMsg(0xBE5);
                                         phase = SAVE_FORMAT_PHASE_DONE;
-                                    } else if (format_case == 0) {
+                                    } else if (FormatCase == 0) {
                                         file_mes->MakeMsg(0xBE9);
                                         phase = SAVE_FORMAT_PHASE_DONE;
                                     } else {
@@ -2566,7 +2565,7 @@ int CSaveMenuClass::KeyStep(void) {
                 ExeScript("GET_CARDINFO");
                 file_mes->push_button = 0;
                 slot_form[slot]->SetAction("\x8F\xE3\x82\xD6");
-                slot_form[!(bool)slot]->SetRGBACalcParam(3, -8, 0);
+                slot_form[!slot]->SetRGBACalcParam(3, -8, 0);
                 if (slot == 0) {
                     MenuMesForm[5]->SetRGBACalcParam(3, -8, 0);
                 }
@@ -2878,7 +2877,6 @@ void ResetMapInfo() {
     short dungeon_no = MenuMapInfoSave_DngNo;
     *(int *) ((u8 *) GetSaveData() + kDungeonNoOffset) = dungeon_no;
 }
-
 
 void MenuSaveInit(mgCMemory *memory, int *tex_block, int mode) {
     CSaveMenuClass     *menu;
@@ -3604,7 +3602,7 @@ int SubGameSaveKey(void) {
                     int values[2] = { 0, 0 };
                     values[0] = slotNo;
                     values[1] = SubCheckTotalSaveFileSize;
-                    window->SetMsgVolumeNo(values, 0x10);
+                    window->SetMsgVolumeNo(values, MES_VALUE_MAX);
                 }
                 window->SetAbsPos(5);
                 break;
