@@ -20,3 +20,9 @@ Accepted steps: `storage`. Each has full PAL, 149-object and unowned raw-object 
 
 Accepted steps: `vector:at_2311`, `vector:at_2498__2`. Each has full PAL, 149-object and unowned raw-object hash receipts under `.private/dataA-r3/eff-<topic>-{build,objects,hashes}.log`.
 
+## Initialize effect sprite size locally
+
+`DrawEffSptSprite` initializes its four-component size vector to zero before assigning sprite width and height. A native `sceVu0FVECTOR` initializer replaces the anonymous 16-byte BSS vector `at_2067`. Removing its marker and the two direction templates eliminates the `EffectVector` union scaffolding.
+
+Accepted steps: `vector:at_2067`. Each has full PAL, 149-object and unowned raw-object hash receipts under `.private/dataA-r3/eff-<topic>-{build,objects,hashes}.log`.
+

@@ -21,16 +21,6 @@
 #include "scenesnd.hpp"
 
 
-/**
- *
- * Effect vector viewed as four floats or a quadword.
- *
- */
-union EffectVector {
-    u_long128 quad;      /**< The vector as a quadword. */
-    float     values[4]; /**< Floating point components. */
-};
-
 #include <cmath>
 #include <cstdio>
 #include <cstdlib>
@@ -1857,8 +1847,6 @@ EFF_SPT_BASE_DEF *GetEffSptBaseDefPtr(int index) {
     return strcmp(base->name, at_1341__2) == 0 ? 0 : base;
 }
 
-extern EffectVector at_2067;
-
 /**
  *
  * Draws visible effect sprites with their color, lighting, and alpha settings.
@@ -1897,7 +1885,7 @@ static void DrawEffSptSprite(_EFF_SCRIPT *script, mgCTexture *texture, sceVu0FVE
                 renderer->BeginCPSprite();
             }
 
-            EffectVector  size = at_2067;
+            sceVu0FVECTOR size = {0.0f, 0.0f, 0.0f, 0.0f};
             sceVu0FVECTOR uv0, uv1, position;
             sceVu0FVECTOR color;
             mgZeroVector(uv0);
@@ -1943,14 +1931,14 @@ static void DrawEffSptSprite(_EFF_SCRIPT *script, mgCTexture *texture, sceVu0FVE
                 color[2] = light_color[0][2] * 0.3 + ambient[2];
             }
 
-            size.values[0] = sprite->put_size[0] * sprite->scale[0];
-            size.values[1] = sprite->put_size[1] * sprite->scale[1];
-            size.values[2] = mgAngleLimit(sprite->rotz);
+            size[0] = sprite->put_size[0] * sprite->scale[0];
+            size[1] = sprite->put_size[1] * sprite->scale[1];
+            size[2] = mgAngleLimit(sprite->rotz);
             uv0[0] = sprite->uv[0];
             uv0[1] = sprite->uv[1];
             uv1[0] = sprite->uv[0] + sprite->uv[2];
             uv1[1] = sprite->uv[1] + sprite->uv[3];
-            renderer->CPSetSprite(position, size.values, color, uv0, uv1);
+            renderer->CPSetSprite(position, size, color, uv0, uv1);
         }
     }
 
@@ -5743,4 +5731,3 @@ CScene *now_scene;
 CEffectScriptMan *EffScriptMan;
 
 // Uninitialised data (.bss)
-INCLUDE_BSS(at_2067, 0x10);
