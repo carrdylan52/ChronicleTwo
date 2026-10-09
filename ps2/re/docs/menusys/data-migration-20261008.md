@@ -433,3 +433,17 @@ unowned hashes. Receipts are `string-remaining-ledger.log`,
 The failed object, binary and word-diff receipts use the same label plus
 `-failed-*` or `-worddiff.log`; `inline-fusion-status-failed-objects.log`
 records the unnamed BSS piece.
+
+### Shared pointer-table checkpoint
+
+After the callers use inline literals, all four remaining initial pointer-table
+candidates pass: `focusnametbl`, `exename_4332`,
+`local_over_flow_baseposname` and `plist_4982`. Their native strings now pool
+with those callers, and the complete unit preserves the BSS identities and
+all code relocation targets. No qualifier change or alternate source helper
+is needed. The initial rejected sources are absent.
+
+Markers are **91 RODATA / 6 BSS**, with **2,884 / 10,332 matched_data**.
+All four retries pass PAL, all 149 objects, protected guards and unowned
+hashes. Receipts are `table-retry-ledger.log` and
+`table-retry-<symbol>-{build,objects,metrics}.log`.

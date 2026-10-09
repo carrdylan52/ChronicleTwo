@@ -196,11 +196,8 @@ extern signed char           tbl_4094[2];
 extern signed char           SameviewmodeTable_8406[4];
 extern signed char           menuitem_initmenumode[4];
 extern mgCMemory             MainCharaReadStack;
-extern char                 *focusnametbl[21];
 extern char                  at_3924[];
 extern CGamePad              GamePad__2;
-extern char                 *plist_4982[3];
-extern char                 *local_over_flow_baseposname[3];
 extern char                 *OverFlowFormName;
 extern char                  at_4954[];
 extern char                  at_4672[];
@@ -1041,6 +1038,34 @@ static u32 table_6164[7] = {CHARA_STATUS_POISON, CHARA_STATUS_UNK_2, CHARA_STATU
  *
  */
 static char *n_2667[4] = {"cursor0", "item0num", "item0", "item0sdw"};
+
+/**
+ *
+ * Preview-camera attachment names for character equipment.
+ *
+ */
+static char *focusnametbl[21] = {"ef00", "gun_hand", "hat", "R_foot", "sword_hand", "wr", "ac", "R_foot", "", "", "", "", "", "", "", "", "", "", "", "", ""};
+
+/**
+ *
+ * Item-use status scripts for each character preview.
+ *
+ */
+static char *exename_4332[4] = {NULL, "\x8E\xF4\x82\xA2", "\x92\xE2\x8E\x7E", "\x90\xCE\x89\xBB"};
+
+/**
+ *
+ * Part names positioning overflow items.
+ *
+ */
+static char *local_over_flow_baseposname[3] = {"item0", "item1", "item2"};
+
+/**
+ *
+ * Part-name formats for item movement slots.
+ *
+ */
+static char *plist_4982[3] = {"item%d", "wep%d", "esa0"};
 
 // Code (.text)
 /**
@@ -5762,7 +5787,6 @@ void CMenuItemInfo::CheckLoadInfo(int chara) {
 }
 
 extern CGameDataUsed MenuMoveTempGameDataUsed;
-extern char         *exename_4332[4];
 
 int CMenuItemInfo::ItemCmdAfter(int cmd_ret, ITEMCMD_RET_PARA *ret) {
     switch (step) {
@@ -12203,10 +12227,6 @@ void MenuItemSelectDraw() {
 }
 
 // Initialised data (.data)
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menusys", focusnametbl__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menusys", exename_4332__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menusys", local_over_flow_baseposname__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menusys", plist_4982__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menusys", attrtable_6472__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menusys", stchar_6508__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menusys", whptbl_7376__DATA);
@@ -12227,19 +12247,9 @@ INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menusys", menu_item_swap_sndtbl__DATA);
 
 // Constants (.rodata)
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menusys", at_1493__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menusys", at_3744__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menusys", at_3745__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menusys", at_3746__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menusys", at_3747__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menusys", at_3748__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menusys", at_3749__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menusys", at_3750__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menusys", at_3894__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menusys", at_3895__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menusys", at_3924__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menusys", at_4333__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menusys", at_4334__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menusys", at_4335__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menusys", at_4672__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menusys", at_4950__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menusys", at_4951__DATA);
@@ -12251,10 +12261,6 @@ INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menusys", at_4956__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menusys", at_4957__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menusys", at_4958__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menusys", at_4973__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menusys", at_4974__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menusys", at_4975__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menusys", at_4983__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menusys", at_4984__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menusys", at_5882__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menusys", at_5883__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menusys", at_6424__DATA);
