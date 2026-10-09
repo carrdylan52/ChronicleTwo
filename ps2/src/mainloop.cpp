@@ -1393,18 +1393,11 @@ void LoadFontTexture() {
 }
 
 void ReLoadFontTexture(int texture_no) {
-    char       file_name[0x20];
-    int        page;
-    int        offset;
-    TM2_head **font_data;
+    char file_name[0x20];
+    int  page;
 
-    offset = 0;
-    page = 0;
-
-    do {
-        font_data = (TM2_head **) ((u8 *) &FontDataAdr + offset);
-
-        if (*font_data != NULL) {
+    for (page = 0; page <= 0; page++) {
+        if (FontDataAdr[page] != NULL) {
             if (LanguageCode == 0) {
                 sprintf(file_name, "FontTex_%d.tm2", page);
             } else if (LanguageCode == 1) {
@@ -1419,12 +1412,9 @@ void ReLoadFontTexture(int texture_no) {
                 return;
             }
 
-            *(mgCTexture **) ((u8 *) &FontTex + offset) = mgTexManager.EnterTexture(texture_no, file_name, *font_data, 0, 0);
+            FontTex[page] = mgTexManager.EnterTexture(texture_no, file_name, FontDataAdr[page], 0, 0);
         }
-
-        page += 1;
-        offset += 4;
-    } while (page <= 0);
+    }
 }
 
 void demQuit() {}
