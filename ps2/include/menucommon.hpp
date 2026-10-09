@@ -67,7 +67,7 @@ enum MenuScriptMessagePreset {
  */
 enum MenuScriptSound {
     MENU_SCRIPT_SOUND_OK = SYSTEM_SE_DECIDE, /**< Accept the current menu selection. */
-    MENU_SCRIPT_SOUND_CANCEL = 5, /**< Cancel the current menu selection. */
+    MENU_SCRIPT_SOUND_CANCEL = SYSTEM_SE_CANCEL, /**< Cancel the current menu selection. */
 };
 
 /**
