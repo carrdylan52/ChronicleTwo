@@ -34,15 +34,12 @@ static void GetBalanceHeight(CScene *scene, float *balance);
 static int  GetGeoCheckCol(CMap *map, mgVu0FBOX &box, CCPoly *polys, int max);
 static int  GetGeoCheckCamCol(CMap *map, mgVu0FBOX &box, CCPoly *polys, int max);
 
-
 extern mgRect<int> data[];
 extern "C" char    at_1254__2[];
 extern "C" char    at_1284__5[];
 
-extern CFont                    Font__2;
 extern char                     at_1367[];
 extern char                     at_1377__3[];
-extern "C" u8                   at_2213__3[10];
 
 extern "C" {
 
@@ -314,7 +311,7 @@ static UNDO_DATA UndoData;
 
 /**
  *
- * RGB components of the selected paint and its auxiliary component.
+ * Color applied by the selected paint tool.
  *
  */
 static sceVu0FVECTOR PaintColor;
@@ -418,6 +415,13 @@ static mgCFrame *EditCursor[3];
 static sceVu0FVECTOR now_balance_h;
 
 }
+
+/**
+ *
+ * Font used to draw Georama help lines.
+ *
+ */
+static CFont Font__2;
 
 // Code (.text)
 /**
@@ -2249,14 +2253,14 @@ void DrawEditCursor(CScene *scene) {
     *end = 0;
 
     if (cnt == 0) {
-        end += sprintf(end, at_1961, eCurPos[0], eCurPos[1], eCurPos[2], eCurRot);
+        end += sprintf(end, "%7.1f,%7.1f,%7.1f R=%d\n", eCurPos[0], eCurPos[1], eCurPos[2], eCurRot);
     }
 
     if (cnt == 1) {
-        end += sprintf(end, at_1961, pos_save[0], pos_save[1], pos_save[2], (int) pos_save[3]);
-        end += sprintf(end, at_1961, eCurPos[0], eCurPos[1], eCurPos[2], eCurRot);
-        end += sprintf(end, at_1962, mgDistVector(pos_save, eCurPos));
-        sprintf(end, at_1963, mgDistVectorXZ(pos_save, eCurPos));
+        end += sprintf(end, "%7.1f,%7.1f,%7.1f R=%d\n", pos_save[0], pos_save[1], pos_save[2], (int) pos_save[3]);
+        end += sprintf(end, "%7.1f,%7.1f,%7.1f R=%d\n", eCurPos[0], eCurPos[1], eCurPos[2], eCurRot);
+        end += sprintf(end, "dist = %7.1f,", mgDistVector(pos_save, eCurPos));
+        sprintf(end, "dxz = %7.1f,", mgDistVectorXZ(pos_save, eCurPos));
         mgCFrame *marker = EditCursor[0];
 
         if (marker != NULL) {
@@ -2487,7 +2491,6 @@ static const char *repaint_fence_str[6] = {
     "(O):annulla colore  (#):annulla colore (tutto)",
     "(O):deshacer color  (#):deshacer color (todo)",
 };
-
 
 void DrawEditHelpMes() {
     int lang;
@@ -2783,7 +2786,7 @@ void DrawEditSystem(int block, CScene *scene, float *pos, int edit) {
  */
 static CMapParts *GetGeoCheckPts(CMap *map) {
     if (map != NULL) {
-        return map->GetPlaceParts((char *) at_2213__3);
+        return map->GetPlaceParts("geo_check");
     }
 
     return NULL;
@@ -2953,37 +2956,32 @@ int CheckEditToWalk(CScene *scene, float *position) {
     return 1;
 }
 
-// Initialised data (.data)
-
 // Constants (.rodata)
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editmode", at_1067__3__DATA);
+
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editmode", at_1068__3__DATA);
+
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editmode", at_1069__5__DATA);
+
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editmode", at_1070__3__DATA);
+
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editmode", at_1071__3__DATA);
+
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editmode", at_1072__3__DATA);
+
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editmode", at_1073__3__DATA);
+
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editmode", at_1074__3__DATA);
+
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editmode", at_1075__2__DATA);
+
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editmode", at_1076__2__DATA);
+
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editmode", at_1835__2__DATA);
+
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editmode", at_1836__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editmode", at_1961__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editmode", at_1962__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editmode", at_1963__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editmode", at_2103__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editmode", at_2213__3__DATA);
-
-// Small initialised data (.sdata)
-
-// Small uninitialised data (.sbss)
 
 // Uninitialised data (.bss)
-/**
- *
- * Font used to draw Georama help lines.
- *
- */
-CFont Font__2;
 INCLUDE_BSS(at_1445__3, 0x10);
+
 INCLUDE_BSS(at_1579__2, 0x10);

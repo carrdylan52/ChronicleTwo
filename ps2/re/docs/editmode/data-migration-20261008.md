@@ -163,3 +163,77 @@ is validated separately with exact resolved relocations and PAL verification.
 `CreateEffSpt` calls, removing `at_1367`'s external declaration and marker.
 Receipts: `literal-at_1254__2-*`, `literal-at_1284__5-*`,
 `literal-at_1377__3-*`, and `literal-at_1367-*`.
+
+## Debug formats, collision-check name and switch table
+
+`DrawEditCursor` inlines the position/orientation, full-distance and XZ-distance
+formats formerly stored as `at_1961`, `at_1962`, and `at_1963`. All `%7.1f`,
+`%d`, newline and comma bytes remain exact. `GetGeoCheckPts` passes the literal
+`"geo_check"` directly, replacing the byte-array declaration, cast and marker
+for `at_2213__3`.
+
+`at_2103` is the 48-byte, twelve-entry `DrawEditHelpMes` switch jump table.
+Its marker is removed; the existing switch emits the native table with exact
+function-relative targets, including the common exit for help case 11.
+No hand-written label table is needed. `Font__2` now has retail-local visibility
+and remains a native `CFont`; its compiler-generated initializer still matches
+the retail `CFont::Init` call. Empty data-section captions are removed, and
+retained top-level markers are separated by blank lines.
+
+These steps each pass PAL and complete-object checks. Receipts:
+`debug-formats-*`, `geocheck-name-*`, `help-switch-*`, and `font-visibility-*`.
+
+## Every retained marker
+
+The following twelve string markers have no active native source consumer.
+Their natural inline uses live exclusively in the guarded `LoadEditCursor`
+or `EditMode` blocks. Those blocks must remain unchanged; the active assembly
+requires each exact retail symbol. Defining stand-in anonymous string objects
+would replace the compiler's literal pooling rather than migrate the owning
+source expression, so the markers remain until their functions can match.
+
+| Retained INCLUDE_RODATA marker | Declared bytes | Purpose and guarded owner |
+| --- | ---: | --- |
+| `at_1067__3__DATA` | 13 | `etc/gsys.pak`, editor asset package in `LoadEditCursor`. |
+| `at_1068__3__DATA` | 15 | `etc/g_edit.img`, editor texture image in `LoadEditCursor`. |
+| `at_1069__5__DATA` | 11 | `haichi_eff`, system-icon texture in `LoadEditCursor`. |
+| `at_1070__3__DATA` | 13 | `etc/cone.mds`, placement cursor model in `LoadEditCursor`. |
+| `at_1071__3__DATA` | 13 | `etc/hake.chr`, paint cursor character in `LoadEditCursor`. |
+| `at_1072__3__DATA` | 9 | `info.cfg`, character configuration entry in `LoadEditCursor`. |
+| `at_1073__3__DATA` | 7 | `hake_1`, paint-colored frame in `LoadEditCursor`. |
+| `at_1074__3__DATA` | 13 | `etc/a_mu.chr`, removal cursor character in `LoadEditCursor`. |
+| `at_1075__2__DATA` | 16 | `etc/sukkopu.chr`, shovel cursor character in `LoadEditCursor`. |
+| `at_1076__2__DATA` | 11 | `cursor.mds`, grid-cell cursor model in `LoadEditCursor`. |
+| `at_1835__2__DATA` | 9 | `CEditMap`, map-type identity in `EditMode`. |
+| `at_1836__2__DATA` | 17 | `penki item = %d\n`, paint-item debug format in `EditMode`. |
+
+The two remaining INCLUDE_BSS markers likewise belong only to the guarded
+`EditMode` body's local zero initializers; the active assembly copies from
+those exact symbols. They are compiler-owned templates, not named mutable game
+state, so no artificial zero object is supplied to replace them.
+
+| Retained INCLUDE_BSS marker | Declared bytes | Purpose |
+| --- | ---: | --- |
+| `at_1445__3` | 16 | Initial zero vector for the analog-stick magnitude calculation. |
+| `at_1579__2` | 16 | Initial zero rotation vector for part placement. |
+
+## Final measurements and scope
+
+- INCLUDE_RODATA: **133 → 12** (121 removed).
+- INCLUDE_BSS: **63 → 2** (61 removed).
+- Refreshed editmode matched_data / total_data: **4 / 4,855 → 805 / 4,855**.
+- Native `.data`, `.sbss`, `.sdata` and `.ctor` aggregate sections match fully.
+  The remaining BSS and rodata markers prevent credit for their partial sections;
+  805 is therefore a lower bound on migrated native data.
+- No function promotion is attempted; both guarded functions remain guarded.
+  Unit coverage stays 54 matched / 2 guarded, and repository coverage stays
+  6,777 matched / 86 guarded / 9 assembly-only / 0 fuzzy.
+- `editmode.hpp` is byte-for-byte unchanged. Both guarded source blocks retain
+  their baseline SHA-256 hashes. All 148 other object-file hashes are unchanged.
+- No build/toolchain/profile, unrelated unit, generated input, or existing
+  editor note is edited. No out-of-scope proposal is needed.
+
+Final receipts: `.private/dataF-r1/final-build.log`, `final-objects.log`,
+`final-progress.log`, `final-coverage.log`, `final-metrics.json`, and
+`final-scope.json`. Complete object checks and PAL verification establish
+byte and resolved-relocation identity; data progress alone is not that proof.
