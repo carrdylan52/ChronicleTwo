@@ -1150,6 +1150,14 @@
         "constructor": "__ct__16CEffectScriptManFv",
         "conversion": "after_constructor_inline",
         "expected_matches": 1
+      },
+      {
+        "translation_unit": "mapparts.cpp",
+        "function": "Copy__9CMapPartsFR9CMapPartsP9mgCMemory",
+        "allocator": "__nw__FUiP1",
+        "constructor": "__ct__17CList<9CMapPiece>Fv",
+        "conversion": "after_constructor_inline",
+        "expected_matches": 1
       }
     ]
   }
