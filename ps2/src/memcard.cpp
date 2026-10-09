@@ -200,20 +200,12 @@ void CMemoryCardManager::Initialize(mgCMemory *memory) {
 }
 
 void CMemoryCardManager::InitSaveFileInfoTable() {
-    int                 entry_no;
-    int                 entry_offset;
-    CMemoryCardManager *entry_base;
+    int entry_no;
 
-    entry_offset = 0;
-    entry_no = 0;
-
-    do {
-        entry_base = (CMemoryCardManager *) ((u8 *) this + entry_offset);
-        memset(&entry_base->dir_table[0], 0, sizeof(MC_DIR_ENTRY));
-        entry_no += 1;
-        entry_base->dir_table[0].name[0] = 0;
-        entry_offset += sizeof(MC_DIR_ENTRY);
-    } while (entry_no < 17);
+    for (entry_no = 0; entry_no < 17; entry_no++) {
+        memset(&dir_table[entry_no], 0, sizeof(MC_DIR_ENTRY));
+        dir_table[entry_no].name[0] = 0;
+    }
 }
 
 int CMemoryCardManager::GetOpenAttribute(char *name) {
