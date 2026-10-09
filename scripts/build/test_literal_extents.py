@@ -91,6 +91,17 @@ class LiteralExtentTests(unittest.TestCase):
         self.assertEqual(fixture[0].sections[1].data, bytes(1024))
         self.assertEqual(fixture[0].symtab.symbols[0].st_size, 1024)
 
+    def test_terminal_tail_stops_at_a_real_reference_only_cut(self):
+        fixture = self.fixture(native=8, declared=8, gap=1024, terminal=True)
+        elf, pieces, retail, rows = fixture
+        symbols = NS(rows=rows, within=lambda lo, hi: [row for row in rows if lo <= row[0] < hi])
+        canonical = p.disassemble.Pieces(lay=pieces.layout, symbols=symbols, references=[0x302c])
+        p.name_literal_data(elf, 'unit', set(), retail=retail, pieces=pieces,
+                            padding_pieces=canonical, addresses={'table': 0x4000}, rows=rows)
+        self.assertEqual(elf.symtab.symbols[0].name, 'at_2')
+        self.assertEqual(len(elf.sections[1].data), 12)
+        self.assertEqual(canonical.unit('unit')[0][1][-1][0], 'D_0000302C')
+
     def test_terminal_tail_with_relocation_is_not_synthesized(self):
         fixture = self.fixture(gap=1023, terminal=True)
         fixture[2].relocations[0x3024] = p.R_MIPS_32

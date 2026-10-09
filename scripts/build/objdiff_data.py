@@ -354,13 +354,17 @@ def prepare_native_data(elf, unit, ctx, *, donors=()):
             record.name = '.rel' + elf.sections[record.sh_info].name
             record.sh_name = elf.add_sh_symbol(record.name)
     ranges = ctx.ranges(unit)
+    declared = {name: size for _address, name, size, function in ctx.rows if not function and size}
+    original_sizes = {id(symbol): size for symbol, size, _align, _type, _name in native_extents.values()}
     for symbol in elf.symtab.symbols:
         index = symbol.st_shndx
         if symbol.type != p.STT_OBJECT or not 0 < index < len(elf.sections):
             continue
         section = elf.sections[index]
         address = ctx.addresses.get(symbol.name)
-        if section.name not in ranges or address is None:
+        if (section.name not in ranges or address is None
+                or original_sizes.get(id(symbol)) != declared.get(symbol.name)
+                or id(symbol) not in original_sizes):
             continue
         lo, end, hi = ranges[section.name]
         if not lo <= address < end < address + p.section_size(section) <= hi:
