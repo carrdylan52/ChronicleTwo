@@ -224,8 +224,6 @@ extern KeyPairTable          at_2328;
 extern KeyPairTable          at_2333__3;
 extern SpectolBreakTable     at_1557;
 extern char                  at_1493__2[];
-extern signed char           sndflag_1665;
-extern signed char           init_1666;
 extern short                 MenuItemBoardTotalNum;
 extern short                 MenuItemBoardTotalLine;
 extern s16                   MenuWeaponEnvSetListNo;
@@ -252,11 +250,6 @@ extern mgCMemory             MainCharaReadStack;
 extern char                  at_5265[];
 extern char                  at_5271[];
 extern char                  at_7540[];
-extern void                 *Save_AskParamInfo_7099;
-extern signed char           diffent_weapon_dispflag_7125;
-extern signed char           fusion_blinkcnt_7120;
-extern signed char           init_7121;
-extern signed char           init_7126;
 extern u8                    padtbl_3359[16];
 extern char                  at_2545__2[];
 extern char                  at_2546__2[];
@@ -298,10 +291,6 @@ extern mgCMemory             MenuItemMemory;
 extern mgCMemory             MenuItemMemory2;
 extern mgCMemory             MenuItemMainMemory;
 extern mgCMemory             MenuItemBGDataMemory;
-extern int                   old_viewmode_8715;
-extern signed char           init_8716;
-extern int                   old_chrid_8718;
-extern signed char           init_8719;
 extern char                  at_8819[];
 extern char                  at_8820[];
 extern char                  at_8821[];
@@ -785,6 +774,209 @@ s16 BuildUpNameXY[3][2];
  */
 static float MonicaRotationData[4];
 
+/**
+ *
+ * Delay counter of the item command selection.
+ *
+ */
+static s8 cmd_counter_1048;
+
+/**
+ *
+ * Initialization latch of the item command delay counter.
+ *
+ */
+static s8 init_1049;
+
+/**
+ *
+ * Non-zero after the fusion sound begins.
+ *
+ */
+static s8 sndflag_1665;
+
+/**
+ *
+ * Initialization latch of the fusion sound state.
+ *
+ */
+static s8 init_1666;
+
+/**
+ *
+ * Pulse counter of the attachment information display.
+ *
+ */
+static s8 count_time_3839;
+
+/**
+ *
+ * Initialization latch of the attachment information pulse.
+ *
+ */
+static s8 init_3840;
+
+/**
+ *
+ * Counter of the extended weapon build-up effect.
+ *
+ */
+static int Effect_Counter_4682;
+
+/**
+ *
+ * Initialization latch of the extended build-up effect counter.
+ *
+ */
+static s8 init_4683;
+
+/**
+ *
+ * Non-zero when the extended weapon build-up finishes.
+ *
+ */
+static u8 BuildEndFlag_4703;
+
+/**
+ *
+ * Initialization latch of the build-up completion state.
+ *
+ */
+static s8 init_4704;
+
+/**
+ *
+ * Previous preview movement state used when refreshing character data.
+ *
+ */
+static s8 checkmoveFlag_5411;
+
+/**
+ *
+ * Initialization latch of the preview movement state.
+ *
+ */
+static s8 init_5412;
+
+/**
+ *
+ * Counter of the debug character-status selection.
+ *
+ */
+static int cnt_6161;
+
+/**
+ *
+ * Initialization latch of the debug character-status counter.
+ *
+ */
+static s8 init_6162;
+
+/**
+ *
+ * Counter of the debug spectrumisation effect test.
+ *
+ */
+static int testcnt_6298;
+
+/**
+ *
+ * Initialization latch of the debug spectrumisation test counter.
+ *
+ */
+static s8 init_6299;
+
+/**
+ *
+ * Temporary command parameters saved while handling item-menu input.
+ *
+ */
+static void *Save_AskParamInfo_7099;
+
+/**
+ *
+ * Blink counter of the raised fusion parameters.
+ *
+ */
+static s8 fusion_blinkcnt_7120;
+
+/**
+ *
+ * Initialization latch of the fusion parameter blink counter.
+ *
+ */
+static s8 init_7121;
+
+/**
+ *
+ * Non-zero while a different weapon's fusion preview is shown.
+ *
+ */
+static s8 diffent_weapon_dispflag_7125;
+
+/**
+ *
+ * Initialization latch of the different-weapon fusion display.
+ *
+ */
+static s8 init_7126;
+
+/**
+ *
+ * Pulse phase of the character voice indicator.
+ *
+ */
+static float counter_7509;
+
+/**
+ *
+ * Initialization latch of the character voice indicator pulse.
+ *
+ */
+static s8 init_7510;
+
+/**
+ *
+ * Counter of the weapon build-up status warning.
+ *
+ */
+static s8 count_7867;
+
+/**
+ *
+ * Initialization latch of the build-up status warning counter.
+ *
+ */
+static s8 init_7868;
+
+/**
+ *
+ * Previous item preview page remembered by the menu input handler.
+ *
+ */
+static int old_viewmode_8715;
+
+/**
+ *
+ * Initialization latch of the saved preview page.
+ *
+ */
+static s8 init_8716;
+
+/**
+ *
+ * Previous preview character remembered by the menu input handler.
+ *
+ */
+static int old_chrid_8718;
+
+/**
+ *
+ * Initialization latch of the saved preview character.
+ *
+ */
+static s8 init_8719;
+
 // Code (.text)
 /**
  *
@@ -917,8 +1109,6 @@ int CBaseMenuClass::MenuItemMoveItemCommand(CGameDataUsed *item, int arg_pos, in
     return 0;
 }
 
-extern s8 init_1049;
-extern s8 cmd_counter_1048;
 
 template <typename T>
 static inline T Ident(T v) { return v; }
@@ -4881,8 +5071,6 @@ extern char  at_3893[];
 extern char  at_3894[];
 extern char  at_3895[];
 extern char *WepStatusInfoStrTable[10];
-extern s8    count_time_3839;
-extern s8    init_3840;
 
 /**
  *
@@ -6127,10 +6315,6 @@ int CMenuItemInfo::ItemCmdAfter(int cmd_ret, ITEMCMD_RET_PARA *ret) {
 }
 
 
-extern int  Effect_Counter_4682;
-extern s8   init_4683;
-extern u8   BuildEndFlag_4703;
-extern s8   init_4704;
 extern char at_4950[];
 extern char at_4951[];
 extern char at_4952[];
@@ -6798,8 +6982,6 @@ void CMenuItemInfo::MenuModeMalloc(mgCMemory *stack) {
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/menusys", MenuModeMalloc__13CMenuItemInfoFP9mgCMemory);
 #endif
 
-extern s8   init_5412;
-extern s8   checkmoveFlag_5411;
 extern u8   itemmenu_calcmode_tbl_5410[6];
 extern char at_5758[];
 extern char at_5759[];
@@ -7489,10 +7671,6 @@ int MenuItemInit(mgCMemory *stack, int *tex_block, int mode) {
 
 extern mgCMemory     MenuDebugStack;
 extern s8            MenuDebugModel_AdjustFlag;
-extern int           cnt_6161;
-extern s8            init_6162;
-extern int           testcnt_6298;
-extern s8            init_6299;
 extern u32           table_6164[7];
 extern char          dbox_path_6083[];
 extern u64           at_6133;
@@ -9702,8 +9880,6 @@ extern char  at_7536[];
 extern char  at_7537[];
 extern char  at_7538[];
 extern char  at_7541[];
-extern float counter_7509;
-extern s8    init_7510;
 
 /**
  *
@@ -10135,8 +10311,6 @@ void MenuWeaponBuildUpDraw(int &tex_block) {
     }
 }
 
-extern s8 count_7867;
-extern s8 init_7868;
 
 /**
  *
@@ -12476,43 +12650,14 @@ INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menusys", SameviewmodeTable_8406__DATA)
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menusys", at_9055__DATA);
 
 // Small uninitialised data (.sbss)
-INCLUDE_BSS(cmd_counter_1048, 0x4);
-INCLUDE_BSS(init_1049, 0x4);
 INCLUDE_BSS(at_1545, 0x4);
-INCLUDE_BSS(sndflag_1665, 0x4);
-INCLUDE_BSS(init_1666, 0x4);
 INCLUDE_BSS(at_1685, 0x8);
-INCLUDE_BSS(count_time_3839, 0x4);
-INCLUDE_BSS(init_3840, 0x4);
-INCLUDE_BSS(Effect_Counter_4682, 0x4);
-INCLUDE_BSS(init_4683, 0x4);
-INCLUDE_BSS(BuildEndFlag_4703, 0x4);
-INCLUDE_BSS(init_4704, 0x4);
-INCLUDE_BSS(checkmoveFlag_5411, 0x4);
-INCLUDE_BSS(init_5412, 0x4);
 INCLUDE_BSS(at_6133, 0x8);
-INCLUDE_BSS(cnt_6161, 0x4);
-INCLUDE_BSS(init_6162, 0x4);
 INCLUDE_BSS(at_6176, 0x8);
 INCLUDE_BSS(at_6220, 0x8);
 INCLUDE_BSS(at_6234, 0x8);
 INCLUDE_BSS(at_6256, 0x8);
 INCLUDE_BSS(at_6265, 0x8);
-INCLUDE_BSS(testcnt_6298, 0x4);
-INCLUDE_BSS(init_6299, 0x4);
-INCLUDE_BSS(Save_AskParamInfo_7099, 0x4);
-INCLUDE_BSS(fusion_blinkcnt_7120, 0x4);
-INCLUDE_BSS(init_7121, 0x4);
-INCLUDE_BSS(diffent_weapon_dispflag_7125, 0x4);
-INCLUDE_BSS(init_7126, 0x4);
-INCLUDE_BSS(counter_7509, 0x4);
-INCLUDE_BSS(init_7510, 0x4);
-INCLUDE_BSS(count_7867, 0x4);
-INCLUDE_BSS(init_7868, 0x4);
-INCLUDE_BSS(old_viewmode_8715, 0x4);
-INCLUDE_BSS(init_8716, 0x4);
-INCLUDE_BSS(old_chrid_8718, 0x4);
-INCLUDE_BSS(init_8719, 0x4);
 
 // Uninitialised data (.bss)
 MENU_ASKMODE_PARA MenuAskParam;

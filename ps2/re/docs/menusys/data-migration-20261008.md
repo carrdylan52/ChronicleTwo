@@ -97,3 +97,16 @@ are recorded by `named-bss-ledger.log` and
 Markers are **360 RODATA / 39 BSS** and data credit remains
 **4 / 10,332** while the remaining template pieces keep aggregate sections
 incomplete. The guarded drafts and unowned object hashes remain unchanged.
+
+### Persistent-state checkpoint
+
+All twenty-nine counter, pointer and latch reservations have native file-local
+primitive definitions under their exact retail names. The existing runtime
+initialization is unchanged, including the guarded effect/debug counters and
+the saved preview fields whose stores must remain present. No artificial read,
+volatile qualifier or additional constructor is needed.
+
+Markers are **360 RODATA / 10 BSS**, with **4 / 10,332 matched_data**.
+All thirteen counter groups pass PAL, 149/149 objects, protected guards and
+unowned hashes independently. Receipts are `persistent-bss-ledger.log` and
+`bss-<group>-{build,objects,metrics}.log` under `.private/dataD-r2/`.
