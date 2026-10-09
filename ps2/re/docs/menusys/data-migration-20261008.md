@@ -110,3 +110,28 @@ Markers are **360 RODATA / 10 BSS**, with **4 / 10,332 matched_data**.
 All thirteen counter groups pass PAL, 149/149 objects, protected guards and
 unowned hashes independently. Receipts are `persistent-bss-ledger.log` and
 `bss-<group>-{build,objects,metrics}.log` under `.private/dataD-r2/`.
+
+### Natural local initializer checkpoint
+
+The spectrumisation name substitution is a one-pointer automatic array, the
+fusion name substitution has two pointer slots, and the breakdown values are
+four integers initialized to zero. Their native aggregate templates replace
+`at_1545`, `at_1685` and `at_1557`. The accepted `KeyPairTable` copy convention
+retains its typed, file-local zero wrap-target object at `at_2333__3`.
+The old name/position/breakdown wrapper types and the `MenuEffect` declaration
+macro are unnecessary and absent.
+
+`MenuEquipCameraSetEnv` uses two automatic four-float arrays initialized to
+`{0, 0, 0, 1}`. They are declared after a camera attachment is found, followed
+by the name and lookup buffers, preserving the original initializer execution
+point and stack allocation order. This replaces the two external aggregate
+load casts and both `at_3771`/`at_3772` markers. A separate ordinary `memcpy`
+trial for the existing output-vector copies fails PAL layout verification and
+is reverted; those unrelated output operations retain their validated source.
+Its negative receipt is `copy-camera-output-build.log`.
+
+All accepted forms and the final restored source pass PAL and 149/149 objects.
+The complete native `.bss` section now receives data credit: markers are
+**358 RODATA / 6 BSS**, and **2,884 / 10,332 matched_data**.
+Receipts are `natural-copy-ledger.log`, `copy-<group>-{build,objects,metrics}.log`,
+and `copy-final-{build,objects,metrics}.log`. No guarded draft changes.

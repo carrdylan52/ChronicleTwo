@@ -1,4 +1,8 @@
-#define MenuEffect MenuEffectUnbounded
+/**
+ *
+ * Inventory slots available to the item selector.
+ *
+ */
 const int kBagSlotCount = 0x96;
 #include "common.h"
 #include "mw_runtime.h"
@@ -38,7 +42,6 @@ const int kBagSlotCount = 0x96;
 #include "sound.hpp"
 #include "sysmes.hpp"
 #include "userdata.hpp"
-#undef MenuEffect
 
 /**
  *
@@ -160,49 +163,11 @@ void MenuItemDebugKey();
 
 /**
  *
- * Holds a name used by the item menu.
- *
- */
-struct NameList {
-    char *name; /**< Name displayed by the item menu. */
-};
-
-/**
- *
- * Pairs two names used by the item menu.
- *
- */
-struct NamePair {
-    char *a; /**< First name in the pair. */
-    char *b; /**< Second name in the pair. */
-};
-
-/**
- *
  * Stores key values for two pairs of item-menu actions.
  *
  */
 struct KeyPairTable {
     int v[2][2]; /**< Key values for each action pair. */
-};
-
-/**
- *
- * Stores a position on the menu screen.
- *
- */
-struct ScreenPos {
-    int x; /**< Horizontal screen coordinate. */
-    int y; /**< Vertical screen coordinate. */
-} __attribute__((aligned(8)));
-
-/**
- *
- * Stores values for the Spectol breakdown display.
- *
- */
-struct SpectolBreakTable {
-    int v[4]; /**< Display values for four Spectol parts. */
 };
 
 /**
@@ -219,10 +184,7 @@ struct MenuCharaReadBuffers {
 extern CDC2Mes              *MenuDCMsg[9];
 extern CGameDataUsed         SpectolTransBefore;
 extern CGameDataUsed         SpectolInfoStay;
-extern NamePair              at_1685;
 extern KeyPairTable          at_2328;
-extern KeyPairTable          at_2333__3;
-extern SpectolBreakTable     at_1557;
 extern char                  at_1493__2[];
 extern short                 MenuItemBoardTotalNum;
 extern short                 MenuItemBoardTotalLine;
@@ -230,7 +192,6 @@ extern s16                   MenuWeaponEnvSetListNo;
 extern CMenuItemInfo         class_menu_item_info;
 void                         MenuWeaponStatusInfoFormSet(CGameDataUsed *item, CDataWeapon *data);
 extern float                 SpectolFramePosValue;
-extern NameList              at_1545;
 extern signed char           MenuRoboEquipTable[8];
 extern signed char           tbl_4094[2];
 extern signed char           SameviewmodeTable_8406[4];
@@ -263,8 +224,6 @@ extern char                  at_2550[];
 extern char                 *n_2667[4];
 extern int                   MenuCheckKey[4];
 extern char                 *focusnametbl[21];
-extern float                 at_3771[4];
-extern float                 at_3772[4];
 extern char                  at_3774__2[];
 extern char                  at_3775__2[];
 extern char                  at_3924[];
@@ -976,6 +935,13 @@ static int old_chrid_8718;
  *
  */
 static s8 init_8719;
+
+/**
+ *
+ * Initial wrap targets of the item cursor key pairs.
+ *
+ */
+static KeyPairTable at_2333__3;
 
 // Code (.text)
 /**
@@ -1812,9 +1778,9 @@ int CBaseMenuClass::CheckSpectolFusion(CGameDataUsed *item, int panel, CMenuPosD
             step = 3;
         }
 
-        NameList names = at_1545;
-        names.name = item->GetName(1);
-        message->SetMsgItemNo(&names.name, 1);
+        char *names[1] = {NULL};
+        names[0] = item->GetName(1);
+        message->SetMsgItemNo(names, 1);
         SetAskParam(&param);
         message->SetAbsPos(abs_pos);
         return 1;
@@ -1829,10 +1795,10 @@ int CBaseMenuClass::CheckSpectolFusion(CGameDataUsed *item, int panel, CMenuPosD
  *
  */
 void UpdataInfoSpectolBreakItem(CDC2Mes *mes, CGameDataUsed *item, int count) {
-    SpectolBreakTable volume = at_1557;
-    volume.v[0] = count;
-    volume.v[1] = SpectolBreakSpPoint * count;
-    mes->SetMsgVolumeNo(volume.v, 2);
+    int volume[4] = {0, 0, 0, 0};
+    volume[0] = count;
+    volume[1] = SpectolBreakSpPoint * count;
+    mes->SetMsgVolumeNo(volume, 2);
     mes->fade_speed = 1.0f;
     CGameDataUsed result;
     item->ToSpectolTrans(&result, count);
@@ -2085,9 +2051,9 @@ int CBaseMenuClass::IsSpectolFusion(int key, int command) {
                 int raised = AfterSpectolFusion(SpectolInfo[0], &SpectolInfoStay);
                 message->MsgPreset(10);
                 message->SetAbsPos(0x12);
-                NamePair names = at_1685;
-                names.a = SpectolInfo[0]->GetName(1);
-                message->SetMsgItemNo(&names.a, 1);
+                char *names[2] = {NULL, NULL};
+                names[0] = SpectolInfo[0]->GetName(1);
+                message->SetMsgItemNo(names, 1);
 
                 if (0 < raised) {
                     message->MakeMsg(0xAD);
@@ -4941,10 +4907,6 @@ void CheckEnableHaveItemNum(void) {
  *
  */
 void MenuEquipCameraSetEnv(CActionChara *chara, mgCCamera *camera, int type, int index) {
-    float     position[4];
-    float     offset[4];
-    char      name[0x20];
-    float     table[4];
     mgCFrame *frame;
     char     *focus_name;
     bool      is_special;
@@ -4981,8 +4943,10 @@ void MenuEquipCameraSetEnv(CActionChara *chara, mgCCamera *camera, int type, int
         return;
     }
 
-    *(u_long128 *) position = *(u_long128 *) at_3771;
-    *(u_long128 *) offset = *(u_long128 *) at_3772;
+    float position[4] = {0.0f, 0.0f, 0.0f, 1.0f};
+    float offset[4] = {0.0f, 0.0f, 0.0f, 1.0f};
+    char name[0x20];
+    float table[4];
     frame->GetWorldPosition(position, offset);
     sprintf(name, at_3774__2, type, index);
     MenuPosData->GetEtcTbl2Value(name, table, 3);
@@ -12291,8 +12255,6 @@ INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menusys", human_tbl_2871__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menusys", padtbl_3359__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menusys", MenuCheckKey__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menusys", focusnametbl__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menusys", at_3771__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menusys", at_3772__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menusys", item_menu_argtbl__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menusys", exename_4332__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menusys", at_4350__DATA);
@@ -12650,8 +12612,6 @@ INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menusys", SameviewmodeTable_8406__DATA)
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menusys", at_9055__DATA);
 
 // Small uninitialised data (.sbss)
-INCLUDE_BSS(at_1545, 0x4);
-INCLUDE_BSS(at_1685, 0x8);
 INCLUDE_BSS(at_6133, 0x8);
 INCLUDE_BSS(at_6176, 0x8);
 INCLUDE_BSS(at_6220, 0x8);
@@ -12672,8 +12632,6 @@ mgCMemory MenuCharaLoadStack;
 CGameDataUsed SpectolInfoStay;
 CGameDataUsed SepectolFusionBeforeAfterCheck;
 CGameDataUsed SpectolTransBefore;
-INCLUDE_BSS(at_1557, 0x10);
-INCLUDE_BSS(at_2333__3, 0x10);
 CGameDataUsed MenuMoveTempGameDataUsed;
 CMenuItemInfo class_menu_item_info;
 mgCMemory     MenuDebugStack;
