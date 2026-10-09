@@ -711,7 +711,7 @@ public:
      * @address 0x156700
      * @size 0x70
      */
-    short *GetTextLineDataTop(int line_id);
+    u16 *GetTextLineDataTop(int line_id);
 
     /**
      *
@@ -721,7 +721,7 @@ public:
      * @address 0x156770
      * @size 0x70
      */
-    short *GetTextLineDataTop_system(int line_id);
+    u16 *GetTextLineDataTop_system(int line_id);
 
     /**
      *

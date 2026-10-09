@@ -2040,7 +2040,7 @@ int ClsMes::MakeMesWinTbl_item(int ref_code, int *x, int *y) {
         return 0;
     }
 
-    cursor = (u16 *) GetTextLineDataTop_system(line_no);
+    cursor = GetTextLineDataTop_system(line_no);
 
     if (cursor == 0) {
         return 0;
@@ -2140,7 +2140,7 @@ int ClsMes::GetMesWidth_system(int mes_no) {
     if (buff_system == NULL) {
         return -1;
     }
-    text = (unsigned short *)GetTextLineDataTop_system(mes_no);
+    text = GetTextLineDataTop_system(mes_no);
     width = 0;
     if (text == NULL) {
         return -1;
@@ -2193,7 +2193,7 @@ int ClsMes::GetMesWidth_system(int mes_no) {
         }
     }
 }
-short *ClsMes::GetTextLineDataTop(int line_id) {
+u16 *ClsMes::GetTextLineDataTop(int line_id) {
     short *table = buff;
     int    i;
     int    count = *table;
@@ -2201,14 +2201,14 @@ short *ClsMes::GetTextLineDataTop(int line_id) {
 
     for (i = 0; i < count; i++) {
         if (line_id == (u16) entries[i * 2 + 1]) {
-            return entries + count + (u16) entries[i * 2 + 2];
+            return (u16 *) (entries + count + (u16) entries[i * 2 + 2]);
         }
     }
 
     return 0;
 }
 
-short *ClsMes::GetTextLineDataTop_system(int line_id) {
+u16 *ClsMes::GetTextLineDataTop_system(int line_id) {
     short *table = buff_system;
     int    i;
     int    count = *table;
@@ -2216,7 +2216,7 @@ short *ClsMes::GetTextLineDataTop_system(int line_id) {
 
     for (i = 0; i < count; i++) {
         if (line_id == (u16) entries[i * 2 + 1]) {
-            return entries + count + (u16) entries[i * 2 + 2];
+            return (u16 *) (entries + count + (u16) entries[i * 2 + 2]);
         }
     }
 
@@ -2373,7 +2373,7 @@ int ClsMes::MakeMesWinTbl(int mes_no) {
     if (buff == NULL) {
         return 0;
     }
-    text = (unsigned short *)GetTextLineDataTop(mes_no);
+    text = GetTextLineDataTop(mes_no);
     if (text == NULL) {
         return 0;
     }
@@ -2587,7 +2587,7 @@ void ClsMes::NeedMesWinWH(int mes_no) {
     if (buff == NULL) {
         return;
     }
-    text = (unsigned short *)GetTextLineDataTop(mes_no);
+    text = GetTextLineDataTop(mes_no);
     if (text == NULL) {
         return;
     }
