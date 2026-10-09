@@ -285,15 +285,15 @@ void CDngFreeMap::DrawRoot(mgRect<float> rect, DNGMAP_ROOT_INFO *root, int shado
         put.top += 8.0f;
     }
     float red = 212.0f;
-    float green = 192.0f;
-    float blue = 144.0f;
     float mark_color = 128.0f;
+    float green = 192.0f;
     RootMarkOffset *mark = markOffsetTable_1092;
+    float blue = 144.0f;
     if (mode == DNGMAP_MODE_EVENT) {
         red = 128.0f;
-        green = 111.0f;
-        blue = 0.0f;
         mark_color = 64.0f;
+        blue = 0.0f;
+        green = 111.0f;
     }
     mgCDrawPrim    *prim = GetMenuPrim();
     SetSpriteEnv(prim, 2);
@@ -302,7 +302,7 @@ void CDngFreeMap::DrawRoot(mgRect<float> rect, DNGMAP_ROOT_INFO *root, int shado
     if (shadow != 0) {
         prim->Color(0, 0, 0, (int) (0.05f * (float) opacity));
     }
-    if (root->shape == 1 || (root->shape >= 2 && root->shape < 4) || (root->shape >= 6 && root->shape < 8)) {
+    if (root->shape == 1 || (root->shape >= 2 && root->shape <= 3) || (root->shape >= 6 && root->shape < 8)) {
         put.left -= 5.0f;
     }
     put.right = put.left + 52.0f;
@@ -311,8 +311,9 @@ void CDngFreeMap::DrawRoot(mgRect<float> rect, DNGMAP_ROOT_INFO *root, int shado
         put.left += 26.0f;
         for (int i = 0; i < 3; i++) {
             prim->Vertex(put.left + (float) i, put.top, 0.0f);
-            prim->Vertex(put.left + (float) i - 16.0f, put.bottom, 0.0f);
+            prim->Vertex(put.left + (float) i + -16.0f, put.bottom, 0.0f);
         }
+        mark = &markOffsetTable_1092[0];
         if (dng_no == 6) {
             mark = &zerumaito_offset_1110;
         }
@@ -353,13 +354,15 @@ void CDngFreeMap::DrawRoot(mgRect<float> rect, DNGMAP_ROOT_INFO *root, int shado
     } else if (root->shape == 4) {
         put.left += 26.0f;
         put.bottom -= 10.0f;
+        float inner_left = put.left - 2.0f;
+        float inner_bottom = put.bottom + 2.0f;
         for (int i = 0; i < 3; i++) {
             prim->Vertex(put.left + (float) i, put.top, 0.0f);
-            prim->Vertex(put.left + (float) i - 10.0f, put.bottom + 2.0f, 0.0f);
+            prim->Vertex(put.left + (float) i - 10.0f, inner_bottom, 0.0f);
         }
         for (int i = 0; i < 3; i++) {
-            prim->Vertex(put.left - 7.0f - (float) i, put.bottom + (float) i, 0.0f);
-            prim->Vertex(put.right - 5.0f - (float) i, put.bottom + (float) i, 0.0f);
+            prim->Vertex(inner_left - (float) i - 5.0f, put.bottom + (float) i, 0.0f);
+            prim->Vertex(put.right - (float) i - 5.0f, put.bottom + (float) i, 0.0f);
         }
         mark = &markOffsetTable_1092[4];
     } else if (root->shape == 5) {
@@ -367,12 +370,12 @@ void CDngFreeMap::DrawRoot(mgRect<float> rect, DNGMAP_ROOT_INFO *root, int shado
         put.bottom -= 10.0f;
         put.left += 1.0f;
         for (int i = 0; i < 3; i++) {
-            prim->Vertex(put.left - 6.0f - (float) i, put.bottom + (float) i, 0.0f);
-            prim->Vertex(put.right - 6.0f - (float) i, put.bottom + (float) i, 0.0f);
+            prim->Vertex(put.left - (float) i - 5.0f - 1.0f, put.bottom + (float) i, 0.0f);
+            prim->Vertex(put.right - (float) i - 5.0f - 1.0f, put.bottom + (float) i, 0.0f);
         }
         for (int i = 0; i < 3; i++) {
             prim->Vertex(put.right + (float) i, put.top, 0.0f);
-            prim->Vertex(put.right + (float) i - 9.0f, put.bottom, 0.0f);
+            prim->Vertex(put.right + (float) i - 10.0f + 1.0f, put.bottom, 0.0f);
         }
         mark = &markOffsetTable_1092[5];
         put.left = put.right;
@@ -422,11 +425,10 @@ void CDngFreeMap::DrawRoot(mgRect<float> rect, DNGMAP_ROOT_INFO *root, int shado
         if (shadow != 0) {
             prim->Color(0, 0, 0, (int) (0.05f * (float) opacity));
         }
-        int u = root_type_texturecrd_1216[root->type][0];
-        int v = root_type_texturecrd_1216[root->type][1];
-        prim->TextureCrd(u, v);
+        int type = root->type;
+        prim->TextureCrd(root_type_texturecrd_1216[type][0], root_type_texturecrd_1216[type][1]);
         prim->Vertex(rect.left + (float) mark->x, rect.top + (float) mark->y, 0.0f);
-        prim->TextureCrd(u + 22, v + 22);
+        prim->TextureCrd(root_type_texturecrd_1216[type][0] + 22, root_type_texturecrd_1216[type][1] + 22);
         prim->Vertex(rect.left + (float) mark->x + 22.0f, rect.top + (float) mark->y + 22.0f, 0.0f);
     }
     prim->End();
