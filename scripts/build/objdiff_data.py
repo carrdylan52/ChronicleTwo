@@ -17,6 +17,7 @@ import disassemble
 import layout
 import lcf
 import postprocess_object as p
+import native_vtables
 from mwccgap.elf import Relocation, RelocationRecord, Symbol
 
 
@@ -34,7 +35,7 @@ class Context:
         self.addresses.update((name, address) for address, name in defined)
         self.resolve = disassemble.Resolver(defined)
         self.linker = lcf.Generator()
-        inputs = [Path(__file__), Path(p.__file__), Path(disassemble.__file__),
+        inputs = [Path(__file__), Path(p.__file__), Path(native_vtables.__file__), Path(disassemble.__file__),
                   Path(layout.__file__), Path(lcf.__file__), layout.YAML,
                   layout.SYMBOLS, layout.ELF_PATH]
         digest = hashlib.sha256()
@@ -198,7 +199,7 @@ def set_reference_data_symbols(elf, unit, ctx):
                 existing.type = p.STT_OBJECT
 
 
-def prepare_native_data(elf, unit, ctx):
+def prepare_native_data(elf, unit, ctx, *, donors=()):
     """Normalize only compiler-emitted data; reservation arrays supply no credit."""
     before = code_snapshot(elf)
     placeholders = {symbol.st_shndx for symbol in elf.symtab.symbols
@@ -225,6 +226,8 @@ def prepare_native_data(elf, unit, ctx):
         symbol.st_name = elf.strtab.add_symbol(symbol.name)
     p.name_literal_data(elf, unit, set(), retail=ctx.retail, pieces=ctx.literal_pieces,
                         addresses=ctx.addresses, rows=ctx.rows, padding_pieces=ctx.pieces)
+    native_vtables.import_vtables(elf, unit, donors, retail=ctx.retail, pieces=ctx.pieces,
+                                  rows=ctx.rows, addresses=ctx.addresses)
     for symbol in anonymous:
         if symbol.name.startswith('at_') and int(symbol.name.split('__')[0][3:]) >= 1 << 64:
             symbol.name = '.unmapped_' + symbol.name
@@ -375,8 +378,11 @@ def comparison_copy(source, output, unit, ctx, native):
     source = Path(source)
     output = Path(output)
     raw = source.read_bytes()
+    cpp = Path(ctx.layout.source(unit)).read_bytes()
+    donors = (native_vtables.donor_inputs(unit, cpp.decode('utf-8'), source.parent,
+                                          lay=ctx.layout) if native else ())
     fingerprint = hashlib.sha256(raw + ctx.fingerprint.encode()
-                                 + Path(ctx.layout.source(unit)).read_bytes()
+                                 + cpp + native_vtables.donor_fingerprint(donors)
                                  + unit.encode() + str(native).encode()).hexdigest()
     receipt = output.with_suffix(output.suffix + '.json')
     if output.is_file() and receipt.is_file():
@@ -388,7 +394,10 @@ def comparison_copy(source, output, unit, ctx, native):
     p.name_sections(elf)
     before = code_snapshot(elf)
     if native:
-        prepare_native_data(elf, unit, ctx)
+        if donors:
+            prepare_native_data(elf, unit, ctx, donors=donors)
+        else:
+            prepare_native_data(elf, unit, ctx)
     else:
         restore_reference_data(elf, unit, ctx)
     if code_snapshot(elf) != before:
