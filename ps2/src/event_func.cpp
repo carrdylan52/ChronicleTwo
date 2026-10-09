@@ -1055,7 +1055,7 @@ int CEohMother::SetScale(int slot, float x, float y, float z) {
             handle->sprite->SetScale(x, y);
             return 1;
         case EOH_TYPE_FRAME:
-            ((mgCObject *) handle->frame)->SetScale(x, y, z);
+            handle->frame->SetScale(x, y, z);
             return 1;
         case EOH_TYPE_FUNC_POINT: {
             CFuncPoint *&func_point = handle->func_point;
