@@ -18,22 +18,30 @@
 #include "scriptinterpreter.hpp"
 
 /**
+ *
  * Effect manager receiving the current script.
+ *
  */
 static CEffectManager *g_tmp_effm;
 
 /**
+ *
  * Emitter receiving the current script block.
+ *
  */
 static CEffectCtrl *g_tmp_effc;
 
 /**
+ *
  * Whether parsed emitters are entered into the manager.
+ *
  */
 static int g_eff_entry_flag;
 
 /**
+ *
  * Name of the emitter being parsed.
+ *
  */
 static char g_tmp_eff_name[0x20];
 
@@ -1601,7 +1609,9 @@ int __GRAVITY(SPI_STACK *args, int arg_count) {
 }
 
 /**
+ *
  * Effect-script tags and their argument handlers.
+ *
  */
 static SPI_TAG_PARAM effm_tag[48] = {
     {"BUFFER_SIZE", __BUFFER_SIZE},
