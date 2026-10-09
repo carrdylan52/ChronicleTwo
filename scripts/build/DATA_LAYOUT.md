@@ -53,3 +53,15 @@ and the exact retail callback address. Only data relocations change; aliases
 append without moving existing symbol indices. Unknown, ambiguous, incomplete,
 interior, competing or marker-held references retain their original form.
 `test_data_callbacks.py` checks this identity path and code preservation.
+
+Anonymous native BSS may also be referenced by a file-local function whose
+retail name has a duplicate suffix. An unambiguous in-unit function row can
+anchor its incoming references only when that entire native consumer matches
+retail, including every instruction, declared extent and resolved relocation.
+No function or code relocation is renamed. A second identity pass after
+literal mapping allows the complete proof to use those established literal
+addresses. The suffix path handles anonymous numeric compiler templates only;
+named statics retain their existing identity pass and string-table ordering.
+Missing, ambiguous or incomplete consumers supply no identity.
+`test_bss_consumers.py` covers late literal resolution and rejects unmatched
+calls, body bytes, extents, aliases, rows and additional unknown consumers.

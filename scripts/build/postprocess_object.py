@@ -727,6 +727,28 @@ def bss_data_names(elf, unit, placeholders, *, retail, pieces, addresses, rows):
     code = {name: start for section, run in runs if section in CODE for name, start, _end in run}
     symbols = elf.symtab.symbols
     code_starts = {symbol.st_shndx: code[symbol.name] for symbol in symbols if symbol.name in code}
+    code_aliases = {}
+    code_rows = {name: (start, size, function) for start, name, size, function in rows}
+    alias_candidates = {}
+    for name in code:
+        if re.fullmatch(r'.+__\d+', name):
+            alias_candidates.setdefault(re.sub(r'__\d+$', '', name), []).append(name)
+    function_counts = Counter(symbol.name for symbol in symbols if symbol.type == STT_FUNC)
+    for symbol in symbols:
+        if (symbol.st_shndx in code_starts or symbol.type != STT_FUNC or symbol.bind != STB_LOCAL
+                or symbol.st_value or not 0 < symbol.st_shndx < len(elf.sections)):
+            continue
+        candidates = alias_candidates.get(symbol.name, [])
+        if len(candidates) != 1 or function_counts[symbol.name] != 1:
+            continue
+        name = candidates[0]
+        matches = [row for row in rows if row[1] == name]
+        if len(matches) != 1 or not matches[0][3]:
+            continue
+        code_starts[symbol.st_shndx] = code[name]
+        code_aliases[id(symbol)] = name
+        code_rows[symbol.name] = code_rows[name]
+    aliased_indices = {symbol.st_shndx for symbol in symbols if id(symbol) in code_aliases}
     assignments = []
     for symbol in symbols:
         index = symbol.st_shndx
@@ -755,6 +777,20 @@ def bss_data_names(elf, unit, placeholders, *, retail, pieces, addresses, rows):
                 or any(other is not symbol and other.name == name
                        and 0 < other.st_shndx < len(elf.sections)
                        and elf.sections[other.st_shndx].name != DEAD for other in symbols)):
+            continue
+        aliased_consumers = {record.sh_info for record in elf.relocations
+                             if record.sh_info in aliased_indices
+                             and any(symbols[entry.symbol_index].st_shndx == index
+                                     for entry in record.relocations)}
+        if aliased_consumers and re.fullmatch(r'at_\d+', symbol.name) is None:
+            continue
+        def symbol_address(target):
+            if target.st_shndx == index:
+                return start + target.st_value
+            return address_of(code_aliases.get(id(target), target.name), addresses)
+        if not all(complete_code_consumer(elf, consumer, retail=retail, rows=code_rows,
+                                          address_of_symbol=symbol_address,
+                                          gp=addresses.get('_gp')) for consumer in aliased_consumers):
             continue
         assignments.append((symbol, name))
     counts = Counter(name for _symbol, name in assignments)
@@ -1194,6 +1230,15 @@ def name_literal_data(elf, unit, placeholders, *, retail=None, pieces=None, addr
 
     name_initialized_locals(elf, unit, placeholders, retail=retail, pieces=pieces,
                             addresses=addresses, rows=rows)
+    # A local consumer needs every literal identity before its complete code
+    # can prove an anonymous zero template. The second pass supplies no bytes.
+    bss_names = bss_data_names(elf, unit, placeholders, retail=retail, pieces=pieces,
+                               addresses=addresses, rows=rows)
+    for symbol in elf.symtab.symbols:
+        name = bss_names.get(id(symbol))
+        if name is not None:
+            symbol.name = name
+            symbol.st_name = elf.strtab.add_symbol(name)
 
 
 def native_data_extents(elf, placeholders):
