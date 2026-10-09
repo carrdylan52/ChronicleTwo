@@ -93,6 +93,10 @@ internal piece, with padding below 16 bytes. Internal initialized gaps stay belo
 An object with a size different from its declared retail size is not padded.
 The same policy covers compiler-generated vtables; their final section tail
 belongs to linker alignment.
+Discarding an external or placeholder-backed vtable requires the native copy's
+original extent to equal the complete declared retail object, with matching
+resolved bytes and relocation shapes. Appended piece padding cannot establish
+that original extent; a missing declaration or a truncated copy rejects removal.
 A terminal datum retains its declared extent when its end equals the generated
 linker script’s `contents_end`. The checker accepts larger linker-owned tails
 only with no retail relocations, complete zero initialized bytes and a length

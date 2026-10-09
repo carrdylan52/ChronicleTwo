@@ -18,8 +18,8 @@ reservations. Independently cut alignment fragments require both neighboring
 objects' original extents and compiler alignments, with complete zero contents.
 
 External weak functions use retail ownership without a body comparison;
-vtable discards use their dedicated byte and relocation checks. Duplicate global symbols are
-folded into live definitions; unused literals and dead compiler records are
+vtable discards require complete original declared extents, bytes and relocations.
+Duplicate global symbols are folded into live definitions; unused literals and dead compiler records are
 removed without changing code. Canonical object and final PAL verification
 remain the acceptance checks for every normalized object.
 """
@@ -588,6 +588,8 @@ def discard_external_vtables(elf, unit, placeholder_sections):
     lay = layout.Layout(ROOT / layout.YAML)
     ranges = [(lo, hi) for section, lo, hi in lay.sections(unit)]
     addresses = retail_addresses()
+    declared = {name: size for _start, name, size, function in layout.read_symbols(ROOT / layout.SYMBOLS)
+                if not function and size}
     retail = layout.Retail(ROOT / layout.ELF_PATH)
     symbols = elf.symtab.symbols
     for symbol in symbols:
@@ -600,6 +602,8 @@ def discard_external_vtables(elf, unit, placeholder_sections):
         if start is None or any(lo <= start < hi for lo, hi in ranges):
             continue
         data = bytearray(elf.sections[index].data)
+        if symbol.st_size != declared.get(project_name(symbol.name)) or len(data) != symbol.st_size:
+            raise ValueError(f'{symbol.name}: external vtable extent differs from retail')
         for record in elf.relocations:
             if record.sh_info != index:
                 continue
@@ -1463,8 +1467,11 @@ def order_sections(elf):
         record.sh_info = remap[record.sh_info]
 
 
-def discard_shadow_vtables(elf, placeholder_sections):
+def discard_shadow_vtables(elf, placeholder_sections, *, native_sizes=None):
     symbols = elf.symtab.symbols
+    declared = {name: size for _start, name, size, function in layout.read_symbols(ROOT / layout.SYMBOLS)
+                if not function and size}
+    native_sizes = {} if native_sizes is None else native_sizes
     held = {}
     for index, symbol in enumerate(symbols):
         if symbol.st_shndx in placeholder_sections and symbol.name.startswith('__vt__'):
@@ -1480,7 +1487,10 @@ def discard_shadow_vtables(elf, placeholder_sections):
         target = symbols[target_index]
         original = bytearray(section.data)
         expected = bytearray(elf.sections[target.st_shndx].data)
-        if len(original) > len(expected) or any(expected[len(original):]):
+        original_size = native_sizes.get(id(symbol), symbol.st_size)
+        if (original_size != declared.get(project_name(target.name))
+                or not original_size <= len(original) <= len(expected)
+                or any(expected[len(original):])):
             raise ValueError(f'{symbol.name}: vtable extent differs from retail')
         actual_relocations = {}
         expected_relocations = {}
@@ -1693,6 +1703,8 @@ def main():
         return 0
     placeholder_sections = drop_placeholder_aliases(elf)
     anonymous = project_native_names(elf)
+    vtable_sizes = {id(symbol): symbol.st_size for symbol in elf.symtab.symbols
+                    if symbol.name.startswith('__vt__') and symbol.st_shndx not in placeholder_sections}
     name = args.object.name
     unit = None
     if name.endswith(".cpp.o"):
@@ -1717,7 +1729,7 @@ def main():
         pad_data(elf, unit, placeholder_sections)
         discard_external_vtables(elf, unit, placeholder_sections)
         discard_external_functions(elf, unit)
-    discard_shadow_vtables(elf, placeholder_sections)
+    discard_shadow_vtables(elf, placeholder_sections, native_sizes=vtable_sizes)
     fold_duplicates(elf)
     discard_unused_literals(elf)
     discard_dead_code_records(elf)
