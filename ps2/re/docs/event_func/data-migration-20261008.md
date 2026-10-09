@@ -89,6 +89,19 @@ and `_FINISH-m2c.txt`. Canonical receipts are
 `event-results-frame-branch`, each with build/object/hash logs. The rejected
 frame early-return form is in `event-results-_EOH_GET_FRAME_POS-failure.log`.
 
+## Main event dispatch definitions
+
+The main table has 696 typed handlers followed by `{NULL, EVENT_EXT_END}`.
+`EventExternalCommand` names every retained retail command number, including
+sparse and out-of-order identifiers. `ext_func_info[697]` is mutable file-local
+.data storage; its 0x15C8 declared size and eight-byte zero tail match retail.
+Three source declarations make the guarded `_COPY_CHARA`, `_ESM_INITIALIZE`,
+and `_COPY_MONS2SCNCHR` assembly symbols available to these typed pointer
+initializers. Their guarded bodies and drafts remain byte-for-byte unchanged.
+Receipt: `.private/dataA-r3/event-dispatch-table-prototypes-{build,objects,hashes}.log`.
+The source-only table retains references to assembly handlers without claiming
+their code as native coverage.
+
 ## Retained markers
 
 The initialized-data markers are pending the following migration topics.
