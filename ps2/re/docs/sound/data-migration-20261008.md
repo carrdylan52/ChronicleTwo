@@ -51,3 +51,29 @@ passes 149/149 objects. These receipts, the incremental checks, baseline
 measurements and object-hash audit are under `.private/dataB-r4/`.
 All objects outside the seven owned units retain their baseline file hashes.
 No function is promoted and no assembly fallback or guarded function body changes.
+
+
+## Round-5 native data completion
+
+The native static `MSIN_BUFFER[9]` and `MIDI_STATE` definitions now
+supply the two remaining state objects at their actual 0x1200 and 0x1240
+extents. No function body changes. The splitter already emits unrelocated SDK
+byte-table words numerically, so the retail-local buffers need no artificial
+public linkage. The reference scanner additionally rejects the unrelocated
+`0x003F3F6C` word at `0x00361600` in memcard's data fragment as pointer evidence.
+With its explicit marker removed, that phantom boundary disappears and
+`msinCtx` owns the full zero alignment tail to `msinBfGrp`. The terminal
+0x30-byte MIDI gap remains linker padding. No filler object or field is added.
+
+The pre-fix marker-free build fails solely through the missing four-byte
+piece and shifted resolved addresses. Regression tests reject numeric data
+address guesses, unsupported expressions and conflicting relocated-byte
+evidence. Code references and explicit source identities remain authoritative.
+
+Markers: RODATA **0 → 0**, BSS
+**3 → 0**. Refreshed matched data:
+**1414 → 10950 / 10950**.
+The complete PAL is `SCES_511.90: OK` and all **149/149** canonical objects
+pass. Only the four migrated units change object hashes in this step; code
+metrics remain **6,780 functions / 1,854,796 bytes**. No function is promoted.
+Receipts: `.private/dtool-r5/data-fixed-{build,objects,tests,metrics}.log`.

@@ -19,7 +19,12 @@
  */
 static int bgm_info[2];
 
-extern MIDI_STATE midi_state;
+/**
+ *
+ * Playback, bank allocation and fade state for all MIDI ports.
+ *
+ */
+static MIDI_STATE midi_state;
 
 /**
  *
@@ -56,7 +61,12 @@ static sceCslBuffGrp msinBfGrp[2];
  */
 static sceCslBuffCtx msinBfCtx[MIDI_MSIN_PORT_COUNT];
 
-extern MSIN_BUFFER   msinBf[MIDI_MSIN_PORT_COUNT];
+/**
+ *
+ * MIDI message buffers transferred to the stream input module.
+ *
+ */
+static MSIN_BUFFER msinBf[MIDI_MSIN_PORT_COUNT];
 
 /**
  *
@@ -890,6 +900,3 @@ int CSound::TransBdState(int channel) {
 }
 
 // Uninitialised data (.bss)
-INCLUDE_BSS(D_003F3F6C, 0x4);
-INCLUDE_BSS(msinBf, 0x1200);
-INCLUDE_BSS(midi_state, 0x1270);
