@@ -33,9 +33,45 @@ struct FISH_STATS {
     float aggression; /**< Tendency to challenge other fish. */
 };
 
-extern int         jrand;
-extern int         ia[56];
-extern grFISH_DATA fish_data[18];
+/**
+ *
+ * Current index in the subtractive random number sequence.
+ *
+ */
+static int jrand;
+
+/**
+ *
+ * State of the subtractive random number generator.
+ *
+ */
+static int ia[56];
+
+/**
+ *
+ * Species modifiers applied to a racing fish's attributes and affinity.
+ *
+ */
+static grFISH_DATA fish_data[18] = {
+    {0x136, 100.0f, 100.0f, {100.0f, 100.0f, 100.0f}, 14},
+    {0x140, 98.0f, 102.0f, {98.0f, 102.0f, 100.0f}, 1},
+    {0x141, 104.0f, 100.0f, {100.0f, 98.0f, 98.0f}, 2},
+    {0x142, 98.0f, 100.0f, {100.0f, 102.0f, 100.0f}, 3},
+    {0x143, 102.0f, 102.0f, {96.0f, 102.0f, 100.0f}, 4},
+    {0x144, 102.0f, 98.0f, {98.0f, 100.0f, 102.0f}, 9},
+    {0x145, 100.0f, 104.0f, {100.0f, 100.0f, 102.0f}, 18},
+    {0x146, 95.0f, 98.0f, {100.0f, 98.0f, 100.0f}, 5},
+    {0x147, 105.0f, 98.0f, {98.0f, 98.0f, 98.0f}, 16},
+    {0x148, 90.0f, 105.0f, {105.0f, 102.0f, 102.0f}, 8},
+    {0x149, 98.0f, 100.0f, {98.0f, 98.0f, 100.0f}, 10},
+    {0x14A, 96.0f, 100.0f, {105.0f, 95.0f, 98.0f}, 11},
+    {0x14B, 95.0f, 98.0f, {98.0f, 96.0f, 102.0f}, 12},
+    {0x14C, 105.0f, 98.0f, {102.0f, 98.0f, 100.0f}, 13},
+    {0x14D, 102.0f, 98.0f, {102.0f, 100.0f, 96.0f}, 17},
+    {0x14E, 100.0f, 102.0f, {98.0f, 96.0f, 102.0f}, 15},
+    {0x14F, 96.0f, 98.0f, {102.0f, 100.0f, 98.0f}, 6},
+    {0x150, 105.0f, 105.0f, {98.0f, 98.0f, 104.0f}, 7},
+};
 static void        irn55();
 static int         irnd();
 void               init_rnd(u_int seed);
@@ -975,18 +1011,3 @@ float GetRandomNumber(float mean, float range) {
 int rand_prob(int percent) {
     return ((irnd() >> 12) % 100) < percent;
 }
-
-// Initialised data (.data)
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/gyoracesim", fish_data__DATA);
-
-// Constants (.rodata)
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/gyoracesim", at_1059__3__DATA);
-
-// Small initialised data (.sdata)
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/gyoracesim", at_483__2__DATA);
-
-// Small uninitialised data (.sbss)
-INCLUDE_BSS(jrand, 0x4);
-
-// Uninitialised data (.bss)
-INCLUDE_BSS(ia, 0xE0);
