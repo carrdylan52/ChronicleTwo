@@ -424,3 +424,59 @@ Explicit context/objdiff refresh gives 6,774 matched / 88 guarded /
 `.private/pntc/receipts/resume-pn15-clean-build.log`, `resume-pn15-objects.log`,
 `resume-pn15-artifacts.json`, and `resume-pn15-progress.log`, with explicit
 exit files for the build, object check, artifact comparison, and refresh.
+
+## Accepted twenty-seven- and twenty-nine-caller source groups
+
+Natural `IsCreateObject` and `MenuItemSelectInit` add three static
+constructions under two exact placement rows, together with their verified
+floating argument policies. The 27-caller/37-construction group passes PAL,
+all 149 complete objects and baseline whole-file hash checks outside eighteen
+promoted units. Explicit refresh reports 6,776 matched / 86 guarded /
+ten assembly-only / zero fuzzy. The complete object check catches and resolves
+real initializer-storage requirements that zero instruction scores alone miss;
+the affected unit notes retain those failures and the final storage evidence.
+
+`MenuItemDebugKey` and `CMap::AddPartsGroup` then add two exact rows and
+two static constructions. The **pn15 clean 29-caller group** now has 39
+asserted constructions across nineteen promoted units. All 149 complete
+objects pass, and the PAL verifier prints `SCES_511.90: OK`. All 306 recursive
+assembled objects and 149 source-only objects outside those units retain
+exact baseline hashes. Linked main bytes retain SHA-256
+`a103b0461a88e443a3af684cf150c05b5bd355e5a97ab2dc029c4d872bed0811`;
+the loaded memory end remains 0x01f64a00. Whole ELF metadata changes are
+reported separately from those equal game bytes.
+
+Explicit context/objdiff refresh reports 6,778 matched / 84 guarded /
+ten assembly-only / zero fuzzy. DebugKey's final two `LOAD_FILE_READ` enum
+arguments are independently whole-native-object identical to the clean zero;
+the subsequent full game build, all-object check and unrelated-artifact
+comparison pass again. Its ordinary unsigned value conversion and genuine
+ridepod status subrange need no shared-header edit. AddPartsGroup uses its
+real data constructor's clear and an ordinary sizeof-based allocation.
+
+Receipts are `.private/pntc/receipts/promote-twenty-seven-*`,
+`promote-twenty-nine-clean-build.log`, `promote-twenty-nine-{objects,artifacts,progress,coverage}`
+and `promote-twenty-nine-final-{build,objects,artifacts}`, with explicit zero
+statuses and artifact JSONs. Per-unit notes contain the exact body/extent,
+binding, literal, vtable and relocation audits. Production wrapper semantics
+and pn15's hash are unchanged from the previously tested image.
+
+## Genuine constructor-source correction remains a separate alternative
+
+The private `MenuCostumeInit` investigation reaches a natural zero by fixing
+its actual constructor initialization: source-owned phase reset and character
+lookup inside construction, real column-wise costume-list clearing, and
+removal of extra inherited stores absent from retail. Its capacity argument
+has a genuine value lifetime, and one existing camera argument policy restores
+the remaining float order. No Costume placement row belongs to that zero.
+
+The original constructor is observed as class 6. The corrected typed loop's
+ordinary lowering reports class 3 in the corresponding diagnostic; the old
+positive-one class-6 row fails with zero eligible matches. This supports the
+capability's conservative eligibility boundary and demonstrates why a genuine
+source correction must be considered independently of compiler timing. It
+does not revise the initial-source census or establish a global build-state
+defect. Exact source/header/profile proposals remain private because the
+owning header is outside this lane; complete object/PAL acceptance is still
+required. The evidence is in
+[the costume constructor note](../menuchr/placement-new-costume-natural-20261009.md).
