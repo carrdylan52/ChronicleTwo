@@ -2718,7 +2718,7 @@ void CMonsterMan::CheckDamage() {
             if (monster->piyori_time > 0) {
                 guard = 0;
             }
-            if ((s16)prim->param->hit_flags & 8) {
+            if (prim->param->hit_flags & 8) {
                 guard = 0;
             }
             if (guard) {
@@ -2805,7 +2805,7 @@ void CMonsterMan::CheckDamage() {
             if (se_no >= 0) {
                 sndSePlay(se_id, se_no, 0);
             }
-            HitEffectSet(scene, prim->hit_pos, (s16)prim->param->hit_flags);
+            HitEffectSet(scene, prim->hit_pos, prim->param->hit_flags);
             if (element >= 0 || dbinfo.effect_id > 0) {
                 power = prim->element[element];
                 if (dbinfo.effect_id > 0) {
@@ -2850,10 +2850,10 @@ void CMonsterMan::CheckDamage() {
             }
             HitScoreSet(prim->hit_pos, 0, (int)damage);
             reaction = 2;
-            if ((s16)prim->param->hit_flags & 2) {
+            if (prim->param->hit_flags & 2) {
                 reaction = 4;
             }
-            if ((s16)prim->param->hit_flags & 4) {
+            if (prim->param->hit_flags & 4) {
                 reaction = 1;
             }
             if (greyed) {
@@ -2931,7 +2931,7 @@ void CMonsterMan::CheckDamage() {
             }
         }
         if ((monster->req_prog == MONSTER_PROG_DAMAGE || monster->req_prog == MONSTER_PROG_KNOCK) && prim != NULL &&
-            ((s16)prim->param->hit_flags & 1)) {
+            (prim->param->hit_flags & 1)) {
             monster->req_prog = MONSTER_PROG_PIYORI;
             monster->piyori_time = 0x78;
         }

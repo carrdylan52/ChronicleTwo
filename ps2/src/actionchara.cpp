@@ -2782,7 +2782,7 @@ int CActionChara::CheckDamage() {
         if (guarded != 0) {
             damage *= 0.01f * hit->param->critical_rate;
         }
-        if (((s16)hit->param->hit_flags & 0x8) != 0) {
+        if ((hit->param->hit_flags & 0x8) != 0) {
             guard_flag = 0;
             guarded = 0;
         }
@@ -2824,10 +2824,10 @@ int CActionChara::CheckDamage() {
             }
         }
         reaction = 2;
-        if (((s16)hit->param->hit_flags & 0x2) != 0) {
+        if ((hit->param->hit_flags & 0x2) != 0) {
             reaction = 4;
         }
-        if (((s16)hit->param->hit_flags & 0x4) != 0) {
+        if ((hit->param->hit_flags & 0x4) != 0) {
             reaction = 1;
         }
         if (guarded != 0) {
