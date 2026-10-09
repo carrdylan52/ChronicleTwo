@@ -38,3 +38,9 @@ Native diagnostics report sprite-work exhaustion, collision polygon limits, unav
 
 Accepted steps: `strings:at_1655__5`, `strings:at_3303__2`, `strings:at_3398`, `strings:at_3495`, `strings:at_3536`, `strings:at_3644`, `strings:at_3645`. Each has full PAL, 149-object and unowned raw-object hash receipts under `.private/dataA-r3/eff-<topic>-{build,objects,hashes}.log`.
 
+## Use native effect intersection switch data
+
+The existing `_INTERSECTION_POINT` switch generates the nine-entry `at_3304__2` jump table from its native cases. Its 0x24-byte payload occupies a 0x30-byte aligned retail piece. Removing the marker preserves all target addresses and zero padding.
+
+Accepted steps: `switch`. Each has full PAL, 149-object and unowned raw-object hash receipts under `.private/dataA-r3/eff-<topic>-{build,objects,hashes}.log`.
+
