@@ -67,7 +67,6 @@ int                     RushMovieKey();
 void                    TitleDraw();
 void                    DrawMenuDl(int x, int y, int width, int alpha, float rate);
 int                     GetSelectLanguageNo();
-extern char             at_1479__2[];
 void                    TitleHDDInstallDraw();
 extern CScene          *TitleScene;
 
@@ -220,10 +219,7 @@ static RUSH_INFO RushInfo;
  */
 static s8 debug_start_drawflag;
 
-extern char             at_1517__2[];
 extern char             at_1234[];
-extern char             at_2281[];
-extern char             at_991__3[];
 
 /**
  *
@@ -248,7 +244,6 @@ static s16 TitlePushStart_AlphaPlus;
 
 extern s8               cnttbl_2026[2];
 
-extern char                at_1267[];
 
 /**
  *
@@ -364,16 +359,6 @@ static int TitleCameraPhaseCounter;
  */
 static float TitleCameraAddAngle;
 
-extern char                at_2020[];
-extern char                at_2021[];
-extern char                at_2369__3[];
-extern char                at_2370__4[];
-extern char                at_2371__3[];
-extern char                at_2372__3[];
-extern char                at_2373__3[];
-extern char                at_2374__3[];
-extern char                at_2375__3[];
-extern char                at_2376__3[];
 
 /**
  *
@@ -459,8 +444,6 @@ static int title_lang_phase;
  */
 static int title_lang_select;
 
-extern char                at_2723[];
-extern char                at_2724[];
 
 /**
  *
@@ -564,7 +547,7 @@ void InitOmakeEnv(int type, INIT_LOOP_ARG *arg, int *loop_no) {
     if (type == OMAKE_TYPE_GYORACE) {
         item_mode = 0x10;
         event_no = 0x64;
-        map_no = SearchMapNo(at_991__3);
+        map_no = SearchMapNo("i03h04");
         mode = 1;
     }
 
@@ -824,7 +807,7 @@ void TitleExit() {
         OmakeFlag = 1;
     }
 
-    printf(at_1267, OmakeFlag);
+    printf("OMAKE : %d\n", OmakeFlag);
     sndSeAllStop(-1);
     GamePad__2.AutoRepeatOff();
     GamePad__2.MenuModeOff();
@@ -1071,7 +1054,7 @@ int TitleLoop() {
         }
 
         if (CheckStartChapter8(save) != 0) {
-            map_no = SearchMapNo(at_1479__2);
+            map_no = SearchMapNo("m02");
         }
 
         if ((s8) save->skip_load_bgm != 0) {
@@ -1285,7 +1268,7 @@ void InitRushMovie(int movie_no) {
     int        remaining = Stack_ReadBuff.stGetRest();
     u_long128 *buffer = Stack_ReadBuff.stGetTop();
     memory.stSetBuffer(buffer, remaining);
-    RushMovie->Load(at_1517__2, &memory, 512, 416, true, false);
+    RushMovie->Load("RUSH.PSS", &memory, 512, 416, true, false);
     RushMovie->Play(at_1234);
     RushMovie->SwitchThread();
 
@@ -1961,7 +1944,7 @@ void TitleMapDraw() {
         int   texture_blocks[128];
         TitleMap->PreDraw(view_pos);
         TitleMap->Draw();
-        mgCTexture *water = textures->GetTexture(at_2020, -1);
+        mgCTexture *water = textures->GetTexture("water", -1);
         int         water_block = -1;
 
         if (water != NULL) {
@@ -2008,7 +1991,7 @@ void TitleMapDraw() {
 
     mgSetPkTextureRepeat(0);
     mgCTexture      *screen = textures->GetTexture(at_1223__4, 0x6A);
-    mgCTexture      *overlay = textures->GetTexture(at_2021, 0x6A);
+    mgCTexture      *overlay = textures->GetTexture("ref", 0x6A);
     mgCCameraFollow *follow = (mgCCameraFollow *) camera;
     mgCCamera       *water_camera = TitleScene->GetCamera(TitleScene->active_camera);
 
@@ -2399,7 +2382,7 @@ int TitleCopyRightStep() {
                 u_long128 *buffer = Stack_ReadBuff.stGetTop();
                 memory.stSetBuffer(buffer, remaining);
                 DrawMenuFillBox(0x80, 0, 0, 0);
-                RushMovie->Load(at_2281, &memory, 512, 416, true, false);
+                RushMovie->Load("L5LOGO.PSS", &memory, 512, 416, true, false);
                 RushMovie->Play(at_1234);
                 RushMovie->SwitchThread();
 
@@ -2514,11 +2497,11 @@ void TitleHDDInstallInit() {
     textures->DeleteBlock(0x4C);
     stack->Align64();
     u_char *buffer = (u_char *) stack->stGetTop();
-    LoadFile2(at_2369__3, buffer, &file_size, 0);
+    LoadFile2("title/hdd0.img", buffer, &file_size, 0);
     textures->EnterIMGFile(buffer, 0x4A, NULL, NULL);
     stack->Alloc(Align16Blocks(file_size));
     buffer = (u_char *) stack->stGetTop();
-    LoadFile2(at_2370__4, buffer, &file_size, 0);
+    LoadFile2("title/hdd1.img", buffer, &file_size, 0);
     textures->EnterIMGFile(buffer, 0x4B, NULL, NULL);
     stack->Alloc(Align16Blocks(file_size));
 
@@ -2526,32 +2509,32 @@ void TitleHDDInstallInit() {
         int number = i + 1;
 
         if (number >= 10) {
-            sprintf(image_name, at_2371__3, number);
+            sprintf(image_name, "hdd_illust%d", number);
         } else {
-            sprintf(image_name, at_2372__3, number);
+            sprintf(image_name, "hdd_illust0%d", number);
         }
 
         HDDImage[i] = textures->GetTexture(image_name, -1);
         HDDImageAlpha[i] = 0;
     }
 
-    HDDDlBar = textures->GetTexture(at_2373__3, -1);
+    HDDDlBar = textures->GetTexture("hdddl", -1);
     HDDSysImage = Tex_Logo;
     buffer = (u_char *) stack->stGetTop();
 
-    if (LoadFile2(at_2374__3, buffer, &file_size, 0) != 0) {
+    if (LoadFile2("title/hddb.img", buffer, &file_size, 0) != 0) {
         textures->EnterIMGFile(buffer, 0x4C, NULL, NULL);
         stack->Alloc(Align16Blocks(file_size));
     }
 
-    HDDBGTex = textures->GetTexture(at_2375__3, -1);
+    HDDBGTex = textures->GetTexture("book", -1);
     HDDMes = new (stack->Alloc(0x2A7)) CDC2Mes;
     HDDMes2 = new (stack->Alloc(0x2A7)) CDC2Mes;
     HDDMes->texture_block = 0x46;
     HDDMes2->texture_block = 0x46;
     stack->Align64();
     HDDMesDataBuff = (s16 *) stack->stGetTop();
-    sprintf(message_path, at_2376__3, LanguageCode);
+    sprintf(message_path, "title/hddchk%d.mes", LanguageCode);
 
     if (LoadFile2(message_path, HDDMesDataBuff, &file_size, 0) != 0) {
         HDDMes->SetMessData(GetSystemMesBuffer(), HDDMesDataBuff);
@@ -3102,10 +3085,10 @@ void TitleLangSelInit(mgCMemory *memory) {
     title_lang_select = 0;
     mgFrameRate = 1;
     buffer = reinterpret_cast<u8 *>(memory->stGetTop());
-    LoadFile2(at_2723, buffer, &file_size, 0);
+    LoadFile2("title/lang_select.img", buffer, &file_size, 0);
     memory->Alloc(file_size / 16 + 1);
     mgTexManager.EnterIMGFile(buffer, 1, NULL, NULL);
-    lang_tex = mgTexManager.GetTexture(at_2724, -1);
+    lang_tex = mgTexManager.GetTexture("lang_select", -1);
     title_lang_phase = 0;
     title_lang_curxy[0] = 100.0f;
     title_lang_fadealpha = 0x80;
@@ -3223,7 +3206,6 @@ INCLUDE_RODATA("ps2/asm/pal/nonmatchings/title", table_2611__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/title", infomsg_2664__DATA);
 
 // Constants (.rodata)
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/title", at_991__3__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/title", at_1221__4__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/title", at_1222__4__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/title", at_1223__4__DATA);
@@ -3243,25 +3225,9 @@ INCLUDE_RODATA("ps2/asm/pal/nonmatchings/title", at_1236__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/title", at_1237__2__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/title", at_1238__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/title", at_1239__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/title", at_1267__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/title", at_1479__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/title", at_1517__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/title", at_2020__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/title", at_2021__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/title", at_2281__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/title", at_2369__3__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/title", at_2370__4__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/title", at_2371__3__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/title", at_2372__3__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/title", at_2373__3__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/title", at_2374__3__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/title", at_2375__3__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/title", at_2376__3__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/title", at_2665__2__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/title", at_2666__2__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/title", at_2667__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/title", at_2723__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/title", at_2724__DATA);
 
 // Small initialised data (.sdata)
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/title", TitleRushWaitCount__DATA);

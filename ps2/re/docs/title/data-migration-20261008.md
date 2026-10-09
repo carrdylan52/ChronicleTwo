@@ -90,3 +90,27 @@ RODATA / BSS markers: **61 / 27 → 50 / 27**. Data measures remain
 sections incomplete. Per-piece receipts are
 `.private/dataB-r5/native-<name>-{build,objects}.log` and the corresponding
 `-audit.json`; the group ledger is `native-steps.log`.
+
+## Inline strings
+
+Seventeen literal markers and their anonymous extern declarations are replaced
+by literals at their actual uses. The protected boot strings shared by other
+functions remain under their original declarations and markers.
+
+| Function | Inline literal purpose |
+|---|---|
+| InitOmakeEnv | Fish-race map name `i03h04`. |
+| TitleExit | Extras diagnostic format `OMAKE : %d\n`. |
+| TitleLoop | New-game map name `m02`. |
+| InitRushMovie | Attract movie path `RUSH.PSS`. |
+| TitleMapDraw | Water and reflection texture names `water` and `ref`. |
+| TitleCopyRightStep | Publisher movie path `L5LOGO.PSS`. |
+| TitleHDDInstallInit | Installer image paths, slideshow texture formats, progress-bar/background texture names and language message path format. |
+| TitleLangSelInit | Language menu image path `title/lang_select.img` and texture name `lang_select`. |
+
+All migrated string bytes are ASCII. The function-level steps preserve every
+instruction and resolved data reference. Their receipts are
+`.private/dataB-r5/strings-<first-marker>-{build,objects}.log` and the
+corresponding `-audit.json`; `string-steps.log` lists all eight steps.
+RODATA / BSS markers after this group are **33 / 27**; data measures
+remain **468 / 2064**.
