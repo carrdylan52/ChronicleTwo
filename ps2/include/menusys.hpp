@@ -1967,7 +1967,7 @@ extern int MenuItemCommandDir;
 extern float trans_spectol_cnt;
 
 /** Non-zero while the shown character model turns. */
-extern u8 itemmenu_chr_rotflag;
+extern s8 itemmenu_chr_rotflag;
 
 /** Texture of the weapon build-up board. */
 extern mgCTexture *Tex_BuildUpBoard;

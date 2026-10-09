@@ -215,7 +215,7 @@ preserve public or file-local linkage according to the retail symbols.
 | `spegetflag` | 1 | `s8 spegetflag`: Acquisition latch for the spectrumisation result. |
 | `SpectolFrame` | 4 | `CActionChara *SpectolFrame`: Model framing the spectrumisation preview. |
 | `MenuSpectolTransPos` | 2 | `s16 MenuSpectolTransPos`: Pending spectrumisation inventory position. |
-| `itemmenu_chr_rotflag` | 1 | `u8 itemmenu_chr_rotflag`: Non-zero while the preview character rotates. |
+| `itemmenu_chr_rotflag` | 1 | `s8 itemmenu_chr_rotflag`: Non-zero while the preview character rotates. |
 | `MenuTrushNum` | 2 | `s16 MenuTrushNum`: Number of items selected for discard. |
 | `fusion_color_val` | 4 | `float fusion_color_val`: Amplitude of the fusion preview colour oscillation. |
 | `SpectolFrameScaleAngle` | 4 | `float SpectolFrameScaleAngle`: Phase of the spectrumisation frame scale oscillation. |

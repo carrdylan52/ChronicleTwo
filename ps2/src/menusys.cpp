@@ -431,7 +431,7 @@ static s16 MenuSpectolTransPos;
  * Non-zero while the preview character rotates.
  *
  */
-u8 itemmenu_chr_rotflag;
+s8 itemmenu_chr_rotflag;
 
 /**
  *
@@ -7482,7 +7482,7 @@ void CMenuItemInfo::CalcTex() {
                 break;
             case 2:
             case 5:
-                if ((s8) itemmenu_chr_rotflag != 0) {
+                if (itemmenu_chr_rotflag != 0) {
                     AddRotationCharaY(chara, 0.01308997f);
                     MenuWeaponRealStepEnvFunc(MenuWeaponEnvSetChara, MenuWeaponEnvSetListNo);
                 }

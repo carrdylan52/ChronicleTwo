@@ -6119,7 +6119,6 @@ extern char at_5013[];
 extern char at_5014[];
 extern char at_5015[];
 extern char at_5016[];
-extern u8   itemmenu_chr_rotflag;
 extern int *menu_randam_line_draw_postbl;
 
 inline CMenuInvent::CMenuInvent() {
