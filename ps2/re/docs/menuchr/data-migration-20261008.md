@@ -234,3 +234,52 @@ After this group: **132 / 25 markers**, **4 / 9726 matched_data**.
 Each table passes PAL and 149/149 objects independently; receipts are
 `.private/nmchr-r3/menuchr-loading-tables-00` through `-02`, with
 `-{build,objects,progress,metrics}.log`, and `loading-table-batch.log`.
+
+## Native local aggregate initializers
+
+Ten accepted conversions supply nine initialized objects and nine BSS
+templates from natural local initializers:
+
+- Character load completion initializes two seven-pointer scene lists and
+  one eight-pointer load-target list.
+- Ridepod completion initializes its six-pointer scene and stack lists and
+  seven-pointer menu list. The initialized menu stack pointers select
+  `MenuActionCharaBuffer` entries 0, 1, 2, 2, 3 and 2.
+- Character change initializes the genuine 64-byte filename buffer with
+  `"chrchg0.pac"`; character loading initializes seven path-category bytes.
+- Quick-change loading initializes its nine-integer wanted list.
+- Monster completion initializes seven scene pointers, three target pointers,
+  and three stack pointers. Its two non-null stack pointers both address
+  `MenuActionCharaBuffer[5]`, matching retail's `+0xF0` relocations.
+- Sound entry initializes a four-byte signed map `{3, 3, 1, 0}` directly,
+  replacing the float copy cast without changing instructions.
+- NPC positioning initializes the existing SDK `sceVu0FVECTOR` with
+  `{14.0f, 0.0f, 0.0f, 1.0f}`. The SDK's vector alignment matches retail,
+  and the `MenuPositionVector` copy overlay is absent.
+- Costume defaults initialize four integer IDs `{0, 0, 0, -1}` directly.
+  The former quadword union is absent; the fourth value is inside the real
+  16-byte declared initializer, rather than appended source padding.
+- Monster book information initializes its two 32-byte area names and
+  eight-integer weakness list directly. Both quadword-copy overlay types
+  and their casts are absent.
+
+Named array order is preserved when a declaration moves to its initializer.
+After this group: **123 / 16 markers**, **4 / 9726 matched_data**.
+Every accepted conversion passes PAL and 149/149 independently; the final
+restored state also passes. Receipts use `.private/nmchr-r3/menuchr-` plus
+`character-targets`, `ridepod-targets`, `character-menu-file`,
+`character-paths`, `load-wanted`, `monster-targets`, `sound-stacks`,
+`npc-position`, `worn-costumes`, or `monster-book-info`, with
+`-{build,objects,progress,metrics}.log`. The group receipt is
+`aggregate-batch.log`; the final receipt is `menuchr-aggregates-final`.
+
+The grouped debug-buffer conversion and the native two-name pointer array
+both preserve native instruction words but fail data naming. The debug group
+leaves an eight-byte `at_970` template unnamed where `at_2232` is required.
+The pointer pair emits an eight-byte `at_1024` containing two `R_MIPS_32`
+references to the correct `at_2287` empty literal, but it is not named
+`at_2288`. Both attempts are restored. Failed source checkpoints, object
+snapshots, focused object checks, PAL section differences and instruction
+comparisons are under `menuchr-debug-templates-*` and
+`menuchr-party-name-pair-*`. Native consumer word differences are zero;
+whole-object acceptance fails on the unnamed data pieces.

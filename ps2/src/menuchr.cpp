@@ -121,16 +121,6 @@ inline CMenuChrCngMenu::CMenuChrCngMenu() {
 
 /**
  *
- * Views four worn costume IDs as one quadword.
- *
- */
-union WornCostumes {
-    int       id[4]; /**< IDs of the four worn costumes. */
-    u_long128 qw;    /**< Combined 128-bit representation. */
-};
-
-/**
- *
  * Returns the unused size of a character model stack.
  *
  */
@@ -239,24 +229,6 @@ static int         mos_effect_read_num;
 void               SetupUnitMan(CScene *scene, CUserDataManager *user_data, int unit, ROBO_INFO_DATA *robo);
 void               GetBajjiPosition(CMenuPosDataForm *form, int slot, int unused, int *pos);
 void               SetSwordBlurEffect(CCharacter2 *chara, mgCMemory *stack, int blur_type);
-
-/**
- *
- * Stores a 64-byte block of monster book data.
- *
- */
-struct MonsterBookBlock64 {
-    u_long128 q[4]; /**< Four quadwords of monster book data. */
-};
-
-/**
- *
- * Stores a 32-byte block of monster book data.
- *
- */
-struct MonsterBookBlock32 {
-    u_long128 q[2]; /**< Two quadwords of monster book data. */
-};
 
 /**
  *
@@ -513,7 +485,6 @@ static int overcode_3172[4] = {0, 0, 0, 0};
 static CMenuMosSelect    *MenuMosSelectPtr;
 
 extern int                MenuSoundCharaNo;
-extern float              at_4158;
 /**
  *
  * Texture sliding across the main character background.
@@ -723,7 +694,6 @@ static char *monster_jyakuten[LANG_CHINESE + 1][8] = {
 };
 
 extern char               menu_infocfgname[];
-extern u8                 at_4967__2[16];
 extern char               at_5051[];
 extern char               at_5052[];
 extern char               at_5053[];
@@ -734,8 +704,6 @@ extern char               at_5053[];
  */
 static int tbl_5016[MENU_CHARA_LOAD_MAX] = {1, 1, 0, 0, 1, 1, 1};
 
-extern u8                 at_5452[64];
-extern u8                 at_5482[32];
 extern char               at_5839[];
 /**
  *
@@ -766,7 +734,6 @@ extern mgCMemory          MenuMonChangeLoadStack;
  */
 static MENU_BGREAD_INFO2 *MenuMonsterBGInfo[MENU_CHARA_LOAD_MAX];
 
-extern CharaPathKinds     at_3810;
 /**
  *
  * Character model path category selected by alternate model mode.
@@ -777,7 +744,6 @@ static s8 pathtbl_3836[2] = {4, 5};
 extern char              *menu_chara_chrtbl[2];
 extern char              *menu_chara_cfg_chrtbl[2];
 extern char              *menu_load_chrpathtbl_3811[];
-extern LoadWantedList     at_4728__2;
 /**
  *
  * Current phase of the main character background read.
@@ -833,14 +799,7 @@ extern char              *tbl_3196[];
 static mgCTexture        *MenuMosTexture;
 
 extern mgCMemory          MenuMosLoadStack;
-extern SceneCharaList     at_3974;
-extern SceneCharaList     at_3975;
-extern LoadTargetList8    at_3993;
 extern sceVu0FVECTOR      menu_old_chara_position;
-extern RoboCharaList      at_4300__2;
-extern RoboStackList      at_4327;
-extern RoboStackList      at_4328;
-extern SceneCharaList     at_4329;
 extern DebugLine          at_2674;
 extern DebugLine          at_2675;
 extern DebugLine          at_2676;
@@ -1145,17 +1104,6 @@ extern char            *partt_2332[6];
 
 /**
  *
- * Views a four-component menu position as one quadword.
- *
- */
-union MenuPositionVector {
-    float     f[4]; /**< Four components of the menu position. */
-    u_long128 qw;   /**< Combined 128-bit representation. */
-};
-
-extern MenuPositionVector at_1372__2;
-/**
- *
  * Active party change menu.
  *
  */
@@ -1187,7 +1135,6 @@ static u8 cursor_revtbl_2237[USER_CHARA_NUM + 1] = {1, 0, 0, 0, 0};
 static u8                 MenuGetPartySeFlag;
 
 extern mgCMemory          ChrChangeInitTextureStack;
-extern FileNameBuf        at_2629__3;
 short                     GetCostumeList(unsigned long chara_flag, int kind, short *list);
 int                       GetDngMapNo(int dungeon_no);
 static int                MenuMemoryDivide(mgCMemory *memory, mgCMemory **list, int chara);
@@ -1641,7 +1588,6 @@ INCLUDE_ASM("ps2/asm/pal/nonmatchings/menuchr", LoadBGNPCModel__15CMenuChrCngMen
 
 int CMenuChrCngMenu::CheckBGNPCModel() {
     int   load_result;
-    float position[4];
 
     load_result = 0;
 
@@ -1659,7 +1605,7 @@ int CMenuChrCngMenu::CheckBGNPCModel() {
         npc_y = npc_y + ((-16.6f - npc_y) / 6.0f);
     }
 
-    *(MenuPositionVector *) position = at_1372__2;
+    sceVu0FVECTOR position = {14.0f, 0.0f, 0.0f, 1.0f};
     position[1] = npc_y;
 
     if (load_result == 1) {
@@ -3406,7 +3352,6 @@ int MenuCharaChangeKey() {
     u8               *texture;
     CMenuPosDataForm *form;
     CMenuPosDataForm *cursor_form;
-    FileNameBuf       file_name;
     int               pos[2];
 
     result = 0;
@@ -3448,7 +3393,7 @@ int MenuCharaChangeKey() {
                         MenuCharaLoadStack.stack_used = 0;
                         MenuCharaLoadStack.lock = 0;
                         texture = (u8 *) ChrChangeInitTextureStack.stack;
-                        file_name = at_2629__3;
+                        FileNameBuf file_name = {"chrchg0.pac"};
                         LoadFileMenu(file_name.text, (u_long128 *) texture, 1);
                         ChrChangMenuPt->EnterDataMenu(texture);
                         ChrChangMenuPt->LoadNPCFaceData(&MenuChangeNpcMemory, 1);
@@ -5009,7 +4954,6 @@ void MenuWeaponRealStepEnvFunc(CActionChara *chara, int step) {
 
 int MenuItemCharaDataLoad(mgCMemory *stack, int chara_no, MENU_BGREAD_INFO2 **info, int restart_read) {
     char           name[MENU_CHARA_LOAD_MAX][0x40];
-    CharaPathKinds path_kind;
     int            i;
 
     if (restart_read) {
@@ -5028,7 +4972,7 @@ int MenuItemCharaDataLoad(mgCMemory *stack, int chara_no, MENU_BGREAD_INFO2 **in
     }
 
     stack->Align64();
-    path_kind = at_3810;
+    CharaPathKinds path_kind = {{0, 2, 1, 1, 2, 2, 3}};
 
     for (u32 slot = 0; slot < MENU_CHARA_LOAD_MAX; slot++) {
         name[slot][0] = 0;
@@ -5214,8 +5158,8 @@ int MenuItemCharaDataLoadEndCheck(MENU_BGREAD_INFO2 **info, mgCMemory *stack, CA
     mgCTextureManager *tex_manager = &mgTexManager;
     CScene            *scene = MenuMainScene;
     CActionChara      *player = NULL;
-    SceneCharaList     scene_chara = at_3974;
-    SceneCharaList     menu_chara = at_3975;
+    SceneCharaList     scene_chara = {{NULL, NULL, NULL, NULL, NULL, NULL, NULL}};
+    SceneCharaList     menu_chara = {{NULL, NULL, NULL, NULL, NULL, NULL, NULL}};
 
     if (chara != NULL) {
         menu_chara.entry[0] = chara[0];
@@ -5247,7 +5191,7 @@ int MenuItemCharaDataLoadEndCheck(MENU_BGREAD_INFO2 **info, mgCMemory *stack, CA
         }
     }
 
-    LoadTargetList8 scene_target = at_3993;
+    LoadTargetList8 scene_target = {{NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL}};
     scene_target.entry[0] = scene_chara.entry[0];
     scene_target.entry[1] = player;
     scene_target.entry[2] = scene_chara.entry[1];
@@ -5441,7 +5385,6 @@ unsigned int MenuCharaSoundLoad(mgCMemory *stack, int chara_no, int background) 
 }
 
 void MenuCharaSoundEnter(CScene *scene, CActionChara *chara, int open_port) {
-    signed char chara_ids[4];
 
     if (scene != NULL && chara != NULL) {
         chara->sound_info.foot_se_bank = scene->se_base_id;
@@ -5455,7 +5398,7 @@ void MenuCharaSoundEnter(CScene *scene, CActionChara *chara, int open_port) {
 
         if (buffer != NULL) {
             int index;
-            *(float *) chara_ids = at_4158;
+            signed char chara_ids[USER_CHARA_NUM] = {3, 3, 1, 0};
             index = MenuSoundCharaNo;
 
             if (index < 0) {
@@ -5648,7 +5591,7 @@ int MenuItemRoboDataLoadEndCheck(MENU_BGREAD_INFO2 **info, mgCMemory *stack, CAc
     CActionChara      *parent = NULL;
     mgCTextureManager *tex_manager = &mgTexManager;
     CScene            *scene = MenuMainScene;
-    RoboCharaList      scene_chara = at_4300__2;
+    RoboCharaList      scene_chara = {{NULL, NULL, NULL, NULL, NULL, NULL}};
     int                i;
     mgCMemory         *part_stack;
 
@@ -5680,15 +5623,15 @@ int MenuItemRoboDataLoadEndCheck(MENU_BGREAD_INFO2 **info, mgCMemory *stack, CAc
         }
     }
 
-    RoboStackList menu_stack = at_4327;
-    RoboStackList scene_stack = at_4328;
+    RoboStackList menu_stack = {{&MenuActionCharaBuffer[0], &MenuActionCharaBuffer[1], &MenuActionCharaBuffer[2], &MenuActionCharaBuffer[2], &MenuActionCharaBuffer[3], &MenuActionCharaBuffer[2]}};
+    RoboStackList scene_stack = {{NULL, NULL, NULL, NULL, NULL, NULL}};
     scene_stack.entry[1] = &MorattaStack[1];
     scene_stack.entry[0] = &MorattaStack[0];
     scene_stack.entry[2] = &MorattaStack[2];
     scene_stack.entry[4] = &MorattaStack[3];
     scene_stack.entry[3] = &MorattaStack[2];
     scene_stack.entry[5] = &MorattaStack[2];
-    SceneCharaList menu_chara = at_4329;
+    SceneCharaList menu_chara = {{NULL, NULL, NULL, NULL, NULL, NULL, NULL}};
     menu_chara.entry[0] = chara[0];
     menu_chara.entry[1] = chara[1];
     menu_chara.entry[2] = chara[2];
@@ -5966,15 +5909,9 @@ int MenuMonsterLoadBG(mgCMemory *stack, MENU_BGREAD_INFO2 **info, int monster_no
     }
     return 1;
 }
-extern SceneCharaList at_4565;
-extern LoadTargetList at_4585;
-extern LoadStackList  at_4586;
 
 int MenuMonsterLoadBGCheck(MENU_BGREAD_INFO2 **info, CActionChara **chara, int tex_block,
                            int scene_tex_block) {
-    SceneCharaList     scene_chara;
-    char               path[0x80];
-    char               name[0x20];
     mgCTextureManager *tex_manager = &mgTexManager;
     int                i;
 
@@ -5985,7 +5922,9 @@ int MenuMonsterLoadBGCheck(MENU_BGREAD_INFO2 **info, CActionChara **chara, int t
     }
 
     CScene *scene = MenuMainScene;
-    scene_chara = at_4565;
+    SceneCharaList scene_chara = {{NULL, NULL, NULL, NULL, NULL, NULL, NULL}};
+    char               path[0x80];
+    char               name[0x20];
 
     if (MenuLoadInfo.unk_6[1] != 0 || MenuLoadInfo.mode == 2) {
         for (i = 0; i < 7; i++) {
@@ -6034,11 +5973,11 @@ int MenuMonsterLoadBGCheck(MENU_BGREAD_INFO2 **info, CActionChara **chara, int t
     BG_READ_INFO *script = GetReadBGFile(path);
 
     if (script != NULL) {
-        LoadTargetList targets = at_4585;
+        LoadTargetList targets = {{NULL, NULL, NULL}};
         targets.entry[0] = info[0]->chara;
         targets.entry[1] = info[0]->chara;
         targets.entry[2] = scene_chara.entry[0];
-        LoadStackList stacks = at_4586;
+        LoadStackList stacks = {{&MenuActionCharaBuffer[5], &MenuActionCharaBuffer[5], NULL}};
         stacks.entry[2] = &MorattaStack[5];
         mgCMemory    *stack = stacks.entry[MenuLoadInfo.mode];
         CActionChara *target = targets.entry[MenuLoadInfo.mode];
@@ -6115,7 +6054,7 @@ void InitMainCharaBG(int chara_no, mgCMemory *stack, int mode) {
     mgCMemory memory;
     int       rest = stack->stGetRest();
     memory.stSetBuffer(stack->stGetTop(), rest);
-    LoadWantedList wanted = at_4728__2;
+    LoadWantedList wanted = {{1, 1, 1, 1, 1, 1, 1, 1, 1}};
     MenuBGReadInfo2Malloc(&memory, wanted.entry);
     memory.Alloc(0x100);
     memory.Align64();
@@ -6440,7 +6379,6 @@ int MenuNPCLoadCheck(CActionChara *chara, mgCMemory *memory, int tex_block) {
 }
 
 void CMenuCostumeSel::UpdateCostumeList(int mode, unsigned long chara_flag) {
-    WornCostumes worn;
     CHARA_DATA  *chara_data;
     int          kind;
     int          index;
@@ -6464,16 +6402,16 @@ void CMenuCostumeSel::UpdateCostumeList(int mode, unsigned long chara_flag) {
         return;
     }
 
-    worn = *(WornCostumes *) at_4967__2;
-    worn.id[0] = chara_data->equip[2].item_no;
-    worn.id[1] = chara_data->equip[4].item_no;
-    worn.id[2] = chara_data->equip[3].item_no;
+    int worn[COSTUME_LIST_NUM + 1] = {0, 0, 0, -1};
+    worn[0] = chara_data->equip[2].item_no;
+    worn[1] = chara_data->equip[4].item_no;
+    worn[2] = chara_data->equip[3].item_no;
 
     for (kind = 0; kind < 3; kind++) {
         this->costume_select[kind] = 0;
 
         for (index = 0; index < this->costume_num[kind]; index++) {
-            if (worn.id[kind] == this->list[kind][index]) {
+            if (worn[kind] == this->list[kind][index]) {
                 this->costume_select[kind] = index;
             }
         }
@@ -7072,8 +7010,6 @@ void CMosBookMenu::InitMonsterInfo() {
 }
 
 void CMosBookMenu::SetMonsterInfo(BASE_MONSTER_TBL *monster) {
-    char   local_area_names[2][32];
-    int    weak_list[8];
     char  *area;
     char **type_names;
     char  *message;
@@ -7094,7 +7030,7 @@ void CMosBookMenu::SetMonsterInfo(BASE_MONSTER_TBL *monster) {
             area = GetMapTitle(GetDngMapNo(monster->area_no));
         }
 
-        *(MonsterBookBlock64 *) local_area_names = *(MonsterBookBlock64 *) at_5452;
+        char local_area_names[2][32] = {"Rainbow Butterfly Wd.", "Bois Pap. arc-en-ciel"};
 
         if (LanguageCode == 1) {
             if (monster->area_no == 1) {
@@ -7143,7 +7079,7 @@ void CMosBookMenu::SetMonsterInfo(BASE_MONSTER_TBL *monster) {
         }
 
         weak_count = 0;
-        *(MonsterBookBlock32 *) weak_list = *(MonsterBookBlock32 *) at_5482;
+        int weak_list[8] = {0, 0, 0, 0, 0, 0, 0, 0};
 
         for (k = 0; k < 8; k++) {
             if (monster->element_resist[k] >= 50) {
@@ -7638,9 +7574,7 @@ s16 monster_progress_tbl[MONSTER_PROGRESS_NUM][1 + MONSTER_PROGRESS_LEVEL_NUM] =
 };
 
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", tbl_1233__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_1372__2__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", partt_2332__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_2629__3__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_2691__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_2696__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", posdef_3194__DATA);
@@ -7651,13 +7585,8 @@ INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", get_stringtbl_3557__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", tbl_3725__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", menu_load_chrpathtbl_3811__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", menu_infocfgname__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_4327__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", MonsterDataPath__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_4586__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_4728__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_4967__2__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", infomsg_5256__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_5452__DATA);
 
 // Constants (.rodata)
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_1234__2__DATA);
@@ -7770,8 +7699,6 @@ INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", MenuSoundCharaNo__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_2288__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", menu_chara_chrtbl__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", menu_chara_cfg_chrtbl__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_3810__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_4158__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", monster_load_id__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", NowReadMainCharaNo__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", NowReadMainCharaMonsterNo__DATA);
@@ -7821,13 +7748,4 @@ INCLUDE_BSS(at_3511, 0x20);
 INCLUDE_BSS(at_3529, 0x20);
 INCLUDE_BSS(at_3554, 0x20);
 mgCMemory SwordEffectStack;
-INCLUDE_BSS(at_3974, 0x20);
-INCLUDE_BSS(at_3975, 0x20);
-INCLUDE_BSS(at_3993, 0x20);
-INCLUDE_BSS(at_4300__2, 0x20);
-INCLUDE_BSS(at_4328, 0x20);
-INCLUDE_BSS(at_4329, 0x20);
-INCLUDE_BSS(at_4565, 0x20);
-INCLUDE_BSS(at_4585, 0x10);
 mgCMemory MosBookStack;
-INCLUDE_BSS(at_5482, 0x20);
