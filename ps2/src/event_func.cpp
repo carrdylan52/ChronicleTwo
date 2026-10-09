@@ -228,17 +228,6 @@ const int              exit_map_jump = EVENT_REQUEST_MAP_JUMP;
 const int              request_menu = EVENT_COMMAND_SUB_MODE;
 const int              request_door = EVENT_COMMAND_DOOR;
 const int              event_sprite2_size = 0x80;
-extern char            at_4261__2[];
-extern char            at_4262__2[];
-extern char            at_4263__2[];
-extern char            at_4264__2[];
-extern char            at_4265__2[];
-extern char            at_4266__2[];
-extern char            at_4267__2[];
-extern char            at_4268__2[];
-extern char            at_4269__2[];
-extern char            at_4270__2[];
-extern char            at_4271__2[];
 extern char            at_8902[];
 extern char            at_8903[];
 extern char            at_8904[];
@@ -6906,73 +6895,73 @@ int _SET_GYORACE_ETC(RS_STACKDATA *stack, int argc) {
             memset(text, 0, 0x14);
             switch (digit[0]) {
                 case 0:
-                    sprintf(text, at_4261__2);
+                    sprintf(text, "\x82\x4F");
                     break;
                 case 1:
-                    sprintf(text, at_4262__2);
+                    sprintf(text, "\x82\x50");
                     break;
                 case 2:
-                    sprintf(text, at_4263__2);
+                    sprintf(text, "\x82\x51");
                     break;
                 case 3:
-                    sprintf(text, at_4264__2);
+                    sprintf(text, "\x82\x52");
                     break;
                 case 4:
-                    sprintf(text, at_4265__2);
+                    sprintf(text, "\x82\x53");
                     break;
                 case 5:
-                    sprintf(text, at_4266__2);
+                    sprintf(text, "\x82\x54");
                     break;
                 case 6:
-                    sprintf(text, at_4267__2);
+                    sprintf(text, "\x82\x55");
                     break;
                 case 7:
-                    sprintf(text, at_4268__2);
+                    sprintf(text, "\x82\x56");
                     break;
                 case 8:
-                    sprintf(text, at_4269__2);
+                    sprintf(text, "\x82\x57");
                     break;
                 case 9:
-                    sprintf(text, at_4270__2);
+                    sprintf(text, "\x82\x58");
                     break;
                 default:
-                    sprintf(text, at_4271__2);
+                    sprintf(text, "\x81\x46");
                     break;
             }
             for (i = 1; i < 8; i++) {
                 switch (digit[i]) {
                     case 0:
-                        strcat(text, at_4261__2);
+                        strcat(text, "\x82\x4F");
                         break;
                     case 1:
-                        strcat(text, at_4262__2);
+                        strcat(text, "\x82\x50");
                         break;
                     case 2:
-                        strcat(text, at_4263__2);
+                        strcat(text, "\x82\x51");
                         break;
                     case 3:
-                        strcat(text, at_4264__2);
+                        strcat(text, "\x82\x52");
                         break;
                     case 4:
-                        strcat(text, at_4265__2);
+                        strcat(text, "\x82\x53");
                         break;
                     case 5:
-                        strcat(text, at_4266__2);
+                        strcat(text, "\x82\x54");
                         break;
                     case 6:
-                        strcat(text, at_4267__2);
+                        strcat(text, "\x82\x55");
                         break;
                     case 7:
-                        strcat(text, at_4268__2);
+                        strcat(text, "\x82\x56");
                         break;
                     case 8:
-                        strcat(text, at_4269__2);
+                        strcat(text, "\x82\x57");
                         break;
                     case 9:
-                        strcat(text, at_4270__2);
+                        strcat(text, "\x82\x58");
                         break;
                     default:
-                        strcat(text, at_4271__2);
+                        strcat(text, "\x81\x46");
                         break;
                 }
             }
@@ -18160,17 +18149,6 @@ INCLUDE_RODATA("ps2/asm/pal/nonmatchings/event_func", at_1910__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/event_func", at_1909__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/event_func", at_3823__2__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/event_func", at_3884__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/event_func", at_4261__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/event_func", at_4262__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/event_func", at_4263__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/event_func", at_4264__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/event_func", at_4265__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/event_func", at_4266__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/event_func", at_4267__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/event_func", at_4268__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/event_func", at_4269__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/event_func", at_4270__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/event_func", at_4271__2__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/event_func", at_4274__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/event_func", at_4273__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/event_func", at_4272__2__DATA);
