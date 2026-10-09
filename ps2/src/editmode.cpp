@@ -2033,15 +2033,15 @@ void EditMode(CScene *scene) {
 #else
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/editmode", EditMode__FP6CScene);
 #endif
-extern int       cnt_1857;
-extern s8        init_1858;
 
 void DrawEditCursorParts(CScene *scene) {
     if (EditNowPlaceAnime() == 0 && PutSideMode != 1 && EditModeNo != EDIT_MODE_REMOVE) {
-        if (init_1858 == 0) {
-            init_1858 = 1;
-            cnt_1857 = 0;
-        }
+        /**
+         *
+         * Frame counter for the placement preview's pulsing light.
+         *
+         */
+        static int cnt = 0;
 
         CEditMap *map = (CEditMap *) scene->GetMap(scene->active_map);
         float     rotation[4];
@@ -2050,8 +2050,8 @@ void DrawEditCursorParts(CScene *scene) {
         rotation[1] = ePartsCurNowRot[1];
         float ambient[4];
         mgGetAmbient(ambient);
-        float pulse = 32.0f * sinf(6.2831855f * (float) cnt_1857 / 60.0f);
-        cnt_1857++;
+        float pulse = 32.0f * sinf(6.2831855f * (float) cnt / 60.0f);
+        cnt++;
 
         if (PlacePartsFlag != 0) {
             float base = 32.0f + pulse;
@@ -2119,9 +2119,6 @@ void DrawEditCursorParts(CScene *scene) {
 extern char      at_1961[];
 extern char      at_1962[];
 extern char      at_1963[];
-extern int       cnt_1939;
-extern s8        init_1940;
-extern "C" float pos_save_1942[4];
 
 void DrawEditCursor(CScene *scene) {
     mgCFrame       *cursor;
@@ -2227,36 +2224,45 @@ void DrawEditCursor(CScene *scene) {
     char  text[0x100];
     char *end = text;
 
-    if (init_1940 == 0) {
-        cnt_1939 = 0;
-        init_1940 = 1;
-    }
+    /**
+     *
+     * Whether a reference cursor position is saved for the debug distance display.
+     *
+     */
+    static int cnt = 0;
+
+    /**
+     *
+     * Saved debug cursor position with its quarter-turn orientation in the last component.
+     *
+     */
+    static sceVu0FVECTOR pos_save;
 
     if (GamePad__2.Down(0x200)) {
-        if (cnt_1939 == 0) {
-            *(u_long128 *) pos_save_1942 = *(u_long128 *) eCurPos;
-            cnt_1939++;
-            pos_save_1942[3] = eCurRot;
+        if (cnt == 0) {
+            *(u_long128 *) pos_save = *(u_long128 *) eCurPos;
+            cnt++;
+            pos_save[3] = eCurRot;
         } else {
-            cnt_1939 = 0;
+            cnt = 0;
         }
     }
 
     *end = 0;
 
-    if (cnt_1939 == 0) {
+    if (cnt == 0) {
         end += sprintf(end, at_1961, eCurPos[0], eCurPos[1], eCurPos[2], eCurRot);
     }
 
-    if (cnt_1939 == 1) {
-        end += sprintf(end, at_1961, pos_save_1942[0], pos_save_1942[1], pos_save_1942[2], (int) pos_save_1942[3]);
+    if (cnt == 1) {
+        end += sprintf(end, at_1961, pos_save[0], pos_save[1], pos_save[2], (int) pos_save[3]);
         end += sprintf(end, at_1961, eCurPos[0], eCurPos[1], eCurPos[2], eCurRot);
-        end += sprintf(end, at_1962, mgDistVector(pos_save_1942, eCurPos));
-        sprintf(end, at_1963, mgDistVectorXZ(pos_save_1942, eCurPos));
+        end += sprintf(end, at_1962, mgDistVector(pos_save, eCurPos));
+        sprintf(end, at_1963, mgDistVectorXZ(pos_save, eCurPos));
         mgCFrame *marker = EditCursor[0];
 
         if (marker != NULL) {
-            marker->SetPosition(pos_save_1942);
+            marker->SetPosition(pos_save);
             mgDrawDirect(marker);
         }
     }
@@ -2886,10 +2892,6 @@ INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editmode", at_2213__3__DATA);
 // Small initialised data (.sdata)
 
 // Small uninitialised data (.sbss)
-INCLUDE_BSS(cnt_1857, 0x4);
-INCLUDE_BSS(init_1858, 0x4);
-INCLUDE_BSS(cnt_1939, 0x4);
-INCLUDE_BSS(init_1940, 0x4);
 
 // Uninitialised data (.bss)
 /**
@@ -2900,4 +2902,3 @@ INCLUDE_BSS(init_1940, 0x4);
 CFont Font__2;
 INCLUDE_BSS(at_1445__3, 0x10);
 INCLUDE_BSS(at_1579__2, 0x10);
-INCLUDE_BSS(pos_save_1942, 0x10);

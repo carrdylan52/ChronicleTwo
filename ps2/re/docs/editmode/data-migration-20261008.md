@@ -70,3 +70,21 @@ cast cleanup pass `SCES_511.90: OK` and **149/149** complete objects. Receipts:
 `vectors-build.log`, `vectors-objects.log`, `vectors-cleanup-build.log`,
 `vectors-cleanup-objects.log`, `vectors-final-build.log`, and
 `vectors-final-objects.log`.
+
+## Native drawing statics
+
+`DrawEditCursorParts` has a function-local `static int cnt = 0` for its pulsing
+preview light. `DrawEditCursor` has its own `static int cnt = 0` for the saved
+reference-position toggle, and an uninitialized `static sceVu0FVECTOR pos_save`
+for the saved XYZ position and integer orientation converted to float.
+The compiler supplies the one-byte guards and their four-byte reserved pieces.
+All five former counter/guard/vector markers are removed.
+
+Both counters must be migrated together: migrating only the preview counter
+leaves a single unrelated `cnt_1939` placeholder, which the source-base-name
+binder pairs with the new native `cnt`. That isolated trial has **0/214**
+instruction differences but incorrect storage identity. Removing both counter
+placeholders restores unambiguous exact live-consumer naming; the completed
+migration passes `SCES_511.90: OK` and **149/149** objects. No tool changes or
+artificial names are needed. Receipts: `preview-static-*` and
+`drawing-statics-build.log` / `drawing-statics-objects.log`.
