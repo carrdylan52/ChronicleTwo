@@ -1170,12 +1170,6 @@ static int              menu_debug_select__2;
 
 extern int              select_monster_save_3371;
 extern s8               init_3372__2;
-extern MonsterNameList  at_3412;
-extern MonsterNameList  at_3440;
-extern MenuCommandList  at_3481;
-extern MonsterNameTable at_3511;
-extern MonsterNameTable at_3529;
-extern BadgeInfoValues  at_3554;
 /**
  *
  * Reward parameter index of each displayed monster badge.
@@ -1202,30 +1196,6 @@ static char *get_stringtbl_3557[4] = {
     "\x8F\x6E\x97\xFB\x8D\xC5\x91\xE5",
 };
 
-extern char             at_3685[];
-extern char             at_3686[];
-extern char             at_3687[];
-extern char             at_3688[];
-extern char             at_3689[];
-extern char             at_3690[];
-extern char             at_3691[];
-extern char             at_3692[];
-extern char             at_3693[];
-extern char             at_3694[];
-extern char             at_3695[];
-extern char             at_3696[];
-extern char             at_3697[];
-extern char             at_3698[];
-extern char             at_3699[];
-extern char             at_3700[];
-extern char             at_3701[];
-extern char             at_3702[];
-extern char             at_3703[];
-extern char             at_3704[];
-extern char             at_3705[];
-extern char             at_3706[];
-extern char             at_3707[];
-extern char             at_3708[];
 int                     CosutmeSelDefaultSet(int costume_id, short *costume_list);
 /**
  *
@@ -4541,7 +4511,7 @@ int CMenuMosSelect::KeyStep() {
                         }
                         case 1:
                             if (buttons) {
-                                ExeScript(at_3685);
+                                ExeScript("ERRMSGOFF");
                                 step = 0;
                             }
                             break;
@@ -4570,7 +4540,7 @@ int CMenuMosSelect::KeyStep() {
                                 case 1:
                                     select_monster_save_3371 = BuildUpWeaponInfo.select_no;
                                     step = 11;
-                                    ExeScript(at_3686);
+                                    ExeScript("\x83\x4E\x83\x89\x83\x58\x83\x60\x83\x46\x83\x93\x83\x57\x81\x48");
                                     mes_show = 1;
                                     mes.MsgPreset(0xB);
                                     mes.ClsMes::mes_no = -1;
@@ -4584,7 +4554,7 @@ int CMenuMosSelect::KeyStep() {
                                     break;
                                 case 2:
                                     step = 0;
-                                    ExeScript(at_3687);
+                                    ExeScript("\x83\x4E\x83\x89\x83\x58\x83\x60\x83\x46\x83\x93\x83\x57\x32\x4F\x46\x46");
                                     MenuSePlay(5);
                                     BuildUpWeaponInfo.mode = 0;
                                     break;
@@ -4598,7 +4568,7 @@ int CMenuMosSelect::KeyStep() {
                                 BuildUpWeaponInfo.mode = 0;
                                 change_wait = 0;
                                 step = 12;
-                                ExeScript(at_3688);
+                                ExeScript("\x83\x4E\x83\x89\x83\x58\x83\x60\x83\x46\x83\x93\x83\x57\x81\x49");
                                 MenuMonChangeLoadStack.stReset();
                                 effect.Initialize(NULL);
                                 effect_show = 0;
@@ -4607,14 +4577,14 @@ int CMenuMosSelect::KeyStep() {
                                 effect_stack.stSetBuffer(
                                     MenuMonChangeLoadStack.stack + MenuMonChangeLoadStack.stack_size - 0x3B80, 0x3980);
                                 StartReadBG();
-                                LoadFileBG(at_3689, (u_long128 *) effect_sound, &size);
-                                LoadFileBG(at_3690, effect_data, &size);
+                                LoadFileBG("snd2/sp/SP_045.snd", (u_long128 *) effect_sound, &size);
+                                LoadFileBG("menu/eff/mos_chn.chr", effect_data, &size);
                             }
                             if (answer == 2) {
                                 mes_show = 0;
                                 BuildUpWeaponInfo.mode = 1;
                                 step = 10;
-                                ExeScript(at_3691);
+                                ExeScript("\x83\x4E\x83\x89\x83\x58\x83\x60\x83\x46\x83\x93\x83\x57\x8E\x7E\x82\xDF");
                             }
                             break;
                         }
@@ -4629,7 +4599,7 @@ int CMenuMosSelect::KeyStep() {
                                 }
                                 mgTexManager.DeleteBlock(tex_block[2]);
                                 effect.Initialize(NULL);
-                                effect.LoadPack((u_int *) effect_data, at_3692, &effect_stack, &effect_stack, &effect_stack,
+                                effect.LoadPack((u_int *) effect_data, "info.cfg", &effect_stack, &effect_stack, &effect_stack,
                                                 tex_block[2], NULL);
                                 effect.SetScale(1.5f, 1.5f, 1.5f);
                                 sceVu0FVECTOR effectPos;
@@ -4638,7 +4608,7 @@ int CMenuMosSelect::KeyStep() {
                                 effectPos[0] -= 3.4f;
                                 effectPos[2] += 18.0f;
                                 effect.SetPosition(effectPos);
-                                effect.SetMotion(at_3693, 6, 1);
+                                effect.SetMotion("\x83\x4E\x83\x89\x83\x58\x83\x60\x83\x46\x83\x93\x83\x57", 6, 1);
                                 effect.Step();
                                 effect_show = 1;
                                 effect_frame = 0;
@@ -4665,9 +4635,9 @@ int CMenuMosSelect::KeyStep() {
                                 effect_show = 0;
                                 effect.Initialize(NULL);
                                 step = 13;
-                                ExeScript(at_3694);
+                                ExeScript("\x83\x4E\x83\x89\x83\x58\x83\x60\x83\x46\x83\x93\x83\x57\x8F\x49\x97\xB9\x4D\x53\x47");
                                 MenuSePlay(0x1E);
-                                MonsterNameList grown = at_3412;
+                                MonsterNameList grown = {{NULL}};
                                 grown.name[0] = GetMonsterName(level_monster[select_monster_save_3371]);
                                 info->SetMsgItemNo(grown.name, 1);
                             }
@@ -4700,26 +4670,26 @@ int CMenuMosSelect::KeyStep() {
                                     }
                                     param[convert_table_3430[badge_index]] += select_badge->class_level * 2;
                                     place->CopyGameData(&reward);
-                                    ExeScript(at_3695);
+                                    ExeScript("\x83\x82\x83\x93\x83\x58\x83\x5E\x81\x5B\x82\xB5\x82\xB8\x82\xAD");
                                 } else {
-                                    ExeScript(at_3696);
+                                    ExeScript("\x83\x82\x83\x93\x83\x58\x83\x5E\x81\x5B\x82\xB5\x82\xB8\x82\xAD\x4E\x4F\x54");
                                 }
                             } else if (step == 14) {
                                 if (level_max) {
                                     int got = MenuUserDataManPtr->GetItem(ghobitbl_3437[select], 5);
                                     if (0 < got) {
-                                        ExeScript(at_3697);
-                                        MonsterNameList item = at_3440;
+                                        ExeScript("GET_LAST");
+                                        MonsterNameList item = {{NULL}};
                                         item.name[0] = GetItemMessage(ghobitbl_3437[select]);
                                         MenuDCMsg[6]->SetMsgItemNo(item.name, 1);
                                         MenuDCMsg[6]->SetMsgVolumeNoOne(got);
                                     } else {
-                                        ExeScript(at_3698);
+                                        ExeScript("\x83\x4E\x83\x89\x83\x58\x83\x60\x83\x46\x83\x93\x83\x57\x8F\x49\x97\xB9");
                                         action = 500;
                                     }
                                     step++;
                                 } else {
-                                    ExeScript(at_3698);
+                                    ExeScript("\x83\x4E\x83\x89\x83\x58\x83\x60\x83\x46\x83\x93\x83\x57\x8F\x49\x97\xB9");
                                     action = 500;
                                 }
                             } else if (step == 15) {
@@ -4795,15 +4765,15 @@ int CMenuMosSelect::KeyStep() {
                     MenuSePlay(5);
                     break;
                 case 500:
-                    ExeScript(at_3699);
+                    ExeScript("\x83\x6F\x83\x62\x83\x57\x91\x49\x91\xF0\x82\xC9\x96\xDF\x82\xE9");
                     model_side = 0;
                     key_arg_no = 0;
                     break;
                 case 600: {
-                    ExeScript(at_3700);
+                    ExeScript("\x83\x6F\x83\x62\x83\x57\x83\x52\x83\x7D\x83\x93\x83\x68");
                     int             commandNum = 3;
                     int             row;
-                    MenuCommandList commands = at_3481;
+                    MenuCommandList commands = {{0x14B6, 0x14B7, 0x14B8, -1, -1, -1}};
                     row = 0;
                     for (; row < commandNum; row++) {
                         if (commands.mes[row] == 0x14B6) {
@@ -4848,7 +4818,7 @@ int CMenuMosSelect::KeyStep() {
                     MenuMesForm[6]->draw_flag = 1;
                     MenuSePlay(1);
                     info->MsgPreset(6);
-                    MonsterNameTable names = at_3511;
+                    MonsterNameTable names = {{NULL}};
                     for (int name_index = 0; name_index < select_badge->class_level + 1; name_index++) {
                         names.name[name_index] = GetMonsterName(monster_progress_tbl[select_badge->progress][1 + name_index]);
                         if (GetUserDataMan()->GetActiveChrNo() == USER_CHARA_MONSTER &&
@@ -4888,12 +4858,12 @@ int CMenuMosSelect::KeyStep() {
                     break;
                 }
                 case 11:
-                    ExeScript(at_3701);
+                    ExeScript("\x4E\x4F\x54\x5F\x95\xCF\x89\xBB");
                     step = 1;
                     break;
                 case 20:
                     key_arg_no = 2;
-                    ExeScript(at_3702);
+                    ExeScript("\x83\x58\x83\x65\x81\x5B\x83\x5E\x83\x58\x82\xF0\x8C\xA9\x82\xE9");
                     view_monster = select_badge->monster_id;
                     if (select_badge != NULL) {
                         showInfo = 1;
@@ -4906,9 +4876,9 @@ int CMenuMosSelect::KeyStep() {
                     step = 10;
                     int monsterNo = monster_progress_tbl[select_badge->progress][1 + select_badge->class_level];
                     level_num = get_monster_tbl_bajjilevel(level_monster, select, monsterNo, select_badge->class_level + 1);
-                    MonsterNameTable names = at_3529;
-                    ExeScript(at_3703);
-                    names.name[0] = at_3704;
+                    MonsterNameTable names = {{NULL}};
+                    ExeScript("\x83\x4E\x83\x89\x83\x58\x83\x60\x83\x46\x83\x93\x83\x57\x32");
+                    names.name[0] = "  ";
                     names.name[1] = GetMonsterName(monsterNo);
                     for (int name_index = 0; name_index < level_num; name_index++) {
                         names.name[2 + name_index] = GetMonsterName(level_monster[name_index]);
@@ -4949,7 +4919,7 @@ int CMenuMosSelect::KeyStep() {
         }
     }
     if (showInfo && select_badge != NULL) {
-        BadgeInfoValues values = at_3554;
+        BadgeInfoValues values = {{0}};
         int             base = view_monster * 10 + 10000;
         values.value[1] = select_badge->GetDegreeLevel() + 1 + select * 20;
         values.value[2] = base + 10;
@@ -4980,16 +4950,16 @@ int CMenuMosSelect::KeyStep() {
                 float absRate = shown->abs.GetRate();
                 info_form->SetNumber(get_stringtbl_3557[2], GetDispVolumeForFloat(100.0f * absRate));
                 info_form->SetNumber(get_stringtbl_3557[3], 100);
-                MENUFORMPARTS_TYPE *hpBar = info_form->GetPartInfo(at_3705);
+                MENUFORMPARTS_TYPE *hpBar = info_form->GetPartInfo("life");
                 if (hpBar != NULL) {
                     hpBar->w = 168.0f * shown->hp.GetRate();
                 }
-                MENUFORMPARTS_TYPE *absBar = info_form->GetPartInfo(at_3706);
+                MENUFORMPARTS_TYPE *absBar = info_form->GetPartInfo("abs");
                 if (absBar != NULL) {
                     absBar->w = 168.0f * absRate;
                 }
-                info_form->SetNumber(at_3707, shown->GetAttackVol(view_monster));
-                info_form->SetNumber(at_3708, shown->GetDefenceVol(view_monster));
+                info_form->SetNumber("\x8D\x55\x90\x94", shown->GetAttackVol(view_monster));
+                info_form->SetNumber("\x96\x68\x90\x94", shown->GetDefenceVol(view_monster));
             } else {
                 info_form->SetNumber(get_stringtbl_3557[0], 0);
                 info_form->SetNumber(get_stringtbl_3557[2], 0);
@@ -7725,7 +7695,6 @@ s16 monster_progress_tbl[MONSTER_PROGRESS_NUM][1 + MONSTER_PROGRESS_LEVEL_NUM] =
     {9, 224, 236, 228, 240},
 };
 
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_3481__DATA);
 
 // Constants (.rodata)
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_1361__DATA);
@@ -7752,30 +7721,6 @@ INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_2022__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_2023__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_2595__2__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_2596__3__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_3685__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_3686__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_3687__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_3688__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_3689__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_3690__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_3691__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_3692__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_3693__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_3694__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_3695__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_3696__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_3697__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_3698__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_3699__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_3700__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_3701__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_3702__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_3703__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_3704__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_3705__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_3706__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_3707__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_3708__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_5051__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_5052__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_5053__DATA);
@@ -7806,8 +7751,6 @@ u32 *CharaSndBuffer;
 
 INCLUDE_BSS(select_monster_save_3371, 0x4);
 INCLUDE_BSS(init_3372__2, 0x4);
-INCLUDE_BSS(at_3412, 0x4);
-INCLUDE_BSS(at_3440, 0x4);
 
 // Uninitialised data (.bss)
 MENU_BGREAD_INFO2 *MenuCharaBuild2[MENU_CHARA_LOAD_MAX];
@@ -7825,8 +7768,5 @@ INCLUDE_BSS(at_1806__2, 0x20);
 mgCMemory MenuMonChangeLoadStack;
 mgCMemory MenuMosBuildStack;
 mgCMemory MenuMosLoadStack;
-INCLUDE_BSS(at_3511, 0x20);
-INCLUDE_BSS(at_3529, 0x20);
-INCLUDE_BSS(at_3554, 0x20);
 mgCMemory SwordEffectStack;
 mgCMemory MosBookStack;

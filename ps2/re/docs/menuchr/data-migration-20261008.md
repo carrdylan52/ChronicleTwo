@@ -491,3 +491,28 @@ the retained boundary receive no credit for their independently exact native
 objects. The complete small initialized-data section and existing literal
 section account for the final 123 credited bytes. Native matched functions
 remain **81 / 88**; no function is promoted and no guarded code changes.
+
+## KeyStep script strings and templates (regsim-r0, October 9)
+
+With `CMenuMosSelect::KeyStep` native, its 30 KeyStep-only data objects are
+native source at their uses; their extern declarations and markers are gone.
+
+- The 24 script, file, motion and form-part strings `at_3685`–`at_3708` are
+  inline literals. Shift-JIS strings use menuchr's all-hex escape spelling.
+  `at_3698` (the class-change end script) is used twice and binds once.
+- `at_3481` is the command template initializer
+  `MenuCommandList commands = {{0x14B6, 0x14B7, 0x14B8, -1, -1, -1}};`
+  (`.rodata`, eight words with two zero tails).
+- `at_3412`, `at_3440` (`MonsterNameList`), `at_3511`, `at_3529`
+  (`MonsterNameTable`) and `at_3554` (`BadgeInfoValues`) are zero aggregate
+  initializers (`{{NULL}}` / `{{0}}`), supplied as `.bss` templates.
+
+`select_monster_save_3371` and its guard `init_3372__2` keep their markers:
+retail defines them as KeyStep's function static with an explicit guard, and
+moving the definitions ahead of the function changes the unit's BSS order.
+
+After this step: **38 markers** in menuchr (from 68), menuchr matched data
+2,999 / 9,726 bytes. Whole build `SCES_511.90: OK` (6,788 perfect), 149/149
+objects (`menuchr: 0x11C9F bytes, 3835 relocations`); coverage 6,788 matched /
+75 guarded / 9 asm-only / 0 fuzzy. Receipts:
+`.private/regsim-r0/ks-data-{build,objects,progress,coverage}.log`.
