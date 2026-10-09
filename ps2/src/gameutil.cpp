@@ -17,19 +17,71 @@
 #include "mg_visual.hpp"
 #include "mglib.hpp"
 
-extern sceVu0FVECTOR *vert_845;
-extern sceVu0FMATRIX  tmp_SkinMatrix_847;
-extern sceVu0FMATRIX  tmp_SkinMatrix_inv_848;
-extern sceVu0FMATRIX  tmp_ChrMatrix_849;
-extern sceVu0FMATRIX  tmp_BaseSkinMatrix_851;
-extern sceVu0FMATRIX  tmp_BaseSkinMatrix_inv_852;
-extern sceVu0FVECTOR *vert_915;
-extern sceVu0FVECTOR *nml_916;
-extern sceVu0FMATRIX  tmp_SkinMatrix_917;
-extern sceVu0FMATRIX  tmp_SkinMatrix_inv_918;
-extern sceVu0FMATRIX  tmp_ChrMatrix_919;
-extern sceVu0FMATRIX  tmp_BaseSkinMatrix_921;
-extern sceVu0FMATRIX  tmp_BaseSkinMatrix_inv_922;
+/**
+ * Vertex buffer used by the skinning pass.
+ */
+sceVu0FVECTOR * vert_845;
+
+/**
+ * World transform of the skinning frame.
+ */
+sceVu0FMATRIX tmp_SkinMatrix_847;
+
+/**
+ * Inverse world transform of the skinning frame.
+ */
+sceVu0FMATRIX tmp_SkinMatrix_inv_848;
+
+/**
+ * World transform of the character frame.
+ */
+sceVu0FMATRIX tmp_ChrMatrix_849;
+
+/**
+ * Bind-pose skinning transform.
+ */
+sceVu0FMATRIX tmp_BaseSkinMatrix_851;
+
+/**
+ * Inverse bind-pose skinning transform.
+ */
+sceVu0FMATRIX tmp_BaseSkinMatrix_inv_852;
+
+/**
+ * Vertex buffer used by the skinning pass.
+ */
+static sceVu0FVECTOR * vert_915;
+
+/**
+ * Normal buffer used by the skinning pass.
+ */
+static sceVu0FVECTOR * nml_916;
+
+/**
+ * World transform of the skinning frame.
+ */
+static sceVu0FMATRIX tmp_SkinMatrix_917;
+
+/**
+ * Inverse world transform of the skinning frame.
+ */
+static sceVu0FMATRIX tmp_SkinMatrix_inv_918;
+
+/**
+ * World transform of the character frame.
+ */
+static sceVu0FMATRIX tmp_ChrMatrix_919;
+
+/**
+ * Bind-pose skinning transform.
+ */
+static sceVu0FMATRIX tmp_BaseSkinMatrix_921;
+
+/**
+ * Inverse bind-pose skinning transform.
+ */
+static sceVu0FMATRIX tmp_BaseSkinMatrix_inv_922;
+
 
 static mgCFrame *OldSkinFrame;
 
@@ -44,13 +96,6 @@ struct CCPolyCopy {
     float attr[4];
 };
 
-struct MotionVector {
-    float f[4];
-};
-
-extern MotionVector at_945;
-extern char         at_966[];
-extern char         at_967[];
 
 float def_vrtx[800][4];
 
@@ -666,11 +711,11 @@ Mot_List *MotionProc3(mgCFrame *root, tagMOTION_TYPE *motion, tagFRAME_INF *fram
         nml_916 = visual->normal;
 
         if (((tagFRAME_INF *) ((list->frame << 5) + (int) frame_info))->vertex_count > 400) {
-            printf(at_966, ((tagFRAME_INF *) ((list->frame << 5) + (int) frame_info))->vertex_count, 400);
+            printf("###### MAX_VERTX OVER %d/%d######\n", ((tagFRAME_INF *) ((list->frame << 5) + (int) frame_info))->vertex_count, 400);
         }
 
         if (((tagFRAME_INF *) ((list->frame << 5) + (int) frame_info))->normal_count > 800) {
-            printf(at_967, ((tagFRAME_INF *) ((list->frame << 5) + (int) frame_info))->normal_count, 800);
+            printf("###### MAX_NORMAL OVER %d/%d######\n", ((tagFRAME_INF *) ((list->frame << 5) + (int) frame_info))->normal_count, 800);
         }
 
         for (i = 0; i < frame_info[list->frame].vertex_count; i++) {
@@ -710,15 +755,15 @@ Mot_List *MotionProc3(mgCFrame *root, tagMOTION_TYPE *motion, tagFRAME_INF *fram
     rotate[3][2] = 0.0f;
 
     for (unsigned int index = 0; index < list->key_count; index++) {
-        MotionVector weight = at_945;
+        float weight[4] = {0.0f, 0.0f, 0.0f, 0.0f};
 
-        weight.f[0] = 0.01f * list->values[index][0];
+        weight[0] = 0.01f * list->values[index][0];
 
-        if (!(weight.f[0] <= 0.0f)) {
+        if (!(weight[0] <= 0.0f)) {
             vertex = list->key_frames[index];
-            testVUnew(deform, frame_info[list->frame].base_vertices[vertex], weight.f, def_vrtx[vertex], vert_915[vertex]);
+            testVUnew(deform, frame_info[list->frame].base_vertices[vertex], weight, def_vrtx[vertex], vert_915[vertex]);
             sceVu0ApplyMatrix(normal, rotate, frame_info[list->frame].base_normals[vertex]);
-            sceVu0InterVectorXYZ(nml_916[vertex], normal, frame_info[list->frame].base_normals[vertex], weight.f[0]);
+            sceVu0InterVectorXYZ(nml_916[vertex], normal, frame_info[list->frame].base_normals[vertex], weight[0]);
         }
     }
 
@@ -2483,23 +2528,7 @@ s32 CalcIntersectionPoint2PAnd2P(float ax0, float ay0, float ax1, float ay1, flo
 }
 
 // Constants (.rodata)
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/gameutil", at_966__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/gameutil", at_967__DATA);
 
 // Small uninitialised data (.sbss)
-INCLUDE_BSS(vert_845, 0x10);
-INCLUDE_BSS(vert_915, 0x10);
-INCLUDE_BSS(nml_916, 0x4);
 
 // Uninitialised data (.bss)
-INCLUDE_BSS(tmp_SkinMatrix_847, 0x40);
-INCLUDE_BSS(tmp_SkinMatrix_inv_848, 0x40);
-INCLUDE_BSS(tmp_ChrMatrix_849, 0x40);
-INCLUDE_BSS(tmp_BaseSkinMatrix_851, 0x40);
-INCLUDE_BSS(tmp_BaseSkinMatrix_inv_852, 0x40);
-INCLUDE_BSS(tmp_SkinMatrix_917, 0x40);
-INCLUDE_BSS(tmp_SkinMatrix_inv_918, 0x40);
-INCLUDE_BSS(tmp_ChrMatrix_919, 0x40);
-INCLUDE_BSS(tmp_BaseSkinMatrix_921, 0x40);
-INCLUDE_BSS(tmp_BaseSkinMatrix_inv_922, 0x40);
-INCLUDE_BSS(at_945, 0x10);
