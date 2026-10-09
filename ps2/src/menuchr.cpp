@@ -403,16 +403,6 @@ struct FileNameBuf {
 
 /**
  *
- * Pairs two names used by the character menu.
- *
- */
-struct NamePair {
-    char *a; /**< First name in the pair. */
-    char *b; /**< Second name in the pair. */
-};
-
-/**
- *
  * Transformation effect resources selected for the monster menu.
  *
  */
@@ -1272,7 +1262,6 @@ static int tbl_2483[MENU_CHARA_LOAD_MAX] = {1, 1, 1, 1, 1, 1, 1};
 
 extern char               at_2595__2[];
 extern char               at_2596__3[];
-extern NamePair           at_2288;
 extern char               at_2307[];
 /**
  *
@@ -3234,17 +3223,17 @@ int CMenuChrCngMenu::MenuLocalLoop() {
         item_no = item_brd_select;
 
         if (0 <= item_no && item_no < GetNowBagMax(0)) {
-            NamePair  item_names = at_2288;
+            char *item_names[2] = {" ", ""};
             SmallPair item_volumes = {{0, 0}};
             item = MenuDrawItemInfo[item_brd_select];
             mes = MenuDCMsg[7];
 
             if (item != NULL) {
-                item_names.a = item->GetName(0);
+                item_names[0] = item->GetName(0);
                 item->GetWHp(item_volumes.v);
             }
 
-            mes->SetMsgItemNo(&item_names.a, 1);
+            mes->SetMsgItemNo(item_names, 1);
             mes->SetMsgVolumeNo(item_volumes.v, 2);
             mes->value_width[0] = 6;
             name_x = fptosi(MenuMesForm[7]->x + (float) (mes->abs_win.width >> 1));
@@ -7796,7 +7785,6 @@ INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", __vt__15CMenuCostumeSel__DATA
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", __vt__15CMenuChrCngMenu__DATA);
 
 // Small initialised data (.sdata)
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_2288__DATA);
 
 // Small uninitialised data (.sbss)
 mgCMemory *MorattaStack;

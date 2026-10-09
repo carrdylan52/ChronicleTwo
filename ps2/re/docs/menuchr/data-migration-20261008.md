@@ -319,3 +319,15 @@ After this group: **64 / 16 markers**, **4 / 9726 matched_data**.
 Every definition independently passes PAL and 149/149; receipts use
 `.private/nmchr-r3/menuchr-named-` plus its symbol name, with
 `-{build,objects,progress,metrics}.log`, and `named-data-batch.log`.
+
+## Item name pointer initializer
+
+The native two-pointer array in `MenuLocalLoop` initializes with `{" ", ""}`,
+matching the retail `R_MIPS_32` targets `at_2286` and `at_2287`. The first
+pointer is later replaced by the item's name when the item exists. The
+`NamePair` wrapper and its generic fields are absent; the existing setter
+receives the real pointer array directly.
+After this step: **63 / 16 markers**, **123 / 9726 matched_data**.
+The complete small initialized-data section now receives progress credit.
+PAL and all 149 objects pass; receipts are
+`.private/nmchr-r3/menuchr-party-pair-corrected-{build,objects,progress,metrics}.log`.
