@@ -2969,7 +2969,7 @@ void CAquarium::SettingAqua() {
 
     sprintf(path, "menu/aqua/pack/aqua%d.pak", aqua_no);
 
-    if (LoadFile2(path, load_buf, NULL, 0) == 0) {
+    if (LoadFile2(path, load_buf, NULL, LOAD_FILE_READ) == 0) {
         return;
     }
 
@@ -3065,7 +3065,7 @@ void CAquarium::SettingAqua() {
     naka_stack.lock = 0;
     naka_frame = NULL;
 
-    if (aqua_no == 0 && LoadFile2("menu/aqua/aqua_naka.mds", load_buf, &size, 0) != 0) {
+    if (aqua_no == 0 && LoadFile2("menu/aqua/aqua_naka.mds", load_buf, &size, LOAD_FILE_READ) != 0) {
         naka_frame = mgLoadMDSFile((MDS_HEADER *) load_buf, &naka_stack, NULL, NULL);
     }
 
@@ -3147,7 +3147,7 @@ void CAquarium::SettingAqua() {
     love_chara = NULL;
     int love_size;
 
-    if (aqua_no == 2 && LoadFile2("menu/eff/haigou_love.chr", load_buf, &love_size, 0) != 0) {
+    if (aqua_no == 2 && LoadFile2("menu/eff/haigou_love.chr", load_buf, &love_size, LOAD_FILE_READ) != 0) {
         mgCMemory love_stack;
         love_stack.stSetBuffer(fish_stack[1].stack - 0x3980, 0x3980);
         love_tex_block = fish_tex_block[2];
