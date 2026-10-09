@@ -35,3 +35,25 @@ definition, with the retail identity and declared extent:
 
 The existing purpose descriptions remain. `identities-build.log` and
 `identities-objects.log` record PAL OK and 149/149 objects.
+
+## Existing item and character enums (finding 5)
+
+`CMenuItemInfo::LRCheck` uses `1 << USER_CHARA_*` for the four party bits,
+`USER_CHARA_MONSTER` for the active-transformation tests, and the same enum
+for character numbers in `page_chara`. The view-page and key-layout numbers
+are separate domains and keep their existing values. `JoinPartyMember` and
+`LeavePartyMember` in userdata establish the character-index bit mapping;
+`GetNowPartyMember` additionally includes the monster bit for the badge box.
+`MenuDataSwap` uses `USED_ITEM_TYPE_NONE` for its empty source-slot test.
+These substitutions preserve the existing integer values and behavior.
+
+The seven raw item-data values in MenuDataSwap (0x11, 0x15, 0x1A, 0x1B,
+0x1D, 0x1E, 0x22) need additions to `ITEM_DATA_TYPE`, whose definition is
+owned by `gamedata.hpp`, outside this lane. No second enum is introduced in
+menusys. The unapplied coordinator proposal is
+`.private/proposals/menusys-item-data-types.patch`, with evidence in the
+adjacent Markdown file; unknown meanings have neutral enumerator names.
+Those seven constants remain until the shared enum is updated and validated.
+
+`enums-build.log` and `enums-objects.log` record PAL OK and 149/149 objects
+for the substitutions using existing enums.

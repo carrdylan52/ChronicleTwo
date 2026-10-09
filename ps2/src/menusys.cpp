@@ -3737,7 +3737,7 @@ int MenuDataSwap(CGameDataUsed *destination, CGameDataUsed *source, int quantity
         } else if (source->CopyDataItem(destination) == 0) {
             result = MENU_SWAP_RESULT_FAILED;
         }
-    } else if (destination->CheckTypeEnableStack() && destination->GetNum() > 1 && src_used == 0) {
+    } else if (destination->CheckTypeEnableStack() && destination->GetNum() > 1 && src_used == USED_ITEM_TYPE_NONE) {
         memcpy(source, destination, sizeof(CGameDataUsed));
         source->AddNum(-destination->GetNum(), 0);
         source->AddNum(quantity, 1);
@@ -11199,30 +11199,30 @@ int CMenuItemInfo::LRCheck(int key) {
             int        page_num = 0;
             int        active = GetActiveCharaNo();
             int        party = MenuUserDataManPtr->GetNowPartyMember();
-            if (party & 1) {
+            if (party & (1 << USER_CHARA_MAX)) {
                 page_view[page_num] = 0;
                 page_arg_no[page_num] = 3;
                 page_num++;
-                page_chara[0] = 0;
+                page_chara[0] = USER_CHARA_MAX;
             }
-            if (party & 2) {
-                if (active != 3) {
+            if (party & (1 << USER_CHARA_MONICA)) {
+                if (active != USER_CHARA_MONSTER) {
                     page_view[page_num] = 1;
                     page_arg_no[page_num] = 3;
-                    page_chara[page_num] = 1;
+                    page_chara[page_num] = USER_CHARA_MONICA;
                     page_num++;
                 }
             }
-            if (party & 4) {
+            if (party & (1 << USER_CHARA_ROBO)) {
                 page_view[page_num] = 3;
-                page_chara[page_num] = 2;
+                page_chara[page_num] = USER_CHARA_ROBO;
                 page_arg_no[page_num] = 6;
                 page_num++;
             }
-            if (party & 8) {
-                if (active == 3) {
+            if (party & (1 << USER_CHARA_MONSTER)) {
+                if (active == USER_CHARA_MONSTER) {
                     page_view[page_num] = 4;
-                    page_chara[page_num] = 3;
+                    page_chara[page_num] = USER_CHARA_MONSTER;
                     page_arg_no[page_num] = 8;
                     page_num++;
                 }
