@@ -44,18 +44,6 @@ struct CopyEventWords {
     int value[16]; /**< Event data words. */
 };
 
-/**
- *
- * Lens-flare color for each map time band.
- *
- */
-static float col_1003[4][4] __attribute__((aligned(16))) = {
-    {128.0f, 128.0f, 128.0f, 128.0f},
-    {192.0f, 96.0f, 0.0f, 128.0f},
-    {0.0f, 0.0f, 0.0f, 0.0f},
-    {128.0f, 128.0f, 128.0f, 128.0f}
-};
-
 extern float at_1013__4[4];
 
 #include "mg_tanime.hpp"
@@ -360,6 +348,18 @@ void CScene::DrawSky(int sky_index) {
 }
 
 void CScene::DrawLensFlare(int flare_type, char *texture, char *alpha_texture) {
+    /**
+     *
+     * Lens-flare color for each map time band.
+     *
+     */
+    static float col[4][4] __attribute__((aligned(16))) = {
+        {128.0f, 128.0f, 128.0f, 128.0f},
+        {192.0f, 96.0f, 0.0f, 128.0f},
+        {0.0f, 0.0f, 0.0f, 0.0f},
+        {128.0f, 128.0f, 128.0f, 128.0f}
+    };
+
     float ratio[4];
     float color[4];
     float sun_position[4];
@@ -378,18 +378,18 @@ void CScene::DrawLensFlare(int flare_type, char *texture, char *alpha_texture) {
 
     if (ratio[0] != 0.0f || ratio[1] != 0.0f || ratio[3] != 0.0f) {
         *(CopyVector *) color = *(CopyVector *) at_1013__4;
-        color[0] += col_1003[0][0] * ratio[0];
-        color[1] += col_1003[0][1] * ratio[0];
-        color[2] += col_1003[0][2] * ratio[0];
-        color[0] += col_1003[1][0] * ratio[1];
-        color[1] += col_1003[1][1] * ratio[1];
-        color[2] += col_1003[1][2] * ratio[1];
-        color[0] += col_1003[2][0] * ratio[2];
-        color[1] += col_1003[2][1] * ratio[2];
-        color[2] += col_1003[2][2] * ratio[2];
-        color[0] += col_1003[3][0] * ratio[3];
-        color[1] += col_1003[3][1] * ratio[3];
-        color[2] += col_1003[3][2] * ratio[3];
+        color[0] += col[0][0] * ratio[0];
+        color[1] += col[0][1] * ratio[0];
+        color[2] += col[0][2] * ratio[0];
+        color[0] += col[1][0] * ratio[1];
+        color[1] += col[1][1] * ratio[1];
+        color[2] += col[1][2] * ratio[1];
+        color[0] += col[2][0] * ratio[2];
+        color[1] += col[2][1] * ratio[2];
+        color[2] += col[2][2] * ratio[2];
+        color[0] += col[3][0] * ratio[3];
+        color[1] += col[3][1] * ratio[3];
+        color[2] += col[3][2] * ratio[3];
         GetSunPosition(sun_position);
         sun_position[3] = 1.0f;
 

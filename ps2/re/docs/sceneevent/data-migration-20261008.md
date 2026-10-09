@@ -68,3 +68,9 @@ Validation receipts are under `.private/dataE/`, with the step prefixes
 listed above and `-build.log`, `-objects.log`, and `-hashes.log` suffixes.
 Final refresh: `sceneevent-final-progress.log`, `sceneevent-final-coverage.log`,
 and `sceneevent-final-metrics.json`.
+
+## Function static (2026-10-09)
+
+The flare palette is the function static `static float col[4][4]` (16-byte
+aligned) of `CScene::DrawLensFlare`, retail `col$1003`, instead of the
+file-scope `col_1003`. The object stays exact (`.private/fixes-r3c/b1-*.log`).
