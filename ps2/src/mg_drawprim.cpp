@@ -195,7 +195,7 @@ void mgCDrawPrim::BeginPrim2(int prim_type, u_int data_a, u_int data_b, int unit
     dma_tag = clear;
     direct_code = clear + 3;
     write++;
-    u_int flags = *(u_int *) &prim & 0x7FF;
+    u_int flags = *(u_long *) &prim & 0x7FF;
     nreg = unit_count;
     u_int *tag = (u_int *) write;
     giftag = tag;
@@ -262,14 +262,14 @@ void mgCDrawPrim::Data4(float *data) {
 
 void mgCDrawPrim::Data(int *data) {
     u_long128 quad = *(u_long128 *) data;
-    data = (int *) command_write;
-    command_write = (u_long *) ((u_long128 *) data + 1);
+    data = (int *) write;
+    write = (u_long128 *) data + 1;
     *(u_long128 *) data = quad;
 }
 
 u_char *mgCDrawPrim::DirectData(int count) {
-    u_char *p = (u_char *) command_write;
-    command_write = (u_long *) (p + (count << 4));
+    u_char *p = (u_char *) write;
+    write += count;
     return p;
 }
 
@@ -427,42 +427,30 @@ void mgCDrawPrim::DAlphaTest(int enable, int mode) {
     draw_env.test.bits.datm = mode;
 }
 
-/**
- *
- * Exposes the depth test enable and comparison mode bits.
- *
- */
-struct mgCDrawPrimDepthState {
-    u_char pad0[2];
-    u_char enable : 1; /**< Depth testing enable bit. */
-    u_char mode : 2;   /**< Depth comparison mode. */
-    u_char rest : 5;
-};
-
 void mgCDrawPrim::DepthTestEnable(int enable) {
-    mgCDrawPrimDepthState *state = (mgCDrawPrimDepthState *) ((u_char *) this + 0x20);
+    sceGsTest *test = &draw_env.test;
 
     if (enable == 0) {
-        state->enable = 1;
-        state->mode = 1;
+        test->bits.zte = 1;
+        test->bits.ztst = 1;
     } else {
         DepthTest(1);
     }
 }
 
 void mgCDrawPrim::DepthTest(int mode) {
-    mgCDrawPrimDepthState *state = (mgCDrawPrimDepthState *) ((u_char *) this + 0x20);
-    state->enable = 1;
+    sceGsTest *test = &draw_env.test;
+    test->bits.zte = 1;
 
     switch (mode) {
         case -1:
-            state->mode = 1;
+            test->bits.ztst = 1;
             break;
         case 1:
-            state->mode = 2;
+            test->bits.ztst = 2;
             break;
         case 2:
-            state->mode = 3;
+            test->bits.ztst = 3;
             break;
     }
 }
