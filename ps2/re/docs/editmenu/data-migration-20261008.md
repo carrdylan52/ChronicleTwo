@@ -238,10 +238,9 @@ base-relative offsets. Every public declaration remains unchanged.
 
 DestroyNum_3583 and DestroyPartsName_3587 are explicit zero/null defaults in
 retail initialized small data. An ordinary scalar `= 0` emits .sbss and
-postprocessing correctly rejects converting it to .sdata. The pinned
-compiler's `explicit_zero_data` pragma is supported (its pragma inventory
-contains the name). Scoped `on`/`reset` pairs around only these declarations
-preserve native initialized .sdata and match without runtime initialization.
+postprocessing correctly rejects converting it to .sdata. Their native
+migration using `explicit_zero_data` is superseded by the accepted marker
+fallback described in [notes.md](notes.md#initialized-removal-state-markers).
 The initialized zero vector arrays already emit file-backed data naturally.
 
 The two two-pointer file lists contain an inline pack name and null. The

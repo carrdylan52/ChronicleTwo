@@ -565,25 +565,19 @@ static signed char msgtbl_2587[5] = {
     GEORAMA_INITIAL_MESSAGE_HOUSE - GEORAMA_INITIAL_MESSAGE_BASE,
 };
 
-#pragma explicit_zero_data on
-
 /**
  *
  * Selected quantity of the Georama part being removed.
  *
  */
-static int DestroyNum_3583 = 0;
-#pragma explicit_zero_data reset
-
-#pragma explicit_zero_data on
+extern int DestroyNum_3583;
 
 /**
  *
  * Display name of the selected Georama part being removed.
  *
  */
-static char *DestroyPartsName_3587 = NULL;
-#pragma explicit_zero_data reset
+extern char *DestroyPartsName_3587;
 
 /**
  *
@@ -5527,3 +5521,6 @@ void MenuRemovalDraw() {
 }
 
 void CBaseMenuClass::InitEnd() {}
+
+INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editmenu", DestroyNum_3583__DATA);
+INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editmenu", DestroyPartsName_3587__DATA);

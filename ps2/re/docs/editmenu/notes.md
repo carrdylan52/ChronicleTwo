@@ -276,3 +276,25 @@ source snapshot, word comparison, disassembly and complete-object check;
 `.private/midday-editmenu-build.log`, `.private/midday-editmenu-objects.log`,
 `.private/midday/editmenu-hash-comparison.json`, and
 `.private/midday-coverage-editmenu.txt` record integrated validation.
+
+## Initialized removal-state markers
+
+DestroyNum_3583 and DestroyPartsName_3587 each occupy four zero bytes in
+retail .sdata at 0x37C890 and 0x37C894. Their meanings remain the selected
+removal quantity and part-name pointer. The earlier scalar-initializer probe
+records that ordinary zero/null initialization emits .sbss; it is not
+repeated. A new natural scalar brace-initializer probe (`= {0}` / `= {NULL}`)
+also emits .sbss: canonical postprocessing rejects section 36 with
+`cannot become .sdata`. Its receipt is
+.private/fixes-r0/probes/editmenu-braced/compile.log. A different nonzero value or runtime initializer would alter the
+retail state or initializer, and a wrapper/one-element array solely to change
+section placement would not express these scalar variables naturally.
+
+The unaccepted explicit_zero_data pragma is removed. The unit-owned extern
+declarations and original initialized-data markers preserve the scalar
+accesses and exact retail .sdata. These two values remain assembly-supplied
+data until a natural scalar declaration reproduces that section placement.
+No function guard changes.
+
+Receipts: .private/fixes-r0/editmenu-final-{build,objects}.log:
+SCES_511.90: OK and 149/149 objects.
