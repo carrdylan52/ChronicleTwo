@@ -25,15 +25,18 @@ and seven for the aquarium path. The gift-box path returns four even when
 `SetGiftBoxItem` fails. `MENU_SWAP_RESULT` is a descriptive source enum for these
 observed values, not an established retail type name.
 
-Both data objects now have C++ definitions in `menusys.cpp`. The existing
-postprocessor retains their two zero alignment bytes. Their assembly data
-markers are removed.
+Both data objects are supplied by native C++ in `menusys.cpp`: `ret_tbl1_2511`
+is a named array, and MWCC emits `at_2512` from a local `s8` array initializer.
+The existing postprocessor retains their two zero alignment bytes. Their
+assembly data markers are removed.
 
-`MenuDataSwap` is matched. The empty/occupied template `at_2512` is the
-`MenuSwapResultTable` struct and the general exchange tail copies it by value
-(retail's halfword copy) after looking up `ret_tbl1_2511`; the source facts and
-rejected forms are in [night-20261008.md](night-20261008.md). Result codes use
-the documented enum constants.
+`MenuDataSwap` is matched. The general exchange tail initializes its two-byte
+array after looking up `ret_tbl1_2511`, preserving retail's halfword copy.
+The October 9 plain initializer replaces the earlier `MenuSwapResultTable`
+wrapper; its independent and combined checks are documented in
+[review-fixes-r2-20261009.md](review-fixes-r2-20261009.md). The earlier source
+facts and rejected forms are in [night-20261008.md](night-20261008.md).
+Result codes use the documented enum constants.
 
 ## October 8 round-one validation
 

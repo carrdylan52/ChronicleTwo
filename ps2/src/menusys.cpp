@@ -161,14 +161,6 @@ void SetupUnitMan(CScene *scene, CUserDataManager *user_data, int unit, ROBO_INF
 void InitSpectol();
 void MenuItemDebugKey();
 
-/**
- *
- * Stores key values for two pairs of item-menu actions.
- *
- */
-struct KeyPairTable {
-    int v[2][2]; /**< Key values for each action pair. */
-};
 
 /**
  *
@@ -673,48 +665,6 @@ static float MonicaRotationData[4];
 
 /**
  *
- * Delay counter of the item command selection.
- *
- */
-static s8 cmd_counter_1048;
-
-/**
- *
- * Initialization latch of the item command delay counter.
- *
- */
-static s8 init_1049;
-
-/**
- *
- * Non-zero after the fusion sound begins.
- *
- */
-static s8 sndflag_1665;
-
-/**
- *
- * Initialization latch of the fusion sound state.
- *
- */
-static s8 init_1666;
-
-/**
- *
- * Pulse counter of the attachment information display.
- *
- */
-static s8 count_time_3839;
-
-/**
- *
- * Initialization latch of the attachment information pulse.
- *
- */
-static s8 init_3840;
-
-/**
- *
  * Counter of the extended weapon build-up effect.
  *
  */
@@ -740,20 +690,6 @@ static u8 BuildEndFlag_4703;
  *
  */
 static s8 init_4704;
-
-/**
- *
- * Previous preview movement state used when refreshing character data.
- *
- */
-static s8 checkmoveFlag_5411;
-
-/**
- *
- * Initialization latch of the preview movement state.
- *
- */
-static s8 init_5412;
 
 /**
  *
@@ -792,97 +728,6 @@ static void *Save_AskParamInfo_7099;
 
 /**
  *
- * Blink counter of the raised fusion parameters.
- *
- */
-static s8 fusion_blinkcnt_7120;
-
-/**
- *
- * Initialization latch of the fusion parameter blink counter.
- *
- */
-static s8 init_7121;
-
-/**
- *
- * Non-zero while a different weapon's fusion preview is shown.
- *
- */
-static s8 diffent_weapon_dispflag_7125;
-
-/**
- *
- * Initialization latch of the different-weapon fusion display.
- *
- */
-static s8 init_7126;
-
-/**
- *
- * Pulse phase of the character voice indicator.
- *
- */
-static float counter_7509;
-
-/**
- *
- * Initialization latch of the character voice indicator pulse.
- *
- */
-static s8 init_7510;
-
-/**
- *
- * Counter of the weapon build-up status warning.
- *
- */
-static s8 count_7867;
-
-/**
- *
- * Initialization latch of the build-up status warning counter.
- *
- */
-static s8 init_7868;
-
-/**
- *
- * Previous item preview page remembered by the menu input handler.
- *
- */
-static int old_viewmode_8715;
-
-/**
- *
- * Initialization latch of the saved preview page.
- *
- */
-static s8 init_8716;
-
-/**
- *
- * Previous preview character remembered by the menu input handler.
- *
- */
-static int old_chrid_8718;
-
-/**
- *
- * Initialization latch of the saved preview character.
- *
- */
-static s8 init_8719;
-
-/**
- *
- * Initial wrap targets of the item cursor key pairs.
- *
- */
-static KeyPairTable at_2333__3;
-
-/**
- *
  * Weapon parameter label parts.
  *
  */
@@ -901,13 +746,6 @@ static char *WepStatusInfoStatusVolStrTable[10] = {"st0", "st1", "el0", "el1", "
  *
  */
 static float addtbl_2178[4] = {0.0981747732f, 0.0897597894f, 0.08267349f, 0.0668423995f};
-
-/**
- *
- * Directional key pairs used by the item cursor.
- *
- */
-static KeyPairTable at_2328 = {{{MENU_SELECT_KEY_UP, MENU_SELECT_KEY_DOWN}, {MENU_SELECT_KEY_LEFT, MENU_SELECT_KEY_RIGHT}}};
 
 /**
  *
@@ -1542,20 +1380,22 @@ int CBaseMenuClass::MenuItemCommandSelect(int select_key, int push_button) {
     int      ret = 0;
     switch (step) {
         case 0: {
-            if (init_1049 == 0) {
-                init_1049 = 1;
-                cmd_counter_1048 = 0;
-            }
-            cmd_counter_1048++;
-            if (cmd_counter_1048 >= 50) {
-                cmd_counter_1048 = 0;
+            /**
+             *
+             * Delay counter of the item command selection.
+             *
+             */
+            static s8 cmd_counter = 0;
+            cmd_counter++;
+            if (cmd_counter >= 50) {
+                cmd_counter = 0;
             }
             for (int i = 0; i < 16; i++) {
                 if (ask_para.cmd_mark[i] == 1) {
                     if (i >= 0 && i < MES_LINE_MAX) {
                         mes->line_color[i] = 0x80DC4848;
                     }
-                    if (cmd_counter_1048 > 25 && i >= 0 && i < MES_LINE_MAX) {
+                    if (cmd_counter > 25 && i >= 0 && i < MES_LINE_MAX) {
                         mes->line_color[i] = 0x80686A6B;
                     }
                 }
@@ -2440,10 +2280,12 @@ int CBaseMenuClass::IsSpectolFusion(int key, int command) {
     CDC2Mes          *message;
     CMenuPosDataForm *form;
 
-    if (!init_1666) {
-        sndflag_1665 = 0;
-        init_1666 = 1;
-    }
+    /**
+     *
+     * Non-zero after the fusion sound begins.
+     *
+     */
+    static s8 sndflag = 0;
 
     message = MenuDCMsg[ask_para.mes_no];
     form = MenuMesForm[ask_para.mes_no];
@@ -2468,7 +2310,7 @@ int CBaseMenuClass::IsSpectolFusion(int key, int command) {
                         SpectolInfoStay.CopyGameData(SpectolInfo[1]);
                         MenuCommonInfo->InitHaveData();
                         InitSpectol();
-                        sndflag_1665 = 0;
+                        sndflag = 0;
                         return 2;
                     }
                 case 2:
@@ -2487,8 +2329,8 @@ int CBaseMenuClass::IsSpectolFusion(int key, int command) {
 
             break;
         case 1: {
-            if (!sndflag_1665 && ReadBGSync() == 0) {
-                sndflag_1665 = 1;
+            if (!sndflag && ReadBGSync() == 0) {
+                sndflag = 1;
                 void *file = GetReadBGFile(0);
 
                 if (file != NULL) {
@@ -3456,8 +3298,8 @@ int MenuKeySelectCheck(int step, int *cursor, int *scroll, int min, int max, int
 int MenuListKeyCheck(int keys, int *cursor, int *top_line, int count, int visible_rows, int key_pair,
                      int wrap_kind) {
     int          before = *cursor;
-    KeyPairTable key_mask = at_2328;
-    int         *key_ptr = key_mask.v[key_pair];
+    int key_mask[2][2] = {{MENU_SELECT_KEY_UP, MENU_SELECT_KEY_DOWN}, {MENU_SELECT_KEY_LEFT, MENU_SELECT_KEY_RIGHT}};
+    int         *key_ptr = key_mask[key_pair];
 
     if (keys & key_ptr[0]) {
         *cursor -= 1;
@@ -3467,10 +3309,10 @@ int MenuListKeyCheck(int keys, int *cursor, int *top_line, int count, int visibl
         *cursor += 1;
     }
 
-    KeyPairTable wrap = at_2333__3;
-    int         *wrap_ptr = wrap.v[wrap_kind];
-    wrap.v[0][1] = count - 1;
-    wrap.v[1][0] = count - 1;
+    int wrap[2][2] = {{0, 0}, {0, 0}};
+    int         *wrap_ptr = wrap[wrap_kind];
+    wrap[0][1] = count - 1;
+    wrap[1][0] = count - 1;
 
     if (*cursor < 0) {
         *cursor = wrap_ptr[0];
@@ -3675,21 +3517,6 @@ enum MENU_SWAP_RESULT {
  */
 s8 ret_tbl1_2511[2] = {MENU_SWAP_RESULT_NORMAL, MENU_SWAP_RESULT_DESTINATION_EMPTY};
 
-/**
- *
- * Holds the general exchange results for an empty and an occupied destination slot.
- *
- */
-struct MenuSwapResultTable {
-    s8 v[2]; /**< Result for an empty and an occupied destination, a MENU_SWAP_RESULT. */
-};
-
-/**
- *
- * Supplies the initial result entries for an empty or occupied destination slot.
- *
- */
-MenuSwapResultTable at_2512 = {{MENU_SWAP_RESULT_FAILED, MENU_SWAP_RESULT_DESTINATION_OCCUPIED}};
 
 /**
  *
@@ -3765,9 +3592,9 @@ static int MenuDataSwap(CGameDataUsed *destination, CGameDataUsed *source, int q
             had_src = 1;
         }
         result = ret_tbl1_2511[had_src];
-        MenuSwapResultTable results = at_2512;
-        results.v[0] = result;
-        result = results.v[had_dst];
+        s8 results[2] = {MENU_SWAP_RESULT_FAILED, MENU_SWAP_RESULT_DESTINATION_OCCUPIED};
+        results[0] = result;
+        result = results[had_dst];
     }
     CheckEnableHaveItemNum();
     return result;
@@ -5499,19 +5326,21 @@ void MenuFormUpdataAttachInfo(CMenuPosDataForm *form, CGameDataUsed *item, int i
     if (type == USED_ITEM_TYPE_ATTACH || type == USED_ITEM_TYPE_WEAPON) {
         form->SetAction("\x92\x86\x82\xD6");
 
-        if (!init_3840) {
-            count_time_3839 = 0;
-            init_3840 = 1;
-        }
+        /**
+         *
+         * Pulse counter of the attachment information display.
+         *
+         */
+        static s8 count_time = 0;
 
-        count_time_3839++;
+        count_time++;
 
-        if (count_time_3839 > 59) {
-            count_time_3839 = 0;
+        if (count_time > 59) {
+            count_time = 0;
         }
 
         if (reset) {
-            count_time_3839 = 0;
+            count_time = 0;
         }
 
         item->GetStatusParam(param);
@@ -5528,7 +5357,7 @@ void MenuFormUpdataAttachInfo(CMenuPosDataForm *form, CGameDataUsed *item, int i
                     raised[i] = 1;
                 }
 
-                if (count_time_3839 >= 25) {
+                if (count_time >= 25) {
                     raised[i] = 0;
                 }
             }
@@ -7356,10 +7185,12 @@ void CMenuItemInfo::CalcTex() {
     int slot;
     Func_MenuItemBrdPosStep(MenuItem_ItemBoardTopLine);
     int cursor = MenuCommonInfo->cursor;
-    if (init_5412 == 0) {
-        checkmoveFlag_5411 = 0;
-        init_5412 = 1;
-    }
+    /**
+     *
+     * Previous preview movement state used when refreshing character data.
+     *
+     */
+    static s8 checkmoveFlag = 0;
     int i;
     int check_move = MenuMoveItemPtr->CheckMove();
     int view_flag[6];
@@ -7662,7 +7493,7 @@ void CMenuItemInfo::CalcTex() {
             NowGiftBoxPtr = NULL;
         }
     }
-    if (check_move != checkmoveFlag_5411) {
+    if (check_move != checkmoveFlag) {
         if (view_mode == 0) {
             MenuItemCharaDataLoadEndCheckAfter(MenuCharaBuild2, 0);
         } else if (view_mode == 1) {
@@ -7671,7 +7502,7 @@ void CMenuItemInfo::CalcTex() {
             MenuItemCharaDataLoadEndCheckAfter(MenuCharaBuild2, 2);
         }
     }
-    checkmoveFlag_5411 = check_move;
+    checkmoveFlag = check_move;
     EffectDrawCheck(item_board_form);
 }
 extern char at_5882[];
@@ -9783,24 +9614,28 @@ int CMenuItemInfo::PushKey(int pad, int trigger) {
 
                     break;
                 case kStateSpectolFusion:
-                    if (init_7121 == 0) {
-                        fusion_blinkcnt_7120 = 0;
-                        init_7121 = 1;
+                    /**
+                     *
+                     * Blink counter of the raised fusion parameters.
+                     *
+                     */
+                    static s8 fusion_blinkcnt = 0;
+
+                    fusion_blinkcnt += 1;
+
+                    if (fusion_blinkcnt >= kBlinkPeriod) {
+                        fusion_blinkcnt = 0;
                     }
 
-                    fusion_blinkcnt_7120 += 1;
-
-                    if (fusion_blinkcnt_7120 >= kBlinkPeriod) {
-                        fusion_blinkcnt_7120 = 0;
-                    }
-
-                    if (init_7126 == 0) {
-                        diffent_weapon_dispflag_7125 = 0;
-                        init_7126 = 1;
-                    }
+                    /**
+                     *
+                     * Non-zero while a different weapon's fusion preview is shown.
+                     *
+                     */
+                    static s8 diffent_weapon_dispflag = 0;
 
                     if (extend_result == 2) {
-                        diffent_weapon_dispflag_7125 = 0;
+                        diffent_weapon_dispflag = 0;
                         SetEffectSpectolFusion(load_stack, MenuEffect, SpectolInfo[0],
                                                this->key_arg_no == 4);
                         int top_line = MenuItem_ItemBoardTopLine;
@@ -9827,7 +9662,7 @@ int CMenuItemInfo::PushKey(int pad, int trigger) {
                             SpectolFusionTargetChara = MenuActionChara[0];
 
                             if (this->view_weapon != SpectolInfo[0]) {
-                                diffent_weapon_dispflag_7125 = 1;
+                                diffent_weapon_dispflag = 1;
                             }
                         }
 
@@ -9851,7 +9686,7 @@ int CMenuItemInfo::PushKey(int pad, int trigger) {
                             SetBuildUpInfoChara((CCharacter2 *) chara, ActiveMenuWeaponCharaRange);
                         }
 
-                        if (this->view_mode != 2 || diffent_weapon_dispflag_7125 == 1) {
+                        if (this->view_mode != 2 || diffent_weapon_dispflag == 1) {
                             this->key_arg_no = 4;
                             this->view_mode = 2;
                             MenuCommonInfo->key_arg = &item_menu_argtbl[this->key_arg_no];
@@ -9876,7 +9711,7 @@ int CMenuItemInfo::PushKey(int pad, int trigger) {
                         MENUFORMPARTS_TYPE *volume_part;
                         blink_on = 1;
 
-                        if (fusion_blinkcnt_7120 > kBlinkLastOn) {
+                        if (fusion_blinkcnt > kBlinkLastOn) {
                             blink_on = 0;
                         }
 
@@ -10241,19 +10076,21 @@ static void MenuPosFormValueSetCharaRobo(ROBO_DATA *robo, int flag) {
     }
     local_item_infoview_set(form->GetPartInfo("wep2"), &parts[2]);
     if (CMenuItemInfoPt->voice_part != NULL) {
-        if (!init_7510) {
-            counter_7509 = 0.0f;
-            init_7510 = 1;
-        }
-        counter_7509 += 1.0f;
-        if (!(counter_7509 <= 44.0f)) {
-            counter_7509 = 0.0f;
+        /**
+         *
+         * Pulse phase of the character voice indicator.
+         *
+         */
+        static float counter = 0.0f;
+        counter += 1.0f;
+        if (!(counter <= 44.0f)) {
+            counter = 0.0f;
         }
         CMenuItemInfoPt->voice_part->draw_flag = robo->voice_unit != 0;
         CMenuItemInfoPt->voice_part->x = 150.0f;
         CMenuItemInfoPt->voice_part->y = -252.0f;
         if (robo->voice_flag != 0) {
-            sway = 8.0f * sinf(0.06981317f * counter_7509);
+            sway = 8.0f * sinf(0.06981317f * counter);
             CMenuItemInfoPt->voice_part->x += sway;
             CMenuItemInfoPt->voice_part->y -= sway;
         }
@@ -10603,20 +10440,22 @@ void MenuWeaponStatusInfoFormSet(CGameDataUsed *item, CDataWeapon *data) {
         BuildUpFormInfoIndex[i]->rgba[2] = 0x80;
     }
 
-    if (!init_7868) {
-        count_7867 = 0;
-        init_7868 = 1;
-    }
+    /**
+     *
+     * Counter of the weapon build-up status warning.
+     *
+     */
+    static s8 count = 0;
 
-    count_7867++;
+    count++;
     bool blink = false;
 
-    if (count_7867 > 25) {
+    if (count > 25) {
         blink = true;
     }
 
-    if (count_7867 > 50) {
-        count_7867 = 0;
+    if (count > 50) {
+        count = 0;
     }
 
     if (data != NULL) {
@@ -11752,15 +11591,19 @@ int CMenuItemInfo::KeyStep() {
 int MenuItemKey() {
     int ret;
 
-    if (!init_8716) {
-        old_viewmode_8715 = 0;
-        init_8716 = 1;
-    }
+    /**
+     *
+     * Previous item preview page remembered by the menu input handler.
+     *
+     */
+    static int old_viewmode = 0;
 
-    if (!init_8719) {
-        old_chrid_8718 = 0;
-        init_8719 = 1;
-    }
+    /**
+     *
+     * Previous preview character remembered by the menu input handler.
+     *
+     */
+    static int old_chrid = 0;
 
     switch (CMenuItemInfoPt->sub_menu) {
         case -1: {
@@ -11790,8 +11633,8 @@ int MenuItemKey() {
                         CMenuItemInfoPt->chara_poly_form[i]->SetActionCharaPtr(NULL, -1, -1);
                     }
 
-                    old_viewmode_8715 = CMenuItemInfoPt->view_mode;
-                    old_chrid_8718 = CMenuItemInfoPt->sub_view;
+                    old_viewmode = CMenuItemInfoPt->view_mode;
+                    old_chrid = CMenuItemInfoPt->sub_view;
 
                     if (CMenuItemInfoPt->next_sub_menu == 1) {
                         MenuCommonInfo->SetWakuType(-1);
