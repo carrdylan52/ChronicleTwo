@@ -170,6 +170,14 @@ named row pointer, makes the row address a low-numbered CSE temporary.
 `CollisionFish`, `StepGyoRace` and `sgSysDrawGyoRace` match only with these
 forms (see the gyoracesim and gyorace night notes).
 
+A value that retail keeps in a callee-saved register across calls but
+colours after the named locals can be a CSE of a repeated expression rather
+than a local: writing a register expression in full at each use lets MWCC
+share its common left-associated prefix as a low-numbered temporary.
+`mgEndFrame` (mglib) matches only with its three DISPLAY values written out
+in full; a conditional expression for one of its locals (`a = c ? 4 : 3`)
+also numbers differently from `if`/`else` (see the mglib night notes).
+
 Named locals take stack slots in declaration order, including block-scoped
 ones, before argument temporaries. Temporaries such as `mgRect<int>(…)`
 arguments are built right to left after them, so a call that retail builds
@@ -187,6 +195,13 @@ the constants they consume. `CSound::Init` matches only when its configuration
 assignments follow the same port order as its other field groups (see the
 sound night notes).
 
+Assignment order inside a branch decides which values are still live when
+the branch joins, which changes register allocation and lets the scheduler
+move later loads. `CDngFreeMap::DrawRoot` (dngmenu) matches only with the
+mark colour assigned before red in both branches. Satan's Fiddle
+evaluate-first rows apply to call arguments, not to plain assignment
+constants.
+
 ## Copy propagation and spilled pointers
 
 The IR optimizer propagates a copy between two locals of the same type into
@@ -199,6 +214,10 @@ the test reads the return register, but later uses of a spilled `map` reload
 it. Retail code that tests and uses `v0` while storing a spill slot therefore
 comes from a separate `const` lookup local that is copied into the persistent
 pointer (`SearchMapFlatPosition`, see the dng_event night notes). A
+`T *const p = array;` copy keeps an array's address in a base register, so
+`p[0]` and an indexed loop share it, where direct indexing folds `[0]` into a
+symbol load (`mgEndFrame`). `u_int x = load; x &= mask;` makes the AND result
+share the load's register; `x = load & mask` lets the mask share it. A
 `sceVu0FVECTOR` parameter keeps its 16-byte alignment, so its spill slot takes
 16 bytes of the frame.
 
