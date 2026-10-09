@@ -573,7 +573,7 @@ int PauseLoop() {
     prim.Begin(MG_PRIM_SPRITE);
     prim.Texture(backdrop);
 
-    if ((signed char) config->unk_35 == 0) {
+    if (config->unk_35 == 0) {
         prim.Color(64, 64, 64, 128);
     } else {
         prim.Color(128, 128, 128, 128);
@@ -586,7 +586,7 @@ int PauseLoop() {
     prim.End();
     mgCTexture *skip = tex->GetTexture((char *) "skip", -1);
 
-    if (skip != NULL && (signed char) config->unk_35 == 0) {
+    if (skip != NULL && config->unk_35 == 0) {
         int width = 82;
         int height = 22;
 
