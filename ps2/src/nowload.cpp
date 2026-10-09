@@ -584,7 +584,7 @@ int PauseLoop() {
     prim.TextureCrd(mgScreenWidth + 1, mgScreenHeight + 1);
     prim.Vertex(mgScreenWidth, mgScreenHeight, 0);
     prim.End();
-    mgCTexture *skip = tex->GetTexture((char *) "skip", -1);
+    mgCTexture *skip = tex->GetTexture("skip", -1);
 
     if (skip != NULL && config->unk_35 == 0) {
         int width = 82;
@@ -708,7 +708,7 @@ void SCElogoFade(int fade_out, mgCMemory *memory) {
     for (; frame <= 22; ++frame, opacity_value += 128) {
         mgBeginFrame(NULL);
         tex->ReloadTexture(0, (sceVif1Packet *) NULL);
-        logo = tex->GetTexture((char *) "moji", -1);
+        logo = tex->GetTexture("moji", -1);
         mgCDrawPrim prim;
         prim.Initialize(NULL, NULL);
         prim.AlphaBlendEnable(1);
