@@ -2412,14 +2412,14 @@ int InitSelectCastingPoint(CScene *scene) {
  *
  */
 int EndSelectCastingPoint(CScene *scene) {
-    mgCCamera   *camera = scene->GetCamera(scene->active_camera);
-    CCharacter2 *chara;
+    CCameraControl *camera = (CCameraControl *) scene->GetCamera(scene->active_camera);
+    CCharacter2    *chara;
 
     if (camera == NULL || camera->Iam() != kCameraSettled) {
         return 1;
     }
 
-    CameraInfo.CopyParam(*(CCameraControl *) camera);
+    CameraInfo.CopyParam(*camera);
 
     if (GetNowSubGameInfo()->dungeon == 0) {
         chara = scene->GetCharacter(scene->player_chara);
