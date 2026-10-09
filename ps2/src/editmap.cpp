@@ -321,7 +321,7 @@ int CEditMap::GetPoly(int mode, CCPoly *polys, mgVu0FBOX &box, int max) {
             continue;
         }
 
-        count = ((CMapParts *) part)->GetPoly(mode, polys, box, max);
+        count = part->GetPoly(mode, polys, box, max);
 
         for (j = 0; j < count; j++, polys++) {
             polys->parts_no = ((s16) (u16) i) | kEditPartsPolyFlag;
@@ -869,7 +869,7 @@ int CEditMap::RemoveEditParts(int index, float *pos, RemoveInfo *remove_info_opa
         if (remove_info != 0 && remove_info->color_num > 0) {
             if (part->IsFence() == 0) {
                 for (c = 0; c < part->info->paint_num; c++) {
-                    if (((CMapParts *) part)->GetColor(c, color) != 0) {
+                    if (part->GetColor(c, color) != 0) {
                         for (j = 0; j < remove_info->color_num; j++) {
                             if (EditPartsCmpColor(color, remove_info->color[j]) != 0) {
                                 remove_info->paint_num[j] += RePaintNum(part->info->paint_used);
