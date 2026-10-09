@@ -38,7 +38,7 @@ static u32 EffectState;
 /**
  * Paint-particle effect used by the current edit operation.
  */
-static CPaintEffect * PaintEffect;
+static CPaintEffect *PaintEffect;
 
 extern CStarEffect       _StarEffect[star_effect_count];
 extern mgCMemory         CurPartsBuff;
@@ -781,4 +781,4 @@ mgCMemory   CurPartsBuff;
 /**
  * Placement animations for the three edit-operation slots.
  */
-CPlaceAnime PlaceAnime[place_anime_count];
+CPlaceAnime PlaceAnime[EDIT_PLACE_ANIME_MAX];
