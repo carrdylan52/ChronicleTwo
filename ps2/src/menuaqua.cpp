@@ -178,8 +178,6 @@ struct aqua_col_point {
 
 STATIC_ASSERT(sizeof(aqua_col_point) == 0x20);
 
-extern s8             ColChkPointNum[3];
-extern u8             tbl_3505[2];
 
 
 
@@ -200,13 +198,9 @@ extern "C" aqua_vector at_1346;
 
 
 
-extern "C" int AQUA_TITLE_X;
 
-extern "C" int AQUA_TITLE_Y;
 
-extern "C" int AQUA_TITLE_W;
 
-extern "C" int AQUA_TITLE_H;
 
 
 /**
@@ -221,7 +215,6 @@ struct aqua_light_env {
     int           plight_enable;     /**< Whether the point light is enabled. */
 };
 
-extern short           m_next_aqua_no;
 
 /**
  *
@@ -233,7 +226,6 @@ struct aqua_bubble_counts {
 };
 
 extern "C" aqua_bubble_counts at_2935;
-extern u16                    aqua_frame_sizetbl_2934[3];
 extern "C" aqua_quad          at_2975;
 extern "C" aqua_quad          at_2976;
 extern "C" aqua_quad          at_3016;
@@ -266,8 +258,6 @@ struct aqua_wall_quad {
 };
 
 extern int                menu_debug_flag;
-extern s8                 menu_max_tbl_3720[3];
-extern s8                 another_aquarium_Notbl_3642[3][2];
 
 /**
  *
@@ -280,13 +270,6 @@ struct aqua_param_icon {
     s16 w; /**< Icon width. */
 };
 
-extern u8              xtbl_2468[5];
-extern u8              ytbl_2469[5];
-extern u8              wtbl_2470[5];
-extern u8              htbl_2471[5];
-extern u8              coltbl_2472[2][4];
-extern s8              offtbl_2496[2];
-extern s8              poffset_2511[8];
 
 enum {
     short_flag_tour_count = 0x15,
@@ -346,7 +329,6 @@ static int local_aquarium_limmit_check(float *pos, float radius, int check_y, fl
 
 
 
-extern char *filename_4899[2];
 
 
 
@@ -1334,6 +1316,139 @@ static short bart_5670[12] = {248, 0, 8, 10, 248, 10, 8, 10, 248, 20, 8, 10};
  *
  */
 static short pl_s_5699[12] = {0, 66, 10, 6, 10, 66, 10, 6, 20, 66, 10, 6};
+
+/**
+ *
+ * Stores the number of active collision points in each aquarium.
+ *
+ */
+static s8 ColChkPointNum[3] = {9, 7, 6};
+
+/**
+ *
+ * Stores the aquarium title horizontal position.
+ *
+ */
+static int AQUA_TITLE_X = 10;
+
+/**
+ *
+ * Stores the aquarium title vertical position.
+ *
+ */
+static int AQUA_TITLE_Y = 6;
+
+/**
+ *
+ * Stores the aquarium title width.
+ *
+ */
+static int AQUA_TITLE_W = 158;
+
+/**
+ *
+ * Stores the aquarium title height.
+ *
+ */
+static int AQUA_TITLE_H = 66;
+
+/**
+ *
+ * Stores the texture column positions of the fish parameter panel.
+ *
+ */
+static u8 xtbl_2468[5] = {0, 50, 64, 78, 92};
+
+/**
+ *
+ * Stores the texture row positions of the fish parameter panel.
+ *
+ */
+static u8 ytbl_2469[5] = {0, 44, 58, 72, 86};
+
+/**
+ *
+ * Stores the widths of the fish parameter panel texture columns.
+ *
+ */
+static u8 wtbl_2470[5] = {50, 14, 14, 14, 50};
+
+/**
+ *
+ * Stores the heights of the fish parameter panel texture rows.
+ *
+ */
+static u8 htbl_2471[5] = {44, 14, 14, 14, 44};
+
+/**
+ *
+ * Stores the shadow and foreground colours of the fish parameter panel.
+ *
+ */
+static u8 coltbl_2472[2][4] = {
+    {0, 0, 0, 48},
+    {128, 128, 128, 128}
+};
+
+/**
+ *
+ * Stores the texture row offsets of the two fish sex marks.
+ *
+ */
+static s8 offtbl_2496[2] = {0, 18};
+
+/**
+ *
+ * Stores the fish name horizontal offset for each translated menu.
+ *
+ */
+static s8 poffset_2511[7] = {79, 72, 72, 72, 72, 74, 79};
+
+/**
+ *
+ * Stores the aquarium pending a tank change.
+ *
+ */
+static short m_next_aqua_no = -1;
+
+/**
+ *
+ * Stores aquarium model memory reservations in quadwords.
+ *
+ */
+static u16 aqua_frame_sizetbl_2934[3] = {26965, 36965, 36965};
+
+/**
+ *
+ * Stores the two fish effects selected by aquarium collisions.
+ *
+ */
+static u8 tbl_3505[2] = {2, 1};
+
+/**
+ *
+ * Stores the two destination aquariums for each active tank.
+ *
+ */
+static s8 another_aquarium_Notbl_3642[3][2] = {
+    {1, 2},
+    {0, 2},
+    {0, 1}
+};
+
+/**
+ *
+ * Stores the number of menu commands in each aquarium.
+ *
+ */
+static s8 menu_max_tbl_3720[3] = {6, 4, 4};
+
+/**
+ *
+ * Stores the fish-race and fishing-tournament prize script paths.
+ *
+ */
+static char * filename_4899[2] = {"gyop.cfg", "uofp.cfg"};
 
 // Code (.text)
 /**
@@ -7975,31 +8090,11 @@ INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuaqua", at_3163__2__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuaqua", at_3164__3__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuaqua", at_4300__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuaqua", at_4299__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuaqua", at_4900__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuaqua", at_4901__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuaqua", at_5500__DATA);
 
 // Virtual tables (.vtables)
 
 // Small initialised data (.sdata)
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuaqua", ColChkPointNum__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuaqua", AQUA_TITLE_X__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuaqua", AQUA_TITLE_Y__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuaqua", AQUA_TITLE_W__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuaqua", AQUA_TITLE_H__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuaqua", xtbl_2468__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuaqua", ytbl_2469__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuaqua", wtbl_2470__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuaqua", htbl_2471__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuaqua", coltbl_2472__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuaqua", offtbl_2496__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuaqua", poffset_2511__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuaqua", m_next_aqua_no__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuaqua", aqua_frame_sizetbl_2934__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuaqua", tbl_3505__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuaqua", another_aquarium_Notbl_3642__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuaqua", menu_max_tbl_3720__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuaqua", filename_4899__DATA);
 
 // Small uninitialised data (.sbss)
 INCLUDE_BSS(sel_sift_fish_3638, 0x4);

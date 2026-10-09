@@ -133,3 +133,17 @@ Ten child-literal markers are also supplied by the native tables.
 
 Each `aqua-table-<symbol>-{build,objects}.log` receipt verifies PAL OK
 and 149/149 objects. Markers: 46 / 3; matched data: 2128 / 8293 bytes.
+
+## Small aquarium tables
+
+The final eighteen named definitions supply collision-point counts,
+title coordinates, fish-stat icon rectangles and colours, parameter
+layout offsets, the pending tank sentinel, tank frame sizes, menu layout
+choices, tank navigation, per-mode menu limits and two race filenames.
+The fish-stat offset list contains seven real bytes, rather than the old
+eight-byte extern extent. The two filename literals also come from their
+native pointer initializer.
+
+All eighteen `aqua-table-<symbol>-{build,objects}.log` receipts verify
+PAL OK and 149/149 objects. The complete 55-table migration has no failed
+candidate. Markers: 26 / 3; matched data: 2128 / 8293 bytes.
