@@ -7259,7 +7259,7 @@ void CMenuItemInfo::CalcTex() {
     int held_item_no = MenuCommonInfo->have_item.item_no;
     int reference_id = reference_ids[view_mode];
     int reference_no = -1;
-    if (view_mode == 2 || view_mode == 5) {
+    if (view_mode == MENU_ITEM_VIEW_WEAPON || view_mode == MENU_ITEM_VIEW_FISHING_ROD) {
         reference_id = 4;
         reference_no = 0;
     } else if (held_item_no <= 0) {
@@ -7283,8 +7283,8 @@ void CMenuItemInfo::CalcTex() {
         chara_poly_form[0]->ambient[2] = 64.0f;
         chara_poly_form[0]->ambient[3] = 128.0f;
         switch (view_mode) {
-            case 0:
-            case 1:
+            case MENU_ITEM_VIEW_MAX:
+            case MENU_ITEM_VIEW_MONICA:
                 if (reference_id == 1) {
                     sceVu0FVECTOR rotation;
                     chara->GetRotation(rotation);
@@ -7305,12 +7305,12 @@ void CMenuItemInfo::CalcTex() {
                 }
                 MenuWeaponRealStepEnvFunc(MenuWeaponEnvSetChara, MenuWeaponEnvSetListNo);
                 break;
-            case 3:
-            case 4:
+            case MENU_ITEM_VIEW_ROBO:
+            case MENU_ITEM_VIEW_MONSTER:
                 AddRotationCharaY(chara, 0.01308997f);
                 break;
-            case 2:
-            case 5:
+            case MENU_ITEM_VIEW_WEAPON:
+            case MENU_ITEM_VIEW_FISHING_ROD:
                 if (itemmenu_chr_rotflag != 0) {
                     AddRotationCharaY(chara, 0.01308997f);
                     MenuWeaponRealStepEnvFunc(MenuWeaponEnvSetChara, MenuWeaponEnvSetListNo);
@@ -7321,10 +7321,10 @@ void CMenuItemInfo::CalcTex() {
     int fusing = 0;
     int spectol_view = 0;
     int chara_view = 0;
-    if ((view_mode == 2 || view_mode == 5) && SpectolInfo[0] != NULL && view_weapon == SpectolInfo[0]) {
+    if ((view_mode == MENU_ITEM_VIEW_WEAPON || view_mode == MENU_ITEM_VIEW_FISHING_ROD) && SpectolInfo[0] != NULL && view_weapon == SpectolInfo[0]) {
         spectol_view = 1;
     }
-    if (view_mode == 0 || view_mode == 1) {
+    if (view_mode == MENU_ITEM_VIEW_MAX || view_mode == MENU_ITEM_VIEW_MONICA) {
         chara_view = 1;
     }
     int effect_pos[2];
@@ -7365,7 +7365,7 @@ void CMenuItemInfo::CalcTex() {
         MenuEffect[0]->base_info[5] = effect_pos[1];
     }
     FusionColor(fusing, spectol_view, chara_poly_form[0]->ambient);
-    if (view_mode == 2 || view_mode == 5) {
+    if (view_mode == MENU_ITEM_VIEW_WEAPON || view_mode == MENU_ITEM_VIEW_FISHING_ROD) {
         SpectolFrameCalc(MenuActionChara[0], fusing && spectol_view);
         CMenuPosDataForm *poly_form = chara_poly_form[1];
         poly_form->draw_flag = (fusing && spectol_view) != 0;
@@ -7419,15 +7419,15 @@ void CMenuItemInfo::CalcTex() {
     int      key_no = key_arg_no;
     int      mes_no = key_no;
     switch (view_mode) {
-        case 0:
-        case 1:
+        case MENU_ITEM_VIEW_MAX:
+        case MENU_ITEM_VIEW_MONICA:
             if (key_no == 3) {
                 mes_no = 0x6A;
                 insert_mes[0] = sub_view + 10;
                 info_mes->SetMsgItemNo(insert_mes, 20);
             }
             break;
-        case 2: {
+        case MENU_ITEM_VIEW_WEAPON: {
             s16 slot_mes[2] = {10000, 22};
             if (key_no == 4) {
                 mes_no = GetItemMessageNo(view_chara, 1);
@@ -7437,21 +7437,21 @@ void CMenuItemInfo::CalcTex() {
             }
             break;
         }
-        case 3:
+        case MENU_ITEM_VIEW_ROBO:
             if (key_no == 6) {
                 insert_mes[0] = 12;
                 mes_no = 0x6A;
                 info_mes->SetMsgItemNo(insert_mes, 20);
             }
             break;
-        case 4: {
+        case MENU_ITEM_VIEW_MONSTER: {
             char *monster_name[1] = {NULL};
             mes_no = 0x6C;
             monster_name[0] = GetMonsterName(GetUserDataMan()->monster_id);
             info_mes->SetMsgItemNo(monster_name, 1);
             break;
         }
-        case 5:
+        case MENU_ITEM_VIEW_FISHING_ROD:
             mes_no = cursor + 0x85;
             if (key_no == 9) {
                 mes_no = GetItemMessageNo(view_chara, 1);
@@ -7492,11 +7492,11 @@ void CMenuItemInfo::CalcTex() {
         }
     }
     if (check_move != checkmoveFlag) {
-        if (view_mode == 0) {
+        if (view_mode == MENU_ITEM_VIEW_MAX) {
             MenuItemCharaDataLoadEndCheckAfter(MenuCharaBuild2, USER_CHARA_MAX);
-        } else if (view_mode == 1) {
+        } else if (view_mode == MENU_ITEM_VIEW_MONICA) {
             MenuItemCharaDataLoadEndCheckAfter(MenuCharaBuild2, USER_CHARA_MONICA);
-        } else if (view_mode == 3) {
+        } else if (view_mode == MENU_ITEM_VIEW_ROBO) {
             MenuItemCharaDataLoadEndCheckAfter(MenuCharaBuild2, USER_CHARA_ROBO);
         }
     }
@@ -11027,28 +11027,28 @@ int CMenuItemInfo::LRCheck(int key) {
             int        active = GetActiveCharaNo();
             int        party = MenuUserDataManPtr->GetNowPartyMember();
             if (party & (1 << USER_CHARA_MAX)) {
-                page_view[page_num] = 0;
+                page_view[page_num] = MENU_ITEM_VIEW_MAX;
                 page_arg_no[page_num] = 3;
                 page_num++;
                 page_chara[0] = USER_CHARA_MAX;
             }
             if (party & (1 << USER_CHARA_MONICA)) {
                 if (active != USER_CHARA_MONSTER) {
-                    page_view[page_num] = 1;
+                    page_view[page_num] = MENU_ITEM_VIEW_MONICA;
                     page_arg_no[page_num] = 3;
                     page_chara[page_num] = USER_CHARA_MONICA;
                     page_num++;
                 }
             }
             if (party & (1 << USER_CHARA_ROBO)) {
-                page_view[page_num] = 3;
+                page_view[page_num] = MENU_ITEM_VIEW_ROBO;
                 page_chara[page_num] = USER_CHARA_ROBO;
                 page_arg_no[page_num] = 6;
                 page_num++;
             }
             if (party & (1 << USER_CHARA_MONSTER)) {
                 if (active == USER_CHARA_MONSTER) {
-                    page_view[page_num] = 4;
+                    page_view[page_num] = MENU_ITEM_VIEW_MONSTER;
                     page_chara[page_num] = USER_CHARA_MONSTER;
                     page_arg_no[page_num] = 8;
                     page_num++;
@@ -11072,25 +11072,25 @@ int CMenuItemInfo::LRCheck(int key) {
             int next_arg_no = page_arg_no[page];
             if (view_mode != next_view) {
                 int held_type = ConvertUsedItemType(GetItemDataType(MenuCommonInfo->have_item.item_no));
-                if ((view_mode == 0 || view_mode == 1) &&
+                if ((view_mode == MENU_ITEM_VIEW_MAX || view_mode == MENU_ITEM_VIEW_MONICA) &&
                     (held_type == USED_ITEM_TYPE_WEAPON || held_type == USED_ITEM_TYPE_UNK_4)) {
-                } else if (view_mode != 3 || held_type != USED_ITEM_TYPE_ROBO_PART) {
+                } else if (view_mode != MENU_ITEM_VIEW_ROBO || held_type != USED_ITEM_TYPE_ROBO_PART) {
                     MenuMemoryAdjust(item_memory, load_stack, MenuActionCharaBuffer, next_chara);
                     MenuLoadInfo.load_all = 1;
                     MenuLoadInfo.request_phase = -1;
                     MenuLoadInfo.load_phase = 0;
                     view_mode = next_view;
-                    if (view_mode == 0 || view_mode == 1) {
+                    if (view_mode == MENU_ITEM_VIEW_MAX || view_mode == MENU_ITEM_VIEW_MONICA) {
                         sub_view = next_chara;
                     }
                     int load_chara = view_mode;
-                    if (load_chara != 4) {
-                        if (load_chara == 3) {
+                    if (load_chara != MENU_ITEM_VIEW_MONSTER) {
+                        if (load_chara == MENU_ITEM_VIEW_ROBO) {
                             load_chara = USER_CHARA_ROBO;
                         }
                         CheckLoadInfo(load_chara);
                     }
-                    if (view_mode == 3) {
+                    if (view_mode == MENU_ITEM_VIEW_ROBO) {
                         MenuLoadInfo.request_phase = -1;
                         MenuLoadInfo.load_phase = 0;
                         MenuActionChara[5]->Initialize(NULL);

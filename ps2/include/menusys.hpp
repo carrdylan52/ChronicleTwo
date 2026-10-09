@@ -1088,12 +1088,26 @@ STATIC_ASSERT(sizeof(CMenuKeyFunc) == 0x160);
 
 /**
  *
+ * Pages of the item menu, as CMenuItemInfo::view_mode holds them.
+ *
+ */
+enum MENU_ITEM_VIEW {
+    MENU_ITEM_VIEW_MAX = 0,         /**< Max's equipment. */
+    MENU_ITEM_VIEW_MONICA = 1,      /**< Monica's equipment. */
+    MENU_ITEM_VIEW_WEAPON = 2,      /**< The weapon being viewed. */
+    MENU_ITEM_VIEW_ROBO = 3,        /**< The ridepod's parts. */
+    MENU_ITEM_VIEW_MONSTER = 4,     /**< The monster Monica has transformed into. */
+    MENU_ITEM_VIEW_FISHING_ROD = 5, /**< The fishing rod being viewed. */
+};
+
+/**
+ *
  * The item menu: the party's equipment, the inventory, the ridepod and monster forms, and the commands on items.
  *
  */
 class CMenuItemInfo : public CBaseMenuClass {
 public:
-    s16                 view_mode; /**< Page that is shown: a character, the ridepod or a monster form. */
+    s16                 view_mode; /**< Page that is shown: a character, the ridepod or a monster form. @see MENU_ITEM_VIEW */
     s16                 unk_112;
     s16                 sub_view;     /**< Sub-page that is shown within the page. */
     s16                 view_chara;   /**< Character whose model is shown. */
