@@ -4375,13 +4375,13 @@ void CMenuInvent::CalcTex() {
     }
     NowGiftBoxPtr = SearchNowPosItemExist();
     if (GiftBoxViewForm != NULL) {
-        CursorPos gift_pos = {0, 0};
+        int gift_pos[2] = {0, 0};
         if (key_arg_no == 3) {
-            MenuPosData->GetPosMenuItemOnItemBrd(&gift_pos.x, item_cursor, 0);
+            MenuPosData->GetPosMenuItemOnItemBrd(gift_pos, item_cursor, 0);
         }
         CMenuPosDataForm *gift_form = GiftBoxViewForm;
-        gift_form->x = gift_pos.x;
-        gift_form->y = gift_pos.y;
+        gift_form->x = gift_pos[0];
+        gift_form->y = gift_pos[1];
         if (mode == 2) {
             NowGiftBoxPtr = NULL;
         }
