@@ -75,3 +75,28 @@ objects, data audits and input hashes are under
 `.private/pntc/menusys-residual/`, with `debugkey-handoff.json` as entry point.
 This diagnostic/private-wrapper result requires full game PAL, all-object
 and unrelated-artifact acceptance before a production promotion is claimed.
+
+## Complete promotion acceptance
+
+The pn15 clean 29-caller build passes PAL verification and all 149 complete
+objects. Menusys checks 0x1b0c8 bytes and 6,006 resolved relocations. Every
+assembled object outside nineteen promoted units retains its exact baseline
+hash in the recursive 306-object census; the same holds for all 149
+source-only objects outside those units. Linked main bytes and the loaded
+memory end remain equal to baseline. Explicit context/objdiff refresh gives
+6,778 matched / 84 guarded / ten assembly-only / zero fuzzy.
+
+The two file-read mode arguments use the owning `LOAD_FILE_READ` enum. A
+separate genuine current-profile control proves the entire native object
+byte-identical to the reviewed zero, SHA-256
+`27eeb70d13b4742bb7c0ff85f0c77d89fb8e5843b56cc098d2f588af1586b3c8`.
+Its complete nonselected/data/relocation audit also passes. The final game
+build, 149-object check and unrelated-artifact comparison are repeated after
+that cleanup and pass. No header proposal is needed for the promotion.
+
+Receipts are `.private/pntc/receipts/promote-twenty-nine-clean-build.log`,
+`promote-twenty-nine-{objects,artifacts,progress,coverage}` and
+`promote-twenty-nine-final-{build,objects,artifacts}`, with explicit zero
+statuses and artifact JSONs. The enum control's exact inputs and audit are
+identified by `.private/pntc/menusys-residual/debug-read-mode-handoff.json`.
+Manual guard removal is accepted after those complete checks.
