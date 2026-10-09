@@ -57,20 +57,6 @@ extern mgCMemory        MotionBuff;
 extern char             at_932__4[];
 extern char             at_2197__3[];
 extern char             at_2198__3[];
-extern char             at_2272[];
-extern char             at_1397__3[];
-extern char             at_1920[];
-extern char             at_1921[];
-extern char             at_1922[];
-extern char             at_1722[];
-extern char             at_2057[];
-extern char             at_2058[];
-extern char             at_2059[];
-extern char             at_2060[];
-extern char             at_1749__2[];
-extern char             at_2099[];
-extern char             at_2127__3[];
-extern char             at_2461[];
 
 enum {
     kFishShapeCount = 5,
@@ -140,16 +126,12 @@ void             DeleteLoadThread();
 void             DrawNumber(mgCDrawPrim *prim, int digit, int x, int y);
 int              InitCasting(CScene *scene);
 extern Vec4      at_1631__3;
-extern char      at_1576__2[];
 extern Vec4      at_1490__2;
 extern Vec4      at_1491__2;
-extern char      at_1508__3[];
-extern char      at_1509__3[];
 extern mgCMemory EsaStack;
 extern mgCMemory SndStack;
 extern mgCMemory FishingBuff__2;
 extern Vec4      at_1536;
-extern char      at_1577[];
 
 enum {
     kPadButtonDebugJump = 1,
@@ -162,8 +144,6 @@ int                       CheckCasting(CScene *scene, float *position, float *di
 extern FISH_PARAM         FishParam[];
 extern mgCMemory          ReadStack;
 extern char               at_917__6[];
-extern char               at_979__6[];
-extern char               at_980__4[];
 extern char               at_1058__3[];
 extern char               at_1304__8[];
 extern char               at_1305__5[];
@@ -180,15 +160,9 @@ extern char               at_1315__4[];
 extern char               at_1316__2[];
 extern int                EsaInfo[18];
 extern char              *lure_file[4];
-extern char               at_1424__2[];
-extern char               at_1442__3[];
-extern char               at_1443__3[];
-extern char               at_1723__2[];
 extern CCameraControl     CameraInfo;
 extern Vec4               at_1681__2;
-extern char               at_1683__2[];
 extern Vec4               at_1689;
-extern char               at_1691__2[];
 
 enum {
     kCameraSettled = 1000
@@ -1133,10 +1107,10 @@ int sgInitFishing(SubGameInfo *info) {
     chara = scene->GetCharacter(scene->player_chara);
 
     if (chara != NULL) {
-        if (chara->GetKeyListPtr(at_979__6, NULL) != 0) {
-            chara->SetMotion(at_979__6, 0);
+        if (chara->GetKeyListPtr("\x82\xB2\x82\xBB\x82\xB2\x82\xBB", NULL) != 0) {
+            chara->SetMotion("\x82\xB2\x82\xBB\x82\xB2\x82\xBB", 0);
         } else {
-            chara->SetMotion(at_980__4, 0);
+            chara->SetMotion("\x97\xA7\x82\xBF", 0);
         }
     }
 
@@ -1565,7 +1539,7 @@ int sgExitFishing(SubGameInfo *info) {
 
     if (chara != NULL) {
         chara->DeleteExtMotion();
-        chara->SetMotion(at_980__4, 0);
+        chara->SetMotion("\x97\xA7\x82\xBF", 0);
     }
 
     BgmReadFlag = 0;
@@ -1607,7 +1581,7 @@ int sgLoopFishing(SubGameInfo *info) {
                 return 0;
             case 5:
                 if (chara != NULL) {
-                    chara->SetMotion(at_1397__3, 4);
+                    chara->SetMotion("\x82\xC2\x82\xE8\x8A\xC6\x8E\x9D\x82\xBF\x97\xA7\x82\xBF", 4);
                     chara->UpdatePosition();
                     chara->Step();
                 }
@@ -1695,7 +1669,7 @@ int sgLoopFishing2(SubGameInfo *info) {
             frame = chara->CObjectFrame::frame;
 
             if (frame != NULL) {
-                frame = frame->SearchFrame(at_1424__2);
+                frame = frame->SearchFrame("item");
             }
 
             if (frame != NULL) {
@@ -1757,7 +1731,7 @@ int sgDrawFishing(SubGameInfo *info) {
         HariFrame->GetWorldPosition(lure_matrix[3], hook_offset);
     }
     if (CharaMode == 1) {
-        char *cursor_motion[2] = {at_1442__3, at_1443__3};
+        char *cursor_motion[2] = {"NG", "OK"};
         CursorChara[0]->SetMotion(cursor_motion[CastOKFlag], 0);
         CursorChara[0]->SetPosition((float *)&CastPointCur);
         CursorChara[0]->Step();
@@ -1825,9 +1799,9 @@ int sgSystemDrawFishing(SubGameInfo *info) {
     mgTexManager.ReloadTexture(SystemTexb, (sceVif1Packet *) NULL);
     DrawFishingActionChance();
     scene = info->scene;
-    system_texture = (mgCTexture *) mgTexManager.GetTexture(at_1508__3,
+    system_texture = (mgCTexture *) mgTexManager.GetTexture("linetens",
                                                             SystemTexb);
-    banner_texture = (mgCTexture *) mgTexManager.GetTexture(at_1509__3,
+    banner_texture = (mgCTexture *) mgTexManager.GetTexture("turi_hit",
                                                             SystemTexb);
 
     mgCDrawPrim prim;
@@ -2067,13 +2041,13 @@ static void CharaControl(CScene *scene, CPadControl *pad) {
                 stick_length = sqrtf(stick_y * stick_y + stick_x * stick_x);
 
                 if (stick_length < 0.8f) {
-                    chara->SetMotion(at_1576__2, 0);
+                    chara->SetMotion("\x82\xC2\x82\xE8\x8A\xC6\x8E\x9D\x82\xBF\x95\xE0\x82\xAB", 0);
                     chara->SetStep(0.1f + stick_length / 0.8f);
                 } else {
-                    chara->SetMotion(at_1577, 0);
+                    chara->SetMotion("\x82\xC2\x82\xE8\x8A\xC6\x8E\x9D\x82\xBF\x91\x96\x82\xE8", 0);
                 }
             } else {
-                chara->SetMotion(at_1397__3, 0);
+                chara->SetMotion("\x82\xC2\x82\xE8\x8A\xC6\x8E\x9D\x82\xBF\x97\xA7\x82\xBF", 0);
             }
 
             memset(&move_info.move_info, 0, sizeof(move_info.move_info));
@@ -2176,7 +2150,7 @@ int EndSelectCastingPoint(CScene *scene) {
 
         if (chara != NULL) {
             chara->DeleteExtMotion();
-            chara->SetMotion(at_1397__3, 4);
+            chara->SetMotion("\x82\xC2\x82\xE8\x8A\xC6\x8E\x9D\x82\xBF\x97\xA7\x82\xBF", 4);
         }
     }
 
@@ -2317,9 +2291,9 @@ void SelectCastingPoint(CScene *scene, CPadControl *pad) {
     if (!(lean_abs <= 0.01f)) {
         rotation[1] = mgAngleLimit(rotation[1] + lean);
         chara->SetRotation(rotation);
-        chara->SetMotion(at_1576__2, 0);
+        chara->SetMotion("\x82\xC2\x82\xE8\x8A\xC6\x8E\x9D\x82\xBF\x95\xE0\x82\xAB", 0);
     } else {
-        chara->SetMotion(at_1397__3, 0);
+        chara->SetMotion("\x82\xC2\x82\xE8\x8A\xC6\x8E\x9D\x82\xBF\x97\xA7\x82\xBF", 0);
     }
 
     ReadBG();
@@ -2351,7 +2325,7 @@ void DrawHamon(float *pos, float scale) {
         scale_vec.v[2] = scale;
         *(u_long128 *) pos_vec = *(u_long128 *) pos;
         pos_vec[1] = 0.5f + GetWaterLevel();
-        EffectMan->CreateEffSpt(at_1683__2, 0, 0);
+        EffectMan->CreateEffSpt("\x91\xAB\x94\x67\x96\xE4", 0, 0);
         EffectMan->SetScriptVect1(pos_vec, -1, -1);
         EffectMan->SetScriptVect2(scale_vec.v, -1, -1);
     }
@@ -2371,7 +2345,7 @@ void DrawSplash(float *pos, float scale) {
         scale_vec.v[2] = scale;
         *(u_long128 *) pos_vec = *(u_long128 *) pos;
         pos_vec[1] = 0.5f + GetWaterLevel();
-        EffectMan->CreateEffSpt(at_1691__2, 0, 0);
+        EffectMan->CreateEffSpt("\x91\xAB\x90\x85\x83\x70\x83\x56\x83\x83", 0, 0);
         EffectMan->SetScriptVect1(pos_vec, -1, -1);
         EffectMan->SetScriptVect2(scale_vec.v, -1, -1);
     }
@@ -2434,13 +2408,13 @@ int InitCasting(CScene *scene) {
     while (LoadExMotionStep(GetNowSubGameInfo(), &MotionBuff) != 0) {
     }
 
-    chara->SetMotion(at_1722, 4);
+    chara->SetMotion("\x65\x78\x82\xC2\x82\xE8\x8A\xC6\x8E\x9D\x82\xBF\x97\xA7\x82\xBF", 4);
     chara->Step();
     CastStep = 0;
     CastTime = 60;
     CastCount = 0;
-    chara->SetMotion(at_1723__2, 2);
-    CastMotionCnt = GetMotionCount(chara, at_1723__2, 20, 300, 0);
+    chara->SetMotion("\x8A\xC6\x93\x8A\x82\xB0", 2);
+    CastMotionCnt = GetMotionCount(chara, "\x8A\xC6\x93\x8A\x82\xB0", 20, 300, 0);
     return 1;
 }
 
@@ -2477,7 +2451,7 @@ void CastingLoop(CScene *scene, CPadControl *pad) {
             if (CastMotionCnt <= 0) {
                 CastCount = 0;
                 CastStep = 1;
-                chara->SetMotion(at_1749__2, 0);
+                chara->SetMotion("\x8A\xC6\x82\xBD\x82\xE7\x82\xB5\x97\xA7\x82\xBF", 0);
                 return;
             }
         } else if (CastStep == 1) {
@@ -2571,7 +2545,7 @@ void UkiWaitLoop(CScene *scene, CPadControl *pad) {
             EndSelectCastingPoint(scene);
 
             if (chara != NULL) {
-                chara->SetMotion(at_1397__3, 4);
+                chara->SetMotion("\x82\xC2\x82\xE8\x8A\xC6\x8E\x9D\x82\xBF\x97\xA7\x82\xBF", 4);
             }
 
             SetNextMode(0);
@@ -2586,15 +2560,15 @@ void UkiWaitLoop(CScene *scene, CPadControl *pad) {
 
     if (stick_up > 0.8f) {
         RodActFlag = 1;
-        chara->SetMotion(at_1920, 6);
+        chara->SetMotion("\x82\xB5\x82\xE1\x82\xAD\x82\xE8\x8F\xE3", 6);
     } else if (stick_side > 0.8f) {
         RodActFlag = 1;
-        chara->SetMotion(at_1921, 6);
+        chara->SetMotion("\x82\xB5\x82\xE1\x82\xAD\x82\xE8\x89\x45", 6);
     } else if (stick_side < -0.8f) {
         RodActFlag = 1;
-        chara->SetMotion(at_1922, 6);
+        chara->SetMotion("\x82\xB5\x82\xE1\x82\xAD\x82\xE8\x8D\xB6", 6);
     } else {
-        chara->SetMotion(at_1749__2, 0);
+        chara->SetMotion("\x8A\xC6\x82\xBD\x82\xE7\x82\xB5\x97\xA7\x82\xBF", 0);
         moved = 0;
     }
 
@@ -2627,7 +2601,7 @@ void UkiWaitLoop(CScene *scene, CPadControl *pad) {
         UkiMode = kUkiReeledIn;
 
         if (chara != NULL) {
-            chara->SetMotion(at_1722, 0);
+            chara->SetMotion("\x65\x78\x82\xC2\x82\xE8\x8A\xC6\x8E\x9D\x82\xBF\x97\xA7\x82\xBF", 0);
         }
 
         UkiModeCnt = 0;
@@ -3063,13 +3037,13 @@ void BattleLoop(CScene *scene, CPadControl *pad) {
     BattleCount += 1;
 
     if (stick_up > 0.8f) {
-        chara->SetMotion(at_2057, 0);
+        chara->SetMotion("\x83\x71\x83\x62\x83\x67\x8E\x9E\x8A\xC6\x8F\xE3", 0);
     } else if (stick_side > 0.8f) {
-        chara->SetMotion(at_2058, 0);
+        chara->SetMotion("\x83\x71\x83\x62\x83\x67\x8E\x9E\x8A\xC6\x89\x45", 0);
     } else if (stick_side < -0.8f) {
-        chara->SetMotion(at_2059, 0);
+        chara->SetMotion("\x83\x71\x83\x62\x83\x67\x8E\x9E\x8A\xC6\x8D\xB6", 0);
     } else {
-        chara->SetMotion(at_2060, 0);
+        chara->SetMotion("\x83\x71\x83\x62\x83\x67\x8E\x9E\x97\xA7\x82\xBF", 0);
     }
 
     reel_result = 0;
@@ -3193,8 +3167,8 @@ int InitFalse(CScene *scene) {
     ExtendLine(20.0f);
     ResetLineVelo();
     FalseStep = 0;
-    chara->SetMotion(at_2099, 6);
-    FalseMotionCount = GetMotionCount(chara, at_2099, 20, 300, 0);
+    chara->SetMotion("\x92\xDE\x82\xEA\x82\xC8\x82\xA2\x82\xAA\x82\xC1\x82\xA9\x82\xE8", 6);
+    FalseMotionCount = GetMotionCount(chara, "\x92\xDE\x82\xEA\x82\xC8\x82\xA2\x82\xAA\x82\xC1\x82\xA9\x82\xE8", 20, 300, 0);
     roll = mgRnd();
     chance = 0.3f;
     chance *= 1.0f - 0.5f * RodData.status4_rate;
@@ -3266,7 +3240,7 @@ void FalseLoop(CScene *scene, CPadControl *pad) {
     FalseMotionCount -= 1;
 
     if (FalseStep == 0 && (FalseMotionCount <= 0 || chara->CheckMotionEnd() != 0)) {
-        chara->SetMotion(at_2127__3, 4);
+        chara->SetMotion("\x92\xDE\x82\xEA\x82\xC8\x82\xA2\x82\xAA\x82\xC1\x82\xA9\x82\xE8\x4C", 4);
         FalseStep = 1;
         FalseMotionCount = 40;
     }
@@ -3450,7 +3424,7 @@ void SuccessLoop(CScene *scene, CPadControl *pad) {
     FalseMotionCount -= 1;
 
     if (FalseStep == 0 && (FalseMotionCount <= 0 || chara->CheckMotionEnd() != 0)) {
-        chara->SetMotion(at_2272, 4);
+        chara->SetMotion("\x92\xDE\x82\xE8\x8F\xE3\x82\xB0\x8A\xEC\x82\xD1\x4C", 4);
         FalseStep2 = 0;
         FalseStep = 1;
         FalseMotionCount = 60;
@@ -3919,7 +3893,7 @@ int FishLoadBG(FISH_DATA *fish, u_long128 *buffer) {
         return 0;
     }
 
-    sprintf(path, at_2461, param->file_name);
+    sprintf(path, "sg/fish/%sa.chr", param->file_name);
     return LoadFileBG(path, buffer, 0) != 0;
 }
 void LineTensionStep(FISH_DATA *fish, int reel) {
@@ -4300,8 +4274,6 @@ INCLUDE_RODATA("ps2/asm/pal/nonmatchings/fishing", at_881__3__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/fishing", at_882__4__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/fishing", at_917__6__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/fishing", at_932__4__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/fishing", at_979__6__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/fishing", at_980__4__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/fishing", at_1058__3__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/fishing", at_1304__8__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/fishing", at_1305__5__DATA);
@@ -4316,34 +4288,10 @@ INCLUDE_RODATA("ps2/asm/pal/nonmatchings/fishing", at_1313__2__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/fishing", at_1314__2__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/fishing", at_1315__4__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/fishing", at_1316__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/fishing", at_1397__3__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/fishing", at_1399__3__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/fishing", at_1398__4__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/fishing", at_1424__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/fishing", at_1442__3__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/fishing", at_1443__3__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/fishing", at_1508__3__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/fishing", at_1509__3__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/fishing", at_1576__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/fishing", at_1577__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/fishing", at_1683__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/fishing", at_1691__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/fishing", at_1722__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/fishing", at_1723__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/fishing", at_1749__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/fishing", at_1920__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/fishing", at_1921__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/fishing", at_1922__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/fishing", at_2057__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/fishing", at_2058__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/fishing", at_2059__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/fishing", at_2060__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/fishing", at_2099__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/fishing", at_2127__3__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/fishing", at_2197__3__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/fishing", at_2198__3__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/fishing", at_2272__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/fishing", at_2461__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/fishing", at_2670__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/fishing", at_2671__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/fishing", at_2672__DATA);
@@ -4351,7 +4299,6 @@ INCLUDE_RODATA("ps2/asm/pal/nonmatchings/fishing", at_2673__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/fishing", at_2674__2__DATA);
 
 // Small initialised data (.sdata)
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/fishing", at_1444__3__DATA);
 
 // Small uninitialised data (.sbss)
 

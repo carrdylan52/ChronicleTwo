@@ -28,3 +28,19 @@ initializer is unchanged. After this group: **104 / 2 markers**,
 hashes equal the warm baseline. Receipts:
 `.private/dataD-r1/fishing-{state,storage}-{build,objects}.log` and
 `fishing-state-{progress,metrics}.log`.
+
+## Matched-function resource strings
+
+Twenty-six resource, animation and effect strings are inlined at their native
+call sites. Shift-JIS literals preserve their bytes with hexadecimal escapes.
+The cursor's native `{"NG", "OK"}` initializer also supplies its pointer
+table, so `at_1444__3__DATA` is removed in the same step. Removing only the two
+string markers leaves the assembly table's relocations unresolved; the combined
+natural initializer passes. Strings consumed by guarded functions remain under
+their original symbols.
+
+Each function's string group passes PAL and 149/149 objects. After this group:
+**77 / 2 markers**, **412 / 5145 matched_data**. The refresh is recorded in
+`.private/dataD-r1/fishing-strings-{progress,metrics}.log`; final string validation
+is in `fishing-fish-model-{build,objects}.log`, with preceding function groups
+recorded separately. Protected bodies and unowned object hashes are unchanged.
