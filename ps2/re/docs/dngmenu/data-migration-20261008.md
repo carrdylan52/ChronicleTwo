@@ -65,3 +65,22 @@ placing definitions at their existing declaration sites resolves that
 compile-only issue. No unmatched candidate is retained.
 
 Markers: 62 / 5; matched data: 36 / 3159 bytes.
+
+## Event movement tables
+
+The ten passage paths contain 21 signed-halfword coordinate pairs each,
+and the four room paths contain 11 pairs each. The last pair is `{-1,-1}`;
+the loader consumes only the first twenty or ten points. Pointer lists
+contain ten or four paths followed by a real null terminator. Their declared
+extents are 44 and 20 bytes, rather than their 48- and 32-byte pieces.
+The passage direction table is 11 by 4 signed bytes; the room selector and
+room traversal tables are eight signed bytes each. `DngRoutePointOrder`
+describes unavailable, forward, and reverse traversal in the direction data.
+
+All nineteen data definitions and the direction-enum cleanup pass separate
+full builds and canonical checks. The bare native names retain retail
+symbols used by the guarded `LoadDngInfo` assembly. That draft's existing
+`__DATA` declaration spellings remain untouched. Receipts use
+`dng-route-<symbol>` and `dng-route-orders` prefixes.
+
+Markers: 43 / 5; matched data: 36 / 3159 bytes.
