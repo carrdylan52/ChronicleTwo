@@ -710,7 +710,7 @@ int CWorldMapMenu::KeyStep() {
             list_mes->MsgPreset(10);
             list_mes->SetMsgCursor(0);
             list_mes->cursor_on = 1;
-            ((ClsMes *)list_mes)->mes_no = -1;
+            list_mes->ClsMes::mes_no = -1;
             list_mes->cursor_time = 0;
             list_mes->fade_speed = 1.0f;
             list_mes->fade = 1.0f;
@@ -727,7 +727,7 @@ int CWorldMapMenu::KeyStep() {
             char *names[1] = {NULL};
             names[0] = select_pos->name;
             ask_mes->SetMsgItemNo(names, 1);
-            ((ClsMes *)ask_mes)->mes_no = -1;
+            ask_mes->ClsMes::mes_no = -1;
             ask_mes->fade = 0.0f;
             ask_mes->MakeMsg(0x9C6);
             ask_mes->SetMsgCursor(0);
