@@ -376,7 +376,7 @@ int ClsMes::GetCaptionOff() {
         SV_CONFIG_OPTION *options = &save->config;
 
         if (options != NULL) {
-            caption_off = (s8) options->caption_off;
+            caption_off = options->caption_off;
         }
     }
 
