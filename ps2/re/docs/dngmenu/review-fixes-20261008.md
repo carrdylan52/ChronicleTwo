@@ -74,3 +74,30 @@ each route selector remains its own point counter, and `curve` still precedes
 The typed-pair source passes the complete dngmenu check (0x8B98 bytes,
 1,277 resolved relocations). Full build: `SCES_511.90: OK`; all 149 objects
 pass. The same unit check and PAL result hold for the remaining scrub edits.
+
+## Opening contexts and message positions (round 2, findings 9 and 10)
+
+`DNG_TREE_MAP_FUNC` names all three results of `CheckDngTreeMapFuncType`.
+The save-point request (`MENU_OPEN_DNG_TREE_MAP`) returns SAVE_POINT;
+`MENU_OPEN_MAIN_DUNGEON` or a requested dungeon sub map returns DUNGEON;
+all other requests return OTHER. Every consumer in this unit, including the
+guarded Step draft, uses those result names without changing the `int` ABI.
+
+`MsgInit` uses the existing `SetMovePosGyou` inline for each position/enable
+triplet. Its first-line screen X and line width remain separately staged and
+shifted in place. The reviewed P13 direct expression fails two complete-object
+checks; the staged values are meaningful positioning inputs and are retained.
+
+The `bittable_2134` mask `0x40` is paired with the `TalkMons` debug label.
+The shared `DNG_FLOOR_FLAG` enum in `savedatadungeon.hpp` has no such member,
+and that header is outside this lane. The mask remains pending an enum-owner
+change; the prepared proposal adds `DNG_FLOOR_FLAG_TALK_MONSTER` and substitutes
+it in this table, without claiming a more specific gameplay meaning.
+
+`MenuTreeMapStack` already has one forward declaration and one later definition
+at m59. The definition's position retains the retail global constructor order,
+so finding r0 #20 requires no additional source change.
+
+The actual-source full build accepts the opening-context enum, inline message
+positioning calls, table format guards and function separators:
+`SCES_511.90: OK`, 149/149 objects, 6,787 perfect functions and zero fuzzy.

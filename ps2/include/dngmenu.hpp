@@ -82,6 +82,17 @@ enum DNG_TREE_MAP_RESULT {
 
 /**
  *
+ * Opening contexts distinguished by the dungeon tree map.
+ *
+ */
+enum DNG_TREE_MAP_FUNC {
+    DNG_TREE_MAP_FUNC_OTHER = 0,      /**< An opening request outside the dungeon or save-point contexts. */
+    DNG_TREE_MAP_FUNC_DUNGEON = 1,    /**< The dungeon main menu or its requested sub map. */
+    DNG_TREE_MAP_FUNC_SAVE_POINT = 2, /**< The tree-map request opened at a save point. */
+};
+
+/**
+ *
  * Screens the tree map's key and draw functions run.
  *
  */
@@ -521,8 +532,7 @@ STATIC_ASSERT(sizeof(CMenuTreeMap) == 0x2FBE0);
 
 /**
  *
- * Tells how the tree map was opened: 2 from a save point, 1 from the dungeon
- * or its sub map, 0 otherwise.
+ * Returns the tree map's opening context as a DNG_TREE_MAP_FUNC.
  *
  * @mangled CheckDngTreeMapFuncType__Fv
  * @address 0x1F0E00

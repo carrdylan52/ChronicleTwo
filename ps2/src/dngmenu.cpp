@@ -517,6 +517,7 @@ void CDngFreeMap::DrawLast() {
     prim->Vertex(mgScreenWidth, mgScreenHeight, 0);
     prim->End();
 }
+
 /**
  *
  * Offset of a passage mark from its grid cell.
@@ -774,6 +775,7 @@ unsigned int CDngFreeMap::DrawGlidCheck(GLID_INFO *glid) {
     }
     return marks;
 }
+
 /**
  *
  * Offset of a room's letter or symbol within its picture.
@@ -966,6 +968,7 @@ void CDngFreeMap::DrawGlid(mgRect<float> rect) {
     prim.Vertex(rect.left, top, 0.0f);
     prim.End();
 }
+
 /**
  *
  * Collects qualifying georama material items for a treasure floor.
@@ -1328,6 +1331,7 @@ static void DrawGeoramaMateria(int top_y, char *title, int unused_count, int *it
     font.SetPos(x, y);
     font.DrawDirect(font.str, font.pos_x, font.pos_y);
 }
+
 /**
  *
  * Source rectangle of the selected floor highlight.
@@ -1377,6 +1381,7 @@ void CDngFreeMap::DrawTreeMap(int opacity) {
         }
     }
 }
+
 /**
  *
  * Last player-marker position during event movement.
@@ -1459,6 +1464,7 @@ void CDngFreeMap::Step() {
     }
     mark_num = 0;
 }
+
 /**
  *
  * Names of the four passage types in the map debug display.
@@ -1665,6 +1671,7 @@ void CDngFreeMap::SetKomaMove(int moving) {
     }
 }
 
+// clang-format off
 /**
  *
  * Interpolation points and terminator for passage shape 0.
@@ -2030,6 +2037,8 @@ static short RoomHokanTable3_2244[DNGMAP_ROOM_HOKAN_POINTS + 1][2] = {
     {29, -28},
     {-1, -1}
 };
+
+// clang-format on
 
 int CDngFreeMap::LoadDngInfo(mgCMemory *stack, int block, int dungeon, int room, int next_room) {
     /**
@@ -2487,14 +2496,15 @@ int CDngFreeMap::LoadDngInfo(mgCMemory *stack, int block, int dungeon, int room,
 }
 
 int CheckDngTreeMapFuncType() {
-    if (MenuCommonInfo->open_type == 3) {
-        return 2;
+    if (MenuCommonInfo->open_type == MENU_OPEN_DNG_TREE_MAP) {
+        return DNG_TREE_MAP_FUNC_SAVE_POINT;
     }
-    if (MenuCommonInfo->open_type == 1 || TreeMapCallDungeonSubMap == 1) {
-        return 1;
+    if (MenuCommonInfo->open_type == MENU_OPEN_MAIN_DUNGEON || TreeMapCallDungeonSubMap == 1) {
+        return DNG_TREE_MAP_FUNC_DUNGEON;
     }
-    return 0;
+    return DNG_TREE_MAP_FUNC_OTHER;
 }
+
 /**
  *
  * First-floor map names for the seven dungeons.
@@ -2536,6 +2546,7 @@ void MakeDngTreeMapJumpNo(int dng_no, int floor_id, int *loop_no, int *map_no) {
         }
     }
 }
+
 /**
  *
  * Maximum floor number for each dungeon.
@@ -2556,7 +2567,7 @@ void CMenuTreeMap::InitEnd() {
     textures = &mgTexManager;
     MenuWorkTextureEnter(block, "dngmnwork2", 0x200, 0x100, 0x18);
     textures->EnterIMGFile(map_img, block, NULL, NULL);
-    if (CheckDngTreeMapFuncType() == 2) {
+    if (CheckDngTreeMapFuncType() == DNG_TREE_MAP_FUNC_SAVE_POINT) {
         textures->EnterIMGFile(MenuCursorDataBuff, block, NULL, NULL);
     }
     MenuDngMap->SetTextureInfo();
@@ -2639,9 +2650,9 @@ void CMenuTreeMap::MsgInit() {
     message->SetDrawSize(16, 20);
     message->ClsMes::mes_no = -1;
     message->MakeMsg(300);
-    if (CheckDngTreeMapFuncType() == 2) {
+    if (CheckDngTreeMapFuncType() == DNG_TREE_MAP_FUNC_SAVE_POINT) {
         message->MakeMsg(81);
-    } else if (CheckDngTreeMapFuncType() == 1) {
+    } else if (CheckDngTreeMapFuncType() == DNG_TREE_MAP_FUNC_DUNGEON) {
         message->MakeMsg(80);
     }
     message->StepMsg();
@@ -2650,19 +2661,14 @@ void CMenuTreeMap::MsgInit() {
     int width = message->line_w[0];
     x >>= 2;
     width >>= 1;
-    message->line_pos[0][0] = x - width;
-    message->line_pos[0][1] = y;
-    message->line_pos_on[0] = 1;
-    message->line_pos[1][0] = ((mgScreenWidth >> 2) * 3) - (message->line_w[1] >> 1);
-    message->line_pos[1][1] = y;
-    message->line_pos_on[1] = 1;
+    message->SetMovePosGyou(0, x - width, y);
+    message->SetMovePosGyou(1, ((mgScreenWidth >> 2) * 3) - (message->line_w[1] >> 1), y);
     TreeMapSaveDispY = y;
     if (TreeMapSaveFlag == 0) {
-        message->line_pos[1][0] = 600;
-        message->line_pos[1][1] = y;
-        message->line_pos_on[1] = 1;
+        message->SetMovePosGyou(1, 600, y);
     }
 }
+
 #ifdef NONMATCHING
 extern int             old_direction_2830;
 extern s8              init_2831;
@@ -2745,7 +2751,7 @@ int CMenuTreeMap::Step() {
                             GetSaveData()->save_dungeon.SetFloorID(0);
                         }
                     }
-                    if (CheckDngTreeMapFuncType() == 0 && MenuArg.result[0] == 2) {
+                    if (CheckDngTreeMapFuncType() == DNG_TREE_MAP_FUNC_OTHER && MenuArg.result[0] == 2) {
                         MenuMainScene->skip_load_bgm = 1;
                     }
                     CheckDngTreeMapFuncType();
@@ -2792,7 +2798,7 @@ int CMenuTreeMap::Step() {
                         action = 0x78;
                     }
                 } else if (buttons & 1) {
-                    action = CheckDngTreeMapFuncType() == 1 ? -1 : 0x6E;
+                    action = CheckDngTreeMapFuncType() == DNG_TREE_MAP_FUNC_DUNGEON ? -1 : 0x6E;
                 } else if (buttons & 2) {
                     action = 0x78;
                 } else if ((buttons & 4) && GeoramaMateriaNum > 0) {
@@ -2885,7 +2891,7 @@ int CMenuTreeMap::Step() {
                 } else if (buttons == 8 || buttons == 2) {
                     int kind = CheckDngTreeMapFuncType();
                     action = 200;
-                    if ((buttons == 8 && kind != 0) || (buttons == 2 && kind == 2)) {
+                    if ((buttons == 8 && kind != DNG_TREE_MAP_FUNC_OTHER) || (buttons == 2 && kind == DNG_TREE_MAP_FUNC_SAVE_POINT)) {
                         action = 100;
                         NextFloorGlid_2836 = MenuDngMap->GetEntranceRoomGlid();
                     }
@@ -2989,7 +2995,7 @@ int CMenuTreeMap::Step() {
                 bool open_question = false;
                 if (NextFloorGlid_2836 == NULL || (target_save != NULL && !(target_save->flag & 1))) {
                     MenuSePlay(5);
-                } else if (CheckDngTreeMapFuncType() == 0 && TreeMapCallDungeonSubMap == 1) {
+                } else if (CheckDngTreeMapFuncType() == DNG_TREE_MAP_FUNC_OTHER && TreeMapCallDungeonSubMap == 1) {
                     int loop_no, map_no;
                     MakeDngTreeMapJumpNo(dng_no, NextFloorGlid_2836->room.floor_id, &loop_no, &map_no);
                     if (map_no == MenuMainScene->now_map_no) {
@@ -3003,7 +3009,7 @@ int CMenuTreeMap::Step() {
                 if (open_question) {
                     selection_changed = 1;
                     DngAskMessageDrawFlag = 1;
-                    if (CheckDngTreeMapFuncType() == 1 && !(NextFloorGlid_2836->room.flag & DNGMAP_ROOM_FLAG_START)) {
+                    if (CheckDngTreeMapFuncType() == DNG_TREE_MAP_FUNC_DUNGEON && !(NextFloorGlid_2836->room.flag & DNGMAP_ROOM_FLAG_START)) {
                         DngAskMessageDrawFlag = 2;
                     }
                     u32 flags = NextFloorGlid_2836->room.flag;
@@ -3077,7 +3083,7 @@ int CMenuTreeMap::Step() {
                                 message->line_pos[0][0] = message->line_pos[2][0] = 0x2E;
                                 message->line_pos[1][0] = 0x160;
                             }
-                            if (GeoramaMateriaNum && CheckDngTreeMapFuncType() == 1) {
+                            if (GeoramaMateriaNum && CheckDngTreeMapFuncType() == DNG_TREE_MAP_FUNC_DUNGEON) {
                                 message->line_pos[0][0] = message->line_pos[1][0] = 0x208;
                             }
                             money_view = 0;
@@ -3342,6 +3348,7 @@ int CMenuTreeMap::FadeInOutMenu() {
     }
     return done;
 }
+
 /**
  *
  * Arena used for tree-menu objects and files.
@@ -3522,8 +3529,6 @@ INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dngmenu", at_3347__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dngmenu", at_3348__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dngmenu", at_3349__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dngmenu", at_3350__DATA);
-
-// Virtual tables (.vtables)
 
 // Small initialised data (.sdata)
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dngmenu", at_3043__DATA);
