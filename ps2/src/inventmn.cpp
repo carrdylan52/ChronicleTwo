@@ -253,14 +253,12 @@ struct NetaFoundFlags {
 
 extern char           at_2244[];
 extern char           at_2245[];
-extern char           at_2246[];
 extern char           at_2247[];
 extern char           at_2248[];
 extern char           at_2249[];
 extern char           at_2250[];
 extern char           at_2251[];
 extern char           at_2252[];
-extern char           at_2253[];
 
 /**
  *
@@ -323,7 +321,6 @@ extern char                at_4374[];
 extern char                at_4375[];
 extern char                at_4376[];
 extern char                at_4377[];
-extern char                at_4378[];
 extern char                at_4379[];
 extern char                at_4380[];
 extern ItemNameList2       at_3739;
@@ -396,7 +393,17 @@ struct CardListTops {
 };
 
 extern CardListTops at_5642;
-extern char        *NewComer_5648[];
+/** Localized label for an undiscovered invention card. */
+static char *NewComer_5648[7] = {
+    "     ",
+    "New Invention",
+    "Nouvelle Invention",
+    "Neue Erfindung",
+    "Nuova Invenzione",
+    "Nuevo invento",
+    "New Invention"
+};
+
 /** Decimal widths used to display the invention count. */
 static int digit_tbl3_5641[8] = {
     3, 3, 3, 3, 3, 3, 3, 3
@@ -448,7 +455,6 @@ struct InventCommandList {
 int                       MenuInventDebugKey();
 void                      MenuInventDebugDraw();
 
-extern SPI_TAG_PARAM  pic_tag[];
 /** Icon prefixes used by invention idea names. */
 static char *addstringtable_1722[3] = {
     "[bulb2]",
@@ -458,7 +464,6 @@ static char *addstringtable_1722[3] = {
 
 
 extern mgCMemory          InventTeigiStack;
-extern SPI_TAG_PARAM      invent_teigi_func[];
 
 enum {
     kCreateAsk = 0,
@@ -1536,6 +1541,13 @@ int _PIC_NAME(SPI_STACK *stack, int unused) {
     return 1;
 }
 
+/** Script handlers used to load photo subject names. */
+static SPI_TAG_PARAM pic_tag[3] = {
+    {"PIC_INFO", _PIC_INFO},
+    {"PIC_NAME", _PIC_NAME},
+    {NULL, NULL}
+};
+
 void LoadFilePictureName() {
     mgCMemory    stack;
     char         align_buffer[0x5000];
@@ -1877,6 +1889,13 @@ int _INVENT_DATASET(SPI_STACK *stack, int argument_count) {
     invent_num_counter++;
     return 1;
 }
+
+/** Script handlers used to load invention recipes. */
+static SPI_TAG_PARAM invent_teigi_func[3] = {
+    {"DATATABLESET", _INVENT_DATATABLESET},
+    {"DATASET", _INVENT_DATASET},
+    {NULL, NULL}
+};
 
 int CInventDataManage::LoadAnalyzeInventFile(char *script, int size) {
     if (script == NULL) {
@@ -2451,11 +2470,11 @@ int CMenuInvent::CancelNetaCircle(int mode) {
 
     if (neta_select_num <= 0) {
         if (MenuActionChara[0] != 0) {
-            MenuActionChara[0]->SetMotion(at_2246, 0, 1);
+            MenuActionChara[0]->SetMotion("\x97\xa7\x82\xbf", 0, 1);
         }
 
         if (mode == 0) {
-            ExeScript(at_2253);
+            ExeScript("\x8d\x6c\x82\xa6\x83\x82\x81\x5b\x83\x68" "0");
         }
 
         if (mode == 5) {
@@ -2571,7 +2590,7 @@ void CMenuInvent::PrepareNextMode(int next_mode) {
     neta_form[1]->parts->etc_info[0] = -1;
     neta_form[2]->parts->etc_info[0] = -1;
     MenuPosData->InitDrawList();
-    ExeScript(at_2253);
+    ExeScript("\x8d\x6c\x82\xa6\x83\x82\x81\x5b\x83\x68" "0");
     ExeScript("\x83\x74\x83\x48\x81\x5b\x83\x80\x8f\x89\x8a\xfa\x89\xbb");
 
     switch (key_arg_no) {
@@ -2845,7 +2864,7 @@ void CMenuInvent::InitEnd() {
 
     if (photo_only == 1) {
         EnterDataMenu((u8 *) read_info->buffer);
-        ExeScript(at_2253);
+        ExeScript("\x8d\x6c\x82\xa6\x83\x82\x81\x5b\x83\x68" "0");
         ExeScript("\x8e\xca\x90\x5e\x8a\x6d\x94\x46\x83\x82\x81\x5b\x83\x68\x8f\x89\x8a\xfa\x89\xbb");
         PrepareNextMode((int) key_arg_no);
     }
@@ -2968,12 +2987,42 @@ extern char        at_3132[];
 extern char        at_3133[];
 extern char        at_3134[];
 extern char        at_3135[];
-extern char        at_2820[];
-extern char       *Tb_2819[7];
-extern char       *gobitbl_2847[2];
-extern char       *getfilename_2928[2];
-extern char       *sndfileName_2951[2];
-extern char       *wavname_2960[3];
+/** Prefix used for an automatically proposed invention name. */
+static char *Tb_2819[7] = {
+    "\x82\xa4\x81\x5b\x82\xf1",
+    "Ummm",
+    "Ummm",
+    "Ummm",
+    "Ummm",
+    "Ummm",
+    "Ummm"
+};
+
+/** Question endings appended to a proposed Japanese invention name. */
+static char *gobitbl_2847[2] = {
+    "\x82\xa9\x82\xe0\x81\x48",
+    "\x82\xa9\x82\xc8\x81\x48"
+};
+
+/** Item model assets selected for invention outcomes. */
+static char *getfilename_2928[2] = {
+    "inv_ng.mds",
+    "inv_ok.mds"
+};
+
+/** Sound banks selected for invention outcomes. */
+static char *sndfileName_2951[2] = {
+    "snd2/sp/SP_008.snd",
+    "snd2/sp/SP_009.snd"
+};
+
+/** Wave names used during the invention sound sequence. */
+static char *wavname_2960[3] = {
+    "200",
+    "190",
+    "180"
+};
+
 /** Sound-bank time limits of the two invention stages. */
 static short sndtimetbl_2868[2] = {
     210, 280
@@ -6562,7 +6611,7 @@ int MenuInventPushKey(int pad, int pushed) {
                 case 7:
                     switch (pushed) {
                         case 1:
-                            CMenuInventPt->ExeScript(at_4378);
+                            CMenuInventPt->ExeScript("IS_MCACCESS");
 
                             if (LanguageCode > 0 && LanguageCode < 6) {
                                 MenuDCMsg[4]->SetMsgCursor(1);
@@ -7275,40 +7324,18 @@ void MenuInventDraw() {
 }
 
 // Initialised data (.data)
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", pic_tag__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", invent_teigi_func__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", Tb_2819__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", D_003532DF__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_2913__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", wavname_2960__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", NewComer_5648__DATA);
 
 // Constants (.rodata)
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_1655__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_1656__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_1947__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_1948__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_2244__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_2245__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_2246__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_2247__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_2248__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_2249__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_2250__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_2251__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_2252__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_2253__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_2820__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_2821__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_2848__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_2849__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_2929__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_2930__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_2952__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_2953__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_2961__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_2962__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_2963__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_3113__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_3114__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_3115__DATA);
@@ -7357,7 +7384,6 @@ INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_4374__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_4375__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_4376__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_4377__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_4378__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_4379__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_4380__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_5011__DATA);
@@ -7366,12 +7392,6 @@ INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_5013__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_5014__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_5015__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_5016__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_5649__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_5650__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_5651__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_5652__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_5653__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_5654__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_5742__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_5743__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_5744__DATA);
@@ -7382,9 +7402,6 @@ INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_5747__DATA);
 // Virtual tables (.vtables)
 
 // Small initialised data (.sdata)
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", gobitbl_2847__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", getfilename_2928__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", sndfileName_2951__DATA);
 
 // Small uninitialised data (.sbss)
 INCLUDE_BSS(at_3509, 0x8);
