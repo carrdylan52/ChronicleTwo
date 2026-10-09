@@ -282,12 +282,9 @@ base/constructor calls; those units still need exact source and type work.
 compiler. Do not hand-write these generated assignments or compensate with
 function-specific compiler hooks.
 
-Compare complete objects as well as individual functions: emitted inline
-helpers, static initializers and data sizes can change the containing unit.
-The PAL executable verifier checks the final linked layout afterward.
-Relocation-masked word counts hide call-target changes: a constructor chain
-one level deeper than the inline depth calls an emitted WEAK constructor
-where retail calls its body. `MenuItemCharaDataLoadEndCheckAfter` (menuchr)
-needs scoped `inline_depth(8)` for its local `CScene`, and a single-case
-`switch` rather than an equivalent `if` for its early return. The `if` lets
-MWCC fill the next loop's branch delay slot from the following call setup.
+Check complete objects and resolved relocation targets before the PAL link.
+A constructor chain beyond the inline depth calls an emitted WEAK constructor,
+which relocation-masked word counts can hide. Equivalent `if` and `switch`
+forms can fill different delay slots: `MenuItemCharaDataLoadEndCheckAfter`
+(menuchr) requires scoped `inline_depth(8)` and a single-case `switch`; its
+`if` form fills the next loop's branch delay slot from the following call setup.
