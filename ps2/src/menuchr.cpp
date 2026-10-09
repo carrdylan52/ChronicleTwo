@@ -1009,32 +1009,6 @@ static int select_monster_save_3371;
  */
 static s8 init_3372__2;
 
-/**
- *
- * Reward parameter index of each displayed monster badge.
- *
- */
-static s8 convert_table_3430[10] = {8, 4, 9, 2, 3, 5, 0, 6, 7, 1};
-
-/**
- *
- * Growth title message number of each monster badge family.
- *
- */
-static short ghobitbl_3437[10] = {186, 187, 188, 189, 190, 191, 192, 193, 194, 196};
-
-/**
- *
- * Monster badge health and growth number part names.
- *
- */
-static char *get_stringtbl_3557[4] = {
-    "\x82\xD6\x82\xF1\x82\xB0\x8D\xA1",
-    "\x82\xD6\x82\xF1\x82\xB0\x8D\xC5\x91\xE5",
-    "\x8F\x6E\x97\xFB\x8D\xA1",
-    "\x8F\x6E\x97\xFB\x8D\xC5\x91\xE5",
-};
-
 int                     CosutmeSelDefaultSet(int costume_id, short *costume_list);
 /**
  *
@@ -4212,6 +4186,32 @@ void MenuMonsterBoxInit(mgCMemory *stack, int *tex_block, int mode) {
 }
 #pragma inline_depth reset
 int CMenuMosSelect::KeyStep() {
+    /**
+     *
+     * Reward parameter index of each displayed monster badge.
+     *
+     */
+    static s8 convert_table[10] = {8, 4, 9, 2, 3, 5, 0, 6, 7, 1};
+
+    /**
+     *
+     * Growth title message number of each monster badge family.
+     *
+     */
+    static short ghobitbl[10] = {186, 187, 188, 189, 190, 191, 192, 193, 194, 196};
+
+    /**
+     *
+     * Monster badge health and growth number part names.
+     *
+     */
+    static char *get_stringtbl[4] = {
+        "\x82\xD6\x82\xF1\x82\xB0\x8D\xA1",
+        "\x82\xD6\x82\xF1\x82\xB0\x8D\xC5\x91\xE5",
+        "\x8F\x6E\x97\xFB\x8D\xA1",
+        "\x8F\x6E\x97\xFB\x8D\xC5\x91\xE5",
+    };
+
     int           size;
     int           i;
     int           keys = MenuCommonInfo->CheckSelectKey();
@@ -4512,7 +4512,7 @@ int CMenuMosSelect::KeyStep() {
                                     for (int j = 0; j < 10; j++) {
                                         param[j] = select_badge->class_level + 3;
                                     }
-                                    param[convert_table_3430[badge_index]] += select_badge->class_level * 2;
+                                    param[convert_table[badge_index]] += select_badge->class_level * 2;
                                     place->CopyGameData(&reward);
                                     ExeScript("\x83\x82\x83\x93\x83\x58\x83\x5E\x81\x5B\x82\xB5\x82\xB8\x82\xAD");
                                 } else {
@@ -4520,11 +4520,11 @@ int CMenuMosSelect::KeyStep() {
                                 }
                             } else if (step == 14) {
                                 if (level_max) {
-                                    int got = MenuUserDataManPtr->GetItem(ghobitbl_3437[select], 5);
+                                    int got = MenuUserDataManPtr->GetItem(ghobitbl[select], 5);
                                     if (0 < got) {
                                         ExeScript("GET_LAST");
                                         char *item[1] = {NULL};
-                                        item[0] = GetItemMessage(ghobitbl_3437[select]);
+                                        item[0] = GetItemMessage(ghobitbl[select]);
                                         MenuDCMsg[6]->SetMsgItemNo(item, 1);
                                         MenuDCMsg[6]->SetMsgVolumeNoOne(got);
                                     } else {
@@ -4789,11 +4789,11 @@ int CMenuMosSelect::KeyStep() {
         MOS_CHANGE_PARAM *shown = &badge[select];
         if (info_form != NULL) {
             if (shown != NULL) {
-                info_form->SetNumber(get_stringtbl_3557[0], GetDispVolumeForFloat(shown->hp.now));
-                info_form->SetNumber(get_stringtbl_3557[1], GetDispVolumeForFloat(shown->hp.max));
+                info_form->SetNumber(get_stringtbl[0], GetDispVolumeForFloat(shown->hp.now));
+                info_form->SetNumber(get_stringtbl[1], GetDispVolumeForFloat(shown->hp.max));
                 float absRate = shown->abs.GetRate();
-                info_form->SetNumber(get_stringtbl_3557[2], GetDispVolumeForFloat(100.0f * absRate));
-                info_form->SetNumber(get_stringtbl_3557[3], 100);
+                info_form->SetNumber(get_stringtbl[2], GetDispVolumeForFloat(100.0f * absRate));
+                info_form->SetNumber(get_stringtbl[3], 100);
                 MENUFORMPARTS_TYPE *hpBar = info_form->GetPartInfo("life");
                 if (hpBar != NULL) {
                     hpBar->w = 168.0f * shown->hp.GetRate();
@@ -4805,9 +4805,9 @@ int CMenuMosSelect::KeyStep() {
                 info_form->SetNumber("\x8D\x55\x90\x94", shown->GetAttackVol(view_monster));
                 info_form->SetNumber("\x96\x68\x90\x94", shown->GetDefenceVol(view_monster));
             } else {
-                info_form->SetNumber(get_stringtbl_3557[0], 0);
-                info_form->SetNumber(get_stringtbl_3557[2], 0);
-                info_form->SetNumber(get_stringtbl_3557[3], 100);
+                info_form->SetNumber(get_stringtbl[0], 0);
+                info_form->SetNumber(get_stringtbl[2], 0);
+                info_form->SetNumber(get_stringtbl[3], 100);
             }
         }
     }
