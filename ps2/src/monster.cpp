@@ -1961,7 +1961,7 @@ void CMonsterMan::DrawLifeGage(int view, int mode) {
                 monster->life_gage.SetView(0);
             }
 
-            ((CCharacter2 *) active[i])->GetEntryObjectPos(0, 0, pos);
+            active[i]->GetEntryObjectPos(0, 0, pos);
             pos[1] += active[i]->body_height;
             monster = active[i];
 
@@ -2170,7 +2170,7 @@ void CMonsterMan::CollisionCheck(CActiveMonster *monster, float *pos, float *mov
         height_scale = 1.0f;
 
         if (monster->catch_state == 2 && i != 0) {
-            ((CCharacter2 *) other)->GetEntryObjectPos(0, other_pos);
+            other->GetEntryObjectPos(0, other_pos);
             height_scale = 2.0f;
         }
 
