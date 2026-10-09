@@ -40,6 +40,15 @@ reverted (`sceneevent-flare-copy-depth-build.log`, `-objects.log`,
 `-score.log`). `sceneevent-flare-copy-depth-source-restored` passes the full
 PAL and 149-object checks afterward.
 
+The additional native initializer probe uses CopyVector for both the
+lighting ratio and color, with the color aggregate initialized at its
+conditional use and the actual sun/screen buffers declared afterward.
+It emits all data correctly but still differs in 106/156 masked words,
+with native extent 0x268 against the 0x270 retail piece
+(`sceneevent-flare-typed-ratio-build.log`, `-objects.log`, `-score.log`).
+The source is restored and the full PAL, 149 objects, and unchanged
+object hashes pass (`sceneevent-flare-typed-ratio-source-restored`).
+
 Final: 1 rodata / 0 BSS markers; matched_data
 66/146 after the standard objdiff/progress refresh.
 Every accepted step passes the full PAL build (`SCES_511.90: OK`) and
