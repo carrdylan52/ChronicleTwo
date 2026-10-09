@@ -701,7 +701,7 @@ void mgEndFrame(mgCDrawManager *manager) {
     int              magnification;
     int              offset_y;
 
-    cpu_ratio = 100.0f * ((u_int) (*(volatile u_int *) timer0_count - h_count) / frame_ticks);
+    cpu_ratio = 100.0f * ((*(volatile u_int *) timer0_count - h_count) / frame_ticks);
     mgWaitFrame();
     wait_start = *(volatile u_int *) timer0_count;
     if (draw_performance_meter != 0) {
@@ -714,8 +714,8 @@ void mgEndFrame(mgCDrawManager *manager) {
         prim.DepthTestEnable(0);
         prim.TextureMapEnable(0);
         prim.AlphaBlendEnable(1);
-        prim.ZMask(-1);
-        prim.Begin(SCE_GS_PRIM_SPRITE);
+        prim.ZMask(MG_Z_MASK_MASKED);
+        prim.Begin(MG_PRIM_SPRITE);
         prim.Color(128, 128, 128, 128);
         top = mgScreenHeight - 40;
         if (free_ratio <= 0.0f) {
@@ -814,12 +814,12 @@ void mgEndFrame(mgCDrawManager *manager) {
     *(volatile u_long *) gs_display1 = (u_long) 0x290 | ((u_long) (offset_y + 72) << 12) | ((u_long) magnification << 23) | ((u_long) (mgScreenWidth * (magnification + 1) - 1) << 32) | ((u_long) (mgScreenHeight - 2) << 44);
     *(volatile u_long *) gs_dispfb2 = (u_long) frame->FBP | ((u_long) frame->FBW << 9) | ((u_long) frame->PSM << 15);
     *(volatile u_long *) gs_display2 = (u_long) 0x290 | ((u_long) (offset_y + 72) << 12) | ((u_long) magnification << 23) | ((u_long) (mgScreenWidth * (magnification + 1) - 1) << 32) | ((u_long) (mgScreenHeight - 2) << 44);
-    mgNowFrameRate = (u_int) (*(volatile u_int *) timer0_count - h_count) / 262.0f;
+    mgNowFrameRate = (*(volatile u_int *) timer0_count - h_count) / 262.0f;
     if (!(mgNowFrameRate - (float) mgFrameRate <= 1.0f)) {
         free_ratio = 0.0f;
         mgNowFrameRate = 1.0f + (float) mgFrameRate;
     } else {
-        free_ratio = 100.0f * ((u_int) (*(volatile u_int *) timer0_count - wait_start) / frame_ticks);
+        free_ratio = 100.0f * ((*(volatile u_int *) timer0_count - wait_start) / frame_ticks);
     }
     count++;
     if (count > 60 / mgFrameRate) {
@@ -1325,7 +1325,7 @@ void mgSetPkFrameBuffer(int fbp, int width, int height, int psm) {
     frame_tex.tex0.bits.th = height_shift;
     frame_tex.tex0.bits.tcc = 1;
     frame_tex.tex0.bits.tfx = 0;
-    *(u_long *) &frame_tex.tex1 = 0x261;
+    *(u_long *) &frame_tex.tex1 = SCE_GS_SET_TEX1(1, 0, 1, 1, 1, 0, 0);
 }
 
 void mgGetFrameBuffer(mgCTexture *texture) {
