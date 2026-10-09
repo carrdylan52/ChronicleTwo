@@ -1360,15 +1360,6 @@ enum EditCursorAttribute {
 
 /**
  *
- * Sound played when the cursor first snaps to a nearby part.
- *
- */
-enum EditCursorSound {
-    EDIT_SE_MAGNET = 21, /**< Acquires a magnet attachment. */
-};
-
-/**
- *
  * System messages for rejected Georama placement and paint requests.
  *
  */
@@ -1780,7 +1771,7 @@ void EditMode(CScene *scene) {
                                         }
                                     }
                                     if (MagnetPartsFlag != 0 && was_magnet == 0) {
-                                        sndSePlay(GetSystemSndID(), EDIT_SE_MAGNET, 0);
+                                        sndSePlay(GetSystemSndID(), SYSTEM_SE_MAGNET, 0);
                                     }
                                 }
                                 if (place_info->attr & EDIT_CURSOR_ATTR_MAGNET_HELP) {

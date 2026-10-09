@@ -28,6 +28,7 @@ enum SYSTEM_SE {
     SYSTEM_SE_DECIDE = 1,    /**< Accepts the current menu selection. */
     SYSTEM_SE_CANCEL = 5,    /**< Cancels or rejects the current menu selection. */
     SYSTEM_SE_WINDOW = 0x13, /**< Accompanies a menu window or panel being opened or switched. */
+    SYSTEM_SE_MAGNET = 0x15, /**< A Georama part first snaps to a nearby part. */
 };
 
 /**
