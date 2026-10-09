@@ -599,7 +599,7 @@ int CDngFloorManager::IsSealFloor(int floor) {
 }
 
 int CDngFloorManager::IsClearMostFastDestroy() {
-    DNG_BATTLE_AREA  *scene = (DNG_BATTLE_AREA *) menu_GetBattleAreaScene();
+    DNG_BATTLE_AREA  *scene = menu_GetBattleAreaScene();
     CSaveData        *save = GetSaveData();
     CSaveDataDungeon *dungeon = &save->save_dungeon;
 
@@ -635,7 +635,7 @@ int CDngFloorManager::IsClearMostFastDestroy() {
 
 int CDngFloorManager::IsClearPractice(int difficulty) {
     CSaveDataDungeon *dungeon = menu_GetSaveDataDungeon();
-    DNG_BATTLE_AREA  *scene = (DNG_BATTLE_AREA *) menu_GetBattleAreaScene();
+    DNG_BATTLE_AREA  *scene = menu_GetBattleAreaScene();
     int               floor = dungeon->floor_id[dungeon->stage_id];
     DNGMAP_ROOM_INFO *info = GetDngMapFloorInfo(floor);
     DNG_FLOOR_SAVE   *saved = dungeon->GetFloorInfoPtr(dungeon->stage_id, floor);
@@ -1199,7 +1199,7 @@ int CheckFishingRecord(float size) {
         return 0;
     }
 
-    floors = &((DNG_BATTLE_AREA *) menu_GetBattleAreaScene())->floor_manager;
+    floors = &menu_GetBattleAreaScene()->floor_manager;
     save_info = save->GetFloorInfoPtr(save->stage_id, save->floor_id[save->stage_id]);
     info = floors->GetDngMapFloorInfo(save->floor_id[save->stage_id]);
 

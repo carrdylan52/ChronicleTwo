@@ -39,6 +39,7 @@ class CUserDataManager;
 class ClsMes;
 class mgCDrawPrim;
 class mgCTexture;
+struct DNG_BATTLE_AREA;
 struct SV_CONFIG_OPTION;
 
 /**
@@ -339,7 +340,7 @@ CSaveDataDungeon *menu_GetSaveDataDungeon();
  * @address 0x234D10
  * @size 0x30
  */
-void *menu_GetBattleAreaScene();
+DNG_BATTLE_AREA *menu_GetBattleAreaScene();
 
 /**
  *

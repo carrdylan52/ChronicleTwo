@@ -799,7 +799,7 @@ CSaveDataDungeon *menu_GetSaveDataDungeon() {
     return NULL;
 }
 
-void *menu_GetBattleAreaScene() {
+DNG_BATTLE_AREA *menu_GetBattleAreaScene() {
     CScene *scene;
 
     scene = GetMainScene();
@@ -911,7 +911,7 @@ void DisablePadReset(int disable) {
     DNG_BATTLE_AREA *scene;
 
     if (GetNowLoopNo() == 2) {
-        scene = (DNG_BATTLE_AREA *) menu_GetBattleAreaScene();
+        scene = menu_GetBattleAreaScene();
 
         if (scene != NULL) {
             if (disable != 0) {
