@@ -818,7 +818,6 @@ static sceVu0FVECTOR      NowMainReadPosition;
  */
 static sceVu0FVECTOR      NowMainReadRotation;
 
-extern char              *tbl_1233[4];
 /**
  *
  * Darkened palette used by the party change ring.
@@ -1524,6 +1523,18 @@ void CMenuChrCngMenu::AttachForm() {
     }
 }
 void CMenuChrCngMenu::EnterDataMenu(u_char *pack) {
+    /**
+     *
+     * Part names of townsperson command point costs.
+     *
+     */
+    static char *tbl[CHR_CNG_NPC_COMMAND_NUM] = {
+        "sp0",
+        "sp1",
+        "sp2",
+        "sp3",
+    };
+
     int                 i;
     mgCTextureManager  *tex_manager = &mgTexManager;
     int                 block = tex_block[0];
@@ -1633,10 +1644,10 @@ void CMenuChrCngMenu::EnterDataMenu(u_char *pack) {
             npc_cmd_mes[0] = 10;
         }
         for (i = 0; i < npc_data->ability_num; i++) {
-            form->SetNumber(tbl_1233[i], npc_data->ability_cost[i]);
+            form->SetNumber(tbl[i], npc_data->ability_cost[i]);
         }
         for (; i < CHR_CNG_NPC_COMMAND_NUM; i++) {
-            form->SetPartDrawFlag(tbl_1233[i], 0);
+            form->SetPartDrawFlag(tbl[i], 0);
         }
     }
 }
@@ -7711,14 +7722,9 @@ s16 monster_progress_tbl[MONSTER_PROGRESS_NUM][1 + MONSTER_PROGRESS_LEVEL_NUM] =
     {9, 224, 236, 228, 240},
 };
 
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", tbl_1233__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_3481__DATA);
 
 // Constants (.rodata)
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_1234__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_1235__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_1236__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_1237__3__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_1361__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_2003__2__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_2004__3__DATA);

@@ -346,3 +346,14 @@ Receipts: `.private/nmchr-r3/menuchr-debug-one-at_2674`, `-at_2675`,
 `-{build,objects,progress,metrics}.log`. The last text conversion's original
 checks also pass; its validation-summary command failed independently, so
 `menuchr-debug-complete` supplies the complete final receipt.
+
+## Townsperson command cost parts
+
+The four cost-label pointers are a documented function-local static table in
+`EnterDataMenu`, using the retail base name `tbl`. Its four inline child
+literals generate the exact `tbl_1233` pointer destinations. This natural
+scope replaces the earlier rejected file-scope probe without adding a helper
+or changing the caller's instructions.
+After this step: **56 / 13 markers**, **123 / 9726 matched_data**.
+PAL, all 149 objects, unowned hashes and frozen-source hashes pass; receipts
+are `.private/nmchr-r3/menuchr-scoped-party-table-{build,objects,progress,metrics}.log`.
