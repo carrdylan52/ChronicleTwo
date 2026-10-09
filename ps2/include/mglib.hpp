@@ -408,13 +408,6 @@ extern MG_PICKZ mgPickZBuff[4];
 
 /**
  *
- * Aligned pixel storage for deferred depth-buffer samples.
- *
- */
-extern u_long128 store_data_614[256];
-
-/**
- *
  * GS read-back packet used for frame captures.
  *
  */

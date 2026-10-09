@@ -186,6 +186,26 @@ static const u_int timer0_mode = 0x10000010;
  */
 static const u_int gs_csr = 0x12001000;
 /**
+ * GS PMODE register selecting and blending the display read circuits.
+ */
+static const u_int gs_pmode = 0x12000000;
+/**
+ * GS DISPFB1 register addressing the frame buffer of read circuit 1.
+ */
+static const u_int gs_dispfb1 = 0x12000070;
+/**
+ * GS DISPLAY1 register positioning the display area of read circuit 1.
+ */
+static const u_int gs_display1 = 0x12000080;
+/**
+ * GS DISPFB2 register addressing the frame buffer of read circuit 2.
+ */
+static const u_int gs_dispfb2 = 0x12000090;
+/**
+ * GS DISPLAY2 register positioning the display area of read circuit 2.
+ */
+static const u_int gs_display2 = 0x120000A0;
+/**
  * DMA CALL tag linking a VU1 microprogram upload packet.
  */
 static const u_int dma_tag_call = 0x50000000;
@@ -666,25 +686,24 @@ void mgEndDraw(int mode, mgCDrawManager *manager) {
 void mgStoreFrameImage() {
     StoreImage(0);
 }
-#ifdef NONMATCHING
 void mgEndFrame(mgCDrawManager *manager) {
     float frame_ticks = (float) (mgFrameRate * 262);
     static int       count = 1;
     static float     cpu_ratio = 0.0f;
     static float     free_ratio = 0.0f;
-    static u_long128 store_data[256];
+    static u_int     store_data[1024];
     sceGsFrame      *frame;
     float            packet_free;
     float            data_free;
     int              wait_start;
     int              sample;
     int              top;
-    u_long           display_position;
     int              magnification;
+    int              offset_y;
 
-    cpu_ratio = 100.0f * ((u_int) (*(volatile u_int *) 0x10000000 - h_count) / frame_ticks);
+    cpu_ratio = 100.0f * ((u_int) (*(volatile u_int *) timer0_count - h_count) / frame_ticks);
     mgWaitFrame();
-    wait_start = *(volatile u_int *) 0x10000000;
+    wait_start = *(volatile u_int *) timer0_count;
     if (draw_performance_meter != 0) {
         packet_free = 100.0f * (float) (mgDrawManager.packet_memory->stack_size - mgDrawManager.packet_memory->stack_used) / (float) mgDrawManager.packet_memory->stack_size;
         data_free = 100.0f * (float) (mgDrawManager.data_memory->stack_size - mgDrawManager.data_memory->stack_used) / (float) mgDrawManager.data_memory->stack_size;
@@ -737,12 +756,14 @@ void mgEndFrame(mgCDrawManager *manager) {
                 sceGsStoreImage store_image;
                 sceGsSetDefStoreImage(&store_image, mgZBUF_1.bits.zbp * 2048 / 64, mgScreenWidth / 64, 0x30, mgPickZBuff[sample].x - 4, mgPickZBuff[sample].y - 4, 8, 8);
                 FlushCache(0);
-                sceGsExecStoreImage(&store_image, store_data);
+                sceGsExecStoreImage(&store_image, (u_long128 *) store_data);
                 sceGsSyncPath(0, 0);
-                int depth = ((u_int *) store_data)[0] & 0xFFFFFF;
+                u_int *const pixels = store_data;
+                u_int depth = pixels[0];
+                depth &= 0xFFFFFF;
                 for (int pixel = 0; pixel < 64; pixel++) {
-                    if ((int) (((u_int *) store_data)[pixel] & 0xFFFFFF) < depth) {
-                        depth = ((u_int *) store_data)[pixel] & 0xFFFFFF;
+                    if ((int) (pixels[pixel] & 0xFFFFFF) < (int) depth) {
+                        depth = pixels[pixel] & 0xFFFFFF;
                     }
                 }
                 mgPickZBuff[sample].z = depth;
@@ -776,43 +797,37 @@ void mgEndFrame(mgCDrawManager *manager) {
     if (mgAntialiasing != 0) {
         mgDBuff.disp[mgDBuffID].pmode = 0x7F23;
     } else {
-        *(volatile u_long *) 0x12000000 = 0xFF23;
+        *(volatile u_long *) gs_pmode = 0xFF23;
         mgDBuff.disp[mgDBuffID].pmode = 0xFF23;
     }
     *(u_long *) &mgDBuff.disp[mgDBuffID].bgcolor = 0;
     *(u_long *) &mgDBuff.disp[mgDBuffID].smode2 = 1;
     frame = mgDBuffID != 0 ? &mgDBuff.draw1.frame1 : &mgDBuff.draw0.frame1;
-    magnification = 3;
-    if (mgScreenWidth == 512) {
-        magnification = 4;
-    }
-    display_position = 0x290 | ((u_long) ((524 - mgScreenHeight) / 2 + 72) << 12) | ((u_long) magnification << 23);
+    magnification = mgScreenWidth == 512 ? 4 : 3;
+    offset_y = (524 - mgScreenHeight) / 2;
     *(u_long *) &mgDBuff.disp[mgDBuffID].dispfb = (u_long) frame->FBP | ((u_long) frame->FBW << 9) | ((u_long) frame->PSM << 15);
-    *(u_long *) &mgDBuff.disp[mgDBuffID].display = display_position | ((u_long) (mgScreenWidth * (magnification + 1) - 1) << 32) | ((u_long) (mgScreenHeight - 1) << 44);
+    *(u_long *) &mgDBuff.disp[mgDBuffID].display = (u_long) 0x290 | ((u_long) (offset_y + 72) << 12) | ((u_long) magnification << 23) | ((u_long) (mgScreenWidth * (magnification + 1) - 1) << 32) | ((u_long) (mgScreenHeight - 1) << 44);
     FlushCache(0);
     sceGsSwapDBuff(&mgDBuff, mgDBuffID);
     sceDmaSync(DmaCH2, 0, 0);
-    *(volatile u_long *) 0x12000070 = (u_long) frame->FBP | ((u_long) frame->FBW << 9) | ((u_long) frame->PSM << 15) | ((u_long) 0x800 << 32);
-    *(volatile u_long *) 0x12000080 = display_position | ((u_long) (mgScreenWidth * (magnification + 1) - 1) << 32) | ((u_long) (mgScreenHeight - 2) << 44);
-    *(volatile u_long *) 0x12000090 = (u_long) frame->FBP | ((u_long) frame->FBW << 9) | ((u_long) frame->PSM << 15);
-    *(volatile u_long *) 0x120000A0 = display_position | ((u_long) (mgScreenWidth * (magnification + 1) - 1) << 32) | ((u_long) (mgScreenHeight - 2) << 44);
-    mgNowFrameRate = (u_int) (*(volatile u_int *) 0x10000000 - h_count) / 262.0f;
+    *(volatile u_long *) gs_dispfb1 = (u_long) frame->FBP | ((u_long) frame->FBW << 9) | ((u_long) frame->PSM << 15) | ((u_long) 1 << 43);
+    *(volatile u_long *) gs_display1 = (u_long) 0x290 | ((u_long) (offset_y + 72) << 12) | ((u_long) magnification << 23) | ((u_long) (mgScreenWidth * (magnification + 1) - 1) << 32) | ((u_long) (mgScreenHeight - 2) << 44);
+    *(volatile u_long *) gs_dispfb2 = (u_long) frame->FBP | ((u_long) frame->FBW << 9) | ((u_long) frame->PSM << 15);
+    *(volatile u_long *) gs_display2 = (u_long) 0x290 | ((u_long) (offset_y + 72) << 12) | ((u_long) magnification << 23) | ((u_long) (mgScreenWidth * (magnification + 1) - 1) << 32) | ((u_long) (mgScreenHeight - 2) << 44);
+    mgNowFrameRate = (u_int) (*(volatile u_int *) timer0_count - h_count) / 262.0f;
     if (!(mgNowFrameRate - (float) mgFrameRate <= 1.0f)) {
         free_ratio = 0.0f;
         mgNowFrameRate = 1.0f + (float) mgFrameRate;
     } else {
-        free_ratio = 100.0f * ((u_int) (*(volatile u_int *) 0x10000000 - wait_start) / frame_ticks);
+        free_ratio = 100.0f * ((u_int) (*(volatile u_int *) timer0_count - wait_start) / frame_ticks);
     }
     count++;
-    if (60 / mgFrameRate < count) {
+    if (count > 60 / mgFrameRate) {
         count = 0;
     }
     mgSendPacket(NULL);
     mgDBuffID = !mgDBuffID;
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/mglib", mgEndFrame__FP14mgCDrawManager);
-#endif
 void mgSendPacket(mgCDrawManager *manager) {
     DmaCH1 = sceDmaGetChan(MG_DMA_CHANNEL_VIF1);
     DmaCH1->chcr.TTE = 1;
@@ -1942,27 +1957,27 @@ sceGsFrame mgFRAME_1;
 /**
  * Frame counter used by the frame-end performance meter.
  */
-static int count_580;
+INCLUDE_BSS(count_580, 0x4);
 /**
  * Initialization flag for the performance-meter frame counter.
  */
-static u_char init_581;
+INCLUDE_BSS(init_581, 0x4);
 /**
  * CPU utilization percentage recorded by the frame-end performance meter.
  */
-static float cpu_ratio_583;
+INCLUDE_BSS(cpu_ratio_583, 0x4);
 /**
  * Initialization flag for the CPU utilization percentage.
  */
-static u_char init_584;
+INCLUDE_BSS(init_584, 0x4);
 /**
  * Idle-time percentage recorded by the frame-end performance meter.
  */
-static float free_ratio_586;
+INCLUDE_BSS(free_ratio_586, 0x4);
 /**
  * Initialization flag for the idle-time percentage.
  */
-static u_char init_587;
+INCLUDE_BSS(init_587, 0x4);
 int ddraw_size;
 /**
  * Frame-capture sequence number initialized by StoreImage.
@@ -1978,5 +1993,5 @@ sceGifTag mgGiftagAD;
 sceVu0FVECTOR mgBackColor;
 sceGsDBuff mgDBuff;
 MG_PICKZ mgPickZBuff[4];
-u_long128 store_data_614[256];
+INCLUDE_BSS(store_data_614, 0x1000);
 INCLUDE_BSS(gs_simage, 0xA0);
