@@ -331,3 +331,13 @@ MenuInventKey remains at 8/524 words and all seven inventory guards remain.
 local-data, index-width, initialization-order and compiler-control probes.
 MenuInventKey and ResetAddress remain at 8/524 and 13/48 words; no source
 change or promotion is retained.
+
+## Japanese name-length table ownership
+
+`jp_conv_lentbl_2835` remains supplied by the ordered assembly data block,
+including the referenced interior split label `D_003532DF`. The source uses
+an external declaration rather than a shadowed initializer. Removing only
+the table's two assembly pieces shifts surrounding data and leaves the
+`scoop_table` and `menu_scoop_str_tag` references unresolved; migration must
+cover the surrounding ordered block. The declaration preserves the complete
+PAL object and executable match.

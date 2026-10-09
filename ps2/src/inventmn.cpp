@@ -2854,7 +2854,7 @@ extern short       sndtimetbl_2868[2];
  * Gives the byte offset of a masked Japanese character for each name length.
  *
  */
-static s8 jp_conv_lentbl_2835[12] = {2, 2, 2, 4, 4, 8, 6, 4, 6, 14, 10, 6};
+extern s8 jp_conv_lentbl_2835[12];
 extern float       eff_light_2927[4];
 
 #pragma inline_depth(5)
