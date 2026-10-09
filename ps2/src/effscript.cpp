@@ -267,8 +267,16 @@ EFF_SPT_BASE_DEF eff_spt_base_def[EFF_SPT_BASE_DEF_NUM] = {
     {"", EFF_SPT_BASE_END, "", ""},
 };
 
-extern "C" _EFF_SCRIPT *now_script;
-extern "C" int (*ext_func__4[256])(RS_STACKDATA *, int);
+/**
+ * Effect script whose external commands are being executed.
+ */
+static _EFF_SCRIPT *now_script;
+
+/**
+ * Dispatch slots for effect script external commands.
+ */
+static int (*ext_func__4[256])(RS_STACKDATA *, int);
+
 extern CColPrimMan     ColPrimMan;
 EFF_SPT_BASE_DEF      *GetEffSptBaseDefPtr(int index);
 int                    SetEffectScript(CRunScript *script, char *program, mgCMemory *memory);
@@ -5736,10 +5744,9 @@ INCLUDE_RODATA("ps2/asm/pal/nonmatchings/effscript", at_3644__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/effscript", at_3645__DATA);
 
 // Small uninitialised data (.sbss)
-INCLUDE_BSS(now_scene, 0x4);
-INCLUDE_BSS(EffScriptMan, 0x4);
-INCLUDE_BSS(now_script, 0x4);
+CScene *now_scene;
+
+CEffectScriptMan *EffScriptMan;
 
 // Uninitialised data (.bss)
-INCLUDE_BSS(ext_func__4, 0x400);
 INCLUDE_BSS(at_2067, 0x10);

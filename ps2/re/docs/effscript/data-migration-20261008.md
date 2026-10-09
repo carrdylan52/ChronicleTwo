@@ -8,3 +8,9 @@ The refreshed starting unit contains 33 initialized-data markers and five BSS ma
 
 Accepted steps: `base-definitions`. Each has full PAL, 149-object and unowned raw-object hash receipts under `.private/dataA-r3/eff-<topic>-{build,objects,hashes}.log`.
 
+## Define typed effect script command storage
+
+`now_scene` and `EffScriptMan` are global pointers to the active scene and effect manager. `now_script` is a file-local pointer to the script executing external commands. `ext_func__4` is a mutable file-local array of 256 correctly typed `int (RS_STACKDATA *, int)` callbacks (0x400 bytes). Its retail spelling remains available to the guarded `CreateEffSpt` assembly and its unchanged draft. Definitions preserve existing header declarations and global linkage.
+
+Accepted steps: `storage`. Each has full PAL, 149-object and unowned raw-object hash receipts under `.private/dataA-r3/eff-<topic>-{build,objects,hashes}.log`.
+
