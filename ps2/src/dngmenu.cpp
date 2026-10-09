@@ -131,6 +131,30 @@ static CMenuTreeMap *CMenuTreePt;
 /** Message windows belonging to the active tree map. */
 static CDC2Mes *MenuDngMes[DNG_TREE_MAP_MES_MAX];
 
+/** Phase of the floor-seal opacity pulse. */
+static float AlphaRate_1743;
+
+/** Indicates that the seal pulse phase has been initialized. */
+static s8 init_1744;
+
+/** Previous tree-map navigation direction. */
+static int old_direction_2830;
+
+/** Indicates that the previous navigation direction has been initialized. */
+static s8 init_2831;
+
+/** Previously selected tree-map cell. */
+static GLID_INFO *old_glid_2833;
+
+/** Indicates that the previous selected cell has been initialized. */
+static s8 init_2834;
+
+/** Destination cell selected for floor travel. */
+static GLID_INFO *NextFloorGlid_2836;
+
+/** Indicates that the destination cell has been initialized. */
+static s8 init_2837;
+
 // Code (.text)
 void CDngFreeMap::Initialize() {
     active = 1;
@@ -2897,14 +2921,6 @@ INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dngmenu", at_3043__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dngmenu", at_3164__DATA);
 
 // Small uninitialised data (.sbss)
-INCLUDE_BSS(AlphaRate_1743, 0x4);
-INCLUDE_BSS(init_1744, 0x4);
-INCLUDE_BSS(old_direction_2830, 0x4);
-INCLUDE_BSS(init_2831, 0x4);
-INCLUDE_BSS(old_glid_2833, 0x4);
-INCLUDE_BSS(init_2834, 0x4);
-INCLUDE_BSS(NextFloorGlid_2836, 0x4);
-INCLUDE_BSS(init_2837, 0x4);
 INCLUDE_BSS(at_3040__2, 0x4);
 INCLUDE_BSS(at_3145, 0x8);
 INCLUDE_BSS(at_3199, 0x8);

@@ -25,3 +25,10 @@ This step removes 29 BSS markers (99 / 13 remain). Data coverage remains
 
 Receipts: `.private/nminv-r2/warm-build.log`, `warm-objects.log`,
 `dng-state-build.log`, and `dng-state-objects.log`.
+
+The seal pulse phase and the tree-step direction, previous cell, destination
+cell, and four signed-byte initialization flags also have typed static
+storage. They retain their retail symbol spellings because guarded assembly
+refers to those symbols directly. This removes eight more BSS markers;
+99 / 5 remain. `dng-local-state-build.log` and
+`dng-local-state-objects.log` confirm the full PAL and 149/149 objects.
