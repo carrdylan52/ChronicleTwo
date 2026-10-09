@@ -1021,20 +1021,6 @@ static char *tbl_3725[MOS_SELECT_BADGE_NUM] = {
  */
 static int              menu_debug_select__2;
 
-/**
- *
- * Class-change monster chosen in the monster menu's growth list.
- *
- */
-static int select_monster_save_3371;
-
-/**
- *
- * Indicates that the class-change monster choice has been initialized.
- *
- */
-static s8 init_3372__2;
-
 int                     CosutmeSelDefaultSet(int costume_id, short *costume_list);
 
 /**
@@ -4389,53 +4375,57 @@ int CMenuMosSelect::KeyStep() {
                                 step = 0;
                             }
                             break;
-                        case 10: {
-                            if (!init_3372__2) {
-                                init_3372__2 = 1;
-                                select_monster_save_3371 = 0;
-                            }
-                            int oldSelect = BuildUpWeaponInfo.select_no;
-                            if (keys & MENU_SELECT_KEY_UP) {
-                                BuildUpWeaponInfo.select_no = oldSelect - 1;
-                            }
-                            if (keys & MENU_SELECT_KEY_DOWN) {
-                                BuildUpWeaponInfo.select_no++;
-                            }
-                            if (BuildUpWeaponInfo.select_no < 0) {
-                                BuildUpWeaponInfo.select_no = 0;
-                            }
-                            if (BuildUpWeaponInfo.select_num <= BuildUpWeaponInfo.select_no) {
-                                BuildUpWeaponInfo.select_no = BuildUpWeaponInfo.select_num - 1;
-                            }
-                            if (oldSelect != BuildUpWeaponInfo.select_no) {
-                                MenuSePlay(0);
-                            }
-                            switch (buttons) {
-                                case MENU_PUSH_BUTTON_DECIDE: {
-                                    select_monster_save_3371 = BuildUpWeaponInfo.select_no;
-                                    step = 11;
-                                    ExeScript("\x83\x4E\x83\x89\x83\x58\x83\x60\x83\x46\x83\x93\x83\x57\x81\x48");
-                                    mes_show = 1;
-                                    mes.MsgPreset(0xB);
-                                    mes.ClsMes::mes_no = -1;
-                                    char *name = GetMonsterName(level_monster[select_monster_save_3371]);
-                                    if (name != NULL) {
-                                        strcpy(mes.name[0], name);
-                                    }
-                                    mes.SetAbsPos(5);
-                                    mes.MakeMsg(0x1D8);
-                                    mes.SetMsgCursor(1);
-                                    break;
+                        case 10:
+                            /**
+                             *
+                             * Class-change monster chosen in the growth list, kept for the change steps.
+                             *
+                             */
+                            static int select_monster_save = 0;
+
+                            {
+                                int oldSelect = BuildUpWeaponInfo.select_no;
+                                if (keys & MENU_SELECT_KEY_UP) {
+                                    BuildUpWeaponInfo.select_no = oldSelect - 1;
                                 }
-                                case MENU_PUSH_BUTTON_CANCEL:
-                                    step = 0;
-                                    ExeScript("\x83\x4E\x83\x89\x83\x58\x83\x60\x83\x46\x83\x93\x83\x57" "2OFF");
-                                    MenuSePlay(5);
-                                    BuildUpWeaponInfo.mode = 0;
-                                    break;
+                                if (keys & MENU_SELECT_KEY_DOWN) {
+                                    BuildUpWeaponInfo.select_no++;
+                                }
+                                if (BuildUpWeaponInfo.select_no < 0) {
+                                    BuildUpWeaponInfo.select_no = 0;
+                                }
+                                if (BuildUpWeaponInfo.select_num <= BuildUpWeaponInfo.select_no) {
+                                    BuildUpWeaponInfo.select_no = BuildUpWeaponInfo.select_num - 1;
+                                }
+                                if (oldSelect != BuildUpWeaponInfo.select_no) {
+                                    MenuSePlay(0);
+                                }
+                                switch (buttons) {
+                                    case MENU_PUSH_BUTTON_DECIDE: {
+                                        select_monster_save = BuildUpWeaponInfo.select_no;
+                                        step = 11;
+                                        ExeScript("\x83\x4E\x83\x89\x83\x58\x83\x60\x83\x46\x83\x93\x83\x57\x81\x48");
+                                        mes_show = 1;
+                                        mes.MsgPreset(0xB);
+                                        mes.ClsMes::mes_no = -1;
+                                        char *name = GetMonsterName(level_monster[select_monster_save]);
+                                        if (name != NULL) {
+                                            strcpy(mes.name[0], name);
+                                        }
+                                        mes.SetAbsPos(5);
+                                        mes.MakeMsg(0x1D8);
+                                        mes.SetMsgCursor(1);
+                                        break;
+                                    }
+                                    case MENU_PUSH_BUTTON_CANCEL:
+                                        step = 0;
+                                        ExeScript("\x83\x4E\x83\x89\x83\x58\x83\x60\x83\x46\x83\x93\x83\x57" "2OFF");
+                                        MenuSePlay(5);
+                                        BuildUpWeaponInfo.mode = 0;
+                                        break;
+                                }
+                                break;
                             }
-                            break;
-                        }
                         case 11: {
                             int answer = mes.YesNoCursor2(0);
                             if (answer == 1 && ReadBGSync() == 0) {
@@ -4496,7 +4486,7 @@ int CMenuMosSelect::KeyStep() {
                                 if (effect_frame == 10) {
                                     load_phase = 0;
                                     select_badge->class_level++;
-                                    select_badge->monster_id = level_monster[select_monster_save_3371];
+                                    select_badge->monster_id = level_monster[select_monster_save];
                                     view_monster = select_badge->monster_id;
                                     select_badge->progress =
                                         GetMonsterProgressTableNo(select_badge->class_level, select_badge->monster_id);
@@ -4513,7 +4503,7 @@ int CMenuMosSelect::KeyStep() {
                                 ExeScript("\x83\x4E\x83\x89\x83\x58\x83\x60\x83\x46\x83\x93\x83\x57\x8F\x49\x97\xB9MSG");
                                 MenuSePlay(0x1E);
                                 char *grown[1] = {NULL};
-                                grown[0] = GetMonsterName(level_monster[select_monster_save_3371]);
+                                grown[0] = GetMonsterName(level_monster[select_monster_save]);
                                 info->SetMsgItemNo(grown, 1);
                             }
                             break;

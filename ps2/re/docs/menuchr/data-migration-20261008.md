@@ -491,8 +491,8 @@ static and guard are native (see the last two sections).
 | `init_1416` | BSS | `0x0037E248` | 1 | Local static/initialization guard in frozen ChrCng::KeyChangeMain. |
 | `at_1650__2` | BSS | `0x0037E24C` | 4 | Literal/local initializer in frozen ChrCng::KeyChangeMain. |
 | `at_1684__2` | BSS | `0x0037E250` | 8 | Literal/local initializer in frozen ChrCng::KeyChangeMain. |
-| `select_monster_save_3371` | BSS | `0x0037E298` | 4 | Local static/initialization guard in frozen MosSelect::KeyStep. |
-| `init_3372__2` | BSS | `0x0037E29C` | 1 | Local static/initialization guard in frozen MosSelect::KeyStep. |
+| `select_monster_save_3371` | BSS | `0x0037E298` | 4 | Function static and its initialization guard in MosSelect::KeyStep. |
+| `init_3372__2` | BSS | `0x0037E29C` | 1 | Function static and its initialization guard in MosSelect::KeyStep. |
 | `at_3412` | BSS | `0x0037E2A0` | 4 | Literal/local initializer in frozen MosSelect::KeyStep. |
 | `at_3440` | BSS | `0x0037E2A4` | 4 | Literal/local initializer in frozen MosSelect::KeyStep. |
 | `D_01F3C7FC` | BSS | `0x01F3C7FC` | 4-byte piece | Distinct four-byte BSS piece; omission shifts later objects (tooling). |
@@ -536,11 +536,11 @@ objects (`menuchr: 0x11C9F bytes, 3835 relocations`); coverage 6,788 matched /
 `.private/regsim-r0/ks-data-{build,objects,progress,coverage}.log`.
 
 KeyStep's function static `select_monster_save$3371` (4 bytes) and its guard
-`init$3372` (1 byte, `0x37E29C`) then become documented file-scope statics
-ahead of the function with the guard written out in step 10, and their two
-BSS markers are gone. They stay at file scope because steps 12 and 13 read
-the static outside step 10's block, where retail's guard sits (see
-[the round-three review fixes](review-fixes-r3-20261009.md)).
+`init$3372` (1 byte, `0x37E29C`) are the function static
+`select_monster_save`, declared after `case 10:` in the step switch so that
+steps 12 and 13 see it (see
+[the round-three review fixes](review-fixes-r3-20261009.md)); their two BSS
+markers are gone.
 The unit's BSS layout is unchanged: whole build `SCES_511.90: OK`, 149/149
 (`menuchr: 0x11C9F bytes, 3835 relocations`). Markers: **36**. Receipts:
 `.private/regsim-r0/ks-static-{build,objects}.log`.
