@@ -37,7 +37,6 @@ union PartsVector {
     u_long128 quad;      /**< The same components as one quadword. */
 };
 
-extern char at_244[];
 #include <libvu0.h>
 
 #include <cmath>
@@ -951,8 +950,7 @@ void CMapTreasureBox::GetWorldPosition(float *out_position) {
 }
 
 void CCharacter2::SetPosition(float x, float y, float z) {
-    float new_position[4];
-    *(u_long128 *) new_position = *(u_long128 *) at_244;
+    float new_position[4] = {0.0f, 0.0f, 0.0f, 1.0f};
     new_position[0] = x;
     new_position[1] = y;
     new_position[2] = z;
@@ -961,10 +959,8 @@ void CCharacter2::SetPosition(float x, float y, float z) {
 }
 
 // Initialised data (.data)
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mapparts", at_244__DATA);
 
 // Virtual tables (.vtables)
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mapparts", __vt__15CMapTreasureBox__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mapparts", __vt__17CList_9CObjAnime___DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mapparts", __vt__9CMapParts__DATA);
 
