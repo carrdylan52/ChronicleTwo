@@ -99,10 +99,12 @@ reference boundaries, so an alignment tail cannot swallow a separately
 referenced word. Referenced interior addresses and explicit `D_<address>` source identifiers
 remain separate piece boundaries. Every game C++ source is a split prerequisite,
 so adding or removing an identifier refreshes other units' cuts before linking.
-A negative-addend table access cannot bind the table to a placeholder for the preceding word; its native identity and
-original addend remain intact. If the table itself has a retained placeholder,
-that exact base may supply it while preserving the negative addend. Binding
-only repoints equal-offset symbols; native instruction fields remain unchanged.
+A negative-addend table access cannot bind the table to a placeholder for the
+preceding word. Its original addend remains intact, and an established native
+name must agree with the inferred retail base. If the table itself has a
+retained placeholder, that base may supply it while preserving the negative
+addend. Binding only repoints equal-offset symbols; native instruction fields
+remain unchanged.
 Every incoming reference must infer the same exact placeholder base, with the
 retail relocation kind and non-immediate operands. Initialized copies require
 resolved native bytes and the complete real relocation shape to equal retail;

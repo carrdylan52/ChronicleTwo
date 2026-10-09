@@ -33,13 +33,38 @@ class LocalDataTests(unittest.TestCase):
                   ('.bss' if nobits else '.data', 0x3000, 0x3010)])
         return elf, rows, words, retail, lay
 
-    def apply(self, fixture):
+    def apply(self, fixture, placeholders=None):
         elf, rows, _words, retail, lay = fixture
         with patch.object(p.layout, 'Layout', return_value=lay), \
              patch.object(p.layout, 'read_symbols', return_value=rows), \
              patch.object(p.layout, 'Retail', return_value=retail), \
              patch.object(p, 'rename_shared_names'):
-            return p.bind_local_data(elf, 'unit', {3})
+            return p.bind_local_data(elf, 'unit', {3} if placeholders is None else placeholders)
+
+    def test_negative_addend_preserves_the_named_table_identity(self):
+        for destination, dropped, target in ((0x2ffc, ['A'], 2), (0x300c, [], 1)):
+            with self.subTest(destination=destination):
+                fixture = self.fixture(nobits=True, pair=True)
+                elf, rows, words, _retail, lay = fixture
+                elf.symtab.symbols[1].name = elf.symtab.symbols[2].name = 'A'
+                rows[-1] = (0x3000, 'A', 16, False)
+                rows.append((0x3010, 'B', 16, False))
+                elf.sections[3].name = '.bss'
+                elf.sections[3].sh_type = p.SHT_NOBITS
+                elf.sections[3].data = b''
+                elf.sections.append(NS(name='.bss', sh_type=p.SHT_NOBITS,
+                                       sh_flags=3, sh_name=0, sh_size=16, data=b''))
+                elf.symtab.symbols.append(symbol('B', 4, 16, bind=1))
+                lay.sections = lambda unit: [('.text', 0x1000, 0x1100),
+                                              ('.bss', 0x3000, 0x3020)]
+                code = struct.pack('<II', 0x3c020000, 0x2442fffc)
+                elf.sections[1].data = code
+                words[0x1004] = 0x24420000 | destination
+                self.assertEqual(self.apply(fixture, {3, 4}), dropped)
+                self.assertEqual(elf.sections[1].data, code)
+                self.assertEqual(elf.sections[2].name == p.DEAD, bool(dropped))
+                self.assertTrue(all(entry.symbol_index == target
+                                    for entry in elf.relocations[0].relocations))
 
     def reject(self, fixture):
         elf = fixture[0]

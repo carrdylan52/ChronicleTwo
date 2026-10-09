@@ -364,8 +364,9 @@ def bind_named_static_bss(elf, unit, placeholder_sections):
 
 
 def bind_local_data(elf, unit, placeholder_sections):
-    """Point compiled code at the placeholders of the data it uses.
+    """Point compiled code at verified placeholders for the data it uses.
 
+    Every incoming reference must agree with any established native identity.
     Returns the names of the compiler's copies that were dropped.
     """
     lay = layout.Layout(ROOT / layout.YAML)
@@ -478,6 +479,10 @@ def bind_local_data(elf, unit, placeholder_sections):
                   and symbol.type != STT_SECTION]
         if (not size or len(owners) != 1 or owners[0].type != STT_OBJECT
                 or owners[0].st_value or owners[0].st_size != size):
+            checked[index] = False
+            return False
+        identity = address_of(project_name(owners[0].name), names)
+        if identity is not None and identity != start:
             checked[index] = False
             return False
         entries = [entry for record in elf.relocations if record.sh_info == index
