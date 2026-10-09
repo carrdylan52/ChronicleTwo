@@ -229,3 +229,21 @@ Each row names one remaining marker; marker suffix `__DATA` is omitted.
 | `at_3765` (BSS) | Confirmation buffer template; natural scope/value-initialization probes fail matching. |
 | `at_5642` (BSS) | Frozen local zero template. |
 | `at_2776` (BSS) | Frozen local zero template. |
+
+## Pointer-table identity anchor
+
+The scoop-handler table is now native and matches. Its earlier failure
+was a temporary projected-name collision, not a table-layout problem:
+adding the handler literal shifts the PushKey switch to compiler name
+`@3509` (48-byte RODATA). Before that switch is identified as `at_5560`,
+its projected name blocks the eight-byte gift template's `at_3509`
+identity. One missing BSS piece then causes the canonical checker to
+leave that entire section run unresolved.
+
+Retaining only `INCLUDE_BSS(at_3509, 0x8)` anchors the gift template while
+its natural local initializer remains unchanged. No table type, handler
+body, declaration placement or tool is altered to bypass the problem.
+The scoop table and literal remove two RODATA markers. Current inventory
+checkpoint: 104 / 5, matched data 36 / 18656. The raw native switch and
+fixed object are saved privately; `invent-pointer-anchor-{build,objects}.log`
+verifies PAL OK and 149/149 objects.

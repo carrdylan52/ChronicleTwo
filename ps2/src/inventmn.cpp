@@ -448,7 +448,6 @@ struct InventCommandList {
 int                       MenuInventDebugKey();
 void                      MenuInventDebugDraw();
 
-extern SPI_TAG_PARAM  menu_scoop_str_tag[];
 extern SPI_TAG_PARAM  pic_tag[];
 /** Icon prefixes used by invention idea names. */
 static char *addstringtable_1722[3] = {
@@ -1358,6 +1357,12 @@ int _SCOOP_STR(SPI_STACK *stack, int unused) {
 
     return 1;
 }
+
+/** Script handlers used to load scoop descriptions. */
+static SPI_TAG_PARAM menu_scoop_str_tag[2] = {
+    {"STR", _SCOOP_STR},
+    {NULL, NULL}
+};
 
 void AnalyzeScoopString(mgCMemory *stack, char *script, int size) {
     InitScoopString();
@@ -7270,7 +7275,6 @@ void MenuInventDraw() {
 }
 
 // Initialised data (.data)
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", menu_scoop_str_tag__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", pic_tag__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", invent_teigi_func__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", Tb_2819__DATA);
@@ -7280,7 +7284,6 @@ INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", wavname_2960__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", NewComer_5648__DATA);
 
 // Constants (.rodata)
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_1537__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_1655__2__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_1656__2__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_1947__DATA);
@@ -7384,6 +7387,7 @@ INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", getfilename_2928__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", sndfileName_2951__DATA);
 
 // Small uninitialised data (.sbss)
+INCLUDE_BSS(at_3509, 0x8);
 INCLUDE_BSS(at_3739, 0x8);
 INCLUDE_BSS(at_3765, 0x8);
 INCLUDE_BSS(at_5642, 0x8);
