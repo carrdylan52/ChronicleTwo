@@ -576,3 +576,43 @@ Rust configuration tests already pass, and pn15's production wrapper remains
 byte-identical to pn14. The stronger global request4-all alternative above
 still records 25 guarded gains /0 matched regressions and its actual name
 filter limitation; the new scoped acceptance does not revise that result.
+
+## Accepted thirty-four-caller source group
+
+`CMapParts::Copy` adds one actual class6 CList<CMapPiece> scalar root and
+one expected-one after-inline row beside this unit's animation-binding row.
+Its real implicit assignment preserves derived destination vptrs; its
+collision-type-zero piece traversal and typed list append use existing
+authored constructors and Copy APIs. The sole natural source correction
+after the twelve-word scoped result initializes the real output-list head
+before the real source cursor. No extra local, operation, field store,
+helper, padding, type pun or generated-member body is introduced. Native
+body 0x6ac/extent0x6b0 and all 20 actual relocation targets are exact.
+
+Production34 has 34 manually promoted callers /44 eligible constructions
+in 21 units. The canonical pn15 game build passes PAL verification and
+149/149 complete resolved units. Mapparts is 0x230c bytes /264 relocations;
+all 306 assembled and 149 source-only objects outside the 21 promoted units
+remain byte-identical to upstream. Game/main SHA-256 remains
+`a103b0461a88e443a3af684cf150c05b5bd355e5a97ab2dc029c4d872bed0811`,
+length 2608512/base0x100000/end0x01f64a00. Refreshed coverage is 6,783 matched /
+82 guarded /7 assembly-only /0 fuzzy; mapparts has no remaining fallback.
+
+Receipts are `.private/pntc/receipts/promote-thirty-four-{build,objects,artifacts,progress,coverage}`
+with zero exits, artifact JSON and `.private/pntc/promote34/acceptance.json`.
+The exact immutable accepted executable and its full ELF/main/symbol facts
+are separately captured in `promote34/SCES_511.90` and `image-snapshot.json`.
+The [owning Copy note](../mapparts/placement-new-copy-natural-20261009.md)
+records normal identities, real 246/before247/after12/zero controls, full
+unit/data/metadata audits and the unowned comment-only actual-size proposal.
+The new source/profile is byte-identical to the frozen private zero specimen.
+
+The separate derived Fix/Motion Copy pair also has genuine private zeros
+and passes 149 canonical private wrappers, preserving all 147 raw objects
+outside its two owning units against the accepted production33 snapshot.
+Its shared-header declaration removal remains unowned and private; neither
+caller is counted in production34. Independent private linking and a
+current34 single-unit compatibility bridge are subsequent validation work.
+See the [Motion](../visualmotion/placement-new-copy-derived-20261009.md) and
+[Fix follow-up](../mg_visual/placement-new-copy-derived-20261009.md) notes.
+The original explicit-base97 negative remains preserved.
