@@ -171,7 +171,7 @@ void CMemoryCardManager::Initialize(mgCMemory *memory) {
     save_buffer = NULL;
 
     if (memory != NULL) {
-        save_buffer = new ((u_long128 *) memory->Alloc(sizeof(SAVEDATA_FORMAT) / 16 + 2)) SAVEDATA_FORMAT;
+        save_buffer = new (memory->Alloc(sizeof(SAVEDATA_FORMAT) / 16 + 2)) SAVEDATA_FORMAT;
         memset(save_buffer, 0, sizeof(SAVEDATA_FORMAT));
     }
 
