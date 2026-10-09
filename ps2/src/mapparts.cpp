@@ -893,7 +893,50 @@ void CMapParts::CopyFuncPointCheck(CFuncPointCheck &check) {
     }
 }
 
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/mapparts", Copy__9CMapPartsFR9CMapPartsP9mgCMemory);
+void CMapParts::Copy(CMapParts &dest, mgCMemory *memory) {
+    if (memory != NULL) {
+        dest = *this;
+
+        CList<CMapPiece> *copies = NULL;
+        CList<CMapPiece> *source = piece_list;
+
+        while (source != NULL) {
+            if (source->data.col_type == 0) {
+                CList<CMapPiece> *copy = new (memory->Alloc((sizeof(CList<CMapPiece>) + 15) / 16 + 2)) CList<CMapPiece>;
+                if (copy == NULL) {
+                    return;
+                }
+                source->data.Copy(copy->data, memory);
+
+                CList<CMapPiece> *last = copies;
+                if (last != NULL) {
+                    CList<CMapPiece> *next;
+                    if (last != NULL) {
+                        do {
+                            next = last->next;
+                            if (next == NULL) {
+                                break;
+                            }
+                            last = next;
+                        } while (next);
+                    }
+                    last->next = copy;
+                    if (copy != NULL) {
+                        copy->prev = last;
+                    }
+                } else {
+                    copies = copy;
+                }
+            }
+            source = source->next;
+        }
+        dest.piece_list = copies;
+        func_point_mngr.Copy(dest.func_point_mngr, memory);
+        dest.AssignFuncAnime(memory);
+    } else {
+        dest = *this;
+    }
+}
 
 int CMapParts::AssignFuncAnime(mgCMemory *memory) {
     CFuncPoint *point;

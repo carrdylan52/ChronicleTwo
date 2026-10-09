@@ -4,8 +4,8 @@ The private pn15 candidate for `Copy__9CMapPartsFR9CMapPartsP9mgCMemory`
 matches retail with genuine implicit assignment, the existing `CList<CMapPiece>`
 constructor chain and one witnessed scoped placement row. Its actual native
 body is `0x6AC`; the retail reservation is `0x6B0`, including four zero tail
-bytes. This is a private proposal against the coherent production33 snapshot.
-Root owns promotion and complete PAL acceptance.
+bytes. The private proposal used the coherent production33 snapshot. Subsequent
+canonical production34 acceptance is recorded below.
 
 ## Inputs and prior evidence
 
@@ -252,3 +252,30 @@ copies are `.private/proposals/mapparts-copy-{guarded-natural,validated-native,p
 and `mapparts-copy-row-delta.json`. The comment-only unowned actual-body
 annotation correction is `mapparts-copy-body-size.patch`; no ABI/header
 repair is needed. Canonical source/PAL activation remains a separate step.
+
+## Canonical production34 acceptance
+
+Root removes the guard by hand and activates the exact natural source above.
+Its source/profile hashes and complete object hash match the passing private
+specimen exactly. The new Copy row is placed beside this unit's accepted
+AssignFuncAnime row, preserving every earlier row and all other profile
+fields. Production now has 34 callers /44 static scalar constructions across
+21 units. No shared header, float policy or existing storage marker changes.
+
+The canonical pn15 build passes `SCES_511.90: OK` and all 149 resolved unit
+checks. Mapparts is 0x230C bytes /264 relocations; both new callers are active
+with actual symbol sizes 0x6AC and 0x138. All 306 assembled and 149 source-only
+objects outside the 21 promoted units remain byte-identical to upstream.
+Linked main retains SHA-256
+`a103b0461a88e443a3af684cf150c05b5bd355e5a97ab2dc029c4d872bed0811`
+and memory end 0x01f64a00; whole ELF metadata is compared separately.
+Explicit context/objdiff refresh followed by host coverage reports 6,783
+matched /82 guarded /7 assembly-only /0 fuzzy. Mapparts has no remaining
+guarded or assembly-only function.
+
+Receipts are `.private/pntc/receipts/promote-thirty-four-{build,objects,artifacts,progress,coverage}`
+with logs/explicit zero exits, artifact JSON and
+`.private/pntc/promote34/acceptance.json`. The independently preserved
+accepted executable and image facts are in `promote34/SCES_511.90` and
+`image-snapshot.json`. The unowned actual-body annotation correction remains
+`.private/proposals/mapparts-copy-body-size.patch`; it is comment-only.
