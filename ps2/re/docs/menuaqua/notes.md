@@ -6,9 +6,9 @@ and menu overlays in retail order. Its native body is exact.
 `GyoraceMenuDraw` is native and exact.
 The `SettingAqua` draft constructs its `love_chara` member as a `CCharacter2`.
 
-`CAquarium::Step` retains a `NONMATCHING` draft with a retail `INCLUDE_ASM`
-fallback. `DrawFishParam` and `CAquarium::ColCheck` are native and exact; see
-[night-20261008.md](night-20261008.md). `GyoraceMenuKey` is native and exact.
+`CAquarium::Step`, `DrawFishParam` and `CAquarium::ColCheck` are native and
+exact; see [night-20261008.md](night-20261008.md). `GyoraceMenuKey` is native
+and exact.
 
 `CAquaFish::SetAdjustScale` (0x20F0E0, size 0x8C) is native and exact. It
 computes a size-dependent scale, applies it to all three axes, and derives the

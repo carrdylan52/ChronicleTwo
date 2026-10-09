@@ -5173,15 +5173,15 @@ void CAquarium::SelFishSetCursor() {
         mes.cursor_target[1] = y;
     }
 }
-#ifdef NONMATCHING
 
 int CAquarium::Step() {
     int       key = 0;
     int       next;
     int       lang;
-    int       result;
     int       i;
+    int       j;
     CAquaMes *menu;
+    int       result;
     float     saved_pos[6][4];
     float     saved_rot[6][4];
 
@@ -5344,7 +5344,8 @@ int CAquarium::Step() {
                     next = 0;
                 } else if (key & 1) {
                     const s8 *ids = &menu_id_tbl_3721[aqua_no * 6];
-                    switch (ids[i = menu->menu_cursor]) {
+                    i = menu->menu_cursor;
+                    switch (ids[i]) {
                         case 0:
                             if (InitSelFish() != 0) {
                                 MenuSePlay(5);
@@ -5554,7 +5555,8 @@ int CAquarium::Step() {
                     MenuSePlay(0x13);
                     next = 1;
                 } else if (key & 1) {
-                    int item_no = esa_info[i = menu->question_cursor].item_no;
+                    i = menu->question_cursor;
+                    int item_no = esa_info[i].item_no;
 
                     if (GetUserItemHaveNum(item_no) <= 0) {
                         MenuSePlay(5);
@@ -5726,7 +5728,8 @@ int CAquarium::Step() {
                     next = 0xA;
                     sel_sift_fish_select = -1;
                 } else if (key & 1) {
-                    int            tank = another_aquarium_Notbl_3642[m_aquarium_para->active_tank][i = menu->question_cursor];
+                    i = menu->question_cursor;
+                    int            tank = another_aquarium_Notbl_3642[m_aquarium_para->active_tank][i];
                     int            space = m_aquarium_para->SearchAqua1NotUsed(tank);
                     CGameDataUsed *data;
 
@@ -5785,7 +5788,8 @@ int CAquarium::Step() {
                     MenuSePlay(0x13);
                     next = 1;
                 } else if (key & 1) {
-                    m_next_aqua_no = another_aquarium_Notbl_3642[m_aquarium_para->active_tank][i = menu->question_cursor];
+                    i = menu->question_cursor;
+                    m_next_aqua_no = another_aquarium_Notbl_3642[m_aquarium_para->active_tank][i];
                     AquaMode = 6;
                     mes.menu_cursor = 0;
                     mes.cursor_snap = 1;
@@ -5953,25 +5957,25 @@ int CAquarium::Step() {
         }
     }
     result = 0;
-    for (int i = 0; i < 6; i++) {
-        if (fish[i] != NULL) {
-            Thinking(i);
-            result |= ColCheck(i);
-            fish[i]->Step();
-            result |= fish[i]->ParamStep();
+    for (j = 0; j < 6; j++) {
+        if (fish[j] != NULL) {
+            Thinking(j);
+            result |= ColCheck(j);
+            fish[j]->Step();
+            result |= fish[j]->ParamStep();
             if (result & 8) {
-                mes.EatMessage(0x136, fish[i]);
+                mes.EatMessage(0x136, fish[j]);
                 result &= ~8;
             }
             if (result & 0x30) {
-                mes.ChangeManMessage(fish[i]);
+                mes.ChangeManMessage(fish[j]);
                 result &= ~0x30;
             }
             if (result & 2) {
                 MenuSePlay(Aqua_SpSndID, 4);
-                mes.DeadMessage(fish[i]);
-                fish[i]->Initialize();
-                fish[i] = NULL;
+                mes.DeadMessage(fish[j]);
+                fish[j]->Initialize();
+                fish[j] = NULL;
                 AquaDeadCheck = 1;
                 SelectFish(1);
                 if (sel_fish < 0) {
@@ -6020,9 +6024,7 @@ int CAquarium::Step() {
     }
     return 0;
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/menuaqua", Step__9CAquariumFv);
-#endif
+
 void CAquarium::Draw() {
     mgCTextureManager *textures = &mgTexManager;
     int                i;
