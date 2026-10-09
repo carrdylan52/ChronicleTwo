@@ -91,18 +91,18 @@ These are the best documented admissible natural results in bounded investigatio
 | `CScene::CharaObjectOnOff` |6 | Out-of-line class 0 attribute guard/copy schedule; no eligible row. [note](../scenevillager/placement-new-natural-night-20261009.md) |
 | `CEffectScriptMan::CreateEffSpt(int,int,int)` |206 | Implicit class 6 script ctor lacks normal exact name; scoped row rejects. [note](../effscript/placement-new-create-natural-20261009.md) |
 | `MenuNPCQuestViewInit` |44 | Implicit viewer identity unresolved; real manager ctor is insufficient. [note](../menushop/placement-new-quest-view-natural-20261009.md) |
-| `_COPY_MONS` |244 | Genuine by-value copy leaves shadow-link/GPR/FPR residuals. [note](../event_func/placement-new-copy-mons-night-20261009.md) |
+| `_COPY_MONS2SCNCHR` |244 | Genuine by-value copy leaves shadow-link/GPR/FPR residuals. [note](../event_func/placement-new-copy-mons-night-20261009.md) |
 | `CMenuInvent::IsAccessAlbum` |177 |154 GPR/13 stack/10 schedule words; no dummy0x10 frame storage. [note](../inventmn/placement-new-album-natural-20261009.md) |
 | `CMenuItemInfo::IsAskExtend` |170 | Native0xA6C versus retail0xA68 and frame/control; older failed wrappers do not validate best. [note](../menusys/placement-new-ask-extend-natural-20261009.md) |
-| `DngTreeMapInit` |55 | Class0 constructors, filename/offset schedule, relocation positions. [note](../dngmenu/placement-new-tree-init-natural-20261009.md) |
+| `DngTreeMapInit` |55 | Class 0 constructors, filename/offset schedule, relocation positions. [note](../dngmenu/placement-new-tree-init-natural-20261009.md) |
 | `MenuMainInit` |13 | Unowned real MenuKey rectangle initializer leaves schedule residual. [note](../menumain/placement-new-natural-night-20261009.md) |
 | `CAquarium::Step` |1111 | Model/global reload/register residual; food ctor class 0 excluded. [note](../menuaqua/placement-new-step-natural-20261009.md) |
 | `CMenuChrCngMenu::EnterDataMenu` |11 | Real three-byte palette walk leaves induction/scheduling; all targets exact. [note](../menuchr/placement-new-enter-data-natural-20261009.md) |
 | `EditInit` |821 | Paired unowned chest ctor move; missing camera assignment and incoming uninitialized field. [note](../editloop/placement-new-init-natural-20261009.md) |
 | `sgInitGyoRace` |421 | Real fish/slot induction and resource lifetimes; class 0 placement already matches. [note](../gyorace/placement-new-init-natural-20261009.md) |
-| `mgCDataset::Sub` |46 | Class0 frame construction and register/relocation residual. [note](../mg_dataset/placement-new-class0-copies-20261009.md) |
-| `mgCDataset::CopyFrame` / `End` |1 /1 | a0 versus v0 branch operand; real local helper binding fix changes no payload. [note](../mg_dataset/placement-new-class0-copies-20261009.md) |
-| `mgCDataset::CreateFrameVisual` |historical6 | Incomplete unowned types/implicit ctor scope; manual-vptr specimen rejected. [note](../mg_dataset/placement-new-natural-night-20261009.md) |
+| `CopyFrameSub` |46 | Class 0 frame construction and register/relocation residual. [note](../mg_dataset/placement-new-class0-copies-20261009.md) |
+| `CopyFrame` / `mgCMDTBuilder::End` |1 /1 | a0 versus v0 branch operand; real local helper binding fix changes no payload. [note](../mg_dataset/placement-new-class0-copies-20261009.md) |
+| `CreateFrameVisual` |historical6 /3 global | Incomplete unowned types/implicit ctor scope; manual-vptr specimen rejected. [note](../mg_dataset/placement-new-natural-night-20261009.md) |
 
 New function analysis uses decompile.sh/m2c after existing owning/dependency notes. Recorded spelling and steering negatives are preserved, not replayed. Linked notes contain complete nonselected code/data/vtable/relocation audits and exact failure receipts.
 
@@ -117,7 +117,7 @@ Three more genuine private-zero callers require shared headers and stay outside 
 
 Root independently verifies 1,909 regular files in the Costume all 149 manifest and 1,932 in the visual four-stage aggregate, excluding passthrough symlink targets. Costume's raw ELF changes selected size/assembly marker, adds ten selected GP tuples and reorders12 existing positions; all 98,516 baseline named tuples survive and 98,482 nonselected records keep exact order. Visual links preserve all 98,516 ordered named tuples and record five symbol/owner metadata differences. All loaded bytes and memory extents remain exact.
 
-Their new **two-header composition** passes one fresh menuchr wrapper, raw-identical to Costume-alone, and one 306-input actual MWLD/PAL link using the frozen visual private36 corpus. It preserves all 98,516 old named tuples and 98,482 ordered nonselected records, with the same ten selected GP additions/12 order positions. Measured symbol metadata differences are exactly seven names. Final evidence freezing/root verification is pending. Its profile has 36 placement rows/46 sites plus the sole Costume float row; it supports37 hypothetical native callers, not37 placement rows or production promotions.
+Their new **two-header composition** passes one fresh menuchr wrapper, raw-identical to Costume-alone, and one 306-input actual MWLD/PAL link using the frozen visual private36 corpus. It preserves all 98,516 old named tuples and 98,482 ordered nonselected records, with the same ten selected GP additions/12 order positions. Measured symbol metadata differences are exactly seven names. Root verifies all 528 regular files and ten symlink identities without following them; the [composition note](placement-new-three-zero-composition-20261009.md) owns the frozen scope. Its profile has 36 placement rows/46 sites plus the sole Costume float row; it supports 37 hypothetical native callers, not 37 placement rows or production promotions.
 
 Exact visual vehicle: `.private/proposals/visual-copies-generated-assignment-pair.patch` plus `visual-copies-row-delta.json`. Current34 Costume vehicle: `.private/pntc/costume-whole-impact/proposals/{header-current34,source-current34,profile-current34}.patch` and `profile-current34-delta.json`. Original `.private/proposals/menuchr-costume-*` patches remain provenance. Merge portable row deltas into current34; do not replace its profile with old35-row fixtures.
 
