@@ -142,3 +142,15 @@ The fish-password branch converts the Shift-JIS input to ASCII, terminates the i
 restores retail rectangle argument scheduling without changing the source
 body. With the typed password-call casts, the entire nameregi unit passes
 canonical byte and resolved-relocation comparison.
+
+## Name command event array
+
+KeyStep's twelve confirmation/cancellation pairs fit a plain local
+s16 command_table[12][2]. The single-member NameCommandEvents wrapper is
+unnecessary; command_events indexes the local array directly. The isolated
+canonical object preserves all checked bytes and 801 resolved relocations
+(0x4C34 bytes), and the production PAL build and all 149 objects pass.
+No other KeyStep expression or function guard changes.
+
+Probe: .private/fixes-r0/probes/nameregi-array/{compile,objects}.log.
+Production receipts: .private/fixes-r0/nameregi-final-{build,objects}.log.

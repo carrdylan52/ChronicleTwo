@@ -86,8 +86,8 @@ The native initializers in `NameRegistInit` and `DrawBaseBoard` supply
 `CNameRegiMenu` vtable; its assembly marker is unnecessary.
 `AdjustWaku` initializes `{0,36}` locally, and the position, Japanese and
 localized navigation, and alternate board tables now have local aggregate
-initializers. `KeyStep` uses a typed `NameCommandEvents` aggregate of
-12 halfword pairs for confirmation/cancellation, removing its halfword cast.
+initializers. `KeyStep` uses a plain local `s16[12][2]` array of
+confirmation/cancellation events, with no wrapper type or halfword cast.
 `DrawMessage` initializes a typed `RGBAQ_TYPE` with four 0x80 channels and
 Q bits 0x3F800000, removing its external constant and packed write.
 `NameRegiStack` is documented, file-local `mgCMemory` storage.

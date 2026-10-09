@@ -1502,14 +1502,6 @@ static s16 addTable_1510[5][4] = {
 static s8 convTbl_1579[5] = {2, 1, 0, 4, 3};
 /**
  *
- * Stores the confirmation and cancellation events triggered by name entry buttons.
- *
- */
-struct NameCommandEvents {
-    s16 entry[12][2]; /**< Confirmation and cancellation events for each board button. */
-};
-/**
- *
  * Stores the default Spheda name for each language.
  *
  */
@@ -1711,7 +1703,7 @@ s32 CNameRegiMenu::KeyStep() {
                         }
                     }
 
-                    NameCommandEvents command_table = {{
+                    s16 command_table[12][2] = {
                         {20, 2},
                         {20, 2},
                         {20, 2},
@@ -1724,8 +1716,8 @@ s32 CNameRegiMenu::KeyStep() {
                         {120, 2},
                         {130, 2},
                         {500, 2}
-                    }};
-                    s16             *command_events = command_table.entry[command_pos];
+                    };
+                    s16 *command_events = command_table[command_pos];
 
                     if ((pushed & 1) || (pushed & 4)) {
                         event = command_events[0];
