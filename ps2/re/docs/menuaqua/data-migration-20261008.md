@@ -60,3 +60,18 @@ and resulting code remain unchanged.
 Markers: 119 / 3; matched data: 2128 / 8293 bytes. Every
 `aqua-string-<step>-{build,objects}.log` receipt verifies PAL OK and
 149/149 objects.
+
+## Native vector initializers
+
+Seven four-float templates now come from their real local aggregates:
+direction, fish brightness, bubble origin, two ambient colours and two
+reflection axes. Five successful `aqua-template-<step>` receipt pairs
+verify them individually. Draw's profile selectors are unchanged.
+
+The declaration-site NextThink/Thinking probes change five/thirteen text
+bytes respectively, and are reverted. The SDK-vector plus memcpy circling
+probe changes 25 bytes at the final runtime vector copy, and is reverted.
+Those logs are `aqua-template-{next-think,thinking-vectors,round-copy}-build.log`.
+Markers at this checkpoint: 112 / 3; matched data: 2128 / 8293 bytes.
+The subsequent full `invent-pointer-anchor-{build,objects}.log` also
+verifies the restored aquarium source: PAL OK and 149/149 objects.

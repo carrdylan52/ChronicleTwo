@@ -193,14 +193,12 @@ extern "C" float amptbl_997[5][2];
 
 extern "C" float dirtbl_1242[8];
 
-extern "C" aqua_vector at_1160;
 
 extern "C" aqua_vector at_1346;
 
 
 extern "C" aqua_vector at_1241__3;
 
-extern "C" aqua_vector at_1471__2;
 
 
 
@@ -233,7 +231,6 @@ struct aqua_light_env {
 };
 
 extern short           m_next_aqua_no;
-extern "C" aqua_vector at_2742__2;
 
 /**
  *
@@ -268,10 +265,6 @@ extern "C" aqua_vector        at_3290;
 extern "C" aqua_vector        at_3291__3;
 extern "C" aqua_vector        at_3310;
 extern "C" aqua_vector        at_3311;
-extern "C" aqua_vector        at_4306;
-extern "C" aqua_vector        at_4352;
-extern "C" aqua_vector        at_4363__2;
-extern "C" aqua_vector        at_4364__2;
 
 /**
  *
@@ -1129,7 +1122,7 @@ void CAquaFish::GetPosition2D(int *out) {
 
 void CAquaFish::GetDirVect(float *out) {
     float       rot[4];
-    aqua_vector forward = at_1160;
+    aqua_vector forward = {{0.0f, 0.0f, 1.0f, 1.0f}};
     float       matrix[4][4];
 
     GetRotation(rot);
@@ -1743,10 +1736,10 @@ void CAquaFish::FishDraw() {
     if (data != NULL) {
         unsigned int hp = data->data.fish.hp;
         float        saved[4];
-        aqua_vector  bright;
+
 
         mgGetAmbient(saved);
-        bright = at_1471__2;
+        aqua_vector bright = {{140.0f, 64.0f, 64.0f, 128.0f}};
 
         if (hp < 0x1E && flash_count < 0xB) {
             bright.v[0] = 172.0f;
@@ -2911,7 +2904,7 @@ void CAquarium::Initialize(mgCMemory *memory, int *blocks) {
         AquaFishEff[i]->Initialize();
     }
 
-    aqua_vector origin = at_2742__2;
+    aqua_vector origin = {{0.0f, 0.0f, 0.0f, 1.0f}};
 
     for (int no = 0; no < 6; no++) {
         AquaFishBubble[no] = new (MenuMainTextureReadBuf.Alloc(sizeof(CBubble) / 16 + 2)) CBubble;
@@ -5022,7 +5015,7 @@ INCLUDE_ASM("ps2/asm/pal/nonmatchings/menuaqua", Step__9CAquariumFv);
 void CAquarium::Draw() {
     mgCTextureManager *textures = &mgTexManager;
     int                i;
-    aqua_vector        water_ambient = at_4306;
+    aqua_vector        water_ambient = {{64.0f, 92.0f, 128.0f, 128.0f}};
 
     mgSetAmbient(water_ambient.v);
     for (i = 0; i < 6; i++) {
@@ -5080,7 +5073,7 @@ void CAquarium::Draw() {
         AquaFishEff[i]->Draw();
     }
     if (suimen_frame != NULL) {
-        aqua_vector surface_ambient = at_4352;
+        aqua_vector surface_ambient = {{128.0f, 128.0f, 128.0f, 8.0f}};
 
         mgSetAmbient(surface_ambient.v);
         textures->ReloadTexture(water_tex_block, static_cast<sceVif1Packet *>(NULL));
@@ -5127,8 +5120,8 @@ void CAquarium::Draw() {
         sceVu0Normalize(flat_dir, dir);
         dir[1] = 0.0f;
         sceVu0Normalize(dir, dir);
-        aqua_vector axis_x = at_4363__2;
-        aqua_vector axis_z = at_4364__2;
+        aqua_vector axis_x = {{1.0f, 0.0f, 0.0f, 0.0f}};
+        aqua_vector axis_z = {{1.0f, 0.0f, 0.0f, 0.0f}};
         sceVu0InnerProduct(axis_x.v, dir);
         sceVu0InnerProduct(axis_z.v, flat_dir);
         water->CreatePacket();
@@ -7340,18 +7333,15 @@ INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuaqua", esa_info__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuaqua", aqua_bubble_generate_pos__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuaqua", up_tbl_996__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuaqua", amptbl_997__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuaqua", at_1160__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuaqua", at_1241__3__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuaqua", dirtbl_1242__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuaqua", at_1346__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuaqua", at_1471__2__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuaqua", max_tbl_1484__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuaqua", aquafish_info__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuaqua", u_brdtbl_2493__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuaqua", get_paraxtbl_2494__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuaqua", ptbl_2495__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuaqua", chrtbl_2503__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuaqua", at_2742__2__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuaqua", at_2935__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuaqua", at_2975__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuaqua", at_2976__DATA);
@@ -7362,10 +7352,6 @@ INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuaqua", at_3310__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuaqua", at_3311__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuaqua", langTbl_3630__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuaqua", menu_id_tbl_3721__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuaqua", at_4306__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuaqua", at_4352__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuaqua", at_4363__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuaqua", at_4364__2__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuaqua", v1orig_4373__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuaqua", v2orig_4374__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuaqua", v3orig_4375__DATA);
