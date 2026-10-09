@@ -18,8 +18,8 @@ Header: `ps2/include/fishing.hpp`. No first-game counterpart: Dark Cloud's `fish
   `CharaControl__FP6CSceneP11CPadControl__2`; another unit has a global of the same name).
   `FishLoadBG__FP9FISH_DATAP1` and `LoadExMotionBG__FP11SubGameInfoP1` are truncated retail
   names (last parameter type unknown from the symbol).
-  `StepDataLoading` retains an inherited non-static C++ declaration and GLOBAL
-  native/assembled binding; its accepted caller note labels the retail binding.
+  `StepDataLoading` is declared and defined `static`; the native worker has
+  the retail LOCAL/FUNC binding without an assembly-table alias.
 - Data: only `stack_size` (int, 0x4, set to 0x40000 in CreateLoadThread) is global. Every named
   datum in .data/.sbss/.bss is local.
 

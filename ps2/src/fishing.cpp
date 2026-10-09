@@ -57,7 +57,7 @@ extern FISH_PLACE_MAP  *FishPlaceMap;
 extern int              FishPlaceMapNum;
 extern u_int            fpNowFishPlaceMapNum;
 extern SPI_TAG_PARAM    tag__8[];
-void                    StepDataLoading(void *arg);
+static void             StepDataLoading(void *arg);
 extern int              RodActFlag;
 extern int              UkiCameraFlag;
 extern int              UkiMode;
@@ -733,7 +733,7 @@ void DeleteLoadThread() {
  * Loads the fishing models, textures, sounds and scene configuration in the worker thread.
  *
  */
-void StepDataLoading(void *arg) {
+static void StepDataLoading(void *arg) {
     char path[0x80];
     char bgm_path[0x80];
     int file_size;
