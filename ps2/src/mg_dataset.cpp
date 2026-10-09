@@ -16,14 +16,7 @@
 #include "mg_visual.hpp"
 #include "mglib.hpp"
 #include "visualmotion.hpp"
-extern u_char at_717[];
-extern char   at_387[];
 extern char   at_550[];
-extern char   at_618[];
-extern char  *name_def_276;
-extern s8     init_277;
-extern int    flag_571;
-extern s8     init_572;
 
 void CopyFrame(mgCFrame *dst, mgCFrame *src, mgCMemory *memory, int copy_visual, mgCFrame **frame_table);
 mgCFrame *CopyFrameSub(mgCFrame *src, mgCMemory *memory, int copy_visual, mgCFrame **frame_table);
@@ -239,13 +232,10 @@ void mgSetFrameAttr(mgCFrame *input_frame, int input_recursive) {
 
     cursor = frame->name;
 
-    if (init_277 == 0) {
-        name_def_276 = at_387;
-        init_277 = 1;
-    }
+    static char *name_def = "";
 
     if (cursor == NULL) {
-        cursor = name_def_276;
+        cursor = name_def;
     }
 
     text = cursor;
@@ -709,20 +699,17 @@ mgCFrame *mgLoadMDSFile(mgLoadData *load) {
     }
 
     if ((int) mds % 16 != 0) {
-        printf(at_618, mds);
+        printf("address error!! %d \n", mds);
     }
 
     default_type = MG_VISUAL_CREATE_FIX_MDT;
-    entry = SearchVisualType(visual_type, at_387);
+    entry = SearchVisualType(visual_type, "");
 
     if (entry != NULL) {
         default_type = entry->type;
     }
 
-    if (init_572 == 0) {
-        flag_571 = 0;
-        init_572 = 1;
-    }
+    static int flag = 0;
 
     object = (MDTOBJ_HEADER *) ((char *) mds + mds->object_ofs);
 
@@ -823,10 +810,7 @@ void mgCreateBBoxSphere(float *max, float *min, float *sphere, float (*vertex)[4
 
     s32        i;
     float     *point = (float *) vertex;
-    float      center[4];
-    u_long128 *source = (u_long128 *) at_717;
-    u_long128 *dest = (u_long128 *) center;
-    *dest = *source;
+    float      center[4] = {0.0f, 0.0f, 0.0f, 0.0f};
     sceVu0CopyVector(max, (float *) vertex);
     sceVu0CopyVector(min, (float *) vertex);
 
@@ -1159,34 +1143,20 @@ void mgCMDTBuilder::SetData(float *vector) {
 
 #pragma schedule off
 
-/**
- *
- * Four vector components viewed as floats or unsigned words.
- *
- */
-union mgVec4Bits {
-    float f[4]; /**< Floating point components. */
-    u_int u[4]; /**< The same components as unsigned words. */
-};
-
-extern u_char at_933[];
 #pragma global_optimizer off
 
 void mgCMDTBuilder::SetData(float x, float y, float z, float w) {
-    mgVec4Bits vector;
-    u_long128 *source = (u_long128 *) at_933;
-    u_long128 *dest = (u_long128 *) &vector;
-    *dest = *source;
-    vector.f[0] = x;
-    vector.f[1] = y;
-    vector.f[2] = z;
-    vector.f[3] = w;
+    float vector[4] = {0.0f, 0.0f, 0.0f, 0.0f};
+    vector[0] = x;
+    vector[1] = y;
+    vector[2] = z;
+    vector[3] = w;
 
-    if (data_type == 2) {
-        vector.u[3] = 0;
+    if (data_type == MG_MDT_DATA_NORMAL) {
+        vector[3] = 0.0f;
     }
 
-    SetData(vector.f);
+    SetData(vector);
 }
 
 #pragma schedule reset
@@ -1413,21 +1383,11 @@ void mgCVisual::Draw(float (*matrix)[4], mgCDrawManager *manager) {
 #pragma optimization_level reset
 
 // Constants (.rodata)
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mg_dataset", at_387__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mg_dataset", at_550__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mg_dataset", at_618__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mg_dataset", at_886__DATA);
 
 // Virtual tables (.vtables)
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mg_dataset", __vt__15mgCShadowFixMDT__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mg_dataset", __vt__9mgCVisual__DATA);
 
 // Small uninitialised data (.sbss)
-INCLUDE_BSS(name_def_276, 0x4);
-INCLUDE_BSS(init_277, 0x4);
-INCLUDE_BSS(flag_571, 0x4);
-INCLUDE_BSS(init_572, 0x4);
 
 // Uninitialised data (.bss)
-INCLUDE_BSS(at_717, 0x10);
-INCLUDE_BSS(at_933, 0x10);
