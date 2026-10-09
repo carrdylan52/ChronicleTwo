@@ -134,7 +134,7 @@ int CEditEvent::Step(CScene *scene) {
     int              result;
     CMapTreasureBox *box;
     CCharacter2     *character;
-    mgCCamera       *camera;
+    CCameraControl  *camera;
     CPadControl     *pad;
     CEditMap        *map;
     int              show;
@@ -154,7 +154,7 @@ int CEditEvent::Step(CScene *scene) {
     CSaveData *save = GetSaveData();
     map_flags = save->GetMapFlag(scene->GetMainMapNo());
     character = scene->GetCharacter(scene->player_chara);
-    camera = scene->GetCamera(scene->active_camera);
+    camera = (CCameraControl *) scene->GetCamera(scene->active_camera);
 
     if (character == NULL || camera == NULL || map == NULL) {
         return EDIT_EVENT_RESULT_END;
@@ -214,7 +214,7 @@ int CEditEvent::Step(CScene *scene) {
                             }
                         }
 
-                        ((CCameraControl *) camera)->RotBack(mgAngleLimit(3.1415927f + atan2f(data.map_event.matrix[2][0], data.map_event.matrix[2][2])));
+                        camera->RotBack(mgAngleLimit(3.1415927f + atan2f(data.map_event.matrix[2][0], data.map_event.matrix[2][2])));
                     }
 
                     door_se = -1;
@@ -281,7 +281,7 @@ int CEditEvent::Step(CScene *scene) {
 
                     break;
                 case EDIT_DOOR_STEP_LEAVE:
-                    ((CCameraControl *) camera)->CancelRotBack();
+                    camera->CancelRotBack();
 
                     if (data.event.point_no > 0) {
                         scene->RunEvent(data.event.point_no, &data);
@@ -333,7 +333,7 @@ int CEditEvent::Step(CScene *scene) {
                 MenuInfo__2->open_type = 0xC;
                 MenuInfo__2->scene = scene;
                 MenuInfo__2->param[0] = data.map_event.parts_no;
-                ((CCameraControl *) camera)->CancelRotBack();
+                camera->CancelRotBack();
                 result = EDIT_EVENT_RESULT_MENU;
                 ++step;
                 KeepEditAnalyze();
