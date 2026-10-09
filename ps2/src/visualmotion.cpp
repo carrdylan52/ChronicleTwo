@@ -844,7 +844,3 @@ INCLUDE_ASM("ps2/asm/pal/nonmatchings/visualmotion", Copy__18mgCVisualMotionMDTF
 int mgCVisualMotionMDT::Iam() {
     return 3;
 }
-
-// Initialised data (.data)
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/visualmotion", prog_vif_532__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/visualmotion", progf_vif_533__DATA);
