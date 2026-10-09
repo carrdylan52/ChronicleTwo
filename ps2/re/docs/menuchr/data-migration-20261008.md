@@ -72,3 +72,15 @@ including the health gauges, model panels, and formatted command/name parts.
 After this step: **333 / 27 markers**, **4 / 9726 matched_data**.
 Validation remains PAL OK and 149/149; receipts are
 `.private/nmchr-r3/menuchr-party-parts-{build,objects,progress,metrics}.log`.
+
+## Native switch tables and virtual tables
+
+The existing native switches supply `at_3970` (equipment pack loading) and
+`at_5197` (costume key handling). The existing monster-selection and
+monster-book constructors supply their virtual tables. The native frame
+lookup already contains the inline `"light"` string, supplying `at_4517__2`.
+All five markers and the unused light-string declaration are removed.
+The two virtual tables referenced by guarded initializers remain fallbacks.
+After this step: **328 / 27 markers**, **4 / 9726 matched_data**.
+PAL and 149/149 objects pass; receipts are
+`.private/nmchr-r3/menuchr-generated-{build,objects,progress,metrics}.log`.

@@ -491,7 +491,6 @@ extern float              at_4158;
 extern char               at_4186__2[];
 extern char               at_4123[];
 extern char               at_4296[];
-extern u8                 at_4517__2[];
 /**
  *
  * Texture sliding across the main character background.
@@ -7672,14 +7671,12 @@ INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_3813__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_3814__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_3913__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_3969__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_3970__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_4123__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_4186__2__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_4276__2__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_4277__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_4278__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_4296__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_4517__2__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_4518__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_4519__2__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_4520__DATA);
@@ -7692,7 +7689,6 @@ INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_4950__2__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_5051__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_5052__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_5053__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_5197__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_5257__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_5258__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_5259__2__DATA);
@@ -7786,9 +7782,7 @@ INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_5839__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_5893__DATA);
 
 // Virtual tables (.vtables)
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", __vt__12CMosBookMenu__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", __vt__15CMenuCostumeSel__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", __vt__14CMenuMosSelect__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", __vt__15CMenuChrCngMenu__DATA);
 
 // Small initialised data (.sdata)
