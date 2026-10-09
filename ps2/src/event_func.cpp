@@ -14213,21 +14213,7 @@ int _SWE_INIT(RS_STACKDATA *stack, int argc) {
         return 0;
     }
 
-    CSWordAfterEffect *effect =
-        (CSWordAfterEffect *) operator new(0xA0, scene_stack->Alloc(12));
-
-    if (effect != NULL) {
-        effect->color0[0] = 0x80;
-        effect->color0[1] = 0x80;
-        effect->color0[2] = 0x80;
-        effect->color0[3] = 0x80;
-        effect->color1[0] = 0x80;
-        effect->color1[1] = 0x80;
-        effect->color1[2] = 0x80;
-        effect->color1[3] = 0x80;
-    }
-
-    chara->sword_effect[slot] = effect;
+    chara->sword_effect[slot] = new (scene_stack->Alloc(12)) CSWordAfterEffect;
 
     if (chara->sword_effect[slot] == NULL) {
         return 0;
