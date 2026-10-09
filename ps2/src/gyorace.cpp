@@ -432,7 +432,6 @@ int sgInitGyoRace(SubGameInfo *info) {
     race_rank[1] = GetGyoRaceNo();
     int chosen[6];
     int chosen_num = 0;
-    int old;
     int fish = 0;
     do {
         fish_inf[fish].fish_no = -1;
@@ -444,6 +443,7 @@ int sgInitGyoRace(SubGameInfo *info) {
             if (*item == NULL) {
                 chosen[chosen_num] = race_rank[1] * 18 + (int)(17.0f * mgRnd());
                 do {
+                    int old;
                     for (old = 0; old < chosen_num; old++) {
                         if (chosen[old] == chosen[chosen_num]) break;
                     }
@@ -456,6 +456,7 @@ int sgInitGyoRace(SubGameInfo *info) {
         } else if (fish == 0) {
             game_data[fish] = GetGyoRaceFish();
         } else {
+            int old;
             chosen[chosen_num] = race_rank[1] * 18 + (int)(17.0f * mgRnd());
             do {
                 for (old = 0; old < chosen_num; old++) {
