@@ -104,11 +104,7 @@ struct GradeRows {
     signed char v[2]; /**< Grade for each row. */
 };
 
-extern CMenuInvent        *CMenuInventPt;
-extern CInventUserData    *InventUserDataPtr;
-extern CDC2AlbumData      *InventAlbumPtr;
 extern int                 menu_debug_flag;
-extern signed char         InventInNetaEffectNum;
 extern short               MenuItemCmdArgPos;
 extern int                 maxtbl_5171;
 extern int                 viewnum_5172;
@@ -124,19 +120,12 @@ extern ItemNameList1       at_5457;
 extern ItemNameList5       at_5460;
 extern ModelTriple         at_5474;
 extern RecordBoardMsgTypes at_2455;
-extern int                 rec_board_offset_xtbl[10];
 extern GradationSteps      at_2639;
 extern unsigned char       invent_color_tbl[3][2][4];
 extern char               *invent_grade_fff[2];
 extern GradeRows           at_2562;
-extern mgCTexture         *Tex_Hatsumei;
-extern unsigned int        InventSubDataReadBGInfo;
 extern mgCMemory           MenuInventStack;
 extern CActionChara       *MenuActionChara[7];
-extern short               NetaMemoID[512];
-/** Names of discovered ideas displayed in the invention notebook. */
-extern char               *NetaMemoStr[512];
-extern short               NetaMemoStrNum;
 extern CMenuPosDataForm   *GiftBoxViewForm;
 
 enum {
@@ -335,9 +324,6 @@ struct ItemNameList2 {
 };
 
 extern ItemNameList2       at_3317;
-extern CMemoryCardManager *MCManagerPtr;
-extern s8                  ActiveSlot_3949;
-extern s8                  init_3950;
 extern mgCMemory           MenuInventCharaStack;
 extern mgCMemory           MenuInventMCStack;
 extern char                at_4354[];
@@ -493,10 +479,6 @@ struct NetaNameBlank {
 
 extern NetaNameBlank at_4470;
 
-extern signed char       pict_seiton_case;
-extern short             debug_invent_successflag;
-extern short             debug_invent_select;
-extern CInventDataManage InventManageMan;
 extern char              at_5153[];
 extern char              at_5154[];
 extern char              at_5155[];
@@ -529,10 +511,6 @@ struct InventCommandList {
 };
 
 extern InventCommandList  modecmdtbl_3636[12];
-extern InventCommandList *menu_invent_command_info_ptr;
-extern USER_PICTURE_INFO *menu_invent_command_info_pict_info;
-extern USER_PICTURE_INFO *menu_invent_command_info_move_album_Space_info;
-extern int                menu_invent_command_info_move_album_Space_pos;
 extern char               at_2368__2[];
 extern char               at_2369__2[];
 extern char               at_3932[];
@@ -540,31 +518,18 @@ extern char               at_3933[];
 extern char               at_3934[];
 extern char               at_3935[];
 extern char               at_3936[];
-extern u8                 InventInNetaEffectFlag;
-extern short              InventInNetaEffectNum4;
-extern CStarDust         *InventInNetaEffect;
 int                       MenuInventDebugKey();
 void                      MenuInventDebugDraw();
 extern char               at_2005[];
 
-extern mgCMemory     *scoop_str_stack;
 extern SPI_TAG_PARAM  menu_scoop_str_tag[];
-extern mgCMemory     *PicNameStack;
-extern short          pic_name_info_num;
-extern PIC_NAME_INFO *pic_name_info_top;
-extern short          pic_name_info_num_count;
-extern char           pic_name_text_buff_1660[];
 extern char           at_1664[];
 extern SPI_TAG_PARAM  pic_tag[];
 extern char          *addstringtable_1722[];
-extern char           temp_1728[0x30];
 
 extern SCOOP_DATA         scoop_table[53];
 extern InventFoundFlags   at_1788__2;
-extern CInventDataManage *InventManagePt;
 extern mgCMemory          InventTeigiStack;
-extern INVENT_DATA_INFO  *inventSpiDataTblTop;
-extern short              invent_num_counter;
 extern SPI_TAG_PARAM      invent_teigi_func[];
 
 enum {
@@ -594,6 +559,108 @@ enum {
     kSceneAttrFlags = 0x18000
 };
 
+
+/** Enables forced invention success in the debug menu. */
+static short debug_invent_successflag;
+
+/** Invention records of the active user. */
+static CInventUserData *InventUserDataPtr;
+
+/** Photo album used by the inventory menu. */
+static CDC2AlbumData *InventAlbumPtr;
+
+/** Recipe manager used while inventing an item. */
+static CInventDataManage *InventManagePt;
+
+/** Memory-card manager used for photo album transfers. */
+static CMemoryCardManager *MCManagerPtr;
+
+/** Selects the ordering applied to the photo list. */
+static signed char pict_seiton_case;
+
+/** Arena that stores the scoop name strings. */
+static mgCMemory *scoop_str_stack;
+
+/** Arena that stores photo name definitions. */
+static mgCMemory *PicNameStack;
+
+/** First parsed photo name record. */
+static PIC_NAME_INFO *pic_name_info_top;
+
+/** Number of parsed photo name records. */
+static short pic_name_info_num;
+
+/** Photo name records counted while sizing the list. */
+static short pic_name_info_num_count;
+
+/** First recipe record populated by the invention script. */
+static INVENT_DATA_INFO *inventSpiDataTblTop;
+
+/** Recipe index advanced by the invention script. */
+static short invent_num_counter;
+
+/** Number of discovered idea names in the notebook. */
+static short NetaMemoStrNum;
+
+/** Texture used for the invention display. */
+static mgCTexture *Tex_Hatsumei;
+
+/** Background data-read handle of the inventory submenu. */
+static unsigned int InventSubDataReadBGInfo;
+
+/** Photo selected by the active inventory command. */
+static USER_PICTURE_INFO *menu_invent_command_info_pict_info;
+
+/** Command list of the current inventory screen. */
+static InventCommandList *menu_invent_command_info_ptr;
+
+/** Photo moved between album spaces. */
+static USER_PICTURE_INFO *menu_invent_command_info_move_album_Space_info;
+
+/** Destination position of a photo moved between album spaces. */
+static int menu_invent_command_info_move_album_Space_pos;
+
+/** Controls the effect for a newly added idea. */
+static u8 InventInNetaEffectFlag;
+
+/** Number of ideas displayed by the addition effect. */
+static signed char InventInNetaEffectNum;
+
+/** Counter used by the idea addition effect. */
+static short InventInNetaEffectNum4;
+
+/** Particle effect used when adding an idea. */
+static CStarDust *InventInNetaEffect;
+
+/** Memory-card slot selected for album operations. */
+static s8 ActiveSlot_3949;
+
+/** Indicates that the album memory-card slot has been initialized. */
+static s8 init_3950;
+
+/** Active inventory menu. */
+static CMenuInvent *CMenuInventPt;
+
+/** Recipe manager owned by the inventory menu. */
+static CInventDataManage InventManageMan;
+
+/** Selected row of the inventory debug display. */
+static short debug_invent_select;
+
+/** Work buffer for photo name definitions. */
+static char pic_name_text_buff_1660[0x2480];
+
+/** Scratch string used while resolving a scoop name. */
+static char temp_1728[0x21];
+
+/** Names of discovered ideas displayed in the notebook. */
+static char *NetaMemoStr[512];
+
+/** Idea identifiers displayed in the notebook. */
+static short NetaMemoID[512];
+
+/** Horizontal offsets of the inventory record-board entries. */
+static int rec_board_offset_xtbl[10];
 
 // Code (.text)
 CInventUserData *GetInventUserDataPtr() {
@@ -7466,46 +7533,17 @@ INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", maxtbl_album_5223__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", viewnum_album_5224__DATA);
 
 // Small uninitialised data (.sbss)
-INCLUDE_BSS(debug_invent_successflag, 0x4);
-INCLUDE_BSS(InventUserDataPtr, 0x4);
-INCLUDE_BSS(InventAlbumPtr, 0x4);
-INCLUDE_BSS(InventManagePt, 0x4);
-INCLUDE_BSS(MCManagerPtr, 0x4);
-INCLUDE_BSS(pict_seiton_case, 0x4);
-INCLUDE_BSS(scoop_str_stack, 0x4);
-INCLUDE_BSS(PicNameStack, 0x4);
-INCLUDE_BSS(pic_name_info_top, 0x4);
-INCLUDE_BSS(pic_name_info_num, 0x4);
-INCLUDE_BSS(pic_name_info_num_count, 0x4);
 INCLUDE_BSS(at_1788__2, 0x4);
-INCLUDE_BSS(inventSpiDataTblTop, 0x4);
-INCLUDE_BSS(invent_num_counter, 0x4);
 INCLUDE_BSS(at_1965, 0x4);
-INCLUDE_BSS(NetaMemoStrNum, 0x4);
-INCLUDE_BSS(Tex_Hatsumei, 0x4);
-INCLUDE_BSS(InventSubDataReadBGInfo, 0x8);
 INCLUDE_BSS(at_3202, 0x8);
 INCLUDE_BSS(at_3317, 0x8);
 INCLUDE_BSS(at_3363, 0x8);
 INCLUDE_BSS(at_3379, 0x8);
 INCLUDE_BSS(at_3509, 0x8);
-INCLUDE_BSS(menu_invent_command_info_pict_info, 0x4);
-INCLUDE_BSS(menu_invent_command_info_ptr, 0x4);
-INCLUDE_BSS(menu_invent_command_info_move_album_Space_info, 0x4);
-INCLUDE_BSS(menu_invent_command_info_move_album_Space_pos, 0x4);
 INCLUDE_BSS(at_3739, 0x8);
 INCLUDE_BSS(at_3765, 0x8);
-INCLUDE_BSS(InventInNetaEffectFlag, 0x4);
-INCLUDE_BSS(InventInNetaEffectNum, 0x4);
-INCLUDE_BSS(InventInNetaEffectNum4, 0x4);
-INCLUDE_BSS(InventInNetaEffect, 0x4);
-INCLUDE_BSS(ActiveSlot_3949, 0x4);
-INCLUDE_BSS(init_3950, 0x4);
-INCLUDE_BSS(CMenuInventPt, 0x8);
 INCLUDE_BSS(at_4493, 0x8);
 INCLUDE_BSS(at_4638, 0x8);
-INCLUDE_BSS(InventManageMan, 0x8);
-INCLUDE_BSS(debug_invent_select, 0x4);
 INCLUDE_BSS(at_5448, 0x4);
 INCLUDE_BSS(at_5457, 0x8);
 INCLUDE_BSS(at_5642, 0x8);
@@ -7514,12 +7552,7 @@ INCLUDE_BSS(at_5642, 0x8);
 static mgCMemory MenuInventStack;
 static mgCMemory MenuInventCharaStack;
 static mgCMemory MenuInventMCStack;
-INCLUDE_BSS(pic_name_text_buff_1660, 0x2480);
-INCLUDE_BSS(temp_1728, 0x30);
 static mgCMemory InventTeigiStack;
-INCLUDE_BSS(NetaMemoStr, 0x800);
-INCLUDE_BSS(NetaMemoID, 0x400);
-INCLUDE_BSS(rec_board_offset_xtbl, 0x28);
 INCLUDE_BSS(at_2776, 0x18);
 INCLUDE_BSS(at_5460, 0x18);
 INCLUDE_BSS(at_5474, 0x18);
