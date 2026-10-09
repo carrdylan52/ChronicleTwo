@@ -3092,7 +3092,7 @@ int CMenuTreeMap::Step() {
                         if (MenuArg.result[2] == 2 && !CheckBitFlagMenu(0x133)) {
                             jump_event = 1;
                         }
-                        if (MenuArg.result[2] == 21 && !CheckBitFlagMenu(0x158)) {
+                        if (MenuArg.result[2] == 21 && !CheckBitFlagMenu(SAVE_FLAG_FISHING_CONTEST_UNLOCKED)) {
                             jump_event = 1;
                         }
                         if (MenuArg.result[2] == 22) {
@@ -3103,7 +3103,7 @@ int CMenuTreeMap::Step() {
                         if (MenuArg.result[2] == 2 && !CheckBitFlagMenu(0x196)) {
                             jump_event = 1;
                         }
-                        if (MenuArg.result[2] == 17 && !CheckBitFlagMenu(0x1A8)) {
+                        if (MenuArg.result[2] == 17 && !CheckBitFlagMenu(SAVE_FLAG_FINNY_FRENZY_UNLOCKED)) {
                             jump_event = 1;
                         }
                         if (MenuArg.result[2] == 19) {
