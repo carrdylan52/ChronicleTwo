@@ -37,6 +37,20 @@ retail pointer relocation metadata, and wrong child size
 (`anonymous-initializer-graph-proposal-check.log`). The shared scripts and
 canonical source retain their accepted forms pending tooling integration.
 
+Read-only review identified two generic graph hazards before tooling
+integration: first-root publication could retain a conflicting shared-child
+claim, and separate native objects could claim one retail piece. The private
+proposal now collects all successful root graphs before publication and
+rejects every graph involving a conflicting node destination or retail-piece
+owner, including live `D_<address>` definitions. Positive shared-child
+agreement checks require exactly one child identity and section owner.
+Additional rejection fixtures cover both root iteration orders, cycles,
+conflicting code references, duplicate/non-pointer relocation fields, wrong
+known targets, and nonzero or oversized alignment tails
+(`anonymous-initializer-graph-proposal-edges.log`). Native relocations are
+grouped by section and retail relocation ranges use sorted positions plus
+bisect, avoiding a complete retail-relocation scan per graph node.
+
 Final: 1 rodata / 0 BSS markers; matched_data
 92/195 after the standard objdiff/progress refresh.
 Every accepted step passes the full PAL build (`SCES_511.90: OK`) and
