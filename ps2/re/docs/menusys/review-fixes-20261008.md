@@ -71,3 +71,11 @@ All nine functional casts are replaced by single-precision literals with
 identical bytes and resolved relocations. The per-call inventory and
 validation receipts are in the debug-display section of
 [night-20261008.md](night-20261008.md).
+
+## Current item-limit matching notes (finding 11)
+
+`notes.md` identifies CheckEnableHaveItemNum as promoted and records the
+joint source facts that resolve its active-slot register allocation. The
+round-zero, round-one and near-miss scores are explicitly historical; the
+current remaining list has the four constructor-backed guarded functions.
+`notes-build.log` and `notes-objects.log` record PAL OK and 149/149 objects.

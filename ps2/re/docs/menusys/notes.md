@@ -231,29 +231,32 @@ selector construction boundaries are documented in
 
 ## Remaining matching blockers
 
-The [round-one matching status](matching-round1-20261008.md) records the current
-scores, new source hypotheses, and validation receipts. In that round `MenuDataSwap`
+The [round-one matching status](matching-round1-20261008.md) records the historical
+scores, source hypotheses, and validation receipts from that round. In that round `MenuDataSwap`
 improved to 34/228 differing words, and both swap-result tables gained exact
 C++ data definitions; see [swap-results.md](swap-results.md).
 The [midday matching status](matching-midday-20261008.md) records the eleven
-remaining guarded symbols and the earlier round-zero experiments.
+guards retained in that round and the earlier round-zero experiments.
 The [morning matching status](matching-status-20261008.md) is a historical
 snapshot from before the lane base and includes the subsequently promoted
 `MenuWeaponBuildUpDraw`.
 
 The [night near-miss run](night-20261008.md) promotes `CommonSetMoveItemClass`,
 `MenuDataSwap`, `MenuPosFormValueSetCharaRobo`, `CMenuItemInfo::CalcTex`,
-`CMenuItemInfo::LRCheck` and `MenuItemDebugDraw` (with its seven control
-selectors), and records the source facts that close each one.
+`CMenuItemInfo::LRCheck`, `MenuItemDebugDraw` (with its seven control
+selectors) and `CheckEnableHaveItemNum`, and records the source facts that
+close each one.
 The earlier residual descriptions of those functions in the dated notes are
 superseded.
 
-`CheckEnableHaveItemNum` retains seven register-allocation differences: the
-first active-slot loop exchanges the `s1` counter and `s3` item pointer.
-The plain final `for` loop resolves the former `t0`/`a3` offset exchange;
-see [night-20261008.md](night-20261008.md). Reusing the earlier `j` counter
-or replacing repeated active-item address expressions with the named pointer
-does not resolve the first loop's allocation.
+`CheckEnableHaveItemNum` is an exact native C++ match (0/212 words,
+declared size `0x34C`). Its final `for` loop resolves the former `t0`/`a3`
+offset exchange. The first active-slot pass also matches when its slot counter
+`k` is function-scoped and every active-record call uses the named pointer;
+its gift-slot counter remains separately scoped. Both source facts are needed
+together to resolve the former `s1`/`s3` exchange. The round-two promotion and
+full validation are in [night-20261008.md](night-20261008.md#round-2--checkenablehaveitemnum-promoted).
+The four constructor-backed functions listed below remain guarded.
 
 The placement-new null-branch blocker occurs in `MenuItemSelectInit`,
 `MenuModeMalloc`, `IsAskExtend` and `MenuItemDebugKey`. Retail branches on `v0`
@@ -277,4 +280,4 @@ passes all `0x1B0E8` allocated unit bytes and 5,764 resolved relocations.
 [nearmiss-20261008.md](nearmiss-20261008.md) records the new linkage,
 width, initialization-order, indexed item-limit and compiler-control probes.
 At that point LRCheck, CalcTex and CheckEnableHaveItemNum remained at 2/220,
-7/832 and 13/212 words; the night run later promoted LRCheck and CalcTex.
+7/832 and 13/212 words; the night run later promoted all three functions.
