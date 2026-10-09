@@ -679,9 +679,8 @@ void mgEndFrame(mgCDrawManager *manager) {
     int              wait_start;
     int              sample;
     int              top;
-    int              magnification;
-    u_long           display_base;
     u_long           display_position;
+    int              magnification;
 
     cpu_ratio = 100.0f * ((u_int) (*(volatile u_int *) 0x10000000 - h_count) / frame_ticks);
     mgWaitFrame();
@@ -780,24 +779,22 @@ void mgEndFrame(mgCDrawManager *manager) {
         *(volatile u_long *) 0x12000000 = 0xFF23;
         mgDBuff.disp[mgDBuffID].pmode = 0xFF23;
     }
-    mgDBuff.disp[mgDBuffID].bgcolor = 0;
-    mgDBuff.disp[mgDBuffID].smode2 = 1;
+    *(u_long *) &mgDBuff.disp[mgDBuffID].bgcolor = 0;
+    *(u_long *) &mgDBuff.disp[mgDBuffID].smode2 = 1;
     frame = mgDBuffID != 0 ? &mgDBuff.draw1.frame1 : &mgDBuff.draw0.frame1;
     magnification = 3;
     if (mgScreenWidth == 512) {
         magnification = 4;
     }
-    display_base = frame->FBP | (frame->FBW << 9) | (frame->PSM << 15);
     display_position = 0x290 | ((u_long) ((524 - mgScreenHeight) / 2 + 72) << 12) | ((u_long) magnification << 23);
-    mgDBuff.disp[mgDBuffID].dispfb = display_base;
+    *(u_long *) &mgDBuff.disp[mgDBuffID].dispfb = (u_long) frame->FBP | ((u_long) frame->FBW << 9) | ((u_long) frame->PSM << 15);
     *(u_long *) &mgDBuff.disp[mgDBuffID].display = display_position | ((u_long) (mgScreenWidth * (magnification + 1) - 1) << 32) | ((u_long) (mgScreenHeight - 1) << 44);
     FlushCache(0);
     sceGsSwapDBuff(&mgDBuff, mgDBuffID);
     sceDmaSync(DmaCH2, 0, 0);
-    display_base = frame->FBP | (frame->FBW << 9) | (frame->PSM << 15);
-    *(volatile u_long *) 0x12000070 = display_base | ((u_long) 0x800 << 32);
+    *(volatile u_long *) 0x12000070 = (u_long) frame->FBP | ((u_long) frame->FBW << 9) | ((u_long) frame->PSM << 15) | ((u_long) 0x800 << 32);
     *(volatile u_long *) 0x12000080 = display_position | ((u_long) (mgScreenWidth * (magnification + 1) - 1) << 32) | ((u_long) (mgScreenHeight - 2) << 44);
-    *(volatile u_long *) 0x12000090 = display_base;
+    *(volatile u_long *) 0x12000090 = (u_long) frame->FBP | ((u_long) frame->FBW << 9) | ((u_long) frame->PSM << 15);
     *(volatile u_long *) 0x120000A0 = display_position | ((u_long) (mgScreenWidth * (magnification + 1) - 1) << 32) | ((u_long) (mgScreenHeight - 2) << 44);
     mgNowFrameRate = (u_int) (*(volatile u_int *) 0x10000000 - h_count) / 262.0f;
     if (!(mgNowFrameRate - (float) mgFrameRate <= 1.0f)) {
