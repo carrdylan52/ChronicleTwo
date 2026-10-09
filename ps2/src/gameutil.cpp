@@ -84,11 +84,6 @@ static sceVu0FMATRIX tmp_BaseSkinMatrix_inv_922;
 
 static mgCFrame *OldSkinFrame;
 
-struct FrameLinkRecord {
-    int count;
-    int link[11];
-};
-
 struct CCPolyCopy {
     float vertex[3][4];
     float normal[4];
@@ -828,8 +823,8 @@ void ChangeWeight(Mot_List *list, mgCMemory *memory, u8 *data, int frame_no, tag
     Mot_List             *channel;
     Mot_List             *cur;
     FRAME_VECTOR_EX_DATA *keys;
-    int                  *src_vertices;
-    int                  *src_uvs;
+    sceVu0FVECTOR        *src_vertices;
+    sceVu0FVECTOR        *src_normals;
     int                   i;
     mgFACE_GROUP         *node;
     mgCFace              *index_list;
@@ -892,19 +887,19 @@ void ChangeWeight(Mot_List *list, mgCMemory *memory, u8 *data, int frame_no, tag
     prev->next = old_prev;
 
     if (mesh != NULL) {
-        src_vertices = (int *) mesh->vertex;
-        src_uvs = (int *) mesh->normal;
+        src_vertices = mesh->vertex;
+        src_normals = mesh->normal;
         frame_info[frame_no].base_vertices = (float (*)[4]) memory->Alloc((mesh->vertex_num * 16U / 16) + 1);
         frame_info[frame_no].base_normals = (float (*)[4]) memory->Alloc(((u32) mesh->normal_num * 16 / 16) + 1);
         frame_info[frame_no].vertex_refs =
-            (int (*)[12]) memory->Alloc(((u32) (mesh->vertex_num * 0x30) >> 4) + 1);
+            (FrameLinkRecord *) memory->Alloc(((u32) (mesh->vertex_num * 0x30) >> 4) + 1);
         frame_info[frame_no].vertex_count = mesh->vertex_num;
         frame_info[frame_no].normal_count = mesh->normal_num;
         memcpy(frame_info[frame_no].base_vertices, src_vertices, mesh->vertex_num * 16);
-        memcpy(frame_info[frame_no].base_normals, src_uvs, mesh->normal_num * 16);
+        memcpy(frame_info[frame_no].base_normals, src_normals, mesh->normal_num * 16);
 
         for (i = 0; i < mesh->vertex_num; i++) {
-            frame_info[frame_no].vertex_refs[i][0] = 0;
+            frame_info[frame_no].vertex_refs[i].count = 0;
         }
 
         node = mesh->face_group;
@@ -924,9 +919,9 @@ void ChangeWeight(Mot_List *list, mgCMemory *memory, u8 *data, int frame_no, tag
                                 pos++;
                                 int to = indices[pos];
                                 pos += index_list->index_stride - 1;
-                                record = (FrameLinkRecord *) &frame_info[frame_no].vertex_refs[from];
+                                record = &frame_info[frame_no].vertex_refs[from];
                                 record->link[record->count] = to;
-                                record = (FrameLinkRecord *) &frame_info[frame_no].vertex_refs[from];
+                                record = &frame_info[frame_no].vertex_refs[from];
                                 record->count++;
                             }
 
@@ -1058,8 +1053,8 @@ int AnimeDataInit(mgCFrame *frame, tagMOTION_TYPE *motion, mgCMemory *memory,
     int             *indices;
     int              pos;
     FrameLinkRecord *record;
-    int             *src_vertices;
-    int             *src_uvs;
+    sceVu0FVECTOR   *src_vertices;
+    sceVu0FVECTOR   *src_normals;
     mgCFrame        *target;
 
     frame_num = frame->GetFrameNum();
@@ -1086,22 +1081,22 @@ int AnimeDataInit(mgCFrame *frame, tagMOTION_TYPE *motion, mgCMemory *memory,
                     mesh = (mgCVisualMDT *) target->visual;
 
                     if (mesh != NULL && mesh != NULL) {
-                        src_vertices = (int *) mesh->vertex;
-                        src_uvs = (int *) mesh->normal;
+                        src_vertices = mesh->vertex;
+                        src_normals = mesh->normal;
                         frame_info[channel->frame].base_vertices =
                             (float (*)[4]) memory->Alloc((mesh->vertex_num * 16U / 16) + 1);
                         frame_info[channel->frame].base_normals =
                             (float (*)[4]) memory->Alloc(((u32) mesh->normal_num * 16 / 16) + 1);
-                        frame_info[channel->frame].vertex_refs = (int (*)[12]) memory->Alloc(
+                        frame_info[channel->frame].vertex_refs = (FrameLinkRecord *) memory->Alloc(
                             ((u32) (mesh->vertex_num * 0x30) >> 4) + 1);
                         frame_info[channel->frame].vertex_count = mesh->vertex_num;
                         frame_info[channel->frame].normal_count = mesh->normal_num;
                         memcpy(frame_info[channel->frame].base_vertices, src_vertices,
                                mesh->vertex_num * 16);
-                        memcpy(frame_info[channel->frame].base_normals, src_uvs, mesh->normal_num * 16);
+                        memcpy(frame_info[channel->frame].base_normals, src_normals, mesh->normal_num * 16);
 
                         for (j = 0; j < mesh->vertex_num; j++) {
-                            frame_info[channel->frame].vertex_refs[j][0] = 0;
+                            frame_info[channel->frame].vertex_refs[j].count = 0;
                         }
 
                         node = mesh->face_group;
@@ -1121,9 +1116,9 @@ int AnimeDataInit(mgCFrame *frame, tagMOTION_TYPE *motion, mgCMemory *memory,
                                                 pos++;
                                                 int to = indices[pos];
                                                 pos += list->index_stride - 1;
-                                                record = (FrameLinkRecord *) &frame_info[channel->frame].vertex_refs[from];
+                                                record = &frame_info[channel->frame].vertex_refs[from];
                                                 record->link[record->count] = to;
-                                                record = (FrameLinkRecord *) &frame_info[channel->frame].vertex_refs[from];
+                                                record = &frame_info[channel->frame].vertex_refs[from];
                                                 record->count++;
                                             }
 

@@ -58,7 +58,7 @@ In ChangeWeight the skin file is passed as `unsigned char *`; its header +0x04 i
 Stride `* 0x20` everywhere; AnimeDataInit(**) allocates `stAlloc64((frames + 10) * 2)` quadwords.
 0x00 parent: `(GetFrame(i)->parent@0x54 - root) / 0x110` (so mgCFrame is 0x110 and frames are one
 array). 0x04 vertex_count / 0x08 normal_count from visual (mgCVisualMDT) +0x20/+0x24.
-0x0C vertex_refs: `Alloc(vcount*3+1)` quadwords = 0x30 per vertex: [0]=count, [1..11]=values; filled
+0x0C vertex_refs: `Alloc(vcount*3+1)` quadwords = 0x30 per vertex, one `FrameLinkRecord` (`count`, then `link[11]`); filled
 from visual+0x48 primitive list (prim +4 -> strip list, strip +2 stride, +6 count, +0xC index
 array, +0x10 next; prim->+4 ushort flag 0x200 skips): for each vertex index idx[l] it appends
 idx[l+1]. Meaning of the appended value (probably normal index) not confirmed; never read in this

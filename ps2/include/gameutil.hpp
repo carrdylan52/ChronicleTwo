@@ -109,17 +109,29 @@ STATIC_ASSERT(sizeof(Mot_List) == 0x20);
 
 /**
  *
+ * Lists the vertices that a visual's primitives place after one of its vertices.
+ *
+ */
+struct FrameLinkRecord {
+    s32 count;    /**< Number of entries of link in use. */
+    s32 link[11]; /**< Indices of the vertices listed after this one. */
+};
+
+STATIC_ASSERT(sizeof(FrameLinkRecord) == 0x30);
+
+/**
+ *
  * Holds what a model's motion needs to know about one of its frames to skin its visual.
  *
  */
 struct tagFRAME_INF {
-    s32 parent;                   /**< Index of the frame's parent in the model's frame array. */
-    u32 vertex_count;             /**< Number of vertices of the frame's visual. */
-    u32 normal_count;             /**< Number of normals of the frame's visual. */
-    s32 (*vertex_refs)[12];       /**< Per vertex, a count then up to eleven indices that the visual's primitives list after it. */
-    sceVu0FVECTOR *base_vertices; /**< Copy of the visual's undeformed vertices. */
-    sceVu0FVECTOR *base_normals;  /**< Copy of the visual's undeformed normals. */
-    u8             unk_18[8];
+    s32              parent;        /**< Index of the frame's parent in the model's frame array. */
+    u32              vertex_count;  /**< Number of vertices of the frame's visual. */
+    u32              normal_count;  /**< Number of normals of the frame's visual. */
+    FrameLinkRecord *vertex_refs;   /**< Per vertex, the vertices that the visual's primitives list after it. */
+    sceVu0FVECTOR   *base_vertices; /**< Copy of the visual's undeformed vertices. */
+    sceVu0FVECTOR   *base_normals;  /**< Copy of the visual's undeformed normals. */
+    u8               unk_18[8];
 };
 
 STATIC_ASSERT(sizeof(tagFRAME_INF) == 0x20);
