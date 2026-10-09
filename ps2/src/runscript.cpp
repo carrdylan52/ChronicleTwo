@@ -415,7 +415,7 @@ void CRunScript::exe(vmcode_t *entry) {
                 } else if (pc->arg1 == RS_CONST_STR) {
                     push_str(code + pc->arg2);
                 } else if (pc->arg1 == RS_CONST_FLOAT) {
-                    push_float(*(float *)&pc->arg2);
+                    push_float(pc->arg2_float);
                 }
 
                 break;

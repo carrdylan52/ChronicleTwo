@@ -156,7 +156,11 @@ STATIC_ASSERT(sizeof(RS_STACKDATA) == 0x8);
 struct vmcode_t {
     int op;   /**< Operation to execute. @see RS_OPCODE. */
     int arg1; /**< First operand. */
-    int arg2; /**< Second operand. */
+
+    union {
+        int   arg2;       /**< Second operand. */
+        float arg2_float; /**< Second operand of a RS_CONST_FLOAT constant push. */
+    }; /**< Second operand, read by type for a constant push. */
 };
 
 STATIC_ASSERT(sizeof(vmcode_t) == 0xC);
