@@ -26,3 +26,9 @@ Accepted steps: `vector:at_2311`, `vector:at_2498__2`. Each has full PAL, 149-ob
 
 Accepted steps: `vector:at_2067`. Each has full PAL, 149-object and unowned raw-object hash receipts under `.private/dataA-r3/eff-<topic>-{build,objects,hashes}.log`.
 
+## Inline effect resource loading literals
+
+Resource loading uses native `%s.chr`, `%s.img`, `%s.stb` pack suffixes and `dungeon/eff_script/` paths. `ClearBaseFromLevel` owns its texture-bank exhaustion diagnostic. Each literal is inline at its actual native use.
+
+Accepted steps: `strings:at_943__3`, `strings:at_1127__2`, `strings:at_1128__3`, `strings:at_1129__2`, `strings:at_1143`, `strings:at_1144`, `strings:at_1145`. Each has full PAL, 149-object and unowned raw-object hash receipts under `.private/dataA-r3/eff-<topic>-{build,objects,hashes}.log`.
+

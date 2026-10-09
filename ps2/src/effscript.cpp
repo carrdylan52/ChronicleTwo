@@ -278,19 +278,12 @@ extern char            at_3645[];
 
 
 
-extern char at_943__3[];
 
-extern char at_1127__2[];
 
-extern char at_1128__3[];
 
-extern char at_1129__2[];
 
-extern char at_1143[];
 
-extern char at_1144[];
 
-extern char at_1145[];
 
 extern char at_1336__2[];
 
@@ -475,7 +468,7 @@ void CEffectScriptMan::ClearBaseFromLevel(int level, int *cleared, int max) {
     if (cleared != 0 && count < max) {
         cleared[count] = -1;
     } else if (cleared != 0) {
-        printf(at_943__3);
+        printf("--- effect script err (ClearBaseFromLevel TexbTable Over)!!! ---\n");
         cleared[count - 1] = -1;
     }
 }
@@ -712,14 +705,14 @@ int CEffectScriptMan::BuildPack(int base_no, u_int *pack, mgCMemory *memory, int
 
     switch (base->type) {
         case 0:
-            sprintf(path, at_1127__2, base->file);
+            sprintf(path, "%s.chr", base->file);
             break;
         case 1:
-            sprintf(path, at_1128__3, base->file);
+            sprintf(path, "%s.img", base->file);
             break;
     }
 
-    sprintf(pack_path, at_1129__2, base->script);
+    sprintf(pack_path, "%s.stb", base->script);
     u_int *path_file = GetPackFile(pack, path, &path_size);
     u_int *pack_file = GetPackFile(pack, pack_path, &pack_size);
     return BuildBase(base_no, (u_long128 *) path_file, path_size, (u_long128 *) pack_file, pack_size, memory, level);
@@ -738,14 +731,14 @@ int CEffectScriptMan::GetNeedFilePath(int base_no, char *path, char *pack) {
 
     switch (base->type) {
         case 0:
-            sprintf(path, at_1143, base->file);
+            sprintf(path, "dungeon/eff_script/%s.chr", base->file);
             break;
         case 1:
-            sprintf(path, at_1144, base->file);
+            sprintf(path, "dungeon/eff_script/%s.img", base->file);
             break;
     }
 
-    sprintf(pack, at_1145, base->script);
+    sprintf(pack, "dungeon/eff_script/%s.stb", base->script);
     return 1;
 }
 
@@ -5695,19 +5688,12 @@ void SetEffectScriptFunc() {
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/effscript", ext_func_info__4__DATA);
 
 // Constants (.rodata)
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/effscript", at_943__3__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/effscript", at_1099__2__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/effscript", at_1100__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/effscript", at_1101__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/effscript", at_1102__2__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/effscript", at_1103__5__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/effscript", at_1104__7__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/effscript", at_1127__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/effscript", at_1128__3__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/effscript", at_1129__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/effscript", at_1143__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/effscript", at_1144__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/effscript", at_1145__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/effscript", at_1336__2__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/effscript", at_1337__2__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/effscript", at_1338__2__DATA);
