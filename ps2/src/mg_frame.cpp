@@ -670,9 +670,7 @@ int mgCFrame::GetWorldBBox(mgVu0FBOX *box) {
         found = 1;
         GetLWMatrix(matrix);
 
-        mgApplyMatrix(world_box.max, world_box.min, matrix,
-                      ((mgCFrame::BoundInfo *) bound)->max,
-                      ((mgCFrame::BoundInfo *) bound)->min);
+        mgApplyMatrix(world_box.max, world_box.min, matrix, bound->max, bound->min);
 
         if (attr != 0 && attr->billboard != 0) {
             float extent;
@@ -1048,7 +1046,7 @@ void mgCFrame::GetLWMatrixTopBottom(float (*matrix)[4]) {
         return;
     }
     if (changed == 0) {
-        mgCFrame *parentFrame = (mgCFrame *)parent;
+        mgCFrame *parentFrame = parent;
         if (parentFrame == 0) {
             sceVu0CopyMatrix(matrix, lw_matrix);
             return;
