@@ -6,7 +6,7 @@ progress refresh.
 
 Train-reaction, thunder, fire-texture and geyser-name strings are inlined at their native consumers. Five fire-sprite aggregate templates already exist in source. `CGeyserEffect::CreatePacket` now initializes its real `mgVec4` size, UV and colour aggregates directly, including the zero UV initializer.
 
-Eighteen documented file-private words/pointers preserve the retail order of train-reaction, thunder, fire-powder and geyser state. The assembly-backed fire initializer's GP slots remain present. No guarded draft is changed.
+Eighteen documented file-private words/pointers preserve the retail order of camera-reaction, thunder, fire-powder and geyser state. The assembly-backed fire initializer's GP slots remain present. No guarded draft is changed.
 
 Retained RODATA marker: `at_1143__2__DATA`, the `"effect/firerain.img"` resource path directly referenced by assembly-backed `InitFirePowder`.
 

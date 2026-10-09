@@ -27,12 +27,12 @@ extern char   at_1143__2[];
 
 
 /**
- * Character used by the train reaction.
+ * Character reacting to the camera.
  */
 static int rea_chara_id;
 
 /**
- * Current motion step of the train reaction.
+ * Current motion step of the camera reaction.
  */
 static int rea_mtn_step;
 
@@ -42,7 +42,7 @@ static int rea_mtn_step;
 static int thunder_count;
 
 /**
- * Whether a thunder flash has begun.
+ * Thunder-start state reset by the thunder initializer.
  */
 static int start_thunder;
 
