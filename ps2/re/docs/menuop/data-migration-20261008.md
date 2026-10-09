@@ -66,7 +66,8 @@ Its exact declared size is 28 bytes, with the following zero word belonging
 to alignment rather than an eighth entry. The scrollbar-name table contains
 three pointers, with its following zero word likewise outside the object.
 All table strings are literals in their initializers, including the scrollbar
-strings shared with native manual/option layout calls.
+strings shared with native manual/option layout calls. Named table definitions
+appear in retail address order.
 
 The picture-page help width table contains eight language widths. The five
 manual list message-class IDs retain their signed-byte representation. Both
@@ -119,3 +120,109 @@ Each individual function step passes PAL and all 149 objects. Receipts are
 `literal-manual-draw`, `literal-CManualMenu-{KeyStep,CalcTex,CalcCursorPosition}`,
 `literal-CMenuOption-{KeyStep,CalcTex}`, `literal-MenuOptionInit`, and the
 combined `manual-option-literals` check. RODATA / BSS markers are 65 / 14.
+
+## Save and mini-game literals
+
+The save-file time formatter, save initialization/debug drawing and mini-game
+save initialization/key handler now use their literal filenames, texture/form
+names, formatter strings and script actions directly. Each function is changed
+and validated separately. The existing `space` static pointer's initializer
+is the literal space, preserving its compiler-generated variable and guard.
+Its one-byte character payload and colon share their exact original extents.
+
+Receipts are `literal-{SaveFileListDraw,MenuSaveInit,MenuSaveDraw,SubGameSaveInit,
+SubGameSaveKey}-{build,objects}.log`. Every step passes PAL verification and all
+149 objects.
+
+## Retained markers
+
+All retained markers belong to the two untouched guarded drafts. No native-only
+marker remains. A guarded anonymous literal/template cannot be replaced by its
+natural local initializer while its owning function is excluded from native
+compilation. Named anonymous stand-ins, hand-authored vtables, and fabricated
+initialization guards are not introduced.
+
+The following 26 literal markers remain under their exact retail identities,
+with their declarations still available to the owning draft and `INCLUDE_ASM`
+fallback. Shared native consumers use literal arguments.
+
+| Literal marker | Owning guarded function | Declared bytes | Reason retained |
+| --- | --- | ---: | --- |
+| `at_1102` | `MenuManualInit` | 10 | Required retail literal symbol in the guarded body. |
+| `at_1103__3` | `MenuManualInit` | 16 | Required retail literal symbol in the guarded body. |
+| `at_1104__5` | `MenuManualInit` | 14 | Required retail literal symbol in the guarded body. |
+| `at_1105__2` | `MenuManualInit` | 11 | Required retail literal symbol in the guarded body. |
+| `at_1106__2` | `MenuManualInit` | 6 | Required retail literal symbol in the guarded body. |
+| `at_1107__3` | `MenuManualInit` | 6 | Required retail literal symbol in the guarded body. |
+| `at_1108` | `MenuManualInit` | 15 | Required retail literal symbol in the guarded body. |
+| `at_1109__2` | `MenuManualInit` | 10 | Required retail literal symbol in the guarded body. |
+| `at_2498` | `CSaveMenuClass::KeyStep` | 15 | Required retail literal symbol in the guarded body. |
+| `at_2499` | `CSaveMenuClass::KeyStep` | 14 | Required retail literal symbol in the guarded body. |
+| `at_2500` | `CSaveMenuClass::KeyStep` | 15 | Required retail literal symbol in the guarded body. |
+| `at_2501` | `CSaveMenuClass::KeyStep` | 9 | Required retail literal symbol in the guarded body. |
+| `at_2502` | `CSaveMenuClass::KeyStep` | 11 | Required retail literal symbol in the guarded body. |
+| `at_2503` | `CSaveMenuClass::KeyStep` | 9 | Required retail literal symbol in the guarded body. |
+| `at_2504__2` | `CSaveMenuClass::KeyStep` | 24 | Required retail literal symbol in the guarded body. |
+| `at_2505__2` | `CSaveMenuClass::KeyStep` | 8 | Required retail literal symbol in the guarded body. |
+| `at_2506__2` | `CSaveMenuClass::KeyStep` | 10 | Required retail literal symbol in the guarded body. |
+| `at_2507__2` | `CSaveMenuClass::KeyStep` | 8 | Required retail literal symbol in the guarded body. |
+| `at_2508__2` | `CSaveMenuClass::KeyStep` | 9 | Required retail literal symbol in the guarded body. |
+| `at_2509__2` | `CSaveMenuClass::KeyStep` | 10 | Required retail literal symbol in the guarded body. |
+| `at_2510__2` | `CSaveMenuClass::KeyStep` | 13 | Required retail literal symbol in the guarded body. |
+| `at_2511` | `CSaveMenuClass::KeyStep` | 5 | Required retail literal symbol in the guarded body. |
+| `at_2512__2` | `CSaveMenuClass::KeyStep` | 7 | Required retail literal symbol in the guarded body. |
+| `at_2513` | `CSaveMenuClass::KeyStep` | 7 | Required retail literal symbol in the guarded body. |
+| `at_2514` | `CSaveMenuClass::KeyStep` | 12 | Required retail literal symbol in the guarded body. |
+| `at_2515` | `CSaveMenuClass::KeyStep` | 6 | Required retail literal symbol in the guarded body. |
+
+Five additional initialized markers remain:
+
+| Marker | Type or role | Reason retained |
+| --- | --- | --- |
+| `at_2518__2` | Seven-entry next-page switch table. | Destinations belong to the guarded retail `CSaveMenuClass::KeyStep` body; a native switch is unavailable without editing/promoting that draft. |
+| `at_2517__2` | Seven-entry current-page switch table. | Destinations belong to the same guarded retail body; hand-written address tables are not natural C++. |
+| `__vt__11CManualMenu` | 0x20-byte derived-class virtual table. | Its constructor is only used by guarded `MenuManualInit`; no active native construction emits it, and manual vtable definitions/writes are prohibited. |
+| `at_2335__3` | `float[2]` initialized to `{76.0f, 164.0f}`. | Anonymous list-origin template owned by guarded `CSaveMenuClass::KeyStep`; its natural initializer remains inside that unchanged draft. |
+| `at_2342` | `int[2]` initialized to `{6, 250}`. | Anonymous scrollbar-range template owned by the same guarded draft. |
+
+All fourteen BSS markers belong to `CSaveMenuClass::KeyStep`:
+
+| BSS marker | Declared bytes | Type or role | Reason retained |
+| --- | ---: | --- | --- |
+| `FormatCase_1968` | 4 | Function-local format-confirmation counter. | Its natural local static is inside the guarded draft. |
+| `init_1969` | 1 | One-time initialization guard for the format counter. | Only the excluded local static can generate this guard naturally. |
+| `DarkClonicleFileMax_2004` | 4 | Function-local save-file count. | Its natural local static is inside the guarded draft. |
+| `init_2005` | 1 | One-time initialization guard for the file count. | Only the excluded local static can generate this guard naturally. |
+| `input_wait_counter_2067` | 1 | Signed-byte input debounce counter. | Its natural local static is inside the guarded draft. |
+| `init_2068` | 1 | One-time initialization guard for input debounce. | Only the excluded local static can generate this guard naturally. |
+| `at_2115__3` | 8 | Two-integer quest-confirmation value template. | The zero initializer is inside the excluded guarded body. |
+| `at_2276` | 8 | Two-integer card-space message value template. | The zero initializer is inside the excluded guarded body. |
+| `at_2319` | 4 | Single-pointer map-title template. | The NULL initializer is inside the excluded guarded body. |
+| `at_2326__2` | 4 | Chapter message-number initializer. | The zero initializer is inside the excluded guarded body. |
+| `at_2327` | 4 | Occupied-row number initializer. | The zero initializer is inside the excluded guarded body. |
+| `at_2328__2` | 4 | Occupied-row digit-width initializer. | The zero initializer is inside the excluded guarded body. |
+| `at_2330__2` | 4 | Empty-row number initializer. | The zero initializer is inside the excluded guarded body. |
+| `at_2331__2` | 4 | Empty-row digit-width initializer. | The zero initializer is inside the excluded guarded body. |
+
+## Final validation and accounting
+
+| Measure | Checkpoint `1695f2eb` | Final |
+| --- | ---: | ---: |
+| `INCLUDE_RODATA` | 153 | 31 |
+| `INCLUDE_BSS` | 59 | 14 |
+| `matched_data` | 4 | 732 |
+| `total_data` | 3,027 | 3,027 |
+| Native menuop functions | 34 | 34 |
+| Guarded menuop drafts | 2 | 2 |
+
+167 assembly-backed data markers are removed. The data metric credits complete
+aggregate sections; remaining guarded pieces prevent full credit for native
+pieces in the same section. Canonical object checks independently prove every
+allocated byte and resolved relocation, including all migrated data.
+
+Final receipts: `.private/menuop-data-r4/final-{build,objects,progress}.log`,
+`final-coverage.txt`, `final-metrics.json`,
+`final-preservation.json`, and `guard-data-symbols.json`. The full PAL build
+prints `SCES_511.90: OK`; all 149 canonical objects pass. Guarded source and
+the public header are unchanged. No function is attempted or promoted, and no
+unowned-file proposal or build-tooling change is needed.

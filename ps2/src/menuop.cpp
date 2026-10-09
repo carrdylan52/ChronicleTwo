@@ -56,11 +56,102 @@ struct ScreenPos {
 
 /**
  *
+ * Event flags unlocking each manual entry, followed by the end sentinel.
+ *
+ */
+static short manual_boot_event_no[47] = {
+    100, 100, 100, 100, 100, 100, 100, 100, 100, 100,
+    100, 100, 100, 100, 100, 100, 100, 100, 100, 100,
+    100, 100, 104, 108, 277, 277, 105, 105, 207, 207,
+    207, 207, 220, 48, 344, 314, 314, 250, 250, 250,
+    250, 250, 250, 424, 424, 424, -1
+};
+
+/**
+ *
+ * Map names treated as boss areas when the manual menu pauses dungeon music.
+ *
+ */
+static char *submap_table_1022[22] = {
+    "s06", "d01b01", "d02b01", "d02b03", "s17", "s56", "d03b01",
+    "d03b02", "s19", "s20", "d05b01", "s52", "s54", "s61",
+    "s62", "s63", "s69", "s13", "s14", "s15", "s16",
+    NULL
+};
+
+/**
+ *
+ * Picture-page help box width for each language.
+ *
+ */
+static short fillw_1125[8] = {310, 356, 356, 356, 356, 356, 356, 310};
+
+/**
+ *
+ * Cursor actions selecting the three visible save file rows.
+ *
+ */
+static char *tp_2083[3] = {"list0", "list1", "list2"};
+
+/**
+ *
+ * Dungeon map numbers used in save file location messages.
+ *
+ */
+static unsigned char conv_2316[9] = {55, 57, 58, 64, 79, 97, 160};
+
+/**
+ *
+ * Entrance map names for the seven dungeons.
+ *
+ */
+static char *dngmap_2627[7] = {
+    "d01f01", "d02f01", "d03f01", "d04f01", "d05f01", "d06f01", "d07f01"
+};
+
+/**
+ *
+ * Names of the three save-menu scrollbar parts.
+ *
+ */
+static char *b_2715[3] = {
+    "bar0", "bar1", "bar2"
+};
+
+/**
+ *
+ * Message classes displaying the five manual and option list columns.
+ *
+ */
+static signed char manual_list_mesclstbl[5] = {2, 4, 5, 6, 8};
+
+/**
+ *
+ * Number of selectable option rows, converted to an integer for navigation.
+ *
+ */
+static float config_option_num_i = 16.0f;
+
+/**
+ *
+ * Number of option rows used to size the scrollbar.
+ *
+ */
+static float config_option_num_f = 16.0f;
+
+/**
+ *
+ * Cursor actions selecting the two memory card slots.
+ *
+ */
+static char *tbl_2023[2] = {"slot1", "slot2"};
+
+/**
+ *
  * Whether a manual entry can start playing.
  *
  */
 static signed char MovieViewFlag;
-
 
 /**
  *
@@ -75,7 +166,6 @@ static float MoviePreBattleBGMVol_Save;
  *
  */
 static float MoviePreBattleBGMVol;
-
 
 /**
  *
@@ -93,21 +183,6 @@ static CMenuPosDataForm *LocalMenuClipForm;
 
 /**
  *
- * Message classes displaying the five manual and option list columns.
- *
- */
-static signed char manual_list_mesclstbl[5] = {2, 4, 5, 6, 8};
-
-/**
- *
- * Number of option rows used to size the scrollbar.
- *
- */
-static float config_option_num_f = 16.0f;
-
-
-/**
- *
  * Movie player used by the manual menu.
  *
  */
@@ -120,8 +195,19 @@ static CMovie *ManualMovie;
  */
 static mgCTexture *ManualMovieTex;
 
-mgCMemory                 StaticMenuLocalStack;
-mgCMemory                 StaticMenuLocalStack2;
+/**
+ *
+ * Memory used by the manual and option menu resources.
+ *
+ */
+mgCMemory StaticMenuLocalStack;
+
+/**
+ *
+ * Memory used by manual movies and restored character resources.
+ *
+ */
+mgCMemory StaticMenuLocalStack2;
 
 /**
  *
@@ -153,47 +239,10 @@ static signed char MovieBattleBGMPhase;
 
 /**
  *
- * Number of selectable option rows, converted to an integer for navigation.
- *
- */
-static float config_option_num_i = 16.0f;
-
-
-/**
- *
  * Form containing the option choice buttons.
  *
  */
 static CMenuPosDataForm *OptionButtonForm;
-
-extern char               at_1905__3[];
-extern char               at_2603[];
-extern char               at_2604[];
-extern char               at_2605[];
-/**
- *
- * Event flags unlocking each manual entry, followed by the end sentinel.
- *
- */
-static short manual_boot_event_no[47] = {
-    100, 100, 100, 100, 100, 100, 100, 100, 100, 100,
-    100, 100, 100, 100, 100, 100, 100, 100, 100, 100,
-    100, 100, 104, 108, 277, 277, 105, 105, 207, 207,
-    207, 207, 220, 48, 344, 314, 314, 250, 250, 250,
-    250, 250, 250, 424, 424, 424, -1
-};
-
-/**
- *
- * Map names treated as boss areas when the manual menu pauses dungeon music.
- *
- */
-static char *submap_table_1022[22] = {
-    "s06", "d01b01", "d02b01", "d02b03", "s17", "s56", "d03b01",
-    "d03b02", "s19", "s20", "d05b01", "s52", "s54", "s61",
-    "s62", "s63", "s69", "s13", "s14", "s15", "s16",
-    NULL
-};
 
 extern char               at_1102[];
 extern char               at_1103__3[];
@@ -203,14 +252,6 @@ extern char               at_1106__2[];
 extern char               at_1107__3[];
 extern char               at_1108[];
 extern char               at_1109__2[];
-/**
- *
- * Picture-page help box width for each language.
- *
- */
-static short fillw_1125[8] = {310, 356, 356, 356, 356, 356, 356, 310};
-
-extern char               at_2895[];
 
 /**
  *
@@ -219,7 +260,12 @@ extern char               at_2895[];
  */
 static CScene::BGM_STATUS SubGameDataBgm;
 
-mgCMemory                 SaveMenuStack;
+/**
+ *
+ * Memory used by the save and mini-game save menus.
+ *
+ */
+mgCMemory SaveMenuStack;
 
 /**
  *
@@ -227,28 +273,6 @@ mgCMemory                 SaveMenuStack;
  *
  */
 static CDC2Mes *SaveFileList[13];
-
-/**
- *
- * Names of the three save-menu scrollbar parts.
- *
- */
-static char *b_2715[3] = {
-    "bar0", "bar1", "bar2"
-};
-
-extern char               at_2764[];
-extern char               at_2765[];
-extern char               at_2766[];
-extern char               at_2767[];
-extern char               at_2768[];
-extern char               at_2769[];
-extern char               at_2770__2[];
-extern char               at_2771__2[];
-extern char               at_2772__2[];
-extern char               at_2773__2[];
-extern char               at_2774__2[];
-extern char               at_2775__2[];
 
 /**
  *
@@ -313,13 +337,6 @@ static mgCTexture *Tex_SaveFile;
  */
 static float SubSaveTileXY;
 
-extern char               at_2821__2[];
-extern char               at_2822[];
-extern char               at_2823[];
-extern char               at_2824[];
-extern char               at_2825[];
-extern char               at_2826__2[];
-extern char               at_2827[];
 extern char               at_2498[];
 extern char               at_2499[];
 extern char               at_2500[];
@@ -338,38 +355,8 @@ extern char               at_2512__2[];
 extern char               at_2513[];
 extern char               at_2514[];
 extern char               at_2515[];
-/**
- *
- * Cursor actions selecting the two memory card slots.
- *
- */
-static char *tbl_2023[2] = {"slot1", "slot2"};
-
-/**
- *
- * Cursor actions selecting the three visible save file rows.
- *
- */
-static char *tp_2083[3] = {"list0", "list1", "list2"};
-
-/**
- *
- * Dungeon map numbers used in save file location messages.
- *
- */
-static unsigned char conv_2316[9] = {55, 57, 58, 64, 79, 97, 160};
 
 extern short              TreeMapSaveNum;
-extern char               at_3198__2[];
-extern char               at_3199__3[];
-extern char               at_3200__2[];
-extern char               at_3201__3[];
-extern char               at_3202__3[];
-extern char               at_3203[];
-extern char               at_3204[];
-extern char               at_3205[];
-extern char               at_3206[];
-extern char               at_3207[];
 void                      InitMnOnePictTex();
 
 /**
@@ -423,16 +410,6 @@ static mgCTexture *MnOnePictTex[8];
 
 /**
  *
- * Entrance map names for the seven dungeons.
- *
- */
-static char *dngmap_2627[7] = {
-    "d01f01", "d02f01", "d03f01", "d04f01", "d05f01", "d06f01", "d07f01"
-};
-
-
-/**
- *
  * Loaded mini-game save menu configuration.
  *
  */
@@ -444,7 +421,6 @@ static char *SubGameSaveCFGBuffer;
  *
  */
 static int SubGameSaveCFGBufferSize;
-
 
 /**
  *
@@ -2812,21 +2788,21 @@ void SaveFileListDraw(int &tex_block, float *pos, int alpha) {
                         tens = 9;
                         minutes = 59;
                     }
-                    static char *space = at_2603;
+                    static char *space = " ";
                     hundreds = hours / 100;
                     if (CheckNowEurope() != 0) {
                         if (hundreds == 0) {
                             strcpy(hoursText, space);
                         } else {
-                            sprintf(hoursText, at_1905__3, hundreds);
+                            sprintf(hoursText, "%d", hundreds);
                         }
                         if (tens == 0 && hundreds == 0) {
                             strcat(hoursText, space);
                         } else {
-                            sprintf(digitText, at_1905__3, tens % 10);
+                            sprintf(digitText, "%d", tens % 10);
                             strcat(hoursText, digitText);
                         }
-                        sprintf(timeText, at_2604, hoursText, hours % 10, minutes / 10,
+                        sprintf(timeText, "%s%d:%d%d", hoursText, hours % 10, minutes / 10,
                                 minutes % 10);
                     } else {
                         if (hundreds == 0) {
@@ -2840,7 +2816,7 @@ void SaveFileListDraw(int &tex_block, float *pos, int alpha) {
                             strcat(timeText, GetMenuBigNum(tens));
                         }
                         strcat(timeText, GetMenuBigNum((int)(hours % 10)));
-                        strcat(timeText, at_2605);
+                        strcat(timeText, ":");
                         strcat(timeText, GetMenuBigNum((int)(minutes / 10)));
                         strcat(timeText, GetMenuBigNum((int)minutes));
                     }
@@ -2957,14 +2933,14 @@ void MenuSaveInit(mgCMemory *memory, int *tex_block, int mode) {
 
         SaveMenuStack.Align64();
         pack = (u8 *) (SaveMenuStack.stack + SaveMenuStack.stack_used);
-        script_size = LoadFileMenu(at_2764, (u_long128 *) pack, 1);
+        script_size = LoadFileMenu("save.pac", (u_long128 *) pack, 1);
         blocks = (script_size & 0xF) != 0 ? (script_size >> 4) + 1 : script_size >> 4;
         SaveMenuStack.Alloc(blocks);
-        mgTexManager.EnterIMGFile((u_char *) GetPackFile((unsigned int *) pack, at_2765, NULL), SaveMenuPtr->tex_block[1],
+        mgTexManager.EnterIMGFile((u_char *) GetPackFile((unsigned int *) pack, "img.img", NULL), SaveMenuPtr->tex_block[1],
                                   NULL, NULL);
-        mgTexManager.EnterIMGFile((u_char *) GetPackFile((unsigned int *) pack, at_2766, NULL), SaveMenuPtr->tex_block[1],
+        mgTexManager.EnterIMGFile((u_char *) GetPackFile((unsigned int *) pack, "frametex.img", NULL), SaveMenuPtr->tex_block[1],
                                   NULL, NULL);
-        Tex_SaveFile = mgTexManager.GetTexture(at_2767, -1);
+        Tex_SaveFile = mgTexManager.GetTexture("save", -1);
         SaveMenuPtr->dl_tex = GetMenuDlTexture();
         InitMenuDl(NULL, 0);
         main_messages = GetMenuMainMessageBuffer();
@@ -3011,18 +2987,18 @@ void MenuSaveInit(mgCMemory *memory, int *tex_block, int mode) {
         }
 
         SetMCIconData((unsigned int *) pack, 2);
-        char *data = (char *) GetPackFile((unsigned int *) pack, at_2768, &data_size);
+        char *data = (char *) GetPackFile((unsigned int *) pack, "save.cfg", &data_size);
         MenuDataAnalyze(data, data_size, &SaveMenuStack);
-        SaveMenuPtr->script = (char *) GetPackFile((unsigned int *) pack, at_2769, &SaveMenuPtr->script_size);
+        SaveMenuPtr->script = (char *) GetPackFile((unsigned int *) pack, "save_com.cfg", &SaveMenuPtr->script_size);
         (MenuPosData)->AttachCommonTexInfo();
-        MenuPosData->ResetTextureBlockNo(at_2767, SaveMenuPtr->tex_block[1]);
+        MenuPosData->ResetTextureBlockNo("save", SaveMenuPtr->tex_block[1]);
         MenuPosData->ResetTextureInfoAll();
-        SaveMenuPtr->title_form = (CMenuPosDataForm *) MenuPosData->GetFormInfo(at_2770__2);
-        SaveMenuPtr->slot_form[0] = (CMenuPosDataForm *) MenuPosData->GetFormInfo(at_2771__2);
-        SaveMenuPtr->slot_form[1] = (CMenuPosDataForm *) MenuPosData->GetFormInfo(at_2772__2);
-        SaveMenuPtr->cursor_form = (CMenuPosDataForm *) MenuPosData->GetFormInfo(at_2773__2);
-        SaveMenuPtr->list_form = (CMenuPosDataForm *) MenuPosData->GetFormInfo(at_2774__2);
-        SaveMenuPtr->scrlbar_form = (CMenuPosDataForm *) MenuPosData->GetFormInfo(at_2775__2);
+        SaveMenuPtr->title_form = (CMenuPosDataForm *) MenuPosData->GetFormInfo("TITLE");
+        SaveMenuPtr->slot_form[0] = (CMenuPosDataForm *) MenuPosData->GetFormInfo("SLOT1");
+        SaveMenuPtr->slot_form[1] = (CMenuPosDataForm *) MenuPosData->GetFormInfo("SLOT2");
+        SaveMenuPtr->cursor_form = (CMenuPosDataForm *) MenuPosData->GetFormInfo("CURSOR");
+        SaveMenuPtr->list_form = (CMenuPosDataForm *) MenuPosData->GetFormInfo("LIST");
+        SaveMenuPtr->scrlbar_form = (CMenuPosDataForm *) MenuPosData->GetFormInfo("SCRLBAR");
         part = 0;
 
         if (SaveMenuPtr->scrlbar_form != NULL) {
@@ -3061,28 +3037,28 @@ void MenuSaveDraw() {
         int       mode = SaveMenuPtr->mode;
 
         if (mode == 1 || mode == 2) {
-            menu_font.SetStr(at_2821__2);
+            menu_font.SetStr("MODE STATE : LOAD");
             menu_font.SetPos(0x14, 0x28);
             menu_font.DrawDirect(menu_font.str, menu_font.pos_x, menu_font.pos_y);
         } else {
-            menu_font.SetStr(at_2822);
+            menu_font.SetStr("MODE STATE : SAVE");
             menu_font.SetPos(0x14, 0x28);
             menu_font.DrawDirect(menu_font.str, menu_font.pos_x, menu_font.pos_y);
         }
 
-        sprintf(text, at_2823, MemoryCardPtr->GetSaveDataSize(0) / 1024);
+        sprintf(text, "SAVEFILE TOTALSIZE : %d K\n", MemoryCardPtr->GetSaveDataSize(0) / 1024);
         menu_font.SetStr(text);
         menu_font.SetPos(0x14, 0x3C);
         menu_font.DrawDirect(menu_font.str, menu_font.pos_x, menu_font.pos_y);
-        sprintf(text, at_2824, 0x196);
+        sprintf(text, "          SAVEDATA : %d K\n", 0x196);
         menu_font.SetStr(text);
         menu_font.SetPos(0x14, 0x50);
         menu_font.DrawDirect(menu_font.str, menu_font.pos_x, menu_font.pos_y);
-        sprintf(text, at_2825, MemoryCardPtr->GetSaveDataSize(5));
+        sprintf(text, "         ALBUMDATA : %d K\n", MemoryCardPtr->GetSaveDataSize(5));
         menu_font.SetStr(text);
         menu_font.SetPos(0x14, 0x64);
         menu_font.DrawDirect(menu_font.str, menu_font.pos_x, menu_font.pos_y);
-        sprintf(text, at_2826__2, MemoryCardPtr->GetIconDataSize() / 1024);
+        sprintf(text, "          ICONDATA : %d K\n", MemoryCardPtr->GetIconDataSize() / 1024);
         menu_font.SetStr(text);
         menu_font.SetPos(0x14, 0x78);
         menu_font.DrawDirect(menu_font.str, menu_font.pos_x, menu_font.pos_y);
@@ -3095,7 +3071,7 @@ void MenuSaveDraw() {
             card = NULL;
         }
 
-        sprintf(text, at_2827, card->type, card->formatted, card->free_size);
+        sprintf(text, "Slot 0\nType:%d\nformat:%d\nclusta%d\n", card->type, card->formatted, card->free_size);
         menu_font.SetStr(text);
         menu_font.SetPos(0x14, 0x8C);
         menu_font.DrawDirect(menu_font.str, menu_font.pos_x, menu_font.pos_y);
@@ -3148,18 +3124,18 @@ void SubGameSaveInit(mgCMemory *memory, int *tex_block, int mode) {
     SubGameSaveBlock[1] = tex_block[1];
     SubGameSaveBlock[2] = tex_block[2];
     pack = (u8 *) (SaveMenuStack.stack + SaveMenuStack.stack_used);
-    script_size = LoadFileMenu(at_2895, (u_long128 *) pack, 1);
+    script_size = LoadFileMenu("subsave.pac", (u_long128 *) pack, 1);
     blocks = (script_size & 0xF) != 0 ? (script_size >> 4) + 1 : script_size >> 4;
     SaveMenuStack.Alloc(blocks);
-    u_char            *textures = (u_char *) GetPackFile((unsigned int *) pack, at_2765, NULL);
+    u_char            *textures = (u_char *) GetPackFile((unsigned int *) pack, "img.img", NULL);
     mgCTextureManager *texture_manager = &mgTexManager;
 
     if (textures != NULL) {
         texture_manager->EnterIMGFile(textures, SubGameSaveBlock[0], NULL, NULL);
     }
 
-    SubGameSaveCFGBuffer = (char *) GetPackFile((unsigned int *) pack, at_2769, &SubGameSaveCFGBufferSize);
-    Tex_SaveFile = texture_manager->GetTexture(at_2767, -1);
+    SubGameSaveCFGBuffer = (char *) GetPackFile((unsigned int *) pack, "save_com.cfg", &SubGameSaveCFGBufferSize);
+    Tex_SaveFile = texture_manager->GetTexture("save", -1);
     MenuCommonInfo->key_enable = 1;
     SubGameSaveOrLoadPhase = 0;
     SubGameSaveLoadStatus = 0;
@@ -3535,7 +3511,7 @@ int SubGameSaveKey(void) {
             case SUB_SAVE_CARD_CHECK:
                 MemoryCardPtr->port = slot;
                 MemoryCardPtr->SetFuncNo(MC_FUNC_SEARCH_TYPE);
-                SubGameCFGAnalyze(at_3198__2);
+                SubGameCFGAnalyze("OM_PH1");
                 window->select_top = 2;
                 break;
             case SUB_SAVE_CARD_READY:
@@ -3552,17 +3528,17 @@ int SubGameSaveKey(void) {
                 }
                 break;
             case SUB_SAVE_OVERWRITE_ASK:
-                SubGameCFGAnalyze(at_3199__3);
+                SubGameCFGAnalyze("OM_ISSAVE");
                 window->SetMsgVolumeNoOne(slotNo);
                 break;
             case SUB_SAVE_WRITING:
                 if (window->mes_no != 0xC5C) {
-                    SubGameCFGAnalyze(at_3200__2);
+                    SubGameCFGAnalyze("OM_NEWSAVE");
                 }
                 MemoryCardPtr->SetFuncNo(MC_FUNC_SAVE_OMAKE);
                 break;
             case SUB_SAVE_WRITE_DONE:
-                SubGameCFGAnalyze(at_3201__3);
+                SubGameCFGAnalyze("OM_SAVEEND");
                 break;
             case SUB_SAVE_WRITE_FAILED:
             case SUB_SAVE_WRITE_FAILED_FULL:
@@ -3575,7 +3551,7 @@ int SubGameSaveKey(void) {
                 }
                 break;
             case SUB_SAVE_SPACE_ASK:
-                SubGameCFGAnalyze(at_3202__3);
+                SubGameCFGAnalyze("OM_ISNEWSAVE");
                 int values[2] = { 0, 0 };
                 values[0] = slotNo;
                 values[1] = SubCheckTotalSaveFileSize;
@@ -3583,22 +3559,22 @@ int SubGameSaveKey(void) {
                 break;
             case SUB_SAVE_DIR_MAKING:
                 MemoryCardPtr->SetFuncNo(MC_FUNC_MAKE_OMAKE_DIR);
-                SubGameCFGAnalyze(at_3200__2);
+                SubGameCFGAnalyze("OM_NEWSAVE");
                 break;
             case SUB_SAVE_FORMAT_ASK:
-                SubGameCFGAnalyze(at_3203);
+                SubGameCFGAnalyze("OM_ISFORMAT");
                 window->SetMsgVolumeNoOne(slotNo);
                 break;
             case SUB_SAVE_FORMATTING:
                 MemoryCardPtr->SetFuncNo(MC_FUNC_FORMAT);
-                SubGameCFGAnalyze(at_3204);
+                SubGameCFGAnalyze("OM_FORMAT");
                 window->SetMsgVolumeNoOne(slotNo);
                 break;
             case SUB_SAVE_NO_DATA:
-                SubGameCFGAnalyze(at_3205);
+                SubGameCFGAnalyze("OM_NOTFORMAT");
                 break;
             case SUB_SAVE_LOAD_ASK:
-                SubGameCFGAnalyze(at_3206);
+                SubGameCFGAnalyze("OM_ISLOAD");
                 window->SetMsgVolumeNoOne(slotNo);
                 break;
             case SUB_SAVE_LOADING:
@@ -3608,7 +3584,7 @@ int SubGameSaveKey(void) {
                 window->MakeMsg(0xC5D);
                 break;
             case SUB_SAVE_LOAD_DONE:
-                SubGameCFGAnalyze(at_3207);
+                SubGameCFGAnalyze("OM_LOADEND");
                 break;
             case SUB_SAVE_LOAD_MISSING:
                 window->MsgPreset(0xB, LanguageCode);
@@ -3668,8 +3644,6 @@ void SubGameSaveDraw() {
     MenuDCMsg[0]->DrawMsg();
 }
 
-// Initialised data (.data)
-
 // Constants (.rodata)
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuop", at_1102__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuop", at_1103__3__DATA);
@@ -3679,7 +3653,6 @@ INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuop", at_1106__2__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuop", at_1107__3__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuop", at_1108__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuop", at_1109__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuop", at_1905__3__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuop", at_2498__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuop", at_2499__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuop", at_2500__DATA);
@@ -3700,39 +3673,6 @@ INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuop", at_2514__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuop", at_2515__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuop", at_2518__2__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuop", at_2517__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuop", at_2603__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuop", at_2604__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuop", at_2605__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuop", at_2764__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuop", at_2765__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuop", at_2766__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuop", at_2767__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuop", at_2768__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuop", at_2769__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuop", at_2770__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuop", at_2771__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuop", at_2772__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuop", at_2773__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuop", at_2774__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuop", at_2775__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuop", at_2821__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuop", at_2822__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuop", at_2823__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuop", at_2824__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuop", at_2825__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuop", at_2826__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuop", at_2827__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuop", at_2895__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuop", at_3198__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuop", at_3199__3__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuop", at_3200__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuop", at_3201__3__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuop", at_3202__3__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuop", at_3203__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuop", at_3204__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuop", at_3205__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuop", at_3206__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuop", at_3207__DATA);
 
 // Virtual tables (.vtables)
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuop", __vt__11CManualMenu__DATA);
