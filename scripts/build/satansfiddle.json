@@ -334,6 +334,24 @@
         "evaluate_first": true
       },
       {
+        "translation_unit": "gyorace.cpp",
+        "function": "sgInitGyoRace__FP11SubGameInfo",
+        "value_type": "binary32",
+        "value_bits": "0x00000000",
+        "callee": "SetRef__9mgCCameraFfff",
+        "evaluate_first": true,
+        "expected_matches": 2
+      },
+      {
+        "translation_unit": "gyorace.cpp",
+        "function": "sgInitGyoRace__FP11SubGameInfo",
+        "value_type": "binary32",
+        "value_bits": "0x00000000",
+        "callee": "SetNextRef__9mgCCameraFfff",
+        "evaluate_first": true,
+        "expected_matches": 2
+      },
+      {
         "translation_unit": "gyoracesim.cpp",
         "function": "CharacterBonus__FP12grFISH_PARAMP15RACE_FISH_PARAMi",
         "value_type": "binary32",
