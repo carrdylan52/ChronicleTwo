@@ -1,11 +1,11 @@
-# Buggy initialization: natural construction and complete private zero
+# Buggy initialization: accepted natural construction
 
 `sgInitBuggy__FP11SubGameInfo` has a genuinely typed private C++ zero under
 `chronicletwo_dev:sf-63f7a9e-pn15`, with the captured production31 profile plus
 one witnessed constructor-conversion row. The privately unguarded complete
 unit passes compilation, postprocessing, section fixup and the canonical
-checker: **0x34B0 bytes / 834 resolved relocations**. Production activation
-and the whole PAL build remain separate acceptance steps.
+checker: **0x34B0 bytes / 834 resolved relocations**. Subsequent canonical
+production33 acceptance is recorded below.
 
 Retail is GLOBAL/FUNC (`st_info 0x12`) at **0x318B70**, actual body **0x994**.
 Its **0x9A0** reservation includes twelve independently verified zero bytes.
@@ -165,3 +165,28 @@ compiles but still contains the two wrong guessed outline flags and sibling
 load method, so its 431-word result is **not an admissible control**. Exact
 corrected source and the independently audited zero supersede it. No failure
 is relabeled as passing evidence or production acceptance.
+
+## Canonical production33 acceptance
+
+The guard is removed by hand and the exact privately validated natural source
+is active. Its source and complete object hashes above match the clean
+canonical outputs exactly. Only the witnessed expected-one after-inline row
+is added for this caller; no float policy or shared header is changed. The
+joint profile, including AssignFuncAnime, has 33 callers /43 static sites,
+SHA-256 `1a86ec615aca8b4ded2e9173a059dcb3572188b4a3db721801f426c33c8bf099`.
+
+The pn15 CLEAN build passes `SCES_511.90: OK` and all 149 resolved unit checks.
+All 306 assembled and 149 source-only objects outside the 21 promoted units
+are byte-identical to upstream. Linked main bytes retain SHA-256
+`a103b0461a88e443a3af684cf150c05b5bd355e5a97ab2dc029c4d872bed0811`
+and loaded memory ends at 0x01f64a00. The ELF metadata comparison is separate.
+Explicit context/objdiff refresh followed by coverage reports 6,782 matched /
+82 guarded /8 assembly-only /0 fuzzy; pbuggy has no remaining assembly-only
+or guarded function.
+
+The independent read-only pre-activation review and exact source/row/witness
+correspondence are frozen in `.private/pntc/promotion-review-33/`. Full
+acceptance receipts are `.private/pntc/receipts/promote-thirty-three-` with
+`clean-build`, `objects`, `artifacts`, `progress` and `coverage` logs/zero exit
+statuses, the artifact JSON, and `.private/pntc/promote33/acceptance.json`.
+The comment-only owning-header size correction remains an unowned proposal.
