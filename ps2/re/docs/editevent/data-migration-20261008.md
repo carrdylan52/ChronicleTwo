@@ -44,3 +44,14 @@ The typed accesses preserve all native instructions and resolved
 references. Acceptance: `.private/dataC-r2/editevent-start-fields-final-{build,objects}.log`.
 The complete image, all 149 objects, and all unowned hashes pass.
 Data coverage remains 324 / 324 and no marker is added.
+
+## Declared function extents
+
+The header function-size annotations use the retail ELF's declared
+`STT_FUNC` extents. 5 annotations previously included the alignment
+gap up to the next function and are corrected without changing declarations
+or layouts. The symbol names and addresses remain exact.
+
+Header validation: `.private/dataC-r2/header-extents-final-{build,objects}.log`.
+The complete PAL image, all 149 objects, and every unowned object hash pass.
+The evidence audit is `header-metadata-corrections.json` in the same directory.
