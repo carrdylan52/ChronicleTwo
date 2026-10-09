@@ -605,8 +605,7 @@ int CIMGList::LoadIMGFile(char *name, mgCEnterIMGInfo *info, mgCMemory *memory) 
     slot->info = NULL;
 
     if (info != NULL) {
-        slot->info =
-            (mgCEnterIMGInfo *) operator new(sizeof(mgCEnterIMGInfo), memory->Alloc(0x12));
+        slot->info = new (memory->Alloc(0x12)) mgCEnterIMGInfo;
         copy = slot->info;
 
         /**
