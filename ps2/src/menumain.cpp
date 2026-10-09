@@ -1789,8 +1789,7 @@ void MakeMenuTopic() {
     MenuTopicType = CheckEventDay(&day);
     sprintf(text, topic_tbl_1777[LanguageCode][MenuTopicType], day);
     TopicFont.SetStr(text);
-    char *topic_text = (char *) &TopicFont;
-    ((CFont *) topic_text)->CalcDrawWH(topic_text, &width, &height);
+    TopicFont.CalcDrawWH(TopicFont.str, &width, &height);
     MenuTopicLength = width;
     TopicFontX = 30;
 }
