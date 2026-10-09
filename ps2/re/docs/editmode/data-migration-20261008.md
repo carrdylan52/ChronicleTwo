@@ -99,3 +99,15 @@ messages are inline at their table entries. Japanese bytes use `\x` escapes;
 no marker padding becomes part of a string or an extra array element.
 Both tables pass complete-object and PAL checks individually. Receipts:
 `help-space-*` and `help-place-*`.
+
+Rotation, wall-switch, magnet labels and toggle state, removal, and wall-part
+selection are likewise native documented tables with inline localized strings.
+`onoff_str[0]` is OFF and `[1]` is ON; its Italian entries share the English
+`off`/`on` literals. `remove_str` and `sel_wall_str` must migrate together:
+retail shares `at_2001__2`, `at_2002`, `at_2003__3`, and `at_2004__5`
+(French, German, Italian, Spanish). Leaving the second table's fallback markers
+retains four duplicate storage pieces. Both native tables preserve those shared
+literal targets exactly. Each independent table and the dependent pair pass
+PAL and 149-object verification. Receipts: `help-rotate_str-*`,
+`help-sw_wall_str-*`, `help-magnet_str-*`, `help-onoff_str-*`, and
+`help-remove-wall-*`; the rejected isolated removal trial is `help-remove_str-*`.

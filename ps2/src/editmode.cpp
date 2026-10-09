@@ -2298,12 +2298,86 @@ static const char *place_str[6] = {
     "(O):poner",
 };
 
-extern char *rotate_str[6];
-extern char *sw_wall_str[6];
-extern char *magnet_str[6];
-extern char *onoff_str[2][6];
-extern char *remove_str[6];
-extern char *sel_wall_str[6];
+/**
+ *
+ * Cursor rotation button help for each supported language.
+ *
+ */
+static const char *rotate_str[6] = {
+    "[l2][r2]:\x89\xf1\x93\x5d",
+    "[l2][r2]:rotate",
+    "[l2][r2] : pivoter",
+    "[l2][r2] : Drehen",
+    "[l2][r2]:ruota",
+    "[l2][r2]:rotar",
+};
+
+/**
+ *
+ * Wall-selection button help for each supported language.
+ *
+ */
+static const char *sw_wall_str[6] = {
+    "[l2][r2]\x81\x46\x95\xc7\x82\xcc\x90\xd8\x82\xe8\x91\xd6\x82\xa6",
+    "[l2][r2]:switch wall",
+    "[l2][r2] : changer de mur",
+    "[l2][r2] : Wand wechseln",
+    "[l2][r2]:cambia muro",
+    "[l2][r2]:cambiar de pared",
+};
+
+/**
+ *
+ * Magnet toggle button help for each supported language.
+ *
+ */
+static const char *magnet_str[6] = {
+    "(#)\x81\x46\x83\x7d\x83\x4f\x83\x6c\x83\x62\x83\x67",
+    "(#):Magnet ",
+    "(#) : accoler ",
+    "(#) : Magnet ",
+    "(#):Magnete ",
+    "(#):Im[UNI00e1]n ",
+};
+
+/**
+ *
+ * Magnet disabled and enabled labels for each supported language.
+ *
+ */
+static const char *onoff_str[2][6] = {
+    {"OFF", "off", "non", "aus", "off", "desact."},
+    {"ON", "on", "oui", "ein", "on", "activ."},
+};
+
+/**
+ *
+ * Removal button help for each supported language.
+ *
+ */
+static const char *remove_str[6] = {
+    "(O)\x81\x46\x82\xa9\x82\xbd\x82\xc3\x82\xaf",
+    "(O):remove",
+    "(O) : enlever",
+    "(O) : Entfernen",
+    "(O):rimuovi",
+    "(O):quitar",
+};
+
+/**
+ *
+ * Wall-part selection help for each supported language.
+ *
+ */
+static const char *sel_wall_str[6] = {
+    "(O)\x81\x46\x95\xc7\x82\xc9\x82\xc8\x82\xe9\x83\x70\x81\x5b\x83\x63\x82\xcc\x91\x49\x91\xf0",
+    "(O):parts selection",
+    "(O) : enlever",
+    "(O) : Entfernen",
+    "(O):rimuovi",
+    "(O):quitar",
+};
+
 extern char *paint_str[6];
 extern char *undo_str[6];
 extern char *paint_house_str[6];
@@ -2783,12 +2857,6 @@ int CheckEditToWalk(CScene *scene, float *position) {
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editmode", at_1268__3__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editmode", at_1362__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editmode", at_1931__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editmode", rotate_str__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editmode", sw_wall_str__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editmode", magnet_str__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editmode", onoff_str__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editmode", remove_str__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editmode", sel_wall_str__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editmode", paint_str__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editmode", undo_str__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editmode", paint_house_str__DATA);
@@ -2819,42 +2887,6 @@ INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editmode", at_1836__2__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editmode", at_1961__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editmode", at_1962__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editmode", at_1963__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editmode", at_1971__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editmode", at_1972__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editmode", at_1973__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editmode", at_1974__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editmode", at_1975__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editmode", at_1976__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editmode", at_1977__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editmode", at_1978__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editmode", at_1979__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editmode", at_1980__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editmode", at_1981__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editmode", at_1982__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editmode", at_1983__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editmode", at_1984__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editmode", at_1985__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editmode", at_1986__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editmode", at_1987__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editmode", at_1988__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editmode", at_1989__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editmode", at_1990__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editmode", at_1991__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editmode", at_1992__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editmode", at_1993__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editmode", at_1994__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editmode", at_1995__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editmode", at_1996__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editmode", at_1997__3__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editmode", at_1998__4__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editmode", at_1999__4__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editmode", at_2000__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editmode", at_2001__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editmode", at_2002__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editmode", at_2003__3__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editmode", at_2004__5__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editmode", at_2005__4__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editmode", at_2006__3__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editmode", at_2007__3__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editmode", at_2008__3__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editmode", at_2009__2__DATA);
