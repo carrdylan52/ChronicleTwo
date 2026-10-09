@@ -34,18 +34,25 @@ class NativeChildTests(unittest.TestCase):
         rows = [(0x2000, '_gp', 0, False), (0x1000, 'caller', 4, True),
                 (0x3000, 'table', 4, False), (0x4000, 'literal', 2, False)]
         retail = NS(word={0x1000: 0x27821000, 0x3000: 0x4000}.__getitem__,
-                    bytes=lambda lo, hi: b'X\0'[lo - 0x4000:hi - 0x4000])
+                    bytes=lambda lo, hi: (struct.pack('<I', 0x4000)[lo - 0x3000:hi - 0x3000]
+                                         if lo < 0x4000 else (b'X\0' + bytes(6))[lo - 0x4000:hi - 0x4000]))
         return elf, held, lay, rows, retail
 
     def apply(self, fixture):
         elf, held, lay, rows, retail = fixture
+        retail.relocations = {0x1000 + entry.r_offset: entry.reloc_type
+                              for record in elf.relocations if record.sh_info == 1
+                              for entry in record.relocations}
+        retail.relocations.update({0x3000 + entry.r_offset: entry.reloc_type
+                                   for record in elf.relocations if record.sh_info == 2
+                                   for entry in record.relocations})
         with patch.object(p.layout, 'Layout', return_value=lay), \
              patch.object(p.layout, 'read_symbols', return_value=rows), \
              patch.object(p.layout, 'Retail', return_value=retail), \
              patch.object(p, 'rename_shared_names'):
             return p.bind_local_data(elf, 'unit', held)
 
-    def test_pair_rewrite_uses_original_addend_when_low_half_is_signed(self):
+    def test_signed_low_half_preserves_the_original_pair_and_exact_placeholder(self):
         fixture = self.fixture()
         elf, held, lay, rows, retail = fixture
         elf.sections[2].sh_type = p.SHT_NOBITS
@@ -64,8 +71,8 @@ class NativeChildTests(unittest.TestCase):
             relocation(0, p.R_MIPS_HI16, 1), relocation(4, p.R_MIPS_LO16, 1)])]
         retail.word = {0x1000: 0x3c020001, 0x1004: 0x2442ebf0}.__getitem__
         self.assertEqual(self.apply(fixture), ['at_99'])
-        self.assertEqual(elf.sections[1].data, struct.pack('<II', 0x3c020000, 0x24420000))
-        self.assertEqual([ref.symbol_index for ref in elf.relocations[0].relocations], [3, 3])
+        self.assertEqual(elf.sections[1].data, struct.pack('<II', 0x3c020001, 0x2442abf0))
+        self.assertEqual([ref.symbol_index for ref in elf.relocations[0].relocations], [4, 4])
 
     def test_negative_addend_can_bind_to_the_tables_own_placeholder(self):
         for kind in ('gp', 'hi_lo'):
@@ -119,6 +126,15 @@ class NativeChildTests(unittest.TestCase):
                 self.assertEqual(elf.sections[2].name, '.data')
                 self.assertEqual(elf.sections[1].data, code)
                 self.assertTrue(all(ref.symbol_index == 1 for ref in elf.relocations[0].relocations))
+
+    def test_bad_child_payload_prevents_discarding_the_parent(self):
+        fixture = self.fixture(retained_child=True)
+        fixture[0].sections[3].data = b'Y\0'
+        code = fixture[0].sections[1].data
+        self.assertEqual(self.apply(fixture), [])
+        self.assertEqual(fixture[0].sections[1].data, code)
+        self.assertEqual(fixture[0].sections[2].name, '.data')
+        self.assertEqual(fixture[0].sections[3].name, '.rodata')
 
     def test_native_child_without_marker_survives_discarded_parent(self):
         fixture = self.fixture()

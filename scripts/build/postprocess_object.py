@@ -442,148 +442,134 @@ def bind_local_data(elf, unit, placeholder_sections):
             symbol.st_value = address - start
 
     retail = layout.Retail(ROOT / layout.ELF_PATH)
-    bound = {}
-    for record in elf.relocations:
-        at = record.sh_info
-        if at not in address_of_section or not sections[at].sh_flags & SHF_EXECINSTR:
-            continue
-        base = address_of_section[at]
-        data = bytearray(sections[at].data)
-        relocations = record.relocations
-        # Pairs are found by the symbols the compiler wrote, which the loop
-        # below replaces as it goes.
-        original = [r.symbol_index for r in relocations]
-        original_data = bytes(data)
+    addresses = {name: address for address, name, _size, _function in rows}
+    code_starts = {index: start for index, start in address_of_section.items()
+                   if sections[index].sh_flags & SHF_EXECINSTR}
+    data_starts = {index: start for index, start in address_of_section.items()
+                   if not sections[index].sh_flags & SHF_EXECINSTR}
+    native = {index for index, section in enumerate(sections)
+              if index and index not in placeholder_sections and section.name != DEAD
+              and section.sh_flags & SHF_ALLOC and not section.sh_flags & SHF_EXECINSTR}
+    # Infer complete section identities before mutating any reference. A data
+    # consumer becomes an anchor only after its own incoming evidence agrees.
+    inferred = {}
+    while True:
+        additions = {}
+        for index in native - inferred.keys():
+            targets = referenced_data_starts(elf, index, retail, addresses, code_starts,
+                                             data_starts={**data_starts, **inferred})
+            if targets is not None and len(targets) == 1:
+                start = next(iter(targets))
+                if in_unit(start):
+                    additions[index] = start
+        if not additions:
+            break
+        inferred.update(additions)
 
-        def word(offset):
-            return struct.unpack_from("<I", data, offset)[0]
+    declared = {start: size for start, _name, size, function in rows if not function and size}
+    checked = {}
 
-        def partner(k, kind):
-            """The nearest relocation of `kind` against the same symbol."""
-            symbol = original[k]
-            order = list(range(k + 1, len(relocations))) + list(range(k - 1, -1, -1))
-            if kind == R_MIPS_HI16:
-                order = list(range(k - 1, -1, -1)) + list(range(k + 1, len(relocations)))
-            for j in order:
-                if relocations[j].reloc_type == kind and original[j] == symbol:
-                    return relocations[j]
-            return None
-
-        changed = False
-        for k, relocation in enumerate(relocations):
-            target = symbols[original[k]]
-            to = target.st_shndx
-            if (not 0 < to < len(sections) or to in placeholder_sections
-                    or not sections[to].sh_flags & SHF_ALLOC
-                    or sections[to].sh_flags & SHF_EXECINSTR):
-                continue
-            kind = relocation.reloc_type
-            offset = relocation.r_offset
-            if kind == R_MIPS_GPREL16:
-                theirs = gp + sext16(retail.word(base + offset))
-                ours = sext16(struct.unpack_from("<I", original_data, offset)[0])
-            elif kind in (R_MIPS_HI16, R_MIPS_LO16):
-                other = partner(k, R_MIPS_LO16 if kind == R_MIPS_HI16 else R_MIPS_HI16)
-                if other is None:
-                    continue
-                hi, lo = (offset, other.r_offset) if kind == R_MIPS_HI16 else (other.r_offset, offset)
-                theirs = ((retail.word(base + hi) & 0xFFFF) << 16) + sext16(retail.word(base + lo))
-                ours = ((struct.unpack_from("<I", original_data, hi)[0] & 0xFFFF) << 16)
-                ours += sext16(struct.unpack_from("<I", original_data, lo)[0])
-            else:
-                continue
-            # Negative addends may use the object's own placeholder, but
-            # storage for a preceding word cannot supply the native table.
-            if ours + target.st_value < 0:
-                native_base = (theirs - ours - target.st_value) & 0xFFFFFFFF
-                found = placeholder_at(native_base)
-                if found is None or found[0] != native_base:
-                    continue
-            else:
-                found = placeholder_at(theirs)
-            if found is None:
-                continue
-            start, index = found
-            addend = theirs - start
-            if kind == R_MIPS_HI16:
-                field = ((addend + 0x8000) >> 16) & 0xFFFF
-            else:
-                field = addend & 0xFFFF
-            struct.pack_into("<I", data, offset, (word(offset) & 0xFFFF0000) | field)
-            if kind != R_MIPS_HI16:
-                bound.setdefault(to, theirs - ours - target.st_value)
-            relocation.symbol_index = defining_symbol[index]
-            changed = True
-        if changed:
-            sections[at].data = bytes(data)
-
-    rename_shared_names(elf, rows, address_of_section, retail, gp)
-
-    referenced = {symbols[r.symbol_index].st_shndx
-                  for record in elf.relocations for r in record.relocations}
-    dropped = []
-    for index, start in bound.items():
-        if index in referenced:
-            continue
+    def verified_copy(index, active=frozenset()):
+        if index in checked:
+            return checked[index]
+        if index in active or index not in inferred:
+            return False
         section = sections[index]
-        label = next((s.name for s in symbols if s.st_shndx == index and s.name
-                      and s.type != STT_SECTION), f"section {index}")
-        has_relocations = any(r.sh_info == index and r.relocations for r in elf.relocations)
-        if section.sh_type != SHT_NOBITS and not has_relocations:
-            size = len(section.data)
-            if bytes(section.data) != retail.bytes(start, start + size):
-                raise ValueError(f"{label}: the compiled datum differs from retail's at "
-                                 f"0x{start:08X}")
-        section.sh_name = elf.add_sh_symbol(DEAD)
-        section.name = DEAD
+        start = inferred[index]
+        size = section_size(section)
+        owners = [symbol for symbol in symbols if symbol.st_shndx == index
+                  and symbol.type != STT_SECTION]
+        if (not size or len(owners) != 1 or owners[0].type != STT_OBJECT
+                or owners[0].st_value or owners[0].st_size != size):
+            checked[index] = False
+            return False
+        entries = [entry for record in elf.relocations if record.sh_info == index
+                   for entry in record.relocations]
+        expected = {address - start: kind for address, kind in retail.relocations.items()
+                    if start <= address < start + size}
+        if section.sh_type == SHT_NOBITS:
+            valid = (declared.get(start) == size and not entries and not expected
+                     and any(kind in layout.NOBITS and lo <= start < start + size <= hi
+                             for kind, lo, hi in lay.sections(unit)))
+        elif section.sh_type == SHT_PROGBITS:
+            actual = {entry.r_offset: entry.reloc_type for entry in entries}
+            valid = len(actual) == len(entries) and actual == expected
+            data = bytearray(section.data)
+            for entry in entries:
+                if (not valid or entry.reloc_type != R_MIPS_32 or entry.r_offset % 4
+                        or not 0 <= entry.r_offset <= size - 4):
+                    valid = False
+                    break
+                target = symbols[entry.symbol_index]
+                if target.st_shndx in inferred:
+                    if not verified_copy(target.st_shndx, active | {index}):
+                        valid = False
+                        break
+                    destination = inferred[target.st_shndx] + target.st_value
+                elif target.st_shndx in address_of_section:
+                    destination = address_of_section[target.st_shndx] + target.st_value
+                else:
+                    destination = address_of(project_name(target.name), addresses)
+                if destination is None:
+                    valid = False
+                    break
+                addend = struct.unpack_from('<I', data, entry.r_offset)[0]
+                struct.pack_into('<I', data, entry.r_offset, (destination + addend) & 0xFFFFFFFF)
+            valid = valid and bytes(data) == retail.bytes(start, start + size)
+        else:
+            valid = False
+        checked[index] = valid
+        return valid
+
+    bound = {}
+    for index, start in inferred.items():
+        found = placeholder_at(start)
+        if (found is None or found[0] != start
+                or section_size(sections[index]) > section_size(sections[found[1]])
+                or not verified_copy(index)):
+            continue
+        # Repointing to the base symbol preserves only zero-offset aliases.
+        # Interior aliases stay live until an explicit equal-offset identity
+        # exists; their offset must never be folded into an instruction field.
+        incoming = [entry for record in elf.relocations if sections[record.sh_info].name != DEAD
+                    for entry in record.relocations if symbols[entry.symbol_index].st_shndx == index]
+        if any(symbols[entry.symbol_index].st_value for entry in incoming):
+            continue
+        bound[index] = defining_symbol[found[1]]
+
+    # A rejected parent remains a live consumer. Do not discard its children
+    # merely because a separate, valid reference established their addresses.
+    while True:
+        rejected = {index for index in bound
+                    if any(record.sh_info not in code_starts
+                           and record.sh_info not in placeholder_sections
+                           and record.sh_info not in bound
+                           and sections[record.sh_info].name != DEAD
+                           and any(symbols[entry.symbol_index].st_shndx == index
+                                   for entry in record.relocations)
+                           for record in elf.relocations)}
+        if not rejected:
+            break
+        for index in rejected:
+            bound.pop(index)
+
+    dropped = []
+    for record in elf.relocations:
+        for entry in record.relocations:
+            replacement = bound.get(symbols[entry.symbol_index].st_shndx)
+            if replacement is not None:
+                entry.symbol_index = replacement
+    for index in bound:
+        label = next((symbol.name for symbol in symbols if symbol.st_shndx == index
+                      and symbol.name and symbol.type != STT_SECTION), f'section {index}')
+        sections[index].sh_name = elf.add_sh_symbol(DEAD)
+        sections[index].name = DEAD
         for record in elf.relocations:
             if record.sh_info == index:
-                record.sh_name = elf.add_sh_symbol(".rel" + DEAD)
-                record.name = ".rel" + DEAD
+                record.sh_name = elf.add_sh_symbol('.rel' + DEAD)
+                record.name = '.rel' + DEAD
         dropped.append(label)
-
-    starts = {index: start for index, start in bound.items() if sections[index].name == DEAD}
-    while True:
-        live = {symbols[r.symbol_index].st_shndx for record in elf.relocations
-                if sections[record.sh_info].name != DEAD for r in record.relocations}
-        found = {}
-        for record in elf.relocations:
-            base = starts.get(record.sh_info)
-            if base is None:
-                continue
-            data = sections[record.sh_info].data
-            for relocation in record.relocations:
-                target = symbols[relocation.symbol_index]
-                to = target.st_shndx
-                if (relocation.reloc_type != R_MIPS_32 or not 0 < to < len(sections)
-                        or to in live or to in starts or to in found or to in placeholder_sections
-                        or not sections[to].sh_flags & SHF_ALLOC
-                        or sections[to].sh_flags & SHF_EXECINSTR):
-                    continue
-                ours = struct.unpack_from("<I", data, relocation.r_offset)[0]
-                start = retail.word(base + relocation.r_offset) - ours - target.st_value
-                if placeholder_at(start) is not None:
-                    found[to] = start
-        if not found:
-            break
-        for index, start in found.items():
-            section = sections[index]
-            label = next((s.name for s in symbols if s.st_shndx == index and s.name
-                          and s.type != STT_SECTION), f"section {index}")
-            has_relocations = any(r.sh_info == index and r.relocations for r in elf.relocations)
-            if section.sh_type != SHT_NOBITS and not has_relocations:
-                size = len(section.data)
-                if bytes(section.data) != retail.bytes(start, start + size):
-                    raise ValueError(f"{label}: the compiled datum differs from retail's at "
-                                     f"0x{start:08X}")
-            section.sh_name = elf.add_sh_symbol(DEAD)
-            section.name = DEAD
-            for record in elf.relocations:
-                if record.sh_info == index:
-                    record.sh_name = elf.add_sh_symbol(".rel" + DEAD)
-                    record.name = ".rel" + DEAD
-            starts[index] = start
-            dropped.append(label)
+    rename_shared_names(elf, rows, address_of_section, retail, gp)
     return dropped
 
 
