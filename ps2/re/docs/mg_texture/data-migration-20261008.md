@@ -41,6 +41,15 @@ is not applied to the accepted source. The workspace is restored afterward
 and all 149 objects plus the full PAL pass
 (`mg-texture-workspace-proposal-source-restored`).
 
+The corrected graph and named-BSS proposals pass the complete comparator
+on copies of all 149 objects, including marker-free mapsky/editmap2 and
+the native texture-workspace copy (`combined-mapper-proposals-objects.log`).
+Retail, symbol, and piece inputs are shared immutably through the existing
+explicit function parameters, retaining separate default-reference and
+no-reference piece contexts. The actual canonical scripts and objects are
+unchanged; linked PAL acceptance of tooling integration remains with the
+tooling lane.
+
 Final: 0 rodata / 1 BSS markers; matched_data
 540/66076 after the standard objdiff/progress refresh.
 Every accepted step passes the full PAL build (`SCES_511.90: OK`) and
