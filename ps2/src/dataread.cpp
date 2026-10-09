@@ -253,7 +253,7 @@ int LoadFileBG(char *name, u_long128 *buffer, int *out_size) {
         return 0;
     }
 
-    if (*(s8 *) name == 0) {
+    if (*name == 0) {
         return 0;
     }
 
@@ -974,7 +974,7 @@ int LoadFileCacheBG(char *path) {
     u_long128  *buffer;
     FILE_CACHE *entry;
 
-    if (path == NULL || *(s8 *) path == 0) {
+    if (path == NULL || *path == 0) {
         return 0;
     }
 
@@ -1094,7 +1094,7 @@ u_int *GetPackFile(u_int *pack, char *name, int *out_size) {
         return 0;
     }
 
-    if (*(s8 *) name == 0) {
+    if (*name == 0) {
         return 0;
     }
 
@@ -1221,13 +1221,13 @@ loop:
 
 void DivPathName(char *path, char *out_dir, char *out_name) {
     int last = strlen(path) - 1;
-    s8 *out = (s8 *) out_dir;
-    s8 *in;
+    char *out = out_dir;
+    char *in;
     int i;
 
     if (last >= 0) {
         do {
-            if (((s8 *) path)[last] == '/') {
+            if (path[last] == '/') {
                 break;
             }
 
@@ -1241,7 +1241,7 @@ void DivPathName(char *path, char *out_dir, char *out_name) {
         return;
     }
 
-    in = (s8 *) path;
+    in = path;
 
     for (i = 0; i <= last; i++) {
         *out++ = *in++;
