@@ -5180,7 +5180,7 @@ int NowUseNeedItemCheck(CUserDataManager *manager) {
 void Func_MenuIconDrawPrepare(MENUFORMPARTS_TYPE *part, CGameDataUsed *item, int need_item) {
     int           item_no;
     CDataCommon  *record;
-    unsigned int *item_info;
+    CDataItem    *item_info;
     unsigned int  flags;
 
     if (part != NULL && item != NULL) {
@@ -5191,10 +5191,10 @@ void Func_MenuIconDrawPrepare(MENUFORMPARTS_TYPE *part, CGameDataUsed *item, int
             record = GetCommonItemData(item_no);
 
             if (record != NULL && (record->attribute & 0x20) != 0) {
-                item_info = (unsigned int *) GetItemInfoData(item_no);
+                item_info = GetItemInfoData(item_no);
 
                 if (item_info != NULL) {
-                    flags = item_info[1];
+                    flags = item_info->use_flags;
 
                     if ((flags & 0x100) != 0 && (need_item & 0x1) != 0) {
                         part->item_flag |= 1;
