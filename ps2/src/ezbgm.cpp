@@ -100,10 +100,10 @@ int ezBgm(int command, int argument) {
 }
 #else
 int ezBgm(int command, int argument) {
-    switch (command & 0xFFF0) {
-        case 0x8020:
-        case 0x8A00:
-        case 0x80F0:
+    switch (command & EZBGM_COMMAND_MASK) {
+        case EZBGM_OPEN:
+        case EZBGM_UNK_8A00:
+        case EZBGM_OPEN_FROM_PACK:
             if (sceSifCheckStatRpc(&gCd2) != 0) {
                 printf("########### Rpc is bussy1!! \n");
                 return 0;
@@ -112,7 +112,7 @@ int ezBgm(int command, int argument) {
             sceSifCallRpc(&gCd2, command, 1, (void *) argument, 0x40, sbuff, 0x40, NULL,
                           NULL);
             break;
-        case 0x40:
+        case EZBGM_PRELOAD:
             if (sceSifCheckStatRpc(&gCd2) != 0) {
                 printf("########### Rpc is bussy2!! \n");
                 return 0;
@@ -137,10 +137,7 @@ int ezBgm(int command, int argument) {
     return sbuff[0];
 }
 #endif
+
 int CSound::StreamOpenState() {
     return sceSifCheckStatRpc(&gCd2);
 }
-
-// Constants (.rodata)
-
-// Uninitialised data (.bss)
