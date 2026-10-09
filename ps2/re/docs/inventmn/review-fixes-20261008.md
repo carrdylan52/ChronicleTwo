@@ -38,3 +38,18 @@ values. The inventory debug case remains `0x20` through
 
 Both uses and the enum names preserve `SCES_511.90: OK` and 149/149 objects.
 Receipts: `.private/fixes-r1b/receipts/start-select-{build,objects}.log`.
+
+## Rotation flag declaration dependency
+
+`itemmenu_chr_rotflag` now has a native `u8` definition in `menusys.cpp`.
+Changing only its header declaration to `s8`, removing inventmn's duplicate
+extern, and dropping the consumer's signed-byte cast does not compile:
+MWCC reports the definition as a redeclaration from `char` to
+`unsigned char`. The definition must also use `s8` for the proposed signed
+storage to be consistent. The original declarations and cast remain.
+
+The scoped probe's compiler failure is in
+`.private/fixes-r1b/receipts/rotflag-scoped-probe-build.log`.
+The restored source is verified by `rotflag-restored-{build,objects}.log`
+in the same directory. The complete proposed declaration/definition fix is
+`.private/proposals/fixes-r1b-rotflag.patch`.
