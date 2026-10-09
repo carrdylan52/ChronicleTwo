@@ -1893,7 +1893,7 @@ int MenuInternInit(mgCMemory *stack, int open_type, int capture) {
         MenuCommonInfo->now_mode = open_type;
     }
     MenuMainImageDataEnter(MenuCommonInfo->tex_block[1]);
-    MenuInterMes = new ((u_long128 *)stack->Alloc(0x2A7)) CDC2Mes;
+    MenuInterMes = new (stack->Alloc(0x2A7)) CDC2Mes;
     int script_size;
     char *config = (char *)GetMenuMainPosCfgBuffer(&script_size);
     char *script = (char *)(stack->stack + stack->stack_used) + (stack->stack_size - stack->stack_used) * 16 - 0x32000;
