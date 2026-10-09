@@ -49,6 +49,14 @@ with native extent 0x268 against the 0x270 retail piece
 The source is restored and the full PAL, 149 objects, and unchanged
 object hashes pass (`sceneevent-flare-typed-ratio-source-restored`).
 
+The scoped optimization-level-2 initializer probe also fails: 143/160
+masked words, native extent 0x280 versus the 0x270 retail piece. Its changed
+function extent shifts linked references elsewhere, so the full PAL fails
+(`sceneevent-flare-initializer-opt2-build.log`, `-objects.log`, `-score.log`).
+The initializer and pragma are reverted; the full PAL, all 149 objects, and
+unchanged object hashes pass afterward
+(`sceneevent-flare-initializer-opt2-source-restored`).
+
 Final: 1 rodata / 0 BSS markers; matched_data
 66/146 after the standard objdiff/progress refresh.
 Every accepted step passes the full PAL build (`SCES_511.90: OK`) and
