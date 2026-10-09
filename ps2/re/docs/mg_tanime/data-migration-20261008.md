@@ -23,8 +23,10 @@ header. That header and mg_tanime.hpp remain unchanged for other consumers.
 NewTexAnimeData. The source-only object emits the list Initialize method,
 but no native list vtable: its actual construction remains in the guarded
 caller. The retail-named marker preserves the assembly reference. No manual
-vtable or artificial construction site is introduced. TexAnime and
-NewTexAnimeData, including their guarded bodies, remain unchanged.
+vtable or artificial construction site is introduced. At this data-migration
+checkpoint both drafts were unchanged; the later TexAnime promotion is
+recorded in [nmmisc-20261008.md](nmmisc-20261008.md). Only NewTexAnimeData
+now remains guarded.
 
 ## Measurement and validation
 

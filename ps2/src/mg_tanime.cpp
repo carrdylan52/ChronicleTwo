@@ -204,11 +204,11 @@ void mgCTextureAnime::TexAnime(int texb, sceVif1Packet *packet) {
 
     for (i = 0; i < group_num; i++) {
         if (enable[i] != 0) {
-            CList<mgCTexAnimeData> *node = now[i];
-            if (node != NULL) {
-                mgCTexAnimeData *data = node->pGetData();
-                if (data != NULL && data->link_group >= 0) {
-                    Enable(data->link_group);
+            CList<mgCTexAnimeData> *linked_node = now[i];
+            if (linked_node != NULL) {
+                mgCTexAnimeData *linked_data = linked_node->pGetData();
+                if (linked_data != NULL && linked_data->link_group >= 0) {
+                    Enable(linked_data->link_group);
                 }
             }
         }
@@ -274,7 +274,7 @@ void mgCTextureAnime::TexAnime(int texb, sceVif1Packet *packet) {
                 dest_clut.TBP0 = data->dest_tex->tex0.CBP;
                 dest_clut.TBW = 1;
                 dest_clut.PSM = data->dest_tex->tex0.CPSM;
-                mgSetPkMoveImage(&src_clut, mgRect<int>(0, 0, 0x100, 0x100), &dest_clut, 0, 0, 0);
+                mgSetPkMoveImage(&src_clut, mgRect<int>(0, 0, 16 * MG_TEX_ANIME_SUBTEXEL, 16 * MG_TEX_ANIME_SUBTEXEL), &dest_clut, 0, 0, 0);
             }
 
             if (data->type == MG_TEX_ANIME_TYPE_COPY) {
@@ -407,11 +407,11 @@ void mgCTextureAnime::TexAnime(int texb, sceVif1Packet *packet) {
                         offset_x = (float) data->dest_w *
                                    ((float) data->amplitude_x *
                                     ((1.0f + sinf(6.2831855f * (float) data->phase_x / (float) data->period_x)) / 2.0f) /
-                                    10000.0f);
+                                    MG_TEX_ANIME_AMPLITUDE_FULL);
                         offset_y = (float) data->dest_h *
                                    ((float) data->amplitude_y *
                                     ((1.0f + sinf(6.2831855f * (float) data->phase_y / (float) data->period_y)) / 2.0f) /
-                                    10000.0f);
+                                    MG_TEX_ANIME_AMPLITUDE_FULL);
                     }
 
                     src_end_x = data->src_x + data->src_w;
@@ -623,8 +623,6 @@ CList<mgCTexAnimeData> *mgCTextureAnime::NewTexAnimeData(mgCMemory *stack) {
 #else
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/mg_tanime", NewTexAnimeData__15mgCTextureAnimeFP9mgCMemory);
 #endif
-
-// Defined in the class body in mg_tanime.hpp.
 
 CList<mgCTexAnimeData> *mgCTextureAnime::NewTexAnimeGroupData(int group, mgCMemory *stack) {
     if (group < 0 || group >= group_num) {
@@ -1112,8 +1110,6 @@ void mgRect<int>::Set(int new_left, int new_top, int new_right, int new_bottom) 
     right = new_right;
     bottom = new_bottom;
 }
-
-#pragma optimization_level 1
 
 // Virtual tables (.vtables)
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mg_tanime", __vt__24CList_15mgCTexAnimeData___DATA);

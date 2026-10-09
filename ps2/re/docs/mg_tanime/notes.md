@@ -40,6 +40,19 @@ No source or shared-header patch is validated. A comparable 3.0-011126 inlined
 list caller, or a compiler trace showing where the implicit allocation check
 is bound to its persistent object pointer, is still needed.
 
+## Current TexAnime and optimizer state
+
+`TexAnime` is native and exact at retail's 0x1458-byte symbol size. The
+unit uses `#pragma optimization_level 2`, preserving global common-
+subexpression elimination without the level-3 loop strength reduction.
+Template-using functions receive the pragma state in force when their
+code generation is triggered by the next top-level declaration; this
+explains the earlier unsuccessful scoped/reset experiment. The complete
+unit-wide setting preserves the already matched sibling functions.
+The zero-constructed rectangle objects correspond to six real retail
+`Set(0,0,0,0)` calls on distinct slots. Full reconstruction and deferred
+code-generation evidence are in [nmmisc-20261008.md](nmmisc-20261008.md).
+
 Engine texture animation (`mg_tanime.cpp`). First-game counterpart: `textureanime.hpp`
 (`CTexAnimeData` / `CTextureAnime`). The design is the same in spirit, but every layout differs:
 records are now heap-allocated `CList<mgCTexAnimeData>` nodes in per-group linked lists, groups have
@@ -183,7 +196,11 @@ with `optimization_level reset` immediately after the function. Its target retai
 the same six instruction differences. The fixed-up unit changed from 0x27E0 bytes
 to 0x25F8 bytes and reported 223 object problems, including shortened later function
 extents. Pairing the scope with `global_optimizer off` produced the same target
-difference and unit-wide failure. Neither pragma form is a viable local fix.
+difference and unit-wide failure. Neither scoped pragma form was a viable
+local fix at that checkpoint.
+MWCC defers template-using functions until the next top-level declaration,
+so the reset affected more than the intended function. The later unit-wide
+level-2 reconstruction documented above supersedes this scoped experiment.
 
 ## Placement construction under Satan's Fiddle (2026-10-08)
 
