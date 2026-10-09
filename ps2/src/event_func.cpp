@@ -228,7 +228,6 @@ const int              exit_map_jump = EVENT_REQUEST_MAP_JUMP;
 const int              request_menu = EVENT_COMMAND_SUB_MODE;
 const int              request_door = EVENT_COMMAND_DOOR;
 const int              event_sprite2_size = 0x80;
-extern char            at_3822__2[];
 extern char            at_4261__2[];
 extern char            at_4262__2[];
 extern char            at_4263__2[];
@@ -267,7 +266,6 @@ extern char            at_1083[];
 extern char            at_9148[];
 extern char            at_9622[];
 extern char            at_8230[];
-extern char            at_4072[];
 extern char            at_6773__2[];
 extern char            at_6774__2[];
 extern char            at_6775__2[];
@@ -6163,7 +6161,7 @@ int _CHK_INTERSECTION_POINT(RS_STACKDATA *stack, int argc) {
     }
 
     if (poly_count > 0x100) {
-        printf(at_3822__2, poly_count);
+        printf("\n\n\n\n\n!!!!!  EVENT COL CHECK ERR <poly num over %d> !!!!!\n\n\n\n\n", poly_count);
     }
 
     poly = polys;
@@ -6295,7 +6293,7 @@ int _CHK_INTERSECTION_POINT_PIPE(RS_STACKDATA *stack, int argc) {
     }
 
     if (poly_count > 0x100) {
-        printf(at_3822__2, poly_count);
+        printf("\n\n\n\n\n!!!!!  EVENT COL CHECK ERR <poly num over %d> !!!!!\n\n\n\n\n", poly_count);
     }
 
     poly = polys;
@@ -6612,7 +6610,7 @@ int _FUNCTION_MAP_JUMP(RS_STACKDATA *stack, int argc) {
     EdEventInfo.jump_point = -1;
     EdEventInfo.event_no = 100;
 
-    if (strcmp((char *) (request + 6), at_4072) == 0) {
+    if (strcmp((char *) (request + 6), "exit") == 0) {
         EdEventInfo.request = exit_leave_interior;
     } else {
         strcpy(EdEventInfo.jump_map_name, (char *) (request + 6));
@@ -18160,10 +18158,8 @@ INCLUDE_RODATA("ps2/asm/pal/nonmatchings/event_func", vv_3333__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/event_func", at_1083__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/event_func", at_1910__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/event_func", at_1909__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/event_func", at_3822__2__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/event_func", at_3823__2__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/event_func", at_3884__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/event_func", at_4072__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/event_func", at_4261__2__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/event_func", at_4262__2__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/event_func", at_4263__2__DATA);
