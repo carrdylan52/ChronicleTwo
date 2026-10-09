@@ -708,12 +708,12 @@ Mot_List *MotionProc3(mgCFrame *root, tagMOTION_TYPE *motion, tagFRAME_INF *fram
         vert_915 = visual->vertex;
         nml_916 = visual->normal;
 
-        if (((tagFRAME_INF *) ((list->frame << 5) + (int) frame_info))->vertex_count > 400) {
-            printf("###### MAX_VERTX OVER %d/%d######\n", ((tagFRAME_INF *) ((list->frame << 5) + (int) frame_info))->vertex_count, 400);
+        if (frame_info[list->frame].vertex_count > 400) {
+            printf("###### MAX_VERTX OVER %d/%d######\n", frame_info[list->frame].vertex_count, 400);
         }
 
-        if (((tagFRAME_INF *) ((list->frame << 5) + (int) frame_info))->normal_count > 800) {
-            printf("###### MAX_NORMAL OVER %d/%d######\n", ((tagFRAME_INF *) ((list->frame << 5) + (int) frame_info))->normal_count, 800);
+        if (frame_info[list->frame].normal_count > 800) {
+            printf("###### MAX_NORMAL OVER %d/%d######\n", frame_info[list->frame].normal_count, 800);
         }
 
         for (i = 0; i < frame_info[list->frame].vertex_count; i++) {
