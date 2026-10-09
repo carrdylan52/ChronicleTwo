@@ -819,16 +819,16 @@ void DrawDngRoomInfo(DNGMAP_ROOM_INFO *room) {
             PrimQuad(prim, seal_x, seal_y, *seal);
             prim->Color(128, 128, 128, alpha);
         }
-        int icon_x = fptosi(left + 20.0f);
-        int icon_y = fptosi(2.0f + (68.0f + (float) iy));
-        int text_x = icon_x + 0x1C;
-        PrimQuad(prim, (float) icon_x, row_top, mark);
+        ix = fptosi(left + 20.0f);
+        iy = fptosi(2.0f + (68.0f + (float) iy));
+        int text_x = ix + 0x1C;
+        PrimQuad(prim, (float) ix, row_top, mark);
         if (DngInfoFloorInfo != NULL && (DngInfoFloorInfo->flag & DNG_FLOOR_FLAG_FAST_DESTROY_CLEAR)) {
             highlight.left = medal_xytbl_1736[0];
-            PrimQuad(prim, (float) icon_x, (float) icon_y, highlight);
+            PrimQuad(prim, (float) ix, (float) iy, highlight);
         }
-        int icon_row_y = icon_y;
-        int text_row_y = icon_y;
+        int icon_row_y = iy;
+        int text_row_y = iy;
         {
             MenuDngMes[1]->SetMovePosGyou(0, text_x, text_row_y);
             int line_right = right - MenuDngMes[1]->line_w[1] - 0xE;
@@ -841,10 +841,10 @@ void DrawDngRoomInfo(DNGMAP_ROOM_INFO *room) {
         text_row_y += 0x16;
         shown = DngInfoRoomInfo;
         if (shown != NULL && shown->fishing) {
-            PrimQuad(prim, (float) icon_x, (float) icon_row_y, mark);
+            PrimQuad(prim, (float) ix, (float) icon_row_y, mark);
             if (DngInfoFloorInfo->flag & DNG_FLOOR_FLAG_FISHING_CLEAR) {
                 highlight.left = medal_xytbl_1736[2];
-                PrimQuad(prim, (float) icon_x, (float) icon_row_y, highlight);
+                PrimQuad(prim, (float) ix, (float) icon_row_y, highlight);
             }
             MenuDngMes[3]->SetMovePosGyou(0, text_x, text_row_y);
             MenuDngMes[3]->SetMovePosGyou(1, right - MenuDngMes[3]->line_w[1] - 0x10, text_row_y);
@@ -857,7 +857,7 @@ void DrawDngRoomInfo(DNGMAP_ROOM_INFO *room) {
         }
         shown = DngInfoRoomInfo;
         if (shown != NULL && shown->spheda) {
-            PrimQuad(prim, (float) icon_x, (float) icon_row_y, mark);
+            PrimQuad(prim, (float) ix, (float) icon_row_y, mark);
             int prize_x = right_text;
             if (DngInfoFloorInfo->flag & DNG_FLOOR_FLAG_SPHEDA_CLEAR) {
                 if (language > 0) {
@@ -867,7 +867,7 @@ void DrawDngRoomInfo(DNGMAP_ROOM_INFO *room) {
                     prize_x = right - MenuDngMes[4]->line_w[1] - 0x10;
                 }
                 highlight.left = medal_xytbl_1736[3];
-                PrimQuad(prim, (float) icon_x, (float) icon_row_y, highlight);
+                PrimQuad(prim, (float) ix, (float) icon_row_y, highlight);
             } else if (CheckBitFlagMenu(0x13D)) {
                 if (language > 0) {
                     prize_x -= 0x20;
@@ -881,10 +881,10 @@ void DrawDngRoomInfo(DNGMAP_ROOM_INFO *room) {
             icon_row_y += 0x16;
             text_row_y += 0x16;
         }
-        PrimQuad(prim, (float) icon_x, (float) icon_row_y, mark);
+        PrimQuad(prim, (float) ix, (float) icon_row_y, mark);
         if (DngInfoFloorInfo != NULL && (DngInfoFloorInfo->flag & DNG_FLOOR_FLAG_PRACTICE_CLEAR)) {
             highlight.left = medal_xytbl_1736[4];
-            PrimQuad(prim, (float) icon_x, (float) icon_row_y, highlight);
+            PrimQuad(prim, (float) ix, (float) icon_row_y, highlight);
         }
         if (language == 0) {
             MenuDngMes[5]->SetMovePosGyou(0, text_x, text_row_y);
@@ -1632,13 +1632,14 @@ int CDngFreeMap::LoadDngInfo(mgCMemory *stack, int block, int dungeon, int room,
                 tail = node;
             }
         }
+        const short *curve;
         GLID_INFO *glid = target->link_glid[direction];
         while (glid != NULL) {
             CalcGlidPutPos(glid, gx, gy, 0);
             glid->blink = 1;
             if (glid->type == GLID_TYPE_ROOT) {
                 int route_table = glid->root.shape;
-                const short *points = RootHokanTablePtrTable_2240__DATA[route_table];
+                curve = RootHokanTablePtrTable_2240__DATA[route_table];
                 int reverse = is_reverse_tbl_2246__DATA[route_table][direction];
                 if (reverse < 0) {
                     break;
@@ -1646,37 +1647,37 @@ int CDngFreeMap::LoadDngInfo(mgCMemory *stack, int block, int dungeon, int room,
                 if (reverse == DNGMAP_PATH_FORWARD) {
                     for (i = 0; i < 20; i++) {
                         DNGMAP_KOMA_POS *node = (DNGMAP_KOMA_POS *) memory.Alloc(1);
-                        node->x = gx + (float) points[i * 2];
-                        node->y = gy + (float) points[i * 2 + 1];
+                        node->x = gx + (float) curve[i * 2];
+                        node->y = gy + (float) curve[i * 2 + 1];
                         tail->next = node;
                         tail = tail->next;
                     }
                 } else if (reverse == DNGMAP_PATH_REVERSE) {
                     for (i = 19; i >= 0; i--) {
                         DNGMAP_KOMA_POS *node = (DNGMAP_KOMA_POS *) memory.Alloc(1);
-                        node->x = gx + (float) points[i * 2];
-                        node->y = gy + (float) points[i * 2 + 1];
+                        node->x = gx + (float) curve[i * 2];
+                        node->y = gy + (float) curve[i * 2 + 1];
                         tail->next = node;
                         tail = node;
                     }
                 }
             } else if (glid->type == GLID_TYPE_ROOM) {
                 int route_table = old_hokantbl_useno_2247__DATA[direction + 4];
-                const short *points = RoomHokanTablePtrTable_2245__DATA[route_table];
+                curve = RoomHokanTablePtrTable_2245__DATA[route_table];
                 int reverse = is_reverse_tbl_room_2248__DATA[route_table + 4];
                 if (reverse == DNGMAP_PATH_FORWARD) {
                     for (i = 0; i < 10; i++) {
                         DNGMAP_KOMA_POS *node = (DNGMAP_KOMA_POS *) memory.Alloc(1);
-                        node->x = gx + (float) points[i * 2];
-                        node->y = gy + (float) points[i * 2 + 1];
+                        node->x = gx + (float) curve[i * 2];
+                        node->y = gy + (float) curve[i * 2 + 1];
                         tail->next = node;
                         tail = node;
                     }
                 } else if (reverse == DNGMAP_PATH_REVERSE) {
                     for (i = 9; i >= 0; i--) {
                         DNGMAP_KOMA_POS *node = (DNGMAP_KOMA_POS *) memory.Alloc(1);
-                        node->x = gx + (float) points[i * 2];
-                        node->y = gy + (float) points[i * 2 + 1];
+                        node->x = gx + (float) curve[i * 2];
+                        node->y = gy + (float) curve[i * 2 + 1];
                         tail->next = node;
                         tail = node;
                     }
