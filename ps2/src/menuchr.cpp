@@ -2168,7 +2168,7 @@ int CMenuChrCngMenu::KeyChangeMain() {
                     }
                     int next = -1;
                     if (dir >= 0) {
-                        next = nextIDtbl_1594[lastSelect][dir];
+                        next = nextIDtbl_1594[select][dir];
                     }
                     if (next >= 0) {
                         select = next;
