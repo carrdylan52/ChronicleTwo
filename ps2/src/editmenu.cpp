@@ -3613,7 +3613,7 @@ void CMenuGeorama::AttachFormInfo() {
     char name[32];
     int  i;
     int  gekka_view;
-    title_form = (CMenuPosDataForm *) MenuPosData->GetFormInfo("field_title");
+    title_form = MenuPosData->GetFormInfo("field_title");
 
     if (title_form != NULL) {
         gekka_view = 0;
@@ -3626,18 +3626,18 @@ void CMenuGeorama::AttachFormInfo() {
         title_form->SetPartDrawFlag("index14", gekka_view != 0);
     }
 
-    make_brd_form = (CMenuPosDataForm *) MenuPosData->GetFormInfo("makebrd");
-    cpview_form = (CMenuPosDataForm *) MenuPosData->GetFormInfo("CPVIEW");
-    free_color_form = (CMenuPosDataForm *) MenuPosData->GetFormInfo("free_color");
+    make_brd_form = MenuPosData->GetFormInfo("makebrd");
+    cpview_form = MenuPosData->GetFormInfo("CPVIEW");
+    free_color_form = MenuPosData->GetFormInfo("free_color");
 
     for (i = 0; i < 7; i++) {
         sprintf(name, "list_data%d", i);
-        list_form[i] = (CMenuPosDataForm *) MenuPosData->GetFormInfo(name);
+        list_form[i] = MenuPosData->GetFormInfo(name);
     }
 
-    analyze_form = (CMenuPosDataForm *) MenuPosData->GetFormInfo("analyze0");
-    analyze_percent_form = (CMenuPosDataForm *) MenuPosData->GetFormInfo("analyze1");
-    house_info_form = (CMenuPosDataForm *) MenuPosData->GetFormInfo("\x89\xC6\x8F\xEE\x95\xF1");
+    analyze_form = MenuPosData->GetFormInfo("analyze0");
+    analyze_percent_form = MenuPosData->GetFormInfo("analyze1");
+    house_info_form = MenuPosData->GetFormInfo("\x89\xC6\x8F\xEE\x95\xF1");
     HouseInfoFormGrobal = house_info_form;
     AttachMessageForm();
 }
@@ -4044,7 +4044,7 @@ void CMenuGeorama::CalcMakeBrd() {
         CalcMenuAdd(&make_brd.decrease_flash_frames, -1, 0);
         CalcMenuAdd(&make_brd.increase_flash_frames, -1, 0);
         make_brd.make_cursor = make_cursor;
-        CalcCommonBrdDrawInfo(&make_brd_form->x, &make_brd, (ClsMes *) MenuDCMsg[2]);
+        CalcCommonBrdDrawInfo(&make_brd_form->x, &make_brd, MenuDCMsg[2]);
     }
 }
 
