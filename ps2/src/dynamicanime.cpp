@@ -99,7 +99,7 @@ void CDynamicAnime::ResetPosition() {
 
     if (top_frame != 0) {
         top_frame->GetLWMatrix(matrix);
-        mgApplyMatrixN((float (*)[4]) now_vertex, matrix, (float (*)[4]) init_vertex, vertex_num);
+        mgApplyMatrixN(now_vertex, matrix, init_vertex, vertex_num);
     }
 
     for (i = 0; i < vertex_num; i++) {
@@ -339,8 +339,8 @@ void CDynamicAnime::PreCollision() {
             col->frame = GetFrame(col->frame_id);
 
             if (col->frame != NULL) {
-                col->frame->GetLWMatrix((float (*)[4]) col->lw_matrix);
-                mgInversMatrix((float (*)[4]) col->inverse_matrix, (float (*)[4]) col->lw_matrix);
+                col->frame->GetLWMatrix(col->lw_matrix);
+                mgInversMatrix(col->inverse_matrix, col->lw_matrix);
             }
         }
     }
@@ -1291,7 +1291,7 @@ int CDAColPipe::CheckHit(float *point) {
     float saved;
 
     point[3] = 1.0f;
-    sceVu0ApplyMatrix(local, (float (*)[4]) inverse_matrix, point);
+    sceVu0ApplyMatrix(local, inverse_matrix, point);
     sceVu0SubVector(offset, local, center);
     offset[0] /= radius[0];
     offset[1] /= radius[1];
@@ -1319,7 +1319,7 @@ int CDAColPipe::CheckHit(float *point) {
     sceVu0AddVector(local, center, offset);
     local[axis] = saved;
     local[3] = 1.0f;
-    sceVu0ApplyMatrix(point, (float (*)[4]) lw_matrix, local);
+    sceVu0ApplyMatrix(point, lw_matrix, local);
     return 1;
 }
 
