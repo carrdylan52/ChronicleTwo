@@ -76,3 +76,20 @@ All five BSS reservations and all native-only initialized markers are removed. N
 ## Strict data accounting
 
 Objdiff's `matched_data` measure credits an entire data section only when its comparison reaches 100%. Partial native data coverage in a section therefore receives no matched-byte credit. Exact per-piece comparison and the canonical whole-object checker still prove the accepted native objects. For example, the padded 0x5590-byte native effect resource catalog and reference piece have identical SHA-256 `1214afea6a5798bf37d67d6489f9016f52f510de8c2d106e590e7c70f5f4fd35`; local receipt copies are `.private/dataA-r3/catalog-{source,target}.bin`.
+
+## Comparison section shape
+
+The compiler emits separate native `.data` pieces while the reference comparison object retains one monolithic `.data` section. Objdiff's current pairing associates only the first native section with that reference run; other native pieces have separate zero-score section entries. This is a comparison limitation, independent of the canonical object result. `.private/dataA-r3/final-data-pieces.log` verifies every native initialized piece in both units with identical bytes and all mapped R_MIPS_32 targets.
+
+The one-shot CLI receipt `.private/dataA-r3/eff-data-diff.json` shows the reference 0x59B8-byte run paired with the native 0x5590-byte catalog, marking the remaining 0x428 bytes deleted. Those bytes are supplied exactly by the two 0x10-byte direction templates and 0x408-byte dispatch table in separate native sections. The aggregate `.data` score is 99.8254%, so none of its bytes receives `matched_data` credit despite complete native source and exact canonical matching. Build tooling is unchanged; comparison section pairing belongs to the tooling lane.
+
+## Final validated measures
+
+| Measure | Checkpoint 3221b488 | Final native source |
+|---|---:|---:|
+| `INCLUDE_RODATA` | 33 | 14 |
+| `INCLUDE_BSS` | 5 | 0 |
+| `matched_data` | 0 | 1052 |
+| `total_data` | 25232 | 25232 |
+
+Final pinned-image receipts: `.private/dataA-r3/final-{build,objects,hashes,refresh,coverage,data-pieces}.log` and `after.json`. PAL prints `SCES_511.90: OK`; all 149 canonical units pass; no unowned raw objects change. Source guards are unchanged and build scripts, SF profiles and dng_main remain untouched.
