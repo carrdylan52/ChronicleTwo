@@ -254,11 +254,6 @@ extern char            at_8904[];
 extern char            at_4437[];
 extern char            at_5262__2[];
 extern char            at_5263__2[];
-extern char            at_1904[];
-extern char            at_1905[];
-extern char            at_1906[];
-extern char            at_1907[];
-extern char            at_1908[];
 extern char            at_2836[];
 extern char            at_2837[];
 extern char            at_2838[];
@@ -3016,11 +3011,11 @@ void EventTimeDraw(void) {
             if (EdEventInfo.stopwatch_style == 1) {
                 switch (LanguageCode) {
                     case 0:
-                        label[0] = GetFontNo(at_1904);
-                        label[1] = GetFontNo(at_1905);
-                        label[2] = GetFontNo(at_1906);
-                        label[3] = GetFontNo(at_1907);
-                        label[4] = GetFontNo(at_1908);
+                        label[0] = GetFontNo("\x8C\x8E");
+                        label[1] = GetFontNo("\x97\x8E");
+                        label[2] = GetFontNo("\x89\xBA");
+                        label[3] = GetFontNo("\x82\xDC");
+                        label[4] = GetFontNo("\x82\xC5");
                         break;
                     case 2:
                 label[0] = GetHalfFontNo('C');
@@ -18186,11 +18181,6 @@ INCLUDE_RODATA("ps2/asm/pal/nonmatchings/event_func", vv_3333__DATA);
 
 // Constants (.rodata)
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/event_func", at_1083__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/event_func", at_1904__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/event_func", at_1905__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/event_func", at_1906__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/event_func", at_1907__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/event_func", at_1908__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/event_func", at_1910__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/event_func", at_1909__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/event_func", at_2245__2__DATA);
