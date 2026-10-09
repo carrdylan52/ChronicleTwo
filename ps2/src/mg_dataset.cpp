@@ -1014,8 +1014,7 @@ mgCFrame *mgCopyFrame(mgCFrame *frame, mgCMemory *memory, int copy_visual) {
         }
 
         for (i = 0; i < count; i++) {
-            parent = (mgCFrame *) table[i]
-                         ->parent;
+            parent = table[i]->parent;
 
             if (parent != 0) {
                 char *parent_name = parent->name;
