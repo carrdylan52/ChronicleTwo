@@ -3782,7 +3782,7 @@ void DrawFishParam(int x, int y, mgCTexture *tex, CGameDataUsed *data) {
     bx = (int) (2.0f + (fx + cx));
     PrimQuad(pen, bx, wy,
              mgRect<int>(get_paraxtbl_2494[lang][7].x, get_paraxtbl_2494[lang][7].y, get_paraxtbl_2494[lang][7].w, 0x12));
-    if (data->data.fish.flags & 1) {
+    if (data->data.fish.flags & BREEDFISH_FLAG_RAISED) {
         PrimDrawNumber(pen, breed->weight, 0, (int) (138.0f + (fx + cx) - 18.0f - 2.0f), wy, digit_rect, -1, 0);
     } else {
         aqua_param_icon *unknown = &get_paraxtbl_2494[lang][9];
@@ -3798,7 +3798,7 @@ void DrawFishParam(int x, int y, mgCTexture *tex, CGameDataUsed *data) {
         name_y = (int) (24.0f + fy);
     }
     CMenuFont font;
-    if (breed->flags & 2) {
+    if (breed->flags & BREEDFISH_FLAG_ELECTRIC) {
         font.SetColor(0x803CA0A8);
     }
     font.DrawDirect(data->GetName(1), name_x, name_y);
@@ -4979,8 +4979,8 @@ int CAquarium::ColCheck(int no) {
                     me->col_flags |= AQUA_FISH_COL_FISH;
                     if (action != NULL && action->target_no == i) {
                         me->col_flags |= AQUA_FISH_COL_TARGET;
-                        if (me->think_mode == AQUA_FISH_THINK_BATTLE && me->action.phase == 0) {
-                            me->action.phase = 1;
+                        if (me->think_mode == AQUA_FISH_THINK_BATTLE && me->action.phase == AQUA_FISH_ACTION_APPROACH) {
+                            me->action.phase = AQUA_FISH_ACTION_SWING_START;
                         }
                     }
                 }
@@ -4989,10 +4989,10 @@ int CAquarium::ColCheck(int no) {
     }
     aqua_no = m_aquarium_para->active_tank;
     point = ColChkPoint;
-    if (aqua_no == 1) {
+    if (aqua_no == AQUARIUM_TANK_SECOND) {
         point = ColChkPoint2;
     }
-    if (aqua_no == 2) {
+    if (aqua_no == AQUARIUM_TANK_BREED) {
         point = ColChkPoint3;
     }
     num = ColChkPointNum[aqua_no];
@@ -5184,7 +5184,7 @@ int CAquarium::Step() {
     float     saved_rot[6][4];
 
     lang = LanguageCode;
-    if (lang > 0) {
+    if (lang > LANG_JAPANESE) {
         lang = 1;
     }
     int *keys = langTbl_3630[lang];
@@ -5331,7 +5331,7 @@ int CAquarium::Step() {
                     return 1;
                 }
                 if (GamePad__2.Down(PAD_TRIANGLE)) {
-                    MenuSePlay(0x13);
+                    MenuSePlay(SYSTEM_SE_WINDOW);
                     next = AQUARIUM_MODE_COMMAND;
                 }
                 break;
@@ -5354,7 +5354,7 @@ int CAquarium::Step() {
                     const s8 *ids = &menu_id_tbl_3721[aqua_no * 6];
                     i = menu->menu_cursor;
                     switch (ids[i]) {
-                        case 0:
+                        case AQUARIUM_COMMAND_FISH_INFO:
                             if (InitSelFish() != 0) {
                                 MenuSePlay(SYSTEM_SE_CANCEL);
                             } else {
@@ -5362,11 +5362,11 @@ int CAquarium::Step() {
                                 MenuSePlay(SYSTEM_SE_DECIDE);
                             }
                             break;
-                        case 1:
+                        case AQUARIUM_COMMAND_FEED:
                             next = AQUARIUM_MODE_FOOD_SELECT;
                             MenuSePlay(SYSTEM_SE_DECIDE);
                             break;
-                        case 2:
+                        case AQUARIUM_COMMAND_RENAME:
                             if (InitSelFish() != 0) {
                                 MenuSePlay(SYSTEM_SE_CANCEL);
                             } else {
@@ -5374,7 +5374,7 @@ int CAquarium::Step() {
                                 MenuSePlay(SYSTEM_SE_DECIDE);
                             }
                             break;
-                        case 3:
+                        case AQUARIUM_COMMAND_TAKE_OUT:
                             if (InitSelFish() != 0) {
                                 MenuSePlay(SYSTEM_SE_CANCEL);
                             } else {
@@ -5382,7 +5382,7 @@ int CAquarium::Step() {
                                 next = AQUARIUM_MODE_TAKE_OUT;
                             }
                             break;
-                        case 4:
+                        case AQUARIUM_COMMAND_MOVE:
                             if (InitSelFish() != 0) {
                                 MenuSePlay(SYSTEM_SE_CANCEL);
                             } else {
@@ -5390,7 +5390,7 @@ int CAquarium::Step() {
                                 next = AQUARIUM_MODE_MOVE_SELECT;
                             }
                             break;
-                        case 5:
+                        case AQUARIUM_COMMAND_SWITCH_TANK:
                             MenuSePlay(SYSTEM_SE_DECIDE);
                             next = AQUARIUM_MODE_SWITCH_TANK_SELECT;
                             break;
@@ -5551,7 +5551,7 @@ int CAquarium::Step() {
                     SelFishSetCursor();
                     if (key & MENU_PUSH_BUTTON_CANCEL) {
                         next = AQUARIUM_MODE_COMMAND;
-                        MenuSePlay(0x13);
+                        MenuSePlay(SYSTEM_SE_WINDOW);
                     }
                 }
                 break;
@@ -5560,7 +5560,7 @@ int CAquarium::Step() {
                     MenuSePlay(SYSTEM_SE_CURSOR);
                 }
                 if (key & MENU_PUSH_BUTTON_CANCEL) {
-                    MenuSePlay(0x13);
+                    MenuSePlay(SYSTEM_SE_WINDOW);
                     next = AQUARIUM_MODE_COMMAND;
                 } else if (key & MENU_PUSH_BUTTON_DECIDE) {
                     i = menu->question_cursor;
@@ -5576,7 +5576,7 @@ int CAquarium::Step() {
                             food_stack.stack_used = 0;
                             food_stack.lock = 0;
                             mgTexManager.DeleteBlock(food_tex_block);
-                            food = new ((u_long128 *) food_stack.Alloc(sizeof(CFishFood) / 16 + 2)) CFishFood;
+                            food = new (food_stack.Alloc(sizeof(CFishFood) / 16 + 2)) CFishFood;
                             food->LoadPack((unsigned int *) load_buf, "info.cfg", &food_stack, &food_stack, &food_stack,
                                            food_tex_block, NULL);
                             food->item_no = item_no;
@@ -5602,7 +5602,7 @@ int CAquarium::Step() {
                 SelectFish(0);
                 SelFishSetCursor();
                 if (key & MENU_PUSH_BUTTON_CANCEL) {
-                    MenuSePlay(0x13);
+                    MenuSePlay(SYSTEM_SE_WINDOW);
                     next = AQUARIUM_MODE_COMMAND;
                 } else if ((key & MENU_PUSH_BUTTON_DECIDE) && fish[sel_fish] != NULL) {
                     Nameregi_Target.target = 0;
@@ -5670,13 +5670,13 @@ int CAquarium::Step() {
                 SelectFish(0);
                 SelFishSetCursor();
                 if (key & MENU_PUSH_BUTTON_CANCEL) {
-                    MenuSePlay(0x13);
+                    MenuSePlay(SYSTEM_SE_WINDOW);
                     next = AQUARIUM_MODE_COMMAND;
                 } else if (key & MENU_PUSH_BUTTON_DECIDE) {
                     CAquaFish     *selected = fish[sel_fish];
                     CGameDataUsed *data = selected->data;
 
-                    if (data->data.fish.flags & 2) {
+                    if (data->data.fish.flags & BREEDFISH_FLAG_ELECTRIC) {
                         next = AQUARIUM_MODE_TAKE_OUT_INFO;
                         menu->SetInfoMsgID(0x12D);
                         MenuSePlay(SYSTEM_SE_CANCEL);
@@ -5689,7 +5689,7 @@ int CAquarium::Step() {
                             selected->Initialize();
                             fish[sel_fish] = NULL;
                             if (InitSelFish() != 0) {
-                                MenuSePlay(0x13);
+                                MenuSePlay(SYSTEM_SE_WINDOW);
                                 next = AQUARIUM_MODE_COMMAND;
                             }
                             MenuSePlay(SYSTEM_SE_DECIDE);
@@ -5711,14 +5711,14 @@ int CAquarium::Step() {
                 SelectFish(0);
                 SelFishSetCursor();
                 if (key & MENU_PUSH_BUTTON_CANCEL) {
-                    MenuSePlay(0x13);
+                    MenuSePlay(SYSTEM_SE_WINDOW);
                     next = AQUARIUM_MODE_COMMAND;
                 } else if (key & MENU_PUSH_BUTTON_DECIDE) {
                     CAquaFish *selected = fish[sel_fish];
 
                     if (selected == NULL) {
                         MenuSePlay(SYSTEM_SE_CANCEL);
-                    } else if (selected->data->data.fish.flags & 2) {
+                    } else if (selected->data->data.fish.flags & BREEDFISH_FLAG_ELECTRIC) {
                         next = AQUARIUM_MODE_TAKE_OUT_INFO;
                         menu->SetInfoMsgID(0x12D);
                         MenuSePlay(SYSTEM_SE_CANCEL);
@@ -5741,7 +5741,7 @@ int CAquarium::Step() {
                     int            space = m_aquarium_para->SearchAqua1NotUsed(tank);
                     CGameDataUsed *data;
 
-                    if (tank == 2) {
+                    if (tank == AQUARIUM_TANK_BREED) {
                         data = sel_sift_fish->data;
 
                         if (m_aquarium_para->CheckHaigouTankSex(data) == 0) {
@@ -5770,7 +5770,7 @@ int CAquarium::Step() {
                         sel_sift_fish->Initialize();
                         fish[sel_fish] = NULL;
                         if (InitSelFish() != 0) {
-                            MenuSePlay(0x13);
+                            MenuSePlay(SYSTEM_SE_WINDOW);
                             next = AQUARIUM_MODE_COMMAND;
                         } else {
                             next = AQUARIUM_MODE_MOVE_SELECT;
@@ -5793,7 +5793,7 @@ int CAquarium::Step() {
                     MenuSePlay(SYSTEM_SE_CURSOR);
                 }
                 if (key & MENU_PUSH_BUTTON_CANCEL) {
-                    MenuSePlay(0x13);
+                    MenuSePlay(SYSTEM_SE_WINDOW);
                     next = AQUARIUM_MODE_COMMAND;
                 } else if (key & MENU_PUSH_BUTTON_DECIDE) {
                     i = menu->question_cursor;
@@ -5865,7 +5865,7 @@ int CAquarium::Step() {
             menu->SetQuestionId(0x320, 1, 7);
             menu->help_draw = 0;
             food = NULL;
-            AquaCameraCtrlMode = 0;
+            AquaCameraCtrlMode = AQUA_CAMERA_CTRL_FREE;
             drop_root_draw = 0;
         }
         if (next == AQUARIUM_MODE_FOOD_POSITION) {
@@ -5875,14 +5875,14 @@ int CAquarium::Step() {
             menu->question_draw = 0;
             menu->SetCtrlHelpId(0x34);
             menu->help_draw = 1;
-            AquaCameraCtrlMode = 1;
+            AquaCameraCtrlMode = AQUA_CAMERA_CTRL_FOOD;
             drop_root_draw = 1;
         }
         if (next == AQUARIUM_MODE_FOOD_WAIT) {
             menu->help_draw = 0;
             food->Drop();
             food_time = 0xFA;
-            AquaCameraCtrlMode = 0;
+            AquaCameraCtrlMode = AQUA_CAMERA_CTRL_FREE;
             drop_root_draw = 0;
         }
         if (next == AQUARIUM_MODE_TAKE_OUT) {

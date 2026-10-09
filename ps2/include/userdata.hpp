@@ -63,6 +63,7 @@ enum CHARA_STATUS_ATTR {
  *
  */
 enum BREEDFISH_FLAGS {
+    BREEDFISH_FLAG_RAISED = 0x1,   /**< Marks a fish fed or bred in the aquarium; its weight is shown and the fishing tournament refuses it. */
     BREEDFISH_FLAG_ELECTRIC = 0x2, /**< Marks an electric fish, which is never rubbish. */
 };
 
@@ -229,7 +230,7 @@ struct BREEDFISH_USED {
     u8    unk_32[3];
     s8    breed_feeds_remaining; /**< Feedings left before this breeding fish stops eating. */
     u16   life; /**< Remaining lifetime of the breeding fish. */
-    u16   flags; /**< Flags; 0x2 marks an electric fish, which is never rubbish. */
+    u16   flags; /**< BREEDFISH_FLAGS of the fish. */
     u8    color; /**< Colour variant of the breeding fish. */
     s8    grow_count; /**< Food eaten towards the next growth; the fish grows past 10. */
     u8    unk_3c;
@@ -1114,6 +1115,17 @@ public:
 };
 
 STATIC_ASSERT(sizeof(CMonsterBox) == 0x2F00);
+
+/**
+ *
+ * Tanks of the aquarium, as CFishAquarium::active_tank and its tank arguments number them.
+ *
+ */
+enum AQUARIUM_TANK {
+    AQUARIUM_TANK_FIRST = 0,  /**< First tank, held in fish_tank. */
+    AQUARIUM_TANK_SECOND = 1, /**< Second tank, held in sub_tank. */
+    AQUARIUM_TANK_BREED = 2,  /**< Breeding tank, held in breed_tank. */
+};
 
 /**
  *

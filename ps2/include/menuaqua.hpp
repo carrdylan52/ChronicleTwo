@@ -53,6 +53,21 @@ enum AQUARIUM_MODE {
 
 /**
  *
+ * Command in a slot of the aquarium command window.
+ *
+ */
+enum AQUARIUM_COMMAND {
+    AQUARIUM_COMMAND_NONE = -1,       /**< No command; pads the slots of a tank with fewer commands. */
+    AQUARIUM_COMMAND_FISH_INFO = 0,   /**< Selects a fish and displays its parameters. */
+    AQUARIUM_COMMAND_FEED = 1,        /**< Chooses food to drop into the tank. */
+    AQUARIUM_COMMAND_RENAME = 2,      /**< Renames a fish. */
+    AQUARIUM_COMMAND_TAKE_OUT = 3,    /**< Moves a fish into carried inventory. */
+    AQUARIUM_COMMAND_MOVE = 4,        /**< Transfers a fish to another tank. */
+    AQUARIUM_COMMAND_SWITCH_TANK = 5, /**< Chooses another tank to view. */
+};
+
+/**
+ *
  * Stage of an aquarium breeding or electric-food transition.
  *
  */
@@ -85,6 +100,16 @@ enum AQUA_MENU_MODE {
     AQUA_MENU_RENAME_FADE_OUT_WAIT = 7, /**< Waits for the fade before opening fish name entry. */
     AQUA_MENU_RENAME = 8,               /**< Runs fish name entry. */
     AQUA_MENU_RENAME_FADE_IN_WAIT = 9,  /**< Waits for the fade after fish name entry. */
+};
+
+/**
+ *
+ * How the pad steers the aquarium camera, as AquaCameraCtrlMode holds it.
+ *
+ */
+enum AQUA_CAMERA_CTRL {
+    AQUA_CAMERA_CTRL_FREE = 0, /**< Both sticks turn, raise and zoom the camera. */
+    AQUA_CAMERA_CTRL_FOOD = 1, /**< The right stick turns and raises the camera at a fixed distance while the left positions the food. */
 };
 
 /**
@@ -279,12 +304,25 @@ STATIC_ASSERT(sizeof(CBubble) == 0x40);
 
 /**
  *
+ * Stage of a battle or battle rest, as CAquaFishActionParam::phase holds it.
+ *
+ */
+enum AQUA_FISH_ACTION_PHASE {
+    AQUA_FISH_ACTION_APPROACH = 0,    /**< Swims at the target fish until the two touch. */
+    AQUA_FISH_ACTION_SWING_START = 1, /**< Starts the battle motion after touching the target. */
+    AQUA_FISH_ACTION_SWING = 2,       /**< Swings around the target fish. */
+    AQUA_FISH_ACTION_REST_MOVE = 3,   /**< Swims to the resting point of a battle rest. */
+    AQUA_FISH_ACTION_REST = 4,        /**< Rests at the resting point, recovering health and fatigue. */
+};
+
+/**
+ *
  * Steering of a fish within one action: its phase, timer, target and speed.
  *
  */
 class CAquaFishActionParam {
 public:
-    s16        phase;     /**< Stage of the action. */
+    s16        phase;     /**< Stage of the action; in battles an AQUA_FISH_ACTION_PHASE value. */
     s32        timer;     /**< Steps left in the stage. */
     s16        target_no; /**< Tank slot of the fish that the action is aimed at; below zero for none. */
     CAquaFish *target;    /**< Fish that the action is aimed at. */
