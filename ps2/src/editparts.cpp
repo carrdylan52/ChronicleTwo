@@ -382,7 +382,7 @@ int CEditParts::CheckTerritory(CEditParts *other) {
     }
 
     CMapParts::GetLWMatrix(matrix);
-    ((CMapParts *) other)->GetLWMatrix(other_matrix);
+    other->GetLWMatrix(other_matrix);
     sceVu0ApplyMatrix(center, matrix, info->territory_center);
     sceVu0ApplyMatrix(other_center, other_matrix,
                       other->info->territory_center);
