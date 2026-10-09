@@ -624,3 +624,30 @@ a second whole-149 wrapper run.
 See the [Motion](../visualmotion/placement-new-copy-derived-20261009.md) and
 [Fix follow-up](../mg_visual/placement-new-copy-derived-20261009.md) notes.
 The original explicit-base97 negative remains preserved.
+
+## Final clean production34 acceptance
+
+The final CLEAN pn15 build at source snapshot `2dee539d` passes PAL and all
+149 complete resolved units. All 455 raw assembled/source objects and the
+whole linked ELF equal the immutable accepted34 artifacts. This includes
+the comment-only declaration documentation in editeff, fishing, inventmn
+and menuchr; executable source, profile and toolchain semantics are unchanged.
+Outside the 21 promoted units, every assembled and source-only object is
+also raw-identical to the tested upstream baseline.
+
+Production remains 34 placement rows /44 witnessed eligible constructions
+and 81 floating-expression rows, with profile SHA-256
+`f6353a6cb5facbf60a0f48d2be2db95354573f58a4c85a0295b14ea78c3cafe0`.
+The final ELF SHA-256 is
+`6352338ce8ff3fef0df4d54215ab1ca9348ae4db098c1a35cb7da359ba17b82d`;
+its game/main hash, length and loaded memory end retain the accepted values
+above. Exact context/objdiff refresh followed by host coverage yields
+6,783 matched /82 guarded /7 assembly-only /0 fuzzy.
+
+All six final receipt stages have zero exits under
+`.private/pntc/receipts/final-thirty-four-{clean-build,objects,artifacts,identity,progress,coverage}`.
+The snapshot and direct accepted34 raw-artifact comparison are
+`.private/pntc/promote34/final-clean-acceptance.json` and
+`final-clean-identity.json`. Subsequent documentation-only commits require
+no source rebuild. Private shared-header/global experiments remain separate
+from these production acceptance counts.
