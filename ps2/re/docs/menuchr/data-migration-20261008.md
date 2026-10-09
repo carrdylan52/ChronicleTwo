@@ -36,3 +36,13 @@ After this step: **355 / 31 markers**, **4 / 9726 matched_data**.
 PAL verification and all 149 object checks pass, with all unowned hashes
 unchanged. The guarded drafts still reference the same retail symbols.
 Receipts: `.private/nmchr-r3/menuchr-local-state-{build,objects,progress,metrics}.log`.
+
+## Monster progression table
+
+`monster_progress_tbl` is a native nineteen-by-five signed-halfword array:
+each row contains its badge number followed by four monster forms. Its
+190-byte declared extent matches the documented searches and header, and its
+two-byte piece tail remains alignment. The existing consumers are unchanged.
+After this step: **354 / 31 markers**, **4 / 9726 matched_data**.
+PAL and 149/149 objects pass with unchanged unowned hashes; receipts are
+`.private/nmchr-r3/menuchr-progress-table-{build,objects,progress,metrics}.log`.

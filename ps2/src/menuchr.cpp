@@ -7473,7 +7473,28 @@ void MonsterBookDraw() {
 }
 
 // Initialised data (.data)
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", monster_progress_tbl__DATA);
+s16 monster_progress_tbl[MONSTER_PROGRESS_NUM][1 + MONSTER_PROGRESS_LEVEL_NUM] = {
+    {0, 0, 1, 2, 3},
+    {0, 0, 1, 22, 23},
+    {0, 0, 136, 137, 139},
+    {1, 220, 221, 222, 223},
+    {3, 52, 53, 54, 55},
+    {3, 52, 53, 102, 103},
+    {2, 8, 9, 10, 11},
+    {2, 8, 9, 150, 151},
+    {7, 44, 45, 46, 47},
+    {9, 224, 236, 228, 232},
+    {8, 176, 177, 180, 183},
+    {8, 176, 177, 186, 187},
+    {5, 72, 73, 74, 75},
+    {5, 72, 73, 154, 155},
+    {4, 24, 25, 26, 27},
+    {4, 24, 25, 166, 167},
+    {6, 124, 116, 120, 112},
+    {6, 124, 116, 120, 128},
+    {9, 224, 236, 228, 240},
+};
+
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", tbl_992__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", tbl_1233__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_1372__2__DATA);
