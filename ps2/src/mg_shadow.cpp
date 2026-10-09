@@ -403,4 +403,3 @@ int mgCShadowMDT::CreateRenderInfoPacket(u_int *packet, float (*matrix)[4], mgRE
 #pragma schedule reset
 
 // Initialised data (.data)
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mg_shadow", prog_vif_208__DATA);
