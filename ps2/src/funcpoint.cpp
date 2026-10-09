@@ -546,7 +546,7 @@ static inline u_int Align16Blocks(u_int n) {
     return n >> 4;
 }
 void CFuncPointMngr::Reserve(int num, mgCMemory *stack) {
-    CList<CFuncPoint> *nodes = new ((u_long128 *)stack->Alloc(Align16Blocks(num * sizeof(CList<CFuncPoint>)) + 2)) CList<CFuncPoint>[num];
+    CList<CFuncPoint> *nodes = new (stack->Alloc(Align16Blocks(num * sizeof(CList<CFuncPoint>)) + 2)) CList<CFuncPoint>[num];
     if (num > 0) {
         for (int index = 0; index < num; index++) {
             Add(FUNC_POINT_NONE, &nodes[index]);
