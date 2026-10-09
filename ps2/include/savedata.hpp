@@ -136,7 +136,7 @@ struct SV_CONFIG_OPTION {
     s32 monster_name;  /**< How the dungeon shows the enemies' names. */
     s32 anger_counter; /**< How the dungeon shows the enemies' anger counters. */
     s32 dof_off;       /**< Non-zero to turn off the depth of field blur. */
-    u8  caption_off;   /**< Non-zero to hide the event captions. */
+    s8  caption_off;   /**< Non-zero to hide the event captions. */
     u8  unk_35;
     s8  eye_reverse; /**< Zero to invert the vertical axis of the first-person camera. */
     s8  rot_normal; /**< Non-zero to use the normal camera rotation direction. */

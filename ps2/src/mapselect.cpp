@@ -704,7 +704,7 @@ int SaveDataEditLoop() {
     SaveEditLabels      on_off = {{"OFF", "ON"}};
     progress = GetGameProgressInfo(SedSelData[SED_PROGRESS]);
     SedSelData[SED_PLAY_TIME] = GetPlayTimeCountFlag();
-    char *caption[1] = {(char *) &config->caption_off};
+    s8 *caption[1] = {&config->caption_off};
     progress_name = marker.text[0];
 
     if (progress != NULL) {
