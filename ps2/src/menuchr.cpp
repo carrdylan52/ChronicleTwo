@@ -506,14 +506,8 @@ extern int                overcode_3172[4];
  */
 static CMenuMosSelect    *MenuMosSelectPtr;
 
-extern char               at_3779[];
-extern char               at_3780[];
-extern char               at_3790[];
 extern int                MenuSoundCharaNo;
 extern float              at_4158;
-extern char               at_4186__2[];
-extern char               at_4123[];
-extern char               at_4296[];
 /**
  *
  * Texture sliding across the main character background.
@@ -716,7 +710,6 @@ static char *monster_jyakuten[LANG_CHINESE + 1][8] = {
     },
 };
 
-extern char               at_4950__2[];
 extern char               menu_infocfgname[];
 extern u8                 at_4967__2[16];
 extern char               at_5051[];
@@ -729,7 +722,6 @@ extern char               at_5839[];
 extern int                tbl_5848[];
 extern CDC2Mes           *MenuDCMsg[9];
 extern char               at_1361[];
-extern char               at_3969[];
 extern s8                 convtbl_4621[][MENU_CHARA_LOAD_MAX];
 extern mgCMemory          MenuMonChangeLoadStack;
 /**
@@ -744,11 +736,7 @@ extern s8                 pathtbl_3836[2];
 extern char              *menu_chara_chrtbl[2];
 extern char              *menu_chara_cfg_chrtbl[2];
 extern char              *menu_load_chrpathtbl_3811[];
-extern char               at_3913[];
 extern LoadWantedList     at_4728__2;
-extern char               at_4789[];
-extern char               at_4790[];
-extern char               at_4791[];
 /**
  *
  * Current phase of the main character background read.
@@ -778,7 +766,6 @@ static sceVu0FVECTOR      NowMainReadPosition;
  */
 static sceVu0FVECTOR      NowMainReadRotation;
 
-extern char               at_4868[];
 extern char              *tbl_1233[4];
 /**
  *
@@ -1047,7 +1034,6 @@ extern char            *MonsterDataPath[];
 static char             script_file_name[0x20];
 
 extern short            monster_load_id;
-extern char             at_4548[];
 extern char            *partt_2332[6];
 
 /**
@@ -4870,8 +4856,8 @@ void MenuTimeStepEnvFunc(CScene *scene, CActionChara *chara, int step) {
         return;
     }
 
-    sun = chara->SearchObject(at_3779);
-    moon = chara->SearchObject(at_3780);
+    sun = chara->SearchObject("w15a");
+    moon = chara->SearchObject("w15b");
 
     if (sun == NULL || moon == NULL) {
         return;
@@ -4891,7 +4877,7 @@ void MenuWeaponRealStepEnvFunc(CActionChara *chara, int step) {
     float     rotation[4];
 
     if (step == 0x58) {
-        object = chara->SearchObject(at_3790);
+        object = chara->SearchObject("parts01");
 
         if (object != NULL) {
             object->GetRotation(rotation);
@@ -4937,7 +4923,7 @@ int MenuItemCharaDataLoad(mgCMemory *stack, int chara_no, MENU_BGREAD_INFO2 **in
         case 0:
         case 3:
             if (MenuLoadInfo.mode == 3) {
-                strcpy(name[0], at_3913);
+                strcpy(name[0], "c01b_think.chr");
             }
 
             for (i = 0; i < 4; i++) {
@@ -4951,7 +4937,7 @@ int MenuItemCharaDataLoad(mgCMemory *stack, int chara_no, MENU_BGREAD_INFO2 **in
 
             break;
         case 1:
-            strcpy(name[0], at_3913);
+            strcpy(name[0], "c01b_think.chr");
 
             if (0 < MenuLoadItemNo[2]) {
                 strcpy(name[4], GetItemFileName(MenuLoadItemNo[2], 1));
@@ -5097,7 +5083,7 @@ static void MenuItemCharaDataLoadPack(int chara_no, CActionChara *chara, CAction
                     chara->Initialize(NULL);
                 }
 
-                body->LoadSkin(pack, menu_infocfgname, at_3969, stack, tex_block);
+                body->LoadSkin(pack, menu_infocfgname, "skin3", stack, tex_block);
                 break;
         }
     }
@@ -5201,7 +5187,7 @@ int MenuItemCharaDataLoadEndCheck(MENU_BGREAD_INFO2 **info, mgCMemory *stack, CA
             case 0:
             case 1:
             case 3:
-                strcpy(tex_manager->name_suffix, at_4123);
+                strcpy(tex_manager->name_suffix, "_menu");
                 MenuItemCharaDataLoadPack(chara_no, info[i]->chara, info[0]->chara, i, (u_int *) read->buffer, buffer,
                                           tex_block, -1);
                 tex_manager->name_suffix[0] = 0;
@@ -5382,7 +5368,7 @@ unsigned int MenuItemChrLoad(mgCMemory *stack, int item_no, int variant, MENU_BG
     strcpy((char *) info, GetItemFileName(item_no, 0));
 
     if (variant == 1) {
-        strcat((char *) info, at_4186__2);
+        strcat((char *) info, "_item.chr");
     }
 
     strcpy((char *) &info->path, GetItemFilePath(item_no, 1));
@@ -5414,7 +5400,7 @@ int MenuItemChrLoadEndCheck(MENU_BGREAD_INFO2 *info, CActionChara *chara, mgCMem
         info->chara = chara;
 
         if (chara != NULL) {
-            strcpy(tex_manager->name_suffix, at_4123);
+            strcpy(tex_manager->name_suffix, "_menu");
             chara->Initialize(NULL);
             chara->LoadPack(model_buffer, menu_infocfgname, stack, stack, stack, tex_block,
                             0);
@@ -5429,9 +5415,6 @@ int MenuItemChrLoadEndCheck(MENU_BGREAD_INFO2 *info, CActionChara *chara, mgCMem
 }
 
 extern s8   convItoPhase_4229[6];
-extern char at_4276__2[];
-extern char at_4277[];
-extern char at_4278[];
 
 int MenuItemRoboDataLoad(mgCMemory *stack, MENU_BGREAD_INFO2 **info, int restart_read) {
     int i;
@@ -5470,7 +5453,7 @@ int MenuItemRoboDataLoad(mgCMemory *stack, MENU_BGREAD_INFO2 **info, int restart
             continue;
         }
 
-        strcpy(info[i]->path, at_4276__2);
+        strcpy(info[i]->path, "dungeon/robo/");
         info[i]->chara = NULL;
         info[i]->name[0] = 0;
 
@@ -5509,8 +5492,8 @@ int MenuItemRoboDataLoad(mgCMemory *stack, MENU_BGREAD_INFO2 **info, int restart
         MENU_BGREAD_INFO2 *hat = info[6];
         hat->reading = 1;
         hat->chara = NULL;
-        strcpy(hat->name, at_4277);
-        strcpy(hat->path, at_4278);
+        strcpy(hat->name, "robo.stb");
+        strcpy(hat->path, "dungeon/act_script/robo.stb");
         LoadFileBG(hat->path, stack->stGetTop(), &size);
         stack->Alloc(blocks_for(size));
         stack->Align64();
@@ -5525,10 +5508,10 @@ void DeleteOutLineMenu(CActionChara *chara, int alternate) {
 
     if (chara != NULL) {
         mgCTextureManager *tex_manager = &mgTexManager;
-        sprintf(name, at_4296, chara->outline_tex_no);
+        sprintf(name, "out_line2%d", chara->outline_tex_no);
 
         if (alternate != 0) {
-            strcat(name, at_4123);
+            strcat(name, "_menu");
         }
 
         tex_manager->DeleteTexture(name, -1);
@@ -5609,7 +5592,7 @@ int MenuItemRoboDataLoadEndCheck(MENU_BGREAD_INFO2 **info, mgCMemory *stack, CAc
 
         if (MenuLoadInfo.mode != 2) {
             if (part == 2) {
-                strcpy(tex_manager->name_suffix, at_4123);
+                strcpy(tex_manager->name_suffix, "_menu");
 
                 if (menu_chara.entry[2] != NULL) {
                     menu_chara.entry[2]->DeleteImage();
@@ -5642,7 +5625,7 @@ int MenuItemRoboDataLoadEndCheck(MENU_BGREAD_INFO2 **info, mgCMemory *stack, CAc
                 CActionChara *model = *slot;
 
                 if (model != NULL) {
-                    strcpy(tex_manager->name_suffix, at_4123);
+                    strcpy(tex_manager->name_suffix, "_menu");
                     model->DeleteImage();
                     tex_manager->name_suffix[0] = 0;
                 }
@@ -5684,7 +5667,7 @@ int MenuItemRoboDataLoadEndCheck(MENU_BGREAD_INFO2 **info, mgCMemory *stack, CAc
                 break;
             }
             case 0: {
-                strcpy(tex_manager->name_suffix, at_4123);
+                strcpy(tex_manager->name_suffix, "_menu");
                 CActionChara *model = *slot;
 
                 if (model != NULL) {
@@ -5849,7 +5832,7 @@ int MenuMonsterLoadBG(mgCMemory *stack, MENU_BGREAD_INFO2 **info, int monster_no
         if (MenuLoadInfo.mode == 2) {
             stack->Align64();
             u_long128 *buffer = stack->stGetTop();
-            strcpy(path, at_4548);
+            strcpy(path, "dungeon/act_script/");
             strcat(path, script);
             strcpy(script_file_name, script);
             LoadFileBG(path, buffer, &size);
@@ -5899,7 +5882,7 @@ int MenuMonsterLoadBGCheck(MENU_BGREAD_INFO2 **info, CActionChara **chara, int t
     if (MenuLoadInfo.mode != 2) {
         mgCMemory *buffer = MenuActionCharaBuffer;
         buffer->stReset();
-        strcpy(tex_manager->name_suffix, at_4123);
+        strcpy(tex_manager->name_suffix, "_menu");
 
         if (chara[0] != NULL) {
             chara[0]->Initialize(NULL);
@@ -5921,7 +5904,7 @@ int MenuMonsterLoadBGCheck(MENU_BGREAD_INFO2 **info, CActionChara **chara, int t
     }
 
     GetCurrentDir(path);
-    strcat(path, at_4548);
+    strcat(path, "dungeon/act_script/");
     strcat(path, script_file_name);
     BG_READ_INFO *script = GetReadBGFile(path);
 
@@ -5988,10 +5971,10 @@ void InitMainCharaBG(int chara_no, mgCMemory *stack, int mode) {
     texManager = &mgTexManager;
     NowReadMainCharaNo = chara_no;
     texManager->DeleteBlock(MenuCommonInfo->tex_block[0]);
-    texManager->EnterTexture(MenuCommonInfo->tex_block[0], at_4789, NULL, 0x80, 0x80, 0x20, NULL, 0, 0);
-    NowMainCharaFrameImage = texManager->EnterTexture(MenuCommonInfo->tex_block[0], at_4790, NULL,
+    texManager->EnterTexture(MenuCommonInfo->tex_block[0], "mnworkk23456", NULL, 0x80, 0x80, 0x20, NULL, 0, 0);
+    NowMainCharaFrameImage = texManager->EnterTexture(MenuCommonInfo->tex_block[0], "mnworkk22", NULL,
                                                       mgScreenWidth, mgScreenHeight, 0x18, NULL, 0, 0);
-    SetBGFrameForMenu(MenuCommonInfo->tex_block[0], at_4790);
+    SetBGFrameForMenu(MenuCommonInfo->tex_block[0], "mnworkk22");
     MenuPosData->AttachCommonTexInfo();
     NowMainCharaChngStatusBit = GetUserDataMan()->CheckQuickChange(NowReadMainCharaNo, &reason);
     NowReadMainCharaPhase = 0;
@@ -6013,7 +5996,7 @@ void InitMainCharaBG(int chara_no, mgCMemory *stack, int mode) {
     memory.Align64();
     rest = memory.stGetRest();
     MenuCharaLoadStack.stSetBuffer(memory.stGetTop(), rest);
-    NowMainCharaChngTex = texManager->GetTexture(at_4791, -1);
+    NowMainCharaChngTex = texManager->GetTexture("change_logo", -1);
     NowMainCharaChngTexMovePhase = 0;
     NowMainCharaChngTexMoveX = -0x100;
     MenuMainScene = GetMainScene();
@@ -6167,7 +6150,7 @@ int ReadMainCharaBG() {
 
             if (MenuLoadInfo.alternate_model == 0 && NowReadMainCharaNo < 3) {
                 MenuCharaLoadStack.Align64();
-                LoadFileBG(at_4868, MenuCharaLoadStack.stGetTop(), &script_size);
+                LoadFileBG("img/allitem.img", MenuCharaLoadStack.stGetTop(), &script_size);
             }
 
             NowReadMainCharaPhase++;
@@ -6318,7 +6301,7 @@ int MenuNPCLoadCheck(CActionChara *chara, mgCMemory *memory, int tex_block) {
             memory->stack_used = 0;
             memory->lock = 0;
             tex_manager->DeleteBlock(tex_block);
-            strcpy(tex_manager->name_suffix, at_4950__2);
+            strcpy(tex_manager->name_suffix, "_mn");
             chara->Initialize(NULL);
             chara->LoadPack(MenuPartyNPCModelReadBuffer, menu_infocfgname, memory, memory, memory,
                             tex_block, 0);
@@ -7644,9 +7627,6 @@ INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_3734__2__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_3735__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_3736__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_3737__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_3779__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_3780__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_3790__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_3791__3__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_3792__3__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_3793__2__DATA);
@@ -7654,23 +7634,9 @@ INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_3794__2__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_3812__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_3813__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_3814__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_3913__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_3969__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_4123__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_4186__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_4276__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_4277__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_4278__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_4296__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_4518__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_4519__2__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_4520__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_4548__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_4789__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_4790__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_4791__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_4868__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_4950__2__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_5051__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_5052__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_5053__DATA);

@@ -172,3 +172,14 @@ all 149 object checks; guarded draft bodies are unchanged.
 After this group: **168 / 25 markers**, **4 / 9726 matched_data**.
 Receipts: `.private/nmchr-r3/menuchr-party-strings-00` through `-09`,
 with `-{build,objects,progress,metrics}.log`, and `party-string-batch.log`.
+
+## Character loading resource strings
+
+Seventeen resource strings are inline in twelve native consumer groups: sun
+and moon frame names, the weapon frame, sound/debug labels, character and
+ridepod resource names, model suffixes, outline texture formats, and background
+load configuration names. Shared suffix users still resolve to one retail
+literal. Each group passes PAL and all 149 object checks independently.
+After this group: **151 / 25 markers**, **4 / 9726 matched_data**.
+Receipts: `.private/nmchr-r3/menuchr-loading-strings-00` through `-11`,
+with `-{build,objects,progress,metrics}.log`, and `loading-string-batch.log`.
