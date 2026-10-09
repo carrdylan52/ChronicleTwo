@@ -5569,7 +5569,7 @@ int CAquarium::Step() {
                             food_stack.lock = 0;
                             mgTexManager.DeleteBlock(food_tex_block);
                             food = new ((u_long128 *) food_stack.Alloc(sizeof(CFishFood) / 16 + 2)) CFishFood;
-                            food->LoadPack((unsigned int *) load_buf, at_2930__2, &food_stack, &food_stack, &food_stack,
+                            food->LoadPack((unsigned int *) load_buf, "info.cfg", &food_stack, &food_stack, &food_stack,
                                            food_tex_block, NULL);
                             food->item_no = item_no;
                             food->SetScale(0.6f, 0.6f, 0.6f);
