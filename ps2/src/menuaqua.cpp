@@ -3797,7 +3797,7 @@ void DrawFishParam(int x, int y, mgCTexture *tex, CGameDataUsed *data) {
     pen->End();
     mgTexManager.ReloadTexture(MenuArg.mes_tex_block, (sceVif1Packet *) NULL);
     name_x = (int) (fx + poffset_2511[lang]);
-    if (LanguageCode >= 2 && LanguageCode < 6) {
+    if (LanguageCode >= LANG_FRENCH && LanguageCode < LANG_CHINESE) {
         name_y = (int) (24.0f + fy);
     }
     CMenuFont font;

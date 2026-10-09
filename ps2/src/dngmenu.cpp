@@ -1042,7 +1042,7 @@ void CDngFreeMap::DrawRoot(mgRect<float> rect, DNGMAP_ROOT_INFO *root, int shado
     }
     mgCDrawPrim    *prim = GetMenuPrim();
     SetSpriteEnv(prim, 2);
-    prim->Begin(1);
+    prim->Begin(MG_PRIM_LINE);
     prim->Color((int) red, (int) green, (int) blue, opacity);
     if (shadow != 0) {
         prim->Color(0, 0, 0, (int) (0.05f * (float) opacity));
@@ -1159,7 +1159,7 @@ void CDngFreeMap::DrawRoot(mgRect<float> rect, DNGMAP_ROOT_INFO *root, int shado
     prim->End();
     prim->Bilinear(0);
     prim->TextureMapEnable(1);
-    prim->Begin(6);
+    prim->Begin(MG_PRIM_SPRITE);
     prim->Color((int) red, (int) green, (int) blue, opacity);
     if (shadow != 0) {
         prim->Color(0, 0, 0, (int) (0.05f * (float) opacity));
@@ -1318,7 +1318,7 @@ void CDngFreeMap::DrawRoomOne(mgRect<float> rect, DNGMAP_ROOM_INFO *room, unsign
         event_brightness = 0.5f;
     }
     if (mode == DNGMAP_MODE_MENU) {
-        prim->Begin(6);
+        prim->Begin(MG_PRIM_SPRITE);
         prim->Texture(map_tex);
         prim->Color(0, 0, 0, (int) shadow_alpha);
         PrimQuad(prim, picture.left + 8.0f, picture.top + 8.0f, tex);
@@ -1345,7 +1345,7 @@ void CDngFreeMap::DrawRoomOne(mgRect<float> rect, DNGMAP_ROOM_INFO *room, unsign
         b = g = r = level;
     }
     prim->Bilinear(0);
-    prim->Begin(6);
+    prim->Begin(MG_PRIM_SPRITE);
     prim->Texture(map_tex);
     prim->Color(r, g, b, opacity);
     PrimQuad(prim, picture, tex);
@@ -1357,7 +1357,7 @@ void CDngFreeMap::DrawRoomOne(mgRect<float> rect, DNGMAP_ROOM_INFO *room, unsign
         int top = fptosi(overlay_top);
         int right = fptosi(overlay_left + 20.0f);
         int bottom = fptosi(overlay_top + 30.0f);
-        prim->Begin(6);
+        prim->Begin(MG_PRIM_SPRITE);
         prim->Color(r, g, b, opacity);
         prim->TextureCrd(492, 66);
         prim->Vertex(left, top, 0);
@@ -1386,7 +1386,7 @@ void CDngFreeMap::DrawRoomOne(mgRect<float> rect, DNGMAP_ROOM_INFO *room, unsign
                                     picture.top + (float) put_moji_tbl_1525[i].y,
                                     (float) get_moji_tbl_1524[(i << 2) + 2], (float) get_moji_tbl_1524[(i << 2) + 3]);
             prim->TextureMapEnable(1);
-            prim->Begin(6);
+            prim->Begin(MG_PRIM_SPRITE);
             prim->Texture(name_tex);
             prim->Color((int) tint, (int) tint, (int) tint, opacity);
             mgRect<int> glyph_rect;
@@ -1724,7 +1724,7 @@ void DrawGeoramaMateria(int top_y, char *title, int unused_count, int *items, in
                     0x59, 0xC, 0xC, 0xC);
     mgCDrawPrim *prim = GetMenuPrim();
     SetSpriteEnv(prim, 0);
-    prim->Begin(6);
+    prim->Begin(MG_PRIM_SPRITE);
     prim->Texture(Floor_InfoTex);
     prim->Color(0x80, 0x80, 0x80, 0x80);
     Menu3DivideTextureDraw(prim, mgRect<int>(left, top_y, 0x1AE, 0x46), dngboardbrdtbl, 1);
@@ -3452,10 +3452,10 @@ void DngTreeMapInit(mgCMemory *stack, int *tex_block, int menu_mode, int dng_no)
         case MENU_OPEN_DNG_TREE_MAP: {
             MenuTreeMapStack.Align64();
             MenuCursorDataBuff = (u8 *) MenuTreeMapStack.stGetTop();
-            unsigned int size = LoadFileMenu("frametex.img", (u_long128 *) MenuCursorDataBuff, 1);
+            unsigned int size = LoadFileMenu("frametex.img", (u_long128 *) MenuCursorDataBuff, MENU_FILE_LOAD_DIRECT);
             MenuTreeMapStack.Alloc((size & 15) ? (size >> 4) + 1 : size >> 4);
             CMenuTreePt->FadeOutMenu(1, 0.0f);
-            if (GetNowLoopNo() == 1 || menu_mode == MENU_OPEN_MAIN_TOWN) {
+            if (GetNowLoopNo() == LOOP_EDIT || menu_mode == MENU_OPEN_MAIN_TOWN) {
                 MenuDngMap->floor_manager->LoadDataTable(dng_no, &MenuTreeMapStack);
                 MenuDngMap->floor_manager->CheckDrawGlidInfo();
                 MenuTreeMapStack.Alloc(0x800);
@@ -3478,7 +3478,7 @@ void DngTreeMapInit(mgCMemory *stack, int *tex_block, int menu_mode, int dng_no)
     dngfloor_infoview = 0;
     dngfloor_backdraw = 0;
     TreeMapSaveDispCount = 0;
-    if (dng_no < 0 || dng_no > 6) {
+    if (dng_no < 0 || dng_no > DNGMAP_DUNGEON_MAX) {
         dng_no = 0;
     }
     CMenuTreePt->dng_no = dng_no;
@@ -3488,7 +3488,7 @@ void DngTreeMapInit(mgCMemory *stack, int *tex_block, int menu_mode, int dng_no)
     sprintf(filename, "dmap%d.pac", dng_no);
     DngTreeReadNames names = {{NULL, NULL}};
     names.name[0] = filename;
-    MenuCommonReadData(&MenuTreeMapStack, names.name, 0);
+    MenuCommonReadData(&MenuTreeMapStack, names.name, MENU_FILE_LOAD_BG);
 }
 extern mgCMemory    MenuTreeMapStack;
 
