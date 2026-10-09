@@ -507,3 +507,17 @@ guards, profile and unowned object hashes unchanged. Markers are
 Receipts are `table-group-3-ledger.log`,
 `table-<symbol>-{build,objects,metrics}.log`, and
 `data-initialized-order-{build,objects,metrics}.log`.
+
+### Complete initialized tables checkpoint
+
+With the complete typed state and retail-order declarations, the ordinary
+mutable `char *stchar_6508[13]` definition passes. Its twelve native labels
+and terminal null replace thirteen remaining RODATA markers. No const
+variant, helper or additional storage is necessary. All sixty-one analyzed
+initialized definitions are now active in retail order, and the complete
+native `.data` section adds 2,224 bytes of data credit.
+
+Markers are **22 RODATA / 6 BSS**, with **5,260 / 10,332 matched_data**.
+PAL, all 149 objects, protected guards and unowned hashes pass. Receipts
+are `table-final-stchar_6508-{build,objects,metrics}.log` and
+`table-final-label-ledger.log`. The earlier rejected table source is absent.

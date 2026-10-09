@@ -1065,6 +1065,13 @@ static char *attrtable_6472[7] = {"Poison,", "Slowly,", "Curse,", "Stop,", "Binb
 
 /**
  *
+ * Weapon special-ability labels of the debug preview.
+ *
+ */
+static char *stchar_6508[13] = {"Rich", "Poor", "Poison", "Stop", "Steal", "Break Easy", "Break Hard", "Drain", "Heal", "Dark", "Critical", "ABS2", NULL};
+
+/**
+ *
  * Durability and warning-mark parts for each active weapon.
  *
  */
@@ -8603,7 +8610,6 @@ void MenuItemDebugKey(void) {
 #else
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/menusys", MenuItemDebugKey__Fv);
 #endif
-extern char *stchar_6508[13];
 
 /**
  *
@@ -12521,7 +12527,6 @@ void MenuItemSelectDraw() {
 }
 
 // Initialised data (.data)
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menusys", stchar_6508__DATA);
 
 // Constants (.rodata)
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menusys", at_1493__2__DATA);
@@ -12541,18 +12546,6 @@ INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menusys", at_4958__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menusys", at_5882__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menusys", at_5883__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menusys", at_6424__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menusys", at_6509__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menusys", at_6510__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menusys", at_6511__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menusys", at_6512__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menusys", at_6513__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menusys", at_6514__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menusys", at_6515__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menusys", at_6516__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menusys", at_6517__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menusys", at_6518__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menusys", at_6519__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menusys", at_6520__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menusys", at_9215__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menusys", at_9216__DATA);
 
