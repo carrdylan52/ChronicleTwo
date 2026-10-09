@@ -197,29 +197,19 @@ extern "C" aqua_vector at_1160;
 
 extern "C" aqua_vector at_1346;
 
-extern "C" char at_1387__2[];
 
 extern "C" aqua_vector at_1241__3;
 
 extern "C" aqua_vector at_1471__2;
 
-extern "C" char at_1323[];
 
-extern "C" char at_2361[];
 
-extern "C" char at_2112__2[];
 
-extern "C" char at_2183__3[];
 
-extern "C" char at_2184__2[];
 
-extern "C" char at_2185__2[];
 
-extern "C" char at_2186__2[];
 
-extern "C" u8 at_2377__3[18];
 
-extern "C" u8 at_2415[];
 
 extern "C" int AQUA_TITLE_X;
 
@@ -244,8 +234,6 @@ struct aqua_light_env {
 
 extern short           m_next_aqua_no;
 extern "C" aqua_vector at_2742__2;
-extern "C" char        at_2871[];
-extern "C" char        at_2874[];
 
 /**
  *
@@ -274,14 +262,12 @@ extern "C" char               at_3158__2[];
 extern "C" char               at_3159__2[];
 extern "C" char               at_3160__2[];
 extern "C" char               at_3161__2[];
-extern "C" char               at_3162__2[];
 extern "C" char               at_3163__2[];
 extern "C" char               at_3164__3[];
 extern "C" aqua_vector        at_3290;
 extern "C" aqua_vector        at_3291__3;
 extern "C" aqua_vector        at_3310;
 extern "C" aqua_vector        at_3311;
-extern "C" char               at_3429[];
 extern "C" aqua_vector        at_4306;
 extern "C" aqua_vector        at_4352;
 extern "C" aqua_vector        at_4363__2;
@@ -301,7 +287,6 @@ extern float              v2orig_4374[4];
 extern float              v3orig_4375[4];
 extern float              v4orig_4376[4];
 extern short              t_4408[];
-extern "C" char           at_4519[];
 extern float              ambient[4];
 extern int                menu_debug_flag;
 extern int                langTbl_3630[2][2];
@@ -403,7 +388,6 @@ extern SPI_TAG_PARAM gyorace_tag[4];
 
 extern SPI_TAG_PARAM gyoprize_tag[4];
 
-extern char at_4825[];
 
 extern char *filename_4899[2];
 
@@ -411,36 +395,18 @@ extern char *filename_4899[2];
 
 
 
-extern "C" char at_2929__2[];
 
-extern "C" char at_2930__2[];
 
 extern mgCMemory Aquarium_NameregistStack;
 extern mgCMemory GyoraceStack;
 
 extern int              vol_5253[6];
-extern "C" char         at_5487[];
-extern "C" char         at_5488[];
-extern "C" char         at_5489[];
-extern "C" char         at_5490[];
-extern "C" char         at_5491[];
-extern "C" char         at_5492[];
-extern "C" char         at_5493[];
-extern "C" char         at_5494[];
-extern "C" char         at_5495[];
-extern "C" char         at_5496[];
-extern "C" char         at_5497[];
-extern "C" char         at_5498[];
-extern "C" char         at_5499[];
-extern "C" char         at_5140[];
 
 extern mgCMemory   GyoraceFishSelStack;
-extern char        at_2872[];
 
 
 
 
-extern "C" char at_2873[];
 
 
 
@@ -1416,7 +1382,7 @@ void CAquaFish::MoveActionBattle() {
         if (action.phase == 1) {
             charge_angle = 0.0f;
             action.phase = 2;
-            SetMotion(at_1323, 0);
+            SetMotion("\x83\x6f\x83\x67\x83\x8b\x81\x69\x8c\xb3\x8b\x43\x81\x6a", 0);
             SetStep(1.0f);
         }
 
@@ -1482,7 +1448,7 @@ void CAquaFish::NextThink(int think, NEXT_THINK_PARAM *param) {
             target_rot[0] = 0.0f;
             action.timer = timer;
             action.decel = 0.8f;
-            SetMotion(at_1387__2, 0);
+            SetMotion("\x92\xca\x8f\xed", 0);
             SetStep(0.5f);
             break;
         case AQUA_FISH_THINK_SWIM:
@@ -1500,7 +1466,7 @@ void CAquaFish::NextThink(int think, NEXT_THINK_PARAM *param) {
                 float       yaw;
 
                 GetRandI(101);
-                SetMotion(at_1387__2, 0);
+                SetMotion("\x92\xca\x8f\xed", 0);
                 GetRandF(40.0f);
                 think_timer = 0;
 
@@ -1554,7 +1520,7 @@ void CAquaFish::NextThink(int think, NEXT_THINK_PARAM *param) {
                 float min_speed;
                 float accel;
 
-                SetMotion(at_1387__2, 0);
+                SetMotion("\x92\xca\x8f\xed", 0);
                 round.dir = GetRandI(2);
                 round.width = 0.5f + GetRandF(0.02f) - 0.01f;
                 round.depth = GetRandF(0.02f) - 0.01f;
@@ -1573,7 +1539,7 @@ void CAquaFish::NextThink(int think, NEXT_THINK_PARAM *param) {
 
             if (swim_mode == AQUA_FISH_SWIM_ROUTE) {
                 action.phase = 0;
-                SetMotion(at_1387__2, 0);
+                SetMotion("\x92\xca\x8f\xed", 0);
                 GetRandF(40.0f);
                 think_timer = 0;
                 turn[1] = 24.0f;
@@ -1593,7 +1559,7 @@ void CAquaFish::NextThink(int think, NEXT_THINK_PARAM *param) {
             turn[1] = 15.0f;
             break;
         case AQUA_FISH_THINK_FOOD_EAT:
-            SetMotion(at_1323, 0);
+            SetMotion("\x83\x6f\x83\x67\x83\x8b\x81\x69\x8c\xb3\x8b\x43\x81\x6a", 0);
             *(u_long128 *) target_pos = *(u_long128 *) param->pos;
             NormalGetNextRotY();
             think_timer = 0;
@@ -2135,7 +2101,7 @@ void CAquaMes::Initialize(mgCMemory *stack) {
     fish_mes = new ((u_long128 *) memory->Alloc(align16_blocks(sizeof(ClsMes)) + 2)) ClsMes;
     memory->Align64();
     aqua_mes = AquaMesBuffer(memory);
-    sprintf(path, at_2112__2, LanguageCode);
+    sprintf(path, "menu/aqua/mes/fconv%d.bin", LanguageCode);
 
     if (LoadFile2(path, aqua_mes, &size, 0) != 0) {
         memory->Alloc(size / 16 + 1);
@@ -2340,16 +2306,16 @@ void CAquaMes::SetQuestionId(int id, int top, int num) {
 
             if (LanguageCode == 0) {
                 for (int j = 0; j < pad / 2; j++) {
-                    strcat(format, at_2183__3);
+                    strcat(format, "\x81\x40");
                 }
 
-                strcat(format, at_2184__2);
+                strcat(format, "\x81\x7e%3d");
             } else {
                 for (int j = 0; j < pad; j++) {
-                    strcat(format, at_2185__2);
+                    strcat(format, " ");
                 }
 
-                strcat(format, at_2186__2);
+                strcat(format, "x%3d");
             }
 
             sprintf(line, format, have);
@@ -2591,7 +2557,7 @@ void CAquaMes::Draw() {
 
     if (cursor_draw != 0) {
         manager = &mgTexManager;
-        cursor_texture = manager->GetTexture(at_2361, -1);
+        cursor_texture = manager->GetTexture("mnmain", -1);
 
         if (cursor_texture != NULL) {
             manager->ReloadTexture(cursor_texture->block, (sceVif1Packet *) NULL);
@@ -2625,7 +2591,7 @@ static int GetFishPath(int item_no, char *out) {
         return 1;
     }
 
-    sprintf(out, (char *) at_2377__3, file_name);
+    sprintf(out, "menu/aqua/fish/%s", file_name);
     return 0;
 }
 
@@ -2646,7 +2612,7 @@ int GetFishImgPath(char *out, int item_no, BREEDFISH_USED *fish) {
 
     for (info = aquafish_info; info->item_no > 0; info++) {
         if (info->item_no == item_no) {
-            sprintf(out, (char *) at_2415, info->img_path, fish->color);
+            sprintf(out, "menu/aqua/fish/%s%d.img", info->img_path, fish->color);
             return 1;
         }
     }
@@ -3010,7 +2976,7 @@ void CAquarium::Initialize(mgCMemory *memory, int *blocks) {
     m_aquarium_limmit_adr = memory->stGetTop() + memory->stack_size;
     Aqua_SpSndBattleCount = 0;
 
-    if (LoadFile2(at_2871, load_buf, NULL, 0) != 0) {
+    if (LoadFile2("snd2/sp/SP_004.snd", load_buf, NULL, 0) != 0) {
         sndInitPort(8);
         Aqua_SpSndID = sndLoadSound(8, (unsigned int *) load_buf, &sound_stack);
         MenuSePlay(Aqua_SpSndID, 0);
@@ -3023,13 +2989,13 @@ void CAquarium::Initialize(mgCMemory *memory, int *blocks) {
     image = (u8 *) mes_stack.stAllocTest(1);
     char path[0x4C];
     int  size;
-    sprintf(path, at_2872, LanguageCode);
+    sprintf(path, "menu/aqua/amenu%d.img", LanguageCode);
 
     if (LoadFile2(path, image, &size, 0) != 0) {
         mes_stack.Alloc(size / 16 + 1);
         textures->EnterIMGFile(image, menu_tex_block, NULL, NULL);
-        Tex_Aqualium = textures->GetTexture(at_2873, -1);
-        Tex_FishEffect = textures->GetTexture(at_2874, -1);
+        Tex_Aqualium = textures->GetTexture("amenu0", -1);
+        Tex_FishEffect = textures->GetTexture("fisheff", -1);
     }
 
     mes.Initialize(&mes_stack);
@@ -3065,7 +3031,7 @@ int CAquarium::LoadFish(int no, CGameDataUsed *data) {
     breed = &data->data.fish;
 
     if (data->data.fish.flags & 2) {
-        strcpy(path, at_2929__2);
+        strcpy(path, "menu/aqua/fish/f20a.chr");
     }
 
     if (LoadFile2(path, load_buf, &size, 0) != 0) {
@@ -3078,7 +3044,7 @@ int CAquarium::LoadFish(int no, CGameDataUsed *data) {
         if (aqua_fish != NULL) {
             aqua_fish->Initialize();
             aqua_fish->aqua_no = no;
-            aqua_fish->LoadPack((unsigned int *) load_buf, at_2930__2, stack, stack, stack, fish_tex_block[no], NULL);
+            aqua_fish->LoadPack((unsigned int *) load_buf, "info.cfg", stack, stack, stack, fish_tex_block[no], NULL);
             FishIMGReplace(load_buf, aqua_fish, data->item_no, breed);
             pos[0] = GetRandF(62.0f) - 31.0f;
             pos[1] = 20.0f + GetRandF(27.0f);
@@ -3861,7 +3827,7 @@ void CAquarium::Thinking(int no) {
                     me->think_mode = AQUA_FISH_THINK_LOVE_SEARCH;
                     me->think_timer = 0;
                 } else {
-                    me->SetMotion(at_1323, 0);
+                    me->SetMotion("\x83\x6f\x83\x67\x83\x8b\x81\x69\x8c\xb3\x8b\x43\x81\x6a", 0);
                     me->think_mode = AQUA_FISH_THINK_LOVE_CHASE;
                     me->think_timer = GetRandI(101) + 140;
                     effect->StartFishEffect(1);
@@ -3917,7 +3883,7 @@ void CAquarium::Thinking(int no) {
                     love_time = 0;
                     sndSePlay(Aqua_SpSndID, 2, 0);
                     love_chara->SetPosition(love_pos);
-                    love_chara->SetMotion(at_3429, 6);
+                    love_chara->SetMotion("\x94\x7a\x8d\x87", 6);
                     love_chara->SetScale(1.5f, 1.5f, 1.5f);
                     love_chara->Step();
                     target_fish = no;
@@ -5144,7 +5110,7 @@ void CAquarium::Draw() {
         textures->ReloadTexture(water_tex_block, static_cast<sceVif1Packet *>(NULL));
         mgCTexture frame_buffer;
         mgGetFrameBuffer(&frame_buffer);
-        screen = textures->GetTexture(at_3162__2, -1);
+        screen = textures->GetTexture("AQUA_WATER_WORK", -1);
         mgRect<int> screen_rect;
         screen_rect.Set(0, 0, (mgScreenWidth - 1) * 16, (mgScreenHeight - 1) * 16);
         mgSetPkMoveImage(&frame_buffer, screen_rect, screen, 0, 0, 0);
@@ -5177,7 +5143,7 @@ void CAquarium::Draw() {
         water->Step();
         water->SetColor(0x80, 0x80, 0x80, 0x80);
         mgDrawDirect(water);
-        reflect = textures->GetTexture(at_4519, -1);
+        reflect = textures->GetTexture("aquaref", -1);
         mgSetPkFrameBuffer(screen);
         if (reflect != NULL) {
             prim.Begin(6);
@@ -5583,7 +5549,7 @@ void MenuGyoraceFishSelInit(mgCMemory *memory, int *tex_block, int) {
     MenuCommonInfo->now_mode = MENU_MODE_GYORACE_FISH_SEL;
     m_aquarium_para = &GetUserDataMan()->aquarium;
     StartReadBG();
-    sprintf(filename, at_2872, LanguageCode);
+    sprintf(filename, "menu/aqua/amenu%d.img", LanguageCode);
     file_size = 0;
     GyoraceFishSelStack.Align64();
     LoadFileBG(filename, GyoraceFishSelStack.stGetTop(), &file_size);
@@ -5614,7 +5580,7 @@ int MenuGyoraceFishSelKey() {
                 }
 
                 mgTexManager.EnterIMGFile((u_char *) file->buffer, GyoraceFishSelTexBk, NULL, NULL);
-                Tex_Aqualium = mgTexManager.GetTexture(at_2873, -1);
+                Tex_Aqualium = mgTexManager.GetTexture("amenu0", -1);
                 menu_mes = GetMenuMainMessageBuffer();
                 mes = MenuDCMsg[0];
                 mes->SetMessData(GetSystemMesBuffer(), menu_mes);
@@ -5923,7 +5889,7 @@ int CGyoraceFishData::LoadData(mgCMemory *memory, u_long128 *buffer) {
     spi_gyorace_stack = memory;
     GetCurrentDir(saved_dir);
     SetCurrentDir(NULL);
-    sprintf(path, at_4825, LanguageCode);
+    sprintf(path, "sg/gyo/rfd%d.cfg", LanguageCode);
 
     if (LoadFile2(path, buffer, &size, 0) != 0) {
         CScriptInterpreter interpreter;
@@ -6375,7 +6341,7 @@ void GyoraceMenuInit(mgCMemory *memory, int *tex_block, int) {
     GyoraceNowMode = 0;
     GyoraceNowPhase = 0;
     StartReadBG();
-    GyoraceStack.Alloc(align16_blocks(LoadFileMenu(at_5140, GyoraceStack.stGetTop(), 0) + 0xC00));
+    GyoraceStack.Alloc(align16_blocks(LoadFileMenu("omake.pac", GyoraceStack.stGetTop(), 0) + 0xC00));
 }
 
 /**
@@ -6489,21 +6455,21 @@ int GyoraceMenuKey() {
                 GyoraceNowMode = 1;
                 file = GetReadBGFile(0);
                 textures = &mgTexManager;
-                image = GetPackFile(reinterpret_cast<u_int *>(file->buffer), at_5487, NULL);
+                image = GetPackFile(reinterpret_cast<u_int *>(file->buffer), "omake.img", NULL);
                 if (image != NULL) {
                     textures->EnterIMGFile(reinterpret_cast<u_char *>(image), GyoraceTexBlock[1], NULL, NULL);
                 }
-                image = GetPackFile(reinterpret_cast<u_int *>(file->buffer), at_5488, NULL);
+                image = GetPackFile(reinterpret_cast<u_int *>(file->buffer), "allitem.img", NULL);
                 if (file != NULL) {
                     textures->EnterIMGFile(reinterpret_cast<u_char *>(image), GyoraceTexBlock[1], NULL, NULL);
                 }
                 GyoraceExeCfgBuffer = reinterpret_cast<char *>(
-                    GetPackFile(reinterpret_cast<u_int *>(file->buffer), at_5489, &GyoraceExeCfgBufferSize));
+                    GetPackFile(reinterpret_cast<u_int *>(file->buffer), "omake_gyo.cfg", &GyoraceExeCfgBufferSize));
                 MenuMainImageDataEnter(GyoraceTexBlock[1]);
-                GyoraceFishTex = textures->GetTexture(at_5490, -1);
-                GyoraceCursor = textures->GetTexture(at_2361, -1);
-                Tex_Aqualium = textures->GetTexture(at_2873, -1);
-                MenuLoadBoardTex = textures->GetTexture(at_5491, -1);
+                GyoraceFishTex = textures->GetTexture("omaketx", -1);
+                GyoraceCursor = textures->GetTexture("mnmain", -1);
+                Tex_Aqualium = textures->GetTexture("amenu0", -1);
+                MenuLoadBoardTex = textures->GetTexture("mt0", -1);
                 MenuPosData->AttachCommonTexInfo();
                 scroll_init = 1;
                 GyoraceHaveFishListScrlInit = scroll_init;
@@ -6528,7 +6494,7 @@ int GyoraceMenuKey() {
                             GyoraceNowMode = 2;
                             GyoraceQuestionMsgDrawFlag = se;
                             GyoraceMes->cursor_on = 0;
-                            GyoraceCFGAnalyze(at_5492);
+                            GyoraceCFGAnalyze("\x93\x6f\x98\x5e\x95\x73\x89\xc2");
                             se = 5;
                         } else {
                             Nameregi_Target.target = 3;
@@ -6559,7 +6525,7 @@ int GyoraceMenuKey() {
                         } else {
                             GyoraceNowMode = GYORACE_MENU_START_CONFIRM;
                             GyoraceQuestionMsgDrawFlag = se;
-                            GyoraceCFGAnalyze(at_5493);
+                            GyoraceCFGAnalyze("\x8e\x51\x89\xc1\x8e\xe6\x8f\xc1\x81\x48");
                         }
                         break;
                     case 4:
@@ -6582,7 +6548,7 @@ int GyoraceMenuKey() {
                         } else {
                             GyoraceNowMode = GYORACE_MENU_SUBMIT_CONFIRM;
                             GyoraceQuestionMsgDrawFlag = se;
-                            GyoraceCFGAnalyze(at_5494);
+                            GyoraceCFGAnalyze("\x8b\xa3\x8b\x5a\x8a\x4a\x8e\x6e\x81\x48");
                         }
                         break;
                     case 6:
@@ -6649,7 +6615,7 @@ int GyoraceMenuKey() {
                     GyoracerTacticsNo.tactics_no[slot] = 0;
                     list_update = 1;
                     GyoraceFishTacMesDrawFlag = list_update;
-                    GyoraceCFGAnalyze(at_5495);
+                    GyoraceCFGAnalyze("\x8d\xec\x90\xed\x91\x49\x91\xf0");
                     tactics_mes->SetMsgItemNo(vol_5253, 6);
                     tactics_mes->select_top = list_update;
                     tactics_mes->SetWindowBgOpaqueFlg(list_update);
@@ -6666,7 +6632,7 @@ int GyoraceMenuKey() {
                 CGameDataUsed *racer_fish;
 
                 GyoracerTacticsNo.tactics_no[save_now_space_racer_no] = cursor - 1;
-                GyoraceCFGAnalyze(at_5496);
+                GyoraceCFGAnalyze("\x8d\xec\x90\xed\x8c\x88\x92\xe8");
                 name = NULL;
                 racer_fish = GetOmakeGyoracer2(save_now_space_racer_no);
                 if (racer_fish != NULL) {
@@ -6711,13 +6677,13 @@ int GyoraceMenuKey() {
                     name = racer->fish.GetName(0);
                     if (0 <= CheckSameRacerFish(GyoraceFishHaveListSelect.cursor)) {
                         GyoraceNowMode = GYORACE_MENU_ALREADY_ASSIGNED;
-                        GyoraceCFGAnalyze(at_5497);
+                        GyoraceCFGAnalyze("\x8b\x9b\x8f\xc1\x82\xb9\x82\xc8\x82\xa2");
                         if (name != NULL) {
                             strcpy(ask->name[0], name);
                         }
                     } else {
                         GyoraceNowMode = GYORACE_MENU_DELETE_CONFIRM;
-                        GyoraceCFGAnalyze(at_5498);
+                        GyoraceCFGAnalyze("\x8b\x9b\x8f\xc1\x82\xb7\x81\x48");
                         if (name != NULL) {
                             strcpy(ask->name[0], name);
                         }
@@ -6969,7 +6935,7 @@ int GyoraceMenuKey() {
                 }
                 break;
             case GYORACE_MENU_ASSIGN_RESULT:
-                GyoraceCFGAnalyze(at_5499);
+                GyoraceCFGAnalyze("\x8b\x9b\x93\x6f\x98\x5e\x8f\x49\x97\xb9");
                 name = MenuLoadFishSelectData->GetName(0);
                 if (name != NULL) {
                     strcpy(ask->name[0], name);
@@ -7206,7 +7172,7 @@ void GyoraceMenuDraw() {
                     cursor_rect.Set(0, 0xF4, 0xA, 0xD);
                     MenuItemBrdDraw(MenuItemBrdUnderBrdPosXY, board, board_block, 0x80, 0x80, 0x80, 0x80);
                     MenuItemModeItemDraw(board_block, board, MenuItemBrdUnderBrdPosXY, NULL,
-                                         textures->GetTexture(at_2361, -1), cursor_rect, 0);
+                                         textures->GetTexture("mnmain", -1), cursor_rect, 0);
                     MenuItemBrdFrameDraw(board_x, 0x18, board_block, 0x80, 0x80, 0x80, 0x80);
                     break;
                 }
@@ -7419,15 +7385,6 @@ INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuaqua", bart_5670__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuaqua", pl_s_5699__DATA);
 
 // Constants (.rodata)
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuaqua", at_1323__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuaqua", at_1387__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuaqua", at_2112__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuaqua", at_2183__3__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuaqua", at_2184__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuaqua", at_2185__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuaqua", at_2186__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuaqua", at_2361__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuaqua", at_2377__3__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuaqua", at_2379__2__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuaqua", at_2380__2__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuaqua", at_2381__2__DATA);
@@ -7446,13 +7403,6 @@ INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuaqua", at_2393__2__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuaqua", at_2394__2__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuaqua", at_2395__3__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuaqua", at_2396__3__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuaqua", at_2415__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuaqua", at_2871__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuaqua", at_2872__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuaqua", at_2873__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuaqua", at_2874__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuaqua", at_2929__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuaqua", at_2930__2__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuaqua", at_3150__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuaqua", at_3151__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuaqua", at_3152__DATA);
@@ -7465,16 +7415,12 @@ INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuaqua", at_3158__2__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuaqua", at_3159__2__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuaqua", at_3160__2__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuaqua", at_3161__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuaqua", at_3162__2__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuaqua", at_3163__2__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuaqua", at_3164__3__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuaqua", at_3429__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuaqua", at_4300__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuaqua", at_4299__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuaqua", at_4519__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuaqua", at_4814__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuaqua", at_4815__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuaqua", at_4825__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuaqua", at_4884__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuaqua", at_4885__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuaqua", at_4900__DATA);
@@ -7485,20 +7431,6 @@ INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuaqua", at_4977__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuaqua", at_4978__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuaqua", at_4979__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuaqua", at_4980__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuaqua", at_5140__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuaqua", at_5487__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuaqua", at_5488__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuaqua", at_5489__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuaqua", at_5490__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuaqua", at_5491__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuaqua", at_5492__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuaqua", at_5493__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuaqua", at_5494__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuaqua", at_5495__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuaqua", at_5496__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuaqua", at_5497__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuaqua", at_5498__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuaqua", at_5499__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuaqua", at_5500__DATA);
 
 // Virtual tables (.vtables)

@@ -42,3 +42,21 @@ Markers: 153 / 3; matched data: 2128 / 8293 bytes.
 `aqua-state-race-{build,objects}.log` verify PAL OK and 149/149 objects.
 The three remaining BSS markers are CAquarium::Step's frozen local statics
 and initialization guard; their body and retail references stay unchanged.
+
+## Native literals
+
+Sixteen separately validated groups replace 34 external literal references
+with strings at their native uses: message/question formats, tank and fish
+paths, fish motions, race paths and key messages, fish pack/image formats,
+and reflection/screen texture names. Shift-JIS bytes use hex escapes.
+The two fish path formats now have ordinary char-string arguments without
+casting their former byte-array declarations.
+
+The shared `info.cfg` and screen texture literals also pass with both
+frozen bodies intact; generated native data retains their exact retail
+identities for the assembly consumers. Draw's existing profile selectors
+and resulting code remain unchanged.
+
+Markers: 119 / 3; matched data: 2128 / 8293 bytes. Every
+`aqua-string-<step>-{build,objects}.log` receipt verifies PAL OK and
+149/149 objects.
