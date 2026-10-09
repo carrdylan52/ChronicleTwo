@@ -54,11 +54,30 @@ struct ScreenPos {
     float y; /**< Vertical screen coordinate. */
 };
 
-extern signed char        MovieViewFlag;
+/**
+ *
+ * Whether a manual entry can start playing.
+ *
+ */
+static signed char MovieViewFlag;
+
 extern signed char        init_1254;
 extern short              ManualMovieFadeCount_1253;
-extern float              MoviePreBattleBGMVol_Save;
-extern float              MoviePreBattleBGMVol;
+
+/**
+ *
+ * Battle music volume saved before a manual movie.
+ *
+ */
+static float MoviePreBattleBGMVol_Save;
+
+/**
+ *
+ * Battle music volume animated during a manual movie.
+ *
+ */
+static float MoviePreBattleBGMVol;
+
 extern char               at_1430__3[];
 extern char               at_1431__3[];
 extern char               at_1432__2[];
@@ -71,8 +90,21 @@ extern char               at_1438__3[];
 extern char               at_1439__3[];
 extern char               at_1440__3[];
 extern char               at_1441__2[];
-extern CMenuPosDataForm  *LocalMenuBGForm;
-extern CMenuPosDataForm  *LocalMenuClipForm;
+
+/**
+ *
+ * Background form shared by the manual and option menus.
+ *
+ */
+static CMenuPosDataForm *LocalMenuBGForm;
+
+/**
+ *
+ * Clipping form shared by the manual and option menus.
+ *
+ */
+static CMenuPosDataForm *LocalMenuClipForm;
+
 extern signed char        manual_list_mesclstbl[5];
 extern float              config_option_num_f;
 extern char               at_1512__5[];
@@ -83,14 +115,52 @@ extern char               at_1516__2[];
 extern char               at_1517__3[];
 extern char               at_1518__2[];
 extern char               at_1519__2[];
-extern CMovie            *ManualMovie;
-extern mgCTexture        *ManualMovieTex;
+
+/**
+ *
+ * Movie player used by the manual menu.
+ *
+ */
+static CMovie *ManualMovie;
+
+/**
+ *
+ * Texture receiving the manual movie frames.
+ *
+ */
+static mgCTexture *ManualMovieTex;
+
 mgCMemory                 StaticMenuLocalStack;
 mgCMemory                 StaticMenuLocalStack2;
-extern short              Movie_BossFlag;
-extern short              Movie_DungeonFlag;
-extern short              MovieBgmBattleCheckStopFlag;
-extern signed char        MovieBattleBGMPhase;
+
+/**
+ *
+ * Whether the manual menu was opened in a boss area.
+ *
+ */
+static short Movie_BossFlag;
+
+/**
+ *
+ * Whether the manual menu was opened in a dungeon.
+ *
+ */
+static short Movie_DungeonFlag;
+
+/**
+ *
+ * Saved battle music pause flag restored after a manual movie.
+ *
+ */
+static short MovieBgmBattleCheckStopFlag;
+
+/**
+ *
+ * Phase of battle music volume changes during a manual movie.
+ *
+ */
+static signed char MovieBattleBGMPhase;
+
 extern float              config_option_num_i;
 extern IntPair            at_1614__2;
 extern IntPair            at_1615__3;
@@ -107,7 +177,14 @@ extern char               at_1653__2[];
 extern char               at_1654__3[];
 extern char               at_1655__4[];
 extern char               at_1656__4[];
-extern CMenuPosDataForm  *OptionButtonForm;
+
+/**
+ *
+ * Form containing the option choice buttons.
+ *
+ */
+static CMenuPosDataForm *OptionButtonForm;
+
 extern char               at_1900[];
 extern char               at_1901[];
 extern char               at_1902[];
@@ -132,9 +209,23 @@ extern char               at_1237__4[];
 extern char               at_1238__2[];
 extern short              fillw_1125[];
 extern char               at_2895[];
-extern CScene::BGM_STATUS SubGameDataBgm;
+
+/**
+ *
+ * Music state saved while the mini-game save menu is open.
+ *
+ */
+static CScene::BGM_STATUS SubGameDataBgm;
+
 mgCMemory                 SaveMenuStack;
-extern CDC2Mes           *SaveFileList[13];
+
+/**
+ *
+ * Message windows for the thirteen save file rows.
+ *
+ */
+static CDC2Mes *SaveFileList[13];
+
 extern char              *space_2549;
 extern char               init_2550;
 extern char              *b_2715[3];
@@ -150,15 +241,70 @@ extern char               at_2772__2[];
 extern char               at_2773__2[];
 extern char               at_2774__2[];
 extern char               at_2775__2[];
-extern short              SubGameSaveBlock[3];
-extern signed char        SubGameSaveOrLoad;
-extern short              SubGameSaveOrLoadPhase;
-extern short              SubGameSaveLoadStatus;
-extern signed char        SubGameMCPort;
-extern int                SubTrueTotalSaveFileSize;
-extern int                SubCheckTotalSaveFileSize;
-extern mgCTexture        *Tex_SaveFile;
-extern float              SubSaveTileXY;
+
+/**
+ *
+ * Texture blocks used by the mini-game save menu.
+ *
+ */
+static short SubGameSaveBlock[3];
+
+/**
+ *
+ * Whether the mini-game menu saves rather than loads.
+ *
+ */
+static signed char SubGameSaveOrLoad;
+
+/**
+ *
+ * Current phase of the mini-game save or load operation.
+ *
+ */
+static short SubGameSaveOrLoadPhase;
+
+/**
+ *
+ * Completion status of the mini-game save or load operation.
+ *
+ */
+static short SubGameSaveLoadStatus;
+
+/**
+ *
+ * Memory card port selected for the mini-game data.
+ *
+ */
+static signed char SubGameMCPort;
+
+/**
+ *
+ * Size of the mini-game save data in kilobytes.
+ *
+ */
+static int SubTrueTotalSaveFileSize;
+
+/**
+ *
+ * Card space required for the mini-game save data and directory.
+ *
+ */
+static int SubCheckTotalSaveFileSize;
+
+/**
+ *
+ * Texture containing the save menu panels and background.
+ *
+ */
+static mgCTexture *Tex_SaveFile;
+
+/**
+ *
+ * Animated background tile offset in the mini-game save menu.
+ *
+ */
+static float SubSaveTileXY;
+
 extern char               at_2821__2[];
 extern char               at_2822[];
 extern char               at_2823[];
@@ -200,18 +346,79 @@ extern char               at_3206[];
 extern char               at_3207[];
 void                      InitMnOnePictTex();
 
-extern CMemoryCardManager *MemoryCardPtr;
-extern CSaveMenuClass     *SaveMenuPtr;
-extern CMenuOption        *CMenuOptionPtr;
-extern CManualMenu        *CManualPtr;
-extern CDC2Mes            *MenuReturnMsg;
-extern u8                  MenuReturnMsgDrawFlag;
-extern int                 MnOnePictTex[8];
+/**
+ *
+ * Memory card manager used by the save menus.
+ *
+ */
+static CMemoryCardManager *MemoryCardPtr;
+
+/**
+ *
+ * Active save and load menu.
+ *
+ */
+static CSaveMenuClass *SaveMenuPtr;
+
+/**
+ *
+ * Active option menu.
+ *
+ */
+static CMenuOption *CMenuOptionPtr;
+
+/**
+ *
+ * Active manual menu.
+ *
+ */
+static CManualMenu *CManualPtr;
+
+/**
+ *
+ * Localized message describing how to return from the menu.
+ *
+ */
+static CDC2Mes *MenuReturnMsg;
+
+/**
+ *
+ * Whether the return message is drawn.
+ *
+ */
+static u8 MenuReturnMsgDrawFlag;
+
+/**
+ *
+ * Textures of the manual entry picture pages.
+ *
+ */
+static mgCTexture *MnOnePictTex[8];
+
 extern char               *dngmap_2627[];
-extern char               *SubGameSaveCFGBuffer;
-extern int                 SubGameSaveCFGBufferSize;
+
+/**
+ *
+ * Loaded mini-game save menu configuration.
+ *
+ */
+static char *SubGameSaveCFGBuffer;
+
+/**
+ *
+ * Size of the loaded mini-game save menu configuration.
+ *
+ */
+static int SubGameSaveCFGBufferSize;
+
 extern SaveIconSet         at_2609__2;
-extern short               MenuMapInfoSave_DngNo;
+
+/**
+ *
+ * Dungeon number saved while map information is replaced.
+ *
+ */
+static short MenuMapInfoSave_DngNo;
 
 static const int kDungeonNoOffset = 0x1C5B4;
 
@@ -440,7 +647,7 @@ void MenuManualDraw() {
     case MANUAL_STEP_END:
         mgCTextureManager *textures = &mgTexManager;
         if (menu->pict_mode != 0) {
-            picture = (mgCTexture *)MnOnePictTex[menu->pict_page];
+            picture = MnOnePictTex[menu->pict_page];
             if (picture != NULL) {
                 textures->ReloadTexture(picture->block, (sceVif1Packet *)NULL);
                 PrimQuad(picture, mgRect<int>(0, 0, 0x200, mgScreenHeight), mgRect<int>(0, 0, 0x200, 0x1A0), 0x80, 0x80, 0x80, 0x80);
@@ -733,12 +940,12 @@ int CManualMenu::KeyStep() {
                                 pict_num = 3;
                             }
 
-                            MnOnePictTex[0] = (int) textures->GetTexture(at_1433__3, -1);
-                            MnOnePictTex[1] = (int) textures->GetTexture(at_1434__2, -1);
-                            MnOnePictTex[2] = (int) textures->GetTexture(at_1435__2, -1);
-                            MnOnePictTex[3] = (int) textures->GetTexture(at_1436__4, -1);
-                            MnOnePictTex[4] = (int) textures->GetTexture(at_1437__3, -1);
-                            MnOnePictTex[5] = (int) textures->GetTexture(at_1438__3, -1);
+                            MnOnePictTex[0] = textures->GetTexture(at_1433__3, -1);
+                            MnOnePictTex[1] = textures->GetTexture(at_1434__2, -1);
+                            MnOnePictTex[2] = textures->GetTexture(at_1435__2, -1);
+                            MnOnePictTex[3] = textures->GetTexture(at_1436__4, -1);
+                            MnOnePictTex[4] = textures->GetTexture(at_1437__3, -1);
+                            MnOnePictTex[5] = textures->GetTexture(at_1438__3, -1);
                             int first_page[2] = {0, 0};
                             first_page[0] = pict_page + 1;
                             first_page[1] = pict_num;
@@ -3586,31 +3793,13 @@ INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuop", at_2335__3__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuop", at_2342__DATA);
 
 // Small uninitialised data (.sbss)
-INCLUDE_BSS(ManualMovie, 0x4);
-INCLUDE_BSS(ManualMovieTex, 0x4);
-INCLUDE_BSS(LocalMenuBGForm, 0x4);
-INCLUDE_BSS(LocalMenuClipForm, 0x4);
-INCLUDE_BSS(MenuReturnMsg, 0x4);
-INCLUDE_BSS(MenuReturnMsgDrawFlag, 0x4);
-INCLUDE_BSS(MovieBattleBGMPhase, 0x4);
-INCLUDE_BSS(MoviePreBattleBGMVol_Save, 0x4);
-INCLUDE_BSS(MoviePreBattleBGMVol, 0x4);
-INCLUDE_BSS(Movie_DungeonFlag, 0x4);
-INCLUDE_BSS(Movie_BossFlag, 0x4);
-INCLUDE_BSS(MovieBgmBattleCheckStopFlag, 0x4);
-INCLUDE_BSS(CManualPtr, 0x4);
-INCLUDE_BSS(MovieViewFlag, 0x4);
 INCLUDE_BSS(ManualMovieFadeCount_1253, 0x4);
 INCLUDE_BSS(init_1254, 0x8);
 INCLUDE_BSS(at_1306__5, 0x8);
 INCLUDE_BSS(at_1342__3, 0x8);
 INCLUDE_BSS(at_1523__2, 0x8);
-INCLUDE_BSS(OptionButtonForm, 0x8);
 INCLUDE_BSS(at_1614__2, 0x8);
 INCLUDE_BSS(at_1615__3, 0x8);
-INCLUDE_BSS(CMenuOptionPtr, 0x4);
-INCLUDE_BSS(MemoryCardPtr, 0x4);
-INCLUDE_BSS(SaveMenuPtr, 0x4);
 INCLUDE_BSS(FormatCase_1968, 0x4);
 INCLUDE_BSS(init_1969, 0x4);
 INCLUDE_BSS(DarkClonicleFileMax_2004, 0x4);
@@ -3625,25 +3814,15 @@ INCLUDE_BSS(at_2327, 0x4);
 INCLUDE_BSS(at_2328__2, 0x4);
 INCLUDE_BSS(at_2330__2, 0x4);
 INCLUDE_BSS(at_2331__2, 0x4);
-INCLUDE_BSS(Tex_SaveFile, 0x4);
 INCLUDE_BSS(space_2549, 0x4);
 INCLUDE_BSS(init_2550, 0x4);
-INCLUDE_BSS(MenuMapInfoSave_DngNo, 0x4);
-INCLUDE_BSS(SubGameSaveOrLoad, 0x4);
-INCLUDE_BSS(SubGameSaveOrLoadPhase, 0x4);
-INCLUDE_BSS(SubGameSaveLoadStatus, 0x4);
-INCLUDE_BSS(SubGameMCPort, 0x4);
-INCLUDE_BSS(SubGameSaveBlock, 0x8);
-INCLUDE_BSS(SubTrueTotalSaveFileSize, 0x4);
-INCLUDE_BSS(SubCheckTotalSaveFileSize, 0x4);
-INCLUDE_BSS(SubSaveTileXY, 0x4);
-INCLUDE_BSS(SubGameSaveCFGBuffer, 0x4);
-INCLUDE_BSS(SubGameSaveCFGBufferSize, 0x8);
 INCLUDE_BSS(at_3070, 0x8);
 INCLUDE_BSS(at_3091, 0x8);
 
 // Uninitialised data (.bss)
-INCLUDE_BSS(MnOnePictTex, 0x20);
-INCLUDE_BSS(SaveFileList, 0x38);
-INCLUDE_BSS(MenuMapInfoSave, 0x18);
-INCLUDE_BSS(SubGameDataBgm, 0x20);
+/**
+ *
+ * Map information saved while the save menu temporarily changes the active map.
+ *
+ */
+u8 MenuMapInfoSave[0xC];
