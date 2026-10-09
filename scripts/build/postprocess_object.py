@@ -78,6 +78,7 @@ STB_LOCAL = 0
 STB_WEAK = 2
 
 R_MIPS_32 = 2
+R_MIPS_26 = 4
 R_MIPS_HI16 = 5
 R_MIPS_LO16 = 6
 R_MIPS_GPREL16 = 7
@@ -848,6 +849,169 @@ def pointer_table_names(elf, unit, placeholders, *, retail, pieces, addresses, r
     return {id(symbol): name for symbol, name in assignments if counts[name] == 1}
 
 
+def complete_code_consumer(elf, index, *, retail, rows, address_of_symbol, gp):
+    """Prove an entire native function, including every resolved relocation."""
+    section = elf.sections[index]
+    owners = [symbol for symbol in elf.symtab.symbols
+              if symbol.st_shndx == index and symbol.type == STT_FUNC]
+    if (section.name not in CODE or not section.sh_flags & SHF_EXECINSTR
+            or len(owners) != 1 or owners[0].st_value):
+        return False
+    owner = owners[0]
+    row = rows.get(owner.name)
+    if row is None:
+        return False
+    base, size, function = row
+    contents = section.data
+    expected = retail.bytes(base, base + size)
+    if (not function or not size or size % 4 or owner.st_size != size
+            or len(contents) != size or len(expected) != size):
+        return False
+    entries = [entry for record in elf.relocations if record.sh_info == index
+               for entry in record.relocations]
+    offsets = [entry.r_offset for entry in entries]
+    if (len(set(offsets)) != len(offsets)
+            or any(offset % 4 or not 0 <= offset <= size - 4 for offset in offsets)):
+        return False
+    masks = {R_MIPS_32: 0xFFFFFFFF, R_MIPS_26: 0x03FFFFFF,
+             R_MIPS_HI16: 0xFFFF, R_MIPS_LO16: 0xFFFF, R_MIPS_GPREL16: 0xFFFF}
+    kinds = {entry.r_offset: entry.reloc_type for entry in entries}
+    for offset in range(0, size, 4):
+        kind = kinds.get(offset)
+        if kind != retail.relocations.get(base + offset) or kind is not None and kind not in masks:
+            return False
+        mine = struct.unpack_from('<I', contents, offset)[0]
+        theirs = struct.unpack_from('<I', expected, offset)[0]
+        if (mine ^ theirs) & (0xFFFFFFFF ^ masks.get(kind, 0)):
+            return False
+    pending = {}
+    for entry in entries:
+        target = elf.symtab.symbols[entry.symbol_index]
+        address = address_of_symbol(target)
+        if address is None:
+            return False
+        mine = struct.unpack_from('<I', contents, entry.r_offset)[0]
+        theirs = retail.word(base + entry.r_offset)
+        kind = entry.reloc_type
+        if kind == R_MIPS_HI16:
+            pending.setdefault(entry.symbol_index, []).append((mine, theirs))
+            continue
+        if kind == R_MIPS_LO16:
+            highs = pending.pop(entry.symbol_index, [])
+            if not highs:
+                return False
+            for high, expected_high in highs:
+                addend = ((high & 0xFFFF) << 16) + sext16(mine)
+                if ((address + addend + 0x8000) >> 16) & 0xFFFF != expected_high & 0xFFFF:
+                    return False
+            same = (address + sext16(mine)) & 0xFFFF == theirs & 0xFFFF
+        elif kind == R_MIPS_32:
+            same = (address + mine) & 0xFFFFFFFF == theirs
+        elif kind == R_MIPS_26:
+            same = ((address + ((mine & 0x03FFFFFF) << 2)) >> 2) & 0x03FFFFFF == theirs & 0x03FFFFFF
+        elif kind == R_MIPS_GPREL16:
+            if gp is None:
+                return False
+            same = (address + sext16(mine) - gp) & 0xFFFF == theirs & 0xFFFF
+        else:
+            return False
+        if not same:
+            return False
+    return not pending
+
+
+def name_initialized_locals(elf, unit, placeholders, *, retail, pieces, addresses, rows):
+    """Name nonpointer local tables from exact bytes and fully verified callers."""
+    runs = pieces.unit(unit)
+    cuts = {start: (kind, name, end) for kind, run in runs
+            if kind in ('.data', '.sdata', '.rodata') for name, start, end in run}
+    declared = {name: size for _start, name, size, function in rows if not function and size}
+    own_names = {name for _kind, run in runs for name, _start, _end in run}
+    own_addresses = {}
+    for name in own_names:
+        own_addresses.setdefault(re.sub(r'__\d+$', '', name), set()).add(addresses.get(name))
+
+    def source_address(name):
+        if name in own_names:
+            return addresses.get(name)
+        candidates = own_addresses.get(name, set())
+        if candidates:
+            return next(iter(candidates)) if len(candidates) == 1 else None
+        return address_of(name, addresses)
+
+    def family(name):
+        match = re.fullmatch(r'([A-Za-z_]\w*)_\d+', re.sub(r'__\d+$', '', name))
+        return match.group(1) if match else None
+
+    symbols = elf.symtab.symbols
+    code_starts = {symbol.st_shndx: source_address(symbol.name) for symbol in symbols
+                   if symbol.type == STT_FUNC and source_address(symbol.name) is not None}
+    code_rows = {name: (start, size, function) for start, name, size, function in rows}
+    assignments = []
+    for symbol in symbols:
+        index = symbol.st_shndx
+        if (index in placeholders or symbol.type != STT_OBJECT or symbol.bind != STB_LOCAL
+                or symbol.st_value or not 0 < index < len(elf.sections)
+                or family(symbol.name) in (None, 'at') or symbol.name in own_names):
+            continue
+        section = elf.sections[index]
+        if (section.name not in ('.data', '.sdata', '.rodata')
+                or section.sh_type != SHT_PROGBITS or not section.sh_flags & SHF_ALLOC
+                or section.sh_flags & SHF_EXECINSTR or not symbol.st_size
+                or symbol.st_size != len(section.data)
+                or any(other.st_shndx == index and other.st_value for other in symbols)
+                or sum(other.st_shndx == index and other.type == STT_OBJECT for other in symbols) != 1
+                or any(record.sh_info == index and record.relocations for record in elf.relocations)):
+            continue
+        starts = referenced_data_starts(elf, index, retail, addresses, code_starts,
+                                       size=symbol.st_size)
+        if starts is None or len(starts) != 1:
+            continue
+        start = next(iter(starts))
+        cut = cuts.get(start)
+        if cut is None:
+            continue
+        kind, name, end = cut
+        if (kind != section.name or family(name) != family(symbol.name)
+                or declared.get(name) != symbol.st_size or start + symbol.st_size > end
+                or section.data != retail.bytes(start, start + symbol.st_size)
+                or any(start <= address < start + symbol.st_size for address in retail.relocations)
+                or any(other is not symbol and other.name == name
+                       and 0 < other.st_shndx < len(elf.sections)
+                       and elf.sections[other.st_shndx].name != DEAD for other in symbols)):
+            continue
+        section_bases = {}
+        for other in symbols:
+            address = source_address(other.name)
+            if address is not None and 0 < other.st_shndx < len(elf.sections):
+                section_bases.setdefault(other.st_shndx, set()).add(address - other.st_value)
+        section_bases[index] = {start}
+
+        def symbol_address(target):
+            if target.st_shndx == index:
+                return start + target.st_value
+            address = source_address(target.name)
+            if address is not None:
+                return address
+            bases = section_bases.get(target.st_shndx, set())
+            return next(iter(bases)) + target.st_value if len(bases) == 1 else None
+
+        consumers = {record.sh_info for record in elf.relocations
+                     if elf.sections[record.sh_info].name != DEAD
+                     and any(symbols[entry.symbol_index].st_shndx == index
+                             for entry in record.relocations)}
+        if not all(complete_code_consumer(elf, consumer, retail=retail, rows=code_rows,
+                                          address_of_symbol=symbol_address,
+                                          gp=addresses.get('_gp')) for consumer in consumers):
+            continue
+        assignments.append((symbol, name))
+    counts = Counter(name for _symbol, name in assignments)
+    for symbol, name in assignments:
+        if counts[name] == 1:
+            symbol.name = name
+            symbol.st_name = elf.strtab.add_symbol(name)
+
+
 def name_literal_data(elf, unit, placeholders, *, retail=None, pieces=None, addresses=None, rows=None):
     retail = layout.Retail() if retail is None else retail
     pieces = disassemble.Pieces(references=[]) if pieces is None else pieces
@@ -1005,6 +1169,9 @@ def name_literal_data(elf, unit, placeholders, *, retail=None, pieces=None, addr
         symbol.st_size = len(section.data)
         symbol.name = name
         symbol.st_name = elf.strtab.add_symbol(name)
+
+    name_initialized_locals(elf, unit, placeholders, retail=retail, pieces=pieces,
+                            addresses=addresses, rows=rows)
 
 
 def pad_data(elf, unit, placeholders, *, retail=None, pieces=None, rows=None):

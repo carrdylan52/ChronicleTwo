@@ -237,6 +237,13 @@ order. Ambiguous initialized literals can then be named through real
 R_MIPS_32 pointers in native data, subtracting the compiled addend and
 target-symbol offset; conflicting references reject the binding. Anonymous
 initialized templates retain the existing literal matcher and naming order.
+Named initialized local tables without pointers additionally require the same
+source base name, exact declared size and section kind, and exact retail bytes.
+Every live consumer must be a complete retail function with the declared extent,
+all instruction operands and all resolved relocation targets matching. Unknown
+consumers, changed calls, duplicate relocation sites and orphan HI16/LO16 groups
+reject naming. This pass changes only the data identity; existing bounded padding
+supplies its alignment gap afterward.
 Equal declared initialized extents distinguish a literal from a larger object's
 byte prefix; established code or native-data destinations still reject competing
 identities. Discarding a fallback parent removes a compiler-owned child only when
