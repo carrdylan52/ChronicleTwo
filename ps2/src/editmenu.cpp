@@ -4331,7 +4331,7 @@ int MenuGeoramaPlacePush(CMenuGeorama *menu, int buttons_held, int buttons_press
                         }
 
                         form->draw_flag = 1;
-                        ((ClsMes *) msg)->mes_no = -1;
+                        msg->ClsMes::mes_no = -1;
                         msg->value_space = 2;
                         msg->SetMsgCursor(0);
                         MenuCommonInfo->GetCursorPos(pos);
