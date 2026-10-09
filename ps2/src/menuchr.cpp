@@ -189,16 +189,41 @@ static inline unsigned int blocks_for(unsigned int size) {
     return (size & 0xF) != 0 ? (size >> 4) + 1 : size >> 4;
 }
 
+/**
+ *
+ * Number of monster memo entries.
+ *
+ */
 const int kMonsterMemoCount = 0x119;
+/**
+ *
+ * Frames waited before starting a monster preview load.
+ *
+ */
 const int kModelDelayFrames = 20;
+/**
+ *
+ * Maximum value of the monster preview display wait counter.
+ *
+ */
 const int kModelFrameCap = 20;
 
+/**
+ *
+ * States used while browsing or fading the monster book menu.
+ *
+ */
 enum {
     kBookBrowsing = 0,
     kBookFadingIn = 1,
     kBookFadingOut = 2
 };
 
+/**
+ *
+ * Commands used to close the monster book or turn its page.
+ *
+ */
 enum {
     kCmdClose = 0xA,
     kCmdTurnPage = 0x64
