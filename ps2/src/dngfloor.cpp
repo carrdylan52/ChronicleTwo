@@ -615,7 +615,7 @@ int CDngFloorManager::IsClearMostFastDestroy() {
         return 0;
     }
 
-    int elapsed = (*(int *) &save->play_time - *(int *) &scene->subject_counter) * 6 / 5;
+    int elapsed = ((int) save->play_time - (int) scene->subject_counter) * 6 / 5;
     int result = 0;
 
     if (saved->fast_destroy_time == 0) {
