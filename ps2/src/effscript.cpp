@@ -1,11 +1,19 @@
 #include "common.h"
 #include "mw_runtime.h"
 
+#include <cmath>
+#include <cstdio>
+#include <cstdlib>
 #include <cstring>
 
 #include "actionchara.hpp"
 #include "cameracontrol.hpp"
+#include "character.hpp"
+#include "colprim.hpp"
+#include "dataread.hpp"
 #include "effscript.hpp"
+#include "event_func.hpp"
+#include "mainloop.hpp"
 #include "map.hpp"
 #include "mg_drawenv.hpp"
 #include "mg_drawprim.hpp"
@@ -19,16 +27,6 @@
 #include "runscript_opcodes.hpp"
 #include "scene.hpp"
 #include "scenesnd.hpp"
-
-#include <cmath>
-#include <cstdio>
-#include <cstdlib>
-
-#include "character.hpp"
-#include "colprim.hpp"
-#include "dataread.hpp"
-#include "event_func.hpp"
-#include "mainloop.hpp"
 #include "snd_mngr.hpp"
 
 /**
