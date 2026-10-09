@@ -955,7 +955,7 @@ public:
      *
      * @mangled Step__9CAquariumFv
      * @address 0x217B80
-     * @size 0x1B10
+     * @size 0x1B04
      */
     int Step();
 
