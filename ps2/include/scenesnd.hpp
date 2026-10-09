@@ -75,6 +75,17 @@ enum MINIMAP_REVEAL {
 
 /**
  *
+ * Status flags held in DNG_BATTLE_AREA::floor_status.
+ *
+ */
+enum DNG_FLOOR_STATUS {
+    DNG_FLOOR_STATUS_SEAL_MONICA = 0x1, /**< The floor's Monica seal applies. */
+    DNG_FLOOR_STATUS_SEAL_MAX = 0x2,    /**< The floor's Max seal applies. */
+    DNG_FLOOR_STATUS_UNK_4 = 0x4,
+};
+
+/**
+ *
  * Dungeon state a scene keeps: pause and floor flags, the floor manager, the status bar, camera quake and battle music.
  *
  */

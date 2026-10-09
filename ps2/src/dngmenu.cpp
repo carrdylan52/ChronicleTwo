@@ -2625,6 +2625,19 @@ int CMenuTreeMap::Step() {
         TREE_MAP_ACTION_CLOSE = 200          /**< Closes the map without selecting a floor. */
     };
 
+    /**
+     *
+     * Messages that ask about or describe the selected floor.
+     *
+     */
+    enum TreeMapMessage {
+        TREE_MAP_MES_JUMP = 0x3C,                /**< Asks whether to go to the selected floor. */
+        TREE_MAP_MES_JUMP_NAMED = 0x3D,          /**< Asks whether to go to the named start, sub, exit or boss floor. */
+        TREE_MAP_MES_PAY = 2,                    /**< Added to a question for its variant that charges for the jump. */
+        TREE_MAP_MES_FLOOR_INFO = 0x40,          /**< Describes a floor without georama materials. */
+        TREE_MAP_MES_FLOOR_INFO_MATERIALS = 0x41 /**< Describes a floor with georama materials to list. */
+    };
+
     int           result = DNG_TREE_MAP_CONTINUE;
     CMenuKeyFunc *keys = MenuCommonInfo;
 
@@ -2677,7 +2690,7 @@ int CMenuTreeMap::Step() {
                         MenuArg.end_code = 6;
                         MenuArg.result[0] = 1;
                         MakeDngTreeMapJumpNo(dng_no, MenuArg.result[2], &MenuArg.result[0], &MenuArg.result[1]);
-                        GetSaveData()->ResetBitCtrl(0x10);
+                        GetSaveData()->ResetBitCtrl(MENU_DEBUG_BIT_CTRL_BOOT_TREEMAP);
                         if (MenuArg.result[2] == 0) {
                             GetSaveData()->save_dungeon.SetFloorID(0);
                         }
@@ -2688,7 +2701,7 @@ int CMenuTreeMap::Step() {
                     CheckDngTreeMapFuncType();
                     DNG_BATTLE_AREA *area = (DNG_BATTLE_AREA *) menu_GetBattleAreaScene();
                     if (area != NULL) {
-                        area->floor_status &= 0xFFF8;
+                        area->floor_status &= ~(DNG_FLOOR_STATUS_SEAL_MONICA | DNG_FLOOR_STATUS_SEAL_MAX | DNG_FLOOR_STATUS_UNK_4);
                     }
                 }
                 old_glid = NULL;
@@ -2769,15 +2782,17 @@ int CMenuTreeMap::Step() {
                                 if (entry->visit_count < 30000) {
                                     ++entry->visit_count;
                                 }
-                                entry->flag = 0x1FB;
+                                entry->flag = DNG_FLOOR_FLAG_OPEN | DNG_FLOOR_FLAG_UNK_2 | DNG_FLOOR_FLAG_PRACTICE_CLEAR |
+                                              DNG_FLOOR_FLAG_FAST_DESTROY_CLEAR | DNG_FLOOR_FLAG_FISHING_CLEAR |
+                                              DNG_FLOOR_FLAG_TALK_MONSTER | DNG_FLOOR_FLAG_SPHEDA_CLEAR | DNG_FLOOR_FLAG_GEOSTONE_FOUND;
                             }
                         }
                         if ((buttons & MENU_PUSH_BUTTON_DECIDE) || (buttons & MENU_PUSH_BUTTON_CANCEL) || (buttons & MENU_PUSH_BUTTON_TRIANGLE) || (directions & MENU_SELECT_KEY_LEFT) || (directions & MENU_SELECT_KEY_RIGHT)) {
                             MenuDngMap->floor_manager->CheckDrawGlidInfo();
                         }
                         if (directions & MENU_SELECT_KEY_R1) {
-                            MenuActiveSaveData->SetBitFlag(0xDC, 1);
-                            MenuActiveSaveData->SetBitFlag(0x13D, 1);
+                            MenuActiveSaveData->SetBitFlag(SAVE_FLAG_FISHING_OPEN, 1);
+                            MenuActiveSaveData->SetBitFlag(SAVE_FLAG_SPHEDA_UNLOCKED, 1);
                         }
                         return DNG_TREE_MAP_CONTINUE;
                     }
@@ -2932,12 +2947,12 @@ int CMenuTreeMap::Step() {
                             MenuSePlay(MENU_SCRIPT_SOUND_CANCEL);
                             message->SetAbsPos(5);
                         } else {
-                            MenuSePlay(0x13);
+                            MenuSePlay(SYSTEM_SE_WINDOW);
                             dngfloor_infoview = 1;
                             dngfloor_backdraw = 1;
                             DngInfoRoomInfo = &NextFloorGlid->room;
                             DngInfoFloorInfo = target_save;
-                            int mes_no = 0x3C;
+                            int mes_no = TREE_MAP_MES_JUMP;
                             GetSaveData()->GetBitCtrl();
                             int battle_clear = ((DNG_BATTLE_AREA *) menu_GetBattleAreaScene())->battle_clear;
                             jump_pay = 0;
@@ -2949,12 +2964,12 @@ int CMenuTreeMap::Step() {
                             }
                             u32 flags = NextFloorGlid->room.flag;
                             if ((flags & DNGMAP_ROOM_FLAG_START) || (flags & DNGMAP_ROOM_FLAG_SUB) || (flags & DNGMAP_ROOM_FLAG_EXIT) || (flags & DNGMAP_ROOM_FLAG_BOSS)) {
-                                mes_no = 0x3D;
+                                mes_no = TREE_MAP_MES_JUMP_NAMED;
                                 int name_id[1] = {NextFloorGlid->room.floor_id + (dng_no + 1) * 1000};
                                 message->SetMsgItemNo(name_id, 1);
                             }
                             if (jump_pay) {
-                                mes_no += 2;
+                                mes_no += TREE_MAP_MES_PAY;
                             }
                             message->SetAbsPos(-1);
                             int put_pos[2] = {0x3C, 0x118};
@@ -3000,9 +3015,9 @@ int CMenuTreeMap::Step() {
                                 if (GeoramaMateriaNum <= 0) {
                                     message->SetMovePosGyou(0, 0x46, mgScreenHeight - 0x32);
                                     message->SetMovePosGyou(1, 0x14A, mgScreenHeight - 0x32);
-                                    message->MakeMsg(0x40);
+                                    message->MakeMsg(TREE_MAP_MES_FLOOR_INFO);
                                 } else {
-                                    message->MakeMsg(0x41);
+                                    message->MakeMsg(TREE_MAP_MES_FLOOR_INFO_MATERIALS);
                                     message->SetMovePosGyou(0, 0x46, mgScreenHeight - 0x46);
                                     message->SetMovePosGyou(1, 0x14A, mgScreenHeight - 0x32);
                                     message->SetMovePosGyou(2, 0x46, mgScreenHeight - 0x2C);
@@ -3193,8 +3208,8 @@ int CMenuTreeMap::Step() {
                 messages[3] = 0x78;
             }
             mes[3].SetMsgVolumeNoOne(room->fishing_record);
-            DngInfoFishOkFlag = CheckBitFlagMenu(0xDC) != 0;
-            DngInfoSphidaOkFlag = CheckBitFlagMenu(0x13D) != 0;
+            DngInfoFishOkFlag = CheckBitFlagMenu(SAVE_FLAG_FISHING_OPEN) != 0;
+            DngInfoSphidaOkFlag = CheckBitFlagMenu(SAVE_FLAG_SPHEDA_UNLOCKED) != 0;
             if (!DngInfoFishOkFlag) {
                 messages[3] = 2;
             }
