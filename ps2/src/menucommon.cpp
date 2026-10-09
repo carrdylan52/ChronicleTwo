@@ -1799,7 +1799,6 @@ int _MENU_FORM_SET(SPI_STACK *stack, int argc) {
  */
 int _MENU_FORM_PARTNUM(SPI_STACK *stack, int argc) {
     int          i;
-    int          offset;
     unsigned int bytes;
     unsigned int blocks;
 
@@ -1817,12 +1816,9 @@ int _MENU_FORM_PARTNUM(SPI_STACK *stack, int argc) {
     }
 
     menu_formPt->parts = (MENUFORMPARTS_TYPE *) MenuSpiStack->Alloc(blocks);
-    i = 0;
-    offset = 0;
 
-    for (; i < menu_formPt->parts_num; i++) {
-        MenuPosDataTypeInit((MENUFORMPARTS_TYPE *) ((unsigned int) menu_formPt->parts + offset));
-        offset += sizeof(MENUFORMPARTS_TYPE);
+    for (i = 0; i < menu_formPt->parts_num; i++) {
+        MenuPosDataTypeInit(&menu_formPt->parts[i]);
     }
 
     return 1;
