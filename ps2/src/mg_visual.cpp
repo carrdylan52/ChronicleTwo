@@ -948,6 +948,7 @@ u_long128 *SetData5(int count, int type, int **index, u_long128 *packet, u_long1
     *index = cursor;
     return colour_out;
 }
+
 /**
  *
  * Writes the indexed vertex streams for one vertex batch.

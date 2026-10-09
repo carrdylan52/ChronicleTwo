@@ -1161,6 +1161,7 @@ static int scsMoveAHD2(_SEN_CMR_SEQ *node, CSceneCmrSeq *owner) {
     owner->ahd_cnt++;
     return 1;
 }
+
 /**
  *
  * Attaches the camera orbit to a frame of a synchronized object.

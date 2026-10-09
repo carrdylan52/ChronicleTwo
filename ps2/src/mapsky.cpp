@@ -304,6 +304,7 @@ void CMapSky::LoadPack(unsigned int *pack, int tex_block_base, mgCMemory *memory
         }
     }
 }
+
 /**
  *
  * Parses sky configuration tags into the supplied sky information record.

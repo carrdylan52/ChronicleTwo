@@ -43,6 +43,7 @@ struct CursorPos {
 
 extern int                 menu_debug_flag;
 extern short               MenuItemCmdArgPos;
+
 /**
  *
  * Column and row counts of the inventory photo grid.
@@ -110,6 +111,7 @@ static int overcode_album_5225[4] = {
 };
 
 extern short               menu_item_swap_sndtbl[];
+
 /**
  *
  * Colours used by the two invention success strips.
@@ -3051,6 +3053,7 @@ extern char        at_3132[];
 extern char        at_3133[];
 extern char        at_3134[];
 extern char        at_3135[];
+
 /**
  *
  * Prefix used for an automatically proposed invention name.
@@ -3117,6 +3120,7 @@ static short sndtimetbl_2868[2] = {
 };
 
 extern signed char D_003532DF[];
+
 /**
  *
  * Lighting colour used for the invented item model.

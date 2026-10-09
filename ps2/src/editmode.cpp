@@ -906,6 +906,7 @@ int StartEditModeFromMenu(CScene *scene, int mode, int *params) {
     InitBalanceDraw(scene);
     return 1;
 }
+
 /**
  *
  * Returns the current editor undo record.
@@ -2765,6 +2766,7 @@ void DrawEditSystem(int block, CScene *scene, float *pos, int edit) {
         }
     }
 }
+
 /**
  *
  * Finds the map part used for the walk-to-edit transition check.
