@@ -33,7 +33,6 @@ static void DrawDivSprite(mgCDrawPrim *prim, mgRect<int> rect, mgCTexture *textu
                           int *color, int dx, int dy, int z, int unused);
 static void DrawDivSprite4(mgCDrawPrim *prim, mgRect<int> rect, mgCTexture *texture,
                            int *color, int offset, int z);
-extern int  at_338[4];
 
 int COutLineDraw::Draw(float *pos, float scale, float alpha) {
 
@@ -332,15 +331,3 @@ static void DrawDivSprite4(mgCDrawPrim *prim, mgRect<int> rect, mgCTexture *text
     prim->EndPrim2();
     prim->End2();
 }
-
-// Initialised data (.data)
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/outline", at_338__DATA);
-
-// Uninitialised data (.bss)
-INCLUDE_BSS(at_299__2, 0x10);
-INCLUDE_BSS(at_300__2, 0x10);
-INCLUDE_BSS(at_325, 0x10);
-INCLUDE_BSS(at_395, 0x10);
-INCLUDE_BSS(at_396, 0x10);
-INCLUDE_BSS(at_398, 0x10);
-INCLUDE_BSS(at_399, 0x10);
