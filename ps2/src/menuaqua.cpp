@@ -2681,10 +2681,10 @@ int CAquaFish::ParamStep() {
         }
 
         if (eat_item == 0x13B) {
-            if ((s8) breed->sex == 0) {
+            if (breed->sex == 0) {
                 result |= AQUA_FISH_RESULT_SEX_CHANGED_TO_1;
                 breed->sex = 1;
-            } else if ((s8) breed->sex == 1) {
+            } else if (breed->sex == 1) {
                 breed->sex = 0;
                 result |= AQUA_FISH_RESULT_SEX_CHANGED_TO_0;
             }
@@ -3436,11 +3436,11 @@ void CAquaMes::ChangeManMessage(CAquaFish *fish) {
 
     fish_mes->mes_no = -1;
 
-    if ((s8) data->data.fish.sex == 0) {
+    if (data->data.fish.sex == 0) {
         fish_mes->MakeMesWin(0x138);
     }
 
-    if ((s8) data->data.fish.sex == 1) {
+    if (data->data.fish.sex == 1) {
         fish_mes->MakeMesWin(0x137);
     }
 

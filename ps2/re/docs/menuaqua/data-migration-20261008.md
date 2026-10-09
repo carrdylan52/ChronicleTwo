@@ -156,28 +156,28 @@ selections are unchanged.
 | Marker | Reason |
 |---|---|
 | `at_1346__DATA` | NextThink vector seed; natural aggregate and SDK-array initializers change five text bytes and are reverted. |
-| `at_2935__DATA` | Bubble-count template used only by frozen SettingAqua. |
-| `at_2975__DATA` | Vector template used only by frozen SettingAqua. |
-| `at_2976__DATA` | Vector template used only by frozen SettingAqua. |
-| `at_3016__DATA` | Vector template used only by frozen SettingAqua. |
+| `at_2935__DATA` | Bubble-count template used only by guarded SettingAqua. |
+| `at_2975__DATA` | Vector template used only by guarded SettingAqua. |
+| `at_2976__DATA` | Vector template used only by guarded SettingAqua. |
+| `at_3016__DATA` | Vector template used only by guarded SettingAqua. |
 | `at_3290__DATA` | Thinking vector seed; natural aggregate and SDK-array initializers change thirteen text bytes and are reverted. |
 | `at_3291__3__DATA` | Thinking vector seed; natural aggregate and SDK-array initializers change thirteen text bytes and are reverted. |
 | `at_3310__DATA` | Thinking vector seed; natural aggregate and SDK-array initializers change thirteen text bytes and are reverted. |
 | `at_3311__DATA` | Thinking vector seed; natural aggregate and SDK-array initializers change thirteen text bytes and are reverted. |
-| `at_3150__DATA` | Resource-name literal used only by frozen SettingAqua. |
-| `at_3151__DATA` | Resource-name literal used only by frozen SettingAqua. |
-| `at_3152__DATA` | Resource-name literal used only by frozen SettingAqua. |
-| `at_3153__DATA` | Resource-name literal used only by frozen SettingAqua. |
-| `at_3154__DATA` | Resource-name literal used only by frozen SettingAqua. |
-| `at_3155__DATA` | Resource-name literal used only by frozen SettingAqua. |
-| `at_3156__DATA` | Resource-name literal used only by frozen SettingAqua. |
-| `at_3157__DATA` | Resource-name literal used only by frozen SettingAqua. |
-| `at_3158__2__DATA` | Resource-name literal used only by frozen SettingAqua. |
-| `at_3159__2__DATA` | Resource-name literal used only by frozen SettingAqua. |
-| `at_3160__2__DATA` | Resource-name literal used only by frozen SettingAqua. |
-| `at_3161__2__DATA` | Resource-name literal used only by frozen SettingAqua. |
-| `at_3163__2__DATA` | Resource-name literal used only by frozen SettingAqua. |
-| `at_3164__3__DATA` | Resource-name literal used only by frozen SettingAqua. |
+| `at_3150__DATA` | Resource-name literal used only by guarded SettingAqua. |
+| `at_3151__DATA` | Resource-name literal used only by guarded SettingAqua. |
+| `at_3152__DATA` | Resource-name literal used only by guarded SettingAqua. |
+| `at_3153__DATA` | Resource-name literal used only by guarded SettingAqua. |
+| `at_3154__DATA` | Resource-name literal used only by guarded SettingAqua. |
+| `at_3155__DATA` | Resource-name literal used only by guarded SettingAqua. |
+| `at_3156__DATA` | Resource-name literal used only by guarded SettingAqua. |
+| `at_3157__DATA` | Resource-name literal used only by guarded SettingAqua. |
+| `at_3158__2__DATA` | Resource-name literal used only by guarded SettingAqua. |
+| `at_3159__2__DATA` | Resource-name literal used only by guarded SettingAqua. |
+| `at_3160__2__DATA` | Resource-name literal used only by guarded SettingAqua. |
+| `at_3161__2__DATA` | Resource-name literal used only by guarded SettingAqua. |
+| `at_3163__2__DATA` | Resource-name literal used only by guarded SettingAqua. |
+| `at_3164__3__DATA` | Resource-name literal used only by guarded SettingAqua. |
 
 The earlier race-table probe exposed a case-label error. Retail's seven
 target offsets are `0x334, 0x4A0, 0x3A0, 0x3A0, 0x3E4, 0x410, 0x474`;
@@ -201,7 +201,7 @@ Data-migration checkpoint validation uses the pinned image and original build to
 `final-build.log` verifies SCES_511.90 OK; `final-objects.log` reports
 149/149 objects. `final-refresh.log` refreshes ctx/objdiff/progress before
 `final-coverage.log` records 6779 matched, 84 guarded, nine assembly-only
-and zero fuzzy functions. `final-audit.log` verifies frozen source and
+and zero fuzzy functions. `final-audit.log` verifies guarded source blocks and
 headers, lane-only changes and the required commit author. Of 150 raw
 object hashes, only the three owned units differ from the warm baseline;
 all 147 unowned objects are unchanged. All receipts are under
