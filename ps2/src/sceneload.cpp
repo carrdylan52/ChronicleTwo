@@ -328,7 +328,7 @@ int CScene::LoadMapFromMemory(int map_no, int step, SCN_LOADMAP_INFO2 *info) {
         if (stack == NULL || buf == NULL) {
             return -1;
         }
-        edit_map = new ((u_long128 *) stack->Alloc(0x111)) CEditMap;
+        edit_map = new (stack->Alloc(0x111)) CEditMap;
         if (edit_map == NULL) {
             return -1;
         }
