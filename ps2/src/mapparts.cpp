@@ -647,9 +647,9 @@ int CMapParts::InsideScreen(COcclusion *occluders, int count) {
         return 0;
     }
 
-    GetLWMatrix((float (*)[4]) matrix);
+    GetLWMatrix(matrix);
 
-    if (mgInsideScreen((mgVu0FBOX *) bound_box.max, (float (*)[4]) matrix) == 0) {
+    if (mgInsideScreen(&bound_box, matrix) == 0) {
         return 0;
     }
 
