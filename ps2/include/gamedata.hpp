@@ -35,6 +35,13 @@ enum ITEM_DATA_TYPE {
     ITEM_DATA_ROBO_PART_D = 0xD,
     ITEM_DATA_ROBO_PART_E = 0xE,
     ITEM_DATA_ROBO_WEAPON = 0xF,
+    ITEM_DATA_UNK_11      = 0x11, /**< Attachment type excluded from gift-box insertion. */
+    ITEM_DATA_UNK_15      = 0x15, /**< Item type excluded from gift-box insertion. */
+    ITEM_DATA_DUNGEON_KEY = 0x1A, /**< Dungeon key. */
+    ITEM_DATA_UNK_1B      = 0x1B, /**< Item type excluded from gift-box insertion. */
+    ITEM_DATA_AQUARIUM    = 0x1D, /**< Aquarium that receives owned fish. */
+    ITEM_DATA_FISH        = 0x1E, /**< Fish. */
+    ITEM_DATA_UNK_22      = 0x22, /**< Attachment type excluded from gift-box insertion. */
 };
 
 /**

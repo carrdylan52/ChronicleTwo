@@ -3544,12 +3544,12 @@ static int MenuDataSwap(CGameDataUsed *destination, CGameDataUsed *source, int q
     src_used = source->used_type;
     dst_common = GetCommonItemData(dst_no);
     src_common = GetCommonItemData(src_no);
-    if (dst_used == USED_ITEM_TYPE_GIFT_BOX && destination->GetGiftBoxItemNum() < 3 && src_common != NULL && (src_common->attribute & ITEM_ATTRIBUTE_TRUSH) && ((src_used == USED_ITEM_TYPE_ITEM && src_type != 0x1D && src_type != 0x1E && src_type != 0x15 && src_type != 0x1A && src_type != 0x1B) || (src_used == USED_ITEM_TYPE_ATTACH && src_type != 0x11 && src_type != 0x22))) {
+    if (dst_used == USED_ITEM_TYPE_GIFT_BOX && destination->GetGiftBoxItemNum() < 3 && src_common != NULL && (src_common->attribute & ITEM_ATTRIBUTE_TRUSH) && ((src_used == USED_ITEM_TYPE_ITEM && src_type != ITEM_DATA_AQUARIUM && src_type != ITEM_DATA_FISH && src_type != ITEM_DATA_UNK_15 && src_type != ITEM_DATA_DUNGEON_KEY && src_type != ITEM_DATA_UNK_1B) || (src_used == USED_ITEM_TYPE_ATTACH && src_type != ITEM_DATA_UNK_11 && src_type != ITEM_DATA_UNK_22))) {
         if (destination->SetGiftBoxItem(src_no, -1) >= 0) {
             source->DeleteNum(1);
         }
         result = MENU_SWAP_RESULT_GIFT_BOX;
-    } else if (dst_type == 0x1D && src_used == USED_ITEM_TYPE_FISH) {
+    } else if (dst_type == ITEM_DATA_AQUARIUM && src_used == USED_ITEM_TYPE_FISH) {
         MenuUserDataManPtr->FishInAquarium(source, 0);
         result = MENU_SWAP_RESULT_AQUARIUM;
     } else if (destination == MenuUserDataManPtr->GetActiveEsa()) {
