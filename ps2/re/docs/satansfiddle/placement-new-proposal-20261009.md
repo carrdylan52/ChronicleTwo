@@ -689,3 +689,22 @@ represent 37 hypothetical native callers, with explicit seven-name ELF
 metadata and selected relocation additions/order changes. All shared
 headers and three source guards remain inactive; this is separate complete
 private evidence with documented reuse, not three canonical promotions.
+
+## Current34 paired all-native diagnostic
+
+The independent current-source pair now completes all 149 direct native
+invocations per policy, 298 successful calls without failures or retries.
+Across 6,867 common emitted functions it preserves all 6,779 scoped diagnostic
+zeros and adds two guarded zeros: MenuInventInit and _ESM_INITIALIZE. Both
+retain previously rejected helper/dummy source and remain inactive. All 34
+accepted native sections, actual sizes/bindings and relocation offset/type
+maps agree across policies.
+
+Fifteen guarded function rows change; eleven word scores improve, three
+worsen, and IsAskExtend retains 528 while its actual native bytes change.
+Across raw objects, 136 agree, two differ only in metadata and eleven have
+code/data or associated target changes. These are draft-impact diagnostics,
+separate from the already frozen normal-wrapper and whole-ELF preservation.
+The [paired native note](placement-new-current34-native-comparison-20261009.md)
+owns exact flags, masking/bounds, missing native records, recorded source
+status and the root-verified 1,824-file manifest. Production34 remains exact.
