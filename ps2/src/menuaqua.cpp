@@ -4203,7 +4203,8 @@ int CAquarium::Step() {
                     MenuSePlay(5);
                     next = 0;
                 } else if (key & 1) {
-                    switch (menu_id_tbl_3721[aqua_no * 6 + menu->menu_cursor]) {
+                    const s8 *ids = &menu_id_tbl_3721[aqua_no * 6];
+                    switch (ids[i = menu->menu_cursor]) {
                         case 0:
                             if (InitSelFish() != 0) {
                                 MenuSePlay(5);
