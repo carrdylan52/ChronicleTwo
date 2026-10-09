@@ -12091,15 +12091,6 @@ step_alpha:
     return end;
 }
 
-/**
- *
- * Stores the colour used by the item selection display.
- *
- */
-struct ItemSelectColor {
-    u8 rgba[4]; /**< Red, green, blue, and alpha channels. */
-};
-
 void CItemSelect::Draw() {
     if (texture == NULL) {
         return;
@@ -12152,8 +12143,8 @@ void CItemSelect::Draw() {
     mgRect<float> icon_rect(4.0f + item_rect.left, 8.0f + item_rect.top, item_rect.right, item_rect.bottom);
     icon_rect.right = 32.0f;
     icon_rect.bottom = 40.0f;
-    ItemSelectColor color = {{0x80, 0x80, 0x80, 0}};
-    color.rgba[3] = alpha;
+    u8 color[4] = {0x80, 0x80, 0x80, 0};
+    color[3] = alpha;
     mgCTexture *number_tex = tex_manager->GetTexture("mnmain", -1);
     mgRect<int> number_rect;
     number_rect.Set(0, 0xF4, 0xA, 0xD);
@@ -12171,7 +12162,7 @@ void CItemSelect::Draw() {
                 break;
             }
 
-            DrawOneItem(prim, icon_rect, item_list[index]->item_no, 0, NULL, color.rgba, 0);
+            DrawOneItem(prim, icon_rect, item_list[index]->item_no, 0, NULL, color, 0);
             int item_no;
             int num;
             num = item_list[index]->GetNum();

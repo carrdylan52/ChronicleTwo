@@ -178,8 +178,8 @@ matched data remains **2,884 / 10,332**. Receipts are
 `generated-rodata-ledger.log` and
 `generated-<group>-{build,objects,metrics}.log` in `.private/dataD-r2/`.
 
-`CItemSelect::Draw` uses an automatic `ItemSelectColor` initialized to
-`{{0x80, 0x80, 0x80, 0}}`, then replaces the alpha byte with the current fade.
+`CItemSelect::Draw` uses an automatic `u8 color[4]` initialized to
+`{0x80, 0x80, 0x80, 0}`, then replaces the alpha byte with the current fade.
 Its native four-byte initializer replaces the external `at_9055` copy and
 marker without changing the object. The final generated-data checkpoint is
 **324 RODATA / 6 BSS** and **2,884 / 10,332 matched_data**, with the same
