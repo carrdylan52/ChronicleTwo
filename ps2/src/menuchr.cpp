@@ -204,15 +204,6 @@ static inline int MaxPageChars(ClsMes *mes) {
     return max_chars;
 }
 
-/**
- *
- * Returns the monster Monica is transformed into.
- *
- */
-static inline s16 TransformMonsterID(CUserDataManager *user) {
-    return user->monster_id;
-}
-
 const int kMonsterMemoCount = 0x119;
 const int kModelDelayFrames = 20;
 const int kModelFrameCap = 20;
@@ -4714,7 +4705,7 @@ int CMenuMosSelect::KeyStep() {
                             switch (buttons) {
                                 case 1:
                                     if (GetUserDataMan()->GetActiveChrNo() == USER_CHARA_MONSTER &&
-                                        TransformMonsterID(GetUserDataMan()) == view_monster) {
+                                        GetUserDataMan()->GetMonsterID() == view_monster) {
                                         MenuSePlay(5);
                                     } else {
                                         action = 10;
@@ -4834,7 +4825,7 @@ int CMenuMosSelect::KeyStep() {
                     for (int name_index = 0; name_index < select_badge->class_level + 1; name_index++) {
                         names.name[name_index] = GetMonsterName(monster_progress_tbl[select_badge->progress][1 + name_index]);
                         if (GetUserDataMan()->GetActiveChrNo() == USER_CHARA_MONSTER &&
-                            TransformMonsterID(GetUserDataMan()) == monster_progress_tbl[select_badge->progress][1 + name_index] &&
+                            GetUserDataMan()->GetMonsterID() == monster_progress_tbl[select_badge->progress][1 + name_index] &&
                             name_index >= 0 && name_index < 20) {
                             info->line_color[name_index] = 0x80202020;
                         }

@@ -2166,6 +2166,15 @@ public:
 
     /**
      *
+     * Gives the monster Monica transforms into.
+     *
+     */
+    s16 GetMonsterID() {
+        return monster_id;
+    }
+
+    /**
+     *
      * Renames the ridepod.
      *
      * @mangled SetRoboName__16CUserDataManagerFPc
