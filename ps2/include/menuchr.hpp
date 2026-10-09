@@ -1313,6 +1313,9 @@ int MonsterBookKey();
  */
 void MonsterBookDraw();
 
+#pragma push
+#pragma cpp_extensions on
+
 /**
  *
  * State of the menus' background model loading.
@@ -1325,8 +1328,16 @@ struct MENU_LOAD_INFO {
     signed char chara_no; /**< Character selected for model loading. */
     signed char request_phase; /**< Requested phase of character model loading. */
     signed char load_phase; /**< Current phase of character model loading. */
-    signed char unk_6[2];
+    union {
+        signed char unk_6[2];
+        struct {
+            signed char unk_06;
+            signed char update_scene; /**< Non-zero when loading also updates the main scene's characters and stacks. */
+        };
+    };
 };
+
+#pragma pop
 
 STATIC_ASSERT(sizeof(MENU_LOAD_INFO) == 8);
 /**

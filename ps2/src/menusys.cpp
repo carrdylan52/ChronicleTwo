@@ -5783,7 +5783,7 @@ int CMenuItemInfo::ReturnActiveCharaViewMode(int mode) {
     MenuLoadInfo.load_phase = 0;
     MenuLoadInfo.request_phase = -1;
     CheckLoadInfo(active_character);
-    MenuLoadInfo.unk_6[1] = 1;
+    MenuLoadInfo.update_scene = 1;
     MenuMemoryAdjust(&MenuItemMemory, &MenuCharaLoadStack, MenuActionCharaBuffer, active_character);
     ModelReadStart(view_mode, 1, 1);
     return 1;
@@ -5926,7 +5926,7 @@ int CMenuItemInfo::EquipDirect(int chara, CGameDataUsed *item, int &slot) {
 
 void CMenuItemInfo::CheckLoadInfo(int chara) {
     if (CheckEquipListNo(1) && chara == GetActiveCharaNo()) {
-        MenuLoadInfo.unk_6[1] = 1;
+        MenuLoadInfo.update_scene = 1;
 
         if (chara == 0 || chara == 1) {
             s16 weapon_no = MenuUserParam.chara[GetActiveCharaNo()]->equip[1].item_no;
@@ -5940,7 +5940,7 @@ void CMenuItemInfo::CheckLoadInfo(int chara) {
             sound_load = 1;
         }
     } else {
-        MenuLoadInfo.unk_6[1] = 0;
+        MenuLoadInfo.update_scene = 0;
     }
 }
 
@@ -7765,7 +7765,7 @@ int MenuItemInit(mgCMemory *stack, int *tex_block, int mode) {
     MenuLoadInfo.mode = 0;
     MenuLoadInfo.load_phase = 0;
     MenuLoadInfo.request_phase = -1;
-    MenuLoadInfo.unk_6[1] = 1;
+    MenuLoadInfo.update_scene = 1;
     MenuLoadInfo.load_all = 1;
     s8 view_mode = menuitem_initviewtbl[chara_no];
     CMenuItemInfoPt->view_mode = view_mode;

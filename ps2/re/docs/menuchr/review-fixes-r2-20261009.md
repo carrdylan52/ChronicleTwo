@@ -56,3 +56,29 @@ protected method's guarded block changes.
 The actual-source full build accepts all fourteen plain-array replacements:
 `SCES_511.90: OK`, 149/149 complete objects, 6,787 perfect functions and zero
 fuzzy. No function guard or compiler-profile row changes.
+
+## Main-scene load state (round-zero finding 21)
+
+`MENU_LOAD_INFO::update_scene` is the signed byte at offset `+7`, controlling
+whether background model loading also updates the main scene's characters
+and memory stacks. Byte `+6` remains unidentified.
+
+The existing `decompile.sh`/m2c output for
+`MenuItemCharaDataLoadEndCheckAfter` tests the byte at `gp - 0x64D1` before
+calling `SetupUnitMan` for `MenuMainScene`; loading mode is at `gp - 0x64D8`,
+confirming the seven-byte displacement. `CheckLoadBGMonster` tests the same
+byte before assigning/using main-scene stack 5, loading character sound and
+retrieving the main-scene character. The character and ridepod loaders use
+it when collecting and reloading main-scene model/stack lists.
+
+The named scalar shares an anonymous union with the original two-byte
+`unk_6` array. This retains the eight-byte structure and signed-byte access
+while preserving the old member syntax in the protected methods and the
+unowned `inventmn` consumer. Nineteen unprotected menuchr accesses and four
+menusys accesses use `update_scene`; the four protected menuchr accesses
+remain byte-for-byte unchanged. The earlier full-rename proposal is
+superseded by this compatible field definition.
+
+The compatible field definition and all twenty-three renamed accesses pass
+the full build: `SCES_511.90: OK`, 149/149 complete objects, 6,787 perfect
+functions and zero fuzzy. Both protected method blocks remain unchanged.
