@@ -6986,8 +6986,6 @@ int MenuInventPushKey(int pad, int pushed) {
 
     return 1;
 }
-#ifdef NONMATCHING
-
 int MenuInventKey() {
     int          result = 0;
     int          index;
@@ -7188,9 +7186,6 @@ int MenuInventKey() {
     }
     return result;
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/inventmn", MenuInventKey__Fv);
-#endif
 void MenuInventDraw() {
     MenuPosData->FormDraw();
     MenuEffect[0]->Draw();
