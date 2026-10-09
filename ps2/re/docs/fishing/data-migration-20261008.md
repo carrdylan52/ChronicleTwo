@@ -44,3 +44,28 @@ Each function's string group passes PAL and 149/149 objects. After this group:
 `.private/dataD-r1/fishing-strings-{progress,metrics}.log`; final string validation
 is in `fishing-fish-model-{build,objects}.log`, with preceding function groups
 recorded separately. Protected bodies and unowned object hashes are unchanged.
+
+## Fish parameter table
+
+`FishParam` is a file-local `FISH_PARAM[19]`, with declared extent
+0x63C = 19 * 0x54. Each row has two strings, an item ID, seven binary32
+parameters, 18 bait affinities and four time-band affinities. Decimal float
+literals reproduce the exact retail values. All 38 name/model strings are
+inlined in their rows; Shift-JIS names retain their original bytes.
+`unk_18` remains unnamed beyond its offset because existing analysis establishes
+no consumer. No additional field semantics are inferred.
+
+The new `FISH_ITEM_ID` names transliterate the names attached to those rows:
+310 is Haguhagu, 320 through 336 are Boubou, Gabura, Nonkii, Kajii, Bakubaku,
+Maadangarayan, Gumii, Niiraa, Umadakara, Taaton, Pikkorii, Bon, Hamahama,
+Nejii, Den, Hiira and Danshaku Garayan. Row zero has no caught item. Affinity
+entries use the existing `FISH_AFFINITY` enum. The integer field layout and
+all consumers, including SF-selected `GetUkiWaitTime`, remain unchanged.
+
+After this group: **38 / 2 markers**, **412 / 5145 matched_data**. Native
+section credit and executable matching are separate checks; no increase is
+reported where the refreshed report grants none. The table and header pass
+PAL, 149/149 objects, protected-body comparison and unowned object hashes.
+Receipts: `.private/dataD-r1/fishing-param-{build,objects}.log`,
+`fishing-param-enums-{build,objects}.log`, and
+`fishing-param-{progress,metrics}.log`.
