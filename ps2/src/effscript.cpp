@@ -272,7 +272,6 @@ EFF_SPT_BASE_DEF      *GetEffSptBaseDefPtr(int index);
 int                    SetEffectScript(CRunScript *script, char *program, mgCMemory *memory);
 void                   SetEffectScriptFunc();
 static void            DrawEffSptSprite(_EFF_SCRIPT *script, mgCTexture *texture, float *offset, mgC3DSprite *renderer, CMapLightingInfo *lighting);
-extern RS_EXTFUNC_INFO ext_func_info__4[];
 
 
 
@@ -5637,6 +5636,141 @@ int SetEffectScript(CRunScript *script, char *program, mgCMemory *memory) {
 }
 
 /**
+ * External effect script handlers in command-table order.
+ */
+static RS_EXTFUNC_INFO ext_func_info[129] = {
+    {_ZERO_VECTOR, EFF_EXT_ZERO_VECTOR},
+    {_NORMAL_VECTOR, EFF_EXT_NORMAL_VECTOR},
+    {_COPY_VECTOR, EFF_EXT_COPY_VECTOR},
+    {_ADD_VECTOR, EFF_EXT_ADD_VECTOR},
+    {_SUB_VECTOR, EFF_EXT_SUB_VECTOR},
+    {_SCALE_VECTOR, EFF_EXT_SCALE_VECTOR},
+    {_DIV_VECTOR, EFF_EXT_DIV_VECTOR},
+    {_DIST_VECTOR, EFF_EXT_DIST_VECTOR},
+    {_DIST_VECTOR2, EFF_EXT_DIST_VECTOR2},
+    {_SQRT, EFF_EXT_SQRT},
+    {_ATAN2F, EFF_EXT_ATAN2F},
+    {_ANGLE_CMP, EFF_EXT_ANGLE_CMP},
+    {_ANGLE_LIMIT, EFF_EXT_ANGLE_LIMIT},
+    {_GET_RAND, EFF_EXT_GET_RAND},
+    {_GET_REF_ROT, EFF_EXT_GET_REF_ROT},
+    {_GET_DIR_VECTOR, EFF_EXT_GET_DIR_VECTOR},
+    {_SET_ORIGIN, EFF_EXT_SET_ORIGIN},
+    {_GET_ORIGIN, EFF_EXT_GET_ORIGIN},
+    {_AUTO_SET_OFFSET, EFF_EXT_AUTO_SET_OFFSET},
+    {_GET_WORK_VECT1, EFF_EXT_GET_WORK_VECT1},
+    {_GET_WORK_VECT2, EFF_EXT_GET_WORK_VECT2},
+    {_GET_TARGET_ID, EFF_EXT_GET_TARGET_ID},
+    {_GET_USER_ID, EFF_EXT_GET_USER_ID},
+    {_GET_VALUE, EFF_EXT_GET_VALUE},
+    {_SET_VALUE, EFF_EXT_SET_VALUE},
+    {_CHR_SET_SHOW, EFF_EXT_CHR_SET_SHOW},
+    {_CHR_GET_SHOW, EFF_EXT_CHR_GET_SHOW},
+    {_CHR_SET_POS, EFF_EXT_CHR_SET_POS},
+    {_CHR_GET_POS, EFF_EXT_CHR_GET_POS},
+    {_CHR_SET_ROT, EFF_EXT_CHR_SET_ROT},
+    {_CHR_GET_ROT, EFF_EXT_CHR_GET_ROT},
+    {_CHR_SET_SCALE, EFF_EXT_CHR_SET_SCALE},
+    {_CHR_GET_SCALE, EFF_EXT_CHR_GET_SCALE},
+    {_CHR_SET_MOTION, EFF_EXT_CHR_SET_MOTION},
+    {_CHR_SET_MOT_STEP, EFF_EXT_CHR_SET_MOT_STEP},
+    {_CHR_GET_DIR_VECTOR, EFF_EXT_CHR_GET_DIR_VECTOR},
+    {_CHR_GET_REF_ROT, EFF_EXT_CHR_GET_REF_ROT},
+    {_CHR_ADD_POS, EFF_EXT_CHR_ADD_POS},
+    {_CHR_ADD_ROT, EFF_EXT_CHR_ADD_ROT},
+    {_CHR_ADD_SCALE, EFF_EXT_CHR_ADD_SCALE},
+    {_CHR_COPY_CHARA, EFF_EXT_CHR_COPY_CHARA},
+    {_CHR_SET_POS2, EFF_EXT_CHR_SET_POS2},
+    {_CHR_SET_ROT2, EFF_EXT_CHR_SET_ROT2},
+    {_CHR_SET_SCALE2, EFF_EXT_CHR_SET_SCALE2},
+    {_CHR_SET_MOTION2, EFF_EXT_CHR_SET_MOTION2},
+    {_CHR_ADD_POS2, EFF_EXT_CHR_ADD_POS2},
+    {_CHR_ADD_ROT2, EFF_EXT_CHR_ADD_ROT2},
+    {_CHR_ADD_SCALE2, EFF_EXT_CHR_ADD_SCALE2},
+    {_CHR_GET_MOT_WAIT, EFF_EXT_CHR_GET_MOT_WAIT},
+    {_CHR_SET_SHOW2, EFF_EXT_CHR_SET_SHOW2},
+    {_CHR_GET_FRAME_POS, EFF_EXT_CHR_GET_FRAME_POS},
+    {_CHR_SET_FRAME_SHOW, EFF_EXT_CHR_SET_FRAME_SHOW},
+    {_CHR_CHK_MOT_END, EFF_EXT_CHR_CHK_MOT_END},
+    {_CHR_SET_LIGHT_COLOR, EFF_EXT_CHR_SET_LIGHT_COLOR},
+    {_SPT_ASSIGN_SPRITE, EFF_EXT_SPT_ASSIGN_SPRITE},
+    {_SPT_DELETE_SPRITE, EFF_EXT_SPT_DELETE_SPRITE},
+    {_SPT_SET_TEXNAME, EFF_EXT_SPT_SET_TEXNAME},
+    {_SPT_SET_ALPHAB, EFF_EXT_SPT_SET_ALPHAB},
+    {_SPT_INIT_SPRITE, EFF_EXT_SPT_INIT_SPRITE},
+    {_SPT_SET_UV_SIZE, EFF_EXT_SPT_SET_UV_SIZE},
+    {_SPT_SET_PUT_SIZE, EFF_EXT_SPT_SET_PUT_SIZE},
+    {_SPT_SET_DRAW_FLAG, EFF_EXT_SPT_SET_DRAW_FLAG},
+    {_SPT_GET_DRAW_FLAG, EFF_EXT_SPT_GET_DRAW_FLAG},
+    {_SPT_SET_POS, EFF_EXT_SPT_SET_POS},
+    {_SPT_GET_POS, EFF_EXT_SPT_GET_POS},
+    {_SPT_SET_ROTZ, EFF_EXT_SPT_SET_ROTZ},
+    {_SPT_GET_ROTZ, EFF_EXT_SPT_GET_ROTZ},
+    {_SPT_SET_SCALE, EFF_EXT_SPT_SET_SCALE},
+    {_SPT_GET_SCALE, EFF_EXT_SPT_GET_SCALE},
+    {_SPT_SET_COLOR, EFF_EXT_SPT_SET_COLOR},
+    {_SPT_GET_COLOR, EFF_EXT_SPT_GET_COLOR},
+    {_SPT_VAN_SET_POS, EFF_EXT_SPT_VAN_SET_POS},
+    {_SPT_VAN_SET_ROT, EFF_EXT_SPT_VAN_SET_ROT},
+    {_SPT_ADD_POS, EFF_EXT_SPT_ADD_POS},
+    {_SPT_ADD_ROTZ, EFF_EXT_SPT_ADD_ROTZ},
+    {_SPT_ADD_COLOR, EFF_EXT_SPT_ADD_COLOR},
+    {_SPT_WORLD_ROT, EFF_EXT_SPT_WORLD_ROT},
+    {_SPT_SET_LIFE, EFF_EXT_SPT_SET_LIFE},
+    {_SPT_SET_VELO_POS, EFF_EXT_SPT_SET_VELO_POS},
+    {_SPT_SET_ACC_POS, EFF_EXT_SPT_SET_ACC_POS},
+    {_SPT_SET_VELO_ROTZ, EFF_EXT_SPT_SET_VELO_ROTZ},
+    {_SPT_SET_ACC_ROTZ, EFF_EXT_SPT_SET_ACC_ROTZ},
+    {_SPT_SET_VELO_COL, EFF_EXT_SPT_SET_VELO_COL},
+    {_SPT_SET_ACC_COL, EFF_EXT_SPT_SET_ACC_COL},
+    {_SPT_SET_BLINKING, EFF_EXT_SPT_SET_BLINKING},
+    {_SPT_VAN_SET_COL, EFF_EXT_SPT_VAN_SET_COL},
+    {_SPT_SET_VELO_SCL, EFF_EXT_SPT_SET_VELO_SCL},
+    {_SPT_SET_ACC_SCL, EFF_EXT_SPT_SET_ACC_SCL},
+    {_SPT_VAN_SET_SCL, EFF_EXT_SPT_VAN_SET_SCL},
+    {_SPT_SCALE_CONV, EFF_EXT_SPT_SCALE_CONV},
+    {_SPT_COLOR_CONV, EFF_EXT_SPT_COLOR_CONV},
+    {_SCN_GET_CHR_POS, EFF_EXT_SCN_GET_CHR_POS},
+    {_SCN_GET_CHR_ROT, EFF_EXT_SCN_GET_CHR_ROT},
+    {_SCN_GET_CHR_FRM_POS, EFF_EXT_SCN_GET_CHR_FRM_POS},
+    {_INTERSECTION_POINT, EFF_EXT_INTERSECTION_POINT},
+    {_MON_SE_PLAY, EFF_EXT_MON_SE_PLAY},
+    {_MON_SE_STOP, EFF_EXT_MON_SE_STOP},
+    {_BTL_SE_PLAY, EFF_EXT_BTL_SE_PLAY},
+    {_BTL_SE_STOP, EFF_EXT_BTL_SE_STOP},
+    {_BSE_SE_PLAY, EFF_EXT_BSE_SE_PLAY},
+    {_BSE_SE_STOP, EFF_EXT_BSE_SE_STOP},
+    {_MON_SE_PLAY2, EFF_EXT_MON_SE_PLAY2},
+    {_MON_SE_STOP2, EFF_EXT_MON_SE_STOP2},
+    {_SET_LIGHT_FLAG, EFF_EXT_SET_LIGHT_FLAG},
+    {_SCN_GET_CHR_ENTOBJ_POS, EFF_EXT_SCN_GET_CHR_ENTOBJ_POS},
+    {_SCN_GET_CHR_FRM_DIR, EFF_EXT_SCN_GET_CHR_FRM_DIR},
+    {_SCN_GET_CHR_FRM_ROT, EFF_EXT_SCN_GET_CHR_FRM_ROT},
+    {_SCN_GET_ENTRY_OBJ_POS, EFF_EXT_SCN_GET_ENTRY_OBJ_POS},
+    {_CREATE_DAMAGE, EFF_EXT_CREATE_DAMAGE},
+    {_DELETE_DAMAGE, EFF_EXT_DELETE_DAMAGE},
+    {_DMG_SET_POS, EFF_EXT_DMG_SET_POS},
+    {_DMG_SET_FRONT_VECT, EFF_EXT_DMG_SET_FRONT_VECT},
+    {_DMG_SET_DAMAGE, EFF_EXT_DMG_SET_DAMAGE},
+    {_COLPRIM_CREATE, EFF_EXT_COLPRIM_CREATE},
+    {_COLPRIM_SET_COORD, EFF_EXT_COLPRIM_SET_COORD},
+    {_COLPRIM_DELETE, EFF_EXT_COLPRIM_DELETE},
+    {_COLPRIM_GET_HITCNT, EFF_EXT_COLPRIM_GET_HITCNT},
+    {_COLPRIM_SET_DAMAGE, EFF_EXT_COLPRIM_SET_DAMAGE},
+    {_COLPRIM_GET_HIT_POS, EFF_EXT_COLPRIM_GET_HIT_POS},
+    {_COLPRIM_GET_GIFT, EFF_EXT_COLPRIM_GET_GIFT},
+    {_COLPRIM_GET_REVCNT, EFF_EXT_COLPRIM_GET_REVCNT},
+    {_ES_CREATE, EFF_EXT_ES_CREATE},
+    {_ES_SET_VECT1, EFF_EXT_ES_SET_VECT1},
+    {_ES_SET_VECT2, EFF_EXT_ES_SET_VECT2},
+    {_ES_SET_TARGET_ID, EFF_EXT_ES_SET_TARGET_ID},
+    {_ES_SET_COLPRIM, EFF_EXT_ES_SET_COLPRIM},
+    {_ES_SET_VALUE, EFF_EXT_ES_SET_VALUE},
+    {_GET_EOH_POS, EFF_EXT_GET_EOH_POS},
+    {NULL, EFF_EXT_END},
+};
+
+/**
  *
  * Builds the effect script external function table.
  *
@@ -5650,7 +5784,7 @@ void SetEffectScriptFunc() {
     }
 
     for (function_index = 0;; function_index++) {
-        if (ext_func_info__4[function_index].func == NULL) {
+        if (ext_func_info[function_index].func == NULL) {
             break;
         }
 
@@ -5658,8 +5792,8 @@ void SetEffectScriptFunc() {
             previous_index = 0;
 
             do {
-                if (ext_func_info__4[function_index].no == ext_func_info__4[previous_index].no) {
-                    printf("dng_effect same ext_func_no!!![%d]\n", ext_func_info__4[previous_index].no);
+                if (ext_func_info[function_index].no == ext_func_info[previous_index].no) {
+                    printf("dng_effect same ext_func_no!!![%d]\n", ext_func_info[previous_index].no);
 
                     while (1) {
                     }
@@ -5669,16 +5803,15 @@ void SetEffectScriptFunc() {
             } while (previous_index < function_index);
         }
 
-        if (ext_func_info__4[function_index].no < 0 || ext_func_info__4[function_index].no >= 256) {
+        if (ext_func_info[function_index].no < 0 || ext_func_info[function_index].no >= 256) {
             printf("dng_effect ext func over!!\n");
         } else {
-            ext_func__4[ext_func_info__4[function_index].no] = ext_func_info__4[function_index].func;
+            ext_func__4[ext_func_info[function_index].no] = ext_func_info[function_index].func;
         }
     }
 }
 
 // Initialised data (.data)
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/effscript", ext_func_info__4__DATA);
 
 // Constants (.rodata)
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/effscript", at_1099__2__DATA);

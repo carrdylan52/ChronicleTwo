@@ -44,3 +44,35 @@ The existing `_INTERSECTION_POINT` switch generates the nine-entry `at_3304__2` 
 
 Accepted steps: `switch`. Each has full PAL, 149-object and unowned raw-object hash receipts under `.private/dataA-r3/eff-<topic>-{build,objects,hashes}.log`.
 
+## External command definition table
+
+The mutable file-local `RS_EXTFUNC_INFO ext_func_info[129]` contains 128 correctly typed callbacks followed by `{NULL, EFF_EXT_END}`. `EffectExternalCommand` names their retail numeric IDs. Initializer order is preserved, including commands 252/253 and 157/158 before 155/156. The declared extent is 0x408; the retail aligned piece is 0x410, with the terminal eight zero bytes excluded from comparison as linker padding. No callback casts or guarded changes are needed.
+
+Receipt: `.private/dataA-r3/eff-dispatch-table-{build,objects,hashes}.log`; PAL matches, all 149 objects pass and every unowned raw-object hash is unchanged. Each native .data piece has identical comparison bytes and mapped relocation targets to its reference counterpart.
+
+## Retained assembly dependencies
+
+| Retail literal | Guarded consumer | Declared bytes | Piece bytes |
+|---|---|---:|---:|
+| `at_1099__2` | `BuildBase(int, ...)` | 44 | 48 |
+| `at_1100` | `BuildBase(int, ...)` | 43 | 48 |
+| `at_1101` | `BuildBase(int, ...)` | 37 | 48 |
+| `at_1102__2` | `BuildBase(int, ...)` | 37 | 48 |
+| `at_1103__5` | `BuildBase(int, ...)` | 64 | 64 |
+| `at_1104__7` | `BuildBase(int, ...)` | 9 | 16 |
+| `at_1336__2` | `CreateEffSpt` | 37 | 48 |
+| `at_1337__2` | `CreateEffSpt` | 46 | 48 |
+| `at_1338__2` | `CreateEffSpt` | 43 | 48 |
+| `at_1339__3` | `CreateEffSpt` | 40 | 48 |
+| `at_1340__2` | `CreateEffSpt` | 39 | 40 |
+| `at_1341__2` | `CreateEffSpt` | 1 | 8 |
+| `at_1705` | `AssignCharacter` | 56 | 64 |
+| `at_2025__3` | `SetCharacter` | 49 | 64 |
+
+Every listed literal is referenced by an active `INCLUDE_ASM` body under its retail symbol. The matching build needs those identities, and this lane does not change the corresponding guarded drafts. `at_1341__2` is the shared empty string used by native code and guarded `CreateEffSpt`; its external declaration and marker also remain. None is replaced by a named anonymous-literal stand-in.
+
+All five BSS reservations and all native-only initialized markers are removed. No functions are promoted or guarded drafts edited.
+
+## Strict data accounting
+
+Objdiff's `matched_data` measure credits an entire data section only when its comparison reaches 100%. Partial native data coverage in a section therefore receives no matched-byte credit. Exact per-piece comparison and the canonical whole-object checker still prove the accepted native objects. For example, the padded 0x5590-byte native effect resource catalog and reference piece have identical SHA-256 `1214afea6a5798bf37d67d6489f9016f52f510de8c2d106e590e7c70f5f4fd35`; local receipt copies are `.private/dataA-r3/catalog-{source,target}.bin`.
