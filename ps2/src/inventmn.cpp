@@ -31,41 +31,9 @@
 #include "snd_mngr.hpp"
 #include "sound.hpp"
 
-/**
- *
- * Stores four grid overlay codes for the inventory display.
- *
- */
-struct GridOverCode {
-    int value[4]; /**< Code for each grid overlay. */
-};
 
-/**
- *
- * Groups three character models used by the inventory menu.
- *
- */
-struct ModelTriple {
-    CActionChara *model[3]; /**< Character model in each slot. */
-};
 
-/**
- *
- * Holds one item name for the inventory display.
- *
- */
-struct ItemNameList1 {
-    char *name[1]; /**< Item name. */
-};
 
-/**
- *
- * Holds five item names for the inventory display.
- *
- */
-struct ItemNameList5 {
-    char *name[5]; /**< Item name in each slot. */
-};
 
 /**
  *
@@ -77,32 +45,8 @@ struct CursorPos {
     int y; /**< Vertical cursor coordinate. */
 };
 
-/**
- *
- * Stores message types for record board entries.
- *
- */
-struct RecordBoardMsgTypes {
-    int v[5]; /**< Message type for each entry. */
-};
 
-/**
- *
- * Stores three steps of a menu colour gradation.
- *
- */
-struct GradationSteps {
-    int v[3]; /**< Value for each gradation step. */
-};
 
-/**
- *
- * Stores the grade assigned to two rows.
- *
- */
-struct GradeRows {
-    signed char v[2]; /**< Grade for each row. */
-};
 
 extern int                 menu_debug_flag;
 extern short               MenuItemCmdArgPos;
@@ -278,14 +222,6 @@ enum {
     K_COMMAND_QUIT = 110
 };
 
-/**
- *
- * Tracks whether each of three invention ideas was found.
- *
- */
-struct NetaFoundFlags {
-    s8 flag[3]; /**< Found flag for each idea. */
-};
 
 extern char           at_2244[];
 extern char           at_2245[];
@@ -307,14 +243,6 @@ struct FoundSlots {
 
 extern FoundSlots at_2776;
 
-/**
- *
- * Stores four inventory cursor coordinates.
- *
- */
-struct InventCursorPos {
-    int pos[4]; /**< Coordinates used by the inventory cursor. */
-} __attribute__((aligned(16)));
 
 /**
  *
@@ -381,42 +309,9 @@ enum INVENT_ASK_MODE {
     INVENT_ASK_DELETE_ALL = 7
 };
 
-/**
- *
- * Stores the positions of item board pieces.
- *
- */
-struct ItemBoardKoma {
-    int pos[10]; /**< Position for each board piece. */
-};
 
-/**
- *
- * Stores a point on the inventory screen.
- *
- */
-struct ScreenPoint {
-    int xy[2]; /**< Horizontal and vertical screen coordinates. */
-};
 
-/**
- *
- * Stores an inventory menu colour.
- *
- */
-struct MenuColor {
-    u8 rgba[4]; /**< Red, green, blue, and alpha channels. */
-};
 
-/**
- *
- * Stores the target position of an invention effect.
- *
- */
-struct NetaEffectTarget {
-    float x; /**< Horizontal target coordinate. */
-    float y; /**< Vertical target coordinate. */
-};
 
 /**
  *
@@ -443,14 +338,6 @@ static int digit_tbl3_5641[8] = {
 };
 
 
-/**
- *
- * Holds the blank marker used for an invention name.
- *
- */
-struct NetaNameBlank {
-    char text[2]; /**< Blank name marker. */
-};
 
 /**
  *
@@ -1892,14 +1779,14 @@ int CInventDataManage::CheckInventEnable(int *ids, int *combined) {
         ingredient = &entry->neta_id[0];
 
         if (ingredient != NULL) {
-            InventFoundFlags found = {{0, 0, 0}};
+            u8 found[3] = {0, 0, 0};
 
             for (j = 0; j < 3; j++) {
                 want[j] = ingredient[j];
 
                 for (k = 0; k < 3; k++) {
                     if (want[j] == ids[k]) {
-                        found.flag[j] = 1;
+                        found[j] = 1;
                     }
                 }
             }
@@ -1907,7 +1794,7 @@ int CInventDataManage::CheckInventEnable(int *ids, int *combined) {
             count = 0;
 
             for (m = 0; m < 3; m++) {
-                if (found.flag[m] != 0) {
+                if (found[m] != 0) {
                     count++;
                     want[m] = 0;
                 }
@@ -1917,7 +1804,7 @@ int CInventDataManage::CheckInventEnable(int *ids, int *combined) {
                 *combined = 1;
             }
 
-            if (found.flag[0] != 0 && found.flag[1] != 0 && found.flag[2] != 0) {
+            if (found[0] != 0 && found[1] != 0 && found[2] != 0) {
                 return entry->item_id;
             }
         }
@@ -2754,8 +2641,8 @@ void CMenuInvent::UpdataRecordBoard() {
     values[2] = InventUserDataPtr->CountScoop();
     values[3] = InventUserDataPtr->CalcPhotoExp();
     values[4] = InventUserDataPtr->GetLevel();
-    RecordBoardMsgTypes volume_types = {{5, 5, 5, 3, 4}};
-    mes->SetMsgVolumeNo(values, volume_types.v, 5);
+    int volume_types[5] = {5, 5, 5, 3, 4};
+    mes->SetMsgVolumeNo(values, volume_types, 5);
     mes->ClsMes::mes_no = -1;
     mes->MakeMsg(0x2BC);
 
@@ -2889,7 +2776,7 @@ void CMenuInvent::GradationSet(int mode) {
                         invent_okeff_form->GetPartInfo(*(char **) ((u8 *) invent_grade_fff + offset));
                     i++;
 
-                    *(int *) &part->y = 0x43600000;
+                    part->y = 224.0f;
                     offset += 4;
                     part->h = 0.0f;
                 } while (i < 2);
@@ -2914,13 +2801,13 @@ void CMenuInvent::GradationSet(int mode) {
                     j++;
                 } while (j < 4);
 
-                GradeRows rows = {{0, 1}};
+                signed char rows[2] = {0, 1};
 
                 do {
                     MENUFORMPARTS_TYPE *part = invent_okeff_form->GetPartInfo(invent_grade_fff[i]);
-                    *(int *) &part->y = 0x43600000;
+                    part->y = 224.0f;
                     part->h = 0.0f;
-                    int                        row = rows.v[i];
+                    int                        row = rows[i];
                     u8                        *first = invent_color_tbl[2][row];
                     MENU_PARTS_EFFECT_STRUCT1 *first_effect = part->effect;
                     first_effect->param[0] = first[0];
@@ -2975,7 +2862,7 @@ void CMenuInvent::GradationStep() {
 
     int                 i;
     MENUFORMPARTS_TYPE *part;
-    GradationSteps      steps = {{30, 60, 90}};
+    int steps[3] = {30, 60, 90};
 
     switch (gradation_mode) {
         case 1: {
@@ -2984,7 +2871,7 @@ void CMenuInvent::GradationStep() {
             for (i = 0; i < 2; i++) {
                 part = invent_okeff_form->GetPartInfo(invent_grade_fff[i]);
 
-                if (steps.v[2] >= gradation_height) {
+                if (steps[2] >= gradation_height) {
                     part->h = gradation_height;
 
                     if (i % 2 == 0) {
@@ -3830,7 +3717,7 @@ void CMenuInvent::CalcCursorPosition() {
         MenuCommonInfo->SetWakuType(-1);
     }
 
-    InventCursorPos cursor = {{10, 10, 0, 0}};
+    int cursor[4] = {10, 10, 0, 0};
     char            text[0x28];
     CursorPos       offset = {0, 0};
     CursorPos       waku;
@@ -3846,56 +3733,56 @@ void CMenuInvent::CalcCursorPosition() {
         case 0:
         case 4:
         case 6:
-            GetNetaBoardCursorPosition(photo_cursor, cursor.pos);
+            GetNetaBoardCursorPosition(photo_cursor, cursor);
 
             if (neta_board_form != NULL) {
-                cursor.pos[1] = 108.0f + (4.0f + neta_board_form->y) + (float) ((photo_cursor / 2 - photo_top) * 54);
+                cursor[1] = 108.0f + (4.0f + neta_board_form->y) + (float) ((photo_cursor / 2 - photo_top) * 54);
             }
 
-            cursor.pos[0] += 3;
-            cursor.pos[1] += 2;
-            command_pos.x = cursor.pos[0];
-            command_pos.y = cursor.pos[1];
+            cursor[0] += 3;
+            cursor[1] += 2;
+            command_pos.x = cursor[0];
+            command_pos.y = cursor[1];
             break;
         case 1:
         case 7:
-            album_sw_form->GetPutPosXY("cur", cursor.pos[0], cursor.pos[1]);
+            album_sw_form->GetPutPosXY("cur", cursor[0], cursor[1]);
             break;
         case 2:
-            cursor.pos[0] = card_list_form->x - 40.0f;
-            cursor.pos[1] = (card_cursor - card_top) * 46 + 72;
+            cursor[0] = card_list_form->x - 40.0f;
+            cursor[1] = (card_cursor - card_top) * 46 + 72;
 
             if (mode == 6) {
-                cursor.pos[0] = -50.0f + MakeBoardDrawInfo[make_cursor * 2];
-                cursor.pos[1] = MakeBoardDrawInfo[make_cursor * 2 + 1];
+                cursor[0] = -50.0f + MakeBoardDrawInfo[make_cursor * 2];
+                cursor[1] = MakeBoardDrawInfo[make_cursor * 2 + 1];
             }
 
             break;
         case 3:
-            MenuPosData->GetPosMenuItemOnItemBrd(cursor.pos, item_cursor, 1);
-            cursor.pos[0] -= 8;
-            cursor.pos[1] -= 10;
-            command_pos.x = cursor.pos[0];
-            command_pos.y = cursor.pos[1];
+            MenuPosData->GetPosMenuItemOnItemBrd(cursor, item_cursor, 1);
+            cursor[0] -= 8;
+            cursor[1] -= 10;
+            command_pos.x = cursor[0];
+            command_pos.y = cursor[1];
             break;
         case 5:
             sprintf(text, "cur%d", album_cursor - album_top * 2);
-            album_big_form->GetPutPosXY(text, cursor.pos[0], cursor.pos[1]);
-            command_pos.x = cursor.pos[0];
-            command_pos.y = cursor.pos[1];
+            album_big_form->GetPutPosXY(text, cursor[0], cursor[1]);
+            command_pos.x = cursor[0];
+            command_pos.y = cursor[1];
             break;
         case 8:
-            neta_board_form->GetPutPosXY("\x83\x6c\x83\x5e\x92\xa0\x88\xca\x92\x75", cursor.pos[0], cursor.pos[1]);
+            neta_board_form->GetPutPosXY("\x83\x6c\x83\x5e\x92\xa0\x88\xca\x92\x75", cursor[0], cursor[1]);
             break;
         case 11:
-            neta_memo_form->GetPutPosXY("\x83\x52\x83\x8b\x83\x4e", cursor.pos[0], cursor.pos[1]);
+            neta_memo_form->GetPutPosXY("\x83\x52\x83\x8b\x83\x4e", cursor[0], cursor[1]);
             break;
         case 10:
-            neta_board_form->GetPutPosXY("\x83\x6c\x83\x5e\x92\xa0\x96\xee\x88\xf3", cursor.pos[0], cursor.pos[1]);
+            neta_board_form->GetPutPosXY("\x83\x6c\x83\x5e\x92\xa0\x96\xee\x88\xf3", cursor[0], cursor[1]);
             break;
         case 9:
-            GetNetaMemoCursorPosition(memo_cursor - memo_top, cursor.pos);
-            cursor.pos[0] -= 32;
+            GetNetaMemoCursorPosition(memo_cursor - memo_top, cursor);
+            cursor[0] -= 32;
             break;
     }
 
@@ -3909,10 +3796,10 @@ void CMenuInvent::CalcCursorPosition() {
         MenuCommonInfo->SetWakuType(-1);
     }
 
-    MenuCommonInfo->MenuPosStep(cursor.pos, &offset.x);
+    MenuCommonInfo->MenuPosStep(cursor, &offset.x);
 
     if (cursor_snap != 0) {
-        MenuCommonInfo->MenuSetPos(cursor.pos[0], cursor.pos[1]);
+        MenuCommonInfo->MenuSetPos(cursor[0], cursor[1]);
         cursor_snap = 0;
     }
 }
@@ -3992,14 +3879,14 @@ int CMenuInvent::IsMakeObject(int keys, int button) {
         }
         case 10:
             if (ReadBGSync() == 0) {
-                ItemBoardKoma koma = {{256, 225, 100, 100}};
-                MenuPosData->GetPosMenuItemBrdKoma(koma.pos, make_space_no, 0);
+                int koma[10] = {256, 225, 100, 100};
+                MenuPosData->GetPosMenuItemBrdKoma(koma, make_space_no, 0);
                 mgCTexture *effect_tex = MenuPosData->icon_effect_tex;
-                MenuEffect[0]->PresetEffect(&MenuCharaLoadStack, effect_tex, 0, koma.pos);
+                MenuEffect[0]->PresetEffect(&MenuCharaLoadStack, effect_tex, 0, koma);
                 MenuEffect[0]->EffectStart();
-                koma.pos[2] = 32;
-                koma.pos[3] = 40;
-                MenuEffect[1]->PresetEffect(&MenuCharaLoadStack, effect_tex, 4, koma.pos);
+                koma[2] = 32;
+                koma[3] = 40;
+                MenuEffect[1]->PresetEffect(&MenuCharaLoadStack, effect_tex, 4, koma);
                 MenuEffect[1]->EffectStart();
                 MenuCommonInfo->SetVibeR(6, 4);
 
@@ -4029,10 +3916,10 @@ int CMenuInvent::IsMakeObject(int keys, int button) {
             if (MenuEffect[1]->run == 0) {
                 step++;
                 ExeScript("MSG_ITEMMAKE");
-                ItemNameList2 names = {{NULL, NULL}};
-                names.name[0] = GetItemMessage(make_item_no);
+                char *names[2] = {NULL, NULL};
+                names[0] = GetItemMessage(make_item_no);
                 CDC2Mes *message = MenuDCMsg[4];
-                message->SetMsgItemNo(names.name, 1);
+                message->SetMsgItemNo(names, 1);
                 message->SetMsgVolumeNoOne(make_num);
             }
 
@@ -5623,12 +5510,12 @@ void CMenuInvent::UpdataNetaMemoStr() {
 }
 
 void MakeMsgNetaName(CDC2Mes *message, CMenuPosDataForm *form, USER_PICTURE_INFO *photo, int *pos, int show_mark) {
-    NetaNameBlank blank = {" "};
+    char blank[2] = " ";
     char         *name = GetPhotoName(photo);
     int           offset_x = 6;
 
     if (name == NULL) {
-        name = blank.text;
+        name = blank;
     }
 
     int message_no = 50;
@@ -5674,7 +5561,7 @@ void MenuInventCreateCardDraw(int &tex_block, float *pos) {
         mgCDrawPrim *prim = GetMenuPrim();
         int          origin[2] = {(int) pos[0], (int) pos[1]};
         put_rect.Set(origin[0], origin[1], card_rect.right, card_rect.bottom);
-        MenuColor rgba = {{0x80, 0x80, 0x80, 0x80}};
+        u8 rgba[4] = {0x80, 0x80, 0x80, 0x80};
         SetSpriteEnv(prim, 0);
         prim->Bilinear(1);
         prim->Begin(6);
@@ -5704,7 +5591,7 @@ void MenuInventCreateCardDraw(int &tex_block, float *pos) {
             for (i = 0; i < 256; i++) {
                 if (put_rect.top + put_rect.bottom >= 20) {
                     mgRect<float> icon_rect(put_rect.left, put_rect.top, 32.0f, 33.0f);
-                    DrawOneItem(prim, icon_rect, InventUserDataPtr->GetCreateItemID(i), 2, NULL, rgba.rgba, 0);
+                    DrawOneItem(prim, icon_rect, InventUserDataPtr->GetCreateItemID(i), 2, NULL, rgba, 0);
 
                     if (put_rect.top >= 410) {
                         break;
@@ -6560,10 +6447,10 @@ int MenuInventPushKey(int pad, int pushed) {
             case 0:
             case 4:
             case 6: {
-                GridOverCode overcode = {{0, 0, 0, 2}};
+                int overcode[4] = {0, 0, 0, 2};
 
                 if (CMenuInventPt->album_enable == 0) {
-                    overcode.value[3] = 0;
+                    overcode[3] = 0;
                 }
 
                 int old_cursor = CMenuInventPt->photo_cursor;
@@ -6573,7 +6460,7 @@ int MenuInventPushKey(int pad, int pushed) {
                 } else {
                     int result =
                         MenuGlidKeyCheck(pad, &CMenuInventPt->photo_cursor, &CMenuInventPt->photo_top,
-                                         maxtbl_5171, viewnum_5172, overcode.value, 30);
+                                         maxtbl_5171, viewnum_5172, overcode, 30);
 
                     if (old_cursor != CMenuInventPt->photo_cursor) {
                         MenuSePlay(0);
@@ -7219,9 +7106,9 @@ int MenuInventPushKey(int pad, int pushed) {
                 if (InventUserDataPtr->IsAlreadyCreatedItem(CMenuInventPt->create_item_id) >= 0) {
                     CMenuInventPt->step = 4;
                     CMenuInventPt->ExeScript("\x94\xad\x96\xbe\x8d\xcf\x82\xdd");
-                    ItemNameList1 item_name = {{NULL}};
-                    item_name.name[0] = GetItemMessage(CMenuInventPt->create_item_id);
-                    message->SetMsgItemNo(item_name.name, 1);
+                    char *item_name[1] = {NULL};
+                    item_name[0] = GetItemMessage(CMenuInventPt->create_item_id);
+                    message->SetMsgItemNo(item_name, 1);
                 } else {
                     CMenuInventPt->ExeScript("\x94\xad\x96\xbe\x82\xb7\x82\xe9\x81\x48");
                 }
@@ -7255,25 +7142,25 @@ int MenuInventPushKey(int pad, int pushed) {
                     if (CMenuInventPt->make_num_max <= 0) {
                         CMenuInventPt->step = 3;
                         CMenuInventPt->ExeScript("\x8d\xc5\x91\xe5\x83\x60\x83\x46\x83\x62\x83\x4e");
-                        ItemNameList1 item_name = {{NULL}};
-                        item_name.name[0] = GetItemMessage(CMenuInventPt->make_item_no);
-                        MenuDCMsg[4]->SetMsgItemNo(item_name.name, 1);
+                        char *item_name[1] = {NULL};
+                        item_name[0] = GetItemMessage(CMenuInventPt->make_item_no);
+                        MenuDCMsg[4]->SetMsgItemNo(item_name, 1);
                         MenuDCMsg[4]->SetMsgVolumeNoOne(common->max_num);
                     } else {
                         if (common->stack_num == 1) {
                             CMenuInventPt->make_num_max = 1;
                         }
 
-                        ItemNameList5 names = {{NULL, NULL, NULL, NULL, NULL}};
-                        names.name[0] = GetItemMessage(CMenuInventPt->make_item_no);
+                        char *names[5] = {NULL, NULL, NULL, NULL, NULL};
+                        names[0] = GetItemMessage(CMenuInventPt->make_item_no);
 
                         for (int i = 0; i < CMenuInventPt->make_material->num; i++) {
-                            names.name[1 + i] =
+                            names[1 + i] =
                                 GetItemMessage(CMenuInventPt->make_material->material[i].item_id);
                         }
 
                         CMenuInventPt->ExeScript("\x8d\xec\x82\xe9\x81\x48");
-                        message->SetMsgItemNo(names.name, 5);
+                        message->SetMsgItemNo(names, 5);
                         message->StepMsg();
                         MenuCommonInfo->SetVibeR(0, 0);
                     }
@@ -7307,14 +7194,14 @@ int MenuInventPushKey(int pad, int pushed) {
 
             if (CMenuInventPt->photo_only == 1) {
                 CMenuInventPt->ExeScript("\x8e\xca\x90\x5e\x83\x81\x83\x6a\x83\x85\x81\x5b\x8f\x49\x97\xb9");
-                ModelTriple hidden = {{NULL, NULL, NULL}};
-                hidden.model[0] = MenuActionChara[0];
-                hidden.model[1] = MenuActionChara[3];
-                hidden.model[2] = CMenuInventPt->sub_chara;
+                CActionChara *hidden[3] = {NULL, NULL, NULL};
+                hidden[0] = MenuActionChara[0];
+                hidden[1] = MenuActionChara[3];
+                hidden[2] = CMenuInventPt->sub_chara;
                 int i = 0;
 
                 do {
-                    CActionChara *model = hidden.model[i];
+                    CActionChara *model = hidden[i];
 
                     if (model != NULL) {
                         model->SetFadeFlag(1);

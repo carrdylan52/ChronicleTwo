@@ -79,3 +79,38 @@ shared literal migration, without restoring deleted externs or markers.
 The guards and retail fallbacks are unchanged. The draft checker compiles
 all five guarded functions; the normal PAL image and 149 objects remain
 exact.
+
+## Plain-array initializer probes
+
+Each candidate is compiled separately through the pinned canonical MWCC/SF
+wrapper and compared against the complete unit, including resolved
+relocations. A copied-source control matches first, and all accepted
+initializers match together. The results are:
+
+| Initializer | Result |
+| --- | --- |
+| `found-flags` | Plain array accepted; exact unit. |
+| `record-types` | Plain array accepted; exact unit. |
+| `grade-rows` | Plain array accepted; exact unit. |
+| `gradation-steps` | Plain array accepted; exact unit. |
+| `cursor` | Plain array accepted; exact unit. |
+| `item-board` | Plain array accepted; exact unit. |
+| `make-names` | Plain array accepted; exact unit. |
+| `card-color` | Plain array accepted; exact unit. |
+| `grid-codes` | Plain array accepted; exact unit. |
+| `one-name` | Plain array accepted; exact unit. |
+| `five-names` | Plain array accepted; exact unit. |
+| `hidden-models` | Plain array accepted; exact unit. |
+| `blank-name` | Plain array accepted; exact unit. |
+
+The unused NetaFoundFlags, ScreenPoint and NetaEffectTarget types are
+removed, together with initializer wrappers that have no remaining uses.
+GradationSet writes 224.0f directly to each part's y coordinate; its two
+integer writes were the same float bits (0x43600000). The existing
+IsAskExtend confirmation-name copies remain: the recorded scope split
+changes 15 prologue text bytes, and value-initialization also fails.
+Guarded IsCreateObject's FoundSlots and PathPrefix copies retain their
+retail assembly storage. The mode table's former raw 1 and 7 are the
+named album-button states established in the earlier enum cleanup.
+
+The normal full build preserves SCES_511.90 and all 149 canonical objects.

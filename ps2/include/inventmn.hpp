@@ -9,16 +9,6 @@
 #include "mg_tanime.hpp"
 #include "userdata.hpp"
 
-/**
- *
- * Three bytes of invention discovery flags.
- *
- */
-struct InventFoundFlags {
-    u8 flag[3]; /**< Flags marking discovered inventions. */
-};
-
-STATIC_ASSERT(sizeof(InventFoundFlags) == 3);
 
 /**
  * @file
