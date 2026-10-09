@@ -9,6 +9,7 @@ extern char aquarium_fish_maxtbl[];
 #include <cstring>
 
 #include "dataread.hpp"
+#include "fishing.hpp"
 #include "gamedata.hpp"
 #include "gamepad.hpp"
 #include "mainloop.hpp"
@@ -173,23 +174,7 @@ struct gyorace_list_select {
     int top;    /**< First visible list row. */
 };
 
-/**
- *
- * Stores data indices for the six racers.
- *
- */
-struct gyoracer_index_data {
-    short data_index[6]; /**< Data index for each racer. */
-};
 
-/**
- *
- * Stores tactic numbers for the six racers.
- *
- */
-struct gyoracer_tactics_data {
-    short tactics_no[6]; /**< Tactic number for each racer. */
-};
 
 /**
  *
@@ -271,14 +256,6 @@ extern "C" aqua_vector        at_3291__3;
 extern "C" aqua_vector        at_3310;
 extern "C" aqua_vector        at_3311;
 
-/**
- *
- * Stores the four corners of an aquarium wall.
- *
- */
-struct aqua_wall_quad {
-    float v[4][4]; /**< Position of each wall corner. */
-};
 
 extern int                menu_debug_flag;
 
@@ -1000,32 +977,6 @@ enum AquaFishBreedKind {
     AQUA_FISH_KIND_F19 = 0, /**< Fish species using the f19a image. */
 };
 
-/**
- *
- * Identifies the fish items used by the aquarium image table.
- *
- */
-enum AquaFishItemNo {
-    AQUA_FISH_ITEM_F01 = 320, /**< Fish item using the f01a image. */
-    AQUA_FISH_ITEM_F02 = 321, /**< Fish item using the f02a image. */
-    AQUA_FISH_ITEM_F03 = 322, /**< Fish item using the f03a image. */
-    AQUA_FISH_ITEM_F04 = 323, /**< Fish item using the f04a image. */
-    AQUA_FISH_ITEM_F05 = 324, /**< Fish item using the f05a image. */
-    AQUA_FISH_ITEM_F06 = 325, /**< Fish item using the f06a image. */
-    AQUA_FISH_ITEM_F07 = 326, /**< Fish item using the f07a image. */
-    AQUA_FISH_ITEM_F08 = 327, /**< Fish item using the f08a image. */
-    AQUA_FISH_ITEM_F10 = 328, /**< Fish item using the f10a image. */
-    AQUA_FISH_ITEM_F11 = 329, /**< Fish item using the f11a image. */
-    AQUA_FISH_ITEM_F12 = 330, /**< Fish item using the f12a image. */
-    AQUA_FISH_ITEM_F13 = 331, /**< Fish item using the f13a image. */
-    AQUA_FISH_ITEM_F14 = 332, /**< Fish item using the f14a image. */
-    AQUA_FISH_ITEM_F15 = 333, /**< Fish item using the f15a image. */
-    AQUA_FISH_ITEM_F16 = 334, /**< Fish item using the f16a image. */
-    AQUA_FISH_ITEM_F17 = 335, /**< Fish item using the f17a image. */
-    AQUA_FISH_ITEM_F18 = 336, /**< Fish item using the f18a image. */
-    AQUA_FISH_ITEM_F19 = 310, /**< Fish item using the f19a image. */
-    AQUA_FISH_ITEM_END = -1, /**< End of the fish image table. */
-};
 
 /**
  *
@@ -1363,7 +1314,10 @@ static float amptbl_997[5][2] = {
  * Stores turn directions for the two aquarium circling orientations.
  *
  */
-static float dirtbl_1242[8] = {1.57079637f, -3.1101768f, 0.0f, -1.57079637f, 0.0f, 1.57079637f, -1.57079637f, -3.1101768f};
+static float dirtbl_1242[2][4] = {
+    {1.57079637f, -3.1101768f, 0.0f, -1.57079637f},
+    {0.0f, 1.57079637f, -1.57079637f, -3.1101768f}
+};
 
 /**
  *
@@ -1378,25 +1332,25 @@ static int max_tbl_1484[6] = {0, 250, 250, 25000, 250, 0};
  *
  */
 static aqua_fish_info aquafish_info[19] = {
-    {AQUA_FISH_ITEM_F01, "f01a", 2, 1},
-    {AQUA_FISH_ITEM_F02, "f02a", 3, 2},
-    {AQUA_FISH_ITEM_F03, "f03a", 4, 3},
-    {AQUA_FISH_ITEM_F04, "f04a", 5, 4},
-    {AQUA_FISH_ITEM_F05, "f05a", 6, 9},
-    {AQUA_FISH_ITEM_F06, "f06a", 7, 18},
-    {AQUA_FISH_ITEM_F07, "f07a", 8, 5},
-    {AQUA_FISH_ITEM_F08, "f08a", 9, 16},
-    {AQUA_FISH_ITEM_F10, "f10a", 10, 8},
-    {AQUA_FISH_ITEM_F11, "f11a", 11, 10},
-    {AQUA_FISH_ITEM_F12, "f12a", 12, 11},
-    {AQUA_FISH_ITEM_F13, "f13a", 13, 12},
-    {AQUA_FISH_ITEM_F14, "f14a", 14, 13},
-    {AQUA_FISH_ITEM_F15, "f15a", 15, 17},
-    {AQUA_FISH_ITEM_F16, "f16a", 16, 15},
-    {AQUA_FISH_ITEM_F17, "f17a", 17, 6},
-    {AQUA_FISH_ITEM_F18, "f18a", 18, 7},
-    {AQUA_FISH_ITEM_F19, "f19a", 1, 14},
-    {AQUA_FISH_ITEM_END}
+    {FISH_ITEM_BOUBOU, "f01a", 2, 1},
+    {FISH_ITEM_GABURA, "f02a", 3, 2},
+    {FISH_ITEM_NONKII, "f03a", 4, 3},
+    {FISH_ITEM_KAJII, "f04a", 5, 4},
+    {FISH_ITEM_BAKUBAKU, "f05a", 6, 9},
+    {FISH_ITEM_MAADANGARAYAN, "f06a", 7, 18},
+    {FISH_ITEM_GUMII, "f07a", 8, 5},
+    {FISH_ITEM_NIIRAA, "f08a", 9, 16},
+    {FISH_ITEM_UMADAKARA, "f10a", 10, 8},
+    {FISH_ITEM_TAATON, "f11a", 11, 10},
+    {FISH_ITEM_PIKKORII, "f12a", 12, 11},
+    {FISH_ITEM_BON, "f13a", 13, 12},
+    {FISH_ITEM_HAMAHAMA, "f14a", 14, 13},
+    {FISH_ITEM_NEJII, "f15a", 15, 17},
+    {FISH_ITEM_DEN, "f16a", 16, 15},
+    {FISH_ITEM_HIIRA, "f17a", 17, 6},
+    {FISH_ITEM_DANSHAKU_GARAYAN, "f18a", 18, 7},
+    {FISH_ITEM_HAGUHAGU, "f19a", 1, 14},
+    {-1}
 };
 
 /**
@@ -1565,21 +1519,21 @@ static SPI_TAG_PARAM gyoprize_tag[4] = {
  * Stores the six saved-racer data indices.
  *
  */
-static gyoracer_index_data GyoracerIndexNo = {{-1, -1, -1, -1, -1, -1}};
+static short GyoracerIndexNo[6] = {-1, -1, -1, -1, -1, -1};
 
 /**
  *
  * Stores the six saved-racer tactics numbers.
  *
  */
-static gyoracer_tactics_data GyoracerTacticsNo = {{-1, -1, -1, -1, -1, -1}};
+static short GyoracerTacticsNo[6] = {-1, -1, -1, -1, -1, -1};
 
 /**
  *
  * Stores the translated labels of an empty saved-racer slot.
  *
  */
-char * Mitouroku[7] = {
+char *Mitouroku[7] = {
     "  ",
     "  None",
     "  Aucun",
@@ -1769,7 +1723,7 @@ static s8 menu_max_tbl_3720[3] = {6, 4, 4};
  * Stores the fish-race and fishing-tournament prize script paths.
  *
  */
-static char * filename_4899[2] = {"gyop.cfg", "uofp.cfg"};
+static char *filename_4899[2] = {"gyop.cfg", "uofp.cfg"};
 
 // Code (.text)
 /**
@@ -2185,13 +2139,13 @@ void CAquaFish::GetPosition2D(int *out) {
 
 void CAquaFish::GetDirVect(float *out) {
     float       rot[4];
-    aqua_vector forward = {{0.0f, 0.0f, 1.0f, 1.0f}};
+    float forward[4] = {0.0f, 0.0f, 1.0f, 1.0f};
     float       matrix[4][4];
 
     GetRotation(rot);
     sceVu0UnitMatrix(matrix);
     sceVu0RotMatrixY(matrix, matrix, rot[1]);
-    sceVu0ApplyMatrix(out, matrix, forward.v);
+    sceVu0ApplyMatrix(out, matrix, forward);
     out[3] = 1.0f;
 }
 
@@ -2354,7 +2308,7 @@ void CAquaFish::MoveActionRound() {
     GetPosition(pos);
     sceVu0FVECTOR dir = {0.0f, 0.0f, 0.0f, 1.0f};
     yaw = target_rot[1];
-    turn = &dirtbl_1242[round.dir * 4];
+    turn = dirtbl_1242[round.dir];
 
     if (pos[0] < -31.0f * round.width) {
         if (pos[2] < -18.0f * round.depth) {
@@ -2800,11 +2754,11 @@ void CAquaFish::FishDraw() {
         float        saved[4];
 
         mgGetAmbient(saved);
-        aqua_vector bright = {{140.0f, 64.0f, 64.0f, 128.0f}};
+        float bright[4] = {140.0f, 64.0f, 64.0f, 128.0f};
 
         if (hp < 0x1E && flash_count < 0xB) {
-            bright.v[0] = 172.0f;
-            mgSetAmbient(bright.v);
+            bright[0] = 172.0f;
+            mgSetAmbient(bright);
         }
 
         DrawDirect();
@@ -3965,11 +3919,11 @@ void CAquarium::Initialize(mgCMemory *memory, int *blocks) {
         AquaFishEff[i]->Initialize();
     }
 
-    aqua_vector origin = {{0.0f, 0.0f, 0.0f, 1.0f}};
+    float origin[4] = {0.0f, 0.0f, 0.0f, 1.0f};
 
     for (int no = 0; no < 6; no++) {
         AquaFishBubble[no] = new (MenuMainTextureReadBuf.Alloc(sizeof(CBubble) / 16 + 2)) CBubble;
-        AquaFishBubble[no]->Initialize(&MenuMainTextureReadBuf, origin.v, 0x88, 47.0f);
+        AquaFishBubble[no]->Initialize(&MenuMainTextureReadBuf, origin, 0x88, 47.0f);
         AquaFishBubble[no]->one_shot = 1;
         AquaFishBubble[no]->RunOff();
     }
@@ -6088,9 +6042,9 @@ int CAquarium::Step() {
 void CAquarium::Draw() {
     mgCTextureManager *textures = &mgTexManager;
     int                i;
-    aqua_vector        water_ambient = {{64.0f, 92.0f, 128.0f, 128.0f}};
+    float water_ambient[4] = {64.0f, 92.0f, 128.0f, 128.0f};
 
-    mgSetAmbient(water_ambient.v);
+    mgSetAmbient(water_ambient);
     for (i = 0; i < 6; i++) {
         if (fish[i] != NULL) {
             textures->ReloadTexture(fish_tex_block[i], static_cast<sceVif1Packet *>(NULL));
@@ -6108,7 +6062,7 @@ void CAquarium::Draw() {
         load_stack.lock = 0;
         mgBeginDraw(&load_stack, tex_block, NULL);
         mgDraw(aqua_frame);
-        mgSetAmbient(water_ambient.v);
+        mgSetAmbient(water_ambient);
         if (naka_frame != NULL) {
             mgDraw(naka_frame);
         }
@@ -6146,9 +6100,9 @@ void CAquarium::Draw() {
         AquaFishEff[i]->Draw();
     }
     if (suimen_frame != NULL) {
-        aqua_vector surface_ambient = {{128.0f, 128.0f, 128.0f, 8.0f}};
+        float surface_ambient[4] = {128.0f, 128.0f, 128.0f, 8.0f};
 
-        mgSetAmbient(surface_ambient.v);
+        mgSetAmbient(surface_ambient);
         textures->ReloadTexture(water_tex_block, static_cast<sceVif1Packet *>(NULL));
         mgDrawDirect(suimen_frame);
         if (mizu_frame != NULL) {
@@ -6193,10 +6147,10 @@ void CAquarium::Draw() {
         sceVu0Normalize(flat_dir, dir);
         dir[1] = 0.0f;
         sceVu0Normalize(dir, dir);
-        aqua_vector axis_x = {{1.0f, 0.0f, 0.0f, 0.0f}};
-        aqua_vector axis_z = {{1.0f, 0.0f, 0.0f, 0.0f}};
-        sceVu0InnerProduct(axis_x.v, dir);
-        sceVu0InnerProduct(axis_z.v, flat_dir);
+        float axis_x[4] = {1.0f, 0.0f, 0.0f, 0.0f};
+        float axis_z[4] = {1.0f, 0.0f, 0.0f, 0.0f};
+        sceVu0InnerProduct(axis_x, dir);
+        sceVu0InnerProduct(axis_z, flat_dir);
         water->CreatePacket();
         ripple -= 0.01f;
         if (ripple <= 0.1f) {
@@ -7214,7 +7168,7 @@ static int SearchOmakeGyoracer(int slot) {
 
     if (slot < 0) {
         for (i = 0; i < omake_racer_slot_count; i++) {
-            if (0 > GyoracerIndexNo.data_index[i]) {
+            if (0 > GyoracerIndexNo[i]) {
                 return i;
             }
         }
@@ -7222,14 +7176,14 @@ static int SearchOmakeGyoracer(int slot) {
         return -1;
     }
 
-    return GyoracerIndexNo.data_index[slot];
+    return GyoracerIndexNo[slot];
 }
 
 int CheckSameRacerFish(int fish_no) {
     int i;
 
     for (i = 0; i < omake_racer_slot_count; i++) {
-        if (fish_no == GyoracerIndexNo.data_index[i]) {
+        if (fish_no == GyoracerIndexNo[i]) {
             return i;
         }
     }
@@ -7265,7 +7219,7 @@ int GetOmakeGyoracerTactics(int slot) {
         return -1;
     }
 
-    return GyoracerTacticsNo.tactics_no[slot];
+    return GyoracerTacticsNo[slot];
 }
 
 void SetOmakeGyoracerTactics(int slot, int tactics) {
@@ -7273,7 +7227,7 @@ void SetOmakeGyoracerTactics(int slot, int tactics) {
         return;
     }
 
-    GyoracerTacticsNo.tactics_no[slot] = tactics;
+    GyoracerTacticsNo[slot] = tactics;
 }
 
 /**
@@ -7285,7 +7239,7 @@ static void GyoracerListUpdate() {
     ((ClsMes *) GyoraceFishMes)->mes_no = -1;
 
     for (int slot = 0; slot < 6; slot++) {
-        int data_index = GyoracerIndexNo.data_index[slot];
+        int data_index = GyoracerIndexNo[slot];
 
         if (0 <= data_index) {
             GYORACE_DATA *record = GyoraceData->GetData(data_index);
@@ -7310,18 +7264,18 @@ static void GyoracerListUpdate() {
 }
 
 void GyoraceSubGameInitData() {
-    GyoracerIndexNo.data_index[0] = -1;
-    GyoracerTacticsNo.tactics_no[0] = -1;
-    GyoracerIndexNo.data_index[1] = -1;
-    GyoracerTacticsNo.tactics_no[1] = -1;
-    GyoracerIndexNo.data_index[2] = -1;
-    GyoracerTacticsNo.tactics_no[2] = -1;
-    GyoracerIndexNo.data_index[3] = -1;
-    GyoracerTacticsNo.tactics_no[3] = -1;
-    GyoracerIndexNo.data_index[4] = -1;
-    GyoracerTacticsNo.tactics_no[4] = -1;
-    GyoracerIndexNo.data_index[5] = -1;
-    GyoracerTacticsNo.tactics_no[5] = -1;
+    GyoracerIndexNo[0] = -1;
+    GyoracerTacticsNo[0] = -1;
+    GyoracerIndexNo[1] = -1;
+    GyoracerTacticsNo[1] = -1;
+    GyoracerIndexNo[2] = -1;
+    GyoracerTacticsNo[2] = -1;
+    GyoracerIndexNo[3] = -1;
+    GyoracerTacticsNo[3] = -1;
+    GyoracerIndexNo[4] = -1;
+    GyoracerTacticsNo[4] = -1;
+    GyoracerIndexNo[5] = -1;
+    GyoracerTacticsNo[5] = -1;
 }
 
 void GyoraceMenuInit(mgCMemory *memory, int *tex_block, int) {
@@ -7523,7 +7477,7 @@ int GyoraceMenuKey() {
 
                 racer_num = 0;
                 for (i = 0; i < 6; i++) {
-                    if (0 <= GyoracerIndexNo.data_index[i]) {
+                    if (0 <= GyoracerIndexNo[i]) {
                         racer_num++;
                     }
                 }
@@ -7651,9 +7605,9 @@ int GyoraceMenuKey() {
                     MenuSePlay(5);
                 } else {
                     save_now_space_racer_no = slot;
-                    GyoracerIndexNo.data_index[slot] = GyoraceFishHaveListSelect.cursor;
+                    GyoracerIndexNo[slot] = GyoraceFishHaveListSelect.cursor;
                     GyoracerListUpdate();
-                    GyoracerTacticsNo.tactics_no[slot] = 0;
+                    GyoracerTacticsNo[slot] = 0;
                     list_update = 1;
                     GyoraceFishTacMesDrawFlag = list_update;
                     GyoraceCFGAnalyze("\x8d\xec\x90\xed\x91\x49\x91\xf0");
@@ -7672,7 +7626,7 @@ int GyoraceMenuKey() {
             if (button & MENU_PUSH_BUTTON_DECIDE) {
                 CGameDataUsed *racer_fish;
 
-                GyoracerTacticsNo.tactics_no[save_now_space_racer_no] = cursor - 1;
+                GyoracerTacticsNo[save_now_space_racer_no] = cursor - 1;
                 GyoraceCFGAnalyze("\x8d\xec\x90\xed\x8c\x88\x92\xe8");
                 name = NULL;
                 racer_fish = GetOmakeGyoracer2(save_now_space_racer_no);
@@ -7798,7 +7752,7 @@ int GyoraceMenuKey() {
             }
             int tactics[1] = {-1};
             if (GyoracerActive != NULL) {
-                tactics[0] = GyoracerTacticsNo.tactics_no[racer_slot] + 0x139C;
+                tactics[0] = GyoracerTacticsNo[racer_slot] + 0x139C;
             }
             tactics_mes->SetMsgItemNo(tactics, 1);
             break;

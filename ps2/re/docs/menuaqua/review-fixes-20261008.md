@@ -79,3 +79,34 @@ ACKNOWLEDGE name claims no unverified prompt. The decision sound uses
 the existing SYSTEM_SE_DECIDE; raw sound 5 has no shared enum value.
 
 Enum substitutions preserve the complete PAL image and all 149 objects.
+
+## Plain-array initializer probes
+
+Each candidate is compiled separately through the pinned canonical MWCC/SF
+wrapper and compared against the complete unit, including resolved
+relocations. A copied-source control matches first, and all accepted
+initializers match together. The results are:
+
+| Initializer | Result |
+| --- | --- |
+| `direction` | Plain array accepted; exact unit. |
+| `brightness` | Plain array accepted; exact unit. |
+| `bubble-origin` | Plain array accepted; exact unit. |
+| `water-ambient` | Plain array accepted; exact unit. |
+| `surface-ambient` | Plain array accepted; exact unit. |
+| `reflection-x` | Plain array accepted; exact unit. |
+| `reflection-z` | Plain array accepted; exact unit. |
+| `racer-indices` | Plain array accepted; exact unit. |
+| `racer-tactics` | Plain array accepted; exact unit. |
+
+The unused aqua_wall_quad and any unused racer wrappers are removed.
+The image-model table uses fishing.hpp's existing FISH_ITEM_ID values;
+its terminal -1 remains distinct from FISH_ITEM_NONE (zero).
+dirtbl_1242 stores two rows of four turn directions and selects the row
+with round.dir; its eight values and row order stay identical.
+NextThink's at_1346 aggregate/SDK-array probe already changes five text
+bytes, and Thinking's four seed probes already change thirteen text
+bytes. Those recorded failures are retained without repetition. The
+reserved guarded SettingAqua block is unchanged.
+
+The normal full build preserves SCES_511.90 and all 149 canonical objects.
