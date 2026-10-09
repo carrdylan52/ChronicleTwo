@@ -602,6 +602,17 @@ Receipts are `.private/pntc/receipts/promote-thirty-four-{build,objects,artifact
 with zero exits, artifact JSON and `.private/pntc/promote34/acceptance.json`.
 The exact immutable accepted executable and its full ELF/main/symbol facts
 are separately captured in `promote34/SCES_511.90` and `image-snapshot.json`.
+
+Six promoted non-member callers retain inherited GLOBAL bindings while retail
+marks them LOCAL: `emapRIVER_PARTS_NAME`, `emapMASK_PARTS_NAME`,
+`emapWATER_PARTS_NAME`, `_COPY_CHARA`, `StepDataLoading` and `CreateChara`.
+The original63f assembled baseline and historical canonical native controls
+already have these GLOBAL definitions, and their original/current C++
+declarations omit `static`. Accepted34 retains exact retail addresses and
+actual body sizes for all six. Raw binding identity with retail is therefore
+not asserted; game-byte and named-relocation comparisons remain separate
+acceptance evidence.
+
 The [owning Copy note](../mapparts/placement-new-copy-natural-20261009.md)
 records normal identities, real 246/before247/after12/zero controls, full
 unit/data/metadata audits and the unowned comment-only actual-size proposal.

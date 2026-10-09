@@ -47,7 +47,7 @@ All rows use actual allocator `__nw__FUiP1`, exact caller/constructor identities
 | sceneload | `LoadChara__6CSceneFiPUiPcP9mgCMemoryP9mgCMemoryP9mgCMemoryii` | `0x00288F30` | `0x244` | GLOBAL | 1 | after |
 | sceneload | `CopyChara__6CSceneFiiP9mgCMemory` | `0x002891B0` | `0x284` | GLOBAL | 1 | after |
 
-The final source audit covers all 34 callers and all 21 affected units, with no executable hygiene blocker. Nine inherited declaration purpose-comment omissions were corrected in separate editeff, fishing, inventmn and menuchr commits. Their rebuild and final CLEAN rebuild preserve all 455 raw objects and the whole accepted34 ELF. The [source-audit note](placement-new-source-hygiene-20261009.md) owns the exact scope. New binding-provenance checking records the six metadata differences above without replaying any game matching control.
+The final source audit covers all 34 callers and all 21 affected units, with no executable hygiene blocker. Nine inherited declaration purpose-comment omissions were corrected in separate editeff, fishing, inventmn and menuchr commits. Their rebuild and final CLEAN rebuild preserve all 455 raw objects and the whole accepted34 ELF. The [source-audit note](placement-new-source-hygiene-20261009.md) owns the exact scope. Existing declarations and the original baseline already use GLOBAL for those six; read-only provenance checking records this inherited metadata difference without replaying any matching control.
 
 ## Validation and artifact identity
 
