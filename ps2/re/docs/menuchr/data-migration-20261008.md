@@ -210,3 +210,16 @@ After this group: **140 / 25 markers**, **4 / 9726 matched_data**.
 Each table independently passes PAL and 149/149 objects; receipts are
 `.private/nmchr-r3/menuchr-monster-tables-00` through `-05`, with
 `-{build,objects,progress,metrics}.log`, and `monster-table-batch.log`.
+
+## Costume numeric tables
+
+Five native definitions supply seven costume background-request flags, three
+load phases, the four-byte tile colour, three equipment slot indices, and
+seven localized help-panel widths. Mutable table definitions preserve the
+retail loads; the previous const equipment-table probe changes those loads
+and is not repeated. Guarded costume loading still resolves its request table
+by the retail name.
+After this group: **135 / 25 markers**, **4 / 9726 matched_data**.
+Each table passes PAL and 149/149 objects independently; receipts are
+`.private/nmchr-r3/menuchr-costume-tables-00` through `-04`, with
+`-{build,objects,progress,metrics}.log`, and `costume-table-batch.log`.

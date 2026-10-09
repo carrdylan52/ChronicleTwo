@@ -727,7 +727,13 @@ extern u8                 at_4967__2[16];
 extern char               at_5051[];
 extern char               at_5052[];
 extern char               at_5053[];
-extern int                tbl_5016[];
+/**
+ *
+ * Character slots that require costume menu background read requests.
+ *
+ */
+static int tbl_5016[MENU_CHARA_LOAD_MAX] = {1, 1, 0, 0, 1, 1, 1};
+
 extern u8                 at_5452[64];
 extern u8                 at_5482[32];
 extern char               at_5839[];
@@ -932,11 +938,35 @@ extern char             at_2020__2[];
 extern char             at_2021__2[];
 extern char             at_2022[];
 extern char             at_2023[];
-extern u8               tilergba_5203[4];
-extern s8               convtbl_5238[3];
-extern float            putw_5262[];
+/**
+ *
+ * Red, green, blue and alpha of the costume menu background tiles.
+ *
+ */
+static u8 tilergba_5203[4] = {108, 108, 108, 128};
+
+/**
+ *
+ * Equipment slot displayed by each costume list.
+ *
+ */
+static s8 convtbl_5238[COSTUME_LIST_NUM] = {2, 4, 3};
+
+/**
+ *
+ * Help panel width of the costume menu for each supported language.
+ *
+ */
+static float putw_5262[LANG_CHINESE + 1] = {246.0f, 206.0f, 270.0f, 234.0f, 236.0f, 246.0f, 256.0f};
+
 extern char            *infomsg_5256[];
-extern s8               phasetbl_5119[COSTUME_LIST_NUM];
+/**
+ *
+ * Background load phase associated with each costume list.
+ *
+ */
+static s8 phasetbl_5119[COSTUME_LIST_NUM] = {4, 1, 5};
+
 /**
  *
  * Number of resistance or weakness icons that the monster book can display.
@@ -7604,9 +7634,7 @@ INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_4586__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", convtbl_4621__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_4728__2__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_4967__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", tbl_5016__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", infomsg_5256__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", putw_5262__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_5452__DATA);
 
 // Constants (.rodata)
@@ -7727,9 +7755,6 @@ INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", convItoPhase_4229__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", monster_load_id__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", NowReadMainCharaNo__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", NowReadMainCharaMonsterNo__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", phasetbl_5119__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", tilergba_5203__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", convtbl_5238__DATA);
 
 // Small uninitialised data (.sbss)
 mgCMemory *MorattaStack;
