@@ -40,3 +40,10 @@ Validation receipts are under `.private/dataE/`, with the step prefixes
 listed above and `-build.log`, `-objects.log`, and `-hashes.log` suffixes.
 Final refresh: `mg-sprite-final-progress.log`, `mg-sprite-final-coverage.log`,
 and `mg-sprite-final-metrics.json`.
+
+## Function statics (2026-10-09)
+
+`prog_vif` and `progf_vif` are function statics of `mgC3DSprite::EndCPSprite`
+(retail `prog_vif$291`, `progf_vif$292`) instead of the file-scope
+`prog_vif_291`/`progf_vif_292`. The object stays exact
+(`.private/fixes-r3c/b1-*.log`).

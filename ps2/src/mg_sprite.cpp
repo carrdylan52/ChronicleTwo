@@ -10,20 +10,6 @@
 
 /**
  *
- * VIF quadword starting the billboard program at address two.
- *
- */
-static u_int prog_vif_291[4] __attribute__((aligned(16))) = {0, 0, 0, MG_VIF_MSCAL | 2};
-
-/**
- *
- * VIF quadword continuing the billboard program.
- *
- */
-static u_int progf_vif_292[4] __attribute__((aligned(16))) = {0, 0, 0, MG_VIF_MSCNT};
-
-/**
- *
  * GIF tag fields used while drawing a sprite.
  *
  */
@@ -70,7 +56,6 @@ union VifQuad {
     u_long128 q;    /**< Quadword value. */
     u_int     w[4]; /**< The same data as words. */
 };
-
 
 /**
  *
@@ -378,6 +363,20 @@ void mgC3DSprite::CPSetSprite(float *first, float *second, float *third, float *
 }
 
 void mgC3DSprite::EndCPSprite() {
+    /**
+     *
+     * VIF quadword starting the billboard program at address two.
+     *
+     */
+    static u_int prog_vif[4] __attribute__((aligned(16))) = {0, 0, 0, MG_VIF_MSCAL | 2};
+
+    /**
+     *
+     * VIF quadword continuing the billboard program.
+     *
+     */
+    static u_int progf_vif[4] __attribute__((aligned(16))) = {0, 0, 0, MG_VIF_MSCNT};
+
     int quad_count = ((u_char *) packet_cur - (u_char *) batch_tag) / 16;
     int data_count = quad_count - 1;
     batch_tag[0] = data_count | 0x10000000;
@@ -398,10 +397,10 @@ void mgC3DSprite::EndCPSprite() {
 
         // The first batch starts the VU program; later batches continue it.
         if (prog_started == 0) {
-            *packet_cur++ = *(u_long128 *) prog_vif_291;
+            *packet_cur++ = *(u_long128 *) prog_vif;
             prog_started = 1;
         } else {
-            *packet_cur++ = *(u_long128 *) progf_vif_292;
+            *packet_cur++ = *(u_long128 *) progf_vif;
         }
 
         VifQuad end = {MG_VIF_FLUSHA};
