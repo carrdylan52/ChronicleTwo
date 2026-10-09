@@ -40,7 +40,7 @@ binding: making it static exposes a generated SDK-library reference from
 `e_rem_pio2`'s `two_over_pi` numeric table. At 0x003658E0 the retail word is
 0x003F669E with no relocation, but splat emits `PortInfo + 0x15E`.
 The failed linker receipt is `snd-typed-state-build.log`; the evidence is
-`snd-library-word-evidence.log`. An untested proposal to preserve raw library
+`snd-library-word-evidence.log`. The proposal to preserve raw library
 words lacking real relocations is at
 `.private/proposals/dataC-r2-library-numeric-words.patch`. No shared tooling
 or generated assembly was edited. The port array itself needs no marker.
@@ -50,3 +50,32 @@ and `snd-typed-state-global-port-metrics.json`. All markers are gone and
 native data coverage is 16808 / 16808. The complete image, all 149 objects,
 and all unowned object hashes pass. No function is promoted or rewritten
 for the named state definitions.
+
+## Declared function extents
+
+The header function-size annotations use the retail ELF's declared
+`STT_FUNC` extents. 59 annotations previously included the alignment
+gap up to the next function and are corrected without changing declarations
+or layouts. The symbol names and addresses remain exact.
+
+## Listener-vector copy cleanup trial
+
+Replacing the inherited quadword casts in `sndSetMicPos` with two ordinary
+`memcpy` calls preserves the intended 16-byte copies but changes codegen.
+MWCC emits calls and a frame, increasing the declared function size from
+0x24 to 0x4C; eight instruction words differ within the retail extent.
+The accepted source is restored. Receipts:
+`.private/dataC-r2/snd-listener-copy-build.log` and
+`snd-listener-copy-word-diff.log`.
+
+The library-word proposal was exercised read-only against the generated
+library inputs: 316 unrelocated words in 18 files pass their retail byte
+comments and section checks. This includes `PortInfo` and the file-index
+buffer references in `e_rem_pio2`, `intr`, `libdev`, and `libgraph`. No
+generated file was written; a full build with the splitter change still
+belongs to the tooling lane. Receipt:
+`.private/dataC-r2/library-word-proposal-check.log`.
+
+Header validation: `.private/dataC-r2/header-extents-final-{build,objects}.log`.
+The complete PAL image, all 149 objects, and every unowned object hash pass.
+The evidence audit is `header-metadata-corrections.json` in the same directory.
