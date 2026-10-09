@@ -1989,16 +1989,14 @@ int _MENU_FORM_DRAWFLG(SPI_STACK *stack, int argc) {
  *
  */
 int _MENU_FORM_VIBECNT(SPI_STACK *stack, int argc) {
-    char *next_slot;
-
-    next_slot = (char *) (stack + 1);
+    SPI_STACK *next_slot = stack + 1;
 
     if (menu_formPt == NULL) {
         return 0;
     }
 
     menu_formPt->vibe_cnt[0] = spiGetStackInt(stack);
-    menu_formPt->vibe_cnt[1] = spiGetStackInt((SPI_STACK *) next_slot);
+    menu_formPt->vibe_cnt[1] = spiGetStackInt(next_slot);
     return 1;
 }
 
