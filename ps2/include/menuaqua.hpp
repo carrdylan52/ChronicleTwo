@@ -310,7 +310,7 @@ STATIC_ASSERT(sizeof(CBubble) == 0x40);
 enum AQUA_FISH_ACTION_PHASE {
     AQUA_FISH_ACTION_APPROACH = 0,    /**< Swims at the target fish until the two touch. */
     AQUA_FISH_ACTION_SWING_START = 1, /**< Starts the battle motion after touching the target. */
-    AQUA_FISH_ACTION_SWING = 2,       /**< Swings around the target fish. */
+    AQUA_FISH_ACTION_SWING = 2,       /**< Swings at the target fish, then charges it until the two touch again. */
     AQUA_FISH_ACTION_REST_MOVE = 3,   /**< Swims to the resting point of a battle rest. */
     AQUA_FISH_ACTION_REST = 4,        /**< Rests at the resting point, recovering health and fatigue. */
 };

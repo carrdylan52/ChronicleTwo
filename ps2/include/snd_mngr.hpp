@@ -30,7 +30,7 @@ enum SYSTEM_SE {
     SYSTEM_SE_IDEA     = 0xE,  /**< Announces that a photo has captured an idea. */
     SYSTEM_SE_WINDOW   = 0x13, /**< Accompanies a menu window or panel being opened or switched. */
     SYSTEM_SE_MAGNET   = 0x15, /**< A Georama part first snaps to a nearby part. */
-    SYSTEM_SE_COMPLETE = 0x1F, /**< Announces that a memory card save or load, a download or an install has finished. */
+    SYSTEM_SE_COMPLETE = 0x1F, /**< Announces that a memory card operation, a download or an install has finished. */
 };
 
 /**

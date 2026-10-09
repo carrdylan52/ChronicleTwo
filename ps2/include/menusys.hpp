@@ -1107,7 +1107,7 @@ enum MENU_ITEM_VIEW {
  */
 class CMenuItemInfo : public CBaseMenuClass {
 public:
-    s16                 view_mode; /**< Page that is shown: a character, the ridepod or a monster form. @see MENU_ITEM_VIEW */
+    s16                 view_mode; /**< Page that is shown. @see MENU_ITEM_VIEW */
     s16                 unk_112;
     s16                 sub_view;     /**< Sub-page that is shown within the page. */
     s16                 view_chara;   /**< Character whose model is shown. */

@@ -380,7 +380,7 @@ static s16             Aqua_SpSndBattleCount;
 
 /**
  *
- * Camera control mode of the aquarium.
+ * Camera control mode of the aquarium, an AQUA_CAMERA_CTRL value.
  *
  */
 static int             AquaCameraCtrlMode;

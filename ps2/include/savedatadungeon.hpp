@@ -25,7 +25,7 @@ enum {
  */
 enum DNG_FLOOR_FLAG {
     DNG_FLOOR_FLAG_OPEN = 0x1,                /**< The floor can be entered. */
-    DNG_FLOOR_FLAG_CLEAR = 0x2,               /**< The floor is cleared ("Clear" in the map debug display). */
+    DNG_FLOOR_FLAG_CLEAR = 0x2,               /**< The floor has been cleared. */
     DNG_FLOOR_FLAG_PRACTICE_CLEAR = 0x8,      /**< The floor's practice condition is cleared. */
     DNG_FLOOR_FLAG_FAST_DESTROY_CLEAR = 0x10, /**< The floor is cleared within its target time. */
     DNG_FLOOR_FLAG_FISHING_CLEAR = 0x20,      /**< The floor's fishing record is beaten. */
