@@ -195,51 +195,19 @@ extern signed char           MenuRoboEquipTable[8];
 extern signed char           tbl_4094[2];
 extern signed char           SameviewmodeTable_8406[4];
 extern signed char           menuitem_initmenumode[4];
-extern char                  at_5757[];
-extern char                  at_3822[];
-extern char                  at_3823[];
-extern char                  at_3824[];
-extern char                  at_7342[];
-extern char                  at_7343[];
-extern char                  at_7344[];
-extern char                  at_7345[];
-extern char                  at_7346[];
-extern char                  at_7347[];
 extern mgCMemory             MainCharaReadStack;
-extern char                  at_5265[];
-extern char                  at_5271[];
-extern char                  at_7540[];
 extern char                 *focusnametbl[21];
-extern char                  at_3774__2[];
-extern char                  at_3775__2[];
 extern char                  at_3924[];
-extern char                  at_3829[];
 extern CGamePad              GamePad__2;
-extern char                  at_5022[];
-extern char                  at_4985[];
 extern char                 *plist_4982[3];
 extern char                 *local_over_flow_baseposname[3];
 extern char                 *OverFlowFormName;
-extern char                  at_5130[];
-extern char                  at_5131[];
-extern char                  at_5132[];
-extern char                  at_5133[];
-extern char                  at_5134[];
 extern char                  at_4954[];
-extern char                  at_3751[];
-extern char                  at_5210[];
-extern char                  at_5211[];
 extern char                  at_4672[];
 extern mgCMemory             MenuItemMemory;
 extern mgCMemory             MenuItemMemory2;
 extern mgCMemory             MenuItemMainMemory;
 extern mgCMemory             MenuItemBGDataMemory;
-extern char                  at_8819[];
-extern char                  at_8820[];
-extern char                  at_8821[];
-extern char                  at_8822[];
-extern char                  at_8823[];
-extern char                  at_5281[];
 int                          ReadBGSync();
 
 int       AfterSpectolFusion(CGameDataUsed *item, CGameDataUsed *part);
@@ -5077,21 +5045,17 @@ void MenuEquipCameraSetEnv(CActionChara *chara, mgCCamera *camera, int type, int
     char name[0x20];
     float table[4];
     frame->GetWorldPosition(position, offset);
-    sprintf(name, at_3774__2, type, index);
+    sprintf(name, "test%d%d", type, index);
     MenuPosData->GetEtcTbl2Value(name, table, 3);
     sceVu0AddVector(position, position, table);
     *(u_long128 *) MenuDrawEnv->ref = *(u_long128 *) position;
-    sprintf(name, at_3775__2, type, index);
+    sprintf(name, "ttest%d%d", type, index);
     MenuPosData->GetEtcTbl2Value(name, table, 3);
     sceVu0AddVector(position, position, table);
     *(u_long128 *) MenuDrawEnv->pos = *(u_long128 *) position;
     MenuDrawEnv->speed = 7.0f;
 }
 
-extern char  at_3825[];
-extern char  at_3826[];
-extern char  at_3827[];
-extern char  at_3828[];
 
 /**
  *
@@ -5127,21 +5091,21 @@ void MenuPosFormValueSetWeapon(CGameDataUsed *item) {
             }
 
             item->GetStatusParam(values, MenuMainScene->time);
-            MENUFORMPARTS_TYPE *part = form->GetPartInfo(at_3822);
+            MENUFORMPARTS_TYPE *part = form->GetPartInfo("hp_bar");
 
             if (part != NULL) {
                 part->w = (int) (94.0f * rates[0]);
                 part->draw_flag = 1;
             }
 
-            form->SetNumber(at_3823, GetDispVolumeForFloat(now));
-            form->SetNumber(at_3824, (int) max);
-            form->SetPartDrawFlag(at_3825, true);
-            form->SetPartDrawFlag(at_3826, true);
-            form->SetPartDrawFlag(at_3823, true);
-            form->SetPartDrawFlag(at_3824, true);
-            form->SetPartDrawFlag(at_3827, true);
-            part = form->GetPartInfo(at_3828);
+            form->SetNumber("hp0", GetDispVolumeForFloat(now));
+            form->SetNumber("hp1", (int) max);
+            form->SetPartDrawFlag("hpbgfil", true);
+            form->SetPartDrawFlag("hpbar", true);
+            form->SetPartDrawFlag("hp0", true);
+            form->SetPartDrawFlag("hp1", true);
+            form->SetPartDrawFlag("slu", true);
+            part = form->GetPartInfo("abs_bar");
 
             if (part != NULL) {
                 part->w = (int) (94.0f * rates[1]);
@@ -5154,12 +5118,11 @@ void MenuPosFormValueSetWeapon(CGameDataUsed *item) {
                 form->SetNumber(WepStatusInfoStatusVolStrTable[i + 2], values[i + 2]);
             }
 
-            form->SetNumber(at_3829, fusion_point);
+            form->SetNumber("funum", fusion_point);
         }
     }
 }
 
-extern char  at_3893[];
 extern char  at_3894[];
 extern char  at_3895[];
 
@@ -5180,7 +5143,7 @@ void MenuFormUpdataAttachInfo(CMenuPosDataForm *form, CGameDataUsed *item, int i
     s16 type = item->used_type;
 
     if (type == USED_ITEM_TYPE_ATTACH || type == USED_ITEM_TYPE_WEAPON) {
-        form->SetAction(at_3893);
+        form->SetAction("\x92\x86\x82\xD6");
 
         if (!init_3840) {
             count_time_3839 = 0;
@@ -5286,7 +5249,7 @@ void MenuPosFormValueSetFishingRod(CGameDataUsed *item) {
             i += 1;
         } while (i < 5);
 
-        form->SetNumber(at_3829, rod->fusion_point);
+        form->SetNumber("funum", rod->fusion_point);
     }
 }
 
@@ -5800,20 +5763,6 @@ void CMenuItemInfo::CheckLoadInfo(int chara) {
 
 extern CGameDataUsed MenuMoveTempGameDataUsed;
 extern char         *exename_4332[4];
-extern char          at_4659[];
-extern char          at_4660[];
-extern char          at_4661[];
-extern char          at_4662[];
-extern char          at_4663[];
-extern char          at_4664[];
-extern char          at_4665[];
-extern char          at_4666[];
-extern char          at_4667[];
-extern char          at_4668[];
-extern char          at_4669[];
-extern char          at_4670[];
-extern char          at_4671[];
-extern char          at_4673[];
 
 int CMenuItemInfo::ItemCmdAfter(int cmd_ret, ITEMCMD_RET_PARA *ret) {
     switch (step) {
@@ -5889,12 +5838,12 @@ int CMenuItemInfo::ItemCmdAfter(int cmd_ret, ITEMCMD_RET_PARA *ret) {
                 case 10:
                     if (ret->cmd == 5 || ret->cmd == 0x1C) {
                         if (MenuItemCommand_RoboPackBreakFlag == 1) {
-                            ExeScript(at_4659);
+                            ExeScript("\x83\x4C\x83\x83\x83\x70\x91\xAB\x82\xE8\x82\xC8\x82\xA2");
                             step = 1;
                         }
 
                         if (MenuItemCommand_RoboPackBreakFlag == 2) {
-                            ExeScript(at_4660);
+                            ExeScript("\x83\x70\x81\x5B\x83\x63\x89\xF3");
                             char *name[2] = {NULL};
                             name[0] = ask_para.item->GetName(1);
                             MenuDCMsg[7]->SetMsgItemNo(name, 20);
@@ -6044,13 +5993,13 @@ int CMenuItemInfo::ItemCmdAfter(int cmd_ret, ITEMCMD_RET_PARA *ret) {
 
                         if (SpectolBreakNum_Limit > 1) {
                             MenuHowHaveMuchNum = SpectolBreakNum;
-                            ExeScript(at_4661);
+                            ExeScript("SPBREAK");
                             int volumes[4] = {0};
                             volumes[0] = MenuHowHaveMuchNum;
                             volumes[1] = SpectolBreakSpPoint * MenuHowHaveMuchNum;
                             mes->SetMsgVolumeNo(volumes, 2);
                         } else {
-                            ExeScript(at_4662);
+                            ExeScript("SPBREAKONE");
                             step = 0;
                         }
 
@@ -6154,14 +6103,14 @@ int CMenuItemInfo::ItemCmdAfter(int cmd_ret, ITEMCMD_RET_PARA *ret) {
                                 msg = 0xB9;
                             }
 
-                            ExeScript(at_4663);
+                            ExeScript("\x96\x68\x8C\xE4\x82\x74\x82\x6F");
                             MenuDCMsg[7]->MakeMsg(msg);
                             mode = MENU_ASK_MODE_ITEM_COMMAND;
                         }
                     }
 
                     if (MenuItemCmdRet.result == 10) {
-                        ExeScript(at_4664);
+                        ExeScript("\x8A\x89\x82\xAB");
                         step = 1;
                     }
 
@@ -6173,7 +6122,7 @@ int CMenuItemInfo::ItemCmdAfter(int cmd_ret, ITEMCMD_RET_PARA *ret) {
                             msg_no[0] = 11;
                         }
 
-                        ExeScript(at_4665);
+                        ExeScript("\x96\x68\x8C\xE4\x4E\x4F\x54\x55\x50");
                         MenuDCMsg[7]->SetMsgItemNo(msg_no, 1);
                         mode = MENU_ASK_MODE_ITEM_COMMAND;
                     }
@@ -6235,7 +6184,7 @@ int CMenuItemInfo::ItemCmdAfter(int cmd_ret, ITEMCMD_RET_PARA *ret) {
                         MenuCommonInfo->key_arg = &item_menu_argtbl[key_arg_no];
                         view_mode = 5;
                         ModelReadStart(view_mode, 1, 1);
-                        ExeScript(at_4666);
+                        ExeScript("FPMODEIN");
                         mode = 15;
                         step = 0;
                     }
@@ -6249,7 +6198,7 @@ int CMenuItemInfo::ItemCmdAfter(int cmd_ret, ITEMCMD_RET_PARA *ret) {
                 }
                 case 37:
                     if (ret->result == 0) {
-                        ExeScript(at_4667);
+                        ExeScript("\x83\x52\x83\x41\x4E\x4F\x54\x55\x50");
                         mode = MENU_ASK_MODE_ITEM_COMMAND;
                         step = 1;
                     }
@@ -6257,7 +6206,7 @@ int CMenuItemInfo::ItemCmdAfter(int cmd_ret, ITEMCMD_RET_PARA *ret) {
                     break;
                 case 43:
                     if (ret->cmd == 1) {
-                        ExeScript(at_4668);
+                        ExeScript("\x92\x45\x8F\x6F\x3F");
                         mode = MENU_ASK_MODE_ITEM_COMMAND;
                         step = 3;
                     }
@@ -6267,7 +6216,7 @@ int CMenuItemInfo::ItemCmdAfter(int cmd_ret, ITEMCMD_RET_PARA *ret) {
                     if (ret->cmd == 1) {
                         mode = MENU_ASK_MODE_ITEM_COMMAND;
                         step = 2;
-                        ExeScript(at_4669);
+                        ExeScript("\x8B\x9B\x88\xC3\x8D\x86");
                         ask_para.item->CheckParamLimmit();
                         u8 code[0x40];
                         ask_para.item->TransToPassword((char *) code, 14);
@@ -6292,7 +6241,7 @@ int CMenuItemInfo::ItemCmdAfter(int cmd_ret, ITEMCMD_RET_PARA *ret) {
                         load_stack->Align64();
                         StartReadBG();
                         int size;
-                        LoadFileBG(at_4670, load_stack->stGetTop(), &size);
+                        LoadFileBG("snd2/sp/SP_053.snd", load_stack->stGetTop(), &size);
                         DNG_BATTLE_AREA *battle_scene = (DNG_BATTLE_AREA *) menu_GetBattleAreaScene();
                         ask_para.item->DeleteNum(1);
 
@@ -6310,7 +6259,7 @@ int CMenuItemInfo::ItemCmdAfter(int cmd_ret, ITEMCMD_RET_PARA *ret) {
                     StartReadBG();
                     load_stack->Align64();
                     int size;
-                    LoadFileBG(at_4671, load_stack->stGetTop(), &size);
+                    LoadFileBG("snd2/sp/SP_046.snd", load_stack->stGetTop(), &size);
                     u32 file_size = size;
                     load_stack->Alloc((file_size & 0xF) ? (file_size >> 4) + 1 : file_size >> 4);
                     step = 10;
@@ -6394,7 +6343,7 @@ int CMenuItemInfo::ItemCmdAfter(int cmd_ret, ITEMCMD_RET_PARA *ret) {
                     MenuSePlay(0, (u32 *) file->buffer, &MenuSoundBuffer);
                 }
 
-                ExeScript(at_4673);
+                ExeScript("\x95\x95\x88\xF3\x89\xF0\x8F\x9C\x3F");
                 mode = MENU_ASK_MODE_ITEM_COMMAND;
                 step = 2;
             }
@@ -6680,7 +6629,7 @@ void MenuMoveItemPos(int *item, int *pos, int phase) {
             if (item[2] == 0 || item[2] == 1 || item[2] == 2) {
                 sprintf(part_name, plist_4982[item[2]], item[3]);
             } else {
-                strcpy(part_name, at_5022);
+                strcpy(part_name, "chara");
             }
 
             ((CMenuPosDataForm *) MenuPosData->GetFormInfo(tbl_4981[item[1]]))
@@ -6694,7 +6643,7 @@ void MenuMoveItemPos(int *item, int *pos, int phase) {
                 ->GetPutPosXY(local_over_flow_baseposname[item[3]], pos[0], pos[1]);
         } else if (kind == 5) {
             ((CMenuPosDataForm *) MenuPosData->GetFormInfo(tbl_4981[0]))
-                ->GetPutPosXY(at_4985, pos[0], pos[1]);
+                ->GetPutPosXY("esa0", pos[0], pos[1]);
         }
     }
 
@@ -6781,7 +6730,7 @@ void CommonSetMoveItemClass(int (*table)[4]) {
 void CMenuItemInfo::EnterDataMenu(unsigned int *pack) {
     int                sound_size;
     mgCTextureManager *textures;
-    u8                *item_image = (u8 *) GetPackFile(pack, at_5130, NULL);
+    u8                *item_image = (u8 *) GetPackFile(pack, "item.img", NULL);
     int                block = tex_block[0];
     textures = &mgTexManager;
     textures->DeleteBlock(block);
@@ -6789,13 +6738,13 @@ void CMenuItemInfo::EnterDataMenu(unsigned int *pack) {
     MenuPosData->ResetTextureInfoAll();
     money_form->SetNumber(at_1493__2, MenuUserDataManPtr->money);
     Tex_BuildUpBoard = textures->GetTexture("item0", -1);
-    MenuItemSpectolTransSoundBuffer = GetPackFile(pack, at_5131, &sound_size);
+    MenuItemSpectolTransSoundBuffer = GetPackFile(pack, "SP_002.snd", &sound_size);
 
     if (MenuDCMsg[3] != NULL) {
         int i = 0;
 
         do {
-            strcpy(MenuDCMsg[3]->name[0], at_5132);
+            strcpy(MenuDCMsg[3]->name[0], " ");
             i += 1;
             MenuDCMsg[3]->item_mes[0] = 1;
         } while (i < 4);
@@ -6804,8 +6753,8 @@ void CMenuItemInfo::EnterDataMenu(unsigned int *pack) {
     }
 
     MenuStatusMode = 0;
-    MenuStatusTex = textures->GetTexture(at_5133, -1);
-    MenuLevelUpMan.label_tex = textures->GetTexture(at_5134, -1);
+    MenuStatusTex = textures->GetTexture("mtetc", -1);
+    MenuLevelUpMan.label_tex = textures->GetTexture("mt0", -1);
 }
 
 int CMenuItemInfo::GetActiveCharaIDForItemCmd() {
@@ -6885,13 +6834,13 @@ void CMenuItemInfo::ExitEnd() {
         mgCTextureManager *textures = &mgTexManager;
         textures->DeleteTexAnime(MenuArg.chara_tex_block);
         ((CCharacter2 *) chara)
-            ->LoadSkin(MainCharaReadBuffer.skin, at_4954, at_3751, MorattaStack + 1,
+            ->LoadSkin(MainCharaReadBuffer.skin, at_4954, "", MorattaStack + 1,
                        MenuArg.chara_tex_block);
         stack = MorattaStack;
         stack[5].stack_used = 0;
         stack[5].lock = 0;
         ((CCharacter2 *) chara)
-            ->LoadSkin(MainCharaReadBuffer.outline, at_4954, at_5210, MorattaStack + 5,
+            ->LoadSkin(MainCharaReadBuffer.outline, at_4954, "skin3", MorattaStack + 5,
                        MenuArg.chara_tex_block);
         SetupUnitMan(MenuMainScene, (CUserDataManager *) GetUserDataMan(), chara_no, NULL);
         chara->effect_man = FxScriptMan;
@@ -6922,35 +6871,13 @@ void CMenuItemInfo::ExitEnd() {
     MenuSystemDataPtr->item_key_arg_no = key_arg_no;
     MenuSystemDataPtr->item_cursor = (int) *(void **) &MenuCommonInfo->cursor;
     CopyActiveItemAndWeapon(MenuArg.active_chara_no, -1);
-    ExeScript(at_5211);
+    ExeScript("EXITEND");
     MenuPosData->TexGetInfoClear(0x5A, 0x100);
     MenuPosData->EtcTblClear(0x1E, 0x60);
     ((CGameDataUsed *) (&MenuCommonInfo->have_item))->Init();
     MenuMainFrameModeSet(0, 0);
 }
 
-extern char  at_5259[];
-extern char  at_5260[];
-extern char  at_5261[];
-extern char  at_5262[];
-extern char  at_5263[];
-extern char  at_5264[];
-extern char  at_5266[];
-extern char  at_5267[];
-extern char  at_5268[];
-extern char  at_5269[];
-extern char  at_5270[];
-extern char  at_5272[];
-extern char  at_5273[];
-extern char  at_5274[];
-extern char  at_5275[];
-extern char  at_5276[];
-extern char  at_5277[];
-extern char  at_5278[];
-extern char  at_5279[];
-extern char  at_5280[];
-extern char  at_5282[];
-extern char  at_5283[];
 
 void CMenuItemInfo::AttachFormInfo() {
     int i;
@@ -6959,31 +6886,31 @@ void CMenuItemInfo::AttachFormInfo() {
         view_form[i] = (CMenuPosDataForm *) MenuPosData->GetFormInfo(ItemMenuFormNameTbl[i]);
     }
 
-    MenuSpectolSatusCheckForm = (CMenuPosDataForm *) MenuPosData->GetFormInfo(at_5259);
-    MenuSpectolSatusCheckBGFadeForm = (CMenuPosDataForm *) MenuPosData->GetFormInfo(at_5260);
+    MenuSpectolSatusCheckForm = (CMenuPosDataForm *) MenuPosData->GetFormInfo("SPECHECK");
+    MenuSpectolSatusCheckBGFadeForm = (CMenuPosDataForm *) MenuPosData->GetFormInfo("SPEFADE");
     status_check_ready = 0;
 
     for (i = 0; i < 2; i++) {
         CMenuPosDataForm *form = view_form[i];
-        wep_parts[i][4] = form->GetPartInfo(at_5261);
-        wep_parts[i][5] = form->GetPartInfo(at_5262);
-        wep_parts[i][6] = form->GetPartInfo(at_5263);
-        wep_parts[i][7] = form->GetPartInfo(at_5264);
-        wep_parts[i][8] = form->GetPartInfo(at_5265);
-        wep_parts[i][9] = form->GetPartInfo(at_5266);
-        wep_parts[i][10] = form->GetPartInfo(at_5267);
-        wep_parts[i][11] = form->GetPartInfo(at_5268);
-        wep_parts[i][12] = form->GetPartInfo(at_5269);
-        wep_parts[i][13] = form->GetPartInfo(at_5270);
-        wep_parts[i][14] = form->GetPartInfo(at_5271);
-        wep_parts[i][15] = form->GetPartInfo(at_5272);
-        hp_bar[i] = form->GetPartInfo(at_3822);
+        wep_parts[i][4] = form->GetPartInfo("wepfrm0");
+        wep_parts[i][5] = form->GetPartInfo("whp00");
+        wep_parts[i][6] = form->GetPartInfo("slu1");
+        wep_parts[i][7] = form->GetPartInfo("whp01");
+        wep_parts[i][8] = form->GetPartInfo("wep0");
+        wep_parts[i][9] = form->GetPartInfo("batu0");
+        wep_parts[i][10] = form->GetPartInfo("wepfrm1");
+        wep_parts[i][11] = form->GetPartInfo("whp10");
+        wep_parts[i][12] = form->GetPartInfo("slu2");
+        wep_parts[i][13] = form->GetPartInfo("whp11");
+        wep_parts[i][14] = form->GetPartInfo("wep1");
+        wep_parts[i][15] = form->GetPartInfo("batu1");
+        hp_bar[i] = form->GetPartInfo("hp_bar");
         item_parts[i][0] = form->GetPartInfo(local_over_flow_baseposname[0]);
         item_parts[i][1] = form->GetPartInfo(local_over_flow_baseposname[1]);
         item_parts[i][2] = form->GetPartInfo(local_over_flow_baseposname[2]);
         item_num[i][0] = form->GetPartInfo("item0num");
-        item_num[i][1] = form->GetPartInfo(at_5273);
-        item_num[i][2] = form->GetPartInfo(at_5274);
+        item_num[i][1] = form->GetPartInfo("item1num");
+        item_num[i][2] = form->GetPartInfo("item2num");
     }
 
     for (i = 0; i < 10; i++) {
@@ -6998,25 +6925,25 @@ void CMenuItemInfo::AttachFormInfo() {
     }
 
     CMenuPosDataForm *robo_form = view_form[3];
-    voice_part = robo_form->GetPartInfo(at_5275);
-    robo_parts[0] = robo_form->GetPartInfo(at_5276);
-    robo_parts[1] = robo_form->GetPartInfo(at_5262);
-    robo_parts[2] = robo_form->GetPartInfo(at_5263);
-    robo_parts[3] = robo_form->GetPartInfo(at_5264);
-    robo_parts[4] = robo_form->GetPartInfo(at_5265);
-    robo_parts[5] = robo_form->GetPartInfo(at_5266);
-    item_board_form = (CMenuPosDataForm *) MenuPosData->GetFormInfo(at_5277);
+    voice_part = robo_form->GetPartInfo("VOICE");
+    robo_parts[0] = robo_form->GetPartInfo("wepfrm");
+    robo_parts[1] = robo_form->GetPartInfo("whp00");
+    robo_parts[2] = robo_form->GetPartInfo("slu1");
+    robo_parts[3] = robo_form->GetPartInfo("whp01");
+    robo_parts[4] = robo_form->GetPartInfo("wep0");
+    robo_parts[5] = robo_form->GetPartInfo("batu0");
+    item_board_form = (CMenuPosDataForm *) MenuPosData->GetFormInfo("itembrd");
     item_board_icon = NULL;
 
     if (item_board_form != NULL) {
-        item_board_icon = item_board_form->GetPartInfo(at_5278);
+        item_board_icon = item_board_form->GetPartInfo("icon");
     }
 
-    money_form = (CMenuPosDataForm *) MenuPosData->GetFormInfo(at_5279);
-    fill_form = (CMenuPosDataForm *) MenuPosData->GetFormInfo(at_5280);
-    chara_poly_form[0] = (CMenuPosDataForm *) MenuPosData->GetFormInfo(at_5281);
-    chara_poly_form[1] = (CMenuPosDataForm *) MenuPosData->GetFormInfo(at_5282);
-    GiftBoxViewForm = (CMenuPosDataForm *) MenuPosData->GetFormInfo(at_5283);
+    money_form = (CMenuPosDataForm *) MenuPosData->GetFormInfo("moneybrd");
+    fill_form = (CMenuPosDataForm *) MenuPosData->GetFormInfo("mainform_filldmy");
+    chara_poly_form[0] = (CMenuPosDataForm *) MenuPosData->GetFormInfo("poly_chr0");
+    chara_poly_form[1] = (CMenuPosDataForm *) MenuPosData->GetFormInfo("poly_chr1");
+    GiftBoxViewForm = (CMenuPosDataForm *) MenuPosData->GetFormInfo("giftview");
 }
 
 #ifdef NONMATCHING
@@ -7073,8 +7000,6 @@ INCLUDE_ASM("ps2/asm/pal/nonmatchings/menusys", MenuModeMalloc__13CMenuItemInfoF
 #endif
 
 extern u8   itemmenu_calcmode_tbl_5410[6];
-extern char at_5758[];
-extern char at_5759[];
 void CMenuItemInfo::CalcTex() {
     int slot;
     Func_MenuItemBrdPosStep(MenuItem_ItemBoardTopLine);
@@ -7088,11 +7013,11 @@ void CMenuItemInfo::CalcTex() {
     int view_flag[6];
     for (i = 0; i < 6; i++) {
         if (itemmenu_calcmode_tbl_5410[i] != view_mode) {
-            view_form[i]->SetAction(at_5757);
+            view_form[i]->SetAction("\x8A\x4F\x82\xD6");
         } else {
-            view_form[i]->SetAction(at_3893);
+            view_form[i]->SetAction("\x92\x86\x82\xD6");
             if (mode == MENU_ASK_MODE_CLOSE && CheckTrushMenu() == 0 && item_consumed == 0) {
-                view_form[i]->SetAction(at_5757);
+                view_form[i]->SetAction("\x8A\x4F\x82\xD6");
             }
         }
         view_flag[i] = -1;
@@ -7266,7 +7191,7 @@ void CMenuItemInfo::CalcTex() {
     }
     int   item_mes[6] = {10, 11, 1, 1, 1, 1};
     int   volumes[6] = {0};
-    char *names[8] = {at_5132, at_5132, at_5132, at_5132, at_5132, at_5132, at_5132};
+    char *names[8] = {" ", " ", " ", " ", " ", " ", " "};
     if (view_weapon != NULL) {
         names[2] = view_weapon->GetName(1);
         names[5] = names[2];
@@ -7293,7 +7218,7 @@ void CMenuItemInfo::CalcTex() {
     int name_pos[6][2];
     int mes_index = 0;
     for (i = 0; i < 6; i++) {
-        view_form[i]->GetPutPosXY(at_5758, name_pos[i][0], name_pos[i][1]);
+        view_form[i]->GetPutPosXY("name", name_pos[i][0], name_pos[i][1]);
         name_pos[i][1] += 4;
         if (i == 2) {
             continue;
@@ -7375,7 +7300,7 @@ void CMenuItemInfo::CalcTex() {
             MenuPosData->GetPosMenuItemOnItemBrd(gift_pos, cursor, 0);
         } else if (key_arg_no == 0) {
             char part_name[32];
-            sprintf(part_name, at_5759, MenuCommonInfo->cursor);
+            sprintf(part_name, "c_i%d", MenuCommonInfo->cursor);
             view_form[sub_view]->GetPutPosXY(part_name, gift_pos[0], gift_pos[1]);
         }
         CMenuPosDataForm *gift_form = GiftBoxViewForm;
@@ -7397,9 +7322,6 @@ void CMenuItemInfo::CalcTex() {
     checkmoveFlag_5411 = check_move;
     EffectDrawCheck(item_board_form);
 }
-extern char at_5879[];
-extern char at_5880[];
-extern char at_5881[];
 extern char at_5882[];
 extern char at_5883[];
 
@@ -7447,7 +7369,7 @@ void CMenuItemInfo::CalcCursorPosition() {
         int  offset[2] = {0, 0};
 
         if (arg_no == 4 || arg_no == 9) {
-            strcpy(part_name, at_5879);
+            strcpy(part_name, "chrpos");
 
             if (form != NULL) {
                 form->GetPutPosXY(part_name, pos[0], pos[1]);
@@ -7463,7 +7385,7 @@ void CMenuItemInfo::CalcCursorPosition() {
                 pos[1] += offset[1];
             }
         } else if (arg_no == 0) {
-            sprintf(name, at_5759, cursor);
+            sprintf(name, "c_i%d", cursor);
             form->GetPutPosXY(name, pos[0], pos[1]);
             pos[1] -= 8;
         } else if (arg_no == 1 || arg_no == 7) {
@@ -7473,10 +7395,10 @@ void CMenuItemInfo::CalcCursorPosition() {
                 no = 0;
             }
 
-            sprintf(name, at_5880, no);
+            sprintf(name, "c_w%d", no);
             form->GetPutPosXY(name, pos[0], pos[1]);
         } else if (arg_no == 3 || arg_no == 6 || arg_no == 8) {
-            form->GetPutPosXY(at_5881, pos[0], pos[1]);
+            form->GetPutPosXY("chr_cur", pos[0], pos[1]);
         } else if (arg_no == 11) {
             form->GetPutPosXY(at_5882, pos[0], pos[1]);
         }
@@ -7605,12 +7527,6 @@ void CBaseMenuClass::EffectDrawCheck(CMenuPosDataForm *form) {
 }
 
 extern s8   menuitem_initviewtbl[4];
-extern char at_6011[];
-extern char at_6012[];
-extern char at_6013[];
-extern char at_6014[];
-extern char at_6015[];
-extern char at_6016[];
 
 int MenuItemInit(mgCMemory *stack, int *tex_block, int mode) {
     FxScriptManPauseFlag = 0;
@@ -7635,22 +7551,22 @@ int MenuItemInit(mgCMemory *stack, int *tex_block, int mode) {
     MenuWeaponEnvSetListNo = -1;
     MenuWeaponEnvSetChara = NULL;
     int   script_size;
-    char *layout = (char *) GetPackFile(pack, at_6011, &script_size);
+    char *layout = (char *) GetPackFile(pack, "item.cfg", &script_size);
     MenuDataAnalyze(layout, script_size, &work);
-    CMenuItemInfoPt->script = (char *) GetPackFile(pack, at_6012, &CMenuItemInfoPt->script_size);
+    CMenuItemInfoPt->script = (char *) GetPackFile(pack, "item_com.cfg", &CMenuItemInfoPt->script_size);
     rest = work.stGetRest();
     MenuItemMainMemory.stSetBuffer(work.stGetTop(), rest);
     CMenuItemInfoPt->MenuModeMalloc(&MenuItemMainMemory);
-    MenuPosData->GetEtcTbl2Value(at_6013, CMenuItemInfoPt->camera_ref, 3);
-    MenuPosData->GetEtcTbl2Value(at_6014, CMenuItemInfoPt->camera_pos, 3);
+    MenuPosData->GetEtcTbl2Value("camref", CMenuItemInfoPt->camera_ref, 3);
+    MenuPosData->GetEtcTbl2Value("campos", CMenuItemInfoPt->camera_pos, 3);
     CMenuItemInfoPt->AttachFormInfo();
     AttachMessageForm();
-    CMenuItemInfoPt->ExeScript(at_6015);
+    CMenuItemInfoPt->ExeScript("ITEMINIT");
     CMenuItemInfoPt->EnterDataMenu(pack);
     MenuCommonInfo->SetWakuMoveMethod(0);
     MenuCommonInfo->key_enable = 1;
     MenuCommonInfo->CursorFadeIn(1.0f, 0);
-    CMenuItemInfoPt->ExeScript(at_6016);
+    CMenuItemInfoPt->ExeScript("MSGINIT");
     int chara_no = CMenuItemInfoPt->GetActiveCharaNo();
     CMenuItemInfoPt->equipped_model_no = -1;
 
@@ -8349,60 +8265,6 @@ INCLUDE_ASM("ps2/asm/pal/nonmatchings/menusys", MenuItemDebugKey__Fv);
 #endif
 extern char *attrtable_6472[7];
 extern char *stchar_6508[13];
-extern char  at_6760[];
-extern char  at_6761[];
-extern char  at_6762[];
-extern char  at_6763[];
-extern char  at_6764[];
-extern char  at_6765[];
-extern char  at_6766[];
-extern char  at_6767[];
-extern char  at_6768[];
-extern char  at_6769[];
-extern char  at_6770[];
-extern char  at_6771[];
-extern char  at_6772[];
-extern char  at_6773[];
-extern char  at_6774[];
-extern char  at_6775[];
-extern char  at_6776[];
-extern char  at_6777[];
-extern char  at_6778[];
-extern char  at_6779[];
-extern char  at_6780[];
-extern char  at_6781[];
-extern char  at_6782[];
-extern char  at_6783[];
-extern char  at_6784[];
-extern char  at_6785[];
-extern char  at_6786[];
-extern char  at_6787[];
-extern char  at_6788[];
-extern char  at_6789[];
-extern char  at_6790[];
-extern char  at_6791[];
-extern char  at_6792[];
-extern char  at_6793[];
-extern char  at_6794[];
-extern char  at_6795[];
-extern char  at_6796[];
-extern char  at_6797[];
-extern char  at_6798[];
-extern char  at_6799[];
-extern char  at_6800[];
-extern char  at_6801[];
-extern char  at_6802[];
-extern char  at_6803[];
-extern char  at_6804[];
-extern char  at_6805[];
-extern char  at_6806[];
-extern char  at_6807[];
-extern char  at_6808[];
-extern char  at_6809[];
-extern char  at_6810[];
-extern char  at_6811[];
-extern char  at_6812[];
-extern char  at_6813[];
 
 /**
  *
@@ -8453,7 +8315,7 @@ void MenuItemDebugDraw(void) {
             DrawMenuFillBox(20.0f, 40.0f, 340.0f, float(20.0), 0x60, 0, 0, 0);
             char           title[0x80];
             CMenuItemInfo *info = CMenuItemInfoPt;
-            sprintf(title, at_6760, CMenuItemInfoPt->debug_item_no, GetItemMessage(info->debug_item_no),
+            sprintf(title, "[%3d]%s :Now GetNum : %d", CMenuItemInfoPt->debug_item_no, GetItemMessage(info->debug_item_no),
                     info->debug_item_count);
             font->SetStr(title);
             font->SetPos(26, 40);
@@ -8463,68 +8325,68 @@ void MenuItemDebugDraw(void) {
             }
             DrawMenuFillBox(20.0f, 330.0f, 500.0f, 200.0f, 0x52, 0, 0, 0);
             if (MenuDebugModelDrawFlag == 0) {
-                font->SetStr(at_6761);
+                font->SetStr("\x4D\x6F\x76\x65\x3A\x81\xAA\x81\xAB\x81\xA9\x81\xA8");
                 font->SetPos(20, 350);
                 font->DrawDirect(font->str, font->pos_x, font->pos_y);
-                font->SetStr(at_6762);
+                font->SetStr("Num: R2:+1 L2:-1");
                 font->SetPos(20, 370);
                 font->DrawDirect(font->str, font->pos_x, font->pos_y);
-                font->SetStr(at_6763);
+                font->SetStr("\x4E\x75\x6D\x35\x3A\x20\x81\x7E\x2B\x52\x32\x20\x6F\x72\x20\x81\x7E\x2B\x4C\x32");
                 font->SetPos(20, 390);
                 font->DrawDirect(font->str, font->pos_x, font->pos_y);
-                font->SetStr(at_6764);
+                font->SetStr("L3:Load DataFile");
                 font->SetPos(170, 370);
                 font->DrawDirect(font->str, font->pos_x, font->pos_y);
                 char *file_name = GetItemFileName(CMenuItemInfoPt->debug_item_no, 0);
                 if (file_name != NULL) {
                     char file_text[0x80];
-                    sprintf(file_text, at_6765, file_name);
+                    sprintf(file_text, "\x81\xA1\x3A\x44\x69\x73\x70\x6C\x61\x79\x20\x4D\x6F\x64\x65\x6C\x20\x20\x25\x73", file_name);
                     font->SetStr(file_text);
                     font->SetPos(150, 330);
                     font->DrawDirect(font->str, font->pos_x, font->pos_y);
                 } else {
-                    font->SetStr(at_6766);
+                    font->SetStr("\x81\xA1\x3A\x43\x61\x6E\x27\x74\x20\x4C\x6F\x61\x64");
                     font->SetPos(150, 330);
                     font->DrawDirect(font->str, font->pos_x, font->pos_y);
                 }
-                font->SetStr(at_6767);
+                font->SetStr("(O):Get");
                 font->SetPos(20, 330);
                 font->DrawDirect(font->str, font->pos_x, font->pos_y);
-                strcpy(text, at_6768);
+                strcpy(text, "Item: None");
                 if (debug_common_data != NULL) {
-                    sprintf(text, at_6769, debug_common_data->max_num);
+                    sprintf(text, "Limmit   : %d", debug_common_data->max_num);
                     font->SetStr(text);
                     font->SetPos(300, 350);
                     font->DrawDirect(font->str, font->pos_x, font->pos_y);
-                    sprintf(text, at_6770, debug_common_data->file_name);
+                    sprintf(text, "ModelName: %s", debug_common_data->file_name);
                     font->SetStr(text);
                     font->SetPos(300, 370);
                     font->DrawDirect(font->str, font->pos_x, font->pos_y);
-                    sprintf(text, at_6771, CheckGetItemRemainNum(debug_common_data->item_no));
+                    sprintf(text, "Remain: %d", CheckGetItemRemainNum(debug_common_data->item_no));
                     font->SetStr(text);
                     font->SetPos(300, 390);
                     font->DrawDirect(font->str, font->pos_x, font->pos_y);
                 }
             } else {
-                font->SetStr(at_6772);
+                font->SetStr("\x82\x77\x3A\x52\x65\x74\x75\x72\x6E");
                 font->SetPos(290, 60);
                 font->DrawDirect(font->str, font->pos_x, font->pos_y);
-                font->SetStr(at_6773);
+                font->SetStr("\x81\xA2\x3A\x44\x65\x66\x61\x75\x6C\x74");
                 font->SetPos(290, 80);
                 font->DrawDirect(font->str, font->pos_x, font->pos_y);
-                font->SetStr(at_6774);
+                font->SetStr("\x53\x63\x61\x6C\x65\x81\x40\x20\x20\x3A\x20\x41\x6E\x61\x6C\x6F\x67\x52");
                 font->SetPos(290, 100);
                 font->DrawDirect(font->str, font->pos_x, font->pos_y);
-                font->SetStr(at_6775);
+                font->SetStr("Rotation : AnalogL");
                 font->SetPos(290, 120);
                 font->DrawDirect(font->str, font->pos_x, font->pos_y);
                 char size_text[0x40];
-                sprintf(size_text, at_6776, MenuDebugSize);
+                sprintf(size_text, "BuildSize: %d K", MenuDebugSize);
                 font->SetStr(size_text);
                 font->SetPos(290, 140);
                 font->DrawDirect(font->str, font->pos_x, font->pos_y);
                 if (debug_common_data == NULL && MenuDebugItemModel != NULL) {
-                    font->SetStr(at_6777);
+                    font->SetStr("\x83\x41\x83\x43\x83\x65\x83\x80\x82\xC9\x0A\x93\x6F\x98\x5E\x82\xB3\x82\xEA\x82\xC4\x82\xA2\x82\xDC\x82\xB9\x82\xF1");
                     font->SetPos(290, 20);
                     font->DrawDirect(font->str, font->pos_x, font->pos_y);
                 }
@@ -8535,11 +8397,11 @@ void MenuItemDebugDraw(void) {
                     sceVu0FVECTOR scale;
                     MenuDebugItemModel->GetRotation(rotation);
                     MenuDebugItemModel->GetScale(scale);
-                    sprintf(text, at_6778, scale[0]);
+                    sprintf(text, "SCALE %5f", scale[0]);
                     font->SetStr(text);
                     font->SetPos(290, 260);
                     font->DrawDirect(font->str, font->pos_x, font->pos_y);
-                    sprintf(text, at_6779, rotation[0], rotation[1], rotation[2]);
+                    sprintf(text, "ROTATION X:%4f\n         Y:%4f\n         Z:%4f", rotation[0], rotation[1], rotation[2]);
                     font->SetStr(text);
                     font->SetPos(290, 280);
                     font->DrawDirect(font->str, font->pos_x, font->pos_y);
@@ -8555,7 +8417,7 @@ void MenuItemDebugDraw(void) {
                     MenuDebugItemModel->Step();
                     MenuDebugItemModel->DrawDirect();
                 } else {
-                    font->SetStr(at_6780);
+                    font->SetStr("CAN'T BUILD MODEL");
                     font->SetPos(290, 260);
                     font->DrawDirect(font->str, font->pos_x, font->pos_y);
                 }
@@ -8564,25 +8426,25 @@ void MenuItemDebugDraw(void) {
         }
         case 3:
             DrawMenuFillBox(236.0f, 60.0f, 230.0f, 200.0f, 0x80, 0, 0, 0);
-            font->SetStr(at_6781);
+            font->SetStr("HP control");
             font->SetPos(236, 60);
             font->DrawDirect(font->str, font->pos_x, font->pos_y);
-            font->SetStr(at_6782);
+            font->SetStr(" Now : Press AnalogR with none");
             font->SetPos(236, 80);
             font->DrawDirect(font->str, font->pos_x, font->pos_y);
-            font->SetStr(at_6783);
+            font->SetStr(" Max : Press AnalogR with L2");
             font->SetPos(236, 100);
             font->DrawDirect(font->str, font->pos_x, font->pos_y);
-            font->SetStr(at_6784);
+            font->SetStr(" Money");
             font->SetPos(236, 120);
             font->DrawDirect(font->str, font->pos_x, font->pos_y);
-            font->SetStr(at_6785);
+            font->SetStr("\x20\x41\x64\x64\x20\x2B\x31\x30\x30\x30\x20\x3A\x20\x81\xA2");
             font->SetPos(236, 140);
             font->DrawDirect(font->str, font->pos_x, font->pos_y);
-            font->SetStr(at_6786);
+            font->SetStr("\x20\x44\x65\x66\x55\x70\x20\x20\x20\x20\x20\x3A\x20\x81\x9B");
             font->SetPos(236, 160);
             font->DrawDirect(font->str, font->pos_x, font->pos_y);
-            font->SetStr(at_6787);
+            font->SetStr("\x20\x44\x65\x66\x44\x6F\x77\x6E\x20\x20\x20\x3A\x20\x81\x7E");
             font->SetPos(236, 180);
             font->DrawDirect(font->str, font->pos_x, font->pos_y);
             int  attribute = MenuUserDataManPtr->GetCharaStatusAttirbute(CMenuItemInfoPt->sub_view);
@@ -8592,7 +8454,7 @@ void MenuItemDebugDraw(void) {
             for (i = 0; i < 6; i++) {
                 if (attribute & (1 << i)) {
                     if (count == 3) {
-                        strcat(status, at_6788);
+                        strcat(status, "\n         ");
                     }
                     strcat(status, attrtable_6472[i]);
                     count++;
@@ -8604,22 +8466,22 @@ void MenuItemDebugDraw(void) {
             break;
         case 4: {
             DrawMenuFillBox(236.0f, 60.0f, float(230.0), 300.0f, 0x80, 0, 0, 0);
-            font->SetStr(at_6789);
+            font->SetStr("WHP control");
             font->SetPos(236, 60);
             font->DrawDirect(font->str, font->pos_x, font->pos_y);
-            font->SetStr(at_6790);
+            font->SetStr(" Now : AnalogR with R2");
             font->SetPos(236, 80);
             font->DrawDirect(font->str, font->pos_x, font->pos_y);
-            font->SetStr(at_6791);
+            font->SetStr(" Max : AnalogR with L2");
             font->SetPos(236, 100);
             font->DrawDirect(font->str, font->pos_x, font->pos_y);
-            font->SetStr(at_6792);
+            font->SetStr("Change Abs");
             font->SetPos(236, 120);
             font->DrawDirect(font->str, font->pos_x, font->pos_y);
             int   build_item[3];
             char *build_name[3];
             if (weapon != NULL) {
-                sprintf(text, at_6793, (int) weapon->data.weapon.abs.now, (int) weapon->data.weapon.abs.max);
+                sprintf(text, "%d/%d", (int) weapon->data.weapon.abs.now, (int) weapon->data.weapon.abs.max);
                 font->SetStr(text);
                 font->SetPos(336, 120);
                 font->DrawDirect(font->str, font->pos_x, font->pos_y);
@@ -8628,31 +8490,31 @@ void MenuItemDebugDraw(void) {
                     build_name[i] = GetItemMessage(build_item[i]);
                 }
             }
-            font->SetStr(at_6794);
+            font->SetStr(" Now : AnalogR with R1");
             font->SetPos(236, 140);
             font->DrawDirect(font->str, font->pos_x, font->pos_y);
-            font->SetStr(at_6795);
+            font->SetStr(" Max : AnalogR with L1");
             font->SetPos(236, 160);
             font->DrawDirect(font->str, font->pos_x, font->pos_y);
-            font->SetStr(at_6796);
+            font->SetStr("\x4C\x65\x76\x65\x6C\x55\x70\x3A\x20\x81\xA2");
             font->SetPos(236, 180);
             font->DrawDirect(font->str, font->pos_x, font->pos_y);
-            font->SetStr(at_6797);
+            font->SetStr("Spectol Point");
             font->SetPos(236, 200);
             font->DrawDirect(font->str, font->pos_x, font->pos_y);
-            font->SetStr(at_6798);
+            font->SetStr("\x20\x75\x70\x20\x20\x20\x3A\x20\x81\x9B");
             font->SetPos(236, 220);
             font->DrawDirect(font->str, font->pos_x, font->pos_y);
-            font->SetStr(at_6799);
+            font->SetStr("\x20\x64\x6F\x77\x6E\x20\x3A\x20\x81\x7E");
             font->SetPos(236, 240);
             font->DrawDirect(font->str, font->pos_x, font->pos_y);
-            font->SetStr(at_6800);
+            font->SetStr("BuildUp");
             font->SetPos(236, 260);
             font->DrawDirect(font->str, font->pos_x, font->pos_y);
             for (int i = 0; i < 3; i++) {
-                sprintf(text, at_6801, i + 1, build_name[i]);
+                sprintf(text, "%d : None ", i + 1, build_name[i]);
                 if (build_name[i] != NULL) {
-                    sprintf(text, at_6802, i + 1, build_name[i]);
+                    sprintf(text, "%d : %s", i + 1, build_name[i]);
                 }
                 font->SetStr(text);
                 font->SetPos(236, i * 20 + 280);
@@ -8665,13 +8527,13 @@ void MenuItemDebugDraw(void) {
                 break;
             }
             DrawMenuFillBox(float(236.0), 60.0f, 230.0f, 260.0f, 0x80, 0, 0, 0);
-            font->SetStr(at_6803);
+            font->SetStr("Change Status\n  Press AnalogR");
             font->SetPos(236, 60);
             font->DrawDirect(font->str, font->pos_x, font->pos_y);
-            font->SetStr(at_6804);
+            font->SetStr("\x20\x53\x65\x74\x20\x4D\x61\x78\x20\x53\x74\x61\x74\x75\x73\x20\x20\x20\x20\x20\x3A\x20\x81\xA2");
             font->SetPos(236, 100);
             font->DrawDirect(font->str, font->pos_x, font->pos_y);
-            font->SetStr(at_6805);
+            font->SetStr("\x20\x53\x65\x74\x20\x44\x65\x66\x61\x75\x6C\x74\x20\x53\x74\x61\x74\x75\x73\x20\x3A\x20\x81\xA1");
             font->SetPos(236, 120);
             font->DrawDirect(font->str, font->pos_x, font->pos_y);
             char special[0x100];
@@ -8682,11 +8544,11 @@ void MenuItemDebugDraw(void) {
                     strcat(special, stchar_6508[i]);
                     count++;
                     if (count % 4 == 3) {
-                        strcat(special, at_6806);
+                        strcat(special, "\n");
                     }
                 }
             }
-            font->SetStr(at_6807);
+            font->SetStr(" Set Special : R1");
             font->SetPos(236, 140);
             font->DrawDirect(font->str, font->pos_x, font->pos_y);
             font->SetStr(special);
@@ -8696,16 +8558,16 @@ void MenuItemDebugDraw(void) {
         }
         case 6:
             DrawMenuFillBox(float(236.0), float(60.0), 230.0f, 260.0f, 0x80, 0, 0, 0);
-            font->SetStr(at_6792);
+            font->SetStr("Change Abs");
             font->SetPos(236, 80);
             font->DrawDirect(font->str, font->pos_x, font->pos_y);
-            font->SetStr(at_6808);
+            font->SetStr("\x20\x75\x70\x20\x20\x2B\x31\x20\x3A\x20\x81\x9B");
             font->SetPos(236, 100);
             font->DrawDirect(font->str, font->pos_x, font->pos_y);
-            font->SetStr(at_6809);
+            font->SetStr("\x20\x64\x6F\x77\x6E\x2D\x31\x20\x3A\x20\x82\x77");
             font->SetPos(236, 120);
             font->DrawDirect(font->str, font->pos_x, font->pos_y);
-            font->SetStr(at_6810);
+            font->SetStr("\x56\x6F\x69\x63\x65\x20\x55\x6E\x69\x74\x20\x4F\x6E\x4F\x66\x66\x20\x3A\x20\x81\xA2");
             font->SetPos(236, 140);
             font->DrawDirect(font->str, font->pos_x, font->pos_y);
             break;
@@ -8713,18 +8575,18 @@ void MenuItemDebugDraw(void) {
             DrawMenuFillBox(float(236.0), 60.0f, float(230.0), float(260.0), 0x80, 0, 0, 0);
             int cursor = MenuCommonInfo->cursor;
             if (cursor == 0) {
-                font->SetStr(at_6811);
+                font->SetStr("\x20\x43\x68\x61\x6E\x67\x65\x20\x28\x83\x6F\x83\x62\x83\x4F\x83\x70\x83\x62\x83\x4E\x29");
                 font->SetPos(236, 60);
                 font->DrawDirect(font->str, font->pos_x, font->pos_y);
-                font->SetStr(at_6812);
+                font->SetStr("\x20\x4E\x6F\x77\x20\x3A\x20\x83\x41\x83\x69\x83\x8D\x83\x4F\x82\x71\x8D\xB6\x89\x45");
                 font->SetPos(236, 80);
                 font->DrawDirect(font->str, font->pos_x, font->pos_y);
             }
             if (cursor == 1) {
-                font->SetStr(at_6813);
+                font->SetStr("\x20\x43\x68\x61\x6E\x67\x65\x20\x57\x48\x70\x20\x28\x83\x41\x81\x5B\x83\x80\x29");
                 font->SetPos(236, 60);
                 font->DrawDirect(font->str, font->pos_x, font->pos_y);
-                font->SetStr(at_6812);
+                font->SetStr("\x20\x4E\x6F\x77\x20\x3A\x20\x83\x41\x83\x69\x83\x8D\x83\x4F\x82\x71\x8D\xB6\x89\x45");
                 font->SetPos(236, 80);
                 font->DrawDirect(font->str, font->pos_x, font->pos_y);
             }
@@ -8776,7 +8638,7 @@ int CMenuItemInfo::PushKey(int pad, int trigger) {
 
             if (pad != 0 || trigger != 0) {
                 if (MenuSpectolSatusCheckForm != NULL && this->status_check_ready != 0) {
-                    MenuSpectolSatusCheckForm->SetAction(at_5757);
+                    MenuSpectolSatusCheckForm->SetAction("\x8A\x4F\x82\xD6");
                     this->status_check_ready = 0;
                     goto done;
                 }
@@ -9324,7 +9186,7 @@ int CMenuItemInfo::PushKey(int pad, int trigger) {
                 MenuRepairMan->Clear();
 
                 if (MenuSpectolSatusCheckForm != NULL) {
-                    MenuSpectolSatusCheckForm->SetAction(at_5757);
+                    MenuSpectolSatusCheckForm->SetAction("\x8A\x4F\x82\xD6");
                     this->status_check_ready = 0;
                 }
 
@@ -9350,7 +9212,7 @@ int CMenuItemInfo::PushKey(int pad, int trigger) {
                             (u8 *) MainCharaReadStack.stGetTop();
                         GetMainCharaModelName(chara_no, path, 0);
                         MainCharaReadBuffer.model = (u_int *) MainCharaReadStackReadAdr;
-                        sprintf(full_path, at_7342, path);
+                        sprintf(full_path, "mainchr/%s", path);
                         LoadFileBG(full_path, (u_long128 *) MainCharaReadBuffer.model, &file_size);
                         unsigned int blocks = QuadwordsFor(file_size);
                         MainCharaReadStack.Alloc(blocks);
@@ -9387,7 +9249,7 @@ int CMenuItemInfo::PushKey(int pad, int trigger) {
                 if (CheckTrushMenu() != 0) {
                     this->FadeOutMenu(0x28, 0.0f);
                 } else {
-                    this->ExeScript(at_7343);
+                    this->ExeScript("\x91\x4F\x8F\x49\x97\xB9\x8F\x88\x97\x9D");
                     MenuMainFrameModeSet(3, 1);
                     ReturnMenuIntern(0);
 
@@ -9484,14 +9346,14 @@ int CMenuItemInfo::PushKey(int pad, int trigger) {
 
                         if (changed != 0) {
                             this->step = kTuneConfirmSave;
-                            this->ExeScript(at_7344);
+                            this->ExeScript("FPOK");
                             MenuSePlay(1);
                         } else {
                             MenuSePlay(5);
                         }
                     } else if (trigger & 2) {
                         this->step = kTuneConfirmDiscard;
-                        this->ExeScript(at_7345);
+                        this->ExeScript("FPCANCEL");
                     }
 
                     break;
@@ -9503,12 +9365,12 @@ int CMenuItemInfo::PushKey(int pad, int trigger) {
                         MenuSePlay(0x1E);
                         this->viewing_weapon = 0;
                         this->mode = kStateBrowse;
-                        this->ExeScript(at_7346);
+                        this->ExeScript("RET_FPMODE");
                     }
 
                     if (answer == 2) {
                         this->step = kTuneAdjust;
-                        this->ExeScript(at_7346);
+                        this->ExeScript("RET_FPMODE");
                         MenuSePlay(5);
                     }
 
@@ -9522,13 +9384,13 @@ int CMenuItemInfo::PushKey(int pad, int trigger) {
                         this->viewing_weapon = 0;
                         this->mode = kStateBrowse;
                         this->step = kTuneAdjust;
-                        this->ExeScript(at_7346);
+                        this->ExeScript("RET_FPMODE");
                         MenuSePlay(1);
                     }
 
                     if (answer == 2) {
                         this->step = kTuneAdjust;
-                        this->ExeScript(at_7346);
+                        this->ExeScript("RET_FPMODE");
                         MenuSePlay(5);
                     }
 
@@ -9606,7 +9468,7 @@ int CMenuItemInfo::PushKey(int pad, int trigger) {
                         MenuCommonInfo->FadeOutMenuBGMVol(-6, 0x18);
                         StartReadBG();
                         int fusion_file_size;
-                        LoadFileBG(at_7347, load_stack->stGetTop(), &fusion_file_size);
+                        LoadFileBG("snd2/sp/SP_005.snd", load_stack->stGetTop(), &fusion_file_size);
                         unsigned int blocks = QuadwordsFor(fusion_file_size);
                         load_stack->Alloc(blocks);
                         SpectolFusionTargetChara = NULL;
@@ -9710,13 +9572,13 @@ int CMenuItemInfo::PushKey(int pad, int trigger) {
 
             if (state == kStateSpectolFusion) {
                 if (extend_result != 0 && MenuSpectolSatusCheckForm != NULL) {
-                    MenuSpectolSatusCheckForm->SetAction(at_5757);
+                    MenuSpectolSatusCheckForm->SetAction("\x8A\x4F\x82\xD6");
                 }
             }
 
             if (state == kStateSpectolBreak && extend_result != 0) {
                 if (MenuSpectolSatusCheckForm != NULL) {
-                    MenuSpectolSatusCheckForm->SetAction(at_5757);
+                    MenuSpectolSatusCheckForm->SetAction("\x8A\x4F\x82\xD6");
                 }
 
                 if (MenuSpectolSatusCheckBGFadeForm != NULL) {
@@ -9784,12 +9646,6 @@ void local_item_infoview_set(MENUFORMPARTS_TYPE *part, CGameDataUsed *item) {
 }
 
 extern char *whptbl_7376[2][2];
-extern char  at_7438[];
-extern char  at_7439[];
-extern char  at_7440[];
-extern char  at_7441[];
-extern char  at_7442[];
-extern char  at_7443[];
 
 /**
  *
@@ -9856,14 +9712,14 @@ void MenuItemCharaActWepInfoDraw(CMenuPosDataForm *form, CGameDataUsed *equip, i
         form->SetNumber(whptbl_7376[i][0], whp[0]);
         form->SetNumber(whptbl_7376[i][1], whp[1]);
         char name[0x20];
-        sprintf(name, at_7438, i);
+        sprintf(name, "whp%d", i);
         bar = form->GetPartInfo(name);
 
         if (bar != NULL) {
             bar->w = (int) (95.0f * rate);
         }
 
-        sprintf(name, at_7439, i);
+        sprintf(name, "abs%d", i);
         bar = form->GetPartInfo(name);
 
         if (bar != NULL) {
@@ -9877,7 +9733,7 @@ void MenuItemCharaActWepInfoDraw(CMenuPosDataForm *form, CGameDataUsed *equip, i
         int            esa_num = 0;
 
         if (is_rod) {
-            MENUFORMPARTS_TYPE *esa_part = form->GetPartInfo(at_4985);
+            MENUFORMPARTS_TYPE *esa_part = form->GetPartInfo("esa0");
 
             if (esa_part != NULL) {
                 esa_part->etc_info[1] = esa->item_no;
@@ -9887,19 +9743,18 @@ void MenuItemCharaActWepInfoDraw(CMenuPosDataForm *form, CGameDataUsed *equip, i
         }
 
         show = is_rod != 0;
-        form->SetPartDrawFlag(at_7440, is_rod != 0);
-        form->SetPartDrawFlag(at_4985, show);
-        form->SetPartDrawFlag(at_7441, show);
-        form->SetPartDrawFlag(at_7442, show);
-        form->SetNumber(at_7443, esa_num);
+        form->SetPartDrawFlag("\x83\x47\x83\x54\x94\xC2", is_rod != 0);
+        form->SetPartDrawFlag("esa0", show);
+        form->SetPartDrawFlag("\x83\x47\x83\x54", show);
+        form->SetPartDrawFlag("\x83\x8B\x83\x41\x81\x5B", show);
+        form->SetNumber("esanum", esa_num);
 
         if (is_rod && MenuUserDataManPtr->GetFishingRodNo() == 0x12E) {
-            form->SetPartDrawFlag(at_7442, false);
+            form->SetPartDrawFlag("\x83\x8B\x83\x41\x81\x5B", false);
         }
     }
 }
 
-extern char at_7478[];
 
 /**
  *
@@ -9931,8 +9786,8 @@ void MenuItemCharaViewCheck(CHARA_DATA *chara, int chara_no, int flag) {
             }
         }
 
-        form->SetNumber(at_3823, GetDispVolumeForFloat(chara->hp.now));
-        form->SetNumber(at_3824, (int) chara->hp.max);
+        form->SetNumber("hp0", GetDispVolumeForFloat(chara->hp.now));
+        form->SetNumber("hp1", (int) chara->hp.max);
 
         for (int i = 0; i < 3; i++) {
             MENUFORMPARTS_TYPE *icon = CMenuItemInfoPt->item_parts[chara_no][i];
@@ -9954,18 +9809,11 @@ void MenuItemCharaViewCheck(CHARA_DATA *chara, int chara_no, int flag) {
             }
         }
 
-        form->SetNumber(at_7478, MenuUserDataManPtr->GetDefenceVol(chara_no));
+        form->SetNumber("DEF", MenuUserDataManPtr->GetDefenceVol(chara_no));
         MenuItemCharaActWepInfoDraw(form, chara->equip, chara_no, flag);
     }
 }
 
-extern char  at_7534[];
-extern char  at_7539[];
-extern char  at_7535[];
-extern char  at_7536[];
-extern char  at_7537[];
-extern char  at_7538[];
-extern char  at_7541[];
 
 /**
  *
@@ -9993,26 +9841,26 @@ void MenuPosFormValueSetCharaRobo(ROBO_DATA *robo, int flag) {
     int blink = (int) (64.0f * sinf(WeaponWarningCounter));
     parts = robo->parts;
     COMMON_GAGE *hp = &robo->hp;
-    hp_part = form->GetPartInfo(at_3822);
+    hp_part = form->GetPartInfo("hp_bar");
     if (hp_part != NULL) {
         hp_part->w = (int) (140.0f * GetCommonGageRate(hp));
     }
-    MENUFORMPARTS_TYPE *hp_end = form->GetPartInfo(at_7534);
+    MENUFORMPARTS_TYPE *hp_end = form->GetPartInfo("needle");
     if (hp_end != NULL && hp_part != NULL) {
         hp_end->x = hp_part->x + hp_part->w - 4.0f;
         hp_end->y = hp_part->y - 10.0f;
     }
-    form->SetNumber(at_3823, GetDispVolumeForFloat(hp->now));
-    form->SetNumber(at_3824, (int) hp->max);
+    form->SetNumber("hp0", GetDispVolumeForFloat(hp->now));
+    form->SetNumber("hp1", (int) hp->max);
     capacity = 0;
-    form->SetNumber(at_7535, CheckNowRoboUseCapacity(&capacity));
-    form->SetNumber(at_7536, capacity);
+    form->SetNumber("capuse", CheckNowRoboUseCapacity(&capacity));
+    form->SetNumber("capmax", capacity);
     int part_defence = MenuUserParam.robo->parts[1].data.robopart.defence;
     int defence = MenuUserParam.robo->GetDefenceVol();
-    form->SetNumber(at_7537, GetShiledKitLimmit(MenuUserDataManPtr->CheckRobotCore()) * 4);
-    form->SetNumber(at_7538, defence - part_defence);
-    form->SetNumber(at_7478, part_defence);
-    local_item_infoview_set(form->GetPartInfo(at_5265), parts);
+    form->SetNumber("shkitm", GetShiledKitLimmit(MenuUserDataManPtr->CheckRobotCore()) * 4);
+    form->SetNumber("shkitn", defence - part_defence);
+    form->SetNumber("DEF", part_defence);
+    local_item_infoview_set(form->GetPartInfo("wep0"), parts);
     int whp[2];
     rate = parts->GetWHp(whp);
     if (rate < 0.2f) {
@@ -10027,20 +9875,20 @@ void MenuPosFormValueSetCharaRobo(ROBO_DATA *robo, int flag) {
         part->rgba[1] = green;
         part->rgba[2] = green;
     }
-    form->SetNumber(at_5262, whp[0]);
-    form->SetNumber(at_5264, whp[1]);
-    whp_bar = form->GetPartInfo(at_7539);
+    form->SetNumber("whp00", whp[0]);
+    form->SetNumber("whp01", whp[1]);
+    whp_bar = form->GetPartInfo("whp_bar");
     if (whp_bar != NULL) {
         whp_bar->w = (int) (108.0f * rate);
     }
-    batu = form->GetPartInfo(at_5266);
+    batu = form->GetPartInfo("batu0");
     if (batu != NULL) {
         batu->draw_flag = 0;
         if (rate == 0.0f) {
             batu->draw_flag = 1;
         }
     }
-    local_item_infoview_set(form->GetPartInfo(at_7540), &parts[2]);
+    local_item_infoview_set(form->GetPartInfo("wep2"), &parts[2]);
     if (CMenuItemInfoPt->voice_part != NULL) {
         if (!init_7510) {
             counter_7509 = 0.0f;
@@ -10059,13 +9907,8 @@ void MenuPosFormValueSetCharaRobo(ROBO_DATA *robo, int flag) {
             CMenuItemInfoPt->voice_part->y -= sway;
         }
     }
-    form->SetNumber(at_7541, GetDispVolumeForFloat(robo->abs.now));
+    form->SetNumber("corep", GetDispVolumeForFloat(robo->abs.now));
 }
-extern char at_7560[];
-extern char at_7561[];
-extern char at_7562[];
-extern char at_7563[];
-extern char at_7564[];
 
 /**
  *
@@ -10081,25 +9924,25 @@ void MenuPosFormValueSetMonster(MOS_CHANGE_PARAM *monster, CHARA_DATA *chara) {
 
     MENUFORMPARTS_TYPE *part;
     MOS_CHANGE_PARAM   *mos = &monster[get_gajji_id_from_monster_progress_table(CMenuItemInfoPt->mos_id, NULL)];
-    part = form->GetPartInfo(at_3822);
+    part = form->GetPartInfo("hp_bar");
 
     if (part != NULL) {
         part->w = (int) (168.0f * GetCommonGageRate(&chara->hp));
     }
 
-    form->SetNumber(at_3823, GetDispVolumeForFloat(chara->hp.now));
-    form->SetNumber(at_3824, (int) chara->hp.max);
-    form->SetNumber(at_7560, mos->GetAttackVol(-1));
-    form->SetNumber(at_7561, mos->GetDefenceVol(-1));
-    part = form->GetPartInfo(at_7539);
+    form->SetNumber("hp0", GetDispVolumeForFloat(chara->hp.now));
+    form->SetNumber("hp1", (int) chara->hp.max);
+    form->SetNumber("at", mos->GetAttackVol(-1));
+    form->SetNumber("def", mos->GetDefenceVol(-1));
+    part = form->GetPartInfo("whp_bar");
 
     if (part != NULL) {
         part->w = (int) (140.0f * GetCommonGageRate(&mos->hp));
     }
 
-    form->SetNumber(at_7562, GetDispVolumeForFloat(mos->hp.now));
-    form->SetNumber(at_7563, (int) mos->hp.max);
-    part = form->GetPartInfo(at_7564);
+    form->SetNumber("whp0", GetDispVolumeForFloat(mos->hp.now));
+    form->SetNumber("whp1", (int) mos->hp.max);
+    part = form->GetPartInfo("abs");
 
     if (part != NULL) {
         part->w = (int) (140.0f * mos->abs.GetRate());
@@ -10553,7 +10396,6 @@ void CMenuItemInfo::CheckLoadItemNo() {
     }
 }
 
-extern char  at_8083[];
 
 int CMenuItemInfo::ModelReadStart(int mode, int check_item, int restart_read) {
     int result = 0;
@@ -10660,7 +10502,7 @@ int CMenuItemInfo::ModelReadStart(int mode, int check_item, int restart_read) {
     }
 
     if (this->mode != MENU_ASK_MODE_OPEN) {
-        ExeScript(at_8083);
+        ExeScript("ITEMCHRFADEIN");
     }
 
     if (mode == 2 || mode == 5) {
@@ -10715,7 +10557,6 @@ void CMenuItemInfo::WeaponBuildCheck(CActionChara *chara, int chara_no, int tex_
 
 extern s8    cnttbl_8130[6];
 extern float robo_stand_pos_8151[][3];
-extern char  at_8199[];
 
 int CMenuItemInfo::ModelReadEndCheck() {
     int loaded = MenuLoadFileCheck(MenuCharaBuild2);
@@ -10835,12 +10676,12 @@ int CMenuItemInfo::ModelReadEndCheck() {
         }
 
         MenuCharaLoadStack.stReset();
-        ExeScript(at_8083);
+        ExeScript("ITEMCHRFADEIN");
     }
 
     if (mode != MENU_ASK_MODE_CLOSE) {
         if (chara_poly_form[0]->draw_flag == 1 && chara_poly_form[0]->counter >= 14) {
-            ExeScript(at_8199);
+            ExeScript("ITEMCHRFADEOUT");
         }
     }
 
@@ -10863,9 +10704,9 @@ void CMenuItemInfo::SearchEffectDisplayPosition(int *position, CGameDataUsed *it
             CHARA_DATA       *character = MenuUserParam.chara[sub_view];
 
             if (&character->equip[0] == item) {
-                form->GetPutPosXY(at_5265, MenuRepairTargetWeaponPos[0], MenuRepairTargetWeaponPos[1]);
+                form->GetPutPosXY("wep0", MenuRepairTargetWeaponPos[0], MenuRepairTargetWeaponPos[1]);
             } else if (&character->equip[1] == item) {
-                form->GetPutPosXY(at_5271, MenuRepairTargetWeaponPos[0], MenuRepairTargetWeaponPos[1]);
+                form->GetPutPosXY("wep1", MenuRepairTargetWeaponPos[0], MenuRepairTargetWeaponPos[1]);
             }
 
             position[0] -= 7;
@@ -10875,9 +10716,9 @@ void CMenuItemInfo::SearchEffectDisplayPosition(int *position, CGameDataUsed *it
             ROBO_DATA *ridepod = MenuUserParam.robo;
 
             if (&ridepod->parts[2] == item) {
-                view_form[3]->GetPutPosXY(at_7540, MenuRepairTargetWeaponPos[0], MenuRepairTargetWeaponPos[1]);
+                view_form[3]->GetPutPosXY("wep2", MenuRepairTargetWeaponPos[0], MenuRepairTargetWeaponPos[1]);
             } else if (&ridepod->parts[0] == item) {
-                view_form[3]->GetPutPosXY(at_5265, MenuRepairTargetWeaponPos[0], MenuRepairTargetWeaponPos[1]);
+                view_form[3]->GetPutPosXY("wep0", MenuRepairTargetWeaponPos[0], MenuRepairTargetWeaponPos[1]);
             }
 
             position[0] -= 7;
@@ -10886,7 +10727,6 @@ void CMenuItemInfo::SearchEffectDisplayPosition(int *position, CGameDataUsed *it
 }
 
 extern int  effparamtbl_8275[2][5];
-extern char at_8315[];
 
 void CMenuItemInfo::SetItemEffect() {
     CCharacter2 *field_chara = MenuMainScene->GetCharacter(0);
@@ -10938,7 +10778,7 @@ void CMenuItemInfo::SetItemEffect() {
             field_chara->SetPosition(position);
             FxScriptManPauseFlag = 1;
             MenuActionChara[0]->effect_man = FxScriptMan;
-            FxScriptMan->CreateEffSpt(at_8315, 0, 0);
+            FxScriptMan->CreateEffSpt("\x92\xCA\x8F\xED\x89\xF1\x95\x9C", 0, 0);
             FxScriptMan->SetScriptTargetId(0, -1, -1);
             int param_no = 0;
 
@@ -11396,7 +11236,7 @@ void CMenuItemInfo::KeyStepLocal(int select_key, int push_button, int flag) {
         MenuItemSelectDiffer(select);
 
         if (status_check_ready != 0 && MenuSpectolSatusCheckForm != NULL && (select_key != 0 || push_button != 0)) {
-            MenuSpectolSatusCheckForm->SetAction(at_5757);
+            MenuSpectolSatusCheckForm->SetAction("\x8A\x4F\x82\xD6");
             status_check_ready = 0;
         }
     } else if (!MenuLoadFileCheck(MenuCharaBuild2)) {
@@ -11404,7 +11244,6 @@ void CMenuItemInfo::KeyStepLocal(int select_key, int push_button, int flag) {
     }
 }
 
-extern char at_8711[];
 
 int CMenuItemInfo::KeyStep() {
     int result = 0;
@@ -11427,7 +11266,7 @@ int CMenuItemInfo::KeyStep() {
 
                     if (opened) {
                         MenuMoveItemPtr->AttachForm();
-                        ExeScript(at_8711);
+                        ExeScript("INITEND");
                         opened = 1;
                         mode = MENU_ASK_MODE_NONE;
                         MenuItemBrdCalcManner = 0;
@@ -11704,17 +11543,17 @@ int MenuItemKey() {
                 CMenuItemInfoPt->MenuModeMalloc(&MenuItemMainMemory);
                 {
                     u8 *buffer = (u8 *) MenuItemBGDataMemory.stack;
-                    LoadFileMenu(at_8819, (u_long128 *) buffer, 1);
+                    LoadFileMenu("itemmn0.pac", (u_long128 *) buffer, 1);
                     CMenuItemInfoPt->EnterDataMenu((unsigned int *) buffer);
                 }
 
                 if (CMenuItemInfoPt->sub_menu == 1) {
                     MenuPosData->InitDrawList();
-                    MenuPosData->FormReLink(at_8820, at_5281);
-                    MenuPosData->FormReLink(at_8821, at_8822);
+                    MenuPosData->FormReLink("main_form_dmy1", "poly_chr0");
+                    MenuPosData->FormReLink("msg0", "msg5");
                 }
 
-                LoadFileMenu(at_8823, MenuMainTextureReadBuf.stack, 1);
+                LoadFileMenu("mb2.pac", MenuMainTextureReadBuf.stack, 1);
                 MenuBaseTextureReEnter();
                 {
                     short *system = GetSystemMesBuffer();
@@ -11805,7 +11644,7 @@ void MenuItemDraw() {
             while (form != NULL) {
                 form->MenuFormDraw(loaded_tex_no);
 
-                if (!effect_drawn && strcmp(form->name, at_5281) == 0) {
+                if (!effect_drawn && strcmp(form->name, "poly_chr0") == 0) {
                     DrawBuildUpInfoEffect();
                     loaded_tex_no = -1;
                     effect_drawn = 1;
@@ -11932,8 +11771,6 @@ void CItemSelect::CheckUse(CGameDataUsed *item) {
 }
 
 extern char *imgtbl_8945[];
-extern char  at_9032[];
-extern char  at_9033[];
 
 int CItemSelect::KeyStep() {
     int end = 0;
@@ -11960,7 +11797,7 @@ int CItemSelect::KeyStep() {
                     MenuDCMsg[0]->SetBuff(GetMenuMainMessageBuffer());
                 }
 
-                texture = tex_manager->GetTexture(at_9032, -1);
+                texture = tex_manager->GetTexture("eventmn", -1);
                 alpha_step = 0xC;
                 MenuCommonInfo->key_enable = 1;
                 mode = MENU_ASK_MODE_NONE;
@@ -12073,9 +11910,9 @@ int CItemSelect::KeyStep() {
             if (item != NULL) {
                 MenuDCMsg[0]->MakeMsg(item);
             } else if (LanguageCode == 0) {
-                MenuDCMsg[0]->MakeMsg(at_9033);
+                MenuDCMsg[0]->MakeMsg("\x81\x40");
             } else {
-                MenuDCMsg[0]->MakeMsg(at_5132);
+                MenuDCMsg[0]->MakeMsg(" ");
             }
 
             break;
@@ -12102,7 +11939,6 @@ struct ItemSelectColor {
     u8 rgba[4]; /**< Red, green, blue, and alpha channels. */
 };
 
-extern char            at_9179[];
 
 void CItemSelect::Draw() {
     if (texture == NULL) {
@@ -12158,7 +11994,7 @@ void CItemSelect::Draw() {
     icon_rect.bottom = 40.0f;
     ItemSelectColor color = {{0x80, 0x80, 0x80, 0}};
     color.rgba[3] = alpha;
-    mgCTexture *number_tex = tex_manager->GetTexture(at_9179, -1);
+    mgCTexture *number_tex = tex_manager->GetTexture("mnmain", -1);
     mgRect<int> number_rect;
     number_rect.Set(0, 0xF4, 0xA, 0xD);
     int index = 0;
@@ -12398,39 +12234,13 @@ INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menusys", at_3747__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menusys", at_3748__2__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menusys", at_3749__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menusys", at_3750__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menusys", at_3751__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menusys", at_3774__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menusys", at_3775__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menusys", at_3822__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menusys", at_3823__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menusys", at_3824__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menusys", at_3825__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menusys", at_3826__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menusys", at_3827__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menusys", at_3828__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menusys", at_3829__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menusys", at_3893__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menusys", at_3894__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menusys", at_3895__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menusys", at_3924__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menusys", at_4333__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menusys", at_4334__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menusys", at_4335__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menusys", at_4659__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menusys", at_4660__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menusys", at_4661__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menusys", at_4662__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menusys", at_4663__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menusys", at_4664__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menusys", at_4665__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menusys", at_4666__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menusys", at_4667__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menusys", at_4668__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menusys", at_4669__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menusys", at_4670__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menusys", at_4671__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menusys", at_4672__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menusys", at_4673__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menusys", at_4950__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menusys", at_4951__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menusys", at_4952__DATA);
@@ -12445,54 +12255,8 @@ INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menusys", at_4974__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menusys", at_4975__2__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menusys", at_4983__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menusys", at_4984__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menusys", at_4985__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menusys", at_5022__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menusys", at_5130__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menusys", at_5131__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menusys", at_5132__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menusys", at_5133__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menusys", at_5134__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menusys", at_5210__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menusys", at_5211__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menusys", at_5259__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menusys", at_5260__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menusys", at_5261__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menusys", at_5262__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menusys", at_5263__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menusys", at_5264__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menusys", at_5265__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menusys", at_5266__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menusys", at_5267__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menusys", at_5268__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menusys", at_5269__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menusys", at_5270__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menusys", at_5271__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menusys", at_5272__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menusys", at_5273__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menusys", at_5274__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menusys", at_5275__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menusys", at_5276__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menusys", at_5277__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menusys", at_5278__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menusys", at_5279__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menusys", at_5280__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menusys", at_5281__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menusys", at_5282__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menusys", at_5283__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menusys", at_5757__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menusys", at_5758__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menusys", at_5759__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menusys", at_5879__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menusys", at_5880__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menusys", at_5881__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menusys", at_5882__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menusys", at_5883__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menusys", at_6011__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menusys", at_6012__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menusys", at_6013__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menusys", at_6014__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menusys", at_6015__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menusys", at_6016__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menusys", at_6424__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menusys", at_6473__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menusys", at_6474__DATA);
@@ -12513,106 +12277,14 @@ INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menusys", at_6517__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menusys", at_6518__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menusys", at_6519__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menusys", at_6520__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menusys", at_6760__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menusys", at_6761__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menusys", at_6762__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menusys", at_6763__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menusys", at_6764__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menusys", at_6765__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menusys", at_6766__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menusys", at_6767__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menusys", at_6768__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menusys", at_6769__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menusys", at_6770__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menusys", at_6771__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menusys", at_6772__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menusys", at_6773__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menusys", at_6774__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menusys", at_6775__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menusys", at_6776__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menusys", at_6777__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menusys", at_6778__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menusys", at_6779__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menusys", at_6780__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menusys", at_6781__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menusys", at_6782__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menusys", at_6783__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menusys", at_6784__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menusys", at_6785__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menusys", at_6786__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menusys", at_6787__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menusys", at_6788__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menusys", at_6789__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menusys", at_6790__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menusys", at_6791__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menusys", at_6792__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menusys", at_6793__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menusys", at_6794__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menusys", at_6795__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menusys", at_6796__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menusys", at_6797__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menusys", at_6798__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menusys", at_6799__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menusys", at_6800__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menusys", at_6801__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menusys", at_6802__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menusys", at_6803__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menusys", at_6804__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menusys", at_6805__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menusys", at_6806__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menusys", at_6807__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menusys", at_6808__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menusys", at_6809__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menusys", at_6810__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menusys", at_6811__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menusys", at_6812__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menusys", at_6813__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menusys", at_7342__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menusys", at_7343__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menusys", at_7344__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menusys", at_7345__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menusys", at_7346__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menusys", at_7347__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menusys", at_7438__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menusys", at_7439__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menusys", at_7440__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menusys", at_7441__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menusys", at_7442__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menusys", at_7443__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menusys", at_7478__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menusys", at_7534__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menusys", at_7535__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menusys", at_7536__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menusys", at_7537__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menusys", at_7538__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menusys", at_7539__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menusys", at_7540__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menusys", at_7541__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menusys", at_7560__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menusys", at_7561__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menusys", at_7562__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menusys", at_7563__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menusys", at_7564__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menusys", at_7728__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menusys", at_7729__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menusys", at_7730__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menusys", at_7731__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menusys", at_7732__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menusys", at_8083__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menusys", at_8199__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menusys", at_8315__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menusys", at_8711__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menusys", at_8819__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menusys", at_8820__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menusys", at_8821__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menusys", at_8822__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menusys", at_8823__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menusys", at_8946__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menusys", at_8947__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menusys", at_8948__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menusys", at_9032__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menusys", at_9033__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menusys", at_9179__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menusys", at_9215__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menusys", at_9216__DATA);
 

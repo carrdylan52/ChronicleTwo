@@ -383,3 +383,53 @@ Markers are **273 RODATA / 6 BSS**, with **2,884 / 10,332 matched_data**.
 Both accepted steps pass PAL, all 149 objects, protected guards and unowned
 hashes. Receipts are `inline-cursor-*` and `table-n_2667-after-cursor-*`,
 with ledgers `string-cursor-ledger.log` and `cursor-table-retry-ledger.log`.
+
+### Inline literal checkpoint
+
+A further 164 direct string aliases become inline literals in the existing
+matched callers, including all fifty-four literals in the SF-controlled
+`MenuItemDebugDraw`. Shift-JIS bytes use hexadecimal escapes. The source
+uses literal values directly, without new alias objects, helper functions or
+changes to the guarded drafts. The compiled debug display remains identical
+under the unchanged production profile.
+
+| Literal group | Accepted aliases |
+| --- | --- |
+| camera | `at_3774__2`, `at_3775__2` |
+| weapon | `at_3822`, `at_3823`, `at_3824`, `at_3825`, `at_3826`, `at_3827`, `at_3828`, `at_3829` |
+| fusion-status | `at_3893` |
+| item-command | `at_4659`, `at_4660`, `at_4661`, `at_4662`, `at_4663`, `at_4664`, `at_4665`, `at_4666`, `at_4667`, `at_4668`, `at_4669`, `at_4670`, `at_4671`, `at_4673` |
+| move-form | `at_4985`, `at_5022` |
+| resources | `at_3751`, `at_5130`, `at_5131`, `at_5132`, `at_5133`, `at_5134`, `at_5210`, `at_5211` |
+| attach-forms | `at_5259`, `at_5260`, `at_5261`, `at_5262`, `at_5263`, `at_5264`, `at_5265`, `at_5266`, `at_5267`, `at_5268`, `at_5269`, `at_5270`, `at_5271`, `at_5272`, `at_5273`, `at_5274`, `at_5275`, `at_5276`, `at_5277`, `at_5278`, `at_5279`, `at_5280`, `at_5281`, `at_5282`, `at_5283` |
+| calc-textures | `at_5757`, `at_5758`, `at_5759` |
+| cursor-position | `at_5879`, `at_5880`, `at_5881` |
+| item-init | `at_6011`, `at_6012`, `at_6013`, `at_6014`, `at_6015`, `at_6016` |
+| item-keys | `at_7342`, `at_7343`, `at_7344`, `at_7345`, `at_7346`, `at_7347` |
+| build-up | `at_7438`, `at_7439`, `at_7440`, `at_7441`, `at_7442`, `at_7443` |
+| active-weapons | `at_7478`, `at_7534`, `at_7535`, `at_7536`, `at_7537`, `at_7538`, `at_7539`, `at_7540`, `at_7541` |
+| fishing-rod | `at_7560`, `at_7561`, `at_7562`, `at_7563`, `at_7564` |
+| model-read | `at_8083`, `at_8199` |
+| item-effect | `at_8315` |
+| key-step | `at_8711` |
+| main-keys | `at_8819`, `at_8820`, `at_8821`, `at_8822`, `at_8823` |
+| item-selector | `at_9032`, `at_9033`, `at_9179` |
+| debug-display | `at_6760`, `at_6761`, `at_6762`, `at_6763`, `at_6764`, `at_6765`, `at_6766`, `at_6767`, `at_6768`, `at_6769`, `at_6770`, `at_6771`, `at_6772`, `at_6773`, `at_6774`, `at_6775`, `at_6776`, `at_6777`, `at_6778`, `at_6779`, `at_6780`, `at_6781`, `at_6782`, `at_6783`, `at_6784`, `at_6785`, `at_6786`, `at_6787`, `at_6788`, `at_6789`, `at_6790`, `at_6791`, `at_6792`, `at_6793`, `at_6794`, `at_6795`, `at_6796`, `at_6797`, `at_6798`, `at_6799`, `at_6800`, `at_6801`, `at_6802`, `at_6803`, `at_6804`, `at_6805`, `at_6806`, `at_6807`, `at_6808`, `at_6809`, `at_6810`, `at_6811`, `at_6812`, `at_6813` |
+
+The retained direct aliases are `at_3894`, `at_3895`, `at_3924`, `at_5882`, `at_5883`.
+Their isolated candidates fail PAL and are restored. Saved failed objects
+show the 48-byte native `at_5774` BSS initializer losing its retail identity;
+the unresolved piece moves before the named BSS reservations and shifts
+their code references by `0x30`. The fusion-status group produces 45 changed
+instruction words across existing functions and static initialization; only
+the low immediate fields change. This is an identity/layout failure under the
+fixed postprocessor, not a reason to change the functions or add synthetic
+storage. The unchanged aliases retain their exact retail symbols.
+
+Markers are **109 RODATA / 6 BSS**, with **2,884 / 10,332 matched_data**.
+All accepted groups pass PAL, all 149 objects, protected guard checks and
+unowned hashes. Receipts are `string-remaining-ledger.log`,
+`inline-<group>-{build,objects,metrics}.log`, and the per-alias fallback logs.
+The failed object, binary and word-diff receipts use the same label plus
+`-failed-*` or `-worddiff.log`; `inline-fusion-status-failed-objects.log`
+records the unnamed BSS piece.
