@@ -32,3 +32,9 @@ Resource loading uses native `%s.chr`, `%s.img`, `%s.stb` pack suffixes and `dun
 
 Accepted steps: `strings:at_943__3`, `strings:at_1127__2`, `strings:at_1128__3`, `strings:at_1129__2`, `strings:at_1143`, `strings:at_1144`, `strings:at_1145`. Each has full PAL, 149-object and unowned raw-object hash receipts under `.private/dataA-r3/eff-<topic>-{build,objects,hashes}.log`.
 
+## Inline effect script command diagnostics
+
+Native diagnostics report sprite-work exhaustion, collision polygon limits, unavailable collision primitives, command coordinates, effect creation failures, duplicate command numbers and dispatch capacity exhaustion. Their byte content and null termination are preserved, including hexadecimal Shift-JIS escapes.
+
+Accepted steps: `strings:at_1655__5`, `strings:at_3303__2`, `strings:at_3398`, `strings:at_3495`, `strings:at_3536`, `strings:at_3644`, `strings:at_3645`. Each has full PAL, 149-object and unowned raw-object hash receipts under `.private/dataA-r3/eff-<topic>-{build,objects,hashes}.log`.
+

@@ -273,8 +273,6 @@ int                    SetEffectScript(CRunScript *script, char *program, mgCMem
 void                   SetEffectScriptFunc();
 static void            DrawEffSptSprite(_EFF_SCRIPT *script, mgCTexture *texture, float *offset, mgC3DSprite *renderer, CMapLightingInfo *lighting);
 extern RS_EXTFUNC_INFO ext_func_info__4[];
-extern char            at_3644[];
-extern char            at_3645[];
 
 
 
@@ -297,17 +295,13 @@ extern char at_1340__2[];
 
 extern char at_1341__2[];
 
-extern char at_1655__5[];
 
 extern char at_1705[];
 
 extern char at_2025__3[];
 
-extern char at_3398[];
 
-extern char at_3495[];
 
-extern char at_3536[];
 
 /**
  *
@@ -322,7 +316,6 @@ static inline u_int align16_blocks(u_int size) {
     return size >> 4;
 }
 
-extern char at_3303__2[];
 
 // Code (.text)
 void CEffectScriptMan::Initialize(mgCMemory *memory, int texb_start, int texb_num) {
@@ -1309,7 +1302,7 @@ _ES_SPRITE *CEffectScriptMan::AssignSprite(int count) {
     u_int blocks = align16_blocks(size) + 3;
 
     if (work_memory->StartStackMode(3, blocks) == 0) {
-        printf(at_1655__5, blocks);
+        printf("------- es work max!! (assign sprite[%d]) ---------\n", blocks);
         return 0;
     }
 
@@ -4814,7 +4807,7 @@ int _INTERSECTION_POINT(RS_STACKDATA *stack, int argc) {
     int poly_num = now_scene->GetColPoly(poly, box, 0x80);
 
     if (poly_num >= 0x80) {
-        printf(at_3303__2, poly_num);
+        printf("effect script[INTERSECTION_POINT] poly num over[%d]\n", poly_num);
         return 0;
     }
 
@@ -5149,7 +5142,7 @@ int _SCN_GET_CHR_ENTOBJ_POS(RS_STACKDATA *stack, int argc) {
  *
  */
 int _CREATE_DAMAGE(RS_STACKDATA *stack, int argc) {
-    printf((const char *) &at_3398);
+    printf((const char *) &"effect script err   \x8C\xC3\x82\xA2\x83\x52\x83\x8A\x83\x57\x83\x87\x83\x93\x83\x4E\x83\x89\x83\x58\x82\xCD\x8E\x67\x82\xC1\x82\xBF\x82\xE1\x83\x5F\x83\x81\x82\xE6\x81\x49\x81\x49\n");
     return 0;
 }
 
@@ -5186,7 +5179,7 @@ int _DMG_SET_FRONT_VECT(RS_STACKDATA *stack, int argument_count) {
  *
  */
 int _DMG_SET_DAMAGE(RS_STACKDATA *stack, int argc) {
-    printf((const char *) &at_3398);
+    printf((const char *) &"effect script err   \x8C\xC3\x82\xA2\x83\x52\x83\x8A\x83\x57\x83\x87\x83\x93\x83\x4E\x83\x89\x83\x58\x82\xCD\x8E\x67\x82\xC1\x82\xBF\x82\xE1\x83\x5F\x83\x81\x82\xE6\x81\x49\x81\x49\n");
     return 0;
 }
 
@@ -5383,7 +5376,7 @@ int _COLPRIM_GET_GIFT(RS_STACKDATA *stack, int argc) {
     colprim->gift[1] = count;
     colprim->gift[2] = rate;
     colprim->has_gift = 1;
-    printf(at_3495, item_id, count, rate);
+    printf("%d,%d,%d\n", item_id, count, rate);
     return 1;
 }
 
@@ -5469,7 +5462,7 @@ int _ES_CREATE(RS_STACKDATA *stack, int argc) {
             SetStack(stack, handle);
 
             if (handle <= -1) {
-                printf(at_3536, name, now_script->user_id);
+                printf("ES_CREATE error [%s][%d][%d]", name, now_script->user_id);
             }
 
             break;
@@ -5666,7 +5659,7 @@ void SetEffectScriptFunc() {
 
             do {
                 if (ext_func_info__4[function_index].no == ext_func_info__4[previous_index].no) {
-                    printf(at_3644, ext_func_info__4[previous_index].no);
+                    printf("dng_effect same ext_func_no!!![%d]\n", ext_func_info__4[previous_index].no);
 
                     while (1) {
                     }
@@ -5677,7 +5670,7 @@ void SetEffectScriptFunc() {
         }
 
         if (ext_func_info__4[function_index].no < 0 || ext_func_info__4[function_index].no >= 256) {
-            printf(at_3645);
+            printf("dng_effect ext func over!!\n");
         } else {
             ext_func__4[ext_func_info__4[function_index].no] = ext_func_info__4[function_index].func;
         }
@@ -5700,16 +5693,9 @@ INCLUDE_RODATA("ps2/asm/pal/nonmatchings/effscript", at_1338__2__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/effscript", at_1339__3__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/effscript", at_1340__2__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/effscript", at_1341__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/effscript", at_1655__5__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/effscript", at_1705__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/effscript", at_2025__3__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/effscript", at_3303__2__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/effscript", at_3304__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/effscript", at_3398__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/effscript", at_3495__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/effscript", at_3536__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/effscript", at_3644__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/effscript", at_3645__DATA);
 
 // Small uninitialised data (.sbss)
 CScene *now_scene;
