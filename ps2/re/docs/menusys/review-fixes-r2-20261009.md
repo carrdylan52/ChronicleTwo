@@ -47,3 +47,34 @@ compiler/checker results are saved under
 
 The actual-source full build verifies `SCES_511.90: OK` and 149/149 complete
 objects with the unchanged compiler profile. No function guard changes.
+
+## MenuEffect declaration extent (finding 30)
+
+The definition is an eight-byte, two-pointer `CMenuEffect *[2]` array. The
+header's compatible incomplete-array declaration stays `MenuEffect[]`.
+Completing that declaration as `[2]` fails the full build: `inventmn` reports
+458 complete-object problems, including short extents for `IsMakeObject`,
+`CalcTex` and `MenuInventDraw`, an unidentified replacement for `at_3317` in
+`.sbss`, and unresolved relocated destinations. The other 148 units pass,
+including all three owned menu units. The PAL verifier also fails and reports
+a BSS end 0x40 bytes beyond retail.
+
+The bound is the only changed input to the inventmn translation unit; the
+owned source changes in that probe are whitespace. No inventmn source or
+compiler-profile change is made. The original incomplete declaration is
+retained rather than accepting different object bytes. Negative receipts
+are `final-source-cleanup-{build,objects}.log` under the lane receipt directory;
+the failed inventmn object and header are saved in the private bound probe.
+
+## Source spacing and current documentation (findings 8 and 17)
+
+Repeated empty lines are reduced to one, and function definitions have blank
+separators, including boundaries after preprocessor guards. Initializer
+layout is preserved. Older matching records are explicitly historical;
+current swap-result arrays and native matching status are linked to their
+accepted results.
+
+Restoring `MenuEffect[]` with the final spacing edits verifies
+`SCES_511.90: OK` and 149/149 complete objects. Coverage remains 6,787
+perfect functions and zero fuzzy; the declaration-extent regression is
+isolated and the original matching declaration is retained.

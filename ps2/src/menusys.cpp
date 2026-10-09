@@ -161,7 +161,6 @@ void SetupUnitMan(CScene *scene, CUserDataManager *user_data, int unit, ROBO_INF
 void InitSpectol();
 void MenuItemDebugKey();
 
-
 /**
  *
  * Groups the model, skin, and outline data loaded for a menu character.
@@ -206,7 +205,6 @@ void      MenuItemCharaViewCheck(CHARA_DATA *chara, int chara_no, int flag);
 static void MenuPosFormValueSetCharaRobo(ROBO_DATA *robo, int flag);
 void      MenuPosFormValueSetMonster(MOS_CHANGE_PARAM *monster, CHARA_DATA *chara);
 int       CheckFishCondition();
-
 
 /**
  *
@@ -1367,9 +1365,9 @@ int CBaseMenuClass::MenuItemMoveItemCommand(CGameDataUsed *item, int arg_pos, in
     return 0;
 }
 
-
 template <typename T>
 static inline T Ident(T v) { return v; }
+
 int CBaseMenuClass::MenuItemCommandSelect(int select_key, int push_button) {
     CGameDataUsed    *used_data = MenuUserParam.used_data;
     u_long            target;
@@ -3051,7 +3049,6 @@ int AfterSpectolFusion(CGameDataUsed *item, CGameDataUsed *part) {
     return raised;
 }
 
-
 void FusionColor(int type, int step, float *color) {
     if (type == 1) {
         fusion_ambient[0] = 128.0f + fusion_color_val * sinf(fusion_color_ang[0]);
@@ -3517,7 +3514,6 @@ enum MENU_SWAP_RESULT {
  */
 s8 ret_tbl1_2511[2] = {MENU_SWAP_RESULT_NORMAL, MENU_SWAP_RESULT_DESTINATION_EMPTY};
 
-
 /**
  *
  * Exchanges menu items through gift-box, bait, stacking and aquarium handling.
@@ -3599,6 +3595,7 @@ static int MenuDataSwap(CGameDataUsed *destination, CGameDataUsed *source, int q
     CheckEnableHaveItemNum();
     return result;
 }
+
 void CMenuKeyFunc::Initialize() {
     int i;
 
@@ -4083,7 +4080,6 @@ int CMenuKeyFunc::GetItemAll(CGameDataUsed *item, MENU_SWAPITEM_INFO *info) {
 int GetItemCommandMsg(CGameDataUsed *item, MENU_ASKMODE_PARA *param, int slot, int arg) {
     return GetItemCommandMsg(item, param->cmd_msg, param->cmd_color, param->cmd_shade, param->cmd_mark, slot, arg);
 }
-
 
 /**
  *
@@ -5112,6 +5108,7 @@ short CMenuKeyFunc::StepMenuBGM() {
 
     return bgm_fading;
 }
+
 void CheckEnableHaveItemNum(void) {
     CGameData        *item_data = &GameItemDataManage;
     int               i;
@@ -5180,6 +5177,7 @@ void CheckEnableHaveItemNum(void) {
         }
     }
 }
+
 /**
  *
  * Positions the equipment preview camera around a character or its selected part.
@@ -5237,7 +5235,6 @@ void MenuEquipCameraSetEnv(CActionChara *chara, mgCCamera *camera, int type, int
     *(u_long128 *) MenuDrawEnv->pos = *(u_long128 *) position;
     MenuDrawEnv->speed = 7.0f;
 }
-
 
 /**
  *
@@ -6536,7 +6533,6 @@ int CMenuItemInfo::ItemCmdAfter(int cmd_ret, ITEMCMD_RET_PARA *ret) {
     return 1;
 }
 
-
 extern char at_4950[];
 extern char at_4951[];
 extern char at_4952[];
@@ -6801,6 +6797,7 @@ int CMenuItemInfo::IsAskExtend(int select_key, int push_button) {
 #else
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/menusys", IsAskExtend__13CMenuItemInfoFii);
 #endif
+
 void MenuMoveItemPos(int *item, int *pos, int phase) {
     char part_name[0x20];
 
@@ -6839,6 +6836,7 @@ void MenuMoveItemPos(int *item, int *pos, int phase) {
         }
     }
 }
+
 void CommonSetMoveItemClass(int (*table)[4]) {
     int                 goal[2];
     int                 start[2];
@@ -6909,6 +6907,7 @@ void CommonSetMoveItemClass(int (*table)[4]) {
         }
     }
 }
+
 void CMenuItemInfo::EnterDataMenu(unsigned int *pack) {
     int                sound_size;
     mgCTextureManager *textures;
@@ -7059,7 +7058,6 @@ void CMenuItemInfo::ExitEnd() {
     ((CGameDataUsed *) (&MenuCommonInfo->have_item))->Init();
     MenuMainFrameModeSet(0, 0);
 }
-
 
 void CMenuItemInfo::AttachFormInfo() {
     int i;
@@ -7505,6 +7503,7 @@ void CMenuItemInfo::CalcTex() {
     checkmoveFlag = check_move;
     EffectDrawCheck(item_board_form);
 }
+
 extern char at_5882[];
 extern char at_5883[];
 
@@ -7646,7 +7645,6 @@ void CMenuItemInfo::CalcCursorPosition() {
     }
 }
 
-
 void CBaseMenuClass::EffectDrawCheck(CMenuPosDataForm *form) {
     MENUFORMPARTS_TYPE *part = &form->parts[trans_spectol_pos];
     int                 effect_type = MenuEffect[0]->type;
@@ -7707,7 +7705,6 @@ void CBaseMenuClass::EffectDrawCheck(CMenuPosDataForm *form) {
         }
     }
 }
-
 
 int MenuItemInit(mgCMemory *stack, int *tex_block, int mode) {
     FxScriptManPauseFlag = 0;
@@ -8438,7 +8435,6 @@ void MenuItemDebugKey(void) {
             break;
     }
 }
-
 #pragma inline_depth reset
 #else
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/menusys", MenuItemDebugKey__Fv);
@@ -9815,7 +9811,6 @@ done:
     return 1;
 }
 
-
 /**
  *
  * Assigns an item's number to a visible information form part.
@@ -9828,7 +9823,6 @@ void local_item_infoview_set(MENUFORMPARTS_TYPE *part, CGameDataUsed *item) {
         part->draw_flag = 1;
     }
 }
-
 
 /**
  *
@@ -9938,7 +9932,6 @@ void MenuItemCharaActWepInfoDraw(CMenuPosDataForm *form, CGameDataUsed *equip, i
     }
 }
 
-
 /**
  *
  * Updates a character's visible health and equipment preview forms.
@@ -9996,7 +9989,6 @@ void MenuItemCharaViewCheck(CHARA_DATA *chara, int chara_no, int flag) {
         MenuItemCharaActWepInfoDraw(form, chara->equip, chara_no, flag);
     }
 }
-
 
 /**
  *
@@ -10200,7 +10192,6 @@ void BuildUpWeaponNameBoardDraw(mgCDrawPrim *prim, float x, float y, int width) 
     PrimQuad(prim, put_rect, middle_rect);
     PrimQuad(prim, x + width - 8.0f, y, right_rect);
 }
-
 
 void MenuWeaponBuildUpDraw(int &tex_block) {
     if (BuildUpWeaponInfo.mode == 0) {
@@ -10421,7 +10412,6 @@ void MenuWeaponBuildUpDraw(int &tex_block) {
     }
 }
 
-
 /**
  *
  * Updates the weapon upgrade status form for a selected weapon.
@@ -10558,6 +10548,7 @@ int MenuItemSelectDiffer(int select) {
     CMenuItemInfoPt->key_arg_no = select;
     return 1;
 }
+
 void CMenuItemInfo::CheckLoadItemNo() {
     if (view_mode == 0) {
         SetMenuLoadItemNo(0);
@@ -10575,7 +10566,6 @@ void CMenuItemInfo::CheckLoadItemNo() {
         SetMenuLoadItemNo(load_item_no);
     }
 }
-
 
 int CMenuItemInfo::ModelReadStart(int mode, int check_item, int restart_read) {
     int result = 0;
@@ -10734,7 +10724,6 @@ void CMenuItemInfo::WeaponBuildCheck(CActionChara *chara, int chara_no, int tex_
 
     SetBuildUpInfoChara((CCharacter2 *) build_chara, ActiveMenuWeaponCharaRange);
 }
-
 
 int CMenuItemInfo::ModelReadEndCheck() {
     int loaded = MenuLoadFileCheck(MenuCharaBuild2);
@@ -10904,7 +10893,6 @@ void CMenuItemInfo::SearchEffectDisplayPosition(int *position, CGameDataUsed *it
     }
 }
 
-
 void CMenuItemInfo::SetItemEffect() {
     CCharacter2 *field_chara = MenuMainScene->GetCharacter(0);
     int          item_no = MenuUsedItemNo;
@@ -11008,6 +10996,7 @@ void CMenuItemInfo::SetItemEffect() {
         }
     }
 }
+
 int CMenuItemInfo::LRCheck(int key) {
     if (mode != MENU_ASK_MODE_NONE) {
         return 0;
@@ -11117,6 +11106,7 @@ int CMenuItemInfo::LRCheck(int key) {
     }
     return 0;
 }
+
 /**
  *
  * Sets the item information cursor indicators for the active menu mode.
@@ -11164,7 +11154,6 @@ void MenuItemInfoCursorSet(int mode) {
         }
     }
 }
-
 
 void MenuCharaStatusDraw(int &tex_block) {
     if (MenuStatusTex == NULL) {
@@ -11416,7 +11405,6 @@ void CMenuItemInfo::KeyStepLocal(int select_key, int push_button, int flag) {
         PushKey(select_key, push_button);
     }
 }
-
 
 int CMenuItemInfo::KeyStep() {
     int result = 0;
@@ -11945,7 +11933,6 @@ void CItemSelect::CheckUse(CGameDataUsed *item) {
     }
 }
 
-
 int CItemSelect::KeyStep() {
     int end = 0;
 
@@ -12112,7 +12099,6 @@ step_alpha:
 struct ItemSelectColor {
     u8 rgba[4]; /**< Red, green, blue, and alpha channels. */
 };
-
 
 void CItemSelect::Draw() {
     if (texture == NULL) {
@@ -12340,6 +12326,7 @@ void MenuItemSelectInit(mgCMemory *stack, int *tex_block, int mode) {
 #else
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/menusys", MenuItemSelectInit__FP9mgCMemoryPii);
 #endif
+
 int MenuItemSelectKey() {
     int result;
 

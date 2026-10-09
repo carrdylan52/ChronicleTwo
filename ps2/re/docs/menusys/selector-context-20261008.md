@@ -1,5 +1,9 @@
 # Debug-panel context and ordinary-walk selectors
 
+Historical probe record. Current exact matches and guarded remainders are
+listed in [notes.md](notes.md); later promotions are documented in
+[night-20261008.md](night-20261008.md).
+
 `MenuItemDebugDraw__Fv` at `0x002494E0` draws the debug item grid and the
 selected character/weapon information page. The established menu/font/item
 types remain unchanged. `decompile.sh` again encounters the documented

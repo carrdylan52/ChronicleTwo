@@ -14,6 +14,11 @@ and SHA-256 comparison of all 149 linked game objects. Only menusys's object
 metadata may change; every unowned object hash remains equal to the warm build.
 Receipts are under `.private/dataD-r2/`.
 
+The source-definition inventories below describe this migration checkpoint.
+The October 9 cleanup replaces ten explicit state/latch pairs and three
+wrapper templates with natural local definitions while retaining their retail
+storage; see [review-fixes-r2-20261009.md](review-fixes-r2-20261009.md).
+
 ## Object extents and existing types
 
 Retail declared sizes are distinct from the splitter's padded reservation
@@ -68,7 +73,7 @@ The ordinary state objects use the types established by the matched consumers
 and existing headers: controller/model/message/form/texture pointers, signed
 short quantities and positions, byte visibility/initialization flags, floating
 animation counters and vectors, and the documented cursor/build-up records.
-Retail LOCAL objects retain file-local linkage; existing public globals retain
+Migrated retail LOCAL state objects retain file-local linkage; existing public globals retain
 their header-compatible declarations. Primitive persistent counters and their
 one-byte initialization latches preserve the existing runtime initialization
 and exact retail symbol names.
@@ -116,8 +121,11 @@ unowned hashes independently. Receipts are `persistent-bss-ledger.log` and
 The spectrumisation name substitution is a one-pointer automatic array, the
 fusion name substitution has two pointer slots, and the breakdown values are
 four integers initialized to zero. Their native aggregate templates replace
-`at_1545`, `at_1685` and `at_1557`. The accepted `KeyPairTable` copy convention
-retains its typed, file-local zero wrap-target object at `at_2333__3`.
+`at_1545`, `at_1685` and `at_1557`. At this migration checkpoint the accepted
+`KeyPairTable` copy retained a file-local zero wrap-target object at
+`at_2333__3`. The October 9 cleanup supplies both key-pair templates through
+plain local-array initializers instead; see
+[review-fixes-r2-20261009.md](review-fixes-r2-20261009.md).
 The old name/position/breakdown wrapper types and the `MenuEffect` declaration
 macro are unnecessary and absent.
 

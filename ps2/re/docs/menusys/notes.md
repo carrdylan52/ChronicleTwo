@@ -220,7 +220,7 @@ branch-local automatic objects are documented in [pushkey.md](pushkey.md).
 
 - `CBaseMenuClass::MenuItemCommandSelect` is an exact C++ match when compiled alone through mwccgap. Its dispatch selects an item command from a key and button pair, including ask mode handling.
 - `MenuItemSelectDiffer` is an exact C++ match when compiled alone through mwccgap. It tests whether an item selection differs from the currently selected item.
-- Both functions passed the isolated linked-image verification. `MenuWeaponBuildUpDraw` differs in four instructions in the linked image despite the whole-unit draft comparison reporting a match. `CMenuItemInfo::LRCheck` then differed in two branch-delay-slot words at offsets 0x264 and 0x268; the shoulder-button `switch` documented in [night-20261008.md](night-20261008.md) resolves them.
+- Both functions passed the isolated linked-image verification. `MenuWeaponBuildUpDraw` initially differed in four instructions in the linked image despite the whole-unit draft comparison reporting a match; the verified-profile result below supersedes that earlier trial. `CMenuItemInfo::LRCheck` then differed in two branch-delay-slot words at offsets 0x264 and 0x268; the shoulder-button `switch` documented in [night-20261008.md](night-20261008.md) resolves them.
 
 ## Constructor-backed allocations
 
