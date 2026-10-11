@@ -243,7 +243,7 @@ int mgCVisualMotionMDT::DataAssignMotionMDT(MDT_HEADER *header, mgCVMotionData *
         scratch.stack_used = 0;
         scratch.lock = 0;
         source = CreateFace(source, memory, &scratch, &packet);
-        address = (int) memory->stGetTop();
+        address = (int) PORT_FIX(PortPtr32)(memory->stGetTop());
         size = CreateFaceMotionPacket((u_int *) address, packet, data);
         packet->packet_tag_word[0] = size | MG_DMA_REF;
         packet->packet_tag_word[1] = address;

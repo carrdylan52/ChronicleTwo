@@ -465,6 +465,7 @@ int CEditMap::GetePlaceIDList(int *out, int max) {
     int out_offset = 0;
 
     for (; i < edit_parts_max; i++) {
+        PORT_FIX(PortLayoutGuard();)
         s8 *part = (s8 *) edit_parts + offset;
         int is_free = part[0x70] == 0;
 

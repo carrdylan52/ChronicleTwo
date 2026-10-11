@@ -16553,7 +16553,7 @@ static int _DIST_VECTOR(RS_STACKDATA *stack, int argc) {
     float vec[4];
     GetStackVector(vec, stack);
 
-    stack = (RS_STACKDATA *) ((int) stack + 0x18);
+    stack = (RS_STACKDATA *) ((int) PORT_FIX(PortPtr32)(stack) + 0x18);
     SetStack(stack, mgDistVector(vec));
     return true;
 }
@@ -16569,7 +16569,7 @@ static int _DIST_VECTOR2(RS_STACKDATA *stack, int argc) {
     GetStackVector(from, stack);
     GetStackVector(to, stack + 3);
 
-    stack = (RS_STACKDATA *) ((int) stack + 0x30);
+    stack = (RS_STACKDATA *) ((int) PORT_FIX(PortPtr32)(stack) + 0x30);
     SetStack(stack, mgDistVector(from, to));
     return true;
 }
@@ -17172,7 +17172,7 @@ static int _SWE_SET_COLOR(RS_STACKDATA *stack, int argc) {
         return false;
     }
 
-    effect_slot = (CSWordAfterEffect **) ((slot << 2) + (int) chara + offsetof(CCharacter2, sword_effect));
+    effect_slot = (CSWordAfterEffect **) ((slot << 2) + (int) PORT_FIX(PortPtr32)(chara) + offsetof(CCharacter2, sword_effect));
 
     if (*effect_slot == NULL) {
         return false;
@@ -17222,7 +17222,7 @@ static int _SWE_SET_TEXTURE(RS_STACKDATA *stack, int argc) {
         return false;
     }
 
-    effect_slot = (CSWordAfterEffect **) ((slot << 2) + (int) chara + offsetof(CCharacter2, sword_effect));
+    effect_slot = (CSWordAfterEffect **) ((slot << 2) + (int) PORT_FIX(PortPtr32)(chara) + offsetof(CCharacter2, sword_effect));
 
     if (*effect_slot == NULL) {
         return false;
@@ -17267,7 +17267,7 @@ static int _SWE_START_EFFECT(RS_STACKDATA *stack, int argc) {
         return false;
     }
 
-    effect_slot = (CSWordAfterEffect **) ((slot << 2) + (int) chara + offsetof(CCharacter2, sword_effect));
+    effect_slot = (CSWordAfterEffect **) ((slot << 2) + (int) PORT_FIX(PortPtr32)(chara) + offsetof(CCharacter2, sword_effect));
 
     if (*effect_slot == NULL) {
         return false;

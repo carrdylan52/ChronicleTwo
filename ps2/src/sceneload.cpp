@@ -174,7 +174,7 @@ static int LoadMapData(SCN_LOADMAP_INFO2 &info, int deferred) {
         return 0;
     }
 
-    return (int) load_buf;
+    return (int) PORT_FIX(PortPtr32)(load_buf);
 }
 
 void SCN_LOADMAP_INFO2::Initialize() {

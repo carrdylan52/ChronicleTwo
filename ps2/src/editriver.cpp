@@ -390,7 +390,7 @@ CGridData *CEditGrid::Get(int x, int y) {
 }
 
 CGridData *CEditGrid::GetFast(int x, int y) {
-    return (CGridData *) ((int) data + ((x + (y * num_x)) * sizeof(CGridData)));
+    return (CGridData *) ((int) PORT_FIX(PortPtr32)(data) + ((x + (y * num_x)) * sizeof(CGridData)));
 }
 
 int CEditGrid::GetLPos(int *cell, float x, float z) {

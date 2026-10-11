@@ -616,7 +616,7 @@ int mgCVisualFixMDT::DataAssignMDT(MDT_HEADER *header, mgCMemory *memory,
         scratch.stack_used = 0;
         scratch.lock = 0;
         cursor = self->CreateFace(cursor, memory, &scratch, &part);
-        int address = (int) &memory->stack[memory->stack_used];
+        int address = (int) PORT_FIX(PortPtr32)(&memory->stack[memory->stack_used]);
         int size = self->CreateFacePacket((u_int *) address, part);
         part->packet_tag_word[0] = size | MG_DMA_REF;
         part->packet_tag_word[1] = address;

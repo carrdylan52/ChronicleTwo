@@ -183,11 +183,11 @@ static u_int at_1276__2[4] __attribute__((aligned(16))) = {0, 0x10000000, 0xE, 0
 static u_int at_1287__2[4] __attribute__((aligned(16))) = {0x8000, 0x10000000, 0xE, 0};
 
 static inline void *DmaAddr(void *addr) {
-    return (void *) ((u32) addr & 0xFFFFFFF);
+    return (void *) ((u32) PORT_FIX(PortPtr32)(addr) & 0xFFFFFFF);
 }
 
 static inline void *UncAddr(void *addr) {
-    return (void *) (((u32) addr & 0xFFFFFFF) | 0x20000000);
+    return (void *) (((u32) PORT_FIX(PortPtr32)(addr) & 0xFFFFFFF) | 0x20000000);
 }
 
 void CMovie::Load(char *name, mgCMemory **memory, int width, int height, bool with_audio, bool loop,
@@ -782,7 +782,7 @@ void setD4_CHCR(u32 chcr) {
 }
 
 static void scTag2(QWORD *tag, void *addr, u32 id, u32 count) {
-    tag->l[0] = ((u64) (u32) addr << 32) | ((u64) id << 28) | (u64) count;
+    tag->l[0] = ((u64) (u32) PORT_FIX(PortPtr32)(addr) << 32) | ((u64) id << 28) | (u64) count;
 }
 
 int viBufCreate(ViBuf *buf, u_long128 *data, u_long128 *tags, int sectors, TimeStamp *ts, int ts_count) {
@@ -1701,7 +1701,7 @@ int cpy2area(u8 *destination1, int capacity1, u8 *destination2, int capacity2,
 
 void audioDecBeginPut(AudioDec *dec, u8 **area1, int *size1, u8 **area2, int *size2) {
     if (dec->state == 0) {
-        *area1 = (u8 *) ((int) dec->hdr + dec->hdr_count);
+        *area1 = (u8 *) ((int) PORT_FIX(PortPtr32)(dec->hdr) + dec->hdr_count);
         *size1 = sizeof(dec->hdr) - dec->hdr_count;
         *area2 = dec->data;
         *size2 = dec->size;

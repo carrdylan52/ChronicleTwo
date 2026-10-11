@@ -6394,7 +6394,7 @@ void CRepairManager::Generate(int x, int y) {
     }
 
     if (0 <= slot) {
-        entry = (u8 *) (slot * sizeof(mgCMemory)) + (int) this;
+        entry = (u8 *) (slot * sizeof(mgCMemory)) + (int) PORT_FIX(PortPtr32)(this);
 
         memory = (mgCMemory *) (entry + offsetof(CRepairManager, effect_stack));
         memory->stack_used = 0;

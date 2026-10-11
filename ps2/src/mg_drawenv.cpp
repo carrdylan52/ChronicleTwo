@@ -398,7 +398,7 @@ void mgRENDER_INFO::GetPlight(int index, mgPOINT_LIGHT *out) {
         return;
     }
 
-    mgPOINT_LIGHT *light = (mgPOINT_LIGHT *) (index * 0x30 + (int) GetpLightInfo() + 0x90);
+    mgPOINT_LIGHT *light = (mgPOINT_LIGHT *) (index * 0x30 + (int) PORT_FIX(PortPtr32)(GetpLightInfo()) + 0x90);
     out->pos_copy = light->pos_copy;
     out->color_copy = light->color_copy;
     out->power = light->power;
