@@ -1075,6 +1075,8 @@ int sgLoopGyoRace(SubGameInfo *info) {
 
             union {
                 CSceneEventData data;
+                // Clang deletes the union's constructor unless some member has an initialiser.
+                PORT_FIX(char port_init = 0;)
             };
 
             memset(&data, 0, sizeof(data));

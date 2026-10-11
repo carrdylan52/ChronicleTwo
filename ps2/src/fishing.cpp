@@ -2186,6 +2186,8 @@ static void CharaControl(CScene *scene, CPadControl *pad) {
 
                 union {
                     CSceneEventData data;
+                    // Clang deletes the union's constructor unless some member has an initialiser.
+                    PORT_FIX(char port_init = 0;)
 
                     struct {
                         u_char unknown_00[8];

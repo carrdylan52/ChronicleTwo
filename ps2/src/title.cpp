@@ -1178,7 +1178,7 @@ int TitleLoop() {
             case TITLE_MODE_COPYRIGHT:
                 TitleCopyRightInit();
                 break;
-            case TITLE_MODE_MC_CHECK:
+            case TITLE_MODE_MC_CHECK: {
                 TitleBootEventNo = 0;
                 GetMainScene()->read_buff = DataBuffer.stGetTop();
                 u_long128 *language_buffer = DataBuffer.stGetTop();
@@ -1187,6 +1187,7 @@ int TitleLoop() {
                 TitleBootInit();
                 TitleInfo->next_mode = TITLE_MODE_MC_CHECK;
                 break;
+            }
             case TITLE_MODE_TITLE:
             case TITLE_MODE_TITLE_RETURN: {
                 s16 select = TitleInfo->select;

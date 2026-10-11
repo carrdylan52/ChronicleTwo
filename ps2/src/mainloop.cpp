@@ -1542,7 +1542,7 @@ int PauseMenu() {
         case PAUSE_MENU_OPEN:
             PauseMenuMode = PAUSE_MENU_SELECT;
             break;
-        case PAUSE_MENU_SELECT:
+        case PAUSE_MENU_SELECT: {
             previous_select = PauseSel;
 
             if (PadCtrl.Btn(PAD_BTN_RIGHT)) {
@@ -1588,6 +1588,7 @@ int PauseMenu() {
             }
 
             break;
+        }
         case PAUSE_MENU_FADE_OUT:
             BlackFade += 0.03f;
 
