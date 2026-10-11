@@ -147,6 +147,11 @@ KAZAROV_RUNTIME = {
     "mwInit": "RuntimeMw.StaticConstructorsRunBeforeMain",
 }
 
+# The MW runtime routines the game calls by name with no Kazarov counterpart: port/src/runtime.cpp.
+PORT_RUNTIME = {
+    "__construct_new_array": "RuntimePort.ConstructNewArrayWritesMwccsHeader",
+}
+
 # No IOP and no non-coherent DMA on PC: these return success and do nothing, as Chronicle's adapters do.
 NO_OP_ADAPTERS = {"sceSifInitRpc", "FlushCache", "iFlushCache", "SyncDCache", "iSyncDCache",
                   "InvalidDCache", "iInvalidDCache"}
@@ -188,6 +193,8 @@ def classify(obj, symbol, kind, live, headers, sdk_headers, lib_referrers_only):
     signature = ("header " + header) if header and kind == "func" else ("data" if kind == "data" else "internal")
     if symbol in KAZAROV_RUNTIME:
         return "kazarov-runtime", signature, KAZAROV_RUNTIME[symbol], ""
+    if symbol in PORT_RUNTIME:
+        return "port-runtime", signature, PORT_RUNTIME[symbol], ""
     if not live:
         return "dead", signature, "-", "no relocation chain from the game's objects reaches it"
     if rule == "sce-core+adapter":
@@ -334,10 +341,11 @@ def main():
         "# The assembled and data objects of the PAL link (build/pal/main_o_files less the 149 units), one row per",
         "# symbol they define. Written by scripts/port/ledger_reach.py; do not edit by hand, change its rules.",
         "# live: reached by the relocation closure from the game's objects. replacement: host-libc, clang-rt (the",
-        "# host compiler and C/C++ runtime), kazarov-runtime (tools/kazarov/port/runtime), sce-core+adapter",
-        "# (port/src/sce over sce_core), adapter (port/src/sce alone), stub (gen_sce_stubs.py), game-override (the",
-        "# game functions that refer to it are inventory rows and get overridden), caller-replaced (only library",
-        "# code refers to it, and every such referrer is itself replaced, so nothing links it), dead (not live).",
+        "# host compiler and C/C++ runtime), kazarov-runtime (tools/kazarov/port/runtime), port-runtime",
+        "# (port/src/runtime.cpp), sce-core+adapter (port/src/sce over sce_core), adapter (port/src/sce alone),",
+        "# stub (gen_sce_stubs.py), game-override (the game functions that refer to it are inventory rows and get",
+        "# overridden), caller-replaced (only library code refers to it, and every such referrer is itself",
+        "# replaced, so nothing links it), dead (not live).",
         "# signature_checked: header <file> = the game's header declares it, and since every unit's object",
         "# matches retail byte for byte, the call sites were compiled from that prototype; compiler = an MWCC",
         "# helper no source names; internal = no game header declares it; data = an object, not called.",

@@ -1,10 +1,11 @@
 # The assembled and data objects of the PAL link (build/pal/main_o_files less the 149 units), one row per
 # symbol they define. Written by scripts/port/ledger_reach.py; do not edit by hand, change its rules.
 # live: reached by the relocation closure from the game's objects. replacement: host-libc, clang-rt (the
-# host compiler and C/C++ runtime), kazarov-runtime (tools/kazarov/port/runtime), sce-core+adapter
-# (port/src/sce over sce_core), adapter (port/src/sce alone), stub (gen_sce_stubs.py), game-override (the
-# game functions that refer to it are inventory rows and get overridden), caller-replaced (only library
-# code refers to it, and every such referrer is itself replaced, so nothing links it), dead (not live).
+# host compiler and C/C++ runtime), kazarov-runtime (tools/kazarov/port/runtime), port-runtime
+# (port/src/runtime.cpp), sce-core+adapter (port/src/sce over sce_core), adapter (port/src/sce alone),
+# stub (gen_sce_stubs.py), game-override (the game functions that refer to it are inventory rows and get
+# overridden), caller-replaced (only library code refers to it, and every such referrer is itself
+# replaced, so nothing links it), dead (not live).
 # signature_checked: header <file> = the game's header declares it, and since every unit's object
 # matches retail byte for byte, the call sites were compiled from that prototype; compiler = an MWCC
 # helper no source names; internal = no game header declares it; data = an object, not called.
@@ -23,7 +24,7 @@ lib/mwcc/fpcmp.s.o	_dpfgt	func	32	yes	clang-rt	compiler	-	editcoll:OverlapPoly3X
 lib/mwcc/fpcmp.s.o	_dpfge	func	48	yes	clang-rt	compiler	-	gyorace:sgLoopGyoRace__FP11SubGameInfo, runscript_opcodes:_GET_NEAR_MONS_POS__FP12RS_STACKDATAi	MWCC-emitted helper; clang emits the operation itself
 lib/mwcc/mwinit.s.o	mwInit	func	48	yes	kazarov-runtime	header include/mw_runtime.h	RuntimeMw.StaticConstructorsRunBeforeMain	main:init__Fv	
 lib/mwcc/CPlusLib.s.o	__construct_array	func	304	yes	clang-rt	compiler	-	dng_main:__sinit_dng_main_cpp, editdata:__sinit_editdata_cpp, editeff:__sinit_editeff_cpp +8	host C++ runtime
-lib/mwcc/CPlusLib.s.o	__construct_new_array	func	336	yes	clang-rt	header include/mw_runtime.h	-	character:Copy__11CCharacter2FR11CCharacter2P9mgCMemory, character:_CLOTH_START__FP9SPI_STACKi, character:_LOD_MODEL_START__FP9SPI_STACKi +34	host C++ runtime
+lib/mwcc/CPlusLib.s.o	__construct_new_array	func	336	yes	port-runtime	header include/mw_runtime.h	RuntimePort.ConstructNewArrayWritesMwccsHeader	character:Copy__11CCharacter2FR11CCharacter2P9mgCMemory, character:_CLOTH_START__FP9SPI_STACKi, character:_LOD_MODEL_START__FP9SPI_STACKi +34	
 lib/mwcc/CPlusLib.s.o	__dl__FPv	func	80	yes	clang-rt	compiler	-	effect:__dt__11CEffectCtrlFv, wavetable:__dt__10CWaveTableFv, CPlusLib:__dt__Q23std9exceptionFv +2	host C++ runtime
 lib/mwcc/CPlusLib.s.o	__dt__Q23std9exceptionFv	func	80	yes	clang-rt	compiler	-	CPlusLib:__vt__Q23std9exception	host C++ runtime
 lib/mwcc/CPlusLib.s.o	what__Q23std9exceptionCFv	func	16	yes	clang-rt	compiler	-	CPlusLib:__vt__Q23std9exception	host C++ runtime
