@@ -42,12 +42,9 @@ template <class T> T &Ps2Lvalue(T &&value) {
 #pragma pop_macro("NULL")
 #pragma clang diagnostic pop
 
-// The layouts STATIC_ASSERT checks are the PS2's: 32-bit pointers and longs as
-// MWCC lays them out. Until the layout audit settles which records the port
-// keeps byte for byte, it checks nothing.
 #include "common.h"
 #undef STATIC_ASSERT
-#define STATIC_ASSERT(expr)
+#include "layouts.h"
 
 // The interrupt handlers it ends are never entered on the host.
 #include "eekernel.h"
