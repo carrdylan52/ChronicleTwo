@@ -472,7 +472,13 @@ static int _CHECK_PAUSE(RS_STACKDATA *stack, int argc) {
         return false;
     }
 
+#ifdef PORT
+    // MWCC increments stack before it passes the first argument, so the result lands one slot up.
+    int flag = static_cast<int>(pause->pause_flag & GetStackInt(stack));
+    SetStack(stack + 1, flag);
+#else
     SetStack(stack, static_cast<int>(pause->pause_flag & GetStackInt(stack++)));
+#endif
     return true;
 }
 
@@ -653,7 +659,13 @@ int _GET_BTN(RS_STACKDATA *stack, int argc) {
         return false;
     }
 
+#ifdef PORT
+    // MWCC increments stack before it passes the first argument, so the result lands one slot up.
+    int button = PadCtrl.Btn(GetStackInt(stack));
+    SetStack(stack + 1, button);
+#else
     SetStack(stack, PadCtrl.Btn(GetStackInt(stack++)));
+#endif
     return true;
 }
 

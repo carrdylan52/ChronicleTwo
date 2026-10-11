@@ -13972,7 +13972,15 @@ static int _STREAM_OPEN(RS_STACKDATA *stack, int argc) {
             }
         case 3:
             EdEventInfo.stream_source = EVENT_STREAM_VOICE_PACK;
+#ifdef PORT
+            {
+                // MWCC reads the pack name from this slot and the path from the next.
+                char *pack = GetStackString(stack);
+                CommandStreamOpenFromFPL(EVENT_STREAM_CHANNEL, pack, GetStackString(stack + 1));
+            }
+#else
             CommandStreamOpenFromFPL(EVENT_STREAM_CHANNEL, GetStackString(stack++), GetStackString(stack));
+#endif
             return false;
     }
 
