@@ -1,0 +1,3 @@
+PORT_OVERRIDE int Ps2Main() {
+    PS2_UNIMPLEMENTED();
+}

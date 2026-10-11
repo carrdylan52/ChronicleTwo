@@ -1,6 +1,15 @@
-#include <cstdio>
+#include <cstring>
 
-int main() {
-    std::fputs("darkchronicle: the port does not run the game yet\n", stderr);
-    return 70;
+#include "trace.hpp"
+
+int Ps2Main();
+
+int main(int argc, char **argv) {
+    for (int i = 1; i < argc; i++) {
+        if (std::strcmp(argv[i], "--trace") == 0) {
+            TraceEnable();
+        }
+    }
+    Trace("main");
+    return Ps2Main();
 }
