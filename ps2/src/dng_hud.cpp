@@ -817,7 +817,12 @@ void CDamageScore2::Step() {
     }
 }
 
-void CLockOnModel::Draw() {
+#ifdef PORT
+int
+#else
+void
+#endif
+CLockOnModel::Draw() {
     float target_pos[4];
     int   top_left[4];
     int   bottom_right[4];
@@ -922,6 +927,7 @@ void CLockOnModel::Draw() {
     }
 
     prim.End();
+    PORT_RETURN(0);
 }
 
 void CLockOnModel::DrawMess(int tex_block) {

@@ -379,7 +379,7 @@ void CEffect::Step(int steps) {
                 }
 
                 break;
-            case EFFECT_CHANGE_ADD_HEAD_TAIL:
+            case EFFECT_CHANGE_ADD_HEAD_TAIL: {
                 int total = param.life;
                 life = total;
 
@@ -400,6 +400,7 @@ void CEffect::Step(int steps) {
                 }
 
                 break;
+            }
             case EFFECT_CHANGE_SINE:
                 life = param.life;
 
