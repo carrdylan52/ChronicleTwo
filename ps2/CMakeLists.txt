@@ -10,6 +10,9 @@
 #   verify_extracted  check the files extracted from the disc
 #   iso               master <build>/Dark Chronicle (PAL Build).iso
 #   objdiff, ctx      objdiff's configuration and m2c's context (cmake/Objdiff.cmake)
+#
+# WHOLE_PROGRAM=ON compiles the game units as retail did, one MWCC run per flag
+# set in link order, instead of one run per unit (add_whole_program_objects).
 
 set(BASENAME SCES_511.90)
 set(RELEASE PAL)
@@ -85,6 +88,11 @@ set(UNIT_CC_FLAGS_mg_texture -O2,p)
 set(UNIT_CC_FLAGS_password -O0)
 set(UNIT_CC_FLAGS_scriptinterpreter -inline off)
 
+option(WHOLE_PROGRAM "Compile the game units in one MWCC run per flag set" OFF)
+# Units the whole-program build compiles in a run of their own: each needs the
+# helper masks a fresh run starts with, which no earlier unit in link order leaves.
+set(WHOLE_PROGRAM_ALONE mapload)
+
 # The compiler flags, for the diffing and decompiling tools.
 string(JOIN " " CC_FLAGS_TEXT ${CC_FLAGS})
 file(GENERATE OUTPUT ${CMAKE_BINARY_DIR}/compiler_flags.txt
@@ -152,6 +160,7 @@ kz_disc_setup(
 # Game units, compiled from ps2/src/<unit>.cpp.
 layout_rows(--list-units unit_rows)
 set(CPP_OBJS "")
+set(CPP_UNITS "")
 set(MISSING_SOURCES "")
 foreach(row IN LISTS unit_rows)
     string(REPLACE "\t" ";" parts "${row}")
@@ -164,12 +173,36 @@ foreach(row IN LISTS unit_rows)
         endif()
         set(obj ${BUILD_DIR}/obj/${unit}.cpp.o)
         list(APPEND CPP_OBJS ${obj})
-        add_cpp_object(${obj} ${source} ${unit})
+        list(APPEND CPP_UNITS ${unit})
+        set(CPP_SOURCE_${unit} ${source})
+        if(NOT WHOLE_PROGRAM)
+            add_cpp_object(${obj} ${source} ${unit})
+        endif()
     endif()
 endforeach()
 if(MISSING_SOURCES)
     list(JOIN MISSING_SOURCES "\n  " missing)
     message(FATAL_ERROR "main.yaml names game units with no source:\n  ${missing}")
+endif()
+
+# The whole-program runs take the units in link order, which carries their state.
+if(WHOLE_PROGRAM)
+    layout_rows(--link-order link_rows)
+    set(ordered_units "")
+    foreach(path IN LISTS link_rows)
+        get_filename_component(name ${path} NAME)
+        string(REGEX REPLACE "\\.cpp\\.o$" "" unit "${name}")
+        if(NOT unit STREQUAL name AND unit IN_LIST CPP_UNITS)
+            list(APPEND ordered_units ${unit})
+        endif()
+    endforeach()
+    list(REMOVE_DUPLICATES ordered_units)
+    foreach(unit IN LISTS CPP_UNITS)
+        if(NOT unit IN_LIST ordered_units)
+            message(FATAL_ERROR "the link order has no object for game unit ${unit}")
+        endif()
+    endforeach()
+    add_whole_program_objects(UNITS ${ordered_units} ALONE ${WHOLE_PROGRAM_ALONE})
 endif()
 
 # Library units and data-only units, assembled from the split.

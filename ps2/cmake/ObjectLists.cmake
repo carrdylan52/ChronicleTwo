@@ -39,17 +39,21 @@ function(add_asm_object obj src fixup_args)
                 ${KZ_SPLIT_STAMP})
 endfunction()
 
+# The compiler's language flag for a game source.
+function(cpp_lang src out_var)
+    if(src MATCHES "\\.c$")
+        set(${out_var} c PARENT_SCOPE)
+    else()
+        set(${out_var} c++ PARENT_SCOPE)
+    endif()
+endfunction()
+
 # Compile one game unit with MWCC through Satan's Fiddle. The compile is also the
 # objdiff base, the source alone, so it lands in objdiff/base; the linked object is that
 # compile, copied and postprocessed. The two share one compile.
 function(add_cpp_object obj src unit)
     get_filename_component(logical_source "${src}" NAME)
-    if(src MATCHES "\\.c$")
-        set(lang c)
-    else()
-        set(lang c++)
-    endif()
-
+    cpp_lang(${src} lang)
     set(base ${BUILD_DIR}/objdiff/base/${unit}.cpp.o)
     kz_mwcc_object(${base} ${src}
         FLAGS -lang ${lang} ${CC_FLAGS} ${UNIT_CC_FLAGS_${unit}}
@@ -57,7 +61,11 @@ function(add_cpp_object obj src unit)
             SATANSFIDDLE_TRANSLATION_UNIT=${logical_source}
         DEPENDS ${SATANSFIDDLE_DEPENDENCIES}
         COMMENT "CC ${src}")
+    add_linked_object(${obj} ${base} ${src})
+endfunction()
 
+# The linked object: the objdiff base, copied and postprocessed.
+function(add_linked_object obj base src)
     kz_absolute_path(${obj} obj_abs)
     kz_absolute_path(${base} base_abs)
     add_custom_command(
@@ -75,4 +83,58 @@ function(add_cpp_object obj src unit)
         WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
         COMMENT "POST ${src}"
         VERBATIM)
+endfunction()
+
+# add_whole_program_objects(UNITS <unit>... [ALONE <unit>...])
+#
+# Compiles the game units as retail did: every unit sharing a flag set in one MWCC run,
+# in the order given (link order), so the helper masks each unit leaves carry into the
+# next and need no profile rows. A unit named in ALONE gets a run of its own, because it
+# needs the masks a fresh run starts with. Each unit's source is in CPP_SOURCE_<unit>.
+# The objects land where add_cpp_object puts them.
+function(add_whole_program_objects)
+    cmake_parse_arguments(WP "" "" "UNITS;ALONE" ${ARGN})
+    set(keys "")
+    foreach(unit IN LISTS WP_UNITS)
+        cpp_lang(${CPP_SOURCE_${unit}} lang)
+        set(flags -lang ${lang} ${CC_FLAGS} ${UNIT_CC_FLAGS_${unit}})
+        if(unit IN_LIST WP_ALONE)
+            set(key "alone ${unit}")
+        else()
+            string(JOIN " " key ${flags})
+        endif()
+        string(MD5 key "${key}")
+        if(NOT key IN_LIST keys)
+            list(APPEND keys ${key})
+            set(flags_${key} "${flags}")
+            set(units_${key} "")
+        endif()
+        list(APPEND units_${key} ${unit})
+    endforeach()
+
+    set(base_dir ${BUILD_DIR}/objdiff/base)
+    foreach(key IN LISTS keys)
+        set(sources "")
+        foreach(unit IN LISTS units_${key})
+            list(APPEND sources ${CPP_SOURCE_${unit}})
+        endforeach()
+        list(LENGTH sources count)
+        list(GET units_${key} 0 first)
+        kz_mwcc_batch(${base_dir}
+            SOURCES ${sources}
+            FLAGS ${flags_${key}}
+            ENV SATANSFIDDLE=${SATANSFIDDLE} SATANSFIDDLE_CONFIG=${SATANSFIDDLE_CONFIG}
+                SATANSFIDDLE_IGNORE=helper_masks
+            DEPENDS ${SATANSFIDDLE_DEPENDENCIES}
+            COMMENT "CC ${count} units in one run, from ${first}"
+            OBJECTS objects)
+        foreach(unit object IN ZIP_LISTS units_${key} objects)
+            kz_absolute_path(${base_dir}/${unit}.cpp.o expected)
+            if(NOT object STREQUAL expected)
+                message(FATAL_ERROR "${CPP_SOURCE_${unit}} compiles to ${object}, not ${expected}")
+            endif()
+            add_linked_object(${BUILD_DIR}/obj/${unit}.cpp.o ${base_dir}/${unit}.cpp.o
+                ${CPP_SOURCE_${unit}})
+        endforeach()
+    endforeach()
 endfunction()

@@ -358,6 +358,34 @@ and the placement-new policy are not reproduced, so the profile stays for
 those. Plain wibo misses all 24 placement units, 25 of the 32 expression units,
 and four units with no rows that depend only on the evaluate-first default.
 
+### The whole-program build
+
+`./build.sh ps2-pal-whole` builds the same executable that way, in
+`build/pal-whole` (CMake `-DWHOLE_PROGRAM=ON`). Each flag set is one
+`kz-mwcc --batch` run in link order: 142 units at the common flags, the four
+`-O2,p` units (`mg_texture`, `mg_dataset`, `mg_shadow`, `mg_tanime`), and
+`password`, `scriptinterpreter` and `mapload` (`WHOLE_PROGRAM_ALONE`) each alone.
+The runs pass `SATANSFIDDLE_IGNORE=helper_masks`, so the profile's
+`inherit_helper_masks` leaves every unit the masks the unit before it left; the
+floating-point and placement rows still apply. Every object, and so
+`SCES_511.90` (`2160c161…ce408`), is byte-identical to the per-unit build's.
+
+The two builds draw the line differently:
+
+- The whole-program build ignores the 39 helper-mask rows; link order supplies
+  that state.
+- The per-unit `ps2-pal` build compiles every unit in a fresh run, so it still
+  needs those rows. It stays the editing loop and the verified build: touching
+  one source recompiles one unit, while the whole-program build recompiles the
+  unit's whole run. A clean per-unit build takes under two minutes on 32 cores;
+  the whole-program build is bounded by its 142-unit run, about 14 minutes,
+  because Satan's Fiddle drives one compiler process under LLDB.
+
+The whole-program build is the evidence that the mask rows are retail's link
+order and not tuning. A mask row added to the profile should keep
+`ps2-pal-whole` matching; if it does not, the row is compensating for something
+else.
+
 ## Continuous verification
 
 The [compiler workflow](../.github/workflows/compiler.yml) rebuilds the
