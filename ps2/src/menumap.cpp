@@ -54,7 +54,7 @@ static mgCMemory SphidaStack;
  * Texture blocks used by the Spheda menu.
  *
  */
-static int SphidaMenuTexbk[8];
+static int SphidaMenuTexbk[8 PORT_FIX(+ 8)];
 
 /**
  *

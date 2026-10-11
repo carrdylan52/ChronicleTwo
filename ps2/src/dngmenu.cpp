@@ -1695,7 +1695,7 @@ void CDngFreeMap::Draw() {
 
             if (save != NULL) {
                 char detail[256];
-                char line[32];
+                char line[32 PORT_FIX(+ 64)];
                 sprintf(detail, "Room ID : %d", select_glid->room.floor_id);
                 DNGMAP_ROOM_INFO *room = &select_glid->room;
 
