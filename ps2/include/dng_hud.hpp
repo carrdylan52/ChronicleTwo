@@ -553,7 +553,12 @@ public:
      * @address 0x1CC7E0
      * @size 0x3D0
      */
+#ifdef PORT
+    // MWCC lets this override CObjectFrame::Draw with void; clang requires the base's return type.
+    virtual int Draw();
+#else
     virtual void Draw();
+#endif
 
     /**
      *
