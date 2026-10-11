@@ -208,7 +208,7 @@ class AdapterTests(unittest.TestCase):
                     self.assertEqual(output.read_bytes(), b"existing object")
 
     def test_checked_in_profile_names_existing_game_sources(self):
-        profile = json.loads((adapter.ROOT / "scripts/build/satansfiddle.json").read_text())
+        profile = json.loads((adapter.ROOT / "ps2/config/pal/satansfiddle.json").read_text())
         adapter.validate_profile_units(profile)
 
     def test_missing_binary_has_setup_error(self):

@@ -22,8 +22,8 @@ export SATANSFIDDLE=/absolute/path/to/satansfiddle
 ./build.sh
 ```
 
-The default profile is `scripts/build/satansfiddle.json`, outside the generated
-`ps2/config` tree. `SATANSFIDDLE_CONFIG` can select another JSON profile. Its
+The default profile is `ps2/config/pal/satansfiddle.json`, beside the PAL
+split configuration it describes. `SATANSFIDDLE_CONFIG` can select another JSON profile. Its
 compiler version is a consistency check: Satan's Fiddle verifies the
 compiler executable's SHA-256 and the hook signatures. The checked-in profile
 starts helper-call history at zero and initializes the floating-point

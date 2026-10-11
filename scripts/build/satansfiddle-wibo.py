@@ -118,7 +118,7 @@ def main(arguments):
             "build Satan's Fiddle and set SATANSFIDDLE to its executable"
         )
     profile_path = Path(os.environ.get(
-        "SATANSFIDDLE_CONFIG", ROOT / "scripts/build/satansfiddle.json"
+        "SATANSFIDDLE_CONFIG", ROOT / "ps2/config/pal/satansfiddle.json"
     ))
     profile = json.loads(profile_path.read_text())
     if not isinstance(profile, dict):
