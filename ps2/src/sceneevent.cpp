@@ -296,6 +296,8 @@ void CScene::DrawSky(int sky_index) {
 
     union {
         CMapLightingInfo lighting;
+        // Clang deletes the union's constructor unless some member has an initialiser.
+        PORT_FIX(char port_init = 0;)
     };
 
     float      sky_color_a[4];
