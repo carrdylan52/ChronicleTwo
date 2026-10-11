@@ -34,7 +34,7 @@ evidence starts with "review" are written by hand and survive a rerun.
 | ps2/src/ezbgm.cpp | CSound::StreamOpenState() | iop-rpc | ps2/src/ezbgm.cpp:85; iop-rpc: 86 sceSifCheckStatRpc | mode | T11 | stub |
 | ps2/src/ezbgm.cpp | ezBgm(int,int) | iop-rpc | ps2/src/ezbgm.cpp:47; iop-rpc: 52 sceSifCheckStatRpc, 57 sceSifCallRpc, 61 sceSifCheckStatRpc +3 | mode | T11 | stub |
 | ps2/src/ezbgm.cpp | ezBgmInit() | iop-rpc | ps2/src/ezbgm.cpp:24; iop-rpc: 31 sceSifBindRpc | boot:33 | T11 | stub |
-| ps2/src/ezmidi.cpp | ezMidi(int,int) | iop-rpc | ps2/src/ezmidi.cpp:52; iop-rpc: 68 sceSifCallRpc, 71 sceSifCallRpc | boot:35 | T11 | stub |
+| ps2/src/ezmidi.cpp | ezMidi(int,int) | iop-rpc | ps2/src/ezmidi.cpp:52; iop-rpc: 68 sceSifCallRpc, 71 sceSifCallRpc | boot:0 | T11 (asserts once ezMidiInit has bound the client; unbound commands are dropped, as on the PS2) | stub |
 | ps2/src/ezmidi.cpp | ezMidiInit() | iop-rpc | ps2/src/ezmidi.cpp:26; iop-rpc: 32 sceSifBindRpc | boot:33 | T11 | stub |
 | ps2/src/ezmidi.cpp | ezTransToIOP2(void*,void*,int) | iop-rpc | ps2/src/ezmidi.cpp:77; iop-rpc: 86 sceSifSetDma, 92 sceSifDmaStat | boot:38 | T11 | stub |
 | ps2/src/fishing.cpp | CreateLoadThread(mgCMemory*) | thread | ps2/src/fishing.cpp:1321; thread: 1341 CreateThread, 1343 StartThread | mode | T6 | stub |
@@ -87,7 +87,7 @@ evidence starts with "review" are written by hand and survive a rerun.
 | ps2/src/menuop.cpp | CManualMenu::KeyStep() | timer | ps2/src/menuop.cpp:734; timer: 869 sceGsSyncV | menu | T9b | stub |
 | ps2/src/menuop.cpp | MenuManualDraw() | timer | ps2/src/menuop.cpp:588; timer: 650 sceGsSyncV, 651 sceGsSyncV, 652 sceGsSyncV +3 | menu | T9b | stub |
 | ps2/src/menusys.cpp | CMenuItemInfo::SetItemEffect() | dma | ps2/src/menusys.cpp:11168; dma: 11221 ITEM_USE_FLAG_CURE_DRY | menu | - (not hardware: ITEM_USE_FLAG_CURE_DRY is the item flag 0x10000000) | native |
-| ps2/src/mg_drawenv.cpp | mgCDrawEnv::Initialize(int) | register, dma | ps2/src/mg_drawenv.cpp:21; register: 27 SCE_GS_SET_TEST, 27 SCE_GS_GEQUAL, 27 SCE_GS_ZGEQUAL +10; dma: 26 SCE_GIF_PACKED_AD | boot:11 | T7 | stub |
+| ps2/src/mg_drawenv.cpp | mgCDrawEnv::Initialize(int) | register, dma | ps2/src/mg_drawenv.cpp:21; register: 27 SCE_GS_SET_TEST, 27 SCE_GS_GEQUAL, 27 SCE_GS_ZGEQUAL +10; dma: 26 SCE_GIF_PACKED_AD | boot:0 | - (not hardware: fills the object's own GS-format fields, which T7's RenderState reads; static constructors run it) | native |
 | ps2/src/mg_drawprim.cpp | mgCDrawManager::Draw(int,sceVif1Packet*) | dma | ps2/src/mg_drawprim.cpp:660; dma: 686 sceVif1PkTerminate, 715 sceVif1PkReserve | mode | T9 | stub |
 | ps2/src/mg_drawprim.cpp | mgCDrawManager::ReloadTexture(int,sceVif1Packet*) | dma | ps2/src/mg_drawprim.cpp:635; dma: 653 sceVif1PkTerminate | mode | T9 | stub |
 | ps2/src/mg_drawprim.cpp | mgCDrawPrim::Begin2() | register, dma | ps2/src/mg_drawprim.cpp:112; register: 166 SCE_GS_TEXFLUSH; dma: 134 sceVif1PkCall, 137 MG_UNCACHED, 160 SCE_GIF_PACKED_AD | boot:22 | T9 | stub |
@@ -132,7 +132,7 @@ evidence starts with "review" are written by hand and survive a rerun.
 | ps2/src/mg_math.cpp | mgPlaneNormal(float*,float*,float*,float*) | asm | ps2/src/mg_math.cpp:260; asm: 260 inline assembly | mode | V3 | stub |
 | ps2/src/mg_math.cpp | mgRotMatrixXYZ(float(*)[4],float*) | asm | ps2/src/mg_math.cpp:836; asm: 843 via MulMatrix3(float(*)[4],float(*)[4],float(*)[4]) | mode | V3 | stub |
 | ps2/src/mg_math.cpp | mgSubVector(float*,float*) | asm | ps2/src/mg_math.cpp:167; asm: 167 inline assembly | mode | V3 | stub |
-| ps2/src/mg_math.cpp | mgUnitMatrix(float(*)[4]) | asm | ps2/src/mg_math.cpp:637; asm: 637 inline assembly | mode | V3 | stub |
+| ps2/src/mg_math.cpp | mgUnitMatrix(float(*)[4]) | asm | ps2/src/mg_math.cpp:637; asm: 637 inline assembly | boot:0 | T3b | native |
 | ps2/src/mg_math.cpp | mgVectorMaxMin(float*,float*,float*,float*) | asm | ps2/src/mg_math.cpp:205; asm: 205 inline assembly | mode | V3 | stub |
 | ps2/src/mg_math.cpp | mgVectorMaxMin(float*,float*,float*,float*,float*) | asm | ps2/src/mg_math.cpp:215; asm: 215 inline assembly | mode | V3 | stub |
 | ps2/src/mg_math.cpp | mgVectorMaxMin(float*,float*,float*,float*,float*,float*) | asm | ps2/src/mg_math.cpp:228; asm: 228 inline assembly | mode | V3 | stub |
@@ -140,7 +140,7 @@ evidence starts with "review" are written by hand and survive a rerun.
 | ps2/src/mg_math.cpp | mgVectorMin(float*,float*,float*,float*,float*) | asm | ps2/src/mg_math.cpp:193; asm: 193 inline assembly | mode | V3 | stub |
 | ps2/src/mg_math.cpp | mgVectorMinMaxN(float*,float*,float(*)[4],int) | asm | ps2/src/mg_math.cpp:1009; asm: 1009 inline assembly | mode | V3 | stub |
 | ps2/src/mg_math.cpp | mgZeroMatrix(float(*)[4]) | asm | ps2/src/mg_math.cpp:648; asm: 648 inline assembly | mode | V3 | stub |
-| ps2/src/mg_math.cpp | mgZeroVectorW(float*) | asm | ps2/src/mg_math.cpp:55; asm: 55 inline assembly | mode | V3 | stub |
+| ps2/src/mg_math.cpp | mgZeroVectorW(float*) | asm | ps2/src/mg_math.cpp:55; asm: 55 inline assembly | boot:0 | T3b | native |
 | ps2/src/mg_shadow.cpp | SetShadowData(u_int*,float(*)[4]) | dma | ps2/src/mg_shadow.cpp:19; dma: 21 0x10000008, 24 0x6C080028 | mode | V4 | stub |
 | ps2/src/mg_shadow.cpp | mgCShadowMDT::CreateFacePacket(u_int*,mgCFace*) | register, dma | ps2/src/mg_shadow.cpp:54; register: 90 SCE_GS_SET_PRIM, 92 SCE_GS_RGBAQ, 93 SCE_GS_XYZF2; dma: 63 0x20000000, 128 0x6C008000 | mode | V4 | stub |
 | ps2/src/mg_shadow.cpp | mgCShadowMDT::CreatePacket(mgCDrawManager*) | scratchpad/uncached, dma | ps2/src/mg_shadow.cpp:215; scratchpad/uncached: 259 0x0FFFFFFF; dma: 235 0x30000000, 239 0x20000000, 249 0x60000000 | mode | V4 | stub |
@@ -259,8 +259,8 @@ evidence starts with "review" are written by hand and survive a rerun.
 | ps2/src/screeneffect.cpp | DepthOfField(int,float*,mgCTexture*,float) | register | ps2/src/screeneffect.cpp:20; register: 98 SCE_GS_TEXA | mode | T9 | stub |
 | ps2/src/screeneffect.cpp | LensFlare(sceVu0IVECTOR,sceVu0FVECTOR,int,char*,char*) | register | ps2/src/screeneffect.cpp:129; register: 179 SCE_GS_TEXA | mode | T9 | stub |
 | ps2/src/snd_mngr.cpp | sndInitMngr() | thread | ps2/src/snd_mngr.cpp:449; thread: 456 DeleteSema, 462 CreateSema | boot:31 | T11 | stub |
-| ps2/src/snd_mngr.cpp | sndSignalSema() | thread | ps2/src/snd_mngr.cpp:480; thread: 482 SignalSema | boot:38 | T11 | stub |
-| ps2/src/snd_mngr.cpp | sndWaitSema() | thread | ps2/src/snd_mngr.cpp:474; thread: 476 WaitSema | boot:38 | T11 | stub |
+| ps2/src/snd_mngr.cpp | sndSignalSema() | thread | ps2/src/snd_mngr.cpp:480; thread: 482 SignalSema | boot:0 | T11 (retail body: asserts in the ledger's SignalSema stub once sndInitMngr has made the semaphore) | stub |
+| ps2/src/snd_mngr.cpp | sndWaitSema() | thread | ps2/src/snd_mngr.cpp:474; thread: 476 WaitSema | boot:0 | T11 (retail body: asserts in the ledger's WaitSema stub once sndInitMngr has made the semaphore) | stub |
 | ps2/src/sound.cpp | CSound::DEL_PORT(int) | iop-rpc | ps2/src/sound.cpp:406; iop-rpc: 427 sceSifInitIopHeap, 428 sceSifFreeSysMemory, 448 sceSifInitIopHeap +3 | boot:43 | T11 | stub |
 | ps2/src/sound.cpp | CSound::Exit() | iop-rpc | ps2/src/sound.cpp:371; iop-rpc: 379 sceSifInitIopHeap, 380 sceSifFreeSysMemory, 387 sceSifInitIopHeap +3 | mode | T11 | stub |
 | ps2/src/sound.cpp | CSound::Init(int,int,int,int) | sce-call, iop-rpc | ps2/src/sound.cpp:208; sce-call: 248 sceMSIn_Init; iop-rpc: 219 sceSifInitIopHeap, 223 sceSifAllocSysMemory | boot:32 | T11 | stub |

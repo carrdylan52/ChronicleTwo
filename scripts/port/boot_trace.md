@@ -13,8 +13,12 @@ Two corrections to the plan's Ground truth: the game's `main` calls `GetThreadId
 after the memory-card check, not by `TitleBootInit`. `SCElogoFade(0)` first runs a language-select loop
 (`TitleLangSelInit/Key/Draw` between `mgBeginFrame` and `mgEndFrame`) before the logo fade.
 
+Step 0 is the host's: the PS2 ran the static constructors in `mwInit`, inside `init()`; the host runs
+them before `main`. The M1 run showed which inventory rows they reach.
+
 | # | call | source | reaches |
 |---|---|---|---|
+| 0 | static constructors: `CAutoMapGen::CAutoMapGen`, `CRandomCircle::CRandomCircle`, `CScene::CScene`, `CAquarium::CAquarium` → `CAquarium::Clear` → `sndInitPort` → `sndSeAllStop` → `CSound::Stop` | `dng_main.cpp:195,197`, `menuaqua.cpp:3643,3690`, `snd_mngr.cpp:489,846`, `sound.cpp:667` | [mg_drawenv:mgCDrawEnv::Initialize] [mg_math:mgUnitMatrix] [mg_math:mgZeroVectorW] [snd_mngr:sndWaitSema] [snd_mngr:sndSignalSema] [ezmidi:ezMidi] |
 | 1 | `main` | `main.cpp:138` | [main:main]; `GetThreadId`, `ChangeThreadPriority` |
 | 2 | · `init` (static) | `main.cpp:79` | [main:init]; `sceDmaReset`, `sceGsResetPath`, `sceGsResetGraph`, `sceGsSyncVCallback` |
 | 3 | · · `ClearScreen` (static) | `main.cpp:50` | [main:ClearScreen]; `sceGsSetDefDBuff`, `FlushCache` (adapter), `sceGsSyncV`, `sceGsSwapDBuff`, `sceGsSyncPath` |
