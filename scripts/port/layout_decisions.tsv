@@ -1,0 +1,80 @@
+table	key	kind	fix	state	note
+Records	ps2/include/dataread.hpp DATA_HEADER	disk record	host record port/src/records/data_hd4.hpp	repaired	DATA.HD4 entries are 12 bytes with a 32-bit name offset; the override of InitCDFile (T5) reads them through the host record
+Records	ps2/include/runscript.hpp funcdata	disk record	name is a u32 under PORT	repaired	read in place from the script file
+Records	ps2/include/memcard.hpp SAVEDATA_FORMAT	save record	host record port/src/records/save_image.hpp	repaired	the memory-card image
+Records	ps2/include/savedata.hpp CSaveData	save record	host record port/src/records/save_image.hpp	repaired	inside SAVEDATA_FORMAT
+Records	ps2/include/userdata.hpp CUserDataManager	save record	host record port/src/records/save_image.hpp	repaired	costume_bit is 64-bit on disk; long is 32-bit on LLP64
+Records	ps2/include/userdata.hpp CInventUserData	save record	host record port/src/records/save_image.hpp	repaired	holds the photo album
+Records	ps2/include/userdata.hpp USER_PICTURE_INFO	save record	host record port/src/records/save_image.hpp	repaired	image is a 32-bit PS2 address on disk
+Records	ps2/include/inventmn.hpp CDC2AlbumData	save record	host record port/src/records/save_image.hpp	repaired	photo is a 32-bit PS2 address on disk
+Records	ps2/include/convviewlp.hpp SAVE_CONVERT_WORK	save record	host record port/src/records/save_image.hpp	repaired	holds a SAVEDATA_FORMAT
+Records	ps2/include/dbg_font.hpp dbgCJISFont				plain long: 32-bit on LLP64
+Records	ps2/include/movie.hpp TimeStamp				plain long: 32-bit on LLP64; the movie code is replaced in T13e
+Records	ps2/include/movie.hpp QWORD				plain long: 32-bit on LLP64; the movie code is replaced in T13e
+Records	ps2/include/runscript.hpp RS_STACKDATA				16 bytes on the host; strides the PS2 code writes as literals use PortSize
+Casts	ps2/src/character.cpp CCharacter2::SetMotionPara (int)sequence	value test	-	n/a	the pointer argument carries a small integer selector
+Casts	ps2/src/editdata.cpp CEditMap::LoadData (int)in	low-bits cast	-	n/a	tests the low bit only
+Casts	ps2/src/mainloop.cpp LoadFontTexture (u32)buffer	low-bits cast	-	n/a	keeps the low two bits only
+Casts	ps2/src/menusys.cpp CMenuItemInfo::ExitEnd (int)*(void * *)& MenuCommonInfo->cursor	low-bits cast	-	n/a	reads the int cursor through a pointer-sized load; the low 32 bits are the cursor on a little-endian host
+Casts	ps2/src/mg_dataset.cpp mgLoadMDSFile (int)mds	low-bits cast	-	n/a	alignment test only
+Casts	ps2/src/mg_memory.cpp mgCMemory::stAlign64 (u_int)& stack[stack_used]	low-bits cast	-	n/a	keeps the low six bits only
+Casts	ps2/src/mg_memory.cpp mgCMemory::Align64 (u_int)& stack[stack_used]	low-bits cast	-	n/a	keeps the low six bits only
+Casts	ps2/src/mg_visual.cpp mgCVisualMDT::CreateFace (int)out_face	value test	-	n/a	the pointer argument carries a small integer selector
+Casts	ps2/src/mglib.cpp mgSendVuProg (u_int)packet		callee [mglib:mgGetVuProgPacket] (V4)	guarded-unreached	the truncated address only reaches the stubbed callee
+Casts	ps2/src/snd_mngr.cpp sndLoadSound (int)hd		callee [sound:CSound::LoadHdBd2] (T11)	guarded-unreached	the truncated address only reaches the stubbed callee
+Casts	ps2/src/snd_mngr.cpp sndLoadSound (int)bd		callee [sound:CSound::LoadHdBd2] (T11)	guarded-unreached	the truncated address only reaches the stubbed callee
+Casts	ps2/src/snd_mngr.cpp sndLoadSound (int)hd #2		callee [sound:TransHdBd] (T11)	guarded-unreached	the truncated address only reaches the stubbed callee
+Casts	ps2/src/snd_mngr.cpp sndLoadSound (int)bd #2		callee [sound:TransHdBd] (T11)	guarded-unreached	the truncated address only reaches the stubbed callee
+Casts	ps2/src/snd_mngr.cpp sndLoadSound (int)sq[i]		callee [sound:CSound::LoadSeq] (T11)	guarded-unreached	the truncated address only reaches the stubbed callee
+Casts	ps2/src/sound.cpp CSound::SQ_Play (int)sequence		callee [ezmidi:ezMidi] (T11)	guarded-unreached	the truncated address only reaches the stubbed callee
+Casts	ps2/src/sound.cpp CSound::LoadHdBdAdd (int)& gBank		callee [ezmidi:ezMidi] (T11)	guarded-unreached	the truncated address only reaches the stubbed callee
+Casts	ps2/src/sound.cpp CSound::LoadHdBdAdd (int)& gBank #2		callee [ezmidi:ezMidi] (T11)	guarded-unreached	the truncated address only reaches the stubbed callee
+Casts	ps2/src/sound.cpp CSound::StreamOpenFast (int)file_name		callee [ezbgm:ezBgm] (T11)	guarded-unreached	the truncated address only reaches the stubbed callee
+Casts	ps2/src/sound.cpp CSound::StreamOpenFromFPLFast (int)& request		callee [ezbgm:ezBgm] (T11)	guarded-unreached	the truncated address only reaches the stubbed callee
+Casts	ps2/src/automap.cpp CAutoMapGen::CreatTermParts PortPtr32(cells)	escapes cast			
+Casts	ps2/src/editriver.cpp CEditGrid::GetFast PortPtr32(data)	escapes cast			
+Casts	ps2/src/effscript.cpp CEffectScriptMan::LoadBaseEffSpt PortPtr32(load_buffer)	escapes cast			file offsets are rebased onto the buffer as 32-bit addresses
+Casts	ps2/src/effscript.cpp CEffectScriptMan::LoadBaseEffSpt PortPtr32(load_buffer) #2	escapes cast			file offsets are rebased onto the buffer as 32-bit addresses
+Casts	ps2/src/event_func.cpp _DIST_VECTOR PortPtr32(stack)	escapes cast			
+Casts	ps2/src/event_func.cpp _DIST_VECTOR2 PortPtr32(stack)	escapes cast			
+Casts	ps2/src/event_func.cpp _SWE_SET_COLOR PortPtr32(chara)	escapes cast			
+Casts	ps2/src/event_func.cpp _SWE_SET_TEXTURE PortPtr32(chara)	escapes cast			
+Casts	ps2/src/event_func.cpp _SWE_START_EFFECT PortPtr32(chara)	escapes cast			
+Casts	ps2/src/menudraw.cpp CRepairManager::Generate PortPtr32(this)	escapes cast			
+Casts	ps2/src/mg_drawenv.cpp mgRENDER_INFO::GetPlight PortPtr32(GetpLightInfo())	escapes cast			
+Casts	ps2/src/mg_tanime.cpp mgCTextureAnime::NewTexAnimeGroupData PortPtr32(this)	escapes cast			
+Casts	ps2/src/mg_visual.cpp mgCVisualFixMDT::DataAssignMDT PortPtr32(&memory->stack[memory->stack_used])	round-trip cast			VU packet build; replaced with the renderer (V2)
+Casts	ps2/src/movie.cpp DmaAddr PortPtr32(addr)	escapes cast			movie decoder; replaced in T13e
+Casts	ps2/src/movie.cpp UncAddr PortPtr32(addr)	escapes cast			movie decoder; replaced in T13e
+Casts	ps2/src/movie.cpp scTag2 PortPtr32(addr)	escapes cast			movie decoder; replaced in T13e
+Casts	ps2/src/movie.cpp audioDecBeginPut PortPtr32(dec->hdr)	escapes cast			movie decoder; replaced in T13e
+Casts	ps2/src/runscript_opcodes.cpp _SET_INDEXOBJ_SIZE PortPtr32(objects)	round-trip cast			
+Casts	ps2/src/runscript_opcodes.cpp _GET_INDEXOBJ_SIZE PortPtr32(&monster->entry_object)	round-trip cast			
+Casts	ps2/src/sceneload.cpp LoadMapData PortPtr32(load_buf)	escapes cast			
+Casts	ps2/src/villagermngr.cpp CVillagerMngr::GetAppearVlgr PortPtr32(schedule)	escapes cast			
+Casts	ps2/src/villagermngr.cpp CVillagerMngr::GetAppearVlgr PortPtr32(schedule) #2	escapes cast			
+Casts	ps2/src/visualmotion.cpp mgCVisualMotionMDT::DataAssignMotionMDT PortPtr32(memory->stGetTop())	escapes cast			VU packet build; replaced with the renderer (V2) before M6
+Casts	ps2/src/vlgr_info.cpp niNPC_INFO_NUM PortPtr32(new (niStack->Alloc(blocks + 2)) CVillagerInfo[count])	round-trip cast			
+Offsets	ps2/src/automap.cpp CAutoMapGen::CreatTermParts ( u8 * ) cells + y_off		-	n/a	offset computed from sizeof
+Offsets	ps2/src/collision.cpp LoadCollisionFile ( u_char * ) frames + offset		-	n/a	offset computed from sizeof
+Offsets	ps2/src/dng_debug.cpp DBGCMD_ReloadEnemy manager = ( u8 * ) ActiveMonster		-	n/a	offsets computed from member addresses
+Offsets	ps2/src/event_func.cpp _DELETE_CHARA ( u8 * ) & EventObjHandleMother + offset		-	n/a	offset computed from sizeof
+Offsets	ps2/src/inventmn.cpp CheckPhotoFlag ( u8 * ) photos + offset		-	n/a	offset computed from sizeof
+Offsets	ps2/src/dng_event.cpp LoadMonsterFile u8 * monster_man = ( u8 * ) ActiveMonster		#ifdef PORT indexes memory[]	repaired	
+Offsets	ps2/src/dng_object.cpp CRocketLauncherMan::Draw ( u8 * ) this + offset		PortSize<CRocketLauncher>	repaired	
+Offsets	ps2/src/dng_object.cpp CRocketLauncherMan::Initialize ( u8 * ) this + offset		PortSize<CRocketLauncher>	repaired	
+Offsets	ps2/src/dng_object.cpp CLaserGunMan::Draw ( u8 * ) this + offset		PortSize<CLaserGun>	repaired	
+Offsets	ps2/src/dng_object.cpp CLaserGunMan::Initialize ( u8 * ) this + offset		PortSize<CLaserGun>	repaired	
+Offsets	ps2/src/event_func.cpp _OBJS_SET_EOH_FRAME_POS ( u8 * ) stack + vector_bytes		PortSize<RS_STACKDATA[3]>	repaired	
+Offsets	ps2/src/event_func.cpp _AMG_GET_ATTR_STATUS ( u8 * ) stack + PORT_FIX ( PortSize < RS_STACKDATA [ 3 ] > ) ( 0x18 )		PortSize<RS_STACKDATA[3]>	repaired	
+Offsets	ps2/src/map.cpp CMap::DrawWater ( u8 * ) overlay_water -> parts + overlay_parts_offset		PortSize<CMapParts *>	repaired	
+Offsets	ps2/src/menucommon.cpp MenuCommonReadData ( u8 * ) names + i		PortSize<char *>	repaired	
+Offsets	ps2/src/menucommon.cpp MenuCommonReadData ( u8 * ) names + i #2		PortSize<char *>	repaired	
+Offsets	ps2/src/menuop.cpp CMenuOption::UpdateOptionForm ( u8 * ) loop_row + offset		PortSize<MENUFORMPARTS_TYPE *>	repaired	
+Offsets	ps2/src/editmap.cpp CEditMap::GetePlaceIDList ( s8 * ) edit_parts + offset		PortLayoutGuard	guarded-unreached	reads byte 0x70 of each 0x330-byte CEditParts
+Offsets	ps2/src/memcard.cpp CMemoryCardManager::SaveToMc write_buffer = ( char * ) save_buffer		override [memcard:CMemoryCardManager::SaveToMc] (T10)	guarded-unreached	the override writes the disk image through port/src/records/save_image.hpp
+Offsets	ps2/src/memcard.cpp CMemoryCardManager::LoadFromMc read_buffer = ( char * ) save_buffer		override [memcard:CMemoryCardManager::LoadFromMc] (T10)	guarded-unreached	the override reads the disk image through port/src/records/save_image.hpp
+Offsets	ps2/src/mg_drawprim.cpp mgCDrawManager::Draw ( u_char * ) packet_list + offset		override [mg_drawprim:mgCDrawManager::Draw] (T9)	guarded-unreached	
+Offsets	ps2/src/mg_drawprim.cpp mgCDrawManager::Draw ( u_char * ) packet_list + offset #2		override [mg_drawprim:mgCDrawManager::Draw] (T9)	guarded-unreached	
+Offsets	ps2/src/villagermngr.cpp CVillagerMngr::GetAppearVlgr ( u8 * ) places + output_position		guard [villagermngr:430]	guarded-unreached	the PortPtr32 guard on schedule earlier in the loop stops first
+Offsets	ps2/src/villagermngr.cpp CVillagerMngr::GetAppearVlgr ( u8 * ) places + fallback_output_position		guard [villagermngr:470]	guarded-unreached	the PortPtr32 guard on schedule earlier in the loop stops first
