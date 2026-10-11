@@ -242,7 +242,7 @@ void CMapPiece::Copy(CMapPiece &dest, mgCMemory *memory) {
     }
 
     if (chara != NULL && memory != NULL) {
-        model = new (memory->Alloc(0x68)) CCharacter2;
+        model = new (memory->Alloc(PORT_FIX(PortBlocks<CCharacter2>)(0x68))) CCharacter2;
 
         dest.chara = model;
 
@@ -800,7 +800,7 @@ CMdsInfo::CMdsInfo() {
 static CCharacter2 *CreateChara(u_int *pack, char *config, mgCMemory *memory) {
     CCharacter2 *chara;
 
-    chara = new (memory->Alloc(0x68)) CCharacter2;
+    chara = new (memory->Alloc(PORT_FIX(PortBlocks<CCharacter2>)(0x68))) CCharacter2;
 
     if (chara == NULL) {
         return NULL;

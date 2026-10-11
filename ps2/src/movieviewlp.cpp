@@ -200,9 +200,9 @@ void MovieViewInit(INIT_LOOP_ARG arg) {
     textures->EnterIMGFile(GetGaijiImgPtr(), 0, NULL, NULL);
     ReLoadFontTexture(0);
     textures->EnterIMGFile(GetFontTex2ImgPtr(), 0, NULL, NULL);
-    MovieView = new (main_stack->Alloc(0x2396)) CMovie;
+    MovieView = new (main_stack->Alloc(PORT_FIX(PortBlocks<CMovie>)(0x2396))) CMovie;
     MovieListNum = 0;
-    MovieList = new (main_stack->Alloc(0x32)) MOVIE_LIST_ENTRY[64];
+    MovieList = new (main_stack->Alloc(PORT_FIX(PortBlocks<MOVIE_LIST_ENTRY, 64>)(0x32))) MOVIE_LIST_ENTRY[64];
     MovieLine = 0;
     MovieSelect = 0;
     MovieMode = MOVIE_VIEW_MODE_SELECT;

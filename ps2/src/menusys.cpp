@@ -6952,7 +6952,7 @@ void CMenuItemInfo::MenuModeMalloc(mgCMemory *stack) {
                                 free_blocks);
 
     for (i = 0; i < 7; i++) {
-        MenuActionChara[i] = new (MenuItemMemory2.Alloc(0x105)) CActionChara;
+        MenuActionChara[i] = new (MenuItemMemory2.Alloc(PORT_FIX(PortBlocks<CActionChara>)(0x105))) CActionChara;
         MenuActionChara[i]->Initialize(NULL);
     }
 
@@ -6962,7 +6962,7 @@ void CMenuItemInfo::MenuModeMalloc(mgCMemory *stack) {
 
     MenuMoveItemPtr = move_item;
     MenuMoveItemPtr->AttachForm();
-    SpectolFrame = new (MenuItemMemory2.Alloc(0x105)) CActionChara;
+    SpectolFrame = new (MenuItemMemory2.Alloc(PORT_FIX(PortBlocks<CActionChara>)(0x105))) CActionChara;
 
     if ((effect = (CMenuEffect *) operator new(sizeof(CMenuEffect), MenuItemMemory2.Alloc(6))) != NULL) {
         effect->Initialize();
@@ -6976,7 +6976,7 @@ void CMenuItemInfo::MenuModeMalloc(mgCMemory *stack) {
 
     MenuEffect[1] = effect;
 
-    repair = new (MenuItemMemory2.Alloc(0x21)) CRepairManager;
+    repair = new (MenuItemMemory2.Alloc(PORT_FIX(PortBlocks<CRepairManager>)(0x21))) CRepairManager;
 
     MenuRepairMan = repair;
     repair->Initialize();

@@ -6356,7 +6356,7 @@ void CRepairManager::GeneratePoly(float *pos, int block) {
     model_stack.stack_used = 0;
     model_stack.lock = 0;
 
-    chara = new (model_stack.Alloc(0x105)) CActionChara;
+    chara = new (model_stack.Alloc(PORT_FIX(PortBlocks<CActionChara>)(0x105))) CActionChara;
 
     model = chara;
     model->Initialize(NULL);

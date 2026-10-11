@@ -280,7 +280,7 @@ void SetSwordBlurEffect(CCharacter2 *chara, mgCMemory *stack, int blur_type) {
     int u;
     int v;
 
-    chara->sword_effect[0] = new (stack->Alloc(12)) CSWordAfterEffect;
+    chara->sword_effect[0] = new (stack->Alloc(PORT_FIX(PortBlocks<CSWordAfterEffect>)(12))) CSWordAfterEffect;
     chara->sword_effect[0]->Initialize(stack, 12, 8);
     u = 0;
     v = 32;

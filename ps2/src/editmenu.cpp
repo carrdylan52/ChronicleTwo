@@ -1159,7 +1159,7 @@ int MenuGeoramaInit(mgCMemory *stack, int arg) {
     HouseInfoSelectSelect = 0;
     HouseInfoCursorY = 0;
     MenuPosData->ResetTextureInfoAll();
-    CMenuGeoPt = new (MenuGeoramaStack.Alloc(0x1B92)) CMenuGeorama;
+    CMenuGeoPt = new (MenuGeoramaStack.Alloc(PORT_FIX(PortBlocks<CMenuGeorama>)(0x1B92))) CMenuGeorama;
     CMenuGeoPt->parts_stack.stSetBuffer(MenuGeoramaStack.stGetTop(), 0x2580);
     MenuGeoramaStack.Alloc(0x2580);
     MenuPartsDrawStack = &CMenuGeoPt->parts_stack;
@@ -5763,7 +5763,7 @@ void MenuRemovalInit(mgCMemory *stack, int *arg) {
     MenuDrawEnv->camera.SetRef(0.0f, 0.0f, 0.0f);
     MenuDrawEnv->camera.SetPos(0.0f, 0.0f, 500.0f);
     MenuMainMapInfo = (CEditMap *) MenuMainScene->GetMap(MenuMainScene->active_map);
-    RemovalMenuPtr = new (MenuGeoramaStack.Alloc(0x152)) CRemovalMenu;
+    RemovalMenuPtr = new (MenuGeoramaStack.Alloc(PORT_FIX(PortBlocks<CRemovalMenu>)(0x152))) CRemovalMenu;
     HouseInfoSelectMoveInit = 1;
     Tex_Georama = NULL;
     HouseInfoCursorAlphaOnOff = 0;

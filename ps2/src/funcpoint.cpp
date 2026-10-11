@@ -492,7 +492,7 @@ int CObjAnime::AssignFuncAnime(CFuncPoint *point, CMapParts *map_parts) {
 }
 
 CFuncPoint *CFuncPointMngr::Add(int type, mgCMemory *stack) {
-    CList<CFuncPoint> *node = new (stack->Alloc(0x20)) CList<CFuncPoint>;
+    CList<CFuncPoint> *node = new (stack->Alloc(PORT_FIX(PortBlocks<CList<CFuncPoint>>)(0x20))) CList<CFuncPoint>;
 
     if (node == NULL) {
         return NULL;

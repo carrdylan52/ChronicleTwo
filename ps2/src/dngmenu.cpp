@@ -3944,9 +3944,9 @@ void DngTreeMapInit(mgCMemory *stack, int *tex_block, int menu_mode, int dng_no)
     int remaining = stack->stGetRest();
     MenuTreeMapStack.stSetBuffer(stack->stGetTop(), remaining);
     MenuTreeMapStack.Align64();
-    CMenuTreePt = new (MenuTreeMapStack.Alloc(0x2FC0)) CMenuTreeMap;
+    CMenuTreePt = new (MenuTreeMapStack.Alloc(PORT_FIX(PortBlocks<CMenuTreeMap>)(0x2FC0))) CMenuTreeMap;
     CMenuTreePt->SetTexBlock(tex_block);
-    MenuDngMap = new (MenuTreeMapStack.Alloc(0x13)) CDngFreeMap;
+    MenuDngMap = new (MenuTreeMapStack.Alloc(PORT_FIX(PortBlocks<CDngFreeMap>)(0x13))) CDngFreeMap;
     MenuDngMap->save_dungeon = MenuSaveDataDungeonPtr;
     DNG_BATTLE_AREA *area = menu_GetBattleAreaScene();
     MenuDngMap->floor_manager = &area->floor_manager;

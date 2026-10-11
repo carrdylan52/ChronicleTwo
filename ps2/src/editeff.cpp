@@ -79,7 +79,7 @@ void EditSetEffectBuffer(mgCMemory *memory) {
         _StarEffect[i].texture = texture;
     }
 
-    PaintEffect = new (memory->Alloc(0x42)) CPaintEffect[1];
+    PaintEffect = new (memory->Alloc(PORT_FIX(PortBlocks<CPaintEffect>)(0x42))) CPaintEffect[1];
     CurPartsBuff.stSetBuffer(memory->Alloc(parts_buffer_size),
                              parts_buffer_size);
 }
@@ -551,7 +551,7 @@ int EditSetPlaceAnime(int kind, CMapParts *parts) {
             CurPartsBuff.stack_used = 0;
             CurPartsBuff.lock = 0;
 
-            target = new (CurPartsBuff.Alloc(0x33)) CMapParts;
+            target = new (CurPartsBuff.Alloc(PORT_FIX(PortBlocks<CMapParts>)(0x33))) CMapParts;
 
             if (target == NULL) {
                 return 0;

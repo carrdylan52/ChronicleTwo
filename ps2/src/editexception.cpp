@@ -387,7 +387,7 @@ void InitFirePowder(int map_no, CScene *scene, int texb, mgCMemory *memory) {
     mgTexManager.DeleteBlock(texb);
     mgTexManager.EnterIMGFile(image, FirePowderTexb, NULL, NULL);
 
-    SpriteVis = new (memory->Alloc(7)) mgC3DSprite;
+    SpriteVis = new (memory->Alloc(PORT_FIX(PortBlocks<mgC3DSprite>)(7))) mgC3DSprite;
     fire_powder = new (memory->Alloc(0x202)) FirePowder[FIRE_POWDER_NUM];
     FirePowFrame = new (memory->Alloc(0x13)) mgCFrame;
     mgCFrameAttr *attr = new (memory->Alloc(0xB)) mgCFrameAttr;
@@ -693,7 +693,7 @@ void InitGeyserEffect(int scene_no, CScene *scene, int texb, mgCMemory *memory) 
             GeyserFrame->attr = attr;
             attr->fog = MG_FOG_BLACK;
             attr->z_write = -1;
-            GeyserEffect = new (memory->Alloc(0x22)) CGeyserEffect[4];
+            GeyserEffect = new (memory->Alloc(PORT_FIX(PortBlocks<CGeyserEffect, 4>)(0x22))) CGeyserEffect[4];
 
             for (int i = 0; i < 4; i++) {
                 CGeyserEffectPoint *pool =

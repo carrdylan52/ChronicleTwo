@@ -658,7 +658,7 @@ void TitleInit(INIT_LOOP_ARG arg) {
     mgSetBackGround(0.0f, 0.0f, 0.0f, 128.0f);
     SetTextureTable(0x73, 0x60, &DataBuffer);
     DataBuffer.Align64();
-    TitleInfo = new (DataBuffer.Alloc(0x1C)) TITLE_INFO;
+    TitleInfo = new (DataBuffer.Alloc(PORT_FIX(PortBlocks<TITLE_INFO>)(0x1C))) TITLE_INFO;
     GamePad__2.SetAutoRepeat(PAD_UP | PAD_DOWN, 0xF, 4);
     GamePad__2.MenuModeOn(0x78);
 
@@ -683,7 +683,7 @@ static void TitleBootInit() {
     TitleMCFuncFlag = 1;
     TitleMCCheckNow = 0;
     TitleMainMCCheckPhase = 0;
-    TitleMCCheck = new ((u_long128 *) DataBuffer.Alloc(0x112)) CMemoryCardManager;
+    TitleMCCheck = new ((u_long128 *) DataBuffer.Alloc(PORT_FIX(PortBlocks<CMemoryCardManager>)(0x112))) CMemoryCardManager;
     TitleMCCheck->Initialize(&DataBuffer);
     TitleCamera = new ((u_long128 *) DataBuffer.Alloc(0xE)) mgCCameraFollow(40.0f, 30.0f, 0.0f, 8.0f);
     TitleCamera2 = new ((u_long128 *) DataBuffer.Alloc(9)) mgCCamera(8.0f);

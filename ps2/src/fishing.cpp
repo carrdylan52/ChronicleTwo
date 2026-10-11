@@ -1194,7 +1194,7 @@ int sgRestartFishing(SubGameInfo *info) {
         if (esa_path != NULL) {
             if (*esa_path != 0 && LocalEsaNo >= 0) {
                 CCharacter2 *esa_chara;
-                esa_chara = new (EsaStack.Alloc(0x68)) CCharacter2;
+                esa_chara = new (EsaStack.Alloc(PORT_FIX(PortBlocks<CCharacter2>)(0x68))) CCharacter2;
                 EsaChara = esa_chara;
                 EsaChara->Initialize();
 
@@ -1417,19 +1417,19 @@ static void StepDataLoading(void *arg) {
     }
 
     CCharacter2 *chara;
-    chara = new (memory->Alloc(0x68)) CCharacter2;
+    chara = new (memory->Alloc(PORT_FIX(PortBlocks<CCharacter2>)(0x68))) CCharacter2;
     UkiRod = chara;
-    chara = new (memory->Alloc(0x68)) CCharacter2;
+    chara = new (memory->Alloc(PORT_FIX(PortBlocks<CCharacter2>)(0x68))) CCharacter2;
     LureRod = chara;
-    chara = new (memory->Alloc(0x68)) CCharacter2;
+    chara = new (memory->Alloc(PORT_FIX(PortBlocks<CCharacter2>)(0x68))) CCharacter2;
     Uki = chara;
-    chara = new (memory->Alloc(0x68)) CCharacter2;
+    chara = new (memory->Alloc(PORT_FIX(PortBlocks<CCharacter2>)(0x68))) CCharacter2;
     Lure = chara;
-    chara = new (memory->Alloc(0x68)) CCharacter2;
+    chara = new (memory->Alloc(PORT_FIX(PortBlocks<CCharacter2>)(0x68))) CCharacter2;
     Hari = chara;
-    chara = new (memory->Alloc(0x68)) CCharacter2;
+    chara = new (memory->Alloc(PORT_FIX(PortBlocks<CCharacter2>)(0x68))) CCharacter2;
     CursorChara[0] = chara;
-    chara = new (memory->Alloc(0x68)) CCharacter2;
+    chara = new (memory->Alloc(PORT_FIX(PortBlocks<CCharacter2>)(0x68))) CCharacter2;
     CursorChara[1] = chara;
     EsaChara = NULL;
     FishChara = NULL;

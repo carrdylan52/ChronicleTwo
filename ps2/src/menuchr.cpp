@@ -1186,7 +1186,7 @@ void CMenuChrCngMenu::EnterNPCFaceData() {
 int CMenuChrCngMenu::LoadBGNPCModel(int restart_read) {
     mgCMemory *stack = &MenuCharaLoadStack;
     stack->stReset();
-    npc_chara = new (stack->Alloc(0x105)) CActionChara;
+    npc_chara = new (stack->Alloc(PORT_FIX(PortBlocks<CActionChara>)(0x105))) CActionChara;
     npc_chara->Initialize(NULL);
     stack->Align64();
     npc_build_stack.stSetBuffer(stack->stGetTop(), 0xCD00);
@@ -6617,7 +6617,7 @@ void CMenuCostumeSel::LoadMenuData(mgCMemory *stack, int *tex_block) {
     SetTexBlock(tex_block);
 
     for (i = 0; i < MENU_CHARA_LOAD_MAX; i++) {
-        MenuActionChara[i] = new (stack->Alloc(0x105)) CActionChara;
+        MenuActionChara[i] = new (stack->Alloc(PORT_FIX(PortBlocks<CActionChara>)(0x105))) CActionChara;
         MenuActionChara[i]->Initialize(NULL);
     }
 
@@ -7239,7 +7239,7 @@ inline CMenuCostumeSel::CMenuCostumeSel() : camera(40.0f, 30.0f, 0.0f, 8.0f) {
 void MenuCostumeInit(mgCMemory *stack, int *tex_block, int mode) {
     int rest = stack->stGetRest();
     MenuChangeMemory.stSetBuffer(stack->stGetTop(), rest);
-    MenuCosPtr = new (MenuChangeMemory.Alloc(0x2F)) CMenuCostumeSel;
+    MenuCosPtr = new (MenuChangeMemory.Alloc(PORT_FIX(PortBlocks<CMenuCostumeSel>)(0x2F))) CMenuCostumeSel;
     CostumeAttr = 0x1274521CBULL;
 
     if (MenuArg.param[0] == 1) {
@@ -7825,7 +7825,7 @@ int CMosBookMenu::KeyStep() {
             if (ReadBGSync() == 0) {
                 this->load_phase += 1;
                 this->show_wait = 0;
-                this->monster = new (this->stack.Alloc(0x105)) CActionChara;
+                this->monster = new (this->stack.Alloc(PORT_FIX(PortBlocks<CActionChara>)(0x105))) CActionChara;
                 this->monster->Initialize(NULL);
                 MenuMonsterLoadBGCheck(MenuCharaBuild2, &this->monster, this->tex_block_no, -1);
                 this->monster->SetPosition(-12.8f, -6.6f, 0.0f);
@@ -7873,7 +7873,7 @@ void MonsterBookInit(mgCMemory *stack, int *tex_block, int mode) {
     size = stack->stGetRest();
     MosBookStack.stSetBuffer(stack->stGetTop(), size);
 
-    book = new (MosBookStack.Alloc(0x9A)) CMosBookMenu;
+    book = new (MosBookStack.Alloc(PORT_FIX(PortBlocks<CMosBookMenu>)(0x9A))) CMosBookMenu;
 
     MenuMosBookPtr = book;
     book->SetTexBlock(tex_block);

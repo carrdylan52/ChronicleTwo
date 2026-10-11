@@ -184,7 +184,7 @@ void SCN_LOADMAP_INFO2::Initialize() {
 int CScene::LoadChara(int index, u_int *pack, char *name, mgCMemory *model_stack, mgCMemory *motion_stack, mgCMemory *image_stack, int image_block, int no_outline) {
     u_int       *files[1];
     int          sizes[1];
-    CCharacter2 *chara = new (model_stack->Alloc(0x68)) CCharacter2;
+    CCharacter2 *chara = new (model_stack->Alloc(PORT_FIX(PortBlocks<CCharacter2>)(0x68))) CCharacter2;
 
     if (chara == NULL) {
         return -1;
@@ -239,7 +239,7 @@ int CScene::CopyChara(int index, int source_index, mgCMemory *memory) {
     float        scale[4];
     CCharacter2 *chara;
 
-    chara = new (memory->Alloc(0x68)) CCharacter2;
+    chara = new (memory->Alloc(PORT_FIX(PortBlocks<CCharacter2>)(0x68))) CCharacter2;
 
     if (chara == NULL) {
         return -1;
@@ -322,7 +322,7 @@ int CScene::LoadMapFromMemory(int map_no, int step, SCN_LOADMAP_INFO2 *info) {
             return -1;
         }
 
-        edit_map = new (stack->Alloc(0x111)) CEditMap;
+        edit_map = new (stack->Alloc(PORT_FIX(PortBlocks<CEditMap>)(0x111))) CEditMap;
 
         if (edit_map == NULL) {
             return -1;
@@ -398,7 +398,7 @@ int CScene::LoadMapFromMemory(int map_no, int step, SCN_LOADMAP_INFO2 *info) {
             CMapSky *sky;
             DeleteSky(0);
 
-            if ((sky = (CMapSky *) operator new(sizeof(CMapSky), stack->Alloc(0x13))) != NULL) {
+            if ((sky = (CMapSky *) operator new(sizeof(CMapSky), stack->Alloc(PORT_FIX(PortBlocks<CMapSky>)(0x13)))) != NULL) {
                 sky->Initialize();
             }
 

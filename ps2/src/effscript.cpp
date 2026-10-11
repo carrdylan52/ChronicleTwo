@@ -557,7 +557,7 @@ int CEffectScriptMan::BuildBase(int base_no, u_long128 *data, int data_size, u_l
 
                 if (data != NULL) {
                     CCharacter2 *source = GetBaseChara(base_no);
-                    base[index]->chara = new (memory->Alloc(0x68)) CCharacter2;
+                    base[index]->chara = new (memory->Alloc(PORT_FIX(PortBlocks<CCharacter2>)(0x68))) CCharacter2;
                     base[index]->chara->Initialize();
 
                     if (source != NULL) {
@@ -1291,7 +1291,7 @@ int CEffectScriptMan::AssignCharacter(_EFF_SCRIPT *script, int count) {
     }
 
     for (int i = 0; i < count; i++) {
-        script->sub_chara[i] = new (work_memory->Alloc(0x68)) CCharacter2;
+        script->sub_chara[i] = new (work_memory->Alloc(PORT_FIX(PortBlocks<CCharacter2>)(0x68))) CCharacter2;
         script->chara->Copy(*script->sub_chara[i], work_memory);
     }
 
@@ -5561,7 +5561,7 @@ int _GET_EOH_POS(RS_STACKDATA *stack, int argc) {
  */
 int SetEffectScript(CRunScript *script, char *program, mgCMemory *memory) {
     RS_STACKDATA *stack = (RS_STACKDATA *) memory->Alloc(0x20);
-    RS_CALLDATA  *call_data = (RS_CALLDATA *) memory->Alloc(1);
+    RS_CALLDATA  *call_data = (RS_CALLDATA *) memory->Alloc(PORT_FIX(PortBlocks<RS_CALLDATA>)(1));
     script->load((RS_PROG_HEADER *) program, stack, 0x40, call_data, 2);
     script->ext_func(ext_func, 0x100);
     return 1;

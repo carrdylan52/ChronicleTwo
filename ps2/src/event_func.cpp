@@ -6077,7 +6077,7 @@ static int _COPY_CHARA(RS_STACKDATA *stack, int argc) {
     CCharacter2 *source = GetCharacter(src_no);
     CCharacter2 *copy;
 
-    copy = new (memory->Alloc(0x68)) CCharacter2;
+    copy = new (memory->Alloc(PORT_FIX(PortBlocks<CCharacter2>)(0x68))) CCharacter2;
 
     if (source == NULL) {
         return false;
@@ -17137,7 +17137,7 @@ static int _SWE_INIT(RS_STACKDATA *stack, int argc) {
         return false;
     }
 
-    chara->sword_effect[slot] = new (scene_stack->Alloc(12)) CSWordAfterEffect;
+    chara->sword_effect[slot] = new (scene_stack->Alloc(PORT_FIX(PortBlocks<CSWordAfterEffect>)(12))) CSWordAfterEffect;
 
     if (chara->sword_effect[slot] == NULL) {
         return false;

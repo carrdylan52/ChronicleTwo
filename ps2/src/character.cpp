@@ -2938,7 +2938,7 @@ static int _EFFECT(SPI_STACK *stack, int count) {
     }
 
     entry = (CHRINFO_EFFECT *) now_stack->stAlloc64(3);
-    manager = (CHARA_EFFECT_MANAGER *) now_stack->stAlloc64(32);
+    manager = (CHARA_EFFECT_MANAGER *) now_stack->stAlloc64(PORT_FIX(PortBlocks<CHARA_EFFECT_MANAGER>)(32));
     manager->Initialize();
     manager->GetBufferNums(script, script_size, &particle_count, &emitter_count);
     manager->particle_pool = (CEffect *) now_stack->Alloc(particle_count * sizeof(CEffect) / 16 + 1);
@@ -3789,7 +3789,7 @@ void CCharacter2::Copy(CCharacter2 &dest, mgCMemory *memory) {
 
             for (sword = 0; sword < CHARA_SWORD_EFFECT_MAX; sword++) {
                 if (sword_effect[sword] != NULL) {
-                    dest.sword_effect[sword] = new (memory->Alloc(12)) CSWordAfterEffect;
+                    dest.sword_effect[sword] = new (memory->Alloc(PORT_FIX(PortBlocks<CSWordAfterEffect>)(12))) CSWordAfterEffect;
                     sword_effect[sword]->Copy(*dest.sword_effect[sword], memory);
                 }
             }

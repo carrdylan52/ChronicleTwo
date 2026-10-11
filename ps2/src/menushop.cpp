@@ -1865,7 +1865,7 @@ void MenuShopInit(mgCMemory *stack, int *tex_block, int arg) {
     int               free_size = stack->stGetRest();
     u_long128        *top = stack->stGetTop();
     MenuLocalStack.stSetBuffer(top, free_size);
-    CShopMenu *menu = new (MenuLocalStack.Alloc(0x23)) CShopMenu;
+    CShopMenu *menu = new (MenuLocalStack.Alloc(PORT_FIX(PortBlocks<CShopMenu>)(0x23))) CShopMenu;
 
     CShopMenuPt = menu;
     CShopMenuPt->SetTexBlock(tex_block);

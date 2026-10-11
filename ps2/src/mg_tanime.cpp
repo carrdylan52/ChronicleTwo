@@ -1078,7 +1078,7 @@ int texTEX_ANIME_DATA_END(SPI_STACK *stack, int argc) {
 
     if (pTexAnime == NULL) {
         if (pLoadTexAnime == NULL) {
-            block->anime = new (TexAnimeStack->Alloc(0x21)) mgCTextureAnime;
+            block->anime = new (TexAnimeStack->Alloc(PORT_FIX(PortBlocks<mgCTextureAnime>)(0x21))) mgCTextureAnime;
             pTexAnime = block->anime;
         } else {
             pTexAnime = pLoadTexAnime;

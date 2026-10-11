@@ -438,7 +438,7 @@ void InitMapSelect(mgCMemory *stack) {
 
     for (int type = 0; type < MAP_SEL_TYPE_NUM; ++type) {
         SelectMapNum[type] = 0;
-        SelectMapList[type] = new (MenuStack->Alloc(0x22)) char *[SELECT_MAP_MAX];
+        SelectMapList[type] = new (MenuStack->Alloc(PORT_FIX(PortBlocks<void *, 128>)(0x22))) char *[SELECT_MAP_MAX];
 
         for (int index = 0; index < SELECT_MAP_MAX; ++index) {
             SelectMapList[type][index] = NULL;
@@ -995,7 +995,7 @@ void LoadEventViewData(u_long128 *buffer, mgCMemory *stack) {
         return;
     }
 
-    EventInfo = new (stack->Alloc(0x382)) EVENT_VIEW_INFO[EVENT_VIEW_MAX];
+    EventInfo = new (stack->Alloc(PORT_FIX(PortBlocks<EVENT_VIEW_INFO, 512>)(0x382))) EVENT_VIEW_INFO[EVENT_VIEW_MAX];
 
     for (index = 0; index < EVENT_VIEW_MAX; ++index) {
         memset(&EventInfo[index], 0, sizeof(EVENT_VIEW_INFO));

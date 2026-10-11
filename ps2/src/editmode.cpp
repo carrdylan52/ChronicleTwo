@@ -673,7 +673,7 @@ void LoadEditCursor(mgCMemory *memory, int block) {
 
         PaintCursor = NULL;
         PaintCursor2 = NULL;
-        PaintCurChr = new (memory->Alloc(0x68)) CCharacter2;
+        PaintCurChr = new (memory->Alloc(PORT_FIX(PortBlocks<CCharacter2>)(0x68))) CCharacter2;
         u_int *paint_model = GetPackFile(pack, "etc/hake.chr", NULL);
 
         if (paint_model != NULL) {
@@ -692,7 +692,7 @@ void LoadEditCursor(mgCMemory *memory, int block) {
         ShovelCursor = NULL;
         ShovelCurChr = NULL;
         RemoveCurChr = NULL;
-        RemoveCurChr = new (memory->Alloc(0x68)) CCharacter2;
+        RemoveCurChr = new (memory->Alloc(PORT_FIX(PortBlocks<CCharacter2>)(0x68))) CCharacter2;
         u_int *remove_model = GetPackFile(pack, "etc/a_mu.chr", NULL);
 
         if (remove_model != NULL) {
@@ -707,7 +707,7 @@ void LoadEditCursor(mgCMemory *memory, int block) {
             }
         }
 
-        ShovelCurChr = new (memory->Alloc(0x68)) CCharacter2;
+        ShovelCurChr = new (memory->Alloc(PORT_FIX(PortBlocks<CCharacter2>)(0x68))) CCharacter2;
         u_int *shovel_model = GetPackFile(pack, "etc/sukkopu.chr", NULL);
 
         if (shovel_model != NULL) {
