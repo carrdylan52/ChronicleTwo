@@ -1,5 +1,11 @@
 #!/usr/bin/env python3
-"""Run one MWCC compilation through Satan's Fiddle with a private JSON profile."""
+"""Run one MWCC compilation through Satan's Fiddle with a private JSON profile.
+
+SATANSFIDDLE_IGNORE is an optional comma-separated list of profile kinds to leave out:
+helper_masks (the translation-unit helper masks, which then start at zero),
+expression_overrides (the floating-point rows) and placement_new (the statement
+conversion rows). The default floating-point initialisation always applies.
+"""
 
 import json
 import os
@@ -60,6 +66,29 @@ def validate_profile_units(profile):
                 raise ValueError(f"unknown translation unit {name!r} in {location}")
 
 
+IGNORABLE_KINDS = ("helper_masks", "expression_overrides", "placement_new")
+
+
+def ignored_kinds():
+    kinds = [kind for kind in os.environ.get("SATANSFIDDLE_IGNORE", "").split(",") if kind]
+    unknown = sorted(set(kinds) - set(IGNORABLE_KINDS))
+    if unknown:
+        raise ValueError(f"unknown SATANSFIDDLE_IGNORE kinds: {', '.join(unknown)}")
+    return set(kinds)
+
+
+def drop_ignored(profile, kinds):
+    """Remove the rows of the ignored kinds from a profile."""
+    if "helper_masks" in kinds:
+        profile["translation_units"] = []
+        profile["default_gpr_helper_mask"] = 0
+        profile["default_fpr_helper_mask"] = 0
+    if "expression_overrides" in kinds:
+        profile.get("floating_point", {}).pop("expression_overrides", None)
+    if "placement_new" in kinds:
+        profile.pop("placement_new", None)
+
+
 def main(arguments):
     compiler, options, output, source = invocation(arguments)
     binary = os.environ.get("SATANSFIDDLE", "satansfiddle")
@@ -76,6 +105,7 @@ def main(arguments):
     if not isinstance(profile, dict):
         raise ValueError("Satan's Fiddle profile must be a JSON object")
     validate_profile_units(profile)
+    drop_ignored(profile, ignored_kinds())
     logical_unit = unit_name(os.environ.get("SATANSFIDDLE_TRANSLATION_UNIT", source.name))
 
     # The caller supplies the complete compiler flags; retain argument boundaries.

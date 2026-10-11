@@ -335,6 +335,29 @@ statement form. No ordinary source form or option tested here reproduces it.
   test the allocator result directly. That shows the pattern is common in retail.
   It does not identify an original compiler setting or source form.
 
+## Whole-program compilation
+
+`mwccps2.exe` 3.0 compiles several sources in one run (`-o <dir>` writes one
+`<stem>.o` per source), and the helper masks leak from one unit into the next.
+`scripts/build/whole_program.py` compiles the game units in `main_o_files` link
+order, one run per flag set, and compares every object with the per-unit build.
+`SATANSFIDDLE_IGNORE=helper_masks,expression_overrides,placement_new` drops the
+named profile rows; the default floating-point initialisation always applies.
+
+| Run | Units differing (of 149) |
+|---|---|
+| per-unit, plain wibo | 62 |
+| one run per flag set, full profile | 0 |
+| one run, helper masks ignored | 1 (`mapload`), 0 with `mapload` in its own run |
+| one run, plain wibo | 45, identical across three runs |
+
+Gate result: partial pass. One run reproduces all 39 helper-mask rows, provided
+`mapload.cpp` is compiled on its own: it needs a zero mask at entry, and any
+earlier unit in link order sets one. The floating-point evaluate-first byte
+and the placement-new policy are not reproduced, so the profile stays for
+those. Plain wibo misses all 24 placement units, 25 of the 32 expression units,
+and four units with no rows that depend only on the evaluate-first default.
+
 ## Continuous verification
 
 The [compiler workflow](../.github/workflows/compiler.yml) rebuilds the
