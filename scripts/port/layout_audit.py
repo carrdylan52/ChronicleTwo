@@ -430,7 +430,8 @@ def rank(value):
 
 def earliest(usrs, functions, first, referenced):
     best = None
-    for usr in usrs:
+    # Sorted, so a tie between users goes to the same one on every run whatever the hash seed.
+    for usr in sorted(usrs, key=lambda u: (functions[u]["name"], u)):
         value = position(usr, functions, first, referenced)
         if best is None or rank(value) < rank(best[0]):
             best = (value, functions[usr]["name"])
