@@ -102,6 +102,7 @@ u_int *GetScrPad() {
     return (u_int *) (buff_id ? 0x70002000 : 0x70000000);
 }
 
+#ifndef PORT
 void SendDMA(void *packet, int size) {
     int address_mask = 0x0FFFFFFF;
 
@@ -135,6 +136,7 @@ void SendDMA(void *packet, int size) {
     start_dma = 1;
     buff_id = !buff_id;
 }
+#endif
 
 int mgSetPkTEX0(u_int *packet, unsigned long tex0, unsigned long tex1) {
     *(u_long128 *) packet = *(u_long128 *) &set_tex0_dma;
@@ -208,7 +210,12 @@ int mgCVisualMDT::SetMaterialRef(u_long128 *packet, mgMaterial *material, int fl
         packet[3] = 0;
         packet[4] = 3;
         packet[5] = *(u_long128 *) &mat_vif_d_tex;
+#ifdef PORT
+        // Clang has no 128-bit integer literal.
+        packet[6] = (u_long128) 0x86E << 64 | 0x3000000000008001;
+#else
         packet[6] = 0x000000000000086E3000000000008001;
+#endif
         *(u_long *) &packet[7] = *(u_long *) &texture->tex1;
         ((u_long *) &packet[7])[1] = SCE_GS_TEX1_1;
         *(u_long *) &packet[8] = texture->tex0.value;
@@ -219,7 +226,12 @@ int mgCVisualMDT::SetMaterialRef(u_long128 *packet, mgMaterial *material, int fl
         packet[0] = *(u_long128 *) &mat_vif_dif;
         packet[1] = *(u_long128 *) material->diffuse;
         packet[2] = *(u_long128 *) &mat_vif_d_tex;
+#ifdef PORT
+        // Clang has no 128-bit integer literal.
+        packet[3] = (u_long128) 0x86E << 64 | 0x3000000000008001;
+#else
         packet[3] = 0x000000000000086E3000000000008001;
+#endif
         *(u_long *) &packet[4] = *(u_long *) &texture->tex1;
         ((u_long *) &packet[4])[1] = SCE_GS_TEX1_1;
         *(u_long *) &packet[5] = texture->tex0.value;

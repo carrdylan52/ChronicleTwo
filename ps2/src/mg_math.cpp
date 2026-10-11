@@ -11,6 +11,7 @@
 int         Check_Point_Poly3(float x, float y, float x0, float y0, float x1, float y1, float x2, float y2);
 static void MulMatrix3(float (*matrix)[4], float (*second)[4], float (*third)[4]);
 
+#ifndef PORT
 asm void mgFotI4(int *out, float *in) {
     .set noreorder
     lqc2 vf1, 0x0(a1)
@@ -44,11 +45,13 @@ asm void mgCreateBox8(float (*corners)[4], float *max, float *min) {
     jr ra
     sqc2 vf8, 0x30(a0)
 }
+#endif
 
 void mgZeroVector(float *vector) {
     *reinterpret_cast<u_long128 *>(vector) = 0;
 }
 
+#ifndef PORT
 asm void mgZeroVectorW(float *vector) {
     .set noreorder
     jr ra
@@ -169,6 +172,7 @@ asm void mgSubVector(float *vector, float *sub) {
     jr ra
     sqc2 vf15, 0x0(a0)
 }
+#endif
 
 void mgNormalizeVector(float *out, float *in, float length) {
     sceVu0FVECTOR unit;
@@ -177,6 +181,7 @@ void mgNormalizeVector(float *out, float *in, float length) {
     sceVu0ScaleVector(out, unit, length);
 }
 
+#ifndef PORT
 asm void mgVectorMin(float *min, float *a, float *b) {
     .set noreorder
     lqc2 vf15, 0x0(a1)
@@ -264,6 +269,7 @@ asm void mgPlaneNormal(float *normal, float *v0, float *v1, float *v2) {
     jr ra
     sqc2 vf12, 0x0(a0)
 }
+#endif
 
 float mgDistPlanePoint(float *normal, float *on_plane, float *point) {
     sceVu0FVECTOR offset;
@@ -523,6 +529,7 @@ int Check_Point_Poly3(float x, float y, float x0, float y0, float x1, float y1, 
     return MG_POINT_POLY3_OUTSIDE;
 }
 
+#ifndef PORT
 asm float mgDistVector(float *vector) {
     .set noreorder
     lqc2 vf4, 0x0(a0)
@@ -800,6 +807,7 @@ asm void mgInversMatrix(float (*inverse)[4], float (*matrix)[4]) {
     jr ra
     sqc2 vf8, 0x30(a0)
 }
+#endif
 
 void mgRotMatrixX(float (*matrix)[4], float angle_x) {
     mgUnitMatrix(matrix);
@@ -935,6 +943,7 @@ void mgShadowMatrix(float (*matrix)[4], float *light_direction, float *on_plane,
     matrix[3][3] = scale * -facing;
 }
 
+#ifndef PORT
 asm void mgApplyMatrixN(float (*out)[4], float (*matrix)[4], float (*in)[4], int count) {
     .set noreorder
     addi a3, a3, -0x1
@@ -1023,6 +1032,7 @@ update_bounds:
     jr ra
     sqc2 vf11, 0x0(a1)
 }
+#endif
 
 void mgApplyMatrix(float *max, float *min, float (*matrix)[4], float *box_max, float *box_min) {
     sceVu0FVECTOR corners[8];

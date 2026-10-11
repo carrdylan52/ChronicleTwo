@@ -77,7 +77,7 @@ set(LD_SCRIPT ${CONFIG_DIR}/${BASENAME}.lcf)
 # UNIT_CC_FLAGS_<unit> list is appended after CC_FLAGS, so its options
 # override CC_FLAGS'.
 set(CC_FLAGS -O3,p -strings readonly -c -Cpp_exceptions off -RTTI off
-    -pragma "divbyzerocheck on" -i ${INCLUDE_DIR})
+    -pragma "divbyzerocheck on" -i ${INCLUDE_DIR} -i ${KZ_INCLUDE_REL})
 set(UNIT_CC_FLAGS_mg_dataset -O2,p)
 set(UNIT_CC_FLAGS_mg_shadow -O2,p)
 set(UNIT_CC_FLAGS_mg_tanime -O2,p)

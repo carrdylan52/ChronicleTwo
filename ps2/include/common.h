@@ -6,6 +6,7 @@
  * Provides the integer aliases, math constants and size assertion used by game code.
  */
 
+#include "kazarov/port.h"
 #include "types.h"
 
 #define PI         3.1415927f   /**< Pi. */

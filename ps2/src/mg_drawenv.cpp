@@ -442,8 +442,11 @@ void mgRENDER_INFO::SetFogParam(float near, float far, u_char red, u_char green,
     fog.b = blue;
 }
 
+// The port defaults this operator in the header.
+#ifndef PORT
 mgVu0FBOX &mgVu0FBOX::operator=(mgVu0FBOX &source) {
     *(u_long128 *) max = *(u_long128 *) source.max;
     *(u_long128 *) min = *(u_long128 *) source.min;
     return *this;
 }
+#endif

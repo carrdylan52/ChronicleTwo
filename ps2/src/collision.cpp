@@ -164,6 +164,7 @@ int CCollisionMDT::GetMaxY(float *position) {
     return found;
 }
 
+#ifndef PORT
 int CCollisionMDT::PickUpNearPoly(CCPoly *out, const mgVu0FBOX &box, int max) {
     sceVu0FVECTOR box_max;
     sceVu0FVECTOR box_min;
@@ -250,6 +251,7 @@ int CCollisionMDT::PickUpNearPoly(CCPoly *out, const mgVu0FBOX &box, int max) {
 
     return count;
 }
+#endif
 
 int CCollision::Intersection(float *from, float *to, float *hit) {
     return 0;
@@ -271,6 +273,7 @@ int CColFrame::InsidePoint(float *point) {
     return collision->InsidePoint(local_point);
 }
 
+#ifndef PORT
 /**
  *
  * Loads a matrix into the vector unit's registers vf10-vf13 for the
@@ -320,6 +323,7 @@ static asm void trance_normal(float *v0, float *v1, float *v2, float *normal) {
     jr ra
     sqc2 vf22, 0(a3)
 }
+#endif
 
 int CColFrame::PickUpNearPoly(CCPoly *out, const mgVu0FBOX &box, int max) {
     sceVu0FVECTOR corners[8];

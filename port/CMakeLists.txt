@@ -142,7 +142,12 @@ target_compile_options(dc_ps2 PRIVATE -Wall -Wno-writable-strings -Wno-unknown-p
     -Wno-pointer-to-int-cast -Wno-int-to-pointer-cast -Wno-int-to-void-pointer-cast
     -Wno-void-pointer-to-int-cast -Wno-unused-variable -Wno-unused-but-set-variable
     -Wno-unused-local-typedef -Wno-unused-label -Wno-unused-function -Wno-unused-value
-    -Wno-unused-const-variable -Wno-undefined-internal -Wno-self-assign -Wno-deprecated-volatile)
+    -Wno-unused-const-variable -Wno-undefined-internal -Wno-self-assign -Wno-deprecated-volatile
+    -Wno-tautological-compare -Wno-shift-op-parentheses -Wno-implicit-conversion-floating-point-to-bool
+    -Wno-switch -Wno-constant-conversion -Wno-invalid-offsetof -Wno-dynamic-class-memaccess
+    -Wno-nontrivial-memcall -Wno-align-mismatch -Wno-format)
+# -ftrivial-auto-var-init=zero and -fno-strict-return above already define these.
+target_compile_options(dc_ps2 PRIVATE -Wno-sometimes-uninitialized -Wno-return-type)
 
 set(PORT_LIB_SOURCES ${PORT_SOURCES})
 list(FILTER PORT_LIB_SOURCES EXCLUDE REGEX "/tests/|/main\\.cpp$")

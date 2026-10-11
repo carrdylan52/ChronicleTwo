@@ -88,6 +88,7 @@ static void QuatToMat(float *quaternion, float (*matrix)[4]) {
     matrix[3][3] = 1.0f;
 }
 
+#ifndef PORT
 // clang-format off
 /**
  *
@@ -237,6 +238,7 @@ static asm void test2(float *out_max, float *out_min) {
     sqc2    vf15, 0(a1)
 }
 // clang-format on
+#endif
 
 int mgInsideScreen(mgVu0FBOX *box) {
     sceVu0FMATRIX matrix;
@@ -269,6 +271,7 @@ int mgInsideScreen(float (*corners)[4], float (*matrix)[4]) {
 
 #pragma global_optimizer off
 
+#ifndef PORT
 int mgInsideScreen(float (*corners)[4], float (*matrix)[4], float *out_max, float *out_min) {
     mgRENDER_INFO  *render_info = &mgRenderInfo;
     register float *screen = &render_info->world_screen_rel[0][0];
@@ -397,6 +400,7 @@ int mgInsideScreen(float (*corners)[4], float (*matrix)[4], float *out_max, floa
 
     return mgClipBoxW(out_max, out_min, render_info->screen_box_max, render_info->screen_box_min);
 }
+#endif
 
 #pragma global_optimizer reset
 
@@ -756,6 +760,7 @@ void mgCFrame::ClearChildFlag() {
 
 #pragma global_optimizer reset
 
+#ifndef PORT
 void mgCFrame::GetLocalMatrix(float (*matrix)[4]) {
     if (use_srt) {
         float(*destination)[4] = matrix;
@@ -811,9 +816,11 @@ void mgCFrame::GetLocalMatrix(float (*matrix)[4]) {
         sceVu0CopyMatrix(matrix, trans_matrix);
     }
 }
+#endif
 
 #pragma global_optimizer off
 
+#ifndef PORT
 void mgCFrame::GetBBoardMatrix(int mode, float (*matrix)[4], mgRENDER_INFO *info) {
     float position[4];
     float to_eye[4];
@@ -970,9 +977,11 @@ void mgCFrame::GetLWMatrix(float (*matrix)[4]) {
         changed = 0;
     }
 }
+#endif
 
 #pragma global_optimizer reset
 
+#ifndef PORT
 void mgCFrame::GetLWMatrixTopBottom(float (*matrix)[4]) {
     float parent_matrix[4][4];
     float local_matrix[4][4];
@@ -1049,6 +1058,7 @@ void mgCFrame::GetLWMatrixTopBottom(float (*matrix)[4]) {
 
     changed = 0;
 }
+#endif
 
 void mgCFrame::GetInverseMatrix(float (*matrix)[4]) {
     sceVu0FMATRIX lw;
@@ -1518,6 +1528,7 @@ int mgCFrame::Draw(unsigned int *packet) {
 
 #pragma global_optimizer off
 
+#ifndef PORT
 int mgCFrame::GetDrawRect(mgVu0FBOX *rect, mgCDrawManager *manager) {
     sceVu0FMATRIX       lw;
     sceVu0FVECTOR       rect_max;
@@ -1750,6 +1761,7 @@ int mgCFrame::GetDrawRect(mgVu0FBOX *rect, mgCDrawManager *manager) {
     sceVu0CopyVector(rect->min, rect_min);
     return visible;
 }
+#endif
 
 #pragma global_optimizer reset
 
