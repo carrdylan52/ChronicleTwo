@@ -12572,7 +12572,7 @@ static int _OBJS_SET_EOH_FRAME_POS(RS_STACKDATA *stack, int argc) {
     int           slot;
     int           eoh_no;
     int           frames;
-    const int     vector_bytes = 0x18;
+    const int     vector_bytes = PORT_FIX(PortSize<RS_STACKDATA[3]>)(0x18);
     char         *frame_name;
 
     frames = 0;
@@ -20711,7 +20711,7 @@ static int _AMG_GET_ATTR_STATUS(RS_STACKDATA *stack, int argc) {
 
     GetStackVector(position, stack);
 
-    stack = (RS_STACKDATA *) ((u8 *) stack + 0x18);
+    stack = (RS_STACKDATA *) ((u8 *) stack + PORT_FIX(PortSize<RS_STACKDATA[3]>)(0x18));
     SetStack(stack, AutoMapGen.GetAttrStatus(position));
     return true;
 }

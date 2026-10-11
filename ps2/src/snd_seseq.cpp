@@ -96,7 +96,11 @@ void sndCSeSeqData::LoadSMF(char *smf, int size, mgCMemory *memory) {
     }
 
     BigToLittle(&header_size, smf + 4, 4);
+#ifdef PORT
+    cursor = smf + header_size + 8;
+#else
     cursor = (char *) (header_size + (int) smf + 8);
+#endif
     BigToLittle(&format, smf + 8, 2);
 
     if (format != 0) {

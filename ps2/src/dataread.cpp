@@ -923,7 +923,11 @@ void InitFileCache(u_long128 *address, int type) {
     }
 
     if (type == FILE_CACHE_DOWN || type == FILE_CACHE_UP) {
+#ifdef PORT
+        CacheAddress = (u_long128 *) (((uintptr_t) address + 63) & ~(uintptr_t) 63);
+#else
         CacheAddress = (u_long128 *) align_size((u_int) address, 64);
+#endif
         NowCacheAddress = CacheAddress;
 
         if (type == FILE_CACHE_DOWN) {

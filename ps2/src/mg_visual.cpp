@@ -419,10 +419,17 @@ void mgCVisualMDT::CopyMDTData(MDT_HEADER *header, mgCMemory *memory) {
 
 void mgCVisualMDT::CopyMDTDataPointer(MDT_HEADER *header, mgCMemory *memory) {
     mgCTextureManager *textures = GetTextureManager();
+#ifdef PORT
+    intptr_t vertex_address = (intptr_t) header + header->vertex_ofs;
+    intptr_t normal_address = (intptr_t) header + header->normal_ofs;
+    intptr_t colour_address = (intptr_t) header + header->colour_ofs;
+    intptr_t uv_address = (intptr_t) header + header->uv_ofs;
+#else
     int                vertex_address = (int) header + header->vertex_ofs;
     int                normal_address = (int) header + header->normal_ofs;
     int                colour_address = (int) header + header->colour_ofs;
     int                uv_address = (int) header + header->uv_ofs;
+#endif
     MDT_MATERIAL_     *file_materials = (MDT_MATERIAL_ *) ((u_char *) header + header->material_ofs);
     vertex_num = header->vertex_num;
     normal_num = header->normal_num;

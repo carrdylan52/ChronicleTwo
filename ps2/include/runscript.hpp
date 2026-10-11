@@ -173,7 +173,12 @@ STATIC_ASSERT(sizeof(vmcode_t) == 0xC);
  */
 struct funcdata {
     u32   addr;  /**< Nonnegative byte offset of the function's first instruction in the code section. */
+#ifdef PORT
+    // The record is read in place from the script file, where this is a 32-bit offset.
+    u32   name;
+#else
     char *name;  /**< Name of the function, for runtime error messages. */
+#endif
     int   local; /**< Number of frame slots, arguments included. */
     int   arg;   /**< Number of argument slots. */
 };

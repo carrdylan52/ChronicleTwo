@@ -184,7 +184,11 @@ static int htoi(char *text) {
 
     for (i = 0; i < length; i++) {
         s32 back = length - i;
+#ifdef PORT
+        s32 ch = ((u8 *) text)[back - 1];
+#else
         s32 ch = ((u8 *) (back + (s32) text))[-1];
+#endif
         s32 digit = 0;
 
         if (ch >= '0' && ch <= '9') {

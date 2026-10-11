@@ -622,7 +622,7 @@ void CRocketLauncherMan::Draw() {
         CRocketLauncher *entry = (CRocketLauncher *) ((u8 *) this + offset);
         manager->ReloadTexture(entry->tex_block, (sceVif1Packet *) NULL);
         entry->Draw();
-        offset += 0x190;
+        offset += PORT_FIX(PortSize<CRocketLauncher>)(0x190);
     }
 }
 
@@ -647,7 +647,7 @@ void CRocketLauncherMan::Initialize(mgCFrame *frame, int texture_id, mgCTexture 
         entry->Initialize();
         entry->model = frame;
         entry->tex_block = texture_id;
-        offset += 0x190;
+        offset += PORT_FIX(PortSize<CRocketLauncher>)(0x190);
         entry->trail_texture = texture;
     }
 }
@@ -1217,7 +1217,7 @@ void CLaserGunMan::Draw() {
         CLaserGun *entry = (CLaserGun *) ((u8 *) this + offset);
         manager->ReloadTexture(entry->tex_block, (sceVif1Packet *) NULL);
         entry->Draw();
-        offset += 0x130;
+        offset += PORT_FIX(PortSize<CLaserGun>)(0x130);
     }
 }
 
@@ -1242,7 +1242,7 @@ void CLaserGunMan::Initialize(mgCFrame *frame, int texture_id, mgCTexture *textu
         entry->Initialize();
         entry->model = frame;
         entry->tex_block = texture_id;
-        offset += 0x130;
+        offset += PORT_FIX(PortSize<CLaserGun>)(0x130);
         entry->trail_texture = texture;
     }
 }

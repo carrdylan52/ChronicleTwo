@@ -641,8 +641,12 @@ mgCTexture *mgCTextureManager::SearchHash(char *name, int mode) {
     mgTEXTURE_HASH *node;
     int             bucket = hash(name);
 
+#ifdef PORT
+    for (node = hash_table[bucket]; node != NULL; node = node->next) {
+#else
     for (node = *(mgTEXTURE_HASH **) ((bucket << 2) + (int) this + offsetof(mgCTextureManager, hash_table)); node != NULL;
          node = node->next) {
+#endif
         if (strcmp(name, node->texture->name) == 0) {
             if (mode < 0 || node->texture->block == mode) {
                 return node->texture;

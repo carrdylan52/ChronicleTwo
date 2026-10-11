@@ -896,7 +896,11 @@ void CScene::ClearStack(int index) {
     int offset = index * 4;
 
     for (i = index; i < stack_num; i++) {
+#ifdef PORT
+        mgCMemory **slot = &stack[i];
+#else
         mgCMemory **slot = (mgCMemory **) ((u8 *) this + offset + 8);
+#endif
         mgCMemory  *stack = *slot;
 
         if (stack != NULL) {

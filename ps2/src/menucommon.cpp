@@ -861,6 +861,9 @@ int GetNowChapter(CSaveData *save) {
 }
 
 u_long128 *MenuCalcBufAlignment(u_long128 *buffer) {
+#ifdef PORT
+    return (u_long128 *) (((uintptr_t) buffer + 63) & ~(uintptr_t) 63);
+#else
     int aligned;
     int blocks;
     int size = (int) buffer;
@@ -878,6 +881,7 @@ u_long128 *MenuCalcBufAlignment(u_long128 *buffer) {
     }
 
     return (u_long128 *) aligned;
+#endif
 }
 
 int LoadFileMenu(char *name, u_long128 *buffer, int mode) {
@@ -1023,7 +1027,7 @@ int MenuCommonReadData(mgCMemory *memory, char **names, int mode) {
         size = LoadFileMenu(*(char **) ((u8 *) names + i), memory->stack + memory->stack_used, mode);
         memory->Alloc(align16_blocks(size));
         total += size;
-        i += 4;
+        i += PORT_FIX(PortSize<char *>)(4);
         memory->Align64();
     }
 
