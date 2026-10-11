@@ -407,12 +407,7 @@ void MessageTaskManager::Initialize() {
     task[5].next = NULL;
 }
 
-#ifdef PORT
-int
-#else
-void
-#endif
-CRedMarkModel::Draw() {
+CREDMARKMODEL_DRAW_RESULT CRedMarkModel::Draw() {
     float position[4];
     float saved_position[4];
 

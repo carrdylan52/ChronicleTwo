@@ -817,12 +817,7 @@ void CDamageScore2::Step() {
     }
 }
 
-#ifdef PORT
-int
-#else
-void
-#endif
-CLockOnModel::Draw() {
+CLOCKONMODEL_DRAW_RESULT CLockOnModel::Draw() {
     float target_pos[4];
     int   top_left[4];
     int   bottom_right[4];

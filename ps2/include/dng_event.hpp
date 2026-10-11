@@ -337,8 +337,10 @@ public:
 #ifdef PORT
     // MWCC lets this override CObjectFrame::Draw with void; clang requires the base's return type.
     virtual int Draw();
+#define CREDMARKMODEL_DRAW_RESULT int
 #else
     virtual void Draw();
+#define CREDMARKMODEL_DRAW_RESULT void
 #endif
 
     /**
