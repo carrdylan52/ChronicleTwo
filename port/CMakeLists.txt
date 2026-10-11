@@ -148,10 +148,16 @@ target_compile_options(dc_ps2 PRIVATE -Wall -Wno-writable-strings -Wno-unknown-p
     -Wno-nontrivial-memcall -Wno-align-mismatch -Wno-format)
 # -ftrivial-auto-var-init=zero and -fno-strict-return above already define these.
 target_compile_options(dc_ps2 PRIVATE -Wno-sometimes-uninitialized -Wno-return-type)
+# Nothing in ps2/src throws or catches; without exceptions the host's operator new takes the place of
+# MWCC's, and the Metrowerks exception units it drew in are left with no referrer.
+target_compile_options(dc_ps2 PRIVATE -fno-exceptions)
 
 set(PORT_LIB_SOURCES ${PORT_SOURCES})
-list(FILTER PORT_LIB_SOURCES EXCLUDE REGEX "/tests/|/main\\.cpp$")
+list(FILTER PORT_LIB_SOURCES EXCLUDE REGEX "/tests/|^${PORT_DIR}/main\\.cpp$")
 set(GENERATED_DIR ${CMAKE_BINARY_DIR}/generated)
+# The SDK functions with no replacement: docs/port/ASM_LEDGER.tsv's stub rows.
+kz_port_stubs(HEADERS ${CMAKE_SOURCE_DIR}/ps2/include/sce SYMBOLS ${CMAKE_SOURCE_DIR}/docs/port/ASM_LEDGER.tsv
+    OUT ${GENERATED_DIR}/stubs/sce OUT_SOURCES SCE_STUB_SOURCES)
 
 # The host side never sees a game header, so it is built without dc_options.
 kz_port_library(dc_host
@@ -160,11 +166,12 @@ kz_port_library(dc_host
     PROJECT_LABEL "ChronicleTwo on GitHub" PROJECT_URL https://github.com/TheMoonPeople/ChronicleTwo)
 target_include_directories(dc_host PRIVATE ${PORT_DIR} ${STB_DIR})
 
-add_library(dc_port OBJECT ${PORT_LIB_SOURCES})
+add_library(dc_port OBJECT ${PORT_LIB_SOURCES} ${SCE_STUB_SOURCES})
 target_link_libraries(dc_port PRIVATE dc_options SDL3::SDL3 Vulkan::Vulkan nlohmann_json::nlohmann_json)
 target_include_directories(dc_port PRIVATE ${PORT_DIR} ${KZ_ROOT}/port ${GENERATED_DIR})
+# The game's headers carry MWCC's pragmas.
 target_compile_options(dc_port PRIVATE -Wall -Wno-mismatched-tags -Wno-unused-label
-    -Wno-overloaded-virtual -Wno-unused-function)
+    -Wno-overloaded-virtual -Wno-unused-function -Wno-unknown-pragmas)
 
 if(WIN32)
     set(DC_LINK_OPTIONS -fuse-ld=lld -Wl,--gc-sections -Wl,--error-limit=0)
@@ -179,7 +186,7 @@ function(dc_link_game target)
     target_link_libraries(${target} PRIVATE dc_options SDL3::SDL3 Vulkan::Vulkan nlohmann_json::nlohmann_json)
     target_include_directories(${target} PRIVATE ${PORT_DIR} ${KZ_ROOT}/port ${GENERATED_DIR})
     target_compile_options(${target} PRIVATE -Wall -Wno-mismatched-tags -Wno-unused-label
-        -Wno-overloaded-virtual -Wno-unused-function)
+        -Wno-overloaded-virtual -Wno-unused-function -Wno-unknown-pragmas)
     target_link_options(${target} PRIVATE ${DC_LINK_OPTIONS})
 endfunction()
 
