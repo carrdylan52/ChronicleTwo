@@ -100,6 +100,8 @@ void MenuChapterInit(mgCMemory *stack, int *tex_block, int open_type, int chapte
 
     union {
         mgCMemory sound_memory;
+        // Clang deletes the union's constructor unless some member has an initialiser.
+        PORT_FIX(char port_init = 0;)
     };
 
     char       voice_path[140];

@@ -4470,7 +4470,7 @@ int MenuGeoramaPlacePush(CMenuGeorama *menu, int buttons_held, int buttons_press
     static char           *DestroyPartsName[1] = {NULL};
 
     switch (menu->sub_step) {
-        case 0:
+        case 0: {
             int key = georama_menu_local_key(buttons_held);
             int prev_selected = menu->select;
             int prev_top = menu->top;
@@ -4559,7 +4559,8 @@ int MenuGeoramaPlacePush(CMenuGeorama *menu, int buttons_held, int buttons_press
             }
 
             break;
-        case 1:
+        }
+        case 1: {
             msg->AddMsgCursor2(0, 1, 1);
             int cursor = msg->GetMsgCursor();
             int flags = edparts_info->attr;
@@ -4678,7 +4679,8 @@ int MenuGeoramaPlacePush(CMenuGeorama *menu, int buttons_held, int buttons_press
             }
 
             break;
-        case 2:
+        }
+        case 2: {
             int choice = msg->YesNoCursor2(0);
 
             if (choice == 1) {
@@ -4721,6 +4723,7 @@ int MenuGeoramaPlacePush(CMenuGeorama *menu, int buttons_held, int buttons_press
             }
 
             break;
+        }
         case 3:
             if (buttons_pressed != 0) {
                 menu->ExeScript("\x94z\x92uERROROFF");

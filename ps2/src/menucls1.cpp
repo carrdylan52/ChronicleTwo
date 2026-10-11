@@ -1433,6 +1433,8 @@ int CMenuItemUse::CheckItemUseEnable(CGameDataUsed *item, int kind, void *ptr) {
 int CMenuItemUse::UseItem(CGameDataUsed *item, int kind, void *ptr) {
     union {
         CItemUseTarget target_data;
+        // Clang deletes the union's constructor unless some member has an initialiser.
+        PORT_FIX(char port_init = 0;)
     };
 
     target_data.SetPtr(kind, ptr);

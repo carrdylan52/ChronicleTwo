@@ -1951,7 +1951,7 @@ int CBaseMenuClass::IsSpectolFusion(int select_key, int push_button) {
     form = MenuMesForm[ask_para.mes_no];
 
     switch (step) {
-        case 0:
+        case 0: {
             int choice = message->YesNoCursor();
 
             switch (push_button) {
@@ -1988,6 +1988,7 @@ int CBaseMenuClass::IsSpectolFusion(int select_key, int push_button) {
             }
 
             break;
+        }
         case 1: {
             if (!sndflag && ReadBGSync() == 0) {
                 sndflag = true;
@@ -8650,7 +8651,11 @@ static void MenuItemDebugDraw() {
 
             break;
         }
+        // The labels below jump past this case's initialisations; braces here would move MWCC's stack layout.
         case ITEM_MENU_PANEL_CHARA:
+#ifdef PORT
+        {
+#endif
             DrawMenuFillBox(236.0f, 60.0f, 230.0f, 200.0f, 0x80, 0, 0, 0);
             font->SetStr("HP control");
             font->SetPos(236, 60);
@@ -8693,6 +8698,9 @@ static void MenuItemDebugDraw() {
             font->SetPos(236, 200);
             font->DrawDirect(font->str, font->pos_x, font->pos_y);
             break;
+#ifdef PORT
+        }
+#endif
         case ITEM_MENU_PANEL_WEAPON: {
             DrawMenuFillBox(236.0f, 60.0f, 230.0f, 300.0f, 0x80, 0, 0, 0);
             font->SetStr("WHP control");
@@ -8709,6 +8717,8 @@ static void MenuItemDebugDraw() {
             font->DrawDirect(font->str, font->pos_x, font->pos_y);
             int   build_item[3];
             char *build_name[3];
+            // MWCC lets this loop use the i the panel above declares.
+            PORT_FIX(int i;)
 
             if (weapon != NULL) {
                 sprintf(text, "%d/%d", (int) weapon->data.weapon.abs.now, (int) weapon->data.weapon.abs.max);
@@ -12321,7 +12331,7 @@ int CItemSelect::KeyStep() {
         default: {
             int select_key = MenuCommonInfo->CheckSelectKey();
             int push_button = MenuCommonInfo->CheckPushButton();
-            int max = (int) (ITEM_SELECT_COLUMNS * line_num);
+            int max = (int) (PORT_FIX((int)) ITEM_SELECT_COLUMNS * line_num);
             int old_cursor = cursor;
 
             if (select_key & MENU_SELECT_KEY_UP) {

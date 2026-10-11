@@ -2114,7 +2114,7 @@ void CAquaFish::NextThink(int think, NEXT_THINK_PARAM *param) {
     }
 
     switch (think) {
-        case AQUA_FISH_THINK_REST:
+        case AQUA_FISH_THINK_REST: {
             int timer = GetRandI(130) + 100;
             target_rot[0] = 0.0f;
             action.timer = timer;
@@ -2122,6 +2122,7 @@ void CAquaFish::NextThink(int think, NEXT_THINK_PARAM *param) {
             SetMotion("\x92\xca\x8f\xed", 0);
             SetStep(0.5f);
             break;
+        }
         case AQUA_FISH_THINK_SWIM:
             swim_mode = AQUA_FISH_SWIM_POINT;
             swim_mode = AQUA_FISH_SWIM_ROUND;

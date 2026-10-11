@@ -4478,7 +4478,7 @@ void ClsMes::DrawMesWin() {
             SetSelectCursorPos(yesno_scaled);
             DrawYesNo(&frame_prim, choice_pos[0][0], choice_pos[0][1], choice_pos[1][0], choice_pos[1][1], &color);
             break;
-        case MES_WIN_VERSATILE_3:
+        case MES_WIN_VERSATILE_3: {
             CalcRectScale(shadow, fade, &versatile_3_scaled);
             select_y = inner.y + font_h * select_top + 7;
             int half = versatile_3_scaled.height / 2;
@@ -4493,6 +4493,7 @@ void ClsMes::DrawMesWin() {
             versatile_3_scaled.y = (int) (versatile_3_scaled.y + draw_off_y);
             DrawVersatileWin_3(&frame_prim, versatile_3_scaled, select_y, &color, alpha, bg_opaque);
             break;
+        }
         case MES_WIN_VERSATILE_4:
             CalcRectScale(shadow, fade, &versatile_4_scaled);
             versatile_4_scaled.x = (int) (versatile_4_scaled.x + draw_off_x);

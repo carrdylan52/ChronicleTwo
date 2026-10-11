@@ -3065,7 +3065,7 @@ int CMenuInvent::IsCreateObject(int mode, int keys) {
             }
 
             break;
-        case INVENT_CREATE_STEP_SHOW_READY:
+        case INVENT_CREATE_STEP_SHOW_READY: {
             action_chara->GetNowMotionName();
             s32 motion = action_chara->seq_state;
 
@@ -3168,6 +3168,7 @@ int CMenuInvent::IsCreateObject(int mode, int keys) {
             }
 
             break;
+        }
         case INVENT_CREATE_STEP_SHOW: {
             if (this->create_success != 0) {
                 if (this->create_chara != NULL) {
@@ -5815,7 +5816,7 @@ void PictureDraw(int &tex_block, mgRect<float> rect, int picture_no, float scale
         if (0 <= picture_no && picture_no < INVENT_PHOTO_NUM) {
             texture = CMenuInventPt->photo_tex[picture_no];
             photo = InventUserDataPtr->GetPhotoInfo(picture_no);
-        } else if (picture_no >= INVENT_PICTURE_ALBUM && picture_no < INVENT_PICTURE_ALBUM + INVENT_ALBUM_PHOTO_NUM) {
+        } else if (picture_no >= INVENT_PICTURE_ALBUM && picture_no < INVENT_PICTURE_ALBUM + PORT_FIX((int)) INVENT_ALBUM_PHOTO_NUM) {
             picture_no -= INVENT_PICTURE_ALBUM;
             texture = CMenuInventPt->album_tex[picture_no];
             photo = InventAlbumPtr->GetAlbumPhotoInfo(picture_no);
@@ -6276,7 +6277,7 @@ int MenuInventInit(mgCMemory *memory, int *tex_block, int arg) {
     CMenuInventPt->LoadCharaCheck();
 
     switch (CMenuInventPt->photo_only) {
-        case 1:
+        case 1: {
             CMenuInventPt->key_arg_no = INVENT_MODE_PHOTO_VIEW;
             MenuMainFrameModeSet(MENU_MAIN_FRAME_CLOSE, true);
             ReturnMenuIntern(1);
@@ -6291,6 +6292,7 @@ int MenuInventInit(mgCMemory *memory, int *tex_block, int arg) {
 
             CMenuInventPt->GradationSet(INVENT_GRADATION_OFF);
             break;
+        }
         case 0:
             CMenuInventPt->key_arg_no = INVENT_MODE_CARD_LIST;
             CMenuInventPt->ExeScript("\x92\xca\x8f\xed\x82\xcc\x82\xdd\x8f\x89\x8a\xfa\x89\xbb");
