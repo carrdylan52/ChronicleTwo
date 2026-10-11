@@ -53,7 +53,13 @@ struct mgVu0FBOX {
      * @address 0x139F00
      * @size 0x20
      */
+#ifdef PORT
+    // Defaulted, the box stays trivially copyable, so clang keeps the assignment of unions that hold one
+    // (CFuncPoint) as MWCC does.
+    mgVu0FBOX &operator=(mgVu0FBOX &source) = default;
+#else
     mgVu0FBOX &operator=(mgVu0FBOX &source);
+#endif
 };
 
 STATIC_ASSERT(sizeof(mgVu0FBOX) == 0x20);
