@@ -45,12 +45,19 @@ jobs:
           cp "$(brew --prefix vulkan-tools)/bin/vulkaninfo" "$B/"
           dylibbundler -od -b -x "$B/darkchronicle_tests" -x "$B/vulkaninfo" -d "$B/libs" -p @executable_path/libs/
           cp -n "$(brew --prefix vulkan-loader)/lib/libvulkan.1.dylib" "$B/libs/" || true
+          # dylibbundler can add the same rpath more than once; dyld refuses duplicate LC_RPATH entries.
+          for f in "$B/darkchronicle_tests" "$B/vulkaninfo" "$B"/libs/*.dylib; do
+            while [ "$(otool -l "$f" | grep -A2 LC_RPATH | grep -c 'path @executable_path/libs/ ')" -gt 1 ]; do
+              install_name_tool -delete_rpath @executable_path/libs/ "$f"
+            done
+          done
           cp "$(brew --prefix molten-vk)/lib/libMoltenVK.dylib" "$B/libs/"
           printf '{"file_format_version":"1.0.0","ICD":{"library_path":"./libs/libMoltenVK.dylib","api_version":"1.4.0","is_portability_driver":true}}\n' > "$B/MoltenVK_icd.json"
           cp .github/macos-bundle-run.sh "$B/run.sh"
           chmod +x "$B/run.sh"
           codesign --force -s - "$B"/libs/*.dylib "$B/darkchronicle_tests" "$B/vulkaninfo"
           otool -L "$B/darkchronicle_tests"
+          otool -l "$B/darkchronicle_tests" | grep -A2 LC_RPATH
           tar -czf bundle/chronicletwo-macos-tests.tar.gz -C bundle chronicletwo-macos-tests
 
       - name: Run the bundle on the runner too, for comparison
