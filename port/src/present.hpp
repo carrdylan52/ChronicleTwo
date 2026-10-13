@@ -30,6 +30,8 @@ void PresentSetSettings(const PresentSettings &settings);
 const PresentSettings &PresentGetSettings();
 PresentStats PresentGetStats();
 void PresentResetStats();
+// The game was parked by a host and resumed: restarts the present pacing and the display timing from now.
+void PresentRebase();
 void PresentTickRendered();
 void PresentWaitFrame(int start, int frames);
 void PresentTickEnd();

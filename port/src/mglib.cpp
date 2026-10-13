@@ -26,6 +26,7 @@
 #include "mglib.hpp"
 #include "mglib_port.hpp"
 #include "platform/clock.hpp"
+#include "platform/embed.hpp"
 #include "platform/paths.hpp"
 #include "present.hpp"
 #include "scenesnd.hpp"
@@ -1362,6 +1363,12 @@ PORT_OVERRIDE void mgEndFrame(mgCDrawManager *manager) {
 
     mgSendPacket(manager);
     dbuff_id ^= 1;
+
+    // An embedding host may park the game here, between frames. A parked game resumes with its
+    // present pacing restarted, so the time away is not counted as late frames.
+    if (EmbedCheckpoint(kEmbedFrameEnd)) {
+        PresentRebase();
+    }
 }
 
 PORT_OVERRIDE void mgSendPacket(mgCDrawManager *manager) {

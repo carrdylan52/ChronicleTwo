@@ -189,7 +189,7 @@ target_compile_options(ct_ps2 PRIVATE -Wall -Wno-writable-strings -Wno-unknown-p
     -Wno-unused-const-variable -Wno-undefined-internal -Wno-self-assign -Wno-deprecated-volatile)
 
 set(PORT_LIB_SOURCES ${PORT_SOURCES})
-list(FILTER PORT_LIB_SOURCES EXCLUDE REGEX "/tests/|/main\\.cpp$")
+list(FILTER PORT_LIB_SOURCES EXCLUDE REGEX "/tests/|/main\\.cpp$|/ixion_plugin\\.cpp$")
 
 kz_port_sce_sources(CT_SCE_SOURCES LIBS libvu0 libpad libmc sifdev sifrpc eekernel libcdvd libgraph libdma libpkt
     eekernel_threads libdev libmpeg libsdr modmsin sifdma)
@@ -227,14 +227,20 @@ else()
     set(CT_LINK_OPTIONS -fuse-ld=lld -pie -Wl,-z,separate-code -Wl,--gc-sections -Wl,--error-limit=0)
 endif()
 
+# SHARED links the same objects into a shared library: the executable-only -pie is left out.
 function(ct_link_game target)
+    cmake_parse_arguments(CT_GAME "SHARED" "" "" ${ARGN})
     target_sources(${target} PRIVATE $<TARGET_OBJECTS:ct_port> $<TARGET_OBJECTS:ct_host> $<TARGET_OBJECTS:ct_ps2>)
     add_dependencies(${target} ps2_include)
     target_link_libraries(${target} PRIVATE ct_options kz_port_headers SDL3::SDL3 Vulkan::Vulkan kazarov_bridge kazarov_core)
     target_include_directories(${target} PRIVATE ${PORT_DIR})
     target_compile_options(${target} PRIVATE -Wall -Wno-mismatched-tags -Wno-unused-label
         -Wno-overloaded-virtual -Wno-unused-function)
-    target_link_options(${target} PRIVATE ${CT_LINK_OPTIONS})
+    set(game_link_options ${CT_LINK_OPTIONS})
+    if(CT_GAME_SHARED)
+        list(REMOVE_ITEM game_link_options -pie)
+    endif()
+    target_link_options(${target} PRIVATE ${game_link_options})
     if(WIN32)
         # The Rust host UI uses Windows input, theme, OpenGL and desktop-composition APIs.
         target_link_libraries(${target} PRIVATE imm32 uxtheme opengl32 dwmapi)
@@ -268,5 +274,27 @@ if(WIN32)
     kz_windows_runtime(dc2data_bridge_test)
     if(TARGET darkchronicle_tests)
         kz_windows_runtime(darkchronicle_tests)
+    endif()
+endif()
+
+# The Ixion module: the game as a shared library whose only export is ixion_get_api (ixion_api.h,
+# from IXION_API_DIR). OFF by default; with it OFF the executable and the tests are unchanged.
+option(IXION_BUILD_PLUGIN "Build the Ixion module ixion_c2, a shared library exporting ixion_get_api" OFF)
+set(IXION_API_DIR "" CACHE PATH "Directory holding ixion_api.h, the host and module ABI")
+if(IXION_BUILD_PLUGIN)
+    if(NOT EXISTS "${IXION_API_DIR}/ixion_api.h")
+        message(FATAL_ERROR "IXION_BUILD_PLUGIN needs IXION_API_DIR, the directory holding ixion_api.h")
+    endif()
+    # main.cpp is compiled in for RunGame, the executable's run path; its main and wmain are not exported.
+    add_library(ixion_c2 SHARED ${PORT_DIR}/ixion_plugin.cpp ${PORT_DIR}/main.cpp)
+    # The module is named ixion_c2.dll, not libixion_c2.dll (the MinGW shared-library prefix).
+    set_target_properties(ixion_c2 PROPERTIES PREFIX "" RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}
+        LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR})
+    ct_link_game(ixion_c2 SHARED)
+    target_include_directories(ixion_c2 PRIVATE ${IXION_API_DIR})
+    # Only ixion_get_api, marked IXION_EXPORT, leaves the module.
+    target_link_options(ixion_c2 PRIVATE -Wl,--exclude-all-symbols)
+    if(WIN32)
+        kz_windows_runtime(ixion_c2)
     endif()
 endif()

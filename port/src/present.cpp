@@ -36,6 +36,9 @@ PresentSettings settings;
 PresentStats stats;
 bool tick_shown = true;
 PresentPacer      pacer;
+// The wall-clock start of the display timing DisplaySeconds measures; PresentRebase moves it.
+bool              display_timed = false;
+Clock::time_point display_before;
 Clock::time_point last_log;
 FpsOverlay overlay;
 std::int64_t counted_tick = 0;
@@ -89,10 +92,13 @@ double DisplaySeconds(bool intermediate = false) {
         const int displays = intermediate ? std::max(1, settings.display_per_tick) : 1;
         return std::max(1, wait_frames) / ClockTickRate() / displays;
     }
-    static Clock::time_point before = Clock::now();
-    const auto               now = Clock::now();
-    const double             seconds = std::chrono::duration<double>(now - before).count();
-    before = now;
+    const auto now = Clock::now();
+    if (!display_timed) {
+        display_timed = true;
+        display_before = now;
+    }
+    const double seconds = std::chrono::duration<double>(now - display_before).count();
+    display_before = now;
     return seconds;
 }
 
@@ -212,6 +218,12 @@ PresentStats PresentGetStats() {
 
 void PresentResetStats() {
     stats = PresentStats{};
+}
+
+void PresentRebase() {
+    pacer = PresentPacer{};
+    display_timed = true;
+    display_before = Clock::now();
 }
 
 void PresentTickRendered() {

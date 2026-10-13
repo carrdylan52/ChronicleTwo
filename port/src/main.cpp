@@ -329,6 +329,11 @@ int Run(int argc, const char **argv) {
 
 } // namespace
 
+// The run path main takes, for the Ixion module (ixion_plugin.cpp), which calls it on its own fiber.
+int RunGame(int argc, const char **argv) {
+    return Run(argc, argv);
+}
+
 PORT_OVERRIDE int main(int argc, const char **argv) {
     return Run(argc, argv);
 }
