@@ -1,0 +1,71 @@
+name: macOS test bundle
+
+on:
+  push:
+    branches: [diag/macos-bundle]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  bundle:
+    runs-on: macos-26
+    env:
+      HOMEBREW_NO_AUTO_UPDATE: 1
+      HOMEBREW_NO_INSTALL_CLEANUP: 1
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          submodules: true
+
+      - name: Install the toolchain and libraries
+        run: |
+          brew install llvm lld cmake ninja python glslang sdl3 vulkan-headers vulkan-loader vulkan-tools molten-vk \
+            googletest nlohmann-json dylibbundler
+          rustup toolchain install 1.99.0 --profile minimal --component clippy,rustfmt
+          rustup default 1.99.0
+          cargo install cxxbridge-cmd --version 1.0.205 --locked
+
+      - name: Build the minimal LGPL FFmpeg
+        run: tools/kazarov/scripts/build/kz-ffmpeg --out .kazarov/ffmpeg/darwin-arm64
+
+      - name: Configure
+        run: cmake --preset macos-arm64 -DCT_TEST_TIMEOUT=60
+
+      - name: Build
+        run: cmake --build --preset macos-arm64 --target darkchronicle_tests
+
+      - name: Bundle the test executable with its libraries
+        run: |
+          set -eux
+          B=bundle/chronicletwo-macos-tests
+          mkdir -p "$B/libs"
+          cp port/build/macos-arm64/darkchronicle_tests "$B/"
+          cp "$(brew --prefix vulkan-tools)/bin/vulkaninfo" "$B/"
+          dylibbundler -od -b -x "$B/darkchronicle_tests" -x "$B/vulkaninfo" -d "$B/libs" -p @executable_path/libs/
+          cp -n "$(brew --prefix vulkan-loader)/lib/libvulkan.1.dylib" "$B/libs/" || true
+          cp "$(brew --prefix molten-vk)/lib/libMoltenVK.dylib" "$B/libs/"
+          printf '{"file_format_version":"1.0.0","ICD":{"library_path":"./libs/libMoltenVK.dylib","api_version":"1.4.0","is_portability_driver":true}}\n' > "$B/MoltenVK_icd.json"
+          cp .github/macos-bundle-run.sh "$B/run.sh"
+          chmod +x "$B/run.sh"
+          codesign --force -s - "$B"/libs/*.dylib "$B/darkchronicle_tests" "$B/vulkaninfo"
+          otool -L "$B/darkchronicle_tests"
+          tar -czf bundle/chronicletwo-macos-tests.tar.gz -C bundle chronicletwo-macos-tests
+
+      - name: Run the bundle on the runner too, for comparison
+        continue-on-error: true
+        run: |
+          mkdir -p runner-check && tar -xzf bundle/chronicletwo-macos-tests.tar.gz -C runner-check
+          runner-check/chronicletwo-macos-tests/run.sh
+
+      - uses: actions/upload-artifact@v7
+        if: always()
+        with:
+          name: chronicletwo-macos-tests
+          path: |
+            bundle/chronicletwo-macos-tests.tar.gz
+            runner-check/chronicletwo-macos-tests/summary.txt
+            runner-check/chronicletwo-macos-tests/result-14.txt
+            runner-check/chronicletwo-macos-tests/vulkaninfo.txt
+          if-no-files-found: warn
