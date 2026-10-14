@@ -6,8 +6,8 @@ on:
   pull_request:
   workflow_dispatch:
     inputs:
-      publish_windows_artifact:
-        description: 'Publish a publicly downloadable Windows package'
+      publish_binary_artifacts:
+        description: 'Publish publicly downloadable Windows and macOS packages'
         required: false
         default: false
         type: boolean
@@ -104,9 +104,11 @@ jobs:
         run: cargo test --locked --manifest-path tools/kazarov/Cargo.toml
 
       - name: Package the macOS build
+        if: github.event_name == 'workflow_dispatch' && inputs.publish_binary_artifacts
         run: tar -czf artifacts/chronicletwo-macos-arm64.tar.gz -C port/build/macos-arm64 darkchronicle
 
       - name: Upload the macOS build
+        if: github.event_name == 'workflow_dispatch' && inputs.publish_binary_artifacts
         uses: actions/upload-artifact@v7
         with:
           name: chronicletwo-macos-arm64
@@ -161,12 +163,12 @@ jobs:
           if ($LASTEXITCODE) { exit $LASTEXITCODE }
 
       - name: Package the Windows build
-        if: github.event_name == 'workflow_dispatch' && inputs.publish_windows_artifact
+        if: github.event_name == 'workflow_dispatch' && inputs.publish_binary_artifacts
         run: |
           ./tools/windows/package.ps1 -BuildDirectory port/build/windows-x64-tests -Destination chronicletwo-windows-x64.zip
 
       - name: Upload the Windows build
-        if: github.event_name == 'workflow_dispatch' && inputs.publish_windows_artifact
+        if: github.event_name == 'workflow_dispatch' && inputs.publish_binary_artifacts
         uses: actions/upload-artifact@v7
         with:
           name: chronicletwo-windows-x64

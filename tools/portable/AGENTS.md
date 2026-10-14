@@ -25,8 +25,8 @@ disc images, converted game assets, saves, local receipts or crash dumps.
 `tools/windows/package.ps1` requires clean source, matching build identity, audited
 runtime imports and an optimized build. The ZIP must contain only the explicitly
 listed programs/runtimes, player instructions and build identity. No userdata.
-`-AllowDebug` is for local diagnostics. A public Windows CI artifact requires an
-explicit manual input; automatic CI does not upload this package.
+`-AllowDebug` is for local diagnostics. Public game-package CI artifacts require
+an explicit manual input; automatic CI does not upload them.
 
 See `docs/PORTABLE.md` for `PortableBeta.Ready`. A locally validated package does
 not qualify a campaign, save/load on real data, other machines or distribution

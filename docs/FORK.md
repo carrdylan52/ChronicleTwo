@@ -28,7 +28,7 @@ release assets.
 
 Start with a locally built package for selected technical testers. Actions
 artifacts and published prereleases on a public fork are public distribution.
-The Windows package workflow requires an explicit manual upload choice. Settle
+Game-package uploads require an explicit manual choice. Settle
 code permission and dependency notices before sharing binaries, including privately.
 A GitHub draft is preparation for collaborators, not a private player download.
 Publishing a release can be undone on GitHub, but cannot recall copies already

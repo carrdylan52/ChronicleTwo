@@ -72,12 +72,13 @@ isolated synthetic disc and process fixtures. It does not qualify real gameplay.
 
 The existing **PC builds** workflow can be dispatched on this feature branch.
 Its manual Windows build uses RelWithDebInfo; normal CI keeps its Debug build.
-Automatic Windows CI tests without uploading a package. A manual dispatch also
-keeps the Windows package unpublished by default; only the explicit
-`publish_windows_artifact` input packages and uploads it. CI artifacts on a
+Automatic CI tests without uploading game packages. A manual dispatch also
+keeps game packages unpublished by default; only the explicit
+`publish_binary_artifacts` input packages and uploads them. CI artifacts on a
 public repository are public downloads, so enable that input only when ready
-for public binary distribution. The existing Linux and macOS jobs retain their
-upstream artifact behavior. No workflow in this change creates a GitHub Release.
+for public binary distribution. The same guard covers the macOS game archive;
+the Vulkan diagnostic text remains available. No workflow in this change creates
+a GitHub Release.
 Packaging requires Release or RelWithDebInfo by default; `-AllowDebug` is an
 explicit developer option for local diagnostics.
 
