@@ -72,17 +72,21 @@ isolated synthetic disc and process fixtures. It does not qualify real gameplay.
 
 The existing **PC builds** workflow can be dispatched on this feature branch.
 Its manual Windows build uses RelWithDebInfo; normal CI keeps its Debug build.
-CI artifacts on a public repository are accessible to other GitHub users and
-are not a private distribution channel. Use a locally built ZIP for selected
-testers. No workflow in this change creates a GitHub Release.
-Packaging requires Release or RelWithDebInfo by default; normal CI explicitly
-opts into Debug packaging for diagnostics with `-AllowDebug`.
+Automatic Windows CI tests without uploading a package. A manual dispatch also
+keeps the Windows package unpublished by default; only the explicit
+`publish_windows_artifact` input packages and uploads it. CI artifacts on a
+public repository are public downloads, so enable that input only when ready
+for public binary distribution. The existing Linux and macOS jobs retain their
+upstream artifact behavior. No workflow in this change creates a GitHub Release.
+Packaging requires Release or RelWithDebInfo by default; `-AllowDebug` is an
+explicit developer option for local diagnostics.
 
 For unattended extraction verification, `Play.exe --no-ui --iso <path>
 --prepare-only` prepares the portable directory without launching the game.
 `--check-iso <path>` checks a disc without creating userdata. Game replay
 arguments may follow `--`; the portable data/save arguments cannot be replaced.
-`Play.exe --iso <path>` also supplies a disc without using the picker. Setup and
+`Play.exe --iso <path>` also supplies a disc without using the picker. The setup
+field accepts quoted paths from Explorer's **Copy as path**. Setup and
 game logs each retain one prior run as `setup.previous.log` and `game.previous.log`.
 
 ## Release gate: PortableBeta.Ready
@@ -107,3 +111,6 @@ Publish the first Windows beta Release when all of these hold:
 The appropriate first audience is a small technical playtest. Broader campaign
 qualification belongs to a later game release. Keep each distributed build's
 identity fixed, and retain a recovery copy even when replacing its download.
+Before sharing even a private ZIP with another person, settle code redistribution
+permission and ship the dependency licences/notices; privacy does not remove that
+requirement. The current package is for local technical testing.

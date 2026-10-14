@@ -176,7 +176,7 @@ if __name__ == "__main__":
         wait(lambda: not u.IsWindow(picker) and u.IsWindowEnabled(main))
         assert not u.IsWindowEnabled(u.GetDlgItem(main, 102)), "Escape enabled preparation."
         # Paste-path recovery works independently of the dialog, without starting extraction.
-        replace_text(u.GetDlgItem(main, 104), str(iso.resolve()))
+        replace_text(u.GetDlgItem(main, 104), '  "' + str(iso.resolve()) + '"  ')
         wait(lambda: u.IsWindowEnabled(u.GetDlgItem(main, 102)))
         screenshot(main, args.output / "pasted-path.png")
         replace_text(u.GetDlgItem(main, 104), "")
@@ -206,6 +206,22 @@ if __name__ == "__main__":
         calls = [json.loads(line) for line in (package / "calls.jsonl").read_text(encoding="utf-8").splitlines()]
         assert [call["program"] for call in calls] == ["extractor", "game"]
         print("Native picker: Unicode selection, cancellation, Escape, owner-close protection, paste-path recovery, visible preparation and launch: PASS")
+        # Explorer's Copy as path adds quotes; prepare from that pasted entry alone.
+        fallback = args.output / "paste package 日本語"
+        fallback.mkdir()
+        shutil.copy2(args.launcher, fallback / "Play.exe")
+        for name in ("dc2data.exe", "darkchronicle.exe"):
+            shutil.copy2(args.fixture, fallback / name)
+        process = subprocess.Popen([str(fallback / "Play.exe")])
+        main = wait(lambda: next((h for h in windows(process.pid) if text(h, True) == "ChronicleTwoPortable"), None))
+        replace_text(u.GetDlgItem(main, 104), '  "' + str(iso.resolve()) + '"  ')
+        wait(lambda: u.IsWindowEnabled(u.GetDlgItem(main, 102)))
+        u.PostMessageW(main, 0x111, 102, 0)
+        assert process.wait(timeout=15) == 0
+        calls = [json.loads(line) for line in (fallback / "calls.jsonl").read_text(encoding="utf-8").splitlines()]
+        assert [call["program"] for call in calls] == ["extractor", "game"]
+        assert calls[0]["arguments"][1] == str(iso.resolve())
+        print("Quoted Explorer path with surrounding whitespace prepares and launches without opening a dialog: PASS")
     finally:
         if process.poll() is None:
             for handle in windows(process.pid):

@@ -5,6 +5,12 @@ on:
     branches: [master]
   pull_request:
   workflow_dispatch:
+    inputs:
+      publish_windows_artifact:
+        description: 'Publish a publicly downloadable Windows package'
+        required: false
+        default: false
+        type: boolean
 
 permissions:
   contents: read
@@ -155,11 +161,12 @@ jobs:
           if ($LASTEXITCODE) { exit $LASTEXITCODE }
 
       - name: Package the Windows build
+        if: github.event_name == 'workflow_dispatch' && inputs.publish_windows_artifact
         run: |
-          $allowDebug = '${{ github.event_name }}' -ne 'workflow_dispatch'
-          ./tools/windows/package.ps1 -BuildDirectory port/build/windows-x64-tests -Destination chronicletwo-windows-x64.zip -AllowDebug:$allowDebug
+          ./tools/windows/package.ps1 -BuildDirectory port/build/windows-x64-tests -Destination chronicletwo-windows-x64.zip
 
       - name: Upload the Windows build
+        if: github.event_name == 'workflow_dispatch' && inputs.publish_windows_artifact
         uses: actions/upload-artifact@v7
         with:
           name: chronicletwo-windows-x64

@@ -377,6 +377,15 @@ LRESULT CALLBACK WindowProcedure(HWND window, UINT message, WPARAM wparam, LPARA
                 std::wstring path(GetWindowTextLengthW(app->source) + 1, L'\0');
                 GetWindowTextW(app->source, path.data(), int(path.size()));
                 path.resize(wcslen(path.c_str()));
+                const auto first = path.find_first_not_of(L" \t\r\n");
+                if (first == std::wstring::npos) {
+                    path.clear();
+                } else {
+                    path = path.substr(first, path.find_last_not_of(L" \t\r\n") - first + 1);
+                    if (path.size() >= 2 && path.front() == L'"' && path.back() == L'"') {
+                        path = path.substr(1, path.size() - 2);
+                    }
+                }
                 app->iso = fs::path(path);
                 if (!app->iso.empty() && app->iso.is_relative()) {
                     app->iso = app->package / app->iso;
