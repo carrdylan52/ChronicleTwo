@@ -5,6 +5,7 @@ Read [PC.md](../PC.md) for delivered behavior, build/run instructions and source
 - Shared dependency: the renderer, platform, input and mixer in `tools/kazarov`. The repository gitlink is authoritative; `git ls-tree HEAD tools/kazarov` prints its revision.
 - Supported bounded checkpoints: boot/title, costume selection, opening, Palm Brinks and the first Underground Channel floor. Campaign completion and all sub-games are not established.
 - Debug defaults off. Config or scene-jump opt-in and controls are described in [DEBUG.md](../DEBUG.md).
+- Windows packages include `Play.exe` for ISO selection and portable first-run setup. See [PORTABLE.md](../PORTABLE.md) for player storage, candidate builds and the release gate.
 - [Headless replay timing](headless-replays.md) defines deterministic mixer ownership and capture conditions.
 - [Build measurement](buildperf.md) describes native build options and measurement procedure.
 - [Abort-stub inventory](stubs.md), [pointer truncations](truncations.md) and [disc records](records.md) describe remaining source and layout boundaries.

@@ -133,7 +133,8 @@ jobs:
 
       - name: Configure
         run: |
-          ./tools/windows/configure.ps1 -Root $env:RUNNER_TEMP -BuildDirectory $env:GITHUB_WORKSPACE/port/build/windows-x64-tests -Tests
+          $buildType = if ('${{ github.event_name }}' -eq 'workflow_dispatch') { 'RelWithDebInfo' } else { 'Debug' }
+          ./tools/windows/configure.ps1 -Root $env:RUNNER_TEMP -BuildDirectory $env:GITHUB_WORKSPACE/port/build/windows-x64-tests -BuildType $buildType -Tests
 
       - name: Build
         run: |
@@ -155,7 +156,8 @@ jobs:
 
       - name: Package the Windows build
         run: |
-          ./tools/windows/package.ps1 -BuildDirectory port/build/windows-x64-tests -Destination chronicletwo-windows-x64.zip
+          $allowDebug = '${{ github.event_name }}' -ne 'workflow_dispatch'
+          ./tools/windows/package.ps1 -BuildDirectory port/build/windows-x64-tests -Destination chronicletwo-windows-x64.zip -AllowDebug:$allowDebug
 
       - name: Upload the Windows build
         uses: actions/upload-artifact@v7

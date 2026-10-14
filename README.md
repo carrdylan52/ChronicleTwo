@@ -12,6 +12,11 @@ Chronicle/Dark Cloud 2 for the PlayStation 2.
 
 ## Building and running
 
+For Windows portable testing packages, open `Play.exe` after extracting the
+whole ZIP and select your PAL Dark Chronicle ISO. See [portable setup](docs/PORTABLE.md)
+for storage, updates and candidate qualification; no developer tools are needed
+to run a packaged build.
+
 Clone with submodules: `git clone --recurse-submodules https://github.com/TheMoonPeople/ChronicleTwo.git`
 
 Place the PAL disc image `Dark Chronicle (PAL).iso` in `rom/pal/`. The build
