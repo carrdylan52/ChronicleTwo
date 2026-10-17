@@ -36,12 +36,20 @@ Row Choice(const char *key, const char *label, const char *help, std::vector<std
     return row;
 }
 
-// Plain decimals with at most three places: 2400, 0.025, 95. Never an exponent.
+// Six significant digits written as a plain decimal: 2400, 0.025, 0.0001, 95. Never an exponent,
+// and a small hand-edited value is not rounded to 0.
 std::string NumberText(double n) {
-    std::string text = std::format("{:.3f}", n);
-    text.erase(text.find_last_not_of('0') + 1);
-    if (text.back() == '.') {
-        text.pop_back();
+    if (n == 0 || !std::isfinite(n)) {
+        return n == 0 ? "0" : std::format("{}", n);
+    }
+    const int   magnitude = static_cast<int>(std::floor(std::log10(std::abs(n))));
+    const int   places = std::clamp(5 - magnitude, 0, 15);
+    std::string text = std::format("{:.{}f}", n, places);
+    if (text.find('.') != std::string::npos) {
+        text.erase(text.find_last_not_of('0') + 1);
+        if (text.back() == '.') {
+            text.pop_back();
+        }
     }
     return text == "-0" ? "0" : text;
 }

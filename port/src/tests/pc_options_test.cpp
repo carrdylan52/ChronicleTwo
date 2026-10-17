@@ -129,6 +129,13 @@ TEST(PcOptions, NumbersShowPlainDecimalsWithoutExponents) {
     EXPECT_EQ(budget.value(config), "12345");
     config.mouse_sensitivity = .025f;
     EXPECT_EQ(Find("input.mouse_sensitivity").value(config), "0.025");
+    // Hand-edited values below the presets stay visible rather than reading 0.
+    config.mouse_sensitivity = .0001f;
+    EXPECT_EQ(Find("input.mouse_sensitivity").value(config), "0.0001");
+    config.stick_sensitivity = .0004f;
+    EXPECT_EQ(Find("input.stick_sensitivity").value(config), "0.0004");
+    config.max_fps = 137.5;
+    EXPECT_EQ(Find("video.max_fps").value(config), "137.5 FPS");
     config.stick_sensitivity = 1.33f;
     EXPECT_EQ(Find("input.stick_sensitivity").value(config), "1.33");
     config.ui_scale = .65f;
