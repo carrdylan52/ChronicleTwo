@@ -528,27 +528,51 @@ TEST(MoviePlayer, DecoderThreadsOnlyForPicturesLargerThanRetail) {
     EXPECT_EQ(MoviePlayer::DecoderThreads(1024 * 832, MoviePlayer::kThreadedDecodePixels, 0), 2);
 }
 
-TEST(MoviePlayer, ThreadedDecodingShowsTheSamePictures) {
-    const fs::path fixture = fs::path(__FILE__).parent_path() / "fixtures/movie_h264_aac.mp4";
+TEST(MoviePlayer, ThreadedDecodingShowsTheSamePicturesInOrder) {
+    // 24 pictures with B-frames, more than the decoder thread cap; picture N's top-left pixel is grey 9.31 * N.
+    const fs::path    fixture = fs::path(__FILE__).parent_path() / "fixtures/movie_h264_bframes.mp4";
+    constexpr int64_t k_picture = 3600;
+    constexpr int     k_pictures = 24;
+    // Every picture boundary, a jump over five pictures, the rest, then past the end to drain the decoder.
+    std::vector<int> shown;
+    for (int n = 1; n < k_pictures; n++) {
+        if (n < 10 || n > 14) {
+            shown.push_back(n);
+        }
+    }
     for (const bool fitted : {false, true}) {
         video::MoviePlayer single;
         video::MoviePlayer threaded;
         threaded.SetThreadedDecodePixels(0);
         if (fitted) {
-            single.SetPictureFit([](int, int) { return std::pair{8, 8}; });
-            threaded.SetPictureFit([](int, int) { return std::pair{8, 8}; });
+            single.SetPictureFit([](int, int) { return std::pair{80, 48}; });
+            threaded.SetPictureFit([](int, int) { return std::pair{80, 48}; });
         }
-        ASSERT_TRUE(single.Open(fixture, false));
-        ASSERT_TRUE(threaded.Open(fixture, false));
-        EXPECT_EQ(single.DecoderThreadCount(), 1);
-        EXPECT_EQ(threaded.DecoderThreadCount(),
-                  video::MoviePlayer::DecoderThreads(256, 0, std::thread::hardware_concurrency()));
-        for (int64_t elapsed = 0; !single.Ended(); elapsed += 3600) {
-            EXPECT_EQ(single.Advance(elapsed), threaded.Advance(elapsed));
-            EXPECT_EQ(single.Rgba(), threaded.Rgba());
+        // The second pass reopens the same players.
+        for (int pass = 0; pass < 2; pass++) {
+            ASSERT_TRUE(single.Open(fixture, false));
+            ASSERT_TRUE(threaded.Open(fixture, false));
+            EXPECT_EQ(single.DecoderThreadCount(), 1);
+            EXPECT_EQ(threaded.DecoderThreadCount(),
+                      video::MoviePlayer::DecoderThreads(160 * 96, 0, std::thread::hardware_concurrency()));
+            const auto expect_picture = [&](int n) {
+                ASSERT_EQ(threaded.Width(), fitted ? 80 : 160);
+                EXPECT_EQ(single.Rgba(), threaded.Rgba()) << "picture " << n << (fitted ? " fitted" : "");
+                EXPECT_NEAR(threaded.Rgba()[0], 9.31 * n, 4.0) << "picture " << n << (fitted ? " fitted" : "");
+            };
+            expect_picture(0);
+            for (const int n : shown) {
+                EXPECT_TRUE(single.Advance(n * k_picture));
+                EXPECT_TRUE(threaded.Advance(n * k_picture));
+                expect_picture(n);
+            }
+            EXPECT_FALSE(single.Advance(30 * k_picture));
+            EXPECT_FALSE(threaded.Advance(30 * k_picture));
+            expect_picture(k_pictures - 1);
+            EXPECT_TRUE(single.Ended());
+            EXPECT_TRUE(threaded.Ended());
+            EXPECT_EQ(threaded.PicturesShown(), static_cast<int64_t>(shown.size()) + 1);
         }
-        EXPECT_TRUE(threaded.Ended());
-        EXPECT_EQ(threaded.PicturesShown(), 3);
     }
 }
 
