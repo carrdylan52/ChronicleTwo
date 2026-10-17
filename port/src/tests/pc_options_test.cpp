@@ -116,6 +116,27 @@ TEST(PcOptions, CustomNumbersMoveToAdjacentPresetsWithoutChangingOtherSettings) 
     EXPECT_EQ(cap.value(config), "Unlimited");
 }
 
+TEST(PcOptions, NumbersShowPlainDecimalsWithoutExponents) {
+    Config config;
+    const auto &budget = Find("video.interpolation_draw_budget");
+    config.interpolation_draw_budget = 0;
+    EXPECT_EQ(budget.value(config), "Off");
+    EXPECT_TRUE(options::StepRow(budget, config, 1));
+    EXPECT_EQ(budget.value(config), "2000");
+    config.interpolation_draw_budget = 2400;
+    EXPECT_EQ(budget.value(config), "2400");
+    config.interpolation_draw_budget = 12345;
+    EXPECT_EQ(budget.value(config), "12345");
+    config.mouse_sensitivity = .025f;
+    EXPECT_EQ(Find("input.mouse_sensitivity").value(config), "0.025");
+    config.stick_sensitivity = 1.33f;
+    EXPECT_EQ(Find("input.stick_sensitivity").value(config), "1.33");
+    config.ui_scale = .65f;
+    EXPECT_EQ(Find("video.ui_scale").value(config), "65%");
+    config.master_volume = .95f;
+    EXPECT_EQ(Find("audio.master_volume").value(config), "95%");
+}
+
 TEST(PcOptions, BooleanAndEnumChoicesWrapInBothDirections) {
     Config config;
     EXPECT_TRUE(options::StepRow(Find("video.fullscreen"), config, -1));
