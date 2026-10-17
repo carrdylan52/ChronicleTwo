@@ -12,11 +12,13 @@
 #include <filesystem>
 #include <fstream>
 #include <functional>
+#include <initializer_list>
 #include <iterator>
 #include <memory>
 #include <optional>
 #include <span>
 #include <string>
+#include <thread>
 #include <utility>
 #include <vector>
 
@@ -494,6 +496,62 @@ TEST(MoviePlayer, PictureFitResamplesEveryPictureAndKeepsTheSourceSize) {
     EXPECT_EQ(fitted.PicturesShown(), 3);
 }
 
+TEST(MoviePlayer, PictureFitShrinksOneSideWithAreaAveraging) {
+    const fs::path     fixture = fs::path(__FILE__).parent_path() / "fixtures/movie.mp4";
+    video::MoviePlayer plain;
+    ASSERT_TRUE(plain.Open(fixture, false));
+    video::MoviePlayer halved;
+    halved.SetPictureFit([](int width, int height) { return std::pair{width, height / 2}; });
+    ASSERT_TRUE(halved.Open(fixture, false));
+    ASSERT_EQ(halved.Width(), 16);
+    ASSERT_EQ(halved.Height(), 8);
+    // Each row is the mean of the two it replaces, as area averaging gives; bicubic would ring at the bars' edges.
+    int worst = 0;
+    for (int y = 0; y < 8; y++) {
+        for (int x = 0; x < 16; x++) {
+            for (int c = 0; c < 3; c++) {
+                const int above = plain.Rgba()[((y * 2) * 16 + x) * 4 + c];
+                const int below = plain.Rgba()[((y * 2 + 1) * 16 + x) * 4 + c];
+                worst = std::max(worst, std::abs(halved.Rgba()[(y * 16 + x) * 4 + c] - (above + below + 1) / 2));
+            }
+        }
+    }
+    EXPECT_LE(worst, 2);
+}
+
+TEST(MoviePlayer, DecoderThreadsOnlyForPicturesLargerThanRetail) {
+    using video::MoviePlayer;
+    EXPECT_EQ(MoviePlayer::DecoderThreads(512 * 416, MoviePlayer::kThreadedDecodePixels, 16), 1);
+    EXPECT_EQ(MoviePlayer::DecoderThreads(1024 * 832, MoviePlayer::kThreadedDecodePixels, 16), 8);
+    EXPECT_EQ(MoviePlayer::DecoderThreads(1024 * 832, MoviePlayer::kThreadedDecodePixels, 4), 4);
+    EXPECT_EQ(MoviePlayer::DecoderThreads(1024 * 832, MoviePlayer::kThreadedDecodePixels, 1), 1);
+    EXPECT_EQ(MoviePlayer::DecoderThreads(1024 * 832, MoviePlayer::kThreadedDecodePixels, 0), 2);
+}
+
+TEST(MoviePlayer, ThreadedDecodingShowsTheSamePictures) {
+    const fs::path fixture = fs::path(__FILE__).parent_path() / "fixtures/movie_h264_aac.mp4";
+    for (const bool fitted : {false, true}) {
+        video::MoviePlayer single;
+        video::MoviePlayer threaded;
+        threaded.SetThreadedDecodePixels(0);
+        if (fitted) {
+            single.SetPictureFit([](int, int) { return std::pair{8, 8}; });
+            threaded.SetPictureFit([](int, int) { return std::pair{8, 8}; });
+        }
+        ASSERT_TRUE(single.Open(fixture, false));
+        ASSERT_TRUE(threaded.Open(fixture, false));
+        EXPECT_EQ(single.DecoderThreadCount(), 1);
+        EXPECT_EQ(threaded.DecoderThreadCount(),
+                  video::MoviePlayer::DecoderThreads(256, 0, std::thread::hardware_concurrency()));
+        for (int64_t elapsed = 0; !single.Ended(); elapsed += 3600) {
+            EXPECT_EQ(single.Advance(elapsed), threaded.Advance(elapsed));
+            EXPECT_EQ(single.Rgba(), threaded.Rgba());
+        }
+        EXPECT_TRUE(threaded.Ended());
+        EXPECT_EQ(threaded.PicturesShown(), 3);
+    }
+}
+
 namespace {
 
 // A data root holding the 16x16 fixture as movie/hd.mp4, so a CMovie can load it by its game name.
@@ -524,9 +582,9 @@ struct HdMovieResult {
     std::string          log;
 };
 
-// Plays hd.mp4 as a movie of retail size retail x retail through a texture of that size, and draws the texture's
-// retail texels over a 256x256 square, as the game draws the movie.
-void PlayHdMovie(int retail, HdMovieResult &result) {
+// Plays hd.mp4 once for each retail size, as a movie of that size, through one texture_size x texture_size
+// "moviework", and draws the texture's retail texels over a 256x256 square, as the game draws the movie.
+void PlayHdMovies(int texture_size, std::initializer_list<int> retails, std::vector<HdMovieResult> &results) {
     RestoreDataRoot    restore_data{PathsDataRoot()};
     FixtureMovieRoot   movie_root;
     RestoreClock       restore_clock{ClockTickRate(), ClockUnbounded()};
@@ -537,64 +595,68 @@ void PlayHdMovie(int retail, HdMovieResult &result) {
 
     char texture_name[] = "moviework";
     mgTexManager.DeleteBlock(0x43);
-    ASSERT_NE(mgTexManager.EnterTexture(0x43, texture_name, nullptr, retail, retail, 32, nullptr, 0, 0), nullptr);
+    ASSERT_NE(mgTexManager.EnterTexture(0x43, texture_name, nullptr, texture_size, texture_size, 32, nullptr, 0, 0),
+              nullptr);
     mgCTexture *texture = mgTexManager.GetTexture(texture_name, -1);
     ASSERT_NE(texture, nullptr);
     ASSERT_NE(mgPortFindTexture(texture).texture, gfx::kNullTexture);
 
-    auto            movie = std::make_unique<CMovie>();
-    MovieTermOnExit term_on_exit{movie.get()};
-    char            name[] = "HD.MP4";
-    testing::internal::CaptureStderr();
-    movie->Load(name, static_cast<mgCMemory **>(nullptr), retail, retail, false, false, true);
-    movie->Play(texture_name);
-    movie->SwitchThread();
-    result.log = testing::internal::GetCapturedStderr();
+    for (const int retail : retails) {
+        HdMovieResult  &result = results.emplace_back();
+        auto            movie = std::make_unique<CMovie>();
+        MovieTermOnExit term_on_exit{movie.get()};
+        char            name[] = "HD.MP4";
+        testing::internal::CaptureStderr();
+        movie->Load(name, static_cast<mgCMemory **>(nullptr), retail, retail, false, false, true);
+        movie->Play(texture_name);
+        movie->SwitchThread();
+        result.log = testing::internal::GetCapturedStderr();
 
-    mgBeginFrame(nullptr);
-    movie->SwitchThread();
-    gfx::TextureBinding binding = mgPortBinding(texture);
-    ASSERT_NE(binding.texture, gfx::kNullTexture);
-    binding.filter = gfx::Filter::Nearest;
-    const auto quad = dc::test::Quad(0.0f, 0.0f, 256.0f, 256.0f, {0x80, 0x80, 0x80, 0x80}, 0.0f, 0.0f,
-                                     static_cast<float>(retail), static_cast<float>(retail));
-    mgPortDraw2D(gfx::Primitive::Quads, quad, binding, mgPortDrawState());
-    mgEndFrame(nullptr);
+        mgBeginFrame(nullptr);
+        movie->SwitchThread();
+        gfx::TextureBinding binding = mgPortBinding(texture);
+        ASSERT_NE(binding.texture, gfx::kNullTexture);
+        binding.filter = gfx::Filter::Nearest;
+        const auto quad = dc::test::Quad(0.0f, 0.0f, 256.0f, 256.0f, {0x80, 0x80, 0x80, 0x80}, 0.0f, 0.0f,
+                                         static_cast<float>(retail), static_cast<float>(retail));
+        mgPortDraw2D(gfx::Primitive::Quads, quad, binding, mgPortDrawState());
+        mgEndFrame(nullptr);
 
-    result.physical = MgTexturePhysicalExtent(texture);
-    const std::optional<gfx::TextureInfo> info = gfx::GetTextureInfo(mgPortFindTexture(texture).texture);
-    ASSERT_TRUE(info.has_value());
-    result.image_width = info->pixel_width;
-    result.image_height = info->pixel_height;
+        result.physical = MgTexturePhysicalExtent(texture);
+        const std::optional<gfx::TextureInfo> info = gfx::GetTextureInfo(mgPortFindTexture(texture).texture);
+        ASSERT_TRUE(info.has_value());
+        result.image_width = info->pixel_width;
+        result.image_height = info->pixel_height;
 
-    std::vector<uint8_t> rgba;
-    uint32_t             width = 0;
-    uint32_t             height = 0;
-    ASSERT_TRUE(mgPortReadColor(gfx::kMainTarget, rgba, width, height));
-    const gfx::LogicalMapping mapping = gfx::GetLogicalMapping(gfx::kMainTarget);
+        std::vector<uint8_t> rgba;
+        uint32_t             width = 0;
+        uint32_t             height = 0;
+        ASSERT_TRUE(mgPortReadColor(gfx::kMainTarget, rgba, width, height));
+        const gfx::LogicalMapping mapping = gfx::GetLogicalMapping(gfx::kMainTarget);
 
-    video::MoviePlayer picture;
-    picture.SetPictureFit([retail](int w, int h) {
-        const MoviePortPicture fit = MoviePortFit(retail, retail, w, h);
-        return std::pair{fit.width, fit.height};
-    });
-    ASSERT_TRUE(picture.Open(movie_root.root / "movie/hd.mp4", false));
-    result.picture = picture.Rgba();
-    result.picture_width = picture.Width();
-    result.picture_height = picture.Height();
-    // The quad spans retail texels, which hold physical / (1 << TW) picture pixels each.
-    const float cell = 256.0f * static_cast<float>(1u << texture->tex0.TW) /
-                       (static_cast<float>(retail) * static_cast<float>(result.physical.width));
-    for (int y = 0; y < picture.Height(); y++) {
-        for (int x = 0; x < picture.Width(); x++) {
-            const float    lx = (static_cast<float>(x) + 0.5f) * cell;
-            const float    ly = (static_cast<float>(y) + 0.5f) * cell;
-            const uint32_t px = static_cast<uint32_t>(mapping.offset_x + lx * mapping.scale_x);
-            const uint32_t py = static_cast<uint32_t>(mapping.offset_y + ly * mapping.scale_y);
-            ASSERT_LT(px, width);
-            ASSERT_LT(py, height);
-            const uint8_t *p = &rgba[(static_cast<size_t>(py) * width + px) * 4];
-            result.drawn.insert(result.drawn.end(), p, p + 3);
+        video::MoviePlayer picture;
+        picture.SetPictureFit([retail](int w, int h) {
+            const MoviePortPicture fit = MoviePortFit(retail, retail, w, h);
+            return std::pair{fit.width, fit.height};
+        });
+        ASSERT_TRUE(picture.Open(movie_root.root / "movie/hd.mp4", false));
+        result.picture = picture.Rgba();
+        result.picture_width = picture.Width();
+        result.picture_height = picture.Height();
+        // The quad spans retail texels, which hold physical / (1 << TW) picture pixels each.
+        const float cell = 256.0f * static_cast<float>(1u << texture->tex0.TW) /
+                           (static_cast<float>(retail) * static_cast<float>(result.physical.width));
+        for (int y = 0; y < picture.Height(); y++) {
+            for (int x = 0; x < picture.Width(); x++) {
+                const float    lx = (static_cast<float>(x) + 0.5f) * cell;
+                const float    ly = (static_cast<float>(y) + 0.5f) * cell;
+                const uint32_t px = static_cast<uint32_t>(mapping.offset_x + lx * mapping.scale_x);
+                const uint32_t py = static_cast<uint32_t>(mapping.offset_y + ly * mapping.scale_y);
+                ASSERT_LT(px, width);
+                ASSERT_LT(py, height);
+                const uint8_t *p = &rgba[(static_cast<size_t>(py) * width + px) * 4];
+                result.drawn.insert(result.drawn.end(), p, p + 3);
+            }
         }
     }
 }
@@ -612,12 +674,13 @@ int MaxPictureDifference(const HdMovieResult &result) {
 
 } // namespace
 
-TEST(MovieGlue, DoubleSizeReplacementFillsTheMovieTextureAtTwoTexelsPerTexel) {
-    HdMovieResult result;
-    PlayHdMovie(8, result);
+TEST(MovieTextureGpu, DoubleSizeReplacementFillsTheMovieTextureAtTwoTexelsPerTexel) {
+    std::vector<HdMovieResult> results;
+    PlayHdMovies(8, {8}, results);
     if (HasFatalFailure()) {
         return;
     }
+    const HdMovieResult &result = results.at(0);
     EXPECT_EQ(result.physical.width, 16u);
     EXPECT_EQ(result.physical.height, 16u);
     EXPECT_EQ(result.image_width, 16u);
@@ -628,12 +691,13 @@ TEST(MovieGlue, DoubleSizeReplacementFillsTheMovieTextureAtTwoTexelsPerTexel) {
     EXPECT_LE(MaxPictureDifference(result), 2);
 }
 
-TEST(MovieGlue, QuadrupleSizeReplacementFillsTheMovieTextureAtFourTexelsPerTexel) {
-    HdMovieResult result;
-    PlayHdMovie(4, result);
+TEST(MovieTextureGpu, QuadrupleSizeReplacementFillsTheMovieTextureAtFourTexelsPerTexel) {
+    std::vector<HdMovieResult> results;
+    PlayHdMovies(4, {4}, results);
     if (HasFatalFailure()) {
         return;
     }
+    const HdMovieResult &result = results.at(0);
     EXPECT_EQ(result.physical.width, 16u);
     EXPECT_EQ(result.image_width, 16u);
     EXPECT_EQ(result.picture_width, 16);
@@ -641,25 +705,46 @@ TEST(MovieGlue, QuadrupleSizeReplacementFillsTheMovieTextureAtFourTexelsPerTexel
     EXPECT_LE(MaxPictureDifference(result), 2);
 }
 
-TEST(MovieGlue, RetailSizeMovieKeepsItsTexture) {
-    HdMovieResult result;
-    PlayHdMovie(16, result);
+TEST(MovieTextureGpu, RetailSizeMovieKeepsItsTexture) {
+    std::vector<HdMovieResult> results;
+    PlayHdMovies(16, {16}, results);
     if (HasFatalFailure()) {
         return;
     }
+    const HdMovieResult &result = results.at(0);
     EXPECT_EQ(result.physical.width, 16u);
     EXPECT_EQ(result.image_width, 16u);
     EXPECT_EQ(result.log.find("movie:"), std::string::npos) << result.log;
     EXPECT_LE(MaxPictureDifference(result), 2);
 }
 
-TEST(MovieGlue, OtherSizesAreResampledToAMultipleWithOneDiagnostic) {
-    HdMovieResult result;
-    // 16x16 over a 6x6 retail size: 2x is 12x12, which the 6x6 texture's 8x8 canvas holds at 16x16.
-    PlayHdMovie(6, result);
+TEST(MovieTextureGpu, OneTextureTakesFourTimesTwiceAndRetailMoviesInTurn) {
+    std::vector<HdMovieResult> results;
+    // On a 16x16 texture the 16x16 fixture is 4x a 4x4 movie, 2x an 8x8 one and the retail size of a 16x16 one.
+    PlayHdMovies(16, {4, 8, 16}, results);
     if (HasFatalFailure()) {
         return;
     }
+    ASSERT_EQ(results.size(), 3u);
+    const uint32_t canvases[] = {64, 32, 16};
+    for (size_t i = 0; i < results.size(); i++) {
+        EXPECT_EQ(results[i].physical.width, canvases[i]) << i;
+        EXPECT_EQ(results[i].image_width, canvases[i]) << i;
+        EXPECT_EQ(results[i].image_height, canvases[i]) << i;
+        EXPECT_EQ(results[i].picture_width, 16) << i;
+        EXPECT_EQ(results[i].log.find("movie:"), std::string::npos) << results[i].log;
+        EXPECT_LE(MaxPictureDifference(results[i]), 2) << i;
+    }
+}
+
+TEST(MovieTextureGpu, OtherSizesAreResampledToAMultipleWithOneDiagnostic) {
+    std::vector<HdMovieResult> results;
+    // 16x16 over a 6x6 retail size: 2x is 12x12, which the 6x6 texture's 8x8 canvas holds at 16x16.
+    PlayHdMovies(6, {6}, results);
+    if (HasFatalFailure()) {
+        return;
+    }
+    const HdMovieResult &result = results.at(0);
     EXPECT_EQ(result.picture_width, 12);
     EXPECT_EQ(result.picture_height, 12);
     EXPECT_EQ(result.physical.width, 16u);

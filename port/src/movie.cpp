@@ -183,8 +183,8 @@ PORT_OVERRIDE void CMovie::Load(char *name, mgCMemory **, int width, int height,
                      PathsDisplay(g_movie.path).c_str());
     } else if (g_movie.player.SourceWidth() != g_movie.player.Width() ||
                g_movie.player.SourceHeight() != g_movie.player.Height()) {
-        std::fprintf(stderr, "movie: %s is %dx%d, not %dx%d times 1, 2 or 4; resampled to %dx%d\n", name,
-                     g_movie.player.SourceWidth(), g_movie.player.SourceHeight(), width, height,
+        std::fprintf(stderr, "movie: %s is %dx%d; a replacement should be 1, 2 or 4 times %dx%d, so it is shown resampled to %dx%d\n",
+                     name, g_movie.player.SourceWidth(), g_movie.player.SourceHeight(), width, height,
                      g_movie.player.Width(), g_movie.player.Height());
     }
 }

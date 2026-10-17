@@ -15,6 +15,7 @@ extern "C" {
 #include <limits>
 #include <memory>
 #include <string>
+#include <thread>
 #include <tuple>
 #include <utility>
 
@@ -26,8 +27,8 @@ namespace {
 constexpr AVRational kMovieClock = {1, 90000};
 /** Bytes FFmpeg reads through a custom input at a time. */
 constexpr int kInputBufferBytes = 64 * 1024;
-/** Largest picture decoded on the calling thread alone: 512x512, more than the retail 512x416. */
-constexpr int64_t kSingleThreadPixels = 512 * 512;
+/** Most decoder threads a movie gets; a 4x picture gains little past this. */
+constexpr unsigned kMaxDecoderThreads = 8;
 
 bool ValidSize(int width, int height) {
     return width > 0 && height > 0 && width <= 16384 && height <= 16384;
@@ -297,6 +298,7 @@ struct MoviePlayer::Impl {
     SwsContext                 *scaler = nullptr;
     SwsContext                 *resampler = nullptr;
     PictureFit                  fit;
+    int64_t                     threaded_pixels = kThreadedDecodePixels;
     std::vector<uint8_t>        source_rgba;
     int                         video = -1;
     int64_t                     duration = 3600;
@@ -330,11 +332,10 @@ struct MoviePlayer::Impl {
         if (!codec || avcodec_parameters_to_context(codec, stream->codecpar) < 0) {
             return false;
         }
-        // A retail-size picture decodes in under a millisecond on the main thread; a 2x or 4x replacement takes
+        // A retail-size picture decodes in about a millisecond on the main thread; a 2x or 4x replacement takes
         // several, so it decodes on FFmpeg's threads. The pictures are the same either way.
-        if (static_cast<int64_t>(codec->width) * codec->height > kSingleThreadPixels) {
-            codec->thread_count = 0;
-        }
+        codec->thread_count = DecoderThreads(static_cast<int64_t>(codec->width) * codec->height, threaded_pixels,
+                                             std::thread::hardware_concurrency());
         if (avcodec_open2(codec, decoder, nullptr) < 0) {
             return false;
         }
@@ -346,19 +347,44 @@ struct MoviePlayer::Impl {
         return true;
     }
 
-    // Area averaging when shrinking, bicubic when enlarging.
+    // Area averaging when either side shrinks, bicubic when both grow. libswscale reads four planes and strides.
     bool Resample(Frame &out) {
-        const int flags = out.width < out.source_width ? SWS_AREA : SWS_BICUBIC;
+        const int flags = (out.width < out.source_width || out.height < out.source_height ? SWS_AREA : SWS_BICUBIC) |
+                          SWS_FULL_CHR_H_INP | SWS_FULL_CHR_H_INT | SWS_ACCURATE_RND;
         resampler = sws_getCachedContext(resampler, out.source_width, out.source_height, AV_PIX_FMT_RGBA, out.width, out.height, AV_PIX_FMT_RGBA, flags, nullptr, nullptr, nullptr);
         if (!resampler) {
             return false;
         }
         out.rgba.resize(static_cast<std::size_t>(out.width) * out.height * 4);
-        const uint8_t *from[] = {source_rgba.data()};
-        const int      from_strides[] = {out.source_width * 4};
-        uint8_t       *to[] = {out.rgba.data()};
-        const int      to_strides[] = {out.width * 4};
+        const uint8_t *from[4] = {source_rgba.data(), nullptr, nullptr, nullptr};
+        const int      from_strides[4] = {out.source_width * 4, 0, 0, 0};
+        uint8_t       *to[4] = {out.rgba.data(), nullptr, nullptr, nullptr};
+        const int      to_strides[4] = {out.width * 4, 0, 0, 0};
         return sws_scale(resampler, from, from_strides, 0, out.source_height, to, to_strides) > 0;
+    }
+
+    // Converts a decoded picture to RGBA, at its fitted size. Only pictures that are shown are converted.
+    bool Convert(Frame &out) {
+        const AVFrame *picture = out.decoded.get();
+        // A fitted picture is converted at its own size first, so it starts from the same colours as an unfitted one.
+        const bool            fitted = out.width != out.source_width || out.height != out.source_height;
+        std::vector<uint8_t> &converted = fitted ? source_rgba : out.rgba;
+        converted.resize(static_cast<std::size_t>(out.source_width) * out.source_height * 4);
+        if (picture->format == AV_PIX_FMT_YUV420P && picture->linesize[1] == picture->linesize[2]) {
+            Yuv420ToRgba(picture->data[0], picture->linesize[0], picture->data[1], picture->data[2], picture->linesize[1], out.source_width, out.source_height, converted.data());
+        } else {
+            scaler = sws_getCachedContext(scaler, out.source_width, out.source_height, static_cast<AVPixelFormat>(picture->format), out.source_width, out.source_height, AV_PIX_FMT_RGBA, SWS_BILINEAR, nullptr, nullptr, nullptr);
+            if (!scaler) {
+                return false;
+            }
+            uint8_t  *planes[4] = {converted.data(), nullptr, nullptr, nullptr};
+            const int strides[4] = {out.source_width * 4, 0, 0, 0};
+            if (sws_scale(scaler, picture->data, picture->linesize, 0, out.source_height, planes, strides) <= 0) {
+                return false;
+            }
+        }
+        out.decoded.reset();
+        return !fitted || Resample(out);
     }
 
     std::optional<Frame> Next() {
@@ -375,30 +401,12 @@ struct MoviePlayer::Impl {
                 }
                 out.pts = frame->best_effort_timestamp == AV_NOPTS_VALUE ? next_pts : av_rescale_q(frame->best_effort_timestamp, format->streams[video]->time_base, kMovieClock);
                 next_pts = out.pts + duration;
-                // A fitted picture is converted at its own size first, so its colours match an unfitted one's.
-                const bool            fitted = out.width != out.source_width || out.height != out.source_height;
-                std::vector<uint8_t> &converted = fitted ? source_rgba : out.rgba;
-                converted.resize(static_cast<std::size_t>(out.source_width) * out.source_height * 4);
-                if (frame->format == AV_PIX_FMT_YUV420P && frame->linesize[1] == frame->linesize[2]) {
-                    Yuv420ToRgba(frame->data[0], frame->linesize[0], frame->data[1], frame->data[2], frame->linesize[1], out.source_width, out.source_height, converted.data());
-                } else {
-                    scaler = sws_getCachedContext(scaler, out.source_width, out.source_height, static_cast<AVPixelFormat>(frame->format), out.source_width, out.source_height, AV_PIX_FMT_RGBA, SWS_BILINEAR, nullptr, nullptr, nullptr);
-                    if (!scaler) {
-                        failed = true;
-                        return std::nullopt;
-                    }
-                    uint8_t  *planes[] = {converted.data()};
-                    const int strides[] = {out.source_width * 4};
-                    if (sws_scale(scaler, frame->data, frame->linesize, 0, out.source_height, planes, strides) <= 0) {
-                        failed = true;
-                        return std::nullopt;
-                    }
-                }
-                if (fitted && !Resample(out)) {
+                out.decoded = std::shared_ptr<AVFrame>(av_frame_alloc(), [](AVFrame *held) { av_frame_free(&held); });
+                if (!out.decoded) {
                     failed = true;
                     return std::nullopt;
                 }
-                av_frame_unref(frame);
+                av_frame_move_ref(out.decoded.get(), frame);
                 return out;
             }
             if (result == AVERROR_EOF) {
@@ -446,6 +454,7 @@ bool MoviePlayer::Open(const std::filesystem::path &path, bool with_audio) {
     for (const auto &candidate : candidates) {
         impl_ = std::make_unique<Impl>();
         impl_->fit = fit_;
+        impl_->threaded_pixels = threaded_pixels_;
         if (!impl_->Open(candidate)) {
             Close();
             continue;
@@ -509,6 +518,13 @@ bool MoviePlayer::Advance(int64_t elapsed) {
     if (!candidate) {
         return false;
     }
+    if (!impl_->Convert(*candidate)) {
+        // As a picture that fails to decode: the movie ends at the last one shown.
+        impl_->failed = true;
+        input_exhausted_ = true;
+        queue_.clear();
+        return false;
+    }
     width_ = candidate->width;
     height_ = candidate->height;
     source_width_ = candidate->source_width;
@@ -538,6 +554,17 @@ int MoviePlayer::SourceWidth() const { return source_width_; }
 int MoviePlayer::SourceHeight() const { return source_height_; }
 
 void MoviePlayer::SetPictureFit(PictureFit fit) { fit_ = std::move(fit); }
+
+void MoviePlayer::SetThreadedDecodePixels(int64_t pixels) { threaded_pixels_ = pixels; }
+
+int MoviePlayer::DecoderThreadCount() const { return impl_ ? impl_->codec->thread_count : 0; }
+
+int MoviePlayer::DecoderThreads(int64_t pixels, int64_t threaded_pixels, unsigned cores) {
+    if (pixels <= threaded_pixels) {
+        return 1;
+    }
+    return static_cast<int>(std::clamp(cores == 0 ? 2u : cores, 1u, kMaxDecoderThreads));
+}
 
 void MoviePlayer::Pump() {
     if (input_exhausted_) {
