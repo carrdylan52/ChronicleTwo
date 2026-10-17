@@ -32,6 +32,8 @@
 #include "maintex.hpp"
 #include "map.hpp"
 #include "menu_mouse.hpp"
+#include "menuchr_port.hpp"
+#include "menudraw.hpp"
 #include "mg_drawprim.hpp"
 #include "mg_drawprim_port.hpp"
 #include "mg_memory.hpp"
@@ -2190,4 +2192,115 @@ TEST(MglibPresent, DungeonEyeExitCutsTheRestoreTickWithoutCuttingTheNextTick) {
     BattleAreaScene = old_area;
     DngStatus = old_status;
     PortLoopNo = old_loop;
+}
+
+namespace {
+std::vector<std::vector<gfx::Vertex2D> > BannerDraws(const gfx::DisplayList &list, uint64_t &key) {
+    std::vector<std::vector<gfx::Vertex2D> > draws;
+    for (const auto &entry : list.entries) {
+        if (const auto *draw = std::get_if<gfx::detail::Draw2DEntry>(&entry)) {
+            key = draw->interpolation.key;
+            draws.push_back(draw->vertices);
+        }
+    }
+    return draws;
+}
+} // namespace
+
+TEST(QuickChangeBannerPresentation, SlideAndFadeInterpolateAndNewBannersStartWhereTheyAre) {
+    PresentRenderer        renderer(640, 480);
+    std::vector<u_long128> arena(4096), pixels(256 * 256 * 4 / 16);
+    mgCMemory              memory;
+    memory.stSetBuffer(arena.data(), static_cast<int>(arena.size()));
+    mgTexManager.SetTableBuffer(16, 4, &memory);
+    mgTexManager.Initialize(0x1000, -1);
+    std::memset(pixels.data(), 0xFF, pixels.size() * sizeof(u_long128));
+    u_long128 *levels[MG_TEXTURE_LEVEL_MAX] = {pixels.data()};
+    char       logo_name[] = "change_logo";
+    ASSERT_NE(mgTexManager.EnterTexture(0, logo_name, levels, 256, 256, 32, nullptr, 0, 0), nullptr);
+    PresentSetSettings(PresentSettings{.interpolation = true});
+    const int old_loop = PortLoopNo;
+    auto     *old_menu = MenuPosData;
+    PortLoopNo = LOOP_DUNGEON;
+    MenuPosData = nullptr;
+    auto record = [] {
+        mgBeginFrame(nullptr);
+        PortDrawQuickChangeBanner();
+        mgEndFrame(nullptr);
+    };
+    // Every display frame of the list matches a reference recorded with the blended strip and logo.
+    auto check_blend = [](const std::vector<std::vector<gfx::Vertex2D> > &before, const std::vector<std::vector<gfx::Vertex2D> > &after) {
+        std::vector<uint8_t> newest, actual, expected;
+        uint32_t             width = 0, height = 0;
+        ASSERT_TRUE(mgPortCanonicalReadColor(gfx::kMainTarget, newest, width, height));
+        for (float alpha : {0.0f, 0.25f, 0.5f, 0.75f, 1.0f}) {
+            ASSERT_TRUE(PresentScreenshotDisplay(alpha, actual, width, height));
+            gfx::BeginRecording();
+            size_t index = 0;
+            for (const auto &entry : mgPortLastList()->entries) {
+                auto copy = entry;
+                if (auto *draw = std::get_if<gfx::detail::Draw2DEntry>(&copy)) {
+                    ASSERT_LT(index, before.size());
+                    for (size_t i = 0; i < draw->vertices.size(); ++i) {
+                        const auto &a = before[index][i];
+                        const auto &b = after[index][i];
+                        auto       &v = draw->vertices[i];
+                        v.x = a.x + (b.x - a.x) * alpha;
+                        v.y = a.y + (b.y - a.y) * alpha;
+                        v.color[3] = static_cast<uint8_t>(std::lround(a.color[3] + (float(b.color[3]) - a.color[3]) * alpha));
+                    }
+                    ++index;
+                }
+                gfx::detail::RecordEntry(std::move(copy));
+            }
+            auto reference = gfx::EndRecording();
+            ASSERT_TRUE(gfx::RenderList(*reference, 1, {}));
+            ASSERT_TRUE(gfx::ReadbackFrame(expected, width, height));
+            EXPECT_EQ(actual, expected) << alpha;
+            if (alpha == 1) {
+                EXPECT_EQ(actual, newest);
+            }
+            if (alpha == 0.5f) {
+                EXPECT_NE(actual, newest); // The slide is visible between game frames.
+            }
+        }
+    };
+
+    record(); // A game frame before the banner.
+    PortShowQuickChangeBanner(0);
+    record();
+    ExpectNewestAtEveryAlpha(); // The first frame has nothing to slide from.
+    uint64_t key = 0;
+    auto     before = BannerDraws(*mgPortLastList(), key);
+    ASSERT_EQ(before.size(), 2u); // The strip, then the logo.
+    EXPECT_NE(key, 0u);
+    for (int frame = 0; frame < 3; ++frame) {
+        record();
+        auto after = BannerDraws(*mgPortLastList(), key);
+        ASSERT_EQ(after.size(), before.size());
+        EXPECT_GT(after[1][0].x, before[1][0].x);
+        EXPECT_GT(after[0][0].color[3], before[0][0].color[3]);
+        check_blend(before, after);
+        before = after;
+    }
+
+    // Showing it again, even for the same character, starts a new banner at the left edge.
+    PortShowQuickChangeBanner(0);
+    record();
+    ExpectNewestAtEveryAlpha();
+
+    // A menu hides it while it keeps sliding; it reappears where it is.
+    int menu = 0;
+    MenuPosData = reinterpret_cast<CMenuPosDataManage *>(&menu);
+    record();
+    EXPECT_TRUE(BannerDraws(*mgPortLastList(), key).empty());
+    MenuPosData = nullptr;
+    record();
+    ExpectNewestAtEveryAlpha();
+    EXPECT_EQ(gfx::CurrentInterp2D().key, 0u);
+
+    PortCancelQuickChangeBanner();
+    PortLoopNo = old_loop;
+    MenuPosData = old_menu;
+    mgTexManager.Initialize(0x1000, -1);
 }
