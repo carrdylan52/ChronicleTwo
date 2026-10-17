@@ -414,6 +414,38 @@ TEST(CameraMouse, DungeonOwnershipKeepsAuthoredModesButAllowsPlayerActions) {
     EXPECT_FALSE(eye_owns());
 }
 
+TEST(CameraMouse, DungeonFollowOwnershipSurvivesTheDeathEventsFollowOff) {
+    auto   camera = Camera();
+    CScene scene;
+    scene.event_run = 0;
+    CPadControl     pad{};
+    DNG_BATTLE_AREA area{};
+    DNG_STATUS      status{};
+    CActionChara    chara;
+    chara.menu_flag = 1;
+    chara.hold_type = ACTION_HOLD_NONE;
+    chara.lock_on = 0;
+    chara.damage_req = ACTION_DAMAGE_REQ_NONE;
+    area.script.event_no = -1;
+    scene.AssignCamera(0, &camera, const_cast<char *>("MainCam"));
+    scene.active_camera = 0;
+    auto owns = [&](bool eye) { return DungeonMouseCameraOwns(&camera, &scene, &pad, status, &area,
+                                                              &chara, false, false, false, eye); };
+    // The death event's _INITIALIZE runs on the main camera, and nothing turns
+    // follow back on; the field loop only turns control back on.
+    camera.FollowOff();
+    EXPECT_TRUE(owns(false));
+    EXPECT_FALSE(owns(true));
+    camera.ControlOff();
+    EXPECT_FALSE(owns(false));
+    camera.ControlOn();
+    status.eye_view = 1;
+    EXPECT_FALSE(owns(false));
+    EXPECT_TRUE(owns(true));
+    // Town walking still keeps follow as part of its camera mode.
+    EXPECT_FALSE(TownMouseCameraOwns(&camera, &scene, &pad, true, false, false));
+}
+
 class DungeonEyeMouse : public testing::TestWithParam<bool> {};
 
 TEST_P(DungeonEyeMouse, LookIsImmediateBoundedAndDoesNotQueueMenuMotion) {
