@@ -5,6 +5,7 @@
 #include <algorithm>
 #include <cmath>
 #include <format>
+#include <string_view>
 #include <type_traits>
 #include <utility>
 
@@ -35,16 +36,39 @@ Row Choice(const char *key, const char *label, const char *help, std::vector<std
     return row;
 }
 
+// Six significant digits: a plain decimal from 0.000001 to below 1e12 (2400, 0.025, 95), and
+// the compact exponent form beyond that (1e-16, 1e+30), so no nonzero value ever reads as 0.
+std::string NumberText(double n) {
+    if (n == 0 || !std::isfinite(n)) {
+        return n == 0 ? "0" : std::format("{}", n);
+    }
+    // The exponent after rounding to six digits, so 9.99999997e-07 counts as 1e-06.
+    const std::string scientific = std::format("{:.5e}", n);
+    const int         magnitude = std::stoi(scientific.substr(scientific.find('e') + 1));
+    if (magnitude < -6 || magnitude > 11) {
+        return std::format("{:.6g}", n);
+    }
+    const int   places = std::max(0, 5 - magnitude);
+    std::string text = std::format("{:.{}f}", n, places);
+    if (text.find('.') != std::string::npos) {
+        text.erase(text.find_last_not_of('0') + 1);
+        if (text.back() == '.') {
+            text.pop_back();
+        }
+    }
+    return text == "-0" ? "0" : text;
+}
+
 template <auto Member>
 Row Number(const char *key, const char *label, const char *help, std::vector<double> values,
-           double display_scale = 1.0, const char *suffix = "") {
+           double display_scale = 1.0, const char *suffix = "", const char *zero = nullptr) {
     Row row{key, label, help};
-    row.value = [display_scale, suffix](const Config &c) {
+    row.value = [display_scale, suffix, zero](const Config &c) {
         const double n = c.*Member;
-        if (n == 0 && std::string_view(suffix) == " FPS") {
-            return std::string("Unlimited");
+        if (n == 0 && zero != nullptr) {
+            return std::string(zero);
         }
-        return std::format("{:.3g}{}", n * display_scale, suffix);
+        return NumberText(n * display_scale) + suffix;
     };
     row.step = [values](Config &c, int direction) {
         // Preserve a hand-edited value until this row is changed. Move to the next preset,
@@ -155,12 +179,12 @@ std::span<const Page> Pages() {
                         Choice<&Config::fullscreen>("video.fullscreen", "Window mode", "Applies immediately. Fullscreen uses the desktop.", {"Windowed", "Fullscreen"}),
                         Resolution(),
                         Choice<&Config::present_mode>("video.present_mode", "Present mode", "FIFO prevents tearing. Mailbox keeps the newest frame.\nUnsupported modes fall back to FIFO.", {"FIFO", "Mailbox", "Immediate"}),
-                        Number<&Config::max_fps>("video.max_fps", "Frame cap", "Limits display frames, not game speed.", {0, 30, 50, 60, 75, 90, 100, 120, 144, 165, 180, 240, 360}, 1, " FPS"),
+                        Number<&Config::max_fps>("video.max_fps", "Frame cap", "Limits display frames, not game speed.", {0, 30, 50, 60, 75, 90, 100, 120, 144, 165, 180, 240, 360}, 1, " FPS", "Unlimited"),
                          Choice<&Config::interpolation>("video.interpolation", "Interpolation", "Smooths display frames between game ticks.", {"Off", "On"}),
                          Number<&Config::interpolation_draw_budget>("video.interpolation_draw_budget",
                                                                     "Interpolation draw budget",
                                                                     "Skips tweened frames when a tick exceeds this many draws (0 = off).",
-                                                                    {0, 2000, 2400, 2600, 3000, 3500, 4000, 5000, 8000}),
+                                                                    {0, 2000, 2400, 2600, 3000, 3500, 4000, 5000, 8000}, 1, "", "Off"),
                         Choice<&Config::aspect>("video.aspect", "Aspect ratio", "Auto fills the window. 4:3 adds black side bars.", {"Auto", "4:3"}),
                         Number<&Config::ui_scale>("video.ui_scale", "UI scale", "Scales menus and HUD. Large values can crop the UI.\nUse Left to reduce the scale if it no longer fits.", {0.5, 0.65, 0.75, 0.85, 1, 1.1, 1.25, 1.5}, 100, "%"),
                         Choice<&Config::show_fps>("video.show_fps", "Show FPS", "Shows the display and tick rates in a window.", {"Off", "On"}),
@@ -233,7 +257,8 @@ std::span<const Page> Pages() {
     const auto names = port_settings::PcOverlayPageNames();
     assert(pages.size() == static_cast<std::size_t>(port_settings::PcOverlayPageCount()));
     for (std::size_t i = 0; i < pages.size(); ++i) {
-        assert(pages[i].name == names[i]);
+        // Compare text: lld does not merge equal literals across translation units.
+        assert(std::string_view(pages[i].name) == names[i]);
     }
     return pages;
 }

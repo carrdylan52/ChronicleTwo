@@ -116,6 +116,47 @@ TEST(PcOptions, CustomNumbersMoveToAdjacentPresetsWithoutChangingOtherSettings) 
     EXPECT_EQ(cap.value(config), "Unlimited");
 }
 
+TEST(PcOptions, NumbersShowPlainDecimalsWithoutExponents) {
+    Config      config;
+    const auto &budget = Find("video.interpolation_draw_budget");
+    config.interpolation_draw_budget = 0;
+    EXPECT_EQ(budget.value(config), "Off");
+    EXPECT_TRUE(options::StepRow(budget, config, 1));
+    EXPECT_EQ(budget.value(config), "2000");
+    config.interpolation_draw_budget = 2400;
+    EXPECT_EQ(budget.value(config), "2400");
+    config.interpolation_draw_budget = 12345;
+    EXPECT_EQ(budget.value(config), "12345");
+    config.mouse_sensitivity = .025f;
+    EXPECT_EQ(Find("input.mouse_sensitivity").value(config), "0.025");
+    // Hand-edited values below the presets stay visible rather than reading 0.
+    config.mouse_sensitivity = .0001f;
+    EXPECT_EQ(Find("input.mouse_sensitivity").value(config), "0.0001");
+    config.stick_sensitivity = .0004f;
+    EXPECT_EQ(Find("input.stick_sensitivity").value(config), "0.0004");
+    config.max_fps = 137.5;
+    EXPECT_EQ(Find("video.max_fps").value(config), "137.5 FPS");
+    // Magnitudes a plain decimal cannot show in six digits use the exponent form, never 0.
+    config.mouse_sensitivity = 1e-16f;
+    EXPECT_EQ(Find("input.mouse_sensitivity").value(config), "1e-16");
+    config.mouse_sensitivity = 1e-30f;
+    EXPECT_EQ(Find("input.mouse_sensitivity").value(config), "1e-30");
+    config.stick_sensitivity = 1.23456e-12f;
+    EXPECT_EQ(Find("input.stick_sensitivity").value(config), "1.23456e-12");
+    config.stick_sensitivity = .000001f;
+    EXPECT_EQ(Find("input.stick_sensitivity").value(config), "0.000001");
+    config.max_fps = 1e30;
+    EXPECT_EQ(Find("video.max_fps").value(config), "1e+30 FPS");
+    config.max_fps = 123456789012.0;
+    EXPECT_EQ(Find("video.max_fps").value(config), "123456789012 FPS");
+    config.stick_sensitivity = 1.33f;
+    EXPECT_EQ(Find("input.stick_sensitivity").value(config), "1.33");
+    config.ui_scale = .65f;
+    EXPECT_EQ(Find("video.ui_scale").value(config), "65%");
+    config.master_volume = .95f;
+    EXPECT_EQ(Find("audio.master_volume").value(config), "95%");
+}
+
 TEST(PcOptions, BooleanAndEnumChoicesWrapInBothDirections) {
     Config config;
     EXPECT_TRUE(options::StepRow(Find("video.fullscreen"), config, -1));
