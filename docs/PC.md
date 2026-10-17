@@ -360,6 +360,14 @@ can be removed while the game is closed. A load reads and validates the complete
 image before changing the live game state. The retail checksum format is retained;
 it is not a cryptographic integrity check.
 
+Retail gives two of Starlight Temple's chests (map 26) the same opened flag 7: the
+Fruit of Eden by the weapon platform (`item19`) and the one by Starlight Items that
+needs "Looking for the Wind Gem" (`item11`). Opening the first before that floor is
+entered hides the second permanently. The port's `CMap::UpdateTrBoxFlag` override
+(`port/src/map.cpp`) records `item11` under flag 9, which no other chest of the map
+uses; the save layout is unchanged. Saves that already have flag 7 set offer
+`item11` again, including saves in which both chests were opened.
+
 ### darkchronicle
 
 ```
