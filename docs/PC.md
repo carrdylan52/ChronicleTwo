@@ -205,7 +205,8 @@ references it; each external PNG is decoded once and shared. Invalid
 model or metadata overlays can fall back to lower-priority candidates. See the
 [audio](PORT_AUDIO_FORMAT.md), [model](PORT_MODEL_FORMAT.md), and
 [configuration](PORT_CONFIG_FORMAT.md) formats for the physical paths and
-replacement constraints.
+replacement constraints. A replacement movie's picture should be 512x416,
+1024x832 or 2048x1664 (1x, 2x or 4x the retail size); see [Movies](#movies).
 
 Packs can also replace ordinary, unconverted files read by the game's file
 loader. Put each file at its entry name in `data.zip`, directly inside the
@@ -1157,13 +1158,33 @@ See [published audio resources](PORT_AUDIO_FORMAT.md). `Load` opens the actual
 MP4 path through datapack priority. If requested, `Play` hands its decoded audio to the shared
 mixer as an `audio::PcmTrack` with `Mixer::SetStream` on port 5 at full port
 volume (`kMoviePortAudioPort`: `GetCSndPortNo` never maps a game port there).
-`Term` stops and clears it. `init_sound` (which reset the PS2 sound driver),
-the memory pools and the width and height arguments are ignored: the host
-allocates and the picture size comes from the video stream.
+`Term` stops and clears it. `init_sound` (which reset the PS2 sound driver)
+and the memory pools are ignored: the host allocates.
+
+`Load`'s width and height give the retail picture size, 512x416 for every
+caller. A picture of exactly 1, 2 or 4 times that size (512x416, 1024x832,
+2048x1664) is shown as decoded. Any other size is resampled with libswscale
+(area averaging when shrinking, bicubic when enlarging) to the largest of these
+that it covers, or to 512x416 when it covers none, and `Load` logs one
+`movie: ... resampled to WxH` line. A 2x or 4x picture is uploaded whole:
+`MgTextureSetPhysicalScale` gives the movie texture 2 or 4 host texels per
+retail texel, which rebuilds its image at 1024x1024 or 2048x2048. The game's
+quad keeps its retail texel coordinates, which draws scale up to the physical
+canvas, so the picture fills the same screen area as the original. Retail-size
+movies keep a scale of 1 and are unchanged. Fitting changes neither the clock,
+the pictures shown nor the captions, which the game draws itself.
+
+Pictures larger than 512x512 decode on FFmpeg's threads; retail-size pictures
+decode on the main thread, as before. Measured headless on the chapter 5 Paznos
+movies (RTX 5090, Release), per decoded picture on the main thread: retail
+about 1 ms; 2x about 2 ms decoding and converting plus 0.5 ms uploading; 4x
+about 8 ms plus 2 ms uploading, with peaks near 15 ms. A 4x frame is 13 MB of
+RGBA in host memory and the texture 16 MB on the GPU.
 
 The game links FFmpeg's libavformat, libavcodec, libavutil, libswscale and
 libswresample (`port/cmake/movies.cmake`). `movie_test` covers MP4 path
-mapping, the embedded-audio fixture, clocked playback and the `CMovie` glue;
+mapping, the embedded-audio fixture, clocked playback, picture fitting, 2x and
+4x replacements drawn through the movie texture, and the `CMovie` glue;
 retail `L5LOGO` cases use the converted MP4 when available.
 
 ## Layout

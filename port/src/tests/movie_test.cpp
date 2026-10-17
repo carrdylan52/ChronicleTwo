@@ -3,6 +3,7 @@
 #include <gtest/gtest.h>
 
 #include <algorithm>
+#include <array>
 #include <cmath>
 #include <cstddef>
 #include <cstdint>
@@ -15,6 +16,8 @@
 #include <memory>
 #include <optional>
 #include <span>
+#include <string>
+#include <utility>
 #include <vector>
 
 #include "audio/mixer.hpp"
@@ -22,6 +25,7 @@
 #include "gfx_fixture.hpp"
 #include "mg_memory.hpp"
 #include "mg_texture.hpp"
+#include "mg_texture_port.hpp"
 #include "mglib.hpp"
 #include "mglib_port.hpp"
 #include "movie.hpp"
@@ -445,4 +449,223 @@ TEST(MovieGlue, ThirtyFramesOfL5LogoThroughTheMovieTexture) {
     std::printf("L5 logo frame %d: readback mean RGB %.2f, picture mean RGB %.2f at %lld ticks\n", k_frames,
                 readback_mean, picture_mean, static_cast<long long>(picture_elapsed));
     EXPECT_NEAR(readback_mean, picture_mean, 3.0);
+}
+
+TEST(MovieGlue, FitKeepsRetailMultiplesAndResamplesOtherSizes) {
+    const auto fit = [](int width, int height) {
+        const MoviePortPicture picture = MoviePortFit(512, 416, width, height);
+        return std::array{picture.width, picture.height, picture.scale};
+    };
+    EXPECT_EQ(fit(512, 416), (std::array{512, 416, 1}));
+    EXPECT_EQ(fit(1024, 832), (std::array{1024, 832, 2}));
+    EXPECT_EQ(fit(2048, 1664), (std::array{2048, 1664, 4}));
+    // Other sizes shrink to the largest multiple they cover, past 4x too; smaller ones grow to the retail size.
+    EXPECT_EQ(fit(1920, 1560), (std::array{1024, 832, 2}));
+    EXPECT_EQ(fit(768, 624), (std::array{512, 416, 1}));
+    EXPECT_EQ(fit(4096, 3328), (std::array{2048, 1664, 4}));
+    EXPECT_EQ(fit(1024, 416), (std::array{512, 416, 1}));
+    EXPECT_EQ(fit(256, 208), (std::array{512, 416, 1}));
+    const MoviePortPicture unsized = MoviePortFit(0, 0, 640, 480);
+    EXPECT_EQ((std::array{unsized.width, unsized.height, unsized.scale}), (std::array{640, 480, 1}));
+}
+
+TEST(MoviePlayer, PictureFitResamplesEveryPictureAndKeepsTheSourceSize) {
+    const fs::path     fixture = fs::path(__FILE__).parent_path() / "fixtures/movie.mp4";
+    video::MoviePlayer plain;
+    ASSERT_TRUE(plain.Open(fixture, false));
+    EXPECT_EQ(plain.SourceWidth(), 16);
+
+    video::MoviePlayer kept;
+    kept.SetPictureFit([](int width, int height) { return std::pair{width, height}; });
+    ASSERT_TRUE(kept.Open(fixture, false));
+    EXPECT_EQ(kept.Rgba(), plain.Rgba());
+
+    video::MoviePlayer fitted;
+    fitted.SetPictureFit([](int, int) { return std::pair{8, 4}; });
+    ASSERT_TRUE(fitted.Open(fixture, false));
+    for (int picture = 0; picture < 3; picture++) {
+        EXPECT_EQ(fitted.Width(), 8);
+        EXPECT_EQ(fitted.Height(), 4);
+        EXPECT_EQ(fitted.SourceWidth(), 16);
+        EXPECT_EQ(fitted.SourceHeight(), 16);
+        EXPECT_EQ(fitted.Rgba().size(), static_cast<size_t>(8 * 4 * 4));
+        fitted.Advance(3600 * (picture + 1));
+    }
+    EXPECT_EQ(fitted.PicturesShown(), 3);
+}
+
+namespace {
+
+// A data root holding the 16x16 fixture as movie/hd.mp4, so a CMovie can load it by its game name.
+struct FixtureMovieRoot {
+    fs::path root = fs::temp_directory_path() / ("dc2_movie_hd_" + std::to_string(dc::test::ProcessId()));
+
+    FixtureMovieRoot() {
+        fs::create_directories(root / "movie");
+        fs::copy_file(fs::path(__FILE__).parent_path() / "fixtures/movie.mp4", root / "movie/hd.mp4",
+                      fs::copy_options::overwrite_existing);
+        datapacks::Load(root);
+    }
+
+    ~FixtureMovieRoot() {
+        std::error_code error;
+        fs::remove_all(root, error);
+    }
+};
+
+struct HdMovieResult {
+    MgTextureExtent      physical;
+    uint32_t             image_width = 0;
+    uint32_t             image_height = 0;
+    std::vector<uint8_t> drawn; // RGB on screen at each picture pixel's cell, row by row.
+    std::vector<uint8_t> picture;
+    int                  picture_width = 0;
+    int                  picture_height = 0;
+    std::string          log;
+};
+
+// Plays hd.mp4 as a movie of retail size retail x retail through a texture of that size, and draws the texture's
+// retail texels over a 256x256 square, as the game draws the movie.
+void PlayHdMovie(int retail, HdMovieResult &result) {
+    RestoreDataRoot    restore_data{PathsDataRoot()};
+    FixtureMovieRoot   movie_root;
+    RestoreClock       restore_clock{ClockTickRate(), ClockUnbounded()};
+    OffscreenRenderer  renderer;
+    GlobalTextureTable texture_table;
+    ClockSetUnbounded(true);
+    ClockReset();
+
+    char texture_name[] = "moviework";
+    mgTexManager.DeleteBlock(0x43);
+    ASSERT_NE(mgTexManager.EnterTexture(0x43, texture_name, nullptr, retail, retail, 32, nullptr, 0, 0), nullptr);
+    mgCTexture *texture = mgTexManager.GetTexture(texture_name, -1);
+    ASSERT_NE(texture, nullptr);
+    ASSERT_NE(mgPortFindTexture(texture).texture, gfx::kNullTexture);
+
+    auto            movie = std::make_unique<CMovie>();
+    MovieTermOnExit term_on_exit{movie.get()};
+    char            name[] = "HD.MP4";
+    testing::internal::CaptureStderr();
+    movie->Load(name, static_cast<mgCMemory **>(nullptr), retail, retail, false, false, true);
+    movie->Play(texture_name);
+    movie->SwitchThread();
+    result.log = testing::internal::GetCapturedStderr();
+
+    mgBeginFrame(nullptr);
+    movie->SwitchThread();
+    gfx::TextureBinding binding = mgPortBinding(texture);
+    ASSERT_NE(binding.texture, gfx::kNullTexture);
+    binding.filter = gfx::Filter::Nearest;
+    const auto quad = dc::test::Quad(0.0f, 0.0f, 256.0f, 256.0f, {0x80, 0x80, 0x80, 0x80}, 0.0f, 0.0f,
+                                     static_cast<float>(retail), static_cast<float>(retail));
+    mgPortDraw2D(gfx::Primitive::Quads, quad, binding, mgPortDrawState());
+    mgEndFrame(nullptr);
+
+    result.physical = MgTexturePhysicalExtent(texture);
+    const std::optional<gfx::TextureInfo> info = gfx::GetTextureInfo(mgPortFindTexture(texture).texture);
+    ASSERT_TRUE(info.has_value());
+    result.image_width = info->pixel_width;
+    result.image_height = info->pixel_height;
+
+    std::vector<uint8_t> rgba;
+    uint32_t             width = 0;
+    uint32_t             height = 0;
+    ASSERT_TRUE(mgPortReadColor(gfx::kMainTarget, rgba, width, height));
+    const gfx::LogicalMapping mapping = gfx::GetLogicalMapping(gfx::kMainTarget);
+
+    video::MoviePlayer picture;
+    picture.SetPictureFit([retail](int w, int h) {
+        const MoviePortPicture fit = MoviePortFit(retail, retail, w, h);
+        return std::pair{fit.width, fit.height};
+    });
+    ASSERT_TRUE(picture.Open(movie_root.root / "movie/hd.mp4", false));
+    result.picture = picture.Rgba();
+    result.picture_width = picture.Width();
+    result.picture_height = picture.Height();
+    // The quad spans retail texels, which hold physical / (1 << TW) picture pixels each.
+    const float cell = 256.0f * static_cast<float>(1u << texture->tex0.TW) /
+                       (static_cast<float>(retail) * static_cast<float>(result.physical.width));
+    for (int y = 0; y < picture.Height(); y++) {
+        for (int x = 0; x < picture.Width(); x++) {
+            const float    lx = (static_cast<float>(x) + 0.5f) * cell;
+            const float    ly = (static_cast<float>(y) + 0.5f) * cell;
+            const uint32_t px = static_cast<uint32_t>(mapping.offset_x + lx * mapping.scale_x);
+            const uint32_t py = static_cast<uint32_t>(mapping.offset_y + ly * mapping.scale_y);
+            ASSERT_LT(px, width);
+            ASSERT_LT(py, height);
+            const uint8_t *p = &rgba[(static_cast<size_t>(py) * width + px) * 4];
+            result.drawn.insert(result.drawn.end(), p, p + 3);
+        }
+    }
+}
+
+// Largest RGB difference between a picture pixel and its cell on screen.
+int MaxPictureDifference(const HdMovieResult &result) {
+    int worst = 0;
+    for (size_t i = 0; i < static_cast<size_t>(result.picture_width) * result.picture_height; i++) {
+        for (size_t c = 0; c < 3; c++) {
+            worst = std::max(worst, std::abs(result.drawn[i * 3 + c] - result.picture[i * 4 + c]));
+        }
+    }
+    return worst;
+}
+
+} // namespace
+
+TEST(MovieGlue, DoubleSizeReplacementFillsTheMovieTextureAtTwoTexelsPerTexel) {
+    HdMovieResult result;
+    PlayHdMovie(8, result);
+    if (HasFatalFailure()) {
+        return;
+    }
+    EXPECT_EQ(result.physical.width, 16u);
+    EXPECT_EQ(result.physical.height, 16u);
+    EXPECT_EQ(result.image_width, 16u);
+    EXPECT_EQ(result.image_height, 16u);
+    EXPECT_EQ(result.picture_width, 16);
+    EXPECT_EQ(result.log.find("movie:"), std::string::npos) << result.log;
+    // Every picture pixel reaches the screen, not only the top-left 8x8.
+    EXPECT_LE(MaxPictureDifference(result), 2);
+}
+
+TEST(MovieGlue, QuadrupleSizeReplacementFillsTheMovieTextureAtFourTexelsPerTexel) {
+    HdMovieResult result;
+    PlayHdMovie(4, result);
+    if (HasFatalFailure()) {
+        return;
+    }
+    EXPECT_EQ(result.physical.width, 16u);
+    EXPECT_EQ(result.image_width, 16u);
+    EXPECT_EQ(result.picture_width, 16);
+    EXPECT_EQ(result.log.find("movie:"), std::string::npos) << result.log;
+    EXPECT_LE(MaxPictureDifference(result), 2);
+}
+
+TEST(MovieGlue, RetailSizeMovieKeepsItsTexture) {
+    HdMovieResult result;
+    PlayHdMovie(16, result);
+    if (HasFatalFailure()) {
+        return;
+    }
+    EXPECT_EQ(result.physical.width, 16u);
+    EXPECT_EQ(result.image_width, 16u);
+    EXPECT_EQ(result.log.find("movie:"), std::string::npos) << result.log;
+    EXPECT_LE(MaxPictureDifference(result), 2);
+}
+
+TEST(MovieGlue, OtherSizesAreResampledToAMultipleWithOneDiagnostic) {
+    HdMovieResult result;
+    // 16x16 over a 6x6 retail size: 2x is 12x12, which the 6x6 texture's 8x8 canvas holds at 16x16.
+    PlayHdMovie(6, result);
+    if (HasFatalFailure()) {
+        return;
+    }
+    EXPECT_EQ(result.picture_width, 12);
+    EXPECT_EQ(result.picture_height, 12);
+    EXPECT_EQ(result.physical.width, 16u);
+    EXPECT_EQ(result.image_width, 16u);
+    const size_t first = result.log.find("resampled to 12x12");
+    ASSERT_NE(first, std::string::npos) << result.log;
+    EXPECT_EQ(result.log.find("movie:", first), std::string::npos) << result.log;
+    EXPECT_LE(MaxPictureDifference(result), 2);
 }
