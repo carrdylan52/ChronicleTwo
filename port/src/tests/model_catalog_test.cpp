@@ -1545,6 +1545,73 @@ TEST_F(NativeModel, ShadowCpuSkinRetainsMoreThanThirtyTwoBones) {
     EXPECT_NEAR(static_cast<mgCVisualMDT *>(frame->visual)->vertex[0][0], 2.0f, .0001f);
 }
 
+// A shadow model's faces are read as retail's mgCShadowMDT::CreateFace leaves them: triangles of three position
+// indices, without the normal and uv indices the visual layout carries per corner.
+TEST_F(NativeModel, ShadowModelFacesKeepOnlyTrianglePositionIndices) {
+    std::vector<unsigned char> bytes(80, 0);
+    const std::vector<float>   values{0, 0, 0, 2, 0, 0, 0, 2, 0, 0, 1, 0, 0, 0, 30, 0, 0};
+    std::memcpy(bytes.data(), values.data(), values.size() * sizeof(float));
+    const std::uint16_t corners[6] = {0, 1, 2, 2, 1, 0};
+    std::memcpy(bytes.data() + 68, corners, sizeof corners);
+    gltf["buffers"][0]["byteLength"] = bytes.size();
+    gltf["buffers"][0]["uri"] = "data:application/octet-stream;base64," + Base64(bytes);
+    gltf["bufferViews"].push_back({
+        {"buffer",     0 },
+        {"byteOffset", 68},
+        {"byteLength", 12}
+    });
+    gltf["bufferViews"].push_back({
+        {"buffer",     0 },
+        {"byteOffset", 0 },
+        {"byteLength", 24}
+    });
+    gltf["accessors"].push_back({
+        {"bufferView",    3       },
+        {"componentType", 5123    },
+        {"count",         6       },
+        {"type",          "SCALAR"}
+    });
+    gltf["accessors"].push_back({
+        {"bufferView",    4     },
+        {"componentType", 5126  },
+        {"count",         3     },
+        {"type",          "VEC2"}
+    });
+    auto &primitive = gltf["meshes"][0]["primitives"][0];
+    primitive["attributes"]["NORMAL"] = 0;
+    primitive["attributes"]["TEXCOORD_0"] = 4;
+    primitive["indices"] = 3;
+    auto &mesh = game["meshes"][0];
+    mesh["normal_count"] = 1;
+    mesh["uv_count"] = 2;
+    mesh["primitives"][0]["type"] = MG_PRIM_TRIANGLE;
+    mesh["primitives"][0]["source_normals"] = {0, 0, 0};
+    mesh["primitives"][0]["source_uvs"] = {1, 0, 1};
+    Write(directory / "port_data/models/model.gltf", gltf);
+
+    std::string        error;
+    char               empty[] = "";
+    mgCreateVisualType types[] = {
+        {MG_VISUAL_CREATE_SHADOW_MDT, empty  },
+        {MG_VISUAL_CREATE_END,        nullptr}
+    };
+    mgLoadData load{};
+    load.memory = &memory;
+    load.visual_type = types;
+    auto *frame = model_assets::LoadModel(std::filesystem::path("models/model.gltf"), load, error);
+    ASSERT_NE(frame, nullptr) << error;
+    auto *visual = static_cast<mgCVisualMDT *>(frame->visual);
+    ASSERT_NE(visual, nullptr);
+    ASSERT_NE(visual->face_group, nullptr);
+    const mgCFace *face = visual->face_group->face;
+    ASSERT_NE(face, nullptr);
+    EXPECT_EQ(face->vertex_num, 2);
+    EXPECT_EQ(face->index_stride, 3);
+    EXPECT_EQ(face->index_num, 6);
+    const std::vector<int> positions(face->index, face->index + 6);
+    EXPECT_EQ(positions, (std::vector<int>{0, 1, 2, 2, 1, 0}));
+}
+
 TEST_F(NativeModel, ReadsAllStandardJointGroupsAndPreservesNativeGpuInfluenceLimit) {
     std::vector<float> values{0, 0, 0, 2, 0, 0, 0, 2, 0, 0, 1, 0, 0, 0, 30, 0, 0};
     for (int vertex = 0; vertex < 3; ++vertex) {

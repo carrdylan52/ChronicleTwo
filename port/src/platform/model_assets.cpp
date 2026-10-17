@@ -1055,6 +1055,29 @@ mgCTexture *Image(Document &document, std::size_t texture_index, mgCMemory &memo
 }
 
 /**
+ * Rewrites a shadow model's faces, which Mesh() builds in the visual layout (vertex_num corners, each a
+ * position index followed by its normal, uv and colour indices), in the layout retail's
+ * mgCShadowMDT::CreateFace builds and mgCShadowMDT's draw reads: vertex_num triangles of three position
+ * indices, index_stride 3. Retail only draws triangle lists; any other primitive is left with no triangles.
+ * The indices are compacted in place, so the model's memory estimate is unchanged.
+ */
+void ShadowFaces(mgCVisualMDT &visual) {
+    for (auto *group = visual.face_group; group; group = group->next) {
+        for (auto *face = group->face; face; face = face->next) {
+            const int  stride = face->index_stride;
+            const bool triangles = (face->type & MG_FACE_PRIM_MASK) == MG_PRIM_TRIANGLE;
+            const int  count = triangles && stride > 0 ? face->vertex_num / 3 : 0;
+            for (int corner = 0; corner < count * 3; ++corner) {
+                face->index[corner] = face->index[corner * stride];
+            }
+            face->vertex_num = static_cast<short>(count);
+            face->index_stride = 3;
+            face->index_num = static_cast<short>(count * 3);
+        }
+    }
+}
+
+/**
  * Builds native vertices, materials and face groups directly from glTF mesh accessors.
  */
 void Mesh(Document &document, const fastgltf::Node &node, const Json &detail, mgCVisualMDT &visual,
@@ -1837,6 +1860,9 @@ mgCFrame *Instantiate(const std::shared_ptr<Document> &document, mgLoadData &loa
                 for (auto *face = group->face; face; face = face->next) {
                     mgVisualPortRefreshFace(visual, face);
                 }
+            }
+            if (type == MG_VISUAL_CREATE_SHADOW_MDT || type == MG_VISUAL_CREATE_SHADOW_FIX_MDT) {
+                ShadowFaces(*visual);
             }
         }
         std::vector<int> parents(frames.size(), -1);
