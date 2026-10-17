@@ -527,6 +527,7 @@ Writes are atomic: the file is written as `config.json.tmp` and renamed over `co
 | `input.mouse_capture` | bool | true | | capture the mouse |
 | `input.mouse_zoom` | bool | false | | mouse wheel zoom |
 | `input.mouse_fixed_look` | bool | true | | gentle mouse look in fixed-camera town rooms |
+| `input.menu_pointer_speed` | number | 1 | 0.25 to 4 | menu hand travel per mouse count while the mouse is captured; 1 is one window pixel. Camera look ignores it |
 | `input.touchpad` | bool | true | | a DualSense touchpad as the menus' mouse |
 | `input.touchpad_sensitivity` | number | 1.0 | above 0 | touchpad speed |
 | `input.lightbar` | bool | true | | lets the game colour the lightbar; read and saved, nothing sets a colour yet |
@@ -570,13 +571,13 @@ without a guessed migration factor.
 
 Open **Options**, then press **SELECT** (Backspace with the default keyboard bindings), or click **PC SETTINGS** above the list. The original Options page still edits the retail save's options. Its confirm, cancel, reset, and L1/R1 page scrolling are unchanged; returning from PC SETTINGS keeps its cursor and choices.
 
-The PC page uses the game's font and Options artwork. L1/R1 changes tabs, Up/Down selects a row, Left/Right changes a value, and confirm advances a choice or opens binding capture. Cancel returns to Options; Japanese retains its reversed confirm/cancel layout. The mouse can click tabs and value arrows, scroll rows, restore a binding, and return to Options. Hit targets follow aspect ratio, UI scale and window DPI.
+The PC page uses the game's font and Options artwork. Its rows fill the retail Options frame, ten at a time at about the retail list's pitch, with the frame's scroll bar showing the position; the tabs sit on plates above the frame, and a **PC SETTINGS** plate beside the Options heading names the page. The help box word-wraps each description to two lines. L1/R1 changes tabs, Up/Down selects a row, Left/Right changes a value, and confirm advances a choice or opens binding capture. Cancel returns to Options; Japanese retains its reversed confirm/cancel layout. The mouse can click tabs and value arrows, scroll rows, restore a binding, and return to Options. Hit targets follow aspect ratio, UI scale and window DPI.
 
 | Page | Settings |
 |---|---|
-| Display | Windowed/fullscreen, resolution, FIFO/mailbox/immediate, frame cap, interpolation, auto/4:3 aspect, UI scale, FPS counter |
-| Audio | Master volume and PS2/custom soundtrack |
-| Controls | Mouse sensitivity, Y inversion and capture; stick sensitivity and X/Y inversion; button symbols and glyph style |
+| Display | Windowed/fullscreen, resolution, FIFO/mailbox/immediate, frame cap, interpolation, interpolation draw budget, interpolated frames (unlimited or 1 per tick), auto/4:3 aspect, UI scale, FPS counter |
+| Audio | Master volume, PS2/custom soundtrack, DualSense speaker and its volume |
+| Controls | Mouse look sensitivity, Y inversion and capture; menu pointer speed; stick sensitivity and X/Y inversion; haptics; button symbols and glyph style; wheel zoom and fixed camera mouse look |
 | Bindings | Keyboard and mouse bindings for pad buttons, movement, look, FPS and debug menu |
 | Game | Autosave, debug mode, skip intro, expanded dungeon monsters, Georama polygon budget (1×–6×; see [PORT_OPTIONS.md](PORT_OPTIONS.md)) |
 
@@ -588,7 +589,7 @@ Confirm on a binding shows **Press a key...**. Press a key or mouse button; Esca
 
 A failed write shows a warning. Settings still work in the current session. Check the save folder and change a setting to retry. A configuration file that could not be read remains protected against replacement.
 
-`tools/input/pc-settings.input` replays all four tabs, a key rebind, Escape cancellation, and return to retail Options from `--jump town:10 --fast-load`. Its comments give capture frames. `tools/input/pc-settings-mouse.input` exercises clicking and mouse-button capture at `--window 1280x960`. Use fresh save roots and `--screenshot-display 2` for both.
+`tools/input/pc-settings-pages.input` opens every tab at `--window 1920x1080` for layout checks; its comments give capture frames. `tools/input/pc-settings.input` replays the tabs, a key rebind, Escape cancellation, and return to retail Options from `--jump town:10 --fast-load`. Its comments give capture frames. `tools/input/pc-settings-mouse.input` exercises clicking and mouse-button capture at `--window 1280x960`. Use fresh save roots and `--screenshot-display 2` for both.
 
 `tools/input/pc-settings-display.input` checks fullscreen, return to windowed, and resizing in a real window. Start with a fresh config containing a nonzero window size, omit `--window`, and stop at frame 940. The optional `PcSettingsReplay` CTests run the headless pad and mouse flows and assert the saved configuration when `DC2_DATA` is available.
 
@@ -622,7 +623,15 @@ selection. Clicks held while opening or closing a menu do not confirm the next
 screen.
 
 The pointer uses the game's gold hand artwork and follows mouse motion at the
-display rate. The hand is a display overlay and stays out of canonical screenshots
+display rate. It is a relative pointer: each mouse count moves it one window pixel.
+With capture on, counts are raw, without the desktop's pointer speed or acceleration,
+and **Menu pointer speed** (`input.menu_pointer_speed`, PC SETTINGS > Controls,
+50% to 300%) multiplies them. With capture off the hand follows the desktop cursor
+1:1, so it reaches every edge the cursor does, and the speed is not applied. A
+DualSense touchpad's pointer motion is scaled by `input.touchpad_sensitivity` first,
+and while capture is on Menu pointer speed multiplies it too. Camera mouse look
+uses **Mouse look sensitivity** (`input.mouse_sensitivity`) instead, and neither
+setting affects the other. The hand is a display overlay and stays out of canonical screenshots
 and game captures. The menu hand shares cursor ownership with the operating-system cursor.
 `input.mouse_capture` configures capture, and `input.mouse_release` selects the
 keys that release it.
@@ -761,7 +770,7 @@ grid scroll rows, stopping at the bag's ends.
 The pointer starts at the retail selection when the mouse takes over. Controller
 or keyboard button input returns control to the retail cursor. Mouse counts are
 mapped through the window size, UI scale and visible widescreen extent; camera
-sensitivity and inversion do not affect the pointer. Buttons held when entering
+sensitivity and inversion do not affect the pointer; Menu pointer speed scales it while captured. Buttons held when entering
 the page must be released before clicking, and a held button cannot become a
 gameplay press when leaving it. Losing window focus cancels the mouse gesture
 without dropping an item. Other inventory submenus retain their existing controls.

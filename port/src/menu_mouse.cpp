@@ -11,6 +11,7 @@
 #include "menu_mouse_item.hpp"
 #include "mglib.hpp"
 #include "mglib_port.hpp"
+#include "platform/config.hpp"
 #include "platform/input.hpp"
 #include "platform/mouse.hpp"
 #include "platform/window.hpp"
@@ -96,14 +97,18 @@ bool PadOrFocusOwnsPointer() {
 void MovePointer(MenuMouseSample &point, float dx, float dy) {
     const auto extent = mgPortVisibleExtent(gfx::kMainTarget);
     float      left = extent.left, top = extent.top, right = extent.right, bottom = extent.bottom;
-    float      units_x = 1, units_y = 1;
+    // Menu pointer speed scales only this hand; camera mouse look keeps input.mouse_sensitivity.
+    // An uncaptured hand follows the desktop cursor 1:1, so it can reach every edge the cursor can.
+    const auto &config = ConfigGet();
+    const float speed = config.mouse_capture ? config.menu_pointer_speed : 1.0f;
+    float       units_x = speed, units_y = speed;
     if (mgPortRendererReady()) {
         const auto mapping = gfx::GetUiMapping(gfx::kMainTarget);
         const auto scene = gfx::GetLogicalMapping(gfx::kMainTarget);
         int        width = static_cast<int>(mapping.pixel_width), height = static_cast<int>(mapping.pixel_height);
         WindowSize(width, height);
-        units_x = MenuMouseUnits(mapping.scale_x, mapping.pixel_width, width);
-        units_y = MenuMouseUnits(mapping.scale_y, mapping.pixel_height, height);
+        units_x = speed * MenuMouseUnits(mapping.scale_x, mapping.pixel_width, width);
+        units_y = speed * MenuMouseUnits(mapping.scale_y, mapping.pixel_height, height);
         left = (extent.left * scene.scale_x + scene.offset_x - mapping.offset_x) / mapping.scale_x;
         right = (extent.right * scene.scale_x + scene.offset_x - mapping.offset_x) / mapping.scale_x;
         top = (extent.top * scene.scale_y + scene.offset_y - mapping.offset_y) / mapping.scale_y;

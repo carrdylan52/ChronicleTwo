@@ -268,8 +268,10 @@ Point PointerToUi(float x, float y, int w, int h, const gfx::LogicalMapping &map
 }
 
 Hit HitTest(const State &state, float x, float y) {
+    constexpr int kButtonBottom = kButtonTop + kButtonHeight;
+    const bool    back = Inside(x, y, kBackLeft, kButtonTop, kBackLeft + kBackWidth, kButtonBottom);
     if (state.binding >= 0) {
-        return Inside(x, y, kLeft, 343, kLeft + 105, 370) ? Hit{HitKind::Back} : Hit{};
+        return back ? Hit{HitKind::Back} : Hit{};
     }
     if (!state.open) {
         return Inside(x, y, 284, 51, 444, 76) ? Hit{HitKind::Entry} : Hit{};
@@ -277,24 +279,72 @@ Hit HitTest(const State &state, float x, float y) {
     const int tab_count = static_cast<int>(Pages().size());
     const int tab_step = TabStep(tab_count);
     for (int page = 0; page < tab_count; ++page) {
-        const int left = kLeft + page * tab_step;
-        if (Inside(x, y, left, 91, left + tab_step, 114)) {
+        const int left = kTabLeft + page * tab_step;
+        const int right = page == tab_count - 1 ? kTabRight : left + tab_step;
+        if (Inside(x, y, left, kTabTop, right, kTabTop + kTabHeight)) {
             return {HitKind::Tab, page};
         }
     }
-    if (Inside(x, y, kLeft, 343, kLeft + 105, 370)) {
+    if (back) {
         return {HitKind::Back};
     }
-    if (state.page == kBindingsPage && Inside(x, y, 272, 343, kRight, 370)) {
+    if (state.page == kBindingsPage && Inside(x, y, kResetLeft, kButtonTop, kPanelRight, kButtonBottom)) {
         return {HitKind::ResetBinding};
     }
     if (Inside(x, y, kLeft, kRowY, kRight, kRowY + kVisibleRows * kRowStep)) {
         int row = state.first[state.page] + static_cast<int>(y - kRowY) / kRowStep;
         if (row < static_cast<int>(Pages()[state.page].rows.size())) {
-            return {HitKind::Row, row, x < kValueX + 65 ? -1 : 1};
+            // The value plate's left half steps back, its right half forward.
+            return {HitKind::Row, row, x < (kValueX + kRight) / 2 ? -1 : 1};
         }
     }
     return {};
+}
+
+std::vector<std::string> WrapHelp(std::string_view text, int width, int max_lines,
+                                  const std::function<int(std::string_view)> &measure) {
+    const auto wrap = [&](bool keep_breaks) {
+        std::vector<std::string> lines;
+        std::size_t              start = 0;
+        while (start <= text.size()) {
+            std::size_t end = keep_breaks ? text.find('\n', start) : std::string_view::npos;
+            if (end == std::string_view::npos) {
+                end = text.size();
+            }
+            std::string line;
+            std::size_t word = start;
+            while (word < end) {
+                while (word < end && (text[word] == ' ' || text[word] == '\n')) {
+                    ++word;
+                }
+                std::size_t stop = word;
+                while (stop < end && text[stop] != ' ' && text[stop] != '\n') {
+                    ++stop;
+                }
+                if (stop == word) {
+                    break;
+                }
+                const std::string_view next = text.substr(word, stop - word);
+                std::string            candidate = line.empty() ? std::string(next) : line + " " + std::string(next);
+                if (!line.empty() && measure(candidate) > width) {
+                    lines.push_back(std::move(line));
+                    candidate = std::string(next);
+                }
+                line = std::move(candidate);
+                word = stop;
+            }
+            if (!line.empty()) {
+                lines.push_back(std::move(line));
+            }
+            start = end + 1;
+        }
+        return lines;
+    };
+    auto lines = wrap(true);
+    if (static_cast<int>(lines.size()) > max_lines) {
+        lines = wrap(false);
+    }
+    return lines;
 }
 
 void SelectPage(State &state, int page) {

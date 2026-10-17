@@ -63,34 +63,43 @@
 1171
 1200 r1
 1201
+# Controls: step rows 0-6 right, then Glyph style (row 10) right.
 1220 right
 1221
-1240 down
+1230 down
+1231
+1240 right
 1241
+1250 down
+1251
 1260 right
 1261
-1280 down
+1270 down
+1271
+1280 right
 1281
+1290 down
+1291
 1300 right
 1301
-1320 down
+1310 down
+1311
+1320 right
 1321
+1330 down
+1331
 1340 right
 1341
+1350 down
+1351
 1360 down
 1361
-1380 right
+1370 down
+1371
+1380 down
 1381
-1400 down
-1401
-1420 right
-1421
-1430 down
-1431
-1440 down
-1441
-1452 right
-1453
+1390 right
+1391
 1500 r1
 1501
 1520 down

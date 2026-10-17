@@ -18,29 +18,29 @@
 681
 700 mouse1
 701
-# Audio tab (540,202).
-720 mouse:-360,76
+# Audio tab (452,128).
+720 mouse:-448,2
 721
 740 mouse1
 741
-# Master volume left arrow (750,260).
-760 mouse:210,58
+# Master volume left arrow (725,206).
+760 mouse:273,78
 761
 780 mouse1
 781
-# Bindings tab (980,202), then first row (960,260).
-800 mouse:230,-58
+# Bindings tab (815,128), then first row (1000,206).
+800 mouse:90,-78
 801
 820 mouse1
 821
-840 mouse:-20,58
+840 mouse:185,78
 841
 860 mouse1
 861
 880 mouse3
 881
-# Back to Options (330,714).
-920 mouse:-630,454
+# Back to Options (320,712).
+920 mouse:-680,506
 921
 940 mouse1
 941

@@ -13,7 +13,7 @@ namespace {
 int OptionTabCenterX(int page) {
     const int tab_count = static_cast<int>(options::Pages().size());
     const int step = options::TabStep(tab_count);
-    return options::kLeft + page * step + step / 2;
+    return options::kTabLeft + page * step + step / 2;
 }
 
 const options::Row &Find(std::string_view key) {
@@ -38,7 +38,7 @@ TEST(PcOptions, GameHostBoolsDefaultToOffInOverlay) {
     EXPECT_EQ(Find("game.auto_use_event_item").value(defaults), "Off");
     EXPECT_EQ(defaults.georama_poly_multiplier, 1);
     EXPECT_EQ(Find("game.georama_poly_multiplier").label, "Georama budget");
-    EXPECT_EQ(Find("game.georama_poly_multiplier").value(defaults), "1×");
+    EXPECT_EQ(Find("game.georama_poly_multiplier").value(defaults), "1x");
 }
 
 TEST(PcOptions, RequestedSettingsHaveUniqueRowsAndRoundTripTheirEdits) {
@@ -49,6 +49,7 @@ TEST(PcOptions, RequestedSettingsHaveUniqueRowsAndRoundTripTheirEdits) {
         "video.max_fps",
         "video.interpolation",
         "video.interpolation_draw_budget",
+        "video.interpolation_multi_present",
         "video.aspect",
         "video.ui_scale",
         "video.show_fps",
@@ -57,6 +58,7 @@ TEST(PcOptions, RequestedSettingsHaveUniqueRowsAndRoundTripTheirEdits) {
         "audio.dualsense_speaker",
         "audio.controller_volume",
         "input.mouse_sensitivity",
+        "input.menu_pointer_speed",
         "input.mouse_invert_y",
         "input.mouse_capture",
         "input.mouse_zoom",
@@ -157,6 +159,61 @@ TEST(PcOptions, NumbersShowPlainDecimalsWithoutExponents) {
     EXPECT_EQ(Find("audio.master_volume").value(config), "95%");
 }
 
+TEST(PcOptions, MenuPointerSpeedRowIsNamedApartFromCameraSensitivity) {
+    const auto &pointer = Find("input.menu_pointer_speed");
+    const auto &look = Find("input.mouse_sensitivity");
+    EXPECT_EQ(pointer.label, "Menu pointer speed");
+    EXPECT_EQ(look.label, "Mouse look sensitivity");
+    Config config;
+    EXPECT_EQ(pointer.value(config), "100%");
+    EXPECT_TRUE(options::StepRow(pointer, config, 1));
+    EXPECT_FLOAT_EQ(config.menu_pointer_speed, 1.25f);
+    EXPECT_FLOAT_EQ(config.mouse_sensitivity, Config{}.mouse_sensitivity);
+    EXPECT_EQ(pointer.value(config), "125%");
+    config.menu_pointer_speed = .5f;
+    EXPECT_FALSE(options::StepRow(pointer, config, -1));
+    config.menu_pointer_speed = 3;
+    EXPECT_FALSE(options::StepRow(pointer, config, 1));
+}
+
+TEST(PcOptions, HelpWrapsAtWordsAndKeepsBreaksOnlyWhenTheyFit) {
+    const auto chars = [](std::string_view text) { return static_cast<int>(text.size()); };
+    using Lines = std::vector<std::string>;
+    EXPECT_EQ(options::WrapHelp("one two three four", 9, 2, chars), (Lines{"one two", "three", "four"}));
+    EXPECT_EQ(options::WrapHelp("one two\nthree", 20, 2, chars), (Lines{"one two", "three"}));
+    // Breaks that would need a third line reflow into two.
+    EXPECT_EQ(options::WrapHelp("aa bb\ncc\ndd", 20, 2, chars), (Lines{"aa bb cc dd"}));
+    EXPECT_EQ(options::WrapHelp("averyveryverylongword x", 5, 2, chars), (Lines{"averyveryverylongword", "x"}));
+    EXPECT_TRUE(options::WrapHelp("", 10, 2, chars).empty());
+}
+
+TEST(PcOptions, EveryDescriptionFitsTheHelpBoxsTwoLines) {
+    // The game font's 14-point text averages about 7 units a character; allow 7.4.
+    const auto width = [](std::string_view text) { return static_cast<int>(text.size() * 74 / 10); };
+    for (const auto &page : options::Pages()) {
+        for (const auto &row : page.rows) {
+            EXPECT_LE(options::WrapHelp(row.help, options::kHelpWidth, options::kHelpLines, width).size(),
+                      static_cast<std::size_t>(options::kHelpLines))
+                << row.key;
+        }
+    }
+}
+
+TEST(PcOptions, DisplayPageFitsWithoutScrolling) {
+    EXPECT_LE(options::Pages()[0].rows.size(), static_cast<std::size_t>(options::kVisibleRows));
+    EXPECT_LE(options::kRowY + options::kVisibleRows * options::kRowStep, options::kPanelBottom);
+    EXPECT_LE(options::kTabTop + options::kTabHeight, options::kPanelTop);
+}
+
+TEST(PcOptions, InterpolatedFramesRowShowsTheUncappedDefault) {
+    const auto &row = Find("video.interpolation_multi_present");
+    Config      config;
+    EXPECT_EQ(row.value(config), "Unlimited");
+    EXPECT_TRUE(options::StepRow(row, config, 1));
+    EXPECT_FALSE(config.interpolation_multi_present);
+    EXPECT_EQ(row.value(config), "1 per tick");
+}
+
 TEST(PcOptions, BooleanAndEnumChoicesWrapInBothDirections) {
     Config config;
     EXPECT_TRUE(options::StepRow(Find("video.fullscreen"), config, -1));
@@ -192,7 +249,7 @@ TEST(PcOptions, LongBindingPageScrollsAndEachTabKeepsItsCursor) {
         options::MoveRow(state, 1);
     }
     EXPECT_EQ(state.row[options::kBindingsPage], 12);
-    EXPECT_EQ(state.first[options::kBindingsPage], 5);
+    EXPECT_EQ(state.first[options::kBindingsPage], 13 - options::kVisibleRows);
     options::SelectPage(state, 0);
     EXPECT_EQ(state.row[0], 0);
     options::MoveRow(state, -1);
@@ -200,7 +257,7 @@ TEST(PcOptions, LongBindingPageScrollsAndEachTabKeepsItsCursor) {
     options::SelectPage(state, options::kBindingsPage);
     EXPECT_EQ(state.page, options::kBindingsPage);
     EXPECT_EQ(state.row[options::kBindingsPage], 12);
-    EXPECT_EQ(state.first[options::kBindingsPage], 5);
+    EXPECT_EQ(state.first[options::kBindingsPage], 13 - options::kVisibleRows);
     for (int n = 0; n < 100; ++n) {
         options::MoveRow(state, 1);
     }
@@ -213,22 +270,29 @@ TEST(PcOptions, LongBindingPageScrollsAndEachTabKeepsItsCursor) {
 
 TEST(PcOptions, HitTestingUsesVisibleRowsAndHasNoDeadRowsOrOutOfBoundsHits) {
     options::State state;
+    const int      tab_y = options::kTabTop + options::kTabHeight / 2;
+    const int      row_y = options::kRowY + 2;
     EXPECT_EQ(options::HitTest(state, 300, 60).kind, options::HitKind::Entry);
     EXPECT_EQ(options::HitTest(state, 300, 180).kind, options::HitKind::None);
     state.open = true;
-    EXPECT_EQ(options::HitTest(state, OptionTabCenterX(0), 100).index, 0);
-    EXPECT_EQ(options::HitTest(state, OptionTabCenterX(options::kBindingsPage), 100).index, options::kBindingsPage);
-    EXPECT_EQ(options::HitTest(state, 288, 120).direction, -1);
-    EXPECT_EQ(options::HitTest(state, 400, 120).direction, 1);
-    EXPECT_EQ(options::HitTest(state, 440, 120).kind, options::HitKind::None);
+    EXPECT_EQ(options::HitTest(state, OptionTabCenterX(0), tab_y).index, 0);
+    EXPECT_EQ(options::HitTest(state, OptionTabCenterX(options::kBindingsPage), tab_y).index, options::kBindingsPage);
+    // The last tab reaches the frame's right edge.
+    EXPECT_EQ(options::HitTest(state, options::kTabRight - 1, tab_y).index, static_cast<int>(options::Pages().size()) - 1);
+    EXPECT_EQ(options::HitTest(state, options::kTabRight + 1, tab_y).kind, options::HitKind::None);
+    EXPECT_EQ(options::HitTest(state, options::kValueX, row_y).direction, -1);
+    EXPECT_EQ(options::HitTest(state, options::kRight - 8, row_y).direction, 1);
+    EXPECT_EQ(options::HitTest(state, options::kRight + 4, row_y).kind, options::HitKind::None);
     EXPECT_EQ(options::HitTest(state, 100, 352).kind, options::HitKind::Back);
     options::SelectPage(state, 1);
-    // Gap between the tab strip (bottom 114) and the first row (top 120).
-    EXPECT_EQ(options::HitTest(state, 300, 117).kind, options::HitKind::None);
+    // Gap between the tab strip above the frame and the first row inside it.
+    EXPECT_EQ(options::HitTest(state, 300, (options::kTabTop + options::kTabHeight + options::kRowY) / 2).kind,
+              options::HitKind::None);
     options::SelectPage(state, options::kBindingsPage);
     state.first[options::kBindingsPage] = 7;
-    EXPECT_EQ(options::HitTest(state, 300, 120).index, 7);
-    EXPECT_EQ(options::HitTest(state, 300, 300).index, 14);
+    EXPECT_EQ(options::HitTest(state, 300, row_y).index, 7);
+    EXPECT_EQ(options::HitTest(state, 300, row_y + 7 * options::kRowStep).index, 14);
+    EXPECT_EQ(options::HitTest(state, 300, row_y + options::kVisibleRows * options::kRowStep).kind, options::HitKind::None);
     EXPECT_EQ(options::HitTest(state, 300, 352).kind, options::HitKind::ResetBinding);
     state.binding = 7;
     EXPECT_EQ(options::HitTest(state, 300, 100).kind, options::HitKind::None);
@@ -259,7 +323,7 @@ TEST(PcOptions, StationaryPointerDoesNotUndoWheelOrPadNavigation) {
         options::NavigatePointer(state, point, false, 0);
     }
     EXPECT_EQ(state.row[options::kBindingsPage], 18);
-    EXPECT_EQ(state.first[options::kBindingsPage], 11);
+    EXPECT_EQ(state.first[options::kBindingsPage], 19 - options::kVisibleRows);
     options::MoveRow(state, -1);
     options::NavigatePointer(state, point, false, 0);
     EXPECT_EQ(state.row[options::kBindingsPage], 17);

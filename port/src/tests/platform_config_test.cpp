@@ -241,6 +241,17 @@ TEST_F(PlatformConfig, InterpolationDrawBudgetDefaultsAndRoundTrips) {
     ASSERT_EQ(parsed.interpolation_draw_budget, 3000);
 }
 
+TEST_F(PlatformConfig, MenuPointerSpeedIsSeparateFromMouseLookAndBounded) {
+    EXPECT_FLOAT_EQ(Config{}.menu_pointer_speed, 1.0f);
+    const Config parsed = ConfigParse(R"({"input": {"menu_pointer_speed": 2.5, "mouse_sensitivity": 0.3}})");
+    EXPECT_FLOAT_EQ(parsed.menu_pointer_speed, 2.5f);
+    EXPECT_FLOAT_EQ(parsed.mouse_sensitivity, 0.3f);
+    EXPECT_TRUE(ConfigParse(ConfigSerialize(parsed)) == parsed);
+    EXPECT_FLOAT_EQ(ConfigParse(R"({"input": {"menu_pointer_speed": 0}})").menu_pointer_speed, 1.0f);
+    EXPECT_FLOAT_EQ(ConfigParse(R"({"input": {"menu_pointer_speed": 9}})").menu_pointer_speed, 1.0f);
+    EXPECT_FLOAT_EQ(ConfigParse(R"({"input": {"menu_pointer_speed": "fast"}})").menu_pointer_speed, 1.0f);
+}
+
 TEST_F(PlatformConfig, ExpandedDungeonMonstersRoundTripsThroughSerialize) {
     ASSERT_FALSE(Config{}.expanded_dungeon_monsters);
     Config config;
