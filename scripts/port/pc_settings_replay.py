@@ -56,8 +56,10 @@ def main() -> int:
     if args.case == "pad":
         expected.update({
             "video": {"present_mode": "mailbox", "max_fps": 30, "interpolation": True,
+                      "interpolation_draw_budget": 0, "interpolation_multi_present": True,
                       "aspect": "auto", "ui_scale": 1, "show_fps": True},
             "input": {"mouse_sensitivity": .15, "mouse_invert_y": True, "mouse_capture": False,
+                      "menu_pointer_speed": 1.25,
                       "stick_sensitivity": 1.5, "stick_invert_x": True, "stick_invert_y": True,
                       "glyph_device": "ps3", "bindings": {"cross": ["K"], "circle": ["L"]}},
         })

@@ -571,12 +571,12 @@ without a guessed migration factor.
 
 Open **Options**, then press **SELECT** (Backspace with the default keyboard bindings), or click **PC SETTINGS** above the list. The original Options page still edits the retail save's options. Its confirm, cancel, reset, and L1/R1 page scrolling are unchanged; returning from PC SETTINGS keeps its cursor and choices.
 
-The PC page uses the game's font and Options artwork. L1/R1 changes tabs, Up/Down selects a row, Left/Right changes a value, and confirm advances a choice or opens binding capture. Cancel returns to Options; Japanese retains its reversed confirm/cancel layout. The mouse can click tabs and value arrows, scroll rows, restore a binding, and return to Options. Hit targets follow aspect ratio, UI scale and window DPI.
+The PC page uses the game's font and Options artwork. Its rows fill the retail Options frame, ten at a time at about the retail list's pitch, with the frame's scroll bar showing the position; the tabs sit on plates above the frame, and a **PC SETTINGS** plate beside the Options heading names the page. The help box word-wraps each description to two lines. L1/R1 changes tabs, Up/Down selects a row, Left/Right changes a value, and confirm advances a choice or opens binding capture. Cancel returns to Options; Japanese retains its reversed confirm/cancel layout. The mouse can click tabs and value arrows, scroll rows, restore a binding, and return to Options. Hit targets follow aspect ratio, UI scale and window DPI.
 
 | Page | Settings |
 |---|---|
-| Display | Windowed/fullscreen, resolution, FIFO/mailbox/immediate, frame cap, interpolation, auto/4:3 aspect, UI scale, FPS counter |
-| Audio | Master volume and PS2/custom soundtrack |
+| Display | Windowed/fullscreen, resolution, FIFO/mailbox/immediate, frame cap, interpolation, interpolation draw budget, interpolated frames (unlimited or 1 per tick), auto/4:3 aspect, UI scale, FPS counter |
+| Audio | Master volume, PS2/custom soundtrack, DualSense speaker and its volume |
 | Controls | Mouse look sensitivity, Y inversion and capture; menu pointer speed; stick sensitivity and X/Y inversion; haptics; button symbols and glyph style; wheel zoom and fixed camera mouse look |
 | Bindings | Keyboard and mouse bindings for pad buttons, movement, look, FPS and debug menu |
 | Game | Autosave, debug mode, skip intro, expanded dungeon monsters, Georama polygon budget (1×–6×; see [PORT_OPTIONS.md](PORT_OPTIONS.md)) |
@@ -589,7 +589,7 @@ Confirm on a binding shows **Press a key...**. Press a key or mouse button; Esca
 
 A failed write shows a warning. Settings still work in the current session. Check the save folder and change a setting to retry. A configuration file that could not be read remains protected against replacement.
 
-`tools/input/pc-settings.input` replays all four tabs, a key rebind, Escape cancellation, and return to retail Options from `--jump town:10 --fast-load`. Its comments give capture frames. `tools/input/pc-settings-mouse.input` exercises clicking and mouse-button capture at `--window 1280x960`. Use fresh save roots and `--screenshot-display 2` for both.
+`tools/input/pc-settings-pages.input` opens every tab at `--window 1920x1080` for layout checks; its comments give capture frames. `tools/input/pc-settings.input` replays the tabs, a key rebind, Escape cancellation, and return to retail Options from `--jump town:10 --fast-load`. Its comments give capture frames. `tools/input/pc-settings-mouse.input` exercises clicking and mouse-button capture at `--window 1280x960`. Use fresh save roots and `--screenshot-display 2` for both.
 
 `tools/input/pc-settings-display.input` checks fullscreen, return to windowed, and resizing in a real window. Start with a fresh config containing a nonzero window size, omit `--window`, and stop at frame 940. The optional `PcSettingsReplay` CTests run the headless pad and mouse flows and assert the saved configuration when `DC2_DATA` is available.
 

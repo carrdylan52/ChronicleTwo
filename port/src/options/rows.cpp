@@ -180,6 +180,10 @@ std::span<const Page> Pages() {
                                                                     "Interpolation draw budget",
                                                                     "Skips tweened frames when a tick exceeds this many draws (0 = off).",
                                                                     {0, 2000, 2400, 2600, 3000, 3500, 4000, 5000, 8000}, 1, "", "Off"),
+                         Choice<&Config::interpolation_multi_present>("video.interpolation_multi_present", "Interpolated frames",
+                                                                      "Unlimited draws tweened frames up to the frame cap.\n"
+                                                                      "1 per tick holds the display near 60 FPS.",
+                                                                      {"1 per tick", "Unlimited"}),
                         Choice<&Config::aspect>("video.aspect", "Aspect ratio", "Auto fills the window. 4:3 adds black side bars.", {"Auto", "4:3"}),
                         Number<&Config::ui_scale>("video.ui_scale", "UI scale", "Scales menus and HUD. Large values can crop the UI.\nUse Left to reduce the scale if it no longer fits.", {0.5, 0.65, 0.75, 0.85, 1, 1.1, 1.25, 1.5}, 100, "%"),
                         Choice<&Config::show_fps>("video.show_fps", "Show FPS", "Shows the display and tick rates in a window.", {"Off", "On"}),
@@ -194,7 +198,7 @@ std::span<const Page> Pages() {
                          Number<&Config::mouse_sensitivity>("input.mouse_sensitivity", "Mouse look sensitivity", "Camera turn per mouse count while walking or aiming.\nMenus use Menu pointer speed.", {.01, .025, .05, .075, .1, .15, .2, .3, .5, .75, 1}),
                          Choice<&Config::mouse_invert_y>("input.mouse_invert_y", "Invert mouse Y", "Reverses vertical mouse look.", {"Off", "On"}),
                          Choice<&Config::mouse_capture>("input.mouse_capture", "Capture mouse", "Keeps the pointer inside the game.\nRelease with a configured mouse-release key.", {"Off", "On"}),
-                         Number<&Config::menu_pointer_speed>("input.menu_pointer_speed", "Menu pointer speed", "How far the menu hand moves per mouse count. 100% is one\nwindow pixel. Camera look uses Mouse look sensitivity.", {.5, .75, 1, 1.25, 1.5, 2, 2.5, 3}, 100, "%"),
+                         Number<&Config::menu_pointer_speed>("input.menu_pointer_speed", "Menu pointer speed", "100% moves the menu hand one window pixel per count.\nCamera look uses Mouse look sensitivity.", {.5, .75, 1, 1.25, 1.5, 2, 2.5, 3}, 100, "%"),
                          Number<&Config::stick_sensitivity>("input.stick_sensitivity", "Stick sensitivity", "Scales controller stick response.", {.5, .75, 1, 1.1, 1.2, 1.33, 1.5, 1.75, 2, 2.5, 3}),
                          Choice<&Config::stick_invert_x>("input.stick_invert_x", "Invert stick X", "Reverses the controller look stick's horizontal axis.", {"Off", "On"}),
                          Choice<&Config::stick_invert_y>("input.stick_invert_y", "Invert stick Y", "Reverses the controller look stick's vertical axis.", {"Off", "On"}),
@@ -223,15 +227,14 @@ std::span<const Page> Pages() {
                                                      {"Off", "On"}),
                          Choice<&Config::expanded_dungeon_monsters>("game.expanded_dungeon_monsters",
                                                                     "Expanded dungeon monsters",
-                                                                    "Raises the active monster cap from 24 to 60 and shows\n"
-                                                                    "all of them in view (retail only keeps the 5 nearest visible).\n"
-                                                                    "Re-enter the floor after changing this.",
+                                                                    "Allows 60 monsters per floor instead of 24, all drawn\n"
+                                                                    "(retail draws the nearest 5). Re-enter to apply.",
                                                                     {"Off", "On"}),
                          []() {
                              Row row{"game.georama_poly_multiplier", "Georama budget",
                                      "Multiplies how many polygons you can place in Georama towns.\n"
                                      "Draw-memory limits stay at retail."};
-                             row.value = [](const Config &c) { return std::format("{}×", c.georama_poly_multiplier); };
+                             row.value = [](const Config &c) { return std::format("{}x", c.georama_poly_multiplier); };
                              row.step = [](Config &c, int direction) {
                                  int next = c.georama_poly_multiplier + direction;
                                  if (next < 1) {
@@ -245,8 +248,8 @@ std::span<const Page> Pages() {
                              return row;
                          }(),
                          Choice<&Config::auto_use_event_item>("game.auto_use_event_item", "Auto-use event items",
-                                                              "Default Off. When On, events that ask for one specific item\n"
-                                                              "you already have skip the item picker grid.",
+                                                              "Events that ask for one specific item you carry\n"
+                                                              "take it without opening the item grid.",
                                                               {"Off", "On"}),
                      }                      },
     };

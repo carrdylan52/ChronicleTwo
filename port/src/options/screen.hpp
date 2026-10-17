@@ -2,27 +2,55 @@
 
 #include <array>
 #include <cstdint>
+#include <functional>
+#include <string>
+#include <string_view>
+#include <vector>
 
 #include "gfx/gfx.hpp"
 
 namespace options {
 
-constexpr int kVisibleRows = 8;
-constexpr int kRowY = 120;
-constexpr int kRowStep = 24;
-// Match option.cfg mnwinback (90..422). Interactive layout stops before mnwin5 at 408.
-constexpr int kLeft = 90;
-constexpr int kRight = 408;
-constexpr int kInnerRight = 422;
-constexpr int kOverlayBottom = 460;
-constexpr int kValueX = 288;
+// The retail Options frame's dark interior, inside its gold border and left of its scroll bar.
+constexpr int kPanelLeft = 72;
+constexpr int kPanelTop = 88;
+constexpr int kPanelRight = 440;
+constexpr int kPanelBottom = 326;
+// Tabs are plates on the parchment above the frame, where the closed page's entry plate sits.
+constexpr int kTabLeft = kPanelLeft;
+constexpr int kTabRight = kPanelRight;
+constexpr int kTabTop = 52;
+constexpr int kTabHeight = 24;
+// Ten rows at about the retail list's pitch fill the frame, so the Display page needs no scrolling.
+constexpr int kVisibleRows = 10;
+constexpr int kRowY = 92;
+constexpr int kRowStep = 23;
+constexpr int kLeft = 78;
+constexpr int kRight = 432;
+constexpr int kValueX = 268;
+// Back and Restore binding sit on the parchment between the frame and the help box.
+constexpr int kButtonTop = 343;
+constexpr int kButtonHeight = 27;
+constexpr int kBackLeft = kPanelLeft;
+constexpr int kBackWidth = 112;
+constexpr int kResetLeft = 272;
+// The help box holds two wrapped description lines above the shortcut line.
+constexpr int kHelpX = 53;
+constexpr int kHelpWidth = 410;
+constexpr int kHelpLines = 2;
+constexpr int kHelpSize = 14;
 constexpr int kMaxPages = 8;
 // Matches port_settings::PcOverlayPageNames() ("Bindings" tab).
 constexpr int kBindingsPage = 3;
 
 inline int TabStep(int page_count) {
-    return page_count > 0 ? (kRight - kLeft) / page_count : 0;
+    return page_count > 0 ? (kTabRight - kTabLeft) / page_count : 0;
 }
+
+// Word-wraps a row description to width. Explicit line breaks are kept when the text then fits in
+// max_lines; otherwise the text reflows as one paragraph. More than max_lines means it does not fit.
+std::vector<std::string> WrapHelp(std::string_view text, int width, int max_lines,
+                                  const std::function<int(std::string_view)> &measure);
 
 struct State {
     bool                       open = false;
