@@ -234,7 +234,7 @@ TEST_F(PlatformConfig, GeoramaPolyMultiplierRoundTripsThroughSerialize) {
 TEST_F(PlatformConfig, InterpolationDrawBudgetDefaultsAndRoundTrips) {
     ASSERT_EQ(Config{}.interpolation_draw_budget, 2400);
     ASSERT_EQ(Config{}.interpolation_fps_floor, 54);
-    ASSERT_FALSE(Config{}.interpolation_multi_present);
+    ASSERT_TRUE(Config{}.interpolation_multi_present);
     Config config;
     config.interpolation_draw_budget = 3000;
     Config parsed = ConfigParse(ConfigSerialize(config));

@@ -501,7 +501,7 @@ Writes are atomic: the file is written as `config.json.tmp` and renamed over `co
 | `video.interpolation` | bool | true | | interpolate display frames between ticks |
 | `video.interpolation_draw_budget` | int | 2200 | 0 or more | when a tick records more mesh+2D draws than this, skip tweened display frames (0 = never skip) |
 | `video.interpolation_fps_floor` | int | 54 | 0 or more | skip tweened frames while rolling present FPS is below this (0 = off) |
-| `video.interpolation_multi_present` | bool | false | | allow multiple tweened presents per tick slice (high-refresh smoothness; costs GPU) |
+| `video.interpolation_multi_present` | bool | true | | present tweened frames as often as `video.max_fps` allows; false allows one per tick slice, about 60 FPS |
 | `video.max_fps` | number | 0 | 0 or more | display frame cap; 0 is unlimited |
 | `video.width` | int | 0 | 0 or more | window width; 0 is the monitor's |
 | `video.height` | int | 0 | 0 or more | window height; 0 is the monitor's |

@@ -20,8 +20,8 @@ struct PresentSettings {
     int interpolation_draw_budget = 0;
     // When rolling present FPS is below this, skip tweened frames until it recovers (0 = off).
     int interpolation_fps_floor = 0;
-    // When false, at most one tweened present per tick wait (better for 60 Hz targets).
-    bool interpolation_multi_present = false;
+    // When false, at most one tweened present per tick wait, about 60 FPS; true lets max_fps pace them.
+    bool interpolation_multi_present = true;
 };
 
 struct PresentStats {
