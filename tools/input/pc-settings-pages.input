@@ -1,6 +1,6 @@
 # --headless --window 1920x1080 --jump town:10 --fast-load; fresh save root.
 # Visits every PC SETTINGS page for layout checks. Capture frames: Display with the
-# draw-budget row selected 840, Audio 920, Controls 1000, Bindings 1080, Game with
+# Interpolation row selected 840, Audio 920, Controls 1000, Bindings 1080, Game with
 # Expanded dungeon monsters selected 1240, Controls scrolled to its last row 1620.
 300 triangle
 301
@@ -24,8 +24,6 @@
 781
 800 down
 801
-820 down
-821
 880 r1
 881
 960 r1

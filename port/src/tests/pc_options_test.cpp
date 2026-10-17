@@ -1,9 +1,13 @@
 #include <gtest/gtest.h>
 
 #include <algorithm>
+#include <array>
+#include <cstring>
 #include <set>
 #include <string>
 
+#include "font.hpp"
+#include "mainloop.hpp"
 #include "options/registry.hpp"
 #include "options/rows.hpp"
 #include "options/screen.hpp"
@@ -15,6 +19,30 @@ int OptionTabCenterX(int page) {
     const int step = options::TabStep(tab_count);
     return options::kTabLeft + page * step + step / 2;
 }
+
+// The game font's measuring code over a synthetic ASCII table, as in font_test.cpp: no disc assets.
+struct AsciiFont {
+    std::array<unsigned char, FONT_TBL_BIN_SIZE> saved{};
+    int                                          language = LanguageCode;
+
+    AsciiFont() {
+        auto *header = reinterpret_cast<FONT_TBL_BIN *>(GetYoyakuTblTop() - 8);
+        std::memcpy(saved.data(), header, saved.size());
+        std::memset(header, 0, sizeof(*header));
+        header->half_font_num = header->yoyaku_num = 94;
+        header->kanji_top_no = 0xffff;
+        for (int i = 0; i < 94; ++i) {
+            GetYoyakuTblTop()[i * 2] = static_cast<std::uint8_t>(i + 0x20);
+            GetYoyakuTblTop()[i * 2 + 1] = 0x20;
+        }
+        LanguageCode = LANG_ENGLISH;
+    }
+
+    ~AsciiFont() {
+        std::memcpy(GetYoyakuTblTop() - 8, saved.data(), saved.size());
+        LanguageCode = language;
+    }
+};
 
 const options::Row &Find(std::string_view key) {
     for (const auto &page : options::Pages()) {
@@ -49,7 +77,6 @@ TEST(PcOptions, RequestedSettingsHaveUniqueRowsAndRoundTripTheirEdits) {
         "video.max_fps",
         "video.interpolation",
         "video.interpolation_draw_budget",
-        "video.interpolation_multi_present",
         "video.aspect",
         "video.ui_scale",
         "video.show_fps",
@@ -187,31 +214,50 @@ TEST(PcOptions, HelpWrapsAtWordsAndKeepsBreaksOnlyWhenTheyFit) {
     EXPECT_TRUE(options::WrapHelp("", 10, 2, chars).empty());
 }
 
-TEST(PcOptions, EveryDescriptionFitsTheHelpBoxsTwoLines) {
-    // The game font's 14-point text averages about 7 units a character; allow 7.4.
-    const auto width = [](std::string_view text) { return static_cast<int>(text.size() * 74 / 10); };
+TEST(PcOptions, EveryDescriptionAndLabelFitsInTheGameFont) {
+    const AsciiFont font;
+    EXPECT_EQ(options::TextWidth("abcd", options::kHelpSize), 4 * options::kHelpSize / 2);
+    const auto width = [](std::string_view text) { return options::TextWidth(text, options::kHelpSize); };
     for (const auto &page : options::Pages()) {
+        EXPECT_LE(options::TextWidth(page.name, 14), options::TabStep(static_cast<int>(options::Pages().size())) - 7)
+            << page.name;
         for (const auto &row : page.rows) {
             EXPECT_LE(options::WrapHelp(row.help, options::kHelpWidth, options::kHelpLines, width).size(),
                       static_cast<std::size_t>(options::kHelpLines))
                 << row.key;
+            EXPECT_LE(options::TextWidth(row.label, 15), options::kValueX - options::kLeft - 15) << row.key;
         }
     }
 }
 
-TEST(PcOptions, DisplayPageFitsWithoutScrolling) {
-    EXPECT_LE(options::Pages()[0].rows.size(), static_cast<std::size_t>(options::kVisibleRows));
+TEST(PcOptions, LayoutStaysInsideTheFrameAndOnScreenAtLargeUiScales) {
+    // 150% UI scale centred on the 512x480 canvas shows y 80-400; tabs and rows must stay there.
+    EXPECT_GE(options::kTabTop, options::kPanelTop);
+    EXPECT_LE(options::kTabTop + options::kTabHeight, options::kRowY);
     EXPECT_LE(options::kRowY + options::kVisibleRows * options::kRowStep, options::kPanelBottom);
-    EXPECT_LE(options::kTabTop + options::kTabHeight, options::kPanelTop);
+    EXPECT_GE(options::kTabTop, 80);
+    EXPECT_LE(options::kButtonTop + options::kButtonHeight, 400);
 }
 
-TEST(PcOptions, InterpolatedFramesRowShowsTheUncappedDefault) {
-    const auto &row = Find("video.interpolation_multi_present");
+TEST(PcOptions, InterpolationRowCombinesTheTweenAndFrameChoices) {
+    const auto &row = Find("video.interpolation");
     Config      config;
-    EXPECT_EQ(row.value(config), "Unlimited");
+    EXPECT_EQ(row.value(config), "Up to frame cap");
     EXPECT_TRUE(options::StepRow(row, config, 1));
+    EXPECT_FALSE(config.interpolation);
+    EXPECT_EQ(row.value(config), "Off");
+    EXPECT_TRUE(options::StepRow(row, config, 1));
+    EXPECT_TRUE(config.interpolation);
     EXPECT_FALSE(config.interpolation_multi_present);
     EXPECT_EQ(row.value(config), "1 per tick");
+    EXPECT_TRUE(options::StepRow(row, config, 1));
+    EXPECT_TRUE(config.interpolation_multi_present);
+    // A config.json written with interpolation off and multi-present off reads as Off.
+    config.interpolation = false;
+    config.interpolation_multi_present = false;
+    EXPECT_EQ(row.value(config), "Off");
+    EXPECT_TRUE(options::StepRow(row, config, -1));
+    EXPECT_EQ(row.value(config), "Up to frame cap");
 }
 
 TEST(PcOptions, BooleanAndEnumChoicesWrapInBothDirections) {

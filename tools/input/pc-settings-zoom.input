@@ -41,8 +41,8 @@
 981
 990 down
 991
-# Window pixels: center (640,480) -> the zoom row's value (1000,620).
-1020 mouse:360,140
+# Window pixels: center (640,480) -> the zoom row's value (1000,600).
+1020 mouse:360,120
 1021
 1060 mouse1
 1061
