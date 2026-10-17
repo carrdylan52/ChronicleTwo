@@ -46,6 +46,8 @@ FrameBudgetAverages PresentFrameBudgetAverages();
 void PresentFrameBudgetResetForTest();
 void PresentFrameBudgetInjectTickForTest(double canonical_seconds, double display_seconds, double other_seconds);
 
+// Whether tweened display frames may run, given the rolling present rate and the last tick's draws.
+bool PresentInterpolationAllowed(const PresentSettings &settings, double present_fps, std::uint32_t last_draws);
 bool                   PresentMouseActive();
 void PresentSetSettings(const PresentSettings &settings);
 const PresentSettings &PresentGetSettings();

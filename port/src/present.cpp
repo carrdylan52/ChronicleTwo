@@ -221,18 +221,7 @@ bool PresentCanonicalFrame() {
 }
 
 bool InterpolationDisplayEnabled() {
-    if (!settings.interpolation) {
-        return false;
-    }
-    if (settings.interpolation_fps_floor > 0 &&
-        overlay.frames.PerSecond() > 0.0 &&
-        overlay.frames.PerSecond() < static_cast<double>(settings.interpolation_fps_floor)) {
-        return false;
-    }
-    if (settings.interpolation_draw_budget > 0 && stats.last_draws > settings.interpolation_draw_budget) {
-        return false;
-    }
-    return true;
+    return PresentInterpolationAllowed(settings, overlay.frames.PerSecond(), stats.last_draws);
 }
 
 bool BetweenTicks(double fraction, Clock::time_point next_tick) {
@@ -274,6 +263,23 @@ bool BetweenTicks(double fraction, Clock::time_point next_tick) {
 }
 
 } // namespace
+
+bool PresentInterpolationAllowed(const PresentSettings &settings, double present_fps, std::uint32_t last_draws) {
+    if (!settings.interpolation) {
+        return false;
+    }
+    // A frame cap below the floor would hold the rate under it and switch tweening off, which
+    // lifts the rate and switches it back on. The cap, not a slow machine, sets that rate.
+    const double floor = settings.interpolation_fps_floor;
+    const bool   capped_below = settings.max_fps > 0 && settings.max_fps < floor;
+    if (floor > 0 && !capped_below && present_fps > 0.0 && present_fps < floor) {
+        return false;
+    }
+    if (settings.interpolation_draw_budget > 0 && last_draws > static_cast<std::uint32_t>(settings.interpolation_draw_budget)) {
+        return false;
+    }
+    return true;
+}
 
 bool PresentMouseActive() {
     return MenuMousePointerVisible() || MouseFixedActive(0);
