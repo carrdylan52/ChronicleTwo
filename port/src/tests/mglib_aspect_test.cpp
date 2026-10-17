@@ -9,6 +9,7 @@
 #include <filesystem>
 #include <initializer_list>
 #include <memory>
+#include <set>
 #include <string>
 #include <vector>
 
@@ -831,6 +832,25 @@ void ExpectSolidPassages(const char *dump) {
         }
         EXPECT_GT(count, 0u) << "shape " << shape;
         EXPECT_EQ(SplitStrokes(rgba, width, height), 0) << "shape " << shape;
+    }
+
+    // At half opacity a one-group passage blends each pixel once: every lit pixel has one colour.
+    for (int shape : {0, 1, 6, 7, 8, 9}) {
+        const std::vector<uint8_t> rgba = DrawFrame(
+            [shape] {
+                FloorMap         map = ZeroFloorMap();
+                DNGMAP_ROOT_INFO root{};
+                root.shape = static_cast<u8>(shape);
+                map->DrawRoot(mgRect<float>(230.0f, 200.0f, 52.0f, 20.0f), &root, 0, 0, 64);
+            },
+            width, height);
+        std::set<uint8_t> reds;
+        for (std::size_t i = 0; i < rgba.size(); i += 4) {
+            if (rgba[i] > 16) {
+                reds.insert(rgba[i]);
+            }
+        }
+        EXPECT_EQ(reds.size(), 1u) << "shape " << shape;
     }
 }
 } // namespace

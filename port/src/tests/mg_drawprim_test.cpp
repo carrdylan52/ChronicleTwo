@@ -3,6 +3,7 @@
 #include <algorithm>
 #include <array>
 #include <cstdint>
+#include <limits>
 #include <span>
 #include <vector>
 
@@ -314,7 +315,7 @@ TEST(MgDrawPrim, LineBandsFillBetweenNonparallelLines) {
         }
     }
     // The band ends one logical pixel past the lines' own minor-axis extent and no further.
-    float bottom = 0.0f;
+    float bottom = std::numeric_limits<float>::lowest();
     for (const gfx::Vertex2D &v : out) {
         bottom = std::max(bottom, v.y);
     }
