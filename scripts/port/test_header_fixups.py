@@ -44,7 +44,7 @@ class UnitFixups(unittest.TestCase):
         self.assertNotIn("(float) mgScreenWidth < rect.left", result)
         self.assertEqual(result.count("PortDngMapVisibleRight()"), 2)
         self.assertEqual(result.count("PortDngMapVisibleBottom()"), 2)
-        self.assertEqual(result.count("mgPortPrimLogicalLines(*prim);"), 1)
+        self.assertEqual(result.count("mgPortPrimLineBands(*prim, 3);"), 1)
         self.assertEqual(result.count("\n"), source.count("\n"))
 
     def test_invent_constructor_emitted_exactly_once(self):

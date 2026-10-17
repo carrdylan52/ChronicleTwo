@@ -57,7 +57,7 @@ struct PrimRun {
     int                        prim_type = MG_PRIM_POINT;
     bool                       packed = false;
     bool                       inherited_texture = false; // Begin2 filled in the retained TEX0/TEX1
-    bool                       logical_lines = false;     // mgPortPrimLogicalLines set it for this run
+    int                        band_lines = 0;            // mgPortPrimLineBands: lines per band, 0 for none
     uint8_t                    color[4] = {0xFF, 0xFF, 0xFF, 0xFF};
     uint8_t                    fog = 0xFF;
     float                      q = 1.0f;
@@ -67,6 +67,7 @@ struct PrimRun {
     float                      v = 0.0f;
     std::vector<gfx::Vertex2D> queue;
     std::vector<gfx::Vertex2D> batch;
+    std::vector<gfx::Vertex2D> band; // endpoints of the band's lines so far
     gfx::Primitive             batch_primitive = gfx::Primitive::Quads;
 };
 
@@ -119,8 +120,11 @@ void FlushBatch(const mgCDrawPrim &self, PrimRun &run) {
     run.batch.clear();
 }
 
+void SubmitBand(const mgCDrawPrim &self, PrimRun &run);
+
 void FlushPending(const mgCDrawPrim *self) {
     if (PrimRun *run = Find(self)) {
+        SubmitBand(*self, *run);
         FlushBatch(*self, *run);
     }
 }
@@ -144,27 +148,75 @@ void Submit(const mgCDrawPrim &self, PrimRun &run, gfx::Primitive primitive, con
     run.batch.insert(run.batch.end(), out, out + count);
 }
 
-// A GS line lights one pixel across its minor axis. With logical_lines that pixel is one logical unit
-// wide, as a quad, so lines retail lays a pixel apart stay joined above the PS2's resolution.
+// Fills the convex hull of the band's lines, each one logical pixel wide across its minor axis as a GS
+// line is at 512x480, so lines retail lays side by side stay one stroke above the PS2's resolution.
+void SubmitBand(const mgCDrawPrim &self, PrimRun &run) {
+    if (run.band.empty()) {
+        return;
+    }
+
+    std::vector<gfx::Vertex2D> points;
+
+    for (std::size_t i = 0; i + 1 < run.band.size(); i += 2) {
+        gfx::Vertex2D a = run.band[i];
+        gfx::Vertex2D b = run.band[i + 1];
+
+        if (self.prim.IIP == 0) {
+            std::copy_n(b.color, 4, a.color);
+        }
+
+        const bool    across_y = std::abs(b.x - a.x) >= std::abs(b.y - a.y);
+        gfx::Vertex2D a_side = a;
+        gfx::Vertex2D b_side = b;
+        (across_y ? a_side.y : a_side.x) += 1.0f;
+        (across_y ? b_side.y : b_side.x) += 1.0f;
+        points.insert(points.end(), {a, b, a_side, b_side});
+    }
+
+    run.band.clear();
+    std::sort(points.begin(), points.end(), [](const gfx::Vertex2D &l, const gfx::Vertex2D &r) {
+        return l.x < r.x || (l.x == r.x && l.y < r.y);
+    });
+    const auto cross = [](const gfx::Vertex2D &o, const gfx::Vertex2D &a, const gfx::Vertex2D &b) {
+        return (a.x - o.x) * (b.y - o.y) - (a.y - o.y) * (b.x - o.x);
+    };
+    // Andrew's monotone chain: the lower hull, then the upper, without collinear points.
+    std::vector<gfx::Vertex2D> hull;
+
+    for (int pass = 0; pass < 2; ++pass) {
+        const std::size_t first = hull.size();
+
+        for (std::size_t n = 0; n < points.size(); ++n) {
+            const gfx::Vertex2D &point = pass == 0 ? points[n] : points[points.size() - 1 - n];
+
+            while (hull.size() >= first + 2 && cross(hull[hull.size() - 2], hull.back(), point) <= 0.0f) {
+                hull.pop_back();
+            }
+
+            hull.push_back(point);
+        }
+
+        hull.pop_back();
+    }
+
+    for (std::size_t i = 1; i + 1 < hull.size(); ++i) {
+        const gfx::Vertex2D triangle[3] = {hull[0], hull[i], hull[i + 1]};
+        Submit(self, run, gfx::Primitive::Triangles, triangle, 3);
+    }
+}
+
 void SubmitLine(const mgCDrawPrim &self, PrimRun &run, const gfx::Vertex2D &a, const gfx::Vertex2D &b) {
-    if (!run.logical_lines) {
+    if (run.band_lines <= 0) {
         const gfx::Vertex2D line[2] = {a, b};
         Submit(self, run, gfx::Primitive::Lines, line, 2);
         return;
     }
 
-    gfx::Vertex2D quad[4] = {a, b, b, a};
+    run.band.insert(run.band.end(), {a, b});
 
-    if (self.prim.IIP == 0) {
-        for (gfx::Vertex2D &corner : quad) {
-            std::copy_n(b.color, 4, corner.color);
-        }
+    if (run.band.size() >= 2 * static_cast<std::size_t>(run.band_lines)) {
+        SubmitBand(self, run);
     }
-
-    const bool across_y = std::abs(b.x - a.x) >= std::abs(b.y - a.y);
-    (across_y ? quad[2].y : quad[2].x) += 1.0f;
-    (across_y ? quad[3].y : quad[3].x) += 1.0f;
-    Submit(self, run, gfx::Primitive::Quads, quad, 4);
 }
 
 void AssembleSprite(const mgCDrawPrim &self, PrimRun &run, const gfx::Vertex2D &a, const gfx::Vertex2D &b) {
@@ -631,9 +683,10 @@ bool mgPortPacketDraw(const void *packet) {
     return true;
 }
 
-void mgPortPrimLogicalLines(mgCDrawPrim &prim) {
+void mgPortPrimLineBands(mgCDrawPrim &prim, int lines) {
     if (PrimRun *run = Find(&prim)) {
-        run->logical_lines = true;
+        SubmitBand(prim, *run);
+        run->band_lines = lines;
     }
 }
 
