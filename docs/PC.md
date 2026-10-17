@@ -499,7 +499,7 @@ Writes are atomic: the file is written as `config.json.tmp` and renamed over `co
 | `game.quick_loadout_title` | string | bar | bar, plate | the quick loadout panel's title on a bar, or on a plate like the EXP gauge's; see [QUICK_LOADOUT.md](QUICK_LOADOUT.md) |
 | `video.present_mode` | string | fifo | fifo, mailbox, immediate | Vulkan present mode |
 | `video.interpolation` | bool | true | | interpolate display frames between ticks |
-| `video.interpolation_draw_budget` | int | 2200 | 0 or more | when a tick records more mesh+2D draws than this, skip tweened display frames (0 = never skip) |
+| `video.interpolation_draw_budget` | int | 0 | 0 or more | when a tick records more mesh+2D draws than this, skip tweened display frames (0 = never skip). Ordinary towns record 2900-4200 draws |
 | `video.interpolation_fps_floor` | int | 54 | 0 or more | skip tweened frames while rolling present FPS is below this (0 = off) |
 | `video.interpolation_multi_present` | bool | true | | present tweened frames as often as `video.max_fps` allows; false allows one per tick slice, about 60 FPS |
 | `video.max_fps` | number | 0 | 0 or more | display frame cap; 0 is unlimited |
