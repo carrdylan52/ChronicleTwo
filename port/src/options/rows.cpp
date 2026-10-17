@@ -5,6 +5,7 @@
 #include <algorithm>
 #include <cmath>
 #include <format>
+#include <string_view>
 #include <type_traits>
 #include <utility>
 
@@ -243,7 +244,8 @@ std::span<const Page> Pages() {
     const auto names = port_settings::PcOverlayPageNames();
     assert(pages.size() == static_cast<std::size_t>(port_settings::PcOverlayPageCount()));
     for (std::size_t i = 0; i < pages.size(); ++i) {
-        assert(pages[i].name == names[i]);
+        // Compare text: lld does not merge equal literals across translation units.
+        assert(std::string_view(pages[i].name) == names[i]);
     }
     return pages;
 }
