@@ -109,6 +109,26 @@ Row Resolution() {
     return row;
 }
 
+// One row for video.interpolation and video.interpolation_multi_present: Off, one tweened frame per
+// tick, or as many as the frame cap allows.
+Row Interpolation() {
+    Row row{"video.interpolation", "Interpolation",
+            "Smooths motion between game ticks. 1 per tick holds the\n"
+            "display near 60 FPS; Up to frame cap follows Frame cap."};
+    static constexpr const char *names[] = {"Off", "1 per tick", "Up to frame cap"};
+    const auto index = [](const Config &c) { return c.interpolation ? (c.interpolation_multi_present ? 2 : 1) : 0; };
+    row.value = [index](const Config &c) { return std::string(names[index(c)]); };
+    row.step = [index](Config &c, int direction) {
+        const int next = (index(c) + direction + 3) % 3;
+        c.interpolation = next != 0;
+        // Off leaves the stored frame choice alone.
+        if (next != 0) {
+            c.interpolation_multi_present = next == 2;
+        }
+    };
+    return row;
+}
+
 std::vector<Row> Bindings() {
     static constexpr const char *labels[] = {
         "D-pad Up",
@@ -175,18 +195,14 @@ std::span<const Page> Pages() {
                         Resolution(),
                         Choice<&Config::present_mode>("video.present_mode", "Present mode", "FIFO prevents tearing. Mailbox keeps the newest frame.\nUnsupported modes fall back to FIFO.", {"FIFO", "Mailbox", "Immediate"}),
                         Number<&Config::max_fps>("video.max_fps", "Frame cap", "Limits display frames, not game speed.", {0, 30, 50, 60, 75, 90, 100, 120, 144, 165, 180, 240, 360}, 1, " FPS", "Unlimited"),
-                         Choice<&Config::interpolation>("video.interpolation", "Interpolation", "Smooths display frames between game ticks.", {"Off", "On"}),
-                         Number<&Config::interpolation_draw_budget>("video.interpolation_draw_budget",
-                                                                    "Interpolation draw budget",
-                                                                    "Skips tweened frames when a tick exceeds this many draws (0 = off).",
-                                                                    {0, 2000, 2400, 2600, 3000, 3500, 4000, 5000, 8000}, 1, "", "Off"),
-                         Choice<&Config::interpolation_multi_present>("video.interpolation_multi_present", "Interpolated frames",
-                                                                      "Unlimited draws tweened frames up to the frame cap.\n"
-                                                                      "1 per tick holds the display near 60 FPS.",
-                                                                      {"1 per tick", "Unlimited"}),
+                        Interpolation(),
                         Choice<&Config::aspect>("video.aspect", "Aspect ratio", "Auto fills the window. 4:3 adds black side bars.", {"Auto", "4:3"}),
                         Number<&Config::ui_scale>("video.ui_scale", "UI scale", "Scales menus and HUD. Large values can crop the UI.\nUse Left to reduce the scale if it no longer fits.", {0.5, 0.65, 0.75, 0.85, 1, 1.1, 1.25, 1.5}, 100, "%"),
                         Choice<&Config::show_fps>("video.show_fps", "Show FPS", "Shows the display and tick rates in a window.", {"Off", "On"}),
+                        // A performance limit for slow machines; most players never change it.
+                        Number<&Config::interpolation_draw_budget>("video.interpolation_draw_budget", "Interpolation draw budget",
+                                                                   "Skips tweened frames when a tick records more draws than this.",
+                                                                   {0, 2000, 2400, 2600, 3000, 3500, 4000, 5000, 8000}, 1, "", "Off"),
                     }  },
         {"Audio",    {
                       Number<&Config::master_volume>("audio.master_volume", "Master volume", "Adjusts all sound, including music and movies.", {0, .05, .1, .15, .2, .25, .3, .35, .4, .45, .5, .55, .6, .65, .7, .75, .8, .85, .9, .95, 1}, 100, "%"),

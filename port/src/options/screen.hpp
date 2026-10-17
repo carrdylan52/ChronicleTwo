@@ -16,25 +16,30 @@ constexpr int kPanelLeft = 72;
 constexpr int kPanelTop = 88;
 constexpr int kPanelRight = 440;
 constexpr int kPanelBottom = 326;
-// Tabs are plates on the parchment above the frame, where the closed page's entry plate sits.
-constexpr int kTabLeft = kPanelLeft;
-constexpr int kTabRight = kPanelRight;
-constexpr int kTabTop = 52;
-constexpr int kTabHeight = 24;
-// Ten rows at about the retail list's pitch fill the frame, so the Display page needs no scrolling.
-constexpr int kVisibleRows = 10;
-constexpr int kRowY = 92;
-constexpr int kRowStep = 23;
+// The tabs head the frame's interior, so they stay on screen at every offered UI scale.
+constexpr int kTabLeft = 78;
+constexpr int kTabRight = 432;
+constexpr int kTabTop = 92;
+constexpr int kTabHeight = 22;
+// Rows use the retail list's 24-unit pitch; longer pages scroll as the retail list does.
+constexpr int kVisibleRows = 8;
+constexpr int kRowY = 120;
+constexpr int kRowStep = 24;
 constexpr int kLeft = 78;
 constexpr int kRight = 432;
 constexpr int kValueX = 268;
-// Back and Restore binding sit on the parchment between the frame and the help box.
+// The frame's scroll bar, inside its right-hand border.
+constexpr int kScrollX = 446;
+constexpr int kScrollTop = 88;
+constexpr int kScrollHeight = 237;
+// Back, the shortcut plate and Restore binding sit on the parchment between the frame and the help box.
 constexpr int kButtonTop = 343;
 constexpr int kButtonHeight = 27;
 constexpr int kBackLeft = kPanelLeft;
-constexpr int kBackWidth = 112;
-constexpr int kResetLeft = 272;
-// The help box holds two wrapped description lines above the shortcut line.
+constexpr int kBackWidth = 104;
+constexpr int kHintLeft = kBackLeft + kBackWidth + 6;
+constexpr int kResetLeft = kHintLeft;
+// The help box holds two wrapped description lines, as the retail one does.
 constexpr int kHelpX = 53;
 constexpr int kHelpWidth = 410;
 constexpr int kHelpLines = 2;
@@ -51,6 +56,8 @@ inline int TabStep(int page_count) {
 // max_lines; otherwise the text reflows as one paragraph. More than max_lines means it does not fit.
 std::vector<std::string> WrapHelp(std::string_view text, int width, int max_lines,
                                   const std::function<int(std::string_view)> &measure);
+// Width of text in the game font at a PC page point size.
+int TextWidth(std::string_view text, int size);
 
 struct State {
     bool                       open = false;
