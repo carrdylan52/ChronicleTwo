@@ -1059,10 +1059,12 @@ mgCTexture *Image(Document &document, std::size_t texture_index, mgCMemory &memo
  * position index followed by its normal, uv and colour indices), in the layout retail's
  * mgCShadowMDT::CreateFace builds and mgCShadowMDT's draw reads: vertex_num triangles of three position
  * indices, index_stride 3. Retail only draws triangle lists; any other primitive is left with no triangles.
- * The indices are compacted in place, so the model's memory estimate is unchanged.
+ * The indices are compacted in place, so the model's memory estimate is unchanged. The groups take retail's
+ * shadow microprogram, which marks the layout for HasShadowFaces.
  */
 void ShadowFaces(mgCVisualMDT &visual) {
     for (auto *group = visual.face_group; group; group = group->next) {
+        group->vu_program = MG_VU_PROG_SHADOW;
         for (auto *face = group->face; face; face = face->next) {
             const int  stride = face->index_stride;
             const bool triangles = (face->type & MG_FACE_PRIM_MASK) == MG_PRIM_TRIANGLE;
@@ -1075,6 +1077,11 @@ void ShadowFaces(mgCVisualMDT &visual) {
             face->index_num = static_cast<short>(count * 3);
         }
     }
+}
+
+// Whether ShadowFaces rewrote the visual's faces; the visual face builder cannot read them.
+bool HasShadowFaces(const mgCVisualMDT &visual) {
+    return visual.face_group != nullptr && visual.face_group->vu_program == MG_VU_PROG_SHADOW;
 }
 
 /**
@@ -1856,13 +1863,15 @@ mgCFrame *Instantiate(const std::shared_ptr<Document> &document, mgLoadData &loa
             if (type == MG_VISUAL_CREATE_MOTION_MDT) {
                 static_cast<mgCVisualMotionMDT *>(visual)->SetBaseBox(maximum, minimum);
             }
-            for (auto *group = visual->face_group; group; group = group->next) {
-                for (auto *face = group->face; face; face = face->next) {
-                    mgVisualPortRefreshFace(visual, face);
-                }
-            }
+            // A shadow is drawn from its faces in the shadow pass only, so it has no face meshes to build.
             if (type == MG_VISUAL_CREATE_SHADOW_MDT || type == MG_VISUAL_CREATE_SHADOW_FIX_MDT) {
                 ShadowFaces(*visual);
+            } else {
+                for (auto *group = visual->face_group; group; group = group->next) {
+                    for (auto *face = group->face; face; face = face->next) {
+                        mgVisualPortRefreshFace(visual, face);
+                    }
+                }
             }
         }
         std::vector<int> parents(frames.size(), -1);
@@ -3352,9 +3361,11 @@ bool ApplyChannel(mgCFrame &root, float from, float to, float blend, Mot_List &c
                 }
             }
         }
-        for (auto *group = visual->face_group; group; group = group->next) {
-            for (auto *face = group->face; face; face = face->next) {
-                mgVisualPortRefreshFace(visual, face);
+        if (!HasShadowFaces(*visual)) {
+            for (auto *group = visual->face_group; group; group = group->next) {
+                for (auto *face = group->face; face; face = face->next) {
+                    mgVisualPortRefreshFace(visual, face);
+                }
             }
         }
         return true;
