@@ -228,6 +228,64 @@ TEST_F(NativeModel, CharacterTextureOwnershipDoesNotSkipDeletedReinitializedOrSu
     textures.Initialize(0x1000, -1);
 }
 
+TEST_F(NativeModel, StaleCharacterImagesKeepAnotherModelsSameNamedTexture) {
+    // The item menu's Ridepod rider and Max's hat share one character slot: the rider's face set must not delete
+    // the face Max entered under the same name after the block was cleared and the slot reinitialised.
+    Json model = game;
+    model["texture_sets"] = {0};
+    model["meshes"][0]["materials"][0]["texture"] = "shared";
+    const Json resource{
+        {"type",  "resource"},
+        {"kind",  "model"   },
+        {"index", 0         }
+    };
+    const Json textures_document{
+        {"schema_version", 3                                                                                                            },
+        {"groups",         {0}                                                                                                          },
+        {"entries",        Json::array({{{"name", "shared"}, {"pictures", Json::array({{{"canvas", {{"width", 2}, {"height", 2}}}}})}}})}
+    };
+    game = {
+        {"schema_version",  1                                                                                                   },
+        {"kind",            "character"                                                                                         },
+        {"default_profile", "info"                                                                                              },
+        {"models",          Json::array({model})                                                                                },
+        {"resources",       {{"texture_sets", Json::array({{{"document", textures_document}}})}}                                },
+        {"profiles",        {{"info", {{"commands", Json::array({{{"command", "MODEL"}, {"args", Json::array({resource})}}})}}}}}
+    };
+    Write(directory / "port_data/models/model.gltf", gltf);
+    Write(directory / "port_data/models/other.gltf", gltf);
+    Write(directory / "port_data/models/other.game.json", game);
+    std::vector<u_long128> texture_storage(4096);
+    mgCMemory              texture_memory;
+    mgCTextureManager      textures;
+    texture_memory.stSetBuffer(texture_storage.data(), static_cast<int>(texture_storage.size()));
+    textures.SetTableBuffer(8, 8, &texture_memory);
+    textures.Initialize(0x1000, -1);
+    std::strcpy(textures.name_suffix, "_menu");
+    CCharacter2                        rider;
+    CCharacter2                        max;
+    model_assets::CharacterLoadOptions options{&memory, &memory, &memory, &textures, nullptr, 2, false};
+    std::string                        error;
+    rider.Initialize();
+    memory.stReset();
+    ASSERT_TRUE(model_assets::LoadCharacter(rider, "models/other.gltf", "info", options, error)) << error;
+    textures.DeleteBlock(2);
+    rider.Initialize();
+    max.Initialize();
+    ASSERT_TRUE(model_assets::LoadCharacter(max, "models/model.gltf", "info", options, error)) << error;
+    char name[] = "shared_menu";
+    textures.name_suffix[0] = 0;
+    auto *face = textures.GetTexture(name, 2);
+    ASSERT_NE(face, nullptr);
+    EXPECT_EQ(max.GetFrame()->visual->GetMaterial(0)->texture, face);
+    model_assets::DeleteCharacterTextures(rider, 0, 0);
+    EXPECT_EQ(textures.GetTexture(name, 2), face);
+    EXPECT_EQ(max.GetFrame()->visual->GetMaterial(0)->texture, face);
+    model_assets::DeleteCharacterTextures(max, 0, 0);
+    EXPECT_EQ(textures.GetTexture(name, 2), nullptr);
+    textures.Initialize(0x1000, -1);
+}
+
 TEST_F(NativeModel, MenuCostumeArenaUsesActualNativeCountsInsteadOfRetailPartitionSize) {
     Json model = game;
     model["meshes"][0]["vertex_count"] = 20000;
