@@ -22,7 +22,8 @@ if(NOT EXISTS ${KZ_ROOT}/include/kazarov/port.h)
     message(FATAL_ERROR "${KZ_ROOT} is empty: run git submodule update --init tools/kazarov")
 endif()
 
-# One version source is shared by the publisher and native runtime.
+# One version source is shared by the publisher and native runtime; a change reconfigures, so both see it.
+set_property(DIRECTORY APPEND PROPERTY CMAKE_CONFIGURE_DEPENDS ${KZ_ROOT}/data_version.json)
 file(READ ${KZ_ROOT}/data_version.json KZ_DATA_VERSION_JSON)
 string(JSON KZ_DATA_SCHEMA_VERSION GET "${KZ_DATA_VERSION_JSON}" schema_version)
 string(JSON KZ_DATA_VERSION GET "${KZ_DATA_VERSION_JSON}" data_version)
