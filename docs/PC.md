@@ -1018,6 +1018,7 @@ Draws are recorded into display lists (see "Ticks and display frames").
 - The full-frame rule that fills the flanks samples with clamped wrap, so a repeating texture shows no seam line at the frame's edges.
 - Copies of the frame (`mgSetPkMoveImage`: the heat haze in `sceneevent.cpp`, `map.cpp`'s screen, menu grabs) go to frame targets as 1:1 logical copies, so a grab is as wide as the window.
 - Culls: `mgPortVisibleExtent()` (`gfx::VisibleLogicalRect` of the current target, in screen units, with centred half extents and GS coordinates) replaces retail's 256/240 half extents in `mgCFrame::GetDrawRect` (`mg_frame_asm.cpp`). It also replaces them in `mgRENDER_INFO::screen_box_min`/`max`, which retail's `SetRenderInfo` sets from the screen size. `mgSetRenderInfo` is overridden to widen them, and `mgBeginFrame` refreshes them every game frame, since the window can change shape between scenes. `mgCFrame::Draw`'s `mgClipBoxW` reads them. A mesh at logical x = -40 is drawn at 16:9 and culled at 4:3 (`MglibAspect.*`). The GS guard band (2048) is unchanged.
+- The dungeon floor map culls its rooms and passages at the visible extent's right and bottom edges, so floors in a wide window's flanks are drawn (`MglibAspect.FloorMap*`). Retail draws each passage as three 1-pixel GS lines a pixel apart; `mgPortPrimLogicalLines` makes a builder draw its lines one logical pixel wide across the minor axis, as quads, so the three stay one band above 512x480 instead of splitting into three thin lines. Other lines keep one output pixel.
 - A layout change (`video.aspect`, `video.ui_scale`) is applied from the pump outside a recording.
 - `--window WxH` sets the window size (headless: the offscreen image's).
 - Config keys: `video.interpolation` (`true`), `video.max_fps` (`0`), `video.present_mode` (`fifo`, `mailbox` or `immediate`), `video.aspect` (`auto` or `4:3`), `video.ui_scale` (`1`), `video.show_fps`, `video.fps_detail`.
@@ -1241,6 +1242,7 @@ Each fixup's text must occur exactly once in its file, or the script stops befor
 - `dng_debug.cpp`: `CTreasureBox::Initialize()` becomes `inline`. `CTreasureBox`'s vtable becomes COMDAT with it.
 
 - `inventmn.cpp`: the native copy removes `inline` from `CMenuInvent::CMenuInvent()` so callers in other units have one emitted constructor. Retail source retains its original spelling.
+- `dngmenu.cpp`: `CDngFreeMap::DrawRoomOne` and `DrawRoot` cull at `PortDngMapVisibleRight`/`PortDngMapVisibleBottom` (the visible extent, `port/src/dngmenu.cpp`) instead of 512/480, and `DrawRoot` calls `mgPortPrimLogicalLines` after its line `Begin` (see "Window aspect").
 
 Each unit fixup's text must also occur exactly once; missing, duplicate and already-transformed constructor text is rejected by `NativeUnitFixups`.
 

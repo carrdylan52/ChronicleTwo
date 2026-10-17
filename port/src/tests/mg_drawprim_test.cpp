@@ -260,6 +260,55 @@ TEST(MgDrawPrim, LineStripExpandsToLines) {
     EXPECT_EQ(Rgba(l[3]), (std::array<uint8_t, 4>{0, 0, 255, 255}));
 }
 
+TEST(MgDrawPrim, LogicalLinesAreOneLogicalPixelAcrossTheMinorAxis) {
+    PrimRig rig;
+    rig.prim.Coord(1);
+    rig.prim.Begin(MG_PRIM_LINE);
+    mgPortPrimLogicalLines(rig.prim);
+    rig.prim.Color(255, 0, 0, 255);
+    rig.prim.Vertex(0.0f, 0.0f, 0.0f);
+    rig.prim.Color(0, 255, 0, 255);
+    rig.prim.Vertex(10.0f, 4.0f, 0.0f);
+    rig.prim.Vertex(10.0f, 0.0f, 0.0f);
+    rig.prim.Color(0, 0, 255, 255);
+    rig.prim.Vertex(6.0f, 10.0f, 0.0f);
+    rig.prim.End2();
+
+    ASSERT_EQ(rig.batches.size(), 1u);
+    EXPECT_EQ(rig.batches[0].primitive, gfx::Primitive::Quads);
+    const std::vector<gfx::Vertex2D> &q = rig.batches[0].vertices;
+    ASSERT_EQ(q.size(), 8u);
+    // A shallow line widens down one pixel, a steep one right one pixel.
+    ExpectAt(q[0], 0.0f, 0.0f);
+    ExpectAt(q[1], 10.0f, 4.0f);
+    ExpectAt(q[2], 10.0f, 5.0f);
+    ExpectAt(q[3], 0.0f, 1.0f);
+    ExpectAt(q[4], 10.0f, 0.0f);
+    ExpectAt(q[5], 6.0f, 10.0f);
+    ExpectAt(q[6], 7.0f, 10.0f);
+    ExpectAt(q[7], 11.0f, 0.0f);
+    // Flat shading keeps each line's second colour.
+    for (int i = 0; i < 4; ++i) {
+        EXPECT_EQ(Rgba(q[i]), (std::array<uint8_t, 4>{0, 255, 0, 255}));
+        EXPECT_EQ(Rgba(q[i + 4]), (std::array<uint8_t, 4>{0, 0, 255, 255}));
+    }
+}
+
+TEST(MgDrawPrim, LogicalLinesLastUntilTheNextBegin) {
+    PrimRig rig;
+    rig.prim.Coord(1);
+    rig.prim.Begin(MG_PRIM_LINE);
+    mgPortPrimLogicalLines(rig.prim);
+    rig.prim.End();
+    rig.prim.Begin(MG_PRIM_LINE);
+    rig.prim.Vertex(0.0f, 0.0f, 0.0f);
+    rig.prim.Vertex(10.0f, 0.0f, 0.0f);
+    rig.prim.End2();
+
+    ASSERT_EQ(rig.batches.size(), 1u);
+    EXPECT_EQ(rig.batches[0].primitive, gfx::Primitive::Lines);
+}
+
 TEST(MgDrawPrim, PackedDataIsIgnored) {
     PrimRig rig;
     rig.prim.Begin2();

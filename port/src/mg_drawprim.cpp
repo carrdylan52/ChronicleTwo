@@ -57,6 +57,7 @@ struct PrimRun {
     int                        prim_type = MG_PRIM_POINT;
     bool                       packed = false;
     bool                       inherited_texture = false; // Begin2 filled in the retained TEX0/TEX1
+    bool                       logical_lines = false;     // mgPortPrimLogicalLines set it for this run
     uint8_t                    color[4] = {0xFF, 0xFF, 0xFF, 0xFF};
     uint8_t                    fog = 0xFF;
     float                      q = 1.0f;
@@ -143,6 +144,29 @@ void Submit(const mgCDrawPrim &self, PrimRun &run, gfx::Primitive primitive, con
     run.batch.insert(run.batch.end(), out, out + count);
 }
 
+// A GS line lights one pixel across its minor axis. With logical_lines that pixel is one logical unit
+// wide, as a quad, so lines retail lays a pixel apart stay joined above the PS2's resolution.
+void SubmitLine(const mgCDrawPrim &self, PrimRun &run, const gfx::Vertex2D &a, const gfx::Vertex2D &b) {
+    if (!run.logical_lines) {
+        const gfx::Vertex2D line[2] = {a, b};
+        Submit(self, run, gfx::Primitive::Lines, line, 2);
+        return;
+    }
+
+    gfx::Vertex2D quad[4] = {a, b, b, a};
+
+    if (self.prim.IIP == 0) {
+        for (gfx::Vertex2D &corner : quad) {
+            std::copy_n(b.color, 4, corner.color);
+        }
+    }
+
+    const bool across_y = std::abs(b.x - a.x) >= std::abs(b.y - a.y);
+    (across_y ? quad[2].y : quad[2].x) += 1.0f;
+    (across_y ? quad[3].y : quad[3].x) += 1.0f;
+    Submit(self, run, gfx::Primitive::Quads, quad, 4);
+}
+
 void AssembleSprite(const mgCDrawPrim &self, PrimRun &run, const gfx::Vertex2D &a, const gfx::Vertex2D &b) {
     auto corner = [&b](float x, float y, float u, float v) {
         gfx::Vertex2D out = b;
@@ -213,7 +237,7 @@ void Assemble(const mgCDrawPrim &self, PrimRun &run, const gfx::Vertex2D &vertex
             queue.push_back(vertex);
 
             if (queue.size() == 2) {
-                Submit(self, run, gfx::Primitive::Lines, queue.data(), 2);
+                SubmitLine(self, run, queue[0], queue[1]);
                 queue.clear();
             }
 
@@ -222,7 +246,7 @@ void Assemble(const mgCDrawPrim &self, PrimRun &run, const gfx::Vertex2D &vertex
             queue.push_back(vertex);
 
             if (queue.size() == 2) {
-                Submit(self, run, gfx::Primitive::Lines, queue.data(), 2);
+                SubmitLine(self, run, queue[0], queue[1]);
                 queue.erase(queue.begin());
             }
 
@@ -605,6 +629,12 @@ bool mgPortPacketDraw(const void *packet) {
     const std::function<void()> draw = it->second;
     draw();
     return true;
+}
+
+void mgPortPrimLogicalLines(mgCDrawPrim &prim) {
+    if (PrimRun *run = Find(&prim)) {
+        run->logical_lines = true;
+    }
 }
 
 void mgPortPrimSubmit(mgCDrawPrim &prim, gfx::Primitive primitive, std::span<const gfx::Vertex2D> vertices) {

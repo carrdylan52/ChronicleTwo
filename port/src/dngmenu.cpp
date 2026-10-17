@@ -5,10 +5,21 @@
 #include "memcard.hpp"
 #include "menumain.hpp"
 #include "menuop.hpp"
+#include "mglib_port.hpp"
 
 extern CDngFreeMap  *TreeDngMap asm("MenuMouse_DngMap");
 extern CMenuTreeMap *TreeMap asm("MenuMouse_Tree");
 extern short         TreeMode asm("MenuMouse_TreeMode");
+
+// Retail culls floor-map rooms and passages past its 512x480 screen. The unit fixups cull them at the
+// visible extent instead, so the floors in a wide window's flanks are drawn.
+float PortDngMapVisibleRight() {
+    return mgPortVisibleExtent().right;
+}
+
+float PortDngMapVisibleBottom() {
+    return mgPortVisibleExtent().bottom;
+}
 
 // Retail opens the floor map with no room under the cursor when the saved floor has no room cell and
 // no floor is marked. Its step then reads the floor of that NULL cell (the debug flag editor at once,

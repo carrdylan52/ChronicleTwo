@@ -5,8 +5,10 @@
 #include <algorithm>
 #include <array>
 #include <cstdint>
+#include <cstdlib>
 #include <filesystem>
 #include <initializer_list>
+#include <memory>
 #include <string>
 #include <vector>
 
@@ -23,6 +25,12 @@
 #include "mglib_port.hpp"
 #include "platform/clock.hpp"
 #include "platform/window.hpp"
+
+// dngmenu.hpp brings libgraph.h, whose register macros must follow the host and test headers.
+// clang-format off
+#include "dngfloor.hpp"
+#include "dngmenu.hpp"
+// clang-format on
 
 using namespace dc::test;
 
@@ -628,4 +636,53 @@ TEST(MglibAspect, OptionsAndHelpBackdropContinueArtworkAt3840x2160) {
 
 TEST(MglibAspect, OptionsAndHelpFlanksFollowVerticalSlide) {
     ExpectMenuBackdropContinuation(1920, 1080, 3, {-480, -240, 80, 240, 480});
+}
+
+namespace {
+struct FreeDeleter {
+    void operator()(void *p) const {
+        std::free(p);
+    }
+};
+
+// Vertices the floor map's room and passage draws emit for a cell at logical (x, 200).
+std::size_t FloorMapCellVertices(float x) {
+    mgCMemory      memory;
+    sceVif1Packet  packet{};
+    mgRENDER_INFO  info{};
+    mgCDrawManager manager;
+    manager.render_info = &info;
+    mgCDrawPrim *prim = GetMenuPrim();
+    prim->draw_manager = &manager;
+    prim->Initialize(&memory, &packet);
+    prim->write = nullptr;
+
+    // A zeroed map is in menu mode with no textures, user or marks.
+    std::unique_ptr<CDngFreeMap, FreeDeleter> map(static_cast<CDngFreeMap *>(std::calloc(1, sizeof(CDngFreeMap))));
+    DNGMAP_ROOM_INFO                          room{};
+    DNGMAP_ROOT_INFO                          root{};
+    std::size_t                               count = 0;
+    mgPortSetPrimSink([&](gfx::Primitive, std::span<const gfx::Vertex2D> vertices, const gfx::TextureBinding &,
+                          const gfx::DrawState &) { count += vertices.size(); });
+    const mgRect<float> cell(x, 200.0f, 52.0f, 20.0f);
+    map->DrawRoomOne(cell, &room, 0, 128, 1.0f);
+    map->DrawRoot(cell, &root, 0, 0, 128);
+    mgPortSetPrimSink({});
+    prim->Initialize(nullptr, nullptr);
+    prim->draw_manager = nullptr;
+    return count;
+}
+} // namespace
+
+// Retail culls a room past x = 532 and a passage past x = 512; a wide window shows both.
+TEST(MglibAspect, FloorMapDrawsCellsInTheFlanks) {
+    AspectRenderer renderer(1280, 720);
+    ASSERT_GT(mgPortVisibleExtent().right, 590.0f);
+    EXPECT_GT(FloorMapCellVertices(560.0f), 0u);
+}
+
+TEST(MglibAspect, FloorMapCullsCellsPastTheFourThreeScreen) {
+    AspectRenderer renderer(1024, 768);
+    EXPECT_GT(FloorMapCellVertices(500.0f), 0u);
+    EXPECT_EQ(FloorMapCellVertices(560.0f), 0u);
 }

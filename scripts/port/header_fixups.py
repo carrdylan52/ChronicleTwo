@@ -107,6 +107,13 @@ UNIT_FIXUPS = [
     printf("data memory size = %d kbyte", (data_size - 210128) * 16 / 1024);""",
      """    TotalDataBuff.stSetBuffer(&main_stack->stack[main_stack->stack_used], data_size - 270128);
     printf("data memory size = %d kbyte", (data_size - 270128) * 16 / 1024);"""),
+    # The floor map culls rooms and passages at the visible extent rather than retail's 512x480 screen.
+    ("dngmenu.cpp", "if (root == NULL || (float) mgScreenWidth < rect.left || rect.top > (float) (mgScreenHeight + 20)) {",
+     "if (root == NULL || PortDngMapVisibleRight() < rect.left || rect.top > PortDngMapVisibleBottom() + 20.0f) {"),
+    ("dngmenu.cpp", "if (room == NULL || rect.left > (float) (mgScreenWidth + 20) || rect.top > (float) (mgScreenHeight + 30)) {",
+     "if (room == NULL || rect.left > PortDngMapVisibleRight() + 20.0f || rect.top > PortDngMapVisibleBottom() + 30.0f) {"),
+    # A passage is three GS lines a pixel apart; drawn one logical pixel wide, they stay one band at any size.
+    ("dngmenu.cpp", "prim->Begin(MG_PRIM_LINE);", "prim->Begin(MG_PRIM_LINE); mgPortPrimLogicalLines(*prim);"),
     # Geostone announcement updates and draws reserve eight nullable message slots.
     ("editmenu.cpp", "static CDC2Mes *DownLoadMes[6];", "static CDC2Mes *DownLoadMes[8];"),
     ("editloop.cpp", """    main_stack->Alloc(data_size - 210128);
