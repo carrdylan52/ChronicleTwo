@@ -2,10 +2,12 @@
 
 ## Published representation
 
-Kazarov's Rust extractor owns proprietary asset decoding. Data version 9
+Kazarov's Rust extractor owns proprietary asset decoding. Since data version 9 it
 publishes native assets and the retained retail files together in one archive,
 `data.zip` ([format](PORT_ARCHIVE_FORMAT.md)), and leaves out their substituted
-originals. The PS2 source and include trees remain unchanged.
+originals. The PS2 source and include trees remain unchanged. The current version is in
+`tools/kazarov/data_version.json`; version 11 binds models' canvas textures to their own
+map's, so an older extraction is rejected and re-extracted.
 
 | Retail asset | Published representation |
 | --- | --- |
