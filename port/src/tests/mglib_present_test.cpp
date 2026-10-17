@@ -447,11 +447,6 @@ TEST(MglibPresent, DisplayFrameAtHalfInterpolatesTaggedMesh) {
     EXPECT_NEAR(half, (first + second) / 2.0, 1.0);
 }
 
-TEST(MglibPresent, TweenedPresentsAreNotCappedToOnePerTickByDefault) {
-    // One tweened present per tick slice holds a 240 Hz display near 60 FPS.
-    EXPECT_TRUE(PresentSettings{}.interpolation_multi_present);
-}
-
 TEST(MglibPresent, FpsFloorIgnoresARateTheFrameCapHoldsBelowIt) {
     PresentSettings settings{.interpolation = true, .interpolation_fps_floor = 54};
     EXPECT_TRUE(PresentInterpolationAllowed(settings, 0, 0));

@@ -117,7 +117,7 @@ TEST(PcOptions, CustomNumbersMoveToAdjacentPresetsWithoutChangingOtherSettings) 
 }
 
 TEST(PcOptions, NumbersShowPlainDecimalsWithoutExponents) {
-    Config config;
+    Config      config;
     const auto &budget = Find("video.interpolation_draw_budget");
     config.interpolation_draw_budget = 0;
     EXPECT_EQ(budget.value(config), "Off");
