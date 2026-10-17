@@ -165,6 +165,19 @@ TEST(PcOptions, NumbersShowPlainDecimalsWithoutExponents) {
     EXPECT_EQ(Find("input.stick_sensitivity").value(config), "0.0004");
     config.max_fps = 137.5;
     EXPECT_EQ(Find("video.max_fps").value(config), "137.5 FPS");
+    // Magnitudes a plain decimal cannot show in six digits use the exponent form, never 0.
+    config.mouse_sensitivity = 1e-16f;
+    EXPECT_EQ(Find("input.mouse_sensitivity").value(config), "1e-16");
+    config.mouse_sensitivity = 1e-30f;
+    EXPECT_EQ(Find("input.mouse_sensitivity").value(config), "1e-30");
+    config.stick_sensitivity = 1.23456e-12f;
+    EXPECT_EQ(Find("input.stick_sensitivity").value(config), "1.23456e-12");
+    config.stick_sensitivity = .000001f;
+    EXPECT_EQ(Find("input.stick_sensitivity").value(config), "0.000001");
+    config.max_fps = 1e30;
+    EXPECT_EQ(Find("video.max_fps").value(config), "1e+30 FPS");
+    config.max_fps = 123456789012.0;
+    EXPECT_EQ(Find("video.max_fps").value(config), "123456789012 FPS");
     config.stick_sensitivity = 1.33f;
     EXPECT_EQ(Find("input.stick_sensitivity").value(config), "1.33");
     config.ui_scale = .65f;

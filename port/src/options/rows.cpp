@@ -36,14 +36,19 @@ Row Choice(const char *key, const char *label, const char *help, std::vector<std
     return row;
 }
 
-// Six significant digits written as a plain decimal: 2400, 0.025, 0.0001, 95. Never an exponent,
-// and a small hand-edited value is not rounded to 0.
+// Six significant digits: a plain decimal from 0.000001 to below 1e12 (2400, 0.025, 95), and
+// the compact exponent form beyond that (1e-16, 1e+30), so no nonzero value ever reads as 0.
 std::string NumberText(double n) {
     if (n == 0 || !std::isfinite(n)) {
         return n == 0 ? "0" : std::format("{}", n);
     }
-    const int   magnitude = static_cast<int>(std::floor(std::log10(std::abs(n))));
-    const int   places = std::clamp(5 - magnitude, 0, 15);
+    // The exponent after rounding to six digits, so 9.99999997e-07 counts as 1e-06.
+    const std::string scientific = std::format("{:.5e}", n);
+    const int         magnitude = std::stoi(scientific.substr(scientific.find('e') + 1));
+    if (magnitude < -6 || magnitude > 11) {
+        return std::format("{:.6g}", n);
+    }
+    const int   places = std::max(0, 5 - magnitude);
     std::string text = std::format("{:.{}f}", n, places);
     if (text.find('.') != std::string::npos) {
         text.erase(text.find_last_not_of('0') + 1);
