@@ -98,7 +98,9 @@ void MovePointer(MenuMouseSample &point, float dx, float dy) {
     const auto extent = mgPortVisibleExtent(gfx::kMainTarget);
     float      left = extent.left, top = extent.top, right = extent.right, bottom = extent.bottom;
     // Menu pointer speed scales only this hand; camera mouse look keeps input.mouse_sensitivity.
-    const float speed = ConfigGet().menu_pointer_speed;
+    // An uncaptured hand follows the desktop cursor 1:1, so it can reach every edge the cursor can.
+    const auto &config = ConfigGet();
+    const float speed = config.mouse_capture ? config.menu_pointer_speed : 1.0f;
     float       units_x = speed, units_y = speed;
     if (mgPortRendererReady()) {
         const auto mapping = gfx::GetUiMapping(gfx::kMainTarget);

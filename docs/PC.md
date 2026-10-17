@@ -527,7 +527,7 @@ Writes are atomic: the file is written as `config.json.tmp` and renamed over `co
 | `input.mouse_capture` | bool | true | | capture the mouse |
 | `input.mouse_zoom` | bool | false | | mouse wheel zoom |
 | `input.mouse_fixed_look` | bool | true | | gentle mouse look in fixed-camera town rooms |
-| `input.menu_pointer_speed` | number | 1 | 0.25 to 4 | menu hand travel per mouse count; 1 is one window pixel. Camera look ignores it |
+| `input.menu_pointer_speed` | number | 1 | 0.25 to 4 | menu hand travel per mouse count while the mouse is captured; 1 is one window pixel. Camera look ignores it |
 | `input.touchpad` | bool | true | | a DualSense touchpad as the menus' mouse |
 | `input.touchpad_sensitivity` | number | 1.0 | above 0 | touchpad speed |
 | `input.lightbar` | bool | true | | lets the game colour the lightbar; read and saved, nothing sets a colour yet |
@@ -623,11 +623,13 @@ selection. Clicks held while opening or closing a menu do not confirm the next
 screen.
 
 The pointer uses the game's gold hand artwork and follows mouse motion at the
-display rate. It is a relative pointer: each mouse count moves it one window pixel,
-times **Menu pointer speed** (`input.menu_pointer_speed`, PC SETTINGS > Controls,
-50% to 300%). With capture on, counts are raw, without the desktop's pointer speed
-or acceleration; with capture off they follow the desktop cursor, and a speed other
-than 100% lets the hand drift from the hidden desktop cursor. Camera mouse look
+display rate. It is a relative pointer: each mouse count moves it one window pixel.
+With capture on, counts are raw, without the desktop's pointer speed or acceleration,
+and **Menu pointer speed** (`input.menu_pointer_speed`, PC SETTINGS > Controls,
+50% to 300%) multiplies them. With capture off the hand follows the desktop cursor
+1:1, so it reaches every edge the cursor does, and the speed is not applied. A
+DualSense touchpad's pointer motion is scaled by `input.touchpad_sensitivity` first,
+and while capture is on Menu pointer speed multiplies it too. Camera mouse look
 uses **Mouse look sensitivity** (`input.mouse_sensitivity`) instead, and neither
 setting affects the other. The hand is a display overlay and stays out of canonical screenshots
 and game captures. The menu hand shares cursor ownership with the operating-system cursor.
@@ -768,7 +770,7 @@ grid scroll rows, stopping at the bag's ends.
 The pointer starts at the retail selection when the mouse takes over. Controller
 or keyboard button input returns control to the retail cursor. Mouse counts are
 mapped through the window size, UI scale and visible widescreen extent; camera
-sensitivity and inversion do not affect the pointer; Menu pointer speed scales it. Buttons held when entering
+sensitivity and inversion do not affect the pointer; Menu pointer speed scales it while captured. Buttons held when entering
 the page must be released before clicking, and a held button cannot become a
 gameplay press when leaving it. Losing window focus cancels the mouse gesture
 without dropping an item. Other inventory submenus retain their existing controls.
