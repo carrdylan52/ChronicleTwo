@@ -57,6 +57,7 @@ TEST(PcOptions, RequestedSettingsHaveUniqueRowsAndRoundTripTheirEdits) {
         "audio.dualsense_speaker",
         "audio.controller_volume",
         "input.mouse_sensitivity",
+        "input.menu_pointer_speed",
         "input.mouse_invert_y",
         "input.mouse_capture",
         "input.mouse_zoom",
@@ -142,6 +143,23 @@ TEST(PcOptions, NumbersShowPlainDecimalsWithoutExponents) {
     EXPECT_EQ(Find("video.ui_scale").value(config), "65%");
     config.master_volume = .95f;
     EXPECT_EQ(Find("audio.master_volume").value(config), "95%");
+}
+
+TEST(PcOptions, MenuPointerSpeedRowIsNamedApartFromCameraSensitivity) {
+    const auto &pointer = Find("input.menu_pointer_speed");
+    const auto &look = Find("input.mouse_sensitivity");
+    EXPECT_EQ(pointer.label, "Menu pointer speed");
+    EXPECT_EQ(look.label, "Mouse look sensitivity");
+    Config config;
+    EXPECT_EQ(pointer.value(config), "100%");
+    EXPECT_TRUE(options::StepRow(pointer, config, 1));
+    EXPECT_FLOAT_EQ(config.menu_pointer_speed, 1.25f);
+    EXPECT_FLOAT_EQ(config.mouse_sensitivity, Config{}.mouse_sensitivity);
+    EXPECT_EQ(pointer.value(config), "125%");
+    config.menu_pointer_speed = .5f;
+    EXPECT_FALSE(options::StepRow(pointer, config, -1));
+    config.menu_pointer_speed = 3;
+    EXPECT_FALSE(options::StepRow(pointer, config, 1));
 }
 
 TEST(PcOptions, BooleanAndEnumChoicesWrapInBothDirections) {

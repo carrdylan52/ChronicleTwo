@@ -15,6 +15,7 @@
 #include "nd_meswin.hpp"
 #include "options/screen.hpp"
 #include "platform/clock.hpp"
+#include "platform/config.hpp"
 #include "platform/input.hpp"
 #include "platform/mouse.hpp"
 #include "platform/settings.hpp"
@@ -361,6 +362,25 @@ TEST_F(MenuMouseInput, RepeatedAdaptersShareMotionWheelAndButtonEdgesWithinATick
     Tick();
     EXPECT_EQ(MenuMouseTake().released, 1u);
     EXPECT_EQ(MenuMouseButtons(), 0);
+}
+
+TEST_F(MenuMouseInput, MenuPointerSpeedScalesHandMotionButNotCameraLook) {
+    Config config = ConfigGet();
+    config.menu_pointer_speed = 2;
+    ASSERT_TRUE(ConfigChange(config));
+    const float look = ConfigGet().mouse_sensitivity;
+    MenuMouseEnable(true);
+    InputSetScriptedDevices({.mouse_dx = 40, .mouse_dy = -10});
+    const auto fast = MenuMouseTake();
+    EXPECT_FLOAT_EQ(fast.x, 256 + 80);
+    EXPECT_FLOAT_EQ(fast.y, 240 - 20);
+    EXPECT_FLOAT_EQ(ConfigGet().mouse_sensitivity, look);
+    config.menu_pointer_speed = .5f;
+    ASSERT_TRUE(ConfigChange(config));
+    Tick();
+    EXPECT_FLOAT_EQ(MenuMouseTake().x, 256 + 80 + 20);
+    config.menu_pointer_speed = 1;
+    ASSERT_TRUE(ConfigChange(config));
 }
 
 TEST_F(MenuMouseInput, FlatSaveWheelReachesOnlyTheSingleNewRowBeyondRetailCapacity) {
