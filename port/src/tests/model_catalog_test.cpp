@@ -229,7 +229,7 @@ TEST_F(NativeModel, CharacterTextureOwnershipDoesNotSkipDeletedReinitializedOrSu
 }
 
 TEST_F(NativeModel, StaleCharacterImagesKeepAnotherModelsSameNamedTexture) {
-    // The item menu's Ridepod rider and Max's hat share one character slot: the rider's face set must not delete
+    // The item menu loads the Ridepod rider and then Max's hat into one slot: the rider's stale images must not delete
     // the face Max entered under the same name after the block was cleared and the slot reinitialised.
     Json model = game;
     model["texture_sets"] = {0};
@@ -262,15 +262,15 @@ TEST_F(NativeModel, StaleCharacterImagesKeepAnotherModelsSameNamedTexture) {
     textures.SetTableBuffer(8, 8, &texture_memory);
     textures.Initialize(0x1000, -1);
     std::strcpy(textures.name_suffix, "_menu");
-    CCharacter2                        rider;
+    CCharacter2                        stale_slot;
     CCharacter2                        max;
     model_assets::CharacterLoadOptions options{&memory, &memory, &memory, &textures, nullptr, 2, false};
     std::string                        error;
-    rider.Initialize();
+    stale_slot.Initialize();
     memory.stReset();
-    ASSERT_TRUE(model_assets::LoadCharacter(rider, "models/other.gltf", "info", options, error)) << error;
+    ASSERT_TRUE(model_assets::LoadCharacter(stale_slot, "models/other.gltf", "info", options, error)) << error;
     textures.DeleteBlock(2);
-    rider.Initialize();
+    stale_slot.Initialize();
     max.Initialize();
     ASSERT_TRUE(model_assets::LoadCharacter(max, "models/model.gltf", "info", options, error)) << error;
     char name[] = "shared_menu";
@@ -278,7 +278,7 @@ TEST_F(NativeModel, StaleCharacterImagesKeepAnotherModelsSameNamedTexture) {
     auto *face = textures.GetTexture(name, 2);
     ASSERT_NE(face, nullptr);
     EXPECT_EQ(max.GetFrame()->visual->GetMaterial(0)->texture, face);
-    model_assets::DeleteCharacterTextures(rider, 0, 0);
+    model_assets::DeleteCharacterTextures(stale_slot, 0, 0);
     EXPECT_EQ(textures.GetTexture(name, 2), face);
     EXPECT_EQ(max.GetFrame()->visual->GetMaterial(0)->texture, face);
     model_assets::DeleteCharacterTextures(max, 0, 0);

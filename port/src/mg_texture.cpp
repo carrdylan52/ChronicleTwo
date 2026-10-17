@@ -7,6 +7,7 @@
 #include <cstdint>
 #include <cstdio>
 #include <cstring>
+#include <functional>
 #include <memory>
 #include <optional>
 #include <span>
@@ -1181,7 +1182,10 @@ bool MgTextureEnteredFrom(const mgCTexture *texture, const texture_catalog::Sour
     if (found == catalog_pixels.end() || !found->second.record) {
         return false;
     }
-    return std::ranges::any_of(source.entries, [record = found->second.record](const auto &entry) { return &entry == record; });
+    // Entries are contiguous, so ownership is an address range check.
+    const auto *first = source.entries.data();
+    const auto *record = found->second.record;
+    return std::less_equal<>{}(first, record) && std::less<>{}(record, first + source.entries.size());
 }
 
 MgTextureExtent MgTexturePhysicalExtent(const mgCTexture *texture) {
