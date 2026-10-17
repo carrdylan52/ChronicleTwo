@@ -20,8 +20,8 @@ struct PresentSettings {
     int interpolation_draw_budget = 0;
     // When rolling present FPS is below this, skip tweened frames until it recovers (0 = off).
     int interpolation_fps_floor = 0;
-    // When false, at most one tweened present per tick wait (better for 60 Hz targets).
-    bool interpolation_multi_present = false;
+    // When false, at most one tweened present per tick wait, about 60 FPS; true lets max_fps pace them.
+    bool interpolation_multi_present = true;
 };
 
 struct PresentStats {
@@ -46,6 +46,8 @@ FrameBudgetAverages PresentFrameBudgetAverages();
 void PresentFrameBudgetResetForTest();
 void PresentFrameBudgetInjectTickForTest(double canonical_seconds, double display_seconds, double other_seconds);
 
+// Whether tweened display frames may run, given the rolling present rate and the last tick's draws.
+bool                   PresentInterpolationAllowed(const PresentSettings &settings, double present_fps, std::uint32_t last_draws);
 bool                   PresentMouseActive();
 void PresentSetSettings(const PresentSettings &settings);
 const PresentSettings &PresentGetSettings();

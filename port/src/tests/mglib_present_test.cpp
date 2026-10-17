@@ -447,6 +447,25 @@ TEST(MglibPresent, DisplayFrameAtHalfInterpolatesTaggedMesh) {
     EXPECT_NEAR(half, (first + second) / 2.0, 1.0);
 }
 
+TEST(MglibPresent, FpsFloorIgnoresARateTheFrameCapHoldsBelowIt) {
+    PresentSettings settings{.interpolation = true, .interpolation_fps_floor = 54};
+    EXPECT_TRUE(PresentInterpolationAllowed(settings, 0, 0));
+    EXPECT_FALSE(PresentInterpolationAllowed(settings, 40, 0));
+    EXPECT_TRUE(PresentInterpolationAllowed(settings, 60, 0));
+    // A 30 or 50 FPS cap would otherwise flip tweening on and off around the floor.
+    for (const double cap : {30.0, 50.0}) {
+        settings.max_fps = cap;
+        EXPECT_TRUE(PresentInterpolationAllowed(settings, cap - 1, 0)) << cap;
+    }
+    settings.max_fps = 60;
+    EXPECT_FALSE(PresentInterpolationAllowed(settings, 40, 0));
+    settings.interpolation_draw_budget = 2400;
+    EXPECT_FALSE(PresentInterpolationAllowed(settings, 60, 2401));
+    EXPECT_TRUE(PresentInterpolationAllowed(settings, 60, 2400));
+    settings.interpolation = false;
+    EXPECT_FALSE(PresentInterpolationAllowed(settings, 60, 0));
+}
+
 TEST(MglibPresent, InterpolationOffPresentsOncePerTick) {
     PresentRenderer renderer(640, 480);
     PresentResetStats();

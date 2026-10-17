@@ -23,9 +23,12 @@ enum class ConfigHaptics {
 struct Config : HostSettings {
     bool         interpolation = true;
     // Skip tweened display frames when a tick records more mesh+2D draws than this (0 = never skip).
-    int interpolation_draw_budget = 2400;
+    // Off by default: draw counts do not track GPU cost, and ordinary towns record 2900-4200 draws.
+    // interpolation_fps_floor already drops tweening on a machine that cannot keep up.
+    int interpolation_draw_budget = 0;
     int interpolation_fps_floor = 54;
-    bool interpolation_multi_present = false;
+    // False allows one tweened present per tick slice, which holds the display near 60 FPS.
+    bool interpolation_multi_present = true;
     bool         debug_mode = false;
     bool         autosave = true;
     // game.quick_loadout_title "plate": the quick loadout's title on a plate like the EXP gauge's, not on a bar.
