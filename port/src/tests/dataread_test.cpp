@@ -12,6 +12,7 @@
 #include <string>
 #include <utility>
 #include <vector>
+#include <nlohmann/json.hpp>
 
 #include "dataread.hpp"
 #include "dataread_port.hpp"
@@ -20,6 +21,8 @@
 #include "platform/paths.hpp"
 #include "scriptinterpreter.hpp"
 #include "texture_source.hpp"
+#include "platform/texture_catalog.hpp"
+#include "platform_fixture.hpp"
 
 int LoadGameDataAnalyze(char *);
 
@@ -86,6 +89,7 @@ std::optional<fs::path> ExtractedDataRoot() {
 class DataRead : public testing::Test {
 protected:
     void SetUp() override {
+        dc::test::UnsetEnv("DC2_IXION_EXTRA_DATA");
         base_ = fs::temp_directory_path() /
                 ("dataread_" + std::to_string(std::chrono::steady_clock::now().time_since_epoch().count()));
         root_ = base_ / "data";
@@ -97,7 +101,11 @@ protected:
     }
 
     void TearDown() override {
+        dc::test::UnsetEnv("DC2_IXION_EXTRA_DATA");
+        texture_catalog::Clear();
         PathsReset();
+        const char *arguments[] = {"test"};
+        DataReadCaptureRunDirectory(1, arguments);
         std::error_code error;
         fs::remove_all(base_, error);
     }
@@ -591,4 +599,215 @@ TEST_F(DataRead, ItemMessagesUseTheSameDispatchTableAsItemData) {
     auto *record = GameItemDataManage.GetCommonData(11);
     ASSERT_NE(record, nullptr);
     EXPECT_STREQ(record->name, "Shared retail dispatch");
+}
+
+TEST_F(DataRead, OverlayListIndexesEveryRootInOrder) {
+    auto a = base_ / "a" / "data", b = base_ / "b" / "data";
+    WriteBytes(a / "first.bin", MakeBytes(10, 1));
+    WriteBytes(b / "second.bin", MakeBytes(10, 2));
+    dc::test::SetEnv("DC2_IXION_EXTRA_DATA", (PathsDisplay(a)+";"+PathsDisplay(b)).c_str(), 1);
+    DataReadIndex(root_);
+    EXPECT_EQ(DataReadFind("first.bin"), a / "first.bin");
+    EXPECT_EQ(DataReadFind("second.bin"), b / "second.bin");
+}
+
+TEST_F(DataRead, OverlayDuplicateFileFirstWinsAndLogs) {
+    auto a = base_ / "a" / "data", b = base_ / "b" / "data";
+    WriteBytes(a / "small.txt", MakeBytes(10, 8));
+    WriteBytes(b / "SMALL.TXT", MakeBytes(10, 9));
+    dc::test::SetEnv("DC2_IXION_EXTRA_DATA", (PathsDisplay(a)+";"+PathsDisplay(b)).c_str(), 1);
+    testing::internal::CaptureStderr();
+    DataReadIndex(root_);
+    auto log = testing::internal::GetCapturedStderr();
+    EXPECT_NE(log.find("overlay duplicate small.txt"), std::string::npos);
+    int size = 0;
+    ASSERT_EQ(Load("small.txt", Buffer(), &size), 1);
+    EXPECT_EQ(std::memcmp(Buffer(), MakeBytes(10, 8).data(), 10), 0);
+}
+
+static void OverlayCatalog(const fs::path &data, const char *key, int size) {
+    fs::create_directories(data);
+    auto path = data.parent_path()/"port_data"/"catalog.json";
+    fs::create_directories(path.parent_path());
+    nlohmann::json source = {{"source", key}, {"kind", "img"}, {"size", size}, {"entries", nlohmann::json::array()}};
+    std::ofstream(path) << nlohmann::json{{"schema_version",1},{"sources",nlohmann::json::array({source})}};
+}
+
+TEST_F(DataRead, OverlayCatalogsMergeAcrossTheList) {
+    auto a = base_/"a"/"data", b = base_/"b"/"data";
+    OverlayCatalog(root_, "base.img", 1);
+    OverlayCatalog(a, "first.img", 2); OverlayCatalog(b, "second.img", 3);
+    dc::test::SetEnv("DC2_IXION_EXTRA_DATA", (PathsDisplay(a)+";"+PathsDisplay(b)).c_str(), 1);
+    DataReadIndex(root_);
+    EXPECT_NE(texture_catalog::Find("base.img"), nullptr);
+    EXPECT_NE(texture_catalog::Find("first.img"), nullptr);
+    EXPECT_NE(texture_catalog::Find("second.img"), nullptr);
+}
+
+TEST_F(DataRead, CorruptExtraCatalogKeepsTheBaseCatalog) {
+    const auto extra = base_ / "corrupt" / "data";
+    OverlayCatalog(root_, "base.img", 73);
+    OverlayCatalog(extra, "broken.img", 19);
+    WriteBytes(extra / "small.txt", MakeBytes(10, 9));
+    dc::test::SetEnv("DC2_IXION_EXTRA_DATA", PathsDisplay(extra).c_str(), 1);
+    const auto catalog = extra.parent_path() / "port_data" / "catalog.json";
+    for (const char *corrupt : {"{not json", "{\"schema_version\":1,\"sources\":[{\"entries\":[]}]}",
+                                "{\"schema_version\":2,\"sources\":[]}",
+                                "{\"schema_version\":1,\"sources\":[{\"source\":\"bad.img\",\"kind\":\"img\",\"size\":1,\"entries\":[{\"variants\":[{\"levels\":[7]}]}]}]}"}) {
+        std::ofstream(catalog) << corrupt;
+        DataReadIndex(root_);
+        auto *base = texture_catalog::Find("base.img");
+        ASSERT_NE(base, nullptr) << corrupt;
+        EXPECT_EQ(base->size, 73);
+        EXPECT_EQ(texture_catalog::Find("broken.img"), nullptr);
+        int size = 0;
+        ASSERT_EQ(Load("small.txt", Buffer(), &size), 1);
+        EXPECT_EQ(std::memcmp(Buffer(), MakeBytes(10, 3).data(), 10), 0);
+    }
+}
+
+TEST_F(DataRead, OverlayCatalogDedupIsNormalized) {
+    auto a = base_/"a"/"data", b = base_/"b"/"data";
+    OverlayCatalog(root_, "IMG\\Foo.img", 1);
+    OverlayCatalog(a, "img/foo.img", 2); OverlayCatalog(b, "last.img", 3);
+    dc::test::SetEnv("DC2_IXION_EXTRA_DATA", (PathsDisplay(a)+";"+PathsDisplay(b)).c_str(), 1);
+    testing::internal::CaptureStderr();
+    DataReadIndex(root_);
+    auto log = testing::internal::GetCapturedStderr();
+    auto source = texture_catalog::Find("img/foo.img");
+    ASSERT_NE(source, nullptr); EXPECT_EQ(source->size, 1);
+    EXPECT_NE(texture_catalog::Find("last.img"), nullptr);
+    EXPECT_EQ(log.find("ok=0"), std::string::npos);
+}
+
+TEST_F(DataRead, EscapingCatalogMembersRejectTheWholeOverlay) {
+    const auto extra = base_ / "unsafe" / "data";
+    OverlayCatalog(root_, "base.img", 73);
+    OverlayCatalog(extra, "unsafe.img", 19);
+    WriteBytes(extra / "small.txt", MakeBytes(10, 9));
+    const auto catalog = extra.parent_path() / "port_data" / "catalog.json";
+    WriteBytes(base_ / "outside.png", MakeBytes(10, 1));
+    for (const auto &member : {std::string("../../outside.png"), PathsDisplay(base_ / "outside.png"),
+                              std::string("/outside.png")}) {
+        nlohmann::json source = {{"source", "unsafe.img"}, {"kind", "img"}, {"size", 19},
+            {"entries", {{{"type", "texture"}, {"name", "test"}, {"width", 1}, {"height", 1},
+                          {"bpp", 32}, {"source_bpp", 32}, {"format", "rgba8"},
+                          {"variants", {{{"palette_source", "test"}, {"levels", {member}}}}}}}}};
+        std::ofstream(catalog) << nlohmann::json{{"schema_version", 1}, {"sources", {source}}};
+        dc::test::SetEnv("DC2_IXION_EXTRA_DATA", PathsDisplay(extra).c_str(), 1);
+        DataReadIndex(root_);
+        EXPECT_EQ(texture_catalog::Find("unsafe.img"), nullptr) << member;
+        int size = 0;
+        ASSERT_EQ(Load("small.txt", Buffer(), &size), 1);
+        EXPECT_EQ(std::memcmp(Buffer(), MakeBytes(10, 3).data(), 10), 0) << member;
+    }
+}
+
+TEST_F(DataRead, SymlinkCatalogMemberAndIndexedFileCannotEscapePackRoot) {
+    const auto extra = base_ / "symlink" / "data";
+    OverlayCatalog(root_, "base.img", 73);
+    OverlayCatalog(extra, "unsafe.img", 19);
+    const auto outside = base_ / "outside.png";
+    WriteBytes(outside, MakeBytes(10, 1));
+    const auto catalog = extra.parent_path() / "port_data" / "catalog.json";
+    std::error_code ec;
+    fs::create_symlink(outside, catalog.parent_path() / "link.png", ec);
+    ASSERT_FALSE(ec) << "cannot qualify symlink containment: " << ec.message();
+    nlohmann::json source = {{"source", "unsafe.img"}, {"kind", "img"}, {"size", 19},
+        {"entries", {{{"type", "texture"}, {"name", "test"}, {"width", 1}, {"height", 1},
+                      {"bpp", 32}, {"source_bpp", 32}, {"format", "rgba8"},
+                      {"variants", {{{"palette_source", "test"}, {"levels", {"link.png"}}}}}}}}};
+    std::ofstream(catalog) << nlohmann::json{{"schema_version", 1}, {"sources", {source}}};
+    dc::test::SetEnv("DC2_IXION_EXTRA_DATA", PathsDisplay(extra).c_str(), 1);
+    DataReadIndex(root_);
+    EXPECT_EQ(texture_catalog::Find("unsafe.img"), nullptr);
+    // A catalog-free overlay is still confined at the indexed-file boundary.
+    fs::remove(catalog);
+    fs::create_symlink(outside, extra / "escape.bin", ec);
+    ASSERT_FALSE(ec) << ec.message();
+    DataReadIndex(root_);
+    EXPECT_FALSE(DataReadFind("escape.bin"));
+}
+
+TEST_F(DataRead, MergedCatalogIsWrittenUnderTheKnownRunDirectoryAndRemoved) {
+    const auto extra = base_ / "valid" / "data";
+    const auto run = base_ / "run";
+    OverlayCatalog(root_, "base.img", 73);
+    OverlayCatalog(extra, "extra.img", 19);
+    const auto run_text = PathsDisplay(run);
+    const char *arguments[] = {"test", "--run-dir", run_text.c_str()};
+    DataReadCaptureRunDirectory(3, arguments);
+    dc::test::SetEnv("DC2_IXION_EXTRA_DATA", PathsDisplay(extra).c_str(), 1);
+    testing::internal::CaptureStderr();
+    DataReadIndex(root_);
+    const auto log = testing::internal::GetCapturedStderr();
+    EXPECT_NE(log.find("path=" + PathsDisplay(run / "ixion-merged-catalog-")), std::string::npos) << log;
+    ASSERT_NE(texture_catalog::Find("extra.img"), nullptr);
+    EXPECT_TRUE(fs::is_empty(run));
+    const auto equals = "--run-dir=" + run_text;
+    const char *equals_arguments[] = {"test", equals.c_str()};
+    DataReadCaptureRunDirectory(2, equals_arguments);
+    testing::internal::CaptureStderr();
+    DataReadIndex(root_);
+    const auto equals_log = testing::internal::GetCapturedStderr();
+    EXPECT_NE(equals_log.find("path=" + PathsDisplay(run / "ixion-merged-catalog-")), std::string::npos);
+    EXPECT_TRUE(fs::is_empty(run));
+}
+
+TEST_F(DataRead, MergedCatalogOutputFailureRetainsBaseDataAndLogsTransactionRejection) {
+    const auto extra = base_ / "valid" / "data";
+    const auto run = base_ / "run-is-a-file";
+    OverlayCatalog(root_, "base.img", 73);
+    OverlayCatalog(extra, "extra.img", 19);
+    WriteBytes(extra / "small.txt", MakeBytes(10, 9));
+    WriteBytes(run, MakeBytes(10, 1)); // deterministic create_directories error
+    const auto run_text = PathsDisplay(run);
+    const char *arguments[] = {"test", "--run-dir", run_text.c_str()};
+    DataReadCaptureRunDirectory(3, arguments);
+    dc::test::SetEnv("DC2_IXION_EXTRA_DATA", PathsDisplay(extra).c_str(), 1);
+    testing::internal::CaptureStderr();
+    DataReadIndex(root_);
+    const auto log = testing::internal::GetCapturedStderr();
+    EXPECT_NE(log.find("merged catalog create directory failed path=" + run_text + " error="),
+              std::string::npos) << log;
+    EXPECT_NE(log.find("overlays rejected; retaining base data and catalog"), std::string::npos) << log;
+    const auto *base = texture_catalog::Find("base.img");
+    ASSERT_NE(base, nullptr);
+    EXPECT_EQ(base->size, 73);
+    EXPECT_EQ(texture_catalog::Find("extra.img"), nullptr);
+    EXPECT_EQ(DataReadFind("small.txt"), root_ / "small.txt");
+    int size = 0;
+    ASSERT_EQ(Load("small.txt", Buffer(), &size), 1);
+    EXPECT_EQ(size, 10);
+    EXPECT_EQ(std::memcmp(Buffer(), MakeBytes(10, 3).data(), 10), 0);
+}
+
+TEST_F(DataRead, ContainedCatalogLevelRemainsBoundToItsOwnPack) {
+    const auto extra = base_ / "safe" / "data";
+    OverlayCatalog(root_, "base.img", 73);
+    OverlayCatalog(extra, "safe.img", 19);
+    const auto catalog = extra.parent_path() / "port_data" / "catalog.json";
+    const auto image = catalog.parent_path() / "textures" / "safe.png";
+    WriteBytes(image, MakeBytes(10, 1));
+    nlohmann::json source = {{"source", "safe.img"}, {"kind", "img"}, {"size", 19},
+        {"entries", {{{"type", "texture"}, {"name", "test"}, {"width", 1}, {"height", 1},
+                      {"bpp", 32}, {"source_bpp", 32}, {"format", "rgba8"},
+                      {"variants", {{{"palette_source", "test"}, {"levels", {"textures/safe.png"}}}}}}}}};
+    std::ofstream(catalog) << nlohmann::json{{"schema_version", 1}, {"sources", {source}}};
+    dc::test::SetEnv("DC2_IXION_EXTRA_DATA", PathsDisplay(extra).c_str(), 1);
+    DataReadIndex(root_);
+    const auto *loaded = texture_catalog::Find("safe.img");
+    ASSERT_NE(loaded, nullptr);
+    ASSERT_EQ(loaded->entries.size(), 1u);
+    EXPECT_EQ(loaded->entries[0].variants[0].levels[0], fs::weakly_canonical(image));
+}
+
+TEST_F(DataRead, OverlayListParsesSeparators) {
+    auto a = base_/"a"/"data", b = base_/"b"/"data";
+    WriteBytes(a/"a.bin", MakeBytes(10,1)); WriteBytes(b/"b.bin", MakeBytes(10,2));
+    dc::test::SetEnv("DC2_IXION_EXTRA_DATA", (" ; "+PathsDisplay(a)+" ;; "+PathsDisplay(b)+"/; ").c_str(), 1);
+    DataReadIndex(root_);
+    EXPECT_EQ(DataReadFind("a.bin"), a/"a.bin"); EXPECT_EQ(DataReadFind("b.bin"), b/"b.bin");
+    dc::test::UnsetEnv("DC2_IXION_EXTRA_DATA"); DataReadIndex(root_);
+    EXPECT_FALSE(DataReadFind("a.bin")); EXPECT_FALSE(DataReadFind("b.bin"));
 }

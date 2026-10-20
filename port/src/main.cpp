@@ -10,6 +10,7 @@
 
 #include "audio/soundtrack.hpp"
 #include "dataread.hpp"
+#include "dataread_port.hpp"
 #include "exitcodes.hpp"
 #include "gfx/gfx.hpp"
 #include "identity.hpp"
@@ -20,6 +21,7 @@
 #include "platform/display.hpp"
 #include "platform/firstrun.hpp"
 #include "platform/input.hpp"
+#include "platform/embed.hpp"
 #include "platform/input_script.hpp"
 #include "platform/input_startup.hpp"
 #include "platform/paths.hpp"
@@ -47,6 +49,8 @@ struct Options {
     const char           *jump = nullptr;
     const char           *give = nullptr;
     bool                  fast_load = false;
+    bool                  no_debug = false;
+    const char           *flag = nullptr;
     bool                  headless = false;
     bool                  offscreen = false;
     int                   frames = 0;
@@ -69,6 +73,8 @@ Options g_options;
                  "          [--frames N] [--screenshot PATH] [--input SCRIPT] [--display-per-tick N]\n"
                  "          [--show-fps] [--log-fps] [--screenshot-display N] [--screenshot-fps]\n"
                  "  --jump MODE[:ARG]  start in town:<map>, dungeon:<n>[:<floor>], event:<id>, title, opening, menu (DC2_JUMP)\n"
+                 "  --no-debug         disable debug controls even with --jump (DC2_NO_DEBUG)\n"
+                 "  --flag N,...       set story flags on a fresh --jump (DC2_FLAG)\n"
                  "  --fast-load        shorten loading-screen holds (DC2_FAST_LOAD=1)\n"
                  "  --give ITEM,...    give missing items and weapons on arrival (DC2_GIVE)\n"
                  "  --run-dir DIR      game root containing data/, port_data/ and saves/\n"
@@ -130,6 +136,10 @@ Options ParseOptions(int argc, const char **argv) {
             options.give = OptionValue(argc, argv, i);
         } else if (arg == "--fast-load") {
             options.fast_load = true;
+        } else if (arg == "--no-debug") {
+            options.no_debug = true;
+        } else if (arg == "--flag") {
+            options.flag = OptionValue(argc, argv, i);
         } else if (arg == "--headless") {
             options.headless = true;
         } else if (arg == "--offscreen") {
@@ -249,6 +259,7 @@ void ApplyConfigChange(const HostSettings &before, const HostSettings &after) {
 
 int Run(int argc, const char **argv) {
     GameSetIdentity();
+    DataReadCaptureRunDirectory(argc, argv);
     argc = PathsConsumeArgs(argc, argv);
     g_options = ParseOptions(argc, argv);
     const Options &options = g_options;
@@ -258,6 +269,10 @@ int Run(int argc, const char **argv) {
         (give && (options.give || *give) && !GameSetGive(give))) {
         Usage(argv[0]);
     }
+    const char *flag = options.flag ? options.flag : SettingsEnv("FLAG");
+    const char *no_debug = SettingsEnv("NO_DEBUG");
+    if (flag && (options.flag || *flag) && !GameSetFlags(flag)) Usage(argv[0]);
+    GameSetNoDebug(options.no_debug || (no_debug && *no_debug && *no_debug != '0'));
     const char *fast = SettingsEnv("FAST_LOAD");
     GameSetFastLoad(options.fast_load || (fast && *fast && *fast != '0'));
     InputScript   input_script;
@@ -269,6 +284,7 @@ int Run(int argc, const char **argv) {
         }
     }
     ConfigLoad();
+    if (EmbedActive() && FirstRunDataMissing(PathsDataRoot())) return kExitNoData;
     FirstRunRequireData(PathsDataRoot(), options.headless);
     const HostSettings &settings = SettingsGet();
     const bool          offscreen = options.offscreen || (options.headless && !gfx::HeadlessSurfaceAvailable());
@@ -298,7 +314,7 @@ int Run(int argc, const char **argv) {
     AudioInit(options.headless);
     // --frames leaves through std::exit from mgEndFrame: the output must stop before the mixer's statics are destroyed
     // under the audio thread.
-    std::atexit(AudioShutdown);
+    if (!EmbedActive()) std::atexit(AudioShutdown);
 #endif
 
     ClockSetTickRate(settings.tick_rate);
@@ -324,7 +340,7 @@ int Run(int argc, const char **argv) {
 #endif
     gfx::RendererShutdown();
     WindowShutdown();
-    return kExitOk;
+    return mgPortExitStatus() >= 0 ? mgPortExitStatus() : kExitOk;
 }
 
 } // namespace

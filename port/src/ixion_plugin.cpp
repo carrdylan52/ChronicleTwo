@@ -13,19 +13,28 @@
 
 #include "actionchara.hpp"
 #include "dng_main.hpp"
+#include "gamepad.hpp"
+#include "gamepad_port.hpp"
+#include "identity.hpp"
 #include "mainloop.hpp"
 #include "mapselect.hpp"
 #include "mglib_port.hpp"
+#include "padcontrol.hpp"
 #include "platform/audio.hpp"
 #include "platform/clock.hpp"
 #include "platform/embed.hpp"
+#include "platform/firstrun.hpp"
+#include "platform/input.hpp"
 #include "platform/mouse.hpp"
+#include "platform/paths.hpp"
 #include "platform/window.hpp"
 #include "savedatadungeon.hpp"
 #include "scenesnd.hpp"
 
 // main.cpp: the executable's run path, without the process entry.
 int RunGame(int argc, const char **argv);
+
+bool GameSceneReady();
 
 namespace {
 
@@ -47,18 +56,35 @@ bool PluginCheckpoint(void *, int reason) {
     if (g_host == nullptr || g_host->checkpoint == nullptr) {
         return false;
     }
-    return g_host->checkpoint(g_host->user, kGameId, static_cast<std::uint32_t>(reason)) != 0;
+    const bool parked = g_host->checkpoint(g_host->user, kGameId, static_cast<std::uint32_t>(reason)) != 0;
+    if (parked) {
+        WindowPollEvents();
+        InputPoll();
+        GamePadRefreshOnResume();
+        PadCtrl.Update(&GamePad__2);
+    }
+    return parked;
+}
+
+int Preflight(int argc, char **argv) {
+    GameSetIdentity();
+    std::vector<const char *> args(argv, argv + argc);
+    args.push_back(nullptr);
+    PathsConsumeArgs(argc, args.data());
+    return FirstRunDataMissing(PathsDataRoot()) ? 1 : 0;
 }
 
 int PluginBind(const IxionHost *host) {
-    if (host == nullptr || host->abi_version != IXION_ABI_VERSION) {
+    if (host == nullptr || host->size < sizeof(IxionHost) || host->abi_version != IXION_ABI_VERSION) {
         return 1;
     }
+    if (!host->poll_event || !host->checkpoint) return 1;
     g_host = host;
     return 0;
 }
 
 int PluginRun(int argc, char **argv) {
+    if (!g_host) return 1;
     EmbedHooks hooks;
     hooks.poll_event = PluginPollEvent;
     hooks.checkpoint = PluginCheckpoint;
@@ -72,10 +98,16 @@ int PluginRun(int argc, char **argv) {
 }
 
 void PluginActivate(int active) {
-    AudioOutputPause(active == 0);
+    if (!AudioOutputPause(active == 0)) {
+        if (g_host && g_host->log) g_host->log(g_host->user, kGameId, "audio pause/resume FAILED");
+    }
+    if (active != 0) {
+        InputResetTransient();
+        InputActivateDevices();
+    }
     // A parked game hands the cursor back. Its window regains focus when it is shown, and the focus
     // event takes the capture again.
-    if (active == 0 && MouseCaptured()) {
+    if (active == 0) {
         MouseStop();
     }
 }
@@ -88,6 +120,9 @@ int PluginInspect(IxionReceipt *out) {
     if (out == nullptr || out->size < sizeof(IxionReceipt)) {
         return 1;
     }
+    out->scene_ready = GameSceneReady();
+    out->audio_paused = AudioOutputPaused();
+    out->audio_frames = AudioOutputRenderedFrames();
     out->game_id = kGameId;
     out->logic_frames = static_cast<std::uint64_t>(mgPortFrameCount());
     out->clock_ticks = static_cast<std::uint64_t>(ClockTickCount());
@@ -149,6 +184,7 @@ const IxionApi kApi = {
     PluginActivate,
     PluginWindow,
     PluginInspect,
+    Preflight,
 };
 
 } // namespace

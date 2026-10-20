@@ -34,6 +34,17 @@ class UnitFixups(unittest.TestCase):
             header_fixups.fixup_unit_text("inventmn.cpp", source + source)
         self.assertEqual(header_fixups.fixup_unit_text("other.cpp", source), source)
 
+    def test_georama_preview_scale_seam_is_exactly_one_replacement(self):
+        source = (Path(__file__).resolve().parents[2] / "ps2/src/editmenu.cpp").read_text()
+        result = header_fixups.fixup_unit_text("editmenu.cpp", source)
+        retail = "scale = 0.85f * georama_parts_adjust_scaletable[id];"
+        self.assertEqual(source.count(retail), 1)
+        self.assertNotIn(retail, result)
+        self.assertIn("PortGeoramaPreviewScale(id, scale, georama_parts_adjust_scaletable[id])", result)
+        self.assertEqual(result.count("\n"), source.count("\n"))
+        with self.assertRaises(SystemExit):
+            header_fixups.fixup_unit_text("editmenu.cpp", result)
+
 
 if __name__ == "__main__":
     unittest.main()

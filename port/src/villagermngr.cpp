@@ -1,5 +1,6 @@
 #include "common.h"
 
+#include "ixion_georama.hpp"
 #include "villagermngr.hpp"
 #include "vlgr_info.hpp"
 
@@ -89,5 +90,6 @@ PORT_OVERRIDE int CVillagerMngr::GetAppearVlgr(int progress, int time, int map_n
         }
     }
 
-    return found;
+    // Sandbox Georama villagers (data rows for map 5) appear only beside a placed house.
+    return IxionGeoramaFilterVillagers(map_no, villager_ids, places, found);
 }

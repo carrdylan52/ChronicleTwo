@@ -1,4 +1,4 @@
 [submodule "tools/kazarov"]
 	path = tools/kazarov
 	url = https://github.com/carrdylan52/Kazarov.git
-	branch = ixion
+	branch = showcase-crossover-c2

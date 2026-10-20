@@ -1,0 +1,135 @@
+[
+  {
+    "name": "GetRoboPartsInfo",
+    "path": "port/src/charasetup.cpp",
+    "override_sha256": "d2ae24a3162cbf34ce17ced1007e8189986d19c9d3a52c6486612ff74f293d48",
+    "retail_sha256": "073fca20fc557de516d1aea1929becb5eab035554acb91ff3366c84414a26bf7",
+    "reason": "Upstream c0a30a86 bridge, intentionally not a verbatim body: calls CharaSetup_GetRoboPartsInfo on every path. Invalid six-outfit indices temporarily use the first outfit, then restore item_no; valid indices are unchanged. The removed table/build operations execute in the preserved retail callee. This is a native crash fix, not default-off Ixion gating."
+  },
+  {
+    "name": "CColPrim::SetDamage",
+    "path": "port/src/ixion_dc1_monster.cpp",
+    "override_sha256": "1d6b8bcea384d6f3a2f98b0c48fe98c67142f894ca9568c9e6f2538c6faeab62",
+    "retail_sha256": "f726da7557fa8b538347dda1526294bb745befd499659a9b8675da1e1a9ddd95",
+    "reason": "Native row lookup/writes/return retained: param local becomes row, explicit this removed, std strcmp/memcpy, sizeof parentheses and target ternary are equivalent. Projectile observer exits without a live donor; extra trace requires DC2_IXION_DC1_PLAYER_PRIM_TRACE. No claim of token identity."
+  },
+  {
+    "name": "CMonsterMan::GetReferPtr2",
+    "path": "port/src/ixion_dc1_monster.cpp",
+    "override_sha256": "5037d90d0885e5f45591589142f955a9cac8b3f624d4f86ea4bb101543a63aab",
+    "retail_sha256": "ac3ed64a2054add9a8ba0bc329ee61df4481b334d2a35624f9e0fe24710809ad",
+    "reason": "Added row lookup requires both a reserved donor id and its live donor descriptor; all other ids execute the unchanged retail base_monster_define walk. Reserved donor identifiers are the explicit opt-in boundary."
+  },
+  {
+    "name": "CSaveData::GetEditData",
+    "path": "port/src/ixion_georama.cpp",
+    "override_sha256": "b6213e56279764f13ea88176dde8bda4b24b93f2e290f47709998424397a2cef",
+    "retail_sha256": "d569136d3b844978ab04dca5d021c1263d2cd13dbdd27b873e2cfb9dd5f8947d",
+    "reason": "Indices 0..4 still return their same campaign records; invalid indices return null. Only enabled sandbox slot5 on the actual global SaveData instance returns the private sidecar record."
+  },
+  {
+    "name": "KeepEditAnalyze",
+    "path": "port/src/ixion_georama.cpp",
+    "override_sha256": "6167b1379fea005a1c67e0a3c9f58c52bcada4da5d5024a8c8276d2f9bda2139",
+    "retail_sha256": "a3f5c5eb399a708937a0f3707d5c0ea9d00ec9a8708297df0874dd27de6e75bc",
+    "reason": "SandboxMapNo binds the original EditLoop_MapNo storage. before binds the native analysis snapshot. Local renames/loop rewrite retain all16 flags for valid campaign data; null data now writes zeros instead of dereferencing null. Slot5 is private sandbox state."
+  },
+  {
+    "name": "EditAnalyzeChanged",
+    "path": "port/src/ixion_georama.cpp",
+    "override_sha256": "33b89e3c5c28238f49fc3bb3cc3c61c714ab15b93fb4e8fa815c8817fde3c3b0",
+    "retail_sha256": "fc075e2d0040299bcf99291a707bb5a61481596f6654fb9f8b12ce66eea93e90",
+    "reason": "Same original MapNo binding and16 snapshot comparisons; chapter>=8 retains native zero result. Null data and sandbox slot5 explicitly suppress campaign analysis. Identifier/local/control-flow rewrites are not verbatim."
+  },
+  {
+    "name": "GetMaxPolyn",
+    "path": "port/src/ixion_georama.cpp",
+    "override_sha256": "bc450274db610c3c09e95b1906a3dd39b4a04efab23b2f620a8581581ea3a535",
+    "retail_sha256": "2405eda31c5ad097022df216d33542f6432a771cfa8296fbdab84469aff3a0aa",
+    "reason": "Five native polygon budgets remain 4000,6000,6000,6000,4000 and invalid maps remain zero; enabled slot5 alone aliases budget0. Ternary replaces switch without changing native entries."
+  },
+  {
+    "name": "GetMaxDrawMem",
+    "path": "port/src/ixion_georama.cpp",
+    "override_sha256": "2d4ff85d6f714a6dc679c0699b9f232cc3eeaebe0a6872b3b1d1e2594bf1cd84",
+    "retail_sha256": "e83ff0dc6e66a99733b5cba71b4bfe7f0c74a2054e7131d592d87d7a3ac31ca0",
+    "reason": "Five native draw budgets remain 48000,50000,54000,54000,48000 and invalid maps remain zero; enabled slot5 alone aliases budget0. Ternary replaces switch without changing native entries."
+  },
+  {
+    "name": "CMenuPosDataForm::GetPartInfo",
+    "path": "port/src/ixion_georama.cpp",
+    "override_sha256": "2e9624031fc398ec39a3aa7f6e5587280eb721b25b85091160b3e1ab468b53d6",
+    "retail_sha256": "da80de9999f52745ce5d393f3bd1c4649cec4337b7b3ea288fc6212669914e6a",
+    "reason": "Native linear name search and return addresses retained with explicit null input/parts/name guards. Only enabled sandbox MapNo5 aliases Title5 to Title0 artwork. Null guards are deliberate native defensive behavior, not byte identity."
+  },
+  {
+    "name": "MakeDownLoadAnaunce",
+    "path": "port/src/ixion_georama.cpp",
+    "override_sha256": "3c8b44229efcc7e5b93bed69ffcca27aa762e66ce1c70d9742bb03bdf15777e4",
+    "retail_sha256": "beccfc601e5218f3985d712807bff1ef41cabb16a9021dd841449f4527edaffc",
+    "reason": "Non-enabled or non-slot5 immediately delegates to the preserved PortRetailMakeDownLoadAnaunce; large textual deletions are that bridge, not deleted native work. Opted-in slot5 clears campaign download/menu pointers and returns zero announcements using sandbox analysis storage."
+  },
+  {
+    "name": "EditDataSave",
+    "path": "port/src/ixion_georama.cpp",
+    "override_sha256": "f65cdd2c1e0cec08ce35c1139661acddb7585f5ef79f2f1b83ddffd04c2ee9ee",
+    "retail_sha256": "9fcea4d90b160e919cf3f0df4ed480385b6c7522395b2fc0da09ca76b26b276a",
+    "reason": "Same interior early return, original MapNo storage, map SaveData/culture/save_count/GroundBalance/UpdateHouse and native chapter analysis path. Locals/casts/reversed guards are equivalent for valid native state; null data/map returns safely. Only enabled slot5 performs sandbox count validation and sidecar write and suppresses campaign analysis. Sidecar/native save atomicity remains unqualified."
+  },
+  {
+    "name": "CEditMap::CheckEditParts",
+    "path": "port/src/ixion_georama.cpp",
+    "override_sha256": "5e3fdf6bf793b4af8bf3b0adc94d5aa5038e3cceb03ac6492fb863672124f6e0",
+    "retail_sha256": "1d30c4b6b237e0d310c57e51729e0ec9b78cc9122e17c61a45602a8af55e1bee",
+    "reason": "Same null-info result and512-element near-parts buffer, same GetNearParts and collision overload; radius parameter renamed angle, result saved for sandbox-only diagnostic then returned unchanged."
+  },
+  {
+    "name": "CEditMap::BuildEditParts",
+    "path": "port/src/ixion_georama.cpp",
+    "override_sha256": "d5affd30c4662e127e662edbd75485441bacd36ca99b112e9dc19c520c379655",
+    "retail_sha256": "33b6081eb82000e01ce24cd53fdcc8375a7cdad9785f53d662ff72c0f4cbc812",
+    "reason": "Same info lookup and name overload; missing info returns-1 as retail. Local auto and ternary preserve behavior. Added logging requires enabled sandbox area and donor/native sandbox part id."
+  },
+  {
+    "name": "_INTERSECTION_POINT",
+    "path": "port/src/ixion_room_arena.cpp",
+    "override_sha256": "139494854b75719dd514c88dcca50f6d6fe86c88e78c0d88899cae430db11acf",
+    "retail_sha256": "2154b46a034e74fb45e2bfdab02e6dd5f2fa8b2f1bd99959e85418819bd2e677",
+    "reason": "Local stack_int/float/vector and pointer setters reproduce effscript helpers including fptosi and RS_PTR writes; entry saves original argument pointer for bookkeeping only. Native argc8..16, collision query/hit/reflection/output flow retained. Tile bookkeeping requires installed arena/projectile ownership. Stack helper aliases are not token identity."
+  },
+  {
+    "name": "_COLPRIM_CREATE",
+    "path": "port/src/ixion_room_ownership.cpp",
+    "override_sha256": "809321cb345d320b8ea8aef07281a0d66a75c8690e41419d3248d4f7472f3b20",
+    "retail_sha256": "375cd7dba16c6ce405f5192a48fd662e37b8f69b508d4b4372034057079590e3",
+    "reason": "StackString returns slot->val.s exactly as retail GetStackString. The ownership hook occurs after SetDamage initializes the incarnation. Existing Running stack-range proof and real native EffectWorld regression remain applicable; this hunk moved from line77 to79."
+  },
+  {
+    "name": "SetupMainUnit",
+    "path": "port/src/ixion_toan_body.cpp",
+    "override_sha256": "1c058e6eaf8f6b0a0277fa73cf7db49949ec9efb4a28996898440230e86a4013",
+    "retail_sha256": "72d02911289eb4e45bee31142bf3450e0157f26f6aede1b98079836e0a487d1f",
+    "reason": "Unmarked hunks only replace SetupPartStack.stack_no by const int[5] with exactly0,1,2,2,3; all stack indices and allocation calls retained. The separate marked body substitution requires enabled selected body and present packs. This is equivalent storage, not a verbatim declaration."
+  },
+  {
+    "name": "MenuItemCharaDataLoadEndCheck",
+    "path": "port/src/ixion_toan_lifecycle.cpp",
+    "override_sha256": "1beee748843b275794fd72d6c52583a0744e03ff0e01aa4b2920ea10d0017fac",
+    "retail_sha256": "0f5a430493ffd871dd6b0edd3359caddc41c7cdeba863d29c51c7a6d7f94f3bc",
+    "reason": "Wrapper delegates every call to preserved retail loader and restores update_scene. Only MENU mode plus update_scene plus owned donor preview suppresses native arena reset, retires donor combat and registers its new rig after completed load. Large textual deletions execute inside the bridge."
+  },
+  {
+    "name": "DngMainKey",
+    "path": "port/src/ixion_toan_lifecycle.cpp",
+    "override_sha256": "df6391a4c28ec5d1d66bac9f8274c4fe4122b4d5b00a2c50f366ce1d134694aa",
+    "retail_sha256": "329382f2cb96c30e16c1a1563c96477363add08bd10114d28cd54f7272b86ec8",
+    "reason": "Wrapper calls preserved retail DngMainKey once and returns its exact result. Added control-state checks suspend donor combat only; suspend exits without donor ownership. Deleted native body executes inside the bridge, including debug/menu/eye logic."
+  },
+  {
+    "name": "_LOAD_EQUIP",
+    "path": "port/src/ixion_toan_lifecycle.cpp",
+    "override_sha256": "060d27a383c2a5265e92ea33c199dd71ec578435a0c38fde262e3ac0c629a33c",
+    "retail_sha256": "98c8edbea196c5efb97903c4c9ed5b813eb518646dcb687663efd1acb55718e1",
+    "reason": "PortToanFindArgData/EventStackInt/EventStackString are asm bindings to original static helpers exposed by unit_copy; argument types/counts and equip lookup retained. Separate marked ownership guard refuses skeleton/equipment mutation on donor-owned characters. Aliases are not new conversion semantics."
+  }
+]

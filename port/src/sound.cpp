@@ -460,6 +460,34 @@ int SoundLoadHdBdAdd(int port, const void *hd, int hd_size, const void *bd, int 
     return 0;
 }
 
+int SoundBankCount(int port) {
+    return port >= 0 && port < MIDI_PORT_COUNT ? ports[port].bank_count : 0;
+}
+
+bool SoundReleaseHdBd(int port) {
+    // Only a port nothing links to or depends on: releasing one would silence a partner port.
+    if (port < 0 || port >= MIDI_PORT_COUNT || ports[port].linked_port >= 0 || !ports[port].dependent_port.empty()) {
+        return false;
+    }
+
+    for (const PortState &other : ports) {
+        if (other.linked_port == port || std::find(other.dependent_port.begin(), other.dependent_port.end(), port) != other.dependent_port.end()) {
+            return false;
+        }
+    }
+
+    audio::Mixer &mixer = audio::DefaultMixer();
+    PortState    &state = ports[port];
+
+    DropQueued(port);
+    mixer.Stop(port);
+    DropBankSlots(mixer, port);
+    mixer.BindBank(port, nullptr);
+    state.bank.fill(nullptr);
+    state.bank_count = 0;
+    return true;
+}
+
 int SoundLoadSeq(int port, const void *sq, int size, const char *name) {
     audio::Mixer &mixer = audio::DefaultMixer();
 

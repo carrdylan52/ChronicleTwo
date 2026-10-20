@@ -9,7 +9,9 @@
 
 TEST(InputStartup, HeadlessLeavesControllerSubsystemsOff) {
     ASSERT_EQ(SDL_WasInit(SDL_INIT_GAMEPAD | SDL_INIT_JOYSTICK), 0u);
+    testing::internal::CaptureStderr();
     InputInitForRun(true);
+    EXPECT_EQ(testing::internal::GetCapturedStderr().find("input: gamepad"), std::string::npos);
     EXPECT_EQ(SDL_WasInit(SDL_INIT_GAMEPAD | SDL_INIT_JOYSTICK), 0u);
     InputShutdown();
 }
@@ -44,7 +46,18 @@ TEST(InputStartup, HeadlessKeepsScriptedKeyboard) {
 }
 
 TEST(InputStartup, WindowedStillInitializesControllers) {
+    testing::internal::CaptureStderr();
     InputInitForRun(false);
+    const auto log = testing::internal::GetCapturedStderr();
     EXPECT_EQ(SDL_WasInit(SDL_INIT_GAMEPAD | SDL_INIT_JOYSTICK), SDL_INIT_GAMEPAD | SDL_INIT_JOYSTICK);
+    int count = 0;
+    SDL_JoystickID *pads = SDL_GetGamepads(&count);
+    EXPECT_NE(log.find("input: gamepads=" + std::to_string(count)), std::string::npos);
+    for (int i = 0; pads != nullptr && i < count; ++i) {
+        EXPECT_NE(log.find("input: gamepad id=" + std::to_string(pads[i])), std::string::npos);
+        const char *name = SDL_GetGamepadNameForID(pads[i]);
+        EXPECT_NE(log.find("name=" + std::string(name != nullptr ? name : "(unknown)")), std::string::npos);
+    }
+    SDL_free(pads);
     InputShutdown();
 }

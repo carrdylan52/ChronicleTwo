@@ -17,6 +17,9 @@
 #include "gamedata.hpp"
 #include "gamepad.hpp"
 #include "helpmes.hpp"
+#include "ixion_room.hpp"
+#include "ixion_ledger.hpp"
+#include "ixion_georama.hpp"
 #include "inventmn.hpp"
 #include "main.hpp"
 #include "mainloop.hpp"
@@ -50,6 +53,9 @@ extern CScene        MainScene;
 extern CFont         Font;
 
 static constexpr int kSubGameQuads = std::max(5000, static_cast<int>((sizeof(CSubGameData) + 15) / 16));
+
+static bool g_scene_ready = false;
+bool GameSceneReady() { return g_scene_ready; }
 
 void PortDrawFrameBorder() {
     const auto  edge = mgPortVisibleExtent();
@@ -256,8 +262,16 @@ PORT_OVERRIDE void MainLoop() {
         printf("##### %d\n", mgGetVSyncCount());
         // Single entry for every mode change: covers the LOOP_MENU->LOOP_TITLE redirect above and the PortNextLoopNo hand-off below.
         mgPortCutInterpolation();
+        // Invariant: every dungeon departure retired before LoopExit. Anything left is discarded, never restored.
+        IxionRoomBeforeLoopInit();
+        g_scene_ready = false;
         LoopInit[PortLoopNo](InitArg);
+        if (mgPortExitStatus() >= 0) return;
         GameGiveOnArrival(PortLoopNo);
+        if (PortLoopNo == LOOP_DUNGEON) {
+            // Inspect mode installs the imported room here, before the first floor frame is drawn.
+            IxionRoomLoopEntry();
+        }
         INIT_LOOP_ARG next_arg;
 
         NextLoop(LOOP_MENU, next_arg);
@@ -276,6 +290,10 @@ PORT_OVERRIDE void MainLoop() {
         while (1) {
             request_developer_menu();
             if (developer_menu_requested) {
+                if (PortLoopNo == LOOP_DUNGEON) {
+                    // Retire while the dungeon scene is still intact, before its teardown frame below.
+                    IxionRoomRetire("developer-menu");
+                }
                 DebugFlag = 1;
                 GamePad__2.KeyLock(0);
                 if (PortLoopNo == LOOP_EDIT) {
@@ -324,19 +342,35 @@ PORT_OVERRIDE void MainLoop() {
 
             mgPerformanceMeter(pmeter_flag);
 
-            if (GamePad__2.Down2(PAD_CIRCLE) ||
+            if ((!GameNoDebug() && GamePad__2.Down2(PAD_CIRCLE)) ||
                 (GameDebugEnabled() && DebugModeToggleChord(GamePad__2.GetPadOn(), GamePad__2.GetPadDown()))) {
                 DebugFlag = !DebugFlag;
             }
 
+            if (PortLoopNo == LOOP_DUNGEON) {
+                // Pre-frame boundary: an inspect room becomes ready before the first playable frame is drawn.
+                IxionRoomFrameBoundary();
+            }
             mgBeginFrame(NULL);
+            if (PortLoopNo == LOOP_EDIT) {
+                IxionGeoramaStep();
+            }
             mode_finished = LoopMain[PortLoopNo]();
             sndStep(mgGetNowFrameRate());
             MainScene.StepSnd();
             GamePad__2.UpDate();
             PadCtrl.Update(&GamePad__2);
+            if (PortLoopNo == LOOP_DUNGEON) {
+                IxionRoomDrawOverlay();
+            }
             PortDrawFrameBorder();
+            g_scene_ready = true;
             mgEndFrame(NULL);
+            IxionLedgerFrameBoundary(); // Ixion: counted kills survive room retirement and loop departure
+            if (mgPortExitStatus() >= 0) return;
+            if (PortLoopNo == LOOP_DUNGEON) {
+                IxionRoomFrameBoundary();
+            }
 
             if (mode_finished != 0) {
                 PauseCancel();
@@ -392,6 +426,10 @@ PORT_OVERRIDE void MainLoop() {
             PauseCount();
         }
 
+        if (PortLoopNo == LOOP_DUNGEON) {
+            // Every departure from the dungeon loop retires before its scene arena can be reused.
+            IxionRoomRetire("loop-exit");
+        }
         LoopExit[PortLoopNo]();
         MemoryLogPeaks();
 

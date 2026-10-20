@@ -6,6 +6,7 @@
 
 #include "character.hpp"
 #include "effscript.hpp"
+#include "ixion_room.hpp"
 #include "mg_memory.hpp"
 
 int SetEffectScript(CRunScript *script, char *program, mgCMemory *memory);
@@ -140,5 +141,7 @@ PORT_OVERRIDE _EFF_SCRIPT *CEffectScriptMan::CreateEffSpt(int base_no, int group
         tail = effect;
     }
     now = effect;
+    // N6: the room's exact effect ownership records every creation here.
+    if (IxionRoomInstalled()) IxionRoomNoteEffectCreated(effect, group);
     return effect;
 }

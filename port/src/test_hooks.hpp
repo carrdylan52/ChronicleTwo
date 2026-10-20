@@ -35,3 +35,9 @@ void GameGiveOnArrival(int mode);
 bool GameDeveloperMenuRequested(int mode);
 bool GameDebugPauseRequested(CGamePad &pad);
 bool GameDebugPauseResumeRequested(CGamePad &pad);
+
+bool GameParseFlags(std::string_view text, std::vector<int> &flags);
+bool GameSetFlags(std::string_view text);
+void GameSetNoDebug(bool disabled);
+bool GameNoDebug();
+void GameResetHooksForTest();

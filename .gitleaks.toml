@@ -1,0 +1,14 @@
+# Public source-object identifiers used by the donor provenance gate.
+# Only these two literal digests are excluded; default secret rules remain active.
+[extend]
+useDefault = true
+
+[[allowlists]]
+description = "Public charakey.cpp source hashes, not credentials"
+condition = "AND"
+paths = ['''^port/ixdc1/helpers\.json$''']
+regexTarget = "secret"
+regexes = [
+  '''^78edd1a2023d7feda23466dc7d690c02213bcfbd$''',
+  '''^3b777fd41948df9c0994bc4b22f5bd66ef5b2ff8bb650f58c848f677837a039c$'''
+]

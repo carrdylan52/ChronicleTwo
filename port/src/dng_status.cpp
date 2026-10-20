@@ -7,6 +7,7 @@
 #include "userdata.hpp"
 
 #include "gfx/gfx.hpp"
+#include "ixion_toan_combat.hpp"
 
 PORT_OVERRIDE void DrawStatusBord() {
     gfx::UiAnchorScope anchor(gfx::UiAnchor::Side(-1, -1, true));
@@ -27,7 +28,13 @@ PORT_OVERRIDE void DrawStatusBord() {
             // Retail batches each human panel separately: HP/items are left of the midpoint;
             // both weapon panels and the magic-sword charges are right of it. Move each draw whole.
             gfx::UiAnchorScope panels({256.0f, 256.0f, INFINITY, -INFINITY, true});
-            DrawMainUnitStatusBord(rate);
+            // Ixion: Dark Cloud's Toan shows his action gauge in place of Max's wrench and gun panels.
+            IxionToanHud toan;
+            if (IxionToanCombatHud(&toan)) {
+                IxionDrawToanUnitStatusBord(rate, toan);
+            } else {
+                DrawMainUnitStatusBord(rate);
+            }
             break;
         }
         case USER_CHARA_ROBO:

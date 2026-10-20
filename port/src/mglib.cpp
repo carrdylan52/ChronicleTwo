@@ -79,8 +79,10 @@ gfx::DisplayListRef last_list;
 gfx::DisplayListRef previous_list;
 int frame_count = 0;
 int exit_frames = 0;
+int exit_status = -1;
 std::filesystem::path screenshot_path;
 mgPortScreenshotOptions screenshot_options;
+std::vector<std::filesystem::path> checkpoint_paths;
 int store_count = 0;
 
 mgPortGsState gs_state;
@@ -542,6 +544,8 @@ int mgPortFrameCount() {
     return frame_count;
 }
 
+int mgPortExitStatus() { return exit_status; }
+
 void mgPortExitAfterFrames(int frames, const std::filesystem::path &screenshot) {
     exit_frames = frames;
     screenshot_path = screenshot;
@@ -549,6 +553,10 @@ void mgPortExitAfterFrames(int frames, const std::filesystem::path &screenshot) 
 
 void mgPortSetScreenshotOptions(const mgPortScreenshotOptions &options) {
     screenshot_options = options;
+}
+
+void mgPortQueueScreenshot(const std::filesystem::path &path) {
+    if (!path.empty() && checkpoint_paths.size() < 8) checkpoint_paths.push_back(path);
 }
 
 // Projection
@@ -1324,6 +1332,18 @@ PORT_OVERRIDE void mgEndFrame(mgCDrawManager *manager) {
     frame_open = false;
     ++frame_count;
 
+    if (!checkpoint_paths.empty()) {
+        std::vector<uint8_t> rgba;
+        uint32_t width = 0, height = 0;
+        const bool read = ReadNow(gfx::kMainTarget, rgba, width, height);
+        for (const auto &path : checkpoint_paths) {
+            const bool written = read && gfx::WritePng(path, rgba.data(), width, height);
+            std::fprintf(stderr, "mglib: checkpoint frame=%d written=%d path=%s\n", frame_count,
+                         written ? 1 : 0, PathsDisplay(path).c_str());
+        }
+        checkpoint_paths.clear();
+    }
+
     if (exit_frames > 0 && frame_count == exit_frames) {
         int status = kExitOk;
 
@@ -1349,7 +1369,10 @@ PORT_OVERRIDE void mgEndFrame(mgCDrawManager *manager) {
             }
         }
 
-        std::exit(status);
+        if (!EmbedActive()) std::exit(status);
+        // The main loop sees this request after initialization or its current frame and returns
+        // through RunGame; never unwind a nested scheduler fiber or terminate the host.
+        exit_status = status;
     }
 
     PresentWaitFrame(old_vcount, mgFrameRate);
@@ -1366,7 +1389,7 @@ PORT_OVERRIDE void mgEndFrame(mgCDrawManager *manager) {
 
     // An embedding host may park the game here, between frames. A parked game resumes with its
     // present pacing restarted, so the time away is not counted as late frames.
-    if (EmbedCheckpoint(kEmbedFrameEnd)) {
+    if (exit_status < 0 && EmbedCheckpoint(kEmbedFrameEnd)) {
         PresentRebase();
     }
 }

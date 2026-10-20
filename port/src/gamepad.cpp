@@ -23,6 +23,18 @@ void Neutral(PAD_STATUS &status) {
 }
 } // namespace
 
+void GamePadRefreshOnResume() {
+    for (int port = 0; port < 2; ++port) {
+        auto &status = GamePad__2.pad[port];
+        Neutral(status);
+        PortReadPad(&status, port, 0);
+        GamePad__2.previous_pad[port] = status;
+        auto &repeat = GamePad__2.repeat[port];
+        repeat.active = 0;
+        for (auto &counter : repeat.counter) counter = 0;
+    }
+}
+
 PORT_OVERRIDE void CGamePad::UpDate() {
     // Only the retail menu threshold may turn stick axes into D-pad buttons.
     // Disable the host fallback so movement keys cannot select field slots.

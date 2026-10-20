@@ -7,6 +7,7 @@
 #include "automap.hpp"
 #include "dng_main.hpp"
 #include "gfx/gfx.hpp"
+#include "ixion_room.hpp"
 #include "maintex.hpp"
 #include "mglib.hpp"
 #include "scenesnd.hpp"
@@ -16,6 +17,26 @@ namespace {
 constexpr gfx::UiAnchor kMiniMapAnchor = gfx::UiAnchor::Side(1, -1, true);
 
 } // namespace
+
+PORT_OVERRIDE float CAutoMapGen::GetNaviDistance(float *pos) {
+    if (pos == nullptr) return -1.0f;
+    // Identity, not proximity: only the selected encounter enemy's own
+    // ThinkHost update is answered by the imported room.
+    if (IxionRoomOwnsNavigationQuery()) return 0.0f;
+    if (!navi_valid || !navi_enable || grid == nullptr) return 0.0f;
+    int x=0;
+    int z=0;
+    // Native clamps only negative indices; a position past the grid is
+    // treated as unreachable instead of reading outside the cell array.
+    if (!IxionRoomNativeGridCell(pos[0],pos[2],grid_w,grid_h,cell_w,cell_d,x,z)) return -1.0f;
+    const float size_x=cell_w;
+    const float size_z=cell_d;
+    const s8 step=(grid+z*grid_w)[x].navi;
+    if (step<=0) return -1.0f;
+    float distance=static_cast<float>(navi_depth-step);
+    distance*=(size_x+size_z)/2.0f;
+    return distance;
+}
 
 PORT_OVERRIDE void CMiniMapSymbol::SetMapInfo(CMap *new_map, CAutoMapParts *new_grid, int width, int height,
                                               float cell_width, float cell_depth) {

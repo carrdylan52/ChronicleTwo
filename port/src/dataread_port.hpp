@@ -9,6 +9,8 @@
 // manifest.txt, dot entries, *.dc2tmp files and the movie/ and sound/ trees are left out. Logs its
 // count to stderr.
 void DataReadIndex(const std::filesystem::path &root);
+// Called before path options are consumed; empty if the invocation has no run directory.
+void DataReadCaptureRunDirectory(int argc, const char **argv);
 
 // The file a game path names, through the same device, current-directory and version rules the
 // loaders use; empty when the index holds no such file.

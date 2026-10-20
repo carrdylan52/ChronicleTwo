@@ -137,6 +137,7 @@ set(PORT_OVERRIDES_CHECKED ${CMAKE_BINARY_DIR}/port_overrides.checked)
 set(PORT_OVERRIDE_CACHE ${CMAKE_BINARY_DIR}/port_overrides.cache.json)
 add_custom_command(OUTPUT ${PORT_OVERRIDES_CHECKED}
     COMMAND ${Python3_EXECUTABLE} ${PORT_OVERRIDE_SCRIPT} check --overrides ${PORT_OVERRIDES}
+        --private-functions --private-function-unit event_func.cpp
         --stubs ${CMAKE_SOURCE_DIR}/port/include/stubs ${port_override_defines} ${PS2_DIR}
         --split ${CMAKE_BINARY_DIR}/port_overrides --cache ${PORT_OVERRIDE_CACHE}
         -o ${PORT_OVERRIDES_CHECKED}
@@ -197,6 +198,9 @@ add_library(ct_port OBJECT ${PORT_LIB_SOURCES} ${CT_SCE_SOURCES})
 target_link_libraries(ct_port PRIVATE ct_options SDL3::SDL3 Vulkan::Vulkan nlohmann_json::nlohmann_json kz_port_headers kazarov_bridge)
 add_dependencies(ct_port ps2_include)
 target_include_directories(ct_port PRIVATE ${PORT_DIR})
+if(IXION_DC1_SOURCE_DIR)
+    target_compile_definitions(ct_port PRIVATE IXION_DC1_TOAN_COMBAT=1)
+endif()
 # Datapack PNGs use the host's decoder with ordinary PNG colour formats.
 find_path(CT_STB_IMAGE_INCLUDE_DIR stb_image.h
     PATHS ${KZ_PORT_VENDOR_DIRS} ${CMAKE_BINARY_DIR}/kz_port/vendor NO_DEFAULT_PATH REQUIRED)
@@ -233,6 +237,10 @@ function(ct_link_game target)
     target_sources(${target} PRIVATE $<TARGET_OBJECTS:ct_port> $<TARGET_OBJECTS:ct_host> $<TARGET_OBJECTS:ct_ps2>)
     add_dependencies(${target} ps2_include)
     target_link_libraries(${target} PRIVATE ct_options kz_port_headers SDL3::SDL3 Vulkan::Vulkan kazarov_bridge kazarov_core)
+    # The opt-in Toan combat bridge in ct_port (ixion_toan_combat.cpp) calls the private donor library.
+    if(IXION_DC1_SOURCE_DIR)
+        target_link_libraries(${target} PRIVATE ixdc1_combat)
+    endif()
     target_include_directories(${target} PRIVATE ${PORT_DIR})
     target_compile_options(${target} PRIVATE -Wall -Wno-mismatched-tags -Wno-unused-label
         -Wno-overloaded-virtual -Wno-unused-function)
@@ -281,6 +289,10 @@ endif()
 # from IXION_API_DIR). OFF by default; with it OFF the executable and the tests are unchanged.
 option(IXION_BUILD_PLUGIN "Build the Ixion module ixion_c2, a shared library exporting ixion_get_api" OFF)
 set(IXION_API_DIR "" CACHE PATH "Directory holding ixion_api.h, the host and module ABI")
+set(IXION_DC1_SOURCE_DIR "" CACHE PATH "Optional Chronicle checkout for the isolated DC1 combat bridge")
+if(IXION_DC1_SOURCE_DIR)
+    add_subdirectory(ixdc1)
+endif()
 if(IXION_BUILD_PLUGIN)
     if(NOT EXISTS "${IXION_API_DIR}/ixion_api.h")
         message(FATAL_ERROR "IXION_BUILD_PLUGIN needs IXION_API_DIR, the directory holding ixion_api.h")
@@ -292,8 +304,41 @@ if(IXION_BUILD_PLUGIN)
         LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR})
     ct_link_game(ixion_c2 SHARED)
     target_include_directories(ixion_c2 PRIVATE ${IXION_API_DIR})
+    add_executable(ixion_c2_smoke EXCLUDE_FROM_ALL tests/ixion_smoke.cpp ${PORT_DIR}/ixion_plugin.cpp)
+    ct_link_game(ixion_c2_smoke)
+    target_include_directories(ixion_c2_smoke PRIVATE ${IXION_API_DIR})
+    kz_windows_runtime(ixion_c2_smoke)
+    if(CT_BUILD_TESTS)
+        add_test(NAME ixion_c2_smoke COMMAND ixion_c2_smoke)
+        set_tests_properties(ixion_c2_smoke PROPERTIES TIMEOUT 30)
+    endif()
     # Only ixion_get_api, marked IXION_EXPORT, leaves the module.
     target_link_options(ixion_c2 PRIVATE -Wl,--exclude-all-symbols)
+    if(TARGET ixdc1_combat)
+        target_link_libraries(ixion_c2 PRIVATE ixdc1_combat)
+        # Keep the C boundary in the DLL before a bridge has a call site. MinGW lld's --undefined only
+        # includes a symbol "if available" (it is no GC root once its member is loaded); --require-defined is.
+        target_link_options(ixion_c2 PRIVATE
+            -Wl,--require-defined=ixion_dc1_toan_reset -Wl,--require-defined=ixion_dc1_toan_tick
+            -Wl,--require-defined=ixion_dc1_reset -Wl,--require-defined=ixion_dc1_tick
+            -Wl,--require-defined=ixion_dc1_character_info -Wl,--require-defined=ixion_dc1_set_point_resolver)
+        string(CONCAT ixdc1_host_inputs
+            "$<JOIN:$<TARGET_OBJECTS:ct_ps2>,\n>\n"
+            "$<JOIN:$<TARGET_OBJECTS:ct_port>,\n>\n"
+            "$<JOIN:$<TARGET_OBJECTS:ct_host>,\n>\n"
+            "${CMAKE_CURRENT_BINARY_DIR}/CMakeFiles/ixion_c2.dir/src/ixion_plugin.cpp${CMAKE_CXX_OUTPUT_EXTENSION}\n"
+            "${CMAKE_CURRENT_BINARY_DIR}/CMakeFiles/ixion_c2.dir/src/main.cpp${CMAKE_CXX_OUTPUT_EXTENSION}\n"
+            "$<TARGET_FILE:kazarov_bridge>\n$<TARGET_FILE:kazarov_core-static>\n")
+        file(GENERATE OUTPUT ${CMAKE_BINARY_DIR}/ixdc1_host_objects.txt CONTENT "${ixdc1_host_inputs}")
+        set_property(TARGET ixion_c2 APPEND PROPERTY LINK_DEPENDS
+            ${CMAKE_CURRENT_SOURCE_DIR}/ixdc1/check_symbols.py)
+        add_custom_command(TARGET ixion_c2 POST_BUILD
+            COMMAND ${Python3_EXECUTABLE} -B ${CMAKE_CURRENT_SOURCE_DIR}/ixdc1/check_symbols.py
+                --nm ${CMAKE_NM} --archive $<TARGET_FILE:ixdc1_combat>
+                --binary $<TARGET_FILE:ixion_c2>
+                --host-objects ${CMAKE_BINARY_DIR}/ixdc1_host_objects.txt
+            VERBATIM)
+    endif()
     if(WIN32)
         kz_windows_runtime(ixion_c2)
     endif()

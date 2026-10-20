@@ -11,6 +11,7 @@
 #include "platform/input.hpp"
 #include "platform/paths.hpp"
 #include "test_hooks.hpp"
+#include "savedata.hpp"
 
 using GamePadSingleDebug = dc::test::DebugFixture;
 
@@ -186,6 +187,7 @@ TEST(TestHooks, JumpExplicitlyEnablesDebugWithOrdinaryDefaults) {
     pad.previous_pad[0].button = PAD_L2;
     pad.pad[0].button = PAD_L2 | PAD_SELECT;
     EXPECT_TRUE(GameDebugPauseRequested(pad));
+    GameResetHooksForTest();
 }
 
 TEST_F(GamePadSingleDebug, ExplicitPauseChordEntersAndResumesWithoutLeakingModifiers) {
@@ -205,4 +207,40 @@ TEST_F(GamePadSingleDebug, ExplicitPauseChordEntersAndResumesWithoutLeakingModif
     pad.key_lock = 1;
     EXPECT_FALSE(GameDebugPauseRequested(pad));
     EXPECT_FALSE(GameDebugPauseResumeRequested(pad));
+}
+
+TEST(TestHooks, FlagsRejectMalformedListsWithoutChangingPreviousFlags) {
+    std::vector<int> flags;
+    ASSERT_TRUE(GameParseFlags("0,100,2047", flags));
+    for (auto bad : {"", "2048", "-1", "+1", "100,", ",1", "1,,2", "1x"}) {
+        EXPECT_FALSE(GameParseFlags(bad, flags)) << bad;
+        EXPECT_EQ(flags, (std::vector<int>{0,100,2047}));
+    }
+}
+
+TEST(TestHooks, FlagsNeedJumpAndUseRetailBitNumbering) {
+    GameResetHooksForTest();
+    EXPECT_FALSE(GameSetFlags("100"));
+    ASSERT_TRUE(GameSetJump("title"));
+    ASSERT_TRUE(GameSetFlags("100"));
+    CSaveData save;
+    save.Initialize();
+    save.SetBitFlag(100, 1);
+    EXPECT_EQ(save.bit_flag[3], 0x10u);
+    GameResetHooksForTest();
+}
+
+TEST_F(GamePadSingleDebug, NoDebugOverridesConfigJumpAndSinglePadChord) {
+    GameResetHooksForTest();
+    ASSERT_TRUE(GameSetJump("title"));
+    ASSERT_TRUE(GameDebugEnabled());
+    GameSetNoDebug(true);
+    EXPECT_TRUE(GameNoDebug()); EXPECT_FALSE(GameDebugEnabled());
+    CGamePad pad{};
+    pad.key_lock2 = 1;
+    pad.previous_pad[0].button = PAD_L2;
+    pad.pad[0].button = PAD_L2 | PAD_SELECT | PAD_CIRCLE;
+    EXPECT_FALSE(pad.Down2(PAD_CIRCLE));
+    EXPECT_FALSE(GameDebugPauseRequested(pad));
+    GameResetHooksForTest();
 }

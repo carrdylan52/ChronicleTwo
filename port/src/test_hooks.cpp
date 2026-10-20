@@ -15,6 +15,7 @@
 #include "platform/input.hpp"
 #include "platform/paths.hpp"
 #include "savedata.hpp"
+#include "ixion_georama.hpp"
 #include "title.hpp"
 #include "userdata.hpp"
 
@@ -24,6 +25,8 @@ namespace {
 std::optional<GameJump> target;
 std::vector<int>        gifts;
 bool                    fast_load = false;
+bool                    no_debug = false;
+std::vector<int>        story_flags;
 
 bool Number(std::string_view text, int &value, int maximum) {
     if (text.empty()) {
@@ -140,6 +143,24 @@ bool GameParseGive(std::string_view text, std::vector<int> &items) {
     return true;
 }
 
+bool GameParseFlags(std::string_view text, std::vector<int> &items) {
+    std::vector<int> parsed;
+    do {
+        auto comma = text.find(',');
+        int  item = 0;
+        if (!Number(text.substr(0, comma), item, SAVE_BIT_FLAG_MAX - 1)) {
+            return false;
+        }
+        parsed.push_back(item);
+        if (comma == text.npos) {
+            break;
+        }
+        text.remove_prefix(comma + 1);
+    } while (true);
+    items = std::move(parsed);
+    return true;
+}
+
 bool GameSetJump(std::string_view text) {
     GameJump parsed;
     if (!GameParseJump(text, parsed)) {
@@ -153,7 +174,17 @@ bool GameSetGive(std::string_view text) { return GameParseGive(text, gifts); }
 
 bool GameHasJump() { return target.has_value(); }
 
-bool GameDebugEnabled() { return ConfigGet().debug_mode || GameHasJump(); }
+bool GameDebugEnabled() { return !no_debug && (ConfigGet().debug_mode || GameHasJump()); }
+
+void GameSetNoDebug(bool disabled) { no_debug = disabled; }
+bool GameNoDebug() { return no_debug; }
+bool GameSetFlags(std::string_view text) {
+    if (!target) { std::fprintf(stderr, "bad --flag: needs --jump\n"); return false; }
+    return GameParseFlags(text, story_flags);
+}
+void GameResetHooksForTest() {
+    target.reset(); gifts.clear(); story_flags.clear(); no_debug = false; fast_load = false;
+}
 
 void GameSetFastLoad(bool fast) { fast_load = fast; }
 
@@ -170,9 +201,10 @@ void GamePrepareJump(int &mode, INIT_LOOP_ARG &arg) {
         return;
     }
     InitSaveData();
+    for (int bit : story_flags) GetSaveData()->SetBitFlag(bit, 1);
     auto jump = *target;
     arg = INIT_LOOP_ARG{};
-    DebugFlag = 1;
+    DebugFlag = no_debug ? 0 : 1;
     PortGameBootInit = 1;
     switch (jump.mode) {
         case JumpMode::Menu:
@@ -185,6 +217,7 @@ void GamePrepareJump(int &mode, INIT_LOOP_ARG &arg) {
             if (GetMapName(jump.map, nullptr) == nullptr || GetMapType(jump.map) < 0) {
                 BadTarget();
             }
+            IxionGeoramaPrepare(jump.map);
             LoadGameConfig("dbg/pb.cfg");
             mode = LOOP_EDIT;
             arg.map_no = jump.map;
@@ -223,6 +256,9 @@ void GameGiveOnArrival(int mode) {
         return;
     }
     auto &user = GetSaveData()->user_data;
+    if (mode == LOOP_EDIT) {
+        IxionGeoramaArrival();
+    }
     for (int item : gifts) {
         if (GetCommonItemData(item) == nullptr) {
             std::fprintf(stderr, "bad --give: unknown item %d\n", item);

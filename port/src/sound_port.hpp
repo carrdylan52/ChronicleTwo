@@ -8,6 +8,11 @@ class StreamChannel;
 void SoundLoadHdBd(int port, const void *hd, int hd_size, const void *bd, int bd_size);
 int  SoundLoadHdBdAdd(int port, const void *hd, int hd_size, const void *bd, int bd_size);
 int  SoundLoadSeq(int port, const void *sq, int size, const char *name = nullptr);
+// Banks resident on a driver port. SoundLoadHdBdAdd appends at this index.
+int  SoundBankCount(int port);
+// Stops a driver port and unbinds all of its banks. Refused (false) for a port that is linked to, or
+// shares its sound processor with, another port, so a game port pair is never half-released.
+bool SoundReleaseHdBd(int port);
 // Config volume is a final gain, independent of retail fades and core volumes.
 void SoundApplySettings();
 

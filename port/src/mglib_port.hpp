@@ -25,8 +25,12 @@ class mgCDrawEnv;
 bool mgPortRendererReady();
 bool mgPortFrameOpen();
 int mgPortFrameCount();
-// mgEndFrame of frame `frames` writes `screenshot` (if not empty) and exits the process with kExitOk.
+// At frame `frames`, write `screenshot` if supplied. Standalone exits; embedded requests a run return.
 void mgPortExitAfterFrames(int frames, const std::filesystem::path &screenshot);
+// Writes an optional diagnostic checkpoint at the next mgEndFrame, without ending the replay.
+void mgPortQueueScreenshot(const std::filesystem::path &path);
+// Embedded frame-budget completion: -1 while running, otherwise the requested return status.
+int mgPortExitStatus();
 
 struct mgPortScreenshotOptions {
     int  display_frames = 0;

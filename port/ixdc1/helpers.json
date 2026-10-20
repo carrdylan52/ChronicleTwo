@@ -1,0 +1,128 @@
+{
+  "donor_commit": "572646bfe7a1d42089d9dfda29e4b577aa9ddd18",
+  "charakey_blob": "78edd1a2023d7feda23466dc7d690c02213bcfbd",
+  "charakey_sha256": "3b777fd41948df9c0994bc4b22f5bd66ef5b2ff8bb650f58c848f677837a039c",
+  "snippets": [
+    {
+      "path": "ps2/src/clothread.cpp",
+      "signature": "float unitRotation(",
+      "start": 597,
+      "end": 652,
+      "sha256": "e0cf78225e1367d736095c31c0f943d22259ca4511ee1ac45790137947c47afb",
+      "blob": "133f80885dde233a3cb6d4db2cca3d9d93f562cd"
+    },
+    {
+      "path": "ps2/src/btitem.cpp",
+      "signature": "void ParabolicInitialVector(",
+      "start": 1300,
+      "end": 1307,
+      "sha256": "8015fa1a2694d6e1be5cf4cc13e1349aa5b7c7c83cd6b31905eb37493e1898d6",
+      "blob": "1d16e5bba852191a1ec0a923496e1e196c43c987"
+    },
+    {
+      "path": "ps2/src/btitem.cpp",
+      "signature": "void getCharacterVector(",
+      "start": 1510,
+      "end": 1524,
+      "sha256": "cfa28f10bed15a2bb1255041b4e620149c3d133ea680a6cce4f039b48c28f205",
+      "blob": "1d16e5bba852191a1ec0a923496e1e196c43c987"
+    },
+    {
+      "path": "ps2/src/collisiondata.cpp",
+      "signature": "int CCollisionData::Set(",
+      "start": 797,
+      "end": 831,
+      "sha256": "3d5d14a0e8b7e9a20cf42659552d98b683da84f45c2927fcbf7e1c62eb4483e3",
+      "blob": "608b668751a43c3d0525ee4fc77e16baea5dbbe1"
+    },
+    {
+      "path": "ps2/src/collisiondata.cpp",
+      "signature": "void CCollisionData::SetKickBack(",
+      "start": 896,
+      "end": 903,
+      "sha256": "3fec36e687c16633389cdbe90717e25c75524e7198ab4498b12dfb7a4770d2ef",
+      "blob": "608b668751a43c3d0525ee4fc77e16baea5dbbe1"
+    },
+    {
+      "path": "ps2/src/shot_freefuncs.cpp",
+      "signature": "int StatusErrCheck(",
+      "start": 963,
+      "end": 965,
+      "sha256": "c7c4b93e23ec6ceb275a6deb27201313dcbba9e0905986555684e1b36ebbd7b7",
+      "blob": "d32b5ad5d5eb570f95f919a5c2321eec4dc7105a"
+    },
+    {
+      "path": "ps2/src/hitvalue.cpp",
+      "signature": "int element_tbl[6]",
+      "start": 29,
+      "end": 29,
+      "sha256": "09599500c0fa82f7bfb30f8af9ebd326c288e13a793313c004f579956e5ceb6e",
+      "blob": "a308ef529f053b24b8523bc0713bdfe15e35ce42"
+    },
+    {
+      "path": "ps2/src/motionmodel.cpp",
+      "signature": "int GetWeaponElementAttr(",
+      "start": 16,
+      "end": 22,
+      "sha256": "e81b3570c6647f64e6cc87deed3c4900de7894ccb32090cc51e1a96d2527d2ed",
+      "blob": "8c4c1d709c36c8d5d1ee9fc75bb5924d6ac30443"
+    },
+    {
+      "path": "ps2/src/dun/gameloop.cpp",
+      "signature": "BT_SHOT_EFFECT MyEntryEffect_TOAN",
+      "start": 642,
+      "end": 648,
+      "sha256": "d44d2d2eb1cb594ca888b4231a97da2634e3f492a986b5b1255c78cc607713f7",
+      "blob": "a7722ceed006cc78ca36bda83f6813bfcf18458a"
+    },
+    {
+      "path": "ps2/src/dun/gameloop.cpp",
+      "signature": "BT_SHOT_EFFECT MyEntryEffect_GORO",
+      "start": 662,
+      "end": 668,
+      "sha256": "389cade3e1815140af46e07f900bbefbdcc209f144e6cb42f82e0ed86695c1e1",
+      "blob": "a7722ceed006cc78ca36bda83f6813bfcf18458a"
+    },
+    {
+      "path": "ps2/src/dun/gameloop.cpp",
+      "signature": "BT_SHOT_EFFECT MyEntryEffect_UNGAGA",
+      "start": 722,
+      "end": 728,
+      "sha256": "9ab3ea2a7148070215b9d31f6731ff165cb961aefa4bba891d970ffa0124672f",
+      "blob": "a7722ceed006cc78ca36bda83f6813bfcf18458a"
+    },
+    {
+      "path": "ps2/src/btitem.cpp",
+      "signature": "void setShotVector(",
+      "start": 1316,
+      "end": 1328,
+      "sha256": "beda2d4db09265e12a53584f65cca4261380694de8c982f8f9349c91f0dd05d7",
+      "blob": "1d16e5bba852191a1ec0a923496e1e196c43c987"
+    },
+    {
+      "path": "ps2/src/shot_effect.cpp",
+      "signature": "void CSHOT::step(",
+      "start": 54,
+      "end": 87,
+      "sha256": "703e5400ab2f3c22474a128f398862e10ac708bc0f29cdcbf6f06704970e00d0",
+      "blob": "438c54e86626776428901db6efd7102a007d5edd"
+    },
+    {
+      "path": "ps2/src/dun/gameloop.cpp",
+      "signature": "void BattleActionOn_Jinn(",
+      "start": 7655,
+      "end": 7665,
+      "sha256": "6de05bbfcbda12d979d77d56ca24d28fcd634542b60834bb16dd04f013fe6178",
+      "blob": "a7722ceed006cc78ca36bda83f6813bfcf18458a"
+    },
+    {
+      "path": "ps2/src/dun/gameloop.cpp",
+      "signature": "void BattleActionPlay_Jinn(",
+      "start": 7667,
+      "end": 7820,
+      "match": "lines",
+      "sha256": "5d85b396e47ddc9c8267ae0a84203a8d7384ed1bec48965324faac7e5754081a",
+      "blob": "a7722ceed006cc78ca36bda83f6813bfcf18458a"
+    }
+  ]
+}

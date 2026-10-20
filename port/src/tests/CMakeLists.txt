@@ -15,6 +15,8 @@ include(GoogleTest)
 add_test(NAME PalettePaths.Check
     COMMAND ${Python3_EXECUTABLE} ${CMAKE_SOURCE_DIR}/scripts/port/check_palette_paths.py
         ${CMAKE_BINARY_DIR}/ps2_src ${CMAKE_SOURCE_DIR}/port/src)
+add_test(NAME VerbatimDiff.Contract
+    COMMAND ${Python3_EXECUTABLE} -I -B ${CMAKE_SOURCE_DIR}/scripts/port/test_verbatim_diff.py)
 
 file(GLOB_RECURSE TEST_SOURCES CONFIGURE_DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/*_test.cpp)
 add_executable(darkchronicle_tests ${CMAKE_CURRENT_SOURCE_DIR}/main.cpp ${TEST_SOURCES})
@@ -101,7 +103,7 @@ if(NOT gpu_label_result EQUAL 0)
 endif()
 gtest_discover_tests(darkchronicle_tests
     DISCOVERY_MODE PRE_TEST
-    TEST_FILTER -PlatformClock.*:${CT_GPU_FILTER}:${CT_GPU_SLOW_FILTER}:${CT_CPU_FILTER}
+    TEST_FILTER -PlatformClock.*:IxionToanLifecycle.*:${CT_GPU_FILTER}:${CT_GPU_SLOW_FILTER}:${CT_CPU_FILTER}
     PROPERTIES TIMEOUT ${CT_TEST_TIMEOUT})
 gtest_discover_tests(darkchronicle_tests
     DISCOVERY_MODE PRE_TEST
@@ -111,6 +113,12 @@ gtest_discover_tests(darkchronicle_tests
     DISCOVERY_MODE PRE_TEST
     TEST_FILTER ${CT_CPU_FILTER}
     PROPERTIES TIMEOUT ${CT_TEST_TIMEOUT})
+
+gtest_discover_tests(darkchronicle_tests
+    DISCOVERY_MODE PRE_TEST
+    TEST_FILTER IxionToanLifecycle.*
+    PROPERTIES TIMEOUT ${CT_TEST_TIMEOUT}
+        ENVIRONMENT "DC2_IXION_PLAYER_BODY=toan;DC2_IXION_PLAYER_COMBAT=dc1")
 
 gtest_discover_tests(darkchronicle_tests
     DISCOVERY_MODE PRE_TEST

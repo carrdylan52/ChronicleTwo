@@ -7,6 +7,8 @@
 #include "event.hpp"
 #include "event_func.hpp"
 #include "event_vector_callbacks.hpp"
+#include "ixion_room.hpp"
+#include "ixion_toan_combat.hpp"
 #include "mainloop.hpp"
 #include "mainloop_port.hpp"
 #include "mglib.hpp"
@@ -89,6 +91,19 @@ int ClearDungeonEffects(RS_STACKDATA *, int) {
     return true;
 }
 } // namespace
+
+// All scene-event VM starts use RunEvent: system setup, dungeon debug Run
+// Event, both EventLoop load-script continuations, and Sphida. CScene::RunEvent
+// only queues a request. Keep town/native execution unchanged; in dungeon mode
+// restore native ownership and refuse this visit before an unsupported VM runs.
+PORT_OVERRIDE int RunEvent(int event_no, CScene *scene) {
+    IxionToanCombatRetire(nullptr, "event-entry");
+    if (GetNowLoopNo() == LOOP_DUNGEON) {
+        IxionRoomBeforeNativeEvent(event_no);
+    }
+    EventScene = scene;
+    return EventScript.run(event_no);
+}
 
 PORT_OVERRIDE void SetEventScript(char *program, char *, mgCMemory *memory) {
     // The one scene interpreter owns its host runtime arrays. The file arena keeps

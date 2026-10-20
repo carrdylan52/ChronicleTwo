@@ -5,6 +5,9 @@
 
 #include <algorithm>
 #include <array>
+#include <chrono>
+#include <cerrno>
+#include <cstdlib>
 #include <cstddef>
 #include <cstdint>
 #include <cstdio>
@@ -14,7 +17,11 @@
 #include <optional>
 #include <string>
 #include <string_view>
+#include <system_error>
 #include <unordered_map>
+#include <unordered_set>
+
+#include <nlohmann/json.hpp>
 
 #include "dataread.hpp"
 #include "dataread_port.hpp"
@@ -42,6 +49,7 @@ struct IndexedFile {
 };
 
 std::unordered_map<std::string, IndexedFile> file_index;
+fs::path overlay_run_directory;
 bool                                         index_built;
 
 std::string current_dir;
@@ -331,7 +339,198 @@ void BuildIndex(const fs::path &root) {
     std::fprintf(stderr, "dataread: indexed %zu files under %s\n", file_index.size(), PathsDisplay(root).c_str());
 }
 
+// Ixion opt-in (DC2_IXION_EXTRA_DATA): a private data tree of converted foreign content (for
+// example a DC1 monster pack and its script) indexed over the disc tree, so the game loads it
+// through its own LoadFile path with the same game-visible keys. Files in it win over the disc.
+std::vector<fs::path> SplitOverlayList(std::string_view list) {
+    std::vector<fs::path> roots;
+    while (!list.empty()) {
+        const auto end = list.find(';');
+        auto part = list.substr(0, end);
+        const auto first = part.find_first_not_of(" \t\r\n");
+        if (first != part.npos) {
+            part = part.substr(first, part.find_last_not_of(" \t\r\n") - first + 1);
+            auto root = PathsFromUtf8(part).lexically_normal();
+            while (!root.has_filename() && root != root.root_path()) root = root.parent_path();
+            roots.push_back(root);
+        }
+        if (end == list.npos) break;
+        list.remove_prefix(end + 1);
+    }
+    return roots;
+}
+
+bool Contained(const fs::path &root, const fs::path &member) {
+    const auto base = fs::weakly_canonical(root);
+    const auto resolved = fs::weakly_canonical(member);
+    auto a = base.begin(), b = resolved.begin();
+    for (; a != base.end(); ++a, ++b) {
+        if (b == resolved.end() || *a != *b) return false;
+    }
+    return true;
+}
+
+void IndexOverlay(const fs::path &root, std::unordered_map<std::string, fs::path> &owners,
+                  std::unordered_map<std::string, IndexedFile> &staged) {
+    std::error_code error;
+    if (!fs::is_directory(root, error)) {
+        std::fprintf(stderr, "dataread: overlay %s is not a directory; ignored\n", PathsDisplay(root).c_str());
+        return;
+    }
+    size_t added = 0;
+    fs::recursive_directory_iterator it(root, fs::directory_options::skip_permission_denied, error);
+    for (const fs::recursive_directory_iterator end; !error && it != end; it.increment(error)) {
+        std::error_code entry_error;
+        if (!it->is_regular_file(entry_error) || entry_error) {
+            continue;
+        }
+        if (!Contained(root, it->path())) throw std::runtime_error("overlay file escapes data root");
+        std::string key;
+        for (char c : it->path().lexically_relative(root).generic_string()) {
+            key.push_back(FoldChar(c));
+        }
+        const auto [owner, inserted] = owners.emplace(key, root);
+        if (!inserted) {
+            std::fprintf(stderr, "dataread: overlay duplicate %s from %s ignored (kept %s)\n",
+                         key.c_str(), PathsDisplay(root).c_str(), PathsDisplay(owner->second).c_str());
+            continue;
+        }
+        staged.insert_or_assign(std::move(key), IndexedFile{it->path()});
+        ++added;
+    }
+    if (error) throw std::runtime_error("cannot enumerate overlay: " + error.message());
+    std::fprintf(stderr, "dataread: overlay indexed %zu files under %s\n", added, PathsDisplay(root).c_str());
+}
+
+// The texture catalog loader takes one file and clears the previous catalog, so an overlay's
+// port_data/catalog.json is merged with the base catalog into one temporary file (asset paths made
+// absolute, so each keeps its own root), loaded once, and removed. Duplicate sources keep the base.
+bool LoadMergedCatalog(const fs::path &base_catalog, const std::vector<fs::path> &extra_catalogs) {
+    using Json = nlohmann::json;
+    auto read = [](const fs::path &path, Json &out) {
+        std::ifstream input(path);
+        if (!input) return false;
+        try { out = Json::parse(input); } catch (const std::exception &) { return false; }
+        return out.is_object() && out.contains("schema_version") && out["schema_version"].is_number_integer() &&
+               out["schema_version"] == 1 && out.contains("sources") && out["sources"].is_array();
+    };
+    auto absolutize = [](Json &catalog, const fs::path &directory) {
+        for (auto &source : catalog["sources"]) {
+            for (auto &entry : source["entries"]) {
+                if (!entry.contains("variants")) continue;
+                for (auto &variant : entry["variants"]) {
+                    for (auto &level : variant["levels"]) {
+                        const auto member = PathsFromUtf8(level.get<std::string>());
+                        if (member.empty() || member.has_root_path() ||
+                            std::find(member.begin(), member.end(), fs::path("..")) != member.end() ||
+                            !Contained(directory.parent_path(), directory / member))
+                            throw std::runtime_error("catalog member escapes pack root");
+                        level = PathsDisplay(fs::weakly_canonical(directory / member));
+                    }
+                }
+            }
+        }
+    };
+    Json base;
+    if (!read(base_catalog, base)) {
+        base = {{"schema_version", 1}, {"sources", Json::array()}};
+    }
+    Json merged_sources = Json::array();
+    std::unordered_set<std::string> keys;
+    size_t added = 0;
+    auto append = [&](Json catalog, const fs::path &path, bool extra) {
+        absolutize(catalog, path.parent_path());
+        for (auto &source : catalog["sources"]) {
+            std::string key = source.at("source").get<std::string>();
+            std::replace(key.begin(), key.end(), '\\', '/');
+            std::transform(key.begin(), key.end(), key.begin(), FoldChar);
+            while (!key.empty() && key.front() == '/') key.erase(key.begin());
+            if (!keys.insert(key).second) {
+                std::fprintf(stderr, "dataread: overlay catalog duplicate %s ignored\n", key.c_str());
+                continue;
+            }
+            merged_sources.push_back(std::move(source));
+            if (extra) ++added;
+        }
+    };
+    try {
+        append(base, base_catalog, false);
+        for (const auto &path : extra_catalogs) {
+            Json extra;
+            if (!read(path, extra)) {
+                std::fprintf(stderr, "dataread: overlay catalog unreadable %s; overlays rejected\n", PathsDisplay(path).c_str());
+                return false;
+            }
+            append(std::move(extra), path, true);
+        }
+    } catch (const std::exception &error) {
+        std::fprintf(stderr, "dataread: overlay catalog merge failed: %s\n", error.what());
+        return false;
+    }
+    base["sources"] = std::move(merged_sources);
+    const fs::path output_root = overlay_run_directory.empty() ? fs::temp_directory_path() : overlay_run_directory;
+    std::error_code created;
+    fs::create_directories(output_root, created);
+    if (created) {
+        std::fprintf(stderr, "dataread: merged catalog create directory failed path=%s error=%s\n",
+                     PathsDisplay(output_root).c_str(), created.message().c_str());
+        return false;
+    }
+    const fs::path merged = output_root /
+                            ("ixion-merged-catalog-" +
+                             std::to_string(std::chrono::steady_clock::now().time_since_epoch().count()) + ".json");
+    {
+        auto report_output_error = [&](const char *operation) {
+            const auto error = errno != 0 ? std::error_code(errno, std::generic_category()) :
+                                          std::make_error_code(std::errc::io_error);
+            std::fprintf(stderr, "dataread: merged catalog %s failed path=%s error=%s\n",
+                         operation, PathsDisplay(merged).c_str(), error.message().c_str());
+        };
+        errno = 0;
+        std::ofstream output(merged, std::ios::binary);
+        if (!output) {
+            report_output_error("open");
+            return false;
+        }
+        errno = 0;
+        output << base.dump();
+        output.flush(); // include buffered write failures before accepting the transaction
+        if (!output) {
+            report_output_error("write");
+            output.close();
+            std::error_code removed;
+            fs::remove(merged, removed);
+            return false;
+        }
+        errno = 0;
+        output.close();
+        if (!output) {
+            report_output_error("close");
+            std::error_code removed;
+            fs::remove(merged, removed);
+            return false;
+        }
+    }
+    std::string error;
+    const bool ok = texture_catalog::Load(merged, error);
+    std::error_code removed;
+    fs::remove(merged, removed);
+    std::fprintf(stderr, "dataread: overlay catalog merged sources_added=%zu ok=%d path=%s %s\n", added, ok ? 1 : 0,
+                 PathsDisplay(merged).c_str(), error.c_str());
+    return ok;
+}
+
 } // namespace
+
+// Capture before PathsConsumeArgs removes --run-dir; Kazarov has no run-root accessor.
+void DataReadCaptureRunDirectory(int argc, const char **argv) {
+    overlay_run_directory.clear();
+    for (int i = 1; i < argc; ++i) {
+        const std::string_view argument(argv[i]);
+        if (argument == "--run-dir" && i + 1 < argc) overlay_run_directory = PathsFromUtf8(argv[++i]);
+        else if (argument.starts_with("--run-dir=")) overlay_run_directory = PathsFromUtf8(argument.substr(10));
+    }
+}
 
 void DataReadIndex(const fs::path &root) {
     TextureSourceClear();
@@ -343,6 +542,36 @@ void DataReadIndex(const fs::path &root) {
     }
     datapacks::Load(catalog.parent_path());
     BuildIndex(root);
+    if (const char *overlay = std::getenv("DC2_IXION_EXTRA_DATA"); overlay != nullptr && *overlay != '\0') {
+        auto staged = file_index;
+        std::unordered_map<std::string, fs::path> owners;
+        std::vector<fs::path> catalogs;
+        bool accepted = true;
+        try {
+          for (const auto &overlay_root : SplitOverlayList(overlay)) {
+            if (!fs::is_directory(overlay_root)) continue;
+            IndexOverlay(overlay_root, owners, staged);
+            const auto extra_catalog = overlay_root.parent_path() / "port_data" / "catalog.json";
+            if (fs::exists(extra_catalog)) {
+                if (!Contained(overlay_root.parent_path(), extra_catalog))
+                    throw std::runtime_error("overlay catalog escapes pack root");
+                catalogs.push_back(extra_catalog);
+            }
+          }
+          if (!catalogs.empty()) accepted = LoadMergedCatalog(catalog, catalogs);
+        } catch (const std::exception &exception) {
+            std::fprintf(stderr, "dataread: overlays rejected: %s\n", exception.what());
+            accepted = false;
+        }
+        if (accepted) file_index.swap(staged);
+        else {
+            // File replacements are still staged; reject the entire opt-in list atomically.
+            std::fprintf(stderr, "dataread: overlays rejected; retaining base data and catalog\n");
+            if (!texture_catalog::Load(catalog, error) && fs::exists(catalog)) {
+                std::fprintf(stderr, "dataread: %s\n", error.c_str());
+            }
+        }
+    }
 }
 
 std::optional<fs::path> DataReadFind(const char *game_name) {

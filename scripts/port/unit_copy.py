@@ -39,8 +39,15 @@ def load_port_override(path: Path):
 # Preserve these retail routines under native link-name bridges. Only their names
 # change; all calls in the original unit still reach the native public seam.
 RETAIL_BRIDGES = {
+    "menuchr.cpp": [("MenuItemCharaDataLoadEndCheck(MENU_BGREAD_INFO2**,mgCMemory*,CActionChara**,int,int,int)",
+                      "MenuItemCharaDataLoadEndCheck", "PortRetailMenuItemCharaDataLoadEndCheck")],
+    "dng_main.cpp": [("ResetEyeView(CActionChara*)", "ResetEyeView", "PortRetailResetEyeView"),
+                     ("InitEyeCamera(CActionChara*)", "InitEyeCamera", "PortRetailInitEyeCamera"),
+                     ("DngMainKey()", "DngMainKey", "PortRetailDngMainKey")],
     "editctrl.cpp": [("ResetViewMode(CScene*)", "ResetViewMode", "PortRetailResetViewMode")],
-    "dng_main.cpp": [("ResetEyeView(CActionChara*)", "ResetEyeView", "PortRetailResetEyeView")],
+    "editmenu.cpp": [("MakeDownLoadAnaunce(int,mgCMemory*,int*,int*,int*)", "MakeDownLoadAnaunce",
+                      "PortRetailMakeDownLoadAnaunce")],
+    "charasetup.cpp": [("GetRoboPartsInfo(CUserDataManager*)", "GetRoboPartsInfo", "PortRetailGetRoboPartsInfo")],
 }
 
 
@@ -77,7 +84,7 @@ def main() -> None:
     overrides = port_override.override_entries(port_override.read(args.overrides))
     try:
         text = port_override.strip_unit(args.source, overrides, port_override.renames(args.stubs), args.define,
-                                        args.long_is_64)
+                                        args.long_is_64, private_functions=args.source.name == "event_func.cpp")
     except port_override.Error as error:
         sys.exit(str(error))
 

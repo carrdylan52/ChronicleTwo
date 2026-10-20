@@ -2,6 +2,7 @@
 
 #include <array>
 #include <cstdint>
+#include <chrono>
 #include <cstdlib>
 #include <filesystem>
 #include <fstream>
@@ -122,6 +123,39 @@ TEST(MglibFrame, PickZAfterClearIsFar) {
     EXPECT_EQ(mgPickZBuff[0].z, 0);
     // Samples within 4 pixels of the edge are rejected outright, not read.
     EXPECT_EQ(mgPickZBuff[1].z, -1);
+}
+
+TEST(MglibFrame, CheckpointWritesTheRequestedFrameWithoutEndingOrRecapturing) {
+    OffscreenRenderer renderer;
+    const auto unique = std::chrono::steady_clock::now().time_since_epoch().count();
+    const auto directory = std::filesystem::temp_directory_path() /
+                           ("ghost-r1-checkpoint-" + std::to_string(ProcessId()) + "-" + std::to_string(unique));
+    ASSERT_TRUE(std::filesystem::create_directory(directory));
+    const auto checkpoint = directory / "checkpoint.png";
+    const auto expected = directory / "expected.png";
+    mgSetBackGround(64, 128, 192, 128);
+    mgBeginFrame(nullptr);
+    mgPortQueueScreenshot(checkpoint);
+    mgEndFrame(nullptr);
+    ASSERT_TRUE(std::filesystem::exists(checkpoint));
+    std::vector<uint8_t> pixels;
+    uint32_t width = 0, height = 0;
+    ASSERT_TRUE(mgPortReadColor(gfx::kMainTarget, pixels, width, height));
+    ASSERT_TRUE(gfx::WritePng(expected, pixels.data(), width, height));
+    const auto read = [](const std::filesystem::path &path) {
+        std::ifstream stream(path, std::ios::binary);
+        return std::vector<char>((std::istreambuf_iterator<char>(stream)), std::istreambuf_iterator<char>());
+    };
+    const auto original = read(checkpoint);
+    EXPECT_EQ(original, read(expected));
+    mgSetBackGround(192, 64, 128, 128);
+    mgBeginFrame(nullptr);
+    mgEndFrame(nullptr);
+    EXPECT_EQ(read(checkpoint), original);
+    EXPECT_EQ(mgPortFrameCount(), 2);
+    std::filesystem::remove(checkpoint);
+    std::filesystem::remove(expected);
+    std::filesystem::remove(directory);
 }
 
 TEST(MglibState, InitialDrawState) {
