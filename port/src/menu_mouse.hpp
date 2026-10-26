@@ -94,6 +94,8 @@ int  MenuMouseLanguageButtons(int buttons, int language);
 void MenuMouseLanguageClicks();
 
 void                   MenuMouseEnable(bool enabled);
+// True while a menu owns the pointer/wheel, including its release handoff.
+bool MenuMouseCapturing();
 const MenuMouseSample &MenuMouseTake();
 int                    MenuMouseButtons();
 void                   MenuMousePress(int buttons);

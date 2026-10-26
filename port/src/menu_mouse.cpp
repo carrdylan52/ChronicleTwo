@@ -256,6 +256,8 @@ void SetCapture(bool on) {
 
 } // namespace
 
+bool MenuMouseCapturing() { return enabled || closing; }
+
 void MenuMouseEnable(bool on) {
     navigation = on;
     choices = {};
