@@ -22,6 +22,7 @@
 #include "crash/crash.hpp"
 #include "dataread.hpp"
 #include "dataread_port.hpp"
+#include "debug_camera_mouse.hpp"
 #include "exitcodes.hpp"
 #include "gfx/gfx.hpp"
 #include "identity.hpp"
@@ -388,6 +389,9 @@ int Run(int argc, const char **argv) {
     }
     // A scripted run takes no live input: no devices open, no window input events and no mouse capture.
     InputInitForRun(options.headless || !options.input.empty());
+    if (!options.headless && options.input.empty()) {
+        DebugCameraMouseInstall();
+    }
     InputScriptInstall(std::move(input_script));
 
     gfx::RendererConfig renderer;

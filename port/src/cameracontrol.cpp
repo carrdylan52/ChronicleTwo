@@ -15,6 +15,7 @@
 
 #include "camera_mouse.hpp"
 #include "camera_zoom.hpp"
+#include "debug_camera_mouse.hpp"
 #include "dng_main.hpp"
 #include "editctrl.hpp"
 #include "editloop.hpp"
@@ -315,6 +316,7 @@ PORT_OVERRIDE void CCameraControl::MoveCamera(Control *control, float *player_ro
 }
 
 PORT_OVERRIDE void CCameraControl::Step(int frames) {
+    DebugCameraMouseBeforeStep(*this, frames);
     if (frames < 0 && PortContinuousEyeCamera != this) {
         mgPortCutCameraInterpolation();
     }
