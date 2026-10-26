@@ -486,10 +486,24 @@ file before changing the live game state.
 
 Retail gives two of Starlight Temple's (`f02`) chests the same opened flag 7: the
 Fruit of Eden by the weapon platform (`item19`) and the one by Starlight Items
-(`item11`), so opening either hid the other for good. The `UpdateTrBoxFlag`
-override (`port/src/editloop.cpp`) records `item11` under flag 9, which no other
-chest of the town uses; the save layout is unchanged. A save whose flag 7 is
-already set offers `item11` again, which restores it to saves that lost it.
+(`item11`), so opening either hid the other for good. Three placements of
+`p01_f0205` also inherit `item10`'s flag 3, so collecting one hid the other two
+on later visits. The shared resolver in `port/src/map.cpp` matches the map,
+function point and, for repeated parts, the placement name. It keeps `item11`
+under flag 9, leaves `p01_f0205-0/item10` under flag 3, and gives
+`p01_f0205-1/item10` and `p01_f0205-2/item10` flags 21 and 22. These assignments
+are stable and otherwise unused in the town. Other maps can intentionally share
+flags for alternate placements, so they are left alone.
+
+Both town and interior loading call the resolver through `UpdateTrBoxFlag`
+(`port/src/editloop.cpp`) after chest creation and before reading saved flags.
+Opening a chest writes the same resolved flag through `CMap::DeleteTrBox`;
+hiding a chest until its dungeon floor has been visited does not write a flag.
+The save layout is unchanged. Old flag-7 saves offer `item11` again. Old flag-3
+saves cannot say which of the three placements were collected: the `-0`
+placement stays hidden and the other two are offered again. This restores lost chests, but
+can give up to two extra Fruits of Eden if those chests had already been taken
+before saving. Builds without these fixes can offer the separated chests again.
 
 Closing the item page while the bag holds more of an item than its limit shows
 menu message 153 and keeps the menu open. The Japanese text names the item and

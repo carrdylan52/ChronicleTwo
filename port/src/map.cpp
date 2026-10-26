@@ -22,24 +22,50 @@ PORT_OVERRIDE void CMap::SetPlacePartsBuff(mgCMemory *memory, int capacity) {
 
 namespace {
 
-// Starlight Temple's item19 and item11 chests share opened flag 7, so opening one hides the other. No other chest of
-// the town uses flag 9.
-constexpr std::string_view kSharedFlagMap = "f02";
-constexpr std::string_view kSharedFlagPoint = "item11";
-constexpr int              kSharedFlag = 7;
-constexpr int              kSeparateFlag = 9;
+struct TreasureBoxFlagFix {
+    std::string_view map_name;
+    std::string_view placement_name; // Empty preserves the existing correction regardless of the point's owner.
+    std::string_view point_name;
+    int              retail_flag;
+    int              opened_flag;
+};
+
+// Keep these assignments stable: they are stored in existing saves. f02's three p01_f0205 placements inherit
+// item10's flag 3; its item19 and item11 also share flag 7. Flags 9, 21 and 22 are otherwise unused in f02.
+// Other maps can intentionally reuse flags for alternate placements, so do not renumber duplicates globally.
+constexpr TreasureBoxFlagFix kTreasureBoxFlagFixes[] = {
+    {"f02", "", "item11", 7, 9},
+    {"f02", "p01_f0205-1", "item10", 3, 21},
+    {"f02", "p01_f0205-2", "item10", 3, 22},
+};
+
+int ResolveTreasureBoxFlag(const CMapTreasureBox &box, std::string_view map_name) {
+    if (box.func_point == nullptr) {
+        return box.flag_no;
+    }
+
+    const auto point_name     = bounded_text::View(box.func_point->name);
+    const auto placement_name = box.parts != nullptr
+                                    ? bounded_text::View(box.parts->name, sizeof(box.parts->name))
+                                    : std::string_view();
+    for (const auto &fix : kTreasureBoxFlagFixes) {
+        if (map_name == fix.map_name && point_name == fix.point_name && box.flag_no == fix.retail_flag &&
+            (fix.placement_name.empty() || placement_name == fix.placement_name)) {
+            return fix.opened_flag;
+        }
+    }
+    return box.flag_no;
+}
 
 } // namespace
 
 void PortSplitTreasureBoxFlags(CMap &map, std::string_view map_name) {
-    if (map_name != kSharedFlagMap || map.tr_box == nullptr) {
+    if (map.tr_box == nullptr) {
         return;
     }
 
     for (CMapTreasureBox &box : std::span(map.tr_box, static_cast<std::size_t>(std::max(map.tr_box_num, 0)))) {
-        if (box.flag_no == kSharedFlag && box.func_point != nullptr &&
-            bounded_text::View(box.func_point->name) == kSharedFlagPoint) {
-            box.flag_no = kSeparateFlag;
-        }
+        // Both UpdateTrBoxFlag and DeleteTrBox use this value, including temporary hides with no save flags.
+        box.flag_no = ResolveTreasureBoxFlag(box, map_name);
     }
 }
