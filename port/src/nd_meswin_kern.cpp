@@ -3,6 +3,7 @@
 
 #include <algorithm>
 #include <cmath>
+#include <cstdint>
 #include <cstring>
 #include <unordered_map>
 #include <vector>
@@ -209,8 +210,9 @@ PORT_OVERRIDE void ClsMes::DrawFont() {
                     bottom = mgScreenHeight - 1;
                 }
 
-                prim.Direct(SCE_GS_SCISSOR_1, (unsigned long) left | ((unsigned long) right << 16) |
-                                                  ((unsigned long) top << 32) | ((unsigned long) bottom << 48));
+                // GS registers are 64-bit; Windows unsigned long is only 32-bit.
+                prim.Direct(SCE_GS_SCISSOR_1, static_cast<std::uint64_t>(left) | (static_cast<std::uint64_t>(right) << 16) |
+                                                  (static_cast<std::uint64_t>(top) << 32) | (static_cast<std::uint64_t>(bottom) << 48));
             }
 
             x += text_x;
@@ -264,8 +266,8 @@ PORT_OVERRIDE void ClsMes::DrawFont() {
         last_y = y;
 
         if (scissor_on != 0 && line_pos_on[line] == 0) {
-            prim.Direct(SCE_GS_SCISSOR_1, ((unsigned long) (mgScreenWidth - 1) << 16) |
-                                              ((unsigned long) (mgScreenHeight - 1) << 48));
+            prim.Direct(SCE_GS_SCISSOR_1, (static_cast<std::uint64_t>(mgScreenWidth - 1) << 16) |
+                                              (static_cast<std::uint64_t>(mgScreenHeight - 1) << 48));
         }
     }
 
