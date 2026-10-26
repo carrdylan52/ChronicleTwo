@@ -25,6 +25,7 @@ namespace {
 using Clock = std::chrono::steady_clock;
 DebugCameraInputGate gate;
 bool (*overlay_input_query)() = nullptr;
+bool loop_ready = false;
 bool focused = true;
 float pending_wheel = 0;
 Clock::time_point wheel_time;
@@ -38,11 +39,12 @@ void Discard() {
 }
 
 CCameraControl *Owner() {
-    if (!focused || !MouseInputLive() || InputDeveloperMenu() || MenuMouseCapturing() ||
+    // Window events run this too, also between modes. MainScene can still list a town camera whose
+    // arena the developer menu reuses, so camera objects are read only after the running mode has
+    // initialised and only in their own loop.
+    if (!loop_ready || !focused || !MouseInputLive() || InputDeveloperMenu() || MenuMouseCapturing() ||
         (overlay_input_query && overlay_input_query()) || DebugInfo.debug_camera != 1 ||
         GamePad__2.key_lock || mgCCamera::StopCamera || GetPauseFlag() || NowTakePhoto() || SubGameRunning()) return nullptr;
-    // The loop goes first: the developer menu reuses the arena of the town camera MainScene still
-    // lists, and this also runs from window events, so camera objects are read only in their own loop.
     auto *scene = GetMainScene();
     if (GetNowLoopNo() == LOOP_DUNGEON) {
         auto *area = BattleAreaScene;
@@ -106,6 +108,12 @@ void Observe(const SDL_Event &event) {
 
 void DebugCameraMouseSetOverlayInputQuery(bool (*query)()) {
     overlay_input_query = query;
+    sample_camera = nullptr;
+    Discard();
+}
+
+void DebugCameraMouseLoopReady(bool ready) {
+    loop_ready = ready;
     sample_camera = nullptr;
     Discard();
 }

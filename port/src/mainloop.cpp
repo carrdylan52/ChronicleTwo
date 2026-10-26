@@ -13,6 +13,7 @@
 #include "arena_root.hpp"
 #include "crash/crash.hpp"
 #include "dataread.hpp"
+#include "debug_camera_mouse.hpp"
 #include "debug_mode.hpp"
 #include "dng_main.hpp"
 #include "editctrl_port.hpp"
@@ -422,6 +423,7 @@ PORT_OVERRIDE void MainLoop() {
         ItemIcons3DReset();
         RecordCrashContext(PortLoopNo, InitArg);
         LoopInit[PortLoopNo](InitArg);
+        DebugCameraMouseLoopReady(true);
         GameGiveOnArrival(PortLoopNo);
         PortAutosaveResetArrival();
         // Presses made while the last mode ended and this one loaded belong to neither.
@@ -583,6 +585,8 @@ PORT_OVERRIDE void MainLoop() {
             PauseCount();
         }
 
+        // From here until the next mode's LoopInit, MainScene may list objects in reused memory.
+        DebugCameraMouseLoopReady(false);
         LoopExit[PortLoopNo]();
         MemoryLogPeaks();
 

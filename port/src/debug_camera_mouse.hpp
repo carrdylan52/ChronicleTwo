@@ -6,6 +6,10 @@ class CCameraControl;
 void DebugCameraMouseInstall();
 void DebugCameraMouseBeforeStep(CCameraControl &camera, int frames);
 
+// The main loop clears this before a mode exits and sets it once the next mode has initialised.
+// In between, MainScene can still list objects whose memory the next mode reuses.
+void DebugCameraMouseLoopReady(bool ready);
+
 // The mod overlay supplies its complete input ownership, including close settling.
 // Install once from its init/open path; the query must not consume input or mutate camera state.
 void DebugCameraMouseSetOverlayInputQuery(bool (*query)());
