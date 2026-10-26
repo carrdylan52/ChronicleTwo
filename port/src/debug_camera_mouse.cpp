@@ -41,13 +41,9 @@ CCameraControl *Owner() {
     if (!focused || !MouseInputLive() || InputDeveloperMenu() || MenuMouseCapturing() ||
         (overlay_input_query && overlay_input_query()) || DebugInfo.debug_camera != 1 ||
         GamePad__2.key_lock || mgCCamera::StopCamera || GetPauseFlag() || NowTakePhoto() || SubGameRunning()) return nullptr;
+    // The loop goes first: the developer menu reuses the arena of the town camera MainScene still
+    // lists, and this also runs from window events, so camera objects are read only in their own loop.
     auto *scene = GetMainScene();
-    if (!scene || scene->active_camera != 0 || scene->event_run || !scene->GetMap(scene->active_map)) return nullptr;
-    auto *base = scene->GetCamera(0);
-    auto *chara = scene->GetCharacter(scene->player_chara);
-    if (!base || !chara || base->Iam() != CAMERA_KIND_CONTROL || base->suspended) return nullptr;
-    auto *camera = static_cast<CCameraControl *>(base);
-    if (camera->control_on || !camera->follow_on) return nullptr;
     if (GetNowLoopNo() == LOOP_DUNGEON) {
         auto *area = BattleAreaScene;
         if (scene != DngMainScene || DngStatus.mode != DNG_STATUS_FIELD || DngStatus.eye_view ||
@@ -64,6 +60,12 @@ CCameraControl *Owner() {
     } else {
         return nullptr;
     }
+    if (!scene || scene->active_camera != 0 || scene->event_run || !scene->GetMap(scene->active_map)) return nullptr;
+    auto *base = scene->GetCamera(0);
+    auto *chara = scene->GetCharacter(scene->player_chara);
+    if (!base || !chara || base->Iam() != CAMERA_KIND_CONTROL || base->suspended) return nullptr;
+    auto *camera = static_cast<CCameraControl *>(base);
+    if (camera->control_on || !camera->follow_on) return nullptr;
     return camera;
 }
 
