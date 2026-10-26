@@ -31,6 +31,13 @@ TEST(DebugCameraOrbit, KeepsNativePoseWhenIdleAndBoundsMouseChanges) {
 
 }
 
+TEST(DebugCameraOrbit, ExtremeFiniteYawKeepsAFiniteAngle) {
+    DebugCameraOrbit pose{.angle = std::numeric_limits<float>::max(), .distance = 100, .height = 50};
+    EXPECT_TRUE(DebugCameraOrbitInput(pose, std::numeric_limits<float>::lowest(), 0, 0));
+    EXPECT_TRUE(std::isfinite(pose.angle) && std::fabs(pose.angle) <= std::numbers::pi_v<float>);
+    EXPECT_TRUE(pose.distance == 100 && pose.height == 50);
+}
+
 TEST(DebugCameraOrbit, RequiresFreshNeutralReadsAfterOwnerChanges) {
     DebugCameraInputGate gate;
     EXPECT_TRUE(!gate.Read(1, false, false));

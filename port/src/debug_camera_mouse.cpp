@@ -14,6 +14,7 @@
 #include "editloop.hpp"
 #include "mainloop.hpp"
 #include "menu_mouse.hpp"
+#include "nowload.hpp"
 #include "photo.hpp"
 #include "platform/input.hpp"
 #include "platform/mouse.hpp"
@@ -39,7 +40,7 @@ void Discard() {
 CCameraControl *Owner() {
     if (!focused || !MouseInputLive() || InputDeveloperMenu() || MenuMouseCapturing() ||
         (overlay_input_query && overlay_input_query()) || DebugInfo.debug_camera != 1 ||
-        GamePad__2.key_lock || mgCCamera::StopCamera || NowTakePhoto() || SubGameRunning()) return nullptr;
+        GamePad__2.key_lock || mgCCamera::StopCamera || GetPauseFlag() || NowTakePhoto() || SubGameRunning()) return nullptr;
     auto *scene = GetMainScene();
     if (!scene || scene->active_camera != 0 || scene->event_run || !scene->GetMap(scene->active_map)) return nullptr;
     auto *base = scene->GetCamera(0);

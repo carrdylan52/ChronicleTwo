@@ -14,9 +14,9 @@ inline bool DebugCameraOrbitInput(DebugCameraOrbit &pose, float yaw, float pitch
     if (!std::isfinite(pose.angle) || !std::isfinite(pose.distance) || !std::isfinite(pose.height) ||
         !std::isfinite(yaw) || !std::isfinite(pitch) || !std::isfinite(wheel) ||
         (yaw == 0 && pitch == 0 && wheel == 0)) return false;
-    constexpr float turn = 2 * std::numbers::pi_v<float>;
     constexpr float limit = 80 * std::numbers::pi_v<float> / 180;
-    if (yaw != 0) pose.angle = std::remainder(pose.angle - yaw, turn);
+    // Double precision: two finite floats cannot overflow their difference.
+    if (yaw != 0) pose.angle = static_cast<float>(std::remainder(static_cast<double>(pose.angle) - yaw, 2 * std::numbers::pi));
     if (pitch != 0 || wheel != 0) {
         const float distance = std::clamp(pose.distance, 30.0f, 600.0f);
         const float elevation = std::clamp(std::atan2(pose.height, distance) - pitch, -limit, limit);
